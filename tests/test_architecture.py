@@ -94,13 +94,17 @@ class TestArchitecture(unittest.TestCase):
             )
 
     def test_no_orphan_playbooks_or_runtime_policies(self):
-        # Every callable protocol must be composed by at least one mission; a protocol
-        # no mission uses is dead weight the catalog silently carries.
+        # Every callable protocol must be composed by at least one mission, via an
+        # EXPLICIT reference form: `name` backticked or name.md. Prose coincidence is
+        # not a composition — "landed" containing "land", or a bare phase name in a
+        # description, must not keep an orphan alive.
         bodies = "\n".join((d / "SKILL.md").read_text(encoding="utf-8") for d in mission_dirs())
         for proto_dir in (PLAYBOOKS, RUNTIME):
             for f in proto_dir.glob("*.md"):
-                self.assertIn(
-                    f.stem, bodies,
+                stem = re.escape(f.stem)
+                self.assertRegex(
+                    bodies,
+                    rf"`{stem}`|{stem}\.md",
                     f"{proto_dir.name}/{f.name} is composed by no mission (orphan)",
                 )
 
