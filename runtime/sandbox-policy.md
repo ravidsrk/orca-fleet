@@ -1,12 +1,27 @@
 # Runtime policy — sandbox / danger profile
 
-Worker permission is least-privilege by default. `spawn_worker.sh` PROFILE:
-- `ro`  → codex --sandbox read-only / claude --permission-mode plan (report-only / audit work)
-- `rw`  → codex --sandbox workspace-write / claude --permission-mode acceptEdits (default fix work)
-- `danger` → bypass flags, ONLY with `ORCA_COORD_ALLOW_DANGER=1`.
-- A `CODEX_CMD`/`CLAUDE_CMD` launch override replaces the profile's command entirely, so it
-  needs its own opt-in: `ORCA_COORD_ALLOW_CMD_OVERRIDE=1`. Without it, spawn REFUSES (exit 2) —
-  an inherited env var must not silently defeat `PROFILE=ro`.
+Worker permission is least-privilege by default. `spawn_worker.sh` maps a PROFILE (`ro` / `rw` /
+`danger`) to each agent's VERIFIED interactive-mode flag. A tier with no verified flag for an agent
+fails CLOSED — the read-only guarantee is never faked.
+
+| Agent  | `ro` (report-only / audit)   | `rw` (default fix)              | `danger` (opt-in)              |
+|--------|------------------------------|---------------------------------|--------------------------------|
+| claude | `--permission-mode plan`     | `--permission-mode acceptEdits` | `--dangerously-skip-permissions` |
+| codex  | `--sandbox read-only`        | `--sandbox workspace-write`     | `--dangerously-bypass-approvals-and-sandbox` |
+| gemini | `--approval-mode plan`       | `--approval-mode auto_edit` ¹   | `--approval-mode yolo`         |
+| grok   | — (no verified RO) → WORKER_CMD | `--always-approve`            | `--always-approve`             |
+| droid  | — (no verified RO) → WORKER_CMD | `--auto medium`               | `--auto high`                  |
+| opencode / omp / pi | WORKER_CMD only  | WORKER_CMD only                 | WORKER_CMD only                |
+
+¹ gemini has no workspace sandbox, so `rw` (auto-edit) is coarser than codex's sandboxed write;
+prefer gemini for `ro` review, where its plan mode is a clean read-only guarantee.
+
+- `danger` requires `ORCA_COORD_ALLOW_DANGER=1`.
+- `WORKER_CMD` (generic, any agent) or legacy `CODEX_CMD`/`CLAUDE_CMD` replaces the profile's
+  command entirely — its read-only/write semantics become the caller's assertion — so it needs
+  its own opt-in `ORCA_COORD_ALLOW_CMD_OVERRIDE=1`. Without it, spawn REFUSES (exit 2): an
+  inherited env var must not silently defeat `PROFILE=ro`. This is also how an agent with no
+  verified flag for the requested tier (grok `ro`, opencode, …) is run at all.
 
 ## Danger belongs in an ephemeral sandbox, never on the host
 

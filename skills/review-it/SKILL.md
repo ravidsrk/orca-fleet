@@ -50,4 +50,5 @@ another). A finding with no quoted line treated as high-confidence. Running risk
 doesn't trigger them (noise) — or gating off security/data-migration (their value is the miss).
 
 ## Related
-`ship-it` / `clean-sweep` (act on the verdict), `harden-it` (full security loop beyond a per-diff lens).
+`ship-it` / `clean-sweep` (act on the verdict), `harden-it` (full security loop beyond a per-diff
+lens), `mission-scheduling` (report-only, so it schedules cleanly as an unattended PR-sweep).

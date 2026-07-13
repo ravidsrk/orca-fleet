@@ -4,10 +4,29 @@ All notable changes to orca-fleet are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the version source of
 truth is `.claude-plugin/plugin.json`.
 
-## [0.2.2] - 2026-07-13
+## [0.3.0] - 2026-07-13
 
 Syncs the runtime policies with the current Orca `orchestration` and `orca-cli`
-skills (an audit against both found drift, including one bug in 0.2.1).
+skills (an audit against both found drift, including one bug in 0.2.1), and adds
+two capabilities the audit surfaced: the full agent roster and scheduled runs.
+
+### Added — agent roster
+
+- `spawn_worker.sh` now covers the Orca roster with VERIFIED interactive-mode
+  flags: claude/codex/gemini across ro+rw+danger; grok/droid at rw+danger (no
+  verified read-only interactive mode); opencode/omp/pi via `WORKER_CMD`. Any
+  (agent, tier) with no verified flag fails CLOSED — the read-only guarantee is
+  never faked. `sandbox-policy.md` documents the full matrix. The old
+  claude|codex-only refusal is gone; `WORKER_CMD` generalizes the launch
+  override to any agent.
+
+### Added — scheduled runs
+
+- `runtime/mission-scheduling.md`: Orca `automations` run a mission on a cadence
+  (nightly clean-sweep, weekday review-it PR sweep). Each is a full unattended
+  run — headless autonomy, one-way gates parked not faked, cross-run
+  anti-inflation, stops at BASE/report. Wired to review-it and clean-sweep (the
+  cleanly-schedulable missions).
 
 ### Fixed
 
