@@ -99,6 +99,13 @@ evidence-based definition of done. Click through for the full guide to each.
 
 ## Which mission do I want?
 
+<p align="center">
+  <img src="assets/diagrams/mission-map.jpg" alt="Decision map: a goal routes to map-it then ship-it; known problems route to clean-sweep, harden-it, speed-it, modernize-it, prove-it, or deflake-it; a question routes to review-it or root-cause" width="900">
+</p>
+
+<details>
+<summary>Diagram source (mermaid)</summary>
+
 ```mermaid
 flowchart TD
     S([What do you have?]) --> A{A goal to build?}
@@ -117,6 +124,8 @@ flowchart TD
     C -->|why is this happening| RC[🔬 root-cause<br/>diagnosis only]
 ```
 
+</details>
+
 Two workflows are the **same mission** only if they share all five of: unit of work, per-unit
 state machine, convergence proof, ordering/isolation constraints, and parking/failure semantics.
 By that test, closing audit findings, tracker issues, and false doc-claims are one mission
@@ -127,6 +136,13 @@ proving, and flake eradication are not; their denominators and proofs differ, so
 
 Every mission runs the same shape: a **coordinator** that never writes code, and disposable
 **workers** that never coordinate.
+
+<p align="center">
+  <img src="assets/diagrams/fleet-topology.jpg" alt="Fleet topology: a human answers one-way gates; the coordinator holds the ledger and verifier; builder, reviewer, and conductor workers receive dispatches and return evidence" width="900">
+</p>
+
+<details>
+<summary>Diagram source (mermaid)</summary>
 
 ```mermaid
 flowchart LR
@@ -150,6 +166,8 @@ flowchart LR
     V -->|verified state| L
     H <-->|gates only| coord
 ```
+
+</details>
 
 The specifics that make this reliable are not abstractions — they are documented runtime
 policies preserved exactly because each one paid for itself the hard way:
@@ -177,6 +195,13 @@ A trace proves an action was *attempted*, not that the resulting state is *corre
 can run the right-looking commands against the wrong SHA. So completion is never graded on
 narration. It is a two-part protocol:
 
+<p align="center">
+  <img src="assets/diagrams/evidence-protocol.jpg" alt="Evidence protocol: a worker's claim travels as a manifest to a fresh-session verifier, which checks git, tests, and the deploy target before marking the unit verified — or re-dispatches it" width="900">
+</p>
+
+<details>
+<summary>Diagram source (mermaid)</summary>
+
 ```mermaid
 sequenceDiagram
     participant W as Worker
@@ -193,6 +218,8 @@ sequenceDiagram
     V-->>C: verified — advance (or SUSPECT — re-dispatch)
 ```
 
+</details>
+
 The manifest binds every claim to a SHA and an artifact; the verifier re-derives the facts. The
 denominator is frozen at run start (`contract.digest`), so a worker cannot quietly shrink its own
 scope and report a subset as "all". A negative control is mandatory for every fix and every test:
@@ -204,13 +231,9 @@ trust.**
 
 ## Three layers, strictly separated
 
-```
-MISSIONS   (skills/, discoverable)      ← the only user-facing skills. One outcome each.
-   │  compose, by reference, →
-PLAYBOOKS  (playbooks/, callable)       ← reusable phase protocols. NOT auto-triggering skills.
-   │  run on, →
-RUNTIME    (runtime/, invisible)        ← Orca primitives + policies. Called, not discovered.
-```
+<p align="center">
+  <img src="assets/diagrams/three-layers.jpg" alt="Three layers: MISSIONS (discoverable, one outcome each) compose PLAYBOOKS (callable phase protocols), which run on RUNTIME (invisible policies and primitives)" width="900">
+</p>
 
 > Missions are discoverable. Playbooks are callable. Runtime mechanisms are invisible unless
 > directly administered.

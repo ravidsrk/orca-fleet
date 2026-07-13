@@ -108,6 +108,10 @@ Why this and not "read the transcript"? Three reasons, all learned the hard way:
 
 ## Independent verification
 
+<p align="center">
+  <img src="../assets/diagrams/evidence-protocol.jpg" alt="Evidence protocol: a worker's claim travels as a manifest to a fresh-session verifier, which checks git, tests, and the deploy target before marking the unit verified — or re-dispatches it" width="820">
+</p>
+
 The manifest is a claim. A **different session** than the one that produced the work checks it
 against authoritative state, in a fixed order — scope first, because passing tests on a shrunken
 denominator is the most dangerous false "done":
