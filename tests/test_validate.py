@@ -11,6 +11,7 @@ import importlib.util
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parent.parent
 _spec = importlib.util.spec_from_file_location("validate", ROOT / "scripts" / "validate.py")
@@ -112,13 +113,10 @@ class TestProtocolDocRefs(unittest.TestCase):
             playbooks.mkdir()
             runtime.mkdir()
             (playbooks / "demo.md").write_text(doc_text, encoding="utf-8")
-            old = validate.PLAYBOOKS_DIR, validate.RUNTIME_DIR, validate.ROOT
-            validate.PLAYBOOKS_DIR, validate.RUNTIME_DIR, validate.ROOT = (
-                playbooks, runtime, Path(tmp))
-            try:
+            with mock.patch.object(validate, "PLAYBOOKS_DIR", playbooks), \
+                 mock.patch.object(validate, "RUNTIME_DIR", runtime), \
+                 mock.patch.object(validate, "ROOT", Path(tmp)):
                 return validate.check_protocol_doc_refs(PROTOCOLS)
-            finally:
-                validate.PLAYBOOKS_DIR, validate.RUNTIME_DIR, validate.ROOT = old
 
     def test_dangling_ref_in_playbook_fails(self):
         failures = self._with_dirs("The LAND phase runs per land.md as always.\n")
