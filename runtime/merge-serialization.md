@@ -28,6 +28,23 @@ send to the conductor handle.)
 5. Hot-file ownership: PRs touching the same mount-point file (route registry, DI wiring,
    migrations, barrels) form a merge CHAIN — build parallel, merge one-at-a-time as a union.
 
+## First-merge spot-check (the pipeline inherits it)
+
+The FIRST merge of a run gets an extra dispatched verification before the second unit merges: a
+fresh worker confirms it landed as a merge commit (commits preserved, not squashed), every commit
+is authored by the maintainer with no trailers, the branch is deleted, and the worktree is
+retired. Whatever shape the first merge takes, the rest of the train copies — so a squashed or
+mis-authored first merge silently sets the pattern for every unit after it. Catch it once, at unit
+one, not at run close.
+
+## No-gh fallback (offline / unauthenticated)
+
+`gh` is the default path (`gh pr create` / `gh pr merge`). When `gh auth status` fails and cannot
+be restored, the conductor degrades to LOCAL merge commits into BASE — `git merge --no-ff` (commits
+preserved, never squash), conflicts resolved locally the same union way, branch deleted, maintainer
+authorship — and records `no-gh: local-merge` in the ledger. The BASE→default promotion still needs
+a human and a real PR, so a no-gh run stops at BASE and surfaces that the promotion PR is owed.
+
 ## Rules
 
 - ONE conductor per BASE. Two trains on one base is a race, not redundancy.

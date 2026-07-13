@@ -9,14 +9,29 @@ When BASE is CREATED, record its fork-point SHA (`git rev-parse <default>`) in t
 every subsequent preflight passes `--fork-point <that sha>` so a stale BASE from an earlier run is
 rejected rather than silently reused.
 
-`orca worktree create --name <unit-slug> --no-parent --base-branch <BASE> --agent <id> --prompt
-"<TASK>"` — one unit (`--name` is required by the CLI),
-off the integration BASE (NOT off a feature branch; `--no-parent` = Orca lineage, `--base-branch` =
-git base, independent axes). Read the handle from `startupTerminal.handle`. Then verify readiness
-before injecting (`terminal wait --for tui-idle`), because injecting into a booting TUI loses the
-prompt. `scripts/spawn_worker.sh` bakes the fail-closed sequence: create → wait → verify task ready
-(never force `ready` — the DAG stays authoritative) → dispatch --inject → Enter (claude pastes but
-does not submit; codex auto-submits) → verify heartbeat, respawn-signal exit 3 on none.
+`orca worktree create --name <unit-slug> --base-branch <BASE> --agent <id> --prompt "<TASK>"` — one
+unit (`--name` is required by the CLI), off the integration BASE (NOT off a feature branch;
+`--base-branch` is the git base, an axis independent of Orca lineage). Read the handle from
+`startupTerminal.handle`. Then verify readiness before injecting (`terminal wait --for tui-idle`),
+because injecting into a booting TUI loses the prompt. `scripts/spawn_worker.sh` bakes the
+fail-closed sequence: create → wait → verify task ready (never force `ready` — the DAG stays
+authoritative) → dispatch --inject → Enter (claude pastes but does not submit; codex auto-submits)
+→ verify heartbeat, respawn-signal exit 3 on none.
+
+## Worktree lineage: a subtree per unit
+
+A supervised worker's worktree is a CHILD of the coordinator, not a top-level tree — so **omit
+`--no-parent`** on the unit's first (builder) worktree. `--no-parent` is for full handoffs where
+nobody supervises; a coordinated unit that goes top-level orphans its lineage from the run.
+
+Each unit's DEPENDENT workers — its build-blind reviewer, every fix round, the integrator, the
+review-bot reconcile — are FRESH TERMINALS created INSIDE that unit's own worktree (target it by
+the WT id recorded at creation: `terminal create --worktree id:<WT>`), never a new worktree and
+never `--worktree active` (which can resolve to the coordinator root). A fresh terminal is a fresh
+build-blind session that shares the unit's branch, so parenting to the worktree keeps lineage
+correct WITHOUT leaking the builder's conversation. The result is a clean subtree:
+coordinator → unit-A worktree → {unit-A review, fix rounds, integrator}. One `WT_CLEAN` on the
+unit's worktree then tears the whole subtree down at merge. Keep chains ≤3–4 deep.
 
 Operational specifics the script relies on: worktree selectors are composite `uuid::path` ids —
 pass `path:/abs/worktree/path` (unambiguous) or the full composite id, never the bare uuid.
@@ -33,15 +48,31 @@ fork from the default's history. Every per-unit PR merges into BASE; if BASE is 
 land straight on production and bypass the human promotion review. Report-only fleets use
 `preflight.py --mode readonly`.
 
-## Bot-autofix non-convergence
+## Third-party review bots — wait → ingest → reconcile
 
-A PR review bot with Autofix ON pushes commits AFTER the reviewer's PASS, and keeps pushing in
-response to your normalization — non-convergent. Ask the user to set Autofix to comment-only for the
-run (comment-only findings are just as useful, the branch stays stable). If it must stay on: the
-integrator normalizes bot commits (author→maintainer, strip trailers, NEVER squash), re-verifies,
-and the merge worker polls the bot to a TERMINAL state before merging; a rider that lands between
-force-push and merge is handled by force-push-then-immediately-merge (merging deletes the branch,
-ending the loop), retry ≤3×, then confirm the merge commit's second parent has the reviewed tree.
+Applies to ANY PR review bot on the repo (Greptile, CodeRabbit, Cursor BugBot, …) — detect the
+bot's login dynamically from the repo's app install or prior PRs; never hardcode one. The
+integrator (not the coordinator) runs this inside its dispatched task after opening the PR, and
+again after every re-push (a new commit re-triggers the bot). It is just another dispatch →
+`worker_done` from the coordinator's seat.
+
+1. **Wait, bounded:** poll every ~30s, floor ~2–3 min (the bot needs time to run), cap ~10 min. If
+   the cap elapses with no bot activity, log a "did-not-run" checkpoint and proceed — never block
+   the loop forever on an external bot.
+2. **Ingest comments:** each becomes a tracked item, VALID or FALSE-POSITIVE (dismissed with a
+   recorded reason). VALID items fold into the SAME change request as the internal reviewer's
+   findings, so the builder addresses both in one pass.
+3. **Reconcile pushed commits:** a bot with autofix ON pushes commits AFTER the reviewer's PASS and
+   keeps pushing in response to your normalization — non-convergent. Prefer asking the user to set
+   it to comment-only for the run (the branch stays stable; comments are just as useful). If it
+   must push: normalize its commits (author→maintainer, strip trailers, NEVER squash), re-verify
+   green, re-run gitleaks; a rider that lands between force-push and merge is handled by
+   force-push-then-immediately-merge (merging deletes the branch, ending the loop), retry ≤3×, then
+   confirm the merge commit's second parent has the reviewed tree.
+
+The internal fresh build-blind reviewer reviews the RECONCILED branch and is the final gate. Bot
+rounds count WITHIN the review round budget (acceptance-review.md). A bot re-push voids the review
+SHA (reviewed-sha-freshness.md).
 
 ## Builders never open PRs; integrators do
 
@@ -77,7 +108,8 @@ base before each wave; a stale base makes workers build on outdated code and sta
 
 ## Worktree retirement (end-of-unit and end-of-run)
 
-Retire each worker's worktree when its unit MERGES, not at run end — and verify before removing:
+Retire each unit's worktree when its unit MERGES, not at run end — which tears down the whole
+subtree (its child review / fix / integrator terminals) in one `WT_CLEAN`. Verify before removing:
 the PR is `state=MERGED`, the branch is deleted, and `git status` in the worktree is clean.
 NEVER remove the coordinator's own worktree, a dirty worktree, or one whose branch is unmerged —
 that destroys work the ledger still counts on. If removal is refused, archive instead of forcing.
