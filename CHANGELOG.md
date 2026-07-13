@@ -14,8 +14,9 @@ truth is `.claude-plugin/plugin.json`.
   `<name>.md` mention across missions, playbooks, and runtime policies, flags
   case/underscore typos of protocol names and path-prefixed references, and
   ignores external URLs.
-- Negative-path test suite (`tests/test_validate.py`): every validator failure
-  branch is locked to a fixture that must trip it.
+- Negative-path test suite (`tests/test_validate.py`): every failure branch of
+  the new composition and reference checks is locked to a fixture that must
+  trip it.
 
 ### Changed
 
