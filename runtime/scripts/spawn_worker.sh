@@ -37,7 +37,8 @@
 # Env:
 #   SP                        scratchpad dir for JSON artifacts (default: cwd)
 #   PROFILE                   ro | rw (default) | danger — worker permission profile
-#   ORCA_COORD_ALLOW_DANGER   must be 1 for PROFILE=danger
+#   ORCA_COORD_ALLOW_AUTONOMOUS_WRITE  must be 1 for PROFILE=rw (accept autonomous bypass workers)
+#   ORCA_COORD_ALLOW_DANGER   must be 1 for PROFILE=danger (implies the above + ephemeral sandbox)
 #   WORKER_CMD                full launch command for ANY agent (the generic override; its
 #                             read-only/write semantics become YOUR assertion). Legacy
 #                             CLAUDE_CMD / CODEX_CMD still work for those two. Any override
@@ -104,8 +105,19 @@ step=resolve-profile
 case "$PROFILE" in ro|rw|danger) : ;; *)
   echo "SPAWN=REFUSED task=${task} unknown PROFILE='$PROFILE' (want ro|rw|danger)" >&2; exit 2 ;;
 esac
+# rw and danger launch fully-autonomous (permission-bypass) write workers — non-blocking by
+# design, but a real capability grant. They are FAIL-CLOSED behind an explicit opt-in so a
+# bare/accidental invocation never spawns a bypass worker silently. ro (read-only) needs none.
+#   rw     → ORCA_COORD_ALLOW_AUTONOMOUS_WRITE=1  (accept: no per-command prompts; safety is the
+#            isolated worktree + build-blind review + PR gate + testnet/staging rails)
+#   danger → ORCA_COORD_ALLOW_DANGER=1            (implies the above AND the ephemeral-sandbox
+#            requirement — see sandbox-policy.md; use for destructive / exploit work)
+if [ "$PROFILE" = "rw" ] && [ "${ORCA_COORD_ALLOW_AUTONOMOUS_WRITE:-0}" != "1" ]; then
+  echo "SPAWN=REFUSED task=${task} PROFILE=rw launches an autonomous permission-bypass worker — set ORCA_COORD_ALLOW_AUTONOMOUS_WRITE=1 to accept (worktree + review + PR gate are the safety layer, not per-command prompts)" >&2
+  exit 2
+fi
 if [ "$PROFILE" = "danger" ] && [ "${ORCA_COORD_ALLOW_DANGER:-0}" != "1" ]; then
-  echo "SPAWN=REFUSED task=${task} PROFILE=danger requires ORCA_COORD_ALLOW_DANGER=1 (least-privilege guard)" >&2
+  echo "SPAWN=REFUSED task=${task} PROFILE=danger requires ORCA_COORD_ALLOW_DANGER=1 AND an ephemeral sandbox (sandbox-policy.md)" >&2
   exit 2
 fi
 

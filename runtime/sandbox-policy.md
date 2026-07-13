@@ -17,14 +17,20 @@ running tests or `npm install` would block. `spawn_worker.sh` maps each PROFILE 
 
 - **`ro`** is non-blocking because it cannot mutate — nothing to approve. It is the permission
   boundary for report-only missions (review-it).
-- **`rw`** is autonomous write, the default for build/fix. The safety is NOT per-command prompts —
-  it is the isolated worktree + build-blind review + the PR gate + no-merge-to-default-without-a-
-  human. This is the coordinator prompt library's model verbatim ("no per-action permission
-  prompts; a worker that blocks defeats the run").
-- **`danger`** uses the SAME autonomous flag as `rw`; it adds `ORCA_COORD_ALLOW_DANGER=1` and the
-  requirement to run in an ephemeral per-workspace sandbox (below). Danger is an ENVIRONMENT
-  choice (disposable host), not a more-bypassed flag — on the host there is no autonomous mode
-  more contained than `rw` that still runs without blocking.
+- **`rw`** is autonomous write, the default for build/fix. It launches a permission-BYPASS worker
+  (no per-command prompts) — non-blocking by design, but a real capability grant, so it is
+  **fail-closed behind `ORCA_COORD_ALLOW_AUTONOMOUS_WRITE=1`**: a bare or accidental spawn never
+  starts a bypass worker silently. The safety is NOT per-command prompts — it is the isolated
+  worktree + build-blind review + the PR gate + no-merge-to-default-without-a-human + the
+  testnet/staging/fixtures rails below. This is the coordinator prompt library's model verbatim
+  ("no per-action permission prompts; a worker that blocks defeats the run"). Run `rw` on a host
+  where that safety envelope is acceptable — for a machine with real credentials or prod reach,
+  run it in an ephemeral sandbox too.
+- **`danger`** uses the SAME autonomous flag as `rw`; it requires `ORCA_COORD_ALLOW_DANGER=1`
+  (which subsumes the autonomous-write opt-in) AND that the worker run in an ephemeral
+  per-workspace sandbox (below) — destructive / exploit work never runs on the mortal host.
+  Danger is an ENVIRONMENT choice (disposable host), not a more-bypassed flag: on the host there
+  is no autonomous mode more contained than `rw` that still runs without blocking.
 - **`WORKER_CMD`** (generic, any agent) or legacy `CODEX_CMD`/`CLAUDE_CMD` replaces the command
   entirely — its semantics become the caller's assertion — so it needs its own opt-in
   `ORCA_COORD_ALLOW_CMD_OVERRIDE=1` (an inherited env var must not silently defeat `PROFILE=ro`).

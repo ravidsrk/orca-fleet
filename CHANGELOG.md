@@ -27,6 +27,11 @@ two capabilities the audit surfaced: the full agent roster and scheduled runs.
   omp/pi have no Orca autonomous launch flag → `WORKER_CMD`. The old
   claude|codex-only refusal is gone; `WORKER_CMD` generalizes the override to
   any agent; `sandbox-policy.md` carries the full matrix.
+- Because `rw` launches a permission-bypass worker, it is fail-closed behind a
+  new explicit opt-in `ORCA_COORD_ALLOW_AUTONOMOUS_WRITE=1` (mirroring the danger
+  gate) so a bare/accidental spawn never starts a bypass worker silently. The
+  safety envelope is the isolated worktree + build-blind review + PR gate +
+  testnet/staging rails; `danger` additionally mandates an ephemeral sandbox.
 
 ### Added — scheduled runs
 
