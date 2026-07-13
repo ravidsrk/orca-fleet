@@ -4,6 +4,36 @@ All notable changes to orca-fleet are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the version source of
 truth is `.claude-plugin/plugin.json`.
 
+## [0.2.2] - 2026-07-13
+
+Syncs the runtime policies with the current Orca `orchestration` and `orca-cli`
+skills (an audit against both found drift, including one bug in 0.2.1).
+
+### Fixed
+
+- Subtree lineage (0.2.1 bug): a supervised unit's worktree is created with
+  `--parent-worktree active`, not by merely omitting `--no-parent` — the latter
+  relies on Orca inferring the parent, which only works "when it can"
+  (`runtime/dispatch-lifecycle.md`).
+- Inbox mechanics: `check --peek` inspects unread WITHOUT consuming (the correct
+  tool when an off-type heartbeat is buried); the old note misdescribed `--all`
+  and omitted `--peek`.
+
+### Added
+
+- Provenance rule: lifecycle authority is the payload `taskId`+`dispatchId`
+  verified against the dispatched pane, never a handle comparison; a
+  `worker_done`/`heartbeat` from a different pane is ignored, and
+  `terminal_handle_stale` means re-resolve and never dual-send
+  (`runtime/liveness-resume.md`).
+- Orca-native progress surface: workers update the worktree comment +
+  `--workspace-status` at checkpoints, complementing the file ledger.
+- `--setup run` on the builder worktree for repos needing setup hooks;
+  `task-list --brief` for coordinator DAG sweeps; the composite worktree-id
+  form `<repoId>::<worktreePath>`; the Linux `orca`-is-the-screen-reader gotcha
+  (use `orca-ide`); `worker_done` auto-completes the task (no manual
+  `task-update`); expanded group roster (`@grok`, `@cursor`).
+
 ## [0.2.1] - 2026-07-13
 
 Closes the gaps a coverage audit found between the catalog and the original
