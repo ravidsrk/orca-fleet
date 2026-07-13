@@ -17,8 +17,9 @@ compatibility: >-
 
 You are the **COORDINATOR**. The unit is an INTERMITTENT FAILURE DISTRIBUTION, not a defect: detection
 and proof require REPEATED observations, environment correlation, and a consecutive-green / statistical
-contract. Rerun behavior IS the mission, not verification-after-a-fix. Composes `diagnose`,
-`build-change`.
+contract. Rerun behavior IS the mission, not verification-after-a-fix. Composes `diagnose`, `build-change`,
+`remediate-finding` (the finding is a flake; the red-by-revert ratchet is its negative control);
+rides `merge-serialization`, `reviewed-sha-freshness`, `dispatch-lifecycle`, `liveness-resume`.
 
 ## Two terminal outcomes
 
@@ -30,7 +31,7 @@ contract. Rerun behavior IS the mission, not verification-after-a-fix. Composes 
 ## Pipeline
 
 ```
-DETECT: run the suite `{{DETECT_RUNS}}` times (parallel, varied seed/order) → per-test flake RATE;
+DETECT: run the suite `{{DETECT_RUNS}}` times (default 20; parallel, varied seed/order) → per-test flake RATE;
   mine CI retry history (pass-on-retry tests flake in an env local runs don't reproduce — capture even
   at local rate 0). Deterministic N/N failures are BUGS → route to clean-sweep, out of scope.
   → DIAGNOSE (diagnose playbook, adapted): build a loop that RAISES the failure rate (tight loop, under
@@ -39,7 +40,7 @@ DETECT: run the suite `{{DETECT_RUNS}}` times (parallel, varied seed/order) → 
     / async race) → the class dictates the fix.
   → FIX root cause + RATCHET red-by-revert (revert only the fix, show the flake returns at its measured
     rate; restore, show it's gone across a mini-streak) — never `retry(3)` a flake into hiding.
-  → build-blind REVIEW → LAND
+  → close per remediate-finding: PR-per-flake against BASE → build-blind REVIEW → conductor LAND
   → PROVE: full suite `{{GREEN_STREAK}}` consecutive runs, local AND verified in CI (gh run list). ANY
     flake resets the streak to zero and re-enters detection. → loop → outcome
 ```

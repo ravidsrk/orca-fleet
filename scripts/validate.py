@@ -13,8 +13,15 @@ Two things are checked:
    - Only skills/ contains SKILL.md. A SKILL.md under playbooks/ or runtime/ would
      republish an internal protocol as a discoverable skill — the exact routing
      collision this repo exists to remove.
-   - Every playbook a mission references (../../playbooks/<x>.md) exists.
-   - Every runtime policy a mission references (../../runtime/<x>.md) exists.
+   - Every name in a mission's "Composes …; rides …" clause resolves to a real
+     playbook or runtime policy, and every mission has at least one such
+     machine-checkable name (a clause with no backticked names silently no-ops).
+     The clause is scanned to the end of its paragraph — an abbreviation ("e.g. ")
+     or a capitalized "Rides" cannot truncate or escape the scan.
+   - Every `<name>.md` mention in a mission AND in every playbook/runtime policy
+     resolves — a rename must not dangle anywhere. Uppercase docs (ARCHITECTURE.md,
+     SKILL.md) are exempt; URLs are ignored; case/underscore typos of real protocol
+     names and path-prefixed references are flagged.
 
 Exit code: 0 if all valid, 1 if any failure.
 
@@ -30,10 +37,47 @@ PLAYBOOKS_DIR = ROOT / "playbooks"
 RUNTIME_DIR = ROOT / "runtime"
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 # A mission declares what it composes in a "Composes ... rides ..." clause. Capture
-# each such clause (up to the first sentence break) and check every backtick name in
-# it resolves to a real playbook or runtime policy — this catches typos and renames.
-COMPOSE_CLAUSE_RE = re.compile(r"(?:Composes|COMPOSES|rides)\s+(.+?)(?:\.\s|\.$|\n\n)", re.DOTALL)
+# each such clause through the END of its paragraph — terminating at the first
+# sentence break lets an abbreviation ("e.g. ") truncate the clause and smuggle
+# dangling names past the check — and verify every backtick name in it resolves.
+COMPOSE_CLAUSE_RE = re.compile(
+    r"\b(?:Composes|COMPOSES|[Rr]ides)\b\s+(.+?)(?:\n\n|\Z)", re.DOTALL
+)
 BACKTICK_RE = re.compile(r"`([a-z0-9][a-z0-9-]*)`")
+# Any lowercase `<name>.md` mention (pipeline text, parentheticals) must also resolve;
+# basenames that fail NAME_RE (ARCHITECTURE.md, SKILL.md) are exempt.
+MD_TOKEN_RE = re.compile(r"[\w./-]+\.md\b")
+
+
+def md_ref_errors(text, protocols):
+    """Errors for every `<name>.md` token that should be a protocol reference.
+
+    URL tokens (https://…/x.md) are external links, not protocol refs. Uppercase
+    docs (ARCHITECTURE.md, SKILL.md) are exempt via NAME_RE — but a case or
+    underscore typo of a REAL protocol name must not ride that exemption, and a
+    path-prefixed form must not pass on basename alone (the path can lie about
+    where the file lives) — protocols are referenced by bare name.
+    """
+    errs = []
+    for m in MD_TOKEN_RE.finditer(text):
+        tok = m.group(0)
+        if tok.startswith("//") or text[max(0, m.start() - 1):m.start()] == ":":
+            continue  # URL — an external link, not a protocol reference
+        stem = tok.rsplit("/", 1)[-1][: -len(".md")]
+        canon = stem.lower().replace("_", "-")
+        if NAME_RE.match(stem):
+            if "/" in tok:
+                errs.append(
+                    f"path-prefixed reference: {tok} — reference protocols by bare "
+                    f"name (`{stem}` or {stem}.md)"
+                )
+            elif stem not in protocols:
+                errs.append(f"dangling reference: {tok} names no playbook or runtime policy")
+        elif canon in protocols:
+            errs.append(
+                f"case/underscore typo: {tok} — the protocol file is {canon}.md"
+            )
+    return errs
 
 
 def known_protocol_names():
@@ -117,15 +161,44 @@ def validate_skill(skill_dir, protocols):
         if c != "<object>" and not (1 <= len(c) <= 500):
             errors.append(f"compatibility length {len(c)} out of 1-500")
 
-    # architecture: every playbook/runtime a mission says it Composes/rides must exist
-    for clause in COMPOSE_CLAUSE_RE.findall(text):
-        for ref in BACKTICK_RE.findall(clause):
-            if ref not in protocols:
-                errors.append(
-                    f"dangling composition: `{ref}` names no playbook or runtime policy"
-                )
+    # architecture: every playbook/runtime a mission says it Composes/rides must exist,
+    # and there must be at least one such name — a clause the regex can't see into
+    # (bare directory pointers, prose) would otherwise pass with zero checks.
+    clause_refs = [
+        ref
+        for clause in COMPOSE_CLAUSE_RE.findall(text)
+        for ref in BACKTICK_RE.findall(clause)
+    ]
+    for ref in clause_refs:
+        if ref not in protocols:
+            errors.append(
+                f"dangling composition: `{ref}` names no playbook or runtime policy"
+            )
+    if not clause_refs:
+        errors.append(
+            "no machine-checkable composition: the Composes/rides clause must name "
+            "at least one playbook or runtime policy in backticks"
+        )
+
+    # every lowercase `<name>.md` mention must resolve (catches renames outside the clause)
+    errors.extend(md_ref_errors(text, protocols))
 
     return errors
+
+
+def check_protocol_doc_refs(protocols):
+    """Playbooks and runtime policies cross-reference each other by `<name>.md`;
+    a rename or deletion must not dangle there either (missions are covered by
+    validate_skill — without this pass, only skills/ is guarded)."""
+    failures = []
+    for d in (PLAYBOOKS_DIR, RUNTIME_DIR):
+        if not d.exists():
+            continue
+        for f in sorted(d.glob("*.md")):
+            text = f.read_text(encoding="utf-8")
+            for e in md_ref_errors(text, protocols):
+                failures.append(f"{f.relative_to(ROOT)}: {e}")
+    return failures
 
 
 def check_layer_separation():
@@ -164,6 +237,13 @@ def main():
         print("\nFAIL layer separation — SKILL.md found outside skills/:")
         for leak in leaks:
             print(f"   - {leak} (playbooks/runtime are callable, not discoverable)")
+
+    doc_failures = check_protocol_doc_refs(protocols)
+    if doc_failures:
+        all_passed = False
+        print("\nFAIL protocol cross-references — dangling refs in playbooks/runtime:")
+        for failure in doc_failures:
+            print(f"   - {failure}")
 
     print()
     if all_passed:

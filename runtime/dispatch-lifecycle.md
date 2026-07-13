@@ -13,6 +13,13 @@ prompt. `scripts/spawn_worker.sh` bakes the fail-closed sequence: create → wai
 (never force `ready` — the DAG stays authoritative) → dispatch --inject → Enter (claude pastes but
 does not submit; codex auto-submits) → verify heartbeat, respawn-signal exit 3 on none.
 
+Operational specifics the script relies on: worktree selectors are composite `uuid::path` ids —
+pass `path:/abs/worktree/path` (unambiguous) or the full composite id, never the bare uuid.
+Re-dispatch to an already-used terminal handle is a NO-OP — a dead or silent worker gets a FRESH
+terminal, never a re-inject. The bounded re-Enter loop in the submit step is safe because an extra
+Enter on an already-submitted claude prompt is an empty submit; the heartbeat check, not the send,
+is the authoritative verdict.
+
 ## Wrong-base detection (M-5 guardrail)
 
 `preflight.py --base <BASE>` before the first PR: BASE must NOT equal the default branch (compared

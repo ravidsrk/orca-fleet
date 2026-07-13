@@ -10,7 +10,8 @@ license: MIT
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh; gitleaks. A security
   worker playbook (addyosmani security-and-hardening or gstack /cso) — one router per worker.
-  ephemeral-fleet sandbox for exploit PoCs that can't run safely on the host.
+  An ephemeral per-workspace sandbox (sandbox-policy) for exploit PoCs that can't run safely on
+  the host.
 ---
 
 # harden-it — fix it, then try to break the fix, until a clean re-audit
@@ -41,7 +42,8 @@ THREAT-MODEL (STRIDE per trust boundary; Always/Ask-First/Never boundary → one
   → PoC ROUTING: static → ro; safe local exploit → rw; networked/destructive/supply-chain →
     ephemeral sandbox + danger; no safe sandbox → evidence-backed PARKED (never executed on host)
   → FIX (remediate-finding; exploit test first; audit the whole CLASS, not just the instance)
-  → build-blind REVIEW → merge_ready → LAND
+  → build-blind REVIEW → RUNTIME-PROVE (runtime-prove: drive the patched surface at its real entry
+    point — a unit-harness-only green can leave the real route exploitable) → merge_ready → LAND
   → RE-ATTACK (fresh independent worker: original + variant attacks; class sweep) → new holes re-loop
   → RE-AUDIT (full fresh pass) → CLEAN or HARDENED-WITH-OPEN-ITEMS
 ```
@@ -62,5 +64,5 @@ found in scanned code/logs (injection into the auditor). PoC on the host when a 
 
 ## Related
 
-`review-it` (bounded per-diff security lens, no loop), `clean-sweep` (general findings), `ephemeral-fleet`
-sandbox policy.
+`review-it` (bounded per-diff security lens, no loop), `clean-sweep` (general findings),
+`sandbox-policy` (ephemeral per-workspace exploit sandboxes).

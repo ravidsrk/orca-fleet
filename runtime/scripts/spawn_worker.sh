@@ -11,7 +11,7 @@
 #       1  a spawn/dispatch step failed
 #       2  usage or policy refusal (bad args, task not ready, unmet deps, danger without opt-in)
 #       3  dispatched but NO heartbeat after retries — respawn in a FRESH terminal
-#          (re-dispatch to the same handle is a no-op; see the README.md beside this script)
+#          (re-dispatch to the same handle is a no-op; see runtime/dispatch-lifecycle.md)
 #
 # Still works around: `dispatch --inject` pastes the prompt into a claude worker but does not
 # SUBMIT it (codex auto-submits). Flow: create terminal -> wait tui-idle -> settle -> verify task
@@ -23,7 +23,7 @@
 #
 # NOTE: <worktree_selector> is a RAW orca selector. Orca worktree IDs are composite `uuid::path` —
 #   pass `path:/abs/worktree/path` (unambiguous) or the full composite id.
-#   See the README.md beside this script ("Learnings"; canonical: scripts/orca-coord/README.md).
+#   See runtime/dispatch-lifecycle.md ("Worker unit = worktree + agent + fresh terminal").
 #
 # Env:
 #   SP                        scratchpad dir for JSON artifacts (default: cwd)
@@ -208,7 +208,7 @@ orca_json "$SP/ts-$safe_title.json" terminal send --terminal "$h" --enter  # SUB
 
 # --- verify a heartbeat; re-Enter up to 3x -------------------------------------
 # The bounded re-Enter loop is the documented claude paste-without-submit workaround
-# (README Learnings L1): an extra Enter on an already-submitted claude prompt is an
+# (runtime/dispatch-lifecycle.md): an extra Enter on an already-submitted claude prompt is an
 # empty submit (no-op), the terminal is fresh with only our injected prompt in it, and
 # the loop is bounded at 3. Retry sends are best-effort nudges — the authoritative
 # verdict is the heartbeat check below (exit 3 on failure), never the send itself.
@@ -225,6 +225,6 @@ done
 
 echo "HANDLE=$h HB=$hb"
 if [ "$hb" = "None" ]; then
-  echo "SPAWN=NO_HEARTBEAT task=${task} handle=${h} — respawn in a FRESH terminal; re-dispatch to the same handle is a no-op (see README.md beside this script)" >&2
+  echo "SPAWN=NO_HEARTBEAT task=${task} handle=${h} — respawn in a FRESH terminal; re-dispatch to the same handle is a no-op (see runtime/dispatch-lifecycle.md)" >&2
   exit 3
 fi

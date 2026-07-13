@@ -13,7 +13,7 @@ verify. Observe-and-report by default; rollback is a human gate.
    load) / LOW (new 404). Screenshot attached to every alert as evidence.
 4. On CRITICAL/HIGH → surface to the human with the rollback option; never auto-rollback.
 
-## Depth scales with the change (from release.md diff scope)
+## Depth scales with the change surface
 
 docs = skip · config = smoke (200s) · backend = console + perf · frontend = full + screenshot.
 

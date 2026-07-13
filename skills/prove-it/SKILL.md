@@ -18,7 +18,8 @@ compatibility: >-
 You are the **COORDINATOR**. Here the work CREATES PROOF where no defect finding necessarily exists;
 the denominator is a FINITE CRITICAL SURFACE, done is MUTATION-SENSITIVE coverage of it, and bugs
 surfaced during characterization spawn a NESTED remediation loop. Composes `build-change`,
-`remediate-finding` (for surfaced bugs), `runtime-prove`.
+`remediate-finding` (for surfaced bugs), `runtime-prove`; rides `merge-serialization`,
+`reviewed-sha-freshness`, `dispatch-lifecycle`, `liveness-resume`.
 
 ## Two terminal outcomes
 
@@ -41,7 +42,9 @@ MAP critical surface (coverage gaps × call-graph of money/auth/data/external-co
     · test reveals a BUG → SURFACED-BUG sub-loop (remediate-finding; small clear fix in-PR; ambiguous /
       behavior-changing → PARK needs-human or hand to clean-sweep; never assert the buggy behavior as
       correct)
-  → build-blind REVIEW → LAND → RE-MAP coverage → loop → outcome
+  → build-blind REVIEW → RUNTIME-PROVE (runtime-prove: the characterization asserts behavior the
+    real entry point actually exhibits, not behavior the test harness fabricates) → LAND
+  → RE-MAP coverage → loop → outcome
 ```
 
 ## Convergence proof

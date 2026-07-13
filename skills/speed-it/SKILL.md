@@ -18,7 +18,8 @@ compatibility: >-
 You are the **COORDINATOR**. Unlike a findings mission, here BASELINE MEASUREMENT PRECEDES inventory,
 fixes interact systemically, measurements are noisy, and DONE is a STATISTICALLY-DEFINED BUDGET over
 journeys — not closure of a finding list. Composes `risk-review` (perf lens), `remediate-finding`,
-`runtime-prove`.
+`runtime-prove`; rides `merge-serialization`, `reviewed-sha-freshness`, `dispatch-lifecycle`,
+`liveness-resume`.
 
 ## Two terminal outcomes
 
@@ -41,7 +42,9 @@ warm-vs-cold comparison is not a delta. A number you can't measure to its contra
 ```
 declare metric contracts → BASELINE every journey (to contract) → rank breaches by gap×traffic
   → DIAGNOSE the bottleneck (profile; symptom→cause tree; name the one dominant cause)
-  → FIX PR-per-hotspot (before→after mandatory; GUARD: add a CI budget) → build-blind REVIEW → LAND
+  → FIX PR-per-hotspot (before→after mandatory; GUARD: add a CI budget) → build-blind REVIEW
+  → RUNTIME-PROVE (runtime-prove: drive the journey at its real entry point — fast but behaviorally
+    wrong is a bug, not a win) → LAND
   → RE-BENCHMARK to the contract (a lucky single run is not confirmation) → loop → outcome
 ```
 
