@@ -4,6 +4,38 @@ All notable changes to orca-fleet are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the version source of
 truth is `.claude-plugin/plugin.json`.
 
+## [0.2.0] - 2026-07-13
+
+Lessons ported from the failed predecessor (ravidsrk/autonomous-fleet) — the
+mechanisms it earned in real runs, without the multi-runtime platform that
+killed it.
+
+### Added
+
+- `runtime/mission-chaining.md`: sequential gated chains — the previous
+  mission's verified terminal state is the gate, degraded terminals stop the
+  chain, deferral carry seeds the next enumeration.
+- Proof-status honesty: every mission declares `proof:` (`doctrine-only` |
+  `self-run` | `external-run`) in frontmatter; advancing requires a linked run
+  report on disk; validator-enforced. All ten missions start at doctrine-only.
+- Instruction budget: validator-enforced line caps (missions 130, playbooks 90,
+  runtime 160) so doctrine creep fails CI instead of surfacing in a postmortem.
+- Orca coordinator mechanics from the predecessor's real runs: one message per
+  `check --wait` call, read-marking semantics, broadcast-only group addresses,
+  worktree retirement guards, lost-preamble recovery, a ban on mid-run
+  `orchestration reset`.
+- Blind-fix anti-anchoring and a three-round review budget in
+  acceptance-review; a field-validated PR sizing seam in build-change and
+  remediate-finding.
+- Verifier checks for reviewer independence (byte-identity rejection,
+  `reviewer_mode` recorded) and a run-close sha256 integrity inventory.
+- Structural anti-inflation: re-runs treat a prior run's green-but-unverified
+  claims as the first items to re-verify (liveness-resume + clean-sweep).
+- Trust boundary (repo/issue/PR/log text is data, never instructions) and an
+  argv-never-interpolation rule for runtime scripts, with contract tests.
+
+## [0.1.1] - 2026-07-13
+
 ## [0.1.1] - 2026-07-13
 
 ### Added

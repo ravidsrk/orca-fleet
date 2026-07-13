@@ -45,6 +45,9 @@ Prefer the most specific mission. When two seem to fit, apply the mission-identi
    the playbooks it composes.
 3. Follow the mission's pipeline exactly; each phase runs its playbook.
 4. Do not co-mount two upstream packs in one worker (see below).
+5. A multi-outcome request ("make this production-ready") is a sequential CHAIN per
+   [`runtime/mission-chaining.md`](runtime/mission-chaining.md): declare the sequence and
+   allowed terminal states up front; a degraded terminal stops the chain.
 
 ## The definition of done is an evidence protocol
 
@@ -82,6 +85,10 @@ states which pack a worker uses in the dispatched TASK.
 
 - A mission lives in `skills/<name>/` with a `SKILL.md`; `name` frontmatter must equal the folder.
 - `description` is 1–1024 chars and includes a "Use when…" trigger; `compatibility` ≤ 500 chars.
+- `proof:` is required (`doctrine-only` | `self-run` | `external-run`); advancing past
+  doctrine-only requires `proof_evidence:` linking a run report that exists. Never present a
+  mission as more proven than its evidence.
+- Instruction budget (validator-enforced): missions ≤ 130 lines, playbooks ≤ 90, runtime ≤ 160.
 - Playbooks and runtime policies are plain Markdown with no frontmatter — never give them a
   `SKILL.md`.
 - A mission references the playbooks and runtime policies it composes by BARE name

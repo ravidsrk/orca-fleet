@@ -81,7 +81,9 @@ Phase by phase:
 4. **Review** ([`acceptance-review`](../../playbooks/acceptance-review.md)). A fresh session that
    did not write the code reviews each slice on isolated axes — standards, spec fidelity,
    test adequacy — with no cross-axis reranking. Findings must quote the motivating line or they
-   drop to an appendix.
+   drop to an appendix. Two disciplines keep it honest: the reviewer writes its own expected fix
+   to disk *before* opening the diff (anti-anchoring), and a unit gets at most three failed
+   review rounds before it parks with a gate instead of ping-ponging forever.
 5. **Prove** ([`runtime-prove`](../../playbooks/runtime-prove.md)). Green units are the start of
    verification, not the end. The change is driven through its true public entry point and the
    persisted state is asserted — plus a negative control: revert the change, watch the proof go

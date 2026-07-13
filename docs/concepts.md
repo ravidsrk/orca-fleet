@@ -130,6 +130,13 @@ A unit that fails any required check is not done — it returns to its state mac
 provenance says "completed" but git disagrees, the unit is marked SUSPECT and treated as failed.
 Git is truth; the ledger is its cache.
 
+Two further guards keep the reviews honest: the verifier rejects an evidence set whose
+"independent" review is byte-identical to the worker's own output (each manifest records its
+`reviewer_mode`, so instructed isolation is named as the weaker guarantee it is), and reviewers
+practice **blind-fix** — writing their own expected fix to disk before opening the candidate
+diff, because anchoring on a handed artifact is cheaper than re-deriving the answer. At run
+close, a sha256 inventory of every referenced artifact makes the evidence tamper-evident.
+
 ## Decision gates: mechanical, taste, one-way
 
 Fleets hit hundreds of decisions per run. Sending every one to a human makes autonomy pointless;
@@ -218,6 +225,25 @@ conflicting philosophies (one pack folds refactoring into the TDD loop, another 
 review). The rule is absolute: **a worker loads exactly one pack's playbooks.** Cross-pack
 composition happens at the mission level — one worker runs Matt-style triage while another runs
 Addy-style security — never inside a single worker's context.
+
+## Chaining missions
+
+"Make this repo production-ready" is not one mission — it is harden-it, then prove-it, then
+ship-it. Chains are deliberately minimal ([`runtime/mission-chaining.md`](../runtime/mission-chaining.md)):
+sequential only, declared up front with the terminal states allowed to proceed at each link. The
+gate between missions is the previous mission's **verified** terminal state — an audit gates, it
+never "continues anyway"; a degraded terminal (`HARDENED-WITH-OPEN-ITEMS`, `COVERED-WITH-PARKED`)
+stops the chain, and advancing past it is a one-way human gate. Each link is a full run with its
+own preflight and BASE, and mission N's parked and noticed-but-not-touched items seed mission
+N+1's enumeration as findings to triage. A chain that stops early is a correct outcome.
+
+## Proof status
+
+Every mission declares how proven it is — `doctrine-only`, `self-run`, or `external-run` — in
+validator-enforced frontmatter, and cannot advance without a linked run report on disk. This is
+the inherited lesson from this catalog's failed predecessor, which shipped twelve missions with
+two proven: doctrine is allowed to encode hard-won lessons, but it is never allowed to dress up
+as evidence.
 
 ## The mission-identity test
 

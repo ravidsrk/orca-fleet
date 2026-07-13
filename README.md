@@ -97,6 +97,20 @@ evidence-based definition of done. Click through for the full guide to each.
 | 🗺️ **[map-it](docs/missions/map-it.md)** | A foggy multi-session goal resolved into a frozen execution map `ship-it` can consume — decisions, not deliverables | "chart this", "plan this epic", "I don't know the shape yet" |
 | 🔬 **[root-cause](docs/missions/root-cause.md)** | A reproduced symptom and a demonstrated cause: repro-first → falsify rival hypotheses → one survivor, with evidence; optional fix handoff | "diagnose this", "why is this happening" |
 
+## Proof status — honesty first
+
+Every mission's frontmatter carries a validator-enforced `proof:` field: `doctrine-only`,
+`self-run`, or `external-run`. A mission cannot claim a higher tier without `proof_evidence:`
+linking a run report that exists in the repo. **Today all ten missions are `doctrine-only`** —
+the protocols encode field-tested operational lessons, but no mission has a recorded run under
+this catalog yet, and this repo will not pretend otherwise. (Its predecessor shipped twelve
+missions with two proven and paid for it; the honesty is machine-checked here so that cannot
+recur.) The status advances mission by mission as run reports land.
+
+Missions can also run as a **gated sequential chain** ("harden-it, then prove-it, then ship-it")
+where each link proceeds only on the previous mission's verified terminal state — see
+[`runtime/mission-chaining.md`](runtime/mission-chaining.md).
+
 ## Which mission do I want?
 
 <p align="center">
@@ -324,11 +338,11 @@ its `SKILL.md` frontmatter:
 ```
 skills/       10 missions — the discoverable catalog (SKILL.md each)
 playbooks/    10 callable phase protocols missions compose by name
-runtime/      7 policies + runtime/scripts/ (spawn_worker, preflight, pm)
+runtime/      8 policies + runtime/scripts/ (spawn_worker, preflight, pm)
 docs/         human documentation: getting started, concepts, mission guides
 assets/       banners and images
 scripts/      validate.py — spec + three-layer + cross-reference validation
-tests/        19 architecture contract tests (stdlib unittest)
+tests/        25 architecture contract tests (stdlib unittest)
 ```
 
 ## Validate and test
@@ -342,8 +356,10 @@ python3 -m unittest discover -s tests -v   # architecture contract tests + valid
 
 The validator is deliberately paranoid: every composition reference must resolve, every mission
 must expose at least one machine-checkable composition, dangling or typo'd `<name>.md` references
-fail the build anywhere in the catalog, and the contract tests keep the ten-mission set, the
-outcome-naming rule, and the orphan-protocol guarantee locked.
+fail the build anywhere in the catalog, every mission must declare an honest `proof:` status
+(with evidence on disk before it can claim one), and instruction-budget line caps stop doctrine
+creep at CI. The contract tests keep the ten-mission set, the outcome-naming rule, the
+orphan-protocol guarantee, and script interpolation hygiene locked.
 
 ## FAQ
 

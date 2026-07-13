@@ -68,11 +68,27 @@ completion oracle.
 them. These are preserved as runtime policies, not abstracted away:
 
 - wrong-base detection (BASE ≠ default, canonical-ref comparison) — `runtime/dispatch-lifecycle.md`
+- coordinator inbox mechanics + worktree retirement (one message per `check`, read-marking,
+  broadcast-only groups, verified teardown) — `runtime/dispatch-lifecycle.md`
 - reviewed-SHA freshness (a rebase voids the review) — `runtime/reviewed-sha-freshness.md`
-- ledger recovery / crash-resume from provenance — `runtime/liveness-resume.md`
+- ledger recovery / crash-resume from provenance, cross-run anti-inflation — `runtime/liveness-resume.md`
 - bot-autofix non-convergence (Cursor BugBot Autofix loops) — `runtime/dispatch-lifecycle.md`
 - bounded review loops, hot-file ownership, merge serialization — `runtime/merge-serialization.md`
 - promotion semantics (human gate; merge ≠ deploy) — `runtime/gate-classification.md`
+- gated sequential chains (an audit gates, it never always-flows) — `runtime/mission-chaining.md`
+
+## Proof over doctrine
+
+This repo's predecessor (ravidsrk/autonomous-fleet) died of doctrine outrunning evidence: twelve
+missions with two proven, a portable substrate with zero field hours, and ~42K tokens of mandatory
+instruction surface. Two structural guards inherit that lesson:
+
+- **Proof status.** Every mission's frontmatter carries `proof:` — `doctrine-only`, `self-run`,
+  or `external-run`. Advancing past doctrine-only requires `proof_evidence:` pointing at a run
+  report that exists on disk; `scripts/validate.py` enforces both. A mission is never presented
+  as more proven than its evidence.
+- **Instruction budget.** Missions ≤ 130 lines, playbooks ≤ 90, runtime policies ≤ 160, enforced
+  by the validator. Raising a cap is a deliberate, reasoned edit — never drift.
 
 ## Governance is uniform and below the model
 

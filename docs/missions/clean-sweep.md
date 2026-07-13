@@ -39,6 +39,10 @@ Three sources, one unit and one pipeline — you declare the source at the start
   extract it, verify it against a `file:symbol` or a run, correct or remove it. Writing new docs
   is not this mission — that is ship-it-scoped work.
 
+Whatever the source, a *prior run's* completion report over the same surface enters the
+enumeration as claims to re-verify — never as a pre-closed set. An autonomous run will believe
+its own green checkmarks unless anti-inflation is structural.
+
 ## When to reach for it
 
 - "Close every issue in the tracker."
