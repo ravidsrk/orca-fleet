@@ -56,3 +56,25 @@ per task" (a migration is a deliberate multi-commit expand/migrate/contract sequ
 `orchestration run` silently skips dispatch (leaves the task ready, no failure) when its worktree is
 >20 commits behind base and the spec lacks `allow-stale-base: true`. Sync the coordinator's local
 base before each wave; a stale base makes workers build on outdated code and stack shims.
+
+## Coordinator inbox mechanics (learned on real runs)
+
+- `check --wait` returns **ONE message per call**. Three workers finishing means three calls —
+  loop until the expected count arrives; a coordinator that assumes a batch silently misses
+  finishers.
+- Read-marking: `task-list`, `inbox`, and `dispatch-show` do NOT mark messages read;
+  `check` (default and `--unread`) CONSUMES them. Plan reads accordingly — an exploratory
+  `check` in one loop can eat the `worker_done` another loop was waiting on. `check --all`
+  (re-reads consumed messages) exists only on newer CLIs; don't depend on it.
+- Group addresses (`@all`, `@idle`, `@claude`, `@worktree:<id>`) are broadcast-only. EVERY
+  lifecycle message — `worker_done`, `merge_ready`, `escalation`, `decision_gate` replies — goes
+  to a concrete terminal handle, never a group.
+
+## Worktree retirement (end-of-unit and end-of-run)
+
+Retire each worker's worktree when its unit MERGES, not at run end — and verify before removing:
+the PR is `state=MERGED`, the branch is deleted, and `git status` in the worktree is clean.
+NEVER remove the coordinator's own worktree, a dirty worktree, or one whose branch is unmerged —
+that destroys work the ledger still counts on. If removal is refused, archive instead of forcing.
+A run that skips retirement leaks a worktree per unit; a run that force-cleans destroys unmerged
+evidence. Both are ledgered: `unit · worktree · retired ts`.
