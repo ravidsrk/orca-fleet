@@ -35,6 +35,8 @@ surfaced during characterization spawn a NESTED remediation loop. Composes `buil
 ```
 MAP critical surface (coverage gaps × call-graph of money/auth/data/external-contract entry points;
   uncovered trivial getters are NOT the mission) → HUMAN scope confirm (bounds the mission)
+  → BOOTSTRAP integration BASE (runtime/scripts/preflight.py --base <BASE>; BASE ≠ default —
+    dispatch-lifecycle.md)
   → CHARACTERIZE waves (build-change): assert REAL expected behavior. Two outcomes:
     · code correct, untested → the test passes; PROVE it with a semantics-preserving MUTATION (flip a
       boundary, negate a condition, zero a return — code still COMPILES, harness still RUNS) that fails

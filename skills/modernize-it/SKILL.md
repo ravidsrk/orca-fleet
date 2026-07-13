@@ -30,8 +30,10 @@ contract over the release state machine, backfills, destructive contracts, teste
 DIFFERENT mission: a different unit (a data transition, not a package), a different state machine
 (temporally-separated deploys, not per-PR merges), and a different proof (deployed compatibility +
 completed backfill, which needs the deploy states only `ship-it` owns). When a dependency upgrade
-FORCES such a migration, modernize-it flags it and hands the migration to `ship-it`; it never runs a
-cross-deploy data migration inside a currency loop.
+FORCES such a migration, modernize-it flags it and hands off a brief for a SEQUENCE of ship-it runs —
+expand, then migrate-in-batches, then contract, each its own release through ship-it's state machine,
+never one run (a single BUILD→LAND→RELEASE cannot temporally separate the deploys). Modernize-it never
+runs a cross-deploy data migration inside a currency loop.
 
 ## Two terminal outcomes
 
@@ -50,13 +52,15 @@ registry-latest only when neither exists. A dep on a still-supported older major
 ```
 INVENTORY (outdated + advisories; read the CHANGELOG not the version delta; reachability triage —
   dev-only/unreachable transitive is lower priority; never `audit fix --force`)
+  → BOOTSTRAP integration BASE (runtime/scripts/preflight.py --base <BASE>; BASE ≠ default —
+    dispatch-lifecycle.md)
   → order: security-critical-reachable → patch/minor (batch coherent groups) → majors (one per PR)
   → UPGRADE waves (one dep/coherent-group per PR: bump → adapt call sites, adding code-level
     deprecation shims / dual-run APIs where a major needs them → CI GREEN is the gate; lockfile
     regenerated not hand-edited; verify provenance on registry/maintainer change)
   → FORCED-MIGRATION CHECK (risk-review data-migration lens): if an upgrade forces a stateful DB
-    schema/data change, do NOT run it here — open a handoff brief and route the migration to ship-it
-    (it owns the deploy states expand/migrate/contract needs); park the dependent upgrade behind it
+    schema/data change, do NOT run it here — open a handoff brief for a SEQUENCE of ship-it runs
+    (expand → migrate → contract, one release each); park the dependent upgrade behind the sequence
   → build-blind REVIEW → RUNTIME-PROVE (runtime-prove: drive the app's real entry points — a green
     CI misses runtime-only breakage like lazy imports and env-dependent init) → LAND
   → RE-INVENTORY → loop → outcome
