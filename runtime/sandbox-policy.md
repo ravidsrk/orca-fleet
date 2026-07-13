@@ -1,12 +1,40 @@
 # Runtime policy — sandbox / danger profile
 
-Worker permission is least-privilege by default. `spawn_worker.sh` PROFILE:
-- `ro`  → codex --sandbox read-only / claude --permission-mode plan (report-only / audit work)
-- `rw`  → codex --sandbox workspace-write / claude --permission-mode acceptEdits (default fix work)
-- `danger` → bypass flags, ONLY with `ORCA_COORD_ALLOW_DANGER=1`.
-- A `CODEX_CMD`/`CLAUDE_CMD` launch override replaces the profile's command entirely, so it
-  needs its own opt-in: `ORCA_COORD_ALLOW_CMD_OVERRIDE=1`. Without it, spawn REFUSES (exit 2) —
-  an inherited env var must not silently defeat `PROFILE=ro`.
+Autonomy is the point: a worker that blocks on a permission prompt kills the run. So the write
+tiers use each agent's **fully-autonomous flag — the exact flag Orca appends by default**
+(`src/shared/tui-agent-permissions.ts`; `DEFAULT_TUI_AGENT_ARGS === YOLO_TUI_AGENT_ARGS`). The
+sandboxed middle modes (claude `acceptEdits`, codex `--sandbox workspace-write`, gemini
+`auto_edit`) are deliberately NOT used: they still prompt on shell and network, so a build worker
+running tests or `npm install` would block. `spawn_worker.sh` maps each PROFILE per agent:
+
+| Agent  | `ro` (read-only review) | `rw` = `danger` flag (autonomous, non-blocking) |
+|--------|-------------------------|--------------------------------------------------|
+| claude | `--permission-mode plan` | `--dangerously-skip-permissions`                |
+| codex  | `--sandbox read-only`    | `--dangerously-bypass-approvals-and-sandbox`    |
+| gemini | `--approval-mode plan`   | `--yolo`                                        |
+| grok   | — (no RO in Orca) → WORKER_CMD | `--permission-mode bypassPermissions`      |
+| opencode / droid / omp / pi | WORKER_CMD | WORKER_CMD (Orca strips/omits their auto flag) |
+
+- **`ro`** is non-blocking because it cannot mutate — nothing to approve. It is the permission
+  boundary for report-only missions (review-it).
+- **`rw`** is autonomous write, the default for build/fix. It launches a permission-BYPASS worker
+  (no per-command prompts) — non-blocking by design, but a real capability grant, so it is
+  **fail-closed behind `ORCA_COORD_ALLOW_AUTONOMOUS_WRITE=1`**: a bare or accidental spawn never
+  starts a bypass worker silently. The safety is NOT per-command prompts — it is the isolated
+  worktree + build-blind review + the PR gate + no-merge-to-default-without-a-human + the
+  testnet/staging/fixtures rails below. This is the coordinator prompt library's model verbatim
+  ("no per-action permission prompts; a worker that blocks defeats the run"). Run `rw` on a host
+  where that safety envelope is acceptable — for a machine with real credentials or prod reach,
+  run it in an ephemeral sandbox too.
+- **`danger`** uses the SAME autonomous flag as `rw`; it requires `ORCA_COORD_ALLOW_DANGER=1`
+  (which subsumes the autonomous-write opt-in) AND that the worker run in an ephemeral
+  per-workspace sandbox (below) — destructive / exploit work never runs on the mortal host.
+  Danger is an ENVIRONMENT choice (disposable host), not a more-bypassed flag: on the host there
+  is no autonomous mode more contained than `rw` that still runs without blocking.
+- **`WORKER_CMD`** (generic, any agent) or legacy `CODEX_CMD`/`CLAUDE_CMD` replaces the command
+  entirely — its semantics become the caller's assertion — so it needs its own opt-in
+  `ORCA_COORD_ALLOW_CMD_OVERRIDE=1` (an inherited env var must not silently defeat `PROFILE=ro`).
+  It is also how an agent with no Orca-verified flag for the tier (grok `ro`, opencode, …) runs.
 
 ## Danger belongs in an ephemeral sandbox, never on the host
 

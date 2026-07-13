@@ -5,6 +5,15 @@ stalls; the fleet must act. Both live-supervision and crash-resume read the same
 provenance (tasks, dispatch_contexts with last_heartbeat_at/failure_count, worker_done payloads —
 all in SQLite, surviving restarts).
 
+## Provenance is `taskId`+`dispatchId`, never the handle
+
+Lifecycle authority is the payload's `taskId`+`dispatchId` verified against the dispatched pane —
+NOT a terminal-handle comparison. A pane can receive a new handle after a restart, so never accept
+or reject a `worker_done`/`heartbeat` by matching handles; the runtime ignores a lifecycle message
+sent from a different pane than the one that owns the dispatch. When a handle returns
+`terminal_handle_stale`, re-resolve it with `terminal list --worktree … --json` and continue with
+the replacement ONLY — never dual-send to the old and new handles.
+
 ## WATCH (self-healing while alive)
 
 - Poll `check --wait --types worker_done,escalation,heartbeat` ({count:0} timeout is a checkup

@@ -91,4 +91,5 @@ those are separate missions with different convergence proofs.
 ## Related
 
 `harden-it` / `speed-it` / `modernize-it` / `prove-it` / `deflake-it` (specialist campaigns, distinct
-convergence proofs), `ship-it` (build new), `review-it` (verdict only).
+convergence proofs), `ship-it` (build new), `review-it` (verdict only), `mission-scheduling` (a
+bounded source stops at the promotion PR, so it schedules as a nightly unattended sweep).
