@@ -32,8 +32,9 @@ STOP-THE-LINE (preserve evidence) → run the diagnose playbook's DIAGNOSIS phas
   This mission adds, not restates:
   → competing-hypothesis DEBATE when causes are mutually exclusive (the theory that survives
     adversarial debate is likely the real cause), instead of a fan-out
-  → DEMONSTRATE the surviving cause with evidence; a regression test at a correct seam (if none exists,
-    the missing seam IS the finding — an architecture handoff)
+  → DEMONSTRATE the surviving cause with evidence. The regression test is NOT written here (writing
+    it mutates the repo) — the handoff brief SPECIFIES it: the assertion, the correct seam (if none
+    exists, the missing seam IS the finding — an architecture handoff), and the repro it must encode
   → optional FIX HANDOFF: a durable brief (behavioral, testable acceptance criteria, out-of-scope) to
     ship-it or clean-sweep — separately authorized
 ```

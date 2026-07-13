@@ -29,7 +29,8 @@
 #   SP                        scratchpad dir for JSON artifacts (default: cwd)
 #   PROFILE                   ro | rw (default) | danger — worker permission profile
 #   ORCA_COORD_ALLOW_DANGER   must be 1 for PROFILE=danger
-#   CLAUDE_CMD / CODEX_CMD    full override of the worker launch command (wins over PROFILE)
+#   CLAUDE_CMD / CODEX_CMD    full override of the worker launch command (wins over PROFILE;
+#                             requires ORCA_COORD_ALLOW_CMD_OVERRIDE=1 — an override bypasses the profile)
 #   SETTLE_SECS / SUBMIT_SECS / HB_POLL_SECS   timing knobs (defaults 20 / 8 / 40)
 set -Eeuo pipefail  # -E: ERR trap fires inside functions (orca_json) too
 
@@ -107,6 +108,15 @@ case "$PROFILE" in
     exit 2
     ;;
 esac
+# A CMD override replaces the profile's launch command entirely — an inherited env var
+# with bypass flags would silently defeat PROFILE=ro. Overrides therefore need their own
+# explicit opt-in, mirroring the danger guard.
+if [ -n "${CODEX_CMD:-}" ] || [ -n "${CLAUDE_CMD:-}" ]; then
+  if [ "${ORCA_COORD_ALLOW_CMD_OVERRIDE:-0}" != "1" ]; then
+    echo "SPAWN=REFUSED task=${task} CODEX_CMD/CLAUDE_CMD override set without ORCA_COORD_ALLOW_CMD_OVERRIDE=1 (it would bypass PROFILE=$PROFILE)" >&2
+    exit 2
+  fi
+fi
 CODEX_CMD="${CODEX_CMD:-$codex_default}"
 CLAUDE_CMD="${CLAUDE_CMD:-$claude_default}"
 if [ "$agent" = "codex" ]; then cmd="$CODEX_CMD"; else cmd="$CLAUDE_CMD"; fi

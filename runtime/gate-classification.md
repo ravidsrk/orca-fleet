@@ -6,8 +6,9 @@ policy is enforced, not requested.
 ## The two runtime gate kinds (do not conflate)
 
 - **Worker gate:** a worker's blocking `ask` → `decision_gate` message. Times out (~10 min),
-  re-asks under a NEW id. Answer the CURRENT id with `reply --id`.
-- **DAG gate:** coordinator `gate-create --task <id>` → auto-blocks the task; `gate-resolve`
+  re-asks under a NEW id. Answer the CURRENT id with `reply --id <msg_id> --body "<answer>"`.
+- **DAG gate:** coordinator `gate-create --task <id> --question "<text>"` (both flags required)
+  → auto-blocks the task; `gate-resolve`
   injects the resolution into the task's next dispatch preamble.
 
 ## Classification (before reading the recommended option)

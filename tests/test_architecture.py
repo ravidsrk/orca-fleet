@@ -108,11 +108,48 @@ class TestArchitecture(unittest.TestCase):
                     f"{proto_dir.name}/{f.name} is composed by no mission (orphan)",
                 )
 
+    def test_pm_parses_heartbeat_interleaved_stream(self):
+        # pm.py's whole job: decode message batches from a stream that interleaves
+        # _heartbeat objects and malformed segments, and print each message WITH its id
+        # (reply --id depends on it).
+        import tempfile, os
+        stream = (
+            '{"_heartbeat": true}\n'
+            '{"result": {"messages": [{"id": "msg-42", "from_handle": "w1", '
+            '"type": "worker_done", "subject": "done", "body": "b", "payload": null}]}}\n'
+            "this line is not json\n"
+            '{"_heartbeat": true}\n'
+        )
+        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
+            fh.write(stream)
+            path = fh.name
+        try:
+            r = subprocess.run(
+                [sys.executable, str(RUNTIME / "scripts" / "pm.py"), path],
+                capture_output=True, text=True,
+            )
+            self.assertEqual(r.returncode, 0, r.stderr)
+            self.assertIn("MESSAGES: 1", r.stdout)
+            self.assertIn("msg-42", r.stdout, "message id must be printed (reply --id needs it)")
+            self.assertIn("skipped 1 malformed segment", r.stderr)
+        finally:
+            os.unlink(path)
+
     def test_runtime_scripts_present_and_executable_shape(self):
-        # The shared tooling missions dispatch with must exist.
+        # The shared tooling must exist, be non-trivial, be executable, and actually parse —
+        # a zero-byte or syntax-broken script must fail here, not mid-run.
+        import os
         for script in ("spawn_worker.sh", "preflight.py", "pm.py"):
-            self.assertTrue((RUNTIME / "scripts" / script).exists(),
-                            f"runtime/scripts/{script} missing")
+            p = RUNTIME / "scripts" / script
+            self.assertTrue(p.exists(), f"runtime/scripts/{script} missing")
+            self.assertGreater(p.stat().st_size, 200, f"{script} is suspiciously small")
+            self.assertTrue(os.access(p, os.X_OK), f"{script} is not executable")
+            if script.endswith(".py"):
+                import ast
+                ast.parse(p.read_text(encoding="utf-8"))
+            else:
+                r = subprocess.run(["bash", "-n", str(p)], capture_output=True, text=True)
+                self.assertEqual(r.returncode, 0, f"bash -n {script}: {r.stderr}")
 
     def test_every_mission_declares_proof_status(self):
         # Honesty gate: the predecessor presented 12 missions with 2 proven and died

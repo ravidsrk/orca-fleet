@@ -8,7 +8,8 @@ all in SQLite, surviving restarts).
 ## WATCH (self-healing while alive)
 
 - Poll `check --wait --types worker_done,escalation,heartbeat` ({count:0} timeout is a checkup
-  tick, not an error).
+  tick, not an error). The `--wait` stream interleaves `_heartbeat` objects with message batches,
+  which breaks naive `json.load` — parse saved streams with `runtime/scripts/pm.py <file>`.
 - Stale = a `dispatched` task with no heartbeat past ~10 min, OR still null past the first poll
   window. Judge from `dispatch-show` timestamps, not folklore.
 - Respawn a dead worker: log the evidence + a doctor-owned attempt count (NOT the runtime failure
@@ -31,6 +32,21 @@ dep COMPLETES. A typo'd dep, or a dep that ends `failed` (not `completed`), stra
 `pending` FOREVER — and convergence detection only flags `blocked`, never `pending`. Every fleet
 adds a watchdog: any task `pending` with an unmet or nonexistent dep past a threshold is surfaced,
 not silently waited on.
+
+## The ledger header (every mission writes it; RESUME depends on it)
+
+The FIRST line of every mission's ledger file is a header, written at run start and updated on
+coordinator respawn:
+
+`RUN: <run-id> · COORDINATOR: <terminal handle(s)> · BASE: <integration branch, or '-' for
+report-only/planning missions> · FORK_POINT: <sha BASE was created from, or '-'> · T0: <ts> ·
+SOURCE: <mission denominator ref + digest>`
+
+`RUN` and `COORDINATOR` are always required (RESUME dies without them); fields a mission class
+has no value for are recorded as `-`, never omitted (a missing column is indistinguishable from
+a truncated header).
+
+A ledger with rows but no header is a resume-orphan — recoverable only by hand.
 
 ## RESUME (coordinator died)
 

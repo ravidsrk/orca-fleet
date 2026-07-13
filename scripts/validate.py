@@ -171,7 +171,9 @@ def validate_skill(skill_dir, protocols):
 
     if "compatibility" in data:
         c = data["compatibility"]
-        if c != "<object>" and not (1 <= len(c) <= 500):
+        if c == "<object>":
+            errors.append("compatibility must be a string (1-500 chars), got a mapping")
+        elif not (1 <= len(c) <= 500):
             errors.append(f"compatibility length {len(c)} out of 1-500")
 
     # proof status: honest by construction — no mission presents itself as proven

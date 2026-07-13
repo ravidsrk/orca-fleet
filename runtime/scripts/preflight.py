@@ -8,9 +8,10 @@ Verifies the invariants that, if wrong, silently corrupt a whole run:
        per-finding PR merges into BASE, so `BASE == default` sends fixes straight to
        production, bypassing the anti-inflation gate and the human promotion review).
     4. BASE exists (locally or on origin).
-    5. BASE was forked from the run's fork-point (a commit reachable from BASE that is
-       also reachable from the default branch); rejects a BASE that was created off an
-       unrelated history.
+    5. BASE shares history with the default branch (a merge-base exists); rejects a BASE
+       created off an unrelated history. This alone does NOT prove BASE is fresh — a stale
+       BASE from an earlier run also has a merge-base. Pass `--fork-point <sha>` (the SHA
+       this run branched BASE from) to additionally require merge-base == that SHA.
     6. If `--require-gitleaks` is passed (integrator will scan diffs), `gitleaks` must be
        on PATH; otherwise a soft warning is fine.
 
@@ -19,7 +20,7 @@ The BASE/default comparison canonicalizes ref aliases first (D1 remediation):
 so aliasing the default branch cannot slip past the M-5 guardrail.
 
 Usage:
-    preflight.py --base <base-branch> [--default <default-branch>] [--require-gitleaks]
+    preflight.py --base <base-branch> [--default <default-branch>] [--fork-point <sha>] [--require-gitleaks]
     preflight.py --mode readonly        # read-only fleets: binary checks only, no gh/BASE
     # exit 0 = OK; exit 1 = usage/dependency; exit 2 = invariant violation
 
@@ -105,6 +106,11 @@ def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(prog="preflight.py")
     parser.add_argument("--base", help="The integration BASE branch name (required unless --mode readonly).")
     parser.add_argument("--default", help="Default branch (auto-derived via `gh` if omitted).")
+    parser.add_argument(
+        "--fork-point",
+        help="SHA this run branched BASE from; preflight fails unless merge-base(BASE, default) == this "
+        "(catches a stale BASE left over from an earlier run).",
+    )
     parser.add_argument(
         "--mode",
         choices=("write", "readonly"),
@@ -201,6 +207,22 @@ def main(argv: list[str]) -> int:
             file=sys.stderr,
         )
         return 2
+
+    # 6b. Freshness: with --fork-point, the merge-base must BE this run's fork point —
+    #     a stale BASE from an earlier run has a merge-base too, but an older one.
+    if args.fork_point:
+        rc, fp_sha, _ = _run(["git", "rev-parse", "--verify", f"{args.fork_point}^{{commit}}"])
+        if rc != 0:
+            print(f"preflight: ERROR: --fork-point {args.fork_point!r} is not a commit.", file=sys.stderr)
+            return 1
+        if fp_sha.strip() != mb:
+            print(
+                f"preflight: ERROR: merge-base(BASE, {default_branch}) is {mb[:12]}, not the "
+                f"declared fork-point {fp_sha.strip()[:12]} — BASE is stale or reused from an "
+                "earlier run. Recreate BASE off the current fork point.",
+                file=sys.stderr,
+            )
+            return 2
 
     # 7. Same-tip advisory: a freshly created integration branch legitimately shares
     #    the default tip, so this is a warning, not a violation.

@@ -51,7 +51,7 @@ while i < len(raw):
 print("MESSAGES:", len(msgs))
 for m in msgs:
     print("=" * 60)
-    print("FROM:", m.get("from_handle", "?"), "| TYPE:", m.get("type", "?"))
+    print("ID:", m.get("id", "?"), "| FROM:", m.get("from_handle", "?"), "| TYPE:", m.get("type", "?"))
     print("SUBJ:", m.get("subject", "?"))
     print("BODY:", m.get("body", ""))
     print("PAYLOAD:", m.get("payload"))

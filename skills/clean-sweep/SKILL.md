@@ -47,7 +47,7 @@ claims enter the enumeration FIRST.
 
 ```
 SELF-ORIENT → ENUMERATE (per source) → SKEPTIC-TRIAGE (reproduce-or-refute) → FREEZE
-  → BOOTSTRAP integration BASE (preflight: BASE ≠ default)
+  → BOOTSTRAP integration BASE (preflight --base <BASE> --fork-point <header sha>; BASE ≠ default)
   → PER-FINDING (remediate-finding: verify-real → build-change → PR → build-blind review → merge_ready)
   → conductor LAND (merge-serialization) → CLOSE with evidence
   → re-ENUMERATE (loop until dry) → FINAL REPORT + human gates
@@ -65,7 +65,10 @@ needs-human items name their gate). The final enumeration output is pasted in th
 dry state. `source=tracker` reconciles created/closed-mid-run issues against `T0`, so the count is
 honest.
 
-## Ledger row
+## Ledger (header first, then rows)
+
+Line 1 is the resume header (liveness-resume.md): `RUN · COORDINATOR handle(s) · BASE · T0 ·
+SOURCE+digest`. Then one row per finding:
 
 `| id | title | VERIFIED | CLASS | FIXED | PR | reviewed_sha | MERGED | CLOSED | evidence |`
 CLASS ∈ real-bug · real-feature-small · refuted · duplicate · externally-resolved · needs-human ·

@@ -13,7 +13,7 @@ Then it opens the diff and reviews the delta against that expectation. Divergenc
 error. Prefer a cross-vendor reviewer (different CLI/model than the builder) when the fleet has
 one — mechanical independence beats instructed independence.
 
-## The two axes (isolated parallel sub-agents, no cross-rerank)
+## The three axes (isolated parallel sub-agents, no cross-rerank)
 
 - **Standards:** repo-documented standards (paste the files) + the Fowler 12-smell baseline, judged
   per hunk. Repo standard overrides the baseline; smells are judgement calls; skip what tooling
@@ -46,7 +46,7 @@ finding ping-pongs an unattended run forever.
 
 ## Completion
 
-Pinned fixed point (non-empty `git diff <fp>...HEAD`), both axes reported with no cross-rerank, every
-finding quotes its line, reviewed_sha recorded, blind-fix expectation written before the diff was
-opened, round count ≤ 3. This axis checks conformance; refusal-under-attack is
+Pinned fixed point (non-empty `git diff <fp>...HEAD`), ALL THREE axes reported with no cross-rerank,
+every finding quotes its line, reviewed_sha recorded, blind-fix expectation written before the diff
+was opened, round count ≤ 3. This axis checks conformance; refusal-under-attack is
 `risk-review` / `harden-it`.

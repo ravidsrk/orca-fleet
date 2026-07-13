@@ -38,22 +38,27 @@ deploy availability allow; the manifest names it and what blocks the next.
 
 ## Preflight
 
-`orca status --json` running · orchestration on · `runtime/scripts/preflight.py --base <BASE>` green
+`orca status --json` running · orchestration on · `runtime/scripts/preflight.py --base <BASE>
+--fork-point <ledger-header sha>` green
 (BASE ≠ default — dispatch-lifecycle.md) · clean baseline · tests green at baseline (else you can't
 tell your regressions from pre-existing ones).
 
 ## Pipeline (one canonical path after freeze)
 
 ```
-ENTRY ─┬─ frozen spec  → VALIDATE (decide-and-freeze: validate branch)
-       └─ intent/draft → GRILL + FREEZE (decide-and-freeze: grill branch, human gate #1)
-   → DECOMPOSE (decompose-dag: tracer-bullet slices → Orca DAG)
+ENTRY ─┬─ frozen spec  → VALIDATE (decide-and-freeze: validate branch) → DECOMPOSE
+       ├─ intent/draft → GRILL + FREEZE (decide-and-freeze: grill branch, human gate #1) → DECOMPOSE
+       └─ map-it handoff (frozen spec + frozen prepared DAG) → VALIDATE the freeze, re-run
+          decompose-dag's VERIFY section on the prepared DAG, ADOPT its task ids — skip DECOMPOSE
+          (re-decomposing would duplicate or orphan the prepared tasks)
+   → DECOMPOSE (decompose-dag: tracer-bullet slices → Orca DAG) — first two routes only
    → BUILD waves (build-change per slice; foundation serializes, slices parallelize)
    → ACCEPTANCE-REVIEW (build-blind, per slice) [+ RISK-REVIEW lens if the slice triggers one]
    → RUNTIME-PROVE (doubt-driven artifact review + drive the real entry point)
    → LAND (merge-serialization) → BUILT
-   → RELEASE state machine (release.md): PROMOTION_READY → [human gate #2] → RELEASED → DEPLOYED
-   → OBSERVE (observe.md canary) → DEPLOYED_AND_VERIFIED
+   → RELEASE state machine (release.md): PROMOTION_READY → [human gate #2] → RELEASED
+   → DEPLOYED_AND_VERIFIED phase (release.md): observe.md BASELINE captured first, THEN deploy,
+     then observe.md's canary loop — the state is claimed only after the window is green
    → REFLECT (write learnings)
 ```
 
@@ -63,10 +68,12 @@ against authoritative state (evidence-manifest.md) before advancing.
 ## Convergence proof (this mission's definition of done)
 
 - Every frozen acceptance criterion maps to a passing test in a TRACEABILITY table, verified on the
-  BASE head (the integrated whole, not per-slice-only). The denominator is not worker-chosen: each
-  manifest binds to the frozen spec via `contract.digest`, and the verifier re-derives the full
-  criterion set and rejects any manifest that drops one (evidence-manifest.md §2). A criterion with
-  no passing test is UNMET work, not a waiver.
+  BASE head (the integrated whole, not per-slice-only). The denominator is not worker-chosen and it
+  is TWO-LEVEL (evidence-manifest.md): each slice manifest binds to ITS OWN task-spec criteria at
+  `contract.digest` (so a narrow slice is completable), and the coordinator verifies the UNION of
+  slice contracts equals the frozen spec's criterion set — at decompose verification and again
+  here. A criterion no slice claimed is unassigned work; a criterion with no passing test is UNMET
+  work. Neither is a waiver.
 - Every slice: merged PR, ancestry-verified, reviewed-SHA fresh, negative control passing
   (revert-audited on a ≥10% sample by a fresh worker).
 - The manifest names the terminal release state with its evidence (merge SHA / deploy revision /

@@ -5,7 +5,12 @@ spec-to-ship reliable. These are not incidental; they are the value.
 
 ## Worker unit = worktree + agent + fresh terminal (PR-per-unit)
 
-`orca worktree create --no-parent --base-branch <BASE> --agent <id> --prompt "<TASK>"` — one unit,
+When BASE is CREATED, record its fork-point SHA (`git rev-parse <default>`) in the ledger header;
+every subsequent preflight passes `--fork-point <that sha>` so a stale BASE from an earlier run is
+rejected rather than silently reused.
+
+`orca worktree create --name <unit-slug> --no-parent --base-branch <BASE> --agent <id> --prompt
+"<TASK>"` — one unit (`--name` is required by the CLI),
 off the integration BASE (NOT off a feature branch; `--no-parent` = Orca lineage, `--base-branch` =
 git base, independent axes). Read the handle from `startupTerminal.handle`. Then verify readiness
 before injecting (`terminal wait --for tui-idle`), because injecting into a booting TUI loses the
