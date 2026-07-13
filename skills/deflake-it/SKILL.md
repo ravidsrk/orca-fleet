@@ -31,7 +31,7 @@ rides `merge-serialization`, `reviewed-sha-freshness`, `dispatch-lifecycle`, `li
 ## Pipeline
 
 ```
-DETECT: run the suite `{{DETECT_RUNS}}` times (parallel, varied seed/order) → per-test flake RATE;
+DETECT: run the suite `{{DETECT_RUNS}}` times (default 20; parallel, varied seed/order) → per-test flake RATE;
   mine CI retry history (pass-on-retry tests flake in an env local runs don't reproduce — capture even
   at local rate 0). Deterministic N/N failures are BUGS → route to clean-sweep, out of scope.
   → DIAGNOSE (diagnose playbook, adapted): build a loop that RAISES the failure rate (tight loop, under

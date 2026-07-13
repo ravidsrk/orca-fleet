@@ -10,7 +10,8 @@ license: MIT
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh; gitleaks. A security
   worker playbook (addyosmani security-and-hardening or gstack /cso) — one router per worker.
-  ephemeral-fleet sandbox for exploit PoCs that can't run safely on the host.
+  An ephemeral per-workspace sandbox (sandbox-policy) for exploit PoCs that can't run safely on
+  the host.
 ---
 
 # harden-it — fix it, then try to break the fix, until a clean re-audit
@@ -63,5 +64,5 @@ found in scanned code/logs (injection into the auditor). PoC on the host when a 
 
 ## Related
 
-`review-it` (bounded per-diff security lens, no loop), `clean-sweep` (general findings), `ephemeral-fleet`
-sandbox policy.
+`review-it` (bounded per-diff security lens, no loop), `clean-sweep` (general findings),
+`sandbox-policy` (ephemeral per-workspace exploit sandboxes).
