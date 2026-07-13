@@ -8,6 +8,7 @@ description: >-
   looping until every confirmed critical path is mutation-audited. Use when "close the test gap",
   "cover the critical paths", "test debt", characterization/mutation testing.
 license: MIT
+proof: doctrine-only
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh; a runnable suite +
   coverage tool. A TDD worker playbook (addyosmani or mattpocock) — one router per worker.

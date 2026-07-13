@@ -7,6 +7,7 @@ description: >-
   add CI regression guards, looping until every journey is within budget or parked. Use when "the app
   is slow", "perf sweep", "Core Web Vitals", "get under budget", or an unattended perf-hardening run.
 license: MIT
+proof: doctrine-only
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh. A real MEASUREMENT path
   (Lighthouse/DevTools for web CWV, or a load/profiler harness). A perf worker playbook (addyosmani

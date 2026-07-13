@@ -9,6 +9,7 @@ description: >-
   major", or an unattended dependency-currency run. Stateful DB schema/data migration across deploys
   (backfills, destructive contracts) is a distinct mission — handed to ship-it, not run here.
 license: MIT
+proof: doctrine-only
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh; the package manager + a
   green CI baseline. addyosmani deprecation-and-migration playbook — one router per worker.

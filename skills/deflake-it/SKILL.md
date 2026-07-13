@@ -7,6 +7,7 @@ description: >-
   local AND in CI — looping until the streak holds. Retry-wrappers as fixes are banned and grep-checked.
   Use when "kill the flaky tests", "deflake the CI", "flake zero", a flaky/intermittent suite.
 license: MIT
+proof: doctrine-only
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh; a runnable suite. A
   feedback-loop-first debugging playbook (mattpocock diagnosing-bugs or addyosmani debug) — one router

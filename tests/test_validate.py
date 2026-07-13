@@ -21,11 +21,12 @@ _spec.loader.exec_module(validate)
 PROTOCOLS = {"diagnose"}
 
 
-def make_skill(tmp, body):
+def make_skill(tmp, body, frontmatter_extra="proof: doctrine-only\n"):
     d = Path(tmp) / "demo-skill"
     d.mkdir()
     (d / "SKILL.md").write_text(
-        "---\nname: demo-skill\ndescription: A fixture. Use when testing.\n---\n" + body,
+        "---\nname: demo-skill\ndescription: A fixture. Use when testing.\n"
+        + frontmatter_extra + "---\n" + body,
         encoding="utf-8",
     )
     return d
@@ -101,6 +102,36 @@ class TestValidatorFailureBranches(unittest.TestCase):
                 make_skill(tmp, "Composes `diagnose`. See Diagnose.md for the loop.\n"),
                 PROTOCOLS)
             self.assertTrue(any("case/underscore typo" in e for e in errs), errs)
+
+
+class TestProofStatus(unittest.TestCase):
+    """The predecessor died presenting unproven missions as proven — machine-check it."""
+
+    def test_missing_proof_fails(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            errs = validate.validate_skill(
+                make_skill(tmp, "Composes `diagnose`.\n", frontmatter_extra=""), PROTOCOLS)
+            self.assertTrue(any("missing 'proof'" in e for e in errs), errs)
+
+    def test_invalid_proof_value_fails(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            errs = validate.validate_skill(
+                make_skill(tmp, "Composes `diagnose`.\n",
+                           frontmatter_extra="proof: battle-tested\n"), PROTOCOLS)
+            self.assertTrue(any("proof 'battle-tested' invalid" in e for e in errs), errs)
+
+    def test_advanced_proof_without_evidence_fails(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            errs = validate.validate_skill(
+                make_skill(tmp, "Composes `diagnose`.\n",
+                           frontmatter_extra="proof: self-run\n"), PROTOCOLS)
+            self.assertTrue(any("requires proof_evidence" in e for e in errs), errs)
+
+    def test_over_budget_mission_fails(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            body = "Composes `diagnose`.\n" + ("filler line\n" * validate.MISSION_MAX_LINES)
+            errs = validate.validate_skill(make_skill(tmp, body), PROTOCOLS)
+            self.assertTrue(any("instruction budget" in e for e in errs), errs)
 
 
 class TestProtocolDocRefs(unittest.TestCase):
