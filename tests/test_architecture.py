@@ -109,10 +109,20 @@ class TestArchitecture(unittest.TestCase):
                 )
 
     def test_runtime_scripts_present_and_executable_shape(self):
-        # The shared tooling missions dispatch with must exist.
+        # The shared tooling must exist, be non-trivial, be executable, and actually parse —
+        # a zero-byte or syntax-broken script must fail here, not mid-run.
+        import os
         for script in ("spawn_worker.sh", "preflight.py", "pm.py"):
-            self.assertTrue((RUNTIME / "scripts" / script).exists(),
-                            f"runtime/scripts/{script} missing")
+            p = RUNTIME / "scripts" / script
+            self.assertTrue(p.exists(), f"runtime/scripts/{script} missing")
+            self.assertGreater(p.stat().st_size, 200, f"{script} is suspiciously small")
+            self.assertTrue(os.access(p, os.X_OK), f"{script} is not executable")
+            if script.endswith(".py"):
+                import ast
+                ast.parse(p.read_text(encoding="utf-8"))
+            else:
+                r = subprocess.run(["bash", "-n", str(p)], capture_output=True, text=True)
+                self.assertEqual(r.returncode, 0, f"bash -n {script}: {r.stderr}")
 
     def test_every_mission_declares_proof_status(self):
         # Honesty gate: the predecessor presented 12 missions with 2 proven and died
