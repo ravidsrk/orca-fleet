@@ -84,10 +84,12 @@ states which pack a worker uses in the dispatched TASK.
 - `description` is 1–1024 chars and includes a "Use when…" trigger; `compatibility` ≤ 500 chars.
 - Playbooks and runtime policies are plain Markdown with no frontmatter — never give them a
   `SKILL.md`.
-- A mission references the playbooks and runtime policies it composes by name, in a
-  "Composes … ; rides …" clause. `scripts/validate.py` checks every such name resolves,
-  requires at least one machine-checkable name per mission, and checks every lowercase
-  `<name>.md` mention in a mission resolves too.
+- A mission references the playbooks and runtime policies it composes by BARE name
+  (`` `name` `` or `name.md`, never a path), in a "Composes … ; rides …" clause.
+  `scripts/validate.py` checks every such name resolves, requires at least one
+  machine-checkable name per mission, and checks every `<name>.md` mention — in
+  missions AND in playbooks/runtime docs — resolves; case typos and path-prefixed
+  references are flagged.
 
 ## Boundaries
 

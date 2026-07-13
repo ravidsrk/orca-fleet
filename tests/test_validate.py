@@ -53,12 +53,13 @@ class TestValidatorFailureBranches(unittest.TestCase):
             self.assertTrue(
                 any("dangling reference: land.md" in e for e in errs), errs)
 
-    def test_path_prefixed_lowercase_md_ref_resolves(self):
-        # The rsplit basename strip: playbooks/diagnose.md must resolve, not dangle.
+    def test_path_prefixed_ref_is_flagged(self):
+        # Basename-only resolution would let playbooks/sandbox-policy.md pass even
+        # though the file lives in runtime/ — the convention is bare names.
         with tempfile.TemporaryDirectory() as tmp:
             errs = validate.validate_skill(
                 make_skill(tmp, "Composes `diagnose`. See playbooks/diagnose.md.\n"), PROTOCOLS)
-            self.assertEqual(errs, [])
+            self.assertTrue(any("path-prefixed reference" in e for e in errs), errs)
 
     def test_uppercase_doc_mentions_exempt(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -66,6 +67,66 @@ class TestValidatorFailureBranches(unittest.TestCase):
                 make_skill(tmp, "Composes `diagnose`. Read ../../ARCHITECTURE.md once.\n"),
                 PROTOCOLS)
             self.assertEqual(errs, [])
+
+    def test_abbreviation_inside_clause_does_not_truncate_scan(self):
+        # ". " after "e.g" used to end the clause capture; names after it escaped.
+        with tempfile.TemporaryDirectory() as tmp:
+            errs = validate.validate_skill(
+                make_skill(tmp, "Composes `diagnose` (e.g. `bogus-one`), `bogus-two`.\n"),
+                PROTOCOLS)
+            self.assertTrue(any("`bogus-one`" in e for e in errs), errs)
+            self.assertTrue(any("`bogus-two`" in e for e in errs), errs)
+
+    def test_capitalized_rides_clause_is_scanned(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            errs = validate.validate_skill(
+                make_skill(tmp, "Composes `diagnose`.\n\nRides `bogus-policy` at runtime.\n"),
+                PROTOCOLS)
+            self.assertTrue(any("`bogus-policy`" in e for e in errs), errs)
+
+    def test_url_md_link_not_flagged(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            errs = validate.validate_skill(
+                make_skill(
+                    tmp,
+                    "Composes `diagnose`. See https://example.com/upstream-guide.md too.\n"),
+                PROTOCOLS)
+            self.assertEqual(errs, [])
+
+    def test_case_typo_of_protocol_is_flagged(self):
+        # The uppercase exemption must not shelter a typo of a real protocol name.
+        with tempfile.TemporaryDirectory() as tmp:
+            errs = validate.validate_skill(
+                make_skill(tmp, "Composes `diagnose`. See Diagnose.md for the loop.\n"),
+                PROTOCOLS)
+            self.assertTrue(any("case/underscore typo" in e for e in errs), errs)
+
+
+class TestProtocolDocRefs(unittest.TestCase):
+    """Dangling .md refs inside playbooks/ and runtime/ must fail the build too."""
+
+    def _with_dirs(self, doc_text):
+        with tempfile.TemporaryDirectory() as tmp:
+            playbooks = Path(tmp) / "playbooks"
+            runtime = Path(tmp) / "runtime"
+            playbooks.mkdir()
+            runtime.mkdir()
+            (playbooks / "demo.md").write_text(doc_text, encoding="utf-8")
+            old = validate.PLAYBOOKS_DIR, validate.RUNTIME_DIR, validate.ROOT
+            validate.PLAYBOOKS_DIR, validate.RUNTIME_DIR, validate.ROOT = (
+                playbooks, runtime, Path(tmp))
+            try:
+                return validate.check_protocol_doc_refs(PROTOCOLS)
+            finally:
+                validate.PLAYBOOKS_DIR, validate.RUNTIME_DIR, validate.ROOT = old
+
+    def test_dangling_ref_in_playbook_fails(self):
+        failures = self._with_dirs("The LAND phase runs per land.md as always.\n")
+        self.assertTrue(any("land.md" in f for f in failures), failures)
+
+    def test_resolving_ref_in_playbook_passes(self):
+        failures = self._with_dirs("Escalate per diagnose.md when the loop stalls.\n")
+        self.assertEqual(failures, [])
 
 
 if __name__ == "__main__":
