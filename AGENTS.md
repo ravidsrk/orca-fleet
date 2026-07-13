@@ -87,8 +87,9 @@ states which pack a worker uses in the dispatched TASK.
 - A mission references the playbooks and runtime policies it composes by BARE name
   (`` `name` `` or `name.md`, never a path), in a "Composes … ; rides …" clause.
   `scripts/validate.py` checks every such name resolves, requires at least one
-  machine-checkable name per mission, and checks every `<name>.md` mention — in
-  missions AND in playbooks/runtime docs — resolves; case typos and path-prefixed
+  backticked name per mission (a bare `name.md` mention is resolved but does not
+  count toward that minimum), and checks every `<name>.md` mention — in missions
+  AND in playbooks/runtime docs — resolves; case typos and path-prefixed
   references are flagged.
 
 ## Boundaries
