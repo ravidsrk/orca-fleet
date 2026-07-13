@@ -1,0 +1,34 @@
+# Playbook — decompose-dag  (the DECOMPOSE phase)
+
+Recipe: Matt `to-tickets` (tracer-bullet slices) → Orca `spec-decompose` (materialize the DAG).
+
+## Cut tracer-bullet vertical slices
+
+Each slice = a narrow but COMPLETE path through every layer it touches (schema→API→UI→tests),
+demoable alone, sized to fit ONE fresh context window (if you can't state its acceptance check in
+two sentences, cut smaller), declaring its BLOCKING edges. Name the FOUNDATION set (scaffold, data
+layer, seams, test harness) — it serializes; slices parallelize behind it.
+
+Wide mechanical refactors do NOT slice vertically: sequence expand → migrate-in-batches → contract,
+each batch a slice keeping CI green. Prefactor first: make the change easy, then make the easy change.
+
+## Materialize the Orca DAG
+
+Per slice in topological order (blockers first, deps must name REAL returned task ids):
+`orca orchestration task-create --spec "<slice: goal · exact acceptance check · files it may create ·
+hot-files it must NOT touch · worker_done requires an evidence manifest>" --deps '[...]'`.
+Record every returned id in the ledger (id ↔ slice table = the run scope liveness-resume needs).
+
+Hot mount-point files (route registry, DI wiring, migrations, barrels) → mark each a merge-chain
+(merge-serialization.md): slices touching one share a dependency chain, never run in parallel.
+
+## Verify the DAG before dispatching anything
+
+`task-list --json`: every task present · deps resolve to real ids (the stuck-pending trap —
+liveness-resume.md) · no cycles · foundation has no deps on slices · every hot-file chain is a path
+not a fan. Five minutes here saves a fleet-wide debugging session.
+
+## Completion
+
+The slice↔task-id table is in the ledger; the DAG's frontier is exactly the foundation; the loop
+(runtime coordinator vs manual wave) is declared. A decomposition nobody dispatched is a proposal.
