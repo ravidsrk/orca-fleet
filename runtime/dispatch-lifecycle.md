@@ -59,9 +59,9 @@ again after every re-push (a new commit re-triggers the bot). It is just another
 1. **Wait, bounded:** poll every ~30s, floor ~2–3 min (the bot needs time to run), cap ~10 min. If
    the cap elapses with no bot activity, log a "did-not-run" checkpoint and proceed — never block
    the loop forever on an external bot.
-2. **Ingest comments:** each becomes a tracked item, VALID or FALSE-POSITIVE (dismissed with a
-   recorded reason). VALID items fold into the SAME change request as the internal reviewer's
-   findings, so the builder addresses both in one pass.
+2. **Ingest comments:** each is tagged VALID or FALSE-POSITIVE (dismissed with a recorded reason).
+   HOLD the VALID set — it is not turned into a change request yet (that happens after the internal
+   review, so both finding sets go to the builder as one batch).
 3. **Reconcile pushed commits:** a bot with autofix ON pushes commits AFTER the reviewer's PASS and
    keeps pushing in response to your normalization — non-convergent. Prefer asking the user to set
    it to comment-only for the run (the branch stays stable; comments are just as useful). If it
@@ -70,9 +70,12 @@ again after every re-push (a new commit re-triggers the bot). It is just another
    force-push-then-immediately-merge (merging deletes the branch, ending the loop), retry ≤3×, then
    confirm the merge commit's second parent has the reviewed tree.
 
-The internal fresh build-blind reviewer reviews the RECONCILED branch and is the final gate. Bot
-rounds count WITHIN the review round budget (acceptance-review.md). A bot re-push voids the review
-SHA (reviewed-sha-freshness.md).
+Order is strict: reconcile FIRST (steps 1–3, integrator), THEN the internal fresh build-blind
+reviewer reviews the RECONCILED branch — it is the final gate and never runs before the bot is
+reconciled. Only after that verdict are its findings and the held VALID bot comments assembled into
+ONE change request, so the builder addresses both in a single pass on the same branch. Bot rounds
+count WITHIN the review round budget (acceptance-review.md); a bot re-push voids the review SHA
+(reviewed-sha-freshness.md) and restarts the sequence.
 
 ## Builders never open PRs; integrators do
 

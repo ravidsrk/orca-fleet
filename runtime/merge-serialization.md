@@ -40,10 +40,19 @@ one, not at run close.
 ## No-gh fallback (offline / unauthenticated)
 
 `gh` is the default path (`gh pr create` / `gh pr merge`). When `gh auth status` fails and cannot
-be restored, the conductor degrades to LOCAL merge commits into BASE — `git merge --no-ff` (commits
-preserved, never squash), conflicts resolved locally the same union way, branch deleted, maintainer
-authorship — and records `no-gh: local-merge` in the ledger. The BASE→default promotion still needs
-a human and a real PR, so a no-gh run stops at BASE and surfaces that the promotion PR is owed.
+be restored, the unit has no PR, so the conductor works from the `merge_ready` payload's `branch`
+and `reviewed_sha` (`pr` is null) and swaps every `gh` step in the loop above for a git equivalent:
+
+- FRESH? (step 2): `git rev-parse <branch>` == `reviewed_sha` (freshness holds identically — a
+  rebase still voids the review), and `git merge-base --is-ancestor origin/<BASE> <branch>`-style
+  check that the branch forks from BASE (the local stand-in for `baseRefName == BASE`). Mismatch →
+  bounce to re-review, requeue. Never skip this step just because there is no PR to `view`.
+- MERGE (step 3): `git merge --no-ff <branch>` into BASE (commits preserved, never squash),
+  conflicts resolved locally the same union way, branch deleted, maintainer authorship.
+- VERIFY (step 4): unchanged — it was already pure git ancestry.
+
+Record `no-gh: local-merge` in the ledger. The BASE→default promotion still needs a human and a
+real PR, so a no-gh run stops at BASE and surfaces that the promotion PR is owed.
 
 ## Rules
 
