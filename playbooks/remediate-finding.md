@@ -23,5 +23,7 @@ a security lens, a perf breach, or a flaky test — the mission supplies the fin
 
 - Close ONLY off a verified merge, never off worker memory.
 - One finding = one branch = one PR = one merge commit; same-file findings form a merge chain.
+- Sizing: build-change's PR sizing seam applies — a sub-10-line finding folds into a neighboring
+  finding's PR (both closes cite the shared merge SHA); one file never splits across two PRs.
 - The mission owns "how do I know the whole set is clean" (its convergence proof); this owns "how do I
   close one finding correctly".

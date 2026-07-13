@@ -8,6 +8,7 @@ description: >-
   "plan this epic", "I don't know the shape yet", or you can't yet authorize implementation. Its
   outcome is a decided plan; building is ship-it.
 license: MIT
+proof: doctrine-only
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). A wayfinder/research worker playbook
   (mattpocock wayfinder + research) — one router per worker.

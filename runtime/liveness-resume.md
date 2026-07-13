@@ -18,6 +18,11 @@ all in SQLite, surviving restarts).
 - BREAK at 3 doctor attempts OR runtime `circuit_broken` (3 real dispatch failures, carried forward
   per task via MAX(failure_count)) → escalate honestly (gate-classification.md).
 - Re-confirm `ORCA_COORD_ALLOW_DANGER` before respawning a danger-profile worker.
+- Lost preamble ≠ dead worker: recover the dispatched TASK with `dispatch-show --preamble` and
+  re-deliver via `terminal send`. Terminal activity means ALIVE — never kill a live worker on a
+  missed heartbeat alone.
+- NEVER run `orca orchestration reset` mid-run — it wipes the task/dispatch state every recovery
+  path below depends on. There is no mid-run situation it fixes that WATCH/RESUME doesn't.
 
 ## The stuck-pending watchdog (a runtime trap)
 
@@ -38,3 +43,12 @@ counted-but-untouched; no scope → resume ABORTS.
    provenance-says-done + git-disagrees = SUSPECT (treat as failed).
 3. RECONCILE the ledger (git is truth, the ledger is its cache).
 4. RE-ENTER the mission loop at the DAG frontier; never re-do a verified-merged unit.
+
+## Inflation post-mortem (re-runs — the Aula lesson)
+
+SUSPECT covers crash-resume inside one run; this covers run N+1. A run re-entering a surface a
+PRIOR run reported done starts by re-reading that run's completion report and listing every
+claim whose proof was "CI green" rather than a verified end state as the FIRST items of the new
+work index, re-confirmed OPEN until the verifier passes them against authoritative state. An
+autonomous run will otherwise believe its own green checkmarks — anti-inflation has to be
+structural, not a reminder.

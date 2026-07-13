@@ -8,6 +8,13 @@ Two things are checked:
    - name: 1-64 chars, lowercase letters/digits/hyphens, matches its folder
    - description: 1-1024 chars
    - compatibility: optional, 1-500 chars
+   - proof: required — doctrine-only | self-run | external-run. Advancing past
+     doctrine-only requires proof_evidence: a run-report path that exists. Ten
+     unproven missions presented as proven is how the predecessor repo died;
+     the honesty is machine-checked here.
+   - instruction budget: missions ≤ 130 lines, playbooks ≤ 90, runtime policies
+     ≤ 160. Doctrine creep gets caught by CI, not by a postmortem. Raise a cap
+     only by deliberate edit with a reason in the commit.
 
 2. The three-layer separation holds:
    - Only skills/ contains SKILL.md. A SKILL.md under playbooks/ or runtime/ would
@@ -36,6 +43,12 @@ SKILLS_DIR = ROOT / "skills"
 PLAYBOOKS_DIR = ROOT / "playbooks"
 RUNTIME_DIR = ROOT / "runtime"
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+PROOF_VALUES = {"doctrine-only", "self-run", "external-run"}
+# Instruction budget (lines, whole file). The predecessor's mandatory instruction
+# surface hit ~42K tokens with no counterpressure; these caps are the counterpressure.
+MISSION_MAX_LINES = 130
+PLAYBOOK_MAX_LINES = 90
+RUNTIME_MAX_LINES = 160
 # A mission declares what it composes in a "Composes ... rides ..." clause. Capture
 # each such clause through the END of its paragraph — terminating at the first
 # sentence break lets an abbreviation ("e.g. ") truncate the clause and smuggle
@@ -161,6 +174,26 @@ def validate_skill(skill_dir, protocols):
         if c != "<object>" and not (1 <= len(c) <= 500):
             errors.append(f"compatibility length {len(c)} out of 1-500")
 
+    # proof status: honest by construction — no mission presents itself as proven
+    # without a run report on disk
+    proof = data.get("proof")
+    if proof is None:
+        errors.append("missing 'proof' field (doctrine-only | self-run | external-run)")
+    elif proof not in PROOF_VALUES:
+        errors.append(f"proof '{proof}' invalid (want one of {sorted(PROOF_VALUES)})")
+    elif proof != "doctrine-only":
+        evidence = data.get("proof_evidence", "")
+        if not evidence or not (ROOT / evidence).exists():
+            errors.append(
+                f"proof '{proof}' requires proof_evidence: a run-report path that exists"
+            )
+
+    lines = text.count("\n") + 1
+    if lines > MISSION_MAX_LINES:
+        errors.append(
+            f"instruction budget: {lines} lines > {MISSION_MAX_LINES} (mission cap)"
+        )
+
     # architecture: every playbook/runtime a mission says it Composes/rides must exist,
     # and there must be at least one such name — a clause the regex can't see into
     # (bare directory pointers, prose) would otherwise pass with zero checks.
@@ -189,8 +222,10 @@ def validate_skill(skill_dir, protocols):
 def check_protocol_doc_refs(protocols):
     """Playbooks and runtime policies cross-reference each other by `<name>.md`;
     a rename or deletion must not dangle there either (missions are covered by
-    validate_skill — without this pass, only skills/ is guarded)."""
+    validate_skill — without this pass, only skills/ is guarded). The instruction
+    budget is enforced on the same walk."""
     failures = []
+    caps = {PLAYBOOKS_DIR: PLAYBOOK_MAX_LINES, RUNTIME_DIR: RUNTIME_MAX_LINES}
     for d in (PLAYBOOKS_DIR, RUNTIME_DIR):
         if not d.exists():
             continue
@@ -198,6 +233,12 @@ def check_protocol_doc_refs(protocols):
             text = f.read_text(encoding="utf-8")
             for e in md_ref_errors(text, protocols):
                 failures.append(f"{f.relative_to(ROOT)}: {e}")
+            lines = text.count("\n") + 1
+            if lines > caps[d]:
+                failures.append(
+                    f"{f.relative_to(ROOT)}: instruction budget: {lines} lines > "
+                    f"{caps[d]} ({d.name} cap)"
+                )
     return failures
 
 

@@ -40,6 +40,11 @@ A mission PR must include:
      is mandatory; the validator rejects a clause it cannot machine-check.
    - a `## Convergence proof` (or definition of done) section and a `## Anti-patterns` section —
      contract tests require both.
+   - `proof: doctrine-only` — every mission starts there. It advances to `self-run` or
+     `external-run` only with `proof_evidence:` linking a run report in the repo; the validator
+     enforces this. Do not argue a mission is proven in prose; link the run.
+   - within the instruction budget: missions ≤ 130 lines (playbooks ≤ 90, runtime ≤ 160).
+     If your mission needs more, the overflow is probably a playbook.
 2. An entry in the README mission table and in AGENTS.md's intent → mission mapping.
 3. A guide at `docs/missions/<name>.md` following the structure of
    [docs/missions/ship-it.md](docs/missions/ship-it.md).

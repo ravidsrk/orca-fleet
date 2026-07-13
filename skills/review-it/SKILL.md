@@ -8,6 +8,7 @@ description: >-
   PR", "review matrix", "is this ready to merge", a pre-merge quality/permission gate. Report-only — it
   never edits code (fixing is ship-it / clean-sweep).
 license: MIT
+proof: doctrine-only
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh. Review worker playbooks
   (mattpocock code-review, addyosmani specialists, gstack review army) — one router per worker.

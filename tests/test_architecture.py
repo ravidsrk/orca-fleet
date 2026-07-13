@@ -114,6 +114,34 @@ class TestArchitecture(unittest.TestCase):
             self.assertTrue((RUNTIME / "scripts" / script).exists(),
                             f"runtime/scripts/{script} missing")
 
+    def test_every_mission_declares_proof_status(self):
+        # Honesty gate: the predecessor presented 12 missions with 2 proven and died
+        # of it. Every mission states how proven it is; the validator enforces the
+        # evidence link when a mission claims more than doctrine.
+        for d in mission_dirs():
+            text = (d / "SKILL.md").read_text(encoding="utf-8")
+            self.assertRegex(
+                text, r"(?m)^proof: (doctrine-only|self-run|external-run)$",
+                f"{d.name} declares no proof status",
+            )
+
+    def test_runtime_scripts_never_interpolate_code(self):
+        # The predecessor shipped a P0 RCE by interpolating values into `python -c`
+        # (live even under --dry-run). Values pass as argv or heredoc stdin, never
+        # inside a double-quoted code string; no eval.
+        for f in sorted((RUNTIME / "scripts").iterdir()):
+            if f.suffix not in (".sh", ".py"):
+                continue
+            text = f.read_text(encoding="utf-8")
+            self.assertNotRegex(
+                text, r"python3? -c \"",
+                f"{f.name}: python -c with a double-quoted (interpolatable) code string",
+            )
+            self.assertNotRegex(
+                text, r"(?m)^\s*eval[ (]",
+                f"{f.name}: eval on constructed input",
+            )
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

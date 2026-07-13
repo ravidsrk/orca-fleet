@@ -10,6 +10,7 @@ description: >-
   build-to-release run. Not for closing an existing backlog (that's clean-sweep) or a foggy
   goal that needs charting first (that's map-it).
 license: MIT
+proof: doctrine-only
 compatibility: >-
   HARD dependency: Orca runtime + the orchestration skill (Orca CLI). git + gh. One worker
   playbook pack per worker (mattpocock/skills for grill/tdd, addyosmani for build/verify, gstack
@@ -92,4 +93,5 @@ routers in one worker TASK.
 ## Related
 
 `map-it` (chart a foggy goal into a spec this consumes), `clean-sweep` (close an existing set, not
-build new), `review-it` (verdict without building).
+build new), `review-it` (verdict without building), `mission-chaining` (run this as the gated tail
+of a harden-it/prove-it sequence).

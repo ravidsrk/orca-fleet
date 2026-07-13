@@ -8,6 +8,7 @@ description: >-
   this happening", "find the root cause", "debug this hard bug". Diagnosis, not remediation — the fix
   is a separate authorized handoff (ship-it / clean-sweep).
 license: MIT
+proof: doctrine-only
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh. A feedback-loop-first
   debugging playbook (mattpocock diagnosing-bugs or addyosmani debug) — one router per worker.
