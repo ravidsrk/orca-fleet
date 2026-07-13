@@ -38,6 +38,7 @@ The worker writes it to `reportPath` and names that path in the `worker_done` pa
   },
   "artifacts": ["docs/reports/<unit>/…"],
   "pr": {"number": 0, "url": "", "reviewed_sha": "<SHA the reviewer approved>"},
+  "reviewer_mode": "<cross-vendor | same-vendor-fresh | instructed-isolation — how independent the review REALLY was>",
   "toolchain": "<node 24 / python 3.12 / …>",
   "parked": [{"item": "<what>", "reason": "<one-way / no-safe-sandbox / needs-human>", "gate": "<gate id>"}],
   "claim": "<the worker's own summary — informational only, NEVER the completion oracle>"
@@ -79,9 +80,15 @@ state. The manifest is a claim; these are facts:
 | The change is real on base | after merge, a file/symbol from the unit is greppable on `origin/<base_branch>` |
 | Deployed == reviewed (ship only) | the deployed revision equals the reviewed/merged SHA |
 | The metric contract is met (measurement units) | the benchmark/coverage/streak satisfies its PRE-DECLARED statistical contract, not a lucky single run |
+| The review was independent | reviewer/verifier artifacts are not byte-identical to (or trivially derived from) the worker's own output — a predecessor's flagship run was quarantined on exactly this; `reviewer_mode` is recorded, and instructed isolation is named as the weaker guarantee it is |
 
 Verification failing on any required check → the unit is NOT done; it returns to its state
 machine (re-dispatch, or SUSPECT if provenance says done but git disagrees).
+
+At run close, the coordinator writes an **integrity inventory** beside the final report: sha256 +
+producer + timestamp for every artifact the run's manifests reference. RESUME and any later
+audit reject an artifact whose hash no longer matches — evidence must be tamper-evident, not
+merely present.
 
 ## 3. Standing definition-of-done floor (every mission, on top of its own contract)
 
