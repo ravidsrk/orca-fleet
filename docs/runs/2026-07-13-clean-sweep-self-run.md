@@ -58,6 +58,10 @@ on `origin/ravidsrk/sweep-base` by the conductor and independently by the coordi
   fresh terminal → success on attempt 1/3.
 - One unrelated global task existed in runtime state; scoped out via the ledger per
   liveness-resume (counted-but-untouched).
+- The run-closure commit itself tripped a validator false-positive: the `proof_evidence:` path
+  matched the path-prefixed-protocol rule, which had been written broader than its purpose. The
+  rule now flags path-prefixed PROTOCOL names only and requires other paths to exist — with two
+  new fixture tests. A run that exercises its own guards finds their edges; that is the point.
 
 ## Run-close integrity inventory (sha256)
 

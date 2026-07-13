@@ -80,10 +80,16 @@ def md_ref_errors(text, protocols):
         canon = stem.lower().replace("_", "-")
         if NAME_RE.match(stem):
             if "/" in tok:
-                errs.append(
-                    f"path-prefixed reference: {tok} — reference protocols by bare "
-                    f"name (`{stem}` or {stem}.md)"
-                )
+                # A path-prefixed PROTOCOL name is the wrong-directory lie
+                # (playbooks/sandbox-policy.md). A path to anything else (a run
+                # report, a doc) is legitimate — but it must exist.
+                if stem in protocols or canon in protocols:
+                    errs.append(
+                        f"path-prefixed reference: {tok} — reference protocols by "
+                        f"bare name (`{stem}` or {stem}.md)"
+                    )
+                elif not (ROOT / tok).exists():
+                    errs.append(f"dangling path: {tok} does not exist")
             elif stem not in protocols:
                 errs.append(f"dangling reference: {tok} names no playbook or runtime policy")
         elif canon in protocols:
