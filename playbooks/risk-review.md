@@ -4,7 +4,13 @@ Recipe: Addy specialist skills (security, performance, accessibility, data-migra
 scope-gating + adaptive suppression. NOT run on every diff — DISPATCHED when the change surface
 triggers the lens.
 
-## Dispatch rule (scope-gated)
+## Two invocation modes
+
+Diff-triggered (the default, below) — a lens runs when the change surface signals it. TREE-WIDE
+(harden-it's audit waves): the fixed point is the whole codebase at the BASE head; scope-gating is
+bypassed and every requested lens runs over the full surface.
+
+## Dispatch rule (scope-gated, diff-triggered mode)
 
 Run a lens only when the diff signals it (auth/query/route/dep change → security; render/query/bundle
 → perf; component/markup → a11y; schema/migration → data-migration). Adaptive gating: a lens with 0
