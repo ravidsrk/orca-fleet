@@ -14,6 +14,9 @@ Recipe: Matt `tdd` (seams + tautology guard) + Addy `incremental-implementation`
 - **Commits:** bisectable, dependency-ordered, each building alone, author = maintainer, no trailers,
   staging only the unit's files (never `git add -A` — it breaks clean rollback). A migration is a
   deliberate multi-commit expand/migrate/contract sequence, not one commit.
+- **PR sizing seam** (field-validated: diff size drives merge success): one area or one source
+  file per PR, target ≤~400 changed lines; a sub-10-line fix folds into a neighboring unit's PR
+  instead of its own; never split one file across two PRs; never combine conflict-prone areas.
 - **Irreversibility stop-list:** auth/permissions, destructive migration, payments, deletions,
   deploys, secrets, anything not undoable with `git revert` → STOP and escalate (gate-classification.md).
   Never improvised.

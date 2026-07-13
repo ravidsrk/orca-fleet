@@ -3,6 +3,16 @@
 Recipe: Matt `code-review` two-axis (isolated) + gstack review-army dispatch mechanics. Always-on for
 any non-trivial diff. Build-blind: the reviewer is a FRESH session that did not write the code.
 
+## Blind-fix first (anti-anchoring)
+
+Build-blindness alone is not enough — a reviewer handed a diff anchors on it, and rationalizing
+an artifact is cheaper than re-deriving the fix (order effects are empirically real). So BEFORE
+opening the candidate diff, the reviewer reads only the finding/criteria and writes its OWN
+expectation to its evidence notes: where the fix should live, its rough shape, and a confidence.
+Then it opens the diff and reviews the delta against that expectation. Divergence is signal, not
+error. Prefer a cross-vendor reviewer (different CLI/model than the builder) when the fleet has
+one — mechanical independence beats instructed independence.
+
 ## The two axes (isolated parallel sub-agents, no cross-rerank)
 
 - **Standards:** repo-documented standards (paste the files) + the Fowler 12-smell baseline, judged
@@ -27,8 +37,16 @@ Findings side by side per axis with severity (Critical/Required/Nit/Optional/FYI
 quoted line. Record the exact `reviewed_sha` in the evidence manifest (reviewed-sha-freshness.md) —
 the merge depends on it.
 
+## Round budget
+
+Max THREE failed review rounds per unit. A unit still failing review after round 3 does not loop
+again and does not merge — it PARKS with a gate (gate-classification.md) naming the sticking
+finding. Nothing else in the fleet bounds the build→review→fix loop; without this cap a stubborn
+finding ping-pongs an unattended run forever.
+
 ## Completion
 
 Pinned fixed point (non-empty `git diff <fp>...HEAD`), both axes reported with no cross-rerank, every
-finding quotes its line, reviewed_sha recorded. This axis checks conformance; refusal-under-attack is
+finding quotes its line, reviewed_sha recorded, blind-fix expectation written before the diff was
+opened, round count ≤ 3. This axis checks conformance; refusal-under-attack is
 `risk-review` / `harden-it`.
