@@ -8,6 +8,16 @@ Recipe: gstack `ship` (version state machine, verification gate, bisectable comm
 Which state is reachable depends on authorization and deploy availability — a mission stops at the
 highest state it is authorized and able to reach and names it.
 
+## BUILT (entered by landing)
+
+Landing is merge-serialization.md doing its job: every unit of the wave `merge_ready`
+(reviewed-SHA fresh), the conductor draining the queue in arrival order, hot-file chains
+serialized, each merge ancestry-verified (`git merge-base --is-ancestor <mergeCommit>
+origin/<BASE>` AND state=MERGED AND baseRefName==BASE AND a symbol from the unit greppable on
+BASE), the merge SHA ledgered, worktrees torn down only at `WT_CLEAN` (never an active/unmerged/
+dirty one). BUILT means on the integration BASE, verified — it does NOT mean shipped; the
+BASE→default promotion is the separate one-way human gate below.
+
 ## PROMOTION_READY
 
 Version bump: a deterministic classifier reads state (FRESH / ALREADY_BUMPED / DRIFT_STALE / **DRIFT_
