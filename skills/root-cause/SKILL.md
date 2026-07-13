@@ -24,9 +24,11 @@ debate (the theory that survives adversarial debate is likely the real cause), n
 ## Pipeline
 
 ```
-STOP-THE-LINE (preserve evidence) → run the diagnose playbook end-to-end (red-capable loop BEFORE
-  any theory; elevated reproduction rate for a non-deterministic bug; 3–5 ranked falsifiable
-  hypotheses, falsified one variable at a time to a single survivor). This mission adds, not restates:
+STOP-THE-LINE (preserve evidence) → run the diagnose playbook's DIAGNOSIS phases (red-capable loop
+  BEFORE any theory; elevated reproduction rate for a non-deterministic bug; 3–5 ranked falsifiable
+  hypotheses, falsified one variable at a time to a single survivor) and STOP before its fix phase —
+  this mission has no fix authority; the fix belongs to the separately authorized handoff below.
+  This mission adds, not restates:
   → competing-hypothesis DEBATE when causes are mutually exclusive (the theory that survives
     adversarial debate is likely the real cause), instead of a fan-out
   → DEMONSTRATE the surviving cause with evidence; a regression test at a correct seam (if none exists,
