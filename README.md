@@ -255,7 +255,7 @@ plugin directory — nothing else to configure.
 </details>
 
 <details>
-<summary><b>skills CLI (any agent)</b></summary>
+<summary><b>skills CLI (any agent) — with a caveat</b></summary>
 
 The open [skills CLI](https://github.com/vercel-labs/skills) installs into Claude Code, Cursor,
 Codex, and 70+ other agents:
@@ -265,8 +265,18 @@ npx skills add ravidsrk/orca-fleet --list    # browse the ten missions
 npx skills add ravidsrk/orca-fleet           # install
 ```
 
-Note: per-mission installs that *copy* a single skill directory will break the relative
-playbook references — prefer the whole-catalog install, or the symlink path above.
+**Caveat — verify the install preserved the tree.** Every mission references
+`../../playbooks/` and `../../runtime/` relative to its own directory. Any installer that
+copies skill directories *out* of the repo tree severs those references — whether it copies
+one mission or all ten. After installing, check that `playbooks/` and `runtime/` exist two
+levels above each installed mission:
+
+```bash
+ls "$(dirname "$(dirname "$(readlink -f ~/.claude/skills/ship-it 2>/dev/null || echo ~/.claude/skills/ship-it)")")"/playbooks
+```
+
+If that fails, the references are broken — use the symlink or plugin path above instead;
+both are verified to preserve them.
 
 </details>
 
