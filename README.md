@@ -1,8 +1,8 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/banner-dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="assets/banner-light.svg">
-    <img alt="orca-fleet — autonomous fleets for the Orca runtime" src="assets/banner-light.svg" width="1000">
+    <source media="(prefers-color-scheme: dark)" srcset="assets/hero-dark.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="assets/hero-light.jpg">
+    <img alt="orca-fleet — a pod of orcas swimming in formation through a dark ocean of node graphs" src="assets/hero-light.jpg" width="1000">
   </picture>
 </p>
 
