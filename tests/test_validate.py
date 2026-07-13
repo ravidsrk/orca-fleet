@@ -63,6 +63,23 @@ class TestValidatorFailureBranches(unittest.TestCase):
                 make_skill(tmp, "Composes `diagnose`. See playbooks/diagnose.md.\n"), PROTOCOLS)
             self.assertTrue(any("path-prefixed reference" in e for e in errs), errs)
 
+    def test_non_protocol_path_that_exists_is_fine(self):
+        # proof_evidence and doc links are legitimate path references — the
+        # path-prefix rule only guards PROTOCOL names (found by the first self-run,
+        # whose closure commit tripped the old rule).
+        with tempfile.TemporaryDirectory() as tmp:
+            errs = validate.validate_skill(
+                make_skill(tmp, "Composes `diagnose`. Evidence: docs/getting-started.md.\n"),
+                PROTOCOLS)
+            self.assertEqual(errs, [])
+
+    def test_non_protocol_path_that_does_not_exist_dangles(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            errs = validate.validate_skill(
+                make_skill(tmp, "Composes `diagnose`. Evidence: docs/runs/never-happened.md.\n"),
+                PROTOCOLS)
+            self.assertTrue(any("dangling path" in e for e in errs), errs)
+
     def test_uppercase_doc_mentions_exempt(self):
         with tempfile.TemporaryDirectory() as tmp:
             errs = validate.validate_skill(

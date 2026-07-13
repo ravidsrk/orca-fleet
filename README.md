@@ -10,8 +10,8 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
   <a href="https://agentskills.io/specification"><img src="https://img.shields.io/badge/spec-agentskills.io-orange.svg" alt="agentskills.io spec"></a>
   <a href="skills/"><img src="https://img.shields.io/badge/missions-10-1f6feb.svg" alt="10 missions"></a>
-  <a href="tests/"><img src="https://img.shields.io/badge/contract%20tests-19%20passing-2ea043.svg" alt="19 contract tests"></a>
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-0.1.1-8957e5.svg" alt="version 0.1.1"></a>
+  <a href="tests/"><img src="https://img.shields.io/badge/contract%20tests-25%20passing-2ea043.svg" alt="25 contract tests"></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-0.2.0-8957e5.svg" alt="version 0.2.0"></a>
 </p>
 
 <p align="center">
@@ -342,7 +342,7 @@ runtime/      8 policies + runtime/scripts/ (spawn_worker, preflight, pm)
 docs/         human documentation: getting started, concepts, mission guides
 assets/       banners and images
 scripts/      validate.py — spec + three-layer + cross-reference validation
-tests/        25 architecture contract tests (stdlib unittest)
+tests/        25 tests: architecture contracts + validator negative-path fixtures (stdlib unittest)
 ```
 
 ## Validate and test
