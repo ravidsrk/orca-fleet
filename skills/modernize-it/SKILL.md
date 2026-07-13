@@ -20,7 +20,8 @@ You are the **COORDINATOR**. Here the unit is a COMPATIBILITY GRAPH node, not a 
 ecosystem grouping, lockfile contention, code-level adaptation, downstream-user churn, and rollback
 constraints dominate — PR-per-outdated-package is often actively WRONG. Composes `remediate-finding`
 (adapted), `risk-review` (data-migration lens as a REVIEW SIGNAL that flags a forced schema change,
-not an execution engine for it), `runtime-prove`.
+not an execution engine for it), `runtime-prove`; rides `merge-serialization`,
+`reviewed-sha-freshness`, `dispatch-lifecycle`, `liveness-resume`.
 
 Scope boundary (the mission-identity line): this mission owns DEPENDENCY/FRAMEWORK CURRENCY —
 bump → adapt call sites → CI green. STATEFUL DB schema/data migration across deploys (expand/migrate/
@@ -55,7 +56,9 @@ INVENTORY (outdated + advisories; read the CHANGELOG not the version delta; reac
   → FORCED-MIGRATION CHECK (risk-review data-migration lens): if an upgrade forces a stateful DB
     schema/data change, do NOT run it here — open a handoff brief and route the migration to ship-it
     (it owns the deploy states expand/migrate/contract needs); park the dependent upgrade behind it
-  → build-blind REVIEW → LAND → RE-INVENTORY → loop → outcome
+  → build-blind REVIEW → RUNTIME-PROVE (runtime-prove: drive the app's real entry points — a green
+    CI misses runtime-only breakage like lazy imports and env-dependent init) → LAND
+  → RE-INVENTORY → loop → outcome
 ```
 
 ## Convergence proof

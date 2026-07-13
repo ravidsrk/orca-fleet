@@ -23,8 +23,10 @@ You are the **COORDINATOR**. The outcome is a change built, reviewed, verified, 
 down the release state machine as you are authorized to reach — named explicitly, never overclaimed.
 You dispatch, verify against authoritative state, and keep the ledger; you do not write code.
 
-Read [ARCHITECTURE.md](../../ARCHITECTURE.md) once. This mission COMPOSES playbooks (`../../playbooks/`)
-and rides runtime policies (`../../runtime/`); it does not restate them.
+Read [ARCHITECTURE.md](../../ARCHITECTURE.md) once. Composes `decide-and-freeze`, `decompose-dag`,
+`build-change`, `acceptance-review`, `risk-review`, `runtime-prove`, `release`, `observe` playbooks;
+rides `dispatch-lifecycle`, `merge-serialization`, `reviewed-sha-freshness`, `evidence-manifest`,
+`gate-classification`, `liveness-resume` runtime policies. It does not restate them.
 
 ## Terminal states (name the one you reach)
 
