@@ -4,6 +4,35 @@ All notable changes to orca-fleet are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the version source of
 truth is `.claude-plugin/plugin.json`.
 
+## [0.2.1] - 2026-07-13
+
+Closes the gaps a coverage audit found between the catalog and the original
+Orca coordinator prompt library (the two monolithic prompts this repo
+decomposed from).
+
+### Changed
+
+- Worktree lineage is now a subtree per unit: a supervised worker's worktree is
+  a CHILD of the coordinator (omit `--no-parent`), and its dependent workers
+  (reviewer, fix rounds, integrator, bot reconcile) run as fresh terminals
+  inside that worktree — so one `WT_CLEAN` tears the whole subtree down at merge
+  (`runtime/dispatch-lifecycle.md`).
+- The bot-reconcile policy is generalized from Cursor BugBot to ANY PR review
+  bot (Greptile, CodeRabbit, …) with a full wait → ingest → reconcile
+  discipline: bounded poll with a did-not-run fallback, comment triage folded
+  into one change request, dynamic bot-login detection.
+
+### Added
+
+- First-merge spot-check: the run's first merge gets a dispatched verification
+  of its shape before the train continues, since the pipeline inherits it
+  (`runtime/merge-serialization.md`).
+- No-gh fallback: the conductor degrades to local `git merge --no-ff` into BASE
+  when `gh` is unavailable, and records that the promotion PR is owed.
+- Plan skeptic: a fresh worker stresses a decomposition against the frozen
+  spec's criteria (orphan criterion / gold-plating / order / stub-slices)
+  before it commits (`playbooks/decompose-dag.md`).
+
 ## [0.2.0] - 2026-07-13
 
 Lessons ported from the failed predecessor (ravidsrk/autonomous-fleet) — the

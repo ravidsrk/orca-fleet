@@ -28,6 +28,22 @@ Hot mount-point files (route registry, DI wiring, migrations, barrels) → mark 
 liveness-resume.md) · no cycles · foundation has no deps on slices · every hot-file chain is a path
 not a fan. Five minutes here saves a fleet-wide debugging session.
 
+## Plan skeptic (a fresh worker stresses the decomposition, before commit)
+
+The check above is mechanical (the DAG is well-formed). This one is semantic: a FRESH build-blind
+worker stresses the slices against the frozen spec's acceptance criteria and answers four
+questions, updating the plan inline before it commits:
+
+- **Orphan criterion** — every acceptance criterion maps to at least one slice? An uncovered
+  criterion is a silent scope drop.
+- **Gold-plating** — every slice traces to a criterion? A slice no criterion needs is invented
+  scope; cut it or surface it as a backlog item.
+- **Order** — nothing depends on unbuilt foundation; the build order is dependency-correct.
+- **Stub-slices** — each slice is a genuine vertical path, not a stub masquerading as a slice.
+
+This is the plan-time analogue of clean-sweep's skeptic-triage: it catches a bad denominator
+before a fleet builds against it.
+
 ## Completion
 
 The slice↔task-id table is in the ledger; the DAG's frontier is exactly the foundation; the loop
