@@ -104,7 +104,7 @@ class TestArchitecture(unittest.TestCase):
                 stem = re.escape(f.stem)
                 self.assertRegex(
                     bodies,
-                    rf"`{stem}`|{stem}\.md",
+                    rf"`{stem}`|(?<![\w-]){stem}\.md",
                     f"{proto_dir.name}/{f.name} is composed by no mission (orphan)",
                 )
 
