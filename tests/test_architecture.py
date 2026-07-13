@@ -176,7 +176,7 @@ class TestArchitecture(unittest.TestCase):
             "---\nname: cap-mission\ndescription: x. Use when testing.\n"
             "proof: doctrine-only\n---\n\nComposes `diagnose`.\n"
         )
-        pad = v.MISSION_MAX_LINES - header.count("\n")
+        pad = v.MISSION_MAX_LINES - len(header.splitlines())
         (d / "SKILL.md").write_text(header + "b\n" * pad)  # exactly MISSION_MAX_LINES lines
         try:
             errors = v.validate_skill(d, v.known_protocol_names())
