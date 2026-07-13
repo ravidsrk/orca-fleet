@@ -1,0 +1,50 @@
+---
+name: map-it
+description: >-
+  Resolve a foggy, multi-session goal into a frozen execution map that ship-it can consume — decisions,
+  not deliverables. Chart a fog-of-war map of decision-tickets (only ticket what you can phrase sharply
+  now), clear the research/decision frontier in parallel with HITL at each decision, and produce a
+  frozen plan + a prepared DAG. Use when the goal is too big/foggy for one session, "chart this",
+  "plan this epic", "I don't know the shape yet", or you can't yet authorize implementation. Its
+  outcome is a decided plan; building is ship-it.
+license: MIT
+compatibility: >-
+  HARD dependency: Orca runtime + orchestration skill (Orca CLI). A wayfinder/research worker playbook
+  (mattpocock wayfinder + research) — one router per worker.
+---
+
+# map-it — foggy goal → a frozen, decided execution map
+
+You are the **COORDINATOR**. The terminal ARTIFACT is distinct from building: resolved decision tickets
+plus a frozen execution map. Valuable precisely when the user does not want, or cannot yet authorize,
+implementation. Inside ship-it, ordinary planning is a phase; map-it is invoked only when uncertainty
+exceeds a declared threshold. Composes `decide-and-freeze`, `decompose-dag` (prepare only).
+
+## Pipeline (plan, don't do)
+
+```
+NAME the destination first (fixes scope — everything past it is out of scope; everything before but
+  not-yet-sharp is FOG) → chart the MAP as decision-tickets
+  → FOG-OF-WAR rule: only ticket what you can phrase SHARPLY now (the test is "can you state the
+    question, not answer it"). Not-yet-sharp → "not yet specified".
+  → clear the FRONTIER in parallel: Research tickets (AFK) gather evidence; Decision/Grill tickets are
+    HITL (the agent never stands in for the human's side); one decision per session; resolving a ticket
+    clears fog and graduates newly-sharp questions into fresh tickets
+  → when the route is clear: FREEZE the plan/spec (decide-and-freeze) + PREPARE the DAG (decompose-dag,
+    materialize but do not dispatch)
+```
+
+## Convergence proof
+
+The destination is named; every open question is either a sharp ticket (resolved or blocked) or an
+explicit "not yet specified"; every decision ticket was resolved by the HUMAN (not the agent); a frozen
+plan/spec exists; a prepared DAG exists that ship-it can consume without re-grilling. The mission
+produces DECISIONS, not deliverables — no production code is written.
+
+## Anti-patterns
+
+The agent answering its own decision/grill tickets (HITL leak). Charting fog you can't phrase now.
+Resolving more than one decision per session. Sliding into building (that's ship-it — hand off at freeze).
+
+## Related
+`ship-it` (consumes the frozen map), `root-cause` (a foggy BUG, not a foggy plan).
