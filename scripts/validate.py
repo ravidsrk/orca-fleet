@@ -13,8 +13,12 @@ Two things are checked:
    - Only skills/ contains SKILL.md. A SKILL.md under playbooks/ or runtime/ would
      republish an internal protocol as a discoverable skill — the exact routing
      collision this repo exists to remove.
-   - Every playbook a mission references (../../playbooks/<x>.md) exists.
-   - Every runtime policy a mission references (../../runtime/<x>.md) exists.
+   - Every name in a mission's "Composes …; rides …" clause resolves to a real
+     playbook or runtime policy, and every mission has at least one such
+     machine-checkable name (a clause with no backticked names silently no-ops).
+   - Every lowercase `<name>.md` mention anywhere in a mission resolves too —
+     pipeline text references protocols outside the clause, and a rename must not
+     dangle there. Uppercase docs (ARCHITECTURE.md, SKILL.md) are exempt.
 
 Exit code: 0 if all valid, 1 if any failure.
 
@@ -34,6 +38,9 @@ NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 # it resolves to a real playbook or runtime policy — this catches typos and renames.
 COMPOSE_CLAUSE_RE = re.compile(r"(?:Composes|COMPOSES|rides)\s+(.+?)(?:\.\s|\.$|\n\n)", re.DOTALL)
 BACKTICK_RE = re.compile(r"`([a-z0-9][a-z0-9-]*)`")
+# Any lowercase `<name>.md` mention (pipeline text, parentheticals) must also resolve;
+# basenames that fail NAME_RE (ARCHITECTURE.md, SKILL.md) are exempt.
+MD_TOKEN_RE = re.compile(r"[\w./-]+\.md\b")
 
 
 def known_protocol_names():
@@ -117,13 +124,30 @@ def validate_skill(skill_dir, protocols):
         if c != "<object>" and not (1 <= len(c) <= 500):
             errors.append(f"compatibility length {len(c)} out of 1-500")
 
-    # architecture: every playbook/runtime a mission says it Composes/rides must exist
-    for clause in COMPOSE_CLAUSE_RE.findall(text):
-        for ref in BACKTICK_RE.findall(clause):
-            if ref not in protocols:
-                errors.append(
-                    f"dangling composition: `{ref}` names no playbook or runtime policy"
-                )
+    # architecture: every playbook/runtime a mission says it Composes/rides must exist,
+    # and there must be at least one such name — a clause the regex can't see into
+    # (bare directory pointers, prose) would otherwise pass with zero checks.
+    clause_refs = [
+        ref
+        for clause in COMPOSE_CLAUSE_RE.findall(text)
+        for ref in BACKTICK_RE.findall(clause)
+    ]
+    for ref in clause_refs:
+        if ref not in protocols:
+            errors.append(
+                f"dangling composition: `{ref}` names no playbook or runtime policy"
+            )
+    if not clause_refs:
+        errors.append(
+            "no machine-checkable composition: the Composes/rides clause must name "
+            "at least one playbook or runtime policy in backticks"
+        )
+
+    # every lowercase `<name>.md` mention must resolve (catches renames outside the clause)
+    for tok in MD_TOKEN_RE.findall(text):
+        stem = tok.rsplit("/", 1)[-1][: -len(".md")]
+        if NAME_RE.match(stem) and stem not in protocols:
+            errors.append(f"dangling reference: {tok} names no playbook or runtime policy")
 
     return errors
 

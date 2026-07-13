@@ -85,7 +85,9 @@ states which pack a worker uses in the dispatched TASK.
 - Playbooks and runtime policies are plain Markdown with no frontmatter — never give them a
   `SKILL.md`.
 - A mission references the playbooks and runtime policies it composes by name, in a
-  "Composes … ; rides …" clause. `scripts/validate.py` checks every such name resolves.
+  "Composes … ; rides …" clause. `scripts/validate.py` checks every such name resolves,
+  requires at least one machine-checkable name per mission, and checks every lowercase
+  `<name>.md` mention in a mission resolves too.
 
 ## Boundaries
 
