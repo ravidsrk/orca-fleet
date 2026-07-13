@@ -12,17 +12,14 @@ in a clean env, the runtime, the deploy target). A unit advances only when verif
 ## 1. The manifest (every worker emits this in `worker_done`)
 
 The worker writes it to `reportPath` and names that path in the `worker_done` payload. Shape
-(JSON; a mission may add fields). Fields marked *(mutation)* apply to mutation units only —
-report-only and planning units OMIT them and carry their class's negative-control analogue (§3)
-in `negative_control` instead (e.g. review-it: `{"did": "re-read every quoted line at
-reviewed_sha", "result": "all present", ...}`):
+(JSON; a mission may add fields):
 
 ```json
 {
   "unit": "<task-id / finding-id / slice-id>",
   "base_sha": "<the SHA the work started from>",
   "head_sha": "<the SHA the work produced>",
-  "base_branch": "<the integration BASE the PR targets> (mutation)",
+  "base_branch": "<the integration BASE the PR targets>",
   "contract": {
     "source": "<authoritative ref the criteria derive from — frozen spec path@sha, the enumerated backlog, the advisory set>",
     "digest": "<sha256 of the unit's task spec as materialized at dispatch — the denominator is frozen per unit, not worker-chosen>",
@@ -48,6 +45,12 @@ reviewed_sha", "result": "all present", ...}`):
   "claim": "<the worker's own summary — informational only, NEVER the completion oracle>"
 }
 ```
+
+Field scoping by mission class: `base_branch`, `pr`, and the revert/mutate form of
+`negative_control` are MUTATION-ONLY — report-only and planning units omit them. A report-only
+unit's verdict binds to `head_sha` (the SHA it reviewed), and its `negative_control` carries the
+class analogue of §3 (e.g. review-it: `{"did": "re-read every quoted line at head_sha",
+"result": "all present"}`).
 
 Rules:
 - `base_sha` and `head_sha` are REQUIRED and must be real commits. "It works" with no SHA is not
@@ -94,7 +97,7 @@ state. The manifest is a claim; these are facts:
 | The commit exists on the intended base *(mutation units)* | `git merge-base --is-ancestor <head_sha> origin/<base_branch>` after the merge; before merge, `git cat-file -e <head_sha>` and the PR's `baseRefName == base_branch` |
 | Tests pass at that exact SHA in a clean env | check out `head_sha` in a fresh worktree, run the suite, confirm green — do NOT trust the pasted output alone for the critical path |
 | The negative control really fails | mutation units: on a sample (≥10%), a fresh worker reverts/mutates and confirms the proof goes RED. Report-only/planning units: the class analogue of §3 is re-checked (quoted lines exist at reviewed_sha / the frozen DAG re-verifies / the repro command re-runs red) |
-| The review is fresh | `pr.reviewed_sha == head_sha` (a rebase after review voids it — reviewed-sha-freshness.md) |
+| The review is fresh *(mutation units)* | `pr.reviewed_sha == head_sha` (a rebase after review voids it — reviewed-sha-freshness.md) |
 | The change is real on base *(mutation units)* | after merge, a file/symbol from the unit is greppable on `origin/<base_branch>` |
 | Deployed == reviewed (ship only) | the deployed revision equals the reviewed/merged SHA |
 | The metric contract is met (measurement units) | the benchmark/coverage/streak satisfies the manifest's `metric_contract` (pre-declared target + confidence + method), not a lucky single run |
@@ -118,8 +121,8 @@ scoped by MISSION CLASS — a negative control is always required, but what one 
   SHA; the manifest's negative control is the revert/mutate proof of §1.
 - **Report-only units** (review-it): no code is touched (that IS a checked invariant — a dirty
   worktree fails the unit); the negative-control analogue is SOURCE-BINDING: every finding
-  quotes a line that exists at `reviewed_sha`, and the verdict binds to that SHA. A finding
-  whose quoted line does not exist at the reviewed SHA is a fabricated finding — the unit fails.
+  quotes a line that exists at `head_sha` (the SHA reviewed), and the verdict binds to that SHA.
+  A finding whose quoted line does not exist there is a fabricated finding — the unit fails.
 - **Planning units** (map-it, root-cause diagnosis): the negative-control analogue is
   ARTIFACT VERIFICATION: the frozen DAG passes decompose-dag's verify section / the reproduction
   command was actually run and its failing output is pasted; a decision ticket answered by the

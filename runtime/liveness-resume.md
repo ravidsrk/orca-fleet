@@ -39,7 +39,8 @@ The FIRST line of every mission's ledger file is a header, written at run start 
 coordinator respawn:
 
 `RUN: <run-id> · COORDINATOR: <terminal handle(s)> · BASE: <integration branch, or '-' for
-report-only/planning missions> · T0: <ts> · SOURCE: <mission denominator ref + digest>`
+report-only/planning missions> · FORK_POINT: <sha BASE was created from, or '-'> · T0: <ts> ·
+SOURCE: <mission denominator ref + digest>`
 
 `RUN` and `COORDINATOR` are always required (RESUME dies without them); fields a mission class
 has no value for are recorded as `-`, never omitted (a missing column is indistinguishable from

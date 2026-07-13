@@ -1,6 +1,7 @@
 # Playbook — observe  (post-release canary monitoring)
 
-Recipe: gstack `canary`. The monitoring LOOP runs after a deploy (release.md DEPLOYED state), never
+Recipe: gstack `canary`. The monitoring LOOP runs after a deploy (inside release.md's
+DEPLOYED_AND_VERIFIED phase, following its deploy step), never
 inside a generic verify — but step 1's baseline is captured immediately BEFORE the deploy (the
 calling mission must sequence it there; ship-it does). Observe-and-report by default; rollback is a
 human gate.
