@@ -101,11 +101,13 @@ evidence-based definition of done. Click through for the full guide to each.
 
 Every mission's frontmatter carries a validator-enforced `proof:` field: `doctrine-only`,
 `self-run`, or `external-run`. A mission cannot claim a higher tier without `proof_evidence:`
-linking a run report that exists in the repo. **Today all ten missions are `doctrine-only`** —
-the protocols encode field-tested operational lessons, but no mission has a recorded run under
-this catalog yet, and this repo will not pretend otherwise. (Its predecessor shipped twelve
-missions with two proven and paid for it; the honesty is machine-checked here so that cannot
-recur.) The status advances mission by mission as run reports land.
+linking a run report that exists in the repo. Two missions have advanced:
+[`clean-sweep`](docs/runs/2026-07-13-clean-sweep-self-run.md) → **self-run** (drained six false
+doc-claims in this repo to DRY) and [`review-it`](docs/runs/2026-07-13-review-it-external-run.md)
+→ **external-run** (a NO-GO verdict on a real gstack PR). The other eight remain honestly
+`doctrine-only` — field-tested protocols with no recorded run yet, and this repo will not pretend
+otherwise. (Its predecessor shipped twelve missions with two proven and paid for it; the honesty
+is machine-checked here so that cannot recur.) The [run archive](docs/runs/) holds the evidence.
 
 Missions can also run as a **gated sequential chain** ("harden-it, then prove-it, then ship-it")
 where each link proceeds only on the previous mission's verified terminal state — see
