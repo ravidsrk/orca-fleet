@@ -10,15 +10,23 @@ Syncs the runtime policies with the current Orca `orchestration` and `orca-cli`
 skills (an audit against both found drift, including one bug in 0.2.1), and adds
 two capabilities the audit surfaced: the full agent roster and scheduled runs.
 
-### Added — agent roster
+### Added — agent roster (flags from Orca source, autonomy-correct)
 
-- `spawn_worker.sh` now covers the Orca roster with VERIFIED interactive-mode
-  flags: claude/codex/gemini across ro+rw+danger; grok/droid at rw+danger (no
-  verified read-only interactive mode); opencode/omp/pi via `WORKER_CMD`. Any
-  (agent, tier) with no verified flag fails CLOSED — the read-only guarantee is
-  never faked. `sandbox-policy.md` documents the full matrix. The old
-  claude|codex-only refusal is gone; `WORKER_CMD` generalizes the launch
-  override to any agent.
+- `spawn_worker.sh` now covers the Orca roster, and the write tiers use each
+  agent's fully-autonomous flag — the exact flag Orca appends by default
+  (`src/shared/tui-agent-permissions.ts`, cloned and read directly):
+  claude `--dangerously-skip-permissions`, codex
+  `--dangerously-bypass-approvals-and-sandbox`, gemini `--yolo`, grok
+  `--permission-mode bypassPermissions`. This fixes a latent blocking bug: the
+  prior `rw` flags (acceptEdits / workspace-write / auto_edit, and a wrong grok
+  `--always-approve` from a web source) are the SANDBOXED modes that still
+  prompt on shell + network, so a build worker running tests or `npm install`
+  would block and defeat the run — the exact failure this project exists to
+  avoid. `ro` stays read-only (non-blocking because it cannot mutate); `danger`
+  shares `rw`'s flag and adds the ephemeral-sandbox requirement. opencode/droid/
+  omp/pi have no Orca autonomous launch flag → `WORKER_CMD`. The old
+  claude|codex-only refusal is gone; `WORKER_CMD` generalizes the override to
+  any agent; `sandbox-policy.md` carries the full matrix.
 
 ### Added — scheduled runs
 

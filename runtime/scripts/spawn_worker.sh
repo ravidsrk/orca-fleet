@@ -22,9 +22,13 @@
 #   agent ∈ claude|codex|gemini|grok|droid|opencode|omp|pi (default claude)
 # Prints:  HANDLE=<h> HB=<ts|None>
 #
-# Agent × profile coverage (verified interactive-mode flags; anything else fails closed and
-# needs WORKER_CMD): claude/codex/gemini → ro+rw+danger. grok/droid → rw+danger only (no
-# verified read-only interactive mode). opencode/omp/pi → WORKER_CMD only.
+# Agent × profile coverage (flags are Orca's own autonomous "yolo" args, so workers never block
+# on a prompt; anything else fails closed and needs WORKER_CMD):
+#   claude/codex/gemini → ro + rw + danger
+#   grok                → rw + danger (Orca has no read-only mode for grok)
+#   opencode/droid/omp/pi → WORKER_CMD (Orca strips/omits an autonomous launch flag for these)
+# rw and danger use the SAME non-blocking flag; danger only adds the ALLOW_DANGER gate + the
+# ephemeral-sandbox requirement (sandbox-policy.md).
 #
 # NOTE: <worktree_selector> is a RAW orca selector. A worktree id is the composite
 #   `<repoId>::<worktreePath>` from `worktree create --json` — pass `path:/abs/worktree/path`
@@ -105,24 +109,34 @@ if [ "$PROFILE" = "danger" ] && [ "${ORCA_COORD_ALLOW_DANGER:-0}" != "1" ]; then
   exit 2
 fi
 
-# Per-agent × profile launch command, from VERIFIED interactive-mode flags only.
-# cmd_default stays empty for an (agent, profile) with no verified flag → fail-closed below.
+# Per-agent × profile launch command. Autonomy is the WHOLE POINT: a worker that blocks on a
+# permission prompt kills the run. So the write tiers use each agent's fully-autonomous
+# ("yolo") flag — the exact flag Orca itself appends by DEFAULT (src/shared/tui-agent-
+# permissions.ts YOLO_TUI_AGENT_ARGS; DEFAULT_TUI_AGENT_ARGS === YOLO_TUI_AGENT_ARGS). NOT the
+# sandboxed modes (acceptEdits / workspace-write / auto_edit), which still prompt on shell +
+# network and would block a build worker running tests or `npm install`.
+#
+# ro    = read-only, non-blocking (it cannot mutate, so nothing to approve) — for review/audit.
+# rw    = autonomous write, non-blocking — the DEFAULT. Safety is the isolated worktree +
+#         build-blind review + PR gate + no-merge-to-default-without-human, NOT per-command
+#         prompts (per the coordinator prompt library's "no per-action permission prompts").
+# danger= the SAME autonomous flag as rw, but gated (ORCA_COORD_ALLOW_DANGER) and required to run
+#         in an ephemeral per-workspace sandbox (sandbox-policy.md) for destructive / exploit work.
+# An (agent, tier) with no Orca-verified flag stays empty → fail-closed to WORKER_CMD below.
 cmd_default=""
 _cx_effort="-c model_reasoning_effort=\"$effort\""
 case "$agent:$PROFILE" in
-  claude:ro)      cmd_default="claude --permission-mode plan" ;;
-  claude:rw)      cmd_default="claude --permission-mode acceptEdits" ;;
-  claude:danger)  cmd_default="claude --dangerously-skip-permissions" ;;
-  codex:ro)       cmd_default="codex --sandbox read-only $_cx_effort" ;;
-  codex:rw)       cmd_default="codex --sandbox workspace-write $_cx_effort" ;;
-  codex:danger)   cmd_default="codex --dangerously-bypass-approvals-and-sandbox $_cx_effort" ;;
-  gemini:ro)      cmd_default="gemini --approval-mode plan" ;;
-  gemini:rw)      cmd_default="gemini --approval-mode auto_edit" ;;   # coarser grain: no workspace sandbox
-  gemini:danger)  cmd_default="gemini --approval-mode yolo" ;;
-  grok:rw|grok:danger)   cmd_default="grok --always-approve" ;;      # grok has no verified read-only flag
-  droid:rw)       cmd_default="droid --auto medium" ;;               # droid is headless-oriented; no verified interactive RO
-  droid:danger)   cmd_default="droid --auto high" ;;
-  # grok:ro, droid:ro, opencode:*, omp:*, pi:* → no verified flag; require WORKER_CMD.
+  claude:ro)                 cmd_default="claude --permission-mode plan" ;;
+  claude:rw|claude:danger)   cmd_default="claude --dangerously-skip-permissions" ;;
+  codex:ro)                  cmd_default="codex --sandbox read-only $_cx_effort" ;;
+  codex:rw|codex:danger)     cmd_default="codex --dangerously-bypass-approvals-and-sandbox $_cx_effort" ;;
+  gemini:ro)                 cmd_default="gemini --approval-mode plan" ;;
+  gemini:rw|gemini:danger)   cmd_default="gemini --yolo" ;;
+  grok:rw|grok:danger)       cmd_default="grok --permission-mode bypassPermissions" ;;
+  # No Orca-verified non-blocking flag → WORKER_CMD required:
+  #   grok:ro (no read-only mode in Orca's map)
+  #   opencode:* (Orca STRIPS --dangerously-skip-permissions; opencode autonomy is config-driven)
+  #   droid:*, omp:*, pi:* (not in Orca's autonomous-arg map)
 esac
 
 # Generalized launch override: WORKER_CMD (any agent) or the legacy CLAUDE_CMD/CODEX_CMD.
