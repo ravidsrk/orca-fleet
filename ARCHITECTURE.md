@@ -89,6 +89,8 @@ them. These are preserved as runtime policies, not abstracted away:
 skills/       10 missions (discoverable)
 playbooks/    10 callable protocols
 runtime/      policies + runtime/scripts/ (spawn_worker, preflight, pm) — shared, not vendored
+docs/         human documentation: getting started, concepts, per-mission guides
+assets/       banners and images
 scripts/      validate.py
 tests/        contract tests
 ```
