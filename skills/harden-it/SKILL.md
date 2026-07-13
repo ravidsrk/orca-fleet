@@ -7,6 +7,7 @@ description: >-
   sweep", "red team", "close the security loop", or an unattended audit-fix-verify security run. The
   full adversarial loop — for a bounded per-diff security check use review-it's risk lens.
 license: MIT
+proof: doctrine-only
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh; gitleaks. A security
   worker playbook (addyosmani security-and-hardening or gstack /cso) — one router per worker.
@@ -65,4 +66,5 @@ found in scanned code/logs (injection into the auditor). PoC on the host when a 
 ## Related
 
 `review-it` (bounded per-diff security lens, no loop), `clean-sweep` (general findings),
-`sandbox-policy` (ephemeral per-workspace exploit sandboxes).
+`sandbox-policy` (ephemeral per-workspace exploit sandboxes), `mission-chaining` (CLEAN gates any
+mission chained after this one — a degraded terminal stops the chain).
