@@ -1,0 +1,40 @@
+# Runtime policy — liveness and crash-resume
+
+The runtime tracks everything needed to keep a long run alive and recoverable, but it only WARNS on
+stalls; the fleet must act. Both live-supervision and crash-resume read the same persisted
+provenance (tasks, dispatch_contexts with last_heartbeat_at/failure_count, worker_done payloads —
+all in SQLite, surviving restarts).
+
+## WATCH (self-healing while alive)
+
+- Poll `check --wait --types worker_done,escalation,heartbeat` ({count:0} timeout is a checkup
+  tick, not an error).
+- Stale = a `dispatched` task with no heartbeat past ~10 min, OR still null past the first poll
+  window. Judge from `dispatch-show` timestamps, not folklore.
+- Respawn a dead worker: log the evidence + a doctor-owned attempt count (NOT the runtime failure
+  budget) → `task-update → ready` ONLY after the evidence line → FRESH terminal (re-dispatch to a
+  used handle is a no-op) → spawn_worker (exit 3 = no heartbeat, loop; exit 1 = infra fail; exit 2 =
+  state moved, re-triage uncounted).
+- BREAK at 3 doctor attempts OR runtime `circuit_broken` (3 real dispatch failures, carried forward
+  per task via MAX(failure_count)) → escalate honestly (gate-classification.md).
+- Re-confirm `ORCA_COORD_ALLOW_DANGER` before respawning a danger-profile worker.
+
+## The stuck-pending watchdog (a runtime trap)
+
+`task-create` does NOT validate that `--deps` IDs exist, and `promoteReadyTasks` only fires when a
+dep COMPLETES. A typo'd dep, or a dep that ends `failed` (not `completed`), strands the child in
+`pending` FOREVER — and convergence detection only flags `blocked`, never `pending`. Every fleet
+adds a watchdog: any task `pending` with an unmet or nonexistent dep past a threshold is surfaced,
+not silently waited on.
+
+## RESUME (coordinator died)
+
+Run scope is mandatory (state is runtime-global; `task-list` has no run filter): scope = the run's
+coordinator handle(s) from the ledger header + the ledger's task ids. Everything else is
+counted-but-untouched; no scope → resume ABORTS.
+
+1. FREEZE-check: no other live coordinator.
+2. REBUILD from provenance; CROSS-VERIFY every "completed" against git (evidence-manifest.md) —
+   provenance-says-done + git-disagrees = SUSPECT (treat as failed).
+3. RECONCILE the ledger (git is truth, the ledger is its cache).
+4. RE-ENTER the mission loop at the DAG frontier; never re-do a verified-merged unit.
