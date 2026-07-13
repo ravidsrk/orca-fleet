@@ -28,6 +28,8 @@ rides `merge-serialization`, `reviewed-sha-freshness`, `dispatch-lifecycle`, `li
   flakes and zero retry-wrappers. The streak is a PRE-DECLARED statistical contract, not a vibe:
   N green runs bound the residual per-run flake rate at p ≤ 1 − 0.05^(1/N) with 95% confidence
   (N=10 only proves p ≲ 26%; N=30 → p ≲ 9.5%; N=100 → p ≲ 3%; catching a 1% flake needs ~300).
+  The bound assumes INDEPENDENT runs — correlated flakes (shared state, time-of-day, load) violate
+  it, so vary seed/order/parallelism/time across the streak and treat the bound as optimistic.
   Declare the target rate and derive N from it; the manifest's `metric_contract` records both.
 - **STABLE-WITH-QUARANTINE** (degraded) — ≥1 flake survives diagnosis with no root cause and is
   quarantined with a human-approved tracking ticket. Never reported as STABLE.
@@ -42,8 +44,8 @@ DETECT: run the suite `{{DETECT_RUNS}}` times (default 30; parallel, varied seed
     load, clock skew, shuffled order, shared-state siblings); classify the taxonomy (order-dependence /
     shared mutable state / real time-or-tz / network / unseeded RNG / resource leak / too-tight timeout
     / async race) → the class dictates the fix.
-  → BOOTSTRAP integration BASE (runtime/scripts/preflight.py --base <BASE>; BASE ≠ default —
-    dispatch-lifecycle.md)
+  → BOOTSTRAP integration BASE (runtime/scripts/preflight.py --base <BASE> --fork-point <sha
+    recorded in the ledger header at BASE creation>; BASE ≠ default — dispatch-lifecycle.md)
   → FIX root cause + RATCHET red-by-revert (revert only the fix, show the flake returns at its measured
     rate; restore, show it's gone across a mini-streak) — never `retry(3)` a flake into hiding.
   → close per remediate-finding: PR-per-flake against BASE → build-blind REVIEW → conductor LAND

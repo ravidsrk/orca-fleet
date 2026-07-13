@@ -7,8 +7,8 @@ strict order, evidence-fresh.
 ## Signal
 
 Workers/integrators emit `send --to <conductor-handle> --subject "merge_ready <unit>" --type
-merge_ready --payload '{unit, pr, branch, reviewed_sha, base}'` (`--to` and `--subject` are
-mandatory flags). `merge_ready` is a first-class Orca message type with NO built-in behavior — the runtime
+merge_ready --payload '{"unit":"<id>","pr":123,"branch":"<head>","reviewed_sha":"<sha>","base":"<BASE>"}'`
+(`--to` and `--subject` are mandatory; `--payload` must be real JSON, not shorthand). `merge_ready` is a first-class Orca message type with NO built-in behavior — the runtime
 delivers it and stops, so the fleet owns the queue semantics. (merge_ready to a group is rejected;
 send to the conductor handle.)
 

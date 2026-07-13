@@ -38,12 +38,12 @@ Composes `risk-review` (security lens), `remediate-finding`, `runtime-prove`; ri
 
 ```
 THREAT-MODEL (STRIDE per trust boundary; Always/Ask-First/Never boundary → one-way gates)
+  → BOOTSTRAP integration BASE (runtime/scripts/preflight.py --base <BASE> --fork-point <sha
+    recorded in the ledger header at BASE creation>; BASE ≠ default — dispatch-lifecycle.md)
   → AUDIT waves (risk-review security lens applied TREE-WIDE: the audit's fixed point is the whole
-    codebase at the BASE head, not a diff — the lens's scope-gating is bypassed for a full audit;
-    per axis, a PoC for every P0/P1)
+    codebase at the BASE head — valid because BASE was just bootstrapped; the lens's scope-gating
+    is bypassed for a full audit; per axis, a PoC for every P0/P1)
   → VERIFY findings (quorum refute — kill false positives before fix effort)
-  → BOOTSTRAP integration BASE (runtime/scripts/preflight.py --base <BASE>; BASE ≠ default —
-    dispatch-lifecycle.md)
   → PoC ROUTING: static → ro; safe local exploit → rw; networked/destructive/supply-chain →
     ephemeral sandbox + danger; no safe sandbox → evidence-backed PARKED (never executed on host)
   → FIX (remediate-finding; exploit test first; audit the whole CLASS, not just the instance)

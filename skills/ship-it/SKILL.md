@@ -38,7 +38,8 @@ deploy availability allow; the manifest names it and what blocks the next.
 
 ## Preflight
 
-`orca status --json` running · orchestration on · `runtime/scripts/preflight.py --base <BASE>` green
+`orca status --json` running · orchestration on · `runtime/scripts/preflight.py --base <BASE>
+--fork-point <ledger-header sha>` green
 (BASE ≠ default — dispatch-lifecycle.md) · clean baseline · tests green at baseline (else you can't
 tell your regressions from pre-existing ones).
 
@@ -56,8 +57,8 @@ ENTRY ─┬─ frozen spec  → VALIDATE (decide-and-freeze: validate branch) �
    → RUNTIME-PROVE (doubt-driven artifact review + drive the real entry point)
    → LAND (merge-serialization) → BUILT
    → RELEASE state machine (release.md): PROMOTION_READY → [human gate #2] → RELEASED
-   → OBSERVE baseline (observe.md step 1 — captured BEFORE the deploy, or change-vs-baseline
-     is impossible) → DEPLOYED → OBSERVE loop (observe.md) → DEPLOYED_AND_VERIFIED
+   → DEPLOYED_AND_VERIFIED phase (release.md): observe.md BASELINE captured first, THEN deploy,
+     then observe.md's canary loop — the state is claimed only after the window is green
    → REFLECT (write learnings)
 ```
 

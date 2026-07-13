@@ -38,8 +38,12 @@ not silently waited on.
 The FIRST line of every mission's ledger file is a header, written at run start and updated on
 coordinator respawn:
 
-`RUN: <run-id> · COORDINATOR: <terminal handle(s)> · BASE: <integration branch> · T0: <ts> ·
-SOURCE: <mission denominator ref + digest>`
+`RUN: <run-id> · COORDINATOR: <terminal handle(s)> · BASE: <integration branch, or '-' for
+report-only/planning missions> · T0: <ts> · SOURCE: <mission denominator ref + digest>`
+
+`RUN` and `COORDINATOR` are always required (RESUME dies without them); fields a mission class
+has no value for are recorded as `-`, never omitted (a missing column is indistinguishable from
+a truncated header).
 
 A ledger with rows but no header is a resume-orphan — recoverable only by hand.
 

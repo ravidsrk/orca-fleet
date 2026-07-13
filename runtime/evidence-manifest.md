@@ -12,14 +12,17 @@ in a clean env, the runtime, the deploy target). A unit advances only when verif
 ## 1. The manifest (every worker emits this in `worker_done`)
 
 The worker writes it to `reportPath` and names that path in the `worker_done` payload. Shape
-(JSON; a mission may add fields but never drops these):
+(JSON; a mission may add fields). Fields marked *(mutation)* apply to mutation units only —
+report-only and planning units OMIT them and carry their class's negative-control analogue (§3)
+in `negative_control` instead (e.g. review-it: `{"did": "re-read every quoted line at
+reviewed_sha", "result": "all present", ...}`):
 
 ```json
 {
   "unit": "<task-id / finding-id / slice-id>",
   "base_sha": "<the SHA the work started from>",
   "head_sha": "<the SHA the work produced>",
-  "base_branch": "<the integration BASE the PR targets>",
+  "base_branch": "<the integration BASE the PR targets> (mutation)",
   "contract": {
     "source": "<authoritative ref the criteria derive from — frozen spec path@sha, the enumerated backlog, the advisory set>",
     "digest": "<sha256 of the unit's task spec as materialized at dispatch — the denominator is frozen per unit, not worker-chosen>",
@@ -63,10 +66,11 @@ Rules:
     surfaced at decompose verification and re-checked in the mission's convergence proof (e.g.
     ship-it's traceability table). This split is what makes a narrow slice completable: the slice
     proves ITS criteria; the mission proves nothing was left off any slice.
-  For loop-based denominators (`clean-sweep source=tracker`), the mission-level set is re-derived
-  each enumeration loop: a unit binds to the enumeration digest CURRENT AT ITS DISPATCH, and the
-  FINAL loop's enumeration is the mission denominator — a post-`T0` issue joins the next loop's
-  set instead of voiding already-verified units.
+  For loop-based denominators (`clean-sweep source=tracker`), the two digests stay separate:
+  the unit's `contract.digest` is always its OWN task spec; the ENUMERATION digest is mission
+  state, recorded in the ledger header's SOURCE field and re-derived each loop. The FINAL loop's
+  enumeration is the mission denominator — a post-`T0` issue joins the next loop's set instead
+  of voiding already-verified units.
 - `criteria` lists the ACTUAL acceptance criteria from the task spec, each marked addressed or not.
   A criterion with no addressing evidence is unmet work, not a waiver.
 - `negative_control` is REQUIRED for any unit that claims a fix or a test: show the proof FAILS
@@ -87,11 +91,11 @@ state. The manifest is a claim; these are facts:
 |-------|----------------------------|
 | Unit scope is complete — no dropped criteria (do this FIRST) | re-derive the unit's criterion id set from `contract.source` at `contract.digest` (re-read the unit's task spec / finding / advisory as materialized at dispatch) and confirm `criteria[].id` covers it EXACTLY. A manifest whose criteria omit any id is rejected before any test is checked — passing tests on a shrunken denominator is a false "done" |
 | Mission scope is complete — no unassigned criteria (coordinator, at decompose verify + convergence proof) | the union of all unit `contract.criterion_ids` equals the mission source's id set (frozen spec digest / final enumeration loop / advisory scan). A criterion claimed by no unit is unassigned work, not a waiver |
-| The commit exists on the intended base | `git merge-base --is-ancestor <head_sha> origin/<base_branch>` after the merge; before merge, `git cat-file -e <head_sha>` and the PR's `baseRefName == base_branch` |
+| The commit exists on the intended base *(mutation units)* | `git merge-base --is-ancestor <head_sha> origin/<base_branch>` after the merge; before merge, `git cat-file -e <head_sha>` and the PR's `baseRefName == base_branch` |
 | Tests pass at that exact SHA in a clean env | check out `head_sha` in a fresh worktree, run the suite, confirm green — do NOT trust the pasted output alone for the critical path |
-| The negative control really fails | on a sample (≥10%), a fresh worker reverts/mutates and confirms the proof goes RED |
+| The negative control really fails | mutation units: on a sample (≥10%), a fresh worker reverts/mutates and confirms the proof goes RED. Report-only/planning units: the class analogue of §3 is re-checked (quoted lines exist at reviewed_sha / the frozen DAG re-verifies / the repro command re-runs red) |
 | The review is fresh | `pr.reviewed_sha == head_sha` (a rebase after review voids it — reviewed-sha-freshness.md) |
-| The change is real on base | after merge, a file/symbol from the unit is greppable on `origin/<base_branch>` |
+| The change is real on base *(mutation units)* | after merge, a file/symbol from the unit is greppable on `origin/<base_branch>` |
 | Deployed == reviewed (ship only) | the deployed revision equals the reviewed/merged SHA |
 | The metric contract is met (measurement units) | the benchmark/coverage/streak satisfies the manifest's `metric_contract` (pre-declared target + confidence + method), not a lucky single run |
 | The review was independent | reviewer/verifier artifacts are not byte-identical to (or trivially derived from) the worker's own output — a predecessor's flagship run was quarantined on exactly this; `reviewer_mode` is recorded, and instructed isolation is named as the weaker guarantee it is |
