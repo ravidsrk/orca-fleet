@@ -10,7 +10,8 @@ description: >-
   security/perf/deps/tests/flakes (those are harden-it / speed-it / modernize-it / prove-it /
   deflake-it — different convergence proofs) and not for building new work (ship-it).
 license: MIT
-proof: doctrine-only
+proof: self-run
+proof_evidence: docs/runs/2026-07-13-clean-sweep-self-run.md
 compatibility: >-
   HARD dependency: Orca runtime + the orchestration skill (Orca CLI). git + gh (or a tracker via
   orca linear). One worker playbook pack per worker (Matt triage/tdd, or Addy debug/build) — never
