@@ -24,9 +24,9 @@ routing collisions and ingredient-shaped entry points this repo exists to remove
 
 - **Missions** are `skills/<name>/SKILL.md` — the discoverable catalog. Each is one outcome
   with a distinct state machine and an evidence-based definition of done.
-- **Playbooks** are `playbooks/<name>.md` — plain protocol docs a mission references by path
-  and injects into worker task specs. They are versioned, executable protocols with checkable
-  completion criteria, never attribution summaries of "best of X + Y".
+- **Playbooks** are `playbooks/<name>.md` — plain protocol docs a mission references by bare
+  name (never a path) and injects into worker task specs. They are versioned, executable
+  protocols with checkable completion criteria, never attribution summaries of "best of X + Y".
 - **Runtime** is `runtime/*.md` policies + `runtime/scripts/` shared tooling — the Orca
   dispatch/gate/merge/liveness/sandbox mechanics. Missions call these; users don't invoke them.
 

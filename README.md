@@ -98,8 +98,8 @@ ln -s "$(pwd)/skills/ship-it" ~/.claude/skills/ship-it
 ## Validate + test
 
 ```bash
-python3 scripts/validate.py                    # spec + three-layer separation + composition refs
-python3 -m unittest discover -s tests -v       # architecture contract tests
+python3 scripts/validate.py                    # spec + three-layer separation + composition/cross-doc refs
+python3 -m unittest discover -s tests -v       # architecture + validator contract tests
 ```
 
 ## License
