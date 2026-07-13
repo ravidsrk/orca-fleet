@@ -83,9 +83,9 @@ if [ "${#args[@]}" -lt 3 ] || [ "${#args[@]}" -gt 5 ]; then
   exit 2
 fi
 task="${args[0]}"; sel="${args[1]}"; title="${args[2]}"; agent="${args[3]:-claude}"; effort="${args[4]:-xhigh}"
-# Known Orca roster. claude/codex/gemini have verified flags for all three profiles;
-# grok/droid have verified WRITE flags but no verified read-only interactive mode;
-# opencode/omp/pi have no verified single-flag interactive auto mode. Any (agent, profile)
+# Known Orca roster. claude/codex/gemini have Orca-verified flags for all three profiles;
+# grok has a verified WRITE flag (rw/danger) but no read-only mode in Orca's map;
+# opencode/droid/omp/pi have no Orca autonomous launch flag at all. Any (agent, profile)
 # without a verified flag fails CLOSED and must be supplied via WORKER_CMD (below).
 case "$agent" in
   claude|codex|gemini|grok|droid|opencode|omp|pi) : ;;
