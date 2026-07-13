@@ -44,9 +44,10 @@ Per-mission tooling on top of that — each mission declares its own in `SKILL.m
 
 ## Install the catalog
 
-**Symlink (recommended while evaluating).** Missions reference `../../playbooks/` and
-`../../runtime/` relative to their own directory. A symlink preserves those references; a copy
-severs them — this is the single most common broken-install cause.
+**Symlink (recommended while evaluating).** Some missions link `../../ARCHITECTURE.md` relative
+to their own directory, and every mission resolves its playbooks by bare name against the repo
+tree. A symlink preserves both; a copy severs them — this is the single most common
+broken-install cause.
 
 ```bash
 git clone https://github.com/ravidsrk/orca-fleet.git
@@ -184,9 +185,9 @@ forks from your default's history.
 `orchestration` skill is available in the worker context. The most common cause is running in a
 repo where Orca is not initialized.
 
-**Broken references to `../../playbooks/...`.** You copied a mission directory instead of
-symlinking it, or installed a single skill with a tool that copies. Re-install per
-[Install the catalog](#install-the-catalog).
+**A broken `../../ARCHITECTURE.md` link, or playbooks not found beside the skill.** You copied
+a mission directory instead of symlinking it, or installed a single skill with a tool that
+copies. Re-install per [Install the catalog](#install-the-catalog).
 
 **The suite was red before the fleet started.** Fleets refuse to build on a red baseline.
 Run [`deflake-it`](missions/deflake-it.md) (if the red is intermittent) or fix the deterministic
