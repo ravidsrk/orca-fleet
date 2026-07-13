@@ -20,6 +20,11 @@ The worker writes it to `reportPath` and names that path in the `worker_done` pa
   "base_sha": "<the SHA the work started from>",
   "head_sha": "<the SHA the work produced>",
   "base_branch": "<the integration BASE the PR targets>",
+  "contract": {
+    "source": "<authoritative ref the criteria derive from — frozen spec path@sha, the enumerated backlog, the advisory set>",
+    "digest": "<sha256 of that source, captured at run start — the denominator is frozen, not worker-chosen>",
+    "criterion_ids": ["AC-1", "AC-2", "AC-3"]
+  },
   "criteria": [
     {"id": "AC-1", "text": "<the exact acceptance criterion>", "addressed": true}
   ],
@@ -42,6 +47,12 @@ The worker writes it to `reportPath` and names that path in the `worker_done` pa
 Rules:
 - `base_sha` and `head_sha` are REQUIRED and must be real commits. "It works" with no SHA is not
   a manifest.
+- `contract` binds the manifest to an AUTHORITATIVE denominator (the frozen spec, the enumerated
+  backlog, the advisory set), not to whatever the worker chose to list. `contract.criterion_ids`
+  is the COMPLETE id set derived from that source at `contract.digest`; `criteria` must carry an
+  entry for every one, each marked addressed or not. A worker cannot shrink its own denominator —
+  the verifier re-derives it (§2) and rejects a manifest that drops any id. This is the same
+  denominator discipline as `clean-sweep`'s tracker `T0`, generalized to every unit.
 - `criteria` lists the ACTUAL acceptance criteria from the task spec, each marked addressed or not.
   A criterion with no addressing evidence is unmet work, not a waiver.
 - `negative_control` is REQUIRED for any unit that claims a fix or a test: show the proof FAILS
@@ -60,6 +71,7 @@ state. The manifest is a claim; these are facts:
 
 | Check | How (authoritative source) |
 |-------|----------------------------|
+| Scope is complete — no dropped criteria (do this FIRST) | re-derive the criterion/denominator id set from `contract.source` at `contract.digest` (re-read the frozen spec / re-run the backlog enumeration / re-scan advisories) and confirm `criteria[].id` covers it EXACTLY. A manifest whose criteria omit any id, or whose `contract.digest` no longer matches the current source, is rejected before any test is checked — passing tests on a shrunken denominator is a false "done" |
 | The commit exists on the intended base | `git merge-base --is-ancestor <head_sha> origin/<base_branch>` after the merge; before merge, `git cat-file -e <head_sha>` and the PR's `baseRefName == base_branch` |
 | Tests pass at that exact SHA in a clean env | check out `head_sha` in a fresh worktree, run the suite, confirm green — do NOT trust the pasted output alone for the critical path |
 | The negative control really fails | on a sample (≥10%), a fresh worker reverts/mutates and confirms the proof goes RED |

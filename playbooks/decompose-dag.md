@@ -31,4 +31,14 @@ not a fan. Five minutes here saves a fleet-wide debugging session.
 ## Completion
 
 The slice↔task-id table is in the ledger; the DAG's frontier is exactly the foundation; the loop
-(runtime coordinator vs manual wave) is declared. A decomposition nobody dispatched is a proposal.
+(runtime coordinator vs manual wave) is declared.
+
+A decomposition is COMMITTED in one of two ways, and which one is the caller's:
+- **build mission** (`ship-it`, `clean-sweep`): committed by DISPATCH — the foundation frontier is
+  dispatched and the mission drives it to merge. A materialized-but-never-dispatched DAG here is
+  just a proposal.
+- **prepare-only handoff** (`map-it`): committed by FREEZE — the DAG is materialized, verified
+  (the section above), and frozen as the planning mission's terminal artifact for a later build
+  mission to dispatch unchanged. Dispatching is explicitly NOT this caller's job; a verified frozen
+  DAG is done. A DAG that is neither dispatched nor frozen-for-handoff is the only real "just a
+  proposal".

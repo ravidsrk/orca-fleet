@@ -38,8 +38,9 @@ NAME the destination first (fixes scope — everything past it is out of scope; 
 
 The destination is named; every open question is either a sharp ticket (resolved or blocked) or an
 explicit "not yet specified"; every decision ticket was resolved by the HUMAN (not the agent); a frozen
-plan/spec exists; a prepared DAG exists that ship-it can consume without re-grilling. The mission
-produces DECISIONS, not deliverables — no production code is written.
+plan/spec exists; a materialized, verified, FROZEN-for-handoff DAG exists (decompose-dag's prepare-only
+completion — committed by freeze, not dispatch) that ship-it can consume without re-grilling. The
+mission produces DECISIONS, not deliverables — no production code is written.
 
 ## Anti-patterns
 

@@ -60,8 +60,10 @@ against authoritative state (evidence-manifest.md) before advancing.
 ## Convergence proof (this mission's definition of done)
 
 - Every frozen acceptance criterion maps to a passing test in a TRACEABILITY table, verified on the
-  BASE head (the integrated whole, not per-slice-only). A criterion with no passing test is UNMET
-  work, not a waiver.
+  BASE head (the integrated whole, not per-slice-only). The denominator is not worker-chosen: each
+  manifest binds to the frozen spec via `contract.digest`, and the verifier re-derives the full
+  criterion set and rejects any manifest that drops one (evidence-manifest.md §2). A criterion with
+  no passing test is UNMET work, not a waiver.
 - Every slice: merged PR, ancestry-verified, reviewed-SHA fresh, negative control passing
   (revert-audited on a ≥10% sample by a fresh worker).
 - The manifest names the terminal release state with its evidence (merge SHA / deploy revision /
