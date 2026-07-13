@@ -190,7 +190,7 @@ def validate_skill(skill_dir, protocols):
                 f"proof '{proof}' requires proof_evidence: a run-report path that exists"
             )
 
-    lines = text.count("\n") + 1
+    lines = len(text.splitlines())
     if lines > MISSION_MAX_LINES:
         errors.append(
             f"instruction budget: {lines} lines > {MISSION_MAX_LINES} (mission cap)"
@@ -235,7 +235,7 @@ def check_protocol_doc_refs(protocols):
             text = f.read_text(encoding="utf-8")
             for e in md_ref_errors(text, protocols):
                 failures.append(f"{f.relative_to(ROOT)}: {e}")
-            lines = text.count("\n") + 1
+            lines = len(text.splitlines())
             if lines > caps[d]:
                 failures.append(
                     f"{f.relative_to(ROOT)}: instruction budget: {lines} lines > "

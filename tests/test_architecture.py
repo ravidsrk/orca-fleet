@@ -162,6 +162,32 @@ class TestArchitecture(unittest.TestCase):
                 f"{d.name} declares no proof status",
             )
 
+    def test_budget_boundary_not_off_by_one(self):
+        # Greptile P1 on PR #5: text.count("\n")+1 overcounts newline-terminated files
+        # by one, silently shrinking every cap. A mission of EXACTLY the cap's lines
+        # (POSIX newline-terminated) must pass the budget check.
+        import importlib.util, tempfile, shutil
+        spec = importlib.util.spec_from_file_location("v", ROOT / "scripts" / "validate.py")
+        v = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(v)
+        d = Path(tempfile.mkdtemp()) / "cap-mission"
+        d.mkdir()
+        header = (
+            "---\nname: cap-mission\ndescription: x. Use when testing.\n"
+            "proof: doctrine-only\n---\n\nComposes `diagnose`.\n"
+        )
+        pad = v.MISSION_MAX_LINES - header.count("\n")
+        (d / "SKILL.md").write_text(header + "b\n" * pad)  # exactly MISSION_MAX_LINES lines
+        try:
+            errors = v.validate_skill(d, v.known_protocol_names())
+            budget_errors = [e for e in errors if "instruction budget" in e]
+            self.assertEqual(
+                budget_errors, [],
+                f"a file of exactly {v.MISSION_MAX_LINES} lines must not breach the cap",
+            )
+        finally:
+            shutil.rmtree(d.parent)
+
     def test_runtime_scripts_never_interpolate_code(self):
         # The predecessor shipped a P0 RCE by interpolating values into `python -c`
         # (live even under --dry-run). Values pass as argv or heredoc stdin, never
@@ -175,7 +201,7 @@ class TestArchitecture(unittest.TestCase):
                 f"{f.name}: python -c with a double-quoted (interpolatable) code string",
             )
             self.assertNotRegex(
-                text, r"(?m)^\s*eval[ (]",
+                text, r"\beval[ (]",
                 f"{f.name}: eval on constructed input",
             )
 
