@@ -10,6 +10,7 @@ description: >-
   security/perf/deps/tests/flakes (those are harden-it / speed-it / modernize-it / prove-it /
   deflake-it — different convergence proofs) and not for building new work (ship-it).
 license: MIT
+proof: doctrine-only
 compatibility: >-
   HARD dependency: Orca runtime + the orchestration skill (Orca CLI). git + gh (or a tracker via
   orca linear). One worker playbook pack per worker (Matt triage/tdd, or Addy debug/build) — never
@@ -37,6 +38,10 @@ Read [ARCHITECTURE.md](../../ARCHITECTURE.md) once. Composes `remediate-finding`
 - `source=doc-claims`: falsifiable documentation claims — a false claim IS a finding (extract → verify
   against `file:symbol` or a run → correct/remove). Generating NEW docs is not this mission (that's
   ship-it scoped work).
+
+Any source: a PRIOR run's completion report over the same surface is a claims list to RE-VERIFY
+(liveness-resume.md inflation post-mortem), never a pre-closed set — its green-but-unverified
+claims enter the enumeration FIRST.
 
 ## Pipeline
 
