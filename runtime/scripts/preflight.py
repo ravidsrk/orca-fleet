@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""preflight.py — hard preflight checks for a matt-orchestration run.
+"""preflight.py — hard preflight checks for a fleet run.
 
 Verifies the invariants that, if wrong, silently corrupt a whole run:
     1. `git` and `gh` are on PATH.
@@ -175,7 +175,7 @@ def main(argv: list[str]) -> int:
             f"({default_branch!r} -> {canon_default!r}). "
             "Every per-finding PR is merged into BASE; if BASE is the default branch, fixes land "
             "straight on production and bypass both the anti-inflation gate and the human "
-            "promotion review. Create a dedicated integration branch (e.g. `<maintainer>/matt-orchestration`) "
+            "promotion review. Create a dedicated integration branch (e.g. `<maintainer>/fleet-integration`) "
             "off the current run's fork point and rerun.",
             file=sys.stderr,
         )
