@@ -27,7 +27,15 @@ You never review, code, open PRs, or merge — every one is a dispatched worker.
 
 Read [ARCHITECTURE.md](../../ARCHITECTURE.md) once. Composes `remediate-finding`, `acceptance-review`,
 `build-change` playbooks; rides `merge-serialization`, `reviewed-sha-freshness`, `dispatch-lifecycle`,
-`liveness-resume` runtime policies.
+`liveness-resume`, `evidence-manifest` runtime policies. Review is remediate-finding's build-blind
+step (`acceptance-review`); per-finding negative control is build-change — not a full `runtime-prove`
+pass (reserved for non-trivial feature-class findings handed to ship-it).
+
+## Two terminal outcomes
+
+- **DRY** — full re-enumeration finds zero items not CLOSED with evidence.
+- **DRY-WITH-PARKED** (degraded) — set exhausted except ≥1 PARKED with a human-approved reason.
+  Never reported as DRY.
 
 ## The source (declare it — same unit, same pipeline, source-specific enumeration)
 
@@ -64,16 +72,16 @@ PR + a test that failed pre-fix, revert-audited on a ≥10% sample; the closing 
 or (b) PARKED with a human-approved reason (refuted/duplicate closes are a one-way batch gate;
 needs-human items name their gate). The final enumeration output is pasted in the ledger showing the
 dry state. `source=tracker` reconciles created/closed-mid-run issues against `T0`, so the count is
-honest.
+honest. Manifest names DRY or DRY-WITH-PARKED.
 
 ## Ledger (header first, then rows)
 
-Line 1 is the resume header (liveness-resume.md): `RUN · COORDINATOR handle(s) · BASE · T0 ·
-SOURCE+digest`. Then one row per finding:
+Line 1 per liveness-resume.md: `RUN · COORDINATOR · BASE · FORK_POINT · T0 · SOURCE` (SOURCE =
+source type + enumeration digest). Rows include Orca task id + finding fields:
 
-`| id | title | VERIFIED | CLASS | FIXED | PR | reviewed_sha | MERGED | CLOSED | evidence |`
+`| task_id | id | title | VERIFIED | CLASS | FIXED | PR | reviewed_sha | MERGED | CLOSED | evidence |`
 CLASS ∈ real-bug · real-feature-small · refuted · duplicate · externally-resolved · needs-human ·
-out-of-scope.
+out-of-scope. RESUME scopes to header coordinator + ledger task ids.
 
 ## Gates + supervision
 

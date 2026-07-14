@@ -14,8 +14,12 @@ small. Sequential only. No DAG, no expression language, no preset catalog.
 - **The gate between missions is the previous mission's named terminal state, backed by its
   verified evidence** (evidence-manifest.md). An audit GATES the chain — there is no
   "continue anyway" edge. A degraded terminal (`HARDENED-WITH-OPEN-ITEMS`,
-  `COVERED-WITH-PARKED`, …) STOPS the chain and parks it; advancing past a degraded state is a
-  one-way human gate (gate-classification.md), recorded in the ledger.
+  `COVERED-WITH-PARKED`, `DRY-WITH-PARKED`, `MAPPED-WITH-BLOCKED`,
+  `OPTIMIZED-WITH-PARKED`, `STABLE-WITH-QUARANTINE`, `CURRENT-WITH-PINNED`,
+  `BUILT-WITH-PARKED`, `INCONCLUSIVE`, …) STOPS the chain and parks it; advancing past a
+  degraded state is a one-way human gate (gate-classification.md), recorded in the ledger.
+  Non-degraded handoff terminals (e.g. `DIAGNOSED-WITH-HANDOFF`, `MAPPED`) may proceed when
+  the chain named them as allowed.
 - **One mission active per repo at a time.** Each link is a FULL run: its own preflight, its own
   integration BASE, its own convergence proof. Carrying a BASE from one mission into the next is
   an explicit human decision, never a default.

@@ -44,6 +44,18 @@ PLAYBOOKS_DIR = ROOT / "playbooks"
 RUNTIME_DIR = ROOT / "runtime"
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 PROOF_VALUES = {"doctrine-only", "self-run", "external-run"}
+# Mutating missions land code; they must ride the SHA-bound evidence protocol so
+# completion is never graded on worker narration. Report-only / planning /
+# diagnosis missions bind evidence differently and are not in this set.
+MUTATING_MISSIONS = {
+    "ship-it",
+    "clean-sweep",
+    "harden-it",
+    "speed-it",
+    "modernize-it",
+    "prove-it",
+    "deflake-it",
+}
 # Instruction budget (lines, whole file). The predecessor's mandatory instruction
 # surface hit ~42K tokens with no counterpressure; these caps are the counterpressure.
 MISSION_MAX_LINES = 130
@@ -53,8 +65,17 @@ RUNTIME_MAX_LINES = 160
 # each such clause through the END of its paragraph — terminating at the first
 # sentence break lets an abbreviation ("e.g. ") truncate the clause and smuggle
 # dangling names past the check — and verify every backtick name in it resolves.
+# RIDES (all-caps) is accepted alongside Rides/rides, matching COMPOSES handling.
 COMPOSE_CLAUSE_RE = re.compile(
-    r"\b(?:Composes|COMPOSES|[Rr]ides)\b\s+(.+?)(?:\n\n|\Z)", re.DOTALL
+    r"\b(?:Composes|COMPOSES|Rides|RIDES|rides)\b\s+(.+?)(?:\n\n|\Z)", re.DOTALL
+)
+# Mutator evidence-manifest must appear in a composition rides clause, not mid-prose
+# ("the worker rides `evidence-manifest` out of turn") and not a mere Composes mention
+# ("does not ride `evidence-manifest`"). Accept only rides after `;`, after a newline,
+# or at the start of the document — the forms missions actually write.
+RIDES_CLAUSE_RE = re.compile(
+    r"(?:(?<=;)|(?<=\n)|(?<=\A))\s*(?:Rides|RIDES|rides)\b\s+(.+?)(?:\n\n|\Z)",
+    re.DOTALL,
 )
 BACKTICK_RE = re.compile(r"`([a-z0-9][a-z0-9-]*)`")
 # Any lowercase `<name>.md` mention (pipeline text, parentheticals) must also resolve;
@@ -219,6 +240,16 @@ def validate_skill(skill_dir, protocols):
         errors.append(
             "no machine-checkable composition: the Composes/rides clause must name "
             "at least one playbook or runtime policy in backticks"
+        )
+    ride_refs = [
+        ref
+        for clause in RIDES_CLAUSE_RE.findall(text)
+        for ref in BACKTICK_RE.findall(clause)
+    ]
+    if name in MUTATING_MISSIONS and "evidence-manifest" not in ride_refs:
+        errors.append(
+            "mutating mission must ride `evidence-manifest` in a rides clause "
+            "(SHA-bound definition of done; a Composes mention alone does not count)"
         )
 
     # every lowercase `<name>.md` mention must resolve (catches renames outside the clause)

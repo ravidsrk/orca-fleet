@@ -28,6 +28,8 @@ Read [ARCHITECTURE.md](../../ARCHITECTURE.md) once. Composes `decide-and-freeze`
 `build-change`, `acceptance-review`, `risk-review`, `runtime-prove`, `release`, `observe` playbooks;
 rides `dispatch-lifecycle`, `merge-serialization`, `reviewed-sha-freshness`, `evidence-manifest`,
 `gate-classification`, `liveness-resume` runtime policies. It does not restate them.
+Worker TASK pack: exactly one of matt | addy | gstack. Phase map: grill/tdd=matt, build/verify=addy
+or matt, review-army/ship=gstack — never co-mount two routers in one worker.
 
 ## Terminal states (name the one you reach)
 
@@ -35,6 +37,10 @@ rides `dispatch-lifecycle`, `merge-serialization`, `reviewed-sha-freshness`, `ev
 traceability table) → `RELEASED` (human merged to default) → `DEPLOYED_AND_VERIFIED` (deployed
 revision == released SHA, canary green over its window). Stop at the highest state authorization and
 deploy availability allow; the manifest names it and what blocks the next.
+
+If units or criteria are parked with human-approved reasons while the rest landed, append
+`-WITH-PARKED` to the highest clean state reached (e.g. `BUILT-WITH-PARKED`,
+`PROMOTION_READY-WITH-PARKED`). Never claim a clean terminal when parked work remains in scope.
 
 ## Preflight
 

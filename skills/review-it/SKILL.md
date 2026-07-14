@@ -6,7 +6,7 @@ description: >-
   (security, performance, accessibility, data-migration) when the change surface warrants. Findings
   quote their motivating line, carry severity, and are bound to the reviewed SHA. Use when "review this
   PR", "review matrix", "is this ready to merge", a pre-merge quality/permission gate. Report-only — it
-  never edits code (fixing is ship-it / clean-sweep).
+  never edits code (fixing is ship-it / clean-sweep). Not the full security loop (harden-it).
 license: MIT
 proof: external-run
 proof_evidence: docs/runs/2026-07-13-review-it-external-run.md
@@ -20,7 +20,15 @@ compatibility: >-
 You are the **COORDINATOR** of a REPORT-ONLY review. "Produce a trusted verdict without modifying code"
 is a user-facing outcome, a PR gate, and a PERMISSION BOUNDARY — this mission has no fix authority; a
 finding that wants a fix routes to ship-it or clean-sweep. Composes `acceptance-review`, `risk-review`;
-workers are `PROFILE=ro`.
+rides `evidence-manifest` (report-only shape: verdict binds to `head_sha` / `reviewed_sha`). Workers
+are `PROFILE=ro`. Worker TASK pack: one of matt | addy | gstack — never co-mount.
+
+## Terminal outcomes
+
+- **GO** — zero Critical and zero Required (merge-blocking) findings.
+- **NO-GO** — any Critical OR any Required → default NO-GO. Conditional notes may accompany
+  (e.g. "NO-GO conditional — 0 Critical, fixable Required") but do not rename the outcome; human
+  override to merge despite Required is recorded, never a silent GO.
 
 ## Pipeline
 
@@ -28,26 +36,28 @@ workers are `PROFILE=ro`.
 PIN the fixed point (a SHA / PR; non-empty `git diff <fp>...HEAD`) → identify the spec source
   → ACCEPTANCE-REVIEW (always): standards + spec + test-adequacy, isolated parallel axes, no
     cross-rerank; test-adequacy is judged statically here (ro workers predict what a revert would
-    fail, never run one — executed negative controls belong to the fix missions)
+    fail, never run one — executed negative controls belong to the fix missions; GO is not a
+    substitute for those)
   → RISK-REVIEW (scope-gated): dispatch security/perf/a11y/data-migration only when the diff triggers
     them; NEVER_GATE security + data-migration
   → AGGREGATE: findings side-by-side per axis, each quoting its motivating line, with severity; the
     anti-FP gate (a finding that can't quote its line drops to an appendix); multi-axis same-line = boost
-  → VERDICT bound to the reviewed SHA
+  → VERDICT bound to the reviewed SHA (if HEAD moves mid-review, re-pin or void and re-run)
 ```
 
 ## Convergence proof (definition of done)
 
 A verdict at a named fixed point: every axis reported (acceptance always; risk lenses run or recorded
 gate-off), no cross-axis rerank, every finding quotes its line and names its severity, the whole is
-bound to `reviewed_sha`. The verdict is GO / NO-GO (any Critical → default NO-GO) with the worst issue
-per axis. No code was modified (permission boundary held).
+bound to `reviewed_sha` in an evidence manifest (report-only fields). The verdict is GO / NO-GO with
+the worst issue per axis. No code was modified (permission boundary held).
 
 ## Anti-patterns
 
 Fixing anything (this is report-only — route fixes out). Reranking across axes (masks one axis with
 another). A finding with no quoted line treated as high-confidence. Running risk lenses on a diff that
 doesn't trigger them (noise) — or gating off security/data-migration (their value is the miss).
+Treating GO as proof that negative controls would pass under mutation.
 
 ## Related
 `ship-it` / `clean-sweep` (act on the verdict), `harden-it` (full security loop beyond a per-diff

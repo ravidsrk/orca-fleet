@@ -150,6 +150,95 @@ class TestProofStatus(unittest.TestCase):
             errs = validate.validate_skill(make_skill(tmp, body), PROTOCOLS)
             self.assertTrue(any("instruction budget" in e for e in errs), errs)
 
+    def test_mutating_mission_must_ride_evidence_manifest(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            # Folder name is the mission name used by the mutator check.
+            d = Path(tmp) / "ship-it"
+            d.mkdir()
+            (d / "SKILL.md").write_text(
+                "---\nname: ship-it\ndescription: Use when shipping.\n"
+                "proof: doctrine-only\n---\n\nComposes `diagnose`.\n",
+                encoding="utf-8",
+            )
+            errs = validate.validate_skill(d, PROTOCOLS | {"diagnose"})
+            self.assertTrue(
+                any("must ride `evidence-manifest`" in e for e in errs), errs
+            )
+
+    def test_mutating_mission_compose_mention_alone_does_not_count(self):
+        # Codex P2: backticks in a Composes paragraph must not satisfy the ride.
+        with tempfile.TemporaryDirectory() as tmp:
+            d = Path(tmp) / "ship-it"
+            d.mkdir()
+            (d / "SKILL.md").write_text(
+                "---\nname: ship-it\ndescription: Use when shipping.\n"
+                "proof: doctrine-only\n---\n\n"
+                "Composes `diagnose`; unlike other missions it does not ride "
+                "`evidence-manifest`.\n",
+                encoding="utf-8",
+            )
+            errs = validate.validate_skill(
+                d, PROTOCOLS | {"diagnose", "evidence-manifest"}
+            )
+            self.assertTrue(
+                any("must ride `evidence-manifest`" in e for e in errs), errs
+            )
+
+    def test_mutating_mission_prose_rides_does_not_count(self):
+        # Greptile P2: mid-sentence "rides `…`" in anti-patterns must not satisfy.
+        with tempfile.TemporaryDirectory() as tmp:
+            d = Path(tmp) / "ship-it"
+            d.mkdir()
+            (d / "SKILL.md").write_text(
+                "---\nname: ship-it\ndescription: Use when shipping.\n"
+                "proof: doctrine-only\n---\n\n"
+                "Composes `diagnose`.\n\n"
+                "## Anti-patterns\n\n"
+                "If the worker rides `evidence-manifest` out of turn, ignore it.\n",
+                encoding="utf-8",
+            )
+            errs = validate.validate_skill(
+                d, PROTOCOLS | {"diagnose", "evidence-manifest"}
+            )
+            self.assertTrue(
+                any("must ride `evidence-manifest`" in e for e in errs), errs
+            )
+
+    def test_mutating_mission_all_caps_rides_counts(self):
+        # Greptile P2: RIDES must match like COMPOSES.
+        with tempfile.TemporaryDirectory() as tmp:
+            d = Path(tmp) / "ship-it"
+            d.mkdir()
+            (d / "SKILL.md").write_text(
+                "---\nname: ship-it\ndescription: Use when shipping.\n"
+                "proof: doctrine-only\n---\n\n"
+                "Composes `diagnose`.\n\nRIDES `evidence-manifest`.\n",
+                encoding="utf-8",
+            )
+            errs = validate.validate_skill(
+                d, PROTOCOLS | {"diagnose", "evidence-manifest"}
+            )
+            self.assertFalse(
+                any("must ride `evidence-manifest`" in e for e in errs), errs
+            )
+
+    def test_mutating_mission_with_evidence_manifest_passes_that_check(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            d = Path(tmp) / "ship-it"
+            d.mkdir()
+            (d / "SKILL.md").write_text(
+                "---\nname: ship-it\ndescription: Use when shipping.\n"
+                "proof: doctrine-only\n---\n\n"
+                "Composes `diagnose`; rides `evidence-manifest`.\n",
+                encoding="utf-8",
+            )
+            errs = validate.validate_skill(
+                d, PROTOCOLS | {"diagnose", "evidence-manifest"}
+            )
+            self.assertFalse(
+                any("must ride `evidence-manifest`" in e for e in errs), errs
+            )
+
 
 class TestProtocolDocRefs(unittest.TestCase):
     """Dangling .md refs inside playbooks/ and runtime/ must fail the build too."""
