@@ -63,8 +63,10 @@ mutation-audit set, not the percent. Manifest names COVERED or COVERED-WITH-PARK
 
 ## Ledger + supervision
 
-Header: `RUN · COORDINATOR · BASE · critical-surface digest`. Row per path: test · mutation · PR ·
-disposition. Stalls → liveness-resume WATCH; death → RESUME ledger-scoped, git-verified.
+Header per liveness-resume.md: `RUN · COORDINATOR · BASE · FORK_POINT · T0 · SOURCE` (`-` if N/A;
+SOURCE = critical-surface digest). Rows include Orca task id + path fields (test · mutation · PR ·
+disposition). Stalls → WATCH; death → RESUME scoped to header coordinator + ledger task ids,
+git-verified.
 
 ## Anti-patterns
 

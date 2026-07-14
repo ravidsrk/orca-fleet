@@ -165,6 +165,25 @@ class TestProofStatus(unittest.TestCase):
                 any("must ride `evidence-manifest`" in e for e in errs), errs
             )
 
+    def test_mutating_mission_compose_mention_alone_does_not_count(self):
+        # Codex P2: backticks in a Composes paragraph must not satisfy the ride.
+        with tempfile.TemporaryDirectory() as tmp:
+            d = Path(tmp) / "ship-it"
+            d.mkdir()
+            (d / "SKILL.md").write_text(
+                "---\nname: ship-it\ndescription: Use when shipping.\n"
+                "proof: doctrine-only\n---\n\n"
+                "Composes `diagnose`; unlike other missions it does not ride "
+                "`evidence-manifest`.\n",
+                encoding="utf-8",
+            )
+            errs = validate.validate_skill(
+                d, PROTOCOLS | {"diagnose", "evidence-manifest"}
+            )
+            self.assertTrue(
+                any("must ride `evidence-manifest`" in e for e in errs), errs
+            )
+
     def test_mutating_mission_with_evidence_manifest_passes_that_check(self):
         with tempfile.TemporaryDirectory() as tmp:
             d = Path(tmp) / "ship-it"

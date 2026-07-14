@@ -26,9 +26,9 @@ rides `merge-serialization`, `reviewed-sha-freshness`, `dispatch-lifecycle`, `li
 
 Scope boundary: this mission owns DEPENDENCY/FRAMEWORK CURRENCY (bump → adapt call sites → CI green).
 STATEFUL DB schema/data migration across deploys is a different unit, state machine, and proof — hand
-a brief to a SEQUENCE of ship-it runs (expand → migrate-in-batches → contract, one release each). The
-dependent upgrade deploys after expand and before contract. Never run a cross-deploy data migration
-inside a currency loop. Details: docs/missions/modernize-it.md.
+a brief to a SEQUENCE of ship-it runs, one release each: (1) expand, (2) dependent upgrade +
+migrate-in-batches, (3) contract. The upgrade is stage (2), never after contract. Never run a
+cross-deploy data migration inside a currency loop. Details: docs/missions/modernize-it.md.
 
 ## Two terminal outcomes
 
@@ -54,8 +54,10 @@ INVENTORY (outdated + advisories; read the CHANGELOG not the version delta; reac
     deprecation shims / dual-run APIs where a major needs them → CI GREEN is the gate; lockfile
     regenerated not hand-edited; verify provenance on registry/maintainer change)
   → FORCED-MIGRATION CHECK (risk-review data-migration lens): if an upgrade forces a stateful DB
-    schema/data change, do NOT run it here — open a handoff brief for ship-it (expand → migrate →
-    contract). Park the dependent upgrade behind that handoff.
+    schema/data change, do NOT run it here — open a staged ship-it handoff brief:
+    (1) expand release, (2) this dep upgrade + migrate-in-batches, (3) contract only after (2) is
+    deployed and stable. Parking the upgrade "behind the whole sequence" is wrong (would contract
+    first).
   → build-blind REVIEW (acceptance-review) → RUNTIME-PROVE (drive real entry points — green CI misses
     lazy imports and env-dependent init) → LAND
   → RE-INVENTORY → loop → outcome
@@ -72,8 +74,9 @@ pasted. Manifest names CURRENT or CURRENT-WITH-PINNED.
 
 ## Ledger + supervision
 
-Header: `RUN · COORDINATOR · BASE · inventory digest`. Row per dep/group: target version · PR · CI ·
-pin/handoff reason. Stalls → liveness-resume WATCH; death → RESUME ledger-scoped, git-verified.
+Header per liveness-resume.md: `RUN · COORDINATOR · BASE · FORK_POINT · T0 · SOURCE` (`-` if N/A;
+SOURCE = inventory digest). Rows include Orca task id + dep/group fields (target · PR · CI · pin/
+handoff). Stalls → WATCH; death → RESUME scoped to header coordinator + ledger task ids, git-verified.
 
 ## Anti-patterns
 

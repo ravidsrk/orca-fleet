@@ -32,11 +32,11 @@ different unit (a data transition, not a package), a different state machine (te
 separated deploys, not per-PR merges), and a different proof (deployed compatibility + completed
 backfill, which needs the deploy states only [`ship-it`](ship-it.md) owns). When a dependency
 upgrade *forces* such a migration, `modernize-it` flags it and hands off a brief for a
-**sequence** of ship-it runs — expand, then migrate-in-batches, then contract, each its own
-release through ship-it's state machine, never one run (a single BUILD→LAND→RELEASE cannot
-temporally separate the deploys). The dependent dependency upgrade deploys **between** expand and
-contract — never after contract, which would break the running version. `modernize-it` never runs
-a cross-deploy data migration inside a currency loop.
+**staged sequence** of ship-it runs, each its own release: (1) expand, (2) the dependent
+dependency upgrade plus migrate-in-batches, (3) contract only after (2) is deployed and stable.
+A single BUILD→LAND→RELEASE cannot temporally separate the deploys. Parking the upgrade after
+the full expand→migrate→contract sequence is wrong — that would contract before the upgraded
+code runs. `modernize-it` never runs a cross-deploy data migration inside a currency loop.
 
 ## When to reach for it
 

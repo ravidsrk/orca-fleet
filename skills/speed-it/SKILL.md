@@ -51,8 +51,10 @@ HUMAN SCOPE CONFIRM: freeze the critical-journey list + per-journey budgets (unb
   → FIX PR-per-hotspot (before→after mandatory; GUARD: add a CI budget) → build-blind REVIEW
     (acceptance-review) → RUNTIME-PROVE (drive the journey at its real entry point — fast but
     behaviorally wrong is a bug, not a win) → LAND
-  → RE-BENCHMARK to the contract (lab/load; a lucky single run is not confirmation). Field post-deploy
-    watch is `observe` via ship-it release, not a substitute for the lab contract here.
+  → RE-BENCHMARK to the contract (a lucky single run is not confirmation). Lab/load contracts
+    complete in-mission. Field CWV contracts need the same field source/sample/conditions as baseline
+    — that requires deploy; hand off to ship-it (release + observe) and do not claim WITHIN-BUDGET
+    on a lab-only delta for a field-declared contract (OPTIMIZED-WITH-PARKED until field confirms).
   → loop → outcome
 ```
 
@@ -66,8 +68,9 @@ OPTIMIZED-WITH-PARKED.
 
 ## Ledger + supervision
 
-Header: `RUN · COORDINATOR · BASE · journey-list digest · metric contracts`. Row per hotspot/journey.
-Stalls → liveness-resume WATCH; death → RESUME ledger-scoped, git-verified.
+Header per liveness-resume.md: `RUN · COORDINATOR · BASE · FORK_POINT · T0 · SOURCE` (`-` if N/A;
+SOURCE = journey-list + metric-contract digests). Rows include Orca task id + hotspot/journey fields.
+Stalls → WATCH; death → RESUME scoped to header coordinator + ledger task ids, git-verified.
 
 ## Anti-patterns
 

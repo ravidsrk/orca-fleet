@@ -25,9 +25,10 @@ are `PROFILE=ro`. Worker TASK pack: one of matt | addy | gstack — never co-mou
 
 ## Terminal outcomes
 
-- **GO** — no Critical findings; worst issue per axis is below Critical.
-- **NO-GO** — any Critical → default NO-GO (or human overrides recorded). Conditional notes may
-  accompany either outcome but do not rename it.
+- **GO** — zero Critical and zero Required (merge-blocking) findings.
+- **NO-GO** — any Critical OR any Required → default NO-GO. Conditional notes may accompany
+  (e.g. "NO-GO conditional — 0 Critical, fixable Required") but do not rename the outcome; human
+  override to merge despite Required is recorded, never a silent GO.
 
 ## Pipeline
 

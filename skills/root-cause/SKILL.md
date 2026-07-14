@@ -62,8 +62,10 @@ Manifest names DIAGNOSED, DIAGNOSED-WITH-HANDOFF, or INCONCLUSIVE.
 
 ## Ledger + supervision
 
-Header: `RUN · COORDINATOR · symptom · fixed-point SHA`. Row per hypothesis: status · falsification
-artifact. Stalls → liveness-resume WATCH; death → RESUME without re-theorizing completed falsifications.
+Header per liveness-resume.md: `RUN · COORDINATOR · BASE=- · FORK_POINT=- · T0 · SOURCE` (SOURCE =
+symptom + fixed-point SHA). Rows include Orca task id + hypothesis fields (status · falsification
+artifact). Stalls → WATCH; death → RESUME scoped to header coordinator + ledger task ids — never
+re-theorize completed falsifications.
 
 ## Anti-patterns
 

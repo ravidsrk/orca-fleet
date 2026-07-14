@@ -69,8 +69,9 @@ Manifest names STABLE or STABLE-WITH-QUARANTINE.
 
 ## Ledger + supervision
 
-Header: `RUN · COORDINATOR · BASE · DETECT_RUNS · GREEN_STREAK · target residual rate`. Row per flake.
-Stalls → liveness-resume WATCH; death → RESUME ledger-scoped, git-verified.
+Header per liveness-resume.md: `RUN · COORDINATOR · BASE · FORK_POINT · T0 · SOURCE` (`-` if N/A;
+SOURCE = DETECT_RUNS · GREEN_STREAK · target residual rate). Rows include Orca task id + flake fields.
+Stalls → WATCH; death → RESUME scoped to header coordinator + ledger task ids, git-verified.
 
 ## Anti-patterns
 

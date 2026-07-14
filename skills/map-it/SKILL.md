@@ -61,9 +61,10 @@ Handoff checklist complete.
 
 ## Ledger + supervision
 
-Header: `RUN · COORDINATOR · destination · freeze SHA`. Row per decision ticket: status · session ·
-evidence. Multi-session by design: stalls → liveness-resume WATCH; death → RESUME from ledger before
-re-grilling resolved tickets.
+Header per liveness-resume.md: `RUN · COORDINATOR · BASE=- · FORK_POINT=- · T0 · SOURCE` (SOURCE =
+destination + freeze SHA when frozen). Rows include Orca task id + decision ticket fields. Multi-session
+by design: stalls → WATCH; death → RESUME scoped to header coordinator + ledger task ids — never
+re-grill resolved tickets.
 
 ## Anti-patterns
 

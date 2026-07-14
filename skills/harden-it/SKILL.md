@@ -65,9 +65,10 @@ gate + verified), never a silent line-deletion.
 
 ## Ledger + supervision
 
-Header (liveness-resume.md): `RUN · COORDINATOR · BASE · fork-point · threat-model digest`. One row
-per finding: id · class · disposition · PR · reviewed_sha · re-attack · evidence. Stalls → WATCH;
-death → RESUME ledger-scoped, git-verified before trusting completed units.
+Header per liveness-resume.md: `RUN · COORDINATOR · BASE · FORK_POINT · T0 · SOURCE` (`-` if N/A;
+SOURCE = threat-model digest). Rows include Orca task id + finding fields (class · disposition · PR ·
+reviewed_sha · re-attack · evidence). Stalls → WATCH; death → RESUME scoped to header coordinator +
+ledger task ids, git-verified.
 
 ## Anti-patterns
 

@@ -68,6 +68,9 @@ RUNTIME_MAX_LINES = 160
 COMPOSE_CLAUSE_RE = re.compile(
     r"\b(?:Composes|COMPOSES|[Rr]ides)\b\s+(.+?)(?:\n\n|\Z)", re.DOTALL
 )
+# Mutator evidence-manifest must appear in a rides clause, not merely be mentioned
+# inside a Composes paragraph (e.g. "does not ride `evidence-manifest`").
+RIDES_CLAUSE_RE = re.compile(r"\b[Rr]ides\b\s+(.+?)(?:\n\n|\Z)", re.DOTALL)
 BACKTICK_RE = re.compile(r"`([a-z0-9][a-z0-9-]*)`")
 # Any lowercase `<name>.md` mention (pipeline text, parentheticals) must also resolve;
 # basenames that fail NAME_RE (ARCHITECTURE.md, SKILL.md) are exempt.
@@ -232,9 +235,15 @@ def validate_skill(skill_dir, protocols):
             "no machine-checkable composition: the Composes/rides clause must name "
             "at least one playbook or runtime policy in backticks"
         )
-    if name in MUTATING_MISSIONS and "evidence-manifest" not in clause_refs:
+    ride_refs = [
+        ref
+        for clause in RIDES_CLAUSE_RE.findall(text)
+        for ref in BACKTICK_RE.findall(clause)
+    ]
+    if name in MUTATING_MISSIONS and "evidence-manifest" not in ride_refs:
         errors.append(
-            "mutating mission must ride `evidence-manifest` (SHA-bound definition of done)"
+            "mutating mission must ride `evidence-manifest` in a rides clause "
+            "(SHA-bound definition of done; a Composes mention alone does not count)"
         )
 
     # every lowercase `<name>.md` mention must resolve (catches renames outside the clause)

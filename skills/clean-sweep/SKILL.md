@@ -76,12 +76,12 @@ honest. Manifest names DRY or DRY-WITH-PARKED.
 
 ## Ledger (header first, then rows)
 
-Line 1 is the resume header (liveness-resume.md): `RUN · COORDINATOR handle(s) · BASE · T0 ·
-SOURCE+digest`. Then one row per finding:
+Line 1 per liveness-resume.md: `RUN · COORDINATOR · BASE · FORK_POINT · T0 · SOURCE` (SOURCE =
+source type + enumeration digest). Rows include Orca task id + finding fields:
 
-`| id | title | VERIFIED | CLASS | FIXED | PR | reviewed_sha | MERGED | CLOSED | evidence |`
+`| task_id | id | title | VERIFIED | CLASS | FIXED | PR | reviewed_sha | MERGED | CLOSED | evidence |`
 CLASS ∈ real-bug · real-feature-small · refuted · duplicate · externally-resolved · needs-human ·
-out-of-scope.
+out-of-scope. RESUME scopes to header coordinator + ledger task ids.
 
 ## Gates + supervision
 
