@@ -28,8 +28,15 @@ breakage stays bisectable.
 The scope boundary is the mission-identity line: this mission owns dependency and framework
 **currency** — bump, adapt call sites, CI green. A stateful DB schema/data migration across
 deploys (backfills, destructive contracts, tested rollback) is a different mission with a
-different unit, a different state machine, and a different proof; when an upgrade forces one,
-`modernize-it` flags it and hands it to [`ship-it`](ship-it.md).
+different unit (a data transition, not a package), a different state machine (temporally
+separated deploys, not per-PR merges), and a different proof (deployed compatibility + completed
+backfill, which needs the deploy states only [`ship-it`](ship-it.md) owns). When a dependency
+upgrade *forces* such a migration, `modernize-it` flags it and hands off a brief for a
+**sequence** of ship-it runs — expand, then migrate-in-batches, then contract, each its own
+release through ship-it's state machine, never one run (a single BUILD→LAND→RELEASE cannot
+temporally separate the deploys). The dependent dependency upgrade deploys **between** expand and
+contract — never after contract, which would break the running version. `modernize-it` never runs
+a cross-deploy data migration inside a currency loop.
 
 ## When to reach for it
 

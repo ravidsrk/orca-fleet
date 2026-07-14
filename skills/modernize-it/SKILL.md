@@ -6,8 +6,8 @@ description: >-
   one dep or coherent group per PR, adapting call sites (code-level expand/migrate/contract) to get off
   old majors while keeping CI green → re-inventory until every major is current or pinned-with-a-reason.
   Use when "update the dependencies", "upgrade everything", "framework migration", "get off the old
-  major", or an unattended dependency-currency run. Stateful DB schema/data migration across deploys
-  (backfills, destructive contracts) is a distinct mission — handed to ship-it, not run here.
+  major", or an unattended dependency-currency run. Not for stateful DB schema/data migration across
+  deploys (hand that to ship-it) or advisory exploit proof (harden-it).
 license: MIT
 proof: doctrine-only
 compatibility: >-
@@ -17,24 +17,18 @@ compatibility: >-
 
 # modernize-it — every major current or parked, CI green the whole way
 
-You are the **COORDINATOR**. Here the unit is a COMPATIBILITY GRAPH node, not a finding: ordering,
-ecosystem grouping, lockfile contention, code-level adaptation, downstream-user churn, and rollback
-constraints dominate — PR-per-outdated-package is often actively WRONG. Composes `remediate-finding`
-(adapted), `risk-review` (data-migration lens as a REVIEW SIGNAL that flags a forced schema change,
-not an execution engine for it), `runtime-prove`; rides `merge-serialization`,
-`reviewed-sha-freshness`, `dispatch-lifecycle`, `liveness-resume`.
+You are the **COORDINATOR**. The unit is a COMPATIBILITY GRAPH node, not a finding: ordering,
+ecosystem grouping, lockfile contention, code-level adaptation, and rollback constraints dominate —
+PR-per-outdated-package is often actively WRONG. Composes `remediate-finding`, `acceptance-review`,
+`risk-review` (data-migration lens as a REVIEW SIGNAL, not an execution engine), `runtime-prove`;
+rides `merge-serialization`, `reviewed-sha-freshness`, `dispatch-lifecycle`, `liveness-resume`,
+`evidence-manifest`. Worker TASK pack: addy — never co-mount a second router.
 
-Scope boundary (the mission-identity line): this mission owns DEPENDENCY/FRAMEWORK CURRENCY —
-bump → adapt call sites → CI green. STATEFUL DB schema/data migration across deploys (expand/migrate/
-contract over the release state machine, backfills, destructive contracts, tested rollback) is a
-DIFFERENT mission: a different unit (a data transition, not a package), a different state machine
-(temporally-separated deploys, not per-PR merges), and a different proof (deployed compatibility +
-completed backfill, which needs the deploy states only `ship-it` owns). When a dependency upgrade
-FORCES such a migration, modernize-it flags it and hands off a brief for a SEQUENCE of ship-it runs —
-expand, then migrate-in-batches, then contract, each its own release through ship-it's state machine,
-never one run (a single BUILD→LAND→RELEASE cannot temporally separate the deploys). The dependent
-dependency upgrade deploys between expand and contract — never after contract, which would break the
-running version. Modernize-it never runs a cross-deploy data migration inside a currency loop.
+Scope boundary: this mission owns DEPENDENCY/FRAMEWORK CURRENCY (bump → adapt call sites → CI green).
+STATEFUL DB schema/data migration across deploys is a different unit, state machine, and proof — hand
+a brief to a SEQUENCE of ship-it runs (expand → migrate-in-batches → contract, one release each). The
+dependent upgrade deploys after expand and before contract. Never run a cross-deploy data migration
+inside a currency loop. Details: docs/missions/modernize-it.md.
 
 ## Two terminal outcomes
 
@@ -60,12 +54,10 @@ INVENTORY (outdated + advisories; read the CHANGELOG not the version delta; reac
     deprecation shims / dual-run APIs where a major needs them → CI GREEN is the gate; lockfile
     regenerated not hand-edited; verify provenance on registry/maintainer change)
   → FORCED-MIGRATION CHECK (risk-review data-migration lens): if an upgrade forces a stateful DB
-    schema/data change, do NOT run it here — open a handoff brief for a SEQUENCE of ship-it runs
-    (expand → migrate → contract, one release each). The dependent upgrade rides AFTER expand and
-    BEFORE contract (contract may only land once the dependent code is deployed and stable —
-    contracting first breaks the running version)
-  → build-blind REVIEW → RUNTIME-PROVE (runtime-prove: drive the app's real entry points — a green
-    CI misses runtime-only breakage like lazy imports and env-dependent init) → LAND
+    schema/data change, do NOT run it here — open a handoff brief for ship-it (expand → migrate →
+    contract). Park the dependent upgrade behind that handoff.
+  → build-blind REVIEW (acceptance-review) → RUNTIME-PROVE (drive real entry points — green CI misses
+    lazy imports and env-dependent init) → LAND
   → RE-INVENTORY → loop → outcome
 ```
 
@@ -76,7 +68,12 @@ a written reason + human ref. Every merge kept CI green (check the merge commits
 pipeline never landed). Every upgrade that FORCED a stateful DB migration is handed off to ship-it with
 a brief and its dependent upgrade parked behind that handoff — never silently run inside this loop.
 Advisory scan re-run clean (or each remaining one parked with reachability rationale). Final inventory
-pasted.
+pasted. Manifest names CURRENT or CURRENT-WITH-PINNED.
+
+## Ledger + supervision
+
+Header: `RUN · COORDINATOR · BASE · inventory digest`. Row per dep/group: target version · PR · CI ·
+pin/handoff reason. Stalls → liveness-resume WATCH; death → RESUME ledger-scoped, git-verified.
 
 ## Anti-patterns
 

@@ -6,7 +6,8 @@ description: >-
   now), clear the research/decision frontier in parallel with HITL at each decision, and produce a
   frozen plan + a prepared DAG. Use when the goal is too big/foggy for one session, "chart this",
   "plan this epic", "I don't know the shape yet", or you can't yet authorize implementation. Its
-  outcome is a decided plan; building is ship-it.
+  outcome is a decided plan; building is ship-it. Not for a foggy BUG (root-cause) or ready-to-build
+  intent (ship-it).
 license: MIT
 proof: doctrine-only
 compatibility: >-
@@ -19,7 +20,16 @@ compatibility: >-
 You are the **COORDINATOR**. The terminal ARTIFACT is distinct from building: resolved decision tickets
 plus a frozen execution map. Valuable precisely when the user does not want, or cannot yet authorize,
 implementation. Inside ship-it, ordinary planning is a phase; map-it is invoked only when uncertainty
-exceeds a declared threshold. Composes `decide-and-freeze`, `decompose-dag` (prepare only).
+exceeds a declared threshold. Composes `decide-and-freeze`, `decompose-dag` (prepare only); rides
+`gate-classification`, `liveness-resume`, `evidence-manifest`. Worker TASK pack: matt — never co-mount.
+
+## Two terminal outcomes
+
+- **MAPPED** — destination named; every open question is a sharp ticket (resolved) or explicit
+  "not yet specified"; human-resolved decisions; frozen plan/spec + prepared, verified, frozen-for-
+  handoff DAG that ship-it can consume without re-grilling.
+- **MAPPED-WITH-BLOCKED** (degraded) — map is frozen for what is known, but ≥1 decision ticket is
+  blocked on a human who has not answered; handoff lists blockers. Never reported as MAPPED.
 
 ## Pipeline (plan, don't do)
 
@@ -33,20 +43,33 @@ NAME the destination first (fixes scope — everything past it is out of scope; 
     clears fog and graduates newly-sharp questions into fresh tickets
   → when the route is clear: FREEZE the plan/spec (decide-and-freeze) + PREPARE the DAG (decompose-dag,
     materialize but do not dispatch)
+  → HANDOFF ARTIFACT CHECKLIST (ship-it adopts these without re-decomposing):
+    · freeze commit SHA + path to frozen plan/spec
+    · prepared DAG artifact path + task-id ↔ slice table
+    · open "not yet specified" / blocked ticket list
+    · evidence manifest naming MAPPED or MAPPED-WITH-BLOCKED
 ```
 
 ## Convergence proof
 
 The destination is named; every open question is either a sharp ticket (resolved or blocked) or an
-explicit "not yet specified"; every decision ticket was resolved by the HUMAN (not the agent); a frozen
-plan/spec exists; a materialized, verified, FROZEN-for-handoff DAG exists (decompose-dag's prepare-only
-completion — committed by freeze, not dispatch) that ship-it can consume without re-grilling. The
-mission produces DECISIONS, not deliverables — no production code is written.
+explicit "not yet specified"; every decision ticket was resolved by the HUMAN (not the agent) or is
+explicitly blocked; a frozen plan/spec exists; a materialized, verified, FROZEN-for-handoff DAG exists
+(decompose-dag's prepare-only completion — committed by freeze, not dispatch) that ship-it can consume
+without re-grilling. The mission produces DECISIONS, not deliverables — no production code is written.
+Handoff checklist complete.
+
+## Ledger + supervision
+
+Header: `RUN · COORDINATOR · destination · freeze SHA`. Row per decision ticket: status · session ·
+evidence. Multi-session by design: stalls → liveness-resume WATCH; death → RESUME from ledger before
+re-grilling resolved tickets.
 
 ## Anti-patterns
 
 The agent answering its own decision/grill tickets (HITL leak). Charting fog you can't phrase now.
 Resolving more than one decision per session. Sliding into building (that's ship-it — hand off at freeze).
+Re-decomposing a prepared DAG in ship-it (orphans task ids).
 
 ## Related
 `ship-it` (consumes the frozen map), `root-cause` (a foggy BUG, not a foggy plan).

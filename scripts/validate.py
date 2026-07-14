@@ -44,6 +44,18 @@ PLAYBOOKS_DIR = ROOT / "playbooks"
 RUNTIME_DIR = ROOT / "runtime"
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 PROOF_VALUES = {"doctrine-only", "self-run", "external-run"}
+# Mutating missions land code; they must ride the SHA-bound evidence protocol so
+# completion is never graded on worker narration. Report-only / planning /
+# diagnosis missions bind evidence differently and are not in this set.
+MUTATING_MISSIONS = {
+    "ship-it",
+    "clean-sweep",
+    "harden-it",
+    "speed-it",
+    "modernize-it",
+    "prove-it",
+    "deflake-it",
+}
 # Instruction budget (lines, whole file). The predecessor's mandatory instruction
 # surface hit ~42K tokens with no counterpressure; these caps are the counterpressure.
 MISSION_MAX_LINES = 130
@@ -219,6 +231,10 @@ def validate_skill(skill_dir, protocols):
         errors.append(
             "no machine-checkable composition: the Composes/rides clause must name "
             "at least one playbook or runtime policy in backticks"
+        )
+    if name in MUTATING_MISSIONS and "evidence-manifest" not in clause_refs:
+        errors.append(
+            "mutating mission must ride `evidence-manifest` (SHA-bound definition of done)"
         )
 
     # every lowercase `<name>.md` mention must resolve (catches renames outside the clause)

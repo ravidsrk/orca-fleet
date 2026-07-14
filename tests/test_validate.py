@@ -150,6 +150,38 @@ class TestProofStatus(unittest.TestCase):
             errs = validate.validate_skill(make_skill(tmp, body), PROTOCOLS)
             self.assertTrue(any("instruction budget" in e for e in errs), errs)
 
+    def test_mutating_mission_must_ride_evidence_manifest(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            # Folder name is the mission name used by the mutator check.
+            d = Path(tmp) / "ship-it"
+            d.mkdir()
+            (d / "SKILL.md").write_text(
+                "---\nname: ship-it\ndescription: Use when shipping.\n"
+                "proof: doctrine-only\n---\n\nComposes `diagnose`.\n",
+                encoding="utf-8",
+            )
+            errs = validate.validate_skill(d, PROTOCOLS | {"diagnose"})
+            self.assertTrue(
+                any("must ride `evidence-manifest`" in e for e in errs), errs
+            )
+
+    def test_mutating_mission_with_evidence_manifest_passes_that_check(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            d = Path(tmp) / "ship-it"
+            d.mkdir()
+            (d / "SKILL.md").write_text(
+                "---\nname: ship-it\ndescription: Use when shipping.\n"
+                "proof: doctrine-only\n---\n\n"
+                "Composes `diagnose`; rides `evidence-manifest`.\n",
+                encoding="utf-8",
+            )
+            errs = validate.validate_skill(
+                d, PROTOCOLS | {"diagnose", "evidence-manifest"}
+            )
+            self.assertFalse(
+                any("must ride `evidence-manifest`" in e for e in errs), errs
+            )
+
 
 class TestProtocolDocRefs(unittest.TestCase):
     """Dangling .md refs inside playbooks/ and runtime/ must fail the build too."""

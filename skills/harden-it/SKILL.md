@@ -5,7 +5,8 @@ description: >-
   the whole vulnerability class → re-audit, looping until a fresh full audit finds zero unrefuted
   P0/P1. STRIDE + OWASP Top 10 + OWASP LLM Top 10 + supply-chain. Use when "harden this", "security
   sweep", "red team", "close the security loop", or an unattended audit-fix-verify security run. The
-  full adversarial loop — for a bounded per-diff security check use review-it's risk lens.
+  full adversarial loop — for a bounded per-diff security check use review-it's risk lens. Not for
+  general backlog drain (clean-sweep) or a single PR verdict (review-it).
 license: MIT
 proof: doctrine-only
 compatibility: >-
@@ -21,15 +22,16 @@ You are the **COORDINATOR**. The unit is not a mere finding — it is a THREATEN
 exploit CLASS. The outcome is a CLEAN RE-AUDIT: a fresh full audit run after fixes finds zero unrefuted
 P0/P1. A parked P0 is an exposed system, not an ordinary parked item.
 
-Composes `risk-review` (security lens), `remediate-finding`, `runtime-prove`; rides `sandbox-policy`,
-`merge-serialization`.
+Composes `risk-review` (security lens), `remediate-finding`, `acceptance-review`, `runtime-prove`;
+rides `sandbox-policy`, `merge-serialization`, `reviewed-sha-freshness`, `dispatch-lifecycle`,
+`liveness-resume`, `evidence-manifest`. Worker TASK pack: one of addy | gstack — never co-mount.
 
 ## Two terminal outcomes (name the one reached)
 
 - **CLEAN** — every P0/P1 that ever surfaced is fixed+merged (with a re-attack pass) or refuted; a
   final full re-audit finds zero unrefuted P0/P1. One-way remediations (secret rotation, auth-flow
   change) count toward CLEAN only when the human action is VERIFIED complete (rotated key confirmed
-  dead), not merely gate-recorded.
+  dead), not merely gate-recorded — record the confirmation artifact in the unit's evidence manifest.
 - **HARDENED-WITH-OPEN-ITEMS** (degraded, NOT clean) — all fixable findings closed, but ≥1 P0/P1 is
   parked awaiting a verified one-way human action or has no safe sandbox to prove/fix. Named per item.
   Never reported as CLEAN.
@@ -47,8 +49,8 @@ THREAT-MODEL (STRIDE per trust boundary; Always/Ask-First/Never boundary → one
   → PoC ROUTING: static → ro; safe local exploit → rw; networked/destructive/supply-chain →
     ephemeral sandbox + danger; no safe sandbox → evidence-backed PARKED (never executed on host)
   → FIX (remediate-finding; exploit test first; audit the whole CLASS, not just the instance)
-  → build-blind REVIEW → RUNTIME-PROVE (runtime-prove: drive the patched surface at its real entry
-    point — a unit-harness-only green can leave the real route exploitable) → merge_ready → LAND
+  → build-blind REVIEW (acceptance-review) → RUNTIME-PROVE (drive the patched surface at its real
+    entry point — a unit-harness-only green can leave the real route exploitable) → merge_ready → LAND
   → RE-ATTACK (fresh independent worker: original + variant attacks; class sweep) → new holes re-loop
   → RE-AUDIT (full fresh pass) → CLEAN or HARDENED-WITH-OPEN-ITEMS
 ```
@@ -60,6 +62,12 @@ revert-audited · refuted by quorum with the vote table · PARKED with its block
 recorded RE-ATTACK verdict from an independent worker + a class-audit note. A final full re-audit is
 pasted; the outcome line is CLEAN or HARDENED-WITH-OPEN-ITEMS. Secret leaks route to ROTATION (one-way
 gate + verified), never a silent line-deletion.
+
+## Ledger + supervision
+
+Header (liveness-resume.md): `RUN · COORDINATOR · BASE · fork-point · threat-model digest`. One row
+per finding: id · class · disposition · PR · reviewed_sha · re-attack · evidence. Stalls → WATCH;
+death → RESUME ledger-scoped, git-verified before trusting completed units.
 
 ## Anti-patterns
 
