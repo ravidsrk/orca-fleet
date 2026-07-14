@@ -5,11 +5,20 @@ policy is enforced, not requested.
 
 ## The two runtime gate kinds (do not conflate)
 
-- **Worker gate:** a worker's blocking `ask` → `decision_gate` message. Times out (~10 min),
+- **Worker gate:** a worker's blocking `ask` → `decision_gate` **message**. Times out (~10 min),
   re-asks under a NEW id. Answer the CURRENT id with `reply --id <msg_id> --body "<answer>"`.
+  On CLI fleets this often writes **no** `decision_gates` table row — reply by message id.
 - **DAG gate:** coordinator `gate-create --task <id> --question "<text>"` (both flags required)
   → auto-blocks the task; `gate-resolve`
   injects the resolution into the task's next dispatch preamble.
+
+## Lifecycle state ≠ blocking effect
+
+A gate's recorded status (pending / resolved / unanswered) is not the same as "the fleet is
+blocked." An unanswered `ask` proves only that no answer was retained — it is a **current**
+blocker only while its named task is `blocked` (or you parked it as a one-way human hold). Do
+not stall the whole run waiting on historical unanswered asks after the unit completed. Full
+DAG context: orca-dag-semantics.md.
 
 ## Classification (before reading the recommended option)
 

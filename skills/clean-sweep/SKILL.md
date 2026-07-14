@@ -27,9 +27,10 @@ You never review, code, open PRs, or merge — every one is a dispatched worker.
 
 Read [ARCHITECTURE.md](../../ARCHITECTURE.md) once. Composes `remediate-finding`, `acceptance-review`,
 `build-change` playbooks; rides `merge-serialization`, `reviewed-sha-freshness`, `dispatch-lifecycle`,
-`liveness-resume`, `evidence-manifest` runtime policies. Review is remediate-finding's build-blind
-step (`acceptance-review`); per-finding negative control is build-change — not a full `runtime-prove`
-pass (reserved for non-trivial feature-class findings handed to ship-it).
+`liveness-resume`, `evidence-manifest`, `orca-dag-semantics` runtime policies. Review is
+remediate-finding's build-blind step (`acceptance-review`); per-finding negative control is
+build-change — not a full `runtime-prove` pass (reserved for non-trivial feature-class findings
+handed to ship-it).
 
 ## Two terminal outcomes
 

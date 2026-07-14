@@ -38,9 +38,15 @@ the replacement ONLY — never dual-send to the old and new handles.
 
 `task-create` does NOT validate that `--deps` IDs exist, and `promoteReadyTasks` only fires when a
 dep COMPLETES. A typo'd dep, or a dep that ends `failed` (not `completed`), strands the child in
-`pending` FOREVER — and convergence detection only flags `blocked`, never `pending`. Every fleet
-adds a watchdog: any task `pending` with an unmet or nonexistent dep past a threshold is surfaced,
-not silently waited on.
+`pending` FOREVER — and convergence detection only flags `blocked`, never `pending`. A **failed**
+dep is a permanent strand (not a retry of the child). Every fleet adds a watchdog: any task
+`pending` with an unmet, nonexistent, or failed dep past a threshold is surfaced, not silently
+waited on. Edges are `deps` only — `parent_id` is unused in CLI fleets (orca-dag-semantics.md).
+
+## Scope is never "the whole database"
+
+`orchestration.db` mixes every run on the machine. WATCH and RESUME operate only on the ledger's
+coordinator handle(s) + task-id set. Unfiltered `task-list` is a discovery tool, not the run.
 
 ## The ledger header (every mission writes it; RESUME depends on it)
 

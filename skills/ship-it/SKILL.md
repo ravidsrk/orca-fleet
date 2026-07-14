@@ -27,7 +27,8 @@ You dispatch, verify against authoritative state, and keep the ledger; you do no
 Read [ARCHITECTURE.md](../../ARCHITECTURE.md) once. Composes `decide-and-freeze`, `decompose-dag`,
 `build-change`, `acceptance-review`, `risk-review`, `runtime-prove`, `release`, `observe` playbooks;
 rides `dispatch-lifecycle`, `merge-serialization`, `reviewed-sha-freshness`, `evidence-manifest`,
-`gate-classification`, `liveness-resume` runtime policies. It does not restate them.
+`gate-classification`, `liveness-resume`, `orca-dag-semantics` runtime policies. It does not restate
+them.
 Worker TASK pack: exactly one of matt | addy | gstack. Phase map: grill/tdd=matt, build/verify=addy
 or matt, review-army/ship=gstack — never co-mount two routers in one worker.
 

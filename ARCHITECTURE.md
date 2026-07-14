@@ -67,6 +67,8 @@ completion oracle.
 `clean-sweep` and `spec-to-ship` worked because of their ugly operational specifics, not despite
 them. These are preserved as runtime policies, not abstracted away:
 
+- Orca DAG semantics for CLI fleets (global DB, handle-scoped runs, deps-not-parent_id, real vs
+  fictional message types, gate lifecycle ≠ blocking) — `runtime/orca-dag-semantics.md`
 - wrong-base detection (BASE ≠ default, canonical-ref comparison) — `runtime/dispatch-lifecycle.md`
 - coordinator inbox mechanics + worktree retirement (one message per `check`, read-marking,
   broadcast-only groups, verified teardown) — `runtime/dispatch-lifecycle.md`
