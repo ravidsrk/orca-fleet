@@ -27,15 +27,16 @@ You never review, code, open PRs, or merge — every one is a dispatched worker.
 
 Read [ARCHITECTURE.md](../../ARCHITECTURE.md) once. Composes `remediate-finding`, `acceptance-review`,
 `build-change` playbooks; rides `merge-serialization`, `reviewed-sha-freshness`, `dispatch-lifecycle`,
-`liveness-resume`, `evidence-manifest` runtime policies. Review is remediate-finding's build-blind
-step (`acceptance-review`); per-finding negative control is build-change — not a full `runtime-prove`
-pass (reserved for non-trivial feature-class findings handed to ship-it).
+`liveness-resume`, `evidence-manifest`, `orca-dag-semantics`, `ledger-contract` runtime policies.
+Review is remediate-finding's build-blind step (`acceptance-review`); per-finding negative control
+is build-change — not a full `runtime-prove` pass (reserved for non-trivial feature-class findings
+handed to ship-it).
 
 ## Two terminal outcomes
 
-- **DRY** — full re-enumeration finds zero items not CLOSED with evidence.
-- **DRY-WITH-PARKED** (degraded) — set exhausted except ≥1 PARKED with a human-approved reason.
-  Never reported as DRY.
+- **DRY** — full re-enumeration finds zero items not CLOSED with evidence (no open parks).
+- **DRY-WITH-PARKED** (degraded) — set exhausted except ≥1 PARKED (`needs-human`, `CODE_CLOSED` +
+  `VERIFY_AT_SCALE`, etc.). Never reported as DRY.
 
 ## The source (declare it — same unit, same pipeline, source-specific enumeration)
 
@@ -68,26 +69,28 @@ Run the coordinator as a MANUAL loop (`task-create → spawn → dispatch --inje
 ## Convergence proof (definition of done)
 
 A full enumeration finds ZERO items that are not (a) CLOSED with evidence (a merged, ancestry-verified
-PR + a test that failed pre-fix, revert-audited on a ≥10% sample; the closing comment links PR + test)
-or (b) PARKED with a human-approved reason (refuted/duplicate closes are a one-way batch gate;
-needs-human items name their gate). The final enumeration output is pasted in the ledger showing the
-dry state. `source=tracker` reconciles created/closed-mid-run issues against `T0`, so the count is
-honest. Manifest names DRY or DRY-WITH-PARKED.
+PR + a test that failed pre-fix, revert-audited on a ≥10% sample; the closing comment links PR + test;
+ledger flags `BUILT`…`WT_CLEAN` all `t`) or (b) PARKED with an allowed class (refuted/duplicate closes
+are a one-way batch gate; `needs-human` / `CODE_CLOSED`+`VERIFY_AT_SCALE` name their gate/OPS ref).
+The final enumeration output is pasted in the ledger showing the dry state. `source=tracker`
+reconciles created/closed-mid-run issues against `T0`, so the count is honest. Manifest names DRY or
+DRY-WITH-PARKED.
 
 ## Ledger (header first, then rows)
 
 Line 1 per liveness-resume.md: `RUN · COORDINATOR · BASE · FORK_POINT · T0 · SOURCE` (SOURCE =
-source type + enumeration digest). Rows include Orca task id + finding fields:
+source type + enumeration digest). Phase marker + unit boolean flags per ledger-contract.md:
 
-`| task_id | id | title | VERIFIED | CLASS | FIXED | PR | reviewed_sha | MERGED | CLOSED | evidence |`
+`| task_id | id | title | CLASS | BUILT | PR_OPEN | BOT | REVIEWED | MERGED | WT_CLEAN | park | evidence |`
 CLASS ∈ real-bug · real-feature-small · refuted · duplicate · externally-resolved · needs-human ·
-out-of-scope. RESUME scopes to header coordinator + ledger task ids.
+out-of-scope · CODE_CLOSED. RESUME scopes to header coordinator + ledger task ids.
 
 ## Gates + supervision
 
 Batch human gate for refuted/duplicate closes (or a once-per-run recorded grant). Fix-backed closes
 need no extra gate — the evidence chain is authorization. BASE→default promotion is out of scope: open
-the promotion PR, stop. Stalls → liveness-resume WATCH; death → RESUME (ledger-scoped, git-verified).
+the promotion PR, stop. Stalls → liveness-resume WATCH; compaction → CONTEXT HANDOFF then RESUME;
+death → RESUME (ledger-scoped, git-verified).
 
 ## Anti-patterns
 

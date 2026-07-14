@@ -35,6 +35,9 @@ running tests or `npm install` would block. `spawn_worker.sh` maps each PROFILE 
   entirely — its semantics become the caller's assertion — so it needs its own opt-in
   `ORCA_COORD_ALLOW_CMD_OVERRIDE=1` (an inherited env var must not silently defeat `PROFILE=ro`).
   It is also how an agent with no Orca-verified flag for the tier (grok `ro`, opencode, …) runs.
+- **Effort default:** `spawn_worker.sh` defaults the optional effort arg to **`xhigh`** (max
+  reasoning tier the agent exposes — e.g. codex `model_reasoning_effort`). Pass a lower tier only
+  for deliberately cheap workers; never leave build/fix workers on a soft default.
 
 ## Danger belongs in an ephemeral sandbox, never on the host
 

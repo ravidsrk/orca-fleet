@@ -101,6 +101,13 @@ per task" (a migration is a deliberate multi-commit expand/migrate/contract sequ
 >20 commits behind base and the spec lacks `allow-stale-base: true`. Sync the coordinator's local
 base before each wave; a stale base makes workers build on outdated code and stack shims.
 
+Prefer the **manual** coordinator loop over `orchestration run` for fleets: the built-in loop is
+**unscoped** (iterates every task in the machine-global DB and adopts leftovers). Note:
+`orchestration run` *does* write a `coordinator_runs` row; the **manual** loop leaves that table
+empty. Empty `coordinator_runs` is not a bug and is not a reason to prefer either path — prefer
+manual for scope control. Run identity is still the ledger's coordinator handle + task ids
+(orca-dag-semantics.md).
+
 ## Coordinator inbox mechanics (learned on real runs)
 
 - `check --wait` returns **ONE message per call**. Three workers finishing means three calls —
@@ -120,6 +127,9 @@ base before each wave; a stale base makes workers build on outdated code and sta
   `decision_gate` replies — goes to a concrete terminal handle, never a group. A `worker_done`
   for the active `taskId`+`dispatchId` auto-completes the task; do NOT follow it with a manual
   `task-update --status completed` (reserve manual status writes for recovery/override).
+- Do not expect `type=dispatch` or `type=handoff` rows from the runtime (prompt inject is PTY-only).
+  `merge_ready` is fleet-written only (merge-serialization.md). Put `reportPath` on `worker_done`
+  so the retained DB points at the evidence manifest (orca-dag-semantics.md).
 
 ## Progress surface (Orca-native, complements the ledger)
 

@@ -24,9 +24,12 @@ Hot mount-point files (route registry, DI wiring, migrations, barrels) → mark 
 
 ## Verify the DAG before dispatching anything
 
-`task-list --json`: every task present · deps resolve to real ids (the stuck-pending trap —
-liveness-resume.md) · no cycles · foundation has no deps on slices · every hot-file chain is a path
-not a fan. Five minutes here saves a fleet-wide debugging session.
+Filter `task-list --json` to the ledger's task-id set (the DB is machine-global — other runs'
+tasks are noise; orca-dag-semantics.md): every ledger task present · deps resolve to real ids
+(the stuck-pending trap — liveness-resume.md; failed deps strand children forever) · no cycles ·
+foundation has no deps on slices · every hot-file chain is a path not a fan · no reliance on
+`parent_id` (unused in CLI fleets; edges are `deps` only). Five minutes here saves a fleet-wide
+debugging session.
 
 ## Plan skeptic (a fresh worker stresses the decomposition, before commit)
 

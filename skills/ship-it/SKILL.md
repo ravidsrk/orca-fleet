@@ -27,7 +27,8 @@ You dispatch, verify against authoritative state, and keep the ledger; you do no
 Read [ARCHITECTURE.md](../../ARCHITECTURE.md) once. Composes `decide-and-freeze`, `decompose-dag`,
 `build-change`, `acceptance-review`, `risk-review`, `runtime-prove`, `release`, `observe` playbooks;
 rides `dispatch-lifecycle`, `merge-serialization`, `reviewed-sha-freshness`, `evidence-manifest`,
-`gate-classification`, `liveness-resume` runtime policies. It does not restate them.
+`gate-classification`, `liveness-resume`, `orca-dag-semantics`, `ledger-contract` runtime policies.
+It does not restate them.
 Worker TASK pack: exactly one of matt | addy | gstack. Phase map: grill/tdd=matt, build/verify=addy
 or matt, review-army/ship=gstack — never co-mount two routers in one worker.
 
@@ -44,10 +45,19 @@ If units or criteria are parked with human-approved reasons while the rest lande
 
 ## Preflight
 
-`orca status --json` running · orchestration on · `runtime/scripts/preflight.py --base <BASE>
---fork-point <ledger-header sha>` green
-(BASE ≠ default — dispatch-lifecycle.md) · clean baseline · tests green at baseline (else you can't
-tell your regressions from pre-existing ones).
+`orca status --json` running · orchestration on · Orca CLI + orchestration skill available ·
+git. **Repo state:**
+
+- real code → foundation fills gaps; tests green at baseline (else you can't tell regressions)
+- empty/near-empty git repo → foundation scaffolds
+- no git repo → `git init` + minimal README/.gitignore commit on default, **then create a
+  GitHub remote** (`gh repo create` private, or push an existing remote) so write preflight can
+  run — pure local-only greenfield is not supported for the full PR pipeline
+
+Then `runtime/scripts/preflight.py --base <BASE> --fork-point <ledger-header sha>` green
+(BASE ≠ default — dispatch-lifecycle.md; requires `gh` + a visible remote). If `gh` later dies
+mid-run, use merge-serialization no-gh local merge (`PR_OPEN=n/a`). Ledger: header + phase
+marker + unit boolean flags (ledger-contract.md).
 
 ## Pipeline (one canonical path after freeze)
 
@@ -65,11 +75,12 @@ ENTRY ─┬─ frozen spec  → VALIDATE (decide-and-freeze: validate branch) �
    → RELEASE state machine (release.md): PROMOTION_READY → [human gate #2] → RELEASED
    → DEPLOYED_AND_VERIFIED phase (release.md): observe.md BASELINE captured first, THEN deploy,
      then observe.md's canary loop — the state is claimed only after the window is green
-   → REFLECT (write learnings)
+   → REFLECT (readiness note + backlog + OPS/CODE_CLOSED queue under docs/ — ledger-contract.md)
 ```
 
 Each phase runs its playbook; each worker emits an evidence manifest; the coordinator verifies each
-against authoritative state (evidence-manifest.md) before advancing.
+against authoritative state (evidence-manifest.md) before advancing. Unit flags advance only in the
+ledger file (`BUILT`…`WT_CLEAN`).
 
 ## Convergence proof (this mission's definition of done)
 
@@ -85,17 +96,21 @@ against authoritative state (evidence-manifest.md) before advancing.
 - The manifest names the terminal release state with its evidence (merge SHA / deploy revision /
   canary window verdict). Reaching BASE with an open promotion PR is `PROMOTION_READY`, never RELEASED.
 - Noticed-but-not-touched adjacent work is a backlog file (scope discipline made visible).
+- Every unit row: boolean flags true or an allowed park (`CODE_CLOSED` + `VERIFY_AT_SCALE` plan
+  when acceptance is OPS-only — never a silent full close).
 
 ## Gates (only these)
 
 - Human gate #1: FREEZE (intent entry only). Human gate #2: PROMOTION to default (one-way,
-  gate-classification.md). Everything else is mechanical/taste per the classifier. Merge ≠ deploy;
-  the fleet never self-merges the promotion or deploys.
+  gate-classification.md). Lane B product forks: draft both, then human. Everything else is
+  mechanical/taste per the classifier (append the DECISIONS log under docs/). Merge ≠ deploy; the
+  fleet never self-merges the promotion or deploys.
 
 ## Supervision + resume
 
-Stalls → liveness-resume.md WATCH. Coordinator death → RESUME (scope = ledger coordinator handle +
-task ids), cross-verify completed units against git before trusting them.
+Stalls → liveness-resume.md WATCH. Compaction pressure → CONTEXT HANDOFF block then RESUME
+(ledger-contract.md). Coordinator death → RESUME (scope = ledger coordinator handle + task ids),
+cross-verify completed units against git before trusting them.
 
 ## Anti-patterns
 

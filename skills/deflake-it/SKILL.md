@@ -22,7 +22,7 @@ and proof require REPEATED observations, environment correlation, and a consecut
 contract. Rerun behavior IS the mission, not verification-after-a-fix. Composes `diagnose`,
 `build-change`, `remediate-finding` (the finding is a flake; the red-by-revert ratchet is its negative
 control), `acceptance-review`; rides `merge-serialization`, `reviewed-sha-freshness`,
-`dispatch-lifecycle`, `liveness-resume`, `evidence-manifest`. The suite green streak IS the prove step
+`dispatch-lifecycle`, `liveness-resume`, `evidence-manifest`, `ledger-contract`. The suite green streak IS the prove step
 (no separate runtime-prove pass). Worker TASK pack: one of matt | addy.
 
 ## Two terminal outcomes

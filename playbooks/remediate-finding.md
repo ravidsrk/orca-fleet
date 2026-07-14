@@ -18,6 +18,10 @@ a security lens, a perf breach, or a flaky test — the mission supplies the fin
 5. **merge_ready → the conductor** (merge-serialization.md): reviewed-SHA-fresh, ancestry-verified.
 6. **Close with evidence:** the merge SHA + a completion note. A fix-backed close needs no extra human
    gate — the evidence chain is the authorization. A refutation/duplicate close is a one-way batch gate.
+7. **Ledger flags** (ledger-contract.md): advance `BUILT → PR_OPEN → BOT → REVIEWED → MERGED →
+   WT_CLEAN` only from file-verified state. If the fix is mergeable but acceptance needs load/prod
+   data the fleet cannot reach: merge as `CODE_CLOSED`, open `VERIFY_AT_SCALE` OPS item — never
+   claim full close.
 
 ## Rules
 
@@ -25,5 +29,6 @@ a security lens, a perf breach, or a flaky test — the mission supplies the fin
 - One finding = one branch = one PR = one merge commit; same-file findings form a merge chain.
 - Sizing: build-change's PR sizing seam applies — a sub-10-line finding folds into a neighboring
   finding's PR (both closes cite the shared merge SHA); one file never splits across two PRs.
+- Lane B forks (gate-classification.md): draft both options, human gate — do not pick silently.
 - The mission owns "how do I know the whole set is clean" (its convergence proof); this owns "how do I
   close one finding correctly".

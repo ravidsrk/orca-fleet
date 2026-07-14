@@ -22,7 +22,7 @@ the denominator is a FINITE CRITICAL SURFACE, done is MUTATION-SENSITIVE coverag
 surfaced during characterization spawn a NESTED remediation loop. Composes `build-change`,
 `remediate-finding` (for surfaced bugs), `acceptance-review`, `runtime-prove`; rides
 `merge-serialization`, `reviewed-sha-freshness`, `dispatch-lifecycle`, `liveness-resume`,
-`evidence-manifest`. Worker TASK pack: one of matt | addy — never co-mount.
+`evidence-manifest`, `ledger-contract`. Worker TASK pack: one of matt | addy — never co-mount.
 
 ## Two terminal outcomes
 
