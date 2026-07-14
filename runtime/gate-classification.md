@@ -15,8 +15,9 @@ policy is enforced, not requested.
 ## Live ask ≠ historical unanswered ≠ DAG `blocked`
 
 - **Live worker `ask`:** the worker CLI blocks until reply/timeout; the task usually stays
-  `dispatched` (not `blocked`). Unread ask mail to the coordinator is **always** current inbox
-  work — reply by message id immediately. Do not wait for task status `blocked`.
+  `dispatched` (not `blocked`). An ask with **no thread reply** while the unit is still
+  dispatched is **always** current inbox work — reply by message id immediately. Do not wait for
+  task status `blocked`. Do not use the unread bit alone (`check` marks read on receive).
 - **Historical unanswered ask:** unit already terminal, no waiting worker — retained evidence
   that no answer was stored, **not** a reason to stall the fleet.
 - **`gate-create`:** task is `blocked` until resolve — true DAG hold.

@@ -46,15 +46,18 @@ If units or criteria are parked with human-approved reasons while the rest lande
 ## Preflight
 
 `orca status --json` running · orchestration on · Orca CLI + orchestration skill available ·
-git + gh (or local merge path). **Repo state:**
+git. **Repo state:**
 
 - real code → foundation fills gaps; tests green at baseline (else you can't tell regressions)
 - empty/near-empty git repo → foundation scaffolds
-- no git repo → `git init` + minimal README/.gitignore commit on default, then create BASE
+- no git repo → `git init` + minimal README/.gitignore commit on default, **then create a
+  GitHub remote** (`gh repo create` private, or push an existing remote) so write preflight can
+  run — pure local-only greenfield is not supported for the full PR pipeline
 
 Then `runtime/scripts/preflight.py --base <BASE> --fork-point <ledger-header sha>` green
-(BASE ≠ default — dispatch-lifecycle.md). Ledger: header + phase marker + unit boolean flags
-(ledger-contract.md).
+(BASE ≠ default — dispatch-lifecycle.md; requires `gh` + a visible remote). If `gh` later dies
+mid-run, use merge-serialization no-gh local merge (`PR_OPEN=n/a`). Ledger: header + phase
+marker + unit boolean flags (ledger-contract.md).
 
 ## Pipeline (one canonical path after freeze)
 

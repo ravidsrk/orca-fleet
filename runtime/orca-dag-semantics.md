@@ -72,11 +72,12 @@ from the owning pane auto-completes the task — do not also `task-update --stat
 ## Convergence (when the DAG is done)
 
 A run is **converged** only when every task in the **ledger task-id set** is terminal
-(`completed` or `failed`), no live worker ask is waiting on the coordinator, and no
-`gate-create` hold remains for those tasks. Not converged:
+(`completed` or `failed`), no live worker ask is waiting on the coordinator (dispatched unit +
+ask thread with no reply — not merely unread), and no `gate-create` hold remains for those tasks.
+Not converged:
 
 - any `pending` / `ready` / `dispatched` / `blocked` in scope
-- unread live `ask` / `decision_gate` mail while a unit is still dispatched
+- live ask (dispatched unit, ask without reply) even if the message is already `read`
 - a `pending` child whose dep **failed** or never existed (never auto-promotes — stuck-pending
   watchdog must surface it; a failed dep is a permanent strand, not a retry)
 
@@ -95,8 +96,8 @@ Two paths (gate-classification.md):
 
 | Case | How you know | Action |
 |------|--------------|--------|
-| **Live ask** | Unread `decision_gate` / ask mail to the coordinator while a worker is still on that unit (dispatched, waiting on CLI) | **Always blocking inbox work.** Reply by `message id` (`reply --id`) promptly — do not wait for task status `blocked` (it will not come). Ignoring it burns the ask timeout. |
-| **Historical unanswered** | Unit already terminal / no waiting worker; old ask message still in history | **Not** a fleet stall. Do not spin the run waiting on it. |
+| **Live ask** | A worker unit is still `dispatched` and a `decision_gate` / ask in its thread has **no reply** yet (do **not** rely on the unread bit alone — `check --wait` marks read on receive) | **Always blocking inbox work.** Reply by `message id` (`reply --id`) promptly — do not wait for task status `blocked` (it will not come). Ignoring it burns the ask timeout. On RESUME, re-scan threads for asks without replies while the unit is still dispatched. |
+| **Historical unanswered** | Unit already terminal / no waiting worker; ask with or without a reply left in history | **Not** a fleet stall. Do not spin the run waiting on it. |
 | **DAG hold** | `gate-create` → task `blocked` | DAG blocker until `gate-resolve` or park as one-way human. |
 
 Prefer `gate-create` for human one-way holds the DAG must respect; prefer classified `ask` for

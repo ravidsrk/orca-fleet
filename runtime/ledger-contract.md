@@ -22,8 +22,8 @@ or it is an allowed park class with a human/OPS ref.
 | Flag | Means (evidence, not belief) |
 |------|------------------------------|
 | `BUILT` | Implementation on the unit branch; build/lint/affected tests green; red-first test present when the unit claims a fix |
-| `PR_OPEN` | Integrator opened PR against BASE; `baseRefName==BASE` asserted |
-| `BOT` | Review-bot wait→ingest→reconcile done, or `n/a` if no bot / bot disabled for the run |
+| `PR_OPEN` | Integrator opened PR against BASE; `baseRefName==BASE` asserted. **`n/a` only** on the documented no-gh local-merge path (merge-serialization.md) — then `MERGED` still requires ancestry-verified local merge + ledger `no-gh: local-merge` |
+| `BOT` | Review-bot wait→ingest→reconcile done, or `n/a` if no bot / bot disabled for the run / no-gh path |
 | `REVIEWED` | Build-blind review PASS at `reviewed_sha` (fresh; voided by later push) |
 | `MERGED` | Ancestry-verified merge into BASE; merge-commit (not squash); closing SHA in evidence |
 | `WT_CLEAN` | Unit worktree retired after merge (dispatch-lifecycle.md guards) |
