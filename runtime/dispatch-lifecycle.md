@@ -102,8 +102,10 @@ per task" (a migration is a deliberate multi-commit expand/migrate/contract sequ
 base before each wave; a stale base makes workers build on outdated code and stack shims.
 
 Prefer the **manual** coordinator loop over `orchestration run` for fleets: the built-in loop is
-**unscoped** (iterates every task in the machine-global DB and adopts leftovers) and leaves
-`coordinator_runs` empty on CLI paths — run identity is the coordinator terminal handle
+**unscoped** (iterates every task in the machine-global DB and adopts leftovers). Note:
+`orchestration run` *does* write a `coordinator_runs` row; the **manual** loop leaves that table
+empty. Empty `coordinator_runs` is not a bug and is not a reason to prefer either path — prefer
+manual for scope control. Run identity is still the ledger's coordinator handle + task ids
 (orca-dag-semantics.md).
 
 ## Coordinator inbox mechanics (learned on real runs)

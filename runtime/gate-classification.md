@@ -12,13 +12,17 @@ policy is enforced, not requested.
   → auto-blocks the task; `gate-resolve`
   injects the resolution into the task's next dispatch preamble.
 
-## Lifecycle state ≠ blocking effect
+## Live ask ≠ historical unanswered ≠ DAG `blocked`
 
-A gate's recorded status (pending / resolved / unanswered) is not the same as "the fleet is
-blocked." An unanswered `ask` proves only that no answer was retained — it is a **current**
-blocker only while its named task is `blocked` (or you parked it as a one-way human hold). Do
-not stall the whole run waiting on historical unanswered asks after the unit completed. Full
-DAG context: orca-dag-semantics.md.
+- **Live worker `ask`:** the worker CLI blocks until reply/timeout; the task usually stays
+  `dispatched` (not `blocked`). Unread ask mail to the coordinator is **always** current inbox
+  work — reply by message id immediately. Do not wait for task status `blocked`.
+- **Historical unanswered ask:** unit already terminal, no waiting worker — retained evidence
+  that no answer was stored, **not** a reason to stall the fleet.
+- **`gate-create`:** task is `blocked` until resolve — true DAG hold.
+
+Recorded gate lifecycle (pending / resolved / unanswered) is not the same as "the coordinator
+must act now." Full DAG context: orca-dag-semantics.md.
 
 ## Classification (before reading the recommended option)
 

@@ -15,16 +15,22 @@ the machine, not "this mission."
 set (liveness-resume.md). Never converge, WATCH, or RESUME against an unfiltered `task-list`.
 A foreign run's completed tasks are not your wins; a foreign pending is not your stall.
 
-## Run identity is a terminal handle, not `coordinator_runs`
+## Run identity is a terminal handle (ledger), not `coordinator_runs` alone
 
-`coordinator_runs` is written only by Orca's built-in `orchestration.run` loop. Agent-driven
-fleets leave it **empty**. The real key is `tasks.created_by_terminal_handle` (the coordinator
-that ran `task-create`).
+Two coordination patterns write different rows:
 
-**Fleet rule:** record coordinator handle(s) in the ledger header at start. Do not use
-`coordinator_runs` for scoping, resume, or "is the run finished." Prefer the **manual**
-coordinator loop over `orchestration run`: the built-in loop is **unscoped** — it iterates
-every task in the DB and will adopt leftover tasks from other runs.
+| Pattern | `coordinator_runs` | Run scope |
+|---------|--------------------|-----------|
+| **Manual fleet loop** (`task-create` / `dispatch` / `check` / `send`) | **Empty** — never written | Ledger coordinator handle(s) + ledger task ids |
+| **`orchestration run`** (built-in Coordinator loop) | **Has a row** — RPC creates it before the loop | Still **unscoped** over the machine DB (adopts leftover tasks) |
+
+The durable key for fleets is always `tasks.created_by_terminal_handle` + the ledger task-id
+set. A `coordinator_runs` row is optional evidence that a built-in loop started — never the
+sole scope key, never proof a manual fleet is finished.
+
+**Fleet rule:** record coordinator handle(s) in the ledger header at start. Prefer the **manual**
+loop over `orchestration run` because the built-in loop is unscoped (not because the table is
+empty — it is empty only for the manual pattern).
 
 ## DAG edges are `deps`, not `parent_id`
 
@@ -64,30 +70,36 @@ from the owning pane auto-completes the task — do not also `task-update --stat
 ## Convergence (when the DAG is done)
 
 A run is **converged** only when every task in the **ledger task-id set** is terminal
-(`completed` or `failed`) and no **blocking** gate remains for those tasks. Not converged:
+(`completed` or `failed`), no live worker ask is waiting on the coordinator, and no
+`gate-create` hold remains for those tasks. Not converged:
 
 - any `pending` / `ready` / `dispatched` / `blocked` in scope
+- unread live `ask` / `decision_gate` mail while a unit is still dispatched
 - a `pending` child whose dep **failed** or never existed (never auto-promotes — stuck-pending
   watchdog must surface it; a failed dep is a permanent strand, not a retry)
 
 A finished foreign run in the same DB is irrelevant. All-green elsewhere is not your proof.
 
-## Gates: lifecycle state ≠ blocking effect
+## Gates: live ask vs historical vs DAG hold
 
 Two paths (gate-classification.md):
 
 1. Worker / coordinator `ask` → a `decision_gate` **message** (often **no** `decision_gates`
-   table row on CLI paths).
-2. Coordinator `gate-create` → table row + task `blocked`.
+   table row; payload may omit `taskId`). The worker CLI **blocks until reply or timeout**.
+   The task usually stays `dispatched` — `ask` does **not** flip it to `blocked`.
+2. Coordinator `gate-create` → table row + task status `blocked`; `gate-resolve` unblocks.
 
-**Fleet rule:**
+**Fleet rule — distinguish live from historical:**
 
-- Answer worker asks by **message id** (`reply --id`), not by guessing a gate-table id.
-- An **unanswered ask** is not automatically a fleet blocker — it blocks only while the named
-  task is actually `blocked` (or you intentionally treat it as a one-way park). Do not wait
-  forever on historical unanswered asks after the task completed.
-- Prefer `gate-create` for human one-way holds you need the DAG to respect; prefer classified
-  `ask` for worker→coordinator mechanical/taste questions.
+| Case | How you know | Action |
+|------|--------------|--------|
+| **Live ask** | Unread `decision_gate` / ask mail to the coordinator while a worker is still on that unit (dispatched, waiting on CLI) | **Always blocking inbox work.** Reply by `message id` (`reply --id`) promptly — do not wait for task status `blocked` (it will not come). Ignoring it burns the ask timeout. |
+| **Historical unanswered** | Unit already terminal / no waiting worker; old ask message still in history | **Not** a fleet stall. Do not spin the run waiting on it. |
+| **DAG hold** | `gate-create` → task `blocked` | DAG blocker until `gate-resolve` or park as one-way human. |
+
+Prefer `gate-create` for human one-way holds the DAG must respect; prefer classified `ask` for
+worker→coordinator mechanical/taste questions. Answer asks by **message id**, never by guessing
+a gate-table id.
 
 ## Completion receipts the DB retains
 
