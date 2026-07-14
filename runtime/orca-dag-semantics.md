@@ -43,18 +43,20 @@ or verify fleets on parent/child nesting.
 
 ## What the message enum lies about
 
-These `MessageType` values exist in the schema but the runtime **does not write them** on
-CLI/agent paths (live counts were zero):
+These `MessageType` values exist in the schema but **nothing writes them** on CLI/agent paths
+(live counts were zero):
 
 | Type | Reality |
 |------|---------|
 | `dispatch` | Prompt is injected into the worker PTY; no message row. Reconstruct from `dispatch_contexts` + `tasks.spec`. |
 | `handoff` | Unused by the runtime. |
-| `merge_ready` | **Fleet-owned** convention (merge-serialization.md writes it). Runtime delivers only — no built-in merge behavior. |
 
-What *is* real and load-bearing: `worker_done`, `heartbeat`, `escalation`, `decision_gate`,
-`status`. Heartbeats are the majority of traffic — always type-filter `check --wait` or use
-`--peek` so they do not bury lifecycle mail (dispatch-lifecycle.md).
+`merge_ready` is **fleet-written** (merge-serialization.md), not a phantom type — the runtime
+delivers it but triggers no built-in merge behavior. Expect it during serialized merges.
+
+What *is* real and load-bearing: `worker_done`, `merge_ready`, `heartbeat`, `escalation`,
+`decision_gate`, `status`. Heartbeats are the majority of traffic — always type-filter
+`check --wait` or use `--peek` so they do not bury lifecycle mail (dispatch-lifecycle.md).
 
 ## Task status is current-state, not a timeline
 
