@@ -22,7 +22,7 @@ ecosystem grouping, lockfile contention, code-level adaptation, and rollback con
 PR-per-outdated-package is often actively WRONG. Composes `remediate-finding`, `acceptance-review`,
 `risk-review` (data-migration lens as a REVIEW SIGNAL, not an execution engine), `runtime-prove`;
 rides `merge-serialization`, `reviewed-sha-freshness`, `dispatch-lifecycle`, `liveness-resume`,
-`evidence-manifest`. Worker TASK pack: addy — never co-mount a second router.
+`evidence-manifest`, `ledger-contract`. Worker TASK pack: addy — never co-mount a second router.
 
 Scope boundary: this mission owns DEPENDENCY/FRAMEWORK CURRENCY (bump → adapt call sites → CI green).
 STATEFUL DB schema/data migration across deploys is a different unit, state machine, and proof — hand

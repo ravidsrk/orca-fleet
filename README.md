@@ -321,9 +321,15 @@ both are verified to preserve them.
 
 ## Requirements
 
-Every mission has a **hard dependency on the Orca runtime and the `orchestration` skill shipped
-with the Orca CLI** (not published here). Beyond that, each mission declares its own tooling in
-its `SKILL.md` frontmatter:
+Every mission has a **hard dependency on companions not published in this repo**:
+
+1. **Orca app** running, orchestration experimental feature enabled  
+2. **`orca` CLI** (use `orca-ide` on Linux outside Orca terminals)  
+3. **orchestration skill** + **orca-cli skill** installed for the agent host (the public Orca
+   skills — worktrees, terminals, task DAG, ask/reply, `worker_done`). orca-fleet is the
+   *outcome* layer; those two skills are the *substrate*. Without them, missions cannot dispatch.
+
+Beyond that, each mission declares its own tooling in its `SKILL.md` frontmatter:
 
 | Mission      | Additional tooling                                                        |
 |--------------|---------------------------------------------------------------------------|
@@ -340,11 +346,11 @@ its `SKILL.md` frontmatter:
 ```
 skills/       10 missions — the discoverable catalog (SKILL.md each)
 playbooks/    10 callable phase protocols missions compose by name
-runtime/      8 policies + runtime/scripts/ (spawn_worker, preflight, pm)
+runtime/      policies + runtime/scripts/ (spawn_worker, preflight, pm)
 docs/         human documentation: getting started, concepts, mission guides
 assets/       banners and images
 scripts/      validate.py — spec + three-layer + cross-reference validation
-tests/        25 tests: architecture contracts + validator negative-path fixtures (stdlib unittest)
+tests/        architecture contracts + validator negative-path fixtures (stdlib unittest)
 ```
 
 ## Validate and test

@@ -28,9 +28,17 @@ must act now." Full DAG context: orca-dag-semantics.md.
 
 | Class | Test | Resolver |
 |-------|------|----------|
-| **Mechanical** | one defensible answer (tooling with a repo precedent, naming, retry-on-transient) | coordinator auto-resolves, AUDITED (a ledger line: gate · mechanical · answer · why) |
-| **Taste** | reasonable disagreement, reversible (API shape, copy, structure within spec) | coordinator picks the recommendation, BATCHES to one decision-ready brief; work continues; human can veto |
-| **One-way** | hard/impossible to reverse or out-of-authority: merge to default, deploy, rollback, deletion, spend, scope change, secret rotation | HUMAN ONLY. Never auto-resolved. Never defaulted on timeout. |
+| **Mechanical** | one defensible answer (tooling with a repo precedent, naming, retry-on-transient) | coordinator auto-resolves; append the DECISIONS log (ledger-contract.md) |
+| **Taste** | reasonable disagreement, reversible (API shape, copy, structure within spec) | pick recommendation (or Lane B); log DECISIONS; human may veto |
+| **One-way** | hard/impossible to reverse or out-of-authority: merge to default, deploy, rollback, deletion, spend, scope change, secret rotation, real credentials | HUMAN ONLY. Never auto-resolved. Never defaulted on timeout. |
+
+## Three lanes (what a unit is allowed to do)
+
+| Lane | When | Action |
+|------|------|--------|
+| **A — implement** | Safe to ship on testnet/fixtures; reversible code | Full PR-per-unit pipeline |
+| **B — draft-and-gate** | Genuine product/brand/policy fork (two defensible directions) | Draft **both** options fully; stop at a one-way human gate; do not pick silently |
+| **0 — refuse-and-surface** | Credential provisioning, live money/prod, engine boundary the fleet must not cross | Do not implement; record OPS/Lane-0 item (`CODE_CLOSED` only if code landed and verify is OPS — ledger-contract.md) |
 
 ## User-challenge (the never-auto class within one-way)
 

@@ -63,6 +63,10 @@ a truncated header).
 
 A ledger with rows but no header is a resume-orphan — recoverable only by hand.
 
+Unit **boolean flags**, park classes (`CODE_CLOSED` / `VERIFY_AT_SCALE`), `docs/DECISIONS.md`,
+and the **CONTEXT HANDOFF** block under compaction pressure: ledger-contract.md. RESUME always
+re-reads those before trusting memory.
+
 ## RESUME (coordinator died)
 
 Run scope is mandatory (state is runtime-global; `task-list` has no run filter): scope = the run's

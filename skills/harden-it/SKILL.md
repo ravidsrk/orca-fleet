@@ -24,7 +24,8 @@ P0/P1. A parked P0 is an exposed system, not an ordinary parked item.
 
 Composes `risk-review` (security lens), `remediate-finding`, `acceptance-review`, `runtime-prove`;
 rides `sandbox-policy`, `merge-serialization`, `reviewed-sha-freshness`, `dispatch-lifecycle`,
-`liveness-resume`, `evidence-manifest`. Worker TASK pack: one of addy | gstack — never co-mount.
+`liveness-resume`, `evidence-manifest`, `ledger-contract`. Worker TASK pack: one of addy | gstack —
+never co-mount.
 
 ## Two terminal outcomes (name the one reached)
 
