@@ -65,12 +65,18 @@ RUNTIME_MAX_LINES = 160
 # each such clause through the END of its paragraph — terminating at the first
 # sentence break lets an abbreviation ("e.g. ") truncate the clause and smuggle
 # dangling names past the check — and verify every backtick name in it resolves.
+# RIDES (all-caps) is accepted alongside Rides/rides, matching COMPOSES handling.
 COMPOSE_CLAUSE_RE = re.compile(
-    r"\b(?:Composes|COMPOSES|[Rr]ides)\b\s+(.+?)(?:\n\n|\Z)", re.DOTALL
+    r"\b(?:Composes|COMPOSES|Rides|RIDES|rides)\b\s+(.+?)(?:\n\n|\Z)", re.DOTALL
 )
-# Mutator evidence-manifest must appear in a rides clause, not merely be mentioned
-# inside a Composes paragraph (e.g. "does not ride `evidence-manifest`").
-RIDES_CLAUSE_RE = re.compile(r"\b[Rr]ides\b\s+(.+?)(?:\n\n|\Z)", re.DOTALL)
+# Mutator evidence-manifest must appear in a composition rides clause, not mid-prose
+# ("the worker rides `evidence-manifest` out of turn") and not a mere Composes mention
+# ("does not ride `evidence-manifest`"). Accept only rides after `;`, after a newline,
+# or at the start of the document — the forms missions actually write.
+RIDES_CLAUSE_RE = re.compile(
+    r"(?:(?<=;)|(?<=\n)|(?<=\A))\s*(?:Rides|RIDES|rides)\b\s+(.+?)(?:\n\n|\Z)",
+    re.DOTALL,
+)
 BACKTICK_RE = re.compile(r"`([a-z0-9][a-z0-9-]*)`")
 # Any lowercase `<name>.md` mention (pipeline text, parentheticals) must also resolve;
 # basenames that fail NAME_RE (ARCHITECTURE.md, SKILL.md) are exempt.

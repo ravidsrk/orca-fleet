@@ -184,6 +184,44 @@ class TestProofStatus(unittest.TestCase):
                 any("must ride `evidence-manifest`" in e for e in errs), errs
             )
 
+    def test_mutating_mission_prose_rides_does_not_count(self):
+        # Greptile P2: mid-sentence "rides `…`" in anti-patterns must not satisfy.
+        with tempfile.TemporaryDirectory() as tmp:
+            d = Path(tmp) / "ship-it"
+            d.mkdir()
+            (d / "SKILL.md").write_text(
+                "---\nname: ship-it\ndescription: Use when shipping.\n"
+                "proof: doctrine-only\n---\n\n"
+                "Composes `diagnose`.\n\n"
+                "## Anti-patterns\n\n"
+                "If the worker rides `evidence-manifest` out of turn, ignore it.\n",
+                encoding="utf-8",
+            )
+            errs = validate.validate_skill(
+                d, PROTOCOLS | {"diagnose", "evidence-manifest"}
+            )
+            self.assertTrue(
+                any("must ride `evidence-manifest`" in e for e in errs), errs
+            )
+
+    def test_mutating_mission_all_caps_rides_counts(self):
+        # Greptile P2: RIDES must match like COMPOSES.
+        with tempfile.TemporaryDirectory() as tmp:
+            d = Path(tmp) / "ship-it"
+            d.mkdir()
+            (d / "SKILL.md").write_text(
+                "---\nname: ship-it\ndescription: Use when shipping.\n"
+                "proof: doctrine-only\n---\n\n"
+                "Composes `diagnose`.\n\nRIDES `evidence-manifest`.\n",
+                encoding="utf-8",
+            )
+            errs = validate.validate_skill(
+                d, PROTOCOLS | {"diagnose", "evidence-manifest"}
+            )
+            self.assertFalse(
+                any("must ride `evidence-manifest`" in e for e in errs), errs
+            )
+
     def test_mutating_mission_with_evidence_manifest_passes_that_check(self):
         with tempfile.TemporaryDirectory() as tmp:
             d = Path(tmp) / "ship-it"
