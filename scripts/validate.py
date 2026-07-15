@@ -41,6 +41,7 @@ Exit code: 0 if all valid, 1 if any failure.
 Spec: https://agentskills.io/specification
 """
 import importlib.util
+import json
 import re
 import sys
 from pathlib import Path
@@ -308,6 +309,71 @@ def check_evals():
     return _eval_validator.validate_all()
 
 
+# Human-facing doc surfaces where a hardcoded catalog count would rot on every new
+# mission. The count must never be spelled out here — the README badges read it
+# dynamically (assets/badges/, plugin.json version), and this lint fails the build
+# if a number creeps back. Adding a mission must not mean rewriting counts everywhere.
+COUNT_LINT_FILES = (
+    "README.md", "ARCHITECTURE.md", "AGENTS.md", "docs/concepts.md",
+    "CONTRIBUTING.md", ".claude-plugin/plugin.json", ".claude-plugin/marketplace.json",
+)
+# Catalog-SIZE phrasings only: a digit before "missions" ("11 missions"), a spelled
+# number in the catalog range before "missions" ("eleven missions"), or a digit before
+# "outcome-named"/"callable". A bare "one mission" / "two missions" in the mission-identity
+# prose is NOT a catalog count and must not trip — so small spelled numbers are excluded.
+_SPELLED = ("ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|"
+            "nineteen|twenty")
+COUNT_LINT_RE = re.compile(
+    rf"\b(?:\d+\s+missions|(?:{_SPELLED})\s+missions|\d+\s+(?:outcome-named|callable))\b",
+    re.IGNORECASE,
+)
+
+
+def check_doc_counts():
+    """Fail on a hardcoded catalog count in a human doc surface. The predecessor's own
+    mission count (a historical fact about a different repo) is the one allowed exception."""
+    failures = []
+    for rel in COUNT_LINT_FILES:
+        p = ROOT / rel
+        if not p.exists():
+            continue
+        for i, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1):
+            if "predecessor" in line.lower():
+                continue  # historical count about the prior repo, not this catalog
+            m = COUNT_LINT_RE.search(line)
+            if m:
+                failures.append(
+                    f"{rel}:{i}: hardcoded catalog count '{m.group(0).strip()}' — phrase it "
+                    f"count-agnostically (the badges read the count dynamically)"
+                )
+    return failures
+
+
+def check_manifest_keywords():
+    """Every mission dir must be a plugin.json keyword — discovery, and a guard that a new
+    mission is not silently dropped from the manifest now that the description no longer lists them."""
+    pj = ROOT / ".claude-plugin" / "plugin.json"
+    try:
+        keywords = set(json.loads(pj.read_text(encoding="utf-8")).get("keywords", []))
+    except (OSError, ValueError) as err:
+        return [f".claude-plugin/plugin.json: unreadable ({err})"]
+    return [
+        f".claude-plugin/plugin.json: mission '{d.name}' is not in keywords"
+        for d in sorted(SKILLS_DIR.iterdir())
+        if d.is_dir() and not d.name.startswith((".", "_")) and (d / "SKILL.md").exists()
+        and d.name not in keywords
+    ]
+
+
+def check_badge_freshness():
+    """The generated badge JSON (assets/badges/) must match current repo state, so the
+    dynamically-read README badges never go stale. Regenerate with scripts/gen-badges.py."""
+    spec = importlib.util.spec_from_file_location("_gen_badges", ROOT / "scripts" / "gen-badges.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod.check()
+
+
 def main():
     if not SKILLS_DIR.exists():
         print(f"skills/ not found at {SKILLS_DIR}", file=sys.stderr)
@@ -349,6 +415,27 @@ def main():
         print("\nFAIL eval schema — invalid eval JSON or routing coverage:")
         for error in eval_errors:
             print(f"   - {error}")
+
+    count_failures = check_doc_counts()
+    if count_failures:
+        all_passed = False
+        print("\nFAIL count-agnostic docs — a hardcoded catalog count would rot on every new mission:")
+        for failure in count_failures:
+            print(f"   - {failure}")
+
+    keyword_failures = check_manifest_keywords()
+    if keyword_failures:
+        all_passed = False
+        print("\nFAIL manifest keywords — a mission is missing from plugin.json keywords:")
+        for failure in keyword_failures:
+            print(f"   - {failure}")
+
+    badge_failures = check_badge_freshness()
+    if badge_failures:
+        all_passed = False
+        print("\nFAIL badge freshness — run scripts/gen-badges.py and commit:")
+        for failure in badge_failures:
+            print(f"   - {failure}")
 
     print()
     if all_passed:
