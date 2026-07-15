@@ -25,8 +25,8 @@ RUNTIME = ROOT / "runtime"
 VENDOR_TOKENS = ("matt", "gstack", "addy", "osmani", "garry", "orca", "fleet", "swarm")
 
 EXPECTED_MISSIONS = {
-    "ship-it", "clean-sweep", "harden-it", "speed-it", "modernize-it",
-    "prove-it", "deflake-it", "review-it", "map-it", "root-cause",
+    "ship-it", "clean-sweep", "oss-contribute", "harden-it", "speed-it",
+    "modernize-it", "prove-it", "deflake-it", "review-it", "map-it", "root-cause",
 }
 
 
@@ -53,7 +53,7 @@ class TestArchitecture(unittest.TestCase):
         )
         self.assertEqual(r.returncode, 0, f"validate.py failed:\n{r.stdout}\n{r.stderr}")
 
-    def test_exactly_the_ten_missions(self):
+    def test_exactly_the_eleven_missions(self):
         found = {d.name for d in mission_dirs()}
         self.assertEqual(found, EXPECTED_MISSIONS)
 

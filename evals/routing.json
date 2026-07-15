@@ -141,6 +141,27 @@
       "expected_mission": "prove-it",
       "type": "negative",
       "reason": "Test-debt coverage is prove-it, not ship-it's build-time testing."
+    },
+    {
+      "id": 21,
+      "prompt": "Contribute fixes for these open issues on an upstream repo we only have a fork of.",
+      "expected_mission": "oss-contribute",
+      "type": "positive",
+      "reason": "Landing PRs on a repo you do not control (READ only, merge is the maintainer's) is oss-contribute."
+    },
+    {
+      "id": 22,
+      "prompt": "Open pull requests upstream for these issues and help out the project.",
+      "expected_mission": "oss-contribute",
+      "type": "positive",
+      "reason": "Sending fixes upstream as PRs maps to oss-contribute."
+    },
+    {
+      "id": 23,
+      "prompt": "Close every open issue in our own backlog and merge the fixes.",
+      "expected_mission": "clean-sweep",
+      "type": "negative",
+      "reason": "A backlog you own and can merge is clean-sweep (merged-SHA closure), not oss-contribute's PR-open-upstream terminal."
     }
   ]
 }

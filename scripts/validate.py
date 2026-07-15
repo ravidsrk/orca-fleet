@@ -62,6 +62,7 @@ PROOF_VALUES = {"doctrine-only", "self-run", "external-run"}
 MUTATING_MISSIONS = {
     "ship-it",
     "clean-sweep",
+    "oss-contribute",
     "harden-it",
     "speed-it",
     "modernize-it",

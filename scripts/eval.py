@@ -33,6 +33,13 @@ MISSION_TRIGGERS = {
         "close every issue", "drain the backlog", "fix everything", "clean sweep",
         "readme lies", "false doc", "audit findings", "backlog", "finite backlog",
     ],
+    "oss-contribute": [
+        "contribute to this project", "open prs for these upstream issues",
+        "help out this oss repo", "send fixes upstream", "we only have a fork",
+        "contribute upstream", "upstream issues", "open source contribution",
+        "upstream repo", "upstream project", "pull requests upstream",
+        "help out the project", "contribute fixes",
+    ],
     "harden-it": [
         "harden", "security sweep", "red team", "red-team", "security loop",
         "security audit", "exploit", "threat model", "stride",

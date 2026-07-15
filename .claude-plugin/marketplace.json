@@ -6,14 +6,14 @@
     "url": "https://github.com/ravidsrk"
   },
   "metadata": {
-    "description": "10 outcome-named autonomous fleets for the Orca runtime",
-    "version": "0.3.0"
+    "description": "11 outcome-named autonomous fleets for the Orca runtime",
+    "version": "0.4.0"
   },
   "plugins": [
     {
       "name": "orca-fleet",
-      "description": "10 outcome-named autonomous fleets for the Orca runtime. Each mission is one outcome with its own state machine and a SHA-bound evidence definition of done: ship-it, clean-sweep, harden-it, speed-it, modernize-it, prove-it, deflake-it, review-it, map-it, root-cause.",
-      "version": "0.3.0",
+      "description": "11 outcome-named autonomous fleets for the Orca runtime. Each mission is one outcome with its own state machine and an evidence-backed definition of done: ship-it, clean-sweep, oss-contribute, harden-it, speed-it, modernize-it, prove-it, deflake-it, review-it, map-it, root-cause.",
+      "version": "0.4.0",
       "source": "./"
     }
   ]
