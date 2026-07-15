@@ -1,9 +1,9 @@
 # Addy Osmani orchestration articles × orca-fleet — gap analysis & adoption map
 
-**Status:** MAPPED (research complete; adoption decisions awaiting human freeze)  
+**Status:** MAPPED — D1–D4 implemented on `cursor/addy-orchestration-gap-analysis-62a1` (D5–D6 parked; D7–D8 rejected / deferred)  
 **Date:** 2026-07-15  
-**Mission shape:** map-it (decisions, not deliverables)  
-**Destination:** Decide which Addy orchestration concepts to adopt into orca-fleet, which we already embody, and which we deliberately reject — then hand a frozen adoption DAG to ship-it if any changes are authorized.
+**Mission shape:** map-it → ship-it (adoption slices F1–S3)  
+**Destination:** Adopt Addy orchestration concepts that fit orca-fleet; reject peer-messaging and LLM outer orchestrators.
 
 ## Sources researched
 
@@ -203,7 +203,7 @@ PARKED (explicit)
 | Frozen plan path | `docs/research/2026-07-15-addy-orchestration-gap-analysis.md` (this file) |
 | Prepared DAG | Logical slices F1–F2, S1–S3, V1–V2 above — **not** materialized in Orca until human freeze of D1–D4 |
 | Blocked tickets | D1, D2, D3, D4 (need human answers) |
-| Terminal | **MAPPED-WITH-BLOCKED** until D1–D4 resolve; then **MAPPED** and ship-it may dispatch |
+| Terminal | **MAPPED** — D1–D4 shipped in the same PR as this research; D5/D6 parked; D7 rejected; D8 deferred |
 
 ---
 

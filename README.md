@@ -195,9 +195,12 @@ policies preserved exactly because each one paid for itself the hard way:
   autofix, or a late push voids it — [`runtime/reviewed-sha-freshness.md`](runtime/reviewed-sha-freshness.md).
 - **One merge train.** A single conductor drains `merge_ready` signals in arrival order; hot
   files form chains, never fan-outs — [`runtime/merge-serialization.md`](runtime/merge-serialization.md).
+- **Attention budget.** Scale concurrent builders to verification capacity (default ≤3), not the
+  spawn UI — [`runtime/attention-budget.md`](runtime/attention-budget.md).
 - **Liveness and resume.** Stalled workers are respawned in fresh terminals with bounded
-  attempts; a dead coordinator resumes from the ledger and re-verifies every "completed" unit
-  against git before trusting it — [`runtime/liveness-resume.md`](runtime/liveness-resume.md).
+  attempts and reflection-before-retry; a dead coordinator resumes from the ledger and
+  re-verifies every "completed" unit against git before trusting it —
+  [`runtime/liveness-resume.md`](runtime/liveness-resume.md).
 - **Gates below the model.** Every decision is classified mechanical / taste / one-way; one-way
   doors are always human, never defaulted on timeout — [`runtime/gate-classification.md`](runtime/gate-classification.md).
 - **Least-privilege workers.** `ro` for report-only, `rw` for fix work, `danger` only inside a

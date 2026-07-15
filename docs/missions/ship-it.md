@@ -153,14 +153,16 @@ Playbooks: [`decide-and-freeze`](../../playbooks/decide-and-freeze.md) ·
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
 [`risk-review`](../../playbooks/risk-review.md) ·
 [`runtime-prove`](../../playbooks/runtime-prove.md) ·
-[`release`](../../playbooks/release.md) · [`observe`](../../playbooks/observe.md)
+[`release`](../../playbooks/release.md) · [`observe`](../../playbooks/observe.md) ·
+[`compound-learn`](../../playbooks/compound-learn.md)
 
 Runtime policies: [`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) ·
 [`merge-serialization`](../../runtime/merge-serialization.md) ·
 [`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md) ·
 [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`gate-classification`](../../runtime/gate-classification.md) ·
-[`liveness-resume`](../../runtime/liveness-resume.md)
+[`liveness-resume`](../../runtime/liveness-resume.md) ·
+[`attention-budget`](../../runtime/attention-budget.md)
 
 ## Related missions
 

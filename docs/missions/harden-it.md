@@ -139,10 +139,12 @@ exists to prevent.
 
 Playbooks: [`risk-review`](../../playbooks/risk-review.md) ·
 [`remediate-finding`](../../playbooks/remediate-finding.md) ·
-[`runtime-prove`](../../playbooks/runtime-prove.md)
+[`runtime-prove`](../../playbooks/runtime-prove.md) ·
+[`compound-learn`](../../playbooks/compound-learn.md)
 
 Runtime policies: [`sandbox-policy`](../../runtime/sandbox-policy.md) ·
-[`merge-serialization`](../../runtime/merge-serialization.md)
+[`merge-serialization`](../../runtime/merge-serialization.md) ·
+[`attention-budget`](../../runtime/attention-budget.md)
 
 ## Related missions
 

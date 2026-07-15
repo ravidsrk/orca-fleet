@@ -78,6 +78,8 @@ them. These are preserved as runtime policies, not abstracted away:
 - ledger recovery / crash-resume from provenance, cross-run anti-inflation — `runtime/liveness-resume.md`
 - bot-autofix non-convergence (Cursor BugBot Autofix loops) — `runtime/dispatch-lifecycle.md`
 - bounded review loops, hot-file ownership, merge serialization — `runtime/merge-serialization.md`
+- attention budget / orchestration tax (scale to review rate, not spawn UI) —
+  `runtime/attention-budget.md`
 - promotion semantics (human gate; merge ≠ deploy) — `runtime/gate-classification.md`
 - gated sequential chains (an audit gates, it never always-flows) — `runtime/mission-chaining.md`
 

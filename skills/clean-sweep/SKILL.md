@@ -26,11 +26,11 @@ against authoritative state, and keep the ledger FILE (your memory is compacted;
 You never review, code, open PRs, or merge — every one is a dispatched worker.
 
 Read [ARCHITECTURE.md](../../ARCHITECTURE.md) once. Composes `remediate-finding`, `acceptance-review`,
-`build-change` playbooks; rides `merge-serialization`, `reviewed-sha-freshness`, `dispatch-lifecycle`,
-`liveness-resume`, `evidence-manifest`, `orca-dag-semantics`, `ledger-contract` runtime policies.
-Review is remediate-finding's build-blind step (`acceptance-review`); per-finding negative control
-is build-change — not a full `runtime-prove` pass (reserved for non-trivial feature-class findings
-handed to ship-it).
+`build-change`, `compound-learn`; rides `merge-serialization`, `reviewed-sha-freshness`,
+`dispatch-lifecycle`, `liveness-resume`, `evidence-manifest`, `orca-dag-semantics`,
+`ledger-contract`, `attention-budget`. Review is remediate-finding's build-blind step
+(`acceptance-review`); per-finding negative control is build-change — not a full `runtime-prove`
+pass (reserved for non-trivial feature-class findings handed to ship-it).
 
 ## Two terminal outcomes
 
@@ -60,11 +60,12 @@ SELF-ORIENT → ENUMERATE (per source) → SKEPTIC-TRIAGE (reproduce-or-refute) 
   → BOOTSTRAP integration BASE (preflight --base <BASE> --fork-point <header sha>; BASE ≠ default)
   → PER-FINDING (remediate-finding: verify-real → build-change → PR → build-blind review → merge_ready)
   → conductor LAND (merge-serialization) → CLOSE with evidence
-  → re-ENUMERATE (loop until dry) → FINAL REPORT + human gates
+  → re-ENUMERATE (loop until dry) → FINAL REPORT + `compound-learn` + human gates
 ```
 
 Run the coordinator as a MANUAL loop (`task-create → spawn → dispatch --inject → check --wait`), not
-`orchestration run` — you want the file-ledger boolean gate under your control.
+`orchestration run` — you want the file-ledger boolean gate under your control. Dispatch waves
+respect `attention-budget` WIP.
 
 ## Convergence proof (definition of done)
 
