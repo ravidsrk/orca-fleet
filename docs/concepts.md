@@ -247,7 +247,7 @@ as evidence.
 
 ## The mission-identity test
 
-The catalog stays at ten missions because of a bright-line test. Two workflows are the **same
+The catalog stays deliberately small because of a bright-line test. Two workflows are the **same
 mission** only if they share *all five*:
 
 1. the same unit of work,
@@ -260,8 +260,12 @@ mission** only if they share *all five*:
 way. Audit findings, tracker issues, and false doc-claims all close through the same
 per-finding pipeline with the same proof, so they are one mission (`clean-sweep`). A perf breach
 is *not* a finding: done is a statistical budget over journeys, measurements are noisy, and fixes
-interact — different proof, different mission (`speed-it`). When you are tempted to add a
-mission, run this test first; when you are tempted to add a *mode* to a mission, run it twice.
+interact — different proof, different mission (`speed-it`). Contributing those same fixes to a repo
+you do *not* control is also its own mission (`oss-contribute`): the convergence proof is a PR open
+and reviewed rather than a merged SHA, the state machine adds upstream-PR overlap discovery and drops
+the merge step, and `awaiting-maintainer-merge` is a normal terminal — three of the five differ from
+`clean-sweep`. When you are tempted to add a mission, run this test first; when you are tempted to add
+a *mode* to a mission, run it twice.
 
 ---
 

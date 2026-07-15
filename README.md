@@ -9,7 +9,7 @@
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
   <a href="https://agentskills.io/specification"><img src="https://img.shields.io/badge/spec-agentskills.io-orange.svg" alt="agentskills.io spec"></a>
-  <a href="skills/"><img src="https://img.shields.io/badge/missions-10-1f6feb.svg" alt="10 missions"></a>
+  <a href="skills/"><img src="https://img.shields.io/badge/missions-11-1f6feb.svg" alt="11 missions"></a>
   <a href="tests/"><img src="https://img.shields.io/badge/contract%20tests-25%20passing-2ea043.svg" alt="25 contract tests"></a>
   <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-0.2.0-8957e5.svg" alt="version 0.2.0"></a>
 </p>
@@ -25,7 +25,7 @@
 ---
 
 Most agent-skill packs give you better *ingredients*: a sharper TDD loop, a stricter review, a
-smarter debugger. orca-fleet gives you **outcomes**. Each of its ten missions is a complete
+smarter debugger. orca-fleet gives you **outcomes**. Each of its eleven missions is a complete
 autonomous fleet for the [Orca](https://github.com/stablyai/orca) runtime — a coordinator that
 decomposes a goal, dispatches isolated workers, verifies every claim against git and a clean test
 run, and stops at a named, evidence-backed terminal state.
@@ -49,7 +49,7 @@ that missions compose, one pack per worker, never two in the same context.
 ## Contents
 
 - [Quick start](#quick-start)
-- [The ten missions](#the-ten-missions)
+- [The eleven missions](#the-eleven-missions)
 - [Which mission do I want?](#which-mission-do-i-want)
 - [How a fleet works](#how-a-fleet-works)
 - [The evidence protocol](#the-evidence-protocol)
@@ -79,7 +79,7 @@ Then read [Getting started](docs/getting-started.md) for the full walkthrough: w
 coordinator does, what the workers do, where the evidence lands, and what the two human gates
 look like from your side of the terminal.
 
-## The ten missions
+## The eleven missions
 
 Every mission is one outcome with its own state machine, its own convergence proof, and an
 evidence-based definition of done. Click through for the full guide to each.
@@ -96,15 +96,18 @@ evidence-based definition of done. Click through for the full guide to each.
 | 🔍 **[review-it](docs/missions/review-it.md)** | A trusted, read-only, SHA-bound GO/NO-GO verdict — acceptance always, risk lenses when the diff triggers them. **No fix authority.** | "review this PR", "is this ready to merge" |
 | 🗺️ **[map-it](docs/missions/map-it.md)** | A foggy multi-session goal resolved into a frozen execution map `ship-it` can consume — decisions, not deliverables | "chart this", "plan this epic", "I don't know the shape yet" |
 | 🔬 **[root-cause](docs/missions/root-cause.md)** | A reproduced symptom and a demonstrated cause: repro-first → falsify rival hypotheses → one survivor, with evidence; optional fix handoff | "diagnose this", "why is this happening" |
+| 🤝 **[oss-contribute](docs/missions/oss-contribute.md)** | Upstream issues on a repo you do NOT control, each landed as an open, reviewed, etiquette-correct PR (or a quoted review-assist on an existing PR): `CONTRIBUTED` or `CONTRIBUTED-WITH-PARKED`, merge left to maintainers | "contribute to this project", "open PRs upstream", "we only have a fork" |
 
 ## Proof status — honesty first
 
 Every mission's frontmatter carries a validator-enforced `proof:` field: `doctrine-only`,
 `self-run`, or `external-run`. A mission cannot claim a higher tier without `proof_evidence:`
-linking a run report that exists in the repo. Two missions have advanced:
+linking a run report that exists in the repo. Three missions have advanced:
 [`clean-sweep`](docs/runs/2026-07-13-clean-sweep-self-run.md) → **self-run** (drained six false
-doc-claims in this repo to DRY) and [`review-it`](docs/runs/2026-07-13-review-it-external-run.md)
-→ **external-run** (a NO-GO verdict on a real gstack PR). The other eight remain honestly
+doc-claims in this repo to DRY), [`review-it`](docs/runs/2026-07-13-review-it-external-run.md)
+→ **external-run** (a NO-GO verdict on a real gstack PR), and
+[`oss-contribute`](docs/runs/2026-07-16-oss-contribute-external-run.md) → **external-run** (5 PRs
+and 4 review-assist comments on a real upstream repo). The other eight remain honestly
 `doctrine-only` — field-tested protocols with no recorded run yet, and this repo will not pretend
 otherwise. (Its predecessor shipped twelve missions with two proven and paid for it; the honesty
 is machine-checked here so that cannot recur.) The [run archive](docs/runs/) holds the evidence.
@@ -300,7 +303,7 @@ The open [skills CLI](https://github.com/vercel-labs/skills) installs into Claud
 Codex, and 70+ other agents:
 
 ```bash
-npx skills add ravidsrk/orca-fleet --list    # browse the ten missions
+npx skills add ravidsrk/orca-fleet --list    # browse the eleven missions
 npx skills add ravidsrk/orca-fleet           # install
 ```
 
@@ -344,8 +347,8 @@ Beyond that, each mission declares its own tooling in its `SKILL.md` frontmatter
 ## Repository layout
 
 ```
-skills/       10 missions — the discoverable catalog (SKILL.md each)
-playbooks/    10 callable phase protocols missions compose by name
+skills/       11 missions — the discoverable catalog (SKILL.md each)
+playbooks/    11 callable phase protocols missions compose by name
 runtime/      policies + runtime/scripts/ (spawn_worker, preflight, pm)
 docs/         human documentation: getting started, concepts, mission guides
 assets/       banners and images
@@ -386,7 +389,7 @@ packs *underneath* (one pack per worker) and keep the user-facing namespace abou
 <details>
 <summary><b>Why not one mega-skill with modes?</b></summary>
 
-Because the ten missions genuinely differ in unit of work, state machine, convergence proof,
+Because the eleven missions genuinely differ in unit of work, state machine, convergence proof,
 ordering, and failure semantics — the five-point mission-identity test in
 [ARCHITECTURE.md](ARCHITECTURE.md). A mode flag can't change a convergence proof. When two
 workflows *do* share all five, they are one mission: that is why audit findings, tracker issues,
