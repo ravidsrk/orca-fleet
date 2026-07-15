@@ -48,8 +48,8 @@ A mission PR must include:
 2. An entry in the README mission table and in AGENTS.md's intent → mission mapping.
 3. A guide at `docs/missions/<name>.md` following the structure of
    [docs/missions/ship-it.md](docs/missions/ship-it.md).
-4. An updated `EXPECTED_MISSIONS` set in `tests/test_architecture.py` — the ten-mission set is
-   locked on purpose; changing it is a deliberate act.
+4. An updated `EXPECTED_MISSIONS` set in `tests/test_architecture.py` AND `tests/test_evals.py` —
+   the mission set is locked on purpose; changing it is a deliberate act.
 
 Naming: outcome verbs (`ship-it`, `clean-sweep`), never vendors or techniques. The contract
 tests reject mission names containing vendor tokens.
