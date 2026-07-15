@@ -35,7 +35,7 @@ MISSION_TRIGGERS = {
     ],
     "harden-it": [
         "harden", "security sweep", "red team", "red-team", "security loop",
-        "security audit", "exploit", "threat model", "stride", "p0", "p1",
+        "security audit", "exploit", "threat model", "stride",
         "secret", "cve",
     ],
     "speed-it": [
@@ -143,7 +143,7 @@ def validate_routing_eval() -> list[str]:
         missing = required - set(ev.keys())
         if missing:
             errors.append(f"{ROUTING_EVAL.relative_to(ROOT)}: eval[{idx}] missing {sorted(missing)}")
-        if ev.get("expected_mission") in EXPECTED_MISSIONS:
+        if ev.get("type") == "positive" and ev.get("expected_mission") in EXPECTED_MISSIONS:
             seen_missions.add(ev["expected_mission"])
         if ev.get("type") not in {"positive", "negative"}:
             errors.append(f"{ROUTING_EVAL.relative_to(ROOT)}: eval[{idx}].type must be 'positive' or 'negative'")
@@ -246,8 +246,11 @@ def run_skills_eval() -> dict:
             continue
         eval_file = skill_dir / "evals" / "evals.json"
         if eval_file.exists():
-            data = load_json(eval_file)
-            skill_evals[skill_dir.name] = len(data.get("evals", []))
+            try:
+                data = load_json(eval_file)
+                skill_evals[skill_dir.name] = len(data.get("evals", []))
+            except ValueError as err:
+                errors.append(str(err))
         skill_errors = validate_skill_eval(skill_dir)
         errors.extend(skill_errors)
 
