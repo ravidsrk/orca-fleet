@@ -222,8 +222,20 @@ def run_routing_eval() -> dict:
     total = len(evals)
     correct = 0
     failures = []
+    required_keys = {"id", "prompt", "expected_mission", "type", "reason"}
 
-    for ev in evals:
+    for idx, ev in enumerate(evals):
+        if not isinstance(ev, dict):
+            return {
+                "total": 0, "correct": 0, "score": 0.0, "failures": [],
+                "error": f"{ROUTING_EVAL.relative_to(ROOT)}: eval[{idx}] is not an object",
+            }
+        missing = required_keys - set(ev.keys())
+        if missing:
+            return {
+                "total": 0, "correct": 0, "score": 0.0, "failures": [],
+                "error": f"{ROUTING_EVAL.relative_to(ROOT)}: eval[{idx}] missing {sorted(missing)}",
+            }
         predicted = classify_prompt(ev["prompt"])
         expected = ev["expected_mission"]
         if predicted == expected:

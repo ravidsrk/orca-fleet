@@ -104,6 +104,13 @@ class TestEvalInfrastructure(unittest.TestCase):
         self.assertIn("missing or non-list 'evals'", result["error"])
         self.assertEqual(result["total"], 0)
 
+    def test_run_routing_eval_returns_error_on_missing_entry_keys(self):
+        with patch.object(eval_mod, "load_json", return_value={"evals": [{"id": 1}]}):
+            result = eval_mod.run_routing_eval()
+        self.assertIn("error", result)
+        self.assertIn("missing", result["error"])
+        self.assertEqual(result["total"], 0)
+
     def test_cmd_run_reports_routing_json_error(self):
         bad_result = {
             "total": 0, "correct": 0, "score": 0.0,
