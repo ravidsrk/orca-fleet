@@ -12,7 +12,7 @@
   "plugins": [
     {
       "name": "orca-fleet",
-      "description": "11 outcome-named autonomous fleets for the Orca runtime. Each mission is one outcome with its own state machine and a SHA-bound evidence definition of done: ship-it, clean-sweep, oss-contribute, harden-it, speed-it, modernize-it, prove-it, deflake-it, review-it, map-it, root-cause.",
+      "description": "11 outcome-named autonomous fleets for the Orca runtime. Each mission is one outcome with its own state machine and an evidence-backed definition of done: ship-it, clean-sweep, oss-contribute, harden-it, speed-it, modernize-it, prove-it, deflake-it, review-it, map-it, root-cause.",
       "version": "0.4.0",
       "source": "./"
     }

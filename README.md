@@ -11,7 +11,7 @@
   <a href="https://agentskills.io/specification"><img src="https://img.shields.io/badge/spec-agentskills.io-orange.svg" alt="agentskills.io spec"></a>
   <a href="skills/"><img src="https://img.shields.io/badge/missions-11-1f6feb.svg" alt="11 missions"></a>
   <a href="tests/"><img src="https://img.shields.io/badge/contract%20tests-25%20passing-2ea043.svg" alt="25 contract tests"></a>
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-0.2.0-8957e5.svg" alt="version 0.2.0"></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-0.4.0-8957e5.svg" alt="version 0.4.0"></a>
 </p>
 
 <p align="center">

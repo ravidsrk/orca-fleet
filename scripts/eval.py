@@ -37,7 +37,8 @@ MISSION_TRIGGERS = {
         "contribute to this project", "open prs for these upstream issues",
         "help out this oss repo", "send fixes upstream", "we only have a fork",
         "contribute upstream", "upstream issues", "open source contribution",
-        "upstream", "pull requests upstream", "help out the project",
+        "upstream repo", "upstream project", "pull requests upstream",
+        "help out the project", "contribute fixes",
     ],
     "harden-it": [
         "harden", "security sweep", "red team", "red-team", "security loop",
