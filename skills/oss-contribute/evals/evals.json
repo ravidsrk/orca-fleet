@@ -1,0 +1,43 @@
+{
+  "skill_name": "oss-contribute",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Contribute fixes for these open issues on an upstream repo we only have a fork of.",
+      "expected_output": "Should route to oss-contribute. Should fork, enumerate BOTH the open issues AND the upstream open PRs per issue, skeptic-triage, build on the fork with a failing-first test, review build-blind, and open etiquette-correct PRs against the upstream default branch — never merging (READ only). Terminal is CONTRIBUTED / CONTRIBUTED-WITH-PARKED.",
+      "assertions": [
+        "Routes to oss-contribute",
+        "Enumerates upstream OPEN PRs per issue, not just code (two denominators)",
+        "Builds on a fork, PR head is fork:branch and base is upstream default",
+        "Opens PRs; never merges (no merge authority on the target)",
+        "Terminal state is PR-open + reviewed, not merged",
+        "Rides evidence-manifest for SHA-bound completion"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "An upstream issue we want to fix already has an open PR from another contributor.",
+      "expected_output": "Should trigger oss-contribute's contribution decision (a taste gate): assist (quoted comment on their PR), alternative (cross-linked PR plus comment), or stand-down (park externally-covered). Must not open a silent duplicate and must not post a hollow comment.",
+      "assertions": [
+        "Applies the assist / alternative / stand-down decision",
+        "Logs the choice to DECISIONS (never silent)",
+        "An alternative PR cross-links the parallel PR",
+        "Does not open a silent duplicate",
+        "Assist comments quote the target PR's own diff"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Close every open issue in our backlog and merge the fixes.",
+      "expected_output": "Should NOT route to oss-contribute. A backlog you own and can merge to a merged-SHA closure is clean-sweep. oss-contribute is for a repo you do NOT control, where merge is the maintainer's and the terminal is an open PR.",
+      "assertions": [
+        "Does not route to oss-contribute",
+        "Routes to clean-sweep",
+        "Distinguishes merged-SHA closure (own repo) from PR-open contribution (upstream)"
+      ],
+      "files": []
+    }
+  ]
+}
