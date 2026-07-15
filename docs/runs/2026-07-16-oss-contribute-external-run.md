@@ -36,6 +36,14 @@ quoting the target PR's own diff. Merge left to the maintainers (the intended te
    other passed (a focus-trap tabindex escape; a missing log-scrub boundary test). Both the fixed
    alternative PR and the finding on the parallel PR reached the maintainers.
 
+## Post-open follow-up (the loop this run added to the mission)
+
+Every PR drew a Greptile review after it opened. Treating "PR open" as terminal would have left that
+feedback unanswered, so the run added a follow-up loop, now part of `upstream-contribution.md`: watch
+each PR, triage every thread against the current head (one was already resolved by an earlier fix
+round — answered, not re-fixed), fix the valid ones as fix rounds on the same branch, and answer every
+thread. The `FOLLOWED_UP` ledger flag closes a unit only when no thread is left hanging.
+
 ## Honest gaps (fed back into the protocol)
 
 - Codex workers emit no Orca heartbeats; `spawn_worker` exit 3 is a false negative for them — verify

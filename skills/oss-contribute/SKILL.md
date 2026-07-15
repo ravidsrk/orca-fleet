@@ -60,8 +60,9 @@ SELF-ORIENT → FORK + ENUMERATE (open issues AND their open PRs) → SKEPTIC-TR
       externally-resolved}
       · buildable → build-change (failing-first) → build-blind acceptance-review → fix rounds
           → open PR (fork head → upstream base, base asserted, etiquette body) → reconcile bots
+          → FOLLOW UP on post-open review/CI until merged, closed, or feedback is quiet
       · already-has-PR → the contribution decision (assist / alternative / stand-down)
-  → CLOSE the unit with evidence (PR url + reviewed_sha, or assist comment url)
+  → CLOSE the unit with evidence (PR url + reviewed_sha + threads answered, or assist comment url)
   → re-ENUMERATE (loop until dry) → FINAL REPORT + human gates
 ```
 
@@ -73,8 +74,9 @@ is spawned (nothing merges).
 
 A full re-enumeration finds ZERO actionable issues that are not (a) CONTRIBUTED — an OPEN PR against
 the upstream default (`baseRefName==<default>` asserted, `headRefOid==reviewed_sha` fresh, a
-failing-first test with a revert-audited negative control, bots reconciled, etiquette conformant) with
-the PR url in the closing note, ledger flags `BUILT`…`PR_OPEN`…`REVIEWED` all `t`; or (b) a posted
+failing-first test with a revert-audited negative control, bots reconciled, etiquette conformant, AND
+every post-open review thread answered per upstream-contribution.md follow-up) with the PR url in the
+closing note, ledger flags `BUILT`…`PR_OPEN`…`FOLLOWED_UP` all `t`; or (b) a posted
 review-assist whose findings are each quoted from the target PR's diff; or (c) PARKED
 (`externally-covered` with the covering PR ref, `needs-human` naming its gate). The final enumeration
 is pasted in the ledger. Manifest names CONTRIBUTED or CONTRIBUTED-WITH-PARKED.
@@ -92,10 +94,11 @@ Header per liveness-resume.md: `RUN · COORDINATOR · UPSTREAM · FORK · T0 · 
 — there is no integration base). Phase marker + unit flags per ledger-contract.md, with `MERGED`
 replaced by `PR_OPEN` and `WT_CLEAN`:
 
-`| task_id | issue | title | CLASS | BUILT | REVIEWED | PR_OPEN | park | evidence |`
+`| task_id | issue | title | CLASS | BUILT | REVIEWED | PR_OPEN | FOLLOWED_UP | park | evidence |`
 CLASS ∈ buildable · already-has-PR · needs-human · externally-resolved · out-of-scope. `PR_OPEN`
-carries the PR url + reviewed_sha, or the assist comment url. RESUME scopes to header coordinator +
-ledger task ids.
+carries the PR url + reviewed_sha (or the assist comment url); `FOLLOWED_UP` is `t` only when every
+post-open review thread is answered and CI is green-or-explained. RESUME scopes to header coordinator
++ ledger task ids.
 
 ## Gates + supervision
 
@@ -107,9 +110,11 @@ Never self-merge, never `--admin` — the fleet has no merge authority here by c
 ## Anti-patterns
 
 Enumerating issues but not upstream PRs (you rebuild what a maintainer already has in flight — the
-protocol gap this mission exists to close). Opening a silent duplicate of an existing PR. Treating an
-open PR as "done" (merge is the maintainer's; a merged claim you cannot perform is a lie). Ignoring
-`CONTRIBUTING`/DCO. Closing a unit from worker memory instead of a verified open PR. Owning the merge.
+protocol gap this mission exists to close). Opening a silent duplicate of an existing PR. Fire-and-
+forget: opening a PR and abandoning it when maintainer/bot review or CI arrives (a contribution that
+ignores its review threads rots — follow up until merged, closed, or quiet). Treating an open PR as
+"done" before its feedback settles (merge is the maintainer's; a merged claim you cannot perform is a
+lie). Ignoring `CONTRIBUTING`/DCO. Closing from worker memory. Owning the merge.
 
 ## Related
 

@@ -45,6 +45,15 @@ Read `CONTRIBUTING`, the PR template, and the DCO/CLA requirement first, and con
 issue; use a closing keyword only on a concrete issue, never on an RFC or tracking issue. The
 maintainer is the sole merge authority — the fleet never self-merges and never assumes a merge.
 
+## Opening the PR is not the end
+
+A PR is not fire-and-forget. Maintainer reviews, review-bot comments, and CI arrive *after* it opens,
+and a contribution that ignores them rots. Each unit stays live through a follow-up loop: watch the PR,
+triage every new thread against the current head (an earlier fix round may already resolve it), fix the
+valid ones as fix rounds on the same branch, answer every thread, and stop only when the PR is merged,
+closed, or its feedback has gone quiet (`awaiting-maintainer-merge`). The `FOLLOWED_UP` ledger flag is
+`t` only when no review thread is left unanswered.
+
 ## Proof
 
 `external-run` — see [the 2026-07-16 run](../runs/2026-07-16-oss-contribute-external-run.md) against

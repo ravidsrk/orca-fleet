@@ -43,6 +43,25 @@ compete` is the default posture; opening an alternative is a taste gate (log it)
 - The maintainer is the sole merge authority. Never self-merge, never `--admin`, never assume a merge.
   Reconcile review-bot and maintainer feedback as fix rounds on the same branch (dispatch-lifecycle.md).
 
+## Post-open follow-up (a PR is not fire-and-forget)
+
+Opening the PR is not the unit's terminus. Maintainer reviews, review-bot comments (Greptile et al.),
+and CI all arrive AFTER open, and a contribution that ignores them rots. Until the PR is merged,
+closed, or its feedback goes quiet:
+
+- WATCH the PR: new review threads and CI, on a cadence or when notified (`gh pr view <n> --json
+  reviews,comments,statusCheckRollup`, `gh api .../pulls/<n>/comments`). Assist comments on others'
+  PRs draw replies too.
+- TRIAGE each new thread against the CURRENT head, never the commit it was filed on — an earlier fix
+  round may already resolve it: RESOLVED-ALREADY (reply with the fixing sha, never re-fix), VALID
+  (fix), FALSE-POSITIVE / DELIBERATE (reply with the quoted rationale).
+- FIX valid ones as fix rounds on the SAME branch (build-change discipline). A push re-triggers the
+  bots and re-runs CI; reviewed-sha-freshness still applies. ANSWER every thread — silence reads as
+  abandonment.
+- TERMINAL: merged or closed by the maintainer, OR all addressable feedback resolved and quiet →
+  park `awaiting-maintainer-merge`. Bounded: after K follow-up rounds without convergence (a bot that
+  re-flags its own fix, a thread needing a maintainer decision) park `needs-human` naming the thread.
+
 ## Evidence (evidence-manifest.md, PR-open variant)
 
 Same SHA-bound manifest as any mutating unit — base_sha → head_sha, criteria, commands+exit, a real
