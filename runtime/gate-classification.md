@@ -41,6 +41,14 @@ must act now." Full DAG context: orca-dag-semantics.md.
 | **B — draft-and-gate** | Genuine product/brand/policy fork (two defensible directions) | Draft **both** options fully; stop at a one-way human gate; do not pick silently |
 | **0 — refuse-and-surface** | Credential provisioning, live money/prod, engine boundary the fleet must not cross | Do not implement; record OPS/Lane-0 item (`CODE_CLOSED` only if code landed and verify is OPS — ledger-contract.md) |
 
+## Pre-build plan gate (irreversible units)
+
+When `build-change.md`'s irreversibility stop-list applies, classification happens **before**
+code: the PLAN artifact is the decision surface. Approving "proceed as planned" on reversible
+testnet/fixtures → Lane A (mechanical/taste as usual). Approving a hard-to-reverse path →
+one-way human. Rejecting → Lane 0 or rewrite the plan. Coding before the gate resolves is a
+protocol breach — park the unit and re-dispatch.
+
 ## User-challenge (the never-auto class within one-way)
 
 When the fleet's analysis concludes the USER's stated direction should change, that is never

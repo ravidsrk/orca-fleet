@@ -2,6 +2,14 @@
 
 Recipe: Matt `tdd` (seams + tautology guard) + Addy `incremental-implementation` / `/build auto`.
 
+## Entry: plan gate for irreversible slices
+
+Before any code: if the unit touches the irreversibility stop-list (auth/permissions, destructive
+migration, payments, deletions, deploys, secrets, anything not undoable with `git revert`), the
+worker writes a short PLAN artifact (approach · files · rollback · risks) to its report path and
+`ask`s / `gate-create`s for approve. No green tests, no commits, until the gate resolves to Lane A
+(or Lane B draft-both / Lane 0 refuse — gate-classification.md). Reversible units skip this gate.
+
 ## Per-unit contract (the worker's TASK embeds this)
 
 - **Clean baseline:** `git status --porcelain` empty — refuse to absorb unrelated WIP.
@@ -17,9 +25,8 @@ Recipe: Matt `tdd` (seams + tautology guard) + Addy `incremental-implementation`
 - **PR sizing seam** (field-validated: diff size drives merge success): one area or one source
   file per PR, target ≤~400 changed lines; a sub-10-line fix folds into a neighboring unit's PR
   instead of its own; never split one file across two PRs; never combine conflict-prone areas.
-- **Irreversibility stop-list:** auth/permissions, destructive migration, payments, deletions,
-  deploys, secrets, anything not undoable with `git revert` → STOP and escalate (gate-classification.md).
-  Never improvised.
+- **Irreversibility mid-build:** if the stop-list is hit after coding started, STOP — do not
+  finish then escalate. Re-enter the plan gate above. Never improvised.
 
 ## Evidence
 
