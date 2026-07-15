@@ -1,0 +1,42 @@
+{
+  "skill_name": "clean-sweep",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Close every issue in this audit.",
+      "expected_output": "Should route to clean-sweep. Should enumerate the audit findings, skeptic-triage each (reproduce or refute), fix with a failing-first test, build-blind review, merge, and re-enumerate until DRY.",
+      "assertions": [
+        "Routes to clean-sweep",
+        "Mentions source=audit enumeration",
+        "Mentions skeptic-triage reproduce-or-refute",
+        "Requires failing-first test per fix",
+        "Loops until DRY"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "The README lies — verify and fix every false claim.",
+      "expected_output": "Should route to clean-sweep with source=doc-claims. Should extract falsifiable claims from docs/README/code comments, verify each against file:symbol or a run, and correct/remove false claims. Should not generate new docs as the primary work.",
+      "assertions": [
+        "Routes to clean-sweep",
+        "Mentions source=doc-claims",
+        "Discovers claims in docs / README / code comments",
+        "Verifies claims with evidence",
+        "Does not scope-creep into new doc authorship"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Fix the flaky tests in the suite.",
+      "expected_output": "Should NOT route to clean-sweep. Flaky-test eradication with a statistical streak contract is deflake-it. Clean-sweep is for deterministic findings.",
+      "assertions": [
+        "Does not route to clean-sweep",
+        "Routes to deflake-it",
+        "Cites statistical streak / flake-rate contract"
+      ],
+      "files": []
+    }
+  ]
+}

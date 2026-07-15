@@ -1,0 +1,41 @@
+{
+  "skill_name": "speed-it",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Core Web Vitals are failing. Run a perf sweep.",
+      "expected_output": "Should route to speed-it. Should freeze journey list + budgets, baseline to a measurement contract, profile the bottleneck, fix PR-per-hotspot with mandatory before/after, re-benchmark, add CI regression guards, and loop until WITHIN-BUDGET or OPTIMIZED-WITH-PARKED.",
+      "assertions": [
+        "Routes to speed-it",
+        "Mentions measurement contract and baseline",
+        "Mentions profile bottleneck before optimizing",
+        "Requires before/after per fix",
+        "Adds CI regression guards"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "The app is slow on mobile.",
+      "expected_output": "Should route to speed-it. Should treat mobile performance as a journey with a pinned device/throttle measurement contract, not a single spot measurement.",
+      "assertions": [
+        "Routes to speed-it",
+        "Mentions mobile as a declared journey",
+        "Pins device / throttle conditions",
+        "Uses statistical contract, not one run"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Watch production performance after the next deploy.",
+      "expected_output": "Should NOT route to speed-it alone. Post-deploy observation is observe via ship-it; speed-it owns the pre-deploy budget-meet loop.",
+      "assertions": [
+        "Does not route to speed-it as primary mission",
+        "Routes post-deploy watch to ship-it / observe",
+        "Distinguishes budget-meet from post-deploy watch"
+      ],
+      "files": []
+    }
+  ]
+}

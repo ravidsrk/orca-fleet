@@ -1,0 +1,146 @@
+{
+  "name": "orca-fleet-mission-routing",
+  "description": "Intent → mission routing eval. Each prompt should trigger exactly the expected mission based on the frontmatter description and AGENTS.md mapping.",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Build and ship this feature end to end.",
+      "expected_mission": "ship-it",
+      "type": "positive",
+      "reason": "Autonomous build-to-release maps to ship-it."
+    },
+    {
+      "id": 2,
+      "prompt": "Spec to shipped product: turn this PRD into a deployed change.",
+      "expected_mission": "ship-it",
+      "type": "positive",
+      "reason": "Frozen spec through release states is ship-it."
+    },
+    {
+      "id": 3,
+      "prompt": "Close every open issue in the backlog.",
+      "expected_mission": "clean-sweep",
+      "type": "positive",
+      "reason": "Draining a finite backlog maps to clean-sweep."
+    },
+    {
+      "id": 4,
+      "prompt": "The README lies — verify and fix every false doc claim.",
+      "expected_mission": "clean-sweep",
+      "type": "positive",
+      "reason": "Falsifiable documentation claims are a clean-sweep source."
+    },
+    {
+      "id": 5,
+      "prompt": "Harden this service against SQL injection and auth bypass.",
+      "expected_mission": "harden-it",
+      "type": "positive",
+      "reason": "Security sweep with exploit→fix→re-attack loop is harden-it."
+    },
+    {
+      "id": 6,
+      "prompt": "Run a red-team audit on the auth flow.",
+      "expected_mission": "harden-it",
+      "type": "positive",
+      "reason": "Red team / adversarial security audit maps to harden-it."
+    },
+    {
+      "id": 7,
+      "prompt": "The app is slow; get Core Web Vitals under budget.",
+      "expected_mission": "speed-it",
+      "type": "positive",
+      "reason": "Perf budget / CWV sweep is speed-it."
+    },
+    {
+      "id": 8,
+      "prompt": "Update all dependencies and migrate off the old major.",
+      "expected_mission": "modernize-it",
+      "type": "positive",
+      "reason": "Dependency currency / framework migration is modernize-it."
+    },
+    {
+      "id": 9,
+      "prompt": "Close the test gap on the money and auth paths.",
+      "expected_mission": "prove-it",
+      "type": "positive",
+      "reason": "Critical-path mutation-audited coverage is prove-it."
+    },
+    {
+      "id": 10,
+      "prompt": "Kill the flaky tests in the CI suite.",
+      "expected_mission": "deflake-it",
+      "type": "positive",
+      "reason": "Suite-wide flake-rate contract is deflake-it."
+    },
+    {
+      "id": 11,
+      "prompt": "Review this PR and tell me if it's ready to merge.",
+      "expected_mission": "review-it",
+      "type": "positive",
+      "reason": "Read-only SHA-bound verdict is review-it."
+    },
+    {
+      "id": 12,
+      "prompt": "I don't know the shape yet — chart this epic into a plan.",
+      "expected_mission": "map-it",
+      "type": "positive",
+      "reason": "Foggy multi-session goal → frozen execution map is map-it."
+    },
+    {
+      "id": 13,
+      "prompt": "Why is this concurrency bug only happening in production?",
+      "expected_mission": "root-cause",
+      "type": "positive",
+      "reason": "Hard intermittent bug diagnosis is root-cause."
+    },
+    {
+      "id": 14,
+      "prompt": "Fix every issue in this security audit.",
+      "expected_mission": "harden-it",
+      "type": "negative",
+      "reason": "A security audit's adversarial loop is harden-it, not the general backlog mission clean-sweep."
+    },
+    {
+      "id": 15,
+      "prompt": "The test suite has flaky failures.",
+      "expected_mission": "deflake-it",
+      "type": "negative",
+      "reason": "A whole flaky suite is deflake-it, not the single-bug mission root-cause."
+    },
+    {
+      "id": 16,
+      "prompt": "Ship this security fix.",
+      "expected_mission": "ship-it",
+      "type": "negative",
+      "reason": "A single authorized build-to-release task routes to ship-it, even if it is security-related."
+    },
+    {
+      "id": 17,
+      "prompt": "Drain the backlog of dependency upgrades.",
+      "expected_mission": "modernize-it",
+      "type": "negative",
+      "reason": "Dependency upgrades are a specialist mission (modernize-it), not generic clean-sweep."
+    },
+    {
+      "id": 18,
+      "prompt": "Is this diff ready to merge? Also fix the issues you find.",
+      "expected_mission": "review-it",
+      "type": "negative",
+      "reason": "Review-it is report-only; fixes route to ship-it or clean-sweep after the verdict."
+    },
+    {
+      "id": 19,
+      "prompt": "Build me a new onboarding flow.",
+      "expected_mission": "ship-it",
+      "type": "negative",
+      "reason": "New feature implementation routes to ship-it, not map-it, even if requirements are vague."
+    },
+    {
+      "id": 20,
+      "prompt": "Cover the critical paths with tests before we ship.",
+      "expected_mission": "prove-it",
+      "type": "negative",
+      "reason": "Test-debt coverage is prove-it, not ship-it's build-time testing."
+    }
+  ]
+}

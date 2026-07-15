@@ -1,0 +1,41 @@
+{
+  "skill_name": "prove-it",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Close the test gap on the money, auth, and data paths.",
+      "expected_output": "Should route to prove-it. Should map the critical surface (coverage × call-graph), write characterization tests asserting real behavior, prove each with a semantics-preserving mutation that fails the targeted assertion while the harness still runs, and loop until COVERED.",
+      "assertions": [
+        "Routes to prove-it",
+        "Maps critical surface, not all code",
+        "Writes characterization tests for real behavior",
+        "Uses semantics-preserving mutation as proof",
+        "Mutation fails the targeted assertion while harness runs"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Get us to 100% code coverage.",
+      "expected_output": "Should NOT accept coverage percent as the goal. Should state that the mission is mutation-audited coverage of the confirmed critical surface, not a percentage. Chasing 100% with tautological asserts is an anti-pattern.",
+      "assertions": [
+        "Does not accept 100% coverage as the goal",
+        "States pass criterion is mutation-audit set",
+        "Mentions tautological-assert anti-pattern",
+        "Scopes to confirmed critical surface"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "The flaky tests keep failing.",
+      "expected_output": "Should NOT route to prove-it. Flake eradication to a statistical streak contract is deflake-it. prove-it creates tests for existing untested paths, not intermittent failures.",
+      "assertions": [
+        "Does not route to prove-it",
+        "Routes to deflake-it",
+        "Distinguishes test-gap coverage from flake eradication"
+      ],
+      "files": []
+    }
+  ]
+}

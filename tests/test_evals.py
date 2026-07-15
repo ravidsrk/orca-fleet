@@ -1,0 +1,92 @@
+#!/usr/bin/env python3
+"""
+Contract tests for the orca-fleet eval layer.
+
+Locks in:
+- every mission has a valid per-skill evals.json (ported from marketingskills)
+- the central routing eval exists and covers all ten missions
+- the eval runner can validate and score without errors
+- the routing baseline stays above a minimum threshold
+"""
+import importlib.util
+import subprocess
+import sys
+import unittest
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+SKILLS = ROOT / "skills"
+EVALS = ROOT / "evals"
+
+_spec = importlib.util.spec_from_file_location("eval", ROOT / "scripts" / "eval.py")
+eval_mod = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(eval_mod)
+
+EXPECTED_MISSIONS = {
+    "ship-it", "clean-sweep", "harden-it", "speed-it", "modernize-it",
+    "prove-it", "deflake-it", "review-it", "map-it", "root-cause",
+}
+
+ROUTING_MIN_SCORE = 0.60
+
+
+class TestEvalInfrastructure(unittest.TestCase):
+
+    def test_eval_script_is_executable(self):
+        self.assertTrue((ROOT / "scripts" / "eval.py").exists())
+        self.assertGreater((ROOT / "scripts" / "eval.py").stat().st_size, 200)
+
+    def test_routing_eval_exists_and_is_valid_json(self):
+        self.assertTrue((EVALS / "routing.json").exists())
+        data = eval_mod.load_json(EVALS / "routing.json")
+        self.assertIn("evals", data)
+        self.assertIsInstance(data["evals"], list)
+        self.assertGreater(len(data["evals"]), 0)
+
+    def test_routing_eval_covers_all_missions(self):
+        data = eval_mod.load_json(EVALS / "routing.json")
+        covered = {ev["expected_mission"] for ev in data["evals"] if ev.get("type") == "positive"}
+        self.assertEqual(covered, EXPECTED_MISSIONS)
+
+    def test_every_mission_has_per_skill_evals(self):
+        for d in sorted(SKILLS.iterdir()):
+            if not d.is_dir() or d.name.startswith((".", "_")):
+                continue
+            with self.subTest(mission=d.name):
+                self.assertTrue(
+                    (d / "evals" / "evals.json").exists(),
+                    f"{d.name} is missing evals/evals.json",
+                )
+
+    def test_every_skill_eval_has_valid_schema(self):
+        errors = []
+        for d in sorted(SKILLS.iterdir()):
+            if not d.is_dir() or d.name.startswith((".", "_")):
+                continue
+            errors.extend(eval_mod.validate_skill_eval(d))
+        self.assertEqual(errors, [], f"schema errors: {errors}")
+
+    def test_validate_subcommand_passes(self):
+        r = subprocess.run(
+            [sys.executable, str(ROOT / "scripts" / "eval.py"), "validate"],
+            capture_output=True, text=True,
+        )
+        self.assertEqual(r.returncode, 0, f"stderr: {r.stderr}\nstdout: {r.stdout}")
+
+    def test_run_routing_meets_minimum_score(self):
+        result = eval_mod.run_routing_eval()
+        self.assertGreaterEqual(
+            result["score"], ROUTING_MIN_SCORE,
+            f"routing score {result['score']:.0%} below minimum {ROUTING_MIN_SCORE:.0%}; "
+            f"failures: {result['failures']}",
+        )
+
+    def test_run_skills_eval_has_no_errors(self):
+        result = eval_mod.run_skills_eval()
+        self.assertEqual(result["errors"], [])
+        self.assertEqual(len(result["skill_evals"]), len(EXPECTED_MISSIONS))
+        self.assertGreaterEqual(result["total_evals"], len(EXPECTED_MISSIONS) * 2)
+
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)

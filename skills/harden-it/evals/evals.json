@@ -1,0 +1,41 @@
+{
+  "skill_name": "harden-it",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Run a red-team audit on the auth flow.",
+      "expected_output": "Should route to harden-it. Should establish a threat model (STRIDE per trust boundary), audit tree-wide, prove exploits with PoCs, fix, RE-ATTACK the fix, audit the vulnerability class, and re-audit until CLEAN.",
+      "assertions": [
+        "Routes to harden-it",
+        "Mentions STRIDE / threat model",
+        "Mentions exploit PoC → fix → RE-ATTACK loop",
+        "Mentions clean re-audit terminal",
+        "Does not route to review-it or clean-sweep"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "A security scanner found secrets in the repo.",
+      "expected_output": "Should route to harden-it. Secret leaks require verified rotation (one-way human gate) and a clean re-audit, not just line deletion.",
+      "assertions": [
+        "Routes to harden-it",
+        "Mentions secret rotation as one-way gate",
+        "Requires verified rotation, not just deletion",
+        "Mentions re-audit"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Review this PR for security issues.",
+      "expected_output": "Should NOT route to harden-it. A bounded per-diff security lens is review-it's risk-review lens. harden-it is the full adversarial loop.",
+      "assertions": [
+        "Does not route to harden-it",
+        "Routes to review-it",
+        "Cites per-diff / read-only scope"
+      ],
+      "files": []
+    }
+  ]
+}

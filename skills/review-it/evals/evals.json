@@ -1,0 +1,42 @@
+{
+  "skill_name": "review-it",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Review this PR and tell me if it's ready to merge.",
+      "expected_output": "Should route to review-it. Should pin a SHA/PR, run acceptance-review always and scope-gated risk-review lenses, aggregate findings per axis with quoted lines and severity, and emit a GO/NO-GO verdict bound to reviewed_sha. Must not edit code.",
+      "assertions": [
+        "Routes to review-it",
+        "Pins fixed point (SHA / PR)",
+        "Runs acceptance-review always",
+        "Dispatches risk lenses only when diff triggers them",
+        "Verdict is GO / NO-GO bound to reviewed_sha",
+        "Does not edit code"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Review this PR and fix the issues you find.",
+      "expected_output": "Should NOT let review-it fix anything. review-it is report-only; fixes route to ship-it or clean-sweep. The response should produce a verdict, then optionally suggest the fix mission.",
+      "assertions": [
+        "Does not fix code inside review-it",
+        "Maintains report-only permission boundary",
+        "Routes fixes to ship-it or clean-sweep",
+        "Still emits GO/NO-GO verdict"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Do a full security audit of the codebase.",
+      "expected_output": "Should NOT route to review-it. A full adversarial security loop is harden-it. review-it's security lens is a bounded per-diff check.",
+      "assertions": [
+        "Does not route to review-it",
+        "Routes to harden-it",
+        "Distinguishes per-diff lens from full audit loop"
+      ],
+      "files": []
+    }
+  ]
+}
