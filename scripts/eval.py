@@ -291,15 +291,19 @@ def cmd_run(args: argparse.Namespace) -> int:
     exit_code = 0
     if args.suite in ("routing", "all"):
         result = run_routing_eval()
-        print(f"Routing eval: {result['correct']}/{result['total']} correct ({result['score']:.0%})")
-        if result["failures"]:
-            print("Failures:")
-            for f in result["failures"]:
-                print(f"  [{f['type']}] id={f['id']} expected={f['expected']} predicted={f['predicted']}")
-                print(f"    prompt: {f['prompt']}")
-                print(f"    reason: {f['reason']}")
-        if result["score"] < (args.threshold or 0.0):
+        if result.get("error"):
+            print(f"Routing eval error: {result['error']}")
             exit_code = 1
+        else:
+            print(f"Routing eval: {result['correct']}/{result['total']} correct ({result['score']:.0%})")
+            if result["failures"]:
+                print("Failures:")
+                for f in result["failures"]:
+                    print(f"  [{f['type']}] id={f['id']} expected={f['expected']} predicted={f['predicted']}")
+                    print(f"    prompt: {f['prompt']}")
+                    print(f"    reason: {f['reason']}")
+            if result["score"] < (args.threshold or 0.0):
+                exit_code = 1
 
     if args.suite in ("skills", "all"):
         result = run_skills_eval()

@@ -8,11 +8,14 @@ Locks in:
 - the eval runner can validate and score without errors
 - the routing baseline stays above a minimum threshold
 """
+import argparse
 import importlib.util
+import io
 import subprocess
 import sys
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parent.parent
 SKILLS = ROOT / "skills"
@@ -86,6 +89,26 @@ class TestEvalInfrastructure(unittest.TestCase):
         self.assertEqual(result["errors"], [])
         self.assertEqual(len(result["skill_evals"]), len(EXPECTED_MISSIONS))
         self.assertGreaterEqual(result["total_evals"], len(EXPECTED_MISSIONS) * 2)
+
+    def test_run_routing_eval_returns_error_on_bad_json(self):
+        with patch.object(eval_mod, "load_json", side_effect=ValueError("boom")):
+            result = eval_mod.run_routing_eval()
+        self.assertIn("error", result)
+        self.assertEqual(result["total"], 0)
+        self.assertEqual(result["score"], 0.0)
+
+    def test_cmd_run_reports_routing_json_error(self):
+        bad_result = {
+            "total": 0, "correct": 0, "score": 0.0,
+            "failures": [], "error": "malformed routing.json",
+        }
+        captured = io.StringIO()
+        with patch.object(eval_mod, "run_routing_eval", return_value=bad_result):
+            with patch.object(sys, "stdout", captured):
+                args = argparse.Namespace(suite="routing", threshold=0.0)
+                code = eval_mod.cmd_run(args)
+        self.assertEqual(code, 1)
+        self.assertIn("Routing eval error", captured.getvalue())
 
 
 if __name__ == "__main__":
