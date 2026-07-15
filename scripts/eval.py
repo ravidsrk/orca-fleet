@@ -208,7 +208,11 @@ def classify_prompt(prompt: str) -> str | None:
 
 
 def run_routing_eval() -> dict:
-    data = load_json(ROUTING_EVAL)
+    try:
+        data = load_json(ROUTING_EVAL)
+    except ValueError as err:
+        return {"total": 0, "correct": 0, "score": 0.0, "failures": [], "error": str(err)}
+
     evals = data["evals"]
     total = len(evals)
     correct = 0
@@ -245,14 +249,17 @@ def run_skills_eval() -> dict:
         if not skill_dir.is_dir() or skill_dir.name.startswith((".", "_")):
             continue
         eval_file = skill_dir / "evals" / "evals.json"
+        parse_failed = False
         if eval_file.exists():
             try:
                 data = load_json(eval_file)
                 skill_evals[skill_dir.name] = len(data.get("evals", []))
             except ValueError as err:
                 errors.append(str(err))
-        skill_errors = validate_skill_eval(skill_dir)
-        errors.extend(skill_errors)
+                parse_failed = True
+        if not parse_failed:
+            skill_errors = validate_skill_eval(skill_dir)
+            errors.extend(skill_errors)
 
     return {
         "skill_evals": skill_evals,
