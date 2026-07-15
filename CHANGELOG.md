@@ -4,6 +4,20 @@ All notable changes to orca-fleet are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the version source of
 truth is `.claude-plugin/plugin.json`.
 
+## [0.4.0] - 2026-07-16
+
+Adds an eleventh mission, `oss-contribute`: landing contributions on a repo you
+do NOT control. It is `clean-sweep` forked for upstream work, and it is a distinct
+mission by the five-part test — the convergence proof is a PR open and internally
+reviewed (not a merged SHA), the state machine adds upstream-PR overlap discovery
+and an assist/alternative/stand-down decision while dropping the merge step and the
+merge-serialization conductor, and `awaiting-maintainer-merge` / `externally-covered`
+are normal terminals. Ships with the `upstream-contribution` playbook (fork topology,
+overlap check, contribution decision, DCO/CONTRIBUTING etiquette) and enters at
+`external-run` proof — a real run against `dodopayments/chimely` (5 PRs, 4 quoted
+review-assist comments) is in `docs/runs/`. `validate.py` now holds `oss-contribute`
+to the mutating-mission evidence-manifest standard.
+
 ## [0.3.0] - 2026-07-13
 
 Syncs the runtime policies with the current Orca `orchestration` and `orca-cli`

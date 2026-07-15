@@ -4,7 +4,7 @@ Contract tests for the orca-fleet eval layer.
 
 Locks in:
 - every mission has a valid per-skill evals.json (ported from marketingskills)
-- the central routing eval exists and covers all ten missions
+- the central routing eval exists and covers all eleven missions
 - the eval runner can validate and score without errors
 - the routing baseline stays above a minimum threshold
 """
@@ -26,8 +26,8 @@ eval_mod = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(eval_mod)
 
 EXPECTED_MISSIONS = {
-    "ship-it", "clean-sweep", "harden-it", "speed-it", "modernize-it",
-    "prove-it", "deflake-it", "review-it", "map-it", "root-cause",
+    "ship-it", "clean-sweep", "oss-contribute", "harden-it", "speed-it",
+    "modernize-it", "prove-it", "deflake-it", "review-it", "map-it", "root-cause",
 }
 
 ROUTING_MIN_SCORE = 0.60
