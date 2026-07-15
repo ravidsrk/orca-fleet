@@ -90,7 +90,7 @@ fail-closed exits documented in the header comment.
 ## Before you open the PR
 
 ```bash
-python3 scripts/validate.py                # must end: "All 11 missions valid; three-layer separation holds."
+python3 scripts/validate.py                # must end: "three-layer separation holds; evals valid."
 python3 -m unittest discover -s tests -v   # all contract + validator fixture tests green
 ```
 

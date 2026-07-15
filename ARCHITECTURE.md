@@ -106,8 +106,8 @@ instruction surface. Two structural guards inherit that lesson:
 ## Layout
 
 ```
-skills/       11 missions (discoverable)
-playbooks/    11 callable protocols
+skills/       missions (discoverable, one dir each)
+playbooks/    callable protocols
 runtime/      policies + runtime/scripts/ (spawn_worker, preflight, pm) — shared, not vendored
 docs/         human documentation: getting started, concepts, per-mission guides
 assets/       banners and images
