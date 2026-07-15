@@ -5,7 +5,7 @@ description: >-
   review (standards, frozen-spec compliance, test-adequacy) always; scope-triggered risk lenses
   (security, performance, accessibility, data-migration) when the change surface warrants. Findings
   quote their motivating line, carry severity, and are bound to the reviewed SHA. Use when "review this
-  PR", "review matrix", "is this ready to merge", a pre-merge quality/permission gate. Report-only — it
+  PR", "review queue", "is this ready to merge", a pre-merge quality/permission gate. Report-only — it
   never edits code (fixing is ship-it / clean-sweep). Not the full security loop (harden-it).
 license: MIT
 proof: external-run
@@ -48,9 +48,10 @@ PIN the fixed point (a SHA / PR; non-empty `git diff <fp>...HEAD`) → identify 
 ## Convergence proof (definition of done)
 
 A verdict at a named fixed point: every axis reported (acceptance always; risk lenses run or recorded
-gate-off), no cross-axis rerank, every finding quotes its line and names its severity, the whole is
-bound to `reviewed_sha` in an evidence manifest (report-only fields). The verdict is GO / NO-GO with
-the worst issue per axis. No code was modified (permission boundary held).
+gate-off), no cross-axis rerank, every finding quotes its line and names its severity (per the
+`acceptance-review.md` and `risk-review.md` taxonomies), the whole is bound to `reviewed_sha` in an
+evidence manifest (report-only fields). The verdict is GO / NO-GO with the worst issue per axis. No
+code was modified (permission boundary held).
 
 ## Anti-patterns
 

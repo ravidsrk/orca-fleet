@@ -46,8 +46,8 @@ handed to ship-it).
   every issue created/reopened since `T0` any state (class `externally-resolved`). Re-run BOTH each
   loop.
 - `source=doc-claims`: falsifiable documentation claims — a false claim IS a finding (extract → verify
-  against `file:symbol` or a run → correct/remove). Generating NEW docs is not this mission (that's
-  ship-it scoped work).
+  against `file:symbol` or a run → correct/remove). Discover claims in `docs/`, `README`, code comments,
+  or a user-supplied list. Generating NEW docs is not this mission (that's ship-it scoped work).
 
 Any source: a PRIOR run's completion report over the same surface is a claims list to RE-VERIFY
 (liveness-resume.md inflation post-mortem), never a pre-closed set — its green-but-unverified

@@ -39,8 +39,9 @@ NAME the destination first (fixes scope — everything past it is out of scope; 
   → FOG-OF-WAR rule: only ticket what you can phrase SHARPLY now (the test is "can you state the
     question, not answer it"). Not-yet-sharp → "not yet specified".
   → clear the FRONTIER in parallel: Research tickets (AFK) gather evidence; Decision/Grill tickets are
-    HITL (the agent never stands in for the human's side); one decision per session; resolving a ticket
-    clears fog and graduates newly-sharp questions into fresh tickets
+    HITL classified mechanical/taste/one-way per `gate-classification.md` (the agent never stands in
+    for the human's side); one decision per session; resolving a ticket clears fog and graduates
+    newly-sharp questions into fresh tickets
   → when the route is clear: FREEZE the plan/spec (decide-and-freeze) + PREPARE the DAG (decompose-dag,
     materialize but do not dispatch)
   → HANDOFF ARTIFACT CHECKLIST (ship-it adopts these without re-decomposing):

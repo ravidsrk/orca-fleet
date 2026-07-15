@@ -63,14 +63,14 @@ DETECT: run the suite DETECT_RUNS times (default 30; parallel, varied seed/order
 Every detected flake (local AND CI-only) reaches a terminal state: root-caused + fixed + merged (with a
 red-by-revert ratchet) OR quarantined with a human-approved ticket — no "documented and left flaky"
 exit. CI-only flakes: the local streak does NOT disprove them; each fixed-and-verified-in-CI (green
-across GREEN_STREAK triggers, gh run list pasted) or quarantined. The streak (timestamps +
+across the same resolved_N consecutive CI triggers, `gh run list` pasted) or quarantined. The streak (timestamps +
 seeds/orders per run) pasted, local AND CI. Zero retry/rerun wrappers added (grep the diff).
 Manifest names STABLE or STABLE-WITH-QUARANTINE.
 
 ## Ledger + supervision
 
 Header per liveness-resume.md: `RUN · COORDINATOR · BASE · FORK_POINT · T0 · SOURCE` (`-` if N/A;
-SOURCE = DETECT_RUNS · GREEN_STREAK · target residual rate). Rows include Orca task id + flake fields.
+SOURCE = DETECT_RUNS · GREEN_STREAK=resolved_N · target residual rate). Rows include Orca task id + flake fields.
 Stalls → WATCH; death → RESUME scoped to header coordinator + ledger task ids, git-verified.
 
 ## Anti-patterns

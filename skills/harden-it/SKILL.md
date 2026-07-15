@@ -40,7 +40,8 @@ never co-mount.
 ## Pipeline
 
 ```
-THREAT-MODEL (STRIDE per trust boundary; Always/Ask-First/Never boundary → one-way gates)
+THREAT-MODEL (STRIDE per trust boundary; Always/Ask-First/Never boundary → one-way gates;
+commit artifact to ledger/repo)
   → BOOTSTRAP integration BASE (runtime/scripts/preflight.py --base <BASE> --fork-point <sha
     recorded in the ledger header at BASE creation>; BASE ≠ default — dispatch-lifecycle.md)
   → AUDIT waves (risk-review security lens applied TREE-WIDE: the audit's fixed point is the whole
@@ -59,10 +60,11 @@ THREAT-MODEL (STRIDE per trust boundary; Always/Ask-First/Never boundary → one
 ## Convergence proof
 
 Every P0/P1 has a terminal disposition (fixed+merged with an exploit test that failed pre-fix,
-revert-audited · refuted by quorum with the vote table · PARKED with its blocker). Every fix has a
-recorded RE-ATTACK verdict from an independent worker + a class-audit note. A final full re-audit is
-pasted; the outcome line is CLEAN or HARDENED-WITH-OPEN-ITEMS. Secret leaks route to ROTATION (one-way
-gate + verified), never a silent line-deletion.
+revert-audited · refuted by quorum with the vote table · PARKED with its blocker · PARKED because
+no safe sandbox exists). Every fix has a recorded RE-ATTACK verdict from an independent worker +
+a class-audit note. A final full re-audit is pasted; the outcome line is CLEAN or
+HARDENED-WITH-OPEN-ITEMS. Secret leaks route to ROTATION (one-way gate + verified), never a silent
+line-deletion.
 
 ## Ledger + supervision
 

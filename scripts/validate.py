@@ -2,7 +2,7 @@
 """
 Validate orca-fleet against its own architecture (see ARCHITECTURE.md).
 
-Two things are checked:
+Three things are checked:
 
 1. Every mission (skills/<name>/SKILL.md) is a valid agentskills.io skill:
    - name: 1-64 chars, lowercase letters/digits/hyphens, matches its folder
@@ -30,15 +30,27 @@ Two things are checked:
      SKILL.md) are exempt; URLs are ignored; case/underscore typos of real protocol
      names and path-prefixed references are flagged.
 
+3. The eval layer (ported from marketingskills) is self-consistent:
+   - `evals/routing.json` is valid JSON and has at least one positive example per
+     mission.
+   - Every `skills/<name>/evals/evals.json` is valid JSON, its `skill_name` matches
+     the folder, and each eval has the required fields.
+
 Exit code: 0 if all valid, 1 if any failure.
 
 Spec: https://agentskills.io/specification
 """
+import importlib.util
 import re
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+
+# Load the eval validator so `scripts/validate.py` also catches broken eval JSON.
+_eval_spec = importlib.util.spec_from_file_location("_eval_validator", ROOT / "scripts" / "eval.py")
+_eval_validator = importlib.util.module_from_spec(_eval_spec)
+_eval_spec.loader.exec_module(_eval_validator)
 SKILLS_DIR = ROOT / "skills"
 PLAYBOOKS_DIR = ROOT / "playbooks"
 RUNTIME_DIR = ROOT / "runtime"
@@ -290,6 +302,11 @@ def check_layer_separation():
     return leaks
 
 
+def check_evals():
+    """Eval JSON files must be valid and self-consistent (ported marketingskills pattern)."""
+    return _eval_validator.validate_all()
+
+
 def main():
     if not SKILLS_DIR.exists():
         print(f"skills/ not found at {SKILLS_DIR}", file=sys.stderr)
@@ -325,9 +342,16 @@ def main():
         for failure in doc_failures:
             print(f"   - {failure}")
 
+    eval_errors = check_evals()
+    if eval_errors:
+        all_passed = False
+        print("\nFAIL eval schema — invalid eval JSON or routing coverage:")
+        for error in eval_errors:
+            print(f"   - {error}")
+
     print()
     if all_passed:
-        print(f"All {total} missions valid; three-layer separation holds.")
+        print(f"All {total} missions valid; three-layer separation holds; evals valid.")
         return 0
     print("Validation failed.")
     return 1

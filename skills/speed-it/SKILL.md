@@ -34,8 +34,8 @@ one of addy | gstack.
 ## The measurement contract (declare per metric BEFORE baselining)
 
 Two runs is a smoke minimum, not proof. Field CWV = the metric's percentile (p75) over a window +
-sample count. Lab CWV = median of ≥5 runs (report spread) at a pinned throttle/cache/device. Server
-p95/p99 = the percentile over ≥N requests at stated concurrency, two independent load runs agree.
+sample count. Lab CWV = median of ≥5 runs (e.g. 5–10; report spread) at a pinned throttle/cache/device. Server
+p95/p99 = the percentile over ≥N requests (e.g. 1k–10k) at stated concurrency, two independent load runs agree.
 Baseline and candidate MUST share source, sample size, and pinned conditions — a lab-vs-field or
 warm-vs-cold comparison is not a delta. A number you can't measure to its contract is `unmeasured`
 (human-flagged), never a downgraded proxy; never fabricate a metric.
@@ -54,8 +54,8 @@ HUMAN SCOPE CONFIRM: freeze the critical-journey list + per-journey budgets (unb
     behaviorally wrong is a bug, not a win) → LAND
   → RE-BENCHMARK to the contract (a lucky single run is not confirmation). Lab/load contracts
     complete in-mission. Field CWV contracts need the same field source/sample/conditions as baseline
-    — that requires deploy; hand off to ship-it (release + observe) and do not claim WITHIN-BUDGET
-    on a lab-only delta for a field-declared contract (OPTIMIZED-WITH-PARKED until field confirms).
+    — that requires deploy; hand off a brief (measurement contract + ship-it release plan) to ship-it
+    and do not claim WITHIN-BUDGET on a lab-only delta (OPTIMIZED-WITH-PARKED until field confirms).
   → loop → outcome
 ```
 
