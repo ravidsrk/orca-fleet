@@ -213,7 +213,12 @@ def run_routing_eval() -> dict:
     except ValueError as err:
         return {"total": 0, "correct": 0, "score": 0.0, "failures": [], "error": str(err)}
 
-    evals = data["evals"]
+    evals = data.get("evals")
+    if not isinstance(evals, list):
+        return {
+            "total": 0, "correct": 0, "score": 0.0, "failures": [],
+            "error": f"{ROUTING_EVAL.relative_to(ROOT)}: missing or non-list 'evals'",
+        }
     total = len(evals)
     correct = 0
     failures = []
