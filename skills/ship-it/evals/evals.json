@@ -1,0 +1,42 @@
+{
+  "skill_name": "ship-it",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Build and ship this feature end to end.",
+      "expected_output": "Should route to ship-it. Should freeze the spec (or grill raw intent through the FREEZE gate), decompose into tracer-bullet slices, build each slice with tests, run acceptance review + runtime-prove, land to BASE, and advance through the release state machine as authorized. Should not route to clean-sweep or map-it.",
+      "assertions": [
+        "Routes to ship-it",
+        "Mentions freeze / grill + FREEZE gate",
+        "Mentions decompose → build → review → prove → land → release",
+        "Names terminal states BUILT / PROMOTION_READY / RELEASED / DEPLOYED_AND_VERIFIED",
+        "Does not route to clean-sweep or map-it"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "We have a frozen spec for a new billing API. Implement it.",
+      "expected_output": "Should enter ship-it at the frozen-spec branch (VALIDATE → DECOMPOSE), skip grilling, and run the canonical pipeline. Should produce a TRACEABILITY table mapping frozen acceptance criteria to passing tests on the BASE head.",
+      "assertions": [
+        "Recognizes frozen-spec entry",
+        "Skips grill / uses validate branch",
+        "Produces or references a TRACEABILITY table",
+        "Verifies acceptance criteria on BASE head",
+        "Does not re-grill a frozen spec"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Close every issue in the tracker.",
+      "expected_output": "Should NOT route to ship-it. Should identify this as a finite backlog drain and route to clean-sweep. Ship-it is for building new work, not closing an existing enumerated set.",
+      "assertions": [
+        "Does not route to ship-it",
+        "Routes to clean-sweep",
+        "Cites backlog / issue tracker as clean-sweep source"
+      ],
+      "files": []
+    }
+  ]
+}

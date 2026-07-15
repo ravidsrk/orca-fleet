@@ -43,7 +43,8 @@ STOP-THE-LINE (preserve evidence) → run the diagnose playbook's DIAGNOSIS phas
   hypotheses, falsified one variable at a time to a single survivor) and STOP before its fix phase —
   this mission has no fix authority; the fix belongs to the separately authorized handoff below.
   This mission adds, not restates:
-  → competing-hypothesis DEBATE when causes are mutually exclusive, instead of a fan-out
+  → competing-hypothesis DEBATE when causes are mutually exclusive: one adversarial worker argues both
+    sides (or two workers debate), producing a falsification table — instead of a fan-out of fixes
   → DEMONSTRATE the surviving cause with evidence. The regression test is NOT written here (writing
     it mutates the repo) — the handoff brief SPECIFIES it: the assertion, the correct seam (if none
     exists, the missing seam IS the finding — an architecture handoff), and the repro it must encode
@@ -55,7 +56,8 @@ STOP-THE-LINE (preserve evidence) → run the diagnose playbook's DIAGNOSIS phas
 
 The demonstrated root cause with: the pasted red-capable command + its output (or an elevated
 reproduction rate for a non-deterministic bug), the surviving hypothesis, and the FALSIFICATION evidence
-for each rejected hypothesis — all bound in an evidence manifest at the investigation fixed point. A
+for each rejected hypothesis — all bound in an evidence manifest at the investigation fixed point.
+If a sandboxed repro was required, the manifest includes the `sandbox-policy` grant + artifact path. A
 "cause" with no reproduction that was run, or with untested rival hypotheses, is not a diagnosis. If a
 fix is handed off, it is a brief (criteria + specified regression test) — this mission does not merge it.
 Manifest names DIAGNOSED, DIAGNOSED-WITH-HANDOFF, or INCONCLUSIVE.

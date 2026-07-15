@@ -1,0 +1,40 @@
+{
+  "skill_name": "deflake-it",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Kill the flaky tests in CI.",
+      "expected_output": "Should route to deflake-it. Should detect flakes by repeat-run + CI retry history, diagnose by raising the failure rate, fix the root cause, ratchet red-by-revert, and prove a consecutive-green streak local AND CI.",
+      "assertions": [
+        "Routes to deflake-it",
+        "Detects via repeat-run + CI retry history",
+        "Diagnoses by raising failure rate, not theorizing",
+        "Uses red-by-revert ratchet",
+        "Requires local AND CI green streak"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Just wrap the flaky tests in a retry(3) helper.",
+      "expected_output": "Should reject retry-wrappers as a fix. Should explain that retry(n) hides flakes and poisons the signal. The fix must address the root cause.",
+      "assertions": [
+        "Rejects retry(n) / --rerun-failures as the fix",
+        "Explains that retry hides flakes",
+        "Requires root-cause fix"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Why does this one test fail once a week in production?",
+      "expected_output": "Should NOT route to deflake-it. A single hard intermittent bug without a suite-rate contract is root-cause. deflake-it needs a statistical streak contract across a suite.",
+      "assertions": [
+        "Does not route to deflake-it",
+        "Routes to root-cause",
+        "Cites missing suite-rate contract"
+      ],
+      "files": []
+    }
+  ]
+}

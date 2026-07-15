@@ -40,7 +40,8 @@ cross-deploy data migration inside a currency loop. Details: docs/missions/moder
 
 The target is the version the PROJECT supports, by: an explicit project constraint (engines/peerDeps/
 support policy), then the dependency's own published support/EOL policy (LTS/security window), then
-registry-latest only when neither exists. A dep on a still-supported older major is CURRENT.
+registry-latest only when neither exists. Record the chosen authority and its rationale in the unit
+evidence manifest. A dep on a still-supported older major is CURRENT.
 
 ## Pipeline
 

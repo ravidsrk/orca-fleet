@@ -1,0 +1,42 @@
+{
+  "skill_name": "modernize-it",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Update all dependencies and get off old majors.",
+      "expected_output": "Should route to modernize-it. Should inventory outdated deps + advisories, triage by reachability, order by compatibility graph, upgrade one dep or coherent group per PR with CI green, and re-inventory until CURRENT or CURRENT-WITH-PINNED.",
+      "assertions": [
+        "Routes to modernize-it",
+        "Mentions inventory + reachability triage",
+        "Mentions compatibility graph ordering",
+        "Upgrades one dep or coherent group per PR",
+        "Requires CI green at every merge"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Migrate the ORM from Sequelize to Prisma.",
+      "expected_output": "Should route to modernize-it for the dependency/framework surface. If the migration forces a stateful DB schema/data change across deploys, modernize-it should hand that off to a staged ship-it sequence (expand → migrate → contract), not run it inside the currency loop.",
+      "assertions": [
+        "Routes to modernize-it for framework currency",
+        "Reads changelogs, not just version deltas",
+        "Hands off stateful cross-deploy DB migration to ship-it",
+        "Does not run cross-deploy migration inside currency loop"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Fix every CVE found by npm audit.",
+      "expected_output": "Should route to modernize-it for dependency advisories. harden-it is for exploit proof / adversarial security loop, not routine advisory patching. modernize-it must verify reachability and never use audit fix --force.",
+      "assertions": [
+        "Routes to modernize-it",
+        "Does not route to harden-it for routine advisories",
+        "Verifies advisory reachability",
+        "Never recommends audit fix --force"
+      ],
+      "files": []
+    }
+  ]
+}

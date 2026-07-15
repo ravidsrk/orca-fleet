@@ -44,10 +44,10 @@ MAP critical surface (coverage gaps × call-graph of money/auth/data/external-co
       boundary, negate a condition, zero a return — code still COMPILES, harness still RUNS) that fails
       the targeted assertion. A revert that breaks compile/imports proves source-SHAPE dependence, not
       behavior — does not count. Record each audit in the unit manifest's `metric_contract`
-      (mutation, target assertion, harness still runnable).
-    · test reveals a BUG → SURFACED-BUG sub-loop (remediate-finding; small clear fix in-PR; ambiguous /
-      behavior-changing → PARK needs-human or hand to clean-sweep; never assert the buggy behavior as
-      correct)
+      (mutation, target assertion, harness still runnable — see `evidence-manifest.md` for schema).
+    · test reveals a BUG → SURFACED-BUG sub-loop (remediate-finding). Route small clear fixes in-PR;
+      route ambiguous / behavior-changing bugs to PARK needs-human or hand to clean-sweep. Never assert
+      the buggy behavior as correct.
   → build-blind REVIEW (acceptance-review) → RUNTIME-PROVE (characterization asserts behavior the
     real entry point actually exhibits, not harness-only fiction) → LAND
   → RE-MAP coverage → loop → outcome

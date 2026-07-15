@@ -29,8 +29,8 @@ Read [ARCHITECTURE.md](../../ARCHITECTURE.md) once. Composes `decide-and-freeze`
 rides `dispatch-lifecycle`, `merge-serialization`, `reviewed-sha-freshness`, `evidence-manifest`,
 `gate-classification`, `liveness-resume`, `orca-dag-semantics`, `ledger-contract` runtime policies.
 It does not restate them.
-Worker TASK pack: exactly one of matt | addy | gstack. Phase map: grill/tdd=matt, build/verify=addy
-or matt, review-army/ship=gstack — never co-mount two routers in one worker.
+Worker TASK pack: exactly one of matt | addy | gstack (grill/tdd=matt, build/verify=addy|matt,
+review/ship=gstack) — never co-mount two routers in one worker.
 
 ## Terminal states (name the one you reach)
 
@@ -41,7 +41,8 @@ deploy availability allow; the manifest names it and what blocks the next.
 
 If units or criteria are parked with human-approved reasons while the rest landed, append
 `-WITH-PARKED` to the highest clean state reached (e.g. `BUILT-WITH-PARKED`,
-`PROMOTION_READY-WITH-PARKED`). Never claim a clean terminal when parked work remains in scope.
+`PROMOTION_READY-WITH-PARKED`). Allowed parks: `needs-human`, `CODE_CLOSED` + `VERIFY_AT_SCALE`
+plan, or human-authorized scope exclusion. Never claim a clean terminal when parked work remains in scope.
 
 ## Preflight
 

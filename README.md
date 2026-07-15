@@ -358,8 +358,10 @@ tests/        architecture contracts + validator negative-path fixtures (stdlib 
 ```bash
 python3 scripts/validate.py                # agentskills.io spec + three-layer separation
                                            #   + composition/cross-doc reference checks
+                                           #   + eval JSON schema checks
+python3 scripts/eval.py run --suite all    # mission-routing baseline + per-skill eval count
 python3 -m unittest discover -s tests -v   # architecture contract tests + validator
-                                           #   negative-path fixtures
+                                           #   negative-path fixtures + eval contracts
 ```
 
 The validator is deliberately paranoid: every composition reference must resolve, every mission

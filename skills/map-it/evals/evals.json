@@ -1,0 +1,42 @@
+{
+  "skill_name": "map-it",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I don't know the shape yet — chart this epic into a plan.",
+      "expected_output": "Should route to map-it. Should name the destination, chart decision-tickets, clear the research/decision frontier with HITL at each decision, freeze the plan/spec, prepare (but not dispatch) a DAG, and hand off to ship-it.",
+      "assertions": [
+        "Routes to map-it",
+        "Names destination first",
+        "Charts decision-tickets, not deliverables",
+        "Uses HITL for decisions",
+        "Prepares DAG without dispatching",
+        "Hands off frozen map to ship-it"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Plan this feature so we can build it next quarter.",
+      "expected_output": "Should route to map-it when authorization to build is not yet given. Should produce decisions + a frozen execution map, not production code.",
+      "assertions": [
+        "Routes to map-it",
+        "Produces frozen plan / spec",
+        "Does not write production code",
+        "Distinguishes planning from building"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Build this feature now.",
+      "expected_output": "Should NOT route to map-it. Ready-to-build intent routes directly to ship-it. map-it is only for uncertainty that exceeds the threshold where implementation can be authorized.",
+      "assertions": [
+        "Does not route to map-it",
+        "Routes to ship-it",
+        "Cites ready-to-build vs foggy-goal threshold"
+      ],
+      "files": []
+    }
+  ]
+}
