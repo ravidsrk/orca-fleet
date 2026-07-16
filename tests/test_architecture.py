@@ -111,8 +111,8 @@ class TestArchitecture(unittest.TestCase):
     def test_wip_cap_is_a_ledger_header_contract(self):
         # The 2026-07-15 chimely run dispatched a 4-builder wave with no WIP field in
         # its ledger header — the cap existed only as doctrine, so nothing held the
-        # wave. The header template, the producer-side policy, and the row-flag rule
-        # must all carry the contract; an edit that drops any one of them re-opens it.
+        # wave. The header template and the producer-side policy must both carry the
+        # field; an edit that drops either re-opens it.
         header_spec = (RUNTIME / "liveness-resume.md").read_text(encoding="utf-8")
         self.assertIn(
             "WIP: builders=", header_spec,
@@ -123,6 +123,19 @@ class TestArchitecture(unittest.TestCase):
             budget, r"(?i)required ledger-header field",
             "attention-budget.md no longer declares WIP a required header field",
         )
+        # The pane-counting rule is the root-cause fix (a dual-writer respawn is how
+        # a planned 4-builder wave peaked at 5); softening it back to task-counting
+        # must not pass silently.
+        self.assertRegex(
+            budget, r"(?i)counts live panes, not tasks",
+            "attention-budget.md lost the pane-counting rule — respawned panes "
+            "would stop counting against the cap",
+        )
+
+    def test_row_flags_are_the_record(self):
+        # The chimely run advanced BUILT/REVIEWED only as dispatch-log prose; every
+        # unit row still read all-f at run close, which would have broken a crash
+        # RESUME (it reads row flags, not narration).
         ledger = (RUNTIME / "ledger-contract.md").read_text(encoding="utf-8")
         self.assertRegex(
             ledger, r"(?i)row is the record",
