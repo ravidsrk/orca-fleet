@@ -8,7 +8,7 @@
 **Skill:** [`skills/prove-it/SKILL.md`](../../skills/prove-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes — tests, plus small clear fixes for surfaced bugs
 
 <p align="center">
-  <img src="../../assets/diagrams/missions/prove-it.jpg" alt="A woven net of glowing test nodes stretched under a legacy code block; one red node spawns a nested repair loop; labels characterize and red first" width="820">
+  <img src="../../assets/diagrams/missions/prove-it.jpg" alt="State machine: MAP coverage against critical paths with a human scope confirm, CHARACTERIZE real behavior, a reveals-a-bug fork into the surfaced-bug sub-loop, MUTATION AUDIT where the assertion must die, REVIEW, PROVE, LAND, RE-MAP looping while paths remain, ending COVERED or COVERED-WITH-PARKED" width="820">
 </p>
 
 ---
@@ -127,6 +127,32 @@ Fix-backed closes need no extra gate: the evidence chain is the authorization.
 - no assertion was weakened to pass — the diff is audited for it;
 - coverage before/after is pasted — but the pass criterion is the mutation-audit set, never
   the percent.
+
+## A worked example
+
+The ask: the payments module reports 12% branch coverage and everyone is afraid to touch it.
+
+**Map → scope confirm (your gate).** Coverage gaps crossed with the call graph of money paths
+yields nine critical surfaces: charge, refund, webhook signature verify, retry dedupe… You
+approve the list — that confirmation is what makes the denominator finite and DONE checkable.
+
+**Characterize.** Workers assert what the code actually does, not what anyone wishes. The
+refund test discovers the module floors to cents in the customer's favor on one branch and
+against them on another. That is a surfaced bug, and it triggers the behavior call — your other
+gate: load-bearing quirk or defect? You rule defect; the fix lands in-PR with the
+characterization test flipped to assert the correct behavior, red-first.
+
+**Mutation audit.** Every green test must prove it can die. The refund suite's boundary is
+mutated (`>=` → `>`): the targeted assertion fails — the test bites. A test that survives its
+mutation is a tautology and goes back to its worker.
+
+```
+| task_p4 | refund rounding | CHAR t | MUT t | REVIEWED t | MERGED t |  | PR #87, mutation log docs/reports/p4/ |
+```
+
+**Re-map → terminal.** Coverage re-maps until the confirmed surface is exhausted: **COVERED**,
+with one webhook-replay edge parked `needs-human` (it needs a production key the fleet cannot
+hold) — so honestly, **COVERED-WITH-PARKED**.
 
 ## Failure modes this mission is built to prevent
 

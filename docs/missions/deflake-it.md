@@ -7,7 +7,7 @@
 **Skill:** [`skills/deflake-it/SKILL.md`](../../skills/deflake-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes
 
 <p align="center">
-  <img src="../../assets/diagrams/missions/deflake-it.jpg" alt="A jittery signal line enters a reproduction chamber and exits perfectly flat and stable; crossed-out dice mark the end of chance" width="820">
+  <img src="../../assets/diagrams/missions/deflake-it.jpg" alt="State machine: DETECT with repeat runs and CI history, a deterministic fork routing real bugs to clean-sweep, DIAGNOSE by raising the failure rate, FIX with the red-by-revert ratchet, REVIEW, LAND, PROVE a GREEN_STREAK local and CI where any flake resets the streak, ending STABLE or STABLE-WITH-QUARANTINE" width="820">
 </p>
 
 ---
@@ -119,6 +119,31 @@ the streak) is the authorization.
   quarantined;
 - the streak itself is pasted: timestamps plus the seed and order of every run, local and CI;
 - zero retry or rerun wrappers were added, verified by grepping the diff.
+
+## A worked example
+
+The ask: main goes red about one run in five, and nobody trusts CI anymore.
+
+**Detect.** Thirty full-suite runs with varied seed and order, plus a mine of `gh run list`
+retry history, surface three intermittents — and one impostor: a test that fails 30 of 30
+under a fixed seed. Deterministic failure is a bug, not a flake; it routes to `clean-sweep`
+and out of this run's denominator.
+
+**Diagnose by raising the failure rate.** The worst flake is order-coupled: green alone, red
+after `billing.spec` runs first. The diagnosis loop makes it fail 80% of the time (run the
+pair, induced scheduling delay) before anyone touches code — a fix you cannot demonstrate
+against a reliable red is a guess.
+
+**Fix the root cause, ratchet the proof.** The culprit is the *other* test: `billing.spec`
+freezes the clock and never restores it in teardown. The fix lands there — not a retry, not a
+sleep in the victim — with a red-by-revert ratchet: revert the fix, watch the loop go red
+again, restore, file both artifacts.
+
+**Prove the streak.** `GREEN_STREAK` demands consecutive full-suite green runs local AND on CI.
+At run 22 of 30 a different test flickers — the streak resets to zero and the new flake enters
+the loop. Second time through, the streak holds: **STABLE**. The quarantine door exists
+(`STABLE-WITH-QUARANTINE`) but only with a human-approved ticket — the fleet cannot grant
+itself permission to give up.
 
 ## Failure modes this mission is built to prevent
 

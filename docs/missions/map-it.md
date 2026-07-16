@@ -8,7 +8,7 @@
 **Skill:** [`skills/map-it/SKILL.md`](../../skills/map-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** **no** — decisions, not deliverables; no production code is written
 
 <p align="center">
-  <img src="../../assets/diagrams/missions/map-it.jpg" alt="A fog bank clears into a crisp DAG map pinned by a freeze pin, handed off toward a waiting pipeline" width="820">
+  <img src="../../assets/diagrams/missions/map-it.jpg" alt="State machine: NAME the destination, CHART decision tickets, clear the frontier with AFK research and one human decision per session, looping while foggy, FREEZE, PREPARE the DAG without dispatching, ending FROZEN MAP + DAG handed to ship-it" width="820">
 </p>
 
 ---
@@ -127,6 +127,33 @@ they can run AFK while the decision queue waits for you.
 - a materialized, verified, FROZEN-for-handoff DAG exists — `decompose-dag`'s prepare-only
   completion, committed by freeze, not dispatch — that `ship-it` can consume without re-grilling;
 - no production code was written. The mission produced decisions, not deliverables.
+
+## A worked example
+
+The ask: "we need to go multi-tenant" — and nobody can write the spec yet.
+
+**Name the destination.** One sentence, sharp: *a tenant can sign up, its data is isolated, and
+billing is per-tenant.* SSO and custom domains are explicitly past the destination — naming
+what is out of scope is half the value of naming it at all.
+
+**Chart the tickets.** Nine decision tickets, each phrased as a question that can be answered,
+not a topic. Three are sharp immediately (isolation model, tenant resolution, billing unit);
+six sit in fog behind them.
+
+**Clear the frontier.** Research tickets run AFK: one worker benchmarks Postgres RLS overhead
+on the app's five hottest queries and files an evidence doc — numbers, not vibes. Decision
+tickets are yours, strictly one per session:
+
+> Isolation — (a) row-level security, one schema (recommended: 4% overhead on your measured
+> hot paths, simplest migrations) or (b) schema-per-tenant (hard isolation, painful DDL fan-out)?
+
+You take (a). The fog recedes: two tickets that depended on the isolation answer graduate to
+sharp, and the frontier loop repeats until the route is clear.
+
+**Freeze → prepare.** The map freezes (destination, decisions, non-goals), and `decompose-dag`
+materializes a fourteen-slice DAG — verified for real dep ids, cycles, hot-file chains — and
+**never dispatches it**. Terminal: **FROZEN MAP + DAG**, an artifact `ship-it` consumes as-is.
+A map that quietly started building would be the failure mode, not the bonus.
 
 ## Failure modes this mission is built to prevent
 

@@ -8,7 +8,7 @@
 **Skill:** [`skills/harden-it/SKILL.md`](../../skills/harden-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes
 
 <p align="center">
-  <img src="../../assets/diagrams/missions/harden-it.jpg" alt="A glowing shield over a code grid; attack arrows strike and loop back labeled re-attack; broken arrows lie crossed out; a badge reads CLEAN" width="820">
+  <img src="../../assets/diagrams/missions/harden-it.jpg" alt="State machine: THREAT-MODEL, AUDIT with a PoC per P0/P1 in an ephemeral sandbox, QUORUM VERIFY to refute false positives, FIX with exploit test first, REVIEW and PROVE, LAND, RE-ATTACK with variants looping back on new holes, RE-AUDIT ending CLEAN or HARDENED-WITH-OPEN-ITEMS" width="820">
 </p>
 
 ---
@@ -127,6 +127,30 @@ exists to prevent.
 - a final, full, fresh re-audit is pasted, and the outcome line reads `CLEAN` or
   `HARDENED-WITH-OPEN-ITEMS`;
 - every secret leak shows a verified rotation, never a deleted line.
+
+## A worked example
+
+The ask: harden a multi-tenant SaaS API before an enterprise pilot.
+
+**Threat model → audit.** STRIDE over the tenant-isolation boundary. The audit wave lands a P1:
+`GET /api/export?tenant_id=…` trusts the query parameter — any authenticated user can export
+any tenant. A PoC is mandatory for a P1, and it is exploit code, so it routes to the ephemeral
+sandbox under a recorded `ORCA_COORD_ALLOW_DANGER=1` grant — never your machine.
+
+**Quorum verify.** A second worker tries to refute the finding before anyone fixes it (false
+positives are cheaper to kill here than after a fix wave). It reproduces instead: confirmed.
+
+**Fix the class, not the instance.** The fix worker writes the exploit as a failing test
+(cross-tenant export asserts 403), fixes it, then audits the class: two sibling endpoints share
+the same trust-the-parameter shape and join the same PR wave.
+
+**Re-attack.** An independent worker re-runs the original PoC plus variants against the patched
+build. The original fails (good); a variant — tenant id smuggled via the `X-Org` header a legacy
+middleware still honors — lands. Back through the loop: second fix, second re-attack, clean.
+
+**Re-audit → terminal.** A full fresh audit pass finds zero unrefuted P0/P1: **CLEAN**. One item
+did not make it in: rotating the leaked staging credentials the audit tripped over is one-way,
+so it parked for you — executed and verified before the run counted it.
 
 ## Failure modes this mission is built to prevent
 

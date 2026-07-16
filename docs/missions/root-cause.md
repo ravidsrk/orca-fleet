@@ -9,7 +9,7 @@
 **Skill:** [`skills/root-cause/SKILL.md`](../../skills/root-cause/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** **diagnosis only** — the mission runs the diagnose playbook's DIAGNOSIS phases and stops before its fix phase; a fix is a separately authorized handoff
 
 <p align="center">
-  <img src="../../assets/diagrams/missions/root-cause.jpg" alt="A chain of cause nodes leads from a surface failure burst down to a single glowing root node underground, proven under a magnifier with a replay arrow labeled demonstrated" width="820">
+  <img src="../../assets/diagrams/missions/root-cause.jpg" alt="State machine: STOP-THE-LINE to preserve evidence, RED LOOP until reliably red, LOCALIZE by bisect and minimize, three to five ranked falsifiable HYPOTHESES, FALSIFY one variable at a time, DEMONSTRATE the survivor with a regression seam, ending DIAGNOSED with the fix handoff separately authorized" width="820">
 </p>
 
 ---
@@ -129,6 +129,36 @@ defaults; it is what keeps a 2 a.m. diagnosis from quietly becoming an unreviewe
 
 A "cause" with no reproduction that was run, or with untested rival hypotheses, is not a
 diagnosis.
+
+## A worked example
+
+The symptom: "orders occasionally duplicate on mobile checkout." Occasionally. Mobile. Nobody
+can say more — which is exactly the case this mission exists for.
+
+**Stop the line.** Logs, queue contents, and the duplicated rows are preserved before anything
+restarts. Evidence you overwrite in minute one is a hypothesis you cannot test in hour three.
+
+**Get to red first.** No theory is allowed until a red loop exists. A replay harness fires
+checkout with induced 400ms latency and a double-tap: 1 failure in 8. Tightening (fixed retry
+timing) raises it to 6 in 8 — red-capable, cheap to run. Phase 2 may begin.
+
+**Localize.** `git bisect run` with the loop lands on the retry-middleware PR from three weeks
+ago; the repro minimizes to twenty lines.
+
+**Ranked, falsifiable hypotheses — before testing any.**
+
+1. the client regenerates its idempotency key on retry (key never reaches the dedupe check),
+2. the server dedupe window is shorter than the retry interval,
+3. a double-bound tap handler fires two submissions.
+
+**Falsify one variable at a time.** DEBUG-tagged instrumentation kills (3) — one submission
+event, two POSTs. Widening the window in a scratch build weakens (2) but duplicates persist.
+For (1) the logs show two *distinct* idempotency keys per duplicated order: demonstrated —
+revert the middleware's key handling in the harness and the loop goes green.
+
+**Terminal.** **DIAGNOSED**: cause demonstrated with paste-able evidence, regression-test seam
+named (assert one key across retries at the middleware boundary). The fix itself is a handoff
+brief — dispatching it is a separately authorized decision, not this mission's momentum.
 
 ## Failure modes this mission is built to prevent
 

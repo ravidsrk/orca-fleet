@@ -8,7 +8,7 @@
 **Skill:** [`skills/oss-contribute/SKILL.md`](../../skills/oss-contribute/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** on the fork, yes; merge authority: never
 
 <p align="center">
-  <img src="../../assets/diagrams/missions/oss-contribute.jpg" alt="Two repository islands, fork and upstream, separated by a fence; a pull-request arrow arcs over the fence and lands as an open PR; the maintainer holds the only merge key" width="820">
+  <img src="../../assets/diagrams/missions/oss-contribute.jpg" alt="State machine: ENUMERATE open issues and open PRs, SKEPTIC-TRIAGE, a fork on already-has-a-PR into the assist/alternative/stand-down taste gate or BUILD on fork with failing test first, build-blind REVIEW, OPEN PR to the upstream default, FOLLOW UP until every thread is answered, re-enumerating until CONTRIBUTED; the maintainer merges, never the fleet" width="820">
 </p>
 
 ---
@@ -140,6 +140,29 @@ failing-first test with a revert-audited negative control, bots reconciled, and 
 thread answered; (b) a posted review-assist whose findings are each quoted from the target PR's own
 diff; or (c) parked with its class and reference. The final enumeration is pasted into the ledger,
 and the manifest names `CONTRIBUTED` or `CONTRIBUTED-WITH-PARKED` — nothing else.
+
+## A worked example
+
+One unit from the proving run, end to end. Issue #56 on `dodopayments/chimely` (a repo the
+fleet could only fork) claimed the admin DLQ replay ignored its environment filter.
+
+**Triage** confirmed it by reading — `admin.rs:1302` passed no env to `dlq.rs:67`. **Build** on
+the fork: a red-first test pinning the filtered behavior, the fix, head `16374a5` pushed.
+**Review**: codex PASS, greptile raised one finding dismissed as a false positive with the
+reason logged. So far, identical to clean-sweep.
+
+**Then the fork bites.** Mid-run, re-enumeration of the SECOND denominator — upstream open
+PRs — discovered a parallel contributor's PR #76 for the same issue. The contribution decision
+(a logged taste gate) chose both halves of *complement, not compete*:
+
+- **assist**: one comment on #76 quoting two confirmable defects in its own diff — a
+  hand-edited OpenAPI `nullable:true` that regeneration would erase, plus one more;
+- **alternative**: our reviewed branch opened as PR #85, cross-linking #76 — "take whichever
+  you prefer."
+
+**Follow up.** Greptile reviewed #85 after opening: zero findings; every thread on both PRs
+answered. The unit closed `FOLLOWED_UP t`, terminal `awaiting-maintainer-merge` — a normal end
+state here. The merge belongs to the maintainer; the evidence chain belongs to the run report.
 
 ## Failure modes this mission is built to prevent
 
