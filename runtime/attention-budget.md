@@ -13,8 +13,14 @@ is producer-side.
 | Report-only (review-it axes) | n/a | ≤ 4 axis workers | Axes stay isolated; cap total terminals |
 | Planning (map-it research) | ≤ 3 research workers | n/a | Decision tickets stay one-at-a-time HITL |
 
-Record in the ledger header: `WIP: builders=<n> reviewers=<n>`. Exceeding the cap → hold the
-next dispatch until a unit leaves `dispatched` (verify or park), never silently raise the cap.
+`WIP: builders=<n> reviewers=<n>` is a required ledger-header field, written at T0 with the
+wave plan sized to it (liveness-resume.md) — a cap recorded nowhere was never a cap. Exceeding
+it → hold the next dispatch until a unit leaves `dispatched` (verify or park), never silently
+raise it.
+
+The cap counts live PANES, not tasks: a doctor respawn's original pane counts against the cap
+until its closure is verified by pane read. Heartbeat false negatives spawn dual writers — the
+2026-07-15 chimely run planned a 4-builder wave and peaked at 5 builder panes this way.
 
 ## Sort the work (do not parallelize judgment)
 

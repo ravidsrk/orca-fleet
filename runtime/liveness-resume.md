@@ -69,11 +69,13 @@ coordinator respawn:
 
 `RUN: <run-id> · COORDINATOR: <terminal handle(s)> · BASE: <integration branch, or '-' for
 report-only/planning missions> · FORK_POINT: <sha BASE was created from, or '-'> · T0: <ts> ·
-SOURCE: <mission denominator ref + digest>`
+SOURCE: <mission denominator ref + digest> · WIP: builders=<n> reviewers=<n>`
 
 `RUN` and `COORDINATOR` are always required (RESUME dies without them); fields a mission class
 has no value for are recorded as `-`, never omitted (a missing column is indistinguishable from
-a truncated header).
+a truncated header). `WIP` is the run's attention cap (attention-budget.md — class defaults
+unless measured); a header without it predates this field, and RESUME writes the class default
+back in before dispatching anything.
 
 A ledger with rows but no header is a resume-orphan — recoverable only by hand.
 
