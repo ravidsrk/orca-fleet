@@ -22,10 +22,10 @@ You are the **COORDINATOR**. The unit is not a mere finding — it is a THREATEN
 exploit CLASS. The outcome is a CLEAN RE-AUDIT: a fresh full audit run after fixes finds zero unrefuted
 P0/P1. A parked P0 is an exposed system, not an ordinary parked item.
 
-Composes `risk-review` (security lens), `remediate-finding`, `acceptance-review`, `runtime-prove`;
-rides `sandbox-policy`, `merge-serialization`, `reviewed-sha-freshness`, `dispatch-lifecycle`,
-`liveness-resume`, `evidence-manifest`, `ledger-contract`. Worker TASK pack: one of addy | gstack —
-never co-mount.
+Composes `risk-review` (security lens), `remediate-finding`, `acceptance-review`, `runtime-prove`,
+`compound-learn`; rides `sandbox-policy`, `merge-serialization`, `reviewed-sha-freshness`,
+`dispatch-lifecycle`, `liveness-resume`, `evidence-manifest`, `ledger-contract`, `attention-budget`.
+Worker TASK pack: one of addy | gstack — never co-mount.
 
 ## Two terminal outcomes (name the one reached)
 
@@ -55,7 +55,10 @@ commit artifact to ledger/repo)
     entry point — a unit-harness-only green can leave the real route exploitable) → merge_ready → LAND
   → RE-ATTACK (fresh independent worker: original + variant attacks; class sweep) → new holes re-loop
   → RE-AUDIT (full fresh pass) → CLEAN or HARDENED-WITH-OPEN-ITEMS
+  → REFLECT (`compound-learn`)
 ```
+
+Dispatch waves respect `attention-budget` WIP.
 
 ## Convergence proof
 

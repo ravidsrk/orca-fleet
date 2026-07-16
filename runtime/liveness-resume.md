@@ -22,17 +22,31 @@ the replacement ONLY — never dual-send to the old and new handles.
 - Stale = a `dispatched` task with no heartbeat past ~10 min, OR still null past the first poll
   window. Judge from `dispatch-show` timestamps, not folklore.
 - Respawn a dead worker: log the evidence + a doctor-owned attempt count (NOT the runtime failure
-  budget) → `task-update → ready` ONLY after the evidence line → FRESH terminal (re-dispatch to a
-  used handle is a no-op) → spawn_worker (exit 3 = no heartbeat, loop; exit 1 = infra fail; exit 2 =
-  state moved, re-triage uncounted).
+  budget) → **reflection-before-retry** (below) → `task-update → ready` ONLY after the evidence
+  line → FRESH terminal (re-dispatch to a used handle is a no-op) → spawn_worker (exit 3 = no
+  heartbeat, loop; exit 1 = infra fail; exit 2 = state moved, re-triage uncounted).
 - BREAK at 3 doctor attempts OR runtime `circuit_broken` (3 real dispatch failures, carried forward
   per task via MAX(failure_count)) → escalate honestly (gate-classification.md).
+- **Identical-error kill:** if the last ≥2 doctor attempts failed on the same error signature
+  (same failing command + same primary error token), do NOT retry the same approach — kill,
+  reassign to a fresh worker with a rewritten TASK, or park. Counted toward the 3-attempt cap.
 - Re-confirm `ORCA_COORD_ALLOW_DANGER` before respawning a danger-profile worker.
 - Lost preamble ≠ dead worker: recover the dispatched TASK with `dispatch-show --preamble` and
   re-deliver via `terminal send`. Terminal activity means ALIVE — never kill a live worker on a
   missed heartbeat alone.
 - NEVER run `orca orchestration reset` mid-run — it wipes the task/dispatch state every recovery
   path below depends on. There is no mid-run situation it fixes that WATCH/RESUME doesn't.
+
+## Reflection-before-retry (mandatory on doctor respawn)
+
+Before every doctor-owned respawn, append to the unit's evidence / ledger:
+
+```
+REFLECTION: what failed? · what specific change would fix it? · am I repeating the same approach?
+```
+
+A respawn without that line is invalid — write it first. If the honest answer to the third
+question is yes, apply the identical-error kill (reassign or park), do not loop.
 
 ## The stuck-pending watchdog (a runtime trap)
 

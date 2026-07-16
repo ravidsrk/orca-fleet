@@ -4,6 +4,20 @@ All notable changes to orca-fleet are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the version source of
 truth is `.claude-plugin/plugin.json`.
 
+## [Unreleased]
+
+### Added — orchestration-tax adoption (Addy gap analysis)
+
+- `runtime/attention-budget.md`: producer-side WIP caps (default ≤3 builders),
+  sort isolated vs judgment-heavy work, scale fleet to verification capacity.
+- `playbooks/compound-learn.md`: post-mission REFLECTION.md proposals; human must
+  approve every AGENTS.md/GOTCHAS line (never auto-write).
+- `liveness-resume.md`: reflection-before-retry + identical-error kill on doctor
+  respawns.
+- `build-change.md` + `gate-classification.md`: pre-build plan gate for
+  irreversibility stop-list units.
+- Wired into `ship-it`, `clean-sweep`, `harden-it`; docs in concepts, getting-
+  started, ARCHITECTURE, README; research archive under `docs/research/`.
 ## [0.4.0] - 2026-07-16
 
 Adds an eleventh mission, `oss-contribute`: landing contributions on a repo you

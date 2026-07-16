@@ -116,7 +116,10 @@ This is human gate #1. After the freeze, scope does not silently reopen.
 
 **Phase 2 — decompose and build.** The spec is cut into tracer-bullet slices; each slice gets a
 fresh worker in its own worktree and terminal. Workers write the failing test first and touch
-only what their slice requires. You can watch, but nothing needs you.
+only what their slice requires. Concurrent builders stay within the
+[attention budget](../runtime/attention-budget.md) (default ≤3) so review capacity keeps up.
+Irreversible slices (auth, destructive migrations, secrets, …) write a plan and wait for a gate
+before coding. You can watch, but nothing needs you until a one-way door.
 
 **Phase 3 — review and prove.** Fresh sessions that did not write the code review each slice;
 then the integrated whole is driven through its real entry point — for the example above,

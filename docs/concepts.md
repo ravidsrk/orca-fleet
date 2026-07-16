@@ -13,10 +13,13 @@ doubt, the policy file is the source of truth.
 - [Independent verification](#independent-verification)
 - [Decision gates: mechanical, taste, one-way](#decision-gates-mechanical-taste-one-way)
 - [The merge train](#the-merge-train)
+- [Attention budget (orchestration tax)](#attention-budget-orchestration-tax)
 - [Reviewed-SHA freshness](#reviewed-sha-freshness)
 - [Liveness, crash, resume](#liveness-crash-resume)
 - [Sandbox profiles](#sandbox-profiles)
 - [One router per worker](#one-router-per-worker)
+- [Chaining missions](#chaining-missions)
+- [Proof status](#proof-status)
 - [The mission-identity test](#the-mission-identity-test)
 
 ## A fleet is an outcome, not an ingredient
@@ -176,6 +179,16 @@ cure is boring and absolute ([`runtime/merge-serialization.md`](../runtime/merge
 - **Ancestry verification, not grep.** A merge counts when
   `git merge-base --is-ancestor <mergeCommit> origin/<BASE>` says so.
 
+## Attention budget (orchestration tax)
+
+Starting agents is cheap; closing the loop is not. Your judgment is the serial bottleneck, so
+fleets scale to **verification capacity**, not the UI's spawn limit
+([`runtime/attention-budget.md`](../runtime/attention-budget.md)). Default mutation waves keep
+≤3 concurrent builders and about one build-blind reviewer per three builders. Isolated,
+machine-verifiable work fans out; judgment-heavy work stays serial. Merge serialization is
+consumer-side backpressure; the attention budget is producer-side — together they keep the
+fleet from burying you under unreviewed diffs.
+
 ## Reviewed-SHA freshness
 
 The single most common way a fleet ships unreviewed code: a branch head that moved *after*
@@ -192,8 +205,9 @@ sleeps. The runtime tracks heartbeats and provenance in SQLite; the fleet suppli
 ([`runtime/liveness-resume.md`](../runtime/liveness-resume.md)):
 
 - **WATCH.** A dispatched task with no heartbeat past the window is stale. Respawn goes to a
-  **fresh terminal** (re-dispatching to a used handle is a no-op), with an evidence line first
-  and a bounded attempt count. Three failures → escalate honestly, don't thrash.
+  **fresh terminal** (re-dispatching to a used handle is a no-op), with an evidence line and a
+  **reflection-before-retry** note first, and a bounded attempt count. Three failures — or two
+  consecutive identical error signatures — → escalate or reassign, don't thrash.
 - **The stuck-pending watchdog.** Task dependencies are not validated at creation, and a dep
   that *fails* (rather than completes) strands its children in `pending` forever — convergence
   detection only flags `blocked`. Every fleet watches for pending-with-unmet-deps explicitly.
