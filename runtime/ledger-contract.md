@@ -33,7 +33,9 @@ Canonical row (extend with mission fields, never drop flags):
 `| task_id | unit | BUILT | PR_OPEN | BOT | REVIEWED | MERGED | WT_CLEAN | park | evidence |`
 
 `park` is empty or a class below. Advance flags only after the corresponding verify step; never
-batch-flip from memory.
+batch-flip from memory. The row IS the record: a `BUILT=t` noted only as a dispatch-log line has
+not advanced the unit — RESUME and convergence read row flags, not narration. Flip the flag in
+the same edit that logs the verify.
 
 ## Park classes (honest incomplete)
 
