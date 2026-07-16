@@ -264,5 +264,105 @@ class TestProtocolDocRefs(unittest.TestCase):
         self.assertEqual(failures, [])
 
 
+class TestCountAgnosticGuards(unittest.TestCase):
+    """The count-lint, keyword-check, and badge-freshness guards must each be able to fire —
+    a mission is added by a human, so the guards that keep the docs count-agnostic and the
+    manifest/badges in sync are the safety net."""
+
+    def test_count_lint_matches_catalog_counts(self):
+        for s in ("11 missions", "eleven missions", "twelve missions", "10 outcome-named",
+                  "11 callable", "eleven outcome-named", "twelve callable"):
+            self.assertRegex(s, validate.COUNT_LINT_RE, s)
+
+    def test_count_lint_ignores_mission_identity_prose(self):
+        # "one mission" / "two missions" in the identity discussion are NOT catalog counts.
+        for s in ("are one mission (clean-sweep)", "two workflows are the same mission",
+                  "each mission is one outcome", "the missions genuinely differ",
+                  "assets/badges/missions.json"):
+            self.assertIsNone(validate.COUNT_LINT_RE.search(s), s)
+
+    def test_check_doc_counts_flags_hardcoded_count(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "README.md").write_text("orca-fleet ships eleven missions.\n",
+                                                 encoding="utf-8")
+            with mock.patch.object(validate, "ROOT", Path(tmp)), \
+                 mock.patch.object(validate, "COUNT_LINT_FILES", ("README.md",)):
+                failures = validate.check_doc_counts()
+        self.assertTrue(any("eleven missions" in f for f in failures), failures)
+
+    def test_check_doc_counts_exempts_predecessor(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "README.md").write_text(
+                "Its predecessor shipped twelve missions with two proven.\n", encoding="utf-8")
+            with mock.patch.object(validate, "ROOT", Path(tmp)), \
+                 mock.patch.object(validate, "COUNT_LINT_FILES", ("README.md",)):
+                self.assertEqual(validate.check_doc_counts(), [])
+
+    def test_check_doc_counts_predecessor_after_count_still_flags(self):
+        # The exemption is positional: a CURRENT catalog count followed by a predecessor
+        # mention on the same line must still fail the lint.
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "README.md").write_text(
+                "We now have 12 missions, improving on the predecessor's approach.\n",
+                encoding="utf-8")
+            with mock.patch.object(validate, "ROOT", Path(tmp)), \
+                 mock.patch.object(validate, "COUNT_LINT_FILES", ("README.md",)):
+                failures = validate.check_doc_counts()
+        self.assertTrue(any("12 missions" in f for f in failures), failures)
+
+    def test_check_manifest_keywords_flags_missing_mission(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / ".claude-plugin").mkdir()
+            (root / ".claude-plugin" / "plugin.json").write_text(
+                '{"keywords": ["ship-it"]}', encoding="utf-8")
+            skills = root / "skills"
+            for m in ("ship-it", "new-mission"):
+                (skills / m).mkdir(parents=True)
+                (skills / m / "SKILL.md").write_text("x", encoding="utf-8")
+            with mock.patch.object(validate, "ROOT", root), \
+                 mock.patch.object(validate, "SKILLS_DIR", skills):
+                failures = validate.check_manifest_keywords()
+        self.assertTrue(any("new-mission" in f for f in failures), failures)
+        self.assertFalse(any("ship-it" in f for f in failures), failures)
+
+    def test_guards_pass_on_the_real_repo(self):
+        # The valid corpus must be green on all three guards.
+        self.assertEqual(validate.check_doc_counts(), [])
+        self.assertEqual(validate.check_manifest_keywords(), [])
+        self.assertEqual(validate.check_badge_freshness(), [])
+
+    def test_badge_check_flags_stale(self):
+        # tests.json is written CURRENT so the only error can come from missions.json's
+        # staleness — a "missing file" error must not be able to satisfy this test.
+        import json as _json
+        spec = importlib.util.spec_from_file_location("_gb", ROOT / "scripts" / "gen-badges.py")
+        gb = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(gb)
+        current = gb.compute()
+        with tempfile.TemporaryDirectory() as tmp:
+            bd = Path(tmp) / "badges"
+            bd.mkdir()
+            (bd / "missions.json").write_text(
+                '{"schemaVersion": 1, "label": "missions", "message": "999", "color": "1f6feb"}',
+                encoding="utf-8")
+            (bd / "tests.json").write_text(_json.dumps(current["tests.json"]), encoding="utf-8")
+            with mock.patch.object(gb, "BADGES_DIR", bd):
+                errs = gb.check()
+        self.assertEqual(len(errs), 1, errs)
+        self.assertIn("missions.json", errs[0])
+        self.assertIn("stale", errs[0])
+
+    def test_badge_check_reports_missing_dirs_cleanly(self):
+        # A fresh checkout without skills/ must produce an error string, not a traceback.
+        spec = importlib.util.spec_from_file_location("_gb2", ROOT / "scripts" / "gen-badges.py")
+        gb = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(gb)
+        with tempfile.TemporaryDirectory() as tmp:
+            with mock.patch.object(gb, "SKILLS_DIR", Path(tmp) / "nope"):
+                errs = gb.check()
+        self.assertTrue(errs and "missing" in errs[0], errs)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

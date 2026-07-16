@@ -1,6 +1,6 @@
 {
   "name": "orca-fleet",
-  "description": "11 outcome-named autonomous fleets for the Orca runtime. Each mission is one outcome with its own state machine and an evidence-backed definition of done: ship-it, clean-sweep, oss-contribute, harden-it, speed-it, modernize-it, prove-it, deflake-it, review-it, map-it, root-cause. Missions compose best-of-breed worker recipes (mattpocock, gstack, addyosmani) over Orca — one router per worker. No vendor-named fleets. MIT.",
+  "description": "Outcome-named autonomous fleets for the Orca runtime: each mission is one outcome with its own state machine and an evidence-backed definition of done. Missions compose best-of-breed worker recipes (mattpocock, gstack, addyosmani) over Orca — one router per worker. No vendor-named fleets. MIT.",
   "version": "0.4.0",
   "author": {
     "name": "Ravindra Kumar",

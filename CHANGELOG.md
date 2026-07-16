@@ -32,6 +32,19 @@ overlap check, contribution decision, DCO/CONTRIBUTING etiquette) and enters at
 review-assist comments) is in `docs/runs/`. `validate.py` now holds `oss-contribute`
 to the mutating-mission evidence-manifest standard.
 
+`oss-contribute` also gained a post-open PR follow-up loop: a PR is not
+fire-and-forget, so the unit stays live (watch, triage each review thread against
+the current head, fix valid ones as fix rounds on the same branch, answer every
+thread) until merged, closed, or quiet. Adds the `FOLLOWED_UP` ledger flag.
+
+Made the catalog messaging count-agnostic so adding a mission no longer means
+rewriting counts across the docs. The README badges now read dynamically (version
+from `plugin.json`, mission and test counts from generated `assets/badges/*.json`
+via `scripts/gen-badges.py`); the manifest descriptions dropped the count and the
+mission enumeration; and `validate.py` gained three guards — a count-lint that
+fails on any hardcoded catalog count in the doc surfaces, a keyword check that
+every mission is in `plugin.json` keywords, and a badge-freshness check.
+
 ## [0.3.0] - 2026-07-13
 
 Syncs the runtime policies with the current Orca `orchestration` and `orca-cli`

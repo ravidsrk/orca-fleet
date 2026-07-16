@@ -43,7 +43,13 @@ run OUTSIDE an Orca-managed terminal is usually the GNOME screen reader — use 
 Re-dispatch to an already-used terminal handle is a NO-OP — a dead or silent worker gets a FRESH
 terminal, never a re-inject. The bounded re-Enter loop in the submit step is safe because an extra
 Enter on an already-submitted claude prompt is an empty submit; the heartbeat check, not the send,
-is the authoritative verdict.
+is the authoritative verdict — with one caveat: heartbeats are agent-dependent. codex workers often
+emit none (and slow claude boots exceed short poll windows), so a spawn-time exit 3 is a POSSIBLE
+false negative — READ THE PANE before respawning. A live TUI is a working worker; respawning beside
+it creates a dual-writer in the unit worktree. Two field runs hit exactly this.
+A pane can also OUTLIVE its accepted `worker_done` under a new handle and keep working — close the
+unit's builder pane when its `worker_done` is accepted, or an out-of-band push voids review
+freshness mid-cycle (reviewed-sha-freshness.md; observed in the field).
 
 ## Wrong-base detection (M-5 guardrail)
 
