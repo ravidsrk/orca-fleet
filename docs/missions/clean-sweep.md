@@ -8,7 +8,7 @@
 **Skill:** [`skills/clean-sweep/SKILL.md`](../../skills/clean-sweep/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes
 
 <p align="center">
-  <img src="../../assets/diagrams/missions/clean-sweep.jpg" alt="A stack of issue cards on a conveyor through triage, fix, and verify stations, ending in an empty tray labeled zero with a re-enumerate loop back to the stack" width="820">
+  <img src="../../assets/diagrams/missions/clean-sweep.jpg" alt="State machine: ENUMERATE the full denominator at T0, SKEPTIC-TRIAGE with a batch human gate for refuted and duplicate closes, FREEZE, parallel fix-and-PR workers, build-blind REVIEW, LAND, CLOSE with merge SHA and red-first test, RE-ENUMERATE looping on new items until DRY" width="820">
 </p>
 
 ---
@@ -148,6 +148,35 @@ rebuilt from provenance with RESUME, ledger-scoped and git-verified.
 The final enumeration output is pasted into the ledger showing the dry state, and
 `source=tracker` runs reconcile mid-run creations and closures against `T0` — no quietly
 shrinking denominator, no honest-looking partial "done".
+
+## A worked example
+
+The ask: a security review left `docs/audit-2026-06.md` with 14 findings.
+
+> clean-sweep docs/audit-2026-06.md
+
+**Enumerate → triage.** All 14 land in the ledger at T0. Skeptic-triage reproduces each claim
+before anyone builds: 9 confirm (one of which needs a policy decision no agent may make), 3 are
+refuted with evidence (one "SQL injection" is a parameterized query the auditor misread), and
+2 duplicate other findings already in the set.
+
+**The batch gate.** Closing an issue without a fix is one-way, so the 3 refuted + 2 duplicate
+closes queue for a single human approval — you answer once, not five times.
+
+**Per-finding pipeline.** Finding 7 (IDOR on `/api/orders/:id`) gets a worker in its own
+worktree: red-first test asserting 403 for a foreign order, minimal fix, PR #112, build-blind
+review, conductor merge. Its row advances only as each verify lands:
+
+```
+| task_c7 | F7 IDOR /api/orders | BUILT t | PR_OPEN t | BOT t | REVIEWED t | MERGED t | WT_CLEAN t |  | #112 @ 4be9a02, red-first 71d3c |
+```
+
+**Re-enumerate until dry.** The sweep re-reads the audit: 8 findings fixed with merge SHAs,
+5 closed by the batch gate, 1 parked `needs-human` (the key-rotation policy call) — 14
+accounted for, plus one new finding surfaced by a fix round that entered the same loop and
+landed fixed. The second enumeration returns zero non-terminal items, but a park is still
+open, so the honest terminal is **DRY-WITH-PARKED**, never `DRY` — and the promotion PR opens
+with the full close table, the park named in it.
 
 ## Failure modes this mission is built to prevent
 

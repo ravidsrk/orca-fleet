@@ -7,7 +7,7 @@
 **Skill:** [`skills/speed-it/SKILL.md`](../../skills/speed-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes
 
 <p align="center">
-  <img src="../../assets/diagrams/missions/speed-it.jpg" alt="A latency curve over user journeys dipping below a glowing budget line; a red slow segment turns blue after a fix" width="820">
+  <img src="../../assets/diagrams/missions/speed-it.jpg" alt="State machine: DECLARE the metric contract before any number, BASELINE every journey, RANK by gap times traffic, DIAGNOSE one dominant cause, FIX with a PR per hotspot plus CI guard, PROVE by driving the journey, LAND, RE-BENCHMARK looping while breaches remain, ending WITHIN-BUDGET or OPTIMIZED-WITH-PARKED" width="820">
 </p>
 
 ---
@@ -121,6 +121,30 @@ is exactly the overclaim the measurement contract exists to prevent.
 - no metric is fabricated — pasted numbers are spot-checked against their artifacts;
 - CI budgets are in place, so the wins are guarded after the run ends;
 - no fix changed behavior — fast-but-wrong is a bug the review must catch, not a win.
+
+## A worked example
+
+The ask: checkout feels slow. Budget: p95 ≤ 2.5s for the three declared journeys.
+
+**Declare before measuring.** Per metric, a contract: p95 over 30 scripted runs, cold cache,
+4× CPU throttle, the staging data snapshot, run-to-run variance recorded. No number exists
+before its contract does — that is what makes "fixed it" falsifiable later.
+
+**Baseline → rank.** Browse and search sit inside budget; checkout breaches at p95 3.8s.
+Ranked by gap × traffic, checkout is the only hotspot worth a wave.
+
+**Diagnose to ONE dominant cause.** The profile shows 42 near-identical queries per checkout —
+an N+1 on cart items — dwarfing everything else. The worker names that single cause in the
+ledger; a fix PR that cannot name its cause does not open.
+
+**Fix + guard.** A batched loader takes the journey from 3.8s → 2.1s, measured to the same
+contract, before/after in the PR body. The same PR adds the CI guard: a query-count assertion
+(≤ 3 per checkout) that turns a regression into a red build instead of a slow quarter.
+
+**Re-benchmark → terminal.** All three journeys measure inside budget: **WITHIN-BUDGET**. The
+counter-case is worth knowing: had image weight on browse breached with the fix being a CDN
+migration, that journey would park with a human reference and the run would end
+`OPTIMIZED-WITH-PARKED` — parked with a name, never quietly dropped.
 
 ## Failure modes this mission is built to prevent
 

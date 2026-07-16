@@ -7,7 +7,7 @@
 **Skill:** [`skills/ship-it/SKILL.md`](../../skills/ship-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes
 
 <p align="center">
-  <img src="../../assets/diagrams/missions/ship-it.jpg" alt="Pipeline stages freeze, build, review, prove, land ending in a hexagonal PROMOTION_READY badge, with parallel builder lanes inside the build stage" width="820">
+  <img src="../../assets/diagrams/missions/ship-it.jpg" alt="State machine: FREEZE (gate 1, you confirm the spec) through DECOMPOSE, parallel slice builders, build-blind REVIEW with bounded fix rounds, PROVE at the real entry point, LAND via one merge train, to PROMOTION_READY (gate 2, you merge), then RELEASED and DEPLOYED_AND_VERIFIED" width="820">
 </p>
 
 ---
@@ -138,6 +138,36 @@ Everything else is classified mechanical (auto-resolved, audited in the ledger) 
 - the manifest names the terminal release state with its evidence — merge SHA, deploy revision,
   canary verdict;
 - everything noticed but not touched is in a backlog file.
+
+## A worked example
+
+The ask: passwordless login for a Next.js + Postgres app.
+
+> ship this: magic-link login — email a signed link, 15-minute expiry, reuse the existing
+> session middleware
+
+**Freeze (gate 1).** The coordinator grills you, one question at a time, recommendation attached:
+
+> Token storage — (a) stateless signed JWT in the link (recommended: no schema change; revocation
+> only by expiry) or (b) DB-backed one-time token (revocable, adds a table + cleanup)?
+
+You pick (b) — support wants revocation. The frozen spec carries five acceptance criteria
+(AC-1 request endpoint … AC-5 rate limit) and two non-goals (no SSO, no account merge).
+
+**Decompose → build.** The token table + mailer seam is foundation and serializes; three slices
+build in parallel behind it, each from a failing test. Mid-build, one ledger row reads:
+
+```
+| task_a41 | AC-3 verify+session | BUILT t | PR_OPEN t | BOT t | REVIEWED f | MERGED f | WT_CLEAN f |  | PR #214 @ 9c1f2e0 |
+```
+
+**Review → prove → land.** The build-blind reviewer fails AC-3 once (missing expired-token
+case); one fix round passes. RUNTIME-PROVE drives the real flow — request a link against the
+dev server, extract it from the mail sink, verify, assert the session cookie — and files the
+transcript as an artifact. The conductor merges the train; every row ends `MERGED t · WT_CLEAN t`.
+
+**Promotion (gate 2).** The fleet opens the promotion PR with its traceability table (AC ↔ PR ↔
+test ↔ merge SHA) and stops at `PROMOTION_READY`. Merging to `main` is your click, not its.
 
 ## Failure modes this mission is built to prevent
 

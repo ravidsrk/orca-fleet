@@ -137,6 +137,10 @@ stops. Merging that PR is human gate #2 — always yours.
   <img src="../assets/diagrams/first-run.jpg" alt="A single command prompt fans out into a fleet of worker terminals over a node graph, converging into one evidence document stamped with a checkmark" width="820">
 </p>
 
+For a blow-by-blow of a real run — including the incidents and what the coordinator did about
+them — read [Anatomy of a run](guides/anatomy-of-a-run.md), which walks the actual ledger of
+the chimely sweep hour by hour.
+
 A fleet is not one scrolling transcript. Expect:
 
 - **The coordinator terminal** — where you started. It narrates phases, dispatches, and
@@ -178,6 +182,24 @@ You will be interrupted only for:
 | Promotion to the default branch  | end of ship-it / clean-sweep | Review the traceability table on the PR, then merge it yourself. |
 | Refuted/duplicate closes (batch) | clean-sweep                | Skim the refutation evidence; approve as a batch or pull items out. |
 | One-way remediations             | harden-it (e.g. secret rotation) | Do the action, then confirm — the mission counts it done only when *verified*, not when acknowledged. |
+
+Here is what an actual gate looks like when it reaches you — a question from a freeze
+session, recommendation attached, one question at a time:
+
+```
+DECISION (freeze grill) · spec/magic-link · token storage
+  (a) signed JWT in the link — stateless, no schema change; revocation only by expiry  [recommended]
+  (b) DB-backed one-time token — revocable, adds a table + a cleanup job
+Reply 'a' or 'b'. No timeout default — the freeze is a one-way gate, and its questions wait.
+```
+
+Freeze questions block by design: the freeze itself is a one-way door, so nothing is defaulted
+on your behalf. A **taste** gate mid-run looks similar but never blocks — the fleet takes the
+recommendation, keeps working, and batches the decision for your later veto. Answer in one
+character and the run moves; ask "why" and the coordinator argues its case. If the fleet
+believes YOUR stated direction is wrong, that disagreement is never auto-decided — your
+direction stands as the default while the fleet names its case, its blind spots, and the cost
+of being wrong.
 
 An unattended run never fakes your answer: unanswerable one-way questions get parked with the
 run continuing elsewhere, or the run winds down and tells you what it was blocked on.

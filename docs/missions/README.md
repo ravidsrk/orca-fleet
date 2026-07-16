@@ -24,4 +24,6 @@ for the human deciding what to run and what to expect.
 | 🔬 [root-cause](root-cause.md)     | A reproduced symptom and a demonstrated cause — diagnosis only |
 
 Not sure which one? The [decision flowchart in the README](../../README.md#which-mission-do-i-want)
-routes by what you have in hand: a goal, a set of known problems, or a question.
+routes by what you have in hand: a goal, a set of known problems, or a question. Every guide
+ends with a worked example; for a real run with its incidents intact, read
+[Anatomy of a run](../guides/anatomy-of-a-run.md).

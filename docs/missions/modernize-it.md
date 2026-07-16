@@ -7,7 +7,7 @@
 **Skill:** [`skills/modernize-it/SKILL.md`](../../skills/modernize-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes
 
 <p align="center">
-  <img src="../../assets/diagrams/missions/modernize-it.jpg" alt="A dependency tree migrating through expand, migrate, and contract gates from dim old nodes to bright new ones while a CI light stays green" width="820">
+  <img src="../../assets/diagrams/missions/modernize-it.jpg" alt="State machine: INVENTORY outdated packages and advisories, ORDER by the compatibility graph, UPGRADE one dep or coherent group per PR, a stateful-schema-change fork handing off to ship-it, build-blind REVIEW, PROVE, LAND with CI green at every merge, RE-INVENTORY looping until CURRENT or CURRENT-WITH-PINNED" width="820">
 </p>
 
 ---
@@ -141,6 +141,35 @@ Everything else is classified mechanical or taste and resolved per policy.
 - the advisory scan re-runs clean, or each remaining advisory is parked with a reachability
   rationale;
 - the final inventory is pasted.
+
+## A worked example
+
+The ask: a two-year-unmaintained React app — 40 outdated packages, 3 security advisories.
+
+**Inventory with reachability.** Advisories triage first: one CVE sits in a lodash function the
+app never calls (noted, still patched in the cheap wave); one is reachable from the upload
+path and jumps the queue.
+
+**Order by the compatibility graph.** The reachable security fix ships alone and first. The
+clean patch/minors follow as coherent groups — one PR per group that genuinely moves together
+(the test stack, the lint stack), each CI-green before the next merges; one all-40 mass-bump
+PR would be the documented anti-pattern. React 17→18 is a lone major: its own PR, codemods
+applied, call sites adapted, `ReactDOM.render` → `createRoot` shims where third-party code lags.
+
+**The stateful fork.** The ORM major renames a column type — a destructive migration. That is
+not a dependency bump; it exits through the diamond: a handoff brief to `ship-it`, and the two
+packages that depend on the new ORM park behind it. This mission never improvises a schema
+change past its own gates.
+
+**The pin gate.** `draft-js` is abandoned upstream and its replacement is a product decision.
+Pinning is a human gate: written reason, your reference, revisit date — recorded in the ledger,
+not silently skipped.
+
+**Re-inventory → terminal.** The loop re-runs until the inventory is dry for everything this
+mission may touch. The terminal report names both exceptions: the `draft-js` pin (justified,
+human-referenced) and the ORM group still parked behind its `ship-it` handoff, which re-enters
+the inventory once that migration lands. **CURRENT-WITH-PINNED**, CI green at every single
+merge along the way — and no upgrade silently dropped from the tally.
 
 ## Failure modes this mission is built to prevent
 
