@@ -108,6 +108,27 @@ class TestArchitecture(unittest.TestCase):
                     f"{proto_dir.name}/{f.name} is composed by no mission (orphan)",
                 )
 
+    def test_wip_cap_is_a_ledger_header_contract(self):
+        # The 2026-07-15 chimely run dispatched a 4-builder wave with no WIP field in
+        # its ledger header — the cap existed only as doctrine, so nothing held the
+        # wave. The header template, the producer-side policy, and the row-flag rule
+        # must all carry the contract; an edit that drops any one of them re-opens it.
+        header_spec = (RUNTIME / "liveness-resume.md").read_text(encoding="utf-8")
+        self.assertIn(
+            "WIP: builders=", header_spec,
+            "liveness-resume.md header template lost the WIP field",
+        )
+        budget = (RUNTIME / "attention-budget.md").read_text(encoding="utf-8")
+        self.assertRegex(
+            budget, r"(?i)required ledger-header field",
+            "attention-budget.md no longer declares WIP a required header field",
+        )
+        ledger = (RUNTIME / "ledger-contract.md").read_text(encoding="utf-8")
+        self.assertRegex(
+            ledger, r"(?i)row is the record",
+            "ledger-contract.md lost the row-is-the-record rule",
+        )
+
     def test_pm_parses_heartbeat_interleaved_stream(self):
         # pm.py's whole job: decode message batches from a stream that interleaves
         # _heartbeat objects and malformed segments, and print each message WITH its id
