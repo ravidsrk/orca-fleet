@@ -38,6 +38,10 @@ catalog is built around three things:
 
 ## Coordinators and workers
 
+<p align="center">
+  <img src="../assets/diagrams/fleet-topology.jpg" alt="Fleet topology: a human answers one-way gates; the coordinator holds the ledger and verifier; builder, reviewer, and conductor workers receive dispatches and return evidence" width="820">
+</p>
+
 Every mission runs the same topology on the Orca runtime:
 
 - **One coordinator.** The terminal you started. It decomposes the goal, creates worktrees,
@@ -142,6 +146,10 @@ close, a sha256 inventory of every referenced artifact makes the evidence tamper
 
 ## Decision gates: mechanical, taste, one-way
 
+<p align="center">
+  <img src="../assets/diagrams/decision-gates.jpg" alt="Three decision lanes: mechanical flows straight through automatically, taste batches cards and continues, one-way stops at a vault door only a human can open" width="820">
+</p>
+
 Fleets hit hundreds of decisions per run. Sending every one to a human makes autonomy pointless;
 sending none makes it dangerous. So every decision is classified **before** anyone answers
 ([`runtime/gate-classification.md`](../runtime/gate-classification.md)):
@@ -165,6 +173,10 @@ questions get parked and the run continues elsewhere or winds down.
 
 ## The merge train
 
+<p align="center">
+  <img src="../assets/diagrams/merge-train.jpg" alt="A train of PR cars on a single track entering the BASE station; the conductor inspects the lead car; one stale car is diverted to a dashed re-review side track" width="820">
+</p>
+
 Parallel workers opening PRs onto one integration BASE invites two failure modes: merge races
 (PRs rebasing over each other) and stale evidence (merging a SHA the reviewer never saw). The
 cure is boring and absolute ([`runtime/merge-serialization.md`](../runtime/merge-serialization.md)):
@@ -181,6 +193,10 @@ cure is boring and absolute ([`runtime/merge-serialization.md`](../runtime/merge
 
 ## Attention budget (orchestration tax)
 
+<p align="center">
+  <img src="../assets/diagrams/attention-budget.jpg" alt="Many worker terminals funnel toward a narrow neck where one human reviews; only three lanes pass the WIP gate while the rest queue; a single calm outflow is labeled merged" width="820">
+</p>
+
 Starting agents is cheap; closing the loop is not. Your judgment is the serial bottleneck, so
 fleets scale to **verification capacity**, not the UI's spawn limit
 ([`runtime/attention-budget.md`](../runtime/attention-budget.md)). Default mutation waves keep
@@ -191,6 +207,10 @@ fleet from burying you under unreviewed diffs.
 
 ## Reviewed-SHA freshness
 
+<p align="center">
+  <img src="../assets/diagrams/reviewed-sha-freshness.jpg" alt="A commit carries a glowing reviewed seal; the branch advances one commit and the seal over the new head turns dashed red and void; a loop arrow returns for a fresh review" width="820">
+</p>
+
 The single most common way a fleet ships unreviewed code: a branch head that moved *after*
 review. A conductor rebase, a review-bot autofix commit, a builder's late push — all of them void
 the review, by rule ([`runtime/reviewed-sha-freshness.md`](../runtime/reviewed-sha-freshness.md)).
@@ -199,6 +219,10 @@ The merge step refuses on mismatch, and — the part people push back on until i
 restores freshness.
 
 ## Liveness, crash, resume
+
+<p align="center">
+  <img src="../assets/diagrams/liveness-resume.jpg" alt="A heartbeat line flatlines at a red X over a crashed terminal; below, the ledger document seeds a fresh coordinator terminal that reconnects to its workers" width="820">
+</p>
 
 Long runs die in boring ways: a worker hangs, a terminal is killed, the coordinator's machine
 sleeps. The runtime tracks heartbeats and provenance in SQLite; the fleet supplies the reflexes
@@ -217,6 +241,10 @@ sleeps. The runtime tracks heartbeats and provenance in SQLite; the fleet suppli
 
 ## Sandbox profiles
 
+<p align="center">
+  <img src="../assets/diagrams/sandbox-profiles.jpg" alt="Three containment vessels: an open glass dome labeled ro, a workbench box labeled rw, and a sealed chamber labeled danger on a detached disposable platform, pushing a git branch to safety before teardown" width="820">
+</p>
+
 Workers get the least privilege that does their job
 ([`runtime/sandbox-policy.md`](../runtime/sandbox-policy.md)):
 
@@ -233,6 +261,10 @@ sandbox died before the push is a failed lane, not a shrug.
 
 ## One router per worker
 
+<p align="center">
+  <img src="../assets/diagrams/one-router-per-worker.jpg" alt="Three worker desks each hold exactly one glowing playbook; a fourth desk with two overlapping playbooks is struck through with a red X" width="820">
+</p>
+
 Missions draw worker methodology from three upstream packs, and each pack ships its own
 router/meta-skill. Co-mount two and they fight: clashing command names, competing routing,
 conflicting philosophies (one pack folds refactoring into the TDD loop, another puts it in
@@ -241,6 +273,10 @@ composition happens at the mission level — one worker runs Matt-style triage w
 Addy-style security — never inside a single worker's context.
 
 ## Chaining missions
+
+<p align="center">
+  <img src="../assets/diagrams/mission-chaining.jpg" alt="A chain of mission links joined by gate valves; the first two glow with checkmarks; the gate before the dim third link is closed with a red bar and requires a human" width="820">
+</p>
 
 "Make this repo production-ready" is not one mission — it is harden-it, then prove-it, then
 ship-it. Chains are deliberately minimal ([`runtime/mission-chaining.md`](../runtime/mission-chaining.md)):
