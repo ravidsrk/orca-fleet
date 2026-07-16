@@ -7,6 +7,10 @@
 
 **Skill:** [`skills/harden-it/SKILL.md`](../../skills/harden-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes
 
+<p align="center">
+  <img src="../../assets/diagrams/missions/harden-it.jpg" alt="A glowing shield over a code grid; attack arrows strike and loop back labeled re-attack; broken arrows lie crossed out; a badge reads CLEAN" width="820">
+</p>
+
 ---
 
 ## What it does

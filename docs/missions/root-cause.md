@@ -8,6 +8,10 @@
 
 **Skill:** [`skills/root-cause/SKILL.md`](../../skills/root-cause/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** **diagnosis only** — the mission runs the diagnose playbook's DIAGNOSIS phases and stops before its fix phase; a fix is a separately authorized handoff
 
+<p align="center">
+  <img src="../../assets/diagrams/missions/root-cause.jpg" alt="A chain of cause nodes leads from a surface failure burst down to a single glowing root node underground, proven under a magnifier with a replay arrow labeled demonstrated" width="820">
+</p>
+
 ---
 
 ## What it does

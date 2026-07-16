@@ -6,6 +6,10 @@
 
 **Skill:** [`skills/modernize-it/SKILL.md`](../../skills/modernize-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes
 
+<p align="center">
+  <img src="../../assets/diagrams/missions/modernize-it.jpg" alt="A dependency tree migrating through expand, migrate, and contract gates from dim old nodes to bright new ones while a CI light stays green" width="820">
+</p>
+
 ---
 
 ## What it does

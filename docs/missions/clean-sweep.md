@@ -7,6 +7,10 @@
 
 **Skill:** [`skills/clean-sweep/SKILL.md`](../../skills/clean-sweep/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes
 
+<p align="center">
+  <img src="../../assets/diagrams/missions/clean-sweep.jpg" alt="A stack of issue cards on a conveyor through triage, fix, and verify stations, ending in an empty tray labeled zero with a re-enumerate loop back to the stack" width="820">
+</p>
+
 ---
 
 ## What it does

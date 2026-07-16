@@ -6,6 +6,10 @@
 
 **Skill:** [`skills/review-it/SKILL.md`](../../skills/review-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** **no** — the catalog's read-only permission boundary
 
+<p align="center">
+  <img src="../../assets/diagrams/missions/review-it.jpg" alt="A code diff examined through four tinted lenses whose beams converge into a single sealed verdict document; no tools anywhere" width="820">
+</p>
+
 ---
 
 ## What it does

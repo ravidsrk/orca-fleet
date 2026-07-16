@@ -6,6 +6,10 @@
 
 **Skill:** [`skills/ship-it/SKILL.md`](../../skills/ship-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes
 
+<p align="center">
+  <img src="../../assets/diagrams/missions/ship-it.jpg" alt="Pipeline stages freeze, build, review, prove, land ending in a hexagonal PROMOTION_READY badge, with parallel builder lanes inside the build stage" width="820">
+</p>
+
 ---
 
 ## What it does

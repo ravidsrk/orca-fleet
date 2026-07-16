@@ -7,6 +7,10 @@
 
 **Skill:** [`skills/map-it/SKILL.md`](../../skills/map-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** **no** — decisions, not deliverables; no production code is written
 
+<p align="center">
+  <img src="../../assets/diagrams/missions/map-it.jpg" alt="A fog bank clears into a crisp DAG map pinned by a freeze pin, handed off toward a waiting pipeline" width="820">
+</p>
+
 ---
 
 ## What it does
