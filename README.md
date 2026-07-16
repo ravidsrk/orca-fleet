@@ -119,7 +119,7 @@ where each link proceeds only on the previous mission's verified terminal state 
 ## Which mission do I want?
 
 <p align="center">
-  <img src="assets/diagrams/mission-map.jpg" alt="Decision map: a goal routes to map-it then ship-it; known problems route to clean-sweep, harden-it, speed-it, modernize-it, prove-it, or deflake-it; a question routes to review-it or root-cause" width="900">
+  <img src="assets/diagrams/mission-map.jpg" alt="Decision map: a goal routes to map-it then ship-it; known problems route to clean-sweep, oss-contribute, harden-it, speed-it, modernize-it, prove-it, or deflake-it; a question routes to review-it or root-cause" width="900">
 </p>
 
 <details>
@@ -133,6 +133,7 @@ flowchart TD
     MAP -->|frozen map| SHIP
     S --> B{A set of known problems?}
     B -->|issues / audit findings / lying docs| SWEEP[🧹 clean-sweep]
+    B -->|upstream issues, fork-only access| OSS[🤝 oss-contribute]
     B -->|security posture| HARD[🛡️ harden-it]
     B -->|performance budget| SPEED[⚡ speed-it]
     B -->|outdated dependencies| MOD[📦 modernize-it]
