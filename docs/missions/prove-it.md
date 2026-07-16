@@ -7,6 +7,10 @@
 
 **Skill:** [`skills/prove-it/SKILL.md`](../../skills/prove-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes — tests, plus small clear fixes for surfaced bugs
 
+<p align="center">
+  <img src="../../assets/diagrams/missions/prove-it.jpg" alt="A woven net of glowing test nodes stretched under a legacy code block; one red node spawns a nested repair loop; labels characterize and red first" width="820">
+</p>
+
 ---
 
 ## What it does

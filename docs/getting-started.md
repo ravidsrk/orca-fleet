@@ -56,15 +56,15 @@ ln -s "$(pwd)/skills/ship-it"   ~/.claude/skills/ship-it
 ln -s "$(pwd)/skills/review-it" ~/.claude/skills/review-it
 ```
 
-**Plugin (whole catalog).** The manifest at `.claude-plugin/plugin.json` installs all ten
-missions at once; the relative references resolve inside the copied plugin directory:
+**Plugin (whole catalog).** The manifest at `.claude-plugin/plugin.json` installs the entire
+mission catalog at once; the relative references resolve inside the copied plugin directory:
 
 ```
 /plugin marketplace add ravidsrk/orca-fleet
 /plugin install orca-fleet
 ```
 
-Confirm the install by asking your agent "which missions are available?" — the ten
+Confirm the install by asking your agent "which missions are available?" — the
 outcome-named skills should list. If a mission is visible but errors on start about missing
 playbooks, you copied instead of linking.
 
@@ -132,6 +132,10 @@ BASE, verifying ancestry and reviewed-SHA freshness. The fleet opens the BASE �
 stops. Merging that PR is human gate #2 — always yours.
 
 ## What you will see while a fleet runs
+
+<p align="center">
+  <img src="../assets/diagrams/first-run.jpg" alt="A single command prompt fans out into a fleet of worker terminals over a node graph, converging into one evidence document stamped with a checkmark" width="820">
+</p>
 
 A fleet is not one scrolling transcript. Expect:
 

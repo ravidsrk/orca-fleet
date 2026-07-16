@@ -315,6 +315,7 @@ def check_evals():
 # if a number creeps back. Adding a mission must not mean rewriting counts everywhere.
 COUNT_LINT_FILES = (
     "README.md", "ARCHITECTURE.md", "AGENTS.md", "docs/concepts.md",
+    "docs/getting-started.md",
     "CONTRIBUTING.md", ".claude-plugin/plugin.json", ".claude-plugin/marketplace.json",
 )
 # Catalog-SIZE phrasings only: a digit before "missions" ("11 missions"), a spelled

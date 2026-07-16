@@ -6,6 +6,10 @@
 
 **Skill:** [`skills/speed-it/SKILL.md`](../../skills/speed-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes
 
+<p align="center">
+  <img src="../../assets/diagrams/missions/speed-it.jpg" alt="A latency curve over user journeys dipping below a glowing budget line; a red slow segment turns blue after a fix" width="820">
+</p>
+
 ---
 
 ## What it does

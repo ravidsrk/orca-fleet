@@ -5,10 +5,15 @@ with its phases, terminal states, human gates, convergence proof, and the failur
 built to prevent. The agent-facing contracts live in [`skills/`](../../skills/); these pages are
 for the human deciding what to run and what to expect.
 
+<p align="center">
+  <img src="../../assets/diagrams/mission-map.jpg" alt="Decision map: a goal routes to map-it then ship-it; known problems route to clean-sweep, harden-it, speed-it, modernize-it, prove-it, or deflake-it; a question routes to review-it or root-cause" width="820">
+</p>
+
 | Guide | One line |
 |-------|----------|
-| 🚢 [ship-it](ship-it.md)           | Intent or a frozen spec → a released, verified change |
-| 🧹 [clean-sweep](clean-sweep.md)   | A finite backlog exhausted to zero, PR-per-finding, re-enumerated until dry |
+| 🚢 [ship-it](ship-it.md)                 | Intent or a frozen spec → a released, verified change |
+| 🧹 [clean-sweep](clean-sweep.md)         | A finite backlog exhausted to zero, PR-per-finding, re-enumerated until dry |
+| 🤝 [oss-contribute](oss-contribute.md)   | Upstream issues → open, reviewed, etiquette-correct PRs on a repo you cannot merge |
 | 🛡️ [harden-it](harden-it.md)       | A threat model closed: audit → exploit → fix → re-attack → clean re-audit |
 | ⚡ [speed-it](speed-it.md)          | Every declared journey within its perf budget, proven to a measurement contract |
 | 📦 [modernize-it](modernize-it.md) | Every dependency current or pinned-with-a-reason, CI green the whole way |

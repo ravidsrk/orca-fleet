@@ -6,6 +6,10 @@
 
 **Skill:** [`skills/deflake-it/SKILL.md`](../../skills/deflake-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes
 
+<p align="center">
+  <img src="../../assets/diagrams/missions/deflake-it.jpg" alt="A jittery signal line enters a reproduction chamber and exits perfectly flat and stable; crossed-out dice mark the end of chance" width="820">
+</p>
+
 ---
 
 ## What it does
