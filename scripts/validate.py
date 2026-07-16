@@ -338,14 +338,18 @@ def check_doc_counts():
         if not p.exists():
             continue
         for i, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1):
-            if "predecessor" in line.lower():
-                continue  # historical count about the prior repo, not this catalog
             m = COUNT_LINT_RE.search(line)
-            if m:
-                failures.append(
-                    f"{rel}:{i}: hardcoded catalog count '{m.group(0).strip()}' — phrase it "
-                    f"count-agnostically (the badges read the count dynamically)"
-                )
+            if not m:
+                continue
+            # The predecessor's own count is history, not this catalog — but only when
+            # "predecessor" precedes the matched count, so a line carrying BOTH a current
+            # count and a predecessor mention is still flagged.
+            if "predecessor" in line[: m.start()].lower():
+                continue
+            failures.append(
+                f"{rel}:{i}: hardcoded catalog count '{m.group(0).strip()}' — phrase it "
+                f"count-agnostically (the badges read the count dynamically)"
+            )
     return failures
 
 
@@ -368,7 +372,12 @@ def check_manifest_keywords():
 def check_badge_freshness():
     """The generated badge JSON (assets/badges/) must match current repo state, so the
     dynamically-read README badges never go stale. Regenerate with scripts/gen-badges.py."""
-    spec = importlib.util.spec_from_file_location("_gen_badges", ROOT / "scripts" / "gen-badges.py")
+    gen = ROOT / "scripts" / "gen-badges.py"
+    if not gen.is_file():
+        return [f"scripts/gen-badges.py missing at {gen} — the badge pipeline is gone"]
+    spec = importlib.util.spec_from_file_location("_gen_badges", gen)
+    if spec is None or spec.loader is None:
+        return [f"scripts/gen-badges.py unloadable at {gen}"]
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod.check()

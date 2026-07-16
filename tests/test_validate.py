@@ -298,6 +298,18 @@ class TestCountAgnosticGuards(unittest.TestCase):
                  mock.patch.object(validate, "COUNT_LINT_FILES", ("README.md",)):
                 self.assertEqual(validate.check_doc_counts(), [])
 
+    def test_check_doc_counts_predecessor_after_count_still_flags(self):
+        # The exemption is positional: a CURRENT catalog count followed by a predecessor
+        # mention on the same line must still fail the lint.
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "README.md").write_text(
+                "We now have 12 missions, improving on the predecessor's approach.\n",
+                encoding="utf-8")
+            with mock.patch.object(validate, "ROOT", Path(tmp)), \
+                 mock.patch.object(validate, "COUNT_LINT_FILES", ("README.md",)):
+                failures = validate.check_doc_counts()
+        self.assertTrue(any("12 missions" in f for f in failures), failures)
+
     def test_check_manifest_keywords_flags_missing_mission(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
