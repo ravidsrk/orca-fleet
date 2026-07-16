@@ -52,6 +52,12 @@ def badge(label: str, message: str, color: str) -> dict:
 
 
 def compute() -> dict:
+    missing = [d.name for d in (SKILLS_DIR, TESTS_DIR) if not d.is_dir()]
+    if missing:
+        raise RuntimeError(
+            f"cannot compute badges: missing director{'ies' if len(missing) > 1 else 'y'} "
+            + ", ".join(f"{m}/" for m in missing)
+        )
     return {
         "missions.json": badge("missions", str(mission_count()), "1f6feb"),
         "tests.json": badge("contract tests", f"{test_count()} passing", "2ea043"),
@@ -61,7 +67,11 @@ def compute() -> dict:
 def check() -> list[str]:
     """Return a list of stale-badge errors (empty if all committed files are current)."""
     errors = []
-    for name, want in compute().items():
+    try:
+        wanted = compute()
+    except RuntimeError as err:
+        return [str(err)]
+    for name, want in wanted.items():
         path = BADGES_DIR / name
         if not path.exists():
             errors.append(f"assets/badges/{name} missing — run scripts/gen-badges.py")

@@ -271,7 +271,7 @@ class TestCountAgnosticGuards(unittest.TestCase):
 
     def test_count_lint_matches_catalog_counts(self):
         for s in ("11 missions", "eleven missions", "twelve missions", "10 outcome-named",
-                  "11 callable"):
+                  "11 callable", "eleven outcome-named", "twelve callable"):
             self.assertRegex(s, validate.COUNT_LINT_RE, s)
 
     def test_count_lint_ignores_mission_identity_prose(self):
@@ -321,18 +321,35 @@ class TestCountAgnosticGuards(unittest.TestCase):
         self.assertEqual(validate.check_badge_freshness(), [])
 
     def test_badge_check_flags_stale(self):
+        # tests.json is written CURRENT so the only error can come from missions.json's
+        # staleness — a "missing file" error must not be able to satisfy this test.
+        import json as _json
         spec = importlib.util.spec_from_file_location("_gb", ROOT / "scripts" / "gen-badges.py")
         gb = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(gb)
+        current = gb.compute()
         with tempfile.TemporaryDirectory() as tmp:
             bd = Path(tmp) / "badges"
             bd.mkdir()
             (bd / "missions.json").write_text(
                 '{"schemaVersion": 1, "label": "missions", "message": "999", "color": "1f6feb"}',
                 encoding="utf-8")
+            (bd / "tests.json").write_text(_json.dumps(current["tests.json"]), encoding="utf-8")
             with mock.patch.object(gb, "BADGES_DIR", bd):
                 errs = gb.check()
-        self.assertTrue(any("stale" in e or "missing" in e for e in errs), errs)
+        self.assertEqual(len(errs), 1, errs)
+        self.assertIn("missions.json", errs[0])
+        self.assertIn("stale", errs[0])
+
+    def test_badge_check_reports_missing_dirs_cleanly(self):
+        # A fresh checkout without skills/ must produce an error string, not a traceback.
+        spec = importlib.util.spec_from_file_location("_gb2", ROOT / "scripts" / "gen-badges.py")
+        gb = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(gb)
+        with tempfile.TemporaryDirectory() as tmp:
+            with mock.patch.object(gb, "SKILLS_DIR", Path(tmp) / "nope"):
+                errs = gb.check()
+        self.assertTrue(errs and "missing" in errs[0], errs)
 
 
 if __name__ == "__main__":

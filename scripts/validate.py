@@ -324,7 +324,7 @@ COUNT_LINT_FILES = (
 _SPELLED = ("ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|"
             "nineteen|twenty")
 COUNT_LINT_RE = re.compile(
-    rf"\b(?:\d+\s+missions|(?:{_SPELLED})\s+missions|\d+\s+(?:outcome-named|callable))\b",
+    rf"\b(?:\d+|{_SPELLED})\s+(?:missions|outcome-named|callable)\b",
     re.IGNORECASE,
 )
 
