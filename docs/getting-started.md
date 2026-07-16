@@ -64,7 +64,7 @@ mission catalog at once; the relative references resolve inside the copied plugi
 /plugin install orca-fleet
 ```
 
-Confirm the install by asking your agent "which missions are available?" — the ten
+Confirm the install by asking your agent "which missions are available?" — the
 outcome-named skills should list. If a mission is visible but errors on start about missing
 playbooks, you copied instead of linking.
 
