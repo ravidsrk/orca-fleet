@@ -139,18 +139,20 @@ is void by construction — that is the point of pinning first.
 
 **Axes in isolation.** Three acceptance axes run as parallel read-only workers, none seeing the
 others' notes: standards (does it follow this repo's documented conventions), spec (does it do
-what the linked issue asked), test-adequacy (do the tests pin the new behavior). The diff
-touches a retry/dedupe path, so the data-integrity risk lens is triggered on scope; the
-security lens records a gate-off (no auth surface in the diff — the *recorded* part is what
-keeps the skip honest).
+what the linked issue asked), test-adequacy (do the tests pin the new behavior). The risk
+lenses are scope-gated: no auth surface, no schema or data migration, no UI, no perf-sensitive
+path in this diff — so every lens records a gate-off with its reason. The *recorded* part is
+what keeps the skip honest.
 
 **Aggregate with an anti-FP gate.** Axis workers over-report by design; the aggregator's job is
 to kill findings that do not survive a second look. Four findings reduce to two: the dedupe
-window shrinks under DST transitions (data-integrity, P1), and two retry tests assert the mock
-rather than the outcome (test-adequacy, P2).
+window shrinks under DST transitions (spec — the linked issue promised exactly-once inside the
+window — severity **Required**), and two retry tests assert the mock rather than the outcome
+(test-adequacy, **Required**).
 
-**Verdict.** **NO-GO** at `8c44e1f`, two findings attached with file:line and a named check
-each. No fix authority: the mission ends at the verdict. Acting on it — dispatching a fix, or
+**Verdict.** **NO-GO** at `8c44e1f`, driven by the two Required findings (the taxonomy is
+Critical / Required / Nit / Optional / FYI, and Critical or Required is what flips the gate),
+each attached with file:line and a named check. No fix authority: the mission ends at the verdict. Acting on it — dispatching a fix, or
 merging anyway — is your one-way door, not the fleet's. (This mission's proof status comes from
 exactly such a run: the NO-GO on a live gstack PR linked from the frontmatter.)
 

@@ -156,11 +156,12 @@ The ask: a security review left `docs/audit-2026-06.md` with 14 findings.
 > clean-sweep docs/audit-2026-06.md
 
 **Enumerate → triage.** All 14 land in the ledger at T0. Skeptic-triage reproduces each claim
-before anyone builds: 9 confirm, 3 are refuted with evidence (one "SQL injection" is a
-parameterized query the auditor misread), 2 duplicate each other.
+before anyone builds: 9 confirm (one of which needs a policy decision no agent may make), 3 are
+refuted with evidence (one "SQL injection" is a parameterized query the auditor misread), and
+2 duplicate other findings already in the set.
 
-**The batch gate.** Closing an issue without a fix is one-way, so the 3 refuted + 1 duplicate
-closes queue for a single human approval — you answer once, not four times.
+**The batch gate.** Closing an issue without a fix is one-way, so the 3 refuted + 2 duplicate
+closes queue for a single human approval — you answer once, not five times.
 
 **Per-finding pipeline.** Finding 7 (IDOR on `/api/orders/:id`) gets a worker in its own
 worktree: red-first test asserting 403 for a foreign order, minimal fix, PR #112, build-blind
@@ -170,10 +171,12 @@ review, conductor merge. Its row advances only as each verify lands:
 | task_c7 | F7 IDOR /api/orders | BUILT t | PR_OPEN t | BOT t | REVIEWED t | MERGED t | WT_CLEAN t |  | #112 @ 4be9a02, red-first 71d3c |
 ```
 
-**Re-enumerate until dry.** The sweep re-reads the audit: 9 fixed with merge SHAs, 4 closed by
-the batch gate, 1 parked `needs-human` (a key-rotation policy call). One new finding surfaced
-by a fix round enters the same loop. The second enumeration returns zero non-terminal items —
-**DRY** — and the promotion PR opens with the full close table.
+**Re-enumerate until dry.** The sweep re-reads the audit: 8 findings fixed with merge SHAs,
+5 closed by the batch gate, 1 parked `needs-human` (the key-rotation policy call) — 14
+accounted for, plus one new finding surfaced by a fix round that entered the same loop and
+landed fixed. The second enumeration returns zero non-terminal items, but a park is still
+open, so the honest terminal is **DRY-WITH-PARKED**, never `DRY` — and the promotion PR opens
+with the full close table, the park named in it.
 
 ## Failure modes this mission is built to prevent
 

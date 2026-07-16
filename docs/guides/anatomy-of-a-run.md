@@ -129,13 +129,19 @@ post-mortem, promoted to protocol.
 
 ## Closing honestly
 
-The run closed `DRY-WITH-PARKED`: ten issues at T0, every one at a named terminal — five
-upstream PRs (#81-#85), four assist comments, three `needs-human` parks — with a re-enumeration
-pasted into the ledger proving the set was stable (10 open at T0, 10 at close, 0 new since T0).
-The unmerged unit worktrees were **retained**, not force-cleaned: their branches backed open
-PRs, and [`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) forbids destroying
-unmerged evidence. They were removed only at session close, each verified clean and pushed
-first. Even the follow-up was ledgered: every post-open bot review thread on all five PRs was
+The ledger closed `DRY-WITH-PARKED (contribution mode)` — the run had begun as `clean-sweep`
+and its ledger kept that mission's vocabulary to the end. The run report, written after the
+mission was extracted mid-flight, names the same terminal `CONTRIBUTED-WITH-PARKED` in
+`oss-contribute`'s vocabulary, whose convergence proof never claims a merge the fleet cannot
+perform. Same facts, two honest names; the rename is itself part of the extraction story. Ten
+issues at T0, every one at a named terminal — five upstream PRs (#81-#85), four assist
+comments, three `needs-human` parks — with a re-enumeration pasted into the ledger proving the
+set was stable (10 open at T0, 10 at close, 0 new since T0). The unmerged unit worktrees were
+**retained** at run close, not force-cleaned: their branches backed open PRs, and
+[`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) forbids destroying unmerged
+evidence. Only at session close were the worktrees retired, each branch first verified clean
+and pushed to the fork — the local checkout goes, the branch and its evidence survive on the
+remote, which is exactly what the never-destroy-unmerged-evidence guard protects. Even the follow-up was ledgered: every post-open bot review thread on all five PRs was
 triaged against the current head and answered — the `FOLLOWED_UP` flag this run added to the
 mission.
 

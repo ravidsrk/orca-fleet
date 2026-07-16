@@ -150,9 +150,11 @@ The ask: a two-year-unmaintained React app — 40 outdated packages, 3 security 
 app never calls (noted, still patched in the cheap wave); one is reachable from the upload
 path and jumps the queue.
 
-**Order by the compatibility graph.** Wave 1: security-critical + all clean patch/minors in one
-PR — CI green, merged same hour. React 17→18 is a lone major: its own PR, codemods applied,
-call sites adapted, `ReactDOM.render` → `createRoot` shims where third-party code lags.
+**Order by the compatibility graph.** The reachable security fix ships alone and first. The
+clean patch/minors follow as coherent groups — one PR per group that genuinely moves together
+(the test stack, the lint stack), each CI-green before the next merges; one all-40 mass-bump
+PR would be the documented anti-pattern. React 17→18 is a lone major: its own PR, codemods
+applied, call sites adapted, `ReactDOM.render` → `createRoot` shims where third-party code lags.
 
 **The stateful fork.** The ORM major renames a column type — a destructive migration. That is
 not a dependency bump; it exits through the diamond: a handoff brief to `ship-it`, and the two
@@ -163,8 +165,11 @@ change past its own gates.
 Pinning is a human gate: written reason, your reference, revisit date — recorded in the ledger,
 not silently skipped.
 
-**Re-inventory → terminal.** The loop re-runs until the inventory is dry: everything current
-except one justified pin — **CURRENT-WITH-PINNED**, CI green at every single merge along the way.
+**Re-inventory → terminal.** The loop re-runs until the inventory is dry for everything this
+mission may touch. The terminal report names both exceptions: the `draft-js` pin (justified,
+human-referenced) and the ORM group still parked behind its `ship-it` handoff, which re-enters
+the inventory once that migration lands. **CURRENT-WITH-PINNED**, CI green at every single
+merge along the way — and no upgrade silently dropped from the tally.
 
 ## Failure modes this mission is built to prevent
 
