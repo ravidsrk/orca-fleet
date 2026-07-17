@@ -49,4 +49,8 @@ regenerated via `gen-badges.py` at each serial merge.
 ## Evidence
 
 Ledger + per-unit manifests: `.clean-sweep/LEDGER.md`, `.clean-sweep/triage-report.md`.
-Promotion PR carries the closing keywords; merge to main is the owner's one-way gate.
+Per-unit SHA-bound evidence manifests live in each PR body (#53-#64); every close links its
+merge SHA and its failed-pre-fix test. The run-close sha256 integrity inventory is retained at
+`.clean-sweep/` in the coordinator worktree (`redhorse`), alongside the ledger — the artifacts
+outlive the disposable unit worktrees, which were verified-and-retired at merge.
+Promotion PR #65 carried the closing keywords; merge to main is the owner's one-way gate.
