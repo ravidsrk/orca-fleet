@@ -1,5 +1,10 @@
 # Addy Osmani orchestration articles × orca-fleet — gap analysis & adoption map
 
+> **Dated snapshot (2026-07-15).** Counts and gap statuses below ("all 10 skills, all 10
+> playbooks") describe the catalog as it stood on this date and are not maintained — the
+> catalog has since grown. Current state: [ARCHITECTURE.md](../../ARCHITECTURE.md) and
+> [concepts](../concepts.md).
+
 **Status:** MAPPED — D1–D4 implemented on `cursor/addy-orchestration-gap-analysis-62a1` (D5–D6 parked; D7–D8 rejected / deferred)  
 **Date:** 2026-07-15  
 **Mission shape:** map-it → ship-it (adoption slices F1–S3)  

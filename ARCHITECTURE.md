@@ -82,6 +82,10 @@ them. These are preserved as runtime policies, not abstracted away:
   `runtime/attention-budget.md`
 - promotion semantics (human gate; merge ≠ deploy) — `runtime/gate-classification.md`
 - gated sequential chains (an audit gates, it never always-flows) — `runtime/mission-chaining.md`
+- scheduled unattended runs via `orca automations` (only missions whose value lands before a
+  one-way gate schedule cleanly) — `runtime/mission-scheduling.md`
+- least-privilege worker profiles (`ro`/`rw`/`danger`; `danger` only in a disposable sandbox,
+  work harvested via git push before teardown) — `runtime/sandbox-policy.md`
 
 ## Proof over doctrine
 

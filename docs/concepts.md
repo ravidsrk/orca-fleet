@@ -320,6 +320,7 @@ a *mode* to a mission, run it twice.
 ---
 
 Deep dives: every mission has its own guide under [docs/missions/](missions/), a real run is
-walked ledger-line by ledger-line in [Anatomy of a run](guides/anatomy-of-a-run.md), and the
-agent-facing sources are [`skills/`](../skills/), [`playbooks/`](../playbooks/), and
+walked ledger-line by ledger-line in [Anatomy of a run](guides/anatomy-of-a-run.md), dated
+research snapshots that informed adoption decisions live in [docs/research/](research/), and
+the agent-facing sources are [`skills/`](../skills/), [`playbooks/`](../playbooks/), and
 [`runtime/`](../runtime/).
