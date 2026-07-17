@@ -162,6 +162,25 @@ class TestArchitecture(unittest.TestCase):
             "a mission dropped its ledger-header template instead of carrying WIP",
         )
 
+    def test_verifier_audits_criterion_test_binding(self):
+        # 2025-2026 grader research (SWE-bench Verified retired after defects in
+        # ≥59% of its hard subset; ImpossibleBench's spec-conflicting tests
+        # exploited 54-76% of the time) showed a green suite proves nothing when
+        # a test does not exercise the criterion it claims to cover. The verifier
+        # table must carry the criterion↔test binding audit, and the manifest
+        # schema must carry the coverage field that audit logs to (#50).
+        manifest = (RUNTIME / "evidence-manifest.md").read_text(encoding="utf-8")
+        self.assertRegex(
+            manifest, r"(?i)binding audit",
+            "evidence-manifest.md verification table lost the criterion↔test "
+            "binding-audit step",
+        )
+        self.assertIn(
+            '"binding_audit"', manifest,
+            "evidence-manifest.md manifest schema lost the binding_audit "
+            "audit-coverage field",
+        )
+
     def test_row_flags_are_the_record(self):
         # The chimely run advanced BUILT/REVIEWED only as dispatch-log prose; every
         # unit row still read all-f at run close, which would have broken a crash
