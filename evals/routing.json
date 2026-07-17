@@ -162,6 +162,27 @@
       "expected_mission": "clean-sweep",
       "type": "negative",
       "reason": "A backlog you own and can merge is clean-sweep (merged-SHA closure), not oss-contribute's PR-open-upstream terminal."
+    },
+    {
+      "id": 24,
+      "prompt": "Fix this broken test — it fails 10 out of 10 runs, same assertion every time.",
+      "expected_mission": "clean-sweep",
+      "type": "negative",
+      "reason": "A deterministically broken test with a findable cause is clean-sweep (deflake-it routes N/N failures there), not deflake-it or prove-it."
+    },
+    {
+      "id": 25,
+      "prompt": "The refund path has no tests — close the coverage gap.",
+      "expected_mission": "prove-it",
+      "type": "negative",
+      "reason": "Missing coverage on a critical path is prove-it; clean-sweep owns broken tests, not absent ones."
+    },
+    {
+      "id": 26,
+      "prompt": "This test fails intermittently — it passes on retry.",
+      "expected_mission": "deflake-it",
+      "type": "negative",
+      "reason": "An intermittent pass-on-retry failure is a flake-rate contract (deflake-it), not a deterministic clean-sweep bug."
     }
   ]
 }

@@ -6,9 +6,10 @@ description: >-
   Each finding is skeptic-triaged (reproduced or refuted with evidence), fixed on an integration
   branch with a failing-first test, build-blind reviewed, merge-verified, and closed with a linked
   SHA; the loop re-enumerates until dry. Use when "clean sweep", "close every issue", "drain the
-  backlog", "fix everything in this audit", "the README lies — verify and fix it". Not for
-  security/perf/deps/tests/flakes (those are harden-it / speed-it / modernize-it / prove-it /
-  deflake-it — different convergence proofs) and not for building new work (ship-it).
+  backlog", "fix everything in this audit", "the README lies — verify and fix it", or a broken
+  test that fails deterministically (N/N, cause findable — deflake-it routes those here). Not for
+  security/perf/deps/coverage-gaps/flakes (those are harden-it / speed-it / modernize-it /
+  prove-it / deflake-it — different convergence proofs) and not for building new work (ship-it).
 license: MIT
 proof: self-run
 proof_evidence: docs/runs/2026-07-13-clean-sweep-self-run.md
@@ -97,8 +98,8 @@ death → RESUME (ledger-scoped, git-verified).
 
 Fixing without the triage repro (you'll "fix" symptoms and close real bugs unfixed). Closing from
 worker memory (only off verified merges). One mega-PR for many findings (merge-serialization exists).
-Truncated enumeration (partial denominator = a false "done"). Owning security/perf/deps/tests/flakes —
-those are separate missions with different convergence proofs.
+Truncated enumeration (partial denominator = a false "done"). Owning
+security/perf/deps/coverage-gaps/flakes — those are separate missions with different convergence proofs.
 
 ## Related
 

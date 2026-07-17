@@ -32,6 +32,7 @@ MISSION_TRIGGERS = {
     "clean-sweep": [
         "close every issue", "drain the backlog", "fix everything", "clean sweep",
         "readme lies", "false doc", "audit findings", "backlog", "finite backlog",
+        "broken test",
     ],
     "oss-contribute": [
         "contribute to this project", "open prs for these upstream issues",
@@ -56,11 +57,11 @@ MISSION_TRIGGERS = {
     ],
     "prove-it": [
         "test gap", "critical paths", "test debt", "mutation", "characterization",
-        "critical surface", "money/auth/data",
+        "critical surface", "money/auth/data", "coverage",
     ],
     "deflake-it": [
         "flaky", "flake", "deflake", "intermittent suite", "flake zero",
-        "green streak",
+        "green streak", "fails intermittently", "passes on retry",
     ],
     "review-it": [
         "review this pr", "ready to merge", "review queue", "verdict",
