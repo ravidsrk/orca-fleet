@@ -44,6 +44,15 @@ each PR, triage every thread against the current head (one was already resolved 
 round — answered, not re-fixed), fix the valid ones as fix rounds on the same branch, and answer every
 thread. The `FOLLOWED_UP` ledger flag closes a unit only when no thread is left hanging.
 
+## Post-run addendum (2026-07-17): the alternative-PR lesson
+
+A dodopayments maintainer pushed back on #84 the next day: a parallel reimplementation of an open PR
+is not a good use of anyone's time — "I'd rather not maintain two competing PRs for the same issue."
+All four alternative PRs (#82/#83/#84/#85) were closed in deference the same day, with the findings
+already preserved as assist comments and the branches kept for cherry-picking. The protocol change
+this feeds: opening an alternative PR is MAINTAINER-gated — offered inside the assist comment, opened
+only on invitation — not a self-serve taste gate as this run originally treated it.
+
 ## Honest gaps (fed back into the protocol)
 
 - Codex workers emit no Orca heartbeats; `spawn_worker` exit 3 is a false negative for them — verify

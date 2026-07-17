@@ -57,7 +57,7 @@ flowchart TD
     F --> G[FOLLOW UP<br/>every review thread answered]
     C -->|already-has-PR| H{contribution decision}
     H -->|assist| I[quoted review comment<br/>on their PR]
-    H -->|alternative| J[cross-linked alt PR] --> F
+    H -->|alternative: offered + invited| J[cross-linked alt PR] --> F
     H -->|stand-down| K[park externally-covered]
     C -->|needs-human| L[park with the gate named]
     G --> M[re-ENUMERATE both denominators]
@@ -95,8 +95,11 @@ logs the choice as a taste gate in `docs/DECISIONS.md`, and a human may veto:
 
 - **assist** — their PR is sound but our independent review found confirmable issues in their diff:
   post one contributor-tone comment, findings quoted from their code, no verdict.
-- **alternative** — our implementation differs materially or fixes bugs theirs has: open our PR,
-  cross-linking theirs ("take whichever you prefer"), and post the assist comment too.
+- **alternative** — our implementation differs materially or fixes bugs theirs has: offer it inside
+  the assist comment and open the PR only if a maintainer invites it. Opening unbidden — however
+  courteously cross-linked — doubles maintainer load and reads as competition; a maintainer told us
+  exactly that on the run this mission was extracted from, and four alternative PRs were closed in
+  deference the next day.
 - **stand-down** — their PR covers it and we add nothing: park `externally-covered`, no hollow comment.
 
 The default posture is *complement, not compete*. An alternative PR always cross-links the parallel

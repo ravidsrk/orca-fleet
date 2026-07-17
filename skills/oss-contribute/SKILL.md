@@ -5,7 +5,7 @@ description: >-
   Each actionable issue is skeptic-triaged (including a search of the upstream repo's OPEN PRs, not
   just its code), built on a fork with a failing-first test, reviewed build-blind, and opened as an
   etiquette-correct PR against the upstream default branch — or, where a maintainer PR already
-  exists, shared as a quoted review-assist comment and/or a cross-linked alternative PR. The loop
+  exists, shared as a quoted review-assist comment (an alternative PR only if maintainers invite one). The loop
   re-enumerates until the actionable set is dry. Merge is the maintainer's; the fleet never merges.
   Use when "contribute to this project", "open PRs for these upstream issues", "help out this OSS
   repo", "send fixes upstream", "we only have a fork". Not for a repo you own and can merge (that is
@@ -83,10 +83,12 @@ is pasted in the ledger. Manifest names CONTRIBUTED or CONTRIBUTED-WITH-PARKED.
 
 ## The contribution decision (never silent — gate-classification.md)
 
-For `already-has-PR`, upstream-contribution.md's assist / alternative / stand-down table is a TASTE
-gate: draft the choice, log it in `docs/DECISIONS.md`, a human may veto. Default posture is
-`complement, not compete`. An alternative PR ALWAYS cross-links the parallel PR and never masquerades
-as the only take. A closing keyword goes on a concrete issue only, never an RFC/meta/tracking issue.
+For `already-has-PR`, assist-vs-stand-down is a TASTE gate: draft the choice, log it in
+`docs/DECISIONS.md`, a human may veto. An ALTERNATIVE PR is MAINTAINER-gated: offer it inside the
+assist comment, open it only on invitation (field lesson: unbidden alternatives read as competition
+and were rejected by a maintainer on a live run). Default posture is `complement, not compete`; an
+invited alternative always cross-links the parallel PR. A closing keyword goes on a concrete issue
+only, never an RFC/meta/tracking issue.
 
 ## Ledger (header first, then rows)
 
@@ -102,8 +104,8 @@ post-open review thread is answered and CI is green-or-explained. RESUME scopes 
 
 ## Gates + supervision
 
-Batch human gate for stand-down/refuted closes. The alternative-vs-assist fork is a per-issue taste
-gate (log, do not silently pick). CLA/DCO that needs a human signature → PARK `needs-human`, never
+Batch human gate for stand-down/refuted closes. Assist-vs-stand-down is a per-issue taste gate
+(log, do not silently pick); an alternative PR waits for maintainer invitation. CLA/DCO that needs a human signature → PARK `needs-human`, never
 forge. Stalls → liveness-resume WATCH; compaction → CONTEXT HANDOFF then RESUME; death → RESUME.
 Never self-merge, never `--admin` — the fleet has no merge authority here by construction.
 

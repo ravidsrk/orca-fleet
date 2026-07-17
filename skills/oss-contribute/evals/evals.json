@@ -18,11 +18,11 @@
     {
       "id": 2,
       "prompt": "An upstream issue we want to fix already has an open PR from another contributor.",
-      "expected_output": "Should trigger oss-contribute's contribution decision (a taste gate): assist (quoted comment on their PR), alternative (cross-linked PR plus comment), or stand-down (park externally-covered). Must not open a silent duplicate and must not post a hollow comment.",
+      "expected_output": "Should trigger oss-contribute's contribution decision: assist (quoted comment on their PR) vs stand-down (park externally-covered) is a taste gate; an alternative is OFFERED inside the assist comment and the PR is opened only on maintainer invitation. Must not open a silent duplicate, an uninvited alternative PR, or a hollow comment.",
       "assertions": [
         "Applies the assist / alternative / stand-down decision",
         "Logs the choice to DECISIONS (never silent)",
-        "An alternative PR cross-links the parallel PR",
+        "Alternative PRs are offered first and opened only on maintainer invitation",
         "Does not open a silent duplicate",
         "Assist comments quote the target PR's own diff"
       ],
