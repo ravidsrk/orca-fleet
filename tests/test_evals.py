@@ -86,6 +86,21 @@ class TestEvalInfrastructure(unittest.TestCase):
             f"failures: {result['failures']}",
         )
 
+    def test_routing_seam_broken_vs_coverage_vs_intermittent(self):
+        # Issue #41: "this test is broken" must not fan out across three missions.
+        # Deterministic N/N failure → clean-sweep (deflake-it's DETECT phase routes
+        # those out as bugs); missing coverage → prove-it; intermittent
+        # pass-on-retry → deflake-it.
+        seam = [
+            ("Fix this broken test — it fails 10 out of 10 runs, same assertion every time.",
+             "clean-sweep"),
+            ("The refund path has no tests — close the coverage gap.", "prove-it"),
+            ("This test fails intermittently — it passes on retry.", "deflake-it"),
+        ]
+        for prompt, expected in seam:
+            with self.subTest(prompt=prompt):
+                self.assertEqual(eval_mod.classify_prompt(prompt), expected)
+
     def test_run_skills_eval_has_no_errors(self):
         result = eval_mod.run_skills_eval()
         self.assertEqual(result["errors"], [])
