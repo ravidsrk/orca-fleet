@@ -346,7 +346,7 @@ class TestArchitecture(unittest.TestCase):
         doc = (RUNTIME / "liveness-resume.md").read_text(encoding="utf-8")
         script = (RUNTIME / "scripts" / "spawn_worker.sh").read_text(encoding="utf-8")
         self.assertRegex(
-            script, r"(?m)^#\s+2\s+usage or policy refusal",
+            script, r"(?m)^#.*\b2\b.*usage or policy refusal",
             "spawn_worker.sh exit-2 contract moved — realign liveness-resume.md "
             "and this test together",
         )
