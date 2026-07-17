@@ -123,8 +123,8 @@ closed, or its feedback has gone quiet (`awaiting-maintainer-merge`). The `FOLLO
 | `refuted`                 | Triage disproved the issue; evidence in the ledger                       |
 
 The run itself ends `CONTRIBUTED` (every actionable issue at a terminal, parks only
-`externally-covered`/`needs-human`) or `CONTRIBUTED-WITH-PARKED` (≥1 stuck gate — degraded, and
-never reported as the clean terminal).
+`externally-covered`/`externally-resolved`/`out-of-scope`) or `CONTRIBUTED-WITH-PARKED` (≥1
+`needs-human` park, a stuck gate — degraded, and never reported as the clean terminal).
 
 ## Human gates
 
