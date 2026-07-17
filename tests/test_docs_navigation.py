@@ -78,6 +78,10 @@ class TestDocsNavigation(unittest.TestCase):
         navigated = [ROOT / "README.md", DOCS / "concepts.md", DOCS / "getting-started.md"]
         navigated += sorted((DOCS / "missions").glob("*.md"))
         navigated += sorted((DOCS / "guides").glob("*.md"))
+        # a missing surface must read as this test's assertion, not a
+        # FileNotFoundError traceback; with every surface gone, inbound is
+        # empty and the orphan assertion still fires.
+        navigated = [p for p in navigated if p.exists()]
         # an actual link target into research/ — prose that happens to contain
         # the word ("research/decision frontier") must not count as navigation.
         link = re.compile(r"\]\((?:\.\./)*(?:docs/)?research/")
