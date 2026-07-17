@@ -76,7 +76,17 @@ MISSION_TRIGGERS = {
     ],
 }
 
-EXPECTED_MISSIONS = set(MISSION_TRIGGERS.keys())
+def catalog_missions() -> set[str]:
+    """The live mission catalog: skills/<name>/ dirs with a SKILL.md. Eval coverage
+    is keyed to this, not to MISSION_TRIGGERS, so adding a mission without a positive
+    routing example fails validation instead of silently shrinking the guarantee."""
+    if not SKILLS_DIR.is_dir():
+        return set()
+    return {
+        d.name
+        for d in SKILLS_DIR.iterdir()
+        if d.is_dir() and not d.name.startswith((".", "_")) and (d / "SKILL.md").exists()
+    }
 
 
 def load_json(path: Path):
@@ -142,6 +152,7 @@ def validate_routing_eval() -> list[str]:
         return errors
 
     required = {"id", "prompt", "expected_mission", "type", "reason"}
+    expected_missions = catalog_missions()
     seen_missions = set()
     for idx, ev in enumerate(data["evals"]):
         if not isinstance(ev, dict):
@@ -150,12 +161,12 @@ def validate_routing_eval() -> list[str]:
         missing = required - set(ev.keys())
         if missing:
             errors.append(f"{ROUTING_EVAL.relative_to(ROOT)}: eval[{idx}] missing {sorted(missing)}")
-        if ev.get("type") == "positive" and ev.get("expected_mission") in EXPECTED_MISSIONS:
+        if ev.get("type") == "positive" and ev.get("expected_mission") in expected_missions:
             seen_missions.add(ev["expected_mission"])
         if ev.get("type") not in {"positive", "negative"}:
             errors.append(f"{ROUTING_EVAL.relative_to(ROOT)}: eval[{idx}].type must be 'positive' or 'negative'")
 
-    uncovered = EXPECTED_MISSIONS - seen_missions
+    uncovered = expected_missions - seen_missions
     if uncovered:
         errors.append(f"{ROUTING_EVAL.relative_to(ROOT)}: no positive routing examples for {sorted(uncovered)}")
 

@@ -11,8 +11,10 @@ Locks in:
 import argparse
 import importlib.util
 import io
+import json
 import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -110,6 +112,33 @@ class TestEvalInfrastructure(unittest.TestCase):
         self.assertIn("error", result)
         self.assertIn("missing", result["error"])
         self.assertEqual(result["total"], 0)
+
+    def _routing_errors(self, missions, routing_data):
+        # Issue #48 harness: a synthetic catalog + routing.json, so coverage is
+        # provably keyed to skills/ dirs and not to the MISSION_TRIGGERS dict.
+        with tempfile.TemporaryDirectory() as tmp:
+            skills = Path(tmp) / "skills"
+            for m in missions:
+                (skills / m).mkdir(parents=True)
+                (skills / m / "SKILL.md").write_text("x", encoding="utf-8")
+            routing = Path(tmp) / "routing.json"
+            routing.write_text(json.dumps(routing_data), encoding="utf-8")
+            with patch.object(eval_mod, "ROOT", Path(tmp)), \
+                 patch.object(eval_mod, "SKILLS_DIR", skills), \
+                 patch.object(eval_mod, "ROUTING_EVAL", routing):
+                return eval_mod.validate_routing_eval()
+
+    def test_new_mission_dir_without_routing_example_fails(self):
+        errors = self._routing_errors(["brand-new-mission"], {"evals": []})
+        self.assertTrue(any("brand-new-mission" in e for e in errors), errors)
+
+    def test_new_mission_dir_with_routing_example_passes(self):
+        errors = self._routing_errors(["brand-new-mission"], {"evals": [{
+            "id": 1, "prompt": "do the new thing",
+            "expected_mission": "brand-new-mission",
+            "type": "positive", "reason": "direct trigger",
+        }]})
+        self.assertEqual(errors, [])
 
     def test_cmd_run_reports_routing_json_error(self):
         bad_result = {
