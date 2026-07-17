@@ -22,6 +22,11 @@ The cap counts live PANES, not tasks: a doctor respawn's original pane counts ag
 until its closure is verified by pane read. Heartbeat false negatives spawn dual writers — the
 2026-07-15 chimely run planned a 4-builder wave and peaked at 5 builder panes this way.
 
+Evidence level: ASSERTED. These defaults come from one field run (2026-07-15 chimely) and its
+dual-writer post-mortem, not a measured curve — no published methodology for sizing fleet
+concurrency to verification capacity exists anywhere yet. They are the convention until the
+WIP-curve protocol below replaces them with cited run data.
+
 ## Sort the work (do not parallelize judgment)
 
 - **Isolated / machine-verifiable** → background workers (clean-sweep findings, slice builds with
@@ -35,7 +40,23 @@ Mechanical proof (tests, negative controls, ancestry, reviewed-SHA) is machine-c
 `evidence-manifest.md`. Batch one-way human gates when several park at once — context-switch cost
 dominates. Never spawn more agents to feel busy; throughput equals review+verify throughput.
 
+## The WIP-curve protocol (how a cap graduates from asserted to measured)
+
+Every fleet run records, per dispatch wave, one row in its run report under `docs/runs/`:
+
+| Metric | Definition |
+|----------------------|--------------------------------------------------------------------|
+| WIP setting          | the ledger-header `WIP: builders=<n> reviewers=<n>` the wave ran at |
+| Builder throughput   | units reaching verified CLOSED per hour of wave wall-clock          |
+| Verification latency | median and max `worker_done` → verified-or-parked, per unit         |
+| Rework rate          | share of units bounced by evidence-manifest.md §2 (re-dispatch / SUSPECT) |
+| Freshness violations | reviews voided by `reviewed_sha != head_sha` (reviewed-sha-freshness.md) |
+
+After ≥3 runs at differing WIP settings, plot throughput and rework against WIP and revise the
+caps table citing the run reports. Negative data counts — "cap 4 broke review freshness twice"
+is a publishable point. A cap revised without a cited report is still ASSERTED.
+
 ## Completion
 
 Every dispatch wave respects the recorded WIP; judgment-heavy units are not fanned; the run
-report names any WIP override and why.
+report names any WIP override and why, and carries the WIP-curve protocol's per-wave row.

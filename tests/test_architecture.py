@@ -162,6 +162,32 @@ class TestArchitecture(unittest.TestCase):
             "a mission dropped its ledger-header template instead of carrying WIP",
         )
 
+    def test_attention_budget_wip_curve_is_a_named_protocol(self):
+        # The WIP caps rest on a single field run and the doc said "override if
+        # measured" without defining measurement (#51). Publishing the caps as a
+        # convention requires a named protocol: the metrics a run records, where
+        # they land, and an explicit evidence level on the caps until a measured
+        # curve replaces the asserted one.
+        budget = (RUNTIME / "attention-budget.md").read_text(encoding="utf-8")
+        self.assertRegex(
+            budget, r"(?i)wip-curve protocol",
+            "attention-budget.md no longer names the WIP-curve protocol",
+        )
+        for metric in ("builder throughput", "verification latency", "rework rate",
+                       "freshness violations"):
+            self.assertRegex(
+                budget, r"(?i)" + re.escape(metric),
+                f"attention-budget.md WIP-curve protocol lost the {metric!r} metric",
+            )
+        self.assertIn(
+            "docs/runs/", budget,
+            "attention-budget.md no longer says where WIP-curve metrics are logged",
+        )
+        self.assertRegex(
+            budget, r"(?i)evidence level",
+            "attention-budget.md caps lost their evidence-level annotation",
+        )
+
     def test_verifier_audits_criterion_test_binding(self):
         # 2025-2026 grader research (SWE-bench Verified retired after defects in
         # ≥59% of its hard subset; ImpossibleBench's spec-conflicting tests
