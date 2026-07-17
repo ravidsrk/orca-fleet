@@ -240,9 +240,9 @@ class TestArchitecture(unittest.TestCase):
         # `PROMOTION_READY`, BUILT-WITH-PARKED, {{BUILT}}) stay legal.
         per_unit_shape = re.compile(
             r"\|\s*BUILT\s*\|"          # bare row-header cell: | BUILT |
-            r"|\bBUILT[ =]t\b"          # row value / prose flip: BUILT t, BUILT=t
+            r"|\bBUILT[ =][tf]\b"       # row value / prose flip: BUILT t/f, BUILT=t/f
             r"|`BUILT`…"                # flag-range prose: `BUILT`…`WT_CLEAN`
-            r"|BUILT\s*→\s*PR_OPEN"     # unit gates (wave-state → PROMOTION_READY)
+            r"|BUILT\s*→\s*PR_OPEN"     # unit gate chain (wave-state uses → PROMOTION_READY, not → PR_OPEN)
         )
         offenders = [
             f"{path.relative_to(ROOT)}:{n}: {line.strip()}"
