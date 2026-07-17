@@ -199,6 +199,88 @@ class TestArchitecture(unittest.TestCase):
         finally:
             os.unlink(path)
 
+    def test_pm_missing_file_fails_clean(self):
+        # pm.py feeds the coordinator's stall/respawn decisions (liveness-resume.md);
+        # a missing inbox must be a one-line diagnostic and exit 2, not a raw traceback.
+        r = subprocess.run(
+            [sys.executable, str(RUNTIME / "scripts" / "pm.py"), "/nonexistent-inbox.json"],
+            capture_output=True, text=True,
+        )
+        self.assertEqual(r.returncode, 2, f"expected exit 2, got {r.returncode}")
+        self.assertNotIn("Traceback", r.stderr, "missing file must not dump a raw traceback")
+        self.assertIn("nonexistent-inbox.json", r.stderr, "error must name the unreadable path")
+
+    def test_pm_warns_on_unrecognized_message_envelope(self):
+        # A top-level {"messages": [...]} envelope (no "result" wrapper) is a real inbox
+        # in a shape pm.py doesn't parse; it must warn on stderr instead of silently
+        # reporting MESSAGES: 0 as if the inbox were empty.
+        import tempfile, os
+        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
+            fh.write('{"messages": [{"id": "m1", "subject": "s", "body": "b"}]}\n')
+            path = fh.name
+        try:
+            r = subprocess.run(
+                [sys.executable, str(RUNTIME / "scripts" / "pm.py"), path],
+                capture_output=True, text=True,
+            )
+            self.assertEqual(r.returncode, 0, r.stderr)
+            self.assertIn("MESSAGES: 0", r.stdout)
+            self.assertIn("WARN", r.stderr, "unrecognized envelope shape must not be silent")
+            self.assertIn("messages", r.stderr, "warning must say what looked message-like")
+        finally:
+            os.unlink(path)
+
+    def test_pm_warns_on_message_like_keys_at_any_path(self):
+        # Review R1/N1/N2 on the envelope guard: 'messages' misplaced at ANY path —
+        # wrong-typed under result, nested under an unknown wrapper, or riding inside
+        # a heartbeat envelope — must warn, never silently count as an empty inbox
+        # (and a non-list batch must not be iterated as characters).
+        import tempfile, os
+        shapes = {
+            "wrong-typed result.messages": '{"result": {"messages": "notalist"}}\n',
+            "nested under data": '{"data": {"messages": [{"id": "x"}]}}\n',
+            "inside heartbeat envelope": '{"_heartbeat": true, "messages": [{"id": "x"}]}\n',
+        }
+        for label, stream in shapes.items():
+            with self.subTest(shape=label):
+                with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
+                    fh.write(stream)
+                    path = fh.name
+                try:
+                    r = subprocess.run(
+                        [sys.executable, str(RUNTIME / "scripts" / "pm.py"), path],
+                        capture_output=True, text=True,
+                    )
+                    self.assertEqual(r.returncode, 0, r.stderr)
+                    self.assertIn("MESSAGES: 0", r.stdout)
+                    self.assertIn("WARN", r.stderr, f"{label}: silent zero on message-like envelope")
+                finally:
+                    os.unlink(path)
+
+    def test_pm_legitimately_empty_inbox_stays_quiet(self):
+        # Negative control for the envelope warning: a well-formed empty inbox
+        # (empty batch + heartbeats) is genuinely empty — any warning here would
+        # train coordinators to ignore the real one.
+        import tempfile, os
+        stream = (
+            '{"_heartbeat": true}\n'
+            '{"result": {"messages": []}}\n'
+            '{"_heartbeat": true}\n'
+        )
+        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
+            fh.write(stream)
+            path = fh.name
+        try:
+            r = subprocess.run(
+                [sys.executable, str(RUNTIME / "scripts" / "pm.py"), path],
+                capture_output=True, text=True,
+            )
+            self.assertEqual(r.returncode, 0, r.stderr)
+            self.assertIn("MESSAGES: 0", r.stdout)
+            self.assertEqual(r.stderr, "", "empty inbox must not emit a false warning")
+        finally:
+            os.unlink(path)
+
     def test_runtime_scripts_present_and_executable_shape(self):
         # The shared tooling must exist, be non-trivial, be executable, and actually parse —
         # a zero-byte or syntax-broken script must fail here, not mid-run.
