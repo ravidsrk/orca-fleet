@@ -81,7 +81,7 @@ ENTRY ─┬─ frozen spec  → VALIDATE (decide-and-freeze: validate branch) �
 
 Each phase runs its playbook; each worker emits an evidence manifest; the coordinator verifies each
 against authoritative state (evidence-manifest.md) before advancing. Unit flags advance only in the
-ledger file (`BUILT`…`WT_CLEAN`).
+ledger file (`BUILD_DONE`…`WT_CLEAN`).
 
 ## Convergence proof (this mission's definition of done)
 

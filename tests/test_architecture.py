@@ -211,13 +211,58 @@ class TestArchitecture(unittest.TestCase):
         )
 
     def test_row_flags_are_the_record(self):
-        # The chimely run advanced BUILT/REVIEWED only as dispatch-log prose; every
+        # The chimely run advanced BUILD_DONE/REVIEWED only as dispatch-log prose; every
         # unit row still read all-f at run close, which would have broken a crash
         # RESUME (it reads row flags, not narration).
         ledger = (RUNTIME / "ledger-contract.md").read_text(encoding="utf-8")
         self.assertRegex(
             ledger, r"(?i)row is the record",
             "ledger-contract.md lost the row-is-the-record rule",
+        )
+
+    def test_per_unit_flag_is_build_done_not_built(self):
+        # `BUILT` used to name two opposite pipeline positions: the release
+        # wave-state (BUILT → PROMOTION_READY → RELEASED, release.md) AND the
+        # per-unit ledger boolean. The per-unit flag is BUILD_DONE; only the
+        # wave-state keeps the name BUILT (#30).
+        ledger = (RUNTIME / "ledger-contract.md").read_text(encoding="utf-8")
+        self.assertIn(
+            "`BUILD_DONE`", ledger,
+            "ledger-contract.md lost the BUILD_DONE per-unit flag",
+        )
+        self.assertNotRegex(
+            ledger, r"\bBUILT\b",
+            "ledger-contract.md names the per-unit flag BUILT — collides with "
+            "the release wave-state (#30)",
+        )
+        # No doc may use BUILT in a per-unit-flag shape: bare row cell, t-flip,
+        # flag range, or the unit gate chain. Wave-state shapes (`BUILT` →
+        # `PROMOTION_READY`, BUILT-WITH-PARKED, {{BUILT}}) stay legal.
+        per_unit_shape = re.compile(
+            r"\|\s*BUILT\s*\|"          # bare row-header cell: | BUILT |
+            r"|\bBUILT[ =][tf]\b"       # row value / prose flip: BUILT t/f, BUILT=t/f
+            r"|`BUILT`…"                # flag-range prose: `BUILT`…`WT_CLEAN`
+            r"|BUILT\s*→\s*PR_OPEN"     # unit gate chain (wave-state uses → PROMOTION_READY, not → PR_OPEN)
+        )
+        offenders = [
+            f"{path.relative_to(ROOT)}:{n}: {line.strip()}"
+            for path in sorted(ROOT.rglob("*.md"))
+            if ".git" not in path.parts
+            for n, line in enumerate(
+                path.read_text(encoding="utf-8").splitlines(), 1)
+            if per_unit_shape.search(line)
+        ]
+        self.assertEqual(
+            [], offenders,
+            "per-unit ledger flag still named BUILT (rename to BUILD_DONE):\n"
+            + "\n".join(offenders),
+        )
+        # The rename is one-sided: the release wave-state keeps BUILT.
+        release = (PLAYBOOKS / "release.md").read_text(encoding="utf-8")
+        self.assertRegex(
+            release, r"\bBUILT\b",
+            "release.md lost the BUILT wave-state — #30 renamed only the "
+            "per-unit flag",
         )
 
     def test_pm_parses_heartbeat_interleaved_stream(self):

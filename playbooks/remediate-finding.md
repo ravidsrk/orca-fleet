@@ -18,7 +18,7 @@ a security lens, a perf breach, or a flaky test — the mission supplies the fin
 5. **merge_ready → the conductor** (merge-serialization.md): reviewed-SHA-fresh, ancestry-verified.
 6. **Close with evidence:** the merge SHA + a completion note. A fix-backed close needs no extra human
    gate — the evidence chain is the authorization. A refutation/duplicate close is a one-way batch gate.
-7. **Ledger flags** (ledger-contract.md): advance `BUILT → PR_OPEN → BOT → REVIEWED → MERGED →
+7. **Ledger flags** (ledger-contract.md): advance `BUILD_DONE → PR_OPEN → BOT → REVIEWED → MERGED →
    WT_CLEAN` only from file-verified state. If the fix is mergeable but acceptance needs load/prod
    data the fleet cannot reach: merge as `CODE_CLOSED`, open `VERIFY_AT_SCALE` OPS item — never
    claim full close.

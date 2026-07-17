@@ -76,7 +76,7 @@ A full re-enumeration finds ZERO actionable issues that are not (a) CONTRIBUTED 
 the upstream default (`baseRefName==<default>` asserted, `headRefOid==reviewed_sha` fresh, a
 failing-first test with a revert-audited negative control, bots reconciled, etiquette conformant, AND
 every post-open review thread answered per upstream-contribution.md follow-up) with the PR url in the
-closing note, ledger flags `BUILT`…`PR_OPEN`…`FOLLOWED_UP` all `t`; or (b) a posted
+closing note, ledger flags `BUILD_DONE`…`PR_OPEN`…`FOLLOWED_UP` all `t`; or (b) a posted
 review-assist whose findings are each quoted from the target PR's diff; or (c) PARKED
 (`externally-covered` with the covering PR ref, `needs-human` naming its gate). The final enumeration
 is pasted in the ledger. Manifest names CONTRIBUTED or CONTRIBUTED-WITH-PARKED.
@@ -96,7 +96,7 @@ UPSTREAM and FORK are additive trailing columns). Phase marker + unit flags per 
 every canonical flag kept except `MERGED` (dropped: merge is the maintainer's, the fleet has none),
 extended with `CLASS` and `FOLLOWED_UP`:
 
-`| task_id | issue | title | CLASS | BUILT | REVIEWED | PR_OPEN | BOT | FOLLOWED_UP | WT_CLEAN | park | evidence |`
+`| task_id | issue | title | CLASS | BUILD_DONE | REVIEWED | PR_OPEN | BOT | FOLLOWED_UP | WT_CLEAN | park | evidence |`
 CLASS ∈ buildable · already-has-PR · needs-human · externally-resolved · out-of-scope. `PR_OPEN`
 carries the PR url + reviewed_sha (or the assist comment url); `FOLLOWED_UP` is `t` only when every
 post-open review thread is answered and CI is green-or-explained; `WT_CLEAN` flips when the fork
