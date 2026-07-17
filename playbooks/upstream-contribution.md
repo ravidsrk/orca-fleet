@@ -28,11 +28,12 @@ For an `already-has-PR` issue, choose per the diff you can see, never silently:
 | Choice | When | Action |
 |--------|------|--------|
 | **assist** | their PR is sound; our review found confirmable issues in THEIR diff | Post ONE contributor-tone comment: only findings you can quote in their code, each with a concrete failure scenario, an offer of your test. No verdict, no approve/request-changes. |
-| **alternative** | our independent implementation differs materially or fixes bugs theirs has | Open our PR, cross-linking theirs up front ("alternative to #N, take whichever you prefer"), AND post the assist comment. Never a silent duplicate. |
+| **alternative** | our independent implementation differs materially or fixes bugs theirs has | OFFER it inside the assist comment ("a complete alternative branch exists — happy to open it as a PR if you'd prefer") and open the PR only on maintainer invitation. Unbidden alternative PRs read as competition and double maintainer load, however courteously cross-linked — a maintainer said exactly this on a live run. |
 | **stand-down** | their PR covers it and our artifacts add nothing | Park `externally-covered`. No hollow comment. |
 
 A literal same-issue duplicate you already opened is closed with a courteous pointer. `complement, not
-compete` is the default posture; opening an alternative is a taste gate (log it), not a one-way door.
+compete` is the default posture; assist-vs-stand-down is a taste gate (log it), but OPENING an
+alternative PR is maintainer-gated — offered first, opened on invitation, never self-serve.
 
 ## Etiquette (conformance is part of done)
 
@@ -74,6 +75,6 @@ PR open against `upstream:<default>`, `baseRefName == <default>` asserted, `head
 
 - Close a unit off a PR that is OPEN + internally reviewed + etiquette-conformant — never off a merge
   you cannot perform, never off worker memory.
-- One issue = one branch = one PR (or one assist comment). An alternative PR is not a duplicate when
-  it cross-links the parallel PR.
+- One issue = one branch = one PR (or one assist comment). An INVITED alternative PR cross-links
+  the parallel PR; an uninvited one is a duplicate no matter how it is framed.
 - The mission owns "is the actionable set drained"; this owns "is one issue contributed correctly".
