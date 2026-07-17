@@ -72,7 +72,7 @@ respect `attention-budget` WIP.
 
 A full enumeration finds ZERO items that are not (a) CLOSED with evidence (a merged, ancestry-verified
 PR + a test that failed pre-fix, revert-audited on a ≥10% sample; the closing comment links PR + test;
-ledger flags `BUILT`…`WT_CLEAN` all `t`) or (b) PARKED with an allowed class (refuted/duplicate closes
+ledger flags `BUILD_DONE`…`WT_CLEAN` all `t`) or (b) PARKED with an allowed class (refuted/duplicate closes
 are a one-way batch gate; `needs-human` / `CODE_CLOSED`+`VERIFY_AT_SCALE` name their gate/OPS ref).
 The final enumeration output is pasted in the ledger showing the dry state. `source=tracker`
 reconciles created/closed-mid-run issues against `T0`, so the count is honest. Manifest names DRY or
@@ -83,7 +83,7 @@ DRY-WITH-PARKED.
 Line 1 per liveness-resume.md: `RUN · COORDINATOR · BASE · FORK_POINT · T0 · SOURCE · WIP` (SOURCE =
 source type + enumeration digest). Phase marker + unit boolean flags per ledger-contract.md:
 
-`| task_id | id | title | CLASS | BUILT | PR_OPEN | BOT | REVIEWED | MERGED | WT_CLEAN | park | evidence |`
+`| task_id | id | title | CLASS | BUILD_DONE | PR_OPEN | BOT | REVIEWED | MERGED | WT_CLEAN | park | evidence |`
 CLASS ∈ real-bug · real-feature-small · refuted · duplicate · externally-resolved · needs-human ·
 out-of-scope · CODE_CLOSED. RESUME scopes to header coordinator + ledger task ids.
 

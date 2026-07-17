@@ -168,7 +168,7 @@ worktree: red-first test asserting 403 for a foreign order, minimal fix, PR #112
 review, conductor merge. Its row advances only as each verify lands:
 
 ```
-| task_c7 | F7 IDOR /api/orders | BUILT t | PR_OPEN t | BOT t | REVIEWED t | MERGED t | WT_CLEAN t |  | #112 @ 4be9a02, red-first 71d3c |
+| task_c7 | F7 IDOR /api/orders | BUILD_DONE t | PR_OPEN t | BOT t | REVIEWED t | MERGED t | WT_CLEAN t |  | #112 @ 4be9a02, red-first 71d3c |
 ```
 
 **Re-enumerate until dry.** The sweep re-reads the audit: 8 findings fixed with merge SHAs,

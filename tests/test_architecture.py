@@ -211,7 +211,7 @@ class TestArchitecture(unittest.TestCase):
         )
 
     def test_row_flags_are_the_record(self):
-        # The chimely run advanced BUILT/REVIEWED only as dispatch-log prose; every
+        # The chimely run advanced BUILD_DONE/REVIEWED only as dispatch-log prose; every
         # unit row still read all-f at run close, which would have broken a crash
         # RESUME (it reads row flags, not narration).
         ledger = (RUNTIME / "ledger-contract.md").read_text(encoding="utf-8")
