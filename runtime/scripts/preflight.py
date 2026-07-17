@@ -61,12 +61,15 @@ class _UsageExit1Parser(argparse.ArgumentParser):
         raise SystemExit(1)
 
 
-def _run(cmd: list[str], timeout: float | None = None) -> tuple[int, str, str]:
+def _run(cmd: list[str], timeout: float | None = None) -> tuple[int | None, str, str]:
+    """rc is None when the command timed out — a sentinel no real process can
+    produce (real rcs are 0-255, or negative for a signal death), so a genuine
+    `exit 124` is never mistaken for a timeout."""
     limit = _GIT_TIMEOUT if timeout is None else timeout
     try:
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=limit)
     except subprocess.TimeoutExpired:
-        return 124, "", f"`{' '.join(cmd)}` timed out after {limit}s"
+        return None, "", f"`{' '.join(cmd)}` timed out after {limit}s"
     return proc.returncode, proc.stdout.strip(), proc.stderr.strip()
 
 
@@ -219,10 +222,12 @@ def main(argv: list[str]) -> int:
             return 1
 
     # 3. Derive default branch if not given.
+    # Dependency/config lane (exit 1): gh answered but gave no default branch —
+    # nothing invariant-shaped has been checked yet.
     default_branch = args.default or _default_branch_via_gh()
     if not default_branch:
         print("preflight: ERROR: could not derive default branch (pass --default)", file=sys.stderr)
-        return 2
+        return 1
 
     # 4. BASE != DEFAULT_BRANCH (the M-5 guardrail), on CANONICAL names so ref
     #    aliases (`origin/main`, `refs/remotes/origin/main`) cannot slip past.

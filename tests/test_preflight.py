@@ -74,6 +74,29 @@ class TestExitCodeContract(unittest.TestCase):
         r = run_preflight()
         self.assertEqual(r.returncode, 1, r.stderr)
 
+    def test_underivable_default_branch_is_dependency_exit_1(self):
+        # gh reachable but defaultBranchRef empty: a dependency/config failure
+        # ("pass --default"), not a tripped invariant — must not share exit 2.
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp) / "repo"
+            repo.mkdir()
+            make_repo(repo, base="integ")
+            fakebin = Path(tmp) / "bin"
+            fakebin.mkdir()
+            gh = fakebin / "gh"
+            gh.write_text(
+                '#!/bin/sh\ncase "$*" in\n'
+                '  *nameWithOwner*) echo "owner/repo";;\n'
+                '  *defaultBranchRef*) exit 0;;\n'
+                'esac\n',
+                encoding="utf-8",
+            )
+            gh.chmod(0o755)
+            env = dict(os.environ, PATH=f"{fakebin}{os.pathsep}{os.environ['PATH']}")
+            r = run_preflight("--base", "integ", cwd=str(repo), env=env)
+        self.assertEqual(r.returncode, 1, r.stderr)
+        self.assertIn("could not derive default branch", r.stderr)
+
     def test_base_equals_default_is_invariant_exit_2(self):
         # The tripped M-5 guardrail must stay distinguishable from a typo'd flag.
         with tempfile.TemporaryDirectory() as tmp:
@@ -104,6 +127,22 @@ class TestOfflineStart(unittest.TestCase):
                               cwd=str(repo), env=env)
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertIn("preflight: OK", r.stdout)
+
+
+class TestTimeoutSentinel(unittest.TestCase):
+    """A timeout must be unambiguous: real processes exit 0-255 (or negative on a
+    signal death), so a synthetic rc of 124 collides with a real `exit 124`."""
+
+    def test_real_exit_124_is_not_a_timeout(self):
+        # Pin: a genuine 124 passes through untouched, with no timeout message.
+        rc, _, err = preflight._run(["sh", "-c", "exit 124"])
+        self.assertEqual(rc, 124)
+        self.assertNotIn("timed out", err)
+
+    def test_timeout_returns_the_none_sentinel(self):
+        rc, _, err = preflight._run(["sh", "-c", "sleep 30"], timeout=1)
+        self.assertIsNone(rc, "timeout must return a sentinel no real process can produce")
+        self.assertIn("timed out", err)
 
 
 class TestHungGh(unittest.TestCase):
