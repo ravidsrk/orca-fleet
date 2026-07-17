@@ -54,6 +54,11 @@ and `reviewed_sha` (`pr` is null) and swaps every `gh` step in the loop above fo
 Record `no-gh: local-merge` in the ledger. The BASE→default promotion still needs a human and a
 real PR, so a no-gh run stops at BASE and surfaces that the promotion PR is owed.
 
+The same lane applies when a run STARTS offline, not just when gh dies mid-run: Phase 0
+preflights with `preflight.py --offline --base <BASE> --default <branch>` — gh checks are
+skipped, every git-based BASE invariant still runs — and the conductor works PR-less from
+`merge_ready` payloads from unit one, with the same `no-gh: local-merge` ledger record.
+
 ## Rules
 
 - ONE conductor per BASE. Two trains on one base is a race, not redundancy.
