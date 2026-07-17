@@ -23,8 +23,14 @@ the replacement ONLY — never dual-send to the old and new handles.
   window. Judge from `dispatch-show` timestamps, not folklore.
 - Respawn a dead worker: log the evidence + a doctor-owned attempt count (NOT the runtime failure
   budget) → **reflection-before-retry** (below) → `task-update → ready` ONLY after the evidence
-  line → FRESH terminal (re-dispatch to a used handle is a no-op) → spawn_worker (exit 3 = no
-  heartbeat, loop; exit 1 = infra fail; exit 2 = state moved, re-triage uncounted).
+  line → FRESH terminal (re-dispatch to a used handle is a no-op) → spawn_worker. Its exit codes
+  (the script header is the contract): exit 0 = dispatched, heartbeat observed; exit 1 = a
+  spawn/dispatch step failed (infra — doctor loop); exit 2 = usage or policy refusal (bad args,
+  unknown agent, task not ready, unmet deps, danger without opt-in) — SURFACE the refusal, never
+  retry it as an uncounted re-triage; exit 3 = dispatched but no heartbeat after retries — a
+  POSSIBLE false negative (codex workers emit none; slow claude boots outlast the poll window),
+  so READ THE PANE before respawning: a live TUI is a working worker, and respawning beside it
+  creates a dual-writer (dispatch-lifecycle.md).
 - BREAK at 3 doctor attempts OR runtime `circuit_broken` (3 real dispatch failures, carried forward
   per task via MAX(failure_count)) → escalate honestly (gate-classification.md).
 - **Identical-error kill:** if the last ≥2 doctor attempts failed on the same error signature

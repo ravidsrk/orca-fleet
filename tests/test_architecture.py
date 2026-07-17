@@ -334,6 +334,44 @@ class TestArchitecture(unittest.TestCase):
         finally:
             shutil.rmtree(d.parent)
 
+    def test_liveness_resume_exit_codes_match_spawn_worker(self):
+        # Issue #31: the respawn bullet glossed exit 2 as "state moved, re-triage
+        # uncounted", but spawn_worker.sh exits 2 on EVERY usage/policy refusal
+        # (bad args, unknown agent, unmet deps, danger without opt-in) — the old
+        # gloss taught coordinators to silently retry policy refusals. The script
+        # header is the contract; the doc's inline decision table must match it,
+        # and the pane-read caveat (dispatch-lifecycle.md: codex workers emit no
+        # heartbeats, so exit 3 is a possible false negative) must sit at the
+        # respawn decision point, not only in the other file.
+        doc = (RUNTIME / "liveness-resume.md").read_text(encoding="utf-8")
+        script = (RUNTIME / "scripts" / "spawn_worker.sh").read_text(encoding="utf-8")
+        self.assertRegex(
+            script, r"(?m)^#.*\b2\b.*usage or policy refusal",
+            "spawn_worker.sh exit-2 contract moved — realign liveness-resume.md "
+            "and this test together",
+        )
+        m = re.search(r"(?s)^- Respawn a dead worker:.*?(?=^- )", doc, re.M)
+        self.assertIsNotNone(m, "liveness-resume.md lost its respawn bullet")
+        bullet = m.group(0)
+        self.assertNotRegex(
+            bullet, r"(?i)state moved",
+            "exit 2 is ANY usage/policy refusal (spawn_worker.sh:12), not 'state "
+            "moved' — misclassifying it hides policy failures as uncounted re-triage",
+        )
+        self.assertRegex(
+            bullet, r"(?i)exit 2 = usage or policy refusal",
+            "exit-2 gloss must match spawn_worker.sh verbatim",
+        )
+        self.assertRegex(
+            bullet, r"(?i)read the pane",
+            "pane-read-before-respawn caveat missing at the respawn decision point",
+        )
+        self.assertRegex(
+            bullet, r"(?i)false negative",
+            "exit 3 must be flagged a possible false negative "
+            "(heartbeats are agent-dependent)",
+        )
+
     def test_runtime_scripts_never_interpolate_code(self):
         # The predecessor shipped a P0 RCE by interpolating values into `python -c`
         # (live even under --dry-run). Values pass as argv or heredoc stdin, never
