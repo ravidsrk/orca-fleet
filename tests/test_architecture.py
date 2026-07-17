@@ -46,6 +46,14 @@ def frontmatter_description(text):
 
 class TestArchitecture(unittest.TestCase):
 
+    # Nine missions quote a ledger-header template (ship-it and review-it quote none);
+    # a mission may not silently drop its template to dodge the WIP assertion in
+    # test_mission_header_templates_carry_wip.
+    MISSIONS_WITH_HEADER_TEMPLATE = {
+        "clean-sweep", "harden-it", "speed-it", "modernize-it", "prove-it",
+        "deflake-it", "map-it", "root-cause", "oss-contribute",
+    }
+
     def test_validator_passes(self):
         r = subprocess.run(
             [sys.executable, str(ROOT / "scripts" / "validate.py")],
@@ -130,6 +138,28 @@ class TestArchitecture(unittest.TestCase):
             budget, r"(?i)counts live panes, not tasks",
             "attention-budget.md lost the pane-counting rule — respawned panes "
             "would stop counting against the cap",
+        )
+
+    def test_mission_header_templates_carry_wip(self):
+        # attention-budget.md declares `WIP: builders=<n> reviewers=<n>` a required
+        # ledger-header field written at T0, and liveness-resume.md's canonical header
+        # ends with it. A mission template that stops at SOURCE teaches coordinators
+        # to write capless headers — the same hole test_wip_cap_is_a_ledger_header_contract
+        # closes on the producer side.
+        found = set()
+        for d in mission_dirs():
+            text = (d / "SKILL.md").read_text(encoding="utf-8")
+            for m in re.finditer(r"liveness-resume\.md: `([^`]+)`", text):
+                found.add(d.name)
+                self.assertIn(
+                    "WIP", m.group(1),
+                    f"{d.name} ledger-header template omits the required WIP field",
+                )
+        # On sets, assertGreaterEqual asserts the superset relation: every mission
+        # known to quote a template must still quote one (removal fails here).
+        self.assertGreaterEqual(
+            found, self.MISSIONS_WITH_HEADER_TEMPLATE,
+            "a mission dropped its ledger-header template instead of carrying WIP",
         )
 
     def test_row_flags_are_the_record(self):

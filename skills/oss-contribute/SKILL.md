@@ -90,7 +90,7 @@ as the only take. A closing keyword goes on a concrete issue only, never an RFC/
 
 ## Ledger (header first, then rows)
 
-Header per liveness-resume.md: `RUN · COORDINATOR · UPSTREAM · FORK · T0 · SOURCE` (no BASE/FORK_POINT
+Header per liveness-resume.md: `RUN · COORDINATOR · UPSTREAM · FORK · T0 · SOURCE · WIP` (no BASE/FORK_POINT
 — there is no integration base). Phase marker + unit flags per ledger-contract.md, with `MERGED`
 replaced by `PR_OPEN` and `WT_CLEAN`:
 

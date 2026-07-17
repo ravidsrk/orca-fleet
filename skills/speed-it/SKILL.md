@@ -69,7 +69,7 @@ OPTIMIZED-WITH-PARKED.
 
 ## Ledger + supervision
 
-Header per liveness-resume.md: `RUN · COORDINATOR · BASE · FORK_POINT · T0 · SOURCE` (`-` if N/A;
+Header per liveness-resume.md: `RUN · COORDINATOR · BASE · FORK_POINT · T0 · SOURCE · WIP` (`-` if N/A;
 SOURCE = journey-list + metric-contract digests). Rows include Orca task id + hotspot/journey fields.
 Stalls → WATCH; death → RESUME scoped to header coordinator + ledger task ids, git-verified.
 
