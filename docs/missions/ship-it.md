@@ -158,7 +158,7 @@ You pick (b) — support wants revocation. The frozen spec carries five acceptan
 build in parallel behind it, each from a failing test. Mid-build, one ledger row reads:
 
 ```
-| task_a41 | AC-3 verify+session | BUILT t | PR_OPEN t | BOT t | REVIEWED f | MERGED f | WT_CLEAN f |  | PR #214 @ 9c1f2e0 |
+| task_a41 | AC-3 verify+session | BUILD_DONE t | PR_OPEN t | BOT t | REVIEWED f | MERGED f | WT_CLEAN f |  | PR #214 @ 9c1f2e0 |
 ```
 
 **Review → prove → land.** The build-blind reviewer fails AC-3 once (missing expired-token

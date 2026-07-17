@@ -60,8 +60,9 @@ closed, or its feedback goes quiet:
   bots and re-runs CI; reviewed-sha-freshness still applies. ANSWER every thread — silence reads as
   abandonment.
 - TERMINAL: merged or closed by the maintainer, OR all addressable feedback resolved and quiet →
-  park `awaiting-maintainer-merge`. Bounded: after K follow-up rounds without convergence (a bot that
-  re-flags its own fix, a thread needing a maintainer decision) park `needs-human` naming the thread.
+  park `awaiting-maintainer-merge`. Bounded: after THREE follow-up rounds without convergence (a bot
+  that re-flags its own fix, a thread needing a maintainer decision) park `needs-human` naming the
+  thread — the same round budget acceptance-review.md sets; only a recorded human gate extends it.
 
 ## Evidence (evidence-manifest.md, PR-open variant)
 

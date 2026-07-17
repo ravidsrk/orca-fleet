@@ -36,9 +36,9 @@ there is no merge train, because the fleet has no merge rights on the target.
 ## Two terminal outcomes
 
 - **CONTRIBUTED** — every actionable issue has an OPEN, internally-reviewed, etiquette-correct PR or a
-  posted review-assist; parks are only `externally-covered` or `needs-human`.
-- **CONTRIBUTED-WITH-PARKED** (degraded) — the set is exhausted but ≥1 park is a stuck gate (CLA
-  unsigned, `needs-human` design fork). Never reported as CONTRIBUTED.
+  posted review-assist; parks are only `externally-covered`, `externally-resolved`, or `out-of-scope`.
+- **CONTRIBUTED-WITH-PARKED** (degraded) — the set is exhausted but ≥1 park is `needs-human` (a stuck
+  gate: CLA unsigned, design fork). Never reported as CONTRIBUTED.
 
 Merge is NOT the definition of done — you have READ on the target, so `awaiting-maintainer-merge` is a
 NORMAL terminal, not a failure. "Backlog to zero" here means the actionable set is drained into
@@ -76,7 +76,7 @@ A full re-enumeration finds ZERO actionable issues that are not (a) CONTRIBUTED 
 the upstream default (`baseRefName==<default>` asserted, `headRefOid==reviewed_sha` fresh, a
 failing-first test with a revert-audited negative control, bots reconciled, etiquette conformant, AND
 every post-open review thread answered per upstream-contribution.md follow-up) with the PR url in the
-closing note, ledger flags `BUILT`…`PR_OPEN`…`FOLLOWED_UP` all `t`; or (b) a posted
+closing note, ledger flags `BUILD_DONE`…`PR_OPEN`…`FOLLOWED_UP` all `t`; or (b) a posted
 review-assist whose findings are each quoted from the target PR's diff; or (c) PARKED
 (`externally-covered` with the covering PR ref, `needs-human` naming its gate). The final enumeration
 is pasted in the ledger. Manifest names CONTRIBUTED or CONTRIBUTED-WITH-PARKED.
@@ -92,14 +92,17 @@ only, never an RFC/meta/tracking issue.
 
 ## Ledger (header first, then rows)
 
-Header per liveness-resume.md: `RUN · COORDINATOR · UPSTREAM · FORK · T0 · SOURCE` (no BASE/FORK_POINT
-— there is no integration base). Phase marker + unit flags per ledger-contract.md, with `MERGED`
-replaced by `PR_OPEN` and `WT_CLEAN`:
+Header per liveness-resume.md: `RUN · COORDINATOR · BASE=- · FORK_POINT=- · T0 · SOURCE · WIP ·
+UPSTREAM · FORK` (BASE/FORK_POINT recorded as `-`, never renamed — there is no integration base;
+UPSTREAM and FORK are additive trailing columns). Phase marker + unit flags per ledger-contract.md —
+every canonical flag kept except `MERGED` (dropped: merge is the maintainer's, the fleet has none),
+extended with `CLASS` and `FOLLOWED_UP`:
 
-`| task_id | issue | title | CLASS | BUILT | REVIEWED | PR_OPEN | FOLLOWED_UP | park | evidence |`
+`| task_id | issue | title | CLASS | BUILD_DONE | REVIEWED | PR_OPEN | BOT | FOLLOWED_UP | WT_CLEAN | park | evidence |`
 CLASS ∈ buildable · already-has-PR · needs-human · externally-resolved · out-of-scope. `PR_OPEN`
 carries the PR url + reviewed_sha (or the assist comment url); `FOLLOWED_UP` is `t` only when every
-post-open review thread is answered and CI is green-or-explained. RESUME scopes to header coordinator
+post-open review thread is answered and CI is green-or-explained; `WT_CLEAN` flips when the fork
+worktree is retired at the unit's terminal (no merge to wait on). RESUME scopes to header coordinator
 + ledger task ids.
 
 ## Gates + supervision

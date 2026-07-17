@@ -6,8 +6,9 @@ description: >-
   that assert real behavior, prove each earns its keep by failing at its assertion under a mutation
   (harness still runnable — a compile break is not proof), and route surfaced bugs to a fix or backlog,
   looping until every confirmed critical path is mutation-audited. Use when "close the test gap",
-  "cover the critical paths", "test debt", characterization/mutation testing. Not for flake
-  eradication (deflake-it) or building features with tests from the start (ship-it).
+  "cover the critical paths", "test debt", characterization/mutation testing — it owns missing
+  coverage, not broken tests. Not for flake eradication (deflake-it), a deterministically failing
+  test (clean-sweep), or building features with tests from the start (ship-it).
 license: MIT
 proof: doctrine-only
 compatibility: >-
@@ -63,7 +64,7 @@ mutation-audit set, not the percent. Manifest names COVERED or COVERED-WITH-PARK
 
 ## Ledger + supervision
 
-Header per liveness-resume.md: `RUN · COORDINATOR · BASE · FORK_POINT · T0 · SOURCE` (`-` if N/A;
+Header per liveness-resume.md: `RUN · COORDINATOR · BASE · FORK_POINT · T0 · SOURCE · WIP` (`-` if N/A;
 SOURCE = critical-surface digest). Rows include Orca task id + path fields (test · mutation · PR ·
 disposition). Stalls → WATCH; death → RESUME scoped to header coordinator + ledger task ids,
 git-verified.

@@ -69,7 +69,7 @@ rule now: the WIP cap goes in the ledger header at T0, and it counts **live pane
 The cs-61 builder reported done. The ledger shows what the coordinator did with that claim:
 
 ```
-18:55Z · cs-61 · BUILT=t verified: head 887087c on origin, 5 bisectable red-first commits,
+18:55Z · cs-61 · BUILD_DONE=t verified: head 887087c on origin, 5 bisectable red-first commits,
 author ok, manifest criteria all status=met (C1-C6; docs-sse-note DELEGATED to cs-34 —
 cs-34 spec must inherit it) · dispatching integrator
 ```

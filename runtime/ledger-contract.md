@@ -21,7 +21,7 @@ or it is an allowed park class with a human/OPS ref.
 
 | Flag | Means (evidence, not belief) |
 |------|------------------------------|
-| `BUILT` | Implementation on the unit branch; build/lint/affected tests green; red-first test present when the unit claims a fix |
+| `BUILD_DONE` | Implementation on the unit branch; build/lint/affected tests green; red-first test present when the unit claims a fix |
 | `PR_OPEN` | Integrator opened PR against BASE; `baseRefName==BASE` asserted. **`n/a` only** on the documented no-gh local-merge path (merge-serialization.md) — then `MERGED` still requires ancestry-verified local merge + ledger `no-gh: local-merge` |
 | `BOT` | Review-bot wait→ingest→reconcile done, or `n/a` if no bot / bot disabled for the run / no-gh path |
 | `REVIEWED` | Build-blind review PASS at `reviewed_sha` (fresh; voided by later push) |
@@ -30,10 +30,10 @@ or it is an allowed park class with a human/OPS ref.
 
 Canonical row (extend with mission fields, never drop flags):
 
-`| task_id | unit | BUILT | PR_OPEN | BOT | REVIEWED | MERGED | WT_CLEAN | park | evidence |`
+`| task_id | unit | BUILD_DONE | PR_OPEN | BOT | REVIEWED | MERGED | WT_CLEAN | park | evidence |`
 
 `park` is empty or a class below. Advance flags only after the corresponding verify step; never
-batch-flip from memory. The row IS the record: a `BUILT=t` noted only as a dispatch-log line has
+batch-flip from memory. The row IS the record: a `BUILD_DONE=t` noted only as a dispatch-log line has
 not advanced the unit — RESUME and convergence read row flags, not narration. Flip the flag in
 the same edit that logs the verify.
 

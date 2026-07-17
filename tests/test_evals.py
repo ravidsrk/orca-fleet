@@ -11,8 +11,10 @@ Locks in:
 import argparse
 import importlib.util
 import io
+import json
 import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -84,6 +86,21 @@ class TestEvalInfrastructure(unittest.TestCase):
             f"failures: {result['failures']}",
         )
 
+    def test_routing_seam_broken_vs_coverage_vs_intermittent(self):
+        # Issue #41: "this test is broken" must not fan out across three missions.
+        # Deterministic N/N failure → clean-sweep (deflake-it's DETECT phase routes
+        # those out as bugs); missing coverage → prove-it; intermittent
+        # pass-on-retry → deflake-it.
+        seam = [
+            ("Fix this broken test — it fails 10 out of 10 runs, same assertion every time.",
+             "clean-sweep"),
+            ("The refund path has no tests — close the coverage gap.", "prove-it"),
+            ("This test fails intermittently — it passes on retry.", "deflake-it"),
+        ]
+        for prompt, expected in seam:
+            with self.subTest(prompt=prompt):
+                self.assertEqual(eval_mod.classify_prompt(prompt), expected)
+
     def test_run_skills_eval_has_no_errors(self):
         result = eval_mod.run_skills_eval()
         self.assertEqual(result["errors"], [])
@@ -110,6 +127,33 @@ class TestEvalInfrastructure(unittest.TestCase):
         self.assertIn("error", result)
         self.assertIn("missing", result["error"])
         self.assertEqual(result["total"], 0)
+
+    def _routing_errors(self, missions, routing_data):
+        # Issue #48 harness: a synthetic catalog + routing.json, so coverage is
+        # provably keyed to skills/ dirs and not to the MISSION_TRIGGERS dict.
+        with tempfile.TemporaryDirectory() as tmp:
+            skills = Path(tmp) / "skills"
+            for m in missions:
+                (skills / m).mkdir(parents=True)
+                (skills / m / "SKILL.md").write_text("x", encoding="utf-8")
+            routing = Path(tmp) / "routing.json"
+            routing.write_text(json.dumps(routing_data), encoding="utf-8")
+            with patch.object(eval_mod, "ROOT", Path(tmp)), \
+                 patch.object(eval_mod, "SKILLS_DIR", skills), \
+                 patch.object(eval_mod, "ROUTING_EVAL", routing):
+                return eval_mod.validate_routing_eval()
+
+    def test_new_mission_dir_without_routing_example_fails(self):
+        errors = self._routing_errors(["brand-new-mission"], {"evals": []})
+        self.assertTrue(any("brand-new-mission" in e for e in errors), errors)
+
+    def test_new_mission_dir_with_routing_example_passes(self):
+        errors = self._routing_errors(["brand-new-mission"], {"evals": [{
+            "id": 1, "prompt": "do the new thing",
+            "expected_mission": "brand-new-mission",
+            "type": "positive", "reason": "direct trigger",
+        }]})
+        self.assertEqual(errors, [])
 
     def test_cmd_run_reports_routing_json_error(self):
         bad_result = {

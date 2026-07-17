@@ -68,8 +68,9 @@ flowchart TD
 
 Phase by phase:
 
-1. **Threat-model.** STRIDE per trust boundary. The Always / Ask-First / Never boundary maps to
-   one-way gates up front, so nothing irreversible gets improvised mid-run.
+1. **Threat-model.** STRIDE per trust boundary. The Always / Ask-First / Never boundary
+   ([`sandbox-policy`](../../runtime/sandbox-policy.md) defines the buckets) maps to one-way
+   gates up front, so nothing irreversible gets improvised mid-run.
 2. **Audit waves** ([`risk-review`](../../playbooks/risk-review.md), security lens, per axis).
    Every P0/P1 needs a concrete, step-by-step exploit scenario — a PoC, not a vibe. Model output
    is treated as untrusted, live APIs are never tested, and one verified finding triggers a

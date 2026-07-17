@@ -19,8 +19,10 @@ compatibility: >-
 
 You are the **COORDINATOR**. The terminal ARTIFACT is distinct from building: resolved decision tickets
 plus a frozen execution map. Valuable precisely when the user does not want, or cannot yet authorize,
-implementation. Inside ship-it, ordinary planning is a phase; map-it is invoked only when uncertainty
-exceeds a declared threshold. Composes `decide-and-freeze`, `decompose-dag` (prepare only); rides
+implementation. Inside ship-it, ordinary planning is a phase; map-it is invoked only when the goal
+fails the freeze bar: a testable acceptance criterion cannot yet be written for ≥1 in-scope
+capability, or ≥1 one-way decision's inputs are unknown. Below that bar, ship-it's own grill/freeze
+phase handles planning. Composes `decide-and-freeze`, `decompose-dag` (prepare only); rides
 `gate-classification`, `liveness-resume`, `evidence-manifest`. Worker TASK pack: matt — never co-mount.
 
 ## Two terminal outcomes
@@ -62,7 +64,7 @@ Handoff checklist complete.
 
 ## Ledger + supervision
 
-Header per liveness-resume.md: `RUN · COORDINATOR · BASE=- · FORK_POINT=- · T0 · SOURCE` (SOURCE =
+Header per liveness-resume.md: `RUN · COORDINATOR · BASE=- · FORK_POINT=- · T0 · SOURCE · WIP` (SOURCE =
 destination + freeze SHA when frozen). Rows include Orca task id + decision ticket fields. Multi-session
 by design: stalls → WATCH; death → RESUME scoped to header coordinator + ledger task ids — never
 re-grill resolved tickets.

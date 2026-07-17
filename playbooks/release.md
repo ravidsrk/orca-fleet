@@ -16,7 +16,8 @@ serialized, each merge ancestry-verified (`git merge-base --is-ancestor <mergeCo
 origin/<BASE>` AND state=MERGED AND baseRefName==BASE AND a symbol from the unit greppable on
 BASE), the merge SHA ledgered, worktrees torn down only at `WT_CLEAN` (never an active/unmerged/
 dirty one). BUILT means on the integration BASE, verified — it does NOT mean shipped; the
-BASE→default promotion is the separate one-way human gate below.
+BASE→default promotion is the separate one-way human gate below. BUILT is a wave state over the
+whole train, never a unit gate — the per-unit ledger flag is `BUILD_DONE` (ledger-contract.md).
 
 ## PROMOTION_READY
 

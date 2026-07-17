@@ -23,9 +23,9 @@ exploit CLASS. The outcome is a CLEAN RE-AUDIT: a fresh full audit run after fix
 P0/P1. A parked P0 is an exposed system, not an ordinary parked item.
 
 Composes `risk-review` (security lens), `remediate-finding`, `acceptance-review`, `runtime-prove`,
-`compound-learn`; rides `sandbox-policy`, `merge-serialization`, `reviewed-sha-freshness`,
-`dispatch-lifecycle`, `liveness-resume`, `evidence-manifest`, `ledger-contract`, `attention-budget`.
-Worker TASK pack: one of addy | gstack — never co-mount.
+`compound-learn`; rides `sandbox-policy`, `gate-classification`, `merge-serialization`,
+`reviewed-sha-freshness`, `dispatch-lifecycle`, `liveness-resume`, `evidence-manifest`,
+`ledger-contract`, `attention-budget`. Worker TASK pack: one of addy | gstack — never co-mount.
 
 ## Two terminal outcomes (name the one reached)
 
@@ -40,8 +40,8 @@ Worker TASK pack: one of addy | gstack — never co-mount.
 ## Pipeline
 
 ```
-THREAT-MODEL (STRIDE per trust boundary; Always/Ask-First/Never boundary → one-way gates;
-commit artifact to ledger/repo)
+THREAT-MODEL (STRIDE per trust boundary; Always/Ask-First/Never boundary per sandbox-policy.md
+→ one-way gates; commit artifact to ledger/repo)
   → BOOTSTRAP integration BASE (runtime/scripts/preflight.py --base <BASE> --fork-point <sha
     recorded in the ledger header at BASE creation>; BASE ≠ default — dispatch-lifecycle.md)
   → AUDIT waves (risk-review security lens applied TREE-WIDE: the audit's fixed point is the whole
@@ -71,7 +71,7 @@ line-deletion.
 
 ## Ledger + supervision
 
-Header per liveness-resume.md: `RUN · COORDINATOR · BASE · FORK_POINT · T0 · SOURCE` (`-` if N/A;
+Header per liveness-resume.md: `RUN · COORDINATOR · BASE · FORK_POINT · T0 · SOURCE · WIP` (`-` if N/A;
 SOURCE = threat-model digest). Rows include Orca task id + finding fields (class · disposition · PR ·
 reviewed_sha · re-attack · evidence). Stalls → WATCH; death → RESUME scoped to header coordinator +
 ledger task ids, git-verified.

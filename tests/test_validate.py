@@ -264,6 +264,39 @@ class TestProtocolDocRefs(unittest.TestCase):
         self.assertEqual(failures, [])
 
 
+class TestLayerSeparation(unittest.TestCase):
+    """Issue #47: AGENTS.md says only skills/ may contain a SKILL.md, so the scan
+    must be repo-wide — a stray SKILL.md in docs/, scripts/, or the repo root would
+    auto-trigger just as badly as one in playbooks/ or runtime/."""
+
+    def _leaks_for(self, rel_paths):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            for rel in rel_paths:
+                p = root / rel
+                p.parent.mkdir(parents=True, exist_ok=True)
+                p.write_text("x", encoding="utf-8")
+            with mock.patch.object(validate, "ROOT", root):
+                return validate.check_layer_separation()
+
+    def test_skill_md_outside_skills_fails_anywhere(self):
+        leaks = self._leaks_for(
+            ["docs/SKILL.md", "scripts/SKILL.md", "SKILL.md", "playbooks/SKILL.md"])
+        self.assertEqual(
+            leaks, ["SKILL.md", "docs/SKILL.md", "playbooks/SKILL.md", "scripts/SKILL.md"])
+
+    def test_mission_skill_md_is_not_a_leak(self):
+        self.assertEqual(self._leaks_for(["skills/demo/SKILL.md"]), [])
+
+    def test_bare_or_nested_skills_skill_md_is_a_leak(self):
+        leaks = self._leaks_for(["skills/SKILL.md", "skills/demo/evals/SKILL.md"])
+        self.assertEqual(leaks, ["skills/SKILL.md", "skills/demo/evals/SKILL.md"])
+
+    def test_dot_and_dependency_dirs_are_not_repo_content(self):
+        self.assertEqual(
+            self._leaks_for([".git/SKILL.md", "node_modules/x/SKILL.md"]), [])
+
+
 class TestCountAgnosticGuards(unittest.TestCase):
     """The count-lint, keyword-check, and badge-freshness guards must each be able to fire —
     a mission is added by a human, so the guards that keep the docs count-agnostic and the
@@ -273,6 +306,47 @@ class TestCountAgnosticGuards(unittest.TestCase):
         for s in ("11 missions", "eleven missions", "twelve missions", "10 outcome-named",
                   "11 callable", "eleven outcome-named", "twelve callable"):
             self.assertRegex(s, validate.COUNT_LINT_RE, s)
+
+    def test_count_lint_matches_stale_phrasing_classes(self):
+        # Issue #33: phrasings that outlived the ten-mission era and slid past the
+        # old `\d+\s+missions` shape — hyphenated counts, and number-word +
+        # adjective + noun taglines (with or without markdown bold).
+        for s in ("the ten-mission set", "an 11-mission catalog",
+                  "Ten **autonomous fleets** for the runtime",
+                  "eleven autonomous fleets"):
+            self.assertRegex(s, validate.COUNT_LINT_RE, s)
+
+    def test_check_doc_counts_flags_all_n_near_mission_talk(self):
+        # Issue #33: "…one mission or all ten." — a catalog count with no noun.
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "README.md").write_text(
+                "whether it copies one mission or all ten. Check the tree after.\n",
+                encoding="utf-8")
+            with mock.patch.object(validate, "ROOT", Path(tmp)), \
+                 mock.patch.object(validate, "COUNT_LINT_FILES", ("README.md",)):
+                failures = validate.check_doc_counts()
+        self.assertTrue(any("all ten" in f for f in failures), failures)
+
+    def test_all_n_near_bare_catalog_talk_is_flagged(self):
+        # Deliberate width (Greptile P2 on #59): in the linted doc surfaces
+        # "catalog" only ever means the mission catalog, so "all N" next to it is
+        # a catalog count even with no mission/fleet word on the line.
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "README.md").write_text(
+                "the catalog covers all eleven of them.\n", encoding="utf-8")
+            with mock.patch.object(validate, "ROOT", Path(tmp)), \
+                 mock.patch.object(validate, "COUNT_LINT_FILES", ("README.md",)):
+                failures = validate.check_doc_counts()
+        self.assertTrue(any("all eleven" in f for f in failures), failures)
+
+    def test_all_n_off_mission_lines_is_not_a_catalog_count(self):
+        # "all ten" only reads as a catalog count next to mission/fleet/catalog talk.
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "README.md").write_text(
+                "run all ten checks before landing anything.\n", encoding="utf-8")
+            with mock.patch.object(validate, "ROOT", Path(tmp)), \
+                 mock.patch.object(validate, "COUNT_LINT_FILES", ("README.md",)):
+                self.assertEqual(validate.check_doc_counts(), [])
 
     def test_count_lint_ignores_mission_identity_prose(self):
         # "one mission" / "two missions" in the identity discussion are NOT catalog counts.

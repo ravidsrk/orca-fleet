@@ -16,12 +16,26 @@ if len(sys.argv) < 2:
     print("usage: pm.py <inbox.json>", file=sys.stderr)
     sys.exit(1)
 
-raw = open(sys.argv[1]).read()
+
+def _has_messages_key(node):
+    # True if a 'messages' key exists anywhere in the decoded structure.
+    if isinstance(node, dict):
+        return "messages" in node or any(_has_messages_key(v) for v in node.values())
+    if isinstance(node, list):
+        return any(_has_messages_key(v) for v in node)
+    return False
+
+try:
+    raw = open(sys.argv[1]).read()
+except OSError as e:
+    print(f"pm.py: ERROR: cannot read {sys.argv[1]}: {e.strerror or e}", file=sys.stderr)
+    sys.exit(2)
 
 dec = json.JSONDecoder()
 i = 0
 msgs = []
 skipped = 0
+unrecognized = 0
 while i < len(raw):
     while i < len(raw) and raw[i] in " \t\r\n":
         i += 1
@@ -40,8 +54,17 @@ while i < len(raw):
         continue
     if not isinstance(obj, dict):
         continue
-    result = obj.get("result") or {}
+    result = obj.get("result")
     batch = result.get("messages") if isinstance(result, dict) else None
+    if not isinstance(batch, list):
+        batch = None  # a wrong-typed 'messages' (e.g. a string) is not a batch
+    if batch is None and _has_messages_key(obj):
+        # Message-bearing shape we don't parse — 'messages' misplaced at any depth
+        # ({"messages": [...]}, {"data": {"messages": [...]}}, wrong-typed, or riding
+        # inside a heartbeat envelope). Checked BEFORE the heartbeat skip so it can't
+        # be swallowed; counting it as empty would misread a real inbox as empty.
+        unrecognized += 1
+        continue
     if "_heartbeat" in obj and not batch:
         continue  # heartbeat-only envelope; a mixed object still yields its messages below
     for m in batch or []:
@@ -57,3 +80,9 @@ for m in msgs:
     print("PAYLOAD:", m.get("payload"))
 if skipped:
     print(f"pm.py: WARN: skipped {skipped} malformed segment(s)", file=sys.stderr)
+if unrecognized:
+    print(
+        f"pm.py: WARN: {unrecognized} envelope(s) carried a 'messages' key outside the "
+        "expected {'result': {'messages': [...]}} shape — the count above may undercount",
+        file=sys.stderr,
+    )

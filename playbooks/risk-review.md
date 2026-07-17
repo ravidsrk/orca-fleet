@@ -14,8 +14,16 @@ bypassed and every requested lens runs over the full surface.
 
 Run a lens only when the diff signals it (auth/query/route/dep change → security; render/query/bundle
 → perf; component/markup → a11y; schema/migration → data-migration). Adaptive gating: a lens with 0
-findings across 10+ dispatches auto-gates off; security and data-migration are NEVER_GATE (their
-value is the miss they'd catch).
+findings across its last 10+ dispatches auto-gates off; security and data-migration are NEVER_GATE
+(their value is the miss they'd catch).
+
+The tally is never coordinator memory — it lives in the target repo's DECISIONS log
+(`docs/DECISIONS.md`, ledger-contract.md): committed state that survives a crashed run and is
+shared across runs and coordinators. Every lens dispatch appends one DECISIONS line with id
+`lens-tally:<lens>`, class `mechanical`, and the dispatch's finding count as its answer. The gate
+check runs BEFORE dispatching a lens: read that lens's tally lines newest-first; 10+ consecutive
+zeros → auto-gate off, appended as its own `lens-gate:<lens>` decision line; any nonzero count
+resets the streak. Two coordinators reading the same log reach the same gate verdict.
 
 ## The lenses (each a fresh-context worker, its own protocol)
 
