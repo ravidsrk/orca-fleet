@@ -76,7 +76,10 @@ ledger flags `BUILD_DONE`…`WT_CLEAN` all `t`) or (b) PARKED with an allowed cl
 are a one-way batch gate; `needs-human` / `CODE_CLOSED`+`VERIFY_AT_SCALE` name their gate/OPS ref).
 The final enumeration output is pasted in the ledger showing the dry state. `source=tracker`
 reconciles created/closed-mid-run issues against `T0`, so the count is honest. Manifest names DRY or
-DRY-WITH-PARKED.
+DRY-WITH-PARKED. DRY also requires the integration TIP to pass the repo's OWN validate/test suite:
+the FINAL REPORT and any run-close commit land on the branch outside the per-finding gates, so a
+green per-finding history under a red report commit is still a red branch — verify the tip green
+before opening the promotion PR.
 
 ## Ledger (header first, then rows)
 
@@ -98,8 +101,12 @@ death → RESUME (ledger-scoped, git-verified).
 
 Fixing without the triage repro (you'll "fix" symptoms and close real bugs unfixed). Closing from
 worker memory (only off verified merges). One mega-PR for many findings (merge-serialization exists).
-Truncated enumeration (partial denominator = a false "done"). Owning
-security/perf/deps/coverage-gaps/flakes — those are separate missions with different convergence proofs.
+Truncated enumeration (partial denominator = a false "done"). Dropping a finding at DISPATCH:
+batching the frozen list into file-coherent build units can silently omit an id the denominator still
+carries — the wave plan is a new artifact, so assert every frozen id maps to exactly one build unit
+before dispatch; a finding that never reached `dispatched` is OPEN, not done (re-enumeration is the
+backstop, not the primary guard). Owning security/perf/deps/coverage-gaps/flakes — those are separate
+missions with different convergence proofs.
 
 ## Related
 
