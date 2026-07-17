@@ -46,6 +46,14 @@ def frontmatter_description(text):
 
 class TestArchitecture(unittest.TestCase):
 
+    # Nine missions quote a ledger-header template (ship-it and review-it quote none);
+    # a mission may not silently drop its template to dodge the WIP assertion in
+    # test_mission_header_templates_carry_wip.
+    MISSIONS_WITH_HEADER_TEMPLATE = {
+        "clean-sweep", "harden-it", "speed-it", "modernize-it", "prove-it",
+        "deflake-it", "map-it", "root-cause", "oss-contribute",
+    }
+
     def test_validator_passes(self):
         r = subprocess.run(
             [sys.executable, str(ROOT / "scripts" / "validate.py")],
@@ -132,13 +140,6 @@ class TestArchitecture(unittest.TestCase):
             "would stop counting against the cap",
         )
 
-    # Nine missions quote a ledger-header template (ship-it and review-it quote none);
-    # a mission may not silently drop its template to dodge the WIP assertion below.
-    MISSIONS_WITH_HEADER_TEMPLATE = {
-        "clean-sweep", "harden-it", "speed-it", "modernize-it", "prove-it",
-        "deflake-it", "map-it", "root-cause", "oss-contribute",
-    }
-
     def test_mission_header_templates_carry_wip(self):
         # attention-budget.md declares `WIP: builders=<n> reviewers=<n>` a required
         # ledger-header field written at T0, and liveness-resume.md's canonical header
@@ -154,6 +155,8 @@ class TestArchitecture(unittest.TestCase):
                     "WIP", m.group(1),
                     f"{d.name} ledger-header template omits the required WIP field",
                 )
+        # On sets, assertGreaterEqual asserts the superset relation: every mission
+        # known to quote a template must still quote one (removal fails here).
         self.assertGreaterEqual(
             found, self.MISSIONS_WITH_HEADER_TEMPLATE,
             "a mission dropped its ledger-header template instead of carrying WIP",
