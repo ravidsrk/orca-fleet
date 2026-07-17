@@ -264,6 +264,39 @@ class TestProtocolDocRefs(unittest.TestCase):
         self.assertEqual(failures, [])
 
 
+class TestLayerSeparation(unittest.TestCase):
+    """Issue #47: AGENTS.md says only skills/ may contain a SKILL.md, so the scan
+    must be repo-wide — a stray SKILL.md in docs/, scripts/, or the repo root would
+    auto-trigger just as badly as one in playbooks/ or runtime/."""
+
+    def _leaks_for(self, rel_paths):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            for rel in rel_paths:
+                p = root / rel
+                p.parent.mkdir(parents=True, exist_ok=True)
+                p.write_text("x", encoding="utf-8")
+            with mock.patch.object(validate, "ROOT", root):
+                return validate.check_layer_separation()
+
+    def test_skill_md_outside_skills_fails_anywhere(self):
+        leaks = self._leaks_for(
+            ["docs/SKILL.md", "scripts/SKILL.md", "SKILL.md", "playbooks/SKILL.md"])
+        self.assertEqual(
+            leaks, ["SKILL.md", "docs/SKILL.md", "playbooks/SKILL.md", "scripts/SKILL.md"])
+
+    def test_mission_skill_md_is_not_a_leak(self):
+        self.assertEqual(self._leaks_for(["skills/demo/SKILL.md"]), [])
+
+    def test_bare_or_nested_skills_skill_md_is_a_leak(self):
+        leaks = self._leaks_for(["skills/SKILL.md", "skills/demo/evals/SKILL.md"])
+        self.assertEqual(leaks, ["skills/SKILL.md", "skills/demo/evals/SKILL.md"])
+
+    def test_dot_and_dependency_dirs_are_not_repo_content(self):
+        self.assertEqual(
+            self._leaks_for([".git/SKILL.md", "node_modules/x/SKILL.md"]), [])
+
+
 class TestCountAgnosticGuards(unittest.TestCase):
     """The count-lint, keyword-check, and badge-freshness guards must each be able to fire —
     a mission is added by a human, so the guards that keep the docs count-agnostic and the

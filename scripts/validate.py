@@ -295,13 +295,23 @@ def check_protocol_doc_refs(protocols):
     return failures
 
 
+# Not repo content: VCS state, local agent state (any dot-dir), and dependency trees.
+_LAYER_SCAN_SKIP = {"node_modules", "__pycache__"}
+
+
 def check_layer_separation():
-    """Only skills/ may contain SKILL.md — playbooks and runtime are not discoverable."""
+    """Only skills/<name>/ may hold a SKILL.md. AGENTS.md states the rule repo-wide,
+    so the scan is repo-wide too — a stray SKILL.md in docs/, scripts/, or the repo
+    root would auto-trigger just as badly as one in playbooks/ or runtime/."""
     leaks = []
-    for layer in (PLAYBOOKS_DIR, RUNTIME_DIR):
-        if layer.exists():
-            leaks += [str(p.relative_to(ROOT)) for p in layer.rglob("SKILL.md")]
-    return leaks
+    for p in ROOT.rglob("SKILL.md"):
+        parts = p.relative_to(ROOT).parts
+        if any(d.startswith(".") or d in _LAYER_SCAN_SKIP for d in parts[:-1]):
+            continue
+        if parts[0] == "skills" and len(parts) == 3:
+            continue  # skills/<name>/SKILL.md — the one discoverable form
+        leaks.append(str(p.relative_to(ROOT)))
+    return sorted(leaks)
 
 
 def check_evals():
@@ -422,7 +432,7 @@ def main():
         all_passed = False
         print("\nFAIL layer separation — SKILL.md found outside skills/:")
         for leak in leaks:
-            print(f"   - {leak} (playbooks/runtime are callable, not discoverable)")
+            print(f"   - {leak} (only skills/<name>/ may hold a SKILL.md)")
 
     doc_failures = check_protocol_doc_refs(protocols)
     if doc_failures:
