@@ -16,12 +16,17 @@ if len(sys.argv) < 2:
     print("usage: pm.py <inbox.json>", file=sys.stderr)
     sys.exit(1)
 
-raw = open(sys.argv[1]).read()
+try:
+    raw = open(sys.argv[1]).read()
+except OSError as e:
+    print(f"pm.py: ERROR: cannot read {sys.argv[1]}: {e.strerror or e}", file=sys.stderr)
+    sys.exit(2)
 
 dec = json.JSONDecoder()
 i = 0
 msgs = []
 skipped = 0
+unrecognized = 0
 while i < len(raw):
     while i < len(raw) and raw[i] in " \t\r\n":
         i += 1
@@ -44,6 +49,11 @@ while i < len(raw):
     batch = result.get("messages") if isinstance(result, dict) else None
     if "_heartbeat" in obj and not batch:
         continue  # heartbeat-only envelope; a mixed object still yields its messages below
+    if batch is None and "messages" in obj:
+        # Message-bearing shape we don't parse (e.g. top-level {"messages": [...]}) —
+        # counting it as empty would misread a real inbox as having nothing in it.
+        unrecognized += 1
+        continue
     for m in batch or []:
         if isinstance(m, dict):
             msgs.append(m)
@@ -57,3 +67,9 @@ for m in msgs:
     print("PAYLOAD:", m.get("payload"))
 if skipped:
     print(f"pm.py: WARN: skipped {skipped} malformed segment(s)", file=sys.stderr)
+if unrecognized:
+    print(
+        f"pm.py: WARN: {unrecognized} envelope(s) carried a 'messages' key outside the "
+        "expected {'result': {'messages': [...]}} shape — the count above may undercount",
+        file=sys.stderr,
+    )

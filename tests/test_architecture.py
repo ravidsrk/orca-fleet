@@ -199,6 +199,37 @@ class TestArchitecture(unittest.TestCase):
         finally:
             os.unlink(path)
 
+    def test_pm_missing_file_fails_clean(self):
+        # pm.py feeds the coordinator's stall/respawn decisions (liveness-resume.md);
+        # a missing inbox must be a one-line diagnostic and exit 2, not a raw traceback.
+        r = subprocess.run(
+            [sys.executable, str(RUNTIME / "scripts" / "pm.py"), "/nonexistent-inbox.json"],
+            capture_output=True, text=True,
+        )
+        self.assertEqual(r.returncode, 2, f"expected exit 2, got {r.returncode}")
+        self.assertNotIn("Traceback", r.stderr, "missing file must not dump a raw traceback")
+        self.assertIn("nonexistent-inbox.json", r.stderr, "error must name the unreadable path")
+
+    def test_pm_warns_on_unrecognized_message_envelope(self):
+        # A top-level {"messages": [...]} envelope (no "result" wrapper) is a real inbox
+        # in a shape pm.py doesn't parse; it must warn on stderr instead of silently
+        # reporting MESSAGES: 0 as if the inbox were empty.
+        import tempfile, os
+        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
+            fh.write('{"messages": [{"id": "m1", "subject": "s", "body": "b"}]}\n')
+            path = fh.name
+        try:
+            r = subprocess.run(
+                [sys.executable, str(RUNTIME / "scripts" / "pm.py"), path],
+                capture_output=True, text=True,
+            )
+            self.assertEqual(r.returncode, 0, r.stderr)
+            self.assertIn("MESSAGES: 0", r.stdout)
+            self.assertIn("WARN", r.stderr, "unrecognized envelope shape must not be silent")
+            self.assertIn("messages", r.stderr, "warning must say what looked message-like")
+        finally:
+            os.unlink(path)
+
     def test_runtime_scripts_present_and_executable_shape(self):
         # The shared tooling must exist, be non-trivial, be executable, and actually parse —
         # a zero-byte or syntax-broken script must fail here, not mid-run.
