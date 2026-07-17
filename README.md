@@ -314,7 +314,7 @@ npx skills add ravidsrk/orca-fleet           # install
 **Caveat — verify the install preserved the tree.** Every mission references
 `../../playbooks/` and `../../runtime/` relative to its own directory. Any installer that
 copies skill directories *out* of the repo tree severs those references — whether it copies
-one mission or all ten. After installing, check that `playbooks/` and `runtime/` exist two
+one mission or the whole catalog. After installing, check that `playbooks/` and `runtime/` exist two
 levels above each installed mission:
 
 ```bash
@@ -375,7 +375,7 @@ The validator is deliberately paranoid: every composition reference must resolve
 must expose at least one machine-checkable composition, dangling or typo'd `<name>.md` references
 fail the build anywhere in the catalog, every mission must declare an honest `proof:` status
 (with evidence on disk before it can claim one), and instruction-budget line caps stop doctrine
-creep at CI. The contract tests keep the ten-mission set, the outcome-naming rule, the
+creep at CI. The contract tests keep the mission catalog, the outcome-naming rule, the
 orphan-protocol guarantee, and script interpolation hygiene locked.
 
 ## FAQ
