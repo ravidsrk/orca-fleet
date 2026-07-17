@@ -75,7 +75,7 @@ pasted. Manifest names CURRENT or CURRENT-WITH-PINNED.
 
 ## Ledger + supervision
 
-Header per liveness-resume.md: `RUN · COORDINATOR · BASE · FORK_POINT · T0 · SOURCE` (`-` if N/A;
+Header per liveness-resume.md: `RUN · COORDINATOR · BASE · FORK_POINT · T0 · SOURCE · WIP` (`-` if N/A;
 SOURCE = inventory digest). Rows include Orca task id + dep/group fields (target · PR · CI · pin/
 handoff). Stalls → WATCH; death → RESUME scoped to header coordinator + ledger task ids, git-verified.
 

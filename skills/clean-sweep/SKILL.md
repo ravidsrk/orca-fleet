@@ -79,7 +79,7 @@ DRY-WITH-PARKED.
 
 ## Ledger (header first, then rows)
 
-Line 1 per liveness-resume.md: `RUN · COORDINATOR · BASE · FORK_POINT · T0 · SOURCE` (SOURCE =
+Line 1 per liveness-resume.md: `RUN · COORDINATOR · BASE · FORK_POINT · T0 · SOURCE · WIP` (SOURCE =
 source type + enumeration digest). Phase marker + unit boolean flags per ledger-contract.md:
 
 `| task_id | id | title | CLASS | BUILT | PR_OPEN | BOT | REVIEWED | MERGED | WT_CLEAN | park | evidence |`
