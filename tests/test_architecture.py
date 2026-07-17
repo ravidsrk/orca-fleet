@@ -132,6 +132,33 @@ class TestArchitecture(unittest.TestCase):
             "would stop counting against the cap",
         )
 
+    # Nine missions quote a ledger-header template (ship-it and review-it quote none);
+    # a mission may not silently drop its template to dodge the WIP assertion below.
+    MISSIONS_WITH_HEADER_TEMPLATE = {
+        "clean-sweep", "harden-it", "speed-it", "modernize-it", "prove-it",
+        "deflake-it", "map-it", "root-cause", "oss-contribute",
+    }
+
+    def test_mission_header_templates_carry_wip(self):
+        # attention-budget.md declares `WIP: builders=<n> reviewers=<n>` a required
+        # ledger-header field written at T0, and liveness-resume.md's canonical header
+        # ends with it. A mission template that stops at SOURCE teaches coordinators
+        # to write capless headers — the same hole test_wip_cap_is_a_ledger_header_contract
+        # closes on the producer side.
+        found = set()
+        for d in mission_dirs():
+            text = (d / "SKILL.md").read_text(encoding="utf-8")
+            for m in re.finditer(r"liveness-resume\.md: `([^`]+)`", text):
+                found.add(d.name)
+                self.assertIn(
+                    "WIP", m.group(1),
+                    f"{d.name} ledger-header template omits the required WIP field",
+                )
+        self.assertGreaterEqual(
+            found, self.MISSIONS_WITH_HEADER_TEMPLATE,
+            "a mission dropped its ledger-header template instead of carrying WIP",
+        )
+
     def test_row_flags_are_the_record(self):
         # The chimely run advanced BUILT/REVIEWED only as dispatch-log prose; every
         # unit row still read all-f at run close, which would have broken a crash
