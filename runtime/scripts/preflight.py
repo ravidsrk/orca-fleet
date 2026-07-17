@@ -22,7 +22,17 @@ so aliasing the default branch cannot slip past the M-5 guardrail.
 Usage:
     preflight.py --base <base-branch> [--default <default-branch>] [--fork-point <sha>] [--require-gitleaks]
     preflight.py --mode readonly        # read-only fleets: binary checks only, no gh/BASE
+    preflight.py --offline --base <base-branch> --default <default-branch>   # offline start
     # exit 0 = OK; exit 1 = usage/dependency; exit 2 = invariant violation
+    # (usage errors from argparse itself — unknown flag, bad choice — are also exit 1)
+
+Offline start (--offline): gh is skipped entirely. --default becomes required (there is
+no gh to derive it) and the gh-remote check is dropped, but every git-based BASE
+invariant (3-6) still runs — --offline never weakens the M-5 guardrail. This is the
+Phase 0 twin of the mid-run no-gh fallback in merge-serialization.md: the run works
+PR-less from unit one, stops at BASE, and owes a human promotion PR. Every subprocess
+call carries a timeout, so a gh that hangs (rather than fails) cannot block Phase 0;
+the timeout error suggests --offline for intentionally offline hosts.
 
 Wire it in at Phase 0 of the run (SKILL.md) and inside the integrator preamble before the
 first `gh pr create` so a mid-run drift is caught, not tolerated.
@@ -35,8 +45,31 @@ import subprocess
 import sys
 
 
-def _run(cmd: list[str]) -> tuple[int, str, str]:
-    proc = subprocess.run(cmd, capture_output=True, text=True)
+# git commands here are local and fast; gh talks to the network. Read at call
+# time (not bound as defaults) so tests can patch them.
+_GIT_TIMEOUT = 10
+_GH_TIMEOUT = 30
+
+
+class _UsageExit1Parser(argparse.ArgumentParser):
+    """argparse exits 2 on its own usage errors (unknown flag, bad choice), but the
+    contract reserves 2 for invariant violations — remap every usage error to 1."""
+
+    def error(self, message):
+        self.print_usage(sys.stderr)
+        print(f"{self.prog}: error: {message}", file=sys.stderr)
+        raise SystemExit(1)
+
+
+def _run(cmd: list[str], timeout: float | None = None) -> tuple[int | None, str, str]:
+    """rc is None when the command timed out — a sentinel no real process can
+    produce (real rcs are 0-255, or negative for a signal death), so a genuine
+    `exit 124` is never mistaken for a timeout."""
+    limit = _GIT_TIMEOUT if timeout is None else timeout
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=limit)
+    except subprocess.TimeoutExpired:
+        return None, "", f"`{' '.join(cmd)}` timed out after {limit}s"
     return proc.returncode, proc.stdout.strip(), proc.stderr.strip()
 
 
@@ -45,7 +78,10 @@ def _which(name: str) -> bool:
 
 
 def _default_branch_via_gh() -> str | None:
-    rc, out, _ = _run(["gh", "repo", "view", "--json", "defaultBranchRef", "-q", ".defaultBranchRef.name"])
+    rc, out, _ = _run(
+        ["gh", "repo", "view", "--json", "defaultBranchRef", "-q", ".defaultBranchRef.name"],
+        timeout=_GH_TIMEOUT,
+    )
     return out if rc == 0 and out else None
 
 
@@ -103,7 +139,7 @@ def _tip_sha(ref: str) -> str | None:
 
 
 def main(argv: list[str]) -> int:
-    parser = argparse.ArgumentParser(prog="preflight.py")
+    parser = _UsageExit1Parser(prog="preflight.py")
     parser.add_argument("--base", help="The integration BASE branch name (required unless --mode readonly).")
     parser.add_argument("--default", help="Default branch (auto-derived via `gh` if omitted).")
     parser.add_argument(
@@ -122,20 +158,29 @@ def main(argv: list[str]) -> int:
         action="store_true",
         help="Fail if `gitleaks` isn't on PATH (the integrator will run a scoped secret scan).",
     )
+    parser.add_argument(
+        "--offline",
+        action="store_true",
+        help="Offline start: skip gh entirely (requires --default); all git-based BASE "
+        "invariants still run. See merge-serialization.md 'No-gh fallback'.",
+    )
     args = parser.parse_args(argv)
 
     # Usage errors are exit 1 (contract: 0=OK, 1=usage/dependency, 2=invariant).
-    # Do not call parser.error() here — argparse defaults to SystemExit(2), which
-    # would collapse usage into the invariant bucket.
+    # _UsageExit1Parser remaps argparse's own SystemExit(2) the same way.
     if args.mode == "write" and not args.base:
         print("preflight: ERROR: --base is required unless --mode readonly", file=sys.stderr)
+        return 1
+    if args.offline and not args.default:
+        print("preflight: ERROR: --default is required with --offline (no gh to derive it)", file=sys.stderr)
         return 1
 
     errors: list[str] = []
     warnings: list[str] = []
 
-    # 1. Required binaries. Read-only fleets never touch gh/PRs.
-    required = ("git",) if args.mode == "readonly" else ("git", "gh")
+    # 1. Required binaries. Read-only fleets never touch gh/PRs; offline starts
+    #    swap every gh step for its git equivalent (merge-serialization.md).
+    required = ("git",) if args.mode == "readonly" or args.offline else ("git", "gh")
     for binary in required:
         if not _which(binary):
             errors.append(f"missing required binary on PATH: {binary}")
@@ -160,16 +205,29 @@ def main(argv: list[str]) -> int:
         print("preflight: OK — mode=readonly (binary + repo checks only; no BASE/PR invariants)")
         return 0
 
-    rc, repo, gh_err = _run(["gh", "repo", "view", "--json", "nameWithOwner", "-q", ".nameWithOwner"])
-    if rc != 0 or not repo:
-        print(f"preflight: ERROR: `gh repo view` failed: {gh_err or 'no output'}", file=sys.stderr)
-        return 1
+    if args.offline:
+        repo = "(offline — gh skipped)"
+    else:
+        rc, repo, gh_err = _run(
+            ["gh", "repo", "view", "--json", "nameWithOwner", "-q", ".nameWithOwner"],
+            timeout=_GH_TIMEOUT,
+        )
+        if rc != 0 or not repo:
+            print(
+                f"preflight: ERROR: `gh repo view` failed: {gh_err or 'no output'}. "
+                "If this host is intentionally offline, rerun with --offline --default <branch> "
+                "(gh skipped; all git-based BASE invariants still run).",
+                file=sys.stderr,
+            )
+            return 1
 
     # 3. Derive default branch if not given.
+    # Dependency/config lane (exit 1): gh answered but gave no default branch —
+    # nothing invariant-shaped has been checked yet.
     default_branch = args.default or _default_branch_via_gh()
     if not default_branch:
         print("preflight: ERROR: could not derive default branch (pass --default)", file=sys.stderr)
-        return 2
+        return 1
 
     # 4. BASE != DEFAULT_BRANCH (the M-5 guardrail), on CANONICAL names so ref
     #    aliases (`origin/main`, `refs/remotes/origin/main`) cannot slip past.
