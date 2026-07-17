@@ -274,6 +274,35 @@ class TestCountAgnosticGuards(unittest.TestCase):
                   "11 callable", "eleven outcome-named", "twelve callable"):
             self.assertRegex(s, validate.COUNT_LINT_RE, s)
 
+    def test_count_lint_matches_stale_phrasing_classes(self):
+        # Issue #33: phrasings that outlived the ten-mission era and slid past the
+        # old `\d+\s+missions` shape — hyphenated counts, and number-word +
+        # adjective + noun taglines (with or without markdown bold).
+        for s in ("the ten-mission set", "an 11-mission catalog",
+                  "Ten **autonomous fleets** for the runtime",
+                  "eleven autonomous fleets"):
+            self.assertRegex(s, validate.COUNT_LINT_RE, s)
+
+    def test_check_doc_counts_flags_all_n_near_mission_talk(self):
+        # Issue #33: "…one mission or all ten." — a catalog count with no noun.
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "README.md").write_text(
+                "whether it copies one mission or all ten. Check the tree after.\n",
+                encoding="utf-8")
+            with mock.patch.object(validate, "ROOT", Path(tmp)), \
+                 mock.patch.object(validate, "COUNT_LINT_FILES", ("README.md",)):
+                failures = validate.check_doc_counts()
+        self.assertTrue(any("all ten" in f for f in failures), failures)
+
+    def test_all_n_off_mission_lines_is_not_a_catalog_count(self):
+        # "all ten" only reads as a catalog count next to mission/fleet/catalog talk.
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "README.md").write_text(
+                "run all ten checks before landing anything.\n", encoding="utf-8")
+            with mock.patch.object(validate, "ROOT", Path(tmp)), \
+                 mock.patch.object(validate, "COUNT_LINT_FILES", ("README.md",)):
+                self.assertEqual(validate.check_doc_counts(), [])
+
     def test_count_lint_ignores_mission_identity_prose(self):
         # "one mission" / "two missions" in the identity discussion are NOT catalog counts.
         for s in ("are one mission (clean-sweep)", "two workflows are the same mission",

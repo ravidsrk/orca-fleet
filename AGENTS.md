@@ -5,7 +5,7 @@ working in this repository.
 
 ## What this repo is
 
-Ten **autonomous fleets** for the [Orca](https://github.com/stablyai/orca) runtime, each named
+**Autonomous fleets** for the [Orca](https://github.com/stablyai/orca) runtime, each named
 for an outcome, never for the pack whose technique a worker runs. Read
 **[ARCHITECTURE.md](ARCHITECTURE.md)** before adding or changing anything — the whole point of
 this repo is a discipline that a careless edit erases.

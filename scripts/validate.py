@@ -318,16 +318,26 @@ COUNT_LINT_FILES = (
     "docs/getting-started.md",
     "CONTRIBUTING.md", ".claude-plugin/plugin.json", ".claude-plugin/marketplace.json",
 )
-# Catalog-SIZE phrasings only: a digit before "missions" ("11 missions"), a spelled
-# number in the catalog range before "missions" ("eleven missions"), or a digit before
-# "outcome-named"/"callable". A bare "one mission" / "two missions" in the mission-identity
-# prose is NOT a catalog count and must not trip — so small spelled numbers are excluded.
+# Catalog-SIZE phrasings only: a digit or spelled number in the catalog range, landing
+# on a catalog noun ("11 missions", "eleven missions", "10 outcome-named"), hyphenated
+# ("ten-mission set"), or through one adjective and markdown emphasis ("Ten **autonomous
+# fleets**"). A bare "one mission" / "two missions" in the mission-identity prose is NOT
+# a catalog count and must not trip — so small spelled numbers are excluded.
 _SPELLED = ("ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|"
             "nineteen|twenty")
+_NUM = rf"(?:\d+|{_SPELLED})"
+# Separator between count, optional adjective, and noun: a hyphen (ten-mission) or
+# whitespace with optional markdown emphasis markers (Ten **autonomous fleets**).
+_SEP = r"(?:-|[\s*_]+)"
+_CATALOG_NOUN = r"(?:missions?|fleets?|outcome-named|callable)"
 COUNT_LINT_RE = re.compile(
-    rf"\b(?:\d+|{_SPELLED})\s+(?:missions|outcome-named|callable)\b",
+    rf"\b{_NUM}{_SEP}(?:[a-z]+{_SEP})?{_CATALOG_NOUN}\b",
     re.IGNORECASE,
 )
+# "all ten" / "all 11" carries a catalog count with no noun at all; it only reads as a
+# catalog count on a line that is talking about the catalog.
+ALL_COUNT_RE = re.compile(rf"\ball\s+{_NUM}\b", re.IGNORECASE)
+MISSION_CONTEXT_RE = re.compile(r"\b(?:missions?|fleets?|catalog)\b", re.IGNORECASE)
 
 
 def check_doc_counts():
@@ -340,6 +350,8 @@ def check_doc_counts():
             continue
         for i, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1):
             m = COUNT_LINT_RE.search(line)
+            if not m and MISSION_CONTEXT_RE.search(line):
+                m = ALL_COUNT_RE.search(line)
             if not m:
                 continue
             # The predecessor's own count is history, not this catalog — but only when
