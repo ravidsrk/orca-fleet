@@ -8,7 +8,7 @@
 **Skill:** [`skills/oss-contribute/SKILL.md`](../../skills/oss-contribute/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** on the fork, yes; merge authority: never
 
 <p align="center">
-  <img src="../../assets/diagrams/missions/oss-contribute.jpg" alt="State machine: ENUMERATE open issues and open PRs, SKEPTIC-TRIAGE, a fork on already-has-a-PR into the assist/alternative/stand-down taste gate or BUILD on fork with failing test first, build-blind REVIEW, OPEN PR to the upstream default, FOLLOW UP until every thread is answered, re-enumerating until CONTRIBUTED; the maintainer merges, never the fleet" width="820">
+  <img src="../../assets/diagrams/missions/oss-contribute.jpg" alt="State machine: ENUMERATE open issues and open PRs, SKEPTIC-TRIAGE, a fork on already-has-a-PR into the assist/stand-down taste gate (an alternative PR only on maintainer invitation) or BUILD on fork with failing test first, build-blind REVIEW, OPEN PR to the upstream default, FOLLOW UP until every thread is answered, re-enumerating until CONTRIBUTED; the maintainer merges, never the fleet" width="820">
 </p>
 
 ---
@@ -102,7 +102,7 @@ logs the choice as a taste gate in `docs/DECISIONS.md`, and a human may veto:
   deference the next day.
 - **stand-down** — their PR covers it and we add nothing: park `externally-covered`, no hollow comment.
 
-The default posture is *complement, not compete*. An alternative PR always cross-links the parallel
+The default posture is *complement, not compete*. An invited alternative PR always cross-links the parallel
 PR and never masquerades as the only take.
 
 ## Opening the PR is not the end
@@ -132,7 +132,8 @@ never reported as the clean terminal).
 ## Human gates
 
 - **Batch gate** on stand-down and refuted closes — the fleet never silently drops an issue.
-- **Per-issue taste gate** on the assist / alternative fork — logged, vetoable.
+- **Per-issue taste gate** on the assist / stand-down fork — logged, vetoable. Opening an
+  alternative PR is maintainer-gated (offered in the assist comment, opened on invitation).
 - **CLA / DCO** that needs a human signature parks `needs-human`; the fleet never forges one.
 
 ## Convergence proof
@@ -160,12 +161,16 @@ PRs — discovered a parallel contributor's PR #76 for the same issue. The contr
 
 - **assist**: one comment on #76 quoting two confirmable defects in its own diff — a
   hand-edited OpenAPI `nullable:true` that regeneration would erase, plus one more;
-- **alternative**: our reviewed branch opened as PR #85, cross-linking #76 — "take whichever
-  you prefer."
+- **alternative** *(pre-correction — do not copy this step)*: our reviewed branch opened
+  unbidden as PR #85, cross-linking #76 — "take whichever you prefer."
 
-**Follow up.** Greptile reviewed #85 after opening: zero findings; every thread on both PRs
-answered. The unit closed `FOLLOWED_UP t`, terminal `awaiting-maintainer-merge` — a normal end
-state here. The merge belongs to the maintainer; the evidence chain belongs to the run report.
+**Follow up — and the correction.** Greptile reviewed #85 after opening: zero findings; every
+thread on both PRs answered. Then a maintainer rejected the pattern itself ("I'd rather not
+maintain two competing PRs for the same issue") and #85 was closed in deference the same day —
+the event that made opening an alternative maintainer-gated (see the run report's post-run
+addendum). The unit's live contribution is the assist comment on #76; terminal
+`awaiting-maintainer-merge` on their PR, a normal end state here. The merge belongs to the
+maintainer; the evidence chain belongs to the run report.
 
 ## Failure modes this mission is built to prevent
 
