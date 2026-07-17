@@ -22,8 +22,10 @@ parallel — research runs AFK, every decision comes to *you* — and, once the 
 freezes the plan and prepares (but never dispatches) the DAG.
 
 That boundary is the mission's identity. Inside `ship-it`, ordinary planning is a phase; `map-it`
-is invoked only when uncertainty exceeds a declared threshold — a goal too big or too foggy for
-one session. It is valuable precisely when you do not want, or cannot yet authorize,
+is invoked only when the goal fails the freeze bar: a testable acceptance criterion cannot yet be
+written for at least one in-scope capability, or at least one one-way decision's inputs are
+unknown — a goal too big or too foggy for one session. Below that bar, `ship-it`'s own
+grill/freeze phase handles planning. It is valuable precisely when you do not want, or cannot yet authorize,
 implementation: the mission produces the decisions, and its output is exactly what `ship-it`
 consumes as input.
 
