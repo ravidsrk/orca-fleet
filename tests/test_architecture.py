@@ -173,11 +173,14 @@ class TestArchitecture(unittest.TestCase):
             budget, r"(?i)wip-curve protocol",
             "attention-budget.md no longer names the WIP-curve protocol",
         )
-        for metric in ("builder throughput", "verification latency", "rework rate",
-                       "freshness violations"):
+        # Row-anchored: "WIP settings" in the revision-rule prose must not satisfy
+        # the check for the table's "WIP setting" row (the curve's independent
+        # variable), so every metric is asserted as a leading table cell.
+        for metric in ("WIP setting", "builder throughput", "verification latency",
+                       "rework rate", "freshness violations"):
             self.assertRegex(
-                budget, r"(?i)" + re.escape(metric),
-                f"attention-budget.md WIP-curve protocol lost the {metric!r} metric",
+                budget, r"(?im)^\|\s*" + re.escape(metric) + r"\s*\|",
+                f"attention-budget.md WIP-curve table lost its {metric!r} row",
             )
         self.assertIn(
             "docs/runs/", budget,
