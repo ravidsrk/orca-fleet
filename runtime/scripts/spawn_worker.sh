@@ -83,6 +83,18 @@ if [ "${#args[@]}" -lt 3 ] || [ "${#args[@]}" -gt 5 ]; then
   exit 2
 fi
 task="${args[0]}"; sel="${args[1]}"; title="${args[2]}"; agent="${args[3]:-claude}"; effort="${args[4]:-xhigh}"
+# `effort` is interpolated into the codex reasoning-effort flag (below), so an unvalidated
+# value would be injected verbatim into the launch command string. Validate it against the
+# known reasoning-effort keyset, fail CLOSED like `agent`/`PROFILE` — never interpolate an
+# arbitrary string. Non-codex agents ignore effort entirely, so a bad value is only a risk
+# on the codex path, but we reject early and uniformly.
+case "$effort" in
+  minimal|low|medium|high|xhigh) : ;;
+  *)
+    echo "SPAWN=REFUSED task=${task} invalid effort '${effort}' (want minimal|low|medium|high|xhigh)" >&2
+    exit 2
+    ;;
+esac
 # Known Orca roster. claude/codex/gemini have Orca-verified flags for all three profiles;
 # grok has a verified WRITE flag (rw/danger) but no read-only mode in Orca's map;
 # opencode/droid/omp/pi have no Orca autonomous launch flag at all. Any (agent, profile)
@@ -99,7 +111,20 @@ PROFILE="${PROFILE:-rw}"
 SETTLE_SECS="${SETTLE_SECS:-20}"
 SUBMIT_SECS="${SUBMIT_SECS:-8}"
 HB_POLL_SECS="${HB_POLL_SECS:-40}"
-safe_title=$(printf '%s' "$title" | tr -c 'A-Za-z0-9._-' '-')
+# The scratch-file key must be UNIQUE per spawn. `tr`-squashing alone collides: two titles
+# differing only in a squashed character (e.g. "Fix: a/b" vs "Fix: a\b") map to the same
+# name, so parallel spawns clobber each other's JSON artifacts. Append a checksum of the RAW
+# title so distinct titles never share a key, regardless of what `tr` folds together.
+title_hash=$(printf '%s' "$title" | cksum | cut -d' ' -f1)
+safe_title="$(printf '%s' "$title" | tr -c 'A-Za-z0-9._-' '-')-${title_hash}"
+
+# Self-test hook: compute the two hardened values and exit before any orchestration side
+# effect. Lets the contract test assert effort-validation and scratch-key uniqueness without
+# a live runtime. Placed after both computations so it exercises the real code paths.
+if [ -n "${SW_SELFTEST:-}" ]; then
+  printf 'safe_title=%s\neffort=%s\n' "$safe_title" "$effort"
+  exit 0
+fi
 
 step=resolve-profile
 case "$PROFILE" in ro|rw|danger) : ;; *)
