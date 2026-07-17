@@ -327,6 +327,18 @@ class TestCountAgnosticGuards(unittest.TestCase):
                 failures = validate.check_doc_counts()
         self.assertTrue(any("all ten" in f for f in failures), failures)
 
+    def test_all_n_near_bare_catalog_talk_is_flagged(self):
+        # Deliberate width (Greptile P2 on #59): in the linted doc surfaces
+        # "catalog" only ever means the mission catalog, so "all N" next to it is
+        # a catalog count even with no mission/fleet word on the line.
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "README.md").write_text(
+                "the catalog covers all eleven of them.\n", encoding="utf-8")
+            with mock.patch.object(validate, "ROOT", Path(tmp)), \
+                 mock.patch.object(validate, "COUNT_LINT_FILES", ("README.md",)):
+                failures = validate.check_doc_counts()
+        self.assertTrue(any("all eleven" in f for f in failures), failures)
+
     def test_all_n_off_mission_lines_is_not_a_catalog_count(self):
         # "all ten" only reads as a catalog count next to mission/fleet/catalog talk.
         with tempfile.TemporaryDirectory() as tmp:

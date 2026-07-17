@@ -345,7 +345,9 @@ COUNT_LINT_RE = re.compile(
     re.IGNORECASE,
 )
 # "all ten" / "all 11" carries a catalog count with no noun at all; it only reads as a
-# catalog count on a line that is talking about the catalog.
+# catalog count on a line that is talking about the catalog. Bare "catalog" is kept
+# deliberately: in COUNT_LINT_FILES the word only ever means the mission catalog, and
+# a false positive here is a cheap rephrase while a false negative is silent rot.
 ALL_COUNT_RE = re.compile(rf"\ball\s+{_NUM}\b", re.IGNORECASE)
 MISSION_CONTEXT_RE = re.compile(r"\b(?:missions?|fleets?|catalog)\b", re.IGNORECASE)
 
