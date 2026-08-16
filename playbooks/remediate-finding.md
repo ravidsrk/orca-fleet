@@ -11,6 +11,8 @@ a security lens, a perf breach, or a flaky test — the mission supplies the fin
    by domain concept: already implemented → wontfix) and PRIOR-REJECTION (an out-of-scope KB). An
    unreproducible finding is REFUTED with attempts logged, or needs-human if it implies private state.
 2. **Fix** via `build-change` (failing test first / red repro, smallest change, negative control).
+   The finding TASK carries the same autonomy block as decompose-dag (goal · scope · non-goals ·
+   stop · evidence · escalation · budget) and an intent packet on the manifest.
 3. **Open PR against BASE** (integrator, never the builder; assert `baseRefName==BASE`) + reconcile
    any review bot (dispatch-lifecycle.md bot non-convergence).
 4. **Build-blind REVIEW** (acceptance-review, + risk-review lens if the finding is a risk class);

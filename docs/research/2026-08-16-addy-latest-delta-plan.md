@@ -4,7 +4,7 @@
 > `main` and newer Osmani posts. Not a live coverage matrix — see
 > [ARCHITECTURE.md](../../ARCHITECTURE.md) for current catalog state.
 
-**Status:** MAPPED (research complete; implementation tickets classified; no production code in this pass)  
+**Status:** MAPPED — E1–E6 implemented on `cursor/addy-orchestration-gap-analysis-62a1` (E7 rejected; D5/D6/D8 still parked)  
 **Date:** 2026-08-16  
 **Base:** `main` @ `9c784b6` (PR #67 clean-sweep learnings)  
 **Predecessor:** [2026-07-15 gap analysis](2026-07-15-addy-orchestration-gap-analysis.md) (D1–D4 shipped in #21)  
@@ -167,16 +167,14 @@ The fleet is already a **lit factory** with a deterministic outer graph. The rem
 
 ### Open "not yet specified"
 
-- Exact dark-eligible unit classes beyond "Lane A + unfakeable oracle."
-- Whether E2's intent packet is a new JSON field or a required PR section.
-- Whether E3's budget includes tokens or only doctor-attempts + wall-clock.
-- Which mutating mission is the next self-run (E4's vehicle).
+- Exact dark-eligible unit classes beyond "Lane A + unfakeable oracle + not the irreversibility stop-list" (E1 shipped the rule; class list can grow).
+- Which mutating mission is the next self-run (E4's vehicle). E2 is a manifest JSON field; E3 budget is `doctor-attempts`.
 
 ---
 
-## Implementation plan (prepared for ship-it — not dispatched)
+## Implementation plan (shipped on this branch)
 
-Authorize E1–E5. E6 optional. E7 rejected. Sequence:
+E1–E6 authorized and landed. E7 rejected. Sequence:
 
 ```
 FOUNDATION (serial)
@@ -212,9 +210,9 @@ PARKED
 |------|-------|
 | Destination | Close the July–August Addy delta: lighting + intent packet + autonomy contract + compound-learn coverage + WIP-curve reminder |
 | Frozen plan | this file |
-| Prepared DAG | F1–F2, S1–S3, V1–V2 — materialize in Orca only after human freeze of E1–E3 (E4–E5 are mechanical) |
-| Blocked | E1, E3 (taste); E2/E4/E5 may proceed as mechanical if the human so classifies |
-| Terminal | **MAPPED-WITH-BLOCKED** until E1 and E3 are answered; E2/E4/E5 are ready to ship |
+| Prepared DAG | F1–F2, S1–S3, V1–V2 — materialized in this PR (E3 lives on decompose-dag / remediate-finding, not dispatch-lifecycle) |
+| Blocked | none of E1–E6; E7 rejected; D5/D6/D8 parked |
+| Terminal | **MAPPED** — E1–E6 shipped in the same PR as this research; E7 rejected; D5/D6/D8 parked |
 
 ---
 
@@ -249,4 +247,4 @@ These are operator / product posture, not catalog work:
 - `git fetch` + `main` @ `9c784b6`; commit list since 2026-07-15; files added; CHANGELOG 0.4.0 + Unreleased.
 - Re-read: attention-budget (WIP-curve), liveness-resume, evidence-manifest §2 binding audit, build-change plan gate, compound-learn, clean-sweep SKILL (wave-plan guard), oss-contribute SKILL, 2026-07-17 run report, concepts, ARCHITECTURE.
 - Fetched and read: original five URLs plus Software Factories Light and Dark, Own the Outer Loop, Agentic Autonomy Levels, Agentic Code Review, Loop Engineering, The Intent Debt.
-- No production code in this map-it pass.
+- Same-day follow-up on this branch shipped E1–E6 (lighting, intent packet, autonomy contract, compound-learn coverage, WIP-curve reminder, accountable human). E7 stayed rejected.

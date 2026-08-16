@@ -37,6 +37,8 @@ The worker writes it to `reportPath` and names that path in the `worker_done` pa
     "artifact": "docs/reports/<unit>/revert.txt"
   },
   "binding_audit": {"coverage": "AC-1..AC-3 (3/3)", "method": "criterion quoted, covering test quoted, criterion-violating mutation went RED"},
+  "intent": {"goal": "<one sentence>", "ruled_out": "<what was not chosen>", "why": "<load-bearing rationale>"},
+  "lighting": "lit",
   "artifacts": ["docs/reports/<unit>/…"],
   "pr": {"number": 0, "url": "", "reviewed_sha": "<SHA the reviewer approved>"},
   "reviewer_mode": "<cross-vendor | same-vendor-fresh | instructed-isolation — how independent the review REALLY was>",
@@ -87,6 +89,11 @@ Rules:
 - `commands` pastes real invocations + exit codes with artifact paths. Never a summary.
 - `pr.reviewed_sha` is the SHA the build-blind reviewer actually reviewed (see
   reviewed-sha-freshness.md). It gates the merge.
+- `intent` is REQUIRED on mutation units: goal · ruled_out · why, all non-empty. It is
+  discarded-agent-reasoning captured (not the completion oracle — that stays §2). A
+  missing or empty packet fails verification. `claim` remains narration only.
+- `lighting` is `lit` (default) or `dark-eligible` per gate-classification.md. The
+  verifier rejects `dark-eligible` on a stop-list / Lane-0/B unit.
 - `claim` is the worker's narration. The verifier ignores it except as a hint.
 
 ## 2. Independent verification (the coordinator, or a fresh verifier worker)
@@ -107,6 +114,8 @@ state. The manifest is a claim; these are facts:
 | Deployed == reviewed (ship only) | the deployed revision equals the reviewed/merged SHA |
 | The metric contract is met (measurement units) | the benchmark/coverage/streak satisfies the manifest's `metric_contract` (pre-declared target + confidence + method), not a lucky single run |
 | The review was independent | reviewer/verifier artifacts are not byte-identical to (or trivially derived from) the worker's own output — a predecessor's flagship run was quarantined on exactly this; `reviewer_mode` is recorded, and instructed isolation is named as the weaker guarantee it is |
+| Intent packet is present *(mutation units)* | `intent.goal`, `intent.ruled_out`, and `intent.why` are non-empty strings — presence only; wisdom is a human/taste check |
+| Lighting is legal | `lighting` is `lit` or `dark-eligible`; `dark-eligible` only when Lane A + unfakeable oracle + not the irreversibility stop-list (gate-classification.md) |
 
 Verification failing on any required check → the unit is NOT done; it returns to its state
 machine (re-dispatch, or SUSPECT if provenance says done but git disagrees).

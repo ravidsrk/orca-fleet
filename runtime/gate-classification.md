@@ -41,6 +41,17 @@ must act now." Full DAG context: orca-dag-semantics.md.
 | **B — draft-and-gate** | Genuine product/brand/policy fork (two defensible directions) | Draft **both** options fully; stop at a one-way human gate; do not pick silently |
 | **0 — refuse-and-surface** | Credential provisioning, live money/prod, engine boundary the fleet must not cross | Do not implement; record OPS/Lane-0 item (`CODE_CLOSED` only if code landed and verify is OPS — ledger-contract.md) |
 
+## Lighting (lit vs dark-eligible)
+
+Every dispatched unit declares `lighting` on its ledger row and evidence manifest. Default
+**`lit`**: a human or build-blind reviewer reads the change before it lands. **`dark-eligible`**
+is opt-in and only when ALL of: Lane A (reversible testnet/fixtures), the stop condition is a
+cheap frequent unfakeable oracle (types / tests / binding audit), and the unit is NOT on
+`build-change.md`'s irreversibility stop-list. Auth, payments, secrets, destructive migrations,
+deploys stay **lit**. Scheduled `review-it` is report-only — it does not ship, so it is not a
+dark merge. Recording nothing means **lit**. A dark-eligible claim on a lit-required unit is a
+protocol breach — park and re-dispatch.
+
 ## Pre-build plan gate (irreversible units)
 
 When `build-change.md`'s irreversibility stop-list applies, classification happens **before**

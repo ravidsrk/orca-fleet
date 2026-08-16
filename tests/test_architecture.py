@@ -210,6 +210,57 @@ class TestArchitecture(unittest.TestCase):
             "audit-coverage field",
         )
 
+    def test_intent_packet_is_required_on_mutation_manifests(self):
+        # Agentic review / intent-debt: discarded agent reasoning must land on
+        # the manifest, distinct from claim (still non-oracle).
+        manifest = (RUNTIME / "evidence-manifest.md").read_text(encoding="utf-8")
+        self.assertIn('"intent"', manifest)
+        for key in ("goal", "ruled_out", "why"):
+            self.assertIn(f'"{key}"', manifest, f"intent packet lost {key}")
+        self.assertRegex(
+            manifest, r"(?i)intent packet is present",
+            "evidence-manifest.md verification table lost the intent-packet check",
+        )
+
+    def test_lighting_classification_defaults_lit(self):
+        gates = (RUNTIME / "gate-classification.md").read_text(encoding="utf-8")
+        self.assertRegex(gates, r"(?i)dark-eligible")
+        self.assertRegex(gates, r"(?i)default")
+        self.assertRegex(
+            gates, r"(?i)recording nothing means",
+            "gate-classification.md lost the omit-means-lit rule",
+        )
+        ledger = (RUNTIME / "ledger-contract.md").read_text(encoding="utf-8")
+        self.assertIn("lighting", ledger)
+
+    def test_autonomy_contract_is_on_the_task_spec(self):
+        decomp = (PLAYBOOKS / "decompose-dag.md").read_text(encoding="utf-8")
+        self.assertRegex(decomp, r"(?i)AUTONOMY")
+        for field in ("goal", "scope", "non-goals", "stop", "escalation", "budget"):
+            self.assertIn(field, decomp, f"decompose-dag autonomy block lost {field}")
+        remediate = (PLAYBOOKS / "remediate-finding.md").read_text(encoding="utf-8")
+        self.assertRegex(remediate, r"(?i)autonomy block")
+
+    def test_mutating_missions_compose_compound_learn(self):
+        # E5: compound-learn is the retro; a mutating mission that omits it
+        # silently drops the learning loop.
+        need = {
+            "ship-it", "clean-sweep", "harden-it", "speed-it", "modernize-it",
+            "prove-it", "deflake-it", "oss-contribute",
+        }
+        found = set()
+        for d in mission_dirs():
+            if d.name not in need:
+                continue
+            text = (d / "SKILL.md").read_text(encoding="utf-8")
+            if re.search(r"`compound-learn`", text):
+                found.add(d.name)
+        self.assertEqual(found, need)
+
+    def test_promotion_names_accountable_human(self):
+        release = (PLAYBOOKS / "release.md").read_text(encoding="utf-8")
+        self.assertIn("accountable:", release)
+
     def test_row_flags_are_the_record(self):
         # The chimely run advanced BUILD_DONE/REVIEWED only as dispatch-log prose; every
         # unit row still read all-f at run close, which would have broken a crash

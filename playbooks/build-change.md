@@ -31,8 +31,10 @@ worker writes a short PLAN artifact (approach · files · rollback · risks) to 
 ## Evidence
 
 The worker emits the evidence manifest (evidence-manifest.md): base→head SHA, criteria addressed,
-commands+exit, and a NEGATIVE CONTROL (revert the production change → the test goes RED). No negative
-control = the unit is not built.
+commands+exit, a NEGATIVE CONTROL (revert the production change → the test goes RED), and a
+non-empty **intent packet** (`goal` · `ruled_out` · `why`). No negative control or empty intent =
+the unit is not built. `lighting` defaults `lit`; `dark-eligible` only when this unit is Lane A,
+not on the stop-list, and the stop condition is an unfakeable oracle (gate-classification.md).
 
 ## Red flags (fail the unit)
 

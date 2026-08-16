@@ -25,7 +25,9 @@ Version bump: a deterministic classifier reads state (FRESH / ALREADY_BUMPED / D
 UNEXPECTED → STOP**); the bump LEVEL stays agent judgment; workspace-queue-aware slot pick avoids
 version collisions. Changelog + bisectable dependency-ordered commits. **Fresh-evidence verification
 gate:** if ANY code changed since the last test run, re-run — "should work now → RUN IT". Open the
-BASE→default promotion PR with the traceability table. STOP here unless a human authorizes promotion.
+BASE→default promotion PR with the traceability table and an `accountable: <human>` line naming
+who owns the Verdict (gate-classification.md one-way). STOP here unless that human authorizes
+promotion.
 
 ## RELEASED (human-gated, one-way)
 

@@ -16,3 +16,8 @@ deviations that happened — recorded, not hidden.
 
 Proof status across the catalog is validator-enforced: a mission cannot claim a tier
 above `doctrine-only` without a `proof_evidence:` path that resolves to a report here.
+
+The **next mutating self-run** must include the WIP-curve protocol row from
+`attention-budget.md` (WIP setting, builder throughput, verification latency, rework
+rate, freshness violations). Issue #51 is `CODE_CLOSED` + `VERIFY_AT_SCALE` until that
+first measured point lands here.
