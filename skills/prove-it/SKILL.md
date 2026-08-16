@@ -21,9 +21,10 @@ compatibility: >-
 You are the **COORDINATOR**. Here the work CREATES PROOF where no defect finding necessarily exists;
 the denominator is a FINITE CRITICAL SURFACE, done is MUTATION-SENSITIVE coverage of it, and bugs
 surfaced during characterization spawn a NESTED remediation loop. Composes `build-change`,
-`remediate-finding` (for surfaced bugs), `acceptance-review`, `runtime-prove`; rides
-`merge-serialization`, `reviewed-sha-freshness`, `dispatch-lifecycle`, `liveness-resume`,
-`evidence-manifest`, `ledger-contract`. Worker TASK pack: one of matt | addy — never co-mount.
+`remediate-finding` (for surfaced bugs), `acceptance-review`, `runtime-prove`, `compound-learn`;
+rides `merge-serialization`, `reviewed-sha-freshness`, `dispatch-lifecycle`, `liveness-resume`,
+`evidence-manifest`, `ledger-contract`, `attention-budget`. Worker TASK pack: one of matt | addy
+— never co-mount.
 
 ## Two terminal outcomes
 
@@ -51,8 +52,10 @@ MAP critical surface (coverage gaps × call-graph of money/auth/data/external-co
       the buggy behavior as correct.
   → build-blind REVIEW (acceptance-review) → RUNTIME-PROVE (characterization asserts behavior the
     real entry point actually exhibits, not harness-only fiction) → LAND
-  → RE-MAP coverage → loop → outcome
+  → RE-MAP coverage → loop → outcome → REFLECT (`compound-learn`)
 ```
+
+Waves respect `attention-budget` WIP.
 
 ## Convergence proof
 

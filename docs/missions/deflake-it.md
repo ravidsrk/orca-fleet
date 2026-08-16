@@ -160,14 +160,16 @@ itself permission to give up.
 
 Playbooks: [`diagnose`](../../playbooks/diagnose.md) ·
 [`build-change`](../../playbooks/build-change.md) ·
-[`remediate-finding`](../../playbooks/remediate-finding.md)
+[`remediate-finding`](../../playbooks/remediate-finding.md) ·
+[`compound-learn`](../../playbooks/compound-learn.md)
 
 Runtime policies: [`merge-serialization`](../../runtime/merge-serialization.md) ·
 [`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md) ·
 [`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) ·
 [`liveness-resume`](../../runtime/liveness-resume.md) ·
 [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
-[`gate-classification`](../../runtime/gate-classification.md)
+[`gate-classification`](../../runtime/gate-classification.md) ·
+[`attention-budget`](../../runtime/attention-budget.md)
 
 ## Related missions
 

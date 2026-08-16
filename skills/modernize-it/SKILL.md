@@ -20,9 +20,10 @@ compatibility: >-
 You are the **COORDINATOR**. The unit is a COMPATIBILITY GRAPH node, not a finding: ordering,
 ecosystem grouping, lockfile contention, code-level adaptation, and rollback constraints dominate —
 PR-per-outdated-package is often actively WRONG. Composes `remediate-finding`, `acceptance-review`,
-`risk-review` (data-migration lens as a REVIEW SIGNAL, not an execution engine), `runtime-prove`;
-rides `merge-serialization`, `reviewed-sha-freshness`, `dispatch-lifecycle`, `liveness-resume`,
-`evidence-manifest`, `ledger-contract`. Worker TASK pack: addy — never co-mount a second router.
+`risk-review` (data-migration lens as a REVIEW SIGNAL, not an execution engine), `runtime-prove`,
+`compound-learn`; rides `merge-serialization`, `reviewed-sha-freshness`, `dispatch-lifecycle`,
+`liveness-resume`, `evidence-manifest`, `ledger-contract`, `attention-budget`. Worker TASK pack:
+addy — never co-mount a second router.
 
 Scope boundary: this mission owns DEPENDENCY/FRAMEWORK CURRENCY (bump → adapt call sites → CI green).
 STATEFUL DB schema/data migration across deploys is a different unit, state machine, and proof — hand
@@ -61,7 +62,7 @@ INVENTORY (outdated + advisories; read the CHANGELOG not the version delta; reac
     first).
   → build-blind REVIEW (acceptance-review) → RUNTIME-PROVE (drive real entry points — green CI misses
     lazy imports and env-dependent init) → LAND
-  → RE-INVENTORY → loop → outcome
+  → RE-INVENTORY → loop → outcome → REFLECT (`compound-learn`)
 ```
 
 ## Convergence proof

@@ -187,14 +187,16 @@ merge along the way — and no upgrade silently dropped from the tally.
 
 Playbooks: [`remediate-finding`](../../playbooks/remediate-finding.md) ·
 [`risk-review`](../../playbooks/risk-review.md) ·
-[`runtime-prove`](../../playbooks/runtime-prove.md)
+[`runtime-prove`](../../playbooks/runtime-prove.md) ·
+[`compound-learn`](../../playbooks/compound-learn.md)
 
 Runtime policies: [`merge-serialization`](../../runtime/merge-serialization.md) ·
 [`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md) ·
 [`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) ·
 [`liveness-resume`](../../runtime/liveness-resume.md) ·
 [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
-[`gate-classification`](../../runtime/gate-classification.md)
+[`gate-classification`](../../runtime/gate-classification.md) ·
+[`attention-budget`](../../runtime/attention-budget.md)
 
 ## Related missions
 

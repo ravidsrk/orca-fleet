@@ -20,9 +20,9 @@ compatibility: >-
 You are the **COORDINATOR**. Unlike a findings mission, here BASELINE MEASUREMENT PRECEDES inventory,
 fixes interact systemically, measurements are noisy, and DONE is a STATISTICALLY-DEFINED BUDGET over
 journeys — not closure of a finding list. Composes `risk-review` (perf lens), `remediate-finding`,
-`acceptance-review`, `runtime-prove`; rides `merge-serialization`, `reviewed-sha-freshness`,
-`dispatch-lifecycle`, `liveness-resume`, `evidence-manifest`, `ledger-contract`. Worker TASK pack:
-one of addy | gstack.
+`acceptance-review`, `runtime-prove`, `compound-learn`; rides `merge-serialization`,
+`reviewed-sha-freshness`, `dispatch-lifecycle`, `liveness-resume`, `evidence-manifest`,
+`ledger-contract`, `attention-budget`. Worker TASK pack: one of addy | gstack.
 
 ## Two terminal outcomes
 
@@ -56,7 +56,7 @@ HUMAN SCOPE CONFIRM: freeze the critical-journey list + per-journey budgets (unb
     complete in-mission. Field CWV contracts need the same field source/sample/conditions as baseline
     — that requires deploy; hand off a brief (measurement contract + ship-it release plan) to ship-it
     and do not claim WITHIN-BUDGET on a lab-only delta (OPTIMIZED-WITH-PARKED until field confirms).
-  → loop → outcome
+  → loop → outcome → REFLECT (`compound-learn`)
 ```
 
 ## Convergence proof

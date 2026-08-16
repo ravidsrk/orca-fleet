@@ -6,6 +6,17 @@ truth is `.claude-plugin/plugin.json`.
 
 ## [Unreleased]
 
+### Added — Addy August delta (E1–E6)
+
+- Lighting: per-unit `lit` / `dark-eligible` (`gate-classification.md`, ledger row,
+  evidence manifest). Default lit; dark-eligible only Lane A + unfakeable oracle.
+- Intent packet on the evidence manifest (`goal` · `ruled_out` · `why`); verifier
+  checks presence. Distinct from `claim`.
+- Autonomy contract on TASK specs (`decompose-dag`, `remediate-finding`).
+- `compound-learn` + `attention-budget` composed by the remaining mutating missions.
+- Promotion PR names `accountable: <human>` (`release.md`).
+- Next self-run must emit the WIP-curve row (`docs/runs/README.md`).
+
 ### Added — orchestration-tax adoption (Addy gap analysis)
 
 - `runtime/attention-budget.md`: producer-side WIP caps (default ≤3 builders),
@@ -18,6 +29,7 @@ truth is `.claude-plugin/plugin.json`.
   irreversibility stop-list units.
 - Wired into `ship-it`, `clean-sweep`, `harden-it`; docs in concepts, getting-
   started, ARCHITECTURE, README; research archive under `docs/research/`.
+
 ## [0.4.0] - 2026-07-16
 
 Adds an eleventh mission, `oss-contribute`: landing contributions on a repo you

@@ -30,7 +30,9 @@ or it is an allowed park class with a human/OPS ref.
 
 Canonical row (extend with mission fields, never drop flags):
 
-`| task_id | unit | BUILD_DONE | PR_OPEN | BOT | REVIEWED | MERGED | WT_CLEAN | park | evidence |`
+`| task_id | unit | BUILD_DONE | PR_OPEN | BOT | REVIEWED | MERGED | WT_CLEAN | lighting | park | evidence |`
+
+`lighting` is `lit` (default) or `dark-eligible` (gate-classification.md). Omit-or-empty = `lit`.
 
 `park` is empty or a class below. Advance flags only after the corresponding verify step; never
 batch-flip from memory. The row IS the record: a `BUILD_DONE=t` noted only as a dispatch-log line has

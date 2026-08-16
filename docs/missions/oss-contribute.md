@@ -200,11 +200,13 @@ became the `FOLLOWED_UP` flag.
 Playbooks: [`upstream-contribution`](../../playbooks/upstream-contribution.md) ·
 [`remediate-finding`](../../playbooks/remediate-finding.md) ·
 [`build-change`](../../playbooks/build-change.md) ·
-[`acceptance-review`](../../playbooks/acceptance-review.md)
+[`acceptance-review`](../../playbooks/acceptance-review.md) ·
+[`compound-learn`](../../playbooks/compound-learn.md)
 
 Runtime: `evidence-manifest` · `dispatch-lifecycle` · `ledger-contract` · `reviewed-sha-freshness` ·
-`liveness-resume` · `gate-classification` · `orca-dag-semantics` — and deliberately **not**
-`merge-serialization`: there is no merge train, because the fleet has no merge rights on the target.
+`liveness-resume` · `gate-classification` · `orca-dag-semantics` · `attention-budget` — and
+deliberately **not** `merge-serialization`: no merge train; the fleet has no merge rights on the
+target.
 
 ## Related missions
 

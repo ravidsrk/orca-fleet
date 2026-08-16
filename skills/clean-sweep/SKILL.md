@@ -86,7 +86,7 @@ before opening the promotion PR.
 Line 1 per liveness-resume.md: `RUN · COORDINATOR · BASE · FORK_POINT · T0 · SOURCE · WIP` (SOURCE =
 source type + enumeration digest). Phase marker + unit boolean flags per ledger-contract.md:
 
-`| task_id | id | title | CLASS | BUILD_DONE | PR_OPEN | BOT | REVIEWED | MERGED | WT_CLEAN | park | evidence |`
+`| task_id | id | title | CLASS | BUILD_DONE | PR_OPEN | BOT | REVIEWED | MERGED | WT_CLEAN | lighting | park | evidence |`
 CLASS ∈ real-bug · real-feature-small · refuted · duplicate · externally-resolved · needs-human ·
 out-of-scope · CODE_CLOSED. RESUME scopes to header coordinator + ledger task ids.
 

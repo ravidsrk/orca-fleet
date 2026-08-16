@@ -15,8 +15,10 @@ each batch a slice keeping CI green. Prefactor first: make the change easy, then
 ## Materialize the Orca DAG
 
 Per slice in topological order (blockers first, deps must name REAL returned task ids):
-`orca orchestration task-create --spec "<slice: goal · exact acceptance check · files it may create ·
-hot-files it must NOT touch · worker_done requires an evidence manifest>" --deps '[...]'`.
+`orca orchestration task-create --spec "<slice: AUTONOMY {goal · scope · non-goals · stop ·
+evidence · escalation · budget=doctor-attempts} · exact acceptance check · files it may create ·
+hot-files it must NOT touch · lighting=lit|dark-eligible · worker_done requires an evidence
+manifest + intent packet>" --deps '[...]'`.
 Record every returned id in the ledger (id ↔ slice table = the run scope liveness-resume needs).
 
 Hot mount-point files (route registry, DI wiring, migrations, barrels) → mark each a merge-chain

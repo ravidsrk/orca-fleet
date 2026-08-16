@@ -20,10 +20,11 @@ compatibility: >-
 You are the **COORDINATOR**. The unit is an INTERMITTENT FAILURE DISTRIBUTION, not a defect: detection
 and proof require REPEATED observations, environment correlation, and a consecutive-green / statistical
 contract. Rerun behavior IS the mission, not verification-after-a-fix. Composes `diagnose`,
-`build-change`, `remediate-finding` (the finding is a flake; the red-by-revert ratchet is its negative
-control), `acceptance-review`; rides `merge-serialization`, `reviewed-sha-freshness`,
-`dispatch-lifecycle`, `liveness-resume`, `evidence-manifest`, `ledger-contract`. The suite green streak IS the prove step
-(no separate runtime-prove pass). Worker TASK pack: one of matt | addy.
+`build-change`, `remediate-finding` (the finding is a flake; the red-by-revert ratchet is its
+negative control), `acceptance-review`, `compound-learn`; rides `merge-serialization`,
+`reviewed-sha-freshness`, `dispatch-lifecycle`, `liveness-resume`, `evidence-manifest`,
+`ledger-contract`, `attention-budget`. The suite green streak IS the prove step (no separate
+runtime-prove pass). Worker TASK pack: one of matt | addy.
 
 ## Two terminal outcomes
 
@@ -55,7 +56,7 @@ DETECT: run the suite DETECT_RUNS times (default 30; parallel, varied seed/order
   → close per remediate-finding: PR-per-flake against BASE → build-blind REVIEW (acceptance-review)
     → conductor LAND
   → PROVE: full suite GREEN_STREAK consecutive runs, local AND verified in CI (gh run list). ANY
-    flake resets the streak to zero and re-enters detection. → loop → outcome
+    flake resets the streak to zero and re-enters detection. → loop → outcome → REFLECT (`compound-learn`)
 ```
 
 ## Convergence proof
