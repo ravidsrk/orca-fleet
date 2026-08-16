@@ -1,5 +1,9 @@
 # Addy latest × orca-fleet — 2026-08-16 delta, implementations, suggestions
 
+> **Dated snapshot (2026-08-16).** Re-score of the July 15 analysis against then-current
+> `main` and newer Osmani posts. Not a live coverage matrix — see
+> [ARCHITECTURE.md](../../ARCHITECTURE.md) for current catalog state.
+
 **Status:** MAPPED (research complete; implementation tickets classified; no production code in this pass)  
 **Date:** 2026-08-16  
 **Base:** `main` @ `9c784b6` (PR #67 clean-sweep learnings)  
