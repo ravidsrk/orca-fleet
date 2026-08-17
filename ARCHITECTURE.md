@@ -55,7 +55,9 @@ commands against the wrong SHA). So completion is never graded on narration or t
 Every unit of work emits a **SHA-bound evidence manifest** (see
 [`runtime/evidence-manifest.md`](runtime/evidence-manifest.md)): base SHA → head SHA, the exact
 acceptance criteria addressed, commands run with exit codes, artifact paths (logs, reports,
-screenshots, benchmarks), the negative-control result, PR + reviewed SHA, and any parked items.
+screenshots, benchmarks), the negative-control result, the intent packet (`goal` · `ruled_out` ·
+`why`) on mutation units, `lighting` (`lit` or `dark-eligible`), PR + reviewed SHA, and any
+parked items.
 An **independent verifier** then checks facts against authoritative state: does the commit exist
 on the intended base, do tests pass at that exact SHA in a clean environment, does mutating the
 fix break the proof, does the deployed revision equal the reviewed revision. The Orca provenance
@@ -80,7 +82,8 @@ them. These are preserved as runtime policies, not abstracted away:
 - bounded review loops, hot-file ownership, merge serialization — `runtime/merge-serialization.md`
 - attention budget / orchestration tax (scale to review rate, not spawn UI) —
   `runtime/attention-budget.md`
-- promotion semantics (human gate; merge ≠ deploy) — `runtime/gate-classification.md`
+- promotion semantics (human gate; merge ≠ deploy) and per-unit lighting (`lit` default;
+  `dark-eligible` only Lane A + unfakeable oracle) — `runtime/gate-classification.md`
 - gated sequential chains (an audit gates, it never always-flows) — `runtime/mission-chaining.md`
 - scheduled unattended runs via `orca automations` (only missions whose value lands before a
   one-way gate schedule cleanly) — `runtime/mission-scheduling.md`

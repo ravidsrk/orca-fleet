@@ -6,6 +6,15 @@ truth is `.claude-plugin/plugin.json`.
 
 ## [Unreleased]
 
+### Fixed — live docs after E1–E6
+
+- Mission guides' Composes sections now name every protocol their SKILL declares
+  (ledger-contract, evidence-manifest, acceptance-review, and the rest that had drifted).
+- Human-facing schema (README, concepts, getting-started, ARCHITECTURE) documents the
+  intent packet, lighting, and `accountable:` on promotion.
+- README proof status includes the 2026-07-17 clean-sweep tracker self-run.
+- Research archive index marks snapshots as historical; E1–E6 landed in PR #68.
+
 ### Added — Addy August delta (E1–E6)
 
 - Lighting: per-unit `lit` / `dark-eligible` (`gate-classification.md`, ledger row,

@@ -59,6 +59,7 @@ evidence manifest** ([`runtime/evidence-manifest.md`](runtime/evidence-manifest.
 - the commit exists on the intended base (`git merge-base --is-ancestor`),
 - tests pass at that exact SHA in a clean env,
 - the negative control really fails when the change is reverted/mutated,
+- mutation units carry a non-empty intent packet and a legal `lighting` value,
 - `reviewed_sha == head_sha` (a rebase after review voids it),
 - for a ship, the deployed revision equals the reviewed revision.
 

@@ -58,9 +58,9 @@ Every mission runs the same topology on the Orca runtime:
   One conductor owns every merge.
 
 The ledger deserves a special note: the coordinator's context gets compacted over a long run, so
-its memory is not durable. The **ledger file** is. One row per unit — id, state, PR, reviewed
-SHA, merge SHA, evidence pointer. Everything the run needs to resume lives there, not in the
-scrollback.
+its memory is not durable. The **ledger file** is. One row per unit — id, boolean exit flags,
+`lighting` (`lit` or `dark-eligible`), PR, reviewed SHA, merge SHA, evidence pointer. Everything
+the run needs to resume lives there, not in the scrollback.
 
 ## The evidence manifest
 
@@ -99,6 +99,20 @@ schema lives in [`runtime/evidence-manifest.md`](../runtime/evidence-manifest.md
     "result": "healthz.test.ts went RED",
     "artifact": "docs/reports/AC-3/revert.txt"
   },
+
+  "binding_audit": {
+    // criterion↔test coverage the verifier samples — required on fix/test units
+    "coverage": "AC-1..AC-3 (3/3)",
+    "method": "criterion quoted, covering test quoted, mutation went RED"
+  },
+
+  "intent": {
+    // required on mutation units; discarded-agent-reasoning, not the oracle
+    "goal": "GET /healthz returns 200 with version and a DB ping",
+    "ruled_out": "a static liveness file with no DB check",
+    "why": "the acceptance criterion names connectivity, not process-up"
+  },
+  "lighting": "lit",                     // default; dark-eligible only Lane A + unfakeable oracle
 
   "pr": {"number": 12, "url": "…", "reviewed_sha": "9b06458…"},  // gates the merge
   "parked": [],                          // anything not done is named, never dropped
@@ -163,6 +177,12 @@ sending none makes it dangerous. So every decision is classified **before** anyo
 - **One-way** — hard or impossible to reverse, or out of authority: merge to default, deploy,
   rollback, deletion, spend, scope change, secret rotation. **Human, always.** Never
   auto-resolved, never defaulted on timeout.
+
+Every dispatched unit also declares **lighting**: default `lit` (a human or build-blind reviewer
+reads the change before it lands). `dark-eligible` is opt-in and only when the unit is Lane A
+(reversible testnet/fixtures), the stop condition is a cheap unfakeable oracle (types / tests /
+binding audit), and the unit is not on the irreversibility stop-list. Recording nothing means
+`lit`.
 
 Two refinements worth knowing. First, the *user-challenge* rule: when the fleet's analysis says
 **your** stated direction is wrong, that is never auto-decided — your direction is the default,
