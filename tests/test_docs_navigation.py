@@ -103,6 +103,55 @@ class TestDocsNavigation(unittest.TestCase):
                 f"docs/research/{f.name} carries no dated-snapshot banner",
             )
 
+    def test_mission_guides_name_every_skill_compose_and_ride(self):
+        # After E1–E6 the human guides lagged the SKILL compose/rides clauses
+        # (missing ledger-contract, evidence-manifest, acceptance-review, …).
+        # A guide that omits a protocol the skill declares is a false catalog.
+        protocols = {p.stem for p in (ROOT / "playbooks").glob("*.md")}
+        protocols |= {p.stem for p in RUNTIME.glob("*.md")}
+        compose_clause = re.compile(
+            r"\b(?:Composes|COMPOSES|Rides|RIDES|rides)\b\s+(.+?)(?:\n\n|\Z)",
+            re.DOTALL,
+        )
+        backticks = re.compile(r"`([a-z0-9][a-z0-9-]*)`")
+        guide_links = re.compile(
+            r"\]\(\.\./\.\./(?:playbooks|runtime)/([a-z0-9-]+)\.md\)"
+        )
+        guide_section = re.compile(
+            r"^## Composes\n(.*?)(?=^## |\Z)", re.DOTALL | re.MULTILINE
+        )
+        skills = ROOT / "skills"
+        for d in sorted(skills.iterdir()):
+            if not d.is_dir() or d.name.startswith((".", "_")):
+                continue
+            skill = (d / "SKILL.md").read_text(encoding="utf-8")
+            declared = set()
+            for m in compose_clause.finditer(skill):
+                # First sentence only — later sentences are caveats
+                # ("not a full `runtime-prove` pass", "No `merge-serialization`").
+                first = re.split(r"\.\s+(?=[A-Z])", m.group(1), maxsplit=1)[0]
+                declared.update(backticks.findall(first))
+            declared &= protocols
+            guide_path = DOCS / "missions" / f"{d.name}.md"
+            self.assertTrue(
+                guide_path.is_file(),
+                f"docs/missions/{d.name}.md is missing",
+            )
+            guide = guide_path.read_text(encoding="utf-8")
+            section = guide_section.search(guide)
+            self.assertIsNotNone(
+                section,
+                f"docs/missions/{d.name}.md has no ## Composes section",
+            )
+            named = set(backticks.findall(section.group(1)))
+            named.update(guide_links.findall(section.group(1)))
+            missing = sorted(declared - named)
+            self.assertEqual(
+                missing, [],
+                f"docs/missions/{d.name}.md Composes omits {missing} "
+                f"declared in skills/{d.name}/SKILL.md",
+            )
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

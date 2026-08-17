@@ -148,8 +148,8 @@ A fleet is not one scrolling transcript. Expect:
 - **Worker terminals** — one per active slice/finding, each in its own git worktree. They open,
   work, emit a manifest, and are torn down. You never need to type into one.
 - **The ledger** — a file the coordinator keeps (its memory gets compacted; the ledger
-  survives). One row per unit: id, state, PR, reviewed SHA, merge SHA, evidence pointer. If you
-  want to know where the run is, read the ledger, not the scrollback.
+  survives). One row per unit: id, flags, lighting, PR, reviewed SHA, merge SHA, evidence
+  pointer. If you want to know where the run is, read the ledger, not the scrollback.
 - **PRs on your repo** — one per unit of work, each targeting the integration BASE (never your
   default branch), each merged only by the conductor after verification.
 
@@ -163,6 +163,10 @@ human:
 - `base_sha` → `head_sha` — exactly what moved.
 - `criteria[]` — every acceptance criterion from the frozen source, each marked addressed or
   not. The verifier re-derives this list; a worker cannot shrink it.
+- `intent` — on mutation units: `goal` · `ruled_out` · `why`. Presence is checked; wisdom is
+  not. Distinct from `claim`.
+- `lighting` — `lit` (default) or `dark-eligible`. Dark only for Lane A work with an
+  unfakeable oracle.
 - `negative_control` — what was reverted or mutated, and proof the test went red.
 - `commands[]` — real invocations with exit codes and artifact paths, not summaries.
 - `claim` — the worker's own narration. Informational only; never the completion oracle.
@@ -179,7 +183,7 @@ You will be interrupted only for:
 | Gate                             | When                       | What a good answer looks like |
 |----------------------------------|----------------------------|-------------------------------|
 | Freeze the spec                  | ship-it/map-it, intent entry | Read the acceptance criteria, not the prose. If a criterion is untestable, say so now — it is cheap here and expensive later. |
-| Promotion to the default branch  | end of ship-it / clean-sweep | Review the traceability table on the PR, then merge it yourself. |
+| Promotion to the default branch  | end of ship-it / clean-sweep | Review the traceability table and the `accountable:` line, then merge it yourself. |
 | Refuted/duplicate closes (batch) | clean-sweep                | Skim the refutation evidence; approve as a batch or pull items out. |
 | One-way remediations             | harden-it (e.g. secret rotation) | Do the action, then confirm — the mission counts it done only when *verified*, not when acknowledged. |
 

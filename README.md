@@ -104,7 +104,9 @@ Every mission's frontmatter carries a validator-enforced `proof:` field: `doctri
 `self-run`, or `external-run`. A mission cannot claim a higher tier without `proof_evidence:`
 linking a run report that exists in the repo. The missions that have advanced past `doctrine-only`:
 [`clean-sweep`](docs/runs/2026-07-13-clean-sweep-self-run.md) → **self-run** (drained six false
-doc-claims in this repo to DRY), [`review-it`](docs/runs/2026-07-13-review-it-external-run.md)
+doc-claims in this repo to DRY; a later
+[tracker self-run](docs/runs/2026-07-17-clean-sweep-tracker-self-run.md) closed 22 of 26 issues
+as DRY-WITH-PARKED), [`review-it`](docs/runs/2026-07-13-review-it-external-run.md)
 → **external-run** (a NO-GO verdict on a real gstack PR), and
 [`oss-contribute`](docs/runs/2026-07-16-oss-contribute-external-run.md) → **external-run** (5 PRs
 and 4 review-assist comments on a real upstream repo). The rest remain honestly
@@ -206,7 +208,9 @@ policies preserved exactly because each one paid for itself the hard way:
   re-verifies every "completed" unit against git before trusting it —
   [`runtime/liveness-resume.md`](runtime/liveness-resume.md).
 - **Gates below the model.** Every decision is classified mechanical / taste / one-way; one-way
-  doors are always human, never defaulted on timeout — [`runtime/gate-classification.md`](runtime/gate-classification.md).
+  doors are always human, never defaulted on timeout. Units default **lit** (a reviewer reads
+  the change); `dark-eligible` is opt-in and narrow —
+  [`runtime/gate-classification.md`](runtime/gate-classification.md).
 - **Least-privilege workers.** `ro` for report-only, `rw` for fix work, `danger` only inside a
   disposable sandbox with an explicit grant — [`runtime/sandbox-policy.md`](runtime/sandbox-policy.md).
 
@@ -246,7 +250,9 @@ sequenceDiagram
 The manifest binds every claim to a SHA and an artifact; the verifier re-derives the facts. The
 denominator is frozen at run start (`contract.digest`), so a worker cannot quietly shrink its own
 scope and report a subset as "all". A negative control is mandatory for every fix and every test:
-show the proof fails when the change is reverted or mutated. Full schema:
+show the proof fails when the change is reverted or mutated. Mutation units also carry a
+non-empty **intent packet** (`goal` · `ruled_out` · `why`) and a `lighting` bit (`lit` by
+default; `dark-eligible` only for Lane A work with an unfakeable oracle). Full schema:
 [`runtime/evidence-manifest.md`](runtime/evidence-manifest.md).
 
 This is what made `clean-sweep` and `spec-to-ship` reliable in production use: **verify, never

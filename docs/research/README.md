@@ -1,6 +1,10 @@
 # Research archive
 
-Human-facing research and gap analyses that inform adoption decisions. These are **map-it artifacts** (decisions, not code) unless a follow-up ship-it PR lands the adopted slices.
+Human-facing research and gap analyses that inform adoption decisions. These are
+**dated snapshots** — historical scores, not a live coverage matrix. See
+[ARCHITECTURE.md](../../ARCHITECTURE.md) for current catalog state. The August 16
+delta's E1–E6 slices landed in [PR #68](https://github.com/ravidsrk/orca-fleet/pull/68);
+the snapshots stay as they were written.
 
 | Date | Document |
 |------|----------|

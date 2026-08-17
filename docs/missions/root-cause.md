@@ -177,6 +177,8 @@ Playbooks: [`diagnose`](../../playbooks/diagnose.md) (DIAGNOSIS phases only — 
 before its fix phase)
 
 Runtime policies: [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
+[`liveness-resume`](../../runtime/liveness-resume.md) ·
+[`sandbox-policy`](../../runtime/sandbox-policy.md) ·
 [`gate-classification`](../../runtime/gate-classification.md)
 
 ## Related missions

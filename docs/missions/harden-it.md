@@ -168,11 +168,18 @@ so it parked for you — executed and verified before the run counted it.
 
 Playbooks: [`risk-review`](../../playbooks/risk-review.md) ·
 [`remediate-finding`](../../playbooks/remediate-finding.md) ·
+[`acceptance-review`](../../playbooks/acceptance-review.md) ·
 [`runtime-prove`](../../playbooks/runtime-prove.md) ·
 [`compound-learn`](../../playbooks/compound-learn.md)
 
 Runtime policies: [`sandbox-policy`](../../runtime/sandbox-policy.md) ·
+[`gate-classification`](../../runtime/gate-classification.md) ·
 [`merge-serialization`](../../runtime/merge-serialization.md) ·
+[`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md) ·
+[`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) ·
+[`liveness-resume`](../../runtime/liveness-resume.md) ·
+[`evidence-manifest`](../../runtime/evidence-manifest.md) ·
+[`ledger-contract`](../../runtime/ledger-contract.md) ·
 [`attention-budget`](../../runtime/attention-budget.md)
 
 ## Related missions

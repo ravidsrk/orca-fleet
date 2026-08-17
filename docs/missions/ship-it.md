@@ -120,7 +120,8 @@ Exactly two, both one-way doors under
 
 1. **The freeze** (intent entry only) — you confirm the spec before any slice is cut.
 2. **The promotion** — merging BASE to the default branch is always yours. The fleet opens the
-   PR and stops. Merge ≠ deploy, and the fleet never self-merges a promotion.
+   PR with the traceability table and an `accountable: <human>` line, then stops. Merge ≠ deploy,
+   and the fleet never self-merges a promotion.
 
 Everything else is classified mechanical (auto-resolved, audited in the ledger) or taste
 (recommendation picked, batched for your veto, work continues).
@@ -196,6 +197,8 @@ Runtime policies: [`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) ·
 [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`gate-classification`](../../runtime/gate-classification.md) ·
 [`liveness-resume`](../../runtime/liveness-resume.md) ·
+[`orca-dag-semantics`](../../runtime/orca-dag-semantics.md) ·
+[`ledger-contract`](../../runtime/ledger-contract.md) ·
 [`attention-budget`](../../runtime/attention-budget.md)
 
 ## Related missions

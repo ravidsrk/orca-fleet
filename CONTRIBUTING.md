@@ -79,7 +79,9 @@ fail-closed exits documented in the header comment.
 
 - `docs/missions/<name>.md` pages follow the ship-it template: what it does, when (and when
   NOT) to reach for it, a mermaid pipeline, terminal states, human gates, convergence proof,
-  failure modes, composes, related.
+  failure modes, composes, related. The guide's `## Composes` section must name every playbook
+  and runtime policy the mission's SKILL compose/rides clause declares — a contract test
+  rejects drift.
 - Cross-references between catalog files use bare protocol names — the validator flags
   path-prefixed or case-typo'd `<name>.md` references anywhere in `skills/`, `playbooks/`, or
   `runtime/`.

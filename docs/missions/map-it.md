@@ -173,6 +173,7 @@ Playbooks: [`decide-and-freeze`](../../playbooks/decide-and-freeze.md) ·
 [`decompose-dag`](../../playbooks/decompose-dag.md) (prepare-only)
 
 Runtime policies: [`gate-classification`](../../runtime/gate-classification.md) ·
+[`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`merge-serialization`](../../runtime/merge-serialization.md) (hot-file merge chains are declared
 at DAG-prepare time) · [`liveness-resume`](../../runtime/liveness-resume.md) (the slice ↔ task-id
 ledger table is the run scope a resume needs)
