@@ -6,6 +6,12 @@ truth is `.claude-plugin/plugin.json`.
 
 ## [Unreleased]
 
+### Fixed
+
+- Validator: a non-UTF-8 or unreadable `SKILL.md` (and the same class of error
+  in playbooks/runtime) is a one-item per-file failure instead of aborting the
+  catalog (issue #71).
+
 ## [0.5.0] - 2026-08-26
 
 Release hygiene: the previous Unreleased block was already on main (issue #42).

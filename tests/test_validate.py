@@ -121,6 +121,46 @@ class TestValidatorFailureBranches(unittest.TestCase):
             self.assertTrue(any("case/underscore typo" in e for e in errs), errs)
 
 
+class TestUnreadableSkill(unittest.TestCase):
+    """Issue #71: one corrupt SKILL.md must not abort the catalog."""
+
+    def test_non_utf8_skill_md_is_one_error_not_a_traceback(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            d = Path(tmp) / "demo-skill"
+            d.mkdir()
+            (d / "SKILL.md").write_bytes(b"\xff\xfe\x00\x00not utf-8")
+            errs = validate.validate_skill(d, PROTOCOLS)
+            self.assertEqual(len(errs), 1, errs)
+            self.assertTrue(any("unreadable" in e for e in errs), errs)
+
+    def test_oserror_skill_md_is_one_error_not_a_traceback(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            d = make_skill(tmp, "Composes `diagnose`.\n")
+            with mock.patch.object(Path, "read_text", side_effect=OSError("EACCES")):
+                errs = validate.validate_skill(d, PROTOCOLS)
+            self.assertEqual(len(errs), 1, errs)
+            self.assertTrue(any("unreadable" in e for e in errs), errs)
+
+    def test_non_utf8_playbook_is_recorded_not_a_traceback(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            playbooks = Path(tmp) / "playbooks"
+            runtime = Path(tmp) / "runtime"
+            playbooks.mkdir()
+            runtime.mkdir()
+            (playbooks / "demo.md").write_bytes(b"\xff\xfe")
+            (playbooks / "ok.md").write_text(
+                "Escalate per diagnose.md.\n", encoding="utf-8"
+            )
+            with mock.patch.object(validate, "PLAYBOOKS_DIR", playbooks), \
+                 mock.patch.object(validate, "RUNTIME_DIR", runtime), \
+                 mock.patch.object(validate, "ROOT", Path(tmp)):
+                failures = validate.check_protocol_doc_refs(PROTOCOLS)
+            self.assertTrue(
+                any("unreadable" in f and "demo.md" in f for f in failures), failures
+            )
+            self.assertFalse(any("ok.md" in f for f in failures), failures)
+
+
 class TestProofStatus(unittest.TestCase):
     """The predecessor died presenting unproven missions as proven — machine-check it."""
 
