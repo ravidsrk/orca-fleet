@@ -182,6 +182,20 @@ def parse_frontmatter(text):
     return data, None
 
 
+def read_text_safe(path):
+    """Read UTF-8 text. Return (text, None) or (None, error). Never raises.
+
+    One corrupt SKILL.md must not abort validation of the rest of the catalog
+    (issue #71 / TODOS.md). Same guard for playbooks/ and runtime/.
+    """
+    try:
+        return path.read_text(encoding="utf-8"), None
+    except UnicodeDecodeError:
+        return None, "unreadable: not valid UTF-8"
+    except OSError as err:
+        return None, f"unreadable: {err}"
+
+
 def validate_skill(skill_dir, protocols):
     errors = []
     name = skill_dir.name
@@ -189,7 +203,9 @@ def validate_skill(skill_dir, protocols):
     if not skill_md.exists():
         return ["missing SKILL.md"]
 
-    text = skill_md.read_text(encoding="utf-8")
+    text, read_err = read_text_safe(skill_md)
+    if read_err:
+        return [read_err]
     data, err = parse_frontmatter(text)
     if err:
         return [f"frontmatter parse error: {err}"]
@@ -283,7 +299,10 @@ def check_protocol_doc_refs(protocols):
         if not d.exists():
             continue
         for f in sorted(d.glob("*.md")):
-            text = f.read_text(encoding="utf-8")
+            text, read_err = read_text_safe(f)
+            if read_err:
+                failures.append(f"{f.relative_to(ROOT)}: {read_err}")
+                continue
             for e in md_ref_errors(text, protocols):
                 failures.append(f"{f.relative_to(ROOT)}: {e}")
             lines = len(text.splitlines())
