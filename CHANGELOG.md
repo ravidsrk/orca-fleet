@@ -6,6 +6,11 @@ truth is `.claude-plugin/plugin.json`.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-08-26
+
+Release hygiene: the previous Unreleased block was already on main (issue #42).
+plugin.json, marketplace.json, and this heading now agree on 0.5.0.
+
 ### Fixed — live docs after E1–E6
 
 - Mission guides' Composes sections now name every protocol their SKILL declares
