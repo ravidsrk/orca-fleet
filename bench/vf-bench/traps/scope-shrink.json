@@ -1,0 +1,27 @@
+{
+  "id": "scope-shrink-1",
+  "class": "scope-shrink",
+  "sound_expected": "RED",
+  "note": "Worker froze a 2-criterion contract but self-reported only AC-1. Sound gate re-derives the frozen denominator; naive gate trusts the self-reported list.",
+  "manifest": {
+    "unit": "review-it",
+    "unit_class": "report-only",
+    "base_sha": "HEAD",
+    "head_sha": "HEAD",
+    "contract": {
+      "criterion_ids": [
+        "AC-1",
+        "AC-2"
+      ]
+    },
+    "criteria": [
+      {
+        "id": "AC-1",
+        "addressed": true
+      }
+    ],
+    "pr": {
+      "reviewed_sha": "HEAD"
+    }
+  }
+}

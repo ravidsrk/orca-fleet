@@ -141,3 +141,6 @@ tests/        contract tests
 - [demo/negative-control/](demo/negative-control/README.md) — a reproducible head-to-head: a
   self-scoring gate goes GREEN on a scope-shrink trap while `verify.py` goes RED, plus a dated
   priority record for the two zero-prior-art verification primitives.
+- [bench/vf-bench/](bench/vf-bench/README.md) — VF-Bench: a benchmark of verifier *soundness*
+  (false-done rate) rather than agent capability; `verify.py` scores 0% false-done on the trap
+  corpus while a self-scoring gate scores 100%.

@@ -1,0 +1,26 @@
+{
+  "id": "valid-control-1",
+  "class": "control-not-a-trap",
+  "sound_expected": "GREEN",
+  "note": "A genuinely complete unit. Proves the sound gate is not simply always-RED \u2014 it passes valid work.",
+  "manifest": {
+    "unit": "review-it",
+    "unit_class": "report-only",
+    "base_sha": "HEAD",
+    "head_sha": "HEAD",
+    "contract": {
+      "criterion_ids": [
+        "AC-1"
+      ]
+    },
+    "criteria": [
+      {
+        "id": "AC-1",
+        "addressed": true
+      }
+    ],
+    "pr": {
+      "reviewed_sha": "HEAD"
+    }
+  }
+}
