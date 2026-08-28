@@ -10,11 +10,13 @@ it runs the same `verify.py` no matter which surface fires it.
 ## Native path — plugin hooks (default)
 
 [`hooks/hooks.json`](../hooks/hooks.json) wires two events to
-[`runtime/scripts/verify-gate.sh`](../runtime/scripts/verify-gate.sh):
+[`runtime/scripts/verify-gate.sh`](../runtime/scripts/verify-gate.sh), passing `--event task|stop`:
 
-- **`TaskCompleted`** (agent-teams) — **exit 2 → prevent completion + return feedback**. The native
-  "you cannot mark this task done until it verifies."
-- **`Stop`** — **exit 2 → refuse the turn end** until the manifest passes.
+- **`TaskCompleted`** (`--event task`, agent-teams) — **exit 2 → prevent completion + return
+  feedback**. Per-unit by construction; with no manifest it blocks (a unit completing must have one).
+- **`Stop`** (`--event stop`) — fires on **every** turn end, so a turn with **no unit in progress**
+  (`ORCA_MANIFEST` unset) has nothing to verify and is **allowed**; a turn that IS mid-unit is
+  verified and **exit 2 refuses the turn end** until the manifest passes.
 
 `verify-gate.sh` is **fail-closed**: if no manifest is named (`ORCA_MANIFEST` unset / missing), if no
 authoritative contract is supplied (`ORCA_CONTRACT_SOURCE`/`ORCA_CONTRACT_DIGEST` — without it the

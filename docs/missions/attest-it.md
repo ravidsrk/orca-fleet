@@ -79,7 +79,8 @@ Playbooks: [`decompose-dag`](../../playbooks/decompose-dag.md) ·
 [`acceptance-review`](../../playbooks/acceptance-review.md)
 
 Runtime policies: [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
-[`gate-classification`](../../runtime/gate-classification.md)
+[`gate-classification`](../../runtime/gate-classification.md) ·
+[`sandbox-policy`](../../runtime/sandbox-policy.md)
 
 ## Related missions
 

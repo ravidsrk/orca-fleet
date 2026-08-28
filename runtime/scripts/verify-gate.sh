@@ -34,6 +34,8 @@
 set -eu
 
 HERE=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+EVENT=""
+if [ "${1:-}" = "--event" ]; then EVENT="${2:-}"; shift 2; fi
 MANIFEST="${ORCA_MANIFEST:-${1:-}}"
 CONTRACT_SOURCE="${ORCA_CONTRACT_SOURCE:-}"
 CONTRACT_DIGEST="${ORCA_CONTRACT_DIGEST:-}"
@@ -44,6 +46,12 @@ UNIT_CLASS="${ORCA_UNIT_CLASS:-}"
 NO_GH="${ORCA_NO_GH:-}"
 
 if [ -z "$MANIFEST" ] || [ ! -f "$MANIFEST" ]; then
+  # Stop fires on EVERY turn end; a turn with no unit in progress has nothing to verify — allow it.
+  # TaskCompleted (or an explicit manifest) with no manifest is a mis-dispatch — fail closed.
+  if [ "$EVENT" = "stop" ]; then
+    echo "verify-gate: Stop with no unit in progress (ORCA_MANIFEST unset) — nothing to verify, allowing" >&2
+    exit 0
+  fi
   echo "verify-gate: no evidence manifest (ORCA_MANIFEST unset or missing) — BLOCKING (fail-closed)" >&2
   exit 2
 fi

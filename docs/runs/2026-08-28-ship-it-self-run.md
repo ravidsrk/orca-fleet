@@ -10,7 +10,7 @@ requires a repo that is not this catalog).
 |-------------|-------|
 | coordinator | Claude (interactive session); dispatches + verifies, does not write code |
 | BASE        | `ravidsrk/orca-fleet` `ship/proof-status-2026-08` @ `6970ede` (frozen-contract commit) |
-| baseline    | `main` @ `62447ba`: validate.py green, 129 tests green |
+| baseline    | `main` @ `62447ba`: validate.py green, 124 tests green |
 | runtime     | Orca task dispatch (background workers), git + gh |
 | workers     | 2 dispatched: builder (task, rw, own slice branch) · acceptance reviewer (build-blind, ro, instructed-isolation) |
 | reviewer_mode | instructed-isolation (fresh agent, no build context; recorded as the weaker guarantee it is vs cross-vendor) |
@@ -73,8 +73,10 @@ the two-level denominator collapses to one unit.
 frozen contract:
 
 - **GREEN**: scope (authoritative `contract.digest` matches; `criteria[]` cover `{AC-1,AC-2,AC-3}`
-  exactly), `base_sha`/`head_sha` real commits, reviewed-SHA freshness, negative control (revert →
-  RED corroborated by the artifact), post-merge ancestry.
+  exactly), `base_sha`/`head_sha` real commits, negative control (revert → RED corroborated by the
+  artifact), post-merge ancestry.
+- **SKIPPED**: reviewed-SHA freshness — the manifest carried no `reviewed_sha` (the build slice was
+  report-shaped), so `check_freshness` had nothing to compare. This is a skip, NOT an equality pass.
 - **RED (bounded)**: the mutation-unit **independent-review gate** — `verify.py` requires an
   APPROVED GitHub review at `head_sha`, looked up on GitHub, not read from the manifest. A solo
   self-run has no second GitHub identity to approve, so this gate cannot be satisfied autonomously.
@@ -97,7 +99,7 @@ Per `attention-budget.md` §"The WIP-curve protocol", one row for this run's sin
 | Builder throughput | not measured to protocol — the protocol counts units reaching verified-CLOSED per hour; this run reached verified-BUILT only, one slice, ~15 min wall-clock (≈ 8 min build + 7 min review) |
 | Verification latency | machine verify (`verify.py` + tests + `--check`) < 6 s; acceptance review ≈ 7 min; `worker_done` → verified ≈ 7 min (n=1) |
 | Rework rate | 0/1 — the slice passed acceptance review and every machine invariant on first dispatch (no evidence-manifest §2 bounce) |
-| Freshness violations | 0 (`reviewed_sha == head_sha`) |
+| Freshness violations | 0 — the manifest carried no `reviewed_sha`, so freshness was vacuously skipped (not an equality pass) |
 
 This is **not a protocol-compliant data point** and does not count toward the ≥3-run cap-revision
 threshold — not for running at `builders=1` (a legitimate low-WIP setting), but because it reached
@@ -129,6 +131,10 @@ ef01469349304330f4e4937dcdb96a7b1836c762364353950280394fc8207bfd  docs/runs/2026
 231d6a79e57f526a34c1a7202c9ec75f81f5466c34f77ba5ab8541ca6b451d9e  runtime/scripts/proof_status.py
 6e63e02cbaf3c460e2fbce543598b1e7c32ac2a7a5b7a75504dc18821f7f1ab5  tests/test_proof_status.py
 ```
+
+> Inventory computed at the run's slice tip `748b328`. `proof_status.py` and `test_proof_status.py`
+> have since changed (PRs #108/#137); re-derive their hashes at `748b328`, not HEAD. The three
+> run-directory artifacts above are immutable.
 
 ## Gates
 

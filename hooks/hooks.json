@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/runtime/scripts/verify-gate.sh"
+            "command": "${CLAUDE_PLUGIN_ROOT}/runtime/scripts/verify-gate.sh --event task"
           }
         ]
       }
@@ -18,7 +18,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/runtime/scripts/verify-gate.sh"
+            "command": "${CLAUDE_PLUGIN_ROOT}/runtime/scripts/verify-gate.sh --event stop"
           }
         ]
       }

@@ -29,7 +29,7 @@ def _digest(path):
 
 
 def run_gate(manifest=None, contract_source=None, contract_digest=None, unit_class=None,
-             provenance=None):
+             provenance=None, event=None):
     env = {"PATH": os.environ.get("PATH", "")}
     if manifest is not None:
         env["ORCA_MANIFEST"] = str(manifest)
@@ -41,7 +41,10 @@ def run_gate(manifest=None, contract_source=None, contract_digest=None, unit_cla
         env["ORCA_UNIT_CLASS"] = unit_class
     if provenance is not None:
         env["ORCA_PROVENANCE"] = provenance
-    return subprocess.run([str(GATE)], capture_output=True, text=True, cwd=ROOT, env=env)
+    argv = [str(GATE)]
+    if event is not None:
+        argv += ["--event", event]
+    return subprocess.run(argv, capture_output=True, text=True, cwd=ROOT, env=env)
 
 
 def _manifest(source, ids_declared, ids_addressed):
@@ -101,6 +104,22 @@ class VerifyGateTrustBoundary(unittest.TestCase):
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertNotIn("ADVISORY", r.stderr)
 
+
+class VerifyGateStopScope(unittest.TestCase):
+    """#121: Stop fires on every turn end; with no unit in progress it must ALLOW, while
+    TaskCompleted (or an explicit manifest) with no manifest still blocks (mis-dispatch)."""
+
+    def test_stop_no_manifest_allows(self):
+        self.assertEqual(run_gate(None, event="stop").returncode, 0)
+
+    def test_task_no_manifest_blocks(self):
+        self.assertEqual(run_gate(None, event="task").returncode, 2)
+
+    def test_stop_with_manifest_still_verifies(self):
+        src = _src(["AC-1"])
+        m = _manifest(src, ["AC-1"], ["AC-1"])
+        r = run_gate(m, src, _digest(src), unit_class="report-only", event="stop")
+        self.assertEqual(r.returncode, 0, r.stderr)
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
