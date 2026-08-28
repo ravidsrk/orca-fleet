@@ -41,6 +41,7 @@ REPO="${ORCA_REPO:-}"
 BASE="${ORCA_BASE:-}"
 SYMBOL="${ORCA_SYMBOL:-}"
 UNIT_CLASS="${ORCA_UNIT_CLASS:-}"
+NO_GH="${ORCA_NO_GH:-}"
 
 if [ -z "$MANIFEST" ] || [ ! -f "$MANIFEST" ]; then
   echo "verify-gate: no evidence manifest (ORCA_MANIFEST unset or missing) — BLOCKING (fail-closed)" >&2
@@ -54,6 +55,7 @@ set -- --manifest "$MANIFEST"
 [ -n "$BASE" ] && set -- "$@" --base "$BASE"
 [ -n "$SYMBOL" ] && set -- "$@" --symbol "$SYMBOL"
 [ -n "$UNIT_CLASS" ] && set -- "$@" --unit-class "$UNIT_CLASS"
+[ -n "$NO_GH" ] && set -- "$@" --no-gh
 [ -n "${ORCA_EXECUTE_NC:-}" ] && set -- "$@" --execute-nc
 
 # Trust boundary (#112): the contract digest + unit class are only as sound as their provenance.

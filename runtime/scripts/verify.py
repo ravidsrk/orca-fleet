@@ -213,12 +213,26 @@ def fetch_reviews(repo, pr_number):
         return None, str(err)
 
 
-def check_review(m, repo, is_mutation):
-    """3. A mutation unit needs an INDEPENDENT APPROVED review at head_sha — looked up on GitHub, not
-    read from the manifest (a worker-set reviewed_sha is not evidence a review occurred). Fail-closed."""
+def check_review(m, repo, is_mutation, no_gh=False):
+    """3. A mutation unit needs an INDEPENDENT review at head_sha. Default: an APPROVED GitHub review
+    looked up on GitHub (a worker-set reviewed_sha is not evidence). Fail-closed. In the sanctioned
+    no-gh / offline lane (dispatch --no-gh; merge-serialization.md), GitHub is unavailable, so the
+    review is a local reviewer artifact at head_sha — coordinator-attested (the weaker guarantee),
+    never a silent pass."""
     if not is_mutation:
         return []
     head = m.get("head_sha")
+    if no_gh:
+        art = (m.get("review") or {}).get("artifact")
+        if not art:
+            return ["no-gh mutation unit: missing review.artifact (a local reviewer record at head_sha)"]
+        content, err = read_source(art)
+        if err:
+            return [f"no-gh mutation unit: review.artifact unreadable ({art}): {err}"]
+        if head and head not in content:
+            return ["no-gh mutation unit: review.artifact does not reference head_sha"]
+        return ["NOTE: no-gh review is coordinator-attested (local reviewer artifact at head_sha), "
+                "not GitHub-verified — the weaker guarantee (merge-serialization.md)"]
     number = (m.get("pr") or {}).get("number")
     if not number:
         return ["mutation unit: no pr.number to look up an independent review — unreviewed"]
@@ -328,7 +342,7 @@ def check_reviewer_mode(m, is_mutation):
 
 
 def verify(manifest_path, contract_source=None, contract_digest=None, repo=None,
-           base=None, symbol=None, execute_nc=False, unit_class=None):
+           base=None, symbol=None, execute_nc=False, unit_class=None, no_gh=False):
     """Return (fatal_errors, notes). fatal_errors non-empty => exit 2."""
     m, err = load_manifest(manifest_path)
     if err:
@@ -338,7 +352,7 @@ def verify(manifest_path, contract_source=None, contract_digest=None, repo=None,
     for result in (
         check_scope(m, contract_source, contract_digest),
         check_shas_present(m), check_real_commits(m),
-        check_freshness(m), check_review(m, repo, is_mut),
+        check_freshness(m), check_review(m, repo, is_mut, no_gh),
         check_negative_control(m, is_mut, execute_nc),
         check_intent(m, is_mut), check_lighting(m, is_mut), check_reviewer_mode(m, is_mut),
         check_ancestry(m, base), check_symbol_on_base(symbol, base),
@@ -361,6 +375,9 @@ def main(argv=None):
     ap.add_argument("--unit-class", default=None, choices=UNIT_CLASSES,
                     help="unit class from the dispatch record (mutation|report-only|planning); "
                          "missing => mutation (fail-safe)")
+    ap.add_argument("--no-gh", action="store_true",
+                    help="offline/no-gh lane (merge-serialization.md): review is a local reviewer "
+                         "artifact at head_sha, coordinator-attested — set by the coordinator, not the worker")
     args = ap.parse_args(argv)
 
     if shutil.which("git") is None:
@@ -368,7 +385,7 @@ def main(argv=None):
         return 1
     out, load_err = verify(args.manifest, args.contract_source, args.contract_digest,
                            args.repo or infer_repo(), args.base, args.symbol, args.execute_nc,
-                           args.unit_class)
+                           args.unit_class, args.no_gh)
     if load_err:
         print(load_err, file=sys.stderr)
         return 1

@@ -51,8 +51,10 @@ and `reviewed_sha` (`pr` is null) and swaps every `gh` step in the loop above fo
   conflicts resolved locally the same union way, branch deleted, maintainer authorship.
 - VERIFY (step 4): unchanged — it was already pure git ancestry.
 
-Record `no-gh: local-merge` in the ledger. The BASE→default promotion still needs a human and a
-real PR, so a no-gh run stops at BASE and surfaces that the promotion PR is owed.
+Record `no-gh: local-merge` in the ledger AND a local reviewer record — `review.artifact` at
+head_sha — which verify.py's `--no-gh` review path checks (coordinator-attested, the weaker
+guarantee). The BASE→default promotion still needs a human and a real PR, so a no-gh run stops at
+BASE and surfaces that the promotion PR is owed.
 
 The same lane applies when a run STARTS offline, not just when gh dies mid-run: Phase 0
 preflights with `preflight.py --offline --base <BASE> --default <branch>` — gh checks are
