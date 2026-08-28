@@ -90,7 +90,9 @@ build-blind reviewer, and the single merge conductor
 
 orca-fleet's [evidence manifest](../../runtime/evidence-manifest.md) defines "done" as a
 SHA-bound claim re-derived from authoritative state by an independent session. The table scores
-the shipping evidence approaches against the six properties that manifest requires. Cells are
+the shipping evidence approaches against the six properties that manifest defines. Several are
+scoped by unit class (see the note after the table), and the orca-fleet column is documented
+doctrine, not a uniform field-audit. Cells are
 filled from primary sources; **UNVERIFIED** marks a property a source neither documents nor
 plausibly implies.
 
@@ -100,11 +102,21 @@ Legend: **✓** documented/present · **◐** partial or adjacent analog · **�
 | Property | vr.dev | Sigstore-community attestation (SLSA/in-toto + cosign) | AWS CI mutation-testing gate | **orca-fleet evidence-manifest** |
 |---|:--|:--|:--|:--|
 | **SHA-binding** | ◐ a HARD verifier can assert "commit SHA exists", but there is no manifest binding criteria↔SHA | ✓ subject = artifact digest; provenance records source repo + commit | ✗ runs on the pipeline SHA but binds no completion manifest (UNVERIFIED for explicit binding) | ✓ `base_sha`/`head_sha` required, real commits; contract `source@digest` |
-| **Ancestry check** | ✗ no merge-base check | ✗ verifies commit identity, not landing into a base | ✗ | ✓ `git merge-base --is-ancestor <head_sha> origin/<base>` |
+| **Ancestry check** | ✗ no merge-base check | ✗ verifies commit identity, not landing into a base | ✗ | ✓ *(mutation units)* `git merge-base --is-ancestor <head_sha> origin/<base>`; n/a for report-only/planning |
 | **Clean-env re-run** | ◐ AGENTIC probes hit real state, but a clean-worktree checkout re-run at a SHA is not documented | ✗ attests that a build happened; does not re-run tests | ✓ CodeBuild runs in an ephemeral container | ✓ checkout `head_sha` in a fresh worktree, run the suite green |
-| **Revert-to-red (negative control)** | ✗ `fail_closed` composition ≠ proof-can-fail; no mutation/revert | ✗ | ✓ mutation testing *is* the negative control — a surviving mutant fails the gate | ✓ named tool + pinned mutant KILLED, or revert → RED |
-| **Reviewed-SHA freshness** | ✗ | ✗ not a review concept | ✗ | ✓ `pr.reviewed_sha == head_sha`; a post-review move voids it |
+| **Revert-to-red (negative control)** | ✗ `fail_closed` composition ≠ proof-can-fail; no mutation/revert | ✗ | ✓ mutation testing *is* the negative control — a surviving mutant fails the gate | ✓ *unit-class-dependent* — mutation: named tool + pinned mutant KILLED / revert → RED; report-only & planning carry the §3 class analogue |
+| **Reviewed-SHA freshness** | ✗ | ✗ not a review concept | ✗ | ✓ *(mutation units)* `pr.reviewed_sha == head_sha`; report-only units bind to `head_sha` with no PR-review step |
 | **Independent second-session re-derivation** | ◐ supports a separate-context validator but does **not** enforce it (author confirms the actor may self-run) | ◐ verification is a distinct process (cosign / slsa-verifier) but re-derives *signatures/provenance*, not acceptance criteria | ✗ same pipeline self-scores | ✓ a different session re-derives scope/tests/NC from git before any LLM judgment |
+
+> **Reading the orca-fleet column honestly.** These are the properties the evidence manifest
+> *defines* and the reference verifier (`verify.py`) *implements* — documented doctrine, not a claim
+> of uniform field-proof. Three are scoped by unit class: ancestry and reviewed-SHA freshness are
+> mutation-unit checks (report-only/planning units bind to `head_sha` and omit them), and the
+> negative control's form varies by class (mutation: revert/mutate → RED; report-only: the §3
+> analogue). The one recorded run to date (the 2026-08-28 ship-it self-run) exercised scope, SHAs,
+> freshness, and the negative control, but could not clear the independent-review leg autonomously —
+> so that row is field-proven for the machine invariants and doctrine-only for the human approval.
+> Competitor ✓ marks mean "documented/present", not "independently field-audited here".
 
 **What each competitor actually is (primary-source grounded, 2026-08-28):**
 

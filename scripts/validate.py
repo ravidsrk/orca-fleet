@@ -244,9 +244,14 @@ def validate_skill(skill_dir, protocols):
         errors.append(f"proof '{proof}' invalid (want one of {sorted(PROOF_VALUES)})")
     elif proof != "doctrine-only":
         evidence = data.get("proof_evidence", "")
-        if not evidence or not (ROOT / evidence).exists():
+        ev_path = (ROOT / evidence).resolve() if evidence else None
+        if (
+            not ev_path
+            or not ev_path.is_relative_to(ROOT.resolve())
+            or not ev_path.is_file()
+        ):
             errors.append(
-                f"proof '{proof}' requires proof_evidence: a run-report path that exists"
+                f"proof '{proof}' requires proof_evidence: a repo-relative run-report path that exists"
             )
 
     # autonomy level (Osmani L0-L5): a first-class, machine-readable claim sibling to

@@ -184,6 +184,18 @@ class TestProofStatus(unittest.TestCase):
                            frontmatter_extra="proof: self-run\n"), PROTOCOLS)
             self.assertTrue(any("requires proof_evidence" in e for e in errs), errs)
 
+    def test_advanced_proof_evidence_outside_repo_fails(self):
+        # An absolute/traversal proof_evidence pointing OUTSIDE the repo must not
+        # certify proof, even if the target file exists (containment guard).
+        with tempfile.TemporaryDirectory() as tmp, tempfile.TemporaryDirectory() as ext:
+            evpath = Path(ext) / "external-report.md"
+            evpath.write_text("x\n", encoding="utf-8")
+            errs = validate.validate_skill(
+                make_skill(tmp, "Composes `diagnose`.\n",
+                           frontmatter_extra=f"proof: external-run\nproof_evidence: {evpath}\nautonomy: L4\n"),
+                PROTOCOLS)
+            self.assertTrue(any("requires proof_evidence" in e for e in errs), errs)
+
     def test_over_budget_mission_fails(self):
         with tempfile.TemporaryDirectory() as tmp:
             body = "Composes `diagnose`.\n" + ("filler line\n" * validate.MISSION_MAX_LINES)
