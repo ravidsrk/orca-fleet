@@ -48,9 +48,11 @@ UNIT_CLASSES = ("mutation", "report-only", "planning")
 NC_TOOLS = {"mutmut", "cosmic-ray", "stryker", "pitest", "cargo-mutants", "go-mutesting", "revert"}
 REVIEWER_MODES = {"cross-vendor", "same-vendor-fresh", "instructed-isolation"}
 LIGHTING_VALUES = {"lit", "dark-eligible"}
-# Criterion ids in a frozen source (AC-1, SC-12, REQ-3, …). A JSON source may instead declare an
-# explicit criterion_ids array, which is unambiguous and preferred.
-CRIT_ID_RE = re.compile(r"\b[A-Z][A-Z0-9]*-\d+\b")
+# Criterion ids in a frozen source: hyphenated (AC-1, SC-12, REQ-3) or compact (AC1, SC12). A JSON
+# source may instead declare an explicit criterion_ids array, which is unambiguous and preferred.
+# Over-counting is fail-safe (the manifest must address MORE); under-counting would let scope shrink.
+CRIT_ID_RE = re.compile(r"\b[A-Z][A-Z0-9]*-\d+\b|\b[A-Z]{2,}\d+\b")
+HEX40_RE = re.compile(r"^[0-9a-f]{40}$")
 
 
 def _run(args, timeout=20):
@@ -174,11 +176,18 @@ def check_shas_present(m):
     return [f"missing required '{f}'" for f in ("base_sha", "head_sha") if not m.get(f)]
 
 
-def check_real_commits(m):
-    """2. base_sha / head_sha must be real commits (skipped-with-note outside a git repo)."""
-    if _git(["rev-parse", "--is-inside-work-tree"])[0] != 0:
-        return ["NOTE: not inside a git repo — commit-existence check skipped"]
+def check_real_commits(m, is_mutation=False):
+    """2. base_sha / head_sha must be real, immutable commits. A symbolic ref like 'HEAD' resolves
+    but is not a pinned commit — fatal for a mutation unit, advisory otherwise. Existence check is
+    skipped outside a git repo."""
     errs = []
+    for field in ("base_sha", "head_sha"):
+        sha = m.get(field)
+        if sha and not HEX40_RE.match(sha):
+            msg = f"{field} '{sha}' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)"
+            errs.append(msg if is_mutation else f"NOTE: {msg}")
+    if _git(["rev-parse", "--is-inside-work-tree"])[0] != 0:
+        return errs + ["NOTE: not inside a git repo — commit-existence check skipped"]
     for field in ("base_sha", "head_sha"):
         sha = m.get(field)
         if sha and _git(["cat-file", "-e", f"{sha}^{{commit}}"])[0] != 0:
@@ -196,9 +205,18 @@ def check_freshness(m):
     return []
 
 
-def review_ok(reviews, head_sha):
-    """Pure: an APPROVED review exists whose commit == head_sha."""
-    return any(r.get("state") == "APPROVED" and r.get("commit_id") == head_sha for r in reviews)
+def review_ok(reviews, head_sha, author=None):
+    """Pure: the LATEST review by some INDEPENDENT reviewer (not the PR author) is APPROVED at
+    head_sha. A later COMMENTED/DISMISSED by the same reviewer supersedes an earlier APPROVED."""
+    latest = {}
+    for r in reviews or []:
+        latest[(r.get("user") or {}).get("login")] = r  # chronological: last per reviewer wins
+    for who, r in latest.items():
+        if author is not None and who == author:
+            continue
+        if r.get("state") == "APPROVED" and r.get("commit_id") == head_sha:
+            return True
+    return False
 
 
 def fetch_reviews(repo, pr_number):
@@ -211,6 +229,16 @@ def fetch_reviews(repo, pr_number):
         return json.loads(out), None
     except (json.JSONDecodeError, ValueError) as err:
         return None, str(err)
+
+
+def fetch_pr_author(repo, pr_number):
+    code, out, _ = _run(["gh", "api", f"repos/{repo}/pulls/{pr_number}"])
+    if code != 0:
+        return None
+    try:
+        return (json.loads(out).get("user") or {}).get("login")
+    except (json.JSONDecodeError, ValueError):
+        return None
 
 
 def check_review(m, repo, is_mutation, no_gh=False):
@@ -241,8 +269,9 @@ def check_review(m, repo, is_mutation, no_gh=False):
     reviews, err = fetch_reviews(repo, number)
     if err:
         return [f"mutation unit: cannot fetch reviews for {repo}#{number} ({err}) — fail-closed"]
-    if not review_ok(reviews, head):
-        return [f"mutation unit: no APPROVED review at head_sha on {repo}#{number}"]
+    if not review_ok(reviews, head, fetch_pr_author(repo, number)):
+        return [f"mutation unit: no INDEPENDENT APPROVED review at head_sha on {repo}#{number} "
+                f"(the PR author's own approval and superseded reviews do not count)"]
     return []
 
 
@@ -351,7 +380,7 @@ def verify(manifest_path, contract_source=None, contract_digest=None, repo=None,
     fatal, notes = [], []
     for result in (
         check_scope(m, contract_source, contract_digest),
-        check_shas_present(m), check_real_commits(m),
+        check_shas_present(m), check_real_commits(m, is_mut),
         check_freshness(m), check_review(m, repo, is_mut, no_gh),
         check_negative_control(m, is_mut, execute_nc),
         check_intent(m, is_mut), check_lighting(m, is_mut), check_reviewer_mode(m, is_mut),
