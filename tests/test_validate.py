@@ -551,5 +551,33 @@ class AutonomyFieldTest(unittest.TestCase):
             self.assertTrue(any("autonomy 'L9' invalid" in e for e in errs), errs)
 
 
+class GuardBypassTest(unittest.TestCase):
+    """#122: lowercase composes, the byte budget, and the dot-dir SKILL scan."""
+
+    def test_lowercase_composes_dangling_caught(self):
+        # A lowercase "composes" in a SEPARATE paragraph used to escape the clause scan entirely.
+        with tempfile.TemporaryDirectory() as tmp:
+            errs = validate.validate_skill(
+                make_skill(tmp, "Composes `diagnose`.\n\nIt also composes `nonexistent-proto`.\n"),
+                PROTOCOLS)
+            self.assertTrue(any("nonexistent-proto" in e for e in errs), errs)
+
+    def test_byte_budget_fires_on_a_huge_line(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            body = "Composes `diagnose`.\n" + ("x " * 20000) + "\n"  # ~2 lines, ~40KB
+            errs = validate.validate_skill(make_skill(tmp, body), PROTOCOLS)
+            self.assertTrue(any("byte cap" in e for e in errs), errs)
+
+    def test_dotdir_skill_leak_is_scanned(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "skills" / "foo").mkdir(parents=True)
+            (root / "skills" / "foo" / "SKILL.md").write_text("x", encoding="utf-8")
+            (root / ".claude-plugin").mkdir()
+            (root / ".claude-plugin" / "SKILL.md").write_text("x", encoding="utf-8")
+            leaks = validate.check_layer_separation(root=root)
+            self.assertIn(".claude-plugin/SKILL.md", leaks)
+            self.assertNotIn("skills/foo/SKILL.md", leaks)
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
