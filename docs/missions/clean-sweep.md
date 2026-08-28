@@ -1,6 +1,7 @@
 # 🧹 clean-sweep — a finite backlog exhausted to zero, with evidence
 
 > **Autonomy:** L4 (Osmani L0-L5) - high autonomy - the independent verifier is the cheap verification; you own the one-way doors.
+> **Proof:** self-run ([run report](../runs/2026-07-13-clean-sweep-self-run.md))
 
 > Point it at an audit report, an issue tracker, or a README that lies. Come back to a backlog
 > that is demonstrably empty: every real item fixed on an integration branch with a test that

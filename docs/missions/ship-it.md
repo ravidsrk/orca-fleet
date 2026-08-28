@@ -1,6 +1,7 @@
 # 🚢 ship-it — intent or spec → a released, verified outcome
 
 > **Autonomy:** L4 (Osmani L0-L5) - high autonomy - the independent verifier is the cheap verification; you own the one-way doors.
+> **Proof:** self-run ([run report](../runs/2026-08-28-ship-it-self-run.md))
 
 > Give it an idea or a frozen spec. Come back to a change that is built, reviewed at the
 > integrated whole, proven at a real entry point, landed on an integration branch, and taken

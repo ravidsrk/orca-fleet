@@ -178,6 +178,20 @@ class TestDocsNavigation(unittest.TestCase):
                 self.assertEqual(int(m.group(1)), counts[tier],
                                  f"distribution.md {tier} count is stale (live: {counts[tier]})")
 
+    def test_mission_guides_show_proof_tier(self):
+        # #124: every mission guide surfaces its proof tier (matching the SKILL frontmatter), so a
+        # doctrine-only, never-run mission does not read as field-proven.
+        for d in sorted((ROOT / "skills").iterdir()):
+            if not d.is_dir() or d.name.startswith((".", "_")):
+                continue
+            tier = re.search(r"(?m)^proof:\s*(\S+)",
+                             (d / "SKILL.md").read_text(encoding="utf-8")).group(1)
+            guide = (DOCS / "missions" / f"{d.name}.md").read_text(encoding="utf-8")
+            m = re.search(r"(?m)^> \*\*Proof:\*\*\s*(\S+)", guide)
+            self.assertIsNotNone(m, f"docs/missions/{d.name}.md has no Proof callout")
+            self.assertEqual(m.group(1), tier,
+                             f"docs/missions/{d.name}.md Proof tier != skills/{d.name} frontmatter")
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

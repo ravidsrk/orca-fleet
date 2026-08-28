@@ -101,6 +101,10 @@ instruction surface. Two structural guards inherit that lesson:
   or `external-run`. Advancing past doctrine-only requires `proof_evidence:` pointing at a run
   report that exists on disk; `scripts/validate.py` enforces both. A mission is never presented
   as more proven than its evidence.
+- **Runtime evidence level.** Runtime policies are doctrine (mechanism) by default; a policy that
+  makes an EMPIRICAL claim carries an explicit `Evidence level:` (ASSERTED / measured) —
+  `attention-budget.md` is the measured exemplar. Each mission guide surfaces the mission's `proof:`
+  tier beside its autonomy, so a doctrine-only, never-run mission never reads as field-proven.
 - **Instruction budget.** Missions ≤ 130 lines, playbooks ≤ 90, runtime policies ≤ 160, enforced
   by the validator. Raising a cap is a deliberate, reasoned edit — never drift.
 
