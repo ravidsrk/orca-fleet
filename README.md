@@ -24,11 +24,14 @@
 
 ---
 
-Most agent-skill packs give you better *ingredients*: a sharper TDD loop, a stricter review, a
-smarter debugger. orca-fleet gives you **outcomes**. Each mission in the catalog is a complete
-autonomous fleet for the [Orca](https://github.com/stablyai/orca) runtime — a coordinator that
-decomposes a goal, dispatches isolated workers, verifies every claim against git and a clean test
-run, and stops at a named, evidence-backed terminal state.
+Most agent-skill packs give you better *ingredients* — a sharper TDD loop, a stricter review, a
+smarter debugger. A few (gstack, addyosmani/agent-skills) now ship *outcomes* too — but
+self-certified within the run that produced them. orca-fleet's edge is narrower and harder to copy:
+**verified, not asserted.** Each mission is a complete autonomous fleet for the
+[Orca](https://github.com/stablyai/orca) runtime — a coordinator that decomposes a goal, dispatches
+isolated workers, and stops at a named terminal state whose every claim an **independent session
+re-derives from git**, backed by a **mandatory negative control** (revert or mutate the change and
+watch the proof go red) and a **frozen denominator** the worker cannot quietly shrink.
 
 ```
  YOU SAY                          THE FLEET RUNS                        YOU GET
