@@ -261,6 +261,29 @@ class TestArchitecture(unittest.TestCase):
         release = (PLAYBOOKS / "release.md").read_text(encoding="utf-8")
         self.assertIn("accountable:", release)
 
+    def test_chain_terminals_are_decidable_by_rule(self):
+        # #129: the chaining gate listed degraded terminals as an open ellipsis and said the
+        # -WITH- suffix was NOT the rule, so 4 missions' terminals (CONFORMANT-WITH-GAPS,
+        # CONTRIBUTED-WITH-PARKED, PROMOTION_READY-WITH-PARKED, NO-GO) were unclassifiable.
+        # The fix is a decidable rule: degradation markers OR named degraded terminals.
+        chain = (RUNTIME / "mission-chaining.md").read_text(encoding="utf-8")
+        self.assertRegex(chain, r"(?i)degradation marker")
+        for marker in ("-WITH-PARKED", "-WITH-GAPS", "-WITH-MANUAL-PARKED", "NO-GO", "INCONCLUSIVE"):
+            self.assertIn(marker, chain,
+                          f"mission-chaining.md dropped the {marker} classification — terminals "
+                          "become undecidable again")
+        # A handoff suffix must stay a proceed, not a degradation.
+        self.assertRegex(chain, r"(?i)WITH-HANDOFF.*handoff, not a degradation")
+
+    def test_scheduling_rule_includes_report_only_conformance(self):
+        # #129: mission-scheduling listed a closed set that omitted attest-it, contradicting
+        # attest-it's own report-only nature. The fix is a rule (value lands before any one-way
+        # gate) that names attest-it as a clean-scheduling report-only sweep.
+        sched = (RUNTIME / "mission-scheduling.md").read_text(encoding="utf-8")
+        self.assertRegex(sched, r"(?i)before any one-way gate")
+        self.assertIn("attest-it", sched,
+                      "mission-scheduling.md must classify attest-it (report-only) as clean-scheduling")
+
     def test_row_flags_are_the_record(self):
         # The chimely run advanced BUILD_DONE/REVIEWED only as dispatch-log prose; every
         # unit row still read all-f at run close, which would have broken a crash

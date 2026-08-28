@@ -13,13 +13,14 @@ small. Sequential only. No DAG, no expression language, no preset catalog.
   `harden-it[CLEAN] → prove-it[COVERED] → ship-it[PROMOTION_READY]`.
 - **The gate between missions is the previous mission's named terminal state, backed by its
   verified evidence** (evidence-manifest.md). An audit GATES the chain — there is no
-  "continue anyway" edge. A degraded terminal (`HARDENED-WITH-OPEN-ITEMS`,
-  `COVERED-WITH-PARKED`, `DRY-WITH-PARKED`, `MAPPED-WITH-BLOCKED`,
-  `OPTIMIZED-WITH-PARKED`, `STABLE-WITH-QUARANTINE`, `CURRENT-WITH-PINNED`,
-  `BUILT-WITH-PARKED`, `INCONCLUSIVE`, …) STOPS the chain and parks it; advancing past a
-  degraded state is a one-way human gate (gate-classification.md), recorded in the ledger.
-  Non-degraded handoff terminals (e.g. `DIAGNOSED-WITH-HANDOFF`, `MAPPED`) may proceed when
-  the chain named them as allowed.
+  "continue anyway" edge. A terminal is **degraded** — it STOPS the chain and parks it (advancing is
+  a one-way human gate, gate-classification.md, recorded in the ledger) — if its name carries a
+  degradation marker (`-WITH-PARKED`, `-WITH-OPEN-ITEMS`, `-WITH-GAPS`, `-WITH-MANUAL-PARKED`,
+  `-WITH-BLOCKED`, `-WITH-QUARANTINE`, `-WITH-PINNED`) OR is `NO-GO` / `INCONCLUSIVE` /
+  `awaiting-maintainer-merge`. Every other named terminal is **clean** and may proceed when the chain
+  named it (e.g. `BUILT`, `RELEASED`, `DRY`, `HARDENED`, `CONFORMANT`, `CONTRIBUTED`, `MAPPED`,
+  `DIAGNOSED-WITH-HANDOFF` — a handoff, not a degradation). The rule classifies every mission's
+  terminal, so a chaining coordinator is never left guessing.
 - **One mission active per repo at a time.** Each link is a FULL run: its own preflight, its own
   integration BASE, its own convergence proof. Carrying a BASE from one mission into the next is
   an explicit human decision, never a default.

@@ -21,11 +21,12 @@ spawn per the roster (sandbox-policy.md).
 
 - **Autonomy is headless** (gate-classification.md): auto-pick the recommended option on
   mechanical/taste gates; a ONE-WAY gate (freeze, BASE→default promotion, deploy, spend, secret
-  rotation) is NEVER faked — the run PARKS it and winds down, surfacing what a human owes. So only
-  missions whose value lands BEFORE a one-way gate schedule cleanly: `review-it` (report-only, no
-  gates), `clean-sweep` with a bounded source (stops at the promotion PR). A scheduled `ship-it`
-  from raw intent parks at the freeze gate almost immediately — schedule it only from a
-  pre-frozen spec, and it still stops at PROMOTION_READY.
+  rotation) is NEVER faked — the run PARKS it and winds down, surfacing what a human owes. So a
+  mission schedules cleanly **iff its value lands BEFORE any one-way gate**: report-only sweeps
+  (`review-it`, `attest-it` — the verdict / conformance report is the deliverable; a GAP parks to a
+  human) and bounded-source mutation runs that stop at the promotion PR (`clean-sweep` with a bounded
+  source). A scheduled `ship-it` from raw intent parks at the freeze gate almost immediately —
+  schedule it only from a pre-frozen spec, and it still stops at PROMOTION_READY.
 - **Each run is independent** — its own preflight, BASE, ledger, evidence, and run report. It never
   reuses a prior run's BASE.
 - **Cross-run anti-inflation applies** (liveness-resume.md): a recurring run re-reads the prior
