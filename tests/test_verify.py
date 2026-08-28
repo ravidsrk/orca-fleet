@@ -252,5 +252,32 @@ class ShasBinding(unittest.TestCase):
         self.assertEqual(verify.check_shas_present({"base_sha": "a", "head_sha": "b"}), [])
 
 
+class NoGhReviewLane(unittest.TestCase):
+    """#118: the offline no-gh lane has a defined, non-silent pass path (a local reviewer artifact)."""
+
+    def _artifact(self, text):
+        f = tempfile.NamedTemporaryFile("w", suffix=".md", delete=False)
+        f.write(text)
+        f.close()
+        return f.name
+
+    def test_no_gh_with_reviewer_artifact_passes_as_note(self):
+        art = self._artifact("reviewed HEADSHA123 — approved by a fresh reviewer\n")
+        m = {"unit": "ship-it", "head_sha": "HEADSHA123", "review": {"artifact": art}}
+        res = verify.check_review(m, None, True, no_gh=True)
+        self.assertTrue(res and all(e.startswith("NOTE:") for e in res), res)
+
+    def test_no_gh_missing_artifact_fails_closed(self):
+        m = {"unit": "ship-it", "head_sha": "H", "review": {}}
+        res = verify.check_review(m, None, True, no_gh=True)
+        self.assertTrue(any(not e.startswith("NOTE:") for e in res), res)
+
+    def test_no_gh_artifact_not_referencing_head_fails(self):
+        art = self._artifact("reviewed some other sha\n")
+        m = {"unit": "ship-it", "head_sha": "HEADSHA123", "review": {"artifact": art}}
+        res = verify.check_review(m, None, True, no_gh=True)
+        self.assertTrue(any("does not reference head_sha" in e for e in res), res)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
