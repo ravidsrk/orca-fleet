@@ -50,7 +50,9 @@ cheap frequent unfakeable oracle (types / tests / binding audit), and the unit i
 `build-change.md`'s irreversibility stop-list. Auth, payments, secrets, destructive migrations,
 deploys stay **lit**. Scheduled `review-it` is report-only — it does not ship, so it is not a
 dark merge. Recording nothing means **lit**. A dark-eligible claim on a lit-required unit is a
-protocol breach — park and re-dispatch.
+protocol breach — park and re-dispatch. Concrete dark-eligible unit: a lint/format-only or
+characterization-test-only change on reversible fixtures whose oracle is types/tests — it may land
+without a build-blind reviewer; anything that writes product behavior stays lit and reviewed.
 
 ## Pre-build plan gate (irreversible units)
 

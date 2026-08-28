@@ -42,7 +42,8 @@ Two workflows are the **same mission** only if they share ALL five:
 
 "Inventory → fix → repeat" is not enough — almost every maintenance process paraphrases that
 way. By this test, closing audit findings, tracker issues, and false doc-claims are one mission
-(`clean-sweep`), but security hardening, perf budgeting, dependency modernization, test-debt
+(`clean-sweep`) — they share the convergence proof SHAPE (full re-enumeration finds zero open),
+even though each source materializes the denominator differently; but security hardening, perf budgeting, dependency modernization, test-debt
 proving, and flake eradication are NOT — their denominators and convergence proofs differ, so
 each is its own mission.
 
