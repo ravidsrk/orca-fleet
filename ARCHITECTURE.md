@@ -123,3 +123,9 @@ assets/       banners and images
 scripts/      validate.py
 tests/        contract tests
 ```
+
+## See also
+
+- [docs/platform-ride.md](docs/platform-ride.md) — how missions ride native Claude Code / Agent
+  SDK / MCP primitives for topology and isolation while keeping the verification + ops-hardening
+  layer as the differentiator, with a dated absorption-risk register and signals watch-list.
