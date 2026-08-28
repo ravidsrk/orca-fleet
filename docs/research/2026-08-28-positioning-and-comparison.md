@@ -209,7 +209,7 @@ All accessed **2026-08-28**.
 
 - <https://yegge.ai/gastown> — Gas Town project site; substantiates the Mayor/Beads/Refinery/
   Polecat topology and its "orchestrator for AI coding agents" framing.
-- <https://steveyegge.medium.com/welcome-to-gas-town-4f25ee16dd04> — Yegge's "Welcome to Gas Town"
+- <https://steve-yegge.medium.com/welcome-to-gas-town-4f25ee16dd04> — Yegge's "Welcome to Gas Town"
   (2026-01-01); substantiates release date, MIT/Go, git-worktree isolation + git-backed Beads
   ledger + merge queue.
 - <https://github.com/jayminwest/overstory> — Overstory repo (read directly); substantiates

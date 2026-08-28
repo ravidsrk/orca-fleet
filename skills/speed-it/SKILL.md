@@ -81,5 +81,5 @@ below the metric's contract. Scattershot micro-opts instead of the profiled bott
 journey list (needs the human-confirmed set).
 
 ## Related
-`clean-sweep` (general findings), `review-it` (per-diff perf lens), `observe` (post-deploy perf watch
-via ship-it), `ship-it` (owns deploy + canary when field confirmation is required).
+`clean-sweep` (general findings), `review-it` (per-diff perf lens), `ship-it` (owns deploy + canary,
+and its `observe` phase for post-deploy perf watch when field confirmation is required).

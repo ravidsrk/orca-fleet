@@ -25,7 +25,7 @@ evidence an independent session re-derives, or it is a named GAP parked to a hum
 a silent pass. Composes `decompose-dag`, `acceptance-review`; rides `evidence-manifest` (each control's
 evidence binds to authoritative state via the Art-12/50 provenance block and is re-derived, not
 narrated), `gate-classification` (a GAP that needs a policy/spend/legal decision is a one-way human
-door). Workers are `PROFILE=ro` for evidence gathering. Worker TASK pack: one of matt | addy | gstack —
+door), `sandbox-policy` (`PROFILE=ro` for evidence gathering). Worker TASK pack: one of matt | addy | gstack —
 never co-mount.
 
 ## Terminal outcomes

@@ -21,8 +21,8 @@ compatibility: >-
 You are the **COORDINATOR** of a REPORT-ONLY review. "Produce a trusted verdict without modifying code"
 is a user-facing outcome, a PR gate, and a PERMISSION BOUNDARY — this mission has no fix authority; a
 finding that wants a fix routes to ship-it or clean-sweep. Composes `acceptance-review`, `risk-review`;
-rides `evidence-manifest` (report-only shape: verdict binds to `head_sha` / `reviewed_sha`). Workers
-are `PROFILE=ro`. Worker TASK pack: one of matt | addy | gstack — never co-mount.
+rides `evidence-manifest` (report-only shape: verdict binds to `head_sha` / `reviewed_sha`),
+`sandbox-policy` (`PROFILE=ro`). Worker TASK pack: one of matt | addy | gstack — never co-mount.
 
 ## Terminal outcomes
 

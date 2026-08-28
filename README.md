@@ -127,7 +127,7 @@ as DRY-WITH-PARKED), [`review-it`](docs/runs/2026-07-13-review-it-external-run.m
 [`oss-contribute`](docs/runs/2026-07-16-oss-contribute-external-run.md) → **external-run** (5 PRs
 and 4 review-assist comments on a real upstream repo), and the flagship
 [`ship-it`](docs/runs/2026-08-28-ship-it-self-run.md) → **self-run** (a small slice driven to
-`PROMOTION_READY` — BUILT with an open promotion PR; the run also surfaced that a solo fleet cannot
+`PROMOTION_READY` — BUILT, its promotion PR since human-merged; the run also surfaced that a solo fleet cannot
 autonomously clear the independent-review gate). The rest remain honestly
 `doctrine-only` — field-tested protocols with no recorded run yet, and this repo will not pretend
 otherwise. (Its predecessor shipped twelve missions with two proven and paid for it; the honesty

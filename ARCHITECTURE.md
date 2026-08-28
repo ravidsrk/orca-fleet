@@ -115,13 +115,18 @@ instruction surface. Two structural guards inherit that lesson:
 ## Layout
 
 ```
-skills/       missions (discoverable, one dir each)
-playbooks/    callable protocols
-runtime/      policies + runtime/scripts/ (spawn_worker, preflight, pm) — shared, not vendored
-docs/         human documentation: getting started, concepts, per-mission guides
-assets/       banners and images
-scripts/      validate.py
-tests/        contract tests
+skills/          missions (discoverable, one dir each)
+playbooks/       callable protocols
+runtime/         policies + runtime/scripts/ (verify, verify-gate, preflight, spawn_worker, pm)
+scripts/         validate.py, gen-badges.py, eval.py (build gate · badges · eval validator)
+hooks/           hooks.json — native completion-gate wiring (Stop / TaskCompleted)
+bench/           vf-bench — verifier-soundness benchmark
+demo/            negative-control head-to-head
+evals/           routing eval fixtures
+docs/            human docs: getting-started, concepts, per-mission guides, runs/, research/
+assets/          banners, images, generated badges
+tests/           contract tests
+.claude-plugin/  plugin.json — Claude Code plugin manifest
 ```
 
 ## See also
