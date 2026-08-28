@@ -26,16 +26,16 @@ Evidence level: **ASSERTED.** The defaults were first asserted from one field ru
 chimely) and its dual-writer post-mortem; no published methodology for sizing fleet concurrency to
 verification capacity exists anywhere yet. The 2026-08-28 ship-it self-run
 (`docs/runs/2026-08-28-ship-it-self-run.md`) is recorded but is **not a protocol-compliant data
-point** and does **not** count toward the ≥3-run threshold below: it was a single slice at
-`builders=1 reviewers=1`, so it exercised no WIP contention, and it reached verified-BUILT rather
-than the protocol's unit of throughput (units reaching verified-CLOSED per hour). What it shows is
-narrow and qualitative — in a *solo* run the independent-review/approval step is what blocks
-*autonomous completion* of a mutation unit (the hardened verifier `verify.py` requires an
-independent approval it cannot self-issue). That is a statement about the completion gate, not a
-throughput measurement: the wall-clock was dominated by building and acceptance review, machine
-verification took seconds, and one non-parallel unit cannot isolate a throughput bottleneck. The
-caps stay ASSERTED until ≥3 multi-worker runs at differing WIP settings measure CLOSED-per-hour
-throughput (protocol below).
+point** and does **not** count toward the ≥3-run threshold below — not because it ran at
+`builders=1` (a legitimate low-WIP setting the curve needs), but because it reached verified-BUILT
+rather than the protocol's unit of throughput (units reaching verified-CLOSED per hour): it produced
+no CLOSED-throughput figure to plot. What it shows is narrow and qualitative — in a *solo* run the
+independent-review/approval step is what blocks *autonomous completion* of a mutation unit (the
+hardened verifier `verify.py` requires an independent approval it cannot self-issue). That is a
+statement about the completion gate, not a throughput measurement: the wall-clock was dominated by
+building and acceptance review, machine verification took seconds, and a single non-parallel unit
+cannot by itself locate a throughput bottleneck. The caps stay ASSERTED until ≥3 runs at differing
+WIP settings (a `builders=1` run counts) measure verified-CLOSED-per-hour throughput (protocol below).
 
 ## Sort the work (do not parallelize judgment)
 

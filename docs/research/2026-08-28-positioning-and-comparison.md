@@ -109,14 +109,19 @@ Legend: **✓** documented/present · **◐** partial or adjacent analog · **�
 | **Independent second-session re-derivation** | ◐ supports a separate-context validator but does **not** enforce it (author confirms the actor may self-run) | ◐ verification is a distinct process (cosign / slsa-verifier) but re-derives *signatures/provenance*, not acceptance criteria | ✗ same pipeline self-scores | ✓ a different session re-derives scope/tests/NC from git before any LLM judgment |
 
 > **Reading the orca-fleet column honestly.** These are the properties the evidence manifest
-> *defines* and the reference verifier (`verify.py`) *implements* — documented doctrine, not a claim
-> of uniform field-proof. Three are scoped by unit class: ancestry and reviewed-SHA freshness are
-> mutation-unit checks (report-only/planning units bind to `head_sha` and omit them), and the
-> negative control's form varies by class (mutation: revert/mutate → RED; report-only: the §3
-> analogue). The one recorded run to date (the 2026-08-28 ship-it self-run) exercised scope, SHAs,
-> freshness, and the negative control, but could not clear the independent-review leg autonomously —
-> so that row is field-proven for the machine invariants and doctrine-only for the human approval.
-> Competitor ✓ marks mean "documented/present", not "independently field-audited here".
+> *defines*; how much the reference verifier (`verify.py`) actually machine-checks varies by unit
+> class, and the column is documented doctrine, not a uniform field-proof. For every unit `verify.py`
+> re-derives scope from the frozen contract and checks the SHAs; it checks reviewed-SHA freshness
+> whenever a `reviewed_sha` is declared and ancestry whenever a base is supplied (`--base`) — both
+> driven by the inputs, not gated on unit class. Its **independent-review** and **negative-control**
+> checks are **mutation-only**: for report-only and planning units it *skips* them, and it does not
+> machine-check the report-only §3 analogue of the negative control (that stays a human/coordinator
+> re-check per the manifest). The manifest *doctrine* is what scopes ancestry and reviewed-SHA to
+> mutation units (report-only units bind to `head_sha`); the table cells reflect that doctrine.
+> Field-proof so far is thin: the one recorded run (2026-08-28 ship-it self-run) exercised scope,
+> SHAs, freshness, and the negative control on a mutation unit but could not clear the
+> independent-review leg autonomously. Competitor ✓ marks mean "documented/present", not
+> "independently field-audited here".
 
 **What each competitor actually is (primary-source grounded, 2026-08-28):**
 

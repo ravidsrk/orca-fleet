@@ -100,10 +100,10 @@ Per `attention-budget.md` §"The WIP-curve protocol", one row for this run's sin
 | Freshness violations | 0 (`reviewed_sha == head_sha`) |
 
 This is **not a protocol-compliant data point** and does not count toward the ≥3-run cap-revision
-threshold: it is a single slice at `builders=1 reviewers=1` (no WIP contention) that reached
-verified-BUILT, not the protocol's verified-CLOSED-per-hour throughput unit. The caps in
-`attention-budget.md` stay **ASSERTED**; a curve still needs ≥3 multi-worker runs measuring
-CLOSED-per-hour.
+threshold — not for running at `builders=1` (a legitimate low-WIP setting), but because it reached
+verified-BUILT, not the protocol's verified-CLOSED-per-hour throughput unit (no CLOSED-throughput
+figure to plot). The caps in `attention-budget.md` stay **ASSERTED**; a curve still needs ≥3 runs at
+differing WIP settings (a `builders=1` run counts) measuring verified-CLOSED-per-hour throughput.
 
 ## Deviations and lessons (recorded, not hidden)
 
