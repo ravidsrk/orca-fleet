@@ -1,0 +1,20 @@
+=== NEGATIVE CONTROL: runtime/scripts/proof_status.py --check ===
+date: 2026-08-28T16:02:22Z
+target mission (temporarily mutated then reverted): skills/map-it/SKILL.md
+
+--- baseline: clean tree, --check should be GREEN ---
+baseline exit=0
+
+--- inject: flip map-it doctrine-only -> self-run with nonexistent proof_evidence ---
+injected: proof: self-run / proof_evidence: docs/runs/DOES-NOT-EXIST-negctrl.md
+
+--- RED expectation: --check MUST exit non-zero under injected missing evidence ---
+FAIL: map-it (self-run) — unresolvable proof_evidence: docs/runs/DOES-NOT-EXIST-negctrl.md
+proof-status: 1 mission(s) above doctrine-only missing evidence
+RED injected-state exit=1
+
+--- revert: git checkout -- skills/map-it/SKILL.md ---
+--- GREEN expectation: --check MUST exit 0 again ---
+reverted exit=0
+
+RESULT: RED (exit non-zero) under injected missing proof_evidence; GREEN (exit 0) after revert. Check is not a tautology.

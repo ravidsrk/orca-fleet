@@ -1,0 +1,11 @@
+{
+  "unit": "ship-it", "unit_class": "mutation",
+  "base_sha": "6970edec84aef6d9502c212845ea90d3d7e59bd1", "head_sha": "932449d153930e44e4d476297672e7b4a5a45ffa",
+  "contract": {"source": "docs/runs/2026-08-28-ship-it-selfrun/frozen-spec.md", "digest": "sha256:72219eaae5fdfd0b3a4f98af83f6bf284bb568429909ae9247e2fd351cffd088", "criterion_ids": ["AC-1","AC-2","AC-3"]},
+  "criteria": [{"id":"AC-1","addressed":true},{"id":"AC-2","addressed":true},{"id":"AC-3","addressed":true}],
+  "negative_control": {"tool":"revert", "result":"RED: --check exited non-zero under an injected missing proof_evidence, 0 after revert", "artifact":"docs/runs/2026-08-28-ship-it-selfrun/negctrl.txt"},
+  "pr": {"number": 0, "url": "", "reviewed_sha": ""},
+  "intent": {"goal":"Ship proof_status.py: a proof-posture reporter + --check CI gate over the mission catalog", "ruled_out":"Extending validate.py (the build gate) or mutating any mission frontmatter/badges", "why":"Humans and CI need a distinct lens on proof tiers and evidence-report existence without touching the gate"},
+  "reviewer_mode": "instructed-isolation",
+  "commands": ["git switch ship/proof-status-2026-08 && git pull -q && git switch -c slice/proof-status (exit 0)", "python3 runtime/scripts/proof_status.py (exit 0)", "python3 runtime/scripts/proof_status.py --json (exit 0)", "python3 runtime/scripts/proof_status.py --check (exit 0)", "python3 -m unittest tests.test_proof_status -v (exit 0, ran 7 tests OK)", "negative control: inject map-it self-run + missing proof_evidence -> --check exit 1; git checkout -- skills/map-it/SKILL.md -> --check exit 0"]
+}
