@@ -70,6 +70,7 @@ MUTATING_MISSIONS = {
     "modernize-it",
     "prove-it",
     "deflake-it",
+    "access-it",
 }
 # Instruction budget (lines, whole file). The predecessor's mandatory instruction
 # surface hit ~42K tokens with no counterpressure; these caps are the counterpressure.
