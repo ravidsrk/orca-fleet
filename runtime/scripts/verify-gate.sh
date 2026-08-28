@@ -17,6 +17,7 @@
 #   ORCA_REPO             owner/name for the independent review lookup (optional; inferred from origin)
 #   ORCA_BASE             integration base branch, for the ancestry check (optional)
 #   ORCA_SYMBOL           a unit symbol to grep on the base (optional)
+#   ORCA_UNIT_CLASS       mutation | report-only | planning, from dispatch (optional; missing => mutation)
 #   ORCA_EXECUTE_NC       set to replay the negative control (heavier)
 # Without ORCA_CONTRACT_SOURCE/DIGEST the verifier fail-closes on scope (a manifest cannot certify
 # its own denominator), so the gate blocks — as it should.
@@ -33,6 +34,7 @@ CONTRACT_DIGEST="${ORCA_CONTRACT_DIGEST:-}"
 REPO="${ORCA_REPO:-}"
 BASE="${ORCA_BASE:-}"
 SYMBOL="${ORCA_SYMBOL:-}"
+UNIT_CLASS="${ORCA_UNIT_CLASS:-}"
 
 if [ -z "$MANIFEST" ] || [ ! -f "$MANIFEST" ]; then
   echo "verify-gate: no evidence manifest (ORCA_MANIFEST unset or missing) — BLOCKING (fail-closed)" >&2
@@ -45,6 +47,7 @@ set -- --manifest "$MANIFEST"
 [ -n "$REPO" ] && set -- "$@" --repo "$REPO"
 [ -n "$BASE" ] && set -- "$@" --base "$BASE"
 [ -n "$SYMBOL" ] && set -- "$@" --symbol "$SYMBOL"
+[ -n "$UNIT_CLASS" ] && set -- "$@" --unit-class "$UNIT_CLASS"
 [ -n "${ORCA_EXECUTE_NC:-}" ] && set -- "$@" --execute-nc
 
 # Any nonzero from verify.py (2 = invariant failed, 1 = usage/dep) is a BLOCK: an un-runnable or

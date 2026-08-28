@@ -28,7 +28,7 @@ def _digest(path):
     return "sha256:" + hashlib.sha256(Path(path).read_text(encoding="utf-8").encode()).hexdigest()
 
 
-def run_gate(manifest=None, contract_source=None, contract_digest=None):
+def run_gate(manifest=None, contract_source=None, contract_digest=None, unit_class=None):
     env = {"PATH": os.environ.get("PATH", "")}
     if manifest is not None:
         env["ORCA_MANIFEST"] = str(manifest)
@@ -36,6 +36,8 @@ def run_gate(manifest=None, contract_source=None, contract_digest=None):
         env["ORCA_CONTRACT_SOURCE"] = contract_source
     if contract_digest is not None:
         env["ORCA_CONTRACT_DIGEST"] = contract_digest
+    if unit_class is not None:
+        env["ORCA_UNIT_CLASS"] = unit_class
     return subprocess.run([str(GATE)], capture_output=True, text=True, cwd=ROOT, env=env)
 
 
@@ -58,17 +60,24 @@ class VerifyGateFailsClosed(unittest.TestCase):
     def test_no_contract_blocks(self):
         src = _src(["AC-1"])
         m = _manifest(src, ["AC-1"], ["AC-1"])
-        self.assertEqual(run_gate(m).returncode, 2)  # no ORCA_CONTRACT_* → scope fail-closed
+        self.assertEqual(run_gate(m, unit_class="report-only").returncode, 2)  # scope fail-closed
 
     def test_good_manifest_allows(self):
         src = _src(["AC-1"])
         m = _manifest(src, ["AC-1"], ["AC-1"])
-        r = run_gate(m, src, _digest(src))
+        r = run_gate(m, src, _digest(src), unit_class="report-only")
         self.assertEqual(r.returncode, 0, f"stdout={r.stdout} stderr={r.stderr}")
 
     def test_scope_shrink_blocks(self):
         src = _src(["AC-1", "AC-2"])
         m = _manifest(src, ["AC-1", "AC-2"], ["AC-1"])
+        self.assertEqual(run_gate(m, src, _digest(src), unit_class="report-only").returncode, 2)
+
+    def test_missing_unit_class_gated_as_mutation_blocks(self):
+        # #110 fail-safe: without ORCA_UNIT_CLASS the unit is gated as mutation, so a report-only-
+        # shaped manifest with no independent GitHub review blocks (exit 2) rather than passing.
+        src = _src(["AC-1"])
+        m = _manifest(src, ["AC-1"], ["AC-1"])
         self.assertEqual(run_gate(m, src, _digest(src)).returncode, 2)
 
 

@@ -22,10 +22,12 @@ scope check cannot be certified, so it blocks), or the verifier errors, it block
 un-runnable verifier is never a green light.
 
 ```
-coordinator sets ORCA_MANIFEST + ORCA_CONTRACT_SOURCE + ORCA_CONTRACT_DIGEST
+coordinator sets ORCA_MANIFEST + ORCA_CONTRACT_SOURCE + ORCA_CONTRACT_DIGEST + ORCA_UNIT_CLASS
   (+ ORCA_REPO for the review lookup, ORCA_BASE, ORCA_SYMBOL, ORCA_EXECUTE_NC) — NOT the worker
    → TaskCompleted / Stop hook fires verify-gate.sh
-       → verify.py re-derives against authorities outside the manifest
+       → verify.py re-derives against authorities outside the manifest; the unit CLASS that decides
+         whether review + negative control run comes from the dispatch (ORCA_UNIT_CLASS), never the
+         manifest — missing/unknown ⇒ mutation (fail-safe)
          (scope ← coordinator contract · review ← GitHub · negative control ← artifact/replay · commits · freshness)
            → exit 0 allow · exit 2 BLOCK (with feedback)
 ```

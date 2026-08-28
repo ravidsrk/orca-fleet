@@ -26,7 +26,7 @@ echo "self-scorer exit: $ss"
 echo
 
 echo "== [2] orca-fleet INDEPENDENT verifier (re-derives the frozen denominator) =="
-python3 "$ROOT/runtime/scripts/verify.py" --manifest "$M" --contract-source "$SRC" --contract-digest "$DIGEST"; vf=$?
+python3 "$ROOT/runtime/scripts/verify.py" --manifest "$M" --contract-source "$SRC" --contract-digest "$DIGEST" --unit-class report-only; vf=$?
 echo "verify.py exit: $vf"
 echo
 
