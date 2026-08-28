@@ -1,6 +1,7 @@
 # ⚡ speed-it — every journey within budget, proven by a number
 
 > **Autonomy:** L4 (Osmani L0-L5) - high autonomy - the independent verifier is the cheap verification; you own the one-way doors.
+> **Proof:** doctrine-only — field-tested protocol, no recorded run yet.
 
 > Declare the journeys and their budgets. Come back to every one of them measured within budget
 > against a pre-declared statistical contract — a before/after on every fix, a CI regression

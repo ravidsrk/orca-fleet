@@ -1,6 +1,7 @@
 # 📋 attest-it — evidence-bound conformance to a frozen standard
 
 > **Autonomy:** L3 (Osmani L0-L5) - conditional autonomy - the human/legal owner disposes of the gaps and the conformance verdict.
+> **Proof:** doctrine-only — field-tested protocol, no recorded run yet.
 
 > Point it at a standard (EU AI Act Art-12/50, SOC 2, NIST SSDF) and a codebase. Come back to an
 > auditor-grade verdict: every obligation either satisfied with evidence a fresh session re-derived

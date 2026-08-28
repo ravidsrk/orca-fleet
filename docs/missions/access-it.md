@@ -1,6 +1,7 @@
 # ♿ access-it — WCAG 2.2 conformance over a frozen surface
 
 > **Autonomy:** L4 (Osmani L0-L5) - high autonomy - the deterministic axe oracle is the cheap verification; you own the residual human-AT park and the promotion.
+> **Proof:** doctrine-only — field-tested protocol, no recorded run yet.
 
 > Point it at a page/flow/component set and a WCAG target. Come back to a surface a deterministic
 > oracle certifies clean, every fix proven by a revert-to-violation negative control — and the

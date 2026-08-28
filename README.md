@@ -274,8 +274,8 @@ non-empty **intent packet** (`goal` · `ruled_out` · `why`) and a `lighting` bi
 default; `dark-eligible` only for Lane A work with an unfakeable oracle). Full schema:
 [`runtime/evidence-manifest.md`](runtime/evidence-manifest.md).
 
-This is what made `clean-sweep` and `spec-to-ship` reliable in production use: **verify, never
-trust.**
+This is the discipline the predecessor's `clean-sweep` and `spec-to-ship` runs taught — encoded here
+as mechanism, not recalled as folklore: **verify, never trust.**
 
 ## Three layers, strictly separated
 
