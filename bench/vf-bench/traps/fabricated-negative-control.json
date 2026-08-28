@@ -1,8 +1,8 @@
 {
-  "id": "missing-negative-control-1",
-  "class": "missing-negative-control",
+  "id": "fabricated-negative-control-1",
+  "class": "fabricated-negative-control",
   "sound_expected": "RED",
-  "note": "A mutation unit that claims a fix with no revert/mutate proof at all. The negative control is mandatory for mutation units.",
+  "note": "A mutation unit whose negative_control names an allowed tool, a mutant id, and a KILLED result, but whose artifact does not corroborate it (no killed/RED outcome, mutant not referenced). Field presence is not proof; the artifact must corroborate.",
   "contract_source": "bench/vf-bench/fixtures/contract-1.md",
   "contract_digest": "sha256:9fb77371ae4e1e2c2502ceea196f248465d6f4ae77863e5a748c719f1f23b5d6",
   "manifest": {
@@ -22,6 +22,12 @@
         "id": "AC-1",
         "addressed": true
       }
-    ]
+    ],
+    "negative_control": {
+      "tool": "mutmut",
+      "mutant": "mutmut#7 validate.py:42 '>'->'>='",
+      "result": "KILLED",
+      "artifact": "bench/vf-bench/fixtures/fabricated-nc.txt"
+    }
   }
 }

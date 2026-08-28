@@ -38,15 +38,16 @@ predates convergence (round-2 threat brief: competitors run public priority doss
 1. **A mandatory negative control** — a criterion-violating mutation/revert must make the proof go RED
    (`runtime/evidence-manifest.md` §1, bound to a named mutation tool; demonstrated live in
    `docs/reports/prove-it-selfrun/` and `docs/reports/harden-it-externalrun/`).
-2. **Independent-session re-derivation from a frozen denominator** — a *different process* re-derives
-   the criterion set from the frozen `contract.source` (git-anchored via `path@ref`) before any LLM
-   judgment (`runtime/scripts/verify.py`), demonstrated RED-vs-GREEN here.
+2. **Independent re-derivation from a coordinator-anchored denominator** — a *different process*
+   re-derives the criterion set from the **authoritative frozen contract supplied by the coordinator**
+   (`--contract-source`/`--contract-digest` from the dispatch record — never the worker's manifest),
+   before any LLM judgment (`runtime/scripts/verify.py`), demonstrated RED-vs-GREEN here.
 
 ## Integrity inventory (sha256)
 
 | Artifact | sha256 |
 |----------|--------|
-| `head-to-head.txt` | `1bfa1e4e1fe5fa1c6ebf54c84dd926b277977a4764eecfd547613c91d6bff8cd` |
+| `head-to-head.txt` | `f40e3f866e62ff3bb5b6aa38ae301d150f99c932da4a59324f0434c9922ba74e` |
 
 (Re-running `run.sh` re-stamps the timestamp line, so a fresh transcript hashes differently; the value
 above pins the committed snapshot.)
