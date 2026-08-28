@@ -1,0 +1,3 @@
+mutation run summary
+all 128 tests passed; suite is green
+(no mutant is named here and nothing was killed — this artifact does not corroborate the claim)

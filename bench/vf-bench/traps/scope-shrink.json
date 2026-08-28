@@ -2,7 +2,9 @@
   "id": "scope-shrink-1",
   "class": "scope-shrink",
   "sound_expected": "RED",
-  "note": "Frozen source carries AC-1 and AC-2; the worker reported only AC-1. The sound gate re-derives from the source.",
+  "note": "Authoritative contract carries AC-1+AC-2; the worker reported only AC-1. Denominator comes from the coordinator, not the manifest.",
+  "contract_source": "bench/vf-bench/fixtures/contract-12.md",
+  "contract_digest": "sha256:182c130d21bd3b1ee8a8569c897803e0f6cee38873cdbef88df6d9ba5fbf377e",
   "manifest": {
     "unit": "review-it",
     "unit_class": "report-only",
@@ -10,6 +12,7 @@
     "head_sha": "HEAD",
     "contract": {
       "source": "bench/vf-bench/fixtures/contract-12.md",
+      "digest": "sha256:182c130d21bd3b1ee8a8569c897803e0f6cee38873cdbef88df6d9ba5fbf377e",
       "criterion_ids": [
         "AC-1",
         "AC-2"

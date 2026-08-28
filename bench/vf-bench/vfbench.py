@@ -35,21 +35,24 @@ def load_traps():
     return [json.loads(f.read_text(encoding="utf-8")) for f in sorted(TRAPS.glob("*.json"))]
 
 
-def naive_gate(manifest):
+def naive_gate(trap):
     """Self-scoring: GREEN iff every self-reported criterion is addressed (no frozen denominator)."""
-    crit = manifest.get("criteria", [])
+    crit = trap["manifest"].get("criteria", [])
     return bool(crit) and all(c.get("addressed") for c in crit)
 
 
-def sound_gate(manifest):
-    """orca-fleet's independent verifier (verify.py), run as a separate process from the repo root."""
+def sound_gate(trap):
+    """orca-fleet's verifier, run as a separate process, given the trap's AUTHORITATIVE contract
+    (the coordinator role) — never the manifest's own contract fields."""
     with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
-        json.dump(manifest, fh)
+        json.dump(trap["manifest"], fh)
         path = fh.name
-    r = subprocess.run(
-        [sys.executable, str(VERIFY), "--manifest", path],
-        capture_output=True, text=True, cwd=ROOT,
-    )
+    cmd = [sys.executable, str(VERIFY), "--manifest", path]
+    if trap.get("contract_source"):
+        cmd += ["--contract-source", trap["contract_source"]]
+    if trap.get("contract_digest"):
+        cmd += ["--contract-digest", trap["contract_digest"]]
+    r = subprocess.run(cmd, capture_output=True, text=True, cwd=ROOT)
     return r.returncode == 0  # True = gate returned GREEN (allow)
 
 
@@ -66,7 +69,7 @@ def run():
     for name, gate in GATES.items():
         false_done, rows = 0, []
         for t in traps:
-            passed = gate(t["manifest"])
+            passed = gate(t)
             fooled = t["sound_expected"] == "RED" and passed
             false_done += 1 if fooled else 0
             rows.append({

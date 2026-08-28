@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
-"""Smoke tests for runtime/scripts/verify-gate.sh (#77).
+"""Smoke tests for runtime/scripts/verify-gate.sh.
 
 The completion-gate hook entrypoint must FAIL CLOSED: block (exit 2) when there is nothing to
-verify or the verifier fails, allow (exit 0) only when the manifest passes.
+verify, no authoritative contract, or the verifier fails; allow (exit 0) only when the manifest
+passes against the coordinator-supplied contract.
 """
+import hashlib
 import json
+import os
 import subprocess
 import tempfile
 import unittest
@@ -14,49 +17,59 @@ ROOT = Path(__file__).resolve().parent.parent
 GATE = ROOT / "runtime" / "scripts" / "verify-gate.sh"
 
 
-def run_gate(manifest_path=None):
-    env = {"PATH": __import__("os").environ.get("PATH", "")}
-    args = [str(GATE)]
-    if manifest_path is not None:
-        env["ORCA_MANIFEST"] = str(manifest_path)
-    return subprocess.run(args, capture_output=True, text=True, cwd=ROOT, env=env)
+def _src(ids):
+    f = tempfile.NamedTemporaryFile("w", suffix=".md", delete=False)
+    f.write("frozen\n" + "".join(f"- {i}: x\n" for i in ids))
+    f.close()
+    return f.name
+
+
+def _digest(path):
+    return "sha256:" + hashlib.sha256(Path(path).read_text(encoding="utf-8").encode()).hexdigest()
+
+
+def run_gate(manifest=None, contract_source=None, contract_digest=None):
+    env = {"PATH": os.environ.get("PATH", "")}
+    if manifest is not None:
+        env["ORCA_MANIFEST"] = str(manifest)
+    if contract_source is not None:
+        env["ORCA_CONTRACT_SOURCE"] = contract_source
+    if contract_digest is not None:
+        env["ORCA_CONTRACT_DIGEST"] = contract_digest
+    return subprocess.run([str(GATE)], capture_output=True, text=True, cwd=ROOT, env=env)
+
+
+def _manifest(source, ids_declared, ids_addressed):
+    with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
+        json.dump({
+            "unit": "review-it", "unit_class": "report-only",
+            "base_sha": "HEAD", "head_sha": "HEAD",
+            "contract": {"source": source, "digest": _digest(source), "criterion_ids": ids_declared},
+            "criteria": [{"id": i, "addressed": True} for i in ids_addressed],
+            "pr": {"reviewed_sha": "HEAD"},
+        }, fh)
+        return fh.name
 
 
 class VerifyGateFailsClosed(unittest.TestCase):
     def test_no_manifest_blocks(self):
-        r = run_gate(None)
-        self.assertEqual(r.returncode, 2, r.stderr)
+        self.assertEqual(run_gate(None).returncode, 2)
+
+    def test_no_contract_blocks(self):
+        src = _src(["AC-1"])
+        m = _manifest(src, ["AC-1"], ["AC-1"])
+        self.assertEqual(run_gate(m).returncode, 2)  # no ORCA_CONTRACT_* → scope fail-closed
 
     def test_good_manifest_allows(self):
-        src = tempfile.NamedTemporaryFile("w", suffix=".md", delete=False)
-        src.write("frozen\n- AC-1: x\n")
-        src.close()
-        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
-            json.dump({
-                "unit": "review-it", "unit_class": "report-only",
-                "base_sha": "HEAD", "head_sha": "HEAD",
-                "contract": {"source": src.name, "criterion_ids": ["AC-1"]},
-                "criteria": [{"id": "AC-1", "addressed": True}],
-                "pr": {"reviewed_sha": "HEAD"},
-            }, fh)
-            path = fh.name
-        r = run_gate(path)
+        src = _src(["AC-1"])
+        m = _manifest(src, ["AC-1"], ["AC-1"])
+        r = run_gate(m, src, _digest(src))
         self.assertEqual(r.returncode, 0, f"stdout={r.stdout} stderr={r.stderr}")
 
     def test_scope_shrink_blocks(self):
-        src = tempfile.NamedTemporaryFile("w", suffix=".md", delete=False)
-        src.write("frozen\n- AC-1: x\n- AC-2: y\n")
-        src.close()
-        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
-            json.dump({
-                "unit": "review-it", "unit_class": "report-only",
-                "base_sha": "HEAD", "head_sha": "HEAD",
-                "contract": {"source": src.name, "criterion_ids": ["AC-1", "AC-2"]},
-                "criteria": [{"id": "AC-1"}],
-            }, fh)
-            path = fh.name
-        r = run_gate(path)
-        self.assertEqual(r.returncode, 2, r.stderr)
+        src = _src(["AC-1", "AC-2"])
+        m = _manifest(src, ["AC-1", "AC-2"], ["AC-1"])
+        self.assertEqual(run_gate(m, src, _digest(src)).returncode, 2)
 
 
 if __name__ == "__main__":

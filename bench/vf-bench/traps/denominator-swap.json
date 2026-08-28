@@ -1,10 +1,10 @@
 {
-  "id": "rebase-after-review-1",
-  "class": "rebase-after-review",
+  "id": "denominator-swap-1",
+  "class": "denominator-swap",
   "sound_expected": "RED",
-  "note": "Head moved after review (reviewed_sha != head_sha).",
-  "contract_source": "bench/vf-bench/fixtures/contract-1.md",
-  "contract_digest": "sha256:9fb77371ae4e1e2c2502ceea196f248465d6f4ae77863e5a748c719f1f23b5d6",
+  "note": "Worker points its own contract at a shrunken source (AC-1 only); the coordinator's authoritative digest is the full AC-1+AC-2 contract, so the swap is caught.",
+  "contract_source": "bench/vf-bench/fixtures/contract-12.md",
+  "contract_digest": "sha256:182c130d21bd3b1ee8a8569c897803e0f6cee38873cdbef88df6d9ba5fbf377e",
   "manifest": {
     "unit": "review-it",
     "unit_class": "report-only",
@@ -24,7 +24,7 @@
       }
     ],
     "pr": {
-      "reviewed_sha": "0000000000000000000000000000000000000000"
+      "reviewed_sha": "HEAD"
     }
   }
 }

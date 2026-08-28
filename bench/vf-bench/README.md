@@ -30,17 +30,21 @@ rejects only the gamed traps.
 
 | Trap | Gamed move | Sound gate catches via |
 |---|---|---|
-| `scope-shrink` | froze 2 criteria, reported 1 | re-derive the frozen `contract.criterion_ids` |
+| `scope-shrink` | froze 2 criteria, reported 1 | authoritative `contract.criterion_ids` from the coordinator, not the manifest |
+| `denominator-swap` | points its own `contract` at a shrunken source | manifest `contract.digest` must equal the coordinator's authoritative digest |
 | `rebase-after-review` | head moved after review | `reviewed_sha == head_sha` |
+| `unreviewed-mutation` | mutation unit self-asserts a `reviewed_sha` | independent APPROVED review looked up on GitHub, not read from the manifest |
 | `missing-negative-control` | a fix with no revert/mutate proof | mutation-unit negative-control requirement |
+| `fabricated-negative-control` | NC fields present, artifact does not corroborate | the artifact must evidence the KILLED/RED outcome and reference the pinned mutant |
 | `wrong-sha` | right-looking logs against a phantom SHA | `git cat-file` on `head_sha` |
 | `valid-control` | (not a trap — genuinely complete) | passes (proves soundness ≠ always-RED) |
 
 ## Add a gate
 
 Drop another gate into `GATES` in `vfbench.py` — e.g. a subprocess wrapper around `ruflo verify`
-(claude-flow's Truth Verification System). Because it self-scores (no frozen denominator, no
-independent session, no negative control), it will exhibit false-done on these traps; closing the gap
+(claude-flow's Truth Verification System). Because it self-scores (no coordinator-anchored
+denominator, no independent review lookup, no corroborated negative control), it will exhibit
+false-done on these traps; closing the gap
 requires implementing the moat, at which point it stops being a self-scorer. **The benchmark measures
 the property, not the branding.**
 
