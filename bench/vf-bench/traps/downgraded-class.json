@@ -1,14 +1,12 @@
 {
-  "id": "unreviewed-mutation-1",
-  "class": "unreviewed-mutation",
+  "id": "downgraded-class-1",
+  "class": "downgraded-class",
   "sound_expected": "RED",
-  "note": "A mutation unit with no independent PR review (and no negative control). GitHub is the review authority, not the manifest.",
-  "unit_class": "mutation",
+  "note": "The worker's manifest self-declares unit_class=report-only to dodge review + NC; verify.py never reads the manifest's class, so it fail-safes to mutation and REDs.",
   "contract_source": "bench/vf-bench/fixtures/contract-1.md",
   "contract_digest": "sha256:9fb77371ae4e1e2c2502ceea196f248465d6f4ae77863e5a748c719f1f23b5d6",
   "manifest": {
     "unit": "ship-it",
-    "unit_class": "mutation",
     "base_sha": "HEAD",
     "head_sha": "HEAD",
     "contract": {
@@ -23,6 +21,7 @@
         "id": "AC-1",
         "addressed": true
       }
-    ]
+    ],
+    "unit_class": "report-only"
   }
 }

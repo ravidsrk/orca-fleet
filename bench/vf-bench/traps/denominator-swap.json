@@ -3,6 +3,7 @@
   "class": "denominator-swap",
   "sound_expected": "RED",
   "note": "Worker points its own contract at a shrunken source (AC-1 only); the coordinator's authoritative digest is the full AC-1+AC-2 contract, so the swap is caught.",
+  "unit_class": "report-only",
   "contract_source": "bench/vf-bench/fixtures/contract-12.md",
   "contract_digest": "sha256:182c130d21bd3b1ee8a8569c897803e0f6cee38873cdbef88df6d9ba5fbf377e",
   "manifest": {
