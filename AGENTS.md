@@ -35,6 +35,7 @@ Only `skills/` may contain a `SKILL.md`. `scripts/validate.py` fails the build i
 | "chart this" / "plan this epic" / "I don't know the shape yet" | [`map-it`](skills/map-it/SKILL.md) |
 | "diagnose this" / "why is this happening" / hard intermittent bug | [`root-cause`](skills/root-cause/SKILL.md) |
 | "contribute to this project" / "open PRs upstream" / "we only have a fork" | [`oss-contribute`](skills/oss-contribute/SKILL.md) |
+| "prove compliance" / "conformance" / "audit-ready evidence" / "SOC 2 / EU AI Act / SSDF" | [`attest-it`](skills/attest-it/SKILL.md) |
 
 Prefer the most specific mission. When two seem to fit, apply the mission-identity test
 (ARCHITECTURE.md): different unit of work, state machine, or convergence proof → different mission.

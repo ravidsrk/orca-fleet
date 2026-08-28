@@ -183,6 +183,20 @@
       "expected_mission": "deflake-it",
       "type": "negative",
       "reason": "An intermittent pass-on-retry failure is a flake-rate contract (deflake-it), not a deterministic clean-sweep bug."
+    },
+    {
+      "id": 27,
+      "prompt": "Prove SOC 2 compliance for this service with an audit-ready evidence pack.",
+      "expected_mission": "attest-it",
+      "type": "positive",
+      "reason": "Evidence-bound conformance to a frozen standard@version is attest-it."
+    },
+    {
+      "id": 28,
+      "prompt": "Run a red-team security audit and exploit the auth flow.",
+      "expected_mission": "harden-it",
+      "type": "negative",
+      "reason": "An exploit -> fix -> re-attack loop is harden-it; attest-it proves conformance to a standard, it does not exploit."
     }
   ]
 }
