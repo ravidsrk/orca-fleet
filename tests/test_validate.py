@@ -21,7 +21,7 @@ _spec.loader.exec_module(validate)
 PROTOCOLS = {"diagnose"}
 
 
-def make_skill(tmp, body, frontmatter_extra="proof: doctrine-only\n"):
+def make_skill(tmp, body, frontmatter_extra="proof: doctrine-only\nautonomy: L4\n"):
     d = Path(tmp) / "demo-skill"
     d.mkdir()
     (d / "SKILL.md").write_text(
@@ -476,6 +476,48 @@ class TestCountAgnosticGuards(unittest.TestCase):
             with mock.patch.object(gb, "SKILLS_DIR", Path(tmp) / "nope"):
                 errs = gb.check()
         self.assertTrue(errs and "missing" in errs[0], errs)
+
+class ParseFrontmatterBindingTest(unittest.TestCase):
+    """prove-it self-run criterion PF-1: a YAML block-scalar frontmatter value
+    (`key: >` / `key: |` + indented continuation) must parse to a single
+    space-joined string carrying every continuation line. Missions fold
+    `description:` / `compatibility:` this way; a regression would silently
+    truncate them past the compose-clause and description checks. Bound to
+    parse_frontmatter's fold path (validate.py ~156-181); the pinned mutant that
+    kills it is the fold join `" "` -> `""` on the final-key branch.
+    """
+
+    def test_block_scalar_folds_to_space_joined_string(self):
+        text = (
+            "---\n"
+            "name: demo\n"
+            "description: >\n"
+            "  first line\n"
+            "  second line\n"
+            "---\nbody\n"
+        )
+        data, err = validate.parse_frontmatter(text)
+        self.assertIsNone(err)
+        self.assertEqual(data["description"], "first line second line")
+
+
+class AutonomyFieldTest(unittest.TestCase):
+    """#82: every mission declares an Osmani autonomy level L0-L5; the validator
+    rejects a missing or illegal value (negative-path proof the guard fires)."""
+
+    def test_missing_autonomy_fails(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            errs = validate.validate_skill(
+                make_skill(tmp, "Composes `diagnose`.\n",
+                           frontmatter_extra="proof: doctrine-only\n"), PROTOCOLS)
+            self.assertTrue(any("missing 'autonomy'" in e for e in errs), errs)
+
+    def test_illegal_autonomy_fails(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            errs = validate.validate_skill(
+                make_skill(tmp, "Composes `diagnose`.\n",
+                           frontmatter_extra="proof: doctrine-only\nautonomy: L9\n"), PROTOCOLS)
+            self.assertTrue(any("autonomy 'L9' invalid" in e for e in errs), errs)
 
 
 if __name__ == "__main__":

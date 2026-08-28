@@ -1,0 +1,40 @@
+{
+  "skill_name": "access-it",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Bring the checkout flow to WCAG 2.2 AA accessibility for screen reader and keyboard users.",
+      "expected_output": "Should route to access-it. Should freeze the surface (flow x WCAG 2.2 criteria), run the axe-core oracle, fix each violation with a revert-to-violation negative control, and terminate CONFORMANT or CONFORMANT-WITH-MANUAL-PARKED (screen-reader/cognitive criteria parked to a human-AT reviewer).",
+      "assertions": [
+        "Routes to access-it",
+        "Freezes the surface x WCAG 2.2 criteria as the denominator",
+        "Deterministic axe-core oracle plus a revert-to-violation negative control",
+        "Parks the ~30-40% automation-ceiling criteria to a human-AT reviewer",
+        "Terminal is CONFORMANT or CONFORMANT-WITH-MANUAL-PARKED"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Review this PR and check the accessibility of the new component.",
+      "expected_output": "Should NOT route to access-it. A bounded per-diff accessibility check is review-it's a11y risk lens. access-it is a full surface sweep to WCAG conformance, not a per-PR verdict.",
+      "assertions": [
+        "Does not route to access-it",
+        "Routes to review-it",
+        "Distinguishes a per-diff a11y lens from a surface conformance sweep"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Prove SOC 2 compliance with an audit-ready evidence pack.",
+      "expected_output": "Should NOT route to access-it. Standards-obligation conformance is attest-it. access-it's denominator is a rendered surface's WCAG violations, not a standard's obligation set.",
+      "assertions": [
+        "Does not route to access-it",
+        "Routes to attest-it",
+        "Distinguishes rendered a11y violations from a standard's obligation set"
+      ],
+      "files": []
+    }
+  ]
+}

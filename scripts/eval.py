@@ -75,6 +75,15 @@ MISSION_TRIGGERS = {
         "diagnose", "why is this", "root cause", "hard bug", "intermittent bug",
         "happening", "concurrency bug", "production symptom",
     ],
+    "attest-it": [
+        "compliance", "conformance", "audit-ready", "audit trail", "attest",
+        "attestation", "soc 2", "soc2", "eu ai act", "nist ssdf", "ssdf",
+        "regulatory", "controls evidence", "prove compliance",
+    ],
+    "access-it": [
+        "accessibility", "a11y", "wcag", "screen reader", "keyboard", "aria",
+        "axe-core", "section 508", "color contrast", "assistive",
+    ],
 }
 
 def catalog_missions() -> set[str]:

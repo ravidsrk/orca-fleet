@@ -9,6 +9,7 @@ description: >-
   general backlog drain (clean-sweep) or a single PR verdict (review-it).
 license: MIT
 proof: doctrine-only
+autonomy: L4
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh; gitleaks. A security
   worker playbook (addyosmani security-and-hardening or gstack /cso) — one router per worker.

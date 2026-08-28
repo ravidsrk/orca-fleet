@@ -1,0 +1,27 @@
+{
+  "id": "valid-control-1",
+  "class": "control-not-a-trap",
+  "sound_expected": "GREEN",
+  "note": "A genuinely complete unit with a real frozen source. Proves the sound gate is not always-RED.",
+  "manifest": {
+    "unit": "review-it",
+    "unit_class": "report-only",
+    "base_sha": "HEAD",
+    "head_sha": "HEAD",
+    "contract": {
+      "source": "bench/vf-bench/fixtures/contract-1.md",
+      "criterion_ids": [
+        "AC-1"
+      ]
+    },
+    "criteria": [
+      {
+        "id": "AC-1",
+        "addressed": true
+      }
+    ],
+    "pr": {
+      "reviewed_sha": "HEAD"
+    }
+  }
+}

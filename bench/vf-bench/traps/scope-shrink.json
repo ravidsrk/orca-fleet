@@ -1,0 +1,28 @@
+{
+  "id": "scope-shrink-1",
+  "class": "scope-shrink",
+  "sound_expected": "RED",
+  "note": "Frozen source carries AC-1 and AC-2; the worker reported only AC-1. The sound gate re-derives from the source.",
+  "manifest": {
+    "unit": "review-it",
+    "unit_class": "report-only",
+    "base_sha": "HEAD",
+    "head_sha": "HEAD",
+    "contract": {
+      "source": "bench/vf-bench/fixtures/contract-12.md",
+      "criterion_ids": [
+        "AC-1",
+        "AC-2"
+      ]
+    },
+    "criteria": [
+      {
+        "id": "AC-1",
+        "addressed": true
+      }
+    ],
+    "pr": {
+      "reviewed_sha": "HEAD"
+    }
+  }
+}

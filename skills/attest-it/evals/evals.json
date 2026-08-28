@@ -1,0 +1,40 @@
+{
+  "skill_name": "attest-it",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Prove SOC 2 compliance for this service with an audit-ready evidence pack.",
+      "expected_output": "Should route to attest-it. Should freeze the standard@version, enumerate its obligations into a DAG, gather evidence per control bound to authoritative state (evidence-manifest provenance block), have an independent session re-derive each, and emit CONFORMANT or CONFORMANT-WITH-GAPS with a gap register.",
+      "assertions": [
+        "Routes to attest-it",
+        "Freezes the standard@version as the denominator",
+        "One unit per obligation, not per discovered finding",
+        "Evidence bound to authoritative state and independently re-derived",
+        "Terminal is CONFORMANT or CONFORMANT-WITH-GAPS (gaps parked to human/legal)"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Run a red-team security audit and exploit the auth flow.",
+      "expected_output": "Should NOT route to attest-it. An exploit→fix→re-attack security loop is harden-it. attest-it proves conformance to a standard's obligations; it does not exploit.",
+      "assertions": [
+        "Does not route to attest-it",
+        "Routes to harden-it",
+        "Distinguishes conformance evidence from an exploit loop"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Review this PR and tell me if it's ready to merge.",
+      "expected_output": "Should NOT route to attest-it. A per-PR GO/NO-GO merge verdict is review-it. attest-it's denominator is a frozen standard's obligation set, not a single diff.",
+      "assertions": [
+        "Does not route to attest-it",
+        "Routes to review-it",
+        "Distinguishes a standard's obligation set from a per-diff verdict"
+      ],
+      "files": []
+    }
+  ]
+}

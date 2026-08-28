@@ -11,6 +11,7 @@ description: >-
   goal that needs charting first (that's map-it).
 license: MIT
 proof: doctrine-only
+autonomy: L4
 compatibility: >-
   HARD dependency: Orca runtime + the orchestration skill (Orca CLI). git + gh. One worker
   playbook pack per worker (mattpocock/skills for grill/tdd, addyosmani for build/verify, gstack

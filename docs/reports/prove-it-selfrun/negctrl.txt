@@ -1,0 +1,30 @@
+### prove-it self-run — criterion PF-1 negative control (2026-08-28)
+### target: scripts/validate.py parse_frontmatter fold path; test: tests/test_validate.py::ParseFrontmatterBindingTest
+
+== [1] PF-1 on clean HEAD (expect OK) ==
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+OK
+
+== [2] apply pinned mutant  validate.py:181  '" "' -> '""'  (mutmut string-mutation) ==
+line 181 now: data[current_key] = "".join(l.strip() for l in multiline_value if l.strip())
+
+== [3] PF-1 under mutant (expect FAIL == mutant KILLED) ==
++ first line second line
+?           +
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+FAILED (failures=1)
+
+== [4] revert mutant ==
+line 181 restored: data[current_key] = " ".join(l.strip() for l in multiline_value if l.strip())
+
+== [5] PF-1 after revert (expect OK) ==
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+OK

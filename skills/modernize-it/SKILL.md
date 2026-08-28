@@ -10,6 +10,7 @@ description: >-
   deploys (hand that to ship-it) or advisory exploit proof (harden-it).
 license: MIT
 proof: doctrine-only
+autonomy: L4
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh; the package manager + a
   green CI baseline. addyosmani deprecation-and-migration playbook — one router per worker.

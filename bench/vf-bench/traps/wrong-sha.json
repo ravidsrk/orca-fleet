@@ -1,0 +1,27 @@
+{
+  "id": "wrong-sha-1",
+  "class": "wrong-sha",
+  "sound_expected": "RED",
+  "note": "head_sha is not a real commit (right-looking logs against a phantom SHA). Sound gate checks git.",
+  "manifest": {
+    "unit": "review-it",
+    "unit_class": "report-only",
+    "base_sha": "HEAD",
+    "head_sha": "0000000000000000000000000000000000000000",
+    "contract": {
+      "source": "bench/vf-bench/fixtures/contract-1.md",
+      "criterion_ids": [
+        "AC-1"
+      ]
+    },
+    "criteria": [
+      {
+        "id": "AC-1",
+        "addressed": true
+      }
+    ],
+    "pr": {
+      "reviewed_sha": "0000000000000000000000000000000000000000"
+    }
+  }
+}

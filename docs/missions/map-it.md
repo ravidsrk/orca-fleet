@@ -1,5 +1,7 @@
 # 🗺️ map-it — a foggy goal → a frozen, decided execution map
 
+> **Autonomy:** L3 (Osmani L0-L5) - conditional autonomy - the human owns the verdict or the plan.
+
 > Bring it the epic you cannot yet write acceptance criteria for. Come back to a named
 > destination, every decision answered by you, every open question either sharply ticketed or
 > honestly marked "not yet specified" — and a frozen spec plus a verified, frozen DAG that

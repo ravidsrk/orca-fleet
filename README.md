@@ -24,11 +24,14 @@
 
 ---
 
-Most agent-skill packs give you better *ingredients*: a sharper TDD loop, a stricter review, a
-smarter debugger. orca-fleet gives you **outcomes**. Each mission in the catalog is a complete
-autonomous fleet for the [Orca](https://github.com/stablyai/orca) runtime — a coordinator that
-decomposes a goal, dispatches isolated workers, verifies every claim against git and a clean test
-run, and stops at a named, evidence-backed terminal state.
+Most agent-skill packs give you better *ingredients* — a sharper TDD loop, a stricter review, a
+smarter debugger. A few (gstack, addyosmani/agent-skills) now ship *outcomes* too — but
+self-certified within the run that produced them. orca-fleet's edge is narrower and harder to copy:
+**verified, not asserted.** Each mission is a complete autonomous fleet for the
+[Orca](https://github.com/stablyai/orca) runtime — a coordinator that decomposes a goal, dispatches
+isolated workers, and stops at a named terminal state whose every claim an **independent session
+re-derives from git**, backed by a **mandatory negative control** (revert or mutate the change and
+watch the proof go red) and a **frozen denominator** the worker cannot quietly shrink.
 
 ```
  YOU SAY                          THE FLEET RUNS                        YOU GET
@@ -97,6 +100,19 @@ evidence-based definition of done. Click through for the full guide to each.
 | 🗺️ **[map-it](docs/missions/map-it.md)** | A foggy multi-session goal resolved into a frozen execution map `ship-it` can consume — decisions, not deliverables | "chart this", "plan this epic", "I don't know the shape yet" |
 | 🔬 **[root-cause](docs/missions/root-cause.md)** | A reproduced symptom and a demonstrated cause: repro-first → falsify rival hypotheses → one survivor, with evidence; optional fix handoff | "diagnose this", "why is this happening" |
 | 🤝 **[oss-contribute](docs/missions/oss-contribute.md)** | Upstream issues on a repo you do NOT control, each landed as an open, reviewed, etiquette-correct PR (or a quoted review-assist on an existing PR): `CONTRIBUTED` or `CONTRIBUTED-WITH-PARKED`, merge left to maintainers | "contribute to this project", "open PRs upstream", "we only have a fork" |
+| 📋 **[attest-it](docs/missions/attest-it.md)** | Conformance to a frozen standard (EU AI Act Art-12/50, SOC 2, NIST SSDF) proven with independently re-derived, auditor-grade evidence: `CONFORMANT` or `CONFORMANT-WITH-GAPS` (gaps parked to a human/legal owner) | "prove compliance", "conformance", "audit-ready evidence", "SOC 2 / EU AI Act / SSDF" |
+| ♿ **[access-it](docs/missions/access-it.md)** | A frozen page/flow set driven to WCAG 2.2 AA (EAA/ADA/508): a deterministic axe-core oracle clean + a revert-to-violation negative control, the ~30–40% automation ceiling parked to a human-AT reviewer: `CONFORMANT` or `CONFORMANT-WITH-MANUAL-PARKED` | "accessibility", "a11y", "WCAG", "screen reader / keyboard" |
+
+### Autonomy levels
+
+Each mission's frontmatter also carries a validator-enforced `autonomy:` level on Addy Osmani's
+L0–L5 ladder — *"the level you can safely reach is exactly the level you can cheaply prove."* The
+independent verifier is that cheap verification, so the mutation fleets run at **L4** (high autonomy;
+you own the one-way doors), while the read-only / planning missions sit at **L3** (the human owns
+the verdict or the plan):
+
+- **L4** — ship-it · clean-sweep · harden-it · speed-it · modernize-it · prove-it · deflake-it · oss-contribute · access-it
+- **L3** — review-it · map-it · root-cause · attest-it
 
 ## Proof status — honesty first
 

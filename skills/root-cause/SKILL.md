@@ -10,6 +10,7 @@ description: >-
   statistical streak contract (deflake-it) or an enumerable backlog (clean-sweep).
 license: MIT
 proof: doctrine-only
+autonomy: L3
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh. A feedback-loop-first
   debugging playbook (mattpocock diagnosing-bugs or addyosmani debug) — one router per worker.

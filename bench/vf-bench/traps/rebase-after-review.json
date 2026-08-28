@@ -1,0 +1,27 @@
+{
+  "id": "rebase-after-review-1",
+  "class": "rebase-after-review",
+  "sound_expected": "RED",
+  "note": "Head moved after review (reviewed_sha != head_sha). Sound gate voids the stale review.",
+  "manifest": {
+    "unit": "review-it",
+    "unit_class": "report-only",
+    "base_sha": "HEAD",
+    "head_sha": "HEAD",
+    "contract": {
+      "source": "bench/vf-bench/fixtures/contract-1.md",
+      "criterion_ids": [
+        "AC-1"
+      ]
+    },
+    "criteria": [
+      {
+        "id": "AC-1",
+        "addressed": true
+      }
+    ],
+    "pr": {
+      "reviewed_sha": "0000000000000000000000000000000000000000"
+    }
+  }
+}

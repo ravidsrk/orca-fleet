@@ -32,9 +32,11 @@ The worker writes it to `reportPath` and names that path in the `worker_done` pa
     {"cmd": "pnpm test src/pay", "exit": 0, "artifact": "docs/reports/<unit>/test.txt"}
   ],
   "negative_control": {
-    "did": "reverted the production change / mutated the boundary",
-    "result": "the targeted test went RED",
-    "artifact": "docs/reports/<unit>/revert.txt"
+    "did": "reverted the production line / applied mutant <id> via <tool>",
+    "tool": "mutmut | stryker | pitest | cargo-mutants | go-mutesting | revert",
+    "mutant": "<pinned id, e.g. mutmut#7 validate.py:42 '>'->'>=' ; omit for revert>",
+    "result": "the criterion-bound test went RED (mutant KILLED)",
+    "artifact": "docs/reports/<unit>/negctrl.txt"
   },
   "binding_audit": {"coverage": "AC-1..AC-3 (3/3)", "method": "criterion quoted, covering test quoted, criterion-violating mutation went RED"},
   "intent": {"goal": "<one sentence>", "ruled_out": "<what was not chosen>", "why": "<load-bearing rationale>"},
@@ -43,6 +45,7 @@ The worker writes it to `reportPath` and names that path in the `worker_done` pa
   "pr": {"number": 0, "url": "", "reviewed_sha": "<SHA the reviewer approved>"},
   "reviewer_mode": "<cross-vendor | same-vendor-fresh | instructed-isolation — how independent the review REALLY was>",
   "toolchain": "<node 24 / python 3.12 / …>",
+  "provenance": {"spec_version": "<governing spec/policy@version>", "model": "<impl model+version>", "reviewer": "<identity+timestamp>", "retention": "<append-only store ref>", "standard": "<EU-AI-Act-Art-12 | SOC2 | SSDF | none>"},
   "metric_contract": {"metric": "<streak / benchmark / coverage>", "target": "<pre-declared target + confidence>", "method": "<how measured, e.g. 30 runs varied seed>"},
   "parked": [{"item": "<what>", "reason": "<one-way / no-safe-sandbox / needs-human>", "gate": "<gate id>"}],
   "claim": "<the worker's own summary — informational only, NEVER the completion oracle>"
@@ -80,9 +83,12 @@ Rules:
 - `criteria` lists the ACTUAL acceptance criteria from the task spec, each marked addressed or not.
   A criterion with no addressing evidence is unmet work, not a waiver.
 - `negative_control` is REQUIRED for any unit that claims a fix or a test: show the proof FAILS
-  when the change is reverted/mutated (a green test over reverted code proves nothing). The
-  specific control differs per mission (a bug fix reverts the production line; a coverage test
-  applies a semantics-preserving mutation; a perf fix compares before/after to the metric contract).
+  when the change is reverted/mutated (a green test over reverted code proves nothing). Bind it to
+  a NAMED mutation tool + a PINNED mutant id with a killed/survived verdict — a surviving
+  criterion-violating mutant is a tautological suite and FAILS. Tools: `mutmut`/`cosmic-ray` (Py),
+  `stryker` (JS/TS/.NET), `pitest` (JVM), `cargo-mutants` (Rust), `go-mutesting` (Go); `revert`
+  (delete the production line) is the fallback where no mutation tool fits. A perf fix instead
+  compares before/after to the metric contract.
 - `binding_audit` logs criterion↔test audit coverage for the same units: which `criteria[].id`s
   had their covering test quoted and mutation-checked against the criterion (§2 samples it; a
   manifest claiming a fix or a test without the field is rejected).
@@ -94,12 +100,14 @@ Rules:
   missing or empty packet fails verification. `claim` remains narration only.
 - `lighting` is `lit` (default) or `dark-eligible` per gate-classification.md. The
   verifier rejects `dark-eligible` on a stop-list / Lane-0/B unit.
+- `provenance` (optional, any class) makes the manifest a regulated audit record — governing
+  spec/policy version, model lineage, reviewer identity+timestamp, and an append-only retention pointer (maps to EU AI Act Art-12/50).
 - `claim` is the worker's narration. The verifier ignores it except as a hint.
 
 ## 2. Independent verification (the coordinator, or a fresh verifier worker)
 
-A DIFFERENT session than the one that produced the work checks the manifest against authoritative
-state. The manifest is a claim; these are facts:
+A DIFFERENT process/session — never a teammate (whose messages are in-band and self-certifying) —
+re-derives the manifest against authoritative state, deterministically before any LLM judgment (reference impl: `verify.py`). The manifest is a claim; these are facts:
 
 | Check | How (authoritative source) |
 |-------|----------------------------|
@@ -107,7 +115,7 @@ state. The manifest is a claim; these are facts:
 | Mission scope is complete — no unassigned criteria (coordinator, at decompose verify + convergence proof) | the union of all unit `contract.criterion_ids` equals the mission source's id set (frozen spec digest / final enumeration loop / advisory scan). A criterion claimed by no unit is unassigned work, not a waiver |
 | The commit exists on the intended base *(mutation units)* | `git merge-base --is-ancestor <head_sha> origin/<base_branch>` after the merge; before merge, `git cat-file -e <head_sha>` and the PR's `baseRefName == base_branch` |
 | Tests pass at that exact SHA in a clean env | check out `head_sha` in a fresh worktree, run the suite, confirm green — do NOT trust the pasted output alone for the critical path |
-| Each criterion binds to a test that exercises it (criterion↔test binding audit) | on a sample of `criteria[].id`s (ALL of them when the unit has ≤3): quote the criterion, quote the test claimed to cover it, and confirm that test goes RED against an implementation that violates the criterion (mutate the behavior the criterion names — build-change.md's tautology guard covers authoring; this is its verifier-side twin). A green suite whose tests don't bind (tautological, wrong behavior, passes both ways) fails HERE, not at the clean-env re-run; coverage is logged in the manifest's `binding_audit` |
+| Each criterion binds to a test that exercises it (criterion↔test binding audit) | on a sample of `criteria[].id`s (ALL of them when the unit has ≤3): quote the criterion, quote the test claimed to cover it, and confirm that test goes RED against an implementation that violates the criterion (mutate the behavior the criterion names via the manifest's named mutation tool — the pinned mutant must be KILLED; build-change.md's tautology guard covers authoring, this is its verifier-side twin). A green suite whose tests don't bind (tautological, wrong behavior, passes both ways) fails HERE, not at the clean-env re-run; coverage is logged in the manifest's `binding_audit` |
 | The negative control really fails | mutation units: on a sample (≥10%), a fresh worker reverts/mutates and confirms the proof goes RED. Report-only/planning units: the class analogue of §3 is re-checked (quoted lines exist at reviewed_sha / the frozen DAG re-verifies / the repro command re-runs red) |
 | The review is fresh *(mutation units)* | `pr.reviewed_sha == head_sha` (a rebase after review voids it — reviewed-sha-freshness.md) |
 | The change is real on base *(mutation units)* | after merge, a file/symbol from the unit is greppable on `origin/<base_branch>` |

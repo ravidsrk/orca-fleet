@@ -9,6 +9,7 @@ description: >-
   Not for a per-diff perf opinion (review-it) or post-deploy watch alone (observe via ship-it).
 license: MIT
 proof: doctrine-only
+autonomy: L4
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh. A real MEASUREMENT path
   (Lighthouse/DevTools for web CWV, or a load/profiler harness). A perf worker playbook (addyosmani

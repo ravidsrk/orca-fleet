@@ -1,0 +1,27 @@
+{
+  "id": "missing-negative-control-1",
+  "class": "missing-negative-control",
+  "sound_expected": "RED",
+  "note": "A mutation unit (scope+freshness clean) claims a fix with no negative control. Sound gate requires the structured revert/mutate proof.",
+  "manifest": {
+    "unit": "ship-it",
+    "unit_class": "mutation",
+    "base_sha": "HEAD",
+    "head_sha": "HEAD",
+    "contract": {
+      "source": "bench/vf-bench/fixtures/contract-1.md",
+      "criterion_ids": [
+        "AC-1"
+      ]
+    },
+    "criteria": [
+      {
+        "id": "AC-1",
+        "addressed": true
+      }
+    ],
+    "pr": {
+      "reviewed_sha": "HEAD"
+    }
+  }
+}

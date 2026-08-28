@@ -1,0 +1,75 @@
+---
+name: attest-it
+description: >-
+  Prove a codebase or change-set conforms to a standard — EU AI Act Art-12/50, SOC 2, NIST SSDF — with
+  auditor-grade, independently re-derived evidence, or name the gaps. The unit is one obligation from a
+  FROZEN standard catalog (standard@version), not a discovered finding: enumerate the obligations,
+  gather evidence bound to authoritative state for each, have an independent session re-derive it, and
+  mark each control VERIFIED or GAP. Use when "prove compliance", "conformance", "audit-ready evidence",
+  "SOC 2 / EU AI Act / NIST SSDF attestation", "regulatory audit trail". Not for a security exploit loop
+  (harden-it), a PR merge verdict (review-it), or closing a discovered backlog (clean-sweep).
+license: MIT
+proof: doctrine-only
+autonomy: L3
+compatibility: >-
+  HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh; a FROZEN standard catalog
+  (standard@version) as the denominator. A review/verify worker playbook (addyosmani specialists,
+  mattpocock code-review, gstack review army) — one router per worker.
+---
+
+# attest-it — evidence-bound conformance to a frozen standard
+
+You are the **COORDINATOR** of an evidence-bound conformance run. "Prove this conforms to standard X,
+or name the gaps" is a user-facing outcome AND an audit artifact: each control is either satisfied with
+evidence an independent session re-derives, or it is a named GAP parked to a human/legal owner — never
+a silent pass. Composes `decompose-dag`, `acceptance-review`; rides `evidence-manifest` (each control's
+evidence binds to authoritative state via the Art-12/50 provenance block and is re-derived, not
+narrated), `gate-classification` (a GAP that needs a policy/spend/legal decision is a one-way human
+door). Workers are `PROFILE=ro` for evidence gathering. Worker TASK pack: one of matt | addy | gstack —
+never co-mount.
+
+## Terminal outcomes
+
+- **CONFORMANT** — every obligation in the frozen catalog is VERIFIED: evidence bound to authoritative
+  state, independently re-derived, no control marked satisfied without a linked artifact.
+- **CONFORMANT-WITH-GAPS** — one or more obligations are GAPs, each parked to a named human/legal owner
+  with the missing evidence stated. A GAP is a first-class terminal, not a failure to hide.
+
+## Pipeline
+
+```
+FREEZE the denominator: pick standard@version; enumerate its obligations into a DAG (decompose-dag).
+  The obligation set is frozen at a digest — the run cannot shrink it.
+  → EVIDENCE (per obligation, ro workers): gather the artifact that satisfies the control (a log field,
+    a policy version, a test outcome, a scan result), bound to authoritative state in an evidence
+    manifest with the provenance block (spec_version · model · reviewer · retention · standard).
+  → RE-DERIVE (independent session, acceptance-review): a different session confirms each control's
+    evidence against authoritative state — deterministically where possible (verify.py), never the
+    gatherer's own narration. A control with no re-derivable artifact is a GAP, not a pass.
+  → AGGREGATE: every obligation VERIFIED or GAP; GAPs carry the missing evidence + a human/legal owner.
+  → VERDICT: CONFORMANT, or CONFORMANT-WITH-GAPS with the gap register.
+```
+
+## Convergence proof (definition of done)
+
+Every obligation in the frozen `standard@version` catalog is accounted for: the union of unit contracts
+equals the standard's obligation set (no obligation unassigned), each VERIFIED control carries evidence
+bound to authoritative state and independently re-derived (not the gatherer's narration), and each GAP
+is named with its missing evidence and a human/legal owner. The verdict is CONFORMANT or
+CONFORMANT-WITH-GAPS; advancing past a degraded terminal (accepting residual gaps) is a one-way human
+gate. No obligation is silently dropped.
+
+## Anti-patterns
+
+Marking a control satisfied on the gatherer's word (evidence must be re-derived independently — the
+whole point). Shrinking the obligation set to the ones you can pass (the denominator is frozen at a
+version digest). Treating a GAP as a failure to bury instead of a named, parked terminal. Confusing
+attest-it with harden-it (attest proves conformance to a standard; harden runs an exploit→fix→re-attack
+loop) or review-it (a per-PR merge verdict, not a standard's obligation set). Re-using an evidence
+artifact whose `provenance.spec_version` no longer matches the frozen standard version.
+
+## Related
+
+`review-it` (a per-PR verdict, not a standard's obligations), `harden-it` (the security exploit loop),
+`clean-sweep` (close a discovered backlog); `evidence-manifest` (the Art-12/50 provenance block attest-it
+attests against), `mission-scheduling` (report-heavy, schedules cleanly as an unattended conformance sweep).

@@ -183,6 +183,34 @@
       "expected_mission": "deflake-it",
       "type": "negative",
       "reason": "An intermittent pass-on-retry failure is a flake-rate contract (deflake-it), not a deterministic clean-sweep bug."
+    },
+    {
+      "id": 27,
+      "prompt": "Prove SOC 2 compliance for this service with an audit-ready evidence pack.",
+      "expected_mission": "attest-it",
+      "type": "positive",
+      "reason": "Evidence-bound conformance to a frozen standard@version is attest-it."
+    },
+    {
+      "id": 28,
+      "prompt": "Run a red-team security audit and exploit the auth flow.",
+      "expected_mission": "harden-it",
+      "type": "negative",
+      "reason": "An exploit -> fix -> re-attack loop is harden-it; attest-it proves conformance to a standard, it does not exploit."
+    },
+    {
+      "id": 29,
+      "prompt": "Bring the checkout flow to WCAG 2.2 AA accessibility for screen reader and keyboard users.",
+      "expected_mission": "access-it",
+      "type": "positive",
+      "reason": "WCAG conformance over a frozen surface with an axe oracle + revert-to-violation NC is access-it."
+    },
+    {
+      "id": 30,
+      "prompt": "Review this PR and check the new component's accessibility.",
+      "expected_mission": "review-it",
+      "type": "negative",
+      "reason": "A bounded per-diff a11y lens is review-it; access-it is a full surface conformance sweep, not a per-PR verdict."
     }
   ]
 }

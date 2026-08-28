@@ -123,3 +123,24 @@ assets/       banners and images
 scripts/      validate.py
 tests/        contract tests
 ```
+
+## See also
+
+- [docs/platform-ride.md](docs/platform-ride.md) — how missions ride native Claude Code / Agent
+  SDK / MCP primitives for topology and isolation while keeping the verification + ops-hardening
+  layer as the differentiator, with a dated absorption-risk register and signals watch-list.
+- [docs/compliance-provenance.md](docs/compliance-provenance.md) — maps the evidence manifest's
+  optional `provenance` block to EU AI Act Art-12/50 logging obligations (the enterprise wedge and
+  the `attest-it` prerequisite).
+- [docs/distribution.md](docs/distribution.md) — discoverability + trust in a 23k-plugin market:
+  the machine-checked `proof:`/`autonomy:` fields as the discovery advantage, install paths, and the
+  external-submission checklist.
+- [docs/verify-gate.md](docs/verify-gate.md) — packages `verify.py` as a native `Stop`/`TaskCompleted`
+  completion gate (fail-closed), with the MCP-Task / CI / SDK fallbacks for `allowManagedHooksOnly`
+  environments.
+- [demo/negative-control/](demo/negative-control/README.md) — a reproducible head-to-head: a
+  self-scoring gate goes GREEN on a scope-shrink trap while `verify.py` goes RED, plus a dated
+  priority record for the two zero-prior-art verification primitives.
+- [bench/vf-bench/](bench/vf-bench/README.md) — VF-Bench: a benchmark of verifier *soundness*
+  (false-done rate) rather than agent capability; `verify.py` scores 0% false-done on the trap
+  corpus while a self-scoring gate scores 100%.

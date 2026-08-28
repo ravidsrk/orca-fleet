@@ -57,6 +57,7 @@ PLAYBOOKS_DIR = ROOT / "playbooks"
 RUNTIME_DIR = ROOT / "runtime"
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 PROOF_VALUES = {"doctrine-only", "self-run", "external-run"}
+AUTONOMY_VALUES = {"L0", "L1", "L2", "L3", "L4", "L5"}
 # Mutating missions land code; they must ride the SHA-bound evidence protocol so
 # completion is never graded on worker narration. Report-only / planning /
 # diagnosis missions bind evidence differently and are not in this set.
@@ -69,6 +70,7 @@ MUTATING_MISSIONS = {
     "modernize-it",
     "prove-it",
     "deflake-it",
+    "access-it",
 }
 # Instruction budget (lines, whole file). The predecessor's mandatory instruction
 # surface hit ~42K tokens with no counterpressure; these caps are the counterpressure.
@@ -246,6 +248,14 @@ def validate_skill(skill_dir, protocols):
             errors.append(
                 f"proof '{proof}' requires proof_evidence: a run-report path that exists"
             )
+
+    # autonomy level (Osmani L0-L5): a first-class, machine-readable claim sibling to
+    # proof — the level a mission safely runs at, gated by how cheaply it is verified.
+    autonomy = data.get("autonomy")
+    if autonomy is None:
+        errors.append("missing 'autonomy' field (L0-L5)")
+    elif autonomy not in AUTONOMY_VALUES:
+        errors.append(f"autonomy '{autonomy}' invalid (want one of {sorted(AUTONOMY_VALUES)})")
 
     lines = len(text.splitlines())
     if lines > MISSION_MAX_LINES:

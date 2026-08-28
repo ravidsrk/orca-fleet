@@ -1,5 +1,7 @@
 # 🎯 deflake-it — green N times in a row, local and CI
 
+> **Autonomy:** L4 (Osmani L0-L5) - high autonomy - the independent verifier is the cheap verification; you own the one-way doors.
+
 > Give it a suite nobody trusts. Come back to one that has passed a declared consecutive-green
 > streak — locally and in CI — with every flake root-caused, every fix ratcheted red-by-revert,
 > and not one retry-wrapper hiding the evidence.
