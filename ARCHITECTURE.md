@@ -135,3 +135,6 @@ tests/        contract tests
 - [docs/distribution.md](docs/distribution.md) — discoverability + trust in a 23k-plugin market:
   the machine-checked `proof:`/`autonomy:` fields as the discovery advantage, install paths, and the
   external-submission checklist.
+- [docs/verify-gate.md](docs/verify-gate.md) — packages `verify.py` as a native `Stop`/`TaskCompleted`
+  completion gate (fail-closed), with the MCP-Task / CI / SDK fallbacks for `allowManagedHooksOnly`
+  environments.
