@@ -106,8 +106,8 @@ Rules:
 
 ## 2. Independent verification (the coordinator, or a fresh verifier worker)
 
-A DIFFERENT session than the one that produced the work checks the manifest against authoritative
-state. The manifest is a claim; these are facts:
+A DIFFERENT process/session — never a teammate (whose messages are in-band and self-certifying) —
+re-derives the manifest against authoritative state, deterministically before any LLM judgment (reference impl: `verify.py`). The manifest is a claim; these are facts:
 
 | Check | How (authoritative source) |
 |-------|----------------------------|
