@@ -1,5 +1,7 @@
 # 🛡️ harden-it — a threat model closed by a clean re-audit
 
+> **Autonomy:** L4 (Osmani L0-L5) - high autonomy - the independent verifier is the cheap verification; you own the one-way doors.
+
 > Fix it, then try to break the fix. Give it a system to harden and come back to a closed threat
 > model: every P0/P1 proven with an exploit, fixed as a class, re-attacked by a worker that wants
 > the fix to fail, and a fresh full audit finding zero unrefuted criticals — or an honest

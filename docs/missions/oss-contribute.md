@@ -1,5 +1,7 @@
 # 🤝 oss-contribute — landed contributions to a repo you do not control
 
+> **Autonomy:** L4 (Osmani L0-L5) - high autonomy - the independent verifier is the cheap verification; you own the one-way doors.
+
 > Point it at a set of issues on an upstream project you can only fork. Come back to a set of open,
 > internally-reviewed, etiquette-correct pull requests (and quoted review-assist comments where a
 > maintainer PR already exists) — every one built on a fork with a test that failed before the fix.

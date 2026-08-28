@@ -9,6 +9,7 @@ description: >-
   a single hard bug with no suite-rate contract (root-cause) or deterministic failures (clean-sweep).
 license: MIT
 proof: doctrine-only
+autonomy: L4
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh; a runnable suite. A
   feedback-loop-first debugging playbook (mattpocock diagnosing-bugs or addyosmani debug) — one router

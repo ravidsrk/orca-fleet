@@ -12,6 +12,7 @@ description: >-
   prove-it / deflake-it — different convergence proofs) and not for building new work (ship-it).
 license: MIT
 proof: self-run
+autonomy: L4
 proof_evidence: docs/runs/2026-07-13-clean-sweep-self-run.md
 compatibility: >-
   HARD dependency: Orca runtime + the orchestration skill (Orca CLI). git + gh (or a tracker via

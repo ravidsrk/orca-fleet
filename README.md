@@ -101,6 +101,17 @@ evidence-based definition of done. Click through for the full guide to each.
 | 🔬 **[root-cause](docs/missions/root-cause.md)** | A reproduced symptom and a demonstrated cause: repro-first → falsify rival hypotheses → one survivor, with evidence; optional fix handoff | "diagnose this", "why is this happening" |
 | 🤝 **[oss-contribute](docs/missions/oss-contribute.md)** | Upstream issues on a repo you do NOT control, each landed as an open, reviewed, etiquette-correct PR (or a quoted review-assist on an existing PR): `CONTRIBUTED` or `CONTRIBUTED-WITH-PARKED`, merge left to maintainers | "contribute to this project", "open PRs upstream", "we only have a fork" |
 
+### Autonomy levels
+
+Each mission's frontmatter also carries a validator-enforced `autonomy:` level on Addy Osmani's
+L0–L5 ladder — *"the level you can safely reach is exactly the level you can cheaply prove."* The
+independent verifier is that cheap verification, so the mutation fleets run at **L4** (high autonomy;
+you own the one-way doors), while the read-only / planning missions sit at **L3** (the human owns
+the verdict or the plan):
+
+- **L4** — ship-it · clean-sweep · harden-it · speed-it · modernize-it · prove-it · deflake-it · oss-contribute
+- **L3** — review-it · map-it · root-cause
+
 ## Proof status — honesty first
 
 Every mission's frontmatter carries a validator-enforced `proof:` field: `doctrine-only`,
