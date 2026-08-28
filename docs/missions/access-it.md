@@ -54,7 +54,7 @@ flowchart TD
 
 | Verdict | Meaning | Who acts on it |
 |---|---|---|
-| `CONFORMANT` | axe-core clean across the frozen surface; every automatable criterion covered with a revert-to-violation NC | a human promotes; the automatable surface is proven |
+| `CONFORMANT` | *near-unreachable* — only when the frozen surface has no criteria past the ~30–40% automation ceiling (rare); axe-core clean, every criterion covered with a revert-to-violation NC | a human promotes |
 | `CONFORMANT-WITH-MANUAL-PARKED` | automatable criteria clean; ceiling criteria parked to a named human-AT reviewer | the human-AT reviewer closes the parked criteria (a one-way gate) |
 
 ## Human gates
@@ -77,10 +77,17 @@ automatable criteria.
 
 Playbooks: [`decompose-dag`](../../playbooks/decompose-dag.md) ·
 [`remediate-finding`](../../playbooks/remediate-finding.md) ·
+[`acceptance-review`](../../playbooks/acceptance-review.md) ·
 [`compound-learn`](../../playbooks/compound-learn.md)
 
 Runtime policies: [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
-[`sandbox-policy`](../../runtime/sandbox-policy.md)
+[`sandbox-policy`](../../runtime/sandbox-policy.md) ·
+[`merge-serialization`](../../runtime/merge-serialization.md) ·
+[`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md) ·
+[`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) ·
+[`liveness-resume`](../../runtime/liveness-resume.md) ·
+[`ledger-contract`](../../runtime/ledger-contract.md) ·
+[`attention-budget`](../../runtime/attention-budget.md)
 
 ## Related missions
 

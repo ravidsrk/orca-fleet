@@ -22,16 +22,18 @@ compatibility: >-
 You are the **COORDINATOR** of an accessibility conformance run. "Make this surface WCAG 2.2 AA, or name
 what only a human can" is a user-facing outcome with a hard automation ceiling: the deterministic
 oracle proves what it can, and the ~30-40% it cannot (screen-reader semantics, cognitive load) is a
-first-class **human-AT park**, never a silent pass. Composes `decompose-dag` (enumerate violations into
-a DAG over the frozen surface), `remediate-finding` (fix each), `compound-learn` (retro); rides
-`evidence-manifest` (each fix carries the axe result + a revert-to-violation negative control) and
-`sandbox-policy` (`PROFILE=rw`). Worker TASK pack: one of matt | addy | gstack — never co-mount.
+first-class **human-AT park**, never a silent pass. Composes `decompose-dag` (enumerate violations
+into a DAG over the frozen surface), `remediate-finding` (fix each), `acceptance-review` (build-blind
+review of each fix), `compound-learn` (retro); rides `evidence-manifest` (each fix carries the axe
+result + a revert-to-violation negative control), `sandbox-policy` (`PROFILE=rw`),
+`merge-serialization`, `reviewed-sha-freshness`, `dispatch-lifecycle`, `liveness-resume`,
+`ledger-contract`, `attention-budget`. Worker TASK pack: one of matt | addy | gstack — never co-mount.
 
 ## Terminal outcomes
 
-- **CONFORMANT** — the deterministic oracle (axe-core) is clean across the frozen surface, every
-  automatable success criterion is covered, and each fix's negative control (revert → violation returns)
-  holds.
+- **CONFORMANT** — *near-unreachable*: only when the frozen surface has NO success criteria past the
+  ~30-40% automation ceiling (rare — most surfaces have screen-reader/cognitive criteria). The oracle
+  is clean across the surface, every criterion is covered, and each fix's negative control holds.
 - **CONFORMANT-WITH-MANUAL-PARKED** — the automatable criteria are clean, and the criteria past the
   automation ceiling (screen-reader / keyboard-trap / cognitive) are PARKED to a human + assistive-tech
   reviewer, each named with the criterion and why the oracle cannot decide it.
@@ -57,6 +59,13 @@ negative control (revert → violation returns) holds, and each criterion past t
 PARKED to a named human-AT reviewer with the reason the oracle cannot decide it. The verdict is
 CONFORMANT or CONFORMANT-WITH-MANUAL-PARKED; the denominator was never shrunk to only the automatable
 criteria, and no violation is silently dropped.
+
+## Ledger + supervision
+
+Ledger header at T0 (`ledger-contract.md`) with `WIP: builders=<n> reviewers=<n>` sized to
+`attention-budget.md` (fix workers are a mutation wave: ≤3 builders, ≤1 reviewer per 3). Stalls →
+`liveness-resume.md` WATCH; death/compaction → RESUME (ledger-scoped, git-verified). Fixes land via
+`merge-serialization` with `reviewed-sha-freshness`.
 
 ## Anti-patterns
 
