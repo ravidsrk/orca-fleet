@@ -123,9 +123,12 @@ linking a run report that exists in the repo. The missions that have advanced pa
 doc-claims in this repo to DRY; a later
 [tracker self-run](docs/runs/2026-07-17-clean-sweep-tracker-self-run.md) closed 22 of 26 issues
 as DRY-WITH-PARKED), [`review-it`](docs/runs/2026-07-13-review-it-external-run.md)
-→ **external-run** (a NO-GO verdict on a real gstack PR), and
+→ **external-run** (a NO-GO verdict on a real gstack PR),
 [`oss-contribute`](docs/runs/2026-07-16-oss-contribute-external-run.md) → **external-run** (5 PRs
-and 4 review-assist comments on a real upstream repo). The rest remain honestly
+and 4 review-assist comments on a real upstream repo), and the flagship
+[`ship-it`](docs/runs/2026-08-28-ship-it-self-run.md) → **self-run** (a small slice driven to
+`PROMOTION_READY` — BUILT with an open promotion PR; the run also surfaced the verification-capacity
+bottleneck now tracked in the attention budget). The rest remain honestly
 `doctrine-only` — field-tested protocols with no recorded run yet, and this repo will not pretend
 otherwise. (Its predecessor shipped twelve missions with two proven and paid for it; the honesty
 is machine-checked here so that cannot recur.) The [run archive](docs/runs/) holds the evidence.

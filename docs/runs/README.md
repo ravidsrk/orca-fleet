@@ -13,11 +13,12 @@ deviations that happened — recorded, not hidden.
 | 2026-07-13 | [review-it](2026-07-13-review-it-external-run.md)  | garrytan/gstack PR #2252 | external-run | NO-GO (conditional, 0 Critical) |
 | 2026-07-16 | [oss-contribute](2026-07-16-oss-contribute-external-run.md) | dodopayments/chimely (tracker) | external-run | CONTRIBUTED-WITH-PARKED (5 PRs, 4 assists) |
 | 2026-07-17 | [clean-sweep](2026-07-17-clean-sweep-tracker-self-run.md) | this repo (tracker, 26 issues) | self-run | DRY-WITH-PARKED (22 closed, 4 parked) |
+| 2026-08-28 | [ship-it](2026-08-28-ship-it-self-run.md) | this repo (proof-status slice) | self-run | PROMOTION_READY (BUILT + promotion PR open) |
 
 Proof status across the catalog is validator-enforced: a mission cannot claim a tier
 above `doctrine-only` without a `proof_evidence:` path that resolves to a report here.
 
-The **next mutating self-run** must include the WIP-curve protocol row from
-`attention-budget.md` (WIP setting, builder throughput, verification latency, rework
-rate, freshness violations). Issue #51 is `CODE_CLOSED` + `VERIFY_AT_SCALE` until that
-first measured point lands here.
+Every mutating self-run records the WIP-curve protocol row from `attention-budget.md`
+(WIP setting, builder throughput, verification latency, rework rate, freshness
+violations). The **first measured point** landed in the 2026-08-28 ship-it self-run
+above; issue #51 revises the asserted caps against it (one point is not yet a curve).
