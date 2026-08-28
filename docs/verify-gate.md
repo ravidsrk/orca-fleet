@@ -60,3 +60,22 @@ register in [platform-ride](platform-ride.md), R3). What a competitor cannot che
 gate *checks*: an independent, different-session verdict that re-derives against authorities the
 worker does not control — the coordinator's frozen denominator, GitHub's review state, the negative
 control's artifact/replay. Keep the differentiation in `verify.py`, not in the hook.
+
+## Trust boundary
+
+The verifier re-derives against authorities the worker does not control — **but those authorities are
+only as sound as the provenance of the inputs that name them.** The scope denominator
+(`--contract-source`/`--contract-digest`) and the unit class (`--unit-class`) are supplied via env; if
+the worker can set that env, it can choose its own denominator and class.
+
+- **Native `Stop`/`TaskCompleted` hook — ADVISORY.** The gate runs *inside the graded worker's
+  session*, so the worker can set `ORCA_*`. Here the gate is defense-in-depth (it still catches an
+  honest mistake or a lazy manifest), **not a soundness boundary.** It emits a `NOTE` saying so
+  unless `ORCA_PROVENANCE` asserts off-worker origin.
+- **CI / MCP-Task / SDK-subprocess — SOUND.** On these surfaces the coordinator (not the worker) sets
+  the env, so the frozen denominator and unit class are trustworthy and the guarantee holds. Set
+  `ORCA_PROVENANCE=ci|mcp|sdk|dispatch` there to suppress the advisory `NOTE`.
+
+Treat a green native-hook result as a *strong hint*, and the CI/MCP verdict as the *gate*. Binding the
+contract digest + unit class to a signed / out-of-band dispatch record (so the native path is itself
+sound) is tracked as a follow-up.
