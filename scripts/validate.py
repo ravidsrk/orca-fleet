@@ -245,14 +245,29 @@ def validate_skill(skill_dir, protocols):
     elif proof != "doctrine-only":
         evidence = data.get("proof_evidence", "")
         ev_path = (ROOT / evidence).resolve() if evidence else None
+        runs_dir = (ROOT / "docs" / "runs").resolve()
         if (
             not ev_path
-            or not ev_path.is_relative_to(ROOT.resolve())
+            or not ev_path.is_relative_to(runs_dir)
+            or ev_path.suffix != ".md"
             or not ev_path.is_file()
         ):
             errors.append(
-                f"proof '{proof}' requires proof_evidence: a repo-relative run-report path that exists"
+                f"proof '{proof}' requires proof_evidence: a docs/runs/*.md run report that exists"
             )
+        else:
+            # content correlation: the report must actually be THIS mission's run (a file existing
+            # is not evidence it is the right one).
+            name = data.get("name") or ""
+            try:
+                report = ev_path.read_text(encoding="utf-8")
+            except OSError:
+                report = ""
+            if name and name not in report:
+                errors.append(
+                    f"proof '{proof}': proof_evidence {evidence} does not mention the mission "
+                    f"'{name}' — it must be that mission's run report"
+                )
 
     # autonomy level (Osmani L0-L5): a first-class, machine-readable claim sibling to
     # proof — the level a mission safely runs at, gated by how cheaply it is verified.

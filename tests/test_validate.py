@@ -196,6 +196,25 @@ class TestProofStatus(unittest.TestCase):
                 PROTOCOLS)
             self.assertTrue(any("requires proof_evidence" in e for e in errs), errs)
 
+    def test_proof_evidence_must_be_a_docs_runs_report(self):
+        # #113: an in-repo file that is NOT a docs/runs report cannot certify a proof tier.
+        with tempfile.TemporaryDirectory() as tmp:
+            errs = validate.validate_skill(
+                make_skill(tmp, "Composes `diagnose`.\n",
+                           frontmatter_extra="proof: external-run\nproof_evidence: README.md\nautonomy: L4\n"),
+                PROTOCOLS)
+            self.assertTrue(any("requires proof_evidence" in e for e in errs), errs)
+
+    def test_proof_evidence_must_mention_the_mission(self):
+        # #113: a real docs/runs report for a DIFFERENT mission does not certify this one.
+        with tempfile.TemporaryDirectory() as tmp:
+            errs = validate.validate_skill(
+                make_skill(tmp, "Composes `diagnose`.\n",
+                           frontmatter_extra="proof: self-run\n"
+                           "proof_evidence: docs/runs/2026-08-28-ship-it-self-run.md\nautonomy: L4\n"),
+                PROTOCOLS)
+            self.assertTrue(any("does not mention the mission" in e for e in errs), errs)
+
     def test_over_budget_mission_fails(self):
         with tempfile.TemporaryDirectory() as tmp:
             body = "Composes `diagnose`.\n" + ("filler line\n" * validate.MISSION_MAX_LINES)
