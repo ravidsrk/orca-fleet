@@ -80,6 +80,10 @@ MISSION_TRIGGERS = {
         "attestation", "soc 2", "soc2", "eu ai act", "nist ssdf", "ssdf",
         "regulatory", "controls evidence", "prove compliance",
     ],
+    "access-it": [
+        "accessibility", "a11y", "wcag", "screen reader", "keyboard", "aria",
+        "axe-core", "section 508", "color contrast", "assistive",
+    ],
 }
 
 def catalog_missions() -> set[str]:

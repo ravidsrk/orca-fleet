@@ -28,8 +28,8 @@ eval_mod = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(eval_mod)
 
 EXPECTED_MISSIONS = {
-    "ship-it", "clean-sweep", "oss-contribute", "harden-it", "speed-it",
-    "modernize-it", "prove-it", "deflake-it", "review-it", "map-it", "root-cause", "attest-it",
+    "ship-it", "clean-sweep", "oss-contribute", "harden-it", "speed-it", "modernize-it",
+    "prove-it", "deflake-it", "review-it", "map-it", "root-cause", "attest-it", "access-it",
 }
 
 ROUTING_MIN_SCORE = 0.60
