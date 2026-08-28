@@ -258,7 +258,7 @@ sequenceDiagram
     C->>V: manifest (the claim)
     V->>G: re-derive the criterion set from the frozen source
     V->>G: merge-base --is-ancestor head_sha origin/BASE
-    V->>G: clean-env test run at head_sha
+    V->>G: clean-env test run at head_sha (coordinator-run)
     V->>G: revert or mutate — does the proof go RED?
     V->>G: reviewed_sha == head_sha?
     V-->>C: verified — advance (or SUSPECT — re-dispatch)
@@ -430,10 +430,10 @@ and lying docs are all `clean-sweep`.
 <summary><b>What stops a worker from just claiming it finished?</b></summary>
 
 Nothing stops the claim — the protocol just refuses to grade it. Completion requires a SHA-bound
-evidence manifest, and an independent verifier re-derives every fact from authoritative state:
-ancestry on the intended base, a clean-env test run at the exact SHA, a negative control that
-goes red when the fix is reverted, a reviewed SHA that still equals the head. See
-[the evidence protocol](#the-evidence-protocol).
+evidence manifest, and an independent verifier re-derives the facts from authoritative state:
+ancestry on the base, a negative control that goes red when the fix is reverted, and a reviewed
+SHA (an APPROVED GitHub review) still equal to the head; the coordinator re-runs the suite at
+that SHA in a clean env. See [the evidence protocol](#the-evidence-protocol).
 
 </details>
 

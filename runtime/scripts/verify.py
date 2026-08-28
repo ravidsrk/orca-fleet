@@ -46,6 +46,8 @@ from pathlib import Path
 # or unknown class defaults to mutation (fail-safe): the strict authorities run.
 UNIT_CLASSES = ("mutation", "report-only", "planning")
 NC_TOOLS = {"mutmut", "cosmic-ray", "stryker", "pitest", "cargo-mutants", "go-mutesting", "revert"}
+REVIEWER_MODES = {"cross-vendor", "same-vendor-fresh", "instructed-isolation"}
+LIGHTING_VALUES = {"lit", "dark-eligible"}
 # Criterion ids in a frozen source (AC-1, SC-12, REQ-3, …). A JSON source may instead declare an
 # explicit criterion_ids array, which is unambiguous and preferred.
 CRIT_ID_RE = re.compile(r"\b[A-Z][A-Z0-9]*-\d+\b")
@@ -257,11 +259,16 @@ def check_negative_control(m, is_mutation, execute=False):
         return errs
     if not re.search(r"(?i)\b(killed|red|fail)\b", content):
         errs.append("negative_control.artifact does not evidence a killed/RED outcome")
+    if re.search(r"(?i)(\bnot\s+killed\b|\bno\s+mutants?\s+killed\b|\b0\s+killed\b|\bnot\s+red\b"
+                 r"|\bmutant\s+survived\b|\bsurvived\b.{0,40}\bmutant\b)", content):
+        errs.append("negative_control.artifact indicates the mutant SURVIVED / was not killed")
     if mutant and mutant not in content:
         errs.append("negative_control.artifact does not reference the pinned mutant")
     if execute:
-        errs.append("NOTE: --execute-nc replay is not implemented in the reference verifier — run "
-                    "evidence-manifest §2's re-execution sample for the sound proof")
+        # replay is not implemented in the reference verifier; a caller that ASKED for it must not
+        # get a false pass — fail closed (evidence-manifest §2's re-execution sample is the sound form).
+        errs.append("--execute-nc replay is not implemented here; run evidence-manifest §2's "
+                    "re-execution sample and record it, or drop --execute-nc")
     return errs
 
 
@@ -287,6 +294,39 @@ def check_symbol_on_base(symbol, base):
     return []
 
 
+def check_intent(m, is_mutation):
+    """7. Mutation units carry a non-empty intent packet (goal · ruled_out · why) — presence only;
+    wisdom is a human/taste check (evidence-manifest.md §1)."""
+    if not is_mutation:
+        return []
+    intent = m.get("intent") or {}
+    missing = [k for k in ("goal", "ruled_out", "why")
+               if not (isinstance(intent.get(k), str) and intent.get(k).strip())]
+    return [f"intent packet incomplete — non-empty {missing} required (mutation unit)"] if missing else []
+
+
+def check_lighting(m, is_mutation):
+    """8. Lighting is a legal value (gate-classification.md). dark-eligibility's stop-list is a human
+    gate; verify.py machine-checks only that the value is one the doctrine allows."""
+    if not is_mutation:
+        return []
+    lighting = m.get("lighting")
+    if lighting not in LIGHTING_VALUES:
+        return [f"lighting must be one of {sorted(LIGHTING_VALUES)}, got {lighting!r}"]
+    return []
+
+
+def check_reviewer_mode(m, is_mutation):
+    """9. reviewer_mode is recorded and legal — how independent the review was. The strongest
+    independence signal is the APPROVED GitHub review (check_review); this records the qualifier."""
+    if not is_mutation:
+        return []
+    mode = m.get("reviewer_mode")
+    if mode not in REVIEWER_MODES:
+        return [f"reviewer_mode must be one of {sorted(REVIEWER_MODES)}, got {mode!r}"]
+    return []
+
+
 def verify(manifest_path, contract_source=None, contract_digest=None, repo=None,
            base=None, symbol=None, execute_nc=False, unit_class=None):
     """Return (fatal_errors, notes). fatal_errors non-empty => exit 2."""
@@ -300,6 +340,7 @@ def verify(manifest_path, contract_source=None, contract_digest=None, repo=None,
         check_shas_present(m), check_real_commits(m),
         check_freshness(m), check_review(m, repo, is_mut),
         check_negative_control(m, is_mut, execute_nc),
+        check_intent(m, is_mut), check_lighting(m, is_mut), check_reviewer_mode(m, is_mut),
         check_ancestry(m, base), check_symbol_on_base(symbol, base),
     ):
         for line in result:

@@ -159,6 +159,19 @@ class NegativeControlCheck(unittest.TestCase):
             "tool": "mutmut", "mutant": "m#7", "result": "KILLED", "artifact": art}}
         self.assertEqual(verify.check_negative_control(m, True), [])
 
+    def test_negation_artifact_fails(self):
+        art = self._artifact("mutant m#7 SURVIVED — it was NOT killed\n")
+        m = {"unit": "ship-it", "negative_control": {
+            "tool": "mutmut", "mutant": "m#7", "result": "KILLED", "artifact": art}}
+        self.assertTrue(any("SURVIVED" in e for e in verify.check_negative_control(m, True)))
+
+    def test_execute_nc_is_fail_closed(self):
+        art = self._artifact("mutant m#7 was KILLED\n")
+        m = {"unit": "ship-it", "negative_control": {
+            "tool": "mutmut", "mutant": "m#7", "result": "KILLED", "artifact": art}}
+        self.assertTrue(any("execute-nc" in e for e in
+                            verify.check_negative_control(m, True, execute=True)))
+
     def test_report_only_unit_skips_nc(self):
         self.assertEqual(verify.check_negative_control({"unit": "review-it"}, False), [])
 
@@ -173,6 +186,70 @@ class ReadSourceGuard(unittest.TestCase):
     def test_option_like_path_refused(self):
         _, err = verify.read_source("--upload-pack=x@HEAD")
         self.assertIn("refusing option-like", err or "")
+
+
+class MetaChecks(unittest.TestCase):
+    """#114: intent packet, lighting legality, reviewer_mode legality — mutation-only."""
+
+    def test_intent_required_for_mutation(self):
+        self.assertTrue(verify.check_intent({"unit": "ship-it"}, True))
+        self.assertTrue(verify.check_intent({"intent": {"goal": "g", "ruled_out": "", "why": "w"}}, True))
+        self.assertEqual(
+            verify.check_intent({"intent": {"goal": "g", "ruled_out": "r", "why": "w"}}, True), [])
+        self.assertEqual(verify.check_intent({}, False), [])  # report-only skips
+
+    def test_lighting_legal_for_mutation(self):
+        self.assertTrue(verify.check_lighting({"lighting": "bright"}, True))
+        self.assertTrue(verify.check_lighting({}, True))
+        self.assertEqual(verify.check_lighting({"lighting": "lit"}, True), [])
+        self.assertEqual(verify.check_lighting({"lighting": "dark-eligible"}, True), [])
+        self.assertEqual(verify.check_lighting({}, False), [])
+
+    def test_reviewer_mode_legal_for_mutation(self):
+        self.assertTrue(verify.check_reviewer_mode({"reviewer_mode": "self"}, True))
+        self.assertTrue(verify.check_reviewer_mode({}, True))
+        self.assertEqual(verify.check_reviewer_mode({"reviewer_mode": "cross-vendor"}, True), [])
+        self.assertEqual(verify.check_reviewer_mode({}, False), [])
+
+
+class ReviewLookupBinding(unittest.TestCase):
+    """#119: the GitHub review-lookup path is exercised, not just the early-return branch."""
+
+    def setUp(self):
+        self._orig = verify.fetch_reviews
+
+    def tearDown(self):
+        verify.fetch_reviews = self._orig
+
+    def _m(self):
+        return {"unit": "ship-it", "head_sha": "H", "pr": {"number": 7}}
+
+    def test_approved_at_head_passes(self):
+        verify.fetch_reviews = lambda repo, n: ([{"state": "APPROVED", "commit_id": "H"}], None)
+        self.assertEqual(verify.check_review(self._m(), "o/r", True), [])
+
+    def test_no_approval_fails(self):
+        verify.fetch_reviews = lambda repo, n: ([{"state": "COMMENTED", "commit_id": "H"}], None)
+        self.assertTrue(any("no APPROVED" in e for e in verify.check_review(self._m(), "o/r", True)))
+
+    def test_approval_at_wrong_sha_fails(self):
+        verify.fetch_reviews = lambda repo, n: ([{"state": "APPROVED", "commit_id": "OLD"}], None)
+        self.assertTrue(any("no APPROVED" in e for e in verify.check_review(self._m(), "o/r", True)))
+
+    def test_fetch_error_fails_closed(self):
+        verify.fetch_reviews = lambda repo, n: (None, "gh api failed")
+        self.assertTrue(any("cannot fetch" in e for e in verify.check_review(self._m(), "o/r", True)))
+
+
+class ShasBinding(unittest.TestCase):
+    """#119: base_sha/head_sha presence is the SHA-binding premise — bind it."""
+
+    def test_missing_sha_fails(self):
+        self.assertTrue(verify.check_shas_present({"head_sha": "H"}))
+        self.assertTrue(verify.check_shas_present({}))
+
+    def test_both_shas_present_ok(self):
+        self.assertEqual(verify.check_shas_present({"base_sha": "a", "head_sha": "b"}), [])
 
 
 if __name__ == "__main__":
