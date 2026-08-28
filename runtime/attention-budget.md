@@ -9,7 +9,7 @@ is producer-side.
 
 | Class | Concurrent builders | Concurrent build-blind reviewers | Notes |
 |-------|---------------------|----------------------------------|-------|
-| Mutation wave (ship / sweep / harden / …) | ≤ 3 | ≤ 1 per 3 builders (min 1) | Match the human or conductor review rate |
+| Mutation wave (ship / sweep / harden / …) | ≤ 3 | ≤ 1 per 3 builders (min 1) | Match the review rate; the reviewer cap counts review UNITS in flight — each unit's acceptance-review fans to its ≤3 isolated axis workers, which are exempt |
 | Report-only (review-it axes) | n/a | ≤ 4 axis workers | Axes stay isolated; cap total terminals |
 | Planning (map-it research) | ≤ 3 research workers | n/a | Decision tickets stay one-at-a-time HITL |
 
@@ -18,7 +18,9 @@ wave plan sized to it (liveness-resume.md) — a cap recorded nowhere was never 
 it → hold the next dispatch until a unit leaves `dispatched` (verify or park), never silently
 raise it.
 
-The cap counts live PANES, not tasks: a doctor respawn's original pane counts against the cap
+The cap counts live PANES, not tasks (builders); for reviewers it counts review UNITS in flight —
+a unit's build-blind acceptance-review fans to its isolated axis workers, and that fan-out is ONE
+review unit, not N against the reviewer cap: a doctor respawn's original pane counts against the cap
 until its closure is verified by pane read. Heartbeat false negatives spawn dual writers — the
 2026-07-15 chimely run planned a 4-builder wave and peaked at 5 builder panes this way.
 
@@ -52,7 +54,7 @@ dominates. Never spawn more agents to feel busy; throughput equals review+verify
 
 ## The WIP-curve protocol (how a cap graduates from asserted to measured)
 
-Every fleet run records, per dispatch wave, one row in its run report under `docs/runs/`:
+Every mutating fleet run from 2026-08-28 forward records, per dispatch wave, one row in its run report under `docs/runs/`:
 
 | Metric | Definition |
 |----------------------|--------------------------------------------------------------------|

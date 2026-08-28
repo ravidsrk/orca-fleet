@@ -35,7 +35,7 @@ resets the streak. Two coordinators reading the same log reach the same gate ver
 - **Performance:** measure-first (no optimizing without a baseline); symptom→cause tree (slow load →
   bundle vs TTFB); CWV targets; every fix carries a before→after to its metric contract; add a CI
   regression budget (GUARD).
-- **Accessibility:** WCAG 2.1 AA (keyboard, ARIA, focus, 4.5:1 contrast, empty/error/loading states)
+- **Accessibility:** WCAG 2.2 AA (keyboard, ARIA, focus, 4.5:1 contrast, target-size, focus-appearance, empty/error/loading states); 2.2-only success criteria route to `access-it`
   + the anti-AI-aesthetic check (no purple/gradient/rounded-2xl slop, no lorem hero).
 - **Data-migration:** expand→migrate→contract (additive first, destructive last-and-alone); every
   migration has a TESTED down path written and run before merge; a schema change and its dependent
