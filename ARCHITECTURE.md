@@ -138,3 +138,6 @@ tests/        contract tests
 - [docs/verify-gate.md](docs/verify-gate.md) — packages `verify.py` as a native `Stop`/`TaskCompleted`
   completion gate (fail-closed), with the MCP-Task / CI / SDK fallbacks for `allowManagedHooksOnly`
   environments.
+- [demo/negative-control/](demo/negative-control/README.md) — a reproducible head-to-head: a
+  self-scoring gate goes GREEN on a scope-shrink trap while `verify.py` goes RED, plus a dated
+  priority record for the two zero-prior-art verification primitives.
