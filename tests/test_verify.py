@@ -213,32 +213,57 @@ class MetaChecks(unittest.TestCase):
 
 
 class ReviewLookupBinding(unittest.TestCase):
-    """#119: the GitHub review-lookup path is exercised, not just the early-return branch."""
+    """#119 + #126: the GitHub review-lookup path is exercised; self-approval and superseded
+    reviews do not count as an independent approval."""
 
     def setUp(self):
-        self._orig = verify.fetch_reviews
+        self._orig_r = verify.fetch_reviews
+        self._orig_a = verify.fetch_pr_author
+        verify.fetch_pr_author = lambda repo, n: None  # independent reviewer by default
 
     def tearDown(self):
-        verify.fetch_reviews = self._orig
+        verify.fetch_reviews = self._orig_r
+        verify.fetch_pr_author = self._orig_a
 
     def _m(self):
         return {"unit": "ship-it", "head_sha": "H", "pr": {"number": 7}}
 
     def test_approved_at_head_passes(self):
-        verify.fetch_reviews = lambda repo, n: ([{"state": "APPROVED", "commit_id": "H"}], None)
+        verify.fetch_reviews = lambda repo, n: ([{"state": "APPROVED", "commit_id": "H",
+                                                  "user": {"login": "carol"}}], None)
         self.assertEqual(verify.check_review(self._m(), "o/r", True), [])
 
     def test_no_approval_fails(self):
-        verify.fetch_reviews = lambda repo, n: ([{"state": "COMMENTED", "commit_id": "H"}], None)
-        self.assertTrue(any("no APPROVED" in e for e in verify.check_review(self._m(), "o/r", True)))
+        verify.fetch_reviews = lambda repo, n: ([{"state": "COMMENTED", "commit_id": "H",
+                                                  "user": {"login": "carol"}}], None)
+        self.assertTrue(any("APPROVED" in e for e in verify.check_review(self._m(), "o/r", True)))
 
     def test_approval_at_wrong_sha_fails(self):
-        verify.fetch_reviews = lambda repo, n: ([{"state": "APPROVED", "commit_id": "OLD"}], None)
-        self.assertTrue(any("no APPROVED" in e for e in verify.check_review(self._m(), "o/r", True)))
+        verify.fetch_reviews = lambda repo, n: ([{"state": "APPROVED", "commit_id": "OLD",
+                                                  "user": {"login": "carol"}}], None)
+        self.assertTrue(any("APPROVED" in e for e in verify.check_review(self._m(), "o/r", True)))
 
     def test_fetch_error_fails_closed(self):
         verify.fetch_reviews = lambda repo, n: (None, "gh api failed")
         self.assertTrue(any("cannot fetch" in e for e in verify.check_review(self._m(), "o/r", True)))
+
+    def test_author_self_approval_rejected(self):
+        verify.fetch_reviews = lambda repo, n: ([{"state": "APPROVED", "commit_id": "H",
+                                                  "user": {"login": "alice"}}], None)
+        verify.fetch_pr_author = lambda repo, n: "alice"
+        self.assertTrue(any("APPROVED" in e for e in verify.check_review(self._m(), "o/r", True)))
+
+    def test_superseded_approval_not_counted(self):
+        verify.fetch_reviews = lambda repo, n: (
+            [{"state": "APPROVED", "commit_id": "H", "user": {"login": "bob"}},
+             {"state": "COMMENTED", "commit_id": "H", "user": {"login": "bob"}}], None)
+        self.assertTrue(any("APPROVED" in e for e in verify.check_review(self._m(), "o/r", True)))
+
+    def test_independent_approval_passes_when_author_differs(self):
+        verify.fetch_reviews = lambda repo, n: ([{"state": "APPROVED", "commit_id": "H",
+                                                  "user": {"login": "carol"}}], None)
+        verify.fetch_pr_author = lambda repo, n: "alice"
+        self.assertEqual(verify.check_review(self._m(), "o/r", True), [])
 
 
 class ShasBinding(unittest.TestCase):
@@ -250,6 +275,22 @@ class ShasBinding(unittest.TestCase):
 
     def test_both_shas_present_ok(self):
         self.assertEqual(verify.check_shas_present({"base_sha": "a", "head_sha": "b"}), [])
+
+    def test_symbolic_sha_fatal_for_mutation(self):
+        errs = verify.check_real_commits({"base_sha": "HEAD", "head_sha": "HEAD"}, is_mutation=True)
+        self.assertTrue(any("40-hex" in e and not e.startswith("NOTE:") for e in errs), errs)
+
+    def test_symbolic_sha_advisory_for_report_only(self):
+        errs = verify.check_real_commits({"base_sha": "HEAD", "head_sha": "HEAD"}, is_mutation=False)
+        self.assertTrue(errs and all(e.startswith("NOTE:") for e in errs), errs)
+
+
+class CriterionExtraction(unittest.TestCase):
+    """#126: extraction catches hyphenated AND compact ids (over-count is fail-safe)."""
+
+    def test_extracts_hyphenated_and_compact(self):
+        ids = verify.extract_criterion_ids("- AC-1: x\n- SC12: y\n- REQ-3 z\n")
+        self.assertEqual({"AC-1", "SC12", "REQ-3"}, ids)
 
 
 class NoGhReviewLane(unittest.TestCase):
