@@ -103,7 +103,10 @@ def collect(skills_dir, root):
         evidence = data.get("proof_evidence")
         if evidence and evidence != "<object>":
             rec["proof_evidence"] = evidence
-            rec["evidence_resolves"] = (root / evidence).is_file()
+            evidence_path = (root / evidence).resolve()
+            rec["evidence_resolves"] = (
+                evidence_path.is_relative_to(root.resolve()) and evidence_path.is_file()
+            )
         records.append(rec)
     return records
 

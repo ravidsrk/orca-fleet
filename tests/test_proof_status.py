@@ -7,6 +7,7 @@ and a self-run mission whose proof_evidence is missing. Covers the frozen AC-1/2
 import importlib.util
 import io
 import json
+import os
 import tempfile
 import unittest
 from contextlib import redirect_stdout
@@ -111,6 +112,23 @@ class ProofStatus(unittest.TestCase):
         # JSON with --check still non-zero (gamma-bad unresolved).
         code_check, _ = self._report("--json", "--check")
         self.assertNotEqual(code_check, 0)
+
+    def test_evidence_outside_repo_does_not_resolve(self):
+        # Containment guard: an advanced-tier mission whose proof_evidence points
+        # OUTSIDE the repo — absolute or via ../ — must not be certified as resolved,
+        # and --check must fail, even though the target file really exists.
+        with tempfile.TemporaryDirectory() as extdir:
+            external = Path(extdir) / "external-report.md"
+            external.write_text("outside\n", encoding="utf-8")
+            skills = self.root / "skills"
+            _mission(skills, "delta-abs", "delta-abs", "self-run", str(external))
+            _mission(skills, "epsilon-trav", "epsilon-trav", "external-run",
+                     os.path.relpath(external, self.root))
+            recs = proof_status.collect(skills, self.root)
+            by = {r["dir"]: r for r in recs}
+            self.assertFalse(by["delta-abs"]["evidence_resolves"])
+            self.assertFalse(by["epsilon-trav"]["evidence_resolves"])
+            self.assertNotEqual(self._report("--check")[0], 0)
 
 
 if __name__ == "__main__":
