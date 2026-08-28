@@ -534,5 +534,34 @@ class TestArchitecture(unittest.TestCase):
             )
 
 
+class TestMutatingMissionSet(unittest.TestCase):
+    """#117: the mutating-mission set is defined once (scripts/validate.py) and every other
+    authority must agree — a unit that lands code must not escape the SHA-bound floor because
+    two lists drifted."""
+
+    def _canonical(self):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("validate", ROOT / "scripts" / "validate.py")
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return set(mod.MUTATING_MISSIONS)
+
+    def test_evidence_manifest_mutation_list_matches_validate(self):
+        text = (RUNTIME / "evidence-manifest.md").read_text(encoding="utf-8")
+        m = re.search(r"\*\*Mutation units\*\*\s*\(([^)]*)\)", text, re.DOTALL)
+        self.assertIsNotNone(m, "evidence-manifest.md §3 must list the Mutation units")
+        listed = {n.strip() for n in m.group(1).replace("\n", " ").split(",") if n.strip()}
+        self.assertEqual(listed, self._canonical(),
+                         "evidence-manifest.md §3 Mutation-units list has drifted from "
+                         "scripts/validate.py MUTATING_MISSIONS")
+
+    def test_canonical_set_is_the_code_landing_missions(self):
+        # Guards the intent: report-only / planning / diagnosis missions are NOT in the set.
+        canonical = self._canonical()
+        for m in ("review-it", "map-it", "root-cause"):
+            self.assertNotIn(m, canonical)
+        for m in ("ship-it", "oss-contribute", "access-it"):
+            self.assertIn(m, canonical)
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
