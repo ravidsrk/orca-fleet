@@ -25,7 +25,8 @@ Checks (evidence-manifest.md section 2), scope FIRST:
 
 Usage:
     verify.py --manifest <m.json> --contract-source <path@ref> --contract-digest <sha256:…>
-              [--repo owner/name] [--execute-nc] [--base <branch>] [--symbol <tok>]
+              [--repo owner/name] [--unit-class mutation|report-only|planning] [--execute-nc]
+              [--base <branch>] [--symbol <tok>]
     # exit 0 = all REQUIRED checks pass · 1 = usage/dependency · 2 = a REQUIRED invariant FAILED
 """
 from __future__ import annotations
@@ -39,12 +40,11 @@ import subprocess
 import sys
 from pathlib import Path
 
-# Mutation missions land code; they need the review + negative-control authorities. Report-only /
-# planning units bind evidence differently (evidence-manifest.md section 3).
-MUTATING_MISSIONS = {
-    "ship-it", "clean-sweep", "harden-it", "speed-it",
-    "modernize-it", "prove-it", "deflake-it", "access-it",
-}
+# The coordinator classifies each unit at dispatch (a --unit-class flag / ORCA_UNIT_CLASS), NEVER the
+# worker's manifest. Mutation units land code and need the review + negative-control authorities;
+# report-only / planning units bind evidence differently (evidence-manifest.md section 3). A missing
+# or unknown class defaults to mutation (fail-safe): the strict authorities run.
+UNIT_CLASSES = ("mutation", "report-only", "planning")
 NC_TOOLS = {"mutmut", "cosmic-ray", "stryker", "pitest", "cargo-mutants", "go-mutesting", "revert"}
 # Criterion ids in a frozen source (AC-1, SC-12, REQ-3, …). A JSON source may instead declare an
 # explicit criterion_ids array, which is unambiguous and preferred.
@@ -97,6 +97,8 @@ def read_source(source):
         return None, "missing"
     path, sep, ref = source.partition("@")
     if sep and ref:
+        if path.startswith("-") or ref.startswith("-"):
+            return None, "refusing option-like ref/path (leading '-') — see git-option-injection guard"
         code, out, err = _run(["git", "show", f"{ref}:{path}"])
         return (out, None) if code == 0 else (None, (err.strip() or "git ref not found"))
     try:
@@ -125,8 +127,10 @@ def extract_criterion_ids(content):
     return set(CRIT_ID_RE.findall(content))
 
 
-def _is_mutation(m):
-    return m.get("unit_class") == "mutation" or m.get("unit") in MUTATING_MISSIONS
+def _is_mutation(unit_class):
+    """True unless the coordinator explicitly classed the unit report-only/planning. Missing or
+    unknown => mutation (fail-safe), so the review + negative-control authorities run."""
+    return unit_class not in ("report-only", "planning")
 
 
 def check_scope(m, auth_source, auth_digest):
@@ -152,11 +156,12 @@ def check_scope(m, auth_source, auth_digest):
     mdigest = contract.get("digest")
     if mdigest and _norm_digest(mdigest) != want:
         errs.append("scope: manifest contract.digest != authoritative digest (denominator swap)")
-    addressed = {c.get("id") for c in (m.get("criteria") or [])}
+    addressed = {c.get("id") for c in (m.get("criteria") or []) if c.get("addressed") is True}
     declared = set(contract.get("criterion_ids") or [])
     unaddressed = sorted(authoritative - addressed)
     if unaddressed:
-        errs.append(f"scope shrunk: authoritative criteria not in criteria[]: {unaddressed}")
+        errs.append(f"scope: authoritative criteria not addressed in criteria[] "
+                    f"(absent, or addressed != true): {unaddressed}")
     undeclared = sorted(authoritative - declared)
     if undeclared:
         errs.append(f"scope shrunk: contract.criterion_ids drops authoritative ids: {undeclared}")
@@ -206,10 +211,10 @@ def fetch_reviews(repo, pr_number):
         return None, str(err)
 
 
-def check_review(m, repo):
+def check_review(m, repo, is_mutation):
     """3. A mutation unit needs an INDEPENDENT APPROVED review at head_sha — looked up on GitHub, not
     read from the manifest (a worker-set reviewed_sha is not evidence a review occurred). Fail-closed."""
-    if not _is_mutation(m):
+    if not is_mutation:
         return []
     head = m.get("head_sha")
     number = (m.get("pr") or {}).get("number")
@@ -225,12 +230,12 @@ def check_review(m, repo):
     return []
 
 
-def check_negative_control(m, execute=False):
+def check_negative_control(m, is_mutation, execute=False):
     """4. Structured NC AND the artifact must corroborate the pinned mutant being killed. Reading the
     artifact resolves the mutant + verdict; it is corroboration, not proof (a fabricated artifact can
     still be read). --execute-nc replays the control — evidence-manifest §2's re-execution sample is
     the sound form."""
-    if not _is_mutation(m):
+    if not is_mutation:
         return []
     nc = m.get("negative_control") or {}
     errs = []
@@ -283,17 +288,18 @@ def check_symbol_on_base(symbol, base):
 
 
 def verify(manifest_path, contract_source=None, contract_digest=None, repo=None,
-           base=None, symbol=None, execute_nc=False):
+           base=None, symbol=None, execute_nc=False, unit_class=None):
     """Return (fatal_errors, notes). fatal_errors non-empty => exit 2."""
     m, err = load_manifest(manifest_path)
     if err:
         return None, err
+    is_mut = _is_mutation(unit_class)
     fatal, notes = [], []
     for result in (
         check_scope(m, contract_source, contract_digest),
         check_shas_present(m), check_real_commits(m),
-        check_freshness(m), check_review(m, repo),
-        check_negative_control(m, execute_nc),
+        check_freshness(m), check_review(m, repo, is_mut),
+        check_negative_control(m, is_mut, execute_nc),
         check_ancestry(m, base), check_symbol_on_base(symbol, base),
     ):
         for line in result:
@@ -311,13 +317,17 @@ def main(argv=None):
     ap.add_argument("--execute-nc", action="store_true", help="replay the negative control (heavier)")
     ap.add_argument("--base", default=None, help="integration base branch (for ancestry)")
     ap.add_argument("--symbol", default=None, help="a unit symbol to grep on the base")
+    ap.add_argument("--unit-class", default=None, choices=UNIT_CLASSES,
+                    help="unit class from the dispatch record (mutation|report-only|planning); "
+                         "missing => mutation (fail-safe)")
     args = ap.parse_args(argv)
 
     if shutil.which("git") is None:
         print("dependency: git not on PATH", file=sys.stderr)
         return 1
     out, load_err = verify(args.manifest, args.contract_source, args.contract_digest,
-                           args.repo or infer_repo(), args.base, args.symbol, args.execute_nc)
+                           args.repo or infer_repo(), args.base, args.symbol, args.execute_nc,
+                           args.unit_class)
     if load_err:
         print(load_err, file=sys.stderr)
         return 1
