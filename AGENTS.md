@@ -59,11 +59,11 @@ evidence manifest** ([`runtime/evidence-manifest.md`](runtime/evidence-manifest.
 **independent verifier** re-derives the facts from authoritative state:
 
 - the commit exists on the intended base (`git merge-base --is-ancestor`),
-- tests pass at that exact SHA in a clean env,
+- tests pass at that exact SHA in a clean env *(coordinator-run — not verify.py)*,
 - the negative control really fails when the change is reverted/mutated,
 - mutation units carry a non-empty intent packet and a legal `lighting` value,
 - `reviewed_sha == head_sha` (a rebase after review voids it),
-- for a ship, the deployed revision equals the reviewed revision.
+- for a ship, the deployed revision equals the reviewed revision *(coordinator-verified)*.
 
 A `worker_done` that says "merged" is a claim to check, not a fact to record.
 

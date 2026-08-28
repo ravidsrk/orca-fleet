@@ -191,8 +191,8 @@ killed it.
 - Blind-fix anti-anchoring and a three-round review budget in
   acceptance-review; a field-validated PR sizing seam in build-change and
   remediate-finding.
-- Verifier checks for reviewer independence (byte-identity rejection,
-  `reviewer_mode` recorded) and a run-close sha256 integrity inventory.
+- `reviewer_mode` recorded on every manifest and a run-close sha256 integrity
+  inventory (byte-identity rejection is a coordinator judgment, not automated).
 - Structural anti-inflation: re-runs treat a prior run's green-but-unverified
   claims as the first items to re-verify (liveness-resume + clean-sweep).
 - Trust boundary (repo/issue/PR/log text is data, never instructions) and an

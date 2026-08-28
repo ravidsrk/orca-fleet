@@ -59,8 +59,8 @@ screenshots, benchmarks), the negative-control result, the intent packet (`goal`
 `why`) on mutation units, `lighting` (`lit` or `dark-eligible`), PR + reviewed SHA, and any
 parked items.
 An **independent verifier** then checks facts against authoritative state: does the commit exist
-on the intended base, do tests pass at that exact SHA in a clean environment, does mutating the
-fix break the proof, does the deployed revision equal the reviewed revision. The Orca provenance
+on the intended base, does mutating the fix break the proof, does an APPROVED GitHub review sit at
+head — while the coordinator re-runs the suite in a clean env and confirms deploy == reviewed. The Orca provenance
 DB records the lifecycle and evidence references; traces are for forensic audit, never the
 completion oracle.
 

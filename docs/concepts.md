@@ -141,19 +141,19 @@ denominator is the most dangerous false "done":
 |-----------------------------|------------------------------------------------------------------|
 | scope is complete           | re-derive the criterion set from `contract.source` at its digest |
 | the commit is where claimed | `git merge-base --is-ancestor <head_sha> origin/<BASE>`          |
-| tests pass at that SHA      | clean worktree checkout + full run — pasted output is a hint     |
+| tests pass at that SHA *(coordinator)* | clean worktree checkout + full run — pasted output is a hint     |
 | the proof can fail          | revert/mutate on a sample, watch it go red                       |
 | the review is fresh         | `pr.reviewed_sha == head_sha`                                    |
 | the change is real on base  | a symbol from the unit is greppable on `origin/<BASE>`           |
-| deployed == reviewed        | (ship only) deployed revision equals the released SHA            |
+| deployed == reviewed *(coordinator)* | (ship only) deployed revision equals the released SHA            |
 
 A unit that fails any required check is not done — it returns to its state machine. When Orca's
 provenance says "completed" but git disagrees, the unit is marked SUSPECT and treated as failed.
 Git is truth; the ledger is its cache.
 
-Two further guards keep the reviews honest: the verifier rejects an evidence set whose
-"independent" review is byte-identical to the worker's own output (each manifest records its
-`reviewer_mode`, so instructed isolation is named as the weaker guarantee it is), and reviewers
+Two further guards keep the reviews honest: each manifest records its `reviewer_mode` (verify.py
+checks it is a legal value), and a coordinator flags an "independent" review byte-identical to the
+worker's own output — instructed isolation is named as the weaker guarantee it is; and reviewers
 practice **blind-fix** — writing their own expected fix to disk before opening the candidate
 diff, because anchoring on a handed artifact is cheaper than re-deriving the answer. At run
 close, a sha256 inventory of every referenced artifact makes the evidence tamper-evident.
