@@ -477,6 +477,29 @@ class TestCountAgnosticGuards(unittest.TestCase):
                 errs = gb.check()
         self.assertTrue(errs and "missing" in errs[0], errs)
 
+class ParseFrontmatterBindingTest(unittest.TestCase):
+    """prove-it self-run criterion PF-1: a YAML block-scalar frontmatter value
+    (`key: >` / `key: |` + indented continuation) must parse to a single
+    space-joined string carrying every continuation line. Missions fold
+    `description:` / `compatibility:` this way; a regression would silently
+    truncate them past the compose-clause and description checks. Bound to
+    parse_frontmatter's fold path (validate.py ~156-181); the pinned mutant that
+    kills it is the fold join `" "` -> `""` on the final-key branch.
+    """
+
+    def test_block_scalar_folds_to_space_joined_string(self):
+        text = (
+            "---\n"
+            "name: demo\n"
+            "description: >\n"
+            "  first line\n"
+            "  second line\n"
+            "---\nbody\n"
+        )
+        data, err = validate.parse_frontmatter(text)
+        self.assertIsNone(err)
+        self.assertEqual(data["description"], "first line second line")
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
