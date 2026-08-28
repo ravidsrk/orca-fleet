@@ -100,6 +100,7 @@ evidence-based definition of done. Click through for the full guide to each.
 | 🗺️ **[map-it](docs/missions/map-it.md)** | A foggy multi-session goal resolved into a frozen execution map `ship-it` can consume — decisions, not deliverables | "chart this", "plan this epic", "I don't know the shape yet" |
 | 🔬 **[root-cause](docs/missions/root-cause.md)** | A reproduced symptom and a demonstrated cause: repro-first → falsify rival hypotheses → one survivor, with evidence; optional fix handoff | "diagnose this", "why is this happening" |
 | 🤝 **[oss-contribute](docs/missions/oss-contribute.md)** | Upstream issues on a repo you do NOT control, each landed as an open, reviewed, etiquette-correct PR (or a quoted review-assist on an existing PR): `CONTRIBUTED` or `CONTRIBUTED-WITH-PARKED`, merge left to maintainers | "contribute to this project", "open PRs upstream", "we only have a fork" |
+| 📋 **[attest-it](docs/missions/attest-it.md)** | Conformance to a frozen standard (EU AI Act Art-12/50, SOC 2, NIST SSDF) proven with independently re-derived, auditor-grade evidence: `CONFORMANT` or `CONFORMANT-WITH-GAPS` (gaps parked to a human/legal owner) | "prove compliance", "conformance", "audit-ready evidence", "SOC 2 / EU AI Act / SSDF" |
 
 ### Autonomy levels
 
@@ -110,7 +111,7 @@ you own the one-way doors), while the read-only / planning missions sit at **L3*
 the verdict or the plan):
 
 - **L4** — ship-it · clean-sweep · harden-it · speed-it · modernize-it · prove-it · deflake-it · oss-contribute
-- **L3** — review-it · map-it · root-cause
+- **L3** — review-it · map-it · root-cause · attest-it
 
 ## Proof status — honesty first
 
