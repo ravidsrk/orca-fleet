@@ -45,6 +45,7 @@ The worker writes it to `reportPath` and names that path in the `worker_done` pa
   "pr": {"number": 0, "url": "", "reviewed_sha": "<SHA the reviewer approved>"},
   "reviewer_mode": "<cross-vendor | same-vendor-fresh | instructed-isolation — how independent the review REALLY was>",
   "toolchain": "<node 24 / python 3.12 / …>",
+  "provenance": {"spec_version": "<governing spec/policy@version>", "model": "<impl model+version>", "reviewer": "<identity+timestamp>", "retention": "<append-only store ref>", "standard": "<EU-AI-Act-Art-12 | SOC2 | SSDF | none>"},
   "metric_contract": {"metric": "<streak / benchmark / coverage>", "target": "<pre-declared target + confidence>", "method": "<how measured, e.g. 30 runs varied seed>"},
   "parked": [{"item": "<what>", "reason": "<one-way / no-safe-sandbox / needs-human>", "gate": "<gate id>"}],
   "claim": "<the worker's own summary — informational only, NEVER the completion oracle>"
@@ -99,6 +100,8 @@ Rules:
   missing or empty packet fails verification. `claim` remains narration only.
 - `lighting` is `lit` (default) or `dark-eligible` per gate-classification.md. The
   verifier rejects `dark-eligible` on a stop-list / Lane-0/B unit.
+- `provenance` (optional, any class) makes the manifest a regulated audit record — governing
+  spec/policy version, model lineage, reviewer identity+timestamp, and an append-only retention pointer (maps to EU AI Act Art-12/50).
 - `claim` is the worker's narration. The verifier ignores it except as a hint.
 
 ## 2. Independent verification (the coordinator, or a fresh verifier worker)
