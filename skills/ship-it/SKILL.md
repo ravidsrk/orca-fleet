@@ -10,7 +10,8 @@ description: >-
   build-to-release run. Not for closing an existing backlog (that's clean-sweep) or a foggy
   goal that needs charting first (that's map-it).
 license: MIT
-proof: doctrine-only
+proof: self-run
+proof_evidence: docs/runs/2026-08-28-ship-it-self-run.md
 autonomy: L4
 compatibility: >-
   HARD dependency: Orca runtime + the orchestration skill (Orca CLI). git + gh. One worker
