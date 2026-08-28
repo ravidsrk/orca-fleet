@@ -77,13 +77,19 @@ MUTATING_MISSIONS = {
 MISSION_MAX_LINES = 130
 PLAYBOOK_MAX_LINES = 90
 RUNTIME_MAX_LINES = 160
+# A single 166KB line beats a line-count cap; a byte budget (generous headroom over the largest
+# real file) also catches instruction surface packed into a few very long lines.
+_MAX_BYTES_PER_LINE = 240
+MISSION_MAX_BYTES = MISSION_MAX_LINES * _MAX_BYTES_PER_LINE
+PLAYBOOK_MAX_BYTES = PLAYBOOK_MAX_LINES * _MAX_BYTES_PER_LINE
+RUNTIME_MAX_BYTES = RUNTIME_MAX_LINES * _MAX_BYTES_PER_LINE
 # A mission declares what it composes in a "Composes ... rides ..." clause. Capture
 # each such clause through the END of its paragraph — terminating at the first
 # sentence break lets an abbreviation ("e.g. ") truncate the clause and smuggle
 # dangling names past the check — and verify every backtick name in it resolves.
 # RIDES (all-caps) is accepted alongside Rides/rides, matching COMPOSES handling.
 COMPOSE_CLAUSE_RE = re.compile(
-    r"\b(?:Composes|COMPOSES|Rides|RIDES|rides)\b\s+(.+?)(?:\n\n|\Z)", re.DOTALL
+    r"\b(?:Composes|COMPOSES|composes|Rides|RIDES|rides)\b\s+(.+?)(?:\n\n|\Z)", re.DOTALL
 )
 # Mutator evidence-manifest must appear in a composition rides clause, not mid-prose
 # ("the worker rides `evidence-manifest` out of turn") and not a mere Composes mention
@@ -282,6 +288,11 @@ def validate_skill(skill_dir, protocols):
         errors.append(
             f"instruction budget: {lines} lines > {MISSION_MAX_LINES} (mission cap)"
         )
+    nbytes = len(text.encode("utf-8"))
+    if nbytes > MISSION_MAX_BYTES:
+        errors.append(
+            f"instruction budget: {nbytes} bytes > {MISSION_MAX_BYTES} (mission byte cap)"
+        )
 
     # architecture: every playbook/runtime a mission says it Composes/rides must exist,
     # and there must be at least one such name — a clause the regex can't see into
@@ -325,6 +336,7 @@ def check_protocol_doc_refs(protocols):
     budget is enforced on the same walk."""
     failures = []
     caps = {PLAYBOOKS_DIR: PLAYBOOK_MAX_LINES, RUNTIME_DIR: RUNTIME_MAX_LINES}
+    byte_caps = {PLAYBOOKS_DIR: PLAYBOOK_MAX_BYTES, RUNTIME_DIR: RUNTIME_MAX_BYTES}
     for d in (PLAYBOOKS_DIR, RUNTIME_DIR):
         if not d.exists():
             continue
@@ -341,25 +353,33 @@ def check_protocol_doc_refs(protocols):
                     f"{f.relative_to(ROOT)}: instruction budget: {lines} lines > "
                     f"{caps[d]} ({d.name} cap)"
                 )
+            nbytes = len(text.encode("utf-8"))
+            if nbytes > byte_caps[d]:
+                failures.append(
+                    f"{f.relative_to(ROOT)}: instruction budget: {nbytes} bytes > "
+                    f"{byte_caps[d]} ({d.name} byte cap)"
+                )
     return failures
 
 
-# Not repo content: VCS state, local agent state (any dot-dir), and dependency trees.
-_LAYER_SCAN_SKIP = {"node_modules", "__pycache__"}
+# Not repo content: VCS state, caches, and dependency trees. Tracked dot-dirs (e.g. .claude-plugin)
+# ARE scanned — a stray SKILL.md there must not evade the one-discoverable-form rule.
+_LAYER_SCAN_SKIP = {".git", "node_modules", "__pycache__", ".pytest_cache", ".ruff_cache", ".mypy_cache"}
 
 
-def check_layer_separation():
+def check_layer_separation(root=None):
     """Only skills/<name>/ may hold a SKILL.md. AGENTS.md states the rule repo-wide,
-    so the scan is repo-wide too — a stray SKILL.md in docs/, scripts/, or the repo
+    so the scan is repo-wide too — a stray SKILL.md in docs/, scripts/, .claude-plugin/, or the repo
     root would auto-trigger just as badly as one in playbooks/ or runtime/."""
+    root = root or ROOT  # resolve at call time so a monkeypatched validate.ROOT is honored
     leaks = []
-    for p in ROOT.rglob("SKILL.md"):
-        parts = p.relative_to(ROOT).parts
-        if any(d.startswith(".") or d in _LAYER_SCAN_SKIP for d in parts[:-1]):
+    for p in root.rglob("SKILL.md"):
+        parts = p.relative_to(root).parts
+        if any(d in _LAYER_SCAN_SKIP for d in parts[:-1]):
             continue
         if parts[0] == "skills" and len(parts) == 3:
             continue  # skills/<name>/SKILL.md — the one discoverable form
-        leaks.append(str(p.relative_to(ROOT)))
+        leaks.append(str(p.relative_to(root)))
     return sorted(leaks)
 
 
