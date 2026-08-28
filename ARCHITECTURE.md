@@ -132,3 +132,6 @@ tests/        contract tests
 - [docs/compliance-provenance.md](docs/compliance-provenance.md) — maps the evidence manifest's
   optional `provenance` block to EU AI Act Art-12/50 logging obligations (the enterprise wedge and
   the `attest-it` prerequisite).
+- [docs/distribution.md](docs/distribution.md) — discoverability + trust in a 23k-plugin market:
+  the machine-checked `proof:`/`autonomy:` fields as the discovery advantage, install paths, and the
+  external-submission checklist.
