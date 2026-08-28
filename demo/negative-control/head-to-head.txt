@@ -1,0 +1,14 @@
+### negative-control head-to-head (scope-shrink trap) — 2026-08-28T14:50:15Z
+### trap: frozen contract = [AC-1, AC-2]; worker self-reported only [AC-1]
+
+== [1] SELF-SCORING gate (grades the self-reported criteria) ==
+selfscore: GREEN — all 1 self-reported criteria addressed
+self-scorer exit: 0
+
+== [2] orca-fleet INDEPENDENT verifier (re-derives the frozen denominator) ==
+NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+verify.py exit: 2
+
+== verdict ==
+PASS: self-scorer GREEN (exit 0) while orca-fleet caught the dropped criterion RED (exit 2).
+The moat is the frozen denominator + independent re-derivation, not the gate mechanism.
