@@ -43,6 +43,14 @@ class VFBenchSoundness(unittest.TestCase):
         rows = {r["id"]: r for r in self.res["orca-fleet verify.py (sound)"]["rows"]}
         self.assertEqual(rows["valid-control-1"]["verdict"], "GREEN", "sound gate must not be always-RED")
 
+    def test_readme_result_table_matches_computed(self):
+        # #125: the hand-typed result table must match the computed corpus (was a stale 4/4·0/4).
+        import re
+        readme = (ROOT / "bench" / "vf-bench" / "README.md").read_text(encoding="utf-8")
+        naive, sound = self.res["self-scoring (naive)"], self.res["orca-fleet verify.py (sound)"]
+        self.assertRegex(readme, rf"self-scoring \(naive\)\s*\|\s*{naive['false_done']}/{naive['red_total']}\b")
+        self.assertRegex(readme, rf"verify\.py.*\|\s*{sound['false_done']}/{sound['red_total']}\b")
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

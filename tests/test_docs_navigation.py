@@ -152,6 +152,32 @@ class TestDocsNavigation(unittest.TestCase):
                 f"declared in skills/{d.name}/SKILL.md",
             )
 
+    def test_mission_index_lists_every_skill(self):
+        # #125: docs/missions/README.md indexed 11 of 13 (attest-it, access-it missing). The index
+        # must link every skills/<name> guide, or it is a false catalog.
+        index = (DOCS / "missions" / "README.md").read_text(encoding="utf-8")
+        linked = set(re.findall(r"\[[^\]]+\]\((\w[\w-]*)\.md\)", index))
+        for d in sorted((ROOT / "skills").iterdir()):
+            if d.is_dir() and not d.name.startswith((".", "_")):
+                self.assertIn(d.name, linked,
+                              f"docs/missions/README.md omits the {d.name} guide")
+
+    def test_distribution_proof_mix_matches_reality(self):
+        # #125: the illustrative proof mix in distribution.md must match the live proof_status rollup,
+        # not a stale hand-count (was "2·1·8" for an 11-mission catalog).
+        import importlib.util
+        spec = importlib.util.spec_from_file_location(
+            "proof_status", ROOT / "runtime" / "scripts" / "proof_status.py")
+        ps = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(ps)
+        counts = ps.rollup(ps.collect(ROOT / "skills", ROOT))
+        text = (DOCS / "distribution.md").read_text(encoding="utf-8")
+        for tier in ("doctrine-only", "self-run", "external-run"):
+            m = re.search(rf"(\d+)\s+{re.escape(tier)}", text)
+            if m:
+                self.assertEqual(int(m.group(1)), counts[tier],
+                                 f"distribution.md {tier} count is stale (live: {counts[tier]})")
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

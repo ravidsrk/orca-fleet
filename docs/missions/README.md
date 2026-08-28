@@ -22,6 +22,8 @@ for the human deciding what to run and what to expect.
 | 🔍 [review-it](review-it.md)       | A read-only, SHA-bound GO/NO-GO verdict — no fix authority |
 | 🗺️ [map-it](map-it.md)             | A foggy goal resolved into a frozen execution map ship-it can consume |
 | 🔬 [root-cause](root-cause.md)     | A reproduced symptom and a demonstrated cause — diagnosis only |
+| 📋 [attest-it](attest-it.md)       | Conformance to a frozen standard, independently re-derived: `CONFORMANT` or gaps parked |
+| ♿ [access-it](access-it.md)       | A frozen page/flow set driven to WCAG 2.2 AA with a revert-to-violation control |
 
 Not sure which one? The [decision flowchart in the README](../../README.md#which-mission-do-i-want)
 routes by what you have in hand: a goal, a set of known problems, or a question. Every guide
