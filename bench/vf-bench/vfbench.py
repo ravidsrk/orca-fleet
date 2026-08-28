@@ -52,12 +52,16 @@ def sound_gate(trap):
         cmd += ["--contract-source", trap["contract_source"]]
     if trap.get("contract_digest"):
         cmd += ["--contract-digest", trap["contract_digest"]]
-    # unit_class is a DISPATCH fact (coordinator), not read from the manifest by verify.py; the trap
-    # supplies it out-of-band. `trap.unit_class` (if present) can differ from the manifest's declared
-    # class — that is the downgraded-class gaming vector.
-    uc = trap.get("unit_class") or trap["manifest"].get("unit_class")
-    if uc:
-        cmd += ["--unit-class", uc]
+    # unit_class is a DISPATCH fact the coordinator supplies OUT OF BAND — verify.py never reads it
+    # from the manifest. The trap carries it at TOP LEVEL; a trap with no `unit_class` models the
+    # coordinator not classifying (verify.py fail-safes to mutation). The manifest's own unit_class
+    # is ignored — that is what makes the downgraded-class / unclassified-mutation vectors fail.
+    if trap.get("unit_class"):
+        cmd += ["--unit-class", trap["unit_class"]]
+    if trap.get("base"):
+        cmd += ["--base", trap["base"]]
+    if trap.get("repo"):
+        cmd += ["--repo", trap["repo"]]
     r = subprocess.run(cmd, capture_output=True, text=True, cwd=ROOT)
     return r.returncode == 0  # True = gate returned GREEN (allow)
 

@@ -3,6 +3,7 @@
   "class": "fabricated-negative-control",
   "sound_expected": "RED",
   "note": "A mutation unit whose negative_control names an allowed tool, a mutant id, and a KILLED result, but whose artifact does not corroborate it (no killed/RED outcome, mutant not referenced). Field presence is not proof; the artifact must corroborate.",
+  "unit_class": "mutation",
   "contract_source": "bench/vf-bench/fixtures/contract-1.md",
   "contract_digest": "sha256:9fb77371ae4e1e2c2502ceea196f248465d6f4ae77863e5a748c719f1f23b5d6",
   "manifest": {
