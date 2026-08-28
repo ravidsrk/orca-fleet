@@ -28,11 +28,14 @@ class VerifyGateFailsClosed(unittest.TestCase):
         self.assertEqual(r.returncode, 2, r.stderr)
 
     def test_good_manifest_allows(self):
+        src = tempfile.NamedTemporaryFile("w", suffix=".md", delete=False)
+        src.write("frozen\n- AC-1: x\n")
+        src.close()
         with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
             json.dump({
                 "unit": "review-it", "unit_class": "report-only",
                 "base_sha": "HEAD", "head_sha": "HEAD",
-                "contract": {"criterion_ids": ["AC-1"]},
+                "contract": {"source": src.name, "criterion_ids": ["AC-1"]},
                 "criteria": [{"id": "AC-1", "addressed": True}],
                 "pr": {"reviewed_sha": "HEAD"},
             }, fh)
@@ -41,11 +44,14 @@ class VerifyGateFailsClosed(unittest.TestCase):
         self.assertEqual(r.returncode, 0, f"stdout={r.stdout} stderr={r.stderr}")
 
     def test_scope_shrink_blocks(self):
+        src = tempfile.NamedTemporaryFile("w", suffix=".md", delete=False)
+        src.write("frozen\n- AC-1: x\n- AC-2: y\n")
+        src.close()
         with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
             json.dump({
                 "unit": "review-it", "unit_class": "report-only",
                 "base_sha": "HEAD", "head_sha": "HEAD",
-                "contract": {"criterion_ids": ["AC-1", "AC-2"]},
+                "contract": {"source": src.name, "criterion_ids": ["AC-1", "AC-2"]},
                 "criteria": [{"id": "AC-1"}],
             }, fh)
             path = fh.name

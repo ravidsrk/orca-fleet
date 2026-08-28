@@ -4,13 +4,24 @@
   "base_sha": "HEAD",
   "head_sha": "HEAD",
   "contract": {
-    "source": "specs/demo.md@frozen",
-    "digest": "sha256:frozen-at-dispatch",
-    "criterion_ids": ["AC-1", "AC-2"]
+    "source": "demo/negative-control/frozen-spec.md",
+    "digest": "",
+    "criterion_ids": [
+      "AC-1",
+      "AC-2"
+    ]
   },
   "criteria": [
-    {"id": "AC-1", "text": "the addressed one", "addressed": true}
+    {
+      "id": "AC-1",
+      "text": "the addressed one",
+      "addressed": true
+    }
   ],
-  "pr": {"number": 0, "url": "", "reviewed_sha": "HEAD"},
-  "claim": "done (AC-2 was quietly dropped from the reported criteria — the gamed move)"
+  "pr": {
+    "number": 0,
+    "url": "",
+    "reviewed_sha": "HEAD"
+  },
+  "claim": "done (AC-2 quietly dropped from the reported criteria \u2014 caught by frozen-source re-derivation)"
 }

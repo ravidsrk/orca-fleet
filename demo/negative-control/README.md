@@ -10,13 +10,13 @@ sh demo/negative-control/run.sh
 
 ## The trap (scope-shrink)
 
-`gamed-manifest.json` froze a 2-criterion contract (`AC-1`, `AC-2`) at dispatch, but the worker
-quietly **reported only `AC-1`** as done. This is one of round-2's documented gaming vectors.
+`gamed-manifest.json` points at a frozen source (`frozen-spec.md`, criteria `AC-1` + `AC-2`), but the
+worker quietly **reported only `AC-1`** in its manifest. This is one of round-2's documented gaming vectors.
 
 | Gate | What it does | Verdict on the trap |
 |---|---|---|
 | [`selfscore.py`](selfscore.py) — a faithful **self-scoring** stand-in | grades the worker's OWN self-reported criteria (no frozen denominator, no independent session, no negative control) | **GREEN** (exit 0) — it never sees the dropped `AC-2` |
-| [`verify.py`](../../runtime/scripts/verify.py) — orca-fleet's **independent** verifier | re-derives the FROZEN `contract.criterion_ids` and checks the reported `criteria` cover it exactly | **RED** (exit 2) — "scope shrunk: `AC-2` missing" |
+| [`verify.py`](../../runtime/scripts/verify.py) — orca-fleet's **independent** verifier | re-derives the criterion set from the frozen source (`frozen-spec.md`) and checks the reported `criteria` cover it | **RED** (exit 2) — "scope shrunk: `AC-2` missing" |
 
 Recorded run: [`head-to-head.txt`](head-to-head.txt). The delta is not the gate *mechanism* (anyone
 can ship a gate) — it is the **frozen denominator + independent re-derivation**, which a self-scorer
@@ -39,14 +39,14 @@ predates convergence (round-2 threat brief: competitors run public priority doss
    (`runtime/evidence-manifest.md` §1, bound to a named mutation tool; demonstrated live in
    `docs/reports/prove-it-selfrun/` and `docs/reports/harden-it-externalrun/`).
 2. **Independent-session re-derivation from a frozen denominator** — a *different process* re-derives
-   the frozen `contract.criterion_ids` from authoritative state before any LLM judgment
-   (`runtime/scripts/verify.py`), demonstrated RED-vs-GREEN here.
+   the criterion set from the frozen `contract.source` (git-anchored via `path@ref`) before any LLM
+   judgment (`runtime/scripts/verify.py`), demonstrated RED-vs-GREEN here.
 
 ## Integrity inventory (sha256)
 
 | Artifact | sha256 |
 |----------|--------|
-| `head-to-head.txt` | `45c4222b3ad5987af486e274a9e3c027861e5443314598fb5de8911d3a8797d6` |
+| `head-to-head.txt` | `1bfa1e4e1fe5fa1c6ebf54c84dd926b277977a4764eecfd547613c91d6bff8cd` |
 
 (Re-running `run.sh` re-stamps the timestamp line, so a fresh transcript hashes differently; the value
 above pins the committed snapshot.)
