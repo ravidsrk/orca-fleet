@@ -5,7 +5,7 @@ Starting agents is cheap; closing the loop is not. Human judgment is the serial 
 limit. Merge serialization (`merge-serialization.md`) is consumer-side backpressure; this policy
 is producer-side.
 
-## WIP caps (defaults — ASSERTED, 1 measured point as of 2026-08-28; override in the ledger header when measured)
+## WIP caps (defaults — ASSERTED; no protocol-compliant measurement yet; override in the ledger header when measured)
 
 | Class | Concurrent builders | Concurrent build-blind reviewers | Notes |
 |-------|---------------------|----------------------------------|-------|
@@ -22,17 +22,20 @@ The cap counts live PANES, not tasks: a doctor respawn's original pane counts ag
 until its closure is verified by pane read. Heartbeat false negatives spawn dual writers — the
 2026-07-15 chimely run planned a 4-builder wave and peaked at 5 builder panes this way.
 
-Evidence level: **ASSERTED (1 measured point).** The defaults were first asserted from one field
-run (2026-07-15 chimely) and its dual-writer post-mortem; no published methodology for sizing fleet
-concurrency to verification capacity exists anywhere yet. The **first WIP-curve data point** under
-the protocol below is now on record — the 2026-08-28 ship-it self-run
-(`docs/runs/2026-08-28-ship-it-self-run.md`: row
-`builders=1 reviewers=1`, throughput 1 unit/wave, rework 0/1, freshness violations 0). Its finding:
-the binding constraint was not builder count but the **independent-review/approval** step — the
-hardened verifier (`verify.py`) refuses to pass a mutation unit without an independent approval, so
-verification capacity, not spawn capacity, set throughput — exactly this policy's thesis. One point
-is not a curve: the caps stay ASSERTED until ≥3 runs at differing WIP settings support a revision
-(protocol below).
+Evidence level: **ASSERTED.** The defaults were first asserted from one field run (2026-07-15
+chimely) and its dual-writer post-mortem; no published methodology for sizing fleet concurrency to
+verification capacity exists anywhere yet. The 2026-08-28 ship-it self-run
+(`docs/runs/2026-08-28-ship-it-self-run.md`) is recorded but is **not a protocol-compliant data
+point** and does **not** count toward the ≥3-run threshold below: it was a single slice at
+`builders=1 reviewers=1`, so it exercised no WIP contention, and it reached verified-BUILT rather
+than the protocol's unit of throughput (units reaching verified-CLOSED per hour). What it shows is
+narrow and qualitative — in a *solo* run the independent-review/approval step is what blocks
+*autonomous completion* of a mutation unit (the hardened verifier `verify.py` requires an
+independent approval it cannot self-issue). That is a statement about the completion gate, not a
+throughput measurement: the wall-clock was dominated by building and acceptance review, machine
+verification took seconds, and one non-parallel unit cannot isolate a throughput bottleneck. The
+caps stay ASSERTED until ≥3 multi-worker runs at differing WIP settings measure CLOSED-per-hour
+throughput (protocol below).
 
 ## Sort the work (do not parallelize judgment)
 

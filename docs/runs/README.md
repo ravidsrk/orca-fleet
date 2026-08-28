@@ -20,5 +20,6 @@ above `doctrine-only` without a `proof_evidence:` path that resolves to a report
 
 Every mutating self-run records the WIP-curve protocol row from `attention-budget.md`
 (WIP setting, builder throughput, verification latency, rework rate, freshness
-violations). The **first measured point** landed in the 2026-08-28 ship-it self-run
-above; issue #51 revises the asserted caps against it (one point is not yet a curve).
+violations). The 2026-08-28 ship-it self-run above records a first *qualitative* observation
+(single-slice, verified-BUILT, no WIP contention) — not a protocol-compliant point; the caps stay
+ASSERTED until ≥3 multi-worker runs measure verified-CLOSED-per-hour throughput.

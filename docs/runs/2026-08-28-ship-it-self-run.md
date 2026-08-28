@@ -83,24 +83,27 @@ frozen contract:
 
 **This RED is the finding, not a failure of the run.** The hardened verifier correctly refuses to
 grade an unreviewed mutation as done; what a solo fleet cannot manufacture is an *independent
-approver*. Verification capacity — a reviewer — is the binding constraint, exactly as
-`attention-budget.md` argues. See the WIP-curve row below and issue #51.
+approver*, so a solo run cannot autonomously reach CLOSED on a mutation unit. That is a
+completion-gate observation — it does **not** establish the approval step as the fleet's *throughput*
+bottleneck (this single non-parallel slice measured no throughput; see the row below). Issue #51.
 
-## WIP-curve protocol row (first measured data point — feeds #51)
+## WIP-curve protocol row (qualitative first observation — NOT a protocol-compliant data point)
 
 Per `attention-budget.md` §"The WIP-curve protocol", one row for this run's single dispatch wave:
 
 | Metric | Value (this run) |
 |--------|------------------|
 | WIP setting | `builders=1 reviewers=1` (single-slice run) |
-| Builder throughput | 1 unit reached verified-BUILT in one wave (~15 min wall-clock: ~8 min build + ~7 min review, serialized) |
+| Builder throughput | not measured to protocol — the protocol counts units reaching verified-CLOSED per hour; this run reached verified-BUILT only, one slice, ~15 min wall-clock (≈ 8 min build + 7 min review) |
 | Verification latency | machine verify (`verify.py` + tests + `--check`) < 6 s; acceptance review ≈ 7 min; `worker_done` → verified ≈ 7 min (n=1) |
 | Rework rate | 0/1 — the slice passed acceptance review and every machine invariant on first dispatch (no evidence-manifest §2 bounce) |
 | Freshness violations | 0 (`reviewed_sha == head_sha`) |
 
-n=1 is a data point, not a curve. The caps in `attention-budget.md` stay **ASSERTED**; issue #51
-records this as the first point and keeps them asserted until ≥3 runs at differing WIP settings
-support a revision.
+This is **not a protocol-compliant data point** and does not count toward the ≥3-run cap-revision
+threshold: it is a single slice at `builders=1 reviewers=1` (no WIP contention) that reached
+verified-BUILT, not the protocol's verified-CLOSED-per-hour throughput unit. The caps in
+`attention-budget.md` stay **ASSERTED**; a curve still needs ≥3 multi-worker runs measuring
+CLOSED-per-hour.
 
 ## Deviations and lessons (recorded, not hidden)
 
@@ -110,8 +113,9 @@ support a revision.
   check holds. A cleaner future convention: emit the manifest to an out-of-tree run directory so the
   slice tip *is* `head_sha`.
 - **The GitHub-review gate is unreachable in a solo self-run** (above). Bounded here; in a real team
-  ship a human/second-vendor approval satisfies it. Recorded as the first live evidence of the
-  verification-capacity bottleneck.
+  ship a human/second-vendor approval satisfies it. Recorded as evidence that a solo run cannot
+  autonomously clear the independent-approval gate — a completion-gate limit, not a measured
+  throughput bottleneck.
 - **reviewer_mode = instructed-isolation** is the weakest of the three independence modes; a
   cross-vendor reviewer (as the 2026-07-13 clean-sweep run used) is stronger and preferred when
   available.
