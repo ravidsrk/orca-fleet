@@ -10,7 +10,12 @@
 # FAIL CLOSED: if no manifest is named, the unit is NOT verifiable, so the gate blocks (exit 2),
 # never passes by default. Same for a verifier that errors.
 #
-# Inputs (env, set by the coordinator/dispatch — NOT by the worker):
+# Inputs (env). CRITICAL: these are trustworthy only when they originate OFF the graded worker.
+# On the native Stop/TaskCompleted hook the gate runs IN the worker's session, so the worker can set
+# them — there the gate is ADVISORY (defense-in-depth), not a soundness boundary. The SOUND guarantee
+# holds on CI / MCP-Task / SDK-subprocess surfaces where the coordinator, not the worker, sets the env.
+# Set ORCA_PROVENANCE=ci|mcp|sdk|dispatch on those surfaces to assert off-worker origin (else a NOTE
+# is emitted). See docs/verify-gate.md#trust-boundary. (Signed/out-of-band binding is tracked separately.)
 #   ORCA_MANIFEST         path to the unit's evidence manifest JSON (required)
 #   ORCA_CONTRACT_SOURCE  authoritative frozen contract `path@ref` (required for scope soundness)
 #   ORCA_CONTRACT_DIGEST  authoritative sha256 of that contract (required for scope soundness)
@@ -18,6 +23,7 @@
 #   ORCA_BASE             integration base branch, for the ancestry check (optional)
 #   ORCA_SYMBOL           a unit symbol to grep on the base (optional)
 #   ORCA_UNIT_CLASS       mutation | report-only | planning, from dispatch (optional; missing => mutation)
+#   ORCA_PROVENANCE       ci|mcp|sdk|dispatch — asserts the env came from OFF the worker (optional)
 #   ORCA_EXECUTE_NC       set to replay the negative control (heavier)
 # Without ORCA_CONTRACT_SOURCE/DIGEST the verifier fail-closes on scope (a manifest cannot certify
 # its own denominator), so the gate blocks — as it should.
@@ -49,6 +55,14 @@ set -- --manifest "$MANIFEST"
 [ -n "$SYMBOL" ] && set -- "$@" --symbol "$SYMBOL"
 [ -n "$UNIT_CLASS" ] && set -- "$@" --unit-class "$UNIT_CLASS"
 [ -n "${ORCA_EXECUTE_NC:-}" ] && set -- "$@" --execute-nc
+
+# Trust boundary (#112): the contract digest + unit class are only as sound as their provenance.
+case "${ORCA_PROVENANCE:-}" in
+  ci|mcp|sdk|dispatch) : ;;  # env originates off the graded worker — the sound guarantee holds
+  *) echo "verify-gate: NOTE — contract/unit-class provenance unverified (ORCA_PROVENANCE unset);" \
+          "on the native in-session hook path this gate is ADVISORY, not a soundness boundary." \
+          "Run under CI/MCP/SDK for the sound guarantee — docs/verify-gate.md#trust-boundary." >&2 ;;
+esac
 
 # Any nonzero from verify.py (2 = invariant failed, 1 = usage/dep) is a BLOCK: an un-runnable or
 # failing verifier is never a green light. The `if` keeps `set -e` from exiting before we remap.
