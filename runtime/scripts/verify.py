@@ -9,10 +9,14 @@ git-authoritative facts DETERMINISTICALLY, before any LLM judgment, and fails cl
 
 Checks (evidence-manifest.md section 2), scope FIRST because passing tests on a shrunken
 denominator is the most dangerous false "done":
-    1. scope not shrunk: every contract.criterion_ids entry has a criteria[] entry (exact).
+    1. scope not shrunk: RE-DERIVE the criterion set from the frozen contract.source (a git blob at
+       `path@ref`, or the working-tree file), verify contract.digest, and confirm criteria[] and
+       criterion_ids cover it — never a comparison of two manifest-controlled fields. Fail-closed
+       when the source cannot be re-read.
     2. base_sha / head_sha are present and real commits (git cat-file -e).
-    3. freshness: pr.reviewed_sha == head_sha (a rebase after review voids it).
-    4. negative control: mutation units carry negative_control.tool + .result.
+    3. freshness: mutation units REQUIRE pr.reviewed_sha, and it must equal head_sha.
+    4. negative control: mutation units carry a STRUCTURED control (known tool, KILLED/RED verdict,
+       a pinned mutant unless a plain revert, and an evidence artifact).
     5. ancestry (best-effort): head_sha is an ancestor of origin/<base_branch> — reported,
        not fatal pre-merge (the coordinator's PR baseRef check is the pre-merge twin).
     6. change real on base (best-effort): --symbol is greppable on origin/<base_branch>.
@@ -29,10 +33,13 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import re
 import shutil
 import subprocess
 import sys
+from pathlib import Path
 
 # Mutation missions land code and must carry the revert/mutate negative control; report-only
 # and planning units bind evidence differently (evidence-manifest.md section 3).
@@ -52,6 +59,60 @@ def _git(args, timeout=10):
     except (subprocess.TimeoutExpired, OSError) as err:
         return 1, f"<git error: {err}>"
 
+NC_TOOLS = {"mutmut", "cosmic-ray", "stryker", "pitest", "cargo-mutants", "go-mutesting", "revert"}
+# Criterion ids in a frozen source (AC-1, SC-12, REQ-3, …). JSON sources may instead declare an
+# explicit criterion_ids array, which is preferred and unambiguous.
+CRIT_ID_RE = re.compile(r"\b[A-Z][A-Z0-9]*-\d+\b")
+
+
+def _git_show(ref, path):
+    """Read a file's content from git at a ref — authoritative: a blob at a real commit cannot be
+    forged by the worker. Returns (content, err); does NOT strip (digest must see exact bytes)."""
+    try:
+        p = subprocess.run(["git", "show", f"{ref}:{path}"],
+                           capture_output=True, text=True, timeout=10, check=False)
+        return (p.stdout, None) if p.returncode == 0 else (None, p.stderr.strip() or "not found")
+    except (subprocess.TimeoutExpired, OSError) as err:
+        return None, str(err)
+
+
+def read_frozen_source(source):
+    """Read the FROZEN contract source. `source` is `path` or `path@gitref`.
+
+    `path@gitref` is read from git (sound — the blob is anchored to a real commit). A bare path is
+    read from the working tree (resolved against the repo toplevel) — weaker, because the worker can
+    write it, so it returns a note recommending `path@ref`. Returns (content, note, err)."""
+    if not source:
+        return None, None, "contract.source missing"
+    path, sep, ref = source.partition("@")
+    if sep and ref:
+        content, err = _git_show(ref, path)
+        if err is not None:
+            return None, None, f"git show {ref}:{path}: {err}"
+        return content, None, None
+    p = Path(path)
+    if not p.is_absolute():
+        code, top = _git(["rev-parse", "--show-toplevel"])
+        if code == 0:
+            p = Path(top) / path
+    try:
+        return p.read_text(encoding="utf-8"), \
+            "source read from working tree (not git-anchored — use path@ref for a sound denominator)", None
+    except OSError as err:
+        return None, None, str(err)
+
+
+def extract_criterion_ids(content):
+    """The authoritative criterion set, re-derived FROM the frozen source (not the manifest). A JSON
+    source may declare `criterion_ids`; otherwise ids are the AC-1/SC-2/… tokens in the text."""
+    try:
+        data = json.loads(content)
+        if isinstance(data, dict) and isinstance(data.get("criterion_ids"), list):
+            return set(data["criterion_ids"])
+    except (json.JSONDecodeError, ValueError):
+        pass
+    return set(CRIT_ID_RE.findall(content))
+
 
 def load_manifest(path):
     """Return (manifest, error). Never raises."""
@@ -63,16 +124,35 @@ def load_manifest(path):
 
 
 def check_scope(m):
-    """1. The worker cannot shrink its own denominator: every declared criterion id must
-    have a criteria[] entry. Pure — no git, no network."""
-    declared = set((m.get("contract") or {}).get("criterion_ids") or [])
+    """1. Re-derive the frozen denominator FROM contract.source (authoritative) and confirm the
+    manifest addressed it — NOT a comparison of two manifest-controlled fields. A worker that drops a
+    criterion from its own criterion_ids AND criteria is still caught, because the frozen source
+    carries it. Fail-closed when the source cannot be re-read (no source ⇒ not verifiable)."""
+    contract = m.get("contract") or {}
+    content, note, err = read_frozen_source(contract.get("source"))
+    if err:
+        return [f"scope: cannot re-derive the frozen denominator — {err}"]
+    digest = contract.get("digest")
+    if digest:
+        got = "sha256:" + hashlib.sha256(content.encode("utf-8")).hexdigest()
+        want = digest if digest.startswith("sha256:") else "sha256:" + digest
+        if got != want:
+            return [f"scope: contract.digest mismatch — frozen source hashes to {got}, manifest claims {want}"]
+    authoritative = extract_criterion_ids(content)
+    if not authoritative:
+        return ["scope: no criterion ids found in the frozen contract.source"]
     addressed = {c.get("id") for c in (m.get("criteria") or [])}
-    missing = sorted(declared - addressed)
-    if missing:
-        return [f"scope shrunk: criterion_ids missing a criteria[] entry: {missing}"]
-    if not declared:
-        return ["scope undefined: contract.criterion_ids is empty"]
-    return []
+    declared = set(contract.get("criterion_ids") or [])
+    errs = []
+    unaddressed = sorted(authoritative - addressed)
+    if unaddressed:
+        errs.append(f"scope shrunk: frozen-source criteria not in criteria[]: {unaddressed}")
+    undeclared = sorted(authoritative - declared)
+    if undeclared:
+        errs.append(f"scope shrunk: contract.criterion_ids drops frozen-source ids: {undeclared}")
+    if note:
+        errs.append("NOTE: " + note)
+    return errs
 
 
 def check_shas_present(m):
@@ -96,23 +176,39 @@ def check_real_commits(m):
 
 
 def check_freshness(m):
-    """3. reviewed_sha must equal head_sha (a rebase/bot-push after review voids it)."""
-    pr = m.get("pr") or {}
-    reviewed = pr.get("reviewed_sha")
-    if reviewed and reviewed != m.get("head_sha"):
-        return [f"stale review: reviewed_sha '{reviewed}' != head_sha '{m.get('head_sha')}'"]
+    """3. reviewed_sha must equal head_sha (a rebase/bot-push after review voids it). For a mutation
+    unit the review is REQUIRED — a missing/empty reviewed_sha is unreviewed code, which cannot
+    complete."""
+    is_mutation = m.get("unit_class") == "mutation" or m.get("unit") in MUTATING_MISSIONS
+    reviewed = (m.get("pr") or {}).get("reviewed_sha")
+    head = m.get("head_sha")
+    if is_mutation and not reviewed:
+        return ["mutation unit missing pr.reviewed_sha — unreviewed code cannot complete"]
+    if reviewed and reviewed != head:
+        return [f"stale review: reviewed_sha '{reviewed}' != head_sha '{head}'"]
     return []
 
 
 def check_negative_control(m):
-    """4. Mutation units must carry a negative control (tool + result)."""
+    """4. Mutation units must carry a STRUCTURED negative control: a known tool, a KILLED/RED
+    verdict, a pinned mutant (unless the tool is a plain revert), and an evidence artifact. This does
+    not prove the control was executed (that is §2's ≥10% re-execution sample) but it rejects the
+    arbitrary-string evidence a truthiness check would wave through."""
     is_mutation = m.get("unit_class") == "mutation" or m.get("unit") in MUTATING_MISSIONS
     if not is_mutation:
         return []
     nc = m.get("negative_control") or {}
-    if not nc.get("tool") or not nc.get("result"):
-        return ["mutation unit missing negative_control.tool / .result"]
-    return []
+    errs = []
+    tool = nc.get("tool")
+    if tool not in NC_TOOLS:
+        errs.append(f"negative_control.tool must be one of {sorted(NC_TOOLS)}, got {tool!r}")
+    if not re.search(r"(?i)\b(killed|red)\b", nc.get("result") or ""):
+        errs.append("negative_control.result must record the mutant KILLED / the proof going RED")
+    if tool and tool != "revert" and not nc.get("mutant"):
+        errs.append("negative_control.mutant (a pinned mutant id) is required for a mutation tool")
+    if not nc.get("artifact"):
+        errs.append("negative_control.artifact (an evidence path) is required")
+    return errs
 
 
 def check_ancestry(m, base):

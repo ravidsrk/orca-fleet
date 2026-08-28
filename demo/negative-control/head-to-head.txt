@@ -1,4 +1,4 @@
-### negative-control head-to-head (scope-shrink trap) — 2026-08-28T14:50:15Z
+### negative-control head-to-head (scope-shrink trap) — 2026-08-28T15:19:00Z
 ### trap: frozen contract = [AC-1, AC-2]; worker self-reported only [AC-1]
 
 == [1] SELF-SCORING gate (grades the self-reported criteria) ==
@@ -6,6 +6,7 @@ selfscore: GREEN — all 1 self-reported criteria addressed
 self-scorer exit: 0
 
 == [2] orca-fleet INDEPENDENT verifier (re-derives the frozen denominator) ==
+NOTE: source read from working tree (not git-anchored — use path@ref for a sound denominator)
 NOTE: --base not given — ancestry check skipped (pre-merge/offline)
 verify.py exit: 2
 
