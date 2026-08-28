@@ -9,6 +9,7 @@ description: >-
   never edits code (fixing is ship-it / clean-sweep). Not the full security loop (harden-it).
 license: MIT
 proof: external-run
+autonomy: L3
 proof_evidence: docs/runs/2026-07-13-review-it-external-run.md
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh. Review worker playbooks

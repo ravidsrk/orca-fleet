@@ -1,5 +1,7 @@
 # 🔍 review-it — a trusted, read-only, SHA-bound GO/NO-GO verdict
 
+> **Autonomy:** L3 (Osmani L0-L5) - conditional autonomy - the human owns the verdict or the plan.
+
 > Point it at a PR or a branch. Come back to a verdict you can act on: every axis reviewed by a
 > fresh session that never wrote the code, every finding quoting the exact line that motivated it,
 > the whole bound to one reviewed SHA — and not a single byte of the tree modified.

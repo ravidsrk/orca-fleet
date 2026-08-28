@@ -21,7 +21,7 @@ _spec.loader.exec_module(validate)
 PROTOCOLS = {"diagnose"}
 
 
-def make_skill(tmp, body, frontmatter_extra="proof: doctrine-only\n"):
+def make_skill(tmp, body, frontmatter_extra="proof: doctrine-only\nautonomy: L4\n"):
     d = Path(tmp) / "demo-skill"
     d.mkdir()
     (d / "SKILL.md").write_text(
@@ -499,6 +499,25 @@ class ParseFrontmatterBindingTest(unittest.TestCase):
         data, err = validate.parse_frontmatter(text)
         self.assertIsNone(err)
         self.assertEqual(data["description"], "first line second line")
+
+
+class AutonomyFieldTest(unittest.TestCase):
+    """#82: every mission declares an Osmani autonomy level L0-L5; the validator
+    rejects a missing or illegal value (negative-path proof the guard fires)."""
+
+    def test_missing_autonomy_fails(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            errs = validate.validate_skill(
+                make_skill(tmp, "Composes `diagnose`.\n",
+                           frontmatter_extra="proof: doctrine-only\n"), PROTOCOLS)
+            self.assertTrue(any("missing 'autonomy'" in e for e in errs), errs)
+
+    def test_illegal_autonomy_fails(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            errs = validate.validate_skill(
+                make_skill(tmp, "Composes `diagnose`.\n",
+                           frontmatter_extra="proof: doctrine-only\nautonomy: L9\n"), PROTOCOLS)
+            self.assertTrue(any("autonomy 'L9' invalid" in e for e in errs), errs)
 
 
 if __name__ == "__main__":

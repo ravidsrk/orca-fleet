@@ -11,6 +11,7 @@ description: >-
   test (clean-sweep), or building features with tests from the start (ship-it).
 license: MIT
 proof: doctrine-only
+autonomy: L4
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh; a runnable suite +
   coverage tool. A TDD worker playbook (addyosmani or mattpocock) — one router per worker.

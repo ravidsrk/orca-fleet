@@ -12,6 +12,7 @@ description: >-
   clean-sweep — merged-SHA closure) and not for building a net-new project (ship-it).
 license: MIT
 proof: external-run
+autonomy: L4
 proof_evidence: docs/runs/2026-07-16-oss-contribute-external-run.md
 compatibility: >-
   HARD dependency: Orca runtime + the orchestration skill (Orca CLI). git + gh, a FORK you can push

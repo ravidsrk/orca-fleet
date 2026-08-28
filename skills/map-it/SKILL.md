@@ -10,6 +10,7 @@ description: >-
   intent (ship-it).
 license: MIT
 proof: doctrine-only
+autonomy: L3
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). A wayfinder/research worker playbook
   (mattpocock wayfinder + research) — one router per worker.
