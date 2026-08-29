@@ -419,6 +419,23 @@ class TestLayerSeparation(unittest.TestCase):
         self.assertEqual(
             self._leaks_for([".venv/lib/SKILL.md", ".tox/x/SKILL.md", ".greptile-internal/SKILL.md"]), [])
 
+    def test_tracked_dot_dir_skill_is_caught(self):
+        # #150 review: a TRACKED SKILL.md under a dot-dir (.github, .vscode) is repo content and MUST
+        # be caught; only UNtracked local dot-dirs (.venv) are skipped. Git is the tracked oracle.
+        import subprocess as sp
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            sp.run(["git", "-C", tmp, "init", "-q"], check=True)
+            for rel in (".github/SKILL.md", ".venv/lib/SKILL.md", "skills/demo/SKILL.md"):
+                p = root / rel
+                p.parent.mkdir(parents=True, exist_ok=True)
+                p.write_text("x", encoding="utf-8")
+            sp.run(["git", "-C", tmp, "add", ".github/SKILL.md", "skills/demo/SKILL.md"], check=True)
+            leaks = validate.check_layer_separation(root=root)
+        self.assertIn(".github/SKILL.md", leaks)          # tracked dot-dir content → caught
+        self.assertNotIn(".venv/lib/SKILL.md", leaks)     # untracked local dir → skipped
+        self.assertNotIn("skills/demo/SKILL.md", leaks)   # the one discoverable form
+
 
 class TestCountAgnosticGuards(unittest.TestCase):
     """The count-lint, keyword-check, and badge-freshness guards must each be able to fire —

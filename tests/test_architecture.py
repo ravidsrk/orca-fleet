@@ -262,17 +262,16 @@ class TestArchitecture(unittest.TestCase):
         self.assertIn("accountable:", release)
 
     def test_chain_terminals_are_decidable_by_rule(self):
-        # #129: the chaining gate listed degraded terminals as an open ellipsis, so several real
-        # terminals were unclassifiable. #147 review: the first rule also wrongly degraded
-        # `awaiting-maintainer-merge` (oss-contribute's NORMAL terminal). This test encodes the
-        # documented rule AND cross-checks the full catalog terminal inventory, so a dropped marker
-        # or a misclassified terminal fails here.
+        # #129: the chaining gate listed degraded terminals as an open ellipsis. #147 review: the rule
+        # wrongly degraded `awaiting-maintainer-merge` (oss-contribute's NORMAL terminal). #148 review:
+        # the check must compare against the mission DECLARATIONS, not a hand-list — so this derives the
+        # terminal set from every guide's "## Terminal …" section and cross-checks the documented rule
+        # against each guide's own `degraded` / `NORMAL terminal` self-annotations.
         chain = (RUNTIME / "mission-chaining.md").read_text(encoding="utf-8")
         self.assertRegex(chain, r"(?i)degradation marker")
         DEGRADE_MARKERS = ("-WITH-PARKED", "-WITH-OPEN-ITEMS", "-WITH-GAPS", "-WITH-MANUAL-PARKED",
                            "-WITH-BLOCKED", "-WITH-QUARANTINE", "-WITH-PINNED")
         DEGRADE_TERMINALS = ("NO-GO", "INCONCLUSIVE")
-        # Every token the classifier uses must appear in the doc, so prose and rule cannot drift.
         for tok in DEGRADE_MARKERS + DEGRADE_TERMINALS:
             self.assertIn(tok, chain, f"mission-chaining.md dropped the {tok} classification")
 
@@ -281,28 +280,36 @@ class TestArchitecture(unittest.TestCase):
                 return "degraded"
             return "clean"
 
-        # Real terminals across the catalog; each must classify as the mission contract intends.
-        inventory = {
-            "BUILT": "clean", "RELEASED": "clean", "PROMOTION_READY": "clean", "DRY": "clean",
-            "HARDENED": "clean", "CONFORMANT": "clean", "CONTRIBUTED": "clean", "MAPPED": "clean",
-            "DIAGNOSED": "clean", "DEPLOYED_AND_VERIFIED": "clean", "COVERED": "clean",
-            "STABLE": "clean", "CURRENT": "clean", "OPTIMIZED": "clean",
-            "DIAGNOSED-WITH-HANDOFF": "clean", "awaiting-maintainer-merge": "clean",
-            "HARDENED-WITH-OPEN-ITEMS": "degraded", "COVERED-WITH-PARKED": "degraded",
-            "DRY-WITH-PARKED": "degraded", "MAPPED-WITH-BLOCKED": "degraded",
-            "CONFORMANT-WITH-GAPS": "degraded", "CONFORMANT-WITH-MANUAL-PARKED": "degraded",
-            "CONTRIBUTED-WITH-PARKED": "degraded", "PROMOTION_READY-WITH-PARKED": "degraded",
-            "STABLE-WITH-QUARANTINE": "degraded", "CURRENT-WITH-PINNED": "degraded",
-            "NO-GO": "degraded", "INCONCLUSIVE": "degraded",
-        }
-        for name, expected in inventory.items():
-            self.assertEqual(classify(name), expected,
-                             f"terminal {name!r} misclassified: rule says {classify(name)!r}, "
-                             f"contract expects {expected!r}")
-        # The handoff carve-out must stay clean, and awaiting-maintainer-merge must be documented there.
+        # Derive DECLARED terminals from each guide's "## Terminal …" section (backticked tokens), so a
+        # renamed or added terminal is pulled in automatically rather than silently uncovered.
+        declared, degraded_annotated, normal_annotated = set(), set(), set()
+        for g in sorted((ROOT / "docs" / "missions").glob("*.md")):
+            text = g.read_text(encoding="utf-8")
+            sect = re.search(r"(?ms)^## Terminal.*?(?=^## |\Z)", text)
+            if sect:
+                declared.update(re.findall(r"`([A-Za-z][\w.-]*)`", sect.group(0)))
+            degraded_annotated.update(re.findall(r"`([A-Za-z][\w.-]*)`\s+is a\s+degraded", text))
+            normal_annotated.update(re.findall(r"`([A-Za-z][\w.-]*)`[^\n]*?NORMAL terminal", text))
+
+        self.assertTrue(declared, "no terminal declarations parsed from docs/missions/*.md")
+        # 1) Every declared terminal is DECIDABLE (the rule is total — no ambiguity, no crash).
+        for t in declared:
+            self.assertIn(classify(t), ("clean", "degraded"), t)
+        # 2) A terminal carrying a degradation marker MUST be degraded.
+        for t in declared:
+            if any(mk in t for mk in DEGRADE_MARKERS):
+                self.assertEqual(classify(t), "degraded", f"marker-bearing terminal {t!r} not degraded")
+        # 3) The rule must AGREE with each guide's own annotation — catches a new marker the rule
+        #    misses, or a NORMAL terminal wrongly degraded (the #147 regression class).
+        for t in degraded_annotated:
+            self.assertEqual(classify(t), "degraded", f"guide annotates {t!r} degraded; rule says clean")
+        for t in normal_annotated:
+            self.assertEqual(classify(t), "clean", f"guide annotates {t!r} a NORMAL terminal; rule degrades it")
+        # 4) The specific regression: awaiting-maintainer-merge is oss-contribute's normal terminal.
+        self.assertIn("awaiting-maintainer-merge", declared)
+        self.assertEqual(classify("awaiting-maintainer-merge"), "clean")
         self.assertRegex(chain, r"(?i)handoff, not a degradation")
-        self.assertIn("awaiting-maintainer-merge", chain,
-                      "awaiting-maintainer-merge must be documented as a clean handoff terminal, not degraded")
+        self.assertIn("awaiting-maintainer-merge", chain)
 
     def test_scheduling_rule_includes_report_only_conformance(self):
         # #129: mission-scheduling listed a closed set that omitted attest-it, contradicting

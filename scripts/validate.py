@@ -43,6 +43,7 @@ Spec: https://agentskills.io/specification
 import importlib.util
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -363,28 +364,53 @@ def check_protocol_doc_refs(protocols):
     return failures
 
 
-# Not repo content: VCS state, caches, dependency trees, and any UNTRACKED local dot-directory
-# (.venv, .tox, a tool's .greptile-internal). Tracked dot-dirs that ARE repo content (.claude-plugin)
-# stay in scope — a stray SKILL.md there must not evade the one-discoverable-form rule.
+# Repo content is what git TRACKS: an untracked local dot-dir (.venv, .tox, a tool's cache) is not
+# repo content, a TRACKED dot-dir (.github, .claude-plugin) is — and only git knows which. The scan
+# uses git ls-files when the root is a work tree, and a filesystem heuristic otherwise (synthetic tests).
 _LAYER_SCAN_SKIP = {".git", "node_modules", "__pycache__", ".pytest_cache", ".ruff_cache", ".mypy_cache"}
-_LAYER_SCAN_DOTDIR_KEEP = {".claude-plugin"}
+
+
+def _tracked_skill_mds(root):
+    """Relative paths of git-TRACKED SKILL.md files, or None if root is not the root of a git work
+    tree (a synthetic test dir, or a temp dir nested inside an unrelated repo → filesystem fallback)."""
+    try:
+        top = subprocess.run(["git", "-C", str(root), "rev-parse", "--show-toplevel"],
+                             capture_output=True, text=True, timeout=10)
+        if top.returncode != 0 or Path(top.stdout.strip()).resolve() != Path(root).resolve():
+            return None
+        r = subprocess.run(["git", "-C", str(root), "ls-files", "-z"],
+                           capture_output=True, text=True, timeout=10)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if r.returncode != 0:
+        return None
+    return [Path(x) for x in r.stdout.split("\0") if x and Path(x).name == "SKILL.md"]
 
 
 def check_layer_separation(root=None):
-    """Only skills/<name>/ may hold a SKILL.md. AGENTS.md states the rule repo-wide,
-    so the scan is repo-wide too — a stray SKILL.md in docs/, scripts/, .claude-plugin/, or the repo
-    root would auto-trigger just as badly as one in playbooks/ or runtime/."""
+    """Only skills/<name>/ may hold a SKILL.md. AGENTS.md states the rule repo-wide, so the scan is
+    repo-wide too — a stray SKILL.md in docs/, .github/, .claude-plugin/, or the repo root auto-triggers
+    just as badly as one in playbooks/ or runtime/. Scope is git-TRACKED files: a tracked dot-dir is in
+    scope, an untracked local one (.venv/.tox) is not."""
     root = root or ROOT  # resolve at call time so a monkeypatched validate.ROOT is honored
+    tracked = _tracked_skill_mds(root)
+    if tracked is not None:
+        candidates = tracked
+    else:  # not a git work tree (synthetic test root): filesystem walk minus VCS/caches/local dot-dirs
+        candidates = []
+        for p in root.rglob("SKILL.md"):
+            segs = p.relative_to(root).parts[:-1]
+            if any(d in _LAYER_SCAN_SKIP for d in segs):
+                continue
+            if any(d.startswith(".") and d != ".claude-plugin" for d in segs):
+                continue  # untracked local dot-dir (.venv/.tox/.greptile-internal/…) — not repo content
+            candidates.append(p.relative_to(root))
     leaks = []
-    for p in root.rglob("SKILL.md"):
-        parts = p.relative_to(root).parts
-        if any(d in _LAYER_SCAN_SKIP for d in parts[:-1]):
-            continue
-        if any(d.startswith(".") and d not in _LAYER_SCAN_DOTDIR_KEEP for d in parts[:-1]):
-            continue  # untracked local dot-dir (.venv/.tox/.greptile-internal/…) — not repo content
+    for rel in candidates:
+        parts = rel.parts
         if parts[0] == "skills" and len(parts) == 3:
             continue  # skills/<name>/SKILL.md — the one discoverable form
-        leaks.append(str(p.relative_to(root)))
+        leaks.append(str(rel))
     return sorted(leaks)
 
 
