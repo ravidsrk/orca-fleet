@@ -1,7 +1,7 @@
 # 🔬 root-cause — a reproduced symptom, a demonstrated cause
 
 > **Autonomy:** L3 (Osmani L0-L5) - conditional autonomy - the human owns the verdict or the plan.
-> **Proof:** doctrine-only — field-tested protocol, no recorded run yet.
+> **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
 
 > Bring it the bug with neither a frozen spec nor an enumerable backlog — the flake, the
 > intermittent production symptom, the unexplained regression. Come back to a reproduction that

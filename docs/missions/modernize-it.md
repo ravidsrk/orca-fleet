@@ -1,7 +1,7 @@
 # 📦 modernize-it — every major current or pinned with a reason
 
 > **Autonomy:** L4 (Osmani L0-L5) - high autonomy - the independent verifier is the cheap verification; you own the one-way doors.
-> **Proof:** doctrine-only — field-tested protocol, no recorded run yet.
+> **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
 
 > Point it at a repo with a green CI baseline. Come back to a dependency surface where every
 > major is current or pinned with a written justification, every merge kept CI green, and every

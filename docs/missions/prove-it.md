@@ -1,7 +1,7 @@
 # 🧪 prove-it — a mutation-audited test on every critical path
 
 > **Autonomy:** L4 (Osmani L0-L5) - high autonomy - the independent verifier is the cheap verification; you own the one-way doors.
-> **Proof:** doctrine-only — field-tested protocol, no recorded run yet.
+> **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
 
 > Point it at the money, auth, and data paths nothing currently protects. Come back to a
 > human-confirmed critical surface where every path has a merged test that dies under a
