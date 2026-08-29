@@ -420,6 +420,16 @@ class NegativeControlSurvivor(unittest.TestCase):
         art = self._art("Run over 4 mutants: 3 killed. m7 survived the revert.\n")
         self.assertTrue(any("SURVIVED" in e for e in verify.check_negative_control(self._m(art), True)))
 
+    def test_pinned_survivor_with_delimiter_rejected(self):
+        # #152 review: "m7: Survived: 1" (colon-delimited) while OTHER mutants were killed must still
+        # reject — the pinned mutant survived. A zero count ("survived: 0") is a kill, not a survivor.
+        art = self._art("Run over 4 mutants: 3 killed. m7: Survived: 1.\n")
+        self.assertTrue(any("SURVIVED" in e for e in verify.check_negative_control(self._m(art), True)))
+
+    def test_pinned_zero_survivors_passes(self):
+        art = self._art("m7 revert applied. m7: survived: 0. 1 killed, RED.\n")
+        self.assertEqual(verify.check_negative_control(self._m(art), True), [])
+
     def test_multimutant_run_with_pinned_killed_passes(self):
         # #149 review: a multi-mutant run where OTHER mutants survived but the pinned mutant m7 was
         # killed is valid — the whole-artifact survivor scan must not reject it.

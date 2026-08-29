@@ -288,8 +288,13 @@ class TestArchitecture(unittest.TestCase):
             sect = re.search(r"(?ms)^## Terminal.*?(?=^## |\Z)", text)
             if sect:
                 declared.update(re.findall(r"`([A-Za-z][\w.-]*)`", sect.group(0)))
+            # guide self-annotations: the authoritative intent the rule must agree with, parsed
+            # precisely (heterogeneous phrasings) rather than by fragile proximity.
             degraded_annotated.update(re.findall(r"`([A-Za-z][\w.-]*)`\s+is a\s+degraded", text))
-            normal_annotated.update(re.findall(r"`([A-Za-z][\w.-]*)`[^\n]*?NORMAL terminal", text))
+            for pat in (r"`([A-Za-z][\w.-]*)`[^\n]*?NORMAL terminal",
+                        r"degraded\s+\w+\s+is never reported as\s+`([A-Za-z][\w.-]*)`",
+                        r"reporting (?:it|them) as\s+`([A-Za-z][\w.-]*)`"):
+                normal_annotated.update(re.findall(pat, text))
 
         self.assertTrue(declared, "no terminal declarations parsed from docs/missions/*.md")
         # 1) Every declared terminal is DECIDABLE (the rule is total — no ambiguity, no crash).
