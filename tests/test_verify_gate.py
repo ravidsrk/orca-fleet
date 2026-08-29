@@ -223,7 +223,7 @@ class VerifyGateSignedDispatch(unittest.TestCase):
         # exit 0 + "signature verified" pins that verification ran AGAINST the env key.
         src = _src(["AC-1"])
         m = _manifest(src, ["AC-1"], ["AC-1"])
-        rec, pub = self._sign(_digest(src), "report-only")
+        rec, pub = _sign(_digest(src), "report-only")
         r = run_gate(m, src, _digest(src), unit_class="report-only", event="task",
                      dispatch_record=rec, dispatch_pubkey=pub)   # worker-set env key, no provenance
         self.assertEqual(r.returncode, 0, r.stderr)
