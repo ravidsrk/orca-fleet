@@ -26,12 +26,15 @@ echo "self-scorer exit: $ss"
 echo
 
 echo "== [2] orca-fleet INDEPENDENT verifier (re-derives the frozen denominator) =="
-python3 "$ROOT/runtime/scripts/verify.py" --manifest "$M" --contract-source "$SRC" --contract-digest "$DIGEST" --unit-class report-only; vf=$?
+out=$(python3 "$ROOT/runtime/scripts/verify.py" --manifest "$M" --contract-source "$SRC" --contract-digest "$DIGEST" --unit-class report-only 2>&1); vf=$?
+printf '%s\n' "$out"   # includes the stderr FAIL line naming the dropped AC-2 — the checkable reason
 echo "verify.py exit: $vf"
 echo
 
 echo "== verdict =="
-if [ "$ss" -eq 0 ] && [ "$vf" -ne 0 ]; then
+# vf must be 2 (an INVARIANT failure), not merely nonzero: a git/dependency error (exit 1) is a
+# broken run, not the scope-shrink RED this demo proves.
+if [ "$ss" -eq 0 ] && [ "$vf" -eq 2 ]; then
   echo "PASS: self-scorer GREEN (exit $ss) while orca-fleet caught the dropped criterion RED (exit $vf)."
   echo "The moat is the frozen denominator + independent re-derivation, not the gate mechanism."
   exit 0

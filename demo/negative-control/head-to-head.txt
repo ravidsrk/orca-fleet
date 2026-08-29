@@ -1,4 +1,4 @@
-### negative-control head-to-head (scope-shrink trap) — 2026-08-28T15:35:43Z
+### negative-control head-to-head (scope-shrink trap) — 2026-08-29T09:06:09Z
 ### trap: frozen contract = [AC-1, AC-2]; worker self-reported only [AC-1]
 
 == [1] SELF-SCORING gate (grades the self-reported criteria) ==
@@ -6,7 +6,11 @@ selfscore: GREEN — all 1 self-reported criteria addressed
 self-scorer exit: 0
 
 == [2] orca-fleet INDEPENDENT verifier (re-derives the frozen denominator) ==
+NOTE: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+NOTE: head_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
 NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+FAIL: scope: authoritative criteria not addressed in criteria[] (absent, or addressed != true): ['AC-2']
+verify: 1 invariant(s) failed — unit is NOT done
 verify.py exit: 2
 
 == verdict ==

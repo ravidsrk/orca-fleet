@@ -348,6 +348,24 @@ class NoGhReviewLane(unittest.TestCase):
         res = verify.check_review(m, None, True, no_gh=True)
         self.assertTrue(any("does not reference head_sha" in e for e in res), res)
 
+
+class ProvenanceCheck(unittest.TestCase):
+    """#91 review: a manifest claiming a regulated standard must carry the audit fields, else it is
+    incomplete evidence masquerading as an Art-12/50 record."""
+
+    def test_incomplete_provenance_with_standard_fails(self):
+        errs = verify.check_provenance({"provenance": {"standard": "EU-AI-Act-Art-12"}})
+        self.assertTrue(any("audit fields" in e for e in errs), errs)
+
+    def test_complete_provenance_passes(self):
+        prov = {"standard": "SOC2", "spec_version": "v1", "model": "m", "reviewer": "r@t",
+                "retention": "s3://audit"}
+        self.assertEqual(verify.check_provenance({"provenance": prov}), [])
+
+    def test_no_standard_claim_skips(self):
+        self.assertEqual(verify.check_provenance({"provenance": {"standard": "none"}}), [])
+        self.assertEqual(verify.check_provenance({}), [])
+
 class MalformedManifest(unittest.TestCase):
     """#137: a malformed manifest must fail closed as an invariant failure, never crash the gate."""
 
