@@ -99,7 +99,7 @@ Rules:
 - `intent` is REQUIRED on mutation units: goal · ruled_out · why, all non-empty. It is
   discarded-agent-reasoning captured (not the completion oracle — that stays §2). A
   missing or empty packet fails verification. `claim` remains narration only.
-- `lighting` is `lit` (default) or `dark-eligible` per gate-classification.md. The verifier rejects `dark-eligible` on a stop-list / Lane-0/B unit.
+- `lighting` is `lit` (default) or `dark-eligible` per gate-classification.md. The verifier machine-checks only that the value is legal and unswapped against the dispatch-supplied value (plus, via the review leg, that a `dark-eligible` unit carries a corroborating out-of-band coordinator contract). The stop-list / Lane-0/B decision is a human gate at dispatch — verify.py never sees lane data.
 - `provenance` (optional, any class) makes the manifest a regulated audit record — governing
   spec/policy version, model lineage, reviewer identity+timestamp, and an append-only retention pointer (maps to EU AI Act Art-12/50). When it names a standard (not `none`), the verifier REQUIRES those fields be present — an incomplete packet is not a valid audit record.
 - `claim` is the worker's narration. The verifier ignores it except as a hint.
@@ -123,7 +123,7 @@ re-derives the manifest against authoritative state that lives OUTSIDE the manif
 | The metric contract is met (measurement units) | the benchmark/coverage/streak satisfies the manifest's `metric_contract` (pre-declared target + confidence + method), not a lucky single run |
 | The review was independent | `reviewer_mode` is recorded AND machine-checked for a legal value (verify.py); whether reviewer/verifier artifacts are byte-identical to (or trivially derived from) the worker's own output is a COORDINATOR judgment — a predecessor's flagship run was quarantined on exactly this; instructed isolation is named as the weaker guarantee it is |
 | Intent packet is present *(mutation units)* | `intent.goal`, `intent.ruled_out`, and `intent.why` are non-empty strings — presence only; wisdom is a human/taste check |
-| Lighting is legal | `lighting` is `lit` or `dark-eligible`; `dark-eligible` only when Lane A + unfakeable oracle + not the irreversibility stop-list (gate-classification.md) |
+| Lighting is legal | `lighting` is `lit` or `dark-eligible` AND matches the dispatch-supplied value — a swap fails (verify.py); the Lane A / unfakeable-oracle / stop-list eligibility itself is a human gate at dispatch (gate-classification.md), not machine-checked |
 
 Verification failing on any required check → the unit is NOT done; it returns to its state
 machine (re-dispatch, or SUSPECT if provenance says done but git disagrees).
