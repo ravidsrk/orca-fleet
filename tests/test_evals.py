@@ -32,7 +32,15 @@ EXPECTED_MISSIONS = {
     "prove-it", "deflake-it", "review-it", "map-it", "root-cause", "attest-it", "access-it",
 }
 
-ROUTING_MIN_SCORE = 0.60
+# Issue #181: the floor must track the live routing score, not rubber-stamp it —
+# 0.60 let a 12/30 misroute pass. 0.95, not 1.0, so adding one legitimate
+# example to evals/routing.json cannot flake the suite (30/31 = 0.968 passes),
+# while at 30 examples any >5% misroute (2/30 = 0.933) fails. The live score
+# must stay within ROUTING_SCORE_MARGIN of this floor: if the classifier
+# improves, raise the floor to match (test_run_routing_meets_minimum_score
+# enforces the margin in both directions).
+ROUTING_MIN_SCORE = 0.95
+ROUTING_SCORE_MARGIN = 0.05
 
 
 class TestEvalInfrastructure(unittest.TestCase):
@@ -84,6 +92,15 @@ class TestEvalInfrastructure(unittest.TestCase):
             result["score"], ROUTING_MIN_SCORE,
             f"routing score {result['score']:.0%} below minimum {ROUTING_MIN_SCORE:.0%}; "
             f"failures: {result['failures']}",
+        )
+        # Issue #181: keep the floor honest — it must track within
+        # ROUTING_SCORE_MARGIN of the achieved score, so a classifier
+        # improvement forces the floor up instead of reopening the gap.
+        self.assertLessEqual(
+            result["score"] - ROUTING_MIN_SCORE, ROUTING_SCORE_MARGIN + 1e-9,
+            f"routing score {result['score']:.0%} is more than "
+            f"{ROUTING_SCORE_MARGIN:.0%} above the floor {ROUTING_MIN_SCORE:.0%}; "
+            f"raise ROUTING_MIN_SCORE to track the live score",
         )
 
     def test_routing_seam_broken_vs_coverage_vs_intermittent(self):
