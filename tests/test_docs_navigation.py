@@ -202,6 +202,20 @@ class TestDocsNavigation(unittest.TestCase):
             self.assertEqual(m.group(1), tier,
                              f"docs/missions/{d.name}.md Proof tier != skills/{d.name} frontmatter")
 
+    def test_mission_guides_show_autonomy(self):
+        # #92 review: autonomy is duplicated on the SKILL frontmatter and the guide callout; without a
+        # consistency check a later level change leaves one surface stale. Bind them.
+        for d in sorted((ROOT / "skills").iterdir()):
+            if not d.is_dir() or d.name.startswith((".", "_")):
+                continue
+            level = re.search(r"(?m)^autonomy:\s*(L\d)",
+                              (d / "SKILL.md").read_text(encoding="utf-8")).group(1)
+            guide = (DOCS / "missions" / f"{d.name}.md").read_text(encoding="utf-8")
+            m = re.search(r"(?m)^> \*\*Autonomy:\*\*\s*(L\d)", guide)
+            self.assertIsNotNone(m, f"docs/missions/{d.name}.md has no Autonomy callout")
+            self.assertEqual(m.group(1), level,
+                             f"docs/missions/{d.name}.md Autonomy != skills/{d.name} frontmatter")
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

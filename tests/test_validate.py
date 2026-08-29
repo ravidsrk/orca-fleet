@@ -600,6 +600,23 @@ class ParseFrontmatterBindingTest(unittest.TestCase):
         self.assertIsNone(err)
         self.assertEqual(data["description"], "first line second line")
 
+    def test_block_scalar_followed_by_another_key_folds(self):
+        # #90 review: a block scalar that is NOT the last key exercises the mid-loop fold join — a
+        # separate code path from the post-loop join the test above covers.
+        text = (
+            "---\n"
+            "name: demo\n"
+            "description: >\n"
+            "  first line\n"
+            "  second line\n"
+            "proof: doctrine-only\n"
+            "---\nbody\n"
+        )
+        data, err = validate.parse_frontmatter(text)
+        self.assertIsNone(err)
+        self.assertEqual(data["description"], "first line second line")
+        self.assertEqual(data["proof"], "doctrine-only")
+
 
 class AutonomyFieldTest(unittest.TestCase):
     """#82: every mission declares an Osmani autonomy level L0-L5; the validator

@@ -23,7 +23,7 @@ budget on B + D, which the platform does not provide.
 |---|---|---|
 | Coordinator + workers | agent teams: **lead + teammates**, shared task list (deps + file-lock claim), plan-first | coordinator-**never-writes-code** discipline; single **merge conductor** |
 | Isolated worker | subagents with **`isolation: worktree`** (enforced) | — (isolation is free now) |
-| Build-blind reviewer | **read-only subagent** (`tools: Read, Grep, Glob`; built-in Explore/Plan deny writes) | reviewer-mode independence checks (§ evidence-manifest) |
+| Build-blind reviewer | **read-only subagent** (`tools: Read, Grep, Glob`; built-in Explore/Plan deny writes) | reviewer-mode independence checks ([evidence manifest §2](../runtime/evidence-manifest.md#2-independent-verification-the-coordinator-or-a-fresh-verifier-worker)) |
 | Serialization substrate | shared task list (dependency unblock + file-lock claim) | merge-train ordering + hot-file chains |
 | Independent verifier | **headless Agent SDK / `claude -p`** run (teammates do *not* spawn in `-p`, so it is naturally a lone, separate session) or an **MCP Task** | the re-derivation *content*: `merge-base --is-ancestor`, clean-env test at the SHA, `reviewed_sha == head_sha`, **negative control**, **frozen denominator** |
 | Completion gate | plugin **`Stop` + `TaskCompleted`** hooks (exit 2 → block completion + feedback) | what the gate *checks* (the manifest), not that a gate exists |
