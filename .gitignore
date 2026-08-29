@@ -1,4 +1,6 @@
 .env
+.secrets/*
+!.secrets/*.pub
 *.pyc
 __pycache__/
 .DS_Store
