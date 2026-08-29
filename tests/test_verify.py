@@ -5,8 +5,10 @@ The verifier trusts NOTHING in the worker's manifest it can check against an aut
 coordinator's frozen contract (scope) and dispatch-supplied unit class, GitHub (review), and the
 artifact (negative control). Each check must fail closed.
 """
+import contextlib
 import hashlib
 import importlib.util
+import io
 import json
 import os
 import subprocess
@@ -110,6 +112,50 @@ class UnitClassSelection(unittest.TestCase):
         self.assertIsNone(err)
         fatal, _notes = out
         self.assertTrue(fatal, "unclassified manifest must be gated as mutation and fail closed")
+
+    def _write_manifest(self, m):
+        fh = tempfile.NamedTemporaryFile("w", suffix=".json", delete=False)
+        json.dump(m, fh)
+        fh.close()
+        return fh.name
+
+    def _mutating_manifest(self):
+        p = _src(["AC-1"])
+        m = {"unit": "slice-2", "base_sha": "HEAD", "head_sha": "HEAD",
+             "contract": {"source": p, "digest": _digest(p), "criterion_ids": ["AC-1"]},
+             "criteria": _crit("AC-1")}
+        return p, self._write_manifest(m)
+
+    def test_unknown_unit_class_notes_and_gates_as_mutation(self):
+        # #178: an unknown class must reach _is_mutation's fallback — mutation-strict checks run
+        # and a NOTE names the unknown value (docs/verify-gate.md: "missing/unknown => mutation").
+        p, path = self._mutating_manifest()
+        out, err = verify.verify(path, p, _digest(p), repo="o/r", unit_class="mutatoin")
+        self.assertIsNone(err)
+        fatal, notes = out
+        self.assertTrue(any("NOTE:" in n and "mutatoin" in n for n in notes), notes)
+        self.assertTrue(fatal, "unknown class must fail safe to mutation strictness")
+
+    def test_unknown_unit_class_cli_is_not_a_usage_error(self):
+        # #178: argparse choices= used to wedge the CLI before the fallback ran. main() must now
+        # run the checks; the NOTE surfaces on stdout and fatals (not usage) decide the exit.
+        p, path = self._mutating_manifest()
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = verify.main(["--manifest", path, "--contract-source", p,
+                              "--contract-digest", _digest(p), "--unit-class", "mutatoin",
+                              "--repo", "o/r"])
+        self.assertEqual(rc, 2, "a mutation-invariant failure, not an argparse wedge")
+        self.assertIn("mutatoin", buf.getvalue())
+
+    def test_legal_unit_classes_emit_no_unknown_note(self):
+        # Legal values behave exactly as before: no unknown-class NOTE.
+        for cls in ("mutation", "report-only", "planning", None):
+            p, path = self._mutating_manifest()
+            out, err = verify.verify(path, p, _digest(p), repo="o/r", unit_class=cls)
+            self.assertIsNone(err)
+            _fatal, notes = out
+            self.assertFalse(any("unknown unit class" in n for n in notes), (cls, notes))
 
 
 class FreshnessCheck(unittest.TestCase):

@@ -546,6 +546,11 @@ def verify(manifest_path, contract_source=None, contract_digest=None, repo=None,
     is_mut = _is_mutation(unit_class)
     corroborated = bool(contract_source and contract_digest)
     fatal, notes = [], []
+    if unit_class is not None and unit_class not in UNIT_CLASSES:
+        # An unknown class (a typo, or a class this script predates) must not wedge on a usage
+        # error: _is_mutation already fails safe to mutation — say so loudly (#178).
+        notes.append(f"NOTE: unknown unit class {unit_class!r} — expected one of "
+                     f"{sorted(UNIT_CLASSES)}; failing safe to mutation-strict checks (#178)")
     checks = (
         lambda: check_scope(m, contract_source, contract_digest),
         lambda: check_shas_present(m),
@@ -582,9 +587,10 @@ def main(argv=None):
     ap.add_argument("--execute-nc", action="store_true", help="replay the negative control (heavier)")
     ap.add_argument("--base", default=None, help="integration base branch (for ancestry)")
     ap.add_argument("--symbol", default=None, help="a unit symbol to grep on the base")
-    ap.add_argument("--unit-class", default=None, choices=UNIT_CLASSES,
+    ap.add_argument("--unit-class", default=None,
                     help="unit class from the dispatch record (mutation|report-only|planning); "
-                         "missing => mutation (fail-safe)")
+                         "missing/unknown => mutation (fail-safe, with a NOTE) — validated in "
+                         "code, not by argparse, so an unknown value cannot wedge the gate (#178)")
     ap.add_argument("--no-gh", action="store_true",
                     help="offline/no-gh lane (merge-serialization.md): review is a local reviewer "
                          "artifact at head_sha, coordinator-attested — set by the coordinator, not the worker")
