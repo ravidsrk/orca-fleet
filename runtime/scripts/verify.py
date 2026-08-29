@@ -230,16 +230,34 @@ def review_ok(reviews, head_sha, author=None):
     return False
 
 
+def parse_review_pages(out):
+    """`gh api --paginate` concatenates one JSON array per page; merge them into a single list.
+    Fail-closed on malformed output or a non-array page."""
+    dec = json.JSONDecoder()
+    items, i = [], 0
+    while True:
+        while i < len(out) and out[i] in " \t\r\n":
+            i += 1
+        if i >= len(out):
+            return items, None
+        try:
+            obj, i = dec.raw_decode(out, i)
+        except (json.JSONDecodeError, ValueError) as err:
+            return None, str(err)
+        if not isinstance(obj, list):
+            return None, "unexpected non-array page in gh output"
+        items.extend(obj)
+
+
 def fetch_reviews(repo, pr_number):
     if shutil.which("gh") is None:
         return None, "gh not on PATH"
-    code, out, err = _run(["gh", "api", f"repos/{repo}/pulls/{pr_number}/reviews"])
+    # --paginate: without it GitHub returns the first 30 reviews only, and review_ok would
+    # compute "latest per reviewer" over a stale window (#167).
+    code, out, err = _run(["gh", "api", "--paginate", f"repos/{repo}/pulls/{pr_number}/reviews"])
     if code != 0:
         return None, (err.strip() or "gh api failed")
-    try:
-        return json.loads(out), None
-    except (json.JSONDecodeError, ValueError) as err:
-        return None, str(err)
+    return parse_review_pages(out)
 
 
 def fetch_pr_author(repo, pr_number):

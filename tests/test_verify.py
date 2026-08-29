@@ -8,9 +8,11 @@ artifact (negative control). Each check must fail closed.
 import hashlib
 import importlib.util
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parent.parent
 _spec = importlib.util.spec_from_file_location("verify", ROOT / "runtime" / "scripts" / "verify.py")
@@ -286,6 +288,108 @@ class ReviewLookupBinding(unittest.TestCase):
         # must fail closed — review is waived, but the oracle must be unfakeable.
         res = verify.check_review(self._m(), "o/r", True, corroborated=False, dispatch_lighting="dark-eligible")
         self.assertTrue(any("forgeable" in e and not e.startswith("NOTE:") for e in res), res)
+
+
+class ReviewPagination(unittest.TestCase):
+    """#167: fetch_reviews must follow ALL pages (`gh api --paginate`). Without it GitHub returns
+    the first 30 reviews only, so a stale APPROVED on page 1 outranks the same reviewer's later
+    CHANGES_REQUESTED, and a fresh APPROVED past page 1 is invisible. A fake `gh` on PATH
+    (test_preflight.py pattern) emulates the real CLI: page 1 only without --paginate."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        tmp = Path(self._tmp.name)
+        self._page1 = tmp / "page1.json"
+        self._page2 = tmp / "page2.json"
+        fakebin = tmp / "bin"
+        fakebin.mkdir()
+        gh = fakebin / "gh"
+        gh.write_text(
+            '#!/bin/sh\n'
+            'case "$*" in\n'
+            '  *reviews*)\n'
+            '    case " $* " in\n'
+            '      *" --paginate "*) cat "$FAKE_GH_PAGE1" "$FAKE_GH_PAGE2";;\n'
+            '      *) cat "$FAKE_GH_PAGE1";;\n'
+            '    esac;;\n'
+            '  *) echo "{\\"user\\":{\\"login\\":\\"pr-author\\"}}";;\n'
+            'esac\n',
+            encoding="utf-8",
+        )
+        gh.chmod(0o755)
+        self._env = {"PATH": f"{fakebin}{os.pathsep}{os.environ['PATH']}",
+                     "FAKE_GH_PAGE1": str(self._page1),
+                     "FAKE_GH_PAGE2": str(self._page2)}
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def _verdict_with_pages(self, page1, page2):
+        self._page1.write_text(json.dumps(page1) + "\n", encoding="utf-8")
+        self._page2.write_text(json.dumps(page2) + "\n", encoding="utf-8")
+        with mock.patch.dict(os.environ, self._env):
+            return verify.check_review(
+                {"unit": "ship-it", "head_sha": "H", "pr": {"number": 7}}, "o/r", True)
+
+    @staticmethod
+    def _filler(n):
+        return [{"state": "COMMENTED", "commit_id": "H",
+                 "user": {"login": f"bot{i}"}} for i in range(n)]
+
+    def test_fetches_all_pages_31_review_fixture(self):
+        # 31 reviews over two pages; the only APPROVED is review #31 — invisible on page 1 alone.
+        res = self._verdict_with_pages(self._filler(30),
+                                       [{"state": "APPROVED", "commit_id": "H",
+                                         "user": {"login": "carol"}}])
+        self.assertEqual(res, [])
+
+    def test_page2_changes_requested_supersedes_page1_approval(self):
+        page1 = self._filler(29) + [{"state": "APPROVED", "commit_id": "H",
+                                     "user": {"login": "carol"}}]
+        page2 = [{"state": "CHANGES_REQUESTED", "commit_id": "H",
+                  "user": {"login": "carol"}}]
+        res = self._verdict_with_pages(page1, page2)
+        self.assertTrue(any("APPROVED" in e for e in res), res)
+
+    def test_approval_only_on_page2_passes(self):
+        res = self._verdict_with_pages(self._filler(30),
+                                       [{"state": "APPROVED", "commit_id": "H",
+                                         "user": {"login": "carol"}}])
+        self.assertEqual(res, [])
+
+    def test_gh_error_fails_closed(self):
+        self._page1.write_text("not json\n", encoding="utf-8")
+        self._page2.write_text("not json\n", encoding="utf-8")
+        with mock.patch.dict(os.environ, self._env):
+            res = verify.check_review(
+                {"unit": "ship-it", "head_sha": "H", "pr": {"number": 7}}, "o/r", True)
+        self.assertTrue(any("cannot fetch" in e for e in res), res)
+
+
+class PaginatedJsonParsing(unittest.TestCase):
+    """#167: `gh api --paginate` concatenates one JSON array per page; the parse step merges them
+    and fails closed on malformed output."""
+
+    def test_single_array_still_parses(self):
+        items, err = verify.parse_review_pages(json.dumps([{"state": "APPROVED"}]))
+        self.assertIsNone(err)
+        self.assertEqual(items, [{"state": "APPROVED"}])
+
+    def test_concatenated_arrays_merge(self):
+        out = json.dumps([{"a": 1}]) + "\n" + json.dumps([{"b": 2}]) + "\n"
+        items, err = verify.parse_review_pages(out)
+        self.assertIsNone(err)
+        self.assertEqual(items, [{"a": 1}, {"b": 2}])
+
+    def test_malformed_output_fails_closed(self):
+        items, err = verify.parse_review_pages('[{"a": 1}]\nnot json')
+        self.assertIsNone(items)
+        self.assertTrue(err)
+
+    def test_non_array_page_fails_closed(self):
+        items, err = verify.parse_review_pages('{"unexpected": "object"}')
+        self.assertIsNone(items)
+        self.assertTrue(err)
 
 
 class ShasBinding(unittest.TestCase):
