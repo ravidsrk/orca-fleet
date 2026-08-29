@@ -267,10 +267,26 @@ class MetaChecks(unittest.TestCase):
 
     def test_lighting_legal_for_mutation(self):
         self.assertTrue(verify.check_lighting({"lighting": "bright"}, True))
-        self.assertTrue(verify.check_lighting({}, True))
+        self.assertTrue(verify.check_lighting({"lighting": "bogus"}, True))
         self.assertEqual(verify.check_lighting({"lighting": "lit"}, True), [])
         self.assertEqual(verify.check_lighting({"lighting": "dark-eligible"}, True), [])
         self.assertEqual(verify.check_lighting({}, False), [])
+
+    def test_missing_lighting_defaults_to_lit(self):
+        # #169: doctrine — "Recording nothing means lit" (gate-classification.md).
+        self.assertEqual(verify.check_lighting({}, True), [])
+        self.assertEqual(verify.check_lighting({}, True, dispatch_lighting="lit"), [])
+
+    def test_null_lighting_is_not_omission(self):
+        # An explicit null is a present illegal value, not omission — it must still fail.
+        errs = verify.check_lighting({"lighting": None}, True)
+        self.assertTrue(any("lighting must be" in e for e in errs), errs)
+
+    def test_missing_lighting_with_dark_dispatch_is_a_swap(self):
+        # #169: omission means lit, so a dark-eligible dispatch + omitted manifest lighting
+        # implies the run used the dark waiver while the manifest says lit — still a swap.
+        errs = verify.check_lighting({}, True, dispatch_lighting="dark-eligible")
+        self.assertTrue(any("swap" in e for e in errs), errs)
 
     def test_reviewer_mode_legal_for_mutation(self):
         self.assertTrue(verify.check_reviewer_mode({"reviewer_mode": "self"}, True))
@@ -868,8 +884,9 @@ class EndToEndMutationGreen(unittest.TestCase):
                                   "artifact": self.nc_artifact},
              "intent": {"goal": "land the change", "ruled_out": "the alternatives",
                         "why": "the criterion demands it"},
-             "lighting": lighting,
              "reviewer_mode": "cross-vendor"}
+        if lighting is not None:  # None = omit the key entirely (#169: omission means lit)
+            m["lighting"] = lighting
         fh = tempfile.NamedTemporaryFile("w", suffix=".json", delete=False)
         json.dump(m, fh)
         fh.close()
@@ -910,6 +927,34 @@ class EndToEndMutationGreen(unittest.TestCase):
                               "--lighting", "dark-eligible"])
         self.assertEqual(rc, 0)
         self.assertIn("dark-eligible", buf.getvalue())
+
+    def test_omitted_lighting_is_lit_end_to_end(self):
+        # #169: a mutation manifest with no lighting key verifies clean — omission means lit.
+        path = self._manifest(lighting=None)
+        out, err = verify.verify(path, self.contract, self.digest, repo="o/r",
+                                 unit_class="mutation", lighting="lit")
+        self.assertIsNone(err)
+        fatal, notes = out
+        self.assertEqual(fatal, [], fatal)
+
+    def test_omitted_lighting_with_dark_dispatch_fails_end_to_end(self):
+        # #169: the swap interaction — dispatch used the dark waiver but the omitted manifest
+        # lighting implies lit, so the aggregate is fatal (exit 2).
+        path = self._manifest(lighting=None)
+        out, err = verify.verify(path, self.contract, self.digest, repo="o/r",
+                                 unit_class="mutation", lighting="dark-eligible")
+        self.assertIsNone(err)
+        fatal, notes = out
+        self.assertTrue(any("swap" in f for f in fatal), fatal)
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(io.StringIO()):
+            rc = verify.main(["--manifest", path,
+                              "--contract-source", self.contract,
+                              "--contract-digest", self.digest,
+                              "--repo", "o/r",
+                              "--unit-class", "mutation",
+                              "--lighting", "dark-eligible"])
+        self.assertEqual(rc, 2)
 
 
 _edspec = importlib.util.spec_from_file_location("ed25519", ROOT / "runtime" / "scripts" / "ed25519.py")
