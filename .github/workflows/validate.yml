@@ -1,0 +1,21 @@
+name: validate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Validate missions, playbooks, and evals
+        run: python3 scripts/validate.py
+      - name: Run the contract test suite
+        run: python3 -m unittest discover -s tests
+      - name: Check proof-evidence honesty
+        run: python3 runtime/scripts/proof_status.py --check
