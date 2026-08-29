@@ -419,13 +419,17 @@ def check_intent(m, is_mutation):
 
 
 def check_lighting(m, is_mutation, dispatch_lighting=None):
-    """8. Lighting is a legal value (gate-classification.md). dark-eligibility's stop-list is a human
-    gate; verify.py machine-checks that the value is legal and, when the dispatch supplied a lighting,
-    that the worker's manifest did not swap it (the dispatch value is authoritative for the review
-    waiver in check_review)."""
+    """8. Lighting is a legal value when present; omission defaults to lit — "Recording nothing
+    means lit" (gate-classification.md). dark-eligibility's stop-list is a human gate; verify.py
+    machine-checks that the value is legal and, when the dispatch supplied a lighting, that the
+    worker's manifest did not swap it (the dispatch value is authoritative for the review waiver
+    in check_review). Omission being lit means a dark-eligible dispatch + omitted manifest
+    lighting is a swap."""
     if not is_mutation:
         return []
     lighting = m.get("lighting")
+    if lighting is None:
+        lighting = "lit"  # omission means lit (gate-classification.md)
     if not (isinstance(lighting, str) and lighting in LIGHTING_VALUES):
         return [f"lighting must be one of {sorted(LIGHTING_VALUES)}, got {lighting!r}"]
     if dispatch_lighting is not None and lighting != dispatch_lighting:
