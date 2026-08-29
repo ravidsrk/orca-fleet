@@ -8,13 +8,14 @@ truth is `.claude-plugin/plugin.json`.
 
 ### Added
 
-- Signed dispatch records make the **native `Stop`/`TaskCompleted` hook sound**, not just advisory
-  (issue #135, follow-up to #112). The coordinator signs `{manifest-id, contract-digest, unit-class,
-  lighting}` off-worker (`runtime/scripts/dispatch-sign.py`, vendored Ed25519 in
-  `runtime/scripts/ed25519.py`); `verify.py` / `verify-gate.sh` verify the signature against a
-  repo-pinned public key (`.orca/dispatch-pubkey@origin/HEAD`) and reject any in-session substitution of
-  those values. Opt-in by committing the pubkey; default behaviour is unchanged. See
-  [docs/verify-gate.md](docs/verify-gate.md#signed-dispatch--making-the-native-path-sound-135).
+- Signed dispatch records make a worker's substitution of `{manifest-id, contract-digest, unit-class,
+  lighting}` **detectable off-worker** (issue #135, follow-up to #112). The coordinator signs the tuple
+  off-worker (`runtime/scripts/dispatch-sign.py`, vendored Ed25519 in `runtime/scripts/ed25519.py`);
+  `verify.py` verifies the signature against a supplied public key, binds it to the unit, and rejects a
+  substituted or unsigned field. This is a soundness boundary **when the verifying key is trusted —
+  i.e. off-worker** (CI/MCP/SDK, or an auditor with the coordinator's real key); the native in-session
+  hook stays advisory (no in-session anchor is worker-untamperable, the #112 result). Opt-in; default
+  behaviour unchanged. See [docs/verify-gate.md](docs/verify-gate.md#signed-dispatch--making-the-native-path-sound-135).
 
 ### Fixed
 

@@ -537,6 +537,13 @@ class DispatchProvenance(unittest.TestCase):
     def test_no_provenance_is_advisory(self):
         self.assertEqual(verify.check_dispatch_provenance(self._M, "sha256:a", "mutation", "lit", None, None), [])
 
+    def test_unsigned_used_field_fails_closed(self):
+        # #162 review: a field the run uses but the record didn't sign is unbound — fail closed, don't
+        # silently accept it (a worker could set an unsigned lighting freely).
+        rec, pk = self._signed({"manifest_id": "u", "contract_digest": "sha256:a", "unit_class": "mutation"})
+        res = verify.check_dispatch_provenance(self._M, "sha256:a", "mutation", "dark-eligible", rec, pk)
+        self.assertTrue(any("did not sign lighting" in e for e in res), res)
+
     def test_canonicalization_matches_signer(self):
         # cross-tool drift guard: the gate and the signer must canonicalize identically, else every
         # real signature would fail to verify.

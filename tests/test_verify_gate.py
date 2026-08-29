@@ -135,8 +135,9 @@ class VerifyGateStopScope(unittest.TestCase):
 
 
 class VerifyGateSignedDispatch(unittest.TestCase):
-    """#135: a coordinator-signed dispatch record makes the native path sound — the gate forwards it,
-    verifies it against the pinned pubkey, and blocks a worker that substitutes a signed value."""
+    """#135: the gate forwards a signed dispatch record to verify.py; the signature is checked and a
+    substituted value is blocked. Off-worker (provenance set) it is a soundness boundary; on the native
+    path it stays advisory — no in-session anchor is trustworthy."""
 
     def _sign(self, digest, unit_class, manifest_id="review-it", lighting=None):
         d = tempfile.mkdtemp()
@@ -152,16 +153,16 @@ class VerifyGateSignedDispatch(unittest.TestCase):
         rec_path.write_text(rec, encoding="utf-8")
         return str(rec_path), str(Path(d) / "key.pub")
 
-    def test_signed_dispatch_verified_is_sound(self):
-        # ORCA_PROVENANCE=dispatch: the pubkey originates off-worker, so the gate trusts it (the native
-        # path deliberately ignores a worker-set ORCA_DISPATCH_PUBKEY — see verify-gate.sh).
+    def test_signed_dispatch_verified_off_worker(self):
+        # ORCA_PROVENANCE=dispatch models an OFF-WORKER context that supplies the key: verify.py checks
+        # the signature and the advisory NOTE is suppressed.
         src = _src(["AC-1"])
         m = _manifest(src, ["AC-1"], ["AC-1"])   # _manifest's unit is "review-it"
         rec, pub = self._sign(_digest(src), "report-only")
         r = run_gate(m, src, _digest(src), unit_class="report-only", event="task",
                      provenance="dispatch", dispatch_record=rec, dispatch_pubkey=pub)
         self.assertEqual(r.returncode, 0, r.stderr)
-        self.assertIn("provenance verified", r.stdout + r.stderr)
+        self.assertIn("signature verified", r.stdout + r.stderr)
         self.assertNotIn("ADVISORY", r.stderr)
 
     def test_signed_dispatch_class_substitution_blocks(self):
@@ -173,15 +174,14 @@ class VerifyGateSignedDispatch(unittest.TestCase):
         self.assertEqual(r.returncode, 2)
         self.assertIn("substitution", r.stderr)
 
-    def test_native_path_ignores_worker_set_pubkey(self):
-        # #135 review: on the native path (no off-worker provenance) a worker-set ORCA_DISPATCH_PUBKEY
-        # must be ignored, so a self-signed record cannot make the gate claim soundness.
+    def test_native_hook_stays_advisory_with_record(self):
+        # #135 review: no in-session anchor is trustworthy (worker controls ORCA_*), so even with a
+        # record + key the NATIVE path (no off-worker provenance) must stay ADVISORY — never claim sound.
         src = _src(["AC-1"])
         m = _manifest(src, ["AC-1"], ["AC-1"])
-        rec, pub = self._sign(_digest(src), "report-only")   # "coordinator" here is really the worker
+        rec, pub = self._sign(_digest(src), "report-only")
         r = run_gate(m, src, _digest(src), unit_class="report-only", event="task",
                      dispatch_record=rec, dispatch_pubkey=pub)   # no provenance → native path
-        self.assertNotIn("provenance verified", r.stdout + r.stderr)
         self.assertIn("ADVISORY", r.stderr)
 
 

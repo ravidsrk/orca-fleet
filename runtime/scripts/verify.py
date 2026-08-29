@@ -445,25 +445,26 @@ def _canonical_dispatch(record):
 
 
 def check_dispatch_provenance(m, contract_digest, unit_class, lighting, record_ref, pubkey_ref):
-    """11. #135: make the NATIVE in-session hook sound. The gate trusts contract_digest / unit_class /
-    lighting that arrive via (worker-controllable) env; a coordinator-signed dispatch record, verified
-    with an OFF-WORKER public key (the gate supplies it — see verify-gate.sh; never a worker-set key),
-    proves the worker did not substitute them, and its manifest_id binds it to THIS unit (no replay).
-      - neither configured -> [] (advisory native path, #112, unchanged).
-      - only one of record/pubkey -> fail-closed (cannot verify).
-      - bad signature, a signed field != the value used, or an id that names another unit -> fatal.
-      - all good -> NOTE (native path is sound for this unit)."""
+    """11. #135: verify a coordinator-signed dispatch record so a run's contract_digest / unit_class /
+    lighting can be checked against what the coordinator actually authorized. This is a SOUNDNESS
+    boundary only when the *verifying key* is trusted — i.e. supplied by an OFF-WORKER context
+    (CI/MCP/SDK, or an auditor re-running verify.py with the coordinator's real public key). In the
+    native in-session hook the worker controls the key source, so there it is defense-in-depth, not a
+    boundary (verify-gate.sh keeps that lane ADVISORY; the durable value is off-worker detection).
+      - neither record nor pubkey -> [] (nothing to check).
+      - only one of them -> fail-closed (cannot verify).
+      - bad signature, an id that names another unit, or a used field the record did not sign / signed
+        differently -> fatal (substitution / replay caught).
+      - all good -> NOTE (signature verified against the SUPPLIED key)."""
     if not record_ref and not pubkey_ref:
         return []
     if bool(record_ref) != bool(pubkey_ref):
         missing = "--dispatch-record" if pubkey_ref else "--dispatch-pubkey"
-        return [f"dispatch provenance half-configured (missing {missing}) — cannot prove the native "
-                "path is sound; fail-closed (#135)"]
+        return [f"dispatch provenance half-configured (missing {missing}) — cannot verify; fail-closed (#135)"]
     try:
         ed = _load_ed25519()
     except Exception as exc:
-        return [f"dispatch provenance requested but the Ed25519 verifier is unavailable ({exc}) — "
-                "cannot prove soundness, fail-closed"]
+        return [f"dispatch provenance requested but the Ed25519 verifier is unavailable ({exc}) — fail-closed"]
     rec_text, err = read_source(record_ref)
     if err:
         return [f"dispatch record unreadable ({record_ref}): {err}"]
@@ -478,21 +479,28 @@ def check_dispatch_provenance(m, contract_digest, unit_class, lighting, record_r
     except (ValueError, KeyError, TypeError) as exc:
         return [f"dispatch record / pubkey malformed ({exc})"]
     if not ed.checkvalid(sig, _canonical_dispatch(record), pub):
-        return ["dispatch record signature INVALID for the pinned pubkey — not coordinator-signed "
-                "(a worker-forged record); fail-closed (#135)"]
+        return ["dispatch record signature INVALID for the supplied pubkey — not signed by that key "
+                "(forged or wrong key); fail-closed (#135)"]
     signed_id = record.get("manifest_id")
     manifest_id = m.get("unit")
     if not signed_id or not manifest_id or signed_id != manifest_id:
         return [f"dispatch record identity {signed_id!r} does not bind this manifest {manifest_id!r} "
                 "— a record must name the unit it authorizes, else another unit's record replays (#135)"]
+    # Every value the run actually used must be signed AND match — an UNSIGNED field is unbound, so a
+    # worker could set it freely; treat that as fail-closed, not a pass.
     for field, used in (("contract_digest", contract_digest), ("unit_class", unit_class),
                         ("lighting", lighting)):
+        if used is None:
+            continue
         signed = record.get(field)
-        if used is not None and signed is not None and signed != used:
+        if signed is None:
+            return [f"dispatch record did not sign {field} but the run uses it — unbound value, "
+                    "fail-closed (the coordinator must sign every field the gate enforces) (#135)"]
+        if signed != used:
             return [f"dispatch substitution: the run used {field}={used!r} but the coordinator signed "
-                    f"{signed!r} — the in-session value was tampered (#135)"]
-    return ["NOTE: dispatch provenance verified (coordinator-signed) — native in-session path is "
-            "sound for this unit (#135)"]
+                    f"{signed!r} — the value was tampered (#135)"]
+    return ["NOTE: dispatch record signature verified against the supplied key (#135) — a soundness "
+            "boundary only if that key is trusted (off-worker: CI/MCP/SDK or an auditor)"]
 
 
 def verify(manifest_path, contract_source=None, contract_digest=None, repo=None,

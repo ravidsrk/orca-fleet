@@ -45,24 +45,14 @@ SYMBOL="${ORCA_SYMBOL:-}"
 UNIT_CLASS="${ORCA_UNIT_CLASS:-}"
 NO_GH="${ORCA_NO_GH:-}"
 LIGHTING="${ORCA_LIGHTING:-}"
-RECORD="${ORCA_DISPATCH_RECORD:-}"   # the record itself may be worker-supplied — a forged one won't verify
-# The verification KEY must originate OFF the graded worker; a worker-set key (env) or a key it
-# committed to its own branch/HEAD would let it self-sign. Two trusted sources (#135):
-REPO_ROOT="$HERE/../.."
-case "${ORCA_PROVENANCE:-}" in
-  ci|mcp|sdk|dispatch)
-    # off-worker orchestrator sets the env (the #112 sound lane) — its pubkey is trusted.
-    PUBKEY="${ORCA_DISPATCH_PUBKEY:-}" ;;
-  *)
-    # native path: IGNORE any worker-set ORCA_DISPATCH_PUBKEY. Use the committed pin, anchored to the
-    # REMOTE default branch (origin/HEAD) — a local branch/HEAD is worker-writable, the reviewed
-    # remote ref is not. Sound only where the worker cannot push that ref (docs/verify-gate.md).
-    PUBKEY=""
-    DEF_REF="$(git -C "$REPO_ROOT" symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)"
-    if git -C "$REPO_ROOT" cat-file -e "$DEF_REF:.orca/dispatch-pubkey" 2>/dev/null; then
-      PUBKEY=".orca/dispatch-pubkey@$DEF_REF"
-    fi ;;
-esac
+RECORD="${ORCA_DISPATCH_RECORD:-}"
+PUBKEY="${ORCA_DISPATCH_PUBKEY:-}"
+# #135: forward a signed dispatch record + pubkey to verify.py when present. NOTE this does NOT make
+# the native in-session path sound: on the native hook the worker controls every input the gate could
+# use to establish trust — ORCA_PROVENANCE, ORCA_DISPATCH_PUBKEY, and even `origin`/local refs are all
+# worker-writable — so no in-session key is trustworthy (the #112 result). The signed record's real
+# value is OFF-WORKER: CI/MCP/SDK, or an auditor, re-runs verify.py with the coordinator's REAL public
+# key and detects any substitution. Soundness is a property of WHERE this runs, not of any env var.
 
 if [ -z "$MANIFEST" ]; then
   # Stop fires on EVERY turn end; a turn with no unit in progress (manifest unset) has nothing to
@@ -93,19 +83,16 @@ set -- --manifest "$MANIFEST"
 [ -n "$PUBKEY" ] && set -- "$@" --dispatch-pubkey "$PUBKEY"
 [ -n "${ORCA_EXECUTE_NC:-}" ] && set -- "$@" --execute-nc
 
-# Trust boundary (#112, #135): the digest + unit class are only as sound as the KEY that verifies them.
-if [ -n "$PUBKEY" ] && [ -n "$RECORD" ]; then
-  : # an off-worker-anchored pubkey + a signed record are present — verify.py verifies the signature
-    # and binds it to this unit, so the native in-session path is SOUND for this unit (#135).
-else
-  case "${ORCA_PROVENANCE:-}" in
-    ci|mcp|sdk|dispatch) : ;;  # env originates off the graded worker — the sound guarantee holds
-    *) echo "verify-gate: NOTE — provenance unverified (ORCA_PROVENANCE unset, no off-worker-anchored" \
-            "signed dispatch); on the native in-session hook path this gate is ADVISORY, not a" \
-            "soundness boundary. Commit .orca/dispatch-pubkey on a ref the worker cannot push and sign" \
-            "the dispatch record, or run under CI/MCP/SDK — docs/verify-gate.md#trust-boundary." >&2 ;;
-  esac
-fi
+# Trust boundary (#112, #135): soundness is a property of the EXECUTION CONTEXT, not of an env var the
+# worker can set. A signed dispatch record is verified (defense-in-depth in-session; a real boundary
+# only off-worker with a trusted key).
+case "${ORCA_PROVENANCE:-}" in
+  ci|mcp|sdk|dispatch) : ;;  # off-worker context sets the env AND the key — sound; record is auditable
+  *) echo "verify-gate: NOTE — native in-session hook is ADVISORY: the worker controls ORCA_* (incl." \
+          "ORCA_PROVENANCE and any dispatch key), so nothing here is a soundness boundary. A signed" \
+          "ORCA_DISPATCH_RECORD is verified, but is a boundary only OFF-WORKER — CI/MCP/SDK or an" \
+          "auditor re-running verify.py with the coordinator's real key — docs/verify-gate.md#trust-boundary." >&2 ;;
+esac
 
 # Any nonzero from verify.py (2 = invariant failed, 1 = usage/dep) is a BLOCK: an un-runnable or
 # failing verifier is never a green light. Capture the REAL exit in the else branch — `$?` after a
