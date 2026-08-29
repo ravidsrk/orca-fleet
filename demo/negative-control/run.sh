@@ -14,7 +14,16 @@ M="$HERE/gamed-manifest.json"
 # The AUTHORITATIVE frozen contract is supplied by the coordinator (here: this script), NOT read
 # from the worker's manifest — that is what makes the denominator un-swappable.
 SRC="demo/negative-control/frozen-spec.md"
-DIGEST="sha256:$(shasum -a 256 "$ROOT/$SRC" | awk '{print $1}')"
+# sha256sum is the GNU spelling, `shasum -a 256` the macOS one — take whichever exists (#163).
+if command -v sha256sum >/dev/null 2>&1; then
+  sha256() { sha256sum "$@"; }
+elif command -v shasum >/dev/null 2>&1; then
+  sha256() { shasum -a 256 "$@"; }
+else
+  echo "run.sh: need sha256sum or shasum to compute the contract digest" >&2
+  exit 1
+fi
+DIGEST="sha256:$(sha256 "$ROOT/$SRC" | awk '{print $1}')"
 
 echo "### negative-control head-to-head (scope-shrink trap) — $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 echo "### trap: frozen contract = [AC-1, AC-2]; worker self-reported only [AC-1]"
