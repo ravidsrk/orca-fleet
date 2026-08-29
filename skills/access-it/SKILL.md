@@ -63,9 +63,10 @@ criteria, and no violation is silently dropped.
 ## Ledger + supervision
 
 Ledger header at T0 (`ledger-contract.md`) with `WIP: builders=<n> reviewers=<n>` sized to
-`attention-budget.md` (fix workers are a mutation wave: ≤3 builders, ≤1 reviewer per 3). Stalls →
-`liveness-resume.md` WATCH; death/compaction → RESUME (ledger-scoped, git-verified). Fixes land via
-`merge-serialization` with `reviewed-sha-freshness`.
+`attention-budget.md` (fix workers are a mutation wave: ≤3 builders, 1 reviewer per 3 builders, with
+at least 1 reviewer). Stalls → `liveness-resume.md` WATCH; death → RESUME, while compaction → write
+`CONTEXT HANDOFF` then RESUME (ledger-scoped, git-verified). Fixes land via `merge-serialization` with
+`reviewed-sha-freshness`.
 
 ## Anti-patterns
 

@@ -154,13 +154,22 @@ class TestDocsNavigation(unittest.TestCase):
 
     def test_mission_index_lists_every_skill(self):
         # #125: docs/missions/README.md indexed 11 of 13 (attest-it, access-it missing). The index
-        # must link every skills/<name> guide, or it is a false catalog.
-        index = (DOCS / "missions" / "README.md").read_text(encoding="utf-8")
-        linked = set(re.findall(r"\[[^\]]+\]\((\w[\w-]*)\.md\)", index))
+        # must link every skills/<name> guide. #143 review: resolve each link target against the
+        # index's directory and require it to point at a REAL file — a basename match through a
+        # broken path is not a link a reader can follow.
+        index_path = DOCS / "missions" / "README.md"
+        index = index_path.read_text(encoding="utf-8")
+        resolved = set()
+        for target in re.findall(r"\[[^\]]+\]\(([^)]+\.md)\)", index):
+            p = (index_path.parent / target).resolve()
+            if p.is_file():
+                resolved.add(p)
         for d in sorted((ROOT / "skills").iterdir()):
             if d.is_dir() and not d.name.startswith((".", "_")):
-                self.assertIn(d.name, linked,
-                              f"docs/missions/README.md omits the {d.name} guide")
+                guide = (DOCS / "missions" / f"{d.name}.md").resolve()
+                self.assertIn(guide, resolved,
+                              f"docs/missions/README.md omits a followable link to the {d.name} guide "
+                              "(a basename match through a broken path is not a link readers can follow)")
 
     def test_distribution_proof_mix_matches_reality(self):
         # #125: the illustrative proof mix in distribution.md must match the live proof_status rollup,
@@ -174,9 +183,9 @@ class TestDocsNavigation(unittest.TestCase):
         text = (DOCS / "distribution.md").read_text(encoding="utf-8")
         for tier in ("doctrine-only", "self-run", "external-run"):
             m = re.search(rf"(\d+)\s+{re.escape(tier)}", text)
-            if m:
-                self.assertEqual(int(m.group(1)), counts[tier],
-                                 f"distribution.md {tier} count is stale (live: {counts[tier]})")
+            self.assertIsNotNone(m, f"distribution.md omits the {tier} count (live: {counts[tier]})")
+            self.assertEqual(int(m.group(1)), counts[tier],
+                             f"distribution.md {tier} count is stale (live: {counts[tier]})")
 
     def test_mission_guides_show_proof_tier(self):
         # #124: every mission guide surfaces its proof tier (matching the SKILL frontmatter), so a
