@@ -8,6 +8,8 @@ fooled by at least one (else there is no contrast), and the sound gate still pas
 """
 import importlib.util
 import json
+import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -160,6 +162,76 @@ class VFBenchAncestryLeg(unittest.TestCase):
         self.assertEqual(r.returncode, 2, r.stderr)
         self.assertIn("not an ancestor of origin/main", r.stderr)
         self.assertIn("is not a real commit", r.stderr)
+
+
+class VFBenchReviewLeg(unittest.TestCase):
+    """#174: vf-bench scores exit codes only, so a RED verdict on the review-fetch-fail-closed
+    trap would not by itself prove check_review ran past the pr.number guard. Pin the right
+    reason twice: (1) with the ambient environment the trap fails CLOSED at the review fetch
+    (the trap's repo owner contains an underscore, which GitHub usernames forbid, so the lookup
+    404s even authenticated; without gh the same leg reports 'gh not on PATH' — both wordings
+    carry 'cannot fetch reviews'), and (2) with a stubbed gh serving review pages the verdict is
+    decided by review_ok ALONE — COMMENTED-only stays RED, an independent APPROVED at head_sha
+    flips GREEN — so a regression that accepts COMMENTED reviews turns this trap into a
+    false-done. The ancestry leg is #172's non-ancestor-sha trap — referenced, not duplicated."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.trap = next(t for t in vfbench.load_traps() if t["class"] == "review-fetch-fail-closed")
+
+    def _run_verify(self, env=None):
+        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
+            json.dump(self.trap["manifest"], fh)
+            path = fh.name
+        try:
+            return subprocess.run(
+                [sys.executable, str(vfbench.VERIFY), "--manifest", path,
+                 "--contract-source", self.trap["contract_source"],
+                 "--contract-digest", self.trap["contract_digest"],
+                 "--unit-class", self.trap["unit_class"], "--repo", self.trap["repo"]],
+                capture_output=True, text=True, cwd=vfbench.ROOT, env=env)
+        finally:
+            Path(path).unlink(missing_ok=True)
+
+    def test_review_trap_is_red_via_the_fail_closed_fetch(self):
+        r = self._run_verify()
+        self.assertEqual(r.returncode, 2, r.stderr)
+        self.assertNotIn("no pr.number", r.stderr)  # the leg ran PAST the pr.number guard
+        self.assertIn("cannot fetch reviews", r.stderr)  # and failed CLOSED at the fetch
+
+    def test_review_trap_verdict_tracks_review_ok(self):
+        head = self.trap["manifest"]["head_sha"]
+        r = subprocess.run(["git", "cat-file", "-e", f"{head}^{{commit}}"], cwd=vfbench.ROOT)
+        if r.returncode != 0:
+            raise unittest.SkipTest("shallow clone without the trap's pinned commit — "
+                                    "the GREEN half cannot run here")
+
+        def env_with_stub(reviews):
+            stub = (
+                "#!/usr/bin/env python3\n"
+                "import json, sys\n"
+                "endpoint = sys.argv[-1]\n"
+                "if endpoint.endswith('/reviews'):\n"
+                f"    print(json.dumps({json.dumps(reviews)}))\n"
+                "elif '/pulls/' in endpoint:\n"
+                "    print(json.dumps({'user': {'login': 'vf-author'}}))\n"
+                "else:\n"
+                "    sys.exit(1)\n"
+            )
+            d = tempfile.mkdtemp()
+            self.addCleanup(shutil.rmtree, d, True)
+            p = Path(d) / "gh"
+            p.write_text(stub, encoding="utf-8")
+            p.chmod(0o755)
+            return {**os.environ, "PATH": f"{d}{os.pathsep}{os.environ['PATH']}"}
+
+        commented = [{"user": {"login": "vf-reviewer"}, "state": "COMMENTED", "commit_id": head}]
+        approved = [{"user": {"login": "vf-reviewer"}, "state": "APPROVED", "commit_id": head}]
+        r = self._run_verify(env=env_with_stub(commented))
+        self.assertEqual(r.returncode, 2, r.stderr)
+        self.assertIn("no INDEPENDENT APPROVED review at head_sha", r.stderr)
+        r = self._run_verify(env=env_with_stub(approved))
+        self.assertEqual(r.returncode, 0, f"every non-review check must pass: {r.stderr}")
 
 
 if __name__ == "__main__":
