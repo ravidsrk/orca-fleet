@@ -45,9 +45,10 @@ FREEZE the denominator: pick standard@version; enumerate its obligations into a 
     manifest with the provenance block (spec_version · model · reviewer · retention · standard).
   → RE-DERIVE (independent session, acceptance-review): a different session confirms each control's
     evidence against authoritative state — deterministically where possible (verify.py), never the
-    gatherer's own narration. verify.py binds `provenance.standard` + `spec_version` to the FROZEN
-    catalog's `standard@version` and requires the Art-12/50 audit fields; a control evidenced against a
-    different version, or with no re-derivable artifact, is a GAP, not a pass.
+    gatherer's own narration. The re-derivation confirms each control's `provenance.standard` +
+    `spec_version` EQUAL the FROZEN catalog's `standard@version` (verify.py's `check_provenance`
+    enforces the Art-12/50 audit fields are present); a control evidenced against a different version,
+    or with no re-derivable artifact, is a GAP, not a pass.
   → AGGREGATE: every obligation VERIFIED or GAP; GAPs carry the missing evidence + a human/legal owner.
   → VERDICT: CONFORMANT, or CONFORMANT-WITH-GAPS with the gap register.
 ```
@@ -63,12 +64,13 @@ gate. No obligation is silently dropped.
 
 ## Ledger + supervision
 
-Ledger header at T0 (`ledger-contract.md`) with `WIP: builders=<n> reviewers=<n>` and one row per
+Ledger header at T0 with the canonical `ledger-contract.md` fields (`PHASE`, `BASE·FORK_POINT`,
+`COORDINATOR`, `LIVE`, `NEXT_WAVE`, `FLAGS_UNMET`, `WIP: builders=<n> reviewers=<n>`) plus one row per
 obligation (`obligation-id → task → VERIFIED | GAP`), written before dispatch so an interrupted run is
 recoverable, not a resume orphan. Stalls / death / compaction → `liveness-resume.md` (death → RESUME,
-compaction → write `CONTEXT HANDOFF` then RESUME): RESUME re-reads the frozen catalog digest + the
-obligation rows to reconstruct the DAG and re-enumerate which obligations were dispatched, VERIFIED, or
-GAP — the convergence verdict is never trusted from memory.
+compaction → write the `CONTEXT HANDOFF` block then RESUME): RESUME's scope is that header + the
+obligation rows, git-verified — it reconstructs the DAG and re-enumerates which obligations were
+dispatched, VERIFIED, or GAP, so the convergence verdict is never trusted from memory.
 
 ## Anti-patterns
 

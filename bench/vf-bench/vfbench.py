@@ -15,7 +15,8 @@ Drop in another gate by adding it to GATES (e.g. a subprocess wrapper around `ru
 
     vfbench.py            # human table
     vfbench.py --json     # machine summary
-    # exit 0 always — it reports; tests/test_vfbench.py asserts the soundness property.
+    # exits 0 after reporting; a broken verifier (a non-0/2 verify.py exit) raises instead of scoring.
+    # tests/test_vfbench.py asserts the soundness property.
 """
 import argparse
 import json
