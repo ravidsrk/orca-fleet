@@ -265,6 +265,29 @@ class TestDocsNavigation(unittest.TestCase):
             f"verify.py reads nested manifest fields the §1 schema never declares: {bad}",
         )
 
+    def test_verify_gate_doc_enumerates_every_orca_env_read(self):
+        # Issue #177: docs/verify-gate.md is the trust-boundary doc an operator
+        # audits to learn which env must be scrubbed, yet its enumeration omitted
+        # ORCA_NO_GH / ORCA_LIGHTING while verify-gate.sh honored both — and
+        # ORCA_NO_GH silently downgrades review verification to the local-artifact
+        # lane. Every ORCA_* the script reads must appear in the doc, and the
+        # no-gh downgrade must be stated in the trust-boundary section.
+        script = (RUNTIME / "scripts" / "verify-gate.sh").read_text(encoding="utf-8")
+        # Actual reads: ${ORCA_X:-…} expansions and $ORCA_X references.
+        reads = set(re.findall(r"\$\{?(ORCA_[A-Z_]+)\b", script))
+        doc = (DOCS / "verify-gate.md").read_text(encoding="utf-8")
+        missing = sorted(v for v in reads if v not in doc)
+        self.assertEqual(
+            missing, [],
+            f"verify-gate.sh reads env vars docs/verify-gate.md never names: {missing}",
+        )
+        trust = doc.split("## Trust boundary", 1)[-1]
+        self.assertIn(
+            "ORCA_NO_GH", trust,
+            "the trust-boundary section never names ORCA_NO_GH — the no-gh lane's "
+            "review-authority downgrade is undisclosed",
+        )
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

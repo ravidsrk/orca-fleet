@@ -24,8 +24,7 @@ scope check cannot be certified, so it blocks), or the verifier errors, it block
 un-runnable verifier is never a green light.
 
 ```
-coordinator sets ORCA_MANIFEST + ORCA_CONTRACT_SOURCE + ORCA_CONTRACT_DIGEST + ORCA_UNIT_CLASS
-  (+ ORCA_REPO for the review lookup, ORCA_BASE, ORCA_SYMBOL, ORCA_EXECUTE_NC) — NOT the worker
+coordinator sets the gate env (every input verify-gate.sh reads, enumerated below) — NOT the worker
    → TaskCompleted / Stop hook fires verify-gate.sh
        → verify.py re-derives against authorities outside the manifest; the unit CLASS that decides
          whether review + negative control run comes from the dispatch (ORCA_UNIT_CLASS), never the
@@ -33,6 +32,27 @@ coordinator sets ORCA_MANIFEST + ORCA_CONTRACT_SOURCE + ORCA_CONTRACT_DIGEST + O
          (scope ← coordinator contract · review ← GitHub · negative control ← artifact/replay · commits · freshness)
            → exit 0 allow · exit 2 BLOCK (with feedback)
 ```
+
+**The gate env surface** — every `ORCA_*` variable `verify-gate.sh` reads, all coordinator-set (never
+worker-set; anything else in the environment is ignored):
+
+- `ORCA_MANIFEST` — path to the unit's evidence manifest (required; unset/missing ⇒ BLOCK).
+- `ORCA_CONTRACT_SOURCE` / `ORCA_CONTRACT_DIGEST` — the frozen contract `path@ref` and its sha256;
+  without both, the scope check fail-closes.
+- `ORCA_UNIT_CLASS` — `mutation | report-only | planning`, from dispatch; missing/unknown ⇒ mutation.
+- `ORCA_REPO` — `owner/name` for the independent GitHub review lookup (optional; inferred from origin).
+- `ORCA_BASE` / `ORCA_SYMBOL` — ancestry-check base branch / a unit symbol to grep on it (optional).
+- `ORCA_EXECUTE_NC` — set to replay the negative control (heavier).
+- `ORCA_NO_GH` — set to take the **no-gh lane**: review authority switches from the GitHub lookup to a
+  local reviewer artifact — a downgrade, see [Trust boundary](#trust-boundary).
+- `ORCA_LIGHTING` — the coordinator's lighting decision (`dark-eligible` waives the build-blind human
+  review; gate-classification.md).
+- `ORCA_PROVENANCE` — `ci|mcp|sdk|dispatch` asserts the env came from OFF the worker; suppresses the
+  advisory `NOTE`.
+- `ORCA_DISPATCH_RECORD` — the coordinator-signed dispatch envelope (path, or `path@ref`) binding the
+  contract digest, unit class, and lighting (#135).
+- `ORCA_DISPATCH_PUBKEY` — the Ed25519 verifying key, overriding key discovery; trustworthy only when
+  set off-worker (see below).
 
 ## Fallback path — where `allowManagedHooksOnly` disables plugin hooks
 
@@ -82,6 +102,15 @@ the worker can set that env, it can choose its own denominator and class.
 - **CI / MCP-Task / SDK-subprocess — SOUND.** On these surfaces the coordinator (not the worker) sets
   the env, so the frozen denominator and unit class are trustworthy and the guarantee holds. Set
   `ORCA_PROVENANCE=ci|mcp|sdk|dispatch` there to suppress the advisory `NOTE`.
+- **The no-gh lane downgrades review authority — disclose it wherever the env is templated.** Setting
+  `ORCA_NO_GH` switches the review check from the independent GitHub lookup to a **local
+  `review.artifact`**: worker-forgeable on its own, so verify.py fail-closes unless an out-of-band
+  coordinator contract (`--contract-source` + `--contract-digest`) corroborates the run — and even
+  then the review is only **coordinator-attested**, not GitHub-verified, and the verdict carries a
+  `NOTE` naming the weaker guarantee (merge-serialization.md). The lane exists for sanctioned
+  offline/no-`gh` operation; on the sound surfaces the coordinator owns the env, so `ORCA_NO_GH` must
+  not leak into a CI template a unit can influence — its presence there silently downgrades the review
+  verification on the one surface meant to be sound.
 
 ### Signed dispatch — what it binds, and where the key comes from (#135)
 
