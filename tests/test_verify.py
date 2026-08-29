@@ -94,10 +94,27 @@ class UnitClassSelection(unittest.TestCase):
         self.assertFalse(verify._is_mutation("planning"))
 
     def test_manifest_unit_class_is_ignored(self):
-        # A manifest self-declaring report-only is still gated as mutation when the dispatch says so.
-        m = {"unit": "ship-it", "unit_class": "report-only", "head_sha": "H"}
-        self.assertTrue(verify.check_review(m, "o/r", True))
-        self.assertTrue(verify.check_negative_control(m, True))
+        # #182: drive verify() itself — the selection point (is_mut = _is_mutation(unit_class),
+        # the dispatch PARAMETER, never the manifest). A manifest self-declaring report-only,
+        # verified with the dispatch parameter omitted (None => fail-safe) or explicit "mutation",
+        # must get the mutation-strict verdict: missing pr.number, negative control, and intent
+        # all fail. If verify() ever consulted m["unit_class"] this test goes red.
+        p = _src(["AC-1"])
+        m = {"unit": "slice-2", "unit_class": "report-only",
+             "base_sha": "HEAD", "head_sha": "HEAD",
+             "contract": {"source": p, "digest": _digest(p), "criterion_ids": ["AC-1"]},
+             "criteria": _crit("AC-1")}
+        fh = tempfile.NamedTemporaryFile("w", suffix=".json", delete=False)
+        json.dump(m, fh)
+        fh.close()
+        for cls in (None, "mutation"):
+            out, err = verify.verify(fh.name, p, _digest(p), repo="o/r", unit_class=cls)
+            self.assertIsNone(err)
+            fatal, _notes = out
+            self.assertTrue(any("unreviewed" in e or "pr.number" in e for e in fatal),
+                            (cls, fatal))
+            self.assertTrue(any("negative_control" in e for e in fatal), (cls, fatal))
+            self.assertTrue(any("intent" in e for e in fatal), (cls, fatal))
 
     def test_end_to_end_unclassified_manifest_fails_closed(self):
         # A doc-schema-conformant manifest (no pr/nc, no dispatch class) must be gated as mutation.
