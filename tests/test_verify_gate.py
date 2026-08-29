@@ -137,6 +137,19 @@ class VerifyGateFailsClosed(unittest.TestCase):
         m = _manifest(src, ["AC-1"], ["AC-1"])
         self.assertEqual(run_gate(m, src, _digest(src)).returncode, 2)
 
+    def test_unknown_unit_class_fails_safe_to_mutation(self):
+        # #178: an unknown ORCA_UNIT_CLASS (a typo like "mutatoin") must NOT wedge argparse with a
+        # usage error — the gate forwards it verbatim, verify.py reaches the real invariant checks,
+        # and _is_mutation's fallback gates the unit as mutation: a report-only-shaped manifest
+        # fails a mutation invariant (exit 2), and a NOTE on stdout names the unknown value.
+        src = _src(["AC-1"])
+        m = _manifest(src, ["AC-1"], ["AC-1"])
+        r = run_gate(m, src, _digest(src), unit_class="mutatoin")
+        self.assertEqual(r.returncode, 2, f"stdout={r.stdout} stderr={r.stderr}")
+        self.assertIn("mutatoin", r.stdout)                 # the loud NOTE, not a silent fallback
+        self.assertNotIn("invalid choice", r.stderr)        # no argparse wedge
+        self.assertIn("mutation unit", r.stderr)            # mutation-strict checks actually ran
+
 
 class VerifyGateTrustBoundary(unittest.TestCase):
     """#112: the gate is advisory when provenance is in-session, sound when off-worker."""
