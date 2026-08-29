@@ -75,8 +75,9 @@ the worker can set that env, it can choose its own denominator and class.
   defense-in-depth (it still catches an honest mistake or a lazy manifest), **not a soundness
   boundary** — it emits a `NOTE` saying so unless `ORCA_PROVENANCE` asserts off-worker origin.
 - **Native hook + off-worker-anchored signed dispatch — SOUND (#135).** The signature only helps if
-  the *verifying key* the worker cannot control: the gate takes it from the reviewed **remote** pin or
-  an off-worker orchestrator, never a worker-set env var or local branch (see below).
+  the *verifying key* the worker cannot control: it must come from the reviewed **remote** pin or
+  an off-worker orchestrator — a worker-set env var or local branch is honored by the gate but
+  proves nothing in-session (see below).
 - **CI / MCP-Task / SDK-subprocess — SOUND.** On these surfaces the coordinator (not the worker) sets
   the env, so the frozen denominator and unit class are trustworthy and the guarantee holds. Set
   `ORCA_PROVENANCE=ci|mcp|sdk|dispatch` there to suppress the advisory `NOTE`.
@@ -86,13 +87,17 @@ the worker can set that env, it can choose its own denominator and class.
 The native hook can't trust `ORCA_CONTRACT_DIGEST` / `ORCA_UNIT_CLASS` / `ORCA_LIGHTING` on its own —
 the worker sets them. Bind them to a **coordinator-signed dispatch record**. The whole scheme rests on
 one thing: **the verifying public key must originate off the graded worker.** A worker that could set
-the key (env), or commit its own key to its local branch, would just self-sign — so the gate trusts a
-key from exactly two sources:
+the key (env), or commit its own key to its local branch, would just self-sign — so a key is
+**trustworthy** from exactly two sources:
 
 - the reviewed **remote** pin `.orca/dispatch-pubkey@origin/HEAD` (the gate reads `origin`'s default
   branch, never local `HEAD`, which the worker can rewrite); or
 - an off-worker orchestrator that sets `ORCA_DISPATCH_PUBKEY` **and** `ORCA_PROVENANCE=ci|mcp|sdk|dispatch`.
-  On the native path a worker-set `ORCA_DISPATCH_PUBKEY` is **ignored**.
+  The gate reads `ORCA_DISPATCH_PUBKEY` whenever it is set — a worker-set value is **honored**, not
+  ignored; `ORCA_PROVENANCE` decides only whether the advisory `NOTE` is emitted, never whether the
+  key is used. On the native in-session path **every** key source is worker-influenceable — the env
+  var, the local refs the remote pin is read from, and the working-tree fallback — so a key that
+  verifies in-session proves nothing about who signed (see [Trust boundary](#trust-boundary)).
 
 1. **Once:** off the worker, `dispatch-sign.py gen-key --out <secret>` — keep `<secret>` private and
    land `<secret>.pub` as **`.orca/dispatch-pubkey`** through a reviewed PR to the default branch.
