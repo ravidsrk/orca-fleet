@@ -427,9 +427,8 @@ def check_lighting(m, is_mutation, dispatch_lighting=None):
     lighting is a swap."""
     if not is_mutation:
         return []
-    lighting = m.get("lighting")
-    if lighting is None:
-        lighting = "lit"  # omission means lit (gate-classification.md)
+    lighting = m.get("lighting", "lit")  # omission means lit (gate-classification.md); an
+    # explicit null is a present value, not omission, and fails the legality check below
     if not (isinstance(lighting, str) and lighting in LIGHTING_VALUES):
         return [f"lighting must be one of {sorted(LIGHTING_VALUES)}, got {lighting!r}"]
     if dispatch_lighting is not None and lighting != dispatch_lighting:

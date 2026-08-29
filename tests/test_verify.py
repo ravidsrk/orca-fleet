@@ -277,6 +277,11 @@ class MetaChecks(unittest.TestCase):
         self.assertEqual(verify.check_lighting({}, True), [])
         self.assertEqual(verify.check_lighting({}, True, dispatch_lighting="lit"), [])
 
+    def test_null_lighting_is_not_omission(self):
+        # An explicit null is a present illegal value, not omission — it must still fail.
+        errs = verify.check_lighting({"lighting": None}, True)
+        self.assertTrue(any("lighting must be" in e for e in errs), errs)
+
     def test_missing_lighting_with_dark_dispatch_is_a_swap(self):
         # #169: omission means lit, so a dark-eligible dispatch + omitted manifest lighting
         # implies the run used the dark waiver while the manifest says lit — still a swap.
