@@ -72,6 +72,16 @@ def _run(args, timeout=20):
         return 1, "", str(err)
 
 
+def _run_bytes(args, timeout=20):
+    """Run a command; return (code, stdout_bytes, stderr). stdout is RAW bytes — no newline
+    translation (#180) — stderr stays text for error messages. Never raises."""
+    try:
+        p = subprocess.run(args, capture_output=True, timeout=timeout, check=False)
+        return p.returncode, p.stdout, p.stderr.decode("utf-8", "replace")
+    except (subprocess.TimeoutExpired, OSError) as err:
+        return 1, b"", str(err)
+
+
 def _git(args, timeout=10):
     code, out, _ = _run(["git", *args], timeout=timeout)
     return code, out.strip()
@@ -107,23 +117,25 @@ def _resolve(path):
 
 def read_source(source):
     """Read a source: `path@gitref` reads the immutable git blob at a real commit; a bare/absolute
-    path reads the file. Returns (content, err). Bytes are NOT stripped (the digest must see them)."""
+    path reads the file. Returns (raw_bytes, err). Bytes are NOT stripped or newline-translated —
+    the digest must see exactly what the coordinator's `shasum -a 256` saw (#180)."""
     if not source:
         return None, "missing"
     path, sep, ref = source.partition("@")
     if sep and ref:
         if path.startswith("-") or ref.startswith("-"):
             return None, "refusing option-like ref/path (leading '-') — see git-option-injection guard"
-        code, out, err = _run(["git", "show", f"{ref}:{path}"])
+        code, out, err = _run_bytes(["git", "show", f"{ref}:{path}"])
         return (out, None) if code == 0 else (None, (err.strip() or "git ref not found"))
     try:
-        return _resolve(path).read_text(encoding="utf-8"), None
+        return _resolve(path).read_bytes(), None
     except OSError as err:
         return None, str(err)
 
 
 def sha256_of(content):
-    return "sha256:" + hashlib.sha256(content.encode("utf-8")).hexdigest()
+    """Digest of RAW BYTES, matching `shasum -a 256` (coordinators compute digests over bytes)."""
+    return "sha256:" + hashlib.sha256(content).hexdigest()
 
 
 def _norm_digest(d):
@@ -163,7 +175,7 @@ def check_scope(m, auth_source, auth_digest):
     got = sha256_of(content)
     if got != want:
         return [f"scope: authoritative source does not match --contract-digest ({got} != {want})"]
-    authoritative = extract_criterion_ids(content)
+    authoritative = extract_criterion_ids(content.decode("utf-8"))
     if not authoritative:
         return ["scope: no criterion ids in the authoritative contract"]
     contract = m.get("contract") or {}
@@ -297,7 +309,7 @@ def check_review(m, repo, is_mutation, no_gh=False, corroborated=False, dispatch
         content, err = read_source(art)
         if err:
             return [f"no-gh mutation unit: review.artifact unreadable ({art}): {err}"]
-        if head and head not in content:
+        if head and head not in content.decode("utf-8"):
             return ["no-gh mutation unit: review.artifact does not reference head_sha"]
         if not corroborated:
             return ["no-gh mutation unit: review.artifact is worker-forgeable without an out-of-band "
@@ -349,6 +361,7 @@ def check_negative_control(m, is_mutation, execute=False):
     if err:
         errs.append(f"negative_control.artifact unreadable ({artifact}): {err}")
         return errs
+    content = content.decode("utf-8")
     if not re.search(r"(?i)\b(killed|red|fail)\b", content):
         errs.append("negative_control.artifact does not evidence a killed/RED outcome")
     if _NC_ZERO_KILL_RE.search(content):
@@ -492,10 +505,10 @@ def check_dispatch_provenance(m, contract_digest, unit_class, lighting, record_r
     if err:
         return [f"dispatch pubkey unreadable ({pubkey_ref}): {err}"]
     try:
-        envelope = json.loads(rec_text)
+        envelope = json.loads(rec_text.decode("utf-8"))
         record = envelope["record"]
         sig = base64.b64decode(envelope["sig_b64"])
-        pub = bytes.fromhex(pub_text.strip())
+        pub = bytes.fromhex(pub_text.decode("utf-8").strip())
     except (ValueError, KeyError, TypeError) as exc:
         return [f"dispatch record / pubkey malformed ({exc})"]
     if not ed.checkvalid(sig, _canonical_dispatch(record), pub):
