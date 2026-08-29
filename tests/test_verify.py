@@ -5,12 +5,17 @@ The verifier trusts NOTHING in the worker's manifest it can check against an aut
 coordinator's frozen contract (scope) and dispatch-supplied unit class, GitHub (review), and the
 artifact (negative control). Each check must fail closed.
 """
+import contextlib
 import hashlib
 import importlib.util
+import io
 import json
+import os
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parent.parent
 _spec = importlib.util.spec_from_file_location("verify", ROOT / "runtime" / "scripts" / "verify.py")
@@ -26,7 +31,8 @@ def _src(ids):
 
 
 def _digest(path):
-    return "sha256:" + hashlib.sha256(Path(path).read_text(encoding="utf-8").encode()).hexdigest()
+    # Mirrors the coordinator's `shasum -a 256` — raw bytes, no newline translation (#180).
+    return "sha256:" + hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
 def _crit(*ids):
@@ -88,10 +94,27 @@ class UnitClassSelection(unittest.TestCase):
         self.assertFalse(verify._is_mutation("planning"))
 
     def test_manifest_unit_class_is_ignored(self):
-        # A manifest self-declaring report-only is still gated as mutation when the dispatch says so.
-        m = {"unit": "ship-it", "unit_class": "report-only", "head_sha": "H"}
-        self.assertTrue(verify.check_review(m, "o/r", True))
-        self.assertTrue(verify.check_negative_control(m, True))
+        # #182: drive verify() itself — the selection point (is_mut = _is_mutation(unit_class),
+        # the dispatch PARAMETER, never the manifest). A manifest self-declaring report-only,
+        # verified with the dispatch parameter omitted (None => fail-safe) or explicit "mutation",
+        # must get the mutation-strict verdict: missing pr.number, negative control, and intent
+        # all fail. If verify() ever consulted m["unit_class"] this test goes red.
+        p = _src(["AC-1"])
+        m = {"unit": "slice-2", "unit_class": "report-only",
+             "base_sha": "HEAD", "head_sha": "HEAD",
+             "contract": {"source": p, "digest": _digest(p), "criterion_ids": ["AC-1"]},
+             "criteria": _crit("AC-1")}
+        fh = tempfile.NamedTemporaryFile("w", suffix=".json", delete=False)
+        json.dump(m, fh)
+        fh.close()
+        for cls in (None, "mutation"):
+            out, err = verify.verify(fh.name, p, _digest(p), repo="o/r", unit_class=cls)
+            self.assertIsNone(err)
+            fatal, _notes = out
+            self.assertTrue(any("unreviewed" in e or "pr.number" in e for e in fatal),
+                            (cls, fatal))
+            self.assertTrue(any("negative_control" in e for e in fatal), (cls, fatal))
+            self.assertTrue(any("intent" in e for e in fatal), (cls, fatal))
 
     def test_end_to_end_unclassified_manifest_fails_closed(self):
         # A doc-schema-conformant manifest (no pr/nc, no dispatch class) must be gated as mutation.
@@ -106,6 +129,50 @@ class UnitClassSelection(unittest.TestCase):
         self.assertIsNone(err)
         fatal, _notes = out
         self.assertTrue(fatal, "unclassified manifest must be gated as mutation and fail closed")
+
+    def _write_manifest(self, m):
+        fh = tempfile.NamedTemporaryFile("w", suffix=".json", delete=False)
+        json.dump(m, fh)
+        fh.close()
+        return fh.name
+
+    def _mutating_manifest(self):
+        p = _src(["AC-1"])
+        m = {"unit": "slice-2", "base_sha": "HEAD", "head_sha": "HEAD",
+             "contract": {"source": p, "digest": _digest(p), "criterion_ids": ["AC-1"]},
+             "criteria": _crit("AC-1")}
+        return p, self._write_manifest(m)
+
+    def test_unknown_unit_class_notes_and_gates_as_mutation(self):
+        # #178: an unknown class must reach _is_mutation's fallback — mutation-strict checks run
+        # and a NOTE names the unknown value (docs/verify-gate.md: "missing/unknown => mutation").
+        p, path = self._mutating_manifest()
+        out, err = verify.verify(path, p, _digest(p), repo="o/r", unit_class="mutatoin")
+        self.assertIsNone(err)
+        fatal, notes = out
+        self.assertTrue(any("NOTE:" in n and "mutatoin" in n for n in notes), notes)
+        self.assertTrue(fatal, "unknown class must fail safe to mutation strictness")
+
+    def test_unknown_unit_class_cli_is_not_a_usage_error(self):
+        # #178: argparse choices= used to wedge the CLI before the fallback ran. main() must now
+        # run the checks; the NOTE surfaces on stdout and fatals (not usage) decide the exit.
+        p, path = self._mutating_manifest()
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = verify.main(["--manifest", path, "--contract-source", p,
+                              "--contract-digest", _digest(p), "--unit-class", "mutatoin",
+                              "--repo", "o/r"])
+        self.assertEqual(rc, 2, "a mutation-invariant failure, not an argparse wedge")
+        self.assertIn("mutatoin", buf.getvalue())
+
+    def test_legal_unit_classes_emit_no_unknown_note(self):
+        # Legal values behave exactly as before: no unknown-class NOTE.
+        for cls in ("mutation", "report-only", "planning", None):
+            p, path = self._mutating_manifest()
+            out, err = verify.verify(path, p, _digest(p), repo="o/r", unit_class=cls)
+            self.assertIsNone(err)
+            _fatal, notes = out
+            self.assertFalse(any("unknown unit class" in n for n in notes), (cls, notes))
 
 
 class FreshnessCheck(unittest.TestCase):
@@ -288,6 +355,108 @@ class ReviewLookupBinding(unittest.TestCase):
         self.assertTrue(any("forgeable" in e and not e.startswith("NOTE:") for e in res), res)
 
 
+class ReviewPagination(unittest.TestCase):
+    """#167: fetch_reviews must follow ALL pages (`gh api --paginate`). Without it GitHub returns
+    the first 30 reviews only, so a stale APPROVED on page 1 outranks the same reviewer's later
+    CHANGES_REQUESTED, and a fresh APPROVED past page 1 is invisible. A fake `gh` on PATH
+    (test_preflight.py pattern) emulates the real CLI: page 1 only without --paginate."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        tmp = Path(self._tmp.name)
+        self._page1 = tmp / "page1.json"
+        self._page2 = tmp / "page2.json"
+        fakebin = tmp / "bin"
+        fakebin.mkdir()
+        gh = fakebin / "gh"
+        gh.write_text(
+            '#!/bin/sh\n'
+            'case "$*" in\n'
+            '  *reviews*)\n'
+            '    case " $* " in\n'
+            '      *" --paginate "*) cat "$FAKE_GH_PAGE1" "$FAKE_GH_PAGE2";;\n'
+            '      *) cat "$FAKE_GH_PAGE1";;\n'
+            '    esac;;\n'
+            '  *) echo "{\\"user\\":{\\"login\\":\\"pr-author\\"}}";;\n'
+            'esac\n',
+            encoding="utf-8",
+        )
+        gh.chmod(0o755)
+        self._env = {"PATH": f"{fakebin}{os.pathsep}{os.environ['PATH']}",
+                     "FAKE_GH_PAGE1": str(self._page1),
+                     "FAKE_GH_PAGE2": str(self._page2)}
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def _verdict_with_pages(self, page1, page2):
+        self._page1.write_text(json.dumps(page1) + "\n", encoding="utf-8")
+        self._page2.write_text(json.dumps(page2) + "\n", encoding="utf-8")
+        with mock.patch.dict(os.environ, self._env):
+            return verify.check_review(
+                {"unit": "ship-it", "head_sha": "H", "pr": {"number": 7}}, "o/r", True)
+
+    @staticmethod
+    def _filler(n):
+        return [{"state": "COMMENTED", "commit_id": "H",
+                 "user": {"login": f"bot{i}"}} for i in range(n)]
+
+    def test_fetches_all_pages_31_review_fixture(self):
+        # 31 reviews over two pages; the only APPROVED is review #31 — invisible on page 1 alone.
+        res = self._verdict_with_pages(self._filler(30),
+                                       [{"state": "APPROVED", "commit_id": "H",
+                                         "user": {"login": "carol"}}])
+        self.assertEqual(res, [])
+
+    def test_page2_changes_requested_supersedes_page1_approval(self):
+        page1 = self._filler(29) + [{"state": "APPROVED", "commit_id": "H",
+                                     "user": {"login": "carol"}}]
+        page2 = [{"state": "CHANGES_REQUESTED", "commit_id": "H",
+                  "user": {"login": "carol"}}]
+        res = self._verdict_with_pages(page1, page2)
+        self.assertTrue(any("APPROVED" in e for e in res), res)
+
+    def test_approval_only_on_page2_passes(self):
+        res = self._verdict_with_pages(self._filler(30),
+                                       [{"state": "APPROVED", "commit_id": "H",
+                                         "user": {"login": "carol"}}])
+        self.assertEqual(res, [])
+
+    def test_gh_error_fails_closed(self):
+        self._page1.write_text("not json\n", encoding="utf-8")
+        self._page2.write_text("not json\n", encoding="utf-8")
+        with mock.patch.dict(os.environ, self._env):
+            res = verify.check_review(
+                {"unit": "ship-it", "head_sha": "H", "pr": {"number": 7}}, "o/r", True)
+        self.assertTrue(any("cannot fetch" in e for e in res), res)
+
+
+class PaginatedJsonParsing(unittest.TestCase):
+    """#167: `gh api --paginate` concatenates one JSON array per page; the parse step merges them
+    and fails closed on malformed output."""
+
+    def test_single_array_still_parses(self):
+        items, err = verify.parse_review_pages(json.dumps([{"state": "APPROVED"}]))
+        self.assertIsNone(err)
+        self.assertEqual(items, [{"state": "APPROVED"}])
+
+    def test_concatenated_arrays_merge(self):
+        out = json.dumps([{"a": 1}]) + "\n" + json.dumps([{"b": 2}]) + "\n"
+        items, err = verify.parse_review_pages(out)
+        self.assertIsNone(err)
+        self.assertEqual(items, [{"a": 1}, {"b": 2}])
+
+    def test_malformed_output_fails_closed(self):
+        items, err = verify.parse_review_pages('[{"a": 1}]\nnot json')
+        self.assertIsNone(items)
+        self.assertTrue(err)
+
+    def test_non_array_page_fails_closed(self):
+        items, err = verify.parse_review_pages('{"unexpected": "object"}')
+        self.assertIsNone(items)
+        self.assertTrue(err)
+
+
 class ShasBinding(unittest.TestCase):
     """#119: base_sha/head_sha presence is the SHA-binding premise — bind it."""
 
@@ -313,6 +482,64 @@ class CriterionExtraction(unittest.TestCase):
     def test_extracts_hyphenated_and_compact(self):
         ids = verify.extract_criterion_ids("- AC-1: x\n- SC12: y\n- REQ-3 z\n")
         self.assertEqual({"AC-1", "SC12", "REQ-3"}, ids)
+
+
+class RawByteDigest(unittest.TestCase):
+    """#180: the scope digest is computed over RAW BYTES, exactly what the coordinator's
+    `shasum -a 256` sees — a CRLF contract must verify against its byte digest, and an LF
+    contract's digest must be unchanged (byte-identical behavior for LF files)."""
+
+    def _write(self, raw):
+        f = tempfile.NamedTemporaryFile("wb", suffix=".md", delete=False)
+        f.write(raw)
+        f.close()
+        return f.name
+
+    def test_crlf_contract_matches_shasum_digest(self):
+        raw = b"frozen\r\n- AC-1: x\r\n- AC-2: y\r\n"
+        p = self._write(raw)
+        digest = "sha256:" + hashlib.sha256(raw).hexdigest()  # the coordinator's shasum digest
+        m = {"contract": {"source": p, "digest": digest, "criterion_ids": ["AC-1", "AC-2"]},
+             "criteria": _crit("AC-1", "AC-2")}
+        fatal = [e for e in verify.check_scope(m, p, digest) if not e.startswith("NOTE:")]
+        self.assertEqual(fatal, [])
+
+    def test_lf_digest_unchanged(self):
+        raw = b"frozen\n- AC-1: x\n"
+        p = self._write(raw)
+        # Pinned to the pre-#180 value: LF files must hash byte-identically to before.
+        digest = "sha256:07af39c8585de6b596a28a05c0cfe432a25c294bb2166c1ffeef1db4901abf8a"
+        m = {"contract": {"source": p, "digest": digest, "criterion_ids": ["AC-1"]},
+             "criteria": _crit("AC-1")}
+        fatal = [e for e in verify.check_scope(m, p, digest) if not e.startswith("NOTE:")]
+        self.assertEqual(fatal, [])
+
+    def test_crlf_contract_via_git_ref_matches_shasum_digest(self):
+        # The coordinator lane: `path@gitref` goes through `_run_bytes(["git", "show", ...])`.
+        # Commit a CRLF contract (autocrlf off so the blob keeps its raw bytes) and verify
+        # against the shasum digest — text=True capture would normalize CRLF away and wedge.
+        raw = b"frozen\r\n- AC-1: x\r\n"
+        with tempfile.TemporaryDirectory() as repo:
+            Path(repo, "contract.md").write_bytes(raw)
+
+            def git(*args):
+                subprocess.run(["git", *args], cwd=repo, capture_output=True, check=True)
+
+            git("init", "-q")
+            git("-c", "core.autocrlf=false", "add", "contract.md")
+            git("-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "freeze")
+            digest = "sha256:" + hashlib.sha256(raw).hexdigest()
+            m = {"contract": {"source": "contract.md@HEAD", "digest": digest,
+                              "criterion_ids": ["AC-1"]},
+                 "criteria": _crit("AC-1")}
+            cwd = os.getcwd()
+            os.chdir(repo)  # read_source's `git show` runs in the process cwd
+            try:
+                res = verify.check_scope(m, "contract.md@HEAD", digest)
+            finally:
+                os.chdir(cwd)
+            fatal = [e for e in res if not e.startswith("NOTE:")]
+            self.assertEqual(fatal, [])
 
 
 class NoGhReviewLane(unittest.TestCase):
@@ -468,6 +695,117 @@ class NegativeControlSurvivor(unittest.TestCase):
     def test_genuine_kill_still_passes(self):
         art = self._art("m7 KILLED — 1 killed, 0 survived. Proof went RED.\n")
         self.assertEqual(verify.check_negative_control(self._m(art), True), [])
+
+
+class GitAuthorityChecks(unittest.TestCase):
+    """#172: the git-authority legs — check_ancestry, check_symbol_on_base, infer_repo — shell out
+    to `git` in the process cwd, so each test runs inside a hermetic temp repo (the
+    test_verify_gate.py _gate_repo pattern: refs/remotes/origin/main pinned with update-ref)."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.repo = Path(self._tmp.name)
+
+        def git(*args):
+            return subprocess.run(["git", *args], cwd=self.repo, check=True,
+                                  capture_output=True, text=True)
+
+        git("init", "-q", "-b", "main")
+        Path(self.repo, "app.py").write_text("def orca_unit_symbol():\n    return 1\n",
+                                             encoding="utf-8")
+        git("add", "app.py")
+        git("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "one")
+        self.main_tip = git("rev-parse", "HEAD").stdout.strip()
+        git("update-ref", "refs/remotes/origin/main", "HEAD")
+        # A parentless second root: a real commit that is NOT an ancestor of origin/main.
+        self.side_sha = git("-c", "user.name=t", "-c", "user.email=t@t", "commit-tree",
+                            "HEAD^{tree}", "-m", "side").stdout.strip()
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    @contextlib.contextmanager
+    def _inside_repo(self):
+        cwd = os.getcwd()
+        os.chdir(self.repo)  # verify.py's _git runs in the process cwd
+        try:
+            yield
+        finally:
+            os.chdir(cwd)
+
+    def test_ancestry_passes_for_commit_on_base(self):
+        with self._inside_repo():
+            self.assertEqual(verify.check_ancestry({"head_sha": self.main_tip}, "main"), [])
+
+    def test_ancestry_fails_for_commit_not_on_base(self):
+        with self._inside_repo():
+            errs = verify.check_ancestry({"head_sha": self.side_sha}, "main")
+        self.assertTrue(any("not an ancestor of origin/main" in e for e in errs), errs)
+
+    def test_ancestry_skips_without_base_or_ref(self):
+        with self._inside_repo():
+            res = verify.check_ancestry({"head_sha": self.main_tip}, None)
+            self.assertTrue(res and all(e.startswith("NOTE:") for e in res), res)
+            res = verify.check_ancestry({"head_sha": self.main_tip}, "no-such-branch")
+            self.assertTrue(res and all(e.startswith("NOTE:") for e in res), res)
+
+    def test_symbol_on_base_found(self):
+        with self._inside_repo():
+            self.assertEqual(verify.check_symbol_on_base("orca_unit_symbol", "main"), [])
+
+    def test_symbol_on_base_missing_fails(self):
+        with self._inside_repo():
+            errs = verify.check_symbol_on_base("no_such_symbol", "main")
+        self.assertTrue(any("not found on origin/main" in e for e in errs), errs)
+
+    def test_symbol_on_base_skips_without_inputs(self):
+        with self._inside_repo():
+            self.assertEqual(verify.check_symbol_on_base(None, "main"), [])
+            self.assertEqual(verify.check_symbol_on_base("orca_unit_symbol", None), [])
+
+
+class InferRepoFromOrigin(unittest.TestCase):
+    """#172: infer_repo parses `git remote get-url origin` into owner/name across the common
+    remote URL spellings; without a parseable origin it must return None (fail-soft)."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.repo = Path(self._tmp.name)
+        subprocess.run(["git", "init", "-q", "-b", "main"], cwd=self.repo,
+                       check=True, capture_output=True)
+        self._cwd = os.getcwd()
+        os.chdir(self.repo)  # infer_repo's `git remote get-url origin` runs in the process cwd
+
+    def tearDown(self):
+        os.chdir(self._cwd)
+        self._tmp.cleanup()
+
+    def _origin(self, url):
+        subprocess.run(["git", "remote", "add", "origin", url], cwd=self.repo,
+                       check=True, capture_output=True)
+
+    def test_ssh_scp_like_url(self):
+        self._origin("git@github.com:owner/repo.git")
+        self.assertEqual(verify.infer_repo(), "owner/repo")
+
+    def test_ssh_scheme_url(self):
+        self._origin("ssh://git@github.com/owner/repo.git")
+        self.assertEqual(verify.infer_repo(), "owner/repo")
+
+    def test_https_url(self):
+        self._origin("https://github.com/owner/repo")
+        self.assertEqual(verify.infer_repo(), "owner/repo")
+
+    def test_https_url_trailing_dot_git(self):
+        self._origin("https://github.com/owner/repo.git")
+        self.assertEqual(verify.infer_repo(), "owner/repo")
+
+    def test_no_origin_returns_none(self):
+        self.assertIsNone(verify.infer_repo())
+
+    def test_unparseable_origin_returns_none(self):
+        self._origin("just-a-name-no-path")
+        self.assertIsNone(verify.infer_repo())
 
 
 _edspec = importlib.util.spec_from_file_location("ed25519", ROOT / "runtime" / "scripts" / "ed25519.py")

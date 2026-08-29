@@ -1,0 +1,32 @@
+{
+  "id": "non-ancestor-sha-1",
+  "class": "non-ancestor-sha",
+  "sound_expected": "RED",
+  "note": "#172: head_sha is well-formed but names no commit in any clone, so it is ipso facto NOT an ancestor of origin/main — the ancestry leg fires (`merge-base --is-ancestor` exits non-zero, 'not an ancestor of origin/main') alongside the real-commit leg (`cat-file` on a phantom SHA). A synthetic SHA is used because the trap runs verify.py against the AMBIENT repo (vfbench.py cwd=ROOT): an isolated ancestry-only RED would need a commit present in every clone yet never on origin/main, and no such commit can be pinned (fresh clones hold only origin/main ancestors; a transient feature-branch SHA would couple the suite to unrelated branch merges/deletions). The ancestry leg is exercised end-to-end here; ISOLATED positive/negative coverage lives in tests/test_verify.py GitAuthorityChecks. head_sha = sha256('vf-bench non-ancestor fixture (#172)')[:40].",
+  "unit_class": "report-only",
+  "base": "main",
+  "contract_source": "bench/vf-bench/fixtures/contract-1.md",
+  "contract_digest": "sha256:9fb77371ae4e1e2c2502ceea196f248465d6f4ae77863e5a748c719f1f23b5d6",
+  "manifest": {
+    "unit": "review-it",
+    "unit_class": "report-only",
+    "base_sha": "HEAD",
+    "head_sha": "6da83971502975d7142372dfa0cee4114a89ad9c",
+    "contract": {
+      "source": "bench/vf-bench/fixtures/contract-1.md",
+      "digest": "sha256:9fb77371ae4e1e2c2502ceea196f248465d6f4ae77863e5a748c719f1f23b5d6",
+      "criterion_ids": [
+        "AC-1"
+      ]
+    },
+    "criteria": [
+      {
+        "id": "AC-1",
+        "addressed": true
+      }
+    ],
+    "pr": {
+      "reviewed_sha": "6da83971502975d7142372dfa0cee4114a89ad9c"
+    }
+  }
+}

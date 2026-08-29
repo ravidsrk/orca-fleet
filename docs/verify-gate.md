@@ -24,8 +24,7 @@ scope check cannot be certified, so it blocks), or the verifier errors, it block
 un-runnable verifier is never a green light.
 
 ```
-coordinator sets ORCA_MANIFEST + ORCA_CONTRACT_SOURCE + ORCA_CONTRACT_DIGEST + ORCA_UNIT_CLASS
-  (+ ORCA_REPO for the review lookup, ORCA_BASE, ORCA_SYMBOL, ORCA_EXECUTE_NC) — NOT the worker
+coordinator sets the gate env (every input verify-gate.sh reads, enumerated below) — NOT the worker
    → TaskCompleted / Stop hook fires verify-gate.sh
        → verify.py re-derives against authorities outside the manifest; the unit CLASS that decides
          whether review + negative control run comes from the dispatch (ORCA_UNIT_CLASS), never the
@@ -33,6 +32,27 @@ coordinator sets ORCA_MANIFEST + ORCA_CONTRACT_SOURCE + ORCA_CONTRACT_DIGEST + O
          (scope ← coordinator contract · review ← GitHub · negative control ← artifact/replay · commits · freshness)
            → exit 0 allow · exit 2 BLOCK (with feedback)
 ```
+
+**The gate env surface** — every `ORCA_*` variable `verify-gate.sh` reads, all coordinator-set (never
+worker-set; anything else in the environment is ignored):
+
+- `ORCA_MANIFEST` — path to the unit's evidence manifest (required; unset/missing ⇒ BLOCK).
+- `ORCA_CONTRACT_SOURCE` / `ORCA_CONTRACT_DIGEST` — the frozen contract `path@ref` and its sha256;
+  without both, the scope check fail-closes.
+- `ORCA_UNIT_CLASS` — `mutation | report-only | planning`, from dispatch; missing/unknown ⇒ mutation.
+- `ORCA_REPO` — `owner/name` for the independent GitHub review lookup (optional; inferred from origin).
+- `ORCA_BASE` / `ORCA_SYMBOL` — ancestry-check base branch / a unit symbol to grep on it (optional).
+- `ORCA_EXECUTE_NC` — set to replay the negative control (heavier).
+- `ORCA_NO_GH` — set to take the **no-gh lane**: review authority switches from the GitHub lookup to a
+  local reviewer artifact — a downgrade, see [Trust boundary](#trust-boundary).
+- `ORCA_LIGHTING` — the coordinator's lighting decision (`dark-eligible` waives the build-blind human
+  review; gate-classification.md).
+- `ORCA_PROVENANCE` — `ci|mcp|sdk|dispatch` asserts the env came from OFF the worker; suppresses the
+  advisory `NOTE`.
+- `ORCA_DISPATCH_RECORD` — the coordinator-signed dispatch envelope (path, or `path@ref`) binding the
+  contract digest, unit class, and lighting (#135).
+- `ORCA_DISPATCH_PUBKEY` — the Ed25519 verifying key, overriding key discovery; trustworthy only when
+  set off-worker (see below).
 
 ## Fallback path — where `allowManagedHooksOnly` disables plugin hooks
 
@@ -74,44 +94,70 @@ the worker can set that env, it can choose its own denominator and class.
   worker's session*, so the worker can set `ORCA_*`. With no signed dispatch record it is
   defense-in-depth (it still catches an honest mistake or a lazy manifest), **not a soundness
   boundary** — it emits a `NOTE` saying so unless `ORCA_PROVENANCE` asserts off-worker origin.
-- **Native hook + off-worker-anchored signed dispatch — SOUND (#135).** The signature only helps if
-  the *verifying key* the worker cannot control: the gate takes it from the reviewed **remote** pin or
-  an off-worker orchestrator, never a worker-set env var or local branch (see below).
+- **Native hook + signed dispatch — still ADVISORY (#135).** The signature only helps if the worker
+  cannot control the *verifying key*, and in-session it can: every key source the gate consults
+  (the env var, the local `origin/HEAD` ref, the working-tree file) is worker-influenceable, so a
+  self-signed record verifies (see below). The record's soundness value is **off-worker**
+  re-verification, never the in-session verdict.
 - **CI / MCP-Task / SDK-subprocess — SOUND.** On these surfaces the coordinator (not the worker) sets
   the env, so the frozen denominator and unit class are trustworthy and the guarantee holds. Set
   `ORCA_PROVENANCE=ci|mcp|sdk|dispatch` there to suppress the advisory `NOTE`.
+- **The no-gh lane downgrades review authority — disclose it wherever the env is templated.** Setting
+  `ORCA_NO_GH` switches the review check from the independent GitHub lookup to a **local
+  `review.artifact`**: worker-forgeable on its own, so verify.py fail-closes unless an out-of-band
+  coordinator contract (`--contract-source` + `--contract-digest`) corroborates the run — and even
+  then the review is only **coordinator-attested**, not GitHub-verified, and the verdict carries a
+  `NOTE` naming the weaker guarantee (merge-serialization.md). The lane exists for sanctioned
+  offline/no-`gh` operation; on the sound surfaces the coordinator owns the env, so `ORCA_NO_GH` must
+  not leak into a CI template a unit can influence — its presence there silently downgrades the review
+  verification on the one surface meant to be sound.
 
-### Signed dispatch — making the native path sound (#135)
+### Signed dispatch — what it binds, and where the key comes from (#135)
 
 The native hook can't trust `ORCA_CONTRACT_DIGEST` / `ORCA_UNIT_CLASS` / `ORCA_LIGHTING` on its own —
 the worker sets them. Bind them to a **coordinator-signed dispatch record**. The whole scheme rests on
 one thing: **the verifying public key must originate off the graded worker.** A worker that could set
-the key (env), or commit its own key to its local branch, would just self-sign — so the gate trusts a
-key from exactly two sources:
+the key would just self-sign. The gate discovers the key from three sources, in this code order
+(precedence pinned by `VerifyGateDispatchPinDiscovery` in `tests/test_verify_gate.py`):
 
-- the reviewed **remote** pin `.orca/dispatch-pubkey@origin/HEAD` (the gate reads `origin`'s default
-  branch, never local `HEAD`, which the worker can rewrite); or
-- an off-worker orchestrator that sets `ORCA_DISPATCH_PUBKEY` **and** `ORCA_PROVENANCE=ci|mcp|sdk|dispatch`.
-  On the native path a worker-set `ORCA_DISPATCH_PUBKEY` is **ignored**.
+1. **`ORCA_DISPATCH_PUBKEY` env.** Honored whenever set — a worker-set value is used, not ignored;
+   `ORCA_PROVENANCE` decides only whether the advisory `NOTE` is emitted, never whether the key is
+   used. Trustworthy only when an **off-worker orchestrator** sets it
+   (`ORCA_PROVENANCE=ci|mcp|sdk|dispatch`).
+2. **The pin blob at the local `origin/HEAD` ref** — `.orca/dispatch-pubkey` read from
+   `refs/remotes/origin/HEAD`, resolved **locally**. The blob's *content* was landed by a reviewed PR,
+   but the ref itself is a local remote-tracking ref: in-session the worker can repoint it with
+   `git update-ref`, no push access needed. Trustworthy only when read off-worker against a
+   fetch-verified ref.
+3. **The working-tree `.orca/dispatch-pubkey`** — fallback when the ref read fails. A plain file in
+   the worker's own checkout; fully worker-writable in-session.
 
-1. **Once:** off the worker, `dispatch-sign.py gen-key --out ~/.orca-fleet/dispatch-key` — keep the
-   seed **out of this repo** (gen-key refuses any in-repo path git doesn't ignore; `.secrets/` is
-   ignored) and land `<out>.pub` as **`.orca/dispatch-pubkey`** through a reviewed PR to the default
-   branch. Committing it turns enforcement on.
-2. **Per dispatch (off-worker):** `dispatch-sign.py sign --key ~/.orca-fleet/dispatch-key
-   --manifest-id <unit-id> --contract-digest <d> --unit-class <c> [--lighting <l>]` — hand the
-   envelope to the gate as
+On the native in-session path **all three** are worker-influenceable, so a key that verifies
+in-session proves nothing about who signed (see [Trust boundary](#trust-boundary)).
+
+**Setup and per-dispatch flow:**
+
+1. **Once:** off the worker, `dispatch-sign.py gen-key --out <secret>` — keep `<secret>` private and
+   land `<secret>.pub` as **`.orca/dispatch-pubkey`** through a reviewed PR to the default branch.
+   Committing it turns the signed-dispatch check on — the gate then requires a valid record; what
+   that check *proves* still depends on where the gate runs (see the soundness condition below).
+2. **Per dispatch (off-worker):** `dispatch-sign.py sign --key <secret> --manifest-id <unit-id>
+   --contract-digest <d> --unit-class <c> [--lighting <l>]` — hand the envelope to the gate as
    `ORCA_DISPATCH_RECORD` (a path, or a `path@ref` fetched out-of-band). The record may be
    worker-supplied: a forged one won't verify against the off-worker key.
 3. **At the gate:** `verify.py` verifies the Ed25519 signature against that key, asserts each signed
    field equals the value the run used, **and** that `manifest_id` names *this* unit (so a valid record
    from another unit can't be replayed). Substitution, forgery, replay, or a pinned key with no valid
-   record all **fail closed**.
+   record all **fail closed** — against whatever key was discovered, which in-session may be the
+   worker's own (the sources above); the fail-closed guarantee bites only where the key is
+   off-worker-anchored.
 
-**Soundness condition, stated honestly:** this makes the native path sound *exactly when the worker
-cannot influence the verifying key* — i.e., it cannot push the pinned ref and the orchestrator (not the
-worker) owns any injected key/env. On a box where the worker also controls the remote and the
-environment, no in-session gate can be sound (the #112 result); there the signature still gives durable
-value — a CI job, reviewer, or auditor can verify the coordinator's signature **off-worker** and detect
-a run that used substituted inputs. Ed25519 is the vendored `runtime/scripts/ed25519.py` (RFC 8032), so
+**Soundness condition, stated honestly:** signed dispatch makes a verdict sound *exactly where the
+worker cannot influence the verifying key* — i.e., **off the worker's box**, where the orchestrator
+(not the worker) owns any injected env and the pin is read against a fetch-verified remote ref. On
+the native in-session path the worker controls the env, the local `origin/HEAD` ref, and the working
+tree, so the gate stays **advisory** there (the #112 result; ARCHITECTURE.md states the same). The
+signature still gives durable value: a CI job, reviewer, or auditor can verify the coordinator's
+signature **off-worker** and detect a run that used substituted inputs. Ed25519 is the vendored
+`runtime/scripts/ed25519.py` (RFC 8032), so
 the gate stays dependency-free.

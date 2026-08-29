@@ -1,0 +1,6 @@
+revert negative control (vf-bench fixture, #174)
+
+Reverting the change at the pinned head_sha turned the pinned test RED — the fix is
+load-bearing, not decoration. Re-applying the change returns the suite to green.
+
+kill ledger: 1 revert applied, 1 test went red, kill confirmed.

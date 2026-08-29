@@ -6,8 +6,14 @@ sandboxes where `pip install` may not be possible, so the whole gate is stdlib-o
 public-domain reference implementation (Daniel J. Bernstein et al., ed25519.cr.yp.to), ported to
 Python 3 — the "slow but correct" reference, verified here against the RFC 8032 test vectors
 (tests/test_ed25519.py). It is NOT constant-time; it signs/verifies a tiny dispatch-provenance
-record, never bulk data or a network secret. A deployment that wants a hardened backend can swap in
-libsodium / `cryptography` behind the same three functions: `publickey`, `signature`, `checkvalid`.
+record, never bulk data or a network secret. Verification hardening beyond the bare RFC reference:
+`checkvalid` rejects non-canonical `S >= L` (signature malleability), non-canonical point
+encodings, and small-order/identity public keys (cofactor check) — so it is safe against the
+forgery-via-attacker-key and (R, S+L) duplicate-signature classes. Remaining gaps: it is still
+not constant-time, and it uses the non-cofactored verification equation (per-key and per-message
+binding, but not the strict ZIP-215 / cofactored semantics). A deployment that wants a hardened
+backend can swap in libsodium / `cryptography` behind the same three functions: `publickey`,
+`signature`, `checkvalid`.
 
 Used by:
   - runtime/scripts/dispatch-sign.py  (coordinator, OFF the graded worker) — sign the dispatch record
@@ -92,6 +98,8 @@ def _isoncurve(P) -> bool:
 
 def _decodepoint(s: bytes):
     y = sum(2 ** i * _bit(s, i) for i in range(0, _b - 1))
+    if y >= _q:
+        raise ValueError("decoding a non-canonical point encoding")
     x = _xrecover(y)
     if x & 1 != _bit(s, _b - 1):
         x = _q - x
@@ -141,4 +149,11 @@ def checkvalid(sig: bytes, msg: bytes, pub: bytes) -> bool:
     except ValueError:
         return False
     S = _decodeint(sig[32:])
+    if S >= _L:
+        # Non-canonical S: (R, S+L) would otherwise verify — signatures are malleable.
+        return False
+    if _scalarmult(A, 8) == [0, 1]:
+        # Small-order/identity public key: Hint(...)*A collapses, so (sB, s) "verifies"
+        # for any chosen s. Reject via the cofactor check.
+        return False
     return _scalarmult(_B, S) == _edwards(R, _scalarmult(A, _Hint(sig[:32] + pub + msg)))

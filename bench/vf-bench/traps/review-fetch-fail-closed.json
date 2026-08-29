@@ -1,0 +1,45 @@
+{
+  "id": "review-fetch-fail-closed-1",
+  "class": "review-fetch-fail-closed",
+  "sound_expected": "RED",
+  "note": "#174: the ONLY thing wrong with this mutation unit is its review authority — every other check is satisfied (real pinned commits, corroborated revert negative control, intent packet, lighting, reviewer_mode, reviewed_sha == head_sha). The manifest claims pr.number 1 and the dispatch supplies --repo vf_bench_unresolvable/review-leg: a GitHub OWNER WITH AN UNDERSCORE, which GitHub's username rules forbid, so the review lookup can never resolve — gh exits non-zero (404) even when authenticated, and where gh is absent the same leg reports 'gh not on PATH'. Either way verify.py drives check_review PAST the pr.number guard (verify.py:322-323) and fails CLOSED at the review fetch ('cannot fetch reviews ... fail-closed'). With a stubbed gh returning real review pages, the trap's verdict is decided by review_ok ALONE: COMMENTED-only reviews keep it RED ('no INDEPENDENT APPROVED review at head_sha'); an independent APPROVED review at head_sha turns it GREEN — pinned hermetically in tests/test_vfbench.py VFBenchReviewLeg. That is what makes the red-half real: a regression accepting COMMENTED reviews flips this trap to false-done. The pinned SHAs are the vf-bench v0 commit and its parent (both on origin/main, present in every full clone). The ancestry leg is exercised by #172's non-ancestor-sha trap — referenced, not duplicated here.",
+  "unit_class": "mutation",
+  "repo": "vf_bench_unresolvable/review-leg",
+  "contract_source": "bench/vf-bench/fixtures/contract-1.md",
+  "contract_digest": "sha256:9fb77371ae4e1e2c2502ceea196f248465d6f4ae77863e5a748c719f1f23b5d6",
+  "manifest": {
+    "unit": "ship-it",
+    "unit_class": "mutation",
+    "base_sha": "f947837d3992715c42864932da0aee514e8afb21",
+    "head_sha": "b611906b4de7a725e6818b147bd1af9a3e1bf5d9",
+    "lighting": "lit",
+    "reviewer_mode": "cross-vendor",
+    "intent": {
+      "goal": "land the change described by the frozen contract",
+      "ruled_out": "widening scope beyond AC-1",
+      "why": "AC-1 is the contracted denominator"
+    },
+    "contract": {
+      "source": "bench/vf-bench/fixtures/contract-1.md",
+      "digest": "sha256:9fb77371ae4e1e2c2502ceea196f248465d6f4ae77863e5a748c719f1f23b5d6",
+      "criterion_ids": [
+        "AC-1"
+      ]
+    },
+    "criteria": [
+      {
+        "id": "AC-1",
+        "addressed": true
+      }
+    ],
+    "pr": {
+      "number": 1,
+      "reviewed_sha": "b611906b4de7a725e6818b147bd1af9a3e1bf5d9"
+    },
+    "negative_control": {
+      "tool": "revert",
+      "result": "reverting the change at head_sha turned the pinned test RED — mutant KILLED",
+      "artifact": "bench/vf-bench/fixtures/nc-revert-killed.txt"
+    }
+  }
+}

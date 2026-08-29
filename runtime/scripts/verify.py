@@ -72,6 +72,16 @@ def _run(args, timeout=20):
         return 1, "", str(err)
 
 
+def _run_bytes(args, timeout=20):
+    """Run a command; return (code, stdout_bytes, stderr). stdout is RAW bytes — no newline
+    translation (#180) — stderr stays text for error messages. Never raises."""
+    try:
+        p = subprocess.run(args, capture_output=True, timeout=timeout, check=False)
+        return p.returncode, p.stdout, p.stderr.decode("utf-8", "replace")
+    except (subprocess.TimeoutExpired, OSError) as err:
+        return 1, b"", str(err)
+
+
 def _git(args, timeout=10):
     code, out, _ = _run(["git", *args], timeout=timeout)
     return code, out.strip()
@@ -107,23 +117,25 @@ def _resolve(path):
 
 def read_source(source):
     """Read a source: `path@gitref` reads the immutable git blob at a real commit; a bare/absolute
-    path reads the file. Returns (content, err). Bytes are NOT stripped (the digest must see them)."""
+    path reads the file. Returns (raw_bytes, err). Bytes are NOT stripped or newline-translated —
+    the digest must see exactly what the coordinator's `shasum -a 256` saw (#180)."""
     if not source:
         return None, "missing"
     path, sep, ref = source.partition("@")
     if sep and ref:
         if path.startswith("-") or ref.startswith("-"):
             return None, "refusing option-like ref/path (leading '-') — see git-option-injection guard"
-        code, out, err = _run(["git", "show", f"{ref}:{path}"])
+        code, out, err = _run_bytes(["git", "show", f"{ref}:{path}"])
         return (out, None) if code == 0 else (None, (err.strip() or "git ref not found"))
     try:
-        return _resolve(path).read_text(encoding="utf-8"), None
+        return _resolve(path).read_bytes(), None
     except OSError as err:
         return None, str(err)
 
 
 def sha256_of(content):
-    return "sha256:" + hashlib.sha256(content.encode("utf-8")).hexdigest()
+    """Digest of RAW BYTES, matching `shasum -a 256` (coordinators compute digests over bytes)."""
+    return "sha256:" + hashlib.sha256(content).hexdigest()
 
 
 def _norm_digest(d):
@@ -163,7 +175,7 @@ def check_scope(m, auth_source, auth_digest):
     got = sha256_of(content)
     if got != want:
         return [f"scope: authoritative source does not match --contract-digest ({got} != {want})"]
-    authoritative = extract_criterion_ids(content)
+    authoritative = extract_criterion_ids(content.decode("utf-8"))
     if not authoritative:
         return ["scope: no criterion ids in the authoritative contract"]
     contract = m.get("contract") or {}
@@ -230,16 +242,36 @@ def review_ok(reviews, head_sha, author=None):
     return False
 
 
+def parse_review_pages(out):
+    """`gh api --paginate` concatenates one JSON array per page; merge them into a single list.
+    Fail-closed on malformed output or a non-array page."""
+    dec = json.JSONDecoder()
+    items, i = [], 0
+    while True:
+        while i < len(out) and out[i] in " \t\r\n":
+            i += 1
+        if i >= len(out):
+            return items, None
+        try:
+            obj, i = dec.raw_decode(out, i)
+        except (json.JSONDecodeError, ValueError) as err:
+            return None, str(err)
+        if not isinstance(obj, list):
+            return None, "unexpected non-array page in gh output"
+        items.extend(obj)
+
+
 def fetch_reviews(repo, pr_number):
     if shutil.which("gh") is None:
         return None, "gh not on PATH"
-    code, out, err = _run(["gh", "api", f"repos/{repo}/pulls/{pr_number}/reviews"])
+    # --paginate: without it GitHub returns the first 30 reviews only, and review_ok would
+    # compute "latest per reviewer" over a stale window (#167). One HTTP round-trip per page,
+    # so allow a longer timeout than the single-call default.
+    code, out, err = _run(["gh", "api", "--paginate", f"repos/{repo}/pulls/{pr_number}/reviews"],
+                          timeout=60)
     if code != 0:
         return None, (err.strip() or "gh api failed")
-    try:
-        return json.loads(out), None
-    except (json.JSONDecodeError, ValueError) as err:
-        return None, str(err)
+    return parse_review_pages(out)
 
 
 def fetch_pr_author(repo, pr_number):
@@ -277,7 +309,7 @@ def check_review(m, repo, is_mutation, no_gh=False, corroborated=False, dispatch
         content, err = read_source(art)
         if err:
             return [f"no-gh mutation unit: review.artifact unreadable ({art}): {err}"]
-        if head and head not in content:
+        if head and head not in content.decode("utf-8"):
             return ["no-gh mutation unit: review.artifact does not reference head_sha"]
         if not corroborated:
             return ["no-gh mutation unit: review.artifact is worker-forgeable without an out-of-band "
@@ -329,6 +361,7 @@ def check_negative_control(m, is_mutation, execute=False):
     if err:
         errs.append(f"negative_control.artifact unreadable ({artifact}): {err}")
         return errs
+    content = content.decode("utf-8")
     if not re.search(r"(?i)\b(killed|red|fail)\b", content):
         errs.append("negative_control.artifact does not evidence a killed/RED outcome")
     if _NC_ZERO_KILL_RE.search(content):
@@ -472,10 +505,10 @@ def check_dispatch_provenance(m, contract_digest, unit_class, lighting, record_r
     if err:
         return [f"dispatch pubkey unreadable ({pubkey_ref}): {err}"]
     try:
-        envelope = json.loads(rec_text)
+        envelope = json.loads(rec_text.decode("utf-8"))
         record = envelope["record"]
         sig = base64.b64decode(envelope["sig_b64"])
-        pub = bytes.fromhex(pub_text.strip())
+        pub = bytes.fromhex(pub_text.decode("utf-8").strip())
     except (ValueError, KeyError, TypeError) as exc:
         return [f"dispatch record / pubkey malformed ({exc})"]
     if not ed.checkvalid(sig, _canonical_dispatch(record), pub):
@@ -513,6 +546,11 @@ def verify(manifest_path, contract_source=None, contract_digest=None, repo=None,
     is_mut = _is_mutation(unit_class)
     corroborated = bool(contract_source and contract_digest)
     fatal, notes = [], []
+    if unit_class is not None and unit_class not in UNIT_CLASSES:
+        # An unknown class (a typo, or a class this script predates) must not wedge on a usage
+        # error: _is_mutation already fails safe to mutation — say so loudly (#178).
+        notes.append(f"NOTE: unknown unit class {unit_class!r} — expected one of "
+                     f"{sorted(UNIT_CLASSES)}; failing safe to mutation-strict checks (#178)")
     checks = (
         lambda: check_scope(m, contract_source, contract_digest),
         lambda: check_shas_present(m),
@@ -549,9 +587,10 @@ def main(argv=None):
     ap.add_argument("--execute-nc", action="store_true", help="replay the negative control (heavier)")
     ap.add_argument("--base", default=None, help="integration base branch (for ancestry)")
     ap.add_argument("--symbol", default=None, help="a unit symbol to grep on the base")
-    ap.add_argument("--unit-class", default=None, choices=UNIT_CLASSES,
+    ap.add_argument("--unit-class", default=None,
                     help="unit class from the dispatch record (mutation|report-only|planning); "
-                         "missing => mutation (fail-safe)")
+                         "missing/unknown => mutation (fail-safe, with a NOTE) — validated in "
+                         "code, not by argparse, so an unknown value cannot wedge the gate (#178)")
     ap.add_argument("--no-gh", action="store_true",
                     help="offline/no-gh lane (merge-serialization.md): review is a local reviewer "
                          "artifact at head_sha, coordinator-attested — set by the coordinator, not the worker")
