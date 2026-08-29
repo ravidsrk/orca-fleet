@@ -219,7 +219,7 @@ class ReviewLookupBinding(unittest.TestCase):
     def setUp(self):
         self._orig_r = verify.fetch_reviews
         self._orig_a = verify.fetch_pr_author
-        verify.fetch_pr_author = lambda repo, n: None  # independent reviewer by default
+        verify.fetch_pr_author = lambda repo, n: "pr-author"  # a resolved author, distinct from reviewers
 
     def tearDown(self):
         verify.fetch_reviews = self._orig_r
@@ -265,6 +265,22 @@ class ReviewLookupBinding(unittest.TestCase):
         verify.fetch_pr_author = lambda repo, n: "alice"
         self.assertEqual(verify.check_review(self._m(), "o/r", True), [])
 
+    def test_unresolved_author_fails_closed(self):
+        # #142: if the PR-author lookup fails, we cannot exclude a self-approval — fail closed,
+        # never let the author's own approval satisfy the independent-review gate.
+        verify.fetch_reviews = lambda repo, n: ([{"state": "APPROVED", "commit_id": "H",
+                                                  "user": {"login": "alice"}}], None)
+        verify.fetch_pr_author = lambda repo, n: None
+        res = verify.check_review(self._m(), "o/r", True)
+        self.assertTrue(any("cannot resolve" in e.lower() for e in res), res)
+
+    def test_dark_eligible_waives_review(self):
+        # #145: a dark-eligible unit (coordinator dispatch) lands without a human review; the
+        # verifier waives the review leg (NOTE) — the negative control remains the oracle.
+        verify.fetch_reviews = lambda repo, n: ([], None)
+        res = verify.check_review(self._m(), "o/r", True, dispatch_lighting="dark-eligible")
+        self.assertTrue(res and all(e.startswith("NOTE:") for e in res), res)
+
 
 class ShasBinding(unittest.TestCase):
     """#119: base_sha/head_sha presence is the SHA-binding premise — bind it."""
@@ -305,8 +321,15 @@ class NoGhReviewLane(unittest.TestCase):
     def test_no_gh_with_reviewer_artifact_passes_as_note(self):
         art = self._artifact("reviewed HEADSHA123 — approved by a fresh reviewer\n")
         m = {"unit": "ship-it", "head_sha": "HEADSHA123", "review": {"artifact": art}}
-        res = verify.check_review(m, None, True, no_gh=True)
+        res = verify.check_review(m, None, True, no_gh=True, corroborated=True)
         self.assertTrue(res and all(e.startswith("NOTE:") for e in res), res)
+
+    def test_no_gh_uncorroborated_fails_closed(self):
+        # #138: without an out-of-band coordinator contract the local artifact is worker-forgeable.
+        art = self._artifact("reviewed HEADSHA123 — approved by a fresh reviewer\n")
+        m = {"unit": "ship-it", "head_sha": "HEADSHA123", "review": {"artifact": art}}
+        res = verify.check_review(m, None, True, no_gh=True, corroborated=False)
+        self.assertTrue(any("forgeable" in e and not e.startswith("NOTE:") for e in res), res)
 
     def test_no_gh_missing_artifact_fails_closed(self):
         m = {"unit": "ship-it", "head_sha": "H", "review": {}}
@@ -318,6 +341,74 @@ class NoGhReviewLane(unittest.TestCase):
         m = {"unit": "ship-it", "head_sha": "HEADSHA123", "review": {"artifact": art}}
         res = verify.check_review(m, None, True, no_gh=True)
         self.assertTrue(any("does not reference head_sha" in e for e in res), res)
+
+class MalformedManifest(unittest.TestCase):
+    """#137: a malformed manifest must fail closed as an invariant failure, never crash the gate."""
+
+    def _tmp(self, text):
+        f = tempfile.NamedTemporaryFile("w", suffix=".json", delete=False)
+        f.write(text)
+        f.close()
+        return f.name
+
+    def test_non_object_manifest_rejected(self):
+        m, err = verify.load_manifest(self._tmp("[1, 2, 3]"))
+        self.assertIsNone(m)
+        self.assertIn("JSON object", err)
+
+    def test_non_dict_intent_does_not_crash(self):
+        errs = verify.check_intent({"intent": "just a string"}, True)
+        self.assertTrue(any("intent packet" in e for e in errs), errs)
+
+    def test_non_scalar_lighting_does_not_crash(self):
+        errs = verify.check_lighting({"lighting": ["lit"]}, True)
+        self.assertTrue(any("lighting must be" in e for e in errs), errs)
+
+    def test_non_scalar_reviewer_mode_does_not_crash(self):
+        errs = verify.check_reviewer_mode({"reviewer_mode": {"x": 1}}, True)
+        self.assertTrue(any("reviewer_mode must be" in e for e in errs), errs)
+
+    def test_lighting_swap_detected(self):
+        # #145: the dispatch lighting is authoritative; a worker manifest that swaps it fails.
+        errs = verify.check_lighting({"lighting": "dark-eligible"}, True, dispatch_lighting="lit")
+        self.assertTrue(any("swap" in e for e in errs), errs)
+
+    def test_verify_wraps_check_exceptions(self):
+        # A manifest shape that would raise inside a check becomes a fatal invariant, not a traceback.
+        path = self._tmp('{"pr": "not-an-object", "head_sha": "H", "base_sha": "B"}')
+        (fatal, notes), err = verify.verify(path, unit_class="mutation")
+        self.assertIsNone(err)
+        self.assertTrue(any("malformed manifest" in f for f in fatal), fatal)
+
+
+class NegativeControlSurvivor(unittest.TestCase):
+    """#137: survivor summaries (plural / percentage / count) must be rejected, not accepted."""
+
+    def _m(self, artifact):
+        return {"negative_control": {"tool": "mutmut", "result": "killed", "mutant": "m7",
+                                     "artifact": artifact}}
+
+    def _art(self, text):
+        f = tempfile.NamedTemporaryFile("w", suffix=".md", delete=False)
+        f.write(text)
+        f.close()
+        return f.name
+
+    def test_percentage_survivor_rejected(self):
+        art = self._art("m7 mutation applied. Mutants that survived: 1. 0.0% killed.\n")
+        self.assertTrue(any("SURVIVED" in e for e in verify.check_negative_control(self._m(art), True)))
+
+    def test_summary_counts_survivor_rejected(self):
+        art = self._art("m7: Survived: 1 / Killed: 0\n")
+        self.assertTrue(any("SURVIVED" in e for e in verify.check_negative_control(self._m(art), True)))
+
+    def test_zero_mutants_killed_rejected(self):
+        art = self._art("m7 ran; 0 mutants killed.\n")
+        self.assertTrue(any("SURVIVED" in e for e in verify.check_negative_control(self._m(art), True)))
+
+    def test_genuine_kill_still_passes(self):
+        art = self._art("m7 KILLED — 1 killed, 0 survived. Proof went RED.\n")
+        self.assertEqual(verify.check_negative_control(self._m(art), True), [])
 
 
 if __name__ == "__main__":

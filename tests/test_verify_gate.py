@@ -121,5 +121,13 @@ class VerifyGateStopScope(unittest.TestCase):
         r = run_gate(m, src, _digest(src), unit_class="report-only", event="stop")
         self.assertEqual(r.returncode, 0, r.stderr)
 
+    def test_stop_named_but_missing_manifest_blocks(self):
+        # #141 review: a NAMED manifest whose file is deleted/mistyped means an active unit's
+        # evidence is gone — Stop must fail closed, not silently treat it like "no unit in progress".
+        r = run_gate("/tmp/orca-does-not-exist-" + os.urandom(4).hex() + ".json", event="stop")
+        self.assertEqual(r.returncode, 2, r.stderr)
+        self.assertIn("named but missing", r.stderr)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

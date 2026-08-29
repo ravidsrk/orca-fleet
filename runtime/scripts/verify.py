@@ -53,6 +53,11 @@ LIGHTING_VALUES = {"lit", "dark-eligible"}
 # Over-counting is fail-safe (the manifest must address MORE); under-counting would let scope shrink.
 CRIT_ID_RE = re.compile(r"\b[A-Z][A-Z0-9]*-\d+\b|\b[A-Z]{2,}\d+\b")
 HEX40_RE = re.compile(r"^[0-9a-f]{40}$")
+_NC_SURVIVOR_RE = re.compile(
+    r"(?i)(not\s+killed|not\s+red|mutant\s+survived"
+    r"|survived\s*[:=]?\s*[1-9]|[1-9]\d*\s+(?:mutants?\s+)?survived"
+    r"|killed\s*[:=]\s*0\b|0(?:\.0+)?\s*%\s+killed|\b0\s+mutants?\s+killed|\b0\s+killed\b)"
+)
 
 
 def _run(args, timeout=20):
@@ -80,9 +85,12 @@ def infer_repo():
 def load_manifest(path):
     try:
         with open(path, encoding="utf-8") as fh:
-            return json.load(fh), None
-    except (OSError, json.JSONDecodeError) as err:
+            obj = json.load(fh)
+    except (OSError, json.JSONDecodeError, UnicodeDecodeError) as err:
         return None, f"unreadable/invalid manifest: {err}"
+    if not isinstance(obj, dict):
+        return None, f"manifest must be a JSON object, got {type(obj).__name__}"
+    return obj, None
 
 
 def _resolve(path):
@@ -241,14 +249,18 @@ def fetch_pr_author(repo, pr_number):
         return None
 
 
-def check_review(m, repo, is_mutation, no_gh=False):
+def check_review(m, repo, is_mutation, no_gh=False, corroborated=False, dispatch_lighting=None):
     """3. A mutation unit needs an INDEPENDENT review at head_sha. Default: an APPROVED GitHub review
-    looked up on GitHub (a worker-set reviewed_sha is not evidence). Fail-closed. In the sanctioned
-    no-gh / offline lane (dispatch --no-gh; merge-serialization.md), GitHub is unavailable, so the
-    review is a local reviewer artifact at head_sha — coordinator-attested (the weaker guarantee),
-    never a silent pass."""
+    looked up on GitHub (a worker-set reviewed_sha is not evidence). Fail-closed. A dark-eligible unit
+    (a COORDINATOR dispatch decision, gate-classification.md) lands without a build-blind human review;
+    its oracle is the negative control + tests (checked separately). In the sanctioned no-gh / offline
+    lane (dispatch --no-gh; merge-serialization.md) the local reviewer artifact is trusted only when an
+    out-of-band coordinator contract corroborates the run — otherwise it is worker-forgeable."""
     if not is_mutation:
         return []
+    if dispatch_lighting == "dark-eligible":
+        return ["NOTE: independent review waived — dark-eligible unit (gate-classification.md); the "
+                "negative control + tests are the oracle, not a human review"]
     head = m.get("head_sha")
     if no_gh:
         art = (m.get("review") or {}).get("artifact")
@@ -259,8 +271,13 @@ def check_review(m, repo, is_mutation, no_gh=False):
             return [f"no-gh mutation unit: review.artifact unreadable ({art}): {err}"]
         if head and head not in content:
             return ["no-gh mutation unit: review.artifact does not reference head_sha"]
-        return ["NOTE: no-gh review is coordinator-attested (local reviewer artifact at head_sha), "
-                "not GitHub-verified — the weaker guarantee (merge-serialization.md)"]
+        if not corroborated:
+            return ["no-gh mutation unit: review.artifact is worker-forgeable without an out-of-band "
+                    "coordinator contract (--contract-source + --contract-digest) — fail-closed "
+                    "(sign the dispatch record; merge-serialization.md)"]
+        return ["NOTE: no-gh review is coordinator-attested via the frozen out-of-band contract (local "
+                "reviewer artifact at head_sha), not GitHub-verified — the weaker guarantee "
+                "(merge-serialization.md)"]
     number = (m.get("pr") or {}).get("number")
     if not number:
         return ["mutation unit: no pr.number to look up an independent review — unreviewed"]
@@ -269,7 +286,11 @@ def check_review(m, repo, is_mutation, no_gh=False):
     reviews, err = fetch_reviews(repo, number)
     if err:
         return [f"mutation unit: cannot fetch reviews for {repo}#{number} ({err}) — fail-closed"]
-    if not review_ok(reviews, head, fetch_pr_author(repo, number)):
+    author = fetch_pr_author(repo, number)
+    if author is None:
+        return [f"mutation unit: cannot resolve PR author for {repo}#{number} — cannot exclude the "
+                "author's self-review, fail-closed"]
+    if not review_ok(reviews, head, author):
         return [f"mutation unit: no INDEPENDENT APPROVED review at head_sha on {repo}#{number} "
                 f"(the PR author's own approval and superseded reviews do not count)"]
     return []
@@ -302,9 +323,9 @@ def check_negative_control(m, is_mutation, execute=False):
         return errs
     if not re.search(r"(?i)\b(killed|red|fail)\b", content):
         errs.append("negative_control.artifact does not evidence a killed/RED outcome")
-    if re.search(r"(?i)(\bnot\s+killed\b|\bno\s+mutants?\s+killed\b|\b0\s+killed\b|\bnot\s+red\b"
-                 r"|\bmutant\s+survived\b|\bsurvived\b.{0,40}\bmutant\b)", content):
-        errs.append("negative_control.artifact indicates the mutant SURVIVED / was not killed")
+    if _NC_SURVIVOR_RE.search(content):
+        errs.append("negative_control.artifact indicates the mutant SURVIVED / was not killed "
+                    "(a nonzero survivor count, 0 killed, or 0% killed)")
     if mutant and mutant not in content:
         errs.append("negative_control.artifact does not reference the pinned mutant")
     if execute:
@@ -342,20 +363,27 @@ def check_intent(m, is_mutation):
     wisdom is a human/taste check (evidence-manifest.md §1)."""
     if not is_mutation:
         return []
-    intent = m.get("intent") or {}
+    intent = m.get("intent")
+    if not isinstance(intent, dict):
+        intent = {}
     missing = [k for k in ("goal", "ruled_out", "why")
                if not (isinstance(intent.get(k), str) and intent.get(k).strip())]
     return [f"intent packet incomplete — non-empty {missing} required (mutation unit)"] if missing else []
 
 
-def check_lighting(m, is_mutation):
+def check_lighting(m, is_mutation, dispatch_lighting=None):
     """8. Lighting is a legal value (gate-classification.md). dark-eligibility's stop-list is a human
-    gate; verify.py machine-checks only that the value is one the doctrine allows."""
+    gate; verify.py machine-checks that the value is legal and, when the dispatch supplied a lighting,
+    that the worker's manifest did not swap it (the dispatch value is authoritative for the review
+    waiver in check_review)."""
     if not is_mutation:
         return []
     lighting = m.get("lighting")
-    if lighting not in LIGHTING_VALUES:
+    if not (isinstance(lighting, str) and lighting in LIGHTING_VALUES):
         return [f"lighting must be one of {sorted(LIGHTING_VALUES)}, got {lighting!r}"]
+    if dispatch_lighting is not None and lighting != dispatch_lighting:
+        return [f"lighting swap: manifest says {lighting!r} but dispatch classed the unit "
+                f"{dispatch_lighting!r} (the dispatch value is authoritative)"]
     return []
 
 
@@ -365,27 +393,38 @@ def check_reviewer_mode(m, is_mutation):
     if not is_mutation:
         return []
     mode = m.get("reviewer_mode")
-    if mode not in REVIEWER_MODES:
+    if not (isinstance(mode, str) and mode in REVIEWER_MODES):
         return [f"reviewer_mode must be one of {sorted(REVIEWER_MODES)}, got {mode!r}"]
     return []
 
 
 def verify(manifest_path, contract_source=None, contract_digest=None, repo=None,
-           base=None, symbol=None, execute_nc=False, unit_class=None, no_gh=False):
+           base=None, symbol=None, execute_nc=False, unit_class=None, no_gh=False, lighting=None):
     """Return (fatal_errors, notes). fatal_errors non-empty => exit 2."""
     m, err = load_manifest(manifest_path)
     if err:
         return None, err
     is_mut = _is_mutation(unit_class)
+    corroborated = bool(contract_source and contract_digest)
     fatal, notes = [], []
-    for result in (
-        check_scope(m, contract_source, contract_digest),
-        check_shas_present(m), check_real_commits(m, is_mut),
-        check_freshness(m), check_review(m, repo, is_mut, no_gh),
-        check_negative_control(m, is_mut, execute_nc),
-        check_intent(m, is_mut), check_lighting(m, is_mut), check_reviewer_mode(m, is_mut),
-        check_ancestry(m, base), check_symbol_on_base(symbol, base),
-    ):
+    checks = (
+        lambda: check_scope(m, contract_source, contract_digest),
+        lambda: check_shas_present(m),
+        lambda: check_real_commits(m, is_mut),
+        lambda: check_freshness(m),
+        lambda: check_review(m, repo, is_mut, no_gh, corroborated, lighting),
+        lambda: check_negative_control(m, is_mut, execute_nc),
+        lambda: check_intent(m, is_mut),
+        lambda: check_lighting(m, is_mut, lighting),
+        lambda: check_reviewer_mode(m, is_mut),
+        lambda: check_ancestry(m, base),
+        lambda: check_symbol_on_base(symbol, base),
+    )
+    for run_check in checks:
+        try:
+            result = run_check()
+        except Exception as exc:  # a malformed manifest must fail closed, never crash the gate
+            result = [f"malformed manifest: {type(exc).__name__} in a verifier check ({exc})"]
         for line in result:
             (notes if line.startswith("NOTE:") else fatal).append(line)
     return (fatal, notes), None
@@ -407,6 +446,9 @@ def main(argv=None):
     ap.add_argument("--no-gh", action="store_true",
                     help="offline/no-gh lane (merge-serialization.md): review is a local reviewer "
                          "artifact at head_sha, coordinator-attested — set by the coordinator, not the worker")
+    ap.add_argument("--lighting", default=None, choices=sorted(LIGHTING_VALUES),
+                    help="unit lighting from the dispatch record (lit|dark-eligible); dark-eligible "
+                         "waives the independent-review requirement — set by the coordinator, not the worker")
     args = ap.parse_args(argv)
 
     if shutil.which("git") is None:
@@ -414,7 +456,7 @@ def main(argv=None):
         return 1
     out, load_err = verify(args.manifest, args.contract_source, args.contract_digest,
                            args.repo or infer_repo(), args.base, args.symbol, args.execute_nc,
-                           args.unit_class, args.no_gh)
+                           args.unit_class, args.no_gh, args.lighting)
     if load_err:
         print(load_err, file=sys.stderr)
         return 1

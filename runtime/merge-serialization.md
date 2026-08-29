@@ -53,7 +53,10 @@ and `reviewed_sha` (`pr` is null) and swaps every `gh` step in the loop above fo
 
 Record `no-gh: local-merge` in the ledger AND a local reviewer record — `review.artifact` at
 head_sha — which verify.py's `--no-gh` review path checks (coordinator-attested, the weaker
-guarantee). The BASE→default promotion still needs a human and a real PR, so a no-gh run stops at
+guarantee). Because the local artifact is worker-forgeable on the native in-session hook, verify.py
+accepts it ONLY when an out-of-band coordinator contract corroborates the run (`--contract-source`
+`--contract-digest`, from the dispatch record — not the manifest); without it the `--no-gh` review
+fails closed. The BASE→default promotion still needs a human and a real PR, so a no-gh run stops at
 BASE and surfaces that the promotion PR is owed.
 
 The same lane applies when a run STARTS offline, not just when gh dies mid-run: Phase 0
