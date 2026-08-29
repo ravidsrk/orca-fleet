@@ -30,8 +30,10 @@ self-certified within the run that produced them. orca-fleet's edge is narrower 
 **verified, not asserted.** Each mission is a complete autonomous fleet for the
 [Orca](https://github.com/stablyai/orca) runtime — a coordinator that decomposes a goal, dispatches
 isolated workers, and stops at a named terminal state whose every claim an **independent session
-re-derives from git**, backed by a **mandatory negative control** (revert or mutate the change and
-watch the proof go red) and a **frozen denominator** the worker cannot quietly shrink.
+re-derives from git**, backed — on any change it lands — by a **mandatory negative control** (revert
+or mutate the change and watch the proof go red) and a **frozen denominator** the worker cannot quietly
+shrink. (Report-only missions like `review-it` bind their claims to the reviewed SHA instead of landing
+a change to control against.)
 
 ```
  YOU SAY                          THE FLEET RUNS                        YOU GET
