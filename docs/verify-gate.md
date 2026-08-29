@@ -110,7 +110,8 @@ in-session proves nothing about who signed (see [Trust boundary](#trust-boundary
 
 1. **Once:** off the worker, `dispatch-sign.py gen-key --out <secret>` — keep `<secret>` private and
    land `<secret>.pub` as **`.orca/dispatch-pubkey`** through a reviewed PR to the default branch.
-   Committing it turns enforcement on.
+   Committing it turns the signed-dispatch check on — the gate then requires a valid record; what
+   that check *proves* still depends on where the gate runs (see the soundness condition below).
 2. **Per dispatch (off-worker):** `dispatch-sign.py sign --key <secret> --manifest-id <unit-id>
    --contract-digest <d> --unit-class <c> [--lighting <l>]` — hand the envelope to the gate as
    `ORCA_DISPATCH_RECORD` (a path, or a `path@ref` fetched out-of-band). The record may be
@@ -118,7 +119,9 @@ in-session proves nothing about who signed (see [Trust boundary](#trust-boundary
 3. **At the gate:** `verify.py` verifies the Ed25519 signature against that key, asserts each signed
    field equals the value the run used, **and** that `manifest_id` names *this* unit (so a valid record
    from another unit can't be replayed). Substitution, forgery, replay, or a pinned key with no valid
-   record all **fail closed**.
+   record all **fail closed** — against whatever key was discovered, which in-session may be the
+   worker's own (the sources above); the fail-closed guarantee bites only where the key is
+   off-worker-anchored.
 
 **Soundness condition, stated honestly:** signed dispatch makes a verdict sound *exactly where the
 worker cannot influence the verifying key* — i.e., **off the worker's box**, where the orchestrator
