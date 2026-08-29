@@ -54,8 +54,10 @@ protocol breach — park and re-dispatch. Concrete dark-eligible unit: a lint/fo
 characterization-test-only change on reversible fixtures whose oracle is types/tests — it may land
 without a build-blind reviewer; anything that writes product behavior stays lit and reviewed.
 `verify.py` enforces this: `--lighting dark-eligible` (a dispatch value, never the worker's manifest)
-**waives the independent-review leg** while the negative control + tests remain the required oracle,
-so a dark-eligible unit completes without a human review but never without its unfakeable check.
+**waives the independent-review leg** while the negative control + tests remain the required oracle —
+and because that oracle must be *unfakeable*, verify.py accepts a dark-eligible unit only when an
+out-of-band coordinator contract corroborates it (`--contract-source` + `--contract-digest`), else it
+fails closed. So a dark-eligible unit completes without a human review, never without its unfakeable check.
 
 ## Pre-build plan gate (irreversible units)
 
