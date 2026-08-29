@@ -114,8 +114,13 @@ def gen_key(out: Path, in_repo_ok: bool = False) -> int:
     seed = os.urandom(32)
     pub = ed.publickey(seed)
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(seed.hex() + "\n", encoding="utf-8")
-    os.chmod(out, 0o600)
+    # The seed gets its final permissions AT CREATION (os.open mode 0o600), then fchmod on the
+    # open fd covers re-generation over a pre-existing permissive file — never create-under-umask
+    # then chmod, which leaves the seed world-readable between the two calls (#163).
+    fd = os.open(out, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(fd, "w", encoding="utf-8") as fh:
+        os.fchmod(fh.fileno(), 0o600)
+        fh.write(seed.hex() + "\n")
     pub_path = out.with_suffix(out.suffix + ".pub") if out.suffix else Path(str(out) + ".pub")
     pub_path.write_text(pub.hex() + "\n", encoding="utf-8")
     print(f"private seed: {out} (0600 — keep OFF the graded worker)", file=sys.stderr)
