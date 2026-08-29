@@ -160,7 +160,8 @@ class TestDocsNavigation(unittest.TestCase):
         index_path = DOCS / "missions" / "README.md"
         index = index_path.read_text(encoding="utf-8")
         resolved = set()
-        for target in re.findall(r"\[[^\]]+\]\(([^)]+\.md)\)", index):
+        # accept inline links with optional <>, #fragment, and "title" — capture the .md path only.
+        for target in re.findall(r"\[[^\]]+\]\(\s*<?([^)>#\s]+\.md)(?:#[^)>\s]*)?>?(?:\s+\"[^\"]*\")?\s*\)", index):
             p = (index_path.parent / target).resolve()
             if p.is_file():
                 resolved.add(p)
