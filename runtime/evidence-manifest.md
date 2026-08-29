@@ -33,7 +33,7 @@ The worker writes it to `reportPath` and names that path in the `worker_done` pa
   ],
   "negative_control": {
     "did": "reverted the production line / applied mutant <id> via <tool>",
-    "tool": "mutmut | stryker | pitest | cargo-mutants | go-mutesting | revert",
+    "tool": "mutmut | cosmic-ray | stryker | pitest | cargo-mutants | go-mutesting | revert",
     "mutant": "<pinned id, e.g. mutmut#7 validate.py:42 '>'->'>=' ; omit for revert>",
     "result": "the criterion-bound test went RED (mutant KILLED)",
     "artifact": "docs/reports/<unit>/negctrl.txt"
@@ -101,7 +101,7 @@ Rules:
 - `lighting` is `lit` (default) or `dark-eligible` per gate-classification.md. The
   verifier rejects `dark-eligible` on a stop-list / Lane-0/B unit.
 - `provenance` (optional, any class) makes the manifest a regulated audit record — governing
-  spec/policy version, model lineage, reviewer identity+timestamp, and an append-only retention pointer (maps to EU AI Act Art-12/50).
+  spec/policy version, model lineage, reviewer identity+timestamp, and an append-only retention pointer (maps to EU AI Act Art-12/50). When it names a standard (not `none`), the verifier REQUIRES those fields be present — an incomplete packet is not a valid audit record.
 - `claim` is the worker's narration. The verifier ignores it except as a hint.
 
 ## 2. Independent verification (the coordinator, or a fresh verifier worker)

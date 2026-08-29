@@ -47,23 +47,32 @@ def sound_gate(trap):
     with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
         json.dump(trap["manifest"], fh)
         path = fh.name
-    cmd = [sys.executable, str(VERIFY), "--manifest", path]
-    if trap.get("contract_source"):
-        cmd += ["--contract-source", trap["contract_source"]]
-    if trap.get("contract_digest"):
-        cmd += ["--contract-digest", trap["contract_digest"]]
-    # unit_class is a DISPATCH fact the coordinator supplies OUT OF BAND — verify.py never reads it
-    # from the manifest. The trap carries it at TOP LEVEL; a trap with no `unit_class` models the
-    # coordinator not classifying (verify.py fail-safes to mutation). The manifest's own unit_class
-    # is ignored — that is what makes the downgraded-class / unclassified-mutation vectors fail.
-    if trap.get("unit_class"):
-        cmd += ["--unit-class", trap["unit_class"]]
-    if trap.get("base"):
-        cmd += ["--base", trap["base"]]
-    if trap.get("repo"):
-        cmd += ["--repo", trap["repo"]]
-    r = subprocess.run(cmd, capture_output=True, text=True, cwd=ROOT)
-    return r.returncode == 0  # True = gate returned GREEN (allow)
+    try:
+        cmd = [sys.executable, str(VERIFY), "--manifest", path]
+        if trap.get("contract_source"):
+            cmd += ["--contract-source", trap["contract_source"]]
+        if trap.get("contract_digest"):
+            cmd += ["--contract-digest", trap["contract_digest"]]
+        # unit_class is a DISPATCH fact the coordinator supplies OUT OF BAND — verify.py never reads it
+        # from the manifest. The trap carries it at TOP LEVEL; a trap with no `unit_class` models the
+        # coordinator not classifying (verify.py fail-safes to mutation). The manifest's own unit_class
+        # is ignored — that is what makes the downgraded-class / unclassified-mutation vectors fail.
+        if trap.get("unit_class"):
+            cmd += ["--unit-class", trap["unit_class"]]
+        if trap.get("base"):
+            cmd += ["--base", trap["base"]]
+        if trap.get("repo"):
+            cmd += ["--repo", trap["repo"]]
+        r = subprocess.run(cmd, capture_output=True, text=True, cwd=ROOT)
+        # verify.py returns 0 (GREEN/allow) or 2 (RED/invariant failed). Any other code (1 = usage /
+        # dependency error) is a BROKEN run, not a verdict — fail loud so it cannot inflate soundness
+        # by scoring an execution failure as a caught trap.
+        if r.returncode not in (0, 2):
+            raise RuntimeError(f"verify.py exited {r.returncode} (not a 0/2 verdict) — broken "
+                               f"verifier/env, not a RED verdict: {r.stderr.strip()[:200]}")
+        return r.returncode == 0  # True = gate returned GREEN (allow)
+    finally:
+        Path(path).unlink(missing_ok=True)
 
 
 GATES = {

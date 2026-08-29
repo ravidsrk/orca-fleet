@@ -84,5 +84,42 @@ class VFBenchForwarding(unittest.TestCase):
             self.assertEqual(cmd[cmd.index(flag) + 1], val, f"{flag} value not forwarded")
 
 
+class VFBenchRobustness(unittest.TestCase):
+    """#100 review: the harness must not leak temp manifests, and a broken verifier (exit 1) must not
+    be scored as a caught trap."""
+
+    def test_sound_gate_removes_temp_manifest(self):
+        captured = {}
+
+        class _R:
+            returncode = 2
+            stderr = ""
+
+        def fake_run(cmd, *a, **k):
+            captured["path"] = cmd[cmd.index("--manifest") + 1]
+            return _R()
+
+        orig = vfbench.subprocess.run
+        vfbench.subprocess.run = fake_run
+        try:
+            vfbench.sound_gate({"manifest": {"head_sha": "H"}})
+        finally:
+            vfbench.subprocess.run = orig
+        self.assertFalse(Path(captured["path"]).exists(), "sound_gate leaked its temp manifest")
+
+    def test_sound_gate_raises_on_broken_verifier(self):
+        class _R:
+            returncode = 1  # usage/dependency error — not a 0/2 verdict
+            stderr = "dependency: git not on PATH"
+
+        orig = vfbench.subprocess.run
+        vfbench.subprocess.run = lambda *a, **k: _R()
+        try:
+            with self.assertRaises(RuntimeError):
+                vfbench.sound_gate({"manifest": {"head_sha": "H"}})
+        finally:
+            vfbench.subprocess.run = orig
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

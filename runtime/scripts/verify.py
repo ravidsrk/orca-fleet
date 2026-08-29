@@ -410,6 +410,22 @@ def check_reviewer_mode(m, is_mutation):
     return []
 
 
+def check_provenance(m):
+    """10. EU AI Act Art-12/50: a manifest that CLAIMS a regulated standard must carry the provenance
+    fields that make it an audit record. Presence-only (not deep validation), but an incomplete packet
+    claiming a standard is not a valid audit record — fail it rather than accept incomplete evidence."""
+    prov = m.get("provenance")
+    if not isinstance(prov, dict):
+        return []
+    standard = prov.get("standard")
+    if not (isinstance(standard, str) and standard.strip() and standard.strip().lower() != "none"):
+        return []
+    missing = [k for k in ("spec_version", "model", "reviewer", "retention")
+               if not (isinstance(prov.get(k), str) and prov.get(k).strip())]
+    return [f"provenance claims standard {standard!r} but is missing audit fields {missing} "
+            "(EU AI Act Art-12/50 record incomplete)"] if missing else []
+
+
 def verify(manifest_path, contract_source=None, contract_digest=None, repo=None,
            base=None, symbol=None, execute_nc=False, unit_class=None, no_gh=False, lighting=None):
     """Return (fatal_errors, notes). fatal_errors non-empty => exit 2."""
@@ -429,6 +445,7 @@ def verify(manifest_path, contract_source=None, contract_digest=None, repo=None,
         lambda: check_intent(m, is_mut),
         lambda: check_lighting(m, is_mut, lighting),
         lambda: check_reviewer_mode(m, is_mut),
+        lambda: check_provenance(m),
         lambda: check_ancestry(m, base),
         lambda: check_symbol_on_base(symbol, base),
     )
