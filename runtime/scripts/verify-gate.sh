@@ -47,12 +47,21 @@ NO_GH="${ORCA_NO_GH:-}"
 LIGHTING="${ORCA_LIGHTING:-}"
 RECORD="${ORCA_DISPATCH_RECORD:-}"
 PUBKEY="${ORCA_DISPATCH_PUBKEY:-}"
-# #135: forward a signed dispatch record + pubkey to verify.py when present. NOTE this does NOT make
-# the native in-session path sound: on the native hook the worker controls every input the gate could
-# use to establish trust — ORCA_PROVENANCE, ORCA_DISPATCH_PUBKEY, and even `origin`/local refs are all
-# worker-writable — so no in-session key is trustworthy (the #112 result). The signed record's real
-# value is OFF-WORKER: CI/MCP/SDK, or an auditor, re-runs verify.py with the coordinator's REAL public
-# key and detects any substitution. Soundness is a property of WHERE this runs, not of any env var.
+# #135 key SOURCE: an injected ORCA_DISPATCH_PUBKEY (off-worker orchestrator) else the committed
+# opt-in pin .orca/dispatch-pubkey — preferring the reviewed remote blob, falling back to the working
+# tree — so a repo that follows the docs actually gets the check to RUN.
+if [ -z "$PUBKEY" ]; then
+  DEF_REF="$(git -C "$HERE/../.." symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/HEAD)"
+  if git -C "$HERE/../.." cat-file -e "$DEF_REF:.orca/dispatch-pubkey" 2>/dev/null; then
+    PUBKEY=".orca/dispatch-pubkey@$DEF_REF"
+  elif [ -f "$HERE/../../.orca/dispatch-pubkey" ]; then
+    PUBKEY=".orca/dispatch-pubkey"
+  fi
+fi
+# This does NOT make the native in-session path sound: the worker controls ORCA_PROVENANCE, any env
+# key, and `origin`/local refs, so no in-session key is trustworthy (the #112 result). The record's
+# real value is OFF-WORKER — CI/MCP/SDK or an auditor re-runs verify.py with the coordinator's REAL
+# key and detects any substitution. Soundness is a property of WHERE this runs (see the note below).
 
 if [ -z "$MANIFEST" ]; then
   # Stop fires on EVERY turn end; a turn with no unit in progress (manifest unset) has nothing to
