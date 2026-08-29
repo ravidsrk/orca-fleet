@@ -18,10 +18,12 @@ it runs the same `verify.py` no matter which surface fires it.
   (`ORCA_MANIFEST` unset) has nothing to verify and is **allowed**; a turn that IS mid-unit is
   verified and **exit 2 refuses the turn end** until the manifest passes.
 
-`verify-gate.sh` is **fail-closed**: if no manifest is named (`ORCA_MANIFEST` unset / missing), if no
-authoritative contract is supplied (`ORCA_CONTRACT_SOURCE`/`ORCA_CONTRACT_DIGEST` — without it the
-scope check cannot be certified, so it blocks), or the verifier errors, it blocks (exit 2) — an
-un-runnable verifier is never a green light.
+`verify-gate.sh` is **fail-closed**: if a manifest is named but missing, if no authoritative
+contract is supplied (`ORCA_CONTRACT_SOURCE`/`ORCA_CONTRACT_DIGEST` — without it the scope check
+cannot be certified, so it blocks), or the verifier errors, it blocks (exit 2) — an un-runnable
+verifier is never a green light. The one carve-out is the `Stop` semantics above: `Stop` with
+`ORCA_MANIFEST` unset (no unit in progress) is ALLOWED, while `TaskCompleted` with no manifest is a
+mis-dispatch and blocks.
 
 ```
 coordinator sets the gate env (every input verify-gate.sh reads, enumerated below) — NOT the worker
@@ -36,7 +38,8 @@ coordinator sets the gate env (every input verify-gate.sh reads, enumerated belo
 **The gate env surface** — every `ORCA_*` variable `verify-gate.sh` reads, all coordinator-set (never
 worker-set; anything else in the environment is ignored):
 
-- `ORCA_MANIFEST` — path to the unit's evidence manifest (required; unset/missing ⇒ BLOCK).
+- `ORCA_MANIFEST` — path to the unit's evidence manifest (required; named-but-missing ⇒ BLOCK;
+  unset ⇒ BLOCK on `TaskCompleted`, allowed on `Stop` with no unit in progress).
 - `ORCA_CONTRACT_SOURCE` / `ORCA_CONTRACT_DIGEST` — the frozen contract `path@ref` and its sha256;
   without both, the scope check fail-closes.
 - `ORCA_UNIT_CLASS` — `mutation | report-only | planning`, from dispatch; missing/unknown ⇒ mutation.
