@@ -12,7 +12,7 @@ truth is `.claude-plugin/plugin.json`.
   (issue #135, follow-up to #112). The coordinator signs `{manifest-id, contract-digest, unit-class,
   lighting}` off-worker (`runtime/scripts/dispatch-sign.py`, vendored Ed25519 in
   `runtime/scripts/ed25519.py`); `verify.py` / `verify-gate.sh` verify the signature against a
-  repo-pinned public key (`.orca/dispatch-pubkey@HEAD`) and reject any in-session substitution of
+  repo-pinned public key (`.orca/dispatch-pubkey@origin/HEAD`) and reject any in-session substitution of
   those values. Opt-in by committing the pubkey; default behaviour is unchanged. See
   [docs/verify-gate.md](docs/verify-gate.md#signed-dispatch--making-the-native-path-sound-135).
 

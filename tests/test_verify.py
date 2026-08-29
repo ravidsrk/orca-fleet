@@ -492,42 +492,50 @@ class DispatchProvenance(unittest.TestCase):
         pk = tempfile.NamedTemporaryFile("w", suffix=".pub", delete=False); pk.write(pub.hex()); pk.close()
         return rec.name, pk.name
 
+    _M = {"unit": "u"}
+
     def test_verified_provenance_passes(self):
         rec, pk = self._signed({"manifest_id": "u", "contract_digest": "sha256:a", "unit_class": "mutation", "lighting": "lit"})
-        res = verify.check_dispatch_provenance("sha256:a", "mutation", "lit", rec, pk)
+        res = verify.check_dispatch_provenance(self._M, "sha256:a", "mutation", "lit", rec, pk)
         self.assertTrue(res and all(e.startswith("NOTE:") for e in res), res)
 
     def test_substituted_digest_caught(self):
         rec, pk = self._signed({"manifest_id": "u", "contract_digest": "sha256:REAL", "unit_class": "mutation"})
-        res = verify.check_dispatch_provenance("sha256:WEAKER", "mutation", None, rec, pk)
+        res = verify.check_dispatch_provenance(self._M, "sha256:WEAKER", "mutation", None, rec, pk)
         self.assertTrue(any("substitution" in e and not e.startswith("NOTE:") for e in res), res)
 
     def test_downgraded_class_caught(self):
         rec, pk = self._signed({"manifest_id": "u", "contract_digest": "sha256:a", "unit_class": "mutation"})
-        res = verify.check_dispatch_provenance("sha256:a", "report-only", None, rec, pk)
+        res = verify.check_dispatch_provenance(self._M, "sha256:a", "report-only", None, rec, pk)
         self.assertTrue(any("substitution" in e for e in res), res)
 
     def test_flipped_lighting_caught(self):
         rec, pk = self._signed({"manifest_id": "u", "contract_digest": "sha256:a", "unit_class": "mutation", "lighting": "lit"})
-        res = verify.check_dispatch_provenance("sha256:a", "mutation", "dark-eligible", rec, pk)
+        res = verify.check_dispatch_provenance(self._M, "sha256:a", "mutation", "dark-eligible", rec, pk)
         self.assertTrue(any("substitution" in e for e in res), res)
+
+    def test_replayed_record_from_another_unit_caught(self):
+        # #135 review: a valid record for unit 'u' must not certify a different manifest (replay).
+        rec, pk = self._signed({"manifest_id": "u", "contract_digest": "sha256:a", "unit_class": "mutation"})
+        res = verify.check_dispatch_provenance({"unit": "other-unit"}, "sha256:a", "mutation", None, rec, pk)
+        self.assertTrue(any("does not bind this manifest" in e for e in res), res)
 
     def test_forged_signature_rejected(self):
         # record signed with a DIFFERENT key than the pinned pubkey → not coordinator-signed.
         rec, pk = self._signed({"manifest_id": "u", "contract_digest": "sha256:a", "unit_class": "mutation"},
                                seed=bytes(range(1, 33)), sign_key=bytes(range(100, 132)))
-        res = verify.check_dispatch_provenance("sha256:a", "mutation", None, rec, pk)
+        res = verify.check_dispatch_provenance(self._M, "sha256:a", "mutation", None, rec, pk)
         self.assertTrue(any("INVALID" in e for e in res), res)
 
     def test_half_configured_fails_closed(self):
         rec, pk = self._signed({"manifest_id": "u", "contract_digest": "sha256:a", "unit_class": "mutation"})
-        res = verify.check_dispatch_provenance("sha256:a", "mutation", None, rec, None)
+        res = verify.check_dispatch_provenance(self._M, "sha256:a", "mutation", None, rec, None)
         self.assertTrue(any("half-configured" in e for e in res), res)
-        res2 = verify.check_dispatch_provenance("sha256:a", "mutation", None, None, pk)
+        res2 = verify.check_dispatch_provenance(self._M, "sha256:a", "mutation", None, None, pk)
         self.assertTrue(any("half-configured" in e for e in res2), res2)
 
     def test_no_provenance_is_advisory(self):
-        self.assertEqual(verify.check_dispatch_provenance("sha256:a", "mutation", "lit", None, None), [])
+        self.assertEqual(verify.check_dispatch_provenance(self._M, "sha256:a", "mutation", "lit", None, None), [])
 
     def test_canonicalization_matches_signer(self):
         # cross-tool drift guard: the gate and the signer must canonicalize identically, else every

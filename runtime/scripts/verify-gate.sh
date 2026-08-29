@@ -45,14 +45,24 @@ SYMBOL="${ORCA_SYMBOL:-}"
 UNIT_CLASS="${ORCA_UNIT_CLASS:-}"
 NO_GH="${ORCA_NO_GH:-}"
 LIGHTING="${ORCA_LIGHTING:-}"
-RECORD="${ORCA_DISPATCH_RECORD:-}"
-PUBKEY="${ORCA_DISPATCH_PUBKEY:-}"
-# Signed-dispatch enforcement (#135) is opt-in: if the repo COMMITS .orca/dispatch-pubkey, pin it from
-# the immutable git blob at HEAD (a working-tree copy is worker-writable; the committed blob is not
-# without a reviewed commit). verify.py's read_source resolves `path@ref` to that blob.
-if [ -z "$PUBKEY" ] && git -C "$HERE/../.." cat-file -e "HEAD:.orca/dispatch-pubkey" 2>/dev/null; then
-  PUBKEY=".orca/dispatch-pubkey@HEAD"
-fi
+RECORD="${ORCA_DISPATCH_RECORD:-}"   # the record itself may be worker-supplied — a forged one won't verify
+# The verification KEY must originate OFF the graded worker; a worker-set key (env) or a key it
+# committed to its own branch/HEAD would let it self-sign. Two trusted sources (#135):
+REPO_ROOT="$HERE/../.."
+case "${ORCA_PROVENANCE:-}" in
+  ci|mcp|sdk|dispatch)
+    # off-worker orchestrator sets the env (the #112 sound lane) — its pubkey is trusted.
+    PUBKEY="${ORCA_DISPATCH_PUBKEY:-}" ;;
+  *)
+    # native path: IGNORE any worker-set ORCA_DISPATCH_PUBKEY. Use the committed pin, anchored to the
+    # REMOTE default branch (origin/HEAD) — a local branch/HEAD is worker-writable, the reviewed
+    # remote ref is not. Sound only where the worker cannot push that ref (docs/verify-gate.md).
+    PUBKEY=""
+    DEF_REF="$(git -C "$REPO_ROOT" symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)"
+    if git -C "$REPO_ROOT" cat-file -e "$DEF_REF:.orca/dispatch-pubkey" 2>/dev/null; then
+      PUBKEY=".orca/dispatch-pubkey@$DEF_REF"
+    fi ;;
+esac
 
 if [ -z "$MANIFEST" ]; then
   # Stop fires on EVERY turn end; a turn with no unit in progress (manifest unset) has nothing to
@@ -83,17 +93,17 @@ set -- --manifest "$MANIFEST"
 [ -n "$PUBKEY" ] && set -- "$@" --dispatch-pubkey "$PUBKEY"
 [ -n "${ORCA_EXECUTE_NC:-}" ] && set -- "$@" --execute-nc
 
-# Trust boundary (#112, #135): the contract digest + unit class are only as sound as their provenance.
+# Trust boundary (#112, #135): the digest + unit class are only as sound as the KEY that verifies them.
 if [ -n "$PUBKEY" ] && [ -n "$RECORD" ]; then
-  : # a coordinator-signed dispatch record is present — verify.py verifies it against the pinned
-    # pubkey, so the NATIVE in-session path is SOUND for this unit (#135).
+  : # an off-worker-anchored pubkey + a signed record are present — verify.py verifies the signature
+    # and binds it to this unit, so the native in-session path is SOUND for this unit (#135).
 else
   case "${ORCA_PROVENANCE:-}" in
     ci|mcp|sdk|dispatch) : ;;  # env originates off the graded worker — the sound guarantee holds
-    *) echo "verify-gate: NOTE — contract/unit-class provenance unverified (ORCA_PROVENANCE unset," \
-            "no signed dispatch record); on the native in-session hook path this gate is ADVISORY," \
-            "not a soundness boundary. Sign the dispatch record (dispatch-sign.py) or run under" \
-            "CI/MCP/SDK for the sound guarantee — docs/verify-gate.md#trust-boundary." >&2 ;;
+    *) echo "verify-gate: NOTE — provenance unverified (ORCA_PROVENANCE unset, no off-worker-anchored" \
+            "signed dispatch); on the native in-session hook path this gate is ADVISORY, not a" \
+            "soundness boundary. Commit .orca/dispatch-pubkey on a ref the worker cannot push and sign" \
+            "the dispatch record, or run under CI/MCP/SDK — docs/verify-gate.md#trust-boundary." >&2 ;;
   esac
 fi
 

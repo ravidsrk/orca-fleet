@@ -74,8 +74,9 @@ the worker can set that env, it can choose its own denominator and class.
   worker's session*, so the worker can set `ORCA_*`. With no signed dispatch record it is
   defense-in-depth (it still catches an honest mistake or a lazy manifest), **not a soundness
   boundary** — it emits a `NOTE` saying so unless `ORCA_PROVENANCE` asserts off-worker origin.
-- **Native hook + signed dispatch — SOUND (#135).** When the coordinator signs the dispatch tuple and
-  the repo pins the public key, the native path is sound even in-session (see below).
+- **Native hook + off-worker-anchored signed dispatch — SOUND (#135).** The signature only helps if
+  the *verifying key* the worker cannot control: the gate takes it from the reviewed **remote** pin or
+  an off-worker orchestrator, never a worker-set env var or local branch (see below).
 - **CI / MCP-Task / SDK-subprocess — SOUND.** On these surfaces the coordinator (not the worker) sets
   the env, so the frozen denominator and unit class are trustworthy and the guarantee holds. Set
   `ORCA_PROVENANCE=ci|mcp|sdk|dispatch` there to suppress the advisory `NOTE`.
@@ -83,21 +84,32 @@ the worker can set that env, it can choose its own denominator and class.
 ### Signed dispatch — making the native path sound (#135)
 
 The native hook can't trust `ORCA_CONTRACT_DIGEST` / `ORCA_UNIT_CLASS` / `ORCA_LIGHTING` on its own —
-the worker sets them. Bind them to a **coordinator-signed dispatch record** the worker can't forge:
+the worker sets them. Bind them to a **coordinator-signed dispatch record**. The whole scheme rests on
+one thing: **the verifying public key must originate off the graded worker.** A worker that could set
+the key (env), or commit its own key to its local branch, would just self-sign — so the gate trusts a
+key from exactly two sources:
 
-1. **Once:** the coordinator generates a keypair off the worker —
-   `runtime/scripts/dispatch-sign.py gen-key --out <secret>` — keeps `<secret>` private and commits
-   `<secret>.pub` as **`.orca/dispatch-pubkey`**. Committing it turns enforcement on; the gate reads it
-   from the immutable git blob (`.orca/dispatch-pubkey@HEAD`), which a worker can't swap without a
-   reviewed commit.
-2. **Per dispatch (off-worker):** the coordinator signs the tuple —
-   `dispatch-sign.py sign --key <secret> --manifest-id <id> --contract-digest <d> --unit-class <c>
-   [--lighting <l>]` — and gives the envelope to the gate as `ORCA_DISPATCH_RECORD` (a path, or a
-   `path@ref` fetched out-of-band).
-3. **At the gate:** `verify.py` verifies the Ed25519 signature against the pinned pubkey and asserts
-   each signed field equals the value the run actually used. A worker that substitutes a weaker digest,
-   downgrades its class, or flips lighting is caught — the native path is now **sound**.
+- the reviewed **remote** pin `.orca/dispatch-pubkey@origin/HEAD` (the gate reads `origin`'s default
+  branch, never local `HEAD`, which the worker can rewrite); or
+- an off-worker orchestrator that sets `ORCA_DISPATCH_PUBKEY` **and** `ORCA_PROVENANCE=ci|mcp|sdk|dispatch`.
+  On the native path a worker-set `ORCA_DISPATCH_PUBKEY` is **ignored**.
 
-With a pinned pubkey but no valid signed record the native path **fails closed** (it cannot claim
-soundness it can't prove). Ed25519 is the vendored `runtime/scripts/ed25519.py` (RFC 8032), so the gate
-stays dependency-free.
+1. **Once:** off the worker, `dispatch-sign.py gen-key --out <secret>` — keep `<secret>` private and
+   land `<secret>.pub` as **`.orca/dispatch-pubkey`** through a reviewed PR to the default branch.
+   Committing it turns enforcement on.
+2. **Per dispatch (off-worker):** `dispatch-sign.py sign --key <secret> --manifest-id <unit-id>
+   --contract-digest <d> --unit-class <c> [--lighting <l>]` — hand the envelope to the gate as
+   `ORCA_DISPATCH_RECORD` (a path, or a `path@ref` fetched out-of-band). The record may be
+   worker-supplied: a forged one won't verify against the off-worker key.
+3. **At the gate:** `verify.py` verifies the Ed25519 signature against that key, asserts each signed
+   field equals the value the run used, **and** that `manifest_id` names *this* unit (so a valid record
+   from another unit can't be replayed). Substitution, forgery, replay, or a pinned key with no valid
+   record all **fail closed**.
+
+**Soundness condition, stated honestly:** this makes the native path sound *exactly when the worker
+cannot influence the verifying key* — i.e., it cannot push the pinned ref and the orchestrator (not the
+worker) owns any injected key/env. On a box where the worker also controls the remote and the
+environment, no in-session gate can be sound (the #112 result); there the signature still gives durable
+value — a CI job, reviewer, or auditor can verify the coordinator's signature **off-worker** and detect
+a run that used substituted inputs. Ed25519 is the vendored `runtime/scripts/ed25519.py` (RFC 8032), so
+the gate stays dependency-free.

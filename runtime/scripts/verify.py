@@ -444,13 +444,14 @@ def _canonical_dispatch(record):
     return json.dumps(subset, sort_keys=True, separators=(",", ":")).encode("utf-8")
 
 
-def check_dispatch_provenance(contract_digest, unit_class, lighting, record_ref, pubkey_ref):
+def check_dispatch_provenance(m, contract_digest, unit_class, lighting, record_ref, pubkey_ref):
     """11. #135: make the NATIVE in-session hook sound. The gate trusts contract_digest / unit_class /
     lighting that arrive via (worker-controllable) env; a coordinator-signed dispatch record, verified
-    with the repo-PINNED public key the worker cannot swap, proves the worker did not substitute them.
+    with an OFF-WORKER public key (the gate supplies it — see verify-gate.sh; never a worker-set key),
+    proves the worker did not substitute them, and its manifest_id binds it to THIS unit (no replay).
       - neither configured -> [] (advisory native path, #112, unchanged).
       - only one of record/pubkey -> fail-closed (cannot verify).
-      - signature invalid, or a signed field != the value the run used -> fatal (substitution caught).
+      - bad signature, a signed field != the value used, or an id that names another unit -> fatal.
       - all good -> NOTE (native path is sound for this unit)."""
     if not record_ref and not pubkey_ref:
         return []
@@ -479,6 +480,11 @@ def check_dispatch_provenance(contract_digest, unit_class, lighting, record_ref,
     if not ed.checkvalid(sig, _canonical_dispatch(record), pub):
         return ["dispatch record signature INVALID for the pinned pubkey — not coordinator-signed "
                 "(a worker-forged record); fail-closed (#135)"]
+    signed_id = record.get("manifest_id")
+    manifest_id = m.get("unit")
+    if not signed_id or not manifest_id or signed_id != manifest_id:
+        return [f"dispatch record identity {signed_id!r} does not bind this manifest {manifest_id!r} "
+                "— a record must name the unit it authorizes, else another unit's record replays (#135)"]
     for field, used in (("contract_digest", contract_digest), ("unit_class", unit_class),
                         ("lighting", lighting)):
         signed = record.get(field)
@@ -510,7 +516,7 @@ def verify(manifest_path, contract_source=None, contract_digest=None, repo=None,
         lambda: check_lighting(m, is_mut, lighting),
         lambda: check_reviewer_mode(m, is_mut),
         lambda: check_provenance(m),
-        lambda: check_dispatch_provenance(contract_digest, unit_class, lighting,
+        lambda: check_dispatch_provenance(m, contract_digest, unit_class, lighting,
                                           dispatch_record, dispatch_pubkey),
         lambda: check_ancestry(m, base),
         lambda: check_symbol_on_base(symbol, base),
