@@ -44,6 +44,7 @@ The worker writes it to `reportPath` and names that path in the `worker_done` pa
   "artifacts": ["docs/reports/<unit>/…"],
   "pr": {"number": 0, "url": "", "reviewed_sha": "<SHA the reviewer approved>"},
   "reviewer_mode": "<cross-vendor | same-vendor-fresh | instructed-isolation — how independent the review REALLY was>",
+  "review": {"artifact": "docs/reports/<unit>/review.txt"},
   "toolchain": "<node 24 / python 3.12 / …>",
   "provenance": {"spec_version": "<governing spec/policy@version>", "model": "<impl model+version>", "reviewer": "<identity+timestamp>", "retention": "<append-only store ref>", "standard": "<EU-AI-Act-Art-12 | SOC2 | SSDF | none>"},
   "metric_contract": {"metric": "<streak / benchmark / coverage>", "target": "<pre-declared target + confidence>", "method": "<how measured, e.g. 30 runs varied seed>"},
@@ -52,7 +53,7 @@ The worker writes it to `reportPath` and names that path in the `worker_done` pa
 }
 ```
 
-Field scoping by mission class: `base_branch`, `pr`, and the revert/mutate form of
+Field scoping by mission class: `base_branch`, `pr`, `review`, and the revert/mutate form of
 `negative_control` are MUTATION-ONLY — report-only and planning units omit them. A report-only
 unit's verdict binds to `head_sha` (the SHA it reviewed), and its `negative_control` carries the
 class analogue of §3 (e.g. review-it: `{"did": "re-read every quoted line at head_sha",
@@ -93,13 +94,12 @@ Rules:
   had their covering test quoted and mutation-checked against the criterion (§2 samples it; a
   manifest claiming a fix or a test without the field is rejected).
 - `commands` pastes real invocations + exit codes with artifact paths. Never a summary.
-- `pr.reviewed_sha` is the SHA the build-blind reviewer actually reviewed (see
-  reviewed-sha-freshness.md). It gates the merge.
+- `pr.reviewed_sha` is the SHA the build-blind reviewer actually reviewed (see reviewed-sha-freshness.md). It gates the merge.
+- `review.artifact` (path to the local reviewer record at head_sha) is REQUIRED on a mutation unit in the no-gh lane (dispatch `--no-gh`; merge-serialization.md) — the coordinator-attested stand-in for §2's GitHub review lookup. The gh lane and report-only/planning units omit it.
 - `intent` is REQUIRED on mutation units: goal · ruled_out · why, all non-empty. It is
   discarded-agent-reasoning captured (not the completion oracle — that stays §2). A
   missing or empty packet fails verification. `claim` remains narration only.
-- `lighting` is `lit` (default) or `dark-eligible` per gate-classification.md. The
-  verifier rejects `dark-eligible` on a stop-list / Lane-0/B unit.
+- `lighting` is `lit` (default) or `dark-eligible` per gate-classification.md. The verifier rejects `dark-eligible` on a stop-list / Lane-0/B unit.
 - `provenance` (optional, any class) makes the manifest a regulated audit record — governing
   spec/policy version, model lineage, reviewer identity+timestamp, and an append-only retention pointer (maps to EU AI Act Art-12/50). When it names a standard (not `none`), the verifier REQUIRES those fields be present — an incomplete packet is not a valid audit record.
 - `claim` is the worker's narration. The verifier ignores it except as a hint.
@@ -117,7 +117,7 @@ re-derives the manifest against authoritative state that lives OUTSIDE the manif
 | Tests pass at that exact SHA in a clean env *(coordinator-run — not verify.py)* | check out `head_sha` in a fresh worktree, run the suite, confirm green — do NOT trust the pasted output alone for the critical path |
 | Each criterion binds to a test that exercises it — criterion↔test binding audit *(coordinator/human sample — not verify.py)* | on a sample of `criteria[].id`s (ALL of them when the unit has ≤3): quote the criterion, quote the test claimed to cover it, and confirm that test goes RED against an implementation that violates the criterion (mutate the behavior the criterion names via the manifest's named mutation tool — the pinned mutant must be KILLED; build-change.md's tautology guard covers authoring, this is its verifier-side twin). A green suite whose tests don't bind (tautological, wrong behavior, passes both ways) fails HERE, not at the clean-env re-run; coverage is logged in the manifest's `binding_audit` |
 | The negative control really fails | mutation units: the manifest's NC artifact must corroborate the pinned mutant KILLED / proof RED — read the artifact (field presence is not proof; verify.py rejects a "survived / not killed" artifact); `--execute-nc` is FAIL-CLOSED until a replay is implemented — run §2's re-execution sample; and on a sample (≥10%) a fresh worker reverts/mutates and confirms RED. Report-only/planning units: the class analogue of §3 is re-checked (quoted lines exist at reviewed_sha / the frozen DAG re-verifies / the repro command re-runs red) |
-| The review is fresh AND real *(mutation units)* | `pr.reviewed_sha == head_sha` (a rebase after review voids it — reviewed-sha-freshness.md) AND an independent APPROVED review at `head_sha` looked up on GitHub (`gh api repos/<repo>/pulls/<n>/reviews`) — a worker-set `reviewed_sha` is not evidence a review occurred; in the no-gh lane (dispatch `--no-gh`) the review is a local reviewer artifact at head_sha, coordinator-attested (the weaker guarantee) |
+| The review is fresh AND real *(mutation units)* | `pr.reviewed_sha == head_sha` (a rebase after review voids it — reviewed-sha-freshness.md) AND an independent APPROVED review at `head_sha` looked up on GitHub (`gh api repos/<repo>/pulls/<n>/reviews`) — a worker-set `reviewed_sha` is not evidence a review occurred; in the no-gh lane (dispatch `--no-gh`) the review is the manifest's `review.artifact` — a local reviewer record at head_sha, coordinator-attested (the weaker guarantee) |
 | The change is real on base *(mutation units)* | after merge, a file/symbol from the unit is greppable on `origin/<base_branch>` |
 | Deployed == reviewed (ship only) *(coordinator-verified)* | the deployed revision equals the reviewed/merged SHA |
 | The metric contract is met (measurement units) | the benchmark/coverage/streak satisfies the manifest's `metric_contract` (pre-declared target + confidence + method), not a lucky single run |
