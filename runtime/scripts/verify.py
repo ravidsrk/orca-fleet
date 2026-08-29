@@ -332,8 +332,9 @@ def check_negative_control(m, is_mutation, execute=False):
     if _NC_ZERO_KILL_RE.search(content):
         errs.append("negative_control.artifact indicates no mutant was killed (0 killed / 0% killed)")
     # the pinned mutant must not be reported as surviving — scoped to the mutant id and tolerant of
-    # delimiters (`m7: Survived: 1`), but a zero count (`survived: 0`) is a KILL, not a survivor.
-    surv = r"survived\b(?![\s:=<>-]*0\b)"
+    # delimiters (`m7: Survived: 1`, `m7 - survived - 0`), but a zero count is a KILL. The lookahead
+    # excludes `<>` so a comparison like `survived > 0` is NOT read as a zero count (it is a survivor).
+    surv = r"survived\b(?![\s:=-]*0\b)"
     if re.search(rf"(?i)\bmutant\s+{surv}", content) or (
             mutant and re.search(rf"(?i)\b{re.escape(mutant)}\b[\s:=<>-]*(?:has\s+|was\s+)?{surv}", content)):
         errs.append("negative_control.artifact reports the pinned mutant SURVIVED / was not killed")
