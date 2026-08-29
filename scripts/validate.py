@@ -262,17 +262,18 @@ def validate_skill(skill_dir, protocols):
                 f"proof '{proof}' requires proof_evidence: a docs/runs/*.md run report that exists"
             )
         else:
-            # content correlation: the report must actually be THIS mission's run (a file existing
-            # is not evidence it is the right one).
+            # content correlation: the report must be THIS mission's run — not merely a file that
+            # exists, and not another mission's report that mentions this one in prose (#133). The
+            # coordinator names a run report after its mission, so require the name both as a
+            # hyphen-delimited token in the filename AND in the report body.
             name = data.get("name") or ""
-            try:
-                report = ev_path.read_text(encoding="utf-8")
-            except OSError:
-                report = ""
-            if name and name not in report:
+            named_in_file = bool(name and re.search(rf"(?:^|-){re.escape(name)}(?:-|$)", ev_path.stem))
+            report, _ = read_text_safe(ev_path)  # None on unreadable / non-UTF-8 — never raises
+            named_in_body = bool(name and report and name in report)
+            if not (named_in_file and named_in_body):
                 errors.append(
-                    f"proof '{proof}': proof_evidence {evidence} does not mention the mission "
-                    f"'{name}' — it must be that mission's run report"
+                    f"proof '{proof}': proof_evidence {evidence} must be mission '{name}'s run report "
+                    f"— name the mission in the filename (docs/runs/<date>-{name}-*.md) and the body"
                 )
 
     # autonomy level (Osmani L0-L5): a first-class, machine-readable claim sibling to
@@ -362,9 +363,11 @@ def check_protocol_doc_refs(protocols):
     return failures
 
 
-# Not repo content: VCS state, caches, and dependency trees. Tracked dot-dirs (e.g. .claude-plugin)
-# ARE scanned — a stray SKILL.md there must not evade the one-discoverable-form rule.
+# Not repo content: VCS state, caches, dependency trees, and any UNTRACKED local dot-directory
+# (.venv, .tox, a tool's .greptile-internal). Tracked dot-dirs that ARE repo content (.claude-plugin)
+# stay in scope — a stray SKILL.md there must not evade the one-discoverable-form rule.
 _LAYER_SCAN_SKIP = {".git", "node_modules", "__pycache__", ".pytest_cache", ".ruff_cache", ".mypy_cache"}
+_LAYER_SCAN_DOTDIR_KEEP = {".claude-plugin"}
 
 
 def check_layer_separation(root=None):
@@ -377,6 +380,8 @@ def check_layer_separation(root=None):
         parts = p.relative_to(root).parts
         if any(d in _LAYER_SCAN_SKIP for d in parts[:-1]):
             continue
+        if any(d.startswith(".") and d not in _LAYER_SCAN_DOTDIR_KEEP for d in parts[:-1]):
+            continue  # untracked local dot-dir (.venv/.tox/.greptile-internal/…) — not repo content
         if parts[0] == "skills" and len(parts) == 3:
             continue  # skills/<name>/SKILL.md — the one discoverable form
         leaks.append(str(p.relative_to(root)))

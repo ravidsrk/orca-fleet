@@ -52,5 +52,37 @@ class VFBenchSoundness(unittest.TestCase):
         self.assertRegex(readme, rf"verify\.py.*\|\s*{sound['false_done']}/{sound['red_total']}\b")
 
 
+class VFBenchForwarding(unittest.TestCase):
+    """#140 review: base/repo (and unit_class) are best-effort at the verdict level, so a regression
+    that drops or swaps their forwarding into verify.py would pass unnoticed by verdicts alone.
+    Assert the argv the sound gate builds carries every dispatch input, correctly paired."""
+
+    def test_sound_gate_forwards_dispatch_inputs(self):
+        captured = {}
+
+        class _R:
+            returncode = 0
+
+        def fake_run(cmd, *a, **k):
+            captured["cmd"] = cmd
+            return _R()
+
+        orig = vfbench.subprocess.run
+        vfbench.subprocess.run = fake_run
+        try:
+            vfbench.sound_gate({
+                "manifest": {"head_sha": "H"},
+                "contract_source": "c@ref", "contract_digest": "sha256:x",
+                "unit_class": "mutation", "base": "main", "repo": "o/r",
+            })
+        finally:
+            vfbench.subprocess.run = orig
+        cmd = captured["cmd"]
+        for flag, val in (("--unit-class", "mutation"), ("--base", "main"), ("--repo", "o/r"),
+                          ("--contract-source", "c@ref"), ("--contract-digest", "sha256:x")):
+            self.assertIn(flag, cmd)
+            self.assertEqual(cmd[cmd.index(flag) + 1], val, f"{flag} value not forwarded")
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

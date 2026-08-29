@@ -213,7 +213,53 @@ class TestProofStatus(unittest.TestCase):
                            frontmatter_extra="proof: self-run\n"
                            "proof_evidence: docs/runs/2026-08-28-ship-it-self-run.md\nautonomy: L4\n"),
                 PROTOCOLS)
-            self.assertTrue(any("does not mention the mission" in e for e in errs), errs)
+            self.assertTrue(any("must be mission" in e and "run report" in e for e in errs), errs)
+
+    def test_prose_mention_with_wrong_filename_rejected(self):
+        # #133 review: a DIFFERENT mission's report that mentions this mission in prose used to
+        # satisfy the substring check. Correlation now also requires the name in the FILENAME.
+        with tempfile.TemporaryDirectory() as tmp:
+            runs = Path(tmp) / "docs" / "runs"
+            runs.mkdir(parents=True)
+            (runs / "2026-01-01-clean-sweep-self-run.md").write_text(
+                "clean-sweep run; also touched demo-skill in passing.\n", encoding="utf-8")
+            with mock.patch.object(validate, "ROOT", Path(tmp)):
+                errs = validate.validate_skill(
+                    make_skill(tmp, "Composes `diagnose`.\n",
+                               frontmatter_extra="proof: self-run\n"
+                               "proof_evidence: docs/runs/2026-01-01-clean-sweep-self-run.md\nautonomy: L4\n"),
+                    PROTOCOLS)
+            self.assertTrue(any("must be mission" in e for e in errs), errs)
+
+    def test_non_utf8_run_report_is_error_not_traceback(self):
+        # #133 review: a docs/runs report with invalid UTF-8 must be a per-file error, never a
+        # UnicodeDecodeError that aborts the whole validation.
+        with tempfile.TemporaryDirectory() as tmp:
+            runs = Path(tmp) / "docs" / "runs"
+            runs.mkdir(parents=True)
+            (runs / "2026-01-01-demo-skill-self-run.md").write_bytes(b"\xff\xfe not utf8\n")
+            with mock.patch.object(validate, "ROOT", Path(tmp)):
+                errs = validate.validate_skill(
+                    make_skill(tmp, "Composes `diagnose`.\n",
+                               frontmatter_extra="proof: self-run\n"
+                               "proof_evidence: docs/runs/2026-01-01-demo-skill-self-run.md\nautonomy: L4\n"),
+                    PROTOCOLS)
+            self.assertTrue(any("must be mission" in e for e in errs), errs)
+
+    def test_correct_run_report_passes_correlation(self):
+        # Positive control: named in filename AND body → no proof error (not always-fail).
+        with tempfile.TemporaryDirectory() as tmp:
+            runs = Path(tmp) / "docs" / "runs"
+            runs.mkdir(parents=True)
+            (runs / "2026-01-01-demo-skill-self-run.md").write_text(
+                "# demo-skill self-run\nThis is demo-skill's run report.\n", encoding="utf-8")
+            with mock.patch.object(validate, "ROOT", Path(tmp)):
+                errs = validate.validate_skill(
+                    make_skill(tmp, "Composes `diagnose`.\n",
+                               frontmatter_extra="proof: self-run\n"
+                               "proof_evidence: docs/runs/2026-01-01-demo-skill-self-run.md\nautonomy: L4\n"),
+                    PROTOCOLS)
+            self.assertFalse(any("must be mission" in e or "requires proof_evidence" in e for e in errs), errs)
 
     def test_over_budget_mission_fails(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -366,6 +412,12 @@ class TestLayerSeparation(unittest.TestCase):
     def test_dot_and_dependency_dirs_are_not_repo_content(self):
         self.assertEqual(
             self._leaks_for([".git/SKILL.md", "node_modules/x/SKILL.md"]), [])
+
+    def test_untracked_dot_dirs_are_not_repo_content(self):
+        # #139 review: a checkout-local .venv/.tox/tool dot-dir holding a SKILL.md must not be
+        # read as a layer leak; only tracked dot-dirs (.claude-plugin) stay in scope.
+        self.assertEqual(
+            self._leaks_for([".venv/lib/SKILL.md", ".tox/x/SKILL.md", ".greptile-internal/SKILL.md"]), [])
 
 
 class TestCountAgnosticGuards(unittest.TestCase):
