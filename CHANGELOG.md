@@ -6,6 +6,16 @@ truth is `.claude-plugin/plugin.json`.
 
 ## [Unreleased]
 
+### Added
+
+- Signed dispatch records make the **native `Stop`/`TaskCompleted` hook sound**, not just advisory
+  (issue #135, follow-up to #112). The coordinator signs `{manifest-id, contract-digest, unit-class,
+  lighting}` off-worker (`runtime/scripts/dispatch-sign.py`, vendored Ed25519 in
+  `runtime/scripts/ed25519.py`); `verify.py` / `verify-gate.sh` verify the signature against a
+  repo-pinned public key (`.orca/dispatch-pubkey@HEAD`) and reject any in-session substitution of
+  those values. Opt-in by committing the pubkey; default behaviour is unchanged. See
+  [docs/verify-gate.md](docs/verify-gate.md#signed-dispatch--making-the-native-path-sound-135).
+
 ### Fixed
 
 - Validator: a non-UTF-8 or unreadable `SKILL.md` (and the same class of error

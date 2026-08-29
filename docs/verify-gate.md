@@ -70,14 +70,34 @@ only as sound as the provenance of the inputs that name them.** The scope denomi
 (`--contract-source`/`--contract-digest`) and the unit class (`--unit-class`) are supplied via env; if
 the worker can set that env, it can choose its own denominator and class.
 
-- **Native `Stop`/`TaskCompleted` hook — ADVISORY.** The gate runs *inside the graded worker's
-  session*, so the worker can set `ORCA_*`. Here the gate is defense-in-depth (it still catches an
-  honest mistake or a lazy manifest), **not a soundness boundary.** It emits a `NOTE` saying so
-  unless `ORCA_PROVENANCE` asserts off-worker origin.
+- **Native `Stop`/`TaskCompleted` hook — ADVISORY by default.** The gate runs *inside the graded
+  worker's session*, so the worker can set `ORCA_*`. With no signed dispatch record it is
+  defense-in-depth (it still catches an honest mistake or a lazy manifest), **not a soundness
+  boundary** — it emits a `NOTE` saying so unless `ORCA_PROVENANCE` asserts off-worker origin.
+- **Native hook + signed dispatch — SOUND (#135).** When the coordinator signs the dispatch tuple and
+  the repo pins the public key, the native path is sound even in-session (see below).
 - **CI / MCP-Task / SDK-subprocess — SOUND.** On these surfaces the coordinator (not the worker) sets
   the env, so the frozen denominator and unit class are trustworthy and the guarantee holds. Set
   `ORCA_PROVENANCE=ci|mcp|sdk|dispatch` there to suppress the advisory `NOTE`.
 
-Treat a green native-hook result as a *strong hint*, and the CI/MCP verdict as the *gate*. Binding the
-contract digest + unit class to a signed / out-of-band dispatch record (so the native path is itself
-sound) is tracked as a follow-up.
+### Signed dispatch — making the native path sound (#135)
+
+The native hook can't trust `ORCA_CONTRACT_DIGEST` / `ORCA_UNIT_CLASS` / `ORCA_LIGHTING` on its own —
+the worker sets them. Bind them to a **coordinator-signed dispatch record** the worker can't forge:
+
+1. **Once:** the coordinator generates a keypair off the worker —
+   `runtime/scripts/dispatch-sign.py gen-key --out <secret>` — keeps `<secret>` private and commits
+   `<secret>.pub` as **`.orca/dispatch-pubkey`**. Committing it turns enforcement on; the gate reads it
+   from the immutable git blob (`.orca/dispatch-pubkey@HEAD`), which a worker can't swap without a
+   reviewed commit.
+2. **Per dispatch (off-worker):** the coordinator signs the tuple —
+   `dispatch-sign.py sign --key <secret> --manifest-id <id> --contract-digest <d> --unit-class <c>
+   [--lighting <l>]` — and gives the envelope to the gate as `ORCA_DISPATCH_RECORD` (a path, or a
+   `path@ref` fetched out-of-band).
+3. **At the gate:** `verify.py` verifies the Ed25519 signature against the pinned pubkey and asserts
+   each signed field equals the value the run actually used. A worker that substitutes a weaker digest,
+   downgrades its class, or flips lighting is caught — the native path is now **sound**.
+
+With a pinned pubkey but no valid signed record the native path **fails closed** (it cannot claim
+soundness it can't prove). Ed25519 is the vendored `runtime/scripts/ed25519.py` (RFC 8032), so the gate
+stays dependency-free.

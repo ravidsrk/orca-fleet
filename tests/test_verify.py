@@ -470,5 +470,71 @@ class NegativeControlSurvivor(unittest.TestCase):
         self.assertEqual(verify.check_negative_control(self._m(art), True), [])
 
 
+_edspec = importlib.util.spec_from_file_location("ed25519", ROOT / "runtime" / "scripts" / "ed25519.py")
+ed = importlib.util.module_from_spec(_edspec)
+_edspec.loader.exec_module(ed)
+_dsspec = importlib.util.spec_from_file_location("dispatch_sign", ROOT / "runtime" / "scripts" / "dispatch-sign.py")
+dispatch_sign = importlib.util.module_from_spec(_dsspec)
+_dsspec.loader.exec_module(dispatch_sign)
+
+
+class DispatchProvenance(unittest.TestCase):
+    """#135: a coordinator-signed dispatch record makes the native in-session path sound — a worker
+    that substitutes the digest / class / lighting, forges the record, or omits it is caught."""
+
+    def _signed(self, record, seed=None, sign_key=None):
+        import base64
+        seed = seed or bytes(range(1, 33))
+        pub = ed.publickey(seed)
+        sig = ed.signature(verify._canonical_dispatch(record), sign_key or seed, ed.publickey(sign_key) if sign_key else pub)
+        env = {"record": record, "sig_b64": base64.b64encode(sig).decode()}
+        rec = tempfile.NamedTemporaryFile("w", suffix=".json", delete=False); rec.write(json.dumps(env)); rec.close()
+        pk = tempfile.NamedTemporaryFile("w", suffix=".pub", delete=False); pk.write(pub.hex()); pk.close()
+        return rec.name, pk.name
+
+    def test_verified_provenance_passes(self):
+        rec, pk = self._signed({"manifest_id": "u", "contract_digest": "sha256:a", "unit_class": "mutation", "lighting": "lit"})
+        res = verify.check_dispatch_provenance("sha256:a", "mutation", "lit", rec, pk)
+        self.assertTrue(res and all(e.startswith("NOTE:") for e in res), res)
+
+    def test_substituted_digest_caught(self):
+        rec, pk = self._signed({"manifest_id": "u", "contract_digest": "sha256:REAL", "unit_class": "mutation"})
+        res = verify.check_dispatch_provenance("sha256:WEAKER", "mutation", None, rec, pk)
+        self.assertTrue(any("substitution" in e and not e.startswith("NOTE:") for e in res), res)
+
+    def test_downgraded_class_caught(self):
+        rec, pk = self._signed({"manifest_id": "u", "contract_digest": "sha256:a", "unit_class": "mutation"})
+        res = verify.check_dispatch_provenance("sha256:a", "report-only", None, rec, pk)
+        self.assertTrue(any("substitution" in e for e in res), res)
+
+    def test_flipped_lighting_caught(self):
+        rec, pk = self._signed({"manifest_id": "u", "contract_digest": "sha256:a", "unit_class": "mutation", "lighting": "lit"})
+        res = verify.check_dispatch_provenance("sha256:a", "mutation", "dark-eligible", rec, pk)
+        self.assertTrue(any("substitution" in e for e in res), res)
+
+    def test_forged_signature_rejected(self):
+        # record signed with a DIFFERENT key than the pinned pubkey → not coordinator-signed.
+        rec, pk = self._signed({"manifest_id": "u", "contract_digest": "sha256:a", "unit_class": "mutation"},
+                               seed=bytes(range(1, 33)), sign_key=bytes(range(100, 132)))
+        res = verify.check_dispatch_provenance("sha256:a", "mutation", None, rec, pk)
+        self.assertTrue(any("INVALID" in e for e in res), res)
+
+    def test_half_configured_fails_closed(self):
+        rec, pk = self._signed({"manifest_id": "u", "contract_digest": "sha256:a", "unit_class": "mutation"})
+        res = verify.check_dispatch_provenance("sha256:a", "mutation", None, rec, None)
+        self.assertTrue(any("half-configured" in e for e in res), res)
+        res2 = verify.check_dispatch_provenance("sha256:a", "mutation", None, None, pk)
+        self.assertTrue(any("half-configured" in e for e in res2), res2)
+
+    def test_no_provenance_is_advisory(self):
+        self.assertEqual(verify.check_dispatch_provenance("sha256:a", "mutation", "lit", None, None), [])
+
+    def test_canonicalization_matches_signer(self):
+        # cross-tool drift guard: the gate and the signer must canonicalize identically, else every
+        # real signature would fail to verify.
+        record = {"manifest_id": "u", "contract_digest": "sha256:a", "unit_class": "mutation", "lighting": "lit"}
+        self.assertEqual(verify._canonical_dispatch(record), dispatch_sign.canonical_record(record))
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

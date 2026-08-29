@@ -45,6 +45,14 @@ SYMBOL="${ORCA_SYMBOL:-}"
 UNIT_CLASS="${ORCA_UNIT_CLASS:-}"
 NO_GH="${ORCA_NO_GH:-}"
 LIGHTING="${ORCA_LIGHTING:-}"
+RECORD="${ORCA_DISPATCH_RECORD:-}"
+PUBKEY="${ORCA_DISPATCH_PUBKEY:-}"
+# Signed-dispatch enforcement (#135) is opt-in: if the repo COMMITS .orca/dispatch-pubkey, pin it from
+# the immutable git blob at HEAD (a working-tree copy is worker-writable; the committed blob is not
+# without a reviewed commit). verify.py's read_source resolves `path@ref` to that blob.
+if [ -z "$PUBKEY" ] && git -C "$HERE/../.." cat-file -e "HEAD:.orca/dispatch-pubkey" 2>/dev/null; then
+  PUBKEY=".orca/dispatch-pubkey@HEAD"
+fi
 
 if [ -z "$MANIFEST" ]; then
   # Stop fires on EVERY turn end; a turn with no unit in progress (manifest unset) has nothing to
@@ -71,21 +79,32 @@ set -- --manifest "$MANIFEST"
 [ -n "$UNIT_CLASS" ] && set -- "$@" --unit-class "$UNIT_CLASS"
 [ -n "$NO_GH" ] && set -- "$@" --no-gh
 [ -n "$LIGHTING" ] && set -- "$@" --lighting "$LIGHTING"
+[ -n "$RECORD" ] && set -- "$@" --dispatch-record "$RECORD"
+[ -n "$PUBKEY" ] && set -- "$@" --dispatch-pubkey "$PUBKEY"
 [ -n "${ORCA_EXECUTE_NC:-}" ] && set -- "$@" --execute-nc
 
-# Trust boundary (#112): the contract digest + unit class are only as sound as their provenance.
-case "${ORCA_PROVENANCE:-}" in
-  ci|mcp|sdk|dispatch) : ;;  # env originates off the graded worker — the sound guarantee holds
-  *) echo "verify-gate: NOTE — contract/unit-class provenance unverified (ORCA_PROVENANCE unset);" \
-          "on the native in-session hook path this gate is ADVISORY, not a soundness boundary." \
-          "Run under CI/MCP/SDK for the sound guarantee — docs/verify-gate.md#trust-boundary." >&2 ;;
-esac
+# Trust boundary (#112, #135): the contract digest + unit class are only as sound as their provenance.
+if [ -n "$PUBKEY" ] && [ -n "$RECORD" ]; then
+  : # a coordinator-signed dispatch record is present — verify.py verifies it against the pinned
+    # pubkey, so the NATIVE in-session path is SOUND for this unit (#135).
+else
+  case "${ORCA_PROVENANCE:-}" in
+    ci|mcp|sdk|dispatch) : ;;  # env originates off the graded worker — the sound guarantee holds
+    *) echo "verify-gate: NOTE — contract/unit-class provenance unverified (ORCA_PROVENANCE unset," \
+            "no signed dispatch record); on the native in-session hook path this gate is ADVISORY," \
+            "not a soundness boundary. Sign the dispatch record (dispatch-sign.py) or run under" \
+            "CI/MCP/SDK for the sound guarantee — docs/verify-gate.md#trust-boundary." >&2 ;;
+  esac
+fi
 
 # Any nonzero from verify.py (2 = invariant failed, 1 = usage/dep) is a BLOCK: an un-runnable or
-# failing verifier is never a green light. The `if` keeps `set -e` from exiting before we remap.
+# failing verifier is never a green light. Capture the REAL exit in the else branch — `$?` after a
+# bare `fi` is the if-statement's status (0 when the condition fails with no else), not verify.py's.
 if python3 "$HERE/verify.py" "$@"; then
-  exit 0
+  rc=0
+else
+  rc=$?
 fi
-rc=$?
+[ "$rc" -eq 0 ] && exit 0
 echo "verify-gate: verifier returned $rc — BLOCKING completion" >&2
 exit 2
