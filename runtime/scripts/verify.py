@@ -253,8 +253,10 @@ def fetch_reviews(repo, pr_number):
     if shutil.which("gh") is None:
         return None, "gh not on PATH"
     # --paginate: without it GitHub returns the first 30 reviews only, and review_ok would
-    # compute "latest per reviewer" over a stale window (#167).
-    code, out, err = _run(["gh", "api", "--paginate", f"repos/{repo}/pulls/{pr_number}/reviews"])
+    # compute "latest per reviewer" over a stale window (#167). One HTTP round-trip per page,
+    # so allow a longer timeout than the single-call default.
+    code, out, err = _run(["gh", "api", "--paginate", f"repos/{repo}/pulls/{pr_number}/reviews"],
+                          timeout=60)
     if code != 0:
         return None, (err.strip() or "gh api failed")
     return parse_review_pages(out)
