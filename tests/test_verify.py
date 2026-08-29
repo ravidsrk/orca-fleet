@@ -808,6 +808,110 @@ class InferRepoFromOrigin(unittest.TestCase):
         self.assertIsNone(verify.infer_repo())
 
 
+class EndToEndMutationGreen(unittest.TestCase):
+    """#183: a complete mutation manifest must drive verify() to GREEN (exit 0) END-TO-END — every
+    mutation lane (scope, SHAs, review, negative control, intent, lighting, reviewer_mode) passing
+    simultaneously through the aggregation's NOTE/fatal partition. Only the GitHub fetch seam
+    (fetch_reviews / fetch_pr_author) is mocked; every other check re-derives from real authorities
+    (a temp git repo for the SHAs, the frozen contract, the NC artifact). Component tests cover
+    each lane; this is the only net for their composition — a partition or NOTE-wording regression
+    (a pass path that stops starting with "NOTE:") flips these tests red."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        repo = Path(self._tmp.name)
+
+        def git(*args):
+            return subprocess.run(["git", *args], cwd=repo, check=True,
+                                  capture_output=True, text=True)
+
+        git("init", "-q", "-b", "main")
+        Path(repo, "app.py").write_text("def f():\n    return 1\n", encoding="utf-8")
+        git("add", "app.py")
+        git("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "base")
+        self.base_sha = git("rev-parse", "HEAD").stdout.strip()
+        Path(repo, "app.py").write_text("def f():\n    return 2\n", encoding="utf-8")
+        git("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qam", "head")
+        self.head_sha = git("rev-parse", "HEAD").stdout.strip()
+
+        self.contract = _src(["AC-1"])
+        self.digest = _digest(self.contract)
+        art = tempfile.NamedTemporaryFile("w", suffix=".md", delete=False)
+        art.write("mutant m7 was KILLED — proof went RED\n")
+        art.close()
+        self.nc_artifact = art.name
+
+        self._orig_r = verify.fetch_reviews
+        self._orig_a = verify.fetch_pr_author
+        verify.fetch_reviews = lambda repo_, n: (
+            [{"state": "APPROVED", "commit_id": self.head_sha,
+              "user": {"login": "carol"}}], None)
+        verify.fetch_pr_author = lambda repo_, n: "alice"  # the PR author != the reviewer
+
+        self._cwd = os.getcwd()
+        os.chdir(repo)  # verify.py's git legs run in the process cwd
+
+    def tearDown(self):
+        os.chdir(self._cwd)
+        verify.fetch_reviews = self._orig_r
+        verify.fetch_pr_author = self._orig_a
+        self._tmp.cleanup()
+
+    def _manifest(self, lighting="lit"):
+        m = {"unit": "slice-2",
+             "base_sha": self.base_sha, "head_sha": self.head_sha,
+             "contract": {"source": self.contract, "digest": self.digest,
+                          "criterion_ids": ["AC-1"]},
+             "criteria": _crit("AC-1"),
+             "pr": {"number": 7, "reviewed_sha": self.head_sha},
+             "negative_control": {"tool": "mutmut", "result": "KILLED", "mutant": "m7",
+                                  "artifact": self.nc_artifact},
+             "intent": {"goal": "land the change", "ruled_out": "the alternatives",
+                        "why": "the criterion demands it"},
+             "lighting": lighting,
+             "reviewer_mode": "cross-vendor"}
+        fh = tempfile.NamedTemporaryFile("w", suffix=".json", delete=False)
+        json.dump(m, fh)
+        fh.close()
+        return fh.name
+
+    def test_full_pass_mutation_manifest_is_green_end_to_end(self):
+        path = self._manifest()
+        out, err = verify.verify(path, self.contract, self.digest, repo="o/r",
+                                 unit_class="mutation", lighting="lit")
+        self.assertIsNone(err)
+        fatal, notes = out
+        self.assertEqual(fatal, [], fatal)
+
+    def test_main_exits_0_with_verify_ok(self):
+        path = self._manifest()
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = verify.main(["--manifest", path,
+                              "--contract-source", self.contract,
+                              "--contract-digest", self.digest,
+                              "--repo", "o/r",
+                              "--unit-class", "mutation",
+                              "--lighting", "lit"])
+        self.assertEqual(rc, 0)
+        self.assertIn("verify: OK", buf.getvalue())
+
+    def test_dark_eligible_corroborated_lane_is_green(self):
+        # The review-waived lane: dark-eligible dispatch + an out-of-band contract (corroborated)
+        # => the review leg is a NOTE, not a fatal; the negative control remains the oracle.
+        path = self._manifest(lighting="dark-eligible")
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = verify.main(["--manifest", path,
+                              "--contract-source", self.contract,
+                              "--contract-digest", self.digest,
+                              "--repo", "o/r",
+                              "--unit-class", "mutation",
+                              "--lighting", "dark-eligible"])
+        self.assertEqual(rc, 0)
+        self.assertIn("dark-eligible", buf.getvalue())
+
+
 _edspec = importlib.util.spec_from_file_location("ed25519", ROOT / "runtime" / "scripts" / "ed25519.py")
 ed = importlib.util.module_from_spec(_edspec)
 _edspec.loader.exec_module(ed)
