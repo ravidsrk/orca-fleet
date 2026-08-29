@@ -28,7 +28,8 @@ def _src(ids):
 
 
 def _digest(path):
-    return "sha256:" + hashlib.sha256(Path(path).read_text(encoding="utf-8").encode()).hexdigest()
+    # Mirrors the coordinator's `shasum -a 256` — raw bytes, no newline translation (#180).
+    return "sha256:" + hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
 def _crit(*ids):
@@ -417,6 +418,37 @@ class CriterionExtraction(unittest.TestCase):
     def test_extracts_hyphenated_and_compact(self):
         ids = verify.extract_criterion_ids("- AC-1: x\n- SC12: y\n- REQ-3 z\n")
         self.assertEqual({"AC-1", "SC12", "REQ-3"}, ids)
+
+
+class RawByteDigest(unittest.TestCase):
+    """#180: the scope digest is computed over RAW BYTES, exactly what the coordinator's
+    `shasum -a 256` sees — a CRLF contract must verify against its byte digest, and an LF
+    contract's digest must be unchanged (byte-identical behavior for LF files)."""
+
+    def _write(self, raw):
+        f = tempfile.NamedTemporaryFile("wb", suffix=".md", delete=False)
+        f.write(raw)
+        f.close()
+        return f.name
+
+    def test_crlf_contract_matches_shasum_digest(self):
+        raw = b"frozen\r\n- AC-1: x\r\n- AC-2: y\r\n"
+        p = self._write(raw)
+        digest = "sha256:" + hashlib.sha256(raw).hexdigest()  # the coordinator's shasum digest
+        m = {"contract": {"source": p, "digest": digest, "criterion_ids": ["AC-1", "AC-2"]},
+             "criteria": _crit("AC-1", "AC-2")}
+        fatal = [e for e in verify.check_scope(m, p, digest) if not e.startswith("NOTE:")]
+        self.assertEqual(fatal, [])
+
+    def test_lf_digest_unchanged(self):
+        raw = b"frozen\n- AC-1: x\n"
+        p = self._write(raw)
+        # Pinned to the pre-#180 value: LF files must hash byte-identically to before.
+        digest = "sha256:07af39c8585de6b596a28a05c0cfe432a25c294bb2166c1ffeef1db4901abf8a"
+        m = {"contract": {"source": p, "digest": digest, "criterion_ids": ["AC-1"]},
+             "criteria": _crit("AC-1")}
+        fatal = [e for e in verify.check_scope(m, p, digest) if not e.startswith("NOTE:")]
+        self.assertEqual(fatal, [])
 
 
 class NoGhReviewLane(unittest.TestCase):
