@@ -25,8 +25,8 @@ evidence an independent session re-derives, or it is a named GAP parked to a hum
 a silent pass. Composes `decompose-dag`, `acceptance-review`; rides `evidence-manifest` (each control's
 evidence binds to authoritative state via the Art-12/50 provenance block and is re-derived, not
 narrated), `gate-classification` (a GAP that needs a policy/spend/legal decision is a one-way human
-door), `sandbox-policy` (`PROFILE=ro` for evidence gathering). Worker TASK pack: one of matt | addy | gstack —
-never co-mount.
+door), `sandbox-policy` (`PROFILE=ro` for evidence gathering), `ledger-contract` (the obligation
+ledger), `liveness-resume` (DAG-scoped RESUME). Worker TASK pack: one of matt | addy | gstack — never co-mount.
 
 ## Terminal outcomes
 
@@ -45,7 +45,9 @@ FREEZE the denominator: pick standard@version; enumerate its obligations into a 
     manifest with the provenance block (spec_version · model · reviewer · retention · standard).
   → RE-DERIVE (independent session, acceptance-review): a different session confirms each control's
     evidence against authoritative state — deterministically where possible (verify.py), never the
-    gatherer's own narration. A control with no re-derivable artifact is a GAP, not a pass.
+    gatherer's own narration. verify.py binds `provenance.standard` + `spec_version` to the FROZEN
+    catalog's `standard@version` and requires the Art-12/50 audit fields; a control evidenced against a
+    different version, or with no re-derivable artifact, is a GAP, not a pass.
   → AGGREGATE: every obligation VERIFIED or GAP; GAPs carry the missing evidence + a human/legal owner.
   → VERDICT: CONFORMANT, or CONFORMANT-WITH-GAPS with the gap register.
 ```
@@ -58,6 +60,15 @@ bound to authoritative state and independently re-derived (not the gatherer's na
 is named with its missing evidence and a human/legal owner. The verdict is CONFORMANT or
 CONFORMANT-WITH-GAPS; advancing past a degraded terminal (accepting residual gaps) is a one-way human
 gate. No obligation is silently dropped.
+
+## Ledger + supervision
+
+Ledger header at T0 (`ledger-contract.md`) with `WIP: builders=<n> reviewers=<n>` and one row per
+obligation (`obligation-id → task → VERIFIED | GAP`), written before dispatch so an interrupted run is
+recoverable, not a resume orphan. Stalls / death / compaction → `liveness-resume.md` (death → RESUME,
+compaction → write `CONTEXT HANDOFF` then RESUME): RESUME re-reads the frozen catalog digest + the
+obligation rows to reconstruct the DAG and re-enumerate which obligations were dispatched, VERIFIED, or
+GAP — the convergence verdict is never trusted from memory.
 
 ## Anti-patterns
 
