@@ -60,8 +60,8 @@ class analogue of §3 (e.g. review-it: `{"did": "re-read every quoted line at he
 "result": "all present"}`).
 
 Rules:
-- `base_sha` and `head_sha` are REQUIRED and must be real commits. "It works" with no SHA is not
-  a manifest.
+- `base_sha` and `head_sha` are REQUIRED on every class. Mutation units: pinned 40-hex real
+  commits ("It works" with no SHA is not a manifest); other classes: a symbolic ref is NOTE-only.
 - `contract` binds the manifest to THIS UNIT's authoritative denominator — the unit's task spec
   as materialized at decompose/enumeration time (a slice's assigned criteria, a finding, an
   advisory), not to whatever the worker chose to list, and not to the whole mission source. The
@@ -113,7 +113,7 @@ re-derives the manifest against authoritative state that lives OUTSIDE the manif
 |-------|----------------------------|
 | Unit scope is complete — no dropped criteria (do this FIRST) | re-derive the criterion id set from the COORDINATOR's authoritative `contract.source` @ `contract.digest` **as recorded in the dispatch record**, never the worker's manifest (a manifest cannot certify its own denominator; a manifest `contract.digest` that differs from the authoritative one is a denominator swap), and confirm `criteria[].id` covers it EXACTLY. Rejected before any test is checked — passing tests on a shrunken denominator is a false "done" |
 | Mission scope is complete — no unassigned criteria (coordinator, at decompose verify + convergence proof) | the union of all unit `contract.criterion_ids` equals the mission source's id set (frozen spec digest / final enumeration loop / advisory scan). A criterion claimed by no unit is unassigned work, not a waiver |
-| The commit exists on the intended base *(mutation units)* | `git merge-base --is-ancestor <head_sha> origin/<base_branch>` after the merge; before merge, `git cat-file -e <head_sha>` and the PR's `baseRefName == base_branch` |
+| The commit exists on the intended base *(mutation units)* | `git merge-base --is-ancestor <head_sha> origin/<base_branch>` after the merge; before merge, `git cat-file -e <head_sha>` and the PR's `baseRefName == base_branch` *(coordinator-run — not verify.py, which checks ancestry/existence only)* |
 | Tests pass at that exact SHA in a clean env *(coordinator-run — not verify.py)* | check out `head_sha` in a fresh worktree, run the suite, confirm green — do NOT trust the pasted output alone for the critical path |
 | Each criterion binds to a test that exercises it — criterion↔test binding audit *(coordinator/human sample — not verify.py)* | on a sample of `criteria[].id`s (ALL of them when the unit has ≤3): quote the criterion, quote the test claimed to cover it, and confirm that test goes RED against an implementation that violates the criterion (mutate the behavior the criterion names via the manifest's named mutation tool — the pinned mutant must be KILLED; build-change.md's tautology guard covers authoring, this is its verifier-side twin). A green suite whose tests don't bind (tautological, wrong behavior, passes both ways) fails HERE, not at the clean-env re-run; coverage is logged in the manifest's `binding_audit` |
 | The negative control really fails | mutation units: the manifest's NC artifact must corroborate the pinned mutant KILLED / proof RED — read the artifact (field presence is not proof; verify.py rejects a "survived / not killed" artifact); `--execute-nc` is FAIL-CLOSED until a replay is implemented — run §2's re-execution sample; and on a sample (≥10%) a fresh worker reverts/mutates and confirms RED. Report-only/planning units: the class analogue of §3 is re-checked (quoted lines exist at reviewed_sha / the frozen DAG re-verifies / the repro command re-runs red) |
