@@ -53,11 +53,12 @@ LIGHTING_VALUES = {"lit", "dark-eligible"}
 # Over-counting is fail-safe (the manifest must address MORE); under-counting would let scope shrink.
 CRIT_ID_RE = re.compile(r"\b[A-Z][A-Z0-9]*-\d+\b|\b[A-Z]{2,}\d+\b")
 HEX40_RE = re.compile(r"^[0-9a-f]{40}$")
-_NC_SURVIVOR_RE = re.compile(
-    r"(?i)(not\s+killed|not\s+red|mutant\s+survived"
-    r"|survived\s*[:=]?\s*[1-9]|[1-9]\d*\s+(?:mutants?\s+)?survived"
-    r"|killed\s*[:=]\s*0\b|0(?:\.0+)?\s*%\s+killed|\b0\s+mutants?\s+killed|\b0\s+killed\b)"
-)
+# A run where NOTHING was killed (the pinned mutant among them) — the sound-fail signal. Aggregate
+# survivor counts of OTHER mutants are NOT here: a multi-mutant run where the pinned mutant WAS killed
+# is valid, so survival is scoped to the pinned mutant id in check_negative_control.
+_NC_ZERO_KILL_RE = re.compile(
+    r"(?i)(not\s+killed|not\s+red|\bno\s+mutants?\s+killed\b|killed\s*[:=]\s*0\b"
+    r"|\b0(?:\.0+)?\s*%\s+killed\b|\b0\s+mutants?\s+killed\b|\b0\s+killed\b)")
 
 
 def _run(args, timeout=20):
@@ -259,8 +260,13 @@ def check_review(m, repo, is_mutation, no_gh=False, corroborated=False, dispatch
     if not is_mutation:
         return []
     if dispatch_lighting == "dark-eligible":
+        if not corroborated:
+            return ["dark-eligible mutation: review is waived, so the negative-control oracle must be "
+                    "unfakeable — but without an out-of-band coordinator contract (--contract-source + "
+                    "--contract-digest) the worker-produced artifact is forgeable; fail-closed "
+                    "(gate-classification.md)"]
         return ["NOTE: independent review waived — dark-eligible unit (gate-classification.md); the "
-                "negative control + tests are the oracle, not a human review"]
+                "corroborated negative control + tests are the oracle, not a human review"]
     head = m.get("head_sha")
     if no_gh:
         art = (m.get("review") or {}).get("artifact")
@@ -323,9 +329,11 @@ def check_negative_control(m, is_mutation, execute=False):
         return errs
     if not re.search(r"(?i)\b(killed|red|fail)\b", content):
         errs.append("negative_control.artifact does not evidence a killed/RED outcome")
-    if _NC_SURVIVOR_RE.search(content):
-        errs.append("negative_control.artifact indicates the mutant SURVIVED / was not killed "
-                    "(a nonzero survivor count, 0 killed, or 0% killed)")
+    if _NC_ZERO_KILL_RE.search(content):
+        errs.append("negative_control.artifact indicates no mutant was killed (0 killed / 0% killed)")
+    if re.search(r"(?i)\bmutant\s+survived\b", content) or (
+            mutant and re.search(rf"(?i)\b{re.escape(mutant)}\s+(?:has\s+|was\s+)?survived\b", content)):
+        errs.append("negative_control.artifact reports the pinned mutant SURVIVED / was not killed")
     if mutant and mutant not in content:
         errs.append("negative_control.artifact does not reference the pinned mutant")
     if execute:
@@ -458,8 +466,9 @@ def main(argv=None):
                            args.repo or infer_repo(), args.base, args.symbol, args.execute_nc,
                            args.unit_class, args.no_gh, args.lighting)
     if load_err:
-        print(load_err, file=sys.stderr)
-        return 1
+        print(f"FAIL: {load_err}", file=sys.stderr)
+        print("verify: evidence manifest malformed/unreadable — unit is NOT done", file=sys.stderr)
+        return 2
     fatal, notes = out
     for n in notes:
         print(n)

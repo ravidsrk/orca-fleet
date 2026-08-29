@@ -278,8 +278,14 @@ class ReviewLookupBinding(unittest.TestCase):
         # #145: a dark-eligible unit (coordinator dispatch) lands without a human review; the
         # verifier waives the review leg (NOTE) — the negative control remains the oracle.
         verify.fetch_reviews = lambda repo, n: ([], None)
-        res = verify.check_review(self._m(), "o/r", True, dispatch_lighting="dark-eligible")
+        res = verify.check_review(self._m(), "o/r", True, corroborated=True, dispatch_lighting="dark-eligible")
         self.assertTrue(res and all(e.startswith("NOTE:") for e in res), res)
+
+    def test_dark_eligible_uncorroborated_fails_closed(self):
+        # #149 review: a dark-eligible waiver on a worker-forgeable oracle (no out-of-band contract)
+        # must fail closed — review is waived, but the oracle must be unfakeable.
+        res = verify.check_review(self._m(), "o/r", True, corroborated=False, dispatch_lighting="dark-eligible")
+        self.assertTrue(any("forgeable" in e and not e.startswith("NOTE:") for e in res), res)
 
 
 class ShasBinding(unittest.TestCase):
@@ -380,6 +386,10 @@ class MalformedManifest(unittest.TestCase):
         self.assertIsNone(err)
         self.assertTrue(any("malformed manifest" in f for f in fatal), fatal)
 
+    def test_malformed_manifest_exits_2(self):
+        # #149 review: a malformed manifest is an invariant failure (exit 2), not a usage/dep error (1).
+        self.assertEqual(verify.main(["--manifest", self._tmp("[1, 2, 3]")]), 2)
+
 
 class NegativeControlSurvivor(unittest.TestCase):
     """#137: survivor summaries (plural / percentage / count) must be rejected, not accepted."""
@@ -396,15 +406,25 @@ class NegativeControlSurvivor(unittest.TestCase):
 
     def test_percentage_survivor_rejected(self):
         art = self._art("m7 mutation applied. Mutants that survived: 1. 0.0% killed.\n")
-        self.assertTrue(any("SURVIVED" in e for e in verify.check_negative_control(self._m(art), True)))
+        self.assertTrue(verify.check_negative_control(self._m(art), True))
 
     def test_summary_counts_survivor_rejected(self):
         art = self._art("m7: Survived: 1 / Killed: 0\n")
-        self.assertTrue(any("SURVIVED" in e for e in verify.check_negative_control(self._m(art), True)))
+        self.assertTrue(verify.check_negative_control(self._m(art), True))
 
     def test_zero_mutants_killed_rejected(self):
         art = self._art("m7 ran; 0 mutants killed.\n")
+        self.assertTrue(verify.check_negative_control(self._m(art), True))
+
+    def test_pinned_mutant_survived_rejected(self):
+        art = self._art("Run over 4 mutants: 3 killed. m7 survived the revert.\n")
         self.assertTrue(any("SURVIVED" in e for e in verify.check_negative_control(self._m(art), True)))
+
+    def test_multimutant_run_with_pinned_killed_passes(self):
+        # #149 review: a multi-mutant run where OTHER mutants survived but the pinned mutant m7 was
+        # killed is valid — the whole-artifact survivor scan must not reject it.
+        art = self._art("m7 KILLED. Summary: 5 mutants, 2 survived, 3 killed. Proof went RED.\n")
+        self.assertEqual(verify.check_negative_control(self._m(art), True), [])
 
     def test_genuine_kill_still_passes(self):
         art = self._art("m7 KILLED — 1 killed, 0 survived. Proof went RED.\n")
