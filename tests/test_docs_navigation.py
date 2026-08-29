@@ -216,6 +216,55 @@ class TestDocsNavigation(unittest.TestCase):
             self.assertEqual(m.group(1), level,
                              f"docs/missions/{d.name}.md Autonomy != skills/{d.name} frontmatter")
 
+    def test_verify_manifest_fields_named_in_schema(self):
+        # Issue #170: verify.py's no-gh lane required manifest["review"]["artifact"],
+        # a field the evidence-manifest §1 schema never declared — a worker authoring
+        # its manifest against the schema doc alone produced one the gate failed
+        # closed. Every manifest field verify.py reads must be named in the §1 JSON
+        # schema. Element reads over list fields (criteria[].id) are covered by the
+        # schema's inline object shape, not by this check.
+        schema_doc = (RUNTIME / "evidence-manifest.md").read_text(encoding="utf-8")
+        block = re.search(r"```json\n(.*?)```", schema_doc, re.DOTALL).group(1)
+        # Top-level keys sit at 2-space indent; each key's chunk runs to the next key.
+        chunks, current = {}, None
+        for line in block.splitlines():
+            key = re.match(r'^  "([a-z_]+)":', line)
+            if key:
+                current = key.group(1)
+                chunks[current] = line
+            elif current:
+                chunks[current] += "\n" + line
+        src = (ROOT / "runtime" / "scripts" / "verify.py").read_text(encoding="utf-8")
+        # Literal reads — the manifest handle is always `m`.
+        reads = set(re.findall(r'\bm\.get\("([a-z_]+)"', src))
+        # Nested reads — (m.get("p") or {}).get("s"), or an alias assigned from
+        # m.get("p") and later alias.get("s"): s must appear inside p's chunk.
+        nested = set(re.findall(r'\(m\.get\("([a-z_]+)"\) or \{\}\)\.get\("([a-z_]+)"\)', src))
+        aliases = dict(re.findall(r'(\w+) = m\.get\("([a-z_]+)"\)(?: or \{\})?', src))
+        for alias, parent in aliases.items():
+            nested |= {(parent, sub) for sub in
+                       re.findall(rf'\b{alias}\.get\("([a-z_]+)"\)', src)}
+        # Dynamic reads — handle.get(var) where var loops over a literal tuple in
+        # the same comprehension/loop (m.get(f), intent.get(k), prov.get(k));
+        # resolve each literal in the tuple against the handle's parent.
+        for var, vals, handle in re.findall(
+                r"for (\w+) in \(([^)]*)\)[^\]]*?\b(\w+)\.get\(\1\)", src, re.DOTALL):
+            lits = set(re.findall(r'"([a-z_]+)"', vals))
+            if handle == "m":
+                reads |= lits
+            elif handle in aliases:
+                nested |= {(aliases[handle], lit) for lit in lits}
+        missing = sorted(reads - set(chunks))
+        self.assertEqual(
+            missing, [],
+            f"verify.py reads manifest fields the §1 schema never declares: {missing}",
+        )
+        bad = sorted((p, s) for p, s in nested if s not in chunks.get(p, ""))
+        self.assertEqual(
+            bad, [],
+            f"verify.py reads nested manifest fields the §1 schema never declares: {bad}",
+        )
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
