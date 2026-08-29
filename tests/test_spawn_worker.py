@@ -67,9 +67,11 @@ class TestSpawnWorkerHardening(unittest.TestCase):
 
     def test_invalid_effort_is_refused(self):
         # #43: effort is interpolated into the codex launch command; an unknown value must
-        # be rejected (fail closed), never interpolated verbatim.
+        # be rejected (fail closed), never interpolated verbatim. Same strict contract as
+        # the other refusals (#173): exit 2 with the SPAWN=REFUSED marker.
         rc, _, err = run("t", effort='high"; touch /tmp/pwned; echo "')
-        self.assertNotEqual(rc, 0, "invalid effort must be refused")
+        self.assertEqual(rc, 2, f"expected exit 2, got {rc}; stderr: {err}")
+        self.assertIn("SPAWN=REFUSED", err)
         self.assertIn("invalid effort", err)
 
     def test_valid_effort_accepted(self):
