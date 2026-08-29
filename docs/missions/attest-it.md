@@ -81,7 +81,9 @@ Playbooks: [`decompose-dag`](../../playbooks/decompose-dag.md) ·
 
 Runtime policies: [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`gate-classification`](../../runtime/gate-classification.md) ·
-[`sandbox-policy`](../../runtime/sandbox-policy.md)
+[`sandbox-policy`](../../runtime/sandbox-policy.md) ·
+[`ledger-contract`](../../runtime/ledger-contract.md) ·
+[`liveness-resume`](../../runtime/liveness-resume.md)
 
 ## Related missions
 
