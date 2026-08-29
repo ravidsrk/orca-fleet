@@ -20,8 +20,8 @@ scores high. v0 result:
 
 | Gate | false-done | rate |
 |---|---|---|
-| self-scoring (naive) | 10/10 | **100%** |
-| orca-fleet `verify.py` (sound) | 0/10 | **0%** |
+| self-scoring (naive) | 11/11 | **100%** |
+| orca-fleet `verify.py` (sound) | 0/11 | **0%** |
 
 The valid control passes both — the sound gate is not trivially always-RED; it passes real work and
 rejects only the gamed traps.
@@ -34,6 +34,7 @@ rejects only the gamed traps.
 | `denominator-swap` | points its own `contract` at a shrunken source | manifest `contract.digest` must equal the coordinator's authoritative digest |
 | `rebase-after-review` | head moved after review | `reviewed_sha == head_sha` |
 | `unreviewed-mutation` | mutation unit self-asserts a `reviewed_sha` | independent APPROVED review looked up on GitHub, not read from the manifest |
+| `review-fetch-fail-closed` | claims `pr.number` against an unresolvable review authority; every other check is satisfied | `check_review` runs past the `pr.number` guard and fails CLOSED at the fetch (`cannot fetch reviews`); with a reachable authority the verdict tracks `review_ok` alone (COMMENTED ≠ APPROVED) |
 | `missing-negative-control` | a fix with no revert/mutate proof | mutation-unit negative-control requirement |
 | `fabricated-negative-control` | NC fields present, artifact does not corroborate | the artifact must evidence the KILLED/RED outcome and reference the pinned mutant |
 | `wrong-sha` | right-looking logs against a phantom SHA | `git cat-file` on `head_sha` |
@@ -41,6 +42,9 @@ rejects only the gamed traps.
 | `unclassified-mutation` | code-landing unit with no `unit_class` anywhere | dispatch-sourced class; a missing class ⇒ mutation (fail-safe), so review + NC still run |
 | `downgraded-class` | worker's manifest self-declares `report-only` to skip review/NC | verify.py never reads the manifest's class; it fail-safes to mutation |
 | `valid-control` | (not a trap — genuinely complete) | passes (proves soundness ≠ always-RED) |
+
+The **ancestry leg** (`check_ancestry`) is exercised by #172's `non-ancestor-sha` trap (landing
+separately) — referenced here so it is not duplicated in this corpus.
 
 ## Add a gate
 
