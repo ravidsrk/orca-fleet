@@ -45,15 +45,19 @@ class NegativeControlDigestPortability(unittest.TestCase):
             return subprocess.run(["/bin/sh", str(RUN_SH)], capture_output=True, text=True,
                                   cwd=ROOT, env=env)
 
-    def test_demo_passes_with_gnu_sha256sum_only(self):
-        r = self._run_demo("sha256sum")
+    def _assert_demo_passed_for_the_right_reason(self, r: subprocess.CompletedProcess):
         self.assertEqual(r.returncode, 0, f"stdout={r.stdout}\nstderr={r.stderr}")
         self.assertIn("PASS:", r.stdout)
+        # verify.py exits 2 for a digest mismatch too — the RED must be the scope-shrink (the
+        # dropped AC-2), proving the shimmed digest matched the frozen contract.
+        self.assertRegex(r.stdout, r"scope: authoritative criteria not addressed.*AC-2")
+        self.assertNotIn("does not match --contract-digest", r.stdout)
+
+    def test_demo_passes_with_gnu_sha256sum_only(self):
+        self._assert_demo_passed_for_the_right_reason(self._run_demo("sha256sum"))
 
     def test_demo_passes_with_macos_shasum_only(self):
-        r = self._run_demo("shasum")
-        self.assertEqual(r.returncode, 0, f"stdout={r.stdout}\nstderr={r.stderr}")
-        self.assertIn("PASS:", r.stdout)
+        self._assert_demo_passed_for_the_right_reason(self._run_demo("shasum"))
 
 
 if __name__ == "__main__":
