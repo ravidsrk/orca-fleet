@@ -32,7 +32,9 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import base64
 import hashlib
+import importlib.util
 import json
 import re
 import shutil
@@ -426,8 +428,84 @@ def check_provenance(m):
             "(EU AI Act Art-12/50 record incomplete)"] if missing else []
 
 
+_DISPATCH_FIELDS = ("manifest_id", "contract_digest", "unit_class", "lighting")
+
+
+def _load_ed25519():
+    spec = importlib.util.spec_from_file_location("ed25519", Path(__file__).resolve().parent / "ed25519.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def _canonical_dispatch(record):
+    """Must match dispatch-sign.py.canonical_record byte-for-byte (a cross-tool test guards this)."""
+    subset = {k: record[k] for k in _DISPATCH_FIELDS if record.get(k) is not None}
+    return json.dumps(subset, sort_keys=True, separators=(",", ":")).encode("utf-8")
+
+
+def check_dispatch_provenance(m, contract_digest, unit_class, lighting, record_ref, pubkey_ref):
+    """11. #135: verify a coordinator-signed dispatch record so a run's contract_digest / unit_class /
+    lighting can be checked against what the coordinator actually authorized. This is a SOUNDNESS
+    boundary only when the *verifying key* is trusted — i.e. supplied by an OFF-WORKER context
+    (CI/MCP/SDK, or an auditor re-running verify.py with the coordinator's real public key). In the
+    native in-session hook the worker controls the key source, so there it is defense-in-depth, not a
+    boundary (verify-gate.sh keeps that lane ADVISORY; the durable value is off-worker detection).
+      - neither record nor pubkey -> [] (nothing to check).
+      - only one of them -> fail-closed (cannot verify).
+      - bad signature, an id that names another unit, or a used field the record did not sign / signed
+        differently -> fatal (substitution / replay caught).
+      - all good -> NOTE (signature verified against the SUPPLIED key)."""
+    if not record_ref and not pubkey_ref:
+        return []
+    if bool(record_ref) != bool(pubkey_ref):
+        missing = "--dispatch-record" if pubkey_ref else "--dispatch-pubkey"
+        return [f"dispatch provenance half-configured (missing {missing}) — cannot verify; fail-closed (#135)"]
+    try:
+        ed = _load_ed25519()
+    except Exception as exc:
+        return [f"dispatch provenance requested but the Ed25519 verifier is unavailable ({exc}) — fail-closed"]
+    rec_text, err = read_source(record_ref)
+    if err:
+        return [f"dispatch record unreadable ({record_ref}): {err}"]
+    pub_text, err = read_source(pubkey_ref)
+    if err:
+        return [f"dispatch pubkey unreadable ({pubkey_ref}): {err}"]
+    try:
+        envelope = json.loads(rec_text)
+        record = envelope["record"]
+        sig = base64.b64decode(envelope["sig_b64"])
+        pub = bytes.fromhex(pub_text.strip())
+    except (ValueError, KeyError, TypeError) as exc:
+        return [f"dispatch record / pubkey malformed ({exc})"]
+    if not ed.checkvalid(sig, _canonical_dispatch(record), pub):
+        return ["dispatch record signature INVALID for the supplied pubkey — not signed by that key "
+                "(forged or wrong key); fail-closed (#135)"]
+    signed_id = record.get("manifest_id")
+    manifest_id = m.get("unit")
+    if not signed_id or not manifest_id or signed_id != manifest_id:
+        return [f"dispatch record identity {signed_id!r} does not bind this manifest {manifest_id!r} "
+                "— a record must name the unit it authorizes, else another unit's record replays (#135)"]
+    # Every value the run actually used must be signed AND match — an UNSIGNED field is unbound, so a
+    # worker could set it freely; treat that as fail-closed, not a pass.
+    for field, used in (("contract_digest", contract_digest), ("unit_class", unit_class),
+                        ("lighting", lighting)):
+        if used is None:
+            continue
+        signed = record.get(field)
+        if signed is None:
+            return [f"dispatch record did not sign {field} but the run uses it — unbound value, "
+                    "fail-closed (the coordinator must sign every field the gate enforces) (#135)"]
+        if signed != used:
+            return [f"dispatch substitution: the run used {field}={used!r} but the coordinator signed "
+                    f"{signed!r} — the value was tampered (#135)"]
+    return ["NOTE: dispatch record signature verified against the supplied key (#135) — a soundness "
+            "boundary only if that key is trusted (off-worker: CI/MCP/SDK or an auditor)"]
+
+
 def verify(manifest_path, contract_source=None, contract_digest=None, repo=None,
-           base=None, symbol=None, execute_nc=False, unit_class=None, no_gh=False, lighting=None):
+           base=None, symbol=None, execute_nc=False, unit_class=None, no_gh=False, lighting=None,
+           dispatch_record=None, dispatch_pubkey=None):
     """Return (fatal_errors, notes). fatal_errors non-empty => exit 2."""
     m, err = load_manifest(manifest_path)
     if err:
@@ -446,6 +524,8 @@ def verify(manifest_path, contract_source=None, contract_digest=None, repo=None,
         lambda: check_lighting(m, is_mut, lighting),
         lambda: check_reviewer_mode(m, is_mut),
         lambda: check_provenance(m),
+        lambda: check_dispatch_provenance(m, contract_digest, unit_class, lighting,
+                                          dispatch_record, dispatch_pubkey),
         lambda: check_ancestry(m, base),
         lambda: check_symbol_on_base(symbol, base),
     )
@@ -478,6 +558,12 @@ def main(argv=None):
     ap.add_argument("--lighting", default=None, choices=sorted(LIGHTING_VALUES),
                     help="unit lighting from the dispatch record (lit|dark-eligible); dark-eligible "
                          "waives the independent-review requirement — set by the coordinator, not the worker")
+    ap.add_argument("--dispatch-record", default=None,
+                    help="coordinator-signed dispatch record (path or path@ref) binding "
+                         "contract-digest/unit-class/lighting — makes the native hook path sound (#135)")
+    ap.add_argument("--dispatch-pubkey", default=None,
+                    help="repo-pinned coordinator public key (path or path@ref) that verifies "
+                         "--dispatch-record; a committed pubkey is one the worker cannot swap")
     args = ap.parse_args(argv)
 
     if shutil.which("git") is None:
@@ -485,7 +571,8 @@ def main(argv=None):
         return 1
     out, load_err = verify(args.manifest, args.contract_source, args.contract_digest,
                            args.repo or infer_repo(), args.base, args.symbol, args.execute_nc,
-                           args.unit_class, args.no_gh, args.lighting)
+                           args.unit_class, args.no_gh, args.lighting,
+                           args.dispatch_record, args.dispatch_pubkey)
     if load_err:
         print(f"FAIL: {load_err}", file=sys.stderr)
         print("verify: evidence manifest malformed/unreadable — unit is NOT done", file=sys.stderr)

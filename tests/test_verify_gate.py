@@ -9,6 +9,7 @@ import hashlib
 import json
 import os
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -29,7 +30,7 @@ def _digest(path):
 
 
 def run_gate(manifest=None, contract_source=None, contract_digest=None, unit_class=None,
-             provenance=None, event=None):
+             provenance=None, event=None, dispatch_record=None, dispatch_pubkey=None):
     env = {"PATH": os.environ.get("PATH", "")}
     if manifest is not None:
         env["ORCA_MANIFEST"] = str(manifest)
@@ -41,6 +42,10 @@ def run_gate(manifest=None, contract_source=None, contract_digest=None, unit_cla
         env["ORCA_UNIT_CLASS"] = unit_class
     if provenance is not None:
         env["ORCA_PROVENANCE"] = provenance
+    if dispatch_record is not None:
+        env["ORCA_DISPATCH_RECORD"] = dispatch_record
+    if dispatch_pubkey is not None:
+        env["ORCA_DISPATCH_PUBKEY"] = dispatch_pubkey
     argv = [str(GATE)]
     if event is not None:
         argv += ["--event", event]
@@ -127,6 +132,57 @@ class VerifyGateStopScope(unittest.TestCase):
         r = run_gate("/tmp/orca-does-not-exist-" + os.urandom(4).hex() + ".json", event="stop")
         self.assertEqual(r.returncode, 2, r.stderr)
         self.assertIn("named but missing", r.stderr)
+
+
+class VerifyGateSignedDispatch(unittest.TestCase):
+    """#135: the gate forwards a signed dispatch record to verify.py; the signature is checked and a
+    substituted value is blocked. Off-worker (provenance set) it is a soundness boundary; on the native
+    path it stays advisory — no in-session anchor is trustworthy."""
+
+    def _sign(self, digest, unit_class, manifest_id="review-it", lighting=None):
+        d = tempfile.mkdtemp()
+        signer = str(ROOT / "runtime" / "scripts" / "dispatch-sign.py")
+        subprocess.run([sys.executable, signer, "gen-key", "--out", str(Path(d) / "key")],
+                       check=True, capture_output=True)
+        args = [sys.executable, signer, "sign", "--key", str(Path(d) / "key"),
+                "--manifest-id", manifest_id, "--contract-digest", digest, "--unit-class", unit_class]
+        if lighting:
+            args += ["--lighting", lighting]
+        rec = subprocess.run(args, check=True, capture_output=True, text=True).stdout
+        rec_path = Path(d) / "rec.json"
+        rec_path.write_text(rec, encoding="utf-8")
+        return str(rec_path), str(Path(d) / "key.pub")
+
+    def test_signed_dispatch_verified_off_worker(self):
+        # ORCA_PROVENANCE=dispatch models an OFF-WORKER context that supplies the key: verify.py checks
+        # the signature and the advisory NOTE is suppressed.
+        src = _src(["AC-1"])
+        m = _manifest(src, ["AC-1"], ["AC-1"])   # _manifest's unit is "review-it"
+        rec, pub = self._sign(_digest(src), "report-only")
+        r = run_gate(m, src, _digest(src), unit_class="report-only", event="task",
+                     provenance="dispatch", dispatch_record=rec, dispatch_pubkey=pub)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("signature verified", r.stdout + r.stderr)
+        self.assertNotIn("ADVISORY", r.stderr)
+
+    def test_signed_dispatch_class_substitution_blocks(self):
+        src = _src(["AC-1"])
+        m = _manifest(src, ["AC-1"], ["AC-1"])
+        rec, pub = self._sign(_digest(src), "mutation")   # coordinator signed 'mutation'
+        r = run_gate(m, src, _digest(src), unit_class="report-only", event="task",  # worker downgraded
+                     provenance="dispatch", dispatch_record=rec, dispatch_pubkey=pub)
+        self.assertEqual(r.returncode, 2)
+        self.assertIn("substitution", r.stderr)
+
+    def test_native_hook_stays_advisory_with_record(self):
+        # #135 review: no in-session anchor is trustworthy (worker controls ORCA_*), so even with a
+        # record + key the NATIVE path (no off-worker provenance) must stay ADVISORY — never claim sound.
+        src = _src(["AC-1"])
+        m = _manifest(src, ["AC-1"], ["AC-1"])
+        rec, pub = self._sign(_digest(src), "report-only")
+        r = run_gate(m, src, _digest(src), unit_class="report-only", event="task",
+                     dispatch_record=rec, dispatch_pubkey=pub)   # no provenance → native path
+        self.assertIn("ADVISORY", r.stderr)
 
 
 if __name__ == "__main__":

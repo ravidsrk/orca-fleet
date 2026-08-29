@@ -45,6 +45,23 @@ SYMBOL="${ORCA_SYMBOL:-}"
 UNIT_CLASS="${ORCA_UNIT_CLASS:-}"
 NO_GH="${ORCA_NO_GH:-}"
 LIGHTING="${ORCA_LIGHTING:-}"
+RECORD="${ORCA_DISPATCH_RECORD:-}"
+PUBKEY="${ORCA_DISPATCH_PUBKEY:-}"
+# #135 key SOURCE: an injected ORCA_DISPATCH_PUBKEY (off-worker orchestrator) else the committed
+# opt-in pin .orca/dispatch-pubkey — preferring the reviewed remote blob, falling back to the working
+# tree — so a repo that follows the docs actually gets the check to RUN.
+if [ -z "$PUBKEY" ]; then
+  DEF_REF="$(git -C "$HERE/../.." symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/HEAD)"
+  if git -C "$HERE/../.." cat-file -e "$DEF_REF:.orca/dispatch-pubkey" 2>/dev/null; then
+    PUBKEY=".orca/dispatch-pubkey@$DEF_REF"
+  elif [ -f "$HERE/../../.orca/dispatch-pubkey" ]; then
+    PUBKEY=".orca/dispatch-pubkey"
+  fi
+fi
+# This does NOT make the native in-session path sound: the worker controls ORCA_PROVENANCE, any env
+# key, and `origin`/local refs, so no in-session key is trustworthy (the #112 result). The record's
+# real value is OFF-WORKER — CI/MCP/SDK or an auditor re-runs verify.py with the coordinator's REAL
+# key and detects any substitution. Soundness is a property of WHERE this runs (see the note below).
 
 if [ -z "$MANIFEST" ]; then
   # Stop fires on EVERY turn end; a turn with no unit in progress (manifest unset) has nothing to
@@ -71,21 +88,29 @@ set -- --manifest "$MANIFEST"
 [ -n "$UNIT_CLASS" ] && set -- "$@" --unit-class "$UNIT_CLASS"
 [ -n "$NO_GH" ] && set -- "$@" --no-gh
 [ -n "$LIGHTING" ] && set -- "$@" --lighting "$LIGHTING"
+[ -n "$RECORD" ] && set -- "$@" --dispatch-record "$RECORD"
+[ -n "$PUBKEY" ] && set -- "$@" --dispatch-pubkey "$PUBKEY"
 [ -n "${ORCA_EXECUTE_NC:-}" ] && set -- "$@" --execute-nc
 
-# Trust boundary (#112): the contract digest + unit class are only as sound as their provenance.
+# Trust boundary (#112, #135): soundness is a property of the EXECUTION CONTEXT, not of an env var the
+# worker can set. A signed dispatch record is verified (defense-in-depth in-session; a real boundary
+# only off-worker with a trusted key).
 case "${ORCA_PROVENANCE:-}" in
-  ci|mcp|sdk|dispatch) : ;;  # env originates off the graded worker — the sound guarantee holds
-  *) echo "verify-gate: NOTE — contract/unit-class provenance unverified (ORCA_PROVENANCE unset);" \
-          "on the native in-session hook path this gate is ADVISORY, not a soundness boundary." \
-          "Run under CI/MCP/SDK for the sound guarantee — docs/verify-gate.md#trust-boundary." >&2 ;;
+  ci|mcp|sdk|dispatch) : ;;  # off-worker context sets the env AND the key — sound; record is auditable
+  *) echo "verify-gate: NOTE — native in-session hook is ADVISORY: the worker controls ORCA_* (incl." \
+          "ORCA_PROVENANCE and any dispatch key), so nothing here is a soundness boundary. A signed" \
+          "ORCA_DISPATCH_RECORD is verified, but is a boundary only OFF-WORKER — CI/MCP/SDK or an" \
+          "auditor re-running verify.py with the coordinator's real key — docs/verify-gate.md#trust-boundary." >&2 ;;
 esac
 
 # Any nonzero from verify.py (2 = invariant failed, 1 = usage/dep) is a BLOCK: an un-runnable or
-# failing verifier is never a green light. The `if` keeps `set -e` from exiting before we remap.
+# failing verifier is never a green light. Capture the REAL exit in the else branch — `$?` after a
+# bare `fi` is the if-statement's status (0 when the condition fails with no else), not verify.py's.
 if python3 "$HERE/verify.py" "$@"; then
-  exit 0
+  rc=0
+else
+  rc=$?
 fi
-rc=$?
+[ "$rc" -eq 0 ] && exit 0
 echo "verify-gate: verifier returned $rc — BLOCKING completion" >&2
 exit 2
