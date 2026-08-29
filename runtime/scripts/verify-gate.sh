@@ -44,15 +44,21 @@ BASE="${ORCA_BASE:-}"
 SYMBOL="${ORCA_SYMBOL:-}"
 UNIT_CLASS="${ORCA_UNIT_CLASS:-}"
 NO_GH="${ORCA_NO_GH:-}"
+LIGHTING="${ORCA_LIGHTING:-}"
 
-if [ -z "$MANIFEST" ] || [ ! -f "$MANIFEST" ]; then
-  # Stop fires on EVERY turn end; a turn with no unit in progress has nothing to verify — allow it.
-  # TaskCompleted (or an explicit manifest) with no manifest is a mis-dispatch — fail closed.
+if [ -z "$MANIFEST" ]; then
+  # Stop fires on EVERY turn end; a turn with no unit in progress (manifest unset) has nothing to
+  # verify — allow it. TaskCompleted with no manifest is a mis-dispatch — fail closed.
   if [ "$EVENT" = "stop" ]; then
     echo "verify-gate: Stop with no unit in progress (ORCA_MANIFEST unset) — nothing to verify, allowing" >&2
     exit 0
   fi
-  echo "verify-gate: no evidence manifest (ORCA_MANIFEST unset or missing) — BLOCKING (fail-closed)" >&2
+  echo "verify-gate: no evidence manifest (ORCA_MANIFEST unset) — BLOCKING (fail-closed)" >&2
+  exit 2
+elif [ ! -f "$MANIFEST" ]; then
+  # A NAMED manifest that does not exist means an active unit's evidence is missing (deleted, mistyped,
+  # or unavailable) — never allow the turn to end on it, even on Stop.
+  echo "verify-gate: evidence manifest named but missing: $MANIFEST — BLOCKING (fail-closed)" >&2
   exit 2
 fi
 
@@ -64,6 +70,7 @@ set -- --manifest "$MANIFEST"
 [ -n "$SYMBOL" ] && set -- "$@" --symbol "$SYMBOL"
 [ -n "$UNIT_CLASS" ] && set -- "$@" --unit-class "$UNIT_CLASS"
 [ -n "$NO_GH" ] && set -- "$@" --no-gh
+[ -n "$LIGHTING" ] && set -- "$@" --lighting "$LIGHTING"
 [ -n "${ORCA_EXECUTE_NC:-}" ] && set -- "$@" --execute-nc
 
 # Trust boundary (#112): the contract digest + unit class are only as sound as their provenance.

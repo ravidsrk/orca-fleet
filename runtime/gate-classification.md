@@ -53,6 +53,9 @@ dark merge. Recording nothing means **lit**. A dark-eligible claim on a lit-requ
 protocol breach — park and re-dispatch. Concrete dark-eligible unit: a lint/format-only or
 characterization-test-only change on reversible fixtures whose oracle is types/tests — it may land
 without a build-blind reviewer; anything that writes product behavior stays lit and reviewed.
+`verify.py` enforces this: `--lighting dark-eligible` (a dispatch value, never the worker's manifest)
+**waives the independent-review leg** while the negative control + tests remain the required oracle,
+so a dark-eligible unit completes without a human review but never without its unfakeable check.
 
 ## Pre-build plan gate (irreversible units)
 
