@@ -94,11 +94,13 @@ key from exactly two sources:
 - an off-worker orchestrator that sets `ORCA_DISPATCH_PUBKEY` **and** `ORCA_PROVENANCE=ci|mcp|sdk|dispatch`.
   On the native path a worker-set `ORCA_DISPATCH_PUBKEY` is **ignored**.
 
-1. **Once:** off the worker, `dispatch-sign.py gen-key --out <secret>` — keep `<secret>` private and
-   land `<secret>.pub` as **`.orca/dispatch-pubkey`** through a reviewed PR to the default branch.
-   Committing it turns enforcement on.
-2. **Per dispatch (off-worker):** `dispatch-sign.py sign --key <secret> --manifest-id <unit-id>
-   --contract-digest <d> --unit-class <c> [--lighting <l>]` — hand the envelope to the gate as
+1. **Once:** off the worker, `dispatch-sign.py gen-key --out ~/.orca-fleet/dispatch-key` — keep the
+   seed **out of this repo** (gen-key refuses any in-repo path git doesn't ignore; `.secrets/` is
+   ignored) and land `<out>.pub` as **`.orca/dispatch-pubkey`** through a reviewed PR to the default
+   branch. Committing it turns enforcement on.
+2. **Per dispatch (off-worker):** `dispatch-sign.py sign --key ~/.orca-fleet/dispatch-key
+   --manifest-id <unit-id> --contract-digest <d> --unit-class <c> [--lighting <l>]` — hand the
+   envelope to the gate as
    `ORCA_DISPATCH_RECORD` (a path, or a `path@ref` fetched out-of-band). The record may be
    worker-supplied: a forged one won't verify against the off-worker key.
 3. **At the gate:** `verify.py` verifies the Ed25519 signature against that key, asserts each signed

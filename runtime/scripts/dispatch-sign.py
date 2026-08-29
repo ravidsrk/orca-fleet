@@ -8,11 +8,13 @@ downgrade its class. To make the native path SOUND, the coordinator — which ru
 signs the dispatch tuple at dispatch time. The gate (verify.py) verifies that signature against the
 repo-pinned PUBLIC key, so an in-session substitution is detected.
 
-    dispatch-sign.py gen-key --out .secrets/dispatch-key
-        # writes the 32-byte seed to <out> (keep OFF the worker) and the public key to <out>.pub;
-        # commit <out>.pub as .orca/dispatch-pubkey to turn on enforcement (docs/verify-gate.md).
+    dispatch-sign.py gen-key --out ~/.orca-fleet/dispatch-key
+        # writes the 32-byte seed to <out> (keep OFF the worker AND out of this repo) and the
+        # public key to <out>.pub; commit <out>.pub as .orca/dispatch-pubkey to turn on
+        # enforcement (docs/verify-gate.md). gen-key refuses to write a seed inside a git work
+        # tree unless the path is git-ignored (or --in-repo-ok is given).
 
-    dispatch-sign.py sign --key .secrets/dispatch-key \\
+    dispatch-sign.py sign --key ~/.orca-fleet/dispatch-key \\
         --manifest-id <unit-id> --contract-digest sha256:… --unit-class mutation [--lighting lit]
         # prints the signed envelope JSON the gate consumes via --dispatch-record.
 
@@ -25,6 +27,7 @@ import base64
 import importlib.util
 import json
 import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -49,7 +52,64 @@ def canonical_record(record: dict) -> bytes:
     return json.dumps(subset, sort_keys=True, separators=(",", ":")).encode("utf-8")
 
 
-def gen_key(out: Path) -> int:
+def _in_unignored_worktree(path: Path) -> bool:
+    """True when `path` may be inside a git work tree without ignore coverage.
+
+    A seed written there is one `git add -A` away from being committed (#166), so gen-key refuses
+    unless the caller passes --in-repo-ok. `git add -A` can reach the path only if git resolves a
+    repository from (a) a `.git` ancestor (dir, or worktree/submodule file) or (b) the ambient
+    environment (GIT_DIR / core.worktree) — so we probe both. (a) is a filesystem walk, immune to
+    rev-parse's conflation of "not a repo" with real errors; (b) is rev-parse, which honors the
+    env. Once git control is established, ignore status comes from `git check-ignore`; git missing
+    or an inconclusive result fails CLOSED — an unknown ignore status is not "safe" for a key.
+    """
+    resolved = path.resolve()
+    probe = resolved.parent
+    while not probe.exists() and probe != probe.parent:
+        probe = probe.parent
+    under_git = False
+    ancestor = probe
+    while True:
+        if (ancestor / ".git").exists():
+            under_git = True
+            break
+        if ancestor == ancestor.parent:
+            break
+        ancestor = ancestor.parent
+    if not under_git:
+        # No .git ancestor — the only remaining way `git add` could stage this path is a repo
+        # resolved from the environment (GIT_DIR, core.worktree). Ask git itself.
+        try:
+            top = subprocess.run(["git", "rev-parse", "--show-toplevel"],
+                                 cwd=probe, capture_output=True, text=True)
+        except OSError:
+            return False  # no .git ancestor AND no git binary: nothing can stage the file
+        if top.returncode != 0:
+            return False  # proven: no work tree claims the path — the out-of-repo layout
+        toplevel = Path(top.stdout.strip()).resolve()
+        under_git = resolved == toplevel or toplevel in resolved.parents
+    if not under_git:
+        return False
+    try:
+        check = subprocess.run(["git", "check-ignore", "-q", "--", str(resolved)],
+                               cwd=probe, capture_output=True)
+    except OSError:
+        return True  # in a work tree but git won't run — cannot prove the path is ignored
+    return check.returncode != 0  # 0 = ignored (safe); 1 = not ignored; anything else = unknown
+
+
+def gen_key(out: Path, in_repo_ok: bool = False) -> int:
+    if _in_unignored_worktree(out) and not in_repo_ok:
+        print(f"dispatch-sign: REFUSING to write a private seed at {out}", file=sys.stderr)
+        print("  the path is (or could not be proven NOT) inside a git work tree and is NOT",
+              file=sys.stderr)
+        print("  verified git-ignored — one `git add -A` would commit the key and void every",
+              file=sys.stderr)
+        print("  signed-dispatch guarantee.", file=sys.stderr)
+        print("  pick an out-of-repo path (e.g. ~/.orca-fleet/dispatch-key), git-ignore it,",
+              file=sys.stderr)
+        print("  or pass --in-repo-ok if you really mean it.", file=sys.stderr)
+        return 2
     ed = _load_ed25519()
     seed = os.urandom(32)
     pub = ed.publickey(seed)
@@ -85,6 +145,8 @@ def main(argv=None) -> int:
 
     g = sub.add_parser("gen-key", help="generate an Ed25519 keypair")
     g.add_argument("--out", required=True, help="path for the private seed; <out>.pub gets the pubkey")
+    g.add_argument("--in-repo-ok", action="store_true",
+                   help="allow writing the seed inside a git work tree even when it is not ignored")
 
     s = sub.add_parser("sign", help="sign a dispatch record")
     s.add_argument("--key", required=True, help="private seed file from gen-key")
@@ -95,7 +157,7 @@ def main(argv=None) -> int:
 
     args = ap.parse_args(argv)
     if args.cmd == "gen-key":
-        return gen_key(Path(args.out))
+        return gen_key(Path(args.out), in_repo_ok=args.in_repo_ok)
     record = {
         "manifest_id": args.manifest_id,
         "contract_digest": args.contract_digest,
