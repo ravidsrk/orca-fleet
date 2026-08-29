@@ -216,6 +216,20 @@ class VerifyGateSignedDispatch(unittest.TestCase):
                      dispatch_record=rec, dispatch_pubkey=pub)   # no provenance → native path
         self.assertIn("ADVISORY", r.stderr)
 
+    def test_worker_set_env_pubkey_honored_with_advisory_note(self):
+        # #164: the gate reads ORCA_DISPATCH_PUBKEY unconditionally — a WORKER-SET env key is honored
+        # (ORCA_PROVENANCE gates only the NOTE, never the key source). If the env key were ignored the
+        # record would be half-configured (no pin exists in this repo) and the gate would fail closed;
+        # exit 0 + "signature verified" pins that verification ran AGAINST the env key.
+        src = _src(["AC-1"])
+        m = _manifest(src, ["AC-1"], ["AC-1"])
+        rec, pub = self._sign(_digest(src), "report-only")
+        r = run_gate(m, src, _digest(src), unit_class="report-only", event="task",
+                     dispatch_record=rec, dispatch_pubkey=pub)   # worker-set env key, no provenance
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("signature verified", r.stdout + r.stderr)
+        self.assertIn("ADVISORY", r.stderr)
+
 
 class VerifyGateDispatchPinDiscovery(unittest.TestCase):
     """#171: verify-gate.sh:53-60 — when ORCA_DISPATCH_PUBKEY is NOT injected, the gate discovers the
