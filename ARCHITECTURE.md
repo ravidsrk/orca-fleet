@@ -124,7 +124,8 @@ instruction surface. Two structural guards inherit that lesson:
 ```
 skills/          missions (discoverable, one dir each)
 playbooks/       callable protocols
-runtime/         policies + runtime/scripts/ (verify, verify-gate, preflight, spawn_worker, pm)
+runtime/         policies + runtime/scripts/ (verify, verify-gate, preflight, spawn_worker, pm,
+                 dispatch-sign, ed25519, proof_status)
 scripts/         validate.py, gen-badges.py, eval.py (build gate · badges · eval validator)
 hooks/           hooks.json — native completion-gate wiring (Stop / TaskCompleted)
 bench/           vf-bench — verifier-soundness benchmark

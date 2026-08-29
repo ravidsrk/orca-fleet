@@ -2,7 +2,8 @@
 
 Autonomy is the point: a worker that blocks on a permission prompt kills the run. So the write
 tiers use each agent's **fully-autonomous flag — the exact flag Orca appends by default**
-(`src/shared/tui-agent-permissions.ts`; `DEFAULT_TUI_AGENT_ARGS === YOLO_TUI_AGENT_ARGS`). The
+(`src/shared/tui-agent-permissions.ts` — in [stablyai/orca](https://github.com/stablyai/orca),
+not this repo; `DEFAULT_TUI_AGENT_ARGS === YOLO_TUI_AGENT_ARGS`). The
 sandboxed middle modes (claude `acceptEdits`, codex `--sandbox workspace-write`, gemini
 `auto_edit`) are deliberately NOT used: they still prompt on shell and network, so a build worker
 running tests or `npm install` would block. `spawn_worker.sh` maps each PROFILE per agent:
