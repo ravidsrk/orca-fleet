@@ -45,7 +45,10 @@ ROUTING_SCORE_MARGIN = 0.05
 
 class TestEvalInfrastructure(unittest.TestCase):
 
-    def test_eval_script_is_executable(self):
+    def test_eval_script_exists_and_is_substantive(self):
+        # #163: renamed from test_eval_script_is_executable — it checks existence and size, not
+        # the execute bit (eval.py is 100644 in git and runs via sys.executable; actually running
+        # it is covered by test_validate_subcommand_passes).
         self.assertTrue((ROOT / "scripts" / "eval.py").exists())
         self.assertGreater((ROOT / "scripts" / "eval.py").stat().st_size, 200)
 

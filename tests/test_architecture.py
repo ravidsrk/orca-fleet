@@ -46,12 +46,14 @@ def frontmatter_description(text):
 
 class TestArchitecture(unittest.TestCase):
 
-    # Nine missions quote a ledger-header template (ship-it and review-it quote none);
-    # a mission may not silently drop its template to dodge the WIP assertion in
-    # test_mission_header_templates_carry_wip.
-    MISSIONS_WITH_HEADER_TEMPLATE = {
-        "clean-sweep", "harden-it", "speed-it", "modernize-it", "prove-it",
-        "deflake-it", "map-it", "root-cause", "oss-contribute",
+    # Missions WITHOUT a quoted `liveness-resume.md: `...`` ledger-header template, each with
+    # its reason. test_mission_header_templates_carry_wip pins found == all missions − exempt,
+    # so a new mission fails there until its header story is decided — no silent escape (#163).
+    MISSIONS_WITHOUT_QUOTED_HEADER_TEMPLATE = {
+        "ship-it": "ledger WIP sizing rides the referenced attention-budget.md, no inline template",
+        "review-it": "read-only verdict — keeps no coordinator ledger",
+        "attest-it": "quotes the canonical header inline (WIP: builders=<n> …)",
+        "access-it": "quotes the header inline via ledger-contract.md (WIP: builders=<n> …)",
     }
 
     def test_validator_passes(self):
@@ -155,12 +157,22 @@ class TestArchitecture(unittest.TestCase):
                     "WIP", m.group(1),
                     f"{d.name} ledger-header template omits the required WIP field",
                 )
-        # On sets, assertGreaterEqual asserts the superset relation: every mission
-        # known to quote a template must still quote one (removal fails here).
-        self.assertGreaterEqual(
-            found, self.MISSIONS_WITH_HEADER_TEMPLATE,
-            "a mission dropped its ledger-header template instead of carrying WIP",
+        # Every mission either quotes a WIP-carrying template or is a NAMED exemption — the old
+        # hand-maintained superset check let a mission that never quotes a template escape the
+        # WIP assertion silently (#163).
+        self.assertEqual(
+            found,
+            {d.name for d in mission_dirs()} - set(self.MISSIONS_WITHOUT_QUOTED_HEADER_TEMPLATE),
+            "a mission's ledger-header template story changed — quote a WIP-carrying template "
+            "or record a reasoned exemption in MISSIONS_WITHOUT_QUOTED_HEADER_TEMPLATE",
         )
+        # The inline-header exemptions keep a ledger too — their header must still carry WIP.
+        for name in ("attest-it", "access-it"):
+            self.assertIn(
+                "WIP: builders=",
+                (SKILLS / name / "SKILL.md").read_text(encoding="utf-8"),
+                f"{name} ledger header lost the required WIP field",
+            )
 
     def test_attention_budget_wip_curve_is_a_named_protocol(self):
         # The WIP caps rest on a single field run and the doc said "override if
@@ -225,9 +237,14 @@ class TestArchitecture(unittest.TestCase):
     def test_lighting_classification_defaults_lit(self):
         gates = (RUNTIME / "gate-classification.md").read_text(encoding="utf-8")
         self.assertRegex(gates, r"(?i)dark-eligible")
-        self.assertRegex(gates, r"(?i)default")
+        # #163: the default declaration must bind `default` to `lit` specifically — a bare
+        # (?i)default matches near-universally ("merge to default", "BASE→default promotion").
         self.assertRegex(
-            gates, r"(?i)recording nothing means",
+            gates, r"(?i)default\s*\*{0,2}`lit`",
+            "gate-classification.md lost the lit-is-the-default declaration",
+        )
+        self.assertRegex(
+            gates, r"(?i)recording nothing means\s*\*{0,2}`?lit`?",
             "gate-classification.md lost the omit-means-lit rule",
         )
         ledger = (RUNTIME / "ledger-contract.md").read_text(encoding="utf-8")
@@ -359,10 +376,15 @@ class TestArchitecture(unittest.TestCase):
             r"|`BUILT`…"                # flag-range prose: `BUILT`…`WT_CLEAN`
             r"|BUILT\s*→\s*PR_OPEN"     # unit gate chain (wave-state uses → PROMOTION_READY, not → PR_OPEN)
         )
+        # #163: scan TRACKED files only (git ls-files) — an rglob of the working tree grades
+        # untracked local scratch files, so the verdict used to depend on the checkout's litter.
+        tracked = subprocess.run(["git", "ls-files", "-z", "--", "*.md"],
+                                 capture_output=True, text=True, cwd=ROOT)
+        if tracked.returncode != 0:
+            raise unittest.SkipTest("needs an ambient git clone to enumerate tracked .md files")
         offenders = [
             f"{path.relative_to(ROOT)}:{n}: {line.strip()}"
-            for path in sorted(ROOT.rglob("*.md"))
-            if ".git" not in path.parts
+            for path in sorted(ROOT / p for p in tracked.stdout.split("\0") if p)
             for n, line in enumerate(
                 path.read_text(encoding="utf-8").splitlines(), 1)
             if per_unit_shape.search(line)

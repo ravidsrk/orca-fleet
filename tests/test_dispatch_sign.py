@@ -9,6 +9,7 @@ import contextlib
 import importlib.util
 import io
 import os
+import stat
 import subprocess
 import tempfile
 import unittest
@@ -132,6 +133,39 @@ class GenKeyInRepoGuard(unittest.TestCase):
                 rc, _ = _gen_key(out)
             self.assertNotEqual(rc, 0)
             self.assertFalse(out.exists())
+
+
+class GenKeyFilePermissions(unittest.TestCase):
+    """#163: the seed's 0o600 must hold from creation, not from a post-write chmod."""
+
+    def test_seed_created_0600_under_zero_umask_without_chmod(self):
+        # umask 0 maximizes the create-then-chmod window (0666); poisoning os.chmod pins that
+        # the permission comes from os.open/fchmod, never a racy afterthought.
+        with tempfile.TemporaryDirectory() as d:
+            out = Path(d) / "dispatch-key"
+            old_umask = os.umask(0)
+            try:
+                with unittest.mock.patch.object(
+                        dispatch_sign.os, "chmod",
+                        side_effect=AssertionError("post-hoc chmod race window")):
+                    rc, err = _gen_key(out)
+            finally:
+                os.umask(old_umask)
+            self.assertEqual(rc, 0, err)
+            self.assertEqual(stat.S_IMODE(out.stat().st_mode), 0o600)
+
+    def test_regeneration_tightens_preexisting_permissive_seed(self):
+        # os.open's mode applies only at creation — an existing 0644 seed must still end 0600.
+        with tempfile.TemporaryDirectory() as d:
+            out = Path(d) / "dispatch-key"
+            out.write_text("stale\n", encoding="utf-8")
+            os.chmod(out, 0o644)
+            with unittest.mock.patch.object(
+                    dispatch_sign.os, "chmod",
+                    side_effect=AssertionError("post-hoc chmod race window")):
+                rc, err = _gen_key(out)
+            self.assertEqual(rc, 0, err)
+            self.assertEqual(stat.S_IMODE(out.stat().st_mode), 0o600)
 
 
 class RepoGitignoreCoversSecrets(unittest.TestCase):
