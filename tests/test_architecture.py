@@ -262,18 +262,47 @@ class TestArchitecture(unittest.TestCase):
         self.assertIn("accountable:", release)
 
     def test_chain_terminals_are_decidable_by_rule(self):
-        # #129: the chaining gate listed degraded terminals as an open ellipsis and said the
-        # -WITH- suffix was NOT the rule, so 4 missions' terminals (CONFORMANT-WITH-GAPS,
-        # CONTRIBUTED-WITH-PARKED, PROMOTION_READY-WITH-PARKED, NO-GO) were unclassifiable.
-        # The fix is a decidable rule: degradation markers OR named degraded terminals.
+        # #129: the chaining gate listed degraded terminals as an open ellipsis, so several real
+        # terminals were unclassifiable. #147 review: the first rule also wrongly degraded
+        # `awaiting-maintainer-merge` (oss-contribute's NORMAL terminal). This test encodes the
+        # documented rule AND cross-checks the full catalog terminal inventory, so a dropped marker
+        # or a misclassified terminal fails here.
         chain = (RUNTIME / "mission-chaining.md").read_text(encoding="utf-8")
         self.assertRegex(chain, r"(?i)degradation marker")
-        for marker in ("-WITH-PARKED", "-WITH-GAPS", "-WITH-MANUAL-PARKED", "NO-GO", "INCONCLUSIVE"):
-            self.assertIn(marker, chain,
-                          f"mission-chaining.md dropped the {marker} classification — terminals "
-                          "become undecidable again")
-        # A handoff suffix must stay a proceed, not a degradation.
-        self.assertRegex(chain, r"(?i)WITH-HANDOFF.*handoff, not a degradation")
+        DEGRADE_MARKERS = ("-WITH-PARKED", "-WITH-OPEN-ITEMS", "-WITH-GAPS", "-WITH-MANUAL-PARKED",
+                           "-WITH-BLOCKED", "-WITH-QUARANTINE", "-WITH-PINNED")
+        DEGRADE_TERMINALS = ("NO-GO", "INCONCLUSIVE")
+        # Every token the classifier uses must appear in the doc, so prose and rule cannot drift.
+        for tok in DEGRADE_MARKERS + DEGRADE_TERMINALS:
+            self.assertIn(tok, chain, f"mission-chaining.md dropped the {tok} classification")
+
+        def classify(name):
+            if any(mk in name for mk in DEGRADE_MARKERS) or name in DEGRADE_TERMINALS:
+                return "degraded"
+            return "clean"
+
+        # Real terminals across the catalog; each must classify as the mission contract intends.
+        inventory = {
+            "BUILT": "clean", "RELEASED": "clean", "PROMOTION_READY": "clean", "DRY": "clean",
+            "HARDENED": "clean", "CONFORMANT": "clean", "CONTRIBUTED": "clean", "MAPPED": "clean",
+            "DIAGNOSED": "clean", "DEPLOYED_AND_VERIFIED": "clean", "COVERED": "clean",
+            "STABLE": "clean", "CURRENT": "clean", "OPTIMIZED": "clean",
+            "DIAGNOSED-WITH-HANDOFF": "clean", "awaiting-maintainer-merge": "clean",
+            "HARDENED-WITH-OPEN-ITEMS": "degraded", "COVERED-WITH-PARKED": "degraded",
+            "DRY-WITH-PARKED": "degraded", "MAPPED-WITH-BLOCKED": "degraded",
+            "CONFORMANT-WITH-GAPS": "degraded", "CONFORMANT-WITH-MANUAL-PARKED": "degraded",
+            "CONTRIBUTED-WITH-PARKED": "degraded", "PROMOTION_READY-WITH-PARKED": "degraded",
+            "STABLE-WITH-QUARANTINE": "degraded", "CURRENT-WITH-PINNED": "degraded",
+            "NO-GO": "degraded", "INCONCLUSIVE": "degraded",
+        }
+        for name, expected in inventory.items():
+            self.assertEqual(classify(name), expected,
+                             f"terminal {name!r} misclassified: rule says {classify(name)!r}, "
+                             f"contract expects {expected!r}")
+        # The handoff carve-out must stay clean, and awaiting-maintainer-merge must be documented there.
+        self.assertRegex(chain, r"(?i)handoff, not a degradation")
+        self.assertIn("awaiting-maintainer-merge", chain,
+                      "awaiting-maintainer-merge must be documented as a clean handoff terminal, not degraded")
 
     def test_scheduling_rule_includes_report_only_conformance(self):
         # #129: mission-scheduling listed a closed set that omitted attest-it, contradicting
