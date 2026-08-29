@@ -9,6 +9,7 @@ import hashlib
 import importlib.util
 import json
 import os
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -449,6 +450,33 @@ class RawByteDigest(unittest.TestCase):
              "criteria": _crit("AC-1")}
         fatal = [e for e in verify.check_scope(m, p, digest) if not e.startswith("NOTE:")]
         self.assertEqual(fatal, [])
+
+    def test_crlf_contract_via_git_ref_matches_shasum_digest(self):
+        # The coordinator lane: `path@gitref` goes through `_run_bytes(["git", "show", ...])`.
+        # Commit a CRLF contract (autocrlf off so the blob keeps its raw bytes) and verify
+        # against the shasum digest — text=True capture would normalize CRLF away and wedge.
+        raw = b"frozen\r\n- AC-1: x\r\n"
+        with tempfile.TemporaryDirectory() as repo:
+            Path(repo, "contract.md").write_bytes(raw)
+
+            def git(*args):
+                subprocess.run(["git", *args], cwd=repo, capture_output=True, check=True)
+
+            git("init", "-q")
+            git("-c", "core.autocrlf=false", "add", "contract.md")
+            git("-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "freeze")
+            digest = "sha256:" + hashlib.sha256(raw).hexdigest()
+            m = {"contract": {"source": "contract.md@HEAD", "digest": digest,
+                              "criterion_ids": ["AC-1"]},
+                 "criteria": _crit("AC-1")}
+            cwd = os.getcwd()
+            os.chdir(repo)  # read_source's `git show` runs in the process cwd
+            try:
+                res = verify.check_scope(m, "contract.md@HEAD", digest)
+            finally:
+                os.chdir(cwd)
+            fatal = [e for e in res if not e.startswith("NOTE:")]
+            self.assertEqual(fatal, [])
 
 
 class NoGhReviewLane(unittest.TestCase):
