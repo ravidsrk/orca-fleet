@@ -131,6 +131,18 @@ class VFBenchAncestryLeg(unittest.TestCase):
     that trap, the verifier's fatals must include the ancestry error (a phantom head_sha also
     trips the real-commit leg — see the trap note — so both messages are asserted)."""
 
+    @classmethod
+    def setUpClass(cls):
+        # The trap's ancestry leg runs against the AMBIENT repo (vf-bench cwd=ROOT by design);
+        # check_ancestry itself skips with a NOTE when origin/<base> is absent, so the diagnostic
+        # this test asserts only exists where refs/remotes/origin/main does. Skip there rather
+        # than mutate the ambient clone's refs.
+        r = subprocess.run(["git", "rev-parse", "--verify", "origin/main"],
+                           capture_output=True, cwd=vfbench.ROOT)
+        if r.returncode != 0:
+            raise unittest.SkipTest("ambient repo has no refs/remotes/origin/main — "
+                                    "check_ancestry's skip-NOTE semantics apply")
+
     def test_non_ancestor_trap_is_red_via_the_ancestry_leg(self):
         trap = next(t for t in vfbench.load_traps() if t["class"] == "non-ancestor-sha")
         with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
