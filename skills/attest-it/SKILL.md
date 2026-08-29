@@ -64,13 +64,14 @@ gate. No obligation is silently dropped.
 
 ## Ledger + supervision
 
-Ledger header at T0 with the canonical `ledger-contract.md` fields (`PHASE`, `BASE·FORK_POINT`,
-`COORDINATOR`, `LIVE`, `NEXT_WAVE`, `FLAGS_UNMET`, `WIP: builders=<n> reviewers=<n>`) plus one row per
-obligation (`obligation-id → task → VERIFIED | GAP`), written before dispatch so an interrupted run is
-recoverable, not a resume orphan. Stalls / death / compaction → `liveness-resume.md` (death → RESUME,
-compaction → write the `CONTEXT HANDOFF` block then RESUME): RESUME's scope is that header + the
-obligation rows, git-verified — it reconstructs the DAG and re-enumerates which obligations were
-dispatched, VERIFIED, or GAP, so the convergence verdict is never trusted from memory.
+Ledger header at T0 — the full canonical `liveness-resume.md` header
+(`RUN · COORDINATOR · BASE · FORK_POINT · T0 · SOURCE: <frozen catalog ref+digest> · WIP: builders=<n> reviewers=<n>`) —
+plus one row per obligation (`obligation-id → task → VERIFIED | GAP`), written before dispatch so an
+interrupted run is recoverable, not a resume orphan (`RUN` / `COORDINATOR` are what RESUME dies
+without). Stalls / death / compaction → `liveness-resume.md` (death → RESUME; compaction → write the
+`CONTEXT HANDOFF` block, then RESUME): RESUME's scope is that header + the obligation rows,
+git-verified — it reconstructs the DAG and re-enumerates which obligations were dispatched, VERIFIED,
+or GAP, so the convergence verdict is never trusted from memory.
 
 ## Anti-patterns
 
