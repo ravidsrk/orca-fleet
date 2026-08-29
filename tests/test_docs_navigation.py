@@ -281,11 +281,17 @@ class TestDocsNavigation(unittest.TestCase):
             missing, [],
             f"verify-gate.sh reads env vars docs/verify-gate.md never names: {missing}",
         )
-        trust = doc.split("## Trust boundary", 1)[-1]
+        _, heading, trust = doc.partition("## Trust boundary")
+        self.assertTrue(heading, "docs/verify-gate.md has no trust-boundary section")
         self.assertIn(
             "ORCA_NO_GH", trust,
             "the trust-boundary section never names ORCA_NO_GH — the no-gh lane's "
             "review-authority downgrade is undisclosed",
+        )
+        self.assertIn(
+            "downgrade", trust.lower(),
+            "the trust-boundary section names ORCA_NO_GH without stating its "
+            "review-authority downgrade",
         )
 
 
