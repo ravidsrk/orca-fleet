@@ -7,6 +7,10 @@ fooled by at least one (else there is no contrast), and the sound gate still pas
 (it is not trivially always-RED).
 """
 import importlib.util
+import json
+import subprocess
+import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -119,6 +123,43 @@ class VFBenchRobustness(unittest.TestCase):
                 vfbench.sound_gate({"manifest": {"head_sha": "H"}})
         finally:
             vfbench.subprocess.run = orig
+
+
+class VFBenchAncestryLeg(unittest.TestCase):
+    """#172: vf-bench scores exit codes only, so a RED verdict on the non-ancestor-sha trap would
+    not by itself prove the ancestry leg fired. Pin the right reason: when the sound gate runs
+    that trap, the verifier's fatals must include the ancestry error (a phantom head_sha also
+    trips the real-commit leg — see the trap note — so both messages are asserted)."""
+
+    @classmethod
+    def setUpClass(cls):
+        # The trap's ancestry leg runs against the AMBIENT repo (vf-bench cwd=ROOT by design);
+        # check_ancestry itself skips with a NOTE when origin/<base> is absent, so the diagnostic
+        # this test asserts only exists where refs/remotes/origin/main does. Skip there rather
+        # than mutate the ambient clone's refs.
+        r = subprocess.run(["git", "rev-parse", "--verify", "origin/main"],
+                           capture_output=True, cwd=vfbench.ROOT)
+        if r.returncode != 0:
+            raise unittest.SkipTest("ambient repo has no refs/remotes/origin/main — "
+                                    "check_ancestry's skip-NOTE semantics apply")
+
+    def test_non_ancestor_trap_is_red_via_the_ancestry_leg(self):
+        trap = next(t for t in vfbench.load_traps() if t["class"] == "non-ancestor-sha")
+        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
+            json.dump(trap["manifest"], fh)
+            path = fh.name
+        try:
+            r = subprocess.run(
+                [sys.executable, str(vfbench.VERIFY), "--manifest", path,
+                 "--contract-source", trap["contract_source"],
+                 "--contract-digest", trap["contract_digest"],
+                 "--unit-class", trap["unit_class"], "--base", trap["base"]],
+                capture_output=True, text=True, cwd=vfbench.ROOT)
+        finally:
+            Path(path).unlink(missing_ok=True)
+        self.assertEqual(r.returncode, 2, r.stderr)
+        self.assertIn("not an ancestor of origin/main", r.stderr)
+        self.assertIn("is not a real commit", r.stderr)
 
 
 if __name__ == "__main__":

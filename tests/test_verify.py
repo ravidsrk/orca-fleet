@@ -680,6 +680,117 @@ class NegativeControlSurvivor(unittest.TestCase):
         self.assertEqual(verify.check_negative_control(self._m(art), True), [])
 
 
+class GitAuthorityChecks(unittest.TestCase):
+    """#172: the git-authority legs — check_ancestry, check_symbol_on_base, infer_repo — shell out
+    to `git` in the process cwd, so each test runs inside a hermetic temp repo (the
+    test_verify_gate.py _gate_repo pattern: refs/remotes/origin/main pinned with update-ref)."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.repo = Path(self._tmp.name)
+
+        def git(*args):
+            return subprocess.run(["git", *args], cwd=self.repo, check=True,
+                                  capture_output=True, text=True)
+
+        git("init", "-q", "-b", "main")
+        Path(self.repo, "app.py").write_text("def orca_unit_symbol():\n    return 1\n",
+                                             encoding="utf-8")
+        git("add", "app.py")
+        git("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "one")
+        self.main_tip = git("rev-parse", "HEAD").stdout.strip()
+        git("update-ref", "refs/remotes/origin/main", "HEAD")
+        # A parentless second root: a real commit that is NOT an ancestor of origin/main.
+        self.side_sha = git("-c", "user.name=t", "-c", "user.email=t@t", "commit-tree",
+                            "HEAD^{tree}", "-m", "side").stdout.strip()
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    @contextlib.contextmanager
+    def _inside_repo(self):
+        cwd = os.getcwd()
+        os.chdir(self.repo)  # verify.py's _git runs in the process cwd
+        try:
+            yield
+        finally:
+            os.chdir(cwd)
+
+    def test_ancestry_passes_for_commit_on_base(self):
+        with self._inside_repo():
+            self.assertEqual(verify.check_ancestry({"head_sha": self.main_tip}, "main"), [])
+
+    def test_ancestry_fails_for_commit_not_on_base(self):
+        with self._inside_repo():
+            errs = verify.check_ancestry({"head_sha": self.side_sha}, "main")
+        self.assertTrue(any("not an ancestor of origin/main" in e for e in errs), errs)
+
+    def test_ancestry_skips_without_base_or_ref(self):
+        with self._inside_repo():
+            res = verify.check_ancestry({"head_sha": self.main_tip}, None)
+            self.assertTrue(res and all(e.startswith("NOTE:") for e in res), res)
+            res = verify.check_ancestry({"head_sha": self.main_tip}, "no-such-branch")
+            self.assertTrue(res and all(e.startswith("NOTE:") for e in res), res)
+
+    def test_symbol_on_base_found(self):
+        with self._inside_repo():
+            self.assertEqual(verify.check_symbol_on_base("orca_unit_symbol", "main"), [])
+
+    def test_symbol_on_base_missing_fails(self):
+        with self._inside_repo():
+            errs = verify.check_symbol_on_base("no_such_symbol", "main")
+        self.assertTrue(any("not found on origin/main" in e for e in errs), errs)
+
+    def test_symbol_on_base_skips_without_inputs(self):
+        with self._inside_repo():
+            self.assertEqual(verify.check_symbol_on_base(None, "main"), [])
+            self.assertEqual(verify.check_symbol_on_base("orca_unit_symbol", None), [])
+
+
+class InferRepoFromOrigin(unittest.TestCase):
+    """#172: infer_repo parses `git remote get-url origin` into owner/name across the common
+    remote URL spellings; without a parseable origin it must return None (fail-soft)."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.repo = Path(self._tmp.name)
+        subprocess.run(["git", "init", "-q", "-b", "main"], cwd=self.repo,
+                       check=True, capture_output=True)
+        self._cwd = os.getcwd()
+        os.chdir(self.repo)  # infer_repo's `git remote get-url origin` runs in the process cwd
+
+    def tearDown(self):
+        os.chdir(self._cwd)
+        self._tmp.cleanup()
+
+    def _origin(self, url):
+        subprocess.run(["git", "remote", "add", "origin", url], cwd=self.repo,
+                       check=True, capture_output=True)
+
+    def test_ssh_scp_like_url(self):
+        self._origin("git@github.com:owner/repo.git")
+        self.assertEqual(verify.infer_repo(), "owner/repo")
+
+    def test_ssh_scheme_url(self):
+        self._origin("ssh://git@github.com/owner/repo.git")
+        self.assertEqual(verify.infer_repo(), "owner/repo")
+
+    def test_https_url(self):
+        self._origin("https://github.com/owner/repo")
+        self.assertEqual(verify.infer_repo(), "owner/repo")
+
+    def test_https_url_trailing_dot_git(self):
+        self._origin("https://github.com/owner/repo.git")
+        self.assertEqual(verify.infer_repo(), "owner/repo")
+
+    def test_no_origin_returns_none(self):
+        self.assertIsNone(verify.infer_repo())
+
+    def test_unparseable_origin_returns_none(self):
+        self._origin("just-a-name-no-path")
+        self.assertIsNone(verify.infer_repo())
+
+
 _edspec = importlib.util.spec_from_file_location("ed25519", ROOT / "runtime" / "scripts" / "ed25519.py")
 ed = importlib.util.module_from_spec(_edspec)
 _edspec.loader.exec_module(ed)
