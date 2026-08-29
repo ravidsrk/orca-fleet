@@ -74,6 +74,17 @@ def _git(repo, *args):
     subprocess.run(["git", "-C", str(repo), *args], check=True, capture_output=True)
 
 
+def _require_born_ambient_head():
+    """#163: _manifest pins base_sha/head_sha to the symbolic 'HEAD', resolved by verify.py against
+    the AMBIENT repo — outside a git clone the commit-existence leg degrades to a NOTE, and on an
+    unborn HEAD 'HEAD' hard-fails as not-a-real-commit. Skip loudly where HEAD cannot resolve."""
+    r = subprocess.run(["git", "rev-parse", "--verify", "HEAD^{commit}"],
+                       capture_output=True, cwd=ROOT)
+    if r.returncode != 0:
+        raise unittest.SkipTest("gate fixtures use head_sha 'HEAD' — needs an ambient git clone "
+                                "whose HEAD resolves to a commit")
+
+
 def _gate_repo(pin_blob=None, pin_worktree=None, remote_head=True):
     """A hermetic git repo hosting a COPY of runtime/scripts, so the gate copy's HERE-relative
     dispatch-pubkey discovery (verify-gate.sh:53-60) reads THIS repo's refs/worktree, never the
@@ -111,6 +122,10 @@ def _manifest(source, ids_declared, ids_addressed):
 
 
 class VerifyGateFailsClosed(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        _require_born_ambient_head()
+
     def test_no_manifest_blocks(self):
         self.assertEqual(run_gate(None).returncode, 2)
 
@@ -154,6 +169,10 @@ class VerifyGateFailsClosed(unittest.TestCase):
 class VerifyGateTrustBoundary(unittest.TestCase):
     """#112: the gate is advisory when provenance is in-session, sound when off-worker."""
 
+    @classmethod
+    def setUpClass(cls):
+        _require_born_ambient_head()
+
     def test_advisory_note_when_provenance_unset(self):
         src = _src(["AC-1"])
         m = _manifest(src, ["AC-1"], ["AC-1"])
@@ -172,6 +191,10 @@ class VerifyGateTrustBoundary(unittest.TestCase):
 class VerifyGateStopScope(unittest.TestCase):
     """#121: Stop fires on every turn end; with no unit in progress it must ALLOW, while
     TaskCompleted (or an explicit manifest) with no manifest still blocks (mis-dispatch)."""
+
+    @classmethod
+    def setUpClass(cls):
+        _require_born_ambient_head()
 
     def test_stop_no_manifest_allows(self):
         self.assertEqual(run_gate(None, event="stop").returncode, 0)
@@ -197,6 +220,10 @@ class VerifyGateSignedDispatch(unittest.TestCase):
     """#135: the gate forwards a signed dispatch record to verify.py; the signature is checked and a
     substituted value is blocked. Off-worker (provenance set) it is a soundness boundary; on the native
     path it stays advisory — no in-session anchor is trustworthy."""
+
+    @classmethod
+    def setUpClass(cls):
+        _require_born_ambient_head()
 
     def test_signed_dispatch_verified_off_worker(self):
         # ORCA_PROVENANCE=dispatch models an OFF-WORKER context that supplies the key: verify.py checks

@@ -35,6 +35,14 @@ class VFBenchCorpus(unittest.TestCase):
 class VFBenchSoundness(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        # #163: the wrong-sha trap's RED verdict rests on verify.py's git commit-existence leg,
+        # which degrades to a NOTE outside a git work tree — there the trap flips GREEN and the
+        # soundness score silently measures nothing. Skip loudly instead of grading ambient state.
+        r = subprocess.run(["git", "rev-parse", "--is-inside-work-tree"],
+                           capture_output=True, cwd=vfbench.ROOT)
+        if r.returncode != 0:
+            raise unittest.SkipTest("vf-bench traps rely on the ambient git clone — verify.py's "
+                                    "commit-existence leg is NOTE-skipped outside one")
         cls.res = vfbench.run()
 
     def test_sound_gate_scores_zero_false_done(self):
