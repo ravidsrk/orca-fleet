@@ -106,7 +106,9 @@ instruction surface. Two structural guards inherit that lesson:
   `attention-budget.md` is the measured exemplar. Each mission guide surfaces the mission's `proof:`
   tier beside its autonomy, so a doctrine-only, never-run mission never reads as field-proven.
 - **Instruction budget.** Missions ≤ 130 lines, playbooks ≤ 90, runtime policies ≤ 160, enforced
-  by the validator. Raising a cap is a deliberate, reasoned edit — never drift.
+  by the validator — plus a per-file **byte budget** (240 B × the line cap) so instruction surface
+  packed into a few very long lines cannot beat the line count. Raising a cap is a deliberate,
+  reasoned edit — never drift.
 
 ## Governance is uniform and below the model
 
