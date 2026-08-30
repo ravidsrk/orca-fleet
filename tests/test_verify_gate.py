@@ -106,6 +106,13 @@ def _gate_repo(pin_blob=None, pin_worktree=None, remote_head=True):
     if remote_head:
         _git(repo, "update-ref", "refs/remotes/origin/main", "HEAD")
         _git(repo, "symbolic-ref", "refs/remotes/origin/HEAD", "refs/remotes/origin/main")
+    # #193 review: origin/HEAD and local HEAD must NOT alias the same commit, or a
+    # regression that reads the pin from worker-modifiable HEAD still greens
+    # test_remote_blob_hit. After origin is pinned at the blob commit, advance
+    # HEAD to a pinless commit so only the remote-ref read can supply the key.
+    if pin_blob is not None and pin_worktree is None and remote_head:
+        _git(repo, "add", "-A")
+        _git(repo, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "no-pin")
     return repo
 
 
@@ -272,13 +279,12 @@ class VerifyGateSignedDispatch(unittest.TestCase):
 
 
 class VerifyGateDispatchPinDiscovery(unittest.TestCase):
-    """#171: verify-gate.sh:53-60 — when ORCA_DISPATCH_PUBKEY is NOT injected, the gate discovers the
-    committed .orca/dispatch-pubkey pin (reviewed remote blob first, working tree as fallback) from
-    the repo the script lives in. Each test runs a COPY of the gate inside a hermetic temp git repo
-    (_gate_repo), so the real repo's refs are never read or mutated; ORCA_DISPATCH_PUBKEY stays unset.
-    Behavior asserted, not argv: a record signed by the pinned key verifies (exit 0 +
-    'signature verified') only if the discovery branch actually supplied the key — otherwise
-    verify.py fails closed on a half-configured dispatch check."""
+    """#171: verify-gate.sh:53-60 — the gate discovers the verifying key from three sources, in
+    this order: (1) ORCA_DISPATCH_PUBKEY env, (2) the reviewed remote blob at origin/HEAD, (3) the
+    working-tree file. Each test runs a COPY of the gate inside a hermetic temp git repo
+    (_gate_repo), so the real repo's refs are never read or mutated. Behavior asserted, not argv:
+    a record signed by the expected key verifies (exit 0 + 'signature verified') only if that
+    source actually supplied it — otherwise verify.py fails closed."""
 
     def _run_discovered(self, repo, src, dispatch_record):
         m = _manifest(src, ["AC-1"], ["AC-1"])
@@ -288,8 +294,9 @@ class VerifyGateDispatchPinDiscovery(unittest.TestCase):
 
     def test_remote_blob_hit(self):
         # Pin committed on origin/main (refs/remotes/origin/HEAD resolves) but ABSENT from the
-        # worktree — only the remote-blob read can supply the key. Reverting 933765a (dropping the
-        # blob read) turns this red: no key is found and the signed record fails closed.
+        # worktree AND from local HEAD (_gate_repo advances HEAD to a pinless commit) — only the
+        # remote-blob read can supply the key. Reverting 933765a (dropping the blob read) or
+        # reading HEAD instead of origin/HEAD turns this red.
         src = _src(["AC-1"])
         rec, pub = _sign(_digest(src), "report-only")
         repo = _gate_repo(pin_blob=Path(pub).read_text(encoding="utf-8"), remote_head=True)
@@ -306,6 +313,25 @@ class VerifyGateDispatchPinDiscovery(unittest.TestCase):
         r = self._run_discovered(repo, src, rec)
         self.assertEqual(r.returncode, 0, f"stdout={r.stdout} stderr={r.stderr}")
         self.assertIn("signature verified", r.stdout + r.stderr)
+
+    def test_env_pubkey_precedes_repo_pin(self):
+        # #198 review: env beats a present repo pin. A record signed by the env key verifies
+        # even though origin/HEAD carries a *different* pin; a record signed by the pin key
+        # fails — so a regression that ignores env and always reads the pin turns this red.
+        src = _src(["AC-1"])
+        rec_env, pub_env = _sign(_digest(src), "report-only")
+        _rec_pin, pub_pin = _sign(_digest(src), "report-only")
+        repo = _gate_repo(pin_blob=Path(pub_pin).read_text(encoding="utf-8"), remote_head=True)
+        m = _manifest(src, ["AC-1"], ["AC-1"])
+        r = run_gate(m, src, _digest(src), unit_class="report-only", event="task",
+                     provenance="dispatch", dispatch_record=rec_env, dispatch_pubkey=pub_env,
+                     gate=repo / "runtime" / "scripts" / "verify-gate.sh", cwd=repo)
+        self.assertEqual(r.returncode, 0, f"stdout={r.stdout} stderr={r.stderr}")
+        self.assertIn("signature verified", r.stdout + r.stderr)
+        r = run_gate(m, src, _digest(src), unit_class="report-only", event="task",
+                     provenance="dispatch", dispatch_record=_rec_pin, dispatch_pubkey=pub_env,
+                     gate=repo / "runtime" / "scripts" / "verify-gate.sh", cwd=repo)
+        self.assertEqual(r.returncode, 2, f"stdout={r.stdout} stderr={r.stderr}")
 
     def test_neither_present_proceeds_without_dispatch_check(self):
         # No remote ref, no worktree pin (HEAD at the real repo matches: the pin is not committed).

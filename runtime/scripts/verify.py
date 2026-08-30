@@ -8,7 +8,7 @@ that it can instead check against authoritative state. The manifest is a *claim*
   - GIT — commit existence and ancestry;
   - GITHUB — whether a review actually happened at the reviewed SHA (a manifest-set reviewed_sha
     proves nothing);
-  - the NEGATIVE-CONTROL artifact, and with --execute-nc a replay.
+  - the NEGATIVE-CONTROL artifact; --execute-nc is fail-closed until a replay exists.
 
 Checks (evidence-manifest.md section 2), scope FIRST:
   1. scope: re-derive the criterion set from the COORDINATOR-supplied authoritative contract
@@ -20,7 +20,7 @@ Checks (evidence-manifest.md section 2), scope FIRST:
      up on GitHub (gh api). FAIL-CLOSED — a manifest-set reviewed_sha is not evidence a review happened.
   4. negative control: structured (known tool, KILLED/RED verdict, pinned mutant, artifact) AND the
      artifact must corroborate (name the mutant, show it killed). Static reading is corroboration, not
-     proof; --execute-nc replays it (evidence-manifest §2's re-execution sample is the sound form).
+     proof; --execute-nc fail-closes (evidence-manifest §2's re-execution sample is the sound form).
   5. ancestry (best-effort) · 6. symbol-on-base (best-effort).
 
 Usage:
@@ -339,8 +339,8 @@ def check_review(m, repo, is_mutation, no_gh=False, corroborated=False, dispatch
 def check_negative_control(m, is_mutation, execute=False):
     """4. Structured NC AND the artifact must corroborate the pinned mutant being killed. Reading the
     artifact resolves the mutant + verdict; it is corroboration, not proof (a fabricated artifact can
-    still be read). --execute-nc replays the control — evidence-manifest §2's re-execution sample is
-    the sound form."""
+    still be read). --execute-nc is fail-closed until a replay exists — evidence-manifest §2's
+    re-execution sample is the sound form."""
     if not is_mutation:
         return []
     nc = m.get("negative_control") or {}
@@ -587,7 +587,8 @@ def main(argv=None):
                     help="AUTHORITATIVE frozen contract (path@ref), from the dispatch record — not the manifest")
     ap.add_argument("--contract-digest", default=None, help="AUTHORITATIVE sha256 of the frozen contract")
     ap.add_argument("--repo", default=None, help="owner/name for the review lookup (default: infer from origin)")
-    ap.add_argument("--execute-nc", action="store_true", help="replay the negative control (heavier)")
+    ap.add_argument("--execute-nc", action="store_true",
+                    help="request NC replay (currently fail-closed; not implemented)")
     ap.add_argument("--base", default=None, help="integration base branch (for ancestry)")
     ap.add_argument("--symbol", default=None, help="a unit symbol to grep on the base")
     ap.add_argument("--unit-class", default=None,

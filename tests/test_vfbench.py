@@ -139,34 +139,39 @@ class VFBenchAncestryLeg(unittest.TestCase):
     """#172: vf-bench scores exit codes only, so a RED verdict on the non-ancestor-sha trap would
     not by itself prove the ancestry leg fired. Pin the right reason: when the sound gate runs
     that trap, the verifier's fatals must include the ancestry error (a phantom head_sha also
-    trips the real-commit leg — see the trap note — so both messages are asserted)."""
+    trips the real-commit leg — see the trap note — so both messages are asserted).
 
-    @classmethod
-    def setUpClass(cls):
-        # The trap's ancestry leg runs against the AMBIENT repo (vf-bench cwd=ROOT by design);
-        # check_ancestry itself skips with a NOTE when origin/<base> is absent, so the diagnostic
-        # this test asserts only exists where refs/remotes/origin/main does. Skip there rather
-        # than mutate the ambient clone's refs.
-        r = subprocess.run(["git", "rev-parse", "--verify", "origin/main"],
-                           capture_output=True, cwd=vfbench.ROOT)
-        if r.returncode != 0:
-            raise unittest.SkipTest("ambient repo has no refs/remotes/origin/main — "
-                                    "check_ancestry's skip-NOTE semantics apply")
+    Hermetic: check_ancestry reads origin/<base> from cwd, so this test builds a temp repo with
+    refs/remotes/origin/main instead of skipping when the ambient clone is a shallow CI checkout
+    (#201 review). The contract is passed as an absolute path so _resolve does not look it up
+    against the temp toplevel."""
 
     def test_non_ancestor_trap_is_red_via_the_ancestry_leg(self):
         trap = next(t for t in vfbench.load_traps() if t["class"] == "non-ancestor-sha")
-        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
-            json.dump(trap["manifest"], fh)
-            path = fh.name
+        tmp = Path(tempfile.mkdtemp())
         try:
-            r = subprocess.run(
-                [sys.executable, str(vfbench.VERIFY), "--manifest", path,
-                 "--contract-source", trap["contract_source"],
-                 "--contract-digest", trap["contract_digest"],
-                 "--unit-class", trap["unit_class"], "--base", trap["base"]],
-                capture_output=True, text=True, cwd=vfbench.ROOT)
+            subprocess.run(["git", "init", "-q", "-b", "main"], cwd=tmp,
+                           check=True, capture_output=True)
+            (tmp / "README").write_text("x\n", encoding="utf-8")
+            subprocess.run(["git", "add", "README"], cwd=tmp, check=True, capture_output=True)
+            subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t",
+                            "commit", "-qm", "init"], cwd=tmp, check=True, capture_output=True)
+            subprocess.run(["git", "update-ref", "refs/remotes/origin/main", "HEAD"],
+                           cwd=tmp, check=True, capture_output=True)
+            with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
+                json.dump(trap["manifest"], fh)
+                path = fh.name
+            try:
+                r = subprocess.run(
+                    [sys.executable, str(vfbench.VERIFY), "--manifest", path,
+                     "--contract-source", str(vfbench.ROOT / trap["contract_source"]),
+                     "--contract-digest", trap["contract_digest"],
+                     "--unit-class", trap["unit_class"], "--base", trap["base"]],
+                    capture_output=True, text=True, cwd=tmp)
+            finally:
+                Path(path).unlink(missing_ok=True)
         finally:
-            Path(path).unlink(missing_ok=True)
+            shutil.rmtree(tmp, True)
         self.assertEqual(r.returncode, 2, r.stderr)
         self.assertIn("not an ancestor of origin/main", r.stderr)
         self.assertIn("is not a real commit", r.stderr)
@@ -202,6 +207,8 @@ class VFBenchReviewLeg(unittest.TestCase):
             Path(path).unlink(missing_ok=True)
 
     def test_review_trap_is_red_via_the_fail_closed_fetch(self):
+        # Aggregation, not fail-fast: a missing trap SHA still runs check_review, so
+        # this pin holds on a shallow clone. Skipping would hide a fetch-leg regression.
         r = self._run_verify()
         self.assertEqual(r.returncode, 2, r.stderr)
         self.assertNotIn("no pr.number", r.stderr)  # the leg ran PAST the pr.number guard

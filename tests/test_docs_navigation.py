@@ -259,7 +259,12 @@ class TestDocsNavigation(unittest.TestCase):
             missing, [],
             f"verify.py reads manifest fields the §1 schema never declares: {missing}",
         )
-        bad = sorted((p, s) for p, s in nested if s not in chunks.get(p, ""))
+        # Key extraction, not substring: "artifact" in "artifact_path" must not count (#196).
+        declared_nested = {
+            parent: set(re.findall(r'"([a-z_]+)":', chunk))
+            for parent, chunk in chunks.items()
+        }
+        bad = sorted((p, s) for p, s in nested if s not in declared_nested.get(p, set()))
         self.assertEqual(
             bad, [],
             f"verify.py reads nested manifest fields the §1 schema never declares: {bad}",
@@ -281,8 +286,15 @@ class TestDocsNavigation(unittest.TestCase):
             missing, [],
             f"verify-gate.sh reads env vars docs/verify-gate.md never names: {missing}",
         )
-        _, heading, trust = doc.partition("## Trust boundary")
+        # #200 review: ORCA_EXECUTE_NC is forwarded to an unimplemented flag that fail-closes.
+        self.assertRegex(
+            doc, r"(?is)ORCA_EXECUTE_NC.{0,400}(not implemented|fail-closes)",
+            "docs/verify-gate.md must not describe ORCA_EXECUTE_NC as a working replay",
+        )
+        _, heading, rest = doc.partition("## Trust boundary")
         self.assertTrue(heading, "docs/verify-gate.md has no trust-boundary section")
+        # Bound to this H2 — a later sibling section must not keep this green (#200).
+        trust = rest.split("\n## ", 1)[0]
         self.assertIn(
             "ORCA_NO_GH", trust,
             "the trust-boundary section never names ORCA_NO_GH — the no-gh lane's "
