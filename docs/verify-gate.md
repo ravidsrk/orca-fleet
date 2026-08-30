@@ -45,7 +45,9 @@ worker-set; anything else in the environment is ignored):
 - `ORCA_UNIT_CLASS` — `mutation | report-only | planning`, from dispatch; missing/unknown ⇒ mutation.
 - `ORCA_REPO` — `owner/name` for the independent GitHub review lookup (optional; inferred from origin).
 - `ORCA_BASE` / `ORCA_SYMBOL` — ancestry-check base branch / a unit symbol to grep on it (optional).
-- `ORCA_EXECUTE_NC` — set to replay the negative control (heavier).
+- `ORCA_EXECUTE_NC` — forwarded as `--execute-nc`. Replay is **not implemented**: verify.py
+  fail-closes if the flag is set. To actually replay, run evidence-manifest.md §2's re-execution
+  sample; omit this env var for the artifact-read path.
 - `ORCA_NO_GH` — set to take the **no-gh lane**: review authority switches from the GitHub lookup to a
   local reviewer artifact — a downgrade, see [Trust boundary](#trust-boundary).
 - `ORCA_LIGHTING` — the coordinator's lighting decision (`dark-eligible` waives the build-blind human

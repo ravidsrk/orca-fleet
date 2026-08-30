@@ -851,11 +851,13 @@ class EndToEndMutationGreen(unittest.TestCase):
         self.head_sha = git("rev-parse", "HEAD").stdout.strip()
 
         self.contract = _src(["AC-1"])
+        self.addCleanup(lambda p=self.contract: Path(p).unlink(missing_ok=True))
         self.digest = _digest(self.contract)
         art = tempfile.NamedTemporaryFile("w", suffix=".md", delete=False)
         art.write("mutant m7 was KILLED — proof went RED\n")
         art.close()
         self.nc_artifact = art.name
+        self.addCleanup(lambda p=self.nc_artifact: Path(p).unlink(missing_ok=True))
 
         self._orig_r = verify.fetch_reviews
         self._orig_a = verify.fetch_pr_author
@@ -864,6 +866,23 @@ class EndToEndMutationGreen(unittest.TestCase):
               "user": {"login": "carol"}}], None)
         verify.fetch_pr_author = lambda repo_, n: "alice"  # the PR author != the reviewer
 
+        # #204 review: a successful review/NC check returns [] — the same as a skipped
+        # one. Spy the two mutation lanes so dropping either from aggregation goes red.
+        self.review_calls, self.nc_calls = [], []
+        self._orig_check_review = verify.check_review
+        self._orig_check_nc = verify.check_negative_control
+
+        def spy_review(*a, **k):
+            self.review_calls.append((a, k))
+            return self._orig_check_review(*a, **k)
+
+        def spy_nc(*a, **k):
+            self.nc_calls.append((a, k))
+            return self._orig_check_nc(*a, **k)
+
+        verify.check_review = spy_review
+        verify.check_negative_control = spy_nc
+
         self._cwd = os.getcwd()
         os.chdir(repo)  # verify.py's git legs run in the process cwd
 
@@ -871,7 +890,19 @@ class EndToEndMutationGreen(unittest.TestCase):
         os.chdir(self._cwd)
         verify.fetch_reviews = self._orig_r
         verify.fetch_pr_author = self._orig_a
+        verify.check_review = self._orig_check_review
+        verify.check_negative_control = self._orig_check_nc
         self._tmp.cleanup()
+
+    def _assert_mutation_lanes_ran(self):
+        self.assertTrue(self.review_calls,
+                        "check_review was not invoked — review lane dropped from aggregation")
+        self.assertTrue(self.nc_calls,
+                        "check_negative_control was not invoked — NC lane dropped from aggregation")
+        for args, _kwargs in self.review_calls:
+            self.assertTrue(args[2], "review check ran with is_mutation=False")
+        for args, _kwargs in self.nc_calls:
+            self.assertTrue(args[1], "NC check ran with is_mutation=False")
 
     def _manifest(self, lighting="lit"):
         m = {"unit": "slice-2",
@@ -890,6 +921,7 @@ class EndToEndMutationGreen(unittest.TestCase):
         fh = tempfile.NamedTemporaryFile("w", suffix=".json", delete=False)
         json.dump(m, fh)
         fh.close()
+        self.addCleanup(lambda p=fh.name: Path(p).unlink(missing_ok=True))
         return fh.name
 
     def test_full_pass_mutation_manifest_is_green_end_to_end(self):
@@ -899,6 +931,7 @@ class EndToEndMutationGreen(unittest.TestCase):
         self.assertIsNone(err)
         fatal, notes = out
         self.assertEqual(fatal, [], fatal)
+        self._assert_mutation_lanes_ran()
 
     def test_main_exits_0_with_verify_ok(self):
         path = self._manifest()
@@ -912,6 +945,7 @@ class EndToEndMutationGreen(unittest.TestCase):
                               "--lighting", "lit"])
         self.assertEqual(rc, 0)
         self.assertIn("verify: OK", buf.getvalue())
+        self._assert_mutation_lanes_ran()
 
     def test_dark_eligible_corroborated_lane_is_green(self):
         # The review-waived lane: dark-eligible dispatch + an out-of-band contract (corroborated)
@@ -927,6 +961,7 @@ class EndToEndMutationGreen(unittest.TestCase):
                               "--lighting", "dark-eligible"])
         self.assertEqual(rc, 0)
         self.assertIn("dark-eligible", buf.getvalue())
+        self._assert_mutation_lanes_ran()
 
     def test_omitted_lighting_is_lit_end_to_end(self):
         # #169: a mutation manifest with no lighting key verifies clean — omission means lit.
@@ -936,6 +971,7 @@ class EndToEndMutationGreen(unittest.TestCase):
         self.assertIsNone(err)
         fatal, notes = out
         self.assertEqual(fatal, [], fatal)
+        self._assert_mutation_lanes_ran()
 
     def test_omitted_lighting_with_dark_dispatch_fails_end_to_end(self):
         # #169: the swap interaction — dispatch used the dark waiver but the omitted manifest
@@ -955,6 +991,7 @@ class EndToEndMutationGreen(unittest.TestCase):
                               "--unit-class", "mutation",
                               "--lighting", "dark-eligible"])
         self.assertEqual(rc, 2)
+        self._assert_mutation_lanes_ran()
 
 
 _edspec = importlib.util.spec_from_file_location("ed25519", ROOT / "runtime" / "scripts" / "ed25519.py")

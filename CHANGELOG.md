@@ -19,6 +19,13 @@ truth is `.claude-plugin/plugin.json`.
 
 ### Fixed
 
+- Leftover review comments from the #163–#184 sweep PRs: pin discovery cannot
+  cheat via local `HEAD`; env pubkey precedes the repo pin; nested schema keys
+  are matched as keys not substrings; the trust-boundary assertion is bounded
+  to that H2; `ORCA_EXECUTE_NC` is documented as fail-closed; vf-bench ancestry
+  is hermetic; the review-leg test skips (instead of failing) on a shallow
+  clone; mutation e2e tests spy the review and NC lanes; temp fixtures are
+  cleaned up.
 - Validator: a non-UTF-8 or unreadable `SKILL.md` (and the same class of error
   in playbooks/runtime) is a one-item per-file failure instead of aborting the
   catalog (issue #71).
