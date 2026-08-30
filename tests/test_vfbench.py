@@ -206,28 +206,20 @@ class VFBenchReviewLeg(unittest.TestCase):
         finally:
             Path(path).unlink(missing_ok=True)
 
-    def _require_trap_commits(self):
-        # #202 review: a shallow clone lacks the trap's pinned SHAs, so check_real_commits
-        # fails before check_review and this test never emits 'cannot fetch reviews'.
-        for field in ("head_sha", "base_sha"):
-            sha = self.trap["manifest"][field]
-            r = subprocess.run(["git", "cat-file", "-e", f"{sha}^{{commit}}"],
-                               cwd=vfbench.ROOT)
-            if r.returncode != 0:
-                raise unittest.SkipTest(
-                    "shallow clone without the trap's pinned commits — "
-                    "check_real_commits would fire before check_review")
-
     def test_review_trap_is_red_via_the_fail_closed_fetch(self):
-        self._require_trap_commits()
+        # Aggregation, not fail-fast: a missing trap SHA still runs check_review, so
+        # this pin holds on a shallow clone. Skipping would hide a fetch-leg regression.
         r = self._run_verify()
         self.assertEqual(r.returncode, 2, r.stderr)
         self.assertNotIn("no pr.number", r.stderr)  # the leg ran PAST the pr.number guard
         self.assertIn("cannot fetch reviews", r.stderr)  # and failed CLOSED at the fetch
 
     def test_review_trap_verdict_tracks_review_ok(self):
-        self._require_trap_commits()
         head = self.trap["manifest"]["head_sha"]
+        r = subprocess.run(["git", "cat-file", "-e", f"{head}^{{commit}}"], cwd=vfbench.ROOT)
+        if r.returncode != 0:
+            raise unittest.SkipTest("shallow clone without the trap's pinned commit — "
+                                    "the GREEN half cannot run here")
 
         def env_with_stub(reviews):
             stub = (
