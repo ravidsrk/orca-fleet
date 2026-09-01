@@ -1,0 +1,3 @@
+T-04: .github/workflows/validate.yml python-version is "3.13"
+getting-started.md Prerequisites item 3 documents Python 3.13.
+Local python: 3.13.15. unittest of env-example test + validate.py: OK.
