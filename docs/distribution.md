@@ -3,8 +3,8 @@
 *How orca-fleet reaches users in a market of ~23k plugins across thousands of marketplaces, and why
 its machine-checked `proof:` field is the discovery advantage.*
 
-> Dated guidance (2026-08-28). The external submissions below are **manual follow-ups** — they
-> register this repo on third-party surfaces and can't be done from inside the repo.
+> Dated guidance (2026-08-28). Index check 2026-09-01 (issue #210). Submissions that
+> need a human account remain [H-02](completion/HUMAN_ACTIONS.md).
 
 ## The bottleneck is trust, not capability
 
@@ -27,19 +27,35 @@ Lead listings and the README with that trust story — "verified, not asserted" 
 | Plugin marketplace | try the whole catalog | `/plugin marketplace add ravidsrk/orca-fleet` → `/plugin install orca-fleet` (`.claude-plugin/`) |
 | Symlink a mission | fork/adapt one outcome | `ln -s .../skills/<mission> ~/.claude/skills/<mission>` (preserves the relative `playbooks/`/`runtime/` refs) |
 
-## External submission checklist (manual follow-ups)
+## Index check (2026-09-01)
 
-These register the repo on third-party surfaces; do them from an account with rights to submit:
+Agent-reachable surfaces. "Listed" means a search returned this repo, not that
+a human submitted it.
 
-- [ ] Submit to the **community plugin marketplace** aggregators.
-- [ ] Ensure a green **"does-it-load"** score on the skills indexers (verify each mission's frontmatter
-      loads; the validator + `agentskills.io` conformance already gate this locally).
-- [ ] Confirm `agentskills.io` conformance for every `SKILL.md` (frontmatter `name`/`description`,
-      progressive disclosure). `name`/`description`/`compatibility`/`license` already pass
-      `uvx --from skills-ref agentskills validate`; the remaining fail is the intentional
-      extras `proof` / `autonomy` / `proof_evidence` (see CONTRIBUTING — not migrated into
-      `metadata:`).
-- [ ] In each listing, lead with the **`proof:` trust badge** framing + a link to the [run archive](runs/).
+| Surface | Listed? | Evidence |
+|---|---|---|
+| Self-hosted marketplace | yes | `/plugin marketplace add ravidsrk/orca-fleet` (already the install path) |
+| [buildwithclaude.com](https://buildwithclaude.com/api/search?q=orca-fleet) | yes (auto-index) | slug `@ravidsrk/orca-fleet`; 0 installs; description still carries a stale hardcoded catalog count |
+| [skills.sh](https://www.skills.sh/api/search?q=ravidsrk) | **no** — indexes the predecessor `ravidsrk/autonomous-fleet` instead | search `ravidsrk/orca-fleet` returns stablyai/orca skills, not this catalog |
+| [claudemarketplace.net](https://www.claudemarketplace.net/search?q=orca-fleet) | no | search payload `skills: []`, `mcpServers: []` |
+| [anthropics/claude-plugins-official](https://github.com/anthropics/claude-plugins-official) | no | `marketplace.json` has neither `orca-fleet` nor `ravidsrk` |
+| `agentskills validate` | name/description/compatibility/license pass | extras `proof`/`autonomy`/`proof_evidence` are intentional (issue #211) |
+
+No indexer currently publishes a does-it-load score for this catalog (buildwithclaude
+`installs: 0`).
+
+## External submission checklist (H-02)
+
+These still need an account with rights to submit. Do not flip them from a clone:
+
+- [ ] Submit to **anthropics/claude-plugins-official** (their plugin-directory form) and to
+      community aggregators that are not GitHub-scraping this repo (claudemarketplace.net;
+      get `ravidsrk/orca-fleet` onto skills.sh so the predecessor listing is not the hit).
+- [ ] Confirm a green **"does-it-load"** score once an indexer actually scores the pack.
+- [ ] On every listing a human files, lead with the **`proof:` trust badge** framing + a
+      link to the [run archive](runs/). The buildwithclaude auto-index currently leads with
+      a stale catalog-count blurb — replace that copy when a submit form exists.
+- [x] `agentskills.io` required fields pass locally; extras documented (issue #211).
 
 ## Optional: a proof-status badge
 
