@@ -3,7 +3,7 @@
 **VERDICT: CONDITIONAL GO** (alert-on-failure waived A-13; H-02/H-03 do not gate)
 **COMPLETION: 56%** (baseline `6abf548`) · **GATE: met for catalog** — CF-05 happy path evidenced (review-it GO at 6ad0e87); H-01 done.
 **CRITICAL FLOWS: 6 total · 6 verified (CF-05 happy+failure) · 0 cut**
-**GAPS:** G-01..G-05 closed · DEFER G-06..G-13 (#209–#216) · ACCEPT G-14 · **NEXT: none (run DONE). Non-gating: H-02 marketplace, H-03 version cut.**
+**GAPS:** G-01..G-08, G-11..G-13 closed · DEFER G-09, G-10 (#212, #213) · ACCEPT G-14 · **NEXT: none (run DONE). Non-gating leftover: H-02 marketplace submits.**
 
 *Post-launch (not this audit): G-06/G-07/G-08/G-11/G-12/G-13 closed 2026-09-01; H-03 done (`0.6.0`); H-02 remains. G-09 and G-10 stay parked. Findings below are the freeze-time snapshot.*
 
@@ -33,7 +33,7 @@
 | mise | 2026.8.16 |
 | greptile | 3.4.2 |
 | gh | 2.98.0 (auth: ravidsrk) |
-| ruff | 0.16.5 (present on machine, **not** invoked by this repo's CI) |
+| ruff | 0.16.5 (CI: `E9`/`F63`/`F7`/`F82` only — post-launch G-11 / #220) |
 | just | 1.58.0 (present, **no** `justfile` in repo) |
 | orca CLI | present; **app running=false, runtime not_running** |
 
@@ -128,6 +128,7 @@ Evidence: cold start, TODOS.md, distribution.md, plugin.json.
 - **F-3-01** Structure matches README three-layer split; `validate.py` enforces it. Evidence: validate 13/13.
 - **F-3-02** Largest files: `tests/test_verify.py` 1079, `tests/test_validate.py` 669, `verify.py` 636, `validate.py` 583. Not god-objects relative to their jobs.
 - **F-3-03** No ruff/mypy config in repo; CI does not lint. Machine has ruff. Impact: style is social, not gated.
+  *Post-launch: G-11 closed — CI runs ruff 0.16.5 on E9/F63/F7/F82 (#220).*
 - **F-3-04** No lockfile: acceptable for stdlib-only, but Python version is unpinned (`python-version: "3.x"` in CI).
 
 Evidence: validate output, `wc -l`, `.github/workflows/validate.yml`. Score 3: architecture is tested; lint-in-CI is a listed gap at S3.

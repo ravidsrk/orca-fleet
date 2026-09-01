@@ -58,9 +58,10 @@ class TestDocsNavigation(unittest.TestCase):
                     "Incident"):
             self.assertIn(tok, text, f"docs/ops.md lost its {tok!r} surface")
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
-        self.assertIn(
-            "docs/ops.md", readme,
-            "docs/ops.md is linked from no README nav (orphan)",
+        self.assertRegex(
+            readme,
+            r'href="docs/ops\.md"|\]\(docs/ops\.md\)',
+            "README has no working Ops navigation link",
         )
 
     def test_architecture_names_every_runtime_policy(self):

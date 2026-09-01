@@ -404,8 +404,8 @@
       "angle": 2,
       "critical_flow": null,
       "severity": "S3",
-      "decision": "DEFER",
-      "status": "open",
+      "decision": "FINISH",
+      "status": "closed",
       "tasks": [],
       "accept_expiry": null,
       "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/209"
@@ -418,8 +418,8 @@
       "angle": 16,
       "critical_flow": null,
       "severity": "S2",
-      "decision": "DEFER",
-      "status": "open",
+      "decision": "FINISH",
+      "status": "closed",
       "tasks": [],
       "accept_expiry": null,
       "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/210"
@@ -432,8 +432,8 @@
       "angle": 14,
       "critical_flow": "CF-02",
       "severity": "S3",
-      "decision": "DEFER",
-      "status": "open",
+      "decision": "FINISH",
+      "status": "closed",
       "tasks": [],
       "accept_expiry": null,
       "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/211"
@@ -474,8 +474,8 @@
       "angle": 3,
       "critical_flow": null,
       "severity": "S3",
-      "decision": "DEFER",
-      "status": "open",
+      "decision": "FINISH",
+      "status": "closed",
       "tasks": [],
       "accept_expiry": null,
       "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/214"
@@ -488,8 +488,8 @@
       "angle": 17,
       "critical_flow": null,
       "severity": "S3",
-      "decision": "DEFER",
-      "status": "open",
+      "decision": "FINISH",
+      "status": "closed",
       "tasks": [],
       "accept_expiry": null,
       "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/215"
@@ -502,8 +502,8 @@
       "angle": 3,
       "critical_flow": null,
       "severity": "S3",
-      "decision": "DEFER",
-      "status": "open",
+      "decision": "FINISH",
+      "status": "closed",
       "tasks": [],
       "accept_expiry": null,
       "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/216"
@@ -746,10 +746,8 @@
     },
     {
       "id": "H-02",
-      "instruction": "Submit docs/distribution.md marketplace checklist",
-      "unblocks": [
-        "G-07"
-      ],
+      "instruction": "Submit remaining marketplace aggregators (G-07 agent slice closed)",
+      "unblocks": [],
       "gates_launch": false,
       "verification": "listing URLs in distribution.md",
       "status": "open"
@@ -757,9 +755,7 @@
     {
       "id": "H-03",
       "instruction": "Cut next version (plugin.json + CHANGELOG Unreleased)",
-      "unblocks": [
-        "G-06"
-      ],
+      "unblocks": [],
       "gates_launch": false,
       "verification": "version equals CHANGELOG heading",
       "status": "done"
