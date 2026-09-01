@@ -12,7 +12,7 @@ missions already have those.
 | GitHub | `ravidsrk` | [ravidsrk/orca-fleet](https://github.com/ravidsrk/orca-fleet) | source of truth, Actions (`validate` workflow), private vulnerability reporting |
 | Claude plugin marketplace | not submitted | [`.claude-plugin/`](../.claude-plugin/plugin.json) | local install path works; community aggregators are [H-02](completion/HUMAN_ACTIONS.md) / [G-07](https://github.com/ravidsrk/orca-fleet/issues/210) |
 | greptile | maintainer CLI | [greptile.com](https://greptile.com/) | pre-push review on the maintainer machine; GitHub check on PRs |
-| agentskills.io listing | not submitted | local `uvx --from skills-ref agentskills validate` | extra frontmatter (`proof`, `autonomy`, `proof_evidence`) is intentional and machine-checked by `scripts/validate.py` |
+| agentskills.io listing | not submitted | local `uvx --from skills-ref agentskills validate` | extra frontmatter (`proof`, `autonomy`, `proof_evidence`) is intentional — [CONTRIBUTING](../CONTRIBUTING.md) |
 | Maintainer email | `ravidsrk@gmail.com` | [SECURITY.md](../SECURITY.md) | security reports (72h ack) and ops contact |
 
 No other cloud accounts, registries, or production hosts. "Deploy" is merge

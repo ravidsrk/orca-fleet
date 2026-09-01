@@ -34,6 +34,27 @@ def make_skill(tmp, body, frontmatter_extra="proof: doctrine-only\nautonomy: L4\
 
 class TestValidatorFailureBranches(unittest.TestCase):
 
+    def test_unknown_frontmatter_field_fails(self):
+        # Issue #211: skills-ref flags proof/autonomy/proof_evidence. Those
+        # three are the only allowed extras — a fourth top-level field must
+        # not sneak in as "just more metadata".
+        with tempfile.TemporaryDirectory() as tmp:
+            errs = validate.validate_skill(
+                make_skill(
+                    tmp,
+                    "Composes `diagnose`.\n",
+                    frontmatter_extra="proof: doctrine-only\nautonomy: L4\nauthor: x\n",
+                ),
+                PROTOCOLS,
+            )
+            self.assertTrue(any("unexpected frontmatter fields" in e and "author" in e for e in errs), errs)
+
+    def test_known_repo_extras_are_not_unexpected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            errs = validate.validate_skill(
+                make_skill(tmp, "Composes `diagnose`.\n"), PROTOCOLS)
+            self.assertFalse(any("unexpected frontmatter fields" in e for e in errs), errs)
+
     def test_clause_without_backticked_names_fails(self):
         # The old ship-it shape: a Composes clause the regex can't see into.
         with tempfile.TemporaryDirectory() as tmp:

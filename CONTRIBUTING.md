@@ -43,6 +43,12 @@ A mission PR must include:
    - `proof: doctrine-only` — every mission starts there. It advances to `self-run` or
      `external-run` only with `proof_evidence:` linking a run report in the repo; the validator
      enforces this. Do not argue a mission is proven in prose; link the run.
+   - `proof`, `autonomy`, and `proof_evidence` are **repo extras** (not in the
+     [agentskills.io](https://agentskills.io/specification) allowlist).
+     `uvx --from skills-ref agentskills validate skills/<name>` reports them as
+     unexpected; that is expected. Do not move them into `metadata:` — they are
+     first-class, machine-checked claims. Spec-compliant extra data goes in
+     `metadata:`. A fourth top-level extra field fails `scripts/validate.py`.
    - within the instruction budget: missions ≤ 130 lines (playbooks ≤ 90, runtime ≤ 160).
      If your mission needs more, the overflow is probably a playbook.
 2. An entry in the README mission table and in AGENTS.md's intent → mission mapping.

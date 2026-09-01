@@ -28,6 +28,10 @@ truth is `.claude-plugin/plugin.json`.
 - Validator and the orphan-protocol test share `explicit_protocol_refs` (issue #216).
   A Related-section backtick no longer keeps a protocol alive; `ship-it` rides
   `mission-chaining` and `review-it` rides `mission-scheduling`.
+- Validator allowlists only three extras beyond the agentskills.io spec
+  (`proof`, `autonomy`, `proof_evidence`). A fourth top-level field fails
+  the catalog (issue #211). skills-ref still reports those extras; that is
+  expected, not a migrate-to-metadata prompt.
 
 ### Fixed
 
