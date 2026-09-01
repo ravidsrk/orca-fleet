@@ -16,5 +16,10 @@ lrwxr-xr-x root-cause -> /Users/ravindra/projects/orca-fleet/skills/root-cause
 lrwxr-xr-x ship-it -> /Users/ravindra/projects/orca-fleet/skills/ship-it
 lrwxr-xr-x speed-it -> /Users/ravindra/projects/orca-fleet/skills/speed-it
 
+README resolution check (2026-09-01):
+  ship-it -> /Users/ravindra/projects/orca-fleet/skills/ship-it
+  catalog root -> /Users/ravindra/projects/orca-fleet
+  playbooks/ and runtime/ exist two levels above the skill: RESOLVED
+
 Not evidenced this run: Claude Code `/plugin marketplace add` / `/plugin install` (requires the
 Claude Code UI). Skills-CLI copy path is documented as broken unless the tree is preserved.

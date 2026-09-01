@@ -27,8 +27,8 @@ All of the following, with evidence:
 1. Every **S0** closed. (None open at freeze.)
 2. Every critical flow E2E-evidenced: happy path + one failure path. **CF-05 happy path outstanding (H-01).**
 3. Backup restored once = fresh clone/worktree reproduces CF-01 (A-09). Met by P0 cold start.
-4. Rollback rehearsed once = `git revert` documented as the mechanism (A-10 / G-14 ACCEPT). Not a hosted deploy.
-5. One alert proven to fire = GitHub Actions `validate` workflow has a recorded **success** on `main` (run 33296692840). A deliberate failure-to-alert drill is **not** in scope (would require redding main — forbidden by R9). DEFER G-10.
+4. Rollback rehearsed once = `git revert` of a throwaway commit on a **scratch clone** (not `main`). Evidence: `evidence/P0-rollback-rehearsal.txt`.
+5. Alert-on-failure is **not demonstrated**. A green Actions run does not prove a failure notification. G-10 DEFER; A-13: this item does not block catalog GO (proving it would require redding `main`, forbidden by R9).
 6. Stranger Test ≤15 min from clone to CF-01+CF-04 using README/getting-started. **Met** this session (~command time + 23s tests).
 7. No `ACCEPT` at S0.
 8. Launch-gating Human Actions: **H-01** (Orca up + review-it dry run). H-02 (marketplace) does **not** gate catalog complete. H-03 (version bump) does not gate.

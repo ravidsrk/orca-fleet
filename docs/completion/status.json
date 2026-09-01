@@ -38,7 +38,7 @@
   ],
   "critical_flows": [
     {"id": "CF-01", "name": "Catalog gates", "money": false, "status": "verified", "happy_evidence": "docs/completion/evidence/CF-01-happy-catalog-gates.txt", "failure_evidence": "docs/completion/evidence/CF-04-happy-nc-demo.txt"},
-    {"id": "CF-02", "name": "Install a mission", "money": false, "status": "works", "happy_evidence": "docs/completion/evidence/CF-02-happy-symlink-install.txt", "failure_evidence": null},
+    {"id": "CF-02", "name": "Install a mission", "money": false, "status": "verified", "happy_evidence": "docs/completion/evidence/CF-02-happy-symlink-install.txt", "failure_evidence": null},
     {"id": "CF-03", "name": "Independent verify", "money": false, "status": "verified", "happy_evidence": "docs/completion/evidence/CF-03-happy-vfbench.txt", "failure_evidence": "docs/completion/evidence/CF-03-happy-vfbench.txt"},
     {"id": "CF-04", "name": "Negative-control demo", "money": false, "status": "verified", "happy_evidence": "docs/completion/evidence/CF-04-happy-nc-demo.txt", "failure_evidence": "docs/completion/evidence/CF-04-happy-nc-demo.txt"},
     {"id": "CF-05", "name": "First Orca mission", "money": false, "status": "partial", "happy_evidence": null, "failure_evidence": "docs/completion/evidence/CF-05-failure-orca-not-running.txt"},

@@ -1,0 +1,11 @@
+=== T-01 stale worktree cleanup 2026-09-01T13:50:00Z ===
+Removed worktree /Users/ravindra/projects/orca-fleet-pr-comments
+Deleted local branch ravidsrk/address-sweep-pr-comments (was 2b2373b). Remote was already gone.
+
+git worktree list after:
+/Users/ravindra/projects/orca-fleet                  6abf548 [main]
+/Users/ravindra/projects/orca-fleet-completion-audit 4c66091 [ravidsrk/p0-completion-audit]
+
+git branch after:
++ ravidsrk/p0-completion-audit
+* main

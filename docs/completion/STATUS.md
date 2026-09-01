@@ -65,6 +65,7 @@ See `evidence/P0-coldstart-validate-tests.txt`, `P0-coldstart-tests-run2.txt`, `
 | same, run 2 | 317 OK (no flake observed) |
 | `sh demo/negative-control/run.sh` | PASS (self-score GREEN / verify RED) |
 | `python3 bench/vf-bench/vfbench.py` | naive 11/11 false-done · sound 0/11 |
+| `python3 scripts/eval.py` (no args) | usage error (not a pass) · see `P0-eval-subcommand-note.txt` |
 | `python3 scripts/eval.py validate` | All evals valid: 30 routing + 39 per-skill |
 | `python3 scripts/gen-badges.py --check` | exit 0 |
 | Run a mission on Orca | **FAIL substrate** — `orca status` runtime not_running |
@@ -88,7 +89,7 @@ Derived from README Quick start, Getting started, Validate-and-test, and the dem
 | id | name | entry | exit | money | observed |
 |---|---|---|---|---|---|
 | CF-01 | Catalog gates | clone + `python3 scripts/validate.py` + tests + `proof_status.py --check` | 13 missions valid, tests green, proof honest | no | **works** · `evidence/CF-01-happy-catalog-gates.txt` |
-| CF-02 | Install a mission | README symlink or `/plugin install` | agent can see outcome-named skills; `../../playbooks` resolves | no | **works** (symlinks on this machine) · `evidence/CF-02-happy-symlink-install.txt`. Plugin path not re-run. |
+| CF-02 | Install a mission | README symlink or `/plugin install` | agent can see outcome-named skills; `../../playbooks` resolves | no | **verified** (symlinks + `playbooks/`/`runtime/` resolve two levels up) · `evidence/CF-02-happy-symlink-install.txt`. Plugin UI path not re-run. |
 | CF-03 | Independent verify | `verify.py` / vf-bench | gamed traps RED; valid-control GREEN; false-done 0 | no | **works** · `evidence/CF-03-happy-vfbench.txt` |
 | CF-04 | Negative-control demo | `sh demo/negative-control/run.sh` | self-scorer GREEN and verify RED on the same trap | no | **works** · `evidence/CF-04-happy-nc-demo.txt` (this is also the failure-path of a self-scoring gate) |
 | CF-05 | First Orca mission | Getting started: `review this PR` with Orca running | SHA-bound review verdict | no | **partial/absent this session** · Orca app not running · `evidence/CF-05-failure-orca-not-running.txt` |

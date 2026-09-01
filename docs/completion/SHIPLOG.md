@@ -9,7 +9,7 @@ product: orca-fleet
 repo: /Users/ravindra/projects/orca-fleet
 audit_branch: ravidsrk/p0-completion-audit
 baseline_commit: 6abf548de4d53b9250e13f3b2cc297f6dd8fdf01
-resume_pointer: PHASE_1
+resume_pointer: P1/T-01
 ```
 
 ## 2026-09-01 — run start (R1)
@@ -21,7 +21,7 @@ resume_pointer: PHASE_1
 
 ## 2026-09-01 — PHASE 0 complete
 
-- Cold start: no lockfile (stdlib-only). `validate.py` 13/13 · `proof_status.py --check` 0 · unittest 317 OK (run 1 23.4s, run 2 OK) · demo PASS · vf-bench 0/11 false-done · evals 30+39 valid · badges `--check` 0.
+- Cold start: no lockfile (stdlib-only). `validate.py` 13/13 · `proof_status.py --check` 0 · unittest 317 OK (run 1 23.4s, run 2 OK) · demo PASS · vf-bench 0/11 false-done · `eval.py validate` 30+39 valid (bare `eval.py` is usage-error, not a pass) · badges `--check` 0.
 - Evidence: `evidence/P0-coldstart-*.txt`, `evidence/CF-*.txt`.
 - `resume_pointer: PHASE_1`
 - Second look: added explicit "no lockfile" line to the cold-start transcript after noticing a stranger might look for `requirements.txt`.
@@ -51,3 +51,15 @@ resume_pointer: PHASE_1
 - Plan P1–P7 with T-01..T-08. Human actions H-01 (gates launch), H-02, H-03.
 - `resume_pointer: P1/T-01`
 - Second look: split "docs honesty" out of T-04 so each task stays S-sized.
+
+## 2026-09-01 — greptile review (R11) + T-01
+
+- `greptile review -b main --json`: confidence 1. Findings disposition:
+  - P1 eval_exit lie → fixed (`P0-eval-subcommand-note.txt`; STATUS/SHIPLOG now cite `eval.py validate`).
+  - P1 CF-02 no playbooks resolve → fixed (README `ls ../../playbooks` check in CF-02 evidence).
+  - P1 rollback not rehearsed → fixed (`P0-rollback-rehearsal.txt` scratch-clone revert).
+  - P1 CI success ≠ alert → accepted; DEFINITION item 5 + A-13.
+  - P2 stale SHIPLOG header pointer → fixed (`P1/T-01`).
+- T-01 done: stale #207 worktree+branch removed. `evidence/T-01-worktree-clean.txt`.
+- review: greptile (findings fixed or A-13).
+- Second look: greptile was right that we over-claimed; corrected before push.

@@ -16,3 +16,4 @@ Decisions taken under R7. Alternatives rejected, with why.
 | A-10 | P4 | P2 "rollback rehearsed" = `git revert` of a merge on a scratch clone, not a production deploy. | Staging deploy rollback | No hosted service / no staging environment in-repo. |
 | A-11 | P5 | Execution starts only after this audit branch's artifacts are committed. One task branch at a time. | Start source edits during Phase 1 | R2. |
 | A-12 | P3 | Angle 9 (observability) minimum lowered to ≥1. GitHub Actions is the alert; there is no product runtime to metric. | Keep ≥3 and block launch | Would force inventing a metrics stack for a Markdown+stdlib catalog. Scoped waiver, not a table-wide lowering. |
+| A-13 | P3 | Launch-gate "alert fires" is unmet and **does not block catalog GO**. A green Actions run is not a failure-alert proof; redding `main` to prove email is forbidden (R9). | Treat CI success as the alert proof | Greptile P1 on DEFINITION.md. |
