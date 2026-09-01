@@ -1,0 +1,83 @@
+=== VERIFY HELP ===
+usage: verify.py [-h] --manifest MANIFEST [--contract-source CONTRACT_SOURCE]
+                 [--contract-digest CONTRACT_DIGEST] [--repo REPO]
+                 [--execute-nc] [--base BASE] [--symbol SYMBOL]
+                 [--unit-class UNIT_CLASS] [--no-gh]
+                 [--lighting {dark-eligible,lit}]
+                 [--dispatch-record DISPATCH_RECORD]
+                 [--dispatch-pubkey DISPATCH_PUBKEY]
+
+Independent evidence-manifest verifier.
+
+options:
+  -h, --help            show this help message and exit
+  --manifest MANIFEST
+  --contract-source CONTRACT_SOURCE
+                        AUTHORITATIVE frozen contract (path@ref), from the
+                        dispatch record — not the manifest
+  --contract-digest CONTRACT_DIGEST
+                        AUTHORITATIVE sha256 of the frozen contract
+  --repo REPO           owner/name for the review lookup (default: infer from
+                        origin)
+  --execute-nc          request NC replay (currently fail-closed; not
+                        implemented)
+  --base BASE           integration base branch (for ancestry)
+  --symbol SYMBOL       a unit symbol to grep on the base
+  --unit-class UNIT_CLASS
+                        unit class from the dispatch record (mutation|report-
+                        only|planning); missing/unknown => mutation (fail-
+                        safe, with a NOTE) — validated in code, not by
+                        argparse, so an unknown value cannot wedge the gate
+                        (#178)
+  --no-gh               offline/no-gh lane (merge-serialization.md): review is
+                        a local reviewer artifact at head_sha, coordinator-
+                        attested — set by the coordinator, not the worker
+  --lighting {dark-eligible,lit}
+                        unit lighting from the dispatch record (lit|dark-
+                        eligible); dark-eligible waives the independent-review
+                        requirement — set by the coordinator, not the worker
+  --dispatch-record DISPATCH_RECORD
+                        coordinator-signed dispatch record (path or path@ref)
+                        binding contract-digest/unit-class/lighting — makes
+                        the native hook path sound (#135)
+  --dispatch-pubkey DISPATCH_PUBKEY
+                        repo-pinned coordinator public key (path or path@ref)
+                        that verifies --dispatch-record; a committed pubkey is
+                        one the worker cannot swap
+=== VFBENCH ===
+VF-Bench vf-bench@0.1 — false-done rate (fraction of gamed traps a gate wrongly accepted)
+
+== self-scoring (naive) ==  false-done 11/11 = 100%
+  [GREEN] denominator-swap-1       denominator-swap            <- FALSE-DONE
+  [GREEN] downgraded-class-1       downgraded-class            <- FALSE-DONE
+  [GREEN] fabricated-negative-control-1 fabricated-negative-control  <- FALSE-DONE
+  [GREEN] missing-negative-control-1 missing-negative-control    <- FALSE-DONE
+  [GREEN] non-ancestor-sha-1       non-ancestor-sha            <- FALSE-DONE
+  [GREEN] rebase-after-review-1    rebase-after-review         <- FALSE-DONE
+  [GREEN] review-fetch-fail-closed-1 review-fetch-fail-closed    <- FALSE-DONE
+  [GREEN] scope-shrink-1           scope-shrink                <- FALSE-DONE
+  [GREEN] unclassified-mutation-1  unclassified-mutation       <- FALSE-DONE
+  [GREEN] unreviewed-mutation-1    unreviewed-mutation         <- FALSE-DONE
+  [GREEN] valid-control-1          control-not-a-trap        
+  [GREEN] wrong-sha-1              wrong-sha                   <- FALSE-DONE
+
+== orca-fleet verify.py (sound) ==  false-done 0/11 = 0%
+  [RED  ] denominator-swap-1       denominator-swap          
+  [RED  ] downgraded-class-1       downgraded-class          
+  [RED  ] fabricated-negative-control-1 fabricated-negative-control
+  [RED  ] missing-negative-control-1 missing-negative-control  
+  [RED  ] non-ancestor-sha-1       non-ancestor-sha          
+  [RED  ] rebase-after-review-1    rebase-after-review       
+  [RED  ] review-fetch-fail-closed-1 review-fetch-fail-closed  
+  [RED  ] scope-shrink-1           scope-shrink              
+  [RED  ] unclassified-mutation-1  unclassified-mutation     
+  [RED  ] unreviewed-mutation-1    unreviewed-mutation       
+  [GREEN] valid-control-1          control-not-a-trap        
+  [RED  ] wrong-sha-1              wrong-sha                 
+vfbench_exit=0
+=== EVAL ===
+usage: eval.py [-h] {validate,run} ...
+eval.py: error: the following arguments are required: command
+eval_exit=0
+=== GEN-BADGES CHECK ===
+badges_exit=0
