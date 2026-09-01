@@ -13,8 +13,8 @@ truth is `.claude-plugin/plugin.json`.
   `[Unreleased]`); dispatch-key rotation names all three verifier sources
   and a post-merge `git fetch` so the `origin/HEAD` pin moves;
   README Ops navigation is a real `href`; digit-bearing unexpected
-  frontmatter keys fail the extras allowlist; GAPS/`status.json` match the
-  closed G-06..G-08/G-11..G-13 issues.
+  frontmatter keys (including hyphen-leading) fail the extras allowlist;
+  GAPS/`status.json` match the closed G-06..G-08/G-11..G-13 issues.
 
 ## [0.6.0] - 2026-09-01
 

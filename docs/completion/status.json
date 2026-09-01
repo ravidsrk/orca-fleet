@@ -746,10 +746,8 @@
     },
     {
       "id": "H-02",
-      "instruction": "Submit docs/distribution.md marketplace checklist",
-      "unblocks": [
-        "G-07"
-      ],
+      "instruction": "Submit remaining marketplace aggregators (G-07 agent slice closed)",
+      "unblocks": [],
       "gates_launch": false,
       "verification": "listing URLs in distribution.md",
       "status": "open"
@@ -757,9 +755,7 @@
     {
       "id": "H-03",
       "instruction": "Cut next version (plugin.json + CHANGELOG Unreleased)",
-      "unblocks": [
-        "G-06"
-      ],
+      "unblocks": [],
       "gates_launch": false,
       "verification": "version equals CHANGELOG heading",
       "status": "done"

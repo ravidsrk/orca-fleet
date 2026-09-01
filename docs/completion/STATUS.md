@@ -3,7 +3,7 @@
 **VERDICT: CONDITIONAL GO** (alert-on-failure waived A-13; H-02/H-03 do not gate)
 **COMPLETION: 56%** (baseline `6abf548`) · **GATE: met for catalog** — CF-05 happy path evidenced (review-it GO at 6ad0e87); H-01 done.
 **CRITICAL FLOWS: 6 total · 6 verified (CF-05 happy+failure) · 0 cut**
-**GAPS:** G-01..G-05 closed · DEFER G-06..G-13 (#209–#216) · ACCEPT G-14 · **NEXT: none (run DONE). Non-gating: H-02 marketplace, H-03 version cut.**
+**GAPS:** G-01..G-08, G-11..G-13 closed · DEFER G-09, G-10 (#212, #213) · ACCEPT G-14 · **NEXT: none (run DONE). Non-gating leftover: H-02 marketplace submits.**
 
 *Post-launch (not this audit): G-06/G-07/G-08/G-11/G-12/G-13 closed 2026-09-01; H-03 done (`0.6.0`); H-02 remains. G-09 and G-10 stay parked. Findings below are the freeze-time snapshot.*
 

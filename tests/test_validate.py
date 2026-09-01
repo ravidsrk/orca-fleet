@@ -66,6 +66,23 @@ class TestValidatorFailureBranches(unittest.TestCase):
                 errs,
             )
 
+    def test_hyphen_leading_unknown_frontmatter_field_fails(self):
+        # Greptile #224: tightening the first character to [A-Za-z_] dropped
+        # keys the previous `[A-Za-z_-]+` regex accepted.
+        with tempfile.TemporaryDirectory() as tmp:
+            errs = validate.validate_skill(
+                make_skill(
+                    tmp,
+                    "Composes `diagnose`.\n",
+                    frontmatter_extra="proof: doctrine-only\nautonomy: L4\n-weird: x\n",
+                ),
+                PROTOCOLS,
+            )
+            self.assertTrue(
+                any("unexpected frontmatter fields" in e and "-weird" in e for e in errs),
+                errs,
+            )
+
     def test_known_repo_extras_are_not_unexpected(self):
         with tempfile.TemporaryDirectory() as tmp:
             errs = validate.validate_skill(

@@ -255,7 +255,7 @@ def parse_frontmatter(text):
             data[current_key] = " ".join(l.strip() for l in multiline_value if l.strip())
             multiline_indicator = None
             multiline_value = []
-        m = re.match(r"^([a-zA-Z_][a-zA-Z0-9_-]*):\s*(.*)$", line)
+        m = re.match(r"^([a-zA-Z_-][a-zA-Z0-9_-]*):\s*(.*)$", line)
         if m:
             key, val = m.group(1), m.group(2).strip()
             if val in (">", "|", ">-", "|-"):
