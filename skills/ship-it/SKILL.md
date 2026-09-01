@@ -30,7 +30,7 @@ Read [ARCHITECTURE.md](../../ARCHITECTURE.md) once. Composes `decide-and-freeze`
 `build-change`, `acceptance-review`, `risk-review`, `runtime-prove`, `release`, `observe`,
 `compound-learn`; rides `dispatch-lifecycle`, `merge-serialization`, `reviewed-sha-freshness`,
 `evidence-manifest`, `gate-classification`, `liveness-resume`, `orca-dag-semantics`,
-`ledger-contract`, `attention-budget`. Worker TASK pack: exactly one of matt | addy | gstack
+`ledger-contract`, `attention-budget`, `mission-chaining`. Worker TASK pack: exactly one of matt | addy | gstack
 (grill/tdd=matt, build/verify=addy|matt, review/ship=gstack) — never co-mount two routers.
 
 ## Terminal states (name the one you reach)

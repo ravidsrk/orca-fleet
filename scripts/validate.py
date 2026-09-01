@@ -89,6 +89,8 @@ RUNTIME_MAX_BYTES = RUNTIME_MAX_LINES * _MAX_BYTES_PER_LINE
 # sentence break lets an abbreviation ("e.g. ") truncate the clause and smuggle
 # dangling names past the check — and verify every backtick name in it resolves.
 # RIDES (all-caps) is accepted alongside Rides/rides, matching COMPOSES handling.
+# This regex is the shared grammar: the orphan test and the mission-guide compose
+# check import it rather than keeping a parallel copy.
 COMPOSE_CLAUSE_RE = re.compile(
     r"\b(?:Composes|COMPOSES|composes|Rides|RIDES|rides)\b\s+(.+?)(?:\n\n|\Z)", re.DOTALL
 )
@@ -106,6 +108,75 @@ BACKTICK_RE = re.compile(r"`([a-z0-9][a-z0-9-]*)`")
 MD_TOKEN_RE = re.compile(r"[\w./-]+\.md\b")
 
 
+def compose_clause_backticks(text):
+    """Backticked names inside every Composes/rides paragraph."""
+    return [
+        ref
+        for clause in COMPOSE_CLAUSE_RE.findall(text)
+        for ref in BACKTICK_RE.findall(clause)
+    ]
+
+
+def _is_url_md_token(text, match):
+    """True for https://…/x.md (and //…/x.md) — an external link, not a protocol ref."""
+    tok = match.group(0)
+    return tok.startswith("//") or text[max(0, match.start() - 1) : match.start()] == ":"
+
+
+def bare_md_stems(text):
+    """Bare `<name>.md` tokens that look like protocol names.
+
+    URLs and path-prefixed forms are excluded: protocols are referenced by bare
+    name, and a path-prefixed protocol token is a validator error, not composition.
+    """
+    stems = []
+    for m in MD_TOKEN_RE.finditer(text):
+        if _is_url_md_token(text, m):
+            continue
+        tok = m.group(0)
+        if "/" in tok:
+            continue
+        stem = tok[: -len(".md")]
+        if NAME_RE.match(stem):
+            stems.append(stem)
+    return stems
+
+
+def explicit_protocol_refs(text):
+    """Names that count as an explicit protocol reference.
+
+    Two forms, matching what the validator actually checks:
+
+    - backticked names inside a Composes/rides clause
+    - bare `<name>.md` tokens anywhere
+
+    A backticked name in Related/prose is not composition — that is the
+    asymmetry the orphan test previously got wrong by accepting backticks
+    anywhere. The orphan test imports this helper so the two checkers cannot
+    drift.
+
+    A further deliberate cut, *not* this helper: the human-guide compose check
+    uses `guide_declared_protocol_names` (first sentence of each clause) so a
+    caveat like clean-sweep's "not a full `runtime-prove` pass" does not force
+    that protocol into `docs/missions/`. Do not collapse the two.
+    """
+    return set(compose_clause_backticks(text)) | set(bare_md_stems(text))
+
+
+def guide_declared_protocol_names(text):
+    """Backticked names a human mission guide must list under ## Composes.
+
+    First sentence of each Composes/rides paragraph only. Later sentences are
+    caveats (clean-sweep: "not a full `runtime-prove` pass") and must not
+    require that protocol in docs/missions/<name>.md.
+    """
+    names = []
+    for clause in COMPOSE_CLAUSE_RE.findall(text):
+        first = re.split(r"\.\s+(?=[A-Z])", clause, maxsplit=1)[0]
+        names.extend(BACKTICK_RE.findall(first))
+    return names
+
+
 def md_ref_errors(text, protocols):
     """Errors for every `<name>.md` token that should be a protocol reference.
 
@@ -118,7 +189,7 @@ def md_ref_errors(text, protocols):
     errs = []
     for m in MD_TOKEN_RE.finditer(text):
         tok = m.group(0)
-        if tok.startswith("//") or text[max(0, m.start() - 1):m.start()] == ":":
+        if _is_url_md_token(text, m):
             continue  # URL — an external link, not a protocol reference
         stem = tok.rsplit("/", 1)[-1][: -len(".md")]
         canon = stem.lower().replace("_", "-")
@@ -299,11 +370,7 @@ def validate_skill(skill_dir, protocols):
     # architecture: every playbook/runtime a mission says it Composes/rides must exist,
     # and there must be at least one such name — a clause the regex can't see into
     # (bare directory pointers, prose) would otherwise pass with zero checks.
-    clause_refs = [
-        ref
-        for clause in COMPOSE_CLAUSE_RE.findall(text)
-        for ref in BACKTICK_RE.findall(clause)
-    ]
+    clause_refs = compose_clause_backticks(text)
     for ref in clause_refs:
         if ref not in protocols:
             errors.append(

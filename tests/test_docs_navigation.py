@@ -10,11 +10,15 @@ can reach it. Each invariant here failed once (issue number on the test).
 
     python3 -m unittest discover -s tests -v
 """
+import importlib.util
 import re
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+_spec = importlib.util.spec_from_file_location("validate", ROOT / "scripts" / "validate.py")
+validate = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(validate)
 DOCS = ROOT / "docs"
 RUNTIME = ROOT / "runtime"
 
@@ -109,11 +113,6 @@ class TestDocsNavigation(unittest.TestCase):
         # A guide that omits a protocol the skill declares is a false catalog.
         protocols = {p.stem for p in (ROOT / "playbooks").glob("*.md")}
         protocols |= {p.stem for p in RUNTIME.glob("*.md")}
-        compose_clause = re.compile(
-            r"\b(?:Composes|COMPOSES|Rides|RIDES|rides)\b\s+(.+?)(?:\n\n|\Z)",
-            re.DOTALL,
-        )
-        backticks = re.compile(r"`([a-z0-9][a-z0-9-]*)`")
         guide_links = re.compile(
             r"\]\(\.\./\.\./(?:playbooks|runtime)/([a-z0-9-]+)\.md\)"
         )
@@ -125,12 +124,10 @@ class TestDocsNavigation(unittest.TestCase):
             if not d.is_dir() or d.name.startswith((".", "_")):
                 continue
             skill = (d / "SKILL.md").read_text(encoding="utf-8")
-            declared = set()
-            for m in compose_clause.finditer(skill):
-                # First sentence only — later sentences are caveats
-                # ("not a full `runtime-prove` pass", "No `merge-serialization`").
-                first = re.split(r"\.\s+(?=[A-Z])", m.group(1), maxsplit=1)[0]
-                declared.update(backticks.findall(first))
+            # First-sentence cut is deliberate (clean-sweep caveat names
+            # `runtime-prove` without composing it) — see
+            # validate.guide_declared_protocol_names.
+            declared = set(validate.guide_declared_protocol_names(skill))
             declared &= protocols
             guide_path = DOCS / "missions" / f"{d.name}.md"
             self.assertTrue(
@@ -143,7 +140,7 @@ class TestDocsNavigation(unittest.TestCase):
                 section,
                 f"docs/missions/{d.name}.md has no ## Composes section",
             )
-            named = set(backticks.findall(section.group(1)))
+            named = set(validate.BACKTICK_RE.findall(section.group(1)))
             named.update(guide_links.findall(section.group(1)))
             missing = sorted(declared - named)
             self.assertEqual(

@@ -202,7 +202,8 @@ Runtime policies: [`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) ·
 [`liveness-resume`](../../runtime/liveness-resume.md) ·
 [`orca-dag-semantics`](../../runtime/orca-dag-semantics.md) ·
 [`ledger-contract`](../../runtime/ledger-contract.md) ·
-[`attention-budget`](../../runtime/attention-budget.md)
+[`attention-budget`](../../runtime/attention-budget.md) ·
+[`mission-chaining`](../../runtime/mission-chaining.md)
 
 ## Related missions
 

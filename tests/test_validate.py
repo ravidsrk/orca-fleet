@@ -87,6 +87,49 @@ class TestValidatorFailureBranches(unittest.TestCase):
                 PROTOCOLS)
             self.assertEqual(errs, [])
 
+    def test_related_backtick_is_not_an_explicit_ref(self):
+        # Issue #216: a Related-section backtick used to keep an orphan alive
+        # while the validator never checked it. The shared helper must not
+        # treat that form as composition.
+        text = (
+            "Composes `diagnose`; rides `evidence-manifest`.\n\n"
+            "## Related\n`mission-scheduling` (unattended sweep).\n"
+        )
+        refs = validate.explicit_protocol_refs(text)
+        self.assertEqual(refs, {"diagnose", "evidence-manifest"})
+
+    def test_bare_md_token_is_an_explicit_ref(self):
+        text = "Composes `diagnose`. See mission-chaining.md for sequences.\n"
+        refs = validate.explicit_protocol_refs(text)
+        self.assertEqual(refs, {"diagnose", "mission-chaining"})
+
+    def test_url_and_path_prefixed_md_are_not_explicit_refs(self):
+        text = (
+            "Composes `diagnose`. See https://example.com/upstream-guide.md "
+            "and runtime/sandbox-policy.md.\n"
+        )
+        self.assertEqual(validate.explicit_protocol_refs(text), {"diagnose"})
+
+    def test_compose_clause_backticks_ignore_related(self):
+        text = "Composes `diagnose`; rides `evidence-manifest`.\n\n`only-in-related`\n"
+        self.assertEqual(
+            validate.compose_clause_backticks(text),
+            ["diagnose", "evidence-manifest"],
+        )
+
+    def test_guide_declared_names_drop_caveat_sentence(self):
+        # clean-sweep shape: a later sentence names a protocol the mission
+        # does NOT compose. The guide check must not require it.
+        text = (
+            "Composes `diagnose`; rides `evidence-manifest`. "
+            "Not a full `runtime-prove` pass.\n"
+        )
+        self.assertEqual(
+            validate.guide_declared_protocol_names(text),
+            ["diagnose", "evidence-manifest"],
+        )
+        self.assertIn("runtime-prove", validate.compose_clause_backticks(text))
+
     def test_abbreviation_inside_clause_does_not_truncate_scan(self):
         # ". " after "e.g" used to end the clause capture; names after it escaped.
         with tempfile.TemporaryDirectory() as tmp:
