@@ -31,6 +31,9 @@ Two hard requirements, without which no mission will start:
    ancestry; `gh auth status` must succeed. Repos on a tracker other than GitHub issues can use
    `orca linear` where a mission supports it.
 
+3. **Python 3.13** for the catalog gates (`scripts/validate.py`, `tests/`, `verify.py`). CI is
+   pinned to 3.13; stdlib only — no venv required.
+
 Per-mission tooling on top of that — each mission declares its own in `SKILL.md` frontmatter:
 
 | If you plan to run | Also install                                                        |

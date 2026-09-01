@@ -1,0 +1,5 @@
+=== rollback rehearsal (scratch clone, not main) 2026-09-01 ===
+Throwaway clone of local orca-fleet; branch `rehearsal`.
+Committed ROLLBACK_REHEARSAL.txt as ce3b24e74aefc381845b53855dc7cea231542c3d
+git revert --no-edit HEAD -> c880e4d4d3c2c7751dae756305c7211d91068cb1
+File absent after revert. Scratch clone destroyed. main untouched.

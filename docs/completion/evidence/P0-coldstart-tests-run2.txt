@@ -1,0 +1,26 @@
+=== UNITTEST RUN 2 2026-09-01T13:38:01Z ===
+.....................................................................................................FAIL: gamma-bad (self-run) — unresolvable proof_evidence: docs/runs/does-not-exist.md
+proof-status: 1 mission(s) above doctrine-only missing evidence
+...FAIL: gamma-bad (self-run) — unresolvable proof_evidence: docs/runs/does-not-exist.md
+proof-status: 1 mission(s) above doctrine-only missing evidence
+.FAIL: delta-abs (self-run) — unresolvable proof_evidence: /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmp3g3h_t70/external-report.md
+FAIL: epsilon-trav (external-run) — unresolvable proof_evidence: ../tmp3g3h_t70/external-report.md
+FAIL: gamma-bad (self-run) — unresolvable proof_evidence: docs/runs/does-not-exist.md
+proof-status: 3 mission(s) above doctrine-only missing evidence
+.......................................................................................................FAIL: manifest must be a JSON object, got list
+verify: evidence manifest malformed/unreadable — unit is NOT done
+............................................................................FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: head_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: mutation unit: no pr.number to look up an independent review — unreviewed
+FAIL: negative_control.tool must be one of ['cargo-mutants', 'cosmic-ray', 'go-mutesting', 'mutmut', 'pitest', 'revert', 'stryker'], got None
+FAIL: negative_control.result must record the mutant KILLED / the proof going RED
+FAIL: negative_control.artifact (an evidence path) is required
+FAIL: intent packet incomplete — non-empty ['goal', 'ruled_out', 'why'] required (mutation unit)
+FAIL: reviewer_mode must be one of ['cross-vendor', 'instructed-isolation', 'same-vendor-fresh'], got None
+verify: 8 invariant(s) failed — unit is NOT done
+.................................
+----------------------------------------------------------------------
+Ran 317 tests in 20.506s
+
+OK
+unittest2_exit=0

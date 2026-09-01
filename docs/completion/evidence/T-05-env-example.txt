@@ -1,0 +1,3 @@
+T-05: .env.example names every ORCA_* verify-gate.sh reads.
+Pinned by tests/test_docs_navigation.py::test_verify_gate_doc_enumerates_every_orca_env_read
+Ran: OK.

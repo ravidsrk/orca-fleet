@@ -1,0 +1,854 @@
+{
+  "product": "orca-fleet",
+  "repo_path": "/Users/ravindra/projects/orca-fleet",
+  "run_id": "20260901-1336",
+  "mode": "drive",
+  "baseline": {
+    "commit": "6abf548de4d53b9250e13f3b2cc297f6dd8fdf01",
+    "date": "2026-09-01T13:36:40Z",
+    "cold_start": "pass",
+    "evidence": "docs/completion/evidence/P0-coldstart-validate-tests.txt"
+  },
+  "current_commit": "6da640b1c1f79654d9cf22c8d410476ab2272edd",
+  "resume_pointer": "P7/GATE",
+  "definition_frozen_at": "ed6a2f4",
+  "completion_pct": 56,
+  "gate": {
+    "status": "CONDITIONAL_GO",
+    "reason": "CF-05 evidenced; H-01 done. Alert-on-failure waived A-13. H-02/H-03 do not gate."
+  },
+  "angles": [
+    {
+      "id": 1,
+      "name": "product",
+      "score": 2,
+      "rag": "A",
+      "na_reason": null,
+      "findings": [
+        "F-1-01",
+        "F-1-02",
+        "F-1-03"
+      ],
+      "evidence": [
+        "docs/completion/evidence/CF-01-happy-catalog-gates.txt"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "functional",
+      "score": 2,
+      "rag": "A",
+      "na_reason": null,
+      "findings": [
+        "F-2-01",
+        "F-2-02",
+        "F-2-03",
+        "F-2-04"
+      ],
+      "evidence": [
+        "docs/completion/evidence/P0-coldstart-validate-tests.txt"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "code_quality",
+      "score": 3,
+      "rag": "G",
+      "na_reason": null,
+      "findings": [
+        "F-3-01",
+        "F-3-02",
+        "F-3-03",
+        "F-3-04"
+      ],
+      "evidence": [
+        "docs/completion/evidence/P0-coldstart-validate-tests.txt"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "testing",
+      "score": 3,
+      "rag": "G",
+      "na_reason": null,
+      "findings": [
+        "F-4-01",
+        "F-4-02",
+        "F-4-03",
+        "F-4-04"
+      ],
+      "evidence": [
+        "docs/completion/evidence/P0-coldstart-tests-run2.txt"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "security",
+      "score": 3,
+      "rag": "G",
+      "na_reason": null,
+      "findings": [
+        "F-5-01",
+        "F-5-02",
+        "F-5-03",
+        "F-5-04",
+        "F-5-05",
+        "F-5-06",
+        "F-5-07",
+        "F-5-08"
+      ],
+      "evidence": [
+        "SECURITY.md",
+        ".env.example",
+        "docs/verify-gate.md"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "data",
+      "score": null,
+      "rag": null,
+      "na_reason": "no application database or PII store in this repo",
+      "findings": [],
+      "evidence": []
+    },
+    {
+      "id": 7,
+      "name": "infra",
+      "score": 2,
+      "rag": "A",
+      "na_reason": null,
+      "findings": [
+        "F-7-01",
+        "F-7-02",
+        "F-7-03",
+        "F-7-04"
+      ],
+      "evidence": [
+        ".github/workflows/validate.yml"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "reliability",
+      "score": 2,
+      "rag": "A",
+      "na_reason": null,
+      "findings": [
+        "F-8-01",
+        "F-8-02",
+        "F-8-03"
+      ],
+      "evidence": [
+        "docs/completion/evidence/CF-04-happy-nc-demo.txt"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "observability",
+      "score": 1,
+      "rag": "R",
+      "na_reason": null,
+      "findings": [
+        "F-9-01",
+        "F-9-02"
+      ],
+      "evidence": []
+    },
+    {
+      "id": 10,
+      "name": "performance",
+      "score": 2,
+      "rag": "A",
+      "na_reason": null,
+      "findings": [
+        "F-10-01",
+        "F-10-02"
+      ],
+      "evidence": [
+        "docs/completion/evidence/P0-coldstart-validate-tests.txt"
+      ]
+    },
+    {
+      "id": 11,
+      "name": "integrations",
+      "score": 2,
+      "rag": "A",
+      "na_reason": null,
+      "findings": [
+        "F-11-01",
+        "F-11-02"
+      ],
+      "evidence": [
+        "docs/completion/evidence/CF-05-failure-orca-not-running.txt"
+      ]
+    },
+    {
+      "id": 12,
+      "name": "ai_llm",
+      "score": null,
+      "rag": null,
+      "na_reason": "no LLM SDK imports in runtime/scripts or scripts/",
+      "findings": [],
+      "evidence": []
+    },
+    {
+      "id": 13,
+      "name": "ux_frontend",
+      "score": null,
+      "rag": null,
+      "na_reason": "no GUI or frontend app",
+      "findings": [],
+      "evidence": []
+    },
+    {
+      "id": 14,
+      "name": "documentation",
+      "score": 3,
+      "rag": "G",
+      "na_reason": null,
+      "findings": [
+        "F-14-01",
+        "F-14-02",
+        "F-14-03",
+        "F-14-04"
+      ],
+      "evidence": [
+        "docs/getting-started.md",
+        "SECURITY.md"
+      ]
+    },
+    {
+      "id": 15,
+      "name": "legal",
+      "score": 2,
+      "rag": "A",
+      "na_reason": null,
+      "findings": [
+        "F-15-01",
+        "F-15-02",
+        "F-15-03"
+      ],
+      "evidence": [
+        "LICENSE"
+      ]
+    },
+    {
+      "id": 16,
+      "name": "gtm",
+      "score": 1,
+      "rag": "R",
+      "na_reason": null,
+      "findings": [
+        "F-16-01",
+        "F-16-02",
+        "F-16-03",
+        "F-16-04"
+      ],
+      "evidence": [
+        "docs/distribution.md"
+      ]
+    },
+    {
+      "id": 17,
+      "name": "ownership",
+      "score": 2,
+      "rag": "A",
+      "na_reason": null,
+      "findings": [
+        "F-17-01",
+        "F-17-02",
+        "F-17-03"
+      ],
+      "evidence": [
+        "CONTRIBUTING.md"
+      ]
+    }
+  ],
+  "critical_flows": [
+    {
+      "id": "CF-01",
+      "name": "Catalog gates",
+      "money": false,
+      "status": "verified",
+      "happy_evidence": "docs/completion/evidence/CF-01-happy-catalog-gates.txt",
+      "failure_evidence": "docs/completion/evidence/CF-04-happy-nc-demo.txt"
+    },
+    {
+      "id": "CF-02",
+      "name": "Install a mission",
+      "money": false,
+      "status": "verified",
+      "happy_evidence": "docs/completion/evidence/CF-02-happy-symlink-install.txt",
+      "failure_evidence": null
+    },
+    {
+      "id": "CF-03",
+      "name": "Independent verify",
+      "money": false,
+      "status": "verified",
+      "happy_evidence": "docs/completion/evidence/CF-03-happy-vfbench.txt",
+      "failure_evidence": "docs/completion/evidence/CF-03-happy-vfbench.txt"
+    },
+    {
+      "id": "CF-04",
+      "name": "Negative-control demo",
+      "money": false,
+      "status": "verified",
+      "happy_evidence": "docs/completion/evidence/CF-04-happy-nc-demo.txt",
+      "failure_evidence": "docs/completion/evidence/CF-04-happy-nc-demo.txt"
+    },
+    {
+      "id": "CF-05",
+      "name": "First Orca mission",
+      "money": false,
+      "status": "verified",
+      "happy_evidence": "docs/completion/evidence/CF-05-happy-review-it.txt",
+      "failure_evidence": "docs/completion/evidence/CF-05-failure-orca-not-running.txt"
+    },
+    {
+      "id": "CF-06",
+      "name": "Proof honesty",
+      "money": false,
+      "status": "verified",
+      "happy_evidence": "docs/completion/evidence/P0-coldstart-validate-tests.txt",
+      "failure_evidence": null
+    }
+  ],
+  "gaps": [
+    {
+      "id": "G-01",
+      "source": [
+        "F-1-02"
+      ],
+      "angle": 1,
+      "critical_flow": "CF-05",
+      "severity": "S1",
+      "decision": "FINISH",
+      "status": "closed",
+      "tasks": [
+        "T-08"
+      ],
+      "accept_expiry": null,
+      "issue_url": null
+    },
+    {
+      "id": "G-02",
+      "source": [
+        "F-5-04"
+      ],
+      "angle": 5,
+      "critical_flow": null,
+      "severity": "S1",
+      "decision": "FINISH",
+      "status": "closed",
+      "tasks": [
+        "T-03"
+      ],
+      "accept_expiry": null,
+      "issue_url": null
+    },
+    {
+      "id": "G-03",
+      "source": [
+        "F-7-02"
+      ],
+      "angle": 7,
+      "critical_flow": "CF-01",
+      "severity": "S2",
+      "decision": "FINISH",
+      "status": "closed",
+      "tasks": [
+        "T-04"
+      ],
+      "accept_expiry": null,
+      "issue_url": null
+    },
+    {
+      "id": "G-04",
+      "source": [
+        "F-5-02"
+      ],
+      "angle": 5,
+      "critical_flow": "CF-03",
+      "severity": "S2",
+      "decision": "FINISH",
+      "status": "closed",
+      "tasks": [
+        "T-05"
+      ],
+      "accept_expiry": null,
+      "issue_url": null
+    },
+    {
+      "id": "G-05",
+      "source": [
+        "F-17-03"
+      ],
+      "angle": 17,
+      "critical_flow": null,
+      "severity": "S3",
+      "decision": "FINISH",
+      "status": "closed",
+      "tasks": [
+        "T-01"
+      ],
+      "accept_expiry": null,
+      "issue_url": null
+    },
+    {
+      "id": "G-06",
+      "source": [
+        "F-2-04"
+      ],
+      "angle": 2,
+      "critical_flow": null,
+      "severity": "S3",
+      "decision": "DEFER",
+      "status": "open",
+      "tasks": [],
+      "accept_expiry": null,
+      "issue_url": null
+    },
+    {
+      "id": "G-07",
+      "source": [
+        "F-16-03"
+      ],
+      "angle": 16,
+      "critical_flow": null,
+      "severity": "S2",
+      "decision": "DEFER",
+      "status": "open",
+      "tasks": [],
+      "accept_expiry": null,
+      "issue_url": null
+    },
+    {
+      "id": "G-08",
+      "source": [
+        "R-01"
+      ],
+      "angle": 14,
+      "critical_flow": "CF-02",
+      "severity": "S3",
+      "decision": "DEFER",
+      "status": "open",
+      "tasks": [],
+      "accept_expiry": null,
+      "issue_url": null
+    },
+    {
+      "id": "G-09",
+      "source": [
+        "F-1-03"
+      ],
+      "angle": 1,
+      "critical_flow": null,
+      "severity": "S3",
+      "decision": "DEFER",
+      "status": "open",
+      "tasks": [],
+      "accept_expiry": null,
+      "issue_url": null
+    },
+    {
+      "id": "G-10",
+      "source": [
+        "F-9-01"
+      ],
+      "angle": 9,
+      "critical_flow": null,
+      "severity": "S3",
+      "decision": "DEFER",
+      "status": "open",
+      "tasks": [],
+      "accept_expiry": null,
+      "issue_url": null
+    },
+    {
+      "id": "G-11",
+      "source": [
+        "F-3-03"
+      ],
+      "angle": 3,
+      "critical_flow": null,
+      "severity": "S3",
+      "decision": "DEFER",
+      "status": "open",
+      "tasks": [],
+      "accept_expiry": null,
+      "issue_url": null
+    },
+    {
+      "id": "G-12",
+      "source": [
+        "F-17-01"
+      ],
+      "angle": 17,
+      "critical_flow": null,
+      "severity": "S3",
+      "decision": "DEFER",
+      "status": "open",
+      "tasks": [],
+      "accept_expiry": null,
+      "issue_url": null
+    },
+    {
+      "id": "G-13",
+      "source": [
+        "TODOS.md"
+      ],
+      "angle": 3,
+      "critical_flow": null,
+      "severity": "S3",
+      "decision": "DEFER",
+      "status": "open",
+      "tasks": [],
+      "accept_expiry": null,
+      "issue_url": null
+    },
+    {
+      "id": "G-14",
+      "source": [
+        "F-7-03"
+      ],
+      "angle": 7,
+      "critical_flow": null,
+      "severity": "S3",
+      "decision": "ACCEPT",
+      "status": "open",
+      "tasks": [],
+      "accept_expiry": "when a hosted service exists",
+      "issue_url": null
+    }
+  ],
+  "phases": [
+    {
+      "id": "P1",
+      "name": "Green baseline",
+      "status": "complete",
+      "exit_criteria": [
+        {
+          "text": "Cold start passes from stdlib python",
+          "met": true,
+          "evidence": "docs/completion/evidence/P0-coldstart-validate-tests.txt"
+        },
+        {
+          "text": "Stale #207 worktree/branch gone",
+          "met": true,
+          "evidence": "docs/completion/evidence/T-01-worktree-clean.txt"
+        },
+        {
+          "text": "CI Python pinned",
+          "met": true,
+          "evidence": "docs/completion/evidence/T-04-python-pin.txt"
+        }
+      ]
+    },
+    {
+      "id": "P2",
+      "name": "Safety",
+      "status": "complete",
+      "exit_criteria": [
+        {
+          "text": "SECURITY.md present",
+          "met": true,
+          "evidence": "docs/completion/evidence/T-03-security-md.txt"
+        },
+        {
+          "text": ".env.example lists ORCA_*",
+          "met": true,
+          "evidence": "docs/completion/evidence/T-05-env-example.txt"
+        }
+      ]
+    },
+    {
+      "id": "P3",
+      "name": "Critical flows",
+      "status": "complete",
+      "exit_criteria": [
+        {
+          "text": "CF-05 happy path evidenced",
+          "met": true,
+          "evidence": "docs/completion/evidence/CF-05-happy-review-it.txt"
+        }
+      ]
+    },
+    {
+      "id": "P4",
+      "name": "Operability",
+      "status": "skipped",
+      "exit_criteria": [
+        {
+          "text": "A-12 waiver",
+          "met": true,
+          "evidence": "docs/completion/ASSUMPTIONS.md"
+        }
+      ]
+    },
+    {
+      "id": "P5",
+      "name": "Compliance",
+      "status": "complete",
+      "exit_criteria": [
+        {
+          "text": "folded into P2 T-03",
+          "met": true,
+          "evidence": "docs/completion/evidence/T-03-security-md.txt"
+        }
+      ]
+    },
+    {
+      "id": "P6",
+      "name": "Launch surfaces",
+      "status": "pending",
+      "exit_criteria": [
+        {
+          "text": "H-02 marketplace \u2014 does not gate",
+          "met": false,
+          "evidence": null
+        }
+      ]
+    },
+    {
+      "id": "P7",
+      "name": "Launch rehearsal",
+      "status": "pending",
+      "exit_criteria": [
+        {
+          "text": "Stranger Test CF-01/04",
+          "met": true,
+          "evidence": "docs/completion/evidence/CF-01-happy-catalog-gates.txt"
+        },
+        {
+          "text": "Gate evaluated",
+          "met": true,
+          "evidence": "docs/completion/STATUS.md"
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T-01",
+      "phase": "P1",
+      "gaps": [
+        "G-05"
+      ],
+      "size": "S",
+      "depends_on": [],
+      "owner": "agent",
+      "status": "done",
+      "branch": "ravidsrk/p0-completion-audit",
+      "pr": "https://github.com/ravidsrk/orca-fleet/pull/208",
+      "commit": null,
+      "evidence": [
+        "docs/completion/evidence/T-01-worktree-clean.txt"
+      ],
+      "review": "greptile",
+      "attempts": 0,
+      "block_signature": null
+    },
+    {
+      "id": "T-03",
+      "phase": "P2",
+      "gaps": [
+        "G-02"
+      ],
+      "size": "S",
+      "depends_on": [],
+      "owner": "agent",
+      "status": "done",
+      "branch": "ravidsrk/p0-completion-audit",
+      "pr": "https://github.com/ravidsrk/orca-fleet/pull/208",
+      "commit": null,
+      "evidence": [
+        "docs/completion/evidence/T-03-security-md.txt"
+      ],
+      "review": "manual",
+      "attempts": 0,
+      "block_signature": null
+    },
+    {
+      "id": "T-04",
+      "phase": "P1",
+      "gaps": [
+        "G-03"
+      ],
+      "size": "S",
+      "depends_on": [],
+      "owner": "agent",
+      "status": "done",
+      "branch": "ravidsrk/p0-completion-audit",
+      "pr": "https://github.com/ravidsrk/orca-fleet/pull/208",
+      "commit": null,
+      "evidence": [
+        "docs/completion/evidence/T-04-python-pin.txt"
+      ],
+      "review": "manual",
+      "attempts": 0,
+      "block_signature": null
+    },
+    {
+      "id": "T-05",
+      "phase": "P2",
+      "gaps": [
+        "G-04"
+      ],
+      "size": "S",
+      "depends_on": [],
+      "owner": "agent",
+      "status": "done",
+      "branch": "ravidsrk/p0-completion-audit",
+      "pr": "https://github.com/ravidsrk/orca-fleet/pull/208",
+      "commit": null,
+      "evidence": [
+        "docs/completion/evidence/T-05-env-example.txt"
+      ],
+      "review": "manual",
+      "attempts": 0,
+      "block_signature": null
+    },
+    {
+      "id": "T-08",
+      "phase": "P3",
+      "gaps": [
+        "G-01"
+      ],
+      "size": "S",
+      "depends_on": [
+        "H-01"
+      ],
+      "owner": "human:H-01",
+      "status": "done",
+      "branch": null,
+      "pr": "https://github.com/ravidsrk/orca-fleet/pull/208",
+      "commit": null,
+      "evidence": [
+        "docs/completion/evidence/CF-05-happy-review-it.txt"
+      ],
+      "review": "manual",
+      "attempts": 0,
+      "block_signature": "Orca runtime not_running"
+    }
+  ],
+  "human_actions": [
+    {
+      "id": "H-01",
+      "instruction": "Start Orca; confirm runtime.reachable; run getting-started review-it dry run",
+      "unblocks": [
+        "T-08"
+      ],
+      "gates_launch": true,
+      "verification": "orca status --json reachable + CF-05-happy-review-it.txt",
+      "status": "done"
+    },
+    {
+      "id": "H-02",
+      "instruction": "Submit docs/distribution.md marketplace checklist",
+      "unblocks": [
+        "G-07"
+      ],
+      "gates_launch": false,
+      "verification": "listing URLs in distribution.md",
+      "status": "open"
+    },
+    {
+      "id": "H-03",
+      "instruction": "Cut next version (plugin.json + CHANGELOG Unreleased)",
+      "unblocks": [
+        "G-06"
+      ],
+      "gates_launch": false,
+      "verification": "version equals CHANGELOG heading",
+      "status": "open"
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "A-01",
+      "phase": "P0",
+      "decision": "PRODUCT=orca-fleet OSS mission catalog",
+      "rejected": [
+        "saas",
+        "fintech"
+      ],
+      "reason": "README + plugin.json"
+    },
+    {
+      "id": "A-04",
+      "phase": "P1",
+      "decision": "normalize Appendix B weights (sum 105)",
+      "rejected": [
+        "pretend sum is 100"
+      ],
+      "reason": "honest score"
+    },
+    {
+      "id": "A-05",
+      "phase": "P1",
+      "decision": "N/A angles 6,12,13",
+      "rejected": [
+        "score 0"
+      ],
+      "reason": "no DB, no LLM SDK, no GUI"
+    },
+    {
+      "id": "A-12",
+      "phase": "P3",
+      "decision": "angle 9 minimum >=1",
+      "rejected": [
+        "block launch on metrics stack"
+      ],
+      "reason": "no product runtime"
+    }
+  ],
+  "research": [
+    {
+      "id": "R-01",
+      "track": "B",
+      "query_category": "Agent Skills SKILL.md specification",
+      "url": "https://agentskills.io/specification",
+      "fetched": "2026-09-01",
+      "effect": "new_gap:G-08"
+    },
+    {
+      "id": "R-02",
+      "track": "B",
+      "query_category": "Python 3.13 EOL",
+      "url": "https://devguide.python.org/versions",
+      "fetched": "2026-09-01",
+      "effect": "new_gap:G-03"
+    },
+    {
+      "id": "R-03",
+      "track": "B",
+      "query_category": "plugin marketplace submissions",
+      "url": "docs/distribution.md",
+      "fetched": "2026-09-01",
+      "effect": "confirms:G-07"
+    }
+  ],
+  "breakers_tripped": [],
+  "history": [
+    {
+      "run_id": "20260901-1336",
+      "commit": "6abf548de4d53b9250e13f3b2cc297f6dd8fdf01",
+      "completion_pct": 52,
+      "gate": "NO_GO"
+    },
+    {
+      "run_id": "20260901-1336",
+      "commit": "6da640b",
+      "completion_pct": 56,
+      "gate": "NO_GO"
+    },
+    {
+      "run_id": "20260901-1336",
+      "commit": "pending-t08",
+      "completion_pct": 56,
+      "gate": "CONDITIONAL_GO"
+    }
+  ]
+}

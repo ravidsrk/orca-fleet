@@ -1,0 +1,25 @@
+=== CF-02 install path 2026-09-01T13:41:10Z ===
+Observed on this machine: all 13 catalog missions are already symlinked into ~/.claude/skills
+preserving the repo-relative playbooks/runtime tree (the README-recommended path).
+
+lrwxr-xr-x access-it -> /Users/ravindra/projects/orca-fleet/skills/access-it
+lrwxr-xr-x attest-it -> /Users/ravindra/projects/orca-fleet/skills/attest-it
+lrwxr-xr-x clean-sweep -> /Users/ravindra/projects/orca-fleet/skills/clean-sweep
+lrwxr-xr-x deflake-it -> /Users/ravindra/projects/orca-fleet/skills/deflake-it
+lrwxr-xr-x harden-it -> /Users/ravindra/projects/orca-fleet/skills/harden-it
+lrwxr-xr-x map-it -> /Users/ravindra/projects/orca-fleet/skills/map-it
+lrwxr-xr-x modernize-it -> /Users/ravindra/projects/orca-fleet/skills/modernize-it
+lrwxr-xr-x oss-contribute -> /Users/ravindra/projects/orca-fleet/skills/oss-contribute
+lrwxr-xr-x prove-it -> /Users/ravindra/projects/orca-fleet/skills/prove-it
+lrwxr-xr-x review-it -> /Users/ravindra/projects/orca-fleet/skills/review-it
+lrwxr-xr-x root-cause -> /Users/ravindra/projects/orca-fleet/skills/root-cause
+lrwxr-xr-x ship-it -> /Users/ravindra/projects/orca-fleet/skills/ship-it
+lrwxr-xr-x speed-it -> /Users/ravindra/projects/orca-fleet/skills/speed-it
+
+README resolution check (2026-09-01):
+  ship-it -> /Users/ravindra/projects/orca-fleet/skills/ship-it
+  catalog root -> /Users/ravindra/projects/orca-fleet
+  playbooks/ and runtime/ exist two levels above the skill: RESOLVED
+
+Not evidenced this run: Claude Code `/plugin marketplace add` / `/plugin install` (requires the
+Claude Code UI). Skills-CLI copy path is documented as broken unless the tree is preserved.

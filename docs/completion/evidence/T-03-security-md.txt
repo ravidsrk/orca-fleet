@@ -1,0 +1,2 @@
+T-03: SECURITY.md added (private GitHub advisory + ravidsrk@gmail.com).
+README footer links Security.

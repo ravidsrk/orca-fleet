@@ -1,0 +1,46 @@
+# review-it dry run — PR #208
+# getting-started first mission, with Orca runtime reachable
+
+reviewed_sha: 6ad0e871e42b2b82ec5dfb88f63c83223a262ecb
+fixed_point: origin/main...HEAD (PR https://github.com/ravidsrk/orca-fleet/pull/208)
+orca_status: app.running=true runtime.reachable=true runtime.state=ready graph.state=ready
+runtimeId: 6c2082de-537b-4f1d-9696-78bb9e7bd6fc
+appVersion: 1.4.190
+when: 2026-09-01T14:05:00Z
+permission_boundary: report-only (no code modified by this mission)
+
+## Spec source
+Product-completion driver (phases 0–4 artifacts + FINISH tasks T-01/T-03/T-04/T-05).
+
+## Acceptance
+
+### Standards
+- Missions/playbooks/runtime untouched except docs/tests/CI pin — three-layer split held.
+- Commits are imperative, no agent trailers.
+- SECURITY.md + .env.example contain no live secrets.
+
+### Spec
+- docs/completion/ present with STATUS, RESEARCH, GAPS, DEFINITION, PLAN, HUMAN_ACTIONS, ASSUMPTIONS, SHIPLOG, status.json, evidence/.
+- DEFINITION frozen_at ed6a2f4.
+- status.json resume_pointer P3/T-08; T-01/T-03/T-04/T-05 done; G-02..G-05 closed.
+
+### Test-adequacy (static)
+- tests/test_docs_navigation.py now requires every ORCA_* read by verify-gate.sh to appear in .env.example.
+- Revert of T-05 would fail that assertion. CI `gates` SUCCESS on 6ad0e87.
+
+## Risk lenses
+- security: triggered (SECURITY.md, .env.example, verify-gate env). No credentials in diff. Native-hook advisory still documented. NEVER_GATE: no Critical.
+- performance: gated off (no hot path).
+- accessibility: gated off (no UI).
+- data-migration: gated off (no schema).
+
+## Findings
+(none Critical / none Required)
+
+Appendix: greptile P1 "T-01 completion state is stale" quoted status.json resume_pointer P1/T-01 — addressed in 6ad0e87 (pointer is P3/T-08).
+
+## Verdict
+GO at reviewed_sha 6ad0e871e42b2b82ec5dfb88f63c83223a262ecb
+zero Critical, zero Required.
+
+Failure path already captured: CF-05-failure-orca-not-running.txt (runtime.reachable=false).

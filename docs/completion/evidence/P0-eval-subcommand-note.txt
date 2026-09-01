@@ -1,0 +1,8 @@
+=== eval.py invocation honesty ===
+P0-coldstart-tools.txt ran `python3 scripts/eval.py` with no subcommand.
+That prints argparse usage and is NOT a passing eval gate. The `eval_exit=0`
+in that transcript is the exit of the wrapping `echo` pipeline, not eval.py.
+
+The actual eval gate is `python3 scripts/eval.py validate`:
+See P0-coldstart-eval-validate.txt: "All evals valid: 30 routing examples, 39 per-skill evals."
+exit 0 (captured as eval_validate=0 in the session log).

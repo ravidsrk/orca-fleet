@@ -1,0 +1,42 @@
+=== CF-05 first-mission substrate 2026-09-01T13:41:10Z ===
+README Requirements: Orca app running is a HARD dependency.
+{
+  "id": "local-status",
+  "ok": true,
+  "result": {
+    "target": {
+      "kind": "local"
+    },
+    "app": {
+      "running": false,
+      "pid": null
+    },
+    "runtime": {
+      "state": "not_running",
+      "reachable": false,
+      "runtimeId": null
+    },
+    "graph": {
+      "state": "not_running"
+    }
+  },
+  "_meta": {
+    "runtimeId": "none"
+  }
+}
+exit=0
+---
+skills already linked?
+lrwxr-xr-x@ - ravindra 29 Aug 00:25 access-it -> /Users/ravindra/projects/orca-fleet/skills/access-it
+lrwxr-xr-x@ - ravindra 29 Aug 00:25 attest-it -> /Users/ravindra/projects/orca-fleet/skills/attest-it
+lrwxr-xr-x@ - ravindra 29 Aug 00:25 clean-sweep -> /Users/ravindra/projects/orca-fleet/skills/clean-sweep
+lrwxr-xr-x@ - ravindra 29 Aug 00:25 deflake-it -> /Users/ravindra/projects/orca-fleet/skills/deflake-it
+lrwxr-xr-x@ - ravindra 29 Aug 00:25 harden-it -> /Users/ravindra/projects/orca-fleet/skills/harden-it
+lrwxr-xr-x@ - ravindra 29 Aug 00:25 map-it -> /Users/ravindra/projects/orca-fleet/skills/map-it
+lrwxr-xr-x@ - ravindra 29 Aug 00:25 modernize-it -> /Users/ravindra/projects/orca-fleet/skills/modernize-it
+lrwxr-xr-x@ - ravindra 29 Aug 00:25 oss-contribute -> /Users/ravindra/projects/orca-fleet/skills/oss-contribute
+lrwxr-xr-x@ - ravindra 29 Aug 00:25 prove-it -> /Users/ravindra/projects/orca-fleet/skills/prove-it
+lrwxr-xr-x@ - ravindra 29 Aug 00:25 review-it -> /Users/ravindra/projects/orca-fleet/skills/review-it
+lrwxr-xr-x@ - ravindra 29 Aug 00:25 root-cause -> /Users/ravindra/projects/orca-fleet/skills/root-cause
+lrwxr-xr-x@ - ravindra 29 Aug 00:25 ship-it -> /Users/ravindra/projects/orca-fleet/skills/ship-it
+lrwxr-xr-x@ - ravindra 29 Aug 00:25 speed-it -> /Users/ravindra/projects/orca-fleet/skills/speed-it
