@@ -73,3 +73,9 @@ resume_pointer: P3/T-08
 - `resume_pointer: P3/T-08` (blocked on H-01)
 - review: manual on the three small diffs (correctness/security/tests/docs). greptile was run on the audit-docs commit.
 - Second look: CHANGELOG had a duplicate `### Added` heading; merged before T-03 commit.
+
+## 2026-09-01 — resume: sync status.json (greptile P1)
+
+- `status.json` still had T-01/G-05 open and `resume_pointer: P1/T-01` after the work landed. Synced to P3/T-08; G-02..G-05 closed; P1/P2 complete; completion_pct 56.
+- PR #208 CI green (gates + Greptile). Merge next.
+- Second look: score bump on angle 5 is from closing G-02/G-04, not a definition change.
