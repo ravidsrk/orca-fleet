@@ -96,10 +96,12 @@ fail-closed exits documented in the header comment.
 ```bash
 python3 scripts/validate.py                # must end: "three-layer separation holds; evals valid."
 python3 -m unittest discover -s tests -v   # all contract + validator fixture tests green
+# optional: ruff check scripts runtime/scripts tests bench demo
+# (CI runs ruff 0.16.5 on E9/F63/F7/F82 only — see ruff.toml)
 ```
 
-Both run in under a second; there is no excuse to skip them. PRs that fail either will be asked
-to fix before review. If you add validator behavior, add the negative-path fixture that proves
+The first two run in under a second; there is no excuse to skip them. PRs that fail either
+will be asked to fix before review. ruff is CI-only (not required locally). If you add validator behavior, add the negative-path fixture that proves
 the new failure branch fires — the suite's standard is that every guard must be demonstrably
 capable of failing.
 

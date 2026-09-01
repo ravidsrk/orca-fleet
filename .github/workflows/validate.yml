@@ -24,3 +24,7 @@ jobs:
         run: python3 -m unittest discover -s tests
       - name: Check proof-evidence honesty
         run: python3 runtime/scripts/proof_status.py --check
+      - name: Ruff (syntax / undefined names)
+        run: |
+          python3 -m pip install --quiet ruff==0.16.5
+          ruff check scripts runtime/scripts tests bench demo

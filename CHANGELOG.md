@@ -23,6 +23,8 @@ truth is `.claude-plugin/plugin.json`.
 ### Changed
 
 - CI Python pin `3.x` → `3.13` (catalog gates).
+- CI runs ruff 0.16.5 on `E9`/`F63`/`F7`/`F82` (syntax / undefined names)
+  only (issue #214). Full rule set is still a policy change.
 - Validator and the orphan-protocol test share `explicit_protocol_refs` (issue #216).
   A Related-section backtick no longer keeps a protocol alive; `ship-it` rides
   `mission-chaining` and `review-it` rides `mission-scheduling`.
