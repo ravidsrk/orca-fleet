@@ -6,6 +6,16 @@ truth is `.claude-plugin/plugin.json`.
 
 ## [Unreleased]
 
+### Fixed
+
+- Leftover Greptile comments from the post-launch PRs (#219–#223): incident
+  process compares `plugin.json` to the dated CHANGELOG heading (not
+  `[Unreleased]`); dispatch-key rotation names all three verifier sources
+  and a post-merge `git fetch` so the `origin/HEAD` pin moves;
+  README Ops navigation is a real `href`; digit-bearing unexpected
+  frontmatter keys fail the extras allowlist; GAPS/`status.json` match the
+  closed G-06..G-08/G-11..G-13 issues.
+
 ## [0.6.0] - 2026-09-01
 
 plugin.json, marketplace.json, and this heading now agree on 0.6.0 (issue #209).

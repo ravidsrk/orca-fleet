@@ -23,10 +23,17 @@ to `main` plus the plugin copy in `.claude-plugin/`.
 1. Open the latest GitHub Actions `validate` run on `main` — catalog gates
    (`scripts/validate.py`, `tests/`, `proof_status.py --check`) are the
    only environment.
-2. If a clone or plugin load is broken: `plugin.json` `version` vs the
-   latest [CHANGELOG](../CHANGELOG.md) heading; do not half-cut a version
-   bump.
-3. Secrets never live in git (`.env`, `.secrets/` are ignored). Rotate
-   `ORCA_DISPATCH_*` with `runtime/scripts/dispatch-sign.py gen-key` and
-   update the verifier's trusted pubkey. Security reports follow
-   [SECURITY.md](../SECURITY.md).
+2. If a clone or plugin load is broken: `plugin.json` `version` must equal
+   the latest **dated** [CHANGELOG](../CHANGELOG.md) heading
+   (`## [x.y.z] - YYYY-MM-DD`), not `[Unreleased]`. Do not half-cut a
+   version bump.
+3. Secrets never live in git (`.env`, `.secrets/` are ignored). Dispatch-key
+   rotation must update **all three** verifier sources
+   ([docs/verify-gate.md](verify-gate.md)):
+   unset `ORCA_DISPATCH_PUBKEY`, land a new `.orca/dispatch-pubkey` through a
+   reviewed PR, then on every verifier clone `git fetch origin` and confirm
+   `git show origin/HEAD:.orca/dispatch-pubkey` equals the newly merged
+   `.pub` (an unchecked fetch can leave the old pin). Do not leave a stale
+   working-tree copy. Generate the pair with
+   `runtime/scripts/dispatch-sign.py gen-key` **off the clone**; discard the
+   old private seed. Security reports follow [SECURITY.md](../SECURITY.md).

@@ -10,20 +10,20 @@ Every standing finding that sits between HEAD and `DEFINITION.md`. Decisions fol
 | G-04 | F-5-02 | 5 | CF-03 | S2 | FINISH | No `.env.example` for the documented `ORCA_*` gate surface. S-sized. |
 | G-05 | F-17-03 | 17 | — | S3 | FINISH | CLOSED T-01: stale #207 worktree+branch removed. |
 | G-06 | F-2-04 F-16-03 | 2,16 | — | S3 | FINISH | CLOSED 2026-09-01: 0.6.0; plugin.json = marketplace.json = CHANGELOG heading. |
-| G-07 | F-2-03 F-11-02 F-16-03 R-03 | 16,11 | — | S2 | DEFER | Marketplace/indexer submissions. Requires H-02. |
-| G-08 | R-01 | 14 | CF-02 | S3 | DEFER | Independent `skills-ref validate` not run. Our validator already enforces the spec fields we rely on. |
+| G-07 | F-2-03 F-11-02 F-16-03 R-03 | 16,11 | — | S2 | FINISH | CLOSED #222: index check recorded. Remaining aggregator submits are H-02 only, not this gap. |
+| G-08 | R-01 | 14 | CF-02 | S3 | FINISH | CLOSED #221: skills-ref extras allowlisted; a fourth top-level field fails the catalog. |
 | G-09 | F-1-03 A-08 | 1 | — | S3 | DEFER | 9 doctrine-only missions. Honesty is already gated; field-proof is post-launch mission runs. |
 | G-10 | F-9-01 F-9-02 | 9 | — | S3 | DEFER | No metrics/alerts beyond GitHub Actions. Acceptable for an OSS CLI until a service exists. |
-| G-11 | F-3-03 | 3 | — | S3 | DEFER | ruff not in CI. Social style; adding a linter is a feature-ish policy change. |
-| G-12 | F-17-01 F-17-02 | 17 | — | S3 | DEFER | Account inventory + 3-line incident process. File post-launch. |
-| G-13 | TODOS.md P2 | 3 | — | S3 | DEFER | Shared validator grammar. Pre-existing P2. |
+| G-11 | F-3-03 | 3 | — | S3 | FINISH | CLOSED #220: CI ruff 0.16.5 on E9/F63/F7/F82 only. |
+| G-12 | F-17-01 F-17-02 | 17 | — | S3 | FINISH | CLOSED #219: docs/ops.md inventory + incident process. |
+| G-13 | TODOS.md P2 | 3 | — | S3 | FINISH | CLOSED #218: shared `explicit_protocol_refs`. |
 | G-14 | F-7-03 A-10 | 7 | — | S3 | ACCEPT | Rollback = git revert. Expiry: next time we host a service. Never S0. |
 
 ## Cut line
 
-**Above (plan):** G-01, G-02, G-03, G-04, G-05.
+**Above (plan):** G-01..G-08, G-11..G-13 (G-06..G-08, G-11..G-13 closed post-launch).
 
-**Below:** G-06..G-13 DEFER (issues filed) · G-14 ACCEPT.
+**Below:** G-09, G-10 DEFER · G-14 ACCEPT.
 
 No CUT (nothing half-built to delete). No ACCEPT at S0.
 
