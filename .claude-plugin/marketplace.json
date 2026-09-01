@@ -7,13 +7,13 @@
   },
   "metadata": {
     "description": "Outcome-named autonomous fleets for the Orca runtime",
-    "version": "0.5.0"
+    "version": "0.6.0"
   },
   "plugins": [
     {
       "name": "orca-fleet",
       "description": "Outcome-named autonomous fleets for the Orca runtime: each mission is one outcome with its own state machine and an evidence-backed definition of done. One router per worker. No vendor-named fleets. MIT.",
-      "version": "0.5.0",
+      "version": "0.6.0",
       "source": "./"
     }
   ]

@@ -762,7 +762,7 @@
       ],
       "gates_launch": false,
       "verification": "version equals CHANGELOG heading",
-      "status": "open"
+      "status": "done"
     }
   ],
   "assumptions": [
