@@ -1,7 +1,7 @@
 # Definition of Complete — orca-fleet
 
 ```
-frozen_at: (this audit branch tip; record SHA at commit)
+frozen_at: ed6a2f4
 product: orca-fleet
 frozen_by: completion-driver run 20260901-1336
 immutable after freeze (R6 / R13)
