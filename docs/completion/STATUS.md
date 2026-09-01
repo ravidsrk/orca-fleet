@@ -3,7 +3,7 @@
 **VERDICT: CONDITIONAL GO** (alert-on-failure waived A-13; H-02/H-03 do not gate)
 **COMPLETION: 56%** (baseline `6abf548`) · **GATE: met for catalog** — CF-05 happy path evidenced (review-it GO at 6ad0e87); H-01 done.
 **CRITICAL FLOWS: 6 total · 6 verified (CF-05 happy+failure) · 0 cut**
-**GAPS:** G-01..G-05 closed · DEFER G-06..G-13 · ACCEPT G-14 · **NEXT: merge PR #208, then file post-launch issues**
+**GAPS:** G-01..G-05 closed · DEFER G-06..G-13 (#209–#216) · ACCEPT G-14 · **NEXT: none (run DONE). Non-gating: H-02 marketplace, H-03 version cut.**
 
 ---
 

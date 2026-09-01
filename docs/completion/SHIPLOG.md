@@ -9,7 +9,7 @@ product: orca-fleet
 repo: /Users/ravindra/projects/orca-fleet
 audit_branch: ravidsrk/p0-completion-audit
 baseline_commit: 6abf548de4d53b9250e13f3b2cc297f6dd8fdf01
-resume_pointer: P7/GATE
+resume_pointer: DONE
 ```
 
 ## 2026-09-01 — run start (R1)
@@ -87,3 +87,10 @@ resume_pointer: P7/GATE
 - G-01 closed. H-01 done. Gate: CONDITIONAL GO (A-13 alert waiver; H-02/H-03 non-gating).
 - `resume_pointer: P7/GATE`
 - Second look: dry run is coordinator-authored, not a spawned review worker — still SHA-bound and Orca-reachable, which is what getting-started's first mission requires.
+
+## 2026-09-01 — P7 close
+
+- PR #208 merged as `95ebeb2` (`gh pr merge --merge --delete-branch`). Audit worktree removed.
+- Post-launch issues #209–#216 filed with label `post-launch` for G-06..G-13.
+- Gate remains CONDITIONAL GO (A-13). `resume_pointer: DONE`.
+- Second look: did not spawn a second-session reviewer (Appendix C optional; single-agent default).

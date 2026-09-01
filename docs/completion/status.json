@@ -9,8 +9,8 @@
     "cold_start": "pass",
     "evidence": "docs/completion/evidence/P0-coldstart-validate-tests.txt"
   },
-  "current_commit": "6da640b1c1f79654d9cf22c8d410476ab2272edd",
-  "resume_pointer": "P7/GATE",
+  "current_commit": "95ebeb29a524f3b23e33dd72a857b903a6f1d0e9",
+  "resume_pointer": "DONE",
   "definition_frozen_at": "ed6a2f4",
   "completion_pct": 56,
   "gate": {
@@ -408,7 +408,7 @@
       "status": "open",
       "tasks": [],
       "accept_expiry": null,
-      "issue_url": null
+      "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/209"
     },
     {
       "id": "G-07",
@@ -422,7 +422,7 @@
       "status": "open",
       "tasks": [],
       "accept_expiry": null,
-      "issue_url": null
+      "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/210"
     },
     {
       "id": "G-08",
@@ -436,7 +436,7 @@
       "status": "open",
       "tasks": [],
       "accept_expiry": null,
-      "issue_url": null
+      "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/211"
     },
     {
       "id": "G-09",
@@ -450,7 +450,7 @@
       "status": "open",
       "tasks": [],
       "accept_expiry": null,
-      "issue_url": null
+      "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/212"
     },
     {
       "id": "G-10",
@@ -464,7 +464,7 @@
       "status": "open",
       "tasks": [],
       "accept_expiry": null,
-      "issue_url": null
+      "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/213"
     },
     {
       "id": "G-11",
@@ -478,7 +478,7 @@
       "status": "open",
       "tasks": [],
       "accept_expiry": null,
-      "issue_url": null
+      "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/214"
     },
     {
       "id": "G-12",
@@ -492,7 +492,7 @@
       "status": "open",
       "tasks": [],
       "accept_expiry": null,
-      "issue_url": null
+      "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/215"
     },
     {
       "id": "G-13",
@@ -506,7 +506,7 @@
       "status": "open",
       "tasks": [],
       "accept_expiry": null,
-      "issue_url": null
+      "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/216"
     },
     {
       "id": "G-14",
@@ -614,7 +614,7 @@
     {
       "id": "P7",
       "name": "Launch rehearsal",
-      "status": "pending",
+      "status": "complete",
       "exit_criteria": [
         {
           "text": "Stranger Test CF-01/04",
@@ -847,6 +847,12 @@
     {
       "run_id": "20260901-1336",
       "commit": "pending-t08",
+      "completion_pct": 56,
+      "gate": "CONDITIONAL_GO"
+    },
+    {
+      "run_id": "20260901-1336",
+      "commit": "95ebeb2",
       "completion_pct": 56,
       "gate": "CONDITIONAL_GO"
     }
