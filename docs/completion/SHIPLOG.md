@@ -63,3 +63,13 @@ resume_pointer: P1/T-01
 - T-01 done: stale #207 worktree+branch removed. `evidence/T-01-worktree-clean.txt`.
 - review: greptile (findings fixed or A-13).
 - Second look: greptile was right that we over-claimed; corrected before push.
+
+## 2026-09-01 — T-03 T-04 T-05 done (on audit PR #208)
+
+- T-04 `46dede0` ci: pin Python 3.13
+- T-03 `91ddf47` docs: SECURITY.md
+- T-05 `8a758b8` docs: .env.example + test pin
+- G-02 G-03 G-04 G-05 closed. G-01 remains (H-01).
+- `resume_pointer: P3/T-08` (blocked on H-01)
+- review: manual on the three small diffs (correctness/security/tests/docs). greptile was run on the audit-docs commit.
+- Second look: CHANGELOG had a duplicate `### Added` heading; merged before T-03 commit.
