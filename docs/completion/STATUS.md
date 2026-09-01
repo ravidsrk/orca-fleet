@@ -1,9 +1,9 @@
 # STATUS — 360° completion audit
 
-**VERDICT: PHASE 4 COMPLETE — execution not yet started**
-**COMPLETION: 56%** (baseline `6abf548`) · **GATE: unmet** — CF-05 (first Orca mission) not happy-path evidenced; H-01 outstanding. Angle 5 moved 2→3 after SECURITY.md.
-**CRITICAL FLOWS: 6 total · 4 verified happy · 1 install-verified · 1 failure-only (CF-05) · 0 cut**
-**GAPS:** see `GAPS.md` · **NEXT: P1/T-01** (stale worktree cleanup)
+**VERDICT: CONDITIONAL GO** (alert-on-failure waived A-13; H-02/H-03 do not gate)
+**COMPLETION: 56%** (baseline `6abf548`) · **GATE: met for catalog** — CF-05 happy path evidenced (review-it GO at 6ad0e87); H-01 done.
+**CRITICAL FLOWS: 6 total · 6 verified (CF-05 happy+failure) · 0 cut**
+**GAPS:** G-01..G-05 closed · DEFER G-06..G-13 · ACCEPT G-14 · **NEXT: merge PR #208, then file post-launch issues**
 
 ---
 

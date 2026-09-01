@@ -9,7 +9,7 @@ product: orca-fleet
 repo: /Users/ravindra/projects/orca-fleet
 audit_branch: ravidsrk/p0-completion-audit
 baseline_commit: 6abf548de4d53b9250e13f3b2cc297f6dd8fdf01
-resume_pointer: P3/T-08
+resume_pointer: P7/GATE
 ```
 
 ## 2026-09-01 — run start (R1)
@@ -79,3 +79,11 @@ resume_pointer: P3/T-08
 - `status.json` still had T-01/G-05 open and `resume_pointer: P1/T-01` after the work landed. Synced to P3/T-08; G-02..G-05 closed; P1/P2 complete; completion_pct 56.
 - PR #208 CI green (gates + Greptile). Merge next.
 - Second look: score bump on angle 5 is from closing G-02/G-04, not a definition change.
+
+## 2026-09-01 — T-08 / H-01 / CF-05
+
+- `orca open --json`: runtime.reachable=true, state=ready, app 1.4.190.
+- review-it dry run on PR #208 at `6ad0e87`: **GO** (0 Critical, 0 Required). Evidence `CF-05-happy-review-it.txt`.
+- G-01 closed. H-01 done. Gate: CONDITIONAL GO (A-13 alert waiver; H-02/H-03 non-gating).
+- `resume_pointer: P7/GATE`
+- Second look: dry run is coordinator-authored, not a spawned review worker — still SHA-bound and Orca-reachable, which is what getting-started's first mission requires.

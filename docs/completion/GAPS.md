@@ -4,7 +4,7 @@ Every standing finding that sits between HEAD and `DEFINITION.md`. Decisions fol
 
 | id | source | angle | flow | sev | decision | rationale |
 |---|---|---|---|---|---|---|
-| G-01 | F-1-02 F-11-01 F-8-02 | 1,11 | CF-05 | S1 | FINISH | First-mission path is getting-started's promise; blocked on Orca down. Agent cannot complete without H-01. |
+| G-01 | F-1-02 F-11-01 F-8-02 | 1,11 | CF-05 | S1 | FINISH | CLOSED T-08: Orca reachable; review-it dry run GO at 6ad0e87. |
 | G-02 | F-5-04 F-14-04 F-15-02 | 5,14,15 | — | S1 | FINISH | No SECURITY.md / disclosure address. A stranger reporting a vuln has no path. Small, on trust-critical OSS surface. |
 | G-03 | F-3-04 F-7-02 R-02 | 3,7 | CF-01 | S2 | FINISH | CI `python-version: "3.x"` is a moving pin. S-sized; on catalog-gates flow. |
 | G-04 | F-5-02 | 5 | CF-03 | S2 | FINISH | No `.env.example` for the documented `ORCA_*` gate surface. S-sized. |
