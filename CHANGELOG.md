@@ -16,6 +16,11 @@ truth is `.claude-plugin/plugin.json`.
   i.e. off-worker** (CI/MCP/SDK, or an auditor with the coordinator's real key); the native in-session
   hook stays advisory (no in-session anchor is worker-untamperable, the #112 result). Opt-in; default
   behaviour unchanged. See [docs/verify-gate.md](docs/verify-gate.md#signed-dispatch--making-the-native-path-sound-135).
+- `SECURITY.md` disclosure path; `.env.example` lists every `ORCA_*` gate input.
+
+### Changed
+
+- CI Python pin `3.x` → `3.13` (catalog gates).
 
 ### Fixed
 

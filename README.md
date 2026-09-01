@@ -19,7 +19,8 @@
   <a href="docs/getting-started.md">Getting started</a> ·
   <a href="docs/concepts.md">Concepts</a> ·
   <a href="docs/missions/">Mission guides</a> ·
-  <a href="CONTRIBUTING.md">Contributing</a>
+  <a href="CONTRIBUTING.md">Contributing</a> ·
+  <a href="SECURITY.md">Security</a>
 </p>
 
 ---
