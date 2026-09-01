@@ -286,6 +286,12 @@ class TestDocsNavigation(unittest.TestCase):
             missing, [],
             f"verify-gate.sh reads env vars docs/verify-gate.md never names: {missing}",
         )
+        example = (ROOT / ".env.example").read_text(encoding="utf-8")
+        missing_ex = sorted(v for v in reads if v not in example)
+        self.assertEqual(
+            missing_ex, [],
+            f"verify-gate.sh reads env vars .env.example never names: {missing_ex}",
+        )
         # #200 review: ORCA_EXECUTE_NC is forwarded to an unimplemented flag that fail-closes.
         self.assertRegex(
             doc, r"(?is)ORCA_EXECUTE_NC.{0,400}(not implemented|fail-closes)",
