@@ -23,6 +23,19 @@ Every standing finding that sits between HEAD and `DEFINITION.md`. Decisions fol
 
 **Above (plan):** G-01, G-02, G-03, G-04, G-05.
 
-**Below:** G-06..G-13 DEFER (file `post-launch` issues at Phase 7) · G-14 ACCEPT.
+**Below:** G-06..G-13 DEFER (issues filed) · G-14 ACCEPT.
 
 No CUT (nothing half-built to delete). No ACCEPT at S0.
+
+## Post-launch issues (filed 2026-09-01)
+
+| gap | issue |
+|---|---|
+| G-06 | https://github.com/ravidsrk/orca-fleet/issues/209 |
+| G-07 | https://github.com/ravidsrk/orca-fleet/issues/210 |
+| G-08 | https://github.com/ravidsrk/orca-fleet/issues/211 |
+| G-09 | https://github.com/ravidsrk/orca-fleet/issues/212 |
+| G-10 | https://github.com/ravidsrk/orca-fleet/issues/213 |
+| G-11 | https://github.com/ravidsrk/orca-fleet/issues/214 |
+| G-12 | https://github.com/ravidsrk/orca-fleet/issues/215 |
+| G-13 | https://github.com/ravidsrk/orca-fleet/issues/216 |
