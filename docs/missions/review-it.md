@@ -178,7 +178,8 @@ Playbooks: [`acceptance-review`](../../playbooks/acceptance-review.md) ·
 Runtime policies: [`sandbox-policy`](../../runtime/sandbox-policy.md) ·
 [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md) ·
-[`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md)
+[`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) ·
+[`mission-scheduling`](../../runtime/mission-scheduling.md)
 
 ## Related missions
 

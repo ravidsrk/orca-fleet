@@ -59,8 +59,10 @@ tests reject mission names containing vendor tokens.
 - Plain Markdown, **no frontmatter**, never a `SKILL.md`.
 - Write it as a versioned, executable protocol with a checkable completion section — not an
   attribution essay. Name the upstream recipe it adapts in one line at the top.
-- Every playbook must be composed by at least one mission, by explicit reference
-  (`` `name` `` backticked or `name.md`) — an orphan protocol fails the contract tests.
+- Every playbook must be composed by at least one mission, by explicit reference:
+  a backticked `` `name` `` inside a Composes/rides clause, or a bare `name.md`
+  token. A Related-section backtick is not composition — the orphan test and the
+  validator share `explicit_protocol_refs` so they cannot drift.
 - If your change alters a completion contract, update every mission that composes it in the
   same PR.
 

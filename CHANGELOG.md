@@ -21,6 +21,9 @@ truth is `.claude-plugin/plugin.json`.
 ### Changed
 
 - CI Python pin `3.x` → `3.13` (catalog gates).
+- Validator and the orphan-protocol test share `explicit_protocol_refs` (issue #216).
+  A Related-section backtick no longer keeps a protocol alive; `ship-it` rides
+  `mission-chaining` and `review-it` rides `mission-scheduling`.
 
 ### Fixed
 

@@ -9,6 +9,7 @@ of vendor-named skills. They use only the standard library. Run:
     # or
     python3 tests/test_architecture.py
 """
+import importlib.util
 import re
 import subprocess
 import sys
@@ -16,6 +17,9 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+_spec = importlib.util.spec_from_file_location("validate", ROOT / "scripts" / "validate.py")
+validate = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(validate)
 SKILLS = ROOT / "skills"
 PLAYBOOKS = ROOT / "playbooks"
 RUNTIME = ROOT / "runtime"
@@ -104,17 +108,21 @@ class TestArchitecture(unittest.TestCase):
             )
 
     def test_no_orphan_playbooks_or_runtime_policies(self):
-        # Every callable protocol must be composed by at least one mission, via an
-        # EXPLICIT reference form: `name` backticked or name.md. Prose coincidence is
-        # not a composition — "landed" containing "land", or a bare phase name in a
-        # description, must not keep an orphan alive.
-        bodies = "\n".join((d / "SKILL.md").read_text(encoding="utf-8") for d in mission_dirs())
+        # Every callable protocol must be composed by at least one mission, via the
+        # SAME explicit-reference grammar the validator checks (issue #216): a
+        # backticked name inside a Composes/rides clause, or a bare name.md token.
+        # A Related-section backtick is not composition — "landed" containing "land"
+        # is not either.
+        referenced = set()
+        for d in mission_dirs():
+            referenced |= validate.explicit_protocol_refs(
+                (d / "SKILL.md").read_text(encoding="utf-8")
+            )
         for proto_dir in (PLAYBOOKS, RUNTIME):
             for f in proto_dir.glob("*.md"):
-                stem = re.escape(f.stem)
-                self.assertRegex(
-                    bodies,
-                    rf"`{stem}`|(?<![\w-]){stem}\.md(?![\w.-])",
+                self.assertIn(
+                    f.stem,
+                    referenced,
                     f"{proto_dir.name}/{f.name} is composed by no mission (orphan)",
                 )
 
