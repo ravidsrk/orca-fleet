@@ -11,6 +11,7 @@ can reach it. Each invariant here failed once (issue number on the test).
     python3 -m unittest discover -s tests -v
 """
 import importlib.util
+import json
 import re
 import unittest
 from pathlib import Path
@@ -24,6 +25,31 @@ RUNTIME = ROOT / "runtime"
 
 
 class TestDocsNavigation(unittest.TestCase):
+
+    def test_plugin_version_matches_changelog_heading(self):
+        # Issue #209: plugin.json lagged Unreleased. Version is one number,
+        # written in three places — they must agree with the latest dated
+        # CHANGELOG heading.
+        plugin = json.loads(
+            (ROOT / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8")
+        )
+        market = json.loads(
+            (ROOT / ".claude-plugin" / "marketplace.json").read_text(encoding="utf-8")
+        )
+        version = plugin["version"]
+        self.assertEqual(market["metadata"]["version"], version)
+        self.assertEqual(market["plugins"][0]["version"], version)
+        heading = re.search(
+            r"^## \[(\d+\.\d+\.\d+)\] - ",
+            (ROOT / "CHANGELOG.md").read_text(encoding="utf-8"),
+            re.MULTILINE,
+        )
+        self.assertIsNotNone(heading, "CHANGELOG has no dated version heading")
+        self.assertEqual(
+            heading.group(1),
+            version,
+            "plugin.json version does not match the latest dated CHANGELOG heading",
+        )
 
     def test_ops_doc_names_accounts_and_incident(self):
         # Issue #215: bus-factor-1 with no inventory and no 2 a.m. paragraph.

@@ -6,6 +6,13 @@ truth is `.claude-plugin/plugin.json`.
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-09-01
+
+plugin.json, marketplace.json, and this heading now agree on 0.6.0 (issue #209).
+Signed dispatch, the #163–#184 sweep leftovers, SECURITY.md, the Python 3.13
+pin, product-completion close-out, and the post-launch G-08/G-11/G-12/G-13/G-07
+agent slice.
+
 ### Added
 
 - Signed dispatch records make a worker's substitution of `{manifest-id, contract-digest, unit-class,
