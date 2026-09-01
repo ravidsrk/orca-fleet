@@ -111,6 +111,11 @@ capable of failing.
 - PR bodies: state the problem, then the solution. If you changed a mission's contract, show
   the before/after of its convergence proof.
 
+## Maintainer ops
+
+Account inventory and the 2 a.m. incident process live in
+[docs/ops.md](docs/ops.md). Contributors do not need that page to open a PR.
+
 ## License
 
 By contributing you agree your contributions are licensed under the [MIT License](LICENSE).

@@ -20,7 +20,8 @@
   <a href="docs/concepts.md">Concepts</a> ·
   <a href="docs/missions/">Mission guides</a> ·
   <a href="CONTRIBUTING.md">Contributing</a> ·
-  <a href="SECURITY.md">Security</a>
+  <a href="SECURITY.md">Security</a> ·
+  <a href="docs/ops.md">Ops</a>
 </p>
 
 ---
