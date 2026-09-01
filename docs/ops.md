@@ -10,7 +10,7 @@ missions already have those.
 | Surface | Account / handle | Lives in | Notes |
 |---|---|---|---|
 | GitHub | `ravidsrk` | [ravidsrk/orca-fleet](https://github.com/ravidsrk/orca-fleet) | source of truth, Actions (`validate` workflow), private vulnerability reporting |
-| Claude plugin marketplace | not submitted | [`.claude-plugin/`](../.claude-plugin/plugin.json) | local install path works; community aggregators are [H-02](completion/HUMAN_ACTIONS.md) / [G-07](https://github.com/ravidsrk/orca-fleet/issues/210) |
+| Claude plugin marketplace | GitHub self-host + buildwithclaude auto-index | [`.claude-plugin/`](../.claude-plugin/plugin.json) | `/plugin marketplace add ravidsrk/orca-fleet`; official directory + skills.sh still [H-02](completion/HUMAN_ACTIONS.md) |
 | greptile | maintainer CLI | [greptile.com](https://greptile.com/) | pre-push review on the maintainer machine; GitHub check on PRs |
 | agentskills.io listing | not submitted | local `uvx --from skills-ref agentskills validate` | extra frontmatter (`proof`, `autonomy`, `proof_evidence`) is intentional — [CONTRIBUTING](../CONTRIBUTING.md) |
 | Maintainer email | `ravidsrk@gmail.com` | [SECURITY.md](../SECURITY.md) | security reports (72h ack) and ops contact |

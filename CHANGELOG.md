@@ -19,6 +19,9 @@ truth is `.claude-plugin/plugin.json`.
 - `SECURITY.md` disclosure path; `.env.example` lists every `ORCA_*` gate input.
 - [docs/ops.md](docs/ops.md): account inventory (GitHub, plugin marketplace,
   greptile, agentskills) and a 3-step incident process (issue #215).
+- Index check of public marketplace aggregators (issue #210): GitHub self-host
+  and buildwithclaude auto-index are live; official directory, skills.sh, and
+  claudemarketplace.net still need [H-02](docs/completion/HUMAN_ACTIONS.md).
 
 ### Changed
 
