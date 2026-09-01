@@ -17,6 +17,8 @@ truth is `.claude-plugin/plugin.json`.
   hook stays advisory (no in-session anchor is worker-untamperable, the #112 result). Opt-in; default
   behaviour unchanged. See [docs/verify-gate.md](docs/verify-gate.md#signed-dispatch--making-the-native-path-sound-135).
 - `SECURITY.md` disclosure path; `.env.example` lists every `ORCA_*` gate input.
+- [docs/ops.md](docs/ops.md): account inventory (GitHub, plugin marketplace,
+  greptile, agentskills) and a 3-step incident process (issue #215).
 
 ### Changed
 

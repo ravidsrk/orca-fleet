@@ -25,6 +25,18 @@ RUNTIME = ROOT / "runtime"
 
 class TestDocsNavigation(unittest.TestCase):
 
+    def test_ops_doc_names_accounts_and_incident(self):
+        # Issue #215: bus-factor-1 with no inventory and no 2 a.m. paragraph.
+        text = (DOCS / "ops.md").read_text(encoding="utf-8")
+        for tok in ("GitHub", "plugin marketplace", "greptile", "agentskills",
+                    "Incident"):
+            self.assertIn(tok, text, f"docs/ops.md lost its {tok!r} surface")
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        self.assertIn(
+            "docs/ops.md", readme,
+            "docs/ops.md is linked from no README nav (orphan)",
+        )
+
     def test_architecture_names_every_runtime_policy(self):
         # Issue #34: the "operational details ARE the product" list omitted
         # mission-scheduling.md (and sandbox-policy.md appeared nowhere at all),

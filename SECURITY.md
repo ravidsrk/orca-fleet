@@ -12,6 +12,8 @@ Please **do not** open a public GitHub issue for a security report.
 You should receive an acknowledgement within 72 hours. We will confirm
 whether the report is in scope and what the fix path is.
 
+Maintainer incident process (CI, version pin, key rotation): [docs/ops.md](docs/ops.md).
+
 ## Scope
 
 In scope: `runtime/scripts/` (especially `verify.py`, `verify-gate.sh`,
