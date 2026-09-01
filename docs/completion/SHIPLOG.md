@@ -9,7 +9,7 @@ product: orca-fleet
 repo: /Users/ravindra/projects/orca-fleet
 audit_branch: ravidsrk/p0-completion-audit
 baseline_commit: 6abf548de4d53b9250e13f3b2cc297f6dd8fdf01
-resume_pointer: P1/T-01
+resume_pointer: P3/T-08
 ```
 
 ## 2026-09-01 — run start (R1)
