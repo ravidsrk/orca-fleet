@@ -35,7 +35,10 @@ These register the repo on third-party surfaces; do them from an account with ri
 - [ ] Ensure a green **"does-it-load"** score on the skills indexers (verify each mission's frontmatter
       loads; the validator + `agentskills.io` conformance already gate this locally).
 - [ ] Confirm `agentskills.io` conformance for every `SKILL.md` (frontmatter `name`/`description`,
-      progressive disclosure).
+      progressive disclosure). `name`/`description`/`compatibility`/`license` already pass
+      `uvx --from skills-ref agentskills validate`; the remaining fail is the intentional
+      extras `proof` / `autonomy` / `proof_evidence` (see CONTRIBUTING — not migrated into
+      `metadata:`).
 - [ ] In each listing, lead with the **`proof:` trust badge** framing + a link to the [run archive](runs/).
 
 ## Optional: a proof-status badge

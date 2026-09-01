@@ -59,6 +59,20 @@ RUNTIME_DIR = ROOT / "runtime"
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 PROOF_VALUES = {"doctrine-only", "self-run", "external-run"}
 AUTONOMY_VALUES = {"L0", "L1", "L2", "L3", "L4", "L5"}
+# agentskills.io allowlist (skills-ref / `agentskills validate`). Repo extras
+# are first-class, machine-checked claims — not `metadata:` bags. A fourth
+# top-level extra fails this validator (issue #211). skills-ref itself still
+# reports the extras as unexpected; that is expected, not a migrate-to-metadata
+# prompt.
+SPEC_FRONTMATTER_FIELDS = {
+    "name",
+    "description",
+    "license",
+    "allowed-tools",
+    "metadata",
+    "compatibility",
+}
+REPO_EXTRA_FRONTMATTER = {"proof", "autonomy", "proof_evidence"}
 # Mutating missions land code; they must ride the SHA-bound evidence protocol so
 # completion is never graded on worker narration. Report-only / planning /
 # diagnosis missions bind evidence differently and are not in this set.
@@ -305,6 +319,17 @@ def validate_skill(skill_dir, protocols):
         errors.append("missing 'description' field")
     elif not (1 <= len(data["description"]) <= 1024):
         errors.append(f"description length {len(data['description'])} out of 1-1024")
+
+    extras = set(data) - SPEC_FRONTMATTER_FIELDS - REPO_EXTRA_FRONTMATTER
+    if extras:
+        errors.append(
+            "unexpected frontmatter fields "
+            + ", ".join(f"'{k}'" for k in sorted(extras))
+            + " — spec allowlist is "
+            + str(sorted(SPEC_FRONTMATTER_FIELDS))
+            + "; repo extras are "
+            + str(sorted(REPO_EXTRA_FRONTMATTER))
+        )
 
     if "compatibility" in data:
         c = data["compatibility"]
