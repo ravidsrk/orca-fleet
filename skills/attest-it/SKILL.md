@@ -38,8 +38,11 @@ ledger), `liveness-resume` (DAG-scoped RESUME). Worker TASK pack: one of matt | 
 ## Pipeline
 
 ```
-FREEZE the denominator: pick standard@version; enumerate its obligations into a DAG (decompose-dag).
-  The obligation set is frozen at a digest — the run cannot shrink it.
+FREEZE the denominator: pick standard@version and its SOURCE — the standard's own text or a
+  human-supplied obligation catalog, as a file/URL at a digest; obligations are enumerated FROM that
+  document, never from model memory (a recalled SOC 2 / SSDF control list is a hallucinated
+  denominator) — then enumerate into a DAG (decompose-dag). The set is frozen at the digest — the run
+  cannot shrink it.
   → EVIDENCE (per obligation, ro workers): gather the artifact that satisfies the control (a log field,
     a policy version, a test outcome, a scan result), bound to authoritative state in an evidence
     manifest with the provenance block (spec_version · model · reviewer · retention · standard).
@@ -80,7 +83,9 @@ whole point). Shrinking the obligation set to the ones you can pass (the denomin
 version digest). Treating a GAP as a failure to bury instead of a named, parked terminal. Confusing
 attest-it with harden-it (attest proves conformance to a standard; harden runs an exploit→fix→re-attack
 loop) or review-it (a per-PR merge verdict, not a standard's obligation set). Re-using an evidence
-artifact whose `provenance.spec_version` no longer matches the frozen standard version.
+artifact whose `provenance.spec_version` no longer matches the frozen standard version. Enumerating
+obligations from model memory (the catalog is a sourced document at a digest; a plausible control list
+is not the standard).
 
 ## Related
 
