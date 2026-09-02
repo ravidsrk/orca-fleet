@@ -37,8 +37,12 @@ a file path, a command with its exit code, or a PR url with its `reviewed_sha`.
 
 ## Verifier outcome (recorded exactly)
 
-`python3 runtime/scripts/verify.py --manifest <manifest>` (plus `--contract-source` / `--contract-digest`
-from the dispatch record, and `--base` for ancestry) — output and exit code verbatim, RED runs included.
+`python3 runtime/scripts/verify.py --manifest <manifest> --contract-source <path@ref> --contract-digest <sha256:…>`
+— output and exit code verbatim, RED runs included. `--contract-source` is the frozen contract from the
+Fixed point row (the coordinator's, supplied out of band — `ORCA_CONTRACT_SOURCE` under `verify-gate.sh`);
+`--contract-digest` is the `contract_digest` the signed dispatch record carries (add `--dispatch-record` and
+`--dispatch-pubkey` when the run used signed dispatch, `--base` for ancestry). Without both contract flags
+the verifier fail-closes on scope, which is a RED result to record, not a command to drop.
 
 ## WIP-curve protocol row (mutating self-runs)
 
