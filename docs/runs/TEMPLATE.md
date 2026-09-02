@@ -38,16 +38,17 @@ a file path, a command with its exit code, or a PR url with its `reviewed_sha`.
 ## Verifier outcome (recorded exactly)
 
 `python3 runtime/scripts/verify.py --manifest <manifest> --contract-source <path@ref> --contract-digest <sha256:…>
---unit-class <mutation|report-only|planning> --lighting <lit|dark-eligible> [--dispatch-record <path@ref>
+--unit-class <mutation|report-only|planning> [--lighting <lit|dark-eligible>] [--dispatch-record <path@ref>
 --dispatch-pubkey <path@ref>] [--base <branch>]` — output and exit code verbatim, RED runs included.
 
 Where each flag comes from: `--contract-source` is the coordinator's frozen contract from the Fixed point
-row, supplied out of band (`ORCA_CONTRACT_SOURCE` under `verify-gate.sh`); `--contract-digest`,
-`--unit-class`, and `--lighting` are the signed dispatch record's `contract_digest`, `unit_class`, and
-`lighting` — pass all three, since a missing unit class fails safe to mutation-strict checks, a missing
-lighting defaults to `lit`, and with `--dispatch-record` the verifier checks the flags against the
-record; `--base` is the integration base for ancestry. Omitting the contract flags is a fail-closed
-scope RED to record, not a flag to drop.
+row, supplied out of band (`ORCA_CONTRACT_SOURCE` under `verify-gate.sh`); `--contract-digest` and
+`--unit-class` are the signed dispatch record's `contract_digest` and `unit_class` — always pass both,
+since a missing unit class fails safe to mutation-strict checks; `--lighting` is the record's optional
+`lighting` — pass it only when the record signed one (omission means `lit`; with `--dispatch-record`
+the verifier checks every flag against the record, and a lighting the record did not sign is itself a
+fail-closed RED); `--base` is the integration base for ancestry. Omitting the contract flags is a
+fail-closed scope RED to record, not a flag to drop.
 
 ## WIP-curve protocol row (mutating self-runs)
 
