@@ -37,7 +37,8 @@ a file path, a command with its exit code, or a PR url with its `reviewed_sha`.
 
 ## Verifier outcome (recorded exactly)
 
-`python3 runtime/scripts/verify.py <manifest>` — output and exit code verbatim, RED runs included.
+`python3 runtime/scripts/verify.py --manifest <manifest>` (plus `--contract-source` / `--contract-digest`
+from the dispatch record, and `--base` for ancestry) — output and exit code verbatim, RED runs included.
 
 ## WIP-curve protocol row (mutating self-runs)
 
