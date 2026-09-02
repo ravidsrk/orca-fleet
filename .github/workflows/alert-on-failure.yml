@@ -1,0 +1,85 @@
+name: alert-on-failure
+
+# In-repo alert path (issue #213, completion gap G-10). A failed `validate` run on
+# `main` opens — or updates — an issue labeled `ci-failure`. Issue activity reaches
+# the repository owner through GitHub's default issue notifications, so the alert
+# does not depend on the per-user Actions notification setting that a green CI run
+# never proves. `workflow_dispatch` runs the same path as a DRILL: it files a
+# `[drill]` issue and closes it in the same run, so the alert can be proven to fire
+# without ever redding `main`. Uses only the runner's preinstalled `gh` — no
+# third-party actions to pin.
+
+on:
+  workflow_run:
+    workflows: [validate]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  alert:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'failure'
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      DRILL: ${{ github.event_name == 'workflow_dispatch' }}
+      RUN_URL: ${{ github.event.workflow_run.html_url || format('{0}/{1}/actions/runs/{2}', github.server_url, github.repository, github.run_id) }}
+      HEAD_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+      HEAD_BRANCH: ${{ github.event.workflow_run.head_branch || github.ref_name }}
+    steps:
+      - name: Ensure the ci-failure label exists
+        run: >-
+          gh label create ci-failure --force --color B60205
+          --description "validate failed on main (filed by the alert-on-failure workflow)"
+
+      - name: Open or update the alert issue
+        id: alert
+        run: |
+          short="${HEAD_SHA:0:7}"
+          ops="https://github.com/${GH_REPO}/blob/main/docs/ops.md#incident-2-am"
+          body="$(printf '%s\n' \
+            "**validate** finished with conclusion \`failure\` on \`${HEAD_BRANCH}\` at \`${HEAD_SHA}\`." \
+            "" \
+            "- Run: ${RUN_URL}" \
+            "- Incident steps: ${ops}" \
+            "" \
+            "Filed by the \`alert-on-failure\` workflow (#213). Close it when \`main\` is green again.")"
+          if [ "${DRILL}" = "true" ]; then
+            title="[drill] CI alert path check (${short})"
+            body="$(printf '%s\n\n%s' "**DRILL** — proves the alert path can file an issue; closed by the same run." "${body}")"
+            number="$(gh issue create --title "${title}" --label ci-failure --body "${body}" | grep -oE '[0-9]+$')"
+            echo "action=created-drill" >> "$GITHUB_OUTPUT"
+          else
+            title="CI: validate failed on main (${short})"
+            existing="$(gh issue list --label ci-failure --state open --json number --jq '.[0].number // empty')"
+            if [ -n "${existing}" ]; then
+              gh issue comment "${existing}" --body "${body}" > /dev/null
+              number="${existing}"
+              echo "action=commented" >> "$GITHUB_OUTPUT"
+            else
+              number="$(gh issue create --title "${title}" --label ci-failure --body "${body}" | grep -oE '[0-9]+$')"
+              echo "action=created" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+          echo "number=${number}" >> "$GITHUB_OUTPUT"
+
+      - name: Close the drill issue
+        if: env.DRILL == 'true'
+        run: >-
+          gh issue close "${{ steps.alert.outputs.number }}"
+          --comment "Drill complete: the alert path filed this issue from ${RUN_URL} and closed it. Nothing is broken."
+
+      - name: Summary
+        run: |
+          {
+            echo "## alert-on-failure"
+            echo ""
+            echo "- action: \`${{ steps.alert.outputs.action }}\`"
+            echo "- issue: https://github.com/${GH_REPO}/issues/${{ steps.alert.outputs.number }}"
+            echo "- source run: ${RUN_URL} (\`${HEAD_BRANCH}\` @ \`${HEAD_SHA}\`)"
+          } >> "$GITHUB_STEP_SUMMARY"
