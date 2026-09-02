@@ -123,7 +123,7 @@ Phase by phase:
 |----------|----------------------------------------------------------------------------------------------------|-------------------------------------------------------|
 | `CLOSED` | Merged, ancestry-verified PR + a test that failed pre-fix, both linked in the closing comment      | nobody — the evidence chain is the authorization      |
 | `PARKED` | Two kinds, per the ledger contract. **Clean:** `refuted` / `duplicate` / `externally-resolved` through the batch gate, or `out-of-scope` handed off — not real work for this run. **Degraded:** `needs-human` naming its gate, or `CODE_CLOSED` + `VERIFY_AT_SCALE` with its OPS plan — honest incomplete | the batch gate (clean); a human or OPS (degraded) |
-| `DRY`    | A full enumeration finds zero items outside `CLOSED` and the clean parks; the output is pasted in the ledger | terminal — the promotion PR is opened and left to you |
+| `DRY`    | A full enumeration finds zero items outside `CLOSED` and the clean parks, and the integration tip passes the repo's own validate/test suite; the output is pasted in the ledger | terminal — the promotion PR is opened and left to you |
 | `DRY-WITH-PARKED` | The set is exhausted but at least one degraded park remains; never reported as `DRY` | a human clears each named park |
 
 The run ends by pasting the dry enumeration, never by asserting it. For `source=tracker`, issues
@@ -151,9 +151,12 @@ rebuilt from provenance with RESUME, ledger-scoped and git-verified.
 
 A degraded park — `needs-human` naming its gate, or `CODE_CLOSED` + `VERIFY_AT_SCALE` with its OPS
 plan — does not stop the enumeration from coming back dry, but it makes the honest terminal
-`DRY-WITH-PARKED`, never `DRY`. The final enumeration output is pasted into the ledger showing the dry state, and
-`source=tracker` runs reconcile mid-run creations and closures against `T0` — no quietly
-shrinking denominator, no honest-looking partial "done".
+`DRY-WITH-PARKED`, never `DRY`. `DRY` also requires the integration **tip** to pass the repo's own
+validate/test suite: the final report and any run-close commit land on the branch outside the
+per-finding gates, so a green per-finding history under a red report commit is still a red branch —
+the tip is verified green before the promotion PR opens. The final enumeration output is pasted into
+the ledger showing the dry state, and `source=tracker` runs reconcile mid-run creations and closures
+against `T0` — no quietly shrinking denominator, no honest-looking partial "done".
 
 ## A worked example
 
