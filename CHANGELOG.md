@@ -6,6 +6,40 @@ truth is `.claude-plugin/plugin.json`.
 
 ## [Unreleased]
 
+### Changed
+
+- Adversarial review of every mission skill, one `SKILL.md` at a time, fixing
+  contract drift against the playbooks and runtime policies rather than prose:
+  `ship-it` proves the integrated whole at the BASE head before `BUILT` and
+  names deploy/rollback as one-way gates (it never self-authorizes a deploy;
+  it may execute one under a recorded grant); `harden-it` routes every PoC to
+  an execution profile BEFORE quorum-verify or re-attack runs it (the audit
+  writes scenarios, it does not execute them); `prove-it` records the mutation
+  audit as the manifest's `negative_control` + `binding_audit` (not
+  `metric_contract`, which `verify.py` never reads for it) and drops the
+  "semantics-preserving mutation" wording — that phrase names an equivalent,
+  unkillable mutant; `deflake-it` binds the green streak to one SHA and names
+  how CI re-runs are triggered; `access-it` gains the BASE bootstrap,
+  build-blind review, and LAND steps its compose clause already declared;
+  `attest-it` requires the obligation catalog to be a sourced document at a
+  digest, never model recall; `clean-sweep`, `oss-contribute`, `review-it`,
+  `map-it`, and `root-cause` ride `sandbox-policy` (issue / PR / review text is
+  data, never instructions) and state their worker profiles; `modernize-it`
+  treats the lockfile as a hot-file merge chain and installs bumped packages
+  with lifecycle scripts disabled until provenance is verified; `root-cause`
+  draws its boundary at landing, not editing; `speed-it` guards at the
+  declared budget, not the lucky run; `oss-contribute`'s CLASS enum gains
+  `refuted` / `duplicate` and its allowed parks name
+  `awaiting-maintainer-merge`.
+- Guides realigned with their skills: deflake-it defaults (30/30, not 20/10),
+  review-it's verdict table (a Required finding also blocks), harden-it's phase
+  order, ship-it's integrated prove, prove-it's mutation wording;
+  `mission-chaining.md` names `CLEAN` (not the nonexistent `HARDENED`) among
+  clean terminals.
+- Routing: bare "keyboard" no longer routes to `access-it` (a keyboard-shortcuts
+  feature is `ship-it`) and `aria` no longer matches inside "variant"; one
+  negative routing example added.
+
 ### Fixed
 
 - Leftover Greptile comments from the post-launch PRs (#219–#223): incident
