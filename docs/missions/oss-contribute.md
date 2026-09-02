@@ -127,10 +127,14 @@ closed, or its feedback has gone quiet (`awaiting-maintainer-merge`). The `FOLLO
 | `awaiting-maintainer-merge` | PR open, feedback quiet — a NORMAL terminal, never a failure           |
 | `needs-human`             | CLA/DCO signature, product fork, or design decision — the gate is named  |
 | `refuted`                 | Triage disproved the issue; evidence in the ledger                       |
+| `duplicate`               | Triage matched it to another issue in the set; closed at the batch gate  |
+| `externally-resolved`     | Closed upstream by someone else mid-run — counted, not ours              |
+| `out-of-scope`            | Wrong mission; handed off with a pointer                                 |
 
-The run itself ends `CONTRIBUTED` (every actionable issue at a terminal, parks only
-`externally-covered`/`externally-resolved`/`out-of-scope`) or `CONTRIBUTED-WITH-PARKED` (≥1
-`needs-human` park, a stuck gate — degraded, and never reported as the clean terminal).
+The run itself ends `CONTRIBUTED` (every actionable issue at a terminal, parks only the clean
+classes: `externally-covered`, `externally-resolved`, gate-approved `refuted` / `duplicate`,
+`out-of-scope`) or `CONTRIBUTED-WITH-PARKED` (≥1 `needs-human` park, a stuck gate — degraded, and
+never reported as the clean terminal).
 
 ## Human gates
 

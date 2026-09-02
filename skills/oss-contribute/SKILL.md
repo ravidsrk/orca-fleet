@@ -36,13 +36,12 @@ has no merge rights on the target. Worker TASK pack: one of matt | addy — neve
 
 ## Two terminal outcomes
 
-- **CONTRIBUTED** — every actionable issue has an OPEN, internally-reviewed, etiquette-correct PR (live
-  or quiet: `awaiting-maintainer-merge`) or a posted review-assist; parks are only `externally-covered`,
-  `externally-resolved`, gate-approved `refuted` / `duplicate`, or `out-of-scope`.
+- **CONTRIBUTED** — every actionable issue has an OPEN, internally-reviewed, etiquette-correct PR (live,
+  or quiet at `awaiting-maintainer-merge` — a NORMAL terminal, since merge is the maintainer's) or a
+  posted review-assist; parks are only `externally-covered`, `externally-resolved`, gate-approved
+  `refuted` / `duplicate`, or `out-of-scope`.
 - **CONTRIBUTED-WITH-PARKED** (degraded) — the set is exhausted but ≥1 park is `needs-human` (a stuck
   gate: CLA unsigned, design fork). Never reported as CONTRIBUTED.
-
-Merge is NOT the definition of done — you have READ on the target, so `awaiting-maintainer-merge` is a NORMAL terminal.
 
 ## The source (upstream tracker — TWO denominators)
 
@@ -94,17 +93,18 @@ PR. A closing keyword goes on a concrete issue only, never an RFC/meta/tracking 
 ## Ledger (header first, then rows)
 
 Header per liveness-resume.md: `RUN · COORDINATOR · BASE=- · FORK_POINT=- · T0 · SOURCE · WIP ·
-UPSTREAM · FORK` (BASE/FORK_POINT recorded as `-`, never renamed — there is no integration base;
-UPSTREAM and FORK are additive trailing columns). Phase marker + unit flags per ledger-contract.md —
-every canonical flag kept except `MERGED` (dropped: merge is the maintainer's, the fleet has none),
-extended with `CLASS` and `FOLLOWED_UP`:
+UPSTREAM · FORK` (BASE/FORK_POINT stay `-`, never renamed — no integration base; UPSTREAM and FORK
+are additive trailing columns). Phase marker + unit flags per ledger-contract.md — every canonical flag
+kept except `MERGED` (merge is the maintainer's), extended with `CLASS` and `FOLLOWED_UP`:
 
 `| task_id | issue | title | CLASS | BUILD_DONE | REVIEWED | PR_OPEN | BOT | FOLLOWED_UP | WT_CLEAN | lighting | park | evidence |`
 CLASS ∈ buildable · already-has-PR · refuted · duplicate · needs-human · externally-resolved ·
-out-of-scope; `park` ∈ externally-covered · awaiting-maintainer-merge · needs-human. `PR_OPEN` carries
-the PR url + reviewed_sha (or the assist comment url); `FOLLOWED_UP` is `t` only when every post-open
-review thread is answered and CI is green-or-explained; `WT_CLEAN` flips when the fork worktree is
-retired at the unit's terminal (no merge to wait on). RESUME scopes to header coordinator + ledger task ids.
+out-of-scope. `park` is empty (a PR or assist was posted) or the unit's terminal park: the
+ledger-contract.md classes `refuted` · `duplicate` · `externally-resolved` · `out-of-scope` ·
+`needs-human`, plus `externally-covered` and `awaiting-maintainer-merge`. `PR_OPEN` carries the PR url
++ reviewed_sha (or the assist comment url); `FOLLOWED_UP` is `t` only when every post-open thread is
+answered and CI is green-or-explained; `WT_CLEAN` flips when the fork worktree is retired at the unit's
+terminal (no merge to wait on). RESUME scopes to header coordinator + ledger task ids.
 
 ## Gates + supervision
 
