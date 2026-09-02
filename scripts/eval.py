@@ -11,6 +11,7 @@ Usage:
 """
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -205,7 +206,12 @@ def classify_prompt(prompt: str) -> str | None:
     Specialist missions (security/perf/deps/tests/flakes) override general
     backlog/diagnosis/build routing when their technical vocabulary is present.
     """
-    prompt_lower = prompt.lower()
+    # Boundary-sensitive triggers (" aria ") need the prompt padded and its sentence
+    # punctuation turned into spaces, so "ARIA" at the start or end of a prompt, or right
+    # before a comma/period, still matches — while "variant" still does not. Hyphens,
+    # slashes, and apostrophes are kept: triggers like "axe-core", "money/auth/data", and
+    # "don't know the shape" contain them.
+    prompt_lower = " " + re.sub(r"[^\w\s/'-]", " ", prompt.lower()) + " "
     scores = {}
     for mission, triggers in MISSION_TRIGGERS.items():
         score = 0

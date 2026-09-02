@@ -37,8 +37,8 @@ truth is `.claude-plugin/plugin.json`.
   `mission-chaining.md` names `CLEAN` (not the nonexistent `HARDENED`) among
   clean terminals.
 - Routing: bare "keyboard" no longer routes to `access-it` (a keyboard-shortcuts
-  feature is `ship-it`) and `aria` no longer matches inside "variant"; one
-  negative routing example added.
+  feature is `ship-it`); `aria` no longer matches inside "variant" but still
+  matches at a prompt's edges and before punctuation; three routing examples added.
 
 ### Fixed
 

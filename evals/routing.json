@@ -218,6 +218,20 @@
       "expected_mission": "ship-it",
       "type": "negative",
       "reason": "Keyboard shortcuts are a feature build (ship-it); access-it triggers on keyboard navigation / WCAG conformance, not the word keyboard alone."
+    },
+    {
+      "id": 32,
+      "prompt": "ARIA roles on the checkout modal are wrong.",
+      "expected_mission": "access-it",
+      "type": "positive",
+      "reason": "ARIA at the very start of a prompt must still route to access-it (word-boundary trigger, not a bare substring)."
+    },
+    {
+      "id": 33,
+      "prompt": "Fix the checkout modal's broken ARIA.",
+      "expected_mission": "access-it",
+      "type": "positive",
+      "reason": "ARIA at the very end of a prompt, before a period, must still route to access-it."
     }
   ]
 }
