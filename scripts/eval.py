@@ -91,16 +91,20 @@ MISSION_TRIGGERS = {
 # "hardening"), which is wrong for a short word that lives inside other words: "aria" sits
 # inside "variant". A word trigger must start at a word boundary and end at one, or at an
 # identifier continuation — `aria-label`, `aria_roles`, camelCase `ariaLabel` — so it never
-# matches inside "variant" or as the prefix of "Arial" / "arias". Matched on the RAW prompt:
-# the camelCase capital is the boundary, so case must survive.
+# matches inside "variant" or as the prefix of "Arial" / "arias" / "aria2". Matched on the
+# RAW prompt: the camelCase capital is the boundary, so case must survive.
 MISSION_WORD_TRIGGERS = {
     "access-it": ["aria"],
 }
 
 
 def word_trigger_matches(word: str, prompt: str) -> bool:
-    """True when `word` appears as a whole word or as the head of an identifier in `prompt`."""
-    return re.search(rf"(?<![A-Za-z0-9])(?i:{re.escape(word)})(?![a-z])", prompt) is not None
+    """True when `word` appears as a whole word or as the head of an identifier in `prompt`.
+
+    A trailing lowercase letter or digit continues a different word (`Arial`, `arias`, the
+    `aria2` download tool); a capital, underscore, hyphen, or punctuation does not.
+    """
+    return re.search(rf"(?<![A-Za-z0-9])(?i:{re.escape(word)})(?![a-z0-9])", prompt) is not None
 
 def catalog_missions() -> set[str]:
     """The live mission catalog: skills/<name>/ dirs with a SKILL.md. Eval coverage

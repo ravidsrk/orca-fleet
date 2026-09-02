@@ -124,7 +124,7 @@ class TestEvalInfrastructure(unittest.TestCase):
     def test_word_trigger_matches_identifier_forms_not_lookalikes(self):
         # PR #225 review rounds: "aria" must route when it is a whole word or the head of an
         # identifier (aria-label, aria_roles, ariaLabel) and never when it merely sits inside
-        # another word ("variant") or is the prefix of one ("Arial", "arias").
+        # another word ("variant") or is the prefix of one ("Arial", "arias", "aria2").
         for prompt in ("ARIA roles on the checkout modal are wrong.",
                        "Fix the checkout modal's broken ARIA.",
                        "Check the ARIA/HTML mapping on the checkout modal.",
@@ -135,7 +135,8 @@ class TestEvalInfrastructure(unittest.TestCase):
                 self.assertEqual(eval_mod.classify_prompt(prompt), "access-it")
         for prompt in ("Sweep the auth service for variants of the IDOR.",
                        "Set the landing page's heading font to Arial.",
-                       "Maria asked whether the arias are on the playlist."):
+                       "Maria asked whether the arias are on the playlist.",
+                       "Install aria2 on the download hosts."):
             with self.subTest(prompt=prompt):
                 self.assertIsNone(eval_mod.classify_prompt(prompt))
 
