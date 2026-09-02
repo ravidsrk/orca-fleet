@@ -87,13 +87,20 @@ MISSION_TRIGGERS = {
     ],
 }
 
-# Whole-word triggers. Plain triggers are deliberately prefix-tolerant substrings ("harden"
-# covers "hardening"), which is wrong for a short word that lives inside other words: "aria"
-# sits inside "variant". These match on word boundaries instead, so "ARIA", "ARIA's",
-# "ARIA/HTML", and "aria-label" all count and "variant" never does.
+# Word triggers. Plain triggers are deliberately prefix-tolerant substrings ("harden" covers
+# "hardening"), which is wrong for a short word that lives inside other words: "aria" sits
+# inside "variant". A word trigger must start at a word boundary and end at one, or at an
+# identifier continuation — `aria-label`, `aria_roles`, camelCase `ariaLabel` — so it never
+# matches inside "variant" or as the prefix of "Arial" / "arias". Matched on the RAW prompt:
+# the camelCase capital is the boundary, so case must survive.
 MISSION_WORD_TRIGGERS = {
     "access-it": ["aria"],
 }
+
+
+def word_trigger_matches(word: str, prompt: str) -> bool:
+    """True when `word` appears as a whole word or as the head of an identifier in `prompt`."""
+    return re.search(rf"(?<![A-Za-z0-9])(?i:{re.escape(word)})(?![a-z])", prompt) is not None
 
 def catalog_missions() -> set[str]:
     """The live mission catalog: skills/<name>/ dirs with a SKILL.md. Eval coverage
@@ -222,7 +229,7 @@ def classify_prompt(prompt: str) -> str | None:
                 # Longer triggers that match are more specific; weight by length.
                 score += len(trig.split())
         for word in MISSION_WORD_TRIGGERS.get(mission, ()):
-            if re.search(rf"\b{re.escape(word)}\b", prompt_lower):
+            if word_trigger_matches(word, prompt):
                 score += len(word.split())
         scores[mission] = score
 

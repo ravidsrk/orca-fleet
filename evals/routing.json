@@ -246,6 +246,13 @@
       "expected_mission": "access-it",
       "type": "positive",
       "reason": "A slash after ARIA must not hide the trigger (whole-word match, not substring)."
+    },
+    {
+      "id": 36,
+      "prompt": "Set ariaLabel on the icon buttons.",
+      "expected_mission": "access-it",
+      "type": "positive",
+      "reason": "A camelCase identifier headed by aria (React's ariaLabel) must still route to access-it."
     }
   ]
 }
