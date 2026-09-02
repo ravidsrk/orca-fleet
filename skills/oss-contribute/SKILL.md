@@ -42,8 +42,7 @@ has no merge rights on the target. Worker TASK pack: one of matt | addy — neve
 - **CONTRIBUTED-WITH-PARKED** (degraded) — the set is exhausted but ≥1 park is `needs-human` (a stuck
   gate: CLA unsigned, design fork). Never reported as CONTRIBUTED.
 
-Merge is NOT the definition of done — you have READ on the target, so `awaiting-maintainer-merge` is a
-NORMAL terminal. "Backlog to zero" means the actionable set is drained into contribution artifacts.
+Merge is NOT the definition of done — you have READ on the target, so `awaiting-maintainer-merge` is a NORMAL terminal.
 
 ## The source (upstream tracker — TWO denominators)
 
@@ -77,9 +76,11 @@ the upstream default (`baseRefName==<default>` asserted, `headRefOid==reviewed_s
 failing-first test with a revert-audited negative control, bots reconciled, etiquette conformant, AND
 every post-open review thread answered per upstream-contribution.md follow-up) with the PR url in the
 closing note, ledger flags `BUILD_DONE`…`PR_OPEN`…`FOLLOWED_UP` all `t`; or (b) a posted
-review-assist whose findings are each quoted from the target PR's diff; or (c) PARKED
-(`externally-covered` with the covering PR ref, `needs-human` naming its gate). The final enumeration
-is pasted in the ledger. Manifest names CONTRIBUTED or CONTRIBUTED-WITH-PARKED.
+review-assist whose findings are each quoted from the target PR's diff; or (c) PARKED with its class
+and reference — clean: `externally-covered` (covering PR ref), `externally-resolved`, gate-approved
+`refuted` / `duplicate`, `out-of-scope` (handoff); degraded: `needs-human` naming its gate. The final
+enumeration is pasted in the ledger. Manifest names CONTRIBUTED (no degraded park) or
+CONTRIBUTED-WITH-PARKED.
 
 ## The contribution decision (never silent — gate-classification.md)
 
@@ -125,5 +126,4 @@ follow-up loop ingests whatever anyone posts).
 ## Related
 
 `clean-sweep` (a backlog you OWN, merged-SHA closure — the mission this forked from), `ship-it` (build
-net-new), `review-it` (verdict only), the specialist campaigns on your own repo; chains after `map-it`
-when the set needs charting first (mission-chaining.md).
+net-new), `review-it` (verdict only); chains after `map-it` when the set needs charting (mission-chaining.md).
