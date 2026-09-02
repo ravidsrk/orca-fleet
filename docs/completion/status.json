@@ -861,7 +861,7 @@
       "owner": "agent",
       "status": "done",
       "branch": "claude/skills-improvements-review-oqc2zj",
-      "pr": null,
+      "pr": "https://github.com/ravidsrk/orca-fleet/pull/227",
       "commit": null,
       "evidence": [
         "docs/completion/evidence/T-09-accept-expiry-issue.txt"
@@ -1159,5 +1159,6 @@
       "gate": "CONDITIONAL_GO"
     }
   ],
-  "definition_text_at": "67c1707"
+  "definition_text_at": "67c1707",
+  "run_pr": "https://github.com/ravidsrk/orca-fleet/pull/227"
 }

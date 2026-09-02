@@ -175,3 +175,9 @@ resume_pointer: P7/H-07
 - Post-launch backlog: #212 (G-09), #213 (G-10), #226 (G-14 expiry) — all `post-launch`.
 - `resume_pointer: P7/H-07` — when the maintainer confirms H-07: verify `evidence/CF-05-r3-happy-review-it.txt` (reviewed SHA on current `main`, worker-dispatch record, PR not authored by the reviewing session), close G-16, re-evaluate the gate.
 - Second look: did not write "GO" anywhere a stranger reads before the gate table.
+
+## 2026-09-02 — run 2 published
+
+- Branch pushed; draft PR #227 opened against `main` (the run's single PR, A-15): https://github.com/ravidsrk/orca-fleet/pull/227. T-09's `pr` recorded. Session subscribed to the PR; a check-in is scheduled to drive it to green.
+- `resume_pointer: P7/H-07` (unchanged — the maintainer's dry run is the next event).
+- Second look: the PR body names H-07 as the one launch-gating action before anything else, so a reader does not take "67%" for "done".
