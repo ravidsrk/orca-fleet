@@ -83,9 +83,16 @@ MISSION_TRIGGERS = {
     ],
     "access-it": [
         "accessibility", "a11y", "wcag", "screen reader", "keyboard navigation",
-        "keyboard-only", "aria-", " aria ", "axe-core", "section 508", "color contrast",
-        "assistive",
+        "keyboard-only", "axe-core", "section 508", "color contrast", "assistive",
     ],
+}
+
+# Whole-word triggers. Plain triggers are deliberately prefix-tolerant substrings ("harden"
+# covers "hardening"), which is wrong for a short word that lives inside other words: "aria"
+# sits inside "variant". These match on word boundaries instead, so "ARIA", "ARIA's",
+# "ARIA/HTML", and "aria-label" all count and "variant" never does.
+MISSION_WORD_TRIGGERS = {
+    "access-it": ["aria"],
 }
 
 def catalog_missions() -> set[str]:
@@ -206,12 +213,7 @@ def classify_prompt(prompt: str) -> str | None:
     Specialist missions (security/perf/deps/tests/flakes) override general
     backlog/diagnosis/build routing when their technical vocabulary is present.
     """
-    # Boundary-sensitive triggers (" aria ") need the prompt padded and its sentence
-    # punctuation turned into spaces, so "ARIA" at the start or end of a prompt, or right
-    # before a comma/period, still matches — while "variant" still does not. Hyphens,
-    # slashes, and apostrophes are kept: triggers like "axe-core", "money/auth/data", and
-    # "don't know the shape" contain them.
-    prompt_lower = " " + re.sub(r"[^\w\s/'-]", " ", prompt.lower()) + " "
+    prompt_lower = prompt.lower()
     scores = {}
     for mission, triggers in MISSION_TRIGGERS.items():
         score = 0
@@ -219,6 +221,9 @@ def classify_prompt(prompt: str) -> str | None:
             if trig in prompt_lower:
                 # Longer triggers that match are more specific; weight by length.
                 score += len(trig.split())
+        for word in MISSION_WORD_TRIGGERS.get(mission, ()):
+            if re.search(rf"\b{re.escape(word)}\b", prompt_lower):
+                score += len(word.split())
         scores[mission] = score
 
     best = max(scores, key=scores.get)

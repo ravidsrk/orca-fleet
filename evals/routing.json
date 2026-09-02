@@ -232,6 +232,20 @@
       "expected_mission": "access-it",
       "type": "positive",
       "reason": "ARIA at the very end of a prompt, before a period, must still route to access-it."
+    },
+    {
+      "id": 34,
+      "prompt": "ARIA's roles are wrong on the checkout modal.",
+      "expected_mission": "access-it",
+      "type": "positive",
+      "reason": "A possessive apostrophe after ARIA must not hide the trigger (whole-word match, not substring)."
+    },
+    {
+      "id": 35,
+      "prompt": "Check the ARIA/HTML mapping on the checkout modal.",
+      "expected_mission": "access-it",
+      "type": "positive",
+      "reason": "A slash after ARIA must not hide the trigger (whole-word match, not substring)."
     }
   ]
 }
