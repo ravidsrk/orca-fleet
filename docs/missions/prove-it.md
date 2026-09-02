@@ -5,7 +5,7 @@
 
 > Point it at the money, auth, and data paths nothing currently protects. Come back to a
 > human-confirmed critical surface where every path has a merged test that dies under a
-> semantics-preserving mutation — and every bug the tests surfaced was fixed, parked, or handed
+> behavior-changing mutation — and every bug the tests surfaced was fixed, parked, or handed
 > off, never quietly asserted as correct.
 
 **Skill:** [`skills/prove-it/SKILL.md`](../../skills/prove-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes — tests, plus small clear fixes for surfaced bugs
@@ -30,9 +30,10 @@ the money, auth, data, and external-contract entry points. Uncovered trivial get
 the mission, and coverage percent is not the pass criterion — 100% with tautological asserts
 proves nothing. Done is **mutation-sensitive** coverage of the confirmed surface.
 
-The proof itself is the heart of the mission: a test counts only if a **semantics-preserving
+The proof itself is the heart of the mission: a test counts only if a **behavior-changing, harness-preserving
 mutation** of the code — one that still compiles, under a harness that still runs — makes the
-targeted assertion fail. And when characterization reveals the code is wrong, a nested
+targeted assertion fail. (A mutation that preserved semantics would be an equivalent mutant —
+unkillable by any test — which is exactly what the audit must not count.) And when characterization reveals the code is wrong, a nested
 remediation loop takes over: the buggy behavior is never asserted as correct.
 
 ## When to reach for it
@@ -82,7 +83,7 @@ Phase by phase:
    from an independent source of truth — never recomputed the way the code computes it (the
    tautology guard). Two outcomes: the test passes, meaning the code was correct but untested;
    or the test reveals a bug.
-4. **Mutation-audit** the passing test. Apply a semantics-preserving mutation — flip a
+4. **Mutation-audit** the passing test. Apply a behavior-changing, harness-preserving mutation — flip a
    boundary, negate a condition, zero a return — so the code still **compiles** and the harness
    still **runs**, and watch the targeted assertion fail. A mutation that breaks the compile or
    the imports proves the test depends on the source's shape, not its behavior — it does not
@@ -124,8 +125,8 @@ Fix-backed closes need no extra gate: the evidence chain is the authorization.
 `prove-it` is done when — and only when:
 
 - every path on the confirmed critical surface has a merged test that fails at its assertion
-  under a semantics-preserving mutation, with the harness still runnable — the mutation-audit
-  recorded, and spot-audited on a sample;
+  under a behavior-changing, harness-preserving mutation, with the harness still runnable — the
+  mutation-audit recorded as the manifest's negative control, and spot-audited on a sample;
 - every surfaced bug is fixed-with-test, parked with a reason, or handed to `clean-sweep`;
 - no assertion was weakened to pass — the diff is audited for it;
 - coverage before/after is pasted — but the pass criterion is the mutation-audit set, never

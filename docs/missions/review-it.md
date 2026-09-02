@@ -93,8 +93,9 @@ Phase by phase:
    this kills the "field doesn't exist on the model" class of hallucinated findings. Multiple axes
    flagging the same `path:line` is confirmation, and confidence is boosted.
 5. **Verdict.** GO / NO-GO with the worst issue per axis, bound to the recorded `reviewed_sha` in
-   the [evidence manifest](../concepts.md#the-evidence-manifest). Any Critical defaults the
-   verdict to NO-GO. The binding is load-bearing: under
+   the [evidence manifest](../concepts.md#the-evidence-manifest). Any Critical or Required
+   finding defaults the verdict to NO-GO; a human override to merge despite a Required is
+   recorded, never a silent GO. The binding is load-bearing: under
    [`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md), a review is valid only for
    the exact SHA it reviewed — if the head moves, the verdict is void.
 
@@ -102,8 +103,8 @@ Phase by phase:
 
 | Verdict | Meaning                                                                     | Who acts on it                                  |
 |---------|-----------------------------------------------------------------------------|-------------------------------------------------|
-| `GO`    | Every axis reported, no Critical finding, the whole bound to `reviewed_sha` | a human, or the mission that owns the merge     |
-| `NO-GO` | At least one Critical finding — the default whenever any Critical exists    | route the findings to `ship-it` / `clean-sweep` |
+| `GO`    | Every axis reported, zero Critical and zero Required findings, the whole bound to `reviewed_sha` | a human, or the mission that owns the merge     |
+| `NO-GO` | Any Critical or any Required (merge-blocking) finding — a "conditional" note may accompany it, never rename it | route the findings to `ship-it` / `clean-sweep` |
 
 Either way the verdict names the worst issue per axis, and it expires with its SHA: a head that
 moves past `reviewed_sha` leaves you holding an opinion about code that no longer exists.

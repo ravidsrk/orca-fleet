@@ -44,13 +44,14 @@ warm-vs-cold comparison is not a delta. A number you can't measure to its contra
 ## Pipeline
 
 ```
-HUMAN SCOPE CONFIRM: freeze the critical-journey list + per-journey budgets (unbounded journeys
-  unbounded mission) → declare metric contracts → BASELINE every journey (to contract) → rank
-  breaches by gap×traffic
+HUMAN SCOPE CONFIRM: freeze the critical-journey list + per-journey budgets (an unbounded journey
+  list is an unbounded mission) → declare metric contracts → BASELINE every journey (to contract)
+  → rank breaches by gap×traffic
   → DIAGNOSE the bottleneck (profile; symptom→cause tree; name the one dominant cause)
   → BOOTSTRAP integration BASE (runtime/scripts/preflight.py --base <BASE> --fork-point <sha
     recorded in the ledger header at BASE creation>; BASE ≠ default — dispatch-lifecycle.md)
-  → FIX PR-per-hotspot (before→after mandatory; GUARD: add a CI budget) → build-blind REVIEW
+  → FIX PR-per-hotspot (before→after mandatory — the perf form of evidence-manifest.md's negative
+    control; GUARD: add a CI budget at the DECLARED budget, not at today's best run) → build-blind REVIEW
     (acceptance-review) → RUNTIME-PROVE (drive the journey at its real entry point — fast but
     behaviorally wrong is a bug, not a win) → LAND
   → RE-BENCHMARK to the contract (a lucky single run is not confirmation). Lab/load contracts
@@ -77,8 +78,9 @@ Stalls → WATCH; death → RESUME scoped to header coordinator + ledger task id
 ## Anti-patterns
 
 Optimizing without a baseline (can't prove a win). One fast run = "fixed" (perf is noisy). Confirming
-below the metric's contract. Scattershot micro-opts instead of the profiled bottleneck. Unbounded
-journey list (needs the human-confirmed set).
+below the metric's contract. Comparing across conditions (lab-vs-field, warm-vs-cold is not a delta).
+A GUARD pinned to the post-fix best run (it flakes; guard at the declared budget). Scattershot
+micro-opts instead of the profiled bottleneck. Unbounded journey list (needs the human-confirmed set).
 
 ## Related
 `clean-sweep` (general findings), `review-it` (per-diff perf lens), `ship-it` (owns deploy + canary,

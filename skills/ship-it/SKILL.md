@@ -31,7 +31,7 @@ Read [ARCHITECTURE.md](../../ARCHITECTURE.md) once. Composes `decide-and-freeze`
 `compound-learn`; rides `dispatch-lifecycle`, `merge-serialization`, `reviewed-sha-freshness`,
 `evidence-manifest`, `gate-classification`, `liveness-resume`, `orca-dag-semantics`,
 `ledger-contract`, `attention-budget`, `mission-chaining`. Worker TASK pack: exactly one of matt | addy | gstack
-(grill/tdd=matt, build/verify=addy|matt, review/ship=gstack) — never co-mount two routers.
+(tdd=matt, build/verify=addy|matt, review/ship=gstack; the grill is coordinator-side, matt) — never co-mount two routers.
 
 ## Terminal states (name the one you reach)
 
@@ -52,14 +52,15 @@ git. **Repo state:**
 
 - real code → foundation fills gaps; tests green at baseline (else you can't tell regressions)
 - empty/near-empty git repo → foundation scaffolds
-- no git repo → `git init` + minimal README/.gitignore commit on default, **then create a
-  GitHub remote** (`gh repo create` private, or push an existing remote) so write preflight can
-  run — pure local-only greenfield is not supported for the full PR pipeline
+- no git repo → `git init` + minimal README/.gitignore commit on default, then a remote (an existing
+  one, or `gh repo create` private after a human confirm — it is account-visible) so write preflight
+  can run; a local-only host takes the offline lane below and stops at BASE
 
 Then `runtime/scripts/preflight.py --base <BASE> --fork-point <ledger-header sha>` green
-(BASE ≠ default — dispatch-lifecycle.md; requires `gh` + a visible remote). If `gh` later dies
-mid-run, use merge-serialization no-gh local merge (`PR_OPEN=n/a`). Ledger: header + phase
-marker + unit boolean flags (ledger-contract.md).
+(BASE ≠ default — dispatch-lifecycle.md; requires `gh` + a visible remote, or `--offline --default
+<branch>` for the no-gh lane from unit one). If `gh` later dies mid-run, use merge-serialization
+no-gh local merge (`PR_OPEN=n/a`); either way the run stops at BASE with the promotion PR owed.
+Ledger: header + phase marker + unit boolean flags (ledger-contract.md).
 
 ## Pipeline (one canonical path after freeze)
 
@@ -73,8 +74,9 @@ ENTRY ─┬─ frozen spec  → VALIDATE (decide-and-freeze: validate branch) �
    → BUILD waves (build-change per slice; foundation serializes, slices parallelize under
      attention-budget WIP)
    → ACCEPTANCE-REVIEW (build-blind, per slice) [+ RISK-REVIEW lens if the slice triggers one]
-   → RUNTIME-PROVE (doubt-driven artifact review + drive the real entry point)
-   → LAND (merge-serialization) → BUILT
+   → RUNTIME-PROVE per slice (doubt-driven artifact review + drive the real entry point)
+   → LAND (merge-serialization) → INTEGRATED PROVE at the BASE head (runtime-prove Part B over the
+     whole; the TRACEABILITY table is verified here — per-slice green alone never reaches BUILT) → BUILT
    → RELEASE state machine (release.md): PROMOTION_READY → [human gate #2] → RELEASED
    → DEPLOYED_AND_VERIFIED phase (release.md): observe.md BASELINE captured first, THEN deploy,
      then observe.md's canary loop — the state is claimed only after the window is green
@@ -105,15 +107,15 @@ ledger file (`BUILD_DONE`…`WT_CLEAN`).
 ## Gates (only these)
 
 - Human gate #1: FREEZE (intent entry only). Human gate #2: PROMOTION to default (one-way,
-  gate-classification.md). Lane B product forks: draft both, then human. Everything else is
-  mechanical/taste per the classifier (append the DECISIONS log under docs/). Merge ≠ deploy; the
-  fleet never self-merges the promotion or deploys.
+  gate-classification.md). Deploy and rollback are one-way too: executed only under a recorded
+  human grant (release.md; observe.md never auto-rolls back). Lane B product forks: draft both,
+  then human. Everything else is mechanical/taste per the classifier (append the DECISIONS log
+  under docs/). Merge ≠ deploy; the fleet never self-merges the promotion or self-authorizes a deploy.
 
 ## Supervision + resume
 
 Stalls → liveness-resume.md WATCH (reflection-before-retry). Waves respect attention-budget.md.
-Compaction → CONTEXT HANDOFF then RESUME (ledger-contract.md). Death → RESUME (ledger-scoped,
-git-verified).
+Compaction → CONTEXT HANDOFF then RESUME (ledger-contract.md). Death → RESUME (ledger-scoped, git-verified).
 
 ## Anti-patterns
 
@@ -123,6 +125,5 @@ routers in one worker TASK.
 
 ## Related
 
-`map-it` (chart a foggy goal into a spec this consumes), `clean-sweep` (close an existing set, not
-build new), `review-it` (verdict without building), `mission-chaining` (run this as the gated tail
-of a harden-it/prove-it sequence).
+`map-it` (charts a foggy goal into the spec this consumes), `clean-sweep` (close an existing set),
+`review-it` (verdict without building), `mission-chaining` (gated tail of a harden-it/prove-it chain).

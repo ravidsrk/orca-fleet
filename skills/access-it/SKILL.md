@@ -5,7 +5,7 @@ description: >-
   deterministic axe-core oracle clean on the surface plus a mandatory negative control (revert the fix,
   the violation returns), with the hard ~30-40% automation ceiling forcing screen-reader and cognitive
   criteria into a first-class human-AT park. The unit is one success-criterion violation instance on the
-  frozen surface. Use when "accessibility", "a11y", "WCAG", "screen reader", "keyboard", "ARIA",
+  frozen surface. Use when "accessibility", "a11y", "WCAG", "screen reader", "keyboard navigation", "ARIA",
   "axe-core", "Section 508 accessibility", "color contrast". Not for a security exploit loop (harden-it),
   a PR merge verdict (review-it), a discovered backlog (clean-sweep), or standards attestation (attest-it).
 license: MIT
@@ -42,11 +42,17 @@ result + a revert-to-violation negative control), `sandbox-policy` (`PROFILE=rw`
 
 ```
 FREEZE the surface: the page/flow/component set × the WCAG 2.2 AA criteria — the denominator, digest-locked.
-  → DETECT: run the deterministic oracle (axe-core/Lighthouse); enumerate violations into a DAG.
+  → BOOTSTRAP integration BASE (runtime/scripts/preflight.py --base <BASE> --fork-point <sha
+    recorded in the ledger header at BASE creation>; BASE ≠ default — dispatch-lifecycle.md)
+  → DETECT: run the deterministic oracle (axe-core/Lighthouse) against the surface rendered at the
+    BASE head; enumerate violations into a DAG.
   → FIX (rw workers, remediate-finding): each violation fixed at its instance; structural items
     (landmarks, heading order) serialized as they are global.
-  → RE-VERIFY: the oracle goes clean on the frozen surface AND the mandatory negative control holds —
-    revert the fix and the violation returns (evidence-manifest). A fix with no revert-to-red is not proven.
+  → build-blind REVIEW (acceptance-review: semantics, not just the oracle — an aria-label stuffed to
+    silence axe is a finding) → LAND (merge-serialization)
+  → RE-VERIFY at the BASE head: the oracle goes clean on the frozen surface AND the mandatory negative
+    control holds — revert the fix and the violation returns (evidence-manifest). A fix with no
+    revert-to-red is not proven.
   → PARK: criteria past the automation ceiling routed to a human + assistive-tech reviewer, named.
   → VERDICT: CONFORMANT, or CONFORMANT-WITH-MANUAL-PARKED with the human-AT park register.
 ```
@@ -75,7 +81,9 @@ proof — the un-automatable criteria must be parked, not assumed passing). Shri
 only what axe checks (the frozen surface × WCAG set is the denominator). A fix with no revert-to-violation
 negative control (a green oracle over reverted markup proves nothing). Confusing access-it with the
 per-diff accessibility lens in `review-it`, or with `attest-it` (a standard's obligation set, not a
-surface's rendered violations).
+surface's rendered violations). Silencing the oracle (empty alt, aria-label stuffing, aria-hidden on
+real content, role soup): a clean axe over a worse experience — the build-blind review judges
+semantics, not the oracle's silence.
 
 ## Related
 

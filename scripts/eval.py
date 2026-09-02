@@ -11,6 +11,7 @@ Usage:
 """
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -81,10 +82,64 @@ MISSION_TRIGGERS = {
         "regulatory", "controls evidence", "prove compliance",
     ],
     "access-it": [
-        "accessibility", "a11y", "wcag", "screen reader", "keyboard", "aria",
-        "axe-core", "section 508", "color contrast", "assistive",
+        "accessibility", "a11y", "wcag", "screen reader", "keyboard navigation",
+        "keyboard-only", "axe-core", "section 508", "color contrast", "assistive",
     ],
 }
+
+# Word triggers. Plain triggers are deliberately prefix-tolerant substrings ("harden" covers
+# "hardening"), which is wrong for a short word that lives inside other words: "aria" sits
+# inside "variant". A word trigger must start at a word boundary and end at one, or at an
+# identifier continuation — `aria-label`, `aria_roles`, camelCase `ariaLabel` — so it never
+# matches inside "variant" or as the prefix of "Arial" / "ARIAL" / "arias" / "aria2". Matched
+# on the RAW prompt, because case carries meaning: the acronym is written ARIA and an identifier
+# head is written aria…, while a title-case standalone "Aria" mid-sentence is a proper noun
+# (a person, a hotel) and does not count. At the head of a prompt, a line, or a sentence
+# every word is capitalized, so there the case carries no signal and the token reads like
+# its lowercase form ("Aria roles are broken on the modal").
+MISSION_WORD_TRIGGERS = {
+    "access-it": ["aria"],
+}
+
+# What precedes a token that opens a sentence: nothing, or a sentence break (a line break or
+# one of . ! ? :), then optional whitespace, an optional list marker ("- ", "* ", "1. "), and
+# optional opening quotes or brackets. A semicolon or a dash is not a break: the clause after
+# it is not capitalized by convention, so a title-case token there keeps its proper-noun reading.
+_SENTENCE_HEAD_RE = re.compile(r"""(?:^|[\n.!?:])\s*(?:(?:[-*•]|\d+[.)])\s+)?["'“‘(\[]*$""")
+
+
+def _opens_sentence(prompt: str, start: int) -> bool:
+    """True when the token at `start` is the first word of the prompt, of a line, or of a sentence."""
+    return _SENTENCE_HEAD_RE.search(prompt[:start]) is not None
+
+
+def word_trigger_matches(word: str, prompt: str) -> bool:
+    """True when `word` appears as a whole word or as the head of an identifier in `prompt`.
+
+    A trailing lowercase letter or digit continues a different word (`Arial`, `arias`, the
+    `aria2` download tool); an underscore, hyphen, or punctuation does not. A trailing capital
+    continues an all-caps word (`ARIAL`, `ARIAS`) but heads an identifier after a lowercase or
+    title-case token (`ariaLabel`, `AriaLabel`). Case is a signal: an all-caps token is the
+    acronym (ARIA, ARIA_LABEL) and an all-lowercase one the identifier head (aria-label,
+    ariaLabel); a mixed-case token (Aria) counts when an identifier continuation follows it
+    (Aria-label, AriaLabel) or when it opens the prompt, a line, or a sentence, where
+    capitalization is conventional and carries no signal ("Aria roles are broken on the
+    modal"). Standing alone mid-sentence it is a proper noun (Ask Aria …).
+    """
+    for m in re.finditer(rf"(?<![A-Za-z0-9])(?i:{re.escape(word)})(?![a-z0-9])", prompt):
+        token = m.group(0)
+        nxt = prompt[m.end():m.end() + 1]
+        if token == token.upper():
+            if not nxt.isupper():
+                return True
+            continue  # the head of a longer all-caps word: ARIAL, ARIAS
+        if token == token.lower():
+            return True
+        if nxt in ("-", "_") or nxt.isupper():
+            return True
+        if _opens_sentence(prompt, m.start()):
+            return True
+    return False
 
 def catalog_missions() -> set[str]:
     """The live mission catalog: skills/<name>/ dirs with a SKILL.md. Eval coverage
@@ -212,6 +267,9 @@ def classify_prompt(prompt: str) -> str | None:
             if trig in prompt_lower:
                 # Longer triggers that match are more specific; weight by length.
                 score += len(trig.split())
+        for word in MISSION_WORD_TRIGGERS.get(mission, ()):
+            if word_trigger_matches(word, prompt):
+                score += len(word.split())
         scores[mission] = score
 
     best = max(scores, key=scores.get)

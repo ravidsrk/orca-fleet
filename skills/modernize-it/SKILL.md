@@ -55,7 +55,11 @@ INVENTORY (outdated + advisories; read the CHANGELOG not the version delta; reac
   → order: security-critical-reachable → patch/minor (batch coherent groups) → majors (one per PR)
   → UPGRADE waves (one dep/coherent-group per PR: bump → adapt call sites, adding code-level
     deprecation shims / dual-run APIs where a major needs them → CI GREEN is the gate; lockfile
-    regenerated not hand-edited; verify provenance on registry/maintainer change)
+    regenerated not hand-edited; verify provenance on registry/maintainer change and install with
+    lifecycle scripts disabled until provenance is verified — a bumped package's install hook is untrusted
+    code (risk-review security lens). The lockfile is a hot mount-point file: upgrade PRs form a
+    merge CHAIN (merge-serialization), regenerated at each rebase — and a rebase voids the review
+    (reviewed-sha-freshness), so size coherent groups to keep the chain short)
   → FORCED-MIGRATION CHECK (risk-review data-migration lens): if an upgrade forces a stateful DB
     schema/data change, do NOT run it here — open a staged ship-it handoff brief:
     (1) expand release, (2) this dep upgrade + migrate-in-batches, (3) contract only after (2) is
@@ -86,7 +90,8 @@ handoff). Stalls → WATCH; death → RESUME scoped to header coordinator + ledg
 `audit fix --force` / mass-bump. Running a cross-deploy DB schema/data migration inside a currency loop
 (no deploy states here — hand it to ship-it). Rename-in-place code migrations (breaks dual-running
 deploys). Landing a red CI "to fix next PR". Bumping a major without its changelog. Dropping a compat
-shim without a gate.
+shim without a gate. Hand-merging a lockfile conflict. Letting a just-bumped package's install hook run
+before its provenance is checked.
 
 ## Related
 `ship-it` (owns the deploy states a forced stateful DB migration needs), `clean-sweep`, `harden-it`

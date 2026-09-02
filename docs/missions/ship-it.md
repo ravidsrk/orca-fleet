@@ -63,7 +63,8 @@ flowchart TD
     E --> F[ACCEPTANCE-REVIEW<br/>build-blind, per slice]
     F --> G[RUNTIME-PROVE<br/>drive the real entry point]
     G --> H[LAND<br/>merge conductor, one train]
-    H --> I{{BUILT}}
+    H --> H2[INTEGRATED PROVE at the BASE head<br/>traceability table verified over the whole]
+    H2 --> I{{BUILT}}
     I --> J[PROMOTION PR<br/>traceability table]
     J --> K{{PROMOTION_READY}}
     K -->|human merges<br/>human gate 2| L{{RELEASED}}
@@ -94,7 +95,9 @@ Phase by phase:
 5. **Prove** ([`runtime-prove`](../../playbooks/runtime-prove.md)). Green units are the start of
    verification, not the end. The change is driven through its true public entry point and the
    persisted state is asserted — plus a negative control: revert the change, watch the proof go
-   red, restore it.
+   red, restore it. It runs per slice before landing, and again over the **integrated whole** at
+   the BASE head once the wave lands — the traceability table is verified there, never inferred
+   from per-slice green.
 6. **Land** ([`merge-serialization`](../../runtime/merge-serialization.md)). One conductor owns
    all merges to the integration BASE. Reviewed-SHA freshness is enforced: a rebase voids the
    review and the PR re-boards with a fresh one.
@@ -118,13 +121,16 @@ machine exists to prevent.
 
 ## Human gates
 
-Exactly two, both one-way doors under
+Two in every run, both one-way doors under
 [`gate-classification`](../../runtime/gate-classification.md):
 
 1. **The freeze** (intent entry only) — you confirm the spec before any slice is cut.
 2. **The promotion** — merging BASE to the default branch is always yours. The fleet opens the
    PR with the traceability table and an `accountable: <human>` line, then stops. Merge ≠ deploy,
    and the fleet never self-merges a promotion.
+
+Past `RELEASED`, deploy and rollback are one-way doors as well: the fleet executes a deploy only
+under a recorded human grant, and the canary loop surfaces a rollback option rather than taking it.
 
 Everything else is classified mechanical (auto-resolved, audited in the ledger) or taste
 (recommendation picked, batched for your veto, work continues).

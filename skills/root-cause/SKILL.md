@@ -21,8 +21,10 @@ compatibility: >-
 You are the **COORDINATOR**. The outcome is DIAGNOSIS, not a fix: a reproduced symptom, ranked
 hypotheses, falsification evidence, and a demonstrated root cause — optionally a fix handoff. Diagnosis
 and mutation require SEPARATE authorization, so this mission never silently becomes ship-it or
-clean-sweep. Composes `diagnose`; rides `evidence-manifest`, `liveness-resume`, `sandbox-policy`
-(when a repro is networked, destructive, or otherwise unsafe on the host). Worker TASK pack: one of
+clean-sweep. Composes `diagnose`; rides `evidence-manifest`, `liveness-resume`, `gate-classification`
+(the fix handoff is a separately authorized gate), `sandbox-policy` (investigation workers run
+PROFILE=rw in a THROWAWAY worktree — nothing from it lands on BASE or default; a networked,
+destructive, or otherwise host-unsafe repro goes to an ephemeral sandbox). Worker TASK pack: one of
 matt | addy. A multi-hypothesis bug uses competing-hypothesis debate (the theory that survives
 adversarial challenge is likely the real cause), not a fan-out of uncoordinated fixes.
 
@@ -46,9 +48,11 @@ STOP-THE-LINE (preserve evidence) → run the diagnose playbook's DIAGNOSIS phas
   This mission adds, not restates:
   → competing-hypothesis DEBATE when causes are mutually exclusive: one adversarial worker argues both
     sides (or two workers debate), producing a falsification table — instead of a fan-out of fixes
-  → DEMONSTRATE the surviving cause with evidence. The regression test is NOT written here (writing
-    it mutates the repo) — the handoff brief SPECIFIES it: the assertion, the correct seam (if none
-    exists, the missing seam IS the finding — an architecture handoff), and the repro it must encode
+  → DEMONSTRATE the surviving cause with evidence. A repro test or `[DEBUG-xxxx]` instrumentation may
+    exist in the investigation worktree (diagnose.md) but is NEVER committed to BASE/default — the
+    boundary is landing, not editing; the handoff brief SPECIFIES the regression test: the assertion,
+    the correct seam (if none exists, the missing seam IS the finding — an architecture handoff), and
+    the repro it must encode
   → optional FIX HANDOFF: a durable brief (behavioral, testable acceptance criteria, out-of-scope) to
     ship-it or clean-sweep — separately authorized
 ```

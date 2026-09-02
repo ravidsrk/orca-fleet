@@ -211,6 +211,55 @@
       "expected_mission": "review-it",
       "type": "negative",
       "reason": "A bounded per-diff a11y lens is review-it; access-it is a full surface conformance sweep, not a per-PR verdict."
+    },
+    {
+      "id": 31,
+      "prompt": "Build me keyboard shortcuts for the editor.",
+      "expected_mission": "ship-it",
+      "type": "negative",
+      "reason": "Keyboard shortcuts are a feature build (ship-it); access-it triggers on keyboard navigation / WCAG conformance, not the word keyboard alone."
+    },
+    {
+      "id": 32,
+      "prompt": "ARIA roles on the checkout modal are wrong.",
+      "expected_mission": "access-it",
+      "type": "positive",
+      "reason": "ARIA at the very start of a prompt must still route to access-it (word-boundary trigger, not a bare substring)."
+    },
+    {
+      "id": 33,
+      "prompt": "Fix the checkout modal's broken ARIA.",
+      "expected_mission": "access-it",
+      "type": "positive",
+      "reason": "ARIA at the very end of a prompt, before a period, must still route to access-it."
+    },
+    {
+      "id": 34,
+      "prompt": "ARIA's roles are wrong on the checkout modal.",
+      "expected_mission": "access-it",
+      "type": "positive",
+      "reason": "A possessive apostrophe after ARIA must not hide the trigger (whole-word match, not substring)."
+    },
+    {
+      "id": 35,
+      "prompt": "Check the ARIA/HTML mapping on the checkout modal.",
+      "expected_mission": "access-it",
+      "type": "positive",
+      "reason": "A slash after ARIA must not hide the trigger (whole-word match, not substring)."
+    },
+    {
+      "id": 36,
+      "prompt": "Set ariaLabel on the icon buttons.",
+      "expected_mission": "access-it",
+      "type": "positive",
+      "reason": "A camelCase identifier headed by aria (React's ariaLabel) must still route to access-it."
+    },
+    {
+      "id": 37,
+      "prompt": "Aria roles are broken on the checkout modal.",
+      "expected_mission": "access-it",
+      "type": "positive",
+      "reason": "Sentence-initial title case is conventional and carries no proper-noun signal: a prompt opening with Aria must still route to access-it."
     }
   ]
 }

@@ -4,12 +4,12 @@
     {
       "id": 1,
       "prompt": "Close the test gap on the money, auth, and data paths.",
-      "expected_output": "Should route to prove-it. Should map the critical surface (coverage × call-graph), write characterization tests asserting real behavior, prove each with a semantics-preserving mutation that fails the targeted assertion while the harness still runs, and loop until COVERED.",
+      "expected_output": "Should route to prove-it. Should map the critical surface (coverage × call-graph), write characterization tests asserting real behavior, prove each with a behavior-changing, harness-preserving mutation that fails the targeted assertion while the harness still runs, and loop until COVERED.",
       "assertions": [
         "Routes to prove-it",
         "Maps critical surface, not all code",
         "Writes characterization tests for real behavior",
-        "Uses semantics-preserving mutation as proof",
+        "Uses a behavior-changing, harness-preserving mutation as proof, recorded as the manifest's negative_control",
         "Mutation fails the targeted assertion while harness runs"
       ],
       "files": []

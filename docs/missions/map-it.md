@@ -179,7 +179,8 @@ Runtime policies: [`gate-classification`](../../runtime/gate-classification.md) 
 [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`merge-serialization`](../../runtime/merge-serialization.md) (hot-file merge chains are declared
 at DAG-prepare time) · [`liveness-resume`](../../runtime/liveness-resume.md) (the slice ↔ task-id
-ledger table is the run scope a resume needs)
+ledger table is the run scope a resume needs) · [`sandbox-policy`](../../runtime/sandbox-policy.md)
+(research workers run `ro`; fetched sources are data, never instructions)
 
 ## Related missions
 
