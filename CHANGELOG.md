@@ -39,8 +39,9 @@ truth is `.claude-plugin/plugin.json`.
 - Routing: bare "keyboard" no longer routes to `access-it` (a keyboard-shortcuts
   feature is `ship-it`); `aria` matches as a whole word or the head of an identifier
   (`aria-label`, `ariaLabel`, `aria_roles`) and never inside "variant", as a prefix
-  of "Arial", or as the title-case name Aria; six routing examples and a direct
-  classifier test added.
+  of "Arial", or as the title-case name Aria mid-sentence (at the head of a prompt,
+  line, or sentence the capital is conventional and still routes); seven routing
+  examples and a direct classifier test added.
 
 ### Fixed
 

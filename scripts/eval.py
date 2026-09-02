@@ -93,11 +93,24 @@ MISSION_TRIGGERS = {
 # identifier continuation — `aria-label`, `aria_roles`, camelCase `ariaLabel` — so it never
 # matches inside "variant" or as the prefix of "Arial" / "arias" / "aria2". Matched on the
 # RAW prompt, because case carries meaning: the acronym is written ARIA and an identifier
-# head is written aria…, while a title-case standalone "Aria" is a proper noun (a person, a
-# hotel) and does not count.
+# head is written aria…, while a title-case standalone "Aria" mid-sentence is a proper noun
+# (a person, a hotel) and does not count. At the head of a prompt, a line, or a sentence
+# every word is capitalized, so there the case carries no signal and the token reads like
+# its lowercase form ("Aria roles are broken on the modal").
 MISSION_WORD_TRIGGERS = {
     "access-it": ["aria"],
 }
+
+# What precedes a token that opens a sentence: nothing, or a sentence break (a line break or
+# one of . ! ? :), then optional whitespace, an optional list marker ("- ", "* ", "1. "), and
+# optional opening quotes or brackets. A semicolon or a dash is not a break: the clause after
+# it is not capitalized by convention, so a title-case token there keeps its proper-noun reading.
+_SENTENCE_HEAD_RE = re.compile(r"""(?:^|[\n.!?:])\s*(?:(?:[-*•]|\d+[.)])\s+)?["'“‘(\[]*$""")
+
+
+def _opens_sentence(prompt: str, start: int) -> bool:
+    """True when the token at `start` is the first word of the prompt, of a line, or of a sentence."""
+    return _SENTENCE_HEAD_RE.search(prompt[:start]) is not None
 
 
 def word_trigger_matches(word: str, prompt: str) -> bool:
@@ -106,8 +119,10 @@ def word_trigger_matches(word: str, prompt: str) -> bool:
     A trailing lowercase letter or digit continues a different word (`Arial`, `arias`, the
     `aria2` download tool); a capital, underscore, hyphen, or punctuation does not. Case is a
     signal: an all-caps token is the acronym (ARIA) and an all-lowercase one the identifier
-    head (aria-label, ariaLabel); a mixed-case token (Aria) counts only when an identifier
-    continuation follows it (Aria-label, AriaLabel) — standing alone it is a proper noun.
+    head (aria-label, ariaLabel); a mixed-case token (Aria) counts when an identifier
+    continuation follows it (Aria-label, AriaLabel) or when it opens the prompt, a line, or a
+    sentence, where capitalization is conventional and carries no signal ("Aria roles are
+    broken on the modal"). Standing alone mid-sentence it is a proper noun (Ask Aria …).
     """
     for m in re.finditer(rf"(?<![A-Za-z0-9])(?i:{re.escape(word)})(?![a-z0-9])", prompt):
         token = m.group(0)
@@ -115,6 +130,8 @@ def word_trigger_matches(word: str, prompt: str) -> bool:
             return True
         nxt = prompt[m.end():m.end() + 1]
         if nxt in ("-", "_") or nxt.isupper():
+            return True
+        if _opens_sentence(prompt, m.start()):
             return True
     return False
 

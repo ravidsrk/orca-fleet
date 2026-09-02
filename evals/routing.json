@@ -253,6 +253,13 @@
       "expected_mission": "access-it",
       "type": "positive",
       "reason": "A camelCase identifier headed by aria (React's ariaLabel) must still route to access-it."
+    },
+    {
+      "id": 37,
+      "prompt": "Aria roles are broken on the checkout modal.",
+      "expected_mission": "access-it",
+      "type": "positive",
+      "reason": "Sentence-initial title case is conventional and carries no proper-noun signal: a prompt opening with Aria must still route to access-it."
     }
   ]
 }

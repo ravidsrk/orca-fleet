@@ -126,6 +126,8 @@ class TestEvalInfrastructure(unittest.TestCase):
         # identifier (aria-label, aria_roles, ariaLabel) and never when it merely sits inside
         # another word ("variant"), is the prefix of one ("Arial", "arias", "aria2"), or is
         # the title-case proper noun ("Aria" the person or hotel) rather than the acronym.
+        # Title case at the head of the prompt, a line, or a sentence is conventional, so it
+        # carries no proper-noun signal and the token reads like its lowercase form.
         for prompt in ("ARIA roles on the checkout modal are wrong.",
                        "Fix the checkout modal's broken ARIA.",
                        "Check the ARIA/HTML mapping on the checkout modal.",
@@ -133,7 +135,14 @@ class TestEvalInfrastructure(unittest.TestCase):
                        "Fix aria_roles on the modal.",
                        "Add aria-label attributes to the icon buttons.",
                        "Fix aria on the nav.",
-                       "Aria-label is missing on the icon buttons."):
+                       "Aria-label is missing on the icon buttons.",
+                       "Aria roles are broken on the checkout modal.",
+                       "Fix the checkout modal. Aria roles are broken there.",
+                       "Checkout modal: Aria roles are broken.",
+                       "Checkout modal\nAria roles are broken.",
+                       "- Aria roles are broken on the checkout modal.",
+                       "1. Aria roles are broken on the checkout modal.",
+                       "\"Aria roles are broken on the checkout modal.\""):
             with self.subTest(prompt=prompt):
                 self.assertEqual(eval_mod.classify_prompt(prompt), "access-it")
         for prompt in ("Sweep the auth service for variants of the IDOR.",
