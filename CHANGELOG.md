@@ -21,8 +21,9 @@ truth is `.claude-plugin/plugin.json`.
 ### Changed
 
 - `docs/ops.md` incident step 4 documents the rollback this catalog has
-  (`git revert -m 1` of the merge via a PR; no deploy target), citing both
-  scratch-clone rehearsals; completion gap G-14 closes on that evidence and
+  (`git revert -m 1` of the merge via a PR; no deploy target), rehearsed
+  against a real merge commit on a scratch clone; `playbooks/release.md`
+  says `-m 1` too. Completion gap G-14 closes on that evidence and
   its ACCEPT expiry marker (#226) with it. #212 closes as a tracker: the
   field-proof plan in `docs/runs/README.md` is the live one, and G-09 stays
   deferred in the register.

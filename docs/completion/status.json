@@ -571,7 +571,7 @@
       ],
       "accept_expiry": null,
       "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/226",
-      "note": "closed on evidence 2026-09-02 (A-26): rollback documented in docs/ops.md step 4, rehearsed twice; no deploy target exists"
+      "note": "closed on evidence 2026-09-02 (A-26): rollback documented in docs/ops.md step 4, rehearsed against a merge commit with -m 1 (T-12 transcript); no deploy target exists"
     },
     {
       "id": "G-15",
@@ -953,6 +953,8 @@
       "commit": null,
       "evidence": [
         "docs/ops.md",
+        "playbooks/release.md",
+        "docs/completion/evidence/T-12-rollback-merge-rehearsal.txt",
         "docs/completion/evidence/P0-r2-rollback-rehearsal.txt",
         "docs/completion/evidence/P0-rollback-rehearsal.txt"
       ],

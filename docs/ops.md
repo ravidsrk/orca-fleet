@@ -48,7 +48,10 @@ to `main` plus the plugin copy in `.claude-plugin/`.
    is undone the way it landed: `git revert -m 1 <merge-sha>` on a branch,
    then a PR through the normal gates — never a force-push or a history
    rewrite on `main`. Regenerate badges (`python3 scripts/gen-badges.py`) if
-   the revert changes counts. Rehearsed on scratch clones on 2026-09-01 and
-   2026-09-02 ([transcript](completion/evidence/P0-r2-rollback-rehearsal.txt)).
+   the revert changes counts. Rehearsed on a scratch clone against a real
+   merge commit on 2026-09-02
+   ([transcript](completion/evidence/T-12-rollback-merge-rehearsal.txt) —
+   it also shows the plain `git revert <merge-sha>` failure mode); the two
+   earlier rehearsals reverted a single-parent commit.
    If a deploy target ever appears, this step gains a staging deploy →
    rollback rehearsal and the completion register re-opens G-14 under P4.

@@ -38,7 +38,7 @@ The human merges the promotion PR. Verify state=MERGED on default + greppable. M
 FIRST capture observe.md's baseline (its step 1 runs BEFORE the deploy — change-vs-baseline is
 impossible afterwards). Then: deploy-strategy auto-detect (fly/render/vercel/netlify/heroku/railway +
 Actions); staging-first option (same health checks on staging before prod); a REVERT option offered at
-EVERY failure point (deploy fail, canary fail: `git revert <merge-sha>` or a revert-PR if
+EVERY failure point (deploy fail, canary fail: `git revert -m 1 <merge-sha>` or a revert-PR if
 branch-protected). The DEPLOYED revision must equal the RELEASED SHA (evidence-manifest.md). Then hand
 to `observe`'s canary loop; this state is claimed only after the window is green.
 

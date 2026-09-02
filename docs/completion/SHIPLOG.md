@@ -213,3 +213,8 @@ resume_pointer: P7/H-07
 - Completion unchanged at 68% (angle 7 already 3). Verdict unchanged: CONDITIONAL GO on H-07.
 - review: manual. `resume_pointer: P7/H-07`.
 - Second look: refused to mark G-09 closed alongside its issue — closing a tracker is not field-proof.
+
+## 2026-09-02 — Greptile on PR #231 (T-12)
+
+- Two findings, both valid and fixed: (1) `playbooks/release.md` still said `git revert <merge-sha>`, which Git rejects on a merge commit — now `-m 1`; (2) the two earlier rehearsals reverted a single-parent throwaway commit, not a merge — rehearsed again on a scratch clone against a real `--no-ff` merge with `git revert -m 1` (`evidence/T-12-rollback-merge-rehearsal.txt`, which also records the no-`-m` failure mode). G-14 stays closed, now on merge-shaped evidence.
+- Second look: the ledger had called single-parent reverts a rehearsal of the merge procedure; corrected wherever it appeared (GAPS, STATUS F-7-03 and gate row 7, PLAN, ops step).
