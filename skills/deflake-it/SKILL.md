@@ -43,7 +43,9 @@ runtime-prove pass). Worker TASK pack: one of matt | addy.
 ## Pipeline
 
 ```
-DETECT: run the suite DETECT_RUNS times (default 30; parallel, varied seed/order) → per-test flake RATE;
+DETECT: run the suite DETECT_RUNS times (default 30; varied seed/order; parallel only at the target
+  env's concurrency — self-parallel copies colliding on ports/tmp/DB measure a different distribution,
+  so record the run conditions with the rate) → per-test flake RATE;
   mine CI retry history (pass-on-retry tests flake in an env local runs don't reproduce — capture even
   at local rate 0). Deterministic N/N failures are BUGS → route to clean-sweep, out of scope.
   → DIAGNOSE (diagnose playbook, adapted): build a loop that RAISES the failure rate (tight loop, under
@@ -56,8 +58,10 @@ DETECT: run the suite DETECT_RUNS times (default 30; parallel, varied seed/order
     rate; restore, show it's gone across a mini-streak) — never `retry(3)` a flake into hiding.
   → close per remediate-finding: PR-per-flake against BASE → build-blind REVIEW (acceptance-review)
     → conductor LAND
-  → PROVE: full suite GREEN_STREAK consecutive runs, local AND verified in CI (gh run list). ANY
-    flake resets the streak to zero and re-enters detection. → loop → outcome → REFLECT (`compound-learn`)
+  → PROVE: full suite GREEN_STREAK consecutive runs, local AND verified in CI (gh run list), all at
+    ONE SHA — the BASE head after the last fix lands; a new commit restarts the streak. Trigger CI
+    re-runs with `gh run rerun` / `gh workflow run`, never empty commits. ANY flake resets the
+    streak to zero and re-enters detection. → loop → outcome → REFLECT (`compound-learn`)
 ```
 
 ## Convergence proof
@@ -79,7 +83,9 @@ Stalls → WATCH; death → RESUME scoped to header coordinator + ledger task id
 
 Theorizing before a loop that reproduces at elevated rate. `retry(n)` / `--rerun-failures` as the fix
 (hides flakes, poisons the signal). One green run = done. Treating an N/N deterministic failure as a
-flake (it's a bug — clean-sweep). Widening a timeout that masks a real race.
+flake (it's a bug — clean-sweep). Widening a timeout that masks a real race. Deleting or skipping a
+flaky test (a quarantine with a human-approved ticket is the only exit). A streak stitched across
+commits (it proves nothing about the head).
 
 ## Related
 `root-cause` (a single hard intermittent bug, not a suite-rate contract), `prove-it` (coverage),

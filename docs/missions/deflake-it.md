@@ -27,8 +27,8 @@ streak until the declared confidence contract holds. Every unit emits a SHA-boun
 [evidence manifest](../concepts.md#the-evidence-manifest).
 
 Rerun behavior **is** the mission, not verification bolted on after a fix. Detection means
-repeated observations: the suite runs `{{DETECT_RUNS}}` times (default 20, in parallel, with
-varied seed and order) to produce a per-test flake rate — and CI retry history is mined
+repeated observations: the suite runs `{{DETECT_RUNS}}` times (default 30, with varied seed and
+order, at the target environment's concurrency) to produce a per-test flake rate — and CI retry history is mined
 alongside, because a pass-on-retry test flakes in an environment local runs never reproduce. A
 CI-only flake is captured even when its local rate is zero.
 
@@ -69,7 +69,9 @@ flowchart TD
 
 Phase by phase:
 
-1. **Detect.** `{{DETECT_RUNS}}` repeat runs (default 20; parallel, varied seed and order) turn
+1. **Detect.** `{{DETECT_RUNS}}` repeat runs (default 30; varied seed and order, at the target
+   environment's concurrency — self-parallel copies that collide on ports or a shared DB measure a
+   different distribution) turn
    "sometimes fails" into a measured per-test rate. CI retry history is mined for pass-on-retry
    tests — the flakes that live only in CI's environment — and each is captured even at a local
    rate of zero. Deterministic N/N failures are triaged out as bugs.
@@ -87,8 +89,12 @@ Phase by phase:
 4. **Close** ([`remediate-finding`](../../playbooks/remediate-finding.md)). PR-per-flake
    against BASE, a build-blind review, then the conductor lands it. The retry-wrapper ban is
    enforced mechanically: the diff is grepped for retry/rerun wrappers before the close counts.
-5. **Prove.** The full suite runs `{{GREEN_STREAK}}` consecutive times (default 10), local
-   **and** verified in CI via `gh run list`. Any flake anywhere resets the streak to zero and
+5. **Prove.** The full suite runs `{{GREEN_STREAK}}` consecutive times (default 30 — the streak
+   is a declared statistical contract: N greens bound the residual per-run flake rate at
+   p ≤ 1 − 0.05^(1/N) with 95% confidence, so 10 only proves p ≲ 26% and 30 proves p ≲ 9.5%),
+   local **and** verified in CI via `gh run list`, all at one SHA — the BASE head after the last
+   fix lands; a new commit restarts the streak, and CI re-runs are triggered with `gh run rerun`
+   or `gh workflow run`, never empty commits. Any flake anywhere resets the streak to zero and
    re-enters detection. The streak is the contract; one green run is an anecdote.
 
 ## Terminal states — quarantined is not stable
