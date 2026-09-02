@@ -48,6 +48,7 @@ the same edit that logs the verify.
 | `VERIFY_AT_SCALE` | OPS queue: load test / prod telemetry / live apply still owed | Companion to `CODE_CLOSED` |
 | `refuted` / `duplicate` / `externally-resolved` | Not real work for this run | Yes after batch gate where required |
 | `out-of-scope` | Wrong mission (hand off) | Not this mission's denominator |
+| `awaiting-maintainer-merge` / `externally-covered` | oss-contribute handoffs (upstream-contribution.md): a posted PR whose feedback went quiet, or an issue another open PR already covers; ref = that PR url | Yes — a handoff, not a degradation (mission-chaining.md) |
 
 `CODE_CLOSED` **requires** a written verify plan (command or checklist) and an OPS/human ref in
 the run's OPS actions note under `docs/` (or the ledger OPS section). Never use it to skip a test
