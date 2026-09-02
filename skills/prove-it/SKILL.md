@@ -1,7 +1,7 @@
 ---
 name: prove-it
 description: >-
-  Give every critical path a test that dies under a semantics-preserving mutation. Map the untested
+  Give every critical path a test that dies under a behavior-changing mutation. Map the untested
   critical surface (coverage × call-graph of the money/auth/data paths), write characterization tests
   that assert real behavior, prove each earns its keep by failing at its assertion under a mutation
   (harness still runnable — a compile break is not proof), and route surfaced bugs to a fix or backlog,
@@ -43,11 +43,13 @@ MAP critical surface (coverage gaps × call-graph of money/auth/data/external-co
   → BOOTSTRAP integration BASE (runtime/scripts/preflight.py --base <BASE> --fork-point <sha
     recorded in the ledger header at BASE creation>; BASE ≠ default — dispatch-lifecycle.md)
   → CHARACTERIZE waves (build-change): assert REAL expected behavior. Two outcomes:
-    · code correct, untested → the test passes; PROVE it with a semantics-preserving MUTATION (flip a
-      boundary, negate a condition, zero a return — code still COMPILES, harness still RUNS) that fails
-      the targeted assertion. A revert that breaks compile/imports proves source-SHAPE dependence, not
-      behavior — does not count. Record each audit in the unit manifest's `metric_contract`
-      (mutation, target assertion, harness still runnable — see `evidence-manifest.md` for schema).
+    · code correct, untested → the test passes; PROVE it with a behavior-changing, harness-preserving
+      MUTATION (flip a boundary, negate a condition, zero a return — code still COMPILES, harness still
+      RUNS; a mutation tool where one fits: mutmut/stryker/pitest/cargo-mutants…, else a hand mutant)
+      that fails the targeted assertion. A revert that breaks compile/imports proves source-SHAPE
+      dependence, not behavior — does not count. Record each audit as the manifest's `negative_control`
+      (tool · pinned mutant id · target assertion · KILLED) plus `binding_audit`; `metric_contract`
+      carries only the coverage before/after (evidence-manifest.md schema).
     · test reveals a BUG → SURFACED-BUG sub-loop (remediate-finding). Route small clear fixes in-PR;
       route ambiguous / behavior-changing bugs to PARK needs-human or hand to clean-sweep. Never assert
       the buggy behavior as correct.
@@ -60,8 +62,9 @@ Waves respect `attention-budget` WIP.
 
 ## Convergence proof
 
-Every critical-surface path: a merged test that fails at its assertion under a semantics-preserving
-mutation, harness runnable (mutation-audit recorded in `metric_contract`; spot-audited on a sample).
+Every critical-surface path: a merged test that fails at its assertion under a behavior-changing,
+harness-preserving mutation (the audit recorded as `negative_control` + `binding_audit`; the verifier
+re-runs the pinned mutant on a sample).
 Every surfaced bug: fixed-with-test, or parked with a reason, or handed to clean-sweep. No assertion
 weakened to pass (diff-audit). Coverage before/after pasted — but the pass criterion is the
 mutation-audit set, not the percent. Manifest names COVERED or COVERED-WITH-PARKED.
