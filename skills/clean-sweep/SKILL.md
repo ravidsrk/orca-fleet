@@ -40,7 +40,8 @@ pass (reserved for non-trivial feature-class findings handed to ship-it).
 
 - **DRY** — full re-enumeration finds zero items not CLOSED with evidence or PARKED in a class
   ledger-contract.md counts as clean (`refuted` / `duplicate` / `externally-resolved` after their
-  batch gate; `out-of-scope` handed off). No degraded park remains.
+  batch gate; `out-of-scope` handed off). No degraded park remains, and the integration tip passes
+  the repo's own validate/test suite.
 - **DRY-WITH-PARKED** (degraded) — set exhausted but ≥1 degraded park remains (`needs-human`,
   `CODE_CLOSED` + `VERIFY_AT_SCALE`). Never reported as DRY.
 
