@@ -31,8 +31,10 @@ Observed through: actions_run_trigger run_workflow; actions_get get_workflow_run
 issue_read get + get_comments (all on 2026-09-02 between 11:48:15Z and 11:49:30Z).
 
 What this proves: the alert path — workflow → `gh label create` → `gh issue create` (label ci-failure) →
-`gh issue close` with the repository token — fires and leaves a durable, owner-notified artifact (an issue),
-without redding `main`.
+`gh issue close` with the repository token — fires and leaves a durable artifact in the tracker (an issue),
+without redding `main`. Only the issue's creation and closure were observed (via the API); whether GitHub
+delivered a notification for it to the maintainer was NOT observed — that depends on the account's issue
+notification settings, which are outside this transcript.
 What it does not prove: a real `validate` failure on `main` firing the `workflow_run` trigger. That event is
 GitHub's standard `workflow_run: [validate] completed` on the same job body; inducing it would red `main` (R9),
 so it stays unobserved by design.

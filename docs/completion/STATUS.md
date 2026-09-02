@@ -58,7 +58,7 @@ The run-1 STATUS text as last updated is in git at `19fbad5` (the run-1 close wa
 | Where | maintainer Mac, worktree `ravidsrk/p0-completion-audit` | cloud container `/home/user/orca-fleet`, branch `claude/skills-improvements-review-oqc2zj` reset onto `main` (A-14/A-15) |
 | Dirty tree | none | none (only `docs/completion/` written by this run) |
 | Remote branches | `main` + audit | `main` + this session's branch; no worktrees |
-| Open PRs / issues | 0 / 0 | 0 / 2 (#212 G-09, #213 G-10 — `post-launch`) |
+| Open PRs / issues | 0 / 0 | 0 / 2 at re-freeze (#212 G-09, #213 G-10 — `post-launch`; #213 closes with the T-11 ledger) |
 | Last CI on `main` | run 33296692840 success | run 33607463296 (#105) **success** — `evidence/P0-r2-ci-main.txt` |
 | Drift since last recorded commit `95ebeb2` | — | 49 / 216 tracked files = **22.7%** (> 20% → full re-score, A-17); 74 files since `6abf548` |
 
@@ -205,11 +205,11 @@ The gate in `DEFINITION.md` is binding, not this number.
 ## Top risks (run 2)
 
 1. CF-05 evidence predates the #225 `review-it` changes and was a coordinator self-review → G-16 / **H-07 (gates launch)**
-2. Alert-on-failure still undemonstrated; notifications are account-side → G-10 / H-06 (A-13)
+2. Alert path drilled 2026-09-02 (G-10 closed, issue #229); a real `validate` failure firing `workflow_run` on `main` stays unobserved by design (R9), and notification delivery was not observed
 3. GitHub About description says 10 fleets, catalog is 13 → G-15 / H-04
 4. Version badge lags HEAD again (`[Unreleased]` vs 0.6.0) → G-17 / H-05
 5. Nine doctrine-only missions (honest) → G-09 DEFER (#212)
 
 ## Second look (Phase 1, run 2)
 
-Changed: refused to score angle 14 a 4 (no stranger has completed CF-05 from the docs) and kept angle 9 at 1 despite the new research — a documented opt-in is not a demonstrated alert.
+Changed: refused to score angle 14 a 4 (no stranger has completed CF-05 from the docs) and kept angle 9 at 1 despite the new research — a documented opt-in is not a demonstrated alert. *(Superseded 2026-09-02: the alert drill moved angle 9 to 2 — F-9-04, `T-11-alert-drill.txt`.)*
