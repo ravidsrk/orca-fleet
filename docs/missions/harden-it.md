@@ -57,8 +57,8 @@ so it never auto-gates off no matter how many quiet dispatches precede it.
 flowchart TD
     A[Scope + trust boundaries] --> B[THREAT-MODEL<br/>STRIDE per trust boundary]
     B --> C[AUDIT waves<br/>security lens, PoC per P0/P1]
-    C --> D[QUORUM VERIFY<br/>refute false positives first]
-    D --> E[PoC ROUTING<br/>ro / rw / ephemeral sandbox / parked]
+    C --> D[PoC ROUTING<br/>ro / rw / ephemeral sandbox / parked — before any PoC runs]
+    D --> E[QUORUM VERIFY<br/>refute false positives, under the routed profile]
     E --> F[FIX<br/>exploit test first, audit the class]
     F --> G[REVIEW + RUNTIME-PROVE<br/>drive the patched surface]
     G --> H[LAND<br/>merge conductor, one train]
@@ -75,17 +75,19 @@ Phase by phase:
    ([`sandbox-policy`](../../runtime/sandbox-policy.md) defines the buckets) maps to one-way
    gates up front, so nothing irreversible gets improvised mid-run.
 2. **Audit waves** ([`risk-review`](../../playbooks/risk-review.md), security lens, per axis).
-   Every P0/P1 needs a concrete, step-by-step exploit scenario — a PoC, not a vibe. Model output
-   is treated as untrusted, live APIs are never tested, and one verified finding triggers a
-   tree-wide grep for variants.
-3. **Quorum verify.** False positives are killed before fix effort is spent. A refutation is a
-   quorum verdict with the vote table recorded, not one worker's shrug.
-4. **PoC routing** ([`sandbox-policy`](../../runtime/sandbox-policy.md)). Static analysis runs
-   read-only (`ro`); a safe local exploit runs workspace-write (`rw`); networked, destructive,
-   or supply-chain PoCs run under the danger profile inside an **ephemeral per-workspace
-   sandbox** — work harvested by pushing the lane's own branch *before* teardown, the sandbox
-   destroyed and verified, everything entering BASE through the normal PR pipeline. A finding
-   with no safe sandbox becomes evidence-backed PARKED; its PoC is never executed on the host.
+   Every P0/P1 needs a concrete, step-by-step exploit scenario — a PoC, not a vibe — written by
+   the audit and executed by nobody until routing assigns its profile. Model output is treated as
+   untrusted, live APIs are never tested, and one verified finding triggers a tree-wide grep for
+   variants.
+3. **PoC routing** ([`sandbox-policy`](../../runtime/sandbox-policy.md)) — before any PoC is
+   executed. Static analysis runs read-only (`ro`); a safe local exploit runs under the autonomous
+   write profile (`rw`); networked, destructive, or supply-chain PoCs run under the danger profile
+   inside an **ephemeral per-workspace sandbox** — work harvested by pushing the lane's own branch
+   *before* teardown, the sandbox destroyed and verified, everything entering BASE through the
+   normal PR pipeline. A finding with no safe sandbox becomes evidence-backed PARKED; its PoC is
+   never executed on the host.
+4. **Quorum verify.** Under the routed profile, false positives are killed before fix effort is
+   spent. A refutation is a quorum verdict with the vote table recorded, not one worker's shrug.
 5. **Fix** ([`remediate-finding`](../../playbooks/remediate-finding.md)). The exploit test is
    written first and fails pre-fix. The fix audits the whole **class**, not the instance —
    otherwise the vuln walks next door. Secret leaks route to **rotation**: a one-way gate whose

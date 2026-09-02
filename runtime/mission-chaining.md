@@ -17,8 +17,9 @@ small. Sequential only. No DAG, no expression language, no preset catalog.
   a one-way human gate, gate-classification.md, recorded in the ledger) — if its name carries a
   degradation marker (`-WITH-PARKED`, `-WITH-OPEN-ITEMS`, `-WITH-GAPS`, `-WITH-MANUAL-PARKED`,
   `-WITH-BLOCKED`, `-WITH-QUARANTINE`, `-WITH-PINNED`) OR is `NO-GO` / `INCONCLUSIVE`. Every other
-  named terminal is **clean** and may proceed when the chain named it (`BUILT`, `RELEASED`, `DRY`,
-  `HARDENED`, `CONFORMANT`, `CONTRIBUTED`, `MAPPED`), including **handoff terminals** such as
+  named terminal is **clean** and may proceed when the chain named it (e.g. `BUILT`, `RELEASED`, `DRY`,
+  `CLEAN`, `STABLE`, `COVERED`, `CURRENT`, `WITHIN-BUDGET`, `CONFORMANT`, `CONTRIBUTED`, `MAPPED`,
+  `GO`, `DIAGNOSED`), including **handoff terminals** such as
   `DIAGNOSED-WITH-HANDOFF` and `awaiting-maintainer-merge` (oss-contribute's normal terminal: your
   part is done, an upstream human owns the merge) — a handoff, not a degradation. The rule classifies
   every mission's terminal, so a chaining coordinator is never left guessing.
