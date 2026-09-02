@@ -493,14 +493,19 @@
     {
       "id": "G-10",
       "source": [
-        "F-9-01"
+        "F-9-01",
+        "F-9-02",
+        "F-9-03"
       ],
       "angle": 9,
       "critical_flow": null,
       "severity": "S3",
-      "decision": "DEFER",
+      "decision": "FINISH",
       "status": "open",
-      "tasks": [],
+      "tasks": [
+        "T-10",
+        "T-11"
+      ],
       "accept_expiry": null,
       "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/213"
     },
@@ -692,12 +697,17 @@
     {
       "id": "P4",
       "name": "Operability",
-      "status": "skipped",
+      "status": "active",
       "exit_criteria": [
         {
           "text": "A-12 waiver",
           "met": true,
           "evidence": "docs/completion/ASSUMPTIONS.md"
+        },
+        {
+          "text": "alert proven to fire: alert-on-failure drill filed and closed a ci-failure issue (T-11)",
+          "met": false,
+          "evidence": null
         }
       ]
     },
@@ -875,6 +885,48 @@
       "review": "manual",
       "attempts": 1,
       "block_signature": null
+    },
+    {
+      "id": "T-10",
+      "phase": "P4",
+      "gaps": [
+        "G-10"
+      ],
+      "size": "S",
+      "depends_on": [],
+      "owner": "agent",
+      "status": "done",
+      "branch": "claude/skills-improvements-review-oqc2zj",
+      "pr": null,
+      "commit": null,
+      "evidence": [
+        ".github/workflows/alert-on-failure.yml",
+        ".github/workflows/validate.yml",
+        "docs/ops.md"
+      ],
+      "review": "manual",
+      "attempts": 1,
+      "block_signature": null
+    },
+    {
+      "id": "T-11",
+      "phase": "P4",
+      "gaps": [
+        "G-10"
+      ],
+      "size": "S",
+      "depends_on": [
+        "T-10 merged to main"
+      ],
+      "owner": "agent",
+      "status": "todo",
+      "branch": null,
+      "pr": null,
+      "commit": null,
+      "evidence": [],
+      "review": null,
+      "attempts": 0,
+      "block_signature": null
     }
   ],
   "human_actions": [
@@ -926,12 +978,12 @@
     },
     {
       "id": "H-06",
-      "instruction": "Confirm GitHub Actions failure-only notifications are enabled for ravidsrk; optionally witness one failure notification from a throwaway branch (never main)",
+      "instruction": "Merge the alert-on-failure workflow (T-10, #213); then run the drill (Actions → alert-on-failure → Run workflow) or let the agent dispatch it (T-11)",
       "unblocks": [
-        "G-10"
+        "T-11"
       ],
       "gates_launch": false,
-      "verification": "evidence/H-06-failure-notification.* filed; the A-13 waiver becomes moot (frozen text not edited)",
+      "verification": "evidence/T-11-alert-drill.txt with the run url and the [drill] ci-failure issue url; A-13 waiver moot",
       "status": "open"
     },
     {
@@ -1074,6 +1126,24 @@
         "DEFER with issues"
       ],
       "reason": "maintainer-only one-liners; shown open until acted on, never as done"
+    },
+    {
+      "id": "A-24",
+      "phase": "P4",
+      "decision": "no proof_status.py location check for proof_evidence: scripts/validate.py already binds a tier to a docs/runs/<date>-<mission>-*.md report that names the mission",
+      "rejected": [
+        "duplicate the rule in proof_status.py"
+      ],
+      "reason": "the two tools are documented as distinct; the build gate already closes the hole"
+    },
+    {
+      "id": "A-25",
+      "phase": "P4",
+      "decision": "the alert-on-failure drill (workflow_dispatch, files + closes a [drill] issue) is the demonstration path for gate item 5; it runs only after the workflow is on main",
+      "rejected": [
+        "red a throwaway branch to trigger a real failure alert"
+      ],
+      "reason": "workflow_run/workflow_dispatch take effect from the default branch; a drill proves the path without redding anything"
     }
   ],
   "research": [
