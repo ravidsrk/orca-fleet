@@ -148,7 +148,7 @@ never reported as the clean terminal).
 A full re-enumeration of **both** denominators finds zero actionable issues that are not (a) an open
 PR against the upstream default with `baseRefName` asserted, `headRefOid == reviewed_sha` fresh, a
 failing-first test with a revert-audited negative control, bots reconciled, and every post-open
-thread answered; (b) a posted review-assist whose findings are each quoted from the target PR's own
+thread answered — live, or quiet at `awaiting-maintainer-merge`; (b) a posted review-assist whose findings are each quoted from the target PR's own
 diff; or (c) parked with its class and reference. The final enumeration is pasted into the ledger,
 and the manifest names `CONTRIBUTED` or `CONTRIBUTED-WITH-PARKED` — nothing else.
 
