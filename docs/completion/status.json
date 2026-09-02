@@ -12,10 +12,10 @@
   "current_commit": "f2e53f4dff9a8a33cac041457ffb270d3ad5c875",
   "resume_pointer": "P7/H-07",
   "definition_frozen_at": "ed6a2f4",
-  "completion_pct": 67,
+  "completion_pct": 68,
   "gate": {
     "status": "CONDITIONAL_GO",
-    "reason": "run 2 at f2e53f4: items 1,3,4,6,7 and the minima met; item 2 met only at 6ad0e87 for CF-05; item 5 waived by A-13 (text as of 67c1707), H-06 to demonstrate; item 8: H-07 (review-it dry run on the current head) open and launch-gating (fresh-reviewer RV-01)."
+    "reason": "run 2 at f2e53f4, updated 2026-09-02 after PR #228: items 1,3,4,5,6,7 and the minima met (item 5 demonstrated by the alert-on-failure drill, issue #229); item 2 met only at 6ad0e87 for CF-05; item 8: H-07 (review-it dry run on the current head) open and launch-gating."
   },
   "angles": [
     {
@@ -168,15 +168,19 @@
     {
       "id": 9,
       "name": "observability",
-      "score": 1,
-      "rag": "R",
+      "score": 2,
+      "rag": "A",
       "na_reason": null,
       "findings": [
         "F-9-01",
         "F-9-02",
-        "F-9-03"
+        "F-9-03",
+        "F-9-04"
       ],
-      "evidence": []
+      "evidence": [
+        "docs/completion/evidence/T-11-alert-drill.txt",
+        ".github/workflows/alert-on-failure.yml"
+      ]
     },
     {
       "id": 10,
@@ -501,7 +505,7 @@
       "critical_flow": null,
       "severity": "S3",
       "decision": "FINISH",
-      "status": "open",
+      "status": "closed",
       "tasks": [
         "T-10",
         "T-11"
@@ -697,7 +701,7 @@
     {
       "id": "P4",
       "name": "Operability",
-      "status": "active",
+      "status": "complete",
       "exit_criteria": [
         {
           "text": "A-12 waiver",
@@ -706,8 +710,8 @@
         },
         {
           "text": "alert proven to fire: alert-on-failure drill filed and closed a ci-failure issue (T-11)",
-          "met": false,
-          "evidence": null
+          "met": true,
+          "evidence": "docs/completion/evidence/T-11-alert-drill.txt"
         }
       ]
     },
@@ -898,7 +902,7 @@
       "status": "done",
       "branch": "claude/skills-improvements-review-oqc2zj",
       "pr": "https://github.com/ravidsrk/orca-fleet/pull/228",
-      "commit": null,
+      "commit": "005ab1f",
       "evidence": [
         ".github/workflows/alert-on-failure.yml",
         ".github/workflows/validate.yml",
@@ -919,13 +923,15 @@
         "T-10 merged to main"
       ],
       "owner": "agent",
-      "status": "todo",
-      "branch": null,
+      "status": "done",
+      "branch": "claude/skills-improvements-review-oqc2zj",
       "pr": null,
       "commit": null,
-      "evidence": [],
-      "review": null,
-      "attempts": 0,
+      "evidence": [
+        "docs/completion/evidence/T-11-alert-drill.txt"
+      ],
+      "review": "manual",
+      "attempts": 1,
       "block_signature": null
     }
   ],
@@ -984,7 +990,7 @@
       ],
       "gates_launch": false,
       "verification": "evidence/T-11-alert-drill.txt with the run url and the [drill] ci-failure issue url; A-13 waiver moot",
-      "status": "open"
+      "status": "done"
     },
     {
       "id": "H-07",
@@ -1232,6 +1238,12 @@
       "run_id": "20260902-0816",
       "commit": "f2e53f4",
       "completion_pct": 67,
+      "gate": "CONDITIONAL_GO"
+    },
+    {
+      "run_id": "20260902-0816",
+      "commit": "005ab1f",
+      "completion_pct": 68,
       "gate": "CONDITIONAL_GO"
     }
   ],

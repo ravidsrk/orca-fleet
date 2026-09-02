@@ -196,3 +196,11 @@ resume_pointer: P7/H-07
 - review: manual — workflow YAML parsed; expressions checked by reading; the drill itself is T-11.
 - `resume_pointer: P7/H-07` unchanged (H-07 evidence still not in the repo).
 - Second look: kept the template out of the dated-report namespace — `tests/test_docs_navigation.py` treats every `docs/runs/2*.md` as a run report.
+
+## 2026-09-02 — T-11 alert drill (run 2 follow-up)
+
+- PR #228 merged as `005ab1f` (maintainer). Dispatched `alert-on-failure` on `main` (run 33626502338, `workflow_dispatch`): it filed `ci-failure` issue #229 "[drill] CI alert path check (005ab1f)" at 11:48:27Z and closed it at 11:48:29Z with the drill-complete comment. Evidence `evidence/T-11-alert-drill.txt`.
+- G-10 closed · T-11 done · H-06 done · P4 complete. Gate item 5 is **demonstrated** (the A-13 waiver is moot; the frozen text is unchanged). Angle 9 → 2/A (F-9-04); completion 67% → **68%**; A-12 still covers angle 9's ≥3 minimum. Verdict stays **CONDITIONAL GO** on H-07.
+- Not proven, by design: a real `validate` failure on `main` firing the `workflow_run` event (R9 forbids inducing it); the drill exercises the same job body.
+- `resume_pointer: P7/H-07`
+- Second look: did not re-score angle 9 to 3 — one drill is a working path, not a verified failure path.
