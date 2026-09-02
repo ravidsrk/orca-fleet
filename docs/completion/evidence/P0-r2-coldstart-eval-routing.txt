@@ -1,0 +1,4 @@
+# 2026-09-02T08:19:04Z · HEAD f2e53f4 · /home/user/orca-fleet
+$ python3 scripts/eval.py run --suite routing
+Routing eval: 37/37 correct (100%)
+exit=0

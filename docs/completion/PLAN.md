@@ -39,3 +39,31 @@ T-02 unused (number hole — keep ids stable).
 ## P1 start order
 
 T-01 (no source risk) → T-04 (CI) → then P2 T-03, T-05. Never two task branches at once.
+
+## Run 2 (2026-09-02) — addendum
+
+Phase status re-evaluated at `f2e53f4` (drift 22.7%, A-17). Order unchanged.
+
+| Phase | run-2 status | note |
+|---|---|---|
+| P1 | complete (re-verified) | fresh-clone cold start `CF-01-r2-happy-catalog-gates.txt`; CI `validate` #105 green on `main` |
+| P2 | complete | SECURITY.md, `.env.example`, `.gitignore` unchanged; history secret grep clean (`P1-r2-hygiene-greps.txt`) |
+| P3 | complete | CF-05 evidence stands (run 1); freshness → G-16 / H-07 |
+| P4 | skipped (A-12) | H-06 added so the alert waiver can become a demonstration |
+| P5 | complete | folded into P2 (unchanged) |
+| P6 | pending (non-gating) | H-02 marketplace; H-04 About description |
+| P7 | re-evaluated this run | gate evaluated mechanically (A-19); fresh reviewer handoff performed |
+
+### Tasks (run 2)
+
+| id | phase | gaps | description | acceptance | size | depends_on | owner | status |
+|---|---|---|---|---|---|---|---|---|
+| T-09 | P7 | G-18 | File the G-14 ACCEPT expiry ("when a hosted service exists") as a `post-launch` issue; link it from GAPS.md and `status.json`. | issue URL in GAPS.md + `evidence/T-09-accept-expiry-issue.txt` | S | — | agent | done (#226) |
+
+Human: H-04 (G-15), H-05 (G-17), H-06 (G-10 / A-13), H-07 (G-16). None gate launch.
+
+### Counts (run 2)
+
+- Above-the-line gaps: 4 (G-15..G-18) · tasks: 1 agent (S) + 4 human · L-sized: 0
+- Longest chain: none (T-09 has no dependencies)
+- Launch-gating Human Actions: **0**

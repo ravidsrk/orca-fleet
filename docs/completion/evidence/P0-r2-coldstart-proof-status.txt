@@ -1,0 +1,22 @@
+# 2026-09-02T08:18:16Z · HEAD f2e53f4 · /home/user/orca-fleet
+$ python3 runtime/scripts/proof_status.py --check
+access-it       doctrine-only  [—      ] —
+attest-it       doctrine-only  [—      ] —
+clean-sweep     self-run       [ok     ] docs/runs/2026-07-13-clean-sweep-self-run.md
+deflake-it      doctrine-only  [—      ] —
+harden-it       doctrine-only  [—      ] —
+map-it          doctrine-only  [—      ] —
+modernize-it    doctrine-only  [—      ] —
+oss-contribute  external-run   [ok     ] docs/runs/2026-07-16-oss-contribute-external-run.md
+prove-it        doctrine-only  [—      ] —
+review-it       external-run   [ok     ] docs/runs/2026-07-13-review-it-external-run.md
+root-cause      doctrine-only  [—      ] —
+ship-it         self-run       [ok     ] docs/runs/2026-08-28-ship-it-self-run.md
+speed-it        doctrine-only  [—      ] —
+
+coverage rollup:
+  doctrine-only  9
+  self-run       2
+  external-run   2
+  total          13
+exit=0

@@ -1,0 +1,21 @@
+# 2026-09-02T08:25:29Z CF-06 failure path on the scratch clone: raise access-it from doctrine-only to self-run with no report
+$ sed -i 's/^proof: doctrine-only/proof: self-run/' skills/access-it/SKILL.md && git diff --stat
+ skills/access-it/SKILL.md | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+$ python3 runtime/scripts/proof_status.py --check
+
+coverage rollup:
+  doctrine-only  8
+  self-run       3
+  external-run   2
+  total          13
+FAIL: access-it (self-run) — no proof_evidence: —
+proof-status: 1 mission(s) above doctrine-only missing evidence
+exit=1
+$ python3 scripts/validate.py | tail -3
+ok   speed-it
+
+Validation failed.
+exit=1
+$ git checkout -- skills/access-it/SKILL.md && git status --short | wc -l
+0

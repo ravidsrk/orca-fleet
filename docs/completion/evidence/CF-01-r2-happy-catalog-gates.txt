@@ -1,0 +1,49 @@
+# 2026-09-02T08:20:23Z fresh clone (backup→restore per A-09) · HEAD f2e53f4
+$ python3 scripts/validate.py
+ok   access-it
+ok   attest-it
+ok   clean-sweep
+ok   deflake-it
+ok   harden-it
+ok   map-it
+ok   modernize-it
+ok   oss-contribute
+ok   prove-it
+ok   review-it
+ok   root-cause
+ok   ship-it
+ok   speed-it
+
+All 13 missions valid; three-layer separation holds; evals valid.
+exit=0
+
+$ python3 -m unittest discover -s tests
+
+OK (skipped=1)
+
+real	0m24.943s
+user	0m17.482s
+sys	0m1.562s
+exit=0
+
+$ python3 runtime/scripts/proof_status.py --check
+access-it       doctrine-only  [—      ] —
+attest-it       doctrine-only  [—      ] —
+clean-sweep     self-run       [ok     ] docs/runs/2026-07-13-clean-sweep-self-run.md
+deflake-it      doctrine-only  [—      ] —
+harden-it       doctrine-only  [—      ] —
+map-it          doctrine-only  [—      ] —
+modernize-it    doctrine-only  [—      ] —
+oss-contribute  external-run   [ok     ] docs/runs/2026-07-16-oss-contribute-external-run.md
+prove-it        doctrine-only  [—      ] —
+review-it       external-run   [ok     ] docs/runs/2026-07-13-review-it-external-run.md
+root-cause      doctrine-only  [—      ] —
+ship-it         self-run       [ok     ] docs/runs/2026-08-28-ship-it-self-run.md
+speed-it        doctrine-only  [—      ] —
+
+coverage rollup:
+  doctrine-only  9
+  self-run       2
+  external-run   2
+  total          13
+exit=0

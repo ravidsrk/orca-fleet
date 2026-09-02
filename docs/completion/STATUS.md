@@ -1,270 +1,170 @@
 # STATUS — 360° completion audit
 
-**VERDICT: CONDITIONAL GO** (alert-on-failure waived A-13; H-02/H-03 do not gate)
-**COMPLETION: 56%** (baseline `6abf548`) · **GATE: met for catalog** — CF-05 happy path evidenced (review-it GO at 6ad0e87); H-01 done.
-**CRITICAL FLOWS: 6 total · 6 verified (CF-05 happy+failure) · 0 cut**
-**GAPS:** G-01..G-08, G-11..G-13 closed · DEFER G-09, G-10 (#212, #213) · ACCEPT G-14 · **NEXT: none (run DONE). Non-gating leftover: H-02 marketplace submits.**
-
-*Post-launch (not this audit): G-06/G-07/G-08/G-11/G-12/G-13 closed 2026-09-01; H-03 done (`0.6.0`); H-02 remains. G-09 and G-10 stay parked. Findings below are the freeze-time snapshot.*
+<!-- RUN2-REPORT -->
+**Run 2 (2026-09-02, resume) — report pending Phase 7.** The run-1 snapshot (2026-09-01) is preserved in git at `19fbad5`; this file is the run-2 audit against `f2e53f4`.
 
 ---
 
-## Baseline freeze (Phase 0)
+## Baseline (run 1, immutable) and re-freeze (run 2)
 
-| Field | Value |
-|---|---|
-| Time (UTC) | 2026-09-01T13:36:40Z |
-| HEAD | `6abf548de4d53b9250e13f3b2cc297f6dd8fdf01` |
-| Branch at freeze | `main` (clean), audit worktree `ravidsrk/p0-completion-audit` |
-| Remote | `git@github.com:ravidsrk/orca-fleet.git` · default `origin/main` |
-| Dirty tree | none on `main` |
-| Open PRs | 0 |
-| Open issues | 0 (86 closed) |
-| Local extra | worktree `/Users/ravindra/projects/orca-fleet-pr-comments` on deleted remote `ravidsrk/address-sweep-pr-comments` |
-| Last CI on main | validate **success** 2026-08-30 · https://github.com/ravidsrk/orca-fleet/actions/runs/33296692840 |
-
-### Toolchain (R1)
-
-| Tool | Version |
-|---|---|
-| git | 2.55.0 |
-| python3 | 3.13.15 (mise shim) |
-| uv | 0.12.8 |
-| mise | 2026.8.16 |
-| greptile | 3.4.2 |
-| gh | 2.98.0 (auth: ravidsrk) |
-| ruff | 0.16.5 (CI: `E9`/`F63`/`F7`/`F82` only — post-launch G-11 / #220) |
-| just | 1.58.0 (present, **no** `justfile` in repo) |
-| orca CLI | present; **app running=false, runtime not_running** |
-
-No `pyproject.toml`, `requirements.txt`, `uv.lock`, `.mise.toml`, or `package.json`. Product is stdlib Python 3 + Markdown skills.
-
-### Last 10 commits (at freeze)
-
-```
-6abf548 2026-08-30 Merge pull request #207 …
-2b2373b 2026-08-30 test: keep the fail-closed review-fetch pin on shallow clones
-45402af 2026-08-30 test: address leftover greptile comments from the #163-#184 sweep
-32ab268 2026-08-30 Merge pull request #206 …
-77be38a 2026-08-30 fix: reject explicit null lighting …
-8eda885 2026-08-29 fix: treat missing manifest lighting as lit …
-080cd87 2026-08-29 Merge pull request #205 …
-c7a64ba 2026-08-29 chore: regenerate test-count badge after rebase
-6d4959f 2026-08-29 test: pin the demo's RED to the scope-shrink …
-5afbbe6 2026-08-29 test: rename eval-script check …
-```
-
-### Cold start
-
-See `evidence/P0-coldstart-validate-tests.txt`, `P0-coldstart-tests-run2.txt`, `P0-coldstart-demo.txt`, `P0-coldstart-tools.txt`, `P0-coldstart-eval-validate.txt`.
-
-| Step | Result |
-|---|---|
-| Install from lockfile | **N/A — no lockfile** (stdlib) |
-| `python3 scripts/validate.py` | exit 0 · 13/13 missions valid |
-| `python3 runtime/scripts/proof_status.py --check` | exit 0 |
-| `python3 -m unittest discover -s tests` run 1 | 317 OK · 23.4s |
-| same, run 2 | 317 OK (no flake observed) |
-| `sh demo/negative-control/run.sh` | PASS (self-score GREEN / verify RED) |
-| `python3 bench/vf-bench/vfbench.py` | naive 11/11 false-done · sound 0/11 |
-| `python3 scripts/eval.py` (no args) | usage error (not a pass) · see `P0-eval-subcommand-note.txt` |
-| `python3 scripts/eval.py validate` | All evals valid: 30 routing + 39 per-skill |
-| `python3 scripts/gen-badges.py --check` | exit 0 |
-| Run a mission on Orca | **FAIL substrate** — `orca status` runtime not_running |
-
-Cold start of the *catalog gates* = **pass**. Cold start of the *fleet runtime path* = **fail** (H-01).
-
----
-
-## Product inference (A-01)
-
-**orca-fleet** is a MIT-licensed catalog of 13 outcome-named missions (`skills/<name>/SKILL.md`) plus playbooks, runtime policies, and a stdlib independent verifier (`runtime/scripts/verify.py`). Users are developers running [Orca](https://github.com/stablyai/orca) + Claude Code (or another agent host). There is no hosted app, no billing, no end-user PII store.
-
-Plugin version **0.5.0** (`.claude-plugin/plugin.json`). CHANGELOG still has an **Unreleased** block of work landed after 0.5.0 (signed dispatch, #163–#184 sweep, #207).
-
----
-
-## Critical flows
-
-Derived from README Quick start, Getting started, Validate-and-test, and the demo — not from aspiration.
-
-| id | name | entry | exit | money | observed |
-|---|---|---|---|---|---|
-| CF-01 | Catalog gates | clone + `python3 scripts/validate.py` + tests + `proof_status.py --check` | 13 missions valid, tests green, proof honest | no | **works** · `evidence/CF-01-happy-catalog-gates.txt` |
-| CF-02 | Install a mission | README symlink or `/plugin install` | agent can see outcome-named skills; `../../playbooks` resolves | no | **verified** (symlinks + `playbooks/`/`runtime/` resolve two levels up) · `evidence/CF-02-happy-symlink-install.txt`. Plugin UI path not re-run. |
-| CF-03 | Independent verify | `verify.py` / vf-bench | gamed traps RED; valid-control GREEN; false-done 0 | no | **works** · `evidence/CF-03-happy-vfbench.txt` |
-| CF-04 | Negative-control demo | `sh demo/negative-control/run.sh` | self-scorer GREEN and verify RED on the same trap | no | **works** · `evidence/CF-04-happy-nc-demo.txt` (this is also the failure-path of a self-scoring gate) |
-| CF-05 | First Orca mission | Getting started: `review this PR` with Orca running | SHA-bound review verdict | no | **partial/absent this session** · Orca app not running · `evidence/CF-05-failure-orca-not-running.txt` |
-| CF-06 | Proof-honesty | `proof:` frontmatter + `proof_status.py --check` | no mission over-claims; badges fresh | no | **works** · 9 doctrine-only / 2 self-run / 2 external-run |
-
-Written definition of done: per-mission `SKILL.md` convergence proof + `runtime/evidence-manifest.md`. Scope lives in those files + GitHub issues (currently empty).
-
----
-
-## Angles
-
-RAG: 0–1 R · 2 A · 3–4 G. Score ≥3 requires evidence (R5).
-
-### 1. Product & critical flows — 2/A · weight 8
-
-Findings:
-- **F-1-01** Six critical flows named from README/getting-started. Evidence: this section + CF-* files.
-- **F-1-02** CF-05 (the actual fleet) is the getting-started "first mission" and was not executed: Orca runtime `not_running`. Impact: a stranger following getting-started past clone/test cannot complete the advertised first mission on this machine today.
-- **F-1-03** Nine of thirteen missions remain `doctrine-only` (honest). Impact: catalog is complete as doctrine; field-proof is not.
-
-Evidence: CF-01..06 files. Score 2: catalog-side happy paths work; the runtime path is a listed gap.
-
-### 2. Functional completeness — 2/A · weight 14
-
-- **F-2-01** `TODO`/`FIXME`/`HACK`/`XXX` in product code: essentially none (2 incidental hits in docs: dispatch-lifecycle "todo" lane name; a research "hack" URL). `TODOS.md` has one open P2 (shared validator grammar).
-- **F-2-02** No feature flags, no "coming soon" product surfaces, no mocks on non-test paths found.
-- **F-2-03** Half-built: `docs/distribution.md` external marketplace checklist is all unchecked. Proof-status badge (`assets/badges/proof.json`) is documented as deferred.
-- **F-2-04** Plugin version 0.5.0 vs Unreleased changelog containing post-0.5.0 verifier work — a stranger reading the version badge undercounts HEAD.
-
-Evidence: cold start, TODOS.md, distribution.md, plugin.json.
-
-### 3. Code quality & architecture — 3/G · weight 4
-
-- **F-3-01** Structure matches README three-layer split; `validate.py` enforces it. Evidence: validate 13/13.
-- **F-3-02** Largest files: `tests/test_verify.py` 1079, `tests/test_validate.py` 669, `verify.py` 636, `validate.py` 583. Not god-objects relative to their jobs.
-- **F-3-03** No ruff/mypy config in repo; CI does not lint. Machine has ruff. Impact: style is social, not gated.
-  *Post-launch: G-11 closed — CI runs ruff 0.16.5 on E9/F63/F7/F82 (#220).*
-- **F-3-04** No lockfile: acceptable for stdlib-only, but Python version is unpinned (`python-version: "3.x"` in CI).
-
-Evidence: validate output, `wc -l`, `.github/workflows/validate.yml`. Score 3: architecture is tested; lint-in-CI is a listed gap at S3.
-
-### 4. Testing — 3/G · weight 8
-
-- **F-4-01** 317 contract tests, CI on push/PR to main, proof_status --check in CI. Evidence: P0 transcripts + GH run 33296692840 success.
-- **F-4-02** Suite run twice this session: both 317 OK. No flake observed.
-- **F-4-03** Coverage of *catalog* critical flows is high (validate, verify, vf-bench, demo). Coverage of *Orca-dispatch* critical flow is zero in this repo (by design: Orca is external).
-- **F-4-04** Time to green locally ~23s.
-
-Evidence: P0-coldstart-*.txt. Score 3 for the catalog; CF-05 is not this angle's job.
-
-### 5. Security — 2/A · weight 14
-
-- **F-5-01** No HTTP API, no AuthN/AuthZ surface in this repo. N/A for routes. Impact: none.
-- **F-5-02** `.gitignore` covers `.env` and `.secrets/*` (keeps `*.pub`). `gen-key` refuse-in-repo shipped in #166. No `.env.example` listing the live `ORCA_*` gate surface (documented in `docs/verify-gate.md` instead).
-- **F-5-03** Tracked-file secret-pattern grep: only the documented fake AWS example in `docs/reports/harden-it-externalrun/README.md`.
-- **F-5-04** No `SECURITY.md`, no `CODEOWNERS`, no private-vulnerability reporting path.
-- **F-5-05** Native completion hook is **advisory** in-session (documented, #112/#135). Soundness is off-worker. Not a silent hole.
-- **F-5-06** No third-party Python deps → `pip-audit`/`uv audit` has nothing to run. Vendored ed25519 has canonical/small-order checks (#175).
-- **F-5-07** No money paths in this product.
-- **F-5-08** Prompt-injection: missions ingest user goals into agent context (the host's problem). `pm.py` sanitizes inbox text (#176). Untrusted-content rule (R3) is this driver's; the pack itself is instruction text for agents — that *is* the product.
-
-Evidence: gitignore, verify-gate.md, harden-it report, test_ed25519, test_pm. Score 2: happy-path secret hygiene works; SECURITY.md and env-example missing.
-
-### 6. Data — N/A
-
-Reason: no application database, migrations, or user-data store in this repository. Orca's SQLite is *outside* this repo (`runtime/liveness-resume.md` describes Orca, not orca-fleet). No PII inventory to keep. Check: `rg postgres|sqlite|sqlalchemy` hits docs/examples only.
-
-### 7. Infra & deploy — 2/A · weight 6
-
-- **F-7-01** "Deploy" = merge to `main` + plugin marketplace copy. CI is the only environment. No IaC, no staging, no containers.
-- **F-7-02** CI Python is `"3.x"` (moving). Local is 3.13.15. Reproducibility gap.
-- **F-7-03** Rollback = git revert. Not rehearsed this run (A-10).
-- **F-7-04** `actions/checkout` and `setup-python` are SHA-pinned. Good.
-
-Evidence: `.github/workflows/validate.yml`, GH run success.
-
-### 8. Reliability — 2/A · weight 5
-
-- **F-8-01** Verifier fail-closed is the reliability story (exit 2 blocks). Evidence: demo + vf-bench.
-- **F-8-02** No health endpoints (no server). No runbook for "Orca is down" beyond getting-started troubleshooting.
-- **F-8-03** No retries/circuit breakers because there are no outbound product calls except `gh`/`git` inside verify.py (fail-closed).
-
-Score 2.
-
-### 9. Observability — 1/R · weight 4
-
-- **F-9-01** `verify.py` / `validate.py` print human stdout/stderr. No request IDs, no metrics, no error tracker, no alerts besides GitHub Actions email (not proven to fire this run).
-- **F-9-02** CI failure is the de-facto alert. Not demonstrated.
-
-Score 1. For an OSS CLI pack this is expected; still not "operable from docs alone" at 2 a.m. without GitHub notification proof.
-
-### 10. Performance & cost — 2/A · weight 5
-
-- **F-10-01** Catalog gates: 23s tests, validate instant. No load test (not a service).
-- **F-10-02** No cloud/LLM spend in this repo. Agent-host token cost is the user's.
-
-Evidence: P0 timing. Score 2.
-
-### 11. Integrations — 2/A · weight 5
-
-| Provider | Role | This session |
+| Field | Run 1 (2026-09-01) | Run 2 (2026-09-02) |
 |---|---|---|
-| GitHub | issues, PRs, `gh api` review lookup | authenticated as ravidsrk |
-| Orca | hard runtime dependency | **not running** |
-| Claude Code plugin marketplace | distribution | not submitted (`docs/distribution.md` checklist open) |
-| greptile | review gate | CLI 3.4.2 present |
-| agentskills.io | spec | catalog claims conformance; not independently `skills-ref validate`'d this run |
+| Time (UTC) | 2026-09-01T13:36:40Z | 2026-09-02T08:16:29Z |
+| HEAD | `6abf548de4d53b9250e13f3b2cc297f6dd8fdf01` | `f2e53f4dff9a8a33cac041457ffb270d3ad5c875` (`main`, after PR #225) |
+| Where | maintainer Mac, worktree `ravidsrk/p0-completion-audit` | cloud container `/home/user/orca-fleet`, branch `claude/skills-improvements-review-oqc2zj` reset onto `main` (A-14/A-15) |
+| Dirty tree | none | none (only `docs/completion/` written by this run) |
+| Remote branches | `main` + audit | `main` + this session's branch; no worktrees |
+| Open PRs / issues | 0 / 0 | 0 / 2 (#212 G-09, #213 G-10 — `post-launch`) |
+| Last CI on `main` | run 33296692840 success | run 33607463296 (#105) **success** — `evidence/P0-r2-ci-main.txt` |
+| Drift since last recorded commit `95ebeb2` | — | 49 / 216 tracked files = **22.7%** (> 20% → full re-score, A-17); 74 files since `6abf548` |
 
-- **F-11-01** Orca down blocks CF-05.
-- **F-11-02** Marketplace aggregators unchecked.
+### Toolchain (R1, run 2)
 
-### 12. AI / LLM layer — N/A
+| Tool | Run 2 | Note |
+|---|---|---|
+| git | 2.43.0 | |
+| python3 | 3.11.15 | CI pins **3.13** (A-18); catalog is stdlib-only, no lockfile |
+| ruff | 0.15.8 | CI installs 0.16.5; same rule set (`ruff.toml`: E9/F63/F7/F82) |
+| uv / node | 0.8.17 / 22.22.2 | unused by the catalog |
+| greptile / gh / orca / mise / just | **absent** | R11 → manual review lens; GitHub via API tools; CF-05 not re-witnessable (A-16) |
 
-Reason: this repo does not call an LLM. `rg` of `openai|anthropic|litellm|langchain` in `runtime/scripts` and `scripts/` is empty; remaining hits are research docs. Prompts live in `SKILL.md` as instructions for *host* agents.
+Evidence: `evidence/P0-r2-coldstart-tools.txt`.
 
-### 13. UX & frontend — N/A
+### Cold start (run 2, `f2e53f4`)
 
-Reason: no GUI, no CSS/HTML app. UX is README + getting-started + CLI stderr. Covered under angles 1 and 14.
+| Step | Result | Evidence |
+|---|---|---|
+| Install from lockfile | N/A — no lockfile (stdlib) | tools file |
+| `python3 scripts/validate.py` | exit 0 · 13/13 missions valid | `P0-r2-coldstart-validate.txt` |
+| `python3 runtime/scripts/proof_status.py --check` | exit 0 · 9 doctrine-only / 2 self-run / 2 external-run | `P0-r2-coldstart-proof-status.txt` |
+| `python3 -m unittest discover -s tests` ×2 | **329 OK** · 22.7s / 24.0s · no flake | `P0-r2-coldstart-tests-run1.txt`, `-run2.txt` |
+| `sh demo/negative-control/run.sh` | PASS (self-score GREEN / verify RED) | `P0-r2-coldstart-demo.txt` |
+| `python3 bench/vf-bench/vfbench.py` | sound false-done **0**; valid-control GREEN | `P0-r2-coldstart-vfbench.txt` |
+| `python3 scripts/eval.py validate` / `run --suite routing` | 37 routing + 39 per-skill valid · 37/37 | `P0-r2-coldstart-eval-*.txt` |
+| `python3 scripts/gen-badges.py --check` · `ruff check …` | exit 0 · all checks passed | `P0-r2-coldstart-badges.txt`, `-ruff.txt` |
+| Rollback rehearsal (scratch clone, throwaway commit, `git revert`) | file gone after revert; validate still green | `P0-r2-rollback-rehearsal.txt` |
+| Run a mission on Orca | **FAIL substrate** — `orca` not installed here | `CF-05-r2-failure-orca-absent.txt` |
 
-### 14. Documentation — 3/G · weight 3
-
-- **F-14-01** README + getting-started + ARCHITECTURE + 13 mission guides + CONTRIBUTING. Contract tests bind several doc claims (`tests/test_docs_navigation.py`).
-- **F-14-02** Stranger Test of *catalog gates* (clone → validate → tests → demo) succeeded this session in ~1 minute of commands (suite 23s). Target ≤15 min: **pass** for CF-01/04.
-- **F-14-03** Stranger Test of *first mission* (CF-05) cannot start without Orca. Getting-started states the prerequisite; still a hole in "from clone to first mission".
-- **F-14-04** No `SECURITY.md`.
-
-Evidence: getting-started.md, CF-01, CF-04, CF-05. Score 3 for catalog docs; CF-05 is H-01 not a docs rewrite.
-
-### 15. Legal & compliance — 2/A · weight 5
-
-- **F-15-01** MIT LICENSE present (Copyright 2026 Ravindra Kumar).
-- **F-15-02** No Terms/Privacy/DPA — acceptable for a library that does not process customer PII (A-02). Still missing a security-reporting address.
-- **F-15-03** `docs/compliance-provenance.md` exists for attest-it doctrine, not for this pack's own operators.
-- Domain Appendix D (India payments/crypto): **no effect** (A-02). DPDP: no product-side personal data.
-
-### 16. GTM readiness — 1/R · weight 4
-
-- **F-16-01** Landing = GitHub README (truthful about proof mix). No separate marketing site.
-- **F-16-02** No pricing/billing (free OSS).
-- **F-16-03** `docs/distribution.md` marketplace checklist all `[ ]`. Version badge 0.5.0 lags HEAD.
-- **F-16-04** No support channel documented (GitHub issues is the implicit channel; 0 open).
-
-Score 1.
-
-### 17. Ownership & ops — 2/A · weight 2
-
-- **F-17-01** Bus factor 1 (ravidsrk). CONTRIBUTING is strong. No account inventory (GitHub, plugin marketplace, greptile, agentskills listing).
-- **F-17-02** Incident process: not written. 2 a.m. = read getting-started troubleshooting + CI logs.
-- **F-17-03** Stale local worktree for a deleted remote branch (ops hygiene).
+Cold start of the *catalog gates* = **pass** (also on Python 3.11). Cold start of the *fleet runtime path* = **fail here** (substrate absent); run-1 happy evidence stands at `6ad0e87`.
 
 ---
 
-## Completion score (informational)
+## Product (A-01, unchanged)
 
-N/A dropped: 6 (w=8), 12 (w=5), 13 (w=5). Active weight sum = 105 − 18 = **87** (A-04: table sums to 105).
+**orca-fleet** is an MIT-licensed catalog of 13 outcome-named missions (`skills/<name>/SKILL.md`) plus playbooks, runtime policies, and a stdlib independent verifier. Version **0.6.0** (`.claude-plugin/plugin.json`); CHANGELOG `[Unreleased]` already carries the #225 mission review (F-2-05).
 
-`Σ(w×score/4) = 8×2/4 + 14×2/4 + 4×3/4 + 8×3/4 + 14×2/4 + 6×2/4 + 5×2/4 + 4×1/4 + 5×2/4 + 5×2/4 + 3×3/4 + 5×2/4 + 4×1/4 + 2×2/4`
-= 4 + 7 + 3 + 6 + 7 + 3 + 2.5 + 1 + 2.5 + 2.5 + 2.25 + 2.5 + 1 + 1 = **45.25**
+## Critical flows (run 2)
 
-**completion_pct = 45.25 / 87 × 100 = 52%**
+| id | name | run-2 observation | happy | failure |
+|---|---|---|---|---|
+| CF-01 | Catalog gates | fresh clone: validate 0 · 329 OK · proof_status 0 | `CF-01-r2-happy-catalog-gates.txt` | `CF-06-r2-failure-overclaim.txt` (validate + proof_status go red on an over-claim) |
+| CF-02 | Install a mission | symlink from a fresh clone; `../../playbooks` and `../../runtime` resolve | `CF-02-r2-happy-symlink-install.txt` | `CF-02-r2-failure-copy-breaks-refs.txt` (a copy loses the references, as the README warns) |
+| CF-03 | Independent verify | vf-bench: 11 traps RED, control GREEN, false-done 0 | `CF-03-r2-happy-vfbench.txt` | same file (every trap RED) |
+| CF-04 | Negative-control demo | PASS | `CF-04-r2-happy-nc-demo.txt` | same file (self-scorer GREEN while verify RED) |
+| CF-05 | First Orca mission | **not re-witnessable here**; run-1 dry run GO at `6ad0e87` | `CF-05-happy-review-it.txt` (run 1) | `CF-05-r2-failure-orca-absent.txt` |
+| CF-06 | Proof honesty | `proof_status --check` 0 | `CF-06-r2-proof-honesty.txt` | `CF-06-r2-failure-overclaim.txt` (exit 1: "1 mission(s) above doctrine-only missing evidence") |
+
+All six are **verified** under the frozen definition. CF-05's happy evidence predates #225's `review-it` changes → G-16 / H-07 (freshness, not absence).
+
+---
+
+## Angles (run 2)
+
+RAG: 0–1 R · 2 A · 3–4 G. Score ≥3 requires evidence (R5). Findings from run 1 are carried by id; new ids continue the sequence.
+
+### 1. Product & critical flows — 3/G · weight 8 (was 2)
+- F-1-01 six flows (unchanged). F-1-02 closed (T-08/H-01). F-1-03 nine doctrine-only missions (G-09 DEFER, honest).
+- **F-1-04 (new)** CF-05 happy evidence is bound to `6ad0e87`; `review-it` changed in #225 (ro profile, human-authorized posting). Impact: a stranger today runs a different skill text than the one evidenced. → G-16 / H-07.
+- Evidence: `CF-0x-r2-*` (five flows re-run on a fresh clone, each with a failure path) + run-1 CF-05. Score 3: every flow evidenced with a failure path; not 4 because CF-05 needs a substrate the docs can only name.
+
+### 2. Functional completeness — 3/G · weight 14 (was 2)
+- F-2-01/F-2-02 re-checked: no TODO/FIXME/HACK/XXX in product paths, no placeholders, no mocks off test paths (`P1-r2-hygiene-greps.txt`). F-2-03 marketplace checklist: 3 human boxes open (H-02). F-2-04 closed (0.6.0).
+- **F-2-05 (new)** `[Unreleased]` carries #225 while `plugin.json` is 0.6.0 — the version badge undercounts HEAD again. → G-17 / H-05.
+- Evidence: cold start + `CF-*-r2` + hygiene greps. Score 3: every advertised surface works and is evidenced; the only open items are a human marketplace submit and a version cut.
+
+### 3. Code quality & architecture — 3/G · weight 4 (unchanged)
+- F-3-01 three-layer structure enforced by `validate.py` (13/13). F-3-02 largest files: `tests/test_verify.py` 1079, `tests/test_validate.py` 767, `scripts/validate.py` 675, `tests/test_architecture.py` 661, `runtime/scripts/verify.py` 636. F-3-03 closed (#220: ruff in CI, narrow rule set by policy #214). F-3-04 closed (CI pinned 3.13).
+- Mission budgets: largest `ship-it`/`oss-contribute` 129/130, `clean-sweep` 127.
+- Evidence: `P0-r2-coldstart-validate.txt`, `-ruff.txt`, `.github/workflows/validate.yml`.
+
+### 4. Testing — 3/G · weight 8 (unchanged)
+- F-4-01 **329** contract tests in 14 files (was 317); CI on `pull_request` and push to `main`; proof_status in CI. F-4-02 two runs, no flake. F-4-03 catalog flows covered; Orca dispatch untestable here by design. F-4-04 ~23s to green.
+- Evidence: `P0-r2-coldstart-tests-run1/2.txt`, `P0-r2-ci-main.txt`.
+
+### 5. Security — 3/G · weight 14 (unchanged)
+- F-5-01 no HTTP/auth surface. F-5-02 closed (`.env.example`). **F-5-03 strengthened**: secret-pattern grep over **all history** finds only the documented AWS example key inside a report. F-5-04 closed (`SECURITY.md`, 72h ack, private reporting). F-5-05 advisory hook documented. F-5-06 no third-party deps. F-5-07 no money paths. F-5-08 no R3 injection text in the tree.
+- Evidence: `P1-r2-hygiene-greps.txt`, `SECURITY.md`, `.env.example`, `.gitignore` unchanged since run 1. Score 3: hygiene evidenced end to end; no CODEOWNERS / no automated secret scanner in CI keeps it under 4.
+
+### 6. Data — N/A (A-05, unchanged): no application DB, migrations, or PII store in this repository.
+
+### 7. Infra & deploy — 3/G · weight 6 (was 2)
+- F-7-01 deploy = merge to `main` + plugin copy (unchanged). F-7-02 closed (3.13 pinned). F-7-03 rollback = `git revert`, now rehearsed **twice** (run 1 and `P0-r2-rollback-rehearsal.txt`); G-14 ACCEPT stands for service-style drills. F-7-04 actions SHA-pinned.
+- **F-7-05 (new, process)** G-14 ACCEPT carried no filed expiry issue (Phase 7 step 3). → G-18 / T-09.
+- Evidence: workflow file, rollback rehearsal, CI run #105.
+
+### 8. Reliability — 3/G · weight 5 (was 2)
+- F-8-01 fail-closed verifier: every vf-bench trap RED, demo RED on the dropped criterion. F-8-02 "Orca down" is evidenced (`CF-05-r2-failure-orca-absent.txt`) and documented (getting-started Troubleshooting; `docs/ops.md` incident process) — no dedicated Orca runbook beyond those. F-8-03 no outbound calls to retry.
+- Evidence: `CF-03-r2`, `CF-04-r2`, `CF-05-r2-failure`, `docs/ops.md`. Score 3: failure paths handled and evidenced.
+
+### 9. Observability — 1/R · weight 4 (unchanged; A-12 waiver)
+- F-9-01/F-9-02 unchanged. **F-9-03 (new, R-04)** GitHub workflow-run notifications are per-user and opt-in — whether a failure would reach the maintainer is invisible from the repository. → H-06 (non-gating; G-10 DEFER stands).
+
+### 10. Performance & cost — 2/A · weight 5 (unchanged)
+- F-10-01 tests ~23s, validate instant, fresh-clone stranger run 27s wall. F-10-02 no spend. No CI time budget.
+
+### 11. Third-party integrations — 3/G · weight 5 (was 2)
+| Provider | Role | Run 2 |
+|---|---|---|
+| GitHub | source, Actions, private vuln reporting, review lookup | Actions #105 green; **Greptile app** reviewed PR #225 (12 rounds) |
+| Orca | hard runtime dependency | absent here; run-1 happy evidence; failure path evidenced |
+| Claude Code plugin marketplace / aggregators | distribution | index check recorded 2026-09-01; submits are H-02 |
+| greptile CLI | pre-push review on the maintainer machine | absent here (manual lens, A-16) |
+| agentskills.io | spec | required fields pass locally per `docs/distribution.md`; extras allowlisted (#221) |
+- F-11-01 closed (H-01). F-11-02 → H-02 (human). **F-11-03 (new)** the review bot is wired and observed working.
+- Evidence: `docs/ops.md` inventory, PR #225, `P0-r2-ci-main.txt`, CF-05 files.
+
+### 12. AI / LLM layer — N/A (A-05, unchanged). 13. UX & frontend — N/A (A-05, unchanged).
+
+### 14. Documentation — 3/G · weight 3 (unchanged)
+- F-14-01 README + getting-started + ARCHITECTURE + guides + CONTRIBUTING + **SECURITY + ops** (new since run 1). F-14-02 Stranger Test: fresh clone → validate → tests → proof_status → demo → vf-bench in **27s** from README/getting-started only (`P6-r2-stranger-test.txt`). F-14-03 CF-05 still needs Orca (named prerequisite). F-14-04 closed.
+- **F-14-05 (new, self)** `docs/completion/STATUS.md` header said "NEXT: none" after post-launch work — rewritten by this run.
+- Score 3, not 4: the only person who has completed CF-05 from the docs is the maintainer.
+
+### 15. Legal & compliance — 2/A · weight 5 (unchanged)
+- MIT; SECURITY.md; no ToS/Privacy needed (no product-side PII, A-02); Appendix D N/A.
+
+### 16. GTM readiness — 2/A · weight 4 (was 1)
+- F-16-01 README truthful. F-16-02 free OSS. F-16-03 index check recorded (#222), version 0.6.0 cut (#223); 3 human submit boxes open (H-02). F-16-04 support channel now documented (`docs/ops.md`: issues + maintainer email).
+- **F-16-05 (new)** the GitHub repository **About** description still says "10 outcome-named autonomous fleets" while the catalog badge and README table say 13. → G-15 / H-04.
+- Evidence: `docs/distribution.md`, `docs/ops.md`, `.claude-plugin/plugin.json`.
+
+### 17. Ownership & ops — 3/G · weight 2 (was 2)
+- F-17-01 closed (#219: account inventory). F-17-02 closed (2 a.m. incident process incl. key rotation). F-17-03 closed (T-01).
+- Evidence: `docs/ops.md`, `evidence/T-01-worktree-clean.txt`. Score 3: written for the maintainer's future self; 4 would need a stranger to run the recovery drill.
+
+---
+
+## Completion score (informational, run 2)
+
+N/A dropped: 6 (w=8), 12 (w=5), 13 (w=5). Active weight = **87** (A-04).
+
+`Σ(w×score/4)` = 8×3/4 + 14×3/4 + 4×3/4 + 8×3/4 + 14×3/4 + 6×3/4 + 5×3/4 + 4×1/4 + 5×2/4 + 5×3/4 + 3×3/4 + 5×2/4 + 4×2/4 + 2×3/4
+= 6 + 10.5 + 3 + 6 + 10.5 + 4.5 + 3.75 + 1 + 2.5 + 3.75 + 2.25 + 2.5 + 2 + 1.5 = **59.75**
+
+**completion_pct = 59.75 / 87 × 100 = 69%** (56% at `95ebeb2`, 52% at baseline `6abf548`). Movement comes from evidence captured this run and post-launch closures, not from any change to the frozen definition (A-17).
 
 The gate in `DEFINITION.md` is binding, not this number.
 
 ---
 
-## Top risks
+## Top risks (run 2)
 
-1. CF-05 blocked on Orca not running → H-01
-2. No SECURITY.md / disclosure path → G-02 / T-03
-3. CI Python unpinned `"3.x"` → G-03 / T-04
-4. Marketplace / indexer listings unchecked → H-02
-5. 9 doctrine-only missions (honest, but GTM story is "4 proven") → DEFER
+1. CF-05 evidence predates the #225 `review-it` changes → G-16 / H-07
+2. GitHub About description says 10 fleets, catalog is 13 → G-15 / H-04
+3. Alert-on-failure still undemonstrated; notifications are account-side → G-10 / H-06 (A-13)
+4. Version badge lags HEAD again (`[Unreleased]` vs 0.6.0) → G-17 / H-05
+5. Nine doctrine-only missions (honest) → G-09 DEFER (#212)
 
-## Second look (Phase 1)
+## Second look (Phase 1, run 2)
 
-Changed: refused to give angle 1 a 3 while CF-05 is unwitnessed. No change to N/A set.
+Changed: refused to score angle 14 a 4 (no stranger has completed CF-05 from the docs) and kept angle 9 at 1 despite the new research — a documented opt-in is not a demonstrated alert.

@@ -1,0 +1,13 @@
+# 2026-09-02T08:19:04Z toolchain in this environment (cloud container, not the maintainer's Mac)
+git       present  git version 2.43.0
+python3   present  Python 3.11.15
+ruff      present  ruff 0.15.8
+uv        present  uv 0.8.17
+mise      ABSENT
+greptile  ABSENT
+gh        ABSENT
+just      ABSENT
+orca      ABSENT
+node      present  v22.22.2
+npm       present  10.9.7
+lockfiles: none — stdlib-only product
