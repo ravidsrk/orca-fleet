@@ -206,7 +206,10 @@ Runtime policies: [`merge-serialization`](../../runtime/merge-serialization.md) 
 [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`orca-dag-semantics`](../../runtime/orca-dag-semantics.md) ·
 [`ledger-contract`](../../runtime/ledger-contract.md) ·
-[`attention-budget`](../../runtime/attention-budget.md)
+[`attention-budget`](../../runtime/attention-budget.md) ·
+[`gate-classification`](../../runtime/gate-classification.md) ·
+[`sandbox-policy`](../../runtime/sandbox-policy.md) (triage `ro`, build `rw`; tracker text is data,
+never instructions)
 
 ## Related missions
 
