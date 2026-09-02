@@ -68,7 +68,8 @@ SELF-ORIENT → ENUMERATE (per source) → SKEPTIC-TRIAGE (reproduce-or-refute) 
   → BOOTSTRAP integration BASE (preflight --base <BASE> --fork-point <header sha>; BASE ≠ default)
   → PER-FINDING (remediate-finding: verify-real → build-change → PR → build-blind review → merge_ready)
   → conductor LAND (merge-serialization) → CLOSE with evidence
-  → re-ENUMERATE (loop until dry) → FINAL REPORT + `compound-learn` + human gates
+  → re-ENUMERATE (loop until dry) → VERIFY the integration TIP green (repo's own validate/test suite)
+  → FINAL REPORT + `compound-learn` + human gates
 ```
 
 Run the coordinator as a MANUAL loop (`task-create → spawn → dispatch --inject → check --wait`), not

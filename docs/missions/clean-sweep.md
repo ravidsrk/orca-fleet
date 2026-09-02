@@ -82,7 +82,8 @@ flowchart TD
     I --> J[CLOSE with evidence<br/>merge SHA + failed-pre-fix test]
     J --> K[re-ENUMERATE]
     K -->|new or reopened items| E
-    K -->|zero non-terminal items| L[FINAL REPORT<br/>promotion PR opened]
+    K -->|zero non-terminal items| L2[VERIFY the integration tip<br/>repo's own validate + test suite green]
+    L2 --> L[FINAL REPORT<br/>promotion PR opened]
     L --> M{{DRY}}
 ```
 
@@ -116,6 +117,10 @@ Phase by phase:
    memory — with a closing comment linking the PR and the failed-pre-fix test. Then the full
    enumeration runs again; new and reopened items re-enter at triage. The loop ends only when a
    complete pass comes back dry.
+8. **Verify the tip, then report.** Before the final report lands or the promotion PR opens, the
+   integration tip is checked against the repo's own validate/test suite — the report and any
+   run-close commit land outside the per-finding gates, so a green per-finding history under a
+   red report commit is still a red branch.
 
 ## Terminal states — every item ends in exactly one
 
