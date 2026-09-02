@@ -6,6 +6,17 @@ truth is `.claude-plugin/plugin.json`.
 
 ## [Unreleased]
 
+### Added
+
+- `alert-on-failure` workflow (#213): a failed `validate` run on `main` opens or
+  updates an issue labeled `ci-failure`; a `workflow_dispatch` drill files and
+  closes a `[drill]` issue so the alert path can be proven without redding
+  `main`. `validate` publishes the proof rollup and routing score to its run
+  summary; `docs/ops.md` incident step 1 names the issue as the alert.
+- `docs/runs/TEMPLATE.md` and a per-mission field-proof plan in the run-archive
+  index (#212): targets, tiers, terminals, and blockers for the nine
+  doctrine-only missions; a tier still advances only through a mission run.
+
 ### Changed
 
 - Adversarial review of every mission skill, one `SKILL.md` at a time, fixing

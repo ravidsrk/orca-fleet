@@ -187,3 +187,12 @@ resume_pointer: P7/H-07
 - P2 "Stale flow remains verified" → **fixed**: `status.json` CF-05 is `works` with `verified_at: 6ad0e87` (not `verified`), and P3 is `active` again with the H-07 exit criterion unmet; STATUS report and PLAN follow. Coarse consumers now agree with the audit text: five flows verified at `f2e53f4`.
 - P2 "Frozen provenance contradicts edit history" → **fixed**: the provenance note moved **out** of the frozen block into a quoted paragraph below it. Correction to this run's own log (append-only): the Phase 3 entry's "`DEFINITION.md` untouched" and the handoff entry's "not edited by run 2" were imprecise — run 2 added a provenance note (metadata) and changed no item; the file's content history is `ed6a2f4` → `4c66091` (stamp) → `67c1707` (run-1 correction of items 4–5) → run 2 (note only).
 - review: manual. Second look: checked that no other file still calls the definition "untouched" — the PR body did, and is reworded.
+
+## 2026-09-02 — post-run follow-up: issues #212 / #213 (run 2)
+
+- **#213 (G-10)** — `alert-on-failure` workflow: a failed `validate` on `main` opens or updates a `ci-failure` issue (reaches the owner through default issue notifications, not the opt-in Actions setting); `workflow_dispatch` drill files and closes a `[drill]` issue so the path is provable without redding `main`; `validate` now publishes the proof rollup + routing score to its run summary; `docs/ops.md` incident step 1 names the issue as the alert. T-10 done in this branch; T-11 (drill + evidence) after merge, because `workflow_run` / `workflow_dispatch` take effect from the default branch (A-25). G-10: DEFER → FINISH, open until T-11.
+- **#212 (G-09)** — no relabel: the two `docs/reports/` demonstrations state they advance nothing, and `scripts/validate.py` already binds a tier to a `docs/runs/<date>-<mission>-*.md` report (the planned `proof_status.py` location check was dropped as redundant, A-24). Added `docs/runs/TEMPLATE.md` and a per-mission field-proof plan (target, tier, terminal, blocker) to the archive index. G-09 stays DEFER: every advance is an Orca mission run with human gates.
+- **#226** — expiry marker; no change by design.
+- review: manual — workflow YAML parsed; expressions checked by reading; the drill itself is T-11.
+- `resume_pointer: P7/H-07` unchanged (H-07 evidence still not in the repo).
+- Second look: kept the template out of the dated-report namespace — `tests/test_docs_navigation.py` treats every `docs/runs/2*.md` as a run report.

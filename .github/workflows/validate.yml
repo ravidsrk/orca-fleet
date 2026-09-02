@@ -28,3 +28,13 @@ jobs:
         run: |
           python3 -m pip install --quiet ruff==0.16.5
           ruff check scripts runtime/scripts tests bench demo
+      - name: Publish the gate summary (proof rollup + routing score)
+        if: always()  # observability (#213): the numbers land in the run summary even when a gate is red
+        run: |
+          {
+            echo "## Catalog gates @ $(git rev-parse --short HEAD)"
+            echo '```'
+            python3 runtime/scripts/proof_status.py || echo "proof_status: FAILED"
+            python3 scripts/eval.py run --suite routing || echo "routing eval: FAILED"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

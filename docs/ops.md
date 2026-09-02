@@ -9,7 +9,7 @@ missions already have those.
 
 | Surface | Account / handle | Lives in | Notes |
 |---|---|---|---|
-| GitHub | `ravidsrk` | [ravidsrk/orca-fleet](https://github.com/ravidsrk/orca-fleet) | source of truth, Actions (`validate` workflow), private vulnerability reporting |
+| GitHub | `ravidsrk` | [ravidsrk/orca-fleet](https://github.com/ravidsrk/orca-fleet) | source of truth, Actions (`validate` gates; `alert-on-failure` files a `ci-failure` issue when `validate` fails on `main`), private vulnerability reporting |
 | Claude plugin marketplace | GitHub self-host + buildwithclaude auto-index | [`.claude-plugin/`](../.claude-plugin/plugin.json) | `/plugin marketplace add ravidsrk/orca-fleet`; official directory + skills.sh still [H-02](completion/HUMAN_ACTIONS.md) |
 | greptile | maintainer CLI | [greptile.com](https://greptile.com/) | pre-push review on the maintainer machine; GitHub check on PRs |
 | agentskills.io listing | not submitted | local `uvx --from skills-ref agentskills validate` | extra frontmatter (`proof`, `autonomy`, `proof_evidence`) is intentional — [CONTRIBUTING](../CONTRIBUTING.md) |
@@ -20,9 +20,15 @@ to `main` plus the plugin copy in `.claude-plugin/`.
 
 ## Incident (2 a.m.)
 
-1. Open the latest GitHub Actions `validate` run on `main` — catalog gates
-   (`scripts/validate.py`, `tests/`, `proof_status.py --check`) are the
-   only environment.
+1. A red `validate` run on `main` files (or updates) an issue labeled
+   [`ci-failure`](https://github.com/ravidsrk/orca-fleet/issues?q=label%3Aci-failure)
+   — that issue is the alert; it arrives through normal issue
+   notifications, not the opt-in Actions setting. Open the run it links —
+   catalog gates (`scripts/validate.py`, `tests/`, `proof_status.py --check`)
+   are the only environment; the run summary shows the proof rollup and
+   routing score. Close the issue when `main` is green again. To prove the
+   path without redding `main`: Actions → `alert-on-failure` → Run workflow
+   (a `[drill]` issue is filed and closed by the same run).
 2. If a clone or plugin load is broken: `plugin.json` `version` must equal
    the latest **dated** [CHANGELOG](../CHANGELOG.md) heading
    (`## [x.y.z] - YYYY-MM-DD`), not `[Unreleased]`. Do not half-cut a
