@@ -124,8 +124,8 @@ class TestEvalInfrastructure(unittest.TestCase):
     def test_word_trigger_matches_identifier_forms_not_lookalikes(self):
         # PR #225 review rounds: "aria" must route when it is a whole word or the head of an
         # identifier (aria-label, aria_roles, ariaLabel) and never when it merely sits inside
-        # another word ("variant"), is the prefix of one ("Arial", "arias", "aria2"), or is
-        # the title-case proper noun ("Aria" the person or hotel) rather than the acronym.
+        # another word ("variant"), is the prefix of one ("Arial", "ARIAL", "arias", "aria2"),
+        # or is the title-case proper noun ("Aria" the person or hotel) rather than the acronym.
         # Title case at the head of the prompt, a line, or a sentence is conventional, so it
         # carries no proper-noun signal and the token reads like its lowercase form.
         for prompt in ("ARIA roles on the checkout modal are wrong.",
@@ -135,6 +135,7 @@ class TestEvalInfrastructure(unittest.TestCase):
                        "Fix aria_roles on the modal.",
                        "Add aria-label attributes to the icon buttons.",
                        "Fix aria on the nav.",
+                       "Rename the ARIA_LABEL constants on the icon buttons.",
                        "Aria-label is missing on the icon buttons.",
                        "Aria roles are broken on the checkout modal.",
                        "Fix the checkout modal. Aria roles are broken there.",
@@ -147,6 +148,8 @@ class TestEvalInfrastructure(unittest.TestCase):
                 self.assertEqual(eval_mod.classify_prompt(prompt), "access-it")
         for prompt in ("Sweep the auth service for variants of the IDOR.",
                        "Set the landing page's heading font to Arial.",
+                       "Set the landing page's heading font to ARIAL.",
+                       "Export the ARIAS playlist to the shared drive.",
                        "Maria asked whether the arias are on the playlist.",
                        "Install aria2 on the download hosts.",
                        "Ask Aria whether the release notes are ready.",
