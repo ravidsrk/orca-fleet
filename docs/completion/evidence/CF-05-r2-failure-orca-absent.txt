@@ -1,0 +1,7 @@
+# 2026-09-02T08:20:49Z CF-05 failure path in this environment (cloud container): Orca CLI/app absent
+$ command -v orca
+exit=1
+$ orca status --json
+/bin/bash: line 16: orca: command not found
+exit=127
+getting-started prerequisite: Orca app running (docs/getting-started.md). Happy path evidence stands from run 1 at 6ad0e87 (CF-05-happy-review-it.txt); it is not re-witnessable here.

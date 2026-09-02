@@ -1,0 +1,6 @@
+# 2026-09-02T08:25:29Z CF-02 failure path: copying a mission instead of linking it (README: 'link, don't copy')
+$ cp -r $CLONE/skills/ship-it $HOME/.claude/skills/ship-it-copy
+exit=0
+$ cd $HOME/.claude/skills/ship-it-copy && ls ../../playbooks
+ls: cannot access '../../playbooks': No such file or directory
+exit=2  (non-zero: playbooks/ does not exist two levels above a copy — the documented breakage; README's check catches it)

@@ -1,7 +1,7 @@
 {
   "product": "orca-fleet",
-  "repo_path": "/Users/ravindra/projects/orca-fleet",
-  "run_id": "20260901-1336",
+  "repo_path": "/home/user/orca-fleet",
+  "run_id": "20260902-0816",
   "mode": "drive",
   "baseline": {
     "commit": "6abf548de4d53b9250e13f3b2cc297f6dd8fdf01",
@@ -9,44 +9,54 @@
     "cold_start": "pass",
     "evidence": "docs/completion/evidence/P0-coldstart-validate-tests.txt"
   },
-  "current_commit": "95ebeb29a524f3b23e33dd72a857b903a6f1d0e9",
-  "resume_pointer": "DONE",
+  "current_commit": "f2e53f4dff9a8a33cac041457ffb270d3ad5c875",
+  "resume_pointer": "P7/H-07",
   "definition_frozen_at": "ed6a2f4",
-  "completion_pct": 56,
+  "completion_pct": 67,
   "gate": {
     "status": "CONDITIONAL_GO",
-    "reason": "CF-05 evidenced; H-01 done. Alert-on-failure waived A-13. H-02/H-03 do not gate."
+    "reason": "run 2 at f2e53f4: items 1,3,4,6,7 and the minima met; item 2 met only at 6ad0e87 for CF-05; item 5 waived by A-13 (text as of 67c1707), H-06 to demonstrate; item 8: H-07 (review-it dry run on the current head) open and launch-gating (fresh-reviewer RV-01)."
   },
   "angles": [
     {
       "id": 1,
       "name": "product",
-      "score": 2,
-      "rag": "A",
+      "score": 3,
+      "rag": "G",
       "na_reason": null,
       "findings": [
         "F-1-01",
         "F-1-02",
-        "F-1-03"
+        "F-1-03",
+        "F-1-04"
       ],
       "evidence": [
-        "docs/completion/evidence/CF-01-happy-catalog-gates.txt"
+        "docs/completion/evidence/CF-01-r2-happy-catalog-gates.txt",
+        "docs/completion/evidence/CF-02-r2-happy-symlink-install.txt",
+        "docs/completion/evidence/CF-03-r2-happy-vfbench.txt",
+        "docs/completion/evidence/CF-04-r2-happy-nc-demo.txt",
+        "docs/completion/evidence/CF-05-happy-review-it.txt",
+        "docs/completion/evidence/CF-06-r2-proof-honesty.txt",
+        "docs/completion/evidence/CF-05-failure-orca-not-running.txt"
       ]
     },
     {
       "id": 2,
       "name": "functional",
-      "score": 2,
-      "rag": "A",
+      "score": 3,
+      "rag": "G",
       "na_reason": null,
       "findings": [
         "F-2-01",
         "F-2-02",
         "F-2-03",
-        "F-2-04"
+        "F-2-04",
+        "F-2-05"
       ],
       "evidence": [
-        "docs/completion/evidence/P0-coldstart-validate-tests.txt"
+        "docs/completion/evidence/P0-r2-coldstart-validate.txt",
+        "docs/completion/evidence/P1-r2-hygiene-greps.txt",
+        "docs/completion/evidence/CF-02-r2-failure-copy-breaks-refs.txt"
       ]
     },
     {
@@ -62,7 +72,9 @@
         "F-3-04"
       ],
       "evidence": [
-        "docs/completion/evidence/P0-coldstart-validate-tests.txt"
+        "docs/completion/evidence/P0-r2-coldstart-validate.txt",
+        "docs/completion/evidence/P0-r2-coldstart-ruff.txt",
+        ".github/workflows/validate.yml"
       ]
     },
     {
@@ -78,7 +90,9 @@
         "F-4-04"
       ],
       "evidence": [
-        "docs/completion/evidence/P0-coldstart-tests-run2.txt"
+        "docs/completion/evidence/P0-r2-coldstart-tests-run1.txt",
+        "docs/completion/evidence/P0-r2-coldstart-tests-run2.txt",
+        "docs/completion/evidence/P0-r2-ci-main.txt"
       ]
     },
     {
@@ -98,6 +112,7 @@
         "F-5-08"
       ],
       "evidence": [
+        "docs/completion/evidence/P1-r2-hygiene-greps.txt",
         "SECURITY.md",
         ".env.example",
         "docs/verify-gate.md"
@@ -115,24 +130,27 @@
     {
       "id": 7,
       "name": "infra",
-      "score": 2,
-      "rag": "A",
+      "score": 3,
+      "rag": "G",
       "na_reason": null,
       "findings": [
         "F-7-01",
         "F-7-02",
         "F-7-03",
-        "F-7-04"
+        "F-7-04",
+        "F-7-05"
       ],
       "evidence": [
-        ".github/workflows/validate.yml"
+        ".github/workflows/validate.yml",
+        "docs/completion/evidence/P0-r2-rollback-rehearsal.txt",
+        "docs/completion/evidence/P0-r2-ci-main.txt"
       ]
     },
     {
       "id": 8,
       "name": "reliability",
-      "score": 2,
-      "rag": "A",
+      "score": 3,
+      "rag": "G",
       "na_reason": null,
       "findings": [
         "F-8-01",
@@ -140,7 +158,11 @@
         "F-8-03"
       ],
       "evidence": [
-        "docs/completion/evidence/CF-04-happy-nc-demo.txt"
+        "docs/completion/evidence/CF-03-r2-happy-vfbench.txt",
+        "docs/completion/evidence/CF-04-r2-happy-nc-demo.txt",
+        "docs/completion/evidence/CF-05-failure-orca-not-running.txt",
+        "docs/completion/evidence/P0-r2-coldstart-tests-run1.txt",
+        "docs/ops.md"
       ]
     },
     {
@@ -151,7 +173,8 @@
       "na_reason": null,
       "findings": [
         "F-9-01",
-        "F-9-02"
+        "F-9-02",
+        "F-9-03"
       ],
       "evidence": []
     },
@@ -166,7 +189,8 @@
         "F-10-02"
       ],
       "evidence": [
-        "docs/completion/evidence/P0-coldstart-validate-tests.txt"
+        "docs/completion/evidence/P0-r2-coldstart-tests-run1.txt",
+        "docs/completion/evidence/P6-r2-stranger-test.txt"
       ]
     },
     {
@@ -177,9 +201,13 @@
       "na_reason": null,
       "findings": [
         "F-11-01",
-        "F-11-02"
+        "F-11-02",
+        "F-11-03"
       ],
       "evidence": [
+        "docs/ops.md",
+        "docs/completion/evidence/P1-r2-integrations-github.txt",
+        "docs/completion/evidence/P0-r2-ci-main.txt",
         "docs/completion/evidence/CF-05-failure-orca-not-running.txt"
       ]
     },
@@ -211,11 +239,14 @@
         "F-14-01",
         "F-14-02",
         "F-14-03",
-        "F-14-04"
+        "F-14-04",
+        "F-14-05"
       ],
       "evidence": [
+        "docs/completion/evidence/P6-r2-stranger-test.txt",
         "docs/getting-started.md",
-        "SECURITY.md"
+        "SECURITY.md",
+        "docs/ops.md"
       ]
     },
     {
@@ -230,30 +261,34 @@
         "F-15-03"
       ],
       "evidence": [
-        "LICENSE"
+        "LICENSE",
+        "SECURITY.md"
       ]
     },
     {
       "id": 16,
       "name": "gtm",
-      "score": 1,
-      "rag": "R",
+      "score": 2,
+      "rag": "A",
       "na_reason": null,
       "findings": [
         "F-16-01",
         "F-16-02",
         "F-16-03",
-        "F-16-04"
+        "F-16-04",
+        "F-16-05"
       ],
       "evidence": [
-        "docs/distribution.md"
+        "docs/distribution.md",
+        "docs/ops.md",
+        ".claude-plugin/plugin.json"
       ]
     },
     {
       "id": 17,
       "name": "ownership",
-      "score": 2,
-      "rag": "A",
+      "score": 3,
+      "rag": "G",
       "na_reason": null,
       "findings": [
         "F-17-01",
@@ -261,7 +296,8 @@
         "F-17-03"
       ],
       "evidence": [
-        "CONTRIBUTING.md"
+        "docs/ops.md",
+        "docs/completion/evidence/T-01-worktree-clean.txt"
       ]
     }
   ],
@@ -271,48 +307,50 @@
       "name": "Catalog gates",
       "money": false,
       "status": "verified",
-      "happy_evidence": "docs/completion/evidence/CF-01-happy-catalog-gates.txt",
-      "failure_evidence": "docs/completion/evidence/CF-04-happy-nc-demo.txt"
+      "happy_evidence": "docs/completion/evidence/CF-01-r2-happy-catalog-gates.txt",
+      "failure_evidence": "docs/completion/evidence/CF-06-r2-failure-overclaim.txt"
     },
     {
       "id": "CF-02",
       "name": "Install a mission",
       "money": false,
       "status": "verified",
-      "happy_evidence": "docs/completion/evidence/CF-02-happy-symlink-install.txt",
-      "failure_evidence": null
+      "happy_evidence": "docs/completion/evidence/CF-02-r2-happy-symlink-install.txt",
+      "failure_evidence": "docs/completion/evidence/CF-02-r2-failure-copy-breaks-refs.txt"
     },
     {
       "id": "CF-03",
       "name": "Independent verify",
       "money": false,
       "status": "verified",
-      "happy_evidence": "docs/completion/evidence/CF-03-happy-vfbench.txt",
-      "failure_evidence": "docs/completion/evidence/CF-03-happy-vfbench.txt"
+      "happy_evidence": "docs/completion/evidence/CF-03-r2-happy-vfbench.txt",
+      "failure_evidence": "docs/completion/evidence/CF-03-r2-happy-vfbench.txt"
     },
     {
       "id": "CF-04",
       "name": "Negative-control demo",
       "money": false,
       "status": "verified",
-      "happy_evidence": "docs/completion/evidence/CF-04-happy-nc-demo.txt",
-      "failure_evidence": "docs/completion/evidence/CF-04-happy-nc-demo.txt"
+      "happy_evidence": "docs/completion/evidence/CF-04-r2-happy-nc-demo.txt",
+      "failure_evidence": "docs/completion/evidence/CF-04-r2-happy-nc-demo.txt"
     },
     {
       "id": "CF-05",
       "name": "First Orca mission",
       "money": false,
-      "status": "verified",
+      "status": "works",
       "happy_evidence": "docs/completion/evidence/CF-05-happy-review-it.txt",
-      "failure_evidence": "docs/completion/evidence/CF-05-failure-orca-not-running.txt"
+      "failure_evidence": "docs/completion/evidence/CF-05-failure-orca-not-running.txt",
+      "note": "verified at 6ad0e87 (run 1, pre-#225, coordinator self-review); at f2e53f4 only the failure path is evidenced — re-witness on current main is H-07 (launch-gating); CF-05-r2-failure-orca-absent.txt records substrate absence only",
+      "verified_at": "6ad0e87"
     },
     {
       "id": "CF-06",
       "name": "Proof honesty",
       "money": false,
       "status": "verified",
-      "happy_evidence": "docs/completion/evidence/P0-coldstart-validate-tests.txt",
-      "failure_evidence": null
+      "happy_evidence": "docs/completion/evidence/CF-06-r2-proof-honesty.txt",
+      "failure_evidence": "docs/completion/evidence/CF-06-r2-failure-overclaim.txt"
     }
   ],
   "gaps": [
@@ -520,7 +558,68 @@
       "status": "open",
       "tasks": [],
       "accept_expiry": "when a hosted service exists",
-      "issue_url": null
+      "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/226"
+    },
+    {
+      "id": "G-15",
+      "source": [
+        "F-16-05"
+      ],
+      "angle": 16,
+      "critical_flow": null,
+      "severity": "S2",
+      "decision": "FINISH",
+      "status": "open",
+      "tasks": [],
+      "accept_expiry": null,
+      "issue_url": null,
+      "human_action": "H-04"
+    },
+    {
+      "id": "G-16",
+      "source": [
+        "F-1-04"
+      ],
+      "angle": 1,
+      "critical_flow": "CF-05",
+      "severity": "S1",
+      "decision": "FINISH",
+      "status": "open",
+      "tasks": [],
+      "accept_expiry": null,
+      "issue_url": null,
+      "human_action": "H-07"
+    },
+    {
+      "id": "G-17",
+      "source": [
+        "F-2-05"
+      ],
+      "angle": 2,
+      "critical_flow": null,
+      "severity": "S3",
+      "decision": "FINISH",
+      "status": "open",
+      "tasks": [],
+      "accept_expiry": null,
+      "issue_url": null,
+      "human_action": "H-05"
+    },
+    {
+      "id": "G-18",
+      "source": [
+        "F-7-05"
+      ],
+      "angle": 7,
+      "critical_flow": null,
+      "severity": "S3",
+      "decision": "FINISH",
+      "status": "closed",
+      "tasks": [
+        "T-09"
+      ],
+      "accept_expiry": null,
+      "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/226"
     }
   ],
   "phases": [
@@ -543,6 +642,11 @@
           "text": "CI Python pinned",
           "met": true,
           "evidence": "docs/completion/evidence/T-04-python-pin.txt"
+        },
+        {
+          "text": "run 2: cold start re-verified on a fresh clone at f2e53f4",
+          "met": true,
+          "evidence": "docs/completion/evidence/CF-01-r2-happy-catalog-gates.txt"
         }
       ]
     },
@@ -566,12 +670,22 @@
     {
       "id": "P3",
       "name": "Critical flows",
-      "status": "complete",
+      "status": "active",
       "exit_criteria": [
         {
           "text": "CF-05 happy path evidenced",
           "met": true,
           "evidence": "docs/completion/evidence/CF-05-happy-review-it.txt"
+        },
+        {
+          "text": "run 2: CF-02 and CF-06 failure paths evidenced",
+          "met": true,
+          "evidence": "docs/completion/evidence/CF-06-r2-failure-overclaim.txt"
+        },
+        {
+          "text": "run 2: CF-05 re-witnessed on current main through worker dispatch (H-07)",
+          "met": false,
+          "evidence": null
         }
       ]
     },
@@ -605,7 +719,7 @@
       "status": "pending",
       "exit_criteria": [
         {
-          "text": "H-02 marketplace \u2014 does not gate",
+          "text": "H-02 marketplace — does not gate",
           "met": false,
           "evidence": null
         }
@@ -614,7 +728,7 @@
     {
       "id": "P7",
       "name": "Launch rehearsal",
-      "status": "complete",
+      "status": "active",
       "exit_criteria": [
         {
           "text": "Stranger Test CF-01/04",
@@ -622,9 +736,19 @@
           "evidence": "docs/completion/evidence/CF-01-happy-catalog-gates.txt"
         },
         {
-          "text": "Gate evaluated",
+          "text": "Gate evaluated (run 1: CONDITIONAL GO; run 2: CONDITIONAL GO pending H-07)",
           "met": true,
           "evidence": "docs/completion/STATUS.md"
+        },
+        {
+          "text": "run 2: Stranger Test on a fresh clone (27s)",
+          "met": true,
+          "evidence": "docs/completion/evidence/P6-r2-stranger-test.txt"
+        },
+        {
+          "text": "run 2: gate evaluated after fresh-reviewer handoff",
+          "met": true,
+          "evidence": "docs/completion/evidence/P7-r2-fresh-review.md"
         }
       ]
     }
@@ -730,7 +854,27 @@
       ],
       "review": "manual",
       "attempts": 0,
-      "block_signature": "Orca runtime not_running"
+      "block_signature": null
+    },
+    {
+      "id": "T-09",
+      "phase": "P7",
+      "gaps": [
+        "G-18"
+      ],
+      "size": "S",
+      "depends_on": [],
+      "owner": "agent",
+      "status": "done",
+      "branch": "claude/skills-improvements-review-oqc2zj",
+      "pr": "https://github.com/ravidsrk/orca-fleet/pull/227",
+      "commit": null,
+      "evidence": [
+        "docs/completion/evidence/T-09-accept-expiry-issue.txt"
+      ],
+      "review": "manual",
+      "attempts": 1,
+      "block_signature": null
     }
   ],
   "human_actions": [
@@ -759,6 +903,46 @@
       "gates_launch": false,
       "verification": "version equals CHANGELOG heading",
       "status": "done"
+    },
+    {
+      "id": "H-04",
+      "instruction": "Edit the GitHub repository About description: it says 10 outcome-named autonomous fleets; the catalog is 13",
+      "unblocks": [
+        "G-15"
+      ],
+      "gates_launch": false,
+      "verification": "agent re-reads the description via the GitHub API → evidence/H-04-repo-description.txt",
+      "status": "open"
+    },
+    {
+      "id": "H-05",
+      "instruction": "After this run's PR merges, cut 0.6.1 (plugin.json + marketplace.json + dated CHANGELOG heading + badges)",
+      "unblocks": [
+        "G-17"
+      ],
+      "gates_launch": false,
+      "verification": "plugin.json version equals the latest dated CHANGELOG heading; gen-badges.py --check exit 0",
+      "status": "open"
+    },
+    {
+      "id": "H-06",
+      "instruction": "Confirm GitHub Actions failure-only notifications are enabled for ravidsrk; optionally witness one failure notification from a throwaway branch (never main)",
+      "unblocks": [
+        "G-10"
+      ],
+      "gates_launch": false,
+      "verification": "evidence/H-06-failure-notification.* filed; the A-13 waiver becomes moot (frozen text not edited)",
+      "status": "open"
+    },
+    {
+      "id": "H-07",
+      "instruction": "With Orca running, on a PR the reviewing session did not author, re-run the getting-started review-it dry run against current main so read-only workers are dispatched (review-it changed in #225)",
+      "unblocks": [
+        "G-16"
+      ],
+      "gates_launch": true,
+      "verification": "evidence/CF-05-r3-happy-review-it.txt with the reviewed SHA and the dispatch record; close G-16; re-evaluate the gate",
+      "status": "open"
     }
   ],
   "assumptions": [
@@ -798,6 +982,98 @@
         "block launch on metrics stack"
       ],
       "reason": "no product runtime"
+    },
+    {
+      "id": "A-14",
+      "phase": "P0",
+      "decision": "resume run 20260902-0816 in a cloud container clone at /home/user/orca-fleet",
+      "rejected": [
+        "refuse without explicit REPO_PATH"
+      ],
+      "reason": "session bound to the repo; SHIPLOG exists (R4)"
+    },
+    {
+      "id": "A-15",
+      "phase": "P0",
+      "decision": "all writes on the session's designated branch, one PR for the run, ravidsrk authorship, no trailers, merge without squash",
+      "rejected": [
+        "ravidsrk/<phase>-<slug> per task"
+      ],
+      "reason": "session may not push other branches; run 1 used the same one-PR shape (#208)"
+    },
+    {
+      "id": "A-16",
+      "phase": "P0",
+      "decision": "greptile/gh/orca absent → manual review lens, GitHub via API tools, CF-05 not re-witnessable",
+      "rejected": [
+        "skip R11",
+        "mark CF-05 absent"
+      ],
+      "reason": "absence is data, not a pass"
+    },
+    {
+      "id": "A-17",
+      "phase": "P0",
+      "decision": "22.7% drift → re-score every angle; DEFINITION.md stays frozen at ed6a2f4",
+      "rejected": [
+        "skip re-audit",
+        "re-freeze"
+      ],
+      "reason": "R4 threshold crossed; R6/R13"
+    },
+    {
+      "id": "A-18",
+      "phase": "P0",
+      "decision": "cold start on Python 3.11 is portability evidence; CI 3.13 remains the authority",
+      "rejected": [
+        "install 3.13 here"
+      ],
+      "reason": "CI already proves the pin"
+    },
+    {
+      "id": "A-19",
+      "phase": "P7",
+      "decision": "gate verdict evaluated mechanically against the frozen text (item 5 carved out by A-13 inside DEFINITION.md); run-1 CONDITIONAL GO label superseded",
+      "rejected": [
+        "keep CONDITIONAL GO for continuity"
+      ],
+      "reason": "CONDITIONAL GO requires an outstanding launch-gating Human Action; none is open"
+    },
+    {
+      "id": "A-20",
+      "phase": "P4",
+      "decision": "version cuts stay Human Actions (H-05)",
+      "rejected": [
+        "agent bumps plugin.json"
+      ],
+      "reason": "a release is the maintainer's call"
+    },
+    {
+      "id": "A-21",
+      "phase": "P7",
+      "decision": "verdict CONDITIONAL GO: H-07 is launch-gating (DEFINITION item 8 names the review-it dry run; review-it changed in #225)",
+      "rejected": [
+        "GO (A-19)"
+      ],
+      "reason": "fresh reviewer RV-01: GO depended on reclassifying the gate's own named action"
+    },
+    {
+      "id": "A-22",
+      "phase": "P0",
+      "decision": "shallow-clone container: suites are 328 ran + 1 skipped of 329 collected (vf-bench review-trap GREEN half); CI #105 with fetch-depth 0 is the authority for the skipped half",
+      "rejected": [
+        "report 329 OK"
+      ],
+      "reason": "RV-02: a skip hidden inside OK is an over-claim"
+    },
+    {
+      "id": "A-23",
+      "phase": "P3",
+      "decision": "G-15 and G-17 are FINISH via one-line Human Actions although off-flow",
+      "rejected": [
+        "DEFER with issues"
+      ],
+      "reason": "maintainer-only one-liners; shown open until acted on, never as done"
     }
   ],
   "research": [
@@ -824,6 +1100,30 @@
       "url": "docs/distribution.md",
       "fetched": "2026-09-01",
       "effect": "confirms:G-07"
+    },
+    {
+      "id": "R-01-r2",
+      "track": "B",
+      "query_category": "Agent Skills SKILL.md specification (re-fetch)",
+      "url": "https://agentskills.io/specification",
+      "fetched": "2026-09-02",
+      "effect": "none"
+    },
+    {
+      "id": "R-02-r2",
+      "track": "B",
+      "query_category": "Python version lifecycle (re-fetch)",
+      "url": "https://devguide.python.org/versions/",
+      "fetched": "2026-09-02",
+      "effect": "none"
+    },
+    {
+      "id": "R-06",
+      "track": "B",
+      "query_category": "GitHub Actions notifications for workflow runs",
+      "url": "https://docs.github.com/en/actions/monitoring-and-troubleshooting-workflows/notifications-for-workflow-runs",
+      "fetched": "2026-09-02",
+      "effect": "confirms:G-10"
     }
   ],
   "breakers_tripped": [],
@@ -851,6 +1151,20 @@
       "commit": "95ebeb2",
       "completion_pct": 56,
       "gate": "CONDITIONAL_GO"
+    },
+    {
+      "run_id": "20260902-0816",
+      "commit": "f2e53f4",
+      "completion_pct": 69,
+      "gate": "NOT_EVALUATED"
+    },
+    {
+      "run_id": "20260902-0816",
+      "commit": "f2e53f4",
+      "completion_pct": 67,
+      "gate": "CONDITIONAL_GO"
     }
-  ]
+  ],
+  "definition_text_at": "67c1707",
+  "run_pr": "https://github.com/ravidsrk/orca-fleet/pull/227"
 }

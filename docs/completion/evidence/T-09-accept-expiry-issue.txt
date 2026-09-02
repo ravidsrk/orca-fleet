@@ -1,0 +1,5 @@
+# 2026-09-02T08:29:55Z T-09 — G-14 ACCEPT expiry filed as a tracked issue (Phase 7 step 3)
+issue: https://github.com/ravidsrk/orca-fleet/issues/226  (label: post-launch)
+title: [post-launch] G-14 ACCEPT expiry — service-style rollback drill once a hosted service exists
+expiry condition: the first time orca-fleet ships or depends on a hosted service
+linked from: docs/completion/GAPS.md (G-14 row + post-launch table), status.json gaps[G-14].issue_url, gaps[G-18] closed

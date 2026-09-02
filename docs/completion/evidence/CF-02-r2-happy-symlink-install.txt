@@ -1,0 +1,26 @@
+# 2026-09-02T08:21:29Z CF-02 symlink install on the fresh clone (README Install → 'Symlink individual missions'), HOME faked to a scratch dir
+$ ln -s $CLONE/skills/ship-it $HOME/.claude/skills/ship-it
+exit=0
+$ ls -l $HOME/.claude/skills/
+total 4
+lrwxrwxrwx 1 root root 107 Sep  2 08:21 ship-it -> $SCRATCH/stranger/skills/ship-it
+$ cd -P $HOME/.claude/skills/ship-it && ls ../../playbooks | head -5   # README: check playbooks/ and runtime/ resolve two levels up
+acceptance-review.md
+build-change.md
+compound-learn.md
+decide-and-freeze.md
+decompose-dag.md
+exit=0
+$ ls ../../runtime | head -5
+attention-budget.md
+dispatch-lifecycle.md
+evidence-manifest.md
+gate-classification.md
+ledger-contract.md
+exit=0
+$ head -4 $HOME/.claude/skills/ship-it/SKILL.md
+---
+name: ship-it
+description: >-
+  Turn intent or a frozen spec into a released, verified outcome on Orca. Entry is either a
+result: symlinked mission is readable and its ../../playbooks and ../../runtime references resolve (the README's stated install contract).

@@ -43,6 +43,16 @@ truth is `.claude-plugin/plugin.json`.
   line, or sentence the capital is conventional and still routes); seven routing
   examples and a direct classifier test added.
 
+- Product-completion run 2 (resume at `f2e53f4`, `docs/completion/`): every
+  angle re-scored on fresh-clone evidence (67%, was 56%; CONDITIONAL GO pending
+  H-07, the review-it dry run re-witnessed on the current head); the six critical
+  flows re-evidenced with failure paths (a copied mission loses its
+  `../../playbooks` references; an over-claimed `proof:` tier fails
+  `proof_status --check`); new human actions H-04..H-07 (GitHub About
+  description still says 10 fleets, next version cut, failure-notification
+  setting, CF-05 re-witness on the current head); the G-14 ACCEPT expiry is
+  now a filed issue.
+
 ### Fixed
 
 - Leftover Greptile comments from the post-launch PRs (#219–#223): incident

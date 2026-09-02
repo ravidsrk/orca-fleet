@@ -72,3 +72,47 @@ Complete, for this product, means:
 8. Marketplace listings are a launch *surface* but require H-02; they do not block *catalog* completeness.
 
 Research findings without plan effect: India payments/crypto, PCI, GDPR-as-SaaS, LLM provider ToS (N/A).
+
+---
+
+# Run 2 (2026-09-02) — delta
+
+Category-only outbound queries (R8). Re-fetches confirm the run-1 passages; one new source.
+
+## Confidentiality firewall log (run 2)
+
+| id | track | query (category) | destination |
+|---|---|---|---|
+| Q-05 | B | Agent Skills SKILL.md specification (re-fetch) | https://agentskills.io/specification |
+| Q-06 | B | Python version lifecycle table (re-fetch) | https://devguide.python.org/versions/ |
+| Q-07 | B | GitHub Actions notifications for workflow runs | https://docs.github.com/en/actions/monitoring-and-troubleshooting-workflows/notifications-for-workflow-runs |
+
+## Track A — Internal archaeology (run 2)
+
+**Velocity.** Nine first-parent merges on `main` between `95ebeb2` (run-1 close) and `f2e53f4`: #217 completion close-out, #218–#223 post-launch gap closures (G-13, G-12, G-11, G-08, G-07, G-06), #224 leftover review comments, #225 adversarial review of every mission skill (2026-09-02). Not abandoned; the tracker holds two open `post-launch` issues (#212 G-09, #213 G-10).
+
+**Abandoned branches.** None. Remote holds `main` and this session's branch; no local worktrees (`git worktree list`).
+
+**Prior plans reconciled.** Run-1 gaps G-06..G-08 and G-11..G-13 are closed on `main` with their issues linked. `docs/completion/STATUS.md`'s header ("NEXT: none") was stale until this run rewrote it.
+
+**Intent delta.** None in product scope. #225 tightened mission contracts (safety ordering, trust boundaries, terminal semantics) without adding surfaces — consistent with the original "verified, not asserted" intent.
+
+## Track B — External research (run 2)
+
+### R-01 (re-fetch) Agent Skills spec
+- **URL:** https://agentskills.io/specification · **Fetched:** 2026-09-02
+- **Passage (paraphrased):** unchanged — required `name` (≤64, lowercase/digits/hyphens, matches the directory) and `description` (1–1024); optional `license`, `compatibility` (≤500), `metadata` (string map), experimental `allowed-tools`; keep `SKILL.md` under 500 lines; validate with `skills-ref validate`.
+- **Effect:** **confirms** (no change). Every mission is ≤129 lines; `validate.py` enforces the fields; the extras `proof`/`autonomy`/`proof_evidence` are allowlisted (G-08 closed). **none**.
+
+### R-02 (re-fetch) Python lifecycle
+- **URL:** https://devguide.python.org/versions/ · **Fetched:** 2026-09-02
+- **Passage (paraphrased):** 3.13 bugfix, EOL 2029-10; 3.14 bugfix, EOL 2030-10; 3.12 security-only, EOL 2028-10; 3.11 security-only, EOL 2027-10.
+- **Effect:** **confirms G-03 closed** (CI pinned to 3.13, in bugfix). This container's 3.11 is supported but security-only (A-18). **none**.
+
+### R-06 (new) GitHub Actions notifications  *(run 1 already used R-04/R-05; fresh-reviewer RV-10)*
+- **URL:** https://docs.github.com/en/actions/monitoring-and-troubleshooting-workflows/notifications-for-workflow-runs · **Fetched:** 2026-09-02
+- **Passage (paraphrased):** notifications are per user and opt-in — "if you enable email or web notifications for GitHub Actions, you'll receive a notification when any workflow runs that you've triggered have completed", with an option to be notified only when a run has failed; scheduled-workflow notifications go to the workflow's creator.
+- **Effect:** **confirms G-10 / A-13** — a green run proves nothing about alerting, and the setting lives on the maintainer's account, invisible from the repository → **new Human Action H-06** (confirm the failure-only setting; optionally witness one failure notification from a throwaway branch). Gate item 5 stays waived until then.
+
+### Findings without plan effect (run 2)
+R-03 marketplace (unchanged; H-02 open) · Appendix D domains (A-02, still N/A) · OWASP / SRE PRR (no new surface since run 1).

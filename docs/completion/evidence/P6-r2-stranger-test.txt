@@ -1,0 +1,36 @@
+# 2026-09-02T08:45:01Z Stranger Test transcript (re-captured after RV-08): fresh clone of this repository (itself a shallow clone, A-22), README 'Validate and test' + demo + bench commands only
+
+[08:45:01] $ git clone -q /home/user/orca-fleet /tmp/claude-0/-home-user-orca-fleet/4d4b5ea7-48d8-589e-98d5-dcb799f88d3b/scratchpad/stranger2
+exit=0 (+0s)
+
+[08:45:01] $ python3 scripts/validate.py
+ok   speed-it
+
+All 13 missions valid; three-layer separation holds; evals valid.
+exit=0 (+1s)
+
+[08:45:02] $ python3 -m unittest discover -s tests
+Ran 329 tests in 22.164s
+
+OK (skipped=1)
+exit=0 (+22s)
+
+[08:45:24] $ python3 runtime/scripts/proof_status.py --check
+  self-run       2
+  external-run   2
+  total          13
+exit=0 (+0s)
+
+[08:45:24] $ sh demo/negative-control/run.sh
+== verdict ==
+PASS: self-scorer GREEN (exit 0) while orca-fleet caught the dropped criterion RED (exit 2).
+The moat is the frozen denominator + independent re-derivation, not the gate mechanism.
+exit=0 (+0s)
+
+[08:45:24] $ python3 bench/vf-bench/vfbench.py
+  [RED  ] unreviewed-mutation-1    unreviewed-mutation       
+  [GREEN] valid-control-1          control-not-a-trap        
+  [RED  ] wrong-sha-1              wrong-sha                 
+exit=0 (+1s)
+
+total wall time: 24s (gate item 6 target ≤ 900s). Knowledge needed outside README/getting-started: none for CF-01/03/04/06.

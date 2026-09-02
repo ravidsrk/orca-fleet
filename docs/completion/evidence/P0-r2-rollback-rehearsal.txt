@@ -1,0 +1,23 @@
+# 2026-09-02T08:20:09Z rollback rehearsal on a SCRATCH clone (never main) — DEFINITION gate item 4 / A-10
+++ git clone -q /home/user/orca-fleet /tmp/claude-0/-home-user-orca-fleet/4d4b5ea7-48d8-589e-98d5-dcb799f88d3b/scratchpad/rollback-clone
+++ cd /tmp/claude-0/-home-user-orca-fleet/4d4b5ea7-48d8-589e-98d5-dcb799f88d3b/scratchpad/rollback-clone
+++ git switch -q -c throwaway
+++ echo throwaway
+++ git add THROWAWAY.txt
+++ git -c user.name=ravidsrk -c user.email=ravidsrk@gmail.com commit -q -m 'chore: throwaway commit for rollback rehearsal'
+++ git log --oneline -1
+52f88bf chore: throwaway commit for rollback rehearsal
+++ git -c user.name=ravidsrk -c user.email=ravidsrk@gmail.com revert --no-edit HEAD
+++ git log --oneline -3
+de501b5 Revert "chore: throwaway commit for rollback rehearsal"
+52f88bf chore: throwaway commit for rollback rehearsal
+f2e53f4 Merge pull request #225 from ravidsrk/claude/skills-improvements-review-oqc2zj
+++ test '!' -e THROWAWAY.txt
+++ echo 'THROWAWAY.txt gone after revert'
+THROWAWAY.txt gone after revert
+++ git diff --stat HEAD~2 HEAD
+++ python3 scripts/validate.py
+++ tail -1
+All 13 missions valid; three-layer separation holds; evals valid.
+++ set +x
+exit=0
