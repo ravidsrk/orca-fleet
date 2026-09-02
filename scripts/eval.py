@@ -92,7 +92,9 @@ MISSION_TRIGGERS = {
 # inside "variant". A word trigger must start at a word boundary and end at one, or at an
 # identifier continuation — `aria-label`, `aria_roles`, camelCase `ariaLabel` — so it never
 # matches inside "variant" or as the prefix of "Arial" / "arias" / "aria2". Matched on the
-# RAW prompt: the camelCase capital is the boundary, so case must survive.
+# RAW prompt, because case carries meaning: the acronym is written ARIA and an identifier
+# head is written aria…, while a title-case standalone "Aria" is a proper noun (a person, a
+# hotel) and does not count.
 MISSION_WORD_TRIGGERS = {
     "access-it": ["aria"],
 }
@@ -102,9 +104,19 @@ def word_trigger_matches(word: str, prompt: str) -> bool:
     """True when `word` appears as a whole word or as the head of an identifier in `prompt`.
 
     A trailing lowercase letter or digit continues a different word (`Arial`, `arias`, the
-    `aria2` download tool); a capital, underscore, hyphen, or punctuation does not.
+    `aria2` download tool); a capital, underscore, hyphen, or punctuation does not. Case is a
+    signal: an all-caps token is the acronym (ARIA) and an all-lowercase one the identifier
+    head (aria-label, ariaLabel); a mixed-case token (Aria) counts only when an identifier
+    continuation follows it (Aria-label, AriaLabel) — standing alone it is a proper noun.
     """
-    return re.search(rf"(?<![A-Za-z0-9])(?i:{re.escape(word)})(?![a-z0-9])", prompt) is not None
+    for m in re.finditer(rf"(?<![A-Za-z0-9])(?i:{re.escape(word)})(?![a-z0-9])", prompt):
+        token = m.group(0)
+        if token == token.upper() or token == token.lower():
+            return True
+        nxt = prompt[m.end():m.end() + 1]
+        if nxt in ("-", "_") or nxt.isupper():
+            return True
+    return False
 
 def catalog_missions() -> set[str]:
     """The live mission catalog: skills/<name>/ dirs with a SKILL.md. Eval coverage
