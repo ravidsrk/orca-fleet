@@ -81,8 +81,9 @@ MISSION_TRIGGERS = {
         "regulatory", "controls evidence", "prove compliance",
     ],
     "access-it": [
-        "accessibility", "a11y", "wcag", "screen reader", "keyboard", "aria",
-        "axe-core", "section 508", "color contrast", "assistive",
+        "accessibility", "a11y", "wcag", "screen reader", "keyboard navigation",
+        "keyboard-only", "aria-", " aria ", "axe-core", "section 508", "color contrast",
+        "assistive",
     ],
 }
 

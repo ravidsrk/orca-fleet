@@ -42,10 +42,11 @@ un-automatable criteria (screen-reader semantics, keyboard traps, cognitive load
 
 ```mermaid
 flowchart TD
-    A[surface + WCAG 2.2 AA target] --> B[FREEZE surface x criteria<br/>digest-locked denominator]
-    B --> C[DETECT<br/>axe-core / Lighthouse · violations to a DAG]
+    A[surface + WCAG 2.2 AA target] --> B[FREEZE surface x criteria<br/>digest-locked denominator · integration BASE bootstrapped]
+    B --> C[DETECT at the BASE head<br/>axe-core / Lighthouse · violations to a DAG]
     C --> D[FIX — rw workers<br/>remediate-finding · structural items serialized]
-    D --> E[RE-VERIFY<br/>oracle clean + revert-to-violation NC]
+    D --> D2[Build-blind REVIEW → LAND<br/>semantics, not just the oracle · one merge train]
+    D2 --> E[RE-VERIFY at the BASE head<br/>oracle clean + revert-to-violation NC]
     E --> F[PARK ceiling criteria<br/>screen-reader / cognitive → human-AT]
     F --> G{{CONFORMANT}}
     F --> H{{CONFORMANT-WITH-MANUAL-PARKED}}

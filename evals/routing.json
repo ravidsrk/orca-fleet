@@ -211,6 +211,13 @@
       "expected_mission": "review-it",
       "type": "negative",
       "reason": "A bounded per-diff a11y lens is review-it; access-it is a full surface conformance sweep, not a per-PR verdict."
+    },
+    {
+      "id": 31,
+      "prompt": "Build me keyboard shortcuts for the editor.",
+      "expected_mission": "ship-it",
+      "type": "negative",
+      "reason": "Keyboard shortcuts are a feature build (ship-it); access-it triggers on keyboard navigation / WCAG conformance, not the word keyboard alone."
     }
   ]
 }
