@@ -68,8 +68,9 @@ SELF-ORIENT → ENUMERATE (per source) → SKEPTIC-TRIAGE (reproduce-or-refute) 
   → BOOTSTRAP integration BASE (preflight --base <BASE> --fork-point <header sha>; BASE ≠ default)
   → PER-FINDING (remediate-finding: verify-real → build-change → PR → build-blind review → merge_ready)
   → conductor LAND (merge-serialization) → CLOSE with evidence
-  → re-ENUMERATE (loop until dry) → VERIFY the integration TIP green (repo's own validate/test suite)
-  → FINAL REPORT + `compound-learn` + human gates
+  → re-ENUMERATE (loop until dry) → FINAL REPORT + `compound-learn` (run-close commits)
+  → VERIFY the FINAL TIP green (repo's own validate/test suite at the head every run-close commit
+    produced — any later commit re-runs it) → promotion PR + human gates
 ```
 
 Run the coordinator as a MANUAL loop (`task-create → spawn → dispatch --inject → check --wait`), not
@@ -86,8 +87,8 @@ The final enumeration output is pasted in the ledger showing the dry state. `sou
 reconciles created/closed-mid-run issues against `T0`, so the count is honest. Manifest names DRY or
 DRY-WITH-PARKED. DRY also requires the integration TIP to pass the repo's OWN validate/test suite:
 the FINAL REPORT and any run-close commit land on the branch outside the per-finding gates, so a
-green per-finding history under a red report commit is still a red branch — verify the tip green
-before opening the promotion PR.
+green per-finding history under a red report commit is still a red branch — verify the FINAL head
+green (after every run-close commit; a later commit re-runs it) before opening the promotion PR.
 
 ## Ledger (header first, then rows)
 

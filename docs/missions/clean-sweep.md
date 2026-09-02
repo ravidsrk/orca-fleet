@@ -82,9 +82,10 @@ flowchart TD
     I --> J[CLOSE with evidence<br/>merge SHA + failed-pre-fix test]
     J --> K[re-ENUMERATE]
     K -->|new or reopened items| E
-    K -->|zero non-terminal items| L2[VERIFY the integration tip<br/>repo's own validate + test suite green]
-    L2 --> L[FINAL REPORT<br/>promotion PR opened]
-    L --> M{{DRY}}
+    K -->|zero non-terminal items| L[FINAL REPORT + reflection<br/>run-close commits land]
+    L --> L2[VERIFY the final tip<br/>validate + test suite green at the final head]
+    L2 --> M{{DRY}}
+    M --> N[promotion PR opened<br/>left to a human]
 ```
 
 Phase by phase:
@@ -117,10 +118,11 @@ Phase by phase:
    memory — with a closing comment linking the PR and the failed-pre-fix test. Then the full
    enumeration runs again; new and reopened items re-enter at triage. The loop ends only when a
    complete pass comes back dry.
-8. **Verify the tip, then report.** Before the final report lands or the promotion PR opens, the
-   integration tip is checked against the repo's own validate/test suite — the report and any
-   run-close commit land outside the per-finding gates, so a green per-finding history under a
-   red report commit is still a red branch.
+8. **Report, then verify the final tip.** The final report, integrity inventory, and reflection
+   land as run-close commits outside the per-finding gates — so the check runs last, at the head
+   those commits produced: the repo's own validate/test suite must be green there before `DRY` is
+   reported and the promotion PR opens. Any later commit re-runs it; a green per-finding history
+   under a red report commit is still a red branch.
 
 ## Terminal states — every item ends in exactly one
 
@@ -128,7 +130,7 @@ Phase by phase:
 |----------|----------------------------------------------------------------------------------------------------|-------------------------------------------------------|
 | `CLOSED` | Merged, ancestry-verified PR + a test that failed pre-fix, both linked in the closing comment      | nobody — the evidence chain is the authorization      |
 | `PARKED` | Two kinds, per the ledger contract. **Clean:** `refuted` / `duplicate` / `externally-resolved` through the batch gate, or `out-of-scope` handed off — not real work for this run. **Degraded:** `needs-human` naming its gate, or `CODE_CLOSED` + `VERIFY_AT_SCALE` with its OPS plan — honest incomplete | the batch gate (clean); a human or OPS (degraded) |
-| `DRY`    | A full enumeration finds zero items outside `CLOSED` and the clean parks, and the integration tip passes the repo's own validate/test suite; the output is pasted in the ledger | terminal — the promotion PR is opened and left to you |
+| `DRY`    | A full enumeration finds zero items outside `CLOSED` and the clean parks, and the final tip (after every run-close commit) passes the repo's own validate/test suite; the output is pasted in the ledger | terminal — the promotion PR is opened and left to you |
 | `DRY-WITH-PARKED` | The set is exhausted but at least one degraded park remains; never reported as `DRY` | a human clears each named park |
 
 The run ends by pasting the dry enumeration, never by asserting it. For `source=tracker`, issues
@@ -159,7 +161,7 @@ plan — does not stop the enumeration from coming back dry, but it makes the ho
 `DRY-WITH-PARKED`, never `DRY`. `DRY` also requires the integration **tip** to pass the repo's own
 validate/test suite: the final report and any run-close commit land on the branch outside the
 per-finding gates, so a green per-finding history under a red report commit is still a red branch —
-the tip is verified green before the promotion PR opens. The final enumeration output is pasted into
+the final head, after every run-close commit, is verified green before the promotion PR opens. The final enumeration output is pasted into
 the ledger showing the dry state, and `source=tracker` runs reconcile mid-run creations and closures
 against `T0` — no quietly shrinking denominator, no honest-looking partial "done".
 
