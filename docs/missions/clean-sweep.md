@@ -25,11 +25,11 @@ runner, the tracker), and re-enumerates until a full pass comes back dry. Coordi
 compacted mid-run, so the run's state lives in a ledger **file**, one row per finding:
 
 ```
-| id | title | VERIFIED | CLASS | FIXED | PR | reviewed_sha | MERGED | CLOSED | evidence |
+| task_id | id | title | CLASS | BUILD_DONE | PR_OPEN | BOT | REVIEWED | MERGED | WT_CLEAN | lighting | park | evidence |
 ```
 
-`CLASS` is the triage verdict, and there are exactly seven: `real-bug` · `real-feature-small` ·
-`refuted` · `duplicate` · `externally-resolved` · `needs-human` · `out-of-scope`. Every close is
+`CLASS` is the triage verdict, and there are exactly eight: `real-bug` · `real-feature-small` ·
+`refuted` · `duplicate` · `externally-resolved` · `needs-human` · `out-of-scope` · `CODE_CLOSED`. Every close is
 backed by a SHA-bound [evidence manifest](../concepts.md#the-evidence-manifest) — a worker saying
 "fixed" is a claim to check, never a fact to record.
 
@@ -122,8 +122,9 @@ Phase by phase:
 | State    | Meaning                                                                                            | Who advances past it                                  |
 |----------|----------------------------------------------------------------------------------------------------|-------------------------------------------------------|
 | `CLOSED` | Merged, ancestry-verified PR + a test that failed pre-fix, both linked in the closing comment      | nobody — the evidence chain is the authorization      |
-| `PARKED` | Refuted or duplicate, approved at the batch gate; or `needs-human`, naming its gate                | a human                                               |
-| `DRY`    | A full enumeration finds zero items outside the two rows above; the output is pasted in the ledger | terminal — the promotion PR is opened and left to you |
+| `PARKED` | Two kinds, per the ledger contract. **Clean:** `refuted` / `duplicate` / `externally-resolved` through the batch gate, or `out-of-scope` handed off — not real work for this run. **Degraded:** `needs-human` naming its gate, or `CODE_CLOSED` + `VERIFY_AT_SCALE` with its OPS plan — honest incomplete | the batch gate (clean); a human or OPS (degraded) |
+| `DRY`    | A full enumeration finds zero items outside `CLOSED` and the clean parks; the output is pasted in the ledger | terminal — the promotion PR is opened and left to you |
+| `DRY-WITH-PARKED` | The set is exhausted but at least one degraded park remains; never reported as `DRY` | a human clears each named park |
 
 The run ends by pasting the dry enumeration, never by asserting it. For `source=tracker`, issues
 created or closed mid-run are reconciled against `T0`, so the final count is honest.
@@ -145,10 +146,12 @@ rebuilt from provenance with RESUME, ledger-scoped and git-verified.
 
 - **CLOSED with evidence** — a merged, ancestry-verified PR plus a test that failed pre-fix,
   revert-audited on a ≥10% sample, with the closing comment linking PR and test; or
-- **PARKED with a human-approved reason** — refuted/duplicate through the batch gate, or
-  `needs-human` naming its gate.
+- **PARKED in a clean class** — `refuted` / `duplicate` / `externally-resolved` through the batch
+  gate, or `out-of-scope` handed off.
 
-The final enumeration output is pasted into the ledger showing the dry state, and
+A degraded park — `needs-human` naming its gate, or `CODE_CLOSED` + `VERIFY_AT_SCALE` with its OPS
+plan — does not stop the enumeration from coming back dry, but it makes the honest terminal
+`DRY-WITH-PARKED`, never `DRY`. The final enumeration output is pasted into the ledger showing the dry state, and
 `source=tracker` runs reconcile mid-run creations and closures against `T0` — no quietly
 shrinking denominator, no honest-looking partial "done".
 
