@@ -12,7 +12,8 @@ truth is `.claude-plugin/plugin.json`.
   updates an issue labeled `ci-failure`; a `workflow_dispatch` drill files and
   closes a `[drill]` issue so the alert path can be proven without redding
   `main`. `validate` publishes the proof rollup and routing score to its run
-  summary; `docs/ops.md` incident step 1 names the issue as the alert.
+  summary; `docs/ops.md` incident step 1 names the issue as the alert. The
+  drill on `main` filed and closed #229 on 2026-09-02.
 - `docs/runs/TEMPLATE.md` and a per-mission field-proof plan in the run-archive
   index (#212): targets, tiers, terminals, and blockers for the nine
   doctrine-only missions; a tier still advances only through a mission run.

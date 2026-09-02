@@ -1,0 +1,40 @@
+# 2026-09-02T11:48Z — T-11: alert-on-failure drill on main (issue #213, gap G-10, DEFINITION launch-gate item 5)
+
+Dispatch: POST /repos/ravidsrk/orca-fleet/actions/workflows/alert-on-failure.yml/dispatches ref=main
+          → 204 No Content at 2026-09-02T11:48:15Z (session GitHub API, actor ravidsrk)
+
+Run:      https://github.com/ravidsrk/orca-fleet/actions/runs/33626502338
+          name alert-on-failure · run_number 1 · event workflow_dispatch · head_branch main
+          head_sha 005ab1fceee8c3324027e28230677ce992f0b02f (Merge pull request #228)
+          status completed · conclusion success · 11:48:15Z → 11:48:32Z
+
+Issue the run filed:
+          https://github.com/ravidsrk/orca-fleet/issues/229
+          title  "[drill] CI alert path check (005ab1f)"
+          label  ci-failure
+          opened by github-actions[bot] at 11:48:27Z
+          closed by github-actions[bot] at 11:48:29Z (state closed, state_reason completed)
+          closing comment (11:48:28Z): "Drill complete: the alert path filed this issue from
+            https://github.com/ravidsrk/orca-fleet/actions/runs/33626502338 and closed it. Nothing is broken."
+
+Issue body as filed (verbatim):
+  **DRILL** — proves the alert path can file an issue; closed by the same run.
+
+  **validate** finished with conclusion `failure` on `main` at `005ab1fceee8c3324027e28230677ce992f0b02f`.
+
+  - Run: https://github.com/ravidsrk/orca-fleet/actions/runs/33626502338
+  - Incident steps: https://github.com/ravidsrk/orca-fleet/blob/main/docs/ops.md#incident-2-am
+
+  Filed by the `alert-on-failure` workflow (#213). Close it when `main` is green again.
+
+Observed through: actions_run_trigger run_workflow; actions_get get_workflow_run; list_issues label=ci-failure;
+issue_read get + get_comments (all on 2026-09-02 between 11:48:15Z and 11:49:30Z).
+
+What this proves: the alert path — workflow → `gh label create` → `gh issue create` (label ci-failure) →
+`gh issue close` with the repository token — fires and leaves a durable artifact in the tracker (an issue),
+without redding `main`. Only the issue's creation and closure were observed (via the API); whether GitHub
+delivered a notification for it to the maintainer was NOT observed — that depends on the account's issue
+notification settings, which are outside this transcript.
+What it does not prove: a real `validate` failure on `main` firing the `workflow_run` trigger. That event is
+GitHub's standard `workflow_run: [validate] completed` on the same job body; inducing it would red `main` (R9),
+so it stays unobserved by design.

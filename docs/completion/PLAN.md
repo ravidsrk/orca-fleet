@@ -51,7 +51,7 @@ Phase status re-evaluated at `f2e53f4` (drift 22.7%, A-17). Order unchanged.
 | P1 | complete (re-verified) | fresh-clone cold start `CF-01-r2-happy-catalog-gates.txt`; CI `validate` #105 green on `main` |
 | P2 | complete | SECURITY.md, `.env.example`, `.gitignore` unchanged; history secret grep clean (`P1-r2-hygiene-greps.txt`) |
 | P3 | active (re-opened) | CF-05 evidence stands only at `6ad0e87`; re-witness on current `main` is H-07 and gates launch (G-16, S1) |
-| P4 | active (was skipped, A-12) | T-10 alert-on-failure workflow landed in this branch; T-11 drill + evidence after merge |
+| P4 | complete (was skipped, A-12) | T-10 merged (#228); T-11 drill on `main` filed and closed issue #229 (`evidence/T-11-alert-drill.txt`) |
 | P5 | complete | folded into P2 (unchanged) |
 | P6 | pending (non-gating) | H-02 marketplace; H-04 About description |
 | P7 | re-evaluated this run | gate evaluated mechanically (A-19); fresh reviewer handoff performed |
@@ -62,7 +62,7 @@ Phase status re-evaluated at `f2e53f4` (drift 22.7%, A-17). Order unchanged.
 |---|---|---|---|---|---|---|---|---|
 | T-09 | P7 | G-18 | File the G-14 ACCEPT expiry ("when a hosted service exists") as a `post-launch` issue; link it from GAPS.md and `status.json`. | issue URL in GAPS.md + `evidence/T-09-accept-expiry-issue.txt` | S | — | agent | done (#226; executed in the Phase 5 loop for phase P7) |
 | T-10 | P4 | G-10 | Add `.github/workflows/alert-on-failure.yml`: `workflow_run` on a failed `validate` on `main` opens/updates a `ci-failure` issue; `workflow_dispatch` drill files + closes a `[drill]` issue; `validate` publishes the proof rollup + routing score to the run summary; `docs/ops.md` incident step 1 names the issue as the alert. | workflow parses; PR CI green; `docs/ops.md` updated | S | — | agent | done (issue #213) |
-| T-11 | P4 | G-10 | After T-10 merges: dispatch the `alert-on-failure` drill on `main`, confirm the `[drill]` issue was filed and closed by the run, file `evidence/T-11-alert-drill.txt`. | `evidence/T-11-alert-drill.txt` with the run url + issue url | S | T-10 merged | agent | todo |
+| T-11 | P4 | G-10 | After T-10 merges: dispatch the `alert-on-failure` drill on `main`, confirm the `[drill]` issue was filed and closed by the run, file `evidence/T-11-alert-drill.txt`. | `evidence/T-11-alert-drill.txt` with the run url + issue url | S | T-10 merged | agent | done (run 33626502338 → issue #229) |
 
 Human: H-04 (G-15), H-05 (G-17), H-06 (G-10 / A-13), H-07 (G-16). **H-07 gates launch** (fresh-reviewer RV-01); the others do not.
 

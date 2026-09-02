@@ -5,18 +5,18 @@
 
 ```
 VERDICT: CONDITIONAL GO
-COMPLETION: 67% (was 56% at 95ebeb2; 52% at baseline 6abf548)   GATE: unmet on one item — item 8's action (the review-it dry run) must be re-witnessed on the current head (H-07); item 5 (alert) waived by A-13 in the frozen text
+COMPLETION: 68% (was 56% at 95ebeb2; 52% at baseline 6abf548)   GATE: unmet on one item — item 8's action (the review-it dry run) must be re-witnessed on the current head (H-07); item 5 (alert) demonstrated 2026-09-02 by the alert-on-failure drill (#229)
 CRITICAL FLOWS: 6 total · 5 verified at f2e53f4 · 1 works (CF-05: verified at 6ad0e87 only — pre-#225, coordinator self-review; re-witness pending H-07) · 0 cut
-GAPS: S0 0 open / 0 closed · S1 1 open (G-16) / 2 closed · S2 1 open (G-15) / 3 closed · S3 4 open (G-09, G-10 DEFER · G-14 ACCEPT · G-17) / 7 closed · CUT 0 · DEFER 2 · ACCEPT 1 (expiry #226)
-TASKS: 6/6 done (T-01, T-03, T-04, T-05, T-08, T-09) · BLOCKED 0 · HUMAN ACTIONS gating launch: 1 (H-07)
+GAPS: S0 0 open / 0 closed · S1 1 open (G-16) / 2 closed · S2 1 open (G-15) / 3 closed · S3 3 open (G-09 DEFER · G-14 ACCEPT · G-17) / 8 closed · CUT 0 · DEFER 1 · ACCEPT 1 (expiry #226)
+TASKS: 8/8 done (T-01, T-03, T-04, T-05, T-08, T-09, T-10, T-11) · BLOCKED 0 · HUMAN ACTIONS gating launch: 1 (H-07)
 NEXT: H-07 — with Orca running, run the getting-started review-it dry run on current main through the worker-dispatch shape, on a PR the reviewing session did not author; file evidence/CF-05-r3-happy-review-it.txt
 
 Angles (score/4, RAG):
-1 Product 3/G · 2 Functional 3/G · 3 Code 3/G · 4 Testing 3/G · 5 Security 3/G · 6 Data N/A · 7 Infra 3/G · 8 Reliability 3/G · 9 Observability 1/R · 10 Perf 2/A · 11 Integrations 2/A · 12 AI N/A · 13 UX N/A · 14 Docs 3/G · 15 Legal 2/A · 16 GTM 2/A · 17 Ownership 3/G
+1 Product 3/G · 2 Functional 3/G · 3 Code 3/G · 4 Testing 3/G · 5 Security 3/G · 6 Data N/A · 7 Infra 3/G · 8 Reliability 3/G · 9 Observability 2/A · 10 Perf 2/A · 11 Integrations 2/A · 12 AI N/A · 13 UX N/A · 14 Docs 3/G · 15 Legal 2/A · 16 GTM 2/A · 17 Ownership 3/G
 
 Top risks (max 5):
 - G-16 CF-05 evidence predates #225 and was a coordinator self-review → H-07 (gates)
-- G-10 alert-on-failure undemonstrated; notifications are account-side → H-06
+- G-10 closed by the drill (#229); a real `validate` failure firing `workflow_run` on `main` stays unobserved by design (R9)
 - G-15 GitHub About description says 10 fleets, catalog is 13 → H-04
 - G-17 version badge lags HEAD ([Unreleased] vs 0.6.0) → H-05
 - G-09 nine doctrine-only missions (honest) → #212 DEFER
@@ -24,7 +24,7 @@ Top risks (max 5):
 Human Actions gating launch:
 - H-07 With the Orca app running, on a PR this session did not author, run the getting-started review-it dry run against current main so read-only workers are actually dispatched; save the SHA-bound verdict and the dispatch record as evidence/CF-05-r3-happy-review-it.txt.
 
-Assumptions made this phase: A-14..A-23 (A-19 superseded by A-21)
+Assumptions made this phase: A-14..A-25 (A-19 superseded by A-21)
 Second look: a separate-context reviewer raised RV-01..RV-14 — 12 fixed in-branch, 2 accepted with reasons (evidence/P7-r2-fresh-review.md; SHIPLOG). Changed because of it: verdict GO → CONDITIONAL GO, "329 OK" → 328 ran + 1 skipped, angle 11 held at 2, CF-05 caveats restored.
 Evidence added: 26 files (run 2)
 ```
@@ -37,11 +37,11 @@ Evidence added: 26 files (run 2)
 | 2 | Every critical flow E2E-evidenced, happy + one failure | CF-01/02/03/04/06 happy + failure at `f2e53f4` (`CF-0x-r2-*`); CF-05 happy at `6ad0e87` (run 1, coordinator self-review, pre-#225) + failure `CF-05-failure-orca-not-running.txt` (run 1) | yes on the letter; **re-witness required by this run's own rebaseline** (A-17) → H-07 |
 | 3 | Backup restored = fresh clone reproduces CF-01 | `CF-01-r2-happy-catalog-gates.txt` (clone of a shallow clone, A-22) | **yes** |
 | 4 | Rollback rehearsed on a scratch clone | `P0-r2-rollback-rehearsal.txt` (`52f88bf` → revert `de501b5`, validate green) | **yes** |
-| 5 | Alert-on-failure "not demonstrated … does not block catalog GO" (A-13) | CI #105 success (`P0-r2-ci-main.txt`); no failure notification witnessed; notifications are account-side (R-06) | waived by the frozen text → H-06 to demonstrate |
+| 5 | Alert-on-failure "not demonstrated … does not block catalog GO" (A-13) | **drill 2026-09-02**: `alert-on-failure` run 33626502338 on `main` filed and closed `ci-failure` issue #229 (`T-11-alert-drill.txt`); a real `workflow_run` firing stays unobserved by design (R9) | **yes — demonstrated** (the A-13 waiver is moot; frozen text unchanged) |
 | 6 | Stranger Test ≤15 min to CF-01 + CF-04 | `P6-r2-stranger-test.txt`: timed transcript, 24s | **yes** |
 | 7 | No ACCEPT at S0 | G-14 is S3, expiry tracked as #226 | **yes** |
 | 8 | Launch-gating Human Actions: "Orca up + review-it dry run" | H-01 done (run 1); **H-07 open** — the same action on the current head | **no → CONDITIONAL GO** |
-| min | ≥3 on angles 1–9 (9 ≥1 per A-12), ≥2 on 10–17, N/A excluded | 1:3 2:3 3:3 4:3 5:3 7:3 8:3 · 9:1 · 10:2 11:2 14:3 15:2 16:2 17:3 — each ≥3 cites its evidence in the angle sections | **yes** |
+| min | ≥3 on angles 1–9 (9 ≥1 per A-12), ≥2 on 10–17, N/A excluded | 1:3 2:3 3:3 4:3 5:3 7:3 8:3 · 9:2 (A-12) · 10:2 11:2 14:3 15:2 16:2 17:3 — each ≥3 cites its evidence in the angle sections | **yes** |
 
 Verdict table: GO needs every condition met with no launch-gating Human Action outstanding; CONDITIONAL GO is "all agent-side conditions met; only launch-gating Human Actions outstanding" — H-07. Not NO-GO: no S0, no critical flow unverified, no ACCEPT at S0.
 
@@ -58,7 +58,7 @@ The run-1 STATUS text as last updated is in git at `19fbad5` (the run-1 close wa
 | Where | maintainer Mac, worktree `ravidsrk/p0-completion-audit` | cloud container `/home/user/orca-fleet`, branch `claude/skills-improvements-review-oqc2zj` reset onto `main` (A-14/A-15) |
 | Dirty tree | none | none (only `docs/completion/` written by this run) |
 | Remote branches | `main` + audit | `main` + this session's branch; no worktrees |
-| Open PRs / issues | 0 / 0 | 0 / 2 (#212 G-09, #213 G-10 — `post-launch`) |
+| Open PRs / issues | 0 / 0 | 0 / 2 at re-freeze (#212 G-09, #213 G-10 — `post-launch`; #213 closes with the T-11 ledger) |
 | Last CI on `main` | run 33296692840 success | run 33607463296 (#105) **success** — `evidence/P0-r2-ci-main.txt` |
 | Drift since last recorded commit `95ebeb2` | — | 49 / 216 tracked files = **22.7%** (> 20% → full re-score, A-17); 74 files since `6abf548` |
 
@@ -150,8 +150,9 @@ RAG: 0–1 R · 2 A · 3–4 G. Score ≥3 requires evidence (R5). Findings from
 - F-8-01 fail-closed verifier: every vf-bench trap RED, demo RED on the dropped criterion; `tests/test_verify.py` pins the fail-closed paths and CI runs them. F-8-02 "Orca down → documented stop" is evidenced by run 1 (`CF-05-failure-orca-not-running.txt`: `orca status --json` reachable:false) and documented (getting-started Troubleshooting; `docs/ops.md` incident process); the run-2 file only records substrate absence. No dedicated Orca runbook beyond those. F-8-03 no outbound calls to retry.
 - Evidence: `CF-03-r2-happy-vfbench.txt`, `CF-04-r2-happy-nc-demo.txt`, `CF-05-failure-orca-not-running.txt`, `P0-r2-coldstart-tests-run1.txt`, `docs/ops.md`. Score 3: failure paths handled, evidenced, and tested.
 
-### 9. Observability — 1/R · weight 4 (unchanged; A-12 waiver)
-- F-9-01/F-9-02 unchanged. **F-9-03 (new, R-06)** GitHub workflow-run notifications are per-user and opt-in — whether a failure would reach the maintainer is invisible from the repository. → H-06 (non-gating; G-10 DEFER stands).
+### 9. Observability — 2/A · weight 4 (was 1; A-12 still covers the ≥3 minimum)
+- F-9-01/F-9-02 unchanged. **F-9-03 (R-06)** GitHub workflow-run notifications are per-user and opt-in — invisible from the repository. **F-9-04 (new, 2026-09-02)** the `alert-on-failure` workflow (#228) files a `ci-failure` issue when `validate` fails on `main` and the `validate` run summary carries the proof rollup + routing score; the drill on `main` filed and closed issue #229 (`T-11-alert-drill.txt`). G-10 closed.
+- Score 2, not 3: the drill proves the path works when run; a real failure firing `workflow_run` has not been observed (R9 forbids inducing it), and there is no error tracker or request-id trail to verify against.
 
 ### 10. Performance & cost — 2/A · weight 5 (unchanged)
 - F-10-01 tests ≈24s, validate instant, fresh-clone stranger run 24s wall. F-10-02 no spend. No CI time budget.
@@ -192,10 +193,10 @@ RAG: 0–1 R · 2 A · 3–4 G. Score ≥3 requires evidence (R5). Findings from
 
 N/A dropped: 6 (w=8), 12 (w=5), 13 (w=5). Active weight = **87** (A-04).
 
-`Σ(w×score/4)` = 8×3/4 + 14×3/4 + 4×3/4 + 8×3/4 + 14×3/4 + 6×3/4 + 5×3/4 + 4×1/4 + 5×2/4 + 5×2/4 + 3×3/4 + 5×2/4 + 4×2/4 + 2×3/4
-= 6 + 10.5 + 3 + 6 + 10.5 + 4.5 + 3.75 + 1 + 2.5 + 2.5 + 2.25 + 2.5 + 2 + 1.5 = **58.5**
+`Σ(w×score/4)` = 8×3/4 + 14×3/4 + 4×3/4 + 8×3/4 + 14×3/4 + 6×3/4 + 5×3/4 + 4×2/4 + 5×2/4 + 5×2/4 + 3×3/4 + 5×2/4 + 4×2/4 + 2×3/4
+= 6 + 10.5 + 3 + 6 + 10.5 + 4.5 + 3.75 + 2 + 2.5 + 2.5 + 2.25 + 2.5 + 2 + 1.5 = **59.5**
 
-**completion_pct = 58.5 / 87 × 100 = 67%** (56% at `95ebeb2`, 52% at baseline `6abf548`). Movement comes from evidence captured this run and post-launch closures, not from any change to the frozen definition (A-17). Angle 11 was 3 before the fresh review (69%) and is held at 2 (RV-07).
+**completion_pct = 59.5 / 87 × 100 = 68%** (56% at `95ebeb2`, 52% at baseline `6abf548`). Movement comes from evidence captured this run and post-launch closures, not from any change to the frozen definition (A-17). Angle 11 was 3 before the fresh review (69%) and is held at 2 (RV-07); angle 9 rose to 2 on 2026-09-02 after the alert drill (T-11).
 
 The gate in `DEFINITION.md` is binding, not this number.
 
@@ -204,11 +205,11 @@ The gate in `DEFINITION.md` is binding, not this number.
 ## Top risks (run 2)
 
 1. CF-05 evidence predates the #225 `review-it` changes and was a coordinator self-review → G-16 / **H-07 (gates launch)**
-2. Alert-on-failure still undemonstrated; notifications are account-side → G-10 / H-06 (A-13)
+2. Alert path drilled 2026-09-02 (G-10 closed, issue #229); a real `validate` failure firing `workflow_run` on `main` stays unobserved by design (R9), and notification delivery was not observed
 3. GitHub About description says 10 fleets, catalog is 13 → G-15 / H-04
 4. Version badge lags HEAD again (`[Unreleased]` vs 0.6.0) → G-17 / H-05
 5. Nine doctrine-only missions (honest) → G-09 DEFER (#212)
 
 ## Second look (Phase 1, run 2)
 
-Changed: refused to score angle 14 a 4 (no stranger has completed CF-05 from the docs) and kept angle 9 at 1 despite the new research — a documented opt-in is not a demonstrated alert.
+Changed: refused to score angle 14 a 4 (no stranger has completed CF-05 from the docs) and kept angle 9 at 1 despite the new research — a documented opt-in is not a demonstrated alert. *(Superseded 2026-09-02: the alert drill moved angle 9 to 2 — F-9-04, `T-11-alert-drill.txt`.)*
