@@ -338,10 +338,11 @@
       "id": "CF-05",
       "name": "First Orca mission",
       "money": false,
-      "status": "verified",
+      "status": "works",
       "happy_evidence": "docs/completion/evidence/CF-05-happy-review-it.txt",
       "failure_evidence": "docs/completion/evidence/CF-05-failure-orca-not-running.txt",
-      "note": "happy evidence at 6ad0e87 (run 1, pre-#225, coordinator self-review); re-witness on current main is H-07 (launch-gating); CF-05-r2-failure-orca-absent.txt records substrate absence only"
+      "note": "verified at 6ad0e87 (run 1, pre-#225, coordinator self-review); at f2e53f4 only the failure path is evidenced — re-witness on current main is H-07 (launch-gating); CF-05-r2-failure-orca-absent.txt records substrate absence only",
+      "verified_at": "6ad0e87"
     },
     {
       "id": "CF-06",
@@ -669,7 +670,7 @@
     {
       "id": "P3",
       "name": "Critical flows",
-      "status": "complete",
+      "status": "active",
       "exit_criteria": [
         {
           "text": "CF-05 happy path evidenced",
@@ -680,6 +681,11 @@
           "text": "run 2: CF-02 and CF-06 failure paths evidenced",
           "met": true,
           "evidence": "docs/completion/evidence/CF-06-r2-failure-overclaim.txt"
+        },
+        {
+          "text": "run 2: CF-05 re-witnessed on current main through worker dispatch (H-07)",
+          "met": false,
+          "evidence": null
         }
       ]
     },

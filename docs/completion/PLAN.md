@@ -50,7 +50,7 @@ Phase status re-evaluated at `f2e53f4` (drift 22.7%, A-17). Order unchanged.
 |---|---|---|
 | P1 | complete (re-verified) | fresh-clone cold start `CF-01-r2-happy-catalog-gates.txt`; CI `validate` #105 green on `main` |
 | P2 | complete | SECURITY.md, `.env.example`, `.gitignore` unchanged; history secret grep clean (`P1-r2-hygiene-greps.txt`) |
-| P3 | complete | CF-05 evidence stands (run 1); freshness → G-16 / H-07 |
+| P3 | active (re-opened) | CF-05 evidence stands only at `6ad0e87`; re-witness on current `main` is H-07 and gates launch (G-16, S1) |
 | P4 | skipped (A-12) | H-06 added so the alert waiver can become a demonstration |
 | P5 | complete | folded into P2 (unchanged) |
 | P6 | pending (non-gating) | H-02 marketplace; H-04 About description |

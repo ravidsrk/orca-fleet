@@ -181,3 +181,9 @@ resume_pointer: P7/H-07
 - Branch pushed; draft PR #227 opened against `main` (the run's single PR, A-15): https://github.com/ravidsrk/orca-fleet/pull/227. T-09's `pr` recorded. Session subscribed to the PR; a check-in is scheduled to drive it to green.
 - `resume_pointer: P7/H-07` (unchanged — the maintainer's dry run is the next event).
 - Second look: the PR body names H-07 as the one launch-gating action before anything else, so a reader does not take "67%" for "done".
+
+## 2026-09-02 — PR #227 Greptile round 1
+
+- P2 "Stale flow remains verified" → **fixed**: `status.json` CF-05 is `works` with `verified_at: 6ad0e87` (not `verified`), and P3 is `active` again with the H-07 exit criterion unmet; STATUS report and PLAN follow. Coarse consumers now agree with the audit text: five flows verified at `f2e53f4`.
+- P2 "Frozen provenance contradicts edit history" → **fixed**: the provenance note moved **out** of the frozen block into a quoted paragraph below it. Correction to this run's own log (append-only): the Phase 3 entry's "`DEFINITION.md` untouched" and the handoff entry's "not edited by run 2" were imprecise — run 2 added a provenance note (metadata) and changed no item; the file's content history is `ed6a2f4` → `4c66091` (stamp) → `67c1707` (run-1 correction of items 4–5) → run 2 (note only).
+- review: manual. Second look: checked that no other file still calls the definition "untouched" — the PR body did, and is reworded.

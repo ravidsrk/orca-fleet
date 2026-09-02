@@ -6,7 +6,7 @@
 ```
 VERDICT: CONDITIONAL GO
 COMPLETION: 67% (was 56% at 95ebeb2; 52% at baseline 6abf548)   GATE: unmet on one item — item 8's action (the review-it dry run) must be re-witnessed on the current head (H-07); item 5 (alert) waived by A-13 in the frozen text
-CRITICAL FLOWS: 6 total · 6 verified (CF-05 only at 6ad0e87: pre-#225, coordinator self-review — re-witness pending H-07) · 0 partial · 0 cut
+CRITICAL FLOWS: 6 total · 5 verified at f2e53f4 · 1 works (CF-05: verified at 6ad0e87 only — pre-#225, coordinator self-review; re-witness pending H-07) · 0 cut
 GAPS: S0 0 open / 0 closed · S1 1 open (G-16) / 2 closed · S2 1 open (G-15) / 3 closed · S3 4 open (G-09, G-10 DEFER · G-14 ACCEPT · G-17) / 7 closed · CUT 0 · DEFER 2 · ACCEPT 1 (expiry #226)
 TASKS: 6/6 done (T-01, T-03, T-04, T-05, T-08, T-09) · BLOCKED 0 · HUMAN ACTIONS gating launch: 1 (H-07)
 NEXT: H-07 — with Orca running, run the getting-started review-it dry run on current main through the worker-dispatch shape, on a PR the reviewing session did not author; file evidence/CF-05-r3-happy-review-it.txt
@@ -108,7 +108,7 @@ Cold start of the *catalog gates* = **pass** (also on Python 3.11). Cold start o
 | CF-05 | First Orca mission | **not re-witnessable here** (substrate absent: `CF-05-r2-failure-orca-absent.txt`); run-1 dry run GO at `6ad0e87` — pre-#225 skill text, a coordinator-authored self-review of its own PR #208, not the read-only worker dispatch getting-started describes | `CF-05-happy-review-it.txt` (run 1, caveats at left) | `CF-05-failure-orca-not-running.txt` (run 1: `orca status --json` reachable:false → documented stop) |
 | CF-06 | Proof honesty | `proof_status --check` 0 | `CF-06-r2-proof-honesty.txt` | `CF-06-r2-failure-overclaim.txt` (exit 1: "1 mission(s) above doctrine-only missing evidence") |
 
-Five flows are verified at `f2e53f4`; CF-05 is verified only at `6ad0e87`, with the caveats above → G-16 (S1) / **H-07 gates launch** (fresh-reviewer RV-01, RV-06).
+Five flows are verified at `f2e53f4`; CF-05 is recorded as **works** (`status.json`: `verified_at: 6ad0e87`, with the caveats above) until H-07 re-witnesses it → G-16 (S1) / **H-07 gates launch** (fresh-reviewer RV-01, RV-06). Phase P3 is back to `active` for the same reason.
 
 ---
 

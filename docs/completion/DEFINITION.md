@@ -5,8 +5,9 @@ frozen_at: ed6a2f4
 product: orca-fleet
 frozen_by: completion-driver run 20260901-1336
 immutable after freeze (R6 / R13)
-text_as_of: 67c1707   # run 1's greptile P1 corrections to items 4-5 (2026-09-01); no content edit since. Annotation added by run 2 (fresh-reviewer RV-04); not a content change.
 ```
+
+> **Provenance (metadata, outside the frozen block).** Commits that touched this file: `ed6a2f4` freeze · `4c66091` `frozen_at` stamp (run 1) · `67c1707` run-1 correction of items 4–5 after a greptile P1, before any execution (2026-09-01) · run 2 (2026-09-02) added this note only. The binding text is the file as of `67c1707`; run 2 changed no item (fresh-reviewer RV-04; PR #227 review).
 
 This is a **catalog + verifier**, not a hosted app. Complete means a stranger can install it, trust its honesty claims, reproduce the moat demo, and — when Orca is running — start the documented first mission.
 
