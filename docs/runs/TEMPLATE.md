@@ -45,10 +45,12 @@ Where each flag comes from: `--contract-source` is the coordinator's frozen cont
 row, supplied out of band (`ORCA_CONTRACT_SOURCE` under `verify-gate.sh`); `--contract-digest` and
 `--unit-class` are the signed dispatch record's `contract_digest` and `unit_class` — always pass both,
 since a missing unit class fails safe to mutation-strict checks; `--lighting` is the record's optional
-`lighting` — pass it only when the record signed one (omission means `lit`; with `--dispatch-record`
-the verifier checks every flag against the record, and a lighting the record did not sign is itself a
-fail-closed RED); `--base` is the integration base for ancestry. Omitting the contract flags is a
-fail-closed scope RED to record, not a flag to drop.
+`lighting` — when the record signs it, always pass its exact value (a signed `dark-eligible` passed as
+nothing loses the review waiver and goes RED); when the record omits it, omit the flag. The manifest
+defaults an omitted lighting to `lit`, but omitting the CLI flag does not populate the dispatch
+lighting, and with `--dispatch-record` a value the record did not sign is a fail-closed RED. `--base`
+is the integration base for ancestry. Omitting the contract flags is a fail-closed scope RED to record,
+not a flag to drop.
 
 ## WIP-curve protocol row (mutating self-runs)
 
