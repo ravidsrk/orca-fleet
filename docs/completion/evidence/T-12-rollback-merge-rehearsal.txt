@@ -1,0 +1,39 @@
+# 2026-09-02T13:00:59Z T-12 rollback rehearsal of a MERGE commit on a SCRATCH clone (never main) — docs/ops.md incident step 4, git revert -m 1
+++ git clone -q /home/user/orca-fleet /tmp/claude-0/-home-user-orca-fleet/4d4b5ea7-48d8-589e-98d5-dcb799f88d3b/scratchpad/rollback-merge-clone
+++ cd /tmp/claude-0/-home-user-orca-fleet/4d4b5ea7-48d8-589e-98d5-dcb799f88d3b/scratchpad/rollback-merge-clone
+++ git switch -q -c scratch-main
+++ git switch -q -c throwaway-feature
+++ echo throwaway
+++ git add THROWAWAY.txt
+++ git -c user.name=ravidsrk -c user.email=ravidsrk@gmail.com commit -q -m 'chore: throwaway feature commit for the merge-rollback rehearsal'
+++ git switch -q scratch-main
+++ git -c user.name=ravidsrk -c user.email=ravidsrk@gmail.com merge -q --no-ff -m 'Merge throwaway-feature (rehearsal)' throwaway-feature
+++ git log --oneline -1
+ea31109 Merge throwaway-feature (rehearsal)
+++ git show '--format=%h parents: %p' -s HEAD
+ea31109 parents: 5111820 2838861
+++ test -e THROWAWAY.txt
+++ echo 'THROWAWAY.txt present after merge'
+THROWAWAY.txt present after merge
+++ git -c user.name=ravidsrk -c user.email=ravidsrk@gmail.com revert -m 1 --no-edit HEAD
+++ git log --oneline -3
+897f5fc Revert "Merge throwaway-feature (rehearsal)"
+ea31109 Merge throwaway-feature (rehearsal)
+2838861 chore: throwaway feature commit for the merge-rollback rehearsal
+++ test '!' -e THROWAWAY.txt
+++ echo 'THROWAWAY.txt gone after git revert -m 1 of the merge'
+THROWAWAY.txt gone after git revert -m 1 of the merge
+++ git diff --stat HEAD~2 HEAD
+++ tail -1
+++ python3 scripts/validate.py
+All 13 missions valid; three-layer separation holds; evals valid.
+++ tail -1
+++ python3 runtime/scripts/proof_status.py --check
+  total          13
+++ set +x
+exit=0
+Note: a plain 'git revert <merge-sha>' without -m fails on a merge commit ('is a merge but no -m option was given') — the earlier rehearsals (P0-rollback-rehearsal.txt, P0-r2-rollback-rehearsal.txt) reverted a single-parent commit and did not exercise this.
+$ git revert --no-edit HEAD~1   # the merge commit, WITHOUT -m, to show the failure mode
+error: commit ea31109fac8628e2aa391b32768deed1d0805a67 is a merge but no -m option was given.
+fatal: revert failed
+exit=128
