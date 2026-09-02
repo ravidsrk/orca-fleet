@@ -492,7 +492,8 @@
       "status": "open",
       "tasks": [],
       "accept_expiry": null,
-      "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/212"
+      "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/212",
+      "note": "DEFER, open; tracker issue #212 closed at the maintainer's request (A-27) — live tracker is the field-proof plan in docs/runs/README.md"
     },
     {
       "id": "G-10",
@@ -563,11 +564,14 @@
       "angle": 7,
       "critical_flow": null,
       "severity": "S3",
-      "decision": "ACCEPT",
-      "status": "open",
-      "tasks": [],
-      "accept_expiry": "when a hosted service exists",
-      "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/226"
+      "decision": "FINISH",
+      "status": "closed",
+      "tasks": [
+        "T-12"
+      ],
+      "accept_expiry": null,
+      "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/226",
+      "note": "closed on evidence 2026-09-02 (A-26): rollback documented in docs/ops.md step 4, rehearsed twice; no deploy target exists"
     },
     {
       "id": "G-15",
@@ -933,6 +937,28 @@
       "review": "manual",
       "attempts": 1,
       "block_signature": null
+    },
+    {
+      "id": "T-12",
+      "phase": "P4",
+      "gaps": [
+        "G-14"
+      ],
+      "size": "S",
+      "depends_on": [],
+      "owner": "agent",
+      "status": "done",
+      "branch": "claude/skills-improvements-review-oqc2zj",
+      "pr": null,
+      "commit": null,
+      "evidence": [
+        "docs/ops.md",
+        "docs/completion/evidence/P0-r2-rollback-rehearsal.txt",
+        "docs/completion/evidence/P0-rollback-rehearsal.txt"
+      ],
+      "review": "manual",
+      "attempts": 1,
+      "block_signature": null
     }
   ],
   "human_actions": [
@@ -1150,6 +1176,25 @@
         "red a throwaway branch to trigger a real failure alert"
       ],
       "reason": "workflow_run/workflow_dispatch take effect from the default branch; a drill proves the path without redding anything"
+    },
+    {
+      "id": "A-26",
+      "phase": "P4",
+      "decision": "G-14 ACCEPT withdrawn; gap closed on evidence (rollback documented + rehearsed twice; service-style drill N/A: no deploy target)",
+      "rejected": [
+        "keep ACCEPT + open expiry issue"
+      ],
+      "reason": "maintainer asked to resolve open issues; a checkable N/A beats an indefinite acceptance"
+    },
+    {
+      "id": "A-27",
+      "phase": "P3",
+      "decision": "issue #212 closed as a tracker; G-09 stays DEFER/open in the register, never counted complete; docs/runs/README.md plan is the live tracker",
+      "rejected": [
+        "keep #212 open indefinitely",
+        "mark G-09 done"
+      ],
+      "reason": "an umbrella issue no single change can close is a worse tracker than the plan table"
     }
   ],
   "research": [

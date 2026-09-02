@@ -7,8 +7,8 @@
 VERDICT: CONDITIONAL GO
 COMPLETION: 68% (was 56% at 95ebeb2; 52% at baseline 6abf548)   GATE: unmet on one item — item 8's action (the review-it dry run) must be re-witnessed on the current head (H-07); item 5 (alert) demonstrated 2026-09-02 by the alert-on-failure drill (#229)
 CRITICAL FLOWS: 6 total · 5 verified at f2e53f4 · 1 works (CF-05: verified at 6ad0e87 only — pre-#225, coordinator self-review; re-witness pending H-07) · 0 cut
-GAPS: S0 0 open / 0 closed · S1 1 open (G-16) / 2 closed · S2 1 open (G-15) / 3 closed · S3 3 open (G-09 DEFER · G-14 ACCEPT · G-17) / 8 closed · CUT 0 · DEFER 1 · ACCEPT 1 (expiry #226)
-TASKS: 8/8 done (T-01, T-03, T-04, T-05, T-08, T-09, T-10, T-11) · BLOCKED 0 · HUMAN ACTIONS gating launch: 1 (H-07)
+GAPS: S0 0 open / 0 closed · S1 1 open (G-16) / 2 closed · S2 1 open (G-15) / 3 closed · S3 2 open (G-09 DEFER · G-17) / 9 closed · CUT 0 · DEFER 1 · ACCEPT 0
+TASKS: 9/9 done (T-01, T-03, T-04, T-05, T-08, T-09, T-10, T-11, T-12) · BLOCKED 0 · HUMAN ACTIONS gating launch: 1 (H-07)
 NEXT: H-07 — with Orca running, run the getting-started review-it dry run on current main through the worker-dispatch shape, on a PR the reviewing session did not author; file evidence/CF-05-r3-happy-review-it.txt
 
 Angles (score/4, RAG):
@@ -39,7 +39,7 @@ Evidence added: 26 files (run 2)
 | 4 | Rollback rehearsed on a scratch clone | `P0-r2-rollback-rehearsal.txt` (`52f88bf` → revert `de501b5`, validate green) | **yes** |
 | 5 | Alert-on-failure "not demonstrated … does not block catalog GO" (A-13) | **drill 2026-09-02**: `alert-on-failure` run 33626502338 on `main` filed and closed `ci-failure` issue #229 (`T-11-alert-drill.txt`); a real `workflow_run` firing stays unobserved by design (R9) | **yes — demonstrated** (the A-13 waiver is moot; frozen text unchanged) |
 | 6 | Stranger Test ≤15 min to CF-01 + CF-04 | `P6-r2-stranger-test.txt`: timed transcript, 24s | **yes** |
-| 7 | No ACCEPT at S0 | G-14 is S3, expiry tracked as #226 | **yes** |
+| 7 | No ACCEPT at S0 | no ACCEPT remains — G-14 closed by T-12 (rollback documented in `docs/ops.md`, rehearsed twice; no service to roll back) | **yes** |
 | 8 | Launch-gating Human Actions: "Orca up + review-it dry run" | H-01 done (run 1); **H-07 open** — the same action on the current head | **no → CONDITIONAL GO** |
 | min | ≥3 on angles 1–9 (9 ≥1 per A-12), ≥2 on 10–17, N/A excluded | 1:3 2:3 3:3 4:3 5:3 7:3 8:3 · 9:2 (A-12) · 10:2 11:2 14:3 15:2 16:2 17:3 — each ≥3 cites its evidence in the angle sections | **yes** |
 
@@ -142,7 +142,7 @@ RAG: 0–1 R · 2 A · 3–4 G. Score ≥3 requires evidence (R5). Findings from
 ### 6. Data — N/A (A-05, unchanged): no application DB, migrations, or PII store in this repository.
 
 ### 7. Infra & deploy — 3/G · weight 6 (was 2)
-- F-7-01 deploy = merge to `main` + plugin copy (unchanged). F-7-02 closed (3.13 pinned). F-7-03 rollback = `git revert`, now rehearsed **twice** (run 1 and `P0-r2-rollback-rehearsal.txt`); G-14 ACCEPT stands for service-style drills. F-7-04 actions SHA-pinned.
+- F-7-01 deploy = merge to `main` + plugin copy (unchanged). F-7-02 closed (3.13 pinned). F-7-03 rollback = `git revert`, rehearsed **twice** (run 1 and `P0-r2-rollback-rehearsal.txt`) and documented as `docs/ops.md` incident step 4 (T-12); G-14 closed — service-style drills are N/A while no deploy target exists (A-26). F-7-04 actions SHA-pinned.
 - **F-7-05 (new, process)** G-14 ACCEPT carried no filed expiry issue (Phase 7 step 3). → G-18 / T-09.
 - Evidence: workflow file, rollback rehearsal, CI run #105.
 

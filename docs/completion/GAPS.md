@@ -17,7 +17,7 @@ Every standing finding that sits between HEAD and `DEFINITION.md`. Decisions fol
 | G-11 | F-3-03 | 3 | — | S3 | FINISH | CLOSED #220: CI ruff 0.16.5 on E9/F63/F7/F82 only. |
 | G-12 | F-17-01 F-17-02 | 17 | — | S3 | FINISH | CLOSED #219: docs/ops.md inventory + incident process. |
 | G-13 | TODOS.md P2 | 3 | — | S3 | FINISH | CLOSED #218: shared `explicit_protocol_refs`. |
-| G-14 | F-7-03 A-10 | 7 | — | S3 | ACCEPT | Rollback = git revert. Expiry: next time we host a service (tracked: #226). Never S0. |
+| G-14 | F-7-03 A-10 | 7 | — | S3 | FINISH | CLOSED 2026-09-02 (T-12): rollback = `git revert` of the merge, documented in `docs/ops.md` incident step 4 and rehearsed twice on scratch clones. Service-style drills are N/A on a checkable fact — no deploy target exists (`.github/workflows` has none; "deploy" is merge to `main`). Was ACCEPT with expiry #226 (A-26); the expiry condition now lives in the ops step itself. |
 | G-15 | F-16-05 | 16 | — | S2 | FINISH | Run 2: GitHub **About** description says "10 outcome-named autonomous fleets"; the catalog is 13. Landing truthfulness; a repo-settings change → H-04. |
 | G-16 | F-1-04 | 1 | CF-05 | S1 | FINISH | Run 2: CF-05 happy evidence is SHA-bound to `6ad0e87` (run 1, pre-#225, coordinator self-review of its own PR); `review-it` changed in #225. Gate item 8's action must be re-witnessed on the current head → **H-07 (gates launch)**, the same shape as G-01/H-01. |
 | G-17 | F-2-05 | 2,16 | — | S3 | FINISH | Run 2: `[Unreleased]` carries #225 while `plugin.json` is 0.6.0 — the G-06 shape recurs. Version cut → H-05 (A-20). |
@@ -27,7 +27,7 @@ Every standing finding that sits between HEAD and `DEFINITION.md`. Decisions fol
 
 **Above (plan):** G-01..G-08, G-11..G-13 (G-06..G-08, G-11..G-13 closed post-launch). Run 2 adds G-15..G-18 (T-09 agent; H-04 / H-05 / H-07 human).
 
-**Below:** G-09 DEFER · G-14 ACCEPT (expiry issue filed by T-09). G-10 closed 2026-09-02 (T-10 #228, T-11 drill #229).
+**Below:** G-09 DEFER (register entry unchanged; its tracker issue #212 closed at the maintainer's request — the field-proof plan in `docs/runs/README.md` is the live tracker, A-27). G-10 closed 2026-09-02 (T-10 #228, T-11 drill #229). G-14 closed 2026-09-02 (T-12). No ACCEPT remains.
 
 No CUT (nothing half-built to delete). No ACCEPT at S0.
 

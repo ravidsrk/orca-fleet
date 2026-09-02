@@ -204,3 +204,12 @@ resume_pointer: P7/H-07
 - Not proven, by design: a real `validate` failure on `main` firing the `workflow_run` event (R9 forbids inducing it); the drill exercises the same job body.
 - `resume_pointer: P7/H-07`
 - Second look: did not re-score angle 9 to 3 — one drill is a working path, not a verified failure path.
+
+## 2026-09-02 — T-12 rollback step; #226 / #212 resolution (run 2 follow-up)
+
+- Maintainer asked for the remaining open issues to be resolved after #230 merged (`535869b`).
+- **#226 / G-14** — closed on evidence, not accepted: `docs/ops.md` incident step 4 documents the rollback the product has (`git revert -m 1` of the merge, via a PR; never a force-push), citing both scratch-clone rehearsals; a service-style drill is N/A on a checkable fact (no deploy job in `.github/workflows`; "deploy" is merge to `main`). ACCEPT withdrawn (A-26); no ACCEPT remains in the register; gate item 7 unchanged (yes).
+- **#212 / G-09** — issue closed as a tracker at the maintainer's request; the register keeps G-09 **DEFER and open** (never counted complete, R13); the live tracker is the field-proof plan in `docs/runs/README.md` (A-27).
+- Completion unchanged at 68% (angle 7 already 3). Verdict unchanged: CONDITIONAL GO on H-07.
+- review: manual. `resume_pointer: P7/H-07`.
+- Second look: refused to mark G-09 closed alongside its issue — closing a tracker is not field-proof.
