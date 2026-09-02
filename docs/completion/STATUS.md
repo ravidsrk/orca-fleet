@@ -1,7 +1,51 @@
 # STATUS — 360° completion audit
 
 <!-- RUN2-REPORT -->
-**Run 2 (2026-09-02, resume) — report pending Phase 7.** The run-1 snapshot (2026-09-01) is preserved in git at `19fbad5`; this file is the run-2 audit against `f2e53f4`.
+## Run 2 report (2026-09-02, resume at `f2e53f4`)
+
+```
+VERDICT: CONDITIONAL GO
+COMPLETION: 67% (was 56% at 95ebeb2; 52% at baseline 6abf548)   GATE: unmet on one item — item 8's action (the review-it dry run) must be re-witnessed on the current head (H-07); item 5 (alert) waived by A-13 in the frozen text
+CRITICAL FLOWS: 6 total · 6 verified (CF-05 only at 6ad0e87: pre-#225, coordinator self-review — re-witness pending H-07) · 0 partial · 0 cut
+GAPS: S0 0 open / 0 closed · S1 1 open (G-16) / 2 closed · S2 1 open (G-15) / 3 closed · S3 4 open (G-09, G-10 DEFER · G-14 ACCEPT · G-17) / 7 closed · CUT 0 · DEFER 2 · ACCEPT 1 (expiry #226)
+TASKS: 6/6 done (T-01, T-03, T-04, T-05, T-08, T-09) · BLOCKED 0 · HUMAN ACTIONS gating launch: 1 (H-07)
+NEXT: H-07 — with Orca running, run the getting-started review-it dry run on current main through the worker-dispatch shape, on a PR the reviewing session did not author; file evidence/CF-05-r3-happy-review-it.txt
+
+Angles (score/4, RAG):
+1 Product 3/G · 2 Functional 3/G · 3 Code 3/G · 4 Testing 3/G · 5 Security 3/G · 6 Data N/A · 7 Infra 3/G · 8 Reliability 3/G · 9 Observability 1/R · 10 Perf 2/A · 11 Integrations 2/A · 12 AI N/A · 13 UX N/A · 14 Docs 3/G · 15 Legal 2/A · 16 GTM 2/A · 17 Ownership 3/G
+
+Top risks (max 5):
+- G-16 CF-05 evidence predates #225 and was a coordinator self-review → H-07 (gates)
+- G-10 alert-on-failure undemonstrated; notifications are account-side → H-06
+- G-15 GitHub About description says 10 fleets, catalog is 13 → H-04
+- G-17 version badge lags HEAD ([Unreleased] vs 0.6.0) → H-05
+- G-09 nine doctrine-only missions (honest) → #212 DEFER
+
+Human Actions gating launch:
+- H-07 With the Orca app running, on a PR this session did not author, run the getting-started review-it dry run against current main so read-only workers are actually dispatched; save the SHA-bound verdict and the dispatch record as evidence/CF-05-r3-happy-review-it.txt.
+
+Assumptions made this phase: A-14..A-23 (A-19 superseded by A-21)
+Second look: a separate-context reviewer raised RV-01..RV-14 — 12 fixed in-branch, 2 accepted with reasons (evidence/P7-r2-fresh-review.md; SHIPLOG). Changed because of it: verdict GO → CONDITIONAL GO, "329 OK" → 328 ran + 1 skipped, angle 11 held at 2, CF-05 caveats restored.
+Evidence added: 26 files (run 2)
+```
+
+### Launch gate, item by item (DEFINITION.md frozen at `ed6a2f4`, text as of `67c1707`)
+
+| # | Item as written | Run-2 evidence | Met? |
+|---|---|---|---|
+| 1 | Every S0 closed | no S0 in the register | **yes** |
+| 2 | Every critical flow E2E-evidenced, happy + one failure | CF-01/02/03/04/06 happy + failure at `f2e53f4` (`CF-0x-r2-*`); CF-05 happy at `6ad0e87` (run 1, coordinator self-review, pre-#225) + failure `CF-05-failure-orca-not-running.txt` (run 1) | yes on the letter; **re-witness required by this run's own rebaseline** (A-17) → H-07 |
+| 3 | Backup restored = fresh clone reproduces CF-01 | `CF-01-r2-happy-catalog-gates.txt` (clone of a shallow clone, A-22) | **yes** |
+| 4 | Rollback rehearsed on a scratch clone | `P0-r2-rollback-rehearsal.txt` (`52f88bf` → revert `de501b5`, validate green) | **yes** |
+| 5 | Alert-on-failure "not demonstrated … does not block catalog GO" (A-13) | CI #105 success (`P0-r2-ci-main.txt`); no failure notification witnessed; notifications are account-side (R-06) | waived by the frozen text → H-06 to demonstrate |
+| 6 | Stranger Test ≤15 min to CF-01 + CF-04 | `P6-r2-stranger-test.txt`: timed transcript, 24s | **yes** |
+| 7 | No ACCEPT at S0 | G-14 is S3, expiry tracked as #226 | **yes** |
+| 8 | Launch-gating Human Actions: "Orca up + review-it dry run" | H-01 done (run 1); **H-07 open** — the same action on the current head | **no → CONDITIONAL GO** |
+| min | ≥3 on angles 1–9 (9 ≥1 per A-12), ≥2 on 10–17, N/A excluded | 1:3 2:3 3:3 4:3 5:3 7:3 8:3 · 9:1 · 10:2 11:2 14:3 15:2 16:2 17:3 — each ≥3 cites its evidence in the angle sections | **yes** |
+
+Verdict table: GO needs every condition met with no launch-gating Human Action outstanding; CONDITIONAL GO is "all agent-side conditions met; only launch-gating Human Actions outstanding" — H-07. Not NO-GO: no S0, no critical flow unverified, no ACCEPT at S0.
+
+The run-1 STATUS text as last updated is in git at `19fbad5` (the run-1 close was `95ebeb2`); this file is the run-2 audit against `f2e53f4`.
 
 ---
 
@@ -37,7 +81,7 @@ Evidence: `evidence/P0-r2-coldstart-tools.txt`.
 | Install from lockfile | N/A — no lockfile (stdlib) | tools file |
 | `python3 scripts/validate.py` | exit 0 · 13/13 missions valid | `P0-r2-coldstart-validate.txt` |
 | `python3 runtime/scripts/proof_status.py --check` | exit 0 · 9 doctrine-only / 2 self-run / 2 external-run | `P0-r2-coldstart-proof-status.txt` |
-| `python3 -m unittest discover -s tests` ×2 | **329 OK** · 22.7s / 24.0s · no flake | `P0-r2-coldstart-tests-run1.txt`, `-run2.txt` |
+| `python3 -m unittest discover -s tests` ×2 | **329 collected: 328 ran + 1 skipped** (vf-bench review-trap GREEN half — shallow clone, A-22) · ≈24s each · no flake · OK | `P0-r2-coldstart-tests-run1.txt`, `-run2.txt` |
 | `sh demo/negative-control/run.sh` | PASS (self-score GREEN / verify RED) | `P0-r2-coldstart-demo.txt` |
 | `python3 bench/vf-bench/vfbench.py` | sound false-done **0**; valid-control GREEN | `P0-r2-coldstart-vfbench.txt` |
 | `python3 scripts/eval.py validate` / `run --suite routing` | 37 routing + 39 per-skill valid · 37/37 | `P0-r2-coldstart-eval-*.txt` |
@@ -61,10 +105,10 @@ Cold start of the *catalog gates* = **pass** (also on Python 3.11). Cold start o
 | CF-02 | Install a mission | symlink from a fresh clone; `../../playbooks` and `../../runtime` resolve | `CF-02-r2-happy-symlink-install.txt` | `CF-02-r2-failure-copy-breaks-refs.txt` (a copy loses the references, as the README warns) |
 | CF-03 | Independent verify | vf-bench: 11 traps RED, control GREEN, false-done 0 | `CF-03-r2-happy-vfbench.txt` | same file (every trap RED) |
 | CF-04 | Negative-control demo | PASS | `CF-04-r2-happy-nc-demo.txt` | same file (self-scorer GREEN while verify RED) |
-| CF-05 | First Orca mission | **not re-witnessable here**; run-1 dry run GO at `6ad0e87` | `CF-05-happy-review-it.txt` (run 1) | `CF-05-r2-failure-orca-absent.txt` |
+| CF-05 | First Orca mission | **not re-witnessable here** (substrate absent: `CF-05-r2-failure-orca-absent.txt`); run-1 dry run GO at `6ad0e87` — pre-#225 skill text, a coordinator-authored self-review of its own PR #208, not the read-only worker dispatch getting-started describes | `CF-05-happy-review-it.txt` (run 1, caveats at left) | `CF-05-failure-orca-not-running.txt` (run 1: `orca status --json` reachable:false → documented stop) |
 | CF-06 | Proof honesty | `proof_status --check` 0 | `CF-06-r2-proof-honesty.txt` | `CF-06-r2-failure-overclaim.txt` (exit 1: "1 mission(s) above doctrine-only missing evidence") |
 
-All six are **verified** under the frozen definition. CF-05's happy evidence predates #225's `review-it` changes → G-16 / H-07 (freshness, not absence).
+Five flows are verified at `f2e53f4`; CF-05 is verified only at `6ad0e87`, with the caveats above → G-16 (S1) / **H-07 gates launch** (fresh-reviewer RV-01, RV-06).
 
 ---
 
@@ -75,7 +119,7 @@ RAG: 0–1 R · 2 A · 3–4 G. Score ≥3 requires evidence (R5). Findings from
 ### 1. Product & critical flows — 3/G · weight 8 (was 2)
 - F-1-01 six flows (unchanged). F-1-02 closed (T-08/H-01). F-1-03 nine doctrine-only missions (G-09 DEFER, honest).
 - **F-1-04 (new)** CF-05 happy evidence is bound to `6ad0e87`; `review-it` changed in #225 (ro profile, human-authorized posting). Impact: a stranger today runs a different skill text than the one evidenced. → G-16 / H-07.
-- Evidence: `CF-0x-r2-*` (five flows re-run on a fresh clone, each with a failure path) + run-1 CF-05. Score 3: every flow evidenced with a failure path; not 4 because CF-05 needs a substrate the docs can only name.
+- Evidence: `CF-0x-r2-*` (five flows re-run on a fresh clone, each with a failure path) + run-1 CF-05 (with its caveats). Score 3: every flow evidenced with a failure path; not 4 because CF-05 needs a substrate the docs can only name and its evidence is a self-review awaiting H-07.
 
 ### 2. Functional completeness — 3/G · weight 14 (was 2)
 - F-2-01/F-2-02 re-checked: no TODO/FIXME/HACK/XXX in product paths, no placeholders, no mocks off test paths (`P1-r2-hygiene-greps.txt`). F-2-03 marketplace checklist: 3 human boxes open (H-02). F-2-04 closed (0.6.0).
@@ -84,11 +128,11 @@ RAG: 0–1 R · 2 A · 3–4 G. Score ≥3 requires evidence (R5). Findings from
 
 ### 3. Code quality & architecture — 3/G · weight 4 (unchanged)
 - F-3-01 three-layer structure enforced by `validate.py` (13/13). F-3-02 largest files: `tests/test_verify.py` 1079, `tests/test_validate.py` 767, `scripts/validate.py` 675, `tests/test_architecture.py` 661, `runtime/scripts/verify.py` 636. F-3-03 closed (#220: ruff in CI, narrow rule set by policy #214). F-3-04 closed (CI pinned 3.13).
-- Mission budgets: largest `ship-it`/`oss-contribute` 129/130, `clean-sweep` 127.
+- Mission budgets: largest `ship-it` and `oss-contribute` at 129 of the 130-line budget, `clean-sweep` 127.
 - Evidence: `P0-r2-coldstart-validate.txt`, `-ruff.txt`, `.github/workflows/validate.yml`.
 
 ### 4. Testing — 3/G · weight 8 (unchanged)
-- F-4-01 **329** contract tests in 14 files (was 317); CI on `pull_request` and push to `main`; proof_status in CI. F-4-02 two runs, no flake. F-4-03 catalog flows covered; Orca dispatch untestable here by design. F-4-04 ~23s to green.
+- F-4-01 **329** contract tests collected in 14 files (was 317); here **328 ran + 1 skipped** — the vf-bench review-trap GREEN half needs full history and this container is a shallow clone; CI #105 runs it with `fetch-depth: 0` (A-22). CI on `pull_request` and push to `main`; proof_status in CI. F-4-02 two runs, no flake. F-4-03 catalog flows covered; Orca dispatch untestable here by design. F-4-04 ~23s to green.
 - Evidence: `P0-r2-coldstart-tests-run1/2.txt`, `P0-r2-ci-main.txt`.
 
 ### 5. Security — 3/G · weight 14 (unchanged)
@@ -103,16 +147,16 @@ RAG: 0–1 R · 2 A · 3–4 G. Score ≥3 requires evidence (R5). Findings from
 - Evidence: workflow file, rollback rehearsal, CI run #105.
 
 ### 8. Reliability — 3/G · weight 5 (was 2)
-- F-8-01 fail-closed verifier: every vf-bench trap RED, demo RED on the dropped criterion. F-8-02 "Orca down" is evidenced (`CF-05-r2-failure-orca-absent.txt`) and documented (getting-started Troubleshooting; `docs/ops.md` incident process) — no dedicated Orca runbook beyond those. F-8-03 no outbound calls to retry.
-- Evidence: `CF-03-r2`, `CF-04-r2`, `CF-05-r2-failure`, `docs/ops.md`. Score 3: failure paths handled and evidenced.
+- F-8-01 fail-closed verifier: every vf-bench trap RED, demo RED on the dropped criterion; `tests/test_verify.py` pins the fail-closed paths and CI runs them. F-8-02 "Orca down → documented stop" is evidenced by run 1 (`CF-05-failure-orca-not-running.txt`: `orca status --json` reachable:false) and documented (getting-started Troubleshooting; `docs/ops.md` incident process); the run-2 file only records substrate absence. No dedicated Orca runbook beyond those. F-8-03 no outbound calls to retry.
+- Evidence: `CF-03-r2-happy-vfbench.txt`, `CF-04-r2-happy-nc-demo.txt`, `CF-05-failure-orca-not-running.txt`, `P0-r2-coldstart-tests-run1.txt`, `docs/ops.md`. Score 3: failure paths handled, evidenced, and tested.
 
 ### 9. Observability — 1/R · weight 4 (unchanged; A-12 waiver)
-- F-9-01/F-9-02 unchanged. **F-9-03 (new, R-04)** GitHub workflow-run notifications are per-user and opt-in — whether a failure would reach the maintainer is invisible from the repository. → H-06 (non-gating; G-10 DEFER stands).
+- F-9-01/F-9-02 unchanged. **F-9-03 (new, R-06)** GitHub workflow-run notifications are per-user and opt-in — whether a failure would reach the maintainer is invisible from the repository. → H-06 (non-gating; G-10 DEFER stands).
 
 ### 10. Performance & cost — 2/A · weight 5 (unchanged)
-- F-10-01 tests ~23s, validate instant, fresh-clone stranger run 27s wall. F-10-02 no spend. No CI time budget.
+- F-10-01 tests ≈24s, validate instant, fresh-clone stranger run 24s wall. F-10-02 no spend. No CI time budget.
 
-### 11. Third-party integrations — 3/G · weight 5 (was 2)
+### 11. Third-party integrations — 2/A · weight 5 (unchanged)
 | Provider | Role | Run 2 |
 |---|---|---|
 | GitHub | source, Actions, private vuln reporting, review lookup | Actions #105 green; **Greptile app** reviewed PR #225 (12 rounds) |
@@ -120,13 +164,13 @@ RAG: 0–1 R · 2 A · 3–4 G. Score ≥3 requires evidence (R5). Findings from
 | Claude Code plugin marketplace / aggregators | distribution | index check recorded 2026-09-01; submits are H-02 |
 | greptile CLI | pre-push review on the maintainer machine | absent here (manual lens, A-16) |
 | agentskills.io | spec | required fields pass locally per `docs/distribution.md`; extras allowlisted (#221) |
-- F-11-01 closed (H-01). F-11-02 → H-02 (human). **F-11-03 (new)** the review bot is wired and observed working.
-- Evidence: `docs/ops.md` inventory, PR #225, `P0-r2-ci-main.txt`, CF-05 files.
+- F-11-01 closed (H-01). F-11-02 → H-02 (human). **F-11-03 (new)** the Greptile review app is wired and observed working (12 reviews on PR #225, captured from the API in `P1-r2-integrations-github.txt`).
+- Evidence: `docs/ops.md` inventory, `P1-r2-integrations-github.txt`, `P0-r2-ci-main.txt`, CF-05 files. Score stays 2 (fresh-reviewer RV-07): Orca and the greptile CLI were both absent here, so two of five providers are less observed than in run 1; 3 needs both observed in the same run.
 
 ### 12. AI / LLM layer — N/A (A-05, unchanged). 13. UX & frontend — N/A (A-05, unchanged).
 
 ### 14. Documentation — 3/G · weight 3 (unchanged)
-- F-14-01 README + getting-started + ARCHITECTURE + guides + CONTRIBUTING + **SECURITY + ops** (new since run 1). F-14-02 Stranger Test: fresh clone → validate → tests → proof_status → demo → vf-bench in **27s** from README/getting-started only (`P6-r2-stranger-test.txt`). F-14-03 CF-05 still needs Orca (named prerequisite). F-14-04 closed.
+- F-14-01 README + getting-started + ARCHITECTURE + guides + CONTRIBUTING + **SECURITY + ops** (new since run 1). F-14-02 Stranger Test: fresh clone → validate → tests → proof_status → demo → vf-bench in **24s** (timed transcript, `P6-r2-stranger-test.txt`) from README/getting-started only. F-14-03 CF-05 still needs Orca (named prerequisite). F-14-04 closed.
 - **F-14-05 (new, self)** `docs/completion/STATUS.md` header said "NEXT: none" after post-launch work — rewritten by this run.
 - Score 3, not 4: the only person who has completed CF-05 from the docs is the maintainer.
 
@@ -148,10 +192,10 @@ RAG: 0–1 R · 2 A · 3–4 G. Score ≥3 requires evidence (R5). Findings from
 
 N/A dropped: 6 (w=8), 12 (w=5), 13 (w=5). Active weight = **87** (A-04).
 
-`Σ(w×score/4)` = 8×3/4 + 14×3/4 + 4×3/4 + 8×3/4 + 14×3/4 + 6×3/4 + 5×3/4 + 4×1/4 + 5×2/4 + 5×3/4 + 3×3/4 + 5×2/4 + 4×2/4 + 2×3/4
-= 6 + 10.5 + 3 + 6 + 10.5 + 4.5 + 3.75 + 1 + 2.5 + 3.75 + 2.25 + 2.5 + 2 + 1.5 = **59.75**
+`Σ(w×score/4)` = 8×3/4 + 14×3/4 + 4×3/4 + 8×3/4 + 14×3/4 + 6×3/4 + 5×3/4 + 4×1/4 + 5×2/4 + 5×2/4 + 3×3/4 + 5×2/4 + 4×2/4 + 2×3/4
+= 6 + 10.5 + 3 + 6 + 10.5 + 4.5 + 3.75 + 1 + 2.5 + 2.5 + 2.25 + 2.5 + 2 + 1.5 = **58.5**
 
-**completion_pct = 59.75 / 87 × 100 = 69%** (56% at `95ebeb2`, 52% at baseline `6abf548`). Movement comes from evidence captured this run and post-launch closures, not from any change to the frozen definition (A-17).
+**completion_pct = 58.5 / 87 × 100 = 67%** (56% at `95ebeb2`, 52% at baseline `6abf548`). Movement comes from evidence captured this run and post-launch closures, not from any change to the frozen definition (A-17). Angle 11 was 3 before the fresh review (69%) and is held at 2 (RV-07).
 
 The gate in `DEFINITION.md` is binding, not this number.
 
@@ -159,9 +203,9 @@ The gate in `DEFINITION.md` is binding, not this number.
 
 ## Top risks (run 2)
 
-1. CF-05 evidence predates the #225 `review-it` changes → G-16 / H-07
-2. GitHub About description says 10 fleets, catalog is 13 → G-15 / H-04
-3. Alert-on-failure still undemonstrated; notifications are account-side → G-10 / H-06 (A-13)
+1. CF-05 evidence predates the #225 `review-it` changes and was a coordinator self-review → G-16 / **H-07 (gates launch)**
+2. Alert-on-failure still undemonstrated; notifications are account-side → G-10 / H-06 (A-13)
+3. GitHub About description says 10 fleets, catalog is 13 → G-15 / H-04
 4. Version badge lags HEAD again (`[Unreleased]` vs 0.6.0) → G-17 / H-05
 5. Nine doctrine-only missions (honest) → G-09 DEFER (#212)
 

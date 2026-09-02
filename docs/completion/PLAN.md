@@ -4,6 +4,8 @@ Dependency order. No dates (TARGET_DATE unset). Only above-the-line gaps.
 
 ## Phase skeleton
 
+*(Run-1 tables below are historical — see the run-2 addendum at the end for current status.)*
+
 | Phase | name | purpose | exit criteria | status |
 |---|---|---|---|---|
 | **P1** | Green baseline | Reproducible env; stale branches gone; CI pin | Cold start still passes; stale #207 worktree/branch gone; CI Python pinned | complete |
@@ -26,7 +28,7 @@ Order of phases not changed. P4/P5 merged/skipped with A-12 and fold-into-P2.
 | T-05 | P2 | G-04 | Add `.env.example` listing every `ORCA_*` `verify-gate.sh` reads, comments pointing at `docs/verify-gate.md`. No secrets. | file exists; names match the script's env reads (same contract as `test_verify_gate_doc_enumerates_every_orca_env_read`). `evidence/T-05-env-example.txt` | S | — | agent | done |
 | T-08 | P3 | G-01 | After H-01: capture CF-05 happy-path evidence. | `evidence/CF-05-happy-review-it.txt` | S | H-01 | human:H-01 | done |
 
-T-02 unused (number hole — keep ids stable).
+T-02, T-06, T-07 unused (number holes — keep ids stable).
 
 ## Counts
 
@@ -58,12 +60,12 @@ Phase status re-evaluated at `f2e53f4` (drift 22.7%, A-17). Order unchanged.
 
 | id | phase | gaps | description | acceptance | size | depends_on | owner | status |
 |---|---|---|---|---|---|---|---|---|
-| T-09 | P7 | G-18 | File the G-14 ACCEPT expiry ("when a hosted service exists") as a `post-launch` issue; link it from GAPS.md and `status.json`. | issue URL in GAPS.md + `evidence/T-09-accept-expiry-issue.txt` | S | — | agent | done (#226) |
+| T-09 | P7 | G-18 | File the G-14 ACCEPT expiry ("when a hosted service exists") as a `post-launch` issue; link it from GAPS.md and `status.json`. | issue URL in GAPS.md + `evidence/T-09-accept-expiry-issue.txt` | S | — | agent | done (#226; executed in the Phase 5 loop for phase P7) |
 
-Human: H-04 (G-15), H-05 (G-17), H-06 (G-10 / A-13), H-07 (G-16). None gate launch.
+Human: H-04 (G-15), H-05 (G-17), H-06 (G-10 / A-13), H-07 (G-16). **H-07 gates launch** (fresh-reviewer RV-01); the others do not.
 
 ### Counts (run 2)
 
 - Above-the-line gaps: 4 (G-15..G-18) · tasks: 1 agent (S) + 4 human · L-sized: 0
 - Longest chain: none (T-09 has no dependencies)
-- Launch-gating Human Actions: **0**
+- Launch-gating Human Actions: **1 (H-07)**

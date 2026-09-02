@@ -109,7 +109,7 @@ Category-only outbound queries (R8). Re-fetches confirm the run-1 passages; one 
 - **Passage (paraphrased):** 3.13 bugfix, EOL 2029-10; 3.14 bugfix, EOL 2030-10; 3.12 security-only, EOL 2028-10; 3.11 security-only, EOL 2027-10.
 - **Effect:** **confirms G-03 closed** (CI pinned to 3.13, in bugfix). This container's 3.11 is supported but security-only (A-18). **none**.
 
-### R-04 (new) GitHub Actions notifications
+### R-06 (new) GitHub Actions notifications  *(run 1 already used R-04/R-05; fresh-reviewer RV-10)*
 - **URL:** https://docs.github.com/en/actions/monitoring-and-troubleshooting-workflows/notifications-for-workflow-runs · **Fetched:** 2026-09-02
 - **Passage (paraphrased):** notifications are per user and opt-in — "if you enable email or web notifications for GitHub Actions, you'll receive a notification when any workflow runs that you've triggered have completed", with an option to be notified only when a run has failed; scheduled-workflow notifications go to the workflow's creator.
 - **Effect:** **confirms G-10 / A-13** — a green run proves nothing about alerting, and the setting lives on the maintainer's account, invisible from the repository → **new Human Action H-06** (confirm the failure-only setting; optionally witness one failure notification from a throwaway branch). Gate item 5 stays waived until then.

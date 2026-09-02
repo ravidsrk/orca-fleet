@@ -44,7 +44,8 @@ truth is `.claude-plugin/plugin.json`.
   examples and a direct classifier test added.
 
 - Product-completion run 2 (resume at `f2e53f4`, `docs/completion/`): every
-  angle re-scored on fresh-clone evidence (69%, was 56%); the six critical
+  angle re-scored on fresh-clone evidence (67%, was 56%; CONDITIONAL GO pending
+  H-07, the review-it dry run re-witnessed on the current head); the six critical
   flows re-evidenced with failure paths (a copied mission loses its
   `../../playbooks` references; an over-claimed `proof:` tier fails
   `proof_status --check`); new human actions H-04..H-07 (GitHub About

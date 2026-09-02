@@ -1,9 +1,11 @@
-# 2026-09-02T08:18:16Z · HEAD f2e53f4
-$ time python3 -m unittest discover -s tests   (run 1)
-
+# 2026-09-02T08:44:15Z · HEAD 1286807 · run 1 (re-captured after fresh-reviewer RV-02)
+$ git rev-parse --is-shallow-repository
+true
+$ python3 -m unittest discover -s tests -v 2>&1 | grep -E 'skipped|^Ran |^OK|^FAILED'
+test_heartbeat_skipped_and_malformed_segment_counted (test_pm.ParserBehaviorUnchanged.test_heartbeat_skipped_and_malformed_segment_counted) ... ok
+skipped "shallow clone without the trap's pinned commit — the GREEN half cannot run here"
+Ran 329 tests in 23.839s
 OK (skipped=1)
-
-real	0m22.734s
-user	0m17.461s
-sys	0m1.830s
+real	0m23.948s
 exit=0
+note: 329 collected = 328 ran + 1 skipped. The skip is the vf-bench review-trap GREEN half, which needs the trap's pinned commit; this container is a SHALLOW clone. CI run #105 (fetch-depth: 0) runs it — see P0-r2-ci-main.txt (A-22).

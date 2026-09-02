@@ -5,6 +5,7 @@ frozen_at: ed6a2f4
 product: orca-fleet
 frozen_by: completion-driver run 20260901-1336
 immutable after freeze (R6 / R13)
+text_as_of: 67c1707   # run 1's greptile P1 corrections to items 4-5 (2026-09-01); no content edit since. Annotation added by run 2 (fresh-reviewer RV-04); not a content change.
 ```
 
 This is a **catalog + verifier**, not a hosted app. Complete means a stranger can install it, trust its honesty claims, reproduce the moat demo, and — when Orca is running — start the documented first mission.

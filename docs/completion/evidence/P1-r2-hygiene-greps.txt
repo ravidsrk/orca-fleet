@@ -1,17 +1,19 @@
-# 2026-09-02T08:25:29Z hygiene greps at f2e53f4
-$ git log --all -p | grep -E '<secret patterns: AKIA…, ghp_…, github_pat_…, sk-…, xox…, PRIVATE KEY>' | head
-24391:+> Note: AWS's *public documentation* example key (`AKIAIOSFODNN7EXAMPLE`) is allowlisted by gitleaks
-40321:+> Note: AWS's *public documentation* example key (`AKIAIOSFODNN7EXAMPLE`) is allowlisted by gitleaks
-→ only the documented AWS public example key inside docs/reports/harden-it-externalrun (allowlisted by gitleaks per that report)
+# 2026-09-02T08:45:25Z hygiene greps at 1286807 (re-captured after RV-12: patterns shown verbatim; none is a secret)
+$ git log --all -p --no-color | grep -n -E "(AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{22,}|sk-[A-Za-z0-9]{20,}|xox[baprs]-[A-Za-z0-9-]{10,}|-----BEGIN (RSA|EC|OPENSSH|PGP) PRIVATE KEY-----)" | head -5
+1159:+24391:+> Note: AWS's *public documentation* example key (`AKIAIOSFODNN7EXAMPLE`) is allowlisted by gitleaks
+1160:+40321:+> Note: AWS's *public documentation* example key (`AKIAIOSFODNN7EXAMPLE`) is allowlisted by gitleaks
+26240:+> Note: AWS's *public documentation* example key (`AKIAIOSFODNN7EXAMPLE`) is allowlisted by gitleaks
+42170:+> Note: AWS's *public documentation* example key (`AKIAIOSFODNN7EXAMPLE`) is allowlisted by gitleaks
+→ only the documented AWS public example key quoted inside docs/reports/harden-it-externalrun (allowlisted by gitleaks per that report)
 
-$ git grep -n -i -E 'ignore (all )?(previous|prior|above) instructions|disregard (your|the) (system|previous)'
-exit=1 (1 = no hits)
+$ git grep -n -i -I -E 'ignore (all )?(previous|prior|above) instructions|disregard (your|the) (system|previous)' -- .
+exit=1 (no hits)
 
-$ git grep -n -E '\b(TODO|FIXME|HACK|XXX)\b' -- scripts runtime skills playbooks hooks demo bench
-exit=1 (1 = no hits)
+$ git grep -n -I -E '\b(TODO|FIXME|HACK|XXX)\b' -- scripts runtime skills playbooks hooks demo bench
+exit=1 (no hits)
 
-$ git grep -n -i -E 'coming soon|lorem ipsum|placeholder' -- . ':!tests/**' ':!docs/completion/**'
-exit=1 (1 = no hits)
+$ git grep -n -i -I -E 'coming soon|lorem ipsum|placeholder' -- . ':!tests/**' ':!docs/completion/**'
+exit=1 (no hits)
 
 $ cat .gitignore
 .env

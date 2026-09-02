@@ -1,6 +1,6 @@
 # Gap register
 
-Every standing finding that sits between HEAD and `DEFINITION.md`. Decisions follow the driver rules: S0 → FINISH or CUT; S1 → FINISH (CUT if not on a critical flow); S2/S3 → DEFER unless small and on a critical flow.
+Every standing finding that sits between HEAD and `DEFINITION.md`. Decisions follow the driver rules: S0 → FINISH or CUT; S1 → FINISH (CUT if not on a critical flow); S2/S3 → DEFER unless small and on a critical flow. Run 2 deviation: G-15 and G-17 are FINISH by a one-line Human Action although off-flow (A-23).
 
 | id | source | angle | flow | sev | decision | rationale |
 |---|---|---|---|---|---|---|
@@ -19,7 +19,7 @@ Every standing finding that sits between HEAD and `DEFINITION.md`. Decisions fol
 | G-13 | TODOS.md P2 | 3 | — | S3 | FINISH | CLOSED #218: shared `explicit_protocol_refs`. |
 | G-14 | F-7-03 A-10 | 7 | — | S3 | ACCEPT | Rollback = git revert. Expiry: next time we host a service (tracked: #226). Never S0. |
 | G-15 | F-16-05 | 16 | — | S2 | FINISH | Run 2: GitHub **About** description says "10 outcome-named autonomous fleets"; the catalog is 13. Landing truthfulness; a repo-settings change → H-04. |
-| G-16 | F-1-04 | 1 | CF-05 | S2 | FINISH | Run 2: CF-05 happy evidence is SHA-bound to `6ad0e87` (run 1); `review-it` changed in #225. Gate item 2 stays met (evidence exists); re-witness on the current head → H-07. |
+| G-16 | F-1-04 | 1 | CF-05 | S1 | FINISH | Run 2: CF-05 happy evidence is SHA-bound to `6ad0e87` (run 1, pre-#225, coordinator self-review of its own PR); `review-it` changed in #225. Gate item 8's action must be re-witnessed on the current head → **H-07 (gates launch)**, the same shape as G-01/H-01. |
 | G-17 | F-2-05 | 2,16 | — | S3 | FINISH | Run 2: `[Unreleased]` carries #225 while `plugin.json` is 0.6.0 — the G-06 shape recurs. Version cut → H-05 (A-20). |
 | G-18 | F-7-05 | 7 | — | S3 | FINISH | CLOSED T-09 (run 2): G-14's expiry is issue #226. |
 

@@ -10,7 +10,7 @@ repo: /home/user/orca-fleet       # run 2: cloud container clone (A-14); run 1: 
 audit_branch: claude/skills-improvements-review-oqc2zj   # run 2 (A-15); run 1: ravidsrk/p0-completion-audit
 baseline_commit: 6abf548de4d53b9250e13f3b2cc297f6dd8fdf01
 rebaselined_at: f2e53f4dff9a8a33cac041457ffb270d3ad5c875   # run 2 Phase 0 re-freeze
-resume_pointer: P7/GATE
+resume_pointer: P7/H-07
 ```
 
 ## 2026-09-01 — run start (R1)
@@ -149,3 +149,29 @@ resume_pointer: P7/GATE
 - Fresh clone (backup → restore per A-09) reproduces CF-01 (`CF-01-r2-happy-catalog-gates.txt`); CF-02/03/04/06 happy + failure paths on the same clone; CF-05 failure path (Orca absent), happy path stands from run 1. Rollback rehearsed (`P0-r2-rollback-rehearsal.txt`). Alert proof: still A-13 → H-06. Stranger Test 27s (`P6-r2-stranger-test.txt`). Regression: suite twice, 329 OK, no flake.
 - `resume_pointer: P7/GATE`
 - Second look: added the CF-02 copy-breaks-refs and CF-06 over-claim failure paths, which run 1 had left as `null`.
+
+## 2026-09-02 — PHASE 7 fresh-reviewer handoff (run 2)
+
+- A separate-context reviewer read `docs/completion/` against the tree at `1286807` and returned RV-01..RV-14 (verbatim in `evidence/P7-r2-fresh-review.md`). Disposition:
+  - RV-01 (S1) GO rested on calling H-07 non-gating → **fixed**: H-07 gates launch, G-16 → S1, verdict CONDITIONAL GO (A-21 supersedes A-19).
+  - RV-02 (S1) "329 OK" hid `skipped=1` (shallow clone) → **fixed**: test evidence re-captured with the `Ran` line and the skip reason; STATUS corrected; A-22. The Phase 0 entry above that says "329 OK ×2" is superseded by this line (append-only).
+  - RV-03 (S1) minima never evaluated → **fixed**: minima row in the gate table.
+  - RV-04 (S2) DEFINITION text is at `67c1707`, not `ed6a2f4` → **fixed**: `text_as_of` annotation in the frozen block (metadata, not content). This run's earlier "stays frozen at ed6a2f4" lines and the commit message's "untouched" meant "not edited by run 2", which remains true; the run-1 edit predates this run.
+  - RV-05 (S2) CF-05 failure evidence swapped for an environment note → **fixed**: run-1 `orca status` file restored as the failure path; the r2 file records substrate absence.
+  - RV-06 (S2) CF-05 caveats dropped → **fixed**: caveats in the CF-05 row; H-07 requires the worker-dispatch shape on a PR the session did not author.
+  - RV-07 (S2) angle 11 upgraded on prose → **fixed**: held at 2; API captures filed (`P1-r2-integrations-github.txt`). Completion 69% → **67%**.
+  - RV-08 (S3) stranger test self-report → **fixed**: timed transcript, 24s.
+  - RV-09 (S3) stale run-1 text → **fixed**: historical notes; A-23 for FINISH-by-human on off-flow gaps.
+  - RV-10 (S3) R-04 id collision → **fixed**: the run-2 source is **R-06** (the Phase 2 entry above says R-04).
+  - RV-11 (S3) "129/130" wording → **fixed**. RV-12 (S3) hygiene grep pattern hidden → **fixed** (re-captured verbatim).
+  - RV-13 (S3) ledger cosmetics → **fixed** where run 2 owns them (T-08 signature cleared, H-06 wording, P7 criteria, PLAN holes, snapshot pointer wording, T-09 phase note); run-1 `history[2].commit: "pending-t08"` left as-is — **accepted** (append-only history).
+  - RV-14 (S3) attribution → **accepted**: commits are authored by the maintainer at the maintainer's explicit instruction in this session; A-15 now says so.
+- review: manual (this run) + fresh reviewer (separate context).
+- Second look: the reviewer found what the second-look rule alone had not — a verdict decided by one reclassification. Recorded so run 3 checks item 8 before scoring anything.
+
+## 2026-09-02 — PHASE 7 gate (run 2)
+
+- **CONDITIONAL GO.** Items 1, 3, 4, 6, 7 met at `f2e53f4`; item 2 met on the letter (CF-05 at `6ad0e87`) but this run's rebaseline requires a re-witness; item 5 waived by A-13 (text as of `67c1707`), H-06 to demonstrate; item 8: **H-07 open and gating**; minima met (angles 1–8 ≥3, 9 ≥1 per A-12, 10–17 ≥2). Completion **67%**.
+- Post-launch backlog: #212 (G-09), #213 (G-10), #226 (G-14 expiry) — all `post-launch`.
+- `resume_pointer: P7/H-07` — when the maintainer confirms H-07: verify `evidence/CF-05-r3-happy-review-it.txt` (reviewed SHA on current `main`, worker-dispatch record, PR not authored by the reviewing session), close G-16, re-evaluate the gate.
+- Second look: did not write "GO" anywhere a stranger reads before the gate table.
