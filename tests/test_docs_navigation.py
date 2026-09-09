@@ -58,8 +58,18 @@ class TestDocsNavigation(unittest.TestCase):
         # already owns the 2 a.m. Incident section.
         text = (DOCS / "ops.md").read_text(encoding="utf-8")
         for tok in ("GitHub", "plugin marketplace", "greptile", "agentskills",
-                    "Incident", "Rollback", "revert -m 1"):
+                    "Incident", "Rollback"):
             self.assertIn(tok, text, f"docs/ops.md lost its {tok!r} surface")
+        # Scoped per #244 review: the full actionable command must live in the
+        # numbered rollback step itself — the bare substring anywhere in the
+        # doc (e.g. only in explanatory prose) is not enough.
+        m = re.search(r"(?ms)^\d+\. Rollback.*?(?=^\d+\. |\Z)", text)
+        step = m.group(0) if m else ""
+        self.assertIn(
+            "git revert -m 1 <merge-sha>",
+            step,
+            "docs/ops.md rollback step lost its actionable -m 1 command",
+        )
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
         self.assertRegex(
             readme,
