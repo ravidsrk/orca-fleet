@@ -16,9 +16,12 @@ git clone --branch main file:///Users/ravindra/projects/orca-fleet "$SCRATCH" >/
 cd "$SCRATCH"
 HEADSHA=$(git rev-parse HEAD)
 echo "scratch HEAD: $HEADSHA"
+FAILURES=0
 run() {
   local name=$1; shift
   { echo "# $TS fresh clone (backup-to-restore per A-09) - HEAD $HEADSHA"; echo "\$ $*"; "$@" 2>&1; echo "exit=$?"; } > "$EV/$name"
+  # fail closed (greptile P2): the recorded exit is the command's; propagate nonzero to the script
+  grep -q "^exit=0$" "$EV/$name" || { echo "FAILED: $name"; FAILURES=$((FAILURES+1)); }
 }
 run P0-r3-coldstart-validate.txt python3 scripts/validate.py
 run P0-r3-coldstart-proof-status.txt python3 runtime/scripts/proof_status.py --check
@@ -27,11 +30,13 @@ run P0-r3-coldstart-tests-run2.txt python3 -m unittest discover -s tests
 run P0-r3-coldstart-demo.txt sh demo/negative-control/run.sh
 run P0-r3-coldstart-vfbench.txt python3 bench/vf-bench/vfbench.py
 { echo "# $TS - HEAD $HEADSHA"
-  echo "\$ python3 scripts/eval.py (no args = usage)"
-  python3 scripts/eval.py 2>&1 | head -6; echo "exit=$?"; echo
+  echo "\$ python3 scripts/eval.py (no args = usage; exit is eval.py's own, no pipe)"
+  python3 scripts/eval.py 2>&1 | head -6
+  echo "exit=${PIPESTATUS[0]}"; echo
   echo "\$ python3 scripts/eval.py validate"
   python3 scripts/eval.py validate 2>&1; echo "exit=$?"
 } > "$EV/P0-r3-coldstart-eval.txt"
+grep -q "All evals valid" "$EV/P0-r3-coldstart-eval.txt" || { echo "FAILED: eval"; FAILURES=$((FAILURES+1)); }
 run P0-r3-coldstart-badges.txt python3 scripts/gen-badges.py --check
 run P0-r3-coldstart-ruff.txt ruff check .
-echo "COLDSTART DONE"
+[ "$FAILURES" -eq 0 ] && echo "COLDSTART DONE" || { echo "COLDSTART FAILED ($FAILURES)"; exit 1; }
