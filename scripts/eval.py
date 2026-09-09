@@ -100,6 +100,11 @@ MISSION_TRIGGERS = {
         "deep modules", "refactor the hot path", "interface is wider",
         "everything imports", "reshape", "deepen the module",
     ],
+    "field-test-it": [
+        "real device", "on-device", "on device", "physical device", "emulator qa",
+        "verify on hardware", "breaks on mobile", "works on desktop",
+        "mobile regression", "device testing",
+    ],
 }
 
 # Word triggers. Plain triggers are deliberately prefix-tolerant substrings ("harden" covers

@@ -288,6 +288,13 @@
       "expected_mission": "reshape-it",
       "type": "positive",
       "reason": "Seam lock: characterization-net + god-file vocabulary belongs to reshape-it when the goal is interface deepening; prove-it owns the net when the goal is test debt."
+    },
+    {
+      "id": 42,
+      "prompt": "Works on desktop but breaks on my phone — verify it on a real device and fix what hardware shows.",
+      "expected_mission": "field-test-it",
+      "type": "positive",
+      "reason": "On-device reproduce-fix-reverify with a hardware oracle maps to field-test-it."
     }
   ]
 }

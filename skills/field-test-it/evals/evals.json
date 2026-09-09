@@ -1,0 +1,41 @@
+{
+  "skill_name": "field-test-it",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "The checkout flow works on desktop but breaks on my phone — test it on a real device and fix whatever hardware shows.",
+      "expected_output": "Should route to field-test-it. Should pair a device session (Orca emulator skills or a paired physical device), capture a pre-change baseline, reproduce the defect on-device with artifacts, fix per defect, re-verify on-device at the head SHA with a revert negative control, and terminate FIELD-PROVEN or FIELD-PROVEN-WITH-PARKED.",
+      "assertions": [
+        "Routes to field-test-it",
+        "Pairs a device session and records its capability tier",
+        "Captures an on-device baseline before fixing",
+        "Every fix is re-verified on-device at head_sha with a revert negative control",
+        "Desktop-only verification is never accepted as device proof",
+        "Terminal is FIELD-PROVEN or FIELD-PROVEN-WITH-PARKED"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "The landing page is slow on mobile — LCP is over 4 seconds.",
+      "expected_output": "Should NOT route to field-test-it. A performance budget on a journey is speed-it — its oracle is measurement. field-test-it's oracle is a behaviour defect observed on a device.",
+      "assertions": [
+        "Does not route to field-test-it",
+        "Routes to speed-it",
+        "Distinguishes a perf budget (measurement oracle) from on-device defect verification (hardware oracle)"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Cover the critical payment paths with tests.",
+      "expected_output": "Should NOT route to field-test-it. Test-coverage gaps with the suite as oracle are prove-it. field-test-it drives flows on a paired device or emulator and proves fixes there.",
+      "assertions": [
+        "Does not route to field-test-it",
+        "Routes to prove-it",
+        "Distinguishes suite-based coverage from on-device verification"
+      ],
+      "files": []
+    }
+  ]
+}

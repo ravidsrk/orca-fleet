@@ -89,6 +89,7 @@ MUTATING_MISSIONS = {
     "pin-it",
     "floor-it",
     "reshape-it",
+    "field-test-it",
 }
 # Instruction budget (lines, whole file). The predecessor's mandatory instruction
 # surface hit ~42K tokens with no counterpressure; these caps are the counterpressure.
