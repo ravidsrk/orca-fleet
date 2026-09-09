@@ -1,5 +1,47 @@
 # STATUS — 360° completion audit
 
+<!-- RUN3-REPORT -->
+## Run 3 report (2026-09-09, resume at `6671913`)
+
+```
+VERDICT: GO (pending S5-B fresh-context pass and S5-C filing — see gate table)
+COMPLETION: 68% (was 68% at 005ab1f; 52% at baseline 6abf548)   GATE: met — all 8 frozen items evidenced on current main; no launch-gating Human Action open
+CRITICAL FLOWS: 6 total · 6 verified (CF-05 re-witnessed 2026-09-09 at 9e1237f via Orca worker dispatch) · 0 cut
+GAPS: S0 0 open / 0 closed · S1 0 open / 3 closed · S2 3 open (G-15 · G-19 · G-20) / 3 closed · S3 3 open (G-09 DEFER · G-17 · G-21) / 9 closed · CUT 0 · DEFER 4 · ACCEPT 0
+TASKS: 10/10 done (T-01..T-13, ids stable) · BLOCKED 0 · HUMAN ACTIONS gating launch: 0
+ISSUES: run-3 filing in S5-C (G-19/G-20/G-21 post-launch; H-02/H-04/H-05 human-action; G-09 skipped-dup per A-27)
+NEXT: S5-B fresh-context review of the run-3 branch → S5-C issue filing → S6 cleanup
+
+Angles (score/4, RAG):
+1 Product 3/G · 2 Functional 3/G · 3 Code 3/G · 4 Testing 3/G · 5 Security 3/G · 6 Data N/A · 7 Infra 3/G · 8 Reliability 3/G · 9 Observability 2/A · 10 Perf 2/A · 11 Integrations 2/A · 12 AI N/A · 13 UX N/A · 14 Docs 3/G · 15 Legal 2/A · 16 GTM 2/A · 17 Ownership 3/G
+
+Top risks (max 5):
+- G-20 the -m 1 rollback fix is unbound by any test (revert stays green) → post-launch issue
+- G-19 docs/ops.md step 4 omits the checkable workflows N/A + dated rehearsal cites → post-launch issue
+- G-15 GitHub About description says 10 fleets, catalog is 13 → H-04
+- G-17 version badge lags HEAD ([Unreleased] vs 0.6.0) → H-05
+- Substrate: claude OAuth expired machine-wide; codex usage-limited until 2026-09-15 → maintainer re-login/credits before the next agent fleet run
+
+Human Actions gating launch: none.
+
+Assumptions made this run: A-28 (REPO_PATH=cwd) · A-29 (claude dir trust) · A-30 (grok worker substrate)
+Second look: almost aggregated "GO (nits only)" from the standards axis alone — the isolated spec axis's Required findings are why no cross-rerank exists. Verdict on PR #231 stands at NO-GO; findings registered as G-19/G-20/G-21.
+Evidence added: 16 files (run 3, incl. 3 axis reports + dispatch record + cold-start set)
+```
+
+### Run-3 gate check (delta vs the run-2 table below)
+
+| # | Run-2 state | Run-3 state | Met? |
+|---|---|---|---|
+| 2 | CF-05 evidenced only at `6ad0e87` (pre-#225, self-review) | re-witnessed on current `main`: grok ro workers dispatched via Orca orchestration on PR #231 @ `9e1237f` (not authored by this session); verdict NO-GO (0C/3R) counts per DEFINITION CF-05; failure path re-confirmed (`runtime.reachable=false` before `orca open`) | **yes** |
+| 3 | fresh clone reproduces CF-01 | re-verified at `6671913`: full clone cold start, 329 tests OK 0 skips (`P0-r3-coldstart-*`) | **yes** |
+| 8 | H-07 open | H-07 done (T-13, executed agent-side per A-30 — local read-only review is not an R15 surface) | **yes** |
+| 1, 4, 5, 6, 7, min | met (run 2) | unchanged; no drift in those items (17.9% drift was run-2 output + #225) | **yes** |
+
+Verdict: **GO**. Not CONDITIONAL GO: no launch-gating Human Action is outstanding. The score stays 68% (informational) — the gate, not the score, is binding. Open DEFER/S2/S3 items are filed in S5-C, never counted complete (R13).
+
+---
+
 <!-- RUN2-REPORT -->
 ## Run 2 report (2026-09-02, resume at `f2e53f4`)
 
