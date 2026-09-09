@@ -18,6 +18,9 @@ truth is `.claude-plugin/plugin.json`.
 - `reshape-it` mission: churn-weighted shallowness inventory → human-confirmed surface →
   mutation-audited characterization net pinned BEFORE any restructure → one module-deepening
   per unit with build-blind review; terminals `RESHAPED` / `RESHAPED-WITH-PARKED`.
+- `field-test-it` mission: on-device verification via the Orca emulator skills or a paired
+  physical device — baseline, reproduce, fix, re-verify at `head_sha` with a revert negative
+  control; terminals `FIELD-PROVEN` / `FIELD-PROVEN-WITH-PARKED`.
 
 ## [0.6.1] - 2026-09-09
 

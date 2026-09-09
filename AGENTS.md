@@ -40,6 +40,7 @@ Only `skills/` may contain a `SKILL.md`. `scripts/validate.py` fails the build i
 | "Orca updated" / "re-pin the runtime contract" / "policy lags practice" / "dispatch docs are stale" | [`pin-it`](skills/pin-it/SKILL.md) |
 | "set the quality bar" / "make CI enforce" / "define our standards" / "bar keeps slipping" | [`floor-it`](skills/floor-it/SKILL.md) |
 | "god file" / "architecture erosion" / "refactor the hot path safely" / "interface wider than the implementation" | [`reshape-it`](skills/reshape-it/SKILL.md) |
+| "test on a real device" / "works on desktop, breaks on mobile" / "emulator QA" / "on-device bug" | [`field-test-it`](skills/field-test-it/SKILL.md) |
 
 Prefer the most specific mission. When two seem to fit, apply the mission-identity test
 (ARCHITECTURE.md): different unit of work, state machine, or convergence proof → different mission.

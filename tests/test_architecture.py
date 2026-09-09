@@ -31,7 +31,7 @@ VENDOR_TOKENS = ("matt", "gstack", "addy", "osmani", "garry", "orca", "fleet", "
 EXPECTED_MISSIONS = {
     "ship-it", "clean-sweep", "oss-contribute", "harden-it", "speed-it", "modernize-it",
     "prove-it", "deflake-it", "review-it", "map-it", "root-cause", "attest-it", "access-it",
-    "pin-it", "floor-it", "reshape-it",
+    "pin-it", "floor-it", "reshape-it", "field-test-it",
 }
 
 
