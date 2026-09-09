@@ -33,6 +33,7 @@
     "attest-it",
     "access-it",
     "pin-it",
+    "floor-it",
     "evidence-manifest",
     "definition-of-done",
     "merge-queue",

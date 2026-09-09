@@ -1,0 +1,41 @@
+{
+  "skill_name": "floor-it",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Set the quality bar for this repo and make CI actually enforce it — coverage, security scanning, the works.",
+      "expected_output": "Should route to floor-it. Should detect current values, freeze a numbered CONSTRAINTS table (one-way gate), wire one tool per dimension, prove each gate fires on an injected violation (RED) then restore (GREEN), enforce in CI, and terminate FLOORED or FLOORED-WITH-PARKED (untoolable dimensions parked with a named human gate).",
+      "assertions": [
+        "Routes to floor-it",
+        "Freezes a numbered dimension x threshold table as the denominator",
+        "One tool per dimension, wired on unit branches",
+        "Every gate proven RED on an injected violation before it blocks CI",
+        "Untoolable dimensions are parked, never given a vacuous check",
+        "Terminal is FLOORED or FLOORED-WITH-PARKED"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Close the test gap on the payments critical path.",
+      "expected_output": "Should NOT route to floor-it. Test coverage of critical paths is one dimension of a bar; closing test debt is prove-it. floor-it installs the standing, multi-dimensional, tool-enforced bar.",
+      "assertions": [
+        "Does not route to floor-it",
+        "Routes to prove-it",
+        "Distinguishes one dimension (tests) from the whole quality bar"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Prove SOC 2 conformance with an audit-ready evidence pack.",
+      "expected_output": "Should NOT route to floor-it. Conformance to an external framework's obligation set is attest-it. floor-it's bar is the repo's own chosen constraints, machine-enforced.",
+      "assertions": [
+        "Does not route to floor-it",
+        "Routes to attest-it",
+        "Distinguishes a self-imposed enforced bar from an external standard's obligations"
+      ],
+      "files": []
+    }
+  ]
+}

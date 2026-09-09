@@ -38,6 +38,7 @@ Only `skills/` may contain a `SKILL.md`. `scripts/validate.py` fails the build i
 | "prove compliance" / "conformance" / "audit-ready evidence" / "SOC 2 / EU AI Act / SSDF" | [`attest-it`](skills/attest-it/SKILL.md) |
 | "accessibility" / "a11y" / "WCAG conformance" / "screen reader" / "Section 508" | [`access-it`](skills/access-it/SKILL.md) |
 | "Orca updated" / "re-pin the runtime contract" / "policy lags practice" / "dispatch docs are stale" | [`pin-it`](skills/pin-it/SKILL.md) |
+| "set the quality bar" / "make CI enforce" / "define our standards" / "bar keeps slipping" | [`floor-it`](skills/floor-it/SKILL.md) |
 
 Prefer the most specific mission. When two seem to fit, apply the mission-identity test
 (ARCHITECTURE.md): different unit of work, state machine, or convergence proof → different mission.
