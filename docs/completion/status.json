@@ -10,7 +10,7 @@
     "evidence": "docs/completion/evidence/P0-coldstart-validate-tests.txt"
   },
   "current_commit": "6671913b3c5b0c893823896669b51a39ad6caa3e",
-  "resume_pointer": "S6",
+  "resume_pointer": "DONE",
   "definition_frozen_at": "ed6a2f4",
   "completion_pct": 68,
   "gate": {
@@ -1326,6 +1326,15 @@
         "create the driver-spec labels S2/S3/human-action alongside the existing sev:*/needs-human"
       ],
       "reason": "R7(c): closest to what the repo already does; forking the label taxonomy would split every future triage query"
+    },
+    {
+      "id": "A-32",
+      "phase": "S6",
+      "decision": "KEEP the Orca repo registration (id 3cf2cdae) created for the review dispatches",
+      "rejected": [
+        "remove it for symmetry"
+      ],
+      "reason": "S6 guardrail: harmless metadata; removal risks disturbing the maintainer's Orca state for zero gain"
     }
   ],
   "research": [
@@ -1438,5 +1447,13 @@
     "dedup_skipped": 1,
     "existing_fetched": 96,
     "ledger": "docs/completion/ISSUES.md"
+  },
+  "cleanup": {
+    "scratch_dirs_removed": 2,
+    "orphan_evidence_removed": 0,
+    "branches_swept": 2,
+    "residue_consolidated": 0,
+    "cleanup_pr": "https://github.com/ravidsrk/orca-fleet/pull/239",
+    "manifest_undispositioned": 0
   }
 }

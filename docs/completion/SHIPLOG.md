@@ -266,3 +266,31 @@ resume_pointer: S6
   - RV-09 (S3) PLAN P6 omitted H-05; placeholder command line; P1 JSON evidence old → **fixed**.
 - Gate re-evaluated after fixes: **GO** stands (RV-01 was evidence-showing, now shown).
 - review: manual (every fix re-read against its quoted line). Second look: the reviewer caught the same class run 2's reviewer caught — settlement claimed in prose before the receipts existed. Both times the fix was cheap because the underlying state was real and queryable.
+
+## 2026-09-09 — S5-C issue filing + R11 + PR #238 (run 3)
+
+- Dedup pass: 96 issues fetched (0 open, no prior `pcd:` markers). Created **#232 (G-19) · #233 (G-20) · #234 (G-21)** `post-launch` and **#235 (H-02) · #236 (H-04) · #237 (H-05)** `needs-human`; G-09 skipped-dup (A-27); G-15/G-17 ride their human actions' issues. Marker search: exactly one issue per id, zero duplicates. Ledger `ISSUES.md`. Labels use the existing taxonomy (A-31).
+- `greptile review -b main` (confidence 4/5): P1 stale header pointer + P2 `run_pr` #227 + P2 coldstart producer didn't fail closed — all three fixed (`dbf0d6b`).
+- PR **#238** opened; `gates` pass (32s) + Greptile Review pass; merged **`5f0bd30`** (`gh pr merge --merge --delete-branch`). Branch deleted local + remote.
+- `resume_pointer: S6`
+- Second look: STATUS report block still said "pending S5-B/S5-C" after filing — greptile's P1 caught the same staleness class in the header. Both fixed before push.
+
+## 2026-09-09 — S6 CLEANUP + final record (run 3)
+
+Manifest reconciliation (every artifact the run created, dispositioned):
+
+| artifact | disposition | why |
+|---|---|---|
+| `docs/completion/` (ledger + 18 new evidence files) | KEEP | canonical record; every evidence file is referenced by `status.json`, a gate proof, or a filed issue |
+| `/Users/ravindra/projects/orca-fleet-r3-coldstart` | DELETED | S1 cold-start scratch clone |
+| Orca worktree `pcd-r3-review` (+ its 11 terminals, branch) | DELETED (`orca worktree rm --force`) | review substrate; ro boundary verified before deletion (clean tree, 0 unpushed) |
+| `~/.claude.json` trust key for the review worktree | REMOVED | A-29 promised restoration; dir is gone |
+| Orca repo registration `3cf2cdae-bda6-4774-a26f-e6f3b7a9852a` | KEEP (A-32) | harmless metadata; removing it risks disturbing the maintainer's Orca state for zero gain |
+| 22 `/tmp` scratch files (specs, raw reports, check dumps, issue bodies, producer scripts, claude.json backup) | DELETED | content preserved in `docs/completion/evidence/` where referenced |
+| `.claude/commands/product-completion.md` | KEEP | created at the maintainer's request before the run; untracked; not a run artifact |
+| `ravidsrk/p7-completion-run3` branch | DELETED at merge (R10) | PR #238 |
+
+- Orphan evidence: 0 (checked every `evidence/P0-r3-*` / `CF-05-r3-*` / `P7-r3-*` against `status.json` + filed issues). Prior-run residue outside `docs/completion/`: 0 (`TODOS.md` predates the runs; `.claude/` dispositioned above).
+- Hygiene: post-merge suite on `main` green (validate 13/13 · 329 OK · ruff clean) · `git status` clean · `git branch -a` = `main` only · `git worktree list` = primary only · no `pcd` scratch paths on disk.
+- `resume_pointer: DONE (GO)`
+- Second look: the Orca repo registration was almost deleted for symmetry — KEEP per the S6 guardrail (a kept stray costs kilobytes; a deleted proof costs the audit trail), logged as A-32.
