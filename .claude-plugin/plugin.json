@@ -32,6 +32,7 @@
     "root-cause",
     "attest-it",
     "access-it",
+    "pin-it",
     "evidence-manifest",
     "definition-of-done",
     "merge-queue",

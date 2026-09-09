@@ -106,6 +106,7 @@ evidence-based definition of done. Click through for the full guide to each.
 | 🤝 **[oss-contribute](docs/missions/oss-contribute.md)** | Upstream issues on a repo you do NOT control, each landed as an open, reviewed, etiquette-correct PR (or a quoted review-assist on an existing PR): `CONTRIBUTED` or `CONTRIBUTED-WITH-PARKED`, merge left to maintainers | "contribute to this project", "open PRs upstream", "we only have a fork" |
 | 📋 **[attest-it](docs/missions/attest-it.md)** | Conformance to a frozen standard (EU AI Act Art-12/50, SOC 2, NIST SSDF) proven with independently re-derived, auditor-grade evidence: `CONFORMANT` or `CONFORMANT-WITH-GAPS` (gaps parked to a human/legal owner) | "prove compliance", "conformance", "audit-ready evidence", "SOC 2 / EU AI Act / SSDF" |
 | ♿ **[access-it](docs/missions/access-it.md)** | A frozen page/flow set driven to WCAG 2.2 AA (EAA/ADA/508): a deterministic axe-core oracle clean + a revert-to-violation negative control, the ~30–40% automation ceiling parked to a human-AT reviewer: `CONFORMANT` or `CONFORMANT-WITH-MANUAL-PARKED` | "accessibility", "a11y", "WCAG", "screen reader / keyboard" |
+| 📌 **[pin-it](docs/missions/pin-it.md)** | Runtime doctrine re-witnessed against the installed binary: every mechanics claim receipted CURRENT, patched with receipts, or removed with an archived refutation — `PINNED` or `PINNED-WITH-PARKED` | "Orca updated", "re-pin the runtime contract", "policy lags practice" |
 
 ### Autonomy levels
 
@@ -115,7 +116,7 @@ independent verifier is that cheap verification, so the mutation fleets run at *
 you own the one-way doors), while the read-only / planning missions sit at **L3** (the human owns
 the verdict or the plan):
 
-- **L4** — ship-it · clean-sweep · harden-it · speed-it · modernize-it · prove-it · deflake-it · oss-contribute · access-it
+- **L4** — ship-it · clean-sweep · harden-it · speed-it · modernize-it · prove-it · deflake-it · oss-contribute · access-it · pin-it
 - **L3** — review-it · map-it · root-cause · attest-it
 
 ## Proof status — honesty first

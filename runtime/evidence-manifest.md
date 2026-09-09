@@ -139,7 +139,7 @@ A unit is done only when its own acceptance criteria AND this floor both hold. T
 scoped by MISSION CLASS — a negative control is always required, but what one IS differs:
 
 - **Mutation units** (ship-it, clean-sweep, oss-contribute, harden-it, speed-it, modernize-it,
-  prove-it, deflake-it, access-it): runtime-verified, not just compiled/typechecked; no new red at
+  prove-it, deflake-it, access-it, pin-it): runtime-verified, not just compiled/typechecked; no new red at
   the unit's head SHA; the manifest's negative control is the revert/mutate proof of §1.
 - **Report-only units** (review-it): no code is touched (that IS a checked invariant — a dirty
   worktree fails the unit); the negative-control analogue is SOURCE-BINDING: every finding

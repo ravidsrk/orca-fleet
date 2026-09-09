@@ -24,6 +24,7 @@ for the human deciding what to run and what to expect.
 | 🔬 [root-cause](root-cause.md)     | A reproduced symptom and a demonstrated cause — diagnosis only |
 | 📋 [attest-it](attest-it.md)       | Conformance to a frozen standard, independently re-derived: `CONFORMANT` or gaps parked |
 | ♿ [access-it](access-it.md)       | A frozen page/flow set driven to WCAG 2.2 AA with a revert-to-violation control |
+| 📌 [pin-it](pin-it.md)             | Runtime doctrine re-witnessed against the installed binary — every claim receipted |
 
 Not sure which one? The [decision flowchart in the README](../../README.md#which-mission-do-i-want)
 routes by what you have in hand: a goal, a set of known problems, or a question. Every guide

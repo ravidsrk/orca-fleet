@@ -86,6 +86,7 @@ MUTATING_MISSIONS = {
     "prove-it",
     "deflake-it",
     "access-it",
+    "pin-it",
 }
 # Instruction budget (lines, whole file). The predecessor's mandatory instruction
 # surface hit ~42K tokens with no counterpressure; these caps are the counterpressure.
