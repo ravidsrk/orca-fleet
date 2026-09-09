@@ -44,7 +44,11 @@ NAME the destination first (fixes scope — everything past it is out of scope; 
     question, not answer it"). Not-yet-sharp → "not yet specified".
   → clear the FRONTIER in parallel: Research tickets (AFK) gather evidence; Decision/Grill tickets are
     HITL classified mechanical/taste/one-way per `gate-classification.md` (the agent never stands in
-    for the human's side); one decision per session; resolving a ticket clears fog and graduates
+    for the human's side); **Prototype tickets** (HITL) answer "how should it look/behave" with a cheap
+    THROWAWAY artifact (a scratch-worktree spike, `sandbox-policy`'s disposable lane) instead of prose
+    grilling; **Task tickets** are manual work blocking a decision (provisioning, credentials, data
+    moves) — a precise human checklist, never a fog item that stalls a grill; one decision per
+    session; resolving a ticket clears fog and graduates
     newly-sharp questions into fresh tickets
   → when the route is clear: FREEZE the plan/spec (decide-and-freeze) + PREPARE the DAG (decompose-dag,
     materialize but do not dispatch)

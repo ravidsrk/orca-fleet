@@ -24,7 +24,11 @@ whole train, never a unit gate — the per-unit ledger flag is `BUILD_DONE` (led
 Version bump: a deterministic classifier reads state (FRESH / ALREADY_BUMPED / DRIFT_STALE / **DRIFT_
 UNEXPECTED → STOP**); the bump LEVEL stays agent judgment; workspace-queue-aware slot pick avoids
 version collisions. Changelog + bisectable dependency-ordered commits. **Fresh-evidence verification
-gate:** if ANY code changed since the last test run, re-run — "should work now → RUN IT". Open the
+gate:** if ANY code changed since the last test run, re-run — "should work now → RUN IT".
+**Doc-sync unit (before the promotion PR):** a named subagent pass syncs the docs to what the wave
+actually shipped — README claims, guides, and diagrams re-read against the merged tree; drift is
+fixed as its own unit (never clobber CHANGELOG history, never bump VERSION silently). Skipping it
+lets drift accumulate into the next clean-sweep. Open the
 BASE→default promotion PR with the traceability table and an `accountable: <human>` line naming
 who owns the Verdict (gate-classification.md one-way). STOP here unless that human authorizes
 promotion.
