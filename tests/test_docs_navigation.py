@@ -53,9 +53,12 @@ class TestDocsNavigation(unittest.TestCase):
 
     def test_ops_doc_names_accounts_and_incident(self):
         # Issue #215: bus-factor-1 with no inventory and no 2 a.m. paragraph.
+        # Issue #233 (G-20): step 4's merge-shaped rollback was unbound —
+        # reverting `git revert -m 1` stayed green. Pin it on this test; it
+        # already owns the 2 a.m. Incident section.
         text = (DOCS / "ops.md").read_text(encoding="utf-8")
         for tok in ("GitHub", "plugin marketplace", "greptile", "agentskills",
-                    "Incident"):
+                    "Incident", "Rollback", "revert -m 1"):
             self.assertIn(tok, text, f"docs/ops.md lost its {tok!r} surface")
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
         self.assertRegex(
