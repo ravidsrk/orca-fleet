@@ -1,36 +1,26 @@
 # Runtime policy — Orca DAG semantics (CLI / agent fleets)
 
-Ground truth about how Orca's orchestration DAG actually behaves for fleets that drive it
-with CLI verbs (`task-create` / `dispatch` / `check` / `send`), not Orca's built-in
-`Coordinator.run` loop. Sourced from live-DB research (schema v5); treat as operational
-contract, not product marketing.
+Ground truth about how Orca's orchestration DAG behaves for fleets that drive it with CLI verbs
+(`run-create` / `task-create` / `worker-start` / `check` / `send`). Sourced from live-DB research
+plus the version-matched guide the binary serves (`orca skills get orchestration`); treat as
+operational contract, not product marketing. Current schema line: v40.
 
-## The database is machine-global and multi-run
+## A Run is the durable scope primitive
 
-One `orchestration.db` per Orca userData, shared across every repo and every past run since
-the last manual reset. Nothing prunes automatically. `task-list` returns **every** task on
-the machine, not "this mission."
+`run-create` / `run-use` / `run-current` / `run-list` / `run-show` give the fleet a first-class
+namespace and coordinator inbox. Every task belongs to one explicitly bound Run, and the scope
+verbs honor it: `task-list --run <id>`, `worker-list --run <id>`, the coordinator's `check`. The
+retired scheduler commands (`orchestration run`, `coordinator-start/stop`) perform no effects and
+return the current-skill recovery action — never call them.
 
-**Fleet rule:** the run scope is the ledger's coordinator handle(s) + the ledger's task-id
-set (liveness-resume.md). Never converge, WATCH, or RESUME against an unfiltered `task-list`.
-A foreign run's completed tasks are not your wins; a foreign pending is not your stall.
+**Fleet rule:** the run scope is the Run id, recorded in the ledger header at start (liveness-resume.md).
+Never converge, WATCH, or RESUME against an unfiltered `task-list` — unscoped lists bury live rows
+under every past run on the machine (nothing prunes automatically). A foreign run's completed tasks
+are not your wins; a foreign pending is not your stall.
 
-## Run identity is a terminal handle (ledger), not `coordinator_runs` alone
-
-Two coordination patterns write different rows:
-
-| Pattern | `coordinator_runs` | Run scope |
-|---------|--------------------|-----------|
-| **Manual fleet loop** (`task-create` / `dispatch` / `check` / `send`) | **Empty** — never written | Ledger coordinator handle(s) + ledger task ids |
-| **`orchestration run`** (built-in Coordinator loop) | **Has a row** — RPC creates it before the loop | Still **unscoped** over the machine DB (adopts leftover tasks) |
-
-The durable key for fleets is always `tasks.created_by_terminal_handle` + the ledger task-id
-set. A `coordinator_runs` row is optional evidence that a built-in loop started — never the
-sole scope key, never proof a manual fleet is finished.
-
-**Fleet rule:** record coordinator handle(s) in the ledger header at start. Prefer the **manual**
-loop over `orchestration run` because the built-in loop is unscoped (not because the table is
-empty — it is empty only for the manual pattern).
+**Nested depth:** `nested_worker_depth_exceeded` is counted from the ISSUING terminal, not from the
+Run — a dispatched worker creating a fresh Run and calling `worker-start` is still a worker, and
+still blocked at the default depth of 1 (dispatch-lifecycle.md).
 
 ## DAG edges are `deps`, not `parent_id`
 
@@ -43,35 +33,45 @@ or verify fleets on parent/child nesting.
 
 ## What the message enum lies about
 
-These `MessageType` values exist in the schema but **nothing writes them** on CLI/agent paths
-(live counts were zero):
+These `MessageType` values exist in the schema but **nothing writes them** on CLI/agent paths:
 
 | Type | Reality |
 |------|---------|
-| `dispatch` | Prompt is injected into the worker PTY; no message row. Reconstruct from `dispatch_contexts` + `tasks.spec`. |
+| `dispatch` | Prompt is injected into the worker PTY; no message row. Reconstruct from the dispatch record + `tasks.spec`. |
 | `handoff` | Unused by the runtime. |
 
 `merge_ready` is **fleet-written** (merge-serialization.md), not a phantom type — the runtime
 delivers it but triggers no built-in merge behavior. Expect it during serialized merges.
 
-What *is* real and load-bearing: `worker_done`, `merge_ready`, `heartbeat`, `escalation`,
-`decision_gate`, `status`. Heartbeats are the majority of traffic — always type-filter
-`check --wait` or use `--peek` so they do not bury lifecycle mail (dispatch-lifecycle.md).
+What *is* real and load-bearing: `worker_done`, `merge_ready`, `heartbeat`, `question`,
+`escalation`, `status`, `decision_gate` (legacy/gates). Heartbeats are the majority of traffic —
+always type-filter `check --wait` or use `--peek` so they do not bury lifecycle mail
+(dispatch-lifecycle.md).
+
+## Delivery is batched, replayed, and acked
+
+A coordinator `check` returns the Run's oldest FIFO **Delivery** (up to 50 messages) and replays
+that exact batch until `--ack <delivery_id>` — the mailbox commits the delivery before waking the
+coordinator, so a crash between receive and process never loses mail. Process the whole batch,
+then ack. Every mutation accepts `--retry-request <id>` (`request-show` inspects): re-issuing with
+the same id is deduped, so a lost response never double-dispatches.
 
 ## Task status is current-state, not a timeline
 
 `tasks.status` is overwritten in place by many writers. `pending → ready` promotion is
 **silent and untimestamped**. Reconstructible facts: creation, each dispatch attempt
-(`dispatch_contexts` is one row per attempt; latest = max rowid; `failure_count` carries
-MAX forward; circuit trips at 3), completion via `worker_done`.
+(latest = the active dispatch; `failure_count` carries MAX forward; circuit trips at 3),
+completion via `worker_done`.
 
 **Fleet rule:** never grade progress from a reconstructed status history. Ledger + git +
 evidence-manifest are the completion oracle. `worker_done` with matching `taskId`+`dispatchId`
 from the owning pane auto-completes the task — do not also `task-update --status completed`.
+A dispatch re-attaching after a restart surfaces `consumer_fenced` — the old coordinator is
+fenced; only the current binding's calls mutate.
 
 ## Convergence (when the DAG is done)
 
-A run is **converged** only when every task in the **ledger task-id set** is terminal
+A run is **converged** only when every task in the **Run's task set** is terminal
 (`completed` or `failed`), no live worker ask is waiting on the coordinator (dispatched unit +
 ask thread with no reply — not merely unread), and no `gate-create` hold remains for those tasks.
 Not converged:
@@ -87,20 +87,21 @@ A finished foreign run in the same DB is irrelevant. All-green elsewhere is not 
 
 Two paths (gate-classification.md):
 
-1. Worker / coordinator `ask` → a `decision_gate` **message** (often **no** `decision_gates`
-   table row; payload may omit `taskId`). The worker CLI **blocks until reply or timeout**.
-   The task usually stays `dispatched` — `ask` does **not** flip it to `blocked`.
-2. Coordinator `gate-create` → table row + task status `blocked`; `gate-resolve` unblocks.
+1. Worker / coordinator `ask` → a `question` **message** to the owning Run. The worker CLI
+   **blocks until reply or timeout**; a timeout leaves the question PENDING — resume it with
+   `ask --resume <message_id>` (the same id, never a duplicate ask). The task usually stays
+   `dispatched` — `ask` does **not** flip it to `blocked`.
+2. Coordinator `gate-create` → task status `blocked`; `gate-resolve` unblocks.
 
 **Fleet rule — distinguish live from historical:**
 
 | Case | How you know | Action |
 |------|--------------|--------|
-| **Live ask** | A worker unit is still `dispatched` and a `decision_gate` / ask in its thread has **no reply** yet (do **not** rely on the unread bit alone — `check --wait` marks read on receive) | **Always blocking inbox work.** Reply by `message id` (`reply --id`) promptly — do not wait for task status `blocked` (it will not come). Ignoring it burns the ask timeout. On RESUME, re-scan threads for asks without replies while the unit is still dispatched. |
+| **Live ask** | A worker unit is still `dispatched` and its `question` has **no reply** yet (do **not** rely on the unread bit alone — `check` marks read on receive) | **Always blocking inbox work.** Reply by `message id` (`reply --id`) promptly — do not wait for task status `blocked` (it will not come). Ignoring it burns the ask timeout. On RESUME, re-scan threads for asks without replies while the unit is still dispatched. |
 | **Historical unanswered** | Unit already terminal / no waiting worker; ask with or without a reply left in history | **Not** a fleet stall. Do not spin the run waiting on it. |
 | **DAG hold** | `gate-create` → task `blocked` | DAG blocker until `gate-resolve` or park as one-way human. |
 
-Prefer `gate-create` for human one-way holds the DAG must respect; prefer classified `ask` for
+Prefer `gate-create` for human one-way holds the DAG must respect; prefer `ask` for
 worker→coordinator mechanical/taste questions. Answer asks by **message id**, never by guessing
 a gate-table id.
 

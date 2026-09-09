@@ -65,7 +65,7 @@ SELF-ORIENT → FORK + ENUMERATE (open issues AND their open PRs) → SKEPTIC-TR
   → re-ENUMERATE (loop until dry) → FINAL REPORT + `compound-learn` + human gates
 ```
 
-Run the coordinator as a MANUAL loop (`task-create → spawn → dispatch --inject → check --wait`) — not
+Run the coordinator as a MANUAL loop (`task-create → spawn (worker-start) → check --wait`) — not
 `orchestration run` — to keep the file-ledger gate under your control. No conductor (nothing merges).
 
 ## Convergence proof (definition of done)

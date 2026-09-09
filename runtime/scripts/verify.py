@@ -219,25 +219,53 @@ def check_real_commits(m, is_mutation=False):
 
 
 def check_freshness(m):
-    """A reviewed_sha, if claimed, must equal head_sha (a rebase/bot-push after review voids it).
+    """A reviewed_sha, if claimed, must equal head_sha (a rebase/bot-push after review voids it) —
+    UNLESS `pr.reviewed_wtree` is bound to BOTH trees: tree(reviewed_sha) == reviewed_wtree ==
+    tree(head_sha), all recomputed locally (a worker-chosen 40-hex string that only matches the
+    head is a forgery, not freshness). A content-identical rebase/amend does not void the review;
+    any content change does (reviewed-sha-freshness.md). The SHA remains the GitHub-lookup key.
     Independent proof that the review HAPPENED is check_review (mutation units)."""
     reviewed = (m.get("pr") or {}).get("reviewed_sha")
     head = m.get("head_sha")
-    if reviewed and reviewed != head:
+    if reviewed and reviewed != head and not _wtree_bound(m):
         return [f"stale review: reviewed_sha '{reviewed}' != head_sha '{head}'"]
     return []
 
 
-def review_ok(reviews, head_sha, author=None):
+def _tree(sha):
+    code, out = _git(["rev-parse", f"{sha}^{{tree}}"])
+    return out if code == 0 else None
+
+
+def _wtree_bound(m):
+    """True only when pr.reviewed_wtree is a 40-hex tree SHA bound to BOTH the reviewed commit's
+    tree and the head's tree (a content-identical head move). Fail-closed on anything missing,
+    non-hex, outside a git repo, or unresolvable."""
+    pr = m.get("pr") or {}
+    reviewed, head, wtree = pr.get("reviewed_sha"), m.get("head_sha"), pr.get("reviewed_wtree")
+    if not (reviewed and head and wtree):
+        return False
+    if not all(HEX40_RE.match(str(v)) for v in (reviewed, head, wtree)):
+        return False
+    if _git(["rev-parse", "--is-inside-work-tree"])[0] != 0:
+        return False
+    rt, ht = _tree(reviewed), _tree(head)
+    return rt is not None and ht is not None and rt == wtree == ht
+
+
+def review_ok(reviews, head_sha, author=None, also_sha=None):
     """Pure: the LATEST review by some INDEPENDENT reviewer (not the PR author) is APPROVED at
-    head_sha. A later COMMENTED/DISMISSED by the same reviewer supersedes an earlier APPROVED."""
+    head_sha. A later COMMENTED/DISMISSED by the same reviewer supersedes an earlier APPROVED.
+    also_sha (a content-identical earlier head, tree-bound by _wtree_bound) is accepted too —
+    the reviewer approved exactly this content."""
     latest = {}
     for r in reviews or []:
         latest[(r.get("user") or {}).get("login")] = r  # chronological: last per reviewer wins
+    ok_shas = {head_sha} | ({also_sha} if also_sha else set())
     for who, r in latest.items():
         if author is not None and who == author:
             continue
-        if r.get("state") == "APPROVED" and r.get("commit_id") == head_sha:
+        if r.get("state") == "APPROVED" and r.get("commit_id") in ok_shas:
             return True
     return False
 
@@ -330,9 +358,11 @@ def check_review(m, repo, is_mutation, no_gh=False, corroborated=False, dispatch
     if author is None:
         return [f"mutation unit: cannot resolve PR author for {repo}#{number} — cannot exclude the "
                 "author's self-review, fail-closed"]
-    if not review_ok(reviews, head, author):
+    if not review_ok(reviews, head, author) and not (
+            _wtree_bound(m) and review_ok(reviews, (m.get("pr") or {}).get("reviewed_sha"), author)):
         return [f"mutation unit: no INDEPENDENT APPROVED review at head_sha on {repo}#{number} "
-                f"(the PR author's own approval and superseded reviews do not count)"]
+                f"(the PR author's own approval and superseded reviews do not count; a review at "
+                f"reviewed_sha only counts when reviewed_wtree binds its tree to the head's)"]
     return []
 
 

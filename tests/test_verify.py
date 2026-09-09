@@ -183,6 +183,38 @@ class FreshnessCheck(unittest.TestCase):
     def test_fresh_review_passes(self):
         self.assertEqual(verify.check_freshness({"head_sha": "a", "pr": {"reviewed_sha": "a"}}), [])
 
+    def test_wtree_equivalence_relaxes_a_content_identical_head_move(self):
+        # reviewed-sha-freshness.md: a head move whose tree is identical to the reviewed content
+        # does not void the review. Build two commits with the same tree and check.
+        import subprocess, tempfile
+        from pathlib import Path as P
+        with tempfile.TemporaryDirectory() as tmp:
+            env = {"GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t", "GIT_COMMITTER_NAME": "t",
+                   "GIT_COMMITTER_EMAIL": "t@t", "PATH": "/usr/bin:/bin"}
+            def g(*a, cwd=tmp):
+                return subprocess.run(["git", *a], cwd=cwd, env=env, capture_output=True, text=True)
+            g("init", "-q"); P(tmp, "f.txt").write_text("same content")
+            g("add", "."); g("commit", "-qm", "one")
+            old_head = g("rev-parse", "HEAD").stdout.strip()
+            tree = g("rev-parse", "HEAD^{tree}").stdout.strip()
+            g("commit", "--amend", "-qm", "one amended")  # same tree, new SHA
+            new_head = g("rev-parse", "HEAD").stdout.strip()
+            assert old_head != new_head
+            m = {"head_sha": new_head,
+                 "pr": {"reviewed_sha": old_head, "reviewed_wtree": tree}}
+            cwd = __import__("os").getcwd()
+            __import__("os").chdir(tmp)
+            try:
+                self.assertEqual(verify.check_freshness(m), [])
+                # a real content change still voids
+                P(tmp, "f.txt").write_text("different")
+                g("add", "."); g("commit", "-qm", "two")
+                m2 = {"head_sha": g("rev-parse", "HEAD").stdout.strip(),
+                      "pr": {"reviewed_sha": old_head, "reviewed_wtree": tree}}
+                self.assertTrue(any("stale review" in e for e in verify.check_freshness(m2)))
+            finally:
+                __import__("os").chdir(cwd)
+
 
 class ReviewCheck(unittest.TestCase):
     def test_review_ok_pure(self):

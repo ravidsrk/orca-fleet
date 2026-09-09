@@ -1,34 +1,45 @@
 #!/usr/bin/env bash
-# spawn_worker.sh — fail-closed Orca worker dispatch for fleet coordinators. (v2)
+# spawn_worker.sh — fail-closed Orca worker dispatch for fleet coordinators. (v3)
 #
-# v2 contract (Codex review B1/D3 remediation):
+# v3 contract (2026-09-09 runtime modernization, re-witnessed against the INSTALLED Orca):
+#   - the supervised spawn path is `worker-start` (compose: worktree + agent terminal + readiness
+#     + dispatch, one call; on installed Orca the call exits 0 only when the worker is READY).
+#     Refusals are TYPED codes in the error envelope (task_not_startable carries
+#     data.unmetDependencies; nested_worker_depth_exceeded; consumer_fenced) — branch on the code,
+#     never on stderr text.
+#   - PROFILE=ro NEVER takes worker-start: Orca's default agent launch appends the YOLO flag, which
+#     would silently turn a read-only review worker into a permission-bypass one. ro runs the
+#     custom-argv lane with the profile's computed ro command (no CMD_OVERRIDE opt-in — it IS the
+#     profile, not an override).
+#   - WORKER_CMD / legacy CLAUDE_CMD / CODEX_CMD overrides run the custom-argv lane: terminal
+#     create + dispatch --inject (deliberately UNSUPERVISED — no worker-lifecycle row; record the
+#     trade in the ledger per dispatch-lifecycle.md) + the bounded Enter submit loop.
 #   - fail-closed: any failed step exits nonzero with a SPAWN=FAILED diagnostic line on stderr
 #   - respects the task DAG: never forces `ready`; `--mark-ready` is an explicit opt-in and
 #     only applies when every declared dep is already completed
 #   - least-privilege launch profiles: PROFILE=ro|rw|danger; danger requires ORCA_COORD_ALLOW_DANGER=1
 #   - distinct exit codes so coordinators can react:
-#       0  dispatched and heartbeat observed
+#       0  dispatched and ready observed
 #       1  a spawn/dispatch step failed
 #       2  usage or policy refusal (bad args, task not ready, unmet deps, danger without opt-in)
-#       3  dispatched but NO heartbeat after retries — respawn in a FRESH terminal
-#          (re-dispatch to the same handle is a no-op; see runtime/dispatch-lifecycle.md)
-#
-# Still works around: `dispatch --inject` pastes the prompt into a claude worker but does not
-# SUBMIT it (codex auto-submits). Flow: create terminal -> wait tui-idle -> settle -> verify task
-# ready -> dispatch --inject -> Enter -> verify heartbeat, re-Enter up to 3x.
+#       3  (legacy lane only) dispatched but NO heartbeat after retries — READ THE PANE FIRST:
+#          a live TUI is a working worker; respawn beside it only after that check
 #
 # Usage:
 #   SP=<dir> [PROFILE=rw] spawn_worker.sh [--mark-ready] <task_id> <worktree_selector> <title> [agent] [effort]
 #   agent ∈ claude|codex|gemini|grok|droid|opencode|omp|pi (default claude)
-# Prints:  HANDLE=<h> HB=<ts|None>
+# Prints:  HANDLE=<h> READY=<ts|bool> — and on the override lane: HANDLE=<h> HB=<ts|None>
 #
 # Agent × profile coverage (flags are Orca's own autonomous "yolo" args, so workers never block
 # on a prompt; anything else fails closed and needs WORKER_CMD):
-#   claude/codex/gemini → ro + rw + danger
+#   claude/codex/gemini → ro + rw + danger (worker-start appends Orca's flag)
 #   grok                → rw + danger (Orca has no read-only mode for grok)
-#   opencode/droid/omp/pi → WORKER_CMD (Orca strips/omits an autonomous launch flag for these)
+#   droid               → rw + danger (Orca appends `--auto high`); ro → WORKER_CMD
+#   opencode/omp/pi     → WORKER_CMD (Orca strips/omits an autonomous launch flag for these)
 # rw and danger use the SAME non-blocking flag; danger only adds the ALLOW_DANGER gate + the
-# ephemeral-sandbox requirement (sandbox-policy.md).
+# ephemeral-sandbox requirement (sandbox-policy.md). worker-start's `--effort` requires `--model`
+# (a provider model id the fleet does not pin) — the validated `effort` arg applies on the
+# override lane's launch command; the supervised path takes the agent's configured default.
 #
 # NOTE: <worktree_selector> is a RAW orca selector. A worktree id is the composite
 #   `<repoId>::<worktreePath>` from `worktree create --json` — pass `path:/abs/worktree/path`
@@ -43,7 +54,7 @@
 #                             read-only/write semantics become YOUR assertion). Legacy
 #                             CLAUDE_CMD / CODEX_CMD still work for those two. Any override
 #                             requires ORCA_COORD_ALLOW_CMD_OVERRIDE=1 (it bypasses the profile).
-#   SETTLE_SECS / SUBMIT_SECS / HB_POLL_SECS   timing knobs (defaults 20 / 8 / 40)
+#   SETTLE_SECS / SUBMIT_SECS / HB_POLL_SECS   timing knobs (defaults 20 / 8 / 40) — override lane
 set -Eeuo pipefail  # -E: ERR trap fires inside functions (orca_json) too
 
 step=parse-args
@@ -149,9 +160,9 @@ fi
 # Per-agent × profile launch command. Autonomy is the WHOLE POINT: a worker that blocks on a
 # permission prompt kills the run. So the write tiers use each agent's fully-autonomous
 # ("yolo") flag — the exact flag Orca itself appends by DEFAULT (src/shared/tui-agent-
-# permissions.ts YOLO_TUI_AGENT_ARGS; DEFAULT_TUI_AGENT_ARGS === YOLO_TUI_AGENT_ARGS). NOT the
-# sandboxed modes (acceptEdits / workspace-write / auto_edit), which still prompt on shell +
-# network and would block a build worker running tests or `npm install`.
+# permissions.ts YOLO_TUI_AGENT_ARGS / YOLO_TUI_AGENT_ENV; re-witness the map after an Orca
+# upgrade — pin-it). NOT the sandboxed modes (acceptEdits / workspace-write / auto_edit), which
+# still prompt on shell + network and would block a build worker running tests or `npm install`.
 #
 # ro    = read-only, non-blocking (it cannot mutate, so nothing to approve) — for review/audit.
 # rw    = autonomous write, non-blocking — the DEFAULT. Safety is the isolated worktree +
@@ -170,10 +181,11 @@ case "$agent:$PROFILE" in
   gemini:ro)                 cmd_default="gemini --approval-mode plan" ;;
   gemini:rw|gemini:danger)   cmd_default="gemini --yolo" ;;
   grok:rw|grok:danger)       cmd_default="grok --permission-mode bypassPermissions" ;;
+  droid:rw|droid:danger)     cmd_default="droid --auto high" ;;
   # No Orca-verified non-blocking flag → WORKER_CMD required:
-  #   grok:ro (no read-only mode in Orca's map)
+  #   grok:ro, droid:ro (no read-only modes in Orca's map)
   #   opencode:* (Orca STRIPS --dangerously-skip-permissions; opencode autonomy is config-driven)
-  #   droid:*, omp:*, pi:* (not in Orca's autonomous-arg map)
+  #   omp:*, pi:* (not in Orca's autonomous-arg map)
 esac
 
 # Generalized launch override: WORKER_CMD (any agent) or the legacy CLAUDE_CMD/CODEX_CMD.
@@ -261,11 +273,76 @@ case "$status" in
     ;;
 esac
 
-# --- create worker terminal ---------------------------------------------------
-step=create-terminal
-tj="$SP/sw-$safe_title.json"
-orca_json "$tj" terminal create --worktree "$sel" --title "$title" --command "$cmd"
-h=$(python3 - "$tj" <<'PY'
+# --- spawn lanes ---------------------------------------------------------------
+# Lane selection:
+#   override set (WORKER_CMD/legacy)      → custom-argv lane (opt-in checked above)
+#   PROFILE=ro                            → custom-argv lane with the profile's ro command —
+#                                           worker-start appends Orca's YOLO flag by default, which
+#                                           would silently turn a read-only review worker into a
+#                                           permission-bypass one. ro NEVER takes worker-start.
+#   PROFILE=rw|danger, no override        → supervised worker-start lane
+step=spawn
+ws="$SP/ws-$safe_title.json"
+if [ -z "$override" ] && [ "$PROFILE" != "ro" ]; then
+  # The supervised path: one call composes worktree + agent terminal + readiness + dispatch.
+  # On installed Orca the call exits 0 only when the worker is READY. Refusals are typed codes in
+  # the error envelope. Creation flags (--name et al.) are REJECTED for current/existing
+  # worktrees — pass --name only when the selector asks for a new worktree.
+  name_args=()
+  case "$sel" in
+    new-child|new-top-level) name_args=(--name "$safe_title") ;;
+  esac
+  # worker-start gets its own envelope handling: typed policy refusals (task_not_startable with
+  # unmet deps, nested_worker_depth_exceeded, consumer_fenced) are exit 2 (usage/policy), not 1.
+  if ! orca orchestration worker-start --task "$task" --worktree "$sel" ${name_args[@]+"${name_args[@]}"} --agent "$agent" --json > "$ws" 2>&1; then
+    code=$(python3 - "$ws" <<'PY'
+import json, sys
+try:
+    d = json.load(open(sys.argv[1]))
+    print((d.get("error") or {}).get("code") or "")
+except Exception:
+    print("")
+PY
+)
+    case "$code" in
+      task_not_startable|nested_worker_depth_exceeded|consumer_fenced|dispatch_inactive)
+        echo "SPAWN=REFUSED task=${task} worker-start refused: ${code} (policy/usage — see the receipt in $ws)" >&2
+        exit 2 ;;
+      *)
+        echo "SPAWN=FAILED task=${task} step=${step} rc=1 — worker-start failed (receipt in $ws)" >&2
+        exit 1 ;;
+    esac
+  fi
+  step=verify-ready
+  python3 - "$ws" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1]))
+r = d.get("result", d)
+# The receipt is FLAT: taskId, dispatchId, state ("ready"), effects[], residualResources.
+state = r.get("state") or (r.get("worker") or {}).get("state")
+did = r.get("dispatchId") or r.get("dispatch_id") or ""
+h = r.get("agentTerminalHandle") or ""
+if not h:
+    for e in r.get("effects") or []:
+        if e.get("kind") == "terminal" and e.get("role") == "agent":
+            h = e.get("id") or ""
+            break
+if state == "failed" or (state is not None and state != "ready"):
+    print(f"worker-start state={state} — inspect stage/effects before retrying", file=sys.stderr)
+    raise SystemExit(1)
+print(f"HANDLE={h} READY={state or 'exit0'}")
+print(f"DISPATCH={did}")
+PY
+else
+  # --- custom-argv lane (overrides + PROFILE=ro): terminal create + dispatch --inject ----------
+  # Deliberately UNSUPERVISED: no worker-lifecycle row; worker-list accounting will not see this
+  # worker and worker-stop/release never close it — the ledger records the trade
+  # (dispatch-lifecycle.md). The bounded Enter loop below is the submit check for this lane
+  # (older CLIs ack the send without receipts; the loop stays bounded and safe).
+  step=create-terminal
+  tj="$SP/sw-$safe_title.json"
+  orca_json "$tj" terminal create --worktree "$sel" --title "$title" --command "$cmd"
+  h=$(python3 - "$tj" <<'PY'
 import json, sys
 d = json.load(open(sys.argv[1]))
 if d.get("error"):
@@ -280,38 +357,36 @@ print(h)
 PY
 )
 
-step=wait-tui-idle
-orca_json "$SP/tw-$safe_title.json" terminal wait --terminal "$h" --for tui-idle --timeout-ms 90000
-sleep "$SETTLE_SECS"  # let the TUI settle so it can receive the paste
+  step=wait-tui-idle
+  orca_json "$SP/tw-$safe_title.json" terminal wait --terminal "$h" --for tui-idle --timeout-ms 90000
+  sleep "$SETTLE_SECS"  # let the TUI settle so it can receive the paste
 
-# --- dispatch + submit --------------------------------------------------------
-step=dispatch-inject
-dj="$SP/dispatch-$safe_title.json"
-orca_json "$dj" orchestration dispatch --task "$task" --to "$h" --inject
+  step=dispatch-inject
+  dj="$SP/dispatch-$safe_title.json"
+  orca_json "$dj" orchestration dispatch --task "$task" --to "$h" --inject
 
-sleep "$SUBMIT_SECS"
-step=submit-enter
-orca_json "$SP/ts-$safe_title.json" terminal send --terminal "$h" --enter  # SUBMIT the pasted prompt
+  sleep "$SUBMIT_SECS"
+  step=submit-enter
+  orca_json "$SP/ts-$safe_title.json" terminal send --terminal "$h" --enter  # SUBMIT the pasted prompt
 
-# --- verify a heartbeat; re-Enter up to 3x -------------------------------------
-# The bounded re-Enter loop is the documented claude paste-without-submit workaround
-# (runtime/dispatch-lifecycle.md): an extra Enter on an already-submitted claude prompt is an
-# empty submit (no-op), the terminal is fresh with only our injected prompt in it, and
-# the loop is bounded at 3. Retry sends are best-effort nudges — the authoritative
-# verdict is the heartbeat check below (exit 3 on failure), never the send itself.
-step=verify-heartbeat
-hb=None
-for _ in 1 2 3; do
-  sleep "$HB_POLL_SECS"
-  if out=$(orca orchestration dispatch-show --task "$task" --json 2>/dev/null); then
-    hb=$(printf '%s' "$out" | python3 -c 'import sys,json;d=json.load(sys.stdin);r=d.get("result",{});x=r.get("dispatch",r);print(x.get("last_heartbeat_at") or "None")' 2>/dev/null || echo None)
+  # --- verify a heartbeat; re-Enter up to 3x (legacy CLIs without send receipts) --------------
+  # The bounded re-Enter loop is safe: an extra Enter on an already-submitted claude prompt is an
+  # empty submit (no-op), the terminal is fresh with only our injected prompt in it, and the loop
+  # is bounded at 3. The authoritative verdict is the heartbeat check (exit 3 on failure).
+  step=verify-heartbeat
+  hb=None
+  for _ in 1 2 3; do
+    sleep "$HB_POLL_SECS"
+    if out=$(orca orchestration dispatch-show --task "$task" --json 2>/dev/null); then
+      hb=$(printf '%s' "$out" | python3 -c 'import sys,json;d=json.load(sys.stdin);r=d.get("result",{});x=r.get("dispatch",r);print(x.get("last_heartbeat_at") or "None")' 2>/dev/null || echo None)
+    fi
+    if [ "$hb" != "None" ]; then break; fi
+    orca terminal send --terminal "$h" --enter --json > /dev/null 2>&1 || true
+  done
+
+  echo "HANDLE=$h HB=$hb"
+  if [ "$hb" = "None" ]; then
+    echo "SPAWN=NO_HEARTBEAT task=${task} handle=${h} — READ THE PANE FIRST: a live TUI is a working worker; respawn beside it only after that check (dispatch-lifecycle.md)" >&2
+    exit 3
   fi
-  if [ "$hb" != "None" ]; then break; fi
-  orca terminal send --terminal "$h" --enter --json > /dev/null 2>&1 || true
-done
-
-echo "HANDLE=$h HB=$hb"
-if [ "$hb" = "None" ]; then
-  echo "SPAWN=NO_HEARTBEAT task=${task} handle=${h} — respawn in a FRESH terminal; re-dispatch to the same handle is a no-op (see runtime/dispatch-lifecycle.md)" >&2
-  exit 3
 fi

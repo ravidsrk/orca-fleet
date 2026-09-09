@@ -73,7 +73,7 @@ SELF-ORIENT → ENUMERATE (per source) → SKEPTIC-TRIAGE (reproduce-or-refute) 
     produced — any later commit re-runs it) → promotion PR + human gates
 ```
 
-Run the coordinator as a MANUAL loop (`task-create → spawn → dispatch --inject → check --wait`), not
+Run the coordinator as a MANUAL loop (`task-create → spawn (worker-start) → check --wait`), not
 `orchestration run` — you want the file-ledger boolean gate under your control. Dispatch waves
 respect `attention-budget` WIP.
 

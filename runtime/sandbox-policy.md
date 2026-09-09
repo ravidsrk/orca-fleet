@@ -3,7 +3,8 @@
 Autonomy is the point: a worker that blocks on a permission prompt kills the run. So the write
 tiers use each agent's **fully-autonomous flag — the exact flag Orca appends by default**
 (`src/shared/tui-agent-permissions.ts` — in [stablyai/orca](https://github.com/stablyai/orca),
-not this repo; `DEFAULT_TUI_AGENT_ARGS === YOLO_TUI_AGENT_ARGS`). The
+not this repo; the agent → flag map lives there, and its current contents are re-witnessed, not
+remembered: pin-it). The
 sandboxed middle modes (claude `acceptEdits`, codex `--sandbox workspace-write`, gemini
 `auto_edit`) are deliberately NOT used: they still prompt on shell and network, so a build worker
 running tests or `npm install` would block. `spawn_worker.sh` maps each PROFILE per agent:
@@ -14,7 +15,8 @@ running tests or `npm install` would block. `spawn_worker.sh` maps each PROFILE 
 | codex  | `--sandbox read-only`    | `--dangerously-bypass-approvals-and-sandbox`    |
 | gemini | `--approval-mode plan`   | `--yolo`                                        |
 | grok   | — (no RO in Orca) → WORKER_CMD | `--permission-mode bypassPermissions`      |
-| opencode / droid / omp / pi | WORKER_CMD | WORKER_CMD (Orca strips/omits their auto flag) |
+| droid  | WORKER_CMD               | `--auto high`                                   |
+| opencode / omp / pi | WORKER_CMD | WORKER_CMD (Orca strips/omits their auto flag) |
 
 - **`ro`** is non-blocking because it cannot mutate — nothing to approve. It is the permission
   boundary for report-only missions (review-it).

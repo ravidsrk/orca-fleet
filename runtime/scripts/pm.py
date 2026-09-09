@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # pm.py — tolerant parser for `orca orchestration inbox/check` JSON output. (v2)
-# The stream interleaves `_heartbeat` objects with real message batches, which breaks naive json.load.
+# Keepalives ({"_keepalive":true,...}) arrive on STDERR on current CLIs — never on stdout; a capture
+# that merged 2>&1 breaks naive json.load. Pipe stdout only, or filter keepalives before parsing.
 # This decodes successive JSON objects, skips heartbeat-only envelopes STRUCTURALLY (not by line
 # filtering, which could drop a mixed heartbeat+messages object), and prints each message.
 #
