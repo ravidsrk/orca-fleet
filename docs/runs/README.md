@@ -14,7 +14,7 @@ deviations that happened — recorded, not hidden.
 | 2026-07-16 | [oss-contribute](2026-07-16-oss-contribute-external-run.md) | dodopayments/chimely (tracker) | external-run | CONTRIBUTED-WITH-PARKED (5 PRs, 4 assists) |
 | 2026-07-17 | [clean-sweep](2026-07-17-clean-sweep-tracker-self-run.md) | this repo (tracker, 26 issues) | self-run | DRY-WITH-PARKED (22 closed, 4 parked) |
 | 2026-08-28 | [ship-it](2026-08-28-ship-it-self-run.md) | this repo (proof-status slice) | self-run | PROMOTION_READY (BUILT + promotion PR open) |
-| 2026-09-09 | [clean-sweep](2026-09-09-clean-sweep-tracker.md) | this repo (tracker, 6 issues) | self-run | in progress |
+| 2026-09-09 | [clean-sweep](2026-09-09-clean-sweep-tracker.md) | this repo (tracker, 6 issues) | self-run | DRY-WITH-PARKED (5 closed, 1 needs-human) |
 
 Proof status across the catalog is validator-enforced: a mission cannot claim a tier
 above `doctrine-only` without a `proof_evidence:` path that resolves to a report here —
