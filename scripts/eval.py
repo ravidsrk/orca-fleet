@@ -85,6 +85,11 @@ MISSION_TRIGGERS = {
         "accessibility", "a11y", "wcag", "screen reader", "keyboard navigation",
         "keyboard-only", "axe-core", "section 508", "color contrast", "assistive",
     ],
+    "pin-it": [
+        "re-pin", "pin the runtime", "runtime contract", "doctrine drift",
+        "policy lags", "orca updated", "orca upgrade", "dispatch docs are stale",
+        "receipt shape", "re-witness",
+    ],
 }
 
 # Word triggers. Plain triggers are deliberately prefix-tolerant substrings ("harden" covers

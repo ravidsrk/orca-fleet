@@ -6,6 +6,13 @@ truth is `.claude-plugin/plugin.json`.
 
 ## [Unreleased]
 
+### Added
+
+- `pin-it` mission: re-witness and re-pin runtime-mechanics doctrine against the installed Orca
+  binary — per-claim receipts, archived refutations for removed claims, substrate-block
+  classification; terminals `PINNED` / `PINNED-WITH-PARKED` (from the 2026-09-09 upstream
+  adoption audit).
+
 ## [0.6.1] - 2026-09-09
 
 plugin.json, marketplace.json, and this heading now agree on 0.6.1 (issue #237).

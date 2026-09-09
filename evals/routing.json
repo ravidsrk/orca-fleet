@@ -260,6 +260,13 @@
       "expected_mission": "access-it",
       "type": "positive",
       "reason": "Sentence-initial title case is conventional and carries no proper-noun signal: a prompt opening with Aria must still route to access-it."
+    },
+    {
+      "id": 38,
+      "prompt": "Orca updated overnight — re-pin our dispatch doctrine against the installed binary.",
+      "expected_mission": "pin-it",
+      "type": "positive",
+      "reason": "Runtime-doctrine re-pin after a control-plane upgrade maps to pin-it."
     }
   ]
 }

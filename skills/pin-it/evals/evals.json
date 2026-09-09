@@ -1,0 +1,41 @@
+{
+  "skill_name": "pin-it",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Orca updated overnight and our dispatch docs feel off — re-pin the runtime contract against the installed binary.",
+      "expected_output": "Should route to pin-it. Should freeze a claim inventory from runtime policies/scripts/mission preambles, load version-matched guides via orca skills get, re-witness each claim against the live runtime with receipts, patch stale claims citing receipts, and terminate PINNED or PINNED-WITH-PARKED.",
+      "assertions": [
+        "Routes to pin-it",
+        "Freezes a per-claim inventory as the denominator",
+        "Loads version-matched guides from the installed binary (orca skills get)",
+        "Classifies claims only from live receipts, never from reading docs",
+        "Removed claims carry an archived refutation receipt",
+        "Terminal is PINNED or PINNED-WITH-PARKED"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Upgrade the repo from React 18 to React 19 and fix the breakages.",
+      "expected_output": "Should NOT route to pin-it. A dependency/framework upgrade with the repo's own build+test suite as oracle is modernize-it. pin-it's unit is a runtime-mechanics claim and its oracle is receipts from the live control-plane binary.",
+      "assertions": [
+        "Does not route to pin-it",
+        "Routes to modernize-it",
+        "Distinguishes a doctrine claim about runtime mechanics from a dependency upgrade"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "The README claims a command that no longer exists — sweep all the stale doc claims.",
+      "expected_output": "Should NOT route to pin-it. A falsifiable prose-claims backlog against repo state is clean-sweep source=doc-claims. pin-it re-witnesses runtime-mechanics claims against the live Orca binary.",
+      "assertions": [
+        "Does not route to pin-it",
+        "Routes to clean-sweep",
+        "Distinguishes prose doc-claims about the repo from mechanics claims about the runtime binary"
+      ],
+      "files": []
+    }
+  ]
+}
