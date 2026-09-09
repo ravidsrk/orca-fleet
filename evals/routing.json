@@ -274,6 +274,20 @@
       "expected_mission": "floor-it",
       "type": "positive",
       "reason": "Installing an enforced, written quality bar maps to floor-it; floor-it is in SPECIALIST_MISSIONS so dimension vocabulary no longer steals the route."
+    },
+    {
+      "id": 40,
+      "prompt": "The checkout module is a god file — everything imports it. Deepen the hot modules without changing behaviour.",
+      "expected_mission": "reshape-it",
+      "type": "positive",
+      "reason": "Behaviour-preserving interface deepening of churn-hot modules maps to reshape-it."
+    },
+    {
+      "id": 41,
+      "prompt": "Pin a characterization net over the billing god file, then deepen its interface without changing behaviour.",
+      "expected_mission": "reshape-it",
+      "type": "positive",
+      "reason": "Seam lock: characterization-net + god-file vocabulary belongs to reshape-it when the goal is interface deepening; prove-it owns the net when the goal is test debt."
     }
   ]
 }

@@ -39,7 +39,8 @@ remediation loop takes over: the buggy behavior is never asserted as correct.
 ## When to reach for it
 
 - "Close the test gap." / "Cover the critical paths."
-- Test debt on code you are about to refactor — characterize first, then change safely.
+- Test debt on code you are about to refactor — characterize first with prove-it's net, then
+  restructure with [`reshape-it`](reshape-it.md) (its DEEPEN units require that net to exist).
 - The suite is green but you have no idea whether it would catch a real regression.
 - An audit demands proof the money/auth/data paths are tested, not a coverage number.
 
@@ -49,6 +50,8 @@ remediation loop takes over: the buggy behavior is never asserted as correct.
   [`deflake-it`](deflake-it.md) first.
 - You already have a pile of known bugs to close — that is [`clean-sweep`](clean-sweep.md).
 - The tests are for new work — [`ship-it`](ship-it.md) builds them in, failing test first.
+- The net exists and the goal is restructuring the module it covers — [`reshape-it`](reshape-it.md)
+  (its DEEPEN units consume this mission's characterization net).
 
 ## The pipeline
 

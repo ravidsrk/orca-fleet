@@ -30,7 +30,7 @@ _spec.loader.exec_module(eval_mod)
 EXPECTED_MISSIONS = {
     "ship-it", "clean-sweep", "oss-contribute", "harden-it", "speed-it", "modernize-it",
     "prove-it", "deflake-it", "review-it", "map-it", "root-cause", "attest-it", "access-it",
-    "pin-it", "floor-it",
+    "pin-it", "floor-it", "reshape-it",
 }
 
 # Issue #181: the floor must track the live routing score, not rubber-stamp it —
@@ -117,6 +117,19 @@ class TestEvalInfrastructure(unittest.TestCase):
              "clean-sweep"),
             ("The refund path has no tests — close the coverage gap.", "prove-it"),
             ("This test fails intermittently — it passes on retry.", "deflake-it"),
+        ]
+        for prompt, expected in seam:
+            with self.subTest(prompt=prompt):
+                self.assertEqual(eval_mod.classify_prompt(prompt), expected)
+
+    def test_routing_seam_characterize_net_vs_deepen_module(self):
+        # reshape-it review (2026-09-09): "characterization net" is prove-it's vocabulary,
+        # but paired with a deepening goal it belongs to reshape-it.
+        seam = [
+            ("The billing module's payment path has no tests — pin a characterization net before anyone touches it.",
+             "prove-it"),
+            ("Pin a characterization net over the billing god file, then deepen its interface without changing behaviour.",
+             "reshape-it"),
         ]
         for prompt, expected in seam:
             with self.subTest(prompt=prompt):

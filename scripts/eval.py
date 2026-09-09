@@ -95,6 +95,11 @@ MISSION_TRIGGERS = {
         "quality gates", "enforce the budget", "constraint-driven",
         "bar keeps slipping", "constraints.md", "stop shipping junk",
     ],
+    "reshape-it": [
+        "god file", "god object", "architecture erosion", "shallow module",
+        "deep modules", "refactor the hot path", "interface is wider",
+        "everything imports", "reshape", "deepen the module",
+    ],
 }
 
 # Word triggers. Plain triggers are deliberately prefix-tolerant substrings ("harden" covers
@@ -261,6 +266,7 @@ def validate_all() -> list[str]:
 SPECIALIST_MISSIONS = {
     "harden-it", "speed-it", "modernize-it", "prove-it", "deflake-it",
     "floor-it",
+    "reshape-it",
 }
 
 

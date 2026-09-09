@@ -15,6 +15,9 @@ truth is `.claude-plugin/plugin.json`.
 - `floor-it` mission: install a written, numbered, tool-enforced quality bar — frozen
   CONSTRAINTS table, one tool per dimension, prove-fires negative control per gate, GUARD
   diff-watch against bar-lowering; terminals `FLOORED` / `FLOORED-WITH-PARKED`.
+- `reshape-it` mission: churn-weighted shallowness inventory → human-confirmed surface →
+  mutation-audited characterization net pinned BEFORE any restructure → one module-deepening
+  per unit with build-blind review; terminals `RESHAPED` / `RESHAPED-WITH-PARKED`.
 
 ## [0.6.1] - 2026-09-09
 
