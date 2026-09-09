@@ -3,83 +3,90 @@
 The mechanics of turning a task into a worker, and the hard-won specifics that made clean-sweep /
 spec-to-ship reliable. These are not incidental; they are the value.
 
+**Anti-drift rule:** this file describes the CLI the installed binary actually ships. After any Orca
+upgrade, the mechanics sections are re-witnessed against `orca skills get orchestration` /
+`orca skills get orca-cli` (the version-matched guides the binary serves) — pin-it owns that loop;
+hand-editing from memory is how it went stale twice.
+
 ## Worker unit = worktree + agent + fresh terminal (PR-per-unit)
 
-When BASE is CREATED, record its fork-point SHA (`git rev-parse <default>`) in the ledger header;
-every subsequent preflight passes `--fork-point <that sha>` so a stale BASE from an earlier run is
-rejected rather than silently reused.
+When BASE is CREATED, record its fork-point SHA (`git rev-parse <default>`) in the ledger header; every
+subsequent preflight passes `--fork-point <that sha>` — a stale BASE is rejected, never silently reused.
 
-`orca worktree create --name <unit-slug> --parent-worktree active --base-branch <BASE> --setup run
---agent <id> --prompt "<TASK>"` — one unit (`--name` is required by the CLI), off the integration
-BASE (NOT off a feature branch; `--base-branch` is the git base, an axis independent of Orca
-lineage). `--setup run` runs the repo's setup hooks so a build worktree that needs `npm install`-
-style bootstrapping gets it. Read the handle from `startupTerminal.handle`. Then verify readiness
-before injecting (`terminal wait --for tui-idle`), because injecting into a booting TUI loses the
-prompt. `scripts/spawn_worker.sh` bakes the fail-closed sequence: create → wait → verify task ready
-(never force `ready` — the DAG stays authoritative) → dispatch --inject → Enter (claude pastes but
-does not submit; codex auto-submits) → verify heartbeat, respawn-signal exit 3 on none.
+The normal supervised spawn is **`worker-start`**: `orca orchestration worker-start --task <id>
+--worktree new-child --name <unit-slug> --agent <id> --setup run --json` (compose: worktree create
+→ agent terminal → readiness → dispatch). It returns the created/reused effects plus the dispatch
+receipt; readiness settles on an observed `turn_started`, not on write acceptance. Use
+`--worktree current` or an exact existing worktree id for a fresh agent terminal without rerunning
+setup, and `--terminal <handle>` only to reuse an exact idle agent (it transfers cleanup ownership
+to the new dispatch). Refusals come back as typed codes (`task_not_startable` with
+`data.unmetDependencies`, `nested_worker_depth_exceeded`, …) — branch on the code, never on
+scraped exit status or stderr text.
+
+`terminal create` + `dispatch --inject` remains the **low-level, deliberately unsupervised** lane:
+it creates no worker-lifecycle row, so `worker-stop`/`worker-release` never touch that process and
+`worker-list` completion accounting does not see it. Use it only for custom argv/topology that
+`worker-start` cannot express, and record the trade in the ledger. A bare shell target gets no
+`--inject` (the coordinator sends the prompt manually with `terminal send`); on current CLIs
+`terminal send` returns `input_accepted` / `turn_started` receipts (`--wait-submit` blocks for
+them) — the re-Enter folklore is dead, do not resend on silence.
 
 ## Worktree lineage: a subtree per unit
 
-A supervised worker's worktree is a CHILD of the coordinator, not a top-level tree — so pass
-**`--parent-worktree active`** on the unit's first (builder) worktree. Merely omitting `--no-parent`
-relies on Orca inferring the parent from the cwd, which only works "when it can"; naming the parent
-explicitly is the reliable form. `--no-parent` is the OPPOSITE — a top-level full handoff where
-nobody supervises — and orphans a coordinated unit's lineage from the run.
+A supervised worker's worktree is a CHILD of the coordinator, not a top-level tree — pass
+**`--parent-worktree active`** on the unit's first (builder) worktree (with `worker-start`, that is
+`--worktree new-child`). Omitting `--no-parent` relies on Orca inferring the parent from the cwd,
+which only works "when it can"; `--no-parent` is the OPPOSITE — a top-level full handoff nobody
+supervises — and orphans a coordinated unit's lineage from the run.
 
 Each unit's DEPENDENT workers — its build-blind reviewer, every fix round, the integrator, the
-review-bot reconcile — are FRESH TERMINALS created INSIDE that unit's own worktree (target it by
-the full WT id recorded at creation: `terminal create --worktree id:<repoId>::<worktreePath>`),
-never a new worktree and never `--worktree active` (which can resolve to the coordinator root). A
-fresh terminal is a fresh build-blind session that shares the unit's branch, so parenting to the
-worktree keeps lineage correct WITHOUT leaking the builder's conversation. The result is a clean
-subtree: coordinator → unit-A worktree → {unit-A review, fix rounds, integrator}. One `WT_CLEAN` on
-the unit's worktree then tears the whole subtree down at merge. Keep chains ≤3–4 deep.
+review-bot reconcile — are FRESH agent terminals created INSIDE that unit's own worktree
+(`worker-start --worktree <exact id>`), never a new worktree and never `--worktree active` (which
+can resolve to the coordinator root). A fresh terminal is a fresh build-blind session that shares
+the unit's branch, so parenting to the worktree keeps lineage correct WITHOUT leaking the builder's
+conversation. The result: coordinator → unit-A worktree → {unit-A review, fix rounds, integrator}.
+Keep chains ≤3–4 deep.
 
-Operational specifics the script relies on: a worktree id is the composite `<repoId>::<worktreePath>`
-returned by `worktree create --json` — pass `path:/abs/worktree/path` (unambiguous) or that full
-id, never the bare repo id (it targets only the repo, not the checkout). On Linux, a bare `orca`
-run OUTSIDE an Orca-managed terminal is usually the GNOME screen reader — use `orca-ide` there.
-Re-dispatch to an already-used terminal handle is a NO-OP — a dead or silent worker gets a FRESH
-terminal, never a re-inject. The bounded re-Enter loop in the submit step is safe because an extra
-Enter on an already-submitted claude prompt is an empty submit; the heartbeat check, not the send,
-is the authoritative verdict — with one caveat: heartbeats are agent-dependent. codex workers often
-emit none (and slow claude boots exceed short poll windows), so a spawn-time exit 3 is a POSSIBLE
-false negative — READ THE PANE before respawning. A live TUI is a working worker; respawning beside
-it creates a dual-writer in the unit worktree. Two field runs hit exactly this.
-A pane can also OUTLIVE its accepted `worker_done` under a new handle and keep working — close the
-unit's builder pane when its `worker_done` is accepted, or an out-of-band push voids review
-freshness mid-cycle (reviewed-sha-freshness.md; observed in the field).
+**Nested depth:** workers do not dispatch sub-workers — `nested_worker_depth_exceeded` fires at
+depth 1 by default, counted from the issuing terminal. Acceptance-review's axes are dispatched by
+the COORDINATOR, one worker per axis — never by a reviewer worker fanning out its own.
+
+Operational specifics: a worktree id is the composite `<repoId>::<worktreePath>` returned by
+`worktree create --json` — pass `path:/abs/worktree/path` (unambiguous) or that full id, never the
+bare repo id. On Linux, a bare `orca` outside an Orca-managed terminal is usually the GNOME screen
+reader — use `orca-ide` there. After an accepted `worker_done`, run **`worker-release --dispatch
+<id>`** (Orca preserves inspectable output, then closes only the exact agent terminal that dispatch
+owned) — or `worker-retain` at the user's explicit request. The pane that outlived its
+`worker_done` under a new handle (the old dual-writer class) is now fenced by the runtime at
+settlement; release is still the fleet's hygiene step — never on a timeout, TUI-idle, or a
+heartbeat gap (those are liveness questions, liveness-resume.md, not completion).
 
 ## Wrong-base detection (M-5 guardrail)
 
 `preflight.py --base <BASE>` before the first PR: BASE must NOT equal the default branch (compared
-on CANONICAL refs so `origin/main` can't alias past it), must be a real branch (not a tag/SHA), must
-fork from the default's history. Every per-unit PR merges into BASE; if BASE is the default, fixes
-land straight on production and bypass the human promotion review. Report-only fleets use
-`preflight.py --mode readonly`.
+on CANONICAL refs so `origin/main` can't alias past it), must be a real branch, must fork from the
+default's history. Every per-unit PR merges into BASE; if BASE is the default, fixes land straight
+on production and bypass the human promotion review. Report-only fleets use `--mode readonly`.
 
 ## Third-party review bots — wait → ingest → reconcile
 
 Applies to ANY PR review bot on the repo (Greptile, CodeRabbit, Cursor BugBot, …) — detect the
 bot's login dynamically from the repo's app install or prior PRs; never hardcode one. The
-integrator (not the coordinator) runs this inside its dispatched task after opening the PR, and
-again after every re-push (a new commit re-triggers the bot). It is just another dispatch →
-`worker_done` from the coordinator's seat.
+integrator (not the coordinator) runs this after opening the PR and after every re-push (a new
+commit re-triggers the bot). It is just another dispatch → `worker_done` from the coordinator's
+seat.
 
-1. **Wait, bounded:** poll every ~30s, floor ~2–3 min (the bot needs time to run), cap ~10 min. If
-   the cap elapses with no bot activity, log a "did-not-run" checkpoint and proceed — never block
-   the loop forever on an external bot.
+1. **Wait, bounded:** poll every ~30s, floor ~2–3 min, cap ~10 min. If the cap elapses with no bot
+   activity, log a "did-not-run" checkpoint and proceed — never block the loop on an external bot.
 2. **Ingest comments:** each is tagged VALID or FALSE-POSITIVE (dismissed with a recorded reason).
    HOLD the VALID set — it is not turned into a change request yet (that happens after the internal
    review, so both finding sets go to the builder as one batch).
 3. **Reconcile pushed commits:** a bot with autofix ON pushes commits AFTER the reviewer's PASS and
    keeps pushing in response to your normalization — non-convergent. Prefer asking the user to set
-   it to comment-only for the run (the branch stays stable; comments are just as useful). If it
-   must push: normalize its commits (author→maintainer, strip trailers, NEVER squash), re-verify
-   green, re-run gitleaks; a rider that lands between force-push and merge is handled by
-   force-push-then-immediately-merge (merging deletes the branch, ending the loop), retry ≤3×, then
-   confirm the merge commit's second parent has the reviewed tree.
+   it to comment-only for the run. If it must push: normalize its commits (author→maintainer, strip
+   trailers, NEVER squash), re-verify green, re-run gitleaks; a rider that lands between force-push
+   and merge is handled by force-push-then-immediately-merge (merging deletes the branch, ending
+   the loop), retry ≤3×, then confirm the merge commit's second parent has the reviewed tree.
 
 Order is strict: reconcile FIRST (steps 1–3, integrator), THEN the internal fresh build-blind
 reviewer reviews the RECONCILED branch — it is the final gate and never runs before the bot is
@@ -95,44 +102,42 @@ branch. The build-blind integrator opens the PR against BASE and asserts `baseRe
 before merging.
 
 ## Commit hygiene
-
 Author = the maintainer, no Co-authored-by / agent trailers, small logical commits, gitleaks before
 every push, no NUL-byte/binary source files. Commits are bisectable and dependency-ordered
-(infra→models→controllers→version/changelog last), each building alone — NOT a blanket "one commit
+(infra→models→controllers→version/changelog last), each building alone — not a blanket "one commit
 per task" (a migration is a deliberate multi-commit expand/migrate/contract sequence).
 
-## Base-drift skip
+## Run scope: a real Run, not a filtered dump
 
-`orchestration run` silently skips dispatch (leaves the task ready, no failure) when its worktree is
->20 commits behind base and the spec lacks `allow-stale-base: true`. Sync the coordinator's local
-base before each wave; a stale base makes workers build on outdated code and stack shims.
+Create or bind the run's namespace once: `orca orchestration run-create --objective "<text>" --json`
+— the returned run id IS the fleet's scope: `task-list --run`, `worker-list --run`, and the
+coordinator `check` all honor it. `orchestration run` / `coordinator-start` are retired scheduler
+aliases (no effects; they return the recovery action); the loop is the manual coordinator loop
+(task-create → worker-start → `check --wait`) under a Run. Record the run id in the ledger header
+(liveness-resume.md).
 
-Prefer the **manual** coordinator loop over `orchestration run` for fleets: the built-in loop is
-**unscoped** (iterates every task in the machine-global DB and adopts leftovers). Note:
-`orchestration run` *does* write a `coordinator_runs` row; the **manual** loop leaves that table
-empty. Empty `coordinator_runs` is not a bug and is not a reason to prefer either path — prefer
-manual for scope control. Run identity is still the ledger's coordinator handle + task ids
-(orca-dag-semantics.md).
+## Coordinator inbox mechanics
 
-## Coordinator inbox mechanics (learned on real runs)
-
-- `check --wait` returns **ONE message per call**. Three workers finishing means three calls —
-  loop until the expected count arrives; a coordinator that assumes a batch silently misses
-  finishers.
+- A consuming `check` returns the bound Run's oldest FIFO **Delivery — up to 50 messages in one
+  batch** — and replays that exact batch until you `--ack <delivery_id>`. Process EVERY message in
+  the batch (reply to `question`s, settle `worker_done`s, release or reuse those workers) and only
+  then `check --ack <id> --wait` for the next window.
 - Read-marking: `task-list`, `inbox`, and `dispatch-show` do NOT mark messages read; `check`
-  (default and `--unread`) CONSUMES the matches it returns. To INSPECT unread without consuming,
-  use `check --peek`; for full read+unread history without consuming, `check --all` (older CLIs
-  may reject `--peek` — fall back to `--all` and filter unread rows yourself). Reach for `--peek`
-  whenever an off-type message (a heartbeat) may be sitting unread that a typed `check --wait`
-  would otherwise leave buried.
-- `task-list --brief` collapses whitespace and caps each echoed spec at 160 chars
-  (`spec_truncated` marks shortened rows) — use it for coordinator DAG sweeps; omit `--brief`
-  when the full spec is needed.
-- Group addresses (`@all`, `@idle`, `@claude`, `@codex`, `@grok`, `@cursor`, `@worktree:<id>`, …)
-  are broadcast-only. EVERY lifecycle message — `worker_done`, `merge_ready`, `escalation`,
-  `decision_gate` replies — goes to a concrete terminal handle, never a group. A `worker_done`
-  for the active `taskId`+`dispatchId` auto-completes the task; do NOT follow it with a manual
-  `task-update --status completed` (reserve manual status writes for recovery/override).
+  (default and `--unread`) CONSUMES the matches it returns — to INSPECT without consuming:
+  `check --peek` (unread) or `check --all` (full history). `task-list --brief` collapses
+  whitespace and caps each echoed spec at 160 chars (`spec_truncated` marks shortened rows) for
+  coordinator DAG sweeps; omit `--brief` when the full spec is needed.
+- `check --wait` on current CLIs interleaves `_keepalive` heartbeat objects into the `--json`
+  stream — parse saved streams with `runtime/scripts/pm.py <file>`, never naive `json.load`.
+- Mutations accept `--retry-request <id>`: a lost response never risks a duplicate dispatch —
+  re-issue with the same request id and the runtime dedupes (`request-show` to inspect). Use it on
+  every non-idempotent orchestration call.
+- Group addresses (`@all`, `@idle`, `@claude`, `@codex`, `@grok`, `@cursor`, `@opencode`,
+  `@gemini`, `@droid`, `@worktree:<id>`, …) are broadcast-only; EVERY lifecycle message
+  (`worker_done`, `merge_ready`, `escalation`, `decision_gate` replies) goes to a concrete terminal
+  or `dispatch:<id>` address, never a group. A `worker_done` for the active `taskId`+`dispatchId`
+  auto-completes the task; do NOT follow it with `task-update --status completed` (reserve manual
+  status writes for recovery/override).
 - Do not expect `type=dispatch` or `type=handoff` rows from the runtime (prompt inject is PTY-only).
   `merge_ready` is fleet-written only (merge-serialization.md). Put `reportPath` on `worker_done`
   so the retained DB points at the evidence manifest (orca-dag-semantics.md).
@@ -140,18 +145,16 @@ manual for scope control. Run identity is still the ledger's coordinator handle 
 ## Progress surface (Orca-native, complements the ledger)
 
 The file ledger is the coordinator's durable brain; the Orca **worktree comment** is the live,
-human-glanceable status on the workspace card. Workers update it at meaningful checkpoints —
+human-glanceable status on the workspace card. Workers update it at checkpoints —
 `orca worktree set --worktree active --comment "fix implemented; running integration tests"` — and
 set the card lane with `--workspace-status <todo|in-progress|in-review|completed>`. It never
-replaces the ledger (comments are best-effort and lossy); it makes an in-flight run readable at a
-glance without opening the ledger file.
+replaces the ledger (comments are best-effort and lossy).
 
 ## Worktree retirement (end-of-unit and end-of-run)
 
-Retire each unit's worktree when its unit MERGES, not at run end — which tears down the whole
-subtree (its child review / fix / integrator terminals) in one `WT_CLEAN`. Verify before removing:
-the PR is `state=MERGED`, the branch is deleted, and `git status` in the worktree is clean.
-NEVER remove the coordinator's own worktree, a dirty worktree, or one whose branch is unmerged —
-that destroys work the ledger still counts on. If removal is refused, archive instead of forcing.
-A run that skips retirement leaks a worktree per unit; a run that force-cleans destroys unmerged
-evidence. Both are ledgered: `unit · worktree · retired ts`.
+Retire each unit's worktree when its unit MERGES, not at run end — tearing down the whole subtree
+(its child review / fix / integrator terminals) in one `WT_CLEAN`. Verify first: the PR is
+`state=MERGED`, the branch is deleted, and `git status` in the worktree is clean. NEVER remove the
+coordinator's own worktree, a dirty worktree, or one whose branch is unmerged; if removal is
+refused, archive instead of forcing. Both leak and force-clean classes are ledgered:
+`unit · worktree · retired ts`.

@@ -219,11 +219,22 @@ def check_real_commits(m, is_mutation=False):
 
 
 def check_freshness(m):
-    """A reviewed_sha, if claimed, must equal head_sha (a rebase/bot-push after review voids it).
-    Independent proof that the review HAPPENED is check_review (mutation units)."""
+    """A reviewed_sha, if claimed, must equal head_sha (a rebase/bot-push after review voids it) —
+    UNLESS the manifest carries `pr.reviewed_wtree` (the tree SHA of the reviewed content) and it
+    equals the head commit's tree: a content-identical rebase/amend does NOT void the review, while
+    any content change does (reviewed-sha-freshness.md). The SHA check remains the GitHub-lookup
+    key; the tree check is only a freshness relaxation. Independent proof that the review HAPPENED
+    is check_review (mutation units)."""
     reviewed = (m.get("pr") or {}).get("reviewed_sha")
     head = m.get("head_sha")
     if reviewed and reviewed != head:
+        wtree = (m.get("pr") or {}).get("reviewed_wtree")
+        if wtree and HEX40_RE.match(str(wtree)) and head and HEX40_RE.match(head):
+            if _git(["rev-parse", "--is-inside-work-tree"])[0] == 0:
+                code, head_tree = _git(["rev-parse", f"{head}^{{tree}}"])
+                if code == 0 and head_tree == wtree:
+                    return []
+            return [f"stale review: reviewed_sha '{reviewed}' != head_sha '{head}'"]
         return [f"stale review: reviewed_sha '{reviewed}' != head_sha '{head}'"]
     return []
 
