@@ -4,18 +4,20 @@
 audits (one per source), every claim anchored to `file:line` on both sides; adoption points in
 orca-fleet traced from README:469-471, playbooks, runtime policies, and mission frontmatter.
 
-**Sources audited (HEAD at audit):**
+**Sources audited (commit-pinned; local clone paths are for this machine only — follow the links):**
 
-| Source | Repo | HEAD | Upstream movement since orca-fleet started (2026-07-13) |
-|---|---|---|---|
-| mattpocock/skills | `~/projects/skills` | current (169 commits) | grilling rewrite, redaction, planning-stack rename, new in-progress skills |
-| garrytan/gstack | `~/projects/gstack` | v1.60.1 → **v1.84** (65 commits) | content-bound evidence ledger, dispatch-recovery machinery, doc-sync step, 2 new lenses |
-| addyosmani/agent-skills | `~/projects/addyosmani-agent-skills` | `6ca0cd7` (plugin v0.6.9) | destructive-path validation, perf keep-or-revert, constraint-driven-development, privacy rules |
-| stablyai/orca (runtime) | `~/projects/orca` | `65631e4` (~4,850 commits) | **two rebuilds of the orchestration model**: #9925 Runs+worker-start+Delivery (07-27) · #16904 durable control plane (09-06→09-09) |
+| Source | Pinned revision | Upstream movement since orca-fleet started (2026-07-13) |
+|---|---|---|
+| mattpocock/skills | [`3cca18b`](https://github.com/mattpocock/skills/tree/3cca18b368ae95cdbdebbff572ccafa662551015) | grilling rewrite, redaction, planning-stack rename, new in-progress skills (169 commits) |
+| garrytan/gstack | [`c8f0c4e`](https://github.com/garrytan/gstack/tree/c8f0c4e368fd59ec316c0eb0d1f4ebfa896c2d16) (v1.84) | content-bound evidence ledger, dispatch-recovery machinery, doc-sync step, 2 new lenses (65 commits, v1.60.1 → v1.84) |
+| addyosmani/agent-skills | [`6ca0cd7`](https://github.com/addyosmani/agent-skills/tree/6ca0cd7db39b41b1c37e26d335c507ee92382c6d) (plugin v0.6.9) | destructive-path validation, perf keep-or-revert, constraint-driven-development, privacy rules |
+| stablyai/orca (runtime) | [`65631e4`](https://github.com/stablyai/orca/tree/65631e449af36bba24b6a2d6c331a3c184e7a3e2) | **two rebuilds of the orchestration model**: #9925 Runs+worker-start+Delivery (07-27) · #16904 durable control plane (09-06→09-09) (~4,850 commits) |
 
-> Note: `~/projects/agent-skills` is **ravidsrk/agent-skills** (our own capability-skills repo —
-> cloudflare-dns, deep-research, terminal-poster…), not addyosmani's pack. The clone collided on
-> the directory name; addyosmani's lives at `~/projects/addyosmani-agent-skills`.
+> Note: `~/projects/agent-skills` on this machine is **ravidsrk/agent-skills** (our own
+> capability-skills repo — cloudflare-dns, deep-research, terminal-poster…), not addyosmani's
+> pack. The clone collided on the directory name; addyosmani's was cloned to
+> `~/projects/addyosmani-agent-skills`. All upstream `file:line` anchors below resolve at the
+> pinned revisions above.
 
 ---
 
@@ -27,9 +29,12 @@ orca-fleet traced from README:469-471, playbooks, runtime policies, and mission 
    folklore, one-message-per-`check`, machine-global scoping. Upstream replaced all of it
    (`worker-start` supervised path with typed refusals, 50-message Delivery batches replayed until
    `--ack`, Runs as the durable scope primitive, `worker-list` liveness projection, idempotent
-   `--retry-request`, schema v40). **Today's own field run (clean-sweep + CF-05 re-witness) already
-   drove the new API** — `run-create`, `worker-start`, `--retry-of`, bare-shell tracked dispatch
-   (`docs/completion/evidence/CF-05-r3-dispatch-record.txt`). Practice is current; policy lags.
+   `--retry-request`, schema v40). **Today's own field run proves the drift, not the adoption** —
+   it created a Run and *attempted* `worker-start`/`--retry-of`, but every `worker-start` failed on
+   local substrate (claude trust dialog, expired OAuth, codex usage limit) and the completing
+   workers ran as bare-shell tracked dispatches with manual prompt sends
+   (`docs/completion/evidence/CF-05-r3-dispatch-record.txt`). The runtime accepted both generations
+   of calls; our policy docs describe neither accurately.
 2. **gstack moved onto our evidence-discipline turf — and in one place is now *more* precise than
    us.** Its `gstack-wtree` working-tree content fingerprint keeps a review CURRENT across a
    content-identical rebase where our `runtime/reviewed-sha-freshness.md:13-15` voids it (every
@@ -131,8 +136,10 @@ Four candidates emerged from the audits; two more were proposed and rejected dur
 
 ### 4.1 `pin-it` — *the fleet's runtime contract matches the Orca binary it runs on* (RECOMMENDED FIRST)
 - **Outcome:** after any Orca upgrade, the runtime doctrine is re-witnessed and re-pinned.
-  Today's trigger is the anecdote: our field run drove `worker-start` while policy still teaches
-  `dispatch --inject` folklore.
+  Today's trigger is the anecdote: our field run *attempted* `worker-start` (the current
+  supervised path), fell back to bare-shell tracked dispatch after three substrate failures, and
+  its failure-recovery (`agent_prompt_stalled`, `--retry-of`, abandoned dispatches) has no
+  coverage in the policy docs at all — policy teaches the pre-#9925 folklore throughout.
 - **Unit of work:** one mechanics *claim* in `runtime/*.md` / `runtime/scripts/` / mission
   preambles (a command shape, receipt field, lifecycle rule).
 - **State machine:** ENUMERATE (extract every claim + load version-matched guides via
@@ -188,7 +195,8 @@ Four candidates emerged from the audits; two more were proposed and rejected dur
 1. **Quick wins** (section 3) — hours, close real holes (redaction first).
 2. **`pin-it`** — and run it immediately against section 2.1; it re-pins the runtime layer and
    institutionalizes the anti-drift mechanism (`orca skills get`) so this audit never has to be
-   repeated manually. Its first run is also the field-proof that advances it past doctrine-only.
+   repeated manually. Its first run (against this repo) would produce a self-run report — the
+   honest first step past doctrine-only.
 3. **`floor-it`** — makes every other mission's gates machine-checkable.
 4. **`reshape-it`** when a lived-in codebase needs it. **`field-test-it`** only with device demand.
 
