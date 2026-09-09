@@ -1,0 +1,5 @@
+# H-04 verification — repo About description via GitHub API (post-confirmation re-read)
+# 2026-09-09T06:59:34Z
+$ gh api repos/ravidsrk/orca-fleet --jq .description
+13 outcome-named autonomous fleets for the Orca runtime — SHA-bound evidence definition of done, best-of-breed worker recipes, one router per worker.
+# before: "10 outcome-named autonomous fleets ..." — after: "13 ..." (matches README badge + mission table)
