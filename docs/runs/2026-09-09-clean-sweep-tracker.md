@@ -28,4 +28,7 @@ cover every frozen id (U1 #232+#234, U2 #233, U3 #236+#237) · BOOTSTRAP: prefli
 
 ## Loop log
 
+A run-close **integrity inventory (sha256)** is included inline in the Final report section of this
+ledger (the strong form per the run-archive standard).
+
 (append per unit: dispatch → build → PR → review → merge → close → re-enumerate)
