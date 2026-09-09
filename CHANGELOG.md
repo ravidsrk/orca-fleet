@@ -6,6 +6,12 @@ truth is `.claude-plugin/plugin.json`.
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-09-09
+
+plugin.json, marketplace.json, and this heading now agree on 0.6.1 (issue #237).
+The alert-on-failure workflow, the completion-run items, and the ops rollback
+step.
+
 ### Added
 
 - `alert-on-failure` workflow (#213): a failed `validate` run on `main` opens or
