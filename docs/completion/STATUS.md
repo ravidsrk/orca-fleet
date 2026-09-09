@@ -61,7 +61,7 @@ Top risks (max 5):
 - G-10 closed by the drill (#229); a real `validate` failure firing `workflow_run` on `main` stays unobserved by design (R9)
 - G-15 GitHub About description says 10 fleets, catalog is 13 → H-04
 - G-17 version badge lags HEAD ([Unreleased] vs 0.6.0) → H-05
-- G-09 nine doctrine-only missions (honest) → #212 DEFER
+- G-09 nine doctrine-only missions (honest) → #212 DEFER (superseded 2026-09-02: #212 closed; live tracker is docs/runs/README.md — A-27)
 
 Human Actions gating launch:
 - H-07 With the Orca app running, on a PR this session did not author, run the getting-started review-it dry run against current main so read-only workers are actually dispatched; save the SHA-bound verdict and the dispatch record as evidence/CF-05-r3-happy-review-it.txt.
@@ -250,7 +250,7 @@ The gate in `DEFINITION.md` is binding, not this number.
 2. Alert path drilled 2026-09-02 (G-10 closed, issue #229); a real `validate` failure firing `workflow_run` on `main` stays unobserved by design (R9), and notification delivery was not observed
 3. GitHub About description says 10 fleets, catalog is 13 → G-15 / H-04
 4. Version badge lags HEAD again (`[Unreleased]` vs 0.6.0) → G-17 / H-05
-5. Nine doctrine-only missions (honest) → G-09 DEFER (#212)
+5. Nine doctrine-only missions (honest) → G-09 DEFER (#212) (superseded 2026-09-02: #212 closed; live tracker is docs/runs/README.md — A-27)
 
 ## Second look (Phase 1, run 2)
 
