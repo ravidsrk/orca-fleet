@@ -17,9 +17,9 @@ superseded for this run only; the actions remain exact and reversible.
 
 | task_id | id | title | CLASS | BUILD_DONE | PR_OPEN | BOT | REVIEWED | MERGED | WT_CLEAN | lighting | park | evidence |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| U1 | #232 #234 | G-19 ops rollback step + G-21 ledger hygiene | real-bug (docs) | f | f | — | f | f | f | lit | — | — |
-| U2 | #233 | G-20 pin `revert -m 1` in tests (release.md/ops.md) | real-bug (test gap) | f | f | — | f | f | f | lit | — | — |
-| U3 | #236 #237 | H-04 About 10→13 + H-05 cut 0.6.1 | real-bug (release/settings) | f | f | — | f | f | f | lit | — | — |
+| U1 | #232 #234 | G-19 ops rollback step + G-21 ledger hygiene | real-bug (docs) | t | t | pass | t (GO 0 findings) | t (2f6c3b6) | t | lit | — | PR #241; build task_2b53f860e8ad (3ecaea6); review task_6f708cd18fcd; issues closed 2026-09-09 |
+| U2 | #233 | G-20 pin `revert -m 1` in tests (release.md/ops.md) | real-bug (test gap) | f | f | — | f | f | f | lit | — | build task_f1fb57e56e57 dispatched |
+| U3 | #236 #237 | H-04 About 10→13 + H-05 cut 0.6.1 | real-bug (release/settings) | partial (H-04 done, evidence 75e8e03) | f | — | f | f | f | lit | — | docs/completion/evidence/H-04-repo-description.txt |
 | — | #235 | H-02 marketplace aggregator submissions | needs-human | — | — | — | — | — | — | — | needs-human: external accounts (marketplaces, skills.sh, listing copy) | — |
 
 Phase: ENUMERATE done (T0 above) · SKEPTIC-TRIAGE done at source (findings are hours old with quoted
