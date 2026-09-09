@@ -10,7 +10,7 @@
     "evidence": "docs/completion/evidence/P0-coldstart-validate-tests.txt"
   },
   "current_commit": "6671913b3c5b0c893823896669b51a39ad6caa3e",
-  "resume_pointer": "P7/GATE",
+  "resume_pointer": "S6",
   "definition_frozen_at": "ed6a2f4",
   "completion_pct": 68,
   "gate": {
@@ -585,7 +585,7 @@
       "status": "open",
       "tasks": [],
       "accept_expiry": null,
-      "issue_url": null,
+      "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/236",
       "human_action": "H-04"
     },
     {
@@ -617,7 +617,7 @@
       "status": "open",
       "tasks": [],
       "accept_expiry": null,
-      "issue_url": null,
+      "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/237",
       "human_action": "H-05"
     },
     {
@@ -650,7 +650,7 @@
       "status": "open",
       "tasks": [],
       "accept_expiry": null,
-      "issue_url": null,
+      "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/232",
       "note": "docs/ops.md step 4 precision: add the checkable 'no deploy job in .github/workflows' clause, cite both dated rehearsals, lead with the -m 1 form"
     },
     {
@@ -666,7 +666,7 @@
       "status": "open",
       "tasks": [],
       "accept_expiry": null,
-      "issue_url": null,
+      "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/233",
       "note": "the -m 1 rollback fix is unbound: no test mentions revert; extend the ops/release tests to pin the merge-shaped command"
     },
     {
@@ -682,7 +682,7 @@
       "status": "open",
       "tasks": [],
       "accept_expiry": null,
-      "issue_url": null,
+      "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/234",
       "note": "ledger hygiene batch; spec F1 was Required at the review axis and is carried at driver-severity S3 (a stale file-set sentence in an already-merged PR body is not a live product defect) \u2014 mapping recorded, not dropped (S5-B RV-07)"
     }
   ],
@@ -1066,7 +1066,8 @@
       "unblocks": [],
       "gates_launch": false,
       "verification": "listing URLs in distribution.md",
-      "status": "open"
+      "status": "open",
+      "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/235"
     },
     {
       "id": "H-03",
@@ -1084,7 +1085,8 @@
       ],
       "gates_launch": false,
       "verification": "agent re-reads the description via the GitHub API \u2192 evidence/H-04-repo-description.txt",
-      "status": "open"
+      "status": "open",
+      "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/236"
     },
     {
       "id": "H-05",
@@ -1094,7 +1096,8 @@
       ],
       "gates_launch": false,
       "verification": "plugin.json version equals the latest dated CHANGELOG heading; gen-badges.py --check exit 0",
-      "status": "open"
+      "status": "open",
+      "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/237"
     },
     {
       "id": "H-06",
@@ -1314,6 +1317,15 @@
         "codex exec outside Orca dispatch (no orchestration provenance)"
       ],
       "reason": "sandbox-policy.md: grok ro = WORKER_CMD; Appendix C names @grok as fleet driver; --sandbox read-only cannot apply on this host and plan mode leaks (both tested)"
+    },
+    {
+      "id": "A-31",
+      "phase": "S5-C",
+      "decision": "issue labels use the repo's existing taxonomy: sev:S2/sev:S3 (severity), needs-human (human-action), post-launch (DEFER); no new labels created",
+      "rejected": [
+        "create the driver-spec labels S2/S3/human-action alongside the existing sev:*/needs-human"
+      ],
+      "reason": "R7(c): closest to what the repo already does; forking the label taxonomy would split every future triage query"
     }
   ],
   "research": [
@@ -1418,5 +1430,13 @@
     }
   ],
   "definition_text_at": "67c1707",
-  "run_pr": "https://github.com/ravidsrk/orca-fleet/pull/227"
+  "run_pr": "https://github.com/ravidsrk/orca-fleet/pull/227",
+  "issues": {
+    "created": 6,
+    "updated": 0,
+    "reopened": 0,
+    "dedup_skipped": 1,
+    "existing_fetched": 96,
+    "ledger": "docs/completion/ISSUES.md"
+  }
 }
