@@ -2,6 +2,15 @@
 
 Recipe: Matt `diagnosing-bugs` (feedback-loop-first) + Addy `debugging-and-error-recovery`.
 
+## Redact first (before anything is pasted)
+
+Diagnosis evidence is pasted command output bound into a SHA-pinned, permanent manifest — the
+single most likely place a credential gets immortalized. Before ANY invocation, output, log, or
+artifact lands in the ledger/manifest/report: redact every secret as `<REDACTED>` (tokens, keys,
+connection strings, cookies, internal hostnames). If the exact value is load-bearing for the
+diagnosis, prove the property with a redacted-shaped stand-in (`<REDACTED:32-hex>`), never the
+real value.
+
 ## Phase 1 IS the skill: a red-capable loop BEFORE any theory
 
 Build a tight, red-capable command you have ALREADY RUN — paste the invocation + its output — that

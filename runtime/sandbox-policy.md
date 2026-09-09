@@ -72,6 +72,9 @@ buckets map onto gate-classification.md — the taxonomy is the planning surface
 - **Never** — no grant makes it safe on the mortal host: destructive / networked / supply-chain
   exploit PoCs (danger profile inside an ephemeral sandbox only, above), live-prod mutation,
   credential provisioning — Lane 0 refuse-and-surface, or route to a sandbox per this policy.
+  A destructive-path operation also validates its TARGET before acting (risk-review.md's security
+  lens): allowlisted root after symlink resolution, a depth floor below it, ownership evidence
+  read first — a shape check is not authorization; an unvalidated target makes it Lane 0.
 
 A mission's "Always/Ask-First/Never boundary" resolves HERE; its Ask-First set IS the one-way
 gate list it commits to at threat-model time.

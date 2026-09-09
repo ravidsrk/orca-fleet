@@ -12,13 +12,15 @@ canonical fixed point for every downstream ticket, review, and acceptance test.
 
 ## The grill (interactive; HITL leak if fanned to a worker)
 
-On the coordinator terminal, run `grilling` + `domain-modeling`:
-- One question at a time; attach a RECOMMENDED answer to each; walk the decision tree resolving
-  dependencies one-by-one.
-- **Facts vs decisions:** if a fact can be found in the codebase, look it up — do not ask. Every
-  DECISION goes to the human. Never answer the human's side.
+On the coordinator terminal, run `grilling` + `domain-modeling` — **round by round**, not
+question-by-question: ask the WHOLE frontier in one round, one bold-titled question + a
+RECOMMENDED answer each (upstream format: ❓ question, ➡️ recommendation), so a taste-class run can
+auto-pick per `gate-classification.md` and a human answers in one pass. After each round, resolve
+what the answers sharpened and ask the next frontier; facts that live in the codebase are
+dispatched to a non-blocking fact-finder between rounds — never asked, never blocking the round.
 - Sharpen overloaded terms against a `CONTEXT.md` glossary (account = Customer or User?); an ADR only
   when hard-to-reverse ∧ surprising ∧ a real trade-off.
+- Every DECISION goes to the human. Never answer the human's side.
 
 ## Seam-first spec
 

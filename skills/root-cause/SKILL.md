@@ -61,7 +61,9 @@ STOP-THE-LINE (preserve evidence) → run the diagnose playbook's DIAGNOSIS phas
 
 The demonstrated root cause with: the pasted red-capable command + its output (or an elevated
 reproduction rate for a non-deterministic bug), the surviving hypothesis, and the FALSIFICATION evidence
-for each rejected hypothesis — all bound in an evidence manifest at the investigation fixed point.
+for each rejected hypothesis — all bound in an evidence manifest at the investigation fixed point, all
+redacted first (diagnose.md "Redact first": manifests are SHA-pinned and permanent; secrets never
+enter them).
 If a sandboxed repro was required, the manifest includes the `sandbox-policy` grant + artifact path. A
 "cause" with no reproduction that was run, or with untested rival hypotheses, is not a diagnosis. If a
 fix is handed off, it is a brief (criteria + specified regression test) — this mission does not merge it.
