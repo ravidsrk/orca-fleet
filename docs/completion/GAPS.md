@@ -24,13 +24,13 @@ Every standing finding that sits between HEAD and `DEFINITION.md`. Decisions fol
 | G-18 | F-7-05 | 7 | — | S3 | FINISH | CLOSED T-09 (run 2): G-14's expiry is issue #226. |
 | G-19 | CF-05-r3 spec-F2/F3, standards nit | 14 | — | S2 | DEFER | `docs/ops.md` step 4 precision: add the checkable "no deploy job in `.github/workflows`" clause, cite both dated rehearsals, lead with the `-m 1` form. Off critical flow → post-launch issue. |
 | G-20 | CF-05-r3 testadeq-F1/F2 | 4 | — | S2 | DEFER | The `-m 1` rollback fix is unbound: no test mentions `revert`; extend the ops/release tests to pin the merge-shaped command. Off critical flow → post-launch issue. |
-| G-21 | CF-05-r3 spec-F1, standards nits | 14 | — | S3 | DEFER | Ledger hygiene: stale #212 pointers in STATUS.md, GAPS post-launch "ACCEPT" label, A-26 "rehearsed twice", PLAN/GAPS cut-line drift, ASSUMPTIONS A-24/A-25 hole; PR-body file-set lesson (update the body when scope grows mid-PR). |
+| G-21 | CF-05-r3 spec-F1, standards nits | 14 | — | S3 | DEFER | Ledger hygiene: stale #212 pointers in STATUS.md, GAPS post-launch "ACCEPT" label, A-26 "rehearsed twice", PLAN/GAPS cut-line drift, ASSUMPTIONS A-24/A-25 hole; PR-body file-set lesson (update the body when scope grows mid-PR). Severity note (S5-B RV-07): spec F1 was **Required at the review axis** (merge-blocking there); it is carried at driver-severity S3 because a stale file-set sentence in an already-merged PR body is not a live product defect — the axis→driver severity mapping is recorded, not dropped. |
 
 ## Cut line
 
 **Above (plan):** G-01..G-08, G-11..G-13 (G-06..G-08, G-11..G-13 closed post-launch). Run 2 adds G-15..G-18 (T-09 agent; H-04 / H-05 / H-07 human). Run 3 closes G-16 (T-13).
 
-**Below:** G-09 DEFER (register entry unchanged; its tracker issue #212 closed at the maintainer's request — the field-proof plan in `docs/runs/README.md` is the live tracker, A-27). G-10 closed 2026-09-02 (T-10 #228, T-11 drill #229). G-14 closed 2026-09-02 (T-12). Run 3 adds G-19 / G-20 / G-21 DEFER (filed in S5-C). No ACCEPT remains.
+**Below:** G-09 DEFER (register entry unchanged; its tracker issue #212 closed at the maintainer's request — the field-proof plan in `docs/runs/README.md` is the live tracker, A-27). G-10 closed 2026-09-02 (T-10 #228, T-11 drill #229). G-14 closed 2026-09-02 (T-12). Run 3 adds G-19 / G-20 / G-21 DEFER (to be filed in S5-C). No ACCEPT remains.
 
 No CUT (nothing half-built to delete). No ACCEPT at S0.
 

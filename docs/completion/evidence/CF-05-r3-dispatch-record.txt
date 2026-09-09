@@ -464,7 +464,7 @@ $ orca orchestration worker-start x3 (--worktree id:3cf2cdae-bda6-4774-a26f-e6f3
 }
 
 # attempt 1 failed x3: agent_prompt_stalled — Claude workspace-trust dialog in the new worktree dir (untrusted).
-# fix (A-28): trusted the review worktree dir in ~/.claude.json projects (backup /tmp/claude-json-bak-pcd-r3), then retry-of each dispatch.
+# fix (A-29): trusted the review worktree dir in ~/.claude.json projects (backup /tmp/claude-json-bak-pcd-r3), then retry-of each dispatch.
 $ orca orchestration worker-start --retry-of ... x3
 {
   "id": "3fc27ff0-6b56-4d33-a84c-1da42fd68663",
@@ -1135,11 +1135,11 @@ $ orca orchestration worker-start --retry-of ... x3
 }
 
 # attempt 3b failed: codex account usage-limited until 2026-09-15; configured model gpt-6-astra needs a newer CLI; TUI modal not answerable via orca send (agent_prompt_blocked).
-# attempt 4 (A-29): grok 1.0.24 authenticated; headless -p/--prompt-file works; --sandbox read-only cannot apply on this host (docker.sock symlink), plan mode leaks writes,
+# attempt 4 (A-30): grok 1.0.24 authenticated; headless -p/--prompt-file works; --sandbox read-only cannot apply on this host (docker.sock symlink), plan mode leaks writes,
 #   --tools read holds. sandbox-policy.md names grok ro as WORKER_CMD (no Orca-verified ro flag) — instruction-level ro + coordinator verification (clean git status, no pushes).
 # Path: bare-shell tracked dispatch (no --inject) per axis + manual WORKER_CMD prompt; R12 breaker note: 3 prior failures each had a distinct diagnosed environmental cause; grok is a separate verified substrate.
 
-$ orca orchestration dispatch --task <t> --to <shell> (tracked, no --inject; bare-shell path per guide)
+$ orca orchestration dispatch --task task_e8fb7d7b6f7d --to term_fd441015-85c7-4cd0-8913-c495007931f4 --json   # (tracked, no --inject; bare-shell path per guide — this and the two following are the real invocations)
 {
   "id": "8f83957f-9372-4e23-829f-c77dfe195911",
   "ok": true,
@@ -1247,3 +1247,155 @@ $ orca orchestration dispatch --task <t> --to <shell> (tracked, no --inject; bar
 }
 
 $ terminal send x3: grok --prompt-file /tmp/review-it-r3-spec-<axis>.txt | tee /tmp/review-it-r3-<axis>-raw.md
+{
+  "id": "b9b19d2c-278a-4dc8-abe8-95b2f1ad385b",
+  "ok": true,
+  "result": {
+    "dispatch": {
+      "id": "ctx_663c56b5f011",
+      "run_id": "run_7bdde218b205",
+      "task_id": "task_78f9e540a18c",
+      "contract_version": 1,
+      "launch_token_hash": null,
+      "assignee_handle": "term_eae0b5b4-0c67-4f7b-9d65-1a23c85fbe93",
+      "assignee_pane_key": "bc3a4396-4ad5-4823-a599-00742ae4bc4a:45583f82-8d6c-4876-9efb-6ac9bae8dbd7",
+      "capability_hash": null,
+      "process_incarnation": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/pcd-r3-review@@8d136eea:71fede74-bba0-484f-8e84-b6ec23ae09ca",
+      "capability_revoked_at": null,
+      "status": "dispatched",
+      "failure_count": 0,
+      "last_failure": null,
+      "dispatched_at": "2026-09-09 05:54:44",
+      "completed_at": null,
+      "created_at": "2026-09-09 05:54:44",
+      "last_heartbeat_at": null,
+      "termination_reason": null,
+      "depth": 1
+    },
+    "injected": false,
+    "mutation": {
+      "requestId": "e460d92f-3f8a-4125-bb9a-750313064f7a",
+      "replayed": false
+    }
+  },
+  "_meta": {
+    "runtimeId": "2a7eeb15-2326-40b8-b72c-2e158fed5679"
+  }
+}
+
+# === settlement receipts (appended after S5-B RV-01: the record must show settlement, not just dispatch) ===
+# captured 2026-09-09T06:06:43Z — current orchestration state for the three settled dispatches
+
+$ orca orchestration task-list --brief --json
+{
+  "id": "179e7097-8dce-4d07-871c-1d2bcf1e2fc8",
+  "ok": true,
+  "result": {
+    "runId": "run_7bdde218b205",
+    "legacyReadOnly": false,
+    "tasks": [
+      {
+        "id": "task_e8fb7d7b6f7d",
+        "run_id": "run_7bdde218b205",
+        "parent_id": null,
+        "created_by_terminal_handle": "term_93aafee0-1123-4127-9c6a-64c7b6982b3d",
+        "created_by_pane_key": "83eb267e-815f-4752-a388-2cedb49bd233:34e990ab-7282-43b9-b52c-e735bbe477b4",
+        "created_by_process_incarnation": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/pcd-r3-review@@e40db23a:1ed9be0a-649d-49ca-ae30-de5d9065d51f",
+        "created_by_run_generation": 1,
+        "task_title": "You are a READ-ONLY review worker (PROFILE=ro), axis STANDARDS, in a review-i...",
+        "display_name": "You are a READ-ONLY review worker (PROFILE=ro), axis STANDARDS, in a review-i...",
+        "spec": "You are a READ-ONLY review worker (PROFILE=ro), axis STANDARDS, in a review-it dry run on the orca-fleet repo. Boundary: do NOT modify, create, or delete any f…",
+        "status": "completed",
+        "deps": "[]",
+        "result": "{\"provenance\":\"worker_report\",\"outcome\":\"succeeded\",\"messageId\":\"msg_715f41482a8c\",\"reportedBy\":\"term_fd441015-85c7-4cd0-8913-c495007931f4\",\"subject\":\"standards axis: 0C/0R (4 Nit, 1 Optional, 1 FYI)\",\"body\":\"Read-only STANDARDS review of PR #231 at 9e1237f complete. 0 Critical, 0 Required; worst: Nit docs/ops.md:46 leads with unqualified git revert. Full report printed to terminal stdout, captured at /tmp/review-it-r3-standards-raw.md and copied into docs/completion/evidence/.\",\"completedBy\":\"term_fd441015-85c7-4cd0-8913-c495007931f4\",\"filesModified\":[],\"reportPath\":null,\"completedAt\":\"2026-09-09T05:45:36.814Z\"}",
+        "created_at": "2026-09-09 04:47:33",
+        "completed_at": "2026-09-09 05:45:36",
+        "spec_truncated": true
+      },
+      {
+        "id": "task_d854cb862862",
+        "run_id": "run_7bdde218b205",
+        "parent_id": null,
+        "created_by_terminal_handle": "term_93aafee0-1123-4127-9c6a-64c7b6982b3d",
+        "created_by_pane_key": "83eb267e-815f-4752-a388-2cedb49bd233:34e990ab-7282-43b9-b52c-e735bbe477b4",
+        "created_by_process_incarnation": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/pcd-r3-review@@e40db23a:1ed9be0a-649d-49ca-ae30-de5d9065d51f",
+        "created_by_run_generation": 1,
+        "task_title": "You are a READ-ONLY review worker (PROFILE=ro), axis SPEC FIDELITY, in a revi...",
+        "display_name": "You are a READ-ONLY review worker (PROFILE=ro), axis SPEC FIDELITY, in a revi...",
+        "spec": "You are a READ-ONLY review worker (PROFILE=ro), axis SPEC FIDELITY, in a review-it dry run on the orca-fleet repo. Boundary: do NOT modify, create, or delete a…",
+        "status": "completed",
+        "deps": "[]",
+        "result": "{\"provenance\":\"worker_report\",\"outcome\":\"succeeded\",\"messageId\":\"msg_7d2a16721848\",\"reportedBy\":\"term_133de76b-944d-43fe-82ae-187f44547706\",\"subject\":\"spec axis: 0C/2R (F1 file-set claim, F2 ops.md workflows N/A)\",\"body\":\"Read-only SPEC review of PR #231 at 9e1237f complete. 0 Critical, 2 Required: F1 playbooks/release.md outside the claimed file set; F2 ops step 4 omits the checkable .github/workflows N/A. Axis-local NO-GO. Report at /tmp/review-it-r3-spec-raw.md.\",\"completedBy\":\"term_133de76b-944d-43fe-82ae-187f44547706\",\"filesModified\":[],\"reportPath\":null,\"completedAt\":\"2026-09-09T05:45:36.930Z\"}",
+        "created_at": "2026-09-09 04:47:33",
+        "completed_at": "2026-09-09 05:45:36",
+        "spec_truncated": true
+      },
+      {
+        "id": "task_c3b7f4fa2143",
+        "run_id": "run_7bdde218b205",
+        "parent_id": null,
+        "created_by_terminal_handle": "term_93aafee0-1123-4127-9c6a-64c7b6982b3d",
+        "created_by_pane_key": "83eb267e-815f-4752-a388-2cedb49bd233:34e990ab-7282-43b9-b52c-e735bbe477b4",
+        "created_by_process_incarnation": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/pcd-r3-review@@e40db23a:1ed9be0a-649d-49ca-ae30-de5d9065d51f",
+        "created_by_run_generation": 1,
+        "task_title": "You are a READ-ONLY review worker (PROFILE=ro), axis TEST-ADEQUACY (static),...",
+        "display_name": "You are a READ-ONLY review worker (PROFILE=ro), axis TEST-ADEQUACY (static),...",
+        "spec": "You are a READ-ONLY review worker (PROFILE=ro), axis TEST-ADEQUACY (static), in a review-it dry run on the orca-fleet repo. Boundary: do NOT modify, create, or…",
+        "status": "completed",
+        "deps": "[]",
+        "result": "{\"provenance\":\"worker_report\",\"outcome\":\"succeeded\",\"messageId\":\"msg_36fd467c4988\",\"reportedBy\":\"term_968ea386-fce4-4500-86a4-44a0fa714d3b\",\"subject\":\"test-adequacy axis: 0C/1R (release.md -m 1 unbound)\",\"body\":\"Read-only TEST-ADEQUACY (static) review of PR #231 at 9e1237f complete. 0/10 files bound; reverting the -m 1 fix stays green (Required). Report at /tmp/review-it-r3-testadeq-raw.md.\",\"completedBy\":\"term_968ea386-fce4-4500-86a4-44a0fa714d3b\",\"filesModified\":[],\"reportPath\":null,\"completedAt\":\"2026-09-09T05:45:37.060Z\"}",
+        "created_at": "2026-09-09 04:47:33",
+        "completed_at": "2026-09-09 05:45:37",
+        "spec_truncated": true
+      },
+      {
+        "id": "task_78f9e540a18c",
+        "run_id": "run_7bdde218b205",
+        "parent_id": null,
+        "created_by_terminal_handle": "term_93aafee0-1123-4127-9c6a-64c7b6982b3d",
+        "created_by_pane_key": "83eb267e-815f-4752-a388-2cedb49bd233:34e990ab-7282-43b9-b52c-e735bbe477b4",
+        "created_by_process_incarnation": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/pcd-r3-review@@e40db23a:1ed9be0a-649d-49ca-ae30-de5d9065d51f",
+        "created_by_run_generation": 1,
+        "task_title": "You are a READ-ONLY adversarial reviewer (PROFILE=ro) in a fresh context. You...",
+        "display_name": "You are a READ-ONLY adversarial reviewer (PROFILE=ro) in a fresh context. You...",
+        "spec": "You are a READ-ONLY adversarial reviewer (PROFILE=ro) in a fresh context. You did not do the work under review. Do NOT modify, create, or delete any file; no c…",
+        "status": "dispatched",
+        "deps": "[]",
+        "result": null,
+        "created_at": "2026-09-09 05:54:30",
+        "completed_at": null,
+        "assignee_handle": "term_eae0b5b4-0c67-4f7b-9d65-1a23c85fbe93",
+        "dispatch_id": "ctx_663c56b5f011",
+        "spec_truncated": true
+      }
+    ],
+    "count": 4
+  },
+  "_meta": {
+    "runtimeId": "2a7eeb15-2326-40b8-b72c-2e158fed5679"
+  }
+}
+$ orca orchestration dispatch-show --task <task of ctx_575e99a6648d> --json (status excerpt)
+{
+ "id": "ctx_575e99a6648d",
+ "task_id": "task_e8fb7d7b6f7d",
+ "status": "completed",
+ "completed_at": "2026-09-09 05:45:36",
+ "assignee_handle": "term_fd441015-85c7-4cd0-8913-c495007931f4"
+}
+$ orca orchestration dispatch-show --task <task of ctx_630ff02c7ee2> --json (status excerpt)
+{
+ "id": "ctx_630ff02c7ee2",
+ "task_id": "task_d854cb862862",
+ "status": "completed",
+ "completed_at": "2026-09-09 05:45:36",
+ "assignee_handle": "term_133de76b-944d-43fe-82ae-187f44547706"
+}
+$ orca orchestration dispatch-show --task <task of ctx_ac069f3f25fe> --json (status excerpt)
+{
+ "id": "ctx_ac069f3f25fe",
+ "task_id": "task_c3b7f4fa2143",
+ "status": "completed",
+ "completed_at": "2026-09-09 05:45:37",
+ "assignee_handle": "term_968ea386-fce4-4500-86a4-44a0fa714d3b"
+}

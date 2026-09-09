@@ -81,7 +81,7 @@ Drift 17.9% < 20% → resume, no re-audit (R4). Executed from `P7/H-07` on the m
 |---|---|---|
 | P1 | complete (re-verified) | cold start re-run at `6671913` on a fresh full clone: 329 tests OK, 0 skips (`P0-r3-coldstart-*`) |
 | P3 | **complete** | T-13: CF-05 re-witnessed via Orca worker dispatch on PR #231 @ `9e1237f`; verdict NO-GO (0C/3R) — counts per DEFINITION CF-05 |
-| P6 | open, non-gating | H-02 (marketplace), H-04 (About) still human/open → S5-C issues |
+| P6 | open, non-gating | H-02 (marketplace), H-04 (About), H-05 (version cut) still human/open → S5-C issues |
 | P7 | gate re-evaluated | **GO** — all 8 frozen items + minima met; S5-B fresh-context review of the run-3 branch follows |
 
 ### Tasks (run 3)
@@ -92,6 +92,6 @@ Drift 17.9% < 20% → resume, no re-audit (R4). Executed from `P7/H-07` on the m
 
 ### Counts (run 3)
 
-- Above-the-line gaps closed: 1 (G-16) · new DEFER gaps: 3 (G-19, G-20, G-21 — filed in S5-C)
+- Above-the-line gaps closed: 1 (G-16) · new DEFER gaps: 3 (G-19, G-20, G-21 — to be filed in S5-C)
 - Tasks: 1 agent (M) · L-sized: 0
 - Launch-gating Human Actions open: **0**

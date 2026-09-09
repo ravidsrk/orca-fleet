@@ -7,3 +7,10 @@ exit=0
 $ python3 scripts/eval.py validate
 All evals valid: 37 routing examples, 39 per-skill evals.
 exit=0
+
+# correction 2026-09-09 (S5-B RV-06): the bare-eval capture above piped through head, so its 'exit=0' was head's status — the same trap as run 1's eval-exit note. Re-captured without the pipe:
+$ python3 scripts/eval.py
+usage: eval.py [-h] {validate,run} ...
+eval.py: error: the following arguments are required: command
+(output truncated for readability; true exit captured separately)
+exit=2

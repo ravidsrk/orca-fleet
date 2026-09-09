@@ -38,7 +38,7 @@ Evidence added: 16 files (run 3, incl. 3 axis reports + dispatch record + cold-s
 | 8 | H-07 open | H-07 done (T-13, executed agent-side per A-30 — local read-only review is not an R15 surface) | **yes** |
 | 1, 4, 5, 6, 7, min | met (run 2) | unchanged; no drift in those items (17.9% drift was run-2 output + #225) | **yes** |
 
-Verdict: **GO**. Not CONDITIONAL GO: no launch-gating Human Action is outstanding. The score stays 68% (informational) — the gate, not the score, is binding. Open DEFER/S2/S3 items are filed in S5-C, never counted complete (R13).
+Verdict: **GO**. Not CONDITIONAL GO: no launch-gating Human Action is outstanding. The score stays 68% (informational) — the gate, not the score, is binding. Open DEFER/S2/S3 items are to be filed in S5-C, never counted complete (R13).
 
 ---
 

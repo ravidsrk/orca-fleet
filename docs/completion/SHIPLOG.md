@@ -3,14 +3,14 @@
 Append-only. A future session with zero context continues from `resume_pointer`.
 
 ```
-run_id: 20260902-0816            # run 2 (resume); run 1 was 20260901-1336
+run_id: 20260909-0437            # run 3 (resume); run 2 was 20260902-0816; run 1 was 20260901-1336
 mode: drive
 product: orca-fleet
-repo: /home/user/orca-fleet       # run 2: cloud container clone (A-14); run 1: /Users/ravindra/projects/orca-fleet
-audit_branch: claude/skills-improvements-review-oqc2zj   # run 2 (A-15); run 1: ravidsrk/p0-completion-audit
+repo: /Users/ravindra/projects/orca-fleet   # runs 1 and 3: maintainer Mac; run 2: cloud container (A-14)
+audit_branch: ravidsrk/p7-completion-run3   # run 3; run 2: claude/skills-improvements-review-oqc2zj; run 1: ravidsrk/p0-completion-audit
 baseline_commit: 6abf548de4d53b9250e13f3b2cc297f6dd8fdf01
-rebaselined_at: f2e53f4dff9a8a33cac041457ffb270d3ad5c875   # run 2 Phase 0 re-freeze
-resume_pointer: P7/H-07
+rebaselined_at: f2e53f4dff9a8a33cac041457ffb270d3ad5c875   # run 2 Phase 0 re-freeze; run 3 HEAD 6671913 (drift 17.9% < 20% → resume, R4)
+resume_pointer: P7/GATE
 ```
 
 ## 2026-09-01 — run start (R1)
@@ -224,7 +224,7 @@ resume_pointer: P7/H-07
 ## 2026-09-09 — run 3 start (R1 / R4 resume)
 
 - Mode: agentic with write access, MODE=drive, `run_id: 20260909-0437`, maintainer Mac at `/Users/ravindra/projects/orca-fleet` (run-1 environment; run 2 was the cloud container, A-14).
-- Toolchain: git 2.55.0 · python 3.13.15 · ruff · uv · mise · just · greptile 3.5.2 · gh 2.100.0 (authed as ravidsrk) · orca CLI `/usr/local/bin/orca`, app not running at start. Evidence `evidence/P0-r3-coldstart-tools.txt`.
+- Toolchain: git 2.55.0 · python 3.13.15 · ruff · uv · mise · just · greptile 3.5.2 · gh 2.100.0 (authed as ravidsrk) · orca CLI `/usr/local/bin/orca`, app not running at start. Evidence `evidence/P0-r3-coldstart-tools.txt` (toolchain) + `evidence/P0-r3-orca-status.txt` (orca CLI, app state before/after `orca open`).
 - Resume: pointer `P7/H-07`. Baseline `6abf548` and rebaseline `f2e53f4` are both ancestors of `HEAD` `6671913` (main, clean, in sync with origin). Drift since `f2e53f4`: **44/246 tracked files = 17.9%** — under the 20% line → **no re-audit**; continue from the pointer (R4). Nearly all drift is run 2's own output landing on `main` via #227–#231 plus the #225 skill review. `DEFINITION.md` stays frozen (text as of `67c1707`).
 - Run branch: `ravidsrk/p7-completion-run3` (R10; A-15's one-session-branch constraint was container-specific and does not bind here). Open PRs: 0 · open issues: 0 · CI `validate` success at HEAD.
 - State checks: GitHub About still says "10" (H-04 open) · `plugin.json` 0.6.0 vs CHANGELOG `[Unreleased]` (H-05 open) · no `CF-05-r3-*` evidence (H-07 open).
@@ -244,10 +244,25 @@ resume_pointer: P7/H-07
 
 - Orca app started (`orca open`): reachable, ready, 1.4.194. Repo registered (id 3cf2cdae). `preflight.py --mode readonly` OK. Review worktree `pcd-r3-review` at `6671913` (top-level, base origin/main).
 - review-it dry run on **PR #231** @ `9e1237f` (authored by the run-2 session, not this one; ancestor of current `main`). Run run_7bdde218b205; tasks task_e8fb7d7b6f7d / d854cb862862 / c3b7f4fa2143 — all `completed`; dispatches ctx_575e99a6648d / ctx_630ff02c7ee2 / ctx_ac069f3f25fe settled by valid worker_done, acked, released.
-- Substrate (A-29): grok 1.0.24 headless, bare-shell tracked dispatch + WORKER_CMD per sandbox-policy.md's grok-ro row. Failures first (R12 log): claude trust dialog ×3 → claude not-logged-in ×3 → claude OAuth expired machine-wide + codex usage-limited to 09-15 / model too new → grok. Claude dir trust added to `~/.claude.json` (A-28; backup /tmp/claude-json-bak-pcd-r3; S6 removes the key).
+- Substrate (A-30): grok 1.0.24 headless, bare-shell tracked dispatch + WORKER_CMD per sandbox-policy.md's grok-ro row. Failures first (R12 log): claude trust dialog ×3 → claude not-logged-in ×3 → claude OAuth expired machine-wide + codex usage-limited to 09-15 / model too new → grok. Claude dir trust added to `~/.claude.json` (A-29; backup /tmp/claude-json-bak-pcd-r3; S6 removes the key).
 - ro boundary: instructed ro + post-hoc verification — worktree clean, 0 unpushed, HEAD == origin/main, all exits 0. Caveats (grok ro is instruction-level; matt pack nominal) recorded in the evidence file.
 - **Verdict: NO-GO at 9e1237f** — 0 Critical, 3 Required (spec: file-set claim false re `playbooks/release.md`; spec: ops step 4 omits the `.github/workflows` checkable N/A; test-adequacy: `-m 1` fix unbound by any test). GO or NO-GO both count (DEFINITION CF-05). Findings re-enter as G-19 (S2 ops-page precision), G-20 (S2 `-m 1` unbound by tests), G-21 (S3 ledger hygiene incl. PR-body file-set lesson) — all DEFER per the decision rules (S2/S3, off critical flow) → filed in S5-C.
 - G-16 closed · H-07 done · T-13 done. Evidence `evidence/CF-05-r3-happy-review-it.txt` + `CF-05-r3-axis-{standards,spec,testadeq}.md` + `CF-05-r3-dispatch-record.txt`. Failure path re-confirmed this run (`runtime.reachable=false` before `orca open`).
 - review: manual (coordinator aggregation + line-spot-checks of every Required finding: F1/F2-spec and F1-testadeq verified factual against the tree).
 - `resume_pointer: P7/GATE`
 - Second look: almost aggregated the verdict as "GO (nits only)" from the standards axis alone — the spec axis's Required findings are exactly why the axes run isolated with no cross-rerank. Verdict stands at NO-GO.
+
+## 2026-09-09 — S5-B fresh-context adversarial review (run 3)
+
+- A separate-context grok worker (task_78f9e540a18c, dispatch ctx_663c56b5f011, same bare-shell WORKER_CMD path) reviewed the run-3 diff `6671913..7765b7b` against the frozen gate. Report: `evidence/P7-r3-fresh-review.md` — verdict "8 findings to resolve before sign-off". Disposition (all fixed in this branch):
+  - RV-01 (S1) dispatch record lacked settlement → **fixed**: settlement receipts appended (task-list + per-dispatch `completed` 05:45:36–37Z, captured 06:06Z); `when:` corrected to 04:45–05:46Z.
+  - RV-02 (S2) "filed in S5-C" past tense before filing → **fixed**: "to be filed" in GAPS/PLAN/STATUS; S5-C runs next.
+  - RV-03 (S2) stale header pointer (`P7/H-07`) + `run_pr` #227 → **fixed**: SHIPLOG header rewritten for run 3 (`P7/GATE`); `run_pr` set when the run-3 PR opens.
+  - RV-04 (S2) A-28/29/30 split + ASSUMPTIONS hole → **fixed**: canonical mapping = status.json (A-28 REPO_PATH, A-29 claude trust, A-30 grok); evidence file, SHIPLOG, dispatch record aligned; ASSUMPTIONS.md backfilled A-24..A-30.
+  - RV-05 (S2) failure "re-confirmed" without transcript; tools file cited for orca → **fixed**: `evidence/P0-r3-orca-status.txt` (both readings verbatim); citations split.
+  - RV-06 (S2) bare `eval.py` recorded `exit=0` (pipe's status) → **fixed**: re-captured without the pipe, true `exit=2`, correction appended to the eval evidence.
+  - RV-07 (S2) spec F1 Required carried as S3 → **fixed by documentation**: G-21's note now records the axis→driver severity mapping and rationale (the reviewer itself called the defect "arguably not live"); not a silent downgrade.
+  - RV-08 (S2) angle-1 evidence + P3 criterion still pointed at the run-1 CF-05 file → **fixed**: both now cite `CF-05-r3-happy-review-it.txt`; P1 gained the run-3 criterion.
+  - RV-09 (S3) PLAN P6 omitted H-05; placeholder command line; P1 JSON evidence old → **fixed**.
+- Gate re-evaluated after fixes: **GO** stands (RV-01 was evidence-showing, now shown).
+- review: manual (every fix re-read against its quoted line). Second look: the reviewer caught the same class run 2's reviewer caught — settlement claimed in prose before the receipts existed. Both times the fix was cheap because the underlying state was real and queryable.

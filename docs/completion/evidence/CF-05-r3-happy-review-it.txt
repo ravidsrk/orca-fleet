@@ -8,7 +8,7 @@ pr_authorship: PR #231 was authored by the run-2 session (branch claude/skills-i
 orca_status: app.running=true runtime.reachable=true runtime.state=ready graph.state=ready
 runtimeId: 2a7eeb15-2326-40b8-b72c-2e158fed5679
 appVersion: 1.4.194
-when: 2026-09-09T05:00–05:20Z
+when: 2026-09-09T04:45–05:46Z (run-create 04:45 · grok workers dispatched 05:35 · all three dispatches completed 05:45:36–37Z)
 permission_boundary: report-only. preflight: `python3 runtime/scripts/preflight.py --mode readonly` → OK (exit 0). No repo writes, no commits, no pushes, no gh mutations by any worker. Post-review verification: review worktree `git status` clean, `git log origin/main..HEAD` empty, HEAD == 6671913 == origin/main.
 
 ## Dispatch record (full receipts: CF-05-r3-dispatch-record.txt)
@@ -16,11 +16,11 @@ permission_boundary: report-only. preflight: `python3 runtime/scripts/preflight.
 - run: run_7bdde218b205 "review-it dry run: PR #231 @ 9e1237f — H-07 / CF-05 re-witness on current main (report-only, PROFILE=ro)"
 - repo registered with Orca for this run: id 3cf2cdae-bda6-4774-a26f-e6f3b7a9852a
 - review worktree: /Users/ravindra/orca/workspaces/orca-fleet/pcd-r3-review (branch ravidsrk/pcd-r3-review at 6671913, top-level, base origin/main)
-- tasks: task_e8fb7d7b6f7d (standards) · task_d854cb862862 (spec) · task_c3b7f4fa2143 (test-adequacy) — all `completed`
-- settled dispatches: ctx_575e99a6648d / ctx_630ff02c7ee2 / ctx_ac069f3f25fe — each closed by a valid worker_done from its own worker terminal, deliveries acked (delivery_d198b6afc31b), workers released
-- worker substrate (A-29): grok 1.0.24 headless (`--prompt-file`, single-turn), one worker per axis, isolated parallel axes, no cross-rerank
+- tasks: task_e8fb7d7b6f7d (standards) · task_d854cb862862 (spec) · task_c3b7f4fa2143 (test-adequacy) — all `completed` (settlement receipts: CF-05-r3-dispatch-record.txt, "settlement receipts" section — task-list + per-dispatch status captured 2026-09-09T06:06Z)
+- settled dispatches: ctx_575e99a6648d / ctx_630ff02c7ee2 / ctx_ac069f3f25fe — each closed by a valid worker_done from its own worker terminal (coordinator relayed the workers' completion summaries with their task/dispatch ids), deliveries acked (delivery_d198b6afc31b), workers released
+- worker substrate (A-30): grok 1.0.24 headless (`--prompt-file`, single-turn), one worker per axis, isolated parallel axes, no cross-rerank
 - failures before the successful dispatch (R12 log; each a distinct diagnosed environmental cause):
-  1. claude workers x3 → agent_prompt_stalled: Claude workspace-trust dialog on the new worktree dir (fixed via A-28: trusted the dir in ~/.claude.json, backup /tmp/claude-json-bak-pcd-r3)
+  1. claude workers x3 → agent_prompt_stalled: Claude workspace-trust dialog on the new worktree dir (fixed via A-29: trusted the dir in ~/.claude.json, backup /tmp/claude-json-bak-pcd-r3)
   2. claude workers x3 → "Not logged in": Orca fallback shells are bash; ANTHROPIC_* live in ~/.zshenv (zsh-only)
   3. claude confirmed unusable machine-wide ("OAuth session expired and could not be refreshed" — re-login is maintainer-only) → pivot codex: account usage-limited until 2026-09-15 and configured model needs a newer CLI; TUI modal not answerable via orca send (agent_prompt_blocked)
   4. grok: authenticated, headless OK → SUCCESS (this record)
