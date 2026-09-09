@@ -1,7 +1,7 @@
 # Runtime policy — dispatch lifecycle + the operational gotchas that are the product
 
 The mechanics of turning a task into a worker, and the hard-won specifics that made clean-sweep /
-spec-to-ship reliable. These are not incidental; they are the value.
+spec-to-ship reliable — not incidental; they are the value.
 
 **Anti-drift rule:** this file describes the CLI the installed binary actually ships. After any Orca
 upgrade, the mechanics sections are re-witnessed against `orca skills get orchestration` /
@@ -15,21 +15,22 @@ subsequent preflight passes `--fork-point <that sha>` — a stale BASE is reject
 
 The normal supervised spawn is **`worker-start`**: `orca orchestration worker-start --task <id>
 --worktree new-child --name <unit-slug> --agent <id> --setup run --json` (compose: worktree create
-→ agent terminal → readiness → dispatch). It returns the created/reused effects plus the dispatch
-receipt; readiness settles on an observed `turn_started`, not on write acceptance. Use
-`--worktree current` or an exact existing worktree id for a fresh agent terminal without rerunning
-setup, and `--terminal <handle>` only to reuse an exact idle agent (it transfers cleanup ownership
-to the new dispatch). Refusals come back as typed codes (`task_not_startable` with
-`data.unmetDependencies`, `nested_worker_depth_exceeded`, …) — branch on the code, never on
-scraped exit status or stderr text.
+→ agent terminal → readiness → dispatch). On installed Orca the call exits 0 only when the worker
+is **ready**; the receipt is flat (`taskId`, `dispatchId`, `state`, `effects[]` — the agent
+terminal is the `effects[]` entry with `kind: terminal, role: agent`). `--worktree current` / an
+exact worktree id = a fresh agent terminal, no setup rerun; `--terminal <handle>` = reuse an exact
+idle agent (cleanup ownership transfers). Refusals come back as typed codes (`task_not_startable`
+with `data.unmetDependencies`, `nested_worker_depth_exceeded`, `consumer_fenced`, …) — branch on
+the code, never on scraped exit status or stderr text.
 
 `terminal create` + `dispatch --inject` remains the **low-level, deliberately unsupervised** lane:
-it creates no worker-lifecycle row, so `worker-stop`/`worker-release` never touch that process and
-`worker-list` completion accounting does not see it. Use it only for custom argv/topology that
-`worker-start` cannot express, and record the trade in the ledger. A bare shell target gets no
-`--inject` (the coordinator sends the prompt manually with `terminal send`); on current CLIs
-`terminal send` returns `input_accepted` / `turn_started` receipts (`--wait-submit` blocks for
-them) — the re-Enter folklore is dead, do not resend on silence.
+no worker-lifecycle row, so `worker-stop`/`worker-release` never touch that process and
+`worker-list` accounting does not see it. Use it for custom argv/topology `worker-start` cannot
+express (and for `PROFILE=ro` — worker-start would append Orca's YOLO flag, silently upgrading a
+read-only reviewer to a bypass one), and record the trade in the ledger. The bounded re-Enter
+submit loop stays the live mechanism on current CLIs (spawn_worker.sh); receipted sends
+(`--wait-submit` / `turn_started`) exist only in upstream's unreleased source — adopt them after
+that upgrade lands, not before.
 
 ## Worktree lineage: a subtree per unit
 
@@ -63,10 +64,10 @@ heartbeat gap (those are liveness questions, liveness-resume.md, not completion)
 
 ## Wrong-base detection (M-5 guardrail)
 
-`preflight.py --base <BASE>` before the first PR: BASE must NOT equal the default branch (compared
-on CANONICAL refs so `origin/main` can't alias past it), must be a real branch, must fork from the
-default's history. Every per-unit PR merges into BASE; if BASE is the default, fixes land straight
-on production and bypass the human promotion review. Report-only fleets use `--mode readonly`.
+`preflight.py --base <BASE>` before the first PR: BASE must NOT equal the default branch (canonical
+refs — `origin/main` can't alias past it), must be a real branch, must fork from the default's
+history. Every per-unit PR merges into BASE; if BASE is the default, fixes land straight on
+production and bypass the human promotion review. Report-only fleets use `--mode readonly`.
 
 ## Third-party review bots — wait → ingest → reconcile
 
@@ -98,8 +99,7 @@ count WITHIN the review round budget (acceptance-review.md); a bot re-push voids
 ## Builders never open PRs; integrators do
 
 A builder that self-opens a PR gets the DEFAULT branch as base and merges the fix to the WRONG
-branch. The build-blind integrator opens the PR against BASE and asserts `baseRefName==<BASE>`
-before merging.
+branch. The build-blind integrator opens the PR against BASE and asserts `baseRefName==<BASE>`.
 
 ## Commit hygiene
 Author = the maintainer, no Co-authored-by / agent trailers, small logical commits, gitleaks before
@@ -127,20 +127,20 @@ aliases (no effects; they return the recovery action); the loop is the manual co
   `check --peek` (unread) or `check --all` (full history). `task-list --brief` collapses
   whitespace and caps each echoed spec at 160 chars (`spec_truncated` marks shortened rows) for
   coordinator DAG sweeps; omit `--brief` when the full spec is needed.
-- `check --wait` on current CLIs interleaves `_keepalive` heartbeat objects into the `--json`
-  stream — parse saved streams with `runtime/scripts/pm.py <file>`, never naive `json.load`.
+- `check --wait` heartbeats go to **stderr** on current CLIs (`{"_keepalive":true,…}`), NEVER
+  stdout — pipe stdout only into parsers (`runtime/scripts/pm.py <file>` for saved streams).
 - Mutations accept `--retry-request <id>`: a lost response never risks a duplicate dispatch —
   re-issue with the same request id and the runtime dedupes (`request-show` to inspect). Use it on
   every non-idempotent orchestration call.
 - Group addresses (`@all`, `@idle`, `@claude`, `@codex`, `@grok`, `@cursor`, `@opencode`,
   `@gemini`, `@droid`, `@worktree:<id>`, …) are broadcast-only; EVERY lifecycle message
   (`worker_done`, `merge_ready`, `escalation`, `decision_gate` replies) goes to a concrete terminal
-  or `dispatch:<id>` address, never a group. A `worker_done` for the active `taskId`+`dispatchId`
+  or `dispatch:<id>`, never a group. A `worker_done` for the active `taskId`+`dispatchId`
   auto-completes the task; do NOT follow it with `task-update --status completed` (reserve manual
   status writes for recovery/override).
-- Do not expect `type=dispatch` or `type=handoff` rows from the runtime (prompt inject is PTY-only).
-  `merge_ready` is fleet-written only (merge-serialization.md). Put `reportPath` on `worker_done`
-  so the retained DB points at the evidence manifest (orca-dag-semantics.md).
+- No `type=dispatch`/`type=handoff` rows exist (prompt inject is PTY-only). `merge_ready` is
+  fleet-written only (merge-serialization.md). Put `reportPath` on `worker_done` so the retained
+  DB points at the evidence manifest (orca-dag-semantics.md).
 
 ## Progress surface (Orca-native, complements the ledger)
 

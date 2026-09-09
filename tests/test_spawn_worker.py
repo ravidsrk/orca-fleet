@@ -167,5 +167,104 @@ class TestSpawnWorkerRefusals(unittest.TestCase):
         self.assert_refused(rc, err, "only ready")
 
 
+class TestSpawnWorkerV3Lanes(unittest.TestCase):
+    """Runtime-modernization review (2026-09-09): the v3 worker-start lane had no test — its
+    --name-on-existing-worktree refusal, its un-parsed receipt, and the PROFILE=ro → YOLO leak
+    all shipped green. These stub orca per subcommand and assert the lane contracts."""
+
+    def _stub_orca(self, tmp, receipt=None, refuse=None):
+        payload = Path(tmp) / "task-list.json"
+        payload.write_text(json.dumps(task_list_payload(
+            {"id": "task_test", "status": "ready"})))
+        receipt = receipt or {"result": {"taskId": "task_test", "dispatchId": "ctx_x",
+                                         "state": "ready",
+                                         "effects": [{"kind": "terminal", "role": "agent",
+                                                      "id": "term_agent1"}]}}
+        rec = Path(tmp) / "receipt.json"
+        rec.write_text(json.dumps(receipt))
+        log = Path(tmp) / "orca-calls.log"
+        refuse = refuse or ""
+        stub = Path(tmp) / "orca"
+        stub.write_text(f"""#!/bin/sh
+echo "$@" >> "{log}"
+case "$*" in
+  *task-list*) cat "{payload}" ;;
+  *worker-start*)
+    if [ -n "{refuse}" ]; then
+      printf '%s' '{{"ok": false, "error": {{"code": "{refuse}"}}}}'
+      exit 1
+    fi
+    cat "{rec}" ;;
+  *dispatch-show*) printf '%s' '{{"result": {{"dispatch": {{"last_heartbeat_at": "now"}}}}}}' ;;
+  *terminal*create*) printf '%s' '{{"result": {{"terminal": {{"handle": "term_shell1"}}}}}}' ;;
+  *) printf '%s' '{{"result": {{}}}}' ;;
+esac
+""")
+        stub.chmod(0o755)
+        return log
+
+    def _run(self, tmp, args, env_extra):
+        env = {"PATH": f"{tmp}:/usr/bin:/bin", "SP": tmp,
+               "SETTLE_SECS": "0", "SUBMIT_SECS": "0", "HB_POLL_SECS": "0"}
+        env.update(env_extra)
+        return subprocess.run(["bash", str(SPAWN), *args], env=env,
+                              capture_output=True, text=True)
+
+    def test_worker_start_lane_omits_name_on_existing_worktree(self):
+        # P4: creation flags (--name et al.) are rejected for current/existing worktrees.
+        with tempfile.TemporaryDirectory() as tmp:
+            log = self._stub_orca(tmp)
+            p = self._run(tmp, ["task_test", "path:/tmp/wt", "t"],
+                          {"PROFILE": "rw", "ORCA_COORD_ALLOW_AUTONOMOUS_WRITE": "1"})
+            self.assertEqual(p.returncode, 0, p.stderr)
+            calls = log.read_text()
+            self.assertIn("orchestration worker-start", calls)
+            ws_call = next(l for l in calls.splitlines() if "worker-start" in l)
+            self.assertNotIn("--name", ws_call)
+            self.assertIn("--task task_test", ws_call)
+
+    def test_worker_start_lane_names_new_child_worktrees(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            log = self._stub_orca(tmp)
+            p = self._run(tmp, ["task_test", "new-child", "t"],
+                          {"PROFILE": "rw", "ORCA_COORD_ALLOW_AUTONOMOUS_WRITE": "1"})
+            self.assertEqual(p.returncode, 0, p.stderr)
+            ws_call = next(l for l in log.read_text().splitlines() if "worker-start" in l)
+            self.assertIn("--name", ws_call)
+
+    def test_ro_never_takes_worker_start(self):
+        # P6: worker-start appends Orca's YOLO flag by default — a PROFILE=ro review worker
+        # must run the custom-argv lane with the ro command, never the supervised yolo launch.
+        with tempfile.TemporaryDirectory() as tmp:
+            log = self._stub_orca(tmp)
+            p = self._run(tmp, ["task_test", "path:/tmp/wt", "t"], {"PROFILE": "ro"})
+            self.assertEqual(p.returncode, 0, p.stderr)
+            calls = log.read_text()
+            self.assertNotIn("worker-start", calls)
+            self.assertIn("--permission-mode plan", calls)
+
+    def test_flat_receipt_parses_handle_from_effects(self):
+        # P5: the worker-start receipt is flat (state/dispatchId/effects[]), not worker.* — the
+        # agent terminal handle comes from effects[kind=terminal, role=agent].
+        with tempfile.TemporaryDirectory() as tmp:
+            self._stub_orca(tmp)
+            p = self._run(tmp, ["task_test", "path:/tmp/wt", "t"],
+                          {"PROFILE": "rw", "ORCA_COORD_ALLOW_AUTONOMOUS_WRITE": "1"})
+            self.assertEqual(p.returncode, 0, p.stderr)
+            self.assertIn("HANDLE=term_agent1", p.stdout)
+            self.assertIn("DISPATCH=ctx_x", p.stdout)
+
+    def test_typed_refusal_is_exit_2(self):
+        # P7: task_not_startable is a usage/policy refusal (exit 2, SPAWN=REFUSED), not a
+        # spawn failure (exit 1) — coordinators branch on it.
+        with tempfile.TemporaryDirectory() as tmp:
+            self._stub_orca(tmp, refuse="task_not_startable")
+            p = self._run(tmp, ["task_test", "path:/tmp/wt", "t"],
+                          {"PROFILE": "rw", "ORCA_COORD_ALLOW_AUTONOMOUS_WRITE": "1"})
+            self.assertEqual(p.returncode, 2, p.stderr)
+            self.assertIn("SPAWN=REFUSED", p.stderr)
+            self.assertIn("task_not_startable", p.stderr)
+
+
 if __name__ == "__main__":
     unittest.main()

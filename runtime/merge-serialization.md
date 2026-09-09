@@ -7,7 +7,7 @@ strict order, evidence-fresh.
 ## Signal
 
 Workers/integrators emit `send --to <conductor-handle> --subject "merge_ready <unit>" --type
-merge_ready --payload '{"unit":"<id>","pr":123,"branch":"<head>","reviewed_sha":"<sha>","base":"<BASE>"}'`
+merge_ready --payload '{"unit":"<id>","pr":123,"branch":"<head>","reviewed_sha":"<sha>","reviewed_wtree":"<tree sha of the reviewed content>","base":"<BASE>"}'`
 (`--to` and `--subject` are mandatory; `--payload` must be real JSON, not shorthand). `merge_ready` is a first-class Orca message type with NO built-in behavior — the runtime
 delivers it and stops, so the fleet owns the queue semantics. (merge_ready to a group is rejected;
 send to the conductor handle.)
@@ -17,10 +17,13 @@ send to the conductor handle.)
 1. BOARD: `check --wait --types merge_ready,worker_done,escalation` → append in ARRIVAL ORDER.
 2. FRESH? head of queue: `gh pr view <n> --json headRefOid,baseRefName,state` —
    state OPEN · `baseRefName == BASE` (never merge a PR aimed at default) ·
-   `headRefOid == reviewed_sha` (reviewed-sha-freshness.md). Mismatch → bounce to re-review, requeue.
+   `headRefOid == reviewed_sha` (reviewed-sha-freshness.md). Mismatch → compare TREES before
+   bouncing (`git rev-parse <head>^{tree}` vs the payload's `reviewed_wtree`): equal trees (a
+   content-identical rebase) keep the review; different trees → bounce to re-review, requeue.
 3. MERGE (one at a time, commits preserved): conflicts/behind → rebase onto origin/BASE as a UNION
-   preserving both intents, re-run gates, push with `--force-with-lease` (never bare force) — but a
-   rebase VOIDS the review, so the PR leaves the train and re-boards on a new merge_ready. Clean →
+   preserving both intents, re-run gates, push with `--force-with-lease` (never bare force). A
+   content-CHANGING rebase VOIDS the review — the PR leaves the train and re-boards on a new
+   merge_ready; a content-identical one keeps it (the tree test above). Clean →
    `gh pr merge <n> --merge --delete-branch`. `--admin` only under a recorded once-per-run human
    grant when a merge-trap check hangs (gate-classification.md), never routinely.
 4. VERIFY by ancestry, not grep: `git merge-base --is-ancestor <mergeCommit> origin/<BASE>` AND

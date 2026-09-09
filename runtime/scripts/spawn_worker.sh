@@ -1,15 +1,19 @@
 #!/usr/bin/env bash
 # spawn_worker.sh — fail-closed Orca worker dispatch for fleet coordinators. (v3)
 #
-# v3 contract (2026-09-09 runtime modernization):
+# v3 contract (2026-09-09 runtime modernization, re-witnessed against the INSTALLED Orca):
 #   - the supervised spawn path is `worker-start` (compose: worktree + agent terminal + readiness
-#     + dispatch, one call; readiness settles on an observed turn_started). Refusals are TYPED
-#     codes in the error envelope (task_not_startable, nested_worker_depth_exceeded, …) — branch
-#     on the code, never on stderr text.
-#   - WORKER_CMD / legacy CLAUDE_CMD / CODEX_CMD overrides keep the custom-argv lane: terminal
+#     + dispatch, one call; on installed Orca the call exits 0 only when the worker is READY).
+#     Refusals are TYPED codes in the error envelope (task_not_startable carries
+#     data.unmetDependencies; nested_worker_depth_exceeded; consumer_fenced) — branch on the code,
+#     never on stderr text.
+#   - PROFILE=ro NEVER takes worker-start: Orca's default agent launch appends the YOLO flag, which
+#     would silently turn a read-only review worker into a permission-bypass one. ro runs the
+#     custom-argv lane with the profile's computed ro command (no CMD_OVERRIDE opt-in — it IS the
+#     profile, not an override).
+#   - WORKER_CMD / legacy CLAUDE_CMD / CODEX_CMD overrides run the custom-argv lane: terminal
 #     create + dispatch --inject (deliberately UNSUPERVISED — no worker-lifecycle row; record the
-#     trade in the ledger per dispatch-lifecycle.md) + terminal send (current CLIs return
-#     input_accepted / turn_started receipts; the bounded re-Enter loop is legacy-only).
+#     trade in the ledger per dispatch-lifecycle.md) + the bounded Enter submit loop.
 #   - fail-closed: any failed step exits nonzero with a SPAWN=FAILED diagnostic line on stderr
 #   - respects the task DAG: never forces `ready`; `--mark-ready` is an explicit opt-in and
 #     only applies when every declared dep is already completed
@@ -269,37 +273,72 @@ case "$status" in
     ;;
 esac
 
-# --- spawn: supervised worker-start for Orca-flagged agents; the custom-argv lane for overrides ---
+# --- spawn lanes ---------------------------------------------------------------
+# Lane selection:
+#   override set (WORKER_CMD/legacy)      → custom-argv lane (opt-in checked above)
+#   PROFILE=ro                            → custom-argv lane with the profile's ro command —
+#                                           worker-start appends Orca's YOLO flag by default, which
+#                                           would silently turn a read-only review worker into a
+#                                           permission-bypass one. ro NEVER takes worker-start.
+#   PROFILE=rw|danger, no override        → supervised worker-start lane
 step=spawn
 ws="$SP/ws-$safe_title.json"
-if [ -z "$override" ]; then
+if [ -z "$override" ] && [ "$PROFILE" != "ro" ]; then
   # The supervised path: one call composes worktree + agent terminal + readiness + dispatch.
-  # Readiness settles on an observed turn_started (not write acceptance); refusals are typed
-  # codes in the error envelope (orca_json already fails closed on them; the code is printed
-  # in the diagnostic so the coordinator can branch on it, e.g. task_not_startable).
-  # `--name` doubles as the worktree name when the selector asks for a new child worktree.
-  orca_json "$ws" orchestration worker-start --task "$task" --worktree "$sel" --name "$safe_title" --agent "$agent"
+  # On installed Orca the call exits 0 only when the worker is READY. Refusals are typed codes in
+  # the error envelope. Creation flags (--name et al.) are REJECTED for current/existing
+  # worktrees — pass --name only when the selector asks for a new worktree.
+  name_args=()
+  case "$sel" in
+    new-child|new-top-level) name_args=(--name "$safe_title") ;;
+  esac
+  # worker-start gets its own envelope handling: typed policy refusals (task_not_startable with
+  # unmet deps, nested_worker_depth_exceeded, consumer_fenced) are exit 2 (usage/policy), not 1.
+  if ! orca orchestration worker-start --task "$task" --worktree "$sel" ${name_args[@]+"${name_args[@]}"} --agent "$agent" --json > "$ws" 2>&1; then
+    code=$(python3 - "$ws" <<'PY'
+import json, sys
+try:
+    d = json.load(open(sys.argv[1]))
+    print((d.get("error") or {}).get("code") or "")
+except Exception:
+    print("")
+PY
+)
+    case "$code" in
+      task_not_startable|nested_worker_depth_exceeded|consumer_fenced|dispatch_inactive)
+        echo "SPAWN=REFUSED task=${task} worker-start refused: ${code} (policy/usage — see the receipt in $ws)" >&2
+        exit 2 ;;
+      *)
+        echo "SPAWN=FAILED task=${task} step=${step} rc=1 — worker-start failed (receipt in $ws)" >&2
+        exit 1 ;;
+    esac
+  fi
   step=verify-ready
   python3 - "$ws" <<'PY'
 import json, sys
 d = json.load(open(sys.argv[1]))
 r = d.get("result", d)
-w = r.get("worker", r)
-ready = r.get("ready", w.get("ready"))
-if ready is False:
-    print("worker-start returned not-ready — inspect its stage/effects before retrying", file=sys.stderr)
+# The receipt is FLAT: taskId, dispatchId, state ("ready"), effects[], residualResources.
+state = r.get("state") or (r.get("worker") or {}).get("state")
+did = r.get("dispatchId") or r.get("dispatch_id") or ""
+h = r.get("agentTerminalHandle") or ""
+if not h:
+    for e in r.get("effects") or []:
+        if e.get("kind") == "terminal" and e.get("role") == "agent":
+            h = e.get("id") or ""
+            break
+if state == "failed" or (state is not None and state != "ready"):
+    print(f"worker-start state={state} — inspect stage/effects before retrying", file=sys.stderr)
     raise SystemExit(1)
-h = w.get("agent_terminal_handle") or w.get("agentTerminalHandle") or ""
-did = w.get("dispatch_id") or w.get("dispatchId") or ""
-print(f"HANDLE={h} READY={ready}")
+print(f"HANDLE={h} READY={state or 'exit0'}")
 print(f"DISPATCH={did}")
 PY
 else
-  # --- override lane: custom argv → terminal create + dispatch --inject + manual send ---------
+  # --- custom-argv lane (overrides + PROFILE=ro): terminal create + dispatch --inject ----------
   # Deliberately UNSUPERVISED: no worker-lifecycle row; worker-list accounting will not see this
   # worker and worker-stop/release never close it — the ledger records the trade
-  # (dispatch-lifecycle.md). The bounded Enter loop below is legacy-only: current CLIs return
-  # input_accepted / turn_started receipts from terminal send (--wait-submit blocks for them).
+  # (dispatch-lifecycle.md). The bounded Enter loop below is the submit check for this lane
+  # (older CLIs ack the send without receipts; the loop stays bounded and safe).
   step=create-terminal
   tj="$SP/sw-$safe_title.json"
   orca_json "$tj" terminal create --worktree "$sel" --title "$title" --command "$cmd"

@@ -17,14 +17,13 @@ the replacement ONLY — never dual-send to the old and new handles.
 ## WATCH (self-healing while alive)
 
 - Poll `check --wait --types worker_done,escalation,question` ({count:0} timeout is a checkup
-  tick, not an error). The `--wait` stream interleaves `_keepalive` objects with message batches,
-  which breaks naive `json.load` — parse saved streams with `runtime/scripts/pm.py <file>`.
-- Judge liveness from the runtime, not folklore: `worker-list --run <id>` carries
-  `projection.liveness` (live / unverifiable / exited) and `projection.attention`
-  (`requiresAction` + a literal `nextAction`). `worker-show --dispatch <id>` is the per-worker
-  truth — `ready` means keep waiting; `failed`/`stopped` means replace. A worker blocked on a
-  human prompt is REPORTED as such (blocked-on-human), which is a gate-classification problem,
-  not a respawn.
+  tick, not an error). Keepalives (`{"_keepalive":true,…}`) go to **stderr**, never stdout — pipe
+  stdout only into parsers (`runtime/scripts/pm.py <file>` for saved stdout streams).
+- Judge liveness from the runtime, not folklore: `worker-list --run <id>` shows each worker's
+  `dispatchStatus` / `workerState` / `terminalState`; `worker-show --dispatch <id>` is the
+  per-worker truth — `ready` means keep waiting; `failed`/`stopped` means replace; a worker
+  blocked on a human prompt shows `observation.agentWait`, which is a gate-classification
+  problem, not a respawn.
 - Respawn a dead worker: log the evidence + a doctor-owned attempt count (NOT the runtime failure
   budget) → **reflection-before-retry** (below) → `task-update → ready` ONLY after the evidence
   line → `worker-start --task <id> --retry-of <failed dispatch id>` with an explicit fresh
@@ -43,8 +42,8 @@ the replacement ONLY — never dual-send to the old and new handles.
   reassign to a fresh worker with a rewritten TASK, or park. Counted toward the 3-attempt cap.
 - Re-confirm `ORCA_COORD_ALLOW_DANGER` before respawning a danger-profile worker.
 - Lost preamble ≠ dead worker: recover the dispatched TASK with `dispatch-show` and
-  re-deliver via `terminal send` (current CLIs return `input_accepted` / `turn_started`
-  receipts — `--wait-submit` blocks for them; do not blind-re-Enter).
+  re-deliver via `terminal send` (current CLIs ack the write; send receipts land in a later
+  Orca — do not blind-re-Enter).
 - NEVER run `orca orchestration reset` mid-run — it wipes the task/dispatch state every recovery
   path below depends on. There is no mid-run situation it fixes that WATCH/RESUME doesn't.
 

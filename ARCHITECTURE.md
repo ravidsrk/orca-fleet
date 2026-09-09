@@ -75,9 +75,9 @@ them. These are preserved as runtime policies, not abstracted away:
 - Ledger boolean gates, `CODE_CLOSED`/`VERIFY_AT_SCALE`, DECISIONS.md, CONTEXT HANDOFF —
   `runtime/ledger-contract.md`
 - wrong-base detection (BASE ≠ default, canonical-ref comparison) — `runtime/dispatch-lifecycle.md`
-- coordinator inbox mechanics + worktree retirement (one message per `check`, read-marking,
+- coordinator inbox mechanics + worktree retirement (batched Delivery + ack, read-marking,
   broadcast-only groups, verified teardown) — `runtime/dispatch-lifecycle.md`
-- reviewed-SHA freshness (a rebase voids the review) — `runtime/reviewed-sha-freshness.md`
+- reviewed-SHA freshness (a rebase voids the review unless the content tree is unchanged) — `runtime/reviewed-sha-freshness.md`
 - ledger recovery / crash-resume from provenance, cross-run anti-inflation — `runtime/liveness-resume.md`
 - bot-autofix non-convergence (Cursor BugBot Autofix loops) — `runtime/dispatch-lifecycle.md`
 - bounded review loops, hot-file ownership, merge serialization — `runtime/merge-serialization.md`
