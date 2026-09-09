@@ -28,7 +28,7 @@ Every standing finding that sits between HEAD and `DEFINITION.md`. Decisions fol
 
 ## Cut line
 
-**Above (plan):** G-01..G-08, G-11..G-13 (G-06..G-08, G-11..G-13 closed post-launch). Run 2 adds G-15..G-18 (T-09 agent; H-04 / H-05 / H-07 human). Run 3 closes G-16 (T-13).
+**Above (plan):** G-01..G-08, G-11..G-13 (G-06..G-08, G-11..G-13 closed post-launch). Run 2 adds G-14/T-12, G-15..G-18 (T-09 agent; H-04 / H-05 / H-07 human). Run 3 closes G-16 (T-13).
 
 **Below:** G-09 DEFER (register entry unchanged; its tracker issue #212 closed at the maintainer's request — the field-proof plan in `docs/runs/README.md` is the live tracker, A-27). G-10 closed 2026-09-02 (T-10 #228, T-11 drill #229). G-14 closed 2026-09-02 (T-12). Run 3 adds G-19 / G-20 / G-21 DEFER (to be filed in S5-C). No ACCEPT remains.
 
@@ -46,4 +46,4 @@ No CUT (nothing half-built to delete). No ACCEPT at S0.
 | G-11 | https://github.com/ravidsrk/orca-fleet/issues/214 |
 | G-12 | https://github.com/ravidsrk/orca-fleet/issues/215 |
 | G-13 | https://github.com/ravidsrk/orca-fleet/issues/216 |
-| G-14 (ACCEPT expiry, filed 2026-09-02 by T-09) | https://github.com/ravidsrk/orca-fleet/issues/226 |
+| G-14 (was ACCEPT expiry; closed on evidence 2026-09-02 by T-12) | https://github.com/ravidsrk/orca-fleet/issues/226 |
