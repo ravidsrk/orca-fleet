@@ -53,10 +53,23 @@ class TestDocsNavigation(unittest.TestCase):
 
     def test_ops_doc_names_accounts_and_incident(self):
         # Issue #215: bus-factor-1 with no inventory and no 2 a.m. paragraph.
+        # Issue #233 (G-20): step 4's merge-shaped rollback was unbound —
+        # reverting `git revert -m 1` stayed green. Pin it on this test; it
+        # already owns the 2 a.m. Incident section.
         text = (DOCS / "ops.md").read_text(encoding="utf-8")
         for tok in ("GitHub", "plugin marketplace", "greptile", "agentskills",
-                    "Incident"):
+                    "Incident", "Rollback"):
             self.assertIn(tok, text, f"docs/ops.md lost its {tok!r} surface")
+        # Scoped per #244 review: the full actionable command must live in the
+        # numbered rollback step itself — the bare substring anywhere in the
+        # doc (e.g. only in explanatory prose) is not enough.
+        m = re.search(r"(?ms)^\d+\. Rollback.*?(?=^\d+\. |\Z)", text)
+        step = m.group(0) if m else ""
+        self.assertIn(
+            "git revert -m 1 <merge-sha>",
+            step,
+            "docs/ops.md rollback step lost its actionable -m 1 command",
+        )
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
         self.assertRegex(
             readme,

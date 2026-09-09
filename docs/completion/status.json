@@ -1272,7 +1272,7 @@
     {
       "id": "A-26",
       "phase": "P4",
-      "decision": "G-14 ACCEPT withdrawn; gap closed on evidence (rollback documented + rehearsed twice; service-style drill N/A: no deploy target)",
+      "decision": "G-14 ACCEPT withdrawn; gap closed on evidence (rollback documented and rehearsed against a real merge commit (T-12); two earlier single-parent rehearsals superseded for the merge shape; service-style drill N/A: no deploy target)",
       "rejected": [
         "keep ACCEPT + open expiry issue"
       ],

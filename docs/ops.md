@@ -43,15 +43,19 @@ to `main` plus the plugin copy in `.claude-plugin/`.
    working-tree copy. Generate the pair with
    `runtime/scripts/dispatch-sign.py gen-key` **off the clone**; discard the
    old private seed. Security reports follow [SECURITY.md](../SECURITY.md).
-4. Rollback = `git revert`. There is no hosted service, staging, or deploy
-   target to roll back ("deploy" is merge to `main`, above), so a bad merge
-   is undone the way it landed: `git revert -m 1 <merge-sha>` on a branch,
-   then a PR through the normal gates — never a force-push or a history
-   rewrite on `main`. Regenerate badges (`python3 scripts/gen-badges.py`) if
-   the revert changes counts. Rehearsed on a scratch clone against a real
-   merge commit on 2026-09-02
+4. Rollback = `git revert -m 1 <merge-sha>` on a branch, then a PR
+   through the normal gates — never a force-push or a history rewrite
+   on `main`. There is no hosted service, staging, or deploy target to
+   roll back: `.github/workflows/` contains only `validate.yml` and
+   `alert-on-failure.yml` (no deploy job); "deploy" is merge to `main`.
+   A bad merge is undone the way it landed. Regenerate badges
+   (`python3 scripts/gen-badges.py`) if the revert changes counts.
+   Rehearsed on a scratch clone: 2026-09-01
+   ([transcript](completion/evidence/P0-rollback-rehearsal.txt)) and
+   2026-09-02
+   ([transcript](completion/evidence/P0-r2-rollback-rehearsal.txt))
+   (both single-parent reverts), plus the 2026-09-02 merge-shaped rehearsal
    ([transcript](completion/evidence/T-12-rollback-merge-rehearsal.txt) —
-   it also shows the plain `git revert <merge-sha>` failure mode); the two
-   earlier rehearsals reverted a single-parent commit.
+   it also shows the plain `git revert <merge-sha>` failure mode).
    If a deploy target ever appears, this step gains a staging deploy →
    rollback rehearsal and the completion register re-opens G-14 under P4.

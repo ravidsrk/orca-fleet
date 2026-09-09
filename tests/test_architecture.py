@@ -286,6 +286,15 @@ class TestArchitecture(unittest.TestCase):
         release = (PLAYBOOKS / "release.md").read_text(encoding="utf-8")
         self.assertIn("accountable:", release)
 
+    def test_release_playbook_pins_merge_shaped_rollback(self):
+        # Plain `git revert` is rejected on a merge commit (T-12 transcript:
+        # "error: commit … is a merge but no -m option was given"). Pin the
+        # full command, so reverting that fix — or keeping the substring only
+        # in inert prose while losing the actionable form — cannot stay green
+        # (#233; scoped per #244 review).
+        release = (PLAYBOOKS / "release.md").read_text(encoding="utf-8")
+        self.assertIn("git revert -m 1 <merge-sha>", release)
+
     def test_chain_terminals_are_decidable_by_rule(self):
         # #129: the chaining gate listed degraded terminals as an open ellipsis. #147 review: the rule
         # wrongly degraded `awaiting-maintainer-merge` (oss-contribute's NORMAL terminal). #148 review:
