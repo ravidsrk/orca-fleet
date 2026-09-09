@@ -12,6 +12,9 @@ truth is `.claude-plugin/plugin.json`.
   binary — per-claim receipts, archived refutations for removed claims, substrate-block
   classification; terminals `PINNED` / `PINNED-WITH-PARKED` (from the 2026-09-09 upstream
   adoption audit).
+- `floor-it` mission: install a written, numbered, tool-enforced quality bar — frozen
+  CONSTRAINTS table, one tool per dimension, prove-fires negative control per gate, GUARD
+  diff-watch against bar-lowering; terminals `FLOORED` / `FLOORED-WITH-PARKED`.
 
 ## [0.6.1] - 2026-09-09
 

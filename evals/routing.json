@@ -267,6 +267,13 @@
       "expected_mission": "pin-it",
       "type": "positive",
       "reason": "Runtime-doctrine re-pin after a control-plane upgrade maps to pin-it."
+    },
+    {
+      "id": 39,
+      "prompt": "Set a quality bar for this repo and make CI enforce it — our bar keeps slipping.",
+      "expected_mission": "floor-it",
+      "type": "positive",
+      "reason": "Installing an enforced, written quality bar maps to floor-it; floor-it is in SPECIALIST_MISSIONS so dimension vocabulary no longer steals the route."
     }
   ]
 }

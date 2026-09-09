@@ -90,6 +90,11 @@ MISSION_TRIGGERS = {
         "policy lags", "orca updated", "orca upgrade", "dispatch docs are stale",
         "receipt shape", "re-witness",
     ],
+    "floor-it": [
+        "quality bar", "set the bar", "define our standards", "make ci enforce",
+        "quality gates", "enforce the budget", "constraint-driven",
+        "bar keeps slipping", "constraints.md", "stop shipping junk",
+    ],
 }
 
 # Word triggers. Plain triggers are deliberately prefix-tolerant substrings ("harden" covers
@@ -255,6 +260,7 @@ def validate_all() -> list[str]:
 # Missions that require specific technical vocabulary to override general intent.
 SPECIALIST_MISSIONS = {
     "harden-it", "speed-it", "modernize-it", "prove-it", "deflake-it",
+    "floor-it",
 }
 
 
