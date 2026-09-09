@@ -1,5 +1,10 @@
 # Upstream adoption audit — orca-fleet vs its four skill sources
 
+> **Dated snapshot (2026-09-09).** A point-in-time adoption audit against commit-pinned primary
+> sources. Upstream repos move weekly — the Addy security skill alone moved three times in the
+> ten days before this audit — so read stale/current rows as of the pinned revisions, not as a
+> live matrix. See [ARCHITECTURE.md](../../ARCHITECTURE.md) for current catalog state.
+
 **Date:** 2026-09-09 · **Method:** cloned all four upstreams at current HEAD; four parallel deep
 audits (one per source), every claim anchored to `file:line` on both sides; adoption points in
 orca-fleet traced from README:469-471, playbooks, runtime policies, and mission frontmatter.
