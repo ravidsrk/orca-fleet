@@ -1034,7 +1034,7 @@
       "owner": "agent",
       "status": "done",
       "branch": "ravidsrk/p7-completion-run3",
-      "pr": null,
+      "pr": "https://github.com/ravidsrk/orca-fleet/pull/238",
       "commit": null,
       "evidence": [
         "docs/completion/evidence/CF-05-r3-happy-review-it.txt",
@@ -1430,7 +1430,7 @@
     }
   ],
   "definition_text_at": "67c1707",
-  "run_pr": null,
+  "run_pr": "https://github.com/ravidsrk/orca-fleet/pull/238",
   "issues": {
     "created": 6,
     "updated": 0,
