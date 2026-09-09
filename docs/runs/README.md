@@ -29,7 +29,7 @@ ASSERTED until ≥3 runs at differing WIP settings measure verified-CLOSED-per-h
 
 ## Field-proof plan (#212)
 
-Nine missions are `doctrine-only`. Each advance is a **mission run** — Orca up, human gates
+Thirteen missions are `doctrine-only`. Each advance is a **mission run** — Orca up, human gates
 answered, a report filed from [TEMPLATE.md](TEMPLATE.md) — never a relabel: the scoped
 demonstrations under [`docs/reports/`](../reports/) say so themselves. Targets that make each run
 concrete, self-run candidates first:
@@ -45,6 +45,10 @@ concrete, self-run candidates first:
 | access-it | needs a web UI — an external repo with an axe-core baseline | external-run | `CONFORMANT` (or `-WITH-MANUAL-PARKED`) | a target + Orca |
 | deflake-it | needs an observed flake — this suite ran flake-free in both audits; an external suite with a known flake | external-run | `STABLE` | a target + Orca |
 | modernize-it | needs a lockfile — this catalog has no dependencies; an external repo with one | external-run | `CURRENT` | a target + Orca |
+| pin-it | this catalog's `runtime/*.md` + `runtime/scripts/` against the installed Orca CLI — the audit's §2.1 claim inventory is the pre-cut backlog | self-run | `PINNED` (or `-WITH-PARKED`) | Orca (the re-witness oracle) |
+| floor-it | this catalog: dimensions = test suite, validate.py, ruff, badge freshness — most are already wired, so the run is prove-fires + GUARD (injected violation must RED each gate; the check_constraints diff-watch is new) | self-run | `FLOORED` | Orca; the freeze gate (human) |
+| reshape-it | this catalog's churn-hot modules (`git log --since=90d`) — likely `runtime/scripts/verify.py` / `scripts/validate.py`; characterization net pinned first | self-run | `RESHAPED` | Orca; the CONFIRM-SURFACE gate (human) |
+| field-test-it | needs a device/emulator app — an external mobile repo | external-run | `FIELD-PROVEN` | a target + a paired device |
 
 A run's report goes through the same gates as any change (PR, review bot, `validate.py`), and
 `proof_status --check` keeps every tier honest until the report lands.

@@ -8,6 +8,18 @@ truth is `.claude-plugin/plugin.json`.
 
 ### Added
 
+- Runtime policy layer modernized to the current Orca orchestration model (#251): worker-start
+  supervised spawn path with typed refusals, Run-scoped fleets, batched Delivery + ack inbox,
+  worker-release/retain lifecycle, --retry-request idempotency, ask --resume same-id, spawn_worker.sh
+  v4 (ro never takes worker-start — it would launch Orca's YOLO default), and the
+  `reviewed_wtree` content-fingerprint equivalence class (a content-identical rebase no longer
+  voids a review), verified end-to-end in verify.py + merge-serialization.
+- Audit quick wins (#250): diagnose.md "Redact first", round-by-round grilling in
+  decide-and-freeze, api-contract + simplification review lenses, security lens rate-limit +
+  destructive-path target validation, speed-it keep-or-revert + attempt ledger, map-it
+  Prototype/Task ticket types, compound-learn environment-improvement categories, release.md
+  doc-sync unit, sandbox-policy Never-row target validation.
+
 - `pin-it` mission: re-witness and re-pin runtime-mechanics doctrine against the installed Orca
   binary — per-claim receipts, archived refutations for removed claims, substrate-block
   classification; terminals `PINNED` / `PINNED-WITH-PARKED` (from the 2026-09-09 upstream

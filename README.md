@@ -168,9 +168,16 @@ flowchart TD
     B -->|outdated dependencies| MOD[📦 modernize-it]
     B -->|untested critical paths| PROVE[🧪 prove-it]
     B -->|flaky suite| FLAKE[🎯 deflake-it]
+    B -->|no enforced quality bar| FLOOR[🧱 floor-it<br/>written bar, tools that fire]
+    B -->|architecture erosion / god files| RESHAPE[🧬 reshape-it<br/>deepen, behaviour unchanged]
+    B -->|compliance evidence| ATTEST[📋 attest-it]
+    B -->|accessibility| ACCESS[♿ access-it]
+    B -->|breaks on a real device| FIELD[📱 field-test-it<br/>on-device proof]
     S --> C{A question, not a change?}
     C -->|is this diff ready to merge| REV[🔍 review-it<br/>read-only verdict]
     C -->|why is this happening| RC[🔬 root-cause<br/>diagnosis only]
+    S --> D{our own tooling drifted?}
+    D -->|policy lags the Orca binary| PIN[📌 pin-it<br/>re-witness + re-pin doctrine]
 ```
 
 </details>
@@ -380,6 +387,10 @@ Beyond that, each mission declares its own tooling in its `SKILL.md` frontmatter
 | prove-it     | a runnable suite + a coverage tool                                        |
 | deflake-it   | a runnable suite; CI history via `gh run list`                            |
 | ship-it      | deploy tooling + a canary surface for the release states                  |
+| pin-it       | the installed Orca CLI itself (`orca skills get` is the re-witness oracle) |
+| floor-it     | the repo's own counters per dimension (coverage runner, scanner, harness, linter) + CI write on BASE |
+| reshape-it   | the repo's mutation tooling (or the hand-mutant fallback) + a runnable suite |
+| field-test-it | an Orca emulator skill (`orca-emulator` / `orca-emulator-android`) or a paired device; the app's build toolchain |
 
 ## Repository layout
 
