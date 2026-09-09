@@ -26,6 +26,7 @@ for the human deciding what to run and what to expect.
 | ♿ [access-it](access-it.md)       | A frozen page/flow set driven to WCAG 2.2 AA with a revert-to-violation control |
 | 📌 [pin-it](pin-it.md)             | Runtime doctrine re-witnessed against the installed binary — every claim receipted |
 | 🧱 [floor-it](floor-it.md)         | A written, numbered quality bar — every dimension tool-enforced and proven to fire |
+| 🧬 [reshape-it](reshape-it.md)     | Hot modules deepened behind smaller interfaces, behaviour proven unchanged |
 
 Not sure which one? The [decision flowchart in the README](../../README.md#which-mission-do-i-want)
 routes by what you have in hand: a goal, a set of known problems, or a question. Every guide

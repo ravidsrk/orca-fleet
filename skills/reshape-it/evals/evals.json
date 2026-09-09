@@ -1,0 +1,41 @@
+{
+  "skill_name": "reshape-it",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "The billing module is a god file — every change touches twelve imports. Deepen the hot modules without breaking behaviour.",
+      "expected_output": "Should route to reshape-it. Should scan a churn-weighted shallowness inventory, confirm the target surface with the human, pin a mutation-audited characterization net BEFORE restructuring, deepen one module per unit with build-blind review, and terminate RESHAPED or RESHAPED-WITH-PARKED.",
+      "assertions": [
+        "Routes to reshape-it",
+        "Ranks modules by churn x interface width, not taste",
+        "Confirms the target surface with a human before touching code",
+        "Characterization net is pinned and mutation-audited before any restructure",
+        "One module-deepening per unit, net green at both SHAs",
+        "Terminal is RESHAPED or RESHAPED-WITH-PARKED"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Upgrade all dependencies to latest and fix the deprecations.",
+      "expected_output": "Should NOT route to reshape-it. Dependency/framework version upgrades are modernize-it. reshape-it restructures a module's interface with behaviour unchanged; it does not chase upstream versions.",
+      "assertions": [
+        "Does not route to reshape-it",
+        "Routes to modernize-it",
+        "Distinguishes interface deepening from dependency upgrades"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "These five known bugs from the audit need fixing — drain the list.",
+      "expected_output": "Should NOT route to reshape-it. A finite findings backlog is clean-sweep. reshape-it addresses architectural erosion (shallow hot modules), not enumerable defects.",
+      "assertions": [
+        "Does not route to reshape-it",
+        "Routes to clean-sweep",
+        "Distinguishes a findings backlog from module-interface erosion"
+      ],
+      "files": []
+    }
+  ]
+}

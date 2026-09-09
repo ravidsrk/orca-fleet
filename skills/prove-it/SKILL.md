@@ -8,7 +8,9 @@ description: >-
   looping until every confirmed critical path is mutation-audited. Use when "close the test gap",
   "cover the critical paths", "test debt", characterization/mutation testing — it owns missing
   coverage, not broken tests. Not for flake eradication (deflake-it), a deterministically failing
-  test (clean-sweep), or building features with tests from the start (ship-it).
+  test (clean-sweep), building features with tests from the start (ship-it), or restructuring a
+  module's interface once the net exists (reshape-it — its DEEPEN units consume this mission's
+  characterization net).
 license: MIT
 proof: doctrine-only
 autonomy: L4

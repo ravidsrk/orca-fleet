@@ -67,9 +67,8 @@ Rules:
   advisory), not to whatever the worker chose to list, and not to the whole mission source. The
   denominator is TWO-LEVEL:
   - **unit level** (this field): `contract.criterion_ids` is the COMPLETE id set of the unit's own
-    task spec at `contract.digest`; `criteria` must carry an entry for every one. A worker cannot
-    shrink its own denominator — the verifier re-derives it (§2) and rejects a manifest that
-    drops any id.
+    task spec at `contract.digest`; `criteria` must carry an entry for every one — a worker cannot
+    shrink its denominator; the verifier re-derives it (§2) and rejects a manifest that drops any id.
   - **mission level** (the coordinator's job, not the worker's): the UNION of all unit contracts
     must equal the mission's authoritative source (the frozen spec's criterion set, the tracker
     enumeration, the advisory scan). A criterion no unit's contract claims is UNASSIGNED WORK,
@@ -86,10 +85,11 @@ Rules:
 - `negative_control` is REQUIRED for any unit that claims a fix or a test: show the proof FAILS
   when the change is reverted/mutated (a green test over reverted code proves nothing). Bind it to
   a NAMED mutation tool + a PINNED mutant id with a killed/survived verdict — a surviving
-  criterion-violating mutant is a tautological suite and FAILS. Tools: `mutmut`/`cosmic-ray` (Py),
-  `stryker` (JS/TS/.NET), `pitest` (JVM), `cargo-mutants` (Rust), `go-mutesting` (Go); `revert`
-  (delete the production line) is the fallback where no mutation tool fits. A perf fix instead
-  compares before/after to the metric contract.
+  criterion-violating mutant is a tautological suite and FAILS. Tools: `mutmut`/`cosmic-ray`/
+  `stryker`/`pitest`/`cargo-mutants`/`go-mutesting` (per language), or `revert` (delete the
+  production line) as the fallback. A perf fix instead compares before/after to the metric
+  contract. A behaviour-preserving deepening (reshape-it) instead proves the seam's pinned mutant
+  stays KILLED at head_sha AND that reverting enlarges the interface measurement.
 - `binding_audit` logs criterion↔test audit coverage for the same units: which `criteria[].id`s
   had their covering test quoted and mutation-checked against the criterion (§2 samples it; a
   manifest claiming a fix or a test without the field is rejected).
@@ -129,9 +129,9 @@ Verification failing on any required check → the unit is NOT done; it returns 
 machine (re-dispatch, or SUSPECT if provenance says done but git disagrees).
 
 At run close, the coordinator writes an **integrity inventory** beside the final report: sha256 +
-producer + timestamp for every artifact the run's manifests reference. RESUME and any later
-audit reject an artifact whose hash no longer matches — evidence must be tamper-evident, not
-merely present.
+producer + timestamp for every artifact the run's manifests reference. RESUME and any later audit
+reject an artifact whose hash no longer matches — evidence must be tamper-evident, not merely
+present.
 
 ## 3. Standing definition-of-done floor (every mission, on top of its own contract)
 
@@ -139,8 +139,8 @@ A unit is done only when its own acceptance criteria AND this floor both hold. T
 scoped by MISSION CLASS — a negative control is always required, but what one IS differs:
 
 - **Mutation units** (ship-it, clean-sweep, oss-contribute, harden-it, speed-it, modernize-it,
-  prove-it, deflake-it, access-it, pin-it, floor-it): runtime-verified, not just compiled/typechecked; no new red at
-  the unit's head SHA; the manifest's negative control is the revert/mutate proof of §1.
+  prove-it, deflake-it, access-it, pin-it, floor-it, reshape-it): runtime-verified, not just
+  compiled/typechecked; no new red at head SHA; the negative control is the §1 proof.
 - **Report-only units** (review-it): no code is touched (that IS a checked invariant — a dirty
   worktree fails the unit); the negative-control analogue is SOURCE-BINDING: every finding
   quotes a line that exists at `head_sha` (the SHA reviewed), and the verdict binds to that SHA.
