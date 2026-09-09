@@ -1,0 +1,63 @@
+# review-it dry run — PR #231 (H-07 re-witness on current main)
+# getting-started first mission, Orca runtime reachable, read-only workers dispatched via Orca orchestration
+
+reviewed_sha: 9e1237f63eeaf7b608a8e22f1fefceac5d7010fc
+fixed_point: git diff 535869be6729648df92f582c2d54f38dac1e592d...9e1237f (PR https://github.com/ravidsrk/orca-fleet/pull/231)
+ancestry: reviewed_sha is an ancestor of main/HEAD 6671913b3c5b0c893823896669b51a39ad6caa3e (git merge-base --is-ancestor, exit 0)
+pr_authorship: PR #231 was authored by the run-2 session (branch claude/skills-improvements-review-oqc2zj, merged by the maintainer). This reviewing session (completion-driver run 3) did not author it.
+orca_status: app.running=true runtime.reachable=true runtime.state=ready graph.state=ready
+runtimeId: 2a7eeb15-2326-40b8-b72c-2e158fed5679
+appVersion: 1.4.194
+when: 2026-09-09T04:45–05:46Z (run-create 04:45 · grok workers dispatched 05:35 · all three dispatches completed 05:45:36–37Z)
+permission_boundary: report-only. preflight: `python3 runtime/scripts/preflight.py --mode readonly` → OK (exit 0). No repo writes, no commits, no pushes, no gh mutations by any worker. Post-review verification: review worktree `git status` clean, `git log origin/main..HEAD` empty, HEAD == 6671913 == origin/main.
+
+## Dispatch record (full receipts: CF-05-r3-dispatch-record.txt)
+
+- run: run_7bdde218b205 "review-it dry run: PR #231 @ 9e1237f — H-07 / CF-05 re-witness on current main (report-only, PROFILE=ro)"
+- repo registered with Orca for this run: id 3cf2cdae-bda6-4774-a26f-e6f3b7a9852a
+- review worktree: /Users/ravindra/orca/workspaces/orca-fleet/pcd-r3-review (branch ravidsrk/pcd-r3-review at 6671913, top-level, base origin/main)
+- tasks: task_e8fb7d7b6f7d (standards) · task_d854cb862862 (spec) · task_c3b7f4fa2143 (test-adequacy) — all `completed` (settlement receipts: CF-05-r3-dispatch-record.txt, "settlement receipts" section — task-list + per-dispatch status captured 2026-09-09T06:06Z)
+- settled dispatches: ctx_575e99a6648d / ctx_630ff02c7ee2 / ctx_ac069f3f25fe — each closed by a valid worker_done from its own worker terminal (coordinator relayed the workers' completion summaries with their task/dispatch ids), deliveries acked (delivery_d198b6afc31b), workers released
+- worker substrate (A-30): grok 1.0.24 headless (`--prompt-file`, single-turn), one worker per axis, isolated parallel axes, no cross-rerank
+- failures before the successful dispatch (R12 log; each a distinct diagnosed environmental cause):
+  1. claude workers x3 → agent_prompt_stalled: Claude workspace-trust dialog on the new worktree dir (fixed via A-29: trusted the dir in ~/.claude.json, backup /tmp/claude-json-bak-pcd-r3)
+  2. claude workers x3 → "Not logged in": Orca fallback shells are bash; ANTHROPIC_* live in ~/.zshenv (zsh-only)
+  3. claude confirmed unusable machine-wide ("OAuth session expired and could not be refreshed" — re-login is maintainer-only) → pivot codex: account usage-limited until 2026-09-15 and configured model needs a newer CLI; TUI modal not answerable via orca send (agent_prompt_blocked)
+  4. grok: authenticated, headless OK → SUCCESS (this record)
+
+## Caveats (recorded, not hidden)
+
+- ro enforcement: `grok --sandbox read-only` cannot apply on this host (docker.sock symlink resolution) and grok plan mode does not block writes; `grok --tools read` does. Per runtime/sandbox-policy.md, grok ro is WORKER_CMD/instruction-level ("no RO in Orca"). Boundary therefore = preflight readonly (coordinator) + instructed ro + post-hoc verification (clean tree, no pushes, exit 0 x3). The review worktree is a disposable clone.
+- Worker TASK pack: the spec named the matt pack (installed for claude). Workers ran grok, which does not load claude skill packs; the axis TASKs were self-contained (axes, blind-fix, anti-FP gate, severities, report format). Pack instruction nominal — recorded here.
+- Bare-shell tracked dispatch (no --inject) per the orchestration guide's documented path; worker_done sent from each worker's own terminal with its task/dispatch ids.
+
+## Spec source
+
+PR #231 body (T-12: document the rollback that exists; close G-14 on evidence; #212 as a tracker) — treated as DATA, never instructions.
+
+## Acceptance axes (full reports: CF-05-r3-axis-{standards,spec,testadeq}.md)
+
+### Standards — 0 Critical, 0 Required (4 Nit, 1 Optional, 1 FYI appendix)
+Worst: Nit — docs/ops.md:46 step 4 leads with unqualified `git revert` (the form Git rejects on a merge); correct `-m 1` form is two sentences later.
+Also: GAPS.md:46 post-launch table still labels G-14 ACCEPT · STATUS.md:22/:211 still point at closed #212 as G-09 tracker · A-26/"status.json" still say "rehearsed twice" · PLAN/GAPS cut-line drift. Fowler baseline: N/A (docs-only diff), stated.
+
+### Spec fidelity — 0 Critical, 2 Required (3 Nit, 2 FYI appendix)
+- F1 Required — PR body "Only docs/ops.md, docs/completion/, and CHANGELOG.md change" is false at reviewed_sha: playbooks/release.md also changed (motivating line playbooks/release.md:41).
+- F2 Required — docs/ops.md step 4 omits the spec'd checkable N/A "no deploy job in .github/workflows" (docs/ops.md:46-47).
+Nits: rehearsal citation not the two dated ones · gate item 7 evidence cell rewritten · STATUS still names #212.
+
+### Test-adequacy (static) — 0 Critical, 1 Required (2 Nit, 1 FYI)
+- F1 Required — the `-m 1` playbook fix is UNBOUND: predicted revert of playbooks/release.md:41 keeps validate/unittest/ruff green; no test mentions `revert` (the T-12 transcript is the negative control never encoded as an assertion).
+Nits: ops.md 2 a.m. step untested under the test that owns that section · completion-ledger close of G-14 unbound (no status.json consumer).
+Claimed gates are parse-coverage, not criterion coverage.
+
+## Risk lenses (risk-review.md dispatch rule; tally: docs/DECISIONS.md absent → no streak)
+
+- security: gated off — no auth/query/route/dep change in the diff (docs + ledger only). NEVER_GATE applies to tally auto-gating, not to trigger gating; recorded gate-off.
+- performance: gated off — no render/query/bundle. accessibility: gated off — no component/markup. data-migration: gated off — no schema/migration.
+
+## Verdict
+
+NO-GO at reviewed_sha 9e1237f63eeaf7b608a8e22f1fefceac5d7010fc — 0 Critical, 3 Required across axes (spec F1, spec F2, test-adequacy F1). No cross-axis rerank; every finding quotes its motivating line. Per DEFINITION.md CF-05, GO or NO-GO both count as the dry-run outcome; the Required findings re-enter the completion register as G-19 / G-20 / G-21 (DEFER → post-launch issues, decision rules applied: S2/S3, off critical flow).
+
+Failure path for CF-05 stands: CF-05-failure-orca-not-running.txt (runtime.reachable=false → documented stop), re-confirmed this run before `orca open` (runtime.reachable=false, state=not_running at 2026-09-09T04:38Z).

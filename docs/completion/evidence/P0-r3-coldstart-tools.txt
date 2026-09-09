@@ -1,0 +1,27 @@
+# 2026-09-09T04:39:52Z run-3 toolchain (R1) — maintainer Mac /Users/ravindra/projects/orca-fleet
+$ git --version
+git version 2.55.0
+
+$ python3 --version
+Python 3.13.15
+
+$ ruff --version
+ruff 0.16.6
+
+$ greptile --version
+3.5.2
+
+$ gh --version
+gh version 2.100.0 (2026-09-03)
+https://github.com/cli/cli/releases/tag/v2.100.0
+
+$ uv --version
+uv 0.12.10 (Homebrew 2026-09-04 aarch64-apple-darwin)
+
+$ mise --version
+2026.9.2 macos-arm64 (2026-09-07)
+mise WARN  mise version 2026.9.3 available
+
+$ just --version
+just 1.58.0
+

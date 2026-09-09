@@ -1,0 +1,22 @@
+# orca status — run 3, both sides of `orca open` (S5-B RV-05: the pre-open reading is now a transcript, not a sentence)
+
+$ orca status --json        # 2026-09-09T04:38Z, before `orca open` — CF-05 failure path re-confirmed this run
+{
+  "id": "local-status",
+  "ok": true,
+  "result": {
+    "target": { "kind": "local" },
+    "app": { "running": false, "pid": null },
+    "runtime": { "state": "not_running", "reachable": false, "runtimeId": null },
+    "graph": { "state": "not_running" }
+  },
+  "_meta": { "runtimeId": "none" }
+}
+
+$ orca open --json         # 2026-09-09T04:39Z — app started by the agent (as in run 1)
+app.running=true · desktopWindowStatus=available · runtime.reachable=true · runtime.state=graph_not_ready · appVersion=1.4.194 · runtimeId=2a7eeb15-2326-40b8-b72c-2e158fed5679
+
+$ orca status --json        # 2026-09-09T04:44Z — ready for the dry run
+app.running=true · runtime.state=ready · runtime.reachable=true · graph.state=ready · appVersion=1.4.194
+
+(toolchain note: P0-r3-coldstart-tools.txt covers git/python3/ruff/greptile/gh/uv/mise/just; the orca CLI is /usr/local/bin/orca, app 1.4.194 — the SHIPLOG run-3 start line cites this file for orca.)

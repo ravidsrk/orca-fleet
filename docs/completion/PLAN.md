@@ -72,3 +72,26 @@ Human: H-04 (G-15), H-05 (G-17), H-06 (G-10 / A-13), H-07 (G-16). **H-07 gates l
 - Above-the-line gaps: 6 (G-10, G-14..G-18) · tasks: 4 agent (S) + 4 human · L-sized: 0
 - Longest chain: none (T-09 has no dependencies)
 - Launch-gating Human Actions: **1 (H-07)**
+
+## Run 3 (2026-09-09) — addendum
+
+Drift 17.9% < 20% → resume, no re-audit (R4). Executed from `P7/H-07` on the maintainer Mac.
+
+| Phase | run-3 status | note |
+|---|---|---|
+| P1 | complete (re-verified) | cold start re-run at `6671913` on a fresh full clone: 329 tests OK, 0 skips (`P0-r3-coldstart-*`) |
+| P3 | **complete** | T-13: CF-05 re-witnessed via Orca worker dispatch on PR #231 @ `9e1237f`; verdict NO-GO (0C/3R) — counts per DEFINITION CF-05 |
+| P6 | open, non-gating | H-02 (marketplace), H-04 (About), H-05 (version cut) still human/open → S5-C issues |
+| P7 | gate re-evaluated | **GO** — all 8 frozen items + minima met; S5-B fresh-context review of the run-3 branch follows |
+
+### Tasks (run 3)
+
+| id | phase | gaps | description | acceptance | size | depends_on | owner | status |
+|---|---|---|---|---|---|---|---|---|
+| T-13 | P3 | G-16 | Re-witness CF-05 on current main: Orca-dispatched read-only workers run the review-it dry run on a PR this session did not author (PR #231 @ 9e1237f); aggregate axes without cross-rerank; SHA-bound verdict. | `evidence/CF-05-r3-happy-review-it.txt` + axis reports + dispatch record | M | — | agent | done (attempts 1–3 distinct substrate failures — claude trust, claude auth, codex limits; grok headless succeeded, A-29/A-30) |
+
+### Counts (run 3)
+
+- Above-the-line gaps closed: 1 (G-16) · new DEFER gaps: 3 (G-19, G-20, G-21 — to be filed in S5-C)
+- Tasks: 1 agent (M) · L-sized: 0
+- Launch-gating Human Actions open: **0**

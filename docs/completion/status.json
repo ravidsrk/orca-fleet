@@ -1,7 +1,7 @@
 {
   "product": "orca-fleet",
-  "repo_path": "/home/user/orca-fleet",
-  "run_id": "20260902-0816",
+  "repo_path": "/Users/ravindra/projects/orca-fleet",
+  "run_id": "20260909-0437",
   "mode": "drive",
   "baseline": {
     "commit": "6abf548de4d53b9250e13f3b2cc297f6dd8fdf01",
@@ -9,13 +9,13 @@
     "cold_start": "pass",
     "evidence": "docs/completion/evidence/P0-coldstart-validate-tests.txt"
   },
-  "current_commit": "f2e53f4dff9a8a33cac041457ffb270d3ad5c875",
-  "resume_pointer": "P7/H-07",
+  "current_commit": "6671913b3c5b0c893823896669b51a39ad6caa3e",
+  "resume_pointer": "S6",
   "definition_frozen_at": "ed6a2f4",
   "completion_pct": 68,
   "gate": {
-    "status": "CONDITIONAL_GO",
-    "reason": "run 2 at f2e53f4, updated 2026-09-02 after PR #228: items 1,3,4,5,6,7 and the minima met (item 5 demonstrated by the alert-on-failure drill, issue #229); item 2 met only at 6ad0e87 for CF-05; item 8: H-07 (review-it dry run on the current head) open and launch-gating."
+    "status": "GO",
+    "reason": "run 3 at 6671913: all 8 frozen gate items met with evidence \u2014 item 2: CF-05 re-witnessed on current main through Orca worker dispatch at 9e1237f (verdict NO-GO, counts per DEFINITION CF-05); item 5: T-11 drill; item 8: H-07 done, no launch-gating Human Action open. Minima met (angles 1-8 >=3, 9 >=1 per A-12, 10-17 >=2)."
   },
   "angles": [
     {
@@ -35,7 +35,7 @@
         "docs/completion/evidence/CF-02-r2-happy-symlink-install.txt",
         "docs/completion/evidence/CF-03-r2-happy-vfbench.txt",
         "docs/completion/evidence/CF-04-r2-happy-nc-demo.txt",
-        "docs/completion/evidence/CF-05-happy-review-it.txt",
+        "docs/completion/evidence/CF-05-r3-happy-review-it.txt",
         "docs/completion/evidence/CF-06-r2-proof-honesty.txt",
         "docs/completion/evidence/CF-05-failure-orca-not-running.txt"
       ]
@@ -342,11 +342,11 @@
       "id": "CF-05",
       "name": "First Orca mission",
       "money": false,
-      "status": "works",
-      "happy_evidence": "docs/completion/evidence/CF-05-happy-review-it.txt",
+      "status": "verified",
+      "happy_evidence": "docs/completion/evidence/CF-05-r3-happy-review-it.txt",
       "failure_evidence": "docs/completion/evidence/CF-05-failure-orca-not-running.txt",
-      "note": "verified at 6ad0e87 (run 1, pre-#225, coordinator self-review); at f2e53f4 only the failure path is evidenced — re-witness on current main is H-07 (launch-gating); CF-05-r2-failure-orca-absent.txt records substrate absence only",
-      "verified_at": "6ad0e87"
+      "note": "re-witnessed on current main 2026-09-09 (T-13): Orca-dispatched read-only workers (grok headless, A-29/A-30 caveats in the evidence file) on PR #231 @ 9e1237f \u2014 verdict NO-GO (0C/3R), which counts per DEFINITION CF-05; findings re-entered as G-19/G-20/G-21. Run-1 evidence at 6ad0e87 superseded.",
+      "verified_at": "9e1237f63eeaf7b608a8e22f1fefceac5d7010fc"
     },
     {
       "id": "CF-06",
@@ -493,7 +493,7 @@
       "tasks": [],
       "accept_expiry": null,
       "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/212",
-      "note": "DEFER, open; tracker issue #212 closed at the maintainer's request (A-27) — live tracker is the field-proof plan in docs/runs/README.md"
+      "note": "DEFER, open; tracker issue #212 closed at the maintainer's request (A-27) \u2014 live tracker is the field-proof plan in docs/runs/README.md"
     },
     {
       "id": "G-10",
@@ -585,7 +585,7 @@
       "status": "open",
       "tasks": [],
       "accept_expiry": null,
-      "issue_url": null,
+      "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/236",
       "human_action": "H-04"
     },
     {
@@ -597,8 +597,10 @@
       "critical_flow": "CF-05",
       "severity": "S1",
       "decision": "FINISH",
-      "status": "open",
-      "tasks": [],
+      "status": "closed",
+      "tasks": [
+        "T-13"
+      ],
       "accept_expiry": null,
       "issue_url": null,
       "human_action": "H-07"
@@ -615,7 +617,7 @@
       "status": "open",
       "tasks": [],
       "accept_expiry": null,
-      "issue_url": null,
+      "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/237",
       "human_action": "H-05"
     },
     {
@@ -633,6 +635,55 @@
       ],
       "accept_expiry": null,
       "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/226"
+    },
+    {
+      "id": "G-19",
+      "source": [
+        "CF-05-r3 spec-F2",
+        "CF-05-r3 spec-F3",
+        "CF-05-r3 standards-ops46"
+      ],
+      "angle": 14,
+      "critical_flow": null,
+      "severity": "S2",
+      "decision": "DEFER",
+      "status": "open",
+      "tasks": [],
+      "accept_expiry": null,
+      "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/232",
+      "note": "docs/ops.md step 4 precision: add the checkable 'no deploy job in .github/workflows' clause, cite both dated rehearsals, lead with the -m 1 form"
+    },
+    {
+      "id": "G-20",
+      "source": [
+        "CF-05-r3 testadeq-F1",
+        "CF-05-r3 testadeq-F2"
+      ],
+      "angle": 4,
+      "critical_flow": null,
+      "severity": "S2",
+      "decision": "DEFER",
+      "status": "open",
+      "tasks": [],
+      "accept_expiry": null,
+      "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/233",
+      "note": "the -m 1 rollback fix is unbound: no test mentions revert; extend the ops/release tests to pin the merge-shaped command"
+    },
+    {
+      "id": "G-21",
+      "source": [
+        "CF-05-r3 spec-F1",
+        "CF-05-r3 standards nits"
+      ],
+      "angle": 14,
+      "critical_flow": null,
+      "severity": "S3",
+      "decision": "DEFER",
+      "status": "open",
+      "tasks": [],
+      "accept_expiry": null,
+      "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/234",
+      "note": "ledger hygiene batch; spec F1 was Required at the review axis and is carried at driver-severity S3 (a stale file-set sentence in an already-merged PR body is not a live product defect) \u2014 mapping recorded, not dropped (S5-B RV-07)"
     }
   ],
   "phases": [
@@ -660,6 +711,11 @@
           "text": "run 2: cold start re-verified on a fresh clone at f2e53f4",
           "met": true,
           "evidence": "docs/completion/evidence/CF-01-r2-happy-catalog-gates.txt"
+        },
+        {
+          "text": "run 3: cold start re-verified on a fresh full clone at 6671913 (329 tests, 0 skips)",
+          "met": true,
+          "evidence": "docs/completion/evidence/P0-r3-coldstart-validate.txt"
         }
       ]
     },
@@ -683,12 +739,12 @@
     {
       "id": "P3",
       "name": "Critical flows",
-      "status": "active",
+      "status": "complete",
       "exit_criteria": [
         {
-          "text": "CF-05 happy path evidenced",
+          "text": "CF-05 happy path evidenced (re-witnessed run 3; run-1 6ad0e87 evidence superseded)",
           "met": true,
-          "evidence": "docs/completion/evidence/CF-05-happy-review-it.txt"
+          "evidence": "docs/completion/evidence/CF-05-r3-happy-review-it.txt"
         },
         {
           "text": "run 2: CF-02 and CF-06 failure paths evidenced",
@@ -697,8 +753,8 @@
         },
         {
           "text": "run 2: CF-05 re-witnessed on current main through worker dispatch (H-07)",
-          "met": false,
-          "evidence": null
+          "met": true,
+          "evidence": "docs/completion/evidence/CF-05-r3-happy-review-it.txt"
         }
       ]
     },
@@ -737,7 +793,7 @@
       "status": "pending",
       "exit_criteria": [
         {
-          "text": "H-02 marketplace — does not gate",
+          "text": "H-02 marketplace \u2014 does not gate",
           "met": false,
           "evidence": null
         }
@@ -767,6 +823,11 @@
           "text": "run 2: gate evaluated after fresh-reviewer handoff",
           "met": true,
           "evidence": "docs/completion/evidence/P7-r2-fresh-review.md"
+        },
+        {
+          "text": "run 3: CF-05 re-witnessed via worker dispatch; gate re-evaluated",
+          "met": true,
+          "evidence": "docs/completion/evidence/CF-05-r3-happy-review-it.txt"
         }
       ]
     }
@@ -961,6 +1022,31 @@
       "review": "manual",
       "attempts": 1,
       "block_signature": null
+    },
+    {
+      "id": "T-13",
+      "phase": "P3",
+      "gaps": [
+        "G-16"
+      ],
+      "size": "M",
+      "depends_on": [],
+      "owner": "agent",
+      "status": "done",
+      "branch": "ravidsrk/p7-completion-run3",
+      "pr": "https://github.com/ravidsrk/orca-fleet/pull/238",
+      "commit": null,
+      "evidence": [
+        "docs/completion/evidence/CF-05-r3-happy-review-it.txt",
+        "docs/completion/evidence/CF-05-r3-axis-standards.md",
+        "docs/completion/evidence/CF-05-r3-axis-spec.md",
+        "docs/completion/evidence/CF-05-r3-axis-testadeq.md",
+        "docs/completion/evidence/CF-05-r3-dispatch-record.txt"
+      ],
+      "review": "manual",
+      "attempts": 4,
+      "block_signature": null,
+      "note": "attempts 1-3 failed on distinct diagnosed environmental causes (claude trust dialog; claude not-logged-in bash/zshenv; claude OAuth expired + codex usage-limited); attempt 4 grok headless succeeded (A-29)"
     }
   ],
   "human_actions": [
@@ -980,7 +1066,8 @@
       "unblocks": [],
       "gates_launch": false,
       "verification": "listing URLs in distribution.md",
-      "status": "open"
+      "status": "open",
+      "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/235"
     },
     {
       "id": "H-03",
@@ -997,8 +1084,9 @@
         "G-15"
       ],
       "gates_launch": false,
-      "verification": "agent re-reads the description via the GitHub API → evidence/H-04-repo-description.txt",
-      "status": "open"
+      "verification": "agent re-reads the description via the GitHub API \u2192 evidence/H-04-repo-description.txt",
+      "status": "open",
+      "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/236"
     },
     {
       "id": "H-05",
@@ -1008,11 +1096,12 @@
       ],
       "gates_launch": false,
       "verification": "plugin.json version equals the latest dated CHANGELOG heading; gen-badges.py --check exit 0",
-      "status": "open"
+      "status": "open",
+      "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/237"
     },
     {
       "id": "H-06",
-      "instruction": "Merge the alert-on-failure workflow (T-10, #213); then run the drill (Actions → alert-on-failure → Run workflow) or let the agent dispatch it (T-11)",
+      "instruction": "Merge the alert-on-failure workflow (T-10, #213); then run the drill (Actions \u2192 alert-on-failure \u2192 Run workflow) or let the agent dispatch it (T-11)",
       "unblocks": [
         "T-11"
       ],
@@ -1028,7 +1117,8 @@
       ],
       "gates_launch": true,
       "verification": "evidence/CF-05-r3-happy-review-it.txt with the reviewed SHA and the dispatch record; close G-16; re-evaluate the gate",
-      "status": "open"
+      "status": "done",
+      "done_evidence": "docs/completion/evidence/CF-05-r3-happy-review-it.txt"
     }
   ],
   "assumptions": [
@@ -1090,7 +1180,7 @@
     {
       "id": "A-16",
       "phase": "P0",
-      "decision": "greptile/gh/orca absent → manual review lens, GitHub via API tools, CF-05 not re-witnessable",
+      "decision": "greptile/gh/orca absent \u2192 manual review lens, GitHub via API tools, CF-05 not re-witnessable",
       "rejected": [
         "skip R11",
         "mark CF-05 absent"
@@ -1100,7 +1190,7 @@
     {
       "id": "A-17",
       "phase": "P0",
-      "decision": "22.7% drift → re-score every angle; DEFINITION.md stays frozen at ed6a2f4",
+      "decision": "22.7% drift \u2192 re-score every angle; DEFINITION.md stays frozen at ed6a2f4",
       "rejected": [
         "skip re-audit",
         "re-freeze"
@@ -1197,6 +1287,45 @@
         "mark G-09 done"
       ],
       "reason": "an umbrella issue no single change can close is a worse tracker than the plan table"
+    },
+    {
+      "id": "A-28",
+      "phase": "P0",
+      "decision": "REPO_PATH defaulted to the session cwd /Users/ravindra/projects/orca-fleet (invocation gave no REPO_PATH)",
+      "rejected": [
+        "stop and ask (R7 forbids)",
+        "refuse to run"
+      ],
+      "reason": "SHIPLOG exists there (R4 resume contract); path is under ~/projects per the input table"
+    },
+    {
+      "id": "A-29",
+      "phase": "P3",
+      "decision": "trusted the Orca review-worktree dir in ~/.claude.json projects (backup /tmp/claude-json-bak-pcd-r3; S6 removes the key)",
+      "rejected": [
+        "answer the trust modal blindly (failed twice, exited)",
+        "leave workers stalled"
+      ],
+      "reason": "exact, reversible equivalent of the dialog's trust choice; unblocked claude attempt 2 (which then failed on OAuth anyway)"
+    },
+    {
+      "id": "A-30",
+      "phase": "P3",
+      "decision": "review workers run grok 1.0.24 headless via bare-shell tracked dispatch (WORKER_CMD) after 3 distinct diagnosed substrate failures; ro boundary = instructed ro + post-hoc git verification per sandbox-policy.md's grok row",
+      "rejected": [
+        "mark H-07 BLOCKED (a verified viable substrate remained)",
+        "codex exec outside Orca dispatch (no orchestration provenance)"
+      ],
+      "reason": "sandbox-policy.md: grok ro = WORKER_CMD; Appendix C names @grok as fleet driver; --sandbox read-only cannot apply on this host and plan mode leaks (both tested)"
+    },
+    {
+      "id": "A-31",
+      "phase": "S5-C",
+      "decision": "issue labels use the repo's existing taxonomy: sev:S2/sev:S3 (severity), needs-human (human-action), post-launch (DEFER); no new labels created",
+      "rejected": [
+        "create the driver-spec labels S2/S3/human-action alongside the existing sev:*/needs-human"
+      ],
+      "reason": "R7(c): closest to what the repo already does; forking the label taxonomy would split every future triage query"
     }
   ],
   "research": [
@@ -1292,8 +1421,22 @@
       "commit": "005ab1f",
       "completion_pct": 68,
       "gate": "CONDITIONAL_GO"
+    },
+    {
+      "run_id": "20260909-0437",
+      "commit": "6671913",
+      "completion_pct": 68,
+      "gate": "GO"
     }
   ],
   "definition_text_at": "67c1707",
-  "run_pr": "https://github.com/ravidsrk/orca-fleet/pull/227"
+  "run_pr": "https://github.com/ravidsrk/orca-fleet/pull/238",
+  "issues": {
+    "created": 6,
+    "updated": 0,
+    "reopened": 0,
+    "dedup_skipped": 1,
+    "existing_fetched": 96,
+    "ledger": "docs/completion/ISSUES.md"
+  }
 }
