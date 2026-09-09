@@ -74,9 +74,9 @@ dd774a7d2509c026e409af18b670f28153b160f09b464d2a70209e1a3b0eb7d1  docs/completio
 598dd9018b2118df32ea417366d4fdbacec2086ed55630f278426e02c4547cb0  docs/completion/evidence/H-04-repo-description.txt
 f5866b53adf81083351df590531978f01acf5053aa82a4676ff40865318b7dd9  docs/completion/status.json
 f6dcf2fb96fef8400bd399839c79d2c378fd2e05dd4b9f578f030709911798f9  docs/ops.md
-471e84df7589590e3793abf4b9316a6d0a16b9d0f3d3462c19dc7c7d77c28845  tests/test_architecture.py
-c7493b828126cde48c498cfefce09d888f4be092a17bb85d08a4ff4baea4f7ff  tests/test_docs_navigation.py
-83d89f9ec8b36c27c6cbc88e2b38298b5cf0cc121ff631b011e0a81b10dc8fcb  docs/runs/README.md
+e574295d73c36a6844520143ef907beb48e7b345a177c5a629c901b97bee12fa  tests/test_architecture.py
+b796e8558ad7bc904bffc17e9ac76f74a8459ea00b540312fa12f5d6c1cd23e5  tests/test_docs_navigation.py
+57ffc2c759a1565e6ed70766440b221c6ae37490a8394b37554f060df539d573  docs/runs/README.md
 (this ledger is excluded from its own inventory; worker terminals and /tmp scratch are
 removed at run close — no retained artifact lives outside this repo)
 ```
