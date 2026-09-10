@@ -7,7 +7,22 @@ that anchors to authorities OUTSIDE the worker's manifest (the coordinator's fro
 scope, GitHub for review, the artifact/replay for the negative control) — is the differentiator, and
 it runs the same `verify.py` no matter which surface fires it.
 
-## Native path — plugin hooks (default)
+## Install paths, and which ones carry the gate
+
+| Install | `${CLAUDE_PLUGIN_ROOT}` | Gate |
+|---|---|---|
+| `/plugin install orca-fleet` | set by Claude Code | wired by [`hooks/hooks.json`](../hooks/hooks.json) — nothing to do |
+| `ln -s … ~/.claude/skills/<mission>` | **unset** | **none until you wire it**: `sh hooks/print-settings-snippet.sh` and merge the output into `settings.json` |
+| `npx skills add …` (copy installer) | unset | same as symlink — wire the snippet, and check the `../../` references survived the copy |
+
+This is issue #262: the README recommends the symlink path for trying the catalog out, and that
+path loads no plugin, so the hook file below never fires. A mission installed that way runs with
+no completion gate and nothing says so at runtime.
+[`hooks/settings-snippet.json`](../hooks/settings-snippet.json) is the same two hooks with an
+absolute path; [`hooks/print-settings-snippet.sh`](../hooks/print-settings-snippet.sh) resolves
+that path against your clone (`--check` verifies the gate script is there).
+
+## Native path — plugin hooks (set `${CLAUDE_PLUGIN_ROOT}`)
 
 [`hooks/hooks.json`](../hooks/hooks.json) wires two events to
 [`runtime/scripts/verify-gate.sh`](../runtime/scripts/verify-gate.sh), passing `--event task|stop`:

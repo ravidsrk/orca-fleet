@@ -2,10 +2,27 @@
 
 Copy this file to `docs/runs/<YYYY-MM-DD>-<mission>-<self-run|external-run>.md`, fill every
 section, add the row to the index table in [README.md](README.md), then set the mission's
-frontmatter `proof:` and `proof_evidence:` to the new path. Nothing else advances a tier:
-`scripts/validate.py` refuses `proof:` above `doctrine-only` unless the report exists here, names
-the mission in its filename and body, and `tests/test_docs_navigation.py` requires the index row
-plus the integrity inventory below (inline, or a named retention location).
+`metadata.proof:` and `metadata.proof_evidence:` to the new path.
+
+Nothing else advances a tier, and naming the mission is not enough (issue #259).
+`runtime/scripts/run_report.py`, called from `scripts/validate.py`, requires all of:
+
+* the `RUN:` header below, exactly once, with every field;
+* `inventory_at=` a commit that exists **in this repository**;
+* `manifest=` a path that exists at that commit and lives inside this run's own
+  `docs/runs/<YYYY-MM-DD>-<mission>…/` artifact directory — borrowing another run's manifest is
+  refused;
+* `verifier=GREEN|RED` matching what the "Verifier outcome" section records (a RED is honest: a
+  solo run cannot manufacture an independent approver);
+* the integrity inventory re-hashing at `inventory_at` — at least one verified path inside this
+  run's own directory, and zero mismatches.
+
+If your artifacts are not committed here, this report is recorded history and the mission stays
+`doctrine-only`. Say that in an "Evidence binding" section rather than claiming a tier.
+
+```
+RUN: mission=<mission> tier=<self-run|external-run> inventory_at=<commit> manifest=docs/runs/<YYYY-MM-DD>-<mission>…/<manifest>.json verifier=<GREEN|RED>
+```
 
 | Field | Value |
 |---|---|

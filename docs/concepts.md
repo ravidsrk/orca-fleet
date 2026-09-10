@@ -318,7 +318,7 @@ as evidence.
 
 ## Autonomy
 
-Every mission's frontmatter carries `autonomy:`, checked by the validator against Addy Osmani's
+Every mission's `metadata:` block carries `autonomy:`, checked by the validator against Addy Osmani's
 L0–L5 ladder ("Agentic Autonomy Levels", addyo.substack.com, 2026-07-03). The ladder is about
 *structure*, not about what the agents are allowed to touch. In the source's own terms: L3,
 goal-driven autonomy, is one agent looping until a measurable stop condition is met; L4,

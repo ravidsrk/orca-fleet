@@ -11,11 +11,18 @@ description: >-
   flaky SUITE under a statistical streak contract (deflake-it) or an enumerable backlog (clean-
   sweep).
 license: MIT
-proof: doctrine-only
-autonomy: L4
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh. A feedback-loop-first
   debugging playbook (mattpocock diagnosing-bugs or addyosmani debug) — one router per worker.
+metadata:
+  proof: doctrine-only
+  autonomy: L4
+  unit: one falsifiable hypothesis about one bug
+  state_machine: stop-the-line → red-capable repro → rank hypotheses → falsify to one survivor → demonstrate
+  convergence: one surviving cause is demonstrated on the reproduction and every rival is falsified
+  ordering: reproduction BEFORE any theory; one variable falsified at a time
+  parking: INCONCLUSIVE, or DIAGNOSED-WITH-HANDOFF — the fix is a separate authorization
+  oracle: the red-capable reproduction — a theory that cannot move it is falsified
 ---
 
 # root-cause — a reproduced symptom, a demonstrated cause

@@ -11,13 +11,20 @@ description: >-
   (ship-it), general backlog drain (clean-sweep), a single PR verdict (review-it), or routine
   dependency-advisory currency with no exploit proof (modernize-it).
 license: MIT
-proof: doctrine-only
-autonomy: L4
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh; gitleaks. A security
   worker playbook (addyosmani security-and-hardening or gstack /cso) — one router per worker.
   An ephemeral per-workspace sandbox (sandbox-policy) for exploit PoCs that can't run safely on
   the host.
+metadata:
+  proof: doctrine-only
+  autonomy: L4
+  unit: one threatened invariant and its whole vulnerability class
+  state_machine: audit → prove the exploit → fix → RE-ATTACK → sweep the class → re-audit
+  convergence: a fresh full audit finds zero unrefuted P0/P1
+  ordering: fixes serialize per class; the re-attack precedes the close
+  parking: HARDENED-WITH-OPEN-ITEMS — each open item names its gate
+  oracle: a working exploit — the fix is proven by the exploit failing, never by review
 ---
 
 # harden-it — fix it, then try to break the fix, until a clean re-audit

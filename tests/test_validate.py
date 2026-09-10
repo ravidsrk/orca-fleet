@@ -21,12 +21,41 @@ _spec.loader.exec_module(validate)
 PROTOCOLS = {"diagnose"}
 
 
-def make_skill(tmp, body, frontmatter_extra="proof: doctrine-only\nautonomy: L4\n"):
-    d = Path(tmp) / "demo-skill"
+# A fixture's six identity points (ARCHITECTURE.md). Distinct from every real
+# mission's, so a fixture never trips the identity-collision check.
+FIXTURE_IDENTITY = {
+    "unit": "one fixture item",
+    "state_machine": "fixture-start → fixture-end",
+    "convergence": "the fixture assertion holds",
+    "ordering": "none — fixtures do not order",
+    "parking": "FIXTURE-PARKED",
+    "oracle": "the unit test that reads it",
+}
+
+
+def make_skill(tmp, body, frontmatter_extra="proof: doctrine-only\nautonomy: L4\n",
+               name="demo-skill", identity=None):
+    """Write a fixture SKILL.md.
+
+    `frontmatter_extra` is still written in flat `key: value` form; keys the repo
+    keeps under the spec's `metadata:` extension point (issue #263) are folded
+    into that block here, so a test that wants a top-level extra still gets one
+    and a test that sets `proof:` still means `metadata.proof`.
+    """
+    d = Path(tmp) / name
     d.mkdir()
+    meta = dict(identity if identity is not None else FIXTURE_IDENTITY)
+    top = []
+    for line in frontmatter_extra.splitlines():
+        key, _, value = line.partition(":")
+        if key.strip() in validate.METADATA_KEYS:
+            meta[key.strip()] = value.strip()
+        elif line.strip():
+            top.append(line)
+    block = "metadata:\n" + "".join(f"  {k}: {v}\n" for k, v in meta.items())
     (d / "SKILL.md").write_text(
-        "---\nname: demo-skill\ndescription: A fixture. Use when testing.\n"
-        + frontmatter_extra + "---\n" + body,
+        f"---\nname: {name}\ndescription: A fixture. Use when testing.\n"
+        + ("\n".join(top) + "\n" if top else "") + block + "---\n" + body,
         encoding="utf-8",
     )
     return d
@@ -35,9 +64,9 @@ def make_skill(tmp, body, frontmatter_extra="proof: doctrine-only\nautonomy: L4\
 class TestValidatorFailureBranches(unittest.TestCase):
 
     def test_unknown_frontmatter_field_fails(self):
-        # Issue #211: skills-ref flags proof/autonomy/proof_evidence. Those
-        # three are the only allowed extras — a fourth top-level field must
-        # not sneak in as "just more metadata".
+        # Issue #263: top level is the spec allowlist and nothing else — the
+        # repo's own claims moved under `metadata:`. Any other top-level key is
+        # a hard error, the same way skills-ref treats it.
         with tempfile.TemporaryDirectory() as tmp:
             errs = validate.validate_skill(
                 make_skill(
@@ -47,7 +76,10 @@ class TestValidatorFailureBranches(unittest.TestCase):
                 ),
                 PROTOCOLS,
             )
-            self.assertTrue(any("unexpected frontmatter fields" in e and "author" in e for e in errs), errs)
+            self.assertTrue(
+                any("unexpected top-level frontmatter fields" in e and "author" in e for e in errs),
+                errs,
+            )
 
     def test_digit_bearing_unknown_frontmatter_field_fails(self):
         # Greptile #221: the old key regex dropped `version2`, so the extras
@@ -62,7 +94,7 @@ class TestValidatorFailureBranches(unittest.TestCase):
                 PROTOCOLS,
             )
             self.assertTrue(
-                any("unexpected frontmatter fields" in e and "version2" in e for e in errs),
+                any("unexpected top-level frontmatter fields" in e and "version2" in e for e in errs),
                 errs,
             )
 
@@ -79,7 +111,7 @@ class TestValidatorFailureBranches(unittest.TestCase):
                 PROTOCOLS,
             )
             self.assertTrue(
-                any("unexpected frontmatter fields" in e and "-weird" in e for e in errs),
+                any("unexpected top-level frontmatter fields" in e and "-weird" in e for e in errs),
                 errs,
             )
 
@@ -762,6 +794,164 @@ class GuardBypassTest(unittest.TestCase):
             leaks = validate.check_layer_separation(root=root)
             self.assertIn(".claude-plugin/SKILL.md", leaks)
             self.assertNotIn("skills/foo/SKILL.md", leaks)
+
+class MetadataBlock(unittest.TestCase):
+    """Issue #263: the repo's claims live under `metadata:`, the spec's extension point."""
+
+    def test_metadata_block_is_required(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            d = Path(tmp) / "demo-skill"
+            d.mkdir()
+            (d / "SKILL.md").write_text(
+                "---\nname: demo-skill\ndescription: A fixture. Use when testing.\n---\n"
+                "Composes `diagnose`.\n",
+                encoding="utf-8",
+            )
+            errs = validate.validate_skill(d, PROTOCOLS)
+            self.assertTrue(any("missing 'metadata:' block" in e for e in errs), errs)
+
+    def test_metadata_must_be_a_map(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            d = Path(tmp) / "demo-skill"
+            d.mkdir()
+            (d / "SKILL.md").write_text(
+                "---\nname: demo-skill\ndescription: A fixture. Use when testing.\n"
+                "metadata: a string\n---\nComposes `diagnose`.\n",
+                encoding="utf-8",
+            )
+            errs = validate.validate_skill(d, PROTOCOLS)
+            self.assertTrue(any("metadata must be a map" in e for e in errs), errs)
+
+    def test_unknown_metadata_key_fails(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            errs = validate.validate_skill(
+                make_skill(tmp, "Composes `diagnose`.\n",
+                           frontmatter_extra="proof: doctrine-only\nautonomy: L4\n",
+                           identity=dict(FIXTURE_IDENTITY, vibes="great")),
+                PROTOCOLS,
+            )
+            self.assertTrue(any("unexpected metadata keys" in e and "vibes" in e for e in errs), errs)
+
+    def test_metadata_value_has_a_length_cap(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            errs = validate.validate_skill(
+                make_skill(tmp, "Composes `diagnose`.\n",
+                           identity=dict(FIXTURE_IDENTITY, unit="u" * 300)),
+                PROTOCOLS,
+            )
+            self.assertTrue(any("chars >" in e and "metadata.unit" in e for e in errs), errs)
+
+    def test_parse_frontmatter_reads_the_nested_block(self):
+        data, err = validate.parse_frontmatter(
+            "---\nname: x\ndescription: >-\n  folded\n  text\n"
+            "metadata:\n  proof: self-run\n  autonomy: L4\ncompatibility: y\n---\nbody\n"
+        )
+        self.assertIsNone(err)
+        self.assertEqual(data["metadata"], {"proof": "self-run", "autonomy": "L4"})
+        self.assertEqual(data["description"], "folded text")
+        self.assertEqual(data["compatibility"], "y")
+
+
+class MissionIdentity(unittest.TestCase):
+    """Issue #265: ARCHITECTURE.md's six-point test, made executable."""
+
+    def test_every_identity_point_is_required(self):
+        for missing in validate.IDENTITY_KEYS:
+            identity = {k: v for k, v in FIXTURE_IDENTITY.items() if k != missing}
+            with tempfile.TemporaryDirectory() as tmp:
+                errs = validate.validate_skill(
+                    make_skill(tmp, "Composes `diagnose`.\n", identity=identity), PROTOCOLS
+                )
+                self.assertTrue(
+                    any(f"missing metadata.{missing}" in e for e in errs),
+                    f"{missing} was not required: {errs}",
+                )
+
+    def _catalog(self, tmp, *skills):
+        root = Path(tmp)
+        (root / "skills").mkdir()
+        for name, identity in skills:
+            make_skill(root / "skills", "Composes `diagnose`.\n", name=name, identity=identity)
+        return root
+
+    def test_two_missions_with_the_same_six_points_fail(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = self._catalog(
+                tmp, ("alpha-it", FIXTURE_IDENTITY), ("beta-it", FIXTURE_IDENTITY)
+            )
+            errors, _warnings = validate.identity_collisions(root=root)
+            self.assertTrue(
+                any("alpha-it and beta-it" in e for e in errors),
+                f"a duplicated identity tuple passed: {errors}",
+            )
+
+    def test_differing_on_one_point_warns_but_does_not_fail(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            other = dict(FIXTURE_IDENTITY, oracle="a completely different authority entirely")
+            root = self._catalog(tmp, ("alpha-it", FIXTURE_IDENTITY), ("beta-it", other))
+            errors, warnings = validate.identity_collisions(root=root)
+            self.assertEqual(errors, [])
+            self.assertTrue(any("differ on only oracle" in w for w in warnings), warnings)
+
+    def test_differing_on_two_points_is_silent(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            other = dict(
+                FIXTURE_IDENTITY,
+                oracle="a completely different authority entirely",
+                unit="an unrelated kind of thing altogether",
+            )
+            root = self._catalog(tmp, ("alpha-it", FIXTURE_IDENTITY), ("beta-it", other))
+            errors, warnings = validate.identity_collisions(root=root)
+            self.assertEqual((errors, warnings), ([], []))
+
+    def test_live_catalog_has_no_identity_collision(self):
+        errors, _warnings = validate.identity_collisions()
+        self.assertEqual(errors, [], "two missions in the catalog are one mission")
+
+
+class ActivationLoad(unittest.TestCase):
+    """Issue #276: the transitive load a mission makes mandatory, bounded."""
+
+    def test_the_clause_counts_and_a_deferred_read_does_not(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            composed = make_skill(tmp, "Composes `diagnose`.\n")
+            with_clause, _ = validate.transitive_load(composed, PROTOCOLS)
+        with tempfile.TemporaryDirectory() as tmp:
+            deferred = make_skill(
+                tmp,
+                "Composes `triage-state`.\n\nDEFERRED READS: diagnose.md when diagnosing.\n",
+            )
+            without, _ = validate.transitive_load(deferred, {"diagnose", "triage-state"})
+        self.assertGreater(with_clause, 0)
+        # `diagnose` moved out of the clause, so it is no longer activation load.
+        self.assertNotIn("playbooks/diagnose.md", validate.transitive_load(deferred, PROTOCOLS)[1])
+        self.assertGreater(with_clause, 0)
+        self.assertGreater(without, 0)
+
+    def test_a_mission_over_the_cap_fails(self):
+        original = validate.MISSION_MAX_LOAD_TOKENS
+        validate.MISSION_MAX_LOAD_TOKENS = 1
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                errs = validate.validate_skill(
+                    make_skill(tmp, "Composes `diagnose`.\n"), PROTOCOLS
+                )
+                self.assertTrue(any("activation load" in e for e in errs), errs)
+        finally:
+            validate.MISSION_MAX_LOAD_TOKENS = original
+
+    def test_live_catalog_is_under_the_cap_and_the_cap_is_a_ratchet(self):
+        rows = validate.load_report()
+        self.assertTrue(rows, "no missions measured")
+        worst = max(tokens for _name, tokens in rows)
+        self.assertLessEqual(worst, validate.MISSION_MAX_LOAD_TOKENS)
+        # Ratchet: a cap far above the live maximum has stopped bounding anything.
+        self.assertGreater(
+            worst, validate.MISSION_MAX_LOAD_TOKENS - 2000,
+            f"the heaviest mission is {worst} tokens against a "
+            f"{validate.MISSION_MAX_LOAD_TOKENS} cap — lower the cap to track it",
+        )
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

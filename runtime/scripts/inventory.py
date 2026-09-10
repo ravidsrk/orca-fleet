@@ -136,6 +136,31 @@ def resolve(path_text, report, root):
     return None
 
 
+def sha256_at(rev, path_text, cwd):
+    """sha256 of `path_text` as it was at git revision `rev`, or None if absent.
+
+    A dated report pins artifacts at the tip it closed on; HEAD has moved since.
+    Hashing the blob at that revision is what makes the pin re-derivable years
+    later, and it is the only form of the check a fabricated report cannot pass:
+    the bytes have to have existed at a commit that exists.
+    """
+    proc = subprocess.run(
+        ["git", "cat-file", "blob", f"{rev}:{path_text}"],
+        cwd=str(cwd), stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+    )
+    if proc.returncode != 0:
+        return None
+    return hashlib.sha256(proc.stdout).hexdigest()
+
+
+def rev_exists(rev, cwd):
+    """True iff `rev` names a real commit in the repo at `cwd`."""
+    return subprocess.run(
+        ["git", "rev-parse", "--verify", "--quiet", f"{rev}^{{commit}}"],
+        cwd=str(cwd), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+    ).returncode == 0
+
+
 def load(report_path):
     report = Path(report_path)
     try:
@@ -147,33 +172,50 @@ def load(report_path):
     return report, lines, parse_entries(lines, start, end)
 
 
-def cmd_check(args):
-    report, _lines, entries = load(args.report)
-    root = repo_root(report.parent if report.parent.exists() else Path("."))
+def check_entries(entries, report, root, at=None):
+    """(matched, mismatched, missing) for one inventory, in the tree or at a rev."""
     matched, mismatched, missing = [], [], []
     for _idx, path_text, recorded, _shape in entries:
-        resolved = resolve(path_text, report, root)
-        if resolved is None:
-            missing.append(path_text)
-            continue
-        try:
-            actual = sha256_file(resolved)
-        except OSError as err:
-            raise InventoryError(f"{path_text} could not be hashed: {err}") from err
+        if at:
+            actual = sha256_at(at, path_text, root or report.parent)
+            if actual is None:
+                missing.append(path_text)
+                continue
+        else:
+            resolved = resolve(path_text, report, root)
+            if resolved is None:
+                missing.append(path_text)
+                continue
+            try:
+                actual = sha256_file(resolved)
+            except OSError as err:
+                raise InventoryError(f"{path_text} could not be hashed: {err}") from err
         if actual == recorded:
             matched.append(path_text)
         else:
             mismatched.append((path_text, recorded, actual))
+    return matched, mismatched, missing
+
+
+def cmd_check(args):
+    report, _lines, entries = load(args.report)
+    root = repo_root(report.parent if report.parent.exists() else Path("."))
+    at = getattr(args, "at", None)
+    if at and not rev_exists(at, root or report.parent):
+        raise InventoryError(f"--at {at} is not a commit in this repo")
+    matched, mismatched, missing = check_entries(entries, report, root, at)
     if not matched and not mismatched:
         raise InventoryError(
-            f"none of the {len(entries)} listed path(s) exist — nothing was verified; "
+            f"none of the {len(entries)} listed path(s) exist" + (f" at {at}" if at else "")
+            + " — nothing was verified; "
             "re-derive the hashes at the commit the report names")
     for path_text, recorded, actual in mismatched:
         print(f"MISMATCH {path_text}\n  recorded {recorded}\n  actual   {actual}", file=sys.stderr)
+    where = f"the tree at {at}" if at else "the tree"
     for path_text in missing:
-        print(f"MISSING  {path_text} (not present in the tree — not a mismatch)")
+        print(f"MISSING  {path_text} (not present in {where} — not a mismatch)")
     print(f"inventory: {len(matched)} verified, {len(mismatched)} mismatched, "
-          f"{len(missing)} missing, in {args.report}")
+          f"{len(missing)} missing, in {args.report}" + (f" at {at}" if at else ""))
     return EXIT_MISMATCH if mismatched else EXIT_OK
 
 
@@ -220,6 +262,12 @@ def build_parser():
     w.add_argument("--dry-run", action="store_true", help="report what would change, write nothing")
     c = sub.add_parser("check", help="re-hash every listed path that exists")
     c.add_argument("report", help="markdown report carrying the inventory block")
+    c.add_argument(
+        "--at",
+        metavar="REV",
+        help="hash each path as it was at this git revision instead of in the working "
+             "tree — the form a dated report's pins stay re-derivable in",
+    )
     return p
 
 

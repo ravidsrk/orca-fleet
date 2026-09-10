@@ -12,12 +12,19 @@ description: >-
   debt (prove-it), journey-level perf optimization (speed-it), a WCAG surface sweep (access-it),
   external-framework conformance (attest-it), or a threat-model loop (harden-it).
 license: MIT
-proof: doctrine-only
-autonomy: L4
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh. The target repo's
   toolchain for each dimension's tool (coverage, linter, perf harness, axe-core…). CI write access
   on BASE. A worker pack (matt | addy | gstack) — one router per worker.
+metadata:
+  proof: doctrine-only
+  autonomy: L4
+  unit: one constraint dimension
+  state_machine: measure today → set the bar at the measurement → enforce in CI → prove the gate bites
+  convergence: every declared dimension has an enforced gate that fails on a deliberate violation
+  ordering: none between dimensions; the measurement precedes setting the bar
+  parking: FLOORED-WITH-PARKED — an unenforced dimension names its blocker
+  oracle: the CI gate itself, proven by a deliberate violation going RED
 ---
 
 # floor-it — a written bar that fires

@@ -1,6 +1,7 @@
 # 📥 absorb-it — every inbound contribution landed with credit, refuted with receipts, or parked
 
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — a coordinator plus parallel per-PR workers; closing someone's contribution without landing it is your one-way batch gate.
+> **Activation load:** ~30,100 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
 
 > Point it at an inbound pull-request queue nobody has had time for. Come back to it drained

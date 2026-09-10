@@ -12,11 +12,18 @@ description: >-
   tests from the start (ship-it), or restructuring a module's interface once the net exists
   (reshape-it — its DEEPEN units consume this mission's characterization net).
 license: MIT
-proof: doctrine-only
-autonomy: L4
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh; a runnable suite +
   coverage tool. A TDD worker playbook (addyosmani or mattpocock) — one router per worker.
+metadata:
+  proof: doctrine-only
+  autonomy: L4
+  unit: one critical-path behaviour under a mutation-audited test
+  state_machine: map the surface → human scope confirm → characterize → mutation-audit → land
+  convergence: every path in the frozen critical surface is covered by a test whose mutant is KILLED
+  ordering: waves under attention-budget WIP; no ordering constraint between paths
+  parking: COVERED-WITH-PARKED — an uncovered path names its blocker
+  oracle: a behaviour-changing mutation — the test is proven by killing the mutant, not by passing
 ---
 
 # prove-it — a mutation-audited test on every critical path

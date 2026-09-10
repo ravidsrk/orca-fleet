@@ -553,8 +553,8 @@ class TestArchitecture(unittest.TestCase):
         for d in mission_dirs():
             text = (d / "SKILL.md").read_text(encoding="utf-8")
             self.assertRegex(
-                text, r"(?m)^proof: (doctrine-only|self-run|external-run)$",
-                f"{d.name} declares no proof status",
+                text, r"(?m)^  proof: (doctrine-only|self-run|external-run)$",
+                f"{d.name} declares no proof status under metadata:",
             )
 
     def test_budget_boundary_not_off_by_one(self):
@@ -569,16 +569,18 @@ class TestArchitecture(unittest.TestCase):
         d.mkdir()
         header = (
             "---\nname: cap-mission\ndescription: x. Use when testing.\n"
-            "proof: doctrine-only\n---\n\nComposes `diagnose`.\n"
+            "metadata:\n  proof: doctrine-only\n---\n\nComposes `diagnose`.\n"
         )
-        pad = v.MISSION_MAX_LINES - len(header.splitlines())
-        (d / "SKILL.md").write_text(header + "b\n" * pad)  # exactly MISSION_MAX_LINES lines
+        body_head = 2  # the blank line and the Composes line after the closing ---
+        pad = v.MISSION_BODY_MAX_LINES - body_head
+        # exactly MISSION_BODY_MAX_LINES body lines
+        (d / "SKILL.md").write_text(header + "b\n" * pad)
         try:
             errors = v.validate_skill(d, v.known_protocol_names())
-            budget_errors = [e for e in errors if "instruction budget" in e]
+            budget_errors = [e for e in errors if "budget" in e]
             self.assertEqual(
                 budget_errors, [],
-                f"a file of exactly {v.MISSION_MAX_LINES} lines must not breach the cap",
+                f"a body of exactly {v.MISSION_BODY_MAX_LINES} lines must not breach the cap",
             )
         finally:
             shutil.rmtree(d.parent)

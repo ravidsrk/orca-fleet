@@ -10,12 +10,19 @@ description: >-
   "regulatory audit trail". Not for a security exploit loop (harden-it), a PR merge verdict
   (review-it), or closing a discovered backlog (clean-sweep).
 license: MIT
-proof: doctrine-only
-autonomy: L4
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh; a FROZEN standard catalog
   (standard@version) as the denominator. A review/verify worker playbook (addyosmani specialists,
   mattpocock code-review, gstack review army) — one router per worker.
+metadata:
+  proof: doctrine-only
+  autonomy: L4
+  unit: one obligation from a frozen standard@version catalog
+  state_machine: freeze the catalog → gather bound evidence → independent re-derivation → VERIFIED or GAP
+  convergence: every obligation in the frozen catalog is VERIFIED or a named GAP with an owner
+  ordering: none between obligations; evidence gathering precedes re-derivation
+  parking: CONFORMANT-WITH-GAPS — each gap names its owner and remediation reference
+  oracle: an independent session re-deriving the evidence from authoritative state
 ---
 
 # attest-it — evidence-bound conformance to a frozen standard

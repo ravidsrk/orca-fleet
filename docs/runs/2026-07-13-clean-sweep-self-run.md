@@ -80,3 +80,16 @@ lifecycle (`task_97bda1191e39`, `task_3cba63915e28`, `task_1541d83e1a13`, `task_
 
 - Refuted/duplicate batch gate: not needed (0 refuted, 0 duplicates).
 - BASE → main promotion: **open, human-owned** — this run stops at the promotion PR.
+
+## Evidence binding — recorded history, not a machine-checkable tier
+
+This run happened and the record stands. It does **not** advance `clean-sweep`'s
+`metadata.proof` above `doctrine-only`, because the four workers' artifacts (triage, build manifest, blind-fix review, review, merge) were
+retained in the coordinator's run directory and never committed here, and BASE
+`ravidsrk/sweep-base` @ `41fec8f` is not a commit in this repository.
+
+`runtime/scripts/run_report.py` binds a tier advance to artifacts re-derivable at a commit
+in this repository (issue #259): a `RUN:` header, a manifest under the run's own directory,
+and an integrity inventory that re-hashes at the recorded commit. This report cannot meet
+that bar retroactively — the artifacts to hash are gone. Recording that is the honest
+outcome; leaving the tier claim standing on a filename check was the finding.

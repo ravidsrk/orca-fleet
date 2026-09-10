@@ -10,13 +10,20 @@ description: >-
   guides don't describe". Not for docs that drifted from your own code or API contract (clean-sweep),
   dependency/framework upgrades (modernize-it), or a PR verdict (review-it).
 license: MIT
-proof: doctrine-only
-autonomy: L4
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI) — the binary under audit; `orca
   skills get <name>` must work, and re-witness probes run against the live local runtime from a
   live Orca terminal. git. A worker playbook pack (mattpocock, addyosmani, gstack) — one router
   per worker.
+metadata:
+  proof: doctrine-only
+  autonomy: L4
+  unit: one runtime-mechanics claim
+  state_machine: enumerate claims → load version-matched guides → replay live → keep-with-receipt or refute
+  convergence: every enumerated claim carries a receipt or an archived refutation against the installed binary
+  ordering: none between claims; the enumeration is frozen before any replay
+  parking: PINNED-WITH-PARKED — a claim the binary cannot answer names why
+  oracle: the installed control-plane binary and the version-matched guides it serves
 ---
 
 # pin-it — doctrine that matches the binary

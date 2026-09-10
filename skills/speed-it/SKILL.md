@@ -9,12 +9,19 @@ description: >-
   budget", or an unattended perf-hardening run. Not for a per-diff perf opinion (review-it) or
   post-deploy watch alone (observe via ship-it).
 license: MIT
-proof: doctrine-only
-autonomy: L4
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh. A real MEASUREMENT path
   (Lighthouse/DevTools for web CWV, or a load/profiler harness). A perf worker playbook (addyosmani
   performance-optimization or gstack benchmark) — one router per worker.
+metadata:
+  proof: doctrine-only
+  autonomy: L4
+  unit: one budget breach on one frozen critical journey
+  state_machine: baseline → diagnose the dominant cause → fix → review → runtime-prove → re-benchmark
+  convergence: every frozen journey re-benchmarks inside its declared budget with a CI guard at that budget
+  ordering: PR-per-hotspot; the re-benchmark runs after the land, not before
+  parking: OPTIMIZED-WITH-PARKED — a breach left names its cause and its gate
+  oracle: the declared metric contract measured before→after, not the repo suite
 ---
 
 # speed-it — every journey within budget, proven by a number

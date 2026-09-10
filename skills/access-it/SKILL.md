@@ -11,12 +11,19 @@ description: >-
   (harden-it), a PR merge verdict or a per-diff accessibility lens (review-it), a discovered
   backlog (clean-sweep), or standards attestation (attest-it).
 license: MIT
-proof: doctrine-only
-autonomy: L4
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh; a deterministic a11y oracle
   (axe-core / Lighthouse) and a runnable surface. A fix worker playbook (addyosmani, mattpocock, gstack)
   — one router per worker.
+metadata:
+  proof: doctrine-only
+  autonomy: L4
+  unit: one success-criterion violation instance on the frozen surface
+  state_machine: axe scan → fix → re-scan → revert control (the violation returns)
+  convergence: the axe oracle is clean over the re-enumerated frozen surface
+  ordering: structural items serial (one landmark fix moves later instances); the rest parallel
+  parking: CONFORMANT-WITH-MANUAL-PARKED — the automation ceiling is owed to a human AT reviewer as a standing terminal
+  oracle: a deterministic rule engine (axe-core) over a frozen surface, incomplete by construction
 ---
 
 # access-it — WCAG 2.2 conformance over a frozen surface

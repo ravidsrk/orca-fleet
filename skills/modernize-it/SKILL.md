@@ -10,11 +10,18 @@ description: >-
   currency run. Not for stateful DB schema/data migration across deploys (hand that to ship-it) or
   advisory exploit proof (harden-it).
 license: MIT
-proof: doctrine-only
-autonomy: L4
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh; the package manager + a
   green CI baseline. addyosmani deprecation-and-migration playbook — one router per worker.
+metadata:
+  proof: doctrine-only
+  autonomy: L4
+  unit: one compatibility-graph node (a dependency or a framework major)
+  state_machine: graph → order → upgrade → fix the breakage → review → land
+  convergence: every node is current or pinned with a named reason, and CI is green at the tip
+  ordering: topological on the compatibility graph — a node waits for everything it depends on
+  parking: CURRENT-WITH-PINNED — a pin carries its reason and its revisit condition
+  oracle: the repo's own suite green at the upgraded tip
 ---
 
 # modernize-it — every major current or parked, CI green the whole way

@@ -11,13 +11,20 @@ description: >-
   stale or out of date: false claims in docs are clean-sweep (source=doc-claims), syncing docs to
   one wave's diff is ship-it's doc-sync unit, and stale runtime doctrine is pin-it.
 license: MIT
-proof: doctrine-only
-autonomy: L4
 compatibility: >-
   HARD dependency: Orca runtime + the orchestration skill (Orca CLI). git + gh. A machine-derivable
   public surface (an extractor script the repo has or the run writes) and a runnable claim check.
   Where the docs live in a framework (Docusaurus, MkDocs, Nextra), its build must run locally. One
   worker playbook pack per worker (matt or addy) — never two routers in one worker.
+metadata:
+  proof: doctrine-only
+  autonomy: L4
+  unit: one (public-surface entity x quadrant) cell
+  state_machine: extract the surface → map coverage → freeze the gap list → write the cell → bind every claim
+  convergence: every frozen gap cell is filled and every factual claim binds to a file:symbol or a pasted run
+  ordering: extraction precedes any writing; reference-first per entity
+  parking: DOCUMENTED-WITH-PARKED — an unfilled cell names why
+  oracle: renaming the anchored fact turns the claim check RED
 ---
 
 # document-it — every public-surface cell filled, every claim anchored

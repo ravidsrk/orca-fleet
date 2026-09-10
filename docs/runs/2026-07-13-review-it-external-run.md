@@ -99,3 +99,15 @@ lifecycle (`task_4548b7f3eb0f`, `task_55b0b2dbf7ee`, `task_662b190c6642`,
 review-it is report-only and has **no fix authority**. The findings route to the PR
 author; nothing was posted to the external repo, and no code was modified. The verdict
 is the deliverable.
+
+## Evidence binding — recorded history, not a machine-checkable tier
+
+This run happened and the record stands. It does **not** advance `review-it`'s
+`metadata.proof` above `doctrine-only`, because the four review-axis artifacts and the verdict were retained in the coordinator's run
+directory; the reviewed SHA belongs to `garrytan/gstack`, not to this repository.
+
+`runtime/scripts/run_report.py` binds a tier advance to artifacts re-derivable at a commit
+in this repository (issue #259): a `RUN:` header, a manifest under the run's own directory,
+and an integrity inventory that re-hashes at the recorded commit. This report cannot meet
+that bar retroactively — the artifacts to hash are gone. Recording that is the honest
+outcome; leaving the tier claim standing on a filename check was the finding.

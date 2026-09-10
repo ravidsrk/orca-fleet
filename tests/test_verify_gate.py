@@ -443,5 +443,67 @@ class VerifyGateDispatchPinDiscovery(GateCase):
         self.assertIn("missing --dispatch-pubkey", r.stderr)
 
 
+class SymlinkInstallGate(unittest.TestCase):
+    """Issue #262: the recommended install path shipped no gate at all.
+
+    `hooks/hooks.json` resolves through `${CLAUDE_PLUGIN_ROOT}`, which Claude Code
+    sets only for plugin installs. `ln -s` into ~/.claude/skills/ loads no plugin,
+    so those two hooks never fire and the missions run ungated — silently. The
+    snippet is the fix; these tests keep it wired and keep the README saying so.
+    """
+
+    SNIPPET = ROOT / "hooks" / "settings-snippet.json"
+    PRINTER = ROOT / "hooks" / "print-settings-snippet.sh"
+
+    def test_plugin_hooks_still_resolve_through_the_plugin_root(self):
+        data = json.loads((ROOT / "hooks" / "hooks.json").read_text(encoding="utf-8"))
+        commands = [
+            h["command"]
+            for event in data["hooks"].values()
+            for matcher in event
+            for h in matcher["hooks"]
+        ]
+        self.assertTrue(commands)
+        for command in commands:
+            self.assertIn("${CLAUDE_PLUGIN_ROOT}", command)
+
+    def test_the_snippet_wires_the_same_two_events(self):
+        plugin = json.loads((ROOT / "hooks" / "hooks.json").read_text(encoding="utf-8"))
+        snippet = json.loads(self.SNIPPET.read_text(encoding="utf-8"))
+        self.assertEqual(sorted(snippet["hooks"]), sorted(plugin["hooks"]))
+        for event, entries in snippet["hooks"].items():
+            for matcher in entries:
+                for hook in matcher["hooks"]:
+                    self.assertIn("__ORCA_FLEET_ROOT__", hook["command"])
+                    self.assertIn("verify-gate.sh", hook["command"])
+
+    def test_the_printer_resolves_the_placeholder_to_a_real_script(self):
+        r = subprocess.run(
+            ["sh", str(self.PRINTER)], capture_output=True, text=True, cwd=str(ROOT)
+        )
+        self.assertEqual(r.returncode, 0, r.stderr)
+        emitted = json.loads(r.stdout)
+        for event in emitted["hooks"].values():
+            for matcher in event:
+                for hook in matcher["hooks"]:
+                    self.assertNotIn("__ORCA_FLEET_ROOT__", hook["command"])
+                    script = hook["command"].split(" --event")[0]
+                    self.assertTrue(Path(script).is_file(), script)
+
+    def test_the_printer_check_mode_verifies_the_gate_script(self):
+        r = subprocess.run(
+            ["sh", str(self.PRINTER), "--check"], capture_output=True, text=True, cwd=str(ROOT)
+        )
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("verify-gate.sh", r.stdout)
+
+    def test_the_readme_says_a_symlink_install_has_no_gate(self):
+        # The finding was that nothing told the user. A README that stops saying
+        # so puts it back.
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        self.assertIn("print-settings-snippet.sh", readme)
+        self.assertIn("no completion gate", readme)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

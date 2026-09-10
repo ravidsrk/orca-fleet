@@ -11,12 +11,18 @@ description: >-
   move the verdict — it routes out. Report-only — it never edits code (fixing is ship-it / clean-
   sweep). Not the full security loop (harden-it).
 license: MIT
-proof: external-run
-autonomy: L4
-proof_evidence: docs/runs/2026-07-13-review-it-external-run.md
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh. Review worker playbooks
   (mattpocock code-review, addyosmani specialists, gstack review army) — one router per worker.
+metadata:
+  proof: doctrine-only
+  autonomy: L4
+  unit: one finding bound to the reviewed SHA
+  state_machine: pin the fixed point → acceptance-review + scope-gated risk lenses → aggregate → verdict
+  convergence: every axis reported and the verdict bound to the reviewed SHA (re-pin or void if HEAD moves)
+  ordering: isolated parallel axes, no cross-rerank between them
+  parking: NO-GO, or a finding demoted to the appendix when it cannot quote its motivating line
+  oracle: the diff itself, read-only — no executed control (those belong to the fix missions)
 ---
 
 # review-it — a read-only, SHA-bound verdict

@@ -85,9 +85,17 @@ git clone https://github.com/ravidsrk/orca-fleet.git
 #    playbooks/ and runtime/ by relative path)
 ln -s "$(pwd)/orca-fleet/skills/ship-it" ~/.claude/skills/ship-it
 
-# 3. In a repo with the Orca runtime + orchestration skill available:
+# 3. A symlink install loads NO plugin, so it gets no completion gate. Wire it:
+sh orca-fleet/hooks/print-settings-snippet.sh   # merge the output into ~/.claude/settings.json
+
+# 4. In a repo with the Orca runtime + orchestration skill available:
 #    "ship this: <your goal>"   — and approve the freeze when asked.
 ```
+
+> **Step 3 is not optional if you want the gate.** `hooks/hooks.json` wires the verifier through
+> `${CLAUDE_PLUGIN_ROOT}`, which Claude Code sets only for **plugin** installs. A `ln -s` into
+> `~/.claude/skills/` loads no plugin, so without the snippet above the missions run with no
+> completion gate at all (issue #262). The plugin install below needs nothing extra.
 
 Then read [Getting started](docs/getting-started.md) for the full walkthrough: what the
 coordinator does, what the workers do, where the evidence lands, and what the two human gates
@@ -124,7 +132,7 @@ evidence-based definition of done. Click through for the full guide to each.
 
 ### Autonomy levels
 
-Each mission's frontmatter also carries a validator-enforced `autonomy:` level on Addy Osmani's
+Each mission's `metadata:` block also carries a validator-enforced `autonomy:` level on Addy Osmani's
 L0–L5 ladder ("Agentic Autonomy Levels", addyo.substack.com, 2026-07-03). The ladder is
 structural. In the source's own terms, L3 is one agent looping toward a measurable stop
 condition; L4 is many agents working in parallel, each on an isolated slice of the task; L5 is a
@@ -138,22 +146,30 @@ one-way gate class, not a lower rung. A scheduled unattended run is the L5 shape
 
 ## Proof status — honesty first
 
-Every mission's frontmatter carries a validator-enforced `proof:` field: `doctrine-only`,
-`self-run`, or `external-run`. A mission cannot claim a higher tier without `proof_evidence:`
-linking a run report that exists in the repo. The missions that have advanced past `doctrine-only`:
-[`clean-sweep`](docs/runs/2026-07-13-clean-sweep-self-run.md) → **self-run** (drained six false
-doc-claims in this repo to DRY; a later
-[tracker self-run](docs/runs/2026-07-17-clean-sweep-tracker-self-run.md) closed 22 of 26 issues
-as DRY-WITH-PARKED), [`review-it`](docs/runs/2026-07-13-review-it-external-run.md)
-→ **external-run** (a NO-GO verdict on a real gstack PR),
-[`oss-contribute`](docs/runs/2026-07-16-oss-contribute-external-run.md) → **external-run** (5 PRs
-and 4 review-assist comments on a real upstream repo), and the flagship
+Every mission's `metadata:` block carries a validator-enforced `proof:` field: `doctrine-only`,
+`self-run`, or `external-run`. A higher tier is not a claim you can write — it is a report that
+**re-derives**. `runtime/scripts/run_report.py` requires a `RUN:` header, an evidence manifest
+inside the run's own `docs/runs/<date>-<mission>…/` directory, and an integrity inventory whose
+hashes are re-computed from the git objects at the commit the header names. A report that merely
+names the mission in its filename no longer advances anything (issue #259, REVIEW.md §2.2).
+
+One mission clears that bar today:
 [`ship-it`](docs/runs/2026-08-28-ship-it-self-run.md) → **self-run** (a small slice driven to
-`PROMOTION_READY` — BUILT, its promotion PR since human-merged; the run also surfaced that a solo fleet cannot
-autonomously clear the independent-review gate). The rest remain honestly
-`doctrine-only` — field-tested protocols with no recorded run yet, and this repo will not pretend
-otherwise. (Its predecessor shipped twelve missions with two proven and paid for it; the honesty
-is machine-checked here so that cannot recur.) The [run archive](docs/runs/) holds the evidence.
+`PROMOTION_READY` — BUILT, its promotion PR since human-merged; the run also surfaced that a solo
+fleet cannot autonomously clear the independent-review gate; its five inventory hashes re-derive
+at `748b328`).
+
+Three runs really happened and are **not** tier claims, because their artifacts were retained
+outside this repository and nothing here can re-hash them:
+[`clean-sweep`](docs/runs/2026-07-13-clean-sweep-self-run.md) (drained six false doc-claims to
+DRY; a later [tracker run](docs/runs/2026-07-17-clean-sweep-tracker-self-run.md) closed 22 of 26
+issues), [`review-it`](docs/runs/2026-07-13-review-it-external-run.md) (a NO-GO verdict on a real
+gstack PR), and [`oss-contribute`](docs/runs/2026-07-16-oss-contribute-external-run.md) (5 PRs and
+4 review-assist comments on a real upstream repo). Each report says so in its own
+"Evidence binding" section, and each mission is back at `doctrine-only`. Demoting them cost the
+catalog three green-looking badges and is the correct answer: history and a machine-checkable
+claim are different things. (Its predecessor shipped twelve missions with two proven and paid for
+it.) The [run archive](docs/runs/) holds the evidence.
 
 Missions can also run as a **gated sequential chain** ("harden-it, then prove-it, then ship-it")
 where each link proceeds only on the previous mission's verified terminal state — see
@@ -350,7 +366,16 @@ cd orca-fleet
 # copy breaks it.
 ln -s "$(pwd)/skills/ship-it"     ~/.claude/skills/ship-it
 ln -s "$(pwd)/skills/clean-sweep" ~/.claude/skills/clean-sweep
+
+# Then wire the completion gate — a symlink install loads no plugin, so
+# hooks/hooks.json (which resolves through ${CLAUDE_PLUGIN_ROOT}) never fires.
+sh hooks/print-settings-snippet.sh          # merge into ~/.claude/settings.json
+sh hooks/print-settings-snippet.sh --check  # confirm the gate script resolves
 ```
+
+Without that snippet this install has **no completion gate**: missions still run, but nothing
+blocks a unit from being marked done on an unverified manifest. See
+[docs/verify-gate.md](docs/verify-gate.md#install-paths-and-which-ones-carry-the-gate).
 
 </details>
 
@@ -365,7 +390,8 @@ The repo ships a plugin manifest at [`.claude-plugin/plugin.json`](.claude-plugi
 ```
 
 A plugin install copies the whole repo, so the `../../playbooks/` references resolve inside the
-plugin directory — nothing else to configure.
+plugin directory — and it is the one path where the completion gate wires itself, because
+`${CLAUDE_PLUGIN_ROOT}` is set. Nothing else to configure.
 
 </details>
 
@@ -449,9 +475,9 @@ python3 -m unittest discover -s tests -v   # architecture contract tests + valid
 
 The validator is deliberately paranoid: every composition reference must resolve, every mission
 must expose at least one machine-checkable composition, dangling or typo'd `<name>.md` references
-fail the build anywhere in the catalog, every mission must declare an honest `proof:` status
-(with evidence on disk before it can claim one), and instruction-budget line caps stop doctrine
-creep at CI. The contract tests keep the mission catalog, the outcome-naming rule, the
+fail the build anywhere in the catalog, every mission must declare an honest `metadata.proof:`
+status (with a run report that re-hashes at the commit it names before it can claim one) and all
+six identity points, and instruction-budget line caps stop doctrine creep at CI. The contract tests keep the mission catalog, the outcome-naming rule, the
 orphan-protocol guarantee, and script interpolation hygiene locked.
 
 ## FAQ

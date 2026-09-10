@@ -1,6 +1,7 @@
 # 🚢 ship-it — intent or spec → a released, verified outcome
 
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — coordinator plus parallel isolated builders and build-blind reviewers; you own the one-way doors (freeze, promotion, deploy).
+> **Activation load:** ~31,500 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** self-run ([run report](../runs/2026-08-28-ship-it-self-run.md))
 
 > Give it an idea or a frozen spec. Come back to a change that is built, reviewed at the

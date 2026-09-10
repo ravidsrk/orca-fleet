@@ -13,13 +13,20 @@ description: >-
   findings (clean-sweep) — those pass the release machine once and revert with a deploy; data does
   not.
 license: MIT
-proof: doctrine-only
-autonomy: L4
 compatibility: >-
   HARD dependency: Orca runtime + the orchestration skill (Orca CLI). git + gh. The project's own
   migration runner and a database the fleet can migrate and dump (a schema-dump command is the
   down-path oracle), plus a deploy path per phase and read/write telemetry for the zero-reader
   window. One worker playbook pack per worker (matt or addy) — never two routers in one worker.
+metadata:
+  proof: doctrine-only
+  autonomy: L4
+  unit: one migration phase of one table or shape
+  state_machine: expand → dual-write → throttled resumable backfill → switch reads → contract
+  convergence: data parity holds and zero readers of the old shape remain, across deploys
+  ordering: strictly phased — a phase never starts before its predecessor is proven in production
+  parking: MIGRATED-WITH-PARKED, or ABANDONED with the expand rolled back
+  oracle: data parity between the two shapes plus a zero-old-shape-reader query, never the repo suite
 ---
 
 # migrate-it — a stateful shape change landed across deploys, nothing ever invalid

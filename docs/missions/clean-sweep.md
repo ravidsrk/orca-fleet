@@ -1,7 +1,10 @@
 # 🧹 clean-sweep — a finite backlog exhausted to zero, with evidence
 
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — coordinator plus parallel isolated fix workers, one finding each; you own the one-way doors.
-> **Proof:** self-run ([run report](../runs/2026-07-13-clean-sweep-self-run.md))
+> **Activation load:** ~33,700 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
+> **Proof:** doctrine-only — it ran ([self-run report](../runs/2026-07-13-clean-sweep-self-run.md)), but that run's
+> artifacts were retained outside this repository, so the tier is not re-derivable here
+> (`runtime/scripts/run_report.py`, issue #259)
 
 > Point it at an audit report, an issue tracker, or a README that lies. Come back to a backlog
 > that is demonstrably empty: every real item fixed on an integration branch with a test that

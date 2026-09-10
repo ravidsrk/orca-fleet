@@ -1,7 +1,10 @@
 # 🔍 review-it — a trusted, read-only, SHA-bound GO/NO-GO verdict
 
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel axis reviewers on the same pinned SHA; the GO/NO-GO verdict is yours to act on — a gate class, not a lower rung.
-> **Proof:** external-run ([run report](../runs/2026-07-13-review-it-external-run.md))
+> **Activation load:** ~17,800 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
+> **Proof:** doctrine-only — it ran ([external-run report](../runs/2026-07-13-review-it-external-run.md)), but that run's
+> artifacts were retained outside this repository, so the tier is not re-derivable here
+> (`runtime/scripts/run_report.py`, issue #259)
 
 > Point it at a PR or a branch. Come back to a verdict you can act on: every axis reviewed by a
 > fresh session that never wrote the code, every finding quoting the exact line that motivated it,

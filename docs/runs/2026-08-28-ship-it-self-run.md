@@ -1,5 +1,11 @@
 # Run report — ship-it self-run, 2026-08-28
 
+RUN: mission=ship-it tier=self-run inventory_at=748b328 manifest=docs/runs/2026-08-28-ship-it-selfrun/build-manifest.json verifier=RED
+
+The header above is what `runtime/scripts/run_report.py` re-derives: the inventory below
+is re-hashed at `748b328`, the manifest has to exist at that commit, and `verifier=RED`
+has to match the outcome this report records. Nothing here is graded on prose.
+
 First recorded run of the flagship mission. Mission: **ship-it**, entry = frozen spec
 (`decide-and-freeze` validate branch), target: this repo itself. A small-but-non-trivial slice —
 `runtime/scripts/proof_status.py`, a proof-posture reporter + `--check` CI lens over the mission

@@ -11,13 +11,20 @@ description: >-
   Not for web perf budgets (speed-it), WCAG conformance (access-it), test-coverage gaps (prove-
   it), or a PR verdict (review-it).
 license: MIT
-proof: doctrine-only
-autonomy: L4
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI) plus the Orca emulator skills
   (orca-emulator for iOS simulators, orca-emulator-android for Android) or a paired physical
   device. git + gh. The app's own build/run toolchain. A fix worker playbook pack (mattpocock,
   addyosmani, gstack) — one router per worker.
+metadata:
+  proof: doctrine-only
+  autonomy: L4
+  unit: one device-observed defect (or one device QA pass over a flow)
+  state_machine: baseline on target → reproduce on target → fix → re-verify on target → on-target revert control
+  convergence: every defect is re-verified ON the target at head_sha with an on-target revert control
+  ordering: one ledgered target session per unit; a desktop pass never substitutes
+  parking: FIELD-PROVEN-WITH-PARKED — a defect the reached tier cannot show names its tier
+  oracle: the target itself — a ledgered device session (DEVICE / EMULATOR / BROWSER / DESKTOP / CLEAN-ENV tiers)
 ---
 
 # field-test-it — proven on hardware, not on hope

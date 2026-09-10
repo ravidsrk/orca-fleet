@@ -9,11 +9,18 @@ description: >-
   authorize implementation. Its outcome is a decided plan; building is ship-it. Not for a foggy
   BUG (root-cause) or ready-to-build intent (ship-it).
 license: MIT
-proof: doctrine-only
-autonomy: L4
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). A wayfinder/research worker playbook
   (mattpocock wayfinder + research) — one router per worker.
+metadata:
+  proof: doctrine-only
+  autonomy: L4
+  unit: one decision-ticket on the frontier
+  state_machine: name the destination → chart tickets → clear the frontier (research / decision / prototype) → freeze
+  convergence: the frontier is sharp — every remaining ticket is phrasable and the DAG is frozen for handoff
+  ordering: frontier waves; a not-yet-sharp ticket is deferred, never guessed
+  parking: MAPPED-WITH-BLOCKED — a blocked ticket names its gate
+  oracle: a human decision at a classified gate — the agent never stands in for the human's side
 ---
 
 # map-it — foggy goal → a frozen, decided execution map

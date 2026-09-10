@@ -12,13 +12,20 @@ description: >-
   latency budget (speed-it), an exploit (harden-it), closing a findings backlog (clean-sweep), or
   a blanket "make this production-ready" ask — that is a mission chain, not one mission.
 license: MIT
-proof: doctrine-only
-autonomy: L4
 compatibility: >-
   HARD dependency: Orca runtime + the orchestration skill (Orca CLI). git + gh. The target's own
   logging/metrics/tracing libraries and a backend that can be queried, a staging environment whose
   failures can be induced, and an alert destination the fleet can observe receiving a test fire.
   One worker playbook pack per worker (matt or addy) — never two routers in one worker.
+metadata:
+  proof: doctrine-only
+  autonomy: L4
+  unit: one path times its 2-4 on-call questions
+  state_machine: enumerate the questions → instrument → alert + runbook → test-fire → induced-failure drill
+  convergence: every question answers from telemetry alone and an induced failure is located with NO source access
+  ordering: instrument before alerting; every alert is test-fired before its unit closes
+  parking: OPERABLE-WITH-PARKED — a question telemetry cannot answer names its blocker
+  oracle: a fresh worker with NO source access locating an induced staging failure
 ---
 
 # oncall-it — the surface is operable, proven by someone who cannot read the source

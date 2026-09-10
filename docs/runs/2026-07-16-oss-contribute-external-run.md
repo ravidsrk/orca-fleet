@@ -63,3 +63,16 @@ only on invitation — not a self-serve taste gate as this run originally treate
 Evidence: PRs and comments live on `dodopayments/chimely` (#81-#85, comments on #72/#76/#77/#79). The
 run's ledger, per-unit SHA-bound manifests, review artifacts, and integrity inventory were retained in
 the fork worktree at close.
+
+## Evidence binding — recorded history, not a machine-checkable tier
+
+This run happened and the record stands. It does **not** advance `oss-contribute`'s
+`metadata.proof` above `doctrine-only`, because the ledger, per-unit manifests, review artifacts and integrity inventory were retained in
+the `ravidsrk/chimely` fork worktree at close; the PRs are public upstream, but nothing a
+gate in this repository can re-derive.
+
+`runtime/scripts/run_report.py` binds a tier advance to artifacts re-derivable at a commit
+in this repository (issue #259): a `RUN:` header, a manifest under the run's own directory,
+and an integrity inventory that re-hashes at the recorded commit. This report cannot meet
+that bar retroactively — the artifacts to hash are gone. Recording that is the honest
+outcome; leaving the tier claim standing on a filename check was the finding.

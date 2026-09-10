@@ -11,13 +11,20 @@ description: >-
   one diff (review-it), or fixing findings you wrote yourself (clean-sweep) — the diff, the
   authorship, and the contributor round-trip are what make this its own mission.
 license: MIT
-proof: doctrine-only
-autonomy: L4
 compatibility: >-
   HARD dependency: Orca runtime + the orchestration skill (Orca CLI). git + gh with MERGE rights on
   the target repo and permission to comment on and close inbound PRs. A runnable test suite (the
   receipt oracle) and the repo's DCO/CLA policy. One worker playbook pack per worker (matt or addy)
   — never two routers in one worker.
+metadata:
+  proof: doctrine-only
+  autonomy: L4
+  unit: one inbound PR — someone else's diff, not your finding
+  state_machine: triage → reproduce RED on base → land with authorship preserved, or refute / park with a receipt
+  convergence: the inbound queue is drained — every PR absorbed, refuted, or parked with a receipt its author can read
+  ordering: one PR at a time against the current base; authorship is preserved on land
+  parking: ABSORBED-WITH-PARKED — a parked PR names the reason in terms its author can act on
+  oracle: the contributor's own claim reproduced — RED on base, green with their diff
 ---
 
 # absorb-it — every inbound contribution landed with credit, refuted with receipts, or parked

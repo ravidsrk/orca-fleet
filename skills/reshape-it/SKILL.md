@@ -12,12 +12,19 @@ description: >-
   backlog (clean-sweep), missing tests (prove-it — though reshape-it borrows its net), or perf
   (speed-it).
 license: MIT
-proof: doctrine-only
-autonomy: L4
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh. The target repo's test
   suite must be runnable and its mutation tooling available for the characterization net. A fix
   worker playbook pack (mattpocock, addyosmani, gstack) — one router per worker.
+metadata:
+  proof: doctrine-only
+  autonomy: L4
+  unit: one module-deepening (one interface shrink at one seam)
+  state_machine: pin a characterization net → shrink the seam → prove behaviour unchanged → land
+  convergence: every targeted seam is deepened with the net green before and after
+  ordering: one seam at a time; the net is pinned before any shape change
+  parking: RESHAPED-WITH-PARKED — a seam left alone names its risk
+  oracle: the characterization net — behaviour preservation, not the new shape
 ---
 
 # reshape-it — deep modules, same behaviour

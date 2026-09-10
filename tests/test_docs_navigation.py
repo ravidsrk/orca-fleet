@@ -243,7 +243,7 @@ class TestDocsNavigation(unittest.TestCase):
         for d in sorted((ROOT / "skills").iterdir()):
             if not d.is_dir() or d.name.startswith((".", "_")):
                 continue
-            tier = re.search(r"(?m)^proof:\s*(\S+)",
+            tier = re.search(r"(?m)^  proof:\s*(\S+)",
                              (d / "SKILL.md").read_text(encoding="utf-8")).group(1)
             guide = (DOCS / "missions" / f"{d.name}.md").read_text(encoding="utf-8")
             m = re.search(r"(?m)^> \*\*Proof:\*\*\s*(\S+)", guide)
@@ -257,7 +257,7 @@ class TestDocsNavigation(unittest.TestCase):
         for d in sorted((ROOT / "skills").iterdir()):
             if not d.is_dir() or d.name.startswith((".", "_")):
                 continue
-            level = re.search(r"(?m)^autonomy:\s*(L\d)",
+            level = re.search(r"(?m)^  autonomy:\s*(L\d)",
                               (d / "SKILL.md").read_text(encoding="utf-8")).group(1)
             guide = (DOCS / "missions" / f"{d.name}.md").read_text(encoding="utf-8")
             m = re.search(r"(?m)^> \*\*Autonomy:\*\*\s*(L\d)", guide)

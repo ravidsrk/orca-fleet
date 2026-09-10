@@ -31,6 +31,23 @@ jobs:
         run: python3 scripts/eval.py run --suite routing --threshold 1.0
       - name: Check proof-evidence honesty
         run: python3 runtime/scripts/proof_status.py --check
+      - name: Proof tiers bind to artifacts, not filenames
+        # #259: a tier above doctrine-only must re-derive — a RUN: header, a
+        # manifest inside the run's own directory, and an integrity inventory
+        # re-hashed from git objects at the commit the header names. Needs the
+        # full history the checkout step above fetches.
+        run: python3 runtime/scripts/run_report.py
+      - name: agentskills.io reference validator (skills-ref)
+        # #263: the repo's own claims live under `metadata:` so the catalog is
+        # installable through Anthropic's own paths, which hard-error on an
+        # unexpected top-level key. This is the upstream validator saying so,
+        # not our restatement of it.
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet uv
+          for d in skills/*/; do
+            uvx --from skills-ref agentskills validate "$d"
+          done
       - name: Secret scan (gitleaks, pinned)
         # #270: doctrine in dispatch-lifecycle.md until now. Pinned by version
         # AND sha256 — a moved tag or a swapped asset fails the checksum before

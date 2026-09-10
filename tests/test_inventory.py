@@ -253,5 +253,32 @@ class TestScriptShape(unittest.TestCase):
         self.assertIn("check", r.stdout)
 
 
+class TestCheckAtRevision(unittest.TestCase):
+    """`--at <rev>` hashes the git blob, not the working tree (issue #259).
+
+    A dated report pins artifacts at the tip it closed on; the tree always moves
+    afterwards. Re-hashing at the recorded commit is what keeps the pin meaningful
+    — and it is the half a fabricated report cannot produce.
+    """
+
+    REPORT = "docs/runs/2026-08-28-ship-it-self-run.md"
+
+    def test_re_derives_at_the_commit_the_report_names(self):
+        r = run_inv("check", self.REPORT, "--at", "748b328")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("5 verified, 0 mismatched", r.stdout)
+
+    def test_the_same_inventory_does_not_match_the_moved_tree(self):
+        # Not a defect in the report: two of its paths are repo files that changed
+        # after the run. Without --at, that is a mismatch; with it, it is not.
+        r = run_inv("check", self.REPORT)
+        self.assertEqual(r.returncode, 1, r.stdout)
+
+    def test_an_unresolvable_revision_cannot_run(self):
+        r = run_inv("check", self.REPORT, "--at", "deadbeef")
+        self.assertEqual(r.returncode, 2, r.stdout)
+        self.assertIn("is not a commit", r.stdout + r.stderr)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
