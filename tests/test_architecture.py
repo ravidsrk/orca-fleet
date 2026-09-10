@@ -588,9 +588,14 @@ class TestArchitecture(unittest.TestCase):
         # (bad args, unknown agent, unmet deps, danger without opt-in) — the old
         # gloss taught coordinators to silently retry policy refusals. The script
         # header is the contract; the doc's inline decision table must match it,
-        # and the pane-read caveat (dispatch-lifecycle.md: codex workers emit no
-        # heartbeats, so exit 3 is a possible false negative) must sit at the
-        # respawn decision point, not only in the other file.
+        # and the pane-read caveat (exit 3 is a possible false negative) must sit
+        # at the respawn decision point, not only in the other file.
+        #
+        # v5 adds exit 4 (state=outcome_unknown). It is the one code that must
+        # NEVER reach the respawn path: the start neither proved nor disproved the
+        # worker, so a respawn puts a second writer beside a possibly-live pane.
+        # Both files must carry that, or a coordinator reading only one of them
+        # rebuilds the 2026-07-15 dual-writer failure.
         doc = (RUNTIME / "liveness-resume.md").read_text(encoding="utf-8")
         script = (RUNTIME / "scripts" / "spawn_worker.sh").read_text(encoding="utf-8")
         self.assertRegex(
@@ -598,9 +603,21 @@ class TestArchitecture(unittest.TestCase):
             "spawn_worker.sh exit-2 contract moved — realign liveness-resume.md "
             "and this test together",
         )
+        self.assertRegex(
+            script, r"(?m)^#\s+4\s+supervised state=outcome_unknown",
+            "spawn_worker.sh must document exit 4 = outcome_unknown in its "
+            "exit-code table",
+        )
+        self.assertRegex(
+            script, r"(?is)outcome_unknown.{0,400}?never respawn",
+            "the script's outcome_unknown contract must say inspect, never respawn",
+        )
         m = re.search(r"(?s)^- Respawn a dead worker:.*?(?=^- )", doc, re.M)
         self.assertIsNotNone(m, "liveness-resume.md lost its respawn bullet")
-        bullet = m.group(0)
+        # Collapse the bullet's wrapping: where the prose happens to break a line
+        # is not part of the contract, and asserting on it makes a reflow look
+        # like a doctrine change.
+        bullet = " ".join(m.group(0).split())
         self.assertNotRegex(
             bullet, r"(?i)state moved",
             "exit 2 is ANY usage/policy refusal (spawn_worker.sh:12), not 'state "
@@ -617,7 +634,48 @@ class TestArchitecture(unittest.TestCase):
         self.assertRegex(
             bullet, r"(?i)false negative",
             "exit 3 must be flagged a possible false negative "
-            "(heartbeats are agent-dependent)",
+            "(an unobserved turn start is not a dead worker)",
+        )
+        self.assertRegex(
+            bullet, r"(?i)exit 4 \(`?outcome_unknown`?\).{0,80}?never respawn",
+            "exit 4 (outcome_unknown) must be INSPECT, never respawn, at the "
+            "respawn decision point — respawning an unproven start is the "
+            "dual-writer class",
+        )
+        # The pane read is a COMMAND with a receipt, not an instruction to squint
+        # at a TUI: the runtime's own answer is `terminal read --screen` /
+        # `worker-read`. Naming it is what makes the caveat executable.
+        self.assertRegex(
+            bullet, r"--screen|worker-read",
+            "the pane-read caveat must name the command that performs it "
+            "(terminal read --screen / worker-read), not just say 'read the pane'",
+        )
+
+    def test_watch_reads_fleet_projections_not_folklore(self):
+        # §3 #5 / §7 item 5: `worker-list`'s projection.liveness is the fleet
+        # verdict for the AGENT; `worker-show`'s observation.status is PTY
+        # liveness only, so a live terminal can still hold a dead agent. The doc
+        # taught this inverted, and the heuristics it grew instead of reading the
+        # runtime are what produced the dual-writer class. WATCH must escalate to
+        # the projection and then run the runtime's own literal nextAction.argv.
+        doc = (RUNTIME / "liveness-resume.md").read_text(encoding="utf-8")
+        for needle, why in [
+            (r"projection\.liveness", "the fleet liveness verdict must be named"),
+            (r"observation\.status", "worker-show must be scoped to PTY liveness"),
+            (r"attention\.requiresAction",
+             "WATCH must act on the rows the runtime flags"),
+            (r"nextAction\.argv",
+             "WATCH must execute the runtime's literal next action, not a heuristic"),
+            (r"--terminal-state reclaimable",
+             "the end-of-run gate must be the reclaimable projection"),
+            (r"outcome_unknown", "the start-state vocabulary must include outcome_unknown"),
+            (r"unverifiable", "absence must be named and must authorize nothing"),
+        ]:
+            self.assertRegex(doc, needle, f"liveness-resume.md: {why}")
+        self.assertNotRegex(
+            doc, r"(?i)`worker-show[^`]*`\s*is the per-worker truth",
+            "the authority is inverted: worker-list's projection is the fleet "
+            "verdict, worker-show is PTY-only",
         )
 
     def test_runtime_scripts_never_interpolate_code(self):

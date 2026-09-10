@@ -12,7 +12,8 @@
 #     (`local-worker-start.ts:243-263`); live probe owed — pin-it.
 #   - typed refusals: branch on `error.code`, NEVER on stderr text, and print `error.data.nextSteps`
 #     verbatim — that array is the runtime's own recovery text
-#     (`orchestration-dispatch-refusal-contract.ts:8`, `recovery-and-cleanup.md:96-108`).
+#     (`orchestration-dispatch-refusal-contract.ts:8`,
+#     `orchestration/recovery-and-cleanup:96-108`).
 #   - `state: outcome_unknown` is NOT a failure: it is an unproven outcome. Exit 4, print the
 #     receipt's `nextCommands`, and INSPECT — never respawn (respawning beside a live pane is the
 #     dual-writer class) (`worker-start-receipt.ts:48,60-68`).
@@ -20,8 +21,9 @@
 #     preamble (`dispatch-methods.ts:155-165` calls `sendTerminalAgentPrompt`) and `--json` returns
 #     `result.prompt{requestId, stages}`, stages drawn from `input_accepted | turn_started`
 #     (`runtime-terminal-contracts.ts:221-225`). v4's blind re-Enter/heartbeat loop is DELETED:
-#     the guide's rule is "never resend on silence" (`recovery-and-cleanup.md:92-94`). When
-#     `turn_started` is absent we replay the receipt ONCE with
+#     the guide's rule is "never resend on silence"
+#     (`orchestration/recovery-and-cleanup:92-94`). When `turn_started` is absent we replay the
+#     receipt ONCE with
 #     `terminal send --retry-request <requestId> --wait-submit <secs>` — a replay, never a resend
 #     ("timeout returns the queued/input-accepted receipt and never resends",
 #     `terminal-send.ts:19-22`). At v1.4.199 that flag pair also REQUIRES `--text` with `--enter`
@@ -41,7 +43,8 @@
 #     instead — the rationale is host-dependent, not universal. `agentDefaultArgs` is
 #     source-witnessed at v1.4.199 (`tui-agent-launch-defaults.ts:10`); live probe owed — pin-it.
 #   - `launch.effective` from the worker-start receipt is printed when present: never claim a model,
-#     effort, or permission flag from the REQUESTED arguments alone (`coordinator-loop.md:23-36`).
+#     effort, or permission flag from the REQUESTED arguments alone
+#     (`orchestration/coordinator-loop:23-36`).
 #   - fail-closed: any failed step exits nonzero with a SPAWN=FAILED diagnostic line on stderr
 #   - respects the task DAG: never forces `ready`; `--mark-ready` is an explicit opt-in and
 #     only applies when every declared dep is already completed

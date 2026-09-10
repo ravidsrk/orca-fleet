@@ -22,7 +22,10 @@ The cap counts live PANES, not tasks (builders); for reviewers it counts review 
 a unit's build-blind acceptance-review fans to its isolated axis workers, and that fan-out is ONE
 review unit, not N against the reviewer cap: a doctor respawn's original pane counts against the cap
 until its closure is verified by pane read. Heartbeat false negatives spawn dual writers — the
-2026-07-15 chimely run planned a 4-builder wave and peaked at 5 builder panes this way.
+2026-07-15 chimely run planned a 4-builder wave and peaked at 5 builder panes this way. That
+history stands as measured; the mechanism that produced it no longer has to: liveness now comes
+from `worker-list`'s `projection.liveness` and `attention.requiresAction`, not from reading panes
+for heartbeats (liveness-resume.md).
 
 Evidence level: **ASSERTED.** The defaults were first asserted from one field run (2026-07-15
 chimely) and its dual-writer post-mortem; no published methodology for sizing fleet concurrency to
