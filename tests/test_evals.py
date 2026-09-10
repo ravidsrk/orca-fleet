@@ -30,7 +30,8 @@ _spec.loader.exec_module(eval_mod)
 EXPECTED_MISSIONS = {
     "ship-it", "clean-sweep", "oss-contribute", "harden-it", "speed-it", "modernize-it",
     "prove-it", "deflake-it", "review-it", "map-it", "root-cause", "attest-it", "access-it",
-    "pin-it", "floor-it", "reshape-it", "field-test-it",
+    "pin-it", "floor-it", "reshape-it", "field-test-it", "migrate-it", "oncall-it",
+    "absorb-it", "document-it",
 }
 
 # Issue #181: the floor must track the live routing score, not rubber-stamp it —

@@ -117,6 +117,10 @@ evidence-based definition of done. Click through for the full guide to each.
 | 🧱 **[floor-it](docs/missions/floor-it.md)** | A written, numbered quality bar: one tool per frozen dimension, every gate proven RED on an injected violation before it blocks CI, and a guard against bar-lowering diffs — `FLOORED` or `FLOORED-WITH-PARKED` | "set the quality bar", "make CI enforce", "define our standards" |
 | 🧬 **[reshape-it](docs/missions/reshape-it.md)** | Confirmed hot modules deepened behind smaller, testable interfaces with behaviour demonstrably unchanged — characterization net pinned before any restructure: `RESHAPED` or `RESHAPED-WITH-PARKED` | "god file", "architecture erosion", "refactor the hot path safely" |
 | 📱 **[field-test-it](docs/missions/field-test-it.md)** | On-device reproduce → fix → re-verify at the head SHA with a revert negative control — the ledgered device session is the oracle, never a desktop pass: `FIELD-PROVEN` or `FIELD-PROVEN-WITH-PARKED` | "test on a real device", "works on desktop, breaks on mobile", "emulator QA" |
+| 🗄️ **[migrate-it](docs/missions/migrate-it.md)** | A stateful shape change landed across deploys — expand → dual-write → backfill → switch reads → zero readers → contract, each phase deployed and baked, each `down` run, parity probed: `MIGRATED`, `MIGRATED-WITH-PARKED`, or `ABANDONED` | "migrate the database", "rename this column safely", "backfill without downtime" |
+| 📟 **[oncall-it](docs/missions/oncall-it.md)** | A frozen path set made operable: every on-call question answered by a quoted signal, symptom alerts test-fired with runbooks, and an induced staging failure named by a source-blind worker: `OPERABLE` or `OPERABLE-WITH-PARKED` | "make this operable", "we were blind during the incident", "add observability" |
+| 📥 **[absorb-it](docs/missions/absorb-it.md)** | An inbound PR queue drained: each contribution absorbed with authorship preserved and a RED-on-base / GREEN-on-head receipt, refuted with a reproduction, or parked with a named ask: `ABSORBED` or `ABSORBED-WITH-PARKED` | "drain the PR queue", "absorb these community contributions", "close out the contributor backlog" |
+| 📚 **[document-it](docs/missions/document-it.md)** | A public surface covered by quadrant with zero critical gaps, every claim bound to a `file:symbol` or a run and proven by a rename-to-RED control: `DOCUMENTED` or `DOCUMENTED-WITH-PARKED` | "document this project", "the API is undocumented", "docs coverage" |
 
 ### Autonomy levels
 
@@ -158,7 +162,7 @@ where each link proceeds only on the previous mission's verified terminal state 
 ## Which mission do I want?
 
 <p align="center">
-  <img src="assets/diagrams/mission-map.jpg" alt="Decision map: a goal to build routes to map-it then ship-it; known problems route to clean-sweep, oss-contribute, harden-it, speed-it, modernize-it, prove-it, deflake-it, floor-it, reshape-it, attest-it, access-it, or field-test-it; a question routes to review-it or root-cause; drifted tooling routes to pin-it" width="900">
+  <img src="assets/diagrams/mission-map.jpg" alt="Decision map: a goal to build routes to map-it then ship-it; known problems route to clean-sweep, oss-contribute, absorb-it, harden-it, speed-it, modernize-it, migrate-it, prove-it, deflake-it, floor-it, reshape-it, attest-it, access-it, oncall-it, document-it, or field-test-it; a question routes to review-it or root-cause; drifted tooling routes to pin-it" width="900">
 </p>
 
 <details>
@@ -183,6 +187,10 @@ flowchart TD
     B -->|compliance evidence| ATTEST[📋 attest-it]
     B -->|accessibility| ACCESS[♿ access-it]
     B -->|breaks on a real device| FIELD[📱 field-test-it<br/>on-device proof]
+    B -->|a schema or data shape to move| MIG[🗄️ migrate-it<br/>expand → contract, phase by phase]
+    B -->|blind in production| ONCALL[📟 oncall-it<br/>telemetry, alerts, runbooks]
+    B -->|an inbound PR queue| ABSORB[📥 absorb-it<br/>land with credit or refute]
+    B -->|an undocumented public surface| DOC[📚 document-it<br/>coverage map, claims anchored]
     S --> C{A question, not a change?}
     C -->|is this diff ready to merge| REV[🔍 review-it<br/>read-only verdict]
     C -->|why is this happening| RC[🔬 root-cause<br/>diagnosis only]

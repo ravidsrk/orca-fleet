@@ -41,6 +41,10 @@ Only `skills/` may contain a `SKILL.md`. `scripts/validate.py` fails the build i
 | "set the quality bar" / "make CI enforce" / "define our standards" / "bar keeps slipping" | [`floor-it`](skills/floor-it/SKILL.md) |
 | "god file" / "architecture erosion" / "refactor the hot path safely" / "interface wider than the implementation" | [`reshape-it`](skills/reshape-it/SKILL.md) |
 | "test on a real device" / "works on desktop, breaks on mobile" / "emulator QA" / "on-device bug" | [`field-test-it`](skills/field-test-it/SKILL.md) |
+| "migrate the database" / "rename this column safely" / "expand/contract migration" / "backfill this table without downtime" | [`migrate-it`](skills/migrate-it/SKILL.md) |
+| "make this operable" / "we were blind during the incident" / "add observability" / "alerts and runbooks" | [`oncall-it`](skills/oncall-it/SKILL.md) |
+| "drain the PR queue" / "absorb these community contributions" / "review and merge the open PRs" / "contributor backlog" | [`absorb-it`](skills/absorb-it/SKILL.md) |
+| "document this project" / "the API is undocumented" / "docs coverage" / "write the reference docs" | [`document-it`](skills/document-it/SKILL.md) |
 
 Prefer the most specific mission. When two seem to fit, apply the mission-identity test
 (ARCHITECTURE.md): different unit of work, state machine, convergence proof, or an oracle that
