@@ -3,7 +3,7 @@
 # addyosmani/agent-skills × orca-fleet — adoption audit (2026-09-10)
 
 **Upstream pin:** `6ca0cd7` (plugin 0.6.9, tagged 0.6.9 on 2026-09-04 at `84ee506`; HEAD is the merge of #531). Local clone: `scratchpad/upstream/agent-skills`.
-**orca-fleet pin:** `70964b8` (main, 2026-09-10; the merge of #254 is `af8ea89`). All orca-fleet `file:line` anchors are at that SHA. Nothing in `/home/user/orca-fleet` was modified.
+**orca-fleet pin:** `a91937d` (main, 2026-09-10; the merge of #254 is `af8ea89`). All orca-fleet `file:line` anchors are at that SHA. Nothing in `/home/user/orca-fleet` was modified.
 **Prior audits this extends (not repeated):** `docs/research/2026-07-15-addy-orchestration-gap-analysis.md` (D1–D8), `docs/research/2026-08-16-addy-latest-delta-plan.md` (E1–E7), `docs/research/2026-09-09-upstream-adoption-audit.md` §2.3 (two stale lenses, three NOT-ADOPTED items).
 **Method:** every upstream file read in full (25 `SKILL.md`, 9 commands × 3 host dirs, 4 agents, 4 hook scripts + 2 hook docs + `hooks.json`, 7 references, `evals/README.md` + 25 case files + `run-evals.js` + 5 validators); every orca-fleet mission, playbook, runtime policy, `scripts/eval.py`, `hooks/hooks.json`, `runtime/scripts/verify-gate.sh`; `git show 0f6ced7` (#250) diffed line-by-line against the previous audit's stale rows; upstream `git log --since=2026-07-13` with author and commit dates resolved separately (several commits carry author dates before the window and commit dates inside it).
 
@@ -454,5 +454,5 @@ Five-point test per `ARCHITECTURE.md:34-47`: same mission iff same (1) unit of w
 
 - Upstream snapshot is `6ca0cd7`; the security skill alone moved on 08-14, 08-31, and 09-04. Treat "current" rows as current at that SHA.
 - Line anchors in upstream skills shift with every edit; the quoted text is the stable key.
-- REVIEW.md (`70964b8`) findings are cited as measurements, not re-verified here except where this audit independently read the same code (`eval.py`, `hooks.json`, `verify-gate.sh`).
-- The 340-test suite passes at `70964b8` (`python3 -m unittest discover -s tests` → OK); upstream Tier 2 passes at `6ca0cd7` (140 checks, 88/88 rank-1).
+- REVIEW.md (`a91937d`) findings are cited as measurements, not re-verified here except where this audit independently read the same code (`eval.py`, `hooks.json`, `verify-gate.sh`).
+- The 340-test suite passes at `a91937d` (`python3 -m unittest discover -s tests` → OK); upstream Tier 2 passes at `6ca0cd7` (140 checks, 88/88 rank-1).

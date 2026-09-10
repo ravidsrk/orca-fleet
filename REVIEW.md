@@ -5,7 +5,7 @@ Every `file:line` below is at that SHA. Read-only engagement; nothing in the rep
 Scratch clones were used for every injection. Research sources are listed in §9.
 
 Sections 1–9 are the review as delivered and are not edited after the fact. **§10 is a later,
-dated re-measurement** at `ba285d5` — the same attacks and the same routing matrix, re-run against
+dated re-measurement** at `9afefc6` — the same attacks and the same routing matrix, re-run against
 the branch that addressed the backlog, including what the fixes cost and what is still not true.
 
 ## 1. Verdict
@@ -410,7 +410,7 @@ External (fetched 2026-09-10):
   controls); Ye et al. 2021 and Le et al. 2018 (patch overfitting); GitHub stale-review dismissal,
   Gerrit patchset votes, in-toto/SLSA subject binding.
 
-## 10. Status at `ba285d52671eafed1722b2b0dfc0d7c3c1bd5e3c` (2026-09-10)
+## 10. Status at `9afefc667322c43e289051a1fc2b22ae66fb6bbf` (2026-09-10)
 
 The verdict in §1 stands as written, bound to `af8ea89`. This section is a later, dated
 re-measurement on branch `claude/orca-fleet-deep-review-nksvxh` — the same instruments, re-run.

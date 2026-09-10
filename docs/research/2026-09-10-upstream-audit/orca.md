@@ -2,7 +2,7 @@
 
 # Orca substrate adoption audit — orca-fleet vs stablyai/orca
 
-**Date:** 2026-09-10 · **orca-fleet:** `70964b8` (main) · **Orca clone:** HEAD `f2d5711b2d` (2026-09-10), latest tag `v1.4.199` (tag commit `28957d6004`, 2026-09-09; tag tip `cb958df54b`). Previous audit pin: `65631e4` (2026-09-09, `docs/research/2026-09-09-upstream-adoption-audit.md` §2.1). This document **extends** §2.1; rows it already settled are cited, not repeated.
+**Date:** 2026-09-10 · **orca-fleet:** `a91937d` (main) · **Orca clone:** HEAD `f2d5711b2d` (2026-09-10), latest tag `v1.4.199` (tag commit `28957d6004`, 2026-09-09; tag tip `cb958df54b`). Previous audit pin: `65631e4` (2026-09-09, `docs/research/2026-09-09-upstream-adoption-audit.md` §2.1). This document **extends** §2.1; rows it already settled are cited, not repeated.
 
 **Method:** every fleet claim anchored to `file:line` in `/home/user/orca-fleet`; every upstream fact anchored to `file:line` in the Orca clone at HEAD, with `git show v1.4.199:<path>` used to decide RELEASED vs unreleased. Release notes on GitHub were **not reachable** from this session (`gh` absent; REST + MCP both denied for `stablyai/orca`), so release-level attribution uses tag ancestry (`git merge-base --is-ancestor <commit> v1.4.199`) and the release commit `28957d6004` (which only bumps `package.json` + `resources/skills/release-mapping.json`). Treat "release notes say" as unverifiable here; tag ancestry is exact.
 

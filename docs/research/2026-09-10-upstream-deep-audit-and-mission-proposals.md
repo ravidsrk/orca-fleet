@@ -1,6 +1,6 @@
 # Upstream deep audit — adoption gaps and new-mission proposals
 
-> **Dated snapshot (2026-09-10).** Pinned: orca-fleet `70964b8` (main `af8ea89` + REVIEW.md);
+> **Dated snapshot (2026-09-10).** Pinned: orca-fleet `a91937d` (main `af8ea89` + REVIEW.md);
 > stablyai/orca HEAD `f2d5711b2d` / tag `v1.4.199`; garrytan/gstack `71f6048e` (v1.84.1.0);
 > addyosmani/agent-skills `6ca0cd7` (0.6.9); mattpocock/skills `3cca18b` (v1.2.3+9). Full-history
 > clones; every claim anchored to `file:line` on both sides. Extends the 2026-09-09 audit; corrects it
@@ -360,5 +360,5 @@ tables: [`2026-09-10-upstream-audit/orca.md`](2026-09-10-upstream-audit/orca.md)
 [`mattpocock.md`](2026-09-10-upstream-audit/mattpocock.md). Prior orca-fleet research consulted:
 `2026-09-09-upstream-adoption-audit.md`, `2026-08-28-forward-roadmap-and-defensibility-plan.md`
 (rejected candidates), `2026-08-16-addy-latest-delta-plan.md`, `2026-07-15-addy-orchestration-gap-analysis.md`,
-`REVIEW.md` at `70964b8`. GitHub issues for `stablyai/orca` and `garrytan/gstack` were not reachable
+`REVIEW.md` at `a91937d`. GitHub issues for `stablyai/orca` and `garrytan/gstack` were not reachable
 from this session; demand signals come from CHANGELOGs, TODOS, and design docs in the clones.

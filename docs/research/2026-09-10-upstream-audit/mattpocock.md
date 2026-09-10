@@ -1,6 +1,6 @@
 > **Dated snapshot (2026-09-10).** Per-source appendix to [2026-09-10-upstream-deep-audit-and-mission-proposals.md](../2026-09-10-upstream-deep-audit-and-mission-proposals.md); `file:line` anchors resolve at the commits named in its header. Scratch-clone paths in this report are for the audit session only.
 
-# mattpocock/skills adoption audit — orca-fleet at HEAD `70964b8` (2026-09-10)
+# mattpocock/skills adoption audit — orca-fleet at HEAD `a91937d` (2026-09-10)
 
 Upstream pinned: `3cca18b` (v1.2.3 + 9 unreleased commits, last 2026-09-04). Every anchor is
 `file:line` at those two revisions. Extends `docs/research/2026-09-09-upstream-adoption-audit.md`
