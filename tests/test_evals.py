@@ -31,6 +31,14 @@ _spec = importlib.util.spec_from_file_location("eval", ROOT / "scripts" / "eval.
 eval_mod = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(eval_mod)
 
+EXPECTED_MISSIONS = {
+    "ship-it", "clean-sweep", "oss-contribute", "harden-it", "speed-it", "modernize-it",
+    "prove-it", "deflake-it", "review-it", "map-it", "root-cause", "attest-it", "access-it",
+    "pin-it", "floor-it", "reshape-it", "field-test-it", "migrate-it", "oncall-it",
+    "absorb-it", "document-it",
+}
+
+
 # Issue #260: the floor tracks what the description-based router actually
 # scores, never a rubber stamp. Measured on the full fixture set (74 rows: the
 # curated seams plus the 36 realistic prompts of REVIEW.md §5) at the commit

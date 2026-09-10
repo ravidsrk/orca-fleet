@@ -1,0 +1,41 @@
+{
+  "skill_name": "absorb-it",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We have 40 open community PRs nobody has looked at in months — drain the queue and keep the contributors' credit.",
+      "expected_output": "Should route to absorb-it. Should enumerate every open inbound PR paginated to the end at T0, classify each with a reproduction on current main, absorb preserving the contributor's Author field with the fleet's amendment as a separate maintainer-authored commit, produce a regression receipt RED on the pre-absorption base and GREEN on the absorbed head, review build-blind, land one PR per contribution against BASE, and close each inbound PR with the landing SHA plus a credit line, re-enumerating until dry.",
+      "assertions": [
+        "Routes to absorb-it",
+        "Unit is one inbound PR (someone else's diff)",
+        "Authorship is preserved on the absorbed commit; fleet changes are a separate commit",
+        "Every landing carries a RED-on-base / GREEN-on-head receipt with both SHAs",
+        "Overlapping inbound PRs form an absorption chain, re-classified against the new main",
+        "Terminal is ABSORBED or ABSORBED-WITH-PARKED"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Send fixes upstream for these three issues in a repo we do not own — we only have a fork.",
+      "expected_output": "Should NOT route to absorb-it. Contributing to a repo you cannot merge is oss-contribute; absorb-it is the maintainer side, with merge rights and a closing SHA.",
+      "assertions": [
+        "Does not route to absorb-it",
+        "Routes to oss-contribute",
+        "Distinguishes the outsider with no merge rights from the maintainer draining an inbound queue"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Is PR #814 ready to merge? Give me a verdict, do not change anything.",
+      "expected_output": "Should NOT route to absorb-it. A read-only, SHA-bound GO/NO-GO verdict on one diff is review-it; absorb-it lands, credits, and closes a whole queue.",
+      "assertions": [
+        "Does not route to absorb-it",
+        "Routes to review-it",
+        "Distinguishes a verdict with no fix authority from queue absorption"
+      ],
+      "files": []
+    }
+  ]
+}
