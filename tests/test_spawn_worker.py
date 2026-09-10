@@ -364,6 +364,17 @@ esac
             self.assertEqual(p.returncode, 2, p.stdout + p.stderr)
             self.assertIn("consumer_fenced", p.stderr)
 
+    def test_nonzero_call_with_unparseable_receipt_fails_closed(self):
+        # A missing binary / truncated write / unknown response shape exits nonzero with nothing
+        # the parser can object to. That must READ AS FAILURE, never as ready — a fail-open here
+        # would report a worker that was never started.
+        with tempfile.TemporaryDirectory() as tmp:
+            self._stub(tmp, ws_rc=127, receipt={})
+            p = self._run(tmp, self.ARGS, self.RW)
+            self.assertEqual(p.returncode, 1, p.stdout + p.stderr)
+            self.assertIn("SPAWN=FAILED", p.stderr)
+            self.assertNotIn("READY=", p.stdout)
+
     def test_outcome_unknown_is_exit_4_with_next_commands(self):
         # The next release returns this for an unobserved turn start. It is NOT a failure: a
         # respawn here puts a second writer beside a possibly-live pane (the 2026-07-15 class).

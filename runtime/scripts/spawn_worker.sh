@@ -421,6 +421,13 @@ PY
   verdict=${verdict_line#VERDICT=}
   verdict=${verdict%% *}
   payload=$(printf '%s\n' "$ws_out" | tail -n +2)
+  # Fail CLOSED on a nonzero call whose receipt named neither a code nor a state: a missing
+  # binary, a truncated write, or a host that answered in some shape we do not parse must never
+  # read as READY just because the parser found nothing to object to.
+  if [ "$verdict" = "ready" ] && [ "$ws_rc" != "0" ]; then
+    verdict=failed
+    verdict_line="VERDICT=failed UNPARSEABLE_RECEIPT rc=${ws_rc}"
+  fi
 
   step=verify-ready
   case "$verdict" in
