@@ -13,6 +13,7 @@ can reach it. Each invariant here failed once (issue number on the test).
 import importlib.util
 import json
 import re
+import subprocess
 import unittest
 from pathlib import Path
 
@@ -264,6 +265,30 @@ class TestDocsNavigation(unittest.TestCase):
             self.assertIsNotNone(m, f"docs/missions/{d.name}.md has no Autonomy callout")
             self.assertEqual(m.group(1), level,
                              f"docs/missions/{d.name}.md Autonomy != skills/{d.name} frontmatter")
+
+    def test_every_changelog_release_has_a_cut_commit(self):
+        # #274: nine dated CHANGELOG headings, no immutable ref binding any of them
+        # to a commit. Tags live in the repo's ref namespace rather than in a
+        # branch, so a fresh clone (and CI) cannot see one; docs/releases.json is
+        # the committed half a checkout can actually verify.
+        releases = json.loads((DOCS / "releases.json").read_text(encoding="utf-8"))["releases"]
+        by_version = {r["version"]: r for r in releases}
+        changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+        headings = re.findall(r"(?m)^## \[(\d+\.\d+\.\d+)\] - (\d{4}-\d{2}-\d{2})", changelog)
+        self.assertTrue(headings, "CHANGELOG has no dated release headings")
+        for version, _date in headings:
+            self.assertIn(version, by_version, f"CHANGELOG {version} has no docs/releases.json row")
+            row = by_version[version]
+            self.assertRegex(row["commit"], r"^[0-9a-f]{40}$", version)
+            self.assertEqual(row["tag"], f"v{version}")
+            found = subprocess.run(
+                ["git", "cat-file", "-e", f"{row['commit']}^{{commit}}"],
+                cwd=str(ROOT), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            )
+            self.assertEqual(
+                found.returncode, 0,
+                f"docs/releases.json {version} names {row['commit'][:12]}, not a commit here",
+            )
 
     def test_verify_manifest_fields_named_in_schema(self):
         # Issue #170: verify.py's no-gh lane required manifest["review"]["artifact"],

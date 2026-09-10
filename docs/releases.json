@@ -1,0 +1,68 @@
+{
+  "_comment": "Version -> cut commit: the durable half of issue #274. A CHANGELOG heading with no immutable ref is a claim without a SHA, and annotated tags live in the repository's ref namespace rather than in any branch \u2014 a clone that never fetched them cannot check the claim, and a tag created in a throwaway checkout is simply lost. This file is committed, so both problems go away: tests/test_docs_navigation.py binds every dated CHANGELOG heading to an entry here whose commit exists. Recreate and publish the tags with: jq -r '.releases[] | \"git tag -a \\(.tag) \\(.commit) -m \\\"orca-fleet \\(.version)\\\"\"' docs/releases.json | sh && git push origin --tags",
+  "releases": [
+    {
+      "version": "0.1.0",
+      "tag": "v0.1.0",
+      "commit": "fc0d08c4276ae25e5e3ac48caa11976ec331e304",
+      "cut_date": "2026-07-13",
+      "note": "orca-fleet 0.1.0 (2026-07-13) \u2014 retroactive tag at the last commit before the 0.1.1 bump; the 0.1.0 heading was written with the CHANGELOG in 3b8b378"
+    },
+    {
+      "version": "0.1.1",
+      "tag": "v0.1.1",
+      "commit": "3b8b37876bc6135cc68b188576cacce63faaf213",
+      "cut_date": "2026-07-13",
+      "note": "orca-fleet 0.1.1 (2026-07-13) \u2014 retroactive tag at the CHANGELOG cut"
+    },
+    {
+      "version": "0.2.0",
+      "tag": "v0.2.0",
+      "commit": "3ceed1ce512bafdf0504f28ff4730066cfaef872",
+      "cut_date": "2026-07-13",
+      "note": "orca-fleet 0.2.0 (2026-07-13) \u2014 retroactive tag at the CHANGELOG cut"
+    },
+    {
+      "version": "0.2.1",
+      "tag": "v0.2.1",
+      "commit": "c2c25faea62da5b197485755db41bff1d93a0e22",
+      "cut_date": "2026-07-13",
+      "note": "orca-fleet 0.2.1 (2026-07-13) \u2014 retroactive tag at the CHANGELOG cut"
+    },
+    {
+      "version": "0.3.0",
+      "tag": "v0.3.0",
+      "commit": "1db4bac88e62a724a4fef48bf9fdaa438a2cb751",
+      "cut_date": "2026-07-13",
+      "note": "orca-fleet 0.3.0 (2026-07-13) \u2014 retroactive tag at the CHANGELOG cut"
+    },
+    {
+      "version": "0.4.0",
+      "tag": "v0.4.0",
+      "commit": "41b2e5cd22726029efc0030f8170c7f9b6c416cf",
+      "cut_date": "2026-07-16",
+      "note": "orca-fleet 0.4.0 (2026-07-16) \u2014 retroactive tag at the CHANGELOG cut"
+    },
+    {
+      "version": "0.5.0",
+      "tag": "v0.5.0",
+      "commit": "3ba13f155e1828f3a3b3978e970b0c79687520f5",
+      "cut_date": "2026-08-26",
+      "note": "orca-fleet 0.5.0 (2026-08-26) \u2014 retroactive tag at the CHANGELOG cut"
+    },
+    {
+      "version": "0.6.0",
+      "tag": "v0.6.0",
+      "commit": "40c8b586491093f3c7bf5cf1a6881cea48d0bf0d",
+      "cut_date": "2026-09-01",
+      "note": "orca-fleet 0.6.0 (2026-09-01) \u2014 retroactive tag at the CHANGELOG cut"
+    },
+    {
+      "version": "0.6.1",
+      "tag": "v0.6.1",
+      "commit": "c74f92a0e9899e505c833fac562b117e9ae72bf5",
+      "cut_date": "2026-09-09",
+      "note": "orca-fleet 0.6.1 (2026-09-09) \u2014 retroactive tag at the CHANGELOG cut"
+    }
+  ]
+}

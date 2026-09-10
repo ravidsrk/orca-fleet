@@ -37,8 +37,11 @@ landing on this branch, and each is listed below as it lands.
   EMULATOR / BROWSER / DESKTOP / CLEAN-ENV), and pin-it under it; no mission is deleted.
 - `runtime/pins.json` pins Orca and the three upstream packs by commit and witness date, and
   `tests/test_pins.py` requires an entry for every pack a `compatibility:` field names (#271).
-- Annotated tags `v0.1.0` … `v0.6.1` at the CHANGELOG cut commits, and a release-cut checklist
-  in `docs/ops.md` with the tag step (#274).
+- `docs/releases.json` — every CHANGELOG version bound to its cut commit, with
+  `test_every_changelog_release_has_a_cut_commit` holding the two together, plus the release-cut
+  checklist in `docs/ops.md`. Annotated tags `v0.1.0` … `v0.6.1` were reconstructed at those
+  commits; a tag is a repository ref rather than branch content, so the committed file is what a
+  fresh clone can check and the one-line publish command lives in `docs/ops.md` (#274).
 - `TODOS.md` is a pointer to `docs/completion/GAPS.md`, the run-archive field-proof plan, and
   the review issues (#275). `docs/research/REJECTED.md` ledgers every rejected mission candidate
   with source, shape, reason, and date.
