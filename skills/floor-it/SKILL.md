@@ -17,8 +17,7 @@ autonomy: L4
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh. The target repo's
   toolchain for each dimension's tool (coverage, linter, perf harness, axe-core…). CI write access
-  on the integration BASE. A worker playbook pack (mattpocock, addyosmani, gstack) — one router
-  per worker.
+  on BASE. A worker pack (matt | addy | gstack) — one router per worker.
 ---
 
 # floor-it — a written bar that fires
@@ -35,15 +34,15 @@ tooling feeds the retro); rides `evidence-manifest` (each dimension carries the 
 RED + restored GREEN + the canary-PR receipt at `head_sha`), `merge-serialization`,
 `reviewed-sha-freshness`, `dispatch-lifecycle`, `liveness-resume`, `ledger-contract`,
 `sandbox-policy` (`PROFILE=rw` wire workers; violation injections are coordinator-executed, never
-delegated), `gate-classification`, `attention-budget`. Worker TASK pack: one of matt | addy | gstack
-— never co-mount.
+delegated), `gate-classification`, `attention-budget`. Worker TASK pack: one of matt|addy|gstack —
+never co-mount.
 
 ## Terminal outcomes
 
 - **FLOORED** — every frozen dimension has a wired tool, a demonstrated-RED proof (local + canary
   PR), CI blocks on it, and the guard script is itself in CI; CONSTRAINTS.md is committed.
 - **FLOORED-WITH-PARKED** — ≥1 frozen dimension has no measurable tool (e.g. "code is tasteful")
-  and is PARKED, named with the human gate that covers it instead; or the run parked AT the freeze
+  and is PARKED, named with the human gate that covers it; or the run parked AT the freeze
   (headless). The bar ships incomplete-but-honest, never with a vacuous check.
 
 ## Pipeline
@@ -60,8 +59,7 @@ DETECT: read the stack (manifests, CI, existing gates) and DRAFT the dimension s
   measured-at-freeze table becomes CONSTRAINTS.md, committed as the FIRST change on BASE.
   Interactive: interview with recommended defaults; the human freezes. Headless / spawned /
   scheduled: the freeze proposal is published and the run PARKS there (gate-classification:
-  one-way is human-only, never auto-resolved, never defaulted on timeout; mission-scheduling
-  already parks at freeze).
+  one-way is human-only, never auto-resolved or defaulted on timeout).
 → WIRE + PROVE-FIRES per dimension, ONE unit each, IN ORDER (rw workers, remediate-finding):
   wire the smallest harness that measures the dimension on a unit branch off BASE; then, BEFORE
   review, the coordinator (never a worker) injects the violation on a THROWAWAY branch off the
@@ -78,9 +76,10 @@ DETECT: read the stack (manifests, CI, existing gates) and DRAFT the dimension s
   reviewed unit on the same train. Then prove the CI path: one canary PR per gate carrying its
   injection — CI must go RED; the canary is closed unmerged.
 → GUARD: land `check_constraints`-style validation in CI on BASE — a reviewed unit like the
-  others: any diff that lowers a threshold, adds a suppression, skips a test, or widens an
-  exclusion in CONSTRAINTS.md fails without an explicit waiver label. The guard is owned by the
-  repo (a CI job), not by the terminated mission.
+  others: any diff that lowers a threshold in CONSTRAINTS.md or touches a dimension's frozen
+  tool-config surface (suppressions, skipped tests, exclusions) fails without a recorded DECISIONS
+  waiver (gate-classification). The guard is owned by the repo (a CI job), not the terminated
+  mission.
 → REFLECT (compound-learn): untoolable dimensions and their human gates recorded.
 → VERDICT: FLOORED, or FLOORED-WITH-PARKED with the register (untoolable dimensions · freeze park).
 ```
@@ -91,8 +90,10 @@ Every dimension in the frozen CONSTRAINTS.md is accounted for: a wired harness w
 demonstrated on its throwaway-branch injection BEFORE review (GREEN after revert), landed through
 the review train — a harness that stayed GREEN on its injection was reverted, never merged — then
 enforced on BASE with a canary PR whose CI ran RED and was closed unmerged, plus guard coverage —
-all bound to `head_sha` in the manifest — or PARKED as untoolable with the human gate named. The verifier replays the RECORDED
-injection artifacts (the archived canary-PR run and the throwaway-branch RED/GREEN transcripts);
+all bound to `head_sha` in the manifest — or PARKED as untoolable with the human gate named. The
+canary receipt lands in the manifest's `commands[]` (the captured `gh run` invocation + the CI
+conclusion RED, exit code recorded — verify.py's commands contract), and the verifier replays the
+RECORDED injection artifacts (the archived canary run and the throwaway RED/GREEN transcripts);
 it never injects fresh violations into landed code (evidence-manifest §2). The table never shrank
 mid-run; a dimension dropped for convenience is a finding, not an edit.
 
@@ -101,9 +102,11 @@ mid-run; a dimension dropped for convenience is a finding, not an edit.
 Ledger header at T0 (`ledger-contract.md`) with `WIP: builders=<n> reviewers=<n>` sized to
 `attention-budget.md`. Header per liveness-resume.md: `RUN · COORDINATOR · BASE · FORK_POINT · T0 · SOURCE · WIP`
 (`-` if N/A; SOURCE = the frozen CONSTRAINTS digest). One row per dimension: id, threshold, tool,
-local RED/GREEN transcripts, canary-PR run url, CI job, verdict. FREEZE blocks on the human in
-interactive sessions and PARKS the run headless; WIRE waves run ≤3 builders. Stalls →
-`liveness-resume.md` WATCH; death → RESUME (ledger-scoped, git-verified).
+local RED/GREEN transcripts, canary-PR run url, CI job, verdict — PLUS one row each for the
+ENFORCE and GUARD units (reviewed mutation units with their own build/review/merge flags; resume
+reads flags, not prose). FREEZE blocks on the human in interactive sessions and PARKS headless;
+WIRE waves run ≤3 builders. Stalls → `liveness-resume.md` WATCH; death → RESUME (ledger-scoped,
+git-verified).
 
 ## Anti-patterns
 
@@ -115,7 +118,8 @@ the injection to a worker (coordinator-executed; the security injection is a fix
 reads, never an install of a known-bad package). Editing a threshold down to make a run green —
 the GUARD's exact target, one-way, never mechanical. Letting speed-it's journey budgets substitute
 (journey-level optimization is a different unit; floor-it installs the standing repo-wide bar).
-Picking tools before the freeze (the frozen dimension chooses the tool).
+Picking tools before the freeze (DETECT measures with the repo's EXISTING counters; the freeze
+selects the gate tool — a tool chosen earlier anchors the bar to the tool).
 
 ## Related
 

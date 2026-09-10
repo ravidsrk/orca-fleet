@@ -73,8 +73,10 @@ buckets map onto gate-classification.md — the taxonomy is the planning surface
   exploit PoCs (danger profile inside an ephemeral sandbox only, above), live-prod mutation,
   credential provisioning — Lane 0 refuse-and-surface, or route to a sandbox per this policy.
   A destructive-path operation also validates its TARGET before acting (risk-review.md's security
-  lens): allowlisted root after symlink resolution, a depth floor below it, ownership evidence
-  read first — a shape check is not authorization; an unvalidated target makes it Lane 0.
+  lens): filesystem — allowlisted root after symlink resolution, depth floor, ownership evidence
+  read first; DB teardown — named environment allowlist + object identity re-read + ownership
+  proof; cloud — account/project allowlist + live resource identity. A shape check is not
+  authorization; an unvalidated target makes it Lane 0.
 
 A mission's "Always/Ask-First/Never boundary" resolves HERE; its Ask-First set IS the one-way
 gate list it commits to at threat-model time.

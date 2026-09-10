@@ -6,10 +6,12 @@ Recipe: Matt `diagnosing-bugs` (feedback-loop-first) + Addy `debugging-and-error
 
 Diagnosis evidence is pasted command output bound into a SHA-pinned, permanent manifest — the
 single most likely place a credential gets immortalized. Before ANY invocation, output, log, or
-artifact lands in the ledger/manifest/report: redact every secret as `<REDACTED>` (tokens, keys,
-connection strings, cookies, internal hostnames). If the exact value is load-bearing for the
-diagnosis, prove the property with a redacted-shaped stand-in (`<REDACTED:32-hex>`), never the
-real value.
+artifact lands in the ledger/manifest/report, every secret (tokens, keys, connection strings,
+cookies, internal hostnames) is replaced — by a **named indirection**, never a hole: record the
+NAME (`$STAGING_DB_URL`, `<db-host:staging>`), never the value, so the pasted command stays
+executable and the reproduction stays re-runnable by anyone holding the secret. If the exact
+value's SHAPE is load-bearing for the diagnosis, prove the property with a shaped stand-in
+(`<REDACTED:32-hex>`), never the real value.
 
 ## Phase 1 IS the skill: a red-capable loop BEFORE any theory
 

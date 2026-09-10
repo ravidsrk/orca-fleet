@@ -1,9 +1,9 @@
 # Runtime policy — the evidence manifest (the definition of done)
 
-This is how a fleet knows a unit of work is actually DONE. It replaces trace-grading, which is
-not enforceable for a coordinator (it does not hold its workers' traces, and a trace proves an
-action was attempted, not that the resulting state is correct — an agent can run the right-looking
-commands against the wrong SHA or a stale environment).
+This is how a fleet knows a unit of work is actually DONE. It replaces trace-grading, which a
+coordinator cannot enforce (it does not hold its workers' traces, and a trace proves an action
+attempted, not the resulting state — right-looking commands against the wrong SHA or a stale
+environment look identical).
 
 Completion is a two-part protocol: the worker emits a **SHA-bound evidence manifest**, and an
 **independent verifier** checks its claims against **authoritative state** (git, the test runner
@@ -64,8 +64,7 @@ Rules:
   commits ("It works" with no SHA is not a manifest); other classes: a symbolic ref is NOTE-only.
 - `contract` binds the manifest to THIS UNIT's authoritative denominator — the unit's task spec
   as materialized at decompose/enumeration time (a slice's assigned criteria, a finding, an
-  advisory), not to whatever the worker chose to list, and not to the whole mission source. The
-  denominator is TWO-LEVEL:
+  advisory) — not worker-chosen, not the whole mission source. The denominator is TWO-LEVEL:
   - **unit level** (this field): `contract.criterion_ids` is the COMPLETE id set of the unit's own
     task spec at `contract.digest`; `criteria` must carry an entry for every one — a worker cannot
     shrink its denominator; the verifier re-derives it (§2) and rejects a manifest that drops any id.
@@ -77,19 +76,20 @@ Rules:
     proves ITS criteria; the mission proves nothing was left off any slice.
   For loop-based denominators (`clean-sweep source=tracker`), the two digests stay separate:
   the unit's `contract.digest` is always its OWN task spec; the ENUMERATION digest is mission
-  state, recorded in the ledger header's SOURCE field and re-derived each loop. The FINAL loop's
-  enumeration is the mission denominator — a post-`T0` issue joins the next loop's set instead
-  of voiding already-verified units.
+  state (ledger header's SOURCE field, re-derived each loop). The FINAL loop's enumeration is the
+  mission denominator — a post-`T0` issue joins the next loop's set; verified units stay verified.
 - `criteria` lists the ACTUAL acceptance criteria from the task spec, each marked addressed or not.
   A criterion with no addressing evidence is unmet work, not a waiver.
 - `negative_control` is REQUIRED for any unit that claims a fix or a test: show the proof FAILS
   when the change is reverted/mutated (a green test over reverted code proves nothing). Bind it to
   a NAMED mutation tool + a PINNED mutant id with a killed/survived verdict — a surviving
   criterion-violating mutant is a tautological suite and FAILS. Tools: `mutmut`/`cosmic-ray`/
-  `stryker`/`pitest`/`cargo-mutants`/`go-mutesting` (per language), or `revert` (delete the
-  production line) as the fallback. A perf fix instead compares before/after to the metric
-  contract. A behaviour-preserving deepening (reshape-it) instead proves the seam's pinned mutant
-  stays KILLED at head_sha AND that reverting enlarges the interface measurement.
+  `stryker`/`pitest`/`cargo-mutants`/`go-mutesting` (per language), `hand` (compile-preserving
+  hand-written mutant, diff quoted in the artifact), or `revert` (delete the production line).
+  Carve-outs: a perf fix compares before/after to the metric contract; a behaviour-preserving
+  deepening (reshape-it) proves the seam's pinned mutant stays KILLED at head_sha AND reverting
+  enlarges the interface measurement; a doctrine patch (pin-it) archives the pre-patch refutation
+  receipt (the old claim's probe RED, tool `revert`), re-run post-merge.
 - `binding_audit` logs criterion↔test audit coverage for the same units: which `criteria[].id`s
   had their covering test quoted and mutation-checked against the criterion (§2 samples it; a
   manifest claiming a fix or a test without the field is rejected).

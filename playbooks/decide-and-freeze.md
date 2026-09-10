@@ -18,6 +18,9 @@ RECOMMENDED answer each (upstream format: ❓ question, ➡️ recommendation), 
 auto-pick per `gate-classification.md` and a human answers in one pass. After each round, resolve
 what the answers sharpened and ask the next frontier; facts that live in the codebase are
 dispatched to a non-blocking fact-finder between rounds — never asked, never blocking the round.
+**The join rule:** a question whose answer depends on an outstanding fact-finder stays OPEN until
+that dispatch returns, and the freeze never happens with fact dispatches outstanding — independent
+facts run concurrently, dependent decisions join on them.
 - Sharpen overloaded terms against a `CONTEXT.md` glossary (account = Customer or User?); an ADR only
   when hard-to-reverse ∧ surprising ∧ a real trade-off.
 - Every DECISION goes to the human. Never answer the human's side.

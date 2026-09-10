@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# spawn_worker.sh — fail-closed Orca worker dispatch for fleet coordinators. (v3)
+# spawn_worker.sh — fail-closed Orca worker dispatch for fleet coordinators. (v4)
 #
-# v3 contract (2026-09-09 runtime modernization, re-witnessed against the INSTALLED Orca):
+# v4 contract (2026-09-09 runtime modernization, re-witnessed against the INSTALLED Orca;
+#   v3's first pass shipped an unparseable receipt + a ro→YOLO leak — review-caught, fixed here):
 #   - the supervised spawn path is `worker-start` (compose: worktree + agent terminal + readiness
 #     + dispatch, one call; on installed Orca the call exits 0 only when the worker is READY).
 #     Refusals are TYPED codes in the error envelope (task_not_startable carries

@@ -35,7 +35,10 @@ resets the streak. Two coordinators reading the same log reach the same gate ver
   auth endpoints must hold across instances — an in-memory limiter in front of >1 instance is a
   finding. Any destructive-path operation (delete/cleanup/migration teardown) validates its TARGET
   before acting: allowlisted root after symlink resolution, a depth floor below it, and ownership
-  evidence read first — a shape check is not authorization. A finding needs a
+  evidence read first — a shape check is not authorization. These checks are the FILESYSTEM form;
+  for other destructive targets the equivalents are: a DB migration teardown → named environment
+  allowlist + object identity re-read at execution + ownership proof; a cloud resource →
+  account/project allowlist + resource identity (ARN/id) verified live. A finding needs a
   concrete step-by-step exploit scenario; never test live APIs. One verified finding → grep the whole
   tree for VARIANTS. (Full audit→re-attack loop is `harden-it`; this is the bounded review lens.)
 - **Performance:** measure-first (no optimizing without a baseline); symptom→cause tree (slow load →

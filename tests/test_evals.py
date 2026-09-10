@@ -135,6 +135,25 @@ class TestEvalInfrastructure(unittest.TestCase):
             with self.subTest(prompt=prompt):
                 self.assertEqual(eval_mod.classify_prompt(prompt), expected)
 
+    def test_routing_seam_2026_09_10_review_collisions(self):
+        # Greptile review sweep (2026-09-10): broad/shared vocabulary must not steal routes.
+        seam = [
+            # upgrade vocabulary lands on modernize-it, never the post-upgrade doctrine audit
+            ("Upgrade all dependencies to the latest majors and fix the breakages.", "modernize-it"),
+            ("Orca updated overnight — re-pin our dispatch doctrine against the installed binary.", "pin-it"),
+            # "reshape" as a common verb must not steal planning
+            ("Reshape this epic — plan this epic into tickets.", "map-it"),
+            # metric-based mobile regressions are speed-it, not on-device defect verification
+            ("LCP regression on mobile — 4.2s to 5.1s on the checkout journey.", "speed-it"),
+            # journey-level perf budgets stay with speed-it even when CI enforcement is named
+            ("Make CI enforce the checkout journey perf budget.", "speed-it"),
+            # floor-it keeps the bar itself
+            ("Set the quality bar for this repo and prove every gate fires.", "floor-it"),
+        ]
+        for prompt, expected in seam:
+            with self.subTest(prompt=prompt):
+                self.assertEqual(eval_mod.classify_prompt(prompt), expected)
+
     def test_word_trigger_matches_identifier_forms_not_lookalikes(self):
         # PR #225 review rounds: "aria" must route when it is a whole word or the head of an
         # identifier (aria-label, aria_roles, ariaLabel) and never when it merely sits inside
