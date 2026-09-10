@@ -1064,10 +1064,13 @@ class EndToEndMutationGreen(RepoCase):
              "pr": {"number": 7, "reviewed_sha": self.head_sha},
              "negative_control": nc or {"tool": "mutmut", "result": "KILLED", "mutant": "m7",
                                         "artifact": self.nc_artifact},
-             # The content-bound ledger: an exit-0 run whose wtree is head_sha's tree. In real use
-             # evidence-run.py writes this; here it is spelled out so the binding is visible.
+             # The content-bound ledger: an exit-0 run whose wtree is head_sha's tree, carrying the
+             # cmd_sha256 evidence-run.py writes. --execute-nc will only replay a command that is
+             # in here (PR #277 review): a unit does not get to nominate what proves it.
              "commands": commands if commands is not None else [
-                 {"label": "tests", "cmd": self.proof_cmd, "exit": 0, "wtree": self.head_tree,
+                 {"label": "tests", "cmd": self.proof_cmd,
+                  "cmd_sha256": hashlib.sha256(self.proof_cmd.encode("utf-8")).hexdigest(),
+                  "exit": 0, "wtree": self.head_tree,
                   "artifact": self.nc_artifact}],
              "intent": {"goal": "land the change", "ruled_out": "the alternatives",
                         "why": "the criterion demands it"},
@@ -1142,8 +1145,9 @@ class EndToEndMutationGreen(RepoCase):
         head = self.commit("tautological proof")
         nc = {**self._revert_nc(), "artifact": self.nc_artifact}
         path = self._manifest(lighting="dark-eligible", nc=nc, commands=[
-            {"label": "tests", "cmd": self.proof_cmd, "exit": 0,
-             "wtree": self.git("rev-parse", "HEAD^{tree}")}])
+            {"label": "tests", "cmd": self.proof_cmd,
+             "cmd_sha256": hashlib.sha256(self.proof_cmd.encode("utf-8")).hexdigest(),
+             "exit": 0, "wtree": self.git("rev-parse", "HEAD^{tree}")}])
         manifest = json.loads(Path(path).read_text(encoding="utf-8"))
         manifest["head_sha"] = head
         manifest["pr"]["reviewed_sha"] = head
@@ -1153,6 +1157,55 @@ class EndToEndMutationGreen(RepoCase):
         rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc")
         self.assertEqual(rc, 2)
         self.assertIn("TAUTOLOGICAL", err)
+
+    def test_a_command_absent_from_the_ledger_is_refused(self):
+        # PR #277 review, P1: `negative_control.command` is worker-written. A worker free to
+        # nominate any command can pick one that fails under the control and passes clean —
+        # green gate, criterion never run — and hands the verifier arbitrary argv besides.
+        # The replay may only run a command the content-bound ledger already recorded green
+        # at head_sha's tree.
+        nc = {**self._revert_nc(), "command": "/bin/false"}
+        path = self._manifest(lighting="dark-eligible", nc=nc)
+        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc")
+        self.assertEqual(rc, 2)
+        self.assertIn("is not in the evidence ledger", err)
+        self.assertNotIn("TAUTOLOGICAL", err)  # refused before it was ever executed
+
+    def test_a_ledger_record_whose_sha_does_not_match_is_refused(self):
+        # cmd_sha256 that does not hash its own cmd binds nothing; a decorative digest
+        # would let a record be edited after the fact.
+        path = self._manifest(lighting="dark-eligible", nc=self._revert_nc(), commands=[
+            {"label": "tests", "cmd": self.proof_cmd, "cmd_sha256": "0" * 64,
+             "exit": 0, "wtree": self.head_tree}])
+        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc")
+        self.assertEqual(rc, 2)
+        self.assertIn("does not describe its own command", err)
+
+    def test_a_stale_ledger_record_cannot_supply_the_command(self):
+        # The record must be fresh at head_sha's tree, the same rule check_commands applies.
+        path = self._manifest(lighting="dark-eligible", nc=self._revert_nc(), commands=[
+            {"label": "tests", "cmd": self.proof_cmd,
+             "cmd_sha256": hashlib.sha256(self.proof_cmd.encode("utf-8")).hexdigest(),
+             "exit": 0, "wtree": "0" * 40}])
+        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc")
+        self.assertEqual(rc, 2)
+        self.assertIn("is not in the evidence ledger", err)
+
+    def test_coordinator_nc_command_overrides_and_must_agree(self):
+        # --contract-source's shape, for the proof command: the coordinator supplies it out of
+        # band, and a manifest that names a different one is refused rather than silently obeyed.
+        path = self._manifest(lighting="dark-eligible", nc=self._revert_nc())
+        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc",
+                                       "--nc-command", "/bin/true")
+        self.assertEqual(rc, 2)
+        self.assertIn("is not the command the coordinator supplied out of band", err)
+
+    def test_coordinator_nc_command_that_agrees_is_accepted(self):
+        path = self._manifest(lighting="dark-eligible", nc=self._revert_nc())
+        rc, out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc",
+                                      "--nc-command", self.proof_cmd)
+        self.assertEqual(rc, 0, err)
+        self.assertIn("negative control EXECUTED", out + err)
 
     def test_executed_control_needs_a_bound_command(self):
         nc = {k: v for k, v in self._revert_nc().items() if k != "command"}
@@ -1170,8 +1223,9 @@ class EndToEndMutationGreen(RepoCase):
         self.commit("hand nc artifact")
         nc = {"tool": "hand", "result": "RED", "artifact": art, "command": self.proof_cmd}
         path = self._manifest(lighting="dark-eligible", nc=nc, commands=[
-            {"label": "tests", "cmd": self.proof_cmd, "exit": 0,
-             "wtree": self.git("rev-parse", "HEAD^{tree}")}])
+            {"label": "tests", "cmd": self.proof_cmd,
+             "cmd_sha256": hashlib.sha256(self.proof_cmd.encode("utf-8")).hexdigest(),
+             "exit": 0, "wtree": self.git("rev-parse", "HEAD^{tree}")}])
         manifest = json.loads(Path(path).read_text(encoding="utf-8"))
         head = self.git("rev-parse", "HEAD")
         manifest["head_sha"] = head
@@ -1191,8 +1245,9 @@ class EndToEndMutationGreen(RepoCase):
         self.commit("fabricated hand artifact")
         nc = {"tool": "hand", "result": "RED", "artifact": art, "command": self.proof_cmd}
         path = self._manifest(lighting="dark-eligible", nc=nc, commands=[
-            {"label": "tests", "cmd": self.proof_cmd, "exit": 0,
-             "wtree": self.git("rev-parse", "HEAD^{tree}")}])
+            {"label": "tests", "cmd": self.proof_cmd,
+             "cmd_sha256": hashlib.sha256(self.proof_cmd.encode("utf-8")).hexdigest(),
+             "exit": 0, "wtree": self.git("rev-parse", "HEAD^{tree}")}])
         manifest = json.loads(Path(path).read_text(encoding="utf-8"))
         manifest["head_sha"] = self.git("rev-parse", "HEAD")
         Path(path).write_text(json.dumps(manifest), encoding="utf-8")

@@ -121,7 +121,17 @@ def build_mutation_fixture(repo):
         "contract_digest": "sha256:" + sha256("contract.md"),
         "nc_sha256": sha256("docs/reports/vf/nc.txt"),
         "review_sha256": sha256("docs/reports/vf/review.txt"),
-        "proof_cmd": f"{Path(sys.executable).name} -m unittest test_mod",
+        # The SAME command line the negative control replays and the ledger records —
+        # one token, so the trap cannot drift into proving nothing. sys.executable in
+        # full, not its basename: the manifest's control names the interpreter it will
+        # actually run, and --execute-nc requires the two to be the same string.
+        "proof_cmd": (_proof := f"{sys.executable} -m unittest test_mod"),
+        # The ledger's own digest of that command line, exactly as evidence-run.py
+        # writes it. --execute-nc will only replay a command the ledger already
+        # recorded green at head_sha's tree, so the trap has to carry a real one
+        # (PR #277 review, P1) — a placeholder here would make this control pass
+        # for the wrong reason.
+        "proof_cmd_sha256": hashlib.sha256(_proof.encode("utf-8")).hexdigest(),
         "python": sys.executable,
     }
 
@@ -190,6 +200,12 @@ def fixture_gate(trap):
         if r.returncode not in (0, 2):
             raise RuntimeError(f"verify.py exited {r.returncode} on fixture trap {trap['id']} "
                                f"(not a 0/2 verdict): {r.stderr.strip()[:400]}")
+        if r.returncode != 0 and trap.get("sound_expected") == "GREEN":
+            # A positive control going RED is a broken control, not a measurement:
+            # it would quietly stop proving "not always-RED". Say why, loudly.
+            raise RuntimeError(
+                f"positive control {trap['id']} went RED — the control is broken, not the gate: "
+                f"{r.stderr.strip()[:600]}")
         return r.returncode == 0
     finally:
         shutil.rmtree(holder, ignore_errors=True)

@@ -47,11 +47,23 @@ jobs:
         # installable through Anthropic's own paths, which hard-error on an
         # unexpected top-level key. This is the upstream validator saying so,
         # not our restatement of it.
+        env:
+          UV_VERSION: "0.12.12"
+          SKILLS_REF_VERSION: "0.1.1"
         run: |
           set -euo pipefail
-          python3 -m pip install --quiet uv
+          # Pinned like ruff in this same job (PR #277 review, P2). Unpinned, an
+          # upstream release decides whether the same commit passes, and PR CI
+          # executes whatever the index happens to serve that day.
+          #
+          # Version pins, not hashes: gitleaks above is sha256-pinned because it is
+          # one release tarball, while these are multi-wheel PyPI projects whose
+          # per-platform digests would need a lockfile to pin honestly. Saying that
+          # here beats implying an integrity guarantee this step does not have.
+          python3 -m pip install --quiet "uv==${UV_VERSION}"
+          uvx --from "skills-ref==${SKILLS_REF_VERSION}" agentskills --version
           for d in skills/*/; do
-            uvx --from skills-ref agentskills validate "$d"
+            uvx --from "skills-ref==${SKILLS_REF_VERSION}" agentskills validate "$d"
           done
       - name: Secret scan (gitleaks, pinned)
         # #270: doctrine in dispatch-lifecycle.md until now. Pinned by version

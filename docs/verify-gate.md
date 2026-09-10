@@ -61,6 +61,15 @@ worker-set; anything else in the environment is ignored):
 - `ORCA_UNIT_CLASS` — `mutation | report-only | planning`, from dispatch; missing/unknown ⇒ mutation.
 - `ORCA_REPO` — `owner/name` for the independent GitHub review lookup (optional; inferred from origin).
 - `ORCA_BASE` / `ORCA_SYMBOL` — ancestry-check base branch / a unit symbol to grep on it (optional).
+- `ORCA_NC_COMMAND` — the **authoritative** criterion-bound command the negative control must turn
+  RED, supplied out of band exactly as the frozen contract is. It is forwarded as `--nc-command`,
+  and the manifest's own `negative_control.command` must agree with it or the run is RED — a unit
+  does not get to choose what proves it. When it is unset, verify.py falls back to the manifest's
+  command but requires that command to be **already in the manifest's content-bound `commands[]`
+  ledger**: an exit-0 record whose `wtree` is `head_sha`'s tree and whose `cmd_sha256` hashes its
+  own `cmd`. Without one of those two bindings a worker could nominate any command that happens to
+  fail under the control and pass clean, clearing the executed-control gate without ever running
+  the criterion-bound proof (PR #277 review).
 - `ORCA_EXECUTE_NC` — set (to anything non-empty) to forward `--execute-nc`, which **executes the
   negative control** instead of reading it. verify.py checks out `head_sha` in a throwaway worktree,
   applies the control from the manifest — `tool: revert` restores `negative_control.paths` from

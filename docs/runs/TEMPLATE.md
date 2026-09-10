@@ -13,9 +13,13 @@ Nothing else advances a tier, and naming the mission is not enough (issue #259).
   `docs/runs/<YYYY-MM-DD>-<mission>…/` artifact directory — borrowing another run's manifest is
   refused;
 * `verifier=GREEN|RED` matching what the "Verifier outcome" section records (a RED is honest: a
-  solo run cannot manufacture an independent approver);
-* the integrity inventory re-hashing at `inventory_at` — at least one verified path inside this
-  run's own directory, and zero mismatches.
+  solo run cannot manufacture an independent approver) — and the body must show the ACTUAL
+  invocation, `verify.py … --manifest <that same manifest path>`, not a description of it. Paste
+  the command and its exit code; a sentence about having run it is not a transcript;
+* the integrity inventory re-hashing at `inventory_at` — zero mismatches, at least one verified
+  path inside this run's own directory, **the graded manifest among the hashed paths**, and none
+  of this run's own artifacts absent there. Paths outside the run directory may have moved on;
+  the evidence the run is responsible for may not.
 
 If your artifacts are not committed here, this report is recorded history and the mission stays
 `doctrine-only`. Say that in an "Evidence binding" section rather than claiming a tier.

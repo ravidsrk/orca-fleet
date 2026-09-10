@@ -509,9 +509,26 @@ def _run_at(cwd, args, timeout=20, stdin_bytes=None):
         return 124, "", str(err)
 
 
-def _nc_command(nc):
-    """The criterion-bound command the control must turn RED. A STRING in the manifest, split with
-    shlex — argv, never a shell line. Returns (argv, err)."""
+def _nc_command(nc, m, override=None):
+    """The criterion-bound command the control must turn RED. Returns (argv, err).
+
+    The command is NOT taken on the worker's word. `negative_control.command` is
+    worker-written, and a worker free to nominate any command could pick one that
+    happens to fail under the control and pass clean — satisfying the executed-control
+    gate without ever running the criterion-bound proof (PR #277 review, P1). It would
+    also hand worker-chosen argv to the verifier's own privileges.
+
+    So the command must ALREADY be in the content-bound evidence ledger: a `commands[]`
+    record with `exit == 0` whose `wtree` is head_sha's tree — the same record
+    `check_commands` requires, written by `evidence-run.py`, carrying its own
+    `cmd_sha256`. The manifest can only re-nominate a command that demonstrably ran
+    green on exactly this content; there is nothing left to invent.
+
+    `override` is the coordinator's `--nc-command`, supplied out of band the way
+    `--contract-source` is. When given it is authoritative AND the manifest must agree
+    with it, so a worker cannot quietly swap the proof command underneath a
+    coordinator who named one.
+    """
     raw = nc.get("command")
     if not (isinstance(raw, str) and raw.strip()):
         return None, ("negative_control.command (the criterion-bound proof command, as a string) is "
@@ -522,7 +539,58 @@ def _nc_command(nc):
         return None, f"negative_control.command is not parseable as a command line ({err})"
     if not argv:
         return None, "negative_control.command is empty after parsing"
-    return argv, None
+    line = shlex.join(argv)
+
+    if override is not None:
+        try:
+            want = shlex.split(override)
+        except ValueError as err:
+            return None, f"--nc-command is not parseable as a command line ({err})"
+        if not want:
+            return None, "--nc-command is empty after parsing"
+        if shlex.join(want) != line:
+            return None, (f"negative_control.command {line!r} is not the command the coordinator "
+                          f"supplied out of band ({shlex.join(want)!r}) — a unit does not get to "
+                          "choose what proves it; fail-closed")
+        return want, None
+
+    fresh, err = _fresh_command_records(m)
+    if err:
+        return None, err
+    for rec in fresh:
+        if rec.get("cmd") != line:
+            continue
+        digest = rec.get("cmd_sha256")
+        actual = hashlib.sha256(line.encode("utf-8")).hexdigest()
+        if digest != actual:
+            return None, (f"commands ledger record for {line!r} carries cmd_sha256 {digest} but the "
+                          f"command line hashes to {actual} — the record does not describe its own "
+                          "command, so it binds nothing; fail-closed")
+        return argv, None
+    return None, (
+        f"negative_control.command {line!r} is not in the evidence ledger: no `commands[]` record "
+        "with exit 0 at head_sha's tree runs it. The control may only replay a command that is "
+        "ALREADY content-bound (wrap it in `runtime/scripts/evidence-run.py`), or one the "
+        "coordinator supplies with --nc-command. Recorded here: "
+        + (", ".join(repr(r.get("cmd")) for r in fresh) or "nothing")
+    )
+
+
+def _fresh_command_records(m):
+    """`commands[]` records with exit 0 whose wtree is head_sha's tree. Returns (records, err).
+
+    Same freshness rule as `check_commands`; kept in one place so the ledger the NC
+    replay binds to and the ledger the gate checks can never drift apart.
+    """
+    head = m.get("head_sha")
+    if not head:
+        return [], "commands ledger: head_sha is missing, so no record can be bound to content"
+    code, want = _git(["rev-parse", f"{head}^{{tree}}"])
+    if code != 0 or not want:
+        return [], ("commands ledger: cannot resolve the tree of head_sha — the recorded run cannot "
+                    "be bound to content; fail-closed")
+    records = [c for c in (m.get("commands") or []) if isinstance(c, dict)]
+    return [c for c in records if c.get("exit") == 0 and c.get("wtree") == want], None
 
 
 def _nc_paths(nc):
@@ -612,7 +680,7 @@ def _apply_control(wt, m, nc, tool):
     return None
 
 
-def execute_negative_control(m):
+def execute_negative_control(m, nc_command=None):
     """#255 — EXECUTE the negative control. Returns (executed_ok, messages).
 
     The proof, not the paperwork: in a throwaway worktree detached at `head_sha` the control is
@@ -640,7 +708,7 @@ def execute_negative_control(m):
         return False, ["--execute-nc: not inside a git repo — cannot create a control worktree"]
     if _git(["cat-file", "-e", f"{head}^{{commit}}"])[0] != 0:
         return False, [f"--execute-nc: head_sha '{head}' is not a real commit here"]
-    argv, err = _nc_command(nc)
+    argv, err = _nc_command(nc, m, nc_command)
     if err:
         return False, [f"--execute-nc: {err}"]
     msgs = []
@@ -685,7 +753,7 @@ def execute_negative_control(m):
     return True, msgs
 
 
-def check_negative_control(m, is_mutation, execute=False):
+def check_negative_control(m, is_mutation, execute=False, nc_command=None):
     """4. Structured NC AND the artifact must corroborate the pinned mutant being killed. Reading the
     artifact resolves the mutant + verdict; it is corroboration, not proof (a fabricated artifact can
     still be read). Under `execute` the control is additionally RE-EXECUTED (execute_negative_control)
@@ -735,7 +803,7 @@ def check_negative_control(m, is_mutation, execute=False):
             errs.append("negative_control.artifact for tool 'hand' must quote the hand-written diff")
     executed_ok = False
     if execute:
-        executed_ok, msgs = execute_negative_control(m)
+        executed_ok, msgs = execute_negative_control(m, nc_command)
         errs.extend(msgs)
     return errs, executed_ok
 
@@ -767,7 +835,9 @@ def check_commands(m, is_mutation):
         return ["commands ledger: no recorded command (mutation unit). Wrap the criterion-bound "
                 "run in `runtime/scripts/evidence-run.py --label <L> --manifest <m.json> -- <cmd>` "
                 "so the manifest carries an exit code bound to a content fingerprint; fail-closed"]
-    fresh = [c for c in records if c.get("exit") == 0 and c.get("wtree") == want]
+    # Same freshness rule the --execute-nc replay binds its command to (_nc_command),
+    # read from one place so the two can never drift apart.
+    fresh, _ = _fresh_command_records(m)
     if not fresh:
         seen = sorted({str(c.get("wtree")) for c in records if c.get("exit") == 0})
         return [f"commands ledger: no recorded command with exit 0 whose wtree is head_sha's tree "
@@ -993,7 +1063,7 @@ def check_dispatch_provenance(m, contract_digest, unit_class, lighting, record_r
 
 def verify(manifest_path, contract_source=None, contract_digest=None, repo=None,
            base=None, symbol=None, execute_nc=False, unit_class=None, no_gh=False, lighting=None,
-           dispatch_record=None, dispatch_pubkey=None):
+           dispatch_record=None, dispatch_pubkey=None, nc_command=None):
     """Return (fatal_errors, notes). fatal_errors non-empty => exit 2."""
     m, err = load_manifest(manifest_path)
     if err:
@@ -1010,7 +1080,7 @@ def verify(manifest_path, contract_source=None, contract_digest=None, repo=None,
     # to the review check: the dark-eligible / no-gh waiver lanes pass only on an executed control
     # (#256). A malformed manifest must fail closed here too, never crash the gate.
     try:
-        nc_errs, nc_executed = check_negative_control(m, is_mut, execute_nc)
+        nc_errs, nc_executed = check_negative_control(m, is_mut, execute_nc, nc_command)
     except Exception as exc:
         nc_errs, nc_executed = ([f"malformed manifest: {type(exc).__name__} in the negative-control "
                                  f"check ({exc})"], False)
@@ -1049,6 +1119,11 @@ def main(argv=None):
                     help="AUTHORITATIVE frozen contract (path@ref), from the dispatch record — not the manifest")
     ap.add_argument("--contract-digest", default=None, help="AUTHORITATIVE sha256 of the frozen contract")
     ap.add_argument("--repo", default=None, help="owner/name for the review lookup (default: infer from origin)")
+    ap.add_argument("--nc-command", default=None,
+                    help="AUTHORITATIVE criterion-bound command for --execute-nc, supplied out of "
+                         "band by the coordinator. Without it the command must already be in the "
+                         "manifest's content-bound `commands[]` ledger; with it, the manifest must "
+                         "agree. A unit never chooses what proves it.")
     ap.add_argument("--execute-nc", action="store_true",
                     help="EXECUTE the negative control (#255): apply it in a throwaway worktree at "
                          "head_sha, require negative_control.command to exit non-zero there and 0 "
@@ -1080,7 +1155,7 @@ def main(argv=None):
     out, load_err = verify(args.manifest, args.contract_source, args.contract_digest,
                            args.repo or infer_repo(), args.base, args.symbol, args.execute_nc,
                            args.unit_class, args.no_gh, args.lighting,
-                           args.dispatch_record, args.dispatch_pubkey)
+                           args.dispatch_record, args.dispatch_pubkey, args.nc_command)
     if load_err:
         print(f"FAIL: {load_err}", file=sys.stderr)
         print("verify: evidence manifest malformed/unreadable — unit is NOT done", file=sys.stderr)

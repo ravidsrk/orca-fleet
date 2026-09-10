@@ -461,10 +461,13 @@ run would sever.
 
 ### What the fixes cost, said plainly
 
-- **Three proof tiers were removed, not gained.** `clean-sweep`, `review-it` and `oss-contribute`
+- **Every proof tier was removed, not gained.** `clean-sweep`, `review-it` and `oss-contribute`
   ran for real, but their artifacts were retained outside this repository, so no gate here can
-  re-derive them. The catalog now reads 20 `doctrine-only` / 1 `self-run` / 0 `external-run`.
-  Binding tiers to artifacts made the honest number smaller.
+  re-derive them. `ship-it` kept its artifacts — all five hashes still re-derive at `748b328` —
+  but never wrote down the verifier's command line, which its own template asked for verbatim, so
+  its recorded outcome is the coordinator's word. The catalog now reads **21 `doctrine-only` / 0 /
+  0**. Binding tiers to artifacts did not make the number smaller once; it made it zero, and the
+  last one fell to a reviewer's finding on the PR that shipped the binding (§10.1).
 - **Activation load grew before it shrank.** The fixes added playbooks and runtime doctrine, and
   `ship-it` reached ~39,600 tokens against §2's measured ~29,500. Deferring phase-scoped reads
   brought the three heaviest to 31,400 / 33,000 / 33,600 and the cap is ratcheted to 34,000 — still
@@ -472,6 +475,36 @@ run would sever.
 - **The catalog grew from 17 missions to 21**, which is the direction §6 warned about. The
   discipline against it is now mechanical rather than editorial: six declared identity points per
   mission and a build failure when two match.
+
+### 10.1 What the PR's own review found
+
+Seven findings from an automated reviewer on PR #277, all of them accepted. Three are worth
+recording here because they are the same class this review was written about — a mechanism that
+reads as sound and is not:
+
+- **The executed negative control ran a command the worker chose.** `--execute-nc` (§8 P0-1, the
+  fix at the centre of this branch) took `negative_control.command` from the worker-written
+  manifest and executed it. A worker could nominate any command that fails under the control and
+  passes clean — the gate goes green, the criterion is never run. Now the command must already be
+  in the manifest's content-bound `commands[]` ledger (exit 0 at `head_sha`'s tree, `cmd_sha256`
+  hashing its own `cmd`), or be supplied out of band as `--nc-command`, which the manifest must
+  agree with. **A1's fix had A1's shape.**
+- **The proof-tier gate accepted "the body contains the string `verify.py`".** Any prose mentioning
+  the verifier satisfied it. Tightened to require the actual invocation against the report's own
+  manifest — and the first replacement, `--manifest \S+`, was itself satisfied by the module's
+  explanatory prose, which writes `--manifest <path>`. That is what took `ship-it`'s tier: no
+  transcript was ever recorded for it.
+- **The deny hook claimed a registration nothing performed.** Its header said the dispatcher
+  registers it as a `PreToolUse` hook; nothing in the repo does, and on the supervised lane nothing
+  can — Orca takes launch args from the host's `agentDefaultArgs` and env does not cross the
+  daemon. The claim is gone, `deny-hook.sh --settings <worktree>` prints the registration a host
+  pastes, and a test fails if the claim returns while no registrar exists.
+
+The other four: a path-traversal hole in that hook's boundary check (a missing parent plus `..`
+prefix-matched the worktree and was allowed), `privacy` declared NEVER_GATE in the playbook but
+absent from the executable tuple (it would have auto-gated off after ten quiet reviews), the
+agentskills validator installed unpinned in CI, and the secret-scan fixtures already handled by the
+baseline. Each fix carries its own negative control; each is tested against the pre-fix version.
 
 ### What is still not true
 

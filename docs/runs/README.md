@@ -8,9 +8,16 @@ retained at a named location when the run's artifacts live outside this repo), a
 deviations that happened — recorded, not hidden.
 
 `Binds?` is the only column that moves a mission's `metadata.proof`: **yes** means
-`runtime/scripts/run_report.py` re-derives this report's inventory at the commit its `RUN:` header
-names. **no** means the run happened and its artifacts were retained elsewhere — history, kept
-here, claiming nothing.
+`runtime/scripts/run_report.py` re-derives everything this report rests on — a real
+`verify.py … --manifest` invocation in the body, the graded manifest inside this run's own
+directory and pinned by the inventory, and every one of this run's artifacts hashing true at the
+commit the `RUN:` header names. **no** means the run happened and something it rests on cannot be
+re-derived here — history, kept, claiming nothing.
+
+Nothing in the archive currently reads **yes**. That is the honest state, not a broken gate: three
+runs kept their artifacts outside this repository, and the fourth kept its artifacts but not its
+verifier transcript. The mechanism is exercised by `tests/test_run_report.py`, which builds real
+git repositories and includes a fully bound positive case alongside a dozen refused ones.
 
 | Date       | Mission     | Target                        | Ran as       | Binds? | Outcome |
 |------------|-------------|-------------------------------|--------------|--------|---------|
@@ -18,7 +25,7 @@ here, claiming nothing.
 | 2026-07-13 | [review-it](2026-07-13-review-it-external-run.md)  | garrytan/gstack PR #2252 | external-run | no — artifacts in the coordinator run dir | NO-GO (conditional, 0 Critical) |
 | 2026-07-16 | [oss-contribute](2026-07-16-oss-contribute-external-run.md) | dodopayments/chimely (tracker) | external-run | no — artifacts in the fork worktree | CONTRIBUTED-WITH-PARKED (5 PRs, 4 assists) |
 | 2026-07-17 | [clean-sweep](2026-07-17-clean-sweep-tracker-self-run.md) | this repo (tracker, 26 issues) | self-run | no — no inventory block | DRY-WITH-PARKED (22 closed, 4 parked) |
-| 2026-08-28 | [ship-it](2026-08-28-ship-it-self-run.md) | this repo (proof-status slice) | self-run | **yes** — 5/5 re-derive at `748b328` | PROMOTION_READY (BUILT + promotion PR open) |
+| 2026-08-28 | [ship-it](2026-08-28-ship-it-self-run.md) | this repo (proof-status slice) | self-run | no — 5/5 hashes re-derive at `748b328`, but the verifier transcript was never recorded | PROMOTION_READY (BUILT + promotion PR open) |
 | 2026-09-09 | [clean-sweep](2026-09-09-clean-sweep-tracker.md) | this repo (tracker, 6 issues) | self-run | no — inventory pinned to a moved tree | DRY-WITH-PARKED (5 closed, 1 needs-human) |
 
 Proof status across the catalog is validator-enforced: a mission cannot claim a tier

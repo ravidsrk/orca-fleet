@@ -17,8 +17,7 @@ compatibility: >-
   for review-army/ship) — never two routers in one worker. Deploy tooling + canary surface for
   the RELEASED/DEPLOYED states.
 metadata:
-  proof: self-run
-  proof_evidence: docs/runs/2026-08-28-ship-it-self-run.md
+  proof: doctrine-only
   autonomy: L4
   unit: one tracer-bullet slice of the frozen spec
   state_machine: build → acceptance-review → runtime-prove → land → release state

@@ -25,7 +25,17 @@ What a tier advance has to survive here instead:
 The inventory is the load-bearing half. Hashing at the recorded commit is what a
 fabricated report cannot fake — the bytes have to have existed at a commit that
 exists, and the working tree moving on afterwards (which it always does) neither
-weakens nor breaks the check.
+weakens nor breaks the check. The graded manifest must itself be one of the hashed
+paths, and none of this run's OWN artifacts may be absent there: pinning a
+neighbouring file while the document the verdict rests on floats free would bind
+nothing that matters.
+
+What this does NOT do, said plainly: it does not re-run `verify.py` and re-derive
+the verdict. That run's authorities are not reproducible after the fact — the
+coordinator's out-of-band contract, a GitHub review lookup, the live worktree — so
+a "re-derivation" here would be a different, weaker check wearing the same name.
+What is checked is that the recorded outcome is attributable to a real invocation
+and that every artifact behind it still hashes true at the recorded commit.
 
 A report whose artifacts were never retained in this repository cannot pass, and
 that is the intended answer, not a gap: it stays in ``docs/runs/`` as recorded
@@ -53,6 +63,20 @@ inventory = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(inventory)
 
 RUN_HEADER_RE = re.compile(r"^RUN:\s*(.+?)\s*$", re.M)
+
+
+def _invocation_re(manifest):
+    """`verify.py … --manifest <THIS report's manifest>` — the transcript, not the word.
+
+    Two tightenings, both learned the hard way. "the body contains 'verify.py'" was
+    satisfied by any prose mentioning it. Replacing that with `--manifest \S+` was
+    then satisfied by this very module's explanatory prose, which writes
+    `verify.py … --manifest <path>` — `<path>` is a perfectly good `\S+`. So the
+    argument has to be the actual manifest the RUN: header names: a sentence about
+    verification cannot accidentally contain it, and a run that really happened has
+    it for free.
+    """
+    return re.compile(r"verify\.py[^\n]*--manifest\s+" + re.escape(manifest) + r"(\s|$)")
 FIELD_RE = re.compile(r"([a-z_]+)=(\S+)")
 REQUIRED_FIELDS = ("mission", "tier", "inventory_at", "manifest", "verifier")
 VERIFIER_OUTCOMES = {"GREEN", "RED"}
@@ -116,10 +140,14 @@ def check_report(report_path, mission, tier, root=None):
             f"{report_path}: RUN: verifier={fields['verifier']} — want one of "
             f"{sorted(VERIFIER_OUTCOMES)} (a recorded RED is honest; an unrecorded one is not)"
         )
-    elif "verify.py" not in text:
+    elif not _invocation_re(fields["manifest"]).search(text):
+        # "the body contains the string verify.py" was satisfied by any prose that
+        # mentioned it (PR #277 review, P1). The body must show the actual command,
+        # run against the manifest this report is graded on.
         errors.append(
-            f"{report_path}: RUN: verifier={fields['verifier']} but the body never shows the "
-            "verify.py invocation it came from"
+            f"{report_path}: RUN: verifier={fields['verifier']} but the body shows no "
+            f"verify.py invocation against {fields['manifest']} that the outcome could "
+            "have come from — record the command and its exit code, not a description of them"
         )
 
     rev = fields["inventory_at"]
@@ -167,6 +195,29 @@ def check_report(report_path, mission, tier, root=None):
             f"{report_path}: no verified inventory path lives in this run's own directory "
             f"{run_dir}/ — borrowing another run's artifacts is not evidence of this one"
         )
+    # The manifest the run was GRADED against has to be one of the hashed artifacts.
+    # Without this, the inventory could hash one trivial file while the manifest — the
+    # document the whole verdict rests on — went unpinned and could be edited freely
+    # afterwards (PR #277 review, P1).
+    if manifest not in matched:
+        where = "hashes differently" if any(p == manifest for p, _r, _a in mismatched) else (
+            "is not in the inventory at all" if manifest not in missing else
+            "is listed but absent at that commit")
+        errors.append(
+            f"{report_path}: the graded manifest {manifest} {where} — the inventory must pin the "
+            "document the verdict rests on, not only its neighbours"
+        )
+    # A run's own artifacts are the ones it is responsible for retaining. A path
+    # elsewhere may legitimately have moved since (inventory.py treats MISSING as a
+    # snapshot, not a mismatch); one inside this run's directory going absent means
+    # the evidence was not kept.
+    if run_dir is not None:
+        gone = sorted(p for p in missing if p.startswith(run_dir + "/"))
+        if gone:
+            errors.append(
+                f"{report_path}: this run's own artifact(s) {gone} are absent at {rev} — a run "
+                "must retain the evidence it claims, even when other listed paths have moved on"
+            )
     return errors
 
 

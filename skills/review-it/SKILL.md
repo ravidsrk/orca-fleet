@@ -52,7 +52,7 @@ PIN the fixed point (a SHA / PR; non-empty `git diff <fp>...HEAD`) → identify 
     fail, never run one — executed negative controls belong to the fix missions; GO is not a
     substitute for those)
   → RISK-REVIEW (scope-gated): dispatch security/perf/a11y/data-migration only when the diff triggers
-    them; NEVER_GATE security + data-migration
+    them; NEVER_GATE security + privacy + data-migration
   → AGGREGATE: findings side-by-side per axis, each quoting its motivating line, with severity; the
     anti-FP gate (a finding that can't quote its line drops to an appendix); multi-axis same-line = boost
   → VERDICT bound to the reviewed SHA (if HEAD moves mid-review, re-pin or void and re-run). It lands

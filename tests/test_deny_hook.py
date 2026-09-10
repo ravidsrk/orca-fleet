@@ -232,6 +232,45 @@ class TestWorktreeBoundary(HookBase):
         block = self.decision(self._fire_edit(sibling / "a.py"))
         self.assertEqual(block["permissionDecision"], "deny")
 
+    # --- PR #277 review, P2: a missing parent plus `..` escaped the boundary -----
+    # The old fallback pasted the un-normalized parent onto $PWD and then
+    # prefix-matched, so `/worktree/../outside/new` "started with" /worktree/ and
+    # was ALLOWED while the write landed outside. Each of these was green before
+    # the fix; the boundary is a string compare, so the string has to be real.
+
+    def _fire_relative(self, rel, tool="Edit"):
+        """Fire with a RELATIVE file_path, from inside the worktree — the shape the
+        traversal needs (an absolute path never hits the fallback's $PWD paste)."""
+        return self.fire(event(tool, file_path=rel),
+                         env_extra={"ORCA_UNIT_WORKTREE": str(self.wt)}, cwd=str(self.wt))
+
+    def test_a_relative_dotdot_into_a_missing_directory_is_denied(self):
+        block = self.decision(self._fire_relative("../outside/new/file.py"))
+        self.assertEqual(block["permissionDecision"], "deny")
+
+    def test_dotdot_through_an_existing_subdir_into_a_missing_one_is_denied(self):
+        block = self.decision(self._fire_relative("src/../../outside/new/file.py"))
+        self.assertEqual(block["permissionDecision"], "deny")
+
+    def test_dotdot_past_the_root_of_the_boundary_is_denied(self):
+        block = self.decision(self._fire_relative("../../../../etc/newdir/passwd"))
+        self.assertEqual(block["permissionDecision"], "deny")
+
+    def test_dotdot_that_stays_inside_the_boundary_is_still_allowed(self):
+        # The fix must normalize, not blanket-deny anything containing `..`.
+        r = self._fire_relative("src/../other/new/file.py")
+        self.assertEqual(r.stdout.strip(), "")
+
+    def test_a_missing_nested_parent_inside_the_boundary_is_still_allowed(self):
+        r = self._fire_relative("src/deep/deeper/file.py")
+        self.assertEqual(r.stdout.strip(), "")
+
+    def test_a_relative_symlink_target_escaping_is_denied(self):
+        link = self.wt / "src" / "rel-escape.py"
+        link.symlink_to(Path("..") / ".." / "outside" / "secret.py")
+        block = self.decision(self._fire_edit(link))
+        self.assertEqual(block["permissionDecision"], "deny")
+
     def test_without_the_boundary_variable_edits_are_unrestricted(self):
         r = self._fire_edit(self.outside / "secret.py", boundary=False)
         self.assertEqual(r.stdout.strip(), "")
@@ -288,6 +327,12 @@ class TestOutputEncoding(HookBase):
 
 
 class TestScriptShape(unittest.TestCase):
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp(prefix="deny-shape-"))
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
     def test_executable_and_shebanged(self):
         self.assertTrue(os.access(HOOK, os.X_OK))
         self.assertTrue(HOOK.read_text(encoding="utf-8").startswith("#!/usr/bin/env sh"))
@@ -310,6 +355,48 @@ class TestScriptShape(unittest.TestCase):
     def test_the_advisory_boundary_is_stated_not_overclaimed(self):
         text = HOOK.read_text(encoding="utf-8")
         self.assertIn("not a soundness boundary", text)
+
+    def test_the_hook_does_not_claim_a_registration_nothing_performs(self):
+        """PR #277 review, P2: the header said the dispatcher registers this hook.
+
+        Nothing did — `PreToolUse` and `ORCA_UNIT_WORKTREE` appeared only in this
+        script and its tests, so every rw worker ran with none of these decisions
+        enforced while the doc said otherwise. This test is the drift guard: the
+        claim may only come back if something in the repo actually registers a
+        PreToolUse hook.
+        """
+        text = HOOK.read_text(encoding="utf-8")
+        claims_auto = "dispatcher registers this" in text
+        registrars = [
+            path for path in (ROOT / "runtime" / "scripts").glob("*.sh")
+            if path.name != HOOK.name and "PreToolUse" in path.read_text(encoding="utf-8")
+        ]
+        hooks_json = (ROOT / "hooks" / "hooks.json").read_text(encoding="utf-8")
+        if not (registrars or "PreToolUse" in hooks_json):
+            self.assertFalse(
+                claims_auto,
+                "the hook claims the dispatcher registers it, but no script and no "
+                "hooks.json entry registers a PreToolUse hook",
+            )
+
+    def test_settings_mode_prints_a_registration_a_host_can_paste(self):
+        # The answer to "then how do I turn it on" has to be executable, not prose.
+        wt = self.tmp / "unit-worktree"
+        wt.mkdir()
+        r = subprocess.run(["sh", str(HOOK), "--settings", str(wt)],
+                           capture_output=True, text=True)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        block = json.loads(r.stdout)
+        self.assertEqual(block["env"]["ORCA_UNIT_WORKTREE"], str(wt.resolve()))
+        entry = block["hooks"]["PreToolUse"][0]
+        for tool in ("Bash", "Edit", "Write"):
+            self.assertIn(tool, entry["matcher"])
+        self.assertTrue(Path(entry["hooks"][0]["command"]).is_file())
+
+    def test_settings_mode_refuses_a_worktree_that_is_not_there(self):
+        r = subprocess.run(["sh", str(HOOK), "--settings", str(self.tmp / "nope")],
+                           capture_output=True, text=True)
+        self.assertEqual(r.returncode, 2)
 
 
 if __name__ == "__main__":

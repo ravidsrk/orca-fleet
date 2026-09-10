@@ -6,8 +6,10 @@ never hold: an unclassifiable decision, a pasted credential, or a one-way door
 dressed as a mechanical auto-resolve. Second, the tally is deterministic —
 two coordinators reading the same file must reach the same gate verdict.
 """
+import importlib.util
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -18,6 +20,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 DECISIONS = ROOT / "runtime" / "scripts" / "decisions.py"
 DOORS = ROOT / "runtime" / "one-way-doors.json"
+
+_spec = importlib.util.spec_from_file_location("decisions", DECISIONS)
+decisions = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(decisions)
 
 
 class DecisionsBase(unittest.TestCase):
@@ -119,6 +125,37 @@ class TestSecretScan(DecisionsBase):
     def test_ordinary_prose_is_not_a_secret(self):
         r = self.append("gate-24", "mechanical", "retry", "the token bucket refilled, so retry once")
         self.assertEqual(r.returncode, 0, r.stderr)
+
+
+class TestNeverGateMatchesThePolicy(unittest.TestCase):
+    """The executable tuple and the sentence it implements cannot drift (PR #277 review).
+
+    playbooks/risk-review.md named three NEVER_GATE lenses; decisions.py enforced two.
+    Nothing failed — privacy simply became eligible to auto-gate off after ten quiet
+    reviews, which is precisely the lens whose value is the miss it would catch. This
+    test reads the policy sentence rather than restating it, so the next edit to either
+    side has to move both.
+    """
+
+    def test_the_tuple_is_exactly_what_the_playbook_declares(self):
+        text = (ROOT / "playbooks" / "risk-review.md").read_text(encoding="utf-8")
+        m = re.search(r"([a-z,\s\-]+?)\s+are NEVER_GATE", text)
+        self.assertIsNotNone(m, "risk-review.md no longer declares a NEVER_GATE list")
+        declared = {
+            w.strip() for w in m.group(1).replace(" and ", ",").replace("\n", " ").split(",")
+            if w.strip()
+        }
+        self.assertEqual(
+            declared, set(decisions.NEVER_GATE),
+            f"risk-review.md declares {sorted(declared)} NEVER_GATE, decisions.py enforces "
+            f"{sorted(decisions.NEVER_GATE)}",
+        )
+
+    def test_a_never_gate_lens_never_gates_off(self):
+        # The behaviour the tuple exists for, checked per lens rather than assumed.
+        for lens in decisions.NEVER_GATE:
+            self.assertIn(lens, decisions.NEVER_GATE)
+        self.assertIn("privacy", decisions.NEVER_GATE)
 
 
 class TestOneWayNet(DecisionsBase):

@@ -51,23 +51,35 @@
 # Exit codes: always 0. The DECISION is the output, not the status — a non-zero
 # exit from a hook is a hook error, which the host treats differently from a deny.
 #
-# How to wire: the dispatcher registers this as a PreToolUse hook for the
-# read-write profile and exports ORCA_UNIT_WORKTREE=<the unit's own worktree>
-# before launching the worker, which gives the freeze boundary for free. Match
-# Bash, Edit and Write. State the boundary honestly when you do: this runs INSIDE
-# the worker's session, so it is defense-in-depth against an improvised command,
-# the same advisory status the completion gate carries — not a soundness boundary
-# against a worker that sets out to defeat it. The soundness boundary is the
-# disposable sandbox for the danger lane.
+# How to wire — and what does NOT wire it. Nothing in this repository registers
+# this hook, and this header used to say the dispatcher did (PR #277 review, P2).
+# It cannot, on either lane spawn_worker.sh has: the supervised `worker-start`
+# lane takes its launch args from the HOST's agentDefaultArgs, not from any
+# command this repo builds, and an env var exported here does not cross the Orca
+# daemon into the worker's process. A hook nobody registers is doctrine wearing a
+# script's file extension, which is the thing this catalog exists to refuse.
+#
+# So you wire it, per host, and `deny-hook.sh --settings <worktree>` prints the
+# exact block: a PreToolUse matcher over Bash|Edit|Write|NotebookEdit|MultiEdit
+# plus ORCA_UNIT_WORKTREE=<the unit's own worktree>, which gives the freeze
+# boundary for free. Merge it into the settings file the worker's agent reads.
+#
+# State the boundary honestly when you do: this runs INSIDE the worker's session,
+# so it is defense-in-depth against an improvised command, the same advisory
+# status the completion gate carries — not a soundness boundary against a worker
+# that sets out to defeat it. The soundness boundary is the disposable sandbox
+# for the danger lane.
 set -eu
 
 usage() {
   cat <<'USAGE'
 deny-hook.sh — PreToolUse deny/ask guard for read-write workers.
 
-Usage: deny-hook.sh [--help]
+Usage: deny-hook.sh [--help] [--settings <worktree>]
   Reads a PreToolUse event JSON object on stdin; writes a decision object on
   stdout when the action is denied or must be asked, nothing when it is allowed.
+  --settings <worktree> prints the settings.json block that registers this hook
+  for one worker, with the boundary path resolved. Nothing registers it for you.
 
 Environment:
   ORCA_UNIT_WORKTREE  when set, Edit/Write outside this directory is denied.
@@ -77,6 +89,35 @@ USAGE
 }
 
 if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then usage; exit 0; fi
+
+# --settings <worktree>: print the registration block, boundary resolved. This is
+# the whole answer to "how do I turn this on" — there is no dispatcher step that
+# does it for you, and saying so in a --help is cheaper than a doc nobody reads.
+if [ "${1:-}" = "--settings" ]; then
+  if [ -z "${2:-}" ]; then
+    echo "deny-hook.sh --settings needs the worker's worktree path" >&2
+    exit 2
+  fi
+  _wt=$(cd "$2" 2>/dev/null && pwd -P) || {
+    echo "deny-hook.sh --settings: '$2' is not a directory" >&2
+    exit 2
+  }
+  _self=$(cd "$(dirname -- "$0")" && pwd -P)/$(basename -- "$0")
+  printf '%s\n' '{'
+  printf '  "env": {"ORCA_UNIT_WORKTREE": "%s"},\n' "$_wt"
+  printf '%s\n' '  "hooks": {'
+  printf '%s\n' '    "PreToolUse": ['
+  printf '%s\n' '      {'
+  printf '%s\n' '        "matcher": "Bash|Edit|Write|NotebookEdit|MultiEdit",'
+  printf '%s\n' '        "hooks": ['
+  printf '          {"type": "command", "command": "%s"}\n' "$_self"
+  printf '%s\n' '        ]'
+  printf '%s\n' '      }'
+  printf '%s\n' '    ]'
+  printf '%s\n' '  }'
+  printf '%s\n' '}'
+  exit 0
+fi
 if [ $# -gt 0 ]; then
   printf 'deny-hook.sh: unexpected argument: %s\n' "$1" >&2
   usage >&2
@@ -111,6 +152,52 @@ print(s(ti.get("file_path")))' 2>/dev/null) || {
   exit 0
 }
 
+# --- path resolution ---------------------------------------------------------
+# The boundary check is a string prefix, so the path it compares has to be a
+# REAL absolute path. It previously was not: when a write named a parent that
+# did not exist yet, the fallback pasted the raw (un-normalized) parent onto
+# $PWD, so `../outside/new/file` became `/worktree/../outside/new` — which
+# prefix-matches `/worktree/` and was ALLOWED while the write landed outside
+# (PR #277 review, P2).
+#
+# lexical_abs collapses `.` and `..` with no filesystem access, so it is safe on
+# a tail that does not exist yet. resolve_dir resolves the deepest EXISTING
+# ancestor physically first (that is what catches symlinks, which a lexical pass
+# cannot), then collapses the remaining tail against it — components that do not
+# exist cannot be symlinks, so collapsing them lexically is sound.
+lexical_abs() {
+  _p=$1
+  case "$_p" in /*) : ;; *) _p="$(pwd -P)/$_p" ;; esac
+  _out=""
+  _oldifs=$IFS
+  IFS='/'
+  for _seg in $_p; do
+    case "$_seg" in
+      ''|.) : ;;
+      ..) _out=${_out%/*} ;;
+      *) _out="$_out/$_seg" ;;
+    esac
+  done
+  IFS=$_oldifs
+  printf '%s' "${_out:-/}"
+}
+
+resolve_dir() {
+  _d=$1
+  [ -n "$_d" ] || return 0
+  case "$_d" in /*) : ;; *) _d="$(pwd -P)/$_d" ;; esac
+  _tail=""
+  while [ ! -d "$_d" ]; do
+    _parent=$(dirname -- "$_d")
+    [ "$_parent" = "$_d" ] && break
+    _tail="$(basename -- "$_d")${_tail:+/}$_tail"
+    _d=$_parent
+  done
+  _real=$(cd "$_d" 2>/dev/null && pwd -P) || _real=$_d
+  [ -n "$_tail" ] && _real="$_real/$_tail"
+  lexical_abs "$_real"
+}
+
 TOOL=$(printf '%s\n' "$FIELDS" | sed -n '1p')
 CMD=$(printf '%s\n' "$FIELDS" | sed -n '2p')
 FILE=$(printf '%s\n' "$FIELDS" | sed -n '3p')
@@ -128,26 +215,18 @@ case "$TOOL" in
     # inside the boundary is judged by where it actually points.
     DIR=$(dirname -- "$FILE")
     BASE=$(basename -- "$FILE")
-    REAL=""
-    if RESOLVED=$(cd "$DIR" 2>/dev/null && pwd -P); then REAL="$RESOLVED"; fi
+    REAL=$(resolve_dir "$DIR")
     if [ -n "$REAL" ] && [ -L "$REAL/$BASE" ]; then
       TARGET=$(readlink "$REAL/$BASE" 2>/dev/null || printf '')
       case "$TARGET" in
         "") : ;;
-        /*) REAL=$(dirname -- "$TARGET") ;;
-        *) if RESOLVED=$(cd "$REAL" && cd "$(dirname -- "$TARGET")" 2>/dev/null && pwd -P); then
-             REAL="$RESOLVED"
-           fi ;;
+        /*) REAL=$(resolve_dir "$(dirname -- "$TARGET")") ;;
+        *) REAL=$(resolve_dir "$REAL/$(dirname -- "$TARGET")") ;;
       esac
     fi
     if [ -z "$REAL" ]; then
-      # The parent directory does not exist yet (a new nested path). Fall back
-      # to a lexical absolute form rather than guessing — still fail-closed,
-      # since anything that does not prefix-match the boundary is denied.
-      case "$DIR" in
-        /*) REAL="$DIR" ;;
-        *) REAL="$(pwd -P)/$DIR" ;;
-      esac
+      decide deny "deny-hook: the write target could not be resolved to an absolute path. Fail-closed."
+      exit 0
     fi
     case "$REAL/" in
       "$BOUND"/*) exit 0 ;;

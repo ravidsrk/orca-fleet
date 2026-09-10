@@ -9,6 +9,7 @@ the checker: each one has to be refused.
 The fixtures build real git repos, because the mechanism is "re-hash the recorded
 paths at the recorded commit" — a fake that never touches git would test nothing.
 """
+import hashlib
 import importlib.util
 import subprocess
 import tempfile
@@ -32,13 +33,17 @@ def _git(repo, *args):
     ).stdout.strip()
 
 
-def _report(mission, tier, rev, manifest, verifier, inventory):
+def _report(mission, tier, rev, manifest, verifier, inventory, body=None):
     rows = "\n".join(f"{digest}  {path}" for digest, path in inventory)
+    shown = body if body is not None else (
+        f"    python3 runtime/scripts/verify.py --manifest {manifest} --unit-class mutation\n"
+        f"    exit {0 if verifier == 'GREEN' else 2}\n"
+    )
     return (
         f"# Run report — {mission} {tier}\n\n"
         f"RUN: mission={mission} tier={tier} inventory_at={rev} "
         f"manifest={manifest} verifier={verifier}\n\n"
-        f"Ran verify.py against the manifest.\n\n"
+        f"## Verifier outcome (recorded exactly)\n\n{shown}\n"
         f"{INVENTORY_HEADING}\n\n```\n{rows}\n```\n"
     )
 
@@ -61,21 +66,28 @@ class RunReportBinding(unittest.TestCase):
         self.rev = _git(self.repo, "rev-parse", "HEAD")
         self.manifest = "docs/runs/2026-01-01-demo-it-selfrun/build-manifest.json"
         self.nc = "docs/runs/2026-01-01-demo-it-selfrun/negctrl.txt"
-        self.nc_sha = subprocess.run(
-            ["git", "cat-file", "blob", f"{self.rev}:{self.nc}"],
-            cwd=str(self.repo), stdout=subprocess.PIPE, check=True,
-        ).stdout
-        import hashlib
-        self.nc_sha = hashlib.sha256(self.nc_sha).hexdigest()
+        self.nc_sha = self._blob_sha(self.rev, self.nc)
+        self.manifest_sha = self._blob_sha(self.rev, self.manifest)
         self.path = self.repo / "docs" / "runs" / "2026-01-01-demo-it-self-run.md"
 
     def tearDown(self):
         self._tmp.cleanup()
 
+    def _blob_sha(self, rev, path):
+        blob = subprocess.run(
+            ["git", "cat-file", "blob", f"{rev}:{path}"],
+            cwd=str(self.repo), stdout=subprocess.PIPE, check=True,
+        ).stdout
+        return hashlib.sha256(blob).hexdigest()
+
+    def _inventory(self):
+        """The default inventory: this run's own artifacts, the manifest among them."""
+        return [(self.manifest_sha, self.manifest), (self.nc_sha, self.nc)]
+
     def _write(self, **kw):
         args = dict(
             mission="demo-it", tier="self-run", rev=self.rev, manifest=self.manifest,
-            verifier="GREEN", inventory=[(self.nc_sha, self.nc)],
+            verifier="GREEN", inventory=self._inventory(),
         )
         args.update(kw)
         self.path.write_text(_report(**args), encoding="utf-8")
@@ -158,7 +170,6 @@ class RunReportBinding(unittest.TestCase):
         _git(self.repo, "add", "-A")
         _git(self.repo, "commit", "-qm", "other run")
         rev = _git(self.repo, "rev-parse", "HEAD")
-        import hashlib
         digest = hashlib.sha256(b"theirs\n").hexdigest()
         self._write(
             rev=rev,
@@ -188,12 +199,48 @@ class RunReportBinding(unittest.TestCase):
         errs = self._check()
         self.assertTrue(any("integrity inventory" in e for e in errs), errs)
 
-    def test_verifier_outcome_without_the_invocation_is_refused(self):
-        text = _report("demo-it", "self-run", self.rev, self.manifest, "GREEN",
-                       [(self.nc_sha, self.nc)]).replace("Ran verify.py against the manifest.", "It went fine.")
-        self.path.write_text(text, encoding="utf-8")
+    def test_verifier_outcome_described_in_prose_is_refused(self):
+        # The original weakness: any body mentioning verify.py satisfied the gate.
+        self.path.write_text(
+            _report("demo-it", "self-run", self.rev, self.manifest, "GREEN", self._inventory(),
+                    body="We ran verify.py and it went fine.\n"),
+            encoding="utf-8")
         errs = self._check()
-        self.assertTrue(any("never shows the verify.py invocation" in e for e in errs), errs)
+        self.assertTrue(any("no verify.py invocation against" in e for e in errs), errs)
+
+    def test_an_invocation_naming_a_placeholder_path_is_refused(self):
+        # The SECOND weakness, found by this module's own docstring satisfying it:
+        # `--manifest <path>` parses as a command with an argument. The argument has
+        # to be the manifest this report is actually graded on.
+        self.path.write_text(
+            _report("demo-it", "self-run", self.rev, self.manifest, "GREEN", self._inventory(),
+                    body="    python3 runtime/scripts/verify.py --manifest <path>\n"),
+            encoding="utf-8")
+        errs = self._check()
+        self.assertTrue(any("no verify.py invocation against" in e for e in errs), errs)
+
+    def test_an_invocation_against_a_different_manifest_is_refused(self):
+        self.path.write_text(
+            _report("demo-it", "self-run", self.rev, self.manifest, "GREEN", self._inventory(),
+                    body="    python3 runtime/scripts/verify.py --manifest /tmp/other.json\n"),
+            encoding="utf-8")
+        errs = self._check()
+        self.assertTrue(any("no verify.py invocation against" in e for e in errs), errs)
+
+    def test_the_graded_manifest_must_be_pinned_by_the_inventory(self):
+        # Hashing a neighbouring artifact while the document the verdict rests on
+        # floats free binds nothing that matters (PR #277 review, P1).
+        self._write(inventory=[(self.nc_sha, self.nc)])
+        errs = self._check()
+        self.assertTrue(any("the graded manifest" in e for e in errs), errs)
+
+    def test_this_runs_own_artifact_going_absent_is_refused(self):
+        # A path elsewhere may legitimately have moved; one of THIS run's own
+        # artifacts being absent means the evidence was not retained.
+        self._write(inventory=self._inventory() + [
+            ("0" * 64, "docs/runs/2026-01-01-demo-it-selfrun/never-committed.txt")])
+        errs = self._check()
+        self.assertTrue(any("are absent at" in e for e in errs), errs)
 
     def test_unknown_verifier_outcome_is_refused(self):
         self._write(verifier="PROBABLY")
@@ -214,12 +261,22 @@ class LiveCatalog(unittest.TestCase):
         code = run_report.main([])
         self.assertEqual(code, 0, "a mission claims a tier its run report cannot re-derive")
 
-    def test_ship_it_self_run_binds_at_its_recorded_commit(self):
-        # The one report that does bind — five hashes re-derived from git objects.
+    def test_ship_its_artifacts_still_hash_true_but_its_transcript_is_missing(self):
+        """The four-of-five state, pinned so neither half drifts.
+
+        Its inventory re-derives at `748b328` and its manifest is in its own run
+        directory — that much is real and should keep working. What is absent is the
+        `verify.py … --manifest` invocation the recorded RED came from, which is why
+        ship-it sits at doctrine-only (PR #277 review, P1).
+        """
         errs = run_report.check_report(
             "docs/runs/2026-08-28-ship-it-self-run.md", "ship-it", "self-run"
         )
-        self.assertEqual(errs, [])
+        self.assertEqual(
+            [e for e in errs if "invocation" not in e], [],
+            "only the missing verifier transcript should stop this report binding",
+        )
+        self.assertTrue(any("invocation" in e for e in errs))
 
     def test_demoted_reports_are_kept_and_say_why(self):
         # Demoting is only honest if the record survives and explains itself.
@@ -227,6 +284,7 @@ class LiveCatalog(unittest.TestCase):
             "2026-07-13-clean-sweep-self-run.md",
             "2026-07-13-review-it-external-run.md",
             "2026-07-16-oss-contribute-external-run.md",
+            "2026-08-28-ship-it-self-run.md",
         ):
             text = (ROOT / "docs" / "runs" / name).read_text(encoding="utf-8")
             self.assertIn("Evidence binding", text, f"{name} was demoted without saying why")

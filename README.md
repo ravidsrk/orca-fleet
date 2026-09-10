@@ -153,23 +153,26 @@ inside the run's own `docs/runs/<date>-<mission>…/` directory, and an integrit
 hashes are re-computed from the git objects at the commit the header names. A report that merely
 names the mission in its filename no longer advances anything (issue #259, REVIEW.md §2.2).
 
-One mission clears that bar today:
-[`ship-it`](docs/runs/2026-08-28-ship-it-self-run.md) → **self-run** (a small slice driven to
-`PROMOTION_READY` — BUILT, its promotion PR since human-merged; the run also surfaced that a solo
-fleet cannot autonomously clear the independent-review gate; its five inventory hashes re-derive
-at `748b328`).
+**No mission clears that bar today.** Four runs really happened; none of them is currently a tier
+claim:
 
-Three runs really happened and are **not** tier claims, because their artifacts were retained
-outside this repository and nothing here can re-hash them:
-[`clean-sweep`](docs/runs/2026-07-13-clean-sweep-self-run.md) (drained six false doc-claims to
-DRY; a later [tracker run](docs/runs/2026-07-17-clean-sweep-tracker-self-run.md) closed 22 of 26
-issues), [`review-it`](docs/runs/2026-07-13-review-it-external-run.md) (a NO-GO verdict on a real
-gstack PR), and [`oss-contribute`](docs/runs/2026-07-16-oss-contribute-external-run.md) (5 PRs and
-4 review-assist comments on a real upstream repo). Each report says so in its own
-"Evidence binding" section, and each mission is back at `doctrine-only`. Demoting them cost the
-catalog three green-looking badges and is the correct answer: history and a machine-checkable
-claim are different things. (Its predecessor shipped twelve missions with two proven and paid for
-it.) The [run archive](docs/runs/) holds the evidence.
+- [`clean-sweep`](docs/runs/2026-07-13-clean-sweep-self-run.md) (drained six false doc-claims to
+  DRY; a later [tracker run](docs/runs/2026-07-17-clean-sweep-tracker-self-run.md) closed 22 of 26
+  issues), [`review-it`](docs/runs/2026-07-13-review-it-external-run.md) (a NO-GO verdict on a real
+  gstack PR) and [`oss-contribute`](docs/runs/2026-07-16-oss-contribute-external-run.md) (5 PRs and
+  4 review-assist comments on a real upstream repo) retained their artifacts outside this
+  repository, so nothing here can re-hash them.
+- [`ship-it`](docs/runs/2026-08-28-ship-it-self-run.md) (a slice driven to `PROMOTION_READY`, its
+  promotion PR since human-merged) kept its artifacts — all five hashes still re-derive at
+  `748b328` — but never wrote down the verifier's command line, which its own template asked for
+  verbatim. So its recorded outcome is the coordinator's word.
+
+Each report says so in its own "Evidence binding" section. The catalog reads 21 `doctrine-only`.
+That number went *down* as the mechanism got stronger, which is the mechanism working: the
+predecessor shipped twelve missions with two proven and paid for it, and a tier you cannot
+re-derive is the same claim in better packaging. The [run archive](docs/runs/) holds the runs; the
+[binding gate](runtime/scripts/run_report.py) holds the bar, exercised by `tests/test_run_report.py`
+against real git repositories.
 
 Missions can also run as a **gated sequential chain** ("harden-it, then prove-it, then ship-it")
 where each link proceeds only on the previous mission's verified terminal state — see

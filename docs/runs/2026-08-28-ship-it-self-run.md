@@ -2,9 +2,10 @@
 
 RUN: mission=ship-it tier=self-run inventory_at=748b328 manifest=docs/runs/2026-08-28-ship-it-selfrun/build-manifest.json verifier=RED
 
-The header above is what `runtime/scripts/run_report.py` re-derives: the inventory below
-is re-hashed at `748b328`, the manifest has to exist at that commit, and `verifier=RED`
-has to match the outcome this report records. Nothing here is graded on prose.
+The header above is what `runtime/scripts/run_report.py` re-derives. Four of its five legs
+hold: the inventory below re-hashes 5/5 at `748b328`, the manifest exists at that commit and
+sits in this run's own directory, and it is pinned by the inventory. The fifth does not —
+see **Evidence binding** at the end, and the tier this report supports is `doctrine-only`.
 
 First recorded run of the flagship mission. Mission: **ship-it**, entry = frozen spec
 (`decide-and-freeze` validate branch), target: this repo itself. A small-but-non-trivial slice —
@@ -147,3 +148,23 @@ ef01469349304330f4e4937dcdb96a7b1836c762364353950280394fc8207bfd  docs/runs/2026
 - FREEZE (human gate #1): n/a — frozen-spec entry, no intent grill.
 - BASE → `main` promotion (human gate #2): **open, human-owned** — this run stops at the promotion
   PR. Merging it reaches `RELEASED`; `DEPLOYED_AND_VERIFIED` is bounded (no deploy surface).
+
+
+## Evidence binding — the verifier transcript was never recorded
+
+This run happened, and every artifact it produced still hashes true at `748b328`. It does
+**not** advance `ship-it` above `doctrine-only`, for one reason: the verifier's outcome is
+described in prose ("ran `verify.py` against the manifest with the coordinator's authoritative
+`--contract-source/--contract-digest`… RED on the independent-review gate") and the command
+line was never written down. `docs/runs/TEMPLATE.md` asked for it — "output and exit code
+verbatim, RED runs included" — and this report did not comply.
+
+So `verifier=RED` here is the coordinator's word. That is exactly the class of gap this
+mechanism exists to close, and it does not get an exception for being ours: a reviewer on
+PR #277 pointed out that the gate accepted the mere presence of the string `verify.py`
+anywhere in the body, and tightening it to require a real `verify.py … --manifest <path>`
+invocation is what surfaced this.
+
+The transcript cannot be reconstructed honestly after the fact — writing a plausible command
+line now and presenting it as the record would be the fabrication the gate is built to refuse.
+The run stands as history; the tier does not.

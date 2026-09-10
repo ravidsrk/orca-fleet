@@ -78,9 +78,12 @@ CLASSES = ("mechanical", "taste", "one-way")
 DEFAULT_LOG = "docs/DECISIONS.md"
 DEFAULT_DOORS = Path(__file__).resolve().parent.parent / "one-way-doors.json"
 
-# Lenses whose value IS the miss they would catch: they never auto-gate off,
-# however long their zero streak runs (playbooks/risk-review.md).
-NEVER_GATE = ("security", "data-migration")
+# Lenses whose value IS the miss they would catch: they never auto-gate off, however
+# long their zero streak runs. This tuple is the EXECUTABLE form of the sentence in
+# playbooks/risk-review.md; `tests/test_decisions.py` parses that sentence and requires
+# the two to agree, because a policy naming three lenses and a gate enforcing two is how
+# privacy silently switched itself off after ten quiet reviews (PR #277 review, P1).
+NEVER_GATE = ("security", "privacy", "data-migration")
 GATE_OFF_STREAK = 10
 
 HUMAN_SOURCE = re.compile(r"source=human:\S+")
