@@ -4,6 +4,10 @@ Reviewed SHA: `af8ea8975cdc5e9d0911a1d251cb02afd4f7a5dd` (main, 2026-09-10, merg
 Every `file:line` below is at that SHA. Read-only engagement; nothing in the repo was changed.
 Scratch clones were used for every injection. Research sources are listed in §9.
 
+Sections 1–9 are the review as delivered and are not edited after the fact. **§10 is a later,
+dated re-measurement** at `ba285d5` — the same attacks and the same routing matrix, re-run against
+the branch that addressed the backlog, including what the fixes cost and what is still not true.
+
 ## 1. Verdict
 
 **NO-GO for "verified, not asserted" as stated at this SHA.**
@@ -405,3 +409,74 @@ External (fetched 2026-09-10):
   (reward hacking); Greenblatt et al. 2024 (AI control); Lipsitch et al. 2010 (negative
   controls); Ye et al. 2021 and Le et al. 2018 (patch overfitting); GitHub stale-review dismissal,
   Gerrit patchset votes, in-toto/SLSA subject binding.
+
+## 10. Status at `ba285d52671eafed1722b2b0dfc0d7c3c1bd5e3c` (2026-09-10)
+
+The verdict in §1 stands as written, bound to `af8ea89`. This section is a later, dated
+re-measurement on branch `claude/orca-fleet-deep-review-nksvxh` — the same instruments, re-run.
+Nothing above was rewritten; a review that edits its own findings after the fixes is not a review.
+
+### The two instruments, re-run
+
+**Manifest-gaming attacks (§4).** Same harness, same scratch-clone method. Five attacks that
+LANDED at `af8ea89` are now RED:
+
+| ID | At `af8ea89` | Now | What refuses it |
+|---|---|---|---|
+| A1 fabricated NC, dark-eligible | LANDED | **CAUGHT** exit 2 | the waived-review lane requires an EXECUTED control (`--execute-nc`), plus a commands ledger |
+| A2 `--no-gh` forged review + forged NC | LANDED | **CAUGHT** exit 2 | `review.artifact` must reference `head_sha`; commands ledger required |
+| A4 `tool: hand`, invented diff | LANDED | **CAUGHT** exit 2 | same executed-control requirement |
+| A9 pinned mutant killed, sibling survived | LANDED | **CAUGHT** exit 2 | same |
+| A10 artifact outside the repo | LANDED | **CAUGHT** exit 2 | absolute evidence paths refused |
+| A11 realistic contract prose ids | GREEN | **GREEN** | unchanged — the tightened id regex is not a false-positive machine |
+| positive control: real executed revert | — | **GREEN** exit 0 | the gate is not always-RED |
+
+**Routing (§5).** The 36 realistic prompts: **36/36** (was 19/36 = 53% with the keyword table).
+The full fixture suite is 86/86, and the CI floor is ratcheted to 1.0 — a description collision
+now reds the build rather than being counted and shrugged at.
+
+**A new bypass, found and closed during the fix.** The first artifact-binding checker accepted a
+fabricated `map-it` report that pointed at `ship-it`'s real manifest and inventory: everything
+hashed, because the artifacts were real — just someone else's. A run's manifest must now live in
+that run's own `docs/runs/<date>-<mission>…/` directory, and one report may prove one mission.
+
+### Backlog disposition
+
+P0 — 1 executed negative control · 2 waiver lanes closed · 3 mutation-class positive control in
+VF-Bench · 4 README reworded: **all four landed.**
+
+P1 — 5 proof tiers bound to artifacts · 6 description-based router with the §5 prompts as CI-gated
+fixtures · 7 coverage collision · 8 gate on the symlink path · 9 `metadata:` migration · 10
+autonomy re-derived · 11 identity test enforced: **all landed.** 12 (pin-it run against Orca
+v1.4.199): doctrine re-pinned against the v1.4.199 source, **no bound run report** — so pin-it
+stays `doctrine-only`, which is the point of item 5.
+
+P2 — 13 artifact paths + inventory re-check · 14 `CRIT_ID_RE` · 15 danger-profile sandbox evidence
+· 16 gitleaks · 17 upstream pins in a machine-read file · 18 bundle for copy installers · 20 tags
+· 21 TODOS · 22 vf-bench `fetch-depth` · 23 per-mission load measured, published and capped:
+**landed.** 19 (split reshape-it's CHARACTERIZE into a chain link to prove-it): **refuted** —
+CHARACTERIZE already delegates to prove-it's protocol by reference rather than restating it, and
+reshape-it's declared oracle is the net being live at its own `head_sha`, which a separate chained
+run would sever.
+
+### What the fixes cost, said plainly
+
+- **Three proof tiers were removed, not gained.** `clean-sweep`, `review-it` and `oss-contribute`
+  ran for real, but their artifacts were retained outside this repository, so no gate here can
+  re-derive them. The catalog now reads 20 `doctrine-only` / 1 `self-run` / 0 `external-run`.
+  Binding tiers to artifacts made the honest number smaller.
+- **Activation load grew before it shrank.** The fixes added playbooks and runtime doctrine, and
+  `ship-it` reached ~39,600 tokens against §2's measured ~29,500. Deferring phase-scoped reads
+  brought the three heaviest to 31,400 / 33,000 / 33,600 and the cap is ratcheted to 34,000 — still
+  roughly 7× the spec's per-skill recommendation, and unrestructured everywhere else.
+- **The catalog grew from 17 missions to 21**, which is the direction §6 warned about. The
+  discipline against it is now mechanical rather than editorial: six declared identity points per
+  mission and a build failure when two match.
+
+### What is still not true
+
+`verify.py`'s soundness still depends on the coordinator owning the environment: on the native
+`Stop`/`TaskCompleted` hook the gate runs inside the graded worker, so it is defense-in-depth
+there, not a boundary (`docs/verify-gate.md` says so). A8 — a bare working-tree path as
+`--contract-source` — is still accepted where the worker sets the env. And one bound self-run is
+one; the mechanism is now real, the evidence base behind it is thin.
