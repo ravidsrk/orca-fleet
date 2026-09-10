@@ -10,6 +10,10 @@
 
 **Skill:** [`skills/pin-it/SKILL.md`](../../skills/pin-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes — doctrine patches, `PROFILE=rw` workers
 
+<p align="center">
+  <img src="../../assets/diagrams/missions/pin-it.jpg" alt="State machine: FREEZE the claim inventory, RE-WITNESS with live receipts from the installed binary, CLASSIFY claims current, stale, or superseded, PATCH doctrine with receipt citations, ending PINNED or PINNED-WITH-PARKED" width="820">
+</p>
+
 ---
 
 ## What it does

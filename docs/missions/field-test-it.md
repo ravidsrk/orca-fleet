@@ -9,6 +9,10 @@
 
 **Skill:** [`skills/field-test-it/SKILL.md`](../../skills/field-test-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes — `PROFILE=rw` fix workers
 
+<p align="center">
+  <img src="../../assets/diagrams/missions/field-test-it.jpg" alt="State machine: PAIR a device session, BASELINE, REPRODUCE with artifacts captured, FIX, RE-VERIFY on-device at the head SHA, ending FIELD-PROVEN or FIELD-PROVEN-WITH-PARKED" width="820">
+</p>
+
 ---
 
 ## What it does
@@ -84,7 +88,9 @@ on-device re-verify GREEN at `head_sha` + revert-to-red negative control, ledger
 capability tier — or a PARK naming the exact device and step it waits on. The before/after
 baselines are recorded; the verifier replays the recorded artifacts at the merged SHA (the
 archived repro re-driven expecting GREEN, plus a spot-check of the revert-RED receipt) — it never
-re-applies an already-landed fix. A green desktop run is never accepted as device evidence; a
+re-applies an already-landed fix — and, on a ≥10% sample per the mutation-unit floor, a fresh
+worker reverts the fix on a throwaway branch and re-drives the on-device flow expecting RED
+(landed BASE is never modified). A green desktop run is never accepted as device evidence; a
 one-time repro is marked flaky and re-driven, not closed.
 
 ## Composes

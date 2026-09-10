@@ -10,6 +10,10 @@
 
 **Skill:** [`skills/access-it/SKILL.md`](../../skills/access-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes — `PROFILE=rw` fix workers
 
+<p align="center">
+  <img src="../../assets/diagrams/missions/access-it.jpg" alt="State machine: FREEZE the surface and WCAG target, DETECT with the axe-core oracle, FIX via rw workers, RE-VERIFY by reverting to bring the violation back, ending CONFORMANT or CONFORMANT-WITH-MANUAL-PARKED" width="820">
+</p>
+
 ---
 
 ## What it does

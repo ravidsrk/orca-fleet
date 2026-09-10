@@ -10,6 +10,10 @@
 
 **Skill:** [`skills/attest-it/SKILL.md`](../../skills/attest-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** evidence-gathering (`ro`); remediation that lands code routes to `ship-it` / `clean-sweep`
 
+<p align="center">
+  <img src="../../assets/diagrams/missions/attest-it.jpg" alt="State machine: INVENTORY the frozen obligations, COLLECT evidence per obligation, VERIFY by independent re-derivation, ATTEST, ending CONFORMANT or CONFORMANT-WITH-GAPS" width="820">
+</p>
+
 ---
 
 ## What it does

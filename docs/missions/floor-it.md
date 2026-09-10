@@ -10,6 +10,10 @@
 
 **Skill:** [`skills/floor-it/SKILL.md`](../../skills/floor-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes — `PROFILE=rw` wire workers
 
+<p align="center">
+  <img src="../../assets/diagrams/missions/floor-it.jpg" alt="State machine: DETECT measured current values, FREEZE a numbered CONSTRAINTS bar, WIRE one tool per dimension, PROVE-FIRES with an injected violation going RED, ENFORCE in CI, ending FLOORED or FLOORED-WITH-PARKED" width="820">
+</p>
+
 ---
 
 ## What it does
@@ -23,7 +27,9 @@ a violation on a throwaway branch — a deleted test file, a fixture lockfile a 
 installing, an injected sleep, a stripped alt text, a forbidden import — and the harness goes RED;
 revert, GREEN — a harness that stays GREEN is reverted and never lands. After CI enforcement lands, a canary PR per gate must turn CI red and is closed
 unmerged. Finally a **guard** — a checked-in validator plus a CI job — fails any diff that lowers a
-threshold, adds a suppression, or skips a test without a waiver label.
+threshold in `CONSTRAINTS.md` or touches a per-dimension tool-config surface listed in the frozen
+table (suppressions, skipped tests, exclusions) without a waiver (a recorded DECISIONS line per
+gate-classification).
 
 The unit of work is **one constraint dimension**. The defining property: the bar is written,
 numbered, and tool-enforced — prose standards are explicitly not the product.
