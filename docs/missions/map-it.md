@@ -173,7 +173,11 @@ A map that quietly started building would be the failure mode, not the bonus.
 ## Composes
 
 Playbooks: [`decide-and-freeze`](../../playbooks/decide-and-freeze.md) ·
-[`decompose-dag`](../../playbooks/decompose-dag.md) (prepare-only)
+[`decompose-dag`](../../playbooks/decompose-dag.md) (prepare-only) ·
+[`plan-review`](../../playbooks/plan-review.md) ·
+[`research-brief`](../../playbooks/research-brief.md) ·
+[`record-decision`](../../playbooks/record-decision.md) ·
+[`human-handoff`](../../playbooks/human-handoff.md)
 
 Runtime policies: [`gate-classification`](../../runtime/gate-classification.md) ·
 [`evidence-manifest`](../../runtime/evidence-manifest.md) ·

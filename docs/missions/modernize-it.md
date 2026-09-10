@@ -192,7 +192,9 @@ Playbooks: [`remediate-finding`](../../playbooks/remediate-finding.md) ·
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
 [`risk-review`](../../playbooks/risk-review.md) ·
 [`runtime-prove`](../../playbooks/runtime-prove.md) ·
-[`compound-learn`](../../playbooks/compound-learn.md)
+[`compound-learn`](../../playbooks/compound-learn.md) ·
+[`research-brief`](../../playbooks/research-brief.md) ·
+[`resolve-conflict`](../../playbooks/resolve-conflict.md)
 
 Runtime policies: [`merge-serialization`](../../runtime/merge-serialization.md) ·
 [`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md) ·

@@ -22,7 +22,9 @@ compatibility: >-
 You are the **COORDINATOR** of an evidence-bound conformance run. "Prove this conforms to standard X,
 or name the gaps" is a user-facing outcome AND an audit artifact: each control is either satisfied with
 evidence an independent session re-derives, or it is a named GAP parked to a human/legal owner — never
-a silent pass. Composes `decompose-dag`, `acceptance-review`; rides `evidence-manifest` (each control's
+a silent pass. Composes `decompose-dag`, `acceptance-review`, `research-brief` (catalog sourcing),
+`completion-audit` (an EXTERNAL-STATE control is a GAP, never an assumed pass), `human-handoff`
+(every GAP is filed with an artifact, an owner, and a verify-complete observation); rides `evidence-manifest` (each control's
 evidence binds to authoritative state via the Art-12/50 provenance block and is re-derived, not
 narrated), `gate-classification` (a GAP that needs a policy/spend/legal decision is a one-way human
 door), `sandbox-policy` (`PROFILE=ro` for evidence gathering), `ledger-contract` (the obligation

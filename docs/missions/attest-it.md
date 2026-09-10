@@ -81,7 +81,10 @@ shrunk.
 ## Composes
 
 Playbooks: [`decompose-dag`](../../playbooks/decompose-dag.md) ·
-[`acceptance-review`](../../playbooks/acceptance-review.md)
+[`acceptance-review`](../../playbooks/acceptance-review.md) ·
+[`research-brief`](../../playbooks/research-brief.md) ·
+[`completion-audit`](../../playbooks/completion-audit.md) ·
+[`human-handoff`](../../playbooks/human-handoff.md)
 
 Runtime policies: [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`gate-classification`](../../runtime/gate-classification.md) ·

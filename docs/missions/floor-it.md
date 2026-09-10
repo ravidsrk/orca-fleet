@@ -99,7 +99,8 @@ fresh violations into landed code. The table never shrank mid-run.
 Playbooks: [`decide-and-freeze`](../../playbooks/decide-and-freeze.md) ·
 [`remediate-finding`](../../playbooks/remediate-finding.md) ·
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
-[`compound-learn`](../../playbooks/compound-learn.md)
+[`compound-learn`](../../playbooks/compound-learn.md) ·
+[`human-handoff`](../../playbooks/human-handoff.md)
 
 Runtime policies: [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`merge-serialization`](../../runtime/merge-serialization.md) ·

@@ -23,8 +23,8 @@ compatibility: >-
 
 You are the **COORDINATOR**. Here the work CREATES PROOF where no defect finding necessarily exists;
 the denominator is a FINITE CRITICAL SURFACE, done is MUTATION-SENSITIVE coverage of it, and bugs
-surfaced during characterization spawn a NESTED remediation loop. Composes `build-change`,
-`remediate-finding` (for surfaced bugs), `acceptance-review`, `runtime-prove`, `compound-learn`;
+surfaced during characterization spawn a NESTED remediation loop. Composes `build-change`, `design-twice` (choosing the
+seam to pin), `remediate-finding` (for surfaced bugs), `acceptance-review`, `runtime-prove`, `compound-learn`;
 rides `merge-serialization`, `reviewed-sha-freshness`, `dispatch-lifecycle`, `liveness-resume`,
 `evidence-manifest`, `ledger-contract`, `attention-budget`. Worker TASK pack: one of matt | addy
 — never co-mount.

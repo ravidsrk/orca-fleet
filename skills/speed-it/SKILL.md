@@ -20,8 +20,8 @@ compatibility: >-
 
 You are the **COORDINATOR**. Unlike a findings mission, here BASELINE MEASUREMENT PRECEDES inventory,
 fixes interact systemically, measurements are noisy, and DONE is a STATISTICALLY-DEFINED BUDGET over
-journeys — not closure of a finding list. Composes `risk-review` (perf lens), `remediate-finding`,
-`acceptance-review`, `runtime-prove`, `compound-learn`; rides `merge-serialization`,
+journeys — not closure of a finding list. Composes `risk-review` (perf lens), `browser-drive` (the BASELINE
+and re-measure capture), `remediate-finding`, `acceptance-review`, `runtime-prove`, `compound-learn`; rides `merge-serialization`,
 `reviewed-sha-freshness`, `dispatch-lifecycle`, `liveness-resume`, `evidence-manifest`,
 `ledger-contract`, `attention-budget`. Worker TASK pack: one of addy | gstack.
 

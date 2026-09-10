@@ -210,7 +210,11 @@ with the full close table, the park named in it.
 Playbooks: [`remediate-finding`](../../playbooks/remediate-finding.md) ·
 [`build-change`](../../playbooks/build-change.md) ·
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
-[`compound-learn`](../../playbooks/compound-learn.md)
+[`compound-learn`](../../playbooks/compound-learn.md) ·
+[`triage-state`](../../playbooks/triage-state.md) ·
+[`linear-enumeration`](../../playbooks/linear-enumeration.md) ·
+[`completion-audit`](../../playbooks/completion-audit.md) ·
+[`agent-brief`](../../playbooks/agent-brief.md)
 
 Runtime policies: [`merge-serialization`](../../runtime/merge-serialization.md) ·
 [`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md) ·

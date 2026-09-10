@@ -84,7 +84,8 @@ automatable criteria.
 Playbooks: [`decompose-dag`](../../playbooks/decompose-dag.md) ·
 [`remediate-finding`](../../playbooks/remediate-finding.md) ·
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
-[`compound-learn`](../../playbooks/compound-learn.md)
+[`compound-learn`](../../playbooks/compound-learn.md) ·
+[`browser-drive`](../../playbooks/browser-drive.md)
 
 Runtime policies: [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`sandbox-policy`](../../runtime/sandbox-policy.md) ·

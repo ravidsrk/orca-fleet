@@ -98,7 +98,9 @@ one-time repro is marked flaky and re-driven, not closed.
 Playbooks: [`diagnose`](../../playbooks/diagnose.md) ·
 [`remediate-finding`](../../playbooks/remediate-finding.md) ·
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
-[`compound-learn`](../../playbooks/compound-learn.md)
+[`compound-learn`](../../playbooks/compound-learn.md) ·
+[`browser-drive`](../../playbooks/browser-drive.md) ·
+[`human-handoff`](../../playbooks/human-handoff.md)
 
 Runtime policies: [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`merge-serialization`](../../runtime/merge-serialization.md) ·

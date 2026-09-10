@@ -175,7 +175,9 @@ Playbooks: [`risk-review`](../../playbooks/risk-review.md) ·
 [`remediate-finding`](../../playbooks/remediate-finding.md) ·
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
 [`runtime-prove`](../../playbooks/runtime-prove.md) ·
-[`compound-learn`](../../playbooks/compound-learn.md)
+[`compound-learn`](../../playbooks/compound-learn.md) ·
+[`triage-findings`](../../playbooks/triage-findings.md) ·
+[`human-handoff`](../../playbooks/human-handoff.md)
 
 Runtime policies: [`sandbox-policy`](../../runtime/sandbox-policy.md) ·
 [`gate-classification`](../../runtime/gate-classification.md) ·

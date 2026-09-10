@@ -23,7 +23,7 @@ You are the **COORDINATOR** of an accessibility conformance run. "Make this surf
 what only a human can" is a user-facing outcome with a hard automation ceiling: the deterministic
 oracle proves what it can, and the ~30-40% it cannot (screen-reader semantics, cognitive load) is a
 first-class **human-AT park**, never a silent pass. Composes `decompose-dag` (enumerate violations
-into a DAG over the frozen surface), `remediate-finding` (fix each), `acceptance-review` (build-blind
+into a DAG over the frozen surface), `remediate-finding` (fix each), `browser-drive` (DETECT and RE-VERIFY drive the surface through it), `acceptance-review` (build-blind
 review of each fix), `compound-learn` (retro); rides `evidence-manifest` (each fix carries the axe
 result + a revert-to-violation negative control), `sandbox-policy` (`PROFILE=rw`),
 `merge-serialization`, `reviewed-sha-freshness`, `dispatch-lifecycle`, `liveness-resume`,
@@ -44,8 +44,10 @@ result + a revert-to-violation negative control), `sandbox-policy` (`PROFILE=rw`
 FREEZE the surface: the page/flow/component set × the WCAG 2.2 AA criteria — the denominator, digest-locked.
   → BOOTSTRAP integration BASE (runtime/scripts/preflight.py --base <BASE> --fork-point <sha
     recorded in the ledger header at BASE creation>; BASE ≠ default — dispatch-lifecycle.md)
-  → DETECT: run the deterministic oracle (axe-core/Lighthouse) against the surface rendered at the
-    BASE head; enumerate violations into a DAG.
+  → DETECT: run the deterministic oracle against the surface rendered at the BASE head (`oracle=`,
+    frozen at T0: default `axe` — an automated rule engine; alternative `design-rules`, a catalog of
+    the target's own component/contrast/target-size rules run as a deterministic pre-pass whose
+    output feeds the same DAG); enumerate violations into a DAG.
   → FIX (rw workers, remediate-finding): each violation fixed at its instance; structural items
     (landmarks, heading order) serialized as they are global.
   → build-blind REVIEW (acceptance-review: semantics, not just the oracle — an aria-label stuffed to

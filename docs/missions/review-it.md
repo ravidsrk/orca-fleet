@@ -174,7 +174,8 @@ exactly such a run: the NO-GO on a live gstack PR linked from the frontmatter.)
 ## Composes
 
 Playbooks: [`acceptance-review`](../../playbooks/acceptance-review.md) ·
-[`risk-review`](../../playbooks/risk-review.md)
+[`risk-review`](../../playbooks/risk-review.md) ·
+[`triage-findings`](../../playbooks/triage-findings.md)
 
 Runtime policies: [`sandbox-policy`](../../runtime/sandbox-policy.md) ·
 [`evidence-manifest`](../../runtime/evidence-manifest.md) ·

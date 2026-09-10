@@ -198,7 +198,11 @@ Playbooks: [`decide-and-freeze`](../../playbooks/decide-and-freeze.md) ·
 [`risk-review`](../../playbooks/risk-review.md) ·
 [`runtime-prove`](../../playbooks/runtime-prove.md) ·
 [`release`](../../playbooks/release.md) · [`observe`](../../playbooks/observe.md) ·
-[`compound-learn`](../../playbooks/compound-learn.md)
+[`compound-learn`](../../playbooks/compound-learn.md) ·
+[`plan-review`](../../playbooks/plan-review.md) ·
+[`completion-audit`](../../playbooks/completion-audit.md) ·
+[`linear-enumeration`](../../playbooks/linear-enumeration.md) ·
+[`human-handoff`](../../playbooks/human-handoff.md)
 
 Runtime policies: [`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) ·
 [`merge-serialization`](../../runtime/merge-serialization.md) ·

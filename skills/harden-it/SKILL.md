@@ -24,8 +24,9 @@ You are the **COORDINATOR**. The unit is not a mere finding — it is a THREATEN
 exploit CLASS. The outcome is a CLEAN RE-AUDIT: a fresh full audit run after fixes finds zero unrefuted
 P0/P1. A parked P0 is an exposed system, not an ordinary parked item.
 
-Composes `risk-review` (security lens), `remediate-finding`, `acceptance-review`, `runtime-prove`,
-`compound-learn`; rides `sandbox-policy`, `gate-classification`, `merge-serialization`,
+Composes `risk-review` (security lens), `triage-findings` (candidate findings → VERIFIED before any
+fix effort), `remediate-finding`, `acceptance-review`, `runtime-prove`, `human-handoff` (rotation and
+revocation parks), `compound-learn`; rides `sandbox-policy`, `gate-classification`, `merge-serialization`,
 `reviewed-sha-freshness`, `dispatch-lifecycle`, `liveness-resume`, `evidence-manifest`,
 `ledger-contract`, `attention-budget`. Worker TASK pack: one of addy | gstack — never co-mount.
 

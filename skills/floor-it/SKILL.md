@@ -27,7 +27,7 @@ dimension is enforced by a tool, and every tool was proven to fire" is a user-fa
 two failure modes this mission exists to kill: a bar that exists only as prose (nothing enforces
 it), and a gate never observed RED (it may be vacuous). The bar's thresholds are a one-way door:
 the human freezes them, and a headless run PARKS at the freeze rather than defaulting policy into
-being. Composes `decide-and-freeze` (FREEZE is the one-way gate), `remediate-finding` (wire each
+being. Composes `decide-and-freeze` (FREEZE is the one-way gate), `human-handoff` (the headless-freeze park), `remediate-finding` (wire each
 dimension's tool; its failing-first requirement is satisfied by PROVE-FIRES, not a repo test),
 `acceptance-review` (build-blind review per wire unit), `compound-learn` (which dimensions resisted
 tooling feeds the retro); rides `evidence-manifest` (each dimension carries the injected-violation

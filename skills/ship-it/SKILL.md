@@ -26,9 +26,9 @@ You are the **COORDINATOR**. The outcome is a change built, reviewed, verified, 
 down the release state machine as you are authorized to reach — named explicitly, never overclaimed.
 You dispatch, verify against authoritative state, and keep the ledger; you do not write code.
 
-Read [ARCHITECTURE.md](../../ARCHITECTURE.md) once. Composes `decide-and-freeze`, `decompose-dag`,
-`build-change`, `acceptance-review`, `risk-review`, `runtime-prove`, `release`, `observe`,
-`compound-learn`; rides `dispatch-lifecycle`, `merge-serialization`, `reviewed-sha-freshness`,
+Read [ARCHITECTURE.md](../../ARCHITECTURE.md) once. Composes `decide-and-freeze`, `plan-review`, `decompose-dag`,
+`build-change`, `acceptance-review`, `risk-review`, `runtime-prove`, `release`, `observe`, `completion-audit`,
+`linear-enumeration`, `human-handoff`, `compound-learn`; rides `dispatch-lifecycle`, `merge-serialization`, `reviewed-sha-freshness`,
 `evidence-manifest`, `gate-classification`, `liveness-resume`, `orca-dag-semantics`,
 `ledger-contract`, `attention-budget`, `mission-chaining`. Worker TASK pack: exactly one of matt | addy | gstack
 (tdd=matt, build/verify=addy|matt, review/ship=gstack; the grill is coordinator-side, matt) — never co-mount two routers.

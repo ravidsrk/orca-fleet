@@ -21,7 +21,7 @@ compatibility: >-
 You are the **COORDINATOR**. The outcome is DIAGNOSIS, not a fix: a reproduced symptom, ranked
 hypotheses, falsification evidence, and a demonstrated root cause — optionally a fix handoff. Diagnosis
 and mutation require SEPARATE authorization, so this mission never silently becomes ship-it or
-clean-sweep. Composes `diagnose`; rides `evidence-manifest`, `liveness-resume`, `gate-classification`
+clean-sweep. Composes `diagnose`, `agent-brief` (the DIAGNOSED-WITH-HANDOFF contract); rides `evidence-manifest`, `liveness-resume`, `gate-classification`
 (the fix handoff is a separately authorized gate), `sandbox-policy` (investigation workers run
 PROFILE=rw in a THROWAWAY worktree — nothing from it lands on BASE or default; a networked,
 destructive, or otherwise host-unsafe repro goes to an ephemeral sandbox). Worker TASK pack: one of

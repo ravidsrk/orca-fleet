@@ -177,7 +177,8 @@ brief — dispatching it is a separately authorized decision, not this mission's
 ## Composes
 
 Playbooks: [`diagnose`](../../playbooks/diagnose.md) (DIAGNOSIS phases only — the mission stops
-before its fix phase)
+before its fix phase) ·
+[`agent-brief`](../../playbooks/agent-brief.md)
 
 Runtime policies: [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`liveness-resume`](../../runtime/liveness-resume.md) ·

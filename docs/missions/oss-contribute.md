@@ -208,7 +208,11 @@ Playbooks: [`upstream-contribution`](../../playbooks/upstream-contribution.md) �
 [`remediate-finding`](../../playbooks/remediate-finding.md) ·
 [`build-change`](../../playbooks/build-change.md) ·
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
-[`compound-learn`](../../playbooks/compound-learn.md)
+[`compound-learn`](../../playbooks/compound-learn.md) ·
+[`triage-state`](../../playbooks/triage-state.md) ·
+[`resolve-conflict`](../../playbooks/resolve-conflict.md) ·
+[`linear-enumeration`](../../playbooks/linear-enumeration.md) ·
+[`completion-audit`](../../playbooks/completion-audit.md)
 
 Runtime: `evidence-manifest` · `dispatch-lifecycle` · `ledger-contract` · `reviewed-sha-freshness` ·
 `liveness-resume` · `gate-classification` · `orca-dag-semantics` · `attention-budget` ·

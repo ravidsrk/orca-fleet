@@ -27,7 +27,8 @@ outcome with one failure mode that kills most refactors: restructuring without a
 oracle, so the diff is reviewed by vibes. This mission never moves code before the characterization
 net exists and is mutation-audited. Composes `decide-and-freeze` (CONFIRM-SURFACE bounds the target
 list with the human; headless publishes the inventory and PARKS at the gate), `remediate-finding` (one deepening per unit — its reproduce-or-refute step instantiates as the SCAN probes re-measuring the seam (the shallowness evidence IS the reproducible defect), and its failing-first requirement instantiates as the CHARACTERIZE-pinned mutant RED before the deepening, per the §1 carve-out; build-change's irreversibility gate applies to
-public-API breaks), `acceptance-review` (build-blind review per unit), `compound-learn` (which
+public-API breaks), `design-twice` (DEEPEN's interface fork, drafted not argued), `record-decision` (a one-way API break
+is an ADR), `plan-review` (CONFIRM-SURFACE), `acceptance-review` (build-blind review per unit), `compound-learn` (which
 modules resisted deepening and why); rides `evidence-manifest` (each unit carries the before/after
 interface-surface measurement plus the legal negative control for a behaviour-preserving change —
 the speed-it carve-out: (a) the CHARACTERIZE-pinned mutant still KILLED at `head_sha`, so the net

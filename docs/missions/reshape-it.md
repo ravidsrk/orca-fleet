@@ -91,7 +91,10 @@ module's one-way decision named.
 Playbooks: [`decide-and-freeze`](../../playbooks/decide-and-freeze.md) ·
 [`remediate-finding`](../../playbooks/remediate-finding.md) ·
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
-[`compound-learn`](../../playbooks/compound-learn.md)
+[`compound-learn`](../../playbooks/compound-learn.md) ·
+[`design-twice`](../../playbooks/design-twice.md) ·
+[`record-decision`](../../playbooks/record-decision.md) ·
+[`plan-review`](../../playbooks/plan-review.md)
 
 Runtime policies: [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`merge-serialization`](../../runtime/merge-serialization.md) ·

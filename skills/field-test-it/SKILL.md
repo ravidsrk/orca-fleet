@@ -26,7 +26,8 @@ and what broke there is fixed and re-proven there" is a user-facing outcome whos
 the ledgered device session itself: behaviour observed through it, typed by tier (PHYSICAL or EMULATOR). Simulators and desktops lie by omission —
 rendering, input, permissions, lifecycle, and performance differ — so the device session is the
 authority, and every fix is re-verified against it. Composes `diagnose` (on-device repro is a
-diagnosis with a hardware oracle), `remediate-finding` (fix each defect), `acceptance-review`
+diagnosis with a hardware oracle), `browser-drive` (the BROWSER oracle tier), `human-handoff` (device
+and permission grants), `remediate-finding` (fix each defect), `acceptance-review`
 (build-blind review of each fix), `compound-learn` (which defects only hardware catches feeds the
 retro); rides `evidence-manifest` (each fix carries the on-device repro artifact + the re-verify
 artifact at `head_sha`; negative control = revert reintroduces the on-device failure),
@@ -55,9 +56,17 @@ PAIR: load the version-matched guides from the binary (`orca skills get orca-emu
   emulator skill does not install apps, and PHYSICAL iOS devices are not a command surface of either
   skill (a flow that needs physical iOS is PARKED). Preconditions stated in the ledger: macOS+Xcode
   for iOS Simulator, Android SDK/adb for Android, the Orca emulator pane up. Record the session's
-  oracle tier — EMULATOR (rendering/input/lifecycle, simulated sensors) or PHYSICAL (hardware
-  radios, thermal, real sensors) — because a defect class that only exists on hardware can never
-  be proven on an emulator; those are parked or paired, never "verified" on the weaker tier.
+  oracle tier, frozen per defect, from the ladder `DEVICE | EMULATOR | BROWSER | DESKTOP |
+  CLEAN-ENV`: DEVICE (== PHYSICAL — hardware radios, thermal, real sensors) → EMULATOR
+  (rendering/input/lifecycle, simulated sensors) → BROWSER (a web surface driven through
+  `browser-drive`, its engine named and its evidence lines labelled) → DESKTOP (an OS/window-level
+  surface driven through the runtime's computer-use verbs, where every action carries a
+  VERIFIED/UNVERIFIED result and an UNVERIFIED action is NEVER reported as success — if it could
+  have sent, submitted, bought, or deleted something, the effect is unproven) → CLEAN-ENV (a
+  disposable sandbox proving first-run, install, and permission-prompt behaviour on a machine with
+  no prior state). A defect class that only exists a tier up can never be proven a tier down;
+  those are parked or paired, never "verified" on the weaker tier, and a tier is never upgraded
+  silently.
 → BOOTSTRAP integration BASE (runtime/scripts/preflight.py --base <BASE> --fork-point <sha>;
   BASE ≠ default — dispatch-lifecycle.md). Fixes land on BASE, never the default branch.
 → BASELINE: capture the pre-change regression snapshot — the target flows driven on-device at the
