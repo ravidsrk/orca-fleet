@@ -3,17 +3,26 @@ name: root-cause
 description: >-
   Find the demonstrated root cause of a hard bug that has neither a frozen spec nor an enumerable
   backlog — a flaky failure, an intermittent production symptom, a concurrency bug, an unexplained
-  regression. Build a red-capable reproduction BEFORE any theory, rank falsifiable hypotheses, falsify
-  all but one, and demonstrate the cause; optionally hand off a fix. Use when "diagnose this", "why is
-  this happening", "find the root cause", "debug this hard bug". Diagnosis, not remediation — the fix
-  is a separate authorized handoff (ship-it / clean-sweep). Not for a whole flaky SUITE under a
-  statistical streak contract (deflake-it) or an enumerable backlog (clean-sweep).
+  regression. Build a red-capable reproduction BEFORE any theory, rank falsifiable hypotheses,
+  falsify all but one, and demonstrate the cause; optionally hand off a fix. Use when "diagnose
+  this", "why is this happening", "why does this fail only in CI", "find the root cause", "debug
+  this hard bug". Diagnosis, not
+  remediation — the fix is a separate authorized handoff (ship-it / clean-sweep). Not for a whole
+  flaky SUITE under a statistical streak contract (deflake-it) or an enumerable backlog (clean-
+  sweep).
 license: MIT
-proof: doctrine-only
-autonomy: L3
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh. A feedback-loop-first
   debugging playbook (mattpocock diagnosing-bugs or addyosmani debug) — one router per worker.
+metadata:
+  proof: doctrine-only
+  autonomy: L4
+  unit: one falsifiable hypothesis about one bug
+  state_machine: stop-the-line → red-capable repro → rank hypotheses → falsify to one survivor → demonstrate
+  convergence: one surviving cause is demonstrated on the reproduction and every rival is falsified
+  ordering: reproduction BEFORE any theory; one variable falsified at a time
+  parking: INCONCLUSIVE, or DIAGNOSED-WITH-HANDOFF — the fix is a separate authorization
+  oracle: the red-capable reproduction — a theory that cannot move it is falsified
 ---
 
 # root-cause — a reproduced symptom, a demonstrated cause
@@ -21,7 +30,7 @@ compatibility: >-
 You are the **COORDINATOR**. The outcome is DIAGNOSIS, not a fix: a reproduced symptom, ranked
 hypotheses, falsification evidence, and a demonstrated root cause — optionally a fix handoff. Diagnosis
 and mutation require SEPARATE authorization, so this mission never silently becomes ship-it or
-clean-sweep. Composes `diagnose`; rides `evidence-manifest`, `liveness-resume`, `gate-classification`
+clean-sweep. Composes `diagnose`, `agent-brief` (the DIAGNOSED-WITH-HANDOFF contract); rides `evidence-manifest`, `liveness-resume`, `gate-classification`
 (the fix handoff is a separately authorized gate), `sandbox-policy` (investigation workers run
 PROFILE=rw in a THROWAWAY worktree — nothing from it lands on BASE or default; a networked,
 destructive, or otherwise host-unsafe repro goes to an ephemeral sandbox). Worker TASK pack: one of

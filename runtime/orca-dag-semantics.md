@@ -25,8 +25,11 @@ still blocked at the default depth of 1 (dispatch-lifecycle.md).
 ## DAG edges are `deps`, not `parent_id`
 
 `tasks.deps` (JSON array of task ids) is the dependency graph the runtime promotes against.
-`parent_id` is a decomposition hierarchy that is **empty in real CLI fleets** — do not build
-or verify fleets on parent/child nesting.
+`parent_id` is a decomposition hierarchy that is empty in real CLI fleets **only because the
+fleet never sets it** — `task-create --parent <task_id>` and `worker-start --parent` do exist
+and do write it, validated to the same Run, and worker-terminal listing/attention queries read
+it (`orchestration.ts:134`, `task-store.ts:32-36` at v1.4.199). Do not build or verify fleets
+on parent/child nesting, but do not call the column unwritable either.
 
 **Fleet rule:** materialize and verify only via `--deps` and returned task ids
 (decompose-dag.md). The stuck-pending trap (liveness-resume.md) is about deps, not parents.
@@ -44,8 +47,14 @@ These `MessageType` values exist in the schema but **nothing writes them** on CL
 delivers it but triggers no built-in merge behavior. Expect it during serialized merges.
 
 What *is* real and load-bearing: `worker_done`, `merge_ready`, `heartbeat`, `question`,
-`escalation`, `status`, `decision_gate` (legacy/gates). Heartbeats are the majority of traffic —
-always type-filter `check --wait` or use `--peek` so they do not bury lifecycle mail
+`escalation`, `status`, `decision_gate` (legacy/gates). Both `dispatch` and `handoff` are still
+valid `send --type` values a fleet *could* write; the runtime just never writes one itself.
+
+**`--types` is the WAKE CONDITION, not a filter.** `check --wait --types worker_done,escalation`
+decides when the waiter wakes; the Delivery it returns is always the **whole FIFO batch**, every
+type included (`orchestration.ts:112`, `orchestration/messaging-and-gates:19-22` at v1.4.199). So
+heartbeats never "bury" lifecycle mail — but a loop that handles only the filtered type and then
+`--ack`s has just acknowledged the rest unprocessed. Process the whole Delivery, then ack
 (dispatch-lifecycle.md).
 
 ## Delivery is batched, replayed, and acked
@@ -108,9 +117,11 @@ a gate-table id.
 ## Completion receipts the DB retains
 
 `worker_done.payload` and `tasks.result` are free-form TEXT. The fleet's SHA-bound evidence
-manifest (evidence-manifest.md) is the definition of done; still put `reportPath` (and PR /
-branch when present) in the `worker_done` payload so retained orchestration history points at
-the same artifacts a post-mortem tool can surface.
+manifest (evidence-manifest.md) is the definition of done; still make retained orchestration
+history point at the same artifacts — but via the TYPED flags, `--report-path <path>` and
+`--files-modified <csv>`, not a hand-rolled `reportPath` payload key. Upstream's own rule is
+"prefer `--task-id`/`--dispatch-id`/etc. over raw `--payload` JSON" (`orchestration.ts:49,79` at
+v1.4.199): PowerShell strips JSON quotes, and a typed flag cannot be misspelled silently.
 
 ## Explicit non-goals (do not import from visualizers)
 

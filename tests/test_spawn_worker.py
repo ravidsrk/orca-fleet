@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""Contract tests for runtime/scripts/spawn_worker.sh hardening (issues #43, #44).
+"""Contract tests for runtime/scripts/spawn_worker.sh (issues #43, #44; v5 re-pin).
 
-These exercise the real script through its SW_SELFTEST hook, which computes the two
-hardened values (validated effort, collision-safe scratch key) and exits before any
-orchestration side effect. Standard library only.
+The hardening tests exercise the real script through its SW_SELFTEST hook, which computes
+the two hardened values (validated effort, collision-safe scratch key) and exits before any
+orchestration side effect. The lane tests stub `orca` per subcommand and assert the v5
+receipt contracts against Orca v1.4.199 — the SHIPPED tag, not upstream HEAD. Standard
+library only.
 """
 import json
 import subprocess
@@ -51,6 +53,96 @@ def run_spawn(args, env_extra=None, task_list=None):
 
 def task_list_payload(*tasks):
     return {"result": {"tasks": list(tasks)}}
+
+
+class TestDangerSandboxEvidence(unittest.TestCase):
+    """PROFILE=danger needs evidence of a sandbox, not a boolean (REVIEW.md §8 P2-15).
+
+    `ORCA_COORD_ALLOW_DANGER=1` alone said only that a coordinator meant it. The
+    policy names what a sandbox actually is: an `orca-per-workspace-env` recipe id
+    plus a `vm recipe doctor <id> --provision` transcript, clear ONLY with no fail
+    and no warn. Each of those is now checked, and each check is a refusal here.
+    """
+
+    ENV = {"PROFILE": "danger", "ORCA_COORD_ALLOW_AUTONOMOUS_WRITE": "1",
+           "ORCA_COORD_ALLOW_DANGER": "1"}
+    ARGS = ["t1", "wt", "some title", "claude"]
+
+    def _spawn(self, **extra):
+        env = dict(self.ENV)
+        env.update(extra)
+        return run_spawn(self.ARGS, env_extra=env)
+
+    def _doctor(self, tmp, text):
+        path = Path(tmp) / "doctor.txt"
+        path.write_text(text, encoding="utf-8")
+        return str(path)
+
+    def test_the_opt_in_alone_is_refused(self):
+        rc, _out, err = self._spawn()
+        self.assertEqual(rc, 2, err)
+        self.assertIn("ORCA_SANDBOX_RECIPE", err)
+
+    def test_a_non_recipe_id_is_refused(self):
+        rc, _out, err = self._spawn(ORCA_SANDBOX_RECIPE="ab")
+        self.assertEqual(rc, 2, err)
+        self.assertIn("is not a recipe id", err)
+
+    def test_a_recipe_id_with_shell_metacharacters_is_refused(self):
+        rc, _out, err = self._spawn(ORCA_SANDBOX_RECIPE="lane-7; rm -rf /")
+        self.assertEqual(rc, 2, err)
+        self.assertIn("is not a recipe id", err)
+
+    def test_a_missing_doctor_transcript_is_refused(self):
+        rc, _out, err = self._spawn(ORCA_SANDBOX_RECIPE="lane-7",
+                                    ORCA_SANDBOX_DOCTOR="/nonexistent/doctor.txt")
+        self.assertEqual(rc, 2, err)
+        self.assertIn("ORCA_SANDBOX_DOCTOR", err)
+
+    def test_a_transcript_for_another_recipe_is_refused(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            rc, _out, err = self._spawn(
+                ORCA_SANDBOX_RECIPE="lane-7",
+                ORCA_SANDBOX_DOCTOR=self._doctor(tmp, "recipe other-lane ok:true\n"),
+            )
+        self.assertEqual(rc, 2, err)
+        self.assertIn("does not mention recipe", err)
+
+    def test_a_warn_in_the_transcript_is_refused(self):
+        # sandbox-policy.md: clear means no fail AND no warn; ok:true proves nothing.
+        with tempfile.TemporaryDirectory() as tmp:
+            rc, _out, err = self._spawn(
+                ORCA_SANDBOX_RECIPE="lane-7",
+                ORCA_SANDBOX_DOCTOR=self._doctor(tmp, "recipe lane-7 ok:true\nwarn: disk\n"),
+            )
+        self.assertEqual(rc, 2, err)
+        self.assertIn("no fail AND no warn", err)
+
+    def test_a_fail_in_the_transcript_is_refused(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            rc, _out, err = self._spawn(
+                ORCA_SANDBOX_RECIPE="lane-7",
+                ORCA_SANDBOX_DOCTOR=self._doctor(tmp, "recipe lane-7\nfail: no network\n"),
+            )
+        self.assertEqual(rc, 2, err)
+        self.assertIn("no fail AND no warn", err)
+
+    def test_a_clean_transcript_clears_the_sandbox_gate(self):
+        # It then fails later for want of an `orca` binary — a different step, which
+        # is the proof the sandbox gate itself passed rather than refusing.
+        with tempfile.TemporaryDirectory() as tmp:
+            rc, _out, err = self._spawn(
+                ORCA_SANDBOX_RECIPE="lane-7",
+                ORCA_SANDBOX_DOCTOR=self._doctor(tmp, "recipe lane-7 ok:true\nprovision complete\n"),
+            )
+        self.assertNotIn("SPAWN=REFUSED", err)
+
+    def test_ro_and_rw_do_not_need_a_sandbox_recipe(self):
+        for profile, opt_in in (("ro", {}), ("rw", {"ORCA_COORD_ALLOW_AUTONOMOUS_WRITE": "1"})):
+            env = {"PROFILE": profile}
+            env.update(opt_in)
+            _rc, _out, err = run_spawn(self.ARGS, env_extra=env)
+            self.assertNotIn("ORCA_SANDBOX_RECIPE", err, profile)
 
 
 class TestSpawnWorkerHardening(unittest.TestCase):
@@ -167,103 +259,314 @@ class TestSpawnWorkerRefusals(unittest.TestCase):
         self.assert_refused(rc, err, "only ready")
 
 
-class TestSpawnWorkerV3Lanes(unittest.TestCase):
-    """Runtime-modernization review (2026-09-09): the v3 worker-start lane had no test — its
-    --name-on-existing-worktree refusal, its un-parsed receipt, and the PROFILE=ro → YOLO leak
-    all shipped green. These stub orca per subcommand and assert the lane contracts."""
+class TestSpawnWorkerV5Lanes(unittest.TestCase):
+    """v5 (2026-09-10 upstream re-pin, source-witnessed at v1.4.199).
 
-    def _stub_orca(self, tmp, receipt=None, refuse=None):
-        payload = Path(tmp) / "task-list.json"
-        payload.write_text(json.dumps(task_list_payload(
-            {"id": "task_test", "status": "ready"})))
-        receipt = receipt or {"result": {"taskId": "task_test", "dispatchId": "ctx_x",
-                                         "state": "ready",
-                                         "effects": [{"kind": "terminal", "role": "agent",
-                                                      "id": "term_agent1"}]}}
-        rec = Path(tmp) / "receipt.json"
-        rec.write_text(json.dumps(receipt))
+    The v4 lane shipped three false mechanisms: a blind re-Enter/heartbeat loop on a preamble
+    `--inject` had ALREADY submitted, four of ten refusal codes handled, and a `terminal wait`
+    result nobody read. Each of those is a way to put a second writer on a live worktree, so
+    deleting any assertion below must turn this suite red.
+    """
+
+    READY_RECEIPT = {
+        "result": {
+            "runId": "run_x", "taskId": "task_test", "dispatchId": "ctx_x",
+            "state": "ready", "stage": "dispatch_input",
+            "launch": {"requested": {"agent": "claude"},
+                       "effective": {"agent": "claude", "args": "--dangerously-skip-permissions"}},
+            "effects": [{"kind": "terminal", "role": "agent", "action": "created",
+                         "id": "term_agent1"}],
+        }
+    }
+
+    def _stub(self, tmp, *, receipt=None, ws_rc=0, inject=None, wait=None,
+              preamble=None, send=None, send_rc=0):
+        """Stub orca per subcommand. Each payload is written to a file the stub cats, so no
+        JSON ever passes through shell quoting."""
+        files = {
+            "task-list.json": task_list_payload({"id": "task_test", "status": "ready"}),
+            "receipt.json": receipt if receipt is not None else self.READY_RECEIPT,
+            "inject.json": inject if inject is not None else {
+                "result": {"dispatch": {"id": "ctx_x"}, "injected": True,
+                           "prompt": {"requestId": "req_1", "stages": ["input_accepted",
+                                                                      "turn_started"],
+                                      "provider": "claude", "observation": "supported"}}},
+            "wait.json": wait if wait is not None else {"result": {"wait": {"satisfied": True}}},
+            "preamble.json": preamble if preamble is not None else {
+                "result": {"dispatch": {"id": "ctx_x"}, "preamble": "PREAMBLE BODY"}},
+            "send.json": send if send is not None else {
+                "result": {"send": {"accepted": True,
+                                    "prompt": {"requestId": "req_1",
+                                               "stages": ["input_accepted", "turn_started"]}}}},
+            "terminal-create.json": {"result": {"terminal": {"handle": "term_shell1"}}},
+        }
+        for name, payload in files.items():
+            (Path(tmp) / name).write_text(json.dumps(payload))
         log = Path(tmp) / "orca-calls.log"
-        refuse = refuse or ""
         stub = Path(tmp) / "orca"
         stub.write_text(f"""#!/bin/sh
-echo "$@" >> "{log}"
+printf '%s\\n' "$*" >> "{log}"
 case "$*" in
-  *task-list*) cat "{payload}" ;;
-  *worker-start*)
-    if [ -n "{refuse}" ]; then
-      printf '%s' '{{"ok": false, "error": {{"code": "{refuse}"}}}}'
-      exit 1
-    fi
-    cat "{rec}" ;;
-  *dispatch-show*) printf '%s' '{{"result": {{"dispatch": {{"last_heartbeat_at": "now"}}}}}}' ;;
-  *terminal*create*) printf '%s' '{{"result": {{"terminal": {{"handle": "term_shell1"}}}}}}' ;;
-  *) printf '%s' '{{"result": {{}}}}' ;;
+  *task-list*)          cat "{tmp}/task-list.json" ;;
+  *worker-start*)       cat "{tmp}/receipt.json"; exit {ws_rc} ;;
+  *dispatch-show*)      cat "{tmp}/preamble.json" ;;
+  *dispatch*--inject*)  cat "{tmp}/inject.json" ;;
+  *terminal\\ create*)   cat "{tmp}/terminal-create.json" ;;
+  *terminal\\ wait*)     cat "{tmp}/wait.json" ;;
+  *terminal\\ send*)     cat "{tmp}/send.json"; exit {send_rc} ;;
+  *)                    printf '%s' '{{"result": {{}}}}' ;;
 esac
 """)
         stub.chmod(0o755)
         return log
 
-    def _run(self, tmp, args, env_extra):
+    def _run(self, tmp, args, env_extra=None):
         env = {"PATH": f"{tmp}:/usr/bin:/bin", "SP": tmp,
-               "SETTLE_SECS": "0", "SUBMIT_SECS": "0", "HB_POLL_SECS": "0"}
-        env.update(env_extra)
+               "SETTLE_SECS": "0", "SUBMIT_SECS": "1"}
+        env.update(env_extra or {})
         return subprocess.run(["bash", str(SPAWN), *args], env=env,
                               capture_output=True, text=True)
 
-    def test_worker_start_lane_omits_name_on_existing_worktree(self):
-        # P4: creation flags (--name et al.) are rejected for current/existing worktrees.
+    RW = {"PROFILE": "rw", "ORCA_COORD_ALLOW_AUTONOMOUS_WRITE": "1"}
+    RO = {"PROFILE": "ro"}
+    ARGS = ["task_test", "path:/tmp/wt", "t"]
+
+    # --- (a) custom-argv lane: receipted sends, no blind Enter ---------------------------
+
+    def test_no_blind_enter_and_no_loop(self):
+        # §7 item 2: `dispatch --inject` ALREADY submits the preamble, so a bare
+        # `terminal send --enter` is a stray keystroke outside the receipt model, and the guide's
+        # rule is "never resend on silence". The lane must issue NO --enter send at all when the
+        # receipt already carries turn_started, and must never poll dispatch-show for a heartbeat.
         with tempfile.TemporaryDirectory() as tmp:
-            log = self._stub_orca(tmp)
-            p = self._run(tmp, ["task_test", "path:/tmp/wt", "t"],
-                          {"PROFILE": "rw", "ORCA_COORD_ALLOW_AUTONOMOUS_WRITE": "1"})
+            log = self._stub(tmp)
+            p = self._run(tmp, self.ARGS, self.RO)
             self.assertEqual(p.returncode, 0, p.stderr)
             calls = log.read_text()
-            self.assertIn("orchestration worker-start", calls)
-            ws_call = next(l for l in calls.splitlines() if "worker-start" in l)
+            self.assertNotIn("terminal send", calls,
+                             "a receipt carrying turn_started needs no send at all")
+            self.assertNotIn("dispatch-show", calls,
+                             "the heartbeat poll loop is gone; the receipt is the verdict")
+            self.assertIn("STAGES=input_accepted,turn_started", p.stdout)
+            self.assertIn("HANDLE=term_shell1", p.stdout)
+
+    def test_input_accepted_only_is_exit_3_unproven(self):
+        # `accepted: true` proves input acceptance, NOT a started turn. With no requestId there is
+        # nothing to replay, so the lane must report UNPROVEN — never resend, never respawn.
+        with tempfile.TemporaryDirectory() as tmp:
+            log = self._stub(tmp, inject={"result": {"injected": True, "prompt": {
+                "requestId": "", "stages": ["input_accepted"]}}})
+            p = self._run(tmp, self.ARGS, self.RO)
+            self.assertEqual(p.returncode, 3, p.stdout + p.stderr)
+            self.assertIn("STAGES=input_accepted", p.stdout)
+            self.assertIn("SPAWN=UNPROVEN", p.stderr)
+            self.assertIn("--screen", p.stderr,
+                          "exit 3 must name the runtime's own inspection command")
+            self.assertNotIn("terminal send", log.read_text(),
+                             "no replay is possible without a requestId — and no resend either")
+
+    def test_missing_turn_start_replays_receipt_exactly_once(self):
+        # The replay is `terminal send --retry-request <id> --wait-submit <s>`: it REPLAYS the
+        # recorded receipt and never resends. v1.4.199 also requires --text with --enter, so the
+        # exact preamble is recovered with `dispatch-show --preamble` first.
+        with tempfile.TemporaryDirectory() as tmp:
+            log = self._stub(tmp, inject={"result": {"injected": True, "prompt": {
+                "requestId": "req_1", "stages": ["input_accepted"]}}})
+            p = self._run(tmp, self.ARGS, self.RO)
+            self.assertEqual(p.returncode, 0, p.stdout + p.stderr)
+            sends = [l for l in log.read_text().splitlines() if "terminal send" in l]
+            self.assertEqual(len(sends), 1, f"exactly one replay, never a loop: {sends}")
+            self.assertIn("--retry-request req_1", sends[0])
+            self.assertIn("--wait-submit", sends[0])
+            self.assertIn("--text", sends[0])
+            self.assertIn("dispatch-show --task task_test --preamble", log.read_text())
+            self.assertIn("STAGES=input_accepted,turn_started", p.stdout)
+
+    def test_replay_refusal_never_falls_back_to_resend(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            log = self._stub(tmp, inject={"result": {"injected": True, "prompt": {
+                "requestId": "req_1", "stages": ["input_accepted"]}}},
+                send={"error": {"code": "incompatible_runtime"}}, send_rc=1)
+            p = self._run(tmp, self.ARGS, self.RO)
+            self.assertEqual(p.returncode, 3, p.stdout + p.stderr)
+            self.assertIn("SPAWN=REPLAY_REFUSED", p.stderr)
+            sends = [l for l in log.read_text().splitlines() if "terminal send" in l]
+            self.assertEqual(len(sends), 1, "a refused replay is never retried or downgraded")
+
+    # --- (c) terminal wait: read wait.satisfied ------------------------------------------
+
+    def test_unsatisfied_wait_fails_closed_on_the_field(self):
+        # v4 failed closed only because the CLI also sets exit 1 for this case. Read the field.
+        with tempfile.TemporaryDirectory() as tmp:
+            log = self._stub(tmp, wait={"result": {"wait": {"satisfied": False}}})
+            p = self._run(tmp, self.ARGS, self.RO)
+            self.assertEqual(p.returncode, 1, p.stdout + p.stderr)
+            self.assertIn("wait.satisfied=false", p.stderr)
+            self.assertNotIn("--inject", log.read_text(),
+                             "a preamble must never be injected into a pane that never went idle")
+
+    def test_absent_wait_field_is_not_a_false(self):
+        # An older host that omits the field is absence, not a negative verdict.
+        with tempfile.TemporaryDirectory() as tmp:
+            self._stub(tmp, wait={"result": {}})
+            p = self._run(tmp, self.ARGS, self.RO)
+            self.assertEqual(p.returncode, 0, p.stdout + p.stderr)
+
+    # --- (b) supervised lane: every typed refusal, nextSteps, outcome_unknown -------------
+
+    POLICY_CODES = ["task_not_found", "task_not_startable", "inject_rejected",
+                    "nested_worker_depth_exceeded", "consumer_fenced", "dispatch_inactive"]
+
+    def test_every_typed_refusal_is_exit_2_with_next_steps(self):
+        # v4 whitelisted four codes; task_not_found / inject_rejected / runtime_error fell through
+        # to "spawn failed" and were retried as transport errors. Branch on error.code.
+        for code in self.POLICY_CODES:
+            with self.subTest(code=code), tempfile.TemporaryDirectory() as tmp:
+                self._stub(tmp, ws_rc=1, receipt={"error": {
+                    "code": code, "message": "refused",
+                    "data": {"nextSteps": [f"do the {code} thing", "then this"]}}})
+                p = self._run(tmp, self.ARGS, self.RW)
+                self.assertEqual(p.returncode, 2, p.stdout + p.stderr)
+                self.assertIn("SPAWN=REFUSED", p.stderr)
+                self.assertIn(code, p.stderr)
+                self.assertIn(f"nextStep: do the {code} thing", p.stderr,
+                              "error.data.nextSteps is the runtime's own recovery text and is "
+                              "surfaced verbatim")
+                self.assertIn("nextStep: then this", p.stderr)
+
+    def test_runtime_error_is_exit_1_not_a_policy_refusal(self):
+        # runtime_error is the documented catch-all: "do not retry unchanged".
+        with tempfile.TemporaryDirectory() as tmp:
+            self._stub(tmp, ws_rc=1, receipt={"error": {
+                "code": "runtime_error", "message": "boom",
+                "data": {"nextSteps": ["read the message"]}}})
+            p = self._run(tmp, self.ARGS, self.RW)
+            self.assertEqual(p.returncode, 1, p.stdout + p.stderr)
+            self.assertIn("SPAWN=FAILED", p.stderr)
+            self.assertIn("runtime_error", p.stderr)
+            self.assertIn("nextStep: read the message", p.stderr)
+
+    def test_refusal_without_data_still_branches(self):
+        # Older hosts may omit `data` entirely — every field is optional.
+        with tempfile.TemporaryDirectory() as tmp:
+            self._stub(tmp, ws_rc=1, receipt={"error": {"code": "consumer_fenced"}})
+            p = self._run(tmp, self.ARGS, self.RW)
+            self.assertEqual(p.returncode, 2, p.stdout + p.stderr)
+            self.assertIn("consumer_fenced", p.stderr)
+
+    def test_nonzero_call_with_unparseable_receipt_fails_closed(self):
+        # A missing binary / truncated write / unknown response shape exits nonzero with nothing
+        # the parser can object to. That must READ AS FAILURE, never as ready — a fail-open here
+        # would report a worker that was never started.
+        with tempfile.TemporaryDirectory() as tmp:
+            self._stub(tmp, ws_rc=127, receipt={})
+            p = self._run(tmp, self.ARGS, self.RW)
+            self.assertEqual(p.returncode, 1, p.stdout + p.stderr)
+            self.assertIn("SPAWN=FAILED", p.stderr)
+            self.assertNotIn("READY=", p.stdout)
+
+    def test_outcome_unknown_is_exit_4_with_next_commands(self):
+        # The next release returns this for an unobserved turn start. It is NOT a failure: a
+        # respawn here puts a second writer beside a possibly-live pane (the 2026-07-15 class).
+        with tempfile.TemporaryDirectory() as tmp:
+            self._stub(tmp, ws_rc=1, receipt={"result": {
+                "taskId": "task_test", "dispatchId": "ctx_x",
+                "state": "outcome_unknown", "stage": "turn_start_unobserved",
+                "effects": [{"kind": "terminal", "role": "agent", "id": "term_agent1"}],
+                "nextCommands": [
+                    "orca orchestration worker-show --dispatch ctx_x --json",
+                    "orca orchestration worker-abandon --dispatch ctx_x --json"]}})
+            p = self._run(tmp, self.ARGS, self.RW)
+            self.assertEqual(p.returncode, 4, p.stdout + p.stderr)
+            self.assertIn("SPAWN=OUTCOME_UNKNOWN", p.stderr)
+            self.assertIn("nextCommand: orca orchestration worker-show --dispatch ctx_x", p.stderr)
+            self.assertIn("nextCommand: orca orchestration worker-abandon --dispatch ctx_x",
+                          p.stderr)
+            self.assertRegex(p.stderr, r"(?i)never\s+respawn")
+            self.assertIn("HANDLE=term_agent1", p.stdout)
+
+    # --- (e) launch.effective -------------------------------------------------------------
+
+    def test_launch_effective_is_printed_when_present(self):
+        # Never claim a permission flag, model, or effort from the REQUESTED args alone.
+        with tempfile.TemporaryDirectory() as tmp:
+            self._stub(tmp)
+            p = self._run(tmp, self.ARGS, self.RW)
+            self.assertEqual(p.returncode, 0, p.stderr)
+            self.assertIn("LAUNCH_EFFECTIVE=", p.stdout)
+            self.assertIn("--dangerously-skip-permissions", p.stdout)
+
+    def test_launch_effective_absent_is_not_invented(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self._stub(tmp, receipt={"result": {
+                "taskId": "task_test", "dispatchId": "ctx_x", "state": "ready",
+                "effects": [{"kind": "terminal", "role": "agent", "id": "term_agent1"}]}})
+            p = self._run(tmp, self.ARGS, self.RW)
+            self.assertEqual(p.returncode, 0, p.stderr)
+            self.assertNotIn("LAUNCH_EFFECTIVE=", p.stdout)
+
+    # --- (d) roster: cursor in, kilo deliberately out --------------------------------------
+
+    def test_cursor_is_on_the_roster_for_write_tiers(self):
+        # Orca maps cursor to --yolo (tui-agent-permissions.ts:21 at v1.4.199); v4 excluded it.
+        with tempfile.TemporaryDirectory() as tmp:
+            log = self._stub(tmp)
+            p = self._run(tmp, self.ARGS + ["cursor"], self.RW)
+            self.assertEqual(p.returncode, 0, p.stderr)
+            self.assertIn("--agent cursor", log.read_text())
+
+    def test_cursor_ro_has_no_verified_flag(self):
+        # Orca has no read-only mode for cursor — fail closed, exactly like grok.
+        rc, _, err = run_spawn(self.ARGS + ["cursor"], env_extra={"PROFILE": "ro"})
+        self.assertEqual(rc, 2, err)
+        self.assertIn("no verified PROFILE=ro launch flag", err)
+
+    def test_kilo_stays_off_the_roster(self):
+        # Orca STRIPS --dangerously-skip-permissions from kilo as it does from opencode
+        # (tui-agent-launch-defaults.ts:5-8), so kilo must not silently launch a prompting worker.
+        rc, _, err = run_spawn(self.ARGS + ["kilo"], env_extra=dict(self.RW))
+        self.assertEqual(rc, 2, err)
+        self.assertIn("unknown agent 'kilo'", err)
+
+    # --- lane contracts carried forward from v3/v4 (still true at v1.4.199) ----------------
+
+    def test_worker_start_lane_omits_name_on_existing_worktree(self):
+        # Creation flags (--name et al.) are rejected for current/existing worktrees.
+        with tempfile.TemporaryDirectory() as tmp:
+            log = self._stub(tmp)
+            p = self._run(tmp, self.ARGS, self.RW)
+            self.assertEqual(p.returncode, 0, p.stderr)
+            ws_call = next(l for l in log.read_text().splitlines() if "worker-start" in l)
             self.assertNotIn("--name", ws_call)
             self.assertIn("--task task_test", ws_call)
 
     def test_worker_start_lane_names_new_child_worktrees(self):
         with tempfile.TemporaryDirectory() as tmp:
-            log = self._stub_orca(tmp)
-            p = self._run(tmp, ["task_test", "new-child", "t"],
-                          {"PROFILE": "rw", "ORCA_COORD_ALLOW_AUTONOMOUS_WRITE": "1"})
+            log = self._stub(tmp)
+            p = self._run(tmp, ["task_test", "new-child", "t"], self.RW)
             self.assertEqual(p.returncode, 0, p.stderr)
             ws_call = next(l for l in log.read_text().splitlines() if "worker-start" in l)
             self.assertIn("--name", ws_call)
 
     def test_ro_never_takes_worker_start(self):
-        # P6: worker-start appends Orca's YOLO flag by default — a PROFILE=ro review worker
-        # must run the custom-argv lane with the ro command, never the supervised yolo launch.
+        # A worker-start launch takes its args from the host's agentDefaultArgs, whose migrated
+        # default is the YOLO map — a PROFILE=ro reviewer must never ride it.
         with tempfile.TemporaryDirectory() as tmp:
-            log = self._stub_orca(tmp)
-            p = self._run(tmp, ["task_test", "path:/tmp/wt", "t"], {"PROFILE": "ro"})
+            log = self._stub(tmp)
+            p = self._run(tmp, self.ARGS, self.RO)
             self.assertEqual(p.returncode, 0, p.stderr)
             calls = log.read_text()
             self.assertNotIn("worker-start", calls)
             self.assertIn("--permission-mode plan", calls)
 
     def test_flat_receipt_parses_handle_from_effects(self):
-        # P5: the worker-start receipt is flat (state/dispatchId/effects[]), not worker.* — the
-        # agent terminal handle comes from effects[kind=terminal, role=agent].
+        # The receipt is flat; the agent terminal is effects[kind=terminal, role=agent].
         with tempfile.TemporaryDirectory() as tmp:
-            self._stub_orca(tmp)
-            p = self._run(tmp, ["task_test", "path:/tmp/wt", "t"],
-                          {"PROFILE": "rw", "ORCA_COORD_ALLOW_AUTONOMOUS_WRITE": "1"})
+            self._stub(tmp)
+            p = self._run(tmp, self.ARGS, self.RW)
             self.assertEqual(p.returncode, 0, p.stderr)
             self.assertIn("HANDLE=term_agent1", p.stdout)
             self.assertIn("DISPATCH=ctx_x", p.stdout)
-
-    def test_typed_refusal_is_exit_2(self):
-        # P7: task_not_startable is a usage/policy refusal (exit 2, SPAWN=REFUSED), not a
-        # spawn failure (exit 1) — coordinators branch on it.
-        with tempfile.TemporaryDirectory() as tmp:
-            self._stub_orca(tmp, refuse="task_not_startable")
-            p = self._run(tmp, ["task_test", "path:/tmp/wt", "t"],
-                          {"PROFILE": "rw", "ORCA_COORD_ALLOW_AUTONOMOUS_WRITE": "1"})
-            self.assertEqual(p.returncode, 2, p.stderr)
-            self.assertIn("SPAWN=REFUSED", p.stderr)
-            self.assertIn("task_not_startable", p.stderr)
 
 
 if __name__ == "__main__":

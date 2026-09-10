@@ -52,6 +52,12 @@ to their own directory, and every mission resolves its playbooks by bare name ag
 tree. A symlink preserves both; a copy severs them — this is the single most common
 broken-install cause.
 
+One thing the symlink path does **not** wire: the native completion gate. `hooks/hooks.json`
+registers `verify-gate.sh` on `Stop` / `TaskCompleted` through `${CLAUDE_PLUGIN_ROOT}`, a path
+that exists only under the plugin install below. On a symlinked mission the gate is a step the
+coordinator runs by hand until you add the hook yourself — the settings snippet that resolves
+the repo path is in [docs/verify-gate.md](verify-gate.md).
+
 ```bash
 git clone https://github.com/ravidsrk/orca-fleet.git
 cd orca-fleet

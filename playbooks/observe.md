@@ -20,6 +20,13 @@ human gate.
 
 docs = skip · config = smoke (200s) · backend = console + perf · frontend = full + screenshot.
 
+## Teardown is observed too
+
+A post-deploy branch delete (or any cleanup the deploy step triggers) is RECONCILED, not assumed:
+read the branch back and record deleted / still-present / unknown. A delete whose outcome cannot be
+verified is REPORTED as unverified, never counted as clean — an assumed-clean teardown is how a
+stale branch survives into the next run's enumeration.
+
 ## Completion
 
 A health report (baseline vs observed, per page, with screenshots) over the full window; every alert

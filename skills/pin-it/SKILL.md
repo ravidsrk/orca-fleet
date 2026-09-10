@@ -1,22 +1,29 @@
 ---
 name: pin-it
 description: >-
-  Re-witness and re-pin the fleet's runtime-mechanics doctrine against the installed control-plane
-  binary after an upgrade or a drift signal: enumerate every mechanics claim in runtime policies,
-  scripts, and mission dispatch preambles, load the version-matched guides the binary serves, replay
-  each claim live, and patch what lags — kept claims carry receipts, removed claims carry archived
-  refutations. The unit is one mechanics claim. Use when "Orca updated", "re-pin the runtime
-  contract", "policy lags practice", "the guides say otherwise", "our dispatch docs are stale", "a
-  receipt shape appeared that the runtime docs don't describe". Not for dependency/framework upgrades
-  (modernize-it), a false-prose backlog (clean-sweep), or a PR verdict (review-it).
+  Re-witness and re-pin the fleet's runtime-mechanics doctrine against the installed control-plane binary
+  after an upgrade or a drift signal: enumerate every mechanics claim in runtime policies, scripts, and
+  mission dispatch preambles, load the version-matched guides the binary serves, replay each claim live, and
+  patch what lags — kept claims carry receipts, removed claims carry archived refutations. The unit is one
+  mechanics claim. Use when "Orca updated", "re-pin the runtime contract", "policy lags practice", "the guides
+  say otherwise", "our control-plane dispatch docs are stale", "a receipt shape appeared that the runtime
+  guides don't describe". Not for docs that drifted from your own code or API contract (clean-sweep),
+  dependency/framework upgrades (modernize-it), or a PR verdict (review-it).
 license: MIT
-proof: doctrine-only
-autonomy: L4
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI) — the binary under audit; `orca
   skills get <name>` must work, and re-witness probes run against the live local runtime from a
   live Orca terminal. git. A worker playbook pack (mattpocock, addyosmani, gstack) — one router
   per worker.
+metadata:
+  proof: doctrine-only
+  autonomy: L4
+  unit: one runtime-mechanics claim
+  state_machine: enumerate claims → load version-matched guides → replay live → keep-with-receipt or refute
+  convergence: every enumerated claim carries a receipt or an archived refutation against the installed binary
+  ordering: none between claims; the enumeration is frozen before any replay
+  parking: PINNED-WITH-PARKED — a claim the binary cannot answer names why
+  oracle: the installed control-plane binary and the version-matched guides it serves
 ---
 
 # pin-it — doctrine that matches the binary
@@ -61,8 +68,8 @@ FREEZE the claim inventory: extract every mechanics claim from runtime/*.md, run
   semantics. SUPERSEDED is for a mechanism that is GONE (unknown command / retired-alias recovery).
 → BOOTSTRAP integration BASE (runtime/scripts/preflight.py --base <BASE> --fork-point <sha>;
   BASE ≠ default — dispatch-lifecycle.md). Doctrine patches land on BASE, never on the default.
-→ LOAD the version-matched guides (`orca skills get orchestration`, `orca skills get orca-cli`,
-  every skill the claims touch) from the INSTALLED binary; record the CLI version in the ledger.
+→ LOAD the version-matched guides from the INSTALLED binary; record the CLI version. Per topic run `skills get <topic>
+  --references`, then `--reference <name>` for EACH (`--full` fallback): the contract lives there, not in the kernel.
 → RE-WITNESS each claim: replay it against the live runtime from a live Orca terminal (a bound
   coordinator terminal or ORCA_TERMINAL_HANDLE — orchestration calls fail with
   no_active_sender_terminal from a plain shell) and capture the verbatim receipt.

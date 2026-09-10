@@ -1,7 +1,10 @@
 # 🔍 review-it — a trusted, read-only, SHA-bound GO/NO-GO verdict
 
-> **Autonomy:** L3 (Osmani L0-L5) - conditional autonomy - the human owns the verdict or the plan.
-> **Proof:** external-run ([run report](../runs/2026-07-13-review-it-external-run.md))
+> **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel axis reviewers on the same pinned SHA; the GO/NO-GO verdict is yours to act on — a gate class, not a lower rung.
+> **Activation load:** ~18,000 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
+> **Proof:** doctrine-only — it ran ([external-run report](../runs/2026-07-13-review-it-external-run.md)), but that run's
+> artifacts were retained outside this repository, so the tier is not re-derivable here
+> (`runtime/scripts/run_report.py`, issue #259)
 
 > Point it at a PR or a branch. Come back to a verdict you can act on: every axis reviewed by a
 > fresh session that never wrote the code, every finding quoting the exact line that motivated it,
@@ -174,7 +177,8 @@ exactly such a run: the NO-GO on a live gstack PR linked from the frontmatter.)
 ## Composes
 
 Playbooks: [`acceptance-review`](../../playbooks/acceptance-review.md) ·
-[`risk-review`](../../playbooks/risk-review.md)
+[`risk-review`](../../playbooks/risk-review.md) ·
+[`triage-findings`](../../playbooks/triage-findings.md)
 
 Runtime policies: [`sandbox-policy`](../../runtime/sandbox-policy.md) ·
 [`evidence-manifest`](../../runtime/evidence-manifest.md) ·

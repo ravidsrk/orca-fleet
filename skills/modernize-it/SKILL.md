@@ -2,18 +2,26 @@
 name: modernize-it
 description: >-
   Bring a dependency / framework / platform surface current, safely — CI green at every merge.
-  Inventory outdated + advisories with reachability triage → order by a compatibility graph → upgrade
-  one dep or coherent group per PR, adapting call sites (code-level expand/migrate/contract) to get off
-  old majors while keeping CI green → re-inventory until every major is current or pinned-with-a-reason.
-  Use when "update the dependencies", "upgrade everything", "framework migration", "get off the old
-  major", or an unattended dependency-currency run. Not for stateful DB schema/data migration across
-  deploys (hand that to ship-it) or advisory exploit proof (harden-it).
+  Inventory outdated + advisories with reachability triage → order by a compatibility graph →
+  upgrade one dep or coherent group per PR, adapting call sites (code-level
+  expand/migrate/contract) to get off old majors while keeping CI green → re-inventory until every
+  major is current or pinned-with-a-reason. Use when "update the dependencies", "upgrade
+  everything", "framework migration", "get off the old major", or an unattended dependency-
+  currency run. Not for stateful DB schema/data migration across deploys (hand that to ship-it) or
+  advisory exploit proof (harden-it).
 license: MIT
-proof: doctrine-only
-autonomy: L4
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh; the package manager + a
   green CI baseline. addyosmani deprecation-and-migration playbook — one router per worker.
+metadata:
+  proof: doctrine-only
+  autonomy: L4
+  unit: one compatibility-graph node (a dependency or a framework major)
+  state_machine: graph → order → upgrade → fix the breakage → review → land
+  convergence: every node is current or pinned with a named reason, and CI is green at the tip
+  ordering: topological on the compatibility graph — a node waits for everything it depends on
+  parking: CURRENT-WITH-PINNED — a pin carries its reason and its revisit condition
+  oracle: the repo's own suite green at the upgraded tip
 ---
 
 # modernize-it — every major current or parked, CI green the whole way
@@ -22,7 +30,8 @@ You are the **COORDINATOR**. The unit is a COMPATIBILITY GRAPH node, not a findi
 ecosystem grouping, lockfile contention, code-level adaptation, and rollback constraints dominate —
 PR-per-outdated-package is often actively WRONG. Composes `remediate-finding`, `acceptance-review`,
 `risk-review` (data-migration lens as a REVIEW SIGNAL, not an execution engine), `runtime-prove`,
-`compound-learn`; rides `merge-serialization`, `reviewed-sha-freshness`, `dispatch-lifecycle`,
+`research-brief` (INVENTORY reads the upstream changelog, not a summary of it), `resolve-conflict`
+(lockfile and hot-file chains), `compound-learn`; rides `merge-serialization`, `reviewed-sha-freshness`, `dispatch-lifecycle`,
 `liveness-resume`, `evidence-manifest`, `ledger-contract`, `attention-budget`. Worker TASK pack:
 addy — never co-mount a second router.
 

@@ -24,7 +24,7 @@ fails the build if you try.
 New missions must clear the **mission-identity test** (see
 [ARCHITECTURE.md](ARCHITECTURE.md)): your workflow is a new mission only if it differs from every
 existing mission in at least one of — unit of work, per-unit state machine, convergence proof,
-ordering/isolation constraints, parking/failure semantics. If it shares all five with an existing
+ordering/isolation constraints, parking/failure semantics, the oracle its proof binds to. If it shares all six with an existing
 mission, it is a *source* or an *adaptation* of that mission, not a new one. Argue the test
 explicitly in your PR description.
 
@@ -40,17 +40,25 @@ A mission PR must include:
      is mandatory; the validator rejects a clause it cannot machine-check.
    - a `## Convergence proof` (or definition of done) section and a `## Anti-patterns` section —
      contract tests require both.
-   - `proof: doctrine-only` — every mission starts there. It advances to `self-run` or
-     `external-run` only with `proof_evidence:` linking a run report in the repo; the validator
-     enforces this. Do not argue a mission is proven in prose; link the run.
-   - `proof`, `autonomy`, and `proof_evidence` are **repo extras** (not in the
-     [agentskills.io](https://agentskills.io/specification) allowlist).
-     `uvx --from skills-ref agentskills validate skills/<name>` reports them as
-     unexpected; that is expected. Do not move them into `metadata:` — they are
-     first-class, machine-checked claims. Spec-compliant extra data goes in
-     `metadata:`. A fourth top-level extra field fails `scripts/validate.py`.
-   - within the instruction budget: missions ≤ 130 lines (playbooks ≤ 90, runtime ≤ 160).
-     If your mission needs more, the overflow is probably a playbook.
+   - a `metadata:` block. Top level is the
+     [agentskills.io](https://agentskills.io/specification) allowlist and nothing else — every
+     repo claim lives under `metadata:`, which is the spec's extension point. `uvx --from
+     skills-ref agentskills validate skills/<name>` must say "Valid skill"; CI runs it. A
+     top-level extra fails both it and `scripts/validate.py`.
+   - `metadata.proof: doctrine-only` — every mission starts there. It advances to `self-run` or
+     `external-run` only with a run report that BINDS: a `RUN:` header, a manifest inside the
+     run's own `docs/runs/<date>-<mission>…/` directory, and an integrity inventory that
+     re-hashes at the commit the header names (`runtime/scripts/run_report.py`). A report whose
+     artifacts were not retained here is history, not a tier. Do not argue a mission is proven
+     in prose; bind the run.
+   - `metadata.autonomy:` — the Osmani L0–L5 level.
+   - the six identity points — `unit`, `state_machine`, `convergence`, `ordering`, `parking`,
+     `oracle`. This is ARCHITECTURE.md's "what makes a mission a mission" test in machine-readable
+     form: `scripts/validate.py` fails the build when two missions declare the same six, and warns
+     when they differ on only one. If you cannot fill all six, you are describing a mode of an
+     existing mission, not a new one.
+   - within the instruction budget: mission BODY ≤ 110 lines and frontmatter ≤ 34 (playbooks ≤ 90,
+     runtime ≤ 160). If your mission needs more body, the overflow is probably a playbook.
 2. An entry in the README mission table and in AGENTS.md's intent → mission mapping.
 3. A guide at `docs/missions/<name>.md` following the structure of
    [docs/missions/ship-it.md](docs/missions/ship-it.md).

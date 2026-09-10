@@ -32,20 +32,49 @@ routing collisions and ingredient-shaped entry points this repo exists to remove
 
 ## What makes a mission a mission (not a mode of another)
 
-Two workflows are the **same mission** only if they share ALL five:
+Two workflows are the **same mission** only if they share ALL six:
 
 1. the same unit of work,
 2. the same per-unit state machine,
 3. the same convergence proof (definition of done),
 4. the same ordering and isolation constraints,
-5. the same parking / failure semantics.
+5. the same parking / failure semantics,
+6. the same **oracle** — the authoritative source a unit's proof binds to (the repo's suite, a
+   rule engine over a frozen surface, a ledgered device session, an installed binary). One rule
+   governs it: two workflows that differ ONLY in oracle are one mission with an `oracle=`
+   source, and they differ as missions only when the oracle changes the convergence proof's
+   shape or the parking classes.
 
 "Inventory → fix → repeat" is not enough — almost every maintenance process paraphrases that
 way. By this test, closing audit findings, tracker issues, and false doc-claims are one mission
-(`clean-sweep`) — they share the convergence proof SHAPE (full re-enumeration finds zero open),
-even though each source materializes the denominator differently; but security hardening, perf budgeting, dependency modernization, test-debt
-proving, and flake eradication are NOT — their denominators and convergence proofs differ, so
-each is its own mission.
+(`clean-sweep`) — they share the convergence proof SHAPE (full re-enumeration finds zero open)
+and the repo-suite oracle (a finding is closed when its covering test goes RED on revert), even
+though each source materializes the denominator differently; but security hardening, perf
+budgeting, dependency modernization, test-debt proving, and flake eradication are NOT — their
+denominators and convergence proofs differ, so each is its own mission.
+
+Point six is the decision REVIEW.md §6 asked for and the 2026-09-10 audit §4.3 records: the
+oracle is an identity point, no mission is deleted, and the three missions it argues for are
+argued here, not assumed.
+
+- `access-it`: the oracle is a deterministic rule engine (axe-core) over a frozen surface, and
+  it is incomplete by construction — it sees roughly a third of WCAG. That ceiling creates a
+  park class no repo-suite finding has: `CONFORMANT-WITH-MANUAL-PARKED`, owed to a human
+  assistive-technology reviewer as a standing terminal, not an exception. The oracle changes the
+  parking semantics, so this is its own mission — and any further deterministic rule catalog
+  (a design-rule pre-pass, say) is an `oracle=` source inside it, not a mission.
+- `field-test-it`: the oracle is the target itself — a ledgered device session, never a desktop
+  pass — and the convergence proof is re-verification *on that target* at `head_sha` with an
+  on-target revert control. That makes it the oracle-tiered "prove it on the target" mission:
+  `DEVICE` / `EMULATOR` / `BROWSER` / `DESKTOP` / `CLEAN-ENV` are tiers of one oracle family
+  that share the proof shape (reproduce on the target → fix → re-verify on the target → revert
+  reproduces), so driven-browser, desktop-accessibility-tree, and fresh-sandbox proofs are
+  tiers here, not missions of their own.
+- `pin-it`: the oracle is an external control plane — `orca skills get` and the installed
+  binary — that the repo neither owns nor can mutate, so the proof shape inverts: a unit
+  converges by receipting a claim CURRENT *or by refuting it*, and the refutation archive is a
+  terminal class `clean-sweep` lacks (a refuted doctrine claim is removed with its receipt
+  kept, never "closed"). Different oracle, different proof shape and parking; its own mission.
 
 ## The definition of done is an evidence protocol, not trace-grading
 
@@ -97,14 +126,15 @@ This repo's predecessor (ravidsrk/autonomous-fleet) died of doctrine outrunning 
 missions with two proven, a portable substrate with zero field hours, and ~42K tokens of mandatory
 instruction surface. Two structural guards inherit that lesson:
 
-- **Proof status.** Every mission's frontmatter carries `proof:` — `doctrine-only`, `self-run`,
-  or `external-run`. Advancing past doctrine-only requires `proof_evidence:` pointing at a run
+- **Proof status.** Every mission's `metadata:` block carries `proof:` — `doctrine-only`,
+  `self-run`, or `external-run`. Advancing past doctrine-only requires `proof_evidence:` at a run
   report that exists on disk; `scripts/validate.py` enforces both. A mission is never presented
   as more proven than its evidence.
 - **Runtime evidence level.** Runtime policies are doctrine (mechanism) by default; a policy that
   makes an EMPIRICAL claim carries an explicit `Evidence level:` (ASSERTED / measured) —
-  `attention-budget.md` is the measured exemplar. Each mission guide surfaces the mission's `proof:`
-  tier beside its autonomy, so a doctrine-only, never-run mission never reads as field-proven.
+  `attention-budget.md` is the exemplar of the Evidence-level rule (its own level is ASSERTED
+  until the WIP-curve runs land). Each mission guide surfaces the mission's `proof:` tier beside
+  its autonomy, so a doctrine-only, never-run mission never reads as field-proven.
 - **Instruction budget.** Missions ≤ 130 lines, playbooks ≤ 90, runtime policies ≤ 160, enforced
   by the validator — plus a per-file **byte budget** (240 B × the line cap) so instruction surface
   packed into a few very long lines cannot beat the line count. Raising a cap is a deliberate,
@@ -118,6 +148,33 @@ instruction surface. Two structural guards inherit that lesson:
   unanswerable; interactive → prose brief. A fleet never fakes a human answer.
 - One router per worker: a worker TASK loads exactly one upstream pack's playbooks (they fight
   when co-mounted). Missions compose across packs at the mission level, one pack per worker.
+
+## Instruction budget
+
+Three caps, all in `scripts/validate.py`, all enforced at CI:
+
+| What | Cap | Why |
+|---|---|---|
+| mission **body** lines | 110 | the instruction surface a coordinator reads as protocol |
+| mission **frontmatter** lines | 34 | declarations, priced apart so a machine-readable claim never costs a protocol line |
+| mission **activation load** | 34,000 tokens | the SKILL.md *plus every doc its Composes/rides clause makes mandatory* |
+
+The first two bound each file. The third is the number that actually matters, and until issue #276
+nothing bounded it. Measured (bytes/4) the heaviest mission was `ship-it` at **~39,600 tokens** — the
+predecessor died at ~42,000, and agentskills.io recommends under 5,000 per activated skill with
+references loaded on demand behind an explicit "read X when Y" cue.
+
+The three heaviest missions now carry a **DEFERRED READS** paragraph outside their Composes/rides
+clause, naming each phase-scoped doc and when to load it: `ship-it` 39,600 → **31,400**,
+`oss-contribute` 37,400 → **33,000**, `clean-sweep` 36,500 → **33,600**. Only the clause counts as
+load, so a deferral is a real change in what a coordinator reads at activation, not a relabelling.
+
+The cap is a **ratchet, not the recommendation**: set just above the catalog's measured maximum so no
+mission can grow, and lowered only by deferring more reads. It is still ~7× the spec's advice, and
+every mission under 31,000 is un-restructured — this document is not going to round
+that down. Each mission's current number is published in its guide (`docs/missions/<name>.md`,
+generated by `scripts/gen-badges.py`), so the cost of a mission is visible before you install it
+rather than after your context fills.
 
 ## Layout
 
@@ -145,6 +202,9 @@ tests/           contract tests
 - [docs/compliance-provenance.md](docs/compliance-provenance.md) — maps the evidence manifest's
   optional `provenance` block to EU AI Act Art-12/50 logging obligations (the enterprise wedge and
   the `attest-it` prerequisite).
+- [docs/research/REJECTED.md](docs/research/REJECTED.md) — the standing ledger of mission
+  candidates rejected under the identity test, with source, date, and the shape each folded into,
+  so a candidate is never re-argued from scratch.
 - [docs/distribution.md](docs/distribution.md) — discoverability + trust in a 23k-plugin market:
   the machine-checked `proof:`/`autonomy:` fields as the discovery advantage, install paths, and the
   external-submission checklist.

@@ -13,6 +13,7 @@ can reach it. Each invariant here failed once (issue number on the test).
 import importlib.util
 import json
 import re
+import subprocess
 import unittest
 from pathlib import Path
 
@@ -243,7 +244,7 @@ class TestDocsNavigation(unittest.TestCase):
         for d in sorted((ROOT / "skills").iterdir()):
             if not d.is_dir() or d.name.startswith((".", "_")):
                 continue
-            tier = re.search(r"(?m)^proof:\s*(\S+)",
+            tier = re.search(r"(?m)^  proof:\s*(\S+)",
                              (d / "SKILL.md").read_text(encoding="utf-8")).group(1)
             guide = (DOCS / "missions" / f"{d.name}.md").read_text(encoding="utf-8")
             m = re.search(r"(?m)^> \*\*Proof:\*\*\s*(\S+)", guide)
@@ -257,13 +258,37 @@ class TestDocsNavigation(unittest.TestCase):
         for d in sorted((ROOT / "skills").iterdir()):
             if not d.is_dir() or d.name.startswith((".", "_")):
                 continue
-            level = re.search(r"(?m)^autonomy:\s*(L\d)",
+            level = re.search(r"(?m)^  autonomy:\s*(L\d)",
                               (d / "SKILL.md").read_text(encoding="utf-8")).group(1)
             guide = (DOCS / "missions" / f"{d.name}.md").read_text(encoding="utf-8")
             m = re.search(r"(?m)^> \*\*Autonomy:\*\*\s*(L\d)", guide)
             self.assertIsNotNone(m, f"docs/missions/{d.name}.md has no Autonomy callout")
             self.assertEqual(m.group(1), level,
                              f"docs/missions/{d.name}.md Autonomy != skills/{d.name} frontmatter")
+
+    def test_every_changelog_release_has_a_cut_commit(self):
+        # #274: nine dated CHANGELOG headings, no immutable ref binding any of them
+        # to a commit. Tags live in the repo's ref namespace rather than in a
+        # branch, so a fresh clone (and CI) cannot see one; docs/releases.json is
+        # the committed half a checkout can actually verify.
+        releases = json.loads((DOCS / "releases.json").read_text(encoding="utf-8"))["releases"]
+        by_version = {r["version"]: r for r in releases}
+        changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+        headings = re.findall(r"(?m)^## \[(\d+\.\d+\.\d+)\] - (\d{4}-\d{2}-\d{2})", changelog)
+        self.assertTrue(headings, "CHANGELOG has no dated release headings")
+        for version, _date in headings:
+            self.assertIn(version, by_version, f"CHANGELOG {version} has no docs/releases.json row")
+            row = by_version[version]
+            self.assertRegex(row["commit"], r"^[0-9a-f]{40}$", version)
+            self.assertEqual(row["tag"], f"v{version}")
+            found = subprocess.run(
+                ["git", "cat-file", "-e", f"{row['commit']}^{{commit}}"],
+                cwd=str(ROOT), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            )
+            self.assertEqual(
+                found.returncode, 0,
+                f"docs/releases.json {version} names {row['commit'][:12]}, not a commit here",
+            )
 
     def test_verify_manifest_fields_named_in_schema(self):
         # Issue #170: verify.py's no-gh lane required manifest["review"]["artifact"],
@@ -341,11 +366,22 @@ class TestDocsNavigation(unittest.TestCase):
             missing_ex, [],
             f"verify-gate.sh reads env vars .env.example never names: {missing_ex}",
         )
-        # #200 review: ORCA_EXECUTE_NC is forwarded to an unimplemented flag that fail-closes.
+        # #200 review pinned "ORCA_EXECUTE_NC is an unimplemented flag that fail-closes"; #255
+        # implemented the replay, so the doc must now describe what it actually DOES — the control
+        # is executed in a throwaway worktree — and #256's rule that the two review-waiver lanes
+        # require it. An inverted assertion, not a dropped one: the doc must not drift back into
+        # promising a replay that is not there, nor omit the lanes that depend on it.
         self.assertRegex(
-            doc, r"(?is)ORCA_EXECUTE_NC.{0,400}(not implemented|fail-closes)",
-            "docs/verify-gate.md must not describe ORCA_EXECUTE_NC as a working replay",
+            doc, r"(?is)ORCA_EXECUTE_NC.{0,600}(executes the\s+negative control|throwaway worktree)",
+            "docs/verify-gate.md must describe what --execute-nc does: EXECUTE the negative "
+            "control in a throwaway worktree at head_sha",
         )
+        for lane in ("ORCA_NO_GH", "ORCA_LIGHTING"):
+            section = doc.split(f"- `{lane}`", 1)[1].split("\n- `", 1)[0]
+            self.assertIn(
+                "ORCA_EXECUTE_NC", section,
+                f"{lane} waives the review, so the doc must say it requires ORCA_EXECUTE_NC (#256)",
+            )
         _, heading, rest = doc.partition("## Trust boundary")
         self.assertTrue(heading, "docs/verify-gate.md has no trust-boundary section")
         # Bound to this H2 — a later sibling section must not keep this green (#200).

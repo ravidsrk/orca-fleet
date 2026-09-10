@@ -1,7 +1,10 @@
 # 🤝 oss-contribute — landed contributions to a repo you do not control
 
-> **Autonomy:** L4 (Osmani L0-L5) - high autonomy - the independent verifier is the cheap verification; you own the one-way doors.
-> **Proof:** external-run ([run report](../runs/2026-07-16-oss-contribute-external-run.md))
+> **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel builders per upstream issue; the maintainer's merge is a gate the fleet neither owns nor fakes.
+> **Activation load:** ~33,300 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
+> **Proof:** doctrine-only — it ran ([external-run report](../runs/2026-07-16-oss-contribute-external-run.md)), but that run's
+> artifacts were retained outside this repository, so the tier is not re-derivable here
+> (`runtime/scripts/run_report.py`, issue #259)
 
 > Point it at a set of issues on an upstream project you can only fork. Come back to a set of open,
 > internally-reviewed, etiquette-correct pull requests (and quoted review-assist comments where a
@@ -208,7 +211,11 @@ Playbooks: [`upstream-contribution`](../../playbooks/upstream-contribution.md) �
 [`remediate-finding`](../../playbooks/remediate-finding.md) ·
 [`build-change`](../../playbooks/build-change.md) ·
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
-[`compound-learn`](../../playbooks/compound-learn.md)
+[`compound-learn`](../../playbooks/compound-learn.md) ·
+[`triage-state`](../../playbooks/triage-state.md) ·
+[`resolve-conflict`](../../playbooks/resolve-conflict.md) ·
+[`linear-enumeration`](../../playbooks/linear-enumeration.md) ·
+[`completion-audit`](../../playbooks/completion-audit.md)
 
 Runtime: `evidence-manifest` · `dispatch-lifecycle` · `ledger-contract` · `reviewed-sha-freshness` ·
 `liveness-resume` · `gate-classification` · `orca-dag-semantics` · `attention-budget` ·

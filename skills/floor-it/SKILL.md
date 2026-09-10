@@ -4,20 +4,27 @@ description: >-
   Install a written, numbered, tool-enforced quality bar for a repo: detect the constraint
   dimensions (coverage, security scanning, perf budgets, a11y, architecture boundaries) with
   measured current values, freeze them with thresholds into a committed CONSTRAINTS.md at a human
-  gate, wire one machine check per dimension, and prove every gate FIRES — on an injected violation
-  in a throwaway worktree before CI, and on a canary PR that must fail CI after — then guard the
-  bar itself against quiet lowering. The unit is one constraint dimension. Use when "set the
-  quality bar", "define our standards", "make CI enforce", "stop shipping junk", "quality gates",
-  "enforce the budget", "constraint-driven", "bar keeps slipping". Not for closing test debt
-  (prove-it), journey-level perf optimization (speed-it), a WCAG surface sweep (access-it),
+  gate, wire one machine check per dimension, and prove every gate FIRES — on an injected
+  violation in a throwaway worktree before CI, and on a canary PR that must fail CI after — then
+  guard the bar itself against quiet lowering. The unit is one constraint dimension. Use when "set
+  the quality bar", "define our standards", "make CI enforce", "stop shipping junk", "quality
+  gates", "enforce the budget", "constraint-driven", "bar keeps slipping". Not for closing test
+  debt (prove-it), journey-level perf optimization (speed-it), a WCAG surface sweep (access-it),
   external-framework conformance (attest-it), or a threat-model loop (harden-it).
 license: MIT
-proof: doctrine-only
-autonomy: L4
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh. The target repo's
   toolchain for each dimension's tool (coverage, linter, perf harness, axe-core…). CI write access
   on BASE. A worker pack (matt | addy | gstack) — one router per worker.
+metadata:
+  proof: doctrine-only
+  autonomy: L4
+  unit: one constraint dimension
+  state_machine: measure today → set the bar at the measurement → enforce in CI → prove the gate bites
+  convergence: every declared dimension has an enforced gate that fails on a deliberate violation
+  ordering: none between dimensions; the measurement precedes setting the bar
+  parking: FLOORED-WITH-PARKED — an unenforced dimension names its blocker
+  oracle: the CI gate itself, proven by a deliberate violation going RED
 ---
 
 # floor-it — a written bar that fires
@@ -27,7 +34,7 @@ dimension is enforced by a tool, and every tool was proven to fire" is a user-fa
 two failure modes this mission exists to kill: a bar that exists only as prose (nothing enforces
 it), and a gate never observed RED (it may be vacuous). The bar's thresholds are a one-way door:
 the human freezes them, and a headless run PARKS at the freeze rather than defaulting policy into
-being. Composes `decide-and-freeze` (FREEZE is the one-way gate), `remediate-finding` (wire each
+being. Composes `decide-and-freeze` (FREEZE is the one-way gate), `human-handoff` (the headless-freeze park), `remediate-finding` (wire each
 dimension's tool; its failing-first requirement is satisfied by PROVE-FIRES, not a repo test),
 `acceptance-review` (build-blind review per wire unit), `compound-learn` (which dimensions resisted
 tooling feeds the retro); rides `evidence-manifest` (each dimension carries the injected-violation

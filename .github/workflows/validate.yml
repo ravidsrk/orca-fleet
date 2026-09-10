@@ -22,14 +22,98 @@ jobs:
         run: python3 scripts/validate.py
       - name: Run the contract test suite
         run: python3 -m unittest discover -s tests
+      - name: Routing eval gate (description-based router)
+        # #260: this is the gate, not the summary step below. It scores every
+        # prompt in evals/routing.json against the REAL frontmatter descriptions
+        # and fails the build under the threshold, so a description edit that
+        # breaks routing cannot merge. Floor tracked in tests/test_evals.py
+        # (ROUTING_MIN_SCORE); an error-level description collision fails here too.
+        run: python3 scripts/eval.py run --suite routing --threshold 1.0
       - name: Check proof-evidence honesty
         run: python3 runtime/scripts/proof_status.py --check
+      - name: Proof tiers bind to artifacts, not filenames
+        # #259: a tier above doctrine-only must re-derive — a RUN: header, a
+        # manifest inside the run's own directory, and an integrity inventory
+        # re-hashed from git objects at the commit the header names. Needs the
+        # full history the checkout step above fetches.
+        run: python3 runtime/scripts/run_report.py
+      - name: Bundle builds self-contained missions
+        # #272 / REVIEW.md P2-18: a copy installer severs every ../../ reference.
+        # --check builds the distribution tree in a temp dir and fails if any link
+        # still leaves a mission directory.
+        run: python3 scripts/bundle.py --check
+      - name: agentskills.io reference validator (skills-ref)
+        # #263: the repo's own claims live under `metadata:` so the catalog is
+        # installable through Anthropic's own paths, which hard-error on an
+        # unexpected top-level key. This is the upstream validator saying so,
+        # not our restatement of it.
+        env:
+          UV_VERSION: "0.12.12"
+          SKILLS_REF_VERSION: "0.1.1"
+        run: |
+          set -euo pipefail
+          # Pinned like ruff in this same job (PR #277 review, P2). Unpinned, an
+          # upstream release decides whether the same commit passes, and PR CI
+          # executes whatever the index happens to serve that day.
+          #
+          # Version pins, not hashes: gitleaks above is sha256-pinned because it is
+          # one release tarball, while these are multi-wheel PyPI projects whose
+          # per-platform digests would need a lockfile to pin honestly. Saying that
+          # here beats implying an integrity guarantee this step does not have.
+          python3 -m pip install --quiet "uv==${UV_VERSION}"
+          uvx --from "skills-ref==${SKILLS_REF_VERSION}" agentskills --version
+          for d in skills/*/; do
+            uvx --from "skills-ref==${SKILLS_REF_VERSION}" agentskills validate "$d"
+          done
+      - name: Secret scan (gitleaks, pinned)
+        # #270: doctrine in dispatch-lifecycle.md until now. Pinned by version
+        # AND sha256 — a moved tag or a swapped asset fails the checksum before
+        # anything executes. --redact so a finding never prints the secret.
+        env:
+          GITLEAKS_VERSION: "8.30.1"
+          GITLEAKS_SHA256: "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb"
+        run: |
+          set -euo pipefail
+          url="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -fsSL -o gitleaks.tar.gz "$url"
+          echo "${GITLEAKS_SHA256}  gitleaks.tar.gz" | sha256sum --check --strict -
+          mkdir -p "$RUNNER_TEMP/gitleaks"
+          tar -xzf gitleaks.tar.gz -C "$RUNNER_TEMP/gitleaks" gitleaks
+          rm -f gitleaks.tar.gz
+          "$RUNNER_TEMP/gitleaks/gitleaks" version
+          gl="$RUNNER_TEMP/gitleaks/gitleaks"
+          # --baseline-path, not an allowlist: tests/test_decisions.py carries
+          # credential-SHAPED fixtures (it exists to prove decisions.py refuses
+          # credentials) and `detect` reads git history, so editing the file
+          # cannot clear them. A path allowlist would waive the whole file --
+          # measured, not assumed: gitleaks 8.30 ignores `condition = "AND"` and
+          # a real key planted in that file went unflagged. A baseline accepts
+          # exactly the fingerprints it lists.
+          "$gl" detect --redact --no-banner --source . \
+            --baseline-path .gitleaks-baseline.json
+          # A baseline IS a waiver, so prove it waives only what it lists. Plant
+          # a real-shaped key in the baselined file itself, in a throwaway clone,
+          # and require the same command to go red. The key is assembled at
+          # runtime so this workflow file never contains a detectable literal.
+          canary="$RUNNER_TEMP/canary"
+          git clone --quiet . "$canary"
+          printf 'CANARY = "%s%s"\n' 'AKIA' 'ZYXWVUTSRQPONMLK' >> "$canary/tests/test_decisions.py"
+          git -C "$canary" -c user.email=ci@local -c user.name=ci commit -aqm canary
+          if (cd "$canary" && "$gl" detect --redact --no-banner --source . \
+                --baseline-path .gitleaks-baseline.json); then
+            echo "::error::the secret scan passed a planted credential — the baseline is waiving more than it lists"
+            exit 1
+          fi
+          echo "negative control: a planted credential in the baselined file is still caught"
       - name: Ruff (syntax / undefined names)
         run: |
           python3 -m pip install --quiet ruff==0.16.5
           ruff check scripts runtime/scripts tests bench demo
       - name: Publish the gate summary (proof rollup + routing score)
-        if: always()  # observability (#213): the numbers land in the run summary even when a gate is red
+        # Observability only (#213): the numbers land in the run summary even
+        # when a gate is red. The routing GATE is the step above; this one
+        # swallows its exit code on purpose and can never fail the build.
+        if: always()
         run: |
           {
             echo "## Catalog gates @ $(git rev-parse --short HEAD)"

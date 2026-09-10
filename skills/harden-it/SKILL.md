@@ -1,21 +1,30 @@
 ---
 name: harden-it
 description: >-
-  Establish a threat model and close it: audit → prove exploits → fix → RE-ATTACK the fix and audit
-  the whole vulnerability class → re-audit, looping until a fresh full audit finds zero unrefuted
-  P0/P1. STRIDE + OWASP Top 10 + OWASP LLM Top 10 + supply-chain. Use when "harden this", "security
-  sweep", "red team", "close the security loop", or an unattended audit-fix-verify security run. The
-  full adversarial loop — for a bounded per-diff security check use review-it's risk lens. Not for
-  general backlog drain (clean-sweep), a single PR verdict (review-it), or routine dependency-advisory
-  currency with no exploit proof (modernize-it).
+  Establish a threat model and close it: audit → prove exploits → fix → RE-ATTACK the fix and
+  audit the whole vulnerability class → re-audit, looping until a fresh full audit finds zero
+  unrefuted P0/P1. STRIDE + OWASP Top 10 + OWASP LLM Top 10 + supply-chain. Use when the ask is
+  the whole adversarial loop: "harden this", "red team", "close the security loop", "harden this
+  service against SQL injection and auth bypass", "audit then exploit then re-attack", or an
+  unattended audit-fix-verify run. The full adversarial loop — for
+  a bounded per-diff security check use review-it's risk lens. Not for shipping one authorized fix
+  (ship-it), general backlog drain (clean-sweep), a single PR verdict (review-it), or routine
+  dependency-advisory currency with no exploit proof (modernize-it).
 license: MIT
-proof: doctrine-only
-autonomy: L4
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh; gitleaks. A security
   worker playbook (addyosmani security-and-hardening or gstack /cso) — one router per worker.
   An ephemeral per-workspace sandbox (sandbox-policy) for exploit PoCs that can't run safely on
   the host.
+metadata:
+  proof: doctrine-only
+  autonomy: L4
+  unit: one threatened invariant and its whole vulnerability class
+  state_machine: audit → prove the exploit → fix → RE-ATTACK → sweep the class → re-audit
+  convergence: a fresh full audit finds zero unrefuted P0/P1
+  ordering: fixes serialize per class; the re-attack precedes the close
+  parking: HARDENED-WITH-OPEN-ITEMS — each open item names its gate
+  oracle: a working exploit — the fix is proven by the exploit failing, never by review
 ---
 
 # harden-it — fix it, then try to break the fix, until a clean re-audit
@@ -24,8 +33,9 @@ You are the **COORDINATOR**. The unit is not a mere finding — it is a THREATEN
 exploit CLASS. The outcome is a CLEAN RE-AUDIT: a fresh full audit run after fixes finds zero unrefuted
 P0/P1. A parked P0 is an exposed system, not an ordinary parked item.
 
-Composes `risk-review` (security lens), `remediate-finding`, `acceptance-review`, `runtime-prove`,
-`compound-learn`; rides `sandbox-policy`, `gate-classification`, `merge-serialization`,
+Composes `risk-review` (security lens), `triage-findings` (candidate findings → VERIFIED before any
+fix effort), `remediate-finding`, `acceptance-review`, `runtime-prove`, `human-handoff` (rotation and
+revocation parks), `compound-learn`; rides `sandbox-policy`, `gate-classification`, `merge-serialization`,
 `reviewed-sha-freshness`, `dispatch-lifecycle`, `liveness-resume`, `evidence-manifest`,
 `ledger-contract`, `attention-budget`. Worker TASK pack: one of addy | gstack — never co-mount.
 

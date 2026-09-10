@@ -2,19 +2,28 @@
 name: access-it
 description: >-
   Drive a FROZEN page/flow/component set to WCAG 2.2 AA (EAA / ADA / Section 508) conformance: a
-  deterministic axe-core oracle clean on the surface plus a mandatory negative control (revert the fix,
-  the violation returns), with the hard ~30-40% automation ceiling forcing screen-reader and cognitive
-  criteria into a first-class human-AT park. The unit is one success-criterion violation instance on the
-  frozen surface. Use when "accessibility", "a11y", "WCAG", "screen reader", "keyboard navigation", "ARIA",
-  "axe-core", "Section 508 accessibility", "color contrast". Not for a security exploit loop (harden-it),
-  a PR merge verdict (review-it), a discovered backlog (clean-sweep), or standards attestation (attest-it).
+  deterministic axe-core oracle clean on the surface plus a mandatory negative control (revert the
+  fix, the violation returns), with the hard ~30-40% automation ceiling forcing screen-reader and
+  cognitive criteria into a first-class human-AT park. The unit is one success-criterion violation
+  instance on the frozen surface. Use when "accessibility", "a11y", "WCAG conformance", "screen
+  reader", "keyboard-only operability", "ARIA", "axe-core", "Section 508 accessibility", "color
+  contrast". Not for building a keyboard feature or shortcut (ship-it), a security exploit loop
+  (harden-it), a PR merge verdict or a per-diff accessibility lens (review-it), a discovered
+  backlog (clean-sweep), or standards attestation (attest-it).
 license: MIT
-proof: doctrine-only
-autonomy: L4
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh; a deterministic a11y oracle
   (axe-core / Lighthouse) and a runnable surface. A fix worker playbook (addyosmani, mattpocock, gstack)
   — one router per worker.
+metadata:
+  proof: doctrine-only
+  autonomy: L4
+  unit: one success-criterion violation instance on the frozen surface
+  state_machine: axe scan → fix → re-scan → revert control (the violation returns)
+  convergence: the axe oracle is clean over the re-enumerated frozen surface
+  ordering: structural items serial (one landmark fix moves later instances); the rest parallel
+  parking: CONFORMANT-WITH-MANUAL-PARKED — the automation ceiling is owed to a human AT reviewer as a standing terminal
+  oracle: a deterministic rule engine (axe-core) over a frozen surface, incomplete by construction
 ---
 
 # access-it — WCAG 2.2 conformance over a frozen surface
@@ -23,7 +32,7 @@ You are the **COORDINATOR** of an accessibility conformance run. "Make this surf
 what only a human can" is a user-facing outcome with a hard automation ceiling: the deterministic
 oracle proves what it can, and the ~30-40% it cannot (screen-reader semantics, cognitive load) is a
 first-class **human-AT park**, never a silent pass. Composes `decompose-dag` (enumerate violations
-into a DAG over the frozen surface), `remediate-finding` (fix each), `acceptance-review` (build-blind
+into a DAG over the frozen surface), `remediate-finding` (fix each), `browser-drive` (DETECT and RE-VERIFY drive the surface through it), `acceptance-review` (build-blind
 review of each fix), `compound-learn` (retro); rides `evidence-manifest` (each fix carries the axe
 result + a revert-to-violation negative control), `sandbox-policy` (`PROFILE=rw`),
 `merge-serialization`, `reviewed-sha-freshness`, `dispatch-lifecycle`, `liveness-resume`,
@@ -44,8 +53,10 @@ result + a revert-to-violation negative control), `sandbox-policy` (`PROFILE=rw`
 FREEZE the surface: the page/flow/component set × the WCAG 2.2 AA criteria — the denominator, digest-locked.
   → BOOTSTRAP integration BASE (runtime/scripts/preflight.py --base <BASE> --fork-point <sha
     recorded in the ledger header at BASE creation>; BASE ≠ default — dispatch-lifecycle.md)
-  → DETECT: run the deterministic oracle (axe-core/Lighthouse) against the surface rendered at the
-    BASE head; enumerate violations into a DAG.
+  → DETECT: run the deterministic oracle against the surface rendered at the BASE head (`oracle=`,
+    frozen at T0: default `axe` — an automated rule engine; alternative `design-rules`, a catalog of
+    the target's own component/contrast/target-size rules run as a deterministic pre-pass whose
+    output feeds the same DAG); enumerate violations into a DAG.
   → FIX (rw workers, remediate-finding): each violation fixed at its instance; structural items
     (landmarks, heading order) serialized as they are global.
   → build-blind REVIEW (acceptance-review: semantics, not just the oracle — an aria-label stuffed to

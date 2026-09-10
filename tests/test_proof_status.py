@@ -24,10 +24,10 @@ _spec.loader.exec_module(proof_status)
 def _mission(skills_dir, dirname, name, proof, proof_evidence=None):
     d = skills_dir / dirname
     d.mkdir(parents=True)
-    lines = ["---", f"name: {name}", "license: MIT", f"proof: {proof}"]
+    lines = ["---", f"name: {name}", "license: MIT", "metadata:", f"  proof: {proof}"]
     if proof_evidence is not None:
-        lines.append(f"proof_evidence: {proof_evidence}")
-    lines += ["autonomy: L3", "---", "", "# body", ""]
+        lines.append(f"  proof_evidence: {proof_evidence}")
+    lines += ["  autonomy: L3", "---", "", "# body", ""]
     (d / "SKILL.md").write_text("\n".join(lines), encoding="utf-8")
 
 

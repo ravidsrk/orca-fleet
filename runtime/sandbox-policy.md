@@ -1,22 +1,36 @@
 # Runtime policy — sandbox / danger profile
 
 Autonomy is the point: a worker that blocks on a permission prompt kills the run. So the write
-tiers use each agent's **fully-autonomous flag — the exact flag Orca appends by default**
-(`src/shared/tui-agent-permissions.ts` — in [stablyai/orca](https://github.com/stablyai/orca),
-not this repo; the agent → flag map lives there, and its current contents are re-witnessed, not
-remembered: pin-it). The
-sandboxed middle modes (claude `acceptEdits`, codex `--sandbox workspace-write`, gemini
-`auto_edit`) are deliberately NOT used: they still prompt on shell and network, so a build worker
-running tests or `npm install` would block. `spawn_worker.sh` maps each PROFILE per agent:
+tiers use each agent's **fully-autonomous flag** (`src/shared/tui-agent-permissions.ts` — in
+[stablyai/orca](https://github.com/stablyai/orca), not this repo; the agent → flag map lives there,
+and its contents are re-witnessed, not remembered: pin-it). The sandboxed middle modes (claude
+`acceptEdits`, codex `--sandbox workspace-write`, gemini `auto_edit`) are deliberately NOT used:
+they still prompt on shell and network, so a build worker running tests or `npm install` would
+block.
+
+**Say "by default" precisely.** What a `worker-start` launch actually appends is the host's
+`agentDefaultArgs` profile setting, not this map directly. Its MIGRATED DEFAULT is this map —
+`tui-agent-launch-defaults.ts:10` re-exports `YOLO_TUI_AGENT_ARGS` as `DEFAULT_TUI_AGENT_ARGS` — but
+a host whose owner chose manual mode carries `''` instead. Two consequences, opposite in sign: on a
+default host a supervised `PROFILE=ro` launch would be silently upgraded to bypass (which is why ro
+never takes `worker-start`, dispatch-lifecycle.md); on a manual host, `worker-start` launches
+PROMPTING workers while the fleet believes they are autonomous, and the run blocks on invisible
+dialogs. Neither is knowable from source: read `launch.effective` off the start receipt and record
+the host's permission mode in the ledger header. Source-witnessed at v1.4.199
+(`tui-agent-launch-defaults.ts:10`); live probe owed — pin-it.
+
+`spawn_worker.sh` maps each PROFILE per agent:
 
 | Agent  | `ro` (read-only review) | `rw` = `danger` flag (autonomous, non-blocking) |
 |--------|-------------------------|--------------------------------------------------|
 | claude | `--permission-mode plan` | `--dangerously-skip-permissions`                |
 | codex  | `--sandbox read-only`    | `--dangerously-bypass-approvals-and-sandbox`    |
 | gemini | `--approval-mode plan`   | `--yolo`                                        |
+| cursor | — (no RO in Orca) → WORKER_CMD | `--yolo` (`tui-agent-permissions.ts:21`)   |
 | grok   | — (no RO in Orca) → WORKER_CMD | `--permission-mode bypassPermissions`      |
 | droid  | WORKER_CMD               | `--auto high`                                   |
-| opencode / omp / pi | WORKER_CMD | WORKER_CMD (Orca strips/omits their auto flag) |
+| opencode / kilo | WORKER_CMD      | WORKER_CMD — Orca **strips** `--dangerously-skip-permissions` from both (`tui-agent-launch-defaults.ts:5-8`) |
+| omp / pi | WORKER_CMD             | WORKER_CMD (not in Orca's autonomous-arg map)   |
 
 - **`ro`** is non-blocking because it cannot mutate — nothing to approve. It is the permission
   boundary for report-only missions (review-it).
@@ -47,7 +61,21 @@ running tests or `npm install` would block. `spawn_worker.sh` maps each PROFILE 
 `danger` profile (bypass approvals/sandbox) on your own machine violates least privilege no matter
 how careful the prompt. The sanctioned home is a disposable per-workspace environment
 (`orca-per-workspace-env` recipes: create/suspend/resume/destroy, `orca serve --recipe-json`
-pairing, validated by `vm recipe doctor <recipe-id> --provision`).
+pairing, validated by `vm recipe doctor <recipe-id> --provision`; `--connect` is a synonym of
+`--provision`).
+
+Two rules the guide states and a lane will otherwise learn the expensive way:
+
+- **`doctor` is clear only with no `fail` AND no `warn`.** `ok:true` on its own proves nothing —
+  a warn is a lane that boots and then fails a build halfway through
+  (`orca-per-workspace-env:110-122`). `spawn_worker.sh` enforces this: `PROFILE=danger` requires
+  `ORCA_SANDBOX_RECIPE=<recipe id>` and `ORCA_SANDBOX_DOCTOR=<path to that doctor output>`, refuses
+  a transcript that names a different recipe, and refuses one carrying `fail` or `warn`. The
+  opt-in flag is intent; these two are the evidence.
+- **Never snapshot a machine on which `orca serve` has already run.** The pairing identity is
+  baked in, so every clone of that snapshot claims to be the same Orca server — the fleet then
+  cannot tell two sandboxes apart, and remote placement resolves to the wrong host. Snapshot
+  BEFORE `serve`, or not at all.
 
 Lane contract: N sandboxes for N parallel danger lanes; harvest work OFF the mortal disk via
 `git push` to the lane's own work branch BEFORE teardown (never straight to BASE — sandbox work

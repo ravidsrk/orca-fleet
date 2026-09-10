@@ -6,6 +6,8 @@ never drift as missions and tests are added.
 Writes:
   assets/badges/missions.json  — count of skills/<name>/ mission dirs
   assets/badges/tests.json     — count of `def test_*` methods under tests/
+  docs/missions/<name>.md      — the "Activation load" callout, measured by
+                                 scripts/validate.py's transitive_load (issue #276)
 
 The README references these via a shields ENDPOINT badge
 (https://img.shields.io/endpoint?url=<raw>/assets/badges/<name>.json), and the
@@ -29,6 +31,42 @@ TESTS_DIR = ROOT / "tests"
 BADGES_DIR = ROOT / "assets" / "badges"
 
 TEST_DEF_RE = re.compile(r"^\s*def (test_\w+)\(", re.MULTILINE)
+GUIDES_DIR = ROOT / "docs" / "missions"
+# The callout sits directly under the Autonomy one in every mission guide.
+LOAD_CALLOUT_RE = re.compile(r"(?m)^> \*\*Activation load:\*\* .*$")
+AUTONOMY_CALLOUT_RE = re.compile(r"(?m)^> \*\*Autonomy:\*\* .*$")
+LOAD_ROUND = 100  # tokens — small doc edits must not churn 21 guides
+
+
+def _validate_module():
+    """Load scripts/validate.py lazily.
+
+    validate.py loads THIS module inside check_badge_freshness(); loading it back
+    at import time would recurse. Inside a function, each side only ever executes
+    the other's module body once.
+    """
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("_validate", ROOT / "scripts" / "validate.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def activation_loads() -> dict:
+    """{mission: rounded token estimate} for every mission guide callout."""
+    v = _validate_module()
+    return {
+        name: round(tokens / LOAD_ROUND) * LOAD_ROUND
+        for name, tokens in v.load_report()
+    }
+
+
+def load_callout(mission: str, tokens: int) -> str:
+    return (
+        f"> **Activation load:** ~{tokens:,} tokens — this SKILL.md plus every playbook and "
+        f"runtime doc its Composes/rides clause makes mandatory "
+        f"([why it is measured](../../ARCHITECTURE.md#instruction-budget))"
+    )
 
 
 def mission_count() -> int:
@@ -64,8 +102,55 @@ def compute() -> dict:
     }
 
 
+def check_guides() -> list[str]:
+    """Stale/missing Activation load callouts in docs/missions/*.md."""
+    errors = []
+    if not GUIDES_DIR.is_dir():
+        return [f"docs/missions/ missing at {GUIDES_DIR}"]
+    for mission, tokens in activation_loads().items():
+        guide = GUIDES_DIR / f"{mission}.md"
+        if not guide.is_file():
+            errors.append(f"docs/missions/{mission}.md missing — every mission needs a guide")
+            continue
+        text = guide.read_text(encoding="utf-8")
+        want = load_callout(mission, tokens)
+        found = LOAD_CALLOUT_RE.search(text)
+        if not found:
+            errors.append(
+                f"docs/missions/{mission}.md has no Activation load callout "
+                "— run scripts/gen-badges.py"
+            )
+        elif found.group(0) != want:
+            errors.append(
+                f"docs/missions/{mission}.md Activation load is stale "
+                f"(want ~{tokens:,} tokens) — run scripts/gen-badges.py"
+            )
+    return errors
+
+
+def write_guides() -> None:
+    for mission, tokens in activation_loads().items():
+        guide = GUIDES_DIR / f"{mission}.md"
+        if not guide.is_file():
+            print(f"skip docs/missions/{mission}.md: no guide")
+            continue
+        text = guide.read_text(encoding="utf-8")
+        want = load_callout(mission, tokens)
+        if LOAD_CALLOUT_RE.search(text):
+            new_text = LOAD_CALLOUT_RE.sub(lambda _m: want, text, count=1)
+        else:
+            m = AUTONOMY_CALLOUT_RE.search(text)
+            if not m:
+                print(f"skip docs/missions/{mission}.md: no Autonomy callout to anchor to")
+                continue
+            new_text = text[: m.end()] + "\n" + want + text[m.end():]
+        if new_text != text:
+            guide.write_text(new_text, encoding="utf-8")
+            print(f"wrote docs/missions/{mission}.md: ~{tokens:,} tokens")
+
+
 def check() -> list[str]:
-    """Return a list of stale-badge errors (empty if all committed files are current)."""
+    """Return a list of stale-artifact errors (empty if everything committed is current)."""
     errors = []
     try:
         wanted = compute()
@@ -86,7 +171,7 @@ def check() -> list[str]:
                 f"assets/badges/{name} is stale (have {have.get('message')!r}, "
                 f"want {want.get('message')!r}) — run scripts/gen-badges.py"
             )
-    return errors
+    return errors + check_guides()
 
 
 def write() -> None:
@@ -94,6 +179,7 @@ def write() -> None:
     for name, data in compute().items():
         (BADGES_DIR / name).write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
         print(f"wrote assets/badges/{name}: {data['message']}")
+    write_guides()
 
 
 if __name__ == "__main__":

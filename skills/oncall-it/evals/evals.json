@@ -1,0 +1,41 @@
+{
+  "skill_name": "oncall-it",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Last week's incident took four hours because we were blind — make the checkout service operable: telemetry, alerts, runbooks.",
+      "expected_output": "Should route to oncall-it. Should freeze the path set and 2-4 on-call questions per path at a human gate, instrument (structured events, correlation ID, entry-point field, RED/USE with bounded labels), add symptom alerts in two severities with justified thresholds, write three-line runbooks at the repo's convention, test-fire each alert, and induce a staging failure that a fresh source-blind worker must name from telemetry alone.",
+      "assertions": [
+        "Routes to oncall-it",
+        "The frozen on-call questions are the denominator",
+        "Alerts are symptom-based, two severities, with a justified threshold and a linked runbook",
+        "Each alert is test-fired and the receipt captured",
+        "A source-blind worker names the induced failure; removing the instrumentation makes it RED",
+        "Terminal is OPERABLE or OPERABLE-WITH-PARKED"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "The API is throwing 500s right now — find out why.",
+      "expected_output": "Should NOT route to oncall-it. Diagnosing a live symptom is root-cause, which consumes telemetry; oncall-it creates the telemetry so the next diagnosis is fast.",
+      "assertions": [
+        "Does not route to oncall-it",
+        "Routes to root-cause",
+        "Distinguishes consuming telemetry from making a surface observable"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Checkout p95 is 3.2 seconds and our budget is 1.5 — get it under budget.",
+      "expected_output": "Should NOT route to oncall-it. A latency budget proven against a measurement contract is speed-it; oncall-it's proof is a source-blind diagnosis, not a number.",
+      "assertions": [
+        "Does not route to oncall-it",
+        "Routes to speed-it",
+        "Distinguishes a measured budget from operability"
+      ],
+      "files": []
+    }
+  ]
+}

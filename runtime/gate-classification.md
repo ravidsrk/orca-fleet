@@ -6,13 +6,25 @@ policy is enforced, not requested.
 ## The two runtime gate kinds (do not conflate)
 
 - **Worker gate:** a worker's blocking `ask` → a `question` **message** to the owning Run. Times out
-  (~10 min) leaving the question PENDING — resume the SAME message id (`ask --resume <msg_id>`);
-  re-asking the same question under a new id creates a duplicate question. Answer the CURRENT id
-  with `reply --id <msg_id> --body "<answer>"`. On CLI fleets this often writes **no**
+  (600 000 ms default, 1 800 000 ms cap) leaving the question PENDING — resume the SAME message id
+  (`ask --resume <msg_id>`); re-asking under a new id creates a duplicate question. Answer the
+  CURRENT id with `reply --id <msg_id> --body "<answer>"`. On CLI fleets this often writes **no**
   `decision_gates` table row — reply by message id.
 - **DAG gate:** coordinator `gate-create --task <id> --question "<text>"` (both flags required)
-  → auto-blocks the task; `gate-resolve`
-  injects the resolution into the task's next dispatch preamble.
+  → auto-blocks the task; `gate-resolve --id <gate_id> --resolution "<text>"` clears it.
+
+**The option lists are spelled differently, and mixing them is a silent refusal:** `ask --options`
+takes a **CSV** (`--options "rollback,patch-forward"`), `gate-create --options` takes a **JSON
+array** (`--options '["rollback","patch-forward"]'`) (`orchestration.ts:203,253` at v1.4.199).
+
+**`gate-resolve` does NOT inject the resolution into the next dispatch preamble.** That injection
+exists only in the RETIRED scheduler path (`coordinator-task-dispatch.ts:130-139`); the live
+`worker-start` / `dispatch --inject` preamble builder carries no gate context at all
+(`deliver-worker-dispatch-preamble.ts`). So the resolution reaches the worker only if the
+COORDINATOR puts it there: write it into the task spec (or the dispatch preamble) by hand before
+re-dispatching. Treat the old promise as false until a probe shows otherwise — source-witnessed at
+v1.4.199; live probe owed (`gate-create` → `gate-resolve` → `dispatch-show --task --preamble`) —
+pin-it. A worker that was told "the gate is resolved" and receives no resolution will invent one.
 
 ## Live ask ≠ historical unanswered ≠ DAG `blocked`
 

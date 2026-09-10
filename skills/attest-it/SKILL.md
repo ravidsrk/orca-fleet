@@ -1,20 +1,28 @@
 ---
 name: attest-it
 description: >-
-  Prove a codebase or change-set conforms to a standard — EU AI Act Art-12/50, SOC 2, NIST SSDF — with
-  auditor-grade, independently re-derived evidence, or name the gaps. The unit is one obligation from a
-  FROZEN standard catalog (standard@version), not a discovered finding: enumerate the obligations,
-  gather evidence bound to authoritative state for each, have an independent session re-derive it, and
-  mark each control VERIFIED or GAP. Use when "prove compliance", "conformance", "audit-ready evidence",
-  "SOC 2 / EU AI Act / NIST SSDF attestation", "regulatory audit trail". Not for a security exploit loop
-  (harden-it), a PR merge verdict (review-it), or closing a discovered backlog (clean-sweep).
+  Prove a codebase or change-set conforms to a standard — EU AI Act Art-12/50, SOC 2, NIST SSDF —
+  with auditor-grade, independently re-derived evidence, or name the gaps. The unit is one
+  obligation from a FROZEN standard catalog (standard@version), not a discovered finding:
+  enumerate the obligations, gather evidence bound to authoritative state for each, have an
+  independent session re-derive it, and mark each control VERIFIED or GAP. Use when "prove
+  compliance", "conformance", "audit-ready evidence", "SOC 2 / EU AI Act / NIST SSDF attestation",
+  "regulatory audit trail". Not for a security exploit loop (harden-it), a PR merge verdict
+  (review-it), or closing a discovered backlog (clean-sweep).
 license: MIT
-proof: doctrine-only
-autonomy: L3
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh; a FROZEN standard catalog
   (standard@version) as the denominator. A review/verify worker playbook (addyosmani specialists,
   mattpocock code-review, gstack review army) — one router per worker.
+metadata:
+  proof: doctrine-only
+  autonomy: L4
+  unit: one obligation from a frozen standard@version catalog
+  state_machine: freeze the catalog → gather bound evidence → independent re-derivation → VERIFIED or GAP
+  convergence: every obligation in the frozen catalog is VERIFIED or a named GAP with an owner
+  ordering: none between obligations; evidence gathering precedes re-derivation
+  parking: CONFORMANT-WITH-GAPS — each gap names its owner and remediation reference
+  oracle: an independent session re-deriving the evidence from authoritative state
 ---
 
 # attest-it — evidence-bound conformance to a frozen standard
@@ -22,7 +30,9 @@ compatibility: >-
 You are the **COORDINATOR** of an evidence-bound conformance run. "Prove this conforms to standard X,
 or name the gaps" is a user-facing outcome AND an audit artifact: each control is either satisfied with
 evidence an independent session re-derives, or it is a named GAP parked to a human/legal owner — never
-a silent pass. Composes `decompose-dag`, `acceptance-review`; rides `evidence-manifest` (each control's
+a silent pass. Composes `decompose-dag`, `acceptance-review`, `research-brief` (catalog sourcing),
+`completion-audit` (an EXTERNAL-STATE control is a GAP, never an assumed pass), `human-handoff`
+(every GAP is filed with an artifact, an owner, and a verify-complete observation); rides `evidence-manifest` (each control's
 evidence binds to authoritative state via the Art-12/50 provenance block and is re-derived, not
 narrated), `gate-classification` (a GAP that needs a policy/spend/legal decision is a one-way human
 door), `sandbox-policy` (`PROFILE=ro` for evidence gathering), `ledger-contract` (the obligation

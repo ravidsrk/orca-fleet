@@ -12,10 +12,20 @@ canonical fixed point for every downstream ticket, review, and acceptance test.
 
 ## The grill (interactive; HITL leak if fanned to a worker)
 
+**Before round 1**, write the current hypothesis of what the human wants and a confidence in it;
+the grill is then aimed at what would falsify it, and the delta between that hypothesis and the
+frozen spec is the round-1 record. Alongside it, publish a **Verified Current State** section —
+what the code ACTUALLY does today, read from the tree, not recalled — so the grill sharpens
+against facts. State the **premises** the scope rests on as flat statements the human agrees or
+disagrees with (`PREMISE n: … — agree / disagree`) before scoping proceeds; a disagreed premise
+loops, it is never overridden. Where the grill reaches an ADR-worthy decision, `record-decision`
+writes it.
+
 On the coordinator terminal, run `grilling` + `domain-modeling` — **round by round**, not
 question-by-question: ask the WHOLE frontier in one round, one bold-titled question + a
-RECOMMENDED answer each (upstream format: ❓ question, ➡️ recommendation), so a taste-class run can
-auto-pick per `gate-classification.md` and a human answers in one pass. After each round, resolve
+RECOMMENDED answer each (upstream format: ❓ question, ➡️ recommendation) separated by a `---` rule
+so no question buries the next, so a taste-class run can auto-pick per `gate-classification.md` and
+a human answers in one pass. After each round, resolve
 what the answers sharpened and ask the next frontier; facts that live in the codebase are
 dispatched to a non-blocking fact-finder between rounds — never asked, never blocking the round.
 **The join rule:** a question whose answer depends on an outstanding fact-finder stays OPEN until
@@ -33,8 +43,11 @@ possible (ideal = 1). The test surface is decided before the spec, not after.
 ## Freeze (human gate #1)
 
 Publish the spec: objectives, acceptance criteria per capability, boundaries (explicit NOT-in-scope),
-test strategy, seam list. The human confirms → FROZEN. No re-open of frozen scope without a backlog
-entry.
+test strategy, seam list. **Redact fail-closed BEFORE the spec is filed anywhere**: every sink
+re-scans the exact bytes it sends, and a high-confidence secret hit blocks every downstream sink —
+a filing that cannot be scanned does not proceed. The human confirms with an EXPLICIT yes → FROZEN;
+silence, "looks good", and an unanswered question are not a freeze. No re-open of frozen scope
+without a backlog entry.
 
 ## Completion (checkable + exhaustive)
 

@@ -2,29 +2,36 @@
 name: prove-it
 description: >-
   Give every critical path a test that dies under a behavior-changing mutation. Map the untested
-  critical surface (coverage × call-graph of the money/auth/data paths), write characterization tests
-  that assert real behavior, prove each earns its keep by failing at its assertion under a mutation
-  (harness still runnable — a compile break is not proof), and route surfaced bugs to a fix or backlog,
-  looping until every confirmed critical path is mutation-audited. Use when "close the test gap",
-  "cover the critical paths", "test debt", characterization/mutation testing — it owns missing
-  coverage, not broken tests. Not for flake eradication (deflake-it), a deterministically failing
-  test (clean-sweep), building features with tests from the start (ship-it), or restructuring a
-  module's interface once the net exists (reshape-it — its DEEPEN units consume this mission's
-  characterization net).
+  critical surface (coverage × call-graph of the money/auth/data paths), write characterization
+  tests that assert real behavior, prove each earns its keep by failing at its assertion under a
+  mutation (harness still runnable — a compile break is not proof), and route surfaced bugs to a
+  fix or backlog, looping until every confirmed critical path is mutation-audited. Use when "close
+  the test gap", "cover the critical paths", "pin a characterization net", "test debt",
+  characterization/mutation testing — it owns missing coverage, not broken tests. Not for flake
+  eradication (deflake-it), a deterministically failing test (clean-sweep), building features with
+  tests from the start (ship-it), or restructuring a module's interface once the net exists
+  (reshape-it — its DEEPEN units consume this mission's characterization net).
 license: MIT
-proof: doctrine-only
-autonomy: L4
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh; a runnable suite +
   coverage tool. A TDD worker playbook (addyosmani or mattpocock) — one router per worker.
+metadata:
+  proof: doctrine-only
+  autonomy: L4
+  unit: one critical-path behaviour under a mutation-audited test
+  state_machine: map the surface → human scope confirm → characterize → mutation-audit → land
+  convergence: every path in the frozen critical surface is covered by a test whose mutant is KILLED
+  ordering: waves under attention-budget WIP; no ordering constraint between paths
+  parking: COVERED-WITH-PARKED — an uncovered path names its blocker
+  oracle: a behaviour-changing mutation — the test is proven by killing the mutant, not by passing
 ---
 
 # prove-it — a mutation-audited test on every critical path
 
 You are the **COORDINATOR**. Here the work CREATES PROOF where no defect finding necessarily exists;
 the denominator is a FINITE CRITICAL SURFACE, done is MUTATION-SENSITIVE coverage of it, and bugs
-surfaced during characterization spawn a NESTED remediation loop. Composes `build-change`,
-`remediate-finding` (for surfaced bugs), `acceptance-review`, `runtime-prove`, `compound-learn`;
+surfaced during characterization spawn a NESTED remediation loop. Composes `build-change`, `design-twice` (choosing the
+seam to pin), `remediate-finding` (for surfaced bugs), `acceptance-review`, `runtime-prove`, `compound-learn`;
 rides `merge-serialization`, `reviewed-sha-freshness`, `dispatch-lifecycle`, `liveness-resume`,
 `evidence-manifest`, `ledger-contract`, `attention-budget`. Worker TASK pack: one of matt | addy
 — never co-mount.

@@ -1,42 +1,84 @@
 #!/usr/bin/env bash
-# spawn_worker.sh — fail-closed Orca worker dispatch for fleet coordinators. (v4)
+# spawn_worker.sh — fail-closed Orca worker dispatch for fleet coordinators. (v5)
 #
-# v4 contract (2026-09-09 runtime modernization, re-witnessed against the INSTALLED Orca;
-#   v3's first pass shipped an unparseable receipt + a ro→YOLO leak — review-caught, fixed here):
-#   - the supervised spawn path is `worker-start` (compose: worktree + agent terminal + readiness
-#     + dispatch, one call; on installed Orca the call exits 0 only when the worker is READY).
-#     Refusals are TYPED codes in the error envelope (task_not_startable carries
-#     data.unmetDependencies; nested_worker_depth_exceeded; consumer_fenced) — branch on the code,
-#     never on stderr text.
-#   - PROFILE=ro NEVER takes worker-start: Orca's default agent launch appends the YOLO flag, which
-#     would silently turn a read-only review worker into a permission-bypass one. ro runs the
-#     custom-argv lane with the profile's computed ro command (no CMD_OVERRIDE opt-in — it IS the
-#     profile, not an override).
-#   - WORKER_CMD / legacy CLAUDE_CMD / CODEX_CMD overrides run the custom-argv lane: terminal
-#     create + dispatch --inject (deliberately UNSUPERVISED — no worker-lifecycle row; record the
-#     trade in the ledger per dispatch-lifecycle.md) + the bounded Enter submit loop.
+# v5 contract (2026-09-10 upstream re-pin). Every mechanism below is source-witnessed at the TAG
+#   v1.4.199 — the shipped binary — not at upstream HEAD, which has already moved past it:
+#   - supervised lane = `worker-start` (compose: worktree + agent terminal + readiness + dispatch).
+#     READINESS SEMANTIC: at v1.4.199 `ready` means the preamble WRITE WAS ACCEPTED, not that the
+#     agent started a turn (`local-worker-start.ts:263` marks the dispatch ready straight after the
+#     accepted write). The next release flips this to a positive `turn_started`, returning
+#     `state: outcome_unknown` otherwise — which is why exit 4 exists below, before that upgrade
+#     lands. Readiness per agent is source-witnessed at v1.4.199
+#     (`local-worker-start.ts:243-263`); live probe owed — pin-it.
+#   - typed refusals: branch on `error.code`, NEVER on stderr text, and print `error.data.nextSteps`
+#     verbatim — that array is the runtime's own recovery text
+#     (`orchestration-dispatch-refusal-contract.ts:8`,
+#     `orchestration/recovery-and-cleanup:96-108`).
+#   - `state: outcome_unknown` is NOT a failure: it is an unproven outcome. Exit 4, print the
+#     receipt's `nextCommands`, and INSPECT — never respawn (respawning beside a live pane is the
+#     dual-writer class) (`worker-start-receipt.ts:48,60-68`).
+#   - custom-argv lane = `terminal create` + `dispatch --inject`. The inject ALREADY SUBMITS the
+#     preamble (`dispatch-methods.ts:155-165` calls `sendTerminalAgentPrompt`) and `--json` returns
+#     `result.prompt{requestId, stages}`, stages drawn from `input_accepted | turn_started`
+#     (`runtime-terminal-contracts.ts:221-225`). v4's blind re-Enter/heartbeat loop is DELETED:
+#     the guide's rule is "never resend on silence"
+#     (`orchestration/recovery-and-cleanup:92-94`). When `turn_started` is absent we replay the
+#     receipt ONCE with
+#     `terminal send --retry-request <requestId> --wait-submit <secs>` — a replay, never a resend
+#     ("timeout returns the queued/input-accepted receipt and never resends",
+#     `terminal-send.ts:19-22`). At v1.4.199 that flag pair also REQUIRES `--text` with `--enter`
+#     (`terminal-send.ts:17-24` handler), so the exact preamble is recovered first via
+#     `dispatch-show --task <id> --preamble` (`dispatch-methods.ts:196-213`); if it cannot be
+#     recovered, or the host refuses the replay, the lane reports UNPROVEN rather than resending.
+#     Whether the regenerated preamble byte-matches the injected payload the requestId is bound to
+#     is source-witnessed only (`dispatch-methods.ts:199-212` omits dispatchCapability);
+#     live probe owed — pin-it.
+#   - `terminal wait` result is READ: `wait.satisfied:false` is an unsatisfied condition. The CLI
+#     also sets exit 1 for it (`terminal.ts:126-130`), so v4 failed closed BY ACCIDENT; v5 reads
+#     the field, so a host that sets only one of the two still fails closed.
+#   - PROFILE=ro NEVER takes worker-start: launch args come from the host's `agentDefaultArgs`
+#     profile setting, whose migrated default IS the YOLO map (`tui-agent-launch-defaults.ts:10`
+#     re-exports `YOLO_TUI_AGENT_ARGS` as `DEFAULT_TUI_AGENT_ARGS`), so a default host would
+#     silently upgrade a read-only reviewer to a bypass one. A host set to manual mode has `''`
+#     instead — the rationale is host-dependent, not universal. `agentDefaultArgs` is
+#     source-witnessed at v1.4.199 (`tui-agent-launch-defaults.ts:10`); live probe owed — pin-it.
+#   - `launch.effective` from the worker-start receipt is printed when present: never claim a model,
+#     effort, or permission flag from the REQUESTED arguments alone
+#     (`orchestration/coordinator-loop:23-36`).
 #   - fail-closed: any failed step exits nonzero with a SPAWN=FAILED diagnostic line on stderr
 #   - respects the task DAG: never forces `ready`; `--mark-ready` is an explicit opt-in and
 #     only applies when every declared dep is already completed
 #   - least-privilege launch profiles: PROFILE=ro|rw|danger; danger requires ORCA_COORD_ALLOW_DANGER=1
 #   - distinct exit codes so coordinators can react:
-#       0  dispatched and ready observed
-#       1  a spawn/dispatch step failed
-#       2  usage or policy refusal (bad args, task not ready, unmet deps, danger without opt-in)
-#       3  (legacy lane only) dispatched but NO heartbeat after retries — READ THE PANE FIRST:
-#          a live TUI is a working worker; respawn beside it only after that check
+#       0  dispatched — supervised: state=ready; custom-argv: `turn_started` observed
+#       1  a spawn/dispatch step failed (includes the refusal code `runtime_error`)
+#       2  usage or policy refusal (bad args, task not ready, unmet deps, danger without opt-in,
+#          and EVERY typed refusal code: task_not_found, task_not_startable, inject_rejected,
+#          nested_worker_depth_exceeded, consumer_fenced, dispatch_inactive)
+#       3  (custom-argv lane only) preamble accepted but the turn is UNPROVEN — `input_accepted`
+#          with no `turn_started`. Inspect with `orca terminal read --terminal <h> --screen`;
+#          NEVER respawn on this, and never send another Enter.
+#       4  supervised state=outcome_unknown — the start neither proved nor disproved the worker.
+#          Run the receipt's nextCommands (worker-show / worker-abandon); inspect, never respawn.
 #
 # Usage:
 #   SP=<dir> [PROFILE=rw] spawn_worker.sh [--mark-ready] <task_id> <worktree_selector> <title> [agent] [effort]
-#   agent ∈ claude|codex|gemini|grok|droid|opencode|omp|pi (default claude)
-# Prints:  HANDLE=<h> READY=<ts|bool> — and on the override lane: HANDLE=<h> HB=<ts|None>
+#   agent ∈ claude|codex|cursor|gemini|grok|droid|opencode|omp|pi (default claude)
+# Prints:  supervised: HANDLE=<h> READY=<state>, DISPATCH=<id>, and LAUNCH_EFFECTIVE=<json> when the
+#          receipt carries it.  custom-argv lane: HANDLE=<h> STAGES=<csv>
 #
-# Agent × profile coverage (flags are Orca's own autonomous "yolo" args, so workers never block
-# on a prompt; anything else fails closed and needs WORKER_CMD):
-#   claude/codex/gemini → ro + rw + danger (worker-start appends Orca's flag)
+# Agent × profile coverage (flags are Orca's own autonomous "yolo" args from
+# `tui-agent-permissions.ts:6-33`, so workers never block on a prompt; anything else fails closed
+# and needs WORKER_CMD):
+#   claude/codex/gemini → ro + rw + danger
+#   cursor              → rw + danger (`tui-agent-permissions.ts:21` maps cursor to `--yolo`; Orca
+#                         has no read-only mode for it) — also one of the three agents that
+#                         `--model`/`--effort` can target
 #   grok                → rw + danger (Orca has no read-only mode for grok)
 #   droid               → rw + danger (Orca appends `--auto high`); ro → WORKER_CMD
-#   opencode/omp/pi     → WORKER_CMD (Orca strips/omits an autonomous launch flag for these)
+#   opencode/omp/pi     → WORKER_CMD. opencode AND kilo are actively STRIPPED of
+#                         `--dangerously-skip-permissions` (`tui-agent-launch-defaults.ts:5-8`);
+#                         kilo stays off this roster for the same reason opencode fails closed.
 # rw and danger use the SAME non-blocking flag; danger only adds the ALLOW_DANGER gate + the
 # ephemeral-sandbox requirement (sandbox-policy.md). worker-start's `--effort` requires `--model`
 # (a provider model id the fleet does not pin) — the validated `effort` arg applies on the
@@ -51,11 +93,17 @@
 #   PROFILE                   ro | rw (default) | danger — worker permission profile
 #   ORCA_COORD_ALLOW_AUTONOMOUS_WRITE  must be 1 for PROFILE=rw (accept autonomous bypass workers)
 #   ORCA_COORD_ALLOW_DANGER   must be 1 for PROFILE=danger (implies the above + ephemeral sandbox)
+#   ORCA_SANDBOX_RECIPE       PROFILE=danger only: the orca-per-workspace-env recipe id the lane
+#                             runs in. Required — the opt-in above is intent, this is evidence.
+#   ORCA_SANDBOX_DOCTOR       PROFILE=danger only: path to that recipe's
+#                             `vm recipe doctor <id> --provision` output. Must name the recipe and
+#                             carry no fail and no warn (sandbox-policy.md; ok:true proves nothing).
 #   WORKER_CMD                full launch command for ANY agent (the generic override; its
 #                             read-only/write semantics become YOUR assertion). Legacy
 #                             CLAUDE_CMD / CODEX_CMD still work for those two. Any override
 #                             requires ORCA_COORD_ALLOW_CMD_OVERRIDE=1 (it bypasses the profile).
-#   SETTLE_SECS / SUBMIT_SECS / HB_POLL_SECS   timing knobs (defaults 20 / 8 / 40) — override lane
+#   SETTLE_SECS / SUBMIT_SECS  timing knobs (defaults 20 / 8) — custom-argv lane. SUBMIT_SECS is
+#                             the `--wait-submit` observation window, in SECONDS.
 set -Eeuo pipefail  # -E: ERR trap fires inside functions (orca_json) too
 
 step=parse-args
@@ -108,13 +156,15 @@ case "$effort" in
     ;;
 esac
 # Known Orca roster. claude/codex/gemini have Orca-verified flags for all three profiles;
-# grok has a verified WRITE flag (rw/danger) but no read-only mode in Orca's map;
+# cursor and grok have a verified WRITE flag (rw/danger) but no read-only mode in Orca's map;
 # opencode/droid/omp/pi have no Orca autonomous launch flag at all. Any (agent, profile)
 # without a verified flag fails CLOSED and must be supplied via WORKER_CMD (below).
+# `kilo` is deliberately ABSENT for the same reason opencode fails closed: Orca STRIPS
+# `--dangerously-skip-permissions` from both (`tui-agent-launch-defaults.ts:5-8` at v1.4.199).
 case "$agent" in
-  claude|codex|gemini|grok|droid|opencode|omp|pi) : ;;
+  claude|codex|cursor|gemini|grok|droid|opencode|omp|pi) : ;;
   *)
-    echo "SPAWN=REFUSED task=${task} unknown agent '${agent}' (want claude|codex|gemini|grok|droid|opencode|omp|pi)" >&2
+    echo "SPAWN=REFUSED task=${task} unknown agent '${agent}' (want claude|codex|cursor|gemini|grok|droid|opencode|omp|pi)" >&2
     exit 2
     ;;
 esac
@@ -122,7 +172,6 @@ SP="${SP:-$(pwd)}"
 PROFILE="${PROFILE:-rw}"
 SETTLE_SECS="${SETTLE_SECS:-20}"
 SUBMIT_SECS="${SUBMIT_SECS:-8}"
-HB_POLL_SECS="${HB_POLL_SECS:-40}"
 # The scratch-file key must be UNIQUE per spawn. `tr`-squashing alone collides: two titles
 # differing only in a squashed character (e.g. "Fix: a/b" vs "Fix: a\b") map to the same
 # name, so parallel spawns clobber each other's JSON artifacts. Append a checksum of the RAW
@@ -153,9 +202,38 @@ if [ "$PROFILE" = "rw" ] && [ "${ORCA_COORD_ALLOW_AUTONOMOUS_WRITE:-0}" != "1" ]
   echo "SPAWN=REFUSED task=${task} PROFILE=rw launches an autonomous permission-bypass worker — set ORCA_COORD_ALLOW_AUTONOMOUS_WRITE=1 to accept (worktree + review + PR gate are the safety layer, not per-command prompts)" >&2
   exit 2
 fi
-if [ "$PROFILE" = "danger" ] && [ "${ORCA_COORD_ALLOW_DANGER:-0}" != "1" ]; then
-  echo "SPAWN=REFUSED task=${task} PROFILE=danger requires ORCA_COORD_ALLOW_DANGER=1 AND an ephemeral sandbox (sandbox-policy.md)" >&2
-  exit 2
+if [ "$PROFILE" = "danger" ]; then
+  # A boolean is not evidence of a sandbox (REVIEW.md §8 P2-15). sandbox-policy.md names the
+  # artifact that is: an `orca-per-workspace-env` recipe id, validated by
+  # `vm recipe doctor <recipe-id> --provision`, which is clear ONLY with no fail AND no warn.
+  # So danger needs the opt-in, a recipe id, and that doctor transcript on disk — each checked,
+  # each recorded on the spawn line so the ledger carries what the lane actually ran in.
+  if [ "${ORCA_COORD_ALLOW_DANGER:-0}" != "1" ]; then
+    echo "SPAWN=REFUSED task=${task} PROFILE=danger requires ORCA_COORD_ALLOW_DANGER=1 AND an ephemeral sandbox (sandbox-policy.md)" >&2
+    exit 2
+  fi
+  recipe="${ORCA_SANDBOX_RECIPE:-}"
+  case "$recipe" in
+    "" )
+      echo "SPAWN=REFUSED task=${task} PROFILE=danger requires ORCA_SANDBOX_RECIPE=<orca-per-workspace-env recipe id> — the flag alone is not evidence of an ephemeral sandbox (sandbox-policy.md)" >&2
+      exit 2 ;;
+    *[!A-Za-z0-9._-]* | ?|?? )
+      echo "SPAWN=REFUSED task=${task} ORCA_SANDBOX_RECIPE='${recipe}' is not a recipe id (want 3+ chars of [A-Za-z0-9._-])" >&2
+      exit 2 ;;
+  esac
+  doctor="${ORCA_SANDBOX_DOCTOR:-}"
+  if [ -z "$doctor" ] || [ ! -r "$doctor" ]; then
+    echo "SPAWN=REFUSED task=${task} PROFILE=danger requires ORCA_SANDBOX_DOCTOR=<path to \`vm recipe doctor ${recipe} --provision\` output>; '${doctor}' is not readable" >&2
+    exit 2
+  fi
+  if ! grep -q -- "$recipe" "$doctor"; then
+    echo "SPAWN=REFUSED task=${task} ORCA_SANDBOX_DOCTOR does not mention recipe '${recipe}' — a transcript for another sandbox proves nothing about this one" >&2
+    exit 2
+  fi
+  if grep -qiE '(^|[^a-z])(fail|warn)' "$doctor"; then
+    echo "SPAWN=REFUSED task=${task} recipe doctor for '${recipe}' is not clear — sandbox-policy.md: clear means no fail AND no warn (ok:true alone proves nothing)" >&2
+    exit 2
+  fi
 fi
 
 # Per-agent × profile launch command. Autonomy is the WHOLE POINT: a worker that blocks on a
@@ -181,11 +259,13 @@ case "$agent:$PROFILE" in
   codex:rw|codex:danger)     cmd_default="codex --dangerously-bypass-approvals-and-sandbox $_cx_effort" ;;
   gemini:ro)                 cmd_default="gemini --approval-mode plan" ;;
   gemini:rw|gemini:danger)   cmd_default="gemini --yolo" ;;
+  cursor:rw|cursor:danger)   cmd_default="cursor --yolo" ;;
   grok:rw|grok:danger)       cmd_default="grok --permission-mode bypassPermissions" ;;
   droid:rw|droid:danger)     cmd_default="droid --auto high" ;;
   # No Orca-verified non-blocking flag → WORKER_CMD required:
-  #   grok:ro, droid:ro (no read-only modes in Orca's map)
-  #   opencode:* (Orca STRIPS --dangerously-skip-permissions; opencode autonomy is config-driven)
+  #   cursor:ro, grok:ro, droid:ro (no read-only modes in Orca's map)
+  #   opencode:*, kilo:* (Orca STRIPS --dangerously-skip-permissions from both;
+  #                       opencode autonomy is config-driven)
   #   omp:*, pi:* (not in Orca's autonomous-arg map)
 esac
 
@@ -277,69 +357,137 @@ esac
 # --- spawn lanes ---------------------------------------------------------------
 # Lane selection:
 #   override set (WORKER_CMD/legacy)      → custom-argv lane (opt-in checked above)
-#   PROFILE=ro                            → custom-argv lane with the profile's ro command —
-#                                           worker-start appends Orca's YOLO flag by default, which
-#                                           would silently turn a read-only review worker into a
-#                                           permission-bypass one. ro NEVER takes worker-start.
+#   PROFILE=ro                            → custom-argv lane with the profile's ro command. A
+#                                           worker-start launch takes its args from the host's
+#                                           `agentDefaultArgs` setting, whose migrated default IS
+#                                           the YOLO map, so on a default host it would silently
+#                                           turn a read-only reviewer into a permission-bypass one.
+#                                           ro NEVER takes worker-start. (Host-dependent: a
+#                                           manual-mode host has `''` — probe owed, pin-it.)
 #   PROFILE=rw|danger, no override        → supervised worker-start lane
 step=spawn
 ws="$SP/ws-$safe_title.json"
 if [ -z "$override" ] && [ "$PROFILE" != "ro" ]; then
   # The supervised path: one call composes worktree + agent terminal + readiness + dispatch.
-  # On installed Orca the call exits 0 only when the worker is READY. Refusals are typed codes in
-  # the error envelope. Creation flags (--name et al.) are REJECTED for current/existing
-  # worktrees — pass --name only when the selector asks for a new worktree.
+  # Creation flags (--name et al.) are REJECTED for current/existing worktrees — pass --name only
+  # when the selector asks for a new worktree.
   name_args=()
   case "$sel" in
     new-child|new-top-level) name_args=(--name "$safe_title") ;;
   esac
-  # worker-start gets its own envelope handling: typed policy refusals (task_not_startable with
-  # unmet deps, nested_worker_depth_exceeded, consumer_fenced) are exit 2 (usage/policy), not 1.
-  if ! orca orchestration worker-start --task "$task" --worktree "$sel" ${name_args[@]+"${name_args[@]}"} --agent "$agent" --json > "$ws" 2>&1; then
-    code=$(python3 - "$ws" <<'PY'
+  # The call's own exit status is NOT the verdict: a typed refusal, a hard failure, and an
+  # UNPROVEN outcome (state: outcome_unknown) all exit nonzero. The receipt is the verdict.
+  ws_rc=0
+  orca orchestration worker-start --task "$task" --worktree "$sel" ${name_args[@]+"${name_args[@]}"} --agent "$agent" --json > "$ws" 2>&1 || ws_rc=$?
+
+  step=read-start-receipt
+  # Line 1 is the machine verdict; the remaining stdout lines are the caller-facing receipt
+  # fields. nextSteps / nextCommands go to stderr verbatim — they are the runtime's own
+  # recovery text, not ours to paraphrase.
+  ws_out=$(python3 - "$ws" <<'PY'
 import json, sys
+
+# Every typed preflight refusal is a POLICY/usage answer, not a transport failure: the
+# coordinator must branch, not retry. runtime_error is the documented catch-all and is the
+# one code that stays a failure ("do not retry unchanged").
+POLICY_CODES = {
+    "task_not_found", "task_not_startable", "inject_rejected",
+    "nested_worker_depth_exceeded", "consumer_fenced", "dispatch_inactive",
+}
 try:
     d = json.load(open(sys.argv[1]))
-    print((d.get("error") or {}).get("code") or "")
 except Exception:
-    print("")
-PY
-)
-    case "$code" in
-      task_not_startable|nested_worker_depth_exceeded|consumer_fenced|dispatch_inactive)
-        echo "SPAWN=REFUSED task=${task} worker-start refused: ${code} (policy/usage — see the receipt in $ws)" >&2
-        exit 2 ;;
-      *)
-        echo "SPAWN=FAILED task=${task} step=${step} rc=1 — worker-start failed (receipt in $ws)" >&2
-        exit 1 ;;
-    esac
-  fi
-  step=verify-ready
-  python3 - "$ws" <<'PY'
-import json, sys
-d = json.load(open(sys.argv[1]))
-r = d.get("result", d)
-# The receipt is FLAT: taskId, dispatchId, state ("ready"), effects[], residualResources.
+    d = {}
+if not isinstance(d, dict):
+    d = {}
+r = d.get("result")
+if not isinstance(r, dict):
+    r = d
+err = d.get("error") or r.get("error") or {}
+if not isinstance(err, dict):
+    err = {}
+code = err.get("code") or ""
+data = err.get("data") if isinstance(err.get("data"), dict) else {}
+# Older hosts may omit `data` entirely — treat every field as optional.
+for s in data.get("nextSteps") or []:
+    print(f"nextStep: {s}", file=sys.stderr)
+if code in POLICY_CODES:
+    print(f"VERDICT=refused CODE={code}")
+    raise SystemExit(0)
+if code:
+    print(f"VERDICT=failed CODE={code}")
+    raise SystemExit(0)
+
 state = r.get("state") or (r.get("worker") or {}).get("state")
 did = r.get("dispatchId") or r.get("dispatch_id") or ""
+# The agent terminal is the effects[] entry kind=terminal role=agent; agentTerminalHandle is a
+# worker-list/worker-show field, kept as a harmless fallback.
 h = r.get("agentTerminalHandle") or ""
 if not h:
     for e in r.get("effects") or []:
-        if e.get("kind") == "terminal" and e.get("role") == "agent":
+        if isinstance(e, dict) and e.get("kind") == "terminal" and e.get("role") == "agent":
             h = e.get("id") or ""
             break
-if state == "failed" or (state is not None and state != "ready"):
-    print(f"worker-start state={state} — inspect stage/effects before retrying", file=sys.stderr)
-    raise SystemExit(1)
+
+if state == "outcome_unknown":
+    # NOT a failure: the start neither proved nor disproved the worker. The receipt names the
+    # exact inspection commands; a respawn here is the dual-writer class.
+    for c in r.get("nextCommands") or []:
+        print(f"nextCommand: {c}", file=sys.stderr)
+    print(f"VERDICT=unknown STATE={state}")
+    print(f"HANDLE={h} READY={state}")
+    print(f"DISPATCH={did}")
+    raise SystemExit(0)
+if state is not None and state != "ready":
+    print(f"VERDICT=failed STATE={state}")
+    raise SystemExit(0)
+
+print(f"VERDICT=ready STATE={state or 'exit0'}")
 print(f"HANDLE={h} READY={state or 'exit0'}")
 print(f"DISPATCH={did}")
+launch = r.get("launch") if isinstance(r.get("launch"), dict) else {}
+if "effective" in launch:
+    eff = launch["effective"]
+    print("LAUNCH_EFFECTIVE=" + (eff if isinstance(eff, str) else json.dumps(eff, sort_keys=True)))
 PY
+)
+  verdict_line=$(printf '%s\n' "$ws_out" | head -n 1)
+  verdict=${verdict_line#VERDICT=}
+  verdict=${verdict%% *}
+  payload=$(printf '%s\n' "$ws_out" | tail -n +2)
+  # Fail CLOSED on a nonzero call whose receipt named neither a code nor a state: a missing
+  # binary, a truncated write, or a host that answered in some shape we do not parse must never
+  # read as READY just because the parser found nothing to object to.
+  if [ "$verdict" = "ready" ] && [ "$ws_rc" != "0" ]; then
+    verdict=failed
+    verdict_line="VERDICT=failed UNPARSEABLE_RECEIPT rc=${ws_rc}"
+  fi
+
+  step=verify-ready
+  case "$verdict" in
+    ready)
+      printf '%s\n' "$payload"
+      ;;
+    refused)
+      echo "SPAWN=REFUSED task=${task} worker-start refused: ${verdict_line#VERDICT=refused } (policy/usage — nextSteps above; receipt in $ws)" >&2
+      exit 2
+      ;;
+    unknown)
+      printf '%s\n' "$payload"
+      echo "SPAWN=OUTCOME_UNKNOWN task=${task} — the start neither proved nor disproved the worker. Run the nextCommands above (worker-show, then an explicit worker-stop or worker-abandon): INSPECT, NEVER RESPAWN — a second worker beside a live pane is the dual-writer class (liveness-resume.md). Receipt in $ws" >&2
+      exit 4
+      ;;
+    *)
+      echo "SPAWN=FAILED task=${task} step=${step} rc=${ws_rc} — worker-start failed: ${verdict_line#VERDICT=failed } (receipt in $ws)" >&2
+      exit 1
+      ;;
+  esac
 else
   # --- custom-argv lane (overrides + PROFILE=ro): terminal create + dispatch --inject ----------
-  # Deliberately UNSUPERVISED: no worker-lifecycle row; worker-list accounting will not see this
-  # worker and worker-stop/release never close it — the ledger records the trade
-  # (dispatch-lifecycle.md). The bounded Enter loop below is the submit check for this lane
-  # (older CLIs ack the send without receipts; the loop stays bounded and safe).
+  # Deliberately UNSUPERVISED — no worker-lifecycle row, so worker-stop/worker-release never touch
+  # this process. It IS still enumerated: `worker-list` lists it as `unsupervised` with terminal
+  # state `retained` (`orchestration-worker-specs.ts:124` at v1.4.199). Record the trade in the
+  # ledger (dispatch-lifecycle.md).
   step=create-terminal
   tj="$SP/sw-$safe_title.json"
   orca_json "$tj" terminal create --worktree "$sel" --title "$title" --command "$cmd"
@@ -359,35 +507,119 @@ PY
 )
 
   step=wait-tui-idle
-  orca_json "$SP/tw-$safe_title.json" terminal wait --terminal "$h" --for tui-idle --timeout-ms 90000
+  # READ the result. A timed-out wait prints a normal result carrying `wait.satisfied:false` AND
+  # sets exit 1; relying on the exit code alone (v4) was failing closed by accident. An absent
+  # field is an older host, not a false — do not invent a verdict from absence.
+  tw="$SP/tw-$safe_title.json"
+  wait_rc=0
+  orca terminal wait --terminal "$h" --for tui-idle --timeout-ms 90000 --json > "$tw" 2>&1 || wait_rc=$?
+  satisfied=$(python3 - "$tw" <<'PY'
+import json, sys
+try:
+    d = json.load(open(sys.argv[1]))
+except Exception:
+    print("unreadable")
+    raise SystemExit(0)
+r = d.get("result", d) if isinstance(d, dict) else {}
+if isinstance(r, dict) and isinstance(r.get("result"), dict):
+    r = r["result"]
+w = r.get("wait") if isinstance(r, dict) else None
+s = w.get("satisfied") if isinstance(w, dict) else None
+print("true" if s is True else "false" if s is False else "absent")
+PY
+)
+  if [ "$satisfied" = "false" ] || [ "$wait_rc" != "0" ]; then
+    echo "SPAWN=FAILED task=${task} step=${step} rc=1 — terminal wait unsatisfied (wait.satisfied=${satisfied}, cli_rc=${wait_rc}); the TUI never went idle, so an injected preamble would land in a booting pane. Inspect: orca terminal read --terminal ${h} --screen" >&2
+    exit 1
+  fi
   sleep "$SETTLE_SECS"  # let the TUI settle so it can receive the paste
 
   step=dispatch-inject
+  # --inject SUBMITS the preamble; it does not merely paste it. The --json receipt carries
+  # result.prompt{requestId, stages}. There is no Enter to send after this.
   dj="$SP/dispatch-$safe_title.json"
   orca_json "$dj" orchestration dispatch --task "$task" --to "$h" --inject
 
-  sleep "$SUBMIT_SECS"
-  step=submit-enter
-  orca_json "$SP/ts-$safe_title.json" terminal send --terminal "$h" --enter  # SUBMIT the pasted prompt
+  step=read-inject-receipt
+  read_stages() {
+    python3 - "$1" <<'PY'
+import json, sys
+try:
+    d = json.load(open(sys.argv[1]))
+except Exception:
+    print("STAGES= REQUEST=")
+    raise SystemExit(0)
+r = d.get("result", d) if isinstance(d, dict) else {}
+if isinstance(r, dict) and isinstance(r.get("result"), dict):
+    r = r["result"]
+# dispatch --inject returns result.prompt; terminal send returns result.send.prompt.
+p = r.get("prompt") if isinstance(r, dict) else None
+if not isinstance(p, dict):
+    send = r.get("send") if isinstance(r, dict) else None
+    p = send.get("prompt") if isinstance(send, dict) else None
+if not isinstance(p, dict):
+    p = {}
+stages = p.get("stages")
+stages = [s for s in stages if isinstance(s, str)] if isinstance(stages, list) else []
+req = p.get("requestId")
+print("STAGES=" + ",".join(stages) + " REQUEST=" + (req if isinstance(req, str) else ""))
+PY
+  }
+  rcpt=$(read_stages "$dj")
+  stages=${rcpt#STAGES=}
+  stages=${stages%% *}
+  request=${rcpt#* REQUEST=}
 
-  # --- verify a heartbeat; re-Enter up to 3x (legacy CLIs without send receipts) --------------
-  # The bounded re-Enter loop is safe: an extra Enter on an already-submitted claude prompt is an
-  # empty submit (no-op), the terminal is fresh with only our injected prompt in it, and the loop
-  # is bounded at 3. The authoritative verdict is the heartbeat check (exit 3 on failure).
-  step=verify-heartbeat
-  hb=None
-  for _ in 1 2 3; do
-    sleep "$HB_POLL_SECS"
-    if out=$(orca orchestration dispatch-show --task "$task" --json 2>/dev/null); then
-      hb=$(printf '%s' "$out" | python3 -c 'import sys,json;d=json.load(sys.stdin);r=d.get("result",{});x=r.get("dispatch",r);print(x.get("last_heartbeat_at") or "None")' 2>/dev/null || echo None)
-    fi
-    if [ "$hb" != "None" ]; then break; fi
-    orca terminal send --terminal "$h" --enter --json > /dev/null 2>&1 || true
-  done
+  case ",$stages," in
+    *,turn_started,*) : ;;
+    *)
+      # No observed turn start. Replay the receipt ONCE — never resend, never a bare Enter.
+      # --retry-request/--wait-submit require --text with --enter at v1.4.199, and the requestId
+      # is bound to the prompt payload, so recover the exact preamble first.
+      step=recover-preamble
+      pj="$SP/preamble-$safe_title.json"
+      pre_rc=0
+      orca orchestration dispatch-show --task "$task" --preamble --json > "$pj" 2>&1 || pre_rc=$?
+      preamble=$(python3 - "$pj" <<'PY'
+import json, sys
+try:
+    d = json.load(open(sys.argv[1]))
+except Exception:
+    raise SystemExit(0)
+r = d.get("result", d) if isinstance(d, dict) else {}
+if isinstance(r, dict) and isinstance(r.get("result"), dict):
+    r = r["result"]
+p = r.get("preamble") if isinstance(r, dict) else None
+if isinstance(p, str):
+    sys.stdout.write(p)
+PY
+)
+      if [ "$pre_rc" = "0" ] && [ -n "$request" ] && [ -n "$preamble" ]; then
+        step=replay-receipt
+        ts="$SP/ts-$safe_title.json"
+        # ONE replay. On timeout the runtime returns the queued/input-accepted receipt and
+        # never resends; a failure here leaves the lane UNPROVEN rather than duplicating input.
+        if orca terminal send --terminal "$h" --text "$preamble" --enter \
+             --retry-request "$request" --wait-submit "$SUBMIT_SECS" --json > "$ts" 2>&1; then
+          replay=$(read_stages "$ts")
+          replay_stages=${replay#STAGES=}
+          replay_stages=${replay_stages%% *}
+          if [ -n "$replay_stages" ]; then stages="$replay_stages"; fi
+        else
+          echo "SPAWN=REPLAY_REFUSED task=${task} handle=${h} — the host refused the receipt replay (see $ts); NOT resending" >&2
+        fi
+      else
+        echo "SPAWN=REPLAY_SKIPPED task=${task} handle=${h} — no requestId or no recoverable preamble, so the receipt cannot be replayed; NOT resending" >&2
+      fi
+      ;;
+  esac
 
-  echo "HANDLE=$h HB=$hb"
-  if [ "$hb" = "None" ]; then
-    echo "SPAWN=NO_HEARTBEAT task=${task} handle=${h} — READ THE PANE FIRST: a live TUI is a working worker; respawn beside it only after that check (dispatch-lifecycle.md)" >&2
-    exit 3
-  fi
+  echo "HANDLE=$h STAGES=$stages"
+  case ",$stages," in
+    *,turn_started,*) : ;;
+    *)
+      echo "SPAWN=UNPROVEN task=${task} handle=${h} stages=${stages:-none} — the input was accepted but no turn start was observed. accepted proves input acceptance, NOT a started turn. Inspect with: orca terminal read --terminal ${h} --screen — never resend on silence, and never respawn beside this pane (dispatch-lifecycle.md)" >&2
+      exit 3
+      ;;
+  esac
 fi

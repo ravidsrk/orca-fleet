@@ -1,0 +1,27 @@
+{
+  "_comment": "Completion gate for a SYMLINK install (issue #262). hooks/hooks.json wires the gate through ${CLAUDE_PLUGIN_ROOT}, which Claude Code sets only for plugin installs -- a `ln -s` into ~/.claude/skills/ loads no plugin, so it gets no gate. This snippet is the same two hooks with an absolute path instead. Merge it into ~/.claude/settings.json (user) or .claude/settings.json (project). Run hooks/print-settings-snippet.sh from the clone to get this file with the placeholder already resolved. Delete the _comment keys before use if your settings reader is strict.",
+  "hooks": {
+    "TaskCompleted": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__ORCA_FLEET_ROOT__/runtime/scripts/verify-gate.sh --event task"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__ORCA_FLEET_ROOT__/runtime/scripts/verify-gate.sh --event stop"
+          }
+        ]
+      }
+    ]
+  }
+}

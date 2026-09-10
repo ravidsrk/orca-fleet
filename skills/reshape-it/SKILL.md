@@ -2,21 +2,29 @@
 name: reshape-it
 description: >-
   Deepen a lived-in codebase's confirmed hot modules without changing behaviour: a churn-weighted
-  shallowness inventory finds the modules whose interfaces are too wide for what they hide, a human
-  confirms the target surface, a mutation-audited characterization net is pinned BEFORE any
-  restructure, and each module is deepened one seam at a time with build-blind review. The unit is
-  one module-deepening (one interface shrink at one seam). Use when "this module is a god file",
-  "the interface is wider than the implementation", "too many imports to change anything",
-  "architecture erosion", "refactor the hot path safely", "shallow modules", "deep modules".
-  Not for dependency/framework upgrades (modernize-it), a findings backlog (clean-sweep), missing
-  tests (prove-it — though reshape-it borrows its net), or perf (speed-it).
+  shallowness inventory finds the modules whose interfaces are too wide for what they hide, a
+  human confirms the target surface, a mutation-audited characterization net (prove-it's, consumed
+  here) is pinned BEFORE any restructure, and each module is deepened one seam at a time with
+  build-blind review. The unit is one module-deepening (one interface shrink at one seam). Use
+  when "this module is a god file", "the interface is wider than the implementation", "too many
+  imports to change anything", "architecture erosion", "refactor the hot path safely", "shallow
+  modules", "deep modules". Not for dependency/framework upgrades (modernize-it), a findings
+  backlog (clean-sweep), missing tests (prove-it — though reshape-it borrows its net), or perf
+  (speed-it).
 license: MIT
-proof: doctrine-only
-autonomy: L4
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh. The target repo's test
   suite must be runnable and its mutation tooling available for the characterization net. A fix
   worker playbook pack (mattpocock, addyosmani, gstack) — one router per worker.
+metadata:
+  proof: doctrine-only
+  autonomy: L4
+  unit: one module-deepening (one interface shrink at one seam)
+  state_machine: pin a characterization net → shrink the seam → prove behaviour unchanged → land
+  convergence: every targeted seam is deepened with the net green before and after
+  ordering: one seam at a time; the net is pinned before any shape change
+  parking: RESHAPED-WITH-PARKED — a seam left alone names its risk
+  oracle: the characterization net — behaviour preservation, not the new shape
 ---
 
 # reshape-it — deep modules, same behaviour
@@ -27,7 +35,8 @@ outcome with one failure mode that kills most refactors: restructuring without a
 oracle, so the diff is reviewed by vibes. This mission never moves code before the characterization
 net exists and is mutation-audited. Composes `decide-and-freeze` (CONFIRM-SURFACE bounds the target
 list with the human; headless publishes the inventory and PARKS at the gate), `remediate-finding` (one deepening per unit — its reproduce-or-refute step instantiates as the SCAN probes re-measuring the seam (the shallowness evidence IS the reproducible defect), and its failing-first requirement instantiates as the CHARACTERIZE-pinned mutant RED before the deepening, per the §1 carve-out; build-change's irreversibility gate applies to
-public-API breaks), `acceptance-review` (build-blind review per unit), `compound-learn` (which
+public-API breaks), `design-twice` (DEEPEN's interface fork, drafted not argued), `record-decision` (a one-way API break
+is an ADR), `plan-review` (CONFIRM-SURFACE), `acceptance-review` (build-blind review per unit), `compound-learn` (which
 modules resisted deepening and why); rides `evidence-manifest` (each unit carries the before/after
 interface-surface measurement plus the legal negative control for a behaviour-preserving change —
 the speed-it carve-out: (a) the CHARACTERIZE-pinned mutant still KILLED at `head_sha`, so the net

@@ -47,7 +47,9 @@ predates convergence (round-2 threat brief: competitors run public priority doss
 
 | Artifact | sha256 |
 |----------|--------|
-| `head-to-head.txt` | `f40e3f866e62ff3bb5b6aa38ae301d150f99c932da4a59324f0434c9922ba74e` |
+| `head-to-head.txt` | `0b99f4894429763c746ccf73ab0c13aa0defeb71f0ae35d27a6d8906bafa97c5` |
 
 (Re-running `run.sh` re-stamps the timestamp line, so a fresh transcript hashes differently; the value
-above pins the committed snapshot.)
+above pins the committed snapshot and is re-derived from it, not carried forward — the 2026-09-10 deep
+review found this row stale against the file it names, which is exactly the failure an integrity
+inventory exists to prevent. `tests/test_negative_control.py` now re-checks it.)

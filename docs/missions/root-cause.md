@@ -1,6 +1,7 @@
 # 🔬 root-cause — a reproduced symptom, a demonstrated cause
 
-> **Autonomy:** L3 (Osmani L0-L5) - conditional autonomy - the human owns the verdict or the plan.
+> **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel hypothesis workers, one falsification each; the demonstrated cause is a report you act on — a gate class, not a lower rung.
+> **Activation load:** ~15,400 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
 
 > Bring it the bug with neither a frozen spec nor an enumerable backlog — the flake, the
@@ -177,7 +178,8 @@ brief — dispatching it is a separately authorized decision, not this mission's
 ## Composes
 
 Playbooks: [`diagnose`](../../playbooks/diagnose.md) (DIAGNOSIS phases only — the mission stops
-before its fix phase)
+before its fix phase) ·
+[`agent-brief`](../../playbooks/agent-brief.md)
 
 Runtime policies: [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`liveness-resume`](../../runtime/liveness-resume.md) ·

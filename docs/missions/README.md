@@ -6,7 +6,7 @@ built to prevent. The agent-facing contracts live in [`skills/`](../../skills/);
 for the human deciding what to run and what to expect.
 
 <p align="center">
-  <img src="../../assets/diagrams/mission-map.jpg" alt="Decision map: a goal to build routes to map-it then ship-it; known problems route to clean-sweep, oss-contribute, harden-it, speed-it, modernize-it, prove-it, deflake-it, floor-it, reshape-it, attest-it, access-it, or field-test-it; a question routes to review-it or root-cause; drifted tooling routes to pin-it" width="820">
+  <img src="../../assets/diagrams/mission-map.jpg" alt="Decision map: a goal to build routes to map-it then ship-it; known problems route to clean-sweep, oss-contribute, absorb-it, harden-it, speed-it, modernize-it, migrate-it, prove-it, deflake-it, floor-it, reshape-it, attest-it, access-it, oncall-it, document-it, or field-test-it; a question routes to review-it or root-cause; drifted tooling routes to pin-it" width="820">
 </p>
 
 | Guide | One line |
@@ -28,6 +28,10 @@ for the human deciding what to run and what to expect.
 | 🧱 [floor-it](floor-it.md)         | A written, numbered quality bar — every dimension tool-enforced and proven to fire |
 | 🧬 [reshape-it](reshape-it.md)     | Hot modules deepened behind smaller interfaces, behaviour proven unchanged |
 | 📱 [field-test-it](field-test-it.md) | Defects reproduced, fixed, and re-proven on a real device — revert control included |
+| 🗄️ [migrate-it](migrate-it.md)     | A stateful shape change landed phase by phase across deploys — parity proven, zero readers before the drop |
+| 📟 [oncall-it](oncall-it.md)       | A frozen path set made operable — alerts test-fired, and an induced failure named by a source-blind worker |
+| 📥 [absorb-it](absorb-it.md)       | An inbound PR queue drained — landed with authorship and a receipt, refuted, or parked with a named ask |
+| 📚 [document-it](document-it.md)   | A public surface covered by quadrant with zero critical gaps — every claim anchored and rename-controlled |
 
 Not sure which one? The [decision flowchart in the README](../../README.md#which-mission-do-i-want)
 routes by what you have in hand: a goal, a set of known problems, or a question. For a real run

@@ -9,9 +9,12 @@ import contextlib
 import hashlib
 import importlib.util
 import io
+import itertools
 import json
 import os
+import shlex
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -23,23 +26,76 @@ verify = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(verify)
 
 
-def _src(ids):
-    f = tempfile.NamedTemporaryFile("w", suffix=".md", delete=False)
-    f.write("frozen\n" + "".join(f"- {i}: x\n" for i in ids))
-    f.close()
-    return f.name
-
-
-def _digest(path):
-    # Mirrors the coordinator's `shasum -a 256` — raw bytes, no newline translation (#180).
-    return "sha256:" + hashlib.sha256(Path(path).read_bytes()).hexdigest()
-
-
 def _crit(*ids):
     return [{"id": i, "addressed": True} for i in ids]
 
 
-class ScopeCheck(unittest.TestCase):
+_SRC_SEQ = itertools.count()
+
+
+def _src(ids):
+    """A frozen-contract fixture written into the CURRENT directory and named relatively — #267
+    refuses absolute and out-of-repo evidence paths, so every fixture lives in the case's temp repo
+    (all callers are RepoCase subclasses, which chdir there)."""
+    rel = f"contract-{next(_SRC_SEQ)}.md"
+    Path(rel).write_text("frozen\n" + "".join(f"- {i}: x\n" for i in ids), encoding="utf-8")
+    return rel
+
+
+def _digest(rel):
+    # Mirrors the coordinator's `shasum -a 256` — raw bytes, no newline translation (#180).
+    return "sha256:" + hashlib.sha256(Path(rel).read_bytes()).hexdigest()
+
+
+class RepoCase(unittest.TestCase):
+    """#267 bounds every evidence path to the git toplevel and requires a manifest-named artifact to
+    be PINNED, so fixtures live INSIDE a hermetic temp repo and are named relatively — which is also
+    how a real manifest names them. The process cwd is the repo for the duration of the test, since
+    verify.py's git legs and path resolution both run there."""
+
+    def setUp(self):
+        self._td = tempfile.TemporaryDirectory()
+        self.repo = Path(self._td.name).resolve()
+        self.git("init", "-q", "-b", "main")
+        self._cwd = os.getcwd()
+        os.chdir(self.repo)
+        self.addCleanup(self._leave)
+
+    def _leave(self):
+        os.chdir(self._cwd)
+        self._td.cleanup()
+
+    def git(self, *args):
+        return subprocess.run(["git", *args], cwd=self.repo, check=True,
+                              capture_output=True, text=True).stdout.strip()
+
+    def commit(self, message="c"):
+        self.git("add", "-A")
+        self.git("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", message)
+        return self.git("rev-parse", "HEAD")
+
+    def write(self, rel, text):
+        p = self.repo / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_bytes(text if isinstance(text, bytes) else text.encode("utf-8"))
+        return rel
+
+    def src(self, ids, rel="contract.md"):
+        return self.write(rel, "frozen\n" + "".join(f"- {i}: x\n" for i in ids))
+
+    def digest(self, rel):
+        # Mirrors the coordinator's `shasum -a 256` — raw bytes, no newline translation (#180).
+        return "sha256:" + hashlib.sha256((self.repo / rel).read_bytes()).hexdigest()
+
+    def artifact(self, text, rel="docs/reports/u/nc.txt"):
+        return self.write(rel, text)
+
+    def pin(self, rel):
+        """An `artifacts[]` inventory entry pinning an UNTRACKED working-tree artifact (#267)."""
+        return {"path": rel, "sha256": hashlib.sha256((self.repo / rel).read_bytes()).hexdigest()}
+
+
+class ScopeCheck(RepoCase):
     """The denominator is the coordinator's authoritative contract, not the manifest."""
 
     def _fatal(self, m, src, dig):
@@ -50,10 +106,10 @@ class ScopeCheck(unittest.TestCase):
         self.assertTrue(any("no authoritative contract" in e for e in self._fatal(m, None, None)))
 
     def test_full_scope_passes(self):
-        p = _src(["AC-1"])
-        m = {"contract": {"source": p, "digest": _digest(p), "criterion_ids": ["AC-1"]},
+        p = self.src(["AC-1"])
+        m = {"contract": {"source": p, "digest": self.digest(p), "criterion_ids": ["AC-1"]},
              "criteria": _crit("AC-1")}
-        self.assertEqual(self._fatal(m, p, _digest(p)), [])
+        self.assertEqual(self._fatal(m, p, self.digest(p)), [])
 
     def test_scope_shrink_fails(self):
         p = _src(["AC-1", "AC-2"])
@@ -83,7 +139,7 @@ class ScopeCheck(unittest.TestCase):
                             for e in self._fatal(m, p, "sha256:deadbeef")))
 
 
-class UnitClassSelection(unittest.TestCase):
+class UnitClassSelection(RepoCase):
     """#110: mutation-class comes from the dispatch, never the manifest; missing => mutation."""
 
     def test_is_mutation_fail_safe(self):
@@ -231,61 +287,96 @@ class ReviewCheck(unittest.TestCase):
         self.assertEqual(verify.check_review({"unit": "review-it"}, "o/r", False), [])
 
 
-class NegativeControlCheck(unittest.TestCase):
-    def _artifact(self, text):
-        f = tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False)
-        f.write(text)
-        f.close()
-        return f.name
+class NegativeControlCheck(RepoCase):
+    def _m(self, text, **nc):
+        """A manifest whose NC artifact is written in-repo and PINNED by artifacts[] (#267)."""
+        rel = self.artifact(text)
+        return {"unit": "ship-it", "artifacts": [self.pin(rel)],
+                "negative_control": {"artifact": rel, **nc}}
+
+    def _errs(self, m, execute=False):
+        errs, _executed = verify.check_negative_control(m, True, execute=execute)
+        return errs
 
     def test_missing_nc_fails(self):
-        self.assertTrue(any("negative_control" in e for e in
-                            verify.check_negative_control({"unit": "ship-it"}, True)))
+        self.assertTrue(any("negative_control" in e for e in self._errs({"unit": "ship-it"})))
 
     def test_arbitrary_strings_fail(self):
         m = {"unit": "ship-it", "negative_control": {"tool": "x", "result": "y"}}
-        self.assertTrue(any("negative_control" in e for e in verify.check_negative_control(m, True)))
+        self.assertTrue(any("negative_control" in e for e in self._errs(m)))
 
     def test_uncorroborating_artifact_fails(self):
-        art = self._artifact("nothing to see here\n")
-        m = {"unit": "ship-it", "negative_control": {
-            "tool": "mutmut", "mutant": "m#7", "result": "KILLED", "artifact": art}}
-        self.assertTrue(any("artifact does not" in e for e in verify.check_negative_control(m, True)))
+        m = self._m("nothing to see here\n", tool="mutmut", mutant="m#7", result="KILLED")
+        self.assertTrue(any("artifact does not" in e for e in self._errs(m)))
 
     def test_corroborating_artifact_passes(self):
-        art = self._artifact("mutant m#7 was KILLED\n")
-        m = {"unit": "ship-it", "negative_control": {
-            "tool": "mutmut", "mutant": "m#7", "result": "KILLED", "artifact": art}}
-        self.assertEqual(verify.check_negative_control(m, True), [])
+        m = self._m("mutant m#7 was KILLED\n", tool="mutmut", mutant="m#7", result="KILLED")
+        self.assertEqual(self._errs(m), [])
 
     def test_negation_artifact_fails(self):
-        art = self._artifact("mutant m#7 SURVIVED — it was NOT killed\n")
-        m = {"unit": "ship-it", "negative_control": {
-            "tool": "mutmut", "mutant": "m#7", "result": "KILLED", "artifact": art}}
-        self.assertTrue(any("SURVIVED" in e for e in verify.check_negative_control(m, True)))
+        m = self._m("mutant m#7 SURVIVED — it was NOT killed\n",
+                    tool="mutmut", mutant="m#7", result="KILLED")
+        self.assertTrue(any("SURVIVED" in e for e in self._errs(m)))
 
-    def test_execute_nc_is_fail_closed(self):
-        art = self._artifact("mutant m#7 was KILLED\n")
-        m = {"unit": "ship-it", "negative_control": {
-            "tool": "mutmut", "mutant": "m#7", "result": "KILLED", "artifact": art}}
-        self.assertTrue(any("execute-nc" in e for e in
-                            verify.check_negative_control(m, True, execute=True)))
+    def test_execute_nc_fails_closed_for_an_unreplayable_tool(self):
+        # #255: replay exists for `revert` and `hand`. Every other tool under --execute-nc must
+        # fail CLOSED — an unreplayable control is not an executed one, and a caller that ASKED
+        # for execution must never get a pass built on a text read.
+        m = self._m("mutant m#7 was KILLED\n", tool="mutmut", mutant="m#7", result="KILLED")
+        errs, executed = verify.check_negative_control(m, True, execute=True)
+        self.assertFalse(executed)
+        self.assertTrue(any("no replay is implemented" in e for e in errs), errs)
 
     def test_report_only_unit_skips_nc(self):
-        self.assertEqual(verify.check_negative_control({"unit": "review-it"}, False), [])
+        self.assertEqual(verify.check_negative_control({"unit": "review-it"}, False), ([], False))
 
     def test_hand_nc_without_quoted_diff_fails(self):
         # `hand` carries no pinned mutant id, so an artifact without the diff is unbound evidence.
-        art = self._artifact("the suite went RED\n")
-        m = {"unit": "ship-it", "negative_control": {
-            "tool": "hand", "result": "RED", "artifact": art}}
-        self.assertTrue(any("hand-written diff" in e for e in verify.check_negative_control(m, True)))
+        m = self._m("the suite went RED\n", tool="hand", result="RED")
+        self.assertTrue(any("hand-written diff" in e for e in self._errs(m)))
 
     def test_hand_nc_with_quoted_diff_passes(self):
-        art = self._artifact("--- a/x.py\n+++ b/x.py\n-old\n+new\nthe suite went RED\n")
+        m = self._m("--- a/x.py\n+++ b/x.py\n-old\n+new\nthe suite went RED\n",
+                    tool="hand", result="RED")
+        self.assertEqual(self._errs(m), [])
+
+    def test_unpinned_working_tree_artifact_is_refused(self):
+        # #267: present on disk, inside the repo, but neither tracked at head_sha nor carrying a
+        # sha256 in artifacts[] — a file that can be rewritten between the run and the audit.
+        rel = self.artifact("mutant m#7 was KILLED\n")
         m = {"unit": "ship-it", "negative_control": {
-            "tool": "hand", "result": "RED", "artifact": art}}
-        self.assertEqual(verify.check_negative_control(m, True), [])
+            "tool": "mutmut", "mutant": "m#7", "result": "KILLED", "artifact": rel}}
+        self.assertTrue(any("unpinned evidence" in e for e in self._errs(m)))
+
+    def test_pinned_hash_mismatch_is_refused(self):
+        # #267: the artifact changed after it was inventoried — tamper-evident, as promised.
+        m = self._m("mutant m#7 was KILLED\n", tool="mutmut", mutant="m#7", result="KILLED")
+        self.artifact("mutant m#7 was KILLED (rewritten after the inventory)\n")
+        self.assertTrue(any("artifacts[] pins" in e for e in self._errs(m)))
+
+    def test_artifact_tracked_at_head_needs_no_inventory_entry(self):
+        # #267's other leg: a committed artifact is immutable at head_sha, so the blob AT THAT
+        # COMMIT is read and no artifacts[] hash is required.
+        rel = self.artifact("mutant m#7 was KILLED\n")
+        head = self.commit("evidence")
+        m = {"unit": "ship-it", "head_sha": head, "negative_control": {
+            "tool": "mutmut", "mutant": "m#7", "result": "KILLED", "artifact": rel}}
+        self.assertEqual(self._errs(m), [])
+
+    def test_absolute_artifact_path_is_refused(self):
+        # REVIEW.md A10: the artifact walked out of the repo entirely.
+        outside = Path(tempfile.mkdtemp()) / "nc.txt"
+        self.addCleanup(lambda: outside.unlink(missing_ok=True))
+        outside.write_text("killed m#7\n", encoding="utf-8")
+        m = {"unit": "ship-it", "negative_control": {
+            "tool": "mutmut", "mutant": "m#7", "result": "KILLED", "artifact": str(outside)}}
+        self.assertTrue(any("absolute evidence path refused" in e for e in self._errs(m)))
+
+    def test_escaping_relative_artifact_path_is_refused(self):
+        m = {"unit": "ship-it", "negative_control": {
+            "tool": "mutmut", "mutant": "m#7", "result": "KILLED",
+            "artifact": "../outside/nc.txt"}}
+        self.assertTrue(any("escapes the repo toplevel" in e for e in self._errs(m)))
 
 
 class ReadSourceGuard(unittest.TestCase):
@@ -402,12 +493,21 @@ class ReviewLookupBinding(unittest.TestCase):
         res = verify.check_review(self._m(), "o/r", True)
         self.assertTrue(any("cannot resolve" in e.lower() for e in res), res)
 
-    def test_dark_eligible_waives_review(self):
-        # #145: a dark-eligible unit (coordinator dispatch) lands without a human review; the
-        # verifier waives the review leg (NOTE) — the negative control remains the oracle.
+    def test_dark_eligible_waives_review_only_with_an_executed_control(self):
+        # #145 + #256: a dark-eligible unit (coordinator dispatch) lands without a human review, so
+        # the negative control is the whole oracle — and it must have been EXECUTED. With
+        # nc_executed the review leg is a NOTE; without it the lane is RED.
         verify.fetch_reviews = lambda repo, n: ([], None)
-        res = verify.check_review(self._m(), "o/r", True, corroborated=True, dispatch_lighting="dark-eligible")
+        res = verify.check_review(self._m(), "o/r", True, corroborated=True,
+                                  dispatch_lighting="dark-eligible", nc_executed=True)
         self.assertTrue(res and all(e.startswith("NOTE:") for e in res), res)
+
+    def test_dark_eligible_with_a_read_only_control_fails_closed(self):
+        # REVIEW.md A1/A4/A6/A9: this exact lane went GREEN on a text file the worker wrote.
+        res = verify.check_review(self._m(), "o/r", True, corroborated=True,
+                                  dispatch_lighting="dark-eligible", nc_executed=False)
+        self.assertTrue(any("EXECUTED" in e for e in res), res)
+        self.assertFalse(any(e.startswith("NOTE:") for e in res), res)
 
     def test_dark_eligible_uncorroborated_fails_closed(self):
         # #149 review: a dark-eligible waiver on a worker-forgeable oracle (no out-of-band contract)
@@ -538,23 +638,41 @@ class ShasBinding(unittest.TestCase):
 
 
 class CriterionExtraction(unittest.TestCase):
-    """#126: extraction catches hyphenated AND compact ids (over-count is fail-safe)."""
+    """#126 / #268: extraction catches hyphenated AND compact ids where a contract author DECLARES
+    one — at the head of a list item or line, followed by a separator — and nowhere else."""
 
     def test_extracts_hyphenated_and_compact(self):
-        ids = verify.extract_criterion_ids("- AC-1: x\n- SC12: y\n- REQ-3 z\n")
-        self.assertEqual({"AC-1", "SC12", "REQ-3"}, ids)
+        ids = verify.extract_criterion_ids("- AC-1: x\n- SC12: y\n3. REQ-3) z\nREQ-4. w\n")
+        self.assertEqual({"AC-1", "SC12", "REQ-3", "REQ-4"}, ids)
+
+    def test_a11_realistic_contract_prose_is_not_a_criterion(self):
+        # REVIEW.md A11, the one FALSE RED in the bypass log: a realistic contract whose prose
+        # names a hash, a PR, an RFC and a date format. The denominator is exactly {AC-1, AC-2};
+        # counting the prose tokens made every real contract unverifiable.
+        contract = (
+            "# Frozen contract\n\n"
+            "- AC-1: the token digest is SHA-256 over the raw bytes\n"
+            "- AC-2: see PR-12 and RFC-7519, and emit ISO-8601 timestamps\n"
+        )
+        self.assertEqual(verify.extract_criterion_ids(contract), {"AC-1", "AC-2"})
+
+    def test_json_criterion_ids_are_preferred(self):
+        # A JSON contract declares its denominator outright — no text heuristic runs at all.
+        payload = json.dumps({"criterion_ids": ["AC-1", "SC-9"], "notes": "mentions RFC-7519"})
+        self.assertEqual(verify.extract_criterion_ids(payload), {"AC-1", "SC-9"})
+
+    def test_indented_and_starred_list_items_still_count(self):
+        ids = verify.extract_criterion_ids("  * AC-7: x\n\t- SC-8: y\n")
+        self.assertEqual({"AC-7", "SC-8"}, ids)
 
 
-class RawByteDigest(unittest.TestCase):
+class RawByteDigest(RepoCase):
     """#180: the scope digest is computed over RAW BYTES, exactly what the coordinator's
     `shasum -a 256` sees — a CRLF contract must verify against its byte digest, and an LF
     contract's digest must be unchanged (byte-identical behavior for LF files)."""
 
     def _write(self, raw):
-        f = tempfile.NamedTemporaryFile("wb", suffix=".md", delete=False)
-        f.write(raw)
-        f.close()
-        return f.name
+        return self.write("crlf-contract.md", raw)
 
     def test_crlf_contract_matches_shasum_digest(self):
         raw = b"frozen\r\n- AC-1: x\r\n- AC-2: y\r\n"
@@ -603,26 +721,32 @@ class RawByteDigest(unittest.TestCase):
             self.assertEqual(fatal, [])
 
 
-class NoGhReviewLane(unittest.TestCase):
+class NoGhReviewLane(RepoCase):
     """#118: the offline no-gh lane has a defined, non-silent pass path (a local reviewer artifact)."""
 
-    def _artifact(self, text):
-        f = tempfile.NamedTemporaryFile("w", suffix=".md", delete=False)
-        f.write(text)
-        f.close()
-        return f.name
+    def _m(self, text, head="HEADSHA123"):
+        rel = self.write("docs/reports/u/review.md", text)
+        return {"unit": "ship-it", "head_sha": head, "artifacts": [self.pin(rel)],
+                "review": {"artifact": rel}}
 
-    def test_no_gh_with_reviewer_artifact_passes_as_note(self):
-        art = self._artifact("reviewed HEADSHA123 — approved by a fresh reviewer\n")
-        m = {"unit": "ship-it", "head_sha": "HEADSHA123", "review": {"artifact": art}}
-        res = verify.check_review(m, None, True, no_gh=True, corroborated=True)
+    def test_no_gh_with_executed_control_passes_as_note(self):
+        m = self._m("reviewed HEADSHA123 — approved by a fresh reviewer\n")
+        res = verify.check_review(m, None, True, no_gh=True, corroborated=True, nc_executed=True)
         self.assertTrue(res and all(e.startswith("NOTE:") for e in res), res)
+
+    def test_no_gh_without_executed_control_fails_closed(self):
+        # #256: the no-gh lane replaces the GitHub review with a worker-written file, so the
+        # negative control is the only oracle left and it must have been EXECUTED. This is the
+        # exact shape of REVIEW.md A2, which landed with a NOTE and exit 0.
+        m = self._m("reviewed HEADSHA123 — approved by a fresh reviewer\n")
+        res = verify.check_review(m, None, True, no_gh=True, corroborated=True, nc_executed=False)
+        self.assertTrue(any("EXECUTED" in e for e in res), res)
+        self.assertFalse(any(e.startswith("NOTE:") for e in res), res)
 
     def test_no_gh_uncorroborated_fails_closed(self):
         # #138: without an out-of-band coordinator contract the local artifact is worker-forgeable.
-        art = self._artifact("reviewed HEADSHA123 — approved by a fresh reviewer\n")
-        m = {"unit": "ship-it", "head_sha": "HEADSHA123", "review": {"artifact": art}}
-        res = verify.check_review(m, None, True, no_gh=True, corroborated=False)
+        m = self._m("reviewed HEADSHA123 — approved by a fresh reviewer\n")
+        res = verify.check_review(m, None, True, no_gh=True, corroborated=False, nc_executed=True)
         self.assertTrue(any("forgeable" in e and not e.startswith("NOTE:") for e in res), res)
 
     def test_no_gh_missing_artifact_fails_closed(self):
@@ -631,10 +755,15 @@ class NoGhReviewLane(unittest.TestCase):
         self.assertTrue(any(not e.startswith("NOTE:") for e in res), res)
 
     def test_no_gh_artifact_not_referencing_head_fails(self):
-        art = self._artifact("reviewed some other sha\n")
-        m = {"unit": "ship-it", "head_sha": "HEADSHA123", "review": {"artifact": art}}
+        m = self._m("reviewed some other sha\n")
         res = verify.check_review(m, None, True, no_gh=True)
         self.assertTrue(any("does not reference head_sha" in e for e in res), res)
+
+    def test_no_gh_artifact_outside_the_repo_fails(self):
+        # #267: the reviewer record is manifest-named evidence too — same binding as the NC.
+        m = {"unit": "ship-it", "head_sha": "H", "review": {"artifact": "/etc/hostname"}}
+        res = verify.check_review(m, None, True, no_gh=True)
+        self.assertTrue(any("absolute evidence path refused" in e for e in res), res)
 
 
 class ProvenanceCheck(unittest.TestCase):
@@ -697,65 +826,57 @@ class MalformedManifest(unittest.TestCase):
         self.assertEqual(verify.main(["--manifest", self._tmp("[1, 2, 3]")]), 2)
 
 
-class NegativeControlSurvivor(unittest.TestCase):
+class NegativeControlSurvivor(RepoCase):
     """#137: survivor summaries (plural / percentage / count) must be rejected, not accepted."""
 
-    def _m(self, artifact):
-        return {"negative_control": {"tool": "mutmut", "result": "killed", "mutant": "m7",
-                                     "artifact": artifact}}
-
-    def _art(self, text):
-        f = tempfile.NamedTemporaryFile("w", suffix=".md", delete=False)
-        f.write(text)
-        f.close()
-        return f.name
+    def _errs(self, text):
+        rel = self.artifact(text)
+        m = {"artifacts": [self.pin(rel)],
+             "negative_control": {"tool": "mutmut", "result": "killed", "mutant": "m7",
+                                  "artifact": rel}}
+        errs, _executed = verify.check_negative_control(m, True)
+        return errs
 
     def test_percentage_survivor_rejected(self):
-        art = self._art("m7 mutation applied. Mutants that survived: 1. 0.0% killed.\n")
-        self.assertTrue(verify.check_negative_control(self._m(art), True))
+        self.assertTrue(self._errs("m7 mutation applied. Mutants that survived: 1. 0.0% killed.\n"))
 
     def test_summary_counts_survivor_rejected(self):
-        art = self._art("m7: Survived: 1 / Killed: 0\n")
-        self.assertTrue(verify.check_negative_control(self._m(art), True))
+        self.assertTrue(self._errs("m7: Survived: 1 / Killed: 0\n"))
 
     def test_zero_mutants_killed_rejected(self):
-        art = self._art("m7 ran; 0 mutants killed.\n")
-        self.assertTrue(verify.check_negative_control(self._m(art), True))
+        self.assertTrue(self._errs("m7 ran; 0 mutants killed.\n"))
 
     def test_pinned_mutant_survived_rejected(self):
-        art = self._art("Run over 4 mutants: 3 killed. m7 survived the revert.\n")
-        self.assertTrue(any("SURVIVED" in e for e in verify.check_negative_control(self._m(art), True)))
+        errs = self._errs("Run over 4 mutants: 3 killed. m7 survived the revert.\n")
+        self.assertTrue(any("SURVIVED" in e for e in errs))
 
     def test_pinned_survivor_with_delimiter_rejected(self):
         # #152 review: "m7: Survived: 1" (colon-delimited) while OTHER mutants were killed must still
         # reject — the pinned mutant survived. A zero count ("survived: 0") is a kill, not a survivor.
-        art = self._art("Run over 4 mutants: 3 killed. m7: Survived: 1.\n")
-        self.assertTrue(any("SURVIVED" in e for e in verify.check_negative_control(self._m(art), True)))
+        errs = self._errs("Run over 4 mutants: 3 killed. m7: Survived: 1.\n")
+        self.assertTrue(any("SURVIVED" in e for e in errs))
 
     def test_pinned_zero_survivors_passes(self):
-        art = self._art("m7 revert applied. m7: survived: 0. 1 killed, RED.\n")
-        self.assertEqual(verify.check_negative_control(self._m(art), True), [])
+        self.assertEqual(self._errs("m7 revert applied. m7: survived: 0. 1 killed, RED.\n"), [])
 
     def test_pinned_zero_survivors_dash_delimited_passes(self):
         # #154 review: the zero-count lookahead must accept the same delimiters as the prefix, so
         # "m7 - survived - 0" (zero survivors) is a kill, not a false survivor.
-        art = self._art("m7 revert applied. m7 - survived - 0. 1 killed, RED.\n")
-        self.assertEqual(verify.check_negative_control(self._m(art), True), [])
+        self.assertEqual(self._errs("m7 revert applied. m7 - survived - 0. 1 killed, RED.\n"), [])
 
     def test_pinned_survivor_greater_than_zero_rejected(self):
         # #155 review: "m7 survived > 0" is a survivor, not a zero count — must reject.
-        art = self._art("Run: 3 killed. m7 survived > 0.\n")
-        self.assertTrue(any("SURVIVED" in e for e in verify.check_negative_control(self._m(art), True)))
+        errs = self._errs("Run: 3 killed. m7 survived > 0.\n")
+        self.assertTrue(any("SURVIVED" in e for e in errs))
 
     def test_multimutant_run_with_pinned_killed_passes(self):
         # #149 review: a multi-mutant run where OTHER mutants survived but the pinned mutant m7 was
         # killed is valid — the whole-artifact survivor scan must not reject it.
-        art = self._art("m7 KILLED. Summary: 5 mutants, 2 survived, 3 killed. Proof went RED.\n")
-        self.assertEqual(verify.check_negative_control(self._m(art), True), [])
+        self.assertEqual(
+            self._errs("m7 KILLED. Summary: 5 mutants, 2 survived, 3 killed. Proof went RED.\n"), [])
 
     def test_genuine_kill_still_passes(self):
-        art = self._art("m7 KILLED — 1 killed, 0 survived. Proof went RED.\n")
-        self.assertEqual(verify.check_negative_control(self._m(art), True), [])
+        self.assertEqual(self._errs("m7 KILLED — 1 killed, 0 survived. Proof went RED.\n"), [])
 
 
 class GitAuthorityChecks(unittest.TestCase):
@@ -869,7 +990,7 @@ class InferRepoFromOrigin(unittest.TestCase):
         self.assertIsNone(verify.infer_repo())
 
 
-class EndToEndMutationGreen(unittest.TestCase):
+class EndToEndMutationGreen(RepoCase):
     """#183: a complete mutation manifest must drive verify() to GREEN (exit 0) END-TO-END — every
     mutation lane (scope, SHAs, review, negative control, intent, lighting, reviewer_mode) passing
     simultaneously through the aggregation's NOTE/fatal partition. Only the GitHub fetch seam
@@ -879,30 +1000,20 @@ class EndToEndMutationGreen(unittest.TestCase):
     (a pass path that stops starting with "NOTE:") flips these tests red."""
 
     def setUp(self):
-        self._tmp = tempfile.TemporaryDirectory()
-        repo = Path(self._tmp.name)
-
-        def git(*args):
-            return subprocess.run(["git", *args], cwd=repo, check=True,
-                                  capture_output=True, text=True)
-
-        git("init", "-q", "-b", "main")
-        Path(repo, "app.py").write_text("def f():\n    return 1\n", encoding="utf-8")
-        git("add", "app.py")
-        git("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "base")
-        self.base_sha = git("rev-parse", "HEAD").stdout.strip()
-        Path(repo, "app.py").write_text("def f():\n    return 2\n", encoding="utf-8")
-        git("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qam", "head")
-        self.head_sha = git("rev-parse", "HEAD").stdout.strip()
-
-        self.contract = _src(["AC-1"])
-        self.addCleanup(lambda p=self.contract: Path(p).unlink(missing_ok=True))
-        self.digest = _digest(self.contract)
-        art = tempfile.NamedTemporaryFile("w", suffix=".md", delete=False)
-        art.write("mutant m7 was KILLED — proof went RED\n")
-        art.close()
-        self.nc_artifact = art.name
-        self.addCleanup(lambda p=self.nc_artifact: Path(p).unlink(missing_ok=True))
+        super().setUp()
+        # A REAL unit: a module whose behaviour the fix changes, a criterion-bound proof command
+        # that binds to it, the frozen contract, and the NC artifact — all committed, so every
+        # evidence path is repo-relative and tracked at head_sha (#267).
+        self.write("app.py", "def f():\n    return 1\n")
+        self.write("check.py", "import app\nassert app.f() == 2, 'AC-1 violated'\n")
+        self.contract = self.src(["AC-1"])
+        self.nc_artifact = self.artifact("mutant m7 was KILLED — proof went RED\n")
+        self.base_sha = self.commit("base")
+        self.write("app.py", "def f():\n    return 2\n")
+        self.head_sha = self.commit("head")
+        self.head_tree = self.git("rev-parse", "HEAD^{tree}")
+        self.digest = RepoCase.digest(self, self.contract)  # shadows the helper; computed once
+        self.proof_cmd = f"{shlex.quote(sys.executable)} check.py"
 
         self._orig_r = verify.fetch_reviews
         self._orig_a = verify.fetch_pr_author
@@ -928,16 +1039,11 @@ class EndToEndMutationGreen(unittest.TestCase):
         verify.check_review = spy_review
         verify.check_negative_control = spy_nc
 
-        self._cwd = os.getcwd()
-        os.chdir(repo)  # verify.py's git legs run in the process cwd
-
     def tearDown(self):
-        os.chdir(self._cwd)
         verify.fetch_reviews = self._orig_r
         verify.fetch_pr_author = self._orig_a
         verify.check_review = self._orig_check_review
         verify.check_negative_control = self._orig_check_nc
-        self._tmp.cleanup()
 
     def _assert_mutation_lanes_ran(self):
         self.assertTrue(self.review_calls,
@@ -949,25 +1055,37 @@ class EndToEndMutationGreen(unittest.TestCase):
         for args, _kwargs in self.nc_calls:
             self.assertTrue(args[1], "NC check ran with is_mutation=False")
 
-    def _manifest(self, lighting="lit"):
+    def _manifest(self, lighting="lit", nc=None, commands=None):
         m = {"unit": "slice-2",
              "base_sha": self.base_sha, "head_sha": self.head_sha,
              "contract": {"source": self.contract, "digest": self.digest,
                           "criterion_ids": ["AC-1"]},
              "criteria": _crit("AC-1"),
              "pr": {"number": 7, "reviewed_sha": self.head_sha},
-             "negative_control": {"tool": "mutmut", "result": "KILLED", "mutant": "m7",
-                                  "artifact": self.nc_artifact},
+             "negative_control": nc or {"tool": "mutmut", "result": "KILLED", "mutant": "m7",
+                                        "artifact": self.nc_artifact},
+             # The content-bound ledger: an exit-0 run whose wtree is head_sha's tree, carrying the
+             # cmd_sha256 evidence-run.py writes. --execute-nc will only replay a command that is
+             # in here (PR #277 review): a unit does not get to nominate what proves it.
+             "commands": commands if commands is not None else [
+                 {"label": "tests", "cmd": self.proof_cmd,
+                  "cmd_sha256": hashlib.sha256(self.proof_cmd.encode("utf-8")).hexdigest(),
+                  "exit": 0, "wtree": self.head_tree,
+                  "artifact": self.nc_artifact}],
              "intent": {"goal": "land the change", "ruled_out": "the alternatives",
                         "why": "the criterion demands it"},
              "reviewer_mode": "cross-vendor"}
         if lighting is not None:  # None = omit the key entirely (#169: omission means lit)
             m["lighting"] = lighting
-        fh = tempfile.NamedTemporaryFile("w", suffix=".json", delete=False)
-        json.dump(m, fh)
-        fh.close()
-        self.addCleanup(lambda p=fh.name: Path(p).unlink(missing_ok=True))
-        return fh.name
+        path = self.repo / "manifest.json"
+        path.write_text(json.dumps(m), encoding="utf-8")
+        return str(path)
+
+    def _revert_nc(self):
+        """A real, EXECUTABLE negative control: restore app.py from base_sha and the bound proof
+        command must go RED."""
+        return {"tool": "revert", "result": "RED — the bound test failed under the control",
+                "artifact": self.nc_artifact, "command": self.proof_cmd, "paths": ["app.py"]}
 
     def test_full_pass_mutation_manifest_is_green_end_to_end(self):
         path = self._manifest()
@@ -992,21 +1110,177 @@ class EndToEndMutationGreen(unittest.TestCase):
         self.assertIn("verify: OK", buf.getvalue())
         self._assert_mutation_lanes_ran()
 
-    def test_dark_eligible_corroborated_lane_is_green(self):
-        # The review-waived lane: dark-eligible dispatch + an out-of-band contract (corroborated)
-        # => the review leg is a NOTE, not a fatal; the negative control remains the oracle.
-        path = self._manifest(lighting="dark-eligible")
-        buf = io.StringIO()
-        with contextlib.redirect_stdout(buf):
+    def _run_main(self, path, *extra):
+        buf, errbuf = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(errbuf):
             rc = verify.main(["--manifest", path,
                               "--contract-source", self.contract,
                               "--contract-digest", self.digest,
-                              "--repo", "o/r",
-                              "--unit-class", "mutation",
-                              "--lighting", "dark-eligible"])
-        self.assertEqual(rc, 0)
-        self.assertIn("dark-eligible", buf.getvalue())
+                              "--repo", "o/r", "--unit-class", "mutation", *extra])
+        return rc, buf.getvalue(), errbuf.getvalue()
+
+    def test_dark_eligible_with_an_executed_revert_is_green(self):
+        # #255 + #256, the whole point: the review-waived lane goes GREEN only when the negative
+        # control is REALLY EXECUTED — app.py restored from base_sha in a throwaway worktree at
+        # head_sha, the bound command RED there and GREEN at clean head_sha.
+        path = self._manifest(lighting="dark-eligible", nc=self._revert_nc())
+        rc, out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc")
+        self.assertEqual(rc, 0, err)
+        self.assertIn("negative control EXECUTED", out)
+        self.assertIn("exits 0 at clean head_sha", out)
+        self.assertIn("dark-eligible", out)
         self._assert_mutation_lanes_ran()
+
+    def test_dark_eligible_without_execute_nc_is_red(self):
+        # REVIEW.md A1/A4/A6/A9 replayed: the same manifest, the control merely READ.
+        path = self._manifest(lighting="dark-eligible", nc=self._revert_nc())
+        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible")
+        self.assertEqual(rc, 2)
+        self.assertIn("EXECUTED", err)
+
+    def test_tautological_control_is_red(self):
+        # The control applies, but the "proof" passes anyway — it does not bind to the change it
+        # claims to prove. A gate that reads artifacts can never see this.
+        self.write("check.py", "import app\nassert True\n")
+        head = self.commit("tautological proof")
+        nc = {**self._revert_nc(), "artifact": self.nc_artifact}
+        path = self._manifest(lighting="dark-eligible", nc=nc, commands=[
+            {"label": "tests", "cmd": self.proof_cmd,
+             "cmd_sha256": hashlib.sha256(self.proof_cmd.encode("utf-8")).hexdigest(),
+             "exit": 0, "wtree": self.git("rev-parse", "HEAD^{tree}")}])
+        manifest = json.loads(Path(path).read_text(encoding="utf-8"))
+        manifest["head_sha"] = head
+        manifest["pr"]["reviewed_sha"] = head
+        Path(path).write_text(json.dumps(manifest), encoding="utf-8")
+        verify.fetch_reviews = lambda repo_, n: (
+            [{"state": "APPROVED", "commit_id": head, "user": {"login": "carol"}}], None)
+        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc")
+        self.assertEqual(rc, 2)
+        self.assertIn("TAUTOLOGICAL", err)
+
+    def test_a_command_absent_from_the_ledger_is_refused(self):
+        # PR #277 review, P1: `negative_control.command` is worker-written. A worker free to
+        # nominate any command can pick one that fails under the control and passes clean —
+        # green gate, criterion never run — and hands the verifier arbitrary argv besides.
+        # The replay may only run a command the content-bound ledger already recorded green
+        # at head_sha's tree.
+        nc = {**self._revert_nc(), "command": "/bin/false"}
+        path = self._manifest(lighting="dark-eligible", nc=nc)
+        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc")
+        self.assertEqual(rc, 2)
+        self.assertIn("is not in the evidence ledger", err)
+        self.assertNotIn("TAUTOLOGICAL", err)  # refused before it was ever executed
+
+    def test_a_ledger_record_whose_sha_does_not_match_is_refused(self):
+        # cmd_sha256 that does not hash its own cmd binds nothing; a decorative digest
+        # would let a record be edited after the fact.
+        path = self._manifest(lighting="dark-eligible", nc=self._revert_nc(), commands=[
+            {"label": "tests", "cmd": self.proof_cmd, "cmd_sha256": "0" * 64,
+             "exit": 0, "wtree": self.head_tree}])
+        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc")
+        self.assertEqual(rc, 2)
+        self.assertIn("does not describe its own command", err)
+
+    def test_a_stale_ledger_record_cannot_supply_the_command(self):
+        # The record must be fresh at head_sha's tree, the same rule check_commands applies.
+        path = self._manifest(lighting="dark-eligible", nc=self._revert_nc(), commands=[
+            {"label": "tests", "cmd": self.proof_cmd,
+             "cmd_sha256": hashlib.sha256(self.proof_cmd.encode("utf-8")).hexdigest(),
+             "exit": 0, "wtree": "0" * 40}])
+        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc")
+        self.assertEqual(rc, 2)
+        self.assertIn("is not in the evidence ledger", err)
+
+    def test_coordinator_nc_command_overrides_and_must_agree(self):
+        # --contract-source's shape, for the proof command: the coordinator supplies it out of
+        # band, and a manifest that names a different one is refused rather than silently obeyed.
+        path = self._manifest(lighting="dark-eligible", nc=self._revert_nc())
+        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc",
+                                       "--nc-command", "/bin/true")
+        self.assertEqual(rc, 2)
+        self.assertIn("is not the command the coordinator supplied out of band", err)
+
+    def test_coordinator_nc_command_that_agrees_is_accepted(self):
+        path = self._manifest(lighting="dark-eligible", nc=self._revert_nc())
+        rc, out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc",
+                                      "--nc-command", self.proof_cmd)
+        self.assertEqual(rc, 0, err)
+        self.assertIn("negative control EXECUTED", out + err)
+
+    def test_executed_control_needs_a_bound_command(self):
+        nc = {k: v for k, v in self._revert_nc().items() if k != "command"}
+        path = self._manifest(lighting="dark-eligible", nc=nc)
+        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc")
+        self.assertEqual(rc, 2)
+        self.assertIn("negative_control.command", err)
+
+    def test_executed_hand_control_applies_the_quoted_diff(self):
+        # `hand`'s only binding to a mutation is the diff quoted in its artifact — so EXECUTING it
+        # means applying exactly that diff. A fabricated diff (REVIEW.md A4) will not apply.
+        diff = self.git("diff", f"{self.head_sha}..{self.base_sha}", "--", "app.py")
+        art = self.artifact("hand mutant applied — the bound test went RED\n\n" + diff + "\n",
+                            rel="docs/reports/u/hand.txt")
+        self.commit("hand nc artifact")
+        nc = {"tool": "hand", "result": "RED", "artifact": art, "command": self.proof_cmd}
+        path = self._manifest(lighting="dark-eligible", nc=nc, commands=[
+            {"label": "tests", "cmd": self.proof_cmd,
+             "cmd_sha256": hashlib.sha256(self.proof_cmd.encode("utf-8")).hexdigest(),
+             "exit": 0, "wtree": self.git("rev-parse", "HEAD^{tree}")}])
+        manifest = json.loads(Path(path).read_text(encoding="utf-8"))
+        head = self.git("rev-parse", "HEAD")
+        manifest["head_sha"] = head
+        manifest["pr"]["reviewed_sha"] = head
+        Path(path).write_text(json.dumps(manifest), encoding="utf-8")
+        verify.fetch_reviews = lambda repo_, n: (
+            [{"state": "APPROVED", "commit_id": head, "user": {"login": "carol"}}], None)
+        rc, out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc")
+        self.assertEqual(rc, 0, err)
+        self.assertIn("negative control EXECUTED", out)
+
+    def test_fabricated_hand_diff_does_not_apply(self):
+        art = self.artifact(
+            "hand mutant applied:\n--- a/app.py\n+++ b/app.py\n@@ -9,9 +9,9 @@\n"
+            "-    return something_that_is_not_there\n+    return other\n"
+            "the bound test went RED (mutant killed)\n", rel="docs/reports/u/hand.txt")
+        self.commit("fabricated hand artifact")
+        nc = {"tool": "hand", "result": "RED", "artifact": art, "command": self.proof_cmd}
+        path = self._manifest(lighting="dark-eligible", nc=nc, commands=[
+            {"label": "tests", "cmd": self.proof_cmd,
+             "cmd_sha256": hashlib.sha256(self.proof_cmd.encode("utf-8")).hexdigest(),
+             "exit": 0, "wtree": self.git("rev-parse", "HEAD^{tree}")}])
+        manifest = json.loads(Path(path).read_text(encoding="utf-8"))
+        manifest["head_sha"] = self.git("rev-parse", "HEAD")
+        Path(path).write_text(json.dumps(manifest), encoding="utf-8")
+        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc")
+        self.assertEqual(rc, 2)
+        self.assertIn("does not apply at head_sha", err)
+
+    def test_stale_commands_ledger_is_red(self):
+        # A recorded run on OTHER content does not certify this head (audit §3 item 3).
+        path = self._manifest(commands=[{"label": "tests", "cmd": self.proof_cmd, "exit": 0,
+                                         "wtree": "0" * 40}])
+        rc, _out, err = self._run_main(path)
+        self.assertEqual(rc, 2)
+        self.assertIn("STALE evidence", err)
+
+    def test_missing_commands_ledger_is_red(self):
+        path = self._manifest(commands=[])
+        rc, _out, err = self._run_main(path)
+        self.assertEqual(rc, 2)
+        self.assertIn("no recorded command", err)
+
+    def test_credential_in_an_artifact_fails_the_unit(self):
+        # #14: evidence is SHA-pinned and permanent, so a leaked credential in it is permanent.
+        self.artifact("mutant m7 was KILLED — proof went RED\n"
+                      "run with AKIA" + "Q" * 16 + " exported\n")
+        self.commit("leaky artifact")
+        path = self._manifest()
+        manifest = json.loads(Path(path).read_text(encoding="utf-8"))
+        manifest["head_sha"] = self.git("rev-parse", "HEAD")
+        Path(path).write_text(json.dumps(manifest), encoding="utf-8")
+        rc, _out, err = self._run_main(path)
+        self.assertEqual(rc, 2)
+        self.assertIn("redaction", err)
 
     def test_omitted_lighting_is_lit_end_to_end(self):
         # #169: a mutation manifest with no lighting key verifies clean — omission means lit.
@@ -1047,7 +1321,7 @@ dispatch_sign = importlib.util.module_from_spec(_dsspec)
 _dsspec.loader.exec_module(dispatch_sign)
 
 
-class DispatchProvenance(unittest.TestCase):
+class DispatchProvenance(RepoCase):
     """#135: a coordinator-signed dispatch record makes the native in-session path sound — a worker
     that substitutes the digest / class / lighting, forges the record, or omits it is caught."""
 
@@ -1057,9 +1331,10 @@ class DispatchProvenance(unittest.TestCase):
         pub = ed.publickey(seed)
         sig = ed.signature(verify._canonical_dispatch(record), sign_key or seed, ed.publickey(sign_key) if sign_key else pub)
         env = {"record": record, "sig_b64": base64.b64encode(sig).decode()}
-        rec = tempfile.NamedTemporaryFile("w", suffix=".json", delete=False); rec.write(json.dumps(env)); rec.close()
-        pk = tempfile.NamedTemporaryFile("w", suffix=".pub", delete=False); pk.write(pub.hex()); pk.close()
-        return rec.name, pk.name
+        # #267: read_source refuses absolute paths, so the record and key are named relatively —
+        # which is how a real dispatch names them anyway (a repo-pinned `.orca/dispatch-pubkey`).
+        return (self.write(".orca/dispatch-record.json", json.dumps(env)),
+                self.write(".orca/dispatch-pubkey", pub.hex()))
 
     _M = {"unit": "u"}
 

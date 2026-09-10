@@ -1,0 +1,41 @@
+{
+  "skill_name": "document-it",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Our public API and CLI are basically undocumented — build the docs out properly and make sure what they say is actually true.",
+      "expected_output": "Should route to document-it. Should extract the public surface with a script at the base head, map coverage per Diataxis quadrant with grep-able evidence, freeze the gap list at a human gate, write reference cells first from code archaeology, anchor every factual claim to a file:symbol or a pasted run with a rename negative control, review build-blind, land, and re-derive the map at the final head.",
+      "assertions": [
+        "Routes to document-it",
+        "Unit is one public-surface entity by quadrant coverage cell",
+        "The surface is extracted by a script, not by reading",
+        "Reference cells land before how-to and tutorial cells for the same entity",
+        "Every claim has a verified anchor and renaming the anchored fact turns the check RED",
+        "Terminal is DOCUMENTED or DOCUMENTED-WITH-PARKED"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "The README claims we support Postgres 12 and the setup steps do not work — verify every claim and fix the false ones.",
+      "expected_output": "Should NOT route to document-it. Removing false claims from docs that already exist is clean-sweep with source=doc-claims: the unit is a false claim and the terminal is zero false claims. document-it's unit is an empty coverage cell.",
+      "assertions": [
+        "Does not route to document-it",
+        "Routes to clean-sweep with source=doc-claims",
+        "Distinguishes a false-claim denominator from a coverage-gap denominator"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "We just merged the billing wave — update the docs so they match what shipped.",
+      "expected_output": "Should NOT route to document-it as its own run. Syncing docs to one wave's diff is ship-it's doc-sync unit inside the release states; document-it owns the whole public surface, not a wave.",
+      "assertions": [
+        "Does not route to document-it",
+        "Routes to ship-it's doc-sync unit",
+        "Distinguishes the wave's diff from the whole public surface"
+      ],
+      "files": []
+    }
+  ]
+}

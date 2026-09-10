@@ -1,0 +1,45 @@
+{
+  "id": "fabricated-nc-no-gh-1",
+  "class": "fabricated-negative-control-waiver-lane",
+  "sound_expected": "RED",
+  "note": "REVIEW.md A2, replayed against the run-time fixture. The sanctioned offline lane (dispatch --no-gh) swaps the GitHub review lookup for review.artifact — a local reviewer record naming head_sha, which the worker also writes. Two worker-written text files then stand in for BOTH remaining authorities, and before #256 that exited 0 with only a NOTE. Here both files are present, correctly shaped, head-referencing and sha256-pinned in artifacts[]; the coordinator's out-of-band contract corroborates the run; the commands ledger is fresh. The only thing missing is that nobody EXECUTED the control — which is now exactly enough to make it RED.",
+  "unit_class": "mutation",
+  "fixture": "mutation-revert",
+  "execute_nc": false,
+  "no_gh": true,
+  "lighting": "lit",
+  "manifest": {
+    "unit": "vf-bench-no-gh-forged",
+    "base_sha": "{{base_sha}}",
+    "head_sha": "{{head_sha}}",
+    "lighting": "lit",
+    "reviewer_mode": "same-vendor-fresh",
+    "intent": {
+      "goal": "make add() return the sum, as AC-1 requires",
+      "ruled_out": "widening the interface beyond AC-1",
+      "why": "AC-1 is the contracted denominator"
+    },
+    "contract": {
+      "source": "contract.md",
+      "digest": "{{contract_digest}}",
+      "criterion_ids": ["AC-1"]
+    },
+    "criteria": [
+      {"id": "AC-1", "text": "add(a, b) returns a + b", "addressed": true}
+    ],
+    "commands": [
+      {"label": "tests", "cmd": "{{proof_cmd}}", "exit": 0, "wtree": "{{head_tree}}"}
+    ],
+    "artifacts": [
+      {"path": "docs/reports/vf/nc.txt", "sha256": "{{nc_sha256}}"},
+      {"path": "docs/reports/vf/review.txt", "sha256": "{{review_sha256}}"}
+    ],
+    "review": {"artifact": "docs/reports/vf/review.txt"},
+    "negative_control": {
+      "did": "reverted the production line",
+      "tool": "revert",
+      "result": "the criterion-bound test went RED (mutant KILLED)",
+      "artifact": "docs/reports/vf/nc.txt"
+    }
+  }
+}

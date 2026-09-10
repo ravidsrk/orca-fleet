@@ -53,6 +53,11 @@ ROOT = Path(__file__).resolve().parent.parent
 _eval_spec = importlib.util.spec_from_file_location("_eval_validator", ROOT / "scripts" / "eval.py")
 _eval_validator = importlib.util.module_from_spec(_eval_spec)
 _eval_spec.loader.exec_module(_eval_validator)
+_rr_spec = importlib.util.spec_from_file_location(
+    "run_report", ROOT / "runtime" / "scripts" / "run_report.py"
+)
+_run_report = importlib.util.module_from_spec(_rr_spec)
+_rr_spec.loader.exec_module(_run_report)
 SKILLS_DIR = ROOT / "skills"
 PLAYBOOKS_DIR = ROOT / "playbooks"
 RUNTIME_DIR = ROOT / "runtime"
@@ -72,7 +77,19 @@ SPEC_FRONTMATTER_FIELDS = {
     "metadata",
     "compatibility",
 }
-REPO_EXTRA_FRONTMATTER = {"proof", "autonomy", "proof_evidence"}
+# The repo's own machine-checked claims live under the spec's extension point,
+# `metadata:` (issue #263). Top level is the spec allowlist and nothing else:
+# skills-ref (`agentskills validate`), `package_skill.py`, the claude.ai upload
+# path and the Skills API all HARD-ERROR on an unexpected top-level key, so a
+# repo extra there makes the catalog unpackageable through Anthropic's own paths.
+#
+# `unit` … `oracle` are the six-point mission-identity tuple of ARCHITECTURE.md
+# made machine-readable (issue #265): declaring it is what makes the identity
+# test executable instead of a paragraph, and `identity_collisions()` below
+# fails the build when two missions declare the same six.
+IDENTITY_KEYS = ("unit", "state_machine", "convergence", "ordering", "parking", "oracle")
+METADATA_KEYS = {"proof", "autonomy", "proof_evidence", *IDENTITY_KEYS}
+METADATA_VALUE_MAX = 160
 # Mutating missions land code; they must ride the SHA-bound evidence protocol so
 # completion is never graded on worker narration. Report-only / planning /
 # diagnosis missions bind evidence differently and are not in this set.
@@ -90,10 +107,24 @@ MUTATING_MISSIONS = {
     "floor-it",
     "reshape-it",
     "field-test-it",
+    "migrate-it",
+    "oncall-it",
+    "absorb-it",
+    "document-it",
 }
-# Instruction budget (lines, whole file). The predecessor's mandatory instruction
-# surface hit ~42K tokens with no counterpressure; these caps are the counterpressure.
-MISSION_MAX_LINES = 130
+# Instruction budget. The predecessor's mandatory instruction surface hit ~42K
+# tokens with no counterpressure; these caps are the counterpressure.
+#
+# A mission's budget is split, because a whole-file cap prices declarations and
+# instructions the same: a mission that spends 30 lines on machine-readable
+# frontmatter would have to delete 30 lines of protocol to pay for it. The BODY
+# cap is the instruction surface and is ratcheted to the measured catalog
+# maximum (110 lines, pin-it) — no mission has headroom, so a protocol line
+# costs a protocol line. The FRONTMATTER cap bounds the declarations separately.
+# Raising either is a deliberate diff, which is the point.
+MISSION_BODY_MAX_LINES = 110
+MISSION_FRONTMATTER_MAX_LINES = 34
+MISSION_MAX_LINES = MISSION_BODY_MAX_LINES + MISSION_FRONTMATTER_MAX_LINES
 PLAYBOOK_MAX_LINES = 90
 RUNTIME_MAX_LINES = 160
 # A single 166KB line beats a line-count cap; a byte budget (generous headroom over the largest
@@ -240,7 +271,20 @@ def known_protocol_names():
     return names
 
 
+def _unquote(val):
+    if len(val) >= 2 and val[0] == val[-1] and val[0] in "\"'":
+        return val[1:-1]
+    return val
+
+
 def parse_frontmatter(text):
+    """Minimal YAML-frontmatter reader: scalars, block scalars, one nested map.
+
+    The nested map is what the agentskills.io spec calls the extension point:
+    `metadata:` followed by indented `key: value` lines is returned as a dict.
+    A bare `key:` with nothing indented under it still returns "<object>", so
+    the "compatibility must be a string" error keeps its shape.
+    """
     if not text.startswith("---"):
         return None, "missing opening ---"
     end = text.find("\n---", 4)
@@ -251,6 +295,7 @@ def parse_frontmatter(text):
     current_key = None
     multiline_indicator = None
     multiline_value = []
+    nested_key = None
     for line in block.split("\n"):
         if multiline_indicator and (line.startswith("  ") or line.strip() == ""):
             multiline_value.append(line[2:] if line.startswith("  ") else line)
@@ -259,22 +304,28 @@ def parse_frontmatter(text):
             data[current_key] = " ".join(l.strip() for l in multiline_value if l.strip())
             multiline_indicator = None
             multiline_value = []
+        if nested_key is not None and line.startswith("  ") and line.strip():
+            sub = re.match(r"^\s+([a-zA-Z_-][a-zA-Z0-9_-]*):\s*(.*)$", line)
+            if sub:
+                if data[nested_key] == "<object>":
+                    data[nested_key] = {}
+                if isinstance(data[nested_key], dict):
+                    data[nested_key][sub.group(1)] = _unquote(sub.group(2).strip())
+                continue
         m = re.match(r"^([a-zA-Z_-][a-zA-Z0-9_-]*):\s*(.*)$", line)
         if m:
+            nested_key = None
             key, val = m.group(1), m.group(2).strip()
             if val in (">", "|", ">-", "|-"):
                 current_key = key
                 multiline_indicator = val
                 multiline_value = []
-            elif val.startswith('"') and val.endswith('"'):
-                data[key] = val[1:-1]
-            elif val.startswith("'") and val.endswith("'"):
-                data[key] = val[1:-1]
             elif val == "":
                 current_key = key
+                nested_key = key
                 data[key] = "<object>"
             else:
-                data[key] = val
+                data[key] = _unquote(val)
     if multiline_indicator:
         data[current_key] = " ".join(l.strip() for l in multiline_value if l.strip())
     return data, None
@@ -292,6 +343,14 @@ def read_text_safe(path):
         return None, "unreadable: not valid UTF-8"
     except OSError as err:
         return None, f"unreadable: {err}"
+
+
+def split_budget(text):
+    """(frontmatter lines, body lines) — declarations and instructions priced apart."""
+    m = re.match(r"^---[ \t]*\r?\n(.*?)\r?\n---[ \t]*\r?\n", text, re.S)
+    if not m:
+        return 0, len(text.splitlines())
+    return len(m.group(1).splitlines()) + 2, len(text[m.end():].splitlines())
 
 
 def validate_skill(skill_dir, protocols):
@@ -324,16 +383,50 @@ def validate_skill(skill_dir, protocols):
     elif not (1 <= len(data["description"]) <= 1024):
         errors.append(f"description length {len(data['description'])} out of 1-1024")
 
-    extras = set(data) - SPEC_FRONTMATTER_FIELDS - REPO_EXTRA_FRONTMATTER
+    extras = set(data) - SPEC_FRONTMATTER_FIELDS
     if extras:
         errors.append(
-            "unexpected frontmatter fields "
+            "unexpected top-level frontmatter fields "
             + ", ".join(f"'{k}'" for k in sorted(extras))
-            + " — spec allowlist is "
+            + " — the spec allowlist is "
             + str(sorted(SPEC_FRONTMATTER_FIELDS))
-            + "; repo extras are "
-            + str(sorted(REPO_EXTRA_FRONTMATTER))
+            + "; repo claims belong under 'metadata:' (issue #263)"
         )
+
+    meta = data.get("metadata")
+    if meta is None:
+        errors.append(
+            "missing 'metadata:' block (proof, autonomy, and the six identity keys live there)"
+        )
+        meta = {}
+    elif not isinstance(meta, dict):
+        errors.append("metadata must be a map of string keys to string values")
+        meta = {}
+    else:
+        unknown = set(meta) - METADATA_KEYS
+        if unknown:
+            errors.append(
+                "unexpected metadata keys "
+                + ", ".join(f"'{k}'" for k in sorted(unknown))
+                + f" — allowed: {sorted(METADATA_KEYS)}"
+            )
+        for key, value in sorted(meta.items()):
+            if not isinstance(value, str) or not value.strip():
+                errors.append(f"metadata.{key} must be a non-empty string")
+            elif len(value) > METADATA_VALUE_MAX:
+                errors.append(
+                    f"metadata.{key} is {len(value)} chars > {METADATA_VALUE_MAX} "
+                    "— the tuple is a claim, not a paragraph"
+                )
+
+    # Six-point mission identity (ARCHITECTURE.md). Each point is declared, so
+    # "is this a mission or a mode of another?" is answered by a diff, not a memo.
+    for key in IDENTITY_KEYS:
+        if not (meta.get(key) or "").strip():
+            errors.append(
+                f"missing metadata.{key} — all six identity points "
+                f"{list(IDENTITY_KEYS)} are required (ARCHITECTURE.md)"
+            )
 
     if "compatibility" in data:
         c = data["compatibility"]
@@ -344,13 +437,13 @@ def validate_skill(skill_dir, protocols):
 
     # proof status: honest by construction — no mission presents itself as proven
     # without a run report on disk
-    proof = data.get("proof")
+    proof = meta.get("proof")
     if proof is None:
         errors.append("missing 'proof' field (doctrine-only | self-run | external-run)")
     elif proof not in PROOF_VALUES:
         errors.append(f"proof '{proof}' invalid (want one of {sorted(PROOF_VALUES)})")
     elif proof != "doctrine-only":
-        evidence = data.get("proof_evidence", "")
+        evidence = meta.get("proof_evidence", "")
         ev_path = (ROOT / evidence).resolve() if evidence else None
         runs_dir = (ROOT / "docs" / "runs").resolve()
         if (
@@ -376,19 +469,36 @@ def validate_skill(skill_dir, protocols):
                     f"proof '{proof}': proof_evidence {evidence} must be mission '{name}'s run report "
                     f"— name the mission in the filename (docs/runs/<date>-{name}-*.md) and the body"
                 )
+            # …and the report has to be BOUND, not merely named (issue #259): a
+            # RUN: header, a manifest inside the run's own directory, and an
+            # inventory that re-hashes at the commit it was computed at.
+            errors.extend(_run_report.check_report(evidence, name, proof, ROOT))
 
     # autonomy level (Osmani L0-L5): a first-class, machine-readable claim sibling to
     # proof — the level a mission safely runs at, gated by how cheaply it is verified.
-    autonomy = data.get("autonomy")
+    autonomy = meta.get("autonomy")
     if autonomy is None:
         errors.append("missing 'autonomy' field (L0-L5)")
     elif autonomy not in AUTONOMY_VALUES:
         errors.append(f"autonomy '{autonomy}' invalid (want one of {sorted(AUTONOMY_VALUES)})")
 
-    lines = len(text.splitlines())
-    if lines > MISSION_MAX_LINES:
+    fm_lines, body_lines = split_budget(text)
+    if body_lines > MISSION_BODY_MAX_LINES:
         errors.append(
-            f"instruction budget: {lines} lines > {MISSION_MAX_LINES} (mission cap)"
+            f"instruction budget: {body_lines} body lines > {MISSION_BODY_MAX_LINES} "
+            "(mission cap; frontmatter is budgeted separately)"
+        )
+    if fm_lines > MISSION_FRONTMATTER_MAX_LINES:
+        errors.append(
+            f"frontmatter budget: {fm_lines} lines > {MISSION_FRONTMATTER_MAX_LINES} "
+            "(declarations cap)"
+        )
+    load, _parts = transitive_load(skill_dir, protocols)
+    if load > MISSION_MAX_LOAD_TOKENS:
+        errors.append(
+            f"activation load: ~{load} tokens > {MISSION_MAX_LOAD_TOKENS} — SKILL.md plus "
+            "every doc its Composes/rides clause makes mandatory. Move a phase's doc behind "
+            "a 'read <doc> when entering <phase>' cue instead of raising the cap"
         )
     nbytes = len(text.encode("utf-8"))
     if nbytes > MISSION_MAX_BYTES:
@@ -508,6 +618,162 @@ def check_layer_separation(root=None):
             continue  # skills/<name>/SKILL.md — the one discoverable form
         leaks.append(str(rel))
     return sorted(leaks)
+
+
+# Transitive activation load (issue #276). The line/byte caps above bound each
+# FILE; nothing bounded what a mission makes a coordinator read on activation:
+# its SKILL.md, every playbook and runtime doc named in its Composes/rides
+# clause, and every repo-root doc it links. Measured, ship-it comes to ~29K
+# tokens — roughly 6x what agentskills.io recommends per activated skill, and
+# the shape the predecessor died of at ~42K.
+#
+# The cap is a RATCHET, not the recommendation: set at the catalog's measured
+# maximum so no mission may grow its activation load, and lowered only by real
+# restructuring (per-phase "read <doc> when entering X" cues instead of a single
+# read-everything compose clause). Naming the gap honestly and freezing it beats
+# a 5K cap that would red every mission on day one and be raised by lunchtime.
+TOKENS_PER_BYTE = 0.25  # the crude bytes/4 estimate the REVIEW.md measurement used
+MISSION_MAX_LOAD_TOKENS = 34_000
+ROOT_DOC_RE = re.compile(r"\]\((?:\.\./)+([A-Z][A-Z0-9_.-]*\.md)\)")
+
+
+def _repo_rel(path):
+    """Repo-relative when the path is inside ROOT, absolute otherwise.
+
+    A fixture skill dir lives in a temp tree while the protocols it composes are
+    the real ones; `Path.relative_to` raises across that boundary.
+    """
+    try:
+        return str(path.relative_to(ROOT))
+    except ValueError:
+        return str(path)
+
+
+def transitive_load(skill_dir, protocols=None):
+    """(tokens, {path: tokens}) a coordinator reads to activate this mission.
+
+    SKILL.md + every playbook/runtime doc its Composes/rides clause names + every
+    repo-root doc it links (ARCHITECTURE.md and friends). One hop: what a doc
+    itself references is the coordinator's on-demand read, not activation load.
+    """
+    skill_md = skill_dir / "SKILL.md"
+    text, err = read_text_safe(skill_md)
+    if err or text is None:
+        return 0, {}
+    parts = {f"skills/{skill_dir.name}/SKILL.md": len(text.encode("utf-8"))}
+    protocols = protocols if protocols is not None else known_protocol_names()
+    # Only what the Composes/rides clause makes MANDATORY. A protocol named in
+    # prose ("see `mission-chaining.md`") is an on-demand pointer, not activation
+    # load — counting it would inflate the number and blur what the cap is for.
+    mandatory = set()
+    for clause in COMPOSE_CLAUSE_RE.findall(text):
+        mandatory |= set(BACKTICK_RE.findall(clause))
+        mandatory |= set(bare_md_stems(clause))
+    for name in sorted(mandatory):
+        if name not in protocols:
+            continue
+        for base in (PLAYBOOKS_DIR, RUNTIME_DIR):
+            doc = base / f"{name}.md"
+            if doc.is_file():
+                body, doc_err = read_text_safe(doc)
+                if not doc_err and body is not None:
+                    parts[_repo_rel(doc)] = len(body.encode("utf-8"))
+                break
+    for root_doc in sorted(set(ROOT_DOC_RE.findall(text))):
+        doc = ROOT / root_doc
+        if doc.is_file():
+            body, doc_err = read_text_safe(doc)
+            if not doc_err and body is not None:
+                parts[root_doc] = len(body.encode("utf-8"))
+    tokens = {path: round(n * TOKENS_PER_BYTE) for path, n in parts.items()}
+    return sum(tokens.values()), tokens
+
+
+def load_report(root=None):
+    """[(mission, tokens)] descending — the activation-load table."""
+    skills_dir = (root or ROOT) / "skills"
+    protocols = known_protocol_names()
+    rows = []
+    for skill_dir in sorted(skills_dir.iterdir()):
+        if not skill_dir.is_dir() or skill_dir.name.startswith((".", "_")):
+            continue
+        if not (skill_dir / "SKILL.md").is_file():
+            continue
+        total, _parts = transitive_load(skill_dir, protocols)
+        rows.append((skill_dir.name, total))
+    rows.sort(key=lambda row: (-row[1], row[0]))
+    return rows
+
+
+# Identity-tuple comparison. A point is "the same" when its two declarations
+# carry the same content words; six same points means one mission wearing two
+# names, which is exactly what ARCHITECTURE.md forbids.
+_IDENTITY_STOPWORDS = {
+    "a", "an", "and", "any", "are", "as", "at", "be", "by", "every", "for",
+    "from", "in", "into", "is", "it", "its", "no", "not", "of", "on", "one",
+    "or", "per", "that", "the", "their", "then", "this", "to", "with",
+}
+IDENTITY_POINT_SAME = 0.85
+
+
+def _identity_tokens(value):
+    words = re.findall(r"[a-z0-9_]+", (value or "").lower())
+    return {w for w in words if w not in _IDENTITY_STOPWORDS}
+
+
+def _point_similarity(a, b):
+    ta, tb = _identity_tokens(a), _identity_tokens(b)
+    if not ta or not tb:
+        return 0.0
+    return len(ta & tb) / len(ta | tb)
+
+
+def identity_collisions(root=None):
+    """Mission pairs that declare the same six identity points.
+
+    ARCHITECTURE.md: two workflows are the same mission only if they share ALL
+    six. So the executable form of that test is — no pair may match on six.
+    A pair matching on five is reported as a WARN: legal, but it is the shape
+    that the access-it / field-test-it / pin-it argument had to be made for, so
+    it should never pass unnoticed.
+    """
+    skills_dir = (root or ROOT) / "skills"
+    tuples = {}
+    for skill_dir in sorted(skills_dir.iterdir()):
+        skill_md = skill_dir / "SKILL.md" if skill_dir.is_dir() else None
+        if not skill_md or not skill_md.exists():
+            continue
+        text, read_err = read_text_safe(skill_md)
+        if read_err:
+            continue
+        data, err = parse_frontmatter(text)
+        if err or not isinstance(data, dict):
+            continue
+        meta = data.get("metadata")
+        if isinstance(meta, dict) and all(meta.get(k) for k in IDENTITY_KEYS):
+            tuples[skill_dir.name] = tuple(meta[k] for k in IDENTITY_KEYS)
+    errors, warnings = [], []
+    names = sorted(tuples)
+    for i, a in enumerate(names):
+        for b in names[i + 1:]:
+            same = [
+                key
+                for key, va, vb in zip(IDENTITY_KEYS, tuples[a], tuples[b])
+                if _point_similarity(va, vb) >= IDENTITY_POINT_SAME
+            ]
+            if len(same) == len(IDENTITY_KEYS):
+                errors.append(
+                    f"{a} and {b} declare the same six identity points — "
+                    "one mission with two names (ARCHITECTURE.md); merge them or "
+                    "state which point actually differs"
+                )
+            elif len(same) == len(IDENTITY_KEYS) - 1:
+                differs = [k for k in IDENTITY_KEYS if k not in same]
+                warnings.append(
+                    f"{a} and {b} differ on only {differs[0]} — legal, but the "
+                    "argument for keeping both belongs in ARCHITECTURE.md"
+                )
+    return errors, warnings
 
 
 def check_evals():
@@ -638,6 +904,15 @@ def main():
         print("\nFAIL protocol cross-references — dangling refs in playbooks/runtime:")
         for failure in doc_failures:
             print(f"   - {failure}")
+
+    identity_errors, identity_warnings = identity_collisions()
+    if identity_errors:
+        all_passed = False
+        print("\nFAIL mission identity — two missions declare the same six points:")
+        for error in identity_errors:
+            print(f"   - {error}")
+    for warning in identity_warnings:
+        print(f"WARN mission identity — {warning}")
 
     eval_errors = check_evals()
     if eval_errors:

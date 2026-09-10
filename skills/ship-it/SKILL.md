@@ -1,23 +1,30 @@
 ---
 name: ship-it
 description: >-
-  Turn intent or a frozen spec into a released, verified outcome on Orca. Entry is either a
-  frozen spec (validate → decompose) or raw intent (grill → freeze → decompose); after freeze
-  both enter one canonical pipeline: decompose → build (tested slices) → acceptance review →
-  runtime-prove → land → release → observe, stopping at the highest release state you're
-  authorized to reach (BUILT / PROMOTION_READY / RELEASED / DEPLOYED_AND_VERIFIED). Use when
-  "build and ship this", "spec to shipped product", "ship this feature", or an autonomous
-  build-to-release run. Not for closing an existing backlog (that's clean-sweep) or a foggy
-  goal that needs charting first (that's map-it).
+  Turn intent or a frozen spec into a released, verified outcome on Orca. Entry is either a frozen
+  spec (validate → decompose) or raw intent (grill → freeze → decompose); after freeze both enter
+  one canonical pipeline: decompose → build (tested slices) → acceptance review → runtime-prove →
+  land → release → observe, stopping at the highest release state you're authorized to reach
+  (BUILT / PROMOTION_READY / RELEASED / DEPLOYED_AND_VERIFIED). Use when "build and ship this",
+  "spec to shipped product", "ship this feature", "ship this fix", "land this change", "build me
+  <feature>", or an autonomous build-to-release run. Not for closing an existing backlog
+  (clean-sweep), diagnosing why a build or test fails (root-cause), or a foggy goal that needs
+  charting first (map-it).
 license: MIT
-proof: self-run
-proof_evidence: docs/runs/2026-08-28-ship-it-self-run.md
-autonomy: L4
 compatibility: >-
   HARD dependency: Orca runtime + the orchestration skill (Orca CLI). git + gh. One worker
   playbook pack per worker (mattpocock/skills for grill/tdd, addyosmani for build/verify, gstack
   for review-army/ship) — never two routers in one worker. Deploy tooling + canary surface for
   the RELEASED/DEPLOYED states.
+metadata:
+  proof: doctrine-only
+  autonomy: L4
+  unit: one tracer-bullet slice of the frozen spec
+  state_machine: build → acceptance-review → runtime-prove → land → release state
+  convergence: every slice landed and proven at the integrated head, at the highest authorized release state
+  ordering: foundation serial, slices parallel under attention-budget WIP; merge-serialization at land
+  parking: stop at the highest state you are authorized to reach (BUILT / PROMOTION_READY / RELEASED / DEPLOYED_AND_VERIFIED)
+  oracle: the repo's own suite plus the real entry point driven at the integrated head
 ---
 
 # ship-it — intent or spec → a released, verified outcome
@@ -27,11 +34,15 @@ down the release state machine as you are authorized to reach — named explicit
 You dispatch, verify against authoritative state, and keep the ledger; you do not write code.
 
 Read [ARCHITECTURE.md](../../ARCHITECTURE.md) once. Composes `decide-and-freeze`, `decompose-dag`,
-`build-change`, `acceptance-review`, `risk-review`, `runtime-prove`, `release`, `observe`,
-`compound-learn`; rides `dispatch-lifecycle`, `merge-serialization`, `reviewed-sha-freshness`,
-`evidence-manifest`, `gate-classification`, `liveness-resume`, `orca-dag-semantics`,
-`ledger-contract`, `attention-budget`, `mission-chaining`. Worker TASK pack: exactly one of matt | addy | gstack
-(tdd=matt, build/verify=addy|matt, review/ship=gstack; the grill is coordinator-side, matt) — never co-mount two routers.
+`build-change`, `acceptance-review`, `runtime-prove`, `linear-enumeration`; rides `dispatch-lifecycle`,
+`merge-serialization`, `reviewed-sha-freshness`, `evidence-manifest`, `gate-classification`, `liveness-resume`,
+`orca-dag-semantics`, `ledger-contract`, `attention-budget`. Worker TASK pack: exactly one of matt | addy |
+gstack (tdd=matt, build/verify=addy|matt, review/ship=gstack; the grill is coordinator-side, matt) — never
+co-mount two routers.
+
+DEFERRED READS, loaded ON ENTERING their phase and never at activation: plan-review.md on the map-it handoff route · risk-review.md when a slice's surface triggers a lens ·
+release.md at RELEASE · observe.md at DEPLOYED_AND_VERIFIED · human-handoff.md at a handoff ·
+completion-audit.md + compound-learn.md at run close · mission-chaining.md as a chain link.
 
 ## Terminal states (name the one you reach)
 
@@ -47,20 +58,18 @@ plan, or human-authorized scope exclusion. Never claim a clean terminal when par
 
 ## Preflight
 
-`orca status --json` running · orchestration on · Orca CLI + orchestration skill available ·
-git. **Repo state:**
+`orca status --json` running · orchestration on · Orca CLI + orchestration skill available · git.
+**Repo state:** real code → foundation fills gaps, tests green at baseline (else you can't tell
+regressions) · empty/near-empty git repo → foundation scaffolds · no git repo → `git init` + minimal
+README/.gitignore commit on default, then a remote (an existing one, or `gh repo create` private after
+a human confirm — it is account-visible) so write preflight can run; a local-only host takes the
+offline lane below and stops at BASE.
 
-- real code → foundation fills gaps; tests green at baseline (else you can't tell regressions)
-- empty/near-empty git repo → foundation scaffolds
-- no git repo → `git init` + minimal README/.gitignore commit on default, then a remote (an existing
-  one, or `gh repo create` private after a human confirm — it is account-visible) so write preflight
-  can run; a local-only host takes the offline lane below and stops at BASE
-
-Then `runtime/scripts/preflight.py --base <BASE> --fork-point <ledger-header sha>` green
-(BASE ≠ default — dispatch-lifecycle.md; requires `gh` + a visible remote, or `--offline --default
-<branch>` for the no-gh lane from unit one). If `gh` later dies mid-run, use merge-serialization
-no-gh local merge (`PR_OPEN=n/a`); either way the run stops at BASE with the promotion PR owed.
-Ledger: header + phase marker + unit boolean flags (ledger-contract.md).
+Then `runtime/scripts/preflight.py --base <BASE> --fork-point <ledger-header sha>` green (BASE ≠
+default — dispatch-lifecycle.md; requires `gh` + a visible remote, or `--offline --default <branch>`
+for the no-gh lane from unit one). If `gh` later dies mid-run, use merge-serialization no-gh local
+merge (`PR_OPEN=n/a`); either way the run stops at BASE with the promotion PR owed. Ledger: header +
+phase marker + unit boolean flags (ledger-contract.md).
 
 ## Pipeline (one canonical path after freeze)
 
@@ -114,14 +123,14 @@ ledger file (`BUILD_DONE`…`WT_CLEAN`).
 
 ## Supervision + resume
 
-Stalls → liveness-resume.md WATCH (reflection-before-retry). Waves respect attention-budget.md.
-Compaction → CONTEXT HANDOFF then RESUME (ledger-contract.md). Death → RESUME (ledger-scoped, git-verified).
+Stalls → liveness-resume.md WATCH (reflection-before-retry). Waves respect attention-budget.md. Compaction
+→ CONTEXT HANDOFF then RESUME (ledger-contract.md). Death → RESUME (ledger-scoped, git-verified).
 
 ## Anti-patterns
 
-Fanning the grill to a worker (HITL leak). Building a moving spec (freeze first). Per-slice green
-mistaken for done (runtime-prove the integrated whole). Claiming RELEASED at an open PR. Two playbook
-routers in one worker TASK.
+Fanning the grill to a worker (HITL leak). Building a moving spec (freeze first). Per-slice green mistaken
+for done (runtime-prove the integrated whole). Claiming RELEASED at an open PR. Two playbook routers in one
+worker TASK. Loading a DEFERRED READ at activation — it is phase-scoped for a reason.
 
 ## Related
 

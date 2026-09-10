@@ -1,18 +1,16 @@
 # Runtime policy — the evidence manifest (the definition of done)
 
-This is how a fleet knows a unit of work is actually DONE. It replaces trace-grading, which a
-coordinator cannot enforce (it does not hold its workers' traces, and a trace proves an action
-attempted, not the resulting state — right-looking commands against the wrong SHA or a stale
-environment look identical).
+This is how a fleet knows a unit of work is actually DONE. It replaces trace-grading, which a coordinator cannot
+enforce: it does not hold its workers' traces, and a trace proves an action attempted, not the resulting state.
 
-Completion is a two-part protocol: the worker emits a **SHA-bound evidence manifest**, and an
-**independent verifier** checks its claims against **authoritative state** (git, the test runner
-in a clean env, the runtime, the deploy target). A unit advances only when verification passes.
+Completion is a two-part protocol: the worker emits a **SHA-bound evidence manifest**, and an **independent verifier**
+checks its claims against **authoritative state** (git, the test runner in a clean env, the runtime, the deploy
+target). A unit advances only when verification passes.
 
 ## 1. The manifest (every worker emits this in `worker_done`)
 
-The worker writes it to `reportPath` and names that path in the `worker_done` payload. Shape
-(JSON; a mission may add fields):
+The worker writes it to the path the dispatcher passed as Orca's typed `--report-path` flag, and names that path in
+the `worker_done` payload. Shape (JSON; a mission may add fields):
 
 ```json
 {
@@ -29,19 +27,23 @@ The worker writes it to `reportPath` and names that path in the `worker_done` pa
     {"id": "AC-1", "text": "<the exact acceptance criterion>", "addressed": true}
   ],
   "commands": [
-    {"cmd": "pnpm test src/pay", "exit": 0, "artifact": "docs/reports/<unit>/test.txt"}
+    {"label": "tests", "cmd": "pnpm test src/pay", "cmd_sha256": "<sha256 of that exact command line>", "exit": 0,
+     "duration_s": 12.4, "commit": "<HEAD at run time>", "artifact": "docs/reports/<unit>/test.txt",
+     "wtree": "<working-tree content fingerprint — must equal head_sha^{tree}>"}
   ],
   "negative_control": {
     "did": "reverted the production line / applied mutant <id> via <tool>",
-    "tool": "mutmut | cosmic-ray | stryker | pitest | cargo-mutants | go-mutesting | revert",
-    "mutant": "<pinned id, e.g. mutmut#7 validate.py:42 '>'->'>=' ; omit for revert>",
+    "tool": "mutmut | cosmic-ray | stryker | pitest | cargo-mutants | go-mutesting | revert | hand",
+    "mutant": "<pinned id, e.g. mutmut#7 validate.py:42 '>'->'>=' ; omit for revert/hand>",
     "result": "the criterion-bound test went RED (mutant KILLED)",
-    "artifact": "docs/reports/<unit>/negctrl.txt"
+    "artifact": "docs/reports/<unit>/negctrl.txt",
+    "command": "<the criterion-bound proof command, ONE string — split with shlex, never a shell line>",
+    "paths": ["<production path(s) the revert control restores from base_sha>"]
   },
   "binding_audit": {"coverage": "AC-1..AC-3 (3/3)", "method": "criterion quoted, covering test quoted, criterion-violating mutation went RED"},
   "intent": {"goal": "<one sentence>", "ruled_out": "<what was not chosen>", "why": "<load-bearing rationale>"},
   "lighting": "lit",
-  "artifacts": ["docs/reports/<unit>/…"],
+  "artifacts": [{"path": "docs/reports/<unit>/negctrl.txt", "sha256": "<sha256 of those exact bytes>"}],
   "pr": {"number": 0, "url": "", "reviewed_sha": "<SHA the reviewer approved>", "reviewed_wtree": "<tree SHA of the reviewed content — optional; a content-identical head move keeps freshness>"},
   "reviewer_mode": "<cross-vendor | same-vendor-fresh | instructed-isolation — how independent the review REALLY was>",
   "review": {"artifact": "docs/reports/<unit>/review.txt"},
@@ -53,71 +55,73 @@ The worker writes it to `reportPath` and names that path in the `worker_done` pa
 }
 ```
 
-Field scoping by mission class: `base_branch`, `pr`, `review`, and the revert/mutate form of
-`negative_control` are MUTATION-ONLY — report-only and planning units omit them. A report-only
-unit's verdict binds to `head_sha` (the SHA it reviewed), and its `negative_control` carries the
-class analogue of §3 (e.g. review-it: `{"did": "re-read every quoted line at head_sha",
-"result": "all present"}`).
+Field scoping by mission class: `base_branch`, `pr`, `review` and the revert/mutate form of `negative_control` are
+MUTATION-ONLY — report-only and planning units omit them. A report-only unit's verdict binds to `head_sha` (the SHA it
+reviewed); its `negative_control` carries §3's class analogue (review-it: re-read every quoted line at head_sha).
 
 Rules:
-- `base_sha` and `head_sha` are REQUIRED on every class. Mutation units: pinned 40-hex real
-  commits ("It works" with no SHA is not a manifest); other classes: a symbolic ref is NOTE-only.
-- `contract` binds the manifest to THIS UNIT's authoritative denominator — the unit's task spec
-  as materialized at decompose/enumeration time (a slice's assigned criteria, a finding, an
-  advisory) — not worker-chosen, not the whole mission source. The denominator is TWO-LEVEL:
-  - **unit level** (this field): `contract.criterion_ids` is the COMPLETE id set of the unit's own
-    task spec at `contract.digest`; `criteria` must carry an entry for every one — a worker cannot
-    shrink its denominator; the verifier re-derives it (§2) and rejects a manifest that drops any id.
-  - **mission level** (the coordinator's job, not the worker's): the UNION of all unit contracts
-    must equal the mission's authoritative source (the frozen spec's criterion set, the tracker
-    enumeration, the advisory scan). A criterion no unit's contract claims is UNASSIGNED WORK,
-    surfaced at decompose verification and re-checked in the mission's convergence proof (e.g.
-    ship-it's traceability table). This split is what makes a narrow slice completable: the slice
-    proves ITS criteria; the mission proves nothing was left off any slice.
-  For loop-based denominators (`clean-sweep source=tracker`), the two digests stay separate:
-  the unit's `contract.digest` is always its OWN task spec; the ENUMERATION digest is mission
-  state (ledger header's SOURCE field, re-derived each loop). The FINAL loop's enumeration is the
-  mission denominator — a post-`T0` issue joins the next loop's set; verified units stay verified.
-- `criteria` lists the ACTUAL acceptance criteria from the task spec, each marked addressed or not.
-  A criterion with no addressing evidence is unmet work, not a waiver.
-- `negative_control` is REQUIRED for any unit that claims a fix or a test: show the proof FAILS
-  when the change is reverted/mutated (a green test over reverted code proves nothing). Bind it to
-  a NAMED mutation tool + a PINNED mutant id with a killed/survived verdict — a surviving
-  criterion-violating mutant is a tautological suite and FAILS. Tools: `mutmut`/`cosmic-ray`/
-  `stryker`/`pitest`/`cargo-mutants`/`go-mutesting` (per language), `hand` (compile-preserving
-  hand-written mutant, diff quoted in the artifact), or `revert` (delete the production line).
-  Carve-outs: a perf fix compares before/after to the metric contract; a behaviour-preserving
-  deepening (reshape-it) proves the seam's pinned mutant stays KILLED at head_sha AND reverting
-  enlarges the interface measurement; a doctrine patch (pin-it) archives the pre-patch refutation
-  receipt (the old claim's probe RED, tool `revert`), re-run post-merge.
-- `binding_audit` logs criterion↔test audit coverage for the same units: which `criteria[].id`s
-  had their covering test quoted and mutation-checked against the criterion (§2 samples it; a
-  manifest claiming a fix or a test without the field is rejected).
-- `commands` pastes real invocations + exit codes with artifact paths. Never a summary.
+- `base_sha` and `head_sha` are REQUIRED on every class. Mutation units: pinned 40-hex real commits ("It works" with no SHA is not a manifest); other classes: a symbolic ref is NOTE-only.
+- `contract` binds the manifest to THIS UNIT's authoritative denominator — the unit's task spec as materialized at
+  decompose/enumeration time (a slice's criteria, a finding, an advisory), not worker-chosen. It is TWO-LEVEL:
+  - **unit level** (this field): `contract.criterion_ids` is the COMPLETE id set of the unit's own task spec at
+    `contract.digest`; `criteria` must carry an entry for every one — a worker cannot shrink its denominator; the
+    verifier re-derives it (§2) and rejects a manifest that drops any id.
+  - **mission level** (the coordinator's job, not the worker's): the UNION of all unit contracts must equal the
+    mission's authoritative source (frozen spec criterion set / tracker enumeration / advisory scan). A criterion no
+    unit's contract claims is UNASSIGNED WORK, surfaced at decompose verification and re-checked in the mission's
+    convergence proof (e.g. ship-it's traceability table). This split is what makes a narrow slice completable: the
+    slice proves ITS criteria; the mission proves nothing was left off any slice.
+  For loop-based denominators (`clean-sweep source=tracker`) the two digests stay separate: the unit's
+  `contract.digest` is always its OWN task spec; the ENUMERATION digest is mission state (ledger header's SOURCE
+  field, re-derived each loop). The FINAL loop's enumeration is the mission denominator — a post-`T0` issue joins
+  the next loop's set; verified units stay verified.
+- `criteria` lists the ACTUAL acceptance criteria from the task spec, each marked addressed or not. A criterion with no addressing evidence is unmet work, not a waiver.
+- **Evidence paths are repo-relative and PINNED.** Every path the manifest names (`negative_control.artifact`,
+  `review.artifact`, `artifacts[]`) resolves inside the git toplevel — absolute, or escaping it, is refused — AND its
+  bytes are fixed: the path is TRACKED at `head_sha` (the immutable form; the blob at that commit is what gets read),
+  or its sha256 is listed in `artifacts[]` and matches. Untracked and unhashed is a claim ABOUT a file, not evidence.
+- `negative_control` is REQUIRED for any unit that claims a fix or a test: show the proof FAILS when the change is
+  reverted/mutated (a green test over reverted code proves nothing). Bind it to a NAMED mutation tool + a PINNED
+  mutant id with a killed/survived verdict — a surviving criterion-violating mutant is a tautological suite and FAILS.
+  Tools: `mutmut`/`cosmic-ray`/`stryker`/`pitest`/`cargo-mutants`/`go-mutesting` (per language), `hand` (compile-
+  preserving hand-written mutant, diff quoted in the artifact), or `revert` (restore `paths` from `base_sha`).
+  `command` + (for `revert`) `paths` make it RE-EXECUTABLE — §2's `--execute-nc` applies the control in a throwaway
+  worktree at `head_sha` and requires `command` to exit NON-ZERO there and ZERO at clean `head_sha`; both are REQUIRED
+  in the review-waiver lanes (`dark-eligible`, `--no-gh`), where the control is the only oracle and an artifact nobody
+  ran is just text. Carve-outs: a perf fix compares before/after to the metric contract; a behaviour-preserving
+  deepening (reshape-it) proves the seam's pinned mutant stays KILLED at head_sha AND reverting enlarges the interface
+  measurement; a doctrine patch (pin-it) archives the pre-patch refutation receipt (the old claim's probe RED, tool
+  `revert`), re-run post-merge.
+- `binding_audit` logs criterion↔test coverage for the same units: which `criteria[].id`s had their covering test quoted and mutation-checked against the criterion (§2 samples it; a fix/test manifest without it fails).
+- `commands` pastes real invocations + exit codes with artifact paths — never a summary. Produce them with
+  `runtime/scripts/evidence-run.py --label L --manifest m.json -- <cmd>`: a transparent wrapper (the child's exit code
+  always passes through) that appends the record above, fingerprinting the tree with `wtree.sh` BEFORE the run. That
+  fingerprint binds a run to content — §2 needs an exit-0 record whose `wtree` is `head_sha`'s tree; anything else is STALE.
 - `pr.reviewed_sha` is the SHA the build-blind reviewer actually reviewed (see reviewed-sha-freshness.md). It gates the merge.
 - `review.artifact` (path to the local reviewer record at head_sha) is REQUIRED on a mutation unit in the no-gh lane (dispatch `--no-gh`; merge-serialization.md) — the coordinator-attested stand-in for §2's GitHub review lookup. The gh lane and report-only/planning units omit it.
-- `intent` is REQUIRED on mutation units: goal · ruled_out · why, all non-empty. It is
-  discarded-agent-reasoning captured (not the completion oracle — that stays §2). A
-  missing or empty packet fails verification. `claim` remains narration only.
+- `intent` is REQUIRED on mutation units: goal · ruled_out · why, all non-empty — discarded agent reasoning captured (not the completion oracle; that stays §2). A missing or empty packet fails verification.
 - `lighting` is `lit` (default) or `dark-eligible` per gate-classification.md. The verifier machine-checks only that the value is legal and unswapped against the dispatch-supplied value (plus, via the review leg, that a `dark-eligible` unit carries a corroborating out-of-band coordinator contract). The stop-list / Lane-0/B decision is a human gate at dispatch — verify.py never sees lane data.
-- `provenance` (optional, any class) makes the manifest a regulated audit record — governing
-  spec/policy version, model lineage, reviewer identity+timestamp, and an append-only retention pointer (maps to EU AI Act Art-12/50). When it names a standard (not `none`), the verifier REQUIRES those fields be present — an incomplete packet is not a valid audit record.
-- `claim` is the worker's narration. The verifier ignores it except as a hint.
+- `provenance` (optional, any class) makes the manifest a regulated audit record — governing spec/policy version, model lineage, reviewer identity+timestamp, and an append-only retention pointer (maps to EU AI Act Art-12/50). When it names a standard (not `none`) the verifier REQUIRES those fields — an incomplete packet is not a valid audit record.
+- `claim` is the worker's narration — the verifier ignores it except as a hint.
 
 ## 2. Independent verification (the coordinator, or a fresh verifier worker)
 
-A DIFFERENT process/session — never a teammate (whose messages are in-band and self-certifying) —
-re-derives the manifest against authoritative state that lives OUTSIDE the manifest — the coordinator's frozen contract (scope), GitHub (review), the artifact/replay (negative control) — deterministically before any LLM judgment (reference impl: `verify.py`). The manifest is a claim; these are facts:
+A DIFFERENT process/session — never a teammate (whose messages are in-band and self-certifying) — re-derives the manifest
+against authoritative state that lives OUTSIDE it: the coordinator's frozen contract (scope), GitHub (review), git, and
+the EXECUTED negative control — deterministically, before any LLM judgment (impl: `verify.py`). Manifest = claim; these are facts:
 
 | Check | How (authoritative source) |
 |-------|----------------------------|
 | Unit scope is complete — no dropped criteria (do this FIRST) | re-derive the criterion id set from the COORDINATOR's authoritative `contract.source` @ `contract.digest` **as recorded in the dispatch record**, never the worker's manifest (a manifest cannot certify its own denominator; a manifest `contract.digest` that differs from the authoritative one is a denominator swap), and confirm `criteria[].id` covers it EXACTLY. Rejected before any test is checked — passing tests on a shrunken denominator is a false "done" |
 | Mission scope is complete — no unassigned criteria (coordinator, at decompose verify + convergence proof) | the union of all unit `contract.criterion_ids` equals the mission source's id set (frozen spec digest / final enumeration loop / advisory scan). A criterion claimed by no unit is unassigned work, not a waiver |
 | The commit exists on the intended base *(mutation units)* | `git merge-base --is-ancestor <head_sha> origin/<base_branch>` after the merge; before merge, `git cat-file -e <head_sha>` and the PR's `baseRefName == base_branch` *(coordinator-run — not verify.py, which checks ancestry/existence only)* |
+| Tests really ran on THIS content — the content-bound ledger *(verify.py `check_commands`)* | `commands[]` carries ≥1 record with `exit == 0` whose `wtree` equals `git rev-parse <head_sha>^{tree}` — written by `evidence-run.py`, which hashes the command and fingerprints the tree itself. FAIL-CLOSED: no record, or only records made on other content (STALE), fails the unit. This is the worker's own runner, so it does not replace the clean-env re-run below; it makes "tests passed at that SHA" checkable instead of narrated |
 | Tests pass at that exact SHA in a clean env *(coordinator-run — not verify.py)* | check out `head_sha` in a fresh worktree, run the suite, confirm green — do NOT trust the pasted output alone for the critical path |
+| No credential reached the evidence *(verify.py `check_redaction`)* | the manifest JSON and every artifact it names are scanned for credential shapes (AWS keys, `ghp_`/`github_pat_`, private-key blocks, `password=`/`secret=` with a value, Slack tokens) — gitleaks when installed, built-in patterns otherwise. A hit FAILS the unit: a SHA-pinned manifest is permanent, so rotate and re-emit |
 | Each criterion binds to a test that exercises it — criterion↔test binding audit *(coordinator/human sample — not verify.py)* | on a sample of `criteria[].id`s (ALL of them when the unit has ≤3): quote the criterion, quote the test claimed to cover it, and confirm that test goes RED against an implementation that violates the criterion (mutate the behavior the criterion names via the manifest's named mutation tool — the pinned mutant must be KILLED; build-change.md's tautology guard covers authoring, this is its verifier-side twin). A green suite whose tests don't bind (tautological, wrong behavior, passes both ways) fails HERE, not at the clean-env re-run; coverage is logged in the manifest's `binding_audit` |
-| The negative control really fails | mutation units: the manifest's NC artifact must corroborate the pinned mutant KILLED / proof RED — read the artifact (field presence is not proof; verify.py rejects a "survived / not killed" artifact); `--execute-nc` is FAIL-CLOSED until a replay is implemented — run §2's re-execution sample; and on a sample (≥10%) a fresh worker reverts/mutates and confirms RED. Report-only/planning units: the class analogue of §3 is re-checked (quoted lines exist at reviewed_sha / the frozen DAG re-verifies / the repro command re-runs red) |
-| The review is fresh AND real *(mutation units)* | `pr.reviewed_sha == head_sha` (a rebase after review voids it — reviewed-sha-freshness.md — unless `reviewed_wtree` matches the head's tree, i.e. the move was content-identical) AND an independent APPROVED review at `head_sha` looked up on GitHub (`gh api repos/<repo>/pulls/<n>/reviews`) — a worker-set `reviewed_sha` is not evidence a review occurred; in the no-gh lane (dispatch `--no-gh`) the review is the manifest's `review.artifact` — a local reviewer record at head_sha, coordinator-attested (the weaker guarantee) |
+| The negative control really fails — EXECUTED, not read | mutation units, `--execute-nc`: verify.py checks out `head_sha` in a throwaway worktree, APPLIES the control (`revert`: `git checkout <base_sha> -- <negative_control.paths>`, falling back to `git revert --no-commit base..head` only when no paths are given and the range is linear; `hand`: `git apply` the diff quoted in the artifact), and requires `negative_control.command` to exit NON-ZERO there — then ZERO in a second clean worktree at `head_sha`. That command is NOT the unit's to choose: it must already appear in this manifest's `commands[]` ledger as an exit-0 record whose `wtree` is `head_sha`'s tree and whose `cmd_sha256` hashes its own `cmd` (or be supplied out of band by the coordinator as `--nc-command`, which the manifest must then agree with). A worker free to nominate any command could pick one that fails under the control and passes clean, satisfying this gate without running the criterion-bound proof at all. A command that passes under the control is TAUTOLOGICAL and fails; so does a control that changes nothing, a tool with no replay, a missing command, or any git error. The static artifact is still read for corroboration (a "survived / not killed" artifact fails) but is NEVER sufficient alone — it is worker-written text. Report-only/planning units: the class analogue of §3 is re-checked (quoted lines exist at reviewed_sha / the frozen DAG re-verifies / the repro command re-runs red) |
+| The review is fresh AND real *(mutation units)* | `pr.reviewed_sha == head_sha` (a rebase after review voids it — reviewed-sha-freshness.md — unless `reviewed_wtree` matches the head's tree, i.e. the move was content-identical) AND an independent APPROVED review at `head_sha` looked up on GitHub (`gh api repos/<repo>/pulls/<n>/reviews`) — a worker-set `reviewed_sha` is not evidence a review occurred |
+| The review-WAIVER lanes are closed to text | `dark-eligible` (gate-classification.md) and the no-gh lane (dispatch `--no-gh`, whose review is the manifest's `review.artifact`, a local record at head_sha) both remove the GitHub authority, leaving the negative control as the ONLY oracle. Both therefore pass ONLY with an EXECUTED control (`--execute-nc`) on top of the out-of-band coordinator contract; without it the unit is RED with a message naming the lane. Six of the ten manifest-gaming attacks in the 2026-09-10 review landed here, on artifacts nobody ran |
 | The change is real on base *(mutation units)* | after merge, a file/symbol from the unit is greppable on `origin/<base_branch>` |
 | Deployed == reviewed (ship only) *(coordinator-verified)* | the deployed revision equals the reviewed/merged SHA |
 | The metric contract is met (measurement units) | the benchmark/coverage/streak satisfies the manifest's `metric_contract` (pre-declared target + confidence + method), not a lucky single run |
@@ -125,36 +129,32 @@ re-derives the manifest against authoritative state that lives OUTSIDE the manif
 | Intent packet is present *(mutation units)* | `intent.goal`, `intent.ruled_out`, and `intent.why` are non-empty strings — presence only; wisdom is a human/taste check |
 | Lighting is legal | `lighting` is `lit` or `dark-eligible` AND matches the dispatch-supplied value — a swap fails (verify.py); the Lane A / unfakeable-oracle / stop-list eligibility itself is a human gate at dispatch (gate-classification.md), not machine-checked |
 
-Verification failing on any required check → the unit is NOT done; it returns to its state
-machine (re-dispatch, or SUSPECT if provenance says done but git disagrees).
+Verification failing on any required check → the unit is NOT done; it returns to its state machine (re-dispatch,
+or SUSPECT if provenance says done but git disagrees).
 
-At run close, the coordinator writes an **integrity inventory** beside the final report: sha256 +
-producer + timestamp for every artifact the run's manifests reference. RESUME and any later audit
-reject an artifact whose hash no longer matches — evidence must be tamper-evident, not merely
-present.
+At run close the coordinator writes an **integrity inventory** beside the final report: sha256 + producer + timestamp for
+every artifact the run's manifests reference (§1's per-unit `artifacts[]` hashes are its per-unit half). RESUME and any
+later audit reject an artifact whose hash no longer matches.
 
 ## 3. Standing definition-of-done floor (every mission, on top of its own contract)
 
-A unit is done only when its own acceptance criteria AND this floor both hold. The floor is
-scoped by MISSION CLASS — a negative control is always required, but what one IS differs:
+A unit is done only when its own acceptance criteria AND this floor both hold. The floor is scoped by MISSION
+CLASS — a negative control is always required, but what one IS differs:
 
-- **Mutation units** (ship-it, clean-sweep, oss-contribute, harden-it, speed-it, modernize-it,
-  prove-it, deflake-it, access-it, pin-it, floor-it, reshape-it, field-test-it): runtime-verified,
-  not just compiled/typechecked; no new red at head SHA; the negative control is the §1 proof.
-- **Report-only units** (review-it): no code is touched (that IS a checked invariant — a dirty
-  worktree fails the unit); the negative-control analogue is SOURCE-BINDING: every finding
-  quotes a line that exists at `head_sha` (the SHA reviewed), and the verdict binds to that SHA.
-  A finding whose quoted line does not exist there is a fabricated finding — the unit fails.
-- **Planning units** (map-it, root-cause diagnosis): the negative-control analogue is
-  ARTIFACT VERIFICATION: the frozen DAG passes decompose-dag's verify section / the reproduction
-  command was actually run and its failing output is pasted; a decision ticket answered by the
-  agent instead of the human fails the unit.
-- **Every class**: evidence exists (the manifest is present and SHA-bound) and parked is named —
-  anything not done is PARKED with a reason and a gate, never silently dropped.
+- **Mutation units** (ship-it, clean-sweep, oss-contribute, harden-it, speed-it, modernize-it, prove-it, deflake-it,
+  access-it, pin-it, floor-it, reshape-it, field-test-it, migrate-it, oncall-it, absorb-it, document-it): runtime-verified, not just compiled/typechecked; no new red at head SHA; the negative control is the §1 proof, EXECUTED per §2.
+- **Report-only units** (review-it): no code is touched (that IS a checked invariant — a dirty worktree fails the
+  unit); the negative-control analogue is SOURCE-BINDING: every finding quotes a line that exists at `head_sha`
+  (the SHA reviewed), and the verdict binds to that SHA. A finding whose quoted line does not exist there is a
+  fabricated finding — the unit fails.
+- **Planning units** (map-it, root-cause diagnosis): the negative-control analogue is ARTIFACT VERIFICATION: the frozen
+  DAG passes decompose-dag's verify section / the reproduction command was actually run and its failing output is pasted;
+  a decision ticket answered by the agent instead of the human fails the unit.
+- **Every class**: evidence exists (the manifest is present and SHA-bound) and parked is named — anything not done is PARKED with a reason and a gate, never silently dropped.
 
 ## Why this and not trace-grading
 
-Traces live in separate terminals, get truncated/compacted, and are gameable. The manifest binds
-every claim to a SHA and an artifact; the verifier re-derives the facts from git and a clean run.
-This is exactly what made `clean-sweep`/`spec-to-ship` reliable ("verify, never trust"): a
-`worker_done` that says "merged" is a claim to check, not a fact to record.
+Traces live in separate terminals, get truncated/compacted, and are gameable. The manifest binds every claim to a
+SHA and an artifact; the verifier re-derives the facts from git, a clean run, and an executed control. This is what
+made `clean-sweep`/`spec-to-ship` reliable ("verify, never trust"): a `worker_done` that says "merged" is a claim
+to check, not a fact to record.

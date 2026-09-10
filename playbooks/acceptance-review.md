@@ -19,7 +19,10 @@ one — mechanical independence beats instructed independence.
   per hunk. Repo standard overrides the baseline; smells are judgement calls; skip what tooling
   enforces.
 - **Spec:** does the diff faithfully implement the frozen spec / originating issue — missing/partial
-  criteria, scope creep, implemented-but-wrong. Each finding quotes the spec line.
+  criteria, scope creep, implemented-but-wrong. Each finding quotes the spec line. Spec-source
+  search order, first hit wins and is named in the report: the unit's frozen spec → the originating
+  issue or finding → the acceptance criteria in the dispatched task → the PR description. No source
+  found is a STOP, not a review against the reviewer's own idea of the requirement.
 - **Test-adequacy:** for each claimed fix, would reverting the production change fail a test?
 
 Run the axes as separate fresh-context workers so they can't pollute each other; aggregate side by
@@ -34,7 +37,9 @@ an appendix. Kills the "field doesn't exist on the model" FP class. Multiple axe
 ## Output + the reviewed SHA
 
 Findings side by side per axis with severity (Critical/Required/Nit/Optional/FYI), each with the
-quoted line. Record the exact `reviewed_sha` in the evidence manifest (reviewed-sha-freshness.md) —
+quoted line. The reviewer's summary brief stays under 400 words — the findings carry the detail;
+a long narrative buries the Critical line and is where a reviewer starts arguing itself into
+approval. Record the exact `reviewed_sha` in the evidence manifest (reviewed-sha-freshness.md) —
 the merge depends on it.
 
 ## Round budget

@@ -78,5 +78,59 @@ class ParserBehaviorUnchanged(unittest.TestCase):
         self.assertIn("skipped 1 malformed segment(s)", err.getvalue())
 
 
+class KeepaliveMarker(unittest.TestCase):
+    """v3: the keepalive skip keys on `_keepalive`, not on the deprecated `_heartbeat` alias.
+
+    A live keepalive line carries BOTH keys, so v2's alias-only check was correct by accident.
+    Upstream keeps `_heartbeat` only "for scripts still filtering it while callers migrate"
+    (check-keepalive.ts:18-26 at Orca v1.4.199); the day it goes, an alias-only parser counts
+    every keepalive as an unrecognized envelope and the coordinator's stall/respawn decisions
+    start reading a busy stream as a silent one.
+    """
+
+    def _parse(self, stream):
+        out, err = io.StringIO(), io.StringIO()
+        with redirect_stdout(out), redirect_stderr(err):
+            pm.print_inbox(stream)
+        return out.getvalue(), err.getvalue()
+
+    def test_keepalive_only_envelope_is_skipped(self):
+        # The current shape: both markers on one line.
+        stream = (
+            json.dumps({"_keepalive": True, "_heartbeat": True, "elapsedMs": 15000}) + "\n"
+            + json.dumps({"result": {"messages": [{"id": "m1", "body": "hi"}]}})
+        )
+        out, err = self._parse(stream)
+        self.assertIn("MESSAGES: 1", out)
+        self.assertNotIn("unrecognized", err)
+        self.assertNotIn("undercount", err)
+
+    def test_keepalive_without_the_deprecated_alias_is_still_skipped(self):
+        # The post-deprecation shape: `_heartbeat` dropped. This is the regression v2 would hit.
+        stream = (
+            json.dumps({"_keepalive": True, "elapsedMs": 15000, "deadlineMs": None}) + "\n"
+            + json.dumps({"result": {"messages": [{"id": "m1", "body": "hi"}]}})
+        )
+        out, err = self._parse(stream)
+        self.assertIn("MESSAGES: 1", out)
+        self.assertNotIn("undercount", err,
+                         "a keepalive without the deprecated alias must not be counted as an "
+                         "unrecognized message-bearing envelope")
+
+    def test_legacy_heartbeat_only_alias_still_skipped(self):
+        # An older host that emits the alias alone must keep working.
+        out, err = self._parse(json.dumps({"_heartbeat": True}))
+        self.assertIn("MESSAGES: 0", out)
+        self.assertEqual(err, "")
+
+    def test_mixed_keepalive_and_messages_still_yields_messages(self):
+        # The reason the skip is structural rather than a line filter.
+        out, _ = self._parse(json.dumps(
+            {"_keepalive": True, "_heartbeat": True,
+             "result": {"messages": [{"id": "m1", "body": "hi"}]}}))
+        self.assertIn("MESSAGES: 1", out)
+        self.assertIn("BODY: hi", out)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

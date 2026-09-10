@@ -6,6 +6,49 @@ truth is `.claude-plugin/plugin.json`.
 
 ## [Unreleased]
 
+The 2026-09-10 deep-review branch. `REVIEW.md` (a SHA-bound review of the evidence protocol,
+the catalog, and every README guarantee) and the upstream deep audit under `docs/research/`
+opened issues #255–#276; the mechanisms, playbooks, and missions those issues call for are
+landing on this branch, and each is listed below as it lands.
+
+### Changed
+
+- README no longer claims "verified, not asserted"; it states the claim the mechanism supports
+  — scope frozen against a coordinator digest, commits real on the base, review looked up on
+  GitHub and tree-bound, the negative control executed by `verify.py --execute-nc` for revert
+  and hand controls — and names the clean-env re-run and the ≥10% sample as coordinator
+  doctrine (#258).
+- Four false or unsupported claims corrected (#258): `attention-budget.md` is the exemplar of
+  the Evidence-level rule, not "the measured exemplar" (its own level is ASSERTED); the symlink
+  install is the verified path (`CF-02-r2` evidence) and the plugin path preserves references by
+  construction only; the unlocated Osmani quotation is gone, replaced by the source's own
+  L3/L4/L5 definitions; the gstack / addyosmani characterization names what those packs now
+  ship (a content-hash evidence ledger, cross-model review, a fail-open Stop gate, a floor-guard
+  reference — inside the producing run, no executed negative control).
+- Autonomy re-derived from the source (#264): every mission is `autonomy: L4` (a coordinator
+  plus parallel isolated workers); the human-owned verdict or plan in review-it, map-it,
+  root-cause, and attest-it is a gate class, not a lower level; scheduled unattended runs are
+  the L5 shape. The derivation is `docs/concepts.md` § Autonomy; every guide's Autonomy line
+  carries the per-mission reason.
+- The mission-identity test gains a sixth point, the oracle (#265): two workflows that differ
+  only in oracle are one mission with an `oracle=` source, and differ as missions only when the
+  oracle changes the proof's shape or the parking classes. `ARCHITECTURE.md` re-argues
+  access-it, field-test-it (the oracle-tiered "prove it on the target" mission: DEVICE /
+  EMULATOR / BROWSER / DESKTOP / CLEAN-ENV), and pin-it under it; no mission is deleted.
+- `runtime/pins.json` pins Orca and the three upstream packs by commit and witness date, and
+  `tests/test_pins.py` requires an entry for every pack a `compatibility:` field names (#271).
+- `docs/releases.json` — every CHANGELOG version bound to its cut commit, with
+  `test_every_changelog_release_has_a_cut_commit` holding the two together, plus the release-cut
+  checklist in `docs/ops.md`. Annotated tags `v0.1.0` … `v0.6.1` were reconstructed at those
+  commits; a tag is a repository ref rather than branch content, so the committed file is what a
+  fresh clone can check and the one-line publish command lives in `docs/ops.md` (#274).
+- `TODOS.md` is a pointer to `docs/completion/GAPS.md`, the run-archive field-proof plan, and
+  the review issues (#275). `docs/research/REJECTED.md` ledgers every rejected mission candidate
+  with source, shape, reason, and date.
+- `docs/getting-started.md` states that the completion-gate hook is wired only under the plugin
+  install and links the symlink-path snippet; `docs/distribution.md` drops the "verified, not
+  asserted" framing.
+
 ### Added
 
 - Runtime policy layer modernized to the current Orca orchestration model (#251): worker-start

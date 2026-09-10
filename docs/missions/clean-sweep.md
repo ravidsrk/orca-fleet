@@ -1,7 +1,10 @@
 # 🧹 clean-sweep — a finite backlog exhausted to zero, with evidence
 
-> **Autonomy:** L4 (Osmani L0-L5) - high autonomy - the independent verifier is the cheap verification; you own the one-way doors.
-> **Proof:** self-run ([run report](../runs/2026-07-13-clean-sweep-self-run.md))
+> **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — coordinator plus parallel isolated fix workers, one finding each; you own the one-way doors.
+> **Activation load:** ~33,800 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
+> **Proof:** doctrine-only — it ran ([self-run report](../runs/2026-07-13-clean-sweep-self-run.md)), but that run's
+> artifacts were retained outside this repository, so the tier is not re-derivable here
+> (`runtime/scripts/run_report.py`, issue #259)
 
 > Point it at an audit report, an issue tracker, or a README that lies. Come back to a backlog
 > that is demonstrably empty: every real item fixed on an integration branch with a test that
@@ -210,7 +213,11 @@ with the full close table, the park named in it.
 Playbooks: [`remediate-finding`](../../playbooks/remediate-finding.md) ·
 [`build-change`](../../playbooks/build-change.md) ·
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
-[`compound-learn`](../../playbooks/compound-learn.md)
+[`compound-learn`](../../playbooks/compound-learn.md) ·
+[`triage-state`](../../playbooks/triage-state.md) ·
+[`linear-enumeration`](../../playbooks/linear-enumeration.md) ·
+[`completion-audit`](../../playbooks/completion-audit.md) ·
+[`agent-brief`](../../playbooks/agent-brief.md)
 
 Runtime policies: [`merge-serialization`](../../runtime/merge-serialization.md) ·
 [`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md) ·

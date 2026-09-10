@@ -7,17 +7,30 @@ point, the ledger, per-phase evidence, a run-close sha256 integrity inventory (i
 retained at a named location when the run's artifacts live outside this repo), and the
 deviations that happened — recorded, not hidden.
 
-| Date       | Mission     | Target                        | Tier         | Outcome |
-|------------|-------------|-------------------------------|--------------|---------|
-| 2026-07-13 | [clean-sweep](2026-07-13-clean-sweep-self-run.md) | this repo (doc-claims) | self-run     | DRY (6 false claims fixed) |
-| 2026-07-13 | [review-it](2026-07-13-review-it-external-run.md)  | garrytan/gstack PR #2252 | external-run | NO-GO (conditional, 0 Critical) |
-| 2026-07-16 | [oss-contribute](2026-07-16-oss-contribute-external-run.md) | dodopayments/chimely (tracker) | external-run | CONTRIBUTED-WITH-PARKED (5 PRs, 4 assists) |
-| 2026-07-17 | [clean-sweep](2026-07-17-clean-sweep-tracker-self-run.md) | this repo (tracker, 26 issues) | self-run | DRY-WITH-PARKED (22 closed, 4 parked) |
-| 2026-08-28 | [ship-it](2026-08-28-ship-it-self-run.md) | this repo (proof-status slice) | self-run | PROMOTION_READY (BUILT + promotion PR open) |
-| 2026-09-09 | [clean-sweep](2026-09-09-clean-sweep-tracker.md) | this repo (tracker, 6 issues) | self-run | DRY-WITH-PARKED (5 closed, 1 needs-human) |
+`Binds?` is the only column that moves a mission's `metadata.proof`: **yes** means
+`runtime/scripts/run_report.py` re-derives everything this report rests on — a real
+`verify.py … --manifest` invocation in the body, the graded manifest inside this run's own
+directory and pinned by the inventory, and every one of this run's artifacts hashing true at the
+commit the `RUN:` header names. **no** means the run happened and something it rests on cannot be
+re-derived here — history, kept, claiming nothing.
+
+Nothing in the archive currently reads **yes**. That is the honest state, not a broken gate: three
+runs kept their artifacts outside this repository, and the fourth kept its artifacts but not its
+verifier transcript. The mechanism is exercised by `tests/test_run_report.py`, which builds real
+git repositories and includes a fully bound positive case alongside a dozen refused ones.
+
+| Date       | Mission     | Target                        | Ran as       | Binds? | Outcome |
+|------------|-------------|-------------------------------|--------------|--------|---------|
+| 2026-07-13 | [clean-sweep](2026-07-13-clean-sweep-self-run.md) | this repo (doc-claims) | self-run | no — artifacts in the coordinator run dir | DRY (6 false claims fixed) |
+| 2026-07-13 | [review-it](2026-07-13-review-it-external-run.md)  | garrytan/gstack PR #2252 | external-run | no — artifacts in the coordinator run dir | NO-GO (conditional, 0 Critical) |
+| 2026-07-16 | [oss-contribute](2026-07-16-oss-contribute-external-run.md) | dodopayments/chimely (tracker) | external-run | no — artifacts in the fork worktree | CONTRIBUTED-WITH-PARKED (5 PRs, 4 assists) |
+| 2026-07-17 | [clean-sweep](2026-07-17-clean-sweep-tracker-self-run.md) | this repo (tracker, 26 issues) | self-run | no — no inventory block | DRY-WITH-PARKED (22 closed, 4 parked) |
+| 2026-08-28 | [ship-it](2026-08-28-ship-it-self-run.md) | this repo (proof-status slice) | self-run | no — 5/5 hashes re-derive at `748b328`, but the verifier transcript was never recorded | PROMOTION_READY (BUILT + promotion PR open) |
+| 2026-09-09 | [clean-sweep](2026-09-09-clean-sweep-tracker.md) | this repo (tracker, 6 issues) | self-run | no — inventory pinned to a moved tree | DRY-WITH-PARKED (5 closed, 1 needs-human) |
 
 Proof status across the catalog is validator-enforced: a mission cannot claim a tier
-above `doctrine-only` without a `proof_evidence:` path that resolves to a report here —
+above `doctrine-only` without a `proof_evidence:` path that resolves to a report here whose
+inventory re-hashes at the commit its `RUN:` header names (`runtime/scripts/run_report.py`) —
 `scripts/validate.py` also requires the filename to carry the mission name and the body to name
 it. Start a new report from [TEMPLATE.md](TEMPLATE.md).
 

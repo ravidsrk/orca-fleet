@@ -1,0 +1,31 @@
+# gitleaks configuration.
+#
+# The default rule pack, unmodified. The three credential-SHAPED fixtures this
+# repository carries (in tests/test_decisions.py, which exists to prove that
+# runtime/scripts/decisions.py REFUSES credential-shaped text) are handled by a
+# fingerprint BASELINE — .gitleaks-baseline.json — not by an allowlist.
+#
+# Recorded because it is not obvious and cost a debugging round: in gitleaks
+# 8.30 a global `[[allowlists]]` entry with `condition = "AND"` does NOT
+# and-combine `paths` with `regexes` — a path match alone waives the whole file.
+# An allowlist scoped to `tests/test_decisions.py` therefore also waived a
+# DIFFERENT, real-shaped AWS key planted in that file. That is a hole, and it
+# was found by planting the canary rather than by reading the docs.
+#
+# A baseline does not have that failure mode: it accepts exactly the findings it
+# lists, matched by fingerprint (commit : file : rule : line). A different
+# secret in the same file, the same fixture on a different line, or either of
+# them in a new commit all still fail. The workflow negative-controls this after
+# every clean scan.
+
+title = "orca-fleet"
+
+[extend]
+useDefault = true
+
+# Compiled bytecode is a gitignored build artifact: it never reaches `detect`
+# (which reads git history) and shows up only in a working-tree `gitleaks dir`
+# run, mirroring whatever the .py source already said.
+[[allowlists]]
+description = "compiled bytecode is a build artifact, not source"
+paths = ['''(^|/)__pycache__/''']

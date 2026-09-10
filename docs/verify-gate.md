@@ -7,7 +7,22 @@ that anchors to authorities OUTSIDE the worker's manifest (the coordinator's fro
 scope, GitHub for review, the artifact/replay for the negative control) — is the differentiator, and
 it runs the same `verify.py` no matter which surface fires it.
 
-## Native path — plugin hooks (default)
+## Install paths, and which ones carry the gate
+
+| Install | `${CLAUDE_PLUGIN_ROOT}` | Gate |
+|---|---|---|
+| `/plugin install orca-fleet` | set by Claude Code | wired by [`hooks/hooks.json`](../hooks/hooks.json) — nothing to do |
+| `ln -s … ~/.claude/skills/<mission>` | **unset** | **none until you wire it**: `sh hooks/print-settings-snippet.sh` and merge the output into `settings.json` |
+| `npx skills add …` (copy installer) | unset | same as symlink — wire the snippet, and check the `../../` references survived the copy |
+
+This is issue #262: the README recommends the symlink path for trying the catalog out, and that
+path loads no plugin, so the hook file below never fires. A mission installed that way runs with
+no completion gate and nothing says so at runtime.
+[`hooks/settings-snippet.json`](../hooks/settings-snippet.json) is the same two hooks with an
+absolute path; [`hooks/print-settings-snippet.sh`](../hooks/print-settings-snippet.sh) resolves
+that path against your clone (`--check` verifies the gate script is there).
+
+## Native path — plugin hooks (set `${CLAUDE_PLUGIN_ROOT}`)
 
 [`hooks/hooks.json`](../hooks/hooks.json) wires two events to
 [`runtime/scripts/verify-gate.sh`](../runtime/scripts/verify-gate.sh), passing `--event task|stop`:
@@ -31,7 +46,8 @@ coordinator sets the gate env (every input verify-gate.sh reads, enumerated belo
        → verify.py re-derives against authorities outside the manifest; the unit CLASS that decides
          whether review + negative control run comes from the dispatch (ORCA_UNIT_CLASS), never the
          manifest — missing/unknown ⇒ mutation (fail-safe)
-         (scope ← coordinator contract · review ← GitHub · negative control ← artifact/replay · commits · freshness)
+         (scope ← coordinator contract · review ← GitHub · negative control ← EXECUTED replay in a
+          throwaway worktree · commands ← a wtree-bound exit-0 record · redaction · commits · freshness)
            → exit 0 allow · exit 2 BLOCK (with feedback)
 ```
 
@@ -45,13 +61,34 @@ worker-set; anything else in the environment is ignored):
 - `ORCA_UNIT_CLASS` — `mutation | report-only | planning`, from dispatch; missing/unknown ⇒ mutation.
 - `ORCA_REPO` — `owner/name` for the independent GitHub review lookup (optional; inferred from origin).
 - `ORCA_BASE` / `ORCA_SYMBOL` — ancestry-check base branch / a unit symbol to grep on it (optional).
-- `ORCA_EXECUTE_NC` — forwarded as `--execute-nc`. Replay is **not implemented**: verify.py
-  fail-closes if the flag is set. To actually replay, run evidence-manifest.md §2's re-execution
-  sample; omit this env var for the artifact-read path.
+- `ORCA_NC_COMMAND` — the **authoritative** criterion-bound command the negative control must turn
+  RED, supplied out of band exactly as the frozen contract is. It is forwarded as `--nc-command`,
+  and the manifest's own `negative_control.command` must agree with it or the run is RED — a unit
+  does not get to choose what proves it. When it is unset, verify.py falls back to the manifest's
+  command but requires that command to be **already in the manifest's content-bound `commands[]`
+  ledger**: an exit-0 record whose `wtree` is `head_sha`'s tree and whose `cmd_sha256` hashes its
+  own `cmd`. Without one of those two bindings a worker could nominate any command that happens to
+  fail under the control and pass clean, clearing the executed-control gate without ever running
+  the criterion-bound proof (PR #277 review).
+- `ORCA_EXECUTE_NC` — set (to anything non-empty) to forward `--execute-nc`, which **executes the
+  negative control** instead of reading it. verify.py checks out `head_sha` in a throwaway worktree,
+  applies the control from the manifest — `tool: revert` restores `negative_control.paths` from
+  `base_sha` (falling back to `git revert --no-commit base..head` only when no paths are given and
+  the range is linear); `tool: hand` applies the unified diff quoted in the NC artifact — and
+  requires `negative_control.command` to exit **non-zero** there, then **zero** in a second clean
+  worktree at `head_sha`. Fail-closed on anything else: a tool with no replay, a missing
+  command/paths, a git error, a control that changes nothing, or a command that passes under the
+  control ("tautological — the proof does not go RED"). It is **REQUIRED** in the two review-waiver
+  lanes below; elsewhere it is the stronger form of the same check. Budget ~2 worktree checkouts +
+  2 runs of the bound command (600 s cap each).
 - `ORCA_NO_GH` — set to take the **no-gh lane**: review authority switches from the GitHub lookup to a
-  local reviewer artifact — a downgrade, see [Trust boundary](#trust-boundary).
+  local reviewer artifact — a downgrade, see [Trust boundary](#trust-boundary). **Requires
+  `ORCA_EXECUTE_NC`**: with the GitHub authority gone, the negative control is the only oracle left,
+  and a control nobody ran is a file the worker wrote.
 - `ORCA_LIGHTING` — the coordinator's lighting decision (`dark-eligible` waives the build-blind human
-  review; gate-classification.md).
+  review; gate-classification.md). `dark-eligible` **requires `ORCA_EXECUTE_NC`** for the same
+  reason: six of the ten manifest-gaming attacks in the 2026-09-10 review landed in these two lanes,
+  every one of them on a negative-control artifact nobody executed.
 - `ORCA_PROVENANCE` — `ci|mcp|sdk|dispatch` asserts the env came from OFF the worker; suppresses the
   advisory `NOTE`.
 - `ORCA_DISPATCH_RECORD` — the coordinator-signed dispatch envelope (path, or `path@ref`) binding the

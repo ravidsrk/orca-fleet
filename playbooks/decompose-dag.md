@@ -21,6 +21,14 @@ hot-files it must NOT touch · lighting=lit|dark-eligible · worker_done require
 manifest + intent packet>" --deps '[...]'`.
 Record every returned id in the ledger (id ↔ slice table = the run scope liveness-resume needs).
 
+**The spec is where the worker learns its `worker_done` contract** — the runtime enforces it and
+will not teach it. Each slice's spec states: `worker_done` requires `--outcome succeeded|failed`
+and OMITS `--to` (it defaults to the Dispatch's Run mailbox); every send carries `--from
+<worker_handle> --dispatch-capability <capability>` from the preamble; the evidence manifest rides
+the typed `--report-path <path>` (with `--files-modified`), never a `reportPath` payload key; and
+the worker runs `check --terminal <its own handle>` before `worker_done` — a `consumer_fenced`
+there means STOP and send nothing (dispatch-lifecycle.md).
+
 Hot mount-point files (route registry, DI wiring, migrations, barrels) → mark each a merge-chain
 (merge-serialization.md): slices touching one share a dependency chain, never run in parallel.
 
@@ -28,7 +36,8 @@ Hot mount-point files (route registry, DI wiring, migrations, barrels) → mark 
 
 Filter `task-list --json` to the ledger's task-id set (the DB is machine-global — other runs'
 tasks are noise; orca-dag-semantics.md): every ledger task present · deps resolve to real ids
-(the stuck-pending trap — liveness-resume.md; failed deps strand children forever) · no cycles ·
+(`task-create` now REFUSES a dep outside the Run, so the surviving strand is a **failed** dep —
+liveness-resume.md) · no cycles ·
 foundation has no deps on slices · every hot-file chain is a path not a fan · no reliance on
 `parent_id` (unused in CLI fleets; edges are `deps` only). Five minutes here saves a fleet-wide
 debugging session.

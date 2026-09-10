@@ -1,7 +1,10 @@
 # 🚢 ship-it — intent or spec → a released, verified outcome
 
-> **Autonomy:** L4 (Osmani L0-L5) - high autonomy - the independent verifier is the cheap verification; you own the one-way doors.
-> **Proof:** self-run ([run report](../runs/2026-08-28-ship-it-self-run.md))
+> **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — coordinator plus parallel isolated builders and build-blind reviewers; you own the one-way doors (freeze, promotion, deploy).
+> **Activation load:** ~31,600 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
+> **Proof:** doctrine-only — it ran ([self-run report](../runs/2026-08-28-ship-it-self-run.md),
+> artifacts still hash true at `748b328`), but the verifier transcript was never recorded, so
+> the outcome rests on prose (`runtime/scripts/run_report.py`, issue #259)
 
 > Give it an idea or a frozen spec. Come back to a change that is built, reviewed at the
 > integrated whole, proven at a real entry point, landed on an integration branch, and taken
@@ -198,7 +201,11 @@ Playbooks: [`decide-and-freeze`](../../playbooks/decide-and-freeze.md) ·
 [`risk-review`](../../playbooks/risk-review.md) ·
 [`runtime-prove`](../../playbooks/runtime-prove.md) ·
 [`release`](../../playbooks/release.md) · [`observe`](../../playbooks/observe.md) ·
-[`compound-learn`](../../playbooks/compound-learn.md)
+[`compound-learn`](../../playbooks/compound-learn.md) ·
+[`plan-review`](../../playbooks/plan-review.md) ·
+[`completion-audit`](../../playbooks/completion-audit.md) ·
+[`linear-enumeration`](../../playbooks/linear-enumeration.md) ·
+[`human-handoff`](../../playbooks/human-handoff.md)
 
 Runtime policies: [`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) ·
 [`merge-serialization`](../../runtime/merge-serialization.md) ·

@@ -24,7 +24,15 @@
 #   ORCA_SYMBOL           a unit symbol to grep on the base (optional)
 #   ORCA_UNIT_CLASS       mutation | report-only | planning, from dispatch (optional; missing => mutation)
 #   ORCA_PROVENANCE       ci|mcp|sdk|dispatch — asserts the env came from OFF the worker (optional)
-#   ORCA_EXECUTE_NC       forwarded as --execute-nc; verify.py fail-closes (replay unimplemented)
+#   ORCA_NC_COMMAND       forwarded as --nc-command: the AUTHORITATIVE criterion-bound command the
+#                         control must turn RED, supplied out of band the way the contract is.
+#                         Without it verify.py falls back to the manifest's own command, which is
+#                         then required to be in the manifest's content-bound `commands[]` ledger —
+#                         a unit never nominates an arbitrary command to be proved by.
+#   ORCA_EXECUTE_NC       forwarded as --execute-nc: verify.py EXECUTES the negative control in a
+#                         throwaway worktree at head_sha (RED under the control, green at clean head).
+#                         REQUIRED whenever ORCA_NO_GH or ORCA_LIGHTING=dark-eligible is set — those
+#                         lanes waive the review, leaving the control as the only oracle (#256).
 # Without ORCA_CONTRACT_SOURCE/DIGEST the verifier fail-closes on scope (a manifest cannot certify
 # its own denominator), so the gate blocks — as it should.
 #
@@ -91,6 +99,7 @@ set -- --manifest "$MANIFEST"
 [ -n "$RECORD" ] && set -- "$@" --dispatch-record "$RECORD"
 [ -n "$PUBKEY" ] && set -- "$@" --dispatch-pubkey "$PUBKEY"
 [ -n "${ORCA_EXECUTE_NC:-}" ] && set -- "$@" --execute-nc
+[ -n "${ORCA_NC_COMMAND:-}" ] && set -- "$@" --nc-command "$ORCA_NC_COMMAND"
 
 # Trust boundary (#112, #135): soundness is a property of the EXECUTION CONTEXT, not of an env var the
 # worker can set. A signed dispatch record is verified (defense-in-depth in-session; a real boundary

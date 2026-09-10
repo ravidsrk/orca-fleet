@@ -1,19 +1,27 @@
 ---
 name: deflake-it
 description: >-
-  Eliminate intermittent test failures to a declared confidence contract. Detect flakes by repeat-run
-  + CI retry history, diagnose each with a loop that RAISES the failure rate (never a theory), fix the
-  root cause and ratchet it red-by-revert, then re-run the whole suite for a consecutive green streak —
-  local AND in CI — looping until the streak holds. Retry-wrappers as fixes are banned and grep-checked.
-  Use when "kill the flaky tests", "deflake the CI", "flake zero", a flaky/intermittent suite. Not for
-  a single hard bug with no suite-rate contract (root-cause) or deterministic failures (clean-sweep).
+  Eliminate intermittent test failures to a declared confidence contract. Detect flakes by repeat-
+  run + CI retry history, diagnose each with a loop that RAISES the failure rate (never a theory),
+  fix the root cause and ratchet it red-by-revert, then re-run the whole suite for a consecutive
+  green streak — local AND in CI — looping until the streak holds. Retry-wrappers as fixes are
+  banned and grep-checked. Use when "kill the flaky tests", "deflake the CI", "flake zero", a
+  flaky/intermittent suite. Not for a single hard bug with no suite-rate contract (root-cause) or
+  deterministic failures (clean-sweep).
 license: MIT
-proof: doctrine-only
-autonomy: L4
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh; a runnable suite. A
   feedback-loop-first debugging playbook (mattpocock diagnosing-bugs or addyosmani debug) — one router
   per worker.
+metadata:
+  proof: doctrine-only
+  autonomy: L4
+  unit: one intermittent failure distribution — a rate, not a defect
+  state_machine: detect by repeat-run → RAISE the failure rate → fix the cause → ratchet red-by-revert → streak
+  convergence: the whole suite holds a consecutive green streak to the declared confidence contract, local AND in CI
+  ordering: the suite-wide streak re-runs after every landed fix
+  parking: STABLE-WITH-QUARANTINE — quarantine is named; retry-wrappers as fixes are banned and grep-checked
+  oracle: the measured repeat-run failure rate — a loop that raises it, never a theory
 ---
 
 # deflake-it — green N times in a row, local and CI
