@@ -22,14 +22,41 @@ jobs:
         run: python3 scripts/validate.py
       - name: Run the contract test suite
         run: python3 -m unittest discover -s tests
+      - name: Routing eval gate (description-based router)
+        # #260: this is the gate, not the summary step below. It scores every
+        # prompt in evals/routing.json against the REAL frontmatter descriptions
+        # and fails the build under the threshold, so a description edit that
+        # breaks routing cannot merge. Floor tracked in tests/test_evals.py
+        # (ROUTING_MIN_SCORE); an error-level description collision fails here too.
+        run: python3 scripts/eval.py run --suite routing --threshold 0.90
       - name: Check proof-evidence honesty
         run: python3 runtime/scripts/proof_status.py --check
+      - name: Secret scan (gitleaks, pinned)
+        # #270: doctrine in dispatch-lifecycle.md until now. Pinned by version
+        # AND sha256 — a moved tag or a swapped asset fails the checksum before
+        # anything executes. --redact so a finding never prints the secret.
+        env:
+          GITLEAKS_VERSION: "8.30.1"
+          GITLEAKS_SHA256: "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb"
+        run: |
+          set -euo pipefail
+          url="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -fsSL -o gitleaks.tar.gz "$url"
+          echo "${GITLEAKS_SHA256}  gitleaks.tar.gz" | sha256sum --check --strict -
+          mkdir -p "$RUNNER_TEMP/gitleaks"
+          tar -xzf gitleaks.tar.gz -C "$RUNNER_TEMP/gitleaks" gitleaks
+          rm -f gitleaks.tar.gz
+          "$RUNNER_TEMP/gitleaks/gitleaks" version
+          "$RUNNER_TEMP/gitleaks/gitleaks" detect --redact --no-banner --source .
       - name: Ruff (syntax / undefined names)
         run: |
           python3 -m pip install --quiet ruff==0.16.5
           ruff check scripts runtime/scripts tests bench demo
       - name: Publish the gate summary (proof rollup + routing score)
-        if: always()  # observability (#213): the numbers land in the run summary even when a gate is red
+        # Observability only (#213): the numbers land in the run summary even
+        # when a gate is red. The routing GATE is the step above; this one
+        # swallows its exit code on purpose and can never fail the build.
+        if: always()
         run: |
           {
             echo "## Catalog gates @ $(git rev-parse --short HEAD)"
