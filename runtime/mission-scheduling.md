@@ -8,7 +8,8 @@ UNATTENDED coordinator invocation of a mission on a cadence — a nightly `clean
 ## Create
 
 ```
-orca automations create --name "<name>" --trigger daily --time 03:00 \
+orca automations create --name "<name>" --trigger daily --time 03:00 --timezone "<IANA zone>" \
+  --precheck "<cheap command that exits 0 iff there is work>" \
   --prompt "<the mission invocation, e.g. 'clean-sweep source=tracker on this repo'>" \
   --provider <coordinator agent> --repo id:<repoId> --json
 ```
@@ -16,6 +17,30 @@ orca automations create --name "<name>" --trigger daily --time 03:00 \
 `--repo` gives each run a fresh worktree (preferred for missions — clean BASE per run); `--workspace`
 targets an existing one. `--disabled` while testing. The provider is the COORDINATOR; workers still
 spawn per the roster (sandbox-policy.md).
+
+## `--precheck` is the "is the denominator non-empty?" gate
+
+**Every scheduled mission passes `--precheck`.** It runs a bounded command before the run; exit 0
+continues, anything else records a **skipped** run and spawns nothing (`automations.ts:62` at
+v1.4.199). That is exactly the enumeration question a mission asks in its first phase — and without
+it, a nightly sweep of an empty backlog pays a full preflight, a coordinator, and a run report to
+discover there was nothing to do, then writes a report that looks like work. The precheck is the
+cheapest possible form of the mission's own denominator query (`gh pr list --json number -q .[0]`,
+`gh issue list -l <label> -q .[0]`), so a skipped run is an honest zero rather than a manufactured
+one.
+
+Also on `create`/`edit`: `--timezone` (a cron with no zone drifts against the team's day),
+`--missed-run-grace-minutes` (how late a missed fire may still run — past it the run is dropped, not
+silently deferred), `--reuse-session` / `--fresh-session` (existing-workspace automations only;
+prefer `--fresh-session` for missions, since a reused session carries the last run's context into a
+run whose whole premise is independence), and `--host runtime:<environment-id>` to place the
+scheduled coordinator on a paired Orca server rather than the mortal desktop — pass the id from
+`orca environment list`, never the environment's name.
+
+`automations run <id>` fires one now (test a schedule without waiting for it); `automations runs
+--id <id>` is the run history, and it is the **cross-run anti-inflation input** the fleet currently
+reconstructs by hand from `docs/runs/` — a recurring mission reads it to see how many of the last N
+fires were `skipped` before believing a streak of green reports.
 
 ## A scheduled run is a full run, unattended
 
@@ -32,7 +57,8 @@ spawn per the roster (sandbox-policy.md).
   reuses a prior run's BASE.
 - **Cross-run anti-inflation applies** (liveness-resume.md): a recurring run re-reads the prior
   run's completion report and re-verifies its green-but-unverified claims FIRST — a nightly sweep
-  must not trust last night's checkmarks.
+  must not trust last night's checkmarks. `automations runs --id <id>` is the machine-readable half
+  of that history; the run reports are the narrated half, and they are the half that inflates.
 - **All safety rails hold** — merge ≠ deploy, one-way doors stay human, least-privilege workers. A
   scheduled run stops at BASE / a report; it never promotes to the default branch.
 

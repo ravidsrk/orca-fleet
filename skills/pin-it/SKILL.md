@@ -61,8 +61,8 @@ FREEZE the claim inventory: extract every mechanics claim from runtime/*.md, run
   semantics. SUPERSEDED is for a mechanism that is GONE (unknown command / retired-alias recovery).
 → BOOTSTRAP integration BASE (runtime/scripts/preflight.py --base <BASE> --fork-point <sha>;
   BASE ≠ default — dispatch-lifecycle.md). Doctrine patches land on BASE, never on the default.
-→ LOAD the version-matched guides (`orca skills get orchestration`, `orca skills get orca-cli`,
-  every skill the claims touch) from the INSTALLED binary; record the CLI version in the ledger.
+→ LOAD the version-matched guides from the INSTALLED binary; record the CLI version. Per topic run `skills get <topic>
+  --references`, then `--reference <name>` for EACH (`--full` fallback): the contract lives there, not in the kernel.
 → RE-WITNESS each claim: replay it against the live runtime from a live Orca terminal (a bound
   coordinator terminal or ORCA_TERMINAL_HANDLE — orchestration calls fail with
   no_active_sender_terminal from a plain shell) and capture the verbatim receipt.

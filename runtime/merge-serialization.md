@@ -8,13 +8,28 @@ strict order, evidence-fresh.
 
 Workers/integrators emit `send --to <conductor-handle> --subject "merge_ready <unit>" --type
 merge_ready --payload '{"unit":"<id>","pr":123,"branch":"<head>","reviewed_sha":"<sha>","reviewed_wtree":"<tree sha of the reviewed content>","base":"<BASE>"}'`
-(`--to` and `--subject` are mandatory; `--payload` must be real JSON, not shorthand). `merge_ready` is a first-class Orca message type with NO built-in behavior — the runtime
-delivers it and stops, so the fleet owns the queue semantics. (merge_ready to a group is rejected;
-send to the conductor handle.)
+(`--subject` is mandatory; `--payload` must be real JSON, not shorthand). `merge_ready` is a
+first-class Orca message type with NO built-in behavior — the runtime delivers it and stops, so the
+fleet owns the queue semantics.
+
+Two corrections against v1.4.199, both of which make this rule the FLEET's, not the runtime's:
+
+- **`--to` is optional** from an active Dispatch — an omitted recipient defaults to the owning Run
+  mailbox, which is the coordinator inbox and the address upstream prefers (`orchestration.ts:76`).
+  Naming the conductor handle explicitly stays correct and stays this fleet's convention, because a
+  merge queue has exactly one owner and the handle says so.
+- **A `merge_ready` to a group is NOT rejected.** The runtime refuses group addresses for
+  `worker_done` and `heartbeat` only (`message-send-handler.ts:51-58`); a `merge_ready --to @all`
+  would fan out to every worker and put N writers on one BASE. Nothing below the fleet stops that,
+  so the rule stands on our discipline alone: **never address a `merge_ready` to a group.**
 
 ## Conductor loop (ONE terminal owns all merges to BASE)
 
 1. BOARD: `check --wait --types merge_ready,worker_done,escalation` → append in ARRIVAL ORDER.
+   `--types` is the WAKE condition only: the Delivery that comes back is the whole FIFO batch, every
+   type in it (orca-dag-semantics.md). Process the ENTIRE Delivery — settle the `worker_done`s, reply
+   to the `question`s, board the `merge_ready`s — and only then `--ack <delivery_id>`. Acking after
+   handling just the filtered type discards the rest unread.
 2. FRESH? head of queue: `gh pr view <n> --json headRefOid,baseRefName,state` —
    state OPEN · `baseRefName == BASE` (never merge a PR aimed at default) ·
    `headRefOid == reviewed_sha` (reviewed-sha-freshness.md). Mismatch → compare TREES before
