@@ -341,11 +341,22 @@ class TestDocsNavigation(unittest.TestCase):
             missing_ex, [],
             f"verify-gate.sh reads env vars .env.example never names: {missing_ex}",
         )
-        # #200 review: ORCA_EXECUTE_NC is forwarded to an unimplemented flag that fail-closes.
+        # #200 review pinned "ORCA_EXECUTE_NC is an unimplemented flag that fail-closes"; #255
+        # implemented the replay, so the doc must now describe what it actually DOES — the control
+        # is executed in a throwaway worktree — and #256's rule that the two review-waiver lanes
+        # require it. An inverted assertion, not a dropped one: the doc must not drift back into
+        # promising a replay that is not there, nor omit the lanes that depend on it.
         self.assertRegex(
-            doc, r"(?is)ORCA_EXECUTE_NC.{0,400}(not implemented|fail-closes)",
-            "docs/verify-gate.md must not describe ORCA_EXECUTE_NC as a working replay",
+            doc, r"(?is)ORCA_EXECUTE_NC.{0,600}(executes the\s+negative control|throwaway worktree)",
+            "docs/verify-gate.md must describe what --execute-nc does: EXECUTE the negative "
+            "control in a throwaway worktree at head_sha",
         )
+        for lane in ("ORCA_NO_GH", "ORCA_LIGHTING"):
+            section = doc.split(f"- `{lane}`", 1)[1].split("\n- `", 1)[0]
+            self.assertIn(
+                "ORCA_EXECUTE_NC", section,
+                f"{lane} waives the review, so the doc must say it requires ORCA_EXECUTE_NC (#256)",
+            )
         _, heading, rest = doc.partition("## Trust boundary")
         self.assertTrue(heading, "docs/verify-gate.md has no trust-boundary section")
         # Bound to this H2 — a later sibling section must not keep this green (#200).

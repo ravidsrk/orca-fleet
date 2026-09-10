@@ -6,7 +6,9 @@ test: orca-fleet's sound verifier is fooled by NO trap (0% false-done), a self-s
 fooled by at least one (else there is no contrast), and the sound gate still passes a valid control
 (it is not trivially always-RED).
 """
+import contextlib
 import importlib.util
+import io
 import json
 import os
 import shutil
@@ -57,13 +59,76 @@ class VFBenchSoundness(unittest.TestCase):
         rows = {r["id"]: r for r in self.res["orca-fleet verify.py (sound)"]["rows"]}
         self.assertEqual(rows["valid-control-1"]["verdict"], "GREEN", "sound gate must not be always-RED")
 
+    def test_sound_gate_passes_the_mutation_valid_control(self):
+        # #257: the report-only control only exercises the scope leg. THIS one drives every
+        # mutation authority at once — an executed revert, an independent APPROVED review, a
+        # pinned artifact inventory, a fresh commands ledger — so "not always-RED" is proven for
+        # the class REVIEW.md's bypass log broke.
+        rows = {r["id"]: r for r in self.res["orca-fleet verify.py (sound)"]["rows"]}
+        self.assertIn("mutation-valid-control-1", rows,
+                      "the mutation-class positive control was skipped or dropped")
+        self.assertEqual(rows["mutation-valid-control-1"]["verdict"], "GREEN",
+                         "a real mutation unit with an EXECUTED negative control must pass")
+
+    def test_waiver_lane_traps_are_red(self):
+        # #256: dark-eligible and no-gh both waive the review; with a merely-READ control they
+        # must be RED. These are REVIEW.md A1/A2/A4/A6/A9 in the corpus.
+        rows = {r["id"]: r for r in self.res["orca-fleet verify.py (sound)"]["rows"]}
+        for trap_id in ("fabricated-nc-dark-eligible-1", "fabricated-nc-no-gh-1"):
+            self.assertEqual(rows[trap_id]["verdict"], "RED", trap_id)
+
     def test_readme_result_table_matches_computed(self):
         # #125: the hand-typed result table must match the computed corpus (was a stale 4/4·0/4).
         import re
+        if self.res["orca-fleet verify.py (sound)"]["skipped"]:
+            self.skipTest("traps were skipped on this checkout — the corpus totals the README "
+                          "pins are the FULL-clone ones (see test_shallow_skips_are_named)")
         readme = (ROOT / "bench" / "vf-bench" / "README.md").read_text(encoding="utf-8")
         naive, sound = self.res["self-scoring (naive)"], self.res["orca-fleet verify.py (sound)"]
         self.assertRegex(readme, rf"self-scoring \(naive\)\s*\|\s*{naive['false_done']}/{naive['red_total']}\b")
         self.assertRegex(readme, rf"verify\.py.*\|\s*{sound['false_done']}/{sound['red_total']}\b")
+
+
+class VFBenchShallowSkips(unittest.TestCase):
+    """#257 / REVIEW.md P2 item 22: a trap that pins a real commit cannot be scored on a shallow
+    clone. It must be SKIPPED BY NAME — in the corpus report and in --json — never silently
+    scored, because a degraded leg reads as a RED the gate did not earn."""
+
+    def test_skip_reason_names_the_missing_commit(self):
+        trap = {"id": "x", "class": "y", "requires_commits": ["0" * 40]}
+        reason = vfbench.skip_reason(trap)
+        self.assertIsNotNone(reason)
+        self.assertIn("shallow clone", reason)
+        self.assertIn("0" * 12, reason)
+
+    def test_no_skip_when_the_commit_is_present(self):
+        head = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True,
+                              cwd=vfbench.ROOT)
+        if head.returncode != 0:
+            raise unittest.SkipTest("no ambient git clone")
+        self.assertIsNone(vfbench.skip_reason({"requires_commits": [head.stdout.strip()]}))
+
+    def test_review_leg_trap_declares_its_pinned_commits(self):
+        trap = next(t for t in vfbench.load_traps() if t["class"] == "review-fetch-fail-closed")
+        self.assertEqual(sorted(trap["requires_commits"]),
+                         sorted([trap["manifest"]["base_sha"], trap["manifest"]["head_sha"]]))
+
+    def test_report_names_skipped_traps(self):
+        rows = {"id": "pinned-trap-1", "class": "review-fetch-fail-closed",
+                "reason": "shallow clone: pinned commit deadbeefdead is not in this checkout"}
+        res = {"g": {"false_done": 0, "red_total": 1, "rate": 0.0, "rows": [], "skipped": [rows]}}
+        buf = io.StringIO()
+        orig = vfbench.run
+        vfbench.run = lambda: res
+        try:
+            with contextlib.redirect_stdout(buf):
+                vfbench.main([])
+        finally:
+            vfbench.run = orig
+        out = buf.getvalue()
+        self.assertIn("NOT SCORED", out)
+        self.assertIn("pinned-trap-1", out)
+        self.assertIn("fetch-depth: 0", out)
 
 
 class VFBenchForwarding(unittest.TestCase):
@@ -143,8 +208,9 @@ class VFBenchAncestryLeg(unittest.TestCase):
 
     Hermetic: check_ancestry reads origin/<base> from cwd, so this test builds a temp repo with
     refs/remotes/origin/main instead of skipping when the ambient clone is a shallow CI checkout
-    (#201 review). The contract is passed as an absolute path so _resolve does not look it up
-    against the temp toplevel."""
+    (#201 review). #267 refuses evidence paths outside the toplevel, so the trap's contract fixture
+    is COPIED into that temp repo and named relatively — the coordinator's contract has to live in
+    the tree the verifier is auditing."""
 
     def test_non_ancestor_trap_is_red_via_the_ancestry_leg(self):
         trap = next(t for t in vfbench.load_traps() if t["class"] == "non-ancestor-sha")
@@ -153,23 +219,22 @@ class VFBenchAncestryLeg(unittest.TestCase):
             subprocess.run(["git", "init", "-q", "-b", "main"], cwd=tmp,
                            check=True, capture_output=True)
             (tmp / "README").write_text("x\n", encoding="utf-8")
-            subprocess.run(["git", "add", "README"], cwd=tmp, check=True, capture_output=True)
+            contract_rel = "contract.md"
+            (tmp / contract_rel).write_bytes(
+                (vfbench.ROOT / trap["contract_source"]).read_bytes())
+            subprocess.run(["git", "add", "-A"], cwd=tmp, check=True, capture_output=True)
             subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t",
                             "commit", "-qm", "init"], cwd=tmp, check=True, capture_output=True)
             subprocess.run(["git", "update-ref", "refs/remotes/origin/main", "HEAD"],
                            cwd=tmp, check=True, capture_output=True)
-            with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
-                json.dump(trap["manifest"], fh)
-                path = fh.name
-            try:
-                r = subprocess.run(
-                    [sys.executable, str(vfbench.VERIFY), "--manifest", path,
-                     "--contract-source", str(vfbench.ROOT / trap["contract_source"]),
-                     "--contract-digest", trap["contract_digest"],
-                     "--unit-class", trap["unit_class"], "--base", trap["base"]],
-                    capture_output=True, text=True, cwd=tmp)
-            finally:
-                Path(path).unlink(missing_ok=True)
+            path = tmp / "manifest.json"
+            path.write_text(json.dumps(trap["manifest"]), encoding="utf-8")
+            r = subprocess.run(
+                [sys.executable, str(vfbench.VERIFY), "--manifest", str(path),
+                 "--contract-source", contract_rel,
+                 "--contract-digest", trap["contract_digest"],
+                 "--unit-class", trap["unit_class"], "--base", trap["base"]],
+                capture_output=True, text=True, cwd=tmp)
         finally:
             shutil.rmtree(tmp, True)
         self.assertEqual(r.returncode, 2, r.stderr)
@@ -216,10 +281,12 @@ class VFBenchReviewLeg(unittest.TestCase):
 
     def test_review_trap_verdict_tracks_review_ok(self):
         head = self.trap["manifest"]["head_sha"]
-        r = subprocess.run(["git", "cat-file", "-e", f"{head}^{{commit}}"], cwd=vfbench.ROOT)
-        if r.returncode != 0:
-            raise unittest.SkipTest("shallow clone without the trap's pinned commit — "
-                                    "the GREEN half cannot run here")
+        # #257: the same named skip vfbench.py reports — a shallow checkout cannot score a trap
+        # pinned to a real commit, and saying so beats measuring the checkout.
+        reason = vfbench.skip_reason(self.trap)
+        if reason:
+            raise unittest.SkipTest(f"{reason} — the GREEN half cannot run here; "
+                                    "CI must check out with fetch-depth: 0")
 
         def env_with_stub(reviews):
             stub = (

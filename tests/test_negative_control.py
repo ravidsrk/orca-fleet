@@ -4,7 +4,9 @@
 hermetic PATH exposing exactly ONE spelling (a python shim computing the real digest), so both
 halves of the fallback are exercised on any host.
 """
+import hashlib
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -58,6 +60,23 @@ class NegativeControlDigestPortability(unittest.TestCase):
 
     def test_demo_passes_with_macos_shasum_only(self):
         self._assert_demo_passed_for_the_right_reason(self._run_demo("shasum"))
+
+
+class NegativeControlIntegrityInventory(unittest.TestCase):
+    """REVIEW.md §7.4: the demo README's integrity inventory pinned `f40e3f86…` while the committed
+    transcript hashed `70d42150…` — the one place in the repo that promises tamper-evidence, stale
+    against the file it names, with no checker. This IS the checker: re-derive the hash from the
+    committed bytes and require the table to say the same thing."""
+
+    def test_head_to_head_hash_matches_the_committed_transcript(self):
+        d = ROOT / "demo" / "negative-control"
+        digest = hashlib.sha256((d / "head-to-head.txt").read_bytes()).hexdigest()
+        readme = (d / "README.md").read_text(encoding="utf-8")
+        row = re.search(r"\|\s*`head-to-head\.txt`\s*\|\s*`([0-9a-f]{64})`\s*\|", readme)
+        self.assertIsNotNone(row, "the integrity inventory row for head-to-head.txt is missing")
+        self.assertEqual(row.group(1), digest,
+                         "integrity inventory is STALE — re-run demo/negative-control/run.sh, "
+                         "commit the transcript, and re-stamp the sha256 in README.md")
 
 
 if __name__ == "__main__":

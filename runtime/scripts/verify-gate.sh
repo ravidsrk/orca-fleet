@@ -24,7 +24,10 @@
 #   ORCA_SYMBOL           a unit symbol to grep on the base (optional)
 #   ORCA_UNIT_CLASS       mutation | report-only | planning, from dispatch (optional; missing => mutation)
 #   ORCA_PROVENANCE       ci|mcp|sdk|dispatch — asserts the env came from OFF the worker (optional)
-#   ORCA_EXECUTE_NC       forwarded as --execute-nc; verify.py fail-closes (replay unimplemented)
+#   ORCA_EXECUTE_NC       forwarded as --execute-nc: verify.py EXECUTES the negative control in a
+#                         throwaway worktree at head_sha (RED under the control, green at clean head).
+#                         REQUIRED whenever ORCA_NO_GH or ORCA_LIGHTING=dark-eligible is set — those
+#                         lanes waive the review, leaving the control as the only oracle (#256).
 # Without ORCA_CONTRACT_SOURCE/DIGEST the verifier fail-closes on scope (a manifest cannot certify
 # its own denominator), so the gate blocks — as it should.
 #

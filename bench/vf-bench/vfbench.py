@@ -19,7 +19,10 @@ Drop in another gate by adding it to GATES (e.g. a subprocess wrapper around `ru
     # tests/test_vfbench.py asserts the soundness property.
 """
 import argparse
+import hashlib
 import json
+import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -36,15 +39,167 @@ def load_traps():
     return [json.loads(f.read_text(encoding="utf-8")) for f in sorted(TRAPS.glob("*.json"))]
 
 
+def _commit_present(sha):
+    return subprocess.run(["git", "cat-file", "-e", f"{sha}^{{commit}}"],
+                          capture_output=True, cwd=ROOT).returncode == 0
+
+
+def skip_reason(trap):
+    """#257: a trap that pins a real commit CANNOT be scored on a shallow clone — the commit is
+    simply not there, so every leg that reads it degrades and the verdict measures the checkout,
+    not the gate. Say so by name instead of scoring ambient state (REVIEW.md P2 item 22: the
+    review-leg trap used to skip silently). `fetch-depth: 0` fixes it in CI."""
+    for sha in trap.get("requires_commits", []):
+        if not _commit_present(sha):
+            return f"shallow clone: pinned commit {sha[:12]} is not in this checkout"
+    return None
+
+
 def naive_gate(trap):
     """Self-scoring: GREEN iff every self-reported criterion is addressed (no frozen denominator)."""
     crit = trap["manifest"].get("criteria", [])
     return bool(crit) and all(c.get("addressed") for c in crit)
 
 
+FIXTURE_MOD_BASE = "def add(a, b):\n    return a - b  # the defect AC-1 names\n"
+FIXTURE_MOD_HEAD = "def add(a, b):\n    return a + b  # the fix\n"
+FIXTURE_TEST = (
+    "import unittest\n\nimport mod\n\n\n"
+    "class T(unittest.TestCase):\n"
+    "    def test_add(self):  # the test AC-1 binds to\n"
+    "        self.assertEqual(mod.add(2, 2), 4)\n"
+)
+FIXTURE_CONTRACT = "# Frozen contract (vf-bench mutation fixture)\n\n- AC-1: add(a, b) returns a + b\n"
+FIXTURE_NC = (
+    "revert negative control, EXECUTED\n\n"
+    "mod.py restored from base_sha in a throwaway worktree at head_sha; `python -m unittest`\n"
+    "went RED (mutant KILLED). Re-running at clean head_sha is green.\n"
+)
+
+
+def _fixture_git(repo, *args):
+    subprocess.run(["git", "-C", str(repo), *args], check=True, capture_output=True)
+
+
+def _fixture_rev(repo, rev):
+    return subprocess.run(["git", "-C", str(repo), "rev-parse", rev],
+                          check=True, capture_output=True, text=True).stdout.strip()
+
+
+def build_mutation_fixture(repo):
+    """#257: a REAL mutation unit, built at run time, hermetic.
+
+    A module with a defect at `base_sha`, the fix at `head_sha`, and a criterion-bound test that
+    goes RED when the fix is reverted. Nothing here is narrated: the commits, the tree, the control
+    and the proof command are all real, so a gate can only pass this trap by EXECUTING the control.
+    A committed corpus could not carry that — the revert has to happen against live commits."""
+    repo.mkdir(parents=True)
+    _fixture_git(repo, "init", "-q", "-b", "main")
+    (repo / "mod.py").write_text(FIXTURE_MOD_BASE, encoding="utf-8")
+    (repo / "test_mod.py").write_text(FIXTURE_TEST, encoding="utf-8")
+    (repo / "contract.md").write_text(FIXTURE_CONTRACT, encoding="utf-8")
+    _fixture_git(repo, "add", "-A")
+    _fixture_git(repo, "-c", "user.name=vf", "-c", "user.email=vf@vf", "commit", "-qm", "base")
+    base = _fixture_rev(repo, "HEAD")
+    (repo / "mod.py").write_text(FIXTURE_MOD_HEAD, encoding="utf-8")
+    _fixture_git(repo, "-c", "user.name=vf", "-c", "user.email=vf@vf", "commit", "-qam", "the fix")
+    head = _fixture_rev(repo, "HEAD")
+    # Evidence written AFTER the head commit (a reviewer record must name the head SHA), so it is
+    # untracked — which is exactly the case #267's artifacts[] sha256 inventory exists for.
+    evidence = repo / "docs" / "reports" / "vf"
+    evidence.mkdir(parents=True)
+    (evidence / "nc.txt").write_text(FIXTURE_NC, encoding="utf-8")
+    (evidence / "review.txt").write_text(
+        f"build-blind review of {head}\nAPPROVED by vf-reviewer (local lane record)\n",
+        encoding="utf-8")
+
+    def sha256(rel):
+        return hashlib.sha256((repo / rel).read_bytes()).hexdigest()
+
+    return {
+        "base_sha": base, "head_sha": head, "head_tree": _fixture_rev(repo, "HEAD^{tree}"),
+        "contract_digest": "sha256:" + sha256("contract.md"),
+        "nc_sha256": sha256("docs/reports/vf/nc.txt"),
+        "review_sha256": sha256("docs/reports/vf/review.txt"),
+        "proof_cmd": f"{Path(sys.executable).name} -m unittest test_mod",
+        "python": sys.executable,
+    }
+
+
+def _gh_stub(bindir, head, state="APPROVED"):
+    """A `gh` on PATH that serves ONE independent review at head_sha by a login that is not the PR
+    author. The review authority is external to the manifest by design, so the only honest way to
+    exercise the GREEN half offline is to stand a real one up."""
+    bindir.mkdir(parents=True, exist_ok=True)
+    stub = bindir / "gh"
+    stub.write_text(
+        "#!/usr/bin/env python3\n"
+        "import json, sys\n"
+        "endpoint = sys.argv[-1]\n"
+        "if endpoint.endswith('/reviews'):\n"
+        f"    print(json.dumps([{{'user': {{'login': 'vf-reviewer'}}, 'state': {state!r},\n"
+        f"                        'commit_id': {head!r}}}]))\n"
+        "elif '/pulls/' in endpoint:\n"
+        "    print(json.dumps({'user': {'login': 'vf-author'}}))\n"
+        "else:\n"
+        "    sys.exit(1)\n", encoding="utf-8")
+    stub.chmod(0o755)
+    return str(bindir)
+
+
+def _render(obj, facts):
+    """Substitute {{token}} placeholders in a trap's manifest template with the fixture's real
+    values — a manifest cannot be committed with SHAs that do not exist yet."""
+    if isinstance(obj, str):
+        for key, value in facts.items():
+            obj = obj.replace("{{" + key + "}}", str(value))
+        return obj
+    if isinstance(obj, list):
+        return [_render(x, facts) for x in obj]
+    if isinstance(obj, dict):
+        return {k: _render(v, facts) for k, v in obj.items()}
+    return obj
+
+
+def fixture_gate(trap):
+    """Run verify.py against a trap whose unit is built at run time (see build_mutation_fixture).
+    Returns True when the gate returned GREEN."""
+    holder = Path(tempfile.mkdtemp(prefix="vfbench-fixture-"))
+    try:
+        repo = holder / "repo"
+        facts = build_mutation_fixture(repo)
+        manifest = _render(trap["manifest"], facts)
+        mpath = repo / "vf-manifest.json"
+        mpath.write_text(json.dumps(manifest), encoding="utf-8")
+        cmd = [sys.executable, str(VERIFY), "--manifest", str(mpath),
+               "--contract-source", "contract.md",
+               "--contract-digest", facts["contract_digest"],
+               "--unit-class", trap.get("unit_class", "mutation")]
+        if trap.get("lighting"):
+            cmd += ["--lighting", trap["lighting"]]
+        if trap.get("no_gh"):
+            cmd.append("--no-gh")
+        if trap.get("execute_nc"):
+            cmd.append("--execute-nc")
+        if trap.get("repo"):
+            cmd += ["--repo", trap["repo"]]
+        env = dict(os.environ)
+        if trap.get("gh_stub"):
+            env["PATH"] = _gh_stub(holder / "bin", facts["head_sha"]) + os.pathsep + env["PATH"]
+        r = subprocess.run(cmd, capture_output=True, text=True, cwd=repo, env=env)
+        if r.returncode not in (0, 2):
+            raise RuntimeError(f"verify.py exited {r.returncode} on fixture trap {trap['id']} "
+                               f"(not a 0/2 verdict): {r.stderr.strip()[:400]}")
+        return r.returncode == 0
+    finally:
+        shutil.rmtree(holder, ignore_errors=True)
+
+
 def sound_gate(trap):
     """orca-fleet's verifier, run as a separate process, given the trap's AUTHORITATIVE contract
     (the coordinator role) — never the manifest's own contract fields."""
+    if trap.get("fixture") == "mutation-revert":
+        return fixture_gate(trap)
     with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
         json.dump(trap["manifest"], fh)
         path = fh.name
@@ -84,11 +239,15 @@ GATES = {
 
 def run():
     traps = load_traps()
-    red_total = sum(1 for t in traps if t["sound_expected"] == "RED")
+    skipped = [{"id": t["id"], "class": t["class"], "reason": r}
+               for t in traps for r in [skip_reason(t)] if r]
+    skipped_ids = {s["id"] for s in skipped}
+    scored = [t for t in traps if t["id"] not in skipped_ids]
+    red_total = sum(1 for t in scored if t["sound_expected"] == "RED")
     results = {}
     for name, gate in GATES.items():
         false_done, rows = 0, []
-        for t in traps:
+        for t in scored:
             passed = gate(t)
             fooled = t["sound_expected"] == "RED" and passed
             false_done += 1 if fooled else 0
@@ -100,6 +259,7 @@ def run():
         results[name] = {
             "false_done": false_done, "red_total": red_total,
             "rate": (false_done / red_total) if red_total else 0.0, "rows": rows,
+            "skipped": skipped,
         }
     return results
 
@@ -109,13 +269,22 @@ def main(argv):
     ap.add_argument("--json", action="store_true")
     args = ap.parse_args(argv)
     res = run()
+    skipped = next(iter(res.values()))["skipped"] if res else []
     if args.json:
         print(json.dumps(
-            {"version": VERSION, "gates": {k: {"false_done": v["false_done"],
-             "red_total": v["red_total"], "rate": v["rate"]} for k, v in res.items()}},
+            {"version": VERSION,
+             "skipped": skipped,
+             "gates": {k: {"false_done": v["false_done"], "red_total": v["red_total"],
+                           "rate": v["rate"]} for k, v in res.items()}},
             indent=2))
         return 0
     print(f"VF-Bench {VERSION} — false-done rate (fraction of gamed traps a gate wrongly accepted)")
+    # #257: never let a skip hide. A skipped trap is scored by nobody and named by everybody.
+    for s in skipped:
+        print(f"  [SKIP ] {s['id']:24} {s['class']:26}  <- NOT SCORED: {s['reason']}")
+    if skipped:
+        print(f"  {len(skipped)} trap(s) skipped — this run does not measure them. "
+              "Use a full clone (CI: actions/checkout with fetch-depth: 0).")
     for name, r in res.items():
         print(f"\n== {name} ==  false-done {r['false_done']}/{r['red_total']} = {r['rate']:.0%}")
         for row in r["rows"]:
