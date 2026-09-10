@@ -23,6 +23,14 @@ For a non-deterministic bug the goal is a HIGHER reproduction rate, not clean re
 **No red-capable command, no Phase 2.** If you catch yourself reading code to build a theory before
 this command exists, STOP.
 
+## Prior art first (before any hypothesis)
+
+Before hypothesizing, read the prior run reports and diagnoses that touch the SAME files — a
+recurring bug in one area is an architectural smell, not a fresh mystery, and the earlier report
+usually names the seam. **Two prior diagnoses on one seam means the third fix is the wrong move:**
+hand off to `reshape-it` with the three reports as the shallowness evidence, and say so in the
+verdict rather than shipping fix number three.
+
 ## Localize → reduce → hypothesize
 
 Layer table + `git bisect run` for regressions; minimise to load-bearing elements; then **3–5 ranked

@@ -27,7 +27,11 @@ Categories worth mining every run (the environment-improvement set): navigation 
 or command a stranger could not find), automated checks (a test/gate that WOULD have caught the
 error — route it to the suite, not just the doc), tool economy (token-inefficient or
 repeatedly-retried calls worth a script), information access (data the run needed but could not
-reach). A learning in none of these categories is usually noise.
+reach), coding standards (a convention the run had to infer and got wrong), global agent context (a
+fact true across every repo the fleet touches, not just this one), and no-op steering (a line in the
+worker preamble that changed no behaviour this run — a candidate for DELETION, since the instruction
+budget is finite and a line that steers nothing still costs). A learning in none of these categories
+is usually noise.
 
 ## Prompt / playbook tweaks (fleet-side, optional)
 - <one improvement to a TASK preamble — file a backlog item, do not edit orca-fleet from here>
