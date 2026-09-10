@@ -69,7 +69,30 @@ jobs:
           tar -xzf gitleaks.tar.gz -C "$RUNNER_TEMP/gitleaks" gitleaks
           rm -f gitleaks.tar.gz
           "$RUNNER_TEMP/gitleaks/gitleaks" version
-          "$RUNNER_TEMP/gitleaks/gitleaks" detect --redact --no-banner --source .
+          gl="$RUNNER_TEMP/gitleaks/gitleaks"
+          # --baseline-path, not an allowlist: tests/test_decisions.py carries
+          # credential-SHAPED fixtures (it exists to prove decisions.py refuses
+          # credentials) and `detect` reads git history, so editing the file
+          # cannot clear them. A path allowlist would waive the whole file --
+          # measured, not assumed: gitleaks 8.30 ignores `condition = "AND"` and
+          # a real key planted in that file went unflagged. A baseline accepts
+          # exactly the fingerprints it lists.
+          "$gl" detect --redact --no-banner --source . \
+            --baseline-path .gitleaks-baseline.json
+          # A baseline IS a waiver, so prove it waives only what it lists. Plant
+          # a real-shaped key in the baselined file itself, in a throwaway clone,
+          # and require the same command to go red. The key is assembled at
+          # runtime so this workflow file never contains a detectable literal.
+          canary="$RUNNER_TEMP/canary"
+          git clone --quiet . "$canary"
+          printf 'CANARY = "%s%s"\n' 'AKIA' 'ZYXWVUTSRQPONMLK' >> "$canary/tests/test_decisions.py"
+          git -C "$canary" -c user.email=ci@local -c user.name=ci commit -aqm canary
+          if (cd "$canary" && "$gl" detect --redact --no-banner --source . \
+                --baseline-path .gitleaks-baseline.json); then
+            echo "::error::the secret scan passed a planted credential — the baseline is waiving more than it lists"
+            exit 1
+          fi
+          echo "negative control: a planted credential in the baselined file is still caught"
       - name: Ruff (syntax / undefined names)
         run: |
           python3 -m pip install --quiet ruff==0.16.5
