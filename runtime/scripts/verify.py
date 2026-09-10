@@ -406,6 +406,13 @@ def check_negative_control(m, is_mutation, execute=False):
         errs.append("negative_control.artifact reports the pinned mutant SURVIVED / was not killed")
     if mutant and mutant not in content:
         errs.append("negative_control.artifact does not reference the pinned mutant")
+    if tool == "hand":
+        # `hand` is exempt from a pinned mutant id, so the diff it applied is the ONLY thing binding
+        # the RED to a mutation — the artifact must quote it (evidence-manifest §1).
+        has_diff = re.search(r"(?m)^(diff --git|@@ )", content) or (
+            re.search(r"(?m)^-[^-]", content) and re.search(r"(?m)^\+[^+]", content))
+        if not has_diff:
+            errs.append("negative_control.artifact for tool 'hand' must quote the hand-written diff")
     if execute:
         # replay is not implemented in the reference verifier; a caller that ASKED for it must not
         # get a false pass — fail closed (evidence-manifest §2's re-execution sample is the sound form).

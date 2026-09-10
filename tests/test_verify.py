@@ -274,6 +274,19 @@ class NegativeControlCheck(unittest.TestCase):
     def test_report_only_unit_skips_nc(self):
         self.assertEqual(verify.check_negative_control({"unit": "review-it"}, False), [])
 
+    def test_hand_nc_without_quoted_diff_fails(self):
+        # `hand` carries no pinned mutant id, so an artifact without the diff is unbound evidence.
+        art = self._artifact("the suite went RED\n")
+        m = {"unit": "ship-it", "negative_control": {
+            "tool": "hand", "result": "RED", "artifact": art}}
+        self.assertTrue(any("hand-written diff" in e for e in verify.check_negative_control(m, True)))
+
+    def test_hand_nc_with_quoted_diff_passes(self):
+        art = self._artifact("--- a/x.py\n+++ b/x.py\n-old\n+new\nthe suite went RED\n")
+        m = {"unit": "ship-it", "negative_control": {
+            "tool": "hand", "result": "RED", "artifact": art}}
+        self.assertEqual(verify.check_negative_control(m, True), [])
+
 
 class ReadSourceGuard(unittest.TestCase):
     """#116: a leading-dash ref/path must not reach `git show` as an option."""

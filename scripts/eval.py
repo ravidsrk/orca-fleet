@@ -87,7 +87,7 @@ MISSION_TRIGGERS = {
     ],
     "pin-it": [
         "re-pin", "pin the runtime", "runtime contract", "doctrine drift",
-        "policy lags", "orca updated", "dispatch docs are stale",
+        "policy lags", "orca updated", "dispatch docs are stale", "doctrine",
         "receipt shape", "re-witness",
     ],
     "floor-it": [
@@ -272,6 +272,7 @@ SPECIALIST_MISSIONS = {
     "harden-it", "speed-it", "modernize-it", "prove-it", "deflake-it",
     "floor-it",
     "reshape-it",
+    "pin-it",
 }
 
 

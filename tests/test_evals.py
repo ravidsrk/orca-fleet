@@ -141,6 +141,8 @@ class TestEvalInfrastructure(unittest.TestCase):
             # upgrade vocabulary lands on modernize-it, never the post-upgrade doctrine audit
             ("Upgrade all dependencies to the latest majors and fix the breakages.", "modernize-it"),
             ("Orca updated overnight — re-pin our dispatch doctrine against the installed binary.", "pin-it"),
+            # "upgraded" ties modernize-it's bare "upgrade" — the doctrine vocabulary must break the tie
+            ("Orca upgraded overnight — re-pin our dispatch doctrine against the installed binary.", "pin-it"),
             # "reshape" as a common verb must not steal planning
             ("Reshape this epic — plan this epic into tickets.", "map-it"),
             # metric-based mobile regressions are speed-it, not on-device defect verification

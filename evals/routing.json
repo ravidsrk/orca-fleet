@@ -295,6 +295,13 @@
       "expected_mission": "field-test-it",
       "type": "positive",
       "reason": "On-device reproduce-fix-reverify with a hardware oracle maps to field-test-it."
+    },
+    {
+      "id": 43,
+      "prompt": "Orca upgraded overnight — re-pin our dispatch doctrine against the installed binary.",
+      "expected_mission": "pin-it",
+      "type": "positive",
+      "reason": "Post-runtime-upgrade doctrine re-pin maps to pin-it; the bare 'upgrade' must not steal it to modernize-it."
     }
   ]
 }
