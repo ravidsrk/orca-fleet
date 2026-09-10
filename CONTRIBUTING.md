@@ -24,7 +24,7 @@ fails the build if you try.
 New missions must clear the **mission-identity test** (see
 [ARCHITECTURE.md](ARCHITECTURE.md)): your workflow is a new mission only if it differs from every
 existing mission in at least one of — unit of work, per-unit state machine, convergence proof,
-ordering/isolation constraints, parking/failure semantics. If it shares all five with an existing
+ordering/isolation constraints, parking/failure semantics. If it shares all six with an existing
 mission, it is a *source* or an *adaptation* of that mission, not a new one. Argue the test
 explicitly in your PR description.
 
