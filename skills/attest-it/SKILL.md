@@ -10,7 +10,7 @@ description: >-
   (harden-it), a PR merge verdict (review-it), or closing a discovered backlog (clean-sweep).
 license: MIT
 proof: doctrine-only
-autonomy: L3
+autonomy: L4
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh; a FROZEN standard catalog
   (standard@version) as the denominator. A review/verify worker playbook (addyosmani specialists,

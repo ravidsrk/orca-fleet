@@ -43,7 +43,8 @@ Only `skills/` may contain a `SKILL.md`. `scripts/validate.py` fails the build i
 | "test on a real device" / "works on desktop, breaks on mobile" / "emulator QA" / "on-device bug" | [`field-test-it`](skills/field-test-it/SKILL.md) |
 
 Prefer the most specific mission. When two seem to fit, apply the mission-identity test
-(ARCHITECTURE.md): different unit of work, state machine, or convergence proof → different mission.
+(ARCHITECTURE.md): different unit of work, state machine, convergence proof, or an oracle that
+changes the proof's shape or its parking classes → different mission.
 
 ## Execution model
 

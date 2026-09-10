@@ -1,6 +1,6 @@
 # 📋 attest-it — evidence-bound conformance to a frozen standard
 
-> **Autonomy:** L3 (Osmani L0-L5) - conditional autonomy - the human/legal owner disposes of the gaps and the conformance verdict.
+> **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel evidence workers, one obligation each, re-derived independently; the human/legal owner's disposition of gaps and the conformance verdict are one-way gates, not a lower rung.
 > **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
 
 > Point it at a standard (EU AI Act Art-12/50, SOC 2, NIST SSDF) and a codebase. Come back to an

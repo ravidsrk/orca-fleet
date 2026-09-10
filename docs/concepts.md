@@ -20,6 +20,7 @@ doubt, the policy file is the source of truth.
 - [One router per worker](#one-router-per-worker)
 - [Chaining missions](#chaining-missions)
 - [Proof status](#proof-status)
+- [Autonomy](#autonomy)
 - [The mission-identity test](#the-mission-identity-test)
 
 ## A fleet is an outcome, not an ingredient
@@ -315,27 +316,57 @@ the inherited lesson from this catalog's failed predecessor, which shipped twelv
 two proven: doctrine is allowed to encode hard-won lessons, but it is never allowed to dress up
 as evidence.
 
+## Autonomy
+
+Every mission's frontmatter carries `autonomy:`, checked by the validator against Addy Osmani's
+L0–L5 ladder ("Agentic Autonomy Levels", addyo.substack.com, 2026-07-03). The ladder is about
+*structure*, not about what the agents are allowed to touch. In the source's own terms: L3,
+goal-driven autonomy, is one agent looping until a measurable stop condition is met; L4,
+parallel delegation, is many agents each working an isolated slice of the task; L5,
+managed-by-exception orchestration, is a manager that wakes on triggers, dispatches workers,
+verifies their output, retries, and escalates.
+
+Derived from those definitions, every mission in this catalog is **L4 by structure**: one
+coordinator, parallel workers in isolated worktrees, a verifier over their output. That includes
+the read-only and planning missions — `review-it` dispatches its axis reviewers in parallel,
+`map-it` its research workers, `root-cause` its hypothesis falsifiers, `attest-it` its evidence
+workers — because a human owning the verdict or the plan is a **gate class** (a one-way door,
+above), not a lower rung on the ladder. The source defines no "who owns the verdict" axis, and
+this catalog does not invent one in its name. A scheduled, unattended run
+([`runtime/mission-scheduling.md`](../runtime/mission-scheduling.md)) is the L5 shape — a trigger
+wakes the coordinator, which dispatches, verifies, retries within bounds, and escalates the rest
+to the human-owed queue — but the mission's declared level stays L4: the level describes the
+mission's structure, and scheduling is a way of invoking it.
+
 ## The mission-identity test
 
 The catalog stays deliberately small because of a bright-line test. Two workflows are the **same
-mission** only if they share *all five*:
+mission** only if they share *all six*:
 
 1. the same unit of work,
 2. the same per-unit state machine,
 3. the same convergence proof,
 4. the same ordering and isolation constraints,
-5. the same parking / failure semantics.
+5. the same parking / failure semantics,
+6. the same oracle — the authoritative source the proof binds to. Two workflows that differ
+   *only* in oracle are one mission with an `oracle=` source; they are different missions only
+   when the oracle changes the proof's shape or the parking classes.
 
 "Inventory → fix → repeat" is not enough — almost every maintenance process paraphrases that
 way. Audit findings, tracker issues, and false doc-claims all close through the same
-per-finding pipeline with the same proof, so they are one mission (`clean-sweep`). A perf breach
-is *not* a finding: done is a statistical budget over journeys, measurements are noisy, and fixes
-interact — different proof, different mission (`speed-it`). Contributing those same fixes to a repo
-you do *not* control is also its own mission (`oss-contribute`): the convergence proof is a PR open
-and reviewed rather than a merged SHA, the state machine adds upstream-PR overlap discovery and drops
-the merge step, and `awaiting-maintainer-merge` is a normal terminal — three of the five differ from
-`clean-sweep`. When you are tempted to add a mission, run this test first; when you are tempted to add
-a *mode* to a mission, run it twice.
+per-finding pipeline with the same proof against the same repo-suite oracle, so they are one
+mission (`clean-sweep`). A perf breach is *not* a finding: done is a statistical budget over
+journeys, measurements are noisy, and fixes interact — different proof, different mission
+(`speed-it`). Contributing those same fixes to a repo you do *not* control is also its own mission
+(`oss-contribute`): the convergence proof is a PR open and reviewed rather than a merged SHA, the
+state machine adds upstream-PR overlap discovery and drops the merge step, and
+`awaiting-maintainer-merge` is a normal terminal — three of the six differ from `clean-sweep`.
+The oracle point is what keeps `access-it` (a rule engine with a ceiling that creates a human-AT
+park class), `field-test-it` (the target itself, in tiers), and `pin-it` (an external control
+plane whose claims can be refuted, not just closed) their own missions; the argument for each is
+in [ARCHITECTURE.md](../ARCHITECTURE.md), and the candidates that failed the test are ledgered
+in [docs/research/REJECTED.md](research/REJECTED.md). When you are tempted to add a mission, run
+this test first; when you are tempted to add a *mode* to a mission, run it twice.
 
 ---
 

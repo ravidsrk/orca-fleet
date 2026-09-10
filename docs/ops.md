@@ -18,6 +18,18 @@ missions already have those.
 No other cloud accounts, registries, or production hosts. "Deploy" is merge
 to `main` plus the plugin copy in `.claude-plugin/`.
 
+## Release cut
+
+1. Fold `[Unreleased]` into a dated heading (`## [x.y.z] - YYYY-MM-DD`) and
+   bump `plugin.json` + `marketplace.json` to the same version in the same
+   commit ([`playbooks/release.md`](../playbooks/release.md) doc-sync unit;
+   `test_plugin_version_matches_changelog_heading` holds the three together).
+2. Tag that commit and push the tag: `git tag -a vx.y.z <cut-sha> -m "orca-fleet
+   x.y.z"` then `git push origin vx.y.z`. A version heading with no tag is a
+   claim without a SHA (#274) — 0.1.0 through 0.6.1 were tagged retroactively
+   at their cut commits on 2026-09-10.
+3. Regenerate badges (`python3 scripts/gen-badges.py`) if the catalog changed.
+
 ## Incident (2 a.m.)
 
 1. A red `validate` run on `main` files (or updates) an issue labeled

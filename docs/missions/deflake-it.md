@@ -1,6 +1,6 @@
 # 🎯 deflake-it — green N times in a row, local and CI
 
-> **Autonomy:** L4 (Osmani L0-L5) - high autonomy - the independent verifier is the cheap verification; you own the one-way doors.
+> **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel diagnose/fix workers, one flake each, ratcheted to a streak; you own the one-way doors.
 > **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
 
 > Give it a suite nobody trusts. Come back to one that has passed a declared consecutive-green

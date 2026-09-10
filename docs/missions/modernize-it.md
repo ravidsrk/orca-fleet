@@ -1,6 +1,6 @@
 # 📦 modernize-it — every major current or pinned with a reason
 
-> **Autonomy:** L4 (Osmani L0-L5) - high autonomy - the independent verifier is the cheap verification; you own the one-way doors.
+> **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel migration workers per dependency group under a compatibility graph; you own the one-way doors.
 > **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
 
 > Point it at a repo with a green CI baseline. Come back to a dependency surface where every

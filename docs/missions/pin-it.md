@@ -1,6 +1,6 @@
 # 📌 pin-it — doctrine that matches the binary
 
-> **Autonomy:** L4 (Osmani L0-L5) — re-witness probes are read-only and mechanical; doctrine patches land through the normal review + merge gates.
+> **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel re-witness probes, one claim each, against the installed binary; doctrine patches land through the normal review + merge gates.
 > **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
 
 > Point it at a freshly upgraded Orca runtime — or at the queasy feeling that the dispatch docs

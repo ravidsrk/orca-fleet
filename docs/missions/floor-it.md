@@ -1,6 +1,6 @@
 # 🧱 floor-it — a written bar that fires
 
-> **Autonomy:** L4 (Osmani L0-L5) — detection, wiring, and prove-fires are mechanical; freezing the bar is your one-way gate.
+> **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel wiring and prove-fires workers, one dimension each; freezing the bar is your one-way gate.
 > **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
 
 > Point it at a repo whose standards live in people's heads. Come back to a committed, numbered

@@ -1,6 +1,6 @@
 # 🔍 review-it — a trusted, read-only, SHA-bound GO/NO-GO verdict
 
-> **Autonomy:** L3 (Osmani L0-L5) - conditional autonomy - the human owns the verdict or the plan.
+> **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel axis reviewers on the same pinned SHA; the GO/NO-GO verdict is yours to act on — a gate class, not a lower rung.
 > **Proof:** external-run ([run report](../runs/2026-07-13-review-it-external-run.md))
 
 > Point it at a PR or a branch. Come back to a verdict you can act on: every axis reviewed by a

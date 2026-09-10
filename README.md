@@ -27,15 +27,22 @@
 ---
 
 Most agent-skill packs give you better *ingredients* — a sharper TDD loop, a stricter review, a
-smarter debugger. A few (gstack, addyosmani/agent-skills) now ship *outcomes* too — but
-self-certified within the run that produced them. orca-fleet's edge is narrower and harder to copy:
-**verified, not asserted.** Each mission is a complete autonomous fleet for the
-[Orca](https://github.com/stablyai/orca) runtime — a coordinator that decomposes a goal, dispatches
-isolated workers, and stops at a named terminal state whose every claim an **independent session
-re-derives from git**, backed — on any change it lands — by a **mandatory negative control** (revert
-or mutate the change and watch the proof go red) and a **frozen denominator** the worker cannot quietly
-shrink. (Report-only missions like `review-it` bind their claims to the reviewed SHA instead of landing
-a change to control against.)
+smarter debugger. A few now ship *outcomes* too: gstack carries a content-hash evidence ledger,
+cross-model review, and a Stop gate (one that fails open), and addyosmani/agent-skills a
+floor-guard reference implementation — all of it graded inside the run that produced the work,
+and no shipped pack executes a negative control. orca-fleet's edge is narrower and harder to
+copy: **the claim is checked by mechanism, outside the run that made it.** Each mission is a
+complete autonomous fleet for the [Orca](https://github.com/stablyai/orca) runtime — a
+coordinator that decomposes a goal, dispatches isolated workers, and stops at a named terminal
+state whose claims `verify.py` re-derives from git: the **scope is frozen** against a
+coordinator-held digest the worker cannot quietly shrink, the **commits are real** on the
+intended base, the **review is looked up on GitHub** and bound to the head tree, and — landing
+on this branch — the **negative control is executed** (`--execute-nc` reverts or re-applies the
+change in a fresh worktree and requires the proof to go red) for revert and hand controls. The
+coordinator's clean-env re-run at the head SHA and its ≥10% re-execution sample of controls
+remain doctrine it performs, not mechanism the verifier performs for it. (Report-only missions
+like `review-it` bind their claims to the reviewed SHA instead of landing a change to control
+against.)
 
 ```
  YOU SAY                          THE FLEET RUNS                        YOU GET
@@ -114,13 +121,16 @@ evidence-based definition of done. Click through for the full guide to each.
 ### Autonomy levels
 
 Each mission's frontmatter also carries a validator-enforced `autonomy:` level on Addy Osmani's
-L0–L5 ladder — *"the level you can safely reach is exactly the level you can cheaply prove."* The
-independent verifier is that cheap verification, so the mutation fleets run at **L4** (high autonomy;
-you own the one-way doors), while the read-only / planning missions sit at **L3** (the human owns
-the verdict or the plan):
-
-- **L4** — ship-it · clean-sweep · harden-it · speed-it · modernize-it · prove-it · deflake-it · oss-contribute · access-it · pin-it · floor-it · reshape-it · field-test-it
-- **L3** — review-it · map-it · root-cause · attest-it
+L0–L5 ladder ("Agentic Autonomy Levels", addyo.substack.com, 2026-07-03). The ladder is
+structural. In the source's own terms, L3 is one agent looping toward a measurable stop
+condition; L4 is many agents working in parallel, each on an isolated slice of the task; L5 is a
+manager that wakes on triggers, dispatches workers, verifies their output, retries, and
+escalates. Every mission here is a coordinator plus parallel isolated workers, so every mission
+is **L4** — the read-only and planning ones included: `review-it` fans its axis reviewers out in
+parallel and `map-it` its research workers, and the human-owned verdict or plan at the end is a
+one-way gate class, not a lower rung. A scheduled unattended run is the L5 shape
+([`runtime/mission-scheduling.md`](runtime/mission-scheduling.md)); the derivation is in
+[docs/concepts.md](docs/concepts.md#autonomy).
 
 ## Proof status — honesty first
 
@@ -182,11 +192,13 @@ flowchart TD
 
 </details>
 
-Two workflows are the **same mission** only if they share all five of: unit of work, per-unit
-state machine, convergence proof, ordering/isolation constraints, and parking/failure semantics.
-By that test, closing audit findings, tracker issues, and false doc-claims are one mission
-(`clean-sweep`) — but security hardening, perf budgeting, dependency modernization, test-debt
-proving, and flake eradication are not; their denominators and proofs differ, so each is its own.
+Two workflows are the **same mission** only if they share all six of: unit of work, per-unit
+state machine, convergence proof, ordering/isolation constraints, parking/failure semantics, and
+the oracle the proof binds to — where a different oracle makes a different mission only when it
+changes the proof's shape or the parking classes. By that test, closing audit findings, tracker
+issues, and false doc-claims are one mission (`clean-sweep`: three sources, one repo-suite
+oracle) — but security hardening, perf budgeting, dependency modernization, test-debt proving,
+and flake eradication are not; their denominators and proofs differ, so each is its own.
 
 ## How a fleet works
 
@@ -281,16 +293,25 @@ sequenceDiagram
 
 </details>
 
-The manifest binds every claim to a SHA and an artifact; the verifier re-derives the facts. The
-denominator is frozen at run start (`contract.digest`), so a worker cannot quietly shrink its own
-scope and report a subset as "all". A negative control is mandatory for every fix and every test:
-show the proof fails when the change is reverted or mutated. Mutation units also carry a
-non-empty **intent packet** (`goal` · `ruled_out` · `why`) and a `lighting` bit (`lit` by
-default; `dark-eligible` only for Lane A work with an unfakeable oracle). Full schema:
+The manifest binds every claim to a SHA and an artifact; `verify.py` re-derives what it can
+from authoritative state, scope first: the criterion set from `contract.source` at
+`contract.digest`, frozen at run start so a worker cannot quietly shrink its own scope and
+report a subset as "all"; `head_sha` a real commit that is an ancestor of the integration BASE;
+the review looked up on GitHub with `reviewed_sha` — or the reviewed content tree — equal to the
+head. A negative control is mandatory for every fix and every test: show the proof fails when
+the change is reverted or mutated. The verifier reads the control's artifact and rejects a
+"survived" result; landing on this branch, `verify.py --execute-nc` replays revert and hand
+controls itself in a fresh worktree at `head_sha` and requires RED, and fail-closes on any other
+control tool. Two checks remain doctrine the coordinator performs rather than mechanism the
+verifier performs: the clean-env suite run at `head_sha`, and the ≥10% re-execution sample of
+controls ([`runtime/evidence-manifest.md`](runtime/evidence-manifest.md) §2). Mutation units
+also carry a non-empty **intent packet** (`goal` · `ruled_out` · `why`) and a `lighting` bit
+(`lit` by default; `dark-eligible` only for Lane A work with an unfakeable oracle). Full schema:
 [`runtime/evidence-manifest.md`](runtime/evidence-manifest.md).
 
-This is the discipline the predecessor's `clean-sweep` and `spec-to-ship` runs taught — encoded here
-as mechanism, not recalled as folklore: **verify, never trust.**
+This is the discipline the predecessor's `clean-sweep` and `spec-to-ship` runs taught — encoded
+as mechanism where it is mechanism, and named as doctrine where it is still doctrine: **verify,
+never trust.**
 
 ## Three layers, strictly separated
 
@@ -361,8 +382,11 @@ levels above each installed mission:
 ls "$(dirname "$(dirname "$(readlink -f ~/.claude/skills/ship-it 2>/dev/null || echo ~/.claude/skills/ship-it)")")"/playbooks
 ```
 
-If that fails, the references are broken — use the symlink or plugin path above instead;
-both are verified to preserve them.
+If that fails, the references are broken — use the symlink or plugin path above instead. The
+symlink path is verified to preserve them
+([`docs/completion/evidence/CF-02-r2-happy-symlink-install.txt`](docs/completion/evidence/CF-02-r2-happy-symlink-install.txt));
+the plugin path preserves them by construction — the whole repo is copied — but has no recorded
+install transcript yet.
 
 </details>
 
@@ -438,10 +462,10 @@ packs *underneath* (one pack per worker) and keep the user-facing namespace abou
 <summary><b>Why not one mega-skill with modes?</b></summary>
 
 Because the missions genuinely differ in unit of work, state machine, convergence proof,
-ordering, and failure semantics — the five-point mission-identity test in
-[ARCHITECTURE.md](ARCHITECTURE.md). A mode flag can't change a convergence proof. When two
-workflows *do* share all five, they are one mission: that is why audit findings, tracker issues,
-and lying docs are all `clean-sweep`.
+ordering, failure semantics, or the oracle their proof binds to — the six-point
+mission-identity test in [ARCHITECTURE.md](ARCHITECTURE.md). A mode flag can't change a
+convergence proof. When two workflows *do* share all six, they are one mission: that is why
+audit findings, tracker issues, and lying docs are all `clean-sweep`.
 
 </details>
 
@@ -449,8 +473,9 @@ and lying docs are all `clean-sweep`.
 <summary><b>What stops a worker from just claiming it finished?</b></summary>
 
 Nothing stops the claim — the protocol just refuses to grade it. Completion requires a SHA-bound
-evidence manifest, and an independent verifier re-derives the facts from authoritative state:
-ancestry on the base, a negative control that goes red when the fix is reverted, and a reviewed
+evidence manifest, and `verify.py` re-derives the facts from authoritative state: the frozen
+scope, ancestry on the base, a negative control that goes red when the fix is reverted (executed
+by the verifier itself for revert and hand controls, landing on this branch), and a reviewed
 SHA (an APPROVED GitHub review) still equal to the head; the coordinator re-runs the suite at
 that SHA in a clean env. See [the evidence protocol](#the-evidence-protocol).
 

@@ -1,6 +1,6 @@
 # 🧬 reshape-it — deep modules, same behaviour
 
-> **Autonomy:** L4 (Osmani L0-L5) — scan and deepen waves are mechanical; bounding the target surface and any API-break are your gates.
+> **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel scan and deepen waves behind a pinned characterization net; bounding the target surface and any API-break are your gates.
 > **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
 
 > Point it at the codebase where every change touches twelve imports. Come back to hot modules

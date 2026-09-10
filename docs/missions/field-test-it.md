@@ -1,6 +1,6 @@
 # 📱 field-test-it — proven on hardware, not on hope
 
-> **Autonomy:** L4 (Osmani L0-L5) — fix workers run rw like every mutating mission; device pairing and anything outside the paired device set are your one-way gates.
+> **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel fix workers per device-observed defect, each re-verified on the target; device pairing and anything outside the paired device set are your one-way gates.
 > **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
 
 > Point it at "works on my machine, breaks on my phone." Come back to each on-device defect

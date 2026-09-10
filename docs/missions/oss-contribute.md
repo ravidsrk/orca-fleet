@@ -1,6 +1,6 @@
 # 🤝 oss-contribute — landed contributions to a repo you do not control
 
-> **Autonomy:** L4 (Osmani L0-L5) - high autonomy - the independent verifier is the cheap verification; you own the one-way doors.
+> **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel builders per upstream issue; the maintainer's merge is a gate the fleet neither owns nor fakes.
 > **Proof:** external-run ([run report](../runs/2026-07-16-oss-contribute-external-run.md))
 
 > Point it at a set of issues on an upstream project you can only fork. Come back to a set of open,
