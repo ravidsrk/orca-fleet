@@ -43,13 +43,13 @@ EXPECTED_MISSIONS = {
 # scores, never a rubber stamp. Measured on the full fixture set (74 rows: the
 # curated seams plus the 36 realistic prompts of REVIEW.md §5) at the commit
 # that introduced it: 67/74 = 90.5%, and 34/36 on the realistic prompts alone
-# (the keyword router scored 19/36). The floor is 0.90 — under the live score,
-# so one added fixture cannot flake the suite, and within
-# ROUTING_SCORE_MARGIN of it, so a router or description improvement forces the
-# floor up instead of reopening the gap. The seven residual misroutes are
-# description collisions, listed in KNOWN_UNRESOLVED_SEAMS and in the WP-D
-# report; each needs a SKILL.md description edit, not a router tweak.
-ROUTING_MIN_SCORE = 0.95
+# (the keyword router scored 19/36). Every residual misroute was then closed by
+# a SKILL.md description edit — never a router tweak — so the live suite is
+# 86/86 and the floor is ratcheted to it. At 1.0 the gate is absolute: adding a
+# mission or a fixture that collides with an existing description reds the
+# build, which is the point — a collision is a catalog defect, not a router
+# tuning problem. ROUTING_SCORE_MARGIN keeps the floor pinned to the live score.
+ROUTING_MIN_SCORE = 1.0
 ROUTING_SCORE_MARGIN = 0.05
 
 
@@ -437,8 +437,35 @@ class TestCliGate(unittest.TestCase):
         )
 
     def test_routing_suite_fails_below_threshold(self):
-        r = self._run("--suite", "routing", "--threshold", "1.0")
-        self.assertEqual(r.returncode, 1, r.stdout)
+        """The live suite is at 100%, so prove the gate on a suite that misses.
+
+        A sandbox root (a copy of eval.py, the real skills/ symlinked, and a
+        routing.json holding one deliberately-wrong fixture) exercises the real
+        CLI end to end: a miss must exit 1 and name the threshold.
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "scripts").mkdir()
+            (root / "scripts" / "eval.py").write_text(
+                (ROOT / "scripts" / "eval.py").read_text(encoding="utf-8"), encoding="utf-8"
+            )
+            (root / "skills").symlink_to(SKILLS, target_is_directory=True)
+            (root / "evals").mkdir()
+            data = json.loads((EVALS / "routing.json").read_text(encoding="utf-8"))
+            data["evals"] = [{
+                "id": 1,
+                "prompt": "ARIA roles on the checkout modal are wrong.",
+                "type": "positive",
+                "expected_mission": "ship-it",
+                "reason": "deliberately wrong: this is access-it vocabulary",
+            }]
+            (root / "evals" / "routing.json").write_text(json.dumps(data), encoding="utf-8")
+            r = subprocess.run(
+                [sys.executable, str(root / "scripts" / "eval.py"),
+                 "run", "--suite", "routing", "--threshold", "1.0"],
+                capture_output=True, text=True,
+            )
+        self.assertEqual(r.returncode, 1, f"{r.stdout}\n{r.stderr}")
         self.assertIn("below --threshold", r.stdout)
 
     def test_routing_suite_passes_at_the_live_floor(self):

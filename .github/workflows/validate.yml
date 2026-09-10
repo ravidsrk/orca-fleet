@@ -28,7 +28,7 @@ jobs:
         # and fails the build under the threshold, so a description edit that
         # breaks routing cannot merge. Floor tracked in tests/test_evals.py
         # (ROUTING_MIN_SCORE); an error-level description collision fails here too.
-        run: python3 scripts/eval.py run --suite routing --threshold 0.95
+        run: python3 scripts/eval.py run --suite routing --threshold 1.0
       - name: Check proof-evidence honesty
         run: python3 runtime/scripts/proof_status.py --check
       - name: Secret scan (gitleaks, pinned)

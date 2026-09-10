@@ -4,8 +4,9 @@ description: >-
   Establish a threat model and close it: audit → prove exploits → fix → RE-ATTACK the fix and
   audit the whole vulnerability class → re-audit, looping until a fresh full audit finds zero
   unrefuted P0/P1. STRIDE + OWASP Top 10 + OWASP LLM Top 10 + supply-chain. Use when the ask is
-  the whole adversarial loop: "harden this", "red team", "close the security loop", "audit then
-  exploit then re-attack", or an unattended audit-fix-verify run. The full adversarial loop — for
+  the whole adversarial loop: "harden this", "red team", "close the security loop", "harden this
+  service against SQL injection and auth bypass", "audit then exploit then re-attack", or an
+  unattended audit-fix-verify run. The full adversarial loop — for
   a bounded per-diff security check use review-it's risk lens. Not for shipping one authorized fix
   (ship-it), general backlog drain (clean-sweep), a single PR verdict (review-it), or routine
   dependency-advisory currency with no exploit proof (modernize-it).

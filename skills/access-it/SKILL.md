@@ -7,9 +7,9 @@ description: >-
   cognitive criteria into a first-class human-AT park. The unit is one success-criterion violation
   instance on the frozen surface. Use when "accessibility", "a11y", "WCAG conformance", "screen
   reader", "keyboard-only operability", "ARIA", "axe-core", "Section 508 accessibility", "color
-  contrast" — not for building a keyboard feature (ship-it). Not for a security exploit loop
-  (harden-it), a PR merge verdict (review-it), a discovered backlog (clean-sweep), or standards
-  attestation (attest-it).
+  contrast". Not for building a keyboard feature or shortcut (ship-it), a security exploit loop
+  (harden-it), a PR merge verdict or a per-diff accessibility lens (review-it), a discovered
+  backlog (clean-sweep), or standards attestation (attest-it).
 license: MIT
 proof: doctrine-only
 autonomy: L4

@@ -5,8 +5,9 @@ description: >-
   document, the issue tracker, or verified false documentation claims. Each finding is skeptic-triaged
   (reproduced or refuted with evidence), fixed on an integration branch with a failing-first test, build-blind
   reviewed, merge-verified, and closed with a linked SHA; the loop re-enumerates until dry. Use when the
-  backlog is yours to merge: "clean sweep", "close every open issue in our tracker", "drain the backlog", "the
-  docs drifted from the code", "the API contract drifted from the docs", "fix everything in this audit", "the
+  backlog is yours to merge: "clean sweep", "close every open issue in our tracker", "drain the backlog", "our
+  docs are out of date with the code", "the API contract drifted from the docs", "fix everything in this
+  audit", "the
   README lies — verify and fix it", "fix this broken test" when it fails deterministically (N/N, same
   assertion, cause findable — deflake-it and prove-it both route those here). Not for
   security/perf/deps/coverage-gaps/flakes (those are harden-it / speed-it / modernize-it / prove-it / deflake-

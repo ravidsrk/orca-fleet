@@ -142,7 +142,7 @@ A unit is done only when its own acceptance criteria AND this floor both hold. T
 CLASS — a negative control is always required, but what one IS differs:
 
 - **Mutation units** (ship-it, clean-sweep, oss-contribute, harden-it, speed-it, modernize-it, prove-it, deflake-it,
-  access-it, pin-it, floor-it, reshape-it, field-test-it): runtime-verified, not just compiled/typechecked; no new red at head SHA; the negative control is the §1 proof, EXECUTED per §2.
+  access-it, pin-it, floor-it, reshape-it, field-test-it, migrate-it, oncall-it, absorb-it, document-it): runtime-verified, not just compiled/typechecked; no new red at head SHA; the negative control is the §1 proof, EXECUTED per §2.
 - **Report-only units** (review-it): no code is touched (that IS a checked invariant — a dirty worktree fails the
   unit); the negative-control analogue is SOURCE-BINDING: every finding quotes a line that exists at `head_sha`
   (the SHA reviewed), and the verdict binds to that SHA. A finding whose quoted line does not exist there is a

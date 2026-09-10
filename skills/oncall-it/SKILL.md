@@ -1,15 +1,16 @@
 ---
 name: oncall-it
 description: >-
-  Make a surface operable: every production path in a frozen set answers its on-call questions from
-  telemetry alone, every alert is symptom-based with two severities and a justified threshold,
-  every alert has a linked runbook and has been test-fired, and an induced staging failure is
-  located by a fresh worker with NO source access — the oracle a narrator cannot fake. The unit is
-  one production path times its 2-4 on-call questions. Use when "make this operable", "we were
-  blind during the incident", "add observability", "instrument this service", "we cannot tell what
-  happened in production", "set up alerts and runbooks". Not for diagnosing a live failure
+  Make a surface operable: every path in a frozen set answers its on-call questions from telemetry
+  alone, every alert is symptom-based with two severities and a justified threshold, every alert
+  has a linked runbook and has been test-fired, and an induced staging failure is located by a
+  fresh worker with NO source access — the oracle a narrator cannot fake. The unit is one path
+  times its 2-4 on-call questions. Use when "make this operable", "we were blind during the
+  incident", "add observability", "instrument this service", "we cannot tell what happened at
+  3am", "set up alerts and runbooks". Not for diagnosing a live failure
   (root-cause), a post-deploy canary on a change you just shipped (ship-it's release states), a
-  latency budget (speed-it), an exploit (harden-it), or closing a findings backlog (clean-sweep).
+  latency budget (speed-it), an exploit (harden-it), closing a findings backlog (clean-sweep), or
+  a blanket "make this production-ready" ask — that is a mission chain, not one mission.
 license: MIT
 proof: doctrine-only
 autonomy: L4

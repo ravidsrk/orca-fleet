@@ -7,9 +7,9 @@ description: >-
   file:symbol or a pasted run — with the negative control that renaming the anchored fact turns the
   claim check RED. The unit is one (public-surface entity x quadrant) cell. Use when "document this
   project", "our docs have huge gaps", "write the reference docs", "the API is undocumented", "new
-  hires cannot find anything", "docs coverage". Not for removing false claims from docs that
-  already exist (clean-sweep source=doc-claims), syncing docs to one wave's diff (ship-it's
-  doc-sync unit), or re-witnessing runtime doctrine against an installed binary (pin-it).
+  hires cannot find anything", "docs coverage". Not for docs that already exist and have gone
+  stale or out of date: false claims in docs are clean-sweep (source=doc-claims), syncing docs to
+  one wave's diff is ship-it's doc-sync unit, and stale runtime doctrine is pin-it.
 license: MIT
 proof: doctrine-only
 autonomy: L4
