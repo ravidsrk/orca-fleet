@@ -393,6 +393,24 @@ class TestScriptShape(unittest.TestCase):
             self.assertIn(tool, entry["matcher"])
         self.assertTrue(Path(entry["hooks"][0]["command"]).is_file())
 
+    def test_settings_mode_serializes_paths_that_are_hostile_to_json(self):
+        """PR #277 review, P2: the paths were interpolated into hand-built JSON.
+
+        A POSIX path may legally hold a quote, a backslash or a control character.
+        Interpolated, such a path yields either invalid JSON (the host loads no
+        hook at all) or a DIFFERENT path — a boundary silently pointed somewhere
+        else, which is worse than no boundary. Before the fix this exact directory
+        produced `Expecting ',' delimiter`.
+        """
+        wt = self.tmp / 'we"ird\\path\ttab'
+        wt.mkdir()
+        r = subprocess.run(["sh", str(HOOK), "--settings", str(wt)],
+                           capture_output=True, text=True)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        block = json.loads(r.stdout)  # invalid JSON fails here
+        self.assertEqual(block["env"]["ORCA_UNIT_WORKTREE"], str(wt.resolve()),
+                         "the boundary must round-trip byte for byte")
+
     def test_settings_mode_refuses_a_worktree_that_is_not_there(self):
         r = subprocess.run(["sh", str(HOOK), "--settings", str(self.tmp / "nope")],
                            capture_output=True, text=True)

@@ -103,19 +103,21 @@ if [ "${1:-}" = "--settings" ]; then
     exit 2
   }
   _self=$(cd "$(dirname -- "$0")" && pwd -P)/$(basename -- "$0")
-  printf '%s\n' '{'
-  printf '  "env": {"ORCA_UNIT_WORKTREE": "%s"},\n' "$_wt"
-  printf '%s\n' '  "hooks": {'
-  printf '%s\n' '    "PreToolUse": ['
-  printf '%s\n' '      {'
-  printf '%s\n' '        "matcher": "Bash|Edit|Write|NotebookEdit|MultiEdit",'
-  printf '%s\n' '        "hooks": ['
-  printf '          {"type": "command", "command": "%s"}\n' "$_self"
-  printf '%s\n' '        ]'
-  printf '%s\n' '      }'
-  printf '%s\n' '    ]'
-  printf '%s\n' '  }'
-  printf '%s\n' '}'
+  # Serialized, never interpolated: a POSIX path may legally contain a quote, a
+  # backslash or a control character, and pasting one into a hand-built JSON
+  # string yields either invalid JSON or a DIFFERENT path — a boundary silently
+  # set somewhere else is worse than no boundary (PR #277 review, P2). Same
+  # json.dumps the decision path below already uses.
+  python3 -c 'import json,sys; print(json.dumps({
+      "env": {"ORCA_UNIT_WORKTREE": sys.argv[1]},
+      "hooks": {"PreToolUse": [{
+          "matcher": "Bash|Edit|Write|NotebookEdit|MultiEdit",
+          "hooks": [{"type": "command", "command": sys.argv[2]}],
+      }]},
+  }, indent=2))' "$_wt" "$_self" || {
+    echo "deny-hook.sh --settings: python3 is required to emit valid JSON" >&2
+    exit 2
+  }
   exit 0
 fi
 if [ $# -gt 0 ]; then
