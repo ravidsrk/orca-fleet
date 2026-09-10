@@ -3,10 +3,11 @@ name: speed-it
 description: >-
   Bring declared user journeys within pre-declared performance budgets, proven by measurement.
   Controlled baseline (measure to a metric contract, not once) → profile the real bottleneck → fix
-  PR-per-hotspot with a mandatory before/after → re-benchmark to the metric's statistical contract →
-  add CI regression guards, looping until every journey is within budget or parked. Use when "the app
-  is slow", "perf sweep", "Core Web Vitals", "get under budget", or an unattended perf-hardening run.
-  Not for a per-diff perf opinion (review-it) or post-deploy watch alone (observe via ship-it).
+  PR-per-hotspot with a mandatory before/after → re-benchmark to the metric's statistical contract
+  → add CI regression guards, looping until every journey is within budget or parked. Use when
+  "the app is slow", "perf sweep", "Core Web Vitals", "LCP regression on mobile", "get under
+  budget", or an unattended perf-hardening run. Not for a per-diff perf opinion (review-it) or
+  post-deploy watch alone (observe via ship-it).
 license: MIT
 proof: doctrine-only
 autonomy: L4

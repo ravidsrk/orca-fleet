@@ -2,14 +2,15 @@
 name: reshape-it
 description: >-
   Deepen a lived-in codebase's confirmed hot modules without changing behaviour: a churn-weighted
-  shallowness inventory finds the modules whose interfaces are too wide for what they hide, a human
-  confirms the target surface, a mutation-audited characterization net is pinned BEFORE any
-  restructure, and each module is deepened one seam at a time with build-blind review. The unit is
-  one module-deepening (one interface shrink at one seam). Use when "this module is a god file",
-  "the interface is wider than the implementation", "too many imports to change anything",
-  "architecture erosion", "refactor the hot path safely", "shallow modules", "deep modules".
-  Not for dependency/framework upgrades (modernize-it), a findings backlog (clean-sweep), missing
-  tests (prove-it — though reshape-it borrows its net), or perf (speed-it).
+  shallowness inventory finds the modules whose interfaces are too wide for what they hide, a
+  human confirms the target surface, a mutation-audited characterization net (prove-it's, consumed
+  here) is pinned BEFORE any restructure, and each module is deepened one seam at a time with
+  build-blind review. The unit is one module-deepening (one interface shrink at one seam). Use
+  when "this module is a god file", "the interface is wider than the implementation", "too many
+  imports to change anything", "architecture erosion", "refactor the hot path safely", "shallow
+  modules", "deep modules". Not for dependency/framework upgrades (modernize-it), a findings
+  backlog (clean-sweep), missing tests (prove-it — though reshape-it borrows its net), or perf
+  (speed-it).
 license: MIT
 proof: doctrine-only
 autonomy: L4

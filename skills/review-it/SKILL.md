@@ -1,12 +1,14 @@
 ---
 name: review-it
 description: >-
-  Produce a trusted, read-only, SHA-bound verdict on a PR or branch — no fixing authority. Acceptance
-  review (standards, frozen-spec compliance, test-adequacy) always; scope-triggered risk lenses
-  (security, performance, accessibility, data-migration) when the change surface warrants. Findings
-  quote their motivating line, carry severity, and are bound to the reviewed SHA. Use when "review this
-  PR", "review queue", "is this ready to merge", a pre-merge quality/permission gate. Report-only — it
-  never edits code (fixing is ship-it / clean-sweep). Not the full security loop (harden-it).
+  Produce a trusted, read-only, SHA-bound verdict on a PR or branch — no fixing authority.
+  Acceptance review (standards, frozen-spec compliance, test-adequacy) always; scope-triggered
+  risk lenses (security, performance, accessibility, data-migration) when the change surface
+  warrants. Findings quote their motivating line, carry severity, and are bound to the reviewed
+  SHA. Use when "review this PR", "review this diff", "is this diff ready to merge", "review
+  queue", a pre-merge quality/permission gate; an attached request to fix what you find does not
+  move the verdict — it routes out. Report-only — it never edits code (fixing is ship-it / clean-
+  sweep). Not the full security loop (harden-it).
 license: MIT
 proof: external-run
 autonomy: L4

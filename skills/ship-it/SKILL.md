@@ -1,14 +1,14 @@
 ---
 name: ship-it
 description: >-
-  Turn intent or a frozen spec into a released, verified outcome on Orca. Entry is either a
-  frozen spec (validate → decompose) or raw intent (grill → freeze → decompose); after freeze
-  both enter one canonical pipeline: decompose → build (tested slices) → acceptance review →
-  runtime-prove → land → release → observe, stopping at the highest release state you're
-  authorized to reach (BUILT / PROMOTION_READY / RELEASED / DEPLOYED_AND_VERIFIED). Use when
-  "build and ship this", "spec to shipped product", "ship this feature", or an autonomous
-  build-to-release run. Not for closing an existing backlog (that's clean-sweep) or a foggy
-  goal that needs charting first (that's map-it).
+  Turn intent or a frozen spec into a released, verified outcome on Orca. Entry is either a frozen
+  spec (validate → decompose) or raw intent (grill → freeze → decompose); after freeze both enter
+  one canonical pipeline: decompose → build (tested slices) → acceptance review → runtime-prove →
+  land → release → observe, stopping at the highest release state you're authorized to reach
+  (BUILT / PROMOTION_READY / RELEASED / DEPLOYED_AND_VERIFIED). Use when "build and ship this",
+  "spec to shipped product", "ship this feature", "ship this fix", "land this change", "build me
+  <feature>", or an autonomous build-to-release run. Not for closing an existing backlog (that's
+  clean-sweep) or a foggy goal that needs charting first (that's map-it).
 license: MIT
 proof: self-run
 proof_evidence: docs/runs/2026-08-28-ship-it-self-run.md

@@ -1,14 +1,14 @@
 ---
 name: pin-it
 description: >-
-  Re-witness and re-pin the fleet's runtime-mechanics doctrine against the installed control-plane
-  binary after an upgrade or a drift signal: enumerate every mechanics claim in runtime policies,
-  scripts, and mission dispatch preambles, load the version-matched guides the binary serves, replay
-  each claim live, and patch what lags — kept claims carry receipts, removed claims carry archived
-  refutations. The unit is one mechanics claim. Use when "Orca updated", "re-pin the runtime
-  contract", "policy lags practice", "the guides say otherwise", "our dispatch docs are stale", "a
-  receipt shape appeared that the runtime docs don't describe". Not for dependency/framework upgrades
-  (modernize-it), a false-prose backlog (clean-sweep), or a PR verdict (review-it).
+  Re-witness and re-pin the fleet's runtime-mechanics doctrine against the installed control-plane binary
+  after an upgrade or a drift signal: enumerate every mechanics claim in runtime policies, scripts, and
+  mission dispatch preambles, load the version-matched guides the binary serves, replay each claim live, and
+  patch what lags — kept claims carry receipts, removed claims carry archived refutations. The unit is one
+  mechanics claim. Use when "Orca updated", "re-pin the runtime contract", "policy lags practice", "the guides
+  say otherwise", "our control-plane dispatch docs are stale", "a receipt shape appeared that the runtime
+  guides don't describe". Not for docs that drifted from your own code or API contract (clean-sweep),
+  dependency/framework upgrades (modernize-it), or a PR verdict (review-it).
 license: MIT
 proof: doctrine-only
 autonomy: L4

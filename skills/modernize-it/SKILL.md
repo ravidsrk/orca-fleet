@@ -2,12 +2,13 @@
 name: modernize-it
 description: >-
   Bring a dependency / framework / platform surface current, safely — CI green at every merge.
-  Inventory outdated + advisories with reachability triage → order by a compatibility graph → upgrade
-  one dep or coherent group per PR, adapting call sites (code-level expand/migrate/contract) to get off
-  old majors while keeping CI green → re-inventory until every major is current or pinned-with-a-reason.
-  Use when "update the dependencies", "upgrade everything", "framework migration", "get off the old
-  major", or an unattended dependency-currency run. Not for stateful DB schema/data migration across
-  deploys (hand that to ship-it) or advisory exploit proof (harden-it).
+  Inventory outdated + advisories with reachability triage → order by a compatibility graph →
+  upgrade one dep or coherent group per PR, adapting call sites (code-level
+  expand/migrate/contract) to get off old majors while keeping CI green → re-inventory until every
+  major is current or pinned-with-a-reason. Use when "update the dependencies", "upgrade
+  everything", "framework migration", "get off the old major", or an unattended dependency-
+  currency run. Not for stateful DB schema/data migration across deploys (hand that to ship-it) or
+  advisory exploit proof (harden-it).
 license: MIT
 proof: doctrine-only
 autonomy: L4

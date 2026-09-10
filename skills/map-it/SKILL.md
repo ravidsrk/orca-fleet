@@ -1,13 +1,13 @@
 ---
 name: map-it
 description: >-
-  Resolve a foggy, multi-session goal into a frozen execution map that ship-it can consume — decisions,
-  not deliverables. Chart a fog-of-war map of decision-tickets (only ticket what you can phrase sharply
-  now), clear the research/decision frontier in parallel with HITL at each decision, and produce a
-  frozen plan + a prepared DAG. Use when the goal is too big/foggy for one session, "chart this",
-  "plan this epic", "I don't know the shape yet", or you can't yet authorize implementation. Its
-  outcome is a decided plan; building is ship-it. Not for a foggy BUG (root-cause) or ready-to-build
-  intent (ship-it).
+  Resolve a foggy, multi-session goal into a frozen execution map that ship-it can consume —
+  decisions, not deliverables. Chart a fog-of-war map of decision-tickets (only ticket what you
+  can phrase sharply now), clear the research/decision frontier in parallel with HITL at each
+  decision, and produce a frozen plan + a prepared DAG. Use when the goal is too big/foggy for one
+  session, "chart this", "plan this epic", "I don't know the shape yet", or you can't yet
+  authorize implementation. Its outcome is a decided plan; building is ship-it. Not for a foggy
+  BUG (root-cause) or ready-to-build intent (ship-it).
 license: MIT
 proof: doctrine-only
 autonomy: L4

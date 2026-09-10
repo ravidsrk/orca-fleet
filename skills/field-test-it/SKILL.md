@@ -2,13 +2,14 @@
 name: field-test-it
 description: >-
   Verify an app on a real device or emulator and fix what only hardware shows: pair a device
-  session through Orca's emulator/device skills, capture a pre-change regression baseline, reproduce
-  the defect on-device with captured artifacts, fix it, and re-verify the same flow on-device at the
-  head SHA — with the negative control that reverting the fix reintroduces the on-device failure.
-  The unit is one device-observed defect (or one device QA pass over a flow). Use when "test on a
-  real device", "works on desktop, breaks on mobile", "emulator QA", "on-device bug", "verify on
-  hardware", "mobile regression", "physical device testing". Not for web perf budgets (speed-it),
-  WCAG conformance (access-it), test-coverage gaps (prove-it), or a PR verdict (review-it).
+  session through Orca's emulator/device skills, capture a pre-change regression baseline,
+  reproduce the defect on-device with captured artifacts, fix it, and re-verify the same flow on-
+  device at the head SHA — with the negative control that reverting the fix reintroduces the on-
+  device failure. The unit is one device-observed defect (or one device QA pass over a flow). Use
+  when "test on a real device", "works on desktop, breaks on mobile", "emulator QA", "on-device
+  bug", "verify on hardware", "a regression no desktop run reproduces", "physical device testing".
+  Not for web perf budgets (speed-it), WCAG conformance (access-it), test-coverage gaps (prove-
+  it), or a PR verdict (review-it).
 license: MIT
 proof: doctrine-only
 autonomy: L4

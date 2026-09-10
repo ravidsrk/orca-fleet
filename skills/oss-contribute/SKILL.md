@@ -1,15 +1,15 @@
 ---
 name: oss-contribute
 description: >-
-  Turn a bounded set of issues on a repo you do NOT control into landed open-source contributions.
-  Each actionable issue is skeptic-triaged (including a search of the upstream repo's OPEN PRs, not
-  just its code), built on a fork with a failing-first test, reviewed build-blind, and opened as an
-  etiquette-correct PR against the upstream default branch — or, where a maintainer PR already
-  exists, shared as a quoted review-assist comment (an alternative PR only if maintainers invite one). The loop
-  re-enumerates until the actionable set is dry. Merge is the maintainer's; the fleet never merges.
-  Use when "contribute to this project", "open PRs for these upstream issues", "help out this OSS
-  repo", "send fixes upstream", "we only have a fork". Not for a repo you own and can merge (that is
-  clean-sweep — merged-SHA closure) and not for building a net-new project (ship-it).
+  Turn a bounded set of issues on a repo you do NOT control into landed open-source contributions. Each
+  actionable issue is skeptic-triaged (including a search of the upstream repo's OPEN PRs, not just its code),
+  built on a fork with a failing-first test, reviewed build-blind, and opened as an etiquette-correct PR
+  against the upstream default branch — or, where a maintainer PR already exists, shared as a quoted review-
+  assist comment (an alternative PR only if maintainers invite one). The loop re-enumerates until the
+  actionable set is dry. Merge is the maintainer's; the fleet never merges. Use when the target is upstream
+  and unmergeable by you: "contribute to this project", "open PRs upstream", "send fixes upstream", "we only
+  have a fork", "help out this OSS repo". Not for a repo you own and can merge (that is clean-sweep — merged-
+  SHA closure) and not for building a net-new project (ship-it).
 license: MIT
 proof: external-run
 autonomy: L4

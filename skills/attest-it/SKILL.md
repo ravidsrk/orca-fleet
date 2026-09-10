@@ -1,13 +1,14 @@
 ---
 name: attest-it
 description: >-
-  Prove a codebase or change-set conforms to a standard — EU AI Act Art-12/50, SOC 2, NIST SSDF — with
-  auditor-grade, independently re-derived evidence, or name the gaps. The unit is one obligation from a
-  FROZEN standard catalog (standard@version), not a discovered finding: enumerate the obligations,
-  gather evidence bound to authoritative state for each, have an independent session re-derive it, and
-  mark each control VERIFIED or GAP. Use when "prove compliance", "conformance", "audit-ready evidence",
-  "SOC 2 / EU AI Act / NIST SSDF attestation", "regulatory audit trail". Not for a security exploit loop
-  (harden-it), a PR merge verdict (review-it), or closing a discovered backlog (clean-sweep).
+  Prove a codebase or change-set conforms to a standard — EU AI Act Art-12/50, SOC 2, NIST SSDF —
+  with auditor-grade, independently re-derived evidence, or name the gaps. The unit is one
+  obligation from a FROZEN standard catalog (standard@version), not a discovered finding:
+  enumerate the obligations, gather evidence bound to authoritative state for each, have an
+  independent session re-derive it, and mark each control VERIFIED or GAP. Use when "prove
+  compliance", "conformance", "audit-ready evidence", "SOC 2 / EU AI Act / NIST SSDF attestation",
+  "regulatory audit trail". Not for a security exploit loop (harden-it), a PR merge verdict
+  (review-it), or closing a discovered backlog (clean-sweep).
 license: MIT
 proof: doctrine-only
 autonomy: L4

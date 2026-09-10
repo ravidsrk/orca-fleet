@@ -2,12 +2,14 @@
 name: access-it
 description: >-
   Drive a FROZEN page/flow/component set to WCAG 2.2 AA (EAA / ADA / Section 508) conformance: a
-  deterministic axe-core oracle clean on the surface plus a mandatory negative control (revert the fix,
-  the violation returns), with the hard ~30-40% automation ceiling forcing screen-reader and cognitive
-  criteria into a first-class human-AT park. The unit is one success-criterion violation instance on the
-  frozen surface. Use when "accessibility", "a11y", "WCAG", "screen reader", "keyboard navigation", "ARIA",
-  "axe-core", "Section 508 accessibility", "color contrast". Not for a security exploit loop (harden-it),
-  a PR merge verdict (review-it), a discovered backlog (clean-sweep), or standards attestation (attest-it).
+  deterministic axe-core oracle clean on the surface plus a mandatory negative control (revert the
+  fix, the violation returns), with the hard ~30-40% automation ceiling forcing screen-reader and
+  cognitive criteria into a first-class human-AT park. The unit is one success-criterion violation
+  instance on the frozen surface. Use when "accessibility", "a11y", "WCAG conformance", "screen
+  reader", "keyboard-only operability", "ARIA", "axe-core", "Section 508 accessibility", "color
+  contrast" — not for building a keyboard feature (ship-it). Not for a security exploit loop
+  (harden-it), a PR merge verdict (review-it), a discovered backlog (clean-sweep), or standards
+  attestation (attest-it).
 license: MIT
 proof: doctrine-only
 autonomy: L4

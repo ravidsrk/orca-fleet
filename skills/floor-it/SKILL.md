@@ -4,12 +4,12 @@ description: >-
   Install a written, numbered, tool-enforced quality bar for a repo: detect the constraint
   dimensions (coverage, security scanning, perf budgets, a11y, architecture boundaries) with
   measured current values, freeze them with thresholds into a committed CONSTRAINTS.md at a human
-  gate, wire one machine check per dimension, and prove every gate FIRES — on an injected violation
-  in a throwaway worktree before CI, and on a canary PR that must fail CI after — then guard the
-  bar itself against quiet lowering. The unit is one constraint dimension. Use when "set the
-  quality bar", "define our standards", "make CI enforce", "stop shipping junk", "quality gates",
-  "enforce the budget", "constraint-driven", "bar keeps slipping". Not for closing test debt
-  (prove-it), journey-level perf optimization (speed-it), a WCAG surface sweep (access-it),
+  gate, wire one machine check per dimension, and prove every gate FIRES — on an injected
+  violation in a throwaway worktree before CI, and on a canary PR that must fail CI after — then
+  guard the bar itself against quiet lowering. The unit is one constraint dimension. Use when "set
+  the quality bar", "define our standards", "make CI enforce", "stop shipping junk", "quality
+  gates", "enforce the budget", "constraint-driven", "bar keeps slipping". Not for closing test
+  debt (prove-it), journey-level perf optimization (speed-it), a WCAG surface sweep (access-it),
   external-framework conformance (attest-it), or a threat-model loop (harden-it).
 license: MIT
 proof: doctrine-only

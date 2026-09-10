@@ -41,7 +41,7 @@ _spec.loader.exec_module(eval_mod)
 # floor up instead of reopening the gap. The seven residual misroutes are
 # description collisions, listed in KNOWN_UNRESOLVED_SEAMS and in the WP-D
 # report; each needs a SKILL.md description edit, not a router tweak.
-ROUTING_MIN_SCORE = 0.90
+ROUTING_MIN_SCORE = 0.95
 ROUTING_SCORE_MARGIN = 0.05
 
 
@@ -254,29 +254,19 @@ class TestDescriptionRouter(unittest.TestCase):
         """Tripwire, not an endorsement.
 
         Each row is a prompt the descriptions cannot currently resolve; the fix
-        is a SKILL.md description edit (see the WP-D report), not a router tweak.
-        When an edit fixes one, this test fails — delete the row then.
+        is a SKILL.md description edit, not a router tweak. When an edit fixes
+        one, this test fails — delete the row then. Both original rows (the
+        characterization-net prompt and the mobile-LCP prompt) were fixed by the
+        description pass that followed the router rewrite, so the list is empty:
+        every misroute the router knows about is now resolved.
         """
-        unresolved = [
-            # prove-it owns the net when the goal is test debt, but reshape-it's
-            # description says "a mutation-audited characterization net is pinned
-            # BEFORE any restructure" over "modules", and outscores it.
-            ("The billing module's payment path has no tests — pin a characterization net before anyone touches it.",
-             "reshape-it", "prove-it"),
-            # field-test-it's description owns the bare phrase "mobile regression";
-            # a metric-carrying journey regression is speed-it's.
-            ("LCP regression on mobile — 4.2s to 5.1s on the checkout journey.",
-             "field-test-it", "speed-it"),
-        ]
+        unresolved = []
         for prompt, current, owed in unresolved:
             with self.subTest(prompt=prompt):
                 self.assertEqual(
                     eval_mod.route_prompt(prompt), current,
                     f"routing moved; if it now reaches {owed}, drop this row",
                 )
-
-
-class TestNegativesAndCollisions(unittest.TestCase):
 
     def test_negative_passes_only_when_the_owner_outranks(self):
         ev = {"id": 1, "prompt": "p", "type": "negative", "owner": "alpha-it",
