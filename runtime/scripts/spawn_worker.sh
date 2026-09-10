@@ -93,6 +93,11 @@
 #   PROFILE                   ro | rw (default) | danger — worker permission profile
 #   ORCA_COORD_ALLOW_AUTONOMOUS_WRITE  must be 1 for PROFILE=rw (accept autonomous bypass workers)
 #   ORCA_COORD_ALLOW_DANGER   must be 1 for PROFILE=danger (implies the above + ephemeral sandbox)
+#   ORCA_SANDBOX_RECIPE       PROFILE=danger only: the orca-per-workspace-env recipe id the lane
+#                             runs in. Required — the opt-in above is intent, this is evidence.
+#   ORCA_SANDBOX_DOCTOR       PROFILE=danger only: path to that recipe's
+#                             `vm recipe doctor <id> --provision` output. Must name the recipe and
+#                             carry no fail and no warn (sandbox-policy.md; ok:true proves nothing).
 #   WORKER_CMD                full launch command for ANY agent (the generic override; its
 #                             read-only/write semantics become YOUR assertion). Legacy
 #                             CLAUDE_CMD / CODEX_CMD still work for those two. Any override
@@ -197,9 +202,38 @@ if [ "$PROFILE" = "rw" ] && [ "${ORCA_COORD_ALLOW_AUTONOMOUS_WRITE:-0}" != "1" ]
   echo "SPAWN=REFUSED task=${task} PROFILE=rw launches an autonomous permission-bypass worker — set ORCA_COORD_ALLOW_AUTONOMOUS_WRITE=1 to accept (worktree + review + PR gate are the safety layer, not per-command prompts)" >&2
   exit 2
 fi
-if [ "$PROFILE" = "danger" ] && [ "${ORCA_COORD_ALLOW_DANGER:-0}" != "1" ]; then
-  echo "SPAWN=REFUSED task=${task} PROFILE=danger requires ORCA_COORD_ALLOW_DANGER=1 AND an ephemeral sandbox (sandbox-policy.md)" >&2
-  exit 2
+if [ "$PROFILE" = "danger" ]; then
+  # A boolean is not evidence of a sandbox (REVIEW.md §8 P2-15). sandbox-policy.md names the
+  # artifact that is: an `orca-per-workspace-env` recipe id, validated by
+  # `vm recipe doctor <recipe-id> --provision`, which is clear ONLY with no fail AND no warn.
+  # So danger needs the opt-in, a recipe id, and that doctor transcript on disk — each checked,
+  # each recorded on the spawn line so the ledger carries what the lane actually ran in.
+  if [ "${ORCA_COORD_ALLOW_DANGER:-0}" != "1" ]; then
+    echo "SPAWN=REFUSED task=${task} PROFILE=danger requires ORCA_COORD_ALLOW_DANGER=1 AND an ephemeral sandbox (sandbox-policy.md)" >&2
+    exit 2
+  fi
+  recipe="${ORCA_SANDBOX_RECIPE:-}"
+  case "$recipe" in
+    "" )
+      echo "SPAWN=REFUSED task=${task} PROFILE=danger requires ORCA_SANDBOX_RECIPE=<orca-per-workspace-env recipe id> — the flag alone is not evidence of an ephemeral sandbox (sandbox-policy.md)" >&2
+      exit 2 ;;
+    *[!A-Za-z0-9._-]* | ?|?? )
+      echo "SPAWN=REFUSED task=${task} ORCA_SANDBOX_RECIPE='${recipe}' is not a recipe id (want 3+ chars of [A-Za-z0-9._-])" >&2
+      exit 2 ;;
+  esac
+  doctor="${ORCA_SANDBOX_DOCTOR:-}"
+  if [ -z "$doctor" ] || [ ! -r "$doctor" ]; then
+    echo "SPAWN=REFUSED task=${task} PROFILE=danger requires ORCA_SANDBOX_DOCTOR=<path to \`vm recipe doctor ${recipe} --provision\` output>; '${doctor}' is not readable" >&2
+    exit 2
+  fi
+  if ! grep -q -- "$recipe" "$doctor"; then
+    echo "SPAWN=REFUSED task=${task} ORCA_SANDBOX_DOCTOR does not mention recipe '${recipe}' — a transcript for another sandbox proves nothing about this one" >&2
+    exit 2
+  fi
+  if grep -qiE '(^|[^a-z])(fail|warn)' "$doctor"; then
+    echo "SPAWN=REFUSED task=${task} recipe doctor for '${recipe}' is not clear — sandbox-policy.md: clear means no fail AND no warn (ok:true alone proves nothing)" >&2
+    exit 2
+  fi
 fi
 
 # Per-agent × profile launch command. Autonomy is the WHOLE POINT: a worker that blocks on a

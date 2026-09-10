@@ -406,17 +406,30 @@ npx skills add ravidsrk/orca-fleet --list    # browse the catalog
 npx skills add ravidsrk/orca-fleet           # install
 ```
 
-**Caveat — verify the install preserved the tree.** Every mission references
-`../../playbooks/` and `../../runtime/` relative to its own directory. Any installer that
-copies skill directories *out* of the repo tree severs those references — whether it copies
-one mission or the whole catalog. After installing, check that `playbooks/` and `runtime/` exist two
-levels above each installed mission:
+**Copy installers need a bundled tree.** Every mission references `../../playbooks/` and
+`../../runtime/` relative to its own directory. An installer that copies skill directories *out*
+of the repo tree severs those references — one mission or the whole catalog. Build self-contained
+missions first:
+
+```bash
+python3 scripts/bundle.py           # writes dist/skills/<name>/ with references/ vendored
+python3 scripts/bundle.py --check   # verify no reference escapes a mission directory
+```
+
+Each bundled mission carries its own `references/` copies of every protocol it names plus the root
+docs it links, with its SKILL.md links rewritten to point there and an index at
+`references/README.md`. Install from `dist/` rather than the repo root. `dist/` is generated and
+gitignored: committing 21 copies of the doctrine tree would make every runtime edit a 21-file diff
+and the copies would rot between edits.
+
+To check an existing copy install instead, confirm `playbooks/` and `runtime/` sit two levels above
+the mission:
 
 ```bash
 ls "$(dirname "$(dirname "$(readlink -f ~/.claude/skills/ship-it 2>/dev/null || echo ~/.claude/skills/ship-it)")")"/playbooks
 ```
 
-If that fails, the references are broken — use the symlink or plugin path above instead. The
+If that fails, the references are broken — bundle, or use the symlink or plugin path above. The
 symlink path is verified to preserve them
 ([`docs/completion/evidence/CF-02-r2-happy-symlink-install.txt`](docs/completion/evidence/CF-02-r2-happy-symlink-install.txt));
 the plugin path preserves them by construction — the whole repo is copied — but has no recorded

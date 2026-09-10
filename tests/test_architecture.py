@@ -728,5 +728,53 @@ class TestMutatingMissionSet(unittest.TestCase):
         for m in ("ship-it", "oss-contribute", "access-it"):
             self.assertIn(m, canonical)
 
+class TestBundleForCopyInstallers(unittest.TestCase):
+    """scripts/bundle.py — the copy-install fix (REVIEW.md §8 P2-18).
+
+    Three-layer separation means a mission names its protocols by bare name and
+    they live two directories up. That is exactly what a copy installer severs.
+    The bundle vendors them; these tests keep it honest about doing so.
+    """
+
+    def _bundle(self):
+        import importlib.util, tempfile
+        spec = importlib.util.spec_from_file_location("_bundle", ROOT / "scripts" / "bundle.py")
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod, tempfile
+
+    def test_check_mode_passes_on_the_live_catalog(self):
+        mod, _tempfile = self._bundle()
+        self.assertEqual(mod.main(["--check"]), 0)
+
+    def test_every_mission_is_self_contained_after_bundling(self):
+        mod, tempfile = self._bundle()
+        with tempfile.TemporaryDirectory() as tmp:
+            built, problems = mod.build(tmp)
+            self.assertEqual(problems, [])
+            self.assertEqual(built, len(mission_dirs()))
+            for mission in mission_dirs():
+                out = Path(tmp) / "skills" / mission.name
+                text = (out / "SKILL.md").read_text(encoding="utf-8")
+                self.assertNotIn("../../", text, f"{mission.name} still points out of its directory")
+                index = out / "references" / "README.md"
+                self.assertTrue(index.is_file(), f"{mission.name} has no references index")
+                # Every protocol the mission names must have a copy beside it.
+                names = set(validate.explicit_protocol_refs(
+                    (mission / "SKILL.md").read_text(encoding="utf-8")
+                )) & validate.known_protocol_names()
+                for name in names:
+                    self.assertTrue(
+                        (out / "references" / f"{name}.md").is_file(),
+                        f"{mission.name} did not vendor {name}.md",
+                    )
+
+    def test_dist_is_not_committed(self):
+        # 21 copies of the doctrine tree in git would rot between runtime edits.
+        self.assertIn("dist/", (ROOT / ".gitignore").read_text(encoding="utf-8"))
+        self.assertFalse((ROOT / "dist").exists() and any((ROOT / "dist").iterdir())
+                         and (ROOT / "dist" / ".git").exists())
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

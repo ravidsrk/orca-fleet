@@ -55,6 +55,96 @@ def task_list_payload(*tasks):
     return {"result": {"tasks": list(tasks)}}
 
 
+class TestDangerSandboxEvidence(unittest.TestCase):
+    """PROFILE=danger needs evidence of a sandbox, not a boolean (REVIEW.md §8 P2-15).
+
+    `ORCA_COORD_ALLOW_DANGER=1` alone said only that a coordinator meant it. The
+    policy names what a sandbox actually is: an `orca-per-workspace-env` recipe id
+    plus a `vm recipe doctor <id> --provision` transcript, clear ONLY with no fail
+    and no warn. Each of those is now checked, and each check is a refusal here.
+    """
+
+    ENV = {"PROFILE": "danger", "ORCA_COORD_ALLOW_AUTONOMOUS_WRITE": "1",
+           "ORCA_COORD_ALLOW_DANGER": "1"}
+    ARGS = ["t1", "wt", "some title", "claude"]
+
+    def _spawn(self, **extra):
+        env = dict(self.ENV)
+        env.update(extra)
+        return run_spawn(self.ARGS, env_extra=env)
+
+    def _doctor(self, tmp, text):
+        path = Path(tmp) / "doctor.txt"
+        path.write_text(text, encoding="utf-8")
+        return str(path)
+
+    def test_the_opt_in_alone_is_refused(self):
+        rc, _out, err = self._spawn()
+        self.assertEqual(rc, 2, err)
+        self.assertIn("ORCA_SANDBOX_RECIPE", err)
+
+    def test_a_non_recipe_id_is_refused(self):
+        rc, _out, err = self._spawn(ORCA_SANDBOX_RECIPE="ab")
+        self.assertEqual(rc, 2, err)
+        self.assertIn("is not a recipe id", err)
+
+    def test_a_recipe_id_with_shell_metacharacters_is_refused(self):
+        rc, _out, err = self._spawn(ORCA_SANDBOX_RECIPE="lane-7; rm -rf /")
+        self.assertEqual(rc, 2, err)
+        self.assertIn("is not a recipe id", err)
+
+    def test_a_missing_doctor_transcript_is_refused(self):
+        rc, _out, err = self._spawn(ORCA_SANDBOX_RECIPE="lane-7",
+                                    ORCA_SANDBOX_DOCTOR="/nonexistent/doctor.txt")
+        self.assertEqual(rc, 2, err)
+        self.assertIn("ORCA_SANDBOX_DOCTOR", err)
+
+    def test_a_transcript_for_another_recipe_is_refused(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            rc, _out, err = self._spawn(
+                ORCA_SANDBOX_RECIPE="lane-7",
+                ORCA_SANDBOX_DOCTOR=self._doctor(tmp, "recipe other-lane ok:true\n"),
+            )
+        self.assertEqual(rc, 2, err)
+        self.assertIn("does not mention recipe", err)
+
+    def test_a_warn_in_the_transcript_is_refused(self):
+        # sandbox-policy.md: clear means no fail AND no warn; ok:true proves nothing.
+        with tempfile.TemporaryDirectory() as tmp:
+            rc, _out, err = self._spawn(
+                ORCA_SANDBOX_RECIPE="lane-7",
+                ORCA_SANDBOX_DOCTOR=self._doctor(tmp, "recipe lane-7 ok:true\nwarn: disk\n"),
+            )
+        self.assertEqual(rc, 2, err)
+        self.assertIn("no fail AND no warn", err)
+
+    def test_a_fail_in_the_transcript_is_refused(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            rc, _out, err = self._spawn(
+                ORCA_SANDBOX_RECIPE="lane-7",
+                ORCA_SANDBOX_DOCTOR=self._doctor(tmp, "recipe lane-7\nfail: no network\n"),
+            )
+        self.assertEqual(rc, 2, err)
+        self.assertIn("no fail AND no warn", err)
+
+    def test_a_clean_transcript_clears_the_sandbox_gate(self):
+        # It then fails later for want of an `orca` binary — a different step, which
+        # is the proof the sandbox gate itself passed rather than refusing.
+        with tempfile.TemporaryDirectory() as tmp:
+            rc, _out, err = self._spawn(
+                ORCA_SANDBOX_RECIPE="lane-7",
+                ORCA_SANDBOX_DOCTOR=self._doctor(tmp, "recipe lane-7 ok:true\nprovision complete\n"),
+            )
+        self.assertNotIn("SPAWN=REFUSED", err)
+
+    def test_ro_and_rw_do_not_need_a_sandbox_recipe(self):
+        for profile, opt_in in (("ro", {}), ("rw", {"ORCA_COORD_ALLOW_AUTONOMOUS_WRITE": "1"})):
+            env = {"PROFILE": profile}
+            env.update(opt_in)
+            _rc, _out, err = run_spawn(self.ARGS, env_extra=env)
+            self.assertNotIn("ORCA_SANDBOX_RECIPE", err, profile)
+
+
 class TestSpawnWorkerHardening(unittest.TestCase):
 
     def test_scratch_key_distinguishes_tr_colliding_titles(self):

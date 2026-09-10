@@ -37,6 +37,11 @@ jobs:
         # re-hashed from git objects at the commit the header names. Needs the
         # full history the checkout step above fetches.
         run: python3 runtime/scripts/run_report.py
+      - name: Bundle builds self-contained missions
+        # #272 / REVIEW.md P2-18: a copy installer severs every ../../ reference.
+        # --check builds the distribution tree in a temp dir and fails if any link
+        # still leaves a mission directory.
+        run: python3 scripts/bundle.py --check
       - name: agentskills.io reference validator (skills-ref)
         # #263: the repo's own claims live under `metadata:` so the catalog is
         # installable through Anthropic's own paths, which hard-error on an
