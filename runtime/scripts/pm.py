@@ -1,9 +1,15 @@
 #!/usr/bin/env python3
-# pm.py — tolerant parser for `orca orchestration inbox/check` JSON output. (v2)
-# Keepalives ({"_keepalive":true,...}) arrive on STDERR on current CLIs — never on stdout; a capture
+# pm.py — tolerant parser for `orca orchestration inbox/check` JSON output. (v3)
+# Keepalives ({"_keepalive":true,...}) arrive on STDERR every 15 s — never on stdout; a capture
 # that merged 2>&1 breaks naive json.load. Pipe stdout only, or filter keepalives before parsing.
-# This decodes successive JSON objects, skips heartbeat-only envelopes STRUCTURALLY (not by line
-# filtering, which could drop a mixed heartbeat+messages object), and prints each message.
+# This decodes successive JSON objects, skips keepalive-only envelopes STRUCTURALLY (not by line
+# filtering, which could drop a mixed keepalive+messages object), and prints each message.
+#
+# v3 (2026-09-10 upstream re-pin): the skip keys on `_keepalive` FIRST. A keepalive line carries
+# both `_keepalive` and `_heartbeat`, but `_heartbeat` is only a deprecated alias retained for
+# scripts still filtering it during migration (`check-keepalive.ts:18-26` at Orca v1.4.199) —
+# v2 keyed on the alias alone, so it was correct by accident and would start miscounting every
+# keepalive as an unrecognized envelope the day upstream drops it.
 #
 # v2 (Codex review E3 remediation): a malformed segment no longer hides everything after it —
 # the parser skips to the next line and keeps going, reporting the skip count at the end.
@@ -70,8 +76,14 @@ def print_inbox(raw):
             # be swallowed; counting it as empty would misread a real inbox as empty.
             unrecognized += 1
             continue
-        if "_heartbeat" in obj and not batch:
-            continue  # heartbeat-only envelope; a mixed object still yields its messages below
+        if ("_keepalive" in obj or "_heartbeat" in obj) and not batch:
+            # Keepalive-only envelope; a mixed object still yields its messages below.
+            # `_keepalive` is the CURRENT marker and is checked FIRST; `_heartbeat` rides the
+            # same line only as a deprecated alias kept "for scripts still filtering it while
+            # callers migrate" (`check-keepalive.ts:18-26` at Orca v1.4.199). Keying on the
+            # alias alone — as v2 did — starts counting every keepalive as an unrecognized
+            # envelope the day upstream drops it.
+            continue
         for m in batch or []:
             if isinstance(m, dict):
                 msgs.append(m)
