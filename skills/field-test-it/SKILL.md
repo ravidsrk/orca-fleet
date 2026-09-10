@@ -82,7 +82,10 @@ re-verify GREEN at `head_sha` + revert-to-red negative control, all ledgered wit
 tier they were observed under — or PARKED with the exact device and step it waits on. The
 regression baseline before and after is recorded. The verifier REPLAYS the recorded artifacts at
 the merged SHA (the archived on-device repro re-driven expecting GREEN, plus a spot-check of the
-archived revert-RED receipt) — it never re-applies an already-landed fix (evidence-manifest §2). A green desktop run is never accepted as device evidence; a
+archived revert-RED receipt) — it never re-applies an already-landed fix (evidence-manifest §2) —
+AND, on a ≥10% sample per §3's mutation-unit floor, a fresh worker reverts the fix on a throwaway
+branch and re-drives the on-device flow expecting RED (landed BASE is never modified). A green
+desktop run is never accepted as device evidence; a
 defect that only reproduced once is marked flaky and re-driven, not closed.
 
 ## Ledger + supervision

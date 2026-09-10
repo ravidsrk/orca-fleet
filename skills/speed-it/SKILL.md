@@ -58,8 +58,12 @@ HUMAN SCOPE CONFIRM: freeze the critical-journey list + per-journey budgets (an 
     complete in-mission. Field CWV contracts need the same field source/sample/conditions as baseline
     — that requires deploy; hand off a brief (measurement contract + ship-it release plan) to ship-it
     and do not claim WITHIN-BUDGET on a lab-only delta (OPTIMIZED-WITH-PARKED until field confirms).
-  → KEEP-OR-REVERT (the decision table): within budget → land; NEUTRAL (inside the noise band) →
-    REVERT — neutral is not a keep; WORSE → revert. Every attempt, kept or reverted, is one
+  → KEEP-OR-REVERT (the decision table, in precedence order): WORSE than baseline → REVERT —
+    even if the number sits within budget; NEUTRAL (inside the noise band) → REVERT — neutral is
+    not a keep; IMPROVEMENT over baseline → LAND, whether or not the budget is reached yet —
+    budget attainment gates the journey's exit from the loop, never the landing of a measured
+    gain, so two independent partial fixes accumulate across hotspot PRs. (Precedence: revert
+    first, land last.) Every attempt, kept or reverted, is one
     ledger line (hypothesis · before→after · verdict · why) in the run's attempt ledger, so a
     reverted idea is never re-tried next quarter.
   → loop → outcome → REFLECT (`compound-learn`)

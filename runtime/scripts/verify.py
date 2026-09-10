@@ -47,7 +47,8 @@ from pathlib import Path
 # report-only / planning units bind evidence differently (evidence-manifest.md section 3). A missing
 # or unknown class defaults to mutation (fail-safe): the strict authorities run.
 UNIT_CLASSES = ("mutation", "report-only", "planning")
-NC_TOOLS = {"mutmut", "cosmic-ray", "stryker", "pitest", "cargo-mutants", "go-mutesting", "revert"}
+NC_TOOLS = {"mutmut", "cosmic-ray", "stryker", "pitest", "cargo-mutants", "go-mutesting", "revert",
+            "hand"}  # hand = a hand-written mutant (boundary flip / negated condition / zeroed return, compile-preserving; the diff is quoted in the artifact)
 REVIEWER_MODES = {"cross-vendor", "same-vendor-fresh", "instructed-isolation"}
 LIGHTING_VALUES = {"lit", "dark-eligible"}
 # Criterion ids in a frozen source: hyphenated (AC-1, SC-12, REQ-3) or compact (AC1, SC12). A JSON
@@ -381,7 +382,7 @@ def check_negative_control(m, is_mutation, execute=False):
     if not re.search(r"(?i)\b(killed|red)\b", nc.get("result") or ""):
         errs.append("negative_control.result must record the mutant KILLED / the proof going RED")
     mutant = nc.get("mutant")
-    if tool and tool != "revert" and not mutant:
+    if tool and tool not in ("revert", "hand") and not mutant:
         errs.append("negative_control.mutant (a pinned mutant id) is required for a mutation tool")
     artifact = nc.get("artifact")
     if not artifact:
@@ -405,6 +406,13 @@ def check_negative_control(m, is_mutation, execute=False):
         errs.append("negative_control.artifact reports the pinned mutant SURVIVED / was not killed")
     if mutant and mutant not in content:
         errs.append("negative_control.artifact does not reference the pinned mutant")
+    if tool == "hand":
+        # `hand` is exempt from a pinned mutant id, so the diff it applied is the ONLY thing binding
+        # the RED to a mutation — the artifact must quote it (evidence-manifest §1).
+        has_diff = re.search(r"(?m)^(diff --git|@@ )", content) or (
+            re.search(r"(?m)^-[^-]", content) and re.search(r"(?m)^\+[^+]", content))
+        if not has_diff:
+            errs.append("negative_control.artifact for tool 'hand' must quote the hand-written diff")
     if execute:
         # replay is not implemented in the reference verifier; a caller that ASKED for it must not
         # get a false pass — fail closed (evidence-manifest §2's re-execution sample is the sound form).

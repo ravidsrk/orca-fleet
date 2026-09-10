@@ -49,10 +49,10 @@ MISSION_TRIGGERS = {
     ],
     "speed-it": [
         "slow", "perf", "performance", "core web vitals", "cwv", "perf budget",
-        "lighthouse", "load test", "bottleneck",
+        "lighthouse", "load test", "bottleneck", "lcp regression",
     ],
     "modernize-it": [
-        "update dependencies", "upgrade everything", "framework migration",
+        "update dependencies", "upgrade everything", "upgrade", "framework migration",
         "dependency upgrades", "old major", "dependency", "migrate from",
         "npm audit", "get off",
     ],
@@ -87,23 +87,23 @@ MISSION_TRIGGERS = {
     ],
     "pin-it": [
         "re-pin", "pin the runtime", "runtime contract", "doctrine drift",
-        "policy lags", "orca updated", "orca upgrade", "dispatch docs are stale",
+        "policy lags", "orca updated", "dispatch docs are stale", "doctrine",
         "receipt shape", "re-witness",
     ],
     "floor-it": [
-        "quality bar", "set the bar", "define our standards", "make ci enforce",
-        "quality gates", "enforce the budget", "constraint-driven",
+        "quality bar", "set the bar", "define our standards",
+        "constraint-driven", "quality floor",
         "bar keeps slipping", "constraints.md", "stop shipping junk",
     ],
     "reshape-it": [
         "god file", "god object", "architecture erosion", "shallow module",
         "deep modules", "refactor the hot path", "interface is wider",
-        "everything imports", "reshape", "deepen the module",
+        "everything imports", "deepen the module",
     ],
     "field-test-it": [
         "real device", "on-device", "on device", "physical device", "emulator qa",
         "verify on hardware", "breaks on mobile", "works on desktop",
-        "mobile regression", "device testing",
+        "device testing",
     ],
 }
 
@@ -272,6 +272,7 @@ SPECIALIST_MISSIONS = {
     "harden-it", "speed-it", "modernize-it", "prove-it", "deflake-it",
     "floor-it",
     "reshape-it",
+    "pin-it",
 }
 
 
@@ -298,10 +299,10 @@ def classify_prompt(prompt: str) -> str | None:
     if scores[best] == 0:
         return None
 
-    # Specialist wins if it has any signal and the general winner is not already
-    # a specialist. This handles prompts like "Drain the backlog of dependency
-    # upgrades" where clean-sweep scores high on "drain the backlog" but
-    # modernize-it has the decisive technical term.
+    # Specialist wins a tie-or-stronger against a general winner. This handles prompts like
+    # "Drain the backlog of dependency upgrades" where clean-sweep scores high on "drain the
+    # backlog" but modernize-it matches the decisive technical terms — while a stray specialist
+    # keyword (score below the general winner's) never steals the route.
     if best not in SPECIALIST_MISSIONS:
         specialist_best = None
         specialist_score = 0
@@ -309,7 +310,7 @@ def classify_prompt(prompt: str) -> str | None:
             if mission in SPECIALIST_MISSIONS and score > specialist_score:
                 specialist_best = mission
                 specialist_score = score
-        if specialist_best is not None and specialist_score > 0:
+        if specialist_best is not None and specialist_score >= scores[best]:
             return specialist_best
 
     return best

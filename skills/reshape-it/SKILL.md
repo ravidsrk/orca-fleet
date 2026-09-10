@@ -26,7 +26,7 @@ behind smaller, testable interfaces, and behaviour is demonstrably unchanged" is
 outcome with one failure mode that kills most refactors: restructuring without a pinned behavioural
 oracle, so the diff is reviewed by vibes. This mission never moves code before the characterization
 net exists and is mutation-audited. Composes `decide-and-freeze` (CONFIRM-SURFACE bounds the target
-list with the human; headless publishes the inventory and PARKS at the gate), `remediate-finding` (one deepening per unit — its failing-first requirement instantiates as the CHARACTERIZE-pinned mutant RED before the deepening, per the §1 carve-out; build-change's irreversibility gate applies to
+list with the human; headless publishes the inventory and PARKS at the gate), `remediate-finding` (one deepening per unit — its reproduce-or-refute step instantiates as the SCAN probes re-measuring the seam (the shallowness evidence IS the reproducible defect), and its failing-first requirement instantiates as the CHARACTERIZE-pinned mutant RED before the deepening, per the §1 carve-out; build-change's irreversibility gate applies to
 public-API breaks), `acceptance-review` (build-blind review per unit), `compound-learn` (which
 modules resisted deepening and why); rides `evidence-manifest` (each unit carries the before/after
 interface-surface measurement plus the legal negative control for a behaviour-preserving change —
@@ -49,16 +49,15 @@ matt | addy | gstack — never co-mount.
 ## Pipeline
 
 ```
-SCAN: churn-weighted shallowness inventory over a 90-day window. Per module: CHURN =
-  `git log --since=90d --format= --name-only | sort | uniq -c | sort -rn` (touches on the module's
-  files) · WIDTH = exported symbols + public parameter surface · DEPTH = implementation LOC behind
-  the interface in LOC (`wc -l` on the implementation file(s)) · WIDTH = the exported-symbol
-  count (e.g. Python: `grep -cE '^(def |class |async def |[A-Z_]+ =)' <module>` plus `__all__`
-  length; TS/JS: `grep -c '^export ' <module>` — adapt per language) · FAN-IN = importers
-  (`git grep -lE '(from|import|require).*<module>' -- '<dir>' | wc -l` — adapt the pattern to the
-  language's import syntax). Rank by CHURN × WIDTH ÷ max(DEPTH/100, 1), FAN-IN as tiebreak; the
-  numbers order the inventory, they do not certify it. YAGNI cut: zero-churn modules drop out (a
-  stable shallow module is not erosion).
+SCAN: churn-weighted shallowness inventory over a 90-day window, run PER CANDIDATE MODULE: CHURN =
+  `git log --since=90d --format=%h -- <module-path> | wc -l` (commits touching the module — a
+  path-count would pin every single-file module at 1) · WIDTH =
+  exported-symbol count (e.g. Python: `grep -cE '^(def |class |async def |[A-Z_]+ =)' <module>`,
+  plus `__all__` length; TS/JS: `grep -c '^export ' <module>`; adapt per language) · DEPTH =
+  `wc -l` on the implementation file(s) behind the interface · FAN-IN =
+  `git grep -lE '(from|import|require).*<module-name>' -- <dir> | wc -l`. Rank by
+  CHURN × WIDTH ÷ max(DEPTH/100, 1), FAN-IN as tiebreak; the numbers order the inventory, they do
+  not certify it. YAGNI cut: zero-churn modules drop out (a stable shallow module is not erosion).
 → CONFIRM-SURFACE (decide-and-freeze, one-way): the human bounds the target list from the
   inventory; what is not confirmed is not touched this run. Headless/spawned: publish the
   inventory and PARK at the gate — one-way doors are human-only, never auto-bounded
@@ -81,8 +80,8 @@ SCAN: churn-weighted shallowness inventory over a 90-day window. Per module: CHU
 → build-blind REVIEW (acceptance-review: the diff is judged against the frozen surface intent;
   behaviour drift beyond the net is a finding) → LAND (merge-serialization).
 → RE-SCAN: re-run the same inventory probes over the confirmed surface; loop until every confirmed
-  module's WIDTH is at or below the confirmed set's starting median, or the human stops the loop,
-  or every remainder is parked.
+  module is deepened (WIDTH measurably smaller) or explicitly parked — a median heuristic never
+  closes the loop early — or the human stops the loop.
 → VERDICT: RESHAPED, or RESHAPED-WITH-PARKED with the decision register.
 ```
 

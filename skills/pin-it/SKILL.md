@@ -33,8 +33,9 @@ to `head_sha`), `merge-serialization`, `reviewed-sha-freshness`, `ledger-contrac
 `liveness-resume`, `gate-classification`, `dispatch-lifecycle`, `sandbox-policy` (repo read probes
 are PROFILE=ro; control-plane probes — run-create, worktree create, worker-start — MUTATE Orca
 state and run in a scratch Orca worktree with full teardown: settle the run, release workers,
-remove the worktree; never against the default branch or a live fleet's run state),
-`attention-budget`. Worker TASK pack: one of matt | addy | gstack — never co-mount.
+remove the worktree — teardown commands are claims too (re-witness before relying; if unsupported,
+archive the worktree, never force-remove); never against the default branch or a live fleet's run
+state), `attention-budget`. Worker TASK pack: one of matt | addy | gstack — never co-mount.
 
 ## Terminal outcomes
 
@@ -42,7 +43,7 @@ remove the worktree; never against the default branch or a live fleet's run stat
   claim's replacement text is receipt-backed at the merged SHA.
 - **PINNED-WITH-PARKED** — claims whose re-witness needs something the session cannot get (a remote
   host, a paid tier, a human-only surface, an unfixable-in-session precondition) are PARKED, each
-  named with the exact probe it waits on. A parked claim's doctrine text is marked unverified,
+  named with the exact probe it waits on; a parked claim's doctrine text is marked unverified,
   never silently kept.
 
 ## Pipeline
@@ -72,9 +73,8 @@ FREEZE the claim inventory: extract every mechanics claim from runtime/*.md, run
   mechanism, and never classify SUPERSEDED) · BLOCKED-BY-SUBSTRATE (the probe's precondition
   failed — no sender terminal, untrusted worktree, expired credentials, absent device: the
   receipt says nothing about the claim). Substrate blocks: fix the precondition and re-probe; a
-  human-only precondition → PARK. NEVER let a substrate failure reclassify a claim — that is how
-  doctrine gets rewritten to "the mechanism does not exist" when the session simply could not
-  run it.
+  human-only precondition → PARK. NEVER let a substrate failure reclassify a claim — that rewrites
+  doctrine to "the mechanism does not exist" when the session merely could not run it.
 → PATCH (rw workers, remediate-finding): stale/superseded doctrine rewritten to the receipted
   behaviour, one claim per unit, citing the receipt. Deleting a claim requires its refutation
   receipt (the old shape demonstrated failing against the live binary). remediate-finding's
@@ -89,12 +89,11 @@ FREEZE the claim inventory: extract every mechanics claim from runtime/*.md, run
 
 Every claim in the frozen inventory is accounted for: CURRENT with a captured receipt, PATCHED with
 the replacement doctrine citing its receipts, REMOVED with an archived refutation receipt, or
-PARKED with the exact probe it waits on. For doctrine (no test suite binds the prose), the §1
-negative control maps to the claim level: the pre-patch refutation receipt — the old text's probe
-demonstrated RED against the live binary — is archived per patched/removed claim and re-run by the
-verifier post-merge; a patch whose old text still probes GREEN at `head_sha` is not proven.
-Receipts name the CLI version they were captured from; the verifier re-runs a ≥10% sample of probes
-at `head_sha`. The inventory never shrank mid-run — a claim no unit reached is unassigned work, not
+PARKED with the exact probe it waits on. The claim-level negative control is the §1 doctrine-patch
+carve-out (evidence-manifest.md): the archived pre-patch refutation receipt, re-run by the verifier
+post-merge — a patch whose old text still probes GREEN at `head_sha` is not proven. Receipts name
+the CLI version they were captured from; the verifier re-runs a ≥10% sample of probes at
+`head_sha`. The inventory never shrank mid-run — a claim no unit reached is unassigned work, not
 silence. Repo gates (validator, tests) green at the landing SHA.
 
 ## Ledger + supervision
@@ -105,26 +104,27 @@ Ledger header at T0 (`ledger-contract.md`) with `WIP: builders=<n> reviewers=<n>
 id, source file:line, class, receipt path, patch PR, verdict. Re-witness probes are cheap and
 parallel within `attention-budget`; PATCH waves are doc-mutation units (≤3 builders, 1 reviewer per
 3 builders). Stalls → `liveness-resume.md` WATCH; death → RESUME (ledger-scoped; receipts on disk
-are the re-derivation source). First run against this catalog: the 2026-09-09 upstream adoption
-audit (`docs/research/2026-09-09-upstream-adoption-audit.md`) is the pre-cut claim inventory for
-the orchestration surface.
+are the re-derivation source). First run here: the 2026-09-09 adoption audit
+(`docs/research/2026-09-09-upstream-adoption-audit.md`) is the orchestration surface's pre-cut
+claim inventory.
 
 ## Anti-patterns
 
 Classifying from the version-matched guide without replaying the claim (guides drift too).
 Classifying from a substrate-failed receipt (BLOCKED-BY-SUBSTRATE is a precondition verdict, never
 evidence about the mechanism — the 2026-09-09 field run's `agent_prompt_stalled` /
-`no_active_sender_terminal` are exactly this trap). Putting fleet-policy invariants in the
-inventory (they are preflight/verify-enforced; the binary does not reject them, so they would all
-mis-classify SUPERSEDED). Wholesale doctrine rewrites ("modernise the page") — the unit is the
-claim. Dropping a claim because its probe is awkward (that is a PARK, named). Shrinking the
-inventory mid-run. Marking doctrine current because a run "worked" — a run that succeeded through
-an undocumented fallback path is evidence FOR drift, not against it. Control-plane probes without
-teardown (orphaned runs/terminals/worktrees in the local Orca state).
+`no_active_sender_terminal` are exactly this trap). Fleet-policy invariants never enter the
+inventory (preflight/verify-enforced; the binary can't reject them). Wholesale doctrine rewrites
+("modernise the page") — the unit is the claim. Dropping a claim because its probe is awkward
+(that is a PARK, named). Shrinking the inventory mid-run. Marking doctrine current because a run
+"worked" — a run that succeeded through an undocumented fallback path is evidence FOR drift, not
+against it. Control-plane probes without teardown (orphaned runs/terminals/worktrees in the local
+Orca state).
 
 ## Related
 
 `modernize-it` (dependency/framework versions, repo-suite oracle; its `CURRENT-WITH-PINNED` is a
-*dependency version* pin — unrelated to this mission's `PINNED` doctrine terminal), `clean-sweep` (a findings backlog; doc-claims mode is prose claims
-against repo state, not runtime mechanics against a binary), `review-it` (a per-diff verdict),
-`dispatch-lifecycle` (the subject matter; pin-it is what keeps it true).
+*dependency version* pin — unrelated to this mission's `PINNED` doctrine terminal), `clean-sweep`
+(a findings backlog; doc-claims mode is prose claims against repo state, not runtime mechanics
+against a binary), `review-it` (a per-diff verdict), `dispatch-lifecycle` (the subject matter;
+pin-it is what keeps it true).

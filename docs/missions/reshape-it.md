@@ -9,6 +9,10 @@
 
 **Skill:** [`skills/reshape-it/SKILL.md`](../../skills/reshape-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes — `PROFILE=rw` deepening workers
 
+<p align="center">
+  <img src="../../assets/diagrams/missions/reshape-it.jpg" alt="State machine: SCAN a churn-weighted inventory, CONFIRM the human-bounded surface, CHARACTERIZE with the net pinned first, DEEPEN one seam per unit, REVIEW, ending RESHAPED or RESHAPED-WITH-PARKED" width="820">
+</p>
+
 ---
 
 ## What it does

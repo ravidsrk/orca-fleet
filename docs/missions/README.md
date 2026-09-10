@@ -6,7 +6,7 @@ built to prevent. The agent-facing contracts live in [`skills/`](../../skills/);
 for the human deciding what to run and what to expect.
 
 <p align="center">
-  <img src="../../assets/diagrams/mission-map.jpg" alt="Decision map: a goal routes to map-it then ship-it; known problems route to clean-sweep, oss-contribute, harden-it, speed-it, modernize-it, prove-it, or deflake-it; a question routes to review-it or root-cause" width="820">
+  <img src="../../assets/diagrams/mission-map.jpg" alt="Decision map: a goal to build routes to map-it then ship-it; known problems route to clean-sweep, oss-contribute, harden-it, speed-it, modernize-it, prove-it, deflake-it, floor-it, reshape-it, attest-it, access-it, or field-test-it; a question routes to review-it or root-cause; drifted tooling routes to pin-it" width="820">
 </p>
 
 | Guide | One line |
