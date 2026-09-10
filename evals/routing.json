@@ -1,307 +1,626 @@
 {
   "name": "orca-fleet-mission-routing",
-  "description": "Intent → mission routing eval. Each prompt should trigger exactly the expected mission based on the frontmatter description and AGENTS.md mapping.",
+  "description": "Intent -> mission routing eval. Every prompt is scored against the REAL frontmatter description (plus name) of every skills/*/SKILL.md by stemmed TF-IDF cosine, so a description edit is what moves the score. positive: the expected mission (or one of expected_any) must rank #1. negative: the declared owner must outrank the named confusable mission, and that mission must not rank #1 — a pairwise test that cannot pass vacuously. none: no mission may clear the evidence floor.",
+  "scoring": {
+    "name_weight": 2,
+    "use_when_weight": 3,
+    "exclusion_weight": -0.5,
+    "min_evidence": 0.3,
+    "collision_error": 0.75,
+    "collision_warn": 0.5
+  },
+  "synonyms_note": "Synonym table: the words users type mapped onto the words the catalog descriptions already use (a11y -> accessibility). Data, never a trigger table: an entry may not name a mission, and an entry alone cannot route a prompt - it only lets an existing description term be recognised.",
+  "synonyms": {
+    "a11y": [
+      "accessibility"
+    ],
+    "accessible": [
+      "accessibility"
+    ],
+    "deps": [
+      "dependency"
+    ],
+    "doc": [
+      "documentation"
+    ],
+    "docs": [
+      "documentation"
+    ],
+    "fast": [
+      "performance"
+    ],
+    "perf": [
+      "performance"
+    ],
+    "phone": [
+      "mobile device"
+    ],
+    "secret": [
+      "security credential"
+    ],
+    "secrets": [
+      "security credential"
+    ],
+    "slow": [
+      "performance"
+    ],
+    "strict": [
+      "enforce"
+    ],
+    "vulnerability": [
+      "security exploit"
+    ]
+  },
   "evals": [
     {
       "id": 1,
       "prompt": "Build and ship this feature end to end.",
-      "expected_mission": "ship-it",
       "type": "positive",
+      "expected_mission": "ship-it",
       "reason": "Autonomous build-to-release maps to ship-it."
     },
     {
       "id": 2,
       "prompt": "Spec to shipped product: turn this PRD into a deployed change.",
-      "expected_mission": "ship-it",
       "type": "positive",
+      "expected_mission": "ship-it",
       "reason": "Frozen spec through release states is ship-it."
     },
     {
       "id": 3,
       "prompt": "Close every open issue in the backlog.",
-      "expected_mission": "clean-sweep",
       "type": "positive",
+      "expected_mission": "clean-sweep",
       "reason": "Draining a finite backlog maps to clean-sweep."
     },
     {
       "id": 4,
       "prompt": "The README lies — verify and fix every false doc claim.",
-      "expected_mission": "clean-sweep",
       "type": "positive",
+      "expected_mission": "clean-sweep",
       "reason": "Falsifiable documentation claims are a clean-sweep source."
     },
     {
       "id": 5,
       "prompt": "Harden this service against SQL injection and auth bypass.",
-      "expected_mission": "harden-it",
       "type": "positive",
+      "expected_mission": "harden-it",
       "reason": "Security sweep with exploit→fix→re-attack loop is harden-it."
     },
     {
       "id": 6,
       "prompt": "Run a red-team audit on the auth flow.",
-      "expected_mission": "harden-it",
       "type": "positive",
+      "expected_mission": "harden-it",
       "reason": "Red team / adversarial security audit maps to harden-it."
     },
     {
       "id": 7,
       "prompt": "The app is slow; get Core Web Vitals under budget.",
-      "expected_mission": "speed-it",
       "type": "positive",
+      "expected_mission": "speed-it",
       "reason": "Perf budget / CWV sweep is speed-it."
     },
     {
       "id": 8,
       "prompt": "Update all dependencies and migrate off the old major.",
-      "expected_mission": "modernize-it",
       "type": "positive",
+      "expected_mission": "modernize-it",
       "reason": "Dependency currency / framework migration is modernize-it."
     },
     {
       "id": 9,
       "prompt": "Close the test gap on the money and auth paths.",
-      "expected_mission": "prove-it",
       "type": "positive",
+      "expected_mission": "prove-it",
       "reason": "Critical-path mutation-audited coverage is prove-it."
     },
     {
       "id": 10,
       "prompt": "Kill the flaky tests in the CI suite.",
-      "expected_mission": "deflake-it",
       "type": "positive",
+      "expected_mission": "deflake-it",
       "reason": "Suite-wide flake-rate contract is deflake-it."
     },
     {
       "id": 11,
       "prompt": "Review this PR and tell me if it's ready to merge.",
-      "expected_mission": "review-it",
       "type": "positive",
+      "expected_mission": "review-it",
       "reason": "Read-only SHA-bound verdict is review-it."
     },
     {
       "id": 12,
       "prompt": "I don't know the shape yet — chart this epic into a plan.",
-      "expected_mission": "map-it",
       "type": "positive",
+      "expected_mission": "map-it",
       "reason": "Foggy multi-session goal → frozen execution map is map-it."
     },
     {
       "id": 13,
       "prompt": "Why is this concurrency bug only happening in production?",
-      "expected_mission": "root-cause",
       "type": "positive",
+      "expected_mission": "root-cause",
       "reason": "Hard intermittent bug diagnosis is root-cause."
     },
     {
       "id": 14,
       "prompt": "Fix every issue in this security audit.",
-      "expected_mission": "harden-it",
       "type": "negative",
+      "owner": "harden-it",
+      "expected_mission": "clean-sweep",
       "reason": "A security audit's adversarial loop is harden-it, not the general backlog mission clean-sweep."
     },
     {
       "id": 15,
       "prompt": "The test suite has flaky failures.",
-      "expected_mission": "deflake-it",
       "type": "negative",
+      "owner": "deflake-it",
+      "expected_mission": "root-cause",
       "reason": "A whole flaky suite is deflake-it, not the single-bug mission root-cause."
     },
     {
       "id": 16,
       "prompt": "Ship this security fix.",
-      "expected_mission": "ship-it",
       "type": "negative",
+      "owner": "ship-it",
+      "expected_mission": "harden-it",
       "reason": "A single authorized build-to-release task routes to ship-it, even if it is security-related."
     },
     {
       "id": 17,
       "prompt": "Drain the backlog of dependency upgrades.",
-      "expected_mission": "modernize-it",
       "type": "negative",
+      "owner": "modernize-it",
+      "expected_mission": "clean-sweep",
       "reason": "Dependency upgrades are a specialist mission (modernize-it), not generic clean-sweep."
     },
     {
       "id": 18,
       "prompt": "Is this diff ready to merge? Also fix the issues you find.",
-      "expected_mission": "review-it",
       "type": "negative",
+      "owner": "review-it",
+      "expected_mission": "clean-sweep",
       "reason": "Review-it is report-only; fixes route to ship-it or clean-sweep after the verdict."
     },
     {
       "id": 19,
       "prompt": "Build me a new onboarding flow.",
-      "expected_mission": "ship-it",
       "type": "negative",
+      "owner": "ship-it",
+      "expected_mission": "map-it",
       "reason": "New feature implementation routes to ship-it, not map-it, even if requirements are vague."
     },
     {
       "id": 20,
       "prompt": "Cover the critical paths with tests before we ship.",
-      "expected_mission": "prove-it",
       "type": "negative",
+      "owner": "prove-it",
+      "expected_mission": "ship-it",
       "reason": "Test-debt coverage is prove-it, not ship-it's build-time testing."
     },
     {
       "id": 21,
       "prompt": "Contribute fixes for these open issues on an upstream repo we only have a fork of.",
-      "expected_mission": "oss-contribute",
       "type": "positive",
+      "expected_mission": "oss-contribute",
       "reason": "Landing PRs on a repo you do not control (READ only, merge is the maintainer's) is oss-contribute."
     },
     {
       "id": 22,
       "prompt": "Open pull requests upstream for these issues and help out the project.",
-      "expected_mission": "oss-contribute",
       "type": "positive",
+      "expected_mission": "oss-contribute",
       "reason": "Sending fixes upstream as PRs maps to oss-contribute."
     },
     {
       "id": 23,
       "prompt": "Close every open issue in our own backlog and merge the fixes.",
-      "expected_mission": "clean-sweep",
       "type": "negative",
+      "owner": "clean-sweep",
+      "expected_mission": "oss-contribute",
       "reason": "A backlog you own and can merge is clean-sweep (merged-SHA closure), not oss-contribute's PR-open-upstream terminal."
     },
     {
       "id": 24,
       "prompt": "Fix this broken test — it fails 10 out of 10 runs, same assertion every time.",
-      "expected_mission": "clean-sweep",
       "type": "negative",
+      "owner": "clean-sweep",
+      "expected_mission": "deflake-it",
       "reason": "A deterministically broken test with a findable cause is clean-sweep (deflake-it routes N/N failures there), not deflake-it or prove-it."
     },
     {
       "id": 25,
       "prompt": "The refund path has no tests — close the coverage gap.",
-      "expected_mission": "prove-it",
       "type": "negative",
+      "owner": "prove-it",
+      "expected_mission": "clean-sweep",
       "reason": "Missing coverage on a critical path is prove-it; clean-sweep owns broken tests, not absent ones."
     },
     {
       "id": 26,
       "prompt": "This test fails intermittently — it passes on retry.",
-      "expected_mission": "deflake-it",
       "type": "negative",
+      "owner": "deflake-it",
+      "expected_mission": "clean-sweep",
       "reason": "An intermittent pass-on-retry failure is a flake-rate contract (deflake-it), not a deterministic clean-sweep bug."
     },
     {
       "id": 27,
       "prompt": "Prove SOC 2 compliance for this service with an audit-ready evidence pack.",
-      "expected_mission": "attest-it",
       "type": "positive",
+      "expected_mission": "attest-it",
       "reason": "Evidence-bound conformance to a frozen standard@version is attest-it."
     },
     {
       "id": 28,
       "prompt": "Run a red-team security audit and exploit the auth flow.",
-      "expected_mission": "harden-it",
       "type": "negative",
+      "owner": "harden-it",
+      "expected_mission": "attest-it",
       "reason": "An exploit -> fix -> re-attack loop is harden-it; attest-it proves conformance to a standard, it does not exploit."
     },
     {
       "id": 29,
       "prompt": "Bring the checkout flow to WCAG 2.2 AA accessibility for screen reader and keyboard users.",
-      "expected_mission": "access-it",
       "type": "positive",
+      "expected_mission": "access-it",
       "reason": "WCAG conformance over a frozen surface with an axe oracle + revert-to-violation NC is access-it."
     },
     {
       "id": 30,
       "prompt": "Review this PR and check the new component's accessibility.",
-      "expected_mission": "review-it",
       "type": "negative",
+      "owner": "review-it",
+      "expected_mission": "access-it",
       "reason": "A bounded per-diff a11y lens is review-it; access-it is a full surface conformance sweep, not a per-PR verdict."
     },
     {
       "id": 31,
       "prompt": "Build me keyboard shortcuts for the editor.",
-      "expected_mission": "ship-it",
       "type": "negative",
+      "owner": "ship-it",
+      "expected_mission": "access-it",
       "reason": "Keyboard shortcuts are a feature build (ship-it); access-it triggers on keyboard navigation / WCAG conformance, not the word keyboard alone."
     },
     {
       "id": 32,
       "prompt": "ARIA roles on the checkout modal are wrong.",
-      "expected_mission": "access-it",
       "type": "positive",
-      "reason": "ARIA at the very start of a prompt must still route to access-it (word-boundary trigger, not a bare substring)."
-    },
-    {
-      "id": 33,
-      "prompt": "Fix the checkout modal's broken ARIA.",
       "expected_mission": "access-it",
-      "type": "positive",
-      "reason": "ARIA at the very end of a prompt, before a period, must still route to access-it."
-    },
-    {
-      "id": 34,
-      "prompt": "ARIA's roles are wrong on the checkout modal.",
-      "expected_mission": "access-it",
-      "type": "positive",
-      "reason": "A possessive apostrophe after ARIA must not hide the trigger (whole-word match, not substring)."
-    },
-    {
-      "id": 35,
-      "prompt": "Check the ARIA/HTML mapping on the checkout modal.",
-      "expected_mission": "access-it",
-      "type": "positive",
-      "reason": "A slash after ARIA must not hide the trigger (whole-word match, not substring)."
-    },
-    {
-      "id": 36,
-      "prompt": "Set ariaLabel on the icon buttons.",
-      "expected_mission": "access-it",
-      "type": "positive",
-      "reason": "A camelCase identifier headed by aria (React's ariaLabel) must still route to access-it."
-    },
-    {
-      "id": 37,
-      "prompt": "Aria roles are broken on the checkout modal.",
-      "expected_mission": "access-it",
-      "type": "positive",
-      "reason": "Sentence-initial title case is conventional and carries no proper-noun signal: a prompt opening with Aria must still route to access-it."
+      "reason": "The accessibility vocabulary a user actually types (ARIA roles on a component) must reach access-it from its description alone."
     },
     {
       "id": 38,
       "prompt": "Orca updated overnight — re-pin our dispatch doctrine against the installed binary.",
-      "expected_mission": "pin-it",
       "type": "positive",
+      "expected_mission": "pin-it",
       "reason": "Runtime-doctrine re-pin after a control-plane upgrade maps to pin-it."
     },
     {
       "id": 39,
       "prompt": "Set a quality bar for this repo and make CI enforce it — our bar keeps slipping.",
-      "expected_mission": "floor-it",
       "type": "positive",
-      "reason": "Installing an enforced, written quality bar maps to floor-it; floor-it is in SPECIALIST_MISSIONS so dimension vocabulary no longer steals the route."
+      "expected_mission": "floor-it",
+      "reason": "Installing an enforced, written quality bar maps to floor-it: its description owns 'set the quality bar', 'make CI enforce', 'bar keeps slipping'."
     },
     {
       "id": 40,
       "prompt": "The checkout module is a god file — everything imports it. Deepen the hot modules without changing behaviour.",
-      "expected_mission": "reshape-it",
       "type": "positive",
+      "expected_mission": "reshape-it",
       "reason": "Behaviour-preserving interface deepening of churn-hot modules maps to reshape-it."
     },
     {
       "id": 41,
       "prompt": "Pin a characterization net over the billing god file, then deepen its interface without changing behaviour.",
-      "expected_mission": "reshape-it",
       "type": "positive",
+      "expected_mission": "reshape-it",
       "reason": "Seam lock: characterization-net + god-file vocabulary belongs to reshape-it when the goal is interface deepening; prove-it owns the net when the goal is test debt."
     },
     {
       "id": 42,
       "prompt": "Works on desktop but breaks on my phone — verify it on a real device and fix what hardware shows.",
-      "expected_mission": "field-test-it",
       "type": "positive",
+      "expected_mission": "field-test-it",
       "reason": "On-device reproduce-fix-reverify with a hardware oracle maps to field-test-it."
     },
     {
       "id": 43,
       "prompt": "Orca upgraded overnight — re-pin our dispatch doctrine against the installed binary.",
-      "expected_mission": "pin-it",
       "type": "positive",
+      "expected_mission": "pin-it",
       "reason": "Post-runtime-upgrade doctrine re-pin maps to pin-it; the bare 'upgrade' must not steal it to modernize-it."
+    },
+    {
+      "id": 101,
+      "prompt": "the README lies",
+      "type": "positive",
+      "expected_mission": "clean-sweep",
+      "reason": "REVIEW.md §5 realistic prompt: false doc claims are a clean-sweep source."
+    },
+    {
+      "id": 102,
+      "prompt": "why is this flaky",
+      "type": "positive",
+      "expected_any": [
+        "root-cause",
+        "deflake-it"
+      ],
+      "reason": "REVIEW.md §5 realistic prompt: one bug or a suite-rate contract — either is defensible from the text."
+    },
+    {
+      "id": 103,
+      "prompt": "make CI strict",
+      "type": "positive",
+      "expected_mission": "floor-it",
+      "reason": "REVIEW.md §5 realistic prompt: installing an enforced bar is floor-it."
+    },
+    {
+      "id": 104,
+      "prompt": "this breaks on mobile",
+      "type": "positive",
+      "expected_mission": "field-test-it",
+      "reason": "REVIEW.md §5 realistic prompt: a device-observed defect is field-test-it."
+    },
+    {
+      "id": 105,
+      "prompt": "our tests are flaky and I want to know why",
+      "type": "positive",
+      "expected_mission": "deflake-it",
+      "reason": "REVIEW.md §5 realistic prompt: a whole flaky suite is deflake-it."
+    },
+    {
+      "id": 106,
+      "prompt": "the login page is slow on mobile",
+      "type": "positive",
+      "expected_mission": "speed-it",
+      "reason": "REVIEW.md §5 realistic prompt: a journey under a perf budget is speed-it, not on-device defect verification."
+    },
+    {
+      "id": 107,
+      "prompt": "review this PR for accessibility problems",
+      "type": "positive",
+      "expected_mission": "review-it",
+      "reason": "REVIEW.md §5 realistic prompt: a bounded per-diff a11y lens is review-it, not the full surface sweep."
+    },
+    {
+      "id": 108,
+      "prompt": "harden the CI pipeline",
+      "type": "positive",
+      "expected_any": [
+        "floor-it",
+        "harden-it"
+      ],
+      "reason": "REVIEW.md §5 realistic prompt: gates-for-the-repo (floor-it) or the security loop (harden-it)."
+    },
+    {
+      "id": 109,
+      "prompt": "update the README to match the code",
+      "type": "positive",
+      "expected_mission": "clean-sweep",
+      "reason": "REVIEW.md §5 realistic prompt: doc-vs-code drift is a clean-sweep source."
+    },
+    {
+      "id": 110,
+      "prompt": "upgrade React and fix what breaks",
+      "type": "positive",
+      "expected_mission": "modernize-it",
+      "reason": "REVIEW.md §5 realistic prompt: framework currency with CI green is modernize-it."
+    },
+    {
+      "id": 111,
+      "prompt": "refactor the payments module safely",
+      "type": "positive",
+      "expected_mission": "reshape-it",
+      "reason": "REVIEW.md §5 realistic prompt: behaviour-preserving deepening is reshape-it."
+    },
+    {
+      "id": 112,
+      "prompt": "add tests before we refactor payments",
+      "type": "positive",
+      "expected_mission": "prove-it",
+      "reason": "REVIEW.md §5 realistic prompt: the characterization net itself is prove-it."
+    },
+    {
+      "id": 113,
+      "prompt": "we need SOC 2 evidence for our CI security gates",
+      "type": "positive",
+      "expected_mission": "attest-it",
+      "reason": "REVIEW.md §5 realistic prompt: obligations from a frozen standard are attest-it."
+    },
+    {
+      "id": 114,
+      "prompt": "make the checkout accessible and fast",
+      "type": "positive",
+      "expected_any": [
+        "access-it",
+        "speed-it"
+      ],
+      "reason": "REVIEW.md §5 realistic prompt: a compound ask; either owner is defensible, a chain is the real answer."
+    },
+    {
+      "id": 115,
+      "prompt": "close the open issues about performance",
+      "type": "positive",
+      "expected_any": [
+        "clean-sweep",
+        "speed-it"
+      ],
+      "reason": "REVIEW.md §5 realistic prompt: a tracker backlog (clean-sweep) filtered by a perf dimension (speed-it)."
+    },
+    {
+      "id": 116,
+      "prompt": "diagnose why the deploy failed last night",
+      "type": "positive",
+      "expected_mission": "root-cause",
+      "reason": "REVIEW.md §5 realistic prompt: one hard bug, no enumerable backlog."
+    },
+    {
+      "id": 117,
+      "prompt": "ship the feature and make sure it works on a real phone",
+      "type": "positive",
+      "expected_any": [
+        "ship-it",
+        "field-test-it"
+      ],
+      "reason": "REVIEW.md §5 realistic prompt: build-to-release with an on-device verification leg."
+    },
+    {
+      "id": 118,
+      "prompt": "our Orca docs are out of date",
+      "type": "positive",
+      "expected_any": [
+        "pin-it",
+        "clean-sweep"
+      ],
+      "reason": "REVIEW.md §5 realistic prompt: runtime doctrine drift (pin-it) or false prose (clean-sweep)."
+    },
+    {
+      "id": 119,
+      "prompt": "plan the migration to the new auth provider",
+      "type": "positive",
+      "expected_mission": "map-it",
+      "reason": "REVIEW.md §5 realistic prompt: a foggy multi-session goal resolves to a frozen execution map."
+    },
+    {
+      "id": 120,
+      "prompt": "is this branch safe to merge",
+      "type": "positive",
+      "expected_mission": "review-it",
+      "reason": "REVIEW.md §5 realistic prompt: a read-only SHA-bound verdict."
+    },
+    {
+      "id": 121,
+      "prompt": "remove the god object in the API layer",
+      "type": "positive",
+      "expected_mission": "reshape-it",
+      "reason": "REVIEW.md §5 realistic prompt: god-file vocabulary is reshape-it's."
+    },
+    {
+      "id": 122,
+      "prompt": "find and fix all secrets in the repo",
+      "type": "positive",
+      "expected_mission": "harden-it",
+      "reason": "REVIEW.md §5 realistic prompt: secret exposure is a security class, not a generic backlog."
+    },
+    {
+      "id": 123,
+      "prompt": "the dependency audit has 40 findings, fix them all",
+      "type": "positive",
+      "expected_any": [
+        "clean-sweep",
+        "modernize-it"
+      ],
+      "reason": "REVIEW.md §5 realistic prompt: a findings backlog (clean-sweep) whose dimension is dependency currency (modernize-it)."
+    },
+    {
+      "id": 124,
+      "prompt": "cover the untested payment paths and fix the bugs you find",
+      "type": "positive",
+      "expected_mission": "prove-it",
+      "reason": "REVIEW.md §5 realistic prompt: missing coverage on a money path is prove-it."
+    },
+    {
+      "id": 125,
+      "prompt": "why does the build fail only in CI",
+      "type": "positive",
+      "expected_any": [
+        "root-cause",
+        "deflake-it"
+      ],
+      "reason": "REVIEW.md §5 realistic prompt: environment-dependent failure: one bug or a flake contract."
+    },
+    {
+      "id": 126,
+      "prompt": "set a coverage floor and enforce it",
+      "type": "positive",
+      "expected_mission": "floor-it",
+      "reason": "REVIEW.md §5 realistic prompt: the enforced threshold is floor-it; prove-it owns the tests under it."
+    },
+    {
+      "id": 127,
+      "prompt": "prove our app meets WCAG for the audit",
+      "type": "positive",
+      "expected_any": [
+        "access-it",
+        "attest-it"
+      ],
+      "reason": "REVIEW.md §5 realistic prompt: WCAG conformance (access-it) framed as auditor evidence (attest-it)."
+    },
+    {
+      "id": 128,
+      "prompt": "submit fixes to the upstream library we depend on",
+      "type": "positive",
+      "expected_mission": "oss-contribute",
+      "reason": "REVIEW.md §5 realistic prompt: landing PRs on a repo you do not control."
+    },
+    {
+      "id": 129,
+      "prompt": "make this production-ready",
+      "type": "none",
+      "reason": "REVIEW.md §5 realistic prompt: no single mission owns it - the honest answer is a chain, so the router must not guess one."
+    },
+    {
+      "id": 130,
+      "prompt": "this test passes locally but fails in CI",
+      "type": "positive",
+      "expected_any": [
+        "deflake-it",
+        "root-cause"
+      ],
+      "reason": "REVIEW.md §5 realistic prompt: environment-dependent intermittency."
+    },
+    {
+      "id": 131,
+      "prompt": "the API contract drifted from the docs",
+      "type": "positive",
+      "expected_mission": "clean-sweep",
+      "reason": "REVIEW.md §5 realistic prompt: prose that contradicts the code is a clean-sweep source, not runtime doctrine."
+    },
+    {
+      "id": 132,
+      "prompt": "kill the retry wrappers and make the suite deterministic",
+      "type": "positive",
+      "expected_mission": "deflake-it",
+      "reason": "REVIEW.md §5 realistic prompt: retry-wrappers-as-fixes are deflake-it's banned anti-pattern."
+    },
+    {
+      "id": 133,
+      "prompt": "chart a plan for the mobile rewrite",
+      "type": "positive",
+      "expected_mission": "map-it",
+      "reason": "REVIEW.md §5 realistic prompt: charting a foggy epic is map-it."
+    },
+    {
+      "id": 134,
+      "prompt": "our quality bar keeps slipping — fix the bugs it let through",
+      "type": "positive",
+      "expected_any": [
+        "floor-it",
+        "clean-sweep"
+      ],
+      "reason": "REVIEW.md §5 realistic prompt: install the bar (floor-it) or drain what it let through (clean-sweep)."
+    },
+    {
+      "id": 135,
+      "prompt": "Orca updated and the emulator QA flow broke on device",
+      "type": "positive",
+      "expected_any": [
+        "pin-it",
+        "field-test-it"
+      ],
+      "reason": "REVIEW.md §5 realistic prompt: doctrine re-pin after a control-plane upgrade, or an on-device defect."
+    },
+    {
+      "id": 136,
+      "prompt": "red team the checkout on a real device",
+      "type": "positive",
+      "expected_any": [
+        "harden-it",
+        "field-test-it"
+      ],
+      "reason": "REVIEW.md §5 realistic prompt: the adversarial loop (harden-it) run on hardware (field-test-it)."
     }
   ]
 }
