@@ -229,10 +229,16 @@ class TestRealReports(unittest.TestCase):
             self.assertNotIn(immutable, r.stderr,
                              f"{immutable} is declared immutable and must still hash true")
 
-    def test_negative_control_readme_table_parses(self):
+    def test_negative_control_readme_table_parses_and_verifies(self):
+        # The table form (| `file` | `hash` |) must parse, and the demo's own
+        # transcript must hash true: its recorded hash drifted from the
+        # committed file once (REVIEW.md 7.4) and the inventory check is what
+        # keeps that from recurring silently.
         r = run_inv("check", str(NEGCTRL))
-        self.assertNotEqual(r.returncode, 2, "the table-form inventory must parse")
-        self.assertIn("head-to-head.txt", r.stdout + r.stderr)
+        self.assertEqual(r.returncode, 0,
+                         f"the demo inventory must verify:\n{r.stdout}\n{r.stderr}")
+        self.assertIn("1 verified", r.stdout + r.stderr)
+        self.assertIn("0 mismatched", r.stdout + r.stderr)
 
 
 class TestScriptShape(unittest.TestCase):
