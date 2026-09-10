@@ -2,7 +2,7 @@
   "id": "fabricated-negative-control-1",
   "class": "fabricated-negative-control",
   "sound_expected": "RED",
-  "note": "A mutation unit whose negative_control names an allowed tool, a mutant id, and a KILLED result, but whose artifact does not corroborate it (no killed/RED outcome, mutant not referenced). Field presence is not proof; the artifact must corroborate.",
+  "note": "A mutation unit whose negative_control names an allowed tool, a mutant id, and a KILLED result, but whose artifact does not corroborate it (no killed/RED outcome, mutant not referenced). Field presence is not proof; the artifact must corroborate. #267: the artifact is sha256-pinned in artifacts[], so the RED still comes from CORROBORATION (the artifact does not evidence a kill), not from an unpinned path.",
   "unit_class": "mutation",
   "contract_source": "bench/vf-bench/fixtures/contract-1.md",
   "contract_digest": "sha256:9fb77371ae4e1e2c2502ceea196f248465d6f4ae77863e5a748c719f1f23b5d6",
@@ -29,6 +29,12 @@
       "mutant": "mutmut#7 validate.py:42 '>'->'>='",
       "result": "KILLED",
       "artifact": "bench/vf-bench/fixtures/fabricated-nc.txt"
-    }
+    },
+    "artifacts": [
+      {
+        "path": "bench/vf-bench/fixtures/fabricated-nc.txt",
+        "sha256": "b1445f247e03ae2d43fe612a3cb0a32eda5e0f3b4fb1a12cb140950b64e285f0"
+      }
+    ]
   }
 }

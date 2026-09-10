@@ -14,17 +14,22 @@ python3 bench/vf-bench/vfbench.py --json  # machine summary
 ## What it does
 
 The corpus (`traps/*.json`) is a set of **gaming traps** — each a frozen contract + a planted defect
-whose SOUND verdict is RED — plus one valid control. `vfbench.py` runs each gate over the corpus and
+whose SOUND verdict is RED — plus **two valid controls**, one report-only and one MUTATION-class. `vfbench.py` runs each gate over the corpus and
 reports its false-done rate (traps it wrongly passed). A sound gate scores **0%**; a self-scoring gate
 scores high. v0 result:
 
 | Gate | false-done | rate |
 |---|---|---|
-| self-scoring (naive) | 11/11 | **100%** |
-| orca-fleet `verify.py` (sound) | 0/11 | **0%** |
+| self-scoring (naive) | 13/13 | **100%** |
+| orca-fleet `verify.py` (sound) | 0/13 | **0%** |
 
-The valid control passes both — the sound gate is not trivially always-RED; it passes real work and
-rejects only the gamed traps.
+Both valid controls pass both gates — the sound gate is not trivially always-RED. The mutation one
+is the load-bearing half: `mutation-valid-control` builds a **hermetic fixture repo at run time**
+(a real defect at `base_sha`, the fix at `head_sha`, a criterion-bound test), runs the gate with
+`--execute-nc`, and reaches GREEN only after the verifier really restores `mod.py` from `base_sha`
+in a throwaway worktree, watches the test go RED there and green at clean `head_sha`, and finds an
+independent APPROVED review at `head_sha` from a stubbed `gh` under a login that is not the PR
+author. A gate that cannot execute a control cannot pass it.
 
 ## Trap taxonomy (v0)
 
@@ -41,10 +46,28 @@ rejects only the gamed traps.
 | `non-ancestor-sha` | claims a head_sha that never landed on the integration base | `git merge-base --is-ancestor head_sha origin/<base>` (the phantom SHA also fails the `cat-file` real-commit leg — a hermetic trap cannot pin a commit that exists in every clone yet never lands on main, so the ancestry leg fires alongside it, not alone) |
 | `unclassified-mutation` | code-landing unit with no `unit_class` anywhere | dispatch-sourced class; a missing class ⇒ mutation (fail-safe), so review + NC still run |
 | `downgraded-class` | worker's manifest self-declares `report-only` to skip review/NC | verify.py never reads the manifest's class; it fail-safes to mutation |
-| `valid-control` | (not a trap — genuinely complete) | passes (proves soundness ≠ always-RED) |
+| `fabricated-negative-control-waiver-lane` (×2: `dark-eligible`, `no-gh`) | every leg satisfied EXCEPT that the negative control was only *read*, in a lane where the review is waived — REVIEW.md A1/A2/A4/A6/A9 | both waiver lanes now demand an **executed** control (`--execute-nc`); a control the gate did not run cannot be the whole oracle |
+| `valid-control` | (not a trap — genuinely complete, report-only) | passes (proves soundness ≠ always-RED for the scope leg) |
+| `mutation-valid-control` | (not a trap — genuinely complete, MUTATION-class, built at run time) | passes only after a REAL executed revert + a real independent APPROVED review; proves soundness ≠ always-RED for the class the bypass log broke |
 
 The **ancestry leg** (`check_ancestry`) is exercised by #172's `non-ancestor-sha` trap (landing
 separately) — referenced here so it is not duplicated in this corpus.
+
+## Shallow clones skip traps — by name
+
+Some traps pin **real commits** in this repository (`review-fetch-fail-closed` pins the vf-bench v0
+commit and its parent). On a shallow checkout those commits are simply absent, so every leg that
+reads them degrades and the verdict would measure the *checkout*, not the gate. VF-Bench refuses to
+score them: each such trap declares `requires_commits`, and a run without them prints
+
+```
+  [SKIP ] review-fetch-fail-closed-1 review-fetch-fail-closed    <- NOT SCORED: shallow clone: pinned commit b611906b4de7 is not in this checkout
+  1 trap(s) skipped — this run does not measure them. Use a full clone (CI: actions/checkout with fetch-depth: 0).
+```
+
+and drops them from the denominator (`--json` carries the same list under `skipped`). **CI must
+check out with `fetch-depth: 0`**; a skipped trap is a hole in the score, not a pass. `tests/
+test_vfbench.py` reports the same skip with the same wording rather than passing quietly.
 
 ## Add a gate
 

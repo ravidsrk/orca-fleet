@@ -1,0 +1,42 @@
+{
+  "id": "fabricated-nc-dark-eligible-1",
+  "class": "fabricated-negative-control-waiver-lane",
+  "sound_expected": "RED",
+  "note": "REVIEW.md A1/A4/A6/A9, replayed against the same run-time fixture as mutation-valid-control-1. The unit is genuinely complete in every OTHER respect — real commits, an out-of-band coordinator contract, a fresh commands[] record, a pinned artifacts[] inventory — and the dispatch classes it dark-eligible, which WAIVES the independent review. The negative control is therefore the only oracle left, and here it is a text file the worker wrote saying the mutant was killed. Nothing executes it (no --execute-nc), so nothing can tell this artifact from a real run. Before #256 this exact shape exited 0. The RED must come from the waiver lane demanding an EXECUTED control, not from any other leg — every other leg is satisfied on purpose.",
+  "unit_class": "mutation",
+  "fixture": "mutation-revert",
+  "execute_nc": false,
+  "lighting": "dark-eligible",
+  "manifest": {
+    "unit": "vf-bench-dark-forged",
+    "base_sha": "{{base_sha}}",
+    "head_sha": "{{head_sha}}",
+    "lighting": "dark-eligible",
+    "reviewer_mode": "instructed-isolation",
+    "intent": {
+      "goal": "make add() return the sum, as AC-1 requires",
+      "ruled_out": "widening the interface beyond AC-1",
+      "why": "AC-1 is the contracted denominator"
+    },
+    "contract": {
+      "source": "contract.md",
+      "digest": "{{contract_digest}}",
+      "criterion_ids": ["AC-1"]
+    },
+    "criteria": [
+      {"id": "AC-1", "text": "add(a, b) returns a + b", "addressed": true}
+    ],
+    "commands": [
+      {"label": "tests", "cmd": "{{proof_cmd}}", "exit": 0, "wtree": "{{head_tree}}"}
+    ],
+    "artifacts": [
+      {"path": "docs/reports/vf/nc.txt", "sha256": "{{nc_sha256}}"}
+    ],
+    "negative_control": {
+      "did": "reverted the production line",
+      "tool": "revert",
+      "result": "the criterion-bound test went RED (mutant KILLED)",
+      "artifact": "docs/reports/vf/nc.txt"
+    }
+  }
+}
