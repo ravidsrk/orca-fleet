@@ -151,6 +151,8 @@ class TestEvalInfrastructure(unittest.TestCase):
             ("Make CI enforce the checkout journey perf budget.", "speed-it"),
             # floor-it keeps the bar itself
             ("Set the quality bar for this repo and prove every gate fires.", "floor-it"),
+            # a stray specialist keyword below the general winner's score never steals the route
+            ("Close every issue in the backlog and update the doctrine pages that lie.", "clean-sweep"),
         ]
         for prompt, expected in seam:
             with self.subTest(prompt=prompt):

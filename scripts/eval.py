@@ -299,10 +299,10 @@ def classify_prompt(prompt: str) -> str | None:
     if scores[best] == 0:
         return None
 
-    # Specialist wins if it has any signal and the general winner is not already
-    # a specialist. This handles prompts like "Drain the backlog of dependency
-    # upgrades" where clean-sweep scores high on "drain the backlog" but
-    # modernize-it has the decisive technical term.
+    # Specialist wins a tie-or-stronger against a general winner. This handles prompts like
+    # "Drain the backlog of dependency upgrades" where clean-sweep scores high on "drain the
+    # backlog" but modernize-it matches the decisive technical terms — while a stray specialist
+    # keyword (score below the general winner's) never steals the route.
     if best not in SPECIALIST_MISSIONS:
         specialist_best = None
         specialist_score = 0
@@ -310,7 +310,7 @@ def classify_prompt(prompt: str) -> str | None:
             if mission in SPECIALIST_MISSIONS and score > specialist_score:
                 specialist_best = mission
                 specialist_score = score
-        if specialist_best is not None and specialist_score > 0:
+        if specialist_best is not None and specialist_score >= scores[best]:
             return specialist_best
 
     return best
