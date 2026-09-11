@@ -93,7 +93,14 @@ def _invocation_re(manifest):
 FIELD_RE = re.compile(r"([a-z_]+)=(\S+)")
 REQUIRED_FIELDS = ("mission", "tier", "inventory_at", "manifest", "verifier")
 VERIFIER_OUTCOMES = {"GREEN", "RED"}
-TIERS = {"self-run", "external-run"}
+# Tiers a RUN: header may DECLARE. `doctrine-only` is legal here and advances nothing: it is how a
+# report says "this run happened and is recorded, and it supports no tier claim". Without it a
+# demoted report had to keep asserting the tier its own Evidence-binding section retracted, and
+# nothing checked the contradiction — check_report only runs for missions claiming a tier ABOVE
+# doctrine-only, so the stale header was unreachable (PR #308 review).
+TIERS = {"doctrine-only", "self-run", "external-run"}
+# ...but only these two are a tier ADVANCE that needs evidence behind it.
+ADVANCING_TIERS = {"self-run", "external-run"}
 
 
 def parse_run_header(text):
@@ -438,7 +445,7 @@ def _missions(root):
     spec.loader.exec_module(mod)
     out = []
     for rec in mod.collect(root / "skills", root):
-        if rec["proof"] in TIERS:
+        if rec["proof"] in ADVANCING_TIERS:
             out.append((rec["name"] or rec["dir"], rec["proof"], rec["proof_evidence"]))
     return out
 

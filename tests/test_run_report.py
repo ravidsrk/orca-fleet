@@ -412,7 +412,8 @@ class LiveCatalog(unittest.TestCase):
             "docs/runs/2026-08-28-ship-it-self-run.md", "ship-it", "self-run"
         )
         missing_transcript = [e for e in errs
-                              if "invocation" in e or "records no commands[] entry" in e]
+                              if "invocation" in e or "records no commands[] entry" in e
+                              or "RUN: tier=doctrine-only" in e]
         self.assertEqual(
             [e for e in errs if e not in missing_transcript], [],
             "only the missing verifier transcript should stop this report binding",
@@ -420,6 +421,10 @@ class LiveCatalog(unittest.TestCase):
         self.assertTrue(any("invocation" in e for e in errs), "the prose leg stopped reporting")
         self.assertTrue(any("records no commands[] entry" in e for e in errs),
                         "the ledger leg (#286) stopped reporting")
+        # And the header itself now refuses the claim: asked whether this report supports
+        # `self-run`, it answers with what it actually declares.
+        self.assertTrue(any("RUN: tier=doctrine-only" in e for e in errs),
+                        "the RUN: header no longer states the tier the body supports")
 
     def test_demoted_reports_are_kept_and_say_why(self):
         # Demoting is only honest if the record survives and explains itself.

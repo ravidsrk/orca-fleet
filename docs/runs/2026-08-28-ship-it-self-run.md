@@ -1,6 +1,6 @@
 # Run report — ship-it self-run, 2026-08-28
 
-RUN: mission=ship-it tier=self-run inventory_at=748b328 manifest=docs/runs/2026-08-28-ship-it-selfrun/build-manifest.json verifier=RED
+RUN: mission=ship-it tier=doctrine-only inventory_at=748b328 manifest=docs/runs/2026-08-28-ship-it-selfrun/build-manifest.json verifier=RED
 
 The header above is what `runtime/scripts/run_report.py` re-derives. Four of its five legs
 hold: the inventory below re-hashes 5/5 at `748b328`, the manifest exists at that commit and

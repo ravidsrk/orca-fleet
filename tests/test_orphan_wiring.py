@@ -313,6 +313,25 @@ class TheRunArchiveMatchesGit(unittest.TestCase):
             self.assertNotIn("Proof tier earned:", text,
                              f"{name} claims a tier its Evidence binding denies")
 
+    def test_the_machine_readable_header_agrees_with_the_prose(self):
+        """PR #308 review. Correcting the PROSE header and leaving `RUN: tier=self-run` is the same
+        defect one layer down — and it was unreachable, because check_report only runs for missions
+        claiming a tier above doctrine-only. A report demoted in prose kept asserting the old tier
+        in the field a machine reads, with nothing to catch it."""
+        header = re.compile(r"^RUN:\s.*\btier=(\S+)", re.M)
+        for path in sorted((ROOT / "docs" / "runs").glob("2*.md")):
+            text = path.read_text(encoding="utf-8")
+            match = header.search(text)
+            if not match:
+                continue
+            declared = match.group(1)
+            demoted = ("doctrine-only" in text.split("## Evidence binding")[-1][:400]
+                       if "## Evidence binding" in text else False)
+            if demoted:
+                self.assertEqual(declared, "doctrine-only",
+                                 f"{path.name}: Evidence binding says doctrine-only, RUN: header "
+                                 f"declares tier={declared}")
+
     def test_the_promotion_pr_is_not_described_as_open(self):
         # PR #104 merged as 9ed6fe9 on 2026-08-28, the same day the run stopped at it.
         text = read(self.SHIP_IT)
