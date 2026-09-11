@@ -81,7 +81,10 @@ When `build-change.md`'s irreversibility stop-list applies, classification happe
 code: the PLAN artifact is the decision surface. Approving "proceed as planned" on reversible
 testnet/fixtures → Lane A (mechanical/taste as usual). Approving a hard-to-reverse path →
 one-way human. Rejecting → Lane 0 or rewrite the plan. Coding before the gate resolves is a
-protocol breach — park the unit and re-dispatch.
+protocol breach — park the unit and re-dispatch. Record the resolution with
+`runtime/scripts/decisions.py append --source human:<who>`: it refuses a one-way line that names no
+human source, and refuses to reclassify one by rewording — the mechanism this rule needs rather than
+the habit it was hoping for (#284).
 
 ## User-challenge (the never-auto class within one-way)
 

@@ -6,8 +6,14 @@ records what it SENT. This ledger is the second half: one line per off-repo
 write the fleet performs -- opening a PR, posting a comment, closing an issue,
 triggering a deploy, creating a schedule -- appended BEFORE the send.
 
-Threat model, stated because it bounds what this is worth: the ledger is
-forensic observability, not an exfiltration control. It records ATTEMPTED
+Status, stated first because it bounds what this is worth today: this ledger
+has no caller (#284). No mission or playbook invokes it, so the receipts it
+describes are not being written. It is a working library waiting to be wired
+into the fleet's own sinks, not a guarantee in force -- read every sentence
+below as what it WILL record once called, not what is recorded now.
+
+Threat model, stated because it bounds what this is worth even then: the
+ledger is forensic observability, not an exfiltration control. It records ATTEMPTED
 egress so an accident is auditable afterwards. Anything with a shell can send
 without a receipt; the point is that the fleet's own sinks cannot do so
 silently.

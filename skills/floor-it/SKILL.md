@@ -82,7 +82,7 @@ DETECT: read the stack (manifests, CI, existing gates) and DRAFT the dimension s
 → ENFORCE: CI jobs on BASE block on the wired gates, cheapest first — the CI change is itself a
   reviewed unit on the same train. Then prove the CI path: one canary PR per gate carrying its
   injection — CI must go RED; the canary is closed unmerged.
-→ GUARD: land `check_constraints`-style validation in CI on BASE — a reviewed unit like the
+→ GUARD: land `runtime/scripts/floor_guard.py` (`check_constraints`-style validation) in CI on BASE — a reviewed unit like the
   others: any diff that lowers a threshold in CONSTRAINTS.md or touches a dimension's frozen
   tool-config surface (suppressions, skipped tests, exclusions) fails without a recorded DECISIONS
   waiver (gate-classification). The guard is owned by the repo (a CI job), not the terminated

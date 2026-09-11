@@ -163,6 +163,12 @@ the worker can set that env, it can choose its own denominator and class.
 
 ### Signed dispatch — what it binds, and where the key comes from (#135)
 
+> **Dormant today (#284).** The scheme below is sound where the key originates off the graded
+> worker, and `verify.py` implements it. But no mission or playbook signs a dispatch with
+> `runtime/scripts/dispatch-sign.py`, and no `.orca/dispatch-pubkey` is committed, so the check
+> never runs on a real unit. Read this section as the contract a signed dispatch would satisfy,
+> not as a boundary currently standing.
+
 The native hook can't trust `ORCA_CONTRACT_DIGEST` / `ORCA_UNIT_CLASS` / `ORCA_LIGHTING` on its own —
 the worker sets them. Bind them to a **coordinator-signed dispatch record**. The whole scheme rests on
 one thing: **the verifying public key must originate off the graded worker.** A worker that could set
