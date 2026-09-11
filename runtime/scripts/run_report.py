@@ -122,22 +122,42 @@ def path_exists_at(rev, path_text, root):
 
 
 _ENV_ASSIGN_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
+# THE verifier, by path — not by basename. `/tmp/verify.py` is a script the worker wrote
+# (PR #308 review); only this repository's own verifier counts.
+VERIFIER_PATH_PARTS = ("runtime", "scripts", "verify.py")
 
 
-def executes_verifier(cmd, manifest_path):
-    """True when `cmd` RUNS verify.py against `manifest_path` — parsed as argv, not matched.
+def _is_repo_verifier(token, root):
+    """True when `token` names THIS repository's verify.py."""
+    path = Path(token)
+    parts = tuple(part for part in path.parts if part != ".")
+    if ".." in parts:
+        return False  # an escape hatch out of the repo, wherever it currently points
+    if tuple(parts[-3:]) != VERIFIER_PATH_PARTS:
+        return False  # includes a bare `verify.py`, which resolves against cwd or PATH
+    if path.is_absolute():
+        try:
+            path.resolve().relative_to(Path(root).resolve())
+        except (ValueError, OSError):
+            return False
+    return True
+
+
+def executes_verifier(cmd, manifest_path, root=None):
+    """True when `cmd` RUNS this repo's verify.py against `manifest_path` — parsed as argv.
 
     A regex over the command line is the wrong instrument here, and this module already has the
     scar tissue to prove it: `_invocation_re` was tightened twice, first because "the body
     contains verify.py" matched any prose, then because `--manifest \S+` matched this module's own
-    docstring. Applied to a ledger RECORD it fails a third way — `echo verify.py --manifest <m>`
-    hashes true, names a real tree, and never invokes anything (PR #308 review). The regex is
-    still right for the report BODY, which is prose; a recorded command is argv and is read as
-    argv.
+    docstring. Applied to a ledger RECORD it failed again — `echo verify.py --manifest <m>` hashes
+    true, names a real tree, and invokes nothing. The regex is still right for the report BODY,
+    which is prose; a recorded command is argv and is read as argv.
 
-    So: after any `env` / `VAR=value` prefix, the program being executed must be verify.py itself,
-    or an interpreter whose script argument is verify.py. `--manifest` must actually TAKE this
-    manifest as its value rather than merely appear beside it.
+    Two further evasions review found in the argv reading itself, both fixed here. A basename test
+    accepted `/tmp/verify.py`, a script the worker wrote; the path must be this repository's own
+    verifier. And taking the FIRST `--manifest` disagreed with argparse, which takes the LAST — so
+    `--manifest <graded> --manifest other.json` read as graded here while the real verifier read
+    the other file.
     """
     if not isinstance(cmd, str):
         return False
@@ -158,15 +178,17 @@ def executes_verifier(cmd, manifest_path):
             i += 1
         if i >= len(argv):
             return False
-    if Path(argv[i]).name != "verify.py":
+    if not _is_repo_verifier(argv[i], root or ROOT):
         return False
+    # argparse keeps the LAST occurrence of a repeated option, so read the last one.
+    seen = None
     rest = argv[i + 1:]
     for j, token in enumerate(rest):
-        if token == "--manifest":
-            return j + 1 < len(rest) and rest[j + 1] == manifest_path
-        if token.startswith("--manifest="):
-            return token.split("=", 1)[1] == manifest_path
-    return False
+        if token == "--manifest" and j + 1 < len(rest):
+            seen = rest[j + 1]
+        elif token.startswith("--manifest="):
+            seen = token.split("=", 1)[1]
+    return seen == manifest_path
 
 
 def blob_at(rev, path_text, root):
@@ -218,7 +240,7 @@ def verifier_ran(manifest_path, rev, root):
         return [f"the graded manifest {manifest_path} at {rev} is not a JSON object"]
 
     records = [c for c in (manifest.get("commands") or []) if isinstance(c, dict)]
-    verifier = [c for c in records if executes_verifier(c.get("cmd"), manifest_path)]
+    verifier = [c for c in records if executes_verifier(c.get("cmd"), manifest_path, root)]
     if not verifier:
         seen = ", ".join(repr(c.get("cmd")) for c in records) or "nothing"
         return [f"the graded manifest {manifest_path} records no commands[] entry running "

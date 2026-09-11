@@ -131,22 +131,32 @@ class RunReportBinding(unittest.TestCase):
         prose mentioning verify.py matched, then because `--manifest \\S+` matched this module's
         own docstring. A recorded command is argv, so it is read as argv."""
         m = self.manifest
-        for cmd in (f"python3 runtime/scripts/verify.py --manifest {m}",
-                    f"/usr/bin/python3 -u runtime/scripts/verify.py --contract-source c --manifest {m}",
-                    f"env FOO=1 python3 verify.py --manifest {m}",
-                    f"verify.py --manifest={m}"):
+        V = "runtime/scripts/verify.py"
+        for cmd in (f"python3 {V} --manifest {m}",
+                    f"python3 ./{V} --manifest {m}",
+                    f"/usr/bin/python3 -u {V} --contract-source c --manifest {m}",
+                    f"env FOO=1 python3 {V} --manifest={m}",
+                    # argparse keeps the LAST --manifest, so a trailing graded one is a real run.
+                    f"python3 {V} --manifest other.json --manifest {m}"):
             self.assertTrue(run_report.executes_verifier(cmd, m), cmd)
-        for cmd in (f"echo verify.py --manifest {m}",
-                    f"true # verify.py --manifest {m}",
-                    f"sh -c 'verify.py --manifest {m}'",
-                    f"python3 -c 'print(\"verify.py --manifest {m}\")'",
-                    f"cat runtime/scripts/verify.py --manifest {m}",
-                    "python3 runtime/scripts/verify.py --manifest other.json"):
+        for cmd in (f"echo {V} --manifest {m}",
+                    f"true # {V} --manifest {m}",
+                    f"sh -c '{V} --manifest {m}'",
+                    f"python3 -c 'print(\"{V} --manifest {m}\")'",
+                    f"cat {V} --manifest {m}",
+                    f"python3 {V} --manifest other.json",
+                    # A script the worker wrote is not this repository's verifier.
+                    f"python3 /tmp/verify.py --manifest {m}",
+                    f"python3 verify.py --manifest {m}",
+                    f"python3 /tmp/{V} --manifest {m}",
+                    f"python3 ../../tmp/{V} --manifest {m}",
+                    # ...and argparse would read the LAST one, which is not the graded manifest.
+                    f"python3 {V} --manifest {m} --manifest other.json"):
             self.assertFalse(run_report.executes_verifier(cmd, m), cmd)
 
     def test_an_echoed_invocation_does_not_buy_a_tier(self):
         # The same thing end to end: a fabricated report whose ledger only echoes the command.
-        cmd = f"echo verify.py --manifest {self.manifest}"
+        cmd = f"echo runtime/scripts/verify.py --manifest {self.manifest}"
         self._remanifest({"unit": "u1", "commands": [{
             "label": "verify", "cmd": cmd,
             "cmd_sha256": hashlib.sha256(cmd.encode("utf-8")).hexdigest(),
