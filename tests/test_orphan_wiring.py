@@ -83,6 +83,40 @@ class TheFenceIsTheOnlyPath(unittest.TestCase):
                          "a playbook reads issue/PR text raw; route it through guard_text.py")
 
 
+class TheVerifierInvocationIsWrittenDown(unittest.TestCase):
+    """#285. The catalog's whole claim rests on verify.py, and no SKILL.md or playbook contained the
+    string `--execute-nc`, `--nc-command` or `evidence-run.py`. The one place a verifier command line
+    was written out was docs/runs/TEMPLATE.md — a template, not a pipeline. A coordinator following a
+    mission end to end was told the outcome is verified and never told what verifies it.
+    """
+
+    def test_build_change_names_the_recorder(self):
+        text = read("playbooks/build-change.md")
+        self.assertIn("evidence-run.py", text,
+                      "the BUILD phase produces evidence without naming the recorder that binds it")
+        self.assertIn("--label", text)
+
+    def test_build_change_names_the_verifier_and_its_lane_flags(self):
+        text = read("playbooks/build-change.md")
+        self.assertIn("verify.py", text)
+        for flag in ("--contract-source", "--contract-digest", "--unit-class",
+                     "--execute-nc", "--nc-command"):
+            self.assertIn(flag, text, f"the invocation omits {flag}, so a coordinator must guess it")
+
+    def test_the_invocation_says_the_coordinator_supplies_the_authorities(self):
+        # The flags are worthless if a worker fills them in: that is #279 in one sentence.
+        text = read("playbooks/build-change.md")
+        self.assertIn("COORDINATOR", text)
+        self.assertIn("never from the manifest", text)
+
+    def test_the_evidence_contract_points_at_the_invocation(self):
+        # evidence-manifest.md is ridden by all 21 missions and sits at both its caps, so it carries
+        # a pointer rather than a copy — the shared-doctrine shape the playbook layer exists for.
+        text = read("runtime/evidence-manifest.md")
+        self.assertIn("build-change.md", text,
+                      "the evidence contract says what is checked and never where to run it")
+
+
 class DormantMechanismsSaySo(unittest.TestCase):
     """Two of the seven cannot be wired from inside the repository, so they say so instead.
 

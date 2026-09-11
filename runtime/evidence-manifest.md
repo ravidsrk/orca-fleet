@@ -108,7 +108,7 @@ Rules:
 
 A DIFFERENT process/session — never a teammate (whose messages are in-band and self-certifying) — re-derives the manifest
 against authoritative state that lives OUTSIDE it: the coordinator's frozen contract (scope), GitHub (review), git, and
-the EXECUTED negative control — deterministically, before any LLM judgment (impl: `verify.py`). Manifest = claim; these are facts:
+the EXECUTED negative control — deterministically, before any LLM judgment (impl: `verify.py`; the runnable command line, with its lane flags, is in build-change.md "The invocation"). Manifest = claim; these are facts:
 
 | Check | How (authoritative source) |
 |-------|----------------------------|
