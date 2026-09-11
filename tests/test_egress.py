@@ -181,6 +181,58 @@ class TestVerify(EgressBase):
         self.assertEqual(self.run_egress("verify").returncode, 0)
 
 
+class TestAnchoredHead(EgressBase):
+    """#312: a hash chain is tamper-evident against EDITS to a known chain. It says nothing about a
+    chain replaced wholesale, because the replacement is internally perfect — it starts at its own
+    genesis and every link checks out. Only a head digest kept where the writer cannot reach it
+    tells the two apart."""
+
+    def _head(self):
+        """Computed from the ledger, not scraped from the output under test — an expectation read
+        out of the thing being tested cannot disagree with it."""
+        lines = self.lines()
+        return hashlib.sha256(lines[-1].encode("utf-8")).hexdigest() if lines else ""
+
+    def test_verify_reports_the_head_so_there_is_something_to_anchor(self):
+        self.write_one()
+        r = self.run_egress("verify")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        want = hashlib.sha256(self.lines()[-1].encode("utf-8")).hexdigest()
+        self.assertIn(want, r.stdout, f"verify must print the head digest: {r.stdout}")
+
+    def test_a_wholesale_rewrite_is_caught_by_the_anchor(self):
+        self.write_one()
+        self.write_one(sink="issue-close")
+        anchored = self._head()
+        # The rewrite uses the SAME tool, legally: remove the ledger and write two fresh receipts
+        # with a different host. The chain that results is flawless on its own terms.
+        self.ledger.unlink()
+        self.write_one(host="evil.example")
+        self.write_one(sink="issue-close", host="evil.example")
+        plain = self.run_egress("verify")
+        self.assertEqual(plain.returncode, 0,
+                         "a rewritten chain is internally intact — that is the finding, not a bug")
+        r = self.run_egress("verify", "--expect-head", anchored)
+        self.assertEqual(r.returncode, 3, f"the anchor must catch the rewrite: {r.stdout}{r.stderr}")
+        self.assertIn("TAMPER", r.stderr)
+
+    def test_the_anchor_passes_on_the_chain_it_names(self):
+        self.write_one()
+        self.write_one(sink="issue-close")
+        r = self.run_egress("verify", "--expect-head", self._head())
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("anchored", r.stdout)
+
+    def test_an_appended_receipt_moves_the_head_past_the_anchor(self):
+        # An anchor pins one moment. Honest growth past it is not tamper, but it is not the
+        # anchored chain either — the caller re-anchors, and until it does, verify says so.
+        self.write_one()
+        anchored = self._head()
+        self.write_one(sink="issue-close")
+        self.assertEqual(self.run_egress("verify").returncode, 0)
+        self.assertEqual(self.run_egress("verify", "--expect-head", anchored).returncode, 3)
+
+
 class TestGrants(EgressBase):
     def test_grants_lists_each_consent_once(self):
         self.write_one(consent="grant:pr-open")
