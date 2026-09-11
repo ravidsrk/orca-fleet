@@ -322,6 +322,37 @@ class TestUntrackedAndWaivers(FloorGuardBase):
         self.assertEqual(r.returncode, 1,
                          f"a bare directory must not waive the files under it: {r.stdout}")
 
+    def test_a_structured_record_that_DENIES_the_waiver_does_not_grant_it(self):
+        # PR #308 review, P1. The previous round required a `floor-waiver` token, which a properly
+        # structured record carries in its ID field — so a record whose ANSWER is `deny`, the team
+        # recording that it REFUSED this waiver, granted it. Reading the line as a bag of tokens
+        # cannot tell a decision from its opposite.
+        r = self._decisions_line(
+            "2026-09-10T00:00:00Z · floor-waiver · taste · deny · "
+            "silenced-checker on src/new.py is NOT waived · t-1")
+        self.assertEqual(r.returncode, 1, f"a DENIED waiver was granted: {r.stdout}")
+
+    def test_a_superseded_waiver_does_not_grant_it(self):
+        r = self._decisions_line(
+            "2026-09-10T00:00:00Z · floor-waiver · taste · superseded · "
+            "silenced-checker on src/new.py · t-1")
+        self.assertEqual(r.returncode, 1, f"a retired waiver was granted: {r.stdout}")
+
+    def test_a_waiver_id_that_is_not_floor_waiver_grants_nothing(self):
+        r = self._decisions_line(
+            "2026-09-10T00:00:00Z · mechanical · taste · allow · "
+            "silenced-checker on src/new.py · t-1")
+        self.assertEqual(r.returncode, 1, f"another id's record granted a floor waiver: {r.stdout}")
+
+    def test_the_rule_and_path_must_come_from_the_why_field(self):
+        # Not from the id, class, answer or timestamp — otherwise the fields the format reserves
+        # for other purposes become a second way to name a waiver's scope.
+        r = self._decisions_line(
+            "2026-09-10T00:00:00Z · floor-waiver · silenced-checker · allow · "
+            "src/new.py · t-1")
+        self.assertEqual(r.returncode, 1,
+                         f"the rule was read out of the class field: {r.stdout}")
+
     def test_a_line_refusing_the_waiver_does_not_grant_it(self):
         # The real shape of the defect, and the sharpest case: EVERY line of DECISIONS was scanned
         # for two substrings, so an ordinary log entry recording that the team DECLINED to waive a

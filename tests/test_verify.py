@@ -1724,6 +1724,28 @@ class EndToEndMutationGreen(RepoCase):
         self.assertEqual(rc, 2, f"an empty declared range passed: {out}")
         self.assertIn("base_sha == head_sha", err)
 
+    def test_a_code_file_under_a_docs_directory_is_still_code(self):
+        # PR #308 review, P1. The first cut asked diff_scope's PATH_RULES whether a path looked
+        # like docs or tests. Those patterns match NAMES, so `src/docs/parser.py` matched DOCS and
+        # `src/test_runner.py` matched TESTS, and either carried an unsigned downgrade through.
+        for rel in ("src/docs/parser.py", "src/test_runner.py", "tests/test_x.py"):
+            with self.subTest(path=rel):
+                base = self.head_sha
+                self.write(rel, "def f():\n    return 1\n")
+                head = self.commit(f"add {rel}")
+                prod, err = verify._production_changes(base, head)
+                self.assertIsNone(err, err)
+                self.assertEqual(prod, [rel], f"{rel} must count as code")
+                self.head_sha = head
+
+    def test_prose_is_decided_by_extension(self):
+        base = self.head_sha
+        self.write("src/notes.md", "# notes\n")
+        head = self.commit("a note inside src/")
+        prod, err = verify._production_changes(base, head)
+        self.assertIsNone(err, err)
+        self.assertEqual(prod, [], "a .md file is prose wherever it lives")
+
     def test_removing_the_empty_range_branch_would_not_have_been_enough(self):
         # Recorded because the review localized the fix to the equal-SHA branch, and deleting that
         # branch does NOT close the attack: a pinned equal range diffs empty, so the unit lands on

@@ -1011,6 +1011,39 @@ class TestBundleForCopyInstallers(unittest.TestCase):
         self.assertTrue(any("verify.py" in p for p in problems),
                         f"a vendored copy's outbound link must be flagged: {problems}")
 
+    def test_no_vendored_doc_ships_a_dead_relative_link(self):
+        # PR #308 review, P1. Scanning every vendored file was not enough: a vendored doc keeps the
+        # repo-root-relative links it was written with — `](runtime/evidence-manifest.md)` — which
+        # escape nothing and so matched no outbound pattern, while resolving under `references/`
+        # where nothing was copied. 56 shipped dead with --check green.
+        import re
+        mod, tempfile = self._bundle()
+        with tempfile.TemporaryDirectory() as tmp:
+            mod.build(tmp)
+            dead = [(md.relative_to(tmp).as_posix(), m.group(2))
+                    for md in sorted(Path(tmp).rglob("*.md"))
+                    for m in mod.RELATIVE_LINK_RE.finditer(md.read_text(encoding="utf-8"))
+                    if not (md.parent / m.group(2)).exists()]
+        self.assertEqual(dead, [], f"dist ships {len(dead)} dead relative link(s)")
+
+    def test_a_vendored_link_is_repointed_at_its_vendored_sibling(self):
+        mod, tempfile = self._bundle()
+        with tempfile.TemporaryDirectory() as tmp:
+            mission = Path(tmp) / "demo"
+            refs = mission / "references"
+            refs.mkdir(parents=True)
+            (mission / "SKILL.md").write_text("# demo\n", encoding="utf-8")
+            (refs / "evidence-manifest.md").write_text("# em\n", encoding="utf-8")
+            (refs / "ARCHITECTURE.md").write_text(
+                "see [the manifest](runtime/evidence-manifest.md) and "
+                "[docs/gone.md](docs/gone.md).\n", encoding="utf-8")
+            mod.relink_vendored(mission)
+            out = (refs / "ARCHITECTURE.md").read_text(encoding="utf-8")
+        self.assertIn("[the manifest](evidence-manifest.md)", out,
+                      f"a vendored sibling must be linked by its bare name: {out}")
+        self.assertIn("`docs/gone.md`", out, f"an unvendored target must be de-linked: {out}")
+        self.assertNotIn("](docs/gone.md)", out, out)
+
     def test_dist_is_not_committed(self):
         # 21 copies of the doctrine tree in git would rot between runtime edits.
         self.assertIn("dist/", (ROOT / ".gitignore").read_text(encoding="utf-8"))

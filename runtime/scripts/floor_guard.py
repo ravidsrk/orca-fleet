@@ -67,6 +67,7 @@ How to wire
     Example: ``floor_guard.py --base origin/main --constraints CONSTRAINTS.md``
 """
 import argparse
+import importlib.util
 import re
 import subprocess
 import sys
@@ -324,7 +325,21 @@ def load_waivers(path):
         raise GuardError(f"waiver file {path} is unreadable: {err}") from err
 
 
-_WAIVER_MARKER = "floor-waiver"
+_WAIVER_ID = "floor-waiver"
+# The answers that GRANT. A DECISIONS record is a decision, and `deny` is one of the things it can
+# say — reading the line as a bag of tokens made a record REFUSING a waiver grant it (PR #308
+# review, P1). Anything not in this set, `deny` and `superseded` included, grants nothing.
+_WAIVER_GRANTS = frozenset({"allow"})
+
+
+def _load_decisions():
+    """decisions.py, the sibling that owns the DECISIONS record format."""
+    spec = importlib.util.spec_from_file_location(
+        "decisions", Path(__file__).resolve().parent / "decisions.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
 # Tokens of a waiver line: path/rule shaped runs. `-` and `.` are in the class so `test-made-easier`
 # and `src/new.py` each read as ONE token, which is the whole point — substring matching is what
 # made `silenced-checkers` waive `silenced-checker`.
@@ -348,20 +363,36 @@ def _path_waived_by(token, path):
 
 
 def is_waived(finding, waivers):
-    """A waiver is a DECLARATION the line makes, not two substrings it happens to contain (#313).
+    """A waiver is a DECISIONS RECORD that grants one, not a line that mentions the right words.
 
-    The old test was `rule in line and path in line`, over every line of the DECISIONS file. That
-    let a superstring stand in for either field (`silenced-checkers`, `src/new.pyc`), and — because
-    any line at all was scanned — a line recording that the team DECLINED to waive a finding
-    granted it, as did a sentence that merely mentioned both. So: the line must carry the
-    `floor-waiver` marker, the rule id must appear as a whole token, and the path must be named
-    exactly or covered by an explicit `dir/**` glob."""
+    Three rounds of this. `rule in line and path in line` let a superstring stand in for either
+    field (`silenced-checkers`, `src/new.pyc`) and, because every line was scanned, let a sentence
+    that merely mentioned both grant a waiver (#313). Requiring a `floor-waiver` token fixed the
+    mention but not the meaning: a structured record with id `floor-waiver` and answer `deny` —
+    the team recording that it REFUSED this waiver — still granted it, because the check read the
+    line as a bag of tokens and never looked at what the record said (PR #308 review, P1).
+
+    So the line is parsed by decisions.py, the sibling that owns the format. The record's ID must
+    be `floor-waiver` and its ANSWER must grant; the rule id and path are then read out of the
+    `why` field alone, so no other field can supply them. Rule ids match as whole tokens, paths
+    exactly or by an explicit `dir/**` glob. A decisions.py that will not load waives nothing."""
     path = finding.get("path")
     if not path:
         return False
+    try:
+        decisions = _load_decisions()
+    except Exception:  # noqa: BLE001 - an unloadable sibling must not start granting waivers
+        return False
     for line in waivers:
-        tokens = _WAIVER_TOKEN_RE.findall(line)
-        if _WAIVER_MARKER not in tokens or finding["rule"] not in tokens:
+        record = decisions.parse_line(line)
+        if record is None:
+            continue
+        if record["id"].strip() != _WAIVER_ID:
+            continue
+        if record["answer"].strip().lower() not in _WAIVER_GRANTS:
+            continue
+        tokens = _WAIVER_TOKEN_RE.findall(record["why"])
+        if finding["rule"] not in tokens:
             continue
         if any(_path_waived_by(t, path) for t in tokens):
             return True

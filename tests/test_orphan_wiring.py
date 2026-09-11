@@ -46,6 +46,15 @@ class WiredMechanisms(unittest.TestCase):
         self.assertIn("diff_scope.py", text,
                       "risk-review gates lenses by prose, so a missed signal is silent")
 
+    def test_the_scope_gate_actually_passes_strict(self):
+        # PR #308 review, P1, and the fourth time in this repo: --strict shipped and nothing
+        # invoked it, so the partial-match bypass it exists to close stayed open everywhere except
+        # the tests of --strict itself. A flag with no caller is a comment.
+        text = read("playbooks/risk-review.md")
+        self.assertIn("diff_scope.py --json --strict", text,
+                      "the scope gate runs without --strict, so a half-matched diff still "
+                      "dispatches on an incomplete flag set (#314)")
+
     def test_diff_scope_is_the_verifiers_definition_of_a_test_path(self):
         # #280 gave diff_scope its first caller: verify.py binds the negative control's paths with
         # the same SCOPE_TESTS rule the lens gate uses, so the two cannot drift apart.

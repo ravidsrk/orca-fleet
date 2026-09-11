@@ -51,6 +51,12 @@ OUTBOUND_LINK_RE = re.compile(r"\]\((?:\.\./)+([A-Za-z0-9_./-]+\.md)(#[^)]*)?\)"
 # but the CHECK has to see the rest: `](../../runtime/scripts/verify.py)` was neither rewritten nor
 # flagged, so dist/ could ship a link pointing nowhere with --check green (#316).
 OUTBOUND_ANY_RE = re.compile(r"\]\((?:\.\./)+([A-Za-z0-9_./-]+)(#[^)]*)?\)")
+# A relative link that does NOT climb out with `../`. A vendored doc keeps the repo-root-relative
+# links it was written with — `](runtime/evidence-manifest.md)` — and from `references/` those
+# resolve under `references/`, where nothing was copied. They escape nothing, so OUTBOUND_ANY_RE
+# never saw them, and 56 of them shipped dead while --check stayed green (PR #308 review, P1).
+RELATIVE_LINK_RE = re.compile(
+    r"\[([^\]]*)\]\((?!https?:|mailto:|#|/|\.\./)([A-Za-z0-9_./-]+)(#[^)]*)?\)")
 REFERENCES = "references"
 
 
@@ -144,9 +150,41 @@ def build(out_dir):
         for name, source in root_docs(text).items():
             shutil.copy2(source, target / REFERENCES / name)
         (target / "SKILL.md").write_text(rewrite(text, skill_dir.name, protocols), encoding="utf-8")
+        relink_vendored(target)   # after every copy: it needs to know what ended up beside it
         problems.extend(dangling(target))
         built += 1
     return built, problems
+
+
+def relink_vendored(mission_dir):
+    """Re-point a vendored doc's repo-root-relative links, or de-link them (PR #308 review, P1).
+
+    The copies under `references/` are verbatim, so they still say `](runtime/evidence-manifest.md)`
+    — a path that was right in the repository and resolves to nothing beside the copy. Where the
+    same document was vendored too, the link becomes its bare name; where it was not, the link
+    becomes plain text naming the repository path, because a dead link is worse than a sentence
+    telling the reader where to look."""
+    refs = mission_dir / REFERENCES
+    if not refs.is_dir():
+        return
+    available = {path.name for path in refs.glob("*.md")}
+    for path in sorted(refs.glob("*.md")):
+        text = path.read_text(encoding="utf-8")
+
+        def fix(match, _dir=path.parent):
+            label, target, anchor = match.group(1), match.group(2), match.group(3) or ""
+            if (_dir / target).exists():
+                return match.group(0)
+            name = Path(target).name
+            if name in available:
+                return f"[{label}]({name}{anchor})"
+            if label.strip().strip("`") in (target, name):
+                return f"`{target}`"   # the label WAS the path; saying it twice helps nobody
+            return f"{label} (`{target}` in the orca-fleet repository)"
+
+        rewritten = RELATIVE_LINK_RE.sub(fix, text)
+        if rewritten != text:
+            path.write_text(rewritten, encoding="utf-8")
 
 
 def dangling(mission_dir):
@@ -167,6 +205,10 @@ def dangling(mission_dir):
         for match in re.finditer(rf"\]\({REFERENCES}/([A-Za-z0-9_.-]+\.md)(?:#[^)]*)?\)", text):
             if not (mission_dir / REFERENCES / match.group(1)).is_file():
                 problems.append(f"{mission_dir.name}: {REFERENCES}/{match.group(1)} was not vendored")
+        for match in RELATIVE_LINK_RE.finditer(text):
+            if not (path.parent / match.group(2)).exists():
+                problems.append(f"{mission_dir.name}: dead relative link "
+                                f"({where}): {match.group(0)}")
     return problems
 
 

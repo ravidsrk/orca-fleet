@@ -690,31 +690,34 @@ def _is_test_path(path):
     return False
 
 
+# A report-only unit produces prose. Everything else is code, decided by EXTENSION and nothing
+# else: the first cut asked diff_scope's PATH_RULES whether a path looked like docs or tests, and
+# those patterns match on names, so `src/docs/parser.py` and `src/test_runner.py` classified as
+# non-code and carried a downgrade through (PR #308 review, P1). A directory called docs/ does not
+# make a .py file prose. Extensions can be lied about too, but only by renaming the source file,
+# which is a change a reader sees in the diff.
+_PROSE_SUFFIXES = frozenset({".md", ".markdown", ".rst", ".txt", ".adoc", ".org"})
+
+
 def _production_changes(base, head):
-    """Changed paths that are neither tests nor docs — the CODE a report-only unit must not touch.
+    """Changed paths that are not prose — the CODE a report-only unit must not touch.
 
     Deliberately not _changed_paths' split. There the question serves the #280 control bind — may
     this path be reverted to prove behaviour? — and a doc is not behaviour, so it counts as
     production. Here the question is whether the unit changed code at all, and a report that writes
-    into docs/ is the honest shape of a report-only unit, not a mutation in disguise (#310)."""
+    a document is the honest shape of a report-only unit, not a mutation in disguise (#310).
+
+    Tests count as code here, which is stricter than the first cut. A report-only unit editing the
+    oracle under a class that skips the negative control is exactly the move this check exists to
+    refuse, so there is no reason to exempt it."""
     if not (base and head and HEX40_RE.match(str(base)) and HEX40_RE.match(str(head))):
         return None, ("base_sha and head_sha must both be pinned 40-hex commits before the class "
                       "claim can be measured against the change")
     code, out = _git(["diff", "--name-only", f"{base}..{head}"])
     if code != 0:
         return None, "cannot diff base_sha..head_sha, so the class claim cannot be measured"
-    try:
-        ds = _load_diff_scope()
-    except Exception:  # noqa: BLE001 - a missing sibling must not open the gate
-        return None, "diff_scope.py could not be loaded, so code cannot be told from docs"
     changed = [ln.strip() for ln in out.splitlines() if ln.strip()]
-    prod = []
-    for path in changed:
-        low = path.lower()
-        flags = {flag for flag, pattern in ds.PATH_RULES if pattern.search(low)}
-        if not flags & {"TESTS", "DOCS"}:
-            prod.append(path)
-    return prod, None
+    return [p for p in changed if Path(p).suffix.lower() not in _PROSE_SUFFIXES], None
 
 
 def _changed_paths(base, head):
