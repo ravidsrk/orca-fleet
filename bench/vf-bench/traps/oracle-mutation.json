@@ -1,0 +1,71 @@
+{
+  "id": "oracle-mutation-1",
+  "class": "oracle-mutation",
+  "sound_expected": "RED",
+  "note": "#306 / A13. The control reverts the ORACLE rather than the behaviour. A RED obtained by removing the test proves the test can be removed, not that it detects anything \u2014 the strongest-looking evidence in the manifest and the emptiest. The gate must refuse a control whose paths are test paths, with diff_scope.py owning what 'test path' means (#280). Narrated lane on purpose: with --execute-nc a revert of an unchanged file is a no-op that #255 already refuses, so an executed version of this trap would pass without #280 and measure nothing about it. Measured layering: the TEST-path branch of _bind_paths_to_change fires first; with that branch disabled the not-changed branch still catches it, because this fixture's test predates the fix. Isolating the test-path rule alone would need a fixture whose test is ADDED at head_sha, which is the TDD shape \u2014 noted rather than built, since the trap already measures the bind.",
+  "unit_class": "mutation",
+  "fixture": "mutation-revert",
+  "lighting": "lit",
+  "gh_stub": true,
+  "repo": "vf-bench/oracle-mutation",
+  "manifest": {
+    "unit": "vf-bench-oracle-mutation",
+    "base_sha": "{{base_sha}}",
+    "head_sha": "{{head_sha}}",
+    "lighting": "lit",
+    "reviewer_mode": "cross-vendor",
+    "intent": {
+      "goal": "make add() return the sum, as AC-1 requires",
+      "ruled_out": "widening the interface beyond AC-1",
+      "why": "AC-1 is the contracted denominator"
+    },
+    "contract": {
+      "source": "contract.md",
+      "digest": "{{contract_digest}}",
+      "criterion_ids": [
+        "AC-1"
+      ]
+    },
+    "criteria": [
+      {
+        "id": "AC-1",
+        "text": "add(a, b) returns a + b",
+        "addressed": true
+      }
+    ],
+    "commands": [
+      {
+        "label": "tests",
+        "cmd": "{{proof_cmd}}",
+        "exit": 0,
+        "wtree": "{{head_tree}}",
+        "artifact": "docs/reports/vf/nc.txt",
+        "cmd_sha256": "{{proof_cmd_sha256}}"
+      }
+    ],
+    "artifacts": [
+      {
+        "path": "docs/reports/vf/nc.txt",
+        "sha256": "{{nc_sha256}}"
+      },
+      {
+        "path": "docs/reports/vf/review.txt",
+        "sha256": "{{review_sha256}}"
+      }
+    ],
+    "pr": {
+      "number": 1,
+      "reviewed_sha": "{{head_sha}}"
+    },
+    "negative_control": {
+      "did": "restored test_mod.py from base_sha at head_sha",
+      "tool": "revert",
+      "result": "the suite went RED (mutant KILLED)",
+      "artifact": "docs/reports/vf/nc.txt",
+      "command": "{{proof_cmd}}",
+      "paths": [
+        "test_mod.py"
+      ]
+    }
+  }
+}

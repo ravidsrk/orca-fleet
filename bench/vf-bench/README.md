@@ -20,8 +20,8 @@ scores high. v0 result:
 
 | Gate | false-done | rate |
 |---|---|---|
-| self-scoring (naive) | 13/13 | **100%** |
-| orca-fleet `verify.py` (sound) | 0/13 | **0%** |
+| self-scoring (naive) | 17/17 | **100%** |
+| orca-fleet `verify.py` (sound) | 0/17 | **0%** |
 
 Both valid controls pass both gates — the sound gate is not trivially always-RED. The mutation one
 is the load-bearing half: `mutation-valid-control` builds a **hermetic fixture repo at run time**
@@ -47,11 +47,31 @@ author. A gate that cannot execute a control cannot pass it.
 | `unclassified-mutation` | code-landing unit with no `unit_class` anywhere | dispatch-sourced class; a missing class ⇒ mutation (fail-safe), so review + NC still run |
 | `downgraded-class` | worker's manifest self-declares `report-only` to skip review/NC | verify.py never reads the manifest's class; it fail-safes to mutation |
 | `fabricated-negative-control-waiver-lane` (×2: `dark-eligible`, `no-gh`) | every leg satisfied EXCEPT that the negative control was only *read*, in a lane where the review is waived — docs/reviews/2026-09-10-review.md A1/A2/A4/A6/A9 | both waiver lanes now demand an **executed** control (`--execute-nc`); a control the gate did not run cannot be the whole oracle |
+| `decoy-path` | control nominates a file the change never touched | `negative_control.paths` bound to the production paths changed in `base_sha..head_sha` (#280) |
+| `oracle-mutation` | control reverts the TEST, so the RED is the oracle going missing | the same bind refuses a test path outright — `diff_scope.py` owns what a test path is |
+| `stillborn-mutant` | mutant makes the module unimportable, so the non-zero exit is a SyntaxError | the RED must name an assertion failure; a run that never reached an oracle killed nothing |
+| `grep-command` | nominated control is a `grep` for the fix's own text, not a test run | exit status alone cannot tell them apart — a silent non-zero exit is refused |
 | `valid-control` | (not a trap — genuinely complete, report-only) | passes (proves soundness ≠ always-RED for the scope leg) |
 | `mutation-valid-control` | (not a trap — genuinely complete, MUTATION-class, built at run time) | passes only after a REAL executed revert + a real independent APPROVED review; proves soundness ≠ always-RED for the class the bypass log broke |
 
 The **ancestry leg** (`check_ancestry`) is exercised by #172's `non-ancestor-sha` trap (landing
 separately) — referenced here so it is not duplicated in this corpus.
+
+### What the last four traps cost to add (#306)
+
+0% is only worth what the corpus samples, and the bypass log had landed nine of thirteen gaming
+manifests against this mechanism — so the number was measuring the traps that had been chosen.
+Building the four classes the review named found a real gap rather than confirming a clean sheet:
+the path bind ran only on the `--execute-nc` leg, so a **narrated** decoy path or oracle revert
+passed. The bench read **2/17** until the bind moved to every mutation unit.
+
+`decoy-path` and `oracle-mutation` are deliberately narrated. Executed, both are no-ops that the
+#255 check already refuses — the right verdict for the wrong reason, and one that would have passed
+before #280 existed. Narrated, the static bind is the only thing between the manifest and a GREEN.
+
+`stillborn-mutant` first carried its diff in a `negative_control.diff` field and was refused as
+**malformed**, never reaching the stillborn check. A trap refused for the wrong reason measures
+nothing, so the fixture now writes an artifact quoting a real diff (`nc-stillborn.txt`).
 
 ## Shallow clones skip traps — by name
 

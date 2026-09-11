@@ -316,5 +316,56 @@ class VFBenchReviewLeg(unittest.TestCase):
         self.assertEqual(r.returncode, 0, f"every non-review check must pass: {r.stderr}")
 
 
+class TheFourRefusedControlClassesAreSampled(unittest.TestCase):
+    """#306: "0% false-done" only means something if the suite samples what actually gets through.
+
+    The bypass log landed nine of thirteen gaming manifests against this mechanism, so the number
+    was measuring the traps that had been chosen, not the gate's strength. These four are the
+    classes the review found, and building them found a real gap: the path bind ran only on the
+    --execute-nc leg, so a NARRATED decoy path or oracle revert passed. The bench read 2/17
+    false-done until that was fixed.
+    """
+
+    TRAPS = ROOT / "bench" / "vf-bench" / "traps"
+    REQUIRED = {"decoy-path", "oracle-mutation", "stillborn-mutant", "grep-command"}
+
+    def _traps(self):
+        return {t["class"]: t for t in
+                (json.loads(p.read_text(encoding="utf-8")) for p in self.TRAPS.glob("*.json"))}
+
+    def test_every_refused_class_has_a_trap(self):
+        missing = sorted(self.REQUIRED - set(self._traps()))
+        self.assertEqual(missing, [], "a control class the review found is no longer sampled")
+
+    def test_each_is_expected_to_be_refused(self):
+        for name, trap in self._traps().items():
+            if name in self.REQUIRED:
+                with self.subTest(trap=name):
+                    self.assertEqual(trap["sound_expected"], "RED",
+                                     "a gaming manifest the gate must refuse")
+                    self.assertEqual(trap.get("unit_class"), "mutation")
+
+    def test_the_decoy_and_oracle_traps_stay_in_the_narrated_lane(self):
+        """Executed, both are no-ops that #255 refuses — which is the right verdict for the wrong
+        reason, and would have passed before #280 existed. Narrated, the static path bind is the
+        only thing between the manifest and a GREEN, which is what these traps are for."""
+        for name in ("decoy-path", "oracle-mutation"):
+            with self.subTest(trap=name):
+                self.assertFalse(self._traps()[name].get("execute_nc"),
+                                 "executed, this trap measures #255 rather than the path bind")
+
+    def test_the_stillborn_trap_quotes_a_real_diff_in_its_artifact(self):
+        # It first carried the diff in a `negative_control.diff` field, which got the manifest
+        # refused as MALFORMED — a trap refused for the wrong reason measures nothing.
+        trap = self._traps()["stillborn-mutant"]
+        nc = trap["manifest"]["negative_control"]
+        self.assertEqual(nc["tool"], "hand")
+        self.assertNotIn("diff", nc, "the diff belongs in the artifact, where verify.py reads it")
+        self.assertTrue(nc["artifact"].endswith("nc-stillborn.txt"))
+        vf = (ROOT / "bench" / "vf-bench" / "vfbench.py").read_text(encoding="utf-8")
+        self.assertIn("FIXTURE_NC_STILLBORN", vf, "the fixture no longer writes that artifact")
+        self.assertIn("nc_stillborn_sha256", vf, "the artifact's digest is not exposed as a fact")
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

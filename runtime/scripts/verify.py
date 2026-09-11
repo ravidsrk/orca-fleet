@@ -1137,6 +1137,22 @@ def check_negative_control(m, is_mutation, execute=False, nc_command=None):
             re.search(r"(?m)^-[^-]", content) and re.search(r"(?m)^\+[^+]", content))
         if not has_diff:
             errs.append("negative_control.artifact for tool 'hand' must quote the hand-written diff")
+    # Binding the control's paths to the change is a STATIC check — the declared paths against
+    # base_sha..head_sha — so it belongs here, on every mutation unit, not only on the executed
+    # leg. It lived solely in _apply_control, which meant a NARRATED manifest could nominate a
+    # decoy path, or revert the test that encodes the criterion, and nothing looked (#306).
+    #
+    # Executed, those two are caught anyway: reverting a file the change never touched is a no-op
+    # and #255 refuses it. That is why the gap survived #280 — the executed lane covered for the
+    # narrated one, and no trap sampled the narrated lane until now.
+    if tool == "revert":
+        declared, perr = _nc_paths(nc)
+        if perr:
+            errs.append(perr)
+        elif declared:
+            bind_err = _bind_paths_to_change(declared, m, "negative_control.paths")
+            if bind_err:
+                errs.append(bind_err)
     executed_ok = False
     if execute:
         executed_ok, msgs = execute_negative_control(m, nc_command)

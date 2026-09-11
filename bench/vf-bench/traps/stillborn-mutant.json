@@ -1,0 +1,73 @@
+{
+  "id": "stillborn-mutant-1",
+  "class": "stillborn-mutant",
+  "sound_expected": "RED",
+  "note": "#306. The mutant makes mod.py unimportable, so the run exits non-zero on an ImportError before a single assertion is evaluated. Vera-Perez et al. (2018) call these stillborn: the harness never ran, so nothing was killed. A gate that reads exit status alone counts it as a kill. The RED has to name an assertion failure (#280).",
+  "unit_class": "mutation",
+  "fixture": "mutation-revert",
+  "execute_nc": true,
+  "nc_command": "{{proof_cmd}}",
+  "lighting": "lit",
+  "gh_stub": true,
+  "repo": "vf-bench/stillborn-mutant",
+  "manifest": {
+    "unit": "vf-bench-stillborn-mutant",
+    "base_sha": "{{base_sha}}",
+    "head_sha": "{{head_sha}}",
+    "lighting": "lit",
+    "reviewer_mode": "cross-vendor",
+    "intent": {
+      "goal": "make add() return the sum, as AC-1 requires",
+      "ruled_out": "widening the interface beyond AC-1",
+      "why": "AC-1 is the contracted denominator"
+    },
+    "contract": {
+      "source": "contract.md",
+      "digest": "{{contract_digest}}",
+      "criterion_ids": [
+        "AC-1"
+      ]
+    },
+    "criteria": [
+      {
+        "id": "AC-1",
+        "text": "add(a, b) returns a + b",
+        "addressed": true
+      }
+    ],
+    "commands": [
+      {
+        "label": "tests",
+        "cmd": "{{proof_cmd}}",
+        "exit": 0,
+        "wtree": "{{head_tree}}",
+        "artifact": "docs/reports/vf/nc-stillborn.txt",
+        "cmd_sha256": "{{proof_cmd_sha256}}"
+      }
+    ],
+    "artifacts": [
+      {
+        "path": "docs/reports/vf/nc-stillborn.txt",
+        "sha256": "{{nc_stillborn_sha256}}"
+      },
+      {
+        "path": "docs/reports/vf/review.txt",
+        "sha256": "{{review_sha256}}"
+      }
+    ],
+    "pr": {
+      "number": 1,
+      "reviewed_sha": "{{head_sha}}"
+    },
+    "negative_control": {
+      "did": "replaced mod.py's body with a syntax error at head_sha",
+      "tool": "hand",
+      "result": "the run exited non-zero (mutant KILLED)",
+      "artifact": "docs/reports/vf/nc-stillborn.txt",
+      "command": "{{proof_cmd}}",
+      "paths": [
+        "mod.py"
+      ]
+    }
+  }
+}

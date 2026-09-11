@@ -75,6 +75,23 @@ FIXTURE_NC = (
     "mod.py restored from base_sha in a throwaway worktree at head_sha; `python -m unittest`\n"
     "went RED (mutant KILLED). Re-running at clean head_sha is green.\n"
 )
+# The stillborn trap's artifact (#306). A `hand` control must QUOTE its diff in the artifact —
+# putting it in a `negative_control.diff` field gets the manifest refused as malformed, which
+# would refuse the trap for the wrong reason and measure nothing about stillborn detection.
+# The diff below is a real one against mod.py's changed line, and it breaks the parse, so the
+# executed run dies on a SyntaxError before any assertion is evaluated.
+FIXTURE_NC_STILLBORN = (
+    "hand negative control, EXECUTED\n\n"
+    "```diff\n"
+    "--- a/mod.py\n"
+    "+++ b/mod.py\n"
+    "@@ -1,2 +1,2 @@\n"
+    " def add(a, b):\n"
+    "-    return a + b  # the fix\n"
+    "+    return a +  # the fix\n"
+    "```\n\n"
+    "`python -m unittest` exited non-zero (mutant KILLED).\n"
+)
 
 
 def _fixture_git(repo, *args):
@@ -109,6 +126,7 @@ def build_mutation_fixture(repo):
     evidence = repo / "docs" / "reports" / "vf"
     evidence.mkdir(parents=True)
     (evidence / "nc.txt").write_text(FIXTURE_NC, encoding="utf-8")
+    (evidence / "nc-stillborn.txt").write_text(FIXTURE_NC_STILLBORN, encoding="utf-8")
     (evidence / "review.txt").write_text(
         f"build-blind review of {head}\nAPPROVED by vf-reviewer (local lane record)\n",
         encoding="utf-8")
@@ -120,6 +138,7 @@ def build_mutation_fixture(repo):
         "base_sha": base, "head_sha": head, "head_tree": _fixture_rev(repo, "HEAD^{tree}"),
         "contract_digest": "sha256:" + sha256("contract.md"),
         "nc_sha256": sha256("docs/reports/vf/nc.txt"),
+        "nc_stillborn_sha256": sha256("docs/reports/vf/nc-stillborn.txt"),
         "review_sha256": sha256("docs/reports/vf/review.txt"),
         # The SAME command line the negative control replays and the ledger records —
         # one token, so the trap cannot drift into proving nothing. sys.executable in
