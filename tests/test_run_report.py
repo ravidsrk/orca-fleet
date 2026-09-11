@@ -124,6 +124,36 @@ class RunReportBinding(unittest.TestCase):
         self.nc_sha = self._blob_sha(self.rev, self.nc)
         self._write()
 
+    def test_a_recorded_command_is_read_as_argv_not_matched(self):
+        """PR #308 review. A regex over a ledger record accepts `echo verify.py --manifest <m>`:
+        it hashes true, names a real tree, and invokes nothing. This module already carries the
+        scar tissue for the same class — _invocation_re was tightened twice, first because any
+        prose mentioning verify.py matched, then because `--manifest \\S+` matched this module's
+        own docstring. A recorded command is argv, so it is read as argv."""
+        m = self.manifest
+        for cmd in (f"python3 runtime/scripts/verify.py --manifest {m}",
+                    f"/usr/bin/python3 -u runtime/scripts/verify.py --contract-source c --manifest {m}",
+                    f"env FOO=1 python3 verify.py --manifest {m}",
+                    f"verify.py --manifest={m}"):
+            self.assertTrue(run_report.executes_verifier(cmd, m), cmd)
+        for cmd in (f"echo verify.py --manifest {m}",
+                    f"true # verify.py --manifest {m}",
+                    f"sh -c 'verify.py --manifest {m}'",
+                    f"python3 -c 'print(\"verify.py --manifest {m}\")'",
+                    f"cat runtime/scripts/verify.py --manifest {m}",
+                    "python3 runtime/scripts/verify.py --manifest other.json"):
+            self.assertFalse(run_report.executes_verifier(cmd, m), cmd)
+
+    def test_an_echoed_invocation_does_not_buy_a_tier(self):
+        # The same thing end to end: a fabricated report whose ledger only echoes the command.
+        cmd = f"echo verify.py --manifest {self.manifest}"
+        self._remanifest({"unit": "u1", "commands": [{
+            "label": "verify", "cmd": cmd,
+            "cmd_sha256": hashlib.sha256(cmd.encode("utf-8")).hexdigest(),
+            "exit": 0, "wtree": self.rev}]})
+        errs = self._check()
+        self.assertTrue(any("records no commands[] entry" in e for e in errs), errs)
+
     def test_a_manifest_with_no_verifier_run_is_refused(self):
         # #286. THE case: a fabricated map-it self-run — seven files, 32 lines, one commit —
         # reported "bound" in under fifteen minutes, because every artifact a worker writes and

@@ -62,6 +62,7 @@ import hashlib
 import importlib.util
 import json
 import re
+import shlex
 import subprocess
 import sys
 from pathlib import Path
@@ -120,6 +121,54 @@ def path_exists_at(rev, path_text, root):
     ).returncode == 0
 
 
+_ENV_ASSIGN_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
+
+
+def executes_verifier(cmd, manifest_path):
+    """True when `cmd` RUNS verify.py against `manifest_path` — parsed as argv, not matched.
+
+    A regex over the command line is the wrong instrument here, and this module already has the
+    scar tissue to prove it: `_invocation_re` was tightened twice, first because "the body
+    contains verify.py" matched any prose, then because `--manifest \S+` matched this module's own
+    docstring. Applied to a ledger RECORD it fails a third way — `echo verify.py --manifest <m>`
+    hashes true, names a real tree, and never invokes anything (PR #308 review). The regex is
+    still right for the report BODY, which is prose; a recorded command is argv and is read as
+    argv.
+
+    So: after any `env` / `VAR=value` prefix, the program being executed must be verify.py itself,
+    or an interpreter whose script argument is verify.py. `--manifest` must actually TAKE this
+    manifest as its value rather than merely appear beside it.
+    """
+    if not isinstance(cmd, str):
+        return False
+    try:
+        argv = shlex.split(cmd, comments=True)
+    except ValueError:
+        return False
+    i = 0
+    while i < len(argv) and (argv[i] == "env" or _ENV_ASSIGN_RE.match(argv[i])):
+        i += 1
+    if i >= len(argv):
+        return False
+    if Path(argv[i]).name.startswith("python"):
+        i += 1
+        while i < len(argv) and argv[i].startswith("-"):
+            if argv[i] in ("-m", "-c"):
+                return False  # a module or an inline program, not the script on disk
+            i += 1
+        if i >= len(argv):
+            return False
+    if Path(argv[i]).name != "verify.py":
+        return False
+    rest = argv[i + 1:]
+    for j, token in enumerate(rest):
+        if token == "--manifest":
+            return j + 1 < len(rest) and rest[j + 1] == manifest_path
+        if token.startswith("--manifest="):
+            return token.split("=", 1)[1] == manifest_path
+    return False
+
+
 def blob_at(rev, path_text, root):
     """The bytes of `path_text` as of `rev`, or None. Reading the manifest AT the pinned commit,
     never from the working tree, is the whole point: the tree has moved on since the run."""
@@ -169,8 +218,7 @@ def verifier_ran(manifest_path, rev, root):
         return [f"the graded manifest {manifest_path} at {rev} is not a JSON object"]
 
     records = [c for c in (manifest.get("commands") or []) if isinstance(c, dict)]
-    verifier = [c for c in records
-                if isinstance(c.get("cmd"), str) and _invocation_re(manifest_path).search(c["cmd"])]
+    verifier = [c for c in records if executes_verifier(c.get("cmd"), manifest_path)]
     if not verifier:
         seen = ", ".join(repr(c.get("cmd")) for c in records) or "nothing"
         return [f"the graded manifest {manifest_path} records no commands[] entry running "
