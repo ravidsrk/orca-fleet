@@ -116,6 +116,51 @@ class ScopeCheck(RepoCase):
         self.assertTrue(any("in a form the extractor does not count" in e for e in fatal),
                         f"a contract hiding two of three criteria passed scope: {fatal}")
 
+    def test_a_compact_id_hides_a_criterion_just_as_well(self):
+        """PR #308 review, P1: A16 worked verbatim by dropping one character.
+
+        `SC12` is a supported criterion shape, but the family prefix was read off the hyphen, so
+        every compact id was skipped before any comparison — a contract counting `- SC12:` while
+        hiding `| SC13 |` in a table row passed, though the hyphenated spelling was caught.
+        """
+        rel = "contract.md"
+        self.write(rel, "frozen\n- SC12: sum\n| SC13 | rejects None |\n")
+        m = {"contract": {"criterion_ids": ["SC12"]}, "criteria": _crit("SC12")}
+        fatal = self._fatal(m, rel, self.digest(rel))
+        self.assertTrue(any("SC13" in e for e in fatal),
+                        f"a compact-id contract hiding half its criteria passed scope: {fatal}")
+
+    def test_a_json_contract_is_not_text_scanned(self):
+        """PR #308 review, P1: the escape hatch the refusal recommends has to work.
+
+        A declared criterion_ids array IS the denominator — nothing is scraped out of prose, so
+        prose cannot mislead it. Running the text heuristic over the raw JSON anyway rejected a
+        valid contract for mentioning a superseded `AC-9`, and told its author to do the thing they
+        had already done.
+        """
+        rel = "contract.json"
+        self.write(rel, json.dumps({
+            "criterion_ids": ["AC-1"],
+            "notes": "supersedes AC-9 from the old spec",
+            "criteria": [{"id": "AC-1", "text": "add(a, b) returns a + b"}],
+        }, indent=2) + "\n")
+        m = {"contract": {"criterion_ids": ["AC-1"]}, "criteria": _crit("AC-1")}
+        fatal = self._fatal(m, rel, self.digest(rel))
+        self.assertEqual(fatal, [], f"a valid JSON contract was refused: {fatal}")
+
+    def test_a_json_contract_may_not_under_declare_its_own_criteria(self):
+        # Skipping the text heuristic must not open A16 in JSON form. The check is structural —
+        # the document's own criteria[] ids against its criterion_ids — not another scan.
+        rel = "contract.json"
+        self.write(rel, json.dumps({
+            "criterion_ids": ["AC-1"],
+            "criteria": [{"id": "AC-1", "text": "sum"}, {"id": "AC-2", "text": "rejects None"}],
+        }, indent=2) + "\n")
+        m = {"contract": {"criterion_ids": ["AC-1"]}, "criteria": _crit("AC-1")}
+        fatal = self._fatal(m, rel, self.digest(rel))
+        self.assertTrue(any("AC-2" in e and "criterion_ids" in e for e in fatal),
+                        f"a JSON contract under-declaring its own criteria passed scope: {fatal}")
+
     def test_a_well_formed_contract_still_passes_scope(self):
         # The tightening must not refuse ordinary contracts, including prose references.
         rel = "contract.md"

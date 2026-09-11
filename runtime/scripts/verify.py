@@ -259,6 +259,18 @@ def _norm_digest(d):
 CRIT_SHAPED_RE = re.compile(r"\b((?:[A-Z][A-Z0-9]*-\d+)|(?:[A-Z]{2,}\d+))\b")
 
 
+def _criterion_family(token):
+    """The family prefix of a criterion id, in either supported shape: AC-1 -> AC, SC12 -> SC.
+
+    Both shapes are counted by CRIT_ID_RE, so both need a family. Reading the family off the hyphen
+    alone skipped every compact id, and A16 then worked verbatim by dropping one character: a
+    contract counting `- SC12:` while hiding `| SC13 |` in a table row was not flagged, though the
+    hyphenated spelling of the same attack was (PR #308 review, P1).
+    """
+    head, sep, _ = token.rpartition("-")
+    return head if sep else token.rstrip("0123456789")
+
+
 def hidden_criterion_ids(content, counted):
     """Criterion ids the contract carries in a form the extractor does not count (A16; #296).
 
@@ -273,15 +285,33 @@ def hidden_criterion_ids(content, counted):
     `AC-2` beside a counted `AC-1` is a criterion in the wrong shape, while `RFC-7519` is not.
     A contract that hides ALL of them extracts nothing and is already refused upstream.
     """
-    prefixes = {cid.split("-")[0] for cid in counted if "-" in cid}
+    prefixes = {_criterion_family(cid) for cid in counted}
     hidden = {}
     for i, line in enumerate(content.splitlines(), 1):
         for token in CRIT_SHAPED_RE.findall(line):
-            if token in counted or "-" not in token:
+            if token in counted:
                 continue
-            if token.split("-")[0] in prefixes:
+            if _criterion_family(token) in prefixes:
                 hidden.setdefault(token, i)
     return hidden
+
+
+def json_contract(content):
+    """The parsed contract if it is JSON declaring an explicit criterion_ids array, else None.
+
+    That array IS the denominator — declared, machine-readable, unambiguous. Nothing is being
+    scraped out of prose, so there is no prose to be fooled by, and the text heuristic below must
+    not run on it (PR #308 review, P1): a valid contract whose descriptive fields mention an old
+    `AC-9` beside an explicit `["AC-1"]` was refused, and the refusal told the author to use the
+    very JSON array they had used.
+    """
+    try:
+        data = json.loads(content)
+    except (json.JSONDecodeError, ValueError):
+        return None
+    if isinstance(data, dict) and isinstance(data.get("criterion_ids"), list):
+        return data
+    return None
 
 
 def extract_criterion_ids(content):
@@ -289,12 +319,9 @@ def extract_criterion_ids(content):
     `criterion_ids` — unambiguous, and PREFERRED. Otherwise the ids are the tokens that BEGIN a list
     item or line in the text (CRIT_ID_RE): `- AC-1: …` is a criterion, `see RFC-7519` is prose
     (#268)."""
-    try:
-        data = json.loads(content)
-        if isinstance(data, dict) and isinstance(data.get("criterion_ids"), list):
-            return set(data["criterion_ids"])
-    except (json.JSONDecodeError, ValueError):
-        pass
+    doc = json_contract(content)
+    if doc is not None:
+        return set(doc["criterion_ids"])
     return set(CRIT_ID_RE.findall(content))
 
 
@@ -323,14 +350,29 @@ def check_scope(m, auth_source, auth_digest):
     authoritative = extract_criterion_ids(text)
     if not authoritative:
         return ["scope: no criterion ids in the authoritative contract"]
-    hidden = hidden_criterion_ids(text, authoritative)
-    if hidden:
-        where = ", ".join(f"{tok} (line {ln})" for tok, ln in sorted(hidden.items()))
-        return [f"scope: the authoritative contract carries {where} in a form the extractor does "
-                "not count, beside criteria it does. The denominator would be "
-                f"{sorted(authoritative)} — smaller than the contract a human reads, which is the "
-                "whole scope guarantee. Write every criterion as a list item (`- AC-2: …`), or "
-                "use a JSON contract with an explicit criterion_ids array (#296)"]
+    doc = json_contract(text)
+    if doc is not None:
+        # A declared array needs no heuristic — but it can still under-declare. A16 in JSON form is
+        # a `criteria` list a human reads as the spec beside a shorter `criterion_ids`, so check it
+        # structurally, against the document's own ids, rather than by scanning its text.
+        listed = {c.get("id") for c in (doc.get("criteria") or [])
+                  if isinstance(c, dict) and isinstance(c.get("id"), str)}
+        undeclared = sorted(listed - authoritative)
+        if undeclared:
+            return [f"scope: the authoritative contract lists {undeclared} in its criteria[] but "
+                    f"leaves them out of criterion_ids, so the denominator would be "
+                    f"{sorted(authoritative)} — smaller than the contract a human reads, which is "
+                    "the whole scope guarantee. Declare every criterion in criterion_ids (#296)"]
+    else:
+        hidden = hidden_criterion_ids(text, authoritative)
+        if hidden:
+            where = ", ".join(f"{tok} (line {ln})" for tok, ln in sorted(hidden.items()))
+            return [f"scope: the authoritative contract carries {where} in a form the extractor "
+                    "does not count, beside criteria it does. The denominator would be "
+                    f"{sorted(authoritative)} — smaller than the contract a human reads, which is "
+                    "the whole scope guarantee. Write every criterion as a list item "
+                    "(`- AC-2: …`), or use a JSON contract with an explicit criterion_ids array "
+                    "(#296)"]
     contract = m.get("contract") or {}
     errs = []
     mdigest = contract.get("digest")
