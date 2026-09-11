@@ -104,7 +104,9 @@ states which pack a worker uses in the dispatched TASK.
   header, a manifest in the run's own directory, and an inventory that re-hashes at the commit it
   names. Never present a mission as more proven than its evidence.
 - `metadata` also carries the six identity points (`unit`, `state_machine`, `convergence`,
-  `ordering`, `parking`, `oracle`). Two missions declaring the same six fails the build.
+  `ordering`, `parking`, `oracle`). Two missions declaring the same six fails the build — and so
+  does a PARAPHRASE of them: comparison is stemmed and synonym-expanded, and a pair with no point
+  on which the two actually diverge is one mission twice, however it is worded (#288).
 - Instruction budget (validator-enforced): mission body ≤ 110 lines and frontmatter ≤ 34,
   playbooks ≤ 90, runtime ≤ 160.
 - Playbooks and runtime policies are plain Markdown with no frontmatter — never give them a

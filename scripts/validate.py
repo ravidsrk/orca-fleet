@@ -714,11 +714,38 @@ _IDENTITY_STOPWORDS = {
     "or", "per", "that", "the", "their", "then", "this", "to", "with",
 }
 IDENTITY_POINT_SAME = 0.85
+# Six points that are each merely SIMILAR still describe one mission twice. A synonym swap scores
+# ~0.67 a point — under the 0.85 bar on every one of them, and a duplicate all the same (#288).
+#
+# A paraphrase leaves NO point on which the two missions diverge — some points restated, some left
+# alone, none of them actually different. That is the signature, and it is what ARCHITECTURE.md
+# already implies: differing on one point is legal-but-surfaced (a WARN) and differing on two is
+# silent, so a pair with no divergent point at all is one mission twice, however its words are
+# arranged. Neither the mean nor the single weakest point works here — a five-of-six match averages
+# high while being a legitimate distinction, and a paraphraser can rewrite one point heavily. The
+# live catalog's closest pair has ONE near point out of six, so this has wide clearance.
+IDENTITY_POINT_NEAR = 0.4
 
 
 def _identity_tokens(value):
-    words = re.findall(r"[a-z0-9_]+", (value or "").lower())
-    return {w for w in words if w not in _IDENTITY_STOPWORDS}
+    """Identity-point tokens, STEMMED and synonym-expanded (#288).
+
+    Raw surface tokens made this a duplicate-string detector wearing an identity test's name: one
+    word defeated it. "…backlog drained to zero…" against "…backlog emptied to zero…" scored 0.667
+    against a 0.85 bar, so a second mission could restate the first's identity and pass.
+
+    eval.py already owns the repository's tokenizer — the same stemming and synonym table the
+    router uses — so the two surfaces now agree on what a word is instead of keeping separate
+    definitions. Stemming alone closes the inflection paraphrase ("backlogs", "draining"); a true
+    synonym swap is caught by the MEAN gate below, not here.
+    """
+    try:
+        _scoring, synonyms = _eval_validator.routing_config()
+        tokens = set(_eval_validator.tokenize(value or "", synonyms))
+    except Exception:  # noqa: BLE001 — a tokenizer failure must not silently widen the gate
+        tokens = {w for w in re.findall(r"[a-z0-9_]+", (value or "").lower())
+                  if w not in _IDENTITY_STOPWORDS}
+    return {t for t in tokens if t not in _IDENTITY_STOPWORDS}
 
 
 def _point_similarity(a, b):
@@ -726,6 +753,11 @@ def _point_similarity(a, b):
     if not ta or not tb:
         return 0.0
     return len(ta & tb) / len(ta | tb)
+
+
+def _identity_sims(ta, tb):
+    """Per-point similarity across the six identity points."""
+    return [_point_similarity(x, y) for x, y in zip(ta, tb)]
 
 
 def identity_collisions(root=None):
@@ -761,11 +793,24 @@ def identity_collisions(root=None):
                 for key, va, vb in zip(IDENTITY_KEYS, tuples[a], tuples[b])
                 if _point_similarity(va, vb) >= IDENTITY_POINT_SAME
             ]
+            sims = _identity_sims(tuples[a], tuples[b])
+            near = sum(1 for value in sims if value >= IDENTITY_POINT_NEAR)
+            mean = sum(sims) / len(sims) if sims else 0.0
             if len(same) == len(IDENTITY_KEYS):
                 errors.append(
                     f"{a} and {b} declare the same six identity points — "
                     "one mission with two names (ARCHITECTURE.md); merge them or "
                     "state which point actually differs"
+                )
+            elif near == len(IDENTITY_KEYS):
+                restated = [k for k, value in zip(IDENTITY_KEYS, sims)
+                            if value < IDENTITY_POINT_SAME]
+                errors.append(
+                    f"{a} and {b} restate one identity: all {len(IDENTITY_KEYS)} points are at "
+                    f"least similar (mean {mean:.2f}), with {restated} merely reworded rather than "
+                    "different. A paraphrase is not a distinction — there is no point on which "
+                    "these two missions actually diverge. Merge them, or make one point genuinely "
+                    "differ and say so in ARCHITECTURE.md (#288)"
                 )
             elif len(same) == len(IDENTITY_KEYS) - 1:
                 differs = [k for k in IDENTITY_KEYS if k not in same]

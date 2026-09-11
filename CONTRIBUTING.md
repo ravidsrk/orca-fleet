@@ -54,8 +54,9 @@ A mission PR must include:
    - `metadata.autonomy:` — the Osmani L0–L5 level.
    - the six identity points — `unit`, `state_machine`, `convergence`, `ordering`, `parking`,
      `oracle`. This is ARCHITECTURE.md's "what makes a mission a mission" test in machine-readable
-     form: `scripts/validate.py` fails the build when two missions declare the same six, and warns
-     when they differ on only one. If you cannot fill all six, you are describing a mode of an
+     form: `scripts/validate.py` fails the build when two missions declare the same six — or merely
+     restate them, since comparison is stemmed and a pair with no genuinely divergent point is one
+     mission twice — and warns when they differ on only one. If you cannot fill all six, you are describing a mode of an
      existing mission, not a new one.
    - within the instruction budget: mission BODY ≤ 110 lines and frontmatter ≤ 34 (playbooks ≤ 90,
      runtime ≤ 160). If your mission needs more body, the overflow is probably a playbook.
