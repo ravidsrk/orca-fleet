@@ -1213,6 +1213,97 @@ class EndToEndMutationGreen(RepoCase):
         self.assertEqual(rc, 2)
         self.assertIn("STALE evidence", err)
 
+    def test_a_decoy_path_the_unit_never_changed_is_refused(self):
+        # #280 / A13. base_sha..head_sha changes app.py only. A control that reverts decoy.py
+        # instead makes the bound command go RED for a reason unrelated to the change — a
+        # U-comparability violation (Lipsitch et al. 2010), read by the old gate as a kill.
+        self.write("decoy.py", "VALUE = 1\n")
+        self.commit("a file the unit did not change")
+        nc = {**self._revert_nc(), "paths": ["decoy.py"]}
+        path = self._manifest(lighting="dark-eligible", nc=nc)
+        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc",
+                                       "--nc-command", self.proof_cmd)
+        self.assertEqual(rc, 2)
+        self.assertIn("does not change", err)
+
+    def test_reverting_the_test_that_encodes_the_criterion_is_refused(self):
+        # #280 / A13. Restoring the TEST makes the proof go RED because the oracle is gone, not
+        # because the behaviour came back. diff_scope's SCOPE_TESTS rule is what names it a test.
+        self.write("test_app.py", "def test_f():\n    assert True\n")
+        head = self.commit("the unit also touches its test")
+        nc = {**self._revert_nc(), "paths": ["test_app.py"]}
+        path = self._manifest(lighting="dark-eligible", nc=nc)
+        manifest = json.loads(Path(path).read_text(encoding="utf-8"))
+        manifest["head_sha"] = head
+        manifest["pr"]["reviewed_sha"] = head
+        Path(path).write_text(json.dumps(manifest), encoding="utf-8")
+        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc",
+                                       "--nc-command", self.proof_cmd)
+        self.assertEqual(rc, 2)
+        self.assertIn("TEST path", err)
+
+    def test_a_hand_mutant_outside_the_change_is_refused(self):
+        # #280 / A13b: the same decoy move through tool 'hand' — the quoted diff mutates a file the
+        # unit's own range never touches. decoy.py must exist BEFORE base_sha for that to be true,
+        # so the unit's range here runs from the commit that introduced it.
+        self.write("decoy.py", "VALUE = 1\n")
+        base = self.commit("decoy.py exists before this unit starts")
+        art = self.artifact(
+            "hand mutant applied — the bound test went RED (mutant KILLED):\n"
+            "--- a/decoy.py\n+++ b/decoy.py\n@@ -1 +1 @@\n-VALUE = 1\n+VALUE = 2\n",
+            rel="docs/reports/u/decoy.txt")
+        head = self.commit("decoy hand artifact")
+        nc = {"tool": "hand", "result": "RED", "artifact": art, "command": self.proof_cmd}
+        path = self._manifest(lighting="dark-eligible", nc=nc, commands=[
+            {"label": "tests", "cmd": self.proof_cmd,
+             "cmd_sha256": hashlib.sha256(self.proof_cmd.encode("utf-8")).hexdigest(),
+             "exit": 0, "wtree": self.git("rev-parse", "HEAD^{tree}")}])
+        manifest = json.loads(Path(path).read_text(encoding="utf-8"))
+        manifest["base_sha"] = base
+        manifest["head_sha"] = head
+        manifest["pr"]["reviewed_sha"] = head
+        Path(path).write_text(json.dumps(manifest), encoding="utf-8")
+        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc",
+                                       "--nc-command", self.proof_cmd)
+        self.assertEqual(rc, 2)
+        self.assertIn("does not change", err)
+
+    def test_a_stillborn_mutant_is_not_a_kill(self):
+        # #280 / A14. The mutant makes app.py unimportable, so check.py dies on ImportError before
+        # a single assertion runs. The exit is non-zero for ANY command — Vera-Perez et al. 2018:
+        # a mutant the suite never exercises says nothing about the suite.
+        art = self.artifact(
+            "hand mutant applied:\n--- a/app.py\n+++ b/app.py\n@@ -1,2 +1,2 @@\n"
+            "-def f():\n-    return 2\n+def f(:\n+    return 2\n",
+            rel="docs/reports/u/stillborn.txt")
+        head = self.commit("stillborn hand artifact")
+        nc = {"tool": "hand", "result": "RED", "artifact": art, "command": self.proof_cmd}
+        path = self._manifest(lighting="dark-eligible", nc=nc)
+        manifest = json.loads(Path(path).read_text(encoding="utf-8"))
+        manifest["head_sha"] = head
+        manifest["pr"]["reviewed_sha"] = head
+        Path(path).write_text(json.dumps(manifest), encoding="utf-8")
+        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc",
+                                       "--nc-command", self.proof_cmd)
+        self.assertEqual(rc, 2)
+        self.assertIn("STILLBORN MUTANT", err)
+
+    def test_a_range_revert_that_would_remove_a_test_module_is_refused(self):
+        # #280 / A14b + A21. With no paths the fallback reverts the whole range — taking the test
+        # module the unit added with it. The bound command then fails because its oracle is gone.
+        self.write("test_new.py", "def test_f():\n    assert True\n")
+        head = self.commit("the unit adds a test module")
+        nc = {k: v for k, v in self._revert_nc().items() if k != "paths"}
+        path = self._manifest(lighting="dark-eligible", nc=nc)
+        manifest = json.loads(Path(path).read_text(encoding="utf-8"))
+        manifest["head_sha"] = head
+        manifest["pr"]["reviewed_sha"] = head
+        Path(path).write_text(json.dumps(manifest), encoding="utf-8")
+        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc",
+                                       "--nc-command", self.proof_cmd)
+        self.assertEqual(rc, 2)
+        self.assertIn("changes test paths", err)
+
     def test_coordinator_nc_command_overrides_and_must_agree(self):
         # --contract-source's shape, for the proof command: the coordinator supplies it out of
         # band, and a manifest that names a different one is refused rather than silently obeyed.

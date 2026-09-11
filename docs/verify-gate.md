@@ -79,7 +79,11 @@ worker-set; anything else in the environment is ignored):
   the range is linear); `tool: hand` applies the unified diff quoted in the NC artifact — and
   requires `negative_control.command` to exit **non-zero** there, then **zero** in a second clean
   worktree at `head_sha`. Requires `ORCA_NC_COMMAND` — without it the run is RED before any
-  worktree is built, so a command the worker nominated is never executed. Fail-closed on anything
+  worktree is built, so a command the worker nominated is never executed. The control must bind to
+  the change (#280): the paths it restores, and the `+++` targets of a `hand` diff, must be
+  production paths `base_sha..head_sha` really changes — not a decoy, and not a test file; the
+  range-revert fallback is refused when the unit touches a test module; and the RED must carry an
+  assertion failure rather than an ImportError, a SyntaxError, or silence. Fail-closed on anything
   else too: a tool with no replay, a missing command/paths, a git error, a control that changes
   nothing, or a command that passes under the control ("tautological — the proof does not go RED"). It is **REQUIRED** in the two review-waiver
   lanes below; elsewhere it is the stronger form of the same check. Budget ~2 worktree checkouts +

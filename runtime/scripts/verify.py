@@ -575,6 +575,137 @@ def _fresh_command_records(m):
     return [c for c in records if c.get("exit") == 0 and c.get("wtree") == want], None
 
 
+def _load_diff_scope():
+    """diff_scope.py, loaded the way _load_ed25519 loads its sibling. It owns the repo's one
+    definition of what a test path is (SCOPE_TESTS), and the control-binding checks below need
+    exactly that definition — a second copy here would drift from the lens gate's copy."""
+    spec = importlib.util.spec_from_file_location(
+        "diff_scope", Path(__file__).resolve().parent / "diff_scope.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def _is_test_path(path):
+    """True when diff_scope classifies `path` as SCOPE_TESTS on its path alone. Content rules are
+    deliberately not consulted: the file may not exist at the tree we are asking about."""
+    try:
+        ds = _load_diff_scope()
+    except Exception:  # noqa: BLE001 - a missing/unloadable sibling must not open the gate
+        return None
+    low = str(path).lower()
+    for flag, pattern in ds.PATH_RULES:
+        if flag == "TESTS" and pattern.search(low):
+            return True
+    return False
+
+
+def _changed_paths(base, head):
+    """Paths changed in base..head, split into (production, tests, err).
+
+    This is the denominator the control must live inside. `negative_control.paths` naming anything
+    outside it is a DECOY: the control reverts a file the unit never touched, the bound command goes
+    RED for a reason unrelated to the change, and the gate reads that as a kill. Lipsitch et al.
+    2010 call this a violation of U-comparability — the control differs from head in more than the
+    causal variable under test (docs/reviews/2026-09-11 §4 A13; #280)."""
+    if not (base and head and HEX40_RE.match(str(base)) and HEX40_RE.match(str(head))):
+        return None, None, ("the control cannot be bound to the change without pinned 40-hex "
+                            "base_sha and head_sha")
+    code, out = _git(["diff", "--name-only", f"{base}..{head}"])
+    if code != 0:
+        return None, None, ("cannot diff base_sha..head_sha to bind the control to the change; "
+                            "fail-closed")
+    changed = [ln.strip() for ln in out.splitlines() if ln.strip()]
+    prod, tests = [], []
+    for path in changed:
+        verdict = _is_test_path(path)
+        if verdict is None:
+            return None, None, ("diff_scope.py could not be loaded, so a test path cannot be told "
+                                "from a production one; fail-closed")
+        (tests if verdict else prod).append(path)
+    return prod, tests, None
+
+
+def _bind_paths_to_change(paths, m, what):
+    """Every path the control touches must be a PRODUCTION path this unit actually changed.
+    Returns an error string or None."""
+    prod, _tests, err = _changed_paths(m.get("base_sha"), m.get("head_sha"))
+    if err:
+        return err
+    prod_set = set(prod)
+    for path in paths:
+        norm = path.lstrip("./")
+        if norm in prod_set:
+            continue
+        verdict = _is_test_path(norm)
+        if verdict:
+            return (f"{what} names {path!r}, which is a TEST path. Reverting the test that encodes "
+                    "the criterion makes the proof go RED because the oracle is gone, not because "
+                    "the behaviour came back — the control must revert the BEHAVIOUR (#280)")
+        return (f"{what} names {path!r}, which base_sha..head_sha does not change. A control that "
+                "reverts a file this unit never touched is a decoy: its RED says nothing about the "
+                f"change being proved. Production paths changed here: {sorted(prod_set) or 'none'} "
+                "(#280)")
+    return None
+
+
+def _diff_target_paths(diff):
+    """Repo-relative paths a unified diff writes to, read from its `+++ b/...` headers."""
+    paths = []
+    for line in diff.splitlines():
+        if not line.startswith("+++ "):
+            continue
+        target = line[4:].strip().split("\t")[0]
+        if target == "/dev/null":
+            continue
+        if target.startswith(("a/", "b/")):
+            target = target[2:]
+        if target:
+            paths.append(target)
+    return paths
+
+
+# A control run that dies before the oracle ever executes is a STILLBORN MUTANT, not a kill: the
+# non-zero exit is the module failing to load, so it would be non-zero for any command at all.
+# Vera-Pérez et al. 2018 and Niedermayr et al. 2016 are explicit that only a mutant the test suite
+# actually EXERCISES says anything about that suite (docs/reviews/2026-09-11 §4 A14; #280).
+STILLBORN_MARKERS = (
+    "importerror", "modulenotfounderror", "syntaxerror", "indentationerror",
+    "cannot import name", "error collecting", "collection error", "unable to import",
+    "no module named", "failed to load", "conftest.py", "attributeerror: module",
+)
+# What a real oracle failing looks like, across the runners the catalog's missions actually drive.
+ASSERTION_MARKERS = (
+    "assertionerror", "assert", "failed", "fail:", "failures=", "expected", "not ok",
+    "panicked at", "✗", "test failed", "e   ", "✕",
+)
+
+
+def _failure_signature(out, err):
+    """Read the control run's output. Returns (ok, reason).
+
+    A non-zero exit is not a kill on its own — `grep` exits 1 on no-match, an unimportable module
+    exits 1 before a single assertion runs, and both look identical to a gate that only reads the
+    return code. The RED must LOOK like an oracle failing."""
+    text = f"{out}\n{err}".lower()
+    if not text.strip():
+        return False, ("the control run produced NO output at all. A silent non-zero exit is not a "
+                       "failing test — it is what `grep` does when it finds nothing; fail-closed "
+                       "(#280)")
+    stillborn = [mark for mark in STILLBORN_MARKERS if mark in text]
+    has_assertion = any(mark in text for mark in ASSERTION_MARKERS)
+    if stillborn and not has_assertion:
+        return False, (f"the control run died before any oracle ran ({stillborn[0]!r} in its "
+                       "output) — that is a STILLBORN MUTANT, not a kill. The non-zero exit is the "
+                       "module failing to load, which would happen for any command; the control "
+                       "must leave the code runnable and fail an ASSERTION (#280)")
+    if not has_assertion:
+        return False, ("the control run exited non-zero but its output names no assertion failure, "
+                       "so nothing shows the criterion-bound oracle actually ran and failed; "
+                       "fail-closed (#280)")
+    return True, None
+
+
 def _nc_paths(nc):
     """`negative_control.paths` — the production paths the revert control restores to base_sha.
     Repo-relative, inside the toplevel, never option-like. Returns (paths, err)."""
@@ -627,6 +758,9 @@ def _apply_control(wt, m, nc, tool):
             if not (base and HEX40_RE.match(str(base))):
                 return ("negative_control.paths needs a pinned 40-hex base_sha to restore the "
                         "pre-fix content from")
+            bind_err = _bind_paths_to_change(paths, m, "negative_control.paths")
+            if bind_err:
+                return bind_err
             code, _, gerr = _run_at(wt, ["git", "checkout", str(base), "--", *paths])
             if code != 0:
                 return f"could not restore {paths} from base_sha in the control worktree: {gerr.strip()}"
@@ -643,6 +777,19 @@ def _apply_control(wt, m, nc, tool):
         if code != 0 or merges.strip():
             return ("negative_control.paths is required: base_sha..head_sha contains merge commits, "
                     "so a range revert is not well-defined")
+        # A range revert takes the TESTS with it. When the unit adds a test module, reverting the
+        # range deletes it, and the bound command then fails because the test file is gone — a
+        # missing oracle reads as a kill. Refuse, and make the unit name its production paths
+        # (docs/reviews/2026-09-11 §4 A14b/A21; #280).
+        _prod, tests, bind_err = _changed_paths(base, head)
+        if bind_err:
+            return bind_err
+        if tests:
+            return ("negative_control.paths is REQUIRED here: base_sha..head_sha changes test "
+                    f"paths ({sorted(tests)}), and a range revert would remove them along with the "
+                    "fix. The bound command would then go RED because its oracle is gone, not "
+                    "because the behaviour came back. Name the production paths the control should "
+                    "restore (#280)")
         code, _, gerr = _run_at(wt, ["git", "revert", "--no-commit", f"{base}..{head}"], timeout=60)
         if code != 0:
             return f"git revert of base_sha..head_sha failed in the control worktree: {gerr.strip()}"
@@ -654,6 +801,14 @@ def _apply_control(wt, m, nc, tool):
     diff = _extract_diff(raw.decode("utf-8", "replace"))
     if not diff:
         return "negative_control.artifact for tool 'hand' quotes no applicable unified diff"
+    targets = _diff_target_paths(diff)
+    if not targets:
+        return ("negative_control.artifact for tool 'hand' quotes a diff with no `+++` target — "
+                "nothing identifies which file the mutant touches, so it cannot be bound to the "
+                "change (#280)")
+    bind_err = _bind_paths_to_change(targets, m, "the hand mutant's diff")
+    if bind_err:
+        return bind_err
     code, _, gerr = _run_at(wt, ["git", "apply", "--whitespace=nowarn", "-"],
                             stdin_bytes=diff.encode("utf-8"))
     if code != 0:
@@ -712,6 +867,8 @@ def execute_negative_control(m, nc_command=None):
                                    "— a no-op mutant cannot make any proof go RED (#255)"]
             rc, out, errout = _run_at(wt, argv, timeout=NC_TIMEOUT_S)
             tail = (errout.strip() or out.strip())[-300:]
+            if phase == "control":
+                sig_ok, sig_err = _failure_signature(out, errout)
         finally:
             _run(["git", "-C", top, "worktree", "remove", "--force", wt], timeout=60)
             shutil.rmtree(holder, ignore_errors=True)
@@ -723,8 +880,11 @@ def execute_negative_control(m, nc_command=None):
                 return False, ["--execute-nc: TAUTOLOGICAL — the proof does NOT go RED. The control "
                                f"was applied at head_sha and `{shlex.join(argv)}` still exited 0, so "
                                "the command does not bind to the change it claims to prove (#255)"]
+            if not sig_ok:
+                return False, [f"--execute-nc: {sig_err} Output was: {tail}"]
             msgs.append(f"NOTE: negative control EXECUTED — with the {tool} control applied at "
-                        f"head_sha the bound command exited {rc} (RED, as required)")
+                        f"head_sha the bound command exited {rc} on an assertion failure (RED, as "
+                        "required)")
         else:
             if rc != 0:
                 return False, [f"--execute-nc: the bound command exits {rc} at CLEAN head_sha too, "
