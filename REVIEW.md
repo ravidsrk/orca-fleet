@@ -536,7 +536,9 @@ unforgeable" — not "harder to copy".
 
 ## 8. Prioritized backlog
 
-Each item is one agent, one PR, with the file it lands in.
+Each item is one agent, one PR, with the file it lands in. All 29 are filed as issues
+[#279](https://github.com/ravidsrk/orca-fleet/issues/279)-[#307](https://github.com/ravidsrk/orca-fleet/issues/307),
+one per item in this order: item 1 is #279, item 29 is #307.
 
 ### P0 — the claim is false until these land
 
