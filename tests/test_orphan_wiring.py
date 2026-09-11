@@ -59,7 +59,9 @@ class TheFenceIsTheOnlyPath(unittest.TestCase):
     this script is what keeps the fence the only path." No such test existed. This is it.
     """
 
-    RAW_FETCH = re.compile(r"gh\s+(?:issue|pr)\s+view\b")
+    # `gh pr view` is not the only way in: inline review comments come from `gh api …/comments`,
+    # and a fence that covers one and not the other is not a fence (PR #308 review).
+    RAW_FETCH = re.compile(r"gh\s+(?:issue|pr)\s+view\b|gh\s+api\b[^`\n]*(?:comments|issues|pulls)")
 
     def _offenders(self, directory):
         bad = []
