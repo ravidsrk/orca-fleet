@@ -479,6 +479,15 @@ import json, sys
 # Every typed preflight refusal is a POLICY/usage answer, not a transport failure: the
 # coordinator must branch, not retry. runtime_error is the documented catch-all and is the
 # one code that stays a failure ("do not retry unchanged").
+# Anchored per code, because they do NOT share one definition — dispatch-lifecycle.md used to
+# cite all six at the contract file, which declares the first three (#302), verified against the
+# pinned v1.4.199 tree:
+#   task_not_found / task_not_startable / inject_rejected
+#                                 orchestration-dispatch-refusal-contract.ts:8
+#   nested_worker_depth_exceeded  nested-worker-depth.ts:13
+#   dispatch_inactive             dispatch-capability.ts:18
+#   consumer_fenced               role-mailbox-delivery.ts:52, decision-gate-store.ts:49
+#   runtime_error (NOT policy)    cli-error.ts:117
 POLICY_CODES = {
     "task_not_found", "task_not_startable", "inject_rejected",
     "nested_worker_depth_exceeded", "consumer_fenced", "dispatch_inactive",

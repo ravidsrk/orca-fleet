@@ -1,7 +1,7 @@
 # 🗺️ map-it — a foggy goal → a frozen, decided execution map
 
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel research workers chart the frontier; each decision you freeze is a one-way gate class, not a lower rung.
-> **Activation load:** ~20,300 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
+> **Activation load:** ~20,400 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
 
 > Bring it the epic you cannot yet write acceptance criteria for. Come back to a named

@@ -132,6 +132,86 @@ class TheVerifierInvocationIsWrittenDown(unittest.TestCase):
                       "the evidence contract says what is checked and never where to run it")
 
 
+class OrcaAnchorsSayWhatTheyMean(unittest.TestCase):
+    """#302: five anchor and wording defects in the Orca-facing doctrine.
+
+    Each was verified against a clone of stablyai/orca at the PINNED commit
+    (v1.4.199 = 28957d6004) rather than taken on the review's word — and one of the five turned
+    out to be right for a reason other than the one given. These tests cannot re-read upstream,
+    so they hold the corrected WORDING down; re-witnessing the line numbers is pin-it's job.
+    """
+
+    SANDBOX = (ROOT / "runtime" / "sandbox-policy.md").read_text(encoding="utf-8")
+    DISPATCH = (ROOT / "runtime" / "dispatch-lifecycle.md").read_text(encoding="utf-8")
+    DAG = (ROOT / "runtime" / "orca-dag-semantics.md").read_text(encoding="utf-8")
+
+    def test_the_doctor_rule_points_at_the_doctor_section(self):
+        # :110-122 of that guide is the SNAPSHOT section; the free-gate rule is at :346-348.
+        self.assertIn("orca-per-workspace-env:346-348", self.SANDBOX)
+        self.assertNotIn("orca-per-workspace-env:110-122", self.SANDBOX)
+
+    def test_six_refusal_codes_are_not_all_pinned_to_one_three_code_file(self):
+        # The contract file's union is task_not_found | task_not_startable | inject_rejected.
+        para = " ".join(self.DISPATCH.split())
+        self.assertIn("declares the first three ONLY", para)
+        # And the file has to be NAMED. Compressing this paragraph to fit the 160-line cap once
+        # left "That contract file declares the first three ONLY" with no antecedent anywhere in
+        # the document — a correction that had become unreadable.
+        self.assertIn("orchestration-dispatch-refusal-contract.ts:8", para,
+                      "the sentence points at a contract file the document never names")
+        self.assertNotIn(
+            "`consumer_fenced`, `dispatch_inactive` are policy answers; `runtime_error` is the "
+            "catch-all whose recovery is \"do not retry unchanged\" "
+            "(`orchestration-dispatch-refusal-contract.ts:8`", para,
+            "all six codes are anchored to the file that declares three again")
+
+    def test_the_per_code_anchors_live_where_the_codes_are_consumed(self):
+        # Relocated rather than dropped: dispatch-lifecycle.md is at its 160-line cap, and
+        # ARCHITECTURE.md:172 says a cap is paid for by moving prose, never by raising it.
+        script = (ROOT / "runtime" / "scripts" / "spawn_worker.sh").read_text(encoding="utf-8")
+        for anchor in ("nested-worker-depth.ts:13", "dispatch-capability.ts:18",
+                       "role-mailbox-delivery.ts:52", "cli-error.ts:117"):
+            with self.subTest(anchor=anchor):
+                self.assertIn(anchor, script)
+        self.assertIn("POLICY_CODES", self.DISPATCH,
+                      "the doctrine must name where the anchors went")
+
+    def test_no_read_only_tier_is_attributed_to_orca(self):
+        """Orca's only agent map is YOLO_TUI_AGENT_ARGS — no read-only tier for ANY agent.
+
+        The table said "(no RO in Orca)" beside cursor and grok alone, which reads as though
+        Orca supplied the others. Every `ro` entry is that agent's own native flag, chosen here.
+        """
+        # The TABLE ROWS, not the whole file: the prose above the table quotes the old wording
+        # to explain what changed, and a whole-file scan flags that quote. (Same distinction the
+        # `--baseline-path` check in test_repo_hygiene.py had to learn.)
+        rows = [ln for ln in self.SANDBOX.splitlines()
+                if ln.startswith("|") and "WORKER_CMD" in ln]
+        self.assertTrue(rows, "the PROFILE table lost its rows")
+        for row in rows:
+            with self.subTest(row=row.split("|")[1].strip()):
+                self.assertNotIn("no RO in Orca", row,
+                                 "a row still attributes the missing tier to Orca specifically")
+        self.assertIn("Orca has no read-only tier for ANY agent", self.SANDBOX)
+        self.assertIn("YOLO_TUI_AGENT_ARGS", self.SANDBOX)
+
+    def test_decision_gate_is_not_listed_as_load_bearing(self):
+        """The review said nothing on CLI paths writes one. That reason is wrong — the CLI
+        lists it as a valid `--type` (`orchestration.ts:71`). The conclusion still holds for a
+        different reason: the RUNTIME writes one only on the legacy direct-ask path and migrates
+        existing ones to `status`."""
+        para = " ".join(self.DAG.split())
+        self.assertNotIn("`status`, `decision_gate` (legacy/gates)", para)
+        self.assertIn("legacy-ask-operation.ts:101", para)
+        self.assertIn("message-inbox.ts:81", para)
+
+    def test_the_readiness_note_is_a_version_fact_not_a_countdown(self):
+        # "The next release demands …" was true for exactly one day: v1.4.200 shipped it.
+        self.assertNotIn("The next release demands", self.DISPATCH)
+        self.assertIn("v1.4.200", self.DISPATCH)
+        self.assertIn("worker-start-readiness-settlement.ts", self.DISPATCH)
+
+
 class DoctrineSaysWhatTheCatalogDoes(unittest.TestCase):
     """Four places where the doctrine had drifted from the catalog it describes (#289)."""
 

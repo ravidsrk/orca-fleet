@@ -12,10 +12,10 @@ pin-it owns that loop; hand-editing from memory is how it went stale twice.
 When BASE is CREATED, record its fork-point SHA (`git rev-parse <default>`) in the ledger header; every subsequent preflight passes `--fork-point <that sha>`
 — a stale BASE is rejected, never silently reused.
 
-The normal supervised spawn is **`worker-start`**: `orca orchestration worker-start --task <id> --worktree new-child --name <unit-slug> --agent <id> --setup
-run --json` (compose: worktree create → agent terminal → readiness → dispatch). It exits 0 only when the worker is **ready** — but read `ready` narrowly: at
-v1.4.199 it means the preamble WRITE WAS ACCEPTED, not that the agent started a turn (`local-worker-start.ts:263`). The next release demands an observed
-`turn_started` and returns `state: outcome_unknown` otherwise. Source-witnessed at v1.4.199 (`local-worker-start.ts:243-263`); live probe owed — pin-it.
+The normal supervised spawn is **`orca orchestration worker-start`** with `--task --worktree --name --agent --setup run --json` (worktree → terminal →
+readiness → dispatch). It exits 0 only when the worker is **ready**, read narrowly: at v1.4.199 — the PIN — that means the preamble WRITE WAS ACCEPTED, not
+that a turn started (`local-worker-start.ts:263`). **v1.4.200 changed it**: `worker-start-readiness-settlement.ts:91-129` needs an observed turn-start, else
+`outcome_unknown`; the top-level contract is unchanged, so v5 already branches right (#302). Witnessed at both tags; probe owed — pin-it.
 
 The receipt carries more than the flat four: `runId, taskId, dispatchId, state, stage, setup, launch{requested,effective}, mode, effects[],
 residualResources[]`, and on a bad start `failedStage, lastError, recovery, nextCommands` (`worker-start-receipt.ts:42-69`). The agent terminal is the
@@ -23,10 +23,10 @@ residualResources[]`, and on a bad start `failedStage, lastError, recovery, next
 actually applied. `--worktree current` / an exact worktree id = a fresh agent terminal, no setup rerun; `--terminal <handle>` = reuse an exact idle agent
 (cleanup ownership transfers).
 
-**Refusals are typed codes** — branch on `error.code`, never on exit status or stderr text, and treat `error.data.nextSteps` as the exact recovery text (older
-hosts may omit `data`): `task_not_found`, `task_not_startable` (+`data.unmetDependencies`, `data.retryOf`), `inject_rejected`, `nested_worker_depth_exceeded`,
-`consumer_fenced`, `dispatch_inactive` are policy answers; `runtime_error` is the catch-all whose recovery is "do not retry unchanged"
-(`orchestration-dispatch-refusal-contract.ts:8`, `orchestration/recovery-and-cleanup:96-108`).
+**Refusals are typed codes** — branch on `error.code`, never exit status or stderr; `error.data.nextSteps` is the recovery text (older hosts omit it):
+`task_not_found`, `task_not_startable` (+`data.unmetDependencies`, `data.retryOf`), `inject_rejected`, `nested_worker_depth_exceeded`, `consumer_fenced`,
+`dispatch_inactive` are policy; `runtime_error` is the catch-all: "do not retry unchanged". `orchestration-dispatch-refusal-contract.ts:8` declares the first
+three ONLY; the rest sit at their own sites, anchored per code beside POLICY_CODES in spawn_worker.sh (#302); recovery `recovery-and-cleanup:96-108`.
 
 `terminal create` + `dispatch --inject` remains the **low-level, deliberately unsupervised** lane: no worker-lifecycle row, so `worker-stop`/`worker-release`
 never touch that process. It is NOT invisible — `worker-list` lists it as `unsupervised` with terminal state `retained` (`orchestration-worker-specs.ts:124`).
@@ -84,7 +84,7 @@ human promotion review. Report-only fleets use `--mode readonly`.
 ## Third-party review bots — wait → ingest → reconcile
 
 Applies to ANY PR review bot (Greptile, CodeRabbit, Cursor BugBot, …) — detect its login from the repo's app install or prior PRs; never hardcode one. The
-integrator (not the coordinator) runs this after opening the PR and after every re-push (a new commit re-triggers the bot); it is just another dispatch →
+integrator, not the coordinator, runs it after opening the PR and after every re-push (a new commit re-triggers the bot) — just another dispatch →
 `worker_done`.
 
 1. **Wait, bounded:** poll every ~30s, floor ~2–3 min, cap ~10 min. If the cap elapses with no bot activity, log a "did-not-run" checkpoint and proceed —
