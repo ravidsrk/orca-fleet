@@ -47,7 +47,7 @@ def _commit_present(sha):
 def skip_reason(trap):
     """#257: a trap that pins a real commit CANNOT be scored on a shallow clone — the commit is
     simply not there, so every leg that reads it degrades and the verdict measures the checkout,
-    not the gate. Say so by name instead of scoring ambient state (REVIEW.md P2 item 22: the
+    not the gate. Say so by name instead of scoring ambient state (docs/reviews/2026-09-10-review.md P2 item 22: the
     review-leg trap used to skip silently). `fetch-depth: 0` fixes it in CI."""
     for sha in trap.get("requires_commits", []):
         if not _commit_present(sha):

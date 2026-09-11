@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Contract tests for runtime/scripts/run_report.py — the proof-tier artifact binding.
 
-REVIEW.md §2.2 / issue #259: before this, `proof: self-run` needed only a file under
+docs/reviews/2026-09-10-review.md §2.2 / issue #259: before this, `proof: self-run` needed only a file under
 docs/runs/ whose name and body mentioned the mission, so a three-line fabricated
 report advanced a tier past every gate. These tests are the bypasses, run against
 the checker: each one has to be refused.

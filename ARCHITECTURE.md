@@ -53,7 +53,7 @@ though each source materializes the denominator differently; but security harden
 budgeting, dependency modernization, test-debt proving, and flake eradication are NOT — their
 denominators and convergence proofs differ, so each is its own mission.
 
-Point six is the decision REVIEW.md §6 asked for and the 2026-09-10 audit §4.3 records: the
+Point six is the decision docs/reviews/2026-09-10-review.md §6 asked for and the 2026-09-10 audit §4.3 records: the
 oracle is an identity point, no mission is deleted, and the three missions it argues for are
 argued here, not assumed.
 

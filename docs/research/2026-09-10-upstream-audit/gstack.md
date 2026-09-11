@@ -2,6 +2,10 @@
 
 # gstack adoption audit — orca-fleet vs garrytan/gstack v1.84.1.0
 
+> **Dated record (2026-09-10).** Every `REVIEW.md` reference below means the review of that date,
+> now archived at [`docs/reviews/2026-09-10-review.md`](../../reviews/2026-09-10-review.md) — not the
+> 2026-09-11 review that occupies `REVIEW.md` today (#295).
+
 **Date:** 2026-09-10 · **Upstream:** `71f6048e` (v1.84.1.0, 2026-09-09; full-history clone) · **Downstream:** `/home/user/orca-fleet` at the working tree audited today (17 missions, 12 playbooks, 12 runtime policies, `runtime/scripts/`).
 **Predecessor:** `docs/research/2026-09-09-upstream-adoption-audit.md` pinned gstack at `c8f0c4e` (v1.84.0.0). This audit extends it: one upstream release later (v1.84.1.0), and after orca-fleet's #250/#251 quick-win and runtime-modernization merges (orca-fleet `CHANGELOG.md:11-21`), which already closed several of the predecessor's NOT-ADOPTED rows (`reviewed_wtree`, doc-sync unit, api-contract + simplification lenses). Rows below are re-derived from the files, not carried forward.
 

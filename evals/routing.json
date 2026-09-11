@@ -337,13 +337,13 @@
       "prompt": "the README lies",
       "type": "positive",
       "expected_mission": "clean-sweep",
-      "reason": "REVIEW.md §5 realistic prompt: false doc claims are a clean-sweep source."
+      "reason": "docs/reviews/2026-09-10-review.md §5 realistic prompt: false doc claims are a clean-sweep source."
     },
     {
       "id": 102,
       "prompt": "why is this flaky",
       "type": "positive",
-      "reason": "REVIEW.md §5 realistic prompt: one bug or a suite-rate contract — either is defensible from the text.",
+      "reason": "docs/reviews/2026-09-10-review.md §5 realistic prompt: one bug or a suite-rate contract — either is defensible from the text.",
       "expected_mission": "deflake-it"
     },
     {
@@ -351,14 +351,14 @@
       "prompt": "make CI strict",
       "type": "positive",
       "expected_mission": "floor-it",
-      "reason": "REVIEW.md §5 realistic prompt: installing an enforced bar is floor-it."
+      "reason": "docs/reviews/2026-09-10-review.md §5 realistic prompt: installing an enforced bar is floor-it."
     },
     {
       "id": 104,
       "prompt": "this breaks on mobile",
       "type": "positive",
       "expected_mission": "field-test-it",
-      "reason": "REVIEW.md §5 realistic prompt: a device-observed defect is field-test-it.",
+      "reason": "docs/reviews/2026-09-10-review.md §5 realistic prompt: a device-observed defect is field-test-it.",
       "collision": "speed-it"
     },
     {
@@ -366,27 +366,27 @@
       "prompt": "our tests are flaky and I want to know why",
       "type": "positive",
       "expected_mission": "deflake-it",
-      "reason": "REVIEW.md §5 realistic prompt: a whole flaky suite is deflake-it."
+      "reason": "docs/reviews/2026-09-10-review.md §5 realistic prompt: a whole flaky suite is deflake-it."
     },
     {
       "id": 106,
       "prompt": "the login page is slow on mobile",
       "type": "positive",
       "expected_mission": "speed-it",
-      "reason": "REVIEW.md §5 realistic prompt: a journey under a perf budget is speed-it, not on-device defect verification."
+      "reason": "docs/reviews/2026-09-10-review.md §5 realistic prompt: a journey under a perf budget is speed-it, not on-device defect verification."
     },
     {
       "id": 107,
       "prompt": "review this PR for accessibility problems",
       "type": "positive",
       "expected_mission": "review-it",
-      "reason": "REVIEW.md §5 realistic prompt: a bounded per-diff a11y lens is review-it, not the full surface sweep."
+      "reason": "docs/reviews/2026-09-10-review.md §5 realistic prompt: a bounded per-diff a11y lens is review-it, not the full surface sweep."
     },
     {
       "id": 108,
       "prompt": "harden the CI pipeline",
       "type": "positive",
-      "reason": "REVIEW.md §5 realistic prompt: gates-for-the-repo (floor-it) or the security loop (harden-it).",
+      "reason": "docs/reviews/2026-09-10-review.md §5 realistic prompt: gates-for-the-repo (floor-it) or the security loop (harden-it).",
       "expected_mission": "harden-it"
     },
     {
@@ -394,7 +394,7 @@
       "prompt": "update the README to match the code",
       "type": "positive",
       "expected_mission": "clean-sweep",
-      "reason": "REVIEW.md §5 realistic prompt: doc-vs-code drift is a clean-sweep source.",
+      "reason": "docs/reviews/2026-09-10-review.md §5 realistic prompt: doc-vs-code drift is a clean-sweep source.",
       "collision": "modernize-it"
     },
     {
@@ -402,28 +402,28 @@
       "prompt": "upgrade React and fix what breaks",
       "type": "positive",
       "expected_mission": "modernize-it",
-      "reason": "REVIEW.md §5 realistic prompt: framework currency with CI green is modernize-it."
+      "reason": "docs/reviews/2026-09-10-review.md §5 realistic prompt: framework currency with CI green is modernize-it."
     },
     {
       "id": 111,
       "prompt": "refactor the payments module safely",
       "type": "positive",
       "expected_mission": "reshape-it",
-      "reason": "REVIEW.md §5 realistic prompt: behaviour-preserving deepening is reshape-it."
+      "reason": "docs/reviews/2026-09-10-review.md §5 realistic prompt: behaviour-preserving deepening is reshape-it."
     },
     {
       "id": 112,
       "prompt": "add tests before we refactor payments",
       "type": "positive",
       "expected_mission": "prove-it",
-      "reason": "REVIEW.md §5 realistic prompt: the characterization net itself is prove-it."
+      "reason": "docs/reviews/2026-09-10-review.md §5 realistic prompt: the characterization net itself is prove-it."
     },
     {
       "id": 113,
       "prompt": "we need SOC 2 evidence for our CI security gates",
       "type": "positive",
       "expected_mission": "attest-it",
-      "reason": "REVIEW.md §5 realistic prompt: obligations from a frozen standard are attest-it."
+      "reason": "docs/reviews/2026-09-10-review.md §5 realistic prompt: obligations from a frozen standard are attest-it."
     },
     {
       "id": 114,
@@ -433,7 +433,7 @@
         "access-it",
         "speed-it"
       ],
-      "reason": "REVIEW.md §5 realistic prompt: a compound ask; either owner is defensible, a chain is the real answer.",
+      "reason": "docs/reviews/2026-09-10-review.md §5 realistic prompt: a compound ask; either owner is defensible, a chain is the real answer.",
       "collision": "access-it"
     },
     {
@@ -444,7 +444,7 @@
         "clean-sweep",
         "speed-it"
       ],
-      "reason": "REVIEW.md §5 realistic prompt: a tracker backlog (clean-sweep) filtered by a perf dimension (speed-it).",
+      "reason": "docs/reviews/2026-09-10-review.md §5 realistic prompt: a tracker backlog (clean-sweep) filtered by a perf dimension (speed-it).",
       "collision": "clean-sweep"
     },
     {
@@ -452,7 +452,7 @@
       "prompt": "diagnose why the deploy failed last night",
       "type": "positive",
       "expected_mission": "root-cause",
-      "reason": "REVIEW.md §5 realistic prompt: one hard bug, no enumerable backlog."
+      "reason": "docs/reviews/2026-09-10-review.md §5 realistic prompt: one hard bug, no enumerable backlog."
     },
     {
       "id": 117,
@@ -462,7 +462,7 @@
         "ship-it",
         "field-test-it"
       ],
-      "reason": "REVIEW.md §5 realistic prompt: build-to-release with an on-device verification leg."
+      "reason": "docs/reviews/2026-09-10-review.md §5 realistic prompt: build-to-release with an on-device verification leg."
     },
     {
       "id": 118,
@@ -472,28 +472,28 @@
         "pin-it",
         "clean-sweep"
       ],
-      "reason": "REVIEW.md §5 realistic prompt: runtime doctrine drift (pin-it) or false prose (clean-sweep)."
+      "reason": "docs/reviews/2026-09-10-review.md §5 realistic prompt: runtime doctrine drift (pin-it) or false prose (clean-sweep)."
     },
     {
       "id": 119,
       "prompt": "plan the migration to the new auth provider",
       "type": "positive",
       "expected_mission": "map-it",
-      "reason": "REVIEW.md §5 realistic prompt: a foggy multi-session goal resolves to a frozen execution map."
+      "reason": "docs/reviews/2026-09-10-review.md §5 realistic prompt: a foggy multi-session goal resolves to a frozen execution map."
     },
     {
       "id": 120,
       "prompt": "is this branch safe to merge",
       "type": "positive",
       "expected_mission": "review-it",
-      "reason": "REVIEW.md §5 realistic prompt: a read-only SHA-bound verdict."
+      "reason": "docs/reviews/2026-09-10-review.md §5 realistic prompt: a read-only SHA-bound verdict."
     },
     {
       "id": 121,
       "prompt": "remove the god object in the API layer",
       "type": "positive",
       "expected_mission": "reshape-it",
-      "reason": "REVIEW.md §5 realistic prompt: god-file vocabulary is reshape-it's.",
+      "reason": "docs/reviews/2026-09-10-review.md §5 realistic prompt: god-file vocabulary is reshape-it's.",
       "collision": "document-it"
     },
     {
@@ -501,7 +501,7 @@
       "prompt": "find and fix all secrets in the repo",
       "type": "positive",
       "expected_mission": "harden-it",
-      "reason": "REVIEW.md §5 realistic prompt: secret exposure is a security class, not a generic backlog.",
+      "reason": "docs/reviews/2026-09-10-review.md §5 realistic prompt: secret exposure is a security class, not a generic backlog.",
       "collision": "oss-contribute"
     },
     {
@@ -512,14 +512,14 @@
         "clean-sweep",
         "modernize-it"
       ],
-      "reason": "REVIEW.md §5 realistic prompt: a findings backlog (clean-sweep) whose dimension is dependency currency (modernize-it)."
+      "reason": "docs/reviews/2026-09-10-review.md §5 realistic prompt: a findings backlog (clean-sweep) whose dimension is dependency currency (modernize-it)."
     },
     {
       "id": 124,
       "prompt": "cover the untested payment paths and fix the bugs you find",
       "type": "positive",
       "expected_mission": "prove-it",
-      "reason": "REVIEW.md §5 realistic prompt: missing coverage on a money path is prove-it.",
+      "reason": "docs/reviews/2026-09-10-review.md §5 realistic prompt: missing coverage on a money path is prove-it.",
       "collision": "root-cause"
     },
     {
@@ -530,7 +530,7 @@
         "root-cause",
         "deflake-it"
       ],
-      "reason": "REVIEW.md §5 realistic prompt: environment-dependent failure: one bug or a flake contract.",
+      "reason": "docs/reviews/2026-09-10-review.md §5 realistic prompt: environment-dependent failure: one bug or a flake contract.",
       "collision": "ship-it"
     },
     {
@@ -538,7 +538,7 @@
       "prompt": "set a coverage floor and enforce it",
       "type": "positive",
       "expected_mission": "floor-it",
-      "reason": "REVIEW.md §5 realistic prompt: the enforced threshold is floor-it; prove-it owns the tests under it."
+      "reason": "docs/reviews/2026-09-10-review.md §5 realistic prompt: the enforced threshold is floor-it; prove-it owns the tests under it."
     },
     {
       "id": 127,
@@ -548,7 +548,7 @@
         "access-it",
         "attest-it"
       ],
-      "reason": "REVIEW.md §5 realistic prompt: WCAG conformance (access-it) framed as auditor evidence (attest-it).",
+      "reason": "docs/reviews/2026-09-10-review.md §5 realistic prompt: WCAG conformance (access-it) framed as auditor evidence (attest-it).",
       "collision": "attest-it"
     },
     {
@@ -556,13 +556,13 @@
       "prompt": "submit fixes to the upstream library we depend on",
       "type": "positive",
       "expected_mission": "oss-contribute",
-      "reason": "REVIEW.md §5 realistic prompt: landing PRs on a repo you do not control."
+      "reason": "docs/reviews/2026-09-10-review.md §5 realistic prompt: landing PRs on a repo you do not control."
     },
     {
       "id": 129,
       "prompt": "make this production-ready",
       "type": "none",
-      "reason": "REVIEW.md §5 realistic prompt: no single mission owns it - the honest answer is a chain, so the router must not guess one."
+      "reason": "docs/reviews/2026-09-10-review.md §5 realistic prompt: no single mission owns it - the honest answer is a chain, so the router must not guess one."
     },
     {
       "id": 130,
@@ -572,7 +572,7 @@
         "deflake-it",
         "root-cause"
       ],
-      "reason": "REVIEW.md §5 realistic prompt: environment-dependent intermittency.",
+      "reason": "docs/reviews/2026-09-10-review.md §5 realistic prompt: environment-dependent intermittency.",
       "collision": "prove-it"
     },
     {
@@ -580,7 +580,7 @@
       "prompt": "the API contract drifted from the docs",
       "type": "positive",
       "expected_mission": "clean-sweep",
-      "reason": "REVIEW.md §5 realistic prompt: prose that contradicts the code is a clean-sweep source, not runtime doctrine.",
+      "reason": "docs/reviews/2026-09-10-review.md §5 realistic prompt: prose that contradicts the code is a clean-sweep source, not runtime doctrine.",
       "collision": "document-it"
     },
     {
@@ -588,20 +588,20 @@
       "prompt": "kill the retry wrappers and make the suite deterministic",
       "type": "positive",
       "expected_mission": "deflake-it",
-      "reason": "REVIEW.md §5 realistic prompt: retry-wrappers-as-fixes are deflake-it's banned anti-pattern."
+      "reason": "docs/reviews/2026-09-10-review.md §5 realistic prompt: retry-wrappers-as-fixes are deflake-it's banned anti-pattern."
     },
     {
       "id": 133,
       "prompt": "chart a plan for the mobile rewrite",
       "type": "positive",
       "expected_mission": "map-it",
-      "reason": "REVIEW.md §5 realistic prompt: charting a foggy epic is map-it."
+      "reason": "docs/reviews/2026-09-10-review.md §5 realistic prompt: charting a foggy epic is map-it."
     },
     {
       "id": 134,
       "prompt": "our quality bar keeps slipping — fix the bugs it let through",
       "type": "positive",
-      "reason": "REVIEW.md §5 realistic prompt: install the bar (floor-it) or drain what it let through (clean-sweep).",
+      "reason": "docs/reviews/2026-09-10-review.md §5 realistic prompt: install the bar (floor-it) or drain what it let through (clean-sweep).",
       "expected_mission": "floor-it"
     },
     {
@@ -612,7 +612,7 @@
         "pin-it",
         "field-test-it"
       ],
-      "reason": "REVIEW.md §5 realistic prompt: doctrine re-pin after a control-plane upgrade, or an on-device defect."
+      "reason": "docs/reviews/2026-09-10-review.md §5 realistic prompt: doctrine re-pin after a control-plane upgrade, or an on-device defect."
     },
     {
       "id": 136,
@@ -622,7 +622,7 @@
         "harden-it",
         "field-test-it"
       ],
-      "reason": "REVIEW.md §5 realistic prompt: the adversarial loop (harden-it) run on hardware (field-test-it)."
+      "reason": "docs/reviews/2026-09-10-review.md §5 realistic prompt: the adversarial loop (harden-it) run on hardware (field-test-it)."
     },
     {
       "id": 137,

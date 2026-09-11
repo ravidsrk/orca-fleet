@@ -2,6 +2,10 @@
 
 # addyosmani/agent-skills × orca-fleet — adoption audit (2026-09-10)
 
+> **Dated record (2026-09-10).** Every `REVIEW.md` reference below means the review of that date,
+> now archived at [`docs/reviews/2026-09-10-review.md`](../../reviews/2026-09-10-review.md) — not the
+> 2026-09-11 review that occupies `REVIEW.md` today (#295).
+
 **Upstream pin:** `6ca0cd7` (plugin 0.6.9, tagged 0.6.9 on 2026-09-04 at `84ee506`; HEAD is the merge of #531). Local clone: `scratchpad/upstream/agent-skills`.
 **orca-fleet pin:** `a91937d` (main, 2026-09-10; the merge of #254 is `af8ea89`). All orca-fleet `file:line` anchors are at that SHA. Nothing in `/home/user/orca-fleet` was modified.
 **Prior audits this extends (not repeated):** `docs/research/2026-07-15-addy-orchestration-gap-analysis.md` (D1–D8), `docs/research/2026-08-16-addy-latest-delta-plan.md` (E1–E7), `docs/research/2026-09-09-upstream-adoption-audit.md` §2.3 (two stale lenses, three NOT-ADOPTED items).

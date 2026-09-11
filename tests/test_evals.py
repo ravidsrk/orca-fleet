@@ -41,7 +41,7 @@ EXPECTED_MISSIONS = {
 
 # Issue #260: the floor tracks what the description-based router actually
 # scores, never a rubber stamp. Measured on the full fixture set (74 rows: the
-# curated seams plus the 36 realistic prompts of REVIEW.md §5) at the commit
+# curated seams plus the 36 realistic prompts of docs/reviews/2026-09-10-review.md §5) at the commit
 # that introduced it: 67/74 = 90.5%, and 34/36 on the realistic prompts alone
 # (the keyword router scored 19/36). Every residual misroute was then closed by
 # a SKILL.md description edit — never a router tweak — so the live suite is
@@ -221,7 +221,7 @@ class TestDescriptionRouter(unittest.TestCase):
             self.assertLess(corpus.docs["alpha-it"].get("invoic", 0), 0)
 
     def test_evidence_floor_answers_none_instead_of_guessing(self):
-        # REVIEW.md §5: "make this production-ready" has no single owner. A
+        # docs/reviews/2026-09-10-review.md §5: "make this production-ready" has no single owner. A
         # prompt whose only match is catalog-common vocabulary is not a route.
         self.assertEqual(eval_mod.classify_prompt("make this production-ready"), [])
         self.assertIsNone(eval_mod.route_prompt("make this production-ready"))

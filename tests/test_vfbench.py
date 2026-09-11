@@ -63,7 +63,7 @@ class VFBenchSoundness(unittest.TestCase):
         # #257: the report-only control only exercises the scope leg. THIS one drives every
         # mutation authority at once — an executed revert, an independent APPROVED review, a
         # pinned artifact inventory, a fresh commands ledger — so "not always-RED" is proven for
-        # the class REVIEW.md's bypass log broke.
+        # the class docs/reviews/2026-09-10-review.md's bypass log broke.
         rows = {r["id"]: r for r in self.res["orca-fleet verify.py (sound)"]["rows"]}
         self.assertIn("mutation-valid-control-1", rows,
                       "the mutation-class positive control was skipped or dropped")
@@ -72,7 +72,7 @@ class VFBenchSoundness(unittest.TestCase):
 
     def test_waiver_lane_traps_are_red(self):
         # #256: dark-eligible and no-gh both waive the review; with a merely-READ control they
-        # must be RED. These are REVIEW.md A1/A2/A4/A6/A9 in the corpus.
+        # must be RED. These are docs/reviews/2026-09-10-review.md A1/A2/A4/A6/A9 in the corpus.
         rows = {r["id"]: r for r in self.res["orca-fleet verify.py (sound)"]["rows"]}
         for trap_id in ("fabricated-nc-dark-eligible-1", "fabricated-nc-no-gh-1"):
             self.assertEqual(rows[trap_id]["verdict"], "RED", trap_id)
@@ -90,7 +90,7 @@ class VFBenchSoundness(unittest.TestCase):
 
 
 class VFBenchShallowSkips(unittest.TestCase):
-    """#257 / REVIEW.md P2 item 22: a trap that pins a real commit cannot be scored on a shallow
+    """#257 / docs/reviews/2026-09-10-review.md P2 item 22: a trap that pins a real commit cannot be scored on a shallow
     clone. It must be SKIPPED BY NAME — in the corpus report and in --json — never silently
     scored, because a degraded leg reads as a RED the gate did not earn."""
 

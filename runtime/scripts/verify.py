@@ -73,7 +73,7 @@ EXECUTABLE_NC_TOOLS = ("revert", "hand")
 # #268: in a TEXT source an id counts only where it BEGINS a list item or a line and is followed by
 # a separator — `- AC-1: …`, `2. SC-3)`, `REQ-4.`. Prose tokens of the same shape (`SHA-256`,
 # `PR-12`, `RFC-7519`, `ISO-8601`) are NOT criteria; counting them is a FALSE RED that makes the
-# gate unusable on realistic contracts (REVIEW.md A11). The anchor is the one place a contract
+# gate unusable on realistic contracts (docs/reviews/2026-09-10-review.md A11). The anchor is the one place a contract
 # author declares a criterion, so under-counting (which would let scope shrink) stays unlikely.
 CRIT_ID_RE = re.compile(
     r"(?m)^[ \t]*(?:[-*]|\d+\.)?[ \t]*((?:[A-Z][A-Z0-9]*-\d+)|(?:[A-Z]{2,}\d+))[ \t]*[:.)]")
@@ -149,7 +149,7 @@ def _resolve(path):
     """Resolve a repo-relative path against the git toplevel. Returns (Path|None, err).
 
     #267: an ABSOLUTE path, or one that escapes the toplevel, is REFUSED. Evidence outside the
-    clone is evidence no auditor can re-derive — REVIEW.md A10 walked a negative-control artifact
+    clone is evidence no auditor can re-derive — docs/reviews/2026-09-10-review.md A10 walked a negative-control artifact
     out to a temp dir, untracked and unhashed, and the gate read it happily. There is no permissive
     fallback: outside a git repo there is no toplevel to bound against, so the read fails closed
     rather than silently widening."""
@@ -429,7 +429,7 @@ def fetch_pr_author(repo, pr_number):
 _WAIVER_NEEDS_EXECUTED_NC = (
     "{lane}: the independent review is WAIVED in this lane, so the negative control is the ONLY "
     "oracle left — and a control that was merely READ is a text file the worker wrote. It must be "
-    "EXECUTED (--execute-nc / ORCA_EXECUTE_NC) and go RED. Fail-closed (#256; REVIEW.md A1/A2/A4/"
+    "EXECUTED (--execute-nc / ORCA_EXECUTE_NC) and go RED. Fail-closed (#256; docs/reviews/2026-09-10-review.md A1/A2/A4/"
     "A6/A9 all landed on exactly this)")
 
 

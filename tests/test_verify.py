@@ -365,7 +365,7 @@ class NegativeControlCheck(RepoCase):
         self.assertEqual(self._errs(m), [])
 
     def test_absolute_artifact_path_is_refused(self):
-        # REVIEW.md A10: the artifact walked out of the repo entirely.
+        # docs/reviews/2026-09-10-review.md A10: the artifact walked out of the repo entirely.
         outside = Path(tempfile.mkdtemp()) / "nc.txt"
         self.addCleanup(lambda: outside.unlink(missing_ok=True))
         outside.write_text("killed m#7\n", encoding="utf-8")
@@ -504,7 +504,7 @@ class ReviewLookupBinding(unittest.TestCase):
         self.assertTrue(res and all(e.startswith("NOTE:") for e in res), res)
 
     def test_dark_eligible_with_a_read_only_control_fails_closed(self):
-        # REVIEW.md A1/A4/A6/A9: this exact lane went GREEN on a text file the worker wrote.
+        # docs/reviews/2026-09-10-review.md A1/A4/A6/A9: this exact lane went GREEN on a text file the worker wrote.
         res = verify.check_review(self._m(), "o/r", True, corroborated=True,
                                   dispatch_lighting="dark-eligible", nc_executed=False)
         self.assertTrue(any("EXECUTED" in e for e in res), res)
@@ -647,7 +647,7 @@ class CriterionExtraction(unittest.TestCase):
         self.assertEqual({"AC-1", "SC12", "REQ-3", "REQ-4"}, ids)
 
     def test_a11_realistic_contract_prose_is_not_a_criterion(self):
-        # REVIEW.md A11, the one FALSE RED in the bypass log: a realistic contract whose prose
+        # docs/reviews/2026-09-10-review.md A11, the one FALSE RED in the bypass log: a realistic contract whose prose
         # names a hash, a PR, an RFC and a date format. The denominator is exactly {AC-1, AC-2};
         # counting the prose tokens made every real contract unverifiable.
         contract = (
@@ -738,7 +738,7 @@ class NoGhReviewLane(RepoCase):
     def test_no_gh_without_executed_control_fails_closed(self):
         # #256: the no-gh lane replaces the GitHub review with a worker-written file, so the
         # negative control is the only oracle left and it must have been EXECUTED. This is the
-        # exact shape of REVIEW.md A2, which landed with a NOTE and exit 0.
+        # exact shape of docs/reviews/2026-09-10-review.md A2, which landed with a NOTE and exit 0.
         m = self._m("reviewed HEADSHA123 — approved by a fresh reviewer\n")
         res = verify.check_review(m, None, True, no_gh=True, corroborated=True, nc_executed=False)
         self.assertTrue(any("EXECUTED" in e for e in res), res)
@@ -1134,7 +1134,7 @@ class EndToEndMutationGreen(RepoCase):
         self._assert_mutation_lanes_ran()
 
     def test_dark_eligible_without_execute_nc_is_red(self):
-        # REVIEW.md A1/A4/A6/A9 replayed: the same manifest, the control merely READ.
+        # docs/reviews/2026-09-10-review.md A1/A4/A6/A9 replayed: the same manifest, the control merely READ.
         path = self._manifest(lighting="dark-eligible", nc=self._revert_nc())
         rc, _out, err = self._run_main(path, "--lighting", "dark-eligible")
         self.assertEqual(rc, 2)
@@ -1432,7 +1432,7 @@ class EndToEndMutationGreen(RepoCase):
 
     def test_executed_hand_control_applies_the_quoted_diff(self):
         # `hand`'s only binding to a mutation is the diff quoted in its artifact — so EXECUTING it
-        # means applying exactly that diff. A fabricated diff (REVIEW.md A4) will not apply.
+        # means applying exactly that diff. A fabricated diff (docs/reviews/2026-09-10-review.md A4) will not apply.
         diff = self.git("diff", f"{self.head_sha}..{self.base_sha}", "--", "app.py")
         art = self.artifact("hand mutant applied — the bound test went RED\n\n" + diff + "\n",
                             rel="docs/reports/u/hand.txt")

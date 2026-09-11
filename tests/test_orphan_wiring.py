@@ -386,6 +386,54 @@ class InstallInstructionsAreRunnable(unittest.TestCase):
                                  "claude.ai upload path rejects")
 
 
+class ReviewCitationsResolve(unittest.TestCase):
+    """#295. Replacing REVIEW.md in place left tracked source citing sections and attack ids of a
+    document no longer at that path. Three MIS-RESOLVED rather than dangling, which is worse:
+    `bundle.py` cited "§8 P2-18", and §8 P2-18 of the successor is a different item entirely. A
+    reader following it lands somewhere plausible and wrong.
+
+    The rule: a citation carrying an ANCHOR (a section or an attack id) must name the dated
+    document, because anchors are numbered per review and only the path disambiguates them. A bare
+    reference to `REVIEW.md` as a document is fine — that always means the current one.
+    """
+
+    # An anchor pins a specific claim inside a specific review: §N, A<n>, U<n>, P0-/P1-/P2-<n>.
+    ANCHORED = re.compile(
+        r"(?<!/)\bREVIEW\.md\b[^\n]{0,12}?"
+        r"(§\s*\d|\bA\d|\bU\d|\bP[012]-\d|\bP2\s+item)")
+    SEARCH_DIRS = ("runtime", "scripts", "tests", "evals", "bench", ".github")
+    SEARCH_FILES = ("ARCHITECTURE.md", "AGENTS.md", "CONTRIBUTING.md", "TODOS.md", "CHANGELOG.md")
+
+    def _offenders(self):
+        paths = [ROOT / f for f in self.SEARCH_FILES]
+        for d in self.SEARCH_DIRS:
+            paths += [p for p in (ROOT / d).rglob("*")
+                      if p.is_file() and p.suffix in (".py", ".sh", ".md", ".json", ".yml")
+                      and "__pycache__" not in p.parts]
+        bad = []
+        for path in sorted(paths):
+            if not path.is_file():
+                continue
+            for i, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+                if self.ANCHORED.search(line):
+                    bad.append(f"{path.relative_to(ROOT)}:{i}")
+        return bad
+
+    def test_no_anchored_citation_omits_the_dated_path(self):
+        bad = self._offenders()
+        self.assertEqual(bad, [], "anchored REVIEW.md citations that do not name which review: "
+                                  f"{bad} — anchors are numbered per review, so a bare one "
+                                  "mis-resolves against whichever document holds the path today")
+
+    def test_the_archived_predecessor_is_still_there(self):
+        # Every re-pointed citation depends on this path existing.
+        archive = ROOT / "docs" / "reviews" / "2026-09-10-review.md"
+        self.assertTrue(archive.is_file(), "the archived predecessor review is gone; 58 citations "
+                                           "now dangle")
+        self.assertIn("A11", archive.read_text(encoding="utf-8"),
+                      "the archived review no longer carries the attack ids cited against it")
+
+
 class DormantMechanismsSaySo(unittest.TestCase):
     """Two of the seven cannot be wired from inside the repository, so they say so instead.
 

@@ -632,7 +632,7 @@ def check_layer_separation(root=None):
 # restructuring (per-phase "read <doc> when entering X" cues instead of a single
 # read-everything compose clause). Naming the gap honestly and freezing it beats
 # a 5K cap that would red every mission on day one and be raised by lunchtime.
-TOKENS_PER_BYTE = 0.25  # the crude bytes/4 estimate the REVIEW.md measurement used
+TOKENS_PER_BYTE = 0.25  # the crude bytes/4 estimate the docs/reviews/2026-09-10-review.md measurement used
 MISSION_MAX_LOAD_TOKENS = 34_000
 ROOT_DOC_RE = re.compile(r"\]\((?:\.\./)+([A-Z][A-Z0-9_.-]*\.md)\)")
 

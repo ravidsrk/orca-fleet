@@ -232,7 +232,7 @@ class TestRealReports(unittest.TestCase):
     def test_negative_control_readme_table_parses_and_verifies(self):
         # The table form (| `file` | `hash` |) must parse, and the demo's own
         # transcript must hash true: its recorded hash drifted from the
-        # committed file once (REVIEW.md 7.4) and the inventory check is what
+        # committed file once (docs/reviews/2026-09-10-review.md 7.4) and the inventory check is what
         # keeps that from recurring silently.
         r = run_inv("check", str(NEGCTRL))
         self.assertEqual(r.returncode, 0,

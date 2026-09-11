@@ -63,7 +63,7 @@ class NegativeControlDigestPortability(unittest.TestCase):
 
 
 class NegativeControlIntegrityInventory(unittest.TestCase):
-    """REVIEW.md §7.4: the demo README's integrity inventory pinned `f40e3f86…` while the committed
+    """docs/reviews/2026-09-10-review.md §7.4: the demo README's integrity inventory pinned `f40e3f86…` while the committed
     transcript hashed `70d42150…` — the one place in the repo that promises tamper-evidence, stale
     against the file it names, with no checker. This IS the checker: re-derive the hash from the
     committed bytes and require the table to say the same thing."""

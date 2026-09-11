@@ -38,7 +38,7 @@ jobs:
         # full history the checkout step above fetches.
         run: python3 runtime/scripts/run_report.py
       - name: Bundle builds self-contained missions
-        # #272 / REVIEW.md P2-18: a copy installer severs every ../../ reference.
+        # #272 / docs/reviews/2026-09-10-review.md P2-18: a copy installer severs every ../../ reference.
         # --check builds the distribution tree in a temp dir and fails if any link
         # still leaves a mission directory.
         run: python3 scripts/bundle.py --check

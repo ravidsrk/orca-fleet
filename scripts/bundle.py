@@ -6,7 +6,7 @@ playbooks and runtime policies by BARE NAME, and they live two directories up.
 A symlink install preserves that. A plugin install copies the whole repo, so it
 preserves it too. An installer that copies `skills/<name>/` *out* of the tree
 severs every one of those references, and the mission then runs half-blind with
-nothing saying so (REVIEW.md §8 P2-18).
+nothing saying so (docs/reviews/2026-09-10-review.md §8 P2-18).
 
 This makes a distribution tree where each mission carries its own copies:
 

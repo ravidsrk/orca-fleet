@@ -729,7 +729,7 @@ class TestMutatingMissionSet(unittest.TestCase):
             self.assertIn(m, canonical)
 
 class TestBundleForCopyInstallers(unittest.TestCase):
-    """scripts/bundle.py — the copy-install fix (REVIEW.md §8 P2-18).
+    """scripts/bundle.py — the copy-install fix (docs/reviews/2026-09-10-review.md §8 P2-18).
 
     Three-layer separation means a mission names its protocols by bare name and
     they live two directories up. That is exactly what a copy installer severs.
