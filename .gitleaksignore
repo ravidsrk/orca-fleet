@@ -1,0 +1,16 @@
+# Fingerprints of the credential-SHAPED fixtures in tests/test_decisions.py, which
+# exists to prove decisions.py REFUSES credentials. They are in git history, so
+# editing the file cannot clear them.
+#
+# This replaced a --baseline-path baseline that carried each finding's commit
+# message, author and e-mail address alongside it (#300). A waiver needs the
+# finding's identity, not its content. Measured before switching: gitleaks 8.30.1
+# compares Email, Author, Date, Message, Entropy, Description and Commit when it
+# matches a baseline entry, so simply deleting those fields stops the baseline
+# suppressing anything — this file is the mechanism that takes a fingerprint.
+#
+# Still a waiver, so validate.yml still plants a real-shaped key in this same file
+# and requires the scan to go red.
+03e481a106bea9dbe124fd5b5181d5769e28061f:tests/test_decisions.py:generic-api-key:111
+03e481a106bea9dbe124fd5b5181d5769e28061f:tests/test_decisions.py:aws-access-token:102
+03e481a106bea9dbe124fd5b5181d5769e28061f:tests/test_decisions.py:aws-access-token:115

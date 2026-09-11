@@ -22,7 +22,17 @@ permissions:
 
 jobs:
   alert:
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'failure'
+    # `branches: [main]` filters the workflow_run's HEAD branch, and a fork's PR
+    # branch may be named `main` too — so a fork PR could file issues here (#300).
+    # No token reaches the fork (workflow_run runs in this repo with this repo's
+    # token), so the exposure is issue spam, not credentials; it is free to close.
+    # Both halves are needed: `event == 'push'` rules out a PR-triggered run, and
+    # the repository check rules out a fork pushing to its own `main`.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'failure' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_repository.full_name == github.repository)
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
