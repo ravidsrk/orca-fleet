@@ -6,8 +6,8 @@ description: >-
   upgrade one dep or coherent group per PR, adapting call sites (code-level
   expand/migrate/contract) to get off old majors while keeping CI green → re-inventory until every
   major is current or pinned-with-a-reason. Use when "update the dependencies", "upgrade
-  everything", "framework migration", "get off the old major", or an unattended dependency-
-  currency run. Not for stateful DB schema/data migration across deploys (hand that to ship-it) or
+  everything", "framework migration", "get off the old major", "move from Postgres 12 to 16", or
+  an unattended dependency-currency run. Not for stateful DB schema/data migration across deploys (hand that to ship-it) or
   advisory exploit proof (harden-it).
 license: MIT
 compatibility: >-

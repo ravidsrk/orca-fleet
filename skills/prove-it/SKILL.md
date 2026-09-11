@@ -7,7 +7,7 @@ description: >-
   mutation (harness still runnable — a compile break is not proof), and route surfaced bugs to a
   fix or backlog, looping until every confirmed critical path is mutation-audited. Use when "close
   the test gap", "cover the critical paths", "pin a characterization net", "test debt",
-  characterization/mutation testing — it owns missing coverage, not broken tests. Not for flake
+  "add tests before we refactor", characterization/mutation testing, missing coverage. Not for broken tests, nor flake
   eradication (deflake-it), a deterministically failing test (clean-sweep), building features with
   tests from the start (ship-it), or restructuring a module's interface once the net exists
   (reshape-it — its DEEPEN units consume this mission's characterization net).

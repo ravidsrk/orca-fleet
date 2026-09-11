@@ -6,10 +6,9 @@ description: >-
   regression. Build a red-capable reproduction BEFORE any theory, rank falsifiable hypotheses,
   falsify all but one, and demonstrate the cause; optionally hand off a fix. Use when "diagnose
   this", "why is this happening", "why does this fail only in CI", "find the root cause", "debug
-  this hard bug". Diagnosis, not
-  remediation — the fix is a separate authorized handoff (ship-it / clean-sweep). Not for a whole
-  flaky SUITE under a statistical streak contract (deflake-it) or an enumerable backlog (clean-
-  sweep).
+  this hard bug", diagnosis. Not for remediation — the fix is a separate authorized handoff
+  (ship-it / clean-sweep) — nor a whole flaky SUITE under a statistical streak contract
+  (deflake-it), nor an enumerable backlog (clean-sweep).
 license: MIT
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh. A feedback-loop-first
