@@ -64,21 +64,24 @@ worker-set; anything else in the environment is ignored):
 - `ORCA_NC_COMMAND` — the **authoritative** criterion-bound command the negative control must turn
   RED, supplied out of band exactly as the frozen contract is. It is forwarded as `--nc-command`,
   and the manifest's own `negative_control.command` must agree with it or the run is RED — a unit
-  does not get to choose what proves it. When it is unset, verify.py falls back to the manifest's
-  command but requires that command to be **already in the manifest's content-bound `commands[]`
-  ledger**: an exit-0 record whose `wtree` is `head_sha`'s tree and whose `cmd_sha256` hashes its
-  own `cmd`. Without one of those two bindings a worker could nominate any command that happens to
-  fail under the control and pass clean, clearing the executed-control gate without ever running
-  the criterion-bound proof (PR #277 review).
+  does not get to choose what proves it. It is **REQUIRED whenever `ORCA_EXECUTE_NC` is set**
+  (#279): there is no fallback. verify.py used to accept the manifest's own command when that
+  command was already in the content-bound `commands[]` ledger, but the ledger is written by
+  `evidence-run.py` *on the worker*, from what the worker hands it — so the manifest and the ledger
+  are the same authority twice, and binding one to the other is circular. A worker that writes both
+  can nominate `grep -q FIXED calc.py` as its "criterion-bound proof", record it green at
+  `head_sha`'s tree, and clear the executed-control gate without running a test. That is attack A12
+  of the 2026-09-11 review, and A15 is the same move in the strongest lane the repo documents.
 - `ORCA_EXECUTE_NC` — set (to anything non-empty) to forward `--execute-nc`, which **executes the
   negative control** instead of reading it. verify.py checks out `head_sha` in a throwaway worktree,
   applies the control from the manifest — `tool: revert` restores `negative_control.paths` from
   `base_sha` (falling back to `git revert --no-commit base..head` only when no paths are given and
   the range is linear); `tool: hand` applies the unified diff quoted in the NC artifact — and
   requires `negative_control.command` to exit **non-zero** there, then **zero** in a second clean
-  worktree at `head_sha`. Fail-closed on anything else: a tool with no replay, a missing
-  command/paths, a git error, a control that changes nothing, or a command that passes under the
-  control ("tautological — the proof does not go RED"). It is **REQUIRED** in the two review-waiver
+  worktree at `head_sha`. Requires `ORCA_NC_COMMAND` — without it the run is RED before any
+  worktree is built, so a command the worker nominated is never executed. Fail-closed on anything
+  else too: a tool with no replay, a missing command/paths, a git error, a control that changes
+  nothing, or a command that passes under the control ("tautological — the proof does not go RED"). It is **REQUIRED** in the two review-waiver
   lanes below; elsewhere it is the stronger form of the same check. Budget ~2 worktree checkouts +
   2 runs of the bound command (600 s cap each).
 - `ORCA_NO_GH` — set to take the **no-gh lane**: review authority switches from the GitHub lookup to a

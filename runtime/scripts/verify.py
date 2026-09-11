@@ -8,8 +8,9 @@ that it can instead check against authoritative state. The manifest is a *claim*
   - GIT — commit existence and ancestry;
   - GITHUB — whether a review actually happened at the reviewed SHA (a manifest-set reviewed_sha
     proves nothing);
-  - the NEGATIVE-CONTROL, EXECUTED (--execute-nc) in throwaway worktrees — the artifact alone is
-    corroboration, never proof.
+  - the NEGATIVE-CONTROL, EXECUTED (--execute-nc) in throwaway worktrees against the command the
+    COORDINATOR names (--nc-command) — the artifact alone is corroboration, never proof, and a
+    command the worker names proves only what the worker chose to prove (#279).
 
 Checks (evidence-manifest.md section 2), scope FIRST:
   1. scope: re-derive the criterion set from the COORDINATOR-supplied authoritative contract
@@ -23,7 +24,8 @@ Checks (evidence-manifest.md section 2), scope FIRST:
      EXECUTED negative control: there the control is the whole oracle, so it cannot be text (#256).
   4. negative control: structured (known tool, KILLED/RED verdict, pinned mutant, artifact) AND the
      artifact must corroborate. With --execute-nc the control is APPLIED in a throwaway worktree at
-     head_sha and the bound command must go NON-ZERO under it and ZERO at clean head_sha (#255).
+     head_sha and the command --nc-command names must go NON-ZERO under it and ZERO at clean
+     head_sha (#255, #279).
   5. commands: a mutation unit needs ≥1 recorded exit-0 command whose `wtree` is head_sha's tree,
      written by evidence-run.py — the clean-env re-run as a machine check (#3 of the audit ledger).
   6. redaction: the manifest and every named artifact are scanned for credential shapes (#14).
@@ -34,8 +36,8 @@ PINNED — tracked at head_sha, or hashed in the manifest's `artifacts[]` invent
 
 Usage:
     verify.py --manifest <m.json> --contract-source <path@ref> --contract-digest <sha256:…>
-              [--repo owner/name] [--unit-class mutation|report-only|planning] [--execute-nc]
-              [--base <branch>] [--symbol <tok>]
+              [--repo owner/name] [--unit-class mutation|report-only|planning]
+              [--execute-nc --nc-command <cmd>] [--base <branch>] [--symbol <tok>]
     # exit 0 = all REQUIRED checks pass · 1 = usage/dependency · 2 = a REQUIRED invariant FAILED
 """
 from __future__ import annotations
@@ -509,24 +511,20 @@ def _run_at(cwd, args, timeout=20, stdin_bytes=None):
         return 124, "", str(err)
 
 
-def _nc_command(nc, m, override=None):
+def _nc_command(nc, override):
     """The criterion-bound command the control must turn RED. Returns (argv, err).
 
-    The command is NOT taken on the worker's word. `negative_control.command` is
-    worker-written, and a worker free to nominate any command could pick one that
-    happens to fail under the control and pass clean — satisfying the executed-control
-    gate without ever running the criterion-bound proof (PR #277 review, P1). It would
-    also hand worker-chosen argv to the verifier's own privileges.
+    The command is NOT taken on the worker's word — and not on the ledger's either. Both are
+    documents the graded worker writes: `negative_control.command` directly, and the `commands[]`
+    records that once justified it via `evidence-run.py`, which runs on the worker and records
+    what the worker hands it. Binding the one to the other is circular. A worker that writes both
+    can nominate `grep -q FIXED calc.py` as its "criterion-bound proof", record it green at
+    head_sha's tree, and clear the executed-control gate without ever running a test
+    (docs/reviews/2026-09-11 §4 A12/A15; #279).
 
-    So the command must ALREADY be in the content-bound evidence ledger: a `commands[]`
-    record with `exit == 0` whose `wtree` is head_sha's tree — the same record
-    `check_commands` requires, written by `evidence-run.py`, carrying its own
-    `cmd_sha256`. The manifest can only re-nominate a command that demonstrably ran
-    green on exactly this content; there is nothing left to invent.
-
-    `override` is the coordinator's `--nc-command`, supplied out of band the way
-    `--contract-source` is. When given it is authoritative AND the manifest must agree
-    with it, so a worker cannot quietly swap the proof command underneath a
+    So the only admissible source is `override`: the coordinator's `--nc-command`, supplied out of
+    band the way `--contract-source` is. The manifest must still name a command, and it must AGREE
+    with the coordinator's, so a worker cannot quietly swap the proof command underneath a
     coordinator who named one.
     """
     raw = nc.get("command")
@@ -541,39 +539,23 @@ def _nc_command(nc, m, override=None):
         return None, "negative_control.command is empty after parsing"
     line = shlex.join(argv)
 
-    if override is not None:
-        try:
-            want = shlex.split(override)
-        except ValueError as err:
-            return None, f"--nc-command is not parseable as a command line ({err})"
-        if not want:
-            return None, "--nc-command is empty after parsing"
-        if shlex.join(want) != line:
-            return None, (f"negative_control.command {line!r} is not the command the coordinator "
-                          f"supplied out of band ({shlex.join(want)!r}) — a unit does not get to "
-                          "choose what proves it; fail-closed")
-        return want, None
-
-    fresh, err = _fresh_command_records(m)
-    if err:
-        return None, err
-    for rec in fresh:
-        if rec.get("cmd") != line:
-            continue
-        digest = rec.get("cmd_sha256")
-        actual = hashlib.sha256(line.encode("utf-8")).hexdigest()
-        if digest != actual:
-            return None, (f"commands ledger record for {line!r} carries cmd_sha256 {digest} but the "
-                          f"command line hashes to {actual} — the record does not describe its own "
-                          "command, so it binds nothing; fail-closed")
-        return argv, None
-    return None, (
-        f"negative_control.command {line!r} is not in the evidence ledger: no `commands[]` record "
-        "with exit 0 at head_sha's tree runs it. The control may only replay a command that is "
-        "ALREADY content-bound (wrap it in `runtime/scripts/evidence-run.py`), or one the "
-        "coordinator supplies with --nc-command. Recorded here: "
-        + (", ".join(repr(r.get("cmd")) for r in fresh) or "nothing")
-    )
+    if override is None:
+        return None, (
+            "--execute-nc requires --nc-command: the criterion-bound proof command must come from "
+            "the coordinator, out of band, exactly as --contract-source does. The manifest nominates "
+            f"{line!r} — and the manifest is written by the graded worker, as is the `commands[]` "
+            "ledger, so neither can authorise the other; fail-closed (#279)")
+    try:
+        want = shlex.split(override)
+    except ValueError as err:
+        return None, f"--nc-command is not parseable as a command line ({err})"
+    if not want:
+        return None, "--nc-command is empty after parsing"
+    if shlex.join(want) != line:
+        return None, (f"negative_control.command {line!r} is not the command the coordinator "
+                      f"supplied out of band ({shlex.join(want)!r}) — a unit does not get to "
+                      "choose what proves it; fail-closed")
+    return want, None
 
 
 def _fresh_command_records(m):
@@ -708,7 +690,7 @@ def execute_negative_control(m, nc_command=None):
         return False, ["--execute-nc: not inside a git repo — cannot create a control worktree"]
     if _git(["cat-file", "-e", f"{head}^{{commit}}"])[0] != 0:
         return False, [f"--execute-nc: head_sha '{head}' is not a real commit here"]
-    argv, err = _nc_command(nc, m, nc_command)
+    argv, err = _nc_command(nc, nc_command)
     if err:
         return False, [f"--execute-nc: {err}"]
     msgs = []
@@ -835,8 +817,20 @@ def check_commands(m, is_mutation):
         return ["commands ledger: no recorded command (mutation unit). Wrap the criterion-bound "
                 "run in `runtime/scripts/evidence-run.py --label <L> --manifest <m.json> -- <cmd>` "
                 "so the manifest carries an exit code bound to a content fingerprint; fail-closed"]
-    # Same freshness rule the --execute-nc replay binds its command to (_nc_command),
-    # read from one place so the two can never drift apart.
+    # A record whose cmd_sha256 does not hash its own cmd describes nothing, so it binds nothing:
+    # a decorative digest would let the line be edited after the run. Checked here rather than at
+    # the point of use, because since #279 the replay no longer draws its command from this ledger
+    # and the integrity of the ledger is still worth asserting.
+    for rec in records:
+        line = rec.get("cmd")
+        digest = rec.get("cmd_sha256")
+        if not (isinstance(line, str) and isinstance(digest, str)):
+            continue
+        actual = hashlib.sha256(line.encode("utf-8")).hexdigest()
+        if digest != actual:
+            return [f"commands ledger: record for {line!r} carries cmd_sha256 {digest} but the "
+                    f"command line hashes to {actual} — the record does not describe its own "
+                    "command, so it binds nothing; fail-closed"]
     fresh, _ = _fresh_command_records(m)
     if not fresh:
         seen = sorted({str(c.get("wtree")) for c in records if c.get("exit") == 0})
@@ -1121,14 +1115,16 @@ def main(argv=None):
     ap.add_argument("--repo", default=None, help="owner/name for the review lookup (default: infer from origin)")
     ap.add_argument("--nc-command", default=None,
                     help="AUTHORITATIVE criterion-bound command for --execute-nc, supplied out of "
-                         "band by the coordinator. Without it the command must already be in the "
-                         "manifest's content-bound `commands[]` ledger; with it, the manifest must "
-                         "agree. A unit never chooses what proves it.")
+                         "band by the coordinator. REQUIRED by --execute-nc (#279): the manifest "
+                         "and the commands ledger are both worker-written, so neither can "
+                         "authorise the other. The manifest must agree with this or the run is "
+                         "RED. A unit never chooses what proves it.")
     ap.add_argument("--execute-nc", action="store_true",
                     help="EXECUTE the negative control (#255): apply it in a throwaway worktree at "
-                         "head_sha, require negative_control.command to exit non-zero there and 0 "
-                         "at clean head_sha. REQUIRED by the review-waiver lanes (--lighting "
-                         "dark-eligible / --no-gh), which have no other oracle (#256)")
+                         "head_sha, require the bound command to exit non-zero there and 0 at "
+                         "clean head_sha. Requires --nc-command (#279). REQUIRED by the "
+                         "review-waiver lanes (--lighting dark-eligible / --no-gh), which have no "
+                         "other oracle (#256)")
     ap.add_argument("--base", default=None, help="integration base branch (for ancestry)")
     ap.add_argument("--symbol", default=None, help="a unit symbol to grep on the base")
     ap.add_argument("--unit-class", default=None,

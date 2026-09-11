@@ -26,9 +26,10 @@
 #   ORCA_PROVENANCE       ci|mcp|sdk|dispatch — asserts the env came from OFF the worker (optional)
 #   ORCA_NC_COMMAND       forwarded as --nc-command: the AUTHORITATIVE criterion-bound command the
 #                         control must turn RED, supplied out of band the way the contract is.
-#                         Without it verify.py falls back to the manifest's own command, which is
-#                         then required to be in the manifest's content-bound `commands[]` ledger —
-#                         a unit never nominates an arbitrary command to be proved by.
+#                         REQUIRED whenever ORCA_EXECUTE_NC is set (#279) — there is no fallback.
+#                         The manifest and the `commands[]` ledger are both written by the graded
+#                         worker, so neither can authorise the other; a unit never nominates the
+#                         command that proves it.
 #   ORCA_EXECUTE_NC       forwarded as --execute-nc: verify.py EXECUTES the negative control in a
 #                         throwaway worktree at head_sha (RED under the control, green at clean head).
 #                         REQUIRED whenever ORCA_NO_GH or ORCA_LIGHTING=dark-eligible is set — those
@@ -100,6 +101,13 @@ set -- --manifest "$MANIFEST"
 [ -n "$PUBKEY" ] && set -- "$@" --dispatch-pubkey "$PUBKEY"
 [ -n "${ORCA_EXECUTE_NC:-}" ] && set -- "$@" --execute-nc
 [ -n "${ORCA_NC_COMMAND:-}" ] && set -- "$@" --nc-command "$ORCA_NC_COMMAND"
+
+# #279: say it here rather than let the operator read it out of verify.py's invariant list. The
+# refusal itself is verify.py's — this is a signpost, never the check.
+if [ -n "${ORCA_EXECUTE_NC:-}" ] && [ -z "${ORCA_NC_COMMAND:-}" ]; then
+  echo "verify-gate: NOTE — ORCA_EXECUTE_NC is set without ORCA_NC_COMMAND. The executed control" \
+       "needs the criterion-bound command from OFF the worker; the manifest cannot supply it." >&2
+fi
 
 # Trust boundary (#112, #135): soundness is a property of the EXECUTION CONTEXT, not of an env var the
 # worker can set. A signed dispatch record is verified (defense-in-depth in-session; a real boundary

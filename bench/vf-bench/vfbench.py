@@ -191,6 +191,11 @@ def fixture_gate(trap):
             cmd.append("--no-gh")
         if trap.get("execute_nc"):
             cmd.append("--execute-nc")
+            # #279: the criterion-bound command comes from the COORDINATOR, out of band, exactly as
+            # the contract does. The bench plays that role here; a trap that omits it is modelling a
+            # coordinator who named no command, and verify.py refuses the run.
+            if trap.get("nc_command"):
+                cmd += ["--nc-command", _render(trap["nc_command"], facts)]
         if trap.get("repo"):
             cmd += ["--repo", trap["repo"]]
         env = dict(os.environ)
@@ -235,6 +240,10 @@ def sound_gate(trap):
             cmd += ["--base", trap["base"]]
         if trap.get("repo"):
             cmd += ["--repo", trap["repo"]]
+        if trap.get("execute_nc"):
+            cmd.append("--execute-nc")
+            if trap.get("nc_command"):  # coordinator-supplied, as in fixture_gate (#279)
+                cmd += ["--nc-command", trap["nc_command"]]
         r = subprocess.run(cmd, capture_output=True, text=True, cwd=ROOT)
         # verify.py returns 0 (GREEN/allow) or 2 (RED/invariant failed). Any other code (1 = usage /
         # dependency error) is a BROKEN run, not a verdict — fail loud so it cannot inflate soundness

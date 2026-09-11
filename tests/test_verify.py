@@ -13,6 +13,7 @@ import itertools
 import json
 import os
 import shlex
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -1124,7 +1125,8 @@ class EndToEndMutationGreen(RepoCase):
         # control is REALLY EXECUTED — app.py restored from base_sha in a throwaway worktree at
         # head_sha, the bound command RED there and GREEN at clean head_sha.
         path = self._manifest(lighting="dark-eligible", nc=self._revert_nc())
-        rc, out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc")
+        rc, out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc",
+                                      "--nc-command", self.proof_cmd)
         self.assertEqual(rc, 0, err)
         self.assertIn("negative control EXECUTED", out)
         self.assertIn("exits 0 at clean head_sha", out)
@@ -1154,42 +1156,62 @@ class EndToEndMutationGreen(RepoCase):
         Path(path).write_text(json.dumps(manifest), encoding="utf-8")
         verify.fetch_reviews = lambda repo_, n: (
             [{"state": "APPROVED", "commit_id": head, "user": {"login": "carol"}}], None)
-        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc")
+        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc",
+                                       "--nc-command", self.proof_cmd)
         self.assertEqual(rc, 2)
         self.assertIn("TAUTOLOGICAL", err)
 
-    def test_a_command_absent_from_the_ledger_is_refused(self):
-        # PR #277 review, P1: `negative_control.command` is worker-written. A worker free to
-        # nominate any command can pick one that fails under the control and passes clean —
-        # green gate, criterion never run — and hands the verifier arbitrary argv besides.
-        # The replay may only run a command the content-bound ledger already recorded green
-        # at head_sha's tree.
-        nc = {**self._revert_nc(), "command": "/bin/false"}
-        path = self._manifest(lighting="dark-eligible", nc=nc)
+    def test_execute_nc_without_a_coordinator_command_is_refused(self):
+        # #279. `negative_control.command` is worker-written and so is the `commands[]` ledger that
+        # used to justify it, so neither can authorise the other. A12/A15 of the 2026-09-11 review
+        # landed exactly here: a worker that writes both nominates its own "proof".
+        path = self._manifest(lighting="dark-eligible", nc=self._revert_nc())
         rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc")
         self.assertEqual(rc, 2)
-        self.assertIn("is not in the evidence ledger", err)
-        self.assertNotIn("TAUTOLOGICAL", err)  # refused before it was ever executed
+        self.assertIn("--execute-nc requires --nc-command", err)
+        self.assertNotIn("TAUTOLOGICAL", err)  # refused before anything was executed
 
-    def test_a_ledger_record_whose_sha_does_not_match_is_refused(self):
-        # cmd_sha256 that does not hash its own cmd binds nothing; a decorative digest
-        # would let a record be edited after the fact.
-        path = self._manifest(lighting="dark-eligible", nc=self._revert_nc(), commands=[
-            {"label": "tests", "cmd": self.proof_cmd, "cmd_sha256": "0" * 64,
+    def test_a_shell_command_in_the_manifest_is_never_executed(self):
+        # The concrete A12 manifest: `sh -c` smuggles arbitrary argv onto the verifier's own host,
+        # and the ledger fallback used to accept it as a "criterion-bound proof command". Now the
+        # manifest is refused before the worktree is ever built, so the payload never runs.
+        holder = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, holder, True)
+        canary = Path(holder) / "canary"
+        smuggled = f"sh -c 'touch {canary}; exit 1'"
+        nc = {**self._revert_nc(), "command": smuggled}
+        path = self._manifest(lighting="dark-eligible", nc=nc, commands=[
+            {"label": "tests", "cmd": smuggled,
+             "cmd_sha256": hashlib.sha256(smuggled.encode("utf-8")).hexdigest(),
              "exit": 0, "wtree": self.head_tree}])
         rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc")
         self.assertEqual(rc, 2)
+        self.assertIn("--execute-nc requires --nc-command", err)
+        self.assertFalse(canary.exists(), "the manifest's command was executed despite being refused")
+
+    def test_a_ledger_record_whose_sha_does_not_match_is_refused(self):
+        # cmd_sha256 that does not hash its own cmd binds nothing; a decorative digest would let a
+        # record be edited after the fact. Since #279 the replay no longer reads this ledger, so the
+        # integrity check lives in check_commands — where the ledger is actually graded.
+        path = self._manifest(lighting="dark-eligible", nc=self._revert_nc(), commands=[
+            {"label": "tests", "cmd": self.proof_cmd, "cmd_sha256": "0" * 64,
+             "exit": 0, "wtree": self.head_tree}])
+        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc",
+                                       "--nc-command", self.proof_cmd)
+        self.assertEqual(rc, 2)
         self.assertIn("does not describe its own command", err)
 
-    def test_a_stale_ledger_record_cannot_supply_the_command(self):
-        # The record must be fresh at head_sha's tree, the same rule check_commands applies.
+    def test_a_stale_ledger_record_still_fails_the_commands_gate(self):
+        # The ledger must still be fresh at head_sha's tree — that check is check_commands' job and
+        # is unchanged by #279; only the NC replay stopped depending on it.
         path = self._manifest(lighting="dark-eligible", nc=self._revert_nc(), commands=[
             {"label": "tests", "cmd": self.proof_cmd,
              "cmd_sha256": hashlib.sha256(self.proof_cmd.encode("utf-8")).hexdigest(),
              "exit": 0, "wtree": "0" * 40}])
-        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc")
+        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc",
+                                       "--nc-command", self.proof_cmd)
         self.assertEqual(rc, 2)
-        self.assertIn("is not in the evidence ledger", err)
+        self.assertIn("STALE evidence", err)
 
     def test_coordinator_nc_command_overrides_and_must_agree(self):
         # --contract-source's shape, for the proof command: the coordinator supplies it out of
@@ -1210,7 +1232,8 @@ class EndToEndMutationGreen(RepoCase):
     def test_executed_control_needs_a_bound_command(self):
         nc = {k: v for k, v in self._revert_nc().items() if k != "command"}
         path = self._manifest(lighting="dark-eligible", nc=nc)
-        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc")
+        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc",
+                                       "--nc-command", self.proof_cmd)
         self.assertEqual(rc, 2)
         self.assertIn("negative_control.command", err)
 
@@ -1233,7 +1256,8 @@ class EndToEndMutationGreen(RepoCase):
         Path(path).write_text(json.dumps(manifest), encoding="utf-8")
         verify.fetch_reviews = lambda repo_, n: (
             [{"state": "APPROVED", "commit_id": head, "user": {"login": "carol"}}], None)
-        rc, out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc")
+        rc, out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc",
+                                      "--nc-command", self.proof_cmd)
         self.assertEqual(rc, 0, err)
         self.assertIn("negative control EXECUTED", out)
 
@@ -1251,7 +1275,8 @@ class EndToEndMutationGreen(RepoCase):
         manifest = json.loads(Path(path).read_text(encoding="utf-8"))
         manifest["head_sha"] = self.git("rev-parse", "HEAD")
         Path(path).write_text(json.dumps(manifest), encoding="utf-8")
-        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc")
+        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc",
+                                       "--nc-command", self.proof_cmd)
         self.assertEqual(rc, 2)
         self.assertIn("does not apply at head_sha", err)
 
