@@ -261,6 +261,41 @@ class TheSoloRunLessonIsWhereItIsNeeded(unittest.TestCase):
                           f"{path} states the problem without naming the way through")
 
 
+class EveryMissionHasAPathToProof(unittest.TestCase):
+    """#292. The field-proof plan says how each mission would earn a tier above doctrine-only.
+    Eight of twenty-one had no row — including all four added on a single day in 2026-09-10, and
+    four whose runs exist but bind `no`. Nothing enforced the plan, which is why adding four
+    missions at once did not trip anything: a mission with no path to a proof tier is a mission
+    whose claim cannot be checked, and adding one must never be cheaper than planning how to
+    prove it.
+    """
+
+    def _plan_rows(self):
+        text = read("docs/runs/README.md")
+        section = text[text.index("## Field-proof plan"):]
+        return {line.split("|")[1].strip() for line in section.splitlines()
+                if line.startswith("|") and line.count("|") >= 5}
+
+    def test_every_mission_has_a_plan_row(self):
+        missions = {d.name for d in SKILLS.iterdir() if (d / "SKILL.md").is_file()}
+        missing = sorted(missions - self._plan_rows())
+        self.assertEqual(missing, [],
+                         f"missions with no path to a proof tier: {missing}")
+
+    def test_the_plan_has_no_row_for_a_mission_that_does_not_exist(self):
+        # The other direction: a row for a deleted mission is a plan for nothing.
+        missions = {d.name for d in SKILLS.iterdir() if (d / "SKILL.md").is_file()}
+        header = {"Mission", "---"}
+        stale = sorted(r for r in self._plan_rows() if r and r not in missions and r not in header)
+        self.assertEqual(stale, [], f"plan rows for missions that no longer exist: {stale}")
+
+    def test_the_plan_does_not_carry_a_stale_catalog_count(self):
+        # docs/runs/README.md is not in COUNT_LINT_FILES, so its "Thirteen missions are
+        # doctrine-only" sat false and unpoliced while every mission was doctrine-only.
+        text = read("docs/runs/README.md")
+        self.assertNotIn("Thirteen missions are", text)
+
+
 class DormantMechanismsSaySo(unittest.TestCase):
     """Two of the seven cannot be wired from inside the repository, so they say so instead.
 
