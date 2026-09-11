@@ -9,7 +9,9 @@ of vendor-named skills. They use only the standard library. Run:
     # or
     python3 tests/test_architecture.py
 """
+import contextlib
 import importlib.util
+import io
 import re
 import tempfile
 import subprocess
@@ -208,7 +210,11 @@ class TheActivationLoadTableIsGenerated(unittest.TestCase):
             gen.ARCH = stale
             gen.BADGES_DIR = Path(tmp) / "badges"
             gen.GUIDES_DIR = Path(tmp) / "guides"
-            gen.write()
+            # Swallow the writer's chatter. It names real-looking paths ("wrote ARCHITECTURE.md",
+            # "skip docs/missions/ship-it.md") while writing only into tmp, and in a CI log that
+            # reads as though the run had modified the repository.
+            with contextlib.redirect_stdout(io.StringIO()):
+                gen.write()
             written = stale.read_text(encoding="utf-8")
         self.assertNotIn("wrong", written, "write() left the stale block in place")
         self.assertIn("| Mission | Activation load |", written)

@@ -316,14 +316,18 @@ class VFBenchReviewLeg(unittest.TestCase):
         self.assertEqual(r.returncode, 0, f"every non-review check must pass: {r.stderr}")
 
 
-class TheFourRefusedControlClassesAreSampled(unittest.TestCase):
+class TheRefusedControlClassesAreSampled(unittest.TestCase):
     """#306: "0% false-done" only means something if the suite samples what actually gets through.
 
     The bypass log landed nine of thirteen gaming manifests against this mechanism, so the number
-    was measuring the traps that had been chosen, not the gate's strength. These four are the
-    classes the review found, and building them found a real gap: the path bind ran only on the
-    --execute-nc leg, so a NARRATED decoy path or oracle revert passed. The bench read 2/17
-    false-done until that was fixed.
+    was measuring the traps that had been chosen, not the gate's strength. Four are the classes the
+    review found, and building them found a real gap: the path bind ran only on the --execute-nc
+    leg, so a NARRATED decoy path or oracle revert passed. The bench read 2/17 false-done until
+    that was fixed.
+
+    The fifth, `decoy-hand-diff`, came out of the review OF that fix — the same asymmetry one tool
+    over, for `hand` controls. Hence five, not four; the class was named before it grew (PR #308
+    review).
     """
 
     TRAPS = ROOT / "bench" / "vf-bench" / "traps"
