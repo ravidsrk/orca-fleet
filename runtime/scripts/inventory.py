@@ -84,16 +84,26 @@ def repo_root(start):
     return Path(r.stdout.strip())
 
 
-def find_block(lines):
-    """Return (start, end) line indices of the inventory block body, exclusive of
-    the heading. The block runs to the next heading of any depth or EOF."""
+def find_blocks(lines):
+    """[(start, end)] for EVERY inventory block body, exclusive of the heading. Each block runs to
+    the next heading of any depth or EOF.
+
+    Every, not the first (#315). Reading only the first left a second block in the same document
+    unhashed and uncompared, so a report could carry one inventory a tool checks and another a
+    human reads. A document's integrity claim is all of the claims it makes."""
+    blocks = []
     for i, line in enumerate(lines):
-        if HEADING.match(line):
-            for j in range(i + 1, len(lines)):
-                if NEXT_HEADING.match(lines[j]):
-                    return i, j
-            return i, len(lines)
-    raise InventoryError("no '## … integrity inventory (sha256)' heading found")
+        if not HEADING.match(line):
+            continue
+        end = len(lines)
+        for j in range(i + 1, len(lines)):
+            if NEXT_HEADING.match(lines[j]):
+                end = j
+                break
+        blocks.append((i, end))
+    if not blocks:
+        raise InventoryError("no '## … integrity inventory (sha256)' heading found")
+    return blocks
 
 
 def parse_entries(lines, start, end):
@@ -168,8 +178,10 @@ def load(report_path):
     except OSError as err:
         raise InventoryError(f"{report_path} is unreadable: {err}") from err
     lines = text.splitlines()
-    start, end = find_block(lines)
-    return report, lines, parse_entries(lines, start, end)
+    entries = []
+    for start, end in find_blocks(lines):
+        entries.extend(parse_entries(lines, start, end))
+    return report, lines, entries
 
 
 def check_entries(entries, report, root, at=None):

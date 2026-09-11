@@ -26,6 +26,9 @@ def sha(text):
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
+EXIT_MISMATCH = 1   # inventory.py's own mismatch code; asserted against the script in test_script_shape
+
+
 def run_inv(*args):
     return subprocess.run([sys.executable, str(INVENTORY), *args], capture_output=True, text=True)
 
@@ -138,6 +141,51 @@ class TestFencedBlock(InventoryBase):
         self.assertNotIn("never-read.txt", r.stdout + r.stderr)
 
 
+class TestSecondInventoryBlock(InventoryBase):
+    """#315: only the FIRST `## … integrity inventory (sha256)` heading was ever read. A second
+    block later in the same document was neither hashed nor compared, so a report could carry an
+    honest inventory a tool checks and a fabricated one a human reads."""
+
+    def two_block_report(self, first, second):
+        def fence(entries):
+            return "```\n" + "\n".join(f"{h}  {p}" for p, h in entries) + "\n```"
+        report = self.tmp / "report.md"
+        report.write_text(
+            "# Run\n\nprose\n\n"
+            "## Run-close integrity inventory (sha256)\n\n" + fence(first) + "\n\n"
+            "## Appendix\n\nmore prose\n\n"
+            "## Second integrity inventory (sha256)\n\n" + fence(second) + "\n\n"
+            "## Gates\n\n- none\n",
+            encoding="utf-8")
+        return report
+
+    def test_a_fabricated_second_block_is_a_mismatch(self):
+        self.artifact("a.txt", "alpha\n")
+        report = self.two_block_report([("a.txt", sha("alpha\n"))],
+                                       [("a.txt", sha("something else entirely\n"))])
+        r = run_inv("check", str(report))
+        self.assertEqual(r.returncode, EXIT_MISMATCH,
+                         f"the second block was never checked: {r.stdout}")
+        self.assertIn("MISMATCH", r.stderr)
+
+    def test_both_honest_blocks_verify(self):
+        self.artifact("a.txt", "alpha\n")
+        self.artifact("b.txt", "beta\n")
+        report = self.two_block_report([("a.txt", sha("alpha\n"))], [("b.txt", sha("beta\n"))])
+        r = run_inv("check", str(report))
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("2 verified", r.stdout)
+
+    def test_write_refreshes_every_block(self):
+        self.artifact("a.txt", "alpha\n")
+        self.artifact("b.txt", "beta\n")
+        report = self.two_block_report([("a.txt", sha("stale\n"))], [("b.txt", sha("stale\n"))])
+        r = run_inv("write", str(report))
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("updated 2 hash(es)", r.stdout)
+        self.assertEqual(run_inv("check", str(report)).returncode, 0)
+
+
 class TestTableBlock(InventoryBase):
     def test_table_rows_are_parsed(self):
         self.artifact("head-to-head.txt", "transcript\n")
@@ -245,6 +293,13 @@ class TestScriptShape(unittest.TestCase):
     def test_executable_and_shebanged(self):
         self.assertTrue(os.access(INVENTORY, os.X_OK))
         self.assertTrue(INVENTORY.read_text(encoding="utf-8").startswith("#!/usr/bin/env python3"))
+
+    def test_the_mismatch_exit_code_this_module_asserts_is_the_script_s(self):
+        # A constant restated in a test is a second source of truth: if inventory.py renumbered
+        # its exit codes, every mismatch assertion here would keep passing against the old number.
+        src = INVENTORY.read_text(encoding="utf-8")
+        self.assertIn(f"EXIT_MISMATCH = {EXIT_MISMATCH}\n", src,
+                      "tests assert a mismatch code the script no longer uses")
 
     def test_help_names_both_subcommands(self):
         r = run_inv("--help")
