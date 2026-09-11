@@ -215,18 +215,39 @@ def read_lines(path):
     return out
 
 
+def _recency(record, position):
+    """Sort key for "which line for this id is newest": timestamp first, file order to break ties.
+
+    Position alone was the whole ordering guarantee (#318), which made the ledger's answer depend
+    on who appended last rather than on when the decision was taken — so any merge, reorder or
+    out-of-order append silently changed which decision was live. Timestamps are ISO-8601 and
+    compare lexicographically in chronological order, including a date-only stamp sorting before
+    the same day's timed ones. Position stays as the tiebreak because two decisions really can
+    share a timestamp, and there the old behaviour is the only information available."""
+    return (record.get("ts", ""), position)
+
+
 def active(records):
-    """Newest line per id wins; an answer of exactly 'superseded' retires the id."""
+    """Newest line per id wins — newest by TIMESTAMP, file order breaking ties. An answer of
+    exactly 'superseded' retires the id."""
     latest = {}
-    for record in records:
-        latest[record["id"]] = record
-    return [r for r in latest.values() if r["answer"].strip().lower() != "superseded"]
+    for position, record in enumerate(records):
+        key = _recency(record, position)
+        current = latest.get(record["id"])
+        if current is None or key > current[0]:
+            latest[record["id"]] = (key, record)
+    return [r for _key, r in latest.values() if r["answer"].strip().lower() != "superseded"]
 
 
 def tally(records, lens):
-    """Consecutive zero-finding dispatches for a lens, newest-first."""
+    """Consecutive zero-finding dispatches for a lens, newest-first.
+
+    Ordered by the same key as active() (#318): a streak counted in file order would be a
+    different streak after a merge."""
     ident = f"lens-tally:{lens}"
-    rows = [r for r in records if r["id"] == ident]
+    rows = [r for _key, r in sorted(
+        ((_recency(r, i), r) for i, r in enumerate(records) if r["id"] == ident),
+        key=lambda pair: pair[0])]
     streak = 0
     for record in reversed(rows):
         if re.fullmatch(r"0+", record["answer"].strip()):

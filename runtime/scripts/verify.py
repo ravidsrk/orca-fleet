@@ -450,19 +450,28 @@ def _wtree_bound(m):
 
 def review_ok(reviews, head_sha, author=None, also_sha=None):
     """Pure: the LATEST review by some INDEPENDENT reviewer (not the PR author) is APPROVED at
-    head_sha. A later COMMENTED/DISMISSED by the same reviewer supersedes an earlier APPROVED.
+    head_sha, AND no independent reviewer's latest review is a standing CHANGES_REQUESTED there.
+    A later COMMENTED/DISMISSED by the same reviewer supersedes an earlier APPROVED.
     also_sha (a content-identical earlier head, tree-bound by _wtree_bound) is accepted too —
-    the reviewer approved exactly this content."""
+    the reviewer approved exactly this content.
+
+    The blocking half is #317. GitHub does not treat CHANGES_REQUESTED as a veto outside branch
+    protection, so a second approval used to carry the unit with nothing recorded. That is the
+    wrong default for a definition-of-done oracle: a reviewer saying "not done" about this exact
+    content is evidence, and a second opinion does not erase it. Scoped deliberately — it blocks
+    only when the objection is that reviewer's LATEST state (withdrawing it clears the block) and
+    only at the head being graded (a request against content the author has moved past is not a
+    standing objection to what is in front of us)."""
     latest = {}
     for r in reviews or []:
         latest[(r.get("user") or {}).get("login")] = r  # chronological: last per reviewer wins
     ok_shas = {head_sha} | ({also_sha} if also_sha else set())
-    for who, r in latest.items():
-        if author is not None and who == author:
-            continue
-        if r.get("state") == "APPROVED" and r.get("commit_id") in ok_shas:
-            return True
-    return False
+    independent = [r for who, r in latest.items() if author is None or who != author]
+    if any(r.get("state") == "CHANGES_REQUESTED" and r.get("commit_id") in ok_shas
+           for r in independent):
+        return False
+    return any(r.get("state") == "APPROVED" and r.get("commit_id") in ok_shas
+               for r in independent)
 
 
 def parse_review_pages(out):

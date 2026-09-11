@@ -342,6 +342,29 @@ class FreshnessCheck(unittest.TestCase):
 
 
 class ReviewCheck(unittest.TestCase):
+    def test_a_standing_changes_requested_blocks_a_second_reviewers_approval(self):
+        # #317: latest-per-reviewer, then "any non-author APPROVED at head wins" meant a blocking
+        # review at the SAME head was overridden by a second approval with nothing recorded. For a
+        # definition-of-done oracle that is the wrong default: a reviewer saying "not done" about
+        # this exact content is evidence, and a second opinion does not erase it.
+        reviews = [{"state": "CHANGES_REQUESTED", "commit_id": "H", "user": {"login": "bob"}},
+                   {"state": "APPROVED", "commit_id": "H", "user": {"login": "carol"}}]
+        self.assertFalse(verify.review_ok(reviews, "H", author="alice"))
+
+    def test_a_superseded_changes_requested_does_not_block(self):
+        # The same reviewer came back and approved — latest-per-reviewer already handles it, and
+        # the block must not resurrect a state its author withdrew.
+        reviews = [{"state": "CHANGES_REQUESTED", "commit_id": "H", "user": {"login": "bob"}},
+                   {"state": "APPROVED", "commit_id": "H", "user": {"login": "bob"}}]
+        self.assertTrue(verify.review_ok(reviews, "H", author="alice"))
+
+    def test_a_changes_requested_at_an_older_head_does_not_block(self):
+        # The block is about THIS content. A request against a head the author has since moved
+        # past is not a standing objection to what is being graded.
+        reviews = [{"state": "CHANGES_REQUESTED", "commit_id": "OLD", "user": {"login": "bob"}},
+                   {"state": "APPROVED", "commit_id": "H", "user": {"login": "carol"}}]
+        self.assertTrue(verify.review_ok(reviews, "H", author="alice"))
+
     def test_review_ok_pure(self):
         self.assertTrue(verify.review_ok([{"state": "APPROVED", "commit_id": "H"}], "H"))
         self.assertFalse(verify.review_ok([{"state": "COMMENTED", "commit_id": "H"}], "H"))

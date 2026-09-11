@@ -1,7 +1,7 @@
 # 🔬 root-cause — a reproduced symptom, a demonstrated cause
 
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel hypothesis workers, one falsification each; the demonstrated cause is a report you act on — a gate class, not a lower rung.
-> **Activation load:** ~15,800 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
+> **Activation load:** ~15,900 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
 
 > Bring it the bug with neither a frozen spec nor an enumerable backlog — the flake, the

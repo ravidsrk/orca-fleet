@@ -213,6 +213,38 @@ class TestActive(DecisionsBase):
         self.assertIn("option-b", r.stdout)
         self.assertNotIn("option-a", r.stdout)
 
+    def test_an_out_of_order_line_does_not_become_the_active_one(self):
+        # #318: "newest per id wins" resolved by FILE POSITION, never comparing ts. Any merge,
+        # reorder or out-of-order append silently changed which decision was live — and a ledger
+        # whose ordering guarantee is "whoever wrote last" is not a ledger.
+        self.seed([
+            "2026-09-02T00:00:00Z · gate-9 · taste · option-b · reconsidered · t-1",
+            "2026-09-01T00:00:00Z · gate-9 · taste · option-a · first pass · t-1",
+        ])
+        r = self.run_dec("active")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("option-b", r.stdout, "the older line won on position alone")
+        self.assertNotIn("option-a", r.stdout)
+
+    def test_identical_timestamps_fall_back_to_file_order(self):
+        # Ties are real: two decisions can share a timestamp. Position is the tiebreak, which is
+        # the old behaviour preserved exactly where it is the only information available.
+        self.seed([
+            "2026-09-01T00:00:00Z · gate-10 · taste · option-a · first · t-1",
+            "2026-09-01T00:00:00Z · gate-10 · taste · option-b · second · t-1",
+        ])
+        r = self.run_dec("active")
+        self.assertIn("option-b", r.stdout)
+        self.assertNotIn("option-a", r.stdout)
+
+    def test_an_out_of_order_supersede_still_retires_the_id(self):
+        self.seed([
+            "2026-09-02T00:00:00Z · gate-11 · taste · superseded · dropped · t-1",
+            "2026-09-01T00:00:00Z · gate-11 · taste · option-a · first pass · t-1",
+        ])
+        r = self.run_dec("active")
+        self.assertNotIn("gate-11", r.stdout)
+
     def test_superseded_answer_retires_the_id(self):
         self.seed([
             "2026-09-01T00:00:00Z · gate-2 · taste · option-a · first pass · t-1",
