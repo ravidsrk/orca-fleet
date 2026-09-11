@@ -143,6 +143,38 @@ def _is_repo_verifier(token, root):
     return True
 
 
+class _SilentParser(argparse.ArgumentParser):
+    """argparse that raises instead of printing usage and calling sys.exit."""
+
+    def error(self, message):
+        raise ValueError(message)
+
+    def exit(self, status=0, message=None):
+        raise ValueError(message or f"exit {status}")
+
+
+def _parsed_manifest(rest):
+    """The `--manifest` value argparse would see in `rest`, or None if it would refuse the line.
+
+    Hand-reading this argv diverged from argparse three times in review, three different ways: the
+    first occurrence was taken where argparse keeps the last, and a dangling trailing `--manifest`
+    read as the earlier value where argparse rejects the whole command line. The lesson is not "be
+    more careful with the next hand-rolled scan" — it is that the only reliable model of a parser
+    is that parser. So the recorded argv is PARSED, not scanned.
+
+    `parse_known_args` because a recorded command legitimately carries flags this function does not
+    model (--contract-source, --lighting, --execute-nc): an unrecognised flag is no reason to
+    disbelieve the run, while a malformed one is.
+    """
+    parser = _SilentParser(add_help=False)
+    parser.add_argument("--manifest")
+    try:
+        known, _unknown = parser.parse_known_args(list(rest))
+    except (ValueError, SystemExit):
+        return None
+    return known.manifest
+
+
 def executes_verifier(cmd, manifest_path, root=None):
     """True when `cmd` RUNS this repo's verify.py against `manifest_path` — parsed as argv.
 
@@ -180,15 +212,7 @@ def executes_verifier(cmd, manifest_path, root=None):
             return False
     if not _is_repo_verifier(argv[i], root or ROOT):
         return False
-    # argparse keeps the LAST occurrence of a repeated option, so read the last one.
-    seen = None
-    rest = argv[i + 1:]
-    for j, token in enumerate(rest):
-        if token == "--manifest" and j + 1 < len(rest):
-            seen = rest[j + 1]
-        elif token.startswith("--manifest="):
-            seen = token.split("=", 1)[1]
-    return seen == manifest_path
+    return _parsed_manifest(argv[i + 1:]) == manifest_path
 
 
 def blob_at(rev, path_text, root):

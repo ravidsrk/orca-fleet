@@ -137,7 +137,10 @@ class RunReportBinding(unittest.TestCase):
                     f"/usr/bin/python3 -u {V} --contract-source c --manifest {m}",
                     f"env FOO=1 python3 {V} --manifest={m}",
                     # argparse keeps the LAST --manifest, so a trailing graded one is a real run.
-                    f"python3 {V} --manifest other.json --manifest {m}"):
+                    f"python3 {V} --manifest other.json --manifest {m}",
+                    # Flags this function does not model must not disbelieve a real run.
+                    f"python3 {V} --contract-source c --execute-nc --nc-command 'pytest -q' "
+                    f"--manifest {m}"):
             self.assertTrue(run_report.executes_verifier(cmd, m), cmd)
         for cmd in (f"echo {V} --manifest {m}",
                     f"true # {V} --manifest {m}",
@@ -151,7 +154,11 @@ class RunReportBinding(unittest.TestCase):
                     f"python3 /tmp/{V} --manifest {m}",
                     f"python3 ../../tmp/{V} --manifest {m}",
                     # ...and argparse would read the LAST one, which is not the graded manifest.
-                    f"python3 {V} --manifest {m} --manifest other.json"):
+                    f"python3 {V} --manifest {m} --manifest other.json",
+                    # A dangling option: argparse refuses the whole command line, so the verifier
+                    # never started. A hand-rolled scan kept the earlier value instead.
+                    f"python3 {V} --manifest {m} --manifest",
+                    f"python3 {V} --manifest"):
             self.assertFalse(run_report.executes_verifier(cmd, m), cmd)
 
     def test_an_echoed_invocation_does_not_buy_a_tier(self):
