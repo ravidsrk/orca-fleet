@@ -978,6 +978,39 @@ class TestBundleForCopyInstallers(unittest.TestCase):
                         f"{mission.name} did not vendor {name}.md",
                     )
 
+    def test_a_non_md_outbound_link_is_flagged(self):
+        # #316: OUTBOUND_LINK_RE required `.md`, so `](../../runtime/scripts/verify.py)` was
+        # neither rewritten nor flagged — dist/ could ship a link pointing nowhere with --check
+        # green. Driven through dangling() on a built tree, not against the regex directly.
+        mod, tempfile = self._bundle()
+        with tempfile.TemporaryDirectory() as tmp:
+            mission = Path(tmp) / "demo"
+            (mission / "references").mkdir(parents=True)
+            (mission / "SKILL.md").write_text(
+                "# demo\n\nsee [the verifier](../../runtime/scripts/verify.py) and\n"
+                "[the hooks](../../hooks/hooks.json).\n", encoding="utf-8")
+            problems = mod.dangling(mission)
+        self.assertEqual(len(problems), 2, f"both non-md escapes must be flagged: {problems}")
+        self.assertTrue(any("verify.py" in p for p in problems), problems)
+        self.assertTrue(any("hooks.json" in p for p in problems), problems)
+
+    def test_vendored_references_are_link_checked_too(self):
+        # Broader than the issue: dangling() read only SKILL.md, and the vendored copies are
+        # `shutil.copy2`'d verbatim and never rewritten — so an outbound link inside one of them
+        # ships broken and nothing looks. That is the path by which a .py link actually reaches
+        # dist/ today.
+        mod, tempfile = self._bundle()
+        with tempfile.TemporaryDirectory() as tmp:
+            mission = Path(tmp) / "demo"
+            (mission / "references").mkdir(parents=True)
+            (mission / "SKILL.md").write_text("# demo\n\nclean.\n", encoding="utf-8")
+            (mission / "references" / "vendored.md").write_text(
+                "# vendored\n\nsee [up and out](../../runtime/scripts/verify.py).\n",
+                encoding="utf-8")
+            problems = mod.dangling(mission)
+        self.assertTrue(any("verify.py" in p for p in problems),
+                        f"a vendored copy's outbound link must be flagged: {problems}")
+
     def test_dist_is_not_committed(self):
         # 21 copies of the doctrine tree in git would rot between runtime edits.
         self.assertIn("dist/", (ROOT / ".gitignore").read_text(encoding="utf-8"))

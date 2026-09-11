@@ -45,8 +45,12 @@ _spec = importlib.util.spec_from_file_location("_validate", ROOT / "scripts" / "
 validate = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(validate)
 
-# `](../../X.md)` and `](../../dir/X.md)` — every link that leaves the mission dir.
+# `](../../X.md)` and `](../../dir/X.md)` — the outbound links the rewriter knows how to vendor.
 OUTBOUND_LINK_RE = re.compile(r"\]\((?:\.\./)+([A-Za-z0-9_./-]+\.md)(#[^)]*)?\)")
+# Every link that leaves the directory, whatever its extension. The rewriter only vendors `.md`,
+# but the CHECK has to see the rest: `](../../runtime/scripts/verify.py)` was neither rewritten nor
+# flagged, so dist/ could ship a link pointing nowhere with --check green (#316).
+OUTBOUND_ANY_RE = re.compile(r"\]\((?:\.\./)+([A-Za-z0-9_./-]+)(#[^)]*)?\)")
 REFERENCES = "references"
 
 
@@ -146,14 +150,23 @@ def build(out_dir):
 
 
 def dangling(mission_dir):
-    """Links in a bundled mission that still leave its directory, or point at nothing."""
-    text = (mission_dir / "SKILL.md").read_text(encoding="utf-8")
+    """Links in a bundled mission that still leave its directory, or point at nothing.
+
+    Every markdown file in the bundle, not just SKILL.md (#316). The vendored copies under
+    `references/` are `shutil.copy2`'d verbatim and never rewritten, so an outbound link inside one
+    of them ships broken — and that is the path by which a non-`.md` link actually reaches dist/.
+    Extension-blind, because the rewriter's `.md`-only reach is a fact about what it can vendor,
+    not about what counts as escaping."""
     problems = []
-    for match in OUTBOUND_LINK_RE.finditer(text):
-        problems.append(f"{mission_dir.name}: link escapes the bundle: {match.group(0)}")
-    for match in re.finditer(rf"\]\({REFERENCES}/([A-Za-z0-9_.-]+\.md)(?:#[^)]*)?\)", text):
-        if not (mission_dir / REFERENCES / match.group(1)).is_file():
-            problems.append(f"{mission_dir.name}: {REFERENCES}/{match.group(1)} was not vendored")
+    for path in sorted(mission_dir.rglob("*.md")):
+        text = path.read_text(encoding="utf-8")
+        where = path.relative_to(mission_dir).as_posix()
+        for match in OUTBOUND_ANY_RE.finditer(text):
+            problems.append(f"{mission_dir.name}: link escapes the bundle "
+                            f"({where}): {match.group(0)}")
+        for match in re.finditer(rf"\]\({REFERENCES}/([A-Za-z0-9_.-]+\.md)(?:#[^)]*)?\)", text):
+            if not (mission_dir / REFERENCES / match.group(1)).is_file():
+                problems.append(f"{mission_dir.name}: {REFERENCES}/{match.group(1)} was not vendored")
     return problems
 
 
