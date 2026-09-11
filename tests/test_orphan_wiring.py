@@ -346,6 +346,46 @@ class TheRunArchiveMatchesGit(unittest.TestCase):
         self.assertIn("2026-09-11 deep review", text)
 
 
+class InstallInstructionsAreRunnable(unittest.TestCase):
+    """#294. The README showed `npx skills add ravidsrk/orca-fleet` as a runnable command and the
+    bundle step that fixes it afterwards, so a reader following the page in order installed a
+    half-blind mission: the CLI copies dirname(SKILL.md) only, severing every ../../playbooks/
+    reference. Shipping install instructions for the path a build step exists to fix is the part
+    that was wrong, not the build step.
+    """
+
+    def test_the_readme_does_not_show_the_copy_install_as_runnable(self):
+        readme = read("README.md")
+        for line in readme.splitlines():
+            stripped = line.strip()
+            if stripped.startswith("npx skills add"):
+                self.fail(f"README shows a runnable copy install that severs references: {stripped}")
+
+    def test_the_readme_says_why_and_what_would_fix_it(self):
+        readme = read("README.md")
+        self.assertIn("not from this repository, today", readme)
+        self.assertIn("published `dist/`", readme,
+                      "the README states the problem without naming what would resolve it")
+
+    def test_no_mission_description_carries_angle_brackets(self):
+        # Anthropic's quick_validate.py — the package_skill.py and claude.ai upload path — rejects
+        # a description containing < or >. ship-it's carried "build me <feature>".
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("e", ROOT / "scripts" / "eval.py")
+        evalmod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(evalmod)
+        for skill_dir in sorted(SKILLS.iterdir()):
+            skill_md = skill_dir / "SKILL.md"
+            if not skill_md.is_file():
+                continue
+            description = evalmod.parse_frontmatter(
+                skill_md.read_text(encoding="utf-8")).get("description", "")
+            for bracket in ("<", ">"):
+                self.assertNotIn(bracket, description,
+                                 f"{skill_dir.name}'s description contains {bracket!r}, which the "
+                                 "claude.ai upload path rejects")
+
+
 class DormantMechanismsSaySo(unittest.TestCase):
     """Two of the seven cannot be wired from inside the repository, so they say so instead.
 

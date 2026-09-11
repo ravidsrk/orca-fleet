@@ -426,12 +426,16 @@ plugin directory — and it is the one path where the completion gate wires itse
 <summary><b>skills CLI (any agent) — with a caveat</b></summary>
 
 The open [skills CLI](https://github.com/vercel-labs/skills) installs into Claude Code, Cursor,
-Codex, and 70+ other agents:
+Codex, and 70+ other agents — but **not from this repository, today.** `npx skills add
+ravidsrk/orca-fleet` copies `dirname(SKILL.md)` and nothing else, so every `../../playbooks/`
+reference a mission makes is severed by the install. The mission then reads "Composes
+`decide-and-freeze`, `decompose-dag`…" with no file for any of those names, and either invents the
+protocol or stops. The command is not shown here as runnable because running it produces that.
 
-```bash
-npx skills add ravidsrk/orca-fleet --list    # browse the catalog
-npx skills add ravidsrk/orca-fleet           # install
-```
+What works today is the symlink path or the plugin install, both above. What would make the skills
+CLI work is a published `dist/` for it to point at — a release branch or a second repository — which
+is [#294](https://github.com/ravidsrk/orca-fleet/issues/294); the bundler that produces that tree
+already exists and is CI-checked.
 
 **Copy installers need a bundled tree.** Every mission references `../../playbooks/` and
 `../../runtime/` relative to its own directory. An installer that copies skill directories *out*
@@ -445,7 +449,9 @@ python3 scripts/bundle.py --check   # verify no reference escapes a mission dire
 
 Each bundled mission carries its own `references/` copies of every protocol it names plus the root
 docs it links, with its SKILL.md links rewritten to point there and an index at
-`references/README.md`. Install from `dist/` rather than the repo root. `dist/` is generated and
+`references/README.md`. A copy installer must take `dist/`, never the repo root — and no installer
+can be pointed at a local `dist/` over the network, which is why the CLI path waits on publishing
+one. `dist/` is generated and
 gitignored: committing 21 copies of the doctrine tree would make every runtime edit a 21-file diff
 and the copies would rot between edits.
 

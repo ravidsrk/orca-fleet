@@ -7,7 +7,7 @@ description: >-
   land → release → observe, stopping at the highest release state you're authorized to reach
   (BUILT / PROMOTION_READY / RELEASED / DEPLOYED_AND_VERIFIED). Use when "build and ship this",
   "spec to shipped product", "ship this feature", "ship this fix", "land this change", "build me
-  <feature>", or an autonomous build-to-release run. Not for closing an existing backlog
+  this feature", or an autonomous build-to-release run. Not for closing an existing backlog
   (clean-sweep), diagnosing why a build or test fails (root-cause), or a foggy goal that needs
   charting first (map-it).
 license: MIT
