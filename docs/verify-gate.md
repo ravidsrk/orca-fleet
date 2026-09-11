@@ -59,6 +59,14 @@ worker-set; anything else in the environment is ignored):
 - `ORCA_CONTRACT_SOURCE` / `ORCA_CONTRACT_DIGEST` — the frozen contract `path@ref` and its sha256;
   without both, the scope check fail-closes.
 - `ORCA_UNIT_CLASS` — `mutation | report-only | planning`, from dispatch; missing/unknown ⇒ mutation.
+  On the native path the worker owns this variable, and the downgrade it buys is the whole
+  mutation lane at once — negative control, intent packet, lighting legality, reviewer_mode.
+  So an **unsigned** `report-only`/`planning` claim is measured against what
+  `base_sha..head_sha` actually changes: production paths changed ⇒ RED; an unresolvable
+  range ⇒ RED (the shas are worker-supplied too, so "cannot tell" must not beat "changed");
+  `base_sha == head_sha` or a test-only change ⇒ passes, marked `(unsupervised)` in the
+  verdict. A dispatch record signed by the coordinator authorizes the class and skips all of
+  this — that is what signing it is for (#310).
 - `ORCA_REPO` — `owner/name` for the independent GitHub review lookup (optional; inferred from origin).
 - `ORCA_BASE` / `ORCA_SYMBOL` — ancestry-check base branch / a unit symbol to grep on it (optional).
 - `ORCA_NC_COMMAND` — the **authoritative** criterion-bound command the negative control must turn

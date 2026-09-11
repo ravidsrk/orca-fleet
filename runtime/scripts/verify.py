@@ -1452,6 +1452,51 @@ def check_dispatch_provenance(m, contract_digest, unit_class, lighting, record_r
             "boundary only if that key is trusted (off-worker: CI/MCP/SDK or an auditor)"]
 
 
+def check_class_downgrade(m, unit_class, record_ref, pubkey_ref):
+    """12. #310: `unit_class` reaches the native in-session gate through ORCA_UNIT_CLASS, and the
+    worker owns its own environment. Declaring `report-only` sheds the negative control, the intent
+    packet, lighting legality and reviewer_mode in one move — the same manifest that fails seven
+    invariants as `mutation` passed every check as `report-only`.
+
+    A signed dispatch record already binds unit_class to what the coordinator authorized, so a
+    SUPERVISED downgrade needs nothing here. Unsupervised, the class is a claim, and the one thing
+    a worker cannot restate is what base_sha..head_sha actually changes. A report on work that
+    touched no production path is the honest shape: it passes, but the verdict says it was
+    unsupervised. A `report-only` unit that changed production code is a mutation wearing another
+    class's name.
+
+    Shape-unknown fails closed. base_sha and head_sha are worker-supplied too, so "I cannot tell"
+    must not pass where "it changed production code" fails — otherwise the bypass is just one field
+    further along. The exception is a range whose ends are the SAME ref: base_sha == head_sha
+    changes nothing whatever the ref resolves to, so it needs no git and no pinning. That is the
+    shape a genuine report-only unit has, including this repo's own always-RED control
+    (bench/vf-bench/traps/valid-control.json, `HEAD..HEAD`) — a rule that reddens the positive
+    control measures nothing, which is the whole thesis of VF-Bench."""
+    if _is_mutation(unit_class):
+        return []
+    if record_ref and pubkey_ref:
+        return []  # check_dispatch_provenance binds unit_class to the coordinator's signature
+    base, head = m.get("base_sha"), m.get("head_sha")
+    if base and head and base == head:
+        return [f"NOTE: {unit_class} (unsupervised) — claimed with no signed dispatch record. "
+                f"base_sha == head_sha ({base}), an empty range, so the class is consistent with "
+                "the change, but nothing off-worker authorized it (#310)"]
+    prod, _tests, err = _changed_paths(base, head)
+    if err:
+        return [f"{unit_class} unit with no signed dispatch record, and its shape cannot be "
+                f"determined: {err}. Pin base_sha and head_sha so the claim can be measured "
+                "against the change, or have the coordinator sign the downgrade (#310)"]
+    if prod:
+        return [f"{unit_class} unit changed production code {sorted(prod)} and carries no signed "
+                "dispatch record. unit_class arrives from the environment the worker controls, so "
+                "this single value drops the negative control, the intent packet, lighting "
+                "legality and reviewer_mode from a unit that changed behaviour. Verify it as a "
+                "mutation, or have the coordinator sign the downgrade (#310)"]
+    return [f"NOTE: {unit_class} (unsupervised) — claimed with no signed dispatch record. "
+            "base_sha..head_sha changes no production path, so the class is consistent with the "
+            "change, but nothing off-worker authorized it (#310)"]
+
+
 def verify(manifest_path, contract_source=None, contract_digest=None, repo=None,
            base=None, symbol=None, execute_nc=False, unit_class=None, no_gh=False, lighting=None,
            dispatch_record=None, dispatch_pubkey=None, nc_command=None):
@@ -1490,6 +1535,7 @@ def verify(manifest_path, contract_source=None, contract_digest=None, repo=None,
         lambda: check_provenance(m),
         lambda: check_dispatch_provenance(m, contract_digest, unit_class, lighting,
                                           dispatch_record, dispatch_pubkey),
+        lambda: check_class_downgrade(m, unit_class, dispatch_record, dispatch_pubkey),
         lambda: check_ancestry(m, base),
         lambda: check_symbol_on_base(symbol, base),
     )

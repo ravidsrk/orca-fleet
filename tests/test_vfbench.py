@@ -370,6 +370,7 @@ class TheRefusedControlClassesAreSampled(unittest.TestCase):
         "stillborn-mutant": "STILLBORN MUTANT",
         "grep-command": "produced NO output at all",
         "decoy-hand-diff": "the hand mutant's diff names",
+        "class-downgrade": "changed production code",
     }
 
     def test_each_trap_is_refused_for_the_reason_it_exists_to_test(self):

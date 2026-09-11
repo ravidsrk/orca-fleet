@@ -1,0 +1,23 @@
+{
+  "id": "class-downgrade-1",
+  "class": "class-downgrade",
+  "sound_expected": "RED",
+  "note": "#310: the unit_class downgrade through the channel the gate TRUSTS. Not a duplicate of downgraded-class-1: that trap puts unit_class=report-only inside the manifest, which verify.py never reads, so it fail-safes to mutation. This one supplies it the way the gate actually takes it -- --unit-class, which verify-gate.sh fills from ORCA_UNIT_CLASS. unit_class reaches the native in-session gate through ORCA_UNIT_CLASS, which the worker owns, so a unit that changed production code declares itself report-only and sheds the negative control, the intent packet, lighting legality and reviewer_mode in one value. This is the same run-time fixture the mutation controls use, so base_sha..head_sha really does change mod.py -- everything about the manifest is honest for a report-only unit EXCEPT that the work it describes mutated behaviour. The RED must come from the class claim being measured against the change, not from a missing field: a report-only unit is not required to carry any of the obligations this one dropped.",
+  "unit_class": "report-only",
+  "fixture": "mutation-revert",
+  "manifest": {
+    "unit": "vf-bench-class-downgrade",
+    "unit_class": "report-only",
+    "base_sha": "{{base_sha}}",
+    "head_sha": "{{head_sha}}",
+    "contract": {
+      "source": "contract.md",
+      "digest": "{{contract_digest}}",
+      "criterion_ids": ["AC-1"]
+    },
+    "criteria": [
+      {"id": "AC-1", "addressed": true}
+    ],
+    "pr": {"reviewed_sha": "{{head_sha}}"}
+  }
+}

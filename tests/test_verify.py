@@ -1638,6 +1638,50 @@ class EndToEndMutationGreen(RepoCase):
                             for line in err.splitlines()),
                         f"no redaction FAIL naming {leak}: {err}")
 
+    def _downgraded(self):
+        """The #310 attack manifest: a real code change stripped of every mutation obligation."""
+        path = self._manifest()
+        m = json.loads(Path(path).read_text(encoding="utf-8"))
+        for key in ("negative_control", "intent", "reviewer_mode"):
+            m.pop(key, None)
+        Path(path).write_text(json.dumps(m), encoding="utf-8")
+        return path
+
+    def _main(self, path, *extra):
+        buf, errbuf = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(errbuf):
+            rc = verify.main(["--manifest", path, "--contract-source", self.contract,
+                              "--contract-digest", self.digest, "--repo", "o/r", *extra])
+        return rc, buf.getvalue(), errbuf.getvalue()
+
+    def test_unsupervised_report_only_cannot_shed_a_code_change(self):
+        # #310: unit_class arrives from ORCA_UNIT_CLASS on the native in-session path, and the
+        # worker owns its own environment. One env var dropped the negative control, the intent
+        # packet, lighting legality and reviewer_mode — for a unit whose own base..head changes
+        # production code. The same manifest is 7 FAILs as `mutation`.
+        path = self._downgraded()
+        rc_mut, _o, err_mut = self._main(path, "--unit-class", "mutation")
+        self.assertEqual(rc_mut, 2, "the attack manifest is supposed to be red as a mutation")
+        self.assertGreaterEqual(len([ln for ln in err_mut.splitlines()
+                                     if ln.startswith("FAIL:")]), 4, err_mut)
+
+        rc, out, err = self._main(path, "--unit-class", "report-only")
+        self.assertEqual(rc, 2, f"a code change passed clean as report-only: {out}")
+        self.assertIn("report-only", err)
+        self.assertIn("app.py", err, f"the refusal must name the code it changed: {err}")
+
+    def test_unsupervised_report_only_that_changes_no_code_is_marked_not_refused(self):
+        # The honest case still works, but never silently: an advisory downgrade that changes no
+        # production path passes and says so in the verdict.
+        path = self._downgraded()
+        m = json.loads(Path(path).read_text(encoding="utf-8"))
+        m["base_sha"] = m["head_sha"]  # a range that changes nothing
+        Path(path).write_text(json.dumps(m), encoding="utf-8")
+        rc, out, _err = self._main(path, "--unit-class", "report-only")
+        self.assertEqual(rc, 0, out)
+        self.assertIn("report-only (unsupervised)", out,
+                      f"an unsigned downgrade must be marked in the verdict: {out}")
+
     def test_omitted_lighting_is_lit_end_to_end(self):
         # #169: a mutation manifest with no lighting key verifies clean — omission means lit.
         path = self._manifest(lighting=None)
