@@ -679,6 +679,10 @@ ASSERTION_MARKERS = (
     "assertionerror", "assert", "failed", "fail:", "failures=", "expected", "not ok",
     "panicked at", "✗", "test failed", "e   ", "✕",
 )
+# Evidence an assertion was actually EVALUATED, as opposed to a runner summarising that something
+# went wrong. Only these override a stillborn marker: "FAILED" is what unittest prints when a
+# module will not import, but "AssertionError" is not something a failed import can produce.
+STRONG_ASSERTION_MARKERS = ("assertionerror", "assert ", "assert(", "panicked at", "✗", "✕")
 # unittest and pytest both distinguish an ERROR (an exception escaped) from a FAILURE (an assertion
 # was evaluated and was false). Only the second exercises the oracle. `FAILED (errors=1)` is an
 # import blowing up, and it says "FAILED" — which is why the assertion markers alone cannot be
@@ -705,27 +709,33 @@ def _failure_signature(out, err):
     exits 1 before a single assertion runs, and both look identical to a gate that only reads the
     return code. The RED must LOOK like an oracle failing.
 
-    Order matters here, and getting it wrong was the first review finding on #280: a stillborn
-    mutant under `python -m unittest` prints `FAILED (errors=1)`, so checking for an assertion
-    marker FIRST let the stillborn case through on the word "FAILED". The stillborn markers now
-    refuse outright, and an error-only runner summary refuses too."""
+    Three layers, in this order, because two review rounds on #308 showed either one alone is
+    wrong. The RUNNER'S OWN SUMMARY is the best evidence there is: unittest and pytest already
+    separate errors from failures, so `FAILED (errors=1)` is a stillborn mutant no matter what
+    words surround it. Only when no summary exists — a plain script, say — does the substring scan
+    matter, and even then explicit assertion evidence outranks it: a test asserting that a
+    `ModuleNotFoundError` is raised prints that name while its oracle runs perfectly well."""
     text = f"{out}\n{err}".lower()
     if not text.strip():
         return False, ("the control run produced NO output at all. A silent non-zero exit is not a "
                        "failing test — it is what `grep` does when it finds nothing; fail-closed "
                        "(#280)")
-    stillborn = [mark for mark in STILLBORN_MARKERS if mark in text]
-    if stillborn:
-        return False, (f"the control run did not get as far as an oracle ({stillborn[0]!r} in its "
-                       "output) — that is a STILLBORN MUTANT, not a kill. The non-zero exit is the "
-                       "module failing to load, which would happen for any command; the control "
-                       "must leave the code runnable and fail an ASSERTION (#280)")
     errors = _counted(_ERRORS_RE, text)
     failures = _counted(_FAILURES_RE, text)
     if errors and not failures:
         return False, (f"the runner reports {errors} error(s) and no assertion failure — an error is "
                        "an exception escaping, not an oracle evaluating to false, so it does not "
                        "show the criterion-bound assertion ran at all; fail-closed (#280)")
+    if not failures:
+        # No runner summary to trust, so read the text. A stillborn mutant refuses unless the
+        # output carries evidence an assertion was really evaluated.
+        stillborn = [mark for mark in STILLBORN_MARKERS if mark in text]
+        if stillborn and not any(mark in text for mark in STRONG_ASSERTION_MARKERS):
+            return False, (f"the control run did not get as far as an oracle ({stillborn[0]!r} in "
+                           "its output, and nothing showing an assertion was evaluated) — that is "
+                           "a STILLBORN MUTANT, not a kill. The non-zero exit is the module failing "
+                           "to load, which would happen for any command; the control must leave the "
+                           "code runnable and fail an ASSERTION (#280)")
     if not any(mark in text for mark in ASSERTION_MARKERS):
         return False, ("the control run exited non-zero but its output names no assertion failure, "
                        "so nothing shows the criterion-bound oracle actually ran and failed; "

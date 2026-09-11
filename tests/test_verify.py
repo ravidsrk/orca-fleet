@@ -1318,10 +1318,9 @@ class EndToEndMutationGreen(RepoCase):
         self.assertIn("STILLBORN MUTANT", err)
 
     def test_a_stillborn_mutant_under_a_test_runner_is_not_a_kill(self):
-        # PR #308 review. The first cut of #280 checked for an assertion marker BEFORE the
+        # PR #308 review, round 1. The first cut of #280 checked for an assertion marker BEFORE the
         # stillborn markers, and `python -m unittest` prints `FAILED (errors=1)` when a module
         # cannot be imported — so the word "FAILED" carried a collection error past the gate.
-        # An error is an exception escaping; a failure is an oracle evaluating to false.
         for text in (
             "ERROR: test_add\nImportError: cannot import name 'f'\nRan 1 test\n\nFAILED (errors=1)\n",
             "ImportError while importing test module\nE   ModuleNotFoundError: No module named 'app'"
@@ -1329,7 +1328,7 @@ class EndToEndMutationGreen(RepoCase):
         ):
             ok, reason = verify._failure_signature(text, "")
             self.assertFalse(ok, f"a collection error was accepted as a kill: {text[:40]!r}")
-            self.assertIn("STILLBORN", reason)
+            self.assertIn("error", reason)
 
     def test_an_error_only_runner_summary_is_not_a_kill(self):
         # No import word at all — just a runner reporting errors and no failures. An exception
@@ -1339,11 +1338,32 @@ class EndToEndMutationGreen(RepoCase):
         self.assertFalse(ok)
         self.assertIn("error", reason)
 
+    def test_a_bare_stillborn_traceback_is_not_a_kill(self):
+        # No runner summary to read, so the substring scan is what refuses these.
+        for text in ("Traceback (most recent call last):\n  File 'check.py'\nImportError: nope\n",
+                     "Traceback (most recent call last):\nSyntaxError: invalid syntax\n"):
+            ok, reason = verify._failure_signature(text, "")
+            self.assertFalse(ok, f"a stillborn mutant was accepted: {text[:40]!r}")
+            self.assertIn("STILLBORN", reason)
+
+    def test_an_assertion_that_merely_names_an_import_error_is_a_kill(self):
+        # PR #308 review, round 2: the opposite mistake. Refusing on any mention of a stillborn
+        # marker rejects real REDs — `assertRaises(ModuleNotFoundError)` prints that name while its
+        # oracle runs perfectly well, and a pytest traceback can pass through conftest.py.
+        for text in (
+            "FAIL: test_guard\nAssertionError: ModuleNotFoundError not raised\n\nFAILED (failures=1)\n",
+            "tests/conftest.py:12: in fixture\nE   assert 4 == 0\n=== 1 failed in 0.03s ===\n",
+            "Traceback (most recent call last):\nAssertionError: ModuleNotFoundError not raised\n",
+        ):
+            ok, reason = verify._failure_signature(text, "")
+            self.assertTrue(ok, f"a real assertion failure was refused: {reason}")
+
     def test_a_real_assertion_failure_is_still_a_kill(self):
         # The positive direction: the tightening must not make every control RED.
         for text in ("FAIL: test_add\nAssertionError: 4 != 0\n\nFAILED (failures=1)\n",
                      "=========== 1 failed in 0.02s ===========\nE   assert 4 == 0\n",
-                     "Traceback (most recent call last):\nAssertionError: AC-1 violated\n"):
+                     "Traceback (most recent call last):\nAssertionError: AC-1 violated\n",
+                     "FAILED (failures=1, errors=1)\nAssertionError: x\n"):
             ok, reason = verify._failure_signature(text, "")
             self.assertTrue(ok, f"a real assertion failure was refused: {reason}")
 
