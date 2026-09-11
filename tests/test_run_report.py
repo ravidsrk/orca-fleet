@@ -11,6 +11,7 @@ paths at the recorded commit" — a fake that never touches git would test nothi
 """
 import hashlib
 import importlib.util
+import json
 import subprocess
 import tempfile
 import unittest
@@ -59,12 +60,27 @@ class RunReportBinding(unittest.TestCase):
         _git(self.repo, "config", "user.name", "t")
         self.run_dir = self.repo / "docs" / "runs" / "2026-01-01-demo-it-selfrun"
         self.run_dir.mkdir(parents=True)
+        self.manifest = "docs/runs/2026-01-01-demo-it-selfrun/build-manifest.json"
         (self.run_dir / "build-manifest.json").write_text('{"unit": "u1"}\n', encoding="utf-8")
         (self.run_dir / "negctrl.txt").write_text("mutant KILLED\n", encoding="utf-8")
         _git(self.repo, "add", "-A")
         _git(self.repo, "commit", "-qm", "artifacts")
+        # #286: a tier costs a command EXECUTION, so the graded manifest carries a commands[]
+        # record of the verifier running against itself, bound to a tree that really exists here.
+        # Written in a second commit because the record has to name the first commit's tree.
+        tree = _git(self.repo, "rev-parse", "HEAD^{tree}")
+        self.verifier_cmd = f"python3 runtime/scripts/verify.py --manifest {self.manifest}"
+        (self.run_dir / "build-manifest.json").write_text(json.dumps({
+            "unit": "u1",
+            "commands": [{
+                "label": "verify", "cmd": self.verifier_cmd,
+                "cmd_sha256": hashlib.sha256(self.verifier_cmd.encode("utf-8")).hexdigest(),
+                "exit": 0, "wtree": tree,
+            }],
+        }) + "\n", encoding="utf-8")
+        _git(self.repo, "add", "-A")
+        _git(self.repo, "commit", "-qm", "manifest with a verifier ledger record")
         self.rev = _git(self.repo, "rev-parse", "HEAD")
-        self.manifest = "docs/runs/2026-01-01-demo-it-selfrun/build-manifest.json"
         self.nc = "docs/runs/2026-01-01-demo-it-selfrun/negctrl.txt"
         self.nc_sha = self._blob_sha(self.rev, self.nc)
         self.manifest_sha = self._blob_sha(self.rev, self.manifest)
@@ -97,6 +113,77 @@ class RunReportBinding(unittest.TestCase):
         return run_report.check_report(self.path, mission, tier, root=self.repo)
 
     # --- the shape that must pass ------------------------------------------
+    def _remanifest(self, payload):
+        """Rewrite the graded manifest and re-pin the report to the new commit."""
+        (self.run_dir / "build-manifest.json").write_text(
+            json.dumps(payload) + "\n", encoding="utf-8")
+        _git(self.repo, "add", "-A")
+        _git(self.repo, "commit", "-qm", "manifest rewritten")
+        self.rev = _git(self.repo, "rev-parse", "HEAD")
+        self.manifest_sha = self._blob_sha(self.rev, self.manifest)
+        self.nc_sha = self._blob_sha(self.rev, self.nc)
+        self._write()
+
+    def test_a_manifest_with_no_verifier_run_is_refused(self):
+        # #286. THE case: a fabricated map-it self-run — seven files, 32 lines, one commit —
+        # reported "bound" in under fifteen minutes, because every artifact a worker writes and
+        # commits hashes true at the commit containing it. Writing a command line costs nothing;
+        # running one costs a run.
+        self._remanifest({"unit": "u1"})
+        errs = self._check()
+        self.assertTrue(any("records no commands[] entry" in e for e in errs), errs)
+
+    def test_a_verifier_record_for_another_manifest_does_not_count(self):
+        # The record has to show the verifier run against THIS manifest, not a neighbour's.
+        other = "docs/runs/2026-01-01-demo-it-selfrun/other-manifest.json"
+        cmd = f"python3 runtime/scripts/verify.py --manifest {other}"
+        self._remanifest({"unit": "u1", "commands": [{
+            "label": "verify", "cmd": cmd,
+            "cmd_sha256": hashlib.sha256(cmd.encode("utf-8")).hexdigest(),
+            "exit": 0, "wtree": self.rev}]})
+        errs = self._check()
+        self.assertTrue(any("records no commands[] entry" in e for e in errs), errs)
+
+    def test_a_verifier_record_whose_digest_does_not_match_is_refused(self):
+        # A decorative cmd_sha256 would let the line be edited after the run.
+        cmd = f"python3 runtime/scripts/verify.py --manifest {self.manifest}"
+        self._remanifest({"unit": "u1", "commands": [{
+            "label": "verify", "cmd": cmd, "cmd_sha256": "0" * 64,
+            "exit": 0, "wtree": self.rev}]})
+        errs = self._check()
+        self.assertTrue(any("binds to nothing" in e and "cmd_sha256" in e for e in errs), errs)
+
+    def test_a_verifier_record_bound_to_no_tree_is_refused(self):
+        cmd = f"python3 runtime/scripts/verify.py --manifest {self.manifest}"
+        self._remanifest({"unit": "u1", "commands": [{
+            "label": "verify", "cmd": cmd,
+            "cmd_sha256": hashlib.sha256(cmd.encode("utf-8")).hexdigest(), "exit": 0}]})
+        errs = self._check()
+        self.assertTrue(any("no wtree" in e for e in errs), errs)
+
+    def test_a_verifier_record_naming_a_tree_that_does_not_exist_is_refused(self):
+        cmd = f"python3 runtime/scripts/verify.py --manifest {self.manifest}"
+        self._remanifest({"unit": "u1", "commands": [{
+            "label": "verify", "cmd": cmd,
+            "cmd_sha256": hashlib.sha256(cmd.encode("utf-8")).hexdigest(),
+            "exit": 0, "wtree": "0" * 40}]})
+        errs = self._check()
+        self.assertTrue(any("is not an object in this repository" in e for e in errs), errs)
+
+    def test_a_recorded_red_verifier_run_still_counts_as_a_run(self):
+        # A RED is a legitimate recorded outcome — the point is that the verifier RAN.
+        cmd = f"python3 runtime/scripts/verify.py --manifest {self.manifest}"
+        tree = _git(self.repo, "rev-parse", "HEAD^{tree}")
+        self._remanifest({"unit": "u1", "commands": [{
+            "label": "verify", "cmd": cmd,
+            "cmd_sha256": hashlib.sha256(cmd.encode("utf-8")).hexdigest(),
+            "exit": 2, "wtree": tree}]})
+        self.path.write_text(_report(
+            mission="demo-it", tier="self-run", rev=self.rev, manifest=self.manifest,
+            verifier="RED", inventory=self._inventory()), encoding="utf-8")
+        errs = self._check()
+        self.assertEqual([e for e in errs if "commands[]" in e or "binds to nothing" in e], [], errs)
+
     def test_a_bound_report_passes(self):
         self._write()
         self.assertEqual(self._check(), [])
@@ -267,16 +354,25 @@ class LiveCatalog(unittest.TestCase):
         Its inventory re-derives at `748b328` and its manifest is in its own run
         directory — that much is real and should keep working. What is absent is the
         `verify.py … --manifest` invocation the recorded RED came from, which is why
-        ship-it sits at doctrine-only (PR #277 review, P1).
+        ship-it sits at doctrine-only.
+
+        Since #286 that absence is reported twice, at two levels, and both are the same
+        gap: the report body shows no invocation, AND the graded manifest's commands[]
+        ledger records no verifier run. The run really did not write the command line
+        down — its own report says so — so a gate that costs a run must fail it here.
         """
         errs = run_report.check_report(
             "docs/runs/2026-08-28-ship-it-self-run.md", "ship-it", "self-run"
         )
+        missing_transcript = [e for e in errs
+                              if "invocation" in e or "records no commands[] entry" in e]
         self.assertEqual(
-            [e for e in errs if "invocation" not in e], [],
+            [e for e in errs if e not in missing_transcript], [],
             "only the missing verifier transcript should stop this report binding",
         )
-        self.assertTrue(any("invocation" in e for e in errs))
+        self.assertTrue(any("invocation" in e for e in errs), "the prose leg stopped reporting")
+        self.assertTrue(any("records no commands[] entry" in e for e in errs),
+                        "the ledger leg (#286) stopped reporting")
 
     def test_demoted_reports_are_kept_and_say_why(self):
         # Demoting is only honest if the record survives and explains itself.
