@@ -78,6 +78,32 @@ def findings(obj):
     return found
 
 
+def names_recipe(doc, raw, recipe):
+    """Whether the transcript names THIS recipe — the whole id, not a piece of a longer one.
+
+    A substring test passed a transcript for `web-prod-privileged` when asked about `web`, and
+    about `prod` (#298). Recipe ids are drawn from [A-Za-z0-9._-], so in JSON the
+    exact answer is a string VALUE equal to the id, and in plain text it is the id bounded by
+    characters an id cannot contain — the reading `grep -F -x` gives a line, applied to a token.
+    """
+    want = recipe.lower()
+    if doc is not None:
+        stack = [doc]
+        while stack:
+            node = stack.pop()
+            if isinstance(node, str):
+                if node.lower() == want:
+                    return True
+            elif isinstance(node, dict):
+                stack.extend(node.keys())
+                stack.extend(node.values())
+            elif isinstance(node, (list, tuple)):
+                stack.extend(node)
+        return False
+    return re.search(r"(?<![A-Za-z0-9._-])" + re.escape(recipe) + r"(?![A-Za-z0-9._-])",
+                     raw, re.IGNORECASE) is not None
+
+
 def verdict(raw, recipe):
     """(clear, reason). `clear` is True only when the transcript is about THIS recipe and reports
     no fail and no warn."""
@@ -86,16 +112,15 @@ def verdict(raw, recipe):
     except ValueError:
         doc = None
 
+    if not names_recipe(doc, raw, recipe):
+        return False, f"doctor output does not name recipe {recipe!r}"
+
     if doc is not None:
-        if recipe.lower() not in json.dumps(doc).lower():
-            return False, f"doctor output does not name recipe {recipe!r}"
         bad = sorted(set(findings(doc)))
         if bad:
             return False, "doctor reports " + ", ".join(bad[:4])
         return True, ""
 
-    if recipe.lower() not in raw.lower():
-        return False, f"doctor output does not name recipe {recipe!r}"
     stripped = _EMPTY.sub(" ", raw)
     if _BAD_WORD.search(stripped):
         line = next((ln.strip() for ln in stripped.splitlines() if _BAD_WORD.search(ln)), "")

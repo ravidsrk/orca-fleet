@@ -7,6 +7,7 @@ orchestration side effect. The lane tests stub `orca` per subcommand and assert 
 receipt contracts against Orca v1.4.199 — the SHIPPED tag, not upstream HEAD. Standard
 library only.
 """
+import copy
 import json
 import subprocess
 import tempfile
@@ -554,12 +555,138 @@ esac
             self.assertEqual(p.returncode, 0, p.stderr)
             self.assertNotIn("LAUNCH_EFFECTIVE=", p.stdout)
 
+    # --- #298: four fail-open paths in the launcher ----------------------------------------
+
+    def _task_status(self, tmp, status):
+        (Path(tmp) / "task-list.json").write_text(
+            json.dumps(task_list_payload({"id": "task_test", "status": status})))
+
+    def test_an_exit_zero_receipt_naming_no_state_is_not_a_success(self):
+        """#298: "the receipt is the verdict" — and a receipt naming no state is not one.
+
+        This read as READY on the call's exit status alone, which the header three lines above it
+        says is NOT the verdict. So a changed receipt shape silently disabled the state check.
+        UNKNOWN rather than FAILED: worker-start exited 0, so a worker may be live, and a respawn
+        beside it is the dual-writer class.
+        """
+        stateless = {"result": {"runId": "r", "dispatchId": "ctx_x",
+                                "effects": [{"kind": "terminal", "role": "agent",
+                                             "action": "created", "id": "term_a"}]}}
+        with tempfile.TemporaryDirectory() as tmp:
+            self._stub(tmp, receipt=stateless, ws_rc=0)
+            p = self._run(tmp, self.ARGS, self.RW)
+            self.assertEqual(p.returncode, 4, p.stdout + p.stderr)
+            self.assertIn("OUTCOME_UNKNOWN", p.stderr)
+            self.assertIn("NEVER RESPAWN", p.stderr)
+            self.assertNotIn("READY=exit0", p.stdout)
+
+    def test_a_receipt_that_is_not_even_a_dict_is_not_a_success(self):
+        # The worst shape: no handle and no dispatch id to inspect with, reported as READY.
+        with tempfile.TemporaryDirectory() as tmp:
+            self._stub(tmp, receipt={"result": "surprise"}, ws_rc=0)
+            p = self._run(tmp, self.ARGS, self.RW)
+            self.assertEqual(p.returncode, 4, p.stdout + p.stderr)
+            self.assertIn("OUTCOME_UNKNOWN", p.stderr)
+
+    def test_a_stateless_receipt_from_a_FAILED_call_is_still_a_failure(self):
+        # rc=127 is a missing binary: no worker exists, so this stays FAILED rather than sending
+        # a coordinator to inspect for one. Only the exit-0 case is UNKNOWN.
+        with tempfile.TemporaryDirectory() as tmp:
+            self._stub(tmp, receipt={}, ws_rc=127)
+            p = self._run(tmp, self.ARGS, self.RW)
+            self.assertEqual(p.returncode, 1, p.stdout + p.stderr)
+            self.assertIn("SPAWN=FAILED", p.stderr)
+
+    def test_a_launch_that_lacks_the_profiles_flag_is_refused(self):
+        """#298: the PROFILE is a capability grant; launch.effective is what the host launched.
+
+        worker-start takes its args from the host's agentDefaultArgs, not from anything this
+        script builds, so the two CAN disagree — and when they did the launch proceeded, which
+        made the profile advisory rather than enforced.
+        """
+        for agent, wrong in (("claude", "--permission-mode plan"),
+                             ("codex", "--sandbox read-only"),
+                             ("cursor", "--permission-mode plan")):
+            with self.subTest(agent=agent):
+                receipt = copy.deepcopy(self.READY_RECEIPT)
+                receipt["result"]["launch"]["effective"] = {"agent": agent, "args": wrong}
+                with tempfile.TemporaryDirectory() as tmp:
+                    self._stub(tmp, receipt=receipt)
+                    p = self._run(tmp, self.ARGS + [agent], self.RW)
+                    self.assertEqual(p.returncode, 1, p.stdout + p.stderr)
+                    self.assertIn("does not carry it", p.stderr)
+
+    def test_a_multiword_flag_must_appear_contiguously(self):
+        # grok's flag is `--permission-mode bypassPermissions`. Finding its two words far apart,
+        # beside `--permission-mode plan`, is not finding the flag.
+        receipt = copy.deepcopy(self.READY_RECEIPT)
+        receipt["result"]["launch"]["effective"] = {
+            "agent": "grok", "args": "--permission-mode plan --other bypassPermissions"}
+        with tempfile.TemporaryDirectory() as tmp:
+            self._stub(tmp, receipt=receipt)
+            p = self._run(tmp, self.ARGS + ["grok"], self.RW)
+            self.assertEqual(p.returncode, 1, p.stdout + p.stderr)
+
+    def test_the_profiles_flag_is_accepted_in_every_shape_a_host_reports_it(self):
+        for eff in ("--dangerously-skip-permissions",
+                    {"agent": "claude", "args": "--dangerously-skip-permissions"},
+                    {"agent": "claude", "args": ["--dangerously-skip-permissions"]},
+                    ["claude", "--dangerously-skip-permissions"]):
+            with self.subTest(eff=eff):
+                receipt = copy.deepcopy(self.READY_RECEIPT)
+                receipt["result"]["launch"]["effective"] = eff
+                with tempfile.TemporaryDirectory() as tmp:
+                    self._stub(tmp, receipt=receipt)
+                    p = self._run(tmp, self.ARGS, self.RW)
+                    self.assertEqual(p.returncode, 0, p.stdout + p.stderr)
+
+    def test_an_absent_launch_effective_is_unverifiable_and_says_so(self):
+        # Checked only when the host reports the field. An absent one cannot be checked, and the
+        # honest answer is to say that rather than refuse every host that omits it.
+        receipt = copy.deepcopy(self.READY_RECEIPT)
+        del receipt["result"]["launch"]["effective"]
+        with tempfile.TemporaryDirectory() as tmp:
+            self._stub(tmp, receipt=receipt)
+            p = self._run(tmp, self.ARGS, self.RW)
+            self.assertEqual(p.returncode, 0, p.stdout + p.stderr)
+            self.assertIn("could not be verified", p.stderr)
+
+    def test_a_status_is_read_as_a_token_not_word_split(self):
+        """#298: `read -r status unmet` split the status, so its FIRST WORD decided dispatch.
+
+        `ready for review` read as `ready` and was dispatched. The shape matters more than the
+        example: any status the DAG grows whose first word is a dispatchable one would dispatch.
+        """
+        for status in ("ready for review", "ready to merge", "not ready"):
+            with self.subTest(status=status):
+                with tempfile.TemporaryDirectory() as tmp:
+                    self._stub(tmp)
+                    self._task_status(tmp, status)
+                    p = self._run(tmp, self.ARGS, self.RW)
+                    self.assertEqual(p.returncode, 2, p.stdout + p.stderr)
+                    self.assertIn(status, p.stderr,
+                                  "the refusal must name the whole status it read")
+
+    def test_an_exact_status_still_dispatches(self):
+        for status in ("ready", "pending"):
+            with self.subTest(status=status):
+                with tempfile.TemporaryDirectory() as tmp:
+                    self._stub(tmp)
+                    self._task_status(tmp, status)
+                    extra = ["--mark-ready"] if status == "pending" else []
+                    p = self._run(tmp, self.ARGS + extra, self.RW)
+                    self.assertEqual(p.returncode, 0, p.stdout + p.stderr)
+
     # --- (d) roster: cursor in, kilo deliberately out --------------------------------------
 
     def test_cursor_is_on_the_roster_for_write_tiers(self):
         # Orca maps cursor to --yolo (tui-agent-permissions.ts:21 at v1.4.199); v4 excluded it.
+        # The receipt has to report cursor's OWN flag: the shared fixture reports claude's, and
+        # since #298 a launch.effective that does not carry the profile's flag is refused.
+        receipt = copy.deepcopy(self.READY_RECEIPT)
+        receipt["result"]["launch"]["effective"] = {"agent": "cursor", "args": "--yolo"}
         with tempfile.TemporaryDirectory() as tmp:
-            log = self._stub(tmp)
+            log = self._stub(tmp, receipt=receipt)
             p = self._run(tmp, self.ARGS + ["cursor"], self.RW)
             self.assertEqual(p.returncode, 0, p.stderr)
             self.assertIn("--agent cursor", log.read_text())

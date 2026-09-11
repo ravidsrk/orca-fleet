@@ -327,6 +327,15 @@ tl="$SP/tl-$safe_title.json"
 orca_json "$tl" orchestration task-list
 tl_out=$(python3 - "$tl" "$task" <<'PY'
 import json, sys
+
+
+def emit(status, unmet):
+    """unmet on line 1, status on line 2 — the shell reads lines, never words."""
+    print(unmet)
+    print(str(status).replace("\n", " ").replace("\r", " "))
+    raise SystemExit(0)
+
+
 path, tid = sys.argv[1], sys.argv[2]
 d = json.load(open(path))
 r = d.get("result", d)
@@ -335,8 +344,7 @@ tasks = tasks or []
 by = {t.get("id"): t for t in tasks}
 t = by.get(tid)
 if not t:
-    print("not-found 0")
-    raise SystemExit(0)
+    emit("not-found", 0)
 deps = t.get("deps")
 if deps is None:
     deps = []  # absent deps is the ONLY value that legitimately means "no deps"
@@ -348,13 +356,17 @@ elif isinstance(deps, str):
 if not isinstance(deps, list):
     # Corrupt/unreadable dependency metadata ("", 0, {}, bad JSON) must fail
     # CLOSED, not count as "no deps".
-    print(t.get("status", "unknown"), -1)
-    raise SystemExit(0)
+    emit(t.get("status", "unknown"), -1)
 unmet = sum(1 for dep in deps if (by.get(dep) or {}).get("status") != "completed")
-print(t.get("status", "unknown"), unmet)
+emit(t.get("status", "unknown"), unmet)
 PY
 )
-read -r status unmet <<< "$tl_out"
+# unmet first, status second, one per line. `read -r status unmet` word-split them, so a
+# status whose FIRST WORD is a dispatchable one was dispatched: `ready for review` read as
+# `ready` (#298). unmet is an int and cannot carry a space; status can, so it
+# gets a line to itself and nothing splits it.
+unmet=$(printf '%s\n' "$tl_out" | sed -n '1p')
+status=$(printf '%s\n' "$tl_out" | sed -n '2p')
 
 case "$status" in
   ready) : ;;
@@ -410,11 +422,22 @@ if [ -z "$override" ] && [ "$PROFILE" != "ro" ]; then
   ws_rc=0
   orca orchestration worker-start --task "$task" --worktree "$sel" ${name_args[@]+"${name_args[@]}"} --agent "$agent" --json > "$ws" 2>&1 || ws_rc=$?
 
+  # The flag the requested PROFILE implies, read back out of the map above so the two cannot
+  # drift: worker-start takes its args from the HOST, so this is what the host must have used.
+  profile_flag=""
+  case "$agent" in
+    claude) profile_flag="--dangerously-skip-permissions" ;;
+    codex)  profile_flag="--dangerously-bypass-approvals-and-sandbox" ;;
+    gemini|cursor) profile_flag="--yolo" ;;
+    grok)   profile_flag="--permission-mode bypassPermissions" ;;
+    droid)  profile_flag="--auto high" ;;
+  esac
+
   step=read-start-receipt
   # Line 1 is the machine verdict; the remaining stdout lines are the caller-facing receipt
   # fields. nextSteps / nextCommands go to stderr verbatim — they are the runtime's own
   # recovery text, not ours to paraphrase.
-  ws_out=$(python3 - "$ws" <<'PY'
+  ws_out=$(python3 - "$ws" "$profile_flag" <<'PY'
 import json, sys
 
 # Every typed preflight refusal is a POLICY/usage answer, not a transport failure: the
@@ -424,6 +447,29 @@ POLICY_CODES = {
     "task_not_found", "task_not_startable", "inject_rejected",
     "nested_worker_depth_exceeded", "consumer_fenced", "dispatch_inactive",
 }
+
+
+def _launch_tokens(eff):
+    """Every argument token in a launch.effective, whatever shape the host reports it in."""
+    if isinstance(eff, str):
+        return eff.split()
+    if isinstance(eff, list):
+        return [str(x) for x in eff]
+    toks = []
+    if isinstance(eff, dict):
+        for v in eff.values():
+            if isinstance(v, str):
+                toks += v.split()
+            elif isinstance(v, list):
+                toks += [str(x) for x in v]
+    return toks
+
+
+def _contains_seq(toks, want):
+    """want as a CONTIGUOUS run of toks. `--permission-mode bypassPermissions` is one flag, so
+    finding its two words far apart (beside `--permission-mode plan`, say) is not finding it."""
+    n = len(want)
+    return any(toks[i:i + n] == want for i in range(len(toks) - n + 1))
 try:
     d = json.load(open(sys.argv[1]))
 except Exception:
@@ -472,12 +518,42 @@ if state is not None and state != "ready":
     print(f"VERDICT=failed STATE={state}")
     raise SystemExit(0)
 
-print(f"VERDICT=ready STATE={state or 'exit0'}")
-print(f"HANDLE={h} READY={state or 'exit0'}")
-print(f"DISPATCH={did}")
+if state is None:
+    # "The receipt is the verdict" — and a receipt naming no state is not one. This read as READY
+    # on the call's exit status alone, which the header above says is NOT the verdict, so a
+    # changed receipt shape silently disabled the state check (#298). A receipt of
+    # `{"result": "surprise"}` reported READY with an empty handle and an empty dispatch id.
+    #
+    # UNKNOWN, not FAILED: worker-start exited 0, so a worker may well be live, and the one thing
+    # a coordinator must not do here is respawn beside it (liveness-resume.md, dual-writer).
+    print("VERDICT=unknown STATE=absent")
+    print(f"HANDLE={h} READY=absent")
+    print(f"DISPATCH={did}")
+    raise SystemExit(0)
+
 launch = r.get("launch") if isinstance(r.get("launch"), dict) else {}
-if "effective" in launch:
-    eff = launch["effective"]
+eff = launch.get("effective") if "effective" in launch else None
+# (b) The requested PROFILE is a capability grant; `launch.effective` is what the host actually
+# launched. A worker-start launch takes its args from the HOST's agentDefaultArgs, not from
+# anything this script builds, so the two CAN disagree — and when they did, the launch proceeded
+# and the profile was advisory (#298). Checked only when the host reports the field:
+# an absent one is unverifiable, and is said so rather than guessed at.
+want = sys.argv[2].split() if len(sys.argv) > 2 else []
+if eff is not None and want:
+    toks = _launch_tokens(eff)
+    if not _contains_seq(toks, want):
+        print("VERDICT=failed LAUNCH_FLAG_MISSING=" + " ".join(want))
+        print("LAUNCH_EFFECTIVE=" + (eff if isinstance(eff, str)
+                                     else json.dumps(eff, sort_keys=True)))
+        raise SystemExit(0)
+elif eff is None and want:
+    print("launch.effective absent from the receipt — the profile's flag could not be verified "
+          "against what the host launched", file=sys.stderr)
+
+print(f"VERDICT=ready STATE={state}")
+print(f"HANDLE={h} READY={state}")
+print(f"DISPATCH={did}")
+if eff is not None:
     print("LAUNCH_EFFECTIVE=" + (eff if isinstance(eff, str) else json.dumps(eff, sort_keys=True)))
 PY
 )
@@ -488,9 +564,17 @@ PY
   # Fail CLOSED on a nonzero call whose receipt named neither a code nor a state: a missing
   # binary, a truncated write, or a host that answered in some shape we do not parse must never
   # read as READY just because the parser found nothing to object to.
-  if [ "$verdict" = "ready" ] && [ "$ws_rc" != "0" ]; then
-    verdict=failed
-    verdict_line="VERDICT=failed UNPARSEABLE_RECEIPT rc=${ws_rc}"
+  #
+  # A stateless receipt is UNKNOWN when the call exited 0 (something ran; inspect, never respawn)
+  # and FAILED when it did not (rc=127 is a missing binary — there is no worker to go looking
+  # for, and sending a coordinator to inspect for one is its own waste). The parser cannot tell
+  # these apart because it never sees the exit status; this is the only place that does.
+  if [ "$ws_rc" != "0" ]; then
+    case "$verdict:$verdict_line" in
+      ready:*|unknown:*STATE=absent*)
+        verdict=failed
+        verdict_line="VERDICT=failed UNPARSEABLE_RECEIPT rc=${ws_rc}" ;;
+    esac
   fi
 
   step=verify-ready
@@ -504,11 +588,21 @@ PY
       ;;
     unknown)
       printf '%s\n' "$payload"
-      echo "SPAWN=OUTCOME_UNKNOWN task=${task} — the start neither proved nor disproved the worker. Run the nextCommands above (worker-show, then an explicit worker-stop or worker-abandon): INSPECT, NEVER RESPAWN — a second worker beside a live pane is the dual-writer class (liveness-resume.md). Receipt in $ws" >&2
+      case "$verdict_line" in
+        *STATE=absent*)
+          echo "SPAWN=OUTCOME_UNKNOWN task=${task} — worker-start exited ${ws_rc} but its receipt names no state, so the start neither proved nor disproved the worker. A receipt shape this script cannot read is not a success. INSPECT (worker-list, then worker-show on anything for this task), NEVER RESPAWN — a second worker beside a live pane is the dual-writer class (liveness-resume.md). Receipt in $ws" >&2 ;;
+        *)
+          echo "SPAWN=OUTCOME_UNKNOWN task=${task} — the start neither proved nor disproved the worker. Run the nextCommands above (worker-show, then an explicit worker-stop or worker-abandon): INSPECT, NEVER RESPAWN — a second worker beside a live pane is the dual-writer class (liveness-resume.md). Receipt in $ws" >&2 ;;
+      esac
       exit 4
       ;;
     *)
-      echo "SPAWN=FAILED task=${task} step=${step} rc=${ws_rc} — worker-start failed: ${verdict_line#VERDICT=failed } (receipt in $ws)" >&2
+      case "$verdict_line" in
+        *LAUNCH_FLAG_MISSING=*)
+          echo "SPAWN=FAILED task=${task} PROFILE=${PROFILE} asked for '${profile_flag}' and the host's launch.effective does not carry it — the worker did not launch with the capability the profile grants, so the profile would be advisory. worker-start takes its args from the host's agentDefaultArgs, not from this script: fix the host setting, or pass WORKER_CMD with ORCA_COORD_ALLOW_CMD_OVERRIDE=1 and own the semantics. Receipt in $ws" >&2 ;;
+        *)
+          echo "SPAWN=FAILED task=${task} step=${step} rc=${ws_rc} — worker-start failed: ${verdict_line#VERDICT=failed } (receipt in $ws)" >&2 ;;
+      esac
       exit 1
       ;;
   esac

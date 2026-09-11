@@ -6,6 +6,7 @@ which was wrong in both directions — `/etc/passwd` passed, `"failures": []` wa
 tests pin both directions so neither mistake can come back.
 """
 import importlib.util
+import json
 import unittest
 from pathlib import Path
 
@@ -79,6 +80,54 @@ class RefusedTranscripts(unittest.TestCase):
         # boots and then fails a build halfway through.
         self.assert_refused(
             '{"recipe": "lane-7", "ok": true, "checks": [{"name": "disk", "level": "warn"}]}')
+
+
+class RecipeIdentityIsExact(unittest.TestCase):
+    """#298: the recipe check was a SUBSTRING test, in both the JSON and the plain-text path.
+
+    A transcript for `web-prod-privileged` therefore certified a danger lane asked about `web`,
+    and about `prod`. Since #283 this script produces the transcript itself, so the check is a
+    sanity check rather than a trust boundary — but a sanity check that passes on the wrong
+    recipe is not one, and the doctor may report on a recipe it resolved differently.
+    """
+
+    CLEAN = {"recipe": "web-prod-privileged", "failures": [], "warnings": []}
+
+    def test_a_prefix_of_the_recipe_id_does_not_match(self):
+        raw = json.dumps(self.CLEAN)
+        for wrong in ("web", "web-prod", "prod", "privileged"):
+            with self.subTest(recipe=wrong):
+                clear, reason = sandbox_doctor.verdict(raw, wrong)
+                self.assertFalse(clear, f"{wrong!r} certified a transcript for another recipe")
+                self.assertIn("does not name recipe", reason)
+
+    def test_the_whole_recipe_id_still_matches(self):
+        clear, reason = sandbox_doctor.verdict(json.dumps(self.CLEAN), "web-prod-privileged")
+        self.assertTrue(clear, reason)
+
+    def test_the_match_is_a_string_value_not_a_serialized_fragment(self):
+        # The id has to appear as a VALUE somewhere in the document, at any depth — not merely
+        # as bytes inside the serialized form of it.
+        deep = {"run": {"config": [{"id": "sandbox.v2"}]}, "failures": [], "warnings": []}
+        self.assertTrue(sandbox_doctor.verdict(json.dumps(deep), "sandbox.v2")[0])
+        glued = {"note": "recipes: sandbox.v2-old,sandbox.v2x", "failures": []}
+        self.assertFalse(sandbox_doctor.verdict(json.dumps(glued), "sandbox.v2")[0],
+                         "a substring of a longer value is not this recipe")
+
+    def test_plain_text_matches_on_a_token_boundary(self):
+        raw = "doctor for recipe web-prod-privileged\n0 failures\n0 warnings\n"
+        self.assertTrue(sandbox_doctor.verdict(raw, "web-prod-privileged")[0])
+        for wrong in ("web", "prod", "privileged"):
+            with self.subTest(recipe=wrong):
+                self.assertFalse(sandbox_doctor.verdict(raw, wrong)[0])
+
+    def test_the_recipe_check_runs_before_the_findings_check(self):
+        # A transcript for the WRONG recipe is refused whether or not it is clean, so a clean
+        # transcript for a permissive recipe can never certify a stricter one.
+        dirty = json.dumps({"recipe": "other-recipe", "failures": ["boom"]})
+        clear, reason = sandbox_doctor.verdict(dirty, "web")
+        self.assertFalse(clear)
+        self.assertIn("does not name recipe", reason)
 
 
 if __name__ == "__main__":
