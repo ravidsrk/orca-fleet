@@ -79,7 +79,7 @@ RUN_HEADER_RE = re.compile(r"^RUN:\s*(.+?)\s*$", re.M)
 
 
 def _invocation_re(manifest):
-    """`verify.py … --manifest <THIS report's manifest>` — the transcript, not the word.
+    r"""`verify.py … --manifest <THIS report's manifest>` — the transcript, not the word.
 
     Two tightenings, both learned the hard way. "the body contains 'verify.py'" was
     satisfied by any prose mentioning it. Replacing that with `--manifest \S+` was
@@ -183,7 +183,7 @@ def _parsed_manifest(rest):
 
 
 def executes_verifier(cmd, manifest_path, root=None):
-    """True when `cmd` RUNS this repo's verify.py against `manifest_path` — parsed as argv.
+    r"""True when `cmd` RUNS this repo's verify.py against `manifest_path` — parsed as argv.
 
     A regex over the command line is the wrong instrument here, and this module already has the
     scar tissue to prove it: `_invocation_re` was tightened twice, first because "the body

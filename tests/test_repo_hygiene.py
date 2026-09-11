@@ -5,6 +5,7 @@ Three unrelated findings from the supply-chain pass, each a file rather than cod
 easy to undo silently in a later edit. The assertions are about the FILES, so they hold whoever
 changes them next.
 """
+import ast
 import re
 import sys
 import subprocess
@@ -66,6 +67,52 @@ class RuntimeStateIsNotCommittable(unittest.TestCase):
         for rel in ("runtime/scripts/egress.py", "skills/prove-it/SKILL.md", "README.md"):
             with self.subTest(path=rel):
                 self.assertFalse(self._ignored(rel), f"{rel} was swept up by an ignore rule")
+
+
+class EveryScriptCompilesWithoutWarnings(unittest.TestCase):
+    """A SyntaxWarning is a future SyntaxError, and CI was printing two of them.
+
+    `run_report.py` had `\\S` inside plain docstrings, which Python flags as an invalid escape
+    sequence. Local runs never showed it — a cached .pyc does not recompile — so it only appeared
+    in the CI log, where every file is compiled fresh. Python has announced these become errors.
+    """
+
+    def _compile_warnings(self, files):
+        import py_compile
+        import tempfile
+        import warnings
+        with tempfile.TemporaryDirectory() as tmp:
+            out = str(Path(tmp) / "c.pyc")
+            with warnings.catch_warnings(record=True) as caught:
+                warnings.simplefilter("always")
+                for f in files:
+                    py_compile.compile(str(f), cfile=out, doraise=False)
+                return [f"{Path(f).name}: {w.category.__name__}: {w.message}" for w in caught]
+
+    def test_the_compile_check_can_actually_see_a_warning(self):
+        """Without this the check is a tautology on a clean tree.
+
+        A mutant replacing `assertEqual(found, [])` with `assertEqual([], [])` survived, because
+        both are true when nothing warns — the same vacuity the stdlib-import guard above had.
+        """
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            bad = Path(tmp) / "bad_escape.py"
+            bad.write_text('"""a docstring with \\S in it"""\n', encoding="utf-8")
+            self.assertTrue(self._compile_warnings([bad]),
+                            "the compile scan cannot see an invalid escape sequence")
+            good = Path(tmp) / "good_escape.py"
+            good.write_text('r"""a raw docstring with \\S in it"""\n', encoding="utf-8")
+            self.assertEqual(self._compile_warnings([good]), [],
+                             "the compile scan flags a raw string that is perfectly legal")
+
+    def test_no_source_file_compiles_with_a_warning(self):
+        roots = ("scripts", "runtime/scripts", "tests", "bench", "demo")
+        files = [f for r in roots for f in sorted((ROOT / r).rglob("*.py"))
+                 if "__pycache__" not in f.parts]
+        self.assertGreater(len(files), 40, "the scan found almost no sources to compile")
+        self.assertEqual(self._compile_warnings(files), [],
+                         "these are future SyntaxErrors, and CI prints them today")
 
 
 class TheSecretWaiverCarriesIdentityNotContent(unittest.TestCase):
@@ -167,22 +214,55 @@ class TheSuiteRunsOnTheStdlibAlone(unittest.TestCase):
 
     # Modules that live in this directory and are imported by path, not by name.
     LOCAL = {"test_pins", "test_evals", "conftest"}
-    IMPORT = re.compile(r"^\s*(?:from|import)\s+([A-Za-z_][A-Za-z0-9_]*)", re.M)
 
     def _offenders(self, source, name="sample.py"):
+        """Every module imported by this source, via `ast` — not a line regex.
+
+        The first cut skipped any line containing a quote (to let test_floor_guard.py's quoted
+        examples through) and read only the FIRST name of an import. `import os, yaml` and
+        `import yaml  # "parser"` both sailed past it, and so did `from os import ...` on a
+        commented line (PR #308 review, P2). A guard with holes is the defect it exists to catch.
+
+        `ast` has neither problem and needs no heuristic: a quoted example parses to a string
+        constant, never an Import node, and every alias in a multi-name import is visited.
+        """
         stdlib = set(sys.stdlib_module_names)
         found = []
-        for i, line in enumerate(source.splitlines(), 1):
-            # A quoted example is not an import — test_floor_guard.py carries several.
-            if '"' in line or "'" in line:
+        for node in ast.walk(ast.parse(source, filename=name)):
+            if isinstance(node, ast.Import):
+                mods = [a.name for a in node.names]
+            elif isinstance(node, ast.ImportFrom):
+                # level > 0 is a relative import — no distributable package behind it.
+                mods = [] if node.level else [node.module or ""]
+            else:
                 continue
-            m = self.IMPORT.match(line)
-            if not m:
-                continue
-            mod = m.group(1)
-            if mod not in stdlib and mod not in self.LOCAL and mod != Path(name).stem:
-                found.append(f"{name}:{i}: {line.strip()}")
+            for mod in mods:
+                top = mod.split(".")[0]
+                if not top or top in stdlib or top in self.LOCAL or top == Path(name).stem:
+                    continue
+                found.append(f"{name}:{node.lineno}: {top}")
         return found
+
+    def test_the_check_sees_imports_a_line_regex_missed(self):
+        """PR #308 review, P2 — the holes in the first cut, each reproduced before fixing.
+
+        All three passed the regex version and would have failed in dependency-free CI.
+        """
+        for source in ("import os, yaml\n",
+                       'import yaml  # "parser"\n',
+                       "import json\nimport requests, os\n",
+                       "from yaml import safe_load\n",
+                       "def f():\n    import yaml\n"):
+            with self.subTest(source=source.strip()):
+                self.assertTrue(self._offenders(source),
+                                "a third-party import slipped past the guard")
+        # And a quoted example is still not an import — test_floor_guard.py carries several.
+        self.assertEqual(self._offenders('BAD = ["import yaml", "import requests"]\n'), [])
+        for relative in ("from . import helpers\n", "from .helpers import thing\n",
+                         "from ..pkg.mod import thing\n"):
+            with self.subTest(source=relative.strip()):
+                self.assertEqual(self._offenders(relative), [],
+                                 "a relative import names no distributable package")
 
     def test_the_check_can_actually_see_a_third_party_import(self):
         """A clean tree makes `assertEqual(offenders, [])` pass whether or not the check works.
