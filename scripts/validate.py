@@ -800,8 +800,11 @@ _SPELLED = ("ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eight
 _NUM = rf"(?:\d+|{_SPELLED})"
 # Separator between count, optional adjective, and noun: a hyphen (ten-mission) or
 # whitespace with optional markdown emphasis markers (Ten **autonomous fleets**).
-_SEP = r"(?:-|[\s*_]+)"
-_CATALOG_NOUN = r"(?:missions?|fleets?|outcome-named|callable)"
+_SEP = r"(?:-|[\s*_`]+)"
+# The proof tiers are catalog nouns too: "21 `doctrine-only`" is a hardcoded catalog count that
+# the noun set could not see, and it sat in README.md while this very guard was green (#282).
+_CATALOG_NOUN = (r"(?:missions?|fleets?|outcome-named|callable|"
+                 r"`?(?:doctrine-only|self-run|external-run)`?)")
 COUNT_LINT_RE = re.compile(
     rf"\b{_NUM}{_SEP}(?:[a-z]+{_SEP})?{_CATALOG_NOUN}\b",
     re.IGNORECASE,

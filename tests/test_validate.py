@@ -586,6 +586,17 @@ class TestCountAgnosticGuards(unittest.TestCase):
                   "eleven autonomous fleets"):
             self.assertRegex(s, validate.COUNT_LINT_RE, s)
 
+    def test_count_lint_matches_proof_tier_counts(self):
+        # #282: "The catalog reads 21 `doctrine-only`." is a hardcoded catalog count, and it sat
+        # in README.md while this guard was green — the tiers were not in the noun set and a
+        # backtick was not a separator. The guard against this exact rot had a hole in it.
+        for s in ("21 `doctrine-only`", "21 doctrine-only", "seventeen self-run",
+                  "12 external-run"):
+            self.assertRegex(s, validate.COUNT_LINT_RE, s)
+        # Count-agnostic phrasing of the same fact must still pass.
+        self.assertNotRegex("Every mission in the catalog reads `doctrine-only`.",
+                            validate.COUNT_LINT_RE)
+
     def test_check_doc_counts_flags_all_n_near_mission_talk(self):
         # Issue #33: "…one mission or all ten." — a catalog count with no noun.
         with tempfile.TemporaryDirectory() as tmp:
