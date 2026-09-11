@@ -30,7 +30,7 @@ metadata:
 
 You are the **COORDINATOR**. Here the work CREATES PROOF where no defect finding necessarily exists;
 the denominator is a FINITE CRITICAL SURFACE, done is MUTATION-SENSITIVE coverage of it, and bugs
-surfaced during characterization spawn a NESTED remediation loop. Composes `build-change`, `design-twice` (choosing the
+surfaced during characterization spawn a NESTED remediation loop. Composes `characterize`, `build-change`, `design-twice` (choosing the
 seam to pin), `remediate-finding` (for surfaced bugs), `acceptance-review`, `runtime-prove`, `compound-learn`;
 rides `merge-serialization`, `reviewed-sha-freshness`, `dispatch-lifecycle`, `liveness-resume`,
 `evidence-manifest`, `ledger-contract`, `attention-budget`. Worker TASK pack: one of matt | addy
@@ -51,14 +51,10 @@ MAP critical surface (coverage gaps × call-graph of money/auth/data/external-co
   uncovered trivial getters are NOT the mission) → HUMAN scope confirm (bounds the mission)
   → BOOTSTRAP integration BASE (runtime/scripts/preflight.py --base <BASE> --fork-point <sha
     recorded in the ledger header at BASE creation>; BASE ≠ default — dispatch-lifecycle.md)
-  → CHARACTERIZE waves (build-change): assert REAL expected behavior. Two outcomes:
-    · code correct, untested → the test passes; PROVE it with a behavior-changing, harness-preserving
-      MUTATION (flip a boundary, negate a condition, zero a return — code still COMPILES, harness still
-      RUNS; a mutation tool where one fits: mutmut/stryker/pitest/cargo-mutants…, else a hand mutant)
-      that fails the targeted assertion. A revert that breaks compile/imports proves source-SHAPE
-      dependence, not behavior — does not count. Record each audit as the manifest's `negative_control`
-      (tool · pinned mutant id · target assertion · KILLED) plus `binding_audit`; `metric_contract`
-      carries only the coverage before/after (evidence-manifest.md schema).
+  → CHARACTERIZE waves (build-change, characterize): assert REAL expected behavior, and earn each
+    net with the mutation `characterize` specifies. Two outcomes:
+    · code correct, untested → the test passes; PROVE it per characterize.md, and record the audit's
+      `binding_audit` alongside the `negative_control` that playbook defines.
     · test reveals a BUG → SURFACED-BUG sub-loop (remediate-finding). Route small clear fixes in-PR;
       route ambiguous / behavior-changing bugs to PARK needs-human or hand to clean-sweep. Never assert
       the buggy behavior as correct.

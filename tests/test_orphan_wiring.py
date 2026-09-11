@@ -173,6 +173,42 @@ class DoctrineSaysWhatTheCatalogDoes(unittest.TestCase):
                          "clean-sweep and pin-it have started to converge; re-argue ARCHITECTURE.md")
 
 
+class SharedDoctrineLivesOnce(unittest.TestCase):
+    """#290. prove-it and reshape-it each wrote out the characterization protocol. Duplicated
+    doctrine is the failure the playbook layer exists to prevent: two copies drift, and a reader
+    cannot tell which is authoritative. reshape-it's reference was worse than a copy — it pointed
+    at `skills/prove-it/SKILL.md` from inside a code block, which the composition scan cannot see,
+    so the dependency was invisible to the load accounting and the orphan checks alike.
+    """
+
+    def test_the_characterize_playbook_exists(self):
+        self.assertTrue((PLAYBOOKS / "characterize.md").is_file())
+
+    def test_both_missions_compose_it_visibly(self):
+        # Through the Composes clause, so validate.py counts it — not a path in a code block.
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("v", ROOT / "scripts" / "validate.py")
+        validate = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(validate)
+        for mission in ("prove-it", "reshape-it"):
+            _total, parts = validate.transitive_load(SKILLS / mission)
+            self.assertIn("playbooks/characterize.md", parts,
+                          f"{mission} names characterize where the validator cannot see it")
+
+    def test_the_mutation_rule_is_stated_once(self):
+        # The load-bearing sentence — a compile break is not proof — belongs in the playbook, and
+        # nowhere else restates the tool list it governs.
+        playbook = read("playbooks/characterize.md")
+        self.assertIn("a compile break is not proof", playbook.lower())
+        for mission in ("prove-it", "reshape-it"):
+            text = read(f"skills/{mission}/SKILL.md")
+            self.assertNotIn("cargo-mutants", text,
+                             f"{mission} still restates the mutation tool list characterize owns")
+
+    def test_reshape_it_no_longer_points_into_another_skill_file(self):
+        self.assertNotIn("skills/prove-it/SKILL.md", read("skills/reshape-it/SKILL.md"))
+
+
 class DormantMechanismsSaySo(unittest.TestCase):
     """Two of the seven cannot be wired from inside the repository, so they say so instead.
 
