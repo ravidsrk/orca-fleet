@@ -13,6 +13,13 @@ Then it opens the diff and reviews the delta against that expectation. Divergenc
 error. Prefer a cross-vendor reviewer (different CLI/model than the builder) when the fleet has
 one — mechanical independence beats instructed independence.
 
+SOLO RUN — no second identity at all. This review cannot then be independent, and must not be faked:
+`verify.py` requires an approval the fleet cannot self-issue, so a mutation unit cannot reach a
+closed state. Record the verifier RED and stop at the build state, or take the executed-control lane
+(`--lighting dark-eligible --execute-nc`: the review is waived and the control becomes the only
+oracle). A reviewer that is the builder is not a reviewer. The flagship ship-it run hit exactly this
+and recorded RED, which is why that mission sits at `doctrine-only`.
+
 ## The three axes (isolated parallel sub-agents, no cross-rerank)
 
 - **Standards:** repo-documented standards (paste the files) + the Fowler 12-smell baseline, judged

@@ -231,6 +231,36 @@ class SharedDoctrineLivesOnce(unittest.TestCase):
                       "the verifier no longer requires mutant; re-check the playbook's table")
 
 
+class TheSoloRunLessonIsWhereItIsNeeded(unittest.TestCase):
+    """#291. The flagship ship-it run learned that a solo fleet cannot manufacture an independent
+    approver, so a mutation unit cannot close: it recorded RED and stopped, which is why ship-it
+    sits at doctrine-only. That lesson was written into the run report, the run template, the
+    binder and the binder's test — and into none of the documents a coordinator running ship-it
+    actually reads. A fresh coordinator would hit the same wall with no instruction for it.
+    """
+
+    SIGNAL = ("solo", "self-approve", "independent approval")
+
+    def test_ship_it_says_what_to_do_with_one_identity(self):
+        text = read("skills/ship-it/SKILL.md").lower()
+        self.assertTrue(any(term in text for term in self.SIGNAL),
+                        "ship-it does not say what to do when no second identity exists")
+        self.assertIn("built", text, "the fallback terminal state is not named")
+
+    def test_acceptance_review_refuses_a_faked_independent_review(self):
+        text = read("playbooks/acceptance-review.md").lower()
+        self.assertIn("no second identity", text)
+        self.assertIn("not a reviewer", text,
+                      "the playbook does not refuse a builder reviewing its own work")
+
+    def test_both_name_the_lane_that_does_work_solo(self):
+        # Recording RED is honest but terminal; the executed-control lane is the way through, and
+        # a coordinator that is not told about it will simply stop.
+        for path in ("skills/ship-it/SKILL.md", "playbooks/acceptance-review.md"):
+            self.assertIn("executed-control lane", read(path),
+                          f"{path} states the problem without naming the way through")
+
+
 class DormantMechanismsSaySo(unittest.TestCase):
     """Two of the seven cannot be wired from inside the repository, so they say so instead.
 

@@ -46,15 +46,14 @@ completion-audit.md + compound-learn.md at run close · mission-chaining.md as a
 
 ## Terminal states (name the one you reach)
 
-`BUILT` (all units merged to BASE, ancestry-verified) → `PROMOTION_READY` (promotion PR open with a
-traceability table) → `RELEASED` (human merged to default) → `DEPLOYED_AND_VERIFIED` (deployed
-revision == released SHA, canary green over its window). Stop at the highest state authorization and
-deploy availability allow; the manifest names it and what blocks the next.
+`BUILT` (all units merged to BASE, ancestry-verified) → `PROMOTION_READY` (promotion PR open with a traceability table) → `RELEASED`
+(human merged to default) → `DEPLOYED_AND_VERIFIED` (deployed revision == released SHA, canary green over its window). Stop at the
+highest state authorization and deploy availability allow; the manifest names it and what blocks the next.
 
-If units or criteria are parked with human-approved reasons while the rest landed, append
-`-WITH-PARKED` to the highest clean state reached (e.g. `BUILT-WITH-PARKED`,
-`PROMOTION_READY-WITH-PARKED`). Allowed parks: `needs-human`, `CODE_CLOSED` + `VERIFY_AT_SCALE`
-plan, or human-authorized scope exclusion. Never claim a clean terminal when parked work remains in scope.
+If units or criteria are parked with human-approved reasons while the rest landed, append `-WITH-PARKED` to the highest clean state
+reached (e.g. `BUILT-WITH-PARKED`). Allowed parks: `needs-human`, `CODE_CLOSED` + `VERIFY_AT_SCALE` plan, or human-authorized scope
+exclusion. Never claim a clean terminal while parked work is in scope. SOLO RUN (no second GitHub identity): a mutation unit cannot
+close — record RED and stop at `BUILT`, or take the executed-control lane; never self-approve (acceptance-review.md).
 
 ## Preflight
 
