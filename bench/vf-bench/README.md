@@ -53,7 +53,7 @@ author. A gate that cannot execute a control cannot pass it.
 | `stillborn-mutant` | mutant makes the module unimportable, so the non-zero exit is a SyntaxError | the RED must name an assertion failure; a run that never reached an oracle killed nothing |
 | `grep-command` | nominated control is a `grep` for the fix's own text, not a test run | exit status alone cannot tell them apart — a silent non-zero exit is refused |
 | `decoy-hand-diff` | narrated `hand` control quotes a diff against a file the change never touched | the `+++` targets and the hunk lines bound to `base_sha..head_sha`, not merely checked for diff-shaped text |
-| `valid-control` | (not a trap — genuinely complete, report-only) | passes (proves soundness ≠ always-RED for the scope leg) |
+| `valid-control` | (not a trap — genuinely complete, report-only, built at run time) | passes (proves soundness ≠ always-RED for the scope leg): two real commits whose whole difference is a document, which is what an honest report-only unit looks like once `HEAD..HEAD` stopped counting as one (#310) |
 | `mutation-valid-control` | (not a trap — genuinely complete, MUTATION-class, built at run time) | passes only after a REAL executed revert + a real independent APPROVED review; proves soundness ≠ always-RED for the class the bypass log broke |
 
 The **ancestry leg** (`check_ancestry`) is exercised by #172's `non-ancestor-sha` trap (landing

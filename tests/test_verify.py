@@ -1671,16 +1671,44 @@ class EndToEndMutationGreen(RepoCase):
         self.assertIn("app.py", err, f"the refusal must name the code it changed: {err}")
 
     def test_unsupervised_report_only_that_changes_no_code_is_marked_not_refused(self):
-        # The honest case still works, but never silently: an advisory downgrade that changes no
-        # production path passes and says so in the verdict.
+        # The honest case still works, but never silently: a report-only unit names the range its
+        # report covers, that range carries no code, and the verdict records that nothing
+        # off-worker authorized the class.
+        doc_base = self.head_sha
+        self.write("docs/report.md", "# what I found\n")
+        doc_head = self.commit("the report")
+        self.head_sha = doc_head   # keeps the review stub fresh (it closes over self.head_sha)
         path = self._downgraded()
         m = json.loads(Path(path).read_text(encoding="utf-8"))
-        m["base_sha"] = m["head_sha"]  # a range that changes nothing
+        m["base_sha"] = doc_base
         Path(path).write_text(json.dumps(m), encoding="utf-8")
         rc, out, _err = self._main(path, "--unit-class", "report-only")
         self.assertEqual(rc, 0, out)
         self.assertIn("report-only (unsupervised)", out,
                       f"an unsigned downgrade must be marked in the verdict: {out}")
+
+    def test_unsupervised_report_only_cannot_declare_an_empty_range(self):
+        # PR #308 review, P1. base_sha and head_sha are the worker's too, so a unit that changed
+        # production code in commit C declares base = head = C: the diff is empty, no code shows
+        # up, and every mutation obligation is shed. The first cut of this check passed it with an
+        # advisory note, reasoning that an empty range changes nothing — true of the declared
+        # range, silent about the work.
+        path = self._downgraded()
+        m = json.loads(Path(path).read_text(encoding="utf-8"))
+        m["base_sha"] = m["head_sha"]
+        Path(path).write_text(json.dumps(m), encoding="utf-8")
+        rc, out, err = self._main(path, "--unit-class", "report-only")
+        self.assertEqual(rc, 2, f"an empty declared range passed: {out}")
+        self.assertIn("base_sha == head_sha", err)
+
+    def test_removing_the_empty_range_branch_would_not_have_been_enough(self):
+        # Recorded because the review localized the fix to the equal-SHA branch, and deleting that
+        # branch does NOT close the attack: a pinned equal range diffs empty, so the unit lands on
+        # the no-code path and passes anyway. What closes it is demanding a NON-DEGENERATE range.
+        # This asserts the underlying fact, so the reasoning cannot rot silently.
+        prod, err = verify._production_changes(self.head_sha, self.head_sha)
+        self.assertIsNone(err, "an equal pinned range resolves fine — that is the problem")
+        self.assertEqual(prod, [], "an equal range diffs empty, so 'no code changed' is vacuous")
 
     def test_omitted_lighting_is_lit_end_to_end(self):
         # #169: a mutation manifest with no lighting key verifies clean — omission means lit.

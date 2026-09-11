@@ -2,30 +2,22 @@
   "id": "valid-control-1",
   "class": "control-not-a-trap",
   "sound_expected": "GREEN",
-  "note": "Genuinely complete, report-only, against the authoritative contract. Proves the sound gate is not always-RED.",
+  "note": "Genuinely complete, report-only, against the authoritative contract. Proves the sound gate is not always-RED for the scope leg. Built at run time (build_report_fixture) rather than declared: this used to be a static manifest at HEAD..HEAD, and an empty declared range is now refused, because a unit that changed production code in commit C can assert base = head = C just as easily as an honest report can (#310, PR #308 review). So the control has to SHOW the honest shape instead of asserting it -- two real commits whose whole difference is a document.",
   "unit_class": "report-only",
-  "contract_source": "bench/vf-bench/fixtures/contract-1.md",
-  "contract_digest": "sha256:9fb77371ae4e1e2c2502ceea196f248465d6f4ae77863e5a748c719f1f23b5d6",
+  "fixture": "report-only",
   "manifest": {
     "unit": "review-it",
     "unit_class": "report-only",
-    "base_sha": "HEAD",
-    "head_sha": "HEAD",
+    "base_sha": "{{base_sha}}",
+    "head_sha": "{{head_sha}}",
     "contract": {
-      "source": "bench/vf-bench/fixtures/contract-1.md",
-      "digest": "sha256:9fb77371ae4e1e2c2502ceea196f248465d6f4ae77863e5a748c719f1f23b5d6",
-      "criterion_ids": [
-        "AC-1"
-      ]
+      "source": "contract.md",
+      "digest": "{{contract_digest}}",
+      "criterion_ids": ["AC-1"]
     },
     "criteria": [
-      {
-        "id": "AC-1",
-        "addressed": true
-      }
+      {"id": "AC-1", "addressed": true}
     ],
-    "pr": {
-      "reviewed_sha": "HEAD"
-    }
+    "pr": {"reviewed_sha": "{{head_sha}}"}
   }
 }

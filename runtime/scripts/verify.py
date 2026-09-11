@@ -681,6 +681,33 @@ def _is_test_path(path):
     return False
 
 
+def _production_changes(base, head):
+    """Changed paths that are neither tests nor docs — the CODE a report-only unit must not touch.
+
+    Deliberately not _changed_paths' split. There the question serves the #280 control bind — may
+    this path be reverted to prove behaviour? — and a doc is not behaviour, so it counts as
+    production. Here the question is whether the unit changed code at all, and a report that writes
+    into docs/ is the honest shape of a report-only unit, not a mutation in disguise (#310)."""
+    if not (base and head and HEX40_RE.match(str(base)) and HEX40_RE.match(str(head))):
+        return None, ("base_sha and head_sha must both be pinned 40-hex commits before the class "
+                      "claim can be measured against the change")
+    code, out = _git(["diff", "--name-only", f"{base}..{head}"])
+    if code != 0:
+        return None, "cannot diff base_sha..head_sha, so the class claim cannot be measured"
+    try:
+        ds = _load_diff_scope()
+    except Exception:  # noqa: BLE001 - a missing sibling must not open the gate
+        return None, "diff_scope.py could not be loaded, so code cannot be told from docs"
+    changed = [ln.strip() for ln in out.splitlines() if ln.strip()]
+    prod = []
+    for path in changed:
+        low = path.lower()
+        flags = {flag for flag, pattern in ds.PATH_RULES if pattern.search(low)}
+        if not flags & {"TESTS", "DOCS"}:
+            prod.append(path)
+    return prod, None
+
+
 def _changed_paths(base, head):
     """Paths changed in base..head, split into (production, tests, err).
 
@@ -1508,34 +1535,47 @@ def check_class_downgrade(m, unit_class, record_ref, pubkey_ref):
     class's name.
 
     Shape-unknown fails closed. base_sha and head_sha are worker-supplied too, so "I cannot tell"
-    must not pass where "it changed production code" fails — otherwise the bypass is just one field
-    further along. The exception is a range whose ends are the SAME ref: base_sha == head_sha
-    changes nothing whatever the ref resolves to, so it needs no git and no pinning. That is the
-    shape a genuine report-only unit has, including this repo's own always-RED control
-    (bench/vf-bench/traps/valid-control.json, `HEAD..HEAD`) — a rule that reddens the positive
-    control measures nothing, which is the whole thesis of VF-Bench."""
+    must not pass where "it changed code" fails — otherwise the bypass is just one field along.
+
+    An EMPTY DECLARED RANGE is the sharpest case of that and is refused outright. base_sha ==
+    head_sha says "this unit changed nothing", which is an assertion with nothing behind it: the
+    gate reads no diff, so there is nothing to measure the class against. A first cut let it pass
+    on the reasoning that an empty range changes nothing whatever the ref resolves to — true about
+    the DECLARED range, and silent about the work. A worker that changed production code in commit
+    C can declare base = head = C and shed every mutation obligation (PR #308 review, P1).
+    Removing that branch does not close it either: a pinned equal range diffs empty, so it lands
+    on the no-code path anyway. What closes it is requiring a range that is pinned, real and
+    NON-DEGENERATE — a report-only unit shows the commit range its report covers, and that range
+    contains no code.
+
+    None of this makes the native path sound; it cannot. base_sha and head_sha are the same
+    worker's, so a determined unit can name some other doc-only range. That is the #112 result, not
+    a gap this check can close: the authority is a signed dispatch record, and the verdict says
+    `(unsupervised)` whenever there is none."""
     if _is_mutation(unit_class):
         return []
     if record_ref and pubkey_ref:
         return []  # check_dispatch_provenance binds unit_class to the coordinator's signature
     base, head = m.get("base_sha"), m.get("head_sha")
     if base and head and base == head:
-        return [f"NOTE: {unit_class} (unsupervised) — claimed with no signed dispatch record. "
-                f"base_sha == head_sha ({base}), an empty range, so the class is consistent with "
-                "the change, but nothing off-worker authorized it (#310)"]
-    prod, _tests, err = _changed_paths(base, head)
+        return [f"{unit_class} unit declares base_sha == head_sha ({base}) and carries no signed "
+                "dispatch record. An empty range asserts that this unit changed nothing and gives "
+                "the gate no diff to check that against — a claim, not evidence, from the same "
+                "worker that chose the class. Name the range the report covers, or have the "
+                "coordinator sign the downgrade (#310)"]
+    prod, err = _production_changes(base, head)
     if err:
         return [f"{unit_class} unit with no signed dispatch record, and its shape cannot be "
                 f"determined: {err}. Pin base_sha and head_sha so the claim can be measured "
                 "against the change, or have the coordinator sign the downgrade (#310)"]
     if prod:
-        return [f"{unit_class} unit changed production code {sorted(prod)} and carries no signed "
-                "dispatch record. unit_class arrives from the environment the worker controls, so "
-                "this single value drops the negative control, the intent packet, lighting "
-                "legality and reviewer_mode from a unit that changed behaviour. Verify it as a "
-                "mutation, or have the coordinator sign the downgrade (#310)"]
+        return [f"{unit_class} unit changed code {sorted(prod)} and carries no signed dispatch "
+                "record. unit_class arrives from the environment the worker controls, so this "
+                "single value drops the negative control, the intent packet, lighting legality "
+                "and reviewer_mode from a unit that changed behaviour. Verify it as a mutation, "
+                "or have the coordinator sign the downgrade (#310)"]
     return [f"NOTE: {unit_class} (unsupervised) — claimed with no signed dispatch record. "
-            "base_sha..head_sha changes no production path, so the class is consistent with the "
+            "base_sha..head_sha changes docs/tests only, so the class is consistent with the "
             "change, but nothing off-worker authorized it (#310)"]
 
 

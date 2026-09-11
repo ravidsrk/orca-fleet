@@ -111,6 +111,32 @@ def _fixture_rev(repo, rev):
                           check=True, capture_output=True, text=True).stdout.strip()
 
 
+def build_report_fixture(repo):
+    """A REAL report-only unit, built at run time: a commit range that produces a report and
+    touches no code (#310, PR #308 review).
+
+    valid-control-1 used to be a static manifest at `HEAD..HEAD`. That shape is now refused — an
+    empty declared range is a worker's assertion that it changed nothing, with no diff behind it,
+    and a production mutation can make the same assertion. So the positive control has to show
+    what an honest report-only unit looks like instead of asserting it: two real commits, and the
+    only thing between them is a document."""
+    repo.mkdir(parents=True)
+    _fixture_git(repo, "init", "-q", "-b", "main")
+    (repo / "mod.py").write_text(FIXTURE_MOD_HEAD, encoding="utf-8")
+    (repo / "contract.md").write_text(FIXTURE_CONTRACT, encoding="utf-8")
+    _fixture_git(repo, "add", "-A")
+    _fixture_git(repo, "-c", "user.name=vf", "-c", "user.email=vf@vf", "commit", "-qm", "base")
+    base = _fixture_rev(repo, "HEAD")
+    docs = repo / "docs"
+    docs.mkdir()
+    (docs / "report.md").write_text("# review-it\n\nAC-1 holds at head.\n", encoding="utf-8")
+    _fixture_git(repo, "add", "docs/report.md")
+    _fixture_git(repo, "-c", "user.name=vf", "-c", "user.email=vf@vf", "commit", "-qm", "the report")
+    head = _fixture_rev(repo, "HEAD")
+    return {"base_sha": base, "head_sha": head,
+            "contract_digest": "sha256:" + hashlib.sha256((repo / "contract.md").read_bytes()).hexdigest()}
+
+
 def build_mutation_fixture(repo):
     """#257: a REAL mutation unit, built at run time, hermetic.
 
@@ -200,13 +226,16 @@ def _render(obj, facts):
     return obj
 
 
+FIXTURES = {"mutation-revert": build_mutation_fixture, "report-only": build_report_fixture}
+
+
 def fixture_gate(trap):
-    """Run verify.py against a trap whose unit is built at run time (see build_mutation_fixture).
+    """Run verify.py against a trap whose unit is built at run time (see FIXTURES).
     Returns True when the gate returned GREEN."""
     holder = Path(tempfile.mkdtemp(prefix="vfbench-fixture-"))
     try:
         repo = holder / "repo"
-        facts = build_mutation_fixture(repo)
+        facts = FIXTURES[trap["fixture"]](repo)
         manifest = _render(trap["manifest"], facts)
         mpath = repo / "vf-manifest.json"
         mpath.write_text(json.dumps(manifest), encoding="utf-8")
@@ -248,7 +277,7 @@ def fixture_gate(trap):
 def sound_gate(trap):
     """orca-fleet's verifier, run as a separate process, given the trap's AUTHORITATIVE contract
     (the coordinator role) — never the manifest's own contract fields."""
-    if trap.get("fixture") == "mutation-revert":
+    if trap.get("fixture") in FIXTURES:
         return fixture_gate(trap)
     with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
         json.dump(trap["manifest"], fh)

@@ -62,11 +62,19 @@ worker-set; anything else in the environment is ignored):
   On the native path the worker owns this variable, and the downgrade it buys is the whole
   mutation lane at once — negative control, intent packet, lighting legality, reviewer_mode.
   So an **unsigned** `report-only`/`planning` claim is measured against what
-  `base_sha..head_sha` actually changes: production paths changed ⇒ RED; an unresolvable
-  range ⇒ RED (the shas are worker-supplied too, so "cannot tell" must not beat "changed");
-  `base_sha == head_sha` or a test-only change ⇒ passes, marked `(unsupervised)` in the
-  verdict. A dispatch record signed by the coordinator authorizes the class and skips all of
-  this — that is what signing it is for (#310).
+  `base_sha..head_sha` actually changes: code changed ⇒ RED; an unresolvable range ⇒ RED (the
+  shas are worker-supplied too, so "cannot tell" must not beat "changed"); `base_sha ==
+  head_sha` ⇒ RED, because an empty range *asserts* the unit changed nothing and leaves the
+  gate no diff to check it against — a unit that changed code in commit C can declare
+  `base = head = C` exactly as easily as an honest report can. A docs/tests-only range
+  between two real, distinct commits passes, marked `(unsupervised)` in the verdict. A
+  dispatch record signed by the coordinator authorizes the class and skips all of this — that
+  is what signing it is for (#310).
+
+  None of this makes the native path sound, and it is not meant to: `base_sha` and `head_sha`
+  are the same worker's, so a determined unit can name some other docs-only range. That is the
+  [trust boundary](#trust-boundary) result, not a gap this check can close. What it buys is
+  that the cheap downgrade fails and the expensive one is labelled.
 - `ORCA_REPO` — `owner/name` for the independent GitHub review lookup (optional; inferred from origin).
 - `ORCA_BASE` / `ORCA_SYMBOL` — ancestry-check base branch / a unit symbol to grep on it (optional).
 - `ORCA_NC_COMMAND` — the **authoritative** criterion-bound command the negative control must turn

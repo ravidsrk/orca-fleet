@@ -95,6 +95,11 @@ def _git(repo, *args):
     subprocess.run(["git", "-C", str(repo), *args], check=True, capture_output=True)
 
 
+def _git_out(repo, *args):
+    return subprocess.run(["git", "-C", str(repo), *args], check=True,
+                          capture_output=True, text=True).stdout.strip()
+
+
 def _hermetic_repo():
     """A one-commit repo the gate can run inside. #163's skip is gone with it: the fixtures used to
     resolve 'HEAD' against the AMBIENT clone (unborn on some CI checkouts); now every gate test
@@ -166,15 +171,31 @@ def _gate_repo(pin_blob=None, pin_worktree=None, remote_head=True):
     return repo
 
 
+def _doc_range(repo):
+    """Two real commits whose only difference is a document — the honest report-only shape.
+
+    These fixtures used `HEAD..HEAD`, which is now refused: an empty declared range asserts that
+    the unit changed nothing while giving the gate no diff to check that against, and a unit that
+    changed code can assert it just as easily (#310, PR #308 review)."""
+    base = _git_out(repo, "rev-parse", "HEAD")
+    rel = f"docs/report-{next(_SRC_SEQ)}.md"
+    (repo / rel).parent.mkdir(parents=True, exist_ok=True)
+    (repo / rel).write_text("# report\n", encoding="utf-8")
+    _git(repo, "add", rel)
+    _git(repo, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "report")
+    return base, _git_out(repo, "rev-parse", "HEAD")
+
+
 def _manifest(repo, source, ids_declared, ids_addressed):
     path = repo / f"manifest-{next(_SRC_SEQ)}.json"
+    base, head = _doc_range(repo)
     path.write_text(json.dumps({
         "unit": "review-it", "unit_class": "report-only",
-        "base_sha": "HEAD", "head_sha": "HEAD",
+        "base_sha": base, "head_sha": head,
         "contract": {"source": source, "digest": _digest(repo, source),
                      "criterion_ids": ids_declared},
         "criteria": [{"id": i, "addressed": True} for i in ids_addressed],
-        "pr": {"reviewed_sha": "HEAD"},
+        "pr": {"reviewed_sha": head},
     }), encoding="utf-8")
     return str(path)
 
