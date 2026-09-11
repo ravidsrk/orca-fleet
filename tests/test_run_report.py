@@ -289,6 +289,20 @@ class LiveCatalog(unittest.TestCase):
             text = (ROOT / "docs" / "runs" / name).read_text(encoding="utf-8")
             self.assertIn("Evidence binding", text, f"{name} was demoted without saying why")
 
+    def test_the_readme_does_not_claim_the_tier_gate_re_derives(self):
+        """#281. The gate hashes artifacts at a named commit; it does not re-run the verifier, and
+        run_report.py's own docstring says so at :33-38. The README claimed a tier "re-derives",
+        which a fabricated map-it self-run disproved in fifteen minutes. Guard the honest wording:
+        a doc claim that outruns its mechanism is the failure this repository exists to refuse."""
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        start = readme.index("## Proof status")
+        section = " ".join(readme[start:readme.index("\n## ", start + 1)].split())
+        self.assertNotIn("it is a report that re-derives", section,
+                         "the README is claiming the tier gate re-derives again (#281)")
+        self.assertIn("hash true at a named commit", section)
+        self.assertIn("it hashes, it does not re-run the verifier", section,
+                      "the section must state the limit, not only the capability")
+
 
 if __name__ == "__main__":
     unittest.main()

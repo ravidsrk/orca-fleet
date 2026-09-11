@@ -147,11 +147,26 @@ one-way gate class, not a lower rung. A scheduled unattended run is the L5 shape
 ## Proof status — honesty first
 
 Every mission's `metadata:` block carries a validator-enforced `proof:` field: `doctrine-only`,
-`self-run`, or `external-run`. A higher tier is not a claim you can write — it is a report that
-**re-derives**. `runtime/scripts/run_report.py` requires a `RUN:` header, an evidence manifest
+`self-run`, or `external-run`. A tier cannot be claimed without **artifacts that hash true at a
+named commit**: `runtime/scripts/run_report.py` requires a `RUN:` header, an evidence manifest
 inside the run's own `docs/runs/<date>-<mission>…/` directory, and an integrity inventory whose
 hashes are re-computed from the git objects at the commit the header names. A report that merely
-names the mission in its filename no longer advances anything (issue #259, REVIEW.md §2.2).
+names the mission in its filename no longer advances anything (issue #259).
+
+Be precise about what that buys, because the gate is weaker than "re-derives" would imply and
+[`run_report.py`](runtime/scripts/run_report.py) says so in its own docstring: **it hashes, it does
+not re-run the verifier.** The 2026-09-11 review fabricated a `map-it` self-run — seven files,
+32 lines, one commit, under fifteen minutes — that reported "bound" and passed `validate.py`,
+`proof_status.py --check` and the whole suite, because files a worker writes and commits hash true
+at the commit that contains them. What the gate really refuses is a tier claimed on a report whose
+artifacts were never retained, re-pointed at another mission, or pinned to a commit where the bytes
+differ. It does not refuse a tier whose artifacts were manufactured, and re-running the verifier
+afterwards would not fix that: the authorities that made the original verdict — the coordinator's
+out-of-band contract, a live GitHub review lookup, the worktree as it stood — are gone, so a
+"re-derivation" here would be a weaker check wearing the name of a stronger one. Closing this needs
+a leg the worker cannot type at all: a coordinator-signed verifier transcript checked against a
+committed key ([#281](https://github.com/ravidsrk/orca-fleet/issues/281)), on top of making the
+tier cost an actual run ([#286](https://github.com/ravidsrk/orca-fleet/issues/286)).
 
 **No mission clears that bar today.** Four runs really happened; none of them is currently a tier
 claim:
@@ -169,8 +184,8 @@ claim:
 
 Each report says so in its own "Evidence binding" section. The catalog reads 21 `doctrine-only`.
 That number went *down* as the mechanism got stronger, which is the mechanism working: the
-predecessor shipped twelve missions with two proven and paid for it, and a tier you cannot
-re-derive is the same claim in better packaging. The [run archive](docs/runs/) holds the runs; the
+predecessor shipped twelve missions with two proven and paid for it, and a tier whose artifacts
+are gone is the same claim in better packaging. The [run archive](docs/runs/) holds the runs; the
 [binding gate](runtime/scripts/run_report.py) holds the bar, exercised by `tests/test_run_report.py`
 against real git repositories.
 
