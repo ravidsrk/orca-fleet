@@ -254,6 +254,36 @@ def _norm_digest(d):
     return d if d.startswith("sha256:") else "sha256:" + d
 
 
+# Any token SHAPED like a criterion id, wherever it sits. CRIT_ID_RE only matches the ones that
+# BEGIN a list item or line, which is what keeps `see RFC-7519` out of the denominator (#268).
+CRIT_SHAPED_RE = re.compile(r"\b((?:[A-Z][A-Z0-9]*-\d+)|(?:[A-Z]{2,}\d+))\b")
+
+
+def hidden_criterion_ids(content, counted):
+    """Criterion ids the contract carries in a form the extractor does not count (A16; #296).
+
+    The denominator is the whole scope guarantee: coverage is measured against it, so a contract
+    that hides criteria from the extractor shrinks the thing the unit is graded on while still
+    reading as a full specification to a human. Attack A16 wrote them as table rows and em-dash
+    lines — `| AC-2 | … |`, `AC-3 — …` — and a three-criterion contract graded as one.
+
+    Refusing every uncounted `AAA-9` token would refuse prose: `see RFC-7519`, `ISO-8601`,
+    `SHA-256`. What distinguishes a hidden criterion is that it shares its PREFIX with one the
+    contract does count — a contract's criteria are numbered in one family by construction, so
+    `AC-2` beside a counted `AC-1` is a criterion in the wrong shape, while `RFC-7519` is not.
+    A contract that hides ALL of them extracts nothing and is already refused upstream.
+    """
+    prefixes = {cid.split("-")[0] for cid in counted if "-" in cid}
+    hidden = {}
+    for i, line in enumerate(content.splitlines(), 1):
+        for token in CRIT_SHAPED_RE.findall(line):
+            if token in counted or "-" not in token:
+                continue
+            if token.split("-")[0] in prefixes:
+                hidden.setdefault(token, i)
+    return hidden
+
+
 def extract_criterion_ids(content):
     """The authoritative criterion set, re-derived FROM the frozen source. A JSON source may declare
     `criterion_ids` — unambiguous, and PREFERRED. Otherwise the ids are the tokens that BEGIN a list
@@ -289,9 +319,18 @@ def check_scope(m, auth_source, auth_digest):
     got = sha256_of(content)
     if got != want:
         return [f"scope: authoritative source does not match --contract-digest ({got} != {want})"]
-    authoritative = extract_criterion_ids(content.decode("utf-8"))
+    text = content.decode("utf-8")
+    authoritative = extract_criterion_ids(text)
     if not authoritative:
         return ["scope: no criterion ids in the authoritative contract"]
+    hidden = hidden_criterion_ids(text, authoritative)
+    if hidden:
+        where = ", ".join(f"{tok} (line {ln})" for tok, ln in sorted(hidden.items()))
+        return [f"scope: the authoritative contract carries {where} in a form the extractor does "
+                "not count, beside criteria it does. The denominator would be "
+                f"{sorted(authoritative)} — smaller than the contract a human reads, which is the "
+                "whole scope guarantee. Write every criterion as a list item (`- AC-2: …`), or "
+                "use a JSON contract with an explicit criterion_ids array (#296)"]
     contract = m.get("contract") or {}
     errs = []
     mdigest = contract.get("digest")

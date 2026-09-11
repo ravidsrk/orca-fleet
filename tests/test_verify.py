@@ -102,6 +102,29 @@ class ScopeCheck(RepoCase):
     def _fatal(self, m, src, dig):
         return [e for e in verify.check_scope(m, src, dig) if not e.startswith("NOTE:")]
 
+    def test_a_contract_hiding_criteria_is_refused_end_to_end(self):
+        """#296 / A16, through check_scope rather than the helper alone.
+
+        Testing hidden_criterion_ids() directly proves the function works and NOT that anything
+        calls it — disabling the wiring in check_scope left the unit tests green. This one goes
+        through the gate a unit actually meets.
+        """
+        rel = "contract.md"
+        self.write(rel, "frozen\n- AC-1: sum\n| AC-2 | rejects None |\nAC-3 — total\n")
+        m = {"contract": {"criterion_ids": ["AC-1"]}, "criteria": _crit("AC-1")}
+        fatal = self._fatal(m, rel, self.digest(rel))
+        self.assertTrue(any("in a form the extractor does not count" in e for e in fatal),
+                        f"a contract hiding two of three criteria passed scope: {fatal}")
+
+    def test_a_well_formed_contract_still_passes_scope(self):
+        # The tightening must not refuse ordinary contracts, including prose references.
+        rel = "contract.md"
+        self.write(rel, "frozen\n- AC-1: sum per RFC-7519\n- AC-2: rejects None\n")
+        m = {"contract": {"criterion_ids": ["AC-1", "AC-2"]},
+             "criteria": _crit("AC-1") + _crit("AC-2")}
+        fatal = self._fatal(m, rel, self.digest(rel))
+        self.assertEqual(fatal, [], f"a well-formed contract was refused: {fatal}")
+
     def test_no_authoritative_contract_fails_closed(self):
         m = {"contract": {"criterion_ids": ["AC-1"]}, "criteria": _crit("AC-1")}
         self.assertTrue(any("no authoritative contract" in e for e in self._fatal(m, None, None)))
@@ -783,6 +806,49 @@ class ProvenanceCheck(unittest.TestCase):
     def test_no_standard_claim_skips(self):
         self.assertEqual(verify.check_provenance({"provenance": {"standard": "none"}}), [])
         self.assertEqual(verify.check_provenance({}), [])
+
+class HiddenCriteria(unittest.TestCase):
+    """#296 / A16. The denominator IS the scope guarantee — coverage is measured against it. A
+    contract that writes some criteria in a form the extractor does not count shrinks what the unit
+    is graded on while still reading as a full specification to a human. Three criteria graded as
+    one, and the unit reported "all criteria addressed".
+    """
+
+    def test_a_mixed_form_contract_hides_criteria(self):
+        text = "- AC-1: sum\n| AC-2 | rejects None |\nAC-3 — total\n"
+        counted = verify.extract_criterion_ids(text)
+        self.assertEqual(counted, {"AC-1"}, "the extractor's blind spot has changed")
+        self.assertEqual(set(verify.hidden_criterion_ids(text, counted)), {"AC-2", "AC-3"})
+
+    def test_prose_references_are_not_criteria(self):
+        # Refusing every uncounted AAA-9 token would refuse ordinary prose. What marks a hidden
+        # criterion is sharing a PREFIX with one the contract does count.
+        for text in ("- AC-1: sum per RFC-7519 using SHA-256 and ISO-8601\n",
+                     "- AC-1: sum\n- SC-1: perf\nsee RFC-7519 and PR-104\n"):
+            counted = verify.extract_criterion_ids(text)
+            self.assertEqual(verify.hidden_criterion_ids(text, counted), {},
+                             f"prose was read as a hidden criterion: {text!r}")
+
+    def test_a_same_family_mention_fails_closed(self):
+        # Genuinely ambiguous — "related to AC-9 in the old spec" may be prose. Fail closed and
+        # tell the author how to disambiguate, rather than silently shrink the denominator.
+        text = "- AC-1: sum\nrelated to AC-9 in the old spec\n"
+        counted = verify.extract_criterion_ids(text)
+        self.assertEqual(set(verify.hidden_criterion_ids(text, counted)), {"AC-9"})
+
+    def test_well_formed_contracts_are_untouched(self):
+        for text in ("- AC-1: sum\n- AC-2: rejects None\n- AC-3: total\n",
+                     "1. AC-1: sum\n2. AC-2: rejects None\n"):
+            counted = verify.extract_criterion_ids(text)
+            self.assertEqual(verify.hidden_criterion_ids(text, counted), {})
+
+    def test_a_json_contract_needs_no_heuristic(self):
+        text = '{"criterion_ids": ["AC-1", "AC-2"], "body": "| AC-2 | in a table |"}'
+        counted = verify.extract_criterion_ids(text)
+        self.assertEqual(counted, {"AC-1", "AC-2"})
+        self.assertEqual(verify.hidden_criterion_ids(text, counted), {},
+                         "an explicit criterion_ids array is unambiguous; nothing is hidden")
+
 
 class MalformedManifest(unittest.TestCase):
     """#137: a malformed manifest must fail closed as an invariant failure, never crash the gate."""
