@@ -53,10 +53,11 @@ closed, or its feedback goes quiet:
 - WATCH the PR: new review threads and CI, on a cadence or when notified — both fetches through the
   fence, since upstream text is stranger-written: `guard_text.py --source pr --fetch gh pr view <n>
   --json reviews,comments,statusCheckRollup` for review summaries and issue-level comments, AND
-  `guard_text.py --source pr --fetch gh api .../pulls/<n>/comments` for INLINE review comments and
-  their replies — `pr view` does not return those, and a WATCH loop that reads only it will call a
-  thread quiet while a maintainer is still asking for changes. Assist comments on others' PRs draw
-  replies too.
+  `guard_text.py --source pr --fetch gh api --paginate .../pulls/<n>/comments` for INLINE review
+  comments and their replies — `pr view` does not return those, and `--paginate` is not optional
+  (verify.py:409 learned it: without it GitHub returns the first 30 only). A WATCH loop missing
+  either will call a thread quiet while a maintainer is still asking for changes. Assist comments
+  on others' PRs draw replies too.
 - TRIAGE each new thread against the CURRENT head, never the commit it was filed on — an earlier fix
   round may already resolve it: RESOLVED-ALREADY (reply with the fixing sha, never re-fix), VALID
   (fix), FALSE-POSITIVE / DELIBERATE (reply with the quoted rationale).

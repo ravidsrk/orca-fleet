@@ -82,6 +82,21 @@ class TheFenceIsTheOnlyPath(unittest.TestCase):
         self.assertEqual(self._offenders(PLAYBOOKS), [],
                          "a playbook reads issue/PR text raw; route it through guard_text.py")
 
+    def test_every_gh_api_list_fetch_paginates(self):
+        # PR #308 review. `gh api` returns 30 items per page. verify.py:409 already carries the
+        # lesson in a comment — "without it GitHub returns the first 30 reviews only" — and the
+        # playbooks did not apply it, so a busy upstream PR silently truncates to its first page
+        # and the WATCH loop reads that as the discussion going quiet.
+        listing = re.compile(r"gh\s+api\b[^`\n]*/(?:comments|reviews|issues|pulls)\b")
+        bad = []
+        for directory in (SKILLS, PLAYBOOKS):
+            for path in sorted(directory.rglob("*.md")):
+                for i, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+                    for hit in listing.finditer(line):
+                        if "--paginate" not in hit.group(0):
+                            bad.append(f"{path.relative_to(ROOT)}:{i}: {hit.group(0)[:70]}")
+        self.assertEqual(bad, [], "a list fetch without --paginate truncates at 30 items")
+
 
 class TheVerifierInvocationIsWrittenDown(unittest.TestCase):
     """#285. The catalog's whole claim rests on verify.py, and no SKILL.md or playbook contained the
