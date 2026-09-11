@@ -6,8 +6,14 @@ records what it SENT. This ledger is the second half: one line per off-repo
 write the fleet performs -- opening a PR, posting a comment, closing an issue,
 triggering a deploy, creating a schedule -- appended BEFORE the send.
 
-Threat model, stated because it bounds what this is worth: the ledger is
-forensic observability, not an exfiltration control. It records ATTEMPTED
+Status, stated first because it bounds what this is worth today: this ledger
+has no caller (#284). No mission or playbook invokes it, so the receipts it
+describes are not being written. It is a working library waiting to be wired
+into the fleet's own sinks, not a guarantee in force -- read every sentence
+below as what it WILL record once called, not what is recorded now.
+
+Threat model, stated because it bounds what this is worth even then: the
+ledger is forensic observability, not an exfiltration control. It records ATTEMPTED
 egress so an accident is auditable afterwards. Anything with a shell can send
 without a receipt; the point is that the fleet's own sinks cannot do so
 silently.
@@ -21,10 +27,18 @@ Record (one JSON object per line, ``.orca/egress.jsonl``, mode 0600)::
   and a byte count, and a ``payload_class`` that describes the KIND of thing
   sent ("pr-body", "issue-comment"). ``payload_sha256`` is null when a
   subprocess owns the bytes and the fleet never saw them.
-* **Tamper-evident.** ``prev`` is the sha256 of the previous raw line (``""``
-  on line 1), so any edit to an earlier line breaks every later one. ``id`` is
-  the sha256 of this record's own fields including ``prev`` -- it names the
-  line and its position in the chain at once.
+* **Tamper-evident against EDITS, and only that without an anchor.** ``prev``
+  is the sha256 of the previous raw line (``""`` on line 1), so any edit to an
+  earlier line breaks every later one. ``id`` is the sha256 of this record's
+  own fields including ``prev`` -- it names the line and its position in the
+  chain at once. What a self-check cannot catch is a ledger deleted and
+  rewritten from scratch: the new chain starts at its own genesis and every
+  link is correct, so ``verify`` reports it intact (#312). The chain proves
+  continuity with *a* genesis, never with *the* one. So ``verify`` prints the
+  head digest and takes ``--expect-head``: record that head somewhere the
+  writer cannot reach -- a coordinator, CI, the run's own evidence manifest --
+  and hand it back, and a replaced history is caught. Unanchored, the output
+  says so rather than reading as a clean bill.
 * **Fail-closed on write.** A sink that cannot write its receipt must not
   send. ``write`` exits 3 in that case, so the caller's ``&&`` stops.
 * **Consent is a field, not a vibe.** Every receipt names the standing grant
@@ -190,6 +204,16 @@ def read_ledger(path):
     return out
 
 
+def head_digest(path):
+    """sha256 of the ledger's LAST raw line — the value to anchor off the writer (#312).
+
+    Empty string for an empty chain. This is the only thing a wholesale rewrite cannot reproduce:
+    the chain it writes is internally perfect, starting at its own genesis with every link correct,
+    but it is a DIFFERENT chain and so has a different head."""
+    lines = read_ledger(path)
+    return sha256_hex(lines[-1][1]) if lines else ""
+
+
 def verify_ledger(path):
     """Recompute the chain. Returns (ok, count, broken_line, reason)."""
     lines = read_ledger(path)
@@ -230,11 +254,27 @@ def cmd_write(args):
 def cmd_verify(args):
     path = ledger_path(args.ledger)
     ok, count, broken, reason = verify_ledger(path)
-    if ok:
-        print(f"egress: chain intact, {count} receipt(s) in {path}")
+    if not ok:
+        print(f"egress: TAMPER at {path}:{broken} — {reason} ({count} line(s) read)", file=sys.stderr)
+        return EXIT_FAIL_CLOSED
+    head = head_digest(path)
+    shown = head or "(empty)"
+    expected = getattr(args, "expect_head", None)
+    if expected is not None:
+        want = expected.strip().lower()
+        if want != head:
+            print(f"egress: TAMPER at {path} — the chain is internally intact, but its head is "
+                  f"{shown}, not the anchored {want or '(empty)'}. A ledger rewritten from scratch "
+                  "chains perfectly to its own new genesis, so recomputing the chain can never "
+                  "catch that; only a head kept where the writer cannot reach it can (#312)",
+                  file=sys.stderr)
+            return EXIT_FAIL_CLOSED
+        print(f"egress: chain intact and anchored, {count} receipt(s) in {path} — head {shown}")
         return EXIT_OK
-    print(f"egress: TAMPER at {path}:{broken} — {reason} ({count} line(s) read)", file=sys.stderr)
-    return EXIT_FAIL_CLOSED
+    print(f"egress: chain intact, {count} receipt(s) in {path} — head {shown} "
+          "(UNANCHORED: edits are caught, a wholesale rewrite is not — anchor this head off the "
+          "writer and pass it back as --expect-head)")
+    return EXIT_OK
 
 
 def cmd_grants(args):
@@ -289,6 +329,9 @@ def build_parser():
 
     v = sub.add_parser("verify", help="recompute the hash chain")
     v.add_argument("--json", action="store_true", help=argparse.SUPPRESS)
+    v.add_argument("--expect-head", default=None, dest="expect_head", metavar="SHA256",
+                   help="the head digest last recorded OFF this writer. Without it the chain is "
+                        "only checked against itself, which a wholesale rewrite satisfies (#312)")
 
     g = sub.add_parser("grants", help="list the standing consents the ledger records")
     g.add_argument("--json", action="store_true", help="emit JSON")

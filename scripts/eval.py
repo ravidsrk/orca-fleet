@@ -411,6 +411,37 @@ _REQUIRED_BY_TYPE = {
 }
 
 
+# A rank-1 win by less than this is a coin flip in practice, not a routing decision: the same
+# prompt phrased slightly differently lands on the sibling. The suite read 86/86 while thirteen of
+# its seventy-one positive rows were decided by under 0.05, because it only ever asked "is the
+# right mission first?" (#287). A row may still sit under the bar — some prompts genuinely belong
+# to two missions — but it has to SAY SO, naming the sibling it is close to, so the collision is
+# recorded rather than invisible.
+MIN_TOP_TWO_MARGIN = 0.05
+
+
+def _margin_verdict(ev: dict, ranked: list[tuple[str, float]]) -> str | None:
+    """The reason this positive row's margin is unacceptable, or None."""
+    if len(ranked) < 2:
+        return None  # nothing to collide with
+    runner_up, margin = ranked[1][0], ranked[0][1] - ranked[1][1]
+    declared = ev.get("collision")
+    if margin >= MIN_TOP_TWO_MARGIN:
+        if declared:
+            return (f"declares a collision with {declared!r} but wins by {margin:.3f} "
+                    f"(>= {MIN_TOP_TWO_MARGIN}) — drop the field rather than let it go stale")
+        return None
+    if not declared:
+        return (f"top-two margin {margin:.3f} < {MIN_TOP_TWO_MARGIN} "
+                f"({ranked[0][0]} {ranked[0][1]:.3f} vs {runner_up} {ranked[1][1]:.3f}) — a win this "
+                "narrow is a coin flip. Separate the descriptions, or declare "
+                f'"collision": "{runner_up}" to record that this prompt genuinely straddles them')
+    if declared != runner_up:
+        return (f"declares a collision with {declared!r} but the actual runner-up is {runner_up!r} "
+                f"at {ranked[1][1]:.3f} — the declaration has gone stale")
+    return None
+
+
 def _expected_set(ev: dict) -> list[str]:
     """A positive row's acceptable rank-1 missions: expected_mission or expected_any."""
     if isinstance(ev.get("expected_any"), list):
@@ -418,6 +449,25 @@ def _expected_set(ev: dict) -> list[str]:
     if ev.get("expected_mission"):
         return [str(ev["expected_mission"])]
     return []
+
+
+def _over_broad_expected_any(ev: dict) -> str | None:
+    """`expected_any` claims a prompt genuinely straddles two missions. It has to be true (#287).
+
+    Thirteen rows used it; on several the second named sibling never scored at all, so the fixture
+    passed on a mission it had not predicted and the breadth bought nothing but a wider target.
+    Every mission named must at least reach the evidence floor.
+    """
+    named = [str(m) for m in ev.get("expected_any") or []]
+    if len(named) < 2:
+        return ("expected_any names fewer than two missions — use expected_mission, which asserts "
+                "more")
+    ranked = {name for name, _ in classify_prompt(ev["prompt"])}
+    absent = [m for m in named if m not in ranked]
+    if absent:
+        return (f"expected_any names {absent}, which do not score on this prompt at all — the row "
+                "passes on a mission it never predicted. Narrow it to expected_mission")
+    return None
 
 
 def validate_routing_eval() -> list[str]:
@@ -465,6 +515,13 @@ def validate_routing_eval() -> list[str]:
                 errors.append(f"{_rel(ROUTING_EVAL)}: eval[{idx}] names unknown mission '{mission}'")
         if kind == "positive":
             seen_missions.update(m for m in named if m in expected_missions)
+            if "expected_any" in ev:
+                problem = _over_broad_expected_any(ev)
+                if problem:
+                    errors.append(f"{_rel(ROUTING_EVAL)}: eval[{idx}] {problem}")
+            if "collision" in ev and str(ev["collision"]) not in expected_missions:
+                errors.append(f"{_rel(ROUTING_EVAL)}: eval[{idx}] declares a collision with "
+                              f"unknown mission '{ev['collision']}'")
 
     uncovered = expected_missions - seen_missions
     if uncovered:
@@ -480,8 +537,66 @@ def validate_routing_eval() -> list[str]:
     return errors
 
 
+# A mission's "Use when" clause advertises the phrases a user is expected to type. Nothing routed
+# them, so the catalog could promise a phrase that lands on a sibling and never notice (#287). Four
+# do, and each is a real lexical collision rather than a bug worth contorting a description to
+# dodge — so they are RECORDED here, with the mission that actually wins. A fifth cannot appear
+# silently: any unlisted misroute fails validation, and a listed one that starts routing correctly
+# fails too, so this table cannot rot in either direction.
+RECORDED_TRIGGER_MISROUTES = {
+    # Two single-word / idiomatic collisions that no description edit fixes without distorting
+    # what the mission actually says. "conformance" is one generic word both own a claim to;
+    # "shipping" is ship-it's entire name.
+    ("attest-it", "conformance"): "access-it",
+    ("floor-it", "stop shipping junk"): "ship-it",
+}
+_QUOTED_TRIGGER_RE = re.compile(r'"([^"]{4,})"')
+
+
+def trigger_phrases(skill_dir: Path) -> list[str]:
+    """The quoted phrases a mission's own "Use when" clause advertises."""
+    skill_md = skill_dir / "SKILL.md"
+    if not skill_md.is_file():
+        return []
+    description = parse_frontmatter(skill_md.read_text(encoding="utf-8")).get("description", "")
+    _body, use_when, _excluded = split_description(description)
+    return _QUOTED_TRIGGER_RE.findall(use_when)
+
+
+def validate_trigger_phrases() -> list[str]:
+    """Route every advertised trigger phrase at its own mission."""
+    errors = []
+    for skill_dir in sorted(SKILLS_DIR.iterdir()):
+        if not skill_dir.is_dir() or skill_dir.name.startswith((".", "_")):
+            continue
+        owner = skill_dir.name
+        for phrase in trigger_phrases(skill_dir):
+            top = route_prompt(phrase)
+            recorded = RECORDED_TRIGGER_MISROUTES.get((owner, phrase))
+            if top == owner:
+                if recorded:
+                    errors.append(
+                        f"{owner}: trigger phrase {phrase!r} is recorded as misrouting to "
+                        f"{recorded!r} but now routes correctly — drop it from "
+                        "RECORDED_TRIGGER_MISROUTES")
+                continue
+            if recorded == top:
+                continue
+            if recorded:
+                errors.append(
+                    f"{owner}: trigger phrase {phrase!r} is recorded as misrouting to {recorded!r} "
+                    f"but now lands on {top!r} — the record has gone stale")
+            else:
+                errors.append(
+                    f"{owner}: advertises the trigger phrase {phrase!r}, which routes to "
+                    f"{top or 'nothing'!r}. Separate the descriptions, or record it in "
+                    "RECORDED_TRIGGER_MISROUTES with the mission that wins")
+    return errors
+
+
 def validate_all() -> list[str]:
     errors = validate_routing_eval()
+    errors.extend(validate_trigger_phrases())
     for skill_dir in sorted(SKILLS_DIR.iterdir()):
         if not skill_dir.is_dir() or skill_dir.name.startswith((".", "_")):
             continue
@@ -512,7 +627,12 @@ def _grade_routing_case(ev: dict, ranked: list[tuple[str, float]]) -> tuple[bool
             return False, (top or "none"), {"why": f"{confusable} ranked #1", "top3": scores}
         return True, (top or "none"), {"top3": scores}
     accepted = _expected_set(ev)
-    return (top in accepted), (top or "none"), {"top3": scores}
+    if top not in accepted:
+        return False, (top or "none"), {"top3": scores}
+    problem = _margin_verdict(ev, ranked)
+    if problem:
+        return False, (top or "none"), {"why": problem, "top3": scores}
+    return True, (top or "none"), {"top3": scores}
 
 
 def run_routing_eval() -> dict:

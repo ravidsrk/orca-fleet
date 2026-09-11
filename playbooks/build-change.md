@@ -35,10 +35,35 @@ worker writes a short PLAN artifact (approach · files · rollback · risks) to 
 ## Evidence
 
 The worker emits the evidence manifest (evidence-manifest.md): base→head SHA, criteria addressed,
-commands+exit, a NEGATIVE CONTROL (revert the production change → the test goes RED), and a
+commands+exit — the criterion-bound run wrapped in `runtime/scripts/evidence-run.py --label tests
+--manifest <m.json> -- <cmd>`, so its exit code is bound to a content fingerprint rather than typed —
+a NEGATIVE CONTROL (revert the production change → the test goes RED), and a
 non-empty **intent packet** (`goal` · `ruled_out` · `why`). No negative control or empty intent =
 the unit is not built. `lighting` defaults `lit`; `dark-eligible` only when this unit is Lane A,
 not on the stop-list, and the stop condition is an unfakeable oracle (gate-classification.md).
+
+## The invocation (#285)
+
+The table in evidence-manifest.md §2 says what is CHECKED; this says what to RUN. Produce the
+criterion-bound evidence through the recorder, so the ledger is written by the tool rather than typed:
+
+```
+runtime/scripts/evidence-run.py --label tests --manifest <m.json> -- <criterion-bound command>
+```
+
+Then verify, with the lane flags the dispatch supplied:
+
+```
+python3 runtime/scripts/verify.py --manifest <m.json> \
+  --contract-source <path@ref> --contract-digest sha256:… \
+  --unit-class mutation [--lighting dark-eligible] [--no-gh] \
+  --execute-nc --nc-command '<the same criterion-bound command>'
+```
+
+`--contract-source`, `--contract-digest` and `--nc-command` come from the COORDINATOR, out of band —
+never from the manifest, which the graded worker writes (#279). `--execute-nc` is REQUIRED in the two
+review-waiver lanes (`--lighting dark-eligible`, `--no-gh`), where the control is the only oracle
+left, and is the stronger form everywhere else. Record the run per `docs/runs/TEMPLATE.md`.
 
 ## Red flags (fail the unit)
 

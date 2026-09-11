@@ -63,6 +63,12 @@ marketplace accounts; not agent-executable). **Terminal: DRY-WITH-PARKED.**
 
 ### Integrity inventory (sha256) — run-close, files this run changed at the BASE tip
 
+> **Three of these thirteen do not re-derive at the tip this report names (`17ab013`):**
+> `tests/test_architecture.py`, `tests/test_docs_navigation.py` and `docs/runs/README.md`. They were
+> hashed after further ledger commits moved the tree, so the inventory is pinned to the wrong point.
+> The other ten match. This is why the run binds `no` — recorded as found rather than re-hashed to
+> make it look clean (#293).
+
 ```
 b7418f93f415126eb1243fdf78e6d792bb090632adcae7579de56c8e63f56760  .claude-plugin/marketplace.json
 fd72a195865fea8893a8076ff97edf10b0e7719dc93434e5ed5973940e671588  .claude-plugin/plugin.json

@@ -8,8 +8,9 @@ that it can instead check against authoritative state. The manifest is a *claim*
   - GIT — commit existence and ancestry;
   - GITHUB — whether a review actually happened at the reviewed SHA (a manifest-set reviewed_sha
     proves nothing);
-  - the NEGATIVE-CONTROL, EXECUTED (--execute-nc) in throwaway worktrees — the artifact alone is
-    corroboration, never proof.
+  - the NEGATIVE-CONTROL, EXECUTED (--execute-nc) in throwaway worktrees against the command the
+    COORDINATOR names (--nc-command) — the artifact alone is corroboration, never proof, and a
+    command the worker names proves only what the worker chose to prove (#279).
 
 Checks (evidence-manifest.md section 2), scope FIRST:
   1. scope: re-derive the criterion set from the COORDINATOR-supplied authoritative contract
@@ -23,7 +24,8 @@ Checks (evidence-manifest.md section 2), scope FIRST:
      EXECUTED negative control: there the control is the whole oracle, so it cannot be text (#256).
   4. negative control: structured (known tool, KILLED/RED verdict, pinned mutant, artifact) AND the
      artifact must corroborate. With --execute-nc the control is APPLIED in a throwaway worktree at
-     head_sha and the bound command must go NON-ZERO under it and ZERO at clean head_sha (#255).
+     head_sha and the command --nc-command names must go NON-ZERO under it and ZERO at clean
+     head_sha (#255, #279).
   5. commands: a mutation unit needs ≥1 recorded exit-0 command whose `wtree` is head_sha's tree,
      written by evidence-run.py — the clean-env re-run as a machine check (#3 of the audit ledger).
   6. redaction: the manifest and every named artifact are scanned for credential shapes (#14).
@@ -34,8 +36,8 @@ PINNED — tracked at head_sha, or hashed in the manifest's `artifacts[]` invent
 
 Usage:
     verify.py --manifest <m.json> --contract-source <path@ref> --contract-digest <sha256:…>
-              [--repo owner/name] [--unit-class mutation|report-only|planning] [--execute-nc]
-              [--base <branch>] [--symbol <tok>]
+              [--repo owner/name] [--unit-class mutation|report-only|planning]
+              [--execute-nc --nc-command <cmd>] [--base <branch>] [--symbol <tok>]
     # exit 0 = all REQUIRED checks pass · 1 = usage/dependency · 2 = a REQUIRED invariant FAILED
 """
 from __future__ import annotations
@@ -71,7 +73,7 @@ EXECUTABLE_NC_TOOLS = ("revert", "hand")
 # #268: in a TEXT source an id counts only where it BEGINS a list item or a line and is followed by
 # a separator — `- AC-1: …`, `2. SC-3)`, `REQ-4.`. Prose tokens of the same shape (`SHA-256`,
 # `PR-12`, `RFC-7519`, `ISO-8601`) are NOT criteria; counting them is a FALSE RED that makes the
-# gate unusable on realistic contracts (REVIEW.md A11). The anchor is the one place a contract
+# gate unusable on realistic contracts (docs/reviews/2026-09-10-review.md A11). The anchor is the one place a contract
 # author declares a criterion, so under-counting (which would let scope shrink) stays unlikely.
 CRIT_ID_RE = re.compile(
     r"(?m)^[ \t]*(?:[-*]|\d+\.)?[ \t]*((?:[A-Z][A-Z0-9]*-\d+)|(?:[A-Z]{2,}\d+))[ \t]*[:.)]")
@@ -147,7 +149,7 @@ def _resolve(path):
     """Resolve a repo-relative path against the git toplevel. Returns (Path|None, err).
 
     #267: an ABSOLUTE path, or one that escapes the toplevel, is REFUSED. Evidence outside the
-    clone is evidence no auditor can re-derive — REVIEW.md A10 walked a negative-control artifact
+    clone is evidence no auditor can re-derive — docs/reviews/2026-09-10-review.md A10 walked a negative-control artifact
     out to a temp dir, untracked and unhashed, and the gate read it happily. There is no permissive
     fallback: outside a git repo there is no toplevel to bound against, so the read fails closed
     rather than silently widening."""
@@ -252,17 +254,74 @@ def _norm_digest(d):
     return d if d.startswith("sha256:") else "sha256:" + d
 
 
+# Any token SHAPED like a criterion id, wherever it sits. CRIT_ID_RE only matches the ones that
+# BEGIN a list item or line, which is what keeps `see RFC-7519` out of the denominator (#268).
+CRIT_SHAPED_RE = re.compile(r"\b((?:[A-Z][A-Z0-9]*-\d+)|(?:[A-Z]{2,}\d+))\b")
+
+
+def _criterion_family(token):
+    """The family prefix of a criterion id, in either supported shape: AC-1 -> AC, SC12 -> SC.
+
+    Both shapes are counted by CRIT_ID_RE, so both need a family. Reading the family off the hyphen
+    alone skipped every compact id, and A16 then worked verbatim by dropping one character: a
+    contract counting `- SC12:` while hiding `| SC13 |` in a table row was not flagged, though the
+    hyphenated spelling of the same attack was (PR #308 review, P1).
+    """
+    head, sep, _ = token.rpartition("-")
+    return head if sep else token.rstrip("0123456789")
+
+
+def hidden_criterion_ids(content, counted):
+    """Criterion ids the contract carries in a form the extractor does not count (A16; #296).
+
+    The denominator is the whole scope guarantee: coverage is measured against it, so a contract
+    that hides criteria from the extractor shrinks the thing the unit is graded on while still
+    reading as a full specification to a human. Attack A16 wrote them as table rows and em-dash
+    lines — `| AC-2 | … |`, `AC-3 — …` — and a three-criterion contract graded as one.
+
+    Refusing every uncounted `AAA-9` token would refuse prose: `see RFC-7519`, `ISO-8601`,
+    `SHA-256`. What distinguishes a hidden criterion is that it shares its PREFIX with one the
+    contract does count — a contract's criteria are numbered in one family by construction, so
+    `AC-2` beside a counted `AC-1` is a criterion in the wrong shape, while `RFC-7519` is not.
+    A contract that hides ALL of them extracts nothing and is already refused upstream.
+    """
+    prefixes = {_criterion_family(cid) for cid in counted}
+    hidden = {}
+    for i, line in enumerate(content.splitlines(), 1):
+        for token in CRIT_SHAPED_RE.findall(line):
+            if token in counted:
+                continue
+            if _criterion_family(token) in prefixes:
+                hidden.setdefault(token, i)
+    return hidden
+
+
+def json_contract(content):
+    """The parsed contract if it is JSON declaring an explicit criterion_ids array, else None.
+
+    That array IS the denominator — declared, machine-readable, unambiguous. Nothing is being
+    scraped out of prose, so there is no prose to be fooled by, and the text heuristic below must
+    not run on it (PR #308 review, P1): a valid contract whose descriptive fields mention an old
+    `AC-9` beside an explicit `["AC-1"]` was refused, and the refusal told the author to use the
+    very JSON array they had used.
+    """
+    try:
+        data = json.loads(content)
+    except (json.JSONDecodeError, ValueError):
+        return None
+    if isinstance(data, dict) and isinstance(data.get("criterion_ids"), list):
+        return data
+    return None
+
+
 def extract_criterion_ids(content):
     """The authoritative criterion set, re-derived FROM the frozen source. A JSON source may declare
     `criterion_ids` — unambiguous, and PREFERRED. Otherwise the ids are the tokens that BEGIN a list
     item or line in the text (CRIT_ID_RE): `- AC-1: …` is a criterion, `see RFC-7519` is prose
     (#268)."""
-    try:
-        data = json.loads(content)
-        if isinstance(data, dict) and isinstance(data.get("criterion_ids"), list):
-            return set(data["criterion_ids"])
-    except (json.JSONDecodeError, ValueError):
-        pass
+    doc = json_contract(content)
+    if doc is not None:
+        return set(doc["criterion_ids"])
     return set(CRIT_ID_RE.findall(content))
 
 
@@ -287,9 +346,33 @@ def check_scope(m, auth_source, auth_digest):
     got = sha256_of(content)
     if got != want:
         return [f"scope: authoritative source does not match --contract-digest ({got} != {want})"]
-    authoritative = extract_criterion_ids(content.decode("utf-8"))
+    text = content.decode("utf-8")
+    authoritative = extract_criterion_ids(text)
     if not authoritative:
         return ["scope: no criterion ids in the authoritative contract"]
+    doc = json_contract(text)
+    if doc is not None:
+        # A declared array needs no heuristic — but it can still under-declare. A16 in JSON form is
+        # a `criteria` list a human reads as the spec beside a shorter `criterion_ids`, so check it
+        # structurally, against the document's own ids, rather than by scanning its text.
+        listed = {c.get("id") for c in (doc.get("criteria") or [])
+                  if isinstance(c, dict) and isinstance(c.get("id"), str)}
+        undeclared = sorted(listed - authoritative)
+        if undeclared:
+            return [f"scope: the authoritative contract lists {undeclared} in its criteria[] but "
+                    f"leaves them out of criterion_ids, so the denominator would be "
+                    f"{sorted(authoritative)} — smaller than the contract a human reads, which is "
+                    "the whole scope guarantee. Declare every criterion in criterion_ids (#296)"]
+    else:
+        hidden = hidden_criterion_ids(text, authoritative)
+        if hidden:
+            where = ", ".join(f"{tok} (line {ln})" for tok, ln in sorted(hidden.items()))
+            return [f"scope: the authoritative contract carries {where} in a form the extractor "
+                    "does not count, beside criteria it does. The denominator would be "
+                    f"{sorted(authoritative)} — smaller than the contract a human reads, which is "
+                    "the whole scope guarantee. Write every criterion as a list item "
+                    "(`- AC-2: …`), or use a JSON contract with an explicit criterion_ids array "
+                    "(#296)"]
     contract = m.get("contract") or {}
     errs = []
     mdigest = contract.get("digest")
@@ -367,19 +450,28 @@ def _wtree_bound(m):
 
 def review_ok(reviews, head_sha, author=None, also_sha=None):
     """Pure: the LATEST review by some INDEPENDENT reviewer (not the PR author) is APPROVED at
-    head_sha. A later COMMENTED/DISMISSED by the same reviewer supersedes an earlier APPROVED.
+    head_sha, AND no independent reviewer's latest review is a standing CHANGES_REQUESTED there.
+    A later COMMENTED/DISMISSED by the same reviewer supersedes an earlier APPROVED.
     also_sha (a content-identical earlier head, tree-bound by _wtree_bound) is accepted too —
-    the reviewer approved exactly this content."""
+    the reviewer approved exactly this content.
+
+    The blocking half is #317. GitHub does not treat CHANGES_REQUESTED as a veto outside branch
+    protection, so a second approval used to carry the unit with nothing recorded. That is the
+    wrong default for a definition-of-done oracle: a reviewer saying "not done" about this exact
+    content is evidence, and a second opinion does not erase it. Scoped deliberately — it blocks
+    only when the objection is that reviewer's LATEST state (withdrawing it clears the block) and
+    only at the head being graded (a request against content the author has moved past is not a
+    standing objection to what is in front of us)."""
     latest = {}
     for r in reviews or []:
         latest[(r.get("user") or {}).get("login")] = r  # chronological: last per reviewer wins
     ok_shas = {head_sha} | ({also_sha} if also_sha else set())
-    for who, r in latest.items():
-        if author is not None and who == author:
-            continue
-        if r.get("state") == "APPROVED" and r.get("commit_id") in ok_shas:
-            return True
-    return False
+    independent = [r for who, r in latest.items() if author is None or who != author]
+    if any(r.get("state") == "CHANGES_REQUESTED" and r.get("commit_id") in ok_shas
+           for r in independent):
+        return False
+    return any(r.get("state") == "APPROVED" and r.get("commit_id") in ok_shas
+               for r in independent)
 
 
 def parse_review_pages(out):
@@ -427,7 +519,7 @@ def fetch_pr_author(repo, pr_number):
 _WAIVER_NEEDS_EXECUTED_NC = (
     "{lane}: the independent review is WAIVED in this lane, so the negative control is the ONLY "
     "oracle left — and a control that was merely READ is a text file the worker wrote. It must be "
-    "EXECUTED (--execute-nc / ORCA_EXECUTE_NC) and go RED. Fail-closed (#256; REVIEW.md A1/A2/A4/"
+    "EXECUTED (--execute-nc / ORCA_EXECUTE_NC) and go RED. Fail-closed (#256; docs/reviews/2026-09-10-review.md A1/A2/A4/"
     "A6/A9 all landed on exactly this)")
 
 
@@ -509,24 +601,20 @@ def _run_at(cwd, args, timeout=20, stdin_bytes=None):
         return 124, "", str(err)
 
 
-def _nc_command(nc, m, override=None):
+def _nc_command(nc, override):
     """The criterion-bound command the control must turn RED. Returns (argv, err).
 
-    The command is NOT taken on the worker's word. `negative_control.command` is
-    worker-written, and a worker free to nominate any command could pick one that
-    happens to fail under the control and pass clean — satisfying the executed-control
-    gate without ever running the criterion-bound proof (PR #277 review, P1). It would
-    also hand worker-chosen argv to the verifier's own privileges.
+    The command is NOT taken on the worker's word — and not on the ledger's either. Both are
+    documents the graded worker writes: `negative_control.command` directly, and the `commands[]`
+    records that once justified it via `evidence-run.py`, which runs on the worker and records
+    what the worker hands it. Binding the one to the other is circular. A worker that writes both
+    can nominate `grep -q FIXED calc.py` as its "criterion-bound proof", record it green at
+    head_sha's tree, and clear the executed-control gate without ever running a test
+    (docs/reviews/2026-09-11 §4 A12/A15; #279).
 
-    So the command must ALREADY be in the content-bound evidence ledger: a `commands[]`
-    record with `exit == 0` whose `wtree` is head_sha's tree — the same record
-    `check_commands` requires, written by `evidence-run.py`, carrying its own
-    `cmd_sha256`. The manifest can only re-nominate a command that demonstrably ran
-    green on exactly this content; there is nothing left to invent.
-
-    `override` is the coordinator's `--nc-command`, supplied out of band the way
-    `--contract-source` is. When given it is authoritative AND the manifest must agree
-    with it, so a worker cannot quietly swap the proof command underneath a
+    So the only admissible source is `override`: the coordinator's `--nc-command`, supplied out of
+    band the way `--contract-source` is. The manifest must still name a command, and it must AGREE
+    with the coordinator's, so a worker cannot quietly swap the proof command underneath a
     coordinator who named one.
     """
     raw = nc.get("command")
@@ -541,39 +629,23 @@ def _nc_command(nc, m, override=None):
         return None, "negative_control.command is empty after parsing"
     line = shlex.join(argv)
 
-    if override is not None:
-        try:
-            want = shlex.split(override)
-        except ValueError as err:
-            return None, f"--nc-command is not parseable as a command line ({err})"
-        if not want:
-            return None, "--nc-command is empty after parsing"
-        if shlex.join(want) != line:
-            return None, (f"negative_control.command {line!r} is not the command the coordinator "
-                          f"supplied out of band ({shlex.join(want)!r}) — a unit does not get to "
-                          "choose what proves it; fail-closed")
-        return want, None
-
-    fresh, err = _fresh_command_records(m)
-    if err:
-        return None, err
-    for rec in fresh:
-        if rec.get("cmd") != line:
-            continue
-        digest = rec.get("cmd_sha256")
-        actual = hashlib.sha256(line.encode("utf-8")).hexdigest()
-        if digest != actual:
-            return None, (f"commands ledger record for {line!r} carries cmd_sha256 {digest} but the "
-                          f"command line hashes to {actual} — the record does not describe its own "
-                          "command, so it binds nothing; fail-closed")
-        return argv, None
-    return None, (
-        f"negative_control.command {line!r} is not in the evidence ledger: no `commands[]` record "
-        "with exit 0 at head_sha's tree runs it. The control may only replay a command that is "
-        "ALREADY content-bound (wrap it in `runtime/scripts/evidence-run.py`), or one the "
-        "coordinator supplies with --nc-command. Recorded here: "
-        + (", ".join(repr(r.get("cmd")) for r in fresh) or "nothing")
-    )
+    if override is None:
+        return None, (
+            "--execute-nc requires --nc-command: the criterion-bound proof command must come from "
+            "the coordinator, out of band, exactly as --contract-source does. The manifest nominates "
+            f"{line!r} — and the manifest is written by the graded worker, as is the `commands[]` "
+            "ledger, so neither can authorise the other; fail-closed (#279)")
+    try:
+        want = shlex.split(override)
+    except ValueError as err:
+        return None, f"--nc-command is not parseable as a command line ({err})"
+    if not want:
+        return None, "--nc-command is empty after parsing"
+    if shlex.join(want) != line:
+        return None, (f"negative_control.command {line!r} is not the command the coordinator "
+                      f"supplied out of band ({shlex.join(want)!r}) — a unit does not get to "
+                      "choose what proves it; fail-closed")
+    return want, None
 
 
 def _fresh_command_records(m):
@@ -591,6 +663,277 @@ def _fresh_command_records(m):
                     "be bound to content; fail-closed")
     records = [c for c in (m.get("commands") or []) if isinstance(c, dict)]
     return [c for c in records if c.get("exit") == 0 and c.get("wtree") == want], None
+
+
+def _load_diff_scope():
+    """diff_scope.py, loaded the way _load_ed25519 loads its sibling. It owns the repo's one
+    definition of what a test path is (SCOPE_TESTS), and the control-binding checks below need
+    exactly that definition — a second copy here would drift from the lens gate's copy."""
+    spec = importlib.util.spec_from_file_location(
+        "diff_scope", Path(__file__).resolve().parent / "diff_scope.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def _is_test_path(path):
+    """True when diff_scope classifies `path` as SCOPE_TESTS on its path alone. Content rules are
+    deliberately not consulted: the file may not exist at the tree we are asking about."""
+    try:
+        ds = _load_diff_scope()
+    except Exception:  # noqa: BLE001 - a missing/unloadable sibling must not open the gate
+        return None
+    low = str(path).lower()
+    for flag, pattern in ds.PATH_RULES:
+        if flag == "TESTS" and pattern.search(low):
+            return True
+    return False
+
+
+# A report-only unit produces prose. Everything else is code, decided by EXTENSION and nothing
+# else: the first cut asked diff_scope's PATH_RULES whether a path looked like docs or tests, and
+# those patterns match on names, so `src/docs/parser.py` and `src/test_runner.py` classified as
+# non-code and carried a downgrade through (PR #308 review, P1). A directory called docs/ does not
+# make a .py file prose. Extensions can be lied about too, but only by renaming the source file,
+# which is a change a reader sees in the diff.
+_PROSE_SUFFIXES = frozenset({".md", ".markdown", ".rst", ".txt", ".adoc", ".org"})
+
+
+def _production_changes(base, head):
+    """Changed paths that are not prose — the CODE a report-only unit must not touch.
+
+    Deliberately not _changed_paths' split. There the question serves the #280 control bind — may
+    this path be reverted to prove behaviour? — and a doc is not behaviour, so it counts as
+    production. Here the question is whether the unit changed code at all, and a report that writes
+    a document is the honest shape of a report-only unit, not a mutation in disguise (#310).
+
+    Tests count as code here, which is stricter than the first cut. A report-only unit editing the
+    oracle under a class that skips the negative control is exactly the move this check exists to
+    refuse, so there is no reason to exempt it."""
+    if not (base and head and HEX40_RE.match(str(base)) and HEX40_RE.match(str(head))):
+        return None, ("base_sha and head_sha must both be pinned 40-hex commits before the class "
+                      "claim can be measured against the change")
+    code, out = _git(["diff", "--name-only", f"{base}..{head}"])
+    if code != 0:
+        return None, "cannot diff base_sha..head_sha, so the class claim cannot be measured"
+    changed = [ln.strip() for ln in out.splitlines() if ln.strip()]
+    return [p for p in changed if Path(p).suffix.lower() not in _PROSE_SUFFIXES], None
+
+
+def _changed_paths(base, head):
+    """Paths changed in base..head, split into (production, tests, err).
+
+    This is the denominator the control must live inside. `negative_control.paths` naming anything
+    outside it is a DECOY: the control reverts a file the unit never touched, the bound command goes
+    RED for a reason unrelated to the change, and the gate reads that as a kill. Lipsitch et al.
+    2010 call this a violation of U-comparability — the control differs from head in more than the
+    causal variable under test (docs/reviews/2026-09-11 §4 A13; #280)."""
+    if not (base and head and HEX40_RE.match(str(base)) and HEX40_RE.match(str(head))):
+        return None, None, ("the control cannot be bound to the change without pinned 40-hex "
+                            "base_sha and head_sha")
+    code, out = _git(["diff", "--name-only", f"{base}..{head}"])
+    if code != 0:
+        return None, None, ("cannot diff base_sha..head_sha to bind the control to the change; "
+                            "fail-closed")
+    changed = [ln.strip() for ln in out.splitlines() if ln.strip()]
+    prod, tests = [], []
+    for path in changed:
+        verdict = _is_test_path(path)
+        if verdict is None:
+            return None, None, ("diff_scope.py could not be loaded, so a test path cannot be told "
+                                "from a production one; fail-closed")
+        (tests if verdict else prod).append(path)
+    return prod, tests, None
+
+
+def _bind_paths_to_change(paths, m, what):
+    """Every path the control touches must be a PRODUCTION path this unit actually changed.
+    Returns an error string or None."""
+    prod, _tests, err = _changed_paths(m.get("base_sha"), m.get("head_sha"))
+    if err:
+        return err
+    prod_set = set(prod)
+    for path in paths:
+        norm = path.lstrip("./")
+        if norm in prod_set:
+            continue
+        verdict = _is_test_path(norm)
+        if verdict:
+            return (f"{what} names {path!r}, which is a TEST path. Reverting the test that encodes "
+                    "the criterion makes the proof go RED because the oracle is gone, not because "
+                    "the behaviour came back — the control must revert the BEHAVIOUR (#280)")
+        return (f"{what} names {path!r}, which base_sha..head_sha does not change. A control that "
+                "reverts a file this unit never touched is a decoy: its RED says nothing about the "
+                f"change being proved. Production paths changed here: {sorted(prod_set) or 'none'} "
+                "(#280)")
+    return None
+
+
+def _diff_target_paths(diff):
+    """Repo-relative paths a unified diff writes to, read from its `+++ b/...` headers."""
+    paths = []
+    for line in diff.splitlines():
+        if not line.startswith("+++ "):
+            continue
+        target = line[4:].strip().split("\t")[0]
+        if target == "/dev/null":
+            continue
+        if target.startswith(("a/", "b/")):
+            target = target[2:]
+        if target:
+            paths.append(target)
+    return paths
+
+
+# A control run that dies before the oracle ever executes is a STILLBORN MUTANT, not a kill: the
+# non-zero exit is the module failing to load, so it would be non-zero for any command at all.
+# Vera-Pérez et al. 2018 and Niedermayr et al. 2016 are explicit that only a mutant the test suite
+# actually EXERCISES says anything about that suite (docs/reviews/2026-09-11 §4 A14; #280).
+STILLBORN_MARKERS = (
+    "importerror", "modulenotfounderror", "syntaxerror", "indentationerror",
+    "cannot import name", "error collecting", "collection error", "unable to import",
+    "no module named", "failed to load", "conftest.py", "attributeerror: module",
+)
+# What a real oracle failing looks like, across the runners the catalog's missions actually drive.
+ASSERTION_MARKERS = (
+    "assertionerror", "assert", "failed", "fail:", "failures=", "expected", "not ok",
+    "panicked at", "✗", "test failed", "e   ", "✕",
+)
+# Evidence an assertion was actually EVALUATED and FAILED, as opposed to a runner summarising that
+# something went wrong, or a traceback merely QUOTING a line of source. Only these override a
+# stillborn marker, and each is anchored to the start of a line for that reason: a collection
+# traceback echoes the source it was reading ("    assert helper() == 1") while the assertion
+# never ran, so an unanchored "assert " let a stillborn mutant through (PR #308 review, round 3).
+# `AssertionError` at the head of a line is an exception that was RAISED; a failed import cannot
+# produce one. pytest prefixes the failing assertion with `E`, and never the source it quotes.
+STRONG_ASSERTION_RE = re.compile(
+    r"^[ \t]*(?:e[ \t]+)?assertionerror\b"      # AssertionError raised (pytest prefixes E)
+    r"|^[ \t]*e[ \t]+assert\b"                   # pytest's failing assertion line
+    r"|^[ \t]*thread .*panicked at"               # Rust
+    r"|✗|✕",
+    re.M,
+)
+# unittest and pytest both distinguish an ERROR (an exception escaped) from a FAILURE (an assertion
+# was evaluated and was false). Only the second exercises the oracle. `FAILED (errors=1)` is an
+# import blowing up, and it says "FAILED" — which is why the assertion markers alone cannot be
+# trusted to mean an assertion ran (PR #308 review).
+_ERRORS_RE = re.compile(r"\berrors?\s*[=:]\s*(\d+)|\b(\d+)\s+errors?\b")
+_FAILURES_RE = re.compile(r"\bfailures?\s*[=:]\s*(\d+)|\b(\d+)\s+failed\b")
+
+
+def _counted(pattern, text):
+    """Sum of every count `pattern` reports in a runner's summary line. None when it reports none."""
+    total, seen = 0, False
+    for match in pattern.finditer(text):
+        for group in match.groups():
+            if group is not None:
+                total += int(group)
+                seen = True
+    return total if seen else None
+
+
+def _failure_signature(out, err):
+    """Read the control run's output. Returns (ok, reason).
+
+    A non-zero exit is not a kill on its own — `grep` exits 1 on no-match, an unimportable module
+    exits 1 before a single assertion runs, and both look identical to a gate that only reads the
+    return code. The RED must LOOK like an oracle failing.
+
+    Three layers, in this order, because two review rounds on #308 showed either one alone is
+    wrong. The RUNNER'S OWN SUMMARY is the best evidence there is: unittest and pytest already
+    separate errors from failures, so `FAILED (errors=1)` is a stillborn mutant no matter what
+    words surround it. Only when no summary exists — a plain script, say — does the substring scan
+    matter, and even then explicit assertion evidence outranks it: a test asserting that a
+    `ModuleNotFoundError` is raised prints that name while its oracle runs perfectly well. That
+    evidence is line-anchored, because a collection traceback QUOTES the source it was reading —
+    an `assert` in echoed source is not an assertion that ran."""
+    text = f"{out}\n{err}".lower()
+    if not text.strip():
+        return False, ("the control run produced NO output at all. A silent non-zero exit is not a "
+                       "failing test — it is what `grep` does when it finds nothing; fail-closed "
+                       "(#280)")
+    errors = _counted(_ERRORS_RE, text)
+    failures = _counted(_FAILURES_RE, text)
+    if errors and not failures:
+        return False, (f"the runner reports {errors} error(s) and no assertion failure — an error is "
+                       "an exception escaping, not an oracle evaluating to false, so it does not "
+                       "show the criterion-bound assertion ran at all; fail-closed (#280)")
+    if not failures:
+        # No runner summary to trust, so read the text. A stillborn mutant refuses unless the
+        # output carries evidence an assertion was really evaluated.
+        stillborn = [mark for mark in STILLBORN_MARKERS if mark in text]
+        if stillborn and not STRONG_ASSERTION_RE.search(text):
+            return False, (f"the control run did not get as far as an oracle ({stillborn[0]!r} in "
+                           "its output, and nothing showing an assertion was evaluated) — that is "
+                           "a STILLBORN MUTANT, not a kill. The non-zero exit is the module failing "
+                           "to load, which would happen for any command; the control must leave the "
+                           "code runnable and fail an ASSERTION (#280)")
+    if not any(mark in text for mark in ASSERTION_MARKERS):
+        return False, ("the control run exited non-zero but its output names no assertion failure, "
+                       "so nothing shows the criterion-bound oracle actually ran and failed; "
+                       "fail-closed (#280)")
+    return True, None
+
+
+def _hunk_lines(text, side):
+    """{path: head-side line numbers the diff's hunks touch}, reading `side` ('-' or '+').
+
+    For a mutant applied AT head_sha the `-` side carries head's own line numbers — the lines the
+    mutant replaces. For `git diff base..head` the `+` side carries them. Both land in head
+    coordinates, which is what makes the two comparable."""
+    want = re.compile(r"@@\s*-(\d+)(?:,(\d+))?\s+\+(\d+)(?:,(\d+))?\s*@@")
+    out, current = {}, None
+    for line in text.splitlines():
+        if line.startswith("+++ "):
+            target = line[4:].strip().split("\t")[0]
+            if target == "/dev/null":
+                current = None
+                continue
+            if target.startswith(("a/", "b/")):
+                target = target[2:]
+            current = target or None
+            if current:
+                out.setdefault(current, set())
+        elif line.startswith("@@") and current:
+            match = want.search(line)
+            if not match:
+                continue
+            groups = match.groups()
+            start, count = (groups[0], groups[1]) if side == "-" else (groups[2], groups[3])
+            start = int(start)
+            count = 1 if count is None else int(count)
+            # A pure insertion/deletion spans no lines on its own side; bind it to the seam it
+            # sits at, so it still has to land where the unit worked.
+            out[current].update(range(start, start + count) if count else (start, start + 1))
+    return out
+
+
+def _bind_hunks_to_change(diff, m):
+    """A `hand` mutant must touch the lines this unit changed, not merely the same FILE.
+
+    Binding by path alone left a decoy one level down: a production file can carry the criterion
+    change AND an unrelated change, and a mutant that only touches the unrelated hunk still goes
+    RED under a broad test command while the criterion behaviour stands untouched (PR #308 review).
+    """
+    base, head = m.get("base_sha"), m.get("head_sha")
+    if not (base and head and HEX40_RE.match(str(base)) and HEX40_RE.match(str(head))):
+        return "the hand mutant cannot be bound to the change without pinned base_sha and head_sha"
+    for path, lines in _hunk_lines(diff, "-").items():
+        code, out = _git(["diff", "-U0", f"{base}..{head}", "--", path])
+        if code != 0:
+            return (f"cannot diff {path} over base_sha..head_sha to bind the hand mutant to the "
+                    "change; fail-closed")
+        changed = set().union(*_hunk_lines(f"+++ {path}\n{out}", "+").values() or [set()])
+        if not lines:
+            return (f"the hand mutant's diff names {path} but carries no hunk for it, so nothing "
+                    "says which behaviour it mutates (#280)")
+        if not lines & changed:
+            return (f"the hand mutant touches {path} at line(s) {sorted(lines)[:6]}, and "
+                    f"base_sha..head_sha changes line(s) {sorted(changed)[:6] or 'none'} there — "
+                    "they do not overlap. Mutating an untouched hunk of a changed file is the same "
+                    "decoy as mutating an untouched file: the RED comes from behaviour this unit "
+                    "did not introduce (#280)")
+    return None
 
 
 def _nc_paths(nc):
@@ -645,6 +988,9 @@ def _apply_control(wt, m, nc, tool):
             if not (base and HEX40_RE.match(str(base))):
                 return ("negative_control.paths needs a pinned 40-hex base_sha to restore the "
                         "pre-fix content from")
+            bind_err = _bind_paths_to_change(paths, m, "negative_control.paths")
+            if bind_err:
+                return bind_err
             code, _, gerr = _run_at(wt, ["git", "checkout", str(base), "--", *paths])
             if code != 0:
                 return f"could not restore {paths} from base_sha in the control worktree: {gerr.strip()}"
@@ -661,6 +1007,19 @@ def _apply_control(wt, m, nc, tool):
         if code != 0 or merges.strip():
             return ("negative_control.paths is required: base_sha..head_sha contains merge commits, "
                     "so a range revert is not well-defined")
+        # A range revert takes the TESTS with it. When the unit adds a test module, reverting the
+        # range deletes it, and the bound command then fails because the test file is gone — a
+        # missing oracle reads as a kill. Refuse, and make the unit name its production paths
+        # (docs/reviews/2026-09-11 §4 A14b/A21; #280).
+        _prod, tests, bind_err = _changed_paths(base, head)
+        if bind_err:
+            return bind_err
+        if tests:
+            return ("negative_control.paths is REQUIRED here: base_sha..head_sha changes test "
+                    f"paths ({sorted(tests)}), and a range revert would remove them along with the "
+                    "fix. The bound command would then go RED because its oracle is gone, not "
+                    "because the behaviour came back. Name the production paths the control should "
+                    "restore (#280)")
         code, _, gerr = _run_at(wt, ["git", "revert", "--no-commit", f"{base}..{head}"], timeout=60)
         if code != 0:
             return f"git revert of base_sha..head_sha failed in the control worktree: {gerr.strip()}"
@@ -672,6 +1031,17 @@ def _apply_control(wt, m, nc, tool):
     diff = _extract_diff(raw.decode("utf-8", "replace"))
     if not diff:
         return "negative_control.artifact for tool 'hand' quotes no applicable unified diff"
+    targets = _diff_target_paths(diff)
+    if not targets:
+        return ("negative_control.artifact for tool 'hand' quotes a diff with no `+++` target — "
+                "nothing identifies which file the mutant touches, so it cannot be bound to the "
+                "change (#280)")
+    bind_err = _bind_paths_to_change(targets, m, "the hand mutant's diff")
+    if bind_err:
+        return bind_err
+    bind_err = _bind_hunks_to_change(diff, m)
+    if bind_err:
+        return bind_err
     code, _, gerr = _run_at(wt, ["git", "apply", "--whitespace=nowarn", "-"],
                             stdin_bytes=diff.encode("utf-8"))
     if code != 0:
@@ -708,7 +1078,7 @@ def execute_negative_control(m, nc_command=None):
         return False, ["--execute-nc: not inside a git repo — cannot create a control worktree"]
     if _git(["cat-file", "-e", f"{head}^{{commit}}"])[0] != 0:
         return False, [f"--execute-nc: head_sha '{head}' is not a real commit here"]
-    argv, err = _nc_command(nc, m, nc_command)
+    argv, err = _nc_command(nc, nc_command)
     if err:
         return False, [f"--execute-nc: {err}"]
     msgs = []
@@ -730,6 +1100,8 @@ def execute_negative_control(m, nc_command=None):
                                    "— a no-op mutant cannot make any proof go RED (#255)"]
             rc, out, errout = _run_at(wt, argv, timeout=NC_TIMEOUT_S)
             tail = (errout.strip() or out.strip())[-300:]
+            if phase == "control":
+                sig_ok, sig_err = _failure_signature(out, errout)
         finally:
             _run(["git", "-C", top, "worktree", "remove", "--force", wt], timeout=60)
             shutil.rmtree(holder, ignore_errors=True)
@@ -741,8 +1113,11 @@ def execute_negative_control(m, nc_command=None):
                 return False, ["--execute-nc: TAUTOLOGICAL — the proof does NOT go RED. The control "
                                f"was applied at head_sha and `{shlex.join(argv)}` still exited 0, so "
                                "the command does not bind to the change it claims to prove (#255)"]
+            if not sig_ok:
+                return False, [f"--execute-nc: {sig_err} Output was: {tail}"]
             msgs.append(f"NOTE: negative control EXECUTED — with the {tool} control applied at "
-                        f"head_sha the bound command exited {rc} (RED, as required)")
+                        f"head_sha the bound command exited {rc} on an assertion failure (RED, as "
+                        "required)")
         else:
             if rc != 0:
                 return False, [f"--execute-nc: the bound command exits {rc} at CLEAN head_sha too, "
@@ -801,6 +1176,40 @@ def check_negative_control(m, is_mutation, execute=False, nc_command=None):
             re.search(r"(?m)^-[^-]", content) and re.search(r"(?m)^\+[^+]", content))
         if not has_diff:
             errs.append("negative_control.artifact for tool 'hand' must quote the hand-written diff")
+    # Binding the control's paths to the change is a STATIC check — the declared paths against
+    # base_sha..head_sha — so it belongs here, on every mutation unit, not only on the executed
+    # leg. It lived solely in _apply_control, which meant a NARRATED manifest could nominate a
+    # decoy path, or revert the test that encodes the criterion, and nothing looked (#306).
+    #
+    # Executed, those two are caught anyway: reverting a file the change never touched is a no-op
+    # and #255 refuses it. That is why the gap survived #280 — the executed lane covered for the
+    # narrated one, and no trap sampled the narrated lane until now.
+    if tool == "revert":
+        declared, perr = _nc_paths(nc)
+        if perr:
+            errs.append(perr)
+        elif declared:
+            bind_err = _bind_paths_to_change(declared, m, "negative_control.paths")
+            if bind_err:
+                errs.append(bind_err)
+    elif tool == "hand":
+        # The same bind, one tool over. `hand` declares its target in the quoted diff rather than
+        # in paths[], and checking that the artifact merely CONTAINS diff-shaped text left the
+        # decoy open: a narrated manifest could quote a diff against a file the change never
+        # touched, or an unrelated hunk, and offer its RED as evidence (PR #308 review, P1).
+        # Caught only under --execute-nc before, which is the identical asymmetry #306 closed
+        # for `revert` — the executed lane covering for the narrated one.
+        quoted = _extract_diff(content)
+        # Only when the manifest actually pins its SHAs. A mutation manifest that does not is
+        # already refused by check_real_commits, which owns that fact; repeating the refusal here
+        # would couple a structural check to git state and say the same thing twice.
+        pinned = all(HEX40_RE.match(str(m.get(k) or "")) for k in ("base_sha", "head_sha"))
+        if quoted and pinned:
+            for bind_err in (_bind_paths_to_change(_diff_target_paths(quoted), m,
+                                                   "the hand mutant's diff"),
+                             _bind_hunks_to_change(quoted, m)):
+                if bind_err:
+                    errs.append(bind_err)
     executed_ok = False
     if execute:
         executed_ok, msgs = execute_negative_control(m, nc_command)
@@ -835,8 +1244,20 @@ def check_commands(m, is_mutation):
         return ["commands ledger: no recorded command (mutation unit). Wrap the criterion-bound "
                 "run in `runtime/scripts/evidence-run.py --label <L> --manifest <m.json> -- <cmd>` "
                 "so the manifest carries an exit code bound to a content fingerprint; fail-closed"]
-    # Same freshness rule the --execute-nc replay binds its command to (_nc_command),
-    # read from one place so the two can never drift apart.
+    # A record whose cmd_sha256 does not hash its own cmd describes nothing, so it binds nothing:
+    # a decorative digest would let the line be edited after the run. Checked here rather than at
+    # the point of use, because since #279 the replay no longer draws its command from this ledger
+    # and the integrity of the ledger is still worth asserting.
+    for rec in records:
+        line = rec.get("cmd")
+        digest = rec.get("cmd_sha256")
+        if not (isinstance(line, str) and isinstance(digest, str)):
+            continue
+        actual = hashlib.sha256(line.encode("utf-8")).hexdigest()
+        if digest != actual:
+            return [f"commands ledger: record for {line!r} carries cmd_sha256 {digest} but the "
+                    f"command line hashes to {actual} — the record does not describe its own "
+                    "command, so it binds nothing; fail-closed"]
     fresh, _ = _fresh_command_records(m)
     if not fresh:
         seen = sorted({str(c.get("wtree")) for c in records if c.get("exit") == 0})
@@ -869,9 +1290,14 @@ def _scan_text(text):
 def check_redaction(m, manifest_path):
     """6. Redaction (audit §3 item 14). A manifest is SHA-pinned and permanent, and so is anything
     quoted into it or into an artifact it names. Scan the manifest JSON and every named artifact
-    (the negative control's, the reviewer record, and the `artifacts[]` inventory) for credential
-    shapes. gitleaks decides when it is on PATH; otherwise REDACTION_PATTERNS is the floor. A hit
-    FAILS the unit — rotate the credential, scrub the evidence, re-emit."""
+    (the negative control's, the reviewer record, the `artifacts[]` inventory, and each
+    `commands[].artifact`) for credential shapes. gitleaks decides when it is on PATH; otherwise
+    REDACTION_PATTERNS is the floor. A hit FAILS the unit — rotate the credential, scrub the
+    evidence, re-emit.
+
+    `commands[].artifact` is the captured stdout/stderr of a recorded run, so it is the likeliest
+    place a token lands and the last one added here: scanning every other named path while
+    skipping that one let a clean-looking unit pin a live credential (#309)."""
     errs = []
     targets = []
     if manifest_path:
@@ -883,6 +1309,10 @@ def check_redaction(m, manifest_path):
             named.append(path)
     for entry in (m.get("artifacts") or []):
         path = entry.get("path") if isinstance(entry, dict) else entry
+        if isinstance(path, str) and path:
+            named.append(path)
+    for entry in (m.get("commands") or []):
+        path = entry.get("artifact") if isinstance(entry, dict) else None
         if isinstance(path, str) and path:
             named.append(path)
     for path in dict.fromkeys(named):
@@ -986,7 +1416,11 @@ def check_provenance(m):
             "(EU AI Act Art-12/50 record incomplete)"] if missing else []
 
 
-_DISPATCH_FIELDS = ("manifest_id", "contract_digest", "unit_class", "lighting")
+_DISPATCH_FIELDS = ("manifest_id", "contract_digest", "unit_class", "lighting",
+                    "nc_paths", "nc_command", "nc_artifact_sha256")
+# The negative-control inputs among them (#311) are read from the MANIFEST, not from argv, so they
+# are compared separately from the CLI-supplied fields above.
+_DISPATCH_NC_FIELDS = ("nc_paths", "nc_command", "nc_artifact_sha256")
 
 
 def _load_ed25519():
@@ -999,7 +1433,28 @@ def _load_ed25519():
 def _canonical_dispatch(record):
     """Must match dispatch-sign.py.canonical_record byte-for-byte (a cross-tool test guards this)."""
     subset = {k: record[k] for k in _DISPATCH_FIELDS if record.get(k) is not None}
+    if isinstance(subset.get("nc_paths"), list):  # a SET of paths, not a listing order (#311)
+        subset["nc_paths"] = sorted(str(x) for x in subset["nc_paths"])
     return json.dumps(subset, sort_keys=True, separators=(",", ":")).encode("utf-8")
+
+
+def _manifest_nc_values(m):
+    """What the manifest actually claims for each signed negative-control input (#311).
+
+    nc_artifact_sha256 is derived, not declared: the record signs the CONTENT of the control's
+    artifact, so the gate hashes the file the manifest points at rather than trusting a digest the
+    same manifest supplies. Unreadable is None here and fails closed at the comparison."""
+    nc = m.get("negative_control") or {}
+    paths = nc.get("paths")
+    digest = None
+    art = nc.get("artifact")
+    if isinstance(art, str) and art and "@" not in art:
+        resolved, err = _resolve(art)
+        if err is None and resolved is not None and resolved.is_file():
+            digest = hashlib.sha256(resolved.read_bytes()).hexdigest()
+    return {"nc_paths": sorted(str(x) for x in paths) if isinstance(paths, list) else paths,
+            "nc_command": nc.get("command"),
+            "nc_artifact_sha256": digest}
 
 
 def check_dispatch_provenance(m, contract_digest, unit_class, lighting, record_ref, pubkey_ref):
@@ -1057,8 +1512,83 @@ def check_dispatch_provenance(m, contract_digest, unit_class, lighting, record_r
         if signed != used:
             return [f"dispatch substitution: the run used {field}={used!r} but the coordinator signed "
                     f"{signed!r} — the value was tampered (#135)"]
+    # The negative-control inputs (#311). Optional: a coordinator that could not know them at
+    # dispatch time signs none, and they stay bound by base_sha..head_sha alone (#280). Signed,
+    # they are the oracle the coordinator chose, and the manifest does not get to swap it.
+    claimed = _manifest_nc_values(m)
+    for field in _DISPATCH_NC_FIELDS:
+        signed = record.get(field)
+        if signed is None:
+            continue
+        if field == "nc_paths" and isinstance(signed, list):
+            signed = sorted(str(x) for x in signed)
+        if claimed[field] is None:
+            return [f"dispatch record signs {field} but the manifest carries no value for it — the "
+                    "coordinator chose the control's inputs and this unit did not use them; "
+                    "fail-closed (#311)"]
+        if signed != claimed[field]:
+            return [f"dispatch substitution: the manifest's {field}={claimed[field]!r} but the "
+                    f"coordinator signed {signed!r} — the worker chose its own oracle (#311)"]
     return ["NOTE: dispatch record signature verified against the supplied key (#135) — a soundness "
             "boundary only if that key is trusted (off-worker: CI/MCP/SDK or an auditor)"]
+
+
+def check_class_downgrade(m, unit_class, record_ref, pubkey_ref):
+    """12. #310: `unit_class` reaches the native in-session gate through ORCA_UNIT_CLASS, and the
+    worker owns its own environment. Declaring `report-only` sheds the negative control, the intent
+    packet, lighting legality and reviewer_mode in one move — the same manifest that fails seven
+    invariants as `mutation` passed every check as `report-only`.
+
+    A signed dispatch record already binds unit_class to what the coordinator authorized, so a
+    SUPERVISED downgrade needs nothing here. Unsupervised, the class is a claim, and the one thing
+    a worker cannot restate is what base_sha..head_sha actually changes. A report on work that
+    touched no production path is the honest shape: it passes, but the verdict says it was
+    unsupervised. A `report-only` unit that changed production code is a mutation wearing another
+    class's name.
+
+    Shape-unknown fails closed. base_sha and head_sha are worker-supplied too, so "I cannot tell"
+    must not pass where "it changed code" fails — otherwise the bypass is just one field along.
+
+    An EMPTY DECLARED RANGE is the sharpest case of that and is refused outright. base_sha ==
+    head_sha says "this unit changed nothing", which is an assertion with nothing behind it: the
+    gate reads no diff, so there is nothing to measure the class against. A first cut let it pass
+    on the reasoning that an empty range changes nothing whatever the ref resolves to — true about
+    the DECLARED range, and silent about the work. A worker that changed production code in commit
+    C can declare base = head = C and shed every mutation obligation (PR #308 review, P1).
+    Removing that branch does not close it either: a pinned equal range diffs empty, so it lands
+    on the no-code path anyway. What closes it is requiring a range that is pinned, real and
+    NON-DEGENERATE — a report-only unit shows the commit range its report covers, and that range
+    contains no code.
+
+    None of this makes the native path sound; it cannot. base_sha and head_sha are the same
+    worker's, so a determined unit can name some other doc-only range. That is the #112 result, not
+    a gap this check can close: the authority is a signed dispatch record, and the verdict says
+    `(unsupervised)` whenever there is none."""
+    if _is_mutation(unit_class):
+        return []
+    if record_ref and pubkey_ref:
+        return []  # check_dispatch_provenance binds unit_class to the coordinator's signature
+    base, head = m.get("base_sha"), m.get("head_sha")
+    if base and head and base == head:
+        return [f"{unit_class} unit declares base_sha == head_sha ({base}) and carries no signed "
+                "dispatch record. An empty range asserts that this unit changed nothing and gives "
+                "the gate no diff to check that against — a claim, not evidence, from the same "
+                "worker that chose the class. Name the range the report covers, or have the "
+                "coordinator sign the downgrade (#310)"]
+    prod, err = _production_changes(base, head)
+    if err:
+        return [f"{unit_class} unit with no signed dispatch record, and its shape cannot be "
+                f"determined: {err}. Pin base_sha and head_sha so the claim can be measured "
+                "against the change, or have the coordinator sign the downgrade (#310)"]
+    if prod:
+        return [f"{unit_class} unit changed code {sorted(prod)} and carries no signed dispatch "
+                "record. unit_class arrives from the environment the worker controls, so this "
+                "single value drops the negative control, the intent packet, lighting legality "
+                "and reviewer_mode from a unit that changed behaviour. Verify it as a mutation, "
+                "or have the coordinator sign the downgrade (#310)"]
+    return [f"NOTE: {unit_class} (unsupervised) — claimed with no signed dispatch record. "
+            "base_sha..head_sha changes docs/tests only, so the class is consistent with the "
+            "change, but nothing off-worker authorized it (#310)"]
 
 
 def verify(manifest_path, contract_source=None, contract_digest=None, repo=None,
@@ -1099,6 +1629,7 @@ def verify(manifest_path, contract_source=None, contract_digest=None, repo=None,
         lambda: check_provenance(m),
         lambda: check_dispatch_provenance(m, contract_digest, unit_class, lighting,
                                           dispatch_record, dispatch_pubkey),
+        lambda: check_class_downgrade(m, unit_class, dispatch_record, dispatch_pubkey),
         lambda: check_ancestry(m, base),
         lambda: check_symbol_on_base(symbol, base),
     )
@@ -1121,14 +1652,16 @@ def main(argv=None):
     ap.add_argument("--repo", default=None, help="owner/name for the review lookup (default: infer from origin)")
     ap.add_argument("--nc-command", default=None,
                     help="AUTHORITATIVE criterion-bound command for --execute-nc, supplied out of "
-                         "band by the coordinator. Without it the command must already be in the "
-                         "manifest's content-bound `commands[]` ledger; with it, the manifest must "
-                         "agree. A unit never chooses what proves it.")
+                         "band by the coordinator. REQUIRED by --execute-nc (#279): the manifest "
+                         "and the commands ledger are both worker-written, so neither can "
+                         "authorise the other. The manifest must agree with this or the run is "
+                         "RED. A unit never chooses what proves it.")
     ap.add_argument("--execute-nc", action="store_true",
                     help="EXECUTE the negative control (#255): apply it in a throwaway worktree at "
-                         "head_sha, require negative_control.command to exit non-zero there and 0 "
-                         "at clean head_sha. REQUIRED by the review-waiver lanes (--lighting "
-                         "dark-eligible / --no-gh), which have no other oracle (#256)")
+                         "head_sha, require the bound command to exit non-zero there and 0 at "
+                         "clean head_sha. Requires --nc-command (#279). REQUIRED by the "
+                         "review-waiver lanes (--lighting dark-eligible / --no-gh), which have no "
+                         "other oracle (#256)")
     ap.add_argument("--base", default=None, help="integration base branch (for ancestry)")
     ap.add_argument("--symbol", default=None, help="a unit symbol to grep on the base")
     ap.add_argument("--unit-class", default=None,

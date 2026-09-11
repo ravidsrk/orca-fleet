@@ -61,6 +61,42 @@ class ScopeBase(unittest.TestCase):
         self.assertTrue(data["flags"][name], f"{rel} should set SCOPE_{name}: {data['flags']}")
 
 
+class TestPartiallyMatchedDiff(ScopeBase):
+    """#314: `unmatched` was reported only when NOTHING matched. A diff half in-scope and half
+    somewhere else exited 0 with the out-of-scope half invisible — the shape most likely to
+    matter, since a review lens gating on the flag set sees a clean answer."""
+
+    def _half_matched(self):
+        write(self.repo, "tests/test_thing.py", "def test_x():\n    assert True\n")   # TESTS
+        write(self.repo, "odd/thing.qqq", "opaque\n")                                  # nothing
+
+    def test_the_unmatched_half_is_reported_in_text_output(self):
+        self._half_matched()
+        r = self.run_scope("--base", "main")
+        self.assertEqual(r.returncode, 0, "a partial match is not an error")
+        self.assertIn("SCOPE_TESTS=true", r.stdout)
+        self.assertIn("odd/thing.qqq", r.stdout,
+                      f"the out-of-scope half must be visible: {r.stdout}")
+
+    def test_the_unmatched_half_is_in_json(self):
+        self._half_matched()
+        data, r = self.flags()
+        self.assertIsNone(data["error"], r.stdout)
+        self.assertTrue(data["flags"]["TESTS"])
+        self.assertIn("odd/thing.qqq", data["unmatched"])
+
+    def test_strict_turns_any_unmatched_path_into_a_nonzero_exit(self):
+        self._half_matched()
+        r = self.run_scope("--base", "main", "--strict")
+        self.assertEqual(r.returncode, 2, f"--strict must gate on unmatched: {r.stdout}")
+        self.assertIn("SCOPE_ERROR=unmatched", r.stdout)
+
+    def test_strict_is_opt_in_and_a_fully_matched_diff_still_passes(self):
+        write(self.repo, "tests/test_thing.py", "def test_x():\n    assert True\n")
+        r = self.run_scope("--base", "main", "--strict")
+        self.assertEqual(r.returncode, 0, f"nothing unmatched, so --strict is quiet: {r.stdout}")
+
+
 class TestExitContract(ScopeBase):
     def test_unresolvable_base_is_no_base_and_exit_2(self):
         r = self.run_scope("--base", "origin/nope")

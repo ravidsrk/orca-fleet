@@ -274,30 +274,118 @@ class TestUntrackedAndWaivers(FloorGuardBase):
         self.assertEqual(r.returncode, 1, "a guard that reads only git diff misses the new file")
         self.assertIn("src/new.py", r.stderr)
 
-    def test_waiver_naming_rule_and_path_exempts(self):
+    # ---- Waivers (#313, then three rounds of PR #308 review) ----
+    #
+    # A waiver is a DECISIONS record whose ID carries its scope —
+    # `floor-waiver:<rule>:<path-or-glob>` — and whose answer grants. Scope in the id is what lets
+    # the ledger retire it: a later `superseded` row ends this waiver and no other.
+
+    ID = "floor-waiver:silenced-checker:src/new.py"
+
+    def _decisions(self, *lines):
         write(self.repo, "src/new.py", "value = 1  # noqa\n")
-        write(self.repo, "docs/DECISIONS.md",
-              "2026-09-10T00:00:00Z · floor-waiver · taste · allow · "
-              "silenced-checker on src/new.py while the vendored parser lands · t-1\n")
-        r = run_guard(self.repo, "--base", "main")
+        write(self.repo, "docs/DECISIONS.md", "".join(l + "\n" for l in lines))
+        return run_guard(self.repo, "--base", "main")
+
+    def _row(self, ident, answer="allow", ts="2026-09-10T00:00:00Z", why="while the parser lands"):
+        return f"{ts} · {ident} · taste · {answer} · {why} · t-1"
+
+    def test_a_granting_waiver_exempts_the_finding(self):
+        r = self._decisions(self._row(self.ID))
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertIn("1 waived", r.stdout)
 
-    def test_waiver_for_a_different_path_does_not_exempt(self):
-        write(self.repo, "src/new.py", "value = 1  # noqa\n")
-        write(self.repo, "docs/DECISIONS.md",
-              "2026-09-10T00:00:00Z · floor-waiver · taste · allow · "
-              "silenced-checker on src/other.py · t-1\n")
-        r = run_guard(self.repo, "--base", "main")
+    def test_a_waiver_for_a_different_path_does_not_exempt(self):
+        r = self._decisions(self._row("floor-waiver:silenced-checker:src/other.py"))
         self.assertEqual(r.returncode, 1)
 
-    def test_waiver_for_a_different_rule_does_not_exempt(self):
-        write(self.repo, "src/new.py", "value = 1  # noqa\n")
-        write(self.repo, "docs/DECISIONS.md",
-              "2026-09-10T00:00:00Z · floor-waiver · taste · allow · "
-              "threshold-lowered on src/new.py · t-1\n")
-        r = run_guard(self.repo, "--base", "main")
+    def test_a_waiver_for_a_different_rule_does_not_exempt(self):
+        r = self._decisions(self._row("floor-waiver:threshold-lowered:src/new.py"))
         self.assertEqual(r.returncode, 1)
+
+    def test_a_superseded_waiver_stops_granting(self):
+        # PR #308 review, P1. Every waiver used to share the id `floor-waiver`, so a later
+        # `superseded` row named no particular waiver and an `allow` stayed live forever. A
+        # supersede record does not restate the scope — that is the whole point of superseding —
+        # so the waiver has to have an identity of its own for the ledger to retire.
+        r = self._decisions(
+            self._row(self.ID, ts="2026-09-01T00:00:00Z"),
+            self._row(self.ID, answer="superseded", ts="2026-09-02T00:00:00Z",
+                      why="the vendored parser landed"))
+        self.assertEqual(r.returncode, 1, f"a retired waiver still granted: {r.stdout}")
+
+    def test_a_later_denial_overrides_an_earlier_grant(self):
+        r = self._decisions(
+            self._row(self.ID, ts="2026-09-01T00:00:00Z"),
+            self._row(self.ID, answer="deny", ts="2026-09-02T00:00:00Z", why="refused on review"))
+        self.assertEqual(r.returncode, 1, f"an older allow beat a newer deny: {r.stdout}")
+
+    def test_a_later_grant_overrides_an_earlier_denial(self):
+        # Newest-wins runs both ways, or it is not newest-wins.
+        r = self._decisions(
+            self._row(self.ID, answer="deny", ts="2026-09-01T00:00:00Z", why="refused"),
+            self._row(self.ID, ts="2026-09-02T00:00:00Z", why="reinstated: the parser slipped"))
+        self.assertEqual(r.returncode, 0, r.stderr)
+
+    def test_a_denied_waiver_does_not_grant(self):
+        r = self._decisions(self._row(self.ID, answer="deny", why="refused on review"))
+        self.assertEqual(r.returncode, 1, f"a DENIED waiver was granted: {r.stdout}")
+
+    def test_an_explicit_glob_waives_the_subtree(self):
+        r = self._decisions(self._row("floor-waiver:silenced-checker:src/**"))
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("1 waived", r.stdout)
+
+    def test_a_bare_directory_does_not_sweep_the_tree(self):
+        # #313 claimed a bare `src/` swept the tree. It never could: the old test was
+        # `finding["path"] in line`, so the LINE had to contain the whole path. Kept as a guard for
+        # the semantics the issue asked for, not as evidence of the bug it described.
+        r = self._decisions(self._row("floor-waiver:silenced-checker:src/"))
+        self.assertEqual(r.returncode, 1, f"a bare directory swept the tree: {r.stdout}")
+
+    def test_a_glob_over_everything_is_not_a_waiver(self):
+        r = self._decisions(self._row("floor-waiver:silenced-checker:**"))
+        self.assertEqual(r.returncode, 1, f"`**` is a blanket, not a waiver: {r.stdout}")
+
+    def test_a_longer_token_containing_the_rule_id_does_not_waive(self):
+        r = self._decisions(self._row("floor-waiver:silenced-checkers:src/new.py"))
+        self.assertEqual(r.returncode, 1, f"`silenced-checkers` is not the rule id: {r.stdout}")
+
+    def test_a_longer_token_containing_the_path_does_not_waive(self):
+        r = self._decisions(self._row("floor-waiver:silenced-checker:src/new.pyc"))
+        self.assertEqual(r.returncode, 1, f"`src/new.pyc` is not `src/new.py`: {r.stdout}")
+
+    def test_prose_naming_the_rule_and_path_is_not_a_waiver(self):
+        # No prose is parsed at all now. A sentence that mentions both — including a line
+        # recording that the team REFUSED the waiver, which the substring round granted — is a
+        # note, not a decision about this finding.
+        for why in ("silenced-checker on src/new.py",
+                    "we will NOT waive silenced-checker on src/new.py",
+                    "see notes/silenced-checker.md before touching src/new.py"):
+            with self.subTest(why=why):
+                r = self._decisions(self._row("mechanical", why=why))
+                self.assertEqual(r.returncode, 1, f"prose granted a waiver: {r.stdout}")
+
+    def test_a_waiver_in_the_old_shape_is_named_not_silently_dropped(self):
+        # PR #308 review, P1. Moving scope into the id turns any pre-existing `floor-waiver` record
+        # off, and a silent turn-off shows up as a red build with no reason. The old shape is NOT
+        # honoured — scope-in-prose is the matching #313 removed as unsound, and a fallback would
+        # restore the hole where "we will NOT waive X" grants X — but it is named, with the id to
+        # write instead.
+        r = self._decisions(self._row("floor-waiver", why="silenced-checker on src/new.py"))
+        self.assertEqual(r.returncode, 1, "the old shape must not grant")
+        self.assertIn("NOT a usable waiver", r.stderr, r.stderr)
+        self.assertIn("floor-waiver:<rule>:<path>", r.stderr, r.stderr)
+
+    def test_a_malformed_scoped_id_is_named(self):
+        r = self._decisions(self._row("floor-waiver:silenced-checker"))
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("not `floor-waiver:<rule>:<path-or-glob>`", r.stderr, r.stderr)
+
+    def test_a_well_formed_waiver_draws_no_migration_note(self):
+        r = self._decisions(self._row(self.ID))
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertNotIn("NOT a usable waiver", r.stderr, r.stderr)
 
     def test_missing_waiver_file_is_not_a_could_not_run(self):
         r = run_guard(self.repo, "--base", "main", "--waivers", "docs/NOPE.md")

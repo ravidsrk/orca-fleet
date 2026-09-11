@@ -1,0 +1,71 @@
+{
+  "id": "decoy-hand-diff-1",
+  "class": "decoy-hand-diff",
+  "sound_expected": "RED",
+  "note": "#306 / PR #308 review, P1. The decoy one tool over: a NARRATED `hand` control whose artifact quotes a diff against contract.md, which base_sha..head_sha never touches. The structural check only asked whether the artifact contained diff-SHAPED text, and the path and hunk binds ran solely under --execute-nc \u2014 the same asymmetry #306 closed for `revert`, where the executed lane was covering for the narrated one. Caught by both binds now: the `+++` target is not a changed path, and the hunk overlaps no changed line.",
+  "unit_class": "mutation",
+  "fixture": "mutation-revert",
+  "lighting": "lit",
+  "gh_stub": true,
+  "repo": "vf-bench/decoy-hand-diff",
+  "manifest": {
+    "unit": "vf-bench-decoy-hand-diff",
+    "base_sha": "{{base_sha}}",
+    "head_sha": "{{head_sha}}",
+    "lighting": "lit",
+    "reviewer_mode": "cross-vendor",
+    "intent": {
+      "goal": "make add() return the sum, as AC-1 requires",
+      "ruled_out": "widening the interface beyond AC-1",
+      "why": "AC-1 is the contracted denominator"
+    },
+    "contract": {
+      "source": "contract.md",
+      "digest": "{{contract_digest}}",
+      "criterion_ids": [
+        "AC-1"
+      ]
+    },
+    "criteria": [
+      {
+        "id": "AC-1",
+        "text": "add(a, b) returns a + b",
+        "addressed": true
+      }
+    ],
+    "commands": [
+      {
+        "label": "tests",
+        "cmd": "{{proof_cmd}}",
+        "exit": 0,
+        "wtree": "{{head_tree}}",
+        "artifact": "docs/reports/vf/nc-decoy.txt",
+        "cmd_sha256": "{{proof_cmd_sha256}}"
+      }
+    ],
+    "artifacts": [
+      {
+        "path": "docs/reports/vf/nc-decoy.txt",
+        "sha256": "{{nc_decoy_sha256}}"
+      },
+      {
+        "path": "docs/reports/vf/review.txt",
+        "sha256": "{{review_sha256}}"
+      }
+    ],
+    "pr": {
+      "number": 1,
+      "reviewed_sha": "{{head_sha}}"
+    },
+    "negative_control": {
+      "did": "hand-edited contract.md at head_sha",
+      "tool": "hand",
+      "result": "the criterion-bound test went RED (mutant KILLED)",
+      "artifact": "docs/reports/vf/nc-decoy.txt",
+      "command": "{{proof_cmd}}",
+      "paths": [
+        "mod.py"
+      ]
+    }
+  }
+}

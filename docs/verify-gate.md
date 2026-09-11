@@ -59,26 +59,49 @@ worker-set; anything else in the environment is ignored):
 - `ORCA_CONTRACT_SOURCE` / `ORCA_CONTRACT_DIGEST` — the frozen contract `path@ref` and its sha256;
   without both, the scope check fail-closes.
 - `ORCA_UNIT_CLASS` — `mutation | report-only | planning`, from dispatch; missing/unknown ⇒ mutation.
+  On the native path the worker owns this variable, and the downgrade it buys is the whole
+  mutation lane at once — negative control, intent packet, lighting legality, reviewer_mode.
+  So an **unsigned** `report-only`/`planning` claim is measured against what
+  `base_sha..head_sha` actually changes: code changed ⇒ RED; an unresolvable range ⇒ RED (the
+  shas are worker-supplied too, so "cannot tell" must not beat "changed"); `base_sha ==
+  head_sha` ⇒ RED, because an empty range *asserts* the unit changed nothing and leaves the
+  gate no diff to check it against — a unit that changed code in commit C can declare
+  `base = head = C` exactly as easily as an honest report can. A docs/tests-only range
+  between two real, distinct commits passes, marked `(unsupervised)` in the verdict. A
+  dispatch record signed by the coordinator authorizes the class and skips all of this — that
+  is what signing it is for (#310).
+
+  None of this makes the native path sound, and it is not meant to: `base_sha` and `head_sha`
+  are the same worker's, so a determined unit can name some other docs-only range. That is the
+  [trust boundary](#trust-boundary) result, not a gap this check can close. What it buys is
+  that the cheap downgrade fails and the expensive one is labelled.
 - `ORCA_REPO` — `owner/name` for the independent GitHub review lookup (optional; inferred from origin).
 - `ORCA_BASE` / `ORCA_SYMBOL` — ancestry-check base branch / a unit symbol to grep on it (optional).
 - `ORCA_NC_COMMAND` — the **authoritative** criterion-bound command the negative control must turn
   RED, supplied out of band exactly as the frozen contract is. It is forwarded as `--nc-command`,
   and the manifest's own `negative_control.command` must agree with it or the run is RED — a unit
-  does not get to choose what proves it. When it is unset, verify.py falls back to the manifest's
-  command but requires that command to be **already in the manifest's content-bound `commands[]`
-  ledger**: an exit-0 record whose `wtree` is `head_sha`'s tree and whose `cmd_sha256` hashes its
-  own `cmd`. Without one of those two bindings a worker could nominate any command that happens to
-  fail under the control and pass clean, clearing the executed-control gate without ever running
-  the criterion-bound proof (PR #277 review).
+  does not get to choose what proves it. It is **REQUIRED whenever `ORCA_EXECUTE_NC` is set**
+  (#279): there is no fallback. verify.py used to accept the manifest's own command when that
+  command was already in the content-bound `commands[]` ledger, but the ledger is written by
+  `evidence-run.py` *on the worker*, from what the worker hands it — so the manifest and the ledger
+  are the same authority twice, and binding one to the other is circular. A worker that writes both
+  can nominate `grep -q FIXED calc.py` as its "criterion-bound proof", record it green at
+  `head_sha`'s tree, and clear the executed-control gate without running a test. That is attack A12
+  of the 2026-09-11 review, and A15 is the same move in the strongest lane the repo documents.
 - `ORCA_EXECUTE_NC` — set (to anything non-empty) to forward `--execute-nc`, which **executes the
   negative control** instead of reading it. verify.py checks out `head_sha` in a throwaway worktree,
   applies the control from the manifest — `tool: revert` restores `negative_control.paths` from
   `base_sha` (falling back to `git revert --no-commit base..head` only when no paths are given and
   the range is linear); `tool: hand` applies the unified diff quoted in the NC artifact — and
   requires `negative_control.command` to exit **non-zero** there, then **zero** in a second clean
-  worktree at `head_sha`. Fail-closed on anything else: a tool with no replay, a missing
-  command/paths, a git error, a control that changes nothing, or a command that passes under the
-  control ("tautological — the proof does not go RED"). It is **REQUIRED** in the two review-waiver
+  worktree at `head_sha`. Requires `ORCA_NC_COMMAND` — without it the run is RED before any
+  worktree is built, so a command the worker nominated is never executed. The control must bind to
+  the change (#280): the paths it restores, and the `+++` targets of a `hand` diff, must be
+  production paths `base_sha..head_sha` really changes — not a decoy, and not a test file; the
+  range-revert fallback is refused when the unit touches a test module; and the RED must carry an
+  assertion failure rather than an ImportError, a SyntaxError, or silence. Fail-closed on anything
+  else too: a tool with no replay, a missing command/paths, a git error, a control that changes
+  nothing, or a command that passes under the control ("tautological — the proof does not go RED"). It is **REQUIRED** in the two review-waiver
   lanes below; elsewhere it is the stronger form of the same check. Budget ~2 worktree checkouts +
   2 runs of the bound command (600 s cap each).
 - `ORCA_NO_GH` — set to take the **no-gh lane**: review authority switches from the GitHub lookup to a
@@ -156,6 +179,12 @@ the worker can set that env, it can choose its own denominator and class.
 
 ### Signed dispatch — what it binds, and where the key comes from (#135)
 
+> **Dormant today (#284).** The scheme below is sound where the key originates off the graded
+> worker, and `verify.py` implements it. But no mission or playbook signs a dispatch with
+> `runtime/scripts/dispatch-sign.py`, and no `.orca/dispatch-pubkey` is committed, so the check
+> never runs on a real unit. Read this section as the contract a signed dispatch would satisfy,
+> not as a boundary currently standing.
+
 The native hook can't trust `ORCA_CONTRACT_DIGEST` / `ORCA_UNIT_CLASS` / `ORCA_LIGHTING` on its own —
 the worker sets them. Bind them to a **coordinator-signed dispatch record**. The whole scheme rests on
 one thing: **the verifying public key must originate off the graded worker.** A worker that could set
@@ -176,6 +205,28 @@ the key would just self-sign. The gate discovers the key from three sources, in 
 
 On the native in-session path **all three** are worker-influenceable, so a key that verifies
 in-session proves nothing about who signed (see [Trust boundary](#trust-boundary)).
+
+**What the signature covers, and what stays worker-chosen (#311).** The tuple is `manifest_id`,
+`contract_digest`, `unit_class`, `lighting`, plus three OPTIONAL negative-control inputs:
+`nc_paths`, `nc_command`, `nc_artifact_sha256`. Binding only the first four would leave the worker
+choosing its own oracle — *which* files the control reverts, and *what* command is supposed to go
+RED — so a sound class and a sound denominator would still grade a unit against a proof it picked.
+
+The three are optional because a coordinator usually **cannot know them at dispatch time**: the fix
+has not been written, so nobody yet knows which paths it will touch. Requiring a signature nobody
+could produce would take the whole scheme out of use. So:
+
+- **Signed** (a targeted mutation unit, a re-run of a known defect): the manifest must match, and a
+  flip is reported as `dispatch substitution`. `nc_paths` is signed as a *set* — the coordinator
+  signs which paths, not the order they were typed. `nc_artifact_sha256` is compared against the
+  **content** of the file `negative_control.artifact` names, re-hashed by the gate, not against any
+  digest the manifest supplies.
+- **Unsigned:** the same inputs are still not free. `negative_control.paths` must be production
+  paths that `base_sha..head_sha` actually changes (#280), a `hand` control's quoted diff must
+  target and patch that same change, and `--execute-nc` takes its command from the coordinator out
+  of band and refuses the manifest's own (#279). What genuinely remains worker-chosen is *which* of
+  the changed production paths to revert when a unit changed several — a partial control, whose RED
+  speaks only for the part it reverted.
 
 **Setup and per-dispatch flow:**
 

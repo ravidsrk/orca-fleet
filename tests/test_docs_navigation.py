@@ -398,5 +398,94 @@ class TestDocsNavigation(unittest.TestCase):
         )
 
 
+class QuotationsAreAttributedToWhatTheySay(unittest.TestCase):
+    """#304: a research file carried a quotation its cited source does not contain.
+
+    The sentence was a paraphrase of a real rule from a DIFFERENT article. A repository whose
+    thesis is that claims must be checkable does not get to carry an unchecked quotation, so the
+    fabricated one is pinned here by its text — if it ever comes back, this fails.
+    """
+
+    PLAN = ROOT / "docs" / "research" / "2026-08-28-forward-roadmap-and-defensibility-plan.md"
+
+    def test_the_fabricated_sentence_is_gone(self):
+        text = self.PLAN.read_text(encoding="utf-8")
+        body = "\n".join(ln for ln in text.splitlines() if "Correction (#304)" not in ln)
+        self.assertNotIn("the level you can safely reach is exactly the level you can cheaply "
+                         "prove", body,
+                         "the misattributed quotation is back in the body")
+
+    def test_the_replacement_names_the_article_it_is_from(self):
+        text = self.PLAN.read_text(encoding="utf-8")
+        self.assertIn("Back pressure is the rule that you can only hand a loop as much autonomy "
+                      "as you can cheaply and reliably verify, and not one inch more.", text,
+                      "the verified sentence is not there")
+        self.assertIn("Software Factories, Light and Dark", text,
+                      "the quotation does not name the article it comes from")
+        self.assertIn("addyosmani.com/blog/software-factories", text,
+                      "the quotation is not linked to a source a reader can check")
+
+
+class EveryReleaseHasTheTagItDescribes(unittest.TestCase):
+    """#307: docs/releases.json bound nine versions to commits and `git tag` was empty.
+
+    The mapping was true and the artifact it describes did not exist — no version was fetchable by
+    tag, and `git describe` had nothing to work with.
+
+    The first cut SKIPPED when no release tag was present, reasoning that an unfetched clone
+    cannot prove anything about tags. That made the gate toothless in exactly the state it was
+    written for — the repository's own — and CI fetches tags anyway (`fetch-depth: 0`), so the
+    skip could not tell "not fetched" from "never published" where it mattered (PR #308 review,
+    P1). It fails now. A gate that cannot fire in the condition it was added to detect is the
+    shape this catalog refuses.
+    """
+
+    RELEASES = ROOT / "docs" / "releases.json"
+
+    def _releases(self):
+        return json.loads(self.RELEASES.read_text(encoding="utf-8"))["releases"]
+
+    @staticmethod
+    def _git(*args):
+        return subprocess.run(["git", "-C", str(ROOT), *args], capture_output=True, text=True)
+
+    def test_every_release_names_a_commit_that_exists(self):
+        # True with or without tags — the half that never needs a fetch.
+        for rel in self._releases():
+            with self.subTest(version=rel["version"]):
+                self.assertEqual(
+                    self._git("cat-file", "-e", rel["commit"] + "^{commit}").returncode, 0,
+                    f"{rel['tag']} names a commit this repository does not have")
+
+    def test_every_release_is_tagged_at_the_commit_it_names(self):
+        releases = self._releases()
+        present = {t for t in self._git("tag").stdout.split()}
+        wanted = {rel["tag"] for rel in releases}
+        missing = sorted(wanted - present)
+        self.assertEqual(
+            missing, [],
+            f"released but untagged: {missing}\n"
+            "docs/releases.json binds these versions to commits, so the mapping is true and the "
+            "tags it describes do not exist — no version is fetchable by tag and `git describe` "
+            "has nothing to work with (#307).\n"
+            "Publish them with the command in docs/releases.json's _comment:\n"
+            "  jq -r '.releases[] | \"git tag -a \\(.tag) \\(.commit) -m \\\"orca-fleet "
+            "\\(.version)\\\"\"' docs/releases.json | sh && git push origin --tags\n"
+            "If this is a shallow or --no-tags checkout, fetch them first "
+            "(actions/checkout with fetch-depth: 0).")
+        for rel in releases:
+            with self.subTest(version=rel["version"]):
+                at = self._git("rev-list", "-n", "1", rel["tag"]).stdout.strip()
+                self.assertEqual(at, rel["commit"],
+                                 f"{rel['tag']} points at {at[:12]}, not the commit "
+                                 f"docs/releases.json names ({rel['commit'][:12]})")
+
+    def test_the_file_documents_how_to_publish_them(self):
+        # The durable half: a reader who finds the tags missing must be told what to run.
+        comment = json.loads(self.RELEASES.read_text(encoding="utf-8"))["_comment"]
+        self.assertIn("git tag -a", comment)
+        self.assertIn("git push origin --tags", comment)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

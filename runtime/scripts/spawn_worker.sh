@@ -17,6 +17,10 @@
 #   - `state: outcome_unknown` is NOT a failure: it is an unproven outcome. Exit 4, print the
 #     receipt's `nextCommands`, and INSPECT — never respawn (respawning beside a live pane is the
 #     dual-writer class) (`worker-start-receipt.ts:48,60-68`).
+#   - Exit 5 = LAUNCHED_UNUSABLE: the start succeeded, so a worker IS live, but `launch.effective`
+#     does not prove the PROFILE's flag was applied — it lacks the flag, or the host omitted the
+#     field entirely. Not a failure (something started) and not unknown (we know it did): STOP the
+#     worker, never respawn beside it, then fix the host (sandbox-policy.md:16-20).
 #   - custom-argv lane = `terminal create` + `dispatch --inject`. The inject ALREADY SUBMITS the
 #     preamble (`dispatch-methods.ts:155-165` calls `sendTerminalAgentPrompt`) and `--json` returns
 #     `result.prompt{requestId, stages}`, stages drawn from `input_accepted | turn_started`
@@ -95,9 +99,11 @@
 #   ORCA_COORD_ALLOW_DANGER   must be 1 for PROFILE=danger (implies the above + ephemeral sandbox)
 #   ORCA_SANDBOX_RECIPE       PROFILE=danger only: the orca-per-workspace-env recipe id the lane
 #                             runs in. Required — the opt-in above is intent, this is evidence.
-#   ORCA_SANDBOX_DOCTOR       PROFILE=danger only: path to that recipe's
-#                             `vm recipe doctor <id> --provision` output. Must name the recipe and
-#                             carry no fail and no warn (sandbox-policy.md; ok:true proves nothing).
+#   ORCA_SANDBOX_DOCTOR       PROFILE=danger only, and an OUTPUT path since #283: where this
+#                             script WRITES the `vm recipe doctor <id> --provision` transcript it
+#                             ran itself, for the lane ledger. Optional; an unwritable path is a
+#                             refusal. It is no longer an input — a transcript the caller names is
+#                             not evidence (/etc/passwd passed the old grep).
 #   WORKER_CMD                full launch command for ANY agent (the generic override; its
 #                             read-only/write semantics become YOUR assertion). Legacy
 #                             CLAUDE_CMD / CODEX_CMD still work for those two. Any override
@@ -105,6 +111,7 @@
 #   SETTLE_SECS / SUBMIT_SECS  timing knobs (defaults 20 / 8) — custom-argv lane. SUBMIT_SECS is
 #                             the `--wait-submit` observation window, in SECONDS.
 set -Eeuo pipefail  # -E: ERR trap fires inside functions (orca_json) too
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"  # sibling scripts (sandbox_doctor.py)
 
 step=parse-args
 task="?"
@@ -187,6 +194,38 @@ if [ -n "${SW_SELFTEST:-}" ]; then
   exit 0
 fi
 
+# --- runtime pin drift ---------------------------------------------------------
+# runtime/pins.json records the Orca the catalog was witnessed against, and NOTHING
+# compared it to the binary actually on PATH (#301). The pin is the thing pin-it
+# exists to maintain, and every behaviour this script depends on — the YOLO flag
+# map, the receipt shape, worker-start's own arg handling — was read off that
+# version's source. Drift does not make them wrong; it makes them unwitnessed.
+#
+# A NOTE, not a refusal: an upstream release is not a safety failure, and refusing
+# every spawn on a version bump would make the catalog unusable the day Orca ships.
+# It names both versions and arms pin-it, which is the mission that re-witnesses.
+pin_version=$(python3 - "$HERE/../pins.json" <<'PIN'
+import json, sys
+try:
+    with open(sys.argv[1]) as fh:
+        print((json.load(fh).get("orca") or {}).get("version") or "")
+except Exception:
+    print("")
+PIN
+)
+if [ -n "$pin_version" ] && command -v orca >/dev/null 2>&1; then
+  # `orca --version` is not source-witnessed as to its exact wording, so take the
+  # first version-shaped token anywhere in its output rather than the whole line.
+  installed=$(orca --version 2>/dev/null | grep -oE 'v?[0-9]+\.[0-9]+\.[0-9]+' | head -n 1 || true)
+  if [ -z "$installed" ]; then
+    # Not silence. "Nothing noticed the drift" is the defect this check exists to
+    # fix, and a check that quietly stops working is that defect wearing a fix.
+    echo "SPAWN=NOTE task=${task} could not read a version from \`orca --version\`, so drift from runtime/pins.json (${pin_version}) could not be checked at all. If the output format changed, the check needs re-witnessing — pin-it (#301)." >&2
+  elif [ "${installed#v}" != "${pin_version#v}" ]; then
+    echo "SPAWN=NOTE task=${task} Orca on PATH is ${installed}, runtime/pins.json was witnessed against ${pin_version}. Every behaviour this script relies on was read off the PINNED version's source, so the difference is unwitnessed, not known-wrong: run pin-it to re-witness before trusting the launch map or the receipt shape (#301)." >&2
+  fi
+fi
+
 step=resolve-profile
 case "$PROFILE" in ro|rw|danger) : ;; *)
   echo "SPAWN=REFUSED task=${task} unknown PROFILE='$PROFILE' (want ro|rw|danger)" >&2; exit 2 ;;
@@ -203,11 +242,15 @@ if [ "$PROFILE" = "rw" ] && [ "${ORCA_COORD_ALLOW_AUTONOMOUS_WRITE:-0}" != "1" ]
   exit 2
 fi
 if [ "$PROFILE" = "danger" ]; then
-  # A boolean is not evidence of a sandbox (REVIEW.md §8 P2-15). sandbox-policy.md names the
-  # artifact that is: an `orca-per-workspace-env` recipe id, validated by
-  # `vm recipe doctor <recipe-id> --provision`, which is clear ONLY with no fail AND no warn.
-  # So danger needs the opt-in, a recipe id, and that doctor transcript on disk — each checked,
-  # each recorded on the spawn line so the ledger carries what the lane actually ran in.
+  # A boolean is not evidence of a sandbox — and neither is A FILE THE CALLER NAMES. Until #283
+  # this block read a transcript from ORCA_SANDBOX_DOCTOR and grepped it for the recipe id and for
+  # "fail"/"warn". Both halves were broken, in opposite directions:
+  #   ORCA_SANDBOX_RECIPE=root ORCA_SANDBOX_DOCTOR=/etc/passwd spawned a danger worker — the passwd
+  #     file mentions "root" and carries neither word;
+  #   a REAL doctor transcript carrying `"failures": []` was REFUSED, because "fail" matched.
+  # So the evidence is PRODUCED here rather than accepted here: this script runs the doctor and
+  # reads its verdict. ORCA_SANDBOX_DOCTOR is now an OUTPUT path — where the transcript is WRITTEN
+  # for the lane ledger — not an input anyone is trusted to supply.
   if [ "${ORCA_COORD_ALLOW_DANGER:-0}" != "1" ]; then
     echo "SPAWN=REFUSED task=${task} PROFILE=danger requires ORCA_COORD_ALLOW_DANGER=1 AND an ephemeral sandbox (sandbox-policy.md)" >&2
     exit 2
@@ -221,19 +264,42 @@ if [ "$PROFILE" = "danger" ]; then
       echo "SPAWN=REFUSED task=${task} ORCA_SANDBOX_RECIPE='${recipe}' is not a recipe id (want 3+ chars of [A-Za-z0-9._-])" >&2
       exit 2 ;;
   esac
-  doctor="${ORCA_SANDBOX_DOCTOR:-}"
-  if [ -z "$doctor" ] || [ ! -r "$doctor" ]; then
-    echo "SPAWN=REFUSED task=${task} PROFILE=danger requires ORCA_SANDBOX_DOCTOR=<path to \`vm recipe doctor ${recipe} --provision\` output>; '${doctor}' is not readable" >&2
+  if ! command -v orca >/dev/null 2>&1; then
+    echo "SPAWN=REFUSED task=${task} PROFILE=danger needs \`orca\` on PATH to run \`vm recipe doctor ${recipe} --provision\` — a sandbox cannot be certified without the runtime that provides it (#283)" >&2
     exit 2
   fi
-  if ! grep -q -- "$recipe" "$doctor"; then
-    echo "SPAWN=REFUSED task=${task} ORCA_SANDBOX_DOCTOR does not mention recipe '${recipe}' — a transcript for another sandbox proves nothing about this one" >&2
+  step=sandbox-doctor
+  doctor_out="$(mktemp)"
+  doctor_rc=0
+  # --json is documented for worker-start / task-list / skills; `src/cli/specs/vm.ts:6-9` lists only
+  # [--repo-path] [--provision|--connect] for doctor. So ask for JSON and fall back to the
+  # documented plain form when the flag is rejected. Source-witnessed, not binary-witnessed — the
+  # same limitation pins.json records for itself; re-witness on the next pin-it wave.
+  orca vm recipe doctor "$recipe" --provision --json > "$doctor_out" 2>&1 || doctor_rc=$?
+  if [ "$doctor_rc" -ne 0 ] && grep -qiE "unknown (option|flag|argument)|unrecognized|invalid option" "$doctor_out"; then
+    doctor_rc=0
+    orca vm recipe doctor "$recipe" --provision > "$doctor_out" 2>&1 || doctor_rc=$?
+  fi
+  if [ "$doctor_rc" -ne 0 ]; then
+    echo "SPAWN=REFUSED task=${task} \`orca vm recipe doctor ${recipe} --provision\` exited ${doctor_rc} — the sandbox did not come up clean: $(head -c 300 "$doctor_out" | tr '\n' ' ')" >&2
+    rm -f "$doctor_out"
     exit 2
   fi
-  if grep -qiE '(^|[^a-z])(fail|warn)' "$doctor"; then
-    echo "SPAWN=REFUSED task=${task} recipe doctor for '${recipe}' is not clear — sandbox-policy.md: clear means no fail AND no warn (ok:true alone proves nothing)" >&2
+  if ! python3 "$HERE/sandbox_doctor.py" "$doctor_out" "$recipe" 2>/dev/null; then
+    echo "SPAWN=REFUSED task=${task} recipe doctor for '${recipe}' is not clear — sandbox-policy.md: clear means no fail AND no warn (ok:true alone proves nothing): $(python3 "$HERE/sandbox_doctor.py" "$doctor_out" "$recipe" 2>&1 >/dev/null | head -c 200)" >&2
+    rm -f "$doctor_out"
     exit 2
   fi
+  # The transcript is OURS now; record it where the lane ledger wants it.
+  if [ -n "${ORCA_SANDBOX_DOCTOR:-}" ]; then
+    if ! cp "$doctor_out" "$ORCA_SANDBOX_DOCTOR" 2>/dev/null; then
+      echo "SPAWN=REFUSED task=${task} could not write the doctor transcript to ORCA_SANDBOX_DOCTOR='${ORCA_SANDBOX_DOCTOR}' — the lane ledger record is part of the danger contract (sandbox-policy.md)" >&2
+      rm -f "$doctor_out"
+      exit 2
+    fi
+  fi
+  rm -f "$doctor_out"
+  echo "SPAWN=NOTE task=${task} sandbox recipe='${recipe}' doctored clear by this script (#283)" >&2
 fi
 
 # Per-agent × profile launch command. Autonomy is the WHOLE POINT: a worker that blocks on a
@@ -297,6 +363,15 @@ tl="$SP/tl-$safe_title.json"
 orca_json "$tl" orchestration task-list
 tl_out=$(python3 - "$tl" "$task" <<'PY'
 import json, sys
+
+
+def emit(status, unmet):
+    """unmet on line 1, status on line 2 — the shell reads lines, never words."""
+    print(unmet)
+    print(str(status).replace("\n", " ").replace("\r", " "))
+    raise SystemExit(0)
+
+
 path, tid = sys.argv[1], sys.argv[2]
 d = json.load(open(path))
 r = d.get("result", d)
@@ -305,8 +380,7 @@ tasks = tasks or []
 by = {t.get("id"): t for t in tasks}
 t = by.get(tid)
 if not t:
-    print("not-found 0")
-    raise SystemExit(0)
+    emit("not-found", 0)
 deps = t.get("deps")
 if deps is None:
     deps = []  # absent deps is the ONLY value that legitimately means "no deps"
@@ -318,13 +392,17 @@ elif isinstance(deps, str):
 if not isinstance(deps, list):
     # Corrupt/unreadable dependency metadata ("", 0, {}, bad JSON) must fail
     # CLOSED, not count as "no deps".
-    print(t.get("status", "unknown"), -1)
-    raise SystemExit(0)
+    emit(t.get("status", "unknown"), -1)
 unmet = sum(1 for dep in deps if (by.get(dep) or {}).get("status") != "completed")
-print(t.get("status", "unknown"), unmet)
+emit(t.get("status", "unknown"), unmet)
 PY
 )
-read -r status unmet <<< "$tl_out"
+# unmet first, status second, one per line. `read -r status unmet` word-split them, so a
+# status whose FIRST WORD is a dispatchable one was dispatched: `ready for review` read as
+# `ready` (#298). unmet is an int and cannot carry a space; status can, so it
+# gets a line to itself and nothing splits it.
+unmet=$(printf '%s\n' "$tl_out" | sed -n '1p')
+status=$(printf '%s\n' "$tl_out" | sed -n '2p')
 
 case "$status" in
   ready) : ;;
@@ -380,20 +458,63 @@ if [ -z "$override" ] && [ "$PROFILE" != "ro" ]; then
   ws_rc=0
   orca orchestration worker-start --task "$task" --worktree "$sel" ${name_args[@]+"${name_args[@]}"} --agent "$agent" --json > "$ws" 2>&1 || ws_rc=$?
 
+  # The flag the requested PROFILE implies, read back out of the map above so the two cannot
+  # drift: worker-start takes its args from the HOST, so this is what the host must have used.
+  profile_flag=""
+  case "$agent" in
+    claude) profile_flag="--dangerously-skip-permissions" ;;
+    codex)  profile_flag="--dangerously-bypass-approvals-and-sandbox" ;;
+    gemini|cursor) profile_flag="--yolo" ;;
+    grok)   profile_flag="--permission-mode bypassPermissions" ;;
+    droid)  profile_flag="--auto high" ;;
+  esac
+
   step=read-start-receipt
   # Line 1 is the machine verdict; the remaining stdout lines are the caller-facing receipt
   # fields. nextSteps / nextCommands go to stderr verbatim — they are the runtime's own
   # recovery text, not ours to paraphrase.
-  ws_out=$(python3 - "$ws" <<'PY'
+  ws_out=$(python3 - "$ws" "$profile_flag" <<'PY'
 import json, sys
 
 # Every typed preflight refusal is a POLICY/usage answer, not a transport failure: the
 # coordinator must branch, not retry. runtime_error is the documented catch-all and is the
 # one code that stays a failure ("do not retry unchanged").
+# Anchored per code, because they do NOT share one definition — dispatch-lifecycle.md used to
+# cite all six at the contract file, which declares the first three (#302), verified against the
+# pinned v1.4.199 tree:
+#   task_not_found / task_not_startable / inject_rejected
+#                                 orchestration-dispatch-refusal-contract.ts:8
+#   nested_worker_depth_exceeded  nested-worker-depth.ts:13
+#   dispatch_inactive             dispatch-capability.ts:18
+#   consumer_fenced               role-mailbox-delivery.ts:52, decision-gate-store.ts:49
+#   runtime_error (NOT policy)    cli-error.ts:117
 POLICY_CODES = {
     "task_not_found", "task_not_startable", "inject_rejected",
     "nested_worker_depth_exceeded", "consumer_fenced", "dispatch_inactive",
 }
+
+
+def _launch_tokens(eff):
+    """Every argument token in a launch.effective, whatever shape the host reports it in."""
+    if isinstance(eff, str):
+        return eff.split()
+    if isinstance(eff, list):
+        return [str(x) for x in eff]
+    toks = []
+    if isinstance(eff, dict):
+        for v in eff.values():
+            if isinstance(v, str):
+                toks += v.split()
+            elif isinstance(v, list):
+                toks += [str(x) for x in v]
+    return toks
+
+
+def _contains_seq(toks, want):
+    """want as a CONTIGUOUS run of toks. `--permission-mode bypassPermissions` is one flag, so
+    finding its two words far apart (beside `--permission-mode plan`, say) is not finding it."""
+    n = len(want)
+    return any(toks[i:i + n] == want for i in range(len(toks) - n + 1))
 try:
     d = json.load(open(sys.argv[1]))
 except Exception:
@@ -442,12 +563,55 @@ if state is not None and state != "ready":
     print(f"VERDICT=failed STATE={state}")
     raise SystemExit(0)
 
-print(f"VERDICT=ready STATE={state or 'exit0'}")
-print(f"HANDLE={h} READY={state or 'exit0'}")
-print(f"DISPATCH={did}")
+if state is None:
+    # "The receipt is the verdict" — and a receipt naming no state is not one. This read as READY
+    # on the call's exit status alone, which the header above says is NOT the verdict, so a
+    # changed receipt shape silently disabled the state check (#298). A receipt of
+    # `{"result": "surprise"}` reported READY with an empty handle and an empty dispatch id.
+    #
+    # UNKNOWN, not FAILED: worker-start exited 0, so a worker may well be live, and the one thing
+    # a coordinator must not do here is respawn beside it (liveness-resume.md, dual-writer).
+    print("VERDICT=unknown STATE=absent")
+    print(f"HANDLE={h} READY=absent")
+    print(f"DISPATCH={did}")
+    raise SystemExit(0)
+
 launch = r.get("launch") if isinstance(r.get("launch"), dict) else {}
-if "effective" in launch:
-    eff = launch["effective"]
+eff = launch.get("effective") if "effective" in launch else None
+# (b) The requested PROFILE is a capability grant; `launch.effective` is what the host actually
+# launched. A worker-start launch takes its args from the HOST's agentDefaultArgs, not from
+# anything this script builds, so the two CAN disagree — and when they did, the launch proceeded
+# and the profile was advisory (#298). Checked only when the host reports the field:
+# an absent one is unverifiable, and is said so rather than guessed at.
+want = sys.argv[2].split() if len(sys.argv) > 2 else []
+if want:
+    # An ABSENT launch.effective is not a pass. sandbox-policy.md:18 makes this field THE way to
+    # tell an autonomous worker from a prompting one — "neither is knowable from source: read
+    # launch.effective off the start receipt" — and it is in the documented receipt shape
+    # (dispatch-lifecycle.md:20, worker-start-receipt.ts:42-69). Warning and proceeding was the
+    # same fail-open this commit removed for a missing `state`, one field over (PR #308 review).
+    #
+    # Both of these are UNUSABLE, not FAILED: state said ready, so a worker IS live. It cannot do
+    # the work the profile grants, and it must be STOPPED — never respawned beside.
+    if eff is None:
+        why = "LAUNCH_EFFECTIVE_ABSENT=1"
+    elif not _contains_seq(_launch_tokens(eff), want):
+        why = "LAUNCH_FLAG_MISSING=" + " ".join(want)
+    else:
+        why = ""
+    if why:
+        print("VERDICT=unusable " + why)
+        print(f"HANDLE={h} READY={state}")
+        print(f"DISPATCH={did}")
+        if eff is not None:
+            print("LAUNCH_EFFECTIVE=" + (eff if isinstance(eff, str)
+                                         else json.dumps(eff, sort_keys=True)))
+        raise SystemExit(0)
+
+print(f"VERDICT=ready STATE={state}")
+print(f"HANDLE={h} READY={state}")
+print(f"DISPATCH={did}")
+if eff is not None:
     print("LAUNCH_EFFECTIVE=" + (eff if isinstance(eff, str) else json.dumps(eff, sort_keys=True)))
 PY
 )
@@ -458,9 +622,17 @@ PY
   # Fail CLOSED on a nonzero call whose receipt named neither a code nor a state: a missing
   # binary, a truncated write, or a host that answered in some shape we do not parse must never
   # read as READY just because the parser found nothing to object to.
-  if [ "$verdict" = "ready" ] && [ "$ws_rc" != "0" ]; then
-    verdict=failed
-    verdict_line="VERDICT=failed UNPARSEABLE_RECEIPT rc=${ws_rc}"
+  #
+  # A stateless receipt is UNKNOWN when the call exited 0 (something ran; inspect, never respawn)
+  # and FAILED when it did not (rc=127 is a missing binary — there is no worker to go looking
+  # for, and sending a coordinator to inspect for one is its own waste). The parser cannot tell
+  # these apart because it never sees the exit status; this is the only place that does.
+  if [ "$ws_rc" != "0" ]; then
+    case "$verdict:$verdict_line" in
+      ready:*|unknown:*STATE=absent*|unusable:*)
+        verdict=failed
+        verdict_line="VERDICT=failed UNPARSEABLE_RECEIPT rc=${ws_rc}" ;;
+    esac
   fi
 
   step=verify-ready
@@ -474,8 +646,24 @@ PY
       ;;
     unknown)
       printf '%s\n' "$payload"
-      echo "SPAWN=OUTCOME_UNKNOWN task=${task} — the start neither proved nor disproved the worker. Run the nextCommands above (worker-show, then an explicit worker-stop or worker-abandon): INSPECT, NEVER RESPAWN — a second worker beside a live pane is the dual-writer class (liveness-resume.md). Receipt in $ws" >&2
+      case "$verdict_line" in
+        *STATE=absent*)
+          echo "SPAWN=OUTCOME_UNKNOWN task=${task} — worker-start exited ${ws_rc} but its receipt names no state, so the start neither proved nor disproved the worker. A receipt shape this script cannot read is not a success. INSPECT (worker-list, then worker-show on anything for this task), NEVER RESPAWN — a second worker beside a live pane is the dual-writer class (liveness-resume.md). Receipt in $ws" >&2 ;;
+        *)
+          echo "SPAWN=OUTCOME_UNKNOWN task=${task} — the start neither proved nor disproved the worker. Run the nextCommands above (worker-show, then an explicit worker-stop or worker-abandon): INSPECT, NEVER RESPAWN — a second worker beside a live pane is the dual-writer class (liveness-resume.md). Receipt in $ws" >&2 ;;
+      esac
       exit 4
+      ;;
+    unusable)
+      printf '%s\n' "$payload"
+      case "$verdict_line" in
+        *LAUNCH_EFFECTIVE_ABSENT*)
+          _why="its receipt carries no launch.effective at all, so what the host applied cannot be read (sandbox-policy.md: that field is the only way to tell an autonomous worker from a prompting one)" ;;
+        *)
+          _why="the host's launch.effective does not carry '${profile_flag}'" ;;
+      esac
+      echo "SPAWN=LAUNCHED_UNUSABLE task=${task} PROFILE=${PROFILE} — a worker IS LIVE (handle above) and ${_why}. It cannot do the work this profile grants, and on a manual host it will block on invisible permission dialogs while the fleet believes it is autonomous. STOP it (worker-stop / worker-abandon) — NEVER RESPAWN beside it. Then fix the host's agentDefaultArgs, or pass WORKER_CMD with ORCA_COORD_ALLOW_CMD_OVERRIDE=1 and own the semantics. Receipt in $ws" >&2
+      exit 5
       ;;
     *)
       echo "SPAWN=FAILED task=${task} step=${step} rc=${ws_rc} — worker-start failed: ${verdict_line#VERDICT=failed } (receipt in $ws)" >&2

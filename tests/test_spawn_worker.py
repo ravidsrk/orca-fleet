@@ -7,6 +7,7 @@ orchestration side effect. The lane tests stub `orca` per subcommand and assert 
 receipt contracts against Orca v1.4.199 — the SHIPPED tag, not upstream HEAD. Standard
 library only.
 """
+import copy
 import json
 import subprocess
 import tempfile
@@ -56,12 +57,15 @@ def task_list_payload(*tasks):
 
 
 class TestDangerSandboxEvidence(unittest.TestCase):
-    """PROFILE=danger needs evidence of a sandbox, not a boolean (REVIEW.md §8 P2-15).
+    """PROFILE=danger needs evidence of a sandbox, and the evidence has to be PRODUCED here.
 
-    `ORCA_COORD_ALLOW_DANGER=1` alone said only that a coordinator meant it. The
-    policy names what a sandbox actually is: an `orca-per-workspace-env` recipe id
-    plus a `vm recipe doctor <id> --provision` transcript, clear ONLY with no fail
-    and no warn. Each of those is now checked, and each check is a refusal here.
+    `ORCA_COORD_ALLOW_DANGER=1` alone said only that a coordinator meant it. A transcript the
+    caller names said only that the caller could name a file: `ORCA_SANDBOX_RECIPE=root` with
+    `ORCA_SANDBOX_DOCTOR=/etc/passwd` spawned a danger worker, while a real transcript reporting
+    `"failures": []` was refused because the substring "fail" was in it (#283).
+
+    So spawn_worker.sh runs `orca vm recipe doctor <recipe> --provision` itself and reads the
+    verdict; ORCA_SANDBOX_DOCTOR is now where the transcript is WRITTEN.
     """
 
     ENV = {"PROFILE": "danger", "ORCA_COORD_ALLOW_AUTONOMOUS_WRITE": "1",
@@ -73,10 +77,23 @@ class TestDangerSandboxEvidence(unittest.TestCase):
         env.update(extra)
         return run_spawn(self.ARGS, env_extra=env)
 
-    def _doctor(self, tmp, text):
-        path = Path(tmp) / "doctor.txt"
-        path.write_text(text, encoding="utf-8")
-        return str(path)
+    def _with_doctor(self, output, rc=0, **extra):
+        """Run spawn with a stub `orca` whose `vm recipe doctor` prints `output` and exits `rc`."""
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "doctor-output"
+            out.write_text(output, encoding="utf-8")
+            stub = Path(tmp) / "orca"
+            stub.write_text(
+                "#!/bin/sh\n"
+                'case "$*" in\n'
+                f'  *"recipe doctor"*) cat "{out}"; exit {rc} ;;\n'
+                '  *) echo "{}" ;;\n'
+                "esac\n")
+            stub.chmod(0o755)
+            env = dict(self.ENV)
+            env.update(extra)
+            env["PATH"] = f"{tmp}:/usr/bin:/bin"
+            return run_spawn(self.ARGS, env_extra=env)
 
     def test_the_opt_in_alone_is_refused(self):
         rc, _out, err = self._spawn()
@@ -93,49 +110,82 @@ class TestDangerSandboxEvidence(unittest.TestCase):
         self.assertEqual(rc, 2, err)
         self.assertIn("is not a recipe id", err)
 
-    def test_a_missing_doctor_transcript_is_refused(self):
-        rc, _out, err = self._spawn(ORCA_SANDBOX_RECIPE="lane-7",
-                                    ORCA_SANDBOX_DOCTOR="/nonexistent/doctor.txt")
+    def test_without_orca_the_lane_is_refused(self):
+        # #283: a sandbox cannot be certified without the runtime that provides it. Before this,
+        # any readable file stood in for the runtime's own verdict.
+        rc, _out, err = self._spawn(ORCA_SANDBOX_RECIPE="lane-7")
         self.assertEqual(rc, 2, err)
-        self.assertIn("ORCA_SANDBOX_DOCTOR", err)
+        self.assertIn("needs `orca` on PATH", err)
+
+    def test_a_caller_named_transcript_is_no_longer_evidence(self):
+        # THE bug: ORCA_SANDBOX_RECIPE=root + ORCA_SANDBOX_DOCTOR=/etc/passwd spawned a danger
+        # worker. /etc/passwd names "root" and carries neither "fail" nor "warn". With no orca on
+        # PATH the lane is now refused outright, and the named file is never read as evidence.
+        rc, _out, err = self._spawn(ORCA_SANDBOX_RECIPE="root",
+                                    ORCA_SANDBOX_DOCTOR="/etc/passwd")
+        self.assertEqual(rc, 2, err)
+        self.assertIn("needs `orca` on PATH", err)
+        self.assertNotIn("SPAWN=NOTE", err)
+
+    def test_a_doctor_that_exits_nonzero_is_refused(self):
+        rc, _out, err = self._with_doctor("provisioning lane-7\n", rc=3,
+                                          ORCA_SANDBOX_RECIPE="lane-7")
+        self.assertEqual(rc, 2, err)
+        self.assertIn("did not come up clean", err)
 
     def test_a_transcript_for_another_recipe_is_refused(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            rc, _out, err = self._spawn(
-                ORCA_SANDBOX_RECIPE="lane-7",
-                ORCA_SANDBOX_DOCTOR=self._doctor(tmp, "recipe other-lane ok:true\n"),
-            )
+        rc, _out, err = self._with_doctor('{"recipe": "other-lane", "ok": true}',
+                                          ORCA_SANDBOX_RECIPE="lane-7")
         self.assertEqual(rc, 2, err)
-        self.assertIn("does not mention recipe", err)
+        self.assertIn("not clear", err)
 
-    def test_a_warn_in_the_transcript_is_refused(self):
+    def test_a_warn_is_refused(self):
         # sandbox-policy.md: clear means no fail AND no warn; ok:true proves nothing.
-        with tempfile.TemporaryDirectory() as tmp:
-            rc, _out, err = self._spawn(
-                ORCA_SANDBOX_RECIPE="lane-7",
-                ORCA_SANDBOX_DOCTOR=self._doctor(tmp, "recipe lane-7 ok:true\nwarn: disk\n"),
-            )
+        rc, _out, err = self._with_doctor(
+            '{"recipe": "lane-7", "ok": true, "warnings": ["low disk"]}',
+            ORCA_SANDBOX_RECIPE="lane-7")
         self.assertEqual(rc, 2, err)
         self.assertIn("no fail AND no warn", err)
 
-    def test_a_fail_in_the_transcript_is_refused(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            rc, _out, err = self._spawn(
-                ORCA_SANDBOX_RECIPE="lane-7",
-                ORCA_SANDBOX_DOCTOR=self._doctor(tmp, "recipe lane-7\nfail: no network\n"),
-            )
+    def test_a_fail_is_refused(self):
+        rc, _out, err = self._with_doctor(
+            '{"recipe": "lane-7", "ok": false, "checks": [{"name": "net", "status": "fail"}]}',
+            ORCA_SANDBOX_RECIPE="lane-7")
         self.assertEqual(rc, 2, err)
         self.assertIn("no fail AND no warn", err)
 
-    def test_a_clean_transcript_clears_the_sandbox_gate(self):
-        # It then fails later for want of an `orca` binary — a different step, which
-        # is the proof the sandbox gate itself passed rather than refusing.
-        with tempfile.TemporaryDirectory() as tmp:
-            rc, _out, err = self._spawn(
-                ORCA_SANDBOX_RECIPE="lane-7",
-                ORCA_SANDBOX_DOCTOR=self._doctor(tmp, "recipe lane-7 ok:true\nprovision complete\n"),
-            )
-        self.assertNotIn("SPAWN=REFUSED", err)
+    def test_an_empty_findings_list_is_clear(self):
+        # The other half of #283: a REAL clear transcript says `"failures": []`, and the old
+        # substring grep refused it for containing "fail".
+        rc, _out, err = self._with_doctor(
+            '{"recipe": "lane-7", "ok": true, "failures": [], "warnings": []}',
+            ORCA_SANDBOX_RECIPE="lane-7")
+        self.assertIn("doctored clear by this script", err)
+        self.assertNotIn("sandbox", err.split("doctored clear by this script")[1])
+
+    def test_a_clear_text_transcript_passes_the_gate(self):
+        rc, _out, err = self._with_doctor("recipe lane-7 ok:true\n0 warnings, no failures\n",
+                                          ORCA_SANDBOX_RECIPE="lane-7")
+        self.assertIn("doctored clear by this script", err)
+        self.assertNotIn("sandbox", err.split("doctored clear by this script")[1])
+
+    def test_the_transcript_is_written_where_the_ledger_wants_it(self):
+        # ORCA_SANDBOX_DOCTOR inverted: an OUTPUT path for the lane ledger, not a trusted input.
+        with tempfile.TemporaryDirectory() as out_dir:
+            dest = Path(out_dir) / "lane-7-doctor.json"
+            payload = '{"recipe": "lane-7", "ok": true, "failures": []}'
+            rc, _out, err = self._with_doctor(payload, ORCA_SANDBOX_RECIPE="lane-7",
+                                              ORCA_SANDBOX_DOCTOR=str(dest))
+            self.assertIn("doctored clear by this script", err)
+            self.assertTrue(dest.is_file(), "the doctor transcript was not recorded")
+            self.assertIn("lane-7", dest.read_text(encoding="utf-8"))
+
+    def test_an_unwritable_ledger_path_is_refused(self):
+        rc, _out, err = self._with_doctor('{"recipe": "lane-7", "ok": true, "failures": []}',
+                                          ORCA_SANDBOX_RECIPE="lane-7",
+                                          ORCA_SANDBOX_DOCTOR="/nonexistent-dir/doctor.json")
+        self.assertEqual(rc, 2, err)
+        self.assertIn("could not write the doctor transcript", err)
 
     def test_ro_and_rw_do_not_need_a_sandbox_recipe(self):
         for profile, opt_in in (("ro", {}), ("rw", {"ORCA_COORD_ALLOW_AUTONOMOUS_WRITE": "1"})):
@@ -497,20 +547,242 @@ esac
             self.assertIn("--dangerously-skip-permissions", p.stdout)
 
     def test_launch_effective_absent_is_not_invented(self):
+        # An absent field is reported as absent, never fabricated. Since #298 it is also not a
+        # pass — the exit is 5, LAUNCHED_UNUSABLE — but the no-fabrication half is unchanged and
+        # is what this test is for: the launcher never prints a launch it did not receive.
         with tempfile.TemporaryDirectory() as tmp:
             self._stub(tmp, receipt={"result": {
                 "taskId": "task_test", "dispatchId": "ctx_x", "state": "ready",
                 "effects": [{"kind": "terminal", "role": "agent", "id": "term_agent1"}]}})
             p = self._run(tmp, self.ARGS, self.RW)
-            self.assertEqual(p.returncode, 0, p.stderr)
+            self.assertEqual(p.returncode, 5, p.stderr)
             self.assertNotIn("LAUNCH_EFFECTIVE=", p.stdout)
+
+    # --- #301: the runtime pin is compared to the binary on PATH ----------------------------
+
+    def _stub_version(self, tmp, version_output):
+        """Re-point the stub's `--version` answer without disturbing the other subcommands."""
+        stub = Path(tmp) / "orca"
+        text = stub.read_text()
+        stub.write_text(text.replace("case \"$*\" in",
+                                     f'case "$*" in\n  --version) echo {version_output!r} ;;', 1))
+        stub.chmod(0o755)
+
+    def _notes(self, tmp, version_output):
+        self._stub_version(tmp, version_output)
+        p = self._run(tmp, self.ARGS, self.RW)
+        return [ln for ln in p.stderr.splitlines() if "pins.json" in ln], p
+
+    def test_a_drifted_runtime_arms_pin_it(self):
+        """#301: runtime/pins.json records the Orca the catalog was witnessed against, and
+        nothing compared it to the binary on PATH.
+
+        Every behaviour this script depends on — the YOLO flag map, the receipt shape — was read
+        off the pinned version's source. Drift does not make them wrong; it makes them
+        unwitnessed, and nothing said so.
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            self._stub(tmp)
+            notes, p = self._notes(tmp, "orca 1.5.0 (build abc)")
+            self.assertTrue(notes, "a drifted runtime produced no note at all")
+            self.assertIn("1.5.0", notes[0])
+            self.assertIn("v1.4.199", notes[0], "the note must name the version it expected")
+            self.assertIn("pin-it", notes[0], "the note must arm the mission that re-witnesses")
+            self.assertEqual(p.returncode, 0,
+                             "drift is a NOTE, not a refusal — an upstream release must not "
+                             "stop every spawn in the fleet")
+
+    def test_a_matching_runtime_is_silent(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self._stub(tmp)
+            notes, p = self._notes(tmp, "orca v1.4.199")
+            self.assertEqual(notes, [], "a matching runtime must say nothing")
+            self.assertEqual(p.returncode, 0, p.stderr)
+
+    def test_the_v_prefix_is_not_a_difference(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self._stub(tmp)
+            self.assertEqual(self._notes(tmp, "orca 1.4.199")[0], [],
+                             "`1.4.199` and `v1.4.199` are the same version")
+
+    def test_an_unreadable_version_says_so_rather_than_passing(self):
+        # "Nothing noticed the drift" is the defect this check exists to fix, so a check that
+        # quietly stops working — because the output format moved — is that defect wearing a fix.
+        with tempfile.TemporaryDirectory() as tmp:
+            self._stub(tmp)
+            notes, p = self._notes(tmp, "orca (no version here)")
+            self.assertTrue(notes, "an unreadable version passed in silence")
+            self.assertIn("could not be checked", notes[0])
+            self.assertEqual(p.returncode, 0, p.stderr)
+
+    # --- #298: four fail-open paths in the launcher ----------------------------------------
+
+    def _task_status(self, tmp, status):
+        (Path(tmp) / "task-list.json").write_text(
+            json.dumps(task_list_payload({"id": "task_test", "status": status})))
+
+    def test_an_exit_zero_receipt_naming_no_state_is_not_a_success(self):
+        """#298: "the receipt is the verdict" — and a receipt naming no state is not one.
+
+        This read as READY on the call's exit status alone, which the header three lines above it
+        says is NOT the verdict. So a changed receipt shape silently disabled the state check.
+        UNKNOWN rather than FAILED: worker-start exited 0, so a worker may be live, and a respawn
+        beside it is the dual-writer class.
+        """
+        stateless = {"result": {"runId": "r", "dispatchId": "ctx_x",
+                                "effects": [{"kind": "terminal", "role": "agent",
+                                             "action": "created", "id": "term_a"}]}}
+        with tempfile.TemporaryDirectory() as tmp:
+            self._stub(tmp, receipt=stateless, ws_rc=0)
+            p = self._run(tmp, self.ARGS, self.RW)
+            self.assertEqual(p.returncode, 4, p.stdout + p.stderr)
+            self.assertIn("OUTCOME_UNKNOWN", p.stderr)
+            self.assertIn("NEVER RESPAWN", p.stderr)
+            self.assertNotIn("READY=exit0", p.stdout)
+
+    def test_a_receipt_that_is_not_even_a_dict_is_not_a_success(self):
+        # The worst shape: no handle and no dispatch id to inspect with, reported as READY.
+        with tempfile.TemporaryDirectory() as tmp:
+            self._stub(tmp, receipt={"result": "surprise"}, ws_rc=0)
+            p = self._run(tmp, self.ARGS, self.RW)
+            self.assertEqual(p.returncode, 4, p.stdout + p.stderr)
+            self.assertIn("OUTCOME_UNKNOWN", p.stderr)
+
+    def test_a_stateless_receipt_from_a_FAILED_call_is_still_a_failure(self):
+        # rc=127 is a missing binary: no worker exists, so this stays FAILED rather than sending
+        # a coordinator to inspect for one. Only the exit-0 case is UNKNOWN.
+        with tempfile.TemporaryDirectory() as tmp:
+            self._stub(tmp, receipt={}, ws_rc=127)
+            p = self._run(tmp, self.ARGS, self.RW)
+            self.assertEqual(p.returncode, 1, p.stdout + p.stderr)
+            self.assertIn("SPAWN=FAILED", p.stderr)
+
+    def test_a_launch_that_lacks_the_profiles_flag_is_refused(self):
+        """#298: the PROFILE is a capability grant; launch.effective is what the host launched.
+
+        worker-start takes its args from the host's agentDefaultArgs, not from anything this
+        script builds, so the two CAN disagree — and when they did the launch proceeded, which
+        made the profile advisory rather than enforced.
+        """
+        for agent, wrong in (("claude", "--permission-mode plan"),
+                             ("codex", "--sandbox read-only"),
+                             ("cursor", "--permission-mode plan")):
+            with self.subTest(agent=agent):
+                receipt = copy.deepcopy(self.READY_RECEIPT)
+                receipt["result"]["launch"]["effective"] = {"agent": agent, "args": wrong}
+                with tempfile.TemporaryDirectory() as tmp:
+                    self._stub(tmp, receipt=receipt)
+                    p = self._run(tmp, self.ARGS + [agent], self.RW)
+                    self.assertEqual(p.returncode, 5, p.stdout + p.stderr)
+                    self.assertIn("LAUNCHED_UNUSABLE", p.stderr)
+                    self.assertIn("NEVER RESPAWN", p.stderr)
+                    self.assertIn("HANDLE=", p.stdout,
+                                  "the handle is how the live worker gets stopped")
+
+    def test_a_multiword_flag_must_appear_contiguously(self):
+        # grok's flag is `--permission-mode bypassPermissions`. Finding its two words far apart,
+        # beside `--permission-mode plan`, is not finding the flag.
+        receipt = copy.deepcopy(self.READY_RECEIPT)
+        receipt["result"]["launch"]["effective"] = {
+            "agent": "grok", "args": "--permission-mode plan --other bypassPermissions"}
+        with tempfile.TemporaryDirectory() as tmp:
+            self._stub(tmp, receipt=receipt)
+            p = self._run(tmp, self.ARGS + ["grok"], self.RW)
+            self.assertEqual(p.returncode, 5, p.stdout + p.stderr)
+
+    def test_the_profiles_flag_is_accepted_in_every_shape_a_host_reports_it(self):
+        for eff in ("--dangerously-skip-permissions",
+                    {"agent": "claude", "args": "--dangerously-skip-permissions"},
+                    {"agent": "claude", "args": ["--dangerously-skip-permissions"]},
+                    ["claude", "--dangerously-skip-permissions"]):
+            with self.subTest(eff=eff):
+                receipt = copy.deepcopy(self.READY_RECEIPT)
+                receipt["result"]["launch"]["effective"] = eff
+                with tempfile.TemporaryDirectory() as tmp:
+                    self._stub(tmp, receipt=receipt)
+                    p = self._run(tmp, self.ARGS, self.RW)
+                    self.assertEqual(p.returncode, 0, p.stdout + p.stderr)
+
+    def test_an_absent_launch_effective_is_not_a_pass(self):
+        """PR #308 review, P1. I first had this warn and proceed; that was wrong.
+
+        `sandbox-policy.md:16-20` makes this field THE way to tell an autonomous worker from a
+        prompting one — "neither is knowable from source: read launch.effective off the start
+        receipt" — and `dispatch-lifecycle.md:20` has it in the documented receipt shape. So a
+        receipt without it is a receipt this script cannot read, which is the same fail-open the
+        missing-`state` fix removed one field over. On a manual host the worker blocks on
+        invisible dialogs while the fleet believes it is autonomous.
+        """
+        for launch in ({"requested": {"agent": "claude"}}, {}):
+            with self.subTest(launch=launch):
+                receipt = copy.deepcopy(self.READY_RECEIPT)
+                receipt["result"]["launch"] = launch
+                with tempfile.TemporaryDirectory() as tmp:
+                    self._stub(tmp, receipt=receipt)
+                    p = self._run(tmp, self.ARGS, self.RW)
+                    self.assertEqual(p.returncode, 5, p.stdout + p.stderr)
+                    self.assertIn("LAUNCHED_UNUSABLE", p.stderr)
+                    self.assertIn("no launch.effective", p.stderr)
+
+    def test_unusable_is_neither_failed_nor_unknown(self):
+        # A worker IS live: reporting "failed" invites a respawn beside it, and "unknown" claims
+        # not to know something the receipt just said. Exit 5 says stop it, and names the handle.
+        receipt = copy.deepcopy(self.READY_RECEIPT)
+        receipt["result"]["launch"]["effective"] = {"agent": "claude", "args": "--permission-mode plan"}
+        with tempfile.TemporaryDirectory() as tmp:
+            self._stub(tmp, receipt=receipt)
+            p = self._run(tmp, self.ARGS, self.RW)
+            self.assertEqual(p.returncode, 5)
+            self.assertNotIn("SPAWN=FAILED", p.stderr)
+            self.assertNotIn("OUTCOME_UNKNOWN", p.stderr)
+            self.assertIn("HANDLE=term_agent1", p.stdout)
+
+    def test_a_failed_call_is_not_upgraded_to_unusable(self):
+        # rc!=0 plus an unreadable capability is still a failed call, not a live worker.
+        receipt = copy.deepcopy(self.READY_RECEIPT)
+        del receipt["result"]["launch"]["effective"]
+        with tempfile.TemporaryDirectory() as tmp:
+            self._stub(tmp, receipt=receipt, ws_rc=127)
+            p = self._run(tmp, self.ARGS, self.RW)
+            self.assertEqual(p.returncode, 1, p.stdout + p.stderr)
+            self.assertIn("SPAWN=FAILED", p.stderr)
+
+    def test_a_status_is_read_as_a_token_not_word_split(self):
+        """#298: `read -r status unmet` split the status, so its FIRST WORD decided dispatch.
+
+        `ready for review` read as `ready` and was dispatched. The shape matters more than the
+        example: any status the DAG grows whose first word is a dispatchable one would dispatch.
+        """
+        for status in ("ready for review", "ready to merge", "not ready"):
+            with self.subTest(status=status):
+                with tempfile.TemporaryDirectory() as tmp:
+                    self._stub(tmp)
+                    self._task_status(tmp, status)
+                    p = self._run(tmp, self.ARGS, self.RW)
+                    self.assertEqual(p.returncode, 2, p.stdout + p.stderr)
+                    self.assertIn(status, p.stderr,
+                                  "the refusal must name the whole status it read")
+
+    def test_an_exact_status_still_dispatches(self):
+        for status in ("ready", "pending"):
+            with self.subTest(status=status):
+                with tempfile.TemporaryDirectory() as tmp:
+                    self._stub(tmp)
+                    self._task_status(tmp, status)
+                    extra = ["--mark-ready"] if status == "pending" else []
+                    p = self._run(tmp, self.ARGS + extra, self.RW)
+                    self.assertEqual(p.returncode, 0, p.stdout + p.stderr)
 
     # --- (d) roster: cursor in, kilo deliberately out --------------------------------------
 
     def test_cursor_is_on_the_roster_for_write_tiers(self):
         # Orca maps cursor to --yolo (tui-agent-permissions.ts:21 at v1.4.199); v4 excluded it.
+        # The receipt has to report cursor's OWN flag: the shared fixture reports claude's, and
+        # since #298 a launch.effective that does not carry the profile's flag is refused.
+        receipt = copy.deepcopy(self.READY_RECEIPT)
+        receipt["result"]["launch"]["effective"] = {"agent": "cursor", "args": "--yolo"}
         with tempfile.TemporaryDirectory() as tmp:
-            log = self._stub(tmp)
+            log = self._stub(tmp, receipt=receipt)
             p = self._run(tmp, self.ARGS + ["cursor"], self.RW)
             self.assertEqual(p.returncode, 0, p.stderr)
             self.assertIn("--agent cursor", log.read_text())

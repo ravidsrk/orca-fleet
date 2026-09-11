@@ -6,7 +6,7 @@ playbooks and runtime policies by BARE NAME, and they live two directories up.
 A symlink install preserves that. A plugin install copies the whole repo, so it
 preserves it too. An installer that copies `skills/<name>/` *out* of the tree
 severs every one of those references, and the mission then runs half-blind with
-nothing saying so (REVIEW.md §8 P2-18).
+nothing saying so (docs/reviews/2026-09-10-review.md §8 P2-18).
 
 This makes a distribution tree where each mission carries its own copies:
 
@@ -45,8 +45,18 @@ _spec = importlib.util.spec_from_file_location("_validate", ROOT / "scripts" / "
 validate = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(validate)
 
-# `](../../X.md)` and `](../../dir/X.md)` — every link that leaves the mission dir.
+# `](../../X.md)` and `](../../dir/X.md)` — the outbound links the rewriter knows how to vendor.
 OUTBOUND_LINK_RE = re.compile(r"\]\((?:\.\./)+([A-Za-z0-9_./-]+\.md)(#[^)]*)?\)")
+# Every link that leaves the directory, whatever its extension. The rewriter only vendors `.md`,
+# but the CHECK has to see the rest: `](../../runtime/scripts/verify.py)` was neither rewritten nor
+# flagged, so dist/ could ship a link pointing nowhere with --check green (#316).
+OUTBOUND_ANY_RE = re.compile(r"\]\((?:\.\./)+([A-Za-z0-9_./-]+)(#[^)]*)?\)")
+# A relative link that does NOT climb out with `../`. A vendored doc keeps the repo-root-relative
+# links it was written with — `](runtime/evidence-manifest.md)` — and from `references/` those
+# resolve under `references/`, where nothing was copied. They escape nothing, so OUTBOUND_ANY_RE
+# never saw them, and 56 of them shipped dead while --check stayed green (PR #308 review, P1).
+RELATIVE_LINK_RE = re.compile(
+    r"\[([^\]]*)\]\((?!https?:|mailto:|#|/|\.\./)([A-Za-z0-9_./-]+)(#[^)]*)?\)")
 REFERENCES = "references"
 
 
@@ -140,20 +150,65 @@ def build(out_dir):
         for name, source in root_docs(text).items():
             shutil.copy2(source, target / REFERENCES / name)
         (target / "SKILL.md").write_text(rewrite(text, skill_dir.name, protocols), encoding="utf-8")
+        relink_vendored(target)   # after every copy: it needs to know what ended up beside it
         problems.extend(dangling(target))
         built += 1
     return built, problems
 
 
+def relink_vendored(mission_dir):
+    """Re-point a vendored doc's repo-root-relative links, or de-link them (PR #308 review, P1).
+
+    The copies under `references/` are verbatim, so they still say `](runtime/evidence-manifest.md)`
+    — a path that was right in the repository and resolves to nothing beside the copy. Where the
+    same document was vendored too, the link becomes its bare name; where it was not, the link
+    becomes plain text naming the repository path, because a dead link is worse than a sentence
+    telling the reader where to look."""
+    refs = mission_dir / REFERENCES
+    if not refs.is_dir():
+        return
+    available = {path.name for path in refs.glob("*.md")}
+    for path in sorted(refs.glob("*.md")):
+        text = path.read_text(encoding="utf-8")
+
+        def fix(match, _dir=path.parent):
+            label, target, anchor = match.group(1), match.group(2), match.group(3) or ""
+            if (_dir / target).exists():
+                return match.group(0)
+            name = Path(target).name
+            if name in available:
+                return f"[{label}]({name}{anchor})"
+            if label.strip().strip("`") in (target, name):
+                return f"`{target}`"   # the label WAS the path; saying it twice helps nobody
+            return f"{label} (`{target}` in the orca-fleet repository)"
+
+        rewritten = RELATIVE_LINK_RE.sub(fix, text)
+        if rewritten != text:
+            path.write_text(rewritten, encoding="utf-8")
+
+
 def dangling(mission_dir):
-    """Links in a bundled mission that still leave its directory, or point at nothing."""
-    text = (mission_dir / "SKILL.md").read_text(encoding="utf-8")
+    """Links in a bundled mission that still leave its directory, or point at nothing.
+
+    Every markdown file in the bundle, not just SKILL.md (#316). The vendored copies under
+    `references/` are `shutil.copy2`'d verbatim and never rewritten, so an outbound link inside one
+    of them ships broken — and that is the path by which a non-`.md` link actually reaches dist/.
+    Extension-blind, because the rewriter's `.md`-only reach is a fact about what it can vendor,
+    not about what counts as escaping."""
     problems = []
-    for match in OUTBOUND_LINK_RE.finditer(text):
-        problems.append(f"{mission_dir.name}: link escapes the bundle: {match.group(0)}")
-    for match in re.finditer(rf"\]\({REFERENCES}/([A-Za-z0-9_.-]+\.md)(?:#[^)]*)?\)", text):
-        if not (mission_dir / REFERENCES / match.group(1)).is_file():
-            problems.append(f"{mission_dir.name}: {REFERENCES}/{match.group(1)} was not vendored")
+    for path in sorted(mission_dir.rglob("*.md")):
+        text = path.read_text(encoding="utf-8")
+        where = path.relative_to(mission_dir).as_posix()
+        for match in OUTBOUND_ANY_RE.finditer(text):
+            problems.append(f"{mission_dir.name}: link escapes the bundle "
+                            f"({where}): {match.group(0)}")
+        for match in re.finditer(rf"\]\({REFERENCES}/([A-Za-z0-9_.-]+\.md)(?:#[^)]*)?\)", text):
+            if not (mission_dir / REFERENCES / match.group(1)).is_file():
+                problems.append(f"{mission_dir.name}: {REFERENCES}/{match.group(1)} was not vendored")
+        for match in RELATIVE_LINK_RE.finditer(text):
+            if not (path.parent / match.group(2)).exists():
+                problems.append(f"{mission_dir.name}: dead relative link "
+                                f"({where}): {match.group(0)}")
     return problems
 
 

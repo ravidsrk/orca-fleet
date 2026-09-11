@@ -13,6 +13,7 @@ import itertools
 import json
 import os
 import shlex
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -100,6 +101,74 @@ class ScopeCheck(RepoCase):
 
     def _fatal(self, m, src, dig):
         return [e for e in verify.check_scope(m, src, dig) if not e.startswith("NOTE:")]
+
+    def test_a_contract_hiding_criteria_is_refused_end_to_end(self):
+        """#296 / A16, through check_scope rather than the helper alone.
+
+        Testing hidden_criterion_ids() directly proves the function works and NOT that anything
+        calls it — disabling the wiring in check_scope left the unit tests green. This one goes
+        through the gate a unit actually meets.
+        """
+        rel = "contract.md"
+        self.write(rel, "frozen\n- AC-1: sum\n| AC-2 | rejects None |\nAC-3 — total\n")
+        m = {"contract": {"criterion_ids": ["AC-1"]}, "criteria": _crit("AC-1")}
+        fatal = self._fatal(m, rel, self.digest(rel))
+        self.assertTrue(any("in a form the extractor does not count" in e for e in fatal),
+                        f"a contract hiding two of three criteria passed scope: {fatal}")
+
+    def test_a_compact_id_hides_a_criterion_just_as_well(self):
+        """PR #308 review, P1: A16 worked verbatim by dropping one character.
+
+        `SC12` is a supported criterion shape, but the family prefix was read off the hyphen, so
+        every compact id was skipped before any comparison — a contract counting `- SC12:` while
+        hiding `| SC13 |` in a table row passed, though the hyphenated spelling was caught.
+        """
+        rel = "contract.md"
+        self.write(rel, "frozen\n- SC12: sum\n| SC13 | rejects None |\n")
+        m = {"contract": {"criterion_ids": ["SC12"]}, "criteria": _crit("SC12")}
+        fatal = self._fatal(m, rel, self.digest(rel))
+        self.assertTrue(any("SC13" in e for e in fatal),
+                        f"a compact-id contract hiding half its criteria passed scope: {fatal}")
+
+    def test_a_json_contract_is_not_text_scanned(self):
+        """PR #308 review, P1: the escape hatch the refusal recommends has to work.
+
+        A declared criterion_ids array IS the denominator — nothing is scraped out of prose, so
+        prose cannot mislead it. Running the text heuristic over the raw JSON anyway rejected a
+        valid contract for mentioning a superseded `AC-9`, and told its author to do the thing they
+        had already done.
+        """
+        rel = "contract.json"
+        self.write(rel, json.dumps({
+            "criterion_ids": ["AC-1"],
+            "notes": "supersedes AC-9 from the old spec",
+            "criteria": [{"id": "AC-1", "text": "add(a, b) returns a + b"}],
+        }, indent=2) + "\n")
+        m = {"contract": {"criterion_ids": ["AC-1"]}, "criteria": _crit("AC-1")}
+        fatal = self._fatal(m, rel, self.digest(rel))
+        self.assertEqual(fatal, [], f"a valid JSON contract was refused: {fatal}")
+
+    def test_a_json_contract_may_not_under_declare_its_own_criteria(self):
+        # Skipping the text heuristic must not open A16 in JSON form. The check is structural —
+        # the document's own criteria[] ids against its criterion_ids — not another scan.
+        rel = "contract.json"
+        self.write(rel, json.dumps({
+            "criterion_ids": ["AC-1"],
+            "criteria": [{"id": "AC-1", "text": "sum"}, {"id": "AC-2", "text": "rejects None"}],
+        }, indent=2) + "\n")
+        m = {"contract": {"criterion_ids": ["AC-1"]}, "criteria": _crit("AC-1")}
+        fatal = self._fatal(m, rel, self.digest(rel))
+        self.assertTrue(any("AC-2" in e and "criterion_ids" in e for e in fatal),
+                        f"a JSON contract under-declaring its own criteria passed scope: {fatal}")
+
+    def test_a_well_formed_contract_still_passes_scope(self):
+        # The tightening must not refuse ordinary contracts, including prose references.
+        rel = "contract.md"
+        self.write(rel, "frozen\n- AC-1: sum per RFC-7519\n- AC-2: rejects None\n")
+        m = {"contract": {"criterion_ids": ["AC-1", "AC-2"]},
+             "criteria": _crit("AC-1") + _crit("AC-2")}
+        fatal = self._fatal(m, rel, self.digest(rel))
+        self.assertEqual(fatal, [], f"a well-formed contract was refused: {fatal}")
 
     def test_no_authoritative_contract_fails_closed(self):
         m = {"contract": {"criterion_ids": ["AC-1"]}, "criteria": _crit("AC-1")}
@@ -273,6 +342,29 @@ class FreshnessCheck(unittest.TestCase):
 
 
 class ReviewCheck(unittest.TestCase):
+    def test_a_standing_changes_requested_blocks_a_second_reviewers_approval(self):
+        # #317: latest-per-reviewer, then "any non-author APPROVED at head wins" meant a blocking
+        # review at the SAME head was overridden by a second approval with nothing recorded. For a
+        # definition-of-done oracle that is the wrong default: a reviewer saying "not done" about
+        # this exact content is evidence, and a second opinion does not erase it.
+        reviews = [{"state": "CHANGES_REQUESTED", "commit_id": "H", "user": {"login": "bob"}},
+                   {"state": "APPROVED", "commit_id": "H", "user": {"login": "carol"}}]
+        self.assertFalse(verify.review_ok(reviews, "H", author="alice"))
+
+    def test_a_superseded_changes_requested_does_not_block(self):
+        # The same reviewer came back and approved — latest-per-reviewer already handles it, and
+        # the block must not resurrect a state its author withdrew.
+        reviews = [{"state": "CHANGES_REQUESTED", "commit_id": "H", "user": {"login": "bob"}},
+                   {"state": "APPROVED", "commit_id": "H", "user": {"login": "bob"}}]
+        self.assertTrue(verify.review_ok(reviews, "H", author="alice"))
+
+    def test_a_changes_requested_at_an_older_head_does_not_block(self):
+        # The block is about THIS content. A request against a head the author has since moved
+        # past is not a standing objection to what is being graded.
+        reviews = [{"state": "CHANGES_REQUESTED", "commit_id": "OLD", "user": {"login": "bob"}},
+                   {"state": "APPROVED", "commit_id": "H", "user": {"login": "carol"}}]
+        self.assertTrue(verify.review_ok(reviews, "H", author="alice"))
+
     def test_review_ok_pure(self):
         self.assertTrue(verify.review_ok([{"state": "APPROVED", "commit_id": "H"}], "H"))
         self.assertFalse(verify.review_ok([{"state": "COMMENTED", "commit_id": "H"}], "H"))
@@ -364,7 +456,7 @@ class NegativeControlCheck(RepoCase):
         self.assertEqual(self._errs(m), [])
 
     def test_absolute_artifact_path_is_refused(self):
-        # REVIEW.md A10: the artifact walked out of the repo entirely.
+        # docs/reviews/2026-09-10-review.md A10: the artifact walked out of the repo entirely.
         outside = Path(tempfile.mkdtemp()) / "nc.txt"
         self.addCleanup(lambda: outside.unlink(missing_ok=True))
         outside.write_text("killed m#7\n", encoding="utf-8")
@@ -503,7 +595,7 @@ class ReviewLookupBinding(unittest.TestCase):
         self.assertTrue(res and all(e.startswith("NOTE:") for e in res), res)
 
     def test_dark_eligible_with_a_read_only_control_fails_closed(self):
-        # REVIEW.md A1/A4/A6/A9: this exact lane went GREEN on a text file the worker wrote.
+        # docs/reviews/2026-09-10-review.md A1/A4/A6/A9: this exact lane went GREEN on a text file the worker wrote.
         res = verify.check_review(self._m(), "o/r", True, corroborated=True,
                                   dispatch_lighting="dark-eligible", nc_executed=False)
         self.assertTrue(any("EXECUTED" in e for e in res), res)
@@ -646,7 +738,7 @@ class CriterionExtraction(unittest.TestCase):
         self.assertEqual({"AC-1", "SC12", "REQ-3", "REQ-4"}, ids)
 
     def test_a11_realistic_contract_prose_is_not_a_criterion(self):
-        # REVIEW.md A11, the one FALSE RED in the bypass log: a realistic contract whose prose
+        # docs/reviews/2026-09-10-review.md A11, the one FALSE RED in the bypass log: a realistic contract whose prose
         # names a hash, a PR, an RFC and a date format. The denominator is exactly {AC-1, AC-2};
         # counting the prose tokens made every real contract unverifiable.
         contract = (
@@ -737,7 +829,7 @@ class NoGhReviewLane(RepoCase):
     def test_no_gh_without_executed_control_fails_closed(self):
         # #256: the no-gh lane replaces the GitHub review with a worker-written file, so the
         # negative control is the only oracle left and it must have been EXECUTED. This is the
-        # exact shape of REVIEW.md A2, which landed with a NOTE and exit 0.
+        # exact shape of docs/reviews/2026-09-10-review.md A2, which landed with a NOTE and exit 0.
         m = self._m("reviewed HEADSHA123 — approved by a fresh reviewer\n")
         res = verify.check_review(m, None, True, no_gh=True, corroborated=True, nc_executed=False)
         self.assertTrue(any("EXECUTED" in e for e in res), res)
@@ -782,6 +874,49 @@ class ProvenanceCheck(unittest.TestCase):
     def test_no_standard_claim_skips(self):
         self.assertEqual(verify.check_provenance({"provenance": {"standard": "none"}}), [])
         self.assertEqual(verify.check_provenance({}), [])
+
+class HiddenCriteria(unittest.TestCase):
+    """#296 / A16. The denominator IS the scope guarantee — coverage is measured against it. A
+    contract that writes some criteria in a form the extractor does not count shrinks what the unit
+    is graded on while still reading as a full specification to a human. Three criteria graded as
+    one, and the unit reported "all criteria addressed".
+    """
+
+    def test_a_mixed_form_contract_hides_criteria(self):
+        text = "- AC-1: sum\n| AC-2 | rejects None |\nAC-3 — total\n"
+        counted = verify.extract_criterion_ids(text)
+        self.assertEqual(counted, {"AC-1"}, "the extractor's blind spot has changed")
+        self.assertEqual(set(verify.hidden_criterion_ids(text, counted)), {"AC-2", "AC-3"})
+
+    def test_prose_references_are_not_criteria(self):
+        # Refusing every uncounted AAA-9 token would refuse ordinary prose. What marks a hidden
+        # criterion is sharing a PREFIX with one the contract does count.
+        for text in ("- AC-1: sum per RFC-7519 using SHA-256 and ISO-8601\n",
+                     "- AC-1: sum\n- SC-1: perf\nsee RFC-7519 and PR-104\n"):
+            counted = verify.extract_criterion_ids(text)
+            self.assertEqual(verify.hidden_criterion_ids(text, counted), {},
+                             f"prose was read as a hidden criterion: {text!r}")
+
+    def test_a_same_family_mention_fails_closed(self):
+        # Genuinely ambiguous — "related to AC-9 in the old spec" may be prose. Fail closed and
+        # tell the author how to disambiguate, rather than silently shrink the denominator.
+        text = "- AC-1: sum\nrelated to AC-9 in the old spec\n"
+        counted = verify.extract_criterion_ids(text)
+        self.assertEqual(set(verify.hidden_criterion_ids(text, counted)), {"AC-9"})
+
+    def test_well_formed_contracts_are_untouched(self):
+        for text in ("- AC-1: sum\n- AC-2: rejects None\n- AC-3: total\n",
+                     "1. AC-1: sum\n2. AC-2: rejects None\n"):
+            counted = verify.extract_criterion_ids(text)
+            self.assertEqual(verify.hidden_criterion_ids(text, counted), {})
+
+    def test_a_json_contract_needs_no_heuristic(self):
+        text = '{"criterion_ids": ["AC-1", "AC-2"], "body": "| AC-2 | in a table |"}'
+        counted = verify.extract_criterion_ids(text)
+        self.assertEqual(counted, {"AC-1", "AC-2"})
+        self.assertEqual(verify.hidden_criterion_ids(text, counted), {},
+                         "an explicit criterion_ids array is unambiguous; nothing is hidden")
+
 
 class MalformedManifest(unittest.TestCase):
     """#137: a malformed manifest must fail closed as an invariant failure, never crash the gate."""
@@ -1124,7 +1259,8 @@ class EndToEndMutationGreen(RepoCase):
         # control is REALLY EXECUTED — app.py restored from base_sha in a throwaway worktree at
         # head_sha, the bound command RED there and GREEN at clean head_sha.
         path = self._manifest(lighting="dark-eligible", nc=self._revert_nc())
-        rc, out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc")
+        rc, out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc",
+                                      "--nc-command", self.proof_cmd)
         self.assertEqual(rc, 0, err)
         self.assertIn("negative control EXECUTED", out)
         self.assertIn("exits 0 at clean head_sha", out)
@@ -1132,7 +1268,7 @@ class EndToEndMutationGreen(RepoCase):
         self._assert_mutation_lanes_ran()
 
     def test_dark_eligible_without_execute_nc_is_red(self):
-        # REVIEW.md A1/A4/A6/A9 replayed: the same manifest, the control merely READ.
+        # docs/reviews/2026-09-10-review.md A1/A4/A6/A9 replayed: the same manifest, the control merely READ.
         path = self._manifest(lighting="dark-eligible", nc=self._revert_nc())
         rc, _out, err = self._run_main(path, "--lighting", "dark-eligible")
         self.assertEqual(rc, 2)
@@ -1154,42 +1290,255 @@ class EndToEndMutationGreen(RepoCase):
         Path(path).write_text(json.dumps(manifest), encoding="utf-8")
         verify.fetch_reviews = lambda repo_, n: (
             [{"state": "APPROVED", "commit_id": head, "user": {"login": "carol"}}], None)
-        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc")
+        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc",
+                                       "--nc-command", self.proof_cmd)
         self.assertEqual(rc, 2)
         self.assertIn("TAUTOLOGICAL", err)
 
-    def test_a_command_absent_from_the_ledger_is_refused(self):
-        # PR #277 review, P1: `negative_control.command` is worker-written. A worker free to
-        # nominate any command can pick one that fails under the control and passes clean —
-        # green gate, criterion never run — and hands the verifier arbitrary argv besides.
-        # The replay may only run a command the content-bound ledger already recorded green
-        # at head_sha's tree.
-        nc = {**self._revert_nc(), "command": "/bin/false"}
-        path = self._manifest(lighting="dark-eligible", nc=nc)
+    def test_execute_nc_without_a_coordinator_command_is_refused(self):
+        # #279. `negative_control.command` is worker-written and so is the `commands[]` ledger that
+        # used to justify it, so neither can authorise the other. A12/A15 of the 2026-09-11 review
+        # landed exactly here: a worker that writes both nominates its own "proof".
+        path = self._manifest(lighting="dark-eligible", nc=self._revert_nc())
         rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc")
         self.assertEqual(rc, 2)
-        self.assertIn("is not in the evidence ledger", err)
-        self.assertNotIn("TAUTOLOGICAL", err)  # refused before it was ever executed
+        self.assertIn("--execute-nc requires --nc-command", err)
+        self.assertNotIn("TAUTOLOGICAL", err)  # refused before anything was executed
 
-    def test_a_ledger_record_whose_sha_does_not_match_is_refused(self):
-        # cmd_sha256 that does not hash its own cmd binds nothing; a decorative digest
-        # would let a record be edited after the fact.
-        path = self._manifest(lighting="dark-eligible", nc=self._revert_nc(), commands=[
-            {"label": "tests", "cmd": self.proof_cmd, "cmd_sha256": "0" * 64,
+    def test_a_shell_command_in_the_manifest_is_never_executed(self):
+        # The concrete A12 manifest: `sh -c` smuggles arbitrary argv onto the verifier's own host,
+        # and the ledger fallback used to accept it as a "criterion-bound proof command". Now the
+        # manifest is refused before the worktree is ever built, so the payload never runs.
+        holder = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, holder, True)
+        canary = Path(holder) / "canary"
+        smuggled = f"sh -c 'touch {canary}; exit 1'"
+        nc = {**self._revert_nc(), "command": smuggled}
+        path = self._manifest(lighting="dark-eligible", nc=nc, commands=[
+            {"label": "tests", "cmd": smuggled,
+             "cmd_sha256": hashlib.sha256(smuggled.encode("utf-8")).hexdigest(),
              "exit": 0, "wtree": self.head_tree}])
         rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc")
         self.assertEqual(rc, 2)
+        self.assertIn("--execute-nc requires --nc-command", err)
+        self.assertFalse(canary.exists(), "the manifest's command was executed despite being refused")
+
+    def test_a_ledger_record_whose_sha_does_not_match_is_refused(self):
+        # cmd_sha256 that does not hash its own cmd binds nothing; a decorative digest would let a
+        # record be edited after the fact. Since #279 the replay no longer reads this ledger, so the
+        # integrity check lives in check_commands — where the ledger is actually graded.
+        path = self._manifest(lighting="dark-eligible", nc=self._revert_nc(), commands=[
+            {"label": "tests", "cmd": self.proof_cmd, "cmd_sha256": "0" * 64,
+             "exit": 0, "wtree": self.head_tree}])
+        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc",
+                                       "--nc-command", self.proof_cmd)
+        self.assertEqual(rc, 2)
         self.assertIn("does not describe its own command", err)
 
-    def test_a_stale_ledger_record_cannot_supply_the_command(self):
-        # The record must be fresh at head_sha's tree, the same rule check_commands applies.
+    def test_a_stale_ledger_record_still_fails_the_commands_gate(self):
+        # The ledger must still be fresh at head_sha's tree — that check is check_commands' job and
+        # is unchanged by #279; only the NC replay stopped depending on it.
         path = self._manifest(lighting="dark-eligible", nc=self._revert_nc(), commands=[
             {"label": "tests", "cmd": self.proof_cmd,
              "cmd_sha256": hashlib.sha256(self.proof_cmd.encode("utf-8")).hexdigest(),
              "exit": 0, "wtree": "0" * 40}])
-        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc")
+        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc",
+                                       "--nc-command", self.proof_cmd)
         self.assertEqual(rc, 2)
-        self.assertIn("is not in the evidence ledger", err)
+        self.assertIn("STALE evidence", err)
+
+    def test_a_decoy_path_the_unit_never_changed_is_refused(self):
+        # #280 / A13. base_sha..head_sha changes app.py only. A control that reverts decoy.py
+        # instead makes the bound command go RED for a reason unrelated to the change — a
+        # U-comparability violation (Lipsitch et al. 2010), read by the old gate as a kill.
+        self.write("decoy.py", "VALUE = 1\n")
+        self.commit("a file the unit did not change")
+        nc = {**self._revert_nc(), "paths": ["decoy.py"]}
+        path = self._manifest(lighting="dark-eligible", nc=nc)
+        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc",
+                                       "--nc-command", self.proof_cmd)
+        self.assertEqual(rc, 2)
+        self.assertIn("does not change", err)
+
+    def test_reverting_the_test_that_encodes_the_criterion_is_refused(self):
+        # #280 / A13. Restoring the TEST makes the proof go RED because the oracle is gone, not
+        # because the behaviour came back. diff_scope's SCOPE_TESTS rule is what names it a test.
+        self.write("test_app.py", "def test_f():\n    assert True\n")
+        head = self.commit("the unit also touches its test")
+        nc = {**self._revert_nc(), "paths": ["test_app.py"]}
+        path = self._manifest(lighting="dark-eligible", nc=nc)
+        manifest = json.loads(Path(path).read_text(encoding="utf-8"))
+        manifest["head_sha"] = head
+        manifest["pr"]["reviewed_sha"] = head
+        Path(path).write_text(json.dumps(manifest), encoding="utf-8")
+        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc",
+                                       "--nc-command", self.proof_cmd)
+        self.assertEqual(rc, 2)
+        self.assertIn("TEST path", err)
+
+    def test_a_hand_mutant_outside_the_change_is_refused(self):
+        # #280 / A13b: the same decoy move through tool 'hand' — the quoted diff mutates a file the
+        # unit's own range never touches. decoy.py must exist BEFORE base_sha for that to be true,
+        # so the unit's range here runs from the commit that introduced it.
+        self.write("decoy.py", "VALUE = 1\n")
+        base = self.commit("decoy.py exists before this unit starts")
+        art = self.artifact(
+            "hand mutant applied — the bound test went RED (mutant KILLED):\n"
+            "--- a/decoy.py\n+++ b/decoy.py\n@@ -1 +1 @@\n-VALUE = 1\n+VALUE = 2\n",
+            rel="docs/reports/u/decoy.txt")
+        head = self.commit("decoy hand artifact")
+        nc = {"tool": "hand", "result": "RED", "artifact": art, "command": self.proof_cmd}
+        path = self._manifest(lighting="dark-eligible", nc=nc, commands=[
+            {"label": "tests", "cmd": self.proof_cmd,
+             "cmd_sha256": hashlib.sha256(self.proof_cmd.encode("utf-8")).hexdigest(),
+             "exit": 0, "wtree": self.git("rev-parse", "HEAD^{tree}")}])
+        manifest = json.loads(Path(path).read_text(encoding="utf-8"))
+        manifest["base_sha"] = base
+        manifest["head_sha"] = head
+        manifest["pr"]["reviewed_sha"] = head
+        Path(path).write_text(json.dumps(manifest), encoding="utf-8")
+        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc",
+                                       "--nc-command", self.proof_cmd)
+        self.assertEqual(rc, 2)
+        self.assertIn("does not change", err)
+
+    def test_a_hand_mutant_on_an_untouched_hunk_of_a_changed_file_is_refused(self):
+        # PR #308 review. Binding by PATH alone left a decoy one level down: a production file can
+        # carry both the criterion change and an unrelated one, and a mutant touching only the
+        # unrelated hunk still goes RED under a broad command while the criterion stands.
+        # app.py here gains an untouched helper at the top; base..head changes only f().
+        self.write("app.py", "def helper():\n    return 'decoy'\n\n\ndef f():\n    return 1\n")
+        base = self.commit("app.py with a helper the unit will not touch")
+        self.write("app.py", "def helper():\n    return 'decoy'\n\n\ndef f():\n    return 2\n")
+        self.commit("the unit changes f() only")
+        art = self.artifact(
+            "hand mutant applied — the bound test went RED (mutant KILLED):\n"
+            "--- a/app.py\n+++ b/app.py\n@@ -2 +2 @@\n"
+            "-    return 'decoy'\n+    return 'mutated'\n", rel="docs/reports/u/hunk.txt")
+        head = self.commit("decoy-hunk artifact")
+        nc = {"tool": "hand", "result": "RED", "artifact": art, "command": self.proof_cmd}
+        path = self._manifest(lighting="dark-eligible", nc=nc, commands=[
+            {"label": "tests", "cmd": self.proof_cmd,
+             "cmd_sha256": hashlib.sha256(self.proof_cmd.encode("utf-8")).hexdigest(),
+             "exit": 0, "wtree": self.git("rev-parse", "HEAD^{tree}")}])
+        manifest = json.loads(Path(path).read_text(encoding="utf-8"))
+        manifest["base_sha"] = base
+        manifest["head_sha"] = head
+        manifest["pr"]["reviewed_sha"] = head
+        Path(path).write_text(json.dumps(manifest), encoding="utf-8")
+        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc",
+                                       "--nc-command", self.proof_cmd)
+        self.assertEqual(rc, 2)
+        self.assertIn("they do not overlap", err)
+
+    def test_a_stillborn_mutant_is_not_a_kill(self):
+        # #280 / A14. The mutant makes app.py unimportable, so check.py dies on ImportError before
+        # a single assertion runs. The exit is non-zero for ANY command — Vera-Perez et al. 2018:
+        # a mutant the suite never exercises says nothing about the suite.
+        art = self.artifact(
+            "hand mutant applied:\n--- a/app.py\n+++ b/app.py\n@@ -1,2 +1,2 @@\n"
+            "-def f():\n-    return 2\n+def f(:\n+    return 2\n",
+            rel="docs/reports/u/stillborn.txt")
+        head = self.commit("stillborn hand artifact")
+        nc = {"tool": "hand", "result": "RED", "artifact": art, "command": self.proof_cmd}
+        path = self._manifest(lighting="dark-eligible", nc=nc)
+        manifest = json.loads(Path(path).read_text(encoding="utf-8"))
+        manifest["head_sha"] = head
+        manifest["pr"]["reviewed_sha"] = head
+        Path(path).write_text(json.dumps(manifest), encoding="utf-8")
+        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc",
+                                       "--nc-command", self.proof_cmd)
+        self.assertEqual(rc, 2)
+        self.assertIn("STILLBORN MUTANT", err)
+
+    def test_a_stillborn_mutant_under_a_test_runner_is_not_a_kill(self):
+        # PR #308 review, round 1. The first cut of #280 checked for an assertion marker BEFORE the
+        # stillborn markers, and `python -m unittest` prints `FAILED (errors=1)` when a module
+        # cannot be imported — so the word "FAILED" carried a collection error past the gate.
+        for text in (
+            "ERROR: test_add\nImportError: cannot import name 'f'\nRan 1 test\n\nFAILED (errors=1)\n",
+            "ImportError while importing test module\nE   ModuleNotFoundError: No module named 'app'"
+            "\n=========== 1 error in 0.04s ===========\n",
+        ):
+            ok, reason = verify._failure_signature(text, "")
+            self.assertFalse(ok, f"a collection error was accepted as a kill: {text[:40]!r}")
+            self.assertIn("error", reason)
+
+    def test_an_error_only_runner_summary_is_not_a_kill(self):
+        # No import word at all — just a runner reporting errors and no failures. An exception
+        # escaping still does not show the criterion-bound assertion ran.
+        ok, reason = verify._failure_signature(
+            "ERROR: test_add\nTypeError: unsupported operand\nRan 1 test\n\nFAILED (errors=1)\n", "")
+        self.assertFalse(ok)
+        self.assertIn("error", reason)
+
+    def test_a_bare_stillborn_traceback_is_not_a_kill(self):
+        # No runner summary to read, so the substring scan is what refuses these.
+        for text in ("Traceback (most recent call last):\n  File 'check.py'\nImportError: nope\n",
+                     "Traceback (most recent call last):\nSyntaxError: invalid syntax\n"):
+            ok, reason = verify._failure_signature(text, "")
+            self.assertFalse(ok, f"a stillborn mutant was accepted: {text[:40]!r}")
+            self.assertIn("STILLBORN", reason)
+
+    def test_an_assertion_that_merely_names_an_import_error_is_a_kill(self):
+        # PR #308 review, round 2: the opposite mistake. Refusing on any mention of a stillborn
+        # marker rejects real REDs — `assertRaises(ModuleNotFoundError)` prints that name while its
+        # oracle runs perfectly well, and a pytest traceback can pass through conftest.py.
+        for text in (
+            "FAIL: test_guard\nAssertionError: ModuleNotFoundError not raised\n\nFAILED (failures=1)\n",
+            "tests/conftest.py:12: in fixture\nE   assert 4 == 0\n=== 1 failed in 0.03s ===\n",
+            "Traceback (most recent call last):\nAssertionError: ModuleNotFoundError not raised\n",
+        ):
+            ok, reason = verify._failure_signature(text, "")
+            self.assertTrue(ok, f"a real assertion failure was refused: {reason}")
+
+    def test_an_assert_echoed_in_a_traceback_is_not_an_assertion_that_ran(self):
+        # PR #308 review, round 3 (security). A collection traceback QUOTES the source it was
+        # reading when the import blew up, so "    assert helper() == 1" appears in the output
+        # while the assertion never evaluated. An unanchored substring read that as proof an
+        # oracle ran, which handed the waiver lanes a stillborn control.
+        for text in (
+            "ImportError while importing test module '/x/tests/test_calc.py'.\n"
+            "tests/test_calc.py:3: in <module>\n    assert helper() == 1\n"
+            "E   ModuleNotFoundError: No module named 'calc'\n",
+            "Traceback (most recent call last):\n  File 'check.py', line 3\n"
+            "    assert app.f() == 2\nImportError: no module named app\n",
+        ):
+            ok, reason = verify._failure_signature(text, "")
+            self.assertFalse(ok, f"echoed source was read as a failing assertion: {text[:50]!r}")
+            self.assertIn("STILLBORN", reason)
+
+    def test_a_pytest_failing_assertion_line_still_overrides_a_stillborn_word(self):
+        # The line pytest prefixes with `E` is the assertion that FAILED; the source it quotes
+        # carries no prefix. That distinction is what makes the override safe to keep.
+        ok, reason = verify._failure_signature(
+            "tests/conftest.py:3: in <module>\nE   assert 4 == 0\n", "")
+        self.assertTrue(ok, f"a real pytest assertion failure was refused: {reason}")
+
+    def test_a_real_assertion_failure_is_still_a_kill(self):
+        # The positive direction: the tightening must not make every control RED.
+        for text in ("FAIL: test_add\nAssertionError: 4 != 0\n\nFAILED (failures=1)\n",
+                     "=========== 1 failed in 0.02s ===========\nE   assert 4 == 0\n",
+                     "Traceback (most recent call last):\nAssertionError: AC-1 violated\n",
+                     "FAILED (failures=1, errors=1)\nAssertionError: x\n"):
+            ok, reason = verify._failure_signature(text, "")
+            self.assertTrue(ok, f"a real assertion failure was refused: {reason}")
+
+    def test_a_range_revert_that_would_remove_a_test_module_is_refused(self):
+        # #280 / A14b + A21. With no paths the fallback reverts the whole range — taking the test
+        # module the unit added with it. The bound command then fails because its oracle is gone.
+        self.write("test_new.py", "def test_f():\n    assert True\n")
+        head = self.commit("the unit adds a test module")
+        nc = {k: v for k, v in self._revert_nc().items() if k != "paths"}
+        path = self._manifest(lighting="dark-eligible", nc=nc)
+        manifest = json.loads(Path(path).read_text(encoding="utf-8"))
+        manifest["head_sha"] = head
+        manifest["pr"]["reviewed_sha"] = head
+        Path(path).write_text(json.dumps(manifest), encoding="utf-8")
+        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc",
+                                       "--nc-command", self.proof_cmd)
+        self.assertEqual(rc, 2)
+        self.assertIn("changes test paths", err)
 
     def test_coordinator_nc_command_overrides_and_must_agree(self):
         # --contract-source's shape, for the proof command: the coordinator supplies it out of
@@ -1210,13 +1559,14 @@ class EndToEndMutationGreen(RepoCase):
     def test_executed_control_needs_a_bound_command(self):
         nc = {k: v for k, v in self._revert_nc().items() if k != "command"}
         path = self._manifest(lighting="dark-eligible", nc=nc)
-        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc")
+        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc",
+                                       "--nc-command", self.proof_cmd)
         self.assertEqual(rc, 2)
         self.assertIn("negative_control.command", err)
 
     def test_executed_hand_control_applies_the_quoted_diff(self):
         # `hand`'s only binding to a mutation is the diff quoted in its artifact — so EXECUTING it
-        # means applying exactly that diff. A fabricated diff (REVIEW.md A4) will not apply.
+        # means applying exactly that diff. A fabricated diff (docs/reviews/2026-09-10-review.md A4) will not apply.
         diff = self.git("diff", f"{self.head_sha}..{self.base_sha}", "--", "app.py")
         art = self.artifact("hand mutant applied — the bound test went RED\n\n" + diff + "\n",
                             rel="docs/reports/u/hand.txt")
@@ -1233,13 +1583,17 @@ class EndToEndMutationGreen(RepoCase):
         Path(path).write_text(json.dumps(manifest), encoding="utf-8")
         verify.fetch_reviews = lambda repo_, n: (
             [{"state": "APPROVED", "commit_id": head, "user": {"login": "carol"}}], None)
-        rc, out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc")
+        rc, out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc",
+                                      "--nc-command", self.proof_cmd)
         self.assertEqual(rc, 0, err)
         self.assertIn("negative control EXECUTED", out)
 
     def test_fabricated_hand_diff_does_not_apply(self):
+        # The hunk lands on the line the unit changed (app.py:2), so it clears the #280 hunk
+        # binding and the refusal that follows is the one this test is about: the quoted content
+        # is not what is there, so the diff does not apply.
         art = self.artifact(
-            "hand mutant applied:\n--- a/app.py\n+++ b/app.py\n@@ -9,9 +9,9 @@\n"
+            "hand mutant applied:\n--- a/app.py\n+++ b/app.py\n@@ -2 +2 @@\n"
             "-    return something_that_is_not_there\n+    return other\n"
             "the bound test went RED (mutant killed)\n", rel="docs/reports/u/hand.txt")
         self.commit("fabricated hand artifact")
@@ -1251,7 +1605,8 @@ class EndToEndMutationGreen(RepoCase):
         manifest = json.loads(Path(path).read_text(encoding="utf-8"))
         manifest["head_sha"] = self.git("rev-parse", "HEAD")
         Path(path).write_text(json.dumps(manifest), encoding="utf-8")
-        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc")
+        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc",
+                                       "--nc-command", self.proof_cmd)
         self.assertEqual(rc, 2)
         self.assertIn("does not apply at head_sha", err)
 
@@ -1281,6 +1636,124 @@ class EndToEndMutationGreen(RepoCase):
         rc, _out, err = self._run_main(path)
         self.assertEqual(rc, 2)
         self.assertIn("redaction", err)
+
+    def test_credential_in_a_commands_artifact_fails_the_unit(self):
+        # #309: `commands[].artifact` is where a run's captured stdout lands, which makes it the
+        # likeliest place for a token to end up — and it was the one named path check_redaction
+        # never scanned. Everything else about this manifest is clean, so a green here means the
+        # secret got SHA-pinned into permanent evidence unnoticed.
+        leak = self.artifact("aws_secret_access_key = AKIA" + "Q" * 16 + "\n",
+                             rel="docs/reports/u/run.log")
+        self.commit("a command log with a credential in it")
+        # Re-point the fixture at the new head. The review stub closes over self.head_sha, so
+        # this keeps the review fresh too — without it the unit is red for a stale review and
+        # the test would pass while proving nothing about redaction.
+        self.head_sha = self.git("rev-parse", "HEAD")
+        self.head_tree = self.git("rev-parse", "HEAD^{tree}")
+        path = self._manifest(commands=[
+            {"label": "tests", "cmd": self.proof_cmd,
+             "cmd_sha256": hashlib.sha256(self.proof_cmd.encode("utf-8")).hexdigest(),
+             "exit": 0, "wtree": self.head_tree, "artifact": leak}])
+        rc, out, err = self._run_main(path)
+        self.assertEqual(rc, 2, f"a credential in commands[].artifact passed: {out}")
+        # Name the path, not just "redaction" — otherwise any unrelated FAIL satisfies this.
+        self.assertTrue(any("redaction" in line and leak in line
+                            for line in err.splitlines()),
+                        f"no redaction FAIL naming {leak}: {err}")
+
+    def _downgraded(self):
+        """The #310 attack manifest: a real code change stripped of every mutation obligation."""
+        path = self._manifest()
+        m = json.loads(Path(path).read_text(encoding="utf-8"))
+        for key in ("negative_control", "intent", "reviewer_mode"):
+            m.pop(key, None)
+        Path(path).write_text(json.dumps(m), encoding="utf-8")
+        return path
+
+    def _main(self, path, *extra):
+        buf, errbuf = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(errbuf):
+            rc = verify.main(["--manifest", path, "--contract-source", self.contract,
+                              "--contract-digest", self.digest, "--repo", "o/r", *extra])
+        return rc, buf.getvalue(), errbuf.getvalue()
+
+    def test_unsupervised_report_only_cannot_shed_a_code_change(self):
+        # #310: unit_class arrives from ORCA_UNIT_CLASS on the native in-session path, and the
+        # worker owns its own environment. One env var dropped the negative control, the intent
+        # packet, lighting legality and reviewer_mode — for a unit whose own base..head changes
+        # production code. The same manifest is 7 FAILs as `mutation`.
+        path = self._downgraded()
+        rc_mut, _o, err_mut = self._main(path, "--unit-class", "mutation")
+        self.assertEqual(rc_mut, 2, "the attack manifest is supposed to be red as a mutation")
+        self.assertGreaterEqual(len([ln for ln in err_mut.splitlines()
+                                     if ln.startswith("FAIL:")]), 4, err_mut)
+
+        rc, out, err = self._main(path, "--unit-class", "report-only")
+        self.assertEqual(rc, 2, f"a code change passed clean as report-only: {out}")
+        self.assertIn("report-only", err)
+        self.assertIn("app.py", err, f"the refusal must name the code it changed: {err}")
+
+    def test_unsupervised_report_only_that_changes_no_code_is_marked_not_refused(self):
+        # The honest case still works, but never silently: a report-only unit names the range its
+        # report covers, that range carries no code, and the verdict records that nothing
+        # off-worker authorized the class.
+        doc_base = self.head_sha
+        self.write("docs/report.md", "# what I found\n")
+        doc_head = self.commit("the report")
+        self.head_sha = doc_head   # keeps the review stub fresh (it closes over self.head_sha)
+        path = self._downgraded()
+        m = json.loads(Path(path).read_text(encoding="utf-8"))
+        m["base_sha"] = doc_base
+        Path(path).write_text(json.dumps(m), encoding="utf-8")
+        rc, out, _err = self._main(path, "--unit-class", "report-only")
+        self.assertEqual(rc, 0, out)
+        self.assertIn("report-only (unsupervised)", out,
+                      f"an unsigned downgrade must be marked in the verdict: {out}")
+
+    def test_unsupervised_report_only_cannot_declare_an_empty_range(self):
+        # PR #308 review, P1. base_sha and head_sha are the worker's too, so a unit that changed
+        # production code in commit C declares base = head = C: the diff is empty, no code shows
+        # up, and every mutation obligation is shed. The first cut of this check passed it with an
+        # advisory note, reasoning that an empty range changes nothing — true of the declared
+        # range, silent about the work.
+        path = self._downgraded()
+        m = json.loads(Path(path).read_text(encoding="utf-8"))
+        m["base_sha"] = m["head_sha"]
+        Path(path).write_text(json.dumps(m), encoding="utf-8")
+        rc, out, err = self._main(path, "--unit-class", "report-only")
+        self.assertEqual(rc, 2, f"an empty declared range passed: {out}")
+        self.assertIn("base_sha == head_sha", err)
+
+    def test_a_code_file_under_a_docs_directory_is_still_code(self):
+        # PR #308 review, P1. The first cut asked diff_scope's PATH_RULES whether a path looked
+        # like docs or tests. Those patterns match NAMES, so `src/docs/parser.py` matched DOCS and
+        # `src/test_runner.py` matched TESTS, and either carried an unsigned downgrade through.
+        for rel in ("src/docs/parser.py", "src/test_runner.py", "tests/test_x.py"):
+            with self.subTest(path=rel):
+                base = self.head_sha
+                self.write(rel, "def f():\n    return 1\n")
+                head = self.commit(f"add {rel}")
+                prod, err = verify._production_changes(base, head)
+                self.assertIsNone(err, err)
+                self.assertEqual(prod, [rel], f"{rel} must count as code")
+                self.head_sha = head
+
+    def test_prose_is_decided_by_extension(self):
+        base = self.head_sha
+        self.write("src/notes.md", "# notes\n")
+        head = self.commit("a note inside src/")
+        prod, err = verify._production_changes(base, head)
+        self.assertIsNone(err, err)
+        self.assertEqual(prod, [], "a .md file is prose wherever it lives")
+
+    def test_removing_the_empty_range_branch_would_not_have_been_enough(self):
+        # Recorded because the review localized the fix to the equal-SHA branch, and deleting that
+        # branch does NOT close the attack: a pinned equal range diffs empty, so the unit lands on
+        # the no-code path and passes anyway. What closes it is demanding a NON-DEGENERATE range.
+        # This asserts the underlying fact, so the reasoning cannot rot silently.
+        prod, err = verify._production_changes(self.head_sha, self.head_sha)
+        self.assertIsNone(err, "an equal pinned range resolves fine — that is the problem")
+        self.assertEqual(prod, [], "an equal range diffs empty, so 'no code changed' is vacuous")
 
     def test_omitted_lighting_is_lit_end_to_end(self):
         # #169: a mutation manifest with no lighting key verifies clean — omission means lit.
@@ -1388,11 +1861,76 @@ class DispatchProvenance(RepoCase):
         res = verify.check_dispatch_provenance(self._M, "sha256:a", "mutation", "dark-eligible", rec, pk)
         self.assertTrue(any("did not sign lighting" in e for e in res), res)
 
+    def test_signed_nc_paths_flipped_in_the_manifest_is_caught(self):
+        # #311: signing (manifest_id, contract_digest, unit_class, lighting) binds the class and the
+        # denominator, and leaves the worker choosing its own oracle. A coordinator that DOES know
+        # which paths the control must revert can now sign them, and a flip is a substitution.
+        rec, pk = self._signed({"manifest_id": "u", "contract_digest": "sha256:a",
+                                "unit_class": "mutation", "nc_paths": ["app.py"]})
+        m = {"unit": "u", "negative_control": {"paths": ["untouched.py"]}}
+        res = verify.check_dispatch_provenance(m, "sha256:a", "mutation", None, rec, pk)
+        self.assertTrue(any("substitution" in e and not e.startswith("NOTE:") for e in res), res)
+
+    def test_signed_nc_paths_matching_the_manifest_passes(self):
+        # Order is not a difference: the coordinator signs a set of paths, not a listing order.
+        rec, pk = self._signed({"manifest_id": "u", "contract_digest": "sha256:a",
+                                "unit_class": "mutation", "nc_paths": ["b.py", "a.py"]})
+        m = {"unit": "u", "negative_control": {"paths": ["a.py", "b.py"]}}
+        res = verify.check_dispatch_provenance(m, "sha256:a", "mutation", None, rec, pk)
+        self.assertTrue(res and all(e.startswith("NOTE:") for e in res), res)
+
+    def test_signed_nc_command_flipped_in_the_manifest_is_caught(self):
+        rec, pk = self._signed({"manifest_id": "u", "contract_digest": "sha256:a",
+                                "unit_class": "mutation", "nc_command": "pytest test_app.py"})
+        m = {"unit": "u", "negative_control": {"command": "grep -q FIXED app.py"}}
+        res = verify.check_dispatch_provenance(m, "sha256:a", "mutation", None, rec, pk)
+        self.assertTrue(any("substitution" in e and not e.startswith("NOTE:") for e in res), res)
+
+    def test_unsigned_nc_inputs_stay_advisory(self):
+        # The coordinator usually cannot know at dispatch time which paths a fix will touch, so
+        # these fields are OPTIONAL. Omitted, the record verifies exactly as before — the #280
+        # bind to base_sha..head_sha is what covers them, not a signature nobody could produce.
+        rec, pk = self._signed({"manifest_id": "u", "contract_digest": "sha256:a",
+                                "unit_class": "mutation"})
+        m = {"unit": "u", "negative_control": {"paths": ["anything.py"], "command": "whatever"}}
+        res = verify.check_dispatch_provenance(m, "sha256:a", "mutation", None, rec, pk)
+        self.assertTrue(res and all(e.startswith("NOTE:") for e in res), res)
+
     def test_canonicalization_matches_signer(self):
         # cross-tool drift guard: the gate and the signer must canonicalize identically, else every
         # real signature would fail to verify.
         record = {"manifest_id": "u", "contract_digest": "sha256:a", "unit_class": "mutation", "lighting": "lit"}
         self.assertEqual(verify._canonical_dispatch(record), dispatch_sign.canonical_record(record))
+
+    def test_canonicalization_matches_signer_on_the_nc_fields(self):
+        # #311 widened the signed tuple, and the two sides canonicalize in two files. An nc_paths
+        # list is the part that can drift silently: sorted on one side and not the other still
+        # SIGNS fine and only fails at verification, on a real dispatch, in production.
+        record = {"manifest_id": "u", "contract_digest": "sha256:a", "unit_class": "mutation",
+                  "nc_paths": ["z.py", "a.py", "m.py"], "nc_command": "pytest -k AC_1",
+                  "nc_artifact_sha256": "ab" * 32}
+        self.assertEqual(verify._canonical_dispatch(record), dispatch_sign.canonical_record(record))
+        # and the order the coordinator happened to type is not part of the signature
+        shuffled = dict(record, nc_paths=["a.py", "m.py", "z.py"])
+        self.assertEqual(verify._canonical_dispatch(record), verify._canonical_dispatch(shuffled))
+
+    def test_the_signer_cli_produces_a_record_the_gate_accepts(self):
+        # Through both entry points, not the helpers: a signature the gate rejects is worth
+        # nothing, and every field added to the tuple is a chance for the two to disagree.
+        import subprocess
+        seed = self.write(".orca/seed", bytes(range(1, 33)).hex() + "\n")
+        out = subprocess.run(
+            [sys.executable, str(ROOT / "runtime" / "scripts" / "dispatch-sign.py"), "sign",
+             "--key", seed, "--manifest-id", "u", "--contract-digest", "sha256:a",
+             "--unit-class", "mutation", "--nc-path", "b.py", "--nc-path", "a.py",
+             "--nc-command", "pytest -k AC_1"],
+            capture_output=True, text=True, cwd=self.repo, check=True).stdout
+        rec = self.write(".orca/dispatch-record.json", out)
+        pk = self.write(".orca/dispatch-pubkey", ed.publickey(bytes(range(1, 33))).hex())
+        m = {"unit": "u", "negative_control": {"paths": ["a.py", "b.py"],
+                                               "command": "pytest -k AC_1"}}
+        res = verify.check_dispatch_provenance(m, "sha256:a", "mutation", None, rec, pk)
+        self.assertTrue(res and all(e.startswith("NOTE:") for e in res), res)
 
 
 if __name__ == "__main__":

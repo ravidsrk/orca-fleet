@@ -247,6 +247,9 @@ def build_parser():
     )
     p.add_argument("--base", default=None, help="base ref (default: origin/HEAD, then origin/main, main, master)")
     p.add_argument("--repo", default=".", help="repository to classify (default: cwd)")
+    p.add_argument("--strict", action="store_true",
+                   help="exit nonzero when ANY changed path is unmatched, not only when nothing "
+                        "matched — for a review lens that gates on the flag set (#314)")
     p.add_argument("--json", action="store_true", help="emit a JSON object instead of shell assignments")
     return p
 
@@ -267,7 +270,16 @@ def main(argv=None):
             print(f"# base ref '{err}' is not resolvable — shallow checkout or missing fetch. Run: git fetch origin")
         return EXIT_SCOPE_ERROR
 
-    error = "unmatched" if unmatched and not any(flags.values()) else None
+    # #314: `unmatched` used to be an error only when NOTHING matched, and the paths printed only
+    # inside that branch. A diff half in-scope and half somewhere else exited 0 with the
+    # out-of-scope half invisible in text output — the shape most likely to matter, because a
+    # review lens gating on the flag set reads a clean answer. The paths are now always shown
+    # (--json already carried them), and --strict makes ANY unmatched path a nonzero exit for a
+    # lens that wants to gate on it. Default behaviour is unchanged: a partial match is
+    # information, not a failure, and turning it into one by default would break every caller
+    # whose repo has a file this classifier has no rule for.
+    nothing_matched = bool(unmatched) and not any(flags.values())
+    error = "unmatched" if nothing_matched or (unmatched and args.strict) else None
     if args.json:
         print(json.dumps({"flags": flags, "error": error, "base": base, "unmatched": unmatched[:50]}, indent=2))
     else:
@@ -275,8 +287,8 @@ def main(argv=None):
             print(line)
         if error:
             print("SCOPE_ERROR=unmatched")
-            for path in unmatched[:50]:
-                print(f"# unmatched: {path}")
+        for path in unmatched[:50]:
+            print(f"# unmatched: {path}")
     return EXIT_SCOPE_ERROR if error else EXIT_OK
 
 

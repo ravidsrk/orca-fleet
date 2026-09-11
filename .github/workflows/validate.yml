@@ -38,32 +38,31 @@ jobs:
         # full history the checkout step above fetches.
         run: python3 runtime/scripts/run_report.py
       - name: Bundle builds self-contained missions
-        # #272 / REVIEW.md P2-18: a copy installer severs every ../../ reference.
+        # #272 / docs/reviews/2026-09-10-review.md P2-18: a copy installer severs every ../../ reference.
         # --check builds the distribution tree in a temp dir and fails if any link
         # still leaves a mission directory.
         run: python3 scripts/bundle.py --check
+      - name: Install the pinned CI tools (hashes, not version strings)
+        # #301: these were three version strings with no checksum and no test —
+        # "a version string with no hash and no test guarding it is a comment."
+        # The step used to argue that hashing them needed a lockfile. That was
+        # right; .github/ci-tools.lock IS the lockfile, hashes and all, and
+        # --require-hashes makes a swapped artifact fail before it executes.
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet --require-hashes --only-binary :all: \
+            -r .github/ci-tools.lock
+          ruff --version
+          agentskills --version
       - name: agentskills.io reference validator (skills-ref)
         # #263: the repo's own claims live under `metadata:` so the catalog is
         # installable through Anthropic's own paths, which hard-error on an
         # unexpected top-level key. This is the upstream validator saying so,
         # not our restatement of it.
-        env:
-          UV_VERSION: "0.12.12"
-          SKILLS_REF_VERSION: "0.1.1"
         run: |
           set -euo pipefail
-          # Pinned like ruff in this same job (PR #277 review, P2). Unpinned, an
-          # upstream release decides whether the same commit passes, and PR CI
-          # executes whatever the index happens to serve that day.
-          #
-          # Version pins, not hashes: gitleaks above is sha256-pinned because it is
-          # one release tarball, while these are multi-wheel PyPI projects whose
-          # per-platform digests would need a lockfile to pin honestly. Saying that
-          # here beats implying an integrity guarantee this step does not have.
-          python3 -m pip install --quiet "uv==${UV_VERSION}"
-          uvx --from "skills-ref==${SKILLS_REF_VERSION}" agentskills --version
           for d in skills/*/; do
-            uvx --from "skills-ref==${SKILLS_REF_VERSION}" agentskills validate "$d"
+            agentskills validate "$d"
           done
       - name: Secret scan (gitleaks, pinned)
         # #270: doctrine in dispatch-lifecycle.md until now. Pinned by version
@@ -82,33 +81,36 @@ jobs:
           rm -f gitleaks.tar.gz
           "$RUNNER_TEMP/gitleaks/gitleaks" version
           gl="$RUNNER_TEMP/gitleaks/gitleaks"
-          # --baseline-path, not an allowlist: tests/test_decisions.py carries
+          # .gitleaksignore, not an allowlist: tests/test_decisions.py carries
           # credential-SHAPED fixtures (it exists to prove decisions.py refuses
           # credentials) and `detect` reads git history, so editing the file
           # cannot clear them. A path allowlist would waive the whole file --
           # measured, not assumed: gitleaks 8.30 ignores `condition = "AND"` and
-          # a real key planted in that file went unflagged. A baseline accepts
-          # exactly the fingerprints it lists.
-          "$gl" detect --redact --no-banner --source . \
-            --baseline-path .gitleaks-baseline.json
-          # A baseline IS a waiver, so prove it waives only what it lists. Plant
-          # a real-shaped key in the baselined file itself, in a throwaway clone,
-          # and require the same command to go red. The key is assembled at
-          # runtime so this workflow file never contains a detectable literal.
+          # a real key planted in that file went unflagged.
+          #
+          # It was a --baseline-path baseline until #300, which carried each
+          # finding's commit message, author and e-mail beside it. A waiver needs
+          # the finding's identity, not its content -- and 8.30.1 compares Email,
+          # Author, Date, Message, Entropy, Description and Commit when matching a
+          # baseline entry, so deleting those fields stops it suppressing anything.
+          # .gitleaksignore takes the fingerprint alone, which is the whole waiver.
+          "$gl" detect --redact --no-banner --source .
+          # An ignore file IS a waiver, so prove it waives only what it lists.
+          # Plant a real-shaped key in the waived file itself, in a throwaway
+          # clone, and require the same command to go red. The key is assembled
+          # at runtime so this workflow file never contains a detectable literal.
           canary="$RUNNER_TEMP/canary"
           git clone --quiet . "$canary"
           printf 'CANARY = "%s%s"\n' 'AKIA' 'ZYXWVUTSRQPONMLK' >> "$canary/tests/test_decisions.py"
           git -C "$canary" -c user.email=ci@local -c user.name=ci commit -aqm canary
-          if (cd "$canary" && "$gl" detect --redact --no-banner --source . \
-                --baseline-path .gitleaks-baseline.json); then
-            echo "::error::the secret scan passed a planted credential — the baseline is waiving more than it lists"
+          if (cd "$canary" && "$gl" detect --redact --no-banner --source .); then
+            echo "::error::the secret scan passed a planted credential — .gitleaksignore is waiving more than it lists"
             exit 1
           fi
-          echo "negative control: a planted credential in the baselined file is still caught"
+          echo "negative control: a planted credential in the waived file is still caught"
       - name: Ruff (syntax / undefined names)
-        run: |
-          python3 -m pip install --quiet ruff==0.16.5
-          ruff check scripts runtime/scripts tests bench demo
+        # Installed from the hashed lock above (#301), not re-resolved here.
+        run: ruff check scripts runtime/scripts tests bench demo
       - name: Publish the gate summary (proof rollup + routing score)
         # Observability only (#213): the numbers land in the run summary even
         # when a gate is red. The routing GATE is the step above; this one

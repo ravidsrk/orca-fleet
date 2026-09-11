@@ -2,7 +2,7 @@
 """evidence-run.py — the content-bound evidence ledger's RUNNER.
 
 "Tests pass at that exact SHA in a clean env" was doctrine: a sentence in evidence-manifest.md §2
-addressed to the coordinator, with no field any verifier read (REVIEW.md §4, U1 — UNTESTABLE).
+addressed to the coordinator, with no field any verifier read (docs/reviews/2026-09-10-review.md §4, U1 — UNTESTABLE).
 This wrapper makes it a record, and `verify.py check_commands` makes that record a gate.
 
     evidence-run.py --label tests --manifest docs/reports/<unit>/manifest.json -- pytest -q

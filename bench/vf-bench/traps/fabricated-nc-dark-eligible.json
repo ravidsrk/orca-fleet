@@ -2,7 +2,7 @@
   "id": "fabricated-nc-dark-eligible-1",
   "class": "fabricated-negative-control-waiver-lane",
   "sound_expected": "RED",
-  "note": "REVIEW.md A1/A4/A6/A9, replayed against the same run-time fixture as mutation-valid-control-1. The unit is genuinely complete in every OTHER respect — real commits, an out-of-band coordinator contract, a fresh commands[] record, a pinned artifacts[] inventory — and the dispatch classes it dark-eligible, which WAIVES the independent review. The negative control is therefore the only oracle left, and here it is a text file the worker wrote saying the mutant was killed. Nothing executes it (no --execute-nc), so nothing can tell this artifact from a real run. Before #256 this exact shape exited 0. The RED must come from the waiver lane demanding an EXECUTED control, not from any other leg — every other leg is satisfied on purpose.",
+  "note": "docs/reviews/2026-09-10-review.md A1/A4/A6/A9, replayed against the same run-time fixture as mutation-valid-control-1. The unit is genuinely complete in every OTHER respect — real commits, an out-of-band coordinator contract, a fresh commands[] record, a pinned artifacts[] inventory — and the dispatch classes it dark-eligible, which WAIVES the independent review. The negative control is therefore the only oracle left, and here it is a text file the worker wrote saying the mutant was killed. Nothing executes it (no --execute-nc), so nothing can tell this artifact from a real run. Before #256 this exact shape exited 0. The RED must come from the waiver lane demanding an EXECUTED control, not from any other leg — every other leg is satisfied on purpose.",
   "unit_class": "mutation",
   "fixture": "mutation-revert",
   "execute_nc": false,

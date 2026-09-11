@@ -42,10 +42,12 @@ ASSERTED until ≥3 runs at differing WIP settings measure verified-CLOSED-per-h
 
 ## Field-proof plan (#212)
 
-Thirteen missions are `doctrine-only`. Each advance is a **mission run** — Orca up, human gates
-answered, a report filed from [TEMPLATE.md](TEMPLATE.md) — never a relabel: the scoped
-demonstrations under [`docs/reports/`](../reports/) say so themselves. Targets that make each run
-concrete, self-run candidates first:
+Every mission in the catalog is `doctrine-only`. Each advance is a **mission run** — Orca up, human
+gates answered, a report filed from [TEMPLATE.md](TEMPLATE.md) — never a relabel: the scoped
+demonstrations under [`docs/reports/`](../reports/) say so themselves. Every mission has a row here,
+and a test enforces that (#292): a mission with no path to a proof tier is a mission whose claim
+cannot be checked, and adding one must not be cheaper than planning how to prove it. Targets that
+make each run concrete, self-run candidates first:
 
 | Mission | Target that exists today | Tier | Terminal to show | What blocks it |
 |---|---|---|---|---|
@@ -62,6 +64,14 @@ concrete, self-run candidates first:
 | floor-it | this catalog: dimensions = test suite, validate.py, ruff, badge freshness — most are already wired, so the run is prove-fires + GUARD (injected violation must RED each gate; the check_constraints diff-watch is new) | self-run | `FLOORED` | Orca; the freeze gate (human) |
 | reshape-it | this catalog's churn-hot modules (`git log --since=90d`) — likely `runtime/scripts/verify.py` / `scripts/validate.py`; characterization net pinned first | self-run | `RESHAPED` | Orca; the CONFIRM-SURFACE gate (human) |
 | field-test-it | needs a device/emulator app — an external mobile repo | external-run | `FIELD-PROVEN` | a target + a paired device |
+| clean-sweep | this repo's own tracker again — the 2026-07-13 / 07-17 / 09-09 runs all bind `no`; a re-run needs its artifacts inside the run's own directory and an inventory pinned to the tip it names | self-run | `DRY` (or `-WITH-PARKED`) | Orca; retaining the artifacts this time |
+| review-it | the next real PR here or upstream — the 2026-07-13 gstack run kept its artifacts in the coordinator run dir, so nothing here can re-hash them | external-run | `NO-GO` / `GO` | Orca; a live PR + retained artifacts |
+| ship-it | the next mutating slice here — the 2026-08-28 run reached `PROMOTION_READY` and its five hashes still re-derive, but it never recorded the verifier transcript | self-run | `BUILT` at minimum | Orca; a second GitHub identity, or the executed-control lane |
+| oss-contribute | the next upstream tracker — the 2026-07-16 chimely run kept its artifacts in the fork worktree | external-run | `CONTRIBUTED` (or `-WITH-PARKED`) | Orca; an upstream target + retained artifacts |
+| absorb-it | this repo's own inbound PR queue once it has one; otherwise an external repo with open community PRs | external-run | `ABSORBED` (or `-WITH-PARKED`) | Orca; an inbound queue that exists |
+| document-it | this catalog's own zero-coverage doc cells — `runtime/scripts/` has modules with no guide entry | self-run | `DOCUMENTED` | Orca; a frozen public surface to document against |
+| migrate-it | needs a stateful schema — this catalog has no database; an external repo with a live migration | external-run | `MIGRATED` | a target with real data + Orca |
+| oncall-it | needs a live incident — an external service with a paging surface, or a replayed postmortem against a real timeline | external-run | `RESOLVED` (or `-WITH-PARKED`) | a target + Orca |
 
 A run's report goes through the same gates as any change (PR, review bot, `validate.py`), and
 `proof_status --check` keeps every tier honest until the report lands.

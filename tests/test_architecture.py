@@ -9,8 +9,11 @@ of vendor-named skills. They use only the standard library. Run:
     # or
     python3 tests/test_architecture.py
 """
+import contextlib
 import importlib.util
+import io
 import re
+import tempfile
 import subprocess
 import sys
 import unittest
@@ -48,6 +51,198 @@ def frontmatter_description(text):
         return " ".join(l.strip() for l in m.group(1).splitlines() if l.strip())
     m = re.search(r"(?m)^description:\s*(.+)$", text)
     return m.group(1).strip() if m else ""
+
+
+class LayerSeparationHoldsForUntrackedFilesToo(unittest.TestCase):
+    """#305: two gaps in a rule that otherwise held.
+
+    D1b — the scan was `git ls-files`, so an UNTRACKED SKILL.md under playbooks/ passed. The host
+    does not care whether a file is committed; on a symlinked checkout, which is the trial path
+    the README recommends first, that file activates.
+
+    D2 — AGENTS.md has always said playbooks and runtime policies carry no frontmatter, and
+    nothing enforced it. Frontmatter is what makes a file discoverable, so the layer separation
+    was only ever as real as everyone's care in not adding any.
+    """
+
+    def _tree(self, tmp, extra):
+        root = Path(tmp)
+        for layer in ("skills/ship-it", "playbooks", "runtime"):
+            (root / layer).mkdir(parents=True, exist_ok=True)
+        (root / "skills/ship-it/SKILL.md").write_text("---\nname: ship-it\n---\n", encoding="utf-8")
+        for rel, body in extra.items():
+            path = root / rel
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(body, encoding="utf-8")
+        return root
+
+    def test_an_untracked_skill_md_under_playbooks_is_a_leak(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = self._tree(tmp, {"playbooks/sneaky/SKILL.md": "---\nname: sneaky\n---\n"})
+            self.assertEqual(validate.check_layer_separation(root),
+                             ["playbooks/sneaky/SKILL.md"])
+
+    def test_the_legitimate_placement_is_not_a_leak(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertEqual(validate.check_layer_separation(self._tree(tmp, {})), [])
+
+    def test_a_local_dot_directory_is_not_repo_content(self):
+        # .venv/.tox are not on any checkout the host reads — flagging them is a false red.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = self._tree(tmp, {".venv/lib/pkg/SKILL.md": "---\nname: vendored\n---\n"})
+            self.assertEqual(validate.check_layer_separation(root), [])
+
+    def test_frontmatter_under_playbooks_or_runtime_is_rejected(self):
+        for rel in ("playbooks/characterize.md", "runtime/sandbox-policy.md"):
+            with self.subTest(path=rel):
+                with tempfile.TemporaryDirectory() as tmp:
+                    root = self._tree(tmp, {rel: "---\nname: x\ndescription: y\n---\n# body\n"})
+                    self.assertEqual(validate.check_lower_layer_frontmatter(root), [rel])
+
+    def test_a_plain_playbook_is_not_flagged(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = self._tree(tmp, {"playbooks/plain.md": "# A playbook\n\nBody text.\n"})
+            self.assertEqual(validate.check_lower_layer_frontmatter(root), [])
+
+    def test_a_horizontal_rule_is_not_frontmatter(self):
+        """Both false-red shapes, which is the half that makes the check usable.
+
+        A `---` in the middle of a document is a rule. A `---` on line 1 with no closing fence is
+        malformed, not frontmatter — and calling it a leak would fail a document that simply opens
+        with a rule.
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            root = self._tree(tmp, {
+                "runtime/mid.md": "Body first.\n\n---\n\nMore body.\n",
+                "runtime/unclosed.md": "---\nthis fence never closes\n\n# body\n",
+            })
+            self.assertEqual(validate.check_lower_layer_frontmatter(root), [])
+
+    def test_the_real_repository_passes_both(self):
+        self.assertEqual(validate.check_layer_separation(), [])
+        self.assertEqual(validate.check_lower_layer_frontmatter(), [])
+
+    def test_validate_py_itself_reports_a_frontmattered_playbook(self):
+        """Calling the function proves the function works, NOT that validate.py runs it.
+
+        A mutant dropping the call from main() left this suite green — the same trap #303 hit one
+        issue ago. This drives the real entry point against a real tree: the repo, plus one
+        offending file, with the run reverted afterwards whatever happens.
+        """
+        planted = ROOT / "playbooks" / "_frontmatter_probe.md"
+        planted.write_text("---\nname: probe\ndescription: auto-trigger me\n---\n# body\n",
+                           encoding="utf-8")
+        try:
+            r = subprocess.run([sys.executable, str(ROOT / "scripts" / "validate.py")],
+                               capture_output=True, text=True)
+        finally:
+            planted.unlink(missing_ok=True)
+        self.assertNotEqual(r.returncode, 0,
+                            "validate.py passed a playbook carrying frontmatter")
+        self.assertIn("frontmatter under playbooks/ or runtime/", r.stdout,
+                      f"validate.py failed, but not for this reason:\n{r.stdout}")
+
+    def test_validate_py_itself_reports_an_untracked_skill_md(self):
+        planted = ROOT / "playbooks" / "_layer_probe" / "SKILL.md"
+        planted.parent.mkdir(parents=True, exist_ok=True)
+        planted.write_text("---\nname: probe\n---\n", encoding="utf-8")
+        try:
+            r = subprocess.run([sys.executable, str(ROOT / "scripts" / "validate.py")],
+                               capture_output=True, text=True)
+        finally:
+            planted.unlink(missing_ok=True)
+            planted.parent.rmdir()
+        self.assertNotEqual(r.returncode, 0,
+                            "validate.py passed an untracked SKILL.md under playbooks/")
+        self.assertIn("SKILL.md found outside skills/", r.stdout,
+                      f"validate.py failed, but not for this reason:\n{r.stdout}")
+
+
+class TheActivationLoadTableIsGenerated(unittest.TestCase):
+    """#303: the table was typed by hand and drifted 150-280 tokens within a day.
+
+    It drifted again during the work that fixed it, by which point the ORDERING had changed too —
+    clean-sweep was the heaviest mission and ship-it is. A number a human retypes is a claim with
+    no mechanism, which is the shape ARCHITECTURE.md exists to refuse.
+    """
+
+    ARCH = (ROOT / "ARCHITECTURE.md").read_text(encoding="utf-8")
+
+    def test_the_table_lives_between_generated_markers(self):
+        self.assertIn("BEGIN GENERATED: activation-load", self.ARCH)
+        self.assertIn("END GENERATED: activation-load", self.ARCH)
+
+    @staticmethod
+    def _gen():
+        spec = importlib.util.spec_from_file_location(
+            "_gen_badges_arch", ROOT / "scripts" / "gen-badges.py")
+        gen = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(gen)
+        return gen
+
+    def test_the_committed_table_matches_a_fresh_measurement(self):
+        # The same check CI runs, asserted here so a stale commit fails locally too.
+        self.assertEqual(self._gen().check_architecture(), [],
+                         "the committed table no longer matches validate.py's measurement")
+
+    def test_the_aggregate_check_reports_a_stale_table(self):
+        """Calling check_architecture() directly proves the function works, NOT that CI runs it.
+
+        A mutant dropping it from check() — the entry point `gen-badges.py --check` and
+        validate.py both use — left this suite green. Same lesson #296 taught one layer down.
+        """
+        gen = self._gen()
+        with tempfile.TemporaryDirectory() as tmp:
+            stale = Path(tmp) / "ARCHITECTURE.md"
+            stale.write_text(f"{gen.ARCH_BEGIN}\nwrong\n{gen.ARCH_END}\n", encoding="utf-8")
+            gen.ARCH = stale
+            errors = gen.check()
+        self.assertTrue(any("activation-load table is stale" in e for e in errors),
+                        f"the aggregate check does not run the table check: {errors}")
+
+    def test_the_generator_actually_refreshes_the_block(self):
+        # And a mutant dropping write_architecture() from write() left the suite green too.
+        gen = self._gen()
+        with tempfile.TemporaryDirectory() as tmp:
+            stale = Path(tmp) / "ARCHITECTURE.md"
+            stale.write_text(f"before\n{gen.ARCH_BEGIN}\nwrong\n{gen.ARCH_END}\nafter\n",
+                             encoding="utf-8")
+            gen.ARCH = stale
+            gen.BADGES_DIR = Path(tmp) / "badges"
+            gen.GUIDES_DIR = Path(tmp) / "guides"
+            # Swallow the writer's chatter. It names real-looking paths ("wrote ARCHITECTURE.md",
+            # "skip docs/missions/ship-it.md") while writing only into tmp, and in a CI log that
+            # reads as though the run had modified the repository.
+            with contextlib.redirect_stdout(io.StringIO()):
+                gen.write()
+            written = stale.read_text(encoding="utf-8")
+        self.assertNotIn("wrong", written, "write() left the stale block in place")
+        self.assertIn("| Mission | Activation load |", written)
+        self.assertTrue(written.startswith("before\n") and written.endswith("after\n"),
+                        "write() clobbered prose outside the markers")
+
+    def test_no_activation_figure_is_typed_outside_the_generated_block(self):
+        """A hand-typed token figure is exactly what went stale.
+
+        Numbers that are NOT measurements — the 34,000 cap, the historical pre-deferral loads,
+        agentskills.io's 5,000 recommendation — are allowed by name; a bare five-figure token
+        count in the prose is not.
+        """
+        body = re.sub(r"(?s)<!-- BEGIN GENERATED: activation-load.*?"
+                      r"<!-- END GENERATED: activation-load -->", "", self.ARCH)
+        allowed = {"34,000", "42,000", "39,600", "37,400", "36,500", "5,000"}
+        typed = {m for m in re.findall(r"\b\d{2},\d{3}\b", body)} - allowed
+        self.assertEqual(typed, set(),
+                         "a token figure is typed into the prose — put it in the generated "
+                         "block, or it will be wrong within a day")
+
+    def test_the_five_thousand_recommendation_is_answered_not_implied(self):
+        # "Done when": ARCHITECTURE.md states plainly whether it is a target. It is not.
+        self.assertIn("5,000", self.ARCH, "the recommendation is no longer named at all")
+        self.assertRegex(
+            " ".join(self.ARCH.split()),
+            r"does not meet that and is not pursuing it",
+            "the 5,000-token recommendation is cited without saying where the catalog stands")
 
 
 class TestArchitecture(unittest.TestCase):
@@ -639,6 +834,20 @@ class TestArchitecture(unittest.TestCase):
             "exit 3 must be flagged a possible false negative "
             "(an unobserved turn start is not a dead worker)",
         )
+        # Every nonzero code the script actually returns has to appear here. Exit 5
+        # (LAUNCHED_UNUSABLE) shipped without this and nothing noticed; a code the
+        # script returns and the doctrine never names is a coordinator branching on
+        # something nobody wrote down.
+        used = {int(c) for c in re.findall(r"^\s*exit ([0-9])\s*$", script, re.M)} - {0}
+        self.assertTrue(used, "no exit codes found — the regex stopped matching the script")
+        undocumented = sorted(c for c in used if not re.search(rf"[Ee]xit {c}\b", bullet))
+        self.assertEqual(undocumented, [], f"spawn_worker.sh returns {undocumented} and the "
+                                           "respawn bullet never says what they mean")
+        self.assertRegex(
+            bullet, r"(?i)exit 5.{0,120}?never respawn",
+            "exit 5 is a LIVE worker that cannot do the work — stopping it, not "
+            "respawning beside it, is the whole point of having a code for it",
+        )
         self.assertRegex(
             bullet, r"(?i)exit 4 \(`?outcome_unknown`?\).{0,80}?never respawn",
             "exit 4 (outcome_unknown) must be INSPECT, never respawn, at the "
@@ -729,7 +938,7 @@ class TestMutatingMissionSet(unittest.TestCase):
             self.assertIn(m, canonical)
 
 class TestBundleForCopyInstallers(unittest.TestCase):
-    """scripts/bundle.py — the copy-install fix (REVIEW.md §8 P2-18).
+    """scripts/bundle.py — the copy-install fix (docs/reviews/2026-09-10-review.md §8 P2-18).
 
     Three-layer separation means a mission names its protocols by bare name and
     they live two directories up. That is exactly what a copy installer severs.
@@ -768,6 +977,72 @@ class TestBundleForCopyInstallers(unittest.TestCase):
                         (out / "references" / f"{name}.md").is_file(),
                         f"{mission.name} did not vendor {name}.md",
                     )
+
+    def test_a_non_md_outbound_link_is_flagged(self):
+        # #316: OUTBOUND_LINK_RE required `.md`, so `](../../runtime/scripts/verify.py)` was
+        # neither rewritten nor flagged — dist/ could ship a link pointing nowhere with --check
+        # green. Driven through dangling() on a built tree, not against the regex directly.
+        mod, tempfile = self._bundle()
+        with tempfile.TemporaryDirectory() as tmp:
+            mission = Path(tmp) / "demo"
+            (mission / "references").mkdir(parents=True)
+            (mission / "SKILL.md").write_text(
+                "# demo\n\nsee [the verifier](../../runtime/scripts/verify.py) and\n"
+                "[the hooks](../../hooks/hooks.json).\n", encoding="utf-8")
+            problems = mod.dangling(mission)
+        self.assertEqual(len(problems), 2, f"both non-md escapes must be flagged: {problems}")
+        self.assertTrue(any("verify.py" in p for p in problems), problems)
+        self.assertTrue(any("hooks.json" in p for p in problems), problems)
+
+    def test_vendored_references_are_link_checked_too(self):
+        # Broader than the issue: dangling() read only SKILL.md, and the vendored copies are
+        # `shutil.copy2`'d verbatim and never rewritten — so an outbound link inside one of them
+        # ships broken and nothing looks. That is the path by which a .py link actually reaches
+        # dist/ today.
+        mod, tempfile = self._bundle()
+        with tempfile.TemporaryDirectory() as tmp:
+            mission = Path(tmp) / "demo"
+            (mission / "references").mkdir(parents=True)
+            (mission / "SKILL.md").write_text("# demo\n\nclean.\n", encoding="utf-8")
+            (mission / "references" / "vendored.md").write_text(
+                "# vendored\n\nsee [up and out](../../runtime/scripts/verify.py).\n",
+                encoding="utf-8")
+            problems = mod.dangling(mission)
+        self.assertTrue(any("verify.py" in p for p in problems),
+                        f"a vendored copy's outbound link must be flagged: {problems}")
+
+    def test_no_vendored_doc_ships_a_dead_relative_link(self):
+        # PR #308 review, P1. Scanning every vendored file was not enough: a vendored doc keeps the
+        # repo-root-relative links it was written with — `](runtime/evidence-manifest.md)` — which
+        # escape nothing and so matched no outbound pattern, while resolving under `references/`
+        # where nothing was copied. 56 shipped dead with --check green.
+        import re
+        mod, tempfile = self._bundle()
+        with tempfile.TemporaryDirectory() as tmp:
+            mod.build(tmp)
+            dead = [(md.relative_to(tmp).as_posix(), m.group(2))
+                    for md in sorted(Path(tmp).rglob("*.md"))
+                    for m in mod.RELATIVE_LINK_RE.finditer(md.read_text(encoding="utf-8"))
+                    if not (md.parent / m.group(2)).exists()]
+        self.assertEqual(dead, [], f"dist ships {len(dead)} dead relative link(s)")
+
+    def test_a_vendored_link_is_repointed_at_its_vendored_sibling(self):
+        mod, tempfile = self._bundle()
+        with tempfile.TemporaryDirectory() as tmp:
+            mission = Path(tmp) / "demo"
+            refs = mission / "references"
+            refs.mkdir(parents=True)
+            (mission / "SKILL.md").write_text("# demo\n", encoding="utf-8")
+            (refs / "evidence-manifest.md").write_text("# em\n", encoding="utf-8")
+            (refs / "ARCHITECTURE.md").write_text(
+                "see [the manifest](runtime/evidence-manifest.md) and "
+                "[docs/gone.md](docs/gone.md).\n", encoding="utf-8")
+            mod.relink_vendored(mission)
+            out = (refs / "ARCHITECTURE.md").read_text(encoding="utf-8")
+        self.assertIn("[the manifest](evidence-manifest.md)", out,
+                      f"a vendored sibling must be linked by its bare name: {out}")
+        self.assertIn("`docs/gone.md`", out, f"an unvendored target must be de-linked: {out}")
+        self.assertNotIn("](docs/gone.md)", out, out)
 
     def test_dist_is_not_committed(self):
         # 21 copies of the doctrine tree in git would rot between runtime edits.

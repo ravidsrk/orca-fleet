@@ -215,18 +215,62 @@ def read_lines(path):
     return out
 
 
+_UNDATED = datetime.min.replace(tzinfo=timezone.utc)
+
+
+def _instant(ts):
+    """The UTC instant a DECISIONS timestamp names, for ordering.
+
+    Not the raw string. TS_PREFIX accepts anything beginning with a date, so a record may carry an
+    offset — and offsets do not sort lexicographically: `2026-09-11T01:00:00+05:00` IS
+    `2026-09-10T20:00:00Z`, earlier than `2026-09-11T00:00:00Z`, and sorted as text it came out
+    later and won (PR #308 review, P1). A naive stamp is read as UTC, which is what the format
+    legend asks for and the only sensible reading of a bare local time. An unparseable stamp sorts
+    before everything, so a line whose time cannot be read never displaces one whose time can."""
+    text = (ts or "").strip().strip("`")
+    try:
+        moment = datetime.fromisoformat(text)
+    except ValueError:
+        return _UNDATED
+    return moment if moment.tzinfo else moment.replace(tzinfo=timezone.utc)
+
+
+def recency(record, position):
+    """Sort key for "which of these lines is newest": instant first, file order to break ties.
+
+    Public because floor_guard.py orders waiver records by it: a waiver is a DECISIONS record, and
+    two modules deciding "newest" differently is how a retired waiver keeps granting (PR #308
+    review, P1).
+
+    Position alone was the whole ordering guarantee (#318), which made the ledger's answer depend
+    on who appended last rather than on when the decision was taken — so any merge, reorder or
+    out-of-order append silently changed which decision was live. Position stays as the tiebreak
+    because two decisions really can share an instant, and there the old behaviour is the only
+    information available."""
+    return (_instant(record.get("ts", "")), position)
+
+
 def active(records):
-    """Newest line per id wins; an answer of exactly 'superseded' retires the id."""
+    """Newest line per id wins — newest by TIMESTAMP, file order breaking ties. An answer of
+    exactly 'superseded' retires the id."""
     latest = {}
-    for record in records:
-        latest[record["id"]] = record
-    return [r for r in latest.values() if r["answer"].strip().lower() != "superseded"]
+    for position, record in enumerate(records):
+        key = recency(record, position)
+        current = latest.get(record["id"])
+        if current is None or key > current[0]:
+            latest[record["id"]] = (key, record)
+    return [r for _key, r in latest.values() if r["answer"].strip().lower() != "superseded"]
 
 
 def tally(records, lens):
-    """Consecutive zero-finding dispatches for a lens, newest-first."""
+    """Consecutive zero-finding dispatches for a lens, newest-first.
+
+    Ordered by the same key as active() (#318): a streak counted in file order would be a
+    different streak after a merge."""
     ident = f"lens-tally:{lens}"
-    rows = [r for r in records if r["id"] == ident]
+    rows = [r for _key, r in sorted(
+        ((recency(r, i), r) for i, r in enumerate(records) if r["id"] == ident),
+        key=lambda pair: pair[0])]
     streak = 0
     for record in reversed(rows):
         if re.fullmatch(r"0+", record["answer"].strip()):

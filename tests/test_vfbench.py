@@ -63,7 +63,7 @@ class VFBenchSoundness(unittest.TestCase):
         # #257: the report-only control only exercises the scope leg. THIS one drives every
         # mutation authority at once — an executed revert, an independent APPROVED review, a
         # pinned artifact inventory, a fresh commands ledger — so "not always-RED" is proven for
-        # the class REVIEW.md's bypass log broke.
+        # the class docs/reviews/2026-09-10-review.md's bypass log broke.
         rows = {r["id"]: r for r in self.res["orca-fleet verify.py (sound)"]["rows"]}
         self.assertIn("mutation-valid-control-1", rows,
                       "the mutation-class positive control was skipped or dropped")
@@ -72,7 +72,7 @@ class VFBenchSoundness(unittest.TestCase):
 
     def test_waiver_lane_traps_are_red(self):
         # #256: dark-eligible and no-gh both waive the review; with a merely-READ control they
-        # must be RED. These are REVIEW.md A1/A2/A4/A6/A9 in the corpus.
+        # must be RED. These are docs/reviews/2026-09-10-review.md A1/A2/A4/A6/A9 in the corpus.
         rows = {r["id"]: r for r in self.res["orca-fleet verify.py (sound)"]["rows"]}
         for trap_id in ("fabricated-nc-dark-eligible-1", "fabricated-nc-no-gh-1"):
             self.assertEqual(rows[trap_id]["verdict"], "RED", trap_id)
@@ -90,7 +90,7 @@ class VFBenchSoundness(unittest.TestCase):
 
 
 class VFBenchShallowSkips(unittest.TestCase):
-    """#257 / REVIEW.md P2 item 22: a trap that pins a real commit cannot be scored on a shallow
+    """#257 / docs/reviews/2026-09-10-review.md P2 item 22: a trap that pins a real commit cannot be scored on a shallow
     clone. It must be SKIPPED BY NAME — in the corpus report and in --json — never silently
     scored, because a degraded leg reads as a RED the gate did not earn."""
 
@@ -314,6 +314,130 @@ class VFBenchReviewLeg(unittest.TestCase):
         self.assertIn("no INDEPENDENT APPROVED review at head_sha", r.stderr)
         r = self._run_verify(env=env_with_stub(approved))
         self.assertEqual(r.returncode, 0, f"every non-review check must pass: {r.stderr}")
+
+
+class TheRefusedControlClassesAreSampled(unittest.TestCase):
+    """#306: "0% false-done" only means something if the suite samples what actually gets through.
+
+    The bypass log landed nine of thirteen gaming manifests against this mechanism, so the number
+    was measuring the traps that had been chosen, not the gate's strength. Four are the classes the
+    review found, and building them found a real gap: the path bind ran only on the --execute-nc
+    leg, so a NARRATED decoy path or oracle revert passed. The bench read 2/17 false-done until
+    that was fixed.
+
+    The fifth, `decoy-hand-diff`, came out of the review OF that fix — the same asymmetry one tool
+    over, for `hand` controls. Hence five, not four; the class was named before it grew (PR #308
+    review).
+    """
+
+    TRAPS = ROOT / "bench" / "vf-bench" / "traps"
+    REQUIRED = {"decoy-path", "oracle-mutation", "stillborn-mutant", "grep-command",
+                "decoy-hand-diff"}
+
+    def _traps(self):
+        return {t["class"]: t for t in
+                (json.loads(p.read_text(encoding="utf-8")) for p in self.TRAPS.glob("*.json"))}
+
+    def test_every_refused_class_has_a_trap(self):
+        missing = sorted(self.REQUIRED - set(self._traps()))
+        self.assertEqual(missing, [], "a control class the review found is no longer sampled")
+
+    def test_each_is_expected_to_be_refused(self):
+        for name, trap in self._traps().items():
+            if name in self.REQUIRED:
+                with self.subTest(trap=name):
+                    self.assertEqual(trap["sound_expected"], "RED",
+                                     "a gaming manifest the gate must refuse")
+                    self.assertEqual(trap.get("unit_class"), "mutation")
+
+    def test_the_decoy_and_oracle_traps_stay_in_the_narrated_lane(self):
+        """Executed, both are no-ops that #255 refuses — which is the right verdict for the wrong
+        reason, and would have passed before #280 existed. Narrated, the static path bind is the
+        only thing between the manifest and a GREEN, which is what these traps are for."""
+        for name in ("decoy-path", "oracle-mutation"):
+            with self.subTest(trap=name):
+                self.assertFalse(self._traps()[name].get("execute_nc"),
+                                 "executed, this trap measures #255 rather than the path bind")
+
+    # The refusal each trap must earn. A RED alone is not evidence the benchmark still measures
+    # the advertised bypass: a trap refused as MALFORMED, or by an unrelated prerequisite, scores
+    # the same 0/18 and says nothing (PR #308 review, P2). This is not hypothetical — the
+    # stillborn trap shipped in a first draft refused for exactly that reason, its diff in a
+    # `negative_control.diff` field the manifest reader rejects, never reaching the check it names.
+    REFUSAL = {
+        "decoy-path": "which base_sha..head_sha does not change",
+        "oracle-mutation": "which is a TEST path",
+        "stillborn-mutant": "STILLBORN MUTANT",
+        "grep-command": "produced NO output at all",
+        "decoy-hand-diff": "the hand mutant's diff names",
+        "class-downgrade": "changed code",
+    }
+
+    def test_each_trap_is_refused_for_the_reason_it_exists_to_test(self):
+        """Run the gate and read WHY, not just the verdict."""
+        import importlib.util
+        spec = importlib.util.spec_from_file_location(
+            "_vfbench_reasons", ROOT / "bench" / "vf-bench" / "vfbench.py")
+        vb = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(vb)
+        traps = self._traps()
+        for name, want in self.REFUSAL.items():
+            with self.subTest(trap=name):
+                self.assertIn(name, traps, "the trap is gone")
+                fails = self._refusals(vb, traps[name])
+                self.assertTrue(fails, f"{name} was not refused at all")
+                self.assertTrue(
+                    any(want in f for f in fails),
+                    f"{name} was refused, but not for its own reason.\n"
+                    f"  wanted a line containing: {want!r}\n"
+                    f"  got: " + "\n       ".join(f[:160] for f in fails))
+
+    @staticmethod
+    def _refusals(vb, trap):
+        """The FAIL lines verify.py emits for one fixture-backed trap."""
+        import os
+        import subprocess
+        import sys
+        import tempfile
+        holder = Path(tempfile.mkdtemp(prefix="vfbench-reason-"))
+        try:
+            repo = holder / "repo"
+            facts = vb.build_mutation_fixture(repo)
+            (repo / "vf-manifest.json").write_text(
+                json.dumps(vb._render(trap["manifest"], facts)), encoding="utf-8")
+            cmd = [sys.executable, str(vb.VERIFY), "--manifest", str(repo / "vf-manifest.json"),
+                   "--contract-source", "contract.md",
+                   "--contract-digest", facts["contract_digest"],
+                   "--unit-class", trap.get("unit_class", "mutation")]
+            if trap.get("lighting"):
+                cmd += ["--lighting", trap["lighting"]]
+            if trap.get("execute_nc"):
+                cmd.append("--execute-nc")
+                if trap.get("nc_command"):
+                    cmd += ["--nc-command", vb._render(trap["nc_command"], facts)]
+            if trap.get("repo"):
+                cmd += ["--repo", trap["repo"]]
+            env = dict(os.environ)
+            if trap.get("gh_stub"):
+                env["PATH"] = (vb._gh_stub(holder / "bin", facts["head_sha"])
+                               + os.pathsep + env["PATH"])
+            r = subprocess.run(cmd, capture_output=True, text=True, cwd=repo, env=env)
+            return [ln.strip() for ln in (r.stdout + r.stderr).splitlines()
+                    if ln.startswith("FAIL:")]
+        finally:
+            shutil.rmtree(holder, ignore_errors=True)
+
+    def test_the_stillborn_trap_quotes_a_real_diff_in_its_artifact(self):
+        # It first carried the diff in a `negative_control.diff` field, which got the manifest
+        # refused as MALFORMED — a trap refused for the wrong reason measures nothing.
+        trap = self._traps()["stillborn-mutant"]
+        nc = trap["manifest"]["negative_control"]
+        self.assertEqual(nc["tool"], "hand")
+        self.assertNotIn("diff", nc, "the diff belongs in the artifact, where verify.py reads it")
+        self.assertTrue(nc["artifact"].endswith("nc-stillborn.txt"))
+        vf = (ROOT / "bench" / "vf-bench" / "vfbench.py").read_text(encoding="utf-8")
+        self.assertIn("FIXTURE_NC_STILLBORN", vf, "the fixture no longer writes that artifact")
+        self.assertIn("nc_stillborn_sha256", vf, "the artifact's digest is not exposed as a fact")
 
 
 if __name__ == "__main__":

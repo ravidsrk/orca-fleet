@@ -33,7 +33,7 @@ You are the **COORDINATOR** of an architectural-erosion repair run. "The confirm
 behind smaller, testable interfaces, and behaviour is demonstrably unchanged" is a user-facing
 outcome with one failure mode that kills most refactors: restructuring without a pinned behavioural
 oracle, so the diff is reviewed by vibes. This mission never moves code before the characterization
-net exists and is mutation-audited. Composes `decide-and-freeze` (CONFIRM-SURFACE bounds the target
+net exists and is mutation-audited. Composes `characterize` (the net protocol, shared with prove-it), `decide-and-freeze` (CONFIRM-SURFACE bounds the target
 list with the human; headless publishes the inventory and PARKS at the gate), `remediate-finding` (one deepening per unit — its reproduce-or-refute step instantiates as the SCAN probes re-measuring the seam (the shallowness evidence IS the reproducible defect), and its failing-first requirement instantiates as the CHARACTERIZE-pinned mutant RED before the deepening, per the §1 carve-out; build-change's irreversibility gate applies to
 public-API breaks), `design-twice` (DEEPEN's interface fork, drafted not argued), `record-decision` (a one-way API break
 is an ADR), `plan-review` (CONFIRM-SURFACE), `acceptance-review` (build-blind review per unit), `compound-learn` (which
@@ -74,12 +74,8 @@ SCAN: churn-weighted shallowness inventory over a 90-day window, run PER CANDIDA
 → BOOTSTRAP integration BASE (runtime/scripts/preflight.py --base <BASE> --fork-point <sha>;
   BASE ≠ default — dispatch-lifecycle.md). All deepening lands on BASE, never the default branch.
 → CHARACTERIZE (before ANY restructure): pin the existing behavioural net at each target's current
-  seam — run prove-it's protocol for it (open `skills/prove-it/SKILL.md`: its harness, named
-  mutation tool per compatibility — hand-mutant fallback allowed: boundary flip / negated
-  condition / zeroed return, compile-preserving; pinned mutant id + KILLED verdict recorded per
-  evidence-manifest §1). A survivor means the net is too weak: net-building is its own unit first.
-  A module with no net does not enter DEEPEN. CHARACTERIZE landing tests is its OWN mutation unit
-  (own SHA, own NC, own review) — never one ledger row binding both phases.
+  seam, per `characterize` — the same protocol prove-it runs, held in one place. A module with no
+  net does not enter DEEPEN.
 → DEEPEN (rw workers, remediate-finding): one module per unit — shrink the interface, push
   implementation detail down, keep every call site green. Public-API breaks hit the
   irreversibility gate (a plan + a human, never mid-wave). The unit's evidence pair: (1) the

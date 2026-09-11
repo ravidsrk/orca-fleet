@@ -586,6 +586,17 @@ class TestCountAgnosticGuards(unittest.TestCase):
                   "eleven autonomous fleets"):
             self.assertRegex(s, validate.COUNT_LINT_RE, s)
 
+    def test_count_lint_matches_proof_tier_counts(self):
+        # #282: "The catalog reads 21 `doctrine-only`." is a hardcoded catalog count, and it sat
+        # in README.md while this guard was green — the tiers were not in the noun set and a
+        # backtick was not a separator. The guard against this exact rot had a hole in it.
+        for s in ("21 `doctrine-only`", "21 doctrine-only", "seventeen self-run",
+                  "12 external-run"):
+            self.assertRegex(s, validate.COUNT_LINT_RE, s)
+        # Count-agnostic phrasing of the same fact must still pass.
+        self.assertNotRegex("Every mission in the catalog reads `doctrine-only`.",
+                            validate.COUNT_LINT_RE)
+
     def test_check_doc_counts_flags_all_n_near_mission_talk(self):
         # Issue #33: "…one mission or all ten." — a catalog count with no noun.
         with tempfile.TemporaryDirectory() as tmp:
@@ -903,6 +914,65 @@ class MissionIdentity(unittest.TestCase):
             root = self._catalog(tmp, ("alpha-it", FIXTURE_IDENTITY), ("beta-it", other))
             errors, warnings = validate.identity_collisions(root=root)
             self.assertEqual((errors, warnings), ([], []))
+
+    def test_a_one_word_paraphrase_of_every_point_is_refused(self):
+        """#288 / D3b. Raw surface tokens made this a duplicate-STRING detector wearing an identity
+        test's name: swapping one word a point dropped similarity from 1.00 to 0.667, under the
+        0.85 bar, on all six at once. A second mission could restate the first and pass."""
+        original = {
+            "unit": "one finite backlog item drained to zero with evidence",
+            "state_machine": "triage then remediate then verify then close",
+            "convergence": "a full re-enumeration finds no open item remaining",
+            "ordering": "highest severity finding first, then oldest",
+            "parking": "PARKED with a named blocking reason recorded",
+            "oracle": "the tracker query that returns no open items",
+        }
+        paraphrase = {
+            "unit": "one finite backlog item emptied to zero with evidence",
+            "state_machine": "triage then remediate then check then close",
+            "convergence": "a full re-enumeration finds no open item outstanding",
+            "ordering": "highest severity finding first, then earliest",
+            "parking": "PARKED with a named blocking cause recorded",
+            "oracle": "the tracker query that returns no open entries",
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            root = self._catalog(tmp, ("alpha-it", original), ("beta-it", paraphrase))
+            errors, _warnings = validate.identity_collisions(root=root)
+        self.assertTrue(any("restate one identity" in e for e in errors),
+                        f"a paraphrased identity passed: {errors}")
+
+    def test_inflection_alone_does_not_defeat_the_test(self):
+        # Stemming closes the cheapest paraphrase of all: pluralising and re-tensing.
+        original = {
+            "unit": "one finite backlog item drained to zero with evidence",
+            "state_machine": "triage then remediate then verify then close",
+            "convergence": "a full re-enumeration finds no open item remaining",
+            "ordering": "highest severity finding first, then oldest",
+            "parking": "PARKED with a named blocking reason recorded",
+            "oracle": "the tracker query that returns no open items",
+        }
+        inflected = {k: v.replace("backlog", "backlogs").replace("drained", "draining")
+                        .replace("finds", "finding").replace("returns", "returning")
+                     for k, v in original.items()}
+        with tempfile.TemporaryDirectory() as tmp:
+            root = self._catalog(tmp, ("alpha-it", original), ("beta-it", inflected))
+            errors, _warnings = validate.identity_collisions(root=root)
+        # Specifically the SIX-POINT message, not the paraphrase one: stemming must make an
+        # inflected copy read as the same point, not merely a similar one. Without it these score
+        # ~0.71 and would be caught one rung down, which would leave the tokenizer untested.
+        self.assertTrue(any("the same six identity points" in e for e in errors),
+                        f"stemming did not collapse inflection: {errors}")
+
+    def test_a_genuinely_distinct_mission_is_not_flagged(self):
+        # The gate must not fire on real disagreement. ARCHITECTURE.md deliberately allows two
+        # missions to differ on one point (WARN) or two (silent) — those average high while being
+        # distinct, which is why the gate reads the WEAKEST point rather than the mean.
+        distinct = {k: f"an entirely unrelated {k} with nothing in common at all"
+                    for k in validate.IDENTITY_KEYS}
+        with tempfile.TemporaryDirectory() as tmp:
+            root = self._catalog(tmp, ("alpha-it", FIXTURE_IDENTITY), ("beta-it", distinct))
+            errors, warnings = validate.identity_collisions(root=root)
+        self.assertEqual((errors, warnings), ([], []))
 
     def test_live_catalog_has_no_identity_collision(self):
         errors, _warnings = validate.identity_collisions()

@@ -30,8 +30,18 @@ paths, and none of this run's OWN artifacts may be absent there: pinning a
 neighbouring file while the document the verdict rests on floats free would bind
 nothing that matters.
 
+What a tier COSTS, since #286: an actual command execution. The graded manifest's
+own ``commands[]`` ledger must carry a record of `verify.py` running against that
+manifest, with a ``cmd_sha256`` that hashes its own command line and a ``wtree``
+that resolves to a real object here. Prose is free -- a fabricated report cleared
+the earlier gate in fifteen minutes by writing a command line -- so the body's
+invocation is no longer the only evidence a run happened.
+
 What this does NOT do, said plainly: it does not re-run `verify.py` and re-derive
-the verdict. That run's authorities are not reproducible after the fact — the
+the verdict, and the ledger above is still written ON the worker, so the floor it
+raises is "ran a command and recorded it against real content", not "could not
+have been typed". Closing that needs a coordinator-signed verifier transcript
+checked against a committed key (#281). That run's authorities are not reproducible after the fact — the
 coordinator's out-of-band contract, a GitHub review lookup, the live worktree — so
 a "re-derivation" here would be a different, weaker check wearing the same name.
 What is checked is that the recorded outcome is attributable to a real invocation
@@ -48,8 +58,11 @@ Exit codes
     2  could not run (no skills/, unreadable input)
 """
 import argparse
+import hashlib
 import importlib.util
+import json
 import re
+import shlex
 import subprocess
 import sys
 from pathlib import Path
@@ -66,7 +79,7 @@ RUN_HEADER_RE = re.compile(r"^RUN:\s*(.+?)\s*$", re.M)
 
 
 def _invocation_re(manifest):
-    """`verify.py … --manifest <THIS report's manifest>` — the transcript, not the word.
+    r"""`verify.py … --manifest <THIS report's manifest>` — the transcript, not the word.
 
     Two tightenings, both learned the hard way. "the body contains 'verify.py'" was
     satisfied by any prose mentioning it. Replacing that with `--manifest \S+` was
@@ -80,7 +93,14 @@ def _invocation_re(manifest):
 FIELD_RE = re.compile(r"([a-z_]+)=(\S+)")
 REQUIRED_FIELDS = ("mission", "tier", "inventory_at", "manifest", "verifier")
 VERIFIER_OUTCOMES = {"GREEN", "RED"}
-TIERS = {"self-run", "external-run"}
+# Tiers a RUN: header may DECLARE. `doctrine-only` is legal here and advances nothing: it is how a
+# report says "this run happened and is recorded, and it supports no tier claim". Without it a
+# demoted report had to keep asserting the tier its own Evidence-binding section retracted, and
+# nothing checked the contradiction — check_report only runs for missions claiming a tier ABOVE
+# doctrine-only, so the stale header was unreachable (PR #308 review).
+TIERS = {"doctrine-only", "self-run", "external-run"}
+# ...but only these two are a tier ADVANCE that needs evidence behind it.
+ADVANCING_TIERS = {"self-run", "external-run"}
 
 
 def parse_run_header(text):
@@ -106,6 +126,176 @@ def path_exists_at(rev, path_text, root):
         ["git", "cat-file", "-e", f"{rev}:{path_text}"],
         cwd=str(root), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
     ).returncode == 0
+
+
+_ENV_ASSIGN_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
+# THE verifier, by path — not by basename. `/tmp/verify.py` is a script the worker wrote
+# (PR #308 review); only this repository's own verifier counts.
+VERIFIER_PATH_PARTS = ("runtime", "scripts", "verify.py")
+
+
+def _is_repo_verifier(token, root):
+    """True when `token` names THIS repository's verify.py."""
+    path = Path(token)
+    parts = tuple(part for part in path.parts if part != ".")
+    if ".." in parts:
+        return False  # an escape hatch out of the repo, wherever it currently points
+    if tuple(parts[-3:]) != VERIFIER_PATH_PARTS:
+        return False  # includes a bare `verify.py`, which resolves against cwd or PATH
+    if path.is_absolute():
+        try:
+            path.resolve().relative_to(Path(root).resolve())
+        except (ValueError, OSError):
+            return False
+    return True
+
+
+class _SilentParser(argparse.ArgumentParser):
+    """argparse that raises instead of printing usage and calling sys.exit."""
+
+    def error(self, message):
+        raise ValueError(message)
+
+    def exit(self, status=0, message=None):
+        raise ValueError(message or f"exit {status}")
+
+
+def _parsed_manifest(rest):
+    """The `--manifest` value argparse would see in `rest`, or None if it would refuse the line.
+
+    Hand-reading this argv diverged from argparse three times in review, three different ways: the
+    first occurrence was taken where argparse keeps the last, and a dangling trailing `--manifest`
+    read as the earlier value where argparse rejects the whole command line. The lesson is not "be
+    more careful with the next hand-rolled scan" — it is that the only reliable model of a parser
+    is that parser. So the recorded argv is PARSED, not scanned.
+
+    `parse_known_args` because a recorded command legitimately carries flags this function does not
+    model (--contract-source, --lighting, --execute-nc): an unrecognised flag is no reason to
+    disbelieve the run, while a malformed one is.
+    """
+    parser = _SilentParser(add_help=False)
+    parser.add_argument("--manifest")
+    try:
+        known, _unknown = parser.parse_known_args(list(rest))
+    except (ValueError, SystemExit):
+        return None
+    return known.manifest
+
+
+def executes_verifier(cmd, manifest_path, root=None):
+    r"""True when `cmd` RUNS this repo's verify.py against `manifest_path` — parsed as argv.
+
+    A regex over the command line is the wrong instrument here, and this module already has the
+    scar tissue to prove it: `_invocation_re` was tightened twice, first because "the body
+    contains verify.py" matched any prose, then because `--manifest \S+` matched this module's own
+    docstring. Applied to a ledger RECORD it failed again — `echo verify.py --manifest <m>` hashes
+    true, names a real tree, and invokes nothing. The regex is still right for the report BODY,
+    which is prose; a recorded command is argv and is read as argv.
+
+    Two further evasions review found in the argv reading itself, both fixed here. A basename test
+    accepted `/tmp/verify.py`, a script the worker wrote; the path must be this repository's own
+    verifier. And taking the FIRST `--manifest` disagreed with argparse, which takes the LAST — so
+    `--manifest <graded> --manifest other.json` read as graded here while the real verifier read
+    the other file.
+    """
+    if not isinstance(cmd, str):
+        return False
+    try:
+        argv = shlex.split(cmd, comments=True)
+    except ValueError:
+        return False
+    i = 0
+    while i < len(argv) and (argv[i] == "env" or _ENV_ASSIGN_RE.match(argv[i])):
+        i += 1
+    if i >= len(argv):
+        return False
+    if Path(argv[i]).name.startswith("python"):
+        i += 1
+        while i < len(argv) and argv[i].startswith("-"):
+            if argv[i] in ("-m", "-c"):
+                return False  # a module or an inline program, not the script on disk
+            i += 1
+        if i >= len(argv):
+            return False
+    if not _is_repo_verifier(argv[i], root or ROOT):
+        return False
+    return _parsed_manifest(argv[i + 1:]) == manifest_path
+
+
+def blob_at(rev, path_text, root):
+    """The bytes of `path_text` as of `rev`, or None. Reading the manifest AT the pinned commit,
+    never from the working tree, is the whole point: the tree has moved on since the run."""
+    proc = subprocess.run(
+        ["git", "show", f"{rev}:{path_text}"],
+        cwd=str(root), stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+    )
+    return proc.stdout if proc.returncode == 0 else None
+
+
+def tree_of(rev, root):
+    """`rev`'s tree sha, or None."""
+    proc = subprocess.run(
+        ["git", "rev-parse", f"{rev}^{{tree}}"],
+        cwd=str(root), stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True,
+    )
+    out = proc.stdout.strip()
+    return out if proc.returncode == 0 and out else None
+
+
+def verifier_ran(manifest_path, rev, root):
+    """Errors that stop this report proving the verifier was RUN. [] means a run is recorded.
+
+    Until #286 the only evidence a tier had that `verify.py` ever executed was PROSE: the report
+    body had to contain a command line naming its own manifest. Prose is free. A fabricated
+    `map-it` self-run — seven files, 32 lines, one commit — cleared the whole gate in under fifteen
+    minutes because writing a command line costs nothing.
+
+    So the tier now costs a command EXECUTION: the graded manifest's own `commands[]` ledger must
+    carry a record of the verifier running, with a `wtree` that resolves to the tree of a commit
+    the report pins. `evidence-run.py` writes those records; a hand-written one has to name a tree
+    that really exists in this repository and hash its own command line.
+
+    Said plainly, because it bounds what this buys: the ledger is still written on the worker, so
+    this raises the floor from "wrote a sentence" to "ran a command and recorded it against real
+    content". It is not yet a leg the worker cannot type — that needs a coordinator-signed verifier
+    transcript checked against a committed key (#281).
+    """
+    raw = blob_at(rev, manifest_path, root)
+    if raw is None:
+        return [f"the graded manifest {manifest_path} cannot be read at {rev}"]
+    try:
+        manifest = json.loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, ValueError) as err:
+        return [f"the graded manifest {manifest_path} at {rev} is not readable JSON ({err})"]
+    if not isinstance(manifest, dict):
+        return [f"the graded manifest {manifest_path} at {rev} is not a JSON object"]
+
+    records = [c for c in (manifest.get("commands") or []) if isinstance(c, dict)]
+    verifier = [c for c in records if executes_verifier(c.get("cmd"), manifest_path, root)]
+    if not verifier:
+        seen = ", ".join(repr(c.get("cmd")) for c in records) or "nothing"
+        return [f"the graded manifest {manifest_path} records no commands[] entry running "
+                f"verify.py against itself — a tier costs a RUN, not a sentence about one. Wrap the "
+                f"verifier in evidence-run.py so the ledger carries it (#286). Recorded there: {seen}"]
+
+    # Every candidate must bind to content, or the record describes nothing.
+    problems = []
+    for rec in verifier:
+        line = rec["cmd"]
+        digest, wtree = rec.get("cmd_sha256"), rec.get("wtree")
+        actual = hashlib.sha256(line.encode("utf-8")).hexdigest()
+        if digest != actual:
+            problems.append(f"its cmd_sha256 {digest} does not hash its own command line ({actual})")
+            continue
+        if not (isinstance(wtree, str) and wtree):
+            problems.append("it carries no wtree, so it is bound to no content at all")
+            continue
+        if not inventory.rev_exists(wtree, root) and tree_of(wtree, root) is None:
+            problems.append(f"its wtree {wtree[:12]}… is not an object in this repository")
+            continue
+        return []  # one sound record is enough
+    return [f"the graded manifest {manifest_path} records a verify.py run that binds to nothing: "
+            + "; ".join(problems)]
 
 
 def check_report(report_path, mission, tier, root=None):
@@ -172,6 +362,10 @@ def check_report(report_path, mission, tier, root=None):
             f"{report_path}: RUN: manifest={manifest} is outside this run's own directory "
             f"{run_dir}/ — a run is graded against its own manifest, not another run's"
         )
+
+    # #286: the tier must cost a command execution, not a sentence describing one.
+    for problem in verifier_ran(manifest, rev, root):
+        errors.append(f"{report_path}: {problem}")
 
     try:
         _report, _lines, entries = inventory.load(report)
@@ -251,7 +445,7 @@ def _missions(root):
     spec.loader.exec_module(mod)
     out = []
     for rec in mod.collect(root / "skills", root):
-        if rec["proof"] in TIERS:
+        if rec["proof"] in ADVANCING_TIERS:
             out.append((rec["name"] or rec["dir"], rec["proof"], rec["proof_evidence"]))
     return out
 

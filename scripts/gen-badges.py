@@ -149,6 +149,67 @@ def write_guides() -> None:
             print(f"wrote docs/missions/{mission}.md: ~{tokens:,} tokens")
 
 
+# --- ARCHITECTURE.md's activation-load table -----------------------------------------
+# It was written by hand and drifted 150-280 tokens within a day of being published (#303) —
+# and again during the work that fixed it, by which point the ORDERING had changed too
+# (clean-sweep was the heaviest mission; ship-it is). A table a human retypes is a claim with
+# no mechanism, which is the shape this catalog exists to refuse.
+ARCH = ROOT / "ARCHITECTURE.md"
+ARCH_BEGIN = "<!-- BEGIN GENERATED: activation-load — scripts/gen-badges.py -->"
+ARCH_END = "<!-- END GENERATED: activation-load -->"
+ARCH_BLOCK_RE = re.compile(
+    re.escape(ARCH_BEGIN) + r".*?" + re.escape(ARCH_END), re.S)
+
+
+def load_table() -> str:
+    """The generated block: every mission at or above the three-heaviest mark, plus headroom."""
+    v = _validate_module()
+    rows = v.load_report()
+    cap = v.MISSION_MAX_LOAD_TOKENS
+    lines = [ARCH_BEGIN,
+             "",
+             "| Mission | Activation load | Headroom to the cap |",
+             "|---|---|---|"]
+    for name, tokens in rows[:3]:
+        lines.append(f"| `{name}` | ~{round(tokens / LOAD_ROUND) * LOAD_ROUND:,} | "
+                     f"~{round((cap - tokens) / LOAD_ROUND) * LOAD_ROUND:,} |")
+    lightest, light_tokens = rows[-1]
+    lines += [
+        "",
+        f"The cap is **{cap:,}**. The lightest mission, `{lightest}`, is "
+        f"~{round(light_tokens / LOAD_ROUND) * LOAD_ROUND:,}, so the whole catalog sits in a "
+        f"~{round((rows[0][1] - light_tokens) / LOAD_ROUND) * LOAD_ROUND:,}-token band.",
+        ARCH_END,
+    ]
+    return "\n".join(lines)
+
+
+def check_architecture() -> list[str]:
+    if not ARCH.is_file():
+        return [f"{ARCH.name} missing at {ARCH}"]
+    text = ARCH.read_text(encoding="utf-8")
+    found = ARCH_BLOCK_RE.search(text)
+    if not found:
+        return [f"{ARCH.name} has no generated activation-load block — run scripts/gen-badges.py"]
+    if found.group(0) != load_table():
+        return [f"{ARCH.name} activation-load table is stale — run scripts/gen-badges.py"]
+    return []
+
+
+def write_architecture() -> None:
+    if not ARCH.is_file():
+        print(f"skip {ARCH.name}: missing")
+        return
+    text = ARCH.read_text(encoding="utf-8")
+    if not ARCH_BLOCK_RE.search(text):
+        print(f"skip {ARCH.name}: no generated block markers to fill")
+        return
+    new_text = ARCH_BLOCK_RE.sub(lambda _m: load_table(), text, count=1)
+    if new_text != text:
+        ARCH.write_text(new_text, encoding="utf-8")
+        print(f"wrote {ARCH.name}: activation-load table")
+
+
 def check() -> list[str]:
     """Return a list of stale-artifact errors (empty if everything committed is current)."""
     errors = []
@@ -171,7 +232,7 @@ def check() -> list[str]:
                 f"assets/badges/{name} is stale (have {have.get('message')!r}, "
                 f"want {want.get('message')!r}) — run scripts/gen-badges.py"
             )
-    return errors + check_guides()
+    return errors + check_guides() + check_architecture()
 
 
 def write() -> None:
@@ -180,6 +241,7 @@ def write() -> None:
         (BADGES_DIR / name).write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
         print(f"wrote assets/badges/{name}: {data['message']}")
     write_guides()
+    write_architecture()
 
 
 if __name__ == "__main__":

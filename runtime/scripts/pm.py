@@ -15,11 +15,13 @@
 # the parser skips to the next line and keeps going, reporting the skip count at the end.
 # Missing message fields print as '?' instead of raising KeyError.
 # Message text is worker-controlled and therefore untrusted: every printed field goes through
-# _visible() so escape sequences (OSC 52 clipboard writes, cursor movement) print inertly.
+# _visible() so escape sequences (OSC 52 clipboard writes, cursor movement) print inertly — and,
+# since #299, so do the characters that print NO glyph and still change what the reader sees.
 #
 # Usage:  orca orchestration inbox --json > inbox.json && python3 pm.py inbox.json
 import json
 import sys
+import unicodedata
 
 
 def _has_messages_key(node):
@@ -31,14 +33,35 @@ def _has_messages_key(node):
     return False
 
 
+# Unicode general categories that change what a terminal SHOWS without printing a glyph.
+#   Cf — format: U+202E right-to-left override reverses the rest of a line, U+200B zero-width
+#        space splits a word the reader sees as whole, U+2066/2069 isolate a run, U+FEFF hides.
+#   Zl/Zp — line and paragraph separator: a line break the renderer honours and the inbox format
+#        never wrote, so a message body can forge a field of its own.
+# Escaping C0/C1 alone left every one of these to reach the coordinator raw from an issue title
+# or a PR body (#299). Escaped, not stripped: the reader has to SEE that something was there.
+# guard_text.py knows this category too and does the opposite with it — NFKC-folds and REMOVES it
+# — because that is for comparing two names, where an invisible character must not make them
+# differ. Here the string is being shown to a human, so it must not silently change either.
+_INVISIBLE = ("Cf", "Zl", "Zp")
+
+
 def _visible(value):
-    # Render untrusted text inertly: escape C0/C1 controls and DEL as \xNN so a hostile
-    # message can't drive the coordinator's terminal. \n and \t stay literal for readability.
-    return "".join(
-        ch if ch in "\n\t" or (ch >= " " and ch != "\x7f" and not "\x80" <= ch <= "\x9f")
-        else f"\\x{ord(ch):02x}"
-        for ch in str(value)
-    )
+    # Render untrusted text inertly: escape C0/C1 controls, DEL, and the categories above so a
+    # hostile message can neither drive the coordinator's terminal nor reorder what it shows.
+    # \n and \t stay literal for readability.
+    out = []
+    for ch in str(value):
+        if ch in "\n\t":
+            out.append(ch)
+        elif ch < " " or ch == "\x7f" or "\x80" <= ch <= "\x9f":
+            out.append(f"\\x{ord(ch):02x}")
+        elif unicodedata.category(ch) in _INVISIBLE:
+            # \uXXXX for the BMP, \UXXXXXXXX above it — a 5-digit \u would be ambiguous.
+            out.append(f"\\u{ord(ch):04x}" if ord(ch) < 0x10000 else f"\\U{ord(ch):08x}")
+        else:
+            out.append(ch)
+    return "".join(out)
 
 
 def print_inbox(raw):

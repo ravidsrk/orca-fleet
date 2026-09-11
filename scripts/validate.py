@@ -593,24 +593,64 @@ def _tracked_skill_mds(root):
     return [Path(x) for x in r.stdout.split("\0") if x and Path(x).name == "SKILL.md"]
 
 
+def check_lower_layer_frontmatter(root=None):
+    """No file under playbooks/ or runtime/ may carry YAML frontmatter (#305).
+
+    AGENTS.md has said "playbooks and runtime policies are plain Markdown with no frontmatter"
+    since the layer rule was written, and nothing enforced it — a playbook handed frontmatter
+    passed every gate. That sentence was doctrine wearing a mechanism's clothes, which is the
+    exact shape this validator exists to refuse.
+
+    Frontmatter is what makes a file DISCOVERABLE: it is where `name:` and `description:` live,
+    and a host that indexes a directory reads it. A playbook is meant to be called by name, never
+    matched by a router, so the separation is only real while the lower layers stay unindexable.
+    """
+    root = root or ROOT
+    offenders = []
+    for layer in ("playbooks", "runtime"):
+        base = root / layer
+        if not base.is_dir():
+            continue
+        for md in sorted(base.rglob("*.md")):
+            text = md.read_text(encoding="utf-8", errors="replace")
+            # Frontmatter is an opening `---` on line 1 and a closing one later. A horizontal
+            # rule mid-document is not frontmatter, and neither is a `---` on line 1 with no
+            # close — that is malformed, and calling it frontmatter would be a false red.
+            if not text.startswith("---\n"):
+                continue
+            # parse_frontmatter is the repo's own reader, so "what counts as frontmatter" has
+            # exactly one definition. A `---` on line 1 with no closing fence is malformed, not
+            # frontmatter, and it returns an error rather than a block — calling that a leak
+            # would be a false red on a document that simply opens with a horizontal rule.
+            block, err = parse_frontmatter(text)
+            if block is not None and not err:
+                offenders.append(str(md.relative_to(root)))
+    return offenders
+
+
 def check_layer_separation(root=None):
     """Only skills/<name>/ may hold a SKILL.md. AGENTS.md states the rule repo-wide, so the scan is
-    repo-wide too — a stray SKILL.md in docs/, .github/, .claude-plugin/, or the repo root auto-triggers
-    just as badly as one in playbooks/ or runtime/. Scope is git-TRACKED files: a tracked dot-dir is in
-    scope, an untracked local one (.venv/.tox) is not."""
+    repo-wide too — a stray SKILL.md in docs/, .github/, .claude-plugin/, or the repo root
+    auto-triggers just as badly as one in playbooks/ or runtime/.
+
+    Tracked AND untracked (#305). This was `git ls-files` alone, so an UNTRACKED `SKILL.md` under
+    `playbooks/` passed every gate — and the host does not care whether a file is committed. On a
+    symlinked checkout, which is the trial path the README recommends first, that file activates.
+    The walk is the authority now and the tracked list only adds to it, so a tracked file inside a
+    normally-skipped directory is still in scope. Untracked local dot-dirs (.venv/.tox) and caches
+    stay out: they are not repo content on any checkout."""
     root = root or ROOT  # resolve at call time so a monkeypatched validate.ROOT is honored
-    tracked = _tracked_skill_mds(root)
-    if tracked is not None:
-        candidates = tracked
-    else:  # not a git work tree (synthetic test root): filesystem walk minus VCS/caches/local dot-dirs
-        candidates = []
-        for p in root.rglob("SKILL.md"):
-            segs = p.relative_to(root).parts[:-1]
-            if any(d in _LAYER_SCAN_SKIP for d in segs):
-                continue
-            if any(d.startswith(".") and d != ".claude-plugin" for d in segs):
-                continue  # untracked local dot-dir (.venv/.tox/.greptile-internal/…) — not repo content
-            candidates.append(p.relative_to(root))
+    candidates = []
+    for p in root.rglob("SKILL.md"):
+        segs = p.relative_to(root).parts[:-1]
+        if any(d in _LAYER_SCAN_SKIP for d in segs):
+            continue
+        if any(d.startswith(".") and d != ".claude-plugin" for d in segs):
+            continue  # untracked local dot-dir (.venv/.tox/.greptile-internal/…) — not repo content
+        candidates.append(p.relative_to(root))
+    for rel in _tracked_skill_mds(root) or []:
+        if rel not in candidates:
+            candidates.append(rel)
     leaks = []
     for rel in candidates:
         parts = rel.parts
@@ -623,16 +663,19 @@ def check_layer_separation(root=None):
 # Transitive activation load (issue #276). The line/byte caps above bound each
 # FILE; nothing bounded what a mission makes a coordinator read on activation:
 # its SKILL.md, every playbook and runtime doc named in its Composes/rides
-# clause, and every repo-root doc it links. Measured, ship-it comes to ~29K
-# tokens — roughly 6x what agentskills.io recommends per activated skill, and
-# the shape the predecessor died of at ~42K.
+# clause, and every repo-root doc it links. The current figures are NOT written
+# here: load_report() below computes them, ARCHITECTURE.md publishes them from a
+# generated block, and a hand-typed copy is how that table drifted twice (#303).
+# What is stable enough to state: every mission is several times what
+# agentskills.io recommends per activated skill, and the predecessor died of the
+# same shape at ~42K.
 #
 # The cap is a RATCHET, not the recommendation: set at the catalog's measured
 # maximum so no mission may grow its activation load, and lowered only by real
 # restructuring (per-phase "read <doc> when entering X" cues instead of a single
 # read-everything compose clause). Naming the gap honestly and freezing it beats
 # a 5K cap that would red every mission on day one and be raised by lunchtime.
-TOKENS_PER_BYTE = 0.25  # the crude bytes/4 estimate the REVIEW.md measurement used
+TOKENS_PER_BYTE = 0.25  # the crude bytes/4 estimate the docs/reviews/2026-09-10-review.md measurement used
 MISSION_MAX_LOAD_TOKENS = 34_000
 ROOT_DOC_RE = re.compile(r"\]\((?:\.\./)+([A-Z][A-Z0-9_.-]*\.md)\)")
 
@@ -714,11 +757,38 @@ _IDENTITY_STOPWORDS = {
     "or", "per", "that", "the", "their", "then", "this", "to", "with",
 }
 IDENTITY_POINT_SAME = 0.85
+# Six points that are each merely SIMILAR still describe one mission twice. A synonym swap scores
+# ~0.67 a point — under the 0.85 bar on every one of them, and a duplicate all the same (#288).
+#
+# A paraphrase leaves NO point on which the two missions diverge — some points restated, some left
+# alone, none of them actually different. That is the signature, and it is what ARCHITECTURE.md
+# already implies: differing on one point is legal-but-surfaced (a WARN) and differing on two is
+# silent, so a pair with no divergent point at all is one mission twice, however its words are
+# arranged. Neither the mean nor the single weakest point works here — a five-of-six match averages
+# high while being a legitimate distinction, and a paraphraser can rewrite one point heavily. The
+# live catalog's closest pair has ONE near point out of six, so this has wide clearance.
+IDENTITY_POINT_NEAR = 0.4
 
 
 def _identity_tokens(value):
-    words = re.findall(r"[a-z0-9_]+", (value or "").lower())
-    return {w for w in words if w not in _IDENTITY_STOPWORDS}
+    """Identity-point tokens, STEMMED and synonym-expanded (#288).
+
+    Raw surface tokens made this a duplicate-string detector wearing an identity test's name: one
+    word defeated it. "…backlog drained to zero…" against "…backlog emptied to zero…" scored 0.667
+    against a 0.85 bar, so a second mission could restate the first's identity and pass.
+
+    eval.py already owns the repository's tokenizer — the same stemming and synonym table the
+    router uses — so the two surfaces now agree on what a word is instead of keeping separate
+    definitions. Stemming alone closes the inflection paraphrase ("backlogs", "draining"); a true
+    synonym swap is caught by the MEAN gate below, not here.
+    """
+    try:
+        _scoring, synonyms = _eval_validator.routing_config()
+        tokens = set(_eval_validator.tokenize(value or "", synonyms))
+    except Exception:  # noqa: BLE001 — a tokenizer failure must not silently widen the gate
+        tokens = {w for w in re.findall(r"[a-z0-9_]+", (value or "").lower())
+                  if w not in _IDENTITY_STOPWORDS}
+    return {t for t in tokens if t not in _IDENTITY_STOPWORDS}
 
 
 def _point_similarity(a, b):
@@ -726,6 +796,11 @@ def _point_similarity(a, b):
     if not ta or not tb:
         return 0.0
     return len(ta & tb) / len(ta | tb)
+
+
+def _identity_sims(ta, tb):
+    """Per-point similarity across the six identity points."""
+    return [_point_similarity(x, y) for x, y in zip(ta, tb)]
 
 
 def identity_collisions(root=None):
@@ -761,11 +836,24 @@ def identity_collisions(root=None):
                 for key, va, vb in zip(IDENTITY_KEYS, tuples[a], tuples[b])
                 if _point_similarity(va, vb) >= IDENTITY_POINT_SAME
             ]
+            sims = _identity_sims(tuples[a], tuples[b])
+            near = sum(1 for value in sims if value >= IDENTITY_POINT_NEAR)
+            mean = sum(sims) / len(sims) if sims else 0.0
             if len(same) == len(IDENTITY_KEYS):
                 errors.append(
                     f"{a} and {b} declare the same six identity points — "
                     "one mission with two names (ARCHITECTURE.md); merge them or "
                     "state which point actually differs"
+                )
+            elif near == len(IDENTITY_KEYS):
+                restated = [k for k, value in zip(IDENTITY_KEYS, sims)
+                            if value < IDENTITY_POINT_SAME]
+                errors.append(
+                    f"{a} and {b} restate one identity: all {len(IDENTITY_KEYS)} points are at "
+                    f"least similar (mean {mean:.2f}), with {restated} merely reworded rather than "
+                    "different. A paraphrase is not a distinction — there is no point on which "
+                    "these two missions actually diverge. Merge them, or make one point genuinely "
+                    "differ and say so in ARCHITECTURE.md (#288)"
                 )
             elif len(same) == len(IDENTITY_KEYS) - 1:
                 differs = [k for k in IDENTITY_KEYS if k not in same]
@@ -800,8 +888,11 @@ _SPELLED = ("ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eight
 _NUM = rf"(?:\d+|{_SPELLED})"
 # Separator between count, optional adjective, and noun: a hyphen (ten-mission) or
 # whitespace with optional markdown emphasis markers (Ten **autonomous fleets**).
-_SEP = r"(?:-|[\s*_]+)"
-_CATALOG_NOUN = r"(?:missions?|fleets?|outcome-named|callable)"
+_SEP = r"(?:-|[\s*_`]+)"
+# The proof tiers are catalog nouns too: "21 `doctrine-only`" is a hardcoded catalog count that
+# the noun set could not see, and it sat in README.md while this very guard was green (#282).
+_CATALOG_NOUN = (r"(?:missions?|fleets?|outcome-named|callable|"
+                 r"`?(?:doctrine-only|self-run|external-run)`?)")
 COUNT_LINT_RE = re.compile(
     rf"\b{_NUM}{_SEP}(?:[a-z]+{_SEP})?{_CATALOG_NOUN}\b",
     re.IGNORECASE,
@@ -897,6 +988,14 @@ def main():
         print("\nFAIL layer separation — SKILL.md found outside skills/:")
         for leak in leaks:
             print(f"   - {leak} (only skills/<name>/ may hold a SKILL.md)")
+
+    framed = check_lower_layer_frontmatter()
+    if framed:
+        all_passed = False
+        print("\nFAIL layer separation — frontmatter under playbooks/ or runtime/:")
+        for path in framed:
+            print(f"   - {path} (frontmatter is what makes a file discoverable; "
+                  "playbooks are called by name, never matched by a router)")
 
     doc_failures = check_protocol_doc_refs(protocols)
     if doc_failures:

@@ -6,10 +6,15 @@ truth is `.claude-plugin/plugin.json`.
 
 ## [Unreleased]
 
-The 2026-09-10 deep-review branch. `REVIEW.md` (a SHA-bound review of the evidence protocol,
-the catalog, and every README guarantee) and the upstream deep audit under `docs/research/`
-opened issues #255–#276; the mechanisms, playbooks, and missions those issues call for are
-landing on this branch, and each is listed below as it lands.
+The deep-review branches. The 2026-09-10 review (archived at `docs/reviews/2026-09-10-review.md`)
+and the upstream deep audit under `docs/research/` opened issues #255–#276; the 2026-09-11 review
+(`REVIEW.md`) opened #279–#307.
+
+Landed on 2026-09-10 and previously unlisted here, which the entry below promised and did not do:
+missions `migrate-it`, `oncall-it`, `absorb-it`, `document-it`; scripts `bundle.py`, `deny-hook.sh`,
+`egress.py`, `floor_guard.py`, `guard_text.py`, `decisions.py`, `evidence-run.py`, `inventory.py`.
+A changelog that says "each is listed below as it lands" and then lists none is worse than one that
+promises nothing (#293).
 
 ### Changed
 

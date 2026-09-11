@@ -28,18 +28,24 @@
 
 Most agent-skill packs give you better *ingredients* — a sharper TDD loop, a stricter review, a
 smarter debugger. A few now ship *outcomes* too: gstack carries a content-hash evidence ledger,
-cross-model review, and a Stop gate (one that fails open), and addyosmani/agent-skills a
-floor-guard reference implementation — all of it graded inside the run that produced the work,
-and no shipped pack executes a negative control. orca-fleet's edge is narrower and harder to
-copy: **the claim is checked by mechanism, outside the run that made it.** Each mission is a
+cross-model review, and a Stop gate (one that fails open); addyosmani/agent-skills a floor-guard
+reference implementation; and boshu2/agentops states the same "verified, not asserted" thesis and
+ships a Go CLI for the mechanical half. All of it is graded inside the run that produced the work,
+and no shipped pack executes a negative control. orca-fleet's edge is narrower: **the claim is
+checked by mechanism, outside the run that made it.** That is a design difference, not a moat —
+a CI revert-witness script was published the day before this repo's executor landed. Each mission is a
 complete autonomous fleet for the [Orca](https://github.com/stablyai/orca) runtime — a
 coordinator that decomposes a goal, dispatches isolated workers, and stops at a named terminal
 state whose claims `verify.py` re-derives from git: the **scope is frozen** against a
 coordinator-held digest the worker cannot quietly shrink, the **commits are real** on the
 intended base, the **review is looked up on GitHub** and bound to the head tree, and — landing
-on this branch — the **negative control is executed** (`--execute-nc` reverts or re-applies the
-change in a fresh worktree and requires the proof to go red) for revert and hand controls. The
-coordinator's clean-env re-run at the head SHA and its ≥10% re-execution sample of controls
+on this branch — the **negative control can be executed** for revert and hand controls
+(`--execute-nc` reverts or re-applies the change in a fresh worktree and requires the proof to go
+red). Read that last one narrowly: execution is **opt-in**, off unless the coordinator passes the
+flag, and it proves only that the change the coordinator's `--nc-command` binds to really carries
+the behaviour — not that the unit is correct. It is a sample of one mutant, and the
+automated-repair literature puts coupled test-and-fix overfitting at 54–90% of plausible patches.
+The coordinator's clean-env re-run at the head SHA and its ≥10% re-execution sample of controls
 remain doctrine it performs, not mechanism the verifier performs for it. (Report-only missions
 like `review-it` bind their claims to the reviewed SHA instead of landing a change to control
 against.)
@@ -147,11 +153,26 @@ one-way gate class, not a lower rung. A scheduled unattended run is the L5 shape
 ## Proof status — honesty first
 
 Every mission's `metadata:` block carries a validator-enforced `proof:` field: `doctrine-only`,
-`self-run`, or `external-run`. A higher tier is not a claim you can write — it is a report that
-**re-derives**. `runtime/scripts/run_report.py` requires a `RUN:` header, an evidence manifest
+`self-run`, or `external-run`. A tier cannot be claimed without **artifacts that hash true at a
+named commit**: `runtime/scripts/run_report.py` requires a `RUN:` header, an evidence manifest
 inside the run's own `docs/runs/<date>-<mission>…/` directory, and an integrity inventory whose
 hashes are re-computed from the git objects at the commit the header names. A report that merely
-names the mission in its filename no longer advances anything (issue #259, REVIEW.md §2.2).
+names the mission in its filename no longer advances anything (issue #259).
+
+Be precise about what that buys, because the gate is weaker than "re-derives" would imply and
+[`run_report.py`](runtime/scripts/run_report.py) says so in its own docstring: **it hashes, it does
+not re-run the verifier.** The 2026-09-11 review fabricated a `map-it` self-run — seven files,
+32 lines, one commit, under fifteen minutes — that reported "bound" and passed `validate.py`,
+`proof_status.py --check` and the whole suite, because files a worker writes and commits hash true
+at the commit that contains them. What the gate really refuses is a tier claimed on a report whose
+artifacts were never retained, re-pointed at another mission, or pinned to a commit where the bytes
+differ. It does not refuse a tier whose artifacts were manufactured, and re-running the verifier
+afterwards would not fix that: the authorities that made the original verdict — the coordinator's
+out-of-band contract, a live GitHub review lookup, the worktree as it stood — are gone, so a
+"re-derivation" here would be a weaker check wearing the name of a stronger one. Closing this needs
+a leg the worker cannot type at all: a coordinator-signed verifier transcript checked against a
+committed key ([#281](https://github.com/ravidsrk/orca-fleet/issues/281)), on top of making the
+tier cost an actual run ([#286](https://github.com/ravidsrk/orca-fleet/issues/286)).
 
 **No mission clears that bar today.** Four runs really happened; none of them is currently a tier
 claim:
@@ -167,10 +188,11 @@ claim:
   `748b328` — but never wrote down the verifier's command line, which its own template asked for
   verbatim. So its recorded outcome is the coordinator's word.
 
-Each report says so in its own "Evidence binding" section. The catalog reads 21 `doctrine-only`.
+Each report says so in its own "Evidence binding" section. Every mission in the catalog reads
+`doctrine-only`.
 That number went *down* as the mechanism got stronger, which is the mechanism working: the
-predecessor shipped twelve missions with two proven and paid for it, and a tier you cannot
-re-derive is the same claim in better packaging. The [run archive](docs/runs/) holds the runs; the
+predecessor shipped twelve missions with two proven and paid for it, and a tier whose artifacts
+are gone is the same claim in better packaging. The [run archive](docs/runs/) holds the runs; the
 [binding gate](runtime/scripts/run_report.py) holds the bar, exercised by `tests/test_run_report.py`
 against real git repositories.
 
@@ -329,7 +351,9 @@ head. A negative control is mandatory for every fix and every test: show the pro
 the change is reverted or mutated. The verifier reads the control's artifact and rejects a
 "survived" result; landing on this branch, `verify.py --execute-nc` replays revert and hand
 controls itself in a fresh worktree at `head_sha` and requires RED, and fail-closes on any other
-control tool. Two checks remain doctrine the coordinator performs rather than mechanism the
+control tool — when the coordinator asks for it, and against the command the coordinator names
+(`--nc-command`), never one the manifest nominates. Without `--execute-nc` the control is read,
+not run, and a read control is a text file the worker wrote. Two checks remain doctrine the coordinator performs rather than mechanism the
 verifier performs: the clean-env suite run at `head_sha`, and the ≥10% re-execution sample of
 controls ([`runtime/evidence-manifest.md`](runtime/evidence-manifest.md) §2). Mutation units
 also carry a non-empty **intent packet** (`goal` · `ruled_out` · `why`) and a `lighting` bit
@@ -402,12 +426,16 @@ plugin directory — and it is the one path where the completion gate wires itse
 <summary><b>skills CLI (any agent) — with a caveat</b></summary>
 
 The open [skills CLI](https://github.com/vercel-labs/skills) installs into Claude Code, Cursor,
-Codex, and 70+ other agents:
+Codex, and 70+ other agents — but **not from this repository, today.** `npx skills add
+ravidsrk/orca-fleet` copies `dirname(SKILL.md)` and nothing else, so every `../../playbooks/`
+reference a mission makes is severed by the install. The mission then reads "Composes
+`decide-and-freeze`, `decompose-dag`…" with no file for any of those names, and either invents the
+protocol or stops. The command is not shown here as runnable because running it produces that.
 
-```bash
-npx skills add ravidsrk/orca-fleet --list    # browse the catalog
-npx skills add ravidsrk/orca-fleet           # install
-```
+What works today is the symlink path or the plugin install, both above. What would make the skills
+CLI work is a published `dist/` for it to point at — a release branch or a second repository — which
+is [#294](https://github.com/ravidsrk/orca-fleet/issues/294); the bundler that produces that tree
+already exists and is CI-checked.
 
 **Copy installers need a bundled tree.** Every mission references `../../playbooks/` and
 `../../runtime/` relative to its own directory. An installer that copies skill directories *out*
@@ -421,7 +449,9 @@ python3 scripts/bundle.py --check   # verify no reference escapes a mission dire
 
 Each bundled mission carries its own `references/` copies of every protocol it names plus the root
 docs it links, with its SKILL.md links rewritten to point there and an index at
-`references/README.md`. Install from `dist/` rather than the repo root. `dist/` is generated and
+`references/README.md`. A copy installer must take `dist/`, never the repo root — and no installer
+can be pointed at a local `dist/` over the network, which is why the CLI path waits on publishing
+one. `dist/` is generated and
 gitignored: committing 21 copies of the doctrine tree would make every runtime edit a 21-file diff
 and the copies would rot between edits.
 
@@ -543,9 +573,16 @@ more than one pack mounted in a single worker.
 <details>
 <summary><b>Can a mission touch my default branch?</b></summary>
 
-No. Every fleet works on an integration BASE that is verified to *not* be the default branch
-(`runtime/scripts/preflight.py`), and the BASE→default promotion is a one-way human gate. The
-fleet opens the promotion PR and stops. If it reports otherwise, that is a bug — file it.
+By doctrine, no — and the honest answer is that the doctrine is not fully backed by a mechanism.
+Every fleet works on an integration BASE that `runtime/scripts/preflight.py` verifies is *not* the
+default branch, and the BASE→default promotion is a one-way human gate: the fleet opens the
+promotion PR and stops. But `preflight.py` is invoked by a sentence in each mission, not by
+anything that refuses to proceed without it, and nothing stops a read-write worker running under
+`--dangerously-skip-permissions` from pushing to the default branch anyway. `deny-hook.sh` is
+written to refuse exactly that and is unregistered by construction — a host must paste its
+registration, and on the supervised lane nothing can ([#284](https://github.com/ravidsrk/orca-fleet/issues/284)).
+So: no fleet is *supposed* to, the preflight check is real where it runs, and the guarantee is not
+yet enforced end to end. If it reports otherwise, that is a bug — file it.
 
 </details>
 

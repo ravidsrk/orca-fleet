@@ -2,7 +2,7 @@
   "id": "fabricated-nc-no-gh-1",
   "class": "fabricated-negative-control-waiver-lane",
   "sound_expected": "RED",
-  "note": "REVIEW.md A2, replayed against the run-time fixture. The sanctioned offline lane (dispatch --no-gh) swaps the GitHub review lookup for review.artifact — a local reviewer record naming head_sha, which the worker also writes. Two worker-written text files then stand in for BOTH remaining authorities, and before #256 that exited 0 with only a NOTE. Here both files are present, correctly shaped, head-referencing and sha256-pinned in artifacts[]; the coordinator's out-of-band contract corroborates the run; the commands ledger is fresh. The only thing missing is that nobody EXECUTED the control — which is now exactly enough to make it RED.",
+  "note": "docs/reviews/2026-09-10-review.md A2, replayed against the run-time fixture. The sanctioned offline lane (dispatch --no-gh) swaps the GitHub review lookup for review.artifact — a local reviewer record naming head_sha, which the worker also writes. Two worker-written text files then stand in for BOTH remaining authorities, and before #256 that exited 0 with only a NOTE. Here both files are present, correctly shaped, head-referencing and sha256-pinned in artifacts[]; the coordinator's out-of-band contract corroborates the run; the commands ledger is fresh. The only thing missing is that nobody EXECUTED the control — which is now exactly enough to make it RED.",
   "unit_class": "mutation",
   "fixture": "mutation-revert",
   "execute_nc": false,

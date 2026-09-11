@@ -12,6 +12,8 @@ bypassed and every requested lens runs over the full surface.
 
 ## Dispatch rule (scope-gated, diff-triggered mode)
 
+Compute the signals with `runtime/scripts/diff_scope.py --json --strict`, never by eye: it fail-louds on a base it cannot resolve AND
+on any path it could not classify, so neither "we could not look" nor "we looked at half of it" can read as "nothing to look at" (#284, #314).
 Run a lens only when the diff signals it (auth/query/route/dep change → security; render/query/bundle
 → perf; component/markup → a11y; schema/migration → data-migration; public route/contract/interface
 change → api-contract; new abstraction/helper/module the diff did not strictly need → simplification).

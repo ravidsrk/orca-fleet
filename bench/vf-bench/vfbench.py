@@ -47,7 +47,7 @@ def _commit_present(sha):
 def skip_reason(trap):
     """#257: a trap that pins a real commit CANNOT be scored on a shallow clone — the commit is
     simply not there, so every leg that reads it degrades and the verdict measures the checkout,
-    not the gate. Say so by name instead of scoring ambient state (REVIEW.md P2 item 22: the
+    not the gate. Say so by name instead of scoring ambient state (docs/reviews/2026-09-10-review.md P2 item 22: the
     review-leg trap used to skip silently). `fetch-depth: 0` fixes it in CI."""
     for sha in trap.get("requires_commits", []):
         if not _commit_present(sha):
@@ -75,6 +75,31 @@ FIXTURE_NC = (
     "mod.py restored from base_sha in a throwaway worktree at head_sha; `python -m unittest`\n"
     "went RED (mutant KILLED). Re-running at clean head_sha is green.\n"
 )
+# The stillborn trap's artifact (#306). A `hand` control must QUOTE its diff in the artifact —
+# putting it in a `negative_control.diff` field gets the manifest refused as malformed, which
+# would refuse the trap for the wrong reason and measure nothing about stillborn detection.
+# The diff below is a real one against mod.py's changed line, and it breaks the parse, so the
+# executed run dies on a SyntaxError before any assertion is evaluated.
+FIXTURE_NC_DECOY = (
+    "hand negative control (NARRATED)\n\n"
+    "```diff\n--- a/contract.md\n+++ b/contract.md\n@@ -1,3 +1,3 @@\n"
+    " # Frozen contract (vf-bench mutation fixture)\n"
+    "-- AC-1: add(a, b) returns a + b\n"
+    "+- AC-1: add(a, b) returns something\n```\n\n"
+    "`python -m unittest` went RED (mutant KILLED).\n"
+)
+FIXTURE_NC_STILLBORN = (
+    "hand negative control, EXECUTED\n\n"
+    "```diff\n"
+    "--- a/mod.py\n"
+    "+++ b/mod.py\n"
+    "@@ -1,2 +1,2 @@\n"
+    " def add(a, b):\n"
+    "-    return a + b  # the fix\n"
+    "+    return a +  # the fix\n"
+    "```\n\n"
+    "`python -m unittest` exited non-zero (mutant KILLED).\n"
+)
 
 
 def _fixture_git(repo, *args):
@@ -84,6 +109,32 @@ def _fixture_git(repo, *args):
 def _fixture_rev(repo, rev):
     return subprocess.run(["git", "-C", str(repo), "rev-parse", rev],
                           check=True, capture_output=True, text=True).stdout.strip()
+
+
+def build_report_fixture(repo):
+    """A REAL report-only unit, built at run time: a commit range that produces a report and
+    touches no code (#310, PR #308 review).
+
+    valid-control-1 used to be a static manifest at `HEAD..HEAD`. That shape is now refused — an
+    empty declared range is a worker's assertion that it changed nothing, with no diff behind it,
+    and a production mutation can make the same assertion. So the positive control has to show
+    what an honest report-only unit looks like instead of asserting it: two real commits, and the
+    only thing between them is a document."""
+    repo.mkdir(parents=True)
+    _fixture_git(repo, "init", "-q", "-b", "main")
+    (repo / "mod.py").write_text(FIXTURE_MOD_HEAD, encoding="utf-8")
+    (repo / "contract.md").write_text(FIXTURE_CONTRACT, encoding="utf-8")
+    _fixture_git(repo, "add", "-A")
+    _fixture_git(repo, "-c", "user.name=vf", "-c", "user.email=vf@vf", "commit", "-qm", "base")
+    base = _fixture_rev(repo, "HEAD")
+    docs = repo / "docs"
+    docs.mkdir()
+    (docs / "report.md").write_text("# review-it\n\nAC-1 holds at head.\n", encoding="utf-8")
+    _fixture_git(repo, "add", "docs/report.md")
+    _fixture_git(repo, "-c", "user.name=vf", "-c", "user.email=vf@vf", "commit", "-qm", "the report")
+    head = _fixture_rev(repo, "HEAD")
+    return {"base_sha": base, "head_sha": head,
+            "contract_digest": "sha256:" + hashlib.sha256((repo / "contract.md").read_bytes()).hexdigest()}
 
 
 def build_mutation_fixture(repo):
@@ -109,6 +160,8 @@ def build_mutation_fixture(repo):
     evidence = repo / "docs" / "reports" / "vf"
     evidence.mkdir(parents=True)
     (evidence / "nc.txt").write_text(FIXTURE_NC, encoding="utf-8")
+    (evidence / "nc-stillborn.txt").write_text(FIXTURE_NC_STILLBORN, encoding="utf-8")
+    (evidence / "nc-decoy.txt").write_text(FIXTURE_NC_DECOY, encoding="utf-8")
     (evidence / "review.txt").write_text(
         f"build-blind review of {head}\nAPPROVED by vf-reviewer (local lane record)\n",
         encoding="utf-8")
@@ -120,6 +173,8 @@ def build_mutation_fixture(repo):
         "base_sha": base, "head_sha": head, "head_tree": _fixture_rev(repo, "HEAD^{tree}"),
         "contract_digest": "sha256:" + sha256("contract.md"),
         "nc_sha256": sha256("docs/reports/vf/nc.txt"),
+        "nc_stillborn_sha256": sha256("docs/reports/vf/nc-stillborn.txt"),
+        "nc_decoy_sha256": sha256("docs/reports/vf/nc-decoy.txt"),
         "review_sha256": sha256("docs/reports/vf/review.txt"),
         # The SAME command line the negative control replays and the ledger records —
         # one token, so the trap cannot drift into proving nothing. sys.executable in
@@ -171,13 +226,16 @@ def _render(obj, facts):
     return obj
 
 
+FIXTURES = {"mutation-revert": build_mutation_fixture, "report-only": build_report_fixture}
+
+
 def fixture_gate(trap):
-    """Run verify.py against a trap whose unit is built at run time (see build_mutation_fixture).
+    """Run verify.py against a trap whose unit is built at run time (see FIXTURES).
     Returns True when the gate returned GREEN."""
     holder = Path(tempfile.mkdtemp(prefix="vfbench-fixture-"))
     try:
         repo = holder / "repo"
-        facts = build_mutation_fixture(repo)
+        facts = FIXTURES[trap["fixture"]](repo)
         manifest = _render(trap["manifest"], facts)
         mpath = repo / "vf-manifest.json"
         mpath.write_text(json.dumps(manifest), encoding="utf-8")
@@ -191,6 +249,11 @@ def fixture_gate(trap):
             cmd.append("--no-gh")
         if trap.get("execute_nc"):
             cmd.append("--execute-nc")
+            # #279: the criterion-bound command comes from the COORDINATOR, out of band, exactly as
+            # the contract does. The bench plays that role here; a trap that omits it is modelling a
+            # coordinator who named no command, and verify.py refuses the run.
+            if trap.get("nc_command"):
+                cmd += ["--nc-command", _render(trap["nc_command"], facts)]
         if trap.get("repo"):
             cmd += ["--repo", trap["repo"]]
         env = dict(os.environ)
@@ -214,7 +277,7 @@ def fixture_gate(trap):
 def sound_gate(trap):
     """orca-fleet's verifier, run as a separate process, given the trap's AUTHORITATIVE contract
     (the coordinator role) — never the manifest's own contract fields."""
-    if trap.get("fixture") == "mutation-revert":
+    if trap.get("fixture") in FIXTURES:
         return fixture_gate(trap)
     with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
         json.dump(trap["manifest"], fh)
@@ -235,6 +298,10 @@ def sound_gate(trap):
             cmd += ["--base", trap["base"]]
         if trap.get("repo"):
             cmd += ["--repo", trap["repo"]]
+        if trap.get("execute_nc"):
+            cmd.append("--execute-nc")
+            if trap.get("nc_command"):  # coordinator-supplied, as in fixture_gate (#279)
+                cmd += ["--nc-command", trap["nc_command"]]
         r = subprocess.run(cmd, capture_output=True, text=True, cwd=ROOT)
         # verify.py returns 0 (GREEN/allow) or 2 (RED/invariant failed). Any other code (1 = usage /
         # dependency error) is a BROKEN run, not a verdict — fail loud so it cannot inflate soundness

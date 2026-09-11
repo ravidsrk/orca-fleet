@@ -213,6 +213,67 @@ class TestActive(DecisionsBase):
         self.assertIn("option-b", r.stdout)
         self.assertNotIn("option-a", r.stdout)
 
+    def test_an_out_of_order_line_does_not_become_the_active_one(self):
+        # #318: "newest per id wins" resolved by FILE POSITION, never comparing ts. Any merge,
+        # reorder or out-of-order append silently changed which decision was live — and a ledger
+        # whose ordering guarantee is "whoever wrote last" is not a ledger.
+        self.seed([
+            "2026-09-02T00:00:00Z · gate-9 · taste · option-b · reconsidered · t-1",
+            "2026-09-01T00:00:00Z · gate-9 · taste · option-a · first pass · t-1",
+        ])
+        r = self.run_dec("active")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("option-b", r.stdout, "the older line won on position alone")
+        self.assertNotIn("option-a", r.stdout)
+
+    def test_a_timezone_offset_is_compared_as_an_instant_not_as_text(self):
+        # PR #308 review, P1. TS_PREFIX accepts anything starting with a date, so a record can
+        # carry an offset — and `2026-09-11T01:00:00+05:00` IS `2026-09-10T20:00:00Z`, earlier
+        # than `2026-09-11T00:00:00Z`. Compared as text it sorted later and the OLDER decision won.
+        self.seed([
+            "2026-09-11T01:00:00+05:00 · gate-12 · taste · option-old · = 2026-09-10T20:00Z · t-1",
+            "2026-09-11T00:00:00Z · gate-12 · taste · option-new · genuinely later · t-1",
+        ])
+        r = self.run_dec("active")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("option-new", r.stdout, "an offset stamp beat a genuinely later UTC one")
+        self.assertNotIn("option-old", r.stdout)
+
+    def test_a_date_only_stamp_sorts_before_the_same_days_timed_ones(self):
+        self.seed([
+            "2026-09-11T00:00:01Z · gate-13 · taste · option-timed · one second in · t-1",
+            "2026-09-11 · gate-13 · taste · option-dateonly · midnight · t-1",
+        ])
+        r = self.run_dec("active")
+        self.assertIn("option-timed", r.stdout, r.stdout)
+
+    def test_an_unreadable_stamp_never_displaces_a_readable_one(self):
+        self.seed([
+            "2026-09-01T00:00:00Z · gate-14 · taste · option-real · dated · t-1",
+            "2026-13-45nonsense · gate-14 · taste · option-junk · unparseable · t-1",
+        ])
+        r = self.run_dec("active")
+        self.assertIn("option-real", r.stdout, f"a junk stamp won on position: {r.stdout}")
+
+    def test_identical_timestamps_fall_back_to_file_order(self):
+        # Ties are real: two decisions can share a timestamp. Position is the tiebreak, which is
+        # the old behaviour preserved exactly where it is the only information available.
+        self.seed([
+            "2026-09-01T00:00:00Z · gate-10 · taste · option-a · first · t-1",
+            "2026-09-01T00:00:00Z · gate-10 · taste · option-b · second · t-1",
+        ])
+        r = self.run_dec("active")
+        self.assertIn("option-b", r.stdout)
+        self.assertNotIn("option-a", r.stdout)
+
+    def test_an_out_of_order_supersede_still_retires_the_id(self):
+        self.seed([
+            "2026-09-02T00:00:00Z · gate-11 · taste · superseded · dropped · t-1",
+            "2026-09-01T00:00:00Z · gate-11 · taste · option-a · first pass · t-1",
+        ])
+        r = self.run_dec("active")
+        self.assertNotIn("gate-11", r.stdout)
+
     def test_superseded_answer_retires_the_id(self):
         self.seed([
             "2026-09-01T00:00:00Z · gate-2 · taste · option-a · first pass · t-1",

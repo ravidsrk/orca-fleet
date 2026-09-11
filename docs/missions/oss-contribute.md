@@ -1,7 +1,7 @@
 # 🤝 oss-contribute — landed contributions to a repo you do not control
 
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel builders per upstream issue; the maintainer's merge is a gate the fleet neither owns nor fakes.
-> **Activation load:** ~33,300 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
+> **Activation load:** ~32,100 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — it ran ([external-run report](../runs/2026-07-16-oss-contribute-external-run.md)), but that run's
 > artifacts were retained outside this repository, so the tier is not re-derivable here
 > (`runtime/scripts/run_report.py`, issue #259)
@@ -27,7 +27,7 @@ one through the per-issue pipeline, verifies each against authoritative state, a
 re-enumeration finds nothing actionable left un-contributed.
 
 It is `clean-sweep` forked for a repo you do **not** control. The build and review machinery is shared;
-three things differ, and by orca-fleet's own five-part mission test that makes it a distinct mission:
+three things differ, and by orca-fleet's own six-part mission test that makes it a distinct mission:
 
 - **Convergence proof.** `clean-sweep` closes each issue with a merged SHA. `oss-contribute` cannot —
   you have READ on the target. The terminal is a PR **open and internally reviewed**; merge is the
