@@ -35,13 +35,13 @@ new-exception        an added constraints row shaped ``| W123 |`` / ``| E45 |``,
                      an added line under an ``## Exceptions`` heading
 ===================  ============================================================
 
-Exemptions come from the DECISIONS log, never from an ignore file. A waiver line
-must carry the ``floor-waiver`` marker, the rule id as a whole token, and the
-path either named exactly or covered by an explicit ``dir/**`` glob -- a bare
-directory is not a waiver, and neither is ``**``. That keeps a waiver
-reviewable, attributable and dated (runtime/ledger-contract.md DECISIONS log)
-instead of a silent glob, and keeps it a DECLARATION rather than two substrings
-a sentence happens to contain (#313).
+Exemptions come from the DECISIONS log, never from an ignore file. A waiver is a
+record whose ID is ``floor-waiver:<rule>:<path-or-glob>`` and whose ANSWER
+grants -- a bare directory is not a waiver, and neither is ``**``. Scope in the
+id gives the waiver an identity the ledger can retire, so a later ``superseded``
+row ends it exactly as it ends any other decision, and ``decisions.active``
+decides which waivers still stand. No prose is parsed: a sentence that mentions
+a rule and a path is not a waiver (#313, PR #308 review).
 
 Reporting is redaction-first: rule id, ``file:line`` and a short pattern name --
 never the matched text, which may be the credential someone tried to suppress.
@@ -325,7 +325,11 @@ def load_waivers(path):
         raise GuardError(f"waiver file {path} is unreadable: {err}") from err
 
 
-_WAIVER_ID = "floor-waiver"
+# A waiver's IDENTITY, so the ledger can retire it: `floor-waiver:<rule>:<path-or-glob>`. Sharing
+# one id across every waiver left them with nothing to supersede — a later `superseded` row names
+# no particular waiver, so an `allow` stayed live forever (PR #308 review, P1). With scope in the
+# id, decisions.active() does the retiring, which is the mechanism the ledger already has.
+_WAIVER_ID_PREFIX = "floor-waiver:"
 # The answers that GRANT. A DECISIONS record is a decision, and `deny` is one of the things it can
 # say — reading the line as a bag of tokens made a record REFUSING a waiver grant it (PR #308
 # review, P1). Anything not in this set, `deny` and `superseded` included, grants nothing.
@@ -339,12 +343,6 @@ def _load_decisions():
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
-
-# Tokens of a waiver line: path/rule shaped runs. `-` and `.` are in the class so `test-made-easier`
-# and `src/new.py` each read as ONE token, which is the whole point — substring matching is what
-# made `silenced-checkers` waive `silenced-checker`.
-_WAIVER_TOKEN_RE = re.compile(r"[A-Za-z0-9_./*-]+")
-
 
 def _path_waived_by(token, path):
     """True when `token` names `path` exactly, or is a `dir/**` glob whose segments prefix it.
@@ -363,19 +361,20 @@ def _path_waived_by(token, path):
 
 
 def is_waived(finding, waivers):
-    """A waiver is a DECISIONS RECORD that grants one, not a line that mentions the right words.
+    """A waiver is a DECISIONS RECORD that grants one, identified by the scope it covers.
 
-    Three rounds of this. `rule in line and path in line` let a superstring stand in for either
-    field (`silenced-checkers`, `src/new.pyc`) and, because every line was scanned, let a sentence
-    that merely mentioned both grant a waiver (#313). Requiring a `floor-waiver` token fixed the
-    mention but not the meaning: a structured record with id `floor-waiver` and answer `deny` —
-    the team recording that it REFUSED this waiver — still granted it, because the check read the
-    line as a bag of tokens and never looked at what the record said (PR #308 review, P1).
+    Four rounds of this, each fixing the previous one's blind spot, so the shape is worth stating
+    plainly. `rule in line and path in line` let a superstring stand in for either field and let a
+    sentence that merely mentioned both grant a waiver (#313). Requiring a `floor-waiver` token
+    fixed the mention and not the meaning: a structured record with that ID and answer `deny` still
+    granted, because the line was still read as a bag of tokens. Checking each record's own answer
+    fixed that and left the ledger out: an `allow` retired by a later `superseded` kept granting,
+    because every waiver shared one id and so had no identity to retire (PR #308 review, P1).
 
-    So the line is parsed by decisions.py, the sibling that owns the format. The record's ID must
-    be `floor-waiver` and its ANSWER must grant; the rule id and path are then read out of the
-    `why` field alone, so no other field can supply them. Rule ids match as whole tokens, paths
-    exactly or by an explicit `dir/**` glob. A decisions.py that will not load waives nothing."""
+    So the waiver's scope lives in its ID — `floor-waiver:<rule>:<path-or-glob>` — and
+    decisions.active() decides which records still stand: newest per id, `superseded` retired. No
+    prose is parsed at all. The rule matches exactly, the path exactly or by an explicit `dir/**`
+    glob. A decisions.py that will not load waives nothing."""
     path = finding.get("path")
     if not path:
         return False
@@ -383,18 +382,18 @@ def is_waived(finding, waivers):
         decisions = _load_decisions()
     except Exception:  # noqa: BLE001 - an unloadable sibling must not start granting waivers
         return False
+    records = []
     for line in waivers:
         record = decisions.parse_line(line)
-        if record is None:
-            continue
-        if record["id"].strip() != _WAIVER_ID:
-            continue
+        if record is not None and record["id"].strip().startswith(_WAIVER_ID_PREFIX):
+            records.append(record)
+    for record in decisions.active(records):
         if record["answer"].strip().lower() not in _WAIVER_GRANTS:
             continue
-        tokens = _WAIVER_TOKEN_RE.findall(record["why"])
-        if finding["rule"] not in tokens:
+        rule, _sep, scope = record["id"].strip()[len(_WAIVER_ID_PREFIX):].partition(":")
+        if rule != finding["rule"]:
             continue
-        if any(_path_waived_by(t, path) for t in tokens):
+        if _path_waived_by(scope, path):
             return True
     return False
 
@@ -438,8 +437,8 @@ def main(argv=None):
     for f in live:
         print(f"  [{f['rule']}] {f['path']}:{f['line']} ({f['detail']})", file=sys.stderr)
     print(
-        "\nEach lowers the bar. Fix the code, or record a DECISIONS waiver line carrying "
-        "`floor-waiver`, the rule id, and the path exactly (or `dir/**`).",
+        "\nEach lowers the bar. Fix the code, or record a DECISIONS waiver whose id is "
+        "`floor-waiver:<rule>:<path>` (or `:<dir>/**`) and whose answer is `allow`.",
         file=sys.stderr,
     )
     return EXIT_FINDINGS

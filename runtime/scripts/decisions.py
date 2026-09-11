@@ -235,8 +235,12 @@ def _instant(ts):
     return moment if moment.tzinfo else moment.replace(tzinfo=timezone.utc)
 
 
-def _recency(record, position):
-    """Sort key for "which line for this id is newest": instant first, file order to break ties.
+def recency(record, position):
+    """Sort key for "which of these lines is newest": instant first, file order to break ties.
+
+    Public because floor_guard.py orders waiver records by it: a waiver is a DECISIONS record, and
+    two modules deciding "newest" differently is how a retired waiver keeps granting (PR #308
+    review, P1).
 
     Position alone was the whole ordering guarantee (#318), which made the ledger's answer depend
     on who appended last rather than on when the decision was taken — so any merge, reorder or
@@ -251,7 +255,7 @@ def active(records):
     exactly 'superseded' retires the id."""
     latest = {}
     for position, record in enumerate(records):
-        key = _recency(record, position)
+        key = recency(record, position)
         current = latest.get(record["id"])
         if current is None or key > current[0]:
             latest[record["id"]] = (key, record)
@@ -265,7 +269,7 @@ def tally(records, lens):
     different streak after a merge."""
     ident = f"lens-tally:{lens}"
     rows = [r for _key, r in sorted(
-        ((_recency(r, i), r) for i, r in enumerate(records) if r["id"] == ident),
+        ((recency(r, i), r) for i, r in enumerate(records) if r["id"] == ident),
         key=lambda pair: pair[0])]
     streak = 0
     for record in reversed(rows):
