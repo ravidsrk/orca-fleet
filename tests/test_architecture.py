@@ -51,6 +51,111 @@ def frontmatter_description(text):
     return m.group(1).strip() if m else ""
 
 
+class LayerSeparationHoldsForUntrackedFilesToo(unittest.TestCase):
+    """#305: two gaps in a rule that otherwise held.
+
+    D1b — the scan was `git ls-files`, so an UNTRACKED SKILL.md under playbooks/ passed. The host
+    does not care whether a file is committed; on a symlinked checkout, which is the trial path
+    the README recommends first, that file activates.
+
+    D2 — AGENTS.md has always said playbooks and runtime policies carry no frontmatter, and
+    nothing enforced it. Frontmatter is what makes a file discoverable, so the layer separation
+    was only ever as real as everyone's care in not adding any.
+    """
+
+    def _tree(self, tmp, extra):
+        root = Path(tmp)
+        for layer in ("skills/ship-it", "playbooks", "runtime"):
+            (root / layer).mkdir(parents=True, exist_ok=True)
+        (root / "skills/ship-it/SKILL.md").write_text("---\nname: ship-it\n---\n", encoding="utf-8")
+        for rel, body in extra.items():
+            path = root / rel
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(body, encoding="utf-8")
+        return root
+
+    def test_an_untracked_skill_md_under_playbooks_is_a_leak(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = self._tree(tmp, {"playbooks/sneaky/SKILL.md": "---\nname: sneaky\n---\n"})
+            self.assertEqual(validate.check_layer_separation(root),
+                             ["playbooks/sneaky/SKILL.md"])
+
+    def test_the_legitimate_placement_is_not_a_leak(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertEqual(validate.check_layer_separation(self._tree(tmp, {})), [])
+
+    def test_a_local_dot_directory_is_not_repo_content(self):
+        # .venv/.tox are not on any checkout the host reads — flagging them is a false red.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = self._tree(tmp, {".venv/lib/pkg/SKILL.md": "---\nname: vendored\n---\n"})
+            self.assertEqual(validate.check_layer_separation(root), [])
+
+    def test_frontmatter_under_playbooks_or_runtime_is_rejected(self):
+        for rel in ("playbooks/characterize.md", "runtime/sandbox-policy.md"):
+            with self.subTest(path=rel):
+                with tempfile.TemporaryDirectory() as tmp:
+                    root = self._tree(tmp, {rel: "---\nname: x\ndescription: y\n---\n# body\n"})
+                    self.assertEqual(validate.check_lower_layer_frontmatter(root), [rel])
+
+    def test_a_plain_playbook_is_not_flagged(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = self._tree(tmp, {"playbooks/plain.md": "# A playbook\n\nBody text.\n"})
+            self.assertEqual(validate.check_lower_layer_frontmatter(root), [])
+
+    def test_a_horizontal_rule_is_not_frontmatter(self):
+        """Both false-red shapes, which is the half that makes the check usable.
+
+        A `---` in the middle of a document is a rule. A `---` on line 1 with no closing fence is
+        malformed, not frontmatter — and calling it a leak would fail a document that simply opens
+        with a rule.
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            root = self._tree(tmp, {
+                "runtime/mid.md": "Body first.\n\n---\n\nMore body.\n",
+                "runtime/unclosed.md": "---\nthis fence never closes\n\n# body\n",
+            })
+            self.assertEqual(validate.check_lower_layer_frontmatter(root), [])
+
+    def test_the_real_repository_passes_both(self):
+        self.assertEqual(validate.check_layer_separation(), [])
+        self.assertEqual(validate.check_lower_layer_frontmatter(), [])
+
+    def test_validate_py_itself_reports_a_frontmattered_playbook(self):
+        """Calling the function proves the function works, NOT that validate.py runs it.
+
+        A mutant dropping the call from main() left this suite green — the same trap #303 hit one
+        issue ago. This drives the real entry point against a real tree: the repo, plus one
+        offending file, with the run reverted afterwards whatever happens.
+        """
+        planted = ROOT / "playbooks" / "_frontmatter_probe.md"
+        planted.write_text("---\nname: probe\ndescription: auto-trigger me\n---\n# body\n",
+                           encoding="utf-8")
+        try:
+            r = subprocess.run([sys.executable, str(ROOT / "scripts" / "validate.py")],
+                               capture_output=True, text=True)
+        finally:
+            planted.unlink(missing_ok=True)
+        self.assertNotEqual(r.returncode, 0,
+                            "validate.py passed a playbook carrying frontmatter")
+        self.assertIn("frontmatter under playbooks/ or runtime/", r.stdout,
+                      f"validate.py failed, but not for this reason:\n{r.stdout}")
+
+    def test_validate_py_itself_reports_an_untracked_skill_md(self):
+        planted = ROOT / "playbooks" / "_layer_probe" / "SKILL.md"
+        planted.parent.mkdir(parents=True, exist_ok=True)
+        planted.write_text("---\nname: probe\n---\n", encoding="utf-8")
+        try:
+            r = subprocess.run([sys.executable, str(ROOT / "scripts" / "validate.py")],
+                               capture_output=True, text=True)
+        finally:
+            planted.unlink(missing_ok=True)
+            planted.parent.rmdir()
+        self.assertNotEqual(r.returncode, 0,
+                            "validate.py passed an untracked SKILL.md under playbooks/")
+        self.assertIn("SKILL.md found outside skills/", r.stdout,
+                      f"validate.py failed, but not for this reason:\n{r.stdout}")
+
+
 class TheActivationLoadTableIsGenerated(unittest.TestCase):
     """#303: the table was typed by hand and drifted 150-280 tokens within a day.
 
