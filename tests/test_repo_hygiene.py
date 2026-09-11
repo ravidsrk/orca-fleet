@@ -6,6 +6,7 @@ easy to undo silently in a later edit. The assertions are about the FILES, so th
 changes them next.
 """
 import re
+import sys
 import subprocess
 import unittest
 from pathlib import Path
@@ -155,6 +156,59 @@ class TheSecretWaiverCarriesIdentityNotContent(unittest.TestCase):
                          "a passing scan of the planted key no longer fails the build")
 
 
+class TheSuiteRunsOnTheStdlibAlone(unittest.TestCase):
+    """CI installs no test dependencies, so a third-party import is a red build, not a skip.
+
+    Learned the expensive way: a `yaml.safe_load` in this very file passed locally, where pyyaml
+    happens to be installed, and failed on the runner. The repo already believed this —
+    test_floor_guard.py uses `import yaml` as its example of a third-party import — but nothing
+    enforced it, so the belief was worth exactly one commit.
+    """
+
+    # Modules that live in this directory and are imported by path, not by name.
+    LOCAL = {"test_pins", "test_evals", "conftest"}
+    IMPORT = re.compile(r"^\s*(?:from|import)\s+([A-Za-z_][A-Za-z0-9_]*)", re.M)
+
+    def _offenders(self, source, name="sample.py"):
+        stdlib = set(sys.stdlib_module_names)
+        found = []
+        for i, line in enumerate(source.splitlines(), 1):
+            # A quoted example is not an import — test_floor_guard.py carries several.
+            if '"' in line or "'" in line:
+                continue
+            m = self.IMPORT.match(line)
+            if not m:
+                continue
+            mod = m.group(1)
+            if mod not in stdlib and mod not in self.LOCAL and mod != Path(name).stem:
+                found.append(f"{name}:{i}: {line.strip()}")
+        return found
+
+    def test_the_check_can_actually_see_a_third_party_import(self):
+        """A clean tree makes `assertEqual(offenders, [])` pass whether or not the check works.
+
+        Two negative-control mutants proved that: scanning no files at all, and allowlisting
+        everything, both left the suite green. So the detector gets a sample it MUST flag —
+        otherwise this is a check that only ever agrees with itself.
+        """
+        bad = self._offenders("import os\nimport yaml\nfrom requests import get\n")
+        self.assertEqual(len(bad), 2, f"the third-party scan missed something: {bad}")
+        self.assertTrue(any("yaml" in o for o in bad))
+        self.assertTrue(any("requests" in o for o in bad))
+        self.assertEqual(self._offenders("import os\nimport json\nfrom pathlib import Path\n"),
+                         [], "the scan flagged the standard library")
+
+    def test_no_test_imports_a_package_ci_does_not_install(self):
+        offenders = []
+        paths = sorted(Path(__file__).resolve().parent.glob("test_*.py"))
+        self.assertGreater(len(paths), 20, "the scan found almost no test files to read")
+        for path in paths:
+            offenders += self._offenders(path.read_text(encoding="utf-8"), path.name)
+        self.assertEqual(offenders, [],
+                         "CI installs no test dependencies — these imports are a red build on "
+                         "the runner and a pass on any machine that happens to have them")
+
+
 class TheAlertWorkflowCannotBeTrippedByAFork(unittest.TestCase):
     """`branches: [main]` filters the workflow_run's HEAD branch, and a fork's PR branch can be
     named `main` too. No token reaches the fork, so the exposure is issue spam rather than
@@ -163,9 +217,29 @@ class TheAlertWorkflowCannotBeTrippedByAFork(unittest.TestCase):
     WF = ROOT / ".github" / "workflows" / "alert-on-failure.yml"
 
     def _condition(self):
-        import yaml
-        doc = yaml.safe_load(self.WF.read_text(encoding="utf-8"))
-        return " ".join(doc["jobs"]["alert"]["if"].split())
+        """The job's `if:` folded scalar, read with the stdlib.
+
+        This used `yaml.safe_load` and CI went red: pyyaml is not on the runner, and the whole
+        suite is stdlib-only by design — test_floor_guard.py treats a bare `import yaml` as the
+        third-party marker it is. Same folded-scalar shape test_pins.py already reads by hand.
+        """
+        out, active, indent = [], False, 0
+        for line in self.WF.read_text(encoding="utf-8").splitlines():
+            stripped = line.strip()
+            if not active and stripped.startswith("if:"):
+                active, indent = True, len(line) - len(line.lstrip())
+                rest = stripped[len("if:"):].strip()
+                if rest not in (">-", ">", "|", "|-"):
+                    out.append(rest)
+                continue
+            if active:
+                if not stripped or stripped.startswith("#"):
+                    continue
+                if len(line) - len(line.lstrip()) <= indent:
+                    break
+                out.append(stripped)
+        self.assertTrue(out, "the alert job has no `if:` condition at all")
+        return " ".join(" ".join(out).split())
 
     def test_the_run_must_have_come_from_a_push(self):
         self.assertIn("github.event.workflow_run.event == 'push'", self._condition(),
