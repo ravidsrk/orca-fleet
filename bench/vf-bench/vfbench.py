@@ -80,6 +80,14 @@ FIXTURE_NC = (
 # would refuse the trap for the wrong reason and measure nothing about stillborn detection.
 # The diff below is a real one against mod.py's changed line, and it breaks the parse, so the
 # executed run dies on a SyntaxError before any assertion is evaluated.
+FIXTURE_NC_DECOY = (
+    "hand negative control (NARRATED)\n\n"
+    "```diff\n--- a/contract.md\n+++ b/contract.md\n@@ -1,3 +1,3 @@\n"
+    " # Frozen contract (vf-bench mutation fixture)\n"
+    "-- AC-1: add(a, b) returns a + b\n"
+    "+- AC-1: add(a, b) returns something\n```\n\n"
+    "`python -m unittest` went RED (mutant KILLED).\n"
+)
 FIXTURE_NC_STILLBORN = (
     "hand negative control, EXECUTED\n\n"
     "```diff\n"
@@ -127,6 +135,7 @@ def build_mutation_fixture(repo):
     evidence.mkdir(parents=True)
     (evidence / "nc.txt").write_text(FIXTURE_NC, encoding="utf-8")
     (evidence / "nc-stillborn.txt").write_text(FIXTURE_NC_STILLBORN, encoding="utf-8")
+    (evidence / "nc-decoy.txt").write_text(FIXTURE_NC_DECOY, encoding="utf-8")
     (evidence / "review.txt").write_text(
         f"build-blind review of {head}\nAPPROVED by vf-reviewer (local lane record)\n",
         encoding="utf-8")
@@ -139,6 +148,7 @@ def build_mutation_fixture(repo):
         "contract_digest": "sha256:" + sha256("contract.md"),
         "nc_sha256": sha256("docs/reports/vf/nc.txt"),
         "nc_stillborn_sha256": sha256("docs/reports/vf/nc-stillborn.txt"),
+        "nc_decoy_sha256": sha256("docs/reports/vf/nc-decoy.txt"),
         "review_sha256": sha256("docs/reports/vf/review.txt"),
         # The SAME command line the negative control replays and the ledger records —
         # one token, so the trap cannot drift into proving nothing. sys.executable in

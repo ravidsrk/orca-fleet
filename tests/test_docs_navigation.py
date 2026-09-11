@@ -432,10 +432,12 @@ class EveryReleaseHasTheTagItDescribes(unittest.TestCase):
     The mapping was true and the artifact it describes did not exist — no version was fetchable by
     tag, and `git describe` had nothing to work with.
 
-    A checkout without tags is a different thing from a release that landed untagged, and this
-    distinguishes them rather than passing on both. No tags at all means nobody fetched them
-    (`actions/checkout` needs `fetch-depth: 0`), which is a hole in the measurement and says so.
-    SOME tags present means the namespace is real and a missing one is a genuine defect.
+    The first cut SKIPPED when no release tag was present, reasoning that an unfetched clone
+    cannot prove anything about tags. That made the gate toothless in exactly the state it was
+    written for — the repository's own — and CI fetches tags anyway (`fetch-depth: 0`), so the
+    skip could not tell "not fetched" from "never published" where it mattered (PR #308 review,
+    P1). It fails now. A gate that cannot fire in the condition it was added to detect is the
+    shape this catalog refuses.
     """
 
     RELEASES = ROOT / "docs" / "releases.json"
@@ -459,14 +461,18 @@ class EveryReleaseHasTheTagItDescribes(unittest.TestCase):
         releases = self._releases()
         present = {t for t in self._git("tag").stdout.split()}
         wanted = {rel["tag"] for rel in releases}
-        if not present & wanted:
-            self.skipTest(
-                "no release tags in this checkout — NOT a pass, a hole in the measurement. "
-                "Fetch them (actions/checkout with fetch-depth: 0), or publish them with the "
-                "command in docs/releases.json's _comment.")
         missing = sorted(wanted - present)
-        self.assertEqual(missing, [], f"released but untagged: {missing} — a partial tag namespace "
-                                      "is a release that landed untagged, not an unfetched clone")
+        self.assertEqual(
+            missing, [],
+            f"released but untagged: {missing}\n"
+            "docs/releases.json binds these versions to commits, so the mapping is true and the "
+            "tags it describes do not exist — no version is fetchable by tag and `git describe` "
+            "has nothing to work with (#307).\n"
+            "Publish them with the command in docs/releases.json's _comment:\n"
+            "  jq -r '.releases[] | \"git tag -a \\(.tag) \\(.commit) -m \\\"orca-fleet "
+            "\\(.version)\\\"\"' docs/releases.json | sh && git push origin --tags\n"
+            "If this is a shallow or --no-tags checkout, fetch them first "
+            "(actions/checkout with fetch-depth: 0).")
         for rel in releases:
             with self.subTest(version=rel["version"]):
                 at = self._git("rev-list", "-n", "1", rel["tag"]).stdout.strip()

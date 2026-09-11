@@ -1153,6 +1153,24 @@ def check_negative_control(m, is_mutation, execute=False, nc_command=None):
             bind_err = _bind_paths_to_change(declared, m, "negative_control.paths")
             if bind_err:
                 errs.append(bind_err)
+    elif tool == "hand":
+        # The same bind, one tool over. `hand` declares its target in the quoted diff rather than
+        # in paths[], and checking that the artifact merely CONTAINS diff-shaped text left the
+        # decoy open: a narrated manifest could quote a diff against a file the change never
+        # touched, or an unrelated hunk, and offer its RED as evidence (PR #308 review, P1).
+        # Caught only under --execute-nc before, which is the identical asymmetry #306 closed
+        # for `revert` — the executed lane covering for the narrated one.
+        quoted = _extract_diff(content)
+        # Only when the manifest actually pins its SHAs. A mutation manifest that does not is
+        # already refused by check_real_commits, which owns that fact; repeating the refusal here
+        # would couple a structural check to git state and say the same thing twice.
+        pinned = all(HEX40_RE.match(str(m.get(k) or "")) for k in ("base_sha", "head_sha"))
+        if quoted and pinned:
+            for bind_err in (_bind_paths_to_change(_diff_target_paths(quoted), m,
+                                                   "the hand mutant's diff"),
+                             _bind_hunks_to_change(quoted, m)):
+                if bind_err:
+                    errs.append(bind_err)
     executed_ok = False
     if execute:
         executed_ok, msgs = execute_negative_control(m, nc_command)

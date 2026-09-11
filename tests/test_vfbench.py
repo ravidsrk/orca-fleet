@@ -327,7 +327,8 @@ class TheFourRefusedControlClassesAreSampled(unittest.TestCase):
     """
 
     TRAPS = ROOT / "bench" / "vf-bench" / "traps"
-    REQUIRED = {"decoy-path", "oracle-mutation", "stillborn-mutant", "grep-command"}
+    REQUIRED = {"decoy-path", "oracle-mutation", "stillborn-mutant", "grep-command",
+                "decoy-hand-diff"}
 
     def _traps(self):
         return {t["class"]: t for t in
@@ -353,6 +354,73 @@ class TheFourRefusedControlClassesAreSampled(unittest.TestCase):
             with self.subTest(trap=name):
                 self.assertFalse(self._traps()[name].get("execute_nc"),
                                  "executed, this trap measures #255 rather than the path bind")
+
+    # The refusal each trap must earn. A RED alone is not evidence the benchmark still measures
+    # the advertised bypass: a trap refused as MALFORMED, or by an unrelated prerequisite, scores
+    # the same 0/18 and says nothing (PR #308 review, P2). This is not hypothetical — the
+    # stillborn trap shipped in a first draft refused for exactly that reason, its diff in a
+    # `negative_control.diff` field the manifest reader rejects, never reaching the check it names.
+    REFUSAL = {
+        "decoy-path": "which base_sha..head_sha does not change",
+        "oracle-mutation": "which is a TEST path",
+        "stillborn-mutant": "STILLBORN MUTANT",
+        "grep-command": "produced NO output at all",
+        "decoy-hand-diff": "the hand mutant's diff names",
+    }
+
+    def test_each_trap_is_refused_for_the_reason_it_exists_to_test(self):
+        """Run the gate and read WHY, not just the verdict."""
+        import importlib.util
+        spec = importlib.util.spec_from_file_location(
+            "_vfbench_reasons", ROOT / "bench" / "vf-bench" / "vfbench.py")
+        vb = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(vb)
+        traps = self._traps()
+        for name, want in self.REFUSAL.items():
+            with self.subTest(trap=name):
+                self.assertIn(name, traps, "the trap is gone")
+                fails = self._refusals(vb, traps[name])
+                self.assertTrue(fails, f"{name} was not refused at all")
+                self.assertTrue(
+                    any(want in f for f in fails),
+                    f"{name} was refused, but not for its own reason.\n"
+                    f"  wanted a line containing: {want!r}\n"
+                    f"  got: " + "\n       ".join(f[:160] for f in fails))
+
+    @staticmethod
+    def _refusals(vb, trap):
+        """The FAIL lines verify.py emits for one fixture-backed trap."""
+        import os
+        import subprocess
+        import sys
+        import tempfile
+        holder = Path(tempfile.mkdtemp(prefix="vfbench-reason-"))
+        try:
+            repo = holder / "repo"
+            facts = vb.build_mutation_fixture(repo)
+            (repo / "vf-manifest.json").write_text(
+                json.dumps(vb._render(trap["manifest"], facts)), encoding="utf-8")
+            cmd = [sys.executable, str(vb.VERIFY), "--manifest", str(repo / "vf-manifest.json"),
+                   "--contract-source", "contract.md",
+                   "--contract-digest", facts["contract_digest"],
+                   "--unit-class", trap.get("unit_class", "mutation")]
+            if trap.get("lighting"):
+                cmd += ["--lighting", trap["lighting"]]
+            if trap.get("execute_nc"):
+                cmd.append("--execute-nc")
+                if trap.get("nc_command"):
+                    cmd += ["--nc-command", vb._render(trap["nc_command"], facts)]
+            if trap.get("repo"):
+                cmd += ["--repo", trap["repo"]]
+            env = dict(os.environ)
+            if trap.get("gh_stub"):
+                env["PATH"] = (vb._gh_stub(holder / "bin", facts["head_sha"])
+                               + os.pathsep + env["PATH"])
+            r = subprocess.run(cmd, capture_output=True, text=True, cwd=repo, env=env)
+            return [ln.strip() for ln in (r.stdout + r.stderr).splitlines()
+                    if ln.startswith("FAIL:")]
+        finally:
+            shutil.rmtree(holder, ignore_errors=True)
 
     def test_the_stillborn_trap_quotes_a_real_diff_in_its_artifact(self):
         # It first carried the diff in a `negative_control.diff` field, which got the manifest

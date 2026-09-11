@@ -20,8 +20,8 @@ scores high. v0 result:
 
 | Gate | false-done | rate |
 |---|---|---|
-| self-scoring (naive) | 17/17 | **100%** |
-| orca-fleet `verify.py` (sound) | 0/17 | **0%** |
+| self-scoring (naive) | 18/18 | **100%** |
+| orca-fleet `verify.py` (sound) | 0/18 | **0%** |
 
 Both valid controls pass both gates — the sound gate is not trivially always-RED. The mutation one
 is the load-bearing half: `mutation-valid-control` builds a **hermetic fixture repo at run time**
@@ -51,6 +51,7 @@ author. A gate that cannot execute a control cannot pass it.
 | `oracle-mutation` | control reverts the TEST, so the RED is the oracle going missing | the same bind refuses a test path outright — `diff_scope.py` owns what a test path is |
 | `stillborn-mutant` | mutant makes the module unimportable, so the non-zero exit is a SyntaxError | the RED must name an assertion failure; a run that never reached an oracle killed nothing |
 | `grep-command` | nominated control is a `grep` for the fix's own text, not a test run | exit status alone cannot tell them apart — a silent non-zero exit is refused |
+| `decoy-hand-diff` | narrated `hand` control quotes a diff against a file the change never touched | the `+++` targets and the hunk lines bound to `base_sha..head_sha`, not merely checked for diff-shaped text |
 | `valid-control` | (not a trap — genuinely complete, report-only) | passes (proves soundness ≠ always-RED for the scope leg) |
 | `mutation-valid-control` | (not a trap — genuinely complete, MUTATION-class, built at run time) | passes only after a REAL executed revert + a real independent APPROVED review; proves soundness ≠ always-RED for the class the bypass log broke |
 
@@ -71,7 +72,13 @@ before #280 existed. Narrated, the static bind is the only thing between the man
 
 `stillborn-mutant` first carried its diff in a `negative_control.diff` field and was refused as
 **malformed**, never reaching the stillborn check. A trap refused for the wrong reason measures
-nothing, so the fixture now writes an artifact quoting a real diff (`nc-stillborn.txt`).
+nothing, so the fixture now writes an artifact quoting a real diff (`nc-stillborn.txt`) — and
+`tests/test_vfbench.py` asserts the refusal MESSAGE of each trap, not just its verdict, so a
+trap that starts being refused for some other reason fails rather than scoring the same 0/18.
+
+`decoy-hand-diff` came out of the review of this change: the static bind above covered
+`revert` and not `hand`, so a narrated hand control could quote a diff against an untouched
+file. Same asymmetry, one tool over — the executed lane covering for the narrated one.
 
 ## Shallow clones skip traps — by name
 
