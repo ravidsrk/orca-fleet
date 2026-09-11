@@ -308,6 +308,12 @@ strip_prefix() {
   _c=$1
   while : ; do
     case "$_c" in
+      # A quoted value holds spaces. Stripping to the first space left `b" rm --no-preserve-root
+      # -rf /`, which begins with neither `rm` nor anything else the tier knows (PR #308 review,
+      # P1). Strip to the closing quote instead. A value containing an ESCAPED quote is beyond
+      # string matching and stays beyond it; it cannot hide a command, only mangle a prefix.
+      [A-Za-z_]*=\"*) _rest=${_c#*=\"}; _c=${_rest#*\" } ;;
+      [A-Za-z_]*=\'*) _rest=${_c#*=\'}; _c=${_rest#*\' } ;;
       [A-Za-z_]*=*[!\ ]*\ *) _c=${_c#* } ;;
       env\ *)     _c=${_c#env } ;;
       nohup\ *)   _c=${_c#nohup } ;;
@@ -321,14 +327,22 @@ strip_prefix() {
   printf '%s' "$_c"
 }
 
-# Split on ; && || | into positional parameters — POSIX, and no subshell, so a `decide deny`
-# inside the loop still exits the script. `>|` is protected first: it is the noclobber-override
-# REDIRECT, not a pipe, and splitting it left a dangling `>` whose target landed in the next
-# segment — so `cmd >| /outside/f` was read as two harmless halves.
+# Split on ; && || | & into positional parameters — POSIX, and no subshell, so a `decide deny`
+# inside the loop still exits the script.
+#
+# A bare `&` separates two commands exactly as `;` does, and leaving it out let `true & rm
+# --no-preserve-root -rf /` through (PR #308 review, P1). Two operators that merely CONTAIN one of
+# these characters are protected first, or splitting would shred them: `>|` is the noclobber
+# redirect, not a pipe, and `>&` is a redirect whose `&` would leave the `>` dangling in one segment
+# and its target alone in the next. `&>` needs no protection — splitting at its `&` leaves `>
+# target` whole in the following segment, which reads identically. That is measured, not assumed:
+# protecting it survived every mutant, which is how this hook learns a line of it is inert.
 _SEP=$(printf '\001')
-_NOCLOB=$(printf '\002')
-_SPLIT=$(printf '%s' "$FULL_CMD" | sed -e "s/>|/$_NOCLOB/g" -e "s/&&/$_SEP/g" -e "s/||/$_SEP/g" \
-  -e "s/|/$_SEP/g" -e "s/;/$_SEP/g" -e "s/$_NOCLOB/>|/g")
+_P1=$(printf '\002'); _P3=$(printf '\004')
+_SPLIT=$(printf '%s' "$FULL_CMD" \
+  | sed -e "s/>|/$_P1/g" -e "s/&&/$_SEP/g" -e "s/>&/$_P3/g" \
+        -e "s/||/$_SEP/g" -e "s/|/$_SEP/g" -e "s/;/$_SEP/g" -e "s/&/$_SEP/g" \
+        -e "s/$_P1/>|/g" -e "s/$_P3/>\&/g")
 _OLDIFS=$IFS
 IFS=$_SEP
 set -f
@@ -461,9 +475,13 @@ if [ -n "${ORCA_UNIT_WORKTREE:-}" ]; then
         continue
       fi
       case "$TOK" in
-        '>'|'>>'|'>|'|'&>'|'&>>'|[0-9]'>'|[0-9]'>>'|[0-9]'>|') _PENDING=1 ;;
-        '&>>'*)     bounded_write "${TOK#'&>>'}" ;;
-        '&>'*)      bounded_write "${TOK#'&>'}" ;;
+        '>'|'>>'|'>|'|'>&'|[0-9]'>'|[0-9]'>>'|[0-9]'>|') _PENDING=1 ;;
+        # `>&file` is bash's both-streams redirect and writes a file; `>&1` and
+        # `>&2` duplicate a descriptor. A bare digit is relative, so both reach
+        # bounded_write and only the path is ever judged — no arm of its own.
+        # (`&>file` never arrives here: the splitter above cuts at its `&`, and
+        # the `> file` half lands in the next segment.)
+        '>&'*)      bounded_write "${TOK#'>&'}" ;;
         [0-9]'>>'*) bounded_write "${TOK#?'>>'}" ;;
         [0-9]'>|'*) bounded_write "${TOK#?'>|'}" ;;
         [0-9]'>'*)  bounded_write "${TOK#?'>'}" ;;

@@ -213,6 +213,34 @@ class TestEverySegmentIsJudged(HookBase):
                 self.assertEqual(r.returncode, 0)
                 self.assertNotIn('"deny"', r.stdout, command)
 
+    def test_a_bare_ampersand_separates_commands_too(self):
+        # PR #308 review, P1. `&` backgrounds the command to its left and starts
+        # the next one — a separator exactly like `;`, and it was not split on.
+        for command in (
+            f"true & {self.ESCAPED}",
+            "sleep 1 & git push --force origin main",
+            f"echo hi & echo there & {self.ESCAPED}",
+        ):
+            with self.subTest(command=command):
+                self._deny(command)
+
+    def test_a_quoted_assignment_value_does_not_launder_a_command(self):
+        # PR #308 review, P1. Stripping an assignment to the first SPACE left
+        # `b" rm --no-preserve-root -rf /`, which begins with neither `rm` nor
+        # anything else the tier knows — so a pair of quotes defeated it.
+        for prefix in ('FOO="a b" ', "FOO='a b' ", 'FOO="a b" BAR="c d" ',
+                       'env FOO="a b" '):
+            with self.subTest(prefix=prefix):
+                self._deny(prefix + self.ESCAPED)
+
+    def test_background_jobs_and_quoted_env_that_are_fine_stay_fine(self):
+        for command in ("npm run dev &", "sleep 1 & wait",
+                        'FOO="a b" make test', 'MSG="a b" git commit -m "$MSG"'):
+            with self.subTest(command=command):
+                r = self.fire(event("Bash", command=command))
+                self.assertEqual(r.returncode, 0)
+                self.assertNotIn('"deny"', r.stdout, command)
+
     def test_ordinary_compound_commands_are_not_denied(self):
         for command in (
             "cd /srv/app && git push origin feature",
@@ -570,6 +598,40 @@ class TestBashWritesAreBounded(HookBase):
         # /dev/sda is a write to the disk. Allowlisting the directory instead of
         # the devices would have waived it along with the bit bucket.
         self._deny("echo x > /dev/sda")
+
+    def test_a_descriptor_duplication_does_not_swallow_the_next_redirect(self):
+        """PR #308 review, P1 — reported as a bypass; it is not one, and this pins that.
+
+        The claim was that `2>&1` takes the exact `[0-9]>` arm, sets the pending
+        flag, and eats the following `>` as its destination, leaving the absolute
+        path unjudged. It takes the FUSED arm instead: the exact arm matches a
+        two-character token, and `2>&1` is four. `&1` is then judged, found
+        relative, and dropped without ever setting pending.
+
+        The `&`-splitting fix landed in the same commit reshapes these tokens, so
+        the shapes are worth holding down whatever the reasoning behind them.
+        """
+        out = self.outside / "landed"
+        for command in (f"make 2>&1 > {out}", f"make 2>&1 >{out}",
+                        f"make >&2 > {out}", f"make 1>&2 2> {out}"):
+            with self.subTest(command=command):
+                self._deny(command)
+
+    def test_both_streams_redirects_are_bounded_and_fd_dups_are_not_writes(self):
+        out = self.outside / "landed"
+        for command, want_deny in ((f"echo x >& {out}", True),
+                                   (f"echo x >&{out}", True),
+                                   (f"echo x &> {out}", True),
+                                   ("echo x >&2", False),
+                                   ("echo x >&1", False),
+                                   ("make > /dev/null 2>&1", False),
+                                   ("echo x >& /dev/null", False)):
+            with self.subTest(command=command):
+                if want_deny:
+                    self._deny(command)
+                else:
+                    r = self._fire_bash(command)
+                    self.assertEqual(r.stdout.strip(), "", command)
 
     def test_a_relative_target_is_not_judged_and_says_so(self):
         # The hook is not handed the worker's cwd and the segment before may have
