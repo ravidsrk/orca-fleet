@@ -75,6 +75,11 @@ argued here, not assumed.
   converges by receipting a claim CURRENT *or by refuting it*, and the refutation archive is a
   terminal class `clean-sweep` lacks (a refuted doctrine claim is removed with its receipt
   kept, never "closed"). Different oracle, different proof shape and parking; its own mission.
+  Measured rather than asserted since #288: `pin-it` and `clean-sweep` share ZERO near points of
+  the six (mean similarity 0.015), so they do not differ only in oracle — they differ in all of it.
+  The 2026-09-11 review argued `pin-it` folds into `clean-sweep` as an `oracle=` source; that
+  finding is withdrawn, and the naming objection with it — `PINNED` / `PINNED-WITH-PARKED` are
+  terminal states the repository reaches, the same shape as `DRY`, not the artifact being edited.
 
 ## The definition of done is an evidence protocol, not trace-grading
 

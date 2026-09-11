@@ -44,5 +44,7 @@ kept somewhere even when the mission is not.
 
 The candidates that *passed* on 2026-09-10 (`migrate-it`, `oncall-it`, `absorb-it`,
 `document-it`) are argued in the
-[deep audit §4.1](2026-09-10-upstream-deep-audit-and-mission-proposals.md); when one lands or is
-dropped, record the outcome here so the ledger stays whole.
+[deep audit §4.1](2026-09-10-upstream-deep-audit-and-mission-proposals.md). All four **landed on
+2026-09-10** and are in the catalog; recorded here so the ledger stays whole, as its own rule asks
+(#289). A rejection ledger that only records rejections is half a ledger — the admissions are the
+half that shows the bar moved.

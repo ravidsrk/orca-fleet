@@ -132,6 +132,47 @@ class TheVerifierInvocationIsWrittenDown(unittest.TestCase):
                       "the evidence contract says what is checked and never where to run it")
 
 
+class DoctrineSaysWhatTheCatalogDoes(unittest.TestCase):
+    """Four places where the doctrine had drifted from the catalog it describes (#289)."""
+
+    def test_the_mission_test_is_six_part(self):
+        # It counts six identity points; one guide still called it five.
+        self.assertNotIn("five-part mission test", read("docs/missions/oss-contribute.md"))
+
+    def test_modernize_it_hands_stateful_migration_to_migrate_it(self):
+        # migrate-it landed 2026-09-10 and owns expand -> dual-write -> backfill -> switch ->
+        # contract. modernize-it's handoff still pointed at a sequence of ship-it runs, so a
+        # coordinator following it could not find the mission that does the work.
+        text = read("skills/modernize-it/SKILL.md")
+        self.assertIn("migrate-it", text,
+                      "modernize-it describes a handoff without naming the mission that takes it")
+
+    def test_the_rejection_ledger_records_what_was_admitted(self):
+        # Its own footer asks for this: "when one lands or is dropped, record the outcome here".
+        text = read("docs/research/REJECTED.md")
+        self.assertIn("landed on", text.lower().replace("**", ""),
+                      "the four 2026-09-10 admissions are not recorded in the ledger")
+
+    def test_pin_it_is_argued_not_assumed(self):
+        # #289 asked whether pin-it folds into clean-sweep. It does not, and ARCHITECTURE.md
+        # already argued why; the number is what was missing.
+        text = read("ARCHITECTURE.md")
+        self.assertIn("finding is withdrawn", text)
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("v", ROOT / "scripts" / "validate.py")
+        validate = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(validate)
+        def identity(name):
+            data, _err = validate.parse_frontmatter(
+                (ROOT / "skills" / name / "SKILL.md").read_text(encoding="utf-8"))
+            return data["metadata"]
+        a, b = identity("clean-sweep"), identity("pin-it")
+        near = sum(1 for k in validate.IDENTITY_KEYS
+                   if validate._point_similarity(a[k], b[k]) >= validate.IDENTITY_POINT_NEAR)
+        self.assertEqual(near, 0,
+                         "clean-sweep and pin-it have started to converge; re-argue ARCHITECTURE.md")
+
+
 class DormantMechanismsSaySo(unittest.TestCase):
     """Two of the seven cannot be wired from inside the repository, so they say so instead.
 

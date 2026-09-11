@@ -37,8 +37,8 @@ addy — never co-mount a second router.
 
 Scope boundary: this mission owns DEPENDENCY/FRAMEWORK CURRENCY (bump → adapt call sites → CI green).
 STATEFUL DB schema/data migration across deploys is a different unit, state machine, and proof — hand
-a brief to a SEQUENCE of ship-it runs, one release each: (1) expand, (2) dependent upgrade +
-migrate-in-batches, (3) contract. The upgrade is stage (2), never after contract. Never run a
+a brief to `migrate-it`, which owns the expand → dual-write → backfill → switch → contract phases,
+one release each; the dependent upgrade is stage (2), between expand and contract. The upgrade is stage (2), never after contract. Never run a
 cross-deploy data migration inside a currency loop. Details: docs/missions/modernize-it.md.
 
 ## Two terminal outcomes
@@ -103,5 +103,6 @@ shim without a gate. Hand-merging a lockfile conflict. Letting a just-bumped pac
 before its provenance is checked.
 
 ## Related
-`ship-it` (owns the deploy states a forced stateful DB migration needs), `clean-sweep`, `harden-it`
+`migrate-it` (owns stateful schema/data change across deploys), `ship-it` (the deploy states it
+rides), `clean-sweep`, `harden-it`
 (advisory exploit proof), `review-it` (data-migration lens as a per-diff review).
