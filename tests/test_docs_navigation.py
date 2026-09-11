@@ -426,5 +426,60 @@ class QuotationsAreAttributedToWhatTheySay(unittest.TestCase):
                       "the quotation is not linked to a source a reader can check")
 
 
+class EveryReleaseHasTheTagItDescribes(unittest.TestCase):
+    """#307: docs/releases.json bound nine versions to commits and `git tag` was empty.
+
+    The mapping was true and the artifact it describes did not exist — no version was fetchable by
+    tag, and `git describe` had nothing to work with.
+
+    A checkout without tags is a different thing from a release that landed untagged, and this
+    distinguishes them rather than passing on both. No tags at all means nobody fetched them
+    (`actions/checkout` needs `fetch-depth: 0`), which is a hole in the measurement and says so.
+    SOME tags present means the namespace is real and a missing one is a genuine defect.
+    """
+
+    RELEASES = ROOT / "docs" / "releases.json"
+
+    def _releases(self):
+        return json.loads(self.RELEASES.read_text(encoding="utf-8"))["releases"]
+
+    @staticmethod
+    def _git(*args):
+        return subprocess.run(["git", "-C", str(ROOT), *args], capture_output=True, text=True)
+
+    def test_every_release_names_a_commit_that_exists(self):
+        # True with or without tags — the half that never needs a fetch.
+        for rel in self._releases():
+            with self.subTest(version=rel["version"]):
+                self.assertEqual(
+                    self._git("cat-file", "-e", rel["commit"] + "^{commit}").returncode, 0,
+                    f"{rel['tag']} names a commit this repository does not have")
+
+    def test_every_release_is_tagged_at_the_commit_it_names(self):
+        releases = self._releases()
+        present = {t for t in self._git("tag").stdout.split()}
+        wanted = {rel["tag"] for rel in releases}
+        if not present & wanted:
+            self.skipTest(
+                "no release tags in this checkout — NOT a pass, a hole in the measurement. "
+                "Fetch them (actions/checkout with fetch-depth: 0), or publish them with the "
+                "command in docs/releases.json's _comment.")
+        missing = sorted(wanted - present)
+        self.assertEqual(missing, [], f"released but untagged: {missing} — a partial tag namespace "
+                                      "is a release that landed untagged, not an unfetched clone")
+        for rel in releases:
+            with self.subTest(version=rel["version"]):
+                at = self._git("rev-list", "-n", "1", rel["tag"]).stdout.strip()
+                self.assertEqual(at, rel["commit"],
+                                 f"{rel['tag']} points at {at[:12]}, not the commit "
+                                 f"docs/releases.json names ({rel['commit'][:12]})")
+
+    def test_the_file_documents_how_to_publish_them(self):
+        # The durable half: a reader who finds the tags missing must be told what to run.
+        comment = json.loads(self.RELEASES.read_text(encoding="utf-8"))["_comment"]
+        self.assertIn("git tag -a", comment)
+        self.assertIn("git push origin --tags", comment)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
