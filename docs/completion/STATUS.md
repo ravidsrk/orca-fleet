@@ -137,7 +137,7 @@ Cold start of the *catalog gates* = **pass** (also on Python 3.11). Cold start o
 
 ## Product (A-01, unchanged)
 
-**orca-fleet** is an MIT-licensed catalog of 13 outcome-named missions (`skills/<name>/SKILL.md`) plus playbooks, runtime policies, and a stdlib independent verifier. Version **0.6.0** (`.claude-plugin/plugin.json`); CHANGELOG `[Unreleased]` already carries the #225 mission review (F-2-05).
+**orca-fleet** is an MIT-licensed catalog of outcome-named missions (`skills/<name>/SKILL.md`) plus playbooks, runtime policies, and a stdlib independent verifier. The count is read dynamically from the catalog, never written here. Version is `.claude-plugin/plugin.json`; CHANGELOG `[Unreleased]` carries the #225 mission review (F-2-05).
 
 ## Critical flows (run 2)
 

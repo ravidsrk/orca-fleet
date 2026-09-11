@@ -296,6 +296,56 @@ class EveryMissionHasAPathToProof(unittest.TestCase):
         self.assertNotIn("Thirteen missions are", text)
 
 
+class TheRunArchiveMatchesGit(unittest.TestCase):
+    """#293. The run archive is the repository's own evidence that its missions have been executed,
+    and it did not survive a read against the commits it names. These pin the corrections that a
+    future edit could silently undo — each was verified against git before it was written.
+    """
+
+    SHIP_IT = "docs/runs/2026-08-28-ship-it-self-run.md"
+
+    def test_no_report_claims_a_tier_its_own_binding_section_denies(self):
+        # Three reports carried "Proof tier earned: self-run / external-run" headers while their
+        # own Evidence-binding sections said doctrine-only.
+        for name in ("2026-07-13-clean-sweep-self-run.md", "2026-07-13-review-it-external-run.md",
+                     "2026-08-28-ship-it-self-run.md"):
+            text = read(f"docs/runs/{name}")
+            self.assertNotIn("Proof tier earned:", text,
+                             f"{name} claims a tier its Evidence binding denies")
+
+    def test_the_promotion_pr_is_not_described_as_open(self):
+        # PR #104 merged as 9ed6fe9 on 2026-08-28, the same day the run stopped at it.
+        text = read(self.SHIP_IT)
+        self.assertNotIn("**open, human-owned**", text)
+        self.assertIn("9ed6fe9", text, "the merge commit is not named")
+
+    def test_pr_137_is_not_credited_with_files_it_did_not_touch(self):
+        # #137 changed verify.py, tests/test_verify.py and docs; #108 changed the two named files.
+        text = read(self.SHIP_IT)
+        self.assertNotIn("(PRs #108/#137)", text)
+
+    def test_the_template_is_not_described_as_pre_dating_the_run(self):
+        # docs/runs/TEMPLATE.md was created 2026-09-02; this run was 2026-08-28.
+        text = read(self.SHIP_IT)
+        self.assertNotIn("asked for it", text,
+                         "the report still says a template that post-dates it asked for something")
+
+    def test_the_2026_09_09_inventory_records_its_own_mismatch(self):
+        # Three of thirteen do not re-derive at the tip the report names.
+        text = read("docs/runs/2026-09-09-clean-sweep-tracker.md")
+        self.assertIn("do not re-derive at the tip this report names", text)
+
+    def test_the_completion_ledger_carries_no_hardcoded_catalog_count(self):
+        self.assertNotIn("catalog of 13 outcome-named missions",
+                         read("docs/completion/STATUS.md"))
+
+    def test_todos_points_at_the_review_that_is_actually_there(self):
+        # PR #278 moved the 2026-09-10 review; TODOS still called REVIEW.md by that date.
+        text = read("TODOS.md")
+        self.assertIn("docs/reviews/2026-09-10-review.md", text)
+        self.assertIn("2026-09-11 deep review", text)
+
+
 class DormantMechanismsSaySo(unittest.TestCase):
     """Two of the seven cannot be wired from inside the repository, so they say so instead.
 

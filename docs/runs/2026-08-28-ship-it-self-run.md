@@ -10,7 +10,7 @@ see **Evidence binding** at the end, and the tier this report supports is `doctr
 First recorded run of the flagship mission. Mission: **ship-it**, entry = frozen spec
 (`decide-and-freeze` validate branch), target: this repo itself. A small-but-non-trivial slice —
 `runtime/scripts/proof_status.py`, a proof-posture reporter + `--check` CI lens over the mission
-catalog — driven through the canonical pipeline. Proof tier earned: **self-run** (external-run
+catalog — driven through the canonical pipeline. Proof tier: **doctrine-only** — the verifier transcript was never recorded (Evidence binding below). (external-run
 requires a repo that is not this catalog).
 
 | field       | value |
@@ -83,7 +83,9 @@ frozen contract:
   exactly), `base_sha`/`head_sha` real commits, negative control (revert → RED corroborated by the
   artifact), post-merge ancestry.
 - **SKIPPED**: reviewed-SHA freshness — the manifest carried no `reviewed_sha` (the build slice was
-  report-shaped), so `check_freshness` had nothing to compare. This is a skip, NOT an equality pass.
+  report-shaped in its diff, though its manifest declares `unit_class: mutation` — the manifest is
+  the authority and this sentence was wrong), so `check_freshness` had nothing to compare. This is a
+  skip, NOT an equality pass.
 - **RED (bounded)**: the mutation-unit **independent-review gate** — `verify.py` requires an
   APPROVED GitHub review at `head_sha`, looked up on GitHub, not read from the manifest. A solo
   self-run has no second GitHub identity to approve, so this gate cannot be satisfied autonomously.
@@ -140,14 +142,17 @@ ef01469349304330f4e4937dcdb96a7b1836c762364353950280394fc8207bfd  docs/runs/2026
 ```
 
 > Inventory computed at the run's slice tip `748b328`. `proof_status.py` and `test_proof_status.py`
-> have since changed (PRs #108/#137); re-derive their hashes at `748b328`, not HEAD. The three
-> run-directory artifacts above are immutable.
+> have since changed (PR #108 `e086c6f`, then `0f0a5f0` and `beeeb2a`); re-derive their hashes at
+> `748b328`, not HEAD. PR #137 is cited in error here — it changed `verify.py`, `tests/test_verify.py`
+> and docs, and touched neither of these files. The three run-directory artifacts above are immutable.
 
 ## Gates
 
 - FREEZE (human gate #1): n/a — frozen-spec entry, no intent grill.
-- BASE → `main` promotion (human gate #2): **open, human-owned** — this run stops at the promotion
-  PR. Merging it reaches `RELEASED`; `DEPLOYED_AND_VERIFIED` is bounded (no deploy surface).
+- BASE → `main` promotion (human gate #2): the run stopped at the promotion PR, and a human merged
+  it the same day — PR #104 as `9ed6fe9`, 2026-08-28. By this mission's own state machine that is
+  `RELEASED`, not `PROMOTION_READY`; the terminal this report names is the state the FLEET reached
+  before handing over. `DEPLOYED_AND_VERIFIED` is bounded (no deploy surface).
 
 
 ## Evidence binding — the verifier transcript was never recorded
@@ -156,8 +161,10 @@ This run happened, and every artifact it produced still hashes true at `748b328`
 **not** advance `ship-it` above `doctrine-only`, for one reason: the verifier's outcome is
 described in prose ("ran `verify.py` against the manifest with the coordinator's authoritative
 `--contract-source/--contract-digest`… RED on the independent-review gate") and the command
-line was never written down. `docs/runs/TEMPLATE.md` asked for it — "output and exit code
-verbatim, RED runs included" — and this report did not comply.
+line was never written down. `docs/runs/TEMPLATE.md` asks for it — "output and exit code
+verbatim, RED runs included" — but that template did not exist when this run happened: it was
+created on 2026-09-02, five days later, in part BECAUSE of this gap. The report did not fail to
+follow a rule; the rule was written after, from what went missing here.
 
 So `verifier=RED` here is the coordinator's word. That is exactly the class of gap this
 mechanism exists to close, and it does not get an exception for being ours: a reviewer on

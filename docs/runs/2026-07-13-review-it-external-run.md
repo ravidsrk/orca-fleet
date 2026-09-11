@@ -3,7 +3,7 @@
 First **external** run of a mission from this catalog (target is not this repo).
 Mission: **review-it**, `source=PR`. Target: **garrytan/gstack PR #2252**
 ("fix(test): delayed process.exit(0) in 8 test files silently truncates full
-bun-test runs"). Proof tier earned: **external-run**.
+bun-test runs"). Proof tier: **doctrine-only** — see Evidence binding below; the review-axis artifacts stayed in the coordinator's run directory.
 
 | field         | value |
 |---------------|-------|

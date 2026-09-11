@@ -2,7 +2,7 @@
 
 First recorded run of a mission from this catalog. Mission: **clean-sweep**,
 `source=doc-claims` ("the README lies — verify and fix it"), target: this repo itself.
-Proof tier earned: **self-run** (external-run requires a repo that is not this catalog).
+Proof tier: **doctrine-only** — see Evidence binding below. This run's artifacts were retained in the coordinator's run directory, so nothing here can re-hash them (a self-run tier would have required that, and did not happen).
 
 | field       | value |
 |-------------|-------|
