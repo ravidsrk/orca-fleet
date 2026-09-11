@@ -11,6 +11,7 @@ of vendor-named skills. They use only the standard library. Run:
 """
 import importlib.util
 import re
+import tempfile
 import subprocess
 import sys
 import unittest
@@ -48,6 +49,89 @@ def frontmatter_description(text):
         return " ".join(l.strip() for l in m.group(1).splitlines() if l.strip())
     m = re.search(r"(?m)^description:\s*(.+)$", text)
     return m.group(1).strip() if m else ""
+
+
+class TheActivationLoadTableIsGenerated(unittest.TestCase):
+    """#303: the table was typed by hand and drifted 150-280 tokens within a day.
+
+    It drifted again during the work that fixed it, by which point the ORDERING had changed too —
+    clean-sweep was the heaviest mission and ship-it is. A number a human retypes is a claim with
+    no mechanism, which is the shape ARCHITECTURE.md exists to refuse.
+    """
+
+    ARCH = (ROOT / "ARCHITECTURE.md").read_text(encoding="utf-8")
+
+    def test_the_table_lives_between_generated_markers(self):
+        self.assertIn("BEGIN GENERATED: activation-load", self.ARCH)
+        self.assertIn("END GENERATED: activation-load", self.ARCH)
+
+    @staticmethod
+    def _gen():
+        spec = importlib.util.spec_from_file_location(
+            "_gen_badges_arch", ROOT / "scripts" / "gen-badges.py")
+        gen = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(gen)
+        return gen
+
+    def test_the_committed_table_matches_a_fresh_measurement(self):
+        # The same check CI runs, asserted here so a stale commit fails locally too.
+        self.assertEqual(self._gen().check_architecture(), [],
+                         "the committed table no longer matches validate.py's measurement")
+
+    def test_the_aggregate_check_reports_a_stale_table(self):
+        """Calling check_architecture() directly proves the function works, NOT that CI runs it.
+
+        A mutant dropping it from check() — the entry point `gen-badges.py --check` and
+        validate.py both use — left this suite green. Same lesson #296 taught one layer down.
+        """
+        gen = self._gen()
+        with tempfile.TemporaryDirectory() as tmp:
+            stale = Path(tmp) / "ARCHITECTURE.md"
+            stale.write_text(f"{gen.ARCH_BEGIN}\nwrong\n{gen.ARCH_END}\n", encoding="utf-8")
+            gen.ARCH = stale
+            errors = gen.check()
+        self.assertTrue(any("activation-load table is stale" in e for e in errors),
+                        f"the aggregate check does not run the table check: {errors}")
+
+    def test_the_generator_actually_refreshes_the_block(self):
+        # And a mutant dropping write_architecture() from write() left the suite green too.
+        gen = self._gen()
+        with tempfile.TemporaryDirectory() as tmp:
+            stale = Path(tmp) / "ARCHITECTURE.md"
+            stale.write_text(f"before\n{gen.ARCH_BEGIN}\nwrong\n{gen.ARCH_END}\nafter\n",
+                             encoding="utf-8")
+            gen.ARCH = stale
+            gen.BADGES_DIR = Path(tmp) / "badges"
+            gen.GUIDES_DIR = Path(tmp) / "guides"
+            gen.write()
+            written = stale.read_text(encoding="utf-8")
+        self.assertNotIn("wrong", written, "write() left the stale block in place")
+        self.assertIn("| Mission | Activation load |", written)
+        self.assertTrue(written.startswith("before\n") and written.endswith("after\n"),
+                        "write() clobbered prose outside the markers")
+
+    def test_no_activation_figure_is_typed_outside_the_generated_block(self):
+        """A hand-typed token figure is exactly what went stale.
+
+        Numbers that are NOT measurements — the 34,000 cap, the historical pre-deferral loads,
+        agentskills.io's 5,000 recommendation — are allowed by name; a bare five-figure token
+        count in the prose is not.
+        """
+        body = re.sub(r"(?s)<!-- BEGIN GENERATED: activation-load.*?"
+                      r"<!-- END GENERATED: activation-load -->", "", self.ARCH)
+        allowed = {"34,000", "42,000", "39,600", "37,400", "36,500", "5,000"}
+        typed = {m for m in re.findall(r"\b\d{2},\d{3}\b", body)} - allowed
+        self.assertEqual(typed, set(),
+                         "a token figure is typed into the prose — put it in the generated "
+                         "block, or it will be wrong within a day")
+
+    def test_the_five_thousand_recommendation_is_answered_not_implied(self):
+        # "Done when": ARCHITECTURE.md states plainly whether it is a target. It is not.
+        self.assertIn("5,000", self.ARCH, "the recommendation is no longer named at all")
+        self.assertRegex(
+            " ".join(self.ARCH.split()),
+            r"does not meet that and is not pursuing it",
+            "the 5,000-token recommendation is cited without saying where the catalog stands")
 
 
 class TestArchitecture(unittest.TestCase):
