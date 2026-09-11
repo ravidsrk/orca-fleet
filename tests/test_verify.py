@@ -1788,11 +1788,76 @@ class DispatchProvenance(RepoCase):
         res = verify.check_dispatch_provenance(self._M, "sha256:a", "mutation", "dark-eligible", rec, pk)
         self.assertTrue(any("did not sign lighting" in e for e in res), res)
 
+    def test_signed_nc_paths_flipped_in_the_manifest_is_caught(self):
+        # #311: signing (manifest_id, contract_digest, unit_class, lighting) binds the class and the
+        # denominator, and leaves the worker choosing its own oracle. A coordinator that DOES know
+        # which paths the control must revert can now sign them, and a flip is a substitution.
+        rec, pk = self._signed({"manifest_id": "u", "contract_digest": "sha256:a",
+                                "unit_class": "mutation", "nc_paths": ["app.py"]})
+        m = {"unit": "u", "negative_control": {"paths": ["untouched.py"]}}
+        res = verify.check_dispatch_provenance(m, "sha256:a", "mutation", None, rec, pk)
+        self.assertTrue(any("substitution" in e and not e.startswith("NOTE:") for e in res), res)
+
+    def test_signed_nc_paths_matching_the_manifest_passes(self):
+        # Order is not a difference: the coordinator signs a set of paths, not a listing order.
+        rec, pk = self._signed({"manifest_id": "u", "contract_digest": "sha256:a",
+                                "unit_class": "mutation", "nc_paths": ["b.py", "a.py"]})
+        m = {"unit": "u", "negative_control": {"paths": ["a.py", "b.py"]}}
+        res = verify.check_dispatch_provenance(m, "sha256:a", "mutation", None, rec, pk)
+        self.assertTrue(res and all(e.startswith("NOTE:") for e in res), res)
+
+    def test_signed_nc_command_flipped_in_the_manifest_is_caught(self):
+        rec, pk = self._signed({"manifest_id": "u", "contract_digest": "sha256:a",
+                                "unit_class": "mutation", "nc_command": "pytest test_app.py"})
+        m = {"unit": "u", "negative_control": {"command": "grep -q FIXED app.py"}}
+        res = verify.check_dispatch_provenance(m, "sha256:a", "mutation", None, rec, pk)
+        self.assertTrue(any("substitution" in e and not e.startswith("NOTE:") for e in res), res)
+
+    def test_unsigned_nc_inputs_stay_advisory(self):
+        # The coordinator usually cannot know at dispatch time which paths a fix will touch, so
+        # these fields are OPTIONAL. Omitted, the record verifies exactly as before — the #280
+        # bind to base_sha..head_sha is what covers them, not a signature nobody could produce.
+        rec, pk = self._signed({"manifest_id": "u", "contract_digest": "sha256:a",
+                                "unit_class": "mutation"})
+        m = {"unit": "u", "negative_control": {"paths": ["anything.py"], "command": "whatever"}}
+        res = verify.check_dispatch_provenance(m, "sha256:a", "mutation", None, rec, pk)
+        self.assertTrue(res and all(e.startswith("NOTE:") for e in res), res)
+
     def test_canonicalization_matches_signer(self):
         # cross-tool drift guard: the gate and the signer must canonicalize identically, else every
         # real signature would fail to verify.
         record = {"manifest_id": "u", "contract_digest": "sha256:a", "unit_class": "mutation", "lighting": "lit"}
         self.assertEqual(verify._canonical_dispatch(record), dispatch_sign.canonical_record(record))
+
+    def test_canonicalization_matches_signer_on_the_nc_fields(self):
+        # #311 widened the signed tuple, and the two sides canonicalize in two files. An nc_paths
+        # list is the part that can drift silently: sorted on one side and not the other still
+        # SIGNS fine and only fails at verification, on a real dispatch, in production.
+        record = {"manifest_id": "u", "contract_digest": "sha256:a", "unit_class": "mutation",
+                  "nc_paths": ["z.py", "a.py", "m.py"], "nc_command": "pytest -k AC_1",
+                  "nc_artifact_sha256": "ab" * 32}
+        self.assertEqual(verify._canonical_dispatch(record), dispatch_sign.canonical_record(record))
+        # and the order the coordinator happened to type is not part of the signature
+        shuffled = dict(record, nc_paths=["a.py", "m.py", "z.py"])
+        self.assertEqual(verify._canonical_dispatch(record), verify._canonical_dispatch(shuffled))
+
+    def test_the_signer_cli_produces_a_record_the_gate_accepts(self):
+        # Through both entry points, not the helpers: a signature the gate rejects is worth
+        # nothing, and every field added to the tuple is a chance for the two to disagree.
+        import subprocess
+        seed = self.write(".orca/seed", bytes(range(1, 33)).hex() + "\n")
+        out = subprocess.run(
+            [sys.executable, str(ROOT / "runtime" / "scripts" / "dispatch-sign.py"), "sign",
+             "--key", seed, "--manifest-id", "u", "--contract-digest", "sha256:a",
+             "--unit-class", "mutation", "--nc-path", "b.py", "--nc-path", "a.py",
+             "--nc-command", "pytest -k AC_1"],
+            capture_output=True, text=True, cwd=self.repo, check=True).stdout
+        rec = self.write(".orca/dispatch-record.json", out)
+        pk = self.write(".orca/dispatch-pubkey", ed.publickey(bytes(range(1, 33))).hex())
+        m = {"unit": "u", "negative_control": {"paths": ["a.py", "b.py"],
+                                               "command": "pytest -k AC_1"}}
+        res = verify.check_dispatch_provenance(m, "sha256:a", "mutation", None, rec, pk)
+        self.assertTrue(res and all(e.startswith("NOTE:") for e in res), res)
 
 
 if __name__ == "__main__":

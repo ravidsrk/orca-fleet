@@ -1377,7 +1377,11 @@ def check_provenance(m):
             "(EU AI Act Art-12/50 record incomplete)"] if missing else []
 
 
-_DISPATCH_FIELDS = ("manifest_id", "contract_digest", "unit_class", "lighting")
+_DISPATCH_FIELDS = ("manifest_id", "contract_digest", "unit_class", "lighting",
+                    "nc_paths", "nc_command", "nc_artifact_sha256")
+# The negative-control inputs among them (#311) are read from the MANIFEST, not from argv, so they
+# are compared separately from the CLI-supplied fields above.
+_DISPATCH_NC_FIELDS = ("nc_paths", "nc_command", "nc_artifact_sha256")
 
 
 def _load_ed25519():
@@ -1390,7 +1394,28 @@ def _load_ed25519():
 def _canonical_dispatch(record):
     """Must match dispatch-sign.py.canonical_record byte-for-byte (a cross-tool test guards this)."""
     subset = {k: record[k] for k in _DISPATCH_FIELDS if record.get(k) is not None}
+    if isinstance(subset.get("nc_paths"), list):  # a SET of paths, not a listing order (#311)
+        subset["nc_paths"] = sorted(str(x) for x in subset["nc_paths"])
     return json.dumps(subset, sort_keys=True, separators=(",", ":")).encode("utf-8")
+
+
+def _manifest_nc_values(m):
+    """What the manifest actually claims for each signed negative-control input (#311).
+
+    nc_artifact_sha256 is derived, not declared: the record signs the CONTENT of the control's
+    artifact, so the gate hashes the file the manifest points at rather than trusting a digest the
+    same manifest supplies. Unreadable is None here and fails closed at the comparison."""
+    nc = m.get("negative_control") or {}
+    paths = nc.get("paths")
+    digest = None
+    art = nc.get("artifact")
+    if isinstance(art, str) and art and "@" not in art:
+        resolved, err = _resolve(art)
+        if err is None and resolved is not None and resolved.is_file():
+            digest = hashlib.sha256(resolved.read_bytes()).hexdigest()
+    return {"nc_paths": sorted(str(x) for x in paths) if isinstance(paths, list) else paths,
+            "nc_command": nc.get("command"),
+            "nc_artifact_sha256": digest}
 
 
 def check_dispatch_provenance(m, contract_digest, unit_class, lighting, record_ref, pubkey_ref):
@@ -1448,6 +1473,23 @@ def check_dispatch_provenance(m, contract_digest, unit_class, lighting, record_r
         if signed != used:
             return [f"dispatch substitution: the run used {field}={used!r} but the coordinator signed "
                     f"{signed!r} — the value was tampered (#135)"]
+    # The negative-control inputs (#311). Optional: a coordinator that could not know them at
+    # dispatch time signs none, and they stay bound by base_sha..head_sha alone (#280). Signed,
+    # they are the oracle the coordinator chose, and the manifest does not get to swap it.
+    claimed = _manifest_nc_values(m)
+    for field in _DISPATCH_NC_FIELDS:
+        signed = record.get(field)
+        if signed is None:
+            continue
+        if field == "nc_paths" and isinstance(signed, list):
+            signed = sorted(str(x) for x in signed)
+        if claimed[field] is None:
+            return [f"dispatch record signs {field} but the manifest carries no value for it — the "
+                    "coordinator chose the control's inputs and this unit did not use them; "
+                    "fail-closed (#311)"]
+        if signed != claimed[field]:
+            return [f"dispatch substitution: the manifest's {field}={claimed[field]!r} but the "
+                    f"coordinator signed {signed!r} — the worker chose its own oracle (#311)"]
     return ["NOTE: dispatch record signature verified against the supplied key (#135) — a soundness "
             "boundary only if that key is trusted (off-worker: CI/MCP/SDK or an auditor)"]
 

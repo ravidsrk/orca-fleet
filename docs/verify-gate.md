@@ -198,6 +198,28 @@ the key would just self-sign. The gate discovers the key from three sources, in 
 On the native in-session path **all three** are worker-influenceable, so a key that verifies
 in-session proves nothing about who signed (see [Trust boundary](#trust-boundary)).
 
+**What the signature covers, and what stays worker-chosen (#311).** The tuple is `manifest_id`,
+`contract_digest`, `unit_class`, `lighting`, plus three OPTIONAL negative-control inputs:
+`nc_paths`, `nc_command`, `nc_artifact_sha256`. Binding only the first four would leave the worker
+choosing its own oracle — *which* files the control reverts, and *what* command is supposed to go
+RED — so a sound class and a sound denominator would still grade a unit against a proof it picked.
+
+The three are optional because a coordinator usually **cannot know them at dispatch time**: the fix
+has not been written, so nobody yet knows which paths it will touch. Requiring a signature nobody
+could produce would take the whole scheme out of use. So:
+
+- **Signed** (a targeted mutation unit, a re-run of a known defect): the manifest must match, and a
+  flip is reported as `dispatch substitution`. `nc_paths` is signed as a *set* — the coordinator
+  signs which paths, not the order they were typed. `nc_artifact_sha256` is compared against the
+  **content** of the file `negative_control.artifact` names, re-hashed by the gate, not against any
+  digest the manifest supplies.
+- **Unsigned:** the same inputs are still not free. `negative_control.paths` must be production
+  paths that `base_sha..head_sha` actually changes (#280), a `hand` control's quoted diff must
+  target and patch that same change, and `--execute-nc` takes its command from the coordinator out
+  of band and refuses the manifest's own (#279). What genuinely remains worker-chosen is *which* of
+  the changed production paths to revert when a unit changed several — a partial control, whose RED
+  speaks only for the part it reverted.
+
 **Setup and per-dispatch flow:**
 
 1. **Once:** off the worker, `dispatch-sign.py gen-key --out <secret>` — keep `<secret>` private and

@@ -15,8 +15,14 @@ repo-pinned PUBLIC key, so an in-session substitution is detected.
         # tree unless the path is git-ignored (or --in-repo-ok is given).
 
     dispatch-sign.py sign --key ~/.orca-fleet/dispatch-key \\
-        --manifest-id <unit-id> --contract-digest sha256:… --unit-class mutation [--lighting lit]
+        --manifest-id <unit-id> --contract-digest sha256:… --unit-class mutation [--lighting lit] \\
+        [--nc-path src/app.py --nc-command "pytest -k AC_1" --nc-artifact-sha256 <hex>]
         # prints the signed envelope JSON the gate consumes via --dispatch-record.
+        # The --nc-* inputs are OPTIONAL and cover the negative control itself (#311): signing the
+        # class and the contract binds the denominator but leaves the worker choosing its own
+        # oracle. Sign them when the coordinator knows the control at dispatch time; when it does
+        # not — the usual case, since the fix has not been written yet — the gate binds the same
+        # inputs to what base_sha..head_sha actually changes instead (#280).
 
 Stdlib-only; the signature scheme is runtime/scripts/ed25519.py (vendored, RFC 8032).
 """
@@ -43,13 +49,32 @@ def _load_ed25519():
 
 # The signed fields — the dispatch tuple a worker must not be able to forge. Canonicalized the same
 # way here and in verify.py so the bytes over which the signature is computed are identical.
-_RECORD_FIELDS = ("manifest_id", "contract_digest", "unit_class", "lighting")
+#
+# The last three are the NEGATIVE-CONTROL inputs (#311). Signing the class and the contract binds
+# the denominator and leaves the worker choosing its own oracle: which files get reverted, and what
+# command is supposed to go RED. They are OPTIONAL because a coordinator usually cannot know at
+# dispatch time which paths a fix will touch — sign them when it can (a targeted mutation unit, a
+# re-run of a known defect), and the gate treats a flip as substitution. Unsigned, they fall back
+# to being bound against base_sha..head_sha itself (#280), which needs no foreknowledge.
+_RECORD_FIELDS = ("manifest_id", "contract_digest", "unit_class", "lighting",
+                  "nc_paths", "nc_command", "nc_artifact_sha256")
+
+
+def canonical_subset(record: dict) -> dict:
+    """The signed fields only, with nc_paths reduced to a sorted list of strings.
+
+    A coordinator signs a SET of paths, not a listing order, so ["b","a"] and ["a","b"] must
+    produce the same bytes — otherwise a re-ordered manifest reads as a forgery."""
+    subset = {k: record[k] for k in _RECORD_FIELDS if record.get(k) is not None}
+    if isinstance(subset.get("nc_paths"), list):
+        subset["nc_paths"] = sorted(str(x) for x in subset["nc_paths"])
+    return subset
 
 
 def canonical_record(record: dict) -> bytes:
     """Deterministic bytes for signing/verifying: only the signed fields, sorted, no whitespace."""
-    subset = {k: record[k] for k in _RECORD_FIELDS if record.get(k) is not None}
-    return json.dumps(subset, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return json.dumps(canonical_subset(record), sort_keys=True,
+                      separators=(",", ":")).encode("utf-8")
 
 
 def _in_unignored_worktree(path: Path) -> bool:
@@ -159,6 +184,16 @@ def main(argv=None) -> int:
     s.add_argument("--contract-digest", required=True, help="sha256:… of the frozen contract")
     s.add_argument("--unit-class", required=True, help="mutation | report-only | planning")
     s.add_argument("--lighting", default=None, help="lit | dark-eligible (optional)")
+    # #311: the negative-control inputs. Optional — sign them when the coordinator knows the
+    # control up front; omitted, the gate binds them to base_sha..head_sha instead (#280).
+    s.add_argument("--nc-path", action="append", default=None, dest="nc_paths", metavar="PATH",
+                   help="a path the negative control must revert; repeatable. Signed as a SET, so "
+                        "the order given here does not matter (optional)")
+    s.add_argument("--nc-command", default=None,
+                   help="the criterion-bound command the control must turn RED (optional)")
+    s.add_argument("--nc-artifact-sha256", default=None, metavar="HEX",
+                   help="sha256 of the control's artifact CONTENT, so the evidence itself is "
+                        "pinned and not just its path (optional)")
 
     args = ap.parse_args(argv)
     if args.cmd == "gen-key":
@@ -168,6 +203,9 @@ def main(argv=None) -> int:
         "contract_digest": args.contract_digest,
         "unit_class": args.unit_class,
         "lighting": args.lighting,
+        "nc_paths": args.nc_paths,
+        "nc_command": args.nc_command,
+        "nc_artifact_sha256": args.nc_artifact_sha256,
     }
     return sign(Path(args.key), record)
 
