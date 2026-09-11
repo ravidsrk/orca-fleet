@@ -679,10 +679,20 @@ ASSERTION_MARKERS = (
     "assertionerror", "assert", "failed", "fail:", "failures=", "expected", "not ok",
     "panicked at", "✗", "test failed", "e   ", "✕",
 )
-# Evidence an assertion was actually EVALUATED, as opposed to a runner summarising that something
-# went wrong. Only these override a stillborn marker: "FAILED" is what unittest prints when a
-# module will not import, but "AssertionError" is not something a failed import can produce.
-STRONG_ASSERTION_MARKERS = ("assertionerror", "assert ", "assert(", "panicked at", "✗", "✕")
+# Evidence an assertion was actually EVALUATED and FAILED, as opposed to a runner summarising that
+# something went wrong, or a traceback merely QUOTING a line of source. Only these override a
+# stillborn marker, and each is anchored to the start of a line for that reason: a collection
+# traceback echoes the source it was reading ("    assert helper() == 1") while the assertion
+# never ran, so an unanchored "assert " let a stillborn mutant through (PR #308 review, round 3).
+# `AssertionError` at the head of a line is an exception that was RAISED; a failed import cannot
+# produce one. pytest prefixes the failing assertion with `E`, and never the source it quotes.
+STRONG_ASSERTION_RE = re.compile(
+    r"^[ \t]*(?:e[ \t]+)?assertionerror\b"      # AssertionError raised (pytest prefixes E)
+    r"|^[ \t]*e[ \t]+assert\b"                   # pytest's failing assertion line
+    r"|^[ \t]*thread .*panicked at"               # Rust
+    r"|✗|✕",
+    re.M,
+)
 # unittest and pytest both distinguish an ERROR (an exception escaped) from a FAILURE (an assertion
 # was evaluated and was false). Only the second exercises the oracle. `FAILED (errors=1)` is an
 # import blowing up, and it says "FAILED" — which is why the assertion markers alone cannot be
@@ -714,7 +724,9 @@ def _failure_signature(out, err):
     separate errors from failures, so `FAILED (errors=1)` is a stillborn mutant no matter what
     words surround it. Only when no summary exists — a plain script, say — does the substring scan
     matter, and even then explicit assertion evidence outranks it: a test asserting that a
-    `ModuleNotFoundError` is raised prints that name while its oracle runs perfectly well."""
+    `ModuleNotFoundError` is raised prints that name while its oracle runs perfectly well. That
+    evidence is line-anchored, because a collection traceback QUOTES the source it was reading —
+    an `assert` in echoed source is not an assertion that ran."""
     text = f"{out}\n{err}".lower()
     if not text.strip():
         return False, ("the control run produced NO output at all. A silent non-zero exit is not a "
@@ -730,7 +742,7 @@ def _failure_signature(out, err):
         # No runner summary to trust, so read the text. A stillborn mutant refuses unless the
         # output carries evidence an assertion was really evaluated.
         stillborn = [mark for mark in STILLBORN_MARKERS if mark in text]
-        if stillborn and not any(mark in text for mark in STRONG_ASSERTION_MARKERS):
+        if stillborn and not STRONG_ASSERTION_RE.search(text):
             return False, (f"the control run did not get as far as an oracle ({stillborn[0]!r} in "
                            "its output, and nothing showing an assertion was evaluated) — that is "
                            "a STILLBORN MUTANT, not a kill. The non-zero exit is the module failing "

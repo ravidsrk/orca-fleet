@@ -1358,6 +1358,29 @@ class EndToEndMutationGreen(RepoCase):
             ok, reason = verify._failure_signature(text, "")
             self.assertTrue(ok, f"a real assertion failure was refused: {reason}")
 
+    def test_an_assert_echoed_in_a_traceback_is_not_an_assertion_that_ran(self):
+        # PR #308 review, round 3 (security). A collection traceback QUOTES the source it was
+        # reading when the import blew up, so "    assert helper() == 1" appears in the output
+        # while the assertion never evaluated. An unanchored substring read that as proof an
+        # oracle ran, which handed the waiver lanes a stillborn control.
+        for text in (
+            "ImportError while importing test module '/x/tests/test_calc.py'.\n"
+            "tests/test_calc.py:3: in <module>\n    assert helper() == 1\n"
+            "E   ModuleNotFoundError: No module named 'calc'\n",
+            "Traceback (most recent call last):\n  File 'check.py', line 3\n"
+            "    assert app.f() == 2\nImportError: no module named app\n",
+        ):
+            ok, reason = verify._failure_signature(text, "")
+            self.assertFalse(ok, f"echoed source was read as a failing assertion: {text[:50]!r}")
+            self.assertIn("STILLBORN", reason)
+
+    def test_a_pytest_failing_assertion_line_still_overrides_a_stillborn_word(self):
+        # The line pytest prefixes with `E` is the assertion that FAILED; the source it quotes
+        # carries no prefix. That distinction is what makes the override safe to keep.
+        ok, reason = verify._failure_signature(
+            "tests/conftest.py:3: in <module>\nE   assert 4 == 0\n", "")
+        self.assertTrue(ok, f"a real pytest assertion failure was refused: {reason}")
+
     def test_a_real_assertion_failure_is_still_a_kill(self):
         # The positive direction: the tightening must not make every control RED.
         for text in ("FAIL: test_add\nAssertionError: 4 != 0\n\nFAILED (failures=1)\n",
