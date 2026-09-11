@@ -1268,6 +1268,35 @@ class EndToEndMutationGreen(RepoCase):
         self.assertEqual(rc, 2)
         self.assertIn("does not change", err)
 
+    def test_a_hand_mutant_on_an_untouched_hunk_of_a_changed_file_is_refused(self):
+        # PR #308 review. Binding by PATH alone left a decoy one level down: a production file can
+        # carry both the criterion change and an unrelated one, and a mutant touching only the
+        # unrelated hunk still goes RED under a broad command while the criterion stands.
+        # app.py here gains an untouched helper at the top; base..head changes only f().
+        self.write("app.py", "def helper():\n    return 'decoy'\n\n\ndef f():\n    return 1\n")
+        base = self.commit("app.py with a helper the unit will not touch")
+        self.write("app.py", "def helper():\n    return 'decoy'\n\n\ndef f():\n    return 2\n")
+        self.commit("the unit changes f() only")
+        art = self.artifact(
+            "hand mutant applied — the bound test went RED (mutant KILLED):\n"
+            "--- a/app.py\n+++ b/app.py\n@@ -2 +2 @@\n"
+            "-    return 'decoy'\n+    return 'mutated'\n", rel="docs/reports/u/hunk.txt")
+        head = self.commit("decoy-hunk artifact")
+        nc = {"tool": "hand", "result": "RED", "artifact": art, "command": self.proof_cmd}
+        path = self._manifest(lighting="dark-eligible", nc=nc, commands=[
+            {"label": "tests", "cmd": self.proof_cmd,
+             "cmd_sha256": hashlib.sha256(self.proof_cmd.encode("utf-8")).hexdigest(),
+             "exit": 0, "wtree": self.git("rev-parse", "HEAD^{tree}")}])
+        manifest = json.loads(Path(path).read_text(encoding="utf-8"))
+        manifest["base_sha"] = base
+        manifest["head_sha"] = head
+        manifest["pr"]["reviewed_sha"] = head
+        Path(path).write_text(json.dumps(manifest), encoding="utf-8")
+        rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc",
+                                       "--nc-command", self.proof_cmd)
+        self.assertEqual(rc, 2)
+        self.assertIn("they do not overlap", err)
+
     def test_a_stillborn_mutant_is_not_a_kill(self):
         # #280 / A14. The mutant makes app.py unimportable, so check.py dies on ImportError before
         # a single assertion runs. The exit is non-zero for ANY command — Vera-Perez et al. 2018:
@@ -1287,6 +1316,36 @@ class EndToEndMutationGreen(RepoCase):
                                        "--nc-command", self.proof_cmd)
         self.assertEqual(rc, 2)
         self.assertIn("STILLBORN MUTANT", err)
+
+    def test_a_stillborn_mutant_under_a_test_runner_is_not_a_kill(self):
+        # PR #308 review. The first cut of #280 checked for an assertion marker BEFORE the
+        # stillborn markers, and `python -m unittest` prints `FAILED (errors=1)` when a module
+        # cannot be imported — so the word "FAILED" carried a collection error past the gate.
+        # An error is an exception escaping; a failure is an oracle evaluating to false.
+        for text in (
+            "ERROR: test_add\nImportError: cannot import name 'f'\nRan 1 test\n\nFAILED (errors=1)\n",
+            "ImportError while importing test module\nE   ModuleNotFoundError: No module named 'app'"
+            "\n=========== 1 error in 0.04s ===========\n",
+        ):
+            ok, reason = verify._failure_signature(text, "")
+            self.assertFalse(ok, f"a collection error was accepted as a kill: {text[:40]!r}")
+            self.assertIn("STILLBORN", reason)
+
+    def test_an_error_only_runner_summary_is_not_a_kill(self):
+        # No import word at all — just a runner reporting errors and no failures. An exception
+        # escaping still does not show the criterion-bound assertion ran.
+        ok, reason = verify._failure_signature(
+            "ERROR: test_add\nTypeError: unsupported operand\nRan 1 test\n\nFAILED (errors=1)\n", "")
+        self.assertFalse(ok)
+        self.assertIn("error", reason)
+
+    def test_a_real_assertion_failure_is_still_a_kill(self):
+        # The positive direction: the tightening must not make every control RED.
+        for text in ("FAIL: test_add\nAssertionError: 4 != 0\n\nFAILED (failures=1)\n",
+                     "=========== 1 failed in 0.02s ===========\nE   assert 4 == 0\n",
+                     "Traceback (most recent call last):\nAssertionError: AC-1 violated\n"):
+            ok, reason = verify._failure_signature(text, "")
+            self.assertTrue(ok, f"a real assertion failure was refused: {reason}")
 
     def test_a_range_revert_that_would_remove_a_test_module_is_refused(self):
         # #280 / A14b + A21. With no paths the fallback reverts the whole range — taking the test
@@ -1353,8 +1412,11 @@ class EndToEndMutationGreen(RepoCase):
         self.assertIn("negative control EXECUTED", out)
 
     def test_fabricated_hand_diff_does_not_apply(self):
+        # The hunk lands on the line the unit changed (app.py:2), so it clears the #280 hunk
+        # binding and the refusal that follows is the one this test is about: the quoted content
+        # is not what is there, so the diff does not apply.
         art = self.artifact(
-            "hand mutant applied:\n--- a/app.py\n+++ b/app.py\n@@ -9,9 +9,9 @@\n"
+            "hand mutant applied:\n--- a/app.py\n+++ b/app.py\n@@ -2 +2 @@\n"
             "-    return something_that_is_not_there\n+    return other\n"
             "the bound test went RED (mutant killed)\n", rel="docs/reports/u/hand.txt")
         self.commit("fabricated hand artifact")

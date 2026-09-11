@@ -679,6 +679,23 @@ ASSERTION_MARKERS = (
     "assertionerror", "assert", "failed", "fail:", "failures=", "expected", "not ok",
     "panicked at", "✗", "test failed", "e   ", "✕",
 )
+# unittest and pytest both distinguish an ERROR (an exception escaped) from a FAILURE (an assertion
+# was evaluated and was false). Only the second exercises the oracle. `FAILED (errors=1)` is an
+# import blowing up, and it says "FAILED" — which is why the assertion markers alone cannot be
+# trusted to mean an assertion ran (PR #308 review).
+_ERRORS_RE = re.compile(r"\berrors?\s*[=:]\s*(\d+)|\b(\d+)\s+errors?\b")
+_FAILURES_RE = re.compile(r"\bfailures?\s*[=:]\s*(\d+)|\b(\d+)\s+failed\b")
+
+
+def _counted(pattern, text):
+    """Sum of every count `pattern` reports in a runner's summary line. None when it reports none."""
+    total, seen = 0, False
+    for match in pattern.finditer(text):
+        for group in match.groups():
+            if group is not None:
+                total += int(group)
+                seen = True
+    return total if seen else None
 
 
 def _failure_signature(out, err):
@@ -686,24 +703,95 @@ def _failure_signature(out, err):
 
     A non-zero exit is not a kill on its own — `grep` exits 1 on no-match, an unimportable module
     exits 1 before a single assertion runs, and both look identical to a gate that only reads the
-    return code. The RED must LOOK like an oracle failing."""
+    return code. The RED must LOOK like an oracle failing.
+
+    Order matters here, and getting it wrong was the first review finding on #280: a stillborn
+    mutant under `python -m unittest` prints `FAILED (errors=1)`, so checking for an assertion
+    marker FIRST let the stillborn case through on the word "FAILED". The stillborn markers now
+    refuse outright, and an error-only runner summary refuses too."""
     text = f"{out}\n{err}".lower()
     if not text.strip():
         return False, ("the control run produced NO output at all. A silent non-zero exit is not a "
                        "failing test — it is what `grep` does when it finds nothing; fail-closed "
                        "(#280)")
     stillborn = [mark for mark in STILLBORN_MARKERS if mark in text]
-    has_assertion = any(mark in text for mark in ASSERTION_MARKERS)
-    if stillborn and not has_assertion:
-        return False, (f"the control run died before any oracle ran ({stillborn[0]!r} in its "
+    if stillborn:
+        return False, (f"the control run did not get as far as an oracle ({stillborn[0]!r} in its "
                        "output) — that is a STILLBORN MUTANT, not a kill. The non-zero exit is the "
                        "module failing to load, which would happen for any command; the control "
                        "must leave the code runnable and fail an ASSERTION (#280)")
-    if not has_assertion:
+    errors = _counted(_ERRORS_RE, text)
+    failures = _counted(_FAILURES_RE, text)
+    if errors and not failures:
+        return False, (f"the runner reports {errors} error(s) and no assertion failure — an error is "
+                       "an exception escaping, not an oracle evaluating to false, so it does not "
+                       "show the criterion-bound assertion ran at all; fail-closed (#280)")
+    if not any(mark in text for mark in ASSERTION_MARKERS):
         return False, ("the control run exited non-zero but its output names no assertion failure, "
                        "so nothing shows the criterion-bound oracle actually ran and failed; "
                        "fail-closed (#280)")
     return True, None
+
+
+def _hunk_lines(text, side):
+    """{path: head-side line numbers the diff's hunks touch}, reading `side` ('-' or '+').
+
+    For a mutant applied AT head_sha the `-` side carries head's own line numbers — the lines the
+    mutant replaces. For `git diff base..head` the `+` side carries them. Both land in head
+    coordinates, which is what makes the two comparable."""
+    want = re.compile(r"@@\s*-(\d+)(?:,(\d+))?\s+\+(\d+)(?:,(\d+))?\s*@@")
+    out, current = {}, None
+    for line in text.splitlines():
+        if line.startswith("+++ "):
+            target = line[4:].strip().split("\t")[0]
+            if target == "/dev/null":
+                current = None
+                continue
+            if target.startswith(("a/", "b/")):
+                target = target[2:]
+            current = target or None
+            if current:
+                out.setdefault(current, set())
+        elif line.startswith("@@") and current:
+            match = want.search(line)
+            if not match:
+                continue
+            groups = match.groups()
+            start, count = (groups[0], groups[1]) if side == "-" else (groups[2], groups[3])
+            start = int(start)
+            count = 1 if count is None else int(count)
+            # A pure insertion/deletion spans no lines on its own side; bind it to the seam it
+            # sits at, so it still has to land where the unit worked.
+            out[current].update(range(start, start + count) if count else (start, start + 1))
+    return out
+
+
+def _bind_hunks_to_change(diff, m):
+    """A `hand` mutant must touch the lines this unit changed, not merely the same FILE.
+
+    Binding by path alone left a decoy one level down: a production file can carry the criterion
+    change AND an unrelated change, and a mutant that only touches the unrelated hunk still goes
+    RED under a broad test command while the criterion behaviour stands untouched (PR #308 review).
+    """
+    base, head = m.get("base_sha"), m.get("head_sha")
+    if not (base and head and HEX40_RE.match(str(base)) and HEX40_RE.match(str(head))):
+        return "the hand mutant cannot be bound to the change without pinned base_sha and head_sha"
+    for path, lines in _hunk_lines(diff, "-").items():
+        code, out = _git(["diff", "-U0", f"{base}..{head}", "--", path])
+        if code != 0:
+            return (f"cannot diff {path} over base_sha..head_sha to bind the hand mutant to the "
+                    "change; fail-closed")
+        changed = set().union(*_hunk_lines(f"+++ {path}\n{out}", "+").values() or [set()])
+        if not lines:
+            return (f"the hand mutant's diff names {path} but carries no hunk for it, so nothing "
+                    "says which behaviour it mutates (#280)")
+        if not lines & changed:
+            return (f"the hand mutant touches {path} at line(s) {sorted(lines)[:6]}, and "
+                    f"base_sha..head_sha changes line(s) {sorted(changed)[:6] or 'none'} there — "
+                    "they do not overlap. Mutating an untouched hunk of a changed file is the same "
+                    "decoy as mutating an untouched file: the RED comes from behaviour this unit "
+                    "did not introduce (#280)")
+    return None
 
 
 def _nc_paths(nc):
@@ -807,6 +895,9 @@ def _apply_control(wt, m, nc, tool):
                 "nothing identifies which file the mutant touches, so it cannot be bound to the "
                 "change (#280)")
     bind_err = _bind_paths_to_change(targets, m, "the hand mutant's diff")
+    if bind_err:
+        return bind_err
+    bind_err = _bind_hunks_to_change(diff, m)
     if bind_err:
         return bind_err
     code, _, gerr = _run_at(wt, ["git", "apply", "--whitespace=nowarn", "-"],
