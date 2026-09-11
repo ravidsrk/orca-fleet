@@ -398,6 +398,34 @@ def is_waived(finding, waivers):
     return False
 
 
+def malformed_waivers(waivers):
+    """[(raw, why)] for records that LOOK like waivers but cannot grant one.
+
+    A format change turns waivers off silently, and the operator sees a red build with no reason
+    (PR #308 review, P1). This does not honour the old shape — scope-in-prose is the matching the
+    #313 findings removed as unsound, and reinstating it as a fallback would restore the hole where
+    a line saying "we will NOT waive X" grants X. It says so instead, which is the migration path:
+    the guard names the line it could not use and prints the id to write."""
+    try:
+        decisions = _load_decisions()
+    except Exception:  # noqa: BLE001
+        return []
+    notes = []
+    for line in waivers:
+        record = decisions.parse_line(line)
+        if record is None:
+            continue
+        ident = record["id"].strip()
+        if ident == "floor-waiver":
+            notes.append((record["raw"], "its scope is not in the id — waivers carry it there now, "
+                                         "so the ledger can retire one without retiring all of them"))
+        elif ident.startswith(_WAIVER_ID_PREFIX):
+            rule, sep, scope = ident[len(_WAIVER_ID_PREFIX):].partition(":")
+            if not (rule and sep and scope):
+                notes.append((record["raw"], "its id is not `floor-waiver:<rule>:<path-or-glob>`"))
+    return notes
+
+
 def build_parser():
     p = argparse.ArgumentParser(
         prog="floor_guard.py",
@@ -425,6 +453,11 @@ def main(argv=None):
     except GuardError as err:
         print(f"floor-guard: could not run: {err}", file=sys.stderr)
         return EXIT_CANNOT_RUN
+
+    for raw, why in malformed_waivers(waivers):
+        print(f"floor-guard: NOT a usable waiver — {why}:\n  {raw.strip()[:200]}\n"
+              "  write the id as `floor-waiver:<rule>:<path>` (or `:<dir>/**`), answer `allow`",
+              file=sys.stderr)
 
     live = [f for f in findings if not is_waived(f, waivers)]
     if not live:

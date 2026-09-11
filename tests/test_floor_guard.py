@@ -366,6 +366,27 @@ class TestUntrackedAndWaivers(FloorGuardBase):
                 r = self._decisions(self._row("mechanical", why=why))
                 self.assertEqual(r.returncode, 1, f"prose granted a waiver: {r.stdout}")
 
+    def test_a_waiver_in_the_old_shape_is_named_not_silently_dropped(self):
+        # PR #308 review, P1. Moving scope into the id turns any pre-existing `floor-waiver` record
+        # off, and a silent turn-off shows up as a red build with no reason. The old shape is NOT
+        # honoured — scope-in-prose is the matching #313 removed as unsound, and a fallback would
+        # restore the hole where "we will NOT waive X" grants X — but it is named, with the id to
+        # write instead.
+        r = self._decisions(self._row("floor-waiver", why="silenced-checker on src/new.py"))
+        self.assertEqual(r.returncode, 1, "the old shape must not grant")
+        self.assertIn("NOT a usable waiver", r.stderr, r.stderr)
+        self.assertIn("floor-waiver:<rule>:<path>", r.stderr, r.stderr)
+
+    def test_a_malformed_scoped_id_is_named(self):
+        r = self._decisions(self._row("floor-waiver:silenced-checker"))
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("not `floor-waiver:<rule>:<path-or-glob>`", r.stderr, r.stderr)
+
+    def test_a_well_formed_waiver_draws_no_migration_note(self):
+        r = self._decisions(self._row(self.ID))
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertNotIn("NOT a usable waiver", r.stderr, r.stderr)
+
     def test_missing_waiver_file_is_not_a_could_not_run(self):
         r = run_guard(self.repo, "--base", "main", "--waivers", "docs/NOPE.md")
         self.assertEqual(r.returncode, 0)
