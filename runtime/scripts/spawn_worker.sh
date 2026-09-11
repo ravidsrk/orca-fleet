@@ -95,9 +95,11 @@
 #   ORCA_COORD_ALLOW_DANGER   must be 1 for PROFILE=danger (implies the above + ephemeral sandbox)
 #   ORCA_SANDBOX_RECIPE       PROFILE=danger only: the orca-per-workspace-env recipe id the lane
 #                             runs in. Required — the opt-in above is intent, this is evidence.
-#   ORCA_SANDBOX_DOCTOR       PROFILE=danger only: path to that recipe's
-#                             `vm recipe doctor <id> --provision` output. Must name the recipe and
-#                             carry no fail and no warn (sandbox-policy.md; ok:true proves nothing).
+#   ORCA_SANDBOX_DOCTOR       PROFILE=danger only, and an OUTPUT path since #283: where this
+#                             script WRITES the `vm recipe doctor <id> --provision` transcript it
+#                             ran itself, for the lane ledger. Optional; an unwritable path is a
+#                             refusal. It is no longer an input — a transcript the caller names is
+#                             not evidence (/etc/passwd passed the old grep).
 #   WORKER_CMD                full launch command for ANY agent (the generic override; its
 #                             read-only/write semantics become YOUR assertion). Legacy
 #                             CLAUDE_CMD / CODEX_CMD still work for those two. Any override
@@ -105,6 +107,7 @@
 #   SETTLE_SECS / SUBMIT_SECS  timing knobs (defaults 20 / 8) — custom-argv lane. SUBMIT_SECS is
 #                             the `--wait-submit` observation window, in SECONDS.
 set -Eeuo pipefail  # -E: ERR trap fires inside functions (orca_json) too
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"  # sibling scripts (sandbox_doctor.py)
 
 step=parse-args
 task="?"
@@ -203,11 +206,15 @@ if [ "$PROFILE" = "rw" ] && [ "${ORCA_COORD_ALLOW_AUTONOMOUS_WRITE:-0}" != "1" ]
   exit 2
 fi
 if [ "$PROFILE" = "danger" ]; then
-  # A boolean is not evidence of a sandbox (REVIEW.md §8 P2-15). sandbox-policy.md names the
-  # artifact that is: an `orca-per-workspace-env` recipe id, validated by
-  # `vm recipe doctor <recipe-id> --provision`, which is clear ONLY with no fail AND no warn.
-  # So danger needs the opt-in, a recipe id, and that doctor transcript on disk — each checked,
-  # each recorded on the spawn line so the ledger carries what the lane actually ran in.
+  # A boolean is not evidence of a sandbox — and neither is A FILE THE CALLER NAMES. Until #283
+  # this block read a transcript from ORCA_SANDBOX_DOCTOR and grepped it for the recipe id and for
+  # "fail"/"warn". Both halves were broken, in opposite directions:
+  #   ORCA_SANDBOX_RECIPE=root ORCA_SANDBOX_DOCTOR=/etc/passwd spawned a danger worker — the passwd
+  #     file mentions "root" and carries neither word;
+  #   a REAL doctor transcript carrying `"failures": []` was REFUSED, because "fail" matched.
+  # So the evidence is PRODUCED here rather than accepted here: this script runs the doctor and
+  # reads its verdict. ORCA_SANDBOX_DOCTOR is now an OUTPUT path — where the transcript is WRITTEN
+  # for the lane ledger — not an input anyone is trusted to supply.
   if [ "${ORCA_COORD_ALLOW_DANGER:-0}" != "1" ]; then
     echo "SPAWN=REFUSED task=${task} PROFILE=danger requires ORCA_COORD_ALLOW_DANGER=1 AND an ephemeral sandbox (sandbox-policy.md)" >&2
     exit 2
@@ -221,19 +228,42 @@ if [ "$PROFILE" = "danger" ]; then
       echo "SPAWN=REFUSED task=${task} ORCA_SANDBOX_RECIPE='${recipe}' is not a recipe id (want 3+ chars of [A-Za-z0-9._-])" >&2
       exit 2 ;;
   esac
-  doctor="${ORCA_SANDBOX_DOCTOR:-}"
-  if [ -z "$doctor" ] || [ ! -r "$doctor" ]; then
-    echo "SPAWN=REFUSED task=${task} PROFILE=danger requires ORCA_SANDBOX_DOCTOR=<path to \`vm recipe doctor ${recipe} --provision\` output>; '${doctor}' is not readable" >&2
+  if ! command -v orca >/dev/null 2>&1; then
+    echo "SPAWN=REFUSED task=${task} PROFILE=danger needs \`orca\` on PATH to run \`vm recipe doctor ${recipe} --provision\` — a sandbox cannot be certified without the runtime that provides it (#283)" >&2
     exit 2
   fi
-  if ! grep -q -- "$recipe" "$doctor"; then
-    echo "SPAWN=REFUSED task=${task} ORCA_SANDBOX_DOCTOR does not mention recipe '${recipe}' — a transcript for another sandbox proves nothing about this one" >&2
+  step=sandbox-doctor
+  doctor_out="$(mktemp)"
+  doctor_rc=0
+  # --json is documented for worker-start / task-list / skills; `src/cli/specs/vm.ts:6-9` lists only
+  # [--repo-path] [--provision|--connect] for doctor. So ask for JSON and fall back to the
+  # documented plain form when the flag is rejected. Source-witnessed, not binary-witnessed — the
+  # same limitation pins.json records for itself; re-witness on the next pin-it wave.
+  orca vm recipe doctor "$recipe" --provision --json > "$doctor_out" 2>&1 || doctor_rc=$?
+  if [ "$doctor_rc" -ne 0 ] && grep -qiE "unknown (option|flag|argument)|unrecognized|invalid option" "$doctor_out"; then
+    doctor_rc=0
+    orca vm recipe doctor "$recipe" --provision > "$doctor_out" 2>&1 || doctor_rc=$?
+  fi
+  if [ "$doctor_rc" -ne 0 ]; then
+    echo "SPAWN=REFUSED task=${task} \`orca vm recipe doctor ${recipe} --provision\` exited ${doctor_rc} — the sandbox did not come up clean: $(head -c 300 "$doctor_out" | tr '\n' ' ')" >&2
+    rm -f "$doctor_out"
     exit 2
   fi
-  if grep -qiE '(^|[^a-z])(fail|warn)' "$doctor"; then
-    echo "SPAWN=REFUSED task=${task} recipe doctor for '${recipe}' is not clear — sandbox-policy.md: clear means no fail AND no warn (ok:true alone proves nothing)" >&2
+  if ! python3 "$HERE/sandbox_doctor.py" "$doctor_out" "$recipe" 2>/dev/null; then
+    echo "SPAWN=REFUSED task=${task} recipe doctor for '${recipe}' is not clear — sandbox-policy.md: clear means no fail AND no warn (ok:true alone proves nothing): $(python3 "$HERE/sandbox_doctor.py" "$doctor_out" "$recipe" 2>&1 >/dev/null | head -c 200)" >&2
+    rm -f "$doctor_out"
     exit 2
   fi
+  # The transcript is OURS now; record it where the lane ledger wants it.
+  if [ -n "${ORCA_SANDBOX_DOCTOR:-}" ]; then
+    if ! cp "$doctor_out" "$ORCA_SANDBOX_DOCTOR" 2>/dev/null; then
+      echo "SPAWN=REFUSED task=${task} could not write the doctor transcript to ORCA_SANDBOX_DOCTOR='${ORCA_SANDBOX_DOCTOR}' — the lane ledger record is part of the danger contract (sandbox-policy.md)" >&2
+      rm -f "$doctor_out"
+      exit 2
+    fi
+  fi
+  rm -f "$doctor_out"
+  echo "SPAWN=NOTE task=${task} sandbox recipe='${recipe}' doctored clear by this script (#283)" >&2
 fi
 
 # Per-agent × profile launch command. Autonomy is the WHOLE POINT: a worker that blocks on a

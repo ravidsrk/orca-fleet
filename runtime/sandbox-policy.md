@@ -68,10 +68,11 @@ Two rules the guide states and a lane will otherwise learn the expensive way:
 
 - **`doctor` is clear only with no `fail` AND no `warn`.** `ok:true` on its own proves nothing —
   a warn is a lane that boots and then fails a build halfway through
-  (`orca-per-workspace-env:110-122`). `spawn_worker.sh` enforces this: `PROFILE=danger` requires
-  `ORCA_SANDBOX_RECIPE=<recipe id>` and `ORCA_SANDBOX_DOCTOR=<path to that doctor output>`, refuses
-  a transcript that names a different recipe, and refuses one carrying `fail` or `warn`. The
-  opt-in flag is intent; these two are the evidence.
+  (`orca-per-workspace-env:110-122`). `spawn_worker.sh` **runs the doctor itself** (#283):
+  `PROFILE=danger` needs `ORCA_COORD_ALLOW_DANGER=1`, a valid `ORCA_SANDBOX_RECIPE`, and `orca` on
+  PATH; the script runs `vm recipe doctor <recipe> --provision` and reads the verdict via
+  `sandbox_doctor.py`. `ORCA_SANDBOX_DOCTOR` is an **output** path: where that transcript is
+  written for the lane ledger. A transcript the caller names is not evidence.
 - **Never snapshot a machine on which `orca serve` has already run.** The pairing identity is
   baked in, so every clone of that snapshot claims to be the same Orca server — the fleet then
   cannot tell two sandboxes apart, and remote placement resolves to the wrong host. Snapshot

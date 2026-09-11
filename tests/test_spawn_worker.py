@@ -56,12 +56,15 @@ def task_list_payload(*tasks):
 
 
 class TestDangerSandboxEvidence(unittest.TestCase):
-    """PROFILE=danger needs evidence of a sandbox, not a boolean (REVIEW.md §8 P2-15).
+    """PROFILE=danger needs evidence of a sandbox, and the evidence has to be PRODUCED here.
 
-    `ORCA_COORD_ALLOW_DANGER=1` alone said only that a coordinator meant it. The
-    policy names what a sandbox actually is: an `orca-per-workspace-env` recipe id
-    plus a `vm recipe doctor <id> --provision` transcript, clear ONLY with no fail
-    and no warn. Each of those is now checked, and each check is a refusal here.
+    `ORCA_COORD_ALLOW_DANGER=1` alone said only that a coordinator meant it. A transcript the
+    caller names said only that the caller could name a file: `ORCA_SANDBOX_RECIPE=root` with
+    `ORCA_SANDBOX_DOCTOR=/etc/passwd` spawned a danger worker, while a real transcript reporting
+    `"failures": []` was refused because the substring "fail" was in it (#283).
+
+    So spawn_worker.sh runs `orca vm recipe doctor <recipe> --provision` itself and reads the
+    verdict; ORCA_SANDBOX_DOCTOR is now where the transcript is WRITTEN.
     """
 
     ENV = {"PROFILE": "danger", "ORCA_COORD_ALLOW_AUTONOMOUS_WRITE": "1",
@@ -73,10 +76,23 @@ class TestDangerSandboxEvidence(unittest.TestCase):
         env.update(extra)
         return run_spawn(self.ARGS, env_extra=env)
 
-    def _doctor(self, tmp, text):
-        path = Path(tmp) / "doctor.txt"
-        path.write_text(text, encoding="utf-8")
-        return str(path)
+    def _with_doctor(self, output, rc=0, **extra):
+        """Run spawn with a stub `orca` whose `vm recipe doctor` prints `output` and exits `rc`."""
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "doctor-output"
+            out.write_text(output, encoding="utf-8")
+            stub = Path(tmp) / "orca"
+            stub.write_text(
+                "#!/bin/sh\n"
+                'case "$*" in\n'
+                f'  *"recipe doctor"*) cat "{out}"; exit {rc} ;;\n'
+                '  *) echo "{}" ;;\n'
+                "esac\n")
+            stub.chmod(0o755)
+            env = dict(self.ENV)
+            env.update(extra)
+            env["PATH"] = f"{tmp}:/usr/bin:/bin"
+            return run_spawn(self.ARGS, env_extra=env)
 
     def test_the_opt_in_alone_is_refused(self):
         rc, _out, err = self._spawn()
@@ -93,49 +109,82 @@ class TestDangerSandboxEvidence(unittest.TestCase):
         self.assertEqual(rc, 2, err)
         self.assertIn("is not a recipe id", err)
 
-    def test_a_missing_doctor_transcript_is_refused(self):
-        rc, _out, err = self._spawn(ORCA_SANDBOX_RECIPE="lane-7",
-                                    ORCA_SANDBOX_DOCTOR="/nonexistent/doctor.txt")
+    def test_without_orca_the_lane_is_refused(self):
+        # #283: a sandbox cannot be certified without the runtime that provides it. Before this,
+        # any readable file stood in for the runtime's own verdict.
+        rc, _out, err = self._spawn(ORCA_SANDBOX_RECIPE="lane-7")
         self.assertEqual(rc, 2, err)
-        self.assertIn("ORCA_SANDBOX_DOCTOR", err)
+        self.assertIn("needs `orca` on PATH", err)
+
+    def test_a_caller_named_transcript_is_no_longer_evidence(self):
+        # THE bug: ORCA_SANDBOX_RECIPE=root + ORCA_SANDBOX_DOCTOR=/etc/passwd spawned a danger
+        # worker. /etc/passwd names "root" and carries neither "fail" nor "warn". With no orca on
+        # PATH the lane is now refused outright, and the named file is never read as evidence.
+        rc, _out, err = self._spawn(ORCA_SANDBOX_RECIPE="root",
+                                    ORCA_SANDBOX_DOCTOR="/etc/passwd")
+        self.assertEqual(rc, 2, err)
+        self.assertIn("needs `orca` on PATH", err)
+        self.assertNotIn("SPAWN=NOTE", err)
+
+    def test_a_doctor_that_exits_nonzero_is_refused(self):
+        rc, _out, err = self._with_doctor("provisioning lane-7\n", rc=3,
+                                          ORCA_SANDBOX_RECIPE="lane-7")
+        self.assertEqual(rc, 2, err)
+        self.assertIn("did not come up clean", err)
 
     def test_a_transcript_for_another_recipe_is_refused(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            rc, _out, err = self._spawn(
-                ORCA_SANDBOX_RECIPE="lane-7",
-                ORCA_SANDBOX_DOCTOR=self._doctor(tmp, "recipe other-lane ok:true\n"),
-            )
+        rc, _out, err = self._with_doctor('{"recipe": "other-lane", "ok": true}',
+                                          ORCA_SANDBOX_RECIPE="lane-7")
         self.assertEqual(rc, 2, err)
-        self.assertIn("does not mention recipe", err)
+        self.assertIn("not clear", err)
 
-    def test_a_warn_in_the_transcript_is_refused(self):
+    def test_a_warn_is_refused(self):
         # sandbox-policy.md: clear means no fail AND no warn; ok:true proves nothing.
-        with tempfile.TemporaryDirectory() as tmp:
-            rc, _out, err = self._spawn(
-                ORCA_SANDBOX_RECIPE="lane-7",
-                ORCA_SANDBOX_DOCTOR=self._doctor(tmp, "recipe lane-7 ok:true\nwarn: disk\n"),
-            )
+        rc, _out, err = self._with_doctor(
+            '{"recipe": "lane-7", "ok": true, "warnings": ["low disk"]}',
+            ORCA_SANDBOX_RECIPE="lane-7")
         self.assertEqual(rc, 2, err)
         self.assertIn("no fail AND no warn", err)
 
-    def test_a_fail_in_the_transcript_is_refused(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            rc, _out, err = self._spawn(
-                ORCA_SANDBOX_RECIPE="lane-7",
-                ORCA_SANDBOX_DOCTOR=self._doctor(tmp, "recipe lane-7\nfail: no network\n"),
-            )
+    def test_a_fail_is_refused(self):
+        rc, _out, err = self._with_doctor(
+            '{"recipe": "lane-7", "ok": false, "checks": [{"name": "net", "status": "fail"}]}',
+            ORCA_SANDBOX_RECIPE="lane-7")
         self.assertEqual(rc, 2, err)
         self.assertIn("no fail AND no warn", err)
 
-    def test_a_clean_transcript_clears_the_sandbox_gate(self):
-        # It then fails later for want of an `orca` binary — a different step, which
-        # is the proof the sandbox gate itself passed rather than refusing.
-        with tempfile.TemporaryDirectory() as tmp:
-            rc, _out, err = self._spawn(
-                ORCA_SANDBOX_RECIPE="lane-7",
-                ORCA_SANDBOX_DOCTOR=self._doctor(tmp, "recipe lane-7 ok:true\nprovision complete\n"),
-            )
-        self.assertNotIn("SPAWN=REFUSED", err)
+    def test_an_empty_findings_list_is_clear(self):
+        # The other half of #283: a REAL clear transcript says `"failures": []`, and the old
+        # substring grep refused it for containing "fail".
+        rc, _out, err = self._with_doctor(
+            '{"recipe": "lane-7", "ok": true, "failures": [], "warnings": []}',
+            ORCA_SANDBOX_RECIPE="lane-7")
+        self.assertIn("doctored clear by this script", err)
+        self.assertNotIn("sandbox", err.split("doctored clear by this script")[1])
+
+    def test_a_clear_text_transcript_passes_the_gate(self):
+        rc, _out, err = self._with_doctor("recipe lane-7 ok:true\n0 warnings, no failures\n",
+                                          ORCA_SANDBOX_RECIPE="lane-7")
+        self.assertIn("doctored clear by this script", err)
+        self.assertNotIn("sandbox", err.split("doctored clear by this script")[1])
+
+    def test_the_transcript_is_written_where_the_ledger_wants_it(self):
+        # ORCA_SANDBOX_DOCTOR inverted: an OUTPUT path for the lane ledger, not a trusted input.
+        with tempfile.TemporaryDirectory() as out_dir:
+            dest = Path(out_dir) / "lane-7-doctor.json"
+            payload = '{"recipe": "lane-7", "ok": true, "failures": []}'
+            rc, _out, err = self._with_doctor(payload, ORCA_SANDBOX_RECIPE="lane-7",
+                                              ORCA_SANDBOX_DOCTOR=str(dest))
+            self.assertIn("doctored clear by this script", err)
+            self.assertTrue(dest.is_file(), "the doctor transcript was not recorded")
+            self.assertIn("lane-7", dest.read_text(encoding="utf-8"))
+
+    def test_an_unwritable_ledger_path_is_refused(self):
+        rc, _out, err = self._with_doctor('{"recipe": "lane-7", "ok": true, "failures": []}',
+                                          ORCA_SANDBOX_RECIPE="lane-7",
+                                          ORCA_SANDBOX_DOCTOR="/nonexistent-dir/doctor.json")
+        self.assertEqual(rc, 2, err)
+        self.assertIn("could not write the doctor transcript", err)
 
     def test_ro_and_rw_do_not_need_a_sandbox_recipe(self):
         for profile, opt_in in (("ro", {}), ("rw", {"ORCA_COORD_ALLOW_AUTONOMOUS_WRITE": "1"})):
