@@ -639,6 +639,20 @@ class TestArchitecture(unittest.TestCase):
             "exit 3 must be flagged a possible false negative "
             "(an unobserved turn start is not a dead worker)",
         )
+        # Every nonzero code the script actually returns has to appear here. Exit 5
+        # (LAUNCHED_UNUSABLE) shipped without this and nothing noticed; a code the
+        # script returns and the doctrine never names is a coordinator branching on
+        # something nobody wrote down.
+        used = {int(c) for c in re.findall(r"^\s*exit ([0-9])\s*$", script, re.M)} - {0}
+        self.assertTrue(used, "no exit codes found — the regex stopped matching the script")
+        undocumented = sorted(c for c in used if not re.search(rf"[Ee]xit {c}\b", bullet))
+        self.assertEqual(undocumented, [], f"spawn_worker.sh returns {undocumented} and the "
+                                           "respawn bullet never says what they mean")
+        self.assertRegex(
+            bullet, r"(?i)exit 5.{0,120}?never respawn",
+            "exit 5 is a LIVE worker that cannot do the work — stopping it, not "
+            "respawning beside it, is the whole point of having a code for it",
+        )
         self.assertRegex(
             bullet, r"(?i)exit 4 \(`?outcome_unknown`?\).{0,80}?never respawn",
             "exit 4 (outcome_unknown) must be INSPECT, never respawn, at the "

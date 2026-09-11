@@ -17,6 +17,10 @@
 #   - `state: outcome_unknown` is NOT a failure: it is an unproven outcome. Exit 4, print the
 #     receipt's `nextCommands`, and INSPECT — never respawn (respawning beside a live pane is the
 #     dual-writer class) (`worker-start-receipt.ts:48,60-68`).
+#   - Exit 5 = LAUNCHED_UNUSABLE: the start succeeded, so a worker IS live, but `launch.effective`
+#     does not prove the PROFILE's flag was applied — it lacks the flag, or the host omitted the
+#     field entirely. Not a failure (something started) and not unknown (we know it did): STOP the
+#     worker, never respawn beside it, then fix the host (sandbox-policy.md:16-20).
 #   - custom-argv lane = `terminal create` + `dispatch --inject`. The inject ALREADY SUBMITS the
 #     preamble (`dispatch-methods.ts:155-165` calls `sendTerminalAgentPrompt`) and `--json` returns
 #     `result.prompt{requestId, stages}`, stages drawn from `input_accepted | turn_started`
@@ -539,16 +543,29 @@ eff = launch.get("effective") if "effective" in launch else None
 # and the profile was advisory (#298). Checked only when the host reports the field:
 # an absent one is unverifiable, and is said so rather than guessed at.
 want = sys.argv[2].split() if len(sys.argv) > 2 else []
-if eff is not None and want:
-    toks = _launch_tokens(eff)
-    if not _contains_seq(toks, want):
-        print("VERDICT=failed LAUNCH_FLAG_MISSING=" + " ".join(want))
-        print("LAUNCH_EFFECTIVE=" + (eff if isinstance(eff, str)
-                                     else json.dumps(eff, sort_keys=True)))
+if want:
+    # An ABSENT launch.effective is not a pass. sandbox-policy.md:18 makes this field THE way to
+    # tell an autonomous worker from a prompting one — "neither is knowable from source: read
+    # launch.effective off the start receipt" — and it is in the documented receipt shape
+    # (dispatch-lifecycle.md:20, worker-start-receipt.ts:42-69). Warning and proceeding was the
+    # same fail-open this commit removed for a missing `state`, one field over (PR #308 review).
+    #
+    # Both of these are UNUSABLE, not FAILED: state said ready, so a worker IS live. It cannot do
+    # the work the profile grants, and it must be STOPPED — never respawned beside.
+    if eff is None:
+        why = "LAUNCH_EFFECTIVE_ABSENT=1"
+    elif not _contains_seq(_launch_tokens(eff), want):
+        why = "LAUNCH_FLAG_MISSING=" + " ".join(want)
+    else:
+        why = ""
+    if why:
+        print("VERDICT=unusable " + why)
+        print(f"HANDLE={h} READY={state}")
+        print(f"DISPATCH={did}")
+        if eff is not None:
+            print("LAUNCH_EFFECTIVE=" + (eff if isinstance(eff, str)
+                                         else json.dumps(eff, sort_keys=True)))
         raise SystemExit(0)
-elif eff is None and want:
-    print("launch.effective absent from the receipt — the profile's flag could not be verified "
-          "against what the host launched", file=sys.stderr)
 
 print(f"VERDICT=ready STATE={state}")
 print(f"HANDLE={h} READY={state}")
@@ -571,7 +588,7 @@ PY
   # these apart because it never sees the exit status; this is the only place that does.
   if [ "$ws_rc" != "0" ]; then
     case "$verdict:$verdict_line" in
-      ready:*|unknown:*STATE=absent*)
+      ready:*|unknown:*STATE=absent*|unusable:*)
         verdict=failed
         verdict_line="VERDICT=failed UNPARSEABLE_RECEIPT rc=${ws_rc}" ;;
     esac
@@ -596,13 +613,19 @@ PY
       esac
       exit 4
       ;;
-    *)
+    unusable)
+      printf '%s\n' "$payload"
       case "$verdict_line" in
-        *LAUNCH_FLAG_MISSING=*)
-          echo "SPAWN=FAILED task=${task} PROFILE=${PROFILE} asked for '${profile_flag}' and the host's launch.effective does not carry it — the worker did not launch with the capability the profile grants, so the profile would be advisory. worker-start takes its args from the host's agentDefaultArgs, not from this script: fix the host setting, or pass WORKER_CMD with ORCA_COORD_ALLOW_CMD_OVERRIDE=1 and own the semantics. Receipt in $ws" >&2 ;;
+        *LAUNCH_EFFECTIVE_ABSENT*)
+          _why="its receipt carries no launch.effective at all, so what the host applied cannot be read (sandbox-policy.md: that field is the only way to tell an autonomous worker from a prompting one)" ;;
         *)
-          echo "SPAWN=FAILED task=${task} step=${step} rc=${ws_rc} — worker-start failed: ${verdict_line#VERDICT=failed } (receipt in $ws)" >&2 ;;
+          _why="the host's launch.effective does not carry '${profile_flag}'" ;;
       esac
+      echo "SPAWN=LAUNCHED_UNUSABLE task=${task} PROFILE=${PROFILE} — a worker IS LIVE (handle above) and ${_why}. It cannot do the work this profile grants, and on a manual host it will block on invisible permission dialogs while the fleet believes it is autonomous. STOP it (worker-stop / worker-abandon) — NEVER RESPAWN beside it. Then fix the host's agentDefaultArgs, or pass WORKER_CMD with ORCA_COORD_ALLOW_CMD_OVERRIDE=1 and own the semantics. Receipt in $ws" >&2
+      exit 5
+      ;;
+    *)
+      echo "SPAWN=FAILED task=${task} step=${step} rc=${ws_rc} — worker-start failed: ${verdict_line#VERDICT=failed } (receipt in $ws)" >&2
       exit 1
       ;;
   esac

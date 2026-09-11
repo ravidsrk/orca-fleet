@@ -547,12 +547,15 @@ esac
             self.assertIn("--dangerously-skip-permissions", p.stdout)
 
     def test_launch_effective_absent_is_not_invented(self):
+        # An absent field is reported as absent, never fabricated. Since #298 it is also not a
+        # pass — the exit is 5, LAUNCHED_UNUSABLE — but the no-fabrication half is unchanged and
+        # is what this test is for: the launcher never prints a launch it did not receive.
         with tempfile.TemporaryDirectory() as tmp:
             self._stub(tmp, receipt={"result": {
                 "taskId": "task_test", "dispatchId": "ctx_x", "state": "ready",
                 "effects": [{"kind": "terminal", "role": "agent", "id": "term_agent1"}]}})
             p = self._run(tmp, self.ARGS, self.RW)
-            self.assertEqual(p.returncode, 0, p.stderr)
+            self.assertEqual(p.returncode, 5, p.stderr)
             self.assertNotIn("LAUNCH_EFFECTIVE=", p.stdout)
 
     # --- #298: four fail-open paths in the launcher ----------------------------------------
@@ -613,8 +616,11 @@ esac
                 with tempfile.TemporaryDirectory() as tmp:
                     self._stub(tmp, receipt=receipt)
                     p = self._run(tmp, self.ARGS + [agent], self.RW)
-                    self.assertEqual(p.returncode, 1, p.stdout + p.stderr)
-                    self.assertIn("does not carry it", p.stderr)
+                    self.assertEqual(p.returncode, 5, p.stdout + p.stderr)
+                    self.assertIn("LAUNCHED_UNUSABLE", p.stderr)
+                    self.assertIn("NEVER RESPAWN", p.stderr)
+                    self.assertIn("HANDLE=", p.stdout,
+                                  "the handle is how the live worker gets stopped")
 
     def test_a_multiword_flag_must_appear_contiguously(self):
         # grok's flag is `--permission-mode bypassPermissions`. Finding its two words far apart,
@@ -625,7 +631,7 @@ esac
         with tempfile.TemporaryDirectory() as tmp:
             self._stub(tmp, receipt=receipt)
             p = self._run(tmp, self.ARGS + ["grok"], self.RW)
-            self.assertEqual(p.returncode, 1, p.stdout + p.stderr)
+            self.assertEqual(p.returncode, 5, p.stdout + p.stderr)
 
     def test_the_profiles_flag_is_accepted_in_every_shape_a_host_reports_it(self):
         for eff in ("--dangerously-skip-permissions",
@@ -640,16 +646,49 @@ esac
                     p = self._run(tmp, self.ARGS, self.RW)
                     self.assertEqual(p.returncode, 0, p.stdout + p.stderr)
 
-    def test_an_absent_launch_effective_is_unverifiable_and_says_so(self):
-        # Checked only when the host reports the field. An absent one cannot be checked, and the
-        # honest answer is to say that rather than refuse every host that omits it.
+    def test_an_absent_launch_effective_is_not_a_pass(self):
+        """PR #308 review, P1. I first had this warn and proceed; that was wrong.
+
+        `sandbox-policy.md:16-20` makes this field THE way to tell an autonomous worker from a
+        prompting one — "neither is knowable from source: read launch.effective off the start
+        receipt" — and `dispatch-lifecycle.md:20` has it in the documented receipt shape. So a
+        receipt without it is a receipt this script cannot read, which is the same fail-open the
+        missing-`state` fix removed one field over. On a manual host the worker blocks on
+        invisible dialogs while the fleet believes it is autonomous.
+        """
+        for launch in ({"requested": {"agent": "claude"}}, {}):
+            with self.subTest(launch=launch):
+                receipt = copy.deepcopy(self.READY_RECEIPT)
+                receipt["result"]["launch"] = launch
+                with tempfile.TemporaryDirectory() as tmp:
+                    self._stub(tmp, receipt=receipt)
+                    p = self._run(tmp, self.ARGS, self.RW)
+                    self.assertEqual(p.returncode, 5, p.stdout + p.stderr)
+                    self.assertIn("LAUNCHED_UNUSABLE", p.stderr)
+                    self.assertIn("no launch.effective", p.stderr)
+
+    def test_unusable_is_neither_failed_nor_unknown(self):
+        # A worker IS live: reporting "failed" invites a respawn beside it, and "unknown" claims
+        # not to know something the receipt just said. Exit 5 says stop it, and names the handle.
         receipt = copy.deepcopy(self.READY_RECEIPT)
-        del receipt["result"]["launch"]["effective"]
+        receipt["result"]["launch"]["effective"] = {"agent": "claude", "args": "--permission-mode plan"}
         with tempfile.TemporaryDirectory() as tmp:
             self._stub(tmp, receipt=receipt)
             p = self._run(tmp, self.ARGS, self.RW)
-            self.assertEqual(p.returncode, 0, p.stdout + p.stderr)
-            self.assertIn("could not be verified", p.stderr)
+            self.assertEqual(p.returncode, 5)
+            self.assertNotIn("SPAWN=FAILED", p.stderr)
+            self.assertNotIn("OUTCOME_UNKNOWN", p.stderr)
+            self.assertIn("HANDLE=term_agent1", p.stdout)
+
+    def test_a_failed_call_is_not_upgraded_to_unusable(self):
+        # rc!=0 plus an unreadable capability is still a failed call, not a live worker.
+        receipt = copy.deepcopy(self.READY_RECEIPT)
+        del receipt["result"]["launch"]["effective"]
+        with tempfile.TemporaryDirectory() as tmp:
+            self._stub(tmp, receipt=receipt, ws_rc=127)
+            p = self._run(tmp, self.ARGS, self.RW)
+            self.assertEqual(p.returncode, 1, p.stdout + p.stderr)
+            self.assertIn("SPAWN=FAILED", p.stderr)
 
     def test_a_status_is_read_as_a_token_not_word_split(self):
         """#298: `read -r status unmet` split the status, so its FIRST WORD decided dispatch.

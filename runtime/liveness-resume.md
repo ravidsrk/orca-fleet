@@ -1,9 +1,8 @@
 # Runtime policy — liveness and crash-resume
 
-The runtime tracks everything needed to keep a long run alive and recoverable, but it only WARNS on stalls;
-the fleet must act. Both live-supervision and crash-resume read the same persisted provenance (tasks,
-dispatch_contexts with last_heartbeat_at/failure_count, worker_done payloads — all in SQLite, surviving
-restarts).
+The runtime tracks everything needed to keep a long run alive and recoverable, but it only WARNS on stalls; the
+fleet must act. Both live-supervision and crash-resume read the same persisted provenance (tasks,
+dispatch_contexts with last_heartbeat_at/failure_count, worker_done payloads — all in SQLite, surviving restarts).
 
 ## Provenance is `taskId`+`dispatchId`, never the handle
 
@@ -51,17 +50,17 @@ process exit, or a transcript whose final agent turn sent no `worker_done`.
 - End-of-run gate: `worker-list --run <id> --terminal-state reclaimable` — while any row is reclaimable,
   something still owes a decision. That, not a clean inbox, is "nothing outstanding".
 - Respawn a dead worker: log the evidence + a doctor-owned attempt count (NOT the runtime failure budget) →
-  **reflection-before-retry** (below) → `task-update → ready` ONLY after the evidence line → `worker-start
-  --task <id> --retry-of <failed dispatch id>` with an explicit fresh placement (`--worktree` / `--agent` /
-  `--terminal` — retry never silently inherits the dead placement). spawn_worker.sh's contract: exit 2 = usage
-  or policy refusal (bad args, unknown agent, unmet deps, danger without opt-in) — SURFACE the refusal, never
-  retry it as an uncounted re-triage; every typed orchestration refusal (`task_not_found`,
+  **reflection-before-retry** (below) → `task-update → ready` ONLY after the evidence line → `worker-start --task
+  <id> --retry-of <failed dispatch id>` with a fresh placement (`--worktree`/`--agent`/`--terminal`, never the
+  dead one). spawn_worker.sh's contract: exit 2 = usage or policy refusal (bad args, unknown agent, unmet deps,
+  danger without opt-in) — SURFACE it, never retry as uncounted re-triage; every typed refusal (`task_not_found`,
   `task_not_startable` with `data.unmetDependencies`, `inject_rejected`, `nested_worker_depth_exceeded`,
-  `consumer_fenced`, `dispatch_inactive`) branches the same way and carries `error.data.nextSteps` — read it.
-  Exit 4 (`outcome_unknown`) is INSPECT, never respawn. Exit 3 (custom-argv lane: input accepted, turn start
-  unproven) is a POSSIBLE false negative — READ THE PANE before respawning, with `orca terminal read
-  --terminal <h> --screen` or `worker-read --dispatch <id>`, not by eye: a live TUI is a working worker, and
-  respawning beside it creates a dual-writer (dispatch-lifecycle.md).
+  `consumer_fenced`, `dispatch_inactive`) branches the same way, carrying `error.data.nextSteps`. Exit 5 = a LIVE
+  worker whose `launch.effective` does not prove the PROFILE's flag — STOP it, fix the host, never respawn. Exit
+  4 (`outcome_unknown`) is INSPECT, never respawn; exit 1 is an outright failed start — nothing live, retry per
+  the reflection above. Exit 3 (custom-argv: input accepted, turn unproven) is a POSSIBLE false negative — READ
+  THE PANE first (`orca terminal read --terminal <h> --screen` or `worker-read --dispatch <id>`), not by eye: a
+  live TUI is a working worker and respawning beside it is a dual-writer (dispatch-lifecycle.md).
 - BREAK at 3 doctor attempts OR the dispatch-context circuit break (3 consecutive failures marks the task
   failed) → escalate honestly (gate-classification.md).
 - **Identical-error kill:** if the last ≥2 doctor attempts failed on the same error signature (same failing
