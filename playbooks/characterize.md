@@ -29,17 +29,23 @@ surface with no net does not proceed.
 
 ## What to record
 
-Per unit, in the evidence manifest's `negative_control` (evidence-manifest.md §1):
+Per unit, in the evidence manifest's `negative_control` — the field names are the ones `verify.py`
+reads, not descriptions of them (evidence-manifest.md §1 carries the full schema):
 
-| Field | Content |
-|---|---|
-| `tool` | the mutation tool, or `hand` |
-| pinned mutant | the tool's mutant id, or the quoted diff for a hand mutant |
-| target assertion | the criterion-bound assertion the mutant must fail |
-| `result` | KILLED / RED — with the run's output, not a description of it |
+| Field | Content | Required |
+|---|---|---|
+| `tool` | `mutmut` / `cosmic-ray` / `stryker` / `pitest` / `cargo-mutants` / `go-mutesting` / `hand` | always |
+| `mutant` | the tool's pinned mutant id (`mutmut#7 validate.py:42 '>'->'>='`) | mutation tools; omit for `hand` |
+| `artifact` | repo-relative path to the run's output, which must itself evidence the kill | **always** |
+| `result` | names the criterion-bound test going RED and the mutant KILLED | always |
+| `did` | one line: what was mutated and how | always |
+| `command` | the criterion-bound proof command, ONE string | executed lane |
 
-`metric_contract` carries coverage before/after and nothing else. The mutation is the proof; the
-coverage number is context.
+A `hand` mutant carries its unified diff in the `artifact` rather than a `mutant` id, and that diff
+must touch the lines the unit changed — the verifier binds hunks, not just files (#280).
+
+`binding_audit` records the coverage method; `metric_contract` carries coverage before/after and
+nothing else. The mutation is the proof; the coverage number is context.
 
 ## Unit boundary
 

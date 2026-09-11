@@ -208,6 +208,28 @@ class SharedDoctrineLivesOnce(unittest.TestCase):
     def test_reshape_it_no_longer_points_into_another_skill_file(self):
         self.assertNotIn("skills/prove-it/SKILL.md", read("skills/reshape-it/SKILL.md"))
 
+    def test_the_playbook_names_the_fields_the_verifier_reads(self):
+        """A playbook that tells a worker what to record must name the SCHEMA fields, not describe
+        them (PR #308 review). The first cut said "pinned mutant" and "target assertion" and left
+        out `artifact` entirely — so a worker following the authoritative table would produce
+        evidence verify.py refuses, and the shared playbook would be worse than the two copies it
+        replaced.
+        """
+        playbook = read("playbooks/characterize.md")
+        # Read the TABLE rows, not the whole file: every one of these words also appears in the
+        # surrounding prose, so a substring check passes even with the row deleted. (Confirmed by
+        # removing the artifact row and watching the first version of this test stay green.)
+        rows = {line.split("|")[1].strip() for line in playbook.splitlines()
+                if line.startswith("|") and line.count("|") >= 3}
+        for field in ("tool", "mutant", "artifact", "result"):
+            self.assertIn(f"`{field}`", rows,
+                          f"characterize.md's record table has no row for negative_control.{field}")
+        verifier = read("runtime/scripts/verify.py")
+        self.assertIn('negative_control.artifact (an evidence path) is required', verifier,
+                      "the verifier no longer requires artifact; re-check the playbook's table")
+        self.assertIn("negative_control.mutant (a pinned mutant id) is required", verifier,
+                      "the verifier no longer requires mutant; re-check the playbook's table")
+
 
 class DormantMechanismsSaySo(unittest.TestCase):
     """Two of the seven cannot be wired from inside the repository, so they say so instead.
