@@ -299,6 +299,66 @@ class TestUntrackedAndWaivers(FloorGuardBase):
         r = run_guard(self.repo, "--base", "main")
         self.assertEqual(r.returncode, 1)
 
+    # ---- #313: a waiver is a parsed claim, not a substring search over prose ----
+
+    def _waive(self, text):
+        write(self.repo, "src/new.py", "value = 1  # noqa\n")
+        write(self.repo, "docs/DECISIONS.md",
+              "2026-09-10T00:00:00Z · floor-waiver · taste · allow · " + text + " · t-1\n")
+        return run_guard(self.repo, "--base", "main")
+
+    def _decisions_line(self, line):
+        """A DECISIONS line written verbatim — no floor-waiver framing added."""
+        write(self.repo, "src/new.py", "value = 1  # noqa\n")
+        write(self.repo, "docs/DECISIONS.md", line + "\n")
+        return run_guard(self.repo, "--base", "main")
+
+    def test_a_bare_directory_does_not_sweep_the_tree(self):
+        # #313 claimed a bare `src/` waived everything under it. It did not, and could not: the
+        # test was `finding["path"] in line`, so the LINE had to contain the whole path, not the
+        # other way round. Kept as a regression guard for the semantics the issue asked for --
+        # a directory is not a waiver -- not as evidence of the bug it described.
+        r = self._waive("silenced-checker on src/ for now")
+        self.assertEqual(r.returncode, 1,
+                         f"a bare directory must not waive the files under it: {r.stdout}")
+
+    def test_a_line_refusing_the_waiver_does_not_grant_it(self):
+        # The real shape of the defect, and the sharpest case: EVERY line of DECISIONS was scanned
+        # for two substrings, so an ordinary log entry recording that the team DECLINED to waive a
+        # finding granted it. A waiver has to be a line that declares itself one.
+        r = self._decisions_line(
+            "2026-09-10T00:00:00Z · mechanical · taste · deny · "
+            "we will NOT waive silenced-checker on src/new.py · t-1")
+        self.assertEqual(r.returncode, 1,
+                         f"a line refusing the waiver granted it: {r.stdout}")
+
+    def test_an_unrelated_mention_does_not_grant_a_waiver(self):
+        r = self._decisions_line(
+            "2026-09-10T00:00:00Z · mechanical · taste · allow · "
+            "see notes/silenced-checker.md before touching src/new.py · t-1")
+        self.assertEqual(r.returncode, 1,
+                         f"prose that merely mentions both is not a waiver: {r.stdout}")
+
+    def test_an_explicit_glob_waives_the_subtree(self):
+        # A sweep is allowed when it is SAID, because then a reviewer sees the blast radius.
+        r = self._waive("silenced-checker on src/** while the vendored parser lands")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("1 waived", r.stdout)
+
+    def test_a_glob_over_everything_is_not_a_waiver(self):
+        r = self._waive("silenced-checker on ** everywhere")
+        self.assertEqual(r.returncode, 1, f"`**` is a blanket, not a waiver: {r.stdout}")
+
+    def test_a_longer_token_containing_the_rule_id_does_not_waive(self):
+        # `finding["rule"] in line` made any superstring a match.
+        r = self._waive("silenced-checkers are fine on src/new.py")
+        self.assertEqual(r.returncode, 1, f"`silenced-checkers` is not the rule id: {r.stdout}")
+
+    def test_a_longer_token_containing_the_path_does_not_waive(self):
+        # Same defect on the other field: src/new.pyc contains src/new.py.
+        r = self._waive("silenced-checker on src/new.pyc")
+        self.assertEqual(r.returncode, 1, f"`src/new.pyc` is not `src/new.py`: {r.stdout}")
+
     def test_missing_waiver_file_is_not_a_could_not_run(self):
         r = run_guard(self.repo, "--base", "main", "--waivers", "docs/NOPE.md")
         self.assertEqual(r.returncode, 0)

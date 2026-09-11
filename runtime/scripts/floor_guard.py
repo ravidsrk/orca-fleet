@@ -35,10 +35,13 @@ new-exception        an added constraints row shaped ``| W123 |`` / ``| E45 |``,
                      an added line under an ``## Exceptions`` heading
 ===================  ============================================================
 
-Exemptions come from the DECISIONS log, never from an ignore file: a finding is
-exempt only when a line in ``--waivers`` names BOTH its rule id and its path.
-That keeps a waiver reviewable, attributable and dated (runtime/ledger-contract.md
-DECISIONS log) instead of a silent glob.
+Exemptions come from the DECISIONS log, never from an ignore file. A waiver line
+must carry the ``floor-waiver`` marker, the rule id as a whole token, and the
+path either named exactly or covered by an explicit ``dir/**`` glob -- a bare
+directory is not a waiver, and neither is ``**``. That keeps a waiver
+reviewable, attributable and dated (runtime/ledger-contract.md DECISIONS log)
+instead of a silent glob, and keeps it a DECLARATION rather than two substrings
+a sentence happens to contain (#313).
 
 Reporting is redaction-first: rule id, ``file:line`` and a short pattern name --
 never the matched text, which may be the credential someone tried to suppress.
@@ -321,9 +324,46 @@ def load_waivers(path):
         raise GuardError(f"waiver file {path} is unreadable: {err}") from err
 
 
+_WAIVER_MARKER = "floor-waiver"
+# Tokens of a waiver line: path/rule shaped runs. `-` and `.` are in the class so `test-made-easier`
+# and `src/new.py` each read as ONE token, which is the whole point — substring matching is what
+# made `silenced-checkers` waive `silenced-checker`.
+_WAIVER_TOKEN_RE = re.compile(r"[A-Za-z0-9_./*-]+")
+
+
+def _path_waived_by(token, path):
+    """True when `token` names `path` exactly, or is a `dir/**` glob whose segments prefix it.
+
+    Segment-wise, never substring: `src/new.pyc` must not cover `src/new.py`, and `src` must not
+    cover `srcinternal/x`. A bare `**` is a blanket, not a waiver — it names nothing, so a reviewer
+    reading the line learns nothing about the blast radius."""
+    if token == path:
+        return True
+    if not token.endswith("/**"):
+        return False
+    prefix = [p for p in token[:-3].split("/") if p]
+    if not prefix:
+        return False
+    return path.split("/")[:len(prefix)] == prefix
+
+
 def is_waived(finding, waivers):
+    """A waiver is a DECLARATION the line makes, not two substrings it happens to contain (#313).
+
+    The old test was `rule in line and path in line`, over every line of the DECISIONS file. That
+    let a superstring stand in for either field (`silenced-checkers`, `src/new.pyc`), and — because
+    any line at all was scanned — a line recording that the team DECLINED to waive a finding
+    granted it, as did a sentence that merely mentioned both. So: the line must carry the
+    `floor-waiver` marker, the rule id must appear as a whole token, and the path must be named
+    exactly or covered by an explicit `dir/**` glob."""
+    path = finding.get("path")
+    if not path:
+        return False
     for line in waivers:
-        if finding["rule"] in line and finding["path"] and finding["path"] in line:
+        tokens = _WAIVER_TOKEN_RE.findall(line)
+        if _WAIVER_MARKER not in tokens or finding["rule"] not in tokens:
+            continue
+        if any(_path_waived_by(t, path) for t in tokens):
             return True
     return False
 
@@ -367,8 +407,8 @@ def main(argv=None):
     for f in live:
         print(f"  [{f['rule']}] {f['path']}:{f['line']} ({f['detail']})", file=sys.stderr)
     print(
-        "\nEach lowers the bar. Fix the code, or record a DECISIONS waiver naming "
-        "the rule id and the path.",
+        "\nEach lowers the bar. Fix the code, or record a DECISIONS waiver line carrying "
+        "`floor-waiver`, the rule id, and the path exactly (or `dir/**`).",
         file=sys.stderr,
     )
     return EXIT_FINDINGS
