@@ -185,10 +185,50 @@ class TestEverySegmentIsJudged(HookBase):
         # only `orca`. One binary name is not a different command.
         self._deny("orca-ide orchestration reset")
 
-    def test_a_target_cannot_hide_behind_quoting(self):
-        # The splitter ignores quotes, so a separator inside a string splits too.
-        # That can only ever produce MORE segments, and every segment is judged.
-        self._deny('rm -rf "/;x"')
+    def test_a_quoted_separator_does_not_split(self):
+        """The splitter is quote-aware, so a quoted separator is part of a value.
+
+        Both of these used to be denied by the HIGH tier, and both were wrong.
+        `rm -rf "/;x"` deletes a file literally named `/;x` — not the root — so
+        it is an ordinary recursive delete and the Never list asks. `git commit`
+        is not a refused shape at all; the Never list still asks on it, because
+        that list scans the whole line by design and `rm -r` is in this one.
+        """
+        for command in ('rm -rf "/;x"', 'git commit -m "oops; rm -rf /"'):
+            with self.subTest(command=command):
+                block = self.decision(self.fire(event("Bash", command=command)))
+                self.assertIsNotNone(block)
+                self.assertEqual(block["permissionDecision"], "ask", command)
+                self.assertNotIn("deny-hook[HIGH]", block["permissionDecisionReason"])
+
+    def test_a_quoted_separator_cannot_hide_the_command_after_it(self):
+        """PR #308 review, P1 — and the reasoning it overturned was mine.
+
+        The old header argued that splitting on the raw text was safe because it
+        can only ever produce MORE segments, and every segment is judged. That is
+        false. The split leaves the rest of the quoted value glued to the FRONT of
+        the next segment, and every HIGH-tier rule is anchored at `^`:
+
+            X="a&b" git push --force origin main
+              ->  ['X="a', 'b" git push --force origin main']
+
+        The second segment begins with `b"`, so it is not a `git push` to any rule
+        here, and a force-push to the default branch was allowed.
+        """
+        for command in (
+            'X="a&b" git push --force origin main',
+            'X="a&b" ' + self.ESCAPED,
+            'X="a;b" ' + self.ESCAPED,
+            "X='a|b' " + self.ESCAPED,
+            'X="a&&b" ' + self.ESCAPED,
+            'echo "a&b" && ' + self.ESCAPED,
+            # A backslash-escaped quote does not close the value, so the `&` after
+            # it is still inside one. Reading the escape is what keeps that true.
+            'X="a\\"&b" git push --force origin main',
+            'X="a\\"&b" ' + self.ESCAPED,
+        ):
+            with self.subTest(command=command):
+                self._deny(command)
 
     def test_a_newline_separates_commands_like_a_semicolon(self):
         # The payload's command field is flattened to one line before it is
@@ -259,13 +299,12 @@ class TestEverySegmentIsJudged(HookBase):
                     "splitting a line into segments must not refuse work that was fine",
                 )
 
-    def test_over_refusing_a_quoted_separator_is_the_recorded_cost(self):
-        # A quoted separator splits, so a line that only WRITES DOWN a refused
-        # shape is refused. Pinned rather than left to be discovered: the error
-        # has to point this way, and the header says so.
-        block = self._deny('git commit -m "oops; rm -rf /"')
-        self.assertIn("deny-hook[HIGH]", block["permissionDecisionReason"])
-        self.assertIn("quoting", HOOK.read_text(encoding="utf-8"))
+    def test_the_hook_no_longer_claims_raw_splitting_is_safe(self):
+        # The claim that splitting "can only ever produce MORE segments" was the
+        # reasoning behind a real bypass. It must not survive in the header.
+        text = HOOK.read_text(encoding="utf-8")
+        self.assertIn("QUOTE-AWARE", text)
+        self.assertNotIn("can only ever produce MORE segments, and every", text)
 
 
 class TestNeverList(HookBase):
@@ -528,6 +567,9 @@ class TestBashWritesAreBounded(HookBase):
             f"echo pwned 2>>{out}",
             f"echo pwned &> {out}",
             f"cmd >| {out}",
+            f"echo pwned &>{out}",
+            f"echo pwned &>>{out}",
+            f"echo pwned >&{out}",
         ):
             with self.subTest(command=command):
                 self._deny(command)
@@ -690,6 +732,41 @@ class TestOutputEncoding(HookBase):
     def test_only_one_decision_object_is_emitted(self):
         r = self.fire(event("Bash", command="rm -rf /"))
         self.assertEqual(len([ln for ln in r.stdout.splitlines() if ln.strip()]), 1)
+
+
+class TestThePayloadReaderStaysRunnable(HookBase):
+    """The payload reader is the whole hook: no parse, no decision, and everything denies.
+
+    It is embedded as the argument of a SINGLE-QUOTED sh string, so one apostrophe anywhere in it
+    — code or comment — ends that string and kills the reader. Fail-closed catches it, which is
+    why it is survivable at all; but every tool call then refuses, and the refusal reads like a
+    malformed payload rather than a broken script. Caught exactly this way while making the
+    splitter quote-aware.
+    """
+
+    def test_the_embedded_program_carries_no_apostrophe(self):
+        text = HOOK.read_text(encoding="utf-8")
+        start = text.index("python3 -c '", text.index("FIELDS="))
+        body = text[start + len("python3 -c '"):]
+        body = body[:body.index("' 2>/dev/null)")]
+        offenders = [f"{i}: {ln}" for i, ln in enumerate(body.splitlines(), 1) if "'" in ln]
+        self.assertEqual(offenders, [], "an apostrophe ends the sh string the reader lives in")
+
+    def test_an_ordinary_payload_produces_a_real_decision_not_a_parse_refusal(self):
+        # The signature of a dead reader: everything denies with the parse message.
+        r = self.fire(event("Bash", command="echo hello"))
+        self.assertEqual(r.stdout.strip(), "",
+                         "an ordinary command must be allowed silently, not parse-refused")
+        block = self.decision(self.fire(event("Bash", command="rm -rf /")))
+        self.assertNotIn("could not be parsed", block["permissionDecisionReason"],
+                         "the deny came from the fail-closed path, not from the HIGH tier")
+
+    def test_a_segment_per_line_reaches_the_shell(self):
+        # The reader emits the split; the shell only reads lines. A reader that emitted nothing
+        # from line 4 would silently disable the whole HIGH tier while every ALLOW still passed.
+        block = self.decision(self.fire(event("Bash", command="cd /tmp && rm -rf /")))
+        self.assertIsNotNone(block, "no segments reached the tier")
+        self.assertEqual(block["permissionDecision"], "deny")
 
 
 class TestScriptShape(unittest.TestCase):

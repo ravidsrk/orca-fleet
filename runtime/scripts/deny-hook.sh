@@ -164,15 +164,90 @@ if not isinstance(ti, dict):
 def s(v):
     return v.replace("\n", " ") if isinstance(v, str) else ""
 def c(v):
-    # The three-line protocol below cannot carry an embedded newline, but in a
-    # shell a newline SEPARATES two commands exactly as `;` does. Flattening it
-    # to a space glued them into one nonsense segment that matched nothing, so a
+    # The line protocol below cannot carry an embedded newline, but in a shell a
+    # newline SEPARATES two commands exactly as `;` does. Flattening it to a
+    # space glued them into one nonsense segment that matched nothing, so a
     # two-line payload walked straight past the HIGH tier (#297). Map it to the
     # separator it actually is and let the splitter do its job.
     return v.replace("\r", "\n").replace("\n", " ; ") if isinstance(v, str) else ""
+
+
+# NOTE: this whole program is the argument of a single-quoted sh string, so it may not contain
+# an apostrophe anywhere — not in code, not in a comment. SQ/DQ are how a quote character is
+# named here. A stray one ends the sh string and the payload reader dies, which fails closed and
+# refuses every tool call.
+SQ = chr(39)
+DQ = chr(34)
+
+
+def segments(cmd):
+    """Split a shell line into command segments, QUOTE-AWARE.
+
+    This was a sed pass over the raw text, and a separator inside a quoted string split there
+    too. The header called that safe, reasoning that splitting only ever makes MORE segments and
+    every segment is judged. That reasoning was wrong: the split leaves the rest of the quoted
+    value glued to the FRONT of the next segment, and every HIGH-tier rule is anchored at ^.
+    X=<dq>a&b<dq> git push --force origin main became `b<dq> git push --force origin main`, which
+    begins with neither git nor anything else the tier knows, and was allowed (PR #308 review,
+    P1). Same for ; and | inside a value.
+
+    Quoting is parsed here rather than in sh because a POSIX shell cannot do it without eval, and
+    python3 is already load-bearing above: no parser, no decision, and this whole script denies.
+    Redirect operators are consumed whole so their | and & are never read as separators.
+    """
+    segs, cur = [], []
+    i, n, quote = 0, len(cmd), ""
+    while i < n:
+        ch = cmd[i]
+        if quote:
+            cur.append(ch)
+            if ch == "\\" and quote == DQ and i + 1 < n:
+                cur.append(cmd[i + 1])
+                i += 2
+                continue
+            if ch == quote:
+                quote = ""
+            i += 1
+            continue
+        if ch == SQ or ch == DQ:
+            quote = ch
+            cur.append(ch)
+            i += 1
+            continue
+        if ch == "\\" and i + 1 < n:
+            cur.append(ch)
+            cur.append(cmd[i + 1])
+            i += 2
+            continue
+        if ch in "<>" or (ch == "&" and i + 1 < n and cmd[i + 1] == ">"):
+            j = i + 1
+            while j < n and cmd[j] in "<>|&":
+                j += 1
+            cur.append(cmd[i:j])
+            i = j
+            continue
+        # && and || need no case of their own: the second character lands on a separator too, and
+        # the empty segment between them is dropped below. Measured, not assumed — a mutant
+        # removing a special case for them changed no decision, so there is no special case.
+        if ch in ";|&":
+            segs.append("".join(cur))
+            cur = []
+            i += 1
+            continue
+        cur.append(ch)
+        i += 1
+    segs.append("".join(cur))
+    return [seg for seg in segs if seg.strip()]
+
+
+command = c(ti.get("command"))
 print(s(d.get("tool_name")))
-print(c(ti.get("command")))
-print(s(ti.get("file_path")))' 2>/dev/null) || {
+print(command)
+print(s(ti.get("file_path")))
+# Line 4 onward: one segment per line, already split. A segment cannot hold a newline — the
+# command was flattened above — so the shell reads them as lines and never re-splits on words.
+for seg in segments(command):
+    print(seg)' 2>/dev/null) || {
   decide deny "deny-hook: the tool payload could not be parsed. Fail-closed: an unreadable payload is refused, never allowed."
   exit 0
 }
@@ -294,11 +369,11 @@ esac
 # target comes from a variable or a subshell is beyond it, and the Never list below is the net for
 # those. What it buys is that the refused shapes are refused wherever they sit.
 #
-# The split does not parse quoting, so a separator inside a quoted string splits too: `git commit
-# -m "oops; rm -rf /"` is refused for a string it would only ever have written down. That is the
-# direction the error has to point. Splitting can only ever produce MORE segments, and every
-# segment is judged, so a dangerous command cannot be hidden inside quotes from a splitter that
-# ignores them — `rm -rf "/;x"` still lands as a segment whose only target is `/`.
+# The split IS quote-aware (see `segments` in the payload reader), so `git commit -m "oops; rm -rf
+# /"` is one segment naming `git commit`, and `rm -rf "/;x"` is one segment whose only target is a
+# file literally called `/;x`. An earlier cut split on the raw text and argued that was safe
+# because splitting only ever makes MORE segments. It is not: the split leaves the rest of the
+# quoted value glued to the FRONT of the next segment, and every rule here is anchored at `^`.
 FULL_CMD=$CMD
 has() { printf '%s' "$CMD" | grep -qE "$1" 2>/dev/null; }
 
@@ -327,27 +402,20 @@ strip_prefix() {
   printf '%s' "$_c"
 }
 
-# Split on ; && || | & into positional parameters — POSIX, and no subshell, so a `decide deny`
-# inside the loop still exits the script.
-#
-# A bare `&` separates two commands exactly as `;` does, and leaving it out let `true & rm
-# --no-preserve-root -rf /` through (PR #308 review, P1). Two operators that merely CONTAIN one of
-# these characters are protected first, or splitting would shred them: `>|` is the noclobber
-# redirect, not a pipe, and `>&` is a redirect whose `&` would leave the `>` dangling in one segment
-# and its target alone in the next. `&>` needs no protection — splitting at its `&` leaves `>
-# target` whole in the following segment, which reads identically. That is measured, not assumed:
-# protecting it survived every mutant, which is how this hook learns a line of it is inert.
-_SEP=$(printf '\001')
-_P1=$(printf '\002'); _P3=$(printf '\004')
-_SPLIT=$(printf '%s' "$FULL_CMD" \
-  | sed -e "s/>|/$_P1/g" -e "s/&&/$_SEP/g" -e "s/>&/$_P3/g" \
-        -e "s/||/$_SEP/g" -e "s/|/$_SEP/g" -e "s/;/$_SEP/g" -e "s/&/$_SEP/g" \
-        -e "s/$_P1/>|/g" -e "s/$_P3/>\&/g")
+# The segments come PRE-SPLIT from the payload reader above, one per line from line 4 on. They
+# are split there because splitting is quote-aware and a POSIX shell cannot parse quoting without
+# eval: a separator inside a quoted value used to split too, leaving the rest of the value glued
+# to the FRONT of the next segment, and every rule below is anchored at `^`. `X="a&b" git push
+# --force origin main` became `b" git push --force origin main` and was allowed (PR #308 review,
+# P1). Loading them into positional parameters keeps the loop out of a subshell, so a
+# `decide deny` inside it still exits the script.
+_SEGS=$(printf '%s\n' "$FIELDS" | sed -n '4,$p')
 _OLDIFS=$IFS
-IFS=$_SEP
+IFS='
+'
 set -f
 # shellcheck disable=SC2086
-set -- $_SPLIT
+set -- $_SEGS
 set +f
 IFS=$_OLDIFS
 
@@ -475,12 +543,17 @@ if [ -n "${ORCA_UNIT_WORKTREE:-}" ]; then
         continue
       fi
       case "$TOK" in
-        '>'|'>>'|'>|'|'>&'|[0-9]'>'|[0-9]'>>'|[0-9]'>|') _PENDING=1 ;;
-        # `>&file` is bash's both-streams redirect and writes a file; `>&1` and
-        # `>&2` duplicate a descriptor. A bare digit is relative, so both reach
-        # bounded_write and only the path is ever judged — no arm of its own.
-        # (`&>file` never arrives here: the splitter above cuts at its `&`, and
-        # the `> file` half lands in the next segment.)
+        '>'|'>>'|'>|'|'>&'|'&>'|'&>>'|[0-9]'>'|[0-9]'>>'|[0-9]'>|') _PENDING=1 ;;
+        # `&>file` and `>&file` are both bash's both-streams redirect and write a
+        # file; `>&1` and `>&2` duplicate a descriptor. A bare digit is relative,
+        # so those reach bounded_write and only the path is ever judged.
+        #
+        # These two arms were deleted once as inert — correctly, when the splitter
+        # was a sed pass that cut at the `&` of `&>` and left `> file` whole in the
+        # next segment. Quote-aware splitting consumes a redirect operator WHOLE,
+        # so `&>` now arrives here as a token and needs reading (PR #308 review).
+        '&>>'*)     bounded_write "${TOK#'&>>'}" ;;
+        '&>'*)      bounded_write "${TOK#'&>'}" ;;
         '>&'*)      bounded_write "${TOK#'>&'}" ;;
         [0-9]'>>'*) bounded_write "${TOK#?'>>'}" ;;
         [0-9]'>|'*) bounded_write "${TOK#?'>|'}" ;;
