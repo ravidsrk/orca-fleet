@@ -398,5 +398,33 @@ class TestDocsNavigation(unittest.TestCase):
         )
 
 
+class QuotationsAreAttributedToWhatTheySay(unittest.TestCase):
+    """#304: a research file carried a quotation its cited source does not contain.
+
+    The sentence was a paraphrase of a real rule from a DIFFERENT article. A repository whose
+    thesis is that claims must be checkable does not get to carry an unchecked quotation, so the
+    fabricated one is pinned here by its text — if it ever comes back, this fails.
+    """
+
+    PLAN = ROOT / "docs" / "research" / "2026-08-28-forward-roadmap-and-defensibility-plan.md"
+
+    def test_the_fabricated_sentence_is_gone(self):
+        text = self.PLAN.read_text(encoding="utf-8")
+        body = "\n".join(ln for ln in text.splitlines() if "Correction (#304)" not in ln)
+        self.assertNotIn("the level you can safely reach is exactly the level you can cheaply "
+                         "prove", body,
+                         "the misattributed quotation is back in the body")
+
+    def test_the_replacement_names_the_article_it_is_from(self):
+        text = self.PLAN.read_text(encoding="utf-8")
+        self.assertIn("Back pressure is the rule that you can only hand a loop as much autonomy "
+                      "as you can cheaply and reliably verify, and not one inch more.", text,
+                      "the verified sentence is not there")
+        self.assertIn("Software Factories, Light and Dark", text,
+                      "the quotation does not name the article it comes from")
+        self.assertIn("addyosmani.com/blog/software-factories", text,
+                      "the quotation is not linked to a source a reader can check")
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
