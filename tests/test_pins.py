@@ -59,6 +59,92 @@ def missions():
             yield d.name, (d / "SKILL.md").read_text(encoding="utf-8")
 
 
+LOCK = ROOT / ".github" / "ci-tools.lock"
+WORKFLOW = ROOT / ".github" / "workflows" / "validate.yml"
+
+
+class CiToolsArePinnedByHash(unittest.TestCase):
+    """#301: `uv`, `skills-ref` and `ruff` were three version strings and nothing else.
+
+    No checksum, no test, nothing that noticed a bump — "a version string with no hash and no
+    test guarding it is a comment." The workflow argued a lockfile would be needed to hash them
+    honestly, which was right; `.github/ci-tools.lock` is that lockfile.
+    """
+
+    # Every package the lock must carry, direct and transitive. A resolver that quietly drops
+    # or adds one is a different tool tree than the one that was proven to work.
+    PINNED = {"ruff": "0.16.5", "skills-ref": "0.1.1", "click": "8.5.0",
+              "strictyaml": "1.7.3", "python-dateutil": "2.9.0.post0", "six": "1.17.0"}
+    def _entries(self):
+        """Parse the lock the way PIP does, continuation markers included.
+
+        A forgiving parser is worse than none here: drop the trailing backslash from a
+        `name==version` line and pip reads a requirement with NO hashes, which
+        --require-hashes rejects outright — while a parser that merely scans for
+        `--hash` nearby still sees them and calls the lock fine. The negative control
+        caught exactly that, so the continuation is tracked rather than assumed.
+        """
+        entries, current, continued = {}, None, False
+        for raw in LOCK.read_text(encoding="utf-8").splitlines():
+            if raw.lstrip().startswith("#"):
+                continue
+            line = raw.split(" #", 1)[0].rstrip()
+            if not line:
+                continue
+            opens = re.match(r"^([A-Za-z0-9_.-]+)==(\S+?)\s*(\\?)$", line)
+            if opens:
+                current = opens.group(1).lower()
+                entries[current] = {"version": opens.group(2), "hashes": []}
+                continued = bool(opens.group(3))
+                continue
+            if current and continued:
+                # Capture the token, don't pre-filter it to well-formed hex: a regex that
+                # only matches 64 hex chars SKIPS a truncated hash, and an entry with other
+                # good hashes then looks fine while pip rejects the file. Shape is asserted
+                # below, where a bad one can be reported. (Another survivor found this.)
+                entries[current]["hashes"] += re.findall(r"--hash=sha256:(\S+)", line)
+                continued = line.endswith("\\")
+            else:
+                current, continued = None, False
+        return entries
+
+    def test_the_lock_pins_exactly_the_expected_tree(self):
+        got = {name: e["version"] for name, e in self._entries().items()}
+        self.assertEqual(got, self.PINNED,
+                         "the CI tool tree changed — regenerate the lock AND update this test, "
+                         "so a bump is deliberate rather than whatever the index served")
+
+    def test_every_pinned_package_carries_at_least_one_hash(self):
+        for name, entry in self._entries().items():
+            with self.subTest(package=name):
+                self.assertTrue(entry["hashes"],
+                                f"{name} is pinned by version alone — that is the defect #301 "
+                                "exists to close, one row down")
+                for h in entry["hashes"]:
+                    self.assertRegex(h, r"^[0-9a-f]{64}$",
+                                     f"{name} carries a malformed sha256 — pip rejects the "
+                                     "whole lock on one, so this is not a cosmetic problem")
+
+    def test_the_workflow_installs_from_the_lock_with_hashes_required(self):
+        wf = WORKFLOW.read_text(encoding="utf-8")
+        run = "\n".join(ln for ln in wf.splitlines() if not ln.lstrip().startswith("#"))
+        self.assertIn("--require-hashes", run,
+                      "pip accepts a lock without --require-hashes and ignores every hash in it")
+        self.assertIn(".github/ci-tools.lock", run, "the workflow does not read the lock")
+
+    def test_no_tool_is_re_resolved_outside_the_lock(self):
+        # A second `pip install ruff==...` would defeat the lock by installing whatever the
+        # index serves, under a name that looks pinned.
+        wf = WORKFLOW.read_text(encoding="utf-8")
+        loose = [ln.strip() for ln in wf.splitlines()
+                 if not ln.lstrip().startswith("#")
+                 and re.search(r"pip install(?!.*--require-hashes)", ln)]
+        self.assertEqual(loose, [], "a tool is installed outside the hashed lock")
+        self.assertNotIn("uvx ", wf,
+                         "uvx resolves skills-ref's dependency tree at run time, which is the "
+                         "unpinned path the lock replaced")
+
+
 class TestPins(unittest.TestCase):
 
     def test_pins_file_well_formed(self):

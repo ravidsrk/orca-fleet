@@ -558,6 +558,63 @@ esac
             self.assertEqual(p.returncode, 5, p.stderr)
             self.assertNotIn("LAUNCH_EFFECTIVE=", p.stdout)
 
+    # --- #301: the runtime pin is compared to the binary on PATH ----------------------------
+
+    def _stub_version(self, tmp, version_output):
+        """Re-point the stub's `--version` answer without disturbing the other subcommands."""
+        stub = Path(tmp) / "orca"
+        text = stub.read_text()
+        stub.write_text(text.replace("case \"$*\" in",
+                                     f'case "$*" in\n  --version) echo {version_output!r} ;;', 1))
+        stub.chmod(0o755)
+
+    def _notes(self, tmp, version_output):
+        self._stub_version(tmp, version_output)
+        p = self._run(tmp, self.ARGS, self.RW)
+        return [ln for ln in p.stderr.splitlines() if "pins.json" in ln], p
+
+    def test_a_drifted_runtime_arms_pin_it(self):
+        """#301: runtime/pins.json records the Orca the catalog was witnessed against, and
+        nothing compared it to the binary on PATH.
+
+        Every behaviour this script depends on — the YOLO flag map, the receipt shape — was read
+        off the pinned version's source. Drift does not make them wrong; it makes them
+        unwitnessed, and nothing said so.
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            self._stub(tmp)
+            notes, p = self._notes(tmp, "orca 1.5.0 (build abc)")
+            self.assertTrue(notes, "a drifted runtime produced no note at all")
+            self.assertIn("1.5.0", notes[0])
+            self.assertIn("v1.4.199", notes[0], "the note must name the version it expected")
+            self.assertIn("pin-it", notes[0], "the note must arm the mission that re-witnesses")
+            self.assertEqual(p.returncode, 0,
+                             "drift is a NOTE, not a refusal — an upstream release must not "
+                             "stop every spawn in the fleet")
+
+    def test_a_matching_runtime_is_silent(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self._stub(tmp)
+            notes, p = self._notes(tmp, "orca v1.4.199")
+            self.assertEqual(notes, [], "a matching runtime must say nothing")
+            self.assertEqual(p.returncode, 0, p.stderr)
+
+    def test_the_v_prefix_is_not_a_difference(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self._stub(tmp)
+            self.assertEqual(self._notes(tmp, "orca 1.4.199")[0], [],
+                             "`1.4.199` and `v1.4.199` are the same version")
+
+    def test_an_unreadable_version_says_so_rather_than_passing(self):
+        # "Nothing noticed the drift" is the defect this check exists to fix, so a check that
+        # quietly stops working — because the output format moved — is that defect wearing a fix.
+        with tempfile.TemporaryDirectory() as tmp:
+            self._stub(tmp)
+            notes, p = self._notes(tmp, "orca (no version here)")
+            self.assertTrue(notes, "an unreadable version passed in silence")
+            self.assertIn("could not be checked", notes[0])
+            self.assertEqual(p.returncode, 0, p.stderr)
+
     # --- #298: four fail-open paths in the launcher ----------------------------------------
 
     def _task_status(self, tmp, status):

@@ -42,28 +42,27 @@ jobs:
         # --check builds the distribution tree in a temp dir and fails if any link
         # still leaves a mission directory.
         run: python3 scripts/bundle.py --check
+      - name: Install the pinned CI tools (hashes, not version strings)
+        # #301: these were three version strings with no checksum and no test —
+        # "a version string with no hash and no test guarding it is a comment."
+        # The step used to argue that hashing them needed a lockfile. That was
+        # right; .github/ci-tools.lock IS the lockfile, hashes and all, and
+        # --require-hashes makes a swapped artifact fail before it executes.
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet --require-hashes --only-binary :all: \
+            -r .github/ci-tools.lock
+          ruff --version
+          agentskills --version
       - name: agentskills.io reference validator (skills-ref)
         # #263: the repo's own claims live under `metadata:` so the catalog is
         # installable through Anthropic's own paths, which hard-error on an
         # unexpected top-level key. This is the upstream validator saying so,
         # not our restatement of it.
-        env:
-          UV_VERSION: "0.12.12"
-          SKILLS_REF_VERSION: "0.1.1"
         run: |
           set -euo pipefail
-          # Pinned like ruff in this same job (PR #277 review, P2). Unpinned, an
-          # upstream release decides whether the same commit passes, and PR CI
-          # executes whatever the index happens to serve that day.
-          #
-          # Version pins, not hashes: gitleaks above is sha256-pinned because it is
-          # one release tarball, while these are multi-wheel PyPI projects whose
-          # per-platform digests would need a lockfile to pin honestly. Saying that
-          # here beats implying an integrity guarantee this step does not have.
-          python3 -m pip install --quiet "uv==${UV_VERSION}"
-          uvx --from "skills-ref==${SKILLS_REF_VERSION}" agentskills --version
           for d in skills/*/; do
-            uvx --from "skills-ref==${SKILLS_REF_VERSION}" agentskills validate "$d"
+            agentskills validate "$d"
           done
       - name: Secret scan (gitleaks, pinned)
         # #270: doctrine in dispatch-lifecycle.md until now. Pinned by version
@@ -110,9 +109,8 @@ jobs:
           fi
           echo "negative control: a planted credential in the waived file is still caught"
       - name: Ruff (syntax / undefined names)
-        run: |
-          python3 -m pip install --quiet ruff==0.16.5
-          ruff check scripts runtime/scripts tests bench demo
+        # Installed from the hashed lock above (#301), not re-resolved here.
+        run: ruff check scripts runtime/scripts tests bench demo
       - name: Publish the gate summary (proof rollup + routing score)
         # Observability only (#213): the numbers land in the run summary even
         # when a gate is red. The routing GATE is the step above; this one

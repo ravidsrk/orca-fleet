@@ -1,0 +1,66 @@
+# CI tool pins, by HASH (#301).
+#
+# These were three version strings and nothing else: no checksum, no test, nothing
+# that noticed a bump. "A version string with no hash and no test guarding it is a
+# comment." The workflow argued hashes would need a lockfile to pin honestly — that
+# was right, and this is the lockfile.
+#
+# `ruff` and `uv` declare no dependencies at all, so either could have been hashed
+# on its own. `skills-ref` pulls click>=8.0 and strictyaml>=1.7.3 on open ranges,
+# which is what actually needed resolving; the transitive rows below are that.
+#
+# `uv` itself is gone rather than pinned: it existed only to run
+# `uvx --from skills-ref agentskills`, and installing that from here calls the same
+# console script with one fewer unpinned resolver in the path. An installed tool
+# nothing invokes is the orphan-mechanism shape this catalog refuses (#284).
+#
+# Regenerate (never hand-edit a hash):
+#   printf 'ruff==<v>\nskills-ref==<v>\n' > ci.in
+#   uv pip compile --generate-hashes --python-version 3.13 --no-header -o \
+#     .github/ci-tools.lock ci.in
+#
+# Proven both ways before landing, against the pinned versions on linux x86_64:
+# the lock installs and both console scripts run; a lock with skills-ref's own
+# hashes replaced is REFUSED by pip. (Replaced, not appended — pip treats multiple
+# --hash lines for one package as alternatives, so an added bad hash proves
+# nothing. That was my first control and it was wrong.)
+click==8.5.0 \
+    --hash=sha256:255bc9599cf7748b4b1a446ccc735421bd08a2ae529a8b88597d3de5664ee360 \
+    --hash=sha256:ba0d2089de75ea0310e2dde03160e6ca10009947fb95a182f9b54021bb272e34
+    # via skills-ref
+python-dateutil==2.9.0.post0 \
+    --hash=sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3 \
+    --hash=sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427
+    # via strictyaml
+ruff==0.16.5 \
+    --hash=sha256:0eeab41fbea2c42f98dfb9822cdccda9d24ba38d49f6dc945b5c236d48f0ef29 \
+    --hash=sha256:12e5f673e774c35fbb62f288809c7653b73445f8ecec6b6063fd6ea3521aa14b \
+    --hash=sha256:1b88500f9ffbcab3dedb0082c9f9492e91ec3d618aac1236a3e0189938f7040b \
+    --hash=sha256:2298f2780ed1be0c5cb1361e32ab7b1467f3cce7dabe101d2210a314f2fe42e9 \
+    --hash=sha256:258f29035a2dd021e7861e631b227a5b3f14e50c1184c9a6a122c5f4576154d7 \
+    --hash=sha256:288b0a5f080492fe5635db849f9e2e84aa3cce7b7f0e955997d416c507c76a26 \
+    --hash=sha256:7b719b0a1f4d59710d283ab2965f621684a108a9e41da622e3b23f0326cd0025 \
+    --hash=sha256:95cc70cdc7aa80c338de356279d2adbeb2de0f520b9ecd8aba75b94e95e02f91 \
+    --hash=sha256:a64abe90968719b851bb7cedffaa8753fbdbdadab483089682db623f3edc587e \
+    --hash=sha256:b5eb3a8c3d0ade9cea42b591fd530368e8798380e30e0a308b85a5cf718f09ea \
+    --hash=sha256:b9a4f0432966834019c74d1b7e5c51224305d7713f3d7faf3e7451f1a3be3cde \
+    --hash=sha256:c5ae9a7b9a8875131f40f8fe967cc86abf899779efd663cb7ce3d572d01da7eb \
+    --hash=sha256:d185c8398ded1bfd91c0c2cb258346307571eccc473a8490af8c3977399c384a \
+    --hash=sha256:ddc6385fb2137f616357ca03d6c74f4be987f80fed4008566b754f6032b8546f \
+    --hash=sha256:eda58a5802de40e7ed5b32b64e0b32539338cc6fcd2c78f61e3ad6a0d79f51c3 \
+    --hash=sha256:ef0f69e191a13a3c9816f63163c88790cb12cd157bbbb384e9c44745702ab105 \
+    --hash=sha256:f0768e9df4300713fff30733c87575f68b6f1d8de41184e505b7fdd9c0c95eaf \
+    --hash=sha256:fb8e3a3c4c6a784150a7ced53b015f4b253fc2bf97a610886419ead64b4756ef
+    # via -r ci.in
+six==1.17.0 \
+    --hash=sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274 \
+    --hash=sha256:ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81
+    # via python-dateutil
+skills-ref==0.1.1 \
+    --hash=sha256:6b400ca6e0049be62dca0167ff943ba2745fd67efb37fbba4d0ee341fccd2695 \
+    --hash=sha256:d35db5bb8de71ae301daf5ca9cb71f8a555e8c6f83a6d40e46a5bc09f8f461b5
+    # via -r ci.in
+strictyaml==1.7.3 \
+    --hash=sha256:22f854a5fcab42b5ddba8030a0e4be51ca89af0267961c8d6cfa86395586c407 \
+    --hash=sha256:fb5c8a4edb43bebb765959e420f9b3978d7f1af88c80606c03fb420888f5d1c7
+    # via skills-ref

@@ -194,6 +194,38 @@ if [ -n "${SW_SELFTEST:-}" ]; then
   exit 0
 fi
 
+# --- runtime pin drift ---------------------------------------------------------
+# runtime/pins.json records the Orca the catalog was witnessed against, and NOTHING
+# compared it to the binary actually on PATH (#301). The pin is the thing pin-it
+# exists to maintain, and every behaviour this script depends on — the YOLO flag
+# map, the receipt shape, worker-start's own arg handling — was read off that
+# version's source. Drift does not make them wrong; it makes them unwitnessed.
+#
+# A NOTE, not a refusal: an upstream release is not a safety failure, and refusing
+# every spawn on a version bump would make the catalog unusable the day Orca ships.
+# It names both versions and arms pin-it, which is the mission that re-witnesses.
+pin_version=$(python3 - "$HERE/../pins.json" <<'PIN'
+import json, sys
+try:
+    with open(sys.argv[1]) as fh:
+        print((json.load(fh).get("orca") or {}).get("version") or "")
+except Exception:
+    print("")
+PIN
+)
+if [ -n "$pin_version" ] && command -v orca >/dev/null 2>&1; then
+  # `orca --version` is not source-witnessed as to its exact wording, so take the
+  # first version-shaped token anywhere in its output rather than the whole line.
+  installed=$(orca --version 2>/dev/null | grep -oE 'v?[0-9]+\.[0-9]+\.[0-9]+' | head -n 1 || true)
+  if [ -z "$installed" ]; then
+    # Not silence. "Nothing noticed the drift" is the defect this check exists to
+    # fix, and a check that quietly stops working is that defect wearing a fix.
+    echo "SPAWN=NOTE task=${task} could not read a version from \`orca --version\`, so drift from runtime/pins.json (${pin_version}) could not be checked at all. If the output format changed, the check needs re-witnessing — pin-it (#301)." >&2
+  elif [ "${installed#v}" != "${pin_version#v}" ]; then
+    echo "SPAWN=NOTE task=${task} Orca on PATH is ${installed}, runtime/pins.json was witnessed against ${pin_version}. Every behaviour this script relies on was read off the PINNED version's source, so the difference is unwitnessed, not known-wrong: run pin-it to re-witness before trusting the launch map or the receipt shape (#301)." >&2
+  fi
+fi
+
 step=resolve-profile
 case "$PROFILE" in ro|rw|danger) : ;; *)
   echo "SPAWN=REFUSED task=${task} unknown PROFILE='$PROFILE' (want ro|rw|danger)" >&2; exit 2 ;;
