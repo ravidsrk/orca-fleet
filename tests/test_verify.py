@@ -1614,6 +1614,30 @@ class EndToEndMutationGreen(RepoCase):
         self.assertEqual(rc, 2)
         self.assertIn("redaction", err)
 
+    def test_credential_in_a_commands_artifact_fails_the_unit(self):
+        # #309: `commands[].artifact` is where a run's captured stdout lands, which makes it the
+        # likeliest place for a token to end up — and it was the one named path check_redaction
+        # never scanned. Everything else about this manifest is clean, so a green here means the
+        # secret got SHA-pinned into permanent evidence unnoticed.
+        leak = self.artifact("aws_secret_access_key = AKIA" + "Q" * 16 + "\n",
+                             rel="docs/reports/u/run.log")
+        self.commit("a command log with a credential in it")
+        # Re-point the fixture at the new head. The review stub closes over self.head_sha, so
+        # this keeps the review fresh too — without it the unit is red for a stale review and
+        # the test would pass while proving nothing about redaction.
+        self.head_sha = self.git("rev-parse", "HEAD")
+        self.head_tree = self.git("rev-parse", "HEAD^{tree}")
+        path = self._manifest(commands=[
+            {"label": "tests", "cmd": self.proof_cmd,
+             "cmd_sha256": hashlib.sha256(self.proof_cmd.encode("utf-8")).hexdigest(),
+             "exit": 0, "wtree": self.head_tree, "artifact": leak}])
+        rc, out, err = self._run_main(path)
+        self.assertEqual(rc, 2, f"a credential in commands[].artifact passed: {out}")
+        # Name the path, not just "redaction" — otherwise any unrelated FAIL satisfies this.
+        self.assertTrue(any("redaction" in line and leak in line
+                            for line in err.splitlines()),
+                        f"no redaction FAIL naming {leak}: {err}")
+
     def test_omitted_lighting_is_lit_end_to_end(self):
         # #169: a mutation manifest with no lighting key verifies clean — omission means lit.
         path = self._manifest(lighting=None)

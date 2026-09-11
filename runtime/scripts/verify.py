@@ -1251,9 +1251,14 @@ def _scan_text(text):
 def check_redaction(m, manifest_path):
     """6. Redaction (audit §3 item 14). A manifest is SHA-pinned and permanent, and so is anything
     quoted into it or into an artifact it names. Scan the manifest JSON and every named artifact
-    (the negative control's, the reviewer record, and the `artifacts[]` inventory) for credential
-    shapes. gitleaks decides when it is on PATH; otherwise REDACTION_PATTERNS is the floor. A hit
-    FAILS the unit — rotate the credential, scrub the evidence, re-emit."""
+    (the negative control's, the reviewer record, the `artifacts[]` inventory, and each
+    `commands[].artifact`) for credential shapes. gitleaks decides when it is on PATH; otherwise
+    REDACTION_PATTERNS is the floor. A hit FAILS the unit — rotate the credential, scrub the
+    evidence, re-emit.
+
+    `commands[].artifact` is the captured stdout/stderr of a recorded run, so it is the likeliest
+    place a token lands and the last one added here: scanning every other named path while
+    skipping that one let a clean-looking unit pin a live credential (#309)."""
     errs = []
     targets = []
     if manifest_path:
@@ -1265,6 +1270,10 @@ def check_redaction(m, manifest_path):
             named.append(path)
     for entry in (m.get("artifacts") or []):
         path = entry.get("path") if isinstance(entry, dict) else entry
+        if isinstance(path, str) and path:
+            named.append(path)
+    for entry in (m.get("commands") or []):
+        path = entry.get("artifact") if isinstance(entry, dict) else None
         if isinstance(path, str) and path:
             named.append(path)
     for path in dict.fromkeys(named):
