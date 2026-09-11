@@ -6,13 +6,18 @@ except this file. Every injection ran in a scratch clone; every attack was execu
 about. External research was fetched on 2026-09-10 and is listed in §13.
 
 **This file replaces the previous deep review of `af8ea89`/`9afefc6`, which occupied this path.**
-That review is preserved in git at `git show 2a9cb3a:REVIEW.md`. Twenty-seven tracked files cite it
-as `REVIEW.md §N` / `REVIEW.md A10` — among them `runtime/scripts/verify.py:74,150,430`,
-`spawn_worker.sh:206`, `scripts/bundle.py:9`, `tests/test_verify.py`, `evals/routing.json` and
-`bench/vf-bench/traps/*.json`. Those anchors now point at a document that no longer sits here.
-Re-pointing them is a maintainer edit this engagement has no authority to make; it is P1 item 17.
-Attack ids A1–A11, B1–B2, D1, E1–E2 and U1–U5 belong to the predecessor and are not reused: new
-ids start at A12, B3, D1b, E3 and U6.
+That review is preserved unchanged at
+[`docs/reviews/2026-09-10-review.md`](docs/reviews/2026-09-10-review.md) — moved here in the same
+commit, so nothing is lost to `git show`. Twenty-seven tracked files cite it as `REVIEW.md §N` /
+`REVIEW.md A10` — among them `runtime/scripts/verify.py:74,150,430`, `spawn_worker.sh:206`,
+`scripts/bundle.py:9`, `tests/test_run_report.py:4`, `tests/test_verify.py`, `evals/routing.json`
+and `bench/vf-bench/traps/*.json`. Every one of those anchors means the archived document, and some
+now **mis-resolve** against this one rather than dangling: `bundle.py:9` cites `§8 P2-18`, which
+here is the criterion-extraction item, not the bundling item. Re-pointing the 27 citations edits
+code comments, tests and fixtures across the repository, which a read-only engagement has no
+authority to do; it is P1 item 17, and the archived file's own header says which document its
+callers mean in the meantime. Attack ids A1–A11, B1–B2, D1, E1–E2 and U1–U5 belong to the
+predecessor and are not reused: new ids start at A12, B3, D1b, E3 and U6.
 
 ---
 
@@ -195,9 +200,14 @@ All runs use `--contract-source contract.md@<base> --contract-digest <real> --un
 | A29 | Planning unit with `head_sha: "HEAD"` | planning | **LANDED by design** — symbolic refs are NOTE-only off the mutation class | `verify.py:314-323` |
 | A8 (re-run) | Bare working-tree path as `--contract-source`, contract edited to drop `AC-2` | report-only, worker sets env | **LANDED**, as documented for the in-session lane | `read_source` `verify.py:186-192` |
 
-Tally: 9 LANDED, 2 landed by design, 4 CAUGHT, 1 positive control GREEN. Five of the nine land in
-the lane the README calls the whole oracle; two land against the strongest documented configuration;
-one is a security hole rather than a soundness gap.
+Tally, seventeen rows: 1 positive control GREEN, 10 LANDED, 2 landed by design, 4 CAUGHT. Nine of
+the ten landed cases are the new gaming manifests (A12 through A22); the tenth is the A8 re-run,
+carried over from the predecessor review because it is documented behaviour in the lane where the
+worker sets the environment, not a new finding. Of the nine, five land in the lane the README calls
+the whole oracle, two land against the strongest documented configuration, and one is a security
+hole rather than a soundness gap. The headline "nine of thirteen" elsewhere in this document counts
+the thirteen gaming manifests the harness ran — the nine above plus the four CAUGHT — and excludes
+the positive control, the two by-design classes, and the out-of-harness A8 re-run.
 
 What the pattern says. The executor checks that *something the worker chose* makes *a command the
 worker chose* exit non-zero, then zero. It never checks that the thing reverted is the production
@@ -590,10 +600,14 @@ Each item is one agent, one PR, with the file it lands in.
     `STATUS.md` / `status.json` / `GAPS.md`, `TODOS.md:7`, and the repository's About description.
 16. **Fix the `npx` instructions.** Point `npx skills add` at a published `dist/` or remove
     `README.md:408-409`; remove the angle brackets from `skills/ship-it/SKILL.md:9`.
-17. **Re-point the 27 `REVIEW.md §N` citations** at the predecessor review's new home, or restate
-    the anchors they need. They are in `verify.py`, `spawn_worker.sh`, `bundle.py`,
-    `evidence-run.py`, seven test modules, `evals/routing.json`, three vf-bench traps, `validate.yml`,
-    `README.md:154`, `ARCHITECTURE.md:56` and `TODOS.md:12`.
+17. **Re-point the 27 `REVIEW.md §N` citations** at
+    [`docs/reviews/2026-09-10-review.md`](docs/reviews/2026-09-10-review.md), where the document they
+    mean now lives, or restate the anchors inline. They are in `verify.py` (`:74`, `:150`, `:430`),
+    `spawn_worker.sh:206`, `bundle.py:9`, `evidence-run.py:5`, seven test modules,
+    `evals/routing.json`, three vf-bench traps, `validate.yml:41`, `README.md:154`,
+    `ARCHITECTURE.md:56` and `TODOS.md:12`. Three mis-resolve rather than dangle and should go first:
+    `bundle.py:9` (`§8 P2-18` is now the criterion-extraction item), `verify.py:74` (`A11` is a
+    retired id), and `tests/test_run_report.py:4` (`§2.2` has no counterpart here).
 
 ### P2 — hardening and hygiene
 
