@@ -215,16 +215,35 @@ def read_lines(path):
     return out
 
 
+_UNDATED = datetime.min.replace(tzinfo=timezone.utc)
+
+
+def _instant(ts):
+    """The UTC instant a DECISIONS timestamp names, for ordering.
+
+    Not the raw string. TS_PREFIX accepts anything beginning with a date, so a record may carry an
+    offset — and offsets do not sort lexicographically: `2026-09-11T01:00:00+05:00` IS
+    `2026-09-10T20:00:00Z`, earlier than `2026-09-11T00:00:00Z`, and sorted as text it came out
+    later and won (PR #308 review, P1). A naive stamp is read as UTC, which is what the format
+    legend asks for and the only sensible reading of a bare local time. An unparseable stamp sorts
+    before everything, so a line whose time cannot be read never displaces one whose time can."""
+    text = (ts or "").strip().strip("`")
+    try:
+        moment = datetime.fromisoformat(text)
+    except ValueError:
+        return _UNDATED
+    return moment if moment.tzinfo else moment.replace(tzinfo=timezone.utc)
+
+
 def _recency(record, position):
-    """Sort key for "which line for this id is newest": timestamp first, file order to break ties.
+    """Sort key for "which line for this id is newest": instant first, file order to break ties.
 
     Position alone was the whole ordering guarantee (#318), which made the ledger's answer depend
     on who appended last rather than on when the decision was taken — so any merge, reorder or
-    out-of-order append silently changed which decision was live. Timestamps are ISO-8601 and
-    compare lexicographically in chronological order, including a date-only stamp sorting before
-    the same day's timed ones. Position stays as the tiebreak because two decisions really can
-    share a timestamp, and there the old behaviour is the only information available."""
-    return (record.get("ts", ""), position)
+    out-of-order append silently changed which decision was live. Position stays as the tiebreak
+    because two decisions really can share an instant, and there the old behaviour is the only
+    information available."""
+    return (_instant(record.get("ts", "")), position)
 
 
 def active(records):
