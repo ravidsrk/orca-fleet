@@ -1,0 +1,26 @@
+{
+  "captured_at": "2026-09-12T13:52:53.963219+00:00",
+  "full_suite_tests": 1069,
+  "passed": 1067,
+  "baseline_failure_names": [
+    "test_credential_in_a_commands_artifact_fails_the_unit",
+    "test_credential_in_an_artifact_fails_the_unit"
+  ],
+  "new_failures": 0,
+  "architecture_tests": 56,
+  "command_exits": {
+    "inventory-negative-control": 1,
+    "consistency": 0,
+    "validator": 0,
+    "architecture": 0,
+    "ruff": 0,
+    "full-suite": 1
+  },
+  "source_negative_control": "Original graph rejected with 79 discrepancies; corrected graph passes source/coverage/mapping checks.",
+  "not_claimed": "Clean-head suite, independent review, runtime re-witness, full AC-1/PINNED acceptance.",
+  "staged_whitespace": {
+    "exit": 2,
+    "reason": "Only two required byte-preserved historical snapshot EOF blank lines; intentionally unchanged.",
+    "artifact": "docs/reports/release-20260912/pin/correction-checks/staged-whitespace.txt"
+  }
+}

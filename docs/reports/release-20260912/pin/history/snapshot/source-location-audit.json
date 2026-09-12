@@ -1,0 +1,47 @@
+{
+  "base_sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+  "frozen_untouched": true,
+  "reason": "Leading newlines in sentence slices made some initial line numbers precede the verbatim excerpt; exact substring lookup at base_sha corrects locations without changing IDs, text, denominator or preprobe content.",
+  "corrections": [
+    {
+      "id": "C014",
+      "frozen_line": 32,
+      "verified_line": 33
+    },
+    {
+      "id": "C045",
+      "frozen_line": 129,
+      "verified_line": 130
+    },
+    {
+      "id": "C133",
+      "frozen_line": 18,
+      "verified_line": 19
+    },
+    {
+      "id": "C178",
+      "frozen_line": 81,
+      "verified_line": 82
+    },
+    {
+      "id": "C180",
+      "frozen_line": 89,
+      "verified_line": 90
+    },
+    {
+      "id": "C241",
+      "frozen_line": 32,
+      "verified_line": 33
+    },
+    {
+      "id": "C242",
+      "frozen_line": 34,
+      "verified_line": 35
+    },
+    {
+      "id": "C243",
+      "frozen_line": 36,
+      "verified_line": 37
+    }
+  ]
+}

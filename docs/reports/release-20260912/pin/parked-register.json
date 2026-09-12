@@ -3,8 +3,11 @@
   "status": "NO-VALID-PARKED-MISSION-TERMINAL",
   "frozen_denominator": 309,
   "true_parked_claims": [],
-  "unfinished_claim_count": 320,
+  "unfinished_claim_count": 373,
   "unfinished_register": "outstanding-claims.json",
   "precondition_observations": "probe-preconditions.json",
-  "note": "Unattempted/mixed claims are TODO, not parked for workload. Fixture needs and prohibited shared-runtime scenarios are explicit in every unfinished child probe. Prior invalid/corrected preconditions do not establish persistent binary absence or authentic identity rejection; native read-only IPC blocking is historical substrate corroboration, not a fresh live grade."
+  "note": "Unattempted/mixed claims are TODO, not parked for workload. Fixture needs and prohibited shared-runtime scenarios are explicit in every unfinished child probe. Prior invalid/corrected preconditions do not establish persistent binary absence or authentic identity rejection; native read-only IPC blocking is historical substrate corroboration, not a fresh live grade.",
+  "current_atomization": "claim-current.json",
+  "correction_companion": "claim-corrections.json",
+  "appended_parent_count": 7
 }

@@ -1,0 +1,72 @@
+{
+  "producer": "runtime/scripts/evidence-run.py",
+  "commands": [
+    {
+      "label": "inventory-negative-control",
+      "ts": "2026-09-12T13:48:39Z",
+      "cmd": "/tmp/orca-release-audit-20260912/ci-venv/bin/python docs/reports/release-20260912/pin/check-correction.py --baseline",
+      "cmd_sha256": "3e1b3fb064f2b2ef44aec01d0436ce68a2c2240d323fc75e6dd6c963668efa44",
+      "exit": 1,
+      "duration_s": 0.737,
+      "commit": "e2e7adab8a7ddf53844d2564734202e89bb78e98",
+      "wtree": "7fe5327f56cbe285fa6b0064394f41b77d974e3f",
+      "artifact": "docs/reports/release-20260912/pin/correction-checks/negative-control.json"
+    },
+    {
+      "label": "consistency",
+      "ts": "2026-09-12T13:48:58Z",
+      "cmd": "/tmp/orca-release-audit-20260912/ci-venv/bin/python docs/reports/release-20260912/pin/check-correction.py",
+      "cmd_sha256": "6113243b6931d5e873b614263d6e93c0b79237370506c743cf8582e534bf7489",
+      "exit": 0,
+      "duration_s": 2.551,
+      "commit": "e2e7adab8a7ddf53844d2564734202e89bb78e98",
+      "wtree": "d1bbd840ad0079132dd00964d4350d72484f0f8f",
+      "artifact": "docs/reports/release-20260912/pin/correction-checks/consistency.txt"
+    },
+    {
+      "label": "validator",
+      "ts": "2026-09-12T13:48:58Z",
+      "cmd": "/tmp/orca-release-audit-20260912/ci-venv/bin/python scripts/validate.py",
+      "cmd_sha256": "f415d8165ae2443411eca4124e801dc94bda051411c2cd737784123f056c6b34",
+      "exit": 0,
+      "duration_s": 0.522,
+      "commit": "e2e7adab8a7ddf53844d2564734202e89bb78e98",
+      "wtree": "76de927ecf853d33622adcb1a250e54eaf873f4e",
+      "artifact": "docs/reports/release-20260912/pin/correction-checks/validator.txt"
+    },
+    {
+      "label": "architecture",
+      "ts": "2026-09-12T13:49:01Z",
+      "cmd": "/tmp/orca-release-audit-20260912/ci-venv/bin/python -m unittest discover -s tests -p test_architecture.py",
+      "cmd_sha256": "903f716018363fc0dc70d43041233c4b7b5d694fbfdc30a24b831e459c215b3a",
+      "exit": 0,
+      "duration_s": 2.178,
+      "commit": "e2e7adab8a7ddf53844d2564734202e89bb78e98",
+      "wtree": "cf3d499f2f41e30fa49dd02c8f4ab3c20919f09c",
+      "artifact": "docs/reports/release-20260912/pin/correction-checks/architecture.txt"
+    },
+    {
+      "label": "ruff",
+      "ts": "2026-09-12T13:49:01Z",
+      "cmd": "/tmp/orca-release-audit-20260912/ci-venv/bin/ruff check scripts runtime/scripts tests bench demo",
+      "cmd_sha256": "76692afa292cacd9f6216444c29d18f430465b36b17137612791f1b36f5bf62a",
+      "exit": 0,
+      "duration_s": 0.011,
+      "commit": "e2e7adab8a7ddf53844d2564734202e89bb78e98",
+      "wtree": "8009450d29283dd06cdb840750caf05464c0b547",
+      "artifact": "docs/reports/release-20260912/pin/correction-checks/ruff.txt"
+    },
+    {
+      "label": "full-suite",
+      "ts": "2026-09-12T13:51:19Z",
+      "cmd": "/tmp/orca-release-audit-20260912/ci-venv/bin/python -m unittest discover -s tests",
+      "cmd_sha256": "6c7113ee595c1ad70d84b1347f9d89f98387efac685058b1aa4ffdc7f531b1a1",
+      "exit": 1,
+      "duration_s": 137.996,
+      "commit": "e2e7adab8a7ddf53844d2564734202e89bb78e98",
+      "wtree": "485a4dc1f59404b8f958444275131b75fc0a4495",
+      "artifact": "docs/reports/release-20260912/pin/correction-checks/full-suite.txt"
+    }
+  ],
+  "binding_note": "These are actual precommit working-tree fingerprints and base commit IDs. Evidence-only log/integrity additions follow; no record is relabeled as a clean test of the correction commit."
+}
