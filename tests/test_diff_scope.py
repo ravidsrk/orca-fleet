@@ -6,6 +6,9 @@ notices. What matters more is the exit contract: "we could not look" and
 "nothing matched" must both be loud, because a silent all-false gates every
 review lens off and records a legitimate-looking zero.
 """
+import contextlib
+import importlib.util
+import io
 import json
 import os
 import shutil
@@ -14,9 +17,13 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parent.parent
 SCOPE = ROOT / "runtime" / "scripts" / "diff_scope.py"
+_spec = importlib.util.spec_from_file_location("diff_scope", SCOPE)
+diff_scope = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(diff_scope)
 
 
 def git(repo, *args, check=True):
@@ -136,6 +143,57 @@ class TestExitContract(ScopeBase):
             self.assertIn(f"SCOPE_{name}=", r.stdout)
 
 
+class TestDiffAcquisition(ScopeBase):
+    def test_each_failed_required_read_is_exit_2(self):
+        write(self.repo, "staged.py", "value = 1\n")
+        git(self.repo, "add", "staged.py")
+        write(self.repo, "new.py", "value = 2\n")
+        real_run = subprocess.run
+        for phase in ("committed", "working-tree", "untracked"):
+            for failure in (128, subprocess.TimeoutExpired("git", 60), OSError("unavailable")):
+                with self.subTest(phase=phase, failure=failure):
+                    def failing_read(argv, **kwargs):
+                        target = ("untracked" if "ls-files" in argv else
+                                  "committed" if "main...HEAD" in argv else
+                                  "working-tree" if "diff" in argv and "HEAD" in argv else None)
+                        if target == phase:
+                            if isinstance(failure, Exception):
+                                raise failure
+                            return subprocess.CompletedProcess(argv, failure, "", "read failed")
+                        return real_run(argv, **kwargs)
+
+                    out = io.StringIO()
+                    with mock.patch.object(diff_scope.subprocess, "run", side_effect=failing_read), \
+                            contextlib.redirect_stdout(out):
+                        rc = diff_scope.main(["--repo", str(self.repo), "--base", "main", "--strict", "--json"])
+                    self.assertEqual(rc, 2, out.getvalue())
+                    self.assertEqual(json.loads(out.getvalue())["error"], "diff_failed")
+
+    def test_failed_diff_is_loud_in_shell_output(self):
+        real_git = diff_scope.git
+        def fail_diff(repo, *args, **kwargs):
+            return None if args[0] == "diff" else real_git(repo, *args, **kwargs)
+        out = io.StringIO()
+        with mock.patch.object(diff_scope, "git", side_effect=fail_diff), contextlib.redirect_stdout(out):
+            rc = diff_scope.main(["--repo", str(self.repo), "--base", "main"])
+        self.assertEqual(rc, 2, out.getvalue())
+        self.assertIn("SCOPE_ERROR=diff_failed", out.getvalue())
+
+    def test_external_diff_and_textconv_do_not_hide_changed_paths(self):
+        write(self.repo, "app.py", "value = 1\n")
+        git(self.repo, "add", "app.py")
+        git(self.repo, "commit", "-qm", "app")
+        git(self.repo, "branch", "snapshot")
+        git(self.repo, "config", "diff.hidden.command", "false")
+        git(self.repo, "config", "diff.hidden.textconv", "true")
+        write(self.repo, ".git/info/attributes", "*.py diff=hidden\n")
+        write(self.repo, "app.py", "value = 2\n")
+        with mock.patch.dict(os.environ, {"GIT_EXTERNAL_DIFF": "false"}):
+            r = self.run_scope("--base", "snapshot", "--strict", "--json")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertTrue(json.loads(r.stdout)["flags"]["BACKEND"])
+
+
 class TestPathClassification(ScopeBase):
     def test_frontend_component(self):
         self.assert_flag("FRONTEND", "app/components/Button.tsx", "export const B = () => null;\n")
@@ -190,6 +248,60 @@ class TestPathClassification(ScopeBase):
 
     def test_prompts_path(self):
         self.assert_flag("PROMPTS", "skills/ship-it/SKILL.md", "---\nname: x\n---\n")
+
+
+class TestGeneratedBadges(ScopeBase):
+    def test_whitespace_only_unknown_paths_survive_every_enumeration_source(self):
+        unknown = [" ", "\t", "\n"]
+        for name in unknown:
+            write(self.repo, name, "{}\n")
+        for source in ("untracked", "staged", "committed", "unstaged"):
+            if source == "staged":
+                git(self.repo, "add", "--", *unknown)
+            elif source == "committed":
+                git(self.repo, "commit", "-qm", "whitespace filenames")
+            elif source == "unstaged":
+                # Move the comparison base so only the working-tree read supplies them.
+                git(self.repo, "branch", "-f", "main", "HEAD")
+                for name in unknown:
+                    write(self.repo, name, "changed\n")
+            for with_badge in (False, True):
+                with self.subTest(source=source, with_badge=with_badge):
+                    badge = self.repo / "assets/badges/tests.json"
+                    if with_badge:
+                        write(self.repo, "assets/badges/tests.json", "{}\n")
+                    try:
+                        data, r = self.flags("--strict")
+                        self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
+                        self.assertEqual(data["error"], "unmatched")
+                        self.assertEqual(sorted(data["unmatched"]), sorted(unknown))
+                        self.assertEqual(data["flags"]["DOCS"], with_badge)
+                    finally:
+                        if with_badge:
+                            badge.unlink()
+
+    def test_supported_generated_payloads_are_docs_in_strict_mode(self):
+        # These exact outputs are public README badges from scripts/gen-badges.py.
+        # The expected classification is independent of the classifier's rule table.
+        for name in ("tests.json", "missions.json"):
+            with self.subTest(name=name):
+                badge = write(self.repo, f"assets/badges/{name}", '{"schemaVersion": 1}\n')
+                data, r = self.flags("--strict")
+                self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+                self.assertTrue(data["flags"]["DOCS"])
+                self.assertEqual(data["unmatched"], [])
+                badge.unlink()
+
+    def test_generated_badge_does_not_exempt_unknown_neighbors(self):
+        write(self.repo, "assets/badges/tests.json", "{}\n")
+        unknown = ["assets/badges/other.json", "assets/badges/tests.json.bak",
+                   "assets/other.json", "nested/assets/badges/missions.json", "odd/thing.qqq"]
+        for path in unknown:
+            write(self.repo, path, "{}\n")
+        data, r = self.flags("--strict")
+        self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
+        self.assertEqual(data["error"], "unmatched")
+        self.assertEqual(sorted(data["unmatched"]), sorted(unknown))
 
 
 class TestContentClassification(ScopeBase):

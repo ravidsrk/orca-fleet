@@ -80,6 +80,21 @@ class HookBase(unittest.TestCase):
 
 
 class TestHighTierDenies(HookBase):
+    def test_literal_quoted_command_and_option_words_are_denied(self):
+        # R8 / AC-1: JSON decision fixtures only; these commands never execute.
+        for command in (
+            "'git' push --force origin main",
+            'git "push" "--force" origin main',
+            'g"i"t pu\'sh\' --for"ce" origin main',
+            "git push '--delete' origin 'main'",
+            "'rm' '-rf' '/'",
+            "git '-C' '/srv/dir one' push '--delete' origin topic",
+        ):
+            with self.subTest(command=command):
+                block = self.decision(self.fire(event("Bash", command=command)))
+                self.assertIsNotNone(block, command)
+                self.assertEqual(block["permissionDecision"], "deny", command)
+
     def test_every_forbidden_shape_is_denied(self):
         for command in HIGH_DENY_COMMANDS:
             with self.subTest(command=command):
@@ -87,6 +102,42 @@ class TestHighTierDenies(HookBase):
                 self.assertIsNotNone(block, f"{command!r} produced no decision at all")
                 self.assertEqual(block["permissionDecision"], "deny", command)
                 self.assertTrue(block["permissionDecisionReason"].strip())
+
+    def test_push_short_clusters_cannot_hide_force_or_default_deletion(self):
+        for command in (
+            "git push -vf origin main", "git push -fv origin main",
+            "git push '-qvf' origin topic", "git push -vd origin main",
+            "git push -dv origin refs/heads/main",
+            "git push -vfd --force-with-lease origin main",
+            "git push -vo ci.skip -f origin main",
+            "git push -voci.skip -d origin main",
+            "git push -o --force-with-lease -vf origin main",
+            "git push -4f origin main", "git push '-6d' origin main",
+        ):
+            with self.subTest(command=command):
+                block = self.decision(self.fire(event("Bash", command=command)))
+                self.assertIsNotNone(block, command)
+                self.assertEqual(block["permissionDecision"], "deny", command)
+
+    def test_benign_quoted_words_and_push_option_operands_stay_allowed(self):
+        for command in (
+            "'git' 'push' 'origin' 'topic'",
+            "'git' push '--force-with-lease' origin main",
+            'git push -o "--force" origin topic',
+            'git push -o "--delete" origin main',
+            'git push -o "+main" origin topic',
+            'git push -o "message --force origin main" origin topic',
+            'git push -vo "--force" origin topic',
+            'git push -vof origin topic',
+            'git push -vd --force-with-lease origin topic',
+        ):
+            with self.subTest(command=command):
+                block = self.decision(self.fire(event("Bash", command=command)))
+                if "-vd" in command:
+                    self.assertIsNotNone(block, command)
+                    self.assertEqual(block["permissionDecision"], "ask", command)
+                else:
+                    self.assertIsNone(block, command)
 
     def test_force_push_to_the_default_branch_names_it(self):
         block = self.decision(self.fire(event("Bash", command="git push --force origin main")))
@@ -805,6 +856,51 @@ class TestBashWritesAreBounded(HookBase):
             with self.subTest(command=command):
                 self._deny(command)
 
+    def test_adjacent_and_multi_digit_redirects_deny_outside_targets(self):
+        # R9 / AC-2: no shell payload executes; only the hook decision is read.
+        out = self.outside / "landed file"
+        for command in (
+            f'printf x>{self.outside}/landed',
+            f'printf x>"{out}"', f"printf x>>'{out}'",
+            f'printf x 10>"{out}"', f'printf x 123>>"{out}"',
+            f'printf x 10>|"{out}"', f'printf x&>"{out}"',
+            f'printf x&>>"{out}"', f'printf x 10>&"{out}"',
+            f'printf x>"{self.outside}"/landed',
+            f'printf x 10> {self.outside}/landed',
+            f'printf x 10>&1>"{out}"',
+        ):
+            with self.subTest(command=command):
+                self._deny(command)
+        self.assertFalse(out.exists(), "decision fixtures must never execute payloads")
+
+    def test_literal_redirect_targets_preserve_spaces_and_quoted_operators(self):
+        safe = self.wt / "sub" / "safe file"
+        for command in (
+            f'printf x>"{safe}"', f"printf x 123>>'{safe}'",
+            f'printf x 10>|"{safe}"', 'printf x>"/dev/null"',
+            'printf x 10>"/dev/null"', 'printf x 123>&2',
+            f'printf "%s" "x>{self.outside}/landed"',
+            f'printf "%s" ">" "{self.outside}/landed"',
+            f'printf x\\>{self.outside}/landed',
+            f'cat <"{self.outside}/secret"',
+            f'cat <<<"{self.outside}/secret"',
+            f'cat real.txt | "tee" "{safe}"',
+        ):
+            with self.subTest(command=command):
+                self.assertIsNone(self.decision(self._fire_bash(command)), command)
+        self.assertFalse(safe.exists(), "decision fixtures must never execute payloads")
+
+    def test_a_quoted_tee_target_with_spaces_is_bounded(self):
+        self._deny(f'cat real.txt | "tee" "{self.outside}/landed file"')
+
+    def test_quoted_redirect_targets_resolve_symlinks_with_spaces(self):
+        escape = self.wt / "escape link"
+        escape.symlink_to(self.outside / "secret")
+        safe = self.wt / "safe link"
+        safe.symlink_to(self.wt / "real.txt")
+        self._deny(f'printf x>"{escape}"')
+        self.assertIsNone(self.decision(self._fire_bash(f'printf x>"{safe}"')))
+
     def test_a_tee_destination_is_bounded(self):
         for command in (f"cat real.txt | tee {self.outside / 'stolen'}",
                         f"cat real.txt | tee -a {self.outside / 'stolen'}"):
@@ -998,6 +1094,127 @@ class TestThePayloadReaderStaysRunnable(HookBase):
         block = self.decision(self.fire(event("Bash", command="cd /tmp && rm -rf /")))
         self.assertIsNotNone(block, "no segments reached the tier")
         self.assertEqual(block["permissionDecision"], "deny")
+
+
+class TestShellCommentsAreNotShellCode(HookBase):
+    """PR #325 review, P1.
+
+    `git status # dont modify anything` is valid Bash that runs only `git status`, but the
+    tokenizer had no case for a comment: it parsed the prose as shell, the apostrophe opened a
+    quote that never closed, shlex raised, and the payload reader hard-DENIED a read-only
+    command. The comment has to be recognized BEFORE quote parsing, and it ends at the newline —
+    which therefore has to survive as a command boundary, or everything after a comment would be
+    swallowed with it.
+    """
+
+    def allowed(self, command, env_extra=None):
+        result = self.fire(event("Bash", command=command), env_extra=env_extra)
+        self.assertIsNone(self.decision(result), f"{command!r} must be allowed silently")
+
+    def denied(self, command, env_extra=None):
+        block = self.decision(self.fire(event("Bash", command=command), env_extra=env_extra))
+        self.assertIsNotNone(block, f"{command!r} must not be allowed")
+        self.assertEqual(block["permissionDecision"], "deny", block)
+
+    def test_the_reported_command_is_allowed(self):
+        self.allowed("git status # don't modify anything")
+
+    def test_an_apostrophe_in_a_comment_never_reaches_the_quote_parser(self):
+        for command in (
+            "git status # don't modify anything",
+            "ls -la  # it's fine",
+            "git diff # won't touch the worktree; don't worry",
+            "# don't run anything at all",
+            "git log --oneline #can't be a quote",
+            "git status # a lone \" double quote",
+        ):
+            with self.subTest(command=command):
+                self.allowed(command)
+
+    def test_a_comment_ends_at_its_newline_and_the_next_command_is_judged(self):
+        for command in (
+            "ls # harmless note\ngit push --force origin main",
+            "# a whole commented line\ngit push --force origin main",
+            "git status # don't\ngit push --force origin main",
+            "ls # note\r\ngit push --force origin main",
+        ):
+            with self.subTest(command=command):
+                self.denied(command)
+
+    def test_a_trailing_comment_does_not_pardon_the_command_it_follows(self):
+        for command in (
+            "git push --force origin main # just this once",
+            "rm -rf / # don't worry, it's fine",
+            "orca orchestration reset # resetting",
+        ):
+            with self.subTest(command=command):
+                self.denied(command)
+
+    def test_a_hash_that_opens_no_word_is_not_a_comment(self):
+        # Quoted, escaped, or mid-word, it is data. Un-seeing those words would lose the
+        # command that follows one.
+        for command in (
+            'echo "#" ; git push --force origin main',
+            "echo '#' && git push --force origin main",
+            "echo \\# ; git push --force origin main",
+            "echo a#b ; git push --force origin main",
+        ):
+            with self.subTest(command=command):
+                self.denied(command)
+
+    def test_a_comment_cannot_hide_a_write_past_the_worktree_boundary(self):
+        outside = self.tmp / "outside.txt"
+        for command in (
+            f"echo pwned > {outside} # just a note",
+            f"# note\necho pwned > {outside}",
+            f"echo pwned >{outside}#name",
+        ):
+            with self.subTest(command=command):
+                self.denied(command, env_extra={"ORCA_UNIT_WORKTREE": str(self.repo)})
+
+    def test_a_line_continuation_is_removed_and_keeps_word_position(self):
+        """PR #325 review, P1. A backslash-newline is removed by the shell, inside double quotes
+        as well as outside, and the text on either side is ONE word. Treating it as a word
+        boundary made `echo a\\<newline>#b` a comment and swallowed the command after it."""
+        self.denied("echo a\\\n#b ; git push --force origin main")
+        self.denied("echo a\\\nb#c ; git push --force origin main")
+        self.denied('echo "x\\\n#y" ; git push --force origin main')
+        # Single quotes take no escapes, so the backslash is literal and opens no comment there.
+        self.denied("echo 'a\\\nb' ; git push --force origin main")
+        # A continuation after a blank still leaves the next word at a word start.
+        self.allowed("git status \\\n# don't modify anything")
+
+    def test_only_shell_blanks_open_a_word(self):
+        """PR #325 review, P1. str.isspace() calls NBSP whitespace; a shell does not, so
+        `echo x<NBSP>#b` is the single word `x\xa0#b` and the command after it still runs."""
+        for blank in ("\xa0", "\u2007", "\u202f", "\v", "\f"):
+            with self.subTest(blank=repr(blank)):
+                self.denied(f"echo x{blank}#b ; git push --force origin main")
+        for blank in (" ", "\t", "  ", " \t "):
+            with self.subTest(blank=repr(blank)):
+                self.allowed(f"echo x{blank}# just a note")
+
+    def test_a_word_cannot_forge_a_record_delimiter(self):
+        """PR #325 review, P1. `tee "\\<newline>C echo" /tmp/outside`: bash removes the
+        continuation and passes `C echo` as a relative filename. Carried through verbatim, that
+        newline split the one-line record protocol, and the forged `C ` record reset tee
+        enforcement so the absolute destination after it was never checked."""
+        outside = self.tmp / "outside.txt"
+        for command in (
+            f'tee "\\\nC echo" {outside}',
+            f'tee "\\\nW /dev/null" {outside}',
+            f'tee "a\nC echo" {outside}',
+            f"tee 'a\nC echo' {outside}",
+            f'echo x > "a\nC echo" ; tee b {outside}',
+        ):
+            with self.subTest(command=command):
+                self.denied(command, env_extra={"ORCA_UNIT_WORKTREE": str(self.repo)})
+
+    def test_a_quoted_newline_stays_one_word_and_one_record(self):
+        # It cannot ride the line protocol as a newline; it must not become a separator either,
+        # or the rest of a quoted value would be judged as a command of its own.
+        self.allowed('git commit -m "first line\nsecond line"')
+        self.denied('git commit -m "note" ; git push --force origin main')
 
 
 class TestScriptShape(unittest.TestCase):
