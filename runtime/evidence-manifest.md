@@ -109,7 +109,7 @@ Rules:
 - `review.artifact` (path to the local reviewer record at head_sha) is REQUIRED on a mutation unit in the no-gh lane (dispatch `--no-gh`; merge-serialization.md) — the coordinator-attested stand-in for §2's GitHub review lookup. The gh lane and report-only/planning units omit it.
 - `intent` is REQUIRED on mutation units: goal · ruled_out · why, all non-empty — discarded agent reasoning captured (not the completion oracle; that stays §2). A missing or empty packet fails verification.
 - `lighting` is `lit` (default) or `dark-eligible` per gate-classification.md. The verifier machine-checks only that the value is legal and unswapped against the dispatch-supplied value (plus, via the review leg, that a `dark-eligible` unit carries a corroborating out-of-band coordinator contract). The stop-list / Lane-0/B decision is a human gate at dispatch — verify.py never sees lane data.
-- `provenance` (optional, any class) makes the manifest a regulated audit record — governing spec/policy version, model lineage, reviewer identity+timestamp, and an append-only retention pointer (maps to EU AI Act Art-12/50). When it names a standard (not `none`) the verifier REQUIRES those fields — an incomplete packet is not a valid audit record.
+- `provenance` (optional, any class) records only supporting change-evidence metadata. When it names a standard (not `none`), the verifier requires non-empty strings in `spec_version`, `model`, `reviewer`, and `retention`. This presence check does not establish their truth, operational logging, retention, disclosure, marking, or regulatory conformance.
 - `claim` is the worker's narration — the verifier ignores it except as a hint.
 
 ## 2. Independent verification (the coordinator, or a fresh verifier worker)
