@@ -261,6 +261,79 @@ class RunReportBinding(unittest.TestCase):
                     f"python3 {V} --manifest"):
             self.assertFalse(run_report.executes_verifier(cmd, m), cmd)
 
+    def test_the_interpreter_is_read_as_argv_too(self):
+        """PR #327 review, P1.
+
+        The executable was accepted on a basename that STARTS WITH `python`, so
+        `/tmp/python3 runtime/scripts/verify.py --manifest m.json` satisfied verifier_ran with
+        an arbitrary binary — a symlink to /bin/true runs nothing and records a pass. The
+        interpreter is part of the recorded argv and is read like the rest of it.
+        """
+        m = self.manifest
+        V = "runtime/scripts/verify.py"
+        for cmd in (
+            # An executable the run put somewhere it can write is not an interpreter.
+            f"/tmp/python3 {V} --manifest {m}",
+            f"/var/tmp/python3 -u {V} --manifest {m}",
+            f"/dev/shm/python {V} --manifest {m}",
+            f"/tmp/nested/python3.11 {V} --manifest {m}",
+            # Nor is one inside the tree under review, which the run certainly writes.
+            f"{self.repo}/python3 {V} --manifest {m}",
+            # A relative path resolves against a cwd this check cannot know.
+            f"./python3 {V} --manifest {m}",
+            f"tools/python3 {V} --manifest {m}",
+            f"/usr/bin/../tmp/python3 {V} --manifest {m}",
+            # A name that merely begins with `python` is not a Python.
+            f"python-decoy {V} --manifest {m}",
+            f"pythonish {V} --manifest {m}",
+            f"/usr/bin/python3-wrapper {V} --manifest {m}",
+            f"python3x {V} --manifest {m}",
+        ):
+            with self.subTest(cmd=cmd):
+                self.assertFalse(run_report.executes_verifier(cmd, m, self.repo), cmd)
+        for cmd in (
+            # The documented form: PATH resolves a bare name.
+            f"python3 {V} --manifest {m}",
+            f"python {V} --manifest {m}",
+            f"python3.13 {V} --manifest {m}",
+            f"python3.13t {V} --manifest {m}",
+            # A real system interpreter, and a virtualenv outside the graded tree.
+            f"/usr/bin/python3 -u {V} --manifest {m}",
+            f"/usr/local/bin/python3.11 {V} --manifest {m}",
+            f"/opt/ci/venv/bin/python3 {V} --manifest {m}",
+            f"env FOO=1 /usr/bin/python3 {V} --manifest={m}",
+        ):
+            with self.subTest(cmd=cmd):
+                self.assertTrue(run_report.executes_verifier(cmd, m, self.repo), cmd)
+
+    def test_an_interpreter_inside_the_graded_tree_is_the_runs_own(self):
+        # The temp repo above lives under /tmp, where the scratch rule would mask this one.
+        root = "/opt/checkouts/orca-fleet"
+        for token in (f"{root}/python3", f"{root}/.venv/bin/python3",
+                      f"{root}/runtime/scripts/python"):
+            with self.subTest(token=token):
+                self.assertFalse(run_report._is_python_interpreter(token, root), token)
+        for token in ("/opt/checkouts/other/python3", "/usr/bin/python3", "python3"):
+            with self.subTest(token=token):
+                self.assertTrue(run_report._is_python_interpreter(token, root), token)
+
+    def test_a_decoy_interpreter_does_not_buy_a_tier(self):
+        # End to end: the ledger record hashes true and names a real tree, and still buys nothing.
+        payload = json.loads((self.repo / self.manifest).read_text())
+        line = f"/tmp/python3 runtime/scripts/verify.py --manifest {self.manifest}"
+        payload["commands"] = [{
+            "label": "verifier", "cmd": line, "exit": 0,
+            "cmd_sha256": hashlib.sha256(line.encode("utf-8")).hexdigest(),
+            "wtree": _git(self.repo, "rev-parse", "HEAD^{tree}"),
+        }]
+        (self.repo / self.manifest).write_text(json.dumps(payload) + "\n", encoding="utf-8")
+        _git(self.repo, "add", "-A")
+        _git(self.repo, "commit", "-qm", "decoy interpreter")
+        rev = _git(self.repo, "rev-parse", "HEAD")
+        problems = run_report.verifier_ran(self.manifest, rev, self.repo)
+        self.assertTrue(problems, "a decoy interpreter must not satisfy verifier_ran")
+        self.assertIn("records no commands[] entry running", problems[0])
+
     def test_an_echoed_invocation_does_not_buy_a_tier(self):
         # The same thing end to end: a fabricated report whose ledger only echoes the command.
         cmd = f"echo runtime/scripts/verify.py --manifest {self.manifest}"

@@ -149,6 +149,44 @@ def _is_repo_verifier(token, root):
         return False
 
 
+_PYTHON_NAME_RE = re.compile(r"python(?:\d+(?:\.\d+)?)?t?", re.ASCII)
+# World-writable and shared. No toolchain installs an interpreter under them, so anything wearing
+# an interpreter's name there was put there by the run.
+_SCRATCH_ROOTS = (Path("/tmp"), Path("/var/tmp"), Path("/dev/shm"))
+
+
+def _is_python_interpreter(token, root):
+    """True when `token` names a Python interpreter the run did not supply itself.
+
+    A basename test accepting anything that STARTS WITH `python` was the whole check, so
+    `/tmp/python3` passed — an arbitrary executable, or a symlink to /bin/true, under a name the
+    worker chose. The record then satisfied verifier_ran with neither an interpreter nor this
+    repository's verifier having run at all (PR #327 review, P1).
+
+    What a recorded string can establish is bounded, and it is the same bound the ledger itself
+    carries: this refuses the forms the run controls, it does not authenticate the binary. A bare
+    name is the documented form and resolves through PATH; a path is read only where a worker is
+    not expected to be able to place a file. Authenticating the interpreter needs the
+    coordinator-signed transcript of #281, not a longer pattern here.
+    """
+    path = Path(token)
+    if not _PYTHON_NAME_RE.fullmatch(path.name):
+        return False   # `python-decoy` and `pythonish` are not interpreters
+    if "/" not in token:
+        return True    # a bare name: PATH resolves it, exactly as the protocols document
+    # A slash is what makes the shell open a FILE instead of searching PATH, so `./python3` is a
+    # worker-placed file however much it reads like the bare name Path() would flatten it to.
+    if not path.is_absolute() or ".." in path.parts:
+        return False   # resolves against a cwd this check cannot know, or climbs out of one
+    try:
+        repo = Path(root).resolve()
+    except (ValueError, OSError, RuntimeError):
+        return False
+    if path.is_relative_to(repo):
+        return False   # the tree under review is the one place the run certainly writes
+    return not any(path.is_relative_to(scratch) for scratch in _SCRATCH_ROOTS)
+
+
 def _valid_python_xoption(option):
     """Known CPython 3.13 startup value constraints (using/cmdline.html#cmdoption-X).
 
@@ -264,11 +302,13 @@ def executes_verifier(cmd, manifest_path, root=None):
     true, names a real tree, and invokes nothing. The regex is still right for the report BODY,
     which is prose; a recorded command is argv and is read as argv.
 
-    Two further evasions review found in the argv reading itself, both fixed here. A basename test
+    Three further evasions review found in the argv reading itself, all fixed here. A basename test
     accepted `/tmp/verify.py`, a script the worker wrote; the path must be this repository's own
-    verifier. And taking the FIRST `--manifest` disagreed with argparse, which takes the LAST — so
+    verifier. Taking the FIRST `--manifest` disagreed with argparse, which takes the LAST — so
     `--manifest <graded> --manifest other.json` read as graded here while the real verifier read
-    the other file.
+    the other file. And the INTERPRETER went unread the same way `verify.py` once did: any
+    executable whose name began with `python` was one, so `/tmp/python3` — a symlink to /bin/true
+    — ran nothing and recorded a pass (PR #327 review, P1). See `_is_python_interpreter`.
     """
     if not isinstance(cmd, str):
         return False
@@ -281,7 +321,7 @@ def executes_verifier(cmd, manifest_path, root=None):
         i += 1
     if i >= len(argv):
         return False
-    if Path(argv[i]).name.startswith("python"):
+    if _is_python_interpreter(argv[i], root or ROOT):
         i = _python_script_index(argv, i + 1)
         if i >= len(argv):
             return False
