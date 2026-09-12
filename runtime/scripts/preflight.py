@@ -18,6 +18,10 @@ Verifies the invariants that, if wrong, silently corrupt a whole run:
 The BASE/default comparison canonicalizes ref aliases first (D1 remediation):
 `origin/main`, `refs/remotes/origin/main`, and `refs/heads/main` all reduce to `main`,
 so aliasing the default branch cannot slip past the M-5 guardrail.
+An online default derived from gh resolves through refs/remotes/origin/<branch>,
+never a possibly stale local namesake. Fetch origin before running preflight;
+a missing remote-tracking ref fails closed. Explicit --default refs retain their
+local/offline meaning.
 
 Usage:
     preflight.py --base <base-branch> [--default <default-branch>] [--fork-point <sha>] [--require-gitleaks]
@@ -82,7 +86,7 @@ def _default_branch_via_gh() -> str | None:
         ["gh", "repo", "view", "--json", "defaultBranchRef", "-q", ".defaultBranchRef.name"],
         timeout=_GH_TIMEOUT,
     )
-    return out if rc == 0 and out else None
+    return f"refs/remotes/origin/{out}" if rc == 0 and out else None
 
 
 def _branch_exists(name: str) -> bool:
@@ -98,9 +102,22 @@ def _branch_exists(name: str) -> bool:
     return False
 
 
+def _ref_candidates(ref: str) -> tuple[str, ...]:
+    if ref.startswith("refs/"):
+        # rev-parse/merge-base can resolve even a qualified-looking name through
+        # a local alias. Pin the exact ref before using it in revision lookups.
+        rc, out, _ = _run(["git", "show-ref", "--verify", "--hash", ref])
+        return (out,) if rc == 0 and out else ()
+    return (ref, f"origin/{ref}")
+
+
 def _merge_base(a: str, b: str) -> str | None:
-    for pair in ((a, b), (f"origin/{a}", f"origin/{b}"), (a, f"origin/{b}"), (f"origin/{a}", b)):
-        rc, out, _ = _run(["git", "merge-base", *pair])
+    a_refs, b_refs = _ref_candidates(a), _ref_candidates(b)
+    # Preserve the existing preference order for unqualified local/origin pairs.
+    for i, j in ((0, 0), (1, 1), (0, 1), (1, 0)):
+        if i >= len(a_refs) or j >= len(b_refs):
+            continue
+        rc, out, _ = _run(["git", "merge-base", a_refs[i], b_refs[j]])
         if rc == 0 and out:
             return out
     return None
@@ -131,7 +148,7 @@ def _canon_branch(ref: str) -> str:
 
 
 def _tip_sha(ref: str) -> str | None:
-    for candidate in (ref, f"origin/{ref}"):
+    for candidate in _ref_candidates(ref):
         rc, out, _ = _run(["git", "rev-parse", "--verify", "--quiet", candidate])
         if rc == 0 and out:
             return out

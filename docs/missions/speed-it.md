@@ -1,7 +1,7 @@
 # ⚡ speed-it — every journey within budget, proven by a number
 
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel hotspot workers under a pre-declared measurement contract; you own the one-way doors.
-> **Activation load:** ~24,300 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
+> **Activation load:** ~24,600 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
 
 > Declare the journeys and their budgets. Come back to every one of them measured within budget
