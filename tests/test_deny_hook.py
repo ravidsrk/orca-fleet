@@ -337,6 +337,15 @@ class TestGitGlobalOptionsAreStripped(HookBase):
     def test_a_global_option_does_not_launder_a_deletion_either(self):
         self._deny("git -C /srv push origin :main")
 
+    def test_a_quoted_inline_option_value_cannot_hide_the_push(self):
+        # PR #321 review — `--opt="a b"` cut at the first space left
+        # `b" push …` where `push` belonged, and the refused push escaped.
+        for command in ('git --exec-path="/srv/git tools" push --force origin main',
+                        'git --git-dir="/srv/dir one" push -f origin main',
+                        "git --git-dir='/srv/dir one' push -f origin main"):
+            with self.subTest(command=command):
+                self._deny(command)
+
     def test_whitespace_does_not_hide_an_option(self):
         # PR #321 review — a tab or a double space left the option run unstripped.
         for command in ("git\t-C\t/srv\tpush\t--force\torigin\tmain",
@@ -369,6 +378,28 @@ class TestGitGlobalOptionsAreStripped(HookBase):
 
     def test_a_sudo_env_assignment_still_redirects(self):
         self._deny("sudo GIT_DIR=/srv/.git git push -d origin main")
+
+    def test_a_redirect_inside_an_option_value_is_text_not_an_option(self):
+        # PR #321 review — `-c`'s operand may legitimately contain ` -C `;
+        # scanning it raw called a non-default delete a redirect and denied it.
+        for command in ("git -c 'core.sshCommand=ssh -C' push -d origin topic",
+                        'git -c "x=--git-dir /y" push -d origin topic'):
+            with self.subTest(command=command):
+                block = self.decision(self.fire(event("Bash", command=command)))
+                self.assertEqual(block["permissionDecision"], "ask",
+                                 f"{command!r} must ask, not deny")
+                self.assertNotIn("redirected", block["permissionDecisionReason"])
+
+    def test_a_push_option_operand_is_not_a_refspec(self):
+        # PR #321 review — `-o`'s operand is an option string; `:x` there is not
+        # a deletion. A plain push carrying one stays allowed.
+        r = self.fire(event("Bash",
+              command="git push -o :ci.skip origin feature"))
+        self.assertEqual(r.returncode, 0)
+        self.assertNotIn('"deny"', r.stdout)
+        self.assertNotIn('"ask"', r.stdout)
+        # …and a real `:dst` after the option still denies the default branch.
+        self._deny("git push -o :ci.skip origin :main")
 
     def test_the_never_list_sees_the_same_subcommand(self):
         # The ask tier scans the whole line, so it gets the normalized view the

@@ -464,8 +464,17 @@ strip_git_opts() {
       --html-path|--html-path\ *|--man-path|--man-path\ *|--info-path|--info-path\ *|\
       --exec-path|--exec-path\ *|--version|--version\ *|--help|--help\ *|-h|-h\ *)
         _rest=""; break ;;
-      # Valueless flags and inline-value options drop one token each.
-      --git-dir=*\ *|--work-tree=*\ *|--namespace=*\ *|--exec-path=*\ *|--config-env=*\ *|\
+      # Inline `--opt=value`: drop `name=` then the value — a quoted value cuts
+      # at its closing quote, or `--opt="a b"` would leave `b" …` in place of
+      # the subcommand and the refused push would escape (PR #321 review, P1).
+      --git-dir=*\ *|--work-tree=*\ *|--namespace=*\ *|--exec-path=*\ *|--config-env=*\ *)
+        _rest=${_rest#*=}
+        case "$_rest" in
+          \"*) _rest=${_rest#*\" } ;;
+          \'*) _rest=${_rest#*\' } ;;
+          *)   _rest=${_rest#* } ;;
+        esac ;;
+      # Valueless flags drop one token each.
       -p\ *|-P\ *|--paginate\ *|--no-pager\ *|--bare\ *|--no-replace-objects\ *|--no-advice\ *|\
       --literal-pathspecs\ *|--glob-pathspecs\ *|--noglob-pathspecs\ *|--icase-pathspecs\ *|\
       --no-optional-locks\ *)
@@ -495,9 +504,6 @@ norm_ws() {
 # in the leading assignment run — `feature/GIT_DIR=config` is a ref name, not
 # a redirect (#321 review) — and the option run ends at `git` itself.
 git_redirected() {
-  case " $1" in
-    *\ -C\ *|*\ --git-dir\ *|*\ --git-dir=*|*\ --work-tree\ *|*\ --work-tree=*) return 0 ;;
-  esac
   _r=$1
   while : ; do
     case "$_r" in
@@ -509,17 +515,55 @@ git_redirected() {
       nohup\ *)     _r=${_r#nohup } ;;
       time\ *)      _r=${_r#time } ;;
       GIT_DIR=*|GIT_WORK_TREE=*) return 0 ;;
-      git|git\ *)   return 1 ;;
-      # Any other assignment advances past its token — a trailing one with no
-      # space after fails this arm outright, so the loop cannot spin on it; a
-      # quoted value cuts at its closing quote, not the first space inside.
+      # Any other assignment advances past its token — but only when the `=`
+      # lives in the FIRST token, as in strip_prefix: `git --git-dir=/x` also
+      # contains `=`+space and letting this arm fire there ate `git ` (#321
+      # review). A trailing token with no space after fails the arm outright,
+      # so the loop cannot spin on it; a quoted value cuts at its closing
+      # quote, not the first space inside.
       [A-Za-z_]*=*\ *)
-        case "$_r" in
-          [A-Za-z_]*=\"*) _r=${_r#*\" } ;;
-          [A-Za-z_]*=\'*) _r=${_r#*\' } ;;
-          *)              _r=${_r#* } ;;
+        case "${_r%% *}" in
+          [A-Za-z_]*=*)
+            case "$_r" in
+              [A-Za-z_]*=\"*) _r=${_r#*\" } ;;
+              [A-Za-z_]*=\'*) _r=${_r#*\' } ;;
+              *)              _r=${_r#* } ;;
+            esac ;;
+          *) break ;;
         esac ;;
-      *)            return 1 ;;
+      *) break ;;
+    esac
+  done
+  case "$_r" in git\ *) _r=${_r#git } ;; *) return 1 ;; esac
+  # Only git's LEADING global-option run can redirect — a `-C` sitting inside a
+  # `-c` operand value is text, not an option, so the run is walked and every
+  # operand skipped rather than substring-matched (#321 review).
+  while : ; do
+    case "$_r" in
+      -C\ *|-C|--git-dir\ *|--git-dir|--work-tree\ *|--work-tree|\
+      --git-dir=*|--git-dir=*\ *|--work-tree=*|--work-tree=*\ *)
+        return 0 ;;
+      -c\ *|-c|--namespace\ *|--namespace|--config-env\ *|--config-env)
+        _r=${_r#* }
+        case "$_r" in
+          \"*) _r=${_r#*\" } ;;
+          \'*) _r=${_r#*\' } ;;
+          *)   _r=${_r#* } ;;
+        esac ;;
+      --namespace=*|--namespace=*\ *|--config-env=*|--config-env=*\ *|--exec-path=*|--exec-path=*\ *)
+        _r=${_r#*=}
+        case "$_r" in
+          \"*) _r=${_r#*\" } ;;
+          \'*) _r=${_r#*\' } ;;
+          *)   _r=${_r#* } ;;
+        esac ;;
+      -p|-p\ *|-P|-P\ *|--paginate|--paginate\ *|--no-pager|--no-pager\ *|\
+      --bare|--bare\ *|--no-replace-objects|--no-replace-objects\ *|\
+      --no-advice|--no-advice\ *|--literal-pathspecs|--literal-pathspecs\ *|\
+      --glob-pathspecs|--glob-pathspecs\ *|--noglob-pathspecs|--noglob-pathspecs\ *|\
+      --icase-pathspecs|--icase-pathspecs\ *|--no-optional-locks|--no-optional-locks\ *)
+        _r=${_r#* } ;;
+      *) return 1 ;;
     esac
   done
 }
@@ -586,11 +630,16 @@ for _SEG in "$@"; do
     # matching-branches push — an empty dst is not a deletion. `refs/heads/` is
     # stripped before comparing: `git push origin :refs/heads/main` deletes the
     # same ref `:main` does (#321 review).
-    _DEL=0; _DEL_FLAG=0; _DEL_DEFAULT=0
+    _DEL=0; _DEL_FLAG=0; _DEL_DEFAULT=0; _SKIP=0
     set -f
     for TOK in $CMD; do
       TOK=${TOK#\"}; TOK=${TOK%\"}; TOK=${TOK#\'}; TOK=${TOK%\'}
+      # `-o`/`--push-option`, `--receive-pack`, `--repo` consume the next token —
+      # its content is an option string, never a refspec: `-o :x` is not a
+      # deletion of x (#321 review).
+      [ "$_SKIP" -eq 1 ] && _SKIP=0 && continue
       case "$TOK" in
+        -o|--push-option|--receive-pack|--repo) _SKIP=1 ;;
         -d|--delete) _DEL=1; _DEL_FLAG=1 ;;
         +:*|:*) _dst=${TOK#+}; _dst=${_dst#:}; _dst=${_dst#refs/heads/}
                 [ -n "$_dst" ] || continue
@@ -612,10 +661,15 @@ for _SEG in "$@"; do
       # refs/heads/main` is the same delete, #321 review) — is the ref being
       # deleted. A remote literally named after it earns a deny rather than a
       # silent delete — that is the error to err toward.
+      _SKIP=0
       set -f
       for TOK in $CMD; do
         TOK=${TOK#\"}; TOK=${TOK%\"}; TOK=${TOK#\'}; TOK=${TOK%\'}
-        case "$TOK" in git|push|sudo|-*) continue ;; esac
+        [ "$_SKIP" -eq 1 ] && _SKIP=0 && continue
+        case "$TOK" in
+          -o|--push-option|--receive-pack|--repo) _SKIP=1; continue ;;
+          git|push|sudo|-*) continue ;;
+        esac
         TOK=${TOK#refs/heads/}
         [ "$TOK" = "$DEFAULT_BRANCH" ] && _DEL_DEFAULT=1 && break
       done
