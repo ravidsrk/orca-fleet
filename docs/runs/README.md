@@ -71,7 +71,17 @@ make each run concrete, self-run candidates first:
 | absorb-it | this repo's own inbound PR queue once it has one; otherwise an external repo with open community PRs | external-run | `ABSORBED` (or `-WITH-PARKED`) | Orca; an inbound queue that exists |
 | document-it | this catalog's own zero-coverage doc cells — `runtime/scripts/` has modules with no guide entry | self-run | `DOCUMENTED` | Orca; a frozen public surface to document against |
 | migrate-it | needs a stateful schema — this catalog has no database; an external repo with a live migration | external-run | `MIGRATED` | a target with real data + Orca |
-| oncall-it | needs a live incident — an external service with a paging surface, or a replayed postmortem against a real timeline | external-run | `RESOLVED` (or `-WITH-PARKED`) | a target + Orca |
+| oncall-it | a bounded external staging-service path set, with 2–4 frozen on-call questions per path; establish operability using the proof below | external-run | `OPERABLE` / `OPERABLE-WITH-PARKED` | Orca; staging failures that can be induced safely; an observable alert destination; human path/question and cost/ownership gates |
+
+For **oncall-it**, retain the question→signal queries and outputs, symptom alerts with two
+severities and justified thresholds, linked runbooks, and test-fire receipts from the destination.
+Record both oracle runs: a fresh source-blind worker locates an induced staging failure from
+telemetry alone; a second fresh source-blind worker cannot locate it after instrumentation is
+removed on a throwaway branch (RED). Neither worker wrote the instrumentation. Bind the evidence
+to the recorded head SHA and removal control, then re-check every frozen question at the final
+head. Missing staging, receipt or oracle evidence leaves the path parked; an incident resolved
+using existing telemetry is insufficient. The [mission protocol](../../skills/oncall-it/SKILL.md)
+owns the complete proof; a healthy service with missing telemetry is a valid starting target.
 
 A run's report goes through the same gates as any change (PR, review bot, `validate.py`), and
 `proof_status --check` keeps every tier honest until the report lands.
