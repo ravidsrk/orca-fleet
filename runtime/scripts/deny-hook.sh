@@ -31,9 +31,8 @@
 #   2. force-push to the default branch, including the +main refspec form that
 #      needs no flag at all — and deleting it outright, which carries no flag
 #      either: `:main`, `git push -d`, `git push --delete` (#297)
-#   3. `git push --force` / `-f` without --force-with-lease, on any target: the
-#      lease is what makes a force-push recoverable, and a worker that has not
-#      earned the lease has not earned the push
+#   3. effective `git push --force` / `-f`, on any target: explicit global
+#      force disables --force-with-lease checks, even when a lease is supplied
 #   4. `orca orchestration reset` — one command that discards a whole fleet's
 #      dispatch state
 # Git global options between `git` and the subcommand (-C, -c, --git-dir and
@@ -44,7 +43,8 @@
 # the default is resolved in the hook's own cwd and the ref cannot be shown
 # recoverable, so any remote-ref deletion denies (#321 review).
 # --force-with-lease is deliberately NOT matched as a force-push — but a
-# lease does not pardon a deletion, which is judged first.
+# lease does not pardon a deletion (judged first) or an effective explicit
+# global force, which Git documents as disabling the lease checks.
 #
 # Never list (ask, per runtime/sandbox-policy.md): live-prod mutation, credential
 # provisioning, destructive database or infrastructure teardown, unpinned remote
@@ -696,7 +696,7 @@ push_policy() {
   python3 -c 'import sys
 words = sys.argv[1].split()
 out, skip, options = [], False, True
-lease = False
+lease, force = False, False
 for word in words:
     if skip:
         skip = False
@@ -705,6 +705,10 @@ for word in words:
         options = False
     elif options and word in ("-o", "--push-option", "--receive-pack", "--exec", "--repo"):
         skip = True
+        continue
+    elif word in ("--force", "--no-force", "-f"):
+        if options:
+            force = word != "--no-force"
         continue
     elif word == "--no-force-with-lease":
         if options:
@@ -723,12 +727,18 @@ for word in words:
             if flag not in "vqnfdu46":
                 out.append(word)
                 break
+            if flag == "f":
+                force = True
+                continue
             out.append("-" + flag)
         continue
     out.append(word)
 # Emit only the effective lease; canceled leases and operands after -- cannot
-# grant the HIGH-tier exemption. A later lease option can enable it again.
-if lease:
+# grant the HIGH-tier exemption. Explicit global force disables lease checks
+# (git-push 2.55); --no-force clears that flag in command-line order.
+if force:
+    out.append("--force")
+elif lease:
     out.append("--force-with-lease")
 print(" ".join(out))' "$1"
 }
@@ -779,7 +789,7 @@ for _SEG in "$@"; do
     fi
   fi
 
-  # 2/3. Force-push and deletion. A lease makes a force-push recoverable; a
+  # 2/3. Force-push and deletion. An effective lease guards concurrent updates; a
   # deletion recovers nothing, so it is judged FIRST and no lease pardons it:
   # `git push origin :main`, `-d` and `--delete` carry no force flag at all and
   # sailed under both force rules (#297).
@@ -870,7 +880,7 @@ for _SEG in "$@"; do
         if [ "$TARGETS_DEFAULT" -eq 1 ]; then
           decide deny "deny-hook[HIGH]: force-push to the default branch is refused. It rewrites the history everyone else builds on."
         else
-          decide deny "deny-hook[HIGH]: git push --force without --force-with-lease is refused. Use --force-with-lease so a concurrent push cannot be silently discarded."
+          decide deny "deny-hook[HIGH]: unleased or explicit global force is refused. Use --force-with-lease without -f/--force so a concurrent push cannot be silently discarded."
         fi
         exit 0
       fi
