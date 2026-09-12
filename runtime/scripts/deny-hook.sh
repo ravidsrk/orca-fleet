@@ -392,9 +392,13 @@ FULL_CMD=$CMD
 has() { printf '%s' "$CMD" | grep -qE "$1" 2>/dev/null; }
 
 # Drop env/sudo-style prefixes so a refused command cannot be laundered by putting something
-# harmless in front of it. `sudo` is deliberately NOT stripped — the patterns match it themselves.
+# harmless in front of it. `sudo` is peeled but REATTACHED — the rules below match `sudo`
+# themselves — because an assignment under it (`sudo GIT_DIR=x git push -d`) otherwise hid
+# the whole command from every anchored pattern (PR #321 review).
 strip_prefix() {
   _c=$1
+  _pre=""
+  case "$_c" in sudo\ *) _pre="sudo "; _c=${_c#sudo } ;; esac
   while : ; do
     case "$_c" in
       env\ *)     _c=${_c#env } ;;
@@ -423,7 +427,7 @@ strip_prefix() {
       *) break ;;
     esac
   done
-  printf '%s' "$_c"
+  printf '%s%s' "$_pre" "$_c"
 }
 
 # git's global options sit between `git` and the subcommand, and every rule here
@@ -444,18 +448,27 @@ strip_git_opts() {
   while : ; do
     case "$_rest" in
       # Options taking a separate operand: drop the option, then the operand.
-      -C\ *|-c\ *|--git-dir\ *|--work-tree\ *|--namespace\ *|--exec-path\ *|--config-env\ *)
+      -C\ *|-c\ *|--git-dir\ *|--work-tree\ *|--namespace\ *|--config-env\ *)
         _rest=${_rest#* }
         case "$_rest" in
           \"*) _rest=${_rest#*\" } ;;
           \'*) _rest=${_rest#*\' } ;;
           *)   _rest=${_rest#* } ;;
         esac ;;
+      # Immediate-exit options print and stop — `git --html-path push --force`
+      # never pushes at all, and stripping the option would judge tokens git
+      # ignores (PR #321 review). Empty the rest so the segment normalizes to a
+      # bare `git`. `--exec-path` is here, not in the operand arm: git's own
+      # `[=path]` is optional-and-inline, so a separate token after it is just
+      # more ignored text.
+      --html-path|--html-path\ *|--man-path|--man-path\ *|--info-path|--info-path\ *|\
+      --exec-path|--exec-path\ *|--version|--version\ *|--help|--help\ *|-h|-h\ *)
+        _rest=""; break ;;
       # Valueless flags and inline-value options drop one token each.
       --git-dir=*\ *|--work-tree=*\ *|--namespace=*\ *|--exec-path=*\ *|--config-env=*\ *|\
       -p\ *|-P\ *|--paginate\ *|--no-pager\ *|--bare\ *|--no-replace-objects\ *|--no-advice\ *|\
       --literal-pathspecs\ *|--glob-pathspecs\ *|--noglob-pathspecs\ *|--icase-pathspecs\ *|\
-      --no-optional-locks\ *|--html-path\ *|--man-path\ *|--info-path\ *)
+      --no-optional-locks\ *)
         _rest=${_rest#* } ;;
       *) break ;;
     esac
@@ -463,16 +476,52 @@ strip_git_opts() {
   printf '%sgit %s' "$_pre" "$_rest"
 }
 
+# Collapse every whitespace run to one space and trim the ends. The prefix and
+# option arms match single literal spaces, so `git -C␣␣/x` or a tab after `-C`
+# left the options in place and the refused push unmatched (PR #321 review).
+# Collapsing a quoted value's interior is harmless — rules never inspect a
+# value, only the command around it.
+norm_ws() {
+  _n=$(printf '%s' "$1" | tr -s '[:space:]' ' ')
+  _n=${_n# }; _n=${_n% }
+  printf '%s' "$_n"
+}
+
 # `-C`, `--git-dir`, `--work-tree`, and GIT_DIR=/GIT_WORK_TREE= point a command
 # at a DIFFERENT repository, but DEFAULT_BRANCH below is resolved in the hook's
 # own working directory — so under a redirect nothing here can prove which ref
 # the target repo calls its default (#321 review). Detected on the raw segment,
-# before the options were stripped away.
+# before the options were stripped away. An env var only redirects when it sits
+# in the leading assignment run — `feature/GIT_DIR=config` is a ref name, not
+# a redirect (#321 review) — and the option run ends at `git` itself.
 git_redirected() {
   case " $1" in
-    *\ -C\ *|*\ --git-dir\ *|*\ --git-dir=*|*\ --work-tree\ *|*\ --work-tree=*|*GIT_DIR=*|*GIT_WORK_TREE=*) return 0 ;;
+    *\ -C\ *|*\ --git-dir\ *|*\ --git-dir=*|*\ --work-tree\ *|*\ --work-tree=*) return 0 ;;
   esac
-  return 1
+  _r=$1
+  while : ; do
+    case "$_r" in
+      \ *)          _r=${_r# } ;;
+      env\ *)       _r=${_r#env } ;;
+      sudo\ *)      _r=${_r#sudo } ;;
+      command\ *)   _r=${_r#command } ;;
+      builtin\ *)   _r=${_r#builtin } ;;
+      nohup\ *)     _r=${_r#nohup } ;;
+      time\ *)      _r=${_r#time } ;;
+      GIT_DIR=*|GIT_WORK_TREE=*) return 0 ;;
+      git|git\ *)   return 1 ;;
+      # Any other assignment advances past its token — a trailing one with no
+      # space after fails this arm outright, so the loop cannot spin on it; a
+      # quoted value cuts at its closing quote, not the first space inside.
+      [A-Za-z_]*=*\ *)
+        case "$_r" in
+          [A-Za-z_]*=\"*) _r=${_r#*\" } ;;
+          [A-Za-z_]*=\'*) _r=${_r#*\' } ;;
+          *)              _r=${_r#* } ;;
+        esac ;;
+      *)            return 1 ;;
+    esac
+  done
 }
 
 # The segments come PRE-SPLIT from the payload reader above, one per line from line 4 on. They
@@ -493,7 +542,8 @@ set +f
 IFS=$_OLDIFS
 
 for _SEG in "$@"; do
-  CMD=$(strip_git_opts "$(strip_prefix "$_SEG")")
+  _SEG_N=$(norm_ws "$_SEG")
+  CMD=$(strip_git_opts "$(strip_prefix "$_SEG_N")")
   [ -n "$(printf '%s' "$CMD" | tr -d '[:space:]')" ] || continue
   # 1. Recursive delete of a root-class target, or --no-preserve-root anywhere.
   if has '^[[:space:]]*(sudo[[:space:]]+)?rm[[:space:]]' \
@@ -549,7 +599,7 @@ for _SEG in "$@"; do
       esac
     done
     set +f
-    if [ "$_DEL" -eq 1 ] && git_redirected "$_SEG"; then
+    if [ "$_DEL" -eq 1 ] && git_redirected "$_SEG_N"; then
       # The push targets another repository while DEFAULT_BRANCH was resolved
       # in this one's cwd — the deleted ref cannot be shown recoverable, and
       # ask is the wrong answer for maybe-the-default. Deny.
@@ -727,7 +777,7 @@ CMD=$FULL_CMD
 never_list
 CMD=
 for _SEG in "$@"; do
-  _n=$(strip_git_opts "$(strip_prefix "$_SEG")")
+  _n=$(strip_git_opts "$(strip_prefix "$(norm_ws "$_SEG")")")
   CMD=${CMD:+$CMD ; }$_n
 done
 [ -z "$CMD" ] || never_list

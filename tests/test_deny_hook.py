@@ -337,6 +337,39 @@ class TestGitGlobalOptionsAreStripped(HookBase):
     def test_a_global_option_does_not_launder_a_deletion_either(self):
         self._deny("git -C /srv push origin :main")
 
+    def test_whitespace_does_not_hide_an_option(self):
+        # PR #321 review — a tab or a double space left the option run unstripped.
+        for command in ("git\t-C\t/srv\tpush\t--force\torigin\tmain",
+                        "git  -C  /srv  push  --force  origin  main",
+                        "git\t-c a=b\tpush -f origin main"):
+            with self.subTest(command=command):
+                self._deny(command)
+
+    def test_immediate_exit_options_are_not_denied(self):
+        # PR #321 review — `git --html-path push --force` prints a path and
+        # exits; git never runs the subcommand. Denying it is a false positive.
+        for command in ("git --html-path push --force origin main",
+                        "git --man-path push origin :main",
+                        "git --info-path push -f",
+                        "git --exec-path push --force",
+                        "git --version push -f origin main",
+                        "git --help push --force"):
+            with self.subTest(command=command):
+                r = self.fire(event("Bash", command=command))
+                self.assertEqual(r.returncode, 0)
+                self.assertNotIn('"deny"', r.stdout, command)
+                self.assertNotIn('"ask"', r.stdout, command)
+
+    def test_a_ref_name_containing_git_dir_is_not_a_redirect(self):
+        # PR #321 review — `feature/GIT_DIR=config` is a ref name; only a
+        # LEADING env assignment redirects. This delete asks, not denies.
+        block = self.decision(self.fire(
+            event("Bash", command="git push -d origin feature/GIT_DIR=config")))
+        self.assertEqual(block["permissionDecision"], "ask")
+
+    def test_a_sudo_env_assignment_still_redirects(self):
+        self._deny("sudo GIT_DIR=/srv/.git git push -d origin main")
+
     def test_the_never_list_sees_the_same_subcommand(self):
         # The ask tier scans the whole line, so it gets the normalized view the
         # HIGH tier judged — otherwise the same option hides a question.
