@@ -1,5 +1,6 @@
 {
-  "_comment": "Version -> cut commit: the durable half of issue #274. A CHANGELOG heading with no immutable ref is a claim without a SHA, and annotated tags live in the repository's ref namespace rather than in any branch \u2014 a clone that never fetched them cannot check the claim, and a tag created in a throwaway checkout is simply lost. This file is committed, so both problems go away: tests/test_docs_navigation.py binds every dated CHANGELOG heading to an entry here whose commit exists. Recreate and publish the tags with: jq -r '.releases[] | \"git tag -a \\(.tag) \\(.commit) -m \\\"orca-fleet \\(.version)\\\"\"' docs/releases.json | sh && git push origin --tags",
+  "_comment": "Published versions map to immutable cut commits and annotated tags. Historical rows and tag targets stay unchanged. The optional preparing object contains only version and cut_date for the sole newest heading; it claims no published release. After authorized tagging, a later provenance commit moves it into releases with the existing cut SHA and clears preparing. See docs/ops.md for preparation, cut, tagging, provenance and recovery.",
+  "preparing": null,
   "releases": [
     {
       "version": "0.1.0",

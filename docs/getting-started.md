@@ -61,6 +61,7 @@ the repo path is in [docs/verify-gate.md](verify-gate.md).
 ```bash
 git clone https://github.com/ravidsrk/orca-fleet.git
 cd orca-fleet
+mkdir -p ~/.claude/skills
 ln -s "$(pwd)/skills/ship-it"   ~/.claude/skills/ship-it
 ln -s "$(pwd)/skills/review-it" ~/.claude/skills/review-it
 ```
