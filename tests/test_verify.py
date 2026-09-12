@@ -1818,6 +1818,65 @@ class EndToEndMutationGreen(RepoCase):
                     apply.assert_not_called()
                     run_at.assert_not_called()
 
+    def test_noncommit_tree_sha_is_the_only_admission_rejection(self):
+        # A tree OID resolves all blobs and diff/ledger trees, but is not a commit. Unlike an
+        # invented missing SHA, it leaves artifact, scope, freshness and ledger checks admissible.
+        for head, rejected in ((self.head_sha, False), (self.head_tree, True)):
+            with self.subTest(rejected=rejected):
+                self.head_sha = head  # also keeps the independent review fixture at this identity
+                path = self._manifest(nc=self._revert_nc())
+                with mock.patch.object(verify, 'execute_negative_control', return_value=(True, [])) as execute, \
+                        mock.patch.object(verify, '_apply_control') as apply, \
+                        mock.patch.object(verify, '_run_at') as run_at:
+                    result, err = verify.verify(path, self.contract, self.digest, repo='o/r',
+                        unit_class='mutation', execute_nc=True, nc_command=self.proof_cmd)
+                    self.assertIsNone(err)
+                    self.assertEqual(result[0], [f"head_sha '{head}' is not a real commit"] if rejected else [])
+                    if rejected:
+                        execute.assert_not_called()
+                    else:
+                        execute.assert_called_once()
+                    apply.assert_not_called()
+                    run_at.assert_not_called()
+
+    def test_signed_replay_uses_pinned_patch_with_divergent_or_missing_checkout(self):
+        diff = '--- a/app.py\n+++ b/app.py\n@@ -2 +2 @@\n-    return 2\n+    return 1\n'
+        self.write(self.nc_artifact, 'RED\n' + diff)
+        self.head_sha = self.commit('pin the signed hand mutant')
+        self.head_tree = self.git('rev-parse', 'HEAD^{tree}')
+        nc = {'tool': 'hand', 'artifact': self.nc_artifact, 'result': 'RED', 'command': self.proof_cmd}
+        path = self._manifest(nc=nc)
+        rec, pk = DispatchProvenance._signed(self, {
+            'manifest_id': 'slice-2', 'contract_digest': self.digest, 'unit_class': 'mutation',
+            'lighting': 'lit', 'nc_command': self.proof_cmd,
+            'nc_artifact_sha256': hashlib.sha256(('RED\n' + diff).encode()).hexdigest()})
+        original = verify._run_at
+        for missing in (False, True):
+            with self.subTest(missing=missing):
+                if missing:
+                    Path(self.nc_artifact).unlink()
+                else:
+                    # Both mutants kill the same proof; final exits alone cannot identify which ran.
+                    self.write(self.nc_artifact, 'RED\n' + diff.replace('return 1', 'return 0'))
+                applied, runs = [], []
+                def observe(wt, argv, **kwargs):
+                    if argv == shlex.split(self.proof_cmd):
+                        applied.append((Path(wt) / 'app.py').read_text())
+                    result = original(wt, argv, **kwargs)
+                    if argv == shlex.split(self.proof_cmd):
+                        runs.append(result)
+                    return result
+                with mock.patch.object(verify, '_run_at', side_effect=observe):
+                    result, err = verify.verify(path, self.contract, self.digest, repo='o/r',
+                        unit_class='mutation', lighting='lit', execute_nc=True,
+                        nc_command=self.proof_cmd, dispatch_record=rec, dispatch_pubkey=pk)
+                self.assertIsNone(err)
+                self.assertEqual(result[0], [])
+                self.assertEqual(applied, ['def f():\n    return 1\n', 'def f():\n    return 2\n'])
+                self.assertEqual([r[0] for r in runs], [1, 0])
+                self.assertIn('AssertionError', runs[0][2])
+                self.assertTrue(any('signature verified' in n for n in result[1]), result)
+
     def test_rejected_manifest_keeps_static_replay_diagnostics(self):
         path = self._manifest(commands=[])
         with mock.patch.object(verify, 'execute_negative_control') as execute:
@@ -2202,6 +2261,22 @@ class CoordinatorOracleScope(RepoCase):
         self.assertEqual(fatal, [])
         self.assertTrue(any('EXECUTED' in note for note in notes))
 
+    def test_authorized_coordinates_cannot_relocate_in_unchanged_production(self):
+        self.write('app.py', '# module\n\n\ndef fixed():\n    return 2\n# fixed end\n\n\n\n'
+                   'def unrelated():\n    return 2\n# unrelated end\n')
+        self.base = self.commit('production before characterization')
+        self.write('tests/test_app.py', 'import unittest, app\nclass Behavior(unittest.TestCase):\n'
+                   '    def test_values(self):\n        self.assertEqual(app.fixed(), 2)\n'
+                   '        self.assertEqual(app.unrelated(), 2)\n')
+        self.head = self.commit('characterize both functions')
+        self.art = self.artifact('RED\n--- a/app.py\n+++ b/app.py\n@@ -4,3 +4,3 @@\n'
+                                 ' def unrelated():\n-    return 2\n+    return 0\n # unrelated end\n',
+                                 'docs/reports/u/relocated.txt')
+        self.scope.update(base_sha=self.base, head_sha=self.head, paths={'app.py': [5]},
+                          artifact_sha256=self.pin(self.art)['sha256'])
+        fatal, _ = self._run()
+        self.assertTrue(any('coordinate' in e for e in fatal), fatal)
+
     def test_worker_scope_cannot_authorize_itself(self):
         self.assertTrue(self._run(scope=False, manifest_scope=self.scope)[0])
 
@@ -2252,6 +2327,14 @@ class CoordinatorOracleScope(RepoCase):
                 fatal, _ = self._run()
                 self.assertTrue(any(diagnostic in line for line in fatal), fatal)
 
+    def test_runner_configuration_is_not_a_test_only_characterization(self):
+        self.write('conftest.py', 'EXPECTED = 2\n')
+        self.head = self.commit('runner configuration is code')
+        self.scope['head_sha'] = self.head
+        with mock.patch.object(verify, 'execute_negative_control', return_value=(True, [])) as execute:
+            self.assertTrue(self._run()[0])
+            execute.assert_not_called()
+
     def test_production_change_cannot_use_characterization_exception(self):
         self.write('decoy.py', 'VALUE = 8\n')
         self.head = self.commit('unexpected production edit')
@@ -2275,6 +2358,154 @@ class OracleConfigurationPaths(RepoCase):
             with self.subTest(path=path):
                 self.assertIsNotNone(verify._bind_paths_to_change(
                     ['app.py', path], {'base_sha': base, 'head_sha': head}, 'control'))
+
+
+class AppliedHunkCoordinates(RepoCase):
+    def setUp(self):
+        super().setUp()
+        self.write('app.py', '# module\n\n\ndef fixed():\n    return 1\n# fixed end\n\n\n\n'
+                   'def unrelated():\n    return 2\n# unrelated end\n')
+        self.write('check.py', 'import app\nassert app.fixed() == 2\nassert app.unrelated() == 2\n')
+        self.base = self.commit()
+        self.write('app.py', Path('app.py').read_text().replace('return 1', 'return 2'))
+        self.head = self.commit()
+        self.cmd = f'{shlex.quote(sys.executable)} check.py'
+
+    def replay(self, function):
+        diff = ('--- a/app.py\n+++ b/app.py\n@@ -4,3 +4,3 @@\n'
+                f' def {function}():\n-    return 2\n+    return 0\n#PLACEHOLDER')
+        diff = diff.replace('#PLACEHOLDER', f' # {function} end\n')
+        code, _, err = verify._run_at(self.repo,
+            ['git', 'apply', '--check', '--verbose', '-'], stdin_bytes=diff.encode())
+        self.assertEqual(code, 0, err)
+        if function == 'unrelated':
+            self.assertIn('offset 6 lines', err)
+        art = self.artifact('RED\n' + diff)
+        m = {'base_sha': self.base, 'head_sha': self.head, 'artifacts': [self.pin(art)],
+             'negative_control': {'tool': 'hand', 'artifact': art, 'result': 'RED', 'command': self.cmd}}
+        with mock.patch.object(verify, '_run_at', wraps=verify._run_at) as run_at:
+            result = verify.check_negative_control(m, True, execute=True, nc_command=self.cmd)
+        proof_runs = [c for c in run_at.call_args_list if c.args[1] == shlex.split(self.cmd)]
+        self.assertEqual(len(proof_runs), 0 if function == 'unrelated' else 2)
+        return result
+
+    def test_offset_cannot_mutate_unchanged_behavior(self):
+        errors, executed = self.replay('unrelated')
+        self.assertFalse(executed, errors)
+        self.assertTrue(any('coordinate' in e or 'untouched' in e for e in errors), errors)
+
+    def test_exact_criterion_mutant_still_replays(self):
+        errors, executed = self.replay('fixed')
+        self.assertTrue(executed, errors)
+
+
+class ProofOracleProtection(RepoCase):
+    def setUp(self):
+        super().setUp()
+        self.cmd = f'{shlex.quote(sys.executable)} runner.py'
+        self.write('app.py', 'VALUE = 2\n')
+        self.write('conftest.py', 'EXPECTED = 1\n')
+        self.write('runner.py', 'import app, conftest\nassert app.VALUE == conftest.EXPECTED\n')
+        self.base = self.commit()
+        self.write('conftest.py', 'EXPECTED = 2\n')
+        self.head = self.commit()
+
+    def manifest(self, tool, diff=''):
+        art = self.artifact('RED\n' + diff, f'docs/reports/u/nc-{next(_SRC_SEQ)}.txt')
+        return {'base_sha': self.base, 'head_sha': self.head, 'artifacts': [self.pin(art)],
+                'negative_control': {'tool': tool, 'result': 'RED', 'artifact': art, 'command': self.cmd}}
+
+    def test_range_cannot_restore_runner_configuration(self):
+        m = self.manifest('revert')
+        errors, executed = verify.check_negative_control(m, True, execute=True, nc_command=self.cmd)
+        self.assertFalse(executed, errors)
+        self.assertTrue(any('oracle' in e or 'TEST' in e for e in errors), errors)
+        with mock.patch.object(verify, 'execute_negative_control') as execute:
+            errors, _ = verify.check_negative_control(m, True, execute=True, nc_command=self.cmd)
+            self.assertTrue(errors)
+            execute.assert_not_called()
+
+    def test_makefile_and_explicit_runner_cannot_supply_the_red(self):
+        for filename, command in (('Makefile', 'make test'), ('runner.py', self.cmd),
+                                  ('runner.py', f'{shlex.quote(sys.executable)} -m runner')):
+            with self.subTest(filename=filename, command=command):
+                self.cmd = command
+                recipe = (f'test:\n\t{shlex.quote(sys.executable)} -c "import app; assert app.VALUE == 1"\n'
+                          if filename == 'Makefile' else 'import app\nassert app.VALUE == 1\n')
+                self.write(filename, recipe)
+                self.write('app.py', 'VALUE = 1\n')
+                self.base = self.commit()
+                self.write(filename, recipe.replace('== 1', '== 2'))
+                self.write('app.py', 'VALUE = 2\n')
+                self.head = self.commit()
+                self.write(filename, recipe.replace('== 1', '== 3'))
+                self.write('app.py', 'VALUE = 2 + 0\n')
+                diff = self.git('diff', '--', 'app.py', filename) + '\n'
+                self.git('restore', '--', filename, 'app.py')
+                m = self.manifest('hand', diff)
+                errors, executed = verify.check_negative_control(m, True, execute=True, nc_command=self.cmd)
+                self.assertFalse(executed, errors)
+                self.assertTrue(any('oracle' in e or 'TEST' in e for e in errors), errors)
+                # Same proof command, production-only real regression remains a valid control.
+                m = self.manifest('hand', '--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n'
+                                         '-VALUE = 2\n+VALUE = 1\n')
+                errors, executed = verify.check_negative_control(m, True, execute=True, nc_command=self.cmd)
+                self.assertTrue(executed, errors)
+
+
+class AuthoritativeReviewHistory(RepoCase):
+    def setUp(self):
+        super().setUp()
+        self.write('app.py', 'VALUE = 2\n')
+        self.reviewed = self.commit()
+        self.git('-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '--allow-empty', '-qm', 'rebase')
+        self.head = self.git('rev-parse', 'HEAD')
+        self.tree = self.git('rev-parse', 'HEAD^{tree}')
+        self.write('app.py', 'VALUE = 9\n')
+        self.unrelated = self.commit()
+
+    def review(self, who, state, sha):
+        return {'user': {'login': who}, 'state': state, 'commit_id': sha}
+
+    def check(self, reviews, selected=None):
+        m = {'head_sha': self.head, 'pr': {'number': 7, 'reviewed_sha': selected or self.head}}
+        if selected:
+            m['pr']['reviewed_wtree'] = self.tree
+        with mock.patch.object(verify, 'fetch_reviews', return_value=(reviews, None)), \
+                mock.patch.object(verify, 'fetch_pr_author', return_value='alice'):
+            return verify.check_review(m, 'o/r', True)
+
+    def test_manifest_cannot_select_away_an_equivalent_objection(self):
+        reviews = [self.review('bob', 'CHANGES_REQUESTED', self.reviewed),
+                   self.review('carol', 'APPROVED', self.head)]
+        for selected in (None, self.head, self.reviewed):
+            with self.subTest(selected=selected):
+                self.assertTrue(self.check(reviews, selected))
+        reviews.append(self.review('bob', 'DISMISSED', self.head))
+        self.assertEqual(self.check(reviews), [])
+
+    def test_unrelated_latest_review_does_not_withdraw_relevant_objection(self):
+        for state in ('COMMENTED', 'APPROVED', 'DISMISSED', 'CHANGES_REQUESTED'):
+            with self.subTest(state=state):
+                reviews = [self.review('bob', 'CHANGES_REQUESTED', self.reviewed),
+                           self.review('carol', 'APPROVED', self.head),
+                           self.review('bob', state, self.unrelated)]
+                self.assertTrue(self.check(reviews, self.reviewed))
+                reviews.append(self.review('bob', 'COMMENTED', self.head))
+                self.assertEqual(self.check(reviews, self.reviewed), [])
+
+    def test_unresolved_objection_fails_closed_until_tree_is_known(self):
+        reviews = [self.review('bob', 'CHANGES_REQUESTED', 'f' * 40),
+                   self.review('carol', 'APPROVED', self.head)]
+        self.assertTrue(any('resolve' in e for e in self.check(reviews)))
+        reviews[0]['commit_id'] = self.unrelated
+        self.assertEqual(self.check(reviews), [])
+
+    def test_author_objection_and_dismissed_historical_review_do_not_veto(self):
+        reviews = [self.review('alice', 'CHANGES_REQUESTED', self.reviewed),
+                   self.review('bob', 'DISMISSED', self.reviewed),
+                   self.review('carol', 'APPROVED', self.head)]
+        self.assertEqual(self.check(reviews), [])
 
 
 if __name__ == "__main__":

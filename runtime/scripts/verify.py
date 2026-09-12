@@ -47,6 +47,7 @@ import base64
 import hashlib
 import importlib.util
 import json
+import os
 import re
 import shlex
 import shutil
@@ -464,30 +465,47 @@ def _wtree_bound(m):
     return rt is not None and ht is not None and rt == wtree == ht
 
 
-def review_ok(reviews, head_sha, author=None, also_sha=None):
-    """Pure: the LATEST review by some INDEPENDENT reviewer (not the PR author) is APPROVED at
-    head_sha, AND no independent reviewer's latest review is a standing CHANGES_REQUESTED there.
-    A later COMMENTED/DISMISSED by the same reviewer supersedes an earlier APPROVED.
-    also_sha (a content-identical earlier head, tree-bound by _wtree_bound) is accepted too —
-    the reviewer approved exactly this content.
+def review_ok(reviews, head_sha, author=None, also_sha=None, equivalent_shas=()):
+    """Latest independent state WITHIN this content's review history governs the veto.
 
-    The blocking half is #317. GitHub does not treat CHANGES_REQUESTED as a veto outside branch
-    protection, so a second approval used to carry the unit with nothing recorded. That is the
-    wrong default for a definition-of-done oracle: a reviewer saying "not done" about this exact
-    content is evidence, and a second opinion does not erase it. Scoped deliberately — it blocks
-    only when the objection is that reviewer's LATEST state (withdrawing it clears the block) and
-    only at the head being graded (a request against content the author has moved past is not a
-    standing objection to what is in front of us)."""
+    Approvals require head or the explicitly tree-bound reviewed SHA. Objections use all
+    authoritative equivalent trees; a worker cannot select one away. Unrelated later reviews
+    do not withdraw a relevant objection. COMMENTED/DISMISSED at equivalent content still do.
+    """
+    ok_shas = {head_sha} | ({also_sha} if also_sha else set())
+    relevant = ok_shas | set(equivalent_shas)
     latest = {}
     for r in reviews or []:
-        latest[(r.get("user") or {}).get("login")] = r  # chronological: last per reviewer wins
-    ok_shas = {head_sha} | ({also_sha} if also_sha else set())
+        if r.get("commit_id") in relevant:
+            latest[(r.get("user") or {}).get("login")] = r
     independent = [r for who, r in latest.items() if author is None or who != author]
-    if any(r.get("state") == "CHANGES_REQUESTED" and r.get("commit_id") in ok_shas
-           for r in independent):
+    if any(r.get("state") == "CHANGES_REQUESTED" for r in independent):
         return False
     return any(r.get("state") == "APPROVED" and r.get("commit_id") in ok_shas
                for r in independent)
+
+
+def _equivalent_review_shas(reviews, head, author, also_sha):
+    """Re-derive veto scope from fetched review commits, never the manifest's selected SHA.
+
+    An unavailable historical object may contain a standing objection to this tree. Refuse
+    until the verifier can resolve it; do not silently discard it or fetch worker-chosen refs.
+    """
+    known = {head} | ({also_sha} if also_sha else set())
+    candidates = {r.get("commit_id") for r in reviews
+                  if (r.get("user") or {}).get("login") != author} - known
+    if not candidates:
+        return known, None
+    tree = _tree(head)
+    if tree is None:
+        return None, "cannot resolve head tree for authoritative review history"
+    for sha in candidates:
+        other = _tree(sha) if HEX40_RE.fullmatch(str(sha)) else None
+        if other is None:
+            return None, f"cannot resolve historical review commit {sha!r}; fail-closed"
+        if other == tree:
+            known.add(sha)
+    return known, None
 
 
 def parse_review_pages(out):
@@ -595,7 +613,10 @@ def check_review(m, repo, is_mutation, no_gh=False, corroborated=False, dispatch
         return [f"mutation unit: cannot resolve PR author for {repo}#{number} — cannot exclude the "
                 "author's self-review, fail-closed"]
     equivalent = (m.get("pr") or {}).get("reviewed_sha") if _wtree_bound(m) else None
-    if not review_ok(reviews, head, author, also_sha=equivalent):
+    review_shas, err = _equivalent_review_shas(reviews, head, author, equivalent)
+    if err:
+        return [f"mutation unit: cannot establish INDEPENDENT APPROVED review: {err}"]
+    if not review_ok(reviews, head, author, also_sha=equivalent, equivalent_shas=review_shas):
         return [f"mutation unit: no INDEPENDENT APPROVED review at head_sha on {repo}#{number} "
                 f"(the PR author's own approval and superseded reviews do not count; a review at "
                 f"reviewed_sha only counts when reviewed_wtree binds its tree to the head's)"]
@@ -736,8 +757,8 @@ def _production_changes(base, head):
     return [p for p in changed if Path(p).suffix.lower() not in _PROSE_SUFFIXES], None
 
 
-def _changed_paths(base, head):
-    """Paths changed in base..head, split into (production, tests, err).
+def _changed_paths(base, head, nc_command=None):
+    """Paths changed in base..head, split into (production, test/oracle inputs, err).
 
     This is the denominator the control must live inside. `negative_control.paths` naming anything
     outside it is a DECOY: the control reverts a file the unit never touched, the bound command goes
@@ -754,7 +775,7 @@ def _changed_paths(base, head):
     changed = [ln.strip() for ln in out.splitlines() if ln.strip()]
     prod, tests = [], []
     for path in changed:
-        verdict = _is_test_path(path)
+        verdict = _is_oracle_path(path, nc_command)
         if verdict is None:
             return None, None, ("diff_scope.py could not be loaded, so a test path cannot be told "
                                 "from a production one; fail-closed")
@@ -762,17 +783,65 @@ def _changed_paths(base, head):
     return prod, tests, None
 
 
-def _is_oracle_path(path):
+def _command_oracle_paths(command):
+    """Protect explicitly named proof inputs and Python module entrypoints, not worker hints."""
+    argv = shlex.split(command) if command else []
+    # A positional input to grep is the production SUBJECT, not an executable oracle.
+    # Protect programs, interpreter entrypoints and explicit config files. Do not classify
+    # arbitrary data operands as tests merely because the proof reads them.
+    inputs = argv[:1]
+    for i, arg in enumerate(argv):
+        if arg.startswith(("--config=", "--file=")):
+            inputs.append(arg.split("=", 1)[1])
+        elif arg in ("--config", "--file", "-f") and i + 1 < len(argv):
+            inputs.append(argv[i + 1])
+    interpreter = bool(argv and re.fullmatch(
+        r"(?:python(?:[0-9.]+)?|pypy[0-9]*|sh|bash|zsh|node|ruby|perl)", Path(argv[0]).name))
+    module = None
+    if interpreter:
+        i = 1
+        while i < len(argv):
+            arg = argv[i]
+            if arg in ("-c", "-e"):
+                break  # the oracle is inline in the coordinator's immutable command
+            if arg == "-m" and i + 1 < len(argv):
+                module = argv[i + 1].replace(".", "/")
+                break
+            if arg in ("-W", "-X"):
+                i += 2
+                continue
+            if not arg.startswith("-"):
+                inputs.append(arg)
+                break
+            i += 1
+    paths = set()
+    for value in inputs:
+        candidate = Path(os.path.normpath(value))
+        if candidate.is_absolute():
+            try:
+                candidate = candidate.relative_to(_toplevel())
+            except (TypeError, ValueError):
+                continue
+        paths.add(candidate.as_posix())
+    if module:
+        paths.update((module + ".py", module + "/__main__.py", module + "/__init__.py"))
+    return paths
+
+
+def _is_oracle_path(path, nc_command=None):
     """Test modules and runner configuration are part of the oracle, never mutation targets."""
     if Path(path).name.lower() in {"conftest.py", "pytest.ini", "tox.ini", "setup.cfg",
-                                   "pyproject.toml", "package.json", ".coveragerc"}:
+                                   "pyproject.toml", "package.json", ".coveragerc",
+                                   "makefile", "gnumakefile"}:
         return True
     if re.search(r"(?:^|/)(?:jest|vitest|playwright|cypress|karma)\.config\.", path.lower()):
+        return True
+    if Path(path).suffix.lower() == ".mk" or Path(path).as_posix() in _command_oracle_paths(nc_command):
         return True
     return _is_test_path(path)
 
 
-def _bind_paths_to_change(paths, m, what):
+def _bind_paths_to_change(paths, m, what, nc_command=None):
     """Every path the control touches must be a PRODUCTION path this unit actually changed.
     Returns an error string or None."""
     prod, _tests, err = _changed_paths(m.get("base_sha"), m.get("head_sha"))
@@ -782,7 +851,7 @@ def _bind_paths_to_change(paths, m, what):
     prod_set = set(scope["paths"]) if scope else set(prod)
     for path in paths:
         norm = Path(path).as_posix()
-        verdict = _is_oracle_path(norm)
+        verdict = _is_oracle_path(norm, nc_command)
         if verdict is None:
             return "cannot classify the control's oracle paths; fail-closed"
         if verdict:
@@ -833,7 +902,8 @@ def check_oracle_scope(m, source, digest):
     prod, tests, err = _changed_paths(m.get("base_sha"), m.get("head_sha"))
     if err:
         return [f"oracle scope: {err}"]
-    if any(Path(p).suffix.lower() not in _PROSE_SUFFIXES for p in prod):
+    if any(_is_test_path(p) is not True and Path(p).suffix.lower() not in _PROSE_SUFFIXES
+           for p in prod + tests):
         return ["oracle scope: this unit changes production code; default mutation binding required"]
     if scope["kind"] == "characterization" and not tests:
         return ["oracle scope: characterization must change a test"]
@@ -1114,7 +1184,7 @@ def _extract_diff(text):
     return (body + "\n") if body.strip() else None
 
 
-def _apply_control(wt, m, nc, tool):
+def _apply_control(wt, m, nc, tool, nc_command=None):
     """Apply the negative control inside the throwaway worktree `wt`. Returns an error string or
     None. Fail-closed on every git error: a control that did not apply is not a control."""
     if tool == "revert":
@@ -1126,7 +1196,7 @@ def _apply_control(wt, m, nc, tool):
             if not (base and HEX40_RE.match(str(base))):
                 return ("negative_control.paths needs a pinned 40-hex base_sha to restore the "
                         "pre-fix content from")
-            bind_err = _bind_paths_to_change(paths, m, "negative_control.paths")
+            bind_err = _bind_paths_to_change(paths, m, "negative_control.paths", nc_command)
             if bind_err:
                 return bind_err
             code, _, gerr = _run_at(wt, ["git", "checkout", str(base), "--", *paths])
@@ -1149,7 +1219,7 @@ def _apply_control(wt, m, nc, tool):
         # range deletes it, and the bound command then fails because the test file is gone — a
         # missing oracle reads as a kill. Refuse, and make the unit name its production paths
         # (docs/reviews/2026-09-11 §4 A14b/A21; #280).
-        _prod, tests, bind_err = _changed_paths(base, head)
+        _prod, tests, bind_err = _changed_paths(base, head, nc_command)
         if bind_err:
             return bind_err
         if tests:
@@ -1174,18 +1244,28 @@ def _apply_control(wt, m, nc, tool):
         return ("negative_control.artifact for tool 'hand' quotes a diff with no `+++` target — "
                 "nothing identifies which file the mutant touches, so it cannot be bound to the "
                 "change (#280)")
-    bind_err = _bind_paths_to_change(targets, m, "the hand mutant's diff")
+    bind_err = _bind_paths_to_change(targets, m, "the hand mutant's diff", nc_command)
     if bind_err:
         return bind_err
     bind_err = _bind_hunks_to_change(diff, m)
     if bind_err:
         return bind_err
-    code, _, gerr = _run_at(wt, ["git", "apply", "--whitespace=nowarn", "-"],
+    code, _, gerr = _run_at(wt, ["git", "apply", "--index", "--whitespace=nowarn", "-"],
                             stdin_bytes=diff.encode("utf-8"))
     if code != 0:
         return ("the hand mutant quoted in negative_control.artifact does not apply at head_sha "
                 f"({gerr.strip()}) — the quoted diff is not the diff that was run")
-    return None
+    # Git may relocate contextual hunks. Worker headers therefore cannot establish where the
+    # edit landed. Include the index so added/deleted/renamed/mode-only effects cannot disappear.
+    code, actual, gerr = _run_at(wt, ["git", "diff", "--cached", "--no-ext-diff",
+                                    "--no-textconv", "--no-renames", "-U0", "HEAD"])
+    if code != 0:
+        return f"cannot inspect applied mutant coordinates: {gerr.strip()}"
+    if (_diff_target_paths(actual) != targets or
+            _hunk_lines(actual, "-") != _hunk_lines(diff, "-")):
+        return "applied mutant paths/coordinates differ from the quoted control (possible hunk relocation)"
+    return (_bind_paths_to_change(_diff_target_paths(actual), m, "the applied hand mutant", nc_command) or
+            _bind_hunks_to_change(actual, m))
 
 
 def execute_negative_control(m, nc_command=None):
@@ -1230,7 +1310,7 @@ def execute_negative_control(m, nc_command=None):
                 return False, [f"--execute-nc: could not create the {phase} worktree at head_sha: "
                                f"{gerr.strip()}"]
             if phase == "control":
-                apply_err = _apply_control(wt, m, nc, tool)
+                apply_err = _apply_control(wt, m, nc, tool, nc_command)
                 if apply_err:
                     return False, [f"--execute-nc: {apply_err}"]
                 if not _run_at(wt, ["git", "status", "--porcelain"])[1].strip():
@@ -1327,9 +1407,16 @@ def check_negative_control(m, is_mutation, execute=False, nc_command=None):
         if perr:
             errs.append(perr)
         elif declared:
-            bind_err = _bind_paths_to_change(declared, m, "negative_control.paths")
+            bind_err = _bind_paths_to_change(declared, m, "negative_control.paths", nc_command)
             if bind_err:
                 errs.append(bind_err)
+        elif all(HEX40_RE.match(str(m.get(k) or "")) for k in ("base_sha", "head_sha")):
+            _prod, oracle, bind_err = _changed_paths(m["base_sha"], m["head_sha"], nc_command)
+            if bind_err:
+                errs.append(bind_err)
+            elif oracle:
+                errs.append(f"range revert changes test paths or runner oracle inputs {sorted(oracle)}; "
+                            "name only production negative_control.paths")
     elif tool == "hand":
         # The same bind, one tool over. `hand` declares its target in the quoted diff rather than
         # in paths[], and checking that the artifact merely CONTAINS diff-shaped text left the
@@ -1344,7 +1431,7 @@ def check_negative_control(m, is_mutation, execute=False, nc_command=None):
         pinned = all(HEX40_RE.match(str(m.get(k) or "")) for k in ("base_sha", "head_sha"))
         if quoted and pinned:
             for bind_err in (_bind_paths_to_change(_diff_target_paths(quoted), m,
-                                                   "the hand mutant's diff"),
+                                                   "the hand mutant's diff", nc_command),
                              _bind_hunks_to_change(quoted, m)):
                 if bind_err:
                     errs.append(bind_err)
