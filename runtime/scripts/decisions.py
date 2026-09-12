@@ -228,6 +228,12 @@ def _instant(ts):
     legend asks for and the only sensible reading of a bare local time. An unparseable stamp sorts
     before everything, so a line whose time cannot be read never displaces one whose time can."""
     text = (ts or "").strip().strip("`")
+    # The format's own stamps end in `Z`, but fromisoformat learned to read that
+    # suffix only in 3.11 — on older interpreters every record sorted _UNDATED,
+    # ordering silently fell back to file position, and only this fix's own
+    # tests noticed (#320).
+    if text.endswith(("Z", "z")):
+        text = text[:-1] + "+00:00"
     try:
         moment = datetime.fromisoformat(text)
     except ValueError:
