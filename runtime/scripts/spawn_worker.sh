@@ -52,7 +52,8 @@
 #   - fail-closed: any failed step exits nonzero with a SPAWN=FAILED diagnostic line on stderr
 #   - respects the task DAG: never forces `ready`; `--mark-ready` is an explicit opt-in and
 #     only applies when every declared dep is already completed
-#   - least-privilege launch profiles: PROFILE=ro|rw|danger; danger requires ORCA_COORD_ALLOW_DANGER=1
+#   - least-privilege launch profiles: PROFILE=ro|rw|danger; danger is refused until authoritative
+#     prelaunch placement binding to the validated disposable sandbox is supported.
 #   - distinct exit codes so coordinators can react:
 #       0  dispatched — supervised: state=ready; custom-argv: `turn_started` observed
 #       1  a spawn/dispatch step failed (includes the refusal code `runtime_error`)
@@ -68,7 +69,8 @@
 # Usage:
 #   SP=<dir> [PROFILE=rw] spawn_worker.sh [--mark-ready] <task_id> <worktree_selector> <title> [agent] [effort]
 #   agent ∈ claude|codex|cursor|gemini|grok|droid|opencode|omp|pi (default claude)
-# Prints:  supervised: HANDLE=<h> READY=<state>, DISPATCH=<id>, and LAUNCH_EFFECTIVE=<json> when the
+# Prints:  SCRATCH=<per-attempt receipt directory>, then
+#          supervised: HANDLE=<h> READY=<state>, DISPATCH=<id>, and LAUNCH_EFFECTIVE=<json> when the
 #          receipt carries it.  custom-argv lane: HANDLE=<h> STAGES=<csv>
 #
 # Agent × profile coverage (flags are Orca's own autonomous "yolo" args from
@@ -93,7 +95,7 @@
 #   (unambiguous) or that full id. See runtime/dispatch-lifecycle.md.
 #
 # Env:
-#   SP                        scratchpad dir for JSON artifacts (default: cwd)
+#   SP                        parent dir for retained per-attempt JSON artifacts (default: cwd)
 #   PROFILE                   ro | rw (default) | danger — worker permission profile
 #   ORCA_COORD_ALLOW_AUTONOMOUS_WRITE  must be 1 for PROFILE=rw (accept autonomous bypass workers)
 #   ORCA_COORD_ALLOW_DANGER   must be 1 for PROFILE=danger (implies the above + ephemeral sandbox)
@@ -179,15 +181,14 @@ SP="${SP:-$(pwd)}"
 PROFILE="${PROFILE:-rw}"
 SETTLE_SECS="${SETTLE_SECS:-20}"
 SUBMIT_SECS="${SUBMIT_SECS:-8}"
-# The scratch-file key must be UNIQUE per spawn. `tr`-squashing alone collides: two titles
-# differing only in a squashed character (e.g. "Fix: a/b" vs "Fix: a\b") map to the same
-# name, so parallel spawns clobber each other's JSON artifacts. Append a checksum of the RAW
-# title so distinct titles never share a key, regardless of what `tr` folds together.
+# Keep a readable worktree/receipt label with a checksum to distinguish squashed titles (#44).
+# This is NOT attempt identity: identical titles, retries, and checksum collisions are possible.
+# Actual scratch isolation is the atomic directory allocation below, independent of this label.
 title_hash=$(printf '%s' "$title" | cksum | cut -d' ' -f1)
 safe_title="$(printf '%s' "$title" | tr -c 'A-Za-z0-9._-' '-')-${title_hash}"
 
 # Self-test hook: compute the two hardened values and exit before any orchestration side
-# effect. Lets the contract test assert effort-validation and scratch-key uniqueness without
+# effect. Lets the contract test assert effort-validation and title disambiguation without
 # a live runtime. Placed after both computations so it exercises the real code paths.
 if [ -n "${SW_SELFTEST:-}" ]; then
   printf 'safe_title=%s\neffort=%s\n' "$safe_title" "$effort"
@@ -300,6 +301,13 @@ if [ "$PROFILE" = "danger" ]; then
   fi
   rm -f "$doctor_out"
   echo "SPAWN=NOTE task=${task} sandbox recipe='${recipe}' doctored clear by this script (#283)" >&2
+  # Doctor proves recipe health, not this selector's execution placement (R1). The documented
+  # probe can clean up its instance; worker-start --on names a saved server, not that instance.
+  # Neither supported launch lane binds the validated disposable environment BEFORE launch.
+  # Fail closed here, before task mutation or either launch, including command overrides.
+  # A receipt inspected after launch is too late; do not invent placement fields or trust a path.
+  echo "SPAWN=REFUSED task=${task} PROFILE=danger has no supported authoritative placement binding for worktree='${sel}' to the validated disposable sandbox. A clear doctor is insufficient. Implement and validate prelaunch placement binding before enabling danger; use PROFILE=ro or PROFILE=rw only for work authorized for those profiles." >&2
+  exit 2
 fi
 
 # Per-agent × profile launch command. Autonomy is the WHOLE POINT: a worker that blocks on a
@@ -356,6 +364,13 @@ else
   echo "SPAWN=REFUSED task=${task} agent '${agent}' has no verified PROFILE=$PROFILE launch flag — supply WORKER_CMD='<cmd>' with ORCA_COORD_ALLOW_CMD_OVERRIDE=1 (its read-only/write semantics are then your assertion)" >&2
   exit 2
 fi
+
+# Allocate atomically for every attempt, including identical task/title retries (R13).
+# All lane artifacts use this private directory; retain it even on failure for inspection.
+# Allocation failure exits through ERR before task mutation or launch, never reuses a directory.
+step=allocate-scratch
+SP="$(mktemp -d "$SP/spawn-XXXXXX")"
+printf 'SCRATCH=%s\n' "$SP"
 
 # --- verify task readiness against the DAG (never force ready) ---------------
 step=verify-task-ready
