@@ -154,3 +154,50 @@ else:
         for kind in ("issue", "pr"):
             with self.subTest(kind=kind):
                 self.assertNotEqual(self.run_precheck(kind, "api-error").returncode, 0)
+
+
+class AbsorptionReceiptChain(unittest.TestCase):
+    """PR #330 review, P1.
+
+    The absorption chain requires the initial-main receipt AND a receipt at each advancing BASE,
+    but the ledger carried ONE `RECEIPT` cell and the manifest binds a unit to a single
+    base_sha/head_sha. Across repeated reclassification a worker could overwrite the earlier
+    receipt with the latest and still satisfy every convergence check, putting `ABSORBED` in reach
+    without the history the chain exists to prove. The ledger now counts an append-only per-PR log
+    and the terminal requires that log complete.
+    """
+
+    SKILL = ROOT / "skills/absorb-it/SKILL.md"
+
+    def setUp(self):
+        self.text = self.SKILL.read_text()
+        # The contract is hard-wrapped prose; phrases straddle line breaks.
+        self.flat = " ".join(self.text.split())
+
+    def test_the_ledger_counts_a_log_rather_than_holding_one_receipt(self):
+        row = next(l for l in self.text.splitlines() if l.startswith("`| task_id | pr |"))
+        self.assertIn("RECEIPTS", row, "the ledger must carry a receipt COUNT, not one receipt")
+        columns = [c.strip() for c in row.strip("`|").split("|")]
+        self.assertNotIn("RECEIPT", columns, "a single RECEIPT cell is the overwrite hazard")
+        self.assertTrue("RECEIPTS = the entry count" in self.flat,
+                        "the row needs the log it counts defined")
+
+    def test_every_stage_appends_and_none_is_replaced(self):
+        for phrase in ("APPEND its SHA + receipt as", "APPEND that SHA + receipt, never replace",
+                       "APPENDED to that PR"):
+            with self.subTest(phrase=phrase):
+                self.assertTrue(phrase in self.flat, f"the contract must say {phrase!r}")
+
+    def test_absorbed_requires_the_complete_history(self):
+        absorbed = self.flat.split("- **ABSORBED** —", 1)[1].split("- **ABSORBED-WITH-PARKED**", 1)[0]
+        self.assertTrue("receipt log complete" in absorbed,
+                        "ABSORBED must require a complete receipt log")
+        for edge in ("initial main", "landing"):
+            self.assertTrue(edge in absorbed, f"ABSORBED must name the {edge} end of the log")
+        proof = self.flat.split("## Convergence proof", 1)[1]
+        self.assertTrue("none missing or replaced" in proof,
+                        "the convergence proof must reject a missing or replaced stage")
+
+    def test_overwriting_a_receipt_is_named_an_anti_pattern(self):
+        anti = self.flat.split("## Anti-patterns", 1)[1]
+        self.assertTrue("Overwriting an earlier receipt" in anti)
