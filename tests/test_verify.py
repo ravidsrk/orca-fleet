@@ -1436,13 +1436,14 @@ class EndToEndMutationGreen(RepoCase):
         # a single assertion runs. The exit is non-zero for ANY command — Vera-Perez et al. 2018:
         # a mutant the suite never exercises says nothing about the suite.
         art = self.artifact(
-            "hand mutant applied:\n--- a/app.py\n+++ b/app.py\n@@ -1,2 +1,2 @@\n"
-            "-def f():\n-    return 2\n+def f(:\n+    return 2\n",
+            "hand mutant RED:\n--- a/app.py\n+++ b/app.py\n@@ -2 +2 @@\n"
+            "-    return 2\n+    return (\n",
             rel="docs/reports/u/stillborn.txt")
         head = self.commit("stillborn hand artifact")
         nc = {"tool": "hand", "result": "RED", "artifact": art, "command": self.proof_cmd}
         path = self._manifest(lighting="dark-eligible", nc=nc)
         manifest = json.loads(Path(path).read_text(encoding="utf-8"))
+        manifest["commands"][0]["wtree"] = self.git("rev-parse", f"{head}^{{tree}}")
         manifest["head_sha"] = head
         manifest["pr"]["reviewed_sha"] = head
         Path(path).write_text(json.dumps(manifest), encoding="utf-8")
@@ -1532,6 +1533,7 @@ class EndToEndMutationGreen(RepoCase):
         nc = {k: v for k, v in self._revert_nc().items() if k != "paths"}
         path = self._manifest(lighting="dark-eligible", nc=nc)
         manifest = json.loads(Path(path).read_text(encoding="utf-8"))
+        manifest["commands"][0]["wtree"] = self.git("rev-parse", f"{head}^{{tree}}")
         manifest["head_sha"] = head
         manifest["pr"]["reviewed_sha"] = head
         Path(path).write_text(json.dumps(manifest), encoding="utf-8")
@@ -1604,6 +1606,7 @@ class EndToEndMutationGreen(RepoCase):
              "exit": 0, "wtree": self.git("rev-parse", "HEAD^{tree}")}])
         manifest = json.loads(Path(path).read_text(encoding="utf-8"))
         manifest["head_sha"] = self.git("rev-parse", "HEAD")
+        manifest["pr"]["reviewed_sha"] = manifest["head_sha"]
         Path(path).write_text(json.dumps(manifest), encoding="utf-8")
         rc, _out, err = self._run_main(path, "--lighting", "dark-eligible", "--execute-nc",
                                        "--nc-command", self.proof_cmd)
@@ -1785,6 +1788,45 @@ class EndToEndMutationGreen(RepoCase):
         self.assertEqual(rc, 2)
         self._assert_mutation_lanes_ran()
 
+    def test_admission_rejects_before_any_nc_execution(self):
+        for rejection in ('scope', 'sha', 'signature', 'shape'):
+            with self.subTest(rejection=rejection):
+                path = self._manifest(nc=self._revert_nc())
+                m = json.loads(Path(path).read_text())
+                kwargs = {}
+                if rejection == 'scope':
+                    m['criteria'] = []
+                elif rejection == 'sha':
+                    m['head_sha'] = 'f' * 40
+                elif rejection == 'shape':
+                    m['negative_control'] = ['invalid']
+                else:
+                    rec, pk = DispatchProvenance._signed(self,
+                        {'manifest_id': m['unit'], 'contract_digest': self.digest,
+                         'unit_class': 'mutation'}, sign_key=bytes(range(100, 132)))
+                    kwargs = {'dispatch_record': rec, 'dispatch_pubkey': pk}
+                Path(path).write_text(json.dumps(m))
+                with mock.patch.object(verify, 'execute_negative_control', return_value=(True, [])) as execute, \
+                        mock.patch.object(verify, '_apply_control') as apply, \
+                        mock.patch.object(verify, '_run_at') as run_at:
+                    result, err = verify.verify(path, self.contract, self.digest,
+                        repo='o/r', unit_class='mutation', execute_nc=True,
+                        nc_command=self.proof_cmd, **kwargs)
+                    self.assertIsNone(err)
+                    self.assertTrue(result[0])
+                    execute.assert_not_called()
+                    apply.assert_not_called()
+                    run_at.assert_not_called()
+
+    def test_rejected_manifest_keeps_static_replay_diagnostics(self):
+        path = self._manifest(commands=[])
+        with mock.patch.object(verify, 'execute_negative_control') as execute:
+            result, err = verify.verify(path, self.contract, self.digest, repo='o/r',
+                unit_class='mutation', execute_nc=True, nc_command=self.proof_cmd)
+            self.assertIsNone(err)
+            self.assertTrue(any('no replay is implemented' in e for e in result[0]), result)
+            execute.assert_not_called()
+
 
 _edspec = importlib.util.spec_from_file_location("ed25519", ROOT / "runtime" / "scripts" / "ed25519.py")
 ed = importlib.util.module_from_spec(_edspec)
@@ -1931,6 +1973,308 @@ class DispatchProvenance(RepoCase):
                                                "command": "pytest -k AC_1"}}
         res = verify.check_dispatch_provenance(m, "sha256:a", "mutation", None, rec, pk)
         self.assertTrue(res and all(e.startswith("NOTE:") for e in res), res)
+
+
+class PinnedEvidenceBytes(RepoCase):
+    def test_builtin_floor_runs_with_scanner_present_or_absent(self):
+        for scanner in (False, None, True, "actual"):
+            for value in ('AKIA' + 'Q' * 16, 'password' + '=sunset123',
+                          'ghp_' + 'Z' * 30 + ' #gitleaks:allow'):
+                with self.subTest(scanner=scanner, value_kind=value[:4]):
+                    art = self.artifact(value)
+                    m = {'artifacts': [self.pin(art)]}
+                    scanner_context = (contextlib.nullcontext() if scanner == 'actual' else
+                                       mock.patch.object(verify, '_gitleaks_scan', return_value=scanner))
+                    with scanner_context:
+                        self.assertTrue(verify.check_redaction(m, None))
+        art = self.artifact('clean evidence')
+        with mock.patch.object(verify, '_gitleaks_scan', return_value=False):
+            self.assertEqual(verify.check_redaction({'artifacts': [self.pin(art)]}, None), [])
+
+    def test_tracked_bytes_survive_clean_overlay_and_checkout_deletion(self):
+        art = self.artifact('AKIA' + 'Q' * 16)
+        head = self.commit()
+        m = {'head_sha': head, 'artifacts': [art]}
+        for deleted in (False, True):
+            if deleted:
+                Path(art).unlink()
+            else:
+                self.write(art, 'clean overlay')
+            with mock.patch.object(verify, '_gitleaks_scan', return_value=False):
+                self.assertTrue(verify.check_redaction(m, None))
+
+    def test_missing_unpinned_and_unreadable_named_evidence_fails_closed(self):
+        art = self.artifact('clean')
+        cases = [{'commands': [{'artifact': 'missing.txt'}]}, {'artifacts': [art]},
+                 {'review': {'artifact': 'missing.txt'}}]
+        for m in cases:
+            self.assertTrue(verify.check_redaction(m, None), m)
+        with mock.patch.object(Path, 'read_bytes', side_effect=PermissionError('denied')):
+            self.assertTrue(verify.check_redaction({'artifacts': [art]}, None))
+
+    def test_scanner_receives_the_pinned_blob(self):
+        art = self.artifact(b'committed\r\nbytes\n')
+        head = self.commit()
+        self.write(art, 'overlay')
+        observed = []
+        def scanner(path):
+            observed.append(Path(path).read_bytes())
+            return False
+        with mock.patch.object(verify, '_gitleaks_scan', side_effect=scanner):
+            self.assertEqual(verify.check_redaction({'head_sha': head, 'artifacts': [art]}, None), [])
+        self.assertIn(b'committed\r\nbytes\n', observed)
+
+    def test_signed_hash_uses_the_same_blob_as_replay(self):
+        art = self.artifact(b'committed mutant\r\n')
+        head = self.commit()
+        m = {'head_sha': head, 'negative_control': {'artifact': art}}
+        want = hashlib.sha256(b'committed mutant\r\n').hexdigest()
+        self.write(art, 'overlay mutant')
+        self.assertEqual(verify._manifest_nc_values(m)['nc_artifact_sha256'], want)
+        Path(art).unlink()
+        self.assertEqual(verify._manifest_nc_values(m)['nc_artifact_sha256'], want)
+
+    def test_real_signature_rejects_overlay_and_accepts_pinned_content(self):
+        art = self.artifact('committed mutant RED\n')
+        head = self.commit()
+        m = {'unit': 'u', 'head_sha': head, 'negative_control': {'artifact': art}}
+        self.write(art, 'overlay mutant RED\n')
+        record = {'manifest_id': 'u', 'contract_digest': 'sha256:a', 'unit_class': 'mutation',
+                  'nc_artifact_sha256': self.pin(art)['sha256']}
+        rec, pk = DispatchProvenance._signed(self, record)
+        errors = verify.check_dispatch_provenance(m, 'sha256:a', 'mutation', None, rec, pk)
+        self.assertTrue(any('substitution' in e for e in errors), errors)
+        record['nc_artifact_sha256'] = hashlib.sha256(b'committed mutant RED\n').hexdigest()
+        rec, pk = DispatchProvenance._signed(self, record)
+        Path(art).unlink()
+        self.assertTrue(all(e.startswith('NOTE:') for e in
+            verify.check_dispatch_provenance(m, 'sha256:a', 'mutation', None, rec, pk)))
+
+    def test_one_verification_retains_its_initial_evidence_snapshot(self):
+        art = self.artifact('original RED\n')
+        path = self.write('m.json', json.dumps({'artifacts': [self.pin(art)]}))
+        m, err = verify.load_manifest(path)
+        self.assertIsNone(err)
+        self.assertEqual(verify.read_artifact(m, art), (b'original RED\n', None))
+        self.write(art, 'replacement RED\n')
+        self.assertEqual(verify.read_artifact(m, art), (b'original RED\n', None))
+        fresh, _ = verify.load_manifest(path)
+        self.assertIsNotNone(verify.read_artifact(fresh, art)[1])
+
+
+class EquivalentReviewVeto(unittest.TestCase):
+    def test_equivalent_heads_share_objections_and_withdrawals(self):
+        m = {'head_sha': 'H', 'pr': {'number': 7, 'reviewed_sha': 'R'}}
+        def review(who, state, sha):
+            return {'user': {'login': who}, 'state': state, 'commit_id': sha}
+        for approval, objection in (('H', 'R'), ('R', 'H')):
+            reviews = [review('carol', 'APPROVED', approval),
+                       review('bob', 'CHANGES_REQUESTED', objection)]
+            with self.subTest(approval=approval, objection=objection), \
+                    mock.patch.object(verify, '_wtree_bound', return_value=True), \
+                    mock.patch.object(verify, 'fetch_pr_author', return_value='alice'), \
+                    mock.patch.object(verify, 'fetch_reviews', return_value=(reviews, None)):
+                self.assertTrue(verify.check_review(m, 'o/r', True), (approval, objection))
+                reviews.append(review('bob', 'DISMISSED', approval))
+                self.assertEqual(verify.check_review(m, 'o/r', True), [])
+        with mock.patch.object(verify, '_wtree_bound', return_value=False), \
+                mock.patch.object(verify, 'fetch_pr_author', return_value='alice'), \
+                mock.patch.object(verify, 'fetch_reviews', return_value=(
+                    [review('carol', 'APPROVED', 'R')], None)):
+            self.assertTrue(verify.check_review(m, 'o/r', True))
+
+
+class HandControlCoordinates(RepoCase):
+    def setUp(self):
+        super().setUp()
+        self.original = 'def f():\n    return 2\n\ndef unrelated():\n    return 7\n'
+        self.write('app.py', self.original.replace('return 2', 'return 1'))
+        self.write('tests/conftest.py', 'EXPECTED_MODE = "ready"\n')
+        self.base = self.commit()
+        self.write('app.py', self.original)
+        self.head = self.commit()
+        self.m = {'base_sha': self.base, 'head_sha': self.head}
+
+    def _diff(self, text):
+        self.write('app.py', text)
+        return self.git('diff') + '\n'
+
+    def test_context_does_not_bind_an_unrelated_mutation(self):
+        diff = self._diff(self.original.replace('return 7', 'return 8'))
+        self.assertIsNotNone(verify._bind_hunks_to_change(diff, self.m))
+
+    def test_every_changed_coordinate_must_bind(self):
+        diff = self._diff(self.original.replace('return 2', 'return 3').replace('return 7', 'return 8'))
+        self.assertIsNotNone(verify._bind_hunks_to_change(diff, self.m))
+
+    def test_real_criterion_mutant_replays(self):
+        diff = self._diff(self.original.replace('return 2', 'return 1'))
+        self.assertIsNone(verify._bind_hunks_to_change(diff, self.m))
+        self.git('checkout', '--', 'app.py')
+        art = self.artifact('RED\n' + diff)
+        self.m['artifacts'] = [self.pin(art)]
+        self.assertIsNone(verify._apply_control(str(self.repo), self.m, {'artifact': art}, 'hand'))
+        self.assertIn('return 1', Path('app.py').read_text())
+
+    def test_deletion_rename_and_mode_endpoints_cannot_hide(self):
+        good = self._diff(self.original.replace('return 2', 'return (2)'))
+        variants = [
+            'diff --git a/tests/conftest.py b/tests/conftest.py\n'
+            'deleted file mode 100644\n--- a/tests/conftest.py\n+++ /dev/null\n'
+            '@@ -1 +0,0 @@\n-EXPECTED_MODE = "ready"\n',
+            'diff --git a/tests/conftest.py b/config.py\nsimilarity index 100%\n'
+            'rename from tests/conftest.py\nrename to config.py\n',
+            'diff --git a/tests/conftest.py b/tests/conftest.py\nold mode 100644\nnew mode 100755\n',
+            'diff --git a/new.py b/new.py\nnew file mode 100644\n--- /dev/null\n+++ b/new.py\n'
+            '@@ -0,0 +1 @@\n+VALUE = 1\n',
+        ]
+        for extra in variants:
+            with self.subTest(extra=extra.splitlines()[0]):
+                art = self.artifact('RED\n' + good + extra)
+                self.m['artifacts'] = [self.pin(art)]
+                with mock.patch.object(verify, '_run_at', return_value=(0, '', '')) as executor:
+                    self.assertIsNotNone(verify._apply_control(str(self.repo), self.m,
+                                                              {'artifact': art}, 'hand'))
+                    executor.assert_not_called()
+
+    def test_plain_unified_diff_binds_each_file_without_git_headers(self):
+        self.write('other.py', 'VALUE = 1\n')
+        base = self.commit()
+        self.write('app.py', self.original.replace('return 2', 'return 3'))
+        self.write('other.py', 'VALUE = 2\n')
+        head = self.commit()
+        diff = ('--- a/app.py\n+++ b/app.py\n@@ -2 +2 @@\n-    return 3\n+    return 2\n'
+                '--- a/other.py\n+++ b/other.py\n@@ -1 +1 @@\n-VALUE = 2\n+VALUE = 1\n')
+        self.assertIsNone(verify._bind_hunks_to_change(diff, {'base_sha': base, 'head_sha': head}))
+
+    def test_criterion_insertion_seam_binds_without_context(self):
+        diff = self._diff(self.original.replace('    return 2', '    return 1\n    return 2'))
+        self.assertIsNone(verify._bind_hunks_to_change(diff, self.m))
+
+
+class CoordinatorOracleScope(RepoCase):
+    def setUp(self):
+        super().setUp()
+        self.write('app.py', 'def f():\n    return 2\n')
+        self.write('decoy.py', 'VALUE = 7\n')
+        self.base = self.commit('correct, untested production')
+        self.write('tests/test_app.py', 'import unittest\nimport app\n'
+                   'class Behavior(unittest.TestCase):\n'
+                   '    def test_f(self):\n        self.assertEqual(app.f(), 2)\n')
+        self.head = self.commit('PF-1 style characterization only')
+        self.cmd = f'{shlex.quote(sys.executable)} -m unittest discover -s tests'
+        self.diff = '--- a/app.py\n+++ b/app.py\n@@ -2 +2 @@\n-    return 2\n+    return 1\n'
+        self.art = self.artifact('RED criterion mutant\n' + self.diff)
+        self.scope = {'kind': 'characterization', 'base_sha': self.base, 'head_sha': self.head,
+                      'criterion_ids': ['AC-1'], 'paths': {'app.py': [2]},
+                      'artifact_sha256': self.pin(self.art)['sha256']}
+
+    def _run(self, scope=True, manifest_scope=None):
+        contract = {'criterion_ids': ['AC-1']}
+        if scope:
+            contract['oracle_scope'] = self.scope
+        source = self.write('frozen.json', json.dumps(contract))
+        digest = self.digest(source)
+        m = {'unit': 'characterization', 'base_sha': self.base, 'head_sha': self.head,
+             'contract': {'source': source, 'digest': digest, 'criterion_ids': ['AC-1']},
+             'criteria': _crit('AC-1'), 'lighting': 'lit',
+             'intent': {'goal': 'characterize f', 'ruled_out': 'production edit', 'why': 'f is correct'},
+             'reviewer_mode': 'same-vendor-fresh',
+             'pr': {'number': 1, 'reviewed_sha': self.head},
+             'negative_control': {'tool': 'hand', 'artifact': self.art, 'result': 'RED', 'command': self.cmd},
+             'artifacts': [self.pin(self.art)],
+             'commands': [{'cmd': self.cmd, 'cmd_sha256': hashlib.sha256(self.cmd.encode()).hexdigest(),
+                           'exit': 0, 'wtree': self.git('rev-parse', f'{self.head}^{{tree}}')}]}
+        if manifest_scope:
+            m['oracle_scope'] = manifest_scope
+        path = self.write('manifest.json', json.dumps(m))
+        with mock.patch.object(verify, 'fetch_pr_author', return_value='author'), \
+                mock.patch.object(verify, 'fetch_reviews', return_value=([
+                    {'user': {'login': 'reviewer'}, 'state': 'APPROVED', 'commit_id': self.head}], None)):
+            result, err = verify.verify(path, source, digest, repo='o/r', unit_class='mutation',
+                                        lighting='lit', execute_nc=True, nc_command=self.cmd)
+        self.assertIsNone(err)
+        return result
+
+    def test_pf1_production_unchanged_characterization_replays(self):
+        self.assertEqual(self.git('diff', self.base, self.head, '--', 'app.py'), '')
+        fatal, notes = self._run()
+        self.assertEqual(fatal, [])
+        self.assertTrue(any('EXECUTED' in note for note in notes))
+
+    def test_worker_scope_cannot_authorize_itself(self):
+        self.assertTrue(self._run(scope=False, manifest_scope=self.scope)[0])
+
+    def test_scope_cannot_omit_coordinates_or_swap_artifact(self):
+        for field, bad in (('paths', {'app.py': [1]}), ('artifact_sha256', '0' * 64),
+                           ('head_sha', self.base), ('criterion_ids', ['AC-99'])):
+            with self.subTest(field=field):
+                old = self.scope[field]
+                self.scope[field] = bad
+                with mock.patch.object(verify, 'execute_negative_control', return_value=(True, [])) as execute:
+                    self.assertTrue(self._run()[0])
+                    execute.assert_not_called()
+                self.scope[field] = old
+
+    def test_documentation_example_can_bind_unchanged_production(self):
+        self.write('README.md', 'import app\nassert app.f() == 1\n')
+        self.write('check_doc.py', 'from pathlib import Path\nexec(Path("README.md").read_text())\n')
+        self.base = self.commit('old documentation example')
+        self.write('README.md', 'import app\nassert app.f() == 2\n')
+        self.head = self.commit('correct documentation example')
+        self.cmd = f'{shlex.quote(sys.executable)} check_doc.py'
+        self.scope.update(kind='documentation', base_sha=self.base, head_sha=self.head)
+        fatal, notes = self._run()
+        self.assertEqual(fatal, [])
+        self.assertTrue(any('EXECUTED' in note for note in notes))
+
+    def test_worker_decoy_cannot_replace_authorized_mutant(self):
+        self.write(self.art, 'RED\n--- a/decoy.py\n+++ b/decoy.py\n@@ -1 +1 @@\n-VALUE = 7\n+VALUE = 8\n')
+        with mock.patch.object(verify, 'execute_negative_control') as execute:
+            self.assertTrue(self._run()[0])
+            execute.assert_not_called()
+
+    def test_even_explicit_scope_cannot_delete_the_test_oracle(self):
+        self.write(self.art, 'RED\n--- a/tests/test_app.py\n+++ /dev/null\n@@ -1,5 +0,0 @@\n'
+                   '-import unittest\n-import app\n-class Behavior(unittest.TestCase):\n'
+                   '-    def test_f(self):\n-        self.assertEqual(app.f(), 2)\n')
+        self.scope.update(paths={'tests/test_app.py': [1, 2, 3, 4, 5]},
+                          artifact_sha256=self.pin(self.art)['sha256'])
+        with mock.patch.object(verify, 'execute_negative_control') as execute:
+            self.assertTrue(self._run()[0])
+            execute.assert_not_called()
+
+    def test_authorized_stillborn_and_surviving_mutants_remain_red(self):
+        for value, diagnostic in (('(', 'oracle'), ('2 + 0', 'TAUTOLOGICAL')):
+            with self.subTest(value=value):
+                self.write(self.art, 'RED\n' + self.diff.replace('+    return 1', '+    return ' + value))
+                self.scope['artifact_sha256'] = self.pin(self.art)['sha256']
+                fatal, _ = self._run()
+                self.assertTrue(any(diagnostic in line for line in fatal), fatal)
+
+    def test_production_change_cannot_use_characterization_exception(self):
+        self.write('decoy.py', 'VALUE = 8\n')
+        self.head = self.commit('unexpected production edit')
+        self.scope['head_sha'] = self.head
+        with mock.patch.object(verify, 'execute_negative_control') as execute:
+            self.assertTrue(self._run()[0])
+            execute.assert_not_called()
+
+
+class OracleConfigurationPaths(RepoCase):
+    def test_changed_runner_configuration_cannot_join_a_production_control(self):
+        self.write('app.py', 'VALUE = 1\n')
+        self.write('pytest.ini', '[pytest]\naddopts = -q\n')
+        self.write('conftest.py', 'EXPECTED = 1\n')
+        base = self.commit()
+        self.write('app.py', 'VALUE = 2\n')
+        self.write('pytest.ini', '[pytest]\naddopts = -v\n')
+        self.write('conftest.py', 'EXPECTED = 2\n')
+        head = self.commit()
+        for path in ('pytest.ini', 'conftest.py'):
+            with self.subTest(path=path):
+                self.assertIsNotNone(verify._bind_paths_to_change(
+                    ['app.py', path], {'base_sha': base, 'head_sha': head}, 'control'))
 
 
 if __name__ == "__main__":
