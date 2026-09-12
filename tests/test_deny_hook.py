@@ -157,6 +157,58 @@ class TestHighTierDenies(HookBase):
                 self.assertNotIn("deny", r.stdout,
                                  "--force-with-lease is the safe variant and must never be denied")
 
+    def test_a_later_lease_cancellation_denies_an_unleased_force_push(self):
+        # E3 / AC-3: git-push documents cancellation of all preceding leases.
+        # These are JSON decision fixtures; no push command is executed.
+        for command in (
+            "git push --force-with-lease --no-force-with-lease -f origin main",
+            "git push -f --force-with-lease --no-force-with-lease origin topic",
+            "git push --force-with-lease=main --no-force-with-lease -vf origin main",
+            "git push --force-with-lease=main:HEAD --no-force-with-lease origin +main",
+            "git push --force-with-lease --force-with-lease=topic "
+            "--no-force-with-lease --force origin topic",
+            "'git' 'push' '--force-with-lease' '--no-force-with-lease' '-qvf' origin main",
+            'git push --force-with-lease --no-force-with-"lease" -4f origin main',
+            "git push --force-with-lease --no-force-with-lease "
+            "--force-with-lease --no-force-with-lease -6f origin main",
+            "git push --force-with-lease --no-force-with-lease "
+            "-vo --force-with-lease -f origin main",
+            "git push --force-with-lease --no-force-with-lease "
+            "--push-option --force-with-lease -f origin main",
+            "git push --force-with-lease --no-force-with-lease "
+            "--force-with-lease-typo -f origin main",
+            "git push --force-with-lease --no-force-with-lease "
+            "-f -- --force-with-lease main",
+        ):
+            with self.subTest(command=command):
+                block = self.decision(self.fire(event("Bash", command=command)))
+                self.assertIsNotNone(block, command)
+                self.assertEqual(block["permissionDecision"], "deny", command)
+
+    def test_effective_lease_controls_preserve_option_order_and_operands(self):
+        # Keep the existing lease exemption when re-enabled or when the apparent
+        # cancellation is only operand text; cancellation alone is not force.
+        for command in (
+            "git push --no-force-with-lease --force-with-lease origin main",
+            "git push --force-with-lease --no-force-with-lease "
+            "--force-with-lease -vf origin main",
+            "git push --no-force-with-lease --force-with-lease=main -f origin main",
+            "git push --no-force-with-lease '--force-with-lease=main:HEAD' -f origin main",
+            "git push --force-with-lease --no-force-with-lease origin main",
+            "git push --force-with-lease -o --no-force-with-lease -f origin main",
+            "git push --force-with-lease -vo --no-force-with-lease -f origin main",
+            "git push --force-with-lease -vo--no-force-with-lease -f origin main",
+            "git push --force-with-lease --push-option --no-force-with-lease -f origin main",
+            "git push --force-with-lease --push-option=--no-force-with-lease -f origin main",
+            "git push --force-with-lease --receive-pack --no-force-with-lease -f origin main",
+            "git push --force-with-lease --exec --no-force-with-lease -f origin main",
+            "git push --force-with-lease --repo --no-force-with-lease -f main",
+            "git push --force-with-lease -f -- origin --no-force-with-lease",
+            "git push --force-with-lease -o -- --no-force-with-lease origin main",
+        ):
+            with self.subTest(command=command):
+                self.assertIsNone(self.decision(self.fire(event("Bash", command=command))), command)
+
     def test_a_plain_push_is_allowed(self):
         r = self.fire(event("Bash", command="git push origin topic"))
         self.assertEqual(r.stdout.strip(), "")

@@ -696,6 +696,7 @@ push_policy() {
   python3 -c 'import sys
 words = sys.argv[1].split()
 out, skip, options = [], False, True
+lease = False
 for word in words:
     if skip:
         skip = False
@@ -704,6 +705,14 @@ for word in words:
         options = False
     elif options and word in ("-o", "--push-option", "--receive-pack", "--exec", "--repo"):
         skip = True
+        continue
+    elif word == "--no-force-with-lease":
+        if options:
+            lease = False
+        continue
+    elif word == "--force-with-lease" or word.startswith("--force-with-lease="):
+        if options:
+            lease = True
         continue
     elif options and word.startswith("-") and not word.startswith("--"):
         cluster = word[1:]
@@ -717,6 +726,10 @@ for word in words:
             out.append("-" + flag)
         continue
     out.append(word)
+# Emit only the effective lease; canceled leases and operands after -- cannot
+# grant the HIGH-tier exemption. A later lease option can enable it again.
+if lease:
+    out.append("--force-with-lease")
 print(" ".join(out))' "$1"
 }
 
@@ -838,7 +851,7 @@ for _SEG in "$@"; do
       exit 0
     fi
 
-    if ! has '(^|[[:space:]])--force-with-lease'; then
+    if ! has '(^|[[:space:]])--force-with-lease($|[[:space:]])'; then
       HAS_FORCE=0
       has '(^|[[:space:]])(-f|--force)($|[[:space:]])' && HAS_FORCE=1
       has '(^|[[:space:]])\+[^[:space:]]' && HAS_FORCE=1
