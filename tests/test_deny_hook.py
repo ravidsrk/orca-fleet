@@ -257,9 +257,26 @@ class TestHighTierDenies(HookBase):
                 self.assertIsNotNone(block, command)
                 self.assertEqual(block["permissionDecision"], "deny", command)
 
-    def test_canceled_force_and_force_operands_preserve_legitimate_lease_controls(self):
+    def test_unleased_force_words_stay_denied_when_canceled_or_after_terminator(self):
+        # E5 only ADDS denials: without a lease the literal -f/--force word is
+        # still the HIGH-tier trigger, as at the frozen base and before E5.
         for command in (
             "git push -f --no-force origin main",
+            "git push -f --no-force origin topic",
+            "git push --force --no-force origin topic",
+            "git push -vf --no-force origin main",
+            "git push -- origin --force",
+            "git push -- origin -f",
+            "git push origin -- --force",
+            "git push origin topic -- -f",
+        ):
+            with self.subTest(command=command):
+                block = self.decision(self.fire(event("Bash", command=command)))
+                self.assertIsNotNone(block, command)
+                self.assertEqual(block["permissionDecision"], "deny", command)
+
+    def test_canceled_force_and_force_operands_preserve_legitimate_lease_controls(self):
+        for command in (
             "git push --force --no-force --force-with-lease origin topic",
             "git push --force-with-lease '-qvf' '--no-force' origin main",
             "git push -f --no-force -vf --no-force --force-with-lease=main:HEAD origin main",

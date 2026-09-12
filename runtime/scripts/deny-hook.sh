@@ -31,8 +31,9 @@
 #   2. force-push to the default branch, including the +main refspec form that
 #      needs no flag at all — and deleting it outright, which carries no flag
 #      either: `:main`, `git push -d`, `git push --delete` (#297)
-#   3. effective `git push --force` / `-f`, on any target: explicit global
-#      force disables --force-with-lease checks, even when a lease is supplied
+#   3. `git push --force` / `-f` on any target without an effective lease — and
+#      an effective explicit global force even with one, since Git documents
+#      that it disables the --force-with-lease checks
 #   4. `orca orchestration reset` — one command that discards a whole fleet's
 #      dispatch state
 # Git global options between `git` and the subcommand (-C, -c, --git-dir and
@@ -707,9 +708,10 @@ for word in words:
         skip = True
         continue
     elif word in ("--force", "--no-force", "-f"):
+        # The literal word still reaches the HIGH-tier text below; the ordered
+        # bit only decides whether a lease may still exempt the push.
         if options:
             force = word != "--no-force"
-        continue
     elif word == "--no-force-with-lease":
         if options:
             lease = False
@@ -729,13 +731,14 @@ for word in words:
                 break
             if flag == "f":
                 force = True
-                continue
             out.append("-" + flag)
         continue
     out.append(word)
 # Emit only the effective lease; canceled leases and operands after -- cannot
 # grant the HIGH-tier exemption. Explicit global force disables lease checks
-# (git-push 2.55); --no-force clears that flag in command-line order.
+# (git-push 2.55), so an effective one replaces the lease marker. --no-force
+# clears that bit in command-line order but never removes a literal force word:
+# an unleased push keeps the trigger it had before E5, which only adds denials.
 if force:
     out.append("--force")
 elif lease:
