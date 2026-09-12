@@ -1,7 +1,7 @@
 # 🗄️ migrate-it — a stateful shape change landed across deploys, nothing ever invalid
 
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — a coordinator plus isolated per-phase workers; phases of one table are strictly serial, and the destructive CONTRACT step is your one-way door.
-> **Activation load:** ~31,100 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
+> **Activation load:** ~31,200 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
 
 > Point it at "we need to rename this column and we cannot take downtime." Come back to a table

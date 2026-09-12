@@ -488,23 +488,29 @@ def review_ok(reviews, head_sha, author=None, also_sha=None, equivalent_shas=())
 def _equivalent_review_shas(reviews, head, author, also_sha):
     """Re-derive veto scope from fetched review commits, never the manifest's selected SHA.
 
-    An unavailable historical object may contain a standing objection to this tree. Refuse
-    until the verifier can resolve it; do not silently discard it or fetch worker-chosen refs.
+    A later state by the same reviewer on known equivalent content supersedes older states.
+    Otherwise an unavailable object may contain a standing objection: fail closed.
     """
     known = {head} | ({also_sha} if also_sha else set())
-    candidates = {r.get("commit_id") for r in reviews
-                  if (r.get("user") or {}).get("login") != author} - known
-    if not candidates:
-        return known, None
-    tree = _tree(head)
-    if tree is None:
-        return None, "cannot resolve head tree for authoritative review history"
-    for sha in candidates:
-        other = _tree(sha) if HEX40_RE.fullmatch(str(sha)) else None
-        if other is None:
-            return None, f"cannot resolve historical review commit {sha!r}; fail-closed"
-        if other == tree:
+    settled, trees = set(), {}
+    for review in reversed(reviews):
+        who = (review.get("user") or {}).get("login")
+        if who == author or who in settled:
+            continue
+        sha = review.get("commit_id")
+        if sha not in known:
+            if head not in trees:
+                trees[head] = _tree(head)
+            if trees[head] is None:
+                return None, "cannot resolve head tree for authoritative review history"
+            if sha not in trees:
+                trees[sha] = _tree(sha) if HEX40_RE.fullmatch(str(sha)) else None
+            if trees[sha] is None:
+                return None, f"cannot resolve historical review commit {sha!r}; fail-closed"
+            if trees[sha] != trees[head]:
+                continue
             known.add(sha)
+        settled.add(who)
     return known, None
 
 
@@ -682,6 +688,8 @@ def _nc_command(nc, override):
         return None, (f"negative_control.command {line!r} is not the command the coordinator "
                       f"supplied out of band ({shlex.join(want)!r}) — a unit does not get to "
                       "choose what proves it; fail-closed")
+    if _command_oracle_paths(override) is None:
+        return None, "unsupported proof command: cannot establish executable oracle inputs"
     return want, None
 
 
@@ -777,8 +785,8 @@ def _changed_paths(base, head, nc_command=None):
     for path in changed:
         verdict = _is_oracle_path(path, nc_command)
         if verdict is None:
-            return None, None, ("diff_scope.py could not be loaded, so a test path cannot be told "
-                                "from a production one; fail-closed")
+            return None, None, ("unsupported proof command or unavailable oracle path classifier; "
+                                "fail-closed")
         (tests if verdict else prod).append(path)
     return prod, tests, None
 
@@ -786,34 +794,64 @@ def _changed_paths(base, head, nc_command=None):
 def _command_oracle_paths(command):
     """Protect explicitly named proof inputs and Python module entrypoints, not worker hints."""
     argv = shlex.split(command) if command else []
-    # A positional input to grep is the production SUBJECT, not an executable oracle.
-    # Protect programs, interpreter entrypoints and explicit config files. Do not classify
-    # arbitrary data operands as tests merely because the proof reads them.
+    if not argv:
+        return set()
     inputs = argv[:1]
+    # Only one transparent env wrapper and optional --. Environment assignments, cwd changes
+    # and command splitting can redirect executable inputs, so require a different grammar.
+    if Path(argv[0]).name == "env":
+        argv = argv[1:]
+        if argv[:1] == ["--"]:
+            argv = argv[1:]
+        if not argv or argv[0].startswith("-") or "=" in argv[0]:
+            return None
+        inputs.append(argv[0])
+    program = Path(argv[0]).name
+    python = re.fullmatch(r"(?:python(?:[0-9.]+)?|pypy[0-9]*)", program)
+    interpreter = python or program in {"sh", "bash", "zsh", "node", "ruby", "perl"}
+    module = None
+    if interpreter:
+        i = 1
+        while python and i < len(argv) and argv[i] in {
+                "-B", "-E", "-I", "-O", "-OO", "-s", "-S", "-u", "-q"}:
+            i += 1
+        if i >= len(argv):
+            return None
+        arg = argv[i]
+        if python and arg.startswith("-m"):
+            name = (argv[i + 1] if i + 1 < len(argv) else "") if arg == "-m" else arg[2:]
+            if not re.fullmatch(r"[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*", name):
+                return None
+            module = name.replace(".", "/")
+        else:
+            if arg == "--":
+                i += 1
+            if i >= len(argv) or argv[i].startswith("-"):
+                return None  # inline programs, preload options and stdin are not parsed
+            inputs.append(argv[i])
+    elif program in {"make", "gmake"}:
+        i = 1
+        while i < len(argv):
+            arg = argv[i]
+            if arg in ("-f", "--file", "--makefile") and i + 1 < len(argv):
+                i += 1
+                inputs.append(argv[i])
+            elif arg.startswith(("--file=", "--makefile=")):
+                inputs.append(arg.split("=", 1)[1])
+            elif arg.startswith("-f") and len(arg) > 2:
+                inputs.append(arg[2:])
+            elif arg.startswith("-") or "=" in arg:
+                return None
+            i += 1
+    elif program not in {"grep", "pytest"}:
+        return None
+    # Explicit configuration is executable proof input. Data subjects (e.g. grep operands)
+    # remain mutable. Arbitrary transitive dependencies are outside this bounded grammar.
     for i, arg in enumerate(argv):
         if arg.startswith(("--config=", "--file=")):
             inputs.append(arg.split("=", 1)[1])
         elif arg in ("--config", "--file", "-f") and i + 1 < len(argv):
             inputs.append(argv[i + 1])
-    interpreter = bool(argv and re.fullmatch(
-        r"(?:python(?:[0-9.]+)?|pypy[0-9]*|sh|bash|zsh|node|ruby|perl)", Path(argv[0]).name))
-    module = None
-    if interpreter:
-        i = 1
-        while i < len(argv):
-            arg = argv[i]
-            if arg in ("-c", "-e"):
-                break  # the oracle is inline in the coordinator's immutable command
-            if arg == "-m" and i + 1 < len(argv):
-                module = argv[i + 1].replace(".", "/")
-                break
-            if arg in ("-W", "-X"):
-                i += 2
-                continue
-            if not arg.startswith("-"):
-                inputs.append(arg)
-                break
-            i += 1
     paths = set()
     for value in inputs:
         candidate = Path(os.path.normpath(value))
@@ -836,7 +874,10 @@ def _is_oracle_path(path, nc_command=None):
         return True
     if re.search(r"(?:^|/)(?:jest|vitest|playwright|cypress|karma)\.config\.", path.lower()):
         return True
-    if Path(path).suffix.lower() == ".mk" or Path(path).as_posix() in _command_oracle_paths(nc_command):
+    inputs = _command_oracle_paths(nc_command)
+    if inputs is None:
+        return None
+    if Path(path).suffix.lower() == ".mk" or Path(path).as_posix() in inputs:
         return True
     return _is_test_path(path)
 
@@ -853,7 +894,7 @@ def _bind_paths_to_change(paths, m, what, nc_command=None):
         norm = Path(path).as_posix()
         verdict = _is_oracle_path(norm, nc_command)
         if verdict is None:
-            return "cannot classify the control's oracle paths; fail-closed"
+            return "unsupported proof command or unavailable oracle path classifier; fail-closed"
         if verdict:
             return (f"{what} names {path!r}, which is a TEST path. Reverting the test that encodes "
                     "the criterion makes the proof go RED because the oracle is gone, not because "
@@ -925,13 +966,46 @@ def check_oracle_scope(m, source, digest):
     return []
 
 
+def _diff_records(diff):
+    """One hunk-state grammar for both endpoint inventory and edited coordinates."""
+    old_left = new_left = 0
+    for line in diff.splitlines():
+        if line == r"\ No newline at end of file":
+            continue
+        if old_left or new_left:
+            kind = line[:1]
+            if kind not in ("-", "+", " "):
+                raise ValueError("incomplete diff hunk")
+            old_left -= kind in ("-", " ")
+            new_left -= kind in ("+", " ")
+            if old_left < 0 or new_left < 0:
+                raise ValueError("diff hunk exceeds declared line counts")
+        elif line.startswith("@@"):
+            match = re.match(r"@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@", line)
+            if not match:
+                raise ValueError("malformed hunk header")
+            _, ac, _, bc = match.groups()
+            old_left, new_left = int(ac or 1), int(bc or 1)
+            kind = "hunk"
+        else:
+            kind = "header"
+        yield kind, line
+    if old_left or new_left:
+        raise ValueError("incomplete diff hunk")
+
+
 def _diff_target_paths(diff):
+    return sorted(set(_iter_diff_target_paths(diff)))
+
+
+def _iter_diff_target_paths(diff):
     """Inventory both endpoints, including metadata-only changes and deleted files.
 
     Ambiguous quoted/space-containing headers fail closed rather than disappearing from scope.
     """
-    paths = set()
-    for line in diff.splitlines():
+    for kind, line in _diff_records(diff):
+        if kind != "header":
+            continue
         prefixed = True
         if line.startswith("diff --git "):
             values = shlex.split(line[11:])
@@ -954,8 +1028,7 @@ def _diff_target_paths(diff):
             _, err = _resolve(value)
             if err or not value or value.startswith("-"):
                 raise ValueError(f"invalid diff path: {value!r}")
-            paths.add(value)
-    return sorted(paths)
+            yield value
 
 
 # A control run that dies before the oracle ever executes is a STILLBORN MUTANT, not a kill: the
@@ -1056,7 +1129,6 @@ def _hunk_lines(text, side):
     """
     out, current, old_path = {}, None, None
     old = new = None
-    old_left = new_left = 0
     removed, added = [], []
 
     def flush():
@@ -1066,43 +1138,36 @@ def _hunk_lines(text, side):
         removed.clear()
         added.clear()
 
-    for line in text.splitlines():
-        if line.startswith("diff --git "):
+    for kind, line in _diff_records(text):
+        if kind == "header" and line.startswith("diff --git "):
             flush()
             old = new = None
             current = None
-        elif old is None and line.startswith("--- "):
+        elif kind == "header" and line.startswith("--- "):
             old_path = line[4:].split("\t")[0]
-        elif old is None and line.startswith("+++ "):
+        elif kind == "header" and line.startswith("+++ "):
+            flush()
             target = old_path if side == "-" else line[4:].split("\t")[0]
             current = target[2:] if target and target.startswith(("a/", "b/")) else target
             if current and current != "/dev/null":
                 out.setdefault(current, set())
-        elif line.startswith("@@"):
+        elif kind == "hunk":
             flush()
             match = re.match(r"@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@", line)
             if not match:
                 raise ValueError("malformed hunk header")
             a, ac, b, bc = match.groups()
             old, new = int(a) + (ac == "0"), int(b) + (bc == "0")
-            old_left, new_left = int(ac or 1), int(bc or 1)
-        elif old is not None and line.startswith("-"):
+        elif kind == "-":
             removed.append((old, new))
             old += 1
-            old_left -= 1
-        elif old is not None and line.startswith("+"):
+        elif kind == "+":
             added.append((new, old))
             new += 1
-            new_left -= 1
-        elif old is not None and line.startswith(" "):
+        elif kind == " ":
             flush()
             old += 1
             new += 1
-            old_left -= 1
-            new_left -= 1
-        if old is not None and old_left == new_left == 0:
-            flush()
-            old = new = None
     flush()
     # Strip the opposite-side coordinate retained for pure insertion/deletion seams.
     return {path: {x[0] if isinstance(x, tuple) else x for x in lines}
@@ -1123,13 +1188,14 @@ def _bind_hunks_to_change(diff, m):
     if set(_diff_target_paths(diff)) != set(touched):
         return "the hand mutant has a deleted, renamed or mode-only path without bound hunks"
     for path, lines in touched.items():
-        code, out = _git(["diff", "-U0", f"{base}..{head}", "--", path])
+        code, out = _git(["--literal-pathspecs", "diff", "--no-ext-diff", "--no-textconv",
+                          "--no-renames", "-U0", f"{base}..{head}", "--", path])
         if code != 0:
             return (f"cannot diff {path} over base_sha..head_sha to bind the hand mutant to the "
                     "change; fail-closed")
         scope = getattr(m, "oracle_scope", None)
         changed = (set(scope["paths"].get(path, [])) if scope else
-                   set().union(*_hunk_lines(f"+++ {path}\n{out}", "+").values() or [set()]))
+                   _hunk_lines(out, "+").get(path, set()))
         if not lines:
             return (f"the hand mutant's diff names {path} but carries no hunk for it, so nothing "
                     "says which behaviour it mutates (#280)")
@@ -1199,10 +1265,17 @@ def _apply_control(wt, m, nc, tool, nc_command=None):
             bind_err = _bind_paths_to_change(paths, m, "negative_control.paths", nc_command)
             if bind_err:
                 return bind_err
-            code, _, gerr = _run_at(wt, ["git", "checkout", str(base), "--", *paths])
+            code, _, gerr = _run_at(wt, ["git", "--literal-pathspecs", "checkout", str(base), "--", *paths])
             if code != 0:
                 return f"could not restore {paths} from base_sha in the control worktree: {gerr.strip()}"
-            return None
+            code, actual, gerr = _run_at(wt, ["git", "diff", "--name-only", "--no-renames",
+                                            "-z", "HEAD"])
+            if code != 0:
+                return f"cannot inspect restored paths: {gerr.strip()}"
+            affected = set(actual.rstrip('\0').split('\0')) if actual else set()
+            if affected != set(paths):
+                return f"restored paths {sorted(affected)} differ from declared paths {sorted(paths)}"
+            return _bind_paths_to_change(affected, m, "the applied revert", nc_command)
         # No paths: the ONLY sound fallback is reverting the whole linear base..head range.
         head = m.get("head_sha")
         if not (base and head and HEX40_RE.match(str(base)) and HEX40_RE.match(str(head))):
@@ -1430,11 +1503,19 @@ def check_negative_control(m, is_mutation, execute=False, nc_command=None):
         # would couple a structural check to git state and say the same thing twice.
         pinned = all(HEX40_RE.match(str(m.get(k) or "")) for k in ("base_sha", "head_sha"))
         if quoted and pinned:
-            for bind_err in (_bind_paths_to_change(_diff_target_paths(quoted), m,
-                                                   "the hand mutant's diff", nc_command),
-                             _bind_hunks_to_change(quoted, m)):
-                if bind_err:
-                    errs.append(bind_err)
+            targets, parse_err = set(), None
+            try:
+                targets.update(_iter_diff_target_paths(quoted))
+            except ValueError as exc:
+                parse_err = str(exc)
+            # Even a truncated patch can name a decoy. Keep that specific diagnostic AND
+            # the syntax rejection; a partial inventory can never authorize execution.
+            bind_err = _bind_paths_to_change(targets, m, "the hand mutant's diff", nc_command)
+            if bind_err:
+                errs.append(bind_err)
+            hunk_err = parse_err or _bind_hunks_to_change(quoted, m)
+            if hunk_err:
+                errs.append(hunk_err)
     executed_ok = False
     if execute and not errs:
         executed_ok, msgs = execute_negative_control(m, nc_command)
@@ -1865,6 +1946,7 @@ def verify(manifest_path, contract_source=None, contract_digest=None, repo=None,
         lambda: check_oracle_scope(m, contract_source, contract_digest),
         lambda: check_shas_present(m),
         lambda: check_real_commits(m, is_mut),
+        lambda: check_ancestry(m, base),
         lambda: check_dispatch_provenance(m, contract_digest, unit_class, lighting,
                                           dispatch_record, dispatch_pubkey),
         lambda: check_class_downgrade(m, unit_class, dispatch_record, dispatch_pubkey),
@@ -1885,7 +1967,6 @@ def verify(manifest_path, contract_source=None, contract_digest=None, repo=None,
         fatal.append(f"malformed manifest: {type(exc).__name__} in the negative-control check ({exc})")
     collect((
         lambda: check_review(m, repo, is_mut, no_gh, corroborated, lighting, nc_executed),
-        lambda: check_ancestry(m, base),
         lambda: check_symbol_on_base(symbol, base),
     ))
     return (fatal, notes), None

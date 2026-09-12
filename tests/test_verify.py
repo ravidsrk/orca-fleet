@@ -1839,6 +1839,32 @@ class EndToEndMutationGreen(RepoCase):
                     apply.assert_not_called()
                     run_at.assert_not_called()
 
+    def test_wrong_base_rejects_before_executor_worktree_or_patch(self):
+        path = self._manifest(nc=self._revert_nc())
+        for tip, accepted in ((self.base_sha, False), (self.head_sha, True)):
+            with self.subTest(accepted=accepted):
+                self.git('update-ref', 'refs/remotes/origin/integration', tip)
+                with mock.patch.object(verify, 'execute_negative_control',
+                                       wraps=verify.execute_negative_control) as execute, \
+                        mock.patch.object(verify, '_apply_control', wraps=verify._apply_control) as apply, \
+                        mock.patch.object(verify, '_run', wraps=verify._run) as run, \
+                        mock.patch.object(verify, '_run_at', wraps=verify._run_at) as run_at:
+                    result, err = verify.verify(path, self.contract, self.digest, repo='o/r',
+                        base='integration', unit_class='mutation', execute_nc=True, nc_command=self.proof_cmd)
+                    self.assertIsNone(err)
+                    self.assertEqual(result[0], [] if accepted else [
+                        'head_sha is not an ancestor of origin/integration (not merged / wrong base)'])
+                    if accepted:
+                        execute.assert_called_once()
+                        apply.assert_called_once()
+                        self.assertEqual(sum(c.args[1] == shlex.split(self.proof_cmd)
+                                             for c in run_at.call_args_list), 2)
+                    else:
+                        execute.assert_not_called()
+                        apply.assert_not_called()
+                        run_at.assert_not_called()
+                        self.assertFalse(any('worktree' in c.args[0] for c in run.call_args_list))
+
     def test_signed_replay_uses_pinned_patch_with_divergent_or_missing_checkout(self):
         diff = '--- a/app.py\n+++ b/app.py\n@@ -2 +2 @@\n-    return 2\n+    return 1\n'
         self.write(self.nc_artifact, 'RED\n' + diff)
@@ -2175,6 +2201,19 @@ class HandControlCoordinates(RepoCase):
         self.assertIsNone(verify._apply_control(str(self.repo), self.m, {'artifact': art}, 'hand'))
         self.assertIn('return 1', Path('app.py').read_text())
 
+    def test_truncated_hunk_with_allowed_path_never_reaches_executor(self):
+        diff = self._diff(self.original.replace('return 2', 'return 1'))
+        diff = diff[:diff.rfind('\n', 0, -1) + 1]  # remove one required context line
+        self.git('restore', '--', 'app.py')
+        art = self.artifact('RED\n' + diff)
+        self.m['artifacts'] = [self.pin(art)]
+        self.m['negative_control'] = {'tool': 'hand', 'artifact': art, 'result': 'RED'}
+        with mock.patch.object(verify, 'execute_negative_control', return_value=(True, [])) as execute:
+            errors, executed = verify.check_negative_control(self.m, True, True)
+        self.assertFalse(executed, errors)
+        self.assertTrue(any('incomplete diff hunk' in e for e in errors), errors)
+        execute.assert_not_called()
+
     def test_deletion_rename_and_mode_endpoints_cannot_hide(self):
         good = self._diff(self.original.replace('return 2', 'return (2)'))
         variants = [
@@ -2427,7 +2466,9 @@ class ProofOracleProtection(RepoCase):
 
     def test_makefile_and_explicit_runner_cannot_supply_the_red(self):
         for filename, command in (('Makefile', 'make test'), ('runner.py', self.cmd),
-                                  ('runner.py', f'{shlex.quote(sys.executable)} -m runner')):
+                                  ('runner.py', f'{shlex.quote(sys.executable)} -m runner'),
+                                  ('runner.py', f'env {shlex.quote(sys.executable)} runner.py'),
+                                  ('runner.py', f'env -- {shlex.quote(sys.executable)} -mrunner')):
             with self.subTest(filename=filename, command=command):
                 self.cmd = command
                 recipe = (f'test:\n\t{shlex.quote(sys.executable)} -c "import app; assert app.VALUE == 1"\n'
@@ -2451,6 +2492,147 @@ class ProofOracleProtection(RepoCase):
                                          '-VALUE = 2\n+VALUE = 1\n')
                 errors, executed = verify.check_negative_control(m, True, execute=True, nc_command=self.cmd)
                 self.assertTrue(executed, errors)
+
+    def test_wrapped_reverts_cannot_restore_only_the_proof(self):
+        self.cmd = f'env {shlex.quote(sys.executable)} runner.py'
+        self.write('runner.py', 'import app\nassert app.VALUE == 1\n')
+        self.base = self.commit()
+        self.write('runner.py', 'import app\nassert app.VALUE == 2\n')
+        self.head = self.commit()
+        self.assertEqual(self.git('diff', self.base, self.head, '--', 'app.py'), '')
+        for paths in (None, ['runner.py']):
+            with self.subTest(paths=paths):
+                m = self.manifest('revert')
+                if paths:
+                    m['negative_control']['paths'] = paths
+                with mock.patch.object(verify, 'execute_negative_control',
+                                       wraps=verify.execute_negative_control) as execute:
+                    errors, executed = verify.check_negative_control(m, True, True, self.cmd)
+                self.assertFalse(executed, errors)
+                self.assertTrue(any('oracle' in e or 'TEST' in e for e in errors), errors)
+                execute.assert_not_called()
+
+    def test_unknown_proof_forms_fail_before_creating_worktrees(self):
+        for command in ('nice python3 runner.py', 'env -S "python3 runner.py"',
+                        'env env python3 runner.py', 'sh -c "python3 runner.py"',
+                        'env PATH=tools python3 runner.py',
+                        'python3 -c "exec(open(\"runner.py\").read())"',
+                        'python3 -X presite=runner -m unittest', 'node --require runner.js check.js',
+                        'make -C elsewhere test', 'custom-wrapper runner.py'):
+            with self.subTest(command=command):
+                self.cmd = command
+                m = self.manifest('revert')
+                m['negative_control']['paths'] = ['app.py']
+                with mock.patch.object(verify, '_run', wraps=verify._run) as run, \
+                        mock.patch.object(verify, '_apply_control') as apply:
+                    ok, errors = verify.execute_negative_control(m, command)
+                self.assertFalse(ok, errors)
+                self.assertTrue(any('unsupported proof command' in e for e in errors), errors)
+                self.assertFalse(any('worktree' in c.args[0] for c in run.call_args_list))
+                apply.assert_not_called()
+
+
+class LiteralControlPaths(RepoCase):
+    @unittest.skipUnless(shutil.which('node'), 'JavaScript decrement replay requires node')
+    def test_deleted_decrement_text_is_hunk_content(self):
+        original = 'let counter = 3;\n++ counter;\nconsole.log(counter);\n'
+        self.write('counter.js', original)
+        self.write('runner.py', 'import subprocess\nassert subprocess.check_output('
+                   '["node", "counter.js"], text=True).strip() == "2"\n')
+        base = self.commit()
+        self.write('counter.js', original.replace('++ counter;', '-- counter;'))
+        head = self.commit()
+        self.write('counter.js', original.replace('++ counter;', 'counter++;'))
+        diff = self.git('diff') + '\n'
+        self.assertIn('\n--- counter;\n+counter++;\n', diff)
+        self.git('restore', '--', 'counter.js')
+        self.assertEqual(verify._diff_target_paths(diff), ['counter.js'])
+        art = self.artifact('RED\n' + diff)
+        command = f'{shlex.quote(sys.executable)} runner.py'
+        m = {'base_sha': base, 'head_sha': head, 'artifacts': [self.pin(art)],
+             'negative_control': {'tool': 'hand', 'artifact': art, 'result': 'RED', 'command': command}}
+        errors, executed = verify.check_negative_control(m, True, True, command)
+        self.assertTrue(executed, errors)
+
+    def test_literal_wildcard_cannot_borrow_other_file_coordinates(self):
+        for name in ('values*.json', 'values?.json', 'values[ab].json', ':(glob)values*.json'):
+            with self.subTest(name=name):
+                original = '{\n  "note": 1,\n  "pad": 0,\n  "value": 2\n}\n'
+                self.write(name, original)
+                self.write('valuesa.json', original)
+                self.write('runner.py', f'import json\ndata = json.load(open({name!r}))\n'
+                           'assert data["value"] == 2\nassert data["note"] == 2\n')
+                base = self.commit()
+                self.write(name, original.replace('"note": 1', '"note": 2'))
+                self.write('valuesa.json', original.replace('"value": 2', '"value": 3'))
+                head = self.commit()
+                self.write(name, Path(name).read_text().replace('"value": 2', '"value": 1'))
+                diff = self.git('--literal-pathspecs', 'diff', '--', name) + '\n'
+                self.git('--literal-pathspecs', 'restore', '--', name)
+                command = f'{shlex.quote(sys.executable)} runner.py'
+                art = self.artifact('RED\n' + diff, f'nc-{next(_SRC_SEQ)}.txt')
+                m = {'base_sha': base, 'head_sha': head, 'artifacts': [self.pin(art)],
+                     'negative_control': {'tool': 'hand', 'artifact': art, 'result': 'RED', 'command': command}}
+                with mock.patch.object(verify, '_run_at', wraps=verify._run_at) as run_at:
+                    errors, executed = verify.check_negative_control(m, True, True, command)
+                self.assertFalse(executed, errors)
+                self.assertTrue(any('untouched' in e for e in errors), errors)
+                self.assertFalse(any(c.args[1] == shlex.split(command) for c in run_at.call_args_list))
+                # A real regression at the changed note coordinate of the SAME literal path.
+                self.write(name, original)
+                diff = self.git('--literal-pathspecs', 'diff', '--', name) + '\n'
+                self.git('--literal-pathspecs', 'restore', '--', name)
+                art = self.artifact('RED\n' + diff, f'nc-{next(_SRC_SEQ)}.txt')
+                m['negative_control']['artifact'] = art
+                m['artifacts'] = [self.pin(art)]
+                errors, executed = verify.check_negative_control(m, True, True, command)
+                self.assertTrue(executed, errors)
+
+    def test_literal_wildcard_revert_preserves_oracle_and_real_regression(self):
+        self.write('*', '1\n')
+        self.write('test_probe.py', 'assert int(open("*").read()) == 3\n')
+        base = self.commit()
+        self.write('*', '2\n')
+        self.write('test_probe.py', 'assert int(open("*").read()) == 2\n')
+        head = self.commit()
+        command = f'{shlex.quote(sys.executable)} test_probe.py'
+        m = {'base_sha': base, 'head_sha': head, 'negative_control': {
+            'tool': 'revert', 'paths': ['*'], 'command': command}}
+        observed, original_run = [], verify._run_at
+        def observe(wt, argv, **kwargs):
+            if argv == shlex.split(command):
+                changed = original_run(wt, ['git', 'diff', '--name-only', 'HEAD'])[1].splitlines()
+                observed.append((changed, (Path(wt) / 'test_probe.py').read_text()))
+            return original_run(wt, argv, **kwargs)
+        with mock.patch.object(verify, '_run_at', side_effect=observe):
+            ok, errors = verify.execute_negative_control(m, command)
+        self.assertTrue(ok, errors)
+        self.assertEqual(observed, [(['*'], 'assert int(open("*").read()) == 2\n'),
+                                    ([], 'assert int(open("*").read()) == 2\n')])
+
+    def test_explicit_revert_inspects_actual_inventory_before_proof(self):
+        self.write('app.py', 'VALUE = 1\n')
+        self.write('runner.py', 'import app\nassert app.VALUE == 2\n')
+        base = self.commit()
+        self.write('app.py', 'VALUE = 2\n')
+        head = self.commit()
+        command = f'{shlex.quote(sys.executable)} runner.py'
+        m = {'base_sha': base, 'head_sha': head, 'negative_control': {
+            'tool': 'revert', 'paths': ['app.py'], 'command': command}}
+        original_run = verify._run_at
+        for extra in ('runner.py', 'extra.py'):
+            with self.subTest(extra=extra):
+                def inject(wt, argv, **kwargs):
+                    result = original_run(wt, argv, **kwargs)
+                    if 'checkout' in argv:
+                        (Path(wt) / extra).write_text('assert False\n')
+                        original_run(wt, ['git', 'add', '--', extra])
+                    return result
+                with mock.patch.object(verify, '_run_at', side_effect=inject) as run_at:
+                    ok, errors = verify.execute_negative_control(m, command)
+                self.assertFalse(ok, errors)
+                self.assertTrue(any('path' in e for e in errors), errors)
+                self.assertFalse(any(c.args[1] == shlex.split(command) for c in run_at.call_args_list))
 
 
 class AuthoritativeReviewHistory(RepoCase):
@@ -2506,6 +2688,24 @@ class AuthoritativeReviewHistory(RepoCase):
                    self.review('bob', 'DISMISSED', self.reviewed),
                    self.review('carol', 'APPROVED', self.head)]
         self.assertEqual(self.check(reviews), [])
+
+    def test_missing_history_superseded_on_current_content_does_not_veto(self):
+        for state in ('COMMENTED', 'DISMISSED', 'APPROVED'):
+            for current in (self.head, self.reviewed):
+                with self.subTest(state=state, current=current):
+                    reviews = [self.review('bob', 'CHANGES_REQUESTED', 'f' * 40),
+                               self.review('bob', state, current),
+                               self.review('carol', 'APPROVED', self.head)]
+                    self.assertEqual(self.check(reviews), [])
+
+    def test_missing_history_can_still_be_a_standing_objection(self):
+        missing = self.review('bob', 'CHANGES_REQUESTED', 'f' * 40)
+        approval = self.review('carol', 'APPROVED', self.head)
+        for reviews in ([missing, self.review('bob', 'COMMENTED', self.unrelated), approval],
+                        [self.review('bob', 'COMMENTED', self.head), missing, approval],
+                        [missing, self.review('dave', 'COMMENTED', self.head), approval]):
+            with self.subTest(reviews=reviews):
+                self.assertTrue(any('resolve' in e for e in self.check(reviews)))
 
 
 if __name__ == "__main__":

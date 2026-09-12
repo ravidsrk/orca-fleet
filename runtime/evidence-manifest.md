@@ -97,8 +97,9 @@ Rules:
   "head_sha":"…", "criterion_ids":["AC-1"], "paths":{"app.py":[2]}, "artifact_sha256":"<raw artifact sha256>"}`.
   `kind` is `characterization` or `documentation`; bind the exact commit pair, every criterion, explicit head-line numbers,
   and the exact hand-mutant artifact hash. The coordinator authorizes this concrete scope after inspecting the mutant.
-  Characterization changes tests/prose only; documentation changes prose only. Tests, runner configuration, Makefiles and named proof-command inputs
-  remain forbidden targets. Without this scope the production-change bind remains mandatory; every replay requires an assertion failure and clean-head success.
+  Characterization changes tests/prose only; documentation changes prose only. Tests, runner configuration, Makefiles and named executable proof inputs remain forbidden targets.
+  Supported launch forms: interpreter scripts/Python modules, make, pytest, grep, and one plain `env [--]` wrapper. Unknown launch forms, inline programs and env assignments fail closed.
+  Without this scope the production-change bind remains mandatory; every replay requires an assertion failure and clean-head success.
 - `binding_audit` logs criterion↔test coverage for the same units: which `criteria[].id`s had their covering test quoted and mutation-checked against the criterion (§2 samples it; a fix/test manifest without it fails).
 - `commands` pastes real invocations + exit codes with artifact paths — never a summary. Produce them with
   `runtime/scripts/evidence-run.py --label L --manifest m.json -- <cmd>`: a transparent wrapper (the child's exit code
@@ -136,8 +137,7 @@ the EXECUTED negative control — deterministically, before any LLM judgment (im
 | Intent packet is present *(mutation units)* | `intent.goal`, `intent.ruled_out`, and `intent.why` are non-empty strings — presence only; wisdom is a human/taste check |
 | Lighting is legal | `lighting` is `lit` or `dark-eligible` AND matches the dispatch-supplied value — a swap fails (verify.py); the Lane A / unfakeable-oracle / stop-list eligibility itself is a human gate at dispatch (gate-classification.md), not machine-checked |
 
-Verification failing on any required check → the unit is NOT done; it returns to its state machine (re-dispatch,
-or SUSPECT if provenance says done but git disagrees).
+Verification failing on any required check → NOT done; re-dispatch, or SUSPECT if provenance says done but git disagrees.
 
 At run close the coordinator writes an **integrity inventory** beside the final report: sha256 + producer + timestamp for
 every artifact the run's manifests reference (§1's per-unit `artifacts[]` hashes are its per-unit half). RESUME and any
