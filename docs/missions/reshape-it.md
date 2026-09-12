@@ -1,7 +1,7 @@
 # 🧬 reshape-it — deep modules, same behaviour
 
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel scan and deepen waves behind a pinned characterization net; bounding the target surface and any API-break are your gates.
-> **Activation load:** ~31,000 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
+> **Activation load:** ~31,100 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
 
 > Point it at the codebase where every change touches twelve imports. Come back to hot modules
@@ -67,7 +67,8 @@ flowchart TD
 | `RESHAPED-WITH-PARKED` | ≥1 module needs a one-way API-break / behaviour decision; parked with the decision named | the human decides the parked API breaks |
 
 `RESHAPED-WITH-PARKED` is a degraded terminal; a chain stops there per
-[`mission-chaining`](../../runtime/mission-chaining.md) unless the next link declares it tolerable.
+[`mission-chaining`](../../runtime/mission-chaining.md). Advancing requires a one-way human gate
+recorded in the ledger, even when the next link's allowlist declares this state tolerable.
 
 ## Human gates
 
