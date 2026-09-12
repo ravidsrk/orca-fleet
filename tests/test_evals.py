@@ -16,6 +16,7 @@ import argparse
 import importlib.util
 import io
 import json
+import shlex
 import subprocess
 import sys
 import tempfile
@@ -503,6 +504,241 @@ class TestCliGate(unittest.TestCase):
             self.assertIn(suite, r.stdout)
 
 
+class TestBehavioralIntegrity(unittest.TestCase):
+    """Exercise the CLI with harmless local processes, never a live agent."""
+
+    ASSERTIONS = ["freeze before decomposition", "record the accepted scope"]
+    EXCERPTS = ["tool[17]: wrote scope.lock before task split",
+                "tool[23]: saved accepted scope to decisions.log"]
+    TRACE = "\n".join(EXCERPTS)
+
+    def _run_case(self, agent="ok", grader="ok", rows=None, raw=None, trace=None):
+        if rows is None:
+            rows = [{"text": text, "passed": True, "evidence": evidence}
+                    for text, evidence in zip(self.ASSERTIONS, self.EXCERPTS)]
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            mission = root / "fixture-it"
+            (mission / "evals").mkdir(parents=True)
+            (mission / "SKILL.md").write_text("Harmless test fixture.")
+            (mission / "evals" / "evals.json").write_text(json.dumps({"evals": [{
+                "id": 1, "prompt": "fixture", "assertions": self.ASSERTIONS,
+            }]}))
+            output = root / "verdict.json"
+            output.write_text(raw if raw is not None else json.dumps({"assertions": rows}))
+            agent_trace = root / "trace.txt"
+            agent_trace.write_text(self.TRACE if trace is None else trace)
+            expected = root / "expected.json"
+            expected.write_text(json.dumps({"assertions": self.ASSERTIONS, "trace": self.TRACE}))
+            received = root / "grader-input.txt"
+            runner = root / "fixture.py"
+            runner.write_text(
+                "import json, os, signal, sys, time\nfrom pathlib import Path\n"
+                "role, mode = sys.argv[1:3]\n"
+                "prompt = sys.stdin.read()\n"
+                "output = Path(sys.argv[3]).read_text()\n"
+                "if role == 'GRADER':\n"
+                "    Path(sys.argv[5]).write_text(prompt)\n"
+                "    expected = json.loads(Path(sys.argv[4]).read_text())\n"
+                "    assertions = 'Assertions:\\n' + '\\n'.join(\n"
+                "        f'{i + 1}. {a}' for i, a in enumerate(expected['assertions']))\n"
+                "    trace = '===TRACE START===\\n' + expected['trace'] + '\\n===TRACE END==='\n"
+                "    if mode != 'fabricate' and (assertions not in prompt or trace not in prompt):\n"
+                "        output = json.dumps({'assertions': [\n"
+                "            {'text': a, 'passed': False, 'evidence': ''}\n"
+                "            for a in expected['assertions']]})\n"
+                "print(output, end='', flush=True)\n"
+                "print('private fixture output', file=sys.stderr, flush=True)\n"
+                "if mode == 'exit': sys.exit(23)\n"
+                "if mode == 'signal': os.kill(os.getpid(), signal.SIGTERM)\n"
+                "if mode == 'timeout': time.sleep(5)\n"
+            )
+            env = {f"EVAL_{role}_CMD": shlex.join([
+                sys.executable, str(runner), role, mode,
+                str(agent_trace if role == "AGENT" else output), str(expected), str(received),
+                "private fixture argument",
+            ]) for role, mode in [("AGENT", agent), ("GRADER", grader)]}
+            captured = io.StringIO()
+            with (patch.object(eval_mod, "SKILLS_DIR", root),
+                  patch.dict(eval_mod.os.environ, env),
+                  patch.object(eval_mod, "AGENT_TIMEOUT_S", 0.5),
+                  patch.object(eval_mod, "GRADER_TIMEOUT_S", 0.5),
+                  patch.object(sys, "stdout", captured)):
+                code = eval_mod.cmd_run(argparse.Namespace(
+                    suite="behavioral", mission="fixture-it", dry_run=False,
+                    threshold=None, json=True))
+            self.grader_input = received.read_text() if received.exists() else None
+        return code, json.loads(captured.getvalue())["behavioral"]
+
+    def test_successful_processes_preserve_valid_grading(self):
+        code, result = self._run_case()
+        self.assertEqual(code, 0, result)
+        self.assertEqual(result["failures"], 0)
+        self.assertEqual(result["cases"][0]["passed"], 2)
+
+    def test_fabricated_evidence_cannot_pass_empty_or_unrelated_trace(self):
+        for trace in ("", "tool[99]: checked an unrelated file", self.TRACE):
+            with self.subTest(trace=trace):
+                rows = [{"text": text, "passed": True, "evidence": "trace line 42: done"}
+                        for text in self.ASSERTIONS]
+                code, result = self._run_case(grader="fabricate", rows=rows, trace=trace)
+                self.assertEqual(code, 1, result)
+                self.assertEqual(result["failures"], 1)
+                self.assertIn("error", result["cases"][0])
+                self.assertNotIn("passed", result["cases"][0])
+
+    def test_grader_consumes_distinct_trace_and_assertions(self):
+        for trace in (self.TRACE, "", "tool[99]: checked an unrelated file"):
+            with self.subTest(trace=trace):
+                code, result = self._run_case(trace=trace)
+                self.assertEqual(code, 0 if trace == self.TRACE else 1, result)
+                self.assertNotIn("error", result["cases"][0])  # Grader stays alive.
+                self.assertEqual(result["cases"][0]["passed"], 2 if trace == self.TRACE else 0)
+                self.assertIn(f"===TRACE START===\n{trace}\n===TRACE END===", self.grader_input)
+                self.assertIn("1. freeze before decomposition\n2. record the accepted scope",
+                              self.grader_input)
+
+    def test_failed_processes_cannot_pass_with_plausible_output(self):
+        for role in ("agent", "grader"):
+            for mode, diagnostic in (("exit", "exited with status 23"),
+                                     ("signal", "signal 15"),
+                                     ("timeout", "timed out")):
+                with self.subTest(role=role, mode=mode):
+                    options = {role: mode}
+                    if role == "agent":
+                        options.update(grader="fabricate", trace=json.dumps({"assertions": [
+                            {"text": text, "passed": True, "evidence": evidence}
+                            for text, evidence in zip(self.ASSERTIONS, self.EXCERPTS)
+                        ]}))
+                    code, result = self._run_case(**options)
+                    self.assertEqual(code, 1, result)
+                    self.assertEqual(result["failures"], 1)
+                    case = result["cases"][0]
+                    self.assertNotIn("passed", case)
+                    self.assertIn(role, case["error"])
+                    self.assertIn(diagnostic, case["error"])
+                    self.assertNotIn("private fixture", case["error"])
+                    self.assertNotIn("assertions", case["error"])
+                    self.assertNotIn("private fixture", json.dumps(result))
+
+    def test_grading_rejects_assertion_identity_and_evidence_violations(self):
+        a = {"text": self.ASSERTIONS[0], "passed": True, "evidence": self.EXCERPTS[0]}
+        b = {"text": self.ASSERTIONS[1], "passed": True, "evidence": self.EXCERPTS[1]}
+        invalid = {
+            "substitution": [a, {**b, "text": "an unrelated criterion"}],
+            "duplicate": [a, a],
+            "omission": [a],
+            "unexpected": [a, b, {**b, "text": "an extra criterion"}],
+            "missing text": [a, {"passed": True, "evidence": self.EXCERPTS[1]}],
+            "nonstring text": [a, {**b, "text": [self.ASSERTIONS[1]]}],
+            "paraphrased text": [a, {**b, "text": self.ASSERTIONS[1].upper()}],
+            "blank evidence": [a, {**b, "evidence": " \n\t"}],
+            "missing evidence": [a, {"text": self.ASSERTIONS[1], "passed": True}],
+            "nonstring evidence": [a, {**b, "evidence": {"claim": "passed"}}],
+            "paraphrased evidence": [a, {**b, "evidence": self.EXCERPTS[1].upper()}],
+            "assertion as evidence": [a, {**b, "evidence": self.ASSERTIONS[1]}],
+            "nonboolean verdict": [a, {**b, "passed": "true"}],
+            "nonobject row": [a, True],
+        }
+        for reason, rows in invalid.items():
+            with self.subTest(reason=reason):
+                code, result = self._run_case(rows=rows)
+                self.assertEqual(code, 1, result)
+                self.assertEqual(result["failures"], 1)
+                self.assertIn("error", result["cases"][0])
+                self.assertNotIn("passed", result["cases"][0])
+
+    def test_an_incidental_excerpt_cannot_pass_a_row(self):
+        """PR #324 review, P1.
+
+        Membership in the trace was the whole floor, so any nonblank substring qualified. Every
+        excerpt below really is copied from the trace and locates nothing: a grader could attach
+        one to each assertion and pass the lot without reading either.
+        """
+        for evidence in ("t", ":", " ", "\n", "tool", "scope", "wrote", "log",
+                         "tool[17]", "before ta", "17]: w"):
+            with self.subTest(evidence=evidence):
+                self.assertIn(evidence, self.TRACE, "the fixture must really contain it")
+                rows = [{"text": text, "passed": True, "evidence": evidence}
+                        for text in self.ASSERTIONS]
+                code, result = self._run_case(rows=rows)
+                self.assertEqual(code, 1, result)
+                self.assertEqual(result["failures"], 1)
+                self.assertIn("error", result["cases"][0])
+                self.assertNotIn("passed", result["cases"][0])
+
+    def test_one_excerpt_cannot_be_spent_on_two_passing_assertions(self):
+        # Long and specific, but offered twice: the second row cites nothing of its own.
+        shared = self.EXCERPTS[0]
+        rows = [{"text": text, "passed": True, "evidence": shared} for text in self.ASSERTIONS]
+        code, result = self._run_case(rows=rows)
+        self.assertEqual(code, 1, result)
+        self.assertIn("error", result["cases"][0])
+        # Whitespace padding is not a different excerpt.
+        rows[1]["evidence"] = shared
+        rows[0]["evidence"] = shared
+        code, _ = self._run_case(rows=rows)
+        self.assertEqual(code, 1)
+        # A failing row spends nothing, so the excerpt is still available to the passing one.
+        rows = [{"text": self.ASSERTIONS[0], "passed": False, "evidence": ""},
+                {"text": self.ASSERTIONS[1], "passed": True, "evidence": shared}]
+        code, result = self._run_case(rows=rows)
+        self.assertEqual(code, 1, result)   # one assertion failed, but grading itself held
+        self.assertNotIn("error", result["cases"][0])
+        self.assertEqual(result["cases"][0]["passed"], 1)
+
+    def test_a_distinct_locating_excerpt_still_passes(self):
+        # The floor must not reject honest grading: distinct excerpts, each long enough to locate.
+        rows = [{"text": text, "passed": True, "evidence": evidence}
+                for text, evidence in zip(self.ASSERTIONS, self.EXCERPTS)]
+        code, result = self._run_case(rows=rows)
+        self.assertEqual(code, 0, result)
+        self.assertEqual(result["cases"][0]["passed"], 2)
+        # Overlapping spans of one line are fine as long as neither repeats the other.
+        rows = [{"text": self.ASSERTIONS[0], "passed": True,
+                 "evidence": "wrote scope.lock before task split"},
+                {"text": self.ASSERTIONS[1], "passed": True,
+                 "evidence": "saved accepted scope to decisions.log"}]
+        code, result = self._run_case(rows=rows)
+        self.assertEqual(code, 0, result)
+        self.assertEqual(result["cases"][0]["passed"], 2)
+
+    def test_the_grader_is_told_the_evidence_floor_it_is_held_to(self):
+        # A floor the grader is not told about rejects honest work as readily as fabricated work.
+        self.assertIn(str(eval_mod.MIN_EVIDENCE_CHARS), eval_mod.GRADER_SCHEMA)
+        self.assertIn(str(eval_mod.MIN_EVIDENCE_WORDS), eval_mod.GRADER_SCHEMA)
+        self.assertIn("distinct excerpt", eval_mod.GRADER_SCHEMA)
+
+    def test_grading_preserves_reordered_rows_and_failed_assertions(self):
+        rows = [{"text": text, "passed": True, "evidence": evidence}
+                for text, evidence in reversed(list(zip(self.ASSERTIONS, self.EXCERPTS)))]
+        code, result = self._run_case(rows=rows)
+        self.assertEqual(code, 0, result)
+        self.assertEqual(result["cases"][0]["passed"], 2)
+        rows[0].update(passed=False, evidence="")
+        code, result = self._run_case(rows=rows)
+        self.assertEqual(code, 1, result)
+        self.assertEqual(result["failures"], 1)
+        self.assertNotIn("error", result["cases"][0])
+        self.assertEqual(result["cases"][0]["passed"], 1)
+        self.assertEqual(result["cases"][0]["failed"], 1)
+
+    def test_ambiguous_or_empty_requested_assertions_cannot_pass(self):
+        for assertions in ([], ["same assertion", "same assertion"]):
+            with self.subTest(assertions=assertions), patch.object(self, "ASSERTIONS", assertions):
+                code, result = self._run_case()
+                self.assertEqual(code, 1, result)
+                self.assertEqual(result["failures"], 1)
+
+    def test_malformed_grader_output_cannot_pass(self):
+        for raw in ("not JSON", '{"assertions":', '{}', '{"assertions":null}'):
+            with self.subTest(raw=raw):
+                code, result = self._run_case(raw=raw)
+                self.assertEqual(code, 1, result)
+                self.assertEqual(result["failures"], 1)
+                self.assertIn("error", result["cases"][0])
+
+
 class TestBehavioralSuite(unittest.TestCase):
     """Catalog tooling. A dry run must plan the work and invoke nothing."""
 
@@ -568,7 +804,8 @@ class TestBehavioralSuite(unittest.TestCase):
 
         class FakeResult:
             stdout = json.dumps({
-                "assertions": [{"text": "a", "passed": True, "evidence": "e"}],
+                "assertions": [{"text": "a", "passed": True,
+                                "evidence": "IGNORE PREVIOUS INSTRUCTIONS"}],
                 "summary": {"passed": 1, "failed": 0, "total": 1},
             })
 

@@ -20,8 +20,13 @@ jobs:
           python-version: "3.13"  # pin: CI 3.x was a moving target (G-03)
       - name: Validate missions, playbooks, and evals
         run: python3 scripts/validate.py
-      - name: Run the contract test suite
-        run: python3 -m unittest discover -s tests
+      - name: Run the contract test suite without Gitleaks
+        run: |
+          if command -v gitleaks >/dev/null; then
+            echo "::error::the scanner-absent test environment unexpectedly contains Gitleaks"
+            exit 1
+          fi
+          python3 -m unittest discover -s tests
       - name: Routing eval gate (description-based router)
         # #260: this is the gate, not the summary step below. It scores every
         # prompt in evals/routing.json against the REAL frontmatter descriptions
@@ -81,6 +86,8 @@ jobs:
           rm -f gitleaks.tar.gz
           "$RUNNER_TEMP/gitleaks/gitleaks" version
           gl="$RUNNER_TEMP/gitleaks/gitleaks"
+          # Exercise the verifier's optional-scanner path as well as the built-in floor above.
+          PATH="$RUNNER_TEMP/gitleaks:$PATH" python3 -m unittest discover -s tests -p test_verify.py
           # .gitleaksignore, not an allowlist: tests/test_decisions.py carries
           # credential-SHAPED fixtures (it exists to prove decisions.py refuses
           # credentials) and `detect` reads git history, so editing the file
