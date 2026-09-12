@@ -161,6 +161,35 @@ class ReleaseCutWalkthrough(unittest.TestCase):
             self.assertEqual(run("git", "cat-file", "-t", tag).stdout.strip(), "tag")
             self.assertEqual(run("git", "rev-parse", f"{tag}^{{commit}}").stdout.strip(), cut)
             self.assertNotEqual(step("tag", ok=False).returncode, 0, "an existing tag is immutable")
+
+            # PR #328 review, P1: the validation and the commit inside the record step both run
+            # AFTER it rewrites docs/releases.json, so a failure there leaves the release already
+            # appended and preparing cleared. Rerunning it must finish the release, not stop at
+            # "no release is preparing" -- the documented recovery says to rerun it.
+            row = {"version": version, "tag": tag, "commit": cut, "cut_date": "2026-09-12"}
+            interrupted = {**prepared, "releases": [*historical, row], "preparing": None}
+            inventory_path.write_text(json.dumps(interrupted, indent=2) + "\n")
+            step("record")
+            resumed = json.loads(inventory_path.read_text())
+            self.assertEqual(resumed["releases"], interrupted["releases"],
+                             "a resumed record appended a second row")
+            self.assertIsNone(resumed["preparing"])
+            self.assertNotEqual(run("git", "rev-parse", "HEAD").stdout.strip(), cut,
+                                "a resumed record must still commit the provenance")
+            # A rerun of a COMPLETED record is a no-op, not a failure: nothing is left staged.
+            step("record")
+            self.assertEqual(json.loads(inventory_path.read_text()), resumed)
+            # Only the row the cut actually prepares resumes. A rewritten one is not this release.
+            for tampered in ({**row, "commit": run("git", "rev-parse", "HEAD").stdout.strip()},
+                             {**row, "cut_date": "2020-01-01"},
+                             {**row, "tag": "v0.0.0"}):
+                with self.subTest(tampered=tampered):
+                    inventory_path.write_text(json.dumps(
+                        {**prepared, "releases": [*historical, tampered], "preparing": None}))
+                    self.assertNotEqual(step("record", ok=False).returncode, 0,
+                                        "a rewritten row must not pass as an interrupted record")
+            run("git", "reset", "--hard", cut)
+
             step("record")
             final = json.loads((repo / "docs/releases.json").read_text())
             self.assertIsNone(final["preparing"])

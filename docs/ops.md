@@ -98,29 +98,38 @@ The command rejects a missing tag, a lightweight tag, or a tag at another cut.
 <!-- release:record -->
 ```bash
 python3 - <<'PY_RELEASE'
-import json, subprocess
+import json, os, subprocess
 from pathlib import Path
 def git(*args):
     return subprocess.check_output(["git", *args], text=True).strip()
-path = Path("docs/releases.json")
-data = json.loads(path.read_text())
-pending = data["preparing"]
-assert pending, "no release is preparing"
-tag = "v" + pending["version"]
+version = os.environ["RELEASE_VERSION"]
+tag = "v" + version
 ref = "refs/tags/" + tag
 assert git("cat-file", "-t", ref) == "tag", "an annotated tag is required"
 cut = git("rev-parse", ref + "^{commit}")
 git("merge-base", "--is-ancestor", cut, "HEAD")
+# The cut is immutable, so it -- not the working tree -- says what this release records.
 at_cut = json.loads(git("show", cut + ":docs/releases.json"))
-assert at_cut.get("preparing") == pending and at_cut["releases"] == data["releases"]
+pending = at_cut["preparing"]
+assert pending and pending["version"] == version, "the cut does not prepare this version"
 git("diff", "--exit-code", cut, "--", "CHANGELOG.md", ".claude-plugin")
-data["releases"].append({**pending, "tag": tag, "commit": cut})
-data["preparing"] = None
-path.write_text(json.dumps(data, indent=2) + "\n")
+row = {**pending, "tag": tag, "commit": cut}
+path = Path("docs/releases.json")
+data = json.loads(path.read_text())
+# Resumable: the validation and the commit below both run AFTER this file is rewritten, so a
+# failure there leaves the release appended and preparing cleared. Rerunning the step has to
+# finish the release rather than stop at "no release is preparing".
+if data["preparing"] is None and data["releases"][-1:] == [row]:
+    assert data["releases"][:-1] == at_cut["releases"], "recorded rows do not match the cut"
+else:
+    assert data["preparing"] == pending and data["releases"] == at_cut["releases"]
+    data["releases"].append(row)
+    data["preparing"] = None
+    path.write_text(json.dumps(data, indent=2) + "\n")
 PY_RELEASE
 python3 -m unittest tests.test_docs_navigation.TestDocsNavigation tests.test_docs_navigation.EveryReleaseHasTheTagItDescribes
 git add docs/releases.json
-git commit -m "Record release $RELEASE_VERSION provenance"
+git diff --cached --quiet || git commit -m "Record release $RELEASE_VERSION provenance"
 ```
 
 Re-run the repository gates and review the provenance commit before publishing
@@ -132,8 +141,11 @@ The executable rehearsal is `python3 -m unittest tests.test_docs_navigation.Rele
 **Recovery:** fetch missing historical tags first; compare each annotated tag's
 peeled commit with its existing row. A mismatch stops the release for maintainer
 investigation. Preserve published rows and refs; correct a bad release with a new
-version. If tagging succeeded but recording failed, resume the record step using
-that existing cut. Do not amend the cut or recreate its tag.
+version. If tagging succeeded but recording failed, rerun the record step as written:
+it takes the release row from the cut rather than the working tree, so it completes
+whether or not `docs/releases.json` was already rewritten, re-validating an
+already-recorded row instead of appending a second one. Do not amend the cut or
+recreate its tag.
 
 ## Incident (2 a.m.)
 
