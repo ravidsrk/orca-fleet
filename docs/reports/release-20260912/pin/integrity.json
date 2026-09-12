@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-12T13:52:53.963219+00:00",
+  "generated_at": "2026-09-12T17:28:11.772032+00:00",
   "producer": "bounded inventory correction worker",
   "source_sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
   "baseline_sha": "e2e7adab8a7ddf53844d2564734202e89bb78e98",
@@ -23,10 +23,10 @@
     },
     {
       "path": "docs/reports/release-20260912/pin/INVENTORY-CORRECTION.md",
-      "sha256": "3caabce96a50d151fc5746984dfe2aacb347243b33bcc40c9d8198e63d2cb8ac",
-      "bytes": 10128,
-      "producer": "pin inventory correction builder; original/coordinator provenance retained inside archived receipts",
-      "timestamp": "2026-09-12T13:52:53.963219+00:00"
+      "sha256": "f579edc0d619b64ad1ae7b67b7503c47775b2384030055eecdae2a57c982d82f",
+      "bytes": 12098,
+      "producer": "pin base re-witness builder (4c52b47)",
+      "timestamp": "2026-09-12T17:28:11.772032+00:00"
     },
     {
       "path": "docs/reports/release-20260912/pin/NEGATIVE-CONTROL.md",
@@ -79,10 +79,10 @@
     },
     {
       "path": "docs/reports/release-20260912/pin/check-correction.py",
-      "sha256": "a4f98d1a6ef1dbf634171ce9f9f5b37703052afd1bfccd7cdac11469a7c38b49",
-      "bytes": 10300,
-      "producer": "pin inventory correction builder; original/coordinator provenance retained inside archived receipts",
-      "timestamp": "2026-09-12T13:52:53.963219+00:00"
+      "sha256": "dc897e0726ee855c219050208b21bd3836d63bf153b60aef2c4fdb6af944cc1f",
+      "bytes": 13388,
+      "producer": "pin base re-witness builder (4c52b47)",
+      "timestamp": "2026-09-12T17:28:11.772032+00:00"
     },
     {
       "path": "docs/reports/release-20260912/pin/check-followup-full-suite.json",
@@ -156,10 +156,10 @@
     },
     {
       "path": "docs/reports/release-20260912/pin/claim-corrections.json",
-      "sha256": "31a3a6c1950e8842de6b4b1fc4ae47029c419b78aabd7f134ba45bb74f840719",
-      "bytes": 169229,
-      "producer": "pin inventory correction builder; original/coordinator provenance retained inside archived receipts",
-      "timestamp": "2026-09-12T13:52:53.963219+00:00"
+      "sha256": "d02b8404ea7ce5885af3119611bf9d8f7373476fbf69ea99e6e08e68fcd91e0f",
+      "bytes": 185173,
+      "producer": "pin base re-witness builder (4c52b47)",
+      "timestamp": "2026-09-12T17:28:11.772032+00:00"
     },
     {
       "path": "docs/reports/release-20260912/pin/claim-current.json",
@@ -2323,6 +2323,69 @@
       "bytes": 13506,
       "producer": "pin inventory correction builder; original/coordinator provenance retained inside archived receipts",
       "timestamp": "2026-09-12T13:52:53.963219+00:00"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/probe-sources/pin-rewitness-controls.py.txt",
+      "sha256": "b1f331b9596a379f1239b4d0bb55baeb2c3eef41ebe3eefbb469c7ce496a26df",
+      "bytes": 5708,
+      "producer": "pin base re-witness builder (4c52b47)",
+      "timestamp": "2026-09-12T17:28:11.772032+00:00"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/probe-sources/pin-rewitness-gen.py.txt",
+      "sha256": "26134f0491594b95acbad81e0b3f151f8173b6b7fe13782c984cf70107cce64a",
+      "bytes": 4412,
+      "producer": "pin base re-witness builder (4c52b47)",
+      "timestamp": "2026-09-12T17:28:11.772032+00:00"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/rewitness-checks/baseline.txt",
+      "sha256": "a1c6f636aa7f25f97b6aa13558bf9197c5b4eb7d200cb1e524243b42b85c396e",
+      "bytes": 4220,
+      "producer": "pin base re-witness builder (4c52b47)",
+      "timestamp": "2026-09-12T17:28:11.772032+00:00"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/rewitness-checks/commands.json",
+      "sha256": "3aa4dc1843494f49ccf7474f2c582f431827ec19343e2f560d08b8df54a6e258",
+      "bytes": 3320,
+      "producer": "pin base re-witness builder (4c52b47)",
+      "timestamp": "2026-09-12T17:28:11.772032+00:00"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/rewitness-checks/consistency.txt",
+      "sha256": "460e7e9a98f81e06816d7a35e882db3275f51f42b95035075ed4f0630e7a5bc9",
+      "bytes": 348,
+      "producer": "pin base re-witness builder (4c52b47)",
+      "timestamp": "2026-09-12T17:28:11.772032+00:00"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/rewitness-checks/full-suite.txt",
+      "sha256": "6607aeaf6d34ce70b5a44e95f5b8f1ebdef0e67d968c5b43624a1a004d5f4d83",
+      "bytes": 49610,
+      "producer": "pin base re-witness builder (4c52b47)",
+      "timestamp": "2026-09-12T17:28:11.772032+00:00"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/rewitness-checks/negative-controls.json",
+      "sha256": "682ee50fa0f1c84d1137e59af82a19ff91fac7a011fa066ae4d4894fe5a7bb52",
+      "bytes": 9205,
+      "producer": "pin base re-witness builder (4c52b47)",
+      "timestamp": "2026-09-12T17:28:11.772032+00:00"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/rewitness-checks/ruff.txt",
+      "sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18",
+      "bytes": 19,
+      "producer": "pin base re-witness builder (4c52b47)",
+      "timestamp": "2026-09-12T17:28:11.772032+00:00"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/rewitness-checks/validator.txt",
+      "sha256": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6",
+      "bytes": 391,
+      "producer": "pin base re-witness builder (4c52b47)",
+      "timestamp": "2026-09-12T17:28:11.772032+00:00"
     }
   ]
 }

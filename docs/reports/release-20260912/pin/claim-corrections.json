@@ -3293,5 +3293,589 @@
       ],
       "relationship": "No original frozen excerpt contains the omitted command/assertion; old coverage and excerpt bytes retained."
     }
-  ]
+  ],
+  "base_rewitness": {
+    "definition": "The integration base moved from the pin baseline to base_sha, which changed these coverage files. The frozen inventory stays bound to source_sha; each row re-binds the baseline and moved-base bytes and relocates every inventory span, independent-audit binding and included range to an identical baseline block in base_sha. No correction commit may change these files after base_sha. This records source drift, not runtime behavior or conformance.",
+    "from_sha": "e2e7adab8a7ddf53844d2564734202e89bb78e98",
+    "base_sha": "4c52b479a10d861a0f96fe00ef732e214232c5f5",
+    "base_ref": "origin/codex/release-audit-20260912",
+    "files": [
+      {
+        "path": "runtime/evidence-manifest.md",
+        "baseline_sha256": "ded008056aa4be056a7c437de02c9f542a330f65b5b1403ba59605682f1037ea",
+        "base_sha256": "b09236277a94e246b7af7838ff91df43acdf6999361fcfd8a3436f511e22aeee",
+        "base_lines": 160,
+        "included_ranges": [
+          [
+            12,
+            13
+          ]
+        ],
+        "spans": [
+          {
+            "record": "C061.01",
+            "line": 12,
+            "end_line": 13,
+            "base_line": 12,
+            "base_end_line": 13
+          },
+          {
+            "record": "C062",
+            "line": 13,
+            "end_line": 13,
+            "base_line": 13,
+            "base_end_line": 13
+          }
+        ]
+      },
+      {
+        "path": "runtime/merge-serialization.md",
+        "baseline_sha256": "624ab31a591a0635bf55457f336b25594c2a0d62f544bfb20f0345a9f9ef2700",
+        "base_sha256": "8b791def97fe513010d7d68890d81e0403e245af35a0d6993e5ad296befa887a",
+        "base_lines": 96,
+        "included_ranges": [
+          [
+            9,
+            13
+          ],
+          [
+            17,
+            24
+          ],
+          [
+            28,
+            31
+          ]
+        ],
+        "spans": [
+          {
+            "record": "C131.01",
+            "line": 9,
+            "end_line": 13,
+            "base_line": 9,
+            "base_end_line": 13
+          },
+          {
+            "record": "C131.02",
+            "line": 9,
+            "end_line": 13,
+            "base_line": 9,
+            "base_end_line": 13
+          },
+          {
+            "record": "C131.03",
+            "line": 9,
+            "end_line": 13,
+            "base_line": 9,
+            "base_end_line": 13
+          },
+          {
+            "record": "C132.01",
+            "line": 17,
+            "end_line": 18,
+            "base_line": 17,
+            "base_end_line": 18
+          },
+          {
+            "record": "C134.01",
+            "line": 21,
+            "end_line": 23,
+            "base_line": 21,
+            "base_end_line": 23
+          },
+          {
+            "record": "C134.02",
+            "line": 21,
+            "end_line": 23,
+            "base_line": 21,
+            "base_end_line": 23
+          },
+          {
+            "record": "C134.03",
+            "line": 21,
+            "end_line": 23,
+            "base_line": 21,
+            "base_end_line": 23
+          },
+          {
+            "record": "C137.01",
+            "line": 28,
+            "end_line": 30,
+            "base_line": 28,
+            "base_end_line": 30
+          },
+          {
+            "record": "C133",
+            "line": 19,
+            "end_line": 20,
+            "base_line": 19,
+            "base_end_line": 20
+          },
+          {
+            "record": "C135",
+            "line": 23,
+            "end_line": 24,
+            "base_line": 23,
+            "base_end_line": 24
+          },
+          {
+            "record": "C136",
+            "line": 28,
+            "end_line": 28,
+            "base_line": 28,
+            "base_end_line": 28
+          },
+          {
+            "record": "C138",
+            "line": 30,
+            "end_line": 31,
+            "base_line": 30,
+            "base_end_line": 31
+          },
+          {
+            "record": "C139",
+            "line": 31,
+            "end_line": 31,
+            "base_line": 31,
+            "base_end_line": 31
+          }
+        ]
+      },
+      {
+        "path": "runtime/mission-scheduling.md",
+        "baseline_sha256": "dd2c007e41ed87a2ef3633c28f10eb52f17bdae0c7fb7af67cfbee11522e502f",
+        "base_sha256": "cb583101414de3bb4a1d58eb64cccf0c1cb45ac64fafff33451af2afbbd64f33",
+        "base_lines": 76,
+        "included_ranges": [
+          [
+            3,
+            6
+          ],
+          [
+            11,
+            14
+          ],
+          [
+            17,
+            19
+          ],
+          [
+            23,
+            26
+          ],
+          [
+            38,
+            49
+          ]
+        ],
+        "spans": [
+          {
+            "record": "C140.01",
+            "line": 3,
+            "end_line": 4,
+            "base_line": 3,
+            "base_end_line": 4
+          },
+          {
+            "record": "C140.02",
+            "line": 3,
+            "end_line": 4,
+            "base_line": 3,
+            "base_end_line": 4
+          },
+          {
+            "record": "C140.03",
+            "line": 3,
+            "end_line": 4,
+            "base_line": 3,
+            "base_end_line": 4
+          },
+          {
+            "record": "C140.04",
+            "line": 3,
+            "end_line": 4,
+            "base_line": 3,
+            "base_end_line": 4
+          },
+          {
+            "record": "C140.05",
+            "line": 3,
+            "end_line": 4,
+            "base_line": 3,
+            "base_end_line": 4
+          },
+          {
+            "record": "C140.06",
+            "line": 3,
+            "end_line": 4,
+            "base_line": 3,
+            "base_end_line": 4
+          },
+          {
+            "record": "C140.07",
+            "line": 3,
+            "end_line": 4,
+            "base_line": 3,
+            "base_end_line": 4
+          },
+          {
+            "record": "C140.08",
+            "line": 3,
+            "end_line": 4,
+            "base_line": 3,
+            "base_end_line": 4
+          },
+          {
+            "record": "C142.01",
+            "line": 11,
+            "end_line": 14,
+            "base_line": 11,
+            "base_end_line": 14
+          },
+          {
+            "record": "C143.01",
+            "line": 17,
+            "end_line": 18,
+            "base_line": 17,
+            "base_end_line": 18
+          },
+          {
+            "record": "C143.02",
+            "line": 17,
+            "end_line": 18,
+            "base_line": 17,
+            "base_end_line": 18
+          },
+          {
+            "record": "C143.03",
+            "line": 17,
+            "end_line": 18,
+            "base_line": 17,
+            "base_end_line": 18
+          },
+          {
+            "record": "C145.01",
+            "line": 23,
+            "end_line": 25,
+            "base_line": 23,
+            "base_end_line": 25
+          },
+          {
+            "record": "C145.02",
+            "line": 23,
+            "end_line": 25,
+            "base_line": 23,
+            "base_end_line": 25
+          },
+          {
+            "record": "C145.03",
+            "line": 23,
+            "end_line": 25,
+            "base_line": 23,
+            "base_end_line": 25
+          },
+          {
+            "record": "C145.04",
+            "line": 23,
+            "end_line": 25,
+            "base_line": 23,
+            "base_end_line": 25
+          },
+          {
+            "record": "C147.01",
+            "line": 32,
+            "end_line": 38,
+            "base_line": 38,
+            "base_end_line": 44
+          },
+          {
+            "record": "C147.02",
+            "line": 32,
+            "end_line": 38,
+            "base_line": 38,
+            "base_end_line": 44
+          },
+          {
+            "record": "C147.03",
+            "line": 32,
+            "end_line": 38,
+            "base_line": 38,
+            "base_end_line": 44
+          },
+          {
+            "record": "C147.04",
+            "line": 32,
+            "end_line": 38,
+            "base_line": 38,
+            "base_end_line": 44
+          },
+          {
+            "record": "C147.05",
+            "line": 32,
+            "end_line": 38,
+            "base_line": 38,
+            "base_end_line": 44
+          },
+          {
+            "record": "C148.01",
+            "line": 40,
+            "end_line": 43,
+            "base_line": 46,
+            "base_end_line": 49
+          },
+          {
+            "record": "C148.02",
+            "line": 40,
+            "end_line": 43,
+            "base_line": 46,
+            "base_end_line": 49
+          },
+          {
+            "record": "C141",
+            "line": 4,
+            "end_line": 6,
+            "base_line": 4,
+            "base_end_line": 6
+          },
+          {
+            "record": "C144",
+            "line": 18,
+            "end_line": 19,
+            "base_line": 18,
+            "base_end_line": 19
+          },
+          {
+            "record": "C146",
+            "line": 25,
+            "end_line": 26,
+            "base_line": 25,
+            "base_end_line": 26
+          },
+          {
+            "record": "C145.05",
+            "line": 23,
+            "end_line": 25,
+            "base_line": 23,
+            "base_end_line": 25
+          },
+          {
+            "record": "C145.06",
+            "line": 23,
+            "end_line": 25,
+            "base_line": 23,
+            "base_end_line": 25
+          },
+          {
+            "record": "C145.07",
+            "line": 23,
+            "end_line": 25,
+            "base_line": 23,
+            "base_end_line": 25
+          },
+          {
+            "record": "C147.06",
+            "line": 34,
+            "end_line": 38,
+            "base_line": 40,
+            "base_end_line": 44
+          },
+          {
+            "record": "C147.07",
+            "line": 34,
+            "end_line": 38,
+            "base_line": 40,
+            "base_end_line": 44
+          },
+          {
+            "record": "C147.08",
+            "line": 36,
+            "end_line": 38,
+            "base_line": 42,
+            "base_end_line": 44
+          },
+          {
+            "record": "independent-audit#43",
+            "line": 23,
+            "end_line": 23,
+            "base_line": 23,
+            "base_end_line": 23
+          },
+          {
+            "record": "independent-audit#44",
+            "line": 24,
+            "end_line": 24,
+            "base_line": 24,
+            "base_end_line": 24
+          },
+          {
+            "record": "independent-audit#45",
+            "line": 34,
+            "end_line": 34,
+            "base_line": 40,
+            "base_end_line": 40
+          },
+          {
+            "record": "independent-audit#46",
+            "line": 38,
+            "end_line": 38,
+            "base_line": 44,
+            "base_end_line": 44
+          }
+        ]
+      },
+      {
+        "path": "runtime/scripts/deny-hook.sh",
+        "baseline_sha256": "d50e026711ed33b42cf702e8622deb844ec2a0b1252908aab6824d738ae89eea",
+        "base_sha256": "63e7346db0d2220b0499feaafcf8a7a51bbc7fcc98a6a90497cbab09d62216e6",
+        "base_lines": 966,
+        "included_ranges": [
+          [
+            37,
+            39
+          ],
+          [
+            868,
+            869
+          ]
+        ],
+        "spans": [
+          {
+            "record": "C227.01",
+            "line": 37,
+            "end_line": 39,
+            "base_line": 37,
+            "base_end_line": 39
+          },
+          {
+            "record": "C228.01",
+            "line": 721,
+            "end_line": 722,
+            "base_line": 868,
+            "base_end_line": 869
+          },
+          {
+            "record": "C229",
+            "line": 722,
+            "end_line": 722,
+            "base_line": 869,
+            "base_end_line": 869
+          },
+          {
+            "record": "C312.01",
+            "line": 80,
+            "end_line": 83,
+            "base_line": 80,
+            "base_end_line": 83
+          },
+          {
+            "record": "C312",
+            "line": 80,
+            "end_line": 83,
+            "base_line": 80,
+            "base_end_line": 83
+          },
+          {
+            "record": "independent-audit#25",
+            "line": 80,
+            "end_line": 80,
+            "base_line": 80,
+            "base_end_line": 80
+          },
+          {
+            "record": "independent-audit#26",
+            "line": 81,
+            "end_line": 81,
+            "base_line": 81,
+            "base_end_line": 81
+          },
+          {
+            "record": "independent-audit#27",
+            "line": 82,
+            "end_line": 82,
+            "base_line": 82,
+            "base_end_line": 82
+          },
+          {
+            "record": "independent-audit#28",
+            "line": 83,
+            "end_line": 83,
+            "base_line": 83,
+            "base_end_line": 83
+          }
+        ]
+      },
+      {
+        "path": "runtime/scripts/diff_scope.py",
+        "baseline_sha256": "427756c721412626967e75f9a7ece4287b7c212bced8adccd1322153620acafb",
+        "base_sha256": "81c21de04714833261b87df3e593d8f9db406bd1b42e54e97d1de6d9cd9af1ad",
+        "base_lines": 307,
+        "included_ranges": [],
+        "spans": []
+      },
+      {
+        "path": "runtime/scripts/evidence-run.py",
+        "baseline_sha256": "870d6d509e0a08510d9ce1cebe7ebcf33b3cefb0fc9059feee363b00c68cf9b6",
+        "base_sha256": "32eb4e99a7076ffe35ac95cbb42e4cd9c43be932102307376b4e2b1cbc767514",
+        "base_lines": 197,
+        "included_ranges": [],
+        "spans": []
+      },
+      {
+        "path": "runtime/scripts/floor_guard.py",
+        "baseline_sha256": "e1b49fcdae2c7ce818d0de1a9d4dd3fb330f801cd49041fb3678ed1c7130f82c",
+        "base_sha256": "c2a37b69d8863756946fefafe3eed272ea9de45d495535e49cbd59d4804eca64",
+        "base_lines": 490,
+        "included_ranges": [],
+        "spans": []
+      },
+      {
+        "path": "runtime/scripts/preflight.py",
+        "baseline_sha256": "24bb3b27d377bacf5b4a3b82b2e8f850cf099f88ffbdabf9b617bf8fb11b559c",
+        "base_sha256": "4515250a73b8b397bea531785eeae1d1ef868bdc341ec0a6ca132393568c66df",
+        "base_lines": 323,
+        "included_ranges": [],
+        "spans": []
+      },
+      {
+        "path": "runtime/scripts/run_report.py",
+        "baseline_sha256": "4b4d4810a5f030e3d92773ba59f15f743b31bb35a7130f4d807a4b1e921933f3",
+        "base_sha256": "c03721fe4c5ed3da8673ea98254576f27dd45c42dd45731e3243a9ee377934e5",
+        "base_lines": 612,
+        "included_ranges": [],
+        "spans": []
+      },
+      {
+        "path": "runtime/scripts/verify.py",
+        "baseline_sha256": "059867d30878103e5b62c8e91ca173c09ca401a259f6e520f5077d24226e5824",
+        "base_sha256": "3fff5397cf67c048400e21033a6e6b0c0ed83695167a877c87673f13ae1fe7c2",
+        "base_lines": 2086,
+        "included_ranges": [],
+        "spans": []
+      },
+      {
+        "path": "skills/absorb-it/SKILL.md",
+        "baseline_sha256": "825ccdafd8ecfdea7bb5e69f9f4900685f696fa7405722e60696833c84820bf9",
+        "base_sha256": "ca5ecc32e12b7a58a66999907c97cf1f30a3240dcc00d1c6626c460b2bd828f5",
+        "base_lines": 138,
+        "included_ranges": [],
+        "spans": []
+      },
+      {
+        "path": "skills/migrate-it/SKILL.md",
+        "baseline_sha256": "955a2bd0f1efae5fc7ce849464961d7d5d41fc31919b78fadb59d399d4656681",
+        "base_sha256": "d27a7956064dc3a5ad277bc289f3cd1f65f071bcf4cf46f6c7de98eec0e306c0",
+        "base_lines": 141,
+        "included_ranges": [],
+        "spans": []
+      },
+      {
+        "path": "skills/modernize-it/SKILL.md",
+        "baseline_sha256": "957089d14b45029a2bab710ba4da554ea864fc7c557bef53eb5891314c016d7e",
+        "base_sha256": "6b72f1f204f228f65848d577c2997fa092f56d8cfd7509bb809ef4536182f367",
+        "base_lines": 111,
+        "included_ranges": [],
+        "spans": []
+      }
+    ]
+  }
 }

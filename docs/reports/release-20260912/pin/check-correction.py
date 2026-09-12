@@ -52,18 +52,60 @@ def main():
     for row in read('history/snapshot/inventory.json')['files']:
         data = (HERE / 'history/snapshot' / row['path']).read_bytes()
         require(sha(data) == row['sha256'] and len(data) == row['bytes'], f'snapshot changed: {row["path"]}')
+    # A coverage file may differ from the baseline only when the integration base moved it and
+    # base_rewitness re-binds every inventory quote on it to the moved base's bytes.
+    rewitness = corrections.get('base_rewitness', {'files': []})
+    moved = {row['path']: row for row in rewitness['files']}
+    require(len(moved) == len(rewitness['files']), 'duplicate re-witness path')
+    if moved:
+        require(rewitness['from_sha'] == base, 're-witness does not start at the baseline')
+        require(subprocess.run(['git', 'merge-base', '--is-ancestor', rewitness['base_sha'], 'HEAD']).returncode == 0,
+                're-witness base is not an ancestor of HEAD')
+    coverage_paths = {row['path'] for row in frozen['coverage']}
+    require(set(moved) <= coverage_paths, 're-witness names a non-coverage path')
     sources = {}
     for row in frozen['coverage']:
         data = git(row['path'], source)
         sources[row['path']] = data.decode().splitlines()
         require(sha(data) == row['sha256'] and len(data.splitlines()) == row['lines'], f'source coverage mismatch: {row["path"]}')
-        require((ROOT / row['path']).read_bytes() == git(row['path'], base), f'doctrine/source changed in correction: {row["path"]}')
+        drifted = (ROOT / row['path']).read_bytes() != git(row['path'], base)
+        if row['path'] in moved:
+            require(drifted, f're-witness names an undrifted path: {row["path"]}')
+        else:
+            require(not drifted, f'doctrine/source changed in correction: {row["path"]}')
+    spans = {path: [] for path in moved}
     for row in original['children'] + original['excluded_records'] + corrections['added_children'] + corrections['added_parents']:
         for span in [row['source']] + row.get('additional_sources', []):
             lines = sources[span['path']]
             require(span['text'] in '\n'.join(lines[span['line'] - 1:span['end_line']]), f'source quote mismatch: {row["id"]}')
-    for row in read('correction-input/review-pin-inventory-ro-source-bindings.json'):
+            if span['path'] in moved:
+                spans[span['path']].append((row['id'], span['line'], span['end_line'], span['text']))
+    for index, row in enumerate(read('correction-input/review-pin-inventory-ro-source-bindings.json')):
         require(sources[row['path']][row['line'] - 1] == row['text'], f'independent audit quote mismatch: {row["path"]}:{row["line"]}')
+        if row['path'] in moved:
+            spans[row['path']].append((f'independent-audit#{index}', row['line'], row['line'], row['text']))
+    for path, entry in moved.items():
+        moved_data = git(path, rewitness['base_sha'])
+        moved_lines = moved_data.decode().splitlines()
+        require(sha(git(path, base)) == entry['baseline_sha256'], f're-witness baseline hash mismatch: {path}')
+        require(sha(moved_data) == entry['base_sha256'] and len(moved_lines) == entry['base_lines'], f're-witness base hash mismatch: {path}')
+        require((ROOT / path).read_bytes() == moved_data, f'doctrine/source changed in correction: {path}')
+        recorded = sorted((s['record'], s['line'], s['end_line']) for s in entry['spans'])
+        require(recorded == sorted(key[:3] for key in spans[path]), f're-witness span set mismatch: {path}')
+        rebound = {(s['record'], s['line'], s['end_line']): s for s in entry['spans']}
+        for record, line, end_line, text in spans[path]:
+            target = rebound.get((record, line, end_line))
+            if target is None:
+                continue
+            block = moved_lines[target['base_line'] - 1:target['base_end_line']]
+            present = block == [text] if record.startswith('independent-audit#') else text in '\n'.join(block)
+            require(present, f're-witness quote absent at moved base: {path}:{record}')
+        baseline_lines = sources[path]
+        ranges = next(row['included_ranges'] for row in frozen['coverage'] if row['path'] == path)
+        require(len(ranges) == len(entry['included_ranges']), f're-witness included ranges mismatch: {path}')
+        for (start, end), (moved_start, moved_end) in zip(ranges, entry['included_ranges']):
+            require(baseline_lines[start - 1:end] == moved_lines[moved_start - 1:moved_end],
+                    f're-witness included range changed: {path}:{start}-{end}')
 
     # Reconstruct the graph from unchanged first atomization and explicit additive operations.
     expected = {row['id']: copy.deepcopy(row) for row in original['children']}

@@ -1,0 +1,525 @@
+....................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................FAIL: gamma-bad (self-run) — unresolvable proof_evidence: docs/runs/does-not-exist.md
+proof-status: 1 mission(s) above doctrine-only missing evidence
+...FAIL: gamma-bad (self-run) — unresolvable proof_evidence: docs/runs/does-not-exist.md
+proof-status: 1 mission(s) above doctrine-only missing evidence
+.FAIL: delta-abs (self-run) — unresolvable proof_evidence: /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmpe0ckslol/external-report.md
+FAIL: epsilon-trav (external-run) — unresolvable proof_evidence: ../tmpe0ckslol/external-report.md
+FAIL: gamma-bad (self-run) — unresolvable proof_evidence: docs/runs/does-not-exist.md
+proof-status: 3 mission(s) above doctrine-only missing evidence
+......................FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF..............................F...........................................................................................................................................................................................................................................................................................FAIL: manifest must be a JSON object, got list
+verify: evidence manifest malformed/unreadable — unit is NOT done
+................................................................................................................FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: head_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: base_sha 'HEAD' is not a real commit
+FAIL: head_sha 'HEAD' is not a real commit
+FAIL: commands ledger: cannot resolve the tree of head_sha (not a real commit here, or not inside a git repo) — the recorded run cannot be bound to content; fail-closed
+FAIL: intent packet incomplete — non-empty ['goal', 'ruled_out', 'why'] required (mutation unit)
+FAIL: reviewer_mode must be one of ['cross-vendor', 'instructed-isolation', 'same-vendor-fresh'], got None
+FAIL: negative_control.tool must be one of ['cargo-mutants', 'cosmic-ray', 'go-mutesting', 'hand', 'mutmut', 'pitest', 'revert', 'stryker'], got None
+FAIL: negative_control.result must record the mutant KILLED / the proof going RED
+FAIL: negative_control.artifact (an evidence path) is required
+FAIL: mutation unit: no pr.number to look up an independent review — unreviewed
+verify: 11 invariant(s) failed — unit is NOT done
+...................................................
+======================================================================
+FAIL: test_only_the_exact_repository_script_counts (test_run_report.ExecutionIdentity.test_only_the_exact_repository_script_counts) (prefix=['/tmp/orca-release-audit-20260912/ci-venv/bin/python'], script='/private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmpxx5jmobn/runtime/scripts/verify.py')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 108, in test_only_the_exact_repository_script_counts
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmpxx5jmobn/runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_only_the_exact_repository_script_counts (test_run_report.ExecutionIdentity.test_only_the_exact_repository_script_counts) (prefix=['/tmp/orca-release-audit-20260912/ci-venv/bin/python'], script='./runtime/scripts/verify.py')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 108, in test_only_the_exact_repository_script_counts
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python ./runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_repeated_xoptions_use_the_first_initialization_value (test_run_report.ExecutionIdentity.test_repeated_xoptions_use_the_first_initialization_value) (values=['utf8=1', 'utf8=2'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 149, in test_repeated_xoptions_use_the_first_initialization_value
+    self.assertEqual(run_report.executes_verifier(cmd, "m.json", self.repo), expected)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False != True
+
+======================================================================
+FAIL: test_valid_interpreter_options_still_execute_the_verifier (test_run_report.ExecutionIdentity.test_valid_interpreter_options_still_execute_the_verifier) (flags=[])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 94, in test_valid_interpreter_options_still_execute_the_verifier
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_interpreter_options_still_execute_the_verifier (test_run_report.ExecutionIdentity.test_valid_interpreter_options_still_execute_the_verifier) (flags=['-u'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 94, in test_valid_interpreter_options_still_execute_the_verifier
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -u runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_interpreter_options_still_execute_the_verifier (test_run_report.ExecutionIdentity.test_valid_interpreter_options_still_execute_the_verifier) (flags=['-IB'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 94, in test_valid_interpreter_options_still_execute_the_verifier
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -IB runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_interpreter_options_still_execute_the_verifier (test_run_report.ExecutionIdentity.test_valid_interpreter_options_still_execute_the_verifier) (flags=['-OO'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 94, in test_valid_interpreter_options_still_execute_the_verifier
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -OO runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_interpreter_options_still_execute_the_verifier (test_run_report.ExecutionIdentity.test_valid_interpreter_options_still_execute_the_verifier) (flags=['-W', 'ignore'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 94, in test_valid_interpreter_options_still_execute_the_verifier
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -W ignore runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_interpreter_options_still_execute_the_verifier (test_run_report.ExecutionIdentity.test_valid_interpreter_options_still_execute_the_verifier) (flags=['-Wignore'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 94, in test_valid_interpreter_options_still_execute_the_verifier
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -Wignore runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_interpreter_options_still_execute_the_verifier (test_run_report.ExecutionIdentity.test_valid_interpreter_options_still_execute_the_verifier) (flags=['-X', 'dev'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 94, in test_valid_interpreter_options_still_execute_the_verifier
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -X dev runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_interpreter_options_still_execute_the_verifier (test_run_report.ExecutionIdentity.test_valid_interpreter_options_still_execute_the_verifier) (flags=['-Xdev'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 94, in test_valid_interpreter_options_still_execute_the_verifier
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -Xdev runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_interpreter_options_still_execute_the_verifier (test_run_report.ExecutionIdentity.test_valid_interpreter_options_still_execute_the_verifier) (flags=['-uW', 'ignore'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 94, in test_valid_interpreter_options_still_execute_the_verifier
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -uW ignore runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_interpreter_options_still_execute_the_verifier (test_run_report.ExecutionIdentity.test_valid_interpreter_options_still_execute_the_verifier) (flags=['--check-hash-based-pycs', 'always'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 94, in test_valid_interpreter_options_still_execute_the_verifier
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python --check-hash-based-pycs always runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_interpreter_options_still_execute_the_verifier (test_run_report.ExecutionIdentity.test_valid_interpreter_options_still_execute_the_verifier) (flags=['--'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 94, in test_valid_interpreter_options_still_execute_the_verifier
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -- runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_xoption_values_preserve_actual_script_execution (test_run_report.ExecutionIdentity.test_valid_xoption_values_preserve_actual_script_execution) (flags=['-X', 'int_max_str_digits=0'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 142, in test_valid_xoption_values_preserve_actual_script_execution
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -X int_max_str_digits=0 runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_xoption_values_preserve_actual_script_execution (test_run_report.ExecutionIdentity.test_valid_xoption_values_preserve_actual_script_execution) (flags=['-Xint_max_str_digits=0'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 142, in test_valid_xoption_values_preserve_actual_script_execution
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -Xint_max_str_digits=0 runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_xoption_values_preserve_actual_script_execution (test_run_report.ExecutionIdentity.test_valid_xoption_values_preserve_actual_script_execution) (flags=['-X', 'int_max_str_digits=640'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 142, in test_valid_xoption_values_preserve_actual_script_execution
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -X int_max_str_digits=640 runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_xoption_values_preserve_actual_script_execution (test_run_report.ExecutionIdentity.test_valid_xoption_values_preserve_actual_script_execution) (flags=['-Xint_max_str_digits=640'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 142, in test_valid_xoption_values_preserve_actual_script_execution
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -Xint_max_str_digits=640 runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_xoption_values_preserve_actual_script_execution (test_run_report.ExecutionIdentity.test_valid_xoption_values_preserve_actual_script_execution) (flags=['-X', 'int_max_str_digits='])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 142, in test_valid_xoption_values_preserve_actual_script_execution
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -X int_max_str_digits= runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_xoption_values_preserve_actual_script_execution (test_run_report.ExecutionIdentity.test_valid_xoption_values_preserve_actual_script_execution) (flags=['-Xint_max_str_digits='])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 142, in test_valid_xoption_values_preserve_actual_script_execution
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -Xint_max_str_digits= runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_xoption_values_preserve_actual_script_execution (test_run_report.ExecutionIdentity.test_valid_xoption_values_preserve_actual_script_execution) (flags=['-X', 'int_max_str_digits=+640'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 142, in test_valid_xoption_values_preserve_actual_script_execution
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -X int_max_str_digits=+640 runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_xoption_values_preserve_actual_script_execution (test_run_report.ExecutionIdentity.test_valid_xoption_values_preserve_actual_script_execution) (flags=['-Xint_max_str_digits=+640'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 142, in test_valid_xoption_values_preserve_actual_script_execution
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -Xint_max_str_digits=+640 runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_xoption_values_preserve_actual_script_execution (test_run_report.ExecutionIdentity.test_valid_xoption_values_preserve_actual_script_execution) (flags=['-X', 'utf8'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 142, in test_valid_xoption_values_preserve_actual_script_execution
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -X utf8 runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_xoption_values_preserve_actual_script_execution (test_run_report.ExecutionIdentity.test_valid_xoption_values_preserve_actual_script_execution) (flags=['-Xutf8'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 142, in test_valid_xoption_values_preserve_actual_script_execution
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -Xutf8 runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_xoption_values_preserve_actual_script_execution (test_run_report.ExecutionIdentity.test_valid_xoption_values_preserve_actual_script_execution) (flags=['-X', 'utf8=0'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 142, in test_valid_xoption_values_preserve_actual_script_execution
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -X utf8=0 runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_xoption_values_preserve_actual_script_execution (test_run_report.ExecutionIdentity.test_valid_xoption_values_preserve_actual_script_execution) (flags=['-Xutf8=0'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 142, in test_valid_xoption_values_preserve_actual_script_execution
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -Xutf8=0 runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_xoption_values_preserve_actual_script_execution (test_run_report.ExecutionIdentity.test_valid_xoption_values_preserve_actual_script_execution) (flags=['-X', 'utf8=1'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 142, in test_valid_xoption_values_preserve_actual_script_execution
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -X utf8=1 runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_xoption_values_preserve_actual_script_execution (test_run_report.ExecutionIdentity.test_valid_xoption_values_preserve_actual_script_execution) (flags=['-Xutf8=1'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 142, in test_valid_xoption_values_preserve_actual_script_execution
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -Xutf8=1 runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_xoption_values_preserve_actual_script_execution (test_run_report.ExecutionIdentity.test_valid_xoption_values_preserve_actual_script_execution) (flags=['-X', 'frozen_modules'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 142, in test_valid_xoption_values_preserve_actual_script_execution
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -X frozen_modules runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_xoption_values_preserve_actual_script_execution (test_run_report.ExecutionIdentity.test_valid_xoption_values_preserve_actual_script_execution) (flags=['-Xfrozen_modules'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 142, in test_valid_xoption_values_preserve_actual_script_execution
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -Xfrozen_modules runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_xoption_values_preserve_actual_script_execution (test_run_report.ExecutionIdentity.test_valid_xoption_values_preserve_actual_script_execution) (flags=['-X', 'frozen_modules='])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 142, in test_valid_xoption_values_preserve_actual_script_execution
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -X frozen_modules= runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_xoption_values_preserve_actual_script_execution (test_run_report.ExecutionIdentity.test_valid_xoption_values_preserve_actual_script_execution) (flags=['-Xfrozen_modules='])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 142, in test_valid_xoption_values_preserve_actual_script_execution
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -Xfrozen_modules= runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_xoption_values_preserve_actual_script_execution (test_run_report.ExecutionIdentity.test_valid_xoption_values_preserve_actual_script_execution) (flags=['-X', 'frozen_modules=on'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 142, in test_valid_xoption_values_preserve_actual_script_execution
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -X frozen_modules=on runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_xoption_values_preserve_actual_script_execution (test_run_report.ExecutionIdentity.test_valid_xoption_values_preserve_actual_script_execution) (flags=['-Xfrozen_modules=on'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 142, in test_valid_xoption_values_preserve_actual_script_execution
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -Xfrozen_modules=on runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_xoption_values_preserve_actual_script_execution (test_run_report.ExecutionIdentity.test_valid_xoption_values_preserve_actual_script_execution) (flags=['-X', 'frozen_modules=off'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 142, in test_valid_xoption_values_preserve_actual_script_execution
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -X frozen_modules=off runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_xoption_values_preserve_actual_script_execution (test_run_report.ExecutionIdentity.test_valid_xoption_values_preserve_actual_script_execution) (flags=['-Xfrozen_modules=off'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 142, in test_valid_xoption_values_preserve_actual_script_execution
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -Xfrozen_modules=off runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_xoption_values_preserve_actual_script_execution (test_run_report.ExecutionIdentity.test_valid_xoption_values_preserve_actual_script_execution) (flags=['-X', 'tracemalloc'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 142, in test_valid_xoption_values_preserve_actual_script_execution
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -X tracemalloc runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_xoption_values_preserve_actual_script_execution (test_run_report.ExecutionIdentity.test_valid_xoption_values_preserve_actual_script_execution) (flags=['-Xtracemalloc'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 142, in test_valid_xoption_values_preserve_actual_script_execution
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -Xtracemalloc runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_xoption_values_preserve_actual_script_execution (test_run_report.ExecutionIdentity.test_valid_xoption_values_preserve_actual_script_execution) (flags=['-X', 'tracemalloc='])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 142, in test_valid_xoption_values_preserve_actual_script_execution
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -X tracemalloc= runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_xoption_values_preserve_actual_script_execution (test_run_report.ExecutionIdentity.test_valid_xoption_values_preserve_actual_script_execution) (flags=['-Xtracemalloc='])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 142, in test_valid_xoption_values_preserve_actual_script_execution
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -Xtracemalloc= runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_xoption_values_preserve_actual_script_execution (test_run_report.ExecutionIdentity.test_valid_xoption_values_preserve_actual_script_execution) (flags=['-X', 'tracemalloc=0'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 142, in test_valid_xoption_values_preserve_actual_script_execution
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -X tracemalloc=0 runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_xoption_values_preserve_actual_script_execution (test_run_report.ExecutionIdentity.test_valid_xoption_values_preserve_actual_script_execution) (flags=['-Xtracemalloc=0'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 142, in test_valid_xoption_values_preserve_actual_script_execution
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -Xtracemalloc=0 runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_xoption_values_preserve_actual_script_execution (test_run_report.ExecutionIdentity.test_valid_xoption_values_preserve_actual_script_execution) (flags=['-X', 'tracemalloc=1'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 142, in test_valid_xoption_values_preserve_actual_script_execution
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -X tracemalloc=1 runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_xoption_values_preserve_actual_script_execution (test_run_report.ExecutionIdentity.test_valid_xoption_values_preserve_actual_script_execution) (flags=['-Xtracemalloc=1'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 142, in test_valid_xoption_values_preserve_actual_script_execution
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -Xtracemalloc=1 runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_xoption_values_preserve_actual_script_execution (test_run_report.ExecutionIdentity.test_valid_xoption_values_preserve_actual_script_execution) (flags=['-X', 'dev'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 142, in test_valid_xoption_values_preserve_actual_script_execution
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -X dev runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_xoption_values_preserve_actual_script_execution (test_run_report.ExecutionIdentity.test_valid_xoption_values_preserve_actual_script_execution) (flags=['-Xdev'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 142, in test_valid_xoption_values_preserve_actual_script_execution
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -Xdev runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_xoption_values_preserve_actual_script_execution (test_run_report.ExecutionIdentity.test_valid_xoption_values_preserve_actual_script_execution) (flags=['-X', 'arbitrary=value'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 142, in test_valid_xoption_values_preserve_actual_script_execution
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -X arbitrary=value runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_xoption_values_preserve_actual_script_execution (test_run_report.ExecutionIdentity.test_valid_xoption_values_preserve_actual_script_execution) (flags=['-Xarbitrary=value'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 142, in test_valid_xoption_values_preserve_actual_script_execution
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -Xarbitrary=value runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_xoption_values_preserve_actual_script_execution (test_run_report.ExecutionIdentity.test_valid_xoption_values_preserve_actual_script_execution) (flags=['-X', 'cpu_count=default'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 142, in test_valid_xoption_values_preserve_actual_script_execution
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -X cpu_count=default runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_xoption_values_preserve_actual_script_execution (test_run_report.ExecutionIdentity.test_valid_xoption_values_preserve_actual_script_execution) (flags=['-Xcpu_count=default'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 142, in test_valid_xoption_values_preserve_actual_script_execution
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -Xcpu_count=default runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_xoption_values_preserve_actual_script_execution (test_run_report.ExecutionIdentity.test_valid_xoption_values_preserve_actual_script_execution) (flags=['-X', 'cpu_count=1'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 142, in test_valid_xoption_values_preserve_actual_script_execution
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -X cpu_count=1 runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_xoption_values_preserve_actual_script_execution (test_run_report.ExecutionIdentity.test_valid_xoption_values_preserve_actual_script_execution) (flags=['-Xcpu_count=1'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 142, in test_valid_xoption_values_preserve_actual_script_execution
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -Xcpu_count=1 runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_xoption_values_preserve_actual_script_execution (test_run_report.ExecutionIdentity.test_valid_xoption_values_preserve_actual_script_execution) (flags=['-X', 'gil=1'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 142, in test_valid_xoption_values_preserve_actual_script_execution
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -X gil=1 runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_valid_xoption_values_preserve_actual_script_execution (test_run_report.ExecutionIdentity.test_valid_xoption_values_preserve_actual_script_execution) (flags=['-Xgil=1'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 142, in test_valid_xoption_values_preserve_actual_script_execution
+    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /tmp/orca-release-audit-20260912/ci-venv/bin/python -Xgil=1 runtime/scripts/verify.py --manifest m.json
+
+======================================================================
+FAIL: test_the_interpreter_is_read_as_argv_too (test_run_report.RunReportBinding.test_the_interpreter_is_read_as_argv_too) (cmd='/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmptpigttvj/python3 runtime/scripts/verify.py --manifest docs/runs/2026-01-01-demo-it-selfrun/build-manifest.json')
+PR #327 review, P1.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/pin-4c52b47/tests/test_run_report.py", line 293, in test_the_interpreter_is_read_as_argv_too
+    self.assertFalse(run_report.executes_verifier(cmd, m, self.repo), cmd)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false : /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmptpigttvj/python3 runtime/scripts/verify.py --manifest docs/runs/2026-01-01-demo-it-selfrun/build-manifest.json
+
+----------------------------------------------------------------------
+Ran 1215 tests in 199.475s
+
+FAILED (failures=55)
+bundle: 21 self-contained mission(s) in a temp dir; no reference leaves its directory
+no mission claims a tier above doctrine-only
