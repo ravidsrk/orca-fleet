@@ -484,18 +484,31 @@ norm_ws() {
 }
 
 # Remove the first shell WORD from $1 and print what follows. A word may quote
-# only part of itself — `--git-dir=/srv/dir" one"` is one word — so scanning
-# must skip quoted spans anywhere, not just at the word's start (#321 review).
-# An unclosed quote eats to end: that mangles the line, it cannot free a
-# refused command — the refused text stays inside it.
+# only part of itself — `--git-dir=/srv/dir" one"` is one word — and a `\x`
+# escape binds anywhere, including `\ ` for a space (#321 review) — so scanning
+# must skip quoted spans and escaped chars wherever they sit. An unclosed
+# quote eats to end: that mangles the line, it cannot free a refused command.
 skip_tok() {
   _w=$1
   while : ; do
     _p=$_w
     case "$_w" in
-      \"*)    _w=${_w#\"}; _w=${_w#*\"} ;;
+      \"*)
+        _w=${_w#\"}
+        while : ; do
+          _i=$_w
+          _q=${_w%%[\\\"]*}
+          _w=${_w#"$_q"}
+          case "$_w" in
+            \"*) _w=${_w#\"}; break ;;
+            \\*) _w=${_w#\\?} ;;
+            *)   break ;;
+          esac
+          [ "$_w" = "$_i" ] && break
+        done ;;
       \'*)    _w=${_w#\'}; _w=${_w#*\'} ;;
-      *)      _h=${_w%%[\'\" ]*}; _w=${_w#"$_h"} ;;
+      *)      _h=${_w%%[\\\'\" ]*}; _w=${_w#"$_h"}
+              case "$_w" in \\*) _w=${_w#\\?} ;; esac ;;
     esac
     [ "$_w" = "$_p" ] && break
     case "$_w" in \ *) break ;; esac

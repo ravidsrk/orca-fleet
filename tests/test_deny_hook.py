@@ -356,6 +356,15 @@ class TestGitGlobalOptionsAreStripped(HookBase):
             with self.subTest(command=command):
                 self._deny(command)
 
+    def test_an_escaped_space_cannot_hide_the_push(self):
+        # PR #321 review — `\ ` binds a space into the word; `-C /srv/dir\ one`
+        # is a two-token option, not three.
+        for command in ("git -C /srv/dir\\ one push --force origin main",
+                        "git --git-dir=/srv/dir\\ one push -f origin main",
+                        "X=/srv/dir\\ one git push -f origin main"):
+            with self.subTest(command=command):
+                self._deny(command)
+
     def test_push_exec_operand_is_not_a_refspec(self):
         # PR #321 review — `--exec` is push's alias for --receive-pack; its
         # operand is a program name, not a refspec.
