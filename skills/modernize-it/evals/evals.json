@@ -17,11 +17,11 @@
     {
       "id": 2,
       "prompt": "Migrate the ORM from Sequelize to Prisma.",
-      "expected_output": "Should route to modernize-it for the dependency/framework surface. If the migration forces a stateful DB schema/data change across deploys, modernize-it should hand that off to a staged ship-it sequence (expand → migrate → contract), not run it inside the currency loop.",
+      "expected_output": "Should route to modernize-it for the dependency/framework surface. If the migration forces a stateful DB schema/data change across deploys, modernize-it should hand that off to migrate-it with a phase brief, not run it inside the currency loop; migrate-it places the upgrade between expand and contract.",
       "assertions": [
         "Routes to modernize-it for framework currency",
         "Reads changelogs, not just version deltas",
-        "Hands off stateful cross-deploy DB migration to ship-it",
+        "Hands off stateful cross-deploy DB migration to migrate-it",
         "Does not run cross-deploy migration inside currency loop"
       ],
       "files": []

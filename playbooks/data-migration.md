@@ -15,21 +15,23 @@ DUAL-WRITE    the app writes BOTH shapes on every insert/update              [de
 BACKFILL      copy old → new for existing rows, batched + throttled          [job, resumable]
 SWITCH-READS  reads move to the new shape, writes stay dual                  [deploy + bake]
 ZERO-READERS  telemetry shows no reader of the old shape over the window     [observation]
-CONTRACT      archive parity, retire old writers, prove zero use, then DROP [one-way, human]
+RETIRE-WRITES old writers retired; parity archived first, while still dual [deploy + bake]
+ZERO-WRITERS  telemetry shows no writer of the old shape over the window     [observation]
+CONTRACT      DROP the old shape; removal verified against the archive      [one-way, human]
 ```
 
-Additive first, destructive last and alone. Adds are safe in any deploy; drops and renames get
-their own deploy AFTER no code references the old shape. A phase that ships two rungs at once
-("add the column and start using it") is the coupling this playbook exists to prevent: during the
-rollout window old and new code run together and one of them queries a shape that is not there.
+Additive first, destructive last and alone. Adds are safe in any deploy; drops and renames get their
+own deploy AFTER no code references the old shape. Two rungs in one phase is the coupling this
+prevents: old and new code run together and one queries a shape that is gone. Retiring writers and
+dropping together is that error — zero use is observed FROM a deploy, so combined none can appear.
 
 ## `down` is written AND run before the phase merges
 
-A migration with no exercised down path is a deploy that cannot be reversed. Per phase, before the
-PR is mergeable: run `up`, then `down`, then dump the schema and diff it against the pre-`up` dump
-— **the diff must be empty**. Paste the command and the empty diff into the manifest; a `down` that
-merely exists in the file is not evidence. A genuinely irreversible phase (data destroyed) is
-declared irreversible in the PR body and becomes a one-way human gate, never a silent exception.
+A down path never run is a deploy that cannot be reversed. Per phase, before the PR is mergeable:
+run `up`, then `down`, dump the schema and diff it against the pre-`up` dump — **the diff must be
+empty**. Paste the command and that diff into the manifest; a `down` that merely exists is not
+evidence. An irreversible phase (data destroyed) is declared so in the PR body and becomes a
+one-way human gate, never a silent exception.
 
 ## Dual-validity, proven both directions
 
@@ -51,12 +53,11 @@ stated lock-time budget and an abort rule.
 ## Backfill: batched, throttled, resumable
 
 The backfill is a job, not a migration file: a single `UPDATE` over millions of rows locks the
-table. It processes a bounded batch by an ordered key, records the last committed key as its
-resume cursor, sleeps a throttle between batches, and watches replica lag or the equivalent
-saturation signal — over the ceiling, it backs off, it does not power through. A failed batch
-**resumes from the cursor; it never restarts** — a restart re-does completed work and, on a
-non-idempotent copy, corrupts what it already wrote. Every write is idempotent so a re-run of a
-batch is a no-op.
+table. It processes a bounded batch by an ordered key, records the last committed key as its resume
+cursor, sleeps a throttle between batches, and watches replica lag or the equivalent saturation
+signal — over the ceiling it backs off, it does not power through. A failed batch **resumes from
+the cursor; it never restarts** — a restart re-does completed work and, on a non-idempotent copy,
+corrupts what it already wrote. Every write is idempotent, so re-running a batch is a no-op.
 
 ## Phase oracle
 
@@ -70,21 +71,20 @@ mismatches=<full comparison>        any transformed-value mismatch = RED; resume
 sample=<k rows, seeded, ordered>    matching transformed-value hashes; diagnostics, not 100% proof
 ```
 
-Bind each probe to phase SHA, data boundary and seed. CONTRACT archives full parity while writes
-remain dual, retires old writers, then proves zero old readers/writers over the declared window
-before removal. After DROP, verify the archive, surviving shape and schema removal; query no dropped column.
+Bind each probe to phase SHA, data boundary and seed. RETIRE-WRITES archives full parity while
+writes are still dual, then deploys the retirement; ZERO-WRITERS observes that deploy. After DROP,
+verify the archive, surviving shape and schema removal; query no dropped column.
 
 ## Cutover is decoupled from the deploy
 
 Where the read switch is risky, it moves behind a flag so the cutover is a config change, not a
-release: flip, watch, flip back. The flag's removal is its own later change. Bake windows and the
-zero-reader window need production telemetry the fleet may not have — where it does not, the phase
-merges `CODE_CLOSED` with a `VERIFY_AT_SCALE` item naming the exact query and the window, never a
-claimed green.
+release: flip, watch, flip back. The flag's removal is its own later change. Bake and the zero-use
+windows need production telemetry the fleet may not have — where it does not, the phase merges
+`CODE_CLOSED` with a `VERIFY_AT_SCALE` item naming the exact query and window, never a claimed green.
 
 ## Completion (per phase)
 
 One deployable phase; exercised down path (schema diff empty, data recovery separately proven or
 human-gated as irreversible); both compatibility checks and that phase's oracle above green;
-engine-specific index/lock rules named. Missing window telemetry parks the phase. CONTRACT has
-archived parity, zero-use/removal evidence and a human gate. One phase per table in flight.
+engine-specific index/lock rules named. Missing window telemetry parks the phase. CONTRACT has the
+archive, both zero-use windows, removal evidence and a human gate. One phase per table in flight.

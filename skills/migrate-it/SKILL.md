@@ -2,10 +2,10 @@
 name: migrate-it
 description: >-
   Land a stateful schema or data change across deploys with old and new code valid at every step:
-  expand → dual-write → backfill → switch reads → zero-readers → contract, each phase its own
-  deployed and baked change, each with a down path that was written AND run, dual-validity proven
-  in both directions, and a parity probe GREEN after backfill and archived before the old shape
-  is dropped. The unit is one migration PHASE of one table or shape. Use when "migrate the
+  expand → dual-write → backfill → switch reads → zero-readers → retire-writes → zero-writers →
+  contract, each phase its own deployed and baked change, each with a down path that was written AND
+  run, dual-validity proven both directions, and a parity probe GREEN after backfill and archived
+  before the old shape is dropped. The unit is one migration PHASE of one table or shape. Use when "migrate the
   database", "rename this column safely", "expand/contract migration", "backfill this table",
   "split this table without downtime", "we cannot take downtime for this schema change", or a
   stateful dependency upgrade. Not for ordinary feature delivery through one release (ship-it),
@@ -21,7 +21,7 @@ metadata:
   proof: doctrine-only
   autonomy: L4
   unit: one migration phase of one table or shape
-  state_machine: expand → dual-write → throttled resumable backfill → switch reads → contract
+  state_machine: expand → dual-write → backfill → switch reads → retire-writes → contract
   convergence: data parity holds and zero readers of the old shape remain, across deploys
   ordering: strictly phased — a phase never starts before its predecessor is proven in production
   parking: MIGRATED-WITH-PARKED, or ABANDONED with the expand rolled back
@@ -66,16 +66,17 @@ SELF-ORIENT → PLAN: freeze the TABLE SET and the phase list per table (one row
 → BOOTSTRAP integration BASE (runtime/scripts/preflight.py --base <BASE> --fork-point <sha>;
   BASE ≠ default — dispatch-lifecycle.md).
 → PER PHASE, strictly serial per table (data-migration.md):
-    EXPAND[deploy + bake] → DUAL-WRITE[deploy + bake] → BACKFILL (batched, throttled, resumable;
-    parity probe) → SWITCH-READS[deploy + bake] → ZERO-READERS window → CONTRACT[separate deploy]
+    EXPAND → DUAL-WRITE → BACKFILL (batched, throttled, resumable; parity probe) → SWITCH-READS →
+    ZERO-READERS → RETIRE-WRITES → ZERO-WRITERS → CONTRACT — each rung its own deploy, each baked
   each phase: build (one unit, one PR against BASE) → down written and RUN (schema dump diff
   empty) → dual-validity both directions → build-blind REVIEW → LAND → deploy → BAKE, then the
   next phase is dispatched. Never two phases of one table in flight.
 → PARITY: re-probe after the last backfill batch and at SWITCH-READS; any mismatch resumes the
   backfill from its cursor and re-probes — it does not restart, and it does not advance.
 → ZERO-READERS: paste the declared window; keep dual writes until the pre-drop parity archive.
-→ CONTRACT: archive parity, retire old-shape writers, prove zero use, then drop in a separate
-  deploy/PR behind the one-way human gate; both rollout revisions already use only the new shape.
+→ RETIRE-WRITES: archive parity while still dual, then DEPLOY the retirement; zero use is observed
+  FROM that deploy, so it cannot share a rung with the drop. ZERO-WRITERS: paste that window too.
+→ CONTRACT: drop in a separate deploy/PR behind the one-way human gate; removal verified.
 → VERDICT + `compound-learn`: MIGRATED / MIGRATED-WITH-PARKED / ABANDONED.
 ```
 
@@ -90,20 +91,21 @@ is declared and human-gated, never asserted from a schema-only diff. Apply the p
 | EXPAND | Additive schema and compatibility; existing rows may have an empty new shape |
 | DUAL-WRITE | Inserts/updates after activation agree in both shapes; historical rows await backfill |
 | BACKFILL / SWITCH-READS | Cursor complete; full transformed-data parity on the frozen set, re-probed at switch |
-| CONTRACT | Archived pre-drop parity; zero old readers/writers over the window; schema proves removal |
+| RETIRE-WRITES / ZERO-WRITERS | Parity archived while dual; retirement deployed; no writer over the window |
+| CONTRACT | Archived pre-drop parity; zero old readers/writers over their windows; schema proves removal |
 
 Parity includes row counts, a complete mismatch check, and seeded sampled hashes of transformed
 values; counts/samples alone cannot claim 100%. Bind receipts to the phase SHA, data boundary and
-probe/seed. After removal, verify the archive and surviving shape; never query a dropped column.
-The verifier re-derives evidence without re-applying a landed migration. Executable populated
-SQLite walkthrough: docs/missions/migrate-it.md. Fixture proof does not replace production telemetry.
+probe/seed. After removal, verify the archive and surviving shape; never query a dropped column. The
+verifier re-derives evidence without re-applying a landed migration. Executable populated SQLite
+walkthrough: docs/missions/migrate-it.md; fixture proof never replaces production telemetry.
 
 ## Ledger + supervision
 
 Header at T0 per liveness-resume.md: `RUN · COORDINATOR · BASE · FORK_POINT · T0 · SOURCE · WIP`
 (SOURCE = the frozen table set + phase count; `WIP: builders=<n> reviewers=<n>` sized to
-attention-budget.md — a migration's real WIP is one phase per table, so the cap is usually the
-table count, not the builder count). One row per PHASE:
+attention-budget.md — real WIP is one phase per table, so the cap is usually the table count). One
+row per PHASE:
 
 `| task_id | table | phase | DOWN_RUN | DUAL_OK | BUILD_DONE | PR_OPEN | REVIEWED | MERGED | DEPLOYED | BAKED | PARITY | WT_CLEAN | park | evidence |`
 
@@ -114,8 +116,8 @@ schema, never from narration — the schema on disk says which phase actually la
 
 CONTRACT (the drop) is a one-way human gate, always, per gate-classification.md — as is any
 irreversible phase declared in its PR body. BASE→default promotion stays out of scope: open the
-promotion PR and stop. A bake window the fleet cannot observe is `CODE_CLOSED` + `VERIFY_AT_SCALE`
-with the exact query, never an assumed pass.
+promotion PR and stop. A window the fleet cannot observe is `CODE_CLOSED` + `VERIFY_AT_SCALE` with
+the exact query, never an assumed pass.
 
 ## Anti-patterns
 

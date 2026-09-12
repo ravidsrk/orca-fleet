@@ -1,7 +1,7 @@
 # 🗄️ migrate-it — a stateful shape change landed across deploys, nothing ever invalid
 
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — a coordinator plus isolated per-phase workers; phases of one table are strictly serial, and the destructive CONTRACT step is your one-way door.
-> **Activation load:** ~31,000 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
+> **Activation load:** ~31,100 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
 
 > Point it at "we need to rename this column and we cannot take downtime." Come back to a table
@@ -17,7 +17,8 @@
 
 `migrate-it` is the migration fleet. A **coordinator** freezes the table set and the phase list,
 then dispatches **one phase at a time per table** through the release machine: expand, dual-write,
-backfill, switch reads, a zero-reader window, and finally contract. Each phase is its own
+backfill, switch reads, a zero-reader window, retiring the old writers, a zero-writer window, and
+finally contract. Each phase is its own
 deployable change with its own bake, its own review, and its own evidence.
 
 The unit of work is **one migration phase of one table or shape** — not a feature slice. That is
@@ -54,8 +55,10 @@ flowchart TD
     F -->|mismatch| E
     F -->|GREEN| G[SWITCH-READS · deploy + bake]
     G --> H[ZERO-READERS window<br/>telemetry pasted]
-    H --> P[Archive full parity<br/>retire old writers · prove zero use]
-    P --> I[[CONTRACT · separate deploy<br/>one-way human gate · verify removal]]
+    H --> P[Archive full parity<br/>while writes are still dual]
+    P --> R[RETIRE-WRITES · deploy + bake<br/>old-shape writers retired]
+    R --> Z[ZERO-WRITERS window<br/>telemetry pasted]
+    Z --> I[[CONTRACT · separate deploy<br/>one-way human gate · verify removal]]
     I --> J{{MIGRATED}}
     H -->|no prod telemetry| K{{MIGRATED-WITH-PARKED}}
     C -.->|down path exercised| L{{ABANDONED}}
@@ -100,12 +103,15 @@ The parity requirement depends on the phase:
 | EXPAND | Additive schema and compatibility; the new shape may be empty on historical rows |
 | DUAL-WRITE | New inserts and updates agree in both shapes after activation; historical rows await backfill |
 | BACKFILL / SWITCH-READS | Cursor complete and complete transformed-data parity on the frozen set, checked again at switch |
-| CONTRACT | Archived pre-drop parity, zero old-shape readers/writers over the declared window, and schema evidence of removal |
+| RETIRE-WRITES | Pre-drop parity archived while writes were still dual, and the retirement deploy live |
+| ZERO-WRITERS | Telemetry over the declared window showing no writer of the old shape on that deploy |
+| CONTRACT | Archived pre-drop parity, zero old-shape readers/writers over their declared windows, and schema evidence of removal |
 
 Complete parity requires row counts and a full mismatch check; seeded sampled hashes provide
 repeatable diagnostics but cannot alone establish 100%. Each receipt names the phase SHA, data
 boundary, probe and seed. Keep dual writes through the pre-drop parity archive, then retire the
-old writers and observe zero use before removal. Both application revisions in the drop rollout
+old writers in their OWN deploy and observe zero use from it before removal — telemetry comes from
+a running deployment, so a rung that retired and dropped together could never observe a writer. Both application revisions in the drop rollout
 must already use only the new shape, so compatibility remains attainable. If recovery destroys
 data, declare it irreversible and use the human gate; a schema-only round trip proves no data recovery.
 
