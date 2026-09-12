@@ -12,7 +12,9 @@ paths at the recorded commit" — a fake that never touches git would test nothi
 import hashlib
 import importlib.util
 import json
+import shlex
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -47,6 +49,104 @@ def _report(mission, tier, rev, manifest, verifier, inventory, body=None):
         f"## Verifier outcome (recorded exactly)\n\n{shown}\n"
         f"{INVENTORY_HEADING}\n\n```\n{rows}\n```\n"
     )
+
+
+class ExecutionIdentity(unittest.TestCase):
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.repo = Path(tmp.name).resolve()
+        self.verifier = self.repo / "runtime/scripts/verify.py"
+        self.verifier.parent.mkdir(parents=True)
+        self.verifier.write_text("#!/usr/bin/env python3\nprint('REPOSITORY VERIFIER')\n")
+        self.verifier.chmod(0o755)
+        self.shadow = self.repo / "shadow/runtime/scripts/verify.py"
+        self.shadow.parent.mkdir(parents=True)
+        self.shadow.write_text("print('SHADOW')\n")
+        (self.repo / "inline_module.py").write_text("print('MODULE')\n")
+
+    def observed(self, prefix, script="runtime/scripts/verify.py"):
+        argv = [*prefix, script, "--manifest", "m.json"]
+        result = subprocess.run(argv, cwd=self.repo, input="", capture_output=True,
+                                text=True, timeout=10)
+        return shlex.join(argv), result
+
+    def test_interpreter_options_that_skip_the_script_are_rejected(self):
+        options = [["-cpass"], ["-ucpass"], ["-c", "pass"], ["-minline_module"],
+                   ["-Bm", "inline_module"], ["-m", "inline_module"],
+                   ["--version"], ["-V"], ["-VV"], ["-uV"], ["-h"], ["-?"],
+                   ["--help"], ["--help-env"], ["--help-xoptions"], ["--help-all"],
+                   ["--unknown-option"]]
+        for flags in options:
+            with self.subTest(flags=flags):
+                cmd, result = self.observed([sys.executable, *flags])
+                self.assertNotEqual(result.stdout.strip(), "REPOSITORY VERIFIER")
+                self.assertFalse(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+
+    def test_valid_interpreter_options_still_execute_the_verifier(self):
+        for flags in ([], ["-u"], ["-IB"], ["-OO"], ["-W", "ignore"], ["-Wignore"],
+                      ["-X", "dev"], ["-Xdev"], ["-uW", "ignore"],
+                      ["--check-hash-based-pycs", "always"], ["--"]):
+            with self.subTest(flags=flags):
+                cmd, result = self.observed([sys.executable, *flags])
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(result.stdout.strip(), "REPOSITORY VERIFIER")
+                self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+
+    def test_only_the_exact_repository_script_counts(self):
+        for script in ("shadow/runtime/scripts/verify.py", str(self.shadow)):
+            with self.subTest(script=script):
+                cmd, result = self.observed([sys.executable], script)
+                self.assertEqual(result.stdout.strip(), "SHADOW")
+                self.assertFalse(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+        for prefix, script in (([sys.executable], str(self.verifier)),
+                               ([sys.executable], "./runtime/scripts/verify.py"),
+                               ([], "./runtime/scripts/verify.py")):
+            with self.subTest(prefix=prefix, script=script):
+                cmd, result = self.observed(prefix, script)
+                self.assertEqual(result.stdout.strip(), "REPOSITORY VERIFIER")
+                self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+
+    def test_xoption_values_that_abort_initialization_are_rejected(self):
+        # CPython 3.13 --help-xoptions and using/cmdline.html define these value constraints.
+        options = ["int_max_str_digits", "int_max_str_digits=1", "int_max_str_digits=-1",
+                   "int_max_str_digits=abc", "int_max_str_digits=2147483648",
+                   "utf8=", "utf8=2", "frozen_modules=bad",
+                   "tracemalloc=-1", "tracemalloc=abc", "tracemalloc=65536",
+                   "tracemalloc=2147483648"]
+        if sys.version_info >= (3, 13):  # cpu_count/gil were introduced in 3.13
+            options += ["cpu_count", "cpu_count=0", "cpu_count=-1", "cpu_count=abc",
+                        "cpu_count=2147483648", "gil", "gil=2"]
+        for option in options:
+            for flags in (["-X", option], ["-uX" + option]):
+                with self.subTest(flags=flags):
+                    cmd, result = self.observed([sys.executable, *flags])
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertNotIn("REPOSITORY VERIFIER", result.stdout)
+                    self.assertFalse(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+
+    def test_valid_xoption_values_preserve_actual_script_execution(self):
+        options = ["int_max_str_digits=0", "int_max_str_digits=640", "int_max_str_digits=",
+                   "int_max_str_digits=+640", "utf8", "utf8=0", "utf8=1",
+                   "frozen_modules", "frozen_modules=", "frozen_modules=on", "frozen_modules=off",
+                   "tracemalloc", "tracemalloc=", "tracemalloc=0", "tracemalloc=1", "dev",
+                   "arbitrary=value"]
+        if sys.version_info >= (3, 13):
+            options += ["cpu_count=default", "cpu_count=1", "gil=1"]
+        for option in options:
+            for flags in (["-X", option], ["-X" + option]):
+                with self.subTest(flags=flags):
+                    cmd, result = self.observed([sys.executable, *flags])
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertEqual(result.stdout.strip(), "REPOSITORY VERIFIER")
+                    self.assertTrue(run_report.executes_verifier(cmd, "m.json", self.repo), cmd)
+
+    def test_repeated_xoptions_use_the_first_initialization_value(self):
+        for values, expected in ((["utf8=1", "utf8=2"], True), (["utf8=2", "utf8=1"], False)):
+            with self.subTest(values=values):
+                cmd, result = self.observed([sys.executable, "-X", values[0], "-X", values[1], "--"])
+                self.assertEqual(result.stdout.strip() == "REPOSITORY VERIFIER", expected)
+                self.assertEqual(run_report.executes_verifier(cmd, "m.json", self.repo), expected)
 
 
 class RunReportBinding(unittest.TestCase):
@@ -161,6 +261,79 @@ class RunReportBinding(unittest.TestCase):
                     f"python3 {V} --manifest"):
             self.assertFalse(run_report.executes_verifier(cmd, m), cmd)
 
+    def test_the_interpreter_is_read_as_argv_too(self):
+        """PR #327 review, P1.
+
+        The executable was accepted on a basename that STARTS WITH `python`, so
+        `/tmp/python3 runtime/scripts/verify.py --manifest m.json` satisfied verifier_ran with
+        an arbitrary binary — a symlink to /bin/true runs nothing and records a pass. The
+        interpreter is part of the recorded argv and is read like the rest of it.
+        """
+        m = self.manifest
+        V = "runtime/scripts/verify.py"
+        for cmd in (
+            # An executable the run put somewhere it can write is not an interpreter.
+            f"/tmp/python3 {V} --manifest {m}",
+            f"/var/tmp/python3 -u {V} --manifest {m}",
+            f"/dev/shm/python {V} --manifest {m}",
+            f"/tmp/nested/python3.11 {V} --manifest {m}",
+            # Nor is one inside the tree under review, which the run certainly writes.
+            f"{self.repo}/python3 {V} --manifest {m}",
+            # A relative path resolves against a cwd this check cannot know.
+            f"./python3 {V} --manifest {m}",
+            f"tools/python3 {V} --manifest {m}",
+            f"/usr/bin/../tmp/python3 {V} --manifest {m}",
+            # A name that merely begins with `python` is not a Python.
+            f"python-decoy {V} --manifest {m}",
+            f"pythonish {V} --manifest {m}",
+            f"/usr/bin/python3-wrapper {V} --manifest {m}",
+            f"python3x {V} --manifest {m}",
+        ):
+            with self.subTest(cmd=cmd):
+                self.assertFalse(run_report.executes_verifier(cmd, m, self.repo), cmd)
+        for cmd in (
+            # The documented form: PATH resolves a bare name.
+            f"python3 {V} --manifest {m}",
+            f"python {V} --manifest {m}",
+            f"python3.13 {V} --manifest {m}",
+            f"python3.13t {V} --manifest {m}",
+            # A real system interpreter, and a virtualenv outside the graded tree.
+            f"/usr/bin/python3 -u {V} --manifest {m}",
+            f"/usr/local/bin/python3.11 {V} --manifest {m}",
+            f"/opt/ci/venv/bin/python3 {V} --manifest {m}",
+            f"env FOO=1 /usr/bin/python3 {V} --manifest={m}",
+        ):
+            with self.subTest(cmd=cmd):
+                self.assertTrue(run_report.executes_verifier(cmd, m, self.repo), cmd)
+
+    def test_an_interpreter_inside_the_graded_tree_is_the_runs_own(self):
+        # The temp repo above lives under /tmp, where the scratch rule would mask this one.
+        root = "/opt/checkouts/orca-fleet"
+        for token in (f"{root}/python3", f"{root}/.venv/bin/python3",
+                      f"{root}/runtime/scripts/python"):
+            with self.subTest(token=token):
+                self.assertFalse(run_report._is_python_interpreter(token, root), token)
+        for token in ("/opt/checkouts/other/python3", "/usr/bin/python3", "python3"):
+            with self.subTest(token=token):
+                self.assertTrue(run_report._is_python_interpreter(token, root), token)
+
+    def test_a_decoy_interpreter_does_not_buy_a_tier(self):
+        # End to end: the ledger record hashes true and names a real tree, and still buys nothing.
+        payload = json.loads((self.repo / self.manifest).read_text())
+        line = f"/tmp/python3 runtime/scripts/verify.py --manifest {self.manifest}"
+        payload["commands"] = [{
+            "label": "verifier", "cmd": line, "exit": 0,
+            "cmd_sha256": hashlib.sha256(line.encode("utf-8")).hexdigest(),
+            "wtree": _git(self.repo, "rev-parse", "HEAD^{tree}"),
+        }]
+        (self.repo / self.manifest).write_text(json.dumps(payload) + "\n", encoding="utf-8")
+        _git(self.repo, "add", "-A")
+        _git(self.repo, "commit", "-qm", "decoy interpreter")
+        rev = _git(self.repo, "rev-parse", "HEAD")
+        problems = run_report.verifier_ran(self.manifest, rev, self.repo)
+        self.assertTrue(problems, "a decoy interpreter must not satisfy verifier_ran")
+        self.assertIn("records no commands[] entry running", problems[0])
+
     def test_an_echoed_invocation_does_not_buy_a_tier(self):
         # The same thing end to end: a fabricated report whose ledger only echoes the command.
         cmd = f"echo runtime/scripts/verify.py --manifest {self.manifest}"
@@ -168,6 +341,19 @@ class RunReportBinding(unittest.TestCase):
             "label": "verify", "cmd": cmd,
             "cmd_sha256": hashlib.sha256(cmd.encode("utf-8")).hexdigest(),
             "exit": 0, "wtree": self.rev}]})
+        errs = self._check()
+        self.assertTrue(any("records no commands[] entry" in e for e in errs), errs)
+
+    def test_an_actual_inline_execution_does_not_buy_a_tier(self):
+        argv = [sys.executable, "-cpass", "runtime/scripts/verify.py", "--manifest", self.manifest]
+        result = subprocess.run(argv, cwd=self.repo, capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout, "")
+        cmd = shlex.join(argv)
+        self._remanifest({"unit": "u1", "commands": [{
+            "label": "verify", "cmd": cmd,
+            "cmd_sha256": hashlib.sha256(cmd.encode()).hexdigest(),
+            "exit": result.returncode, "wtree": _git(self.repo, "rev-parse", "HEAD^{tree}")}]})
         errs = self._check()
         self.assertTrue(any("records no commands[] entry" in e for e in errs), errs)
 

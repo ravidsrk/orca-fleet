@@ -177,21 +177,30 @@ def merge_base(repo, base):
 def collect_diff(repo, mb):
     """Unified-0 diff against the merge base, plus every untracked file rendered
     as an all-added diff. Returns the concatenated diff text."""
-    tracked = git(repo, "diff", "--unified=0", mb, "--") or ""
-    others = git(repo, "ls-files", "--others", "--exclude-standard") or ""
+    diff_options = ("--no-ext-diff", "--no-textconv", "--unified=0")
+    tracked = git(repo, "diff", *diff_options, mb, "--")
+    if tracked is None:
+        raise GuardError("tracked/staged diff acquisition failed")
+    others = git(repo, "ls-files", "-z", "--others", "--exclude-standard")
+    if others is None:
+        raise GuardError("untracked file enumeration failed")
     chunks = [tracked]
-    for name in others.splitlines():
-        if not name.strip():
+    for name in others.split("\0"):
+        if not name:
             continue
         # --no-index exits 1 when the files differ; that is the normal case, so
         # go through subprocess directly rather than git() (which returns None).
         try:
             r = subprocess.run(
-                ["git", "-C", str(repo), "diff", "--no-index", "--unified=0", "--", "/dev/null", name],
+                ["git", "-C", str(repo), "diff", "--no-index", *diff_options, "--", "/dev/null", name],
                 capture_output=True, text=True, timeout=60,
             )
-        except (OSError, subprocess.SubprocessError):
-            continue
+        except (OSError, subprocess.SubprocessError) as err:
+            raise GuardError("untracked diff acquisition failed to run") from err
+        # Git also exits 1 for inaccessible input, with no acquired patch. A
+        # successful difference must have output; exit 0 may legitimately be empty.
+        if r.returncode not in (0, 1) or (r.returncode == 1 and not r.stdout):
+            raise GuardError(f"untracked diff acquisition failed (exit {r.returncode})")
         chunks.append(r.stdout)
     return "\n".join(chunks)
 

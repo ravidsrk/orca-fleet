@@ -89,6 +89,7 @@ git clone https://github.com/ravidsrk/orca-fleet.git
 
 # 2. Link one mission into Claude Code (link, don't copy — missions reference
 #    playbooks/ and runtime/ by relative path)
+mkdir -p ~/.claude/skills
 ln -s "$(pwd)/orca-fleet/skills/ship-it" ~/.claude/skills/ship-it
 
 # 3. A symlink install loads NO plugin, so it gets no completion gate. Wire it:
@@ -391,6 +392,7 @@ cd orca-fleet
 # Link the missions you want — link, don't copy. Missions reference ../../playbooks/
 # and ../../runtime/ relative to their own directory; a symlink preserves that, a
 # copy breaks it.
+mkdir -p ~/.claude/skills
 ln -s "$(pwd)/skills/ship-it"     ~/.claude/skills/ship-it
 ln -s "$(pwd)/skills/clean-sweep" ~/.claude/skills/clean-sweep
 

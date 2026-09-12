@@ -50,10 +50,12 @@ class LedgerCase(unittest.TestCase):
         self.assertEqual(r.returncode, 0, r.stderr)
         return r.stdout.strip()
 
-    def run_wrapped(self, *cmd, label="tests", manifest="m.json", artifact=None):
+    def run_wrapped(self, *cmd, label="tests", manifest="m.json", artifact=None, cwd=None):
         argv = [sys.executable, str(RUNNER), "--label", label, "--manifest", manifest]
         if artifact:
             argv += ["--artifact", artifact]
+        if cwd is not None:
+            argv += ["--cwd", str(cwd)]
         argv += ["--", *cmd]
         return subprocess.run(argv, cwd=self.repo, capture_output=True, text=True)
 
@@ -181,6 +183,59 @@ class ContentBinding(LedgerCase):
                            capture_output=True, text=True)
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertEqual(r.stdout.strip(), self.git("rev-parse", "HEAD^{tree}"))
+
+
+class ExplicitWorkingDirectory(LedgerCase):
+    def setUp(self):
+        super().setUp()
+        other = tempfile.TemporaryDirectory()
+        self.addCleanup(other.cleanup)
+        self.target = Path(other.name).resolve()
+        subprocess.run(["git", "init", "-q", "-b", "main", str(self.target)], check=True)
+        for repo, name, code in ((self.repo, "CALLER", 7), (self.target, "TARGET", 0)):
+            (repo / "probe.py").write_text(
+                f"from pathlib import Path\nprint({name!r}, Path.cwd())\nraise SystemExit({code})\n")
+            (repo / "blocked").write_text("a file, not an artifact directory\n")
+            subprocess.run(["git", "add", "probe.py", "blocked"], cwd=repo, check=True)
+            subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t", "commit",
+                            "-qm", "distinct fixture outcome"], cwd=repo, check=True)
+        self.target_head = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=self.target, text=True).strip()
+        self.target_tree = subprocess.check_output(
+            ["git", "rev-parse", "HEAD^{tree}"], cwd=self.target, text=True).strip()
+        self.assertNotEqual(self.target_head, self.git("rev-parse", "HEAD"))
+        self.assertNotEqual(self.target_tree, self.git("rev-parse", "HEAD^{tree}"))
+
+    def assert_target_execution(self, result):
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(result.stdout.strip(), f"TARGET {self.target}")
+        manifest = self.target / "reports/manifest.json"
+        self.assertTrue(manifest.is_file(), "relative manifest belongs in the explicit cwd")
+        self.assertFalse((self.repo / "reports/manifest.json").exists())
+        rec = json.loads(manifest.read_text())["commands"][0]
+        self.assertEqual(rec["commit"], self.target_head)
+        self.assertEqual(rec["wtree"], self.target_tree)
+        self.assertEqual(rec["exit"], 0)
+        return rec
+
+    def test_explicit_cwd_without_artifact_binds_the_actual_repository(self):
+        r = self.run_wrapped(sys.executable, "probe.py", cwd=self.target,
+                             manifest="reports/manifest.json")
+        self.assertIsNone(self.assert_target_execution(r)["artifact"])
+
+    def test_relative_cwd_with_artifact_binds_the_actual_repository(self):
+        r = self.run_wrapped(sys.executable, "probe.py", cwd=os.path.relpath(self.target, self.repo),
+                             manifest="reports/manifest.json", artifact="reports/output.txt")
+        rec = self.assert_target_execution(r)
+        self.assertEqual(rec["artifact"], "reports/output.txt")
+        self.assertEqual((self.target / rec["artifact"]).read_text(), r.stdout)
+        self.assertFalse((self.repo / "reports/output.txt").exists())
+
+    def test_artifact_open_failure_keeps_the_explicit_cwd(self):
+        r = self.run_wrapped(sys.executable, "probe.py", cwd=self.target,
+                             manifest="reports/manifest.json", artifact="blocked/output.txt")
+        self.assert_target_execution(r)
+        self.assertIn("cannot open artifact", r.stderr)
 
 
 if __name__ == "__main__":
