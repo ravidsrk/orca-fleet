@@ -165,7 +165,7 @@ PAYLOAD=$(cat 2>/dev/null || true)
 
 # Extract tool_name, tool_input.command and tool_input.file_path as three lines.
 # A parse failure (or no python3) exits non-zero here and DENIES below.
-FIELDS=$(printf '%s' "$PAYLOAD" | python3 -c 'import json,sys
+FIELDS=$(printf '%s' "$PAYLOAD" | python3 -c 'import json,re,shlex,sys
 d = json.loads(sys.stdin.read())
 if not isinstance(d, dict):
     raise SystemExit(1)
@@ -251,6 +251,50 @@ def segments(cmd):
     return [seg for seg in segs if seg.strip()]
 
 
+def policy_word(word):
+    # This is an internal comparison word, NEVER shell code. Encode whitespace,
+    # quotes and escapes so shell word splitting cannot turn one operand into
+    # flags/refspecs. Literal command/option words lose their shell quoting.
+    return "".join("\\%03o" % ord(ch) if ch.isspace() or ch in (SQ, DQ, "\\")
+                   else ch for ch in word) or "\\000"
+
+
+def shell_tokens(seg):
+    # Keep operator identity BEFORE quote removal: quoted/escaped > is data.
+    # A descriptor is optional and may have several digits. After an operator,
+    # however, the next word is its target: in 10>&1>file, 1 is not another fd.
+    ops = r"(?:&>>|&>|>>|>\||>&|<>|<<<|<<-|<<|<&|>|<)"
+    i, target = 0, False
+    while i < len(seg):
+        if seg[i].isspace():
+            i += 1
+            continue
+        op = re.match(ops if target else r"[0-9]*" + ops, seg[i:])
+        if op:
+            yield "redirect", op[0].lstrip("0123456789")
+            i += len(op[0])
+            target = True
+            continue
+        start, quote = i, ""
+        while i < len(seg):
+            ch = seg[i]
+            if ch == "\\" and quote != SQ:
+                i += 2
+                continue
+            if quote:
+                if ch == quote:
+                    quote = ""
+            elif ch in (SQ, DQ):
+                quote = ch
+            elif ch.isspace() or ch in "<>&":
+                break
+            i += 1
+        if i == start:
+            raise ValueError("unexpected operator")
+        yield "word", shlex.split(seg[start:i])[0]
+        target = False
+
+
 command = c(ti.get("command"))
 print(s(d.get("tool_name")))
 print(command)
@@ -258,10 +302,24 @@ print(command)
 # file_path left the one write tool that spells the field differently free of
 # the boundary entirely (#297).
 print(s(ti.get("file_path") or ti.get("notebook_path")))
-# Line 4 onward: one segment per line, already split. A segment cannot hold a newline — the
-# command was flattened above — so the shell reads them as lines and never re-splits on words.
+# Line 4 onward: C = comparison command, W = write target, A = literal argument.
+# Paths stay decoded on their own lines; comparison words cannot split operands.
 for seg in segments(command):
-    print(seg)' 2>/dev/null) || {
+    args, writes, pending = [], [], None
+    for kind, value in shell_tokens(seg):
+        if kind == "redirect":
+            pending = value
+        elif pending:
+            if pending in (">", ">>", ">|", ">&", "&>", "&>>", "<>"):
+                writes.append(value)
+            pending = None
+        else:
+            args.append(value)
+    print("C " + " ".join(policy_word(word) for word in args))
+    for path in writes:
+        print("W " + path)
+    for word in args:
+        print("A " + word)' 2>/dev/null) || {
   decide deny "deny-hook: the tool payload could not be parsed. Fail-closed: an unreadable payload is refused, never allowed."
   exit 0
 }
@@ -575,14 +633,47 @@ git_redirected() {
   done
 }
 
-# The segments come PRE-SPLIT from the payload reader above, one per line from line 4 on. They
+# Normalize push options only after the command/global-option run was resolved.
+# Operand-taking options consume the rest of a short cluster or the next word;
+# `-vof` carries push-option `f`, whereas `-vf` forces. Operand text must never
+# supply a force flag, a lease, or a deleted ref to the HIGH tier.
+push_policy() {
+  python3 -c 'import sys
+words = sys.argv[1].split()
+out, skip, options = [], False, True
+for word in words:
+    if skip:
+        skip = False
+        continue
+    if word == "--":
+        options = False
+    elif options and word in ("-o", "--push-option", "--receive-pack", "--exec", "--repo"):
+        skip = True
+        continue
+    elif options and word.startswith("-") and not word.startswith("--"):
+        cluster = word[1:]
+        for i, flag in enumerate(cluster):
+            if flag == "o":
+                skip = i == len(cluster) - 1
+                break
+            if flag not in "vqnfdu46":
+                out.append(word)
+                break
+            out.append("-" + flag)
+        continue
+    out.append(word)
+print(" ".join(out))' "$1"
+}
+
+# The C records carry PRE-SPLIT, word-normalized commands from the payload reader above. They
 # are split there because splitting is quote-aware and a POSIX shell cannot parse quoting without
 # eval: a separator inside a quoted value used to split too, leaving the rest of the value glued
 # to the FRONT of the next segment, and every rule below is anchored at `^`. `X="a&b" git push
 # --force origin main` became `b" git push --force origin main` and was allowed (PR #308 review,
-# P1). Loading them into positional parameters keeps the loop out of a subshell, so a
+# P1). Selecting only C records keeps literal path/argument records out of the HIGH tier.
+# Loading the commands into positional parameters keeps the loop out of a subshell, so a
 # `decide deny` inside it still exits the script.
-_SEGS=$(printf '%s\n' "$FIELDS" | sed -n '4,$p')
+_SEGS=$(printf '%s\n' "$FIELDS" | sed -n '4,$s/^C //p')
 _OLDIFS=$IFS
 IFS='
 '
@@ -625,6 +716,7 @@ for _SEG in "$@"; do
   # `git push origin :main`, `-d` and `--delete` carry no force flag at all and
   # sailed under both force rules (#297).
   if has '^[[:space:]]*(sudo[[:space:]]+)?git[[:space:]]+push([[:space:]]|$)'; then
+    CMD=$(push_policy "$CMD")
     DEFAULT_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|^refs/remotes/origin/||' || true)
     if [ -z "$DEFAULT_BRANCH" ]; then
       if git show-ref --verify -q refs/remotes/origin/main 2>/dev/null; then DEFAULT_BRANCH="main"
@@ -748,7 +840,6 @@ if [ -n "${ORCA_UNIT_WORKTREE:-}" ]; then
 
   bounded_write() {
     _t=$1
-    _t=${_t#\"}; _t=${_t%\"}; _t=${_t#\'}; _t=${_t%\'}
     case "$_t" in /*) : ;; *) return 0 ;; esac
     # The process's own standard streams and the bit bucket. `make > /dev/null`
     # is the most common redirect there is and writes nothing anyone can read;
@@ -765,45 +856,19 @@ if [ -n "${ORCA_UNIT_WORKTREE:-}" ]; then
     exit 0
   }
 
-  for _SEG in "$@"; do
-    # `tee` counts only as the segment's own command — `grep tee /etc/passwd`
-    # reads a file, and refusing a read here would be a boundary inventing work.
-    _TEE=0
-    case "$(strip_prefix "$_SEG")" in tee|tee\ *) _TEE=1 ;; esac
-    _PENDING=0
-    set -f
-    # shellcheck disable=SC2086
-    for TOK in $_SEG; do
-      if [ "$_PENDING" -eq 1 ]; then
-        _PENDING=0
-        bounded_write "$TOK"
-        continue
-      fi
-      case "$TOK" in
-        '>'|'>>'|'>|'|'>&'|'&>'|'&>>'|[0-9]'>'|[0-9]'>>'|[0-9]'>|') _PENDING=1 ;;
-        # `&>file` and `>&file` are both bash's both-streams redirect and write a
-        # file; `>&1` and `>&2` duplicate a descriptor. A bare digit is relative,
-        # so those reach bounded_write and only the path is ever judged.
-        #
-        # These two arms were deleted once as inert — correctly, when the splitter
-        # was a sed pass that cut at the `&` of `&>` and left `> file` whole in the
-        # next segment. Quote-aware splitting consumes a redirect operator WHOLE,
-        # so `&>` now arrives here as a token and needs reading (PR #308 review).
-        '&>>'*)     bounded_write "${TOK#'&>>'}" ;;
-        '&>'*)      bounded_write "${TOK#'&>'}" ;;
-        '>&'*)      bounded_write "${TOK#'>&'}" ;;
-        [0-9]'>>'*) bounded_write "${TOK#?'>>'}" ;;
-        [0-9]'>|'*) bounded_write "${TOK#?'>|'}" ;;
-        [0-9]'>'*)  bounded_write "${TOK#?'>'}" ;;
-        '>>'*)      bounded_write "${TOK#'>>'}" ;;
-        '>|'*)      bounded_write "${TOK#'>|'}" ;;
-        '>'*)       bounded_write "${TOK#'>'}" ;;
-        -*) : ;;
-        *) if [ "$_TEE" -eq 1 ]; then bounded_write "$TOK"; fi ;;
-      esac
-    done
-    set +f
-  done
+  # Consume typed records without splitting paths on whitespace. The here-doc
+  # keeps this loop in the main shell so a refusal exits the entire hook.
+  _TEE=0
+  while IFS= read -r _RECORD; do
+    case "$_RECORD" in
+      'C '*) _TEE=0
+             case "$(strip_prefix "${_RECORD#C }")" in tee|tee\ *) _TEE=1 ;; esac ;;
+      'W '*) bounded_write "${_RECORD#W }" ;;
+      'A '*) if [ "$_TEE" -eq 1 ]; then bounded_write "${_RECORD#A }"; fi ;;
+    esac
+  done <<EOF
+$(printf '%s\n' "$FIELDS" | sed -n '4,$p')
+EOF
 fi
 # --- Never list (ask) --------------------------------------------------------
 ask() { decide ask "deny-hook[NEVER-LIST]: $1 Per runtime/sandbox-policy.md this needs a recorded human grant before it runs."; exit 0; }

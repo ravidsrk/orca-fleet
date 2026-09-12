@@ -80,6 +80,21 @@ class HookBase(unittest.TestCase):
 
 
 class TestHighTierDenies(HookBase):
+    def test_literal_quoted_command_and_option_words_are_denied(self):
+        # R8 / AC-1: JSON decision fixtures only; these commands never execute.
+        for command in (
+            "'git' push --force origin main",
+            'git "push" "--force" origin main',
+            'g"i"t pu\'sh\' --for"ce" origin main',
+            "git push '--delete' origin 'main'",
+            "'rm' '-rf' '/'",
+            "git '-C' '/srv/dir one' push '--delete' origin topic",
+        ):
+            with self.subTest(command=command):
+                block = self.decision(self.fire(event("Bash", command=command)))
+                self.assertIsNotNone(block, command)
+                self.assertEqual(block["permissionDecision"], "deny", command)
+
     def test_every_forbidden_shape_is_denied(self):
         for command in HIGH_DENY_COMMANDS:
             with self.subTest(command=command):
@@ -87,6 +102,42 @@ class TestHighTierDenies(HookBase):
                 self.assertIsNotNone(block, f"{command!r} produced no decision at all")
                 self.assertEqual(block["permissionDecision"], "deny", command)
                 self.assertTrue(block["permissionDecisionReason"].strip())
+
+    def test_push_short_clusters_cannot_hide_force_or_default_deletion(self):
+        for command in (
+            "git push -vf origin main", "git push -fv origin main",
+            "git push '-qvf' origin topic", "git push -vd origin main",
+            "git push -dv origin refs/heads/main",
+            "git push -vfd --force-with-lease origin main",
+            "git push -vo ci.skip -f origin main",
+            "git push -voci.skip -d origin main",
+            "git push -o --force-with-lease -vf origin main",
+            "git push -4f origin main", "git push '-6d' origin main",
+        ):
+            with self.subTest(command=command):
+                block = self.decision(self.fire(event("Bash", command=command)))
+                self.assertIsNotNone(block, command)
+                self.assertEqual(block["permissionDecision"], "deny", command)
+
+    def test_benign_quoted_words_and_push_option_operands_stay_allowed(self):
+        for command in (
+            "'git' 'push' 'origin' 'topic'",
+            "'git' push '--force-with-lease' origin main",
+            'git push -o "--force" origin topic',
+            'git push -o "--delete" origin main',
+            'git push -o "+main" origin topic',
+            'git push -o "message --force origin main" origin topic',
+            'git push -vo "--force" origin topic',
+            'git push -vof origin topic',
+            'git push -vd --force-with-lease origin topic',
+        ):
+            with self.subTest(command=command):
+                block = self.decision(self.fire(event("Bash", command=command)))
+                if "-vd" in command:
+                    self.assertIsNotNone(block, command)
+                    self.assertEqual(block["permissionDecision"], "ask", command)
+                else:
+                    self.assertIsNone(block, command)
 
     def test_force_push_to_the_default_branch_names_it(self):
         block = self.decision(self.fire(event("Bash", command="git push --force origin main")))
@@ -804,6 +855,51 @@ class TestBashWritesAreBounded(HookBase):
         ):
             with self.subTest(command=command):
                 self._deny(command)
+
+    def test_adjacent_and_multi_digit_redirects_deny_outside_targets(self):
+        # R9 / AC-2: no shell payload executes; only the hook decision is read.
+        out = self.outside / "landed file"
+        for command in (
+            f'printf x>{self.outside}/landed',
+            f'printf x>"{out}"', f"printf x>>'{out}'",
+            f'printf x 10>"{out}"', f'printf x 123>>"{out}"',
+            f'printf x 10>|"{out}"', f'printf x&>"{out}"',
+            f'printf x&>>"{out}"', f'printf x 10>&"{out}"',
+            f'printf x>"{self.outside}"/landed',
+            f'printf x 10> {self.outside}/landed',
+            f'printf x 10>&1>"{out}"',
+        ):
+            with self.subTest(command=command):
+                self._deny(command)
+        self.assertFalse(out.exists(), "decision fixtures must never execute payloads")
+
+    def test_literal_redirect_targets_preserve_spaces_and_quoted_operators(self):
+        safe = self.wt / "sub" / "safe file"
+        for command in (
+            f'printf x>"{safe}"', f"printf x 123>>'{safe}'",
+            f'printf x 10>|"{safe}"', 'printf x>"/dev/null"',
+            'printf x 10>"/dev/null"', 'printf x 123>&2',
+            f'printf "%s" "x>{self.outside}/landed"',
+            f'printf "%s" ">" "{self.outside}/landed"',
+            f'printf x\\>{self.outside}/landed',
+            f'cat <"{self.outside}/secret"',
+            f'cat <<<"{self.outside}/secret"',
+            f'cat real.txt | "tee" "{safe}"',
+        ):
+            with self.subTest(command=command):
+                self.assertIsNone(self.decision(self._fire_bash(command)), command)
+        self.assertFalse(safe.exists(), "decision fixtures must never execute payloads")
+
+    def test_a_quoted_tee_target_with_spaces_is_bounded(self):
+        self._deny(f'cat real.txt | "tee" "{self.outside}/landed file"')
+
+    def test_quoted_redirect_targets_resolve_symlinks_with_spaces(self):
+        escape = self.wt / "escape link"
+        escape.symlink_to(self.outside / "secret")
+        safe = self.wt / "safe link"
+        safe.symlink_to(self.wt / "real.txt")
+        self._deny(f'printf x>"{escape}"')
+        self.assertIsNone(self.decision(self._fire_bash(f'printf x>"{safe}"')))
 
     def test_a_tee_destination_is_bounded(self):
         for command in (f"cat real.txt | tee {self.outside / 'stolen'}",
