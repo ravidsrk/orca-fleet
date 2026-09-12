@@ -715,10 +715,17 @@ for word in words:
     elif word == "--no-force-with-lease":
         if options:
             lease = False
+        else:
+            out.append("--lease-operand")
         continue
     elif word == "--force-with-lease" or word.startswith("--force-with-lease="):
         if options:
             lease = True
+        else:
+            # An operand grants no lease but keeps its position: after --, the
+            # deletion loops skip the word after -o/--repo, and dropping this
+            # one would hand them the deleted ref instead.
+            out.append("--lease-operand")
         continue
     elif options and word.startswith("-") and not word.startswith("--"):
         cluster = word[1:]

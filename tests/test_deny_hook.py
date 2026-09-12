@@ -682,6 +682,24 @@ class TestDefaultBranchDeletion(HookBase):
         # rewrite, and the lease says nothing about it.
         self._deny("git push --force-with-lease origin :main")
 
+    def test_an_operand_lease_word_keeps_the_deletion_in_view(self):
+        # After --, an operand-taking option skips the NEXT word positionally. A
+        # lease word there is only an operand; dropping it shifted the skip onto
+        # the deleted ref, so these went from deny/ask at the frozen base to allow.
+        for opt in ("-o", "--push-option", "--receive-pack", "--exec", "--repo"):
+            for lease in ("--force-with-lease", "--force-with-lease=main",
+                          "--no-force-with-lease"):
+                for command in (f"git push origin -- {opt} {lease} :main",
+                                f"git push -d -- {opt} {lease} main"):
+                    with self.subTest(command=command):
+                        self._deny(command)
+                for command in (f"git push origin -- {opt} {lease} :topic",
+                                f"git push -- {opt} {lease} -d"):
+                    with self.subTest(command=command):
+                        block = self.decision(self.fire(event("Bash", command=command)))
+                        self.assertIsNotNone(block, f"{command!r} produced no decision at all")
+                        self.assertEqual(block["permissionDecision"], "ask", command)
+
     def test_the_deny_reason_names_the_default_branch(self):
         block = self._deny("git push origin :main")
         self.assertIn("default branch", block["permissionDecisionReason"])
