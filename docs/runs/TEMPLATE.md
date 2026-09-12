@@ -1,37 +1,33 @@
 # Run report — <mission> <self-run | external-run>, <YYYY-MM-DD>
 
-Copy this file to `docs/runs/<YYYY-MM-DD>-<mission>-<self-run|external-run>.md`, fill every
-section, add the row to the index table in [README.md](README.md), then set the mission's
-`metadata.proof:` and `metadata.proof_evidence:` to the new path.
+Every mission run fills this report in the **target project**, with evidence in its own
+`docs/runs/<YYYY-MM-DD>-<mission>-<self-run|external-run>/` directory. Copy the template to
+`docs/runs/<YYYY-MM-DD>-<mission>-<self-run|external-run>.md` and fill every applicable section;
+explain any inapplicable section. Recording a run does not advance the catalog's proof tier.
+Use `tier=doctrine-only` unless the separate **Catalog proof promotion** procedure below passes.
 
-Nothing else advances a tier, and naming the mission is not enough (issue #259).
-`runtime/scripts/run_report.py`, called from `scripts/validate.py`, requires all of:
+Run commands from the target project's Git root. In a source-clone install, set
+`ORCA_FLEET_ROOT` to the absolute catalog clone; in a copied install, use the absolute mission
+directory containing `SKILL.md`. Replace every `runtime/scripts/<file>` invocation below with
+`"$ORCA_FLEET_ROOT/runtime/scripts/<file>"`; project commands, manifests, contracts, reports, and
+artifact paths stay relative to the target project. Protocol names resolve through the installed
+`references/README.md` index (or the catalog's playbooks/runtime directories for a source install).
 
-* the `RUN:` header below, exactly once, with every field;
-* `inventory_at=` a commit that exists **in this repository**;
-* `manifest=` a path that exists at that commit and lives inside this run's own
-  `docs/runs/<YYYY-MM-DD>-<mission>…/` artifact directory — borrowing another run's manifest is
-  refused;
-* `verifier=GREEN|RED` matching what the "Verifier outcome" section records (a RED is honest: a
-  solo run cannot manufacture an independent approver) — and the body must show the ACTUAL
-  invocation, `verify.py … --manifest <that same manifest path>`, not a description of it. Paste
-  the command and its exit code; a sentence about having run it is not a transcript;
-* the integrity inventory re-hashing at `inventory_at` — zero mismatches, at least one verified
-  path inside this run's own directory, **the graded manifest among the hashed paths**, and none
-  of this run's own artifacts absent there. Paths outside the run directory may have moved on;
-  the evidence the run is responsible for may not.
-
-If your artifacts are not committed here, this report is recorded history and the mission stays
-`doctrine-only`. Say that in an "Evidence binding" section rather than claiming a tier.
+Record exactly one `RUN:` header: mission, tier, the target-project evidence commit as
+`inventory_at`, the manifest in this run's own artifact directory, and the actual verifier
+outcome. Keep a RED result as RED; it cannot certify completion. A coordinator independently
+checks the manifest under `evidence-manifest` before a unit advances. If artifacts remain
+uncommitted, record that explicitly in **Evidence binding**, use `inventory_at=uncommitted`,
+and retain a content-hashed archive location; do not invent a commit or claim proof promotion.
 
 ```
-RUN: mission=<mission> tier=<self-run|external-run> inventory_at=<commit> manifest=docs/runs/<YYYY-MM-DD>-<mission>…/<manifest>.json verifier=<GREEN|RED>
+RUN: mission=<mission> tier=<doctrine-only|self-run|external-run> inventory_at=<commit> manifest=docs/runs/<YYYY-MM-DD>-<mission>…/<manifest>.json verifier=<GREEN|RED>
 ```
 
 | Field | Value |
 |---|---|
-| Mission | `<mission>` — `skills/<mission>/SKILL.md` at `<sha>` |
-| Tier claimed | `self-run` (target is this catalog) or `external-run` (target is another repo) |
+| Mission | `<mission>` — mission source revision `<sha>` and installed location `<path>` |
+| Tier claimed | `doctrine-only` unless catalog promotion passes; run kind: `self-run` (catalog) / `external-run` (other project) |
 | Target | `<repo, surface, PR, or tracker>` |
 | Fixed point | BASE `<branch>` @ `<sha>` · FORK_POINT `<sha>` · frozen spec / issue list `<ref + digest>` |
 | Coordinator / workers | `<host + model>` · worker profiles `PROFILE=<ro or rw>` · TASK pack `<matt or addy>` |
@@ -58,9 +54,15 @@ a file path, a command with its exit code, or a PR url with its `reviewed_sha`.
 
 ## Verifier outcome (recorded exactly)
 
-`python3 runtime/scripts/verify.py --manifest <manifest> --contract-source <path@ref> --contract-digest <sha256:…>
---unit-class <mutation|report-only|planning> [--lighting <lit|dark-eligible>] [--dispatch-record <path@ref>
---dispatch-pubkey <path@ref>] [--base <branch>]` — output and exit code verbatim, RED runs included.
+Record the real verifier invocation through the installed recorder, using the SAME manifest:
+
+`python3 runtime/scripts/evidence-run.py --label verifier --manifest <manifest> --artifact <run-dir>/verifier.txt -- python3 runtime/scripts/verify.py --manifest <manifest> --contract-source <contract-source> --contract-digest <contract-digest> --unit-class <unit-class>`
+
+Paste output and exit code verbatim, RED runs included. Append the dispatch's lane flags to the
+verifier command: `--lighting`, `--dispatch-record`, `--dispatch-pubkey`, and integration `--base`
+as applicable. Mutation units also follow build-change's negative-control invocation, including
+`--execute-nc --nc-command '<coordinator-supplied command>'` when required by the lane; never
+invent a review or select a waiver to make the run green. Keep unfulfilled gates pending.
 
 Where each flag comes from: `--contract-source` is the coordinator's frozen contract from the Fixed point
 row, supplied out of band (`ORCA_CONTRACT_SOURCE` under `verify-gate.sh`); `--contract-digest` and
@@ -72,13 +74,13 @@ nothing loses the review waiver and goes RED) **and** make sure the unit's manif
 `lighting swap` against a `dark-eligible` dispatch; when the record omits it, omit the flag. Omitting
 the CLI flag does not populate the dispatch lighting, and with `--dispatch-record` a value the record
 did not sign is a fail-closed RED. `--base` is the integration base for ancestry. Omitting the contract
-flags is a fail-closed scope RED to record, not a flag to drop. `docs/verify-gate.md` and
-`runtime/gate-classification.md` are the authority for these semantics; this paragraph summarizes them.
+flags is a fail-closed scope RED to record, not a flag to drop. `evidence-manifest` and
+`gate-classification` are the mandatory protocols for these semantics.
 
 ## WIP-curve protocol row (mutating self-runs)
 
-Required by `runtime/attention-budget.md` for every mutating self-run; omit only for report-only
-missions and say so.
+Required by `attention-budget` for every mutating self-run in the catalog; for external runs
+and report-only missions, record why this self-run measurement is inapplicable.
 
 | WIP setting | builder throughput | verification latency | rework rate | freshness violations |
 |---|---|---|---|---|
@@ -94,10 +96,73 @@ missions and say so.
 |---|---|---|
 | `<file>` | `<digest>` | `<tool + version, date>` |
 
-When the run's artifacts live outside this repo, replace the table with one line naming where the
-integrity inventory is retained.
+List the manifest and every artifact owned by this run, with producer and timestamp. After the
+last recorded command, freeze those bytes and fill the hashes (do not include the report itself):
+
+`python3 runtime/scripts/inventory.py write <report>`
+
+`python3 runtime/scripts/inventory.py check <report>`
+
+Require zero mismatches, at least one verified path, and no missing run-owned artifact; an exit
+of zero alone is insufficient because historical missing paths are reported separately. Retain
+all run-owned evidence, including the graded manifest, in the target project's evidence commit;
+put that SHA in `inventory_at` and recheck its inventory with:
+
+`python3 runtime/scripts/inventory.py check <report> --at <inventory_at>`
+
+Do not rewrite earlier command commit/tree observations to match the later evidence commit.
+If project policy keeps evidence outside Git, name the durable archive and its integrity inventory
+in **Evidence binding**, re-hash it, and keep the catalog at doctrine-only. Report any unmet
+retention requirement as pending, never as a successful gate.
 
 ## Gates
 
+Run the target project's required validation/build/lint and test commands at the final
+implementation head, using its documented CI/acceptance contract to select them. Fill these
+placeholders with real project commands, record exact output and exits, and require success:
+
+`python3 runtime/scripts/evidence-run.py --label validation --manifest <manifest> --artifact <run-dir>/validation.txt -- <project-validation-command>`
+
+`python3 runtime/scripts/evidence-run.py --label tests --manifest <manifest> --artifact <run-dir>/tests.txt -- <project-test-command>`
+
+A help invocation or an empty test collection does not satisfy these gates. Run the verifier
+above with the coordinator's authoritative inputs; finish the inventory after recording all
+gates. An external project uses its own validation/test tools, without requiring a catalog layout.
+
+## Catalog proof promotion
+
+This additional procedure applies only when maintaining or promoting proof in the **orca-fleet
+catalog**. It is not a prerequisite for recording an external project's run. Preserve the original
+project evidence and its verifier outcome; a copied installation's receipt alone does not meet
+the catalog's repository-verifier binding rule. Catalog maintainers must satisfy that binding
+with an actual catalog verifier execution and its authoritative inputs, or keep doctrine-only.
+
+Copy this file to `docs/runs/<YYYY-MM-DD>-<mission>-<self-run|external-run>.md`, fill every
+section, add the row to the index table in [README.md](README.md), then set the mission's
+`metadata.proof:` and `metadata.proof_evidence:` to the new path.
+
+Nothing else advances a catalog tier, and naming the mission is not enough (issue #259).
+`runtime/scripts/run_report.py`, called from `scripts/validate.py`, requires all of:
+
+* the `RUN:` header above, exactly once, with every field;
+* `inventory_at=` a commit that exists **in this repository**;
+* `manifest=` a path that exists at that commit and lives inside this run's own
+  `docs/runs/<YYYY-MM-DD>-<mission>…/` artifact directory — borrowing another run's manifest is
+  refused;
+* `verifier=GREEN|RED` matching what the "Verifier outcome" section records (a RED is honest: a
+  solo run cannot manufacture an independent approver) — and the body must show the ACTUAL
+  invocation, `verify.py … --manifest <that same manifest path>`, not a description of it. Paste
+  the command and its exit code; a sentence about having run it is not a transcript;
+* the integrity inventory re-hashing at `inventory_at` — zero mismatches, at least one verified
+  path inside this run's own directory, **the graded manifest among the hashed paths**, and none
+  of this run's own artifacts absent there. Paths outside the run directory may have moved on;
+  the evidence the run is responsible for may not.
+
+If your artifacts are not committed here, this report is recorded history and the mission stays
+`doctrine-only`. Say that in an "Evidence binding" section rather than claiming a tier.
+
+These are additional catalog gates, run from the catalog clone at its final head, with exact
+output and exits (the generic project validation/test and evidence requirements above still apply):
+
 `python3 scripts/validate.py`, `python3 -m unittest discover -s tests`, and
-`python3 runtime/scripts/proof_status.py --check` at the run's final head — output and exit codes.
+`python3 runtime/scripts/proof_status.py --check`.
