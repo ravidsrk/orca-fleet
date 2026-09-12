@@ -16,6 +16,7 @@ import argparse
 import importlib.util
 import io
 import json
+import shlex
 import subprocess
 import sys
 import tempfile
@@ -501,6 +502,127 @@ class TestCliGate(unittest.TestCase):
         )
         for suite in ("routing", "skills", "behavioral", "all"):
             self.assertIn(suite, r.stdout)
+
+
+class TestBehavioralIntegrity(unittest.TestCase):
+    """Exercise the CLI with harmless local processes, never a live agent."""
+
+    ASSERTIONS = ["freeze before decomposition", "record the accepted scope"]
+
+    def _run_case(self, agent="ok", grader="ok", rows=None, raw=None):
+        if rows is None:
+            rows = [{"text": text, "passed": True, "evidence": f"trace: {text}"}
+                    for text in self.ASSERTIONS]
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            mission = root / "fixture-it"
+            (mission / "evals").mkdir(parents=True)
+            (mission / "SKILL.md").write_text("Harmless test fixture.")
+            (mission / "evals" / "evals.json").write_text(json.dumps({"evals": [{
+                "id": 1, "prompt": "fixture", "assertions": self.ASSERTIONS,
+            }]}))
+            output = root / "verdict.json"
+            output.write_text(raw if raw is not None else json.dumps({"assertions": rows}))
+            runner = root / "fixture.py"
+            runner.write_text(
+                "import os, signal, sys, time\nfrom pathlib import Path\n"
+                "print(Path(sys.argv[2]).read_text(), flush=True)\n"
+                "print('private fixture output', file=sys.stderr, flush=True)\n"
+                "mode = sys.argv[1]\n"
+                "if mode == 'exit': sys.exit(23)\n"
+                "if mode == 'signal': os.kill(os.getpid(), signal.SIGTERM)\n"
+                "if mode == 'timeout': time.sleep(5)\n"
+            )
+            env = {f"EVAL_{role}_CMD": shlex.join([
+                sys.executable, str(runner), mode, str(output), "private fixture argument",
+            ]) for role, mode in [("AGENT", agent), ("GRADER", grader)]}
+            captured = io.StringIO()
+            with (patch.object(eval_mod, "SKILLS_DIR", root),
+                  patch.dict(eval_mod.os.environ, env),
+                  patch.object(eval_mod, "AGENT_TIMEOUT_S", 0.5),
+                  patch.object(eval_mod, "GRADER_TIMEOUT_S", 0.5),
+                  patch.object(sys, "stdout", captured)):
+                code = eval_mod.cmd_run(argparse.Namespace(
+                    suite="behavioral", mission="fixture-it", dry_run=False,
+                    threshold=None, json=True))
+        return code, json.loads(captured.getvalue())["behavioral"]
+
+    def test_successful_processes_preserve_valid_grading(self):
+        code, result = self._run_case()
+        self.assertEqual(code, 0, result)
+        self.assertEqual(result["failures"], 0)
+        self.assertEqual(result["cases"][0]["passed"], 2)
+
+    def test_failed_processes_cannot_pass_with_plausible_output(self):
+        for role in ("agent", "grader"):
+            for mode, diagnostic in (("exit", "exited with status 23"),
+                                     ("signal", "signal 15"),
+                                     ("timeout", "timed out")):
+                with self.subTest(role=role, mode=mode):
+                    code, result = self._run_case(**{role: mode})
+                    self.assertEqual(code, 1, result)
+                    self.assertEqual(result["failures"], 1)
+                    case = result["cases"][0]
+                    self.assertNotIn("passed", case)
+                    self.assertIn(role, case["error"])
+                    self.assertIn(diagnostic, case["error"])
+                    self.assertNotIn("private fixture", case["error"])
+                    self.assertNotIn("assertions", case["error"])
+                    self.assertNotIn("private fixture", json.dumps(result))
+
+    def test_grading_rejects_assertion_identity_and_evidence_violations(self):
+        a = {"text": self.ASSERTIONS[0], "passed": True, "evidence": "trace: scope frozen"}
+        b = {"text": self.ASSERTIONS[1], "passed": True, "evidence": "trace: scope recorded"}
+        invalid = {
+            "substitution": [a, {**b, "text": "an unrelated criterion"}],
+            "duplicate": [a, a],
+            "omission": [a],
+            "unexpected": [a, b, {**b, "text": "an extra criterion"}],
+            "missing text": [a, {"passed": True, "evidence": "trace: scope recorded"}],
+            "nonstring text": [a, {**b, "text": [self.ASSERTIONS[1]]}],
+            "paraphrased text": [a, {**b, "text": self.ASSERTIONS[1].upper()}],
+            "blank evidence": [a, {**b, "evidence": " \n\t"}],
+            "missing evidence": [a, {"text": self.ASSERTIONS[1], "passed": True}],
+            "nonstring evidence": [a, {**b, "evidence": {"claim": "passed"}}],
+            "nonboolean verdict": [a, {**b, "passed": "true"}],
+            "nonobject row": [a, True],
+        }
+        for reason, rows in invalid.items():
+            with self.subTest(reason=reason):
+                code, result = self._run_case(rows=rows)
+                self.assertEqual(code, 1, result)
+                self.assertEqual(result["failures"], 1)
+                self.assertIn("error", result["cases"][0])
+                self.assertNotIn("passed", result["cases"][0])
+
+    def test_grading_preserves_reordered_rows_and_failed_assertions(self):
+        rows = [{"text": text, "passed": True, "evidence": f"trace: {text}"}
+                for text in reversed(self.ASSERTIONS)]
+        code, result = self._run_case(rows=rows)
+        self.assertEqual(code, 0, result)
+        self.assertEqual(result["cases"][0]["passed"], 2)
+        rows[0].update(passed=False, evidence="")
+        code, result = self._run_case(rows=rows)
+        self.assertEqual(code, 1, result)
+        self.assertEqual(result["failures"], 1)
+        self.assertNotIn("error", result["cases"][0])
+        self.assertEqual(result["cases"][0]["passed"], 1)
+        self.assertEqual(result["cases"][0]["failed"], 1)
+
+    def test_ambiguous_or_empty_requested_assertions_cannot_pass(self):
+        for assertions in ([], ["same assertion", "same assertion"]):
+            with self.subTest(assertions=assertions), patch.object(self, "ASSERTIONS", assertions):
+                code, result = self._run_case()
+                self.assertEqual(code, 1, result)
+                self.assertEqual(result["failures"], 1)
+
+    def test_malformed_grader_output_cannot_pass(self):
+        for raw in ("not JSON", '{"assertions":', '{}', '{"assertions":null}'):
+            with self.subTest(raw=raw):
+                code, result = self._run_case(raw=raw)
+                self.assertEqual(code, 1, result)
+                self.assertEqual(result["failures"], 1)
+                self.assertIn("error", result["cases"][0])
 
 
 class TestBehavioralSuite(unittest.TestCase):
