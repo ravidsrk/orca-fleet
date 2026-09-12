@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T12:36:15.125508+00:00",
+  "argv": [
+    "/tmp/orca-release-audit-20260912/ci-venv/bin/python",
+    "scripts/validate.py"
+  ],
+  "python": "3.13.15",
+  "exit": 0,
+  "stdout": "ok   absorb-it\nok   access-it\nok   attest-it\nok   clean-sweep\nok   deflake-it\nok   document-it\nok   field-test-it\nok   floor-it\nok   harden-it\nok   map-it\nok   migrate-it\nok   modernize-it\nok   oncall-it\nok   oss-contribute\nok   pin-it\nok   prove-it\nok   reshape-it\nok   review-it\nok   root-cause\nok   ship-it\nok   speed-it\n\nAll 21 missions valid; three-layer separation holds; evals valid.\n",
+  "stderr": "",
+  "scope": "Follow-up evidence/atomization artifact changes; runtime source unchanged since 2f8dd685644990c5c93b27e804a9f8e4e8eeece4."
+}

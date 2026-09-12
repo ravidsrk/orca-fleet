@@ -1,0 +1,217 @@
+import json,hashlib,collections,datetime
+from pathlib import Path
+OUT=Path('/Users/ravindra/orca/workspaces/orca-fleet/codex-release-pin-20260912/docs/reports/release-20260912/pin')
+frozen=json.loads((OUT/'claim-inventory.frozen.json').read_text())
+inventory=json.loads((OUT/'claim-inventory.json').read_text())
+parents={r['id']:r for r in inventory['records']}
+excluded={}
+def exclude(ids,reason,kind='REPO-POLICY'):
+ for n in ids.split():
+  k='C'+n.zfill(3);assert k not in excluded;excluded[k]={'category':kind,'reason':reason}
+exclude('2 14 21 27 29 36 38 42 45 50 51 70 74 75 77 89 94 95 98 99 100 106 107 108 114 120 124 130 133 135 138 159 167 170 171 173 179 181 182 192 193 194 197 204 208 221 224 226 229 231 263 264 265 269 273 279 281 286 287 289 291 293 294 295 301 302 303 304 306 307 309','Repository instruction, permission boundary, convergence definition, evidence discipline, or coordinator action preference; no independently asserted Orca transition is counted in this record. Any adjacent API syntax/behavior is retained under its mechanics parent/children.')
+exclude('7 17 26 54 66 71 72 79 81 88 91 102 103 104 111 116 119 141 144 146 150 156 164 180 190 191 198 205 206 209 220 238 244 248 257 261 262 272 275 278 280 283 285 288 290 292','Context, normative interpretation, historical witness label, or helper implementation description; this fragment supplies no additional independently testable installed-Orca assertion beyond the separately retained mechanics children.', 'CONTEXT-OR-LOCAL-IMPLEMENTATION')
+exclude('57 62 80 125 129 136 139 161 162 184 188 210 211 240 258 266 268 284','Extraction retained a heading, delimiter, incomplete connective or code-control fragment rather than a mechanics claim. Original bytes/ID remain in the frozen denominator.', 'EXTRACTION-FRAGMENT')
+exclude('92 237 239 241 242 243 249 260 277 296 299','Repository helper algorithm, parser vocabulary, exit classification, or fallback contract; owned by this repo and tested locally, rather than an assertion that the external Orca runtime guarantees that behavior.', 'LOCAL-IMPLEMENTATION')
+# Each entry isolates a falsifiable predicate. The exact original source span is inherited, not paraphrased or rewritten.
+# Families define the concrete continuation procedure and needed fixture; specific predicates refine its oracle.
+DATA=r'''
+1|OBSERVE|worker-list rows expose projection.liveness;;worker-list rows expose projection.attention.requiresAction
+3|GUIDES|skills get orchestration and orca-cli return installed topic guides;;skills get TOPIC --references lists references;;skills get TOPIC --reference NAME retrieves each listed reference;;older CLI --full fallback remains version-specific, not established by 1.4.200
+4|START|worker-start supports a fresh worktree/terminal with task, name, agent and setup run;;fresh worker-start orders placement then terminal then readiness then dispatch
+5|OLD|v1.4.199 worker-start ready requires accepted preamble write without observed turn start
+6|START|v1.4.200 ready worker-start receipt includes an observed turn start;;without observed turn start v1.4.200 worker-start returns outcome_unknown
+8|START|successful worker-start receipt carries runId, taskId and dispatchId;;successful worker-start receipt carries state and stage;;successful worker-start receipt carries setup and launch.requested/effective;;successful worker-start receipt carries mode, effects and residualResources;;failed worker-start receipt carries failedStage, lastError, recovery and nextCommands
+9|START|worker-start identifies its agent terminal by effects entry kind terminal and role agent
+10|PROFILE|launch.effective describes actually applied launch options;;worker-start existing worktree creates a fresh terminal without rerunning setup;;worker-start --terminal reuses the exact idle terminal;;worker-start --terminal cleanup ownership follows the reported effects ownership
+11|AUTH|task_not_found is a typed error.code;;task_not_startable reports unmetDependencies and retryOf when applicable;;inject_rejected is a typed error.code;;nested_worker_depth_exceeded is a typed error.code;;consumer_fenced is a typed error.code;;dispatch_inactive is a typed error.code;;runtime_error is a catch-all typed error.code;;error.data.nextSteps supplies recovery where present
+12|LOW|terminal create plus dispatch --inject creates no supervised worker-lifecycle row;;worker-stop does not stop a low-level unsupervised process;;worker-release does not close a low-level unsupervised process
+13|LOW|worker-list shows a low-level injected dispatch as unsupervised;;unsupervised terminal state is retained
+15|LOW|dispatch --inject submits the preamble without another Enter;;dispatch --inject JSON returns prompt.requestId;;dispatch --inject JSON returns prompt.stages input_accepted or turn_started
+16|REPLAY|retry shorthand without original text and Enter is accepted as written in original prose;;terminal send replay with original identity and payload does not resend;;wait-submit timeout returns an input-accepted receipt
+18|AUTH|worker_done requires an explicit succeeded or failed outcome;;worker_done with omitted recipient routes to the active Dispatch owning Run
+19|AUTH|worker dispatch preamble provides its from handle;;worker dispatch preamble provides dispatch capability;;worker send authenticates from handle and dispatch capability
+20|MESSAGE|send accepts typed report-path;;send accepts typed files-modified;;PowerShell raw payload quoting can strip JSON quotes
+22|AUTH|a check by a fenced consumer returns consumer_fenced
+23|WORKTREE|explicit parent-worktree records the requested parent;;worker-start --worktree new-child creates a child worktree
+24|WORKTREE|worktree create without parent flags infers parent when caller context is available;;worktree create --no-parent records no parent
+25|START|worker-start exact existing worktree selector creates fresh terminal in that worktree;;worker-start rejects a bare repository id as a worktree selector;;active worktree selector can resolve to coordinator root
+28|AUTH|nested dispatch depth is counted from the issuing terminal;;default nested depth limit is one;;host setting can raise the nested depth limit
+30|WORKTREE|worktree create returns composite repoId::absolutePath id;;path:absolutePath selector addresses that worktree;;full composite id selector addresses that worktree;;bare repo id is not a complete worktree selector
+31|PLATFORM|on Linux outside managed terminals bare orca can name the GNOME screen reader;;orca-ide is the Linux IDE entrypoint in that installation
+32|RELEASE|worker-release preserves inspectable output;;worker-release closes the exact terminal owned by the Dispatch;;worker-retain retains the worker terminal
+33|RELEASE|worker-release retained exits zero;;worker-release release_pending exits zero;;worker-release already_released exits zero;;repeating worker-release is idempotent;;worker-release release_unknown exits one and supplies recovery
+34|AUTH|settlement fences a former worker writer after terminal handle replacement
+35|RUN|run-create returns a Run id;;task-list --run filters tasks to that Run;;worker-list --run filters workers to that Run;;bound coordinator check reads that Run mailbox;;retired orchestration run alias returns recovery without scheduling;;retired coordinator-start alias returns recovery without scheduling
+37|MAIL|check returns oldest FIFO delivery;;a check delivery contains at most 50 messages;;unacknowledged delivery is replayed identically;;ack advances to the next delivery
+39|MAIL|task-list does not mark messages read;;inbox does not mark messages read;;dispatch-show does not mark messages read;;default check marks received messages read;;check --unread consumes received messages;;check --peek leaves received messages unread;;check --all reads history without consuming;;task-list --brief collapses whitespace;;task-list --brief truncates spec at 160 chars and sets spec_truncated
+40|MAIL|check wait emits keepalive on stderr;;check wait keeps stdout parseable without keepalive lines;;keepalive carries both _keepalive and deprecated _heartbeat;;check wait emits keepalive every 15 seconds
+41|MUTATION|every orchestration mutation accepts retry-request;;same mutation retry request deduplicates dispatch;;request-show distinguishes completed, pending and absent requests
+43|BROADCAST|group recipients are broadcast-only
+44|BROADCAST|worker_done to group is rejected;;heartbeat to group is rejected;;merge_ready to group fans out
+46|AUTH|accepted owning worker_done completes its task without manual status update
+47|LOW|inject creates no dispatch message row;;inject creates no handoff message row;;send accepts type dispatch;;send accepts type handoff;;runtime does not generate merge_ready
+48|WORKTREE|worktree comment is stored and shown in workspace metadata
+49|WORKTREE|worktree set updates comment;;worktree set updates workspace-status
+52|WORKTREE|terminal close --worktree --all stops all owned workspace processes;;bulk close retires terminal surfaces;;bulk close durably removes tabs layouts and resume records;;worktree rm removes a clean owned scratch worktree
+53|RELEASE|unconfirmed bulk PTY close reports unverifiable
+55|PROFILE|fresh worker-start per installed roster agent reports actual launch options and turn-start state
+56|LOW|low-level dispatch prompt stages and exact request replay are observable
+58|MAIL|check types wake delivers other message types in FIFO;;scratch merge_ready group broadcast fanout is observable
+59|DAG|task-create with bogus dependency is refused
+60|GATE|resolved gate marker presence in regenerated dispatch-show preamble is observable
+61|MESSAGE|typed report-path is preserved in the worker_done payload
+63|ASK|worker ask creates a question message in owning Run
+64|ASK|ask timeout leaves the question pending;;default ask timeout is 600000ms;;ask timeout cap is 1800000ms;;ask --resume continues the same question id;;a new ask creates a distinct question
+65|ASK|reply --id with body answers the specified question
+67|GATE|gate-create requires task;;gate-create requires question;;gate-create blocks ready task;;gate-resolve clears the task hold
+68|GATE|ask options accepts CSV;;gate-create options accepts JSON array;;mixing option formats is refused
+69|GATE|gate-resolve does not add resolution to regenerated live preamble;;worker-start original injected preamble omits resolved gate context;;low-level dispatch original injected preamble omits resolved gate context;;retired scheduler preamble injection differs from live path
+73|ASK|worker ask blocks until reply or timeout;;task stays dispatched during ask
+76|MAIL|check marks messages read on receive
+78|GATE|unresolved DAG gate keeps task blocked
+82|RESTART|task and dispatch provenance persist in SQLite;;dispatch last_heartbeat_at persists across runtime restart;;dispatch failure_count persists across runtime restart;;worker_done payload persists across runtime restart
+83|AUTH|runtime verifies taskId and dispatchId against the sending pane
+84|RESTART|pane handle may change after restart;;lifecycle messages from a non-owning pane are ignored
+85|RESTART|stale handle yields terminal_handle_stale;;terminal list resolves replacement handle after restart
+86|OBSERVE|worker-list enumerates runtime worker state
+87|OBSERVE|worker-list row has projection.liveness;;worker-list row has projection.attention.categories;;worker-list row has projection.attention.requiresAction;;worker-list row has projection.nextAction.argv;;worker-show observation.status describes PTY liveness;;a trust-blocked agent can retain a live PTY observation
+90|RUN|unscoped worker-list always reports every runtime Dispatch as original prose asserts
+93|OBSERVE|missing_status yields unverifiable;;stale_status yields unverifiable;;restored_unconfirmed yields unverifiable;;host_unavailable yields unverifiable;;disconnected remote worker yields unverifiable
+96|MAIL|empty check wait timeout returns count zero without command error;;types selects wake condition while delivery includes all FIFO types
+97|MAIL|keepalive appears only on stderr
+101|START|worker-start retry-of targets a prior failed dispatch;;typed refusal exposes task_not_found;;typed refusal exposes task_not_startable with unmetDependencies;;typed refusal exposes inject_rejected;;typed refusal exposes nested_worker_depth_exceeded;;typed refusal exposes consumer_fenced;;typed refusal exposes dispatch_inactive;;typed refusal carries nextSteps where supplied
+105|DAG|three consecutive dispatch failures trip task circuit break
+109|REPLAY|regenerated dispatch preamble is the exact original request payload as prose asserts;;retry shorthand without original text and Enter succeeds as prose asserts
+110|REPLAY|terminal send timeout returns input accepted;;terminal send retry never resends
+112|OBSERVE|worker-show human prompt uses observation.agentWait;;absent agentWait differs from explicit null
+113|RESET|orchestration reset discards task and dispatch state
+115|DAG|missing dependency is rejected with dependency must belong to Run error;;foreign-Run dependency is rejected with dependency must belong to Run error
+117|DAG|completing dependency promotes its pending child;;promotion requires all dependencies completed
+118|DAG|failed dependency leaves child pending at observation;;pending failed-dependency child never self-promotes;;runtime convergence detection flags blocked but not pending
+121|DAG|deps stores dependency edges;;parent_id exists independently of deps
+122|RUN|single runtime stores tasks from multiple Runs
+123|RUN|task-list run filtering honors exact Run;;worker-list run filtering honors exact Run;;bound check honors exact Run
+126|RESTART|run-use binds an existing Run to caller;;takeover-legacy preserves live worker Dispatches;;takeover-legacy preserves worker processes;;takeover-legacy preserves worker filesystems;;takeover-legacy routes subsequent questions to new coordinator
+127|RESTART|re-attaching Dispatch surfaces consumer_fenced;;old coordinator mutations are fenced after adoption
+128|RESTART|run-use cannot nominate adopter using from flag;;run_legacy_local is empty tombstone;;recovered Run has documented objective name
+131|MESSAGE|merge_ready send requires subject;;merge_ready accepts JSON payload;;merge_ready delivers without built-in merge action
+132|AUTH|omitted recipient from active Dispatch routes to owning Run
+134|BROADCAST|group merge_ready is permitted;;group worker_done is rejected;;group heartbeat is rejected
+137|MAIL|types wake returns whole FIFO delivery
+140|AUTOMATION|automation accepts cron schedule;;automation accepts hourly schedule;;automation accepts daily schedule;;automation accepts weekdays schedule;;automation accepts weekly schedule;;automation accepts RRULE schedule;;automation can target fresh per-run worktree;;automation can target existing workspace
+142|AUTOMATION|automation create accepts name trigger time timezone precheck prompt provider and repo flags
+143|AUTOMATION|repo automation creates fresh worktree per run;;workspace automation targets existing workspace;;disabled automation does not fire schedule
+145|AUTOMATION|automation runs precheck before agent launch;;precheck exit zero permits run;;nonzero precheck records skipped run;;nonzero precheck spawns no agent
+147|AUTOMATION|create and edit accept timezone;;missed-run-grace-minutes drops overly late fires;;reuse-session reuses existing-workspace session;;fresh-session starts new existing-workspace session;;host runtime:environment-id places on paired server
+148|AUTOMATION|automations run fires a saved automation now;;automations runs returns history including skipped runs
+149|RUN|CLI run/task/worker/check/send supports manual orchestration
+151|SCHEMA|installed runtime orchestration schema line is v40
+152|RUN|run-create creates a namespace;;run-use binds namespace;;run-current returns current binding;;run-list lists namespaces;;run-show returns namespace provenance
+153|RUN|every created task belongs to one Run;;task-list --run honors Run;;worker-list --run honors Run;;coordinator check honors bound Run
+154|RETIRED|retired orchestration run performs no scheduling effects;;retired coordinator-start performs no scheduling effects;;retired coordinator-stop performs no scheduling effects;;retired aliases return current-skill recovery
+155|RUN|unscoped task-list exposes tasks across historical Runs;;runtime does not automatically prune old tasks
+157|AUTH|new Run does not reset issuing worker nested depth;;worker-start at default worker depth returns nested_worker_depth_exceeded
+158|DAG|tasks.deps is dependency promotion graph;;task-create --parent writes parent_id;;worker-start --parent writes parent_id;;parent id is validated to same Run;;worker terminal listing reads parent_id;;attention queries read parent_id
+160|LOW|CLI runtime does not generate dispatch and handoff message types
+163|LOW|dispatch inject writes prompt to PTY;;dispatch inject adds no dispatch message row
+165|LOW|runtime does not generate handoff messages
+166|MESSAGE|runtime delivers fleet-written merge_ready;;merge_ready causes no built-in merge behavior
+168|MESSAGE|send accepts worker_done type;;send accepts merge_ready type;;send accepts heartbeat type;;send accepts question type;;send accepts escalation type;;send accepts status type;;send accepts decision_gate type;;send accepts dispatch type;;send accepts handoff type;;legacy direct-ask writes decision_gate;;migration converts old decision_gate to status;;runtime does not generate dispatch;;runtime does not generate handoff
+169|MAIL|types controls wake rather than filtering delivery
+172|MAIL|check delivery is FIFO;;check batch maximum is 50;;delivery replay is identical until ack;;delivery survives coordinator crash after receive
+174|MUTATION|every mutation accepts retry-request;;request-show inspects request;;same request id deduplicates dispatch
+175|DAG|task status is overwritten in place;;pending to ready promotion creates no timestamp;;pending to ready promotion creates no message
+176|DAG|dispatch attempts can be reconstructed from records;;latest dispatch is active;;failure_count carries maximum forward;;failure circuit trips at three;;worker_done records completion
+177|AUTH|owning pane worker_done auto-completes task
+178|RESTART|restart re-attachment surfaces consumer_fenced;;old binding cannot mutate after new binding adoption
+183|DAG|failed-dependency child remains pending;;missing dependency cannot newly be created but legacy imported missing-dependency child cannot promote
+185|ASK|worker ask writes question to owning Run;;coordinator ask writes question to owning Run
+186|ASK|ask blocks until reply or timeout;;timeout leaves question pending;;resume preserves question id
+187|ASK|ask does not change dispatched task to blocked
+189|GATE|gate-create blocks task;;gate-resolve unblocks task
+195|GATE|DAG task is blocked until gate resolution
+196|SCHEMA|worker_done.payload is stored as free-form TEXT;;tasks.result is stored as free-form TEXT
+199|PROFILE|Orca autonomous argument map is upstream tui-agent-permissions.ts
+200|PROFILE|claude acceptEdits can prompt on shell or network;;codex workspace-write can prompt on shell or network;;gemini auto_edit can prompt on shell or network
+201|PROFILE|worker-start appends host agentDefaultArgs setting
+202|PROFILE|migrated default argument map equals YOLO map;;manual host mode uses empty default args
+203|PROFILE|default supervised launch of ro request may receive bypass default args;;manual host launch can require human permission prompts
+207|PROFILE|Orca argument map contains autonomous flags and no native read-only tier
+212|PROFILE|claude native plan flag is accepted;;claude autonomous skip-permissions flag is accepted
+213|PROFILE|codex native sandbox read-only flag is accepted;;codex bypass-approvals-and-sandbox flag is accepted
+214|PROFILE|gemini native plan flag is accepted;;gemini yolo flag is accepted
+215|PROFILE|cursor autonomous flag is yolo
+216|PROFILE|grok autonomous flag is permission-mode bypassPermissions
+217|PROFILE|droid autonomous flag is auto high
+218|PROFILE|Orca strips dangerously-skip-permissions from opencode;;Orca strips dangerously-skip-permissions from kilo
+219|PROFILE|omp absent from Orca autonomous argument map;;pi absent from Orca autonomous argument map
+222|ENVIRONMENT|recipe create lifecycle is supported;;recipe suspend lifecycle is supported;;recipe resume lifecycle is supported;;recipe destroy lifecycle is supported;;serve recipe-json pairs environment;;doctor provision validates recipe;;doctor connect is synonym for provision
+223|ENVIRONMENT|recipe doctor can report warnings with ok true;;doctor provision produces verdict consumed by sandbox_doctor
+225|ENVIRONMENT|snapshot after serve duplicates pairing identity;;duplicated identity causes wrong-host placement ambiguity
+227|RESET|orchestration reset discards fleet Dispatch state
+228|RESET|orchestration reset discards fleet Dispatch state
+230|MAIL|check keepalive appears on stderr every 15 seconds
+232|MAIL|keepalive carries both markers with heartbeat as deprecated alias
+233|MAIL|inbox JSON can be consumed by local parser
+234|MAIL|check JSON returns result.messages list
+235|MAIL|check keepalive carries current _keepalive and alias _heartbeat
+236|MAIL|removal of deprecated heartbeat alias is a future contingency, not current installed behavior
+245|OLD|v1.4.199 worker-start composes placement and dispatch;;v1.4.199 ready requires accepted write only
+246|START|v1.4.200 readiness requires observed turn_started;;unproven turn start returns outcome_unknown
+247|AUTH|refusals report typed error.code;;nextSteps contains runtime recovery where available
+250|LOW|dispatch inject submits preamble;;dispatch inject returns prompt.requestId;;dispatch inject returns prompt.stages
+251|REPLAY|retry shorthand is a replay operation once original text and Enter preconditions are supplied;;retry wait timeout returns input acceptance without resend
+252|REPLAY|terminal retry requires text plus Enter;;dispatch-show can regenerate preamble;;regenerated preamble byte-matches original low-level dispatch prompt;;terminal wait returns wait.satisfied false for an unmet condition
+253|PROFILE|terminal wait unsatisfied result exits one;;worker-start launch args inherit agentDefaultArgs;;migrated default args are YOLO map
+254|PROFILE|manual host has empty agentDefaultArgs
+255|PROFILE|claude plan and skip-permissions map are supported;;codex read-only and bypass map are supported;;gemini plan and yolo map are supported;;cursor yolo map is supported;;grok bypassPermissions map is supported;;droid auto high map is supported;;opencode and kilo strip skip-permissions;;omp and pi lack default autonomous argument mapping;;worker-start model and effort target supported providers;;worker-start effort requires model
+256|WORKTREE|worktree id is composite repoId::absolutePath;;path:absolutePath selector resolves worktree
+259|VERSION|orca --version emits a version-shaped token
+267|DAG|task-list returns task deps and status;;deps represents dependency identifiers as array or JSON-encoded array
+270|PROFILE|supervised worker-start inherits host default arguments
+271|START|worker-start fresh path composes placement and readiness and dispatch;;worker-start rejects name on current or existing worktree;;worker-start failure and unknown states both can exit nonzero
+274|AUTH|task_not_found is a typed policy refusal;;task_not_startable is typed policy refusal;;inject_rejected is typed policy refusal;;nested_worker_depth_exceeded is typed policy refusal;;dispatch_inactive is typed policy refusal;;consumer_fenced is typed policy refusal
+276|START|worker-start terminal effects identify the agent handle
+282|PROFILE|launch.effective represents host-applied launch options
+297|WAIT|terminal wait returns result.wait.satisfied boolean
+298|LOW|dispatch --inject returns result.prompt;;terminal send returns result.send.prompt
+300|REPLAY|retry-request and wait-submit require text plus Enter;;retry request is bound to prompt payload;;dispatch-show regenerates the exact original low-level prompt payload
+305|CONTEXT|fragment says command shapes corrupt real runs; no standalone mechanics assertion
+308|SENDER|orchestration calls without live sender terminal fail no_active_sender_terminal
+'''
+for n in [26,66,79,81,111,190,198,220,262,272,278,283,291,296]:
+ excluded.pop('C'+str(n).zfill(3))
+exclude('236', 'Future removal of a deprecated alias is explicitly hypothetical; no present installed-runtime predicate.', 'FUTURE-CONTINGENCY')
+exclude('305', 'Incomplete sentence fragment about corrupt command shapes; no callable mechanism or runtime predicate.', 'EXTRACTION-FRAGMENT')
+DATA='\n'.join(line for line in DATA.splitlines() if not line.startswith(('236|','305|')))
+DATA += r"""
+26|START|fresh terminal session does not inherit builder conversation
+66|ASK|worker ask creates no DAG decision gate row
+79|ASK|ask addresses coordinator identity rather than a human terminal role
+81|OBSERVE|runtime warns on stalls without autonomously resolving them
+111|REPLAY|input accepted alone does not demonstrate a started agent turn
+190|ASK|worker ask keeps task dispatched;;check reads ask message without answering it
+198|PLATFORM|PowerShell raw payload quoting can strip JSON quotes
+220|PROFILE|native read-only mode cannot mutate;;native read-only mode is non-blocking
+262|ENVIRONMENT|doctor provision is available in plain form;;doctor JSON flag is version-dependent
+272|START|worker-start accepts task worktree and agent arguments
+278|START|outcome_unknown receipt supplies exact inspection nextCommands
+283|PROFILE|supervised launch args come from host agentDefaultArgs
+291|PROFILE|launch.effective reveals whether autonomous flag was applied
+296|WORKTREE|terminal create JSON returns a terminal handle
+"""
+entries={}
+for line in DATA.strip().splitlines():
+ n,family,claims=line.split('|',2);k='C'+n.zfill(3)
+ assert k not in entries and k not in excluded,k
+ entries[k]=(family,claims.split(';;'))
+missing=set(parents)-set(entries)-set(excluded)
+assert not missing, sorted(missing)
+# Export draft to let the evidence pass attach exact receipts only after reading each predicate.
+children=[]
+for k,(family,claims) in entries.items():
+ for i,assertion in enumerate(claims,1):
+  children.append({'id':f'{k}.{i:02d}','parent_id':k,'source':parents[k]['source'],'source_binding':frozen['base_sha'],'assertion':assertion,'family':family,'classification':'UNPROBED','disposition':'TODO','receipt_paths':[]})
+result={'schema':1,'created_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'frozen_denominator':309,'frozen_sha256':hashlib.sha256((OUT/'claim-inventory.frozen.json').read_bytes()).hexdigest(),'status':'ADDITIVE-ATOMIZATION-PENDING-INDEPENDENT-COMPLETENESS-REVIEW','source_span_note':'Each child inherits the exact unchanged parent excerpt and corrected source lines; assertion narrows its falsifiable predicate. Excluded parent IDs stay in original order and denominator. Child counts are never substituted for 309. This pass is an auditable draft, not proof of source completeness.','excluded_records':[{'id':k,'source':parents[k]['source'],**v} for k,v in sorted(excluded.items())],'children':sorted(children,key=lambda c:c['id'])}
+(OUT/'claim-atomization.json').write_text(json.dumps(result,indent=2)+'\n')
+print('excluded',len(excluded),'mechanics parents',len(entries),'children',len(children))

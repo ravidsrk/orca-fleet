@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T12:27:11.323351+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "terminal",
+    "list",
+    "--worktree",
+    "path:/Users/ravindra/orca/workspaces/orca-fleet/pin-local-claims-20260912",
+    "--json"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/codex-release-pin-20260912",
+  "exit": 0,
+  "stdout": "{\n  \"id\": \"cd65f1f3-2fe1-4aa3-a2ec-4caff4c4d7fb\",\n  \"ok\": true,\n  \"result\": {\n    \"terminals\": [\n      {\n        \"handle\": \"term_d66eaf6f-4393-49cc-ad47-a110f5697d9b\",\n        \"ptyId\": \"3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/pin-local-claims-20260912@@fe62149c\",\n        \"incarnationId\": \"c1c18115-7498-4e88-8271-7aae6cb0c7b1\",\n        \"orphaned\": false,\n        \"worktreeId\": \"3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/pin-local-claims-20260912\",\n        \"worktreePath\": \"/Users/ravindra/orca/workspaces/orca-fleet/pin-local-claims-20260912\",\n        \"branch\": \"refs/heads/ravidsrk/pin-local-claims-20260912\",\n        \"tabId\": \"8a7160ef-5d8b-46d2-80cc-b5ce9cb3d2f6\",\n        \"leafId\": \"07a38d81-2b29-44ad-8f1e-5ff6de5a7ecf\",\n        \"title\": null,\n        \"connected\": true,\n        \"writable\": true,\n        \"lastOutputAt\": 1789216026337,\n        \"preview\": \"pin-local-claims-20260912  ravidsrk/pin-local-claims-20260912\\n❯\",\n        \"executionHostId\": \"local\"\n      }\n    ],\n    \"hostScope\": {\n      \"hostIds\": [\n        \"local\"\n      ],\n      \"omittedHostIds\": []\n    },\n    \"topologyRevisions\": {\n      \"3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/pin-local-claims-20260912\": 169\n    },\n    \"totalCount\": 1,\n    \"truncated\": false\n  },\n  \"_meta\": {\n    \"runtimeId\": \"2e075aba-10a5-40b7-aa95-9e82ae9fc5b7\"\n  }\n}\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

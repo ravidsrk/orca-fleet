@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T12:27:11.514781+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "terminal",
+    "create",
+    "--worktree",
+    "path:/Users/ravindra/orca/workspaces/orca-fleet/pin-local-claims-20260912",
+    "--title",
+    "PIN_266_INERT_CLOSE",
+    "--json"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/codex-release-pin-20260912",
+  "exit": 0,
+  "stdout": "{\n  \"id\": \"e211f7d5-2da0-4916-9544-6fec229be0db\",\n  \"ok\": true,\n  \"result\": {\n    \"terminal\": {\n      \"handle\": \"term_03a4904b-e10c-4a45-b42d-3c96ceee552e\",\n      \"tabId\": \"63a12f37-20b9-4d0f-b9aa-ba26b19e2ea4\",\n      \"paneKey\": \"63a12f37-20b9-4d0f-b9aa-ba26b19e2ea4:6861c755-f8ec-44c4-9a5d-71fa60bc92c7\",\n      \"ptyId\": \"3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/pin-local-claims-20260912@@c4805bb3\",\n      \"worktreeId\": \"3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/pin-local-claims-20260912\",\n      \"title\": \"PIN_266_INERT_CLOSE\",\n      \"executionHostId\": \"local\",\n      \"incarnationId\": \"b5970ad3-ca7a-42a2-9e53-2a45e899e390\",\n      \"hostPlatform\": \"darwin\",\n      \"surface\": \"visible\"\n    }\n  },\n  \"_meta\": {\n    \"runtimeId\": \"2e075aba-10a5-40b7-aa95-9e82ae9fc5b7\"\n  }\n}\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

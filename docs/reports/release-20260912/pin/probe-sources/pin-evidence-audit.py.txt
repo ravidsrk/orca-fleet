@@ -41,3 +41,30 @@ for p in out.rglob('*'):
  if p.is_file():assert not re.search(r'dcap_[A-Za-z0-9_-]{20,}',p.read_text(errors='ignore')),str(p)
 assert sum('  proof: doctrine-only' in p.read_text() for p in (root/'skills').glob('*/SKILL.md'))==21
 print(json.dumps({'result':'bounded evidence consistent; full mission unproven','frozen_records':309,'dispositions':d['counts'],'all21_doctrine_only':True,'baseline_failures':failed,'scratch_teardown':'verified'},indent=2))
+a=read('claim-atomization.json');by={c['id']:c for c in a['children']}
+assert a['frozen_denominator']==309 and a['frozen_sha256']==d['frozen_sha256']
+excluded={c['id'] for c in a['excluded_records']};mechanics={c['parent_id'] for c in by.values()}
+assert len(excluded)==134 and len(mechanics)==175 and not excluded & mechanics
+assert excluded|mechanics=={c['id'] for c in f['claims']}
+assert len(by)==429 and len(a['children'])==len(by)
+assert all(r['reason'] for r in a['excluded_records'])
+for c in by.values():
+ assert c['source']==next(r['source'] for r in d['records'] if r['id']==c['parent_id'])
+ assert c['assertion'] and c['probe']['procedure'] and c['probe']['precondition'] and c['probe']['expected_receipt']
+ for p in c['receipt_paths']:assert (out/p).is_file(),(c['id'],p)
+ if c['classification'] in ['CURRENT','STALE']:assert c['receipt_paths'] and c['witness_scope']
+ else:assert c['classification']=='UNPROBED' and c['remaining'] and c['continuation']
+assert sum(c['classification']=='CURRENT' for c in by.values())==105
+assert {c['parent_id'] for c in by.values() if c['classification']=='STALE'}=={'C016','C090','C109'}
+assert len(read('outstanding-claims.json')['claims'])==320
+assert not read('parked-register.json')['true_parked_claims']
+assert receipt('followup-bulk-close')['result']=={'closed':2,'stopped':2,'retiredSurfaces':True}
+assert not receipt('followup-terminals-after')['result']['terminals']
+assert receipt('followup-remove')['result']['removed'] is True
+assert read('receipts/followup-path-absent.json')['stdout'].strip()=='False'
+assert read('check-followup-validator.json')['exit']==0
+assert read('check-followup-ruff.json')['exit']==0
+follow=read('check-followup-full-suite.json')
+assert follow['exit']==1 and 'Ran 1069 tests' in follow['stderr'] and 'FAILED (failures=2)' in follow['stderr']
+assert set(re.findall(r'^FAIL: (test_\w+) \(',follow['stderr'],re.M))==set(failed)
+print(json.dumps({'additive_audit':'consistent; independent source completeness review owed','source_records':309,'scope_exclusions':134,'mechanics_parents':175,'child_predicates':429,'narrowly_witnessed_children':105,'refuted_children':4,'unfinished_children':320,'valid_parked_terminal':False,'followup_scratch':'two shells bulk-closed; worktree removed'},indent=2))

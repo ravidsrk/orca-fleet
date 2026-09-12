@@ -1,19 +1,31 @@
 {
-  "generated_at": "2026-09-12T12:22:28.622852+00:00",
+  "generated_at": "2026-09-12T12:41:06.054361+00:00",
   "producer": "pin claim researcher; independent verification still required",
-  "scope": "Explicit publication whitelist: owned fixture receipts, source, complete guides/references and report data. No parent/peer logs, transcript body or live dispatch capability.",
+  "scope": "Explicit publication whitelist: owned fixture receipts, source, complete guides/references and report data. No parent/peer logs, transcript body or live dispatch capability. Additive follow-up whitelist: individual scope audit, continuation, child inventory, original pre-label manifest bytes, three checks and nine owned inert-fixture receipts. No live task log copied.",
   "files": [
+    {
+      "path": "docs/reports/release-20260912/pin/CLAIM-AUDIT.md",
+      "sha256": "3c898ceae3211e6ddcb2222ea87a6423d542e9751394d14a1bf8c704a4f440d3"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/CONTINUATION.md",
+      "sha256": "e7c79840295b02b62186b3563ade0f93b545fdeab71519bb4bf1e1d6f2c36659"
+    },
     {
       "path": "docs/reports/release-20260912/pin/NEGATIVE-CONTROL.md",
       "sha256": "922f9d0c1da661e8aec2d61c1fb9e8cb8ec4199a627f44c5bc198473f7011ddc"
     },
     {
       "path": "docs/reports/release-20260912/pin/PARKED.md",
-      "sha256": "576e69632215319ecc6255836d95700b68ab50677af88fd973417cad55121e75"
+      "sha256": "29f4ada6912bba7217ab5b0ef88c4aca5bfa1f797be2da1b1b09a56ad4a34e07"
     },
     {
       "path": "docs/reports/release-20260912/pin/REPORT.md",
-      "sha256": "9fbefb98bd9b1cad72c168f18381976017b9f82187d47e3242ac92a7bbca6faa"
+      "sha256": "3a00a4277d021ee0f2d2c35a485435fd12e1fc3651ab2a03df2e89f8e93a94b2"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/base-identity-audit.json",
+      "sha256": "d7ae3210db816b220fdc08338bcb25e34010ce0c557635bff46b64634db17be0"
     },
     {
       "path": "docs/reports/release-20260912/pin/check-affected-bundle.json",
@@ -22,6 +34,18 @@
     {
       "path": "docs/reports/release-20260912/pin/check-affected.json",
       "sha256": "c5ee0d8c518a227dad10cd5800b6cc05f6412b425679afd9a11fe47cf9c73209"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/check-followup-full-suite.json",
+      "sha256": "a9200d62c03413d2f97b3789ce9a0bff958addab6a30cf87737be9943ca97574"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/check-followup-ruff.json",
+      "sha256": "e395e613b5f9156b34bcbbd2feef04b7a39a3793530da11664e2bc3ac7e698dc"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/check-followup-validator.json",
+      "sha256": "f1058853f49d7047eca8c94f9fd6e12a1a37d53082a8e37a2ab50e6b8c18461e"
     },
     {
       "path": "docs/reports/release-20260912/pin/check-full-suite-before-link-fix.json",
@@ -48,12 +72,16 @@
       "sha256": "5f5af639465bf5a1ebdd03166c862538b41ef2cacb450b93c245bb2273d64b6c"
     },
     {
+      "path": "docs/reports/release-20260912/pin/claim-atomization.json",
+      "sha256": "bd3c12d1470e034091fbd4a0f7bbdeeb5fd6a73cda1413a2e23c970949f842b3"
+    },
+    {
       "path": "docs/reports/release-20260912/pin/claim-inventory.frozen.json",
       "sha256": "bc87dd46ee92e1c984c6059b29846d274f4758f8c4c25ddf16c5380f5dd459c6"
     },
     {
       "path": "docs/reports/release-20260912/pin/claim-inventory.json",
-      "sha256": "9f9ae5974acd95602af03cb5cea7eb4eec0c0117aba77ab87abd2c0777d47f7d"
+      "sha256": "23b15e73fb36ed2db6509efdf5f7262f1f03fdf07b78602442ef8580268a7408"
     },
     {
       "path": "docs/reports/release-20260912/pin/contract.json",
@@ -80,8 +108,16 @@
       "sha256": "dec460f35339c42be0ea971480e7b16180e71baf3053281d45ddc71d5ff4fb2f"
     },
     {
+      "path": "docs/reports/release-20260912/pin/manifest.pre-base-label.json",
+      "sha256": "d77cb8b7d6bd1c05f8a0ccf4cfc5f40335e19ded2aba2666711746d7043c1106"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/outstanding-claims.json",
+      "sha256": "fea8307284b21bf3be1c02f932cb3bcd3c0098fa8f510cbe1856975dbd4ec5f0"
+    },
+    {
       "path": "docs/reports/release-20260912/pin/parked-register.json",
-      "sha256": "c8d6d95a8851e0be9dccd311be3522a230b75227aeb29b63a815ea8cd7a2d220"
+      "sha256": "91f42716023f4cc4288176543eeaa8804b6ad522e5853713749a7725067eea65"
     },
     {
       "path": "docs/reports/release-20260912/pin/probe-preconditions.json",
@@ -92,8 +128,16 @@
       "sha256": "e92e0cebeefc39c3216b31455bc690b322f905e6021b8be9638828d35814b368"
     },
     {
+      "path": "docs/reports/release-20260912/pin/probe-sources/pin-atomization-evidence.py.txt",
+      "sha256": "08d61ebe3b435db6f0bb5e4b4f8039c6afc6bd4b72bd37df2065a29de9a648b7"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/probe-sources/pin-atomize.py.txt",
+      "sha256": "2f395bc553ecb95b65182f045b6fc513ba45bcd51ec44c8fce78b82ddd21c9f9"
+    },
+    {
       "path": "docs/reports/release-20260912/pin/probe-sources/pin-evidence-audit.py.txt",
-      "sha256": "620ea651a4f69119a1ad9555b433a0dcd8b3535ca1a85033c7ac58c1a5c5c100"
+      "sha256": "8b9d42d42122cff0be157f63c00fa2e1685aa083df47a2670e6f5604bf11864e"
     },
     {
       "path": "docs/reports/release-20260912/pin/probe-sources/pin-fixture-helper-finish.py.txt",
@@ -114,6 +158,10 @@
     {
       "path": "docs/reports/release-20260912/pin/probe-sources/pin-helper-cleanup.py.txt",
       "sha256": "182d49d98e394fb7ad4883351bfe679177ea98a94f04fa594e2535e930c21245"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/probe-sources/pin-publish-atomization.py.txt",
+      "sha256": "99c4885da1b77c6cd2940db03dc25cb9daba5008545e7ecf557883d1eaf8a68e"
     },
     {
       "path": "docs/reports/release-20260912/pin/probe-sources/pin-scratch-settle.py.txt",
@@ -302,6 +350,42 @@
     {
       "path": "docs/reports/release-20260912/pin/receipts/fixture2-workers-explicit-b.json",
       "sha256": "d9b447aef299313d3fcab2c785ddffc1d3dc092985b6cf8668411f5ef30e07ce"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/followup-bulk-close.json",
+      "sha256": "4a9613247cdedecaadfd60f9788e1e8bdc53a7862582578a7671a3ab27e41366"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/followup-comment.json",
+      "sha256": "5b620e44537f525b2b270443dff7bc0827913ad2efc7149061bd8cd1b1f4a85a"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/followup-git-clean.json",
+      "sha256": "fb806d3e0349adf50de94387517ec430239b747e92239436a8ccdc9823ddf00a"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/followup-inert-create.json",
+      "sha256": "958f0f624f660de0fedb64b18eeed48e2232c725cc17bf6b85047e22abedf307"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/followup-path-absent.json",
+      "sha256": "4183ba925c03f8696360eb6c4abd1358175a1602c6e56139397e25908e7ade84"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/followup-remove.json",
+      "sha256": "59b44e6d678aff113f49b151ef9511453f97820e47e926b3ead8c947c85b0e02"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/followup-scratch-create.json",
+      "sha256": "12545e52537682b69f397655399ab749178bf3080d795087ee0a195432a83f00"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/followup-terminals-after.json",
+      "sha256": "8263bb66a0b1672711aca7947b118371d05e3af1584267a1935360d9e01527b1"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/followup-terminals-before.json",
+      "sha256": "92b8c17b31f65ac53b4b3526f2c2b523be25e8b5473566094483a83c22e2904b"
     },
     {
       "path": "docs/reports/release-20260912/pin/receipts/gate-create-help.json",
@@ -1036,6 +1120,10 @@
       "sha256": "b257471739fc3c43876660f6301b000aa07049cd145eae2c0154f556306e030b"
     },
     {
+      "path": "docs/reports/release-20260912/pin/source-location-audit.json",
+      "sha256": "c19bc7fc48a106a0e94707b30e00e42c1c100d443fa0e83e7fd72036825646fb"
+    },
+    {
       "path": "docs/reports/release-20260912/pin/source/src/cli/handlers/orchestration/check-keepalive.ts",
       "sha256": "8efb86b8dc07e14e63abb0e2999848f2d6d625f04f04ec6c3bdad716c1cacb8b"
     },
@@ -1064,12 +1152,8 @@
       "sha256": "ec1ef19bdacd0f7fa9e8c44522abd697f5c88b84833dc535b012a55f87151463"
     },
     {
-      "path": "docs/reports/release-20260912/pin/source-location-audit.json",
-      "sha256": "c19bc7fc48a106a0e94707b30e00e42c1c100d443fa0e83e7fd72036825646fb"
-    },
-    {
       "path": "docs/runs/2026-09-12-runtime-repin/README.md",
-      "sha256": "9eb1f1a4607ecbbd63f2572380b4a3f5b2f2c8d44a747a676c506db6401851cb"
+      "sha256": "6b12e158ade918d4cd17566d5dc58efc7d1ddcac91e102ffaadfdc25db2f570e"
     }
   ]
 }

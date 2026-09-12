@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T12:36:15.664921+00:00",
+  "argv": [
+    "/tmp/orca-release-audit-20260912/ci-venv/bin/python",
+    "-m",
+    "ruff",
+    "check",
+    "."
+  ],
+  "python": "3.13.15",
+  "exit": 0,
+  "stdout": "All checks passed!\n",
+  "stderr": "",
+  "scope": "Follow-up evidence/atomization artifact changes; runtime source unchanged since 2f8dd685644990c5c93b27e804a9f8e4e8eeece4."
+}
