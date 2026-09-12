@@ -847,11 +847,34 @@ def _command_oracle_paths(command):
         return None
     # Explicit configuration is executable proof input. Data subjects (e.g. grep operands)
     # remain mutable. Arbitrary transitive dependencies are outside this bounded grammar.
-    for i, arg in enumerate(argv):
-        if arg.startswith(("--config=", "--file=")):
+    #
+    # A short option is program-specific and may carry its value in the SAME token. One shared
+    # set read neither fact: `pytest -c custom.ini` names a config file that went unread, and
+    # `grep -fpatterns.txt` names its pattern file with no space, so both fell through to the
+    # ordinary classifier as production and a revert control could turn the proof RED by
+    # changing the proof itself (PR #323 review, P1). `grep -c` is a counting flag taking no
+    # value at all, which is why this cannot simply be one longer list.
+    value_opts = ("-f",) + {"pytest": ("-c",)}.get(program, ())
+    long_opts = ("--config", "--config-file", "--file")
+    i = 0
+    while i < len(argv):
+        arg = argv[i]
+        if arg.startswith(tuple(opt + "=" for opt in long_opts)):
             inputs.append(arg.split("=", 1)[1])
-        elif arg in ("--config", "--file", "-f") and i + 1 < len(argv):
-            inputs.append(argv[i + 1])
+        elif arg in long_opts and i + 1 < len(argv):
+            i += 1
+            inputs.append(argv[i])
+        elif arg in value_opts and i + 1 < len(argv):
+            i += 1
+            inputs.append(argv[i])
+        elif arg.startswith(value_opts) and len(arg) > 2:
+            inputs.append(arg[2:])
+        elif len(arg) > 1 and arg[0] == "-" and arg[1] != "-" and any(
+                opt[1] in arg[1:] for opt in value_opts):
+            # A cluster (-vf x) or a dangling one (-f). The value is not where this can read
+            # it, and guessing wrong leaves a proof input mutable; refuse the command instead.
+            return None
+        i += 1
     paths = set()
     for value in inputs:
         candidate = Path(os.path.normpath(value))

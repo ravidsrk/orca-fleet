@@ -2520,6 +2520,8 @@ class ProofOracleProtection(RepoCase):
                         # the proof read as production and a control could mutate it.
                         'env PYTHONPATH=. python runner.py',
                         'env PYTHONPATH=. python3 -u runner.py',
+                        # A clustered or dangling short option hides where the value is.
+                        'grep -vf patterns.txt app.py', 'grep -f', 'pytest -qc pytest.ini',
                         'python3 -c "exec(open(\"runner.py\").read())"',
                         'python3 -X presite=runner -m unittest', 'node --require runner.js check.js',
                         'make -C elsewhere test', 'custom-wrapper runner.py'):
@@ -2534,6 +2536,52 @@ class ProofOracleProtection(RepoCase):
                 self.assertTrue(any('unsupported proof command' in e for e in errors), errors)
                 self.assertFalse(any('worktree' in c.args[0] for c in run.call_args_list))
                 apply.assert_not_called()
+
+
+
+class ProofInputOptions(unittest.TestCase):
+    """PR #323 review, P1.
+
+    A short option is program-specific and may carry its value in the same token. One shared set
+    read neither fact, so `pytest -c custom.ini` and `grep -fpatterns.txt` left their config and
+    pattern files classified as production — a revert control could then turn the proof RED by
+    changing the proof itself rather than the behavior under review.
+    """
+
+    def paths(self, command):
+        return verify._command_oracle_paths(command)
+
+    def test_a_program_specific_config_option_is_a_proof_input(self):
+        for command in ('pytest -c custom.ini', 'pytest -ccustom.ini',
+                        'pytest --config-file=custom.ini', 'pytest --config-file custom.ini',
+                        'pytest --config=custom.ini', 'pytest -c custom.ini tests/'):
+            with self.subTest(command=command):
+                self.assertIn('custom.ini', self.paths(command), command)
+
+    def test_a_combined_short_option_is_a_proof_input(self):
+        for command in ('grep -fpatterns.txt app.py', 'grep -f patterns.txt app.py',
+                        'grep --file=patterns.txt app.py', 'grep --file patterns.txt app.py'):
+            with self.subTest(command=command):
+                self.assertIn('patterns.txt', self.paths(command), command)
+
+    def test_a_flag_that_takes_no_value_consumes_no_operand(self):
+        # grep -c counts; its operand is a pattern, and a data subject stays mutable.
+        self.assertEqual(self.paths('grep -c pat app.py'), {'grep'})
+        self.assertEqual(self.paths('grep -n pat app.py'), {'grep'})
+        self.assertNotIn('pat', self.paths('grep -c pat app.py'))
+
+    def test_a_cluster_or_dangling_option_is_refused_not_guessed(self):
+        # The value is not where this grammar can read it, and guessing wrong leaves a proof
+        # input mutable. Refusing the command is the fail-closed answer.
+        for command in ('grep -vf patterns.txt app.py', 'grep -f', 'pytest -qc pytest.ini',
+                        'pytest -c'):
+            with self.subTest(command=command):
+                self.assertIsNone(self.paths(command), command)
+
+    def test_unrelated_programs_keep_their_grammar(self):
+        self.assertEqual(self.paths('python3 runner.py'), {'python3', 'runner.py'})
+        self.assertIn('Makefile.ci', self.paths('make -f Makefile.ci test'))
+        self.assertIn('runner.py', self.paths('python3 -u runner.py'))
 
 
 class LiteralControlPaths(RepoCase):
