@@ -708,6 +708,22 @@
       "expected_mission": "document-it",
       "type": "positive",
       "reason": "Filling zero-coverage documentation cells on an extracted public surface is document-it, not clean-sweep's false-claim drain."
+    },
+    {
+      "id": 149,
+      "prompt": "Upgrade the ORM to v5; the new major changes the on-disk column types, so the data has to move across deploys.",
+      "type": "negative",
+      "owner": "modernize-it",
+      "expected_mission": "migrate-it",
+      "reason": "The dependency surface owns the request: modernize-it runs the upgrade and hands the forced stateful change to migrate-it with a phase brief. migrate-it must not steal the whole upgrade, and the handoff is not ship-it."
+    },
+    {
+      "id": 150,
+      "prompt": "Bump the framework major and drop the legacy column it stopped writing.",
+      "type": "negative",
+      "owner": "modernize-it",
+      "expected_mission": "migrate-it",
+      "reason": "Currency is modernize-it; the drop it forces is a one-way stateful step migrate-it runs as its own deploy after the writers are retired and zero use is observed. The seam is a handoff, not a re-route."
     }
   ]
 }

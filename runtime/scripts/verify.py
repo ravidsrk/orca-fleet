@@ -785,8 +785,7 @@ def _changed_paths(base, head, nc_command=None):
     for path in changed:
         verdict = _is_oracle_path(path, nc_command)
         if verdict is None:
-            return None, None, ("unsupported proof command or unavailable oracle path classifier; "
-                                "fail-closed")
+            return None, None, _classifier_unavailable(nc_command)
         (tests if verdict else prod).append(path)
     return prod, tests, None
 
@@ -900,6 +899,21 @@ def _command_oracle_paths(command):
     return paths
 
 
+def _classifier_unavailable(nc_command):
+    """Name which of the two fail-closed causes actually applies.
+
+    `_is_oracle_path` answers None for two unrelated reasons: the proof command is outside the
+    bounded grammar, or diff_scope.py — the repo's one definition of a test path — could not be
+    loaded beside this script. One message for both told an operator nothing about which of them
+    to fix, and an installed bundle missing diff_scope.py reported a proof-command problem it did
+    not have (#322 bundle oracle vs #323 wrapped-proof grammar).
+    """
+    if _command_oracle_paths(nc_command) is None:
+        return "unsupported proof command; fail-closed"
+    return ("diff_scope.py could not be loaded, so a test path cannot be told from a production "
+            "one; fail-closed")
+
+
 def _is_oracle_path(path, nc_command=None):
     """Test modules and runner configuration are part of the oracle, never mutation targets."""
     if Path(path).name.lower() in {"conftest.py", "pytest.ini", "tox.ini", "setup.cfg",
@@ -928,7 +942,7 @@ def _bind_paths_to_change(paths, m, what, nc_command=None):
         norm = Path(path).as_posix()
         verdict = _is_oracle_path(norm, nc_command)
         if verdict is None:
-            return "unsupported proof command or unavailable oracle path classifier; fail-closed"
+            return _classifier_unavailable(nc_command)
         if verdict:
             return (f"{what} names {path!r}, which is a TEST path. Reverting the test that encodes "
                     "the criterion makes the proof go RED because the oracle is gone, not because "

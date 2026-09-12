@@ -6,13 +6,9 @@
 
 > Point it at a repo with a green CI baseline. Come back to a dependency surface where every
 > major is current or pinned with a written justification, every merge kept CI green, and every
-> upgrade that forced a stateful data migration was handed to `ship-it` — never run in the loop.
+> upgrade that forced a stateful data migration was handed to `migrate-it` with its phase evidence tracked.
 
 **Skill:** [`skills/modernize-it/SKILL.md`](../../skills/modernize-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes
-
-<p align="center">
-  <img src="../../assets/diagrams/missions/modernize-it.jpg" alt="State machine: INVENTORY outdated packages and advisories, ORDER by the compatibility graph, UPGRADE one dep or coherent group per PR, a stateful-schema-change fork handing off to ship-it, build-blind REVIEW, PROVE, LAND with CI green at every merge, RE-INVENTORY looping until CURRENT or CURRENT-WITH-PINNED" width="820">
-</p>
 
 ---
 
@@ -36,15 +32,14 @@ breakage stays bisectable.
 The scope boundary is the mission-identity line: this mission owns dependency and framework
 **currency** — bump, adapt call sites, CI green. A stateful DB schema/data migration across
 deploys (backfills, destructive contracts, tested rollback) is a different mission with a
-different unit (a data transition, not a package), a different state machine (temporally
-separated deploys, not per-PR merges), and a different proof (deployed compatibility + completed
-backfill, which needs the deploy states only [`ship-it`](ship-it.md) owns). When a dependency
-upgrade *forces* such a migration, `modernize-it` flags it and hands off a brief for a
-**staged sequence** of ship-it runs, each its own release: (1) expand, (2) the dependent
-dependency upgrade plus migrate-in-batches, (3) contract only after (2) is deployed and stable.
-A single BUILD→LAND→RELEASE cannot temporally separate the deploys. Parking the upgrade after
-the full expand→migrate→contract sequence is wrong — that would contract before the upgraded
-code runs. `modernize-it` never runs a cross-deploy data migration inside a currency loop.
+different unit (one migration phase), a different state machine (temporally separated deploys),
+and a different proof (phase compatibility and data parity). [`migrate-it`](migrate-it.md) owns
+that ladder. When an upgrade forces such a migration, hand it the migration **and dependent
+upgrade** in one phase brief: expand → compatible upgrade/dual-write → backfill → switch →
+zero use → contract. The upgrade runs after expansion and before contraction, with compatibility
+proven at each phase; contract waits for deployed, stable upgraded code to stop using the old
+shape. Track the handoff in the dependency inventory until its phase/deploy evidence returns.
+Code-only upgrades stay in the currency loop; ordinary feature delivery is [`ship-it`](ship-it.md).
 
 ## When to reach for it
 
@@ -56,7 +51,7 @@ code runs. `modernize-it` never runs a cross-deploy data migration inside a curr
 **When NOT to reach for it:**
 
 - The work is really a stateful DB schema/data migration across deploys — that is
-  [`ship-it`](ship-it.md), which owns the deploy states expand/migrate/contract needs.
+  [`migrate-it`](migrate-it.md), which owns the deploy-gated migration phases.
 - You want an advisory *exploited and proven*, not just resolved — the audit → re-attack loop
   is [`harden-it`](harden-it.md).
 - You want the data-migration lens as an opinion on one diff — [`review-it`](review-it.md).
@@ -69,11 +64,11 @@ flowchart TD
     B --> C[ORDER by compatibility graph<br/>security-critical-reachable → patch/minor<br/>coherent groups → majors one per PR]
     C --> D[UPGRADE waves<br/>one dep or coherent group per PR,<br/>adapt call sites, shims where needed]
     D --> E{"Upgrade forces a stateful<br/>DB schema or data change?"}
-    E -->|yes| F[Handoff brief → ship-it<br/>park the dependent upgrade behind it]
+    E -->|yes| F[Handoff → migrate-it<br/>expand → upgrade/dual-write → backfill<br/>switch → zero use → contract]
     E -->|no| G[Build-blind REVIEW]
     G --> H[RUNTIME-PROVE<br/>drive the real entry points]
     H --> I[LAND<br/>merge conductor, CI green at every merge]
-    F --> J[RE-INVENTORY]
+    F --> J[RE-INVENTORY<br/>unresolved handoffs stay parked<br/>completed handoffs return phase evidence]
     I --> J
     J -->|inventory not dry| C
     J -->|dry, zero pins| K{{CURRENT}}
@@ -101,7 +96,9 @@ Phase by phase:
 4. **Forced-migration check** ([`risk-review`](../../playbooks/risk-review.md), data-migration
    lens). The lens is a review **signal**, not an execution engine: it flags an upgrade that
    forces a stateful DB schema/data change. When it fires, the migration is not run here — a
-   handoff brief routes it to `ship-it`, and the dependent upgrade parks behind that handoff.
+   handoff brief routes migration and dependent upgrade to `migrate-it`. The upgrade belongs
+   after expand and before contract, with compatibility proved at every step. The currency
+   inventory retains the node as parked until the handoff returns its phase/deploy evidence.
 5. **Prove** ([`runtime-prove`](../../playbooks/runtime-prove.md)). A green CI misses
    runtime-only breakage — lazy imports, env-dependent init. The upgraded app is driven through
    its real entry points before anything lands.
@@ -125,7 +122,7 @@ Per [`gate-classification`](../../runtime/gate-classification.md):
 
 1. **The pin.** Parking a dependency as pinned requires a written reason and a human reference.
    The fleet never quietly narrows "current" to "whatever upgraded cleanly".
-2. **The forced migration.** The stateful migration lands only through `ship-it` and its own
+2. **The forced migration.** The stateful migration lands through `migrate-it` and its own
    gates. Inside this mission, a destructive migration sits on
    [`build-change`](../../playbooks/build-change.md)'s irreversibility stop-list: stop and
    escalate, never improvise.
@@ -140,8 +137,10 @@ Everything else is classified mechanical or taste and resolved per policy.
   pinned-and-parked with a written reason and a human ref;
 - every merge kept CI green — the merge commits' checks are verified; a red pipeline never
   landed;
-- every upgrade that forced a stateful DB migration was handed to `ship-it` with a brief, its
-  dependent upgrade parked behind the handoff — never silently run inside the loop;
+- every upgrade that forced a stateful DB migration has a `migrate-it` phase brief placing
+  the dependent upgrade between expansion and contraction; unresolved handoffs stay parked
+  with reason and human ref, and completed ones return phase/deploy evidence before counting
+  as current;
 - the advisory scan re-runs clean, or each remaining advisory is parked with a reachability
   rationale;
 - the final inventory is pasted.
@@ -161,9 +160,11 @@ PR would be the documented anti-pattern. React 17→18 is a lone major: its own 
 applied, call sites adapted, `ReactDOM.render` → `createRoot` shims where third-party code lags.
 
 **The stateful fork.** The ORM major renames a column type — a destructive migration. That is
-not a dependency bump; it exits through the diamond: a handoff brief to `ship-it`, and the two
-packages that depend on the new ORM park behind it. This mission never improvises a schema
-change past its own gates.
+it exits through the diamond to `migrate-it`, together with the two dependent packages. That
+mission deploys the expansion, places the compatible ORM upgrade and dual writes before
+backfill/switch, then proves zero use before contract. The inventory tracks the group as parked
+while this phase ladder runs. A code-only ORM API adaptation would stay in `modernize-it`;
+adding a new product feature would use `ship-it`.
 
 **The pin gate.** `draft-js` is abandoned upstream and its replacement is a product decision.
 Pinning is a human gate: written reason, your reference, revisit date — recorded in the ledger,
@@ -171,8 +172,8 @@ not silently skipped.
 
 **Re-inventory → terminal.** The loop re-runs until the inventory is dry for everything this
 mission may touch. The terminal report names both exceptions: the `draft-js` pin (justified,
-human-referenced) and the ORM group still parked behind its `ship-it` handoff, which re-enters
-the inventory once that migration lands. **CURRENT-WITH-PINNED**, CI green at every single
+human-referenced) and the ORM group still parked in its `migrate-it` handoff, whose phase/deploy
+evidence must return before the group is current. **CURRENT-WITH-PINNED**, CI green at every single
 merge along the way — and no upgrade silently dropped from the tally.
 
 ## Failure modes this mission is built to prevent
@@ -180,7 +181,7 @@ merge along the way — and no upgrade silently dropped from the tally.
 | Anti-pattern                                | Why it burns you                                           |
 |---------------------------------------------|------------------------------------------------------------|
 | `audit fix --force` / mass-bump             | Forces resolutions the compatibility graph never validated |
-| A cross-deploy DB migration inside the loop | This mission has no deploy states; only `ship-it` does     |
+| A cross-deploy DB migration inside the loop | `migrate-it` owns the phase/deploy evidence and ordering |
 | Rename-in-place code migration              | Breaks dual-running deploys mid-rollout                    |
 | Landing a red CI "to fix next PR"           | Every later upgrade now builds on a broken baseline        |
 | Bumping a major without its changelog       | The version delta says nothing about what breaks           |
@@ -208,7 +209,8 @@ Runtime policies: [`merge-serialization`](../../runtime/merge-serialization.md) 
 
 ## Related missions
 
-- [`ship-it`](ship-it.md) — owns the deploy states a forced stateful DB migration needs.
+- [`migrate-it`](migrate-it.md) — stateful schema/data transitions and dependent upgrades across deploys.
+- [`ship-it`](ship-it.md) — ordinary feature delivery.
 - [`harden-it`](harden-it.md) — the advisory exploit proof: full audit → re-attack.
 - [`clean-sweep`](clean-sweep.md) — a general finding backlog, PR-per-finding.
 - [`review-it`](review-it.md) — the data-migration lens as a per-diff review verdict.

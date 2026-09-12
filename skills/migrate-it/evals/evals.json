@@ -4,13 +4,14 @@
     {
       "id": 1,
       "prompt": "We need to rename users.name to users.full_name in production without downtime — plan and land the migration across deploys.",
-      "expected_output": "Should route to migrate-it. Should freeze the table set and the phase list, run expand → dual-write → backfill → switch-reads → zero-readers → contract with a deploy and a bake per phase, write AND run each down path (up then down leaves an empty schema-dump diff), prove old-code-vs-new-schema and new-code-vs-old-schema, probe parity (row counts + sampled hashes), and gate CONTRACT on a human.",
+      "expected_output": "Should route to migrate-it. Should freeze the table set and the phase list, run expand → dual-write → backfill → switch-reads → zero-readers → retire-writes → zero-writers → contract with a deploy and a bake per phase, write AND run each down path (up then down leaves an empty schema-dump diff), prove old-code-vs-new-schema and new-code-vs-old-schema, probe parity (row counts, a COMPLETE mismatch check, and seeded sampled hashes — counts and samples alone cannot claim 100%), retire the old writers in their own deploy and observe zero use from it, and gate CONTRACT on a human.",
       "assertions": [
         "Routes to migrate-it",
         "Unit is one migration phase of one table, phases strictly serial",
         "Each phase's down path is written and run, with an empty schema-dump diff pasted",
         "Dual-validity is proven in both directions before the phase lands",
-        "Parity probe (row counts + sampled hashes) is GREEN before the old shape is dropped",
+        "Parity requires a complete mismatch check, not only row counts and sampled hashes",
+        "Old writers are retired in their own deploy, with zero use observed from it before the drop",
         "CONTRACT is a separate deploy behind a one-way human gate",
         "Terminal is MIGRATED, MIGRATED-WITH-PARKED, or ABANDONED"
       ],
