@@ -648,6 +648,67 @@ class TestBehavioralIntegrity(unittest.TestCase):
                 self.assertIn("error", result["cases"][0])
                 self.assertNotIn("passed", result["cases"][0])
 
+    def test_an_incidental_excerpt_cannot_pass_a_row(self):
+        """PR #324 review, P1.
+
+        Membership in the trace was the whole floor, so any nonblank substring qualified. Every
+        excerpt below really is copied from the trace and locates nothing: a grader could attach
+        one to each assertion and pass the lot without reading either.
+        """
+        for evidence in ("t", ":", " ", "\n", "tool", "scope", "wrote", "log",
+                         "tool[17]", "before ta", "17]: w"):
+            with self.subTest(evidence=evidence):
+                self.assertIn(evidence, self.TRACE, "the fixture must really contain it")
+                rows = [{"text": text, "passed": True, "evidence": evidence}
+                        for text in self.ASSERTIONS]
+                code, result = self._run_case(rows=rows)
+                self.assertEqual(code, 1, result)
+                self.assertEqual(result["failures"], 1)
+                self.assertIn("error", result["cases"][0])
+                self.assertNotIn("passed", result["cases"][0])
+
+    def test_one_excerpt_cannot_be_spent_on_two_passing_assertions(self):
+        # Long and specific, but offered twice: the second row cites nothing of its own.
+        shared = self.EXCERPTS[0]
+        rows = [{"text": text, "passed": True, "evidence": shared} for text in self.ASSERTIONS]
+        code, result = self._run_case(rows=rows)
+        self.assertEqual(code, 1, result)
+        self.assertIn("error", result["cases"][0])
+        # Whitespace padding is not a different excerpt.
+        rows[1]["evidence"] = shared
+        rows[0]["evidence"] = shared
+        code, _ = self._run_case(rows=rows)
+        self.assertEqual(code, 1)
+        # A failing row spends nothing, so the excerpt is still available to the passing one.
+        rows = [{"text": self.ASSERTIONS[0], "passed": False, "evidence": ""},
+                {"text": self.ASSERTIONS[1], "passed": True, "evidence": shared}]
+        code, result = self._run_case(rows=rows)
+        self.assertEqual(code, 1, result)   # one assertion failed, but grading itself held
+        self.assertNotIn("error", result["cases"][0])
+        self.assertEqual(result["cases"][0]["passed"], 1)
+
+    def test_a_distinct_locating_excerpt_still_passes(self):
+        # The floor must not reject honest grading: distinct excerpts, each long enough to locate.
+        rows = [{"text": text, "passed": True, "evidence": evidence}
+                for text, evidence in zip(self.ASSERTIONS, self.EXCERPTS)]
+        code, result = self._run_case(rows=rows)
+        self.assertEqual(code, 0, result)
+        self.assertEqual(result["cases"][0]["passed"], 2)
+        # Overlapping spans of one line are fine as long as neither repeats the other.
+        rows = [{"text": self.ASSERTIONS[0], "passed": True,
+                 "evidence": "wrote scope.lock before task split"},
+                {"text": self.ASSERTIONS[1], "passed": True,
+                 "evidence": "saved accepted scope to decisions.log"}]
+        code, result = self._run_case(rows=rows)
+        self.assertEqual(code, 0, result)
+        self.assertEqual(result["cases"][0]["passed"], 2)
+
+    def test_the_grader_is_told_the_evidence_floor_it_is_held_to(self):
+        # A floor the grader is not told about rejects honest work as readily as fabricated work.
+        self.assertIn(str(eval_mod.MIN_EVIDENCE_CHARS), eval_mod.GRADER_SCHEMA)
+        self.assertIn(str(eval_mod.MIN_EVIDENCE_WORDS), eval_mod.GRADER_SCHEMA)
+        self.assertIn("distinct excerpt", eval_mod.GRADER_SCHEMA)
+
     def test_grading_preserves_reordered_rows_and_failed_assertions(self):
         rows = [{"text": text, "passed": True, "evidence": evidence}
                 for text, evidence in reversed(list(zip(self.ASSERTIONS, self.EXCERPTS)))]
