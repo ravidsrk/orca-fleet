@@ -1,7 +1,7 @@
 # 📥 absorb-it — every inbound contribution landed with credit, refuted with receipts, or parked
 
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — a coordinator plus parallel per-PR workers; closing someone's contribution without landing it is your one-way batch gate.
-> **Activation load:** ~31,700 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
+> **Activation load:** ~32,000 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
 
 > Point it at an inbound pull-request queue nobody has had time for. Come back to it drained
@@ -17,7 +17,8 @@
 
 `absorb-it` is the maintainer-side queue fleet. A **coordinator** enumerates every open inbound PR
 at `T0` (paginated to the end — a truncated listing silently fails the run), classifies each one
-*after reproducing the claimed defect on current main*, and dispatches the absorbable ones. Each
+*after reproducing the claimed defect on pinned current main*, retaining that SHA and receipt,
+then reclassifies on the current integration BASE before dispatching absorbable ones. Each
 absorption preserves the contributor's `Author:` line, carries a regression receipt, gets a
 build-blind review, lands as one PR against the integration BASE, and closes the inbound PR with
 the landing SHA and a credit line. Then the queue is enumerated again, until it comes back dry.
@@ -54,7 +55,9 @@ PR — unsigned is `needs-contributor`, never a fleet signature.
 ```mermaid
 flowchart TD
     A[ENUMERATE at T0<br/>every open inbound PR, paginated<br/>+ linked issues] --> B[CLASSIFY<br/>reproduce the claim on current main]
-    B -->|absorbable| C[ABSORB<br/>apply preserving Author:<br/>fleet amendment = separate commit]
+    B -->|absorbable| R[RECLASSIFY at pinned current BASE<br/>retain initial-main receipt]
+    R -->|remaining delta| C[ABSORB<br/>apply preserving Author:<br/>fleet amendment = separate commit]
+    R -->|duplicate-of winning BASE SHA| G
     B -->|superseded-by-main / duplicate-of| G[[batch human gate<br/>close citing the winning SHA]]
     B -->|needs-contributor / design-disagreement| P[PARK with a named ask]
     C --> D[RECEIPT<br/>regression test RED on the pre-absorption base<br/>GREEN on the absorbed head]
@@ -68,9 +71,12 @@ flowchart TD
     H -->|dry, parks open| J{{ABSORBED-WITH-PARKED}}
 ```
 
-Overlapping inbound PRs — the same bug fixed twice by two contributors — form an **absorption
-chain**: the first one lands, and every other re-classifies against the *new* main as superseded or
-as a remaining delta. The second is never merged blind.
+Overlapping inbound PRs form an **absorption chain**: after each land, reclassify the rest against
+the advancing integration BASE, preserving the initial-main SHA and reproduction receipts.
+A now-GREEN claim is `duplicate-of` the winning SHA on BASE; a distinct remaining delta stays
+absorbable only with its own RED-on-current-BASE / GREEN-on-head receipt. Pin that pre-absorption
+BASE SHA; if BASE moves before landing, repeat classification and refresh receipts/review.
+Main stays unchanged throughout the run; BASE→default promotion remains a separate human gate.
 
 ## Terminal states
 
@@ -95,7 +101,8 @@ contribution:
 - **Authorship asserted from git**, not claimed — the landed commit's author is the contributor.
 - **A receipt with both SHAs** — the regression test (the PR's own, or one the fleet wrote) RED on
   a scratch worktree of the pre-absorption base and GREEN on the absorbed head, both pasted. No
-  receipt, no landing: "the tests pass now" says nothing about what the change fixed.
+  receipt, no landing: "the tests pass now" says nothing about what the change fixed. Keep the
+  initial-main receipt alongside reclassification receipts at each advancing BASE SHA.
 - **An ancestry-verified merge on BASE**, and the inbound PR closed linking the landing SHA and the
   receipt.
 

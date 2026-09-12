@@ -1,7 +1,7 @@
 # 📟 oncall-it — the surface is operable, proven by someone who cannot read the source
 
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — a coordinator plus parallel per-path workers, and a second, deliberately source-blind worker as the oracle; freezing the questions and any cost decision are your gates.
-> **Activation load:** ~32,700 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
+> **Activation load:** ~32,900 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
 
 > Point it at "the last incident took four hours because we were blind." Come back to every

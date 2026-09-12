@@ -1,7 +1,7 @@
 # 🧱 floor-it — a written bar that fires
 
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel wiring and prove-fires workers, one dimension each; freezing the bar is your one-way gate.
-> **Activation load:** ~28,300 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
+> **Activation load:** ~28,400 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
 
 > Point it at a repo whose standards live in people's heads. Come back to a committed, numbered
@@ -73,7 +73,8 @@ flowchart TD
 | `FLOORED-WITH-PARKED` | ≥1 dimension has no measurable tool (parked with the human gate named), or the run parked AT the freeze in a headless session | the named human gate covers that dimension / answers the freeze |
 
 `FLOORED-WITH-PARKED` is a degraded terminal; a chain stops there per
-[`mission-chaining`](../../runtime/mission-chaining.md) unless the next link declares it tolerable.
+[`mission-chaining`](../../runtime/mission-chaining.md). Advancing requires a one-way human gate
+recorded in the ledger, even when the next link's allowlist declares this state tolerable.
 
 ## Human gates
 

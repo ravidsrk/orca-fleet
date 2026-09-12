@@ -32,14 +32,18 @@ Two corrections against v1.4.199, both of which make this rule the FLEET's, not 
    handling just the filtered type discards the rest unread.
 2. FRESH? head of queue: `gh pr view <n> --json headRefOid,baseRefName,state` —
    state OPEN · `baseRefName == BASE` (never merge a PR aimed at default) ·
-   `headRefOid == reviewed_sha` (reviewed-sha-freshness.md). Mismatch → compare TREES before
+   `headRefOid == reviewed_sha` (reviewed-sha-freshness.md). Pin this accepted head as
+   `reviewed_sha` for the merge command. Mismatch → compare TREES before
    bouncing (`git rev-parse <head>^{tree}` vs the payload's `reviewed_wtree`): equal trees (a
-   content-identical rebase) keep the review; different trees → bounce to re-review, requeue.
+   content-identical rebase) keep the review and pin the newly accepted head; different trees →
+   bounce to re-review, requeue.
 3. MERGE (one at a time, commits preserved): conflicts/behind → rebase onto origin/BASE as a UNION
    preserving both intents, re-run gates, push with `--force-with-lease` (never bare force). A
    content-CHANGING rebase VOIDS the review — the PR leaves the train and re-boards on a new
    merge_ready; a content-identical one keeps it (the tree test above). Clean →
-   `gh pr merge <n> --merge --delete-branch`. `--admin` only under a recorded once-per-run human
+   `gh pr merge <n> --merge --delete-branch --match-head-commit <reviewed_sha>`.
+   A concurrent head change refuses the merge: requeue for fresh review, then repeat FRESH;
+   never retry without the expected-head guard. `--admin` only under a recorded once-per-run human
    grant when a merge-trap check hangs (gate-classification.md), never routinely.
 4. VERIFY by ancestry, not grep: `git merge-base --is-ancestor <mergeCommit> origin/<BASE>` AND
    `state=MERGED` AND `baseRefName==BASE`. Then ledger the merge SHA + reply on the thread.
@@ -65,8 +69,11 @@ and `reviewed_sha` (`pr` is null) and swaps every `gh` step in the loop above fo
   rebase still voids the review), and `git merge-base --is-ancestor origin/<BASE> <branch>`-style
   check that the branch forks from BASE (the local stand-in for `baseRefName == BASE`). Mismatch →
   bounce to re-review, requeue. Never skip this step just because there is no PR to `view`.
-- MERGE (step 3): `git merge --no-ff <branch>` into BASE (commits preserved, never squash),
-  conflicts resolved locally the same union way, branch deleted, maintainer authorship.
+- MERGE (step 3): `test "$(git rev-parse <branch>)" = "<reviewed_sha>" && git merge --no-ff <reviewed_sha>`
+  into BASE (commits preserved, never squash). A changed branch refuses: requeue for fresh review.
+  The pinned commit also prevents a later branch move from substituting unreviewed content.
+  Conflicts return to the worker for resolution and fresh review; then requeue before merging.
+  Delete the branch only if it still names the merged head; retain a moved branch for re-review.
 - VERIFY (step 4): unchanged — it was already pure git ancestry.
 
 Record `no-gh: local-merge` in the ledger AND a local reviewer record — `review.artifact` at

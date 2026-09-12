@@ -1,7 +1,7 @@
 # 📌 pin-it — doctrine that matches the binary
 
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel re-witness probes, one claim each, against the installed binary; doctrine patches land through the normal review + merge gates.
-> **Activation load:** ~26,200 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
+> **Activation load:** ~26,400 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
 
 > Point it at a freshly upgraded Orca runtime — or at the queasy feeling that the dispatch docs
@@ -70,7 +70,8 @@ flowchart TD
 | `PINNED-WITH-PARKED` | claims needing a surface the session lacks (remote host, paid tier, human-only action, an unfixable-in-session precondition) are PARKED, each named with the exact probe it waits on | the named owner runs the probe |
 
 `PINNED-WITH-PARKED` is a degraded terminal; a chain stops there per
-[`mission-chaining`](../../runtime/mission-chaining.md) unless the next link declares it tolerable.
+[`mission-chaining`](../../runtime/mission-chaining.md). Advancing requires a one-way human gate
+recorded in the ledger, even when the next link's allowlist declares this state tolerable.
 
 ## Human gates
 
