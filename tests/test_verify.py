@@ -2516,6 +2516,10 @@ class ProofOracleProtection(RepoCase):
         for command in ('nice python3 runner.py', 'env -S "python3 runner.py"',
                         'env env python3 runner.py', 'sh -c "python3 runner.py"',
                         'env PATH=tools python3 runner.py',
+                        # PR #323 review, P1: an env assignment hid the runner behind `env`, so
+                        # the proof read as production and a control could mutate it.
+                        'env PYTHONPATH=. python runner.py',
+                        'env PYTHONPATH=. python3 -u runner.py',
                         'python3 -c "exec(open(\"runner.py\").read())"',
                         'python3 -X presite=runner -m unittest', 'node --require runner.js check.js',
                         'make -C elsewhere test', 'custom-wrapper runner.py'):
