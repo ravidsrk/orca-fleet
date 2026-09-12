@@ -40,7 +40,10 @@
 # kin) are stripped before any of this is judged — `git -C /x push --force` is
 # the push it names (#297). A deletion that spares the default branch asks
 # rather than denies: re-pushing the ref recovers it, and recovery is a human
-# call. --force-with-lease is deliberately NOT matched as a force-push — but a
+# call — except under a redirected repository (-C, --git-dir, GIT_DIR=), where
+# the default is resolved in the hook's own cwd and the ref cannot be shown
+# recoverable, so any remote-ref deletion denies (#321 review).
+# --force-with-lease is deliberately NOT matched as a force-push — but a
 # lease does not pardon a deletion, which is judged first.
 #
 # Never list (ask, per runtime/sandbox-policy.md): live-prod mutation, credential
@@ -460,6 +463,18 @@ strip_git_opts() {
   printf '%sgit %s' "$_pre" "$_rest"
 }
 
+# `-C`, `--git-dir`, `--work-tree`, and GIT_DIR=/GIT_WORK_TREE= point a command
+# at a DIFFERENT repository, but DEFAULT_BRANCH below is resolved in the hook's
+# own working directory — so under a redirect nothing here can prove which ref
+# the target repo calls its default (#321 review). Detected on the raw segment,
+# before the options were stripped away.
+git_redirected() {
+  case " $1" in
+    *\ -C\ *|*\ --git-dir\ *|*\ --git-dir=*|*\ --work-tree\ *|*\ --work-tree=*|*GIT_DIR=*|*GIT_WORK_TREE=*) return 0 ;;
+  esac
+  return 1
+}
+
 # The segments come PRE-SPLIT from the payload reader above, one per line from line 4 on. They
 # are split there because splitting is quote-aware and a POSIX shell cannot parse quoting without
 # eval: a separator inside a quoted value used to split too, leaving the rest of the value glued
@@ -518,29 +533,40 @@ for _SEG in "$@"; do
 
     # `-d`/`--delete` take their refs positionally; a `:dst` or `+:dst` refspec
     # names the deleted ref in the token itself. A bare `:` or `+:` is the
-    # matching-branches push — an empty dst is not a deletion.
+    # matching-branches push — an empty dst is not a deletion. `refs/heads/` is
+    # stripped before comparing: `git push origin :refs/heads/main` deletes the
+    # same ref `:main` does (#321 review).
     _DEL=0; _DEL_FLAG=0; _DEL_DEFAULT=0
     set -f
     for TOK in $CMD; do
       TOK=${TOK#\"}; TOK=${TOK%\"}; TOK=${TOK#\'}; TOK=${TOK%\'}
       case "$TOK" in
         -d|--delete) _DEL=1; _DEL_FLAG=1 ;;
-        +:*|:*) _dst=${TOK#+}; _dst=${_dst#:}
+        +:*|:*) _dst=${TOK#+}; _dst=${_dst#:}; _dst=${_dst#refs/heads/}
                 [ -n "$_dst" ] || continue
                 _DEL=1
                 [ -n "$DEFAULT_BRANCH" ] && [ "$_dst" = "$DEFAULT_BRANCH" ] && _DEL_DEFAULT=1 ;;
       esac
     done
     set +f
+    if [ "$_DEL" -eq 1 ] && git_redirected "$_SEG"; then
+      # The push targets another repository while DEFAULT_BRANCH was resolved
+      # in this one's cwd — the deleted ref cannot be shown recoverable, and
+      # ask is the wrong answer for maybe-the-default. Deny.
+      decide deny "deny-hook[HIGH]: deleting a remote ref under a redirected repository (-C/--git-dir/GIT_DIR) is refused — the hook cannot verify the target repo's default branch."
+      exit 0
+    fi
     if [ "$_DEL_FLAG" -eq 1 ] && [ -n "$DEFAULT_BRANCH" ]; then
       # The flag form names its refs among the positionals: a bare token equal
-      # to the default branch is the ref being deleted. A remote literally
-      # named after it earns a deny rather than a silent delete — that is the
-      # error to err toward.
+      # to the default branch — qualified or not (`--delete origin
+      # refs/heads/main` is the same delete, #321 review) — is the ref being
+      # deleted. A remote literally named after it earns a deny rather than a
+      # silent delete — that is the error to err toward.
       set -f
       for TOK in $CMD; do
         TOK=${TOK#\"}; TOK=${TOK%\"}; TOK=${TOK#\'}; TOK=${TOK%\'}
         case "$TOK" in git|push|sudo|-*) continue ;; esac
+        TOK=${TOK#refs/heads/}
         [ "$TOK" = "$DEFAULT_BRANCH" ] && _DEL_DEFAULT=1 && break
       done
       set +f

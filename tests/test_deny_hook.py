@@ -378,9 +378,28 @@ class TestDefaultBranchDeletion(HookBase):
             "git push -d origin main",
             "git push --delete origin main",
             "git push origin --delete main",
+            # The qualified ref names the same branch — comparing the raw token
+            # to "main" demoted these to ask (PR #321 review).
+            "git push origin :refs/heads/main",
+            "git push -d origin refs/heads/main",
+            "git push --delete origin refs/heads/main",
         ):
             with self.subTest(command=command):
                 self._deny(command)
+
+    def test_a_deletion_under_a_redirected_repository_is_denied(self):
+        # PR #321 review: -C/--git-dir/GIT_DIR target another repo, while the
+        # default branch is resolved in the hook's cwd — so there is no way to
+        # prove the deleted ref is not that repo's default. Fail closed.
+        for command in (
+            "git -C /srv push origin :main",
+            "git -C /srv push -d origin feature",
+            "git --git-dir=/srv/.git push --delete origin feature",
+            "GIT_DIR=/srv/.git git push origin :main",
+        ):
+            with self.subTest(command=command):
+                block = self._deny(command)
+                self.assertIn("redirected", block["permissionDecisionReason"])
 
     def test_a_lease_does_not_pardon_a_deletion(self):
         # --force-with-lease makes a REWRITE recoverable; a deleted ref is not a
