@@ -18,6 +18,10 @@ Verifies the invariants that, if wrong, silently corrupt a whole run:
 The BASE/default comparison canonicalizes ref aliases first (D1 remediation):
 `origin/main`, `refs/remotes/origin/main`, and `refs/heads/main` all reduce to `main`,
 so aliasing the default branch cannot slip past the M-5 guardrail.
+An online default derived from gh resolves through refs/remotes/origin/<branch>,
+never a possibly stale local namesake. Fetch origin before running preflight;
+a missing remote-tracking ref fails closed. Explicit --default refs retain their
+local/offline meaning.
 
 Usage:
     preflight.py --base <base-branch> [--default <default-branch>] [--fork-point <sha>] [--require-gitleaks]
@@ -82,7 +86,7 @@ def _default_branch_via_gh() -> str | None:
         ["gh", "repo", "view", "--json", "defaultBranchRef", "-q", ".defaultBranchRef.name"],
         timeout=_GH_TIMEOUT,
     )
-    return out if rc == 0 and out else None
+    return f"refs/remotes/origin/{out}" if rc == 0 and out else None
 
 
 def _branch_exists(name: str) -> bool:

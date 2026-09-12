@@ -29,7 +29,7 @@ SCOPE_PROMPTS    *prompt*, *system_prompt*, SKILL.md, AGENTS.md, *.prompt,
                  */skills/*, */playbooks/*  ·  content: "You are a", "system prompt"
 SCOPE_TESTS      *.test.*, *.spec.*, *_test.*, test_*.py, test/ tests/ spec/
                  __tests__/ cypress/ e2e/
-SCOPE_DOCS       *.md, *.rst, *.adoc, docs/*
+SCOPE_DOCS       *.md, *.rst, *.adoc, docs/*, assets/badges/{tests,missions}.json
 SCOPE_CONFIG     package.json, lockfiles, *.yml/*.yaml/*.toml/*.ini/*.cfg,
                  .github/*, requirements.txt, go.mod, Cargo.toml, Dockerfile
 SCOPE_MIGRATIONS db/migrate/*, migrations/*, alembic/*, prisma/migrations/*,
@@ -59,6 +59,7 @@ Exit codes
     0  classified (all-false with no changed files is a legitimate clean)
     2  SCOPE_ERROR=no_base    -- the base ref does not resolve (shallow checkout
                                  or missing fetch); nothing was examined
+    2  SCOPE_ERROR=diff_failed -- a required git diff/enumeration failed
     2  SCOPE_ERROR=unmatched  -- files changed but no category matched; the
                                  unmatched paths are printed as comments
 
@@ -110,6 +111,9 @@ PATH_RULES = [
     ("PROMPTS", re.compile(r"prompt|(^|/)(skills|playbooks)/|(^|/)(SKILL|AGENTS)\.md$|\.prompt$")),
     ("TESTS", re.compile(r"\.(test|spec)\.|_(test|spec)\.|(^|/)test_[^/]*$|(^|/)(tests?|spec|__tests__|cypress|e2e)/")),
     ("DOCS", re.compile(r"(^|/)docs?/")),
+    # Exact public README payloads emitted by scripts/gen-badges.py; other JSON
+    # and assets still need their own review signals.
+    ("DOCS", re.compile(r"^assets/badges/(tests|missions)\.json$")),
     ("CONFIG", re.compile(r"(^|/)\.github/|(^|/)\.circleci/|(^|/)ci/")),
     ("MIGRATIONS", re.compile(r"(^|/)(db/migrate|migrations|alembic|prisma/migrations|db/data|data_migrations)/")),
     ("API", re.compile(r"(^|/)api/|controller|route|endpoint|handler|\.(graphql|gql)$|(^|/)(openapi|swagger)\.")),
@@ -130,7 +134,11 @@ CONTENT_RULES = [
 
 
 class ScopeError(Exception):
-    """no_base — the base ref could not be resolved, so nothing was examined."""
+    """A base or required acquisition failed; partial results are not a verdict."""
+
+    def __init__(self, message, kind="no_base"):
+        super().__init__(message)
+        self.kind = kind
 
 
 def git(repo, *args, tolerate=False):
@@ -163,22 +171,20 @@ def changed_files(repo, base):
     """Union of committed diff vs base, working tree, and untracked files."""
     names = set()
 
-    def absorb(out):
+    def absorb(out, phase):
         if out is None:
-            return False
+            raise ScopeError(f"{phase} acquisition failed", kind="diff_failed")
         for name in out.split("\0"):
             if name.strip():
                 names.add(name)
-        return True
-
-    # Committed diff: merge-base form, falling back to two-dot only when the
-    # three-dot form itself fails (an unrelated-histories base).
-    if not absorb(git(repo, "diff", "-z", f"{base}...HEAD", "--name-only")):
-        absorb(git(repo, "diff", "-z", base, "--name-only"))
+    # A failed merge-base diff cannot license a different comparison. Unrelated
+    # histories and other git failures both mean the requested scope is unknown.
+    options = ("--no-ext-diff", "--no-textconv", "-z", "--name-only")
+    absorb(git(repo, "diff", *options, f"{base}...HEAD", "--"), "committed diff")
     # Working tree (staged + unstaged); fails on a repo with no commits.
-    absorb(git(repo, "diff", "-z", "HEAD", "--name-only"))
+    absorb(git(repo, "diff", *options, "HEAD", "--"), "working-tree diff")
     # Untracked: the new migration/component is untracked right up until commit.
-    absorb(git(repo, "ls-files", "-z", "--others", "--exclude-standard"))
+    absorb(git(repo, "ls-files", "-z", "--others", "--exclude-standard"), "untracked enumeration")
     return sorted(names)
 
 
@@ -243,7 +249,7 @@ def build_parser():
     p = argparse.ArgumentParser(
         prog="diff_scope.py",
         description="Classify the changed surface into SCOPE_* review flags, failing loud when it cannot look.",
-        epilog="exit 0 classified / 2 SCOPE_ERROR=no_base|unmatched",
+        epilog="exit 0 classified / 2 SCOPE_ERROR=no_base|diff_failed|unmatched",
     )
     p.add_argument("--base", default=None, help="base ref (default: origin/HEAD, then origin/main, main, master)")
     p.add_argument("--repo", default=".", help="repository to classify (default: cwd)")
@@ -262,12 +268,17 @@ def main(argv=None):
     except ScopeError as err:
         empty = {f: False for f in FLAGS}
         if args.json:
-            print(json.dumps({"flags": empty, "error": "no_base", "base": str(err), "unmatched": []}, indent=2))
+            print(json.dumps({"flags": empty, "error": err.kind,
+                              "base": str(err) if err.kind == "no_base" else args.base,
+                              "unmatched": []}, indent=2))
         else:
             for line in render_flags(empty):
                 print(line)
-            print("SCOPE_ERROR=no_base")
-            print(f"# base ref '{err}' is not resolvable — shallow checkout or missing fetch. Run: git fetch origin")
+            print(f"SCOPE_ERROR={err.kind}")
+            if err.kind == "no_base":
+                print(f"# base ref '{err}' is not resolvable — shallow checkout or missing fetch. Run: git fetch origin")
+            else:
+                print(f"# {err}; no scope verdict is available")
         return EXIT_SCOPE_ERROR
 
     # #314: `unmatched` used to be an error only when NOTHING matched, and the paths printed only

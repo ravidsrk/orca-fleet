@@ -129,6 +129,71 @@ class TestOfflineStart(unittest.TestCase):
         self.assertIn("preflight: OK", r.stdout)
 
 
+class TestAuthoritativeDefault(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory(prefix="preflight-default-")
+        self.addCleanup(self.tmp.cleanup)
+        self.repo = Path(self.tmp.name) / "repo"
+        make_repo(self.repo, base="stale")
+        self.old = self.git("rev-parse", "HEAD")
+        self.git("checkout", "-qb", "integ")
+        self.git("-c", "user.name=t", "-c", "user.email=t@t.invalid",
+                 "commit", "--allow-empty", "-qm", "fresh")
+        self.fresh = self.git("rev-parse", "HEAD")
+        self.git("update-ref", "refs/remotes/origin/main", self.fresh)
+        self.fakebin = Path(self.tmp.name) / "bin"
+        self.fakebin.mkdir()
+        gh = self.fakebin / "gh"
+        gh.write_text('#!/bin/sh\ncase "$*" in\n'
+                      '*nameWithOwner*) echo owner/repo;;\n'
+                      '*defaultBranchRef*) echo main;;\n'
+                      '*) exit 99;;\nesac\n', encoding="utf-8")
+        gh.chmod(0o755)
+        self.env = dict(os.environ, PATH=f"{self.fakebin}{os.pathsep}{os.environ['PATH']}")
+
+    def git(self, *args):
+        return subprocess.run(["git", "-C", str(self.repo), *args], capture_output=True,
+                              text=True, check=True).stdout.strip()
+
+    def run_check(self, *args, base="integ", fork=None):
+        return run_preflight("--base", base, "--fork-point", fork or self.fresh, *args,
+                             cwd=self.repo, env=self.env)
+
+    def test_online_derived_default_uses_fresh_remote_despite_stale_local_main(self):
+        self.assertNotEqual(self.old, self.fresh)
+        r = self.run_check()
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("default=refs/remotes/origin/main", r.stdout)
+        self.assertIn("BASE tip == default tip", r.stderr)
+
+    def test_online_missing_remote_ref_cannot_fall_back_to_local_main(self):
+        self.git("update-ref", "-d", "refs/remotes/origin/main")
+        r = self.run_check(fork=self.old)
+        self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
+
+    def test_genuinely_stale_base_still_fails(self):
+        r = self.run_check(base="stale")
+        self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
+        self.assertIn("BASE is stale", r.stderr)
+
+    def test_default_branch_aliases_still_fail(self):
+        for alias in ("main", "origin/main", "refs/heads/main", "refs/remotes/origin/main"):
+            with self.subTest(alias=alias):
+                r = self.run_check(base=alias)
+                self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
+                self.assertIn("DEFAULT_BRANCH", r.stderr)
+
+    def test_explicit_local_and_offline_defaults_keep_their_meaning(self):
+        for mode in ((), ("--offline",)):
+            with self.subTest(mode=mode):
+                local = self.run_check(*mode, "--default", "main", fork=self.old)
+                self.assertEqual(local.returncode, 0, local.stderr)
+                stale = self.run_check(*mode, "--default", "main")
+                self.assertEqual(stale.returncode, 2, stale.stderr)
+                remote = self.run_check(*mode, "--default", "origin/main")
+                self.assertEqual(remote.returncode, 0, remote.stderr)
+
+
 class TestTimeoutSentinel(unittest.TestCase):
     """A timeout must be unambiguous: real processes exit 0-255 (or negative on a
     signal death), so a synthetic rc of 124 collides with a real `exit 124`."""

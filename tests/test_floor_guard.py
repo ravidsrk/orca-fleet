@@ -6,6 +6,9 @@ is reading a diff, so a fake diff would test nothing. The exit contract is the
 load-bearing part — a 2 that reads as a 0 is the failure mode this script exists
 to prevent — so every could-not-run path is asserted explicitly.
 """
+import contextlib
+import importlib.util
+import io
 import os
 import shutil
 import subprocess
@@ -13,9 +16,13 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parent.parent
 GUARD = ROOT / "runtime" / "scripts" / "floor_guard.py"
+_spec = importlib.util.spec_from_file_location("floor_guard", GUARD)
+floor_guard = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(floor_guard)
 
 
 def git(repo, *args):
@@ -112,6 +119,52 @@ class TestCleanAndExitCodes(FloorGuardBase):
         text = GUARD.read_text(encoding="utf-8")
         for token in ("0  clean", "1  at least one", "2  the guard could not run"):
             self.assertIn(token, text)
+
+
+class TestDiffAcquisition(FloorGuardBase):
+    def test_each_failed_required_read_is_exit_2(self):
+        write(self.repo, "new.py", "value = 1\n")
+        real_run = subprocess.run
+        for phase in ("tracked", "untracked-list", "untracked-diff"):
+            for failure in (128, subprocess.TimeoutExpired("git", 60), OSError("unavailable")):
+                with self.subTest(phase=phase, failure=failure):
+                    def failing_read(argv, **kwargs):
+                        target = ("untracked-list" if "ls-files" in argv else
+                                  "untracked-diff" if "--no-index" in argv else
+                                  "tracked" if "diff" in argv else None)
+                        if target == phase:
+                            if isinstance(failure, Exception):
+                                raise failure
+                            return subprocess.CompletedProcess(argv, failure, "", "read failed")
+                        return real_run(argv, **kwargs)
+
+                    out, err = io.StringIO(), io.StringIO()
+                    with mock.patch.object(floor_guard.subprocess, "run", side_effect=failing_read), \
+                            contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+                        rc = floor_guard.main(["--repo", str(self.repo), "--base", "main"])
+                    self.assertEqual(rc, 2, out.getvalue() + err.getvalue())
+                    self.assertNotIn("floor-guard: clean", out.getvalue())
+
+    def test_external_diff_and_textconv_cannot_hide_violations(self):
+        git(self.repo, "config", "diff.hidden.command", "false")
+        git(self.repo, "config", "diff.hidden.textconv", "true")
+        write(self.repo, ".gitattributes", "*.py diff=hidden\n")
+        for stage in (False, True):
+            with self.subTest(staged=stage):
+                write(self.repo, "src/app.py", "value = 1  # noqa\n")
+                write(self.repo, "new.py", "value = 1  # noqa\n")
+                if stage:
+                    git(self.repo, "add", "src/app.py")
+                with mock.patch.dict(os.environ, {"GIT_EXTERNAL_DIFF": "false"}):
+                    r = run_guard(self.repo, "--base", "main")
+                self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+                self.assertIn("src/app.py", r.stderr)
+                self.assertIn("new.py", r.stderr)
+
+    def test_empty_untracked_file_is_clean(self):
+        write(self.repo, "empty.py", "")
+        r = run_guard(self.repo, "--base", "main")
+        self.assertEqual(r.returncode, 0, r.stderr)
 
 
 class TestSuppressions(FloorGuardBase):
