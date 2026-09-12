@@ -96,6 +96,23 @@ class TestRetirementPrecedesTheDrop(unittest.TestCase):
                     self.assertTrue(text.index(earlier) < text.rindex(later),
                                     f"{relative}: {earlier} must precede {later}")
 
+    def test_the_machine_readable_identity_names_both_observation_gates(self):
+        """PR #329 review. The frontmatter is what a consumer reads without parsing the body, so a
+        state_machine missing the observation rungs lets a migration read as complete with no
+        zero-writer evidence. Frontmatter is budgeted separately from the body, so the ladder fits."""
+        head = (self.ROOT / "skills/migrate-it/SKILL.md").read_text().split("---", 2)[1]
+        flat = " ".join(head.split())
+        machine = flat.split("state_machine:", 1)[1].split("convergence:", 1)[0]
+        order = [rung for rung in ("expand", "dual-write", "backfill", "switch reads",
+                                   "zero-readers", "retire-writes", "zero-writers", "contract")]
+        seen = [rung for rung in order if rung in machine]
+        self.assertEqual(seen, order, f"state_machine omits rungs: {machine.strip()}")
+        positions = [machine.index(rung) for rung in order]
+        self.assertEqual(positions, sorted(positions), "state_machine names the rungs out of order")
+        convergence = flat.split("convergence:", 1)[1].split("ordering:", 1)[0]
+        self.assertTrue("writers" in convergence,
+                        "convergence must require zero WRITERS, not only readers")
+
     def test_the_skill_says_zero_use_is_observed_from_the_retirement_deploy(self):
         text = (self.ROOT / "skills/migrate-it/SKILL.md").read_text()
         for phrase in ("DEPLOY the retirement", "cannot share a rung with the drop"):

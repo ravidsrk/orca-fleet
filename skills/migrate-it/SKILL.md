@@ -21,11 +21,13 @@ metadata:
   proof: doctrine-only
   autonomy: L4
   unit: one migration phase of one table or shape
-  state_machine: expand → dual-write → backfill → switch reads → retire-writes → contract
-  convergence: data parity holds and zero readers of the old shape remain, across deploys
+  state_machine: expand → dual-write → backfill → switch reads → zero-readers → retire-writes →
+    zero-writers → contract
+  convergence: data parity holds and zero readers AND writers of the old shape remain, across deploys
   ordering: strictly phased — a phase never starts before its predecessor is proven in production
   parking: MIGRATED-WITH-PARKED, or ABANDONED with the expand rolled back
-  oracle: data parity between the two shapes plus a zero-old-shape-reader query, never the repo suite
+  oracle: data parity between the two shapes plus zero-old-shape-reader and zero-old-shape-writer
+    queries, never the repo suite
 ---
 
 # migrate-it — a stateful shape change landed across deploys, nothing ever invalid
