@@ -162,6 +162,9 @@ def reference_index(mission, names):
         "Read the mandatory `docs/runs/TEMPLATE.md` from\n"
         '`"$ORCA_FLEET_ROOT/docs/runs/TEMPLATE.md"` ([run-report template](../docs/runs/TEMPLATE.md));\n'
         "write the filled report and its evidence into the PROJECT repository.\n"
+        "Follow its target-project gates and integrity inventory procedure. The separate\n"
+        "catalog proof-promotion section applies only in an orca-fleet catalog clone;\n"
+        "recording an external run does not promote the installed mission's proof tier.\n"
         "Python 3, a POSIX shell and git are host prerequisites; live operations also\n"
         "require the external tools and permissions named by their protocols (Orca, gh, etc.).\n\n"
         "```sh\n"
