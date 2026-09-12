@@ -1,7 +1,11 @@
 """Copy-install acceptance tests with independently named protocol dependencies."""
 import importlib.util
+import base64
+import hashlib
 import json
 import os
+import re
+import shlex
 from pathlib import Path
 import shutil
 import subprocess
@@ -52,8 +56,11 @@ class BundleClosureTests(unittest.TestCase):
                 result = self.run_command(project, "git", *args)
                 self.assertEqual(result.returncode, 0, result.stderr)
             for name in ("verify.py", "evidence-run.py", "preflight.py"):
-                result = self.run_command(project, sys.executable, "-I",
-                                          str(installed / "runtime/scripts" / name), "--help")
+                entry = installed / "runtime/scripts" / name
+                self.assertTrue(entry.is_file(), str(entry))
+                self.assertEqual(entry.stat().st_mode & 0o111, 0o111,
+                                 f"{name} must retain its executable interface")
+                result = self.run_command(project, str(entry), "--help")
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertIn("usage:", result.stdout)
             script = str(installed / "runtime/scripts/preflight.py")
@@ -62,10 +69,19 @@ class BundleClosureTests(unittest.TestCase):
                                           "--offline", "--base", base, "--default", "main")
                 self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
             manifest = Path(install_tmp) / "evidence.json"
+            # Execute the protocol's recorder invocation using the index's substitution rule.
+            protocol = (installed / "references/build-change.md").read_text()
+            invocation = next(line for line in protocol.splitlines()
+                              if line.startswith("runtime/scripts/evidence-run.py --label"))
+            invocation = invocation.replace("runtime/scripts/evidence-run.py",
+                                            '"$ORCA_FLEET_ROOT/runtime/scripts/evidence-run.py"')
+            invocation = invocation.replace("<m.json>", '"$2"').replace(
+                "<criterion-bound command>", shlex.join(
+                    [sys.executable, "-I", "-c", "print('installed recorder executed')"]))
+            self.assertFalse((project / "runtime").exists())
             result = self.run_command(
-                project, sys.executable, "-I", str(installed / "runtime/scripts/evidence-run.py"),
-                "--label", "fixture", "--manifest", str(manifest), "--",
-                sys.executable, "-I", "-c", "print('installed recorder executed')")
+                project, "/bin/sh", "-c", "ORCA_FLEET_ROOT=$1\n" + invocation,
+                "installed-flow", str(installed), str(manifest))
             self.assertEqual(result.returncode, 0, result.stderr)
             record = json.loads(manifest.read_text())["commands"][0]
             tree = self.run_command(project, "git", "rev-parse", "HEAD^{tree}").stdout.strip()
@@ -78,12 +94,77 @@ class BundleClosureTests(unittest.TestCase):
             index = (installed / "references/README.md").read_text()
             for name in ("verify.py", "evidence-run.py", "preflight.py"):
                 self.assertIn(f'"$ORCA_FLEET_ROOT/runtime/scripts/{name}"', index)
+            self.assert_installed_verification(installed, project, manifest)
+
+    def assert_installed_verification(self, installed, project, manifest):
+        # A real local report-only range can pass without any review claim or network call.
+        base = self.run_command(project, "git", "rev-parse", "HEAD").stdout.strip()
+        (project / "report.md").write_text("Fixture report, no production changes.\n")
+        self.assertEqual(self.run_command(project, "git", "add", "report.md").returncode, 0)
+        result = self.run_command(project, "git", "-c", "user.name=Fixture",
+                                  "-c", "user.email=fixture@example.invalid",
+                                  "commit", "-m", "fixture report")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        head = self.run_command(project, "git", "rev-parse", "HEAD").stdout.strip()
+        contract = project / "contract.json"
+        contract.write_text('{"criterion_ids": ["AC-1"]}\n')
+        digest = "sha256:" + hashlib.sha256(contract.read_bytes()).hexdigest()
+        evidence = {"unit": "installed-fixture", "base_sha": base, "head_sha": head,
+                    "contract": {"digest": digest, "criterion_ids": ["AC-1"]},
+                    "criteria": [{"id": "AC-1", "addressed": True}]}
+        manifest.write_text(json.dumps(evidence))
+        command = (sys.executable, "-I", str(installed / "runtime/scripts/verify.py"),
+                   "--manifest", str(manifest), "--contract-source", "contract.json",
+                   "--contract-digest", digest)
+        result = self.run_command(project, *command, "--unit-class", "report-only")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("verify: OK", result.stdout)
+        self.assertIn("report-only (unsupervised)", result.stdout)
+        evidence["criteria"] = []
+        manifest.write_text(json.dumps(evidence))
+        result = self.run_command(project, *command, "--unit-class", "report-only")
+        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+        self.assertIn("authoritative criteria not addressed", result.stderr)
+        # Mutation mode exercises diff_scope's lazy load through real changed-path binding.
+        # Its missing review gate must remain RED; this is never a production approval.
+        evidence["criteria"] = [{"id": "AC-1", "addressed": True}]
+        (project / "control.txt").write_text(result.stderr)
+        evidence["negative_control"] = {"tool": "revert", "paths": ["report.md"],
+                                        "result": "RED", "artifact": "control.txt"}
+        evidence["artifacts"] = [{"path": "control.txt", "sha256": hashlib.sha256(
+            (project / "control.txt").read_bytes()).hexdigest()}]
+        manifest.write_text(json.dumps(evidence))
+        # Public RFC 8032 test-vector key, deliberately invalid signature, no private key.
+        (project / "public.txt").write_text(
+            "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a")
+        (project / "dispatch.json").write_text(json.dumps(
+            {"record": {}, "sig_b64": base64.b64encode(bytes(64)).decode()}))
+        args = (*command, "--unit-class", "mutation", "--dispatch-record", "dispatch.json",
+                "--dispatch-pubkey", "public.txt")
+        result = self.run_command(project, *args)
+        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+        self.assertIn("signature INVALID", result.stderr)
+        self.assertIn("no pr.number", result.stderr)
+        self.assertNotIn("could not be loaded", result.stderr)
+        self.assertNotIn("negative_control.paths", result.stderr)
+        for helper, diagnostic in (("diff_scope.py", "diff_scope.py could not be loaded"),
+                                   ("ed25519.py", "Ed25519 verifier is unavailable")):
+            path = installed / "runtime/scripts" / helper
+            saved = path.read_bytes()
+            path.unlink()
+            try:
+                result = self.run_command(project, *args)
+                self.assertEqual(result.returncode, 2)
+                self.assertIn(diagnostic, result.stderr)
+            finally:
+                path.write_bytes(saved)
 
     def test_missing_runtime_helper_data_or_transitive_protocol_is_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
             bundle.build(tmp)
             root = Path(tmp) / "skills/pin-it"
             self.assertEqual(bundle.dangling(root), [])
+
             for relative in ("runtime/scripts/verify.py", "runtime/scripts/wtree.sh",
                              "runtime/scripts/ed25519.py", "runtime/one-way-doors.json",
                              "runtime/pins.json", "references/build-change.md"):
@@ -101,6 +182,19 @@ class BundleClosureTests(unittest.TestCase):
                             path.write_bytes(original)
             self.assertEqual(bundle.dangling(root), [])
 
+    def test_installed_verifier_oracle_rejects_a_usage_only_decoy(self):
+        copy = shutil.copy2
+
+        def decoy(source, target, **kwargs):
+            result = copy(source, target, **kwargs)
+            if Path(source).name == "verify.py":
+                Path(target).write_text("#!/usr/bin/env python3\nprint('usage: decoy')\n")
+            return result
+
+        with mock.patch.object(bundle.shutil, "copy2", decoy):
+            with self.assertRaisesRegex(AssertionError, "verify: OK"):
+                self.test_installed_entry_points_work_without_source_checkout()
+
     def test_check_rejects_files_omitted_during_copy(self):
         copy = shutil.copy2
         missing = {"verify.py", "ed25519.py", "one-way-doors.json", "build-change.md"}
@@ -115,6 +209,47 @@ class BundleClosureTests(unittest.TestCase):
             for name in missing:
                 self.assertTrue(any(name in p for p in problems), (name, problems))
 
+    def test_installed_oracle_rejects_stripped_executable_permissions(self):
+        copy = shutil.copy2
+
+        def strip_mode(source, target, **kwargs):
+            result = copy(source, target, **kwargs)
+            if Path(source).name == "evidence-run.py":
+                Path(target).chmod(Path(target).stat().st_mode & ~0o111)
+            return result
+
+        with mock.patch.object(bundle.shutil, "copy2", strip_mode):
+            with self.assertRaisesRegex(AssertionError, "executable"):
+                self.test_installed_entry_points_work_without_source_checkout()
+
+    def test_check_rejects_required_inputs_missing_before_discovery(self):
+        # Copy build inputs so omission never mutates the shared source checkout.
+        with tempfile.TemporaryDirectory() as tmp:
+            source = Path(tmp).resolve() / "source"
+            for directory in ("skills", "playbooks", "runtime", "docs"):
+                shutil.copytree(ROOT / directory, source / directory)
+            shutil.copy2(ROOT / "ARCHITECTURE.md", source / "ARCHITECTURE.md")
+            with mock.patch.object(bundle, "ROOT", source), \
+                    mock.patch.object(bundle, "SKILLS_DIR", source / "skills"), \
+                    mock.patch.object(bundle.validate, "PLAYBOOKS_DIR", source / "playbooks"), \
+                    mock.patch.object(bundle.validate, "RUNTIME_DIR", source / "runtime"):
+                self.assertEqual(bundle.build(Path(tmp) / "out"), (21, []))
+                for relative in ("runtime/scripts/ed25519.py", "runtime/scripts/diff_scope.py",
+                                 "runtime/scripts/wtree.sh", "runtime/scripts/verify.py",
+                                 "runtime/one-way-doors.json", "playbooks/build-change.md",
+                                 "playbooks/observe.md", "runtime/evidence-manifest.md",
+                                 "docs/runs/TEMPLATE.md"):
+                    with self.subTest(missing=relative):
+                        path = source / relative
+                        saved = path.read_bytes()
+                        path.unlink()
+                        try:
+                            _built, problems = bundle.build(Path(tmp) / "out")
+                            self.assertTrue(any(Path(relative).name in p for p in problems),
+                                            (relative, problems))
+                        finally:
+                            path.write_bytes(saved)
+
     def test_missing_or_malformed_inventory_is_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
             bundle.build(tmp)
@@ -127,6 +262,24 @@ class BundleClosureTests(unittest.TestCase):
                     else:
                         inventory.write_text(contents)
                     self.assertTrue(bundle.dangling(root))
+
+    def test_transitive_run_report_template_has_an_installed_path(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertEqual(bundle.build(tmp), (21, []))
+            root = Path(tmp) / "skills/pin-it"
+            protocol_path = root / "references/build-change.md"
+            self.assertTrue(protocol_path.is_file(), "missing mandatory build-change protocol")
+            protocol = protocol_path.read_text()
+            self.assertIn("docs/runs/TEMPLATE.md", protocol)
+            index = (root / "references/README.md").read_text()
+            matches = re.findall(r'"\$ORCA_FLEET_ROOT/([^"\n]*TEMPLATE.md)"', index)
+            self.assertTrue(matches, "mandatory template needs an explicit installed path")
+            template = root / matches[0]
+            self.assertTrue(template.is_file())
+            self.assertIn("RUN: mission=<mission>", template.read_text())
+            self.assertIn("## Verifier outcome", template.read_text())
+            template.unlink()
+            self.assertTrue(any("TEMPLATE.md" in p for p in bundle.dangling(root)))
 
     def test_all_missions_preserve_installed_interfaces(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -144,8 +297,11 @@ class BundleClosureTests(unittest.TestCase):
                             self.assertEqual(extra.read_bytes(),
                                              (installed / extra.relative_to(source.parent)).read_bytes())
                     for name in ("verify.py", "evidence-run.py", "preflight.py"):
-                        result = self.run_command(tmp, sys.executable, "-I",
-                                                  str(installed / "runtime/scripts" / name), "--help")
+                        entry = installed / "runtime/scripts" / name
+                        self.assertTrue(entry.is_file(), str(entry))
+                        self.assertEqual(entry.stat().st_mode & 0o111, 0o111,
+                                         f"{name} must retain its executable interface")
+                        result = self.run_command(tmp, str(entry), "--help")
                         self.assertEqual(result.returncode, 0, result.stderr)
 
 

@@ -15,6 +15,7 @@ This makes a distribution tree where each mission carries its own copies:
     dist/skills/<name>/references/ARCHITECTURE.md    root docs it links
     dist/skills/<name>/runtime/scripts/             executable runtime + helpers
     dist/skills/<name>/runtime/*.json               runtime data
+    dist/skills/<name>/docs/runs/TEMPLATE.md        mandatory run-report template
 
 and rewrites the SKILL.md so nothing points outside the mission directory:
 `](../../ARCHITECTURE.md)` becomes `](references/ARCHITECTURE.md)`, and one line
@@ -61,6 +62,27 @@ OUTBOUND_ANY_RE = re.compile(r"\]\((?:\.\./)+([A-Za-z0-9_./-]+)(#[^)]*)?\)")
 RELATIVE_LINK_RE = re.compile(
     r"\[([^\]]*)\]\((?!https?:|mailto:|#|/|\.\./)([A-Za-z0-9_./-]+)(#[^)]*)?\)")
 REFERENCES = "references"
+# The distribution's runtime interface, independent of what survived in the input tree.
+# Ship additional runtime files too, but never let discovery shrink this required floor.
+REQUIRED_RUNTIME = tuple(f"runtime/scripts/{name}" for name in (
+    "decisions.py", "deny-hook.sh", "diff_scope.py", "dispatch-sign.py", "ed25519.py",
+    "egress.py", "evidence-run.py", "floor_guard.py", "guard_text.py", "hitl-loop.template.sh",
+    "inventory.py", "pm.py", "preflight.py", "proof_status.py", "run_report.py",
+    "sandbox_doctor.py", "spawn_worker.sh", "verify-gate.sh", "verify.py", "wtree.sh",
+)) + ("runtime/one-way-doors.json", "runtime/pins.json")
+# build-change's mandatory reporting input is outside the protocol directories.
+SUPPORT_DOCS = ("docs/runs/TEMPLATE.md",)
+
+
+def missing_inputs(protocols):
+    """Check declared requirements before discovered files can define the inventory."""
+    problems = [f"missing required source: {name}" for name in (*REQUIRED_RUNTIME, *SUPPORT_DOCS)
+                if not (ROOT / name).is_file()]
+    for path in [*SKILLS_DIR.glob("*/SKILL.md"), *(ROOT / "playbooks").glob("*.md"),
+                 *(ROOT / "runtime").glob("*.md")]:
+        for name in sorted(validate.explicit_protocol_refs(path.read_text()) - protocols):
+            problems.append(f"{path.relative_to(ROOT)}: missing required protocol: {name}.md")
+    return problems
 
 
 def protocol_docs(text, protocols):
@@ -137,6 +159,9 @@ def reference_index(mission, names):
         "For every `runtime/scripts/<file>` invocation in these protocols, use\n"
         '`"$ORCA_FLEET_ROOT/runtime/scripts/<file>"` instead. Runtime JSON lives under\n'
         '`"$ORCA_FLEET_ROOT/runtime/"`; helpers locate it relative to themselves.\n'
+        "Read the mandatory `docs/runs/TEMPLATE.md` from\n"
+        '`"$ORCA_FLEET_ROOT/docs/runs/TEMPLATE.md"` ([run-report template](../docs/runs/TEMPLATE.md));\n'
+        "write the filled report and its evidence into the PROJECT repository.\n"
         "Python 3, a POSIX shell and git are host prerequisites; live operations also\n"
         "require the external tools and permissions named by their protocols (Orca, gh, etc.).\n\n"
         "```sh\n"
@@ -159,6 +184,9 @@ def runtime_files():
 def build(out_dir):
     """Write the distribution tree. Returns (missions built, unresolved refs)."""
     protocols = validate.known_protocol_names()
+    problems = missing_inputs(protocols)
+    if problems:
+        return 0, problems
     skills_out = Path(out_dir) / "skills"
     if skills_out.exists():
         shutil.rmtree(skills_out)
@@ -190,7 +218,7 @@ def build(out_dir):
         for name, source in root_docs(text).items():
             inventory.add(f"{REFERENCES}/{name}")
             shutil.copy2(source, target / REFERENCES / name)
-        for source in runtime_files():
+        for source in [*runtime_files(), *(ROOT / name for name in SUPPORT_DOCS)]:
             inventory.add(source.relative_to(ROOT).as_posix())
             destination = target / source.relative_to(ROOT)
             destination.parent.mkdir(parents=True, exist_ok=True)
@@ -217,7 +245,8 @@ def relink_vendored(mission_dir):
     if not refs.is_dir():
         return
     available = {path.name for path in refs.glob("*.md")}
-    for path in sorted(refs.glob("*.md")):
+    for path in [*sorted(refs.glob("*.md")), *(mission_dir / name for name in SUPPORT_DOCS
+                                             if (mission_dir / name).is_file())]:
         text = path.read_text(encoding="utf-8")
 
         def fix(match, _dir=path.parent):
@@ -225,8 +254,10 @@ def relink_vendored(mission_dir):
             if (_dir / target).exists():
                 return match.group(0)
             name = Path(target).name
-            if name in available:
+            if _dir == refs and name in available:
                 return f"[{label}]({name}{anchor})"
+            if _dir != refs:
+                target = (_dir / target).relative_to(mission_dir).as_posix()
             if label.strip().strip("`") in (target, name):
                 return f"`{target}`"   # the label WAS the path; saying it twice helps nobody
             return f"{label} (`{target}` in the orca-fleet repository)"
@@ -239,11 +270,9 @@ def relink_vendored(mission_dir):
 def dangling(mission_dir):
     """Links in a bundled mission that still leave its directory, or point at nothing.
 
-    Every markdown file in the bundle, not just SKILL.md (#316). The vendored copies under
-    `references/` are `shutil.copy2`'d verbatim and never rewritten, so an outbound link inside one
-    of them ships broken — and that is the path by which a non-`.md` link actually reaches dist/.
-    Extension-blind, because the rewriter's `.md`-only reach is a fact about what it can vendor,
-    not about what counts as escaping."""
+    Check every markdown file, not just SKILL.md (#316), after relinking. An upward link
+    within the installed mission is valid (the reporting template is outside references/);
+    a missing target or escape is not. Check all extensions, including runtime scripts."""
     problems = []
     inventory = mission_dir / REFERENCES / "bundle-files.json"
     if inventory.exists():
@@ -261,8 +290,11 @@ def dangling(mission_dir):
         text = path.read_text(encoding="utf-8")
         where = path.relative_to(mission_dir).as_posix()
         for match in OUTBOUND_ANY_RE.finditer(text):
-            problems.append(f"{mission_dir.name}: link escapes the bundle "
-                            f"({where}): {match.group(0)}")
+            target = match.group(0)[2:-1].split("#", 1)[0]
+            resolved = (path.parent / target).resolve()
+            if not resolved.is_relative_to(mission_dir.resolve()) or not resolved.is_file():
+                problems.append(f"{mission_dir.name}: link escapes the bundle or is missing "
+                                f"({where}): {match.group(0)}")
         for match in re.finditer(rf"\]\({REFERENCES}/([A-Za-z0-9_.-]+\.md)(?:#[^)]*)?\)", text):
             if not (mission_dir / REFERENCES / match.group(1)).is_file():
                 problems.append(f"{mission_dir.name}: {REFERENCES}/{match.group(1)} was not vendored")
