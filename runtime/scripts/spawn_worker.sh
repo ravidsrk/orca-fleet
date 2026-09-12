@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # spawn_worker.sh — fail-closed Orca worker dispatch for fleet coordinators. (v5)
 #
-# v5 contract (2026-09-10 upstream re-pin). Every mechanism below is source-witnessed at the TAG
-#   v1.4.199 — the shipped binary — not at upstream HEAD, which has already moved past it:
+# Base v5 contract (2026-09-10 upstream re-pin), source-witnessed at v1.4.199. The custom-lane
+# recovery correction below uses the Orca 1.4.200 receipt and source witness (release E2):
 #   - supervised lane = `worker-start` (compose: worktree + agent terminal + readiness + dispatch).
 #     READINESS SEMANTIC: at v1.4.199 `ready` means the preamble WRITE WAS ACCEPTED, not that the
 #     agent started a turn (`local-worker-start.ts:263` marks the dispatch ready straight after the
@@ -26,17 +26,13 @@
 #     `result.prompt{requestId, stages}`, stages drawn from `input_accepted | turn_started`
 #     (`runtime-terminal-contracts.ts:221-225`). v4's blind re-Enter/heartbeat loop is DELETED:
 #     the guide's rule is "never resend on silence"
-#     (`orchestration/recovery-and-cleanup:92-94`). When `turn_started` is absent we replay the
-#     receipt ONCE with
-#     `terminal send --retry-request <requestId> --wait-submit <secs>` — a replay, never a resend
-#     ("timeout returns the queued/input-accepted receipt and never resends",
-#     `terminal-send.ts:19-22`). At v1.4.199 that flag pair also REQUIRES `--text` with `--enter`
-#     (`terminal-send.ts:17-24` handler), so the exact preamble is recovered first via
-#     `dispatch-show --task <id> --preamble` (`dispatch-methods.ts:196-213`); if it cannot be
-#     recovered, or the host refuses the replay, the lane reports UNPROVEN rather than resending.
-#     Whether the regenerated preamble byte-matches the injected payload the requestId is bound to
-#     is source-witnessed only (`dispatch-methods.ts:199-212` omits dispatchCapability);
-#     live probe owed — pin-it.
+#     (`orchestration/recovery-and-cleanup:92-94`). Without `turn_started`, report UNPROVEN and
+#     retain the injection receipt. Orca 1.4.200 rejects a terminal-send retry of a dispatch
+#     request as `request_mismatch`: durable mutation identity binds the METHOD and payload
+#     (`orchestration-mutation-executor.ts:65-80`). `dispatch-show --preamble` regenerates a
+#     preview without the original capability; it is not the accepted payload. Even the original
+#     text from `dispatch --return-preamble` cannot change the method bound to that request ID.
+#     There is no supported cross-method wait-submit replay here; inspect without resending.
 #   - `terminal wait` result is READ: `wait.satisfied:false` is an unsatisfied condition. The CLI
 #     also sets exit 1 for it (`terminal.ts:126-130`), so v4 failed closed BY ACCIDENT; v5 reads
 #     the field, so a host that sets only one of the two still fails closed.
@@ -110,8 +106,7 @@
 #                             read-only/write semantics become YOUR assertion). Legacy
 #                             CLAUDE_CMD / CODEX_CMD still work for those two. Any override
 #                             requires ORCA_COORD_ALLOW_CMD_OVERRIDE=1 (it bypasses the profile).
-#   SETTLE_SECS / SUBMIT_SECS  timing knobs (defaults 20 / 8) — custom-argv lane. SUBMIT_SECS is
-#                             the `--wait-submit` observation window, in SECONDS.
+#   SETTLE_SECS               TUI settle delay (default 20 seconds) — custom-argv lane.
 set -Eeuo pipefail  # -E: ERR trap fires inside functions (orca_json) too
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"  # sibling scripts (sandbox_doctor.py)
 
@@ -180,7 +175,6 @@ esac
 SP="${SP:-$(pwd)}"
 PROFILE="${PROFILE:-rw}"
 SETTLE_SECS="${SETTLE_SECS:-20}"
-SUBMIT_SECS="${SUBMIT_SECS:-8}"
 # Keep a readable worktree/receipt label with a checksum to distinguish squashed titles (#44).
 # This is NOT attempt identity: identical titles, retries, and checksum collisions are possible.
 # Actual scratch isolation is the atomic directory allocation below, independent of this label.
@@ -773,55 +767,15 @@ PY
   stages=${stages%% *}
   request=${rcpt#* REQUEST=}
 
-  case ",$stages," in
-    *,turn_started,*) : ;;
-    *)
-      # No observed turn start. Replay the receipt ONCE — never resend, never a bare Enter.
-      # --retry-request/--wait-submit require --text with --enter at v1.4.199, and the requestId
-      # is bound to the prompt payload, so recover the exact preamble first.
-      step=recover-preamble
-      pj="$SP/preamble-$safe_title.json"
-      pre_rc=0
-      orca orchestration dispatch-show --task "$task" --preamble --json > "$pj" 2>&1 || pre_rc=$?
-      preamble=$(python3 - "$pj" <<'PY'
-import json, sys
-try:
-    d = json.load(open(sys.argv[1]))
-except Exception:
-    raise SystemExit(0)
-r = d.get("result", d) if isinstance(d, dict) else {}
-if isinstance(r, dict) and isinstance(r.get("result"), dict):
-    r = r["result"]
-p = r.get("preamble") if isinstance(r, dict) else None
-if isinstance(p, str):
-    sys.stdout.write(p)
-PY
-)
-      if [ "$pre_rc" = "0" ] && [ -n "$request" ] && [ -n "$preamble" ]; then
-        step=replay-receipt
-        ts="$SP/ts-$safe_title.json"
-        # ONE replay. On timeout the runtime returns the queued/input-accepted receipt and
-        # never resends; a failure here leaves the lane UNPROVEN rather than duplicating input.
-        if orca terminal send --terminal "$h" --text "$preamble" --enter \
-             --retry-request "$request" --wait-submit "$SUBMIT_SECS" --json > "$ts" 2>&1; then
-          replay=$(read_stages "$ts")
-          replay_stages=${replay#STAGES=}
-          replay_stages=${replay_stages%% *}
-          if [ -n "$replay_stages" ]; then stages="$replay_stages"; fi
-        else
-          echo "SPAWN=REPLAY_REFUSED task=${task} handle=${h} — the host refused the receipt replay (see $ts); NOT resending" >&2
-        fi
-      else
-        echo "SPAWN=REPLAY_SKIPPED task=${task} handle=${h} — no requestId or no recoverable preamble, so the receipt cannot be replayed; NOT resending" >&2
-      fi
-      ;;
-  esac
-
+  # --inject owns this request; terminal send is a different durable mutation method.
+  # Never recover text from dispatch-show or send under this ID (Orca 1.4.200 E2).
+  # The original receipt remains authoritative; neither a preview nor unrelated terminal
+  # activity can promote it to turn_started. Keep the live pane and receipts for inspection.
   echo "HANDLE=$h STAGES=$stages"
   case ",$stages," in
     *,turn_started,*) : ;;
     *)
-      echo "SPAWN=UNPROVEN task=${task} handle=${h} stages=${stages:-none} — the input was accepted but no turn start was observed. accepted proves input acceptance, NOT a started turn. Inspect with: orca terminal read --terminal ${h} --screen — never resend on silence, and never respawn beside this pane (dispatch-lifecycle.md)" >&2
+      echo "SPAWN=UNPROVEN task=${task} handle=${h} stages=${stages:-none} request=${request:-absent} — the original dispatch receipt does not prove a turn start. A regenerated preamble is not the original payload, and terminal send cannot replay this dispatch request. No replay attempted; retained receipt: $dj. Inspect with: orca terminal read --terminal ${h} --screen — never resend on silence, and never respawn beside this pane (dispatch-lifecycle.md)" >&2
       exit 3
       ;;
   esac

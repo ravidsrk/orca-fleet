@@ -508,33 +508,63 @@ esac
             self.assertNotIn("terminal send", log.read_text(),
                              "no replay is possible without a requestId — and no resend either")
 
-    def test_missing_turn_start_replays_receipt_exactly_once(self):
-        # The replay is `terminal send --retry-request <id> --wait-submit <s>`: it REPLAYS the
-        # recorded receipt and never resends. v1.4.199 also requires --text with --enter, so the
-        # exact preamble is recovered with `dispatch-show --preamble` first.
-        with tempfile.TemporaryDirectory() as tmp:
-            log = self._stub(tmp, inject={"result": {"injected": True, "prompt": {
-                "requestId": "req_1", "stages": ["input_accepted"]}}})
-            p = self._run(tmp, self.ARGS, self.RO)
-            self.assertEqual(p.returncode, 0, p.stdout + p.stderr)
-            sends = [l for l in log.read_text().splitlines() if "terminal send" in l]
-            self.assertEqual(len(sends), 1, f"exactly one replay, never a loop: {sends}")
-            self.assertIn("--retry-request req_1", sends[0])
-            self.assertIn("--wait-submit", sends[0])
-            self.assertIn("--text", sends[0])
-            self.assertIn("dispatch-show --task task_test --preamble", log.read_text())
-            self.assertIn("STAGES=input_accepted,turn_started", p.stdout)
+    def test_dispatch_request_cannot_be_retried_as_terminal_send(self):
+        # AC-3 / pin helper-regenerated-retry: Orca 1.4.200 rejects the cross-method
+        # retry with request_mismatch. Even --return-preamble's original bytes cannot
+        # change the mutation method bound to a dispatch request. All identities here
+        # are synthetic; no real helper, capability, or terminal is reused.
+        for original in (None, "ORIGINAL BODY\n\n"):
+            with self.subTest(original_available=original is not None):
+                with tempfile.TemporaryDirectory() as tmp:
+                    injection = {"result": {"dispatch": {"id": "ctx_x"}, "injected": True,
+                                           "prompt": {"requestId": "req_1",
+                                                      "stages": ["input_accepted"]}}}
+                    if original is not None:
+                        injection["result"]["preamble"] = original
+                    log = self._stub(tmp, inject=injection,
+                                     preamble={"result": {"dispatch": {"id": "ctx_x"},
+                                                          "preamble": "REGENERATED BODY"}},
+                                     send={"error": {"code": "request_mismatch",
+                                                     "message": "Request used with different input"}},
+                                     send_rc=1)
+                    p = self._run(tmp, self.ARGS, self.RO)
+                    calls = log.read_text()
+                    self.assertNotIn("terminal send", calls,
+                                     "a dispatch request must never become a terminal-send retry")
+                    self.assertNotIn("dispatch-show", calls,
+                                     "a generated preview is not the original retry payload")
+                    self.assertEqual(p.returncode, 3, p.stdout + p.stderr)
+                    self.assertIn("HANDLE=term_shell1 STAGES=input_accepted", p.stdout)
+                    self.assertIn("SPAWN=UNPROVEN", p.stderr)
+                    self.assertIn("original", p.stderr)
+                    self.assertIn("orca terminal read --terminal term_shell1 --screen", p.stderr)
+                    self.assertIn("never respawn", p.stderr)
+                    self.assertEqual(calls.count("orchestration dispatch --task"), 1)
+                    self.assertEqual(calls.count("terminal create"), 1)
+                    for cleanup in ("worker-stop", "worker-abandon", "worker-release", "terminal close"):
+                        self.assertNotIn(cleanup, calls)
+                    receipts = list(Path(tmp).rglob("dispatch-*.json"))
+                    self.assertEqual(len(receipts), 1)
+                    self.assertEqual(json.loads(receipts[0].read_text()), injection)
+                    self.assertEqual(len(list(receipts[0].parent.glob("sw-*.json"))), 1)
 
-    def test_replay_refusal_never_falls_back_to_resend(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            log = self._stub(tmp, inject={"result": {"injected": True, "prompt": {
-                "requestId": "req_1", "stages": ["input_accepted"]}}},
-                send={"error": {"code": "incompatible_runtime"}}, send_rc=1)
-            p = self._run(tmp, self.ARGS, self.RO)
-            self.assertEqual(p.returncode, 3, p.stdout + p.stderr)
-            self.assertIn("SPAWN=REPLAY_REFUSED", p.stderr)
-            sends = [l for l in log.read_text().splitlines() if "terminal send" in l]
-            self.assertEqual(len(sends), 1, "a refused replay is never retried or downgraded")
+    def test_unbound_replay_turn_start_cannot_prove_dispatch(self):
+        # A different request's activity and a nonzero send with success-shaped JSON
+        # are neither proof of this dispatch starting. The wrapper must keep its
+        # original accepted-only receipt, including on a permissive/changed host.
+        for send_rc in (0, 1):
+            with self.subTest(send_rc=send_rc):
+                with tempfile.TemporaryDirectory() as tmp:
+                    log = self._stub(tmp, inject={"result": {"injected": True, "prompt": {
+                        "requestId": "req_1", "stages": ["input_accepted"]}}},
+                        send={"result": {"send": {"accepted": True, "prompt": {
+                            "requestId": "req_unrelated", "stages": ["turn_started"]}}}},
+                        send_rc=send_rc)
+                    p = self._run(tmp, self.ARGS, self.RO)
+                    self.assertEqual(p.returncode, 3, p.stdout + p.stderr)
+                    self.assertIn("STAGES=input_accepted", p.stdout)
+                    self.assertNotIn("turn_started", p.stdout)
+                    self.assertNotIn("terminal send", log.read_text())
 
     # --- (c) terminal wait: read wait.satisfied ------------------------------------------
 
