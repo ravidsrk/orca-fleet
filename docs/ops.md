@@ -20,20 +20,120 @@ to `main` plus the plugin copy in `.claude-plugin/`.
 
 ## Release cut
 
-1. Fold `[Unreleased]` into a dated heading (`## [x.y.z] - YYYY-MM-DD`) and
-   bump `plugin.json` + `marketplace.json` to the same version in the same
-   commit ([`playbooks/release.md`](../playbooks/release.md) doc-sync unit;
-   `test_plugin_version_matches_changelog_heading` holds the three together).
-2. Tag that commit and push the tag: `git tag -a vx.y.z <cut-sha> -m "orca-fleet
-   x.y.z"` then `git push origin vx.y.z`, and add the row to
-   [`docs/releases.json`](releases.json) in the same commit. A version heading
-   with no tag is a claim without a SHA (#274); a tag is a repository ref, not
-   branch content, so the committed file is what a fresh clone can check —
-   `test_every_changelog_release_has_a_cut_commit` binds the two. 0.1.0 through
-   0.6.1 were reconstructed retroactively at their cut commits on 2026-09-10;
-   publish them once with
-   `jq -r '.releases[] | "git tag -a \(.tag) \(.commit) -m \"orca-fleet \(.version)\""' docs/releases.json | sh && git push origin --tags`.
-3. Regenerate badges (`python3 scripts/gen-badges.py`) if the catalog changed.
+A release has two commits: the **cut** contains its version, dated changelog and a
+`preparing` record; the later **provenance** commit records the cut SHA. Published
+rows and historical tag targets remain immutable. A preparing version is not yet
+published: green preparation checks validate all historical releases too.
+
+Start on a clean release branch with full history and tags fetched. Set
+`RELEASE_VERSION` to the next semantic version and `RELEASE_DATE` to its ISO date
+(`export RELEASE_VERSION=0.6.2 RELEASE_DATE=2026-09-12`, for example).
+
+### Prepare
+
+The following changes the three version surfaces together and marks only the
+newest heading as preparing. Regenerate badges if catalog content changed.
+
+<!-- release:prepare -->
+```bash
+python3 - <<'PY_RELEASE'
+import json, os, re
+from datetime import date
+from pathlib import Path
+version, day = os.environ["RELEASE_VERSION"], os.environ["RELEASE_DATE"]
+assert re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", version)
+assert date.fromisoformat(day).isoformat() == day
+path = Path("docs/releases.json")
+data = json.loads(path.read_text())
+assert data.get("preparing") is None, "finish the current preparation first"
+assert all(tuple(map(int, version.split("."))) > tuple(map(int, r["version"].split(".")))
+           for r in data["releases"]), "choose a new version"
+changelog = Path("CHANGELOG.md")
+text = changelog.read_text()
+assert text.count("## [Unreleased]") == 1
+changelog.write_text(text.replace("## [Unreleased]", f"## [Unreleased]\n\n## [{version}] - {day}", 1))
+for name in ("plugin", "marketplace"):
+    manifest = Path(f".claude-plugin/{name}.json")
+    value = json.loads(manifest.read_text())
+    if name == "plugin": value["version"] = version
+    else:
+        value["metadata"]["version"] = version
+        value["plugins"][0]["version"] = version
+    manifest.write_text(json.dumps(value, indent=2) + "\n")
+data["preparing"] = {"version": version, "cut_date": day}
+path.write_text(json.dumps(data, indent=2) + "\n")
+PY_RELEASE
+python3 -m unittest tests.test_docs_navigation.TestDocsNavigation tests.test_docs_navigation.EveryReleaseHasTheTagItDescribes
+```
+
+Run the repository gates, including `python3 scripts/validate.py` and
+`python3 -m unittest discover -s tests`, and review the diff before the cut.
+Every published heading still needs its commit and annotated tag; only the sole
+newest preparing heading has no cut SHA. Green checks do not authorize publication.
+
+<!-- release:cut -->
+```bash
+git add CHANGELOG.md .claude-plugin/plugin.json .claude-plugin/marketplace.json docs/releases.json
+git commit -m "Prepare release $RELEASE_VERSION"
+```
+
+### Tag and record provenance
+
+The maintainer must authorize the exact cut SHA and version before creating or
+publishing its tag. The remaining steps run only after that gate. A fixture
+rehearsal may create local tags in its disposable repository without publication.
+
+<!-- release:tag -->
+```bash
+test -z "$(git status --porcelain)"
+python3 -c 'import json, os; assert json.load(open("docs/releases.json"))["preparing"]["version"] == os.environ["RELEASE_VERSION"]'
+cut_sha=$(git rev-parse HEAD)
+git tag -a "v$RELEASE_VERSION" "$cut_sha" -m "orca-fleet $RELEASE_VERSION"
+python3 -m unittest tests.test_docs_navigation.TestDocsNavigation tests.test_docs_navigation.EveryReleaseHasTheTagItDescribes
+```
+
+Record the existing cut in a **new commit**, keeping the cut and its tag unchanged.
+The command rejects a missing tag, a lightweight tag, or a tag at another cut.
+
+<!-- release:record -->
+```bash
+python3 - <<'PY_RELEASE'
+import json, subprocess
+from pathlib import Path
+def git(*args):
+    return subprocess.check_output(["git", *args], text=True).strip()
+path = Path("docs/releases.json")
+data = json.loads(path.read_text())
+pending = data["preparing"]
+assert pending, "no release is preparing"
+tag = "v" + pending["version"]
+ref = "refs/tags/" + tag
+assert git("cat-file", "-t", ref) == "tag", "an annotated tag is required"
+cut = git("rev-parse", ref + "^{commit}")
+git("merge-base", "--is-ancestor", cut, "HEAD")
+at_cut = json.loads(git("show", cut + ":docs/releases.json"))
+assert at_cut.get("preparing") == pending and at_cut["releases"] == data["releases"]
+git("diff", "--exit-code", cut, "--", "CHANGELOG.md", ".claude-plugin")
+data["releases"].append({**pending, "tag": tag, "commit": cut})
+data["preparing"] = None
+path.write_text(json.dumps(data, indent=2) + "\n")
+PY_RELEASE
+python3 -m unittest tests.test_docs_navigation.TestDocsNavigation tests.test_docs_navigation.EveryReleaseHasTheTagItDescribes
+git add docs/releases.json
+git commit -m "Record release $RELEASE_VERSION provenance"
+```
+
+Re-run the repository gates and review the provenance commit before publishing
+the approved branch and the single approved tag (`git push origin "v$RELEASE_VERSION"`).
+The published state requires `preparing: null` and a row naming the cut, not the
+provenance commit. Fresh clones fetch full history and tags before checking it.
+The executable rehearsal is `python3 -m unittest tests.test_docs_navigation.ReleaseCutWalkthrough`.
+
+**Recovery:** fetch missing historical tags first; compare each annotated tag's
+peeled commit with its existing row. A mismatch stops the release for maintainer
+investigation. Preserve published rows and refs; correct a bad release with a new
+version. If tagging succeeded but recording failed, resume the record step using
+that existing cut. Do not amend the cut or recreate its tag.
 
 ## Incident (2 a.m.)
 

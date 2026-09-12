@@ -12,8 +12,12 @@ can reach it. Each invariant here failed once (issue number on the test).
 """
 import importlib.util
 import json
+import os
 import re
+import shutil
 import subprocess
+import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -23,6 +27,150 @@ validate = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(validate)
 DOCS = ROOT / "docs"
 RUNTIME = ROOT / "runtime"
+
+
+class FreshHomeInstallation(unittest.TestCase):
+    def test_documented_symlinks_resolve_in_fresh_and_existing_homes(self):
+        for doc in (ROOT / "README.md", DOCS / "getting-started.md"):
+            blocks = [b for b in re.findall(r"```bash\n(.*?)```", doc.read_text(), re.S)
+                      if "ln -s " in b]
+            self.assertTrue(blocks, f"{doc.name} has no symlink install snippet")
+            for index, block in enumerate(blocks):
+                commands = [line for line in block.splitlines()
+                            if line.startswith(("mkdir ", "ln -s "))]
+                for existing in (False, True):
+                    with self.subTest(doc=doc.name, snippet=index, existing=existing):
+                        with tempfile.TemporaryDirectory(prefix="fleet fresh home ") as tmp:
+                            home = Path(tmp)
+                            (home / "orca-fleet").symlink_to(ROOT, target_is_directory=True)
+                            if existing:
+                                (home / ".claude/skills").mkdir(parents=True)
+                            cwd = ROOT if "cd orca-fleet" in block else home
+                            run = subprocess.run(
+                                ["sh", "-eu", "-c", "\n".join(commands)], cwd=cwd,
+                                env={**os.environ, "HOME": tmp}, capture_output=True, text=True,
+                            )
+                            self.assertEqual(run.returncode, 0, run.stderr)
+                            for line in commands:
+                                if not line.startswith("ln -s "):
+                                    continue
+                                mission = line.rsplit("/", 1)[-1]
+                                link = home / ".claude/skills" / mission
+                                self.assertTrue(link.is_symlink(), str(link))
+                                self.assertEqual(link.resolve(), ROOT / "skills" / mission)
+                                self.assertTrue((link / "SKILL.md").read_text())
+
+
+class ReleaseCutWalkthrough(unittest.TestCase):
+    def test_next_release_preparation_cut_tag_and_provenance(self):
+        # Run the documented commands in an independent ref namespace. No network,
+        # real tag mutation, or shell-command mocks; the historical refs are controls.
+        with tempfile.TemporaryDirectory(prefix="fleet-release-") as tmp:
+            repo = Path(tmp) / "repo"
+            env = {**os.environ, "PATH": str(Path(sys.executable).parent) + os.pathsep
+                   + os.environ["PATH"], "GIT_CONFIG_COUNT": "5",
+                   "GIT_CONFIG_KEY_0": "user.name", "GIT_CONFIG_VALUE_0": "Release Fixture",
+                   "GIT_CONFIG_KEY_1": "user.email",
+                   "GIT_CONFIG_VALUE_1": "fixture@example.invalid",
+                   "GIT_CONFIG_KEY_2": "commit.gpgsign", "GIT_CONFIG_VALUE_2": "false",
+                   "GIT_CONFIG_KEY_3": "core.hooksPath", "GIT_CONFIG_VALUE_3": "/dev/null",
+                   "GIT_CONFIG_KEY_4": "tag.gpgsign", "GIT_CONFIG_VALUE_4": "false"}
+
+            def run(*argv, ok=True):
+                p = subprocess.run(argv, cwd=repo, env=env, capture_output=True, text=True)
+                if ok:
+                    self.assertEqual(p.returncode, 0, p.stdout + p.stderr)
+                return p
+
+            subprocess.run(["git", "clone", "--quiet", "--shared", str(ROOT), str(repo)],
+                           check=True, capture_output=True)
+            run("git", "remote", "remove", "origin")
+            for path in ("docs/ops.md", "docs/releases.json", "tests/test_docs_navigation.py"):
+                shutil.copyfile(ROOT / path, repo / path)
+            inventory = json.loads((repo / "docs/releases.json").read_text())
+            historical = inventory["releases"]
+            # The full suite also runs on the preparing cut itself. Start this
+            # independent rehearsal from its last published version in that case.
+            if inventory.get("preparing") is not None:
+                run("git", "restore", "--source", historical[-1]["commit"], "--",
+                    "CHANGELOG.md", ".claude-plugin/plugin.json", ".claude-plugin/marketplace.json")
+                inventory["preparing"] = None
+                (repo / "docs/releases.json").write_text(json.dumps(inventory, indent=2) + "\n")
+            run("git", "add", "docs/ops.md", "docs/releases.json", "tests/test_docs_navigation.py")
+            run("git", "add", "CHANGELOG.md", ".claude-plugin/plugin.json",
+                ".claude-plugin/marketplace.json")
+            run("git", "commit", "--allow-empty", "-m", "Fixture release tooling")
+            refs = run("git", "show-ref", "--tags").stdout
+            latest = max(tuple(map(int, r["version"].split("."))) for r in historical)
+            version = ".".join(map(str, (*latest[:2], latest[2] + 1)))
+            env.update(RELEASE_VERSION=version, RELEASE_DATE="2026-09-12")
+            doc = (repo / "docs/ops.md").read_text()
+
+            def step(name, ok=True):
+                match = re.search(rf"<!-- release:{name} -->\s*```bash\n(.*?)```", doc, re.S)
+                self.assertIsNotNone(match, f"Release {name} has no executable walkthrough")
+                return run("sh", "-eu", "-c", match.group(1), ok=ok)
+
+            step("prepare")
+            step("cut")
+            cut = run("git", "rev-parse", "HEAD").stdout.strip()
+            prepared = json.loads((repo / "docs/releases.json").read_text())
+            self.assertEqual(prepared["releases"], historical)
+            self.assertEqual(prepared["preparing"], {"version": version, "cut_date": "2026-09-12"})
+            self.assertEqual(run("git", "show-ref", "--tags").stdout, refs)
+
+            def rejected_state():
+                result = run(sys.executable, "-m", "unittest",
+                             "tests.test_docs_navigation.TestDocsNavigation."
+                             "test_every_changelog_release_has_a_cut_commit",
+                             "tests.test_docs_navigation.EveryReleaseHasTheTagItDescribes",
+                             ok=False)
+                self.assertNotEqual(result.returncode, 0, "invalid release state passed")
+                self.assertIn("FAIL:", result.stderr, result.stdout + result.stderr)
+                self.assertNotIn("ERROR:", result.stderr)
+
+            inventory_path = repo / "docs/releases.json"
+            for invalid in (None, {**prepared["preparing"], "commit": cut},
+                            {"version": historical[-1]["version"], "cut_date": "2026-09-12"}):
+                with self.subTest(invalid_preparation=invalid):
+                    inventory_path.write_text(json.dumps({**prepared, "preparing": invalid}))
+                    rejected_state()
+            inventory_path.write_text(json.dumps({**prepared, "releases": historical[:-1]}))
+            rejected_state()  # Preparing must never exempt a published heading.
+            run("git", "restore", "docs/releases.json")
+            historical_tag = historical[0]["tag"]
+            historical_ref = "refs/tags/" + historical_tag
+            historical_object = run("git", "rev-parse", historical_ref).stdout.strip()
+            run("git", "tag", "-d", historical_tag)
+            rejected_state()  # Missing historical tags still fail during preparation.
+            run("git", "tag", "-a", historical_tag, "HEAD", "-m", "Wrong fixture target")
+            rejected_state()  # So do annotated tags at the wrong commit.
+            run("git", "update-ref", historical_ref, historical_object)
+            self.assertNotEqual(step("record", ok=False).returncode, 0,
+                                "provenance must fail before its tag exists")
+            run("git", "tag", f"v{version}", "HEAD")
+            self.assertNotEqual(step("record", ok=False).returncode, 0,
+                                "a lightweight tag cannot establish provenance")
+            run("git", "tag", "-d", f"v{version}")
+            run("git", "tag", "-a", f"v{version}", "HEAD^", "-m", "Wrong fixture cut")
+            self.assertNotEqual(step("record", ok=False).returncode, 0,
+                                "a tag at another cut cannot establish provenance")
+            run("git", "tag", "-d", f"v{version}")
+            step("tag")
+            tag = f"v{version}"
+            self.assertEqual(run("git", "cat-file", "-t", tag).stdout.strip(), "tag")
+            self.assertEqual(run("git", "rev-parse", f"{tag}^{{commit}}").stdout.strip(), cut)
+            self.assertNotEqual(step("tag", ok=False).returncode, 0, "an existing tag is immutable")
+            step("record")
+            final = json.loads((repo / "docs/releases.json").read_text())
+            self.assertIsNone(final["preparing"])
+            self.assertEqual(final["releases"][:-1], historical)
+            self.assertEqual(final["releases"][-1], {"version": version, "tag": tag,
+                                                    "commit": cut, "cut_date": "2026-09-12"})
+            self.assertNotEqual(run("git", "rev-parse", "HEAD").stdout.strip(), cut)
+            final_refs = run("git", "show-ref", "--tags").stdout.splitlines()
+            self.assertTrue(set(refs.splitlines()).issubset(final_refs))
+            self.assertEqual(run("git", "status", "--porcelain").stdout, "")
 
 
 class TestDocsNavigation(unittest.TestCase):
@@ -271,14 +419,31 @@ class TestDocsNavigation(unittest.TestCase):
         # to a commit. Tags live in the repo's ref namespace rather than in a
         # branch, so a fresh clone (and CI) cannot see one; docs/releases.json is
         # the committed half a checkout can actually verify.
-        releases = json.loads((DOCS / "releases.json").read_text(encoding="utf-8"))["releases"]
+        inventory = json.loads((DOCS / "releases.json").read_text(encoding="utf-8"))
+        releases = inventory["releases"]
         by_version = {r["version"]: r for r in releases}
+        self.assertEqual(len(by_version), len(releases), "duplicate published version")
         changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
         headings = re.findall(r"(?m)^## \[(\d+\.\d+\.\d+)\] - (\d{4}-\d{2}-\d{2})", changelog)
         self.assertTrue(headings, "CHANGELOG has no dated release headings")
-        for version, _date in headings:
+        preparing = inventory.get("preparing")
+        if preparing is not None:
+            self.assertIsInstance(preparing, dict)
+            self.assertEqual(set(preparing), {"version", "cut_date"},
+                             "preparation has no cut SHA or published tag yet")
+            self.assertEqual((preparing["version"], preparing["cut_date"]), headings[0],
+                             "only the newest dated heading can be preparing")
+            self.assertNotIn(preparing["version"], by_version)
+            version_tuple = lambda value: tuple(map(int, value.split(".")))
+            self.assertTrue(all(version_tuple(preparing["version"]) > version_tuple(v)
+                                for v in by_version), "preparation must be a new version")
+            headings = headings[1:]
+        self.assertEqual({v for v, _ in headings}, set(by_version),
+                         "every published heading needs its immutable provenance row")
+        for version, cut_date in headings:
             self.assertIn(version, by_version, f"CHANGELOG {version} has no docs/releases.json row")
             row = by_version[version]
+            self.assertEqual(row["cut_date"], cut_date, version)
             self.assertRegex(row["commit"], r"^[0-9a-f]{40}$", version)
             self.assertEqual(row["tag"], f"v{version}")
             found = subprocess.run(
@@ -468,13 +633,13 @@ class EveryReleaseHasTheTagItDescribes(unittest.TestCase):
             "docs/releases.json binds these versions to commits, so the mapping is true and the "
             "tags it describes do not exist — no version is fetchable by tag and `git describe` "
             "has nothing to work with (#307).\n"
-            "Publish them with the command in docs/releases.json's _comment:\n"
-            "  jq -r '.releases[] | \"git tag -a \\(.tag) \\(.commit) -m \\\"orca-fleet "
-            "\\(.version)\\\"\"' docs/releases.json | sh && git push origin --tags\n"
             "If this is a shallow or --no-tags checkout, fetch them first "
-            "(actions/checkout with fetch-depth: 0).")
+            "(actions/checkout with fetch-depth: 0). Follow docs/ops.md for release recovery; "
+            "preserve existing tag targets.")
         for rel in releases:
             with self.subTest(version=rel["version"]):
+                self.assertEqual(self._git("cat-file", "-t", rel["tag"]).stdout.strip(), "tag",
+                                 f"{rel['tag']} must be an annotated tag")
                 at = self._git("rev-list", "-n", "1", rel["tag"]).stdout.strip()
                 self.assertEqual(at, rel["commit"],
                                  f"{rel['tag']} points at {at[:12]}, not the commit "
@@ -483,8 +648,8 @@ class EveryReleaseHasTheTagItDescribes(unittest.TestCase):
     def test_the_file_documents_how_to_publish_them(self):
         # The durable half: a reader who finds the tags missing must be told what to run.
         comment = json.loads(self.RELEASES.read_text(encoding="utf-8"))["_comment"]
-        self.assertIn("git tag -a", comment)
-        self.assertIn("git push origin --tags", comment)
+        self.assertIn("docs/ops.md", comment)
+        self.assertIn("preparing", comment)
 
 
 if __name__ == "__main__":
