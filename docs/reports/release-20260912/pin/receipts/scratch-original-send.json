@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T11:59:09.551945+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "terminal",
+    "send",
+    "--terminal",
+    "term_9ede7d48-337e-48fb-85b9-d1e7ea3fd554",
+    "--text",
+    "printf PIN_266_INERT",
+    "--enter",
+    "--json"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/codex-release-pin-20260912",
+  "exit": 0,
+  "stdout": "{\n  \"id\": \"db6c4010-ff3d-47b2-91c6-aac771908551\",\n  \"ok\": true,\n  \"result\": {\n    \"send\": {\n      \"handle\": \"term_9ede7d48-337e-48fb-85b9-d1e7ea3fd554\",\n      \"accepted\": true,\n      \"bytesWritten\": 21,\n      \"prompt\": {\n        \"requestId\": \"2f7fb19c-6fdd-448c-8b41-29e09dc9ed92\",\n        \"stages\": [\n          \"input_accepted\"\n        ],\n        \"provider\": \"unsupported\",\n        \"observation\": \"unsupported\",\n        \"processIncarnation\": \"a75a7dfc-cba4-49d0-84c8-4a922ef045ac\",\n        \"generation\": 54,\n        \"baselineWorkingSequence\": 0\n      }\n    },\n    \"mutation\": {\n      \"requestId\": \"2f7fb19c-6fdd-448c-8b41-29e09dc9ed92\",\n      \"replayed\": false\n    },\n    \"warnings\": [\n      \"input was accepted, but this provider cannot report delivery. Inspect the terminal before retrying.\"\n    ]\n  },\n  \"_meta\": {\n    \"runtimeId\": \"2e075aba-10a5-40b7-aa95-9e82ae9fc5b7\"\n  }\n}\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

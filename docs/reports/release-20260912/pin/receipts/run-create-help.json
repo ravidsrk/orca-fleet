@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T11:56:15.417595+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "orchestration",
+    "run-create",
+    "--help"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/codex-release-pin-20260912",
+  "exit": 0,
+  "stdout": "orca orchestration run-create\n\nUsage: orca orchestration run-create --objective <text> [--from <handle>] [--retry-request <id>] [--json]\n\nCreate and bind a lightweight orchestration Run\n\nOptions:\n  --help                 Show this help message\n  --json                 Emit machine-readable JSON\n  --pairing-code\n  --environment\n  --objective\n  --from\n  --retry-request\n\nNotes:\n  A Run is a namespace and home inbox. It never schedules or places workers.\n  --retry-request is only for exact recovery after an unknown mutation result.\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

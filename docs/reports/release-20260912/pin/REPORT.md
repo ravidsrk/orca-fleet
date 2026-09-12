@@ -1,0 +1,53 @@
+RUN: run_aad129c705b7 · secondary scratch Run: run_05b8d4a02874 · BASE: codex/release-pin-20260912 · FORK_POINT: 9eb2e6f6171845100b969e2d59e65b0d34ddf86f
+
+# Orca 1.4.200 bounded live witness — issue #266
+
+**PARTIAL-WITNESS, not PINNED or PINNED-WITH-PARKED.** The bounded doctrine repair is prepared for independent review. All 21 missions remain `doctrine-only`; `runtime/pins.json` remains the truthful v1.4.199 source pin. This report is not a completed independent mission run.
+
+The frozen [inventory](claim-inventory.frozen.json) retains all **309 source records across 53 files** (SHA-256 `bc87dd46ee92e1c984c6059b29846d274f4758f8c4c25ddf16c5380f5dd459c6`). The [dispositions](claim-inventory.json) contain 16 kept records, 3 patched records and 290 incomplete records. The full [park register](parked-register.json) gives every remaining procedure/precondition. The conservative extraction retained contextual/policy fragments and mixed passages; it is not proof-grade atomic enumeration. Independent atomization/completeness review is still owed, and no context-only row counts as successful runtime proof. No denominator was removed or rewritten after replay began. A source-location audit corrects initial line offsets in the disposition inventory by looking up each unchanged verbatim excerpt at the frozen base; the original freeze remains untouched.
+
+## Repairs and semantic negative controls
+
+| Record | Before | Live refutation | Repair |
+|---|---|---|---|
+| C016 | Retry command omits original text and Enter | `invalid_argument` with a real original runtime UUID, [receipt](receipts/retry-original-id-shorthand.json) | Name exact terminal, retained original text, Enter, original request UUID and wait duration |
+| C109 | Regenerated dispatch preamble is the exact replay payload | [request_mismatch](receipts/helper-regenerated-retry.json), after fixing syntax and using the helper's real prompt request UUID | Replay retained original bytes only; if unavailable, inspect and leave submission unproven |
+| C090 | Unscoped worker-list always enumerates the whole database | [bound Run with a real worker](receipts/helper-workers-bound.json), explicit same Run and [empty owned second Run](receipts/helper-workers-explicit-b.json) | Explain bound default and scope.source; mark unbound all fallback source-only |
+
+These prepatch refutations are the semantic negative controls for prose. Validator success checks structure, never these claims. [Exact original replay](receipts/retry-original-exact.json) returns `replayed: true`; a second inert-shell probe leaves its effect file at exactly `b'x'` [before](receipts/effect-before-replay.json) and [after](receipts/effect-after-replay.json). Unsupported shell-provider observation proves no agent turn start.
+
+Only two runtime doctrine files changed. The same regeneration assumption in the separately owned `runtime/scripts/spawn_worker.sh` was reported to the coordinator with the request_mismatch receipt; its fail-closed UNPROVEN path was not rewritten here. Generated activation figures were refreshed only because the validator required it (ARCHITECTURE and affected mission guides are hot files).
+
+## What the live fixture established
+
+- Missing and foreign-Run dependency IDs fail with `runtime_error` and the exact dependency/Run error. A completed dependency promotes its child to ready; a failed dependency leaves its child pending at observation. Creating `--parent` writes parent_id independently of deps.
+- Gate creation blocks a ready task and resolution clears the hold. Regenerated preambles for the resolved task and the actual helper Dispatch omit the resolution marker. This does not prove every launch path's original injected payload.
+- A mixed status/handoff FIFO yields 50 messages, identical replay, then the remaining one after acknowledgment. `--types handoff` wakes to both types. A 16-second empty wait emits one stderr keepalive at 15001 ms with both markers and leaves stdout as parseable JSON. It does not prove crash recovery.
+- Exactly one coordinator-provided native Codex helper was started by reusing its exact owned terminal: [start receipt](receipts/helper-start.json) says ready, turnStart observed, input_accepted + turn_started, and no residual resources. Existing-terminal setup is not_applicable; effective agent/model/effort are null, so this is no proof of fresh-launch profile flags or any other roster agent.
+- The helper asked one synthetic question while its task remained dispatched, received the reply, and sent one successful worker_done. Authoritative task and Dispatch reads both showed completed. This observes owning-pane settlement; version/capability_hash fields alone are not authentication tests, and no adversarial identity claim was credited.
+
+## Preconditions, corrections and limits
+
+The first parser attempt used a non-UUID stand-in and therefore refuted nothing about retry text; it is archived as an invalid precondition. It was corrected with the runtime's actual original UUID before the prepatch refutation. A scratch task mutation aimed at B while the coordinator was bound to A returned consumer_fenced; binding B, creating its owned task, and binding A fixed the precondition. An ordinary scratch coordinator cannot emit a worker escalation without an active Dispatch; the mailbox test used permitted status/handoff messages instead. Adding --from to worker-release was refused locally; the corrected call ran through the actual scratch coordinator and omitted the unsupported flag. These are precondition/usage receipts, never evidence that the mechanisms disappeared. No SUPERSEDED verdict was issued.
+
+Two ordinary-shell exit waits (100 ms and 2 seconds) returned typed timeout, not a wait.satisfied object. TUI-idle timeout receipt semantics remain owed on a suitable agent fixture; these results do not prove that terminal wait is absent. Native read-only sandbox IPC blocking remains a substrate limit; the coordinator supplied an already authorized native fixture rather than bypassing trust or inventing a missing executable.
+
+Remaining work includes all unattempted/mixed records in the park register, fresh-launch roster/permission/effort branches, failed starts and release uncertainty, hostile or stale identities, cross-host/paid placement, scheduler firing and precheck, legacy adoption/restart, original low-level dispatch injection, unbound all-Run enumeration, and independent post-commit refutation plus >=10% replay sampling. Some are unassigned bounded-run work, not claims that the binary cannot answer; `PARKED-INCOMPLETE` does not qualify for the mission's parked terminal. No restart, global settings change, paid action, new credential, force removal, parent-Run probe, push, PR, tag, release or merge occurred.
+
+## Sources, version and existing warning
+
+The executable was `/usr/local/bin/orca`, consistently reporting **1.4.200** before every captured probe. Full installed orchestration, orca-cli and per-workspace-environment guides and every listed reference are archived under [guides](guides/) and [receipts](receipts/). They are the probe map, not live proof; the orchestration kernel and recovery/placement references disagree on unscoped worker-list, resolved here by the live bound fixture.
+
+Installed app metadata names commit **2ecde717b4561cae1701a27615f704434232399a**; the independent local full-history Orca Git object exists, and exact source files were read at it. The local v1.4.200 tag was unavailable. This identifies inspected installed-build source without pretending to authenticate the app from its own metadata, witness all mechanics or replace the catalog's older source-only pin with a full-live claim. Source excerpts and their command receipts are archived separately. The saved issue #266 and three old build-observe receipts are historical data only; the issue's old unreleased-send wording was already fixed at baseline.
+
+The existing runtime-version warning is present and verified: [actual spawn warning](receipts/existing-version-drift-warning.json) names installed 1.4.200, pinned v1.4.199 and pin-it, then the intentionally ungranted write profile refuses before task lookup or agent launch. Existing contract tests cover it, and CI runs the full unittest suite; there was no need to claim the check absent or add a duplicate warning.
+
+## Teardown
+
+Both scratch Runs retain only terminal tasks, resolved gates, empty mailboxes and no reclaimable workers; their provenance rows are intentionally retained because the installed CLI exposes no run-delete verb. The supplied external helper's release and repeat both returned retained/external_terminal/processAction none; this is not automatic terminal closure. Its authorized explicit close returned ptyKilled true, followed by absence from the scratch terminal list. The coordinator and inert shell were then individually closed, the terminal list was empty, Git was clean, worktree rm without force returned removed true, and [path absence](receipts/teardown-path-absent.json) was verified. No archive fallback was necessary.
+
+## Validation and handoff
+
+Affected tests: 82 passed (Python 3.13); all seven bundle checks passed after correcting report references to catalog paths that remain valid when missions are bundled. The initial full run caught two bundle-link regressions introduced by this patch, which were corrected before the final full run; that failing receipt is retained. Final validator and Ruff pass. The final full suite ran 1069 tests in 145.729 seconds: 1067 passed and only the two known verifier credential failures remained; both are owned by a separate unit. Final command receipts are in the report folder and the companion evidence manifest. The source commit and SHA-bound manifest are recorded in `/tmp/orca-release-audit-20260912/pin-build-report.md` at handoff. Independent clean-environment checks, review and landing remain the coordinator's work.
+
+The byte-preserved [unit contract](contract.json), [integrity whitelist](integrity.json), frozen inventory, dispositions and sanitized command receipts form the review packet. No full task transcript or dispatch capability is published.

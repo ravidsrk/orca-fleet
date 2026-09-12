@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T11:57:21.499332+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "skills",
+    "get",
+    "orca-cli",
+    "--reference",
+    "references/browser.md"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/codex-release-pin-20260912",
+  "exit": 0,
+  "stdout": "# Built-in browser commands\n\nUse a snapshot-interact-re-snapshot loop:\n\n```text\nORCA goto --url https://example.com --json\nORCA snapshot --json\nORCA click --element @e3 --json\nORCA snapshot --json\n```\n\nCommon commands:\n\n```text\nORCA goto --url <url> --json\nORCA back --json\nORCA reload --json\nORCA snapshot --json\nORCA screenshot --json\nORCA full-screenshot --json\nORCA pdf --json\nORCA click --element <ref> --json\nORCA fill --element <ref> --value <text> --json\nORCA type --input <text> --json\nORCA select --element <ref> --value <value> --json\nORCA check --element <ref> --json\nORCA scroll --direction down --amount 1000 --json\nORCA hover --element <ref> --json\nORCA focus --element <ref> --json\nORCA keypress --key Enter --json\nORCA upload --element <ref> --files <paths> --json\nORCA wait --text <text> --json\nORCA wait --url <substring> --json\nORCA wait --selector <css> --json\nORCA wait --load networkidle --json\nORCA eval --expression <js> --json\nORCA tab list --json\nORCA tab create --url <url> --json\nORCA tab switch --index <n> --json\nORCA tab close --index <n> --json\nORCA cookie get --json\nORCA capture start --json\nORCA console --limit 50 --json\nORCA network --limit 50 --json\nORCA exec --command \"help\" --json\n```\n\nBrowser rules:\n\n- Re-snapshot after navigation, tab switches, clicks that change the page, and any `browser_stale_ref`.\n- Refs like `@e1` are assigned by `snapshot`, scoped to one tab, and invalidated by navigation or tab switch.\n- Browser commands default to the current worktree and its active tab. Use `--worktree all` only intentionally.\n- For concurrent browser work, run `ORCA tab list --json`, read `tabs[].browserPageId`, and pass `--page <browserPageId>` on later commands.\n- Use typed tab commands (`ORCA tab list/create/close/switch`), not `ORCA exec --command \"tab ...\"`, so Orca keeps UI state synchronized.\n- Prefer `wait --text`, `--url`, `--selector`, or `--load` after async page changes instead of bare timeouts.\n- Anything not listed above goes through `ORCA exec --command \"<agent-browser command>\"`.\n- If `fill` or `type` fails on a custom input, try `ORCA focus --element @e1 --json` then `ORCA inserttext --text \"text\" --json`.\n- A client-hosted page renders in the paired desktop's browser engine, so every command against it needs that desktop online and returns `browser_host_unavailable` while it is closed, asleep, or disconnected. Server-hosted pages run with no desktop attached; prefer them for long or unattended automation.\n\nCommon recoveries:\n\n- `browser_no_tab`: open a tab with `ORCA tab create --url <url> --json`.\n- `browser_stale_ref`: run `ORCA snapshot --json` and retry with fresh refs.\n- `browser_tab_not_found`: run `ORCA tab list --json` before switching or closing.\n- `browser_host_unavailable`: the desktop hosting the page is offline. Bring it back, or recreate the page with server placement if the work must outlive the desktop session.\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

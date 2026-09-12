@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T11:57:20.700649+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "skills",
+    "get",
+    "orchestration",
+    "--reference",
+    "references/messaging-and-gates.md"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/codex-release-pin-20260912",
+  "exit": 0,
+  "stdout": "# Messaging and gates\n\nLoad this reference for inbox replay, attempt-specific guidance, group\naddresses, blocking questions, or coordinator-managed DAG decisions.\n\nA successful `send` proves durable enqueue. Wake and nudge are best-effort\nattention only: neither proves the recipient read the message, began a turn, or\naccepted steering.\n\n## Coordinator delivery loop\n\n`check` names its caller with `--terminal <handle>` and is the only verb that\nrejects `--from`. Omit `--terminal` inside an Orca terminal, where Orca resolves\nthe caller; pass it explicitly from anywhere else, including a dispatched\nworker reading coordinator follow-ups.\n\nA consuming coordinator `check` returns the bound Run's oldest FIFO Delivery,\nup to 50 messages, and replays that exact batch until acknowledged. Process\nevery row and required terminal ownership decision before `--ack`. Type filters\ndecide when a waiter wakes; they do not authorize skipping older actionable\nmail. A Delivery therefore always carries the whole FIFO batch whatever its\ntypes, and a `check` without `--wait` hands that batch over unfiltered.\n`--peek` and `--all` are read-only inspection, not progress through the\ncoordinator inbox.\n\nAn empty wait or timeout is a checkpoint. Continue rolling waits until every\nexpected Dispatch settles. Heartbeat or visible activity means alive, not done.\n\n## Addresses\n\nUse a stable Dispatch address for attempt-specific coordinator guidance:\n\n```text\nORCA orchestration send --to dispatch:<dispatch_id> --subject \"Follow-up\" --body \"<guidance>\" --json\n```\n\nDo not substitute a remote terminal handle. Omit `--from` for ordinary\ncoordinator calls; a dispatched worker instead copies the exact `--from` and\ncapability arguments in its preamble. `check` is the exception: it identifies\nits caller with `--terminal`, never `--from`.\n\nGroup addresses include `@all`, `@idle`, `@claude`, `@codex`, `@opencode`,\n`@gemini`, `@droid`, `@grok`, `@cursor`, and `@worktree:<id>`. Use them only for\nintentional fan-out status or questions. `worker_done`, heartbeat, and other\nDispatch lifecycle messages never target groups.\n\n## Questions and gates\n\nA worker uses `ask`; its timeout leaves one durable question pending, which the\nworker resumes by message ID. The coordinator answers that message with `reply`.\n\nUse a gate only for a coordinator-owned Task-DAG decision:\n\n```text\nORCA orchestration gate-create --task <task_id> --question \"<decision>\" --options <json_array> --json\nORCA orchestration gate-resolve --id <gate_id> --resolution \"<choice>\" --json\nORCA orchestration gate-list --task <task_id> --json\n```\n\nPass `json_array` using the quoting rules of the active shell; do not copy POSIX\nsingle-quote syntax into PowerShell or `cmd.exe`.\n\nDo not create a gate merely to answer a worker's `ask`.\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

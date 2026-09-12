@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T12:01:43.959883+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "orchestration",
+    "send",
+    "--help"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/codex-release-pin-20260912",
+  "exit": 0,
+  "stdout": "orca orchestration send\n\nUsage: orca orchestration send --subject <text> [--to <run:id|dispatch:id|legacy_handle>] [--run <run_id>] [--from <handle>] [--body <text>] [--type <type>] [--priority <level>] [--thread-id <id>] [--payload <json>] [--task-id <id>] [--dispatch-id <id>] [--outcome <succeeded|failed>] [--files-modified <csv>] [--report-path <path>] [--phase <text>] [--retry-request <id>] [--json]\n\nSend an inter-agent message\n\nOptions:\n  --help                 Show this help message\n  --json                 Emit machine-readable JSON\n  --pairing-code\n  --environment\n  --to\n  --run\n  --from\n  --subject\n  --body\n  --type\n  --priority\n  --thread-id\n  --payload\n  --task-id <id>        Task id to include in orchestration payload JSON\n  --dispatch-id <id>    Dispatch id to include in orchestration payload JSON\n  --dispatch-capability\n  --retry-request\n  --outcome\n  --files-modified <csv> Comma-separated files for orchestration payload JSON\n  --report-path <path>  Report path to include in orchestration payload JSON\n  --phase <text>        Worker phase to include in orchestration payload JSON\n\nNotes:\n  Valid --type values: status, dispatch, worker_done, merge_ready, escalation, handoff, decision_gate, question, heartbeat.\n  To answer a worker question, use orchestration reply --id <msg_id> --body <text> with the same Orca CLI executable.\n  On Windows PowerShell, quote group addresses such as --to \"@all\" or --to \"@worktree:<id>\".\n  worker_done and heartbeat are exact-Dispatch signals and cannot target groups; omit --to to use the Dispatch's Run mailbox.\n  worker_done requires --outcome succeeded or --outcome failed.\n  From an active Dispatch, an omitted recipient defaults to its owning Run mailbox.\n  Use --to dispatch:<id> for attempt-specific coordinator guidance; Orca durably relays it to a connected worker server.\n  A worker_done with the active task/dispatch IDs completes that task only from the dispatched pane. When stable pane identity is unavailable, the sender handle must exactly match the dispatch assignee; injected preambles include the correct --from value.\n  Prefer --task-id/--dispatch-id/etc. over raw --payload JSON in worker commands; PowerShell strips JSON quotes easily.\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

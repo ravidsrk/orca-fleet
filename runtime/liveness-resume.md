@@ -22,8 +22,8 @@ new handles.
 prompt (`orchestration/recovery-and-cleanup:25-31` at v1.4.199). The fleet taught this inverted for two runs;
 it is the reason pane-reading felt authoritative.
 
-Always scope it: `worker-list --run <run_id>`. Unscoped, it reports every Dispatch this runtime ever recorded
-and buries the live ones.
+Prefer `worker-list --run <run_id>`. At v1.4.200, omission uses the caller's bound Run; `scope.source` names
+`flag` / `bound` (receipts: catalog `docs/runs/2026-09-12-runtime-repin/`). The unbound `all` fallback remains source-only.
 
 Two states the old vocabulary lacked, and neither is a failure:
 
@@ -67,10 +67,10 @@ process exit, or a transcript whose final agent turn sent no `worker_done`.
   command + same primary error token), do NOT retry the same approach — kill, reassign to a fresh worker with
   a rewritten TASK, or park. Counted toward the 3-attempt cap.
 - Re-confirm `ORCA_COORD_ALLOW_DANGER` before respawning a danger-profile worker.
-- Lost preamble ≠ dead worker: regenerate the exact preamble with `dispatch-show --task <id> --preamble` (it
-  is derived deterministically from the current task spec) and replay the receipt with `terminal send
-  --retry-request <id> --wait-submit <secs>`. Receipted sends shipped in v1.4.199
-  (`terminal-send.ts:8,19-22`): a timeout returns the input-accepted receipt and never resends. NEVER
+- Lost preamble ≠ dead worker: `dispatch-show --task <id> --preamble` regenerates from the current spec;
+  its text is not necessarily the injected bytes. Replay only retained ORIGINAL text with `terminal send
+  --terminal <handle> --text <original-text> --enter --retry-request <id> --wait-submit <secs>`.
+  Both text and Enter are required; regenerated text returned `request_mismatch` (1.4.200 receipts: catalog `docs/runs/2026-09-12-runtime-repin/`). Without original bytes, inspect and leave the turn unproven. NEVER
   blind-re-Enter — `accepted: true` proves input acceptance, not a started turn, and the rule is never resend
   on silence.
 - A worker blocked on a human prompt shows `observation.agentWait` — a gate-classification problem, not a

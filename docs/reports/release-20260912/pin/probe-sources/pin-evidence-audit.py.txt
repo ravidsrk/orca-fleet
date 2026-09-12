@@ -1,0 +1,43 @@
+import hashlib,json,re,subprocess
+from pathlib import Path
+root=Path.cwd();out=root/'docs/reports/release-20260912/pin'
+def read(name):return json.loads((out/name).read_text())
+def digest(p):return hashlib.sha256(p.read_bytes()).hexdigest()
+def receipt(name):return json.loads(read('receipts/'+name+'.json')['stdout'])
+f=read('claim-inventory.frozen.json');d=read('claim-inventory.json')
+assert digest(out/'claim-inventory.frozen.json')==(out/'freeze.sha256').read_text().split()[0]==d['frozen_sha256']
+assert len(f['claims'])==len(d['records'])==d['denominator']==309
+assert [c['id'] for c in f['claims']]==[c['id'] for c in d['records']]
+assert (out/'contract.json').read_bytes()==Path('/tmp/orca-release-audit-20260912/pin-contract.json').read_bytes()
+cache={}
+for original,c in zip(f['claims'],d['records']):
+ assert original['source']['text']==c['source']['text']
+ s=c['source'];p=s['path']
+ if p not in cache:cache[p]=subprocess.check_output(['git','show',f['base_sha']+':'+p],text=True).splitlines(keepends=True)
+ assert s['text'] in ''.join(cache[p][s['line']-1:s['end_line']]),c['id']
+ for name in c['observations']:assert read('receipts/'+name+'.json')['installed_version']=='1.4.200'
+for item in read('integrity.json')['files']:assert digest(root/item['path'])==item['sha256'],item['path']
+assert receipt('retry-original-id-shorthand')['error']['code']=='invalid_argument'
+assert receipt('helper-regenerated-retry')['error']['code']=='request_mismatch'
+a=receipt('helper-workers-bound')['result'];b=receipt('helper-workers-explicit-b')['result']
+assert a['scope']=={'run':'run_aad129c705b7','source':'bound'} and len(a['workers'])==1 and not b['workers']
+assert receipt('mailbox-delivery')['result']['count']==50
+assert receipt('mailbox-ack')['result']['count']==1
+assert receipt('mailbox-delivery')['result']['deliveryId']==receipt('mailbox-replay')['result']['deliveryId']
+assert receipt('teardown-remove')['result']['removed'] is True
+assert not receipt('teardown-terminals-empty')['result']['terminals']
+assert receipt('settle-helper-close')['result']['close']['ptyKilled'] is True
+assert receipt('helper-dispatch-after-done')['result']['dispatch']['status']=='completed'
+for key in ['a','b']:
+ assert all(t['status'] in ['completed','failed'] for t in receipt('teardown-tasks-after-'+key)['result']['tasks'])
+ assert all(g['status']=='resolved' for g in receipt('teardown-gates-'+key)['result']['gates'])
+ assert not receipt('teardown-workers-'+key)['result']['workers']
+for name in ['validator','ruff','affected-bundle']:assert read('check-'+name+'.json')['exit']==0
+full=read('check-full-suite.json');assert full['exit']==1 and 'FAILED (failures=2)' in full['stderr']
+assert 'Ran 1069 tests' in full['stderr']
+failed=re.findall(r'^FAIL: (test_\w+) \(',full['stderr'],re.M)
+assert set(failed)=={'test_credential_in_a_commands_artifact_fails_the_unit','test_credential_in_an_artifact_fails_the_unit'},failed
+for p in out.rglob('*'):
+ if p.is_file():assert not re.search(r'dcap_[A-Za-z0-9_-]{20,}',p.read_text(errors='ignore')),str(p)
+assert sum('  proof: doctrine-only' in p.read_text() for p in (root/'skills').glob('*/SKILL.md'))==21
+print(json.dumps({'result':'bounded evidence consistent; full mission unproven','frozen_records':309,'dispositions':d['counts'],'all21_doctrine_only':True,'baseline_failures':failed,'scratch_teardown':'verified'},indent=2))

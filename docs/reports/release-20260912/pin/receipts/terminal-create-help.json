@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T11:56:15.178021+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "terminal",
+    "create",
+    "--help"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/codex-release-pin-20260912",
+  "exit": 0,
+  "stdout": "orca terminal create\n\nUsage: orca terminal create [--worktree <selector>] [--title <name>] [--command <text>] [--focus] [--json]\n\nCreate a terminal session in the current worktree\n\nOptions:\n  --help                 Show this help message\n  --json                 Emit machine-readable JSON\n  --pairing-code\n  --environment\n  --worktree <selector>  Worktree selector such as identity:<identity>, id:<repo-id>::<path>, name:<displayName>, branch:<branch>, issue:<number>, path:<path>, or active/current\n  --command <text>       Command to run in the terminal on startup\n  --title <text>         Custom title for the terminal tab (omit to reset)\n  --focus                Reveal the created terminal session in Orca\n\nNotes:\n  Creates a visible terminal tab without switching focus when possible; falls back to a background handle if the UI cannot adopt it. Pass --focus to switch to it.\n  Use this, not worktree create, for a fresh agent in the current checkout.\n\nExamples:\n  $ orca terminal create --json\n  $ orca terminal create --worktree active --command \"codex\" --json\n  $ orca terminal create --worktree path:/projects/myapp --title \"RUNNER\" --command \"opencode\"\n  $ orca terminal create --worktree path:/projects/myapp --command \"opencode\" --focus\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

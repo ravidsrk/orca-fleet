@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T11:57:20.534935+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "skills",
+    "get",
+    "orchestration",
+    "--reference",
+    "references/low-level-topology.md"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/codex-release-pin-20260912",
+  "exit": 0,
+  "stdout": "# Low-level topology\n\nLoad this reference only when `worker-start` cannot express required custom argv\nor terminal topology. It is not the normal supervised loop and is never a full\nhandoff recipe.\n\n```text\nORCA terminal create --worktree active --title <task_name> --command \"<agent_command>\" --json\nORCA terminal wait --terminal <handle> --for tui-idle --timeout-ms 60000 --json\nORCA orchestration dispatch --task <task_id> --to <handle> --inject --json\n```\n\nWait for readiness only when startup could lose injected input. Prefer\nagent-first `worker-start` whenever its argv and topology are sufficient.\n\n`dispatch --inject` creates authoritative Task/Dispatch context but deliberately\nkeeps an operator-created process unsupervised: it creates no supervised worker\nresource row. `worker-show`, `worker-read`, and `worker-list` report the lane as\n`unsupervised`; `worker-stop` and `worker-abandon` do not close that process, and\nsettled retain/release take no process action.\n\nUse `worker-start --terminal <handle>` when lifecycle ownership of an existing\nagent terminal is required. Never imply that low-level dispatch retroactively\nowns a process, never use it to route around the nested-depth limit, and never\nuse it for an ownership handoff.\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

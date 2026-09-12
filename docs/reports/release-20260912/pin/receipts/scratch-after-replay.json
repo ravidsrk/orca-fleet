@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T11:59:22.382636+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "terminal",
+    "read",
+    "--terminal",
+    "term_9ede7d48-337e-48fb-85b9-d1e7ea3fd554",
+    "--json"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/codex-release-pin-20260912",
+  "exit": 0,
+  "stdout": "{\n  \"id\": \"b292492f-eef8-4c4c-93d8-ac23fd991b7d\",\n  \"ok\": true,\n  \"result\": {\n    \"terminal\": {\n      \"handle\": \"term_9ede7d48-337e-48fb-85b9-d1e7ea3fd554\",\n      \"status\": \"running\",\n      \"tail\": [\n        \"\",\n        \"pin-probe-20260912  ravidsrk/pin-probe-20260912\",\n        \"\",\n        \"\",\n        \"pin-probe-20260912  ravidsrk/pin-probe-20260912\",\n        \"❯\"\n      ],\n      \"truncated\": false,\n      \"limited\": false,\n      \"oldestCursor\": \"0\",\n      \"nextCursor\": \"5\",\n      \"latestCursor\": \"5\",\n      \"returnedLineCount\": 6,\n      \"source\": \"stream\"\n    }\n  },\n  \"_meta\": {\n    \"runtimeId\": \"2e075aba-10a5-40b7-aa95-9e82ae9fc5b7\"\n  }\n}\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

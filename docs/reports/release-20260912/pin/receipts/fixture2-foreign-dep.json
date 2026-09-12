@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T12:02:42.813594+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "orchestration",
+    "task-create",
+    "--spec",
+    "PIN_266_FOREIGN_DEP",
+    "--run",
+    "run_aad129c705b7",
+    "--from",
+    "term_3e146225-18a4-43a0-bf3f-87545241b760",
+    "--deps",
+    "[\"task_15df64730fdd\"]",
+    "--json"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912",
+  "exit": 1,
+  "stdout": "{\n  \"id\": \"7ee61510-3bfb-400d-9d0f-4e322ec64eee\",\n  \"ok\": false,\n  \"error\": {\n    \"code\": \"runtime_error\",\n    \"message\": \"Dependency task task_15df64730fdd must belong to run run_aad129c705b7 Orchestration mutation request ID: ec42d33d-2638-4d98-ad68-b487ec2dc05b.\",\n    \"data\": {\n      \"orchestrationRequestId\": \"ec42d33d-2638-4d98-ad68-b487ec2dc05b\",\n      \"originalCommand\": [\n        \"orca\",\n        \"orchestration\",\n        \"task-create\",\n        \"--spec\",\n        \"PIN_266_FOREIGN_DEP\",\n        \"--run\",\n        \"run_aad129c705b7\",\n        \"--from\",\n        \"term_3e146225-18a4-43a0-bf3f-87545241b760\",\n        \"--deps\",\n        \"[\\\"task_15df64730fdd\\\"]\",\n        \"--json\"\n      ]\n    }\n  },\n  \"_meta\": {\n    \"runtimeId\": \"2e075aba-10a5-40b7-aa95-9e82ae9fc5b7\"\n  }\n}\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

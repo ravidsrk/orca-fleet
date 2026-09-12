@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T12:01:44.088939+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "orchestration",
+    "check",
+    "--help"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/codex-release-pin-20260912",
+  "exit": 0,
+  "stdout": "orca orchestration check\n\nUsage: orca orchestration check [--terminal <handle>] [--run <run_id>] [--ack <delivery_id>] [--unread | --peek | --all] [--types <type,...>] [--format] [--wait] [--timeout-ms <n>] [--retry-request <id>] [--json]\n  default: return the bound Run's oldest unacknowledged FIFO batch.\n  --ack: acknowledge the prior whole batch before checking/waiting.\n  --peek: return only unread messages without marking them read.\n  --all: return every message for the handle; does not mark read.\n  --wait: block until a matching message arrives or --timeout-ms expires.\n          Emits JSON keepalive lines to stderr every 15s so the caller can\n          tell the process is alive. `_keepalive` is unrelated to heartbeat\n          messages; `_heartbeat` remains as a deprecated compatibility alias.\n          Filter with `jq \"select(._keepalive|not)\"` when merging streams.\n\nCheck messages for a terminal\n\nOptions:\n  --help                 Show this help message\n  --json                 Emit machine-readable JSON\n  --pairing-code\n  --environment\n  --terminal <handle>  Runtime-issued terminal handle\n  --run\n  --ack\n  --unread\n  --peek\n  --all\n  --types\n  --format <png|jpeg>    Screenshot image format\n  --wait\n  --timeout-ms <ms>     Maximum wait time before timing out\n  --retry-request\n\nNotes:\n  On Windows PowerShell, quote comma-separated type filters, e.g. --types \"worker_done,escalation\".\n  --types is the wake condition for --wait; a returned Delivery is always the whole FIFO batch, so it is never filtered by type. Only --peek and --all filter their rows.\n  --format renders the returned rows as local text only; it never writes to another terminal.\n  A bound Run replays the same Delivery until --ack; process every message before acknowledging.\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

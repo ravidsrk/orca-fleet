@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T12:02:41.679300+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "orchestration",
+    "worker-list",
+    "--json"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912",
+  "exit": 0,
+  "stdout": "{\n  \"id\": \"b67822be-736e-45bb-a4d1-b8d4687fea06\",\n  \"ok\": true,\n  \"result\": {\n    \"workers\": [],\n    \"counts\": {},\n    \"page\": {\n      \"limit\": 100,\n      \"total\": 0,\n      \"hasMore\": false,\n      \"nextCursor\": null\n    },\n    \"scope\": {\n      \"run\": \"run_aad129c705b7\",\n      \"source\": \"bound\"\n    }\n  },\n  \"_meta\": {\n    \"runtimeId\": \"2e075aba-10a5-40b7-aa95-9e82ae9fc5b7\"\n  }\n}\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

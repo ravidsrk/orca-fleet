@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T11:59:34.719359+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "bash",
+    "runtime/scripts/spawn_worker.sh",
+    "pin-version-refusal-only",
+    "current",
+    "pin-version-refusal-only",
+    "codex"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/codex-release-pin-20260912",
+  "exit": 2,
+  "stdout": "",
+  "stderr": "SPAWN=NOTE task=pin-version-refusal-only Orca on PATH is 1.4.200, runtime/pins.json was witnessed against v1.4.199. Every behaviour this script relies on was read off the PINNED version's source, so the difference is unwitnessed, not known-wrong: run pin-it to re-witness before trusting the launch map or the receipt shape (#301).\nSPAWN=REFUSED task=pin-version-refusal-only PROFILE=rw launches an autonomous permission-bypass worker — set ORCA_COORD_ALLOW_AUTONOMOUS_WRITE=1 to accept (worktree + review + PR gate are the safety layer, not per-command prompts)\n",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

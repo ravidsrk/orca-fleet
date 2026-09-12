@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T12:01:43.314417+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "orchestration",
+    "task-update",
+    "--help"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/codex-release-pin-20260912",
+  "exit": 0,
+  "stdout": "orca orchestration task-update\n\nUsage: orca orchestration task-update --id <task_id> --status <status> [--result <json>] [--run <run_id>] [--from <handle>] [--retry-request <id>] [--json]\n\nUpdate a task status\n\nOptions:\n  --help                 Show this help message\n  --json                 Emit machine-readable JSON\n  --pairing-code\n  --environment\n  --id <id>             Identifier for a target item or permission\n  --status\n  --result\n  --run\n  --from\n  --retry-request\n\nNotes:\n  Valid --status values: pending, ready, dispatched, completed, failed, blocked.\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

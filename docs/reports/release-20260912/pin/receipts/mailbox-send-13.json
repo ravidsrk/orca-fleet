@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T12:04:01.855180+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "orchestration",
+    "send",
+    "--to",
+    "run:run_aad129c705b7",
+    "--from",
+    "term_3e146225-18a4-43a0-bf3f-87545241b760",
+    "--type",
+    "handoff",
+    "--subject",
+    "PIN_266_FIFO_13",
+    "--body",
+    "Inert FIFO probe; no action requested",
+    "--json"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912",
+  "exit": 0,
+  "stdout": "{\n  \"id\": \"c64fc920-a6b5-4d5d-9653-77559384831b\",\n  \"ok\": true,\n  \"result\": {\n    \"message\": {\n      \"id\": \"msg_28502b9405c9\",\n      \"run_id\": \"run_aad129c705b7\",\n      \"delivery_contract\": \"current_delivery\",\n      \"from_handle\": \"term_3e146225-18a4-43a0-bf3f-87545241b760\",\n      \"to_handle\": \"run:run_aad129c705b7\",\n      \"subject\": \"PIN_266_FIFO_13\",\n      \"body\": \"Inert FIFO probe; no action requested\",\n      \"type\": \"handoff\",\n      \"priority\": \"normal\",\n      \"thread_id\": null,\n      \"payload\": null,\n      \"created_at\": \"2026-09-12T12:04:01Z\",\n      \"delivered_at\": null\n    },\n    \"mutation\": {\n      \"requestId\": \"fed03caa-922d-49bc-845d-b4a64665e15b\",\n      \"replayed\": false\n    }\n  },\n  \"_meta\": {\n    \"runtimeId\": \"2e075aba-10a5-40b7-aa95-9e82ae9fc5b7\"\n  }\n}\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

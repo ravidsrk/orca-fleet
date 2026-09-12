@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T12:06:17.257116+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "orchestration",
+    "reply",
+    "--id",
+    "msg_9edb5b1a245e",
+    "--body",
+    "synthetic-yes",
+    "--from",
+    "term_3e146225-18a4-43a0-bf3f-87545241b760",
+    "--json"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912",
+  "exit": 0,
+  "stdout": "{\n  \"id\": \"5d39f3e7-c8ac-4c30-a73c-650c10101518\",\n  \"ok\": true,\n  \"result\": {\n    \"message\": {\n      \"id\": \"msg_fa9b6d40411b\",\n      \"run_id\": \"run_aad129c705b7\",\n      \"delivery_contract\": \"current_delivery\",\n      \"from_handle\": \"run:run_aad129c705b7\",\n      \"to_handle\": \"dispatch:ctx_e41119c4ab64\",\n      \"subject\": \"Re: Question\",\n      \"body\": \"synthetic-yes\",\n      \"type\": \"status\",\n      \"priority\": \"normal\",\n      \"thread_id\": \"msg_9edb5b1a245e\",\n      \"payload\": null,\n      \"created_at\": \"2026-09-12T12:06:17Z\",\n      \"delivered_at\": null\n    },\n    \"question\": {\n      \"message_id\": \"msg_9edb5b1a245e\",\n      \"run_id\": \"run_aad129c705b7\",\n      \"dispatch_id\": \"ctx_e41119c4ab64\",\n      \"asker_handle\": \"term_2a591dec-4a81-4c3d-baef-c145582b3b34\",\n      \"status\": \"answered\",\n      \"answer_message_id\": \"msg_fa9b6d40411b\",\n      \"answer_body\": \"synthetic-yes\",\n      \"answered_by_generation\": 5,\n      \"created_at\": \"2026-09-12T12:05:15Z\",\n      \"answered_at\": \"2026-09-12T12:06:17Z\",\n      \"closed_at\": null\n    },\n    \"duplicate\": false,\n    \"mutation\": {\n      \"requestId\": \"23acc64f-d867-474f-b197-b3b4a1b3e2ba\",\n      \"replayed\": false\n    }\n  },\n  \"_meta\": {\n    \"runtimeId\": \"2e075aba-10a5-40b7-aa95-9e82ae9fc5b7\"\n  }\n}\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

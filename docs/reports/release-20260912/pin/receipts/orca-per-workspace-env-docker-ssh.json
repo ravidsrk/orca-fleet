@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T11:57:21.815913+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "skills",
+    "get",
+    "orca-per-workspace-env",
+    "--reference",
+    "references/docker-ssh.md"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/codex-release-pin-20260912",
+  "exit": 0,
+  "stdout": "# Local Docker over SSH\n\nLoad this when the environment is a local Docker container reached over SSH. It models an ephemeral\nSSH VM without cloud cost: build a base image with `sshd`, tools, repo prerequisites, and the agent\nCLI; run an interactive auth container once; then `docker commit` that container as the\nauthenticated image per-workspace `create` boots from. The emitted result is the SSH shape in\n`references/ssh-host.md`.\n\n- Publish container SSH to a random localhost port with `-p 127.0.0.1::22`, and emit\n  `connection.type:\"ssh\"` with `host:\"127.0.0.1\"`, that port, `username`, `identityFile`, and\n  `identitiesOnly:true`.\n- Generate a repo-local SSH key if needed, and gitignore the private and public key files.\n- Generate unique SSH host keys with `ssh-keygen -A` on each container's first start and retain\n  them for that container's lifetime. Remove `/etc/ssh/ssh_host_*` from the base and auth images\n  before reuse; never distribute one private host key across workspaces.\n- Before connecting, read the container's public host key through trusted local `docker exec` and\n  record it under `[127.0.0.1]:<published-port>` in the desktop's `known_hosts`. If a port was reused,\n  replace only that endpoint's old entry after verifying the new container identity. Preserve\n  entries for other workspaces; never disable host-key checking to bypass a mismatch.\n- The auth image is the Docker form of the agent-auth snapshot: the user runs the agent login inside\n  the container, configures proxy env and config, approves hooks, and you commit once they report it\n  finished.\n- Do not bind-mount or copy the host's full agent home into the image. Let each container keep\n  writable agent state; only the committed auth image carries reusable authenticated state.\n- When committing from an interactive shell, force the runtime entrypoint back to `sshd`:\n  `docker commit --change='ENTRYPOINT [\"/usr/local/bin/orca-docker-ssh-entrypoint\"]' …`.\n- `destroy` reads `recipeResult.userData.resourceId` and runs `docker rm -f \"$resource_id\"`.\n\n## Validation before wiring or live use\n\n```bash\ndocker image inspect \"$auth_image\" --format '{{json .Config.Entrypoint}}'\ndocker run -d --name \"$name\" -p 127.0.0.1::22 -e \"ORCA_SSH_PUBLIC_KEY=$pubkey\" \"$auth_image\"\ndocker ps -a --filter \"name=$name\"\ndocker logs \"$name\"\nssh -i \"$key\" -p \"$port\" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes user@127.0.0.1 'codex --version'\n```\n\nInspect the auth image entrypoint and do this startup-only `docker run` before the full clone and\ninstall path. If the container exits immediately, read its logs before the cleanup trap removes it;\nan image committed from an interactive shell with `ENTRYPOINT [\"bash\"]` is a common cause.\n\nValidate two containers: their public host keys must differ, and each must match its recorded\nendpoint before SSH succeeds. Restarting the same container preserves its key; reusing a deleted\ncontainer's port requires verifying and recording the replacement's key. Remove that endpoint's\nentry on destroy only if it still matches the destroyed container's recorded key.\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

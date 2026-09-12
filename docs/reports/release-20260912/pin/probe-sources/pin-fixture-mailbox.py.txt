@@ -1,0 +1,27 @@
+import os,sys,json,traceback
+from pathlib import Path
+sys.path.insert(0,'/tmp/orca-release-audit-20260912')
+from pin_capture import call
+H='term_3e146225-18a4-43a0-bf3f-87545241b760';A='run_aad129c705b7';SCRATCH='/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912'
+def c(label,args):
+ d=call('mailbox-'+label,['orca','orchestration']+args+['--json'],cwd=SCRATCH,timeout=35);r=json.loads(d['stdout']);assert d['exit']==0 and r.get('ok'),(label,r);return r['result']
+try:
+ assert os.environ.get('ORCA_TERMINAL_HANDLE')==H
+ # Drain only this fixture's prior inert status / rejected escalation receipts.
+ r=c('prior',['check','--terminal',H,'--run',A])
+ while r.get('deliveryId'):
+  assert all(m['from_handle']==H for m in r['messages']),r
+  r=c('prior-ack-'+r['deliveryId'],['check','--terminal',H,'--run',A,'--ack',r['deliveryId']])
+ for i in range(51):
+  c('send-'+str(i).zfill(2),['send','--to','run:'+A,'--from',H,'--type','status' if i%2==0 else 'handoff','--subject',f'PIN_266_FIFO_{i:02}','--body','Inert FIFO probe; no action requested'])
+ c('peek',['check','--terminal',H,'--run',A,'--peek'])
+ r=c('delivery',['check','--terminal',H,'--run',A,'--wait','--types','handoff','--timeout-ms','1000'])
+ c('replay',['check','--terminal',H,'--run',A])
+ assert all(m['subject'].startswith('PIN_266_FIFO_') for m in r['messages']),r
+ second=c('ack',['check','--terminal',H,'--run',A,'--ack',r['deliveryId']])
+ assert all(m['subject'].startswith('PIN_266_FIFO_') for m in second['messages']),second
+ if second.get('deliveryId'):c('final-ack',['check','--terminal',H,'--run',A,'--ack',second['deliveryId']])
+ c('empty-wait',['check','--terminal',H,'--run',A,'--wait','--types','handoff','--timeout-ms','16000'])
+ Path('/tmp/orca-release-audit-20260912/pin-fixture-mailbox.done').write_text('complete')
+except BaseException:
+ Path('/tmp/orca-release-audit-20260912/pin-fixture-mailbox.done').write_text(traceback.format_exc());raise

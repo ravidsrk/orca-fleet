@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T12:03:59.403728+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "orchestration",
+    "check",
+    "--terminal",
+    "term_3e146225-18a4-43a0-bf3f-87545241b760",
+    "--run",
+    "run_aad129c705b7",
+    "--json"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912",
+  "exit": 0,
+  "stdout": "{\n  \"id\": \"9538f547-e3bd-428e-b1fd-1a4b5a915306\",\n  \"ok\": true,\n  \"result\": {\n    \"runId\": \"run_aad129c705b7\",\n    \"deliveryId\": \"delivery_0e66683aeb4c\",\n    \"messages\": [\n      {\n        \"id\": \"msg_9831dc4d4da6\",\n        \"run_id\": \"run_aad129c705b7\",\n        \"delivery_contract\": \"current_delivery\",\n        \"from_handle\": \"term_3e146225-18a4-43a0-bf3f-87545241b760\",\n        \"to_handle\": \"run:run_aad129c705b7\",\n        \"subject\": \"PIN_266_00\",\n        \"body\": \"Inert FIFO probe; no action requested\",\n        \"type\": \"status\",\n        \"priority\": \"normal\",\n        \"thread_id\": null,\n        \"payload\": null,\n        \"created_at\": \"2026-09-12T12:02:45Z\",\n        \"delivered_at\": null\n      },\n      {\n        \"id\": \"msg_568dfd881b1c\",\n        \"run_id\": \"run_aad129c705b7\",\n        \"delivery_contract\": \"current_delivery\",\n        \"from_handle\": \"term_3e146225-18a4-43a0-bf3f-87545241b760\",\n        \"to_handle\": \"run:run_aad129c705b7\",\n        \"subject\": \"Rejected escalation: PIN_266_01\",\n        \"body\": \"Orca rejected this escalation: No active Dispatch belongs to this message sender.\\n\\nOriginal body:\\nInert FIFO probe; no action requested\",\n        \"type\": \"status\",\n        \"priority\": \"high\",\n        \"thread_id\": null,\n        \"payload\": \"{\\\"_orcaLifecycleRejection\\\":{\\\"code\\\":\\\"sender_not_assignee\\\",\\\"reason\\\":\\\"No active Dispatch belongs to this message sender.\\\"}}\",\n        \"created_at\": \"2026-09-12T12:02:45Z\",\n        \"delivered_at\": null\n      }\n    ],\n    \"count\": 2,\n    \"replayed\": false,\n    \"acknowledged\": null,\n    \"timedOut\": false,\n    \"cancelled\": false,\n    \"connectionLost\": false,\n    \"mutation\": {\n      \"requestId\": \"e321bd47-7aa3-436c-b581-b7b6f37cdd00\",\n      \"replayed\": false\n    }\n  },\n  \"_meta\": {\n    \"runtimeId\": \"2e075aba-10a5-40b7-aa95-9e82ae9fc5b7\"\n  }\n}\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

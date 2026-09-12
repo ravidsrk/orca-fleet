@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T12:02:43.806059+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "orchestration",
+    "task-update",
+    "--id",
+    "task_1e6556099875",
+    "--status",
+    "completed",
+    "--run",
+    "run_aad129c705b7",
+    "--from",
+    "term_3e146225-18a4-43a0-bf3f-87545241b760",
+    "--json"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912",
+  "exit": 0,
+  "stdout": "{\n  \"id\": \"aaecabb2-796d-42df-8ce7-7e3273bd16ce\",\n  \"ok\": true,\n  \"result\": {\n    \"task\": {\n      \"id\": \"task_1e6556099875\",\n      \"run_id\": \"run_aad129c705b7\",\n      \"parent_id\": null,\n      \"created_by_terminal_handle\": \"term_3e146225-18a4-43a0-bf3f-87545241b760\",\n      \"created_by_pane_key\": \"1058f1bd-8801-472c-b483-cc12789d840a:0652fbff-49cb-45f9-adb4-6f2dccc18a9e\",\n      \"created_by_process_incarnation\": \"3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912@@05bdd33b:0dacdbb1-834e-48f0-89d7-c2c08698a2a0\",\n      \"created_by_run_generation\": 5,\n      \"task_title\": \"PIN_266_good\",\n      \"display_name\": \"PIN_266_good\",\n      \"spec\": \"PIN_266_good\",\n      \"status\": \"completed\",\n      \"deps\": \"[]\",\n      \"result\": null,\n      \"created_at\": \"2026-09-12 12:02:42\",\n      \"completed_at\": \"2026-09-12T12:02:43.799Z\"\n    },\n    \"mutation\": {\n      \"requestId\": \"a695c259-e1a5-4136-8324-768b594bee1a\",\n      \"replayed\": false\n    }\n  },\n  \"_meta\": {\n    \"runtimeId\": \"2e075aba-10a5-40b7-aa95-9e82ae9fc5b7\"\n  }\n}\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

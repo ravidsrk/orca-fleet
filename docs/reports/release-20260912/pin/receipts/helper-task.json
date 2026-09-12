@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T12:05:01.667790+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "orchestration",
+    "task-create",
+    "--spec",
+    "You are the single harmless #266 live-witness fixture, not a fleet coordinator. Use installed orca 1.4.200 and only the lifecycle commands in your injected preamble. Do not edit repository files, start agents, alter settings/permissions, use external services, or read any other Run. First ask your scratch coordinator exactly PIN_266_QUESTION with options synthetic-yes,synthetic-no and a 60000 ms timeout. If the question times out resume that exact message id. Once the coordinator replies synthetic-yes, check your own inbox and send worker_done exactly once with outcome succeeded and a three-sentence summary: I ran the harmless ask fixture. The coordinator replied synthetic-yes. No work remains for this fixture. Then stop. Heartbeats only at the injected cadence; do not send a separate report file or claim broader runtime proof.",
+    "--run",
+    "run_aad129c705b7",
+    "--from",
+    "term_3e146225-18a4-43a0-bf3f-87545241b760",
+    "--json"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912",
+  "exit": 0,
+  "stdout": "{\n  \"id\": \"cb9c3700-3d8d-4178-9d3f-9fd5068c8304\",\n  \"ok\": true,\n  \"result\": {\n    \"task\": {\n      \"id\": \"task_1689929d2c14\",\n      \"run_id\": \"run_aad129c705b7\",\n      \"parent_id\": null,\n      \"created_by_terminal_handle\": \"term_3e146225-18a4-43a0-bf3f-87545241b760\",\n      \"created_by_pane_key\": \"1058f1bd-8801-472c-b483-cc12789d840a:0652fbff-49cb-45f9-adb4-6f2dccc18a9e\",\n      \"created_by_process_incarnation\": \"3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912@@05bdd33b:0dacdbb1-834e-48f0-89d7-c2c08698a2a0\",\n      \"created_by_run_generation\": 5,\n      \"task_title\": \"You are the single harmless #266 live-witness fixture, not a fleet coordinato...\",\n      \"display_name\": \"You are the single harmless #266 live-witness fixture, not a fleet coordinato...\",\n      \"spec\": \"You are the single harmless #266 live-witness fixture, not a fleet coordinator. Use installed orca 1.4.200 and only the lifecycle commands in your injected preamble. Do not edit repository files, start agents, alter settings/permissions, use external services, or read any other Run. First ask your scratch coordinator exactly PIN_266_QUESTION with options synthetic-yes,synthetic-no and a 60000 ms timeout. If the question times out resume that exact message id. Once the coordinator replies synthetic-yes, check your own inbox and send worker_done exactly once with outcome succeeded and a three-sentence summary: I ran the harmless ask fixture. The coordinator replied synthetic-yes. No work remains for this fixture. Then stop. Heartbeats only at the injected cadence; do not send a separate report file or claim broader runtime proof.\",\n      \"status\": \"ready\",\n      \"deps\": \"[]\",\n      \"result\": null,\n      \"created_at\": \"2026-09-12 12:05:01\",\n      \"completed_at\": null\n    },\n    \"mutation\": {\n      \"requestId\": \"9697dbf7-27d1-4dcd-9e8f-498d88c91cab\",\n      \"replayed\": false\n    }\n  },\n  \"_meta\": {\n    \"runtimeId\": \"2e075aba-10a5-40b7-aa95-9e82ae9fc5b7\"\n  }\n}\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

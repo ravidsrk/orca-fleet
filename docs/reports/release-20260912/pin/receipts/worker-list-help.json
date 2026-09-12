@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T12:01:44.221759+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "orchestration",
+    "worker-list",
+    "--help"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/codex-release-pin-20260912",
+  "exit": 0,
+  "stdout": "orca orchestration worker-list\n\nUsage: orca orchestration worker-list [--run <run_id>] [--terminal-state <active|reclaimable|retained|release_pending|release_unknown|released>] [--include-remote] [--cursor <cursor>] [--limit <1-100>] [--json]\n\nList supervised worker terminal resource accounting\n\nOptions:\n  --help                 Show this help message\n  --json                 Emit machine-readable JSON\n  --pairing-code\n  --environment\n  --run\n  --terminal-state <state> Terminal accounting filter: active, reclaimable, retained, release_pending, release_unknown, or released\n  --include-remote      Include connected-server worker observations\n  --cursor <cursor>      Opaque page cursor copied from page.nextCursor\n  --limit <n>            Maximum number of rows to return\n\nNotes:\n  Terminal state is process accounting and is reported separately from Task status; a completed Task can still own a live terminal.\n  Context-only Dispatches created by orchestration dispatch are included as unsupervised with terminal state retained.\n  Returns at most 100 local rows by default; --include-remote adds connected-server observations when the host supports fleet listing. Continue with the opaque page.nextCursor value unchanged.\n  Without --run the list is scoped to the Run bound to the calling terminal, and to every Run when there is no binding; the receipt reports which in scope.source (flag, bound, or all).\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

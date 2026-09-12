@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T12:06:28.322626+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "orchestration",
+    "worker-release",
+    "--dispatch",
+    "ctx_e41119c4ab64",
+    "--from",
+    "term_3e146225-18a4-43a0-bf3f-87545241b760",
+    "--json"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912",
+  "exit": 1,
+  "stdout": "{\n  \"id\": \"local\",\n  \"ok\": false,\n  \"error\": {\n    \"code\": \"invalid_argument\",\n    \"message\": \"Unknown flag --from for command: orchestration worker-release\",\n    \"data\": {\n      \"validFlags\": [\n        \"dispatch\",\n        \"environment\",\n        \"help\",\n        \"json\",\n        \"pairing-code\",\n        \"retry-request\"\n      ],\n      \"suggestions\": [\n        \"json\"\n      ],\n      \"nextSteps\": [\n        \"Did you mean: --json\",\n        \"Valid flags: --dispatch, --environment, --help, --json, --pairing-code, --retry-request\"\n      ]\n    }\n  },\n  \"_meta\": {\n    \"runtimeId\": null\n  }\n}\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

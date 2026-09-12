@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T11:59:09.770288+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "git",
+    "-C",
+    "/Users/ravindra/projects/orca",
+    "show",
+    "2ecde717b4561cae1701a27615f704434232399a:src/cli/handlers/orchestration/worker-list-run-scope.ts"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/codex-release-pin-20260912",
+  "exit": 0,
+  "stdout": "import { getOptionalStringFlag } from '../../flags'\nimport type { RuntimeClient } from '../../runtime-client'\nimport { resolveOrchestrationTerminalHandle } from './terminal-identity'\n\n/** Which Run `worker-list` enumerated, and why. Additive: old readers ignore it. */\nexport type WorkerListRunScope = { run?: string; source: 'flag' | 'bound' | 'all' }\n\n/**\n * Unscoped `worker-list` returned every Dispatch the database has ever held. The bound Run is\n * the same Run `check` reads from the calling terminal, so it is the default and `--run`\n * overrides it. With no binding to read, listing everything stays the answer and the receipt\n * says which of the three it was.\n */\nexport async function resolveWorkerListRunScope(\n  flags: Map<string, string | boolean>,\n  cwd: string,\n  client: RuntimeClient\n): Promise<WorkerListRunScope> {\n  const explicit = getOptionalStringFlag(flags, 'run')\n  if (explicit) {\n    return { run: explicit, source: 'flag' }\n  }\n  try {\n    const terminal = await resolveOrchestrationTerminalHandle(flags, cwd, client, 'terminal')\n    const current = await client.call<{ run: { id: string } | null }>('orchestration.runCurrent', {\n      from: terminal\n    })\n    return current.result.run ? { run: current.result.run.id, source: 'bound' } : { source: 'all' }\n  } catch {\n    // No live terminal, no stable pane, or a runtime that predates runCurrent: the caller asked\n    // for an inventory, so answer with the whole one rather than failing the enumeration.\n    return { source: 'all' }\n  }\n}\n\nexport function formatWorkerListScope(scope: WorkerListRunScope): string {\n  if (scope.source === 'all') {\n    return 'Scope: all Runs (no Run is bound to this terminal; pass --run to narrow)'\n  }\n  return `Scope: Run ${scope.run} (${scope.source === 'bound' ? 'bound to this terminal' : '--run'})`\n}\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}
