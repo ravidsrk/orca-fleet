@@ -161,6 +161,8 @@ class TestAuthoritativeDefault(unittest.TestCase):
 
     def test_online_derived_default_uses_fresh_remote_despite_stale_local_main(self):
         self.assertNotEqual(self.old, self.fresh)
+        for alias in ("refs/remotes/origin/main", "origin/refs/remotes/origin/main"):
+            self.git("branch", alias, self.old)
         r = self.run_check()
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertIn("default=refs/remotes/origin/main", r.stdout)
@@ -170,6 +172,42 @@ class TestAuthoritativeDefault(unittest.TestCase):
         self.git("update-ref", "-d", "refs/remotes/origin/main")
         r = self.run_check(fork=self.old)
         self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
+
+    def test_online_missing_remote_ref_cannot_use_synthetic_local_alias(self):
+        self.git("update-ref", "-d", "refs/remotes/origin/main")
+        for alias in ("origin/refs/remotes/origin/main", "refs/remotes/origin/main"):
+            with self.subTest(alias=alias):
+                self.git("branch", alias, self.fresh)
+                try:
+                    r = self.run_check()
+                    self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
+                    self.assertIn("no merge-base", r.stderr)
+                finally:
+                    self.git("update-ref", "-d", f"refs/heads/{alias}")
+
+    def test_missing_qualified_refs_do_not_fall_back_in_either_resolver(self):
+        cwd = os.getcwd()
+        os.chdir(self.repo)
+        try:
+            for ref in ("refs/heads/missing", "refs/remotes/origin/missing"):
+                self.git("branch", f"origin/{ref}", self.fresh)
+                self.git("branch", ref, self.fresh)
+                for resolver, args in ((preflight._tip_sha, (ref,)),
+                                       (preflight._merge_base, (ref, "integ")),
+                                       (preflight._merge_base, ("integ", ref))):
+                    with self.subTest(ref=ref, resolver=resolver.__name__, args=args):
+                        self.assertIsNone(resolver(*args))
+        finally:
+            os.chdir(cwd)
+
+    def test_remote_only_base_remains_valid(self):
+        self.git("update-ref", "refs/remotes/origin/remote-integ", self.fresh)
+        for base in ("remote-integ", "origin/remote-integ", "refs/remotes/origin/remote-integ"):
+            for mode in ((), ("--offline", "--default", "refs/remotes/origin/main")):
+                with self.subTest(base=base, mode=mode):
+                    r = self.run_check(*mode, base=base)
+                    self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+                    self.assertIn("BASE tip == default tip", r.stderr)
 
     def test_genuinely_stale_base_still_fails(self):
         r = self.run_check(base="stale")

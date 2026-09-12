@@ -175,7 +175,7 @@ def changed_files(repo, base):
         if out is None:
             raise ScopeError(f"{phase} acquisition failed", kind="diff_failed")
         for name in out.split("\0"):
-            if name.strip():
+            if name:
                 names.add(name)
     # A failed merge-base diff cannot license a different comparison. Unrelated
     # histories and other git failures both mean the requested scope is unknown.

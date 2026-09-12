@@ -197,7 +197,9 @@ def collect_diff(repo, mb):
             )
         except (OSError, subprocess.SubprocessError) as err:
             raise GuardError("untracked diff acquisition failed to run") from err
-        if r.returncode not in (0, 1):
+        # Git also exits 1 for inaccessible input, with no acquired patch. A
+        # successful difference must have output; exit 0 may legitimately be empty.
+        if r.returncode not in (0, 1) or (r.returncode == 1 and not r.stdout):
             raise GuardError(f"untracked diff acquisition failed (exit {r.returncode})")
         chunks.append(r.stdout)
     return "\n".join(chunks)

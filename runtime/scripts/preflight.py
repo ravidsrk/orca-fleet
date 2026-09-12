@@ -102,9 +102,22 @@ def _branch_exists(name: str) -> bool:
     return False
 
 
+def _ref_candidates(ref: str) -> tuple[str, ...]:
+    if ref.startswith("refs/"):
+        # rev-parse/merge-base can resolve even a qualified-looking name through
+        # a local alias. Pin the exact ref before using it in revision lookups.
+        rc, out, _ = _run(["git", "show-ref", "--verify", "--hash", ref])
+        return (out,) if rc == 0 and out else ()
+    return (ref, f"origin/{ref}")
+
+
 def _merge_base(a: str, b: str) -> str | None:
-    for pair in ((a, b), (f"origin/{a}", f"origin/{b}"), (a, f"origin/{b}"), (f"origin/{a}", b)):
-        rc, out, _ = _run(["git", "merge-base", *pair])
+    a_refs, b_refs = _ref_candidates(a), _ref_candidates(b)
+    # Preserve the existing preference order for unqualified local/origin pairs.
+    for i, j in ((0, 0), (1, 1), (0, 1), (1, 0)):
+        if i >= len(a_refs) or j >= len(b_refs):
+            continue
+        rc, out, _ = _run(["git", "merge-base", a_refs[i], b_refs[j]])
         if rc == 0 and out:
             return out
     return None
@@ -135,7 +148,7 @@ def _canon_branch(ref: str) -> str:
 
 
 def _tip_sha(ref: str) -> str | None:
-    for candidate in (ref, f"origin/{ref}"):
+    for candidate in _ref_candidates(ref):
         rc, out, _ = _run(["git", "rev-parse", "--verify", "--quiet", candidate])
         if rc == 0 and out:
             return out

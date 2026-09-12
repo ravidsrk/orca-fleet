@@ -122,6 +122,37 @@ class TestCleanAndExitCodes(FloorGuardBase):
 
 
 class TestDiffAcquisition(FloorGuardBase):
+    def test_disappearing_untracked_file_is_exit_2(self):
+        path = write(self.repo, "disappearing.py", "value = 1\n")
+        real_run = subprocess.run
+        comparisons = []
+
+        def disappear_before_comparison(argv, **kwargs):
+            if "--no-index" in argv:
+                path.unlink()
+                result = real_run(argv, **kwargs)
+                comparisons.append(result)
+                return result
+            return real_run(argv, **kwargs)
+
+        out, err = io.StringIO(), io.StringIO()
+        with mock.patch.object(floor_guard.subprocess, "run", side_effect=disappear_before_comparison), \
+                contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            rc = floor_guard.main(["--repo", str(self.repo), "--base", "main"])
+        self.assertEqual(len(comparisons), 1)
+        self.assertEqual(comparisons[0].returncode, 1)
+        self.assertEqual(comparisons[0].stdout, "")
+        self.assertTrue(comparisons[0].stderr)
+        self.assertEqual(rc, 2, out.getvalue() + err.getvalue())
+        self.assertIn("untracked diff acquisition failed", err.getvalue())
+        self.assertNotIn("floor-guard: clean", out.getvalue())
+
+    def test_benign_untracked_file_is_clean(self):
+        write(self.repo, "new.py", "value = 1\n")
+        r = run_guard(self.repo, "--base", "main")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("floor-guard: clean", r.stdout)
+
     def test_each_failed_required_read_is_exit_2(self):
         write(self.repo, "new.py", "value = 1\n")
         real_run = subprocess.run

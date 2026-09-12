@@ -251,6 +251,35 @@ class TestPathClassification(ScopeBase):
 
 
 class TestGeneratedBadges(ScopeBase):
+    def test_whitespace_only_unknown_paths_survive_every_enumeration_source(self):
+        unknown = [" ", "\t", "\n"]
+        for name in unknown:
+            write(self.repo, name, "{}\n")
+        for source in ("untracked", "staged", "committed", "unstaged"):
+            if source == "staged":
+                git(self.repo, "add", "--", *unknown)
+            elif source == "committed":
+                git(self.repo, "commit", "-qm", "whitespace filenames")
+            elif source == "unstaged":
+                # Move the comparison base so only the working-tree read supplies them.
+                git(self.repo, "branch", "-f", "main", "HEAD")
+                for name in unknown:
+                    write(self.repo, name, "changed\n")
+            for with_badge in (False, True):
+                with self.subTest(source=source, with_badge=with_badge):
+                    badge = self.repo / "assets/badges/tests.json"
+                    if with_badge:
+                        write(self.repo, "assets/badges/tests.json", "{}\n")
+                    try:
+                        data, r = self.flags("--strict")
+                        self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
+                        self.assertEqual(data["error"], "unmatched")
+                        self.assertEqual(sorted(data["unmatched"]), sorted(unknown))
+                        self.assertEqual(data["flags"]["DOCS"], with_badge)
+                    finally:
+                        if with_badge:
+                            badge.unlink()
+
     def test_supported_generated_payloads_are_docs_in_strict_mode(self):
         # These exact outputs are public README badges from scripts/gen-badges.py.
         # The expected classification is independent of the classifier's rule table.
