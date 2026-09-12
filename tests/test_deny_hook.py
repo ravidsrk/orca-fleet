@@ -307,6 +307,110 @@ class TestEverySegmentIsJudged(HookBase):
         self.assertNotIn("can only ever produce MORE segments, and every", text)
 
 
+class TestGitGlobalOptionsAreStripped(HookBase):
+    """#297: every git rule anchored the subcommand to the word `git`.
+
+    A global option in between — `-C`, `-c`, `--git-dir` — laundered a refused
+    command past all of them: `git -C /x push --force` was the same push and was
+    allowed. The leading option run is stripped before a segment is judged.
+    """
+
+    def _deny(self, command):
+        block = self.decision(self.fire(event("Bash", command=command)))
+        self.assertIsNotNone(block, f"{command!r} produced no decision at all")
+        self.assertEqual(block["permissionDecision"], "deny", command)
+        return block
+
+    def test_a_global_option_does_not_launder_a_refused_push(self):
+        for command in (
+            "git -C /srv push --force origin main",
+            "git -c advice.detachedHead=false push -f origin main",
+            "git --git-dir=/srv/.git push --force",
+            "git --git-dir /srv/.git push -f",
+            "git -C /srv -c a=b push --force",
+            'git -C "/srv/a b" push --force',
+            "sudo git -C /srv push --force origin main",
+        ):
+            with self.subTest(command=command):
+                self._deny(command)
+
+    def test_a_global_option_does_not_launder_a_deletion_either(self):
+        self._deny("git -C /srv push origin :main")
+
+    def test_the_never_list_sees_the_same_subcommand(self):
+        # The ask tier scans the whole line, so it gets the normalized view the
+        # HIGH tier judged — otherwise the same option hides a question.
+        for command in ("git -C /srv reset --hard HEAD~2",
+                        "sudo git --git-dir=/srv/.git checkout ."):
+            with self.subTest(command=command):
+                block = self.decision(self.fire(event("Bash", command=command)))
+                self.assertIsNotNone(block)
+                self.assertEqual(block["permissionDecision"], "ask", command)
+
+    def test_global_options_on_an_allowed_command_stay_allowed(self):
+        for command in ("git -C /srv status",
+                        "git -c core.pager=cat log --oneline",
+                        "git --git-dir=/srv/.git push origin topic",
+                        "git -C /srv push --force-with-lease origin main"):
+            with self.subTest(command=command):
+                r = self.fire(event("Bash", command=command))
+                self.assertEqual(r.returncode, 0)
+                self.assertNotIn('"deny"', r.stdout, command)
+
+
+class TestDefaultBranchDeletion(HookBase):
+    """#297: `git push origin :main` deletes the default branch needing no flag.
+
+    The HIGH tier matched `-f`, `--force` and the `+ref` form — all absent from
+    a delete — so the most destructive push a bounded worker had was allowed.
+    """
+
+    def _deny(self, command):
+        block = self.decision(self.fire(event("Bash", command=command)))
+        self.assertIsNotNone(block, f"{command!r} produced no decision at all")
+        self.assertEqual(block["permissionDecision"], "deny", command)
+        return block
+
+    def test_deleting_the_default_branch_is_denied_in_every_form(self):
+        for command in (
+            "git push origin :main",
+            "git push origin +:main",
+            "git push -d origin main",
+            "git push --delete origin main",
+            "git push origin --delete main",
+        ):
+            with self.subTest(command=command):
+                self._deny(command)
+
+    def test_a_lease_does_not_pardon_a_deletion(self):
+        # --force-with-lease makes a REWRITE recoverable; a deleted ref is not a
+        # rewrite, and the lease says nothing about it.
+        self._deny("git push --force-with-lease origin :main")
+
+    def test_the_deny_reason_names_the_default_branch(self):
+        block = self._deny("git push origin :main")
+        self.assertIn("default branch", block["permissionDecisionReason"])
+
+    def test_deleting_any_other_ref_asks(self):
+        # Recoverable — re-pushing the ref restores it — so a human authorizes.
+        for command in ("git push origin :topic",
+                        "git push -d origin topic",
+                        "git push --delete origin topic"):
+            with self.subTest(command=command):
+                block = self.decision(self.fire(event("Bash", command=command)))
+                self.assertIsNotNone(block)
+                self.assertEqual(block["permissionDecision"], "ask", command)
+
+    def test_a_matching_push_and_an_update_push_are_not_deletions(self):
+        # `:` pushes every matching branch and `HEAD:main` updates main — the
+        # refspec colon is only a delete when its source side is empty.
+        for command in ("git push origin :", "git push origin HEAD:main",
+                        "git push origin topic"):
+            with self.subTest(command=command):
+                r = self.fire(event("Bash", command=command))
+                self.assertEqual(r.stdout.strip(), "", command)
+
+
 class TestNeverList(HookBase):
     def _ask(self, command):
         block = self.decision(self.fire(event("Bash", command=command)))
@@ -398,6 +502,21 @@ class TestWorktreeBoundary(HookBase):
                 block = self.decision(self._fire_edit(self.outside / "secret.py", tool=tool))
                 self.assertIsNotNone(block, f"{tool} wrote outside the boundary and was allowed")
                 self.assertEqual(block["permissionDecision"], "deny", tool)
+
+    def test_a_notebook_edit_names_its_path_differently(self):
+        # #297: the PreToolUse payload carries a notebook target as
+        # notebook_path, not file_path — reading only file_path left this one
+        # write tool free of the boundary.
+        block = self.decision(self.fire(
+            event("NotebookEdit", notebook_path=str(self.outside / "n.ipynb")),
+            env_extra={"ORCA_UNIT_WORKTREE": str(self.wt)}))
+        self.assertEqual(block["permissionDecision"], "deny")
+
+    def test_a_notebook_edit_inside_the_boundary_is_allowed(self):
+        r = self.fire(event("NotebookEdit",
+                            notebook_path=str(self.wt / "src" / "n.ipynb")),
+                      env_extra={"ORCA_UNIT_WORKTREE": str(self.wt)})
+        self.assertEqual(r.stdout.strip(), "")
 
     def test_a_symlink_out_of_the_boundary_is_judged_by_its_target(self):
         link = self.wt / "src" / "escape.py"

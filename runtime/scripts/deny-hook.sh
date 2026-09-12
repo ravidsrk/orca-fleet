@@ -29,13 +29,19 @@
 #   1. recursive delete whose every target is /, ~, $HOME or /*, or any
 #      recursive delete carrying --no-preserve-root
 #   2. force-push to the default branch, including the +main refspec form that
-#      needs no flag at all
+#      needs no flag at all — and deleting it outright, which carries no flag
+#      either: `:main`, `git push -d`, `git push --delete` (#297)
 #   3. `git push --force` / `-f` without --force-with-lease, on any target: the
 #      lease is what makes a force-push recoverable, and a worker that has not
 #      earned the lease has not earned the push
 #   4. `orca orchestration reset` — one command that discards a whole fleet's
 #      dispatch state
-# --force-with-lease is deliberately NOT matched anywhere in the HIGH tier.
+# Git global options between `git` and the subcommand (-C, -c, --git-dir and
+# kin) are stripped before any of this is judged — `git -C /x push --force` is
+# the push it names (#297). A deletion that spares the default branch asks
+# rather than denies: re-pushing the ref recovers it, and recovery is a human
+# call. --force-with-lease is deliberately NOT matched as a force-push — but a
+# lease does not pardon a deletion, which is judged first.
 #
 # Never list (ask, per runtime/sandbox-policy.md): live-prod mutation, credential
 # provisioning, destructive database or infrastructure teardown, unpinned remote
@@ -44,9 +50,10 @@
 # in the moment; the HIGH tier has none.
 #
 # Worktree boundary: when ORCA_UNIT_WORKTREE is set, a write outside it is DENIED.
-# It covers the Edit/Write/NotebookEdit/MultiEdit file_path, and — since a worker
-# that can run a shell can spell the same write as `echo pwned > /etc/cron.d/x`
-# — a Bash redirect or `tee` destination naming an ABSOLUTE path (#297). Both go
+# It covers the Edit/Write/MultiEdit file_path and NotebookEdit's notebook_path
+# — the one write tool that spells the field differently (#297) — and, since a
+# worker that can run a shell can spell the same write as `echo pwned >
+# /etc/cron.d/x`, a Bash redirect or `tee` destination naming an ABSOLUTE path. Both go
 # through one resolver, which follows the whole symlink chain, so an in-boundary
 # name pointing out is judged by where it ends up however many links that takes.
 #
@@ -97,8 +104,9 @@ Usage: deny-hook.sh [--help] [--settings <worktree>]
 
 Environment:
   ORCA_UNIT_WORKTREE  when set, a write outside this directory is denied: the
-                      Edit/Write file_path, and a Bash redirect or tee
-                      destination naming an absolute path.
+                      Edit/Write/MultiEdit file_path or NotebookEdit
+                      notebook_path, and a Bash redirect or tee destination
+                      naming an absolute path.
 
 Exit: always 0 (the decision is the output). Fail-closed: unparseable input denies.
 USAGE
@@ -243,7 +251,10 @@ def segments(cmd):
 command = c(ti.get("command"))
 print(s(d.get("tool_name")))
 print(command)
-print(s(ti.get("file_path")))
+# NotebookEdit names its target notebook_path, not file_path — reading only
+# file_path left the one write tool that spells the field differently free of
+# the boundary entirely (#297).
+print(s(ti.get("file_path") or ti.get("notebook_path")))
 # Line 4 onward: one segment per line, already split. A segment cannot hold a newline — the
 # command was flattened above — so the shell reads them as lines and never re-splits on words.
 for seg in segments(command):
@@ -383,23 +394,70 @@ strip_prefix() {
   _c=$1
   while : ; do
     case "$_c" in
-      # A quoted value holds spaces. Stripping to the first space left `b" rm --no-preserve-root
-      # -rf /`, which begins with neither `rm` nor anything else the tier knows (PR #308 review,
-      # P1). Strip to the closing quote instead. A value containing an ESCAPED quote is beyond
-      # string matching and stays beyond it; it cannot hide a command, only mangle a prefix.
-      [A-Za-z_]*=\"*) _rest=${_c#*=\"}; _c=${_rest#*\" } ;;
-      [A-Za-z_]*=\'*) _rest=${_c#*=\'}; _c=${_rest#*\' } ;;
-      [A-Za-z_]*=*[!\ ]*\ *) _c=${_c#* } ;;
       env\ *)     _c=${_c#env } ;;
       nohup\ *)   _c=${_c#nohup } ;;
       time\ *)    _c=${_c#time } ;;
       command\ *) _c=${_c#command } ;;
       builtin\ *) _c=${_c#builtin } ;;
       \ *)        _c=${_c# } ;;
+      # A NAME=value prefix only IS a prefix when the `=` lives in the FIRST
+      # token — a glob cannot confine it there (`*` crosses spaces), so the
+      # inner case re-checks the first token alone. An `=` further right is an
+      # option operand — `git -c a=b push -f`, `git --git-dir=/x push` — and
+      # letting this arm fire there ate `git ` and freed the options after it
+      # (#297). A quoted value cuts at its closing quote, not the first space
+      # (PR #308 review, P1); an ESCAPED quote inside stays beyond it.
+      [A-Za-z_]*=*[!\ ]*\ *)
+        case "${_c%% *}" in
+          [A-Za-z_]*=*)
+            case "$_c" in
+              [A-Za-z_]*=\"*) _rest=${_c#*=\"}; _c=${_rest#*\" } ;;
+              [A-Za-z_]*=\'*) _rest=${_c#*=\'}; _c=${_rest#*\' } ;;
+              *) _c=${_c#* } ;;
+            esac ;;
+          *) break ;;
+        esac ;;
       *) break ;;
     esac
   done
   printf '%s' "$_c"
+}
+
+# git's global options sit between `git` and the subcommand, and every rule here
+# anchors the subcommand to the word `git`: `git -C /x push --force`,
+# `git -c a=b push -f`, `git --git-dir=/x push --force` all named refused pushes
+# and were ALLOWED (#297). Strip the leading option run — an option that takes
+# a separate operand drops the operand too, and a quoted operand is cut at its
+# closing quote, not the next space. Glued forms need no arm: git rejects
+# `-C/x` and `-ca=b` itself. An option this does not know ends the run and the
+# segment is judged as written — a future global option still evades, which is
+# the same string-matching limit the tier already states above.
+strip_git_opts() {
+  case "$1" in
+    git\ *)       _pre="";      _rest=${1#git } ;;
+    sudo\ git\ *) _pre="sudo "; _rest=${1#sudo git } ;;
+    *)            printf '%s' "$1"; return ;;
+  esac
+  while : ; do
+    case "$_rest" in
+      # Options taking a separate operand: drop the option, then the operand.
+      -C\ *|-c\ *|--git-dir\ *|--work-tree\ *|--namespace\ *|--exec-path\ *|--config-env\ *)
+        _rest=${_rest#* }
+        case "$_rest" in
+          \"*) _rest=${_rest#*\" } ;;
+          \'*) _rest=${_rest#*\' } ;;
+          *)   _rest=${_rest#* } ;;
+        esac ;;
+      # Valueless flags and inline-value options drop one token each.
+      --git-dir=*\ *|--work-tree=*\ *|--namespace=*\ *|--exec-path=*\ *|--config-env=*\ *|\
+      -p\ *|-P\ *|--paginate\ *|--no-pager\ *|--bare\ *|--no-replace-objects\ *|--no-advice\ *|\
+      --literal-pathspecs\ *|--glob-pathspecs\ *|--noglob-pathspecs\ *|--icase-pathspecs\ *|\
+      --no-optional-locks\ *|--html-path\ *|--man-path\ *|--info-path\ *)
+        _rest=${_rest#* } ;;
+      *) break ;;
+    esac
+  done
+  printf '%sgit %s' "$_pre" "$_rest"
 }
 
 # The segments come PRE-SPLIT from the payload reader above, one per line from line 4 on. They
@@ -420,7 +478,7 @@ set +f
 IFS=$_OLDIFS
 
 for _SEG in "$@"; do
-  CMD=$(strip_prefix "$_SEG")
+  CMD=$(strip_git_opts "$(strip_prefix "$_SEG")")
   [ -n "$(printf '%s' "$CMD" | tr -d '[:space:]')" ] || continue
   # 1. Recursive delete of a root-class target, or --no-preserve-root anywhere.
   if has '^[[:space:]]*(sudo[[:space:]]+)?rm[[:space:]]' \
@@ -446,37 +504,79 @@ for _SEG in "$@"; do
     fi
   fi
 
-  # 2/3. Force-push. A lease makes a force-push recoverable; without one it is
-  # refused outright, and with one it is never HIGH even against the default branch.
-  if has '^[[:space:]]*(sudo[[:space:]]+)?git[[:space:]]+push([[:space:]]|$)' \
-    && ! has '(^|[[:space:]])--force-with-lease'; then
-    HAS_FORCE=0
-    has '(^|[[:space:]])(-f|--force)($|[[:space:]])' && HAS_FORCE=1
-    has '(^|[[:space:]])\+[^[:space:]]' && HAS_FORCE=1
-    if [ "$HAS_FORCE" -eq 1 ]; then
-      DEFAULT_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|^refs/remotes/origin/||' || true)
-      if [ -z "$DEFAULT_BRANCH" ]; then
-        if git show-ref --verify -q refs/remotes/origin/main 2>/dev/null; then DEFAULT_BRANCH="main"
-        elif git show-ref --verify -q refs/remotes/origin/master 2>/dev/null; then DEFAULT_BRANCH="master"
-        fi
+  # 2/3. Force-push and deletion. A lease makes a force-push recoverable; a
+  # deletion recovers nothing, so it is judged FIRST and no lease pardons it:
+  # `git push origin :main`, `-d` and `--delete` carry no force flag at all and
+  # sailed under both force rules (#297).
+  if has '^[[:space:]]*(sudo[[:space:]]+)?git[[:space:]]+push([[:space:]]|$)'; then
+    DEFAULT_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|^refs/remotes/origin/||' || true)
+    if [ -z "$DEFAULT_BRANCH" ]; then
+      if git show-ref --verify -q refs/remotes/origin/main 2>/dev/null; then DEFAULT_BRANCH="main"
+      elif git show-ref --verify -q refs/remotes/origin/master 2>/dev/null; then DEFAULT_BRANCH="master"
       fi
-      TARGETS_DEFAULT=0
-      if [ -n "$DEFAULT_BRANCH" ]; then
-        set -f
-        for TOK in $CMD; do
-          TOK=${TOK#\"}; TOK=${TOK%\"}; TOK=${TOK#\'}; TOK=${TOK%\'}
-          case "$TOK" in git|push|sudo|-*) continue ;; esac
-          REF=${TOK#+}; REF=${REF##*:}
-          [ "$REF" = "$DEFAULT_BRANCH" ] && TARGETS_DEFAULT=1 && break
-        done
-        set +f
-      fi
-      if [ "$TARGETS_DEFAULT" -eq 1 ]; then
-        decide deny "deny-hook[HIGH]: force-push to the default branch is refused. It rewrites the history everyone else builds on."
-      else
-        decide deny "deny-hook[HIGH]: git push --force without --force-with-lease is refused. Use --force-with-lease so a concurrent push cannot be silently discarded."
-      fi
+    fi
+
+    # `-d`/`--delete` take their refs positionally; a `:dst` or `+:dst` refspec
+    # names the deleted ref in the token itself. A bare `:` or `+:` is the
+    # matching-branches push — an empty dst is not a deletion.
+    _DEL=0; _DEL_FLAG=0; _DEL_DEFAULT=0
+    set -f
+    for TOK in $CMD; do
+      TOK=${TOK#\"}; TOK=${TOK%\"}; TOK=${TOK#\'}; TOK=${TOK%\'}
+      case "$TOK" in
+        -d|--delete) _DEL=1; _DEL_FLAG=1 ;;
+        +:*|:*) _dst=${TOK#+}; _dst=${_dst#:}
+                [ -n "$_dst" ] || continue
+                _DEL=1
+                [ -n "$DEFAULT_BRANCH" ] && [ "$_dst" = "$DEFAULT_BRANCH" ] && _DEL_DEFAULT=1 ;;
+      esac
+    done
+    set +f
+    if [ "$_DEL_FLAG" -eq 1 ] && [ -n "$DEFAULT_BRANCH" ]; then
+      # The flag form names its refs among the positionals: a bare token equal
+      # to the default branch is the ref being deleted. A remote literally
+      # named after it earns a deny rather than a silent delete — that is the
+      # error to err toward.
+      set -f
+      for TOK in $CMD; do
+        TOK=${TOK#\"}; TOK=${TOK%\"}; TOK=${TOK#\'}; TOK=${TOK%\'}
+        case "$TOK" in git|push|sudo|-*) continue ;; esac
+        [ "$TOK" = "$DEFAULT_BRANCH" ] && _DEL_DEFAULT=1 && break
+      done
+      set +f
+    fi
+    if [ "$_DEL_DEFAULT" -eq 1 ]; then
+      decide deny "deny-hook[HIGH]: deleting the default branch is refused. The ref everyone else builds on is not a worker's to remove."
       exit 0
+    fi
+    if [ "$_DEL" -eq 1 ]; then
+      decide ask "deny-hook[NEVER-LIST]: Deleting a remote ref. Per runtime/sandbox-policy.md this needs a recorded human grant before it runs."
+      exit 0
+    fi
+
+    if ! has '(^|[[:space:]])--force-with-lease'; then
+      HAS_FORCE=0
+      has '(^|[[:space:]])(-f|--force)($|[[:space:]])' && HAS_FORCE=1
+      has '(^|[[:space:]])\+[^[:space:]]' && HAS_FORCE=1
+      if [ "$HAS_FORCE" -eq 1 ]; then
+        TARGETS_DEFAULT=0
+        if [ -n "$DEFAULT_BRANCH" ]; then
+          set -f
+          for TOK in $CMD; do
+            TOK=${TOK#\"}; TOK=${TOK%\"}; TOK=${TOK#\'}; TOK=${TOK%\'}
+            case "$TOK" in git|push|sudo|-*) continue ;; esac
+            REF=${TOK#+}; REF=${REF##*:}
+            [ "$REF" = "$DEFAULT_BRANCH" ] && TARGETS_DEFAULT=1 && break
+          done
+          set +f
+        fi
+        if [ "$TARGETS_DEFAULT" -eq 1 ]; then
+          decide deny "deny-hook[HIGH]: force-push to the default branch is refused. It rewrites the history everyone else builds on."
+        else
+          decide deny "deny-hook[HIGH]: git push --force without --force-with-lease is refused. Use --force-with-lease so a concurrent push cannot be silently discarded."
+        fi
+        exit 0
+      fi
     fi
   fi
 
@@ -568,23 +668,42 @@ if [ -n "${ORCA_UNIT_WORKTREE:-}" ]; then
     set +f
   done
 fi
-CMD=$FULL_CMD
-
 # --- Never list (ask) --------------------------------------------------------
 ask() { decide ask "deny-hook[NEVER-LIST]: $1 Per runtime/sandbox-policy.md this needs a recorded human grant before it runs."; exit 0; }
 
-has '(^|[[:space:]])rm[[:space:]]+(-[a-zA-Z]*[rR][a-zA-Z]*|--recursive)' && ask "Recursive delete."
-has '(DROP|TRUNCATE)[[:space:]]+(TABLE|DATABASE|SCHEMA)' && ask "Destructive database statement."
-has '(^|[[:space:]])(kubectl|helm)[[:space:]]+(delete|uninstall)' && ask "Cluster resource teardown."
-has '(^|[[:space:]])terraform[[:space:]]+(destroy|apply)' && ask "Infrastructure mutation."
-has '(^|[[:space:]])(aws|gcloud|az)[[:space:]]+[a-z0-9-]+[[:space:]]+(delete|rm|destroy|terminate)' && ask "Cloud resource deletion."
-has '(^|[[:space:]])docker[[:space:]]+(system[[:space:]]+prune|rm[[:space:]]+-f|volume[[:space:]]+rm)' && ask "Container or volume destruction."
-has 'curl[^|]*\|[[:space:]]*(ba|z|d|k)?sh' && ask "Piping a remote script into a shell."
-has '(^|[[:space:]])(npm|pnpm|yarn|cargo|gem|twine)[[:space:]]+publish' && ask "Publishing a package."
-has '(^|[[:space:]])git[[:space:]]+reset[[:space:]]+--hard' && ask "Discarding uncommitted work."
-has '(^|[[:space:]])git[[:space:]]+(checkout|restore)[[:space:]]+\.' && ask "Discarding every local change."
-has '(^|[[:space:]])gh[[:space:]]+secret[[:space:]]+(set|delete)' && ask "Writing or removing a repository secret."
-has '(^|[[:space:]])(aws[[:space:]]+iam|gcloud[[:space:]]+iam)[[:space:]]+.*(create|add)' && ask "Provisioning a credential or identity."
-has '(^|[[:space:]])git[[:space:]]+push[^|;]*(prod|production|release)' && ask "Pushing to a production ref."
+never_list() {
+  has '(^|[[:space:]])rm[[:space:]]+(-[a-zA-Z]*[rR][a-zA-Z]*|--recursive)' && ask "Recursive delete."
+  has '(DROP|TRUNCATE)[[:space:]]+(TABLE|DATABASE|SCHEMA)' && ask "Destructive database statement."
+  has '(^|[[:space:]])(kubectl|helm)[[:space:]]+(delete|uninstall)' && ask "Cluster resource teardown."
+  has '(^|[[:space:]])terraform[[:space:]]+(destroy|apply)' && ask "Infrastructure mutation."
+  has '(^|[[:space:]])(aws|gcloud|az)[[:space:]]+[a-z0-9-]+[[:space:]]+(delete|rm|destroy|terminate)' && ask "Cloud resource deletion."
+  has '(^|[[:space:]])docker[[:space:]]+(system[[:space:]]+prune|rm[[:space:]]+-f|volume[[:space:]]+rm)' && ask "Container or volume destruction."
+  has 'curl[^|]*\|[[:space:]]*(ba|z|d|k)?sh' && ask "Piping a remote script into a shell."
+  has '(^|[[:space:]])(npm|pnpm|yarn|cargo|gem|twine)[[:space:]]+publish' && ask "Publishing a package."
+  has '(^|[[:space:]])git[[:space:]]+reset[[:space:]]+--hard' && ask "Discarding uncommitted work."
+  has '(^|[[:space:]])git[[:space:]]+(checkout|restore)[[:space:]]+\.' && ask "Discarding every local change."
+  has '(^|[[:space:]])gh[[:space:]]+secret[[:space:]]+(set|delete)' && ask "Writing or removing a repository secret."
+  has '(^|[[:space:]])(aws[[:space:]]+iam|gcloud[[:space:]]+iam)[[:space:]]+.*(create|add)' && ask "Provisioning a credential or identity."
+  has '(^|[[:space:]])git[[:space:]]+push[^|;]*(prod|production|release)' && ask "Pushing to a production ref."
+  # Every rule above is `has && ask` — when nothing matches the function's
+  # status is the last has's failure, and set -e reads a failing CALL as a
+  # failing command. Returning 0 keeps "nothing to ask" from exiting nonzero.
+  :
+}
+
+# The list judges the line twice. As WRITTEN first, because rules like curl|sh
+# match on the `|` that sits BETWEEN segments — a normalized join replaces the
+# separators with `;` and would unsee the shape the rule exists to catch. Then
+# over the same normalized segments the HIGH tier judged — prefixes and git
+# global options stripped — so `git -C /x reset --hard` asks what `git reset
+# --hard` asks (#297). A line the split somehow emptied falls back to raw.
+CMD=$FULL_CMD
+never_list
+CMD=
+for _SEG in "$@"; do
+  _n=$(strip_git_opts "$(strip_prefix "$_SEG")")
+  CMD=${CMD:+$CMD ; }$_n
+done
+[ -z "$CMD" ] || never_list
 
 exit 0
