@@ -168,9 +168,24 @@ class ReleaseCutWalkthrough(unittest.TestCase):
             self.assertEqual(final["releases"][-1], {"version": version, "tag": tag,
                                                     "commit": cut, "cut_date": "2026-09-12"})
             self.assertNotEqual(run("git", "rev-parse", "HEAD").stdout.strip(), cut)
+            rewritten = json.loads(json.dumps(final))
+            rewritten["releases"][0]["commit"] = cut
+            inventory_path.write_text(json.dumps(rewritten))
+            run("git", "tag", "-d", historical_tag)
+            run("git", "tag", "-a", historical_tag, cut, "-m", "Rewritten fixture history")
+            rejected_state()  # Changing both the row and its ref cannot rewrite a release.
+            run("git", "restore", "docs/releases.json")
+            run("git", "update-ref", historical_ref, historical_object)
             final_refs = run("git", "show-ref", "--tags").stdout.splitlines()
             self.assertTrue(set(refs.splitlines()).issubset(final_refs))
             self.assertEqual(run("git", "status", "--porcelain").stdout, "")
+            inventory_path.write_text(json.dumps(rewritten))
+            run("git", "tag", "-d", historical_tag)
+            run("git", "tag", "-a", historical_tag, cut, "-m", "Committed fixture rewrite")
+            run("git", "add", "docs/releases.json")
+            run("git", "commit", "-m", "Invalid fixture mapping")
+            run("git", "commit", "--allow-empty", "-m", "Later fixture commit")
+            rejected_state()  # Committing the rewrite does not erase prior published state.
 
 
 class TestDocsNavigation(unittest.TestCase):
@@ -423,6 +438,20 @@ class TestDocsNavigation(unittest.TestCase):
         releases = inventory["releases"]
         by_version = {r["version"]: r for r in releases}
         self.assertEqual(len(by_version), len(releases), "duplicate published version")
+        history = subprocess.run(["git", "log", "--format=%H", "--", "docs/releases.json"],
+                                 cwd=ROOT, capture_output=True, text=True)
+        self.assertEqual(history.returncode, 0, history.stderr)
+        self.assertTrue(history.stdout.strip(), "published inventory history is required")
+        for sha in history.stdout.split():
+            snapshot = subprocess.run(["git", "show", f"{sha}:docs/releases.json"],
+                                      cwd=ROOT, capture_output=True, text=True)
+            self.assertEqual(snapshot.returncode, 0, snapshot.stderr)
+            for published in json.loads(snapshot.stdout)["releases"]:
+                version = published["version"]
+                self.assertIn(version, by_version, f"published {version} was removed")
+                for field in ("tag", "commit", "cut_date"):
+                    self.assertEqual(by_version[version][field], published[field],
+                                     f"published {version} {field} changed since {sha}")
         changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
         headings = re.findall(r"(?m)^## \[(\d+\.\d+\.\d+)\] - (\d{4}-\d{2}-\d{2})", changelog)
         self.assertTrue(headings, "CHANGELOG has no dated release headings")
