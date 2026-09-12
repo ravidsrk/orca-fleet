@@ -3,14 +3,18 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "We have 40 open community PRs nobody has looked at in months — drain the queue and keep the contributors' credit.",
-      "expected_output": "Should route to absorb-it. Should enumerate every open inbound PR paginated to the end at T0, classify each with a reproduction on current main, absorb preserving the contributor's Author field with the fleet's amendment as a separate maintainer-authored commit, produce a regression receipt RED on the pre-absorption base and GREEN on the absorbed head, review build-blind, land one PR per contribution against BASE, and close each inbound PR with the landing SHA plus a credit line, re-enumerating until dry.",
+      "prompt": "We have 40 open community PRs nobody has looked at in months — drain the queue and keep the contributors' credit. Main stays at its initial SHA while integration BASE advances. After the first contribution fixes X on BASE, another PR repeats that fix and a third overlaps it but also fixes a distinct Y delta. Handle both remaining contributions and retain the original-main reproduction receipts.",
+      "expected_output": "Should route to absorb-it. Should enumerate every open inbound PR paginated to the end at T0, pin current main for each initial reproduction and retain its SHA and receipt, then reclassify at the pinned current integration BASE tip before each absorption and after each land. The now-GREEN X claim is duplicate-of the winning SHA on BASE and its closure follows the existing batch human gate; the remaining Y delta needs its own RED-on-current-BASE / GREEN-on-absorbed-head receipt. Main stays unchanged; a further BASE move requires reclassification and refreshed receipts/review. Absorb preserving the contributor's Author field with the fleet's amendment as a separate maintainer-authored commit, review build-blind, land one PR per absorbed contribution against BASE, and close each absorbed inbound PR with the landing SHA plus a credit line, re-enumerating until dry.",
       "assertions": [
         "Routes to absorb-it",
         "Unit is one inbound PR (someone else's diff)",
         "Authorship is preserved on the absorbed commit; fleet changes are a separate commit",
         "Every landing carries a RED-on-base / GREEN-on-head receipt with both SHAs",
-        "Overlapping inbound PRs form an absorption chain, re-classified against the new main",
+        "Overlapping inbound PRs form an absorption chain, re-classified at the pinned advancing integration BASE tip before each absorption and after each land",
+        "Original-main reproduction receipts and their pinned SHA are retained while main stays unchanged",
+        "A now-GREEN X duplicate cites the winning SHA on BASE and follows the existing batch human gate for closure",
+        "A distinct remaining Y delta stays absorbable with its own RED-on-current-BASE / GREEN-on-head receipt and both SHAs",
+        "If BASE moves before landing, classification repeats and receipts/review are refreshed",
         "Terminal is ABSORBED or ABSORBED-WITH-PARKED"
       ],
       "files": []
