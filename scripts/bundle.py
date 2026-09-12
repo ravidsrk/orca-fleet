@@ -17,7 +17,11 @@ This makes a distribution tree where each mission carries its own copies:
     dist/skills/<name>/runtime/*.json               runtime data
     dist/skills/<name>/docs/runs/TEMPLATE.md        mandatory run-report template
 
-and rewrites the SKILL.md so nothing points outside the mission directory:
+Every `runtime/scripts/<file>` a vendored document names becomes
+`"$ORCA_FLEET_ROOT/runtime/scripts/<file>"`, so a worker running from the project repository
+can execute the documented command as written instead of substituting the root by hand.
+
+It also rewrites the SKILL.md so nothing points outside the mission directory:
 `](../../ARCHITECTURE.md)` becomes `](references/ARCHITECTURE.md)`, and one line
 points at `references/README.md`, the generated index naming each protocol's local
 copy. Bare names in the Composes/rides clause are left alone — they are the
@@ -62,6 +66,23 @@ OUTBOUND_ANY_RE = re.compile(r"\]\((?:\.\./)+([A-Za-z0-9_./-]+)(#[^)]*)?\)")
 RELATIVE_LINK_RE = re.compile(
     r"\[([^\]]*)\]\((?!https?:|mailto:|#|/|\.\./)([A-Za-z0-9_./-]+)(#[^)]*)?\)")
 REFERENCES = "references"
+# A runtime path as a protocol spells it: repo-root-relative, because in the repository that is
+# where it is. Beside an installed mission it is not, and the worker runs from the PROJECT
+# repository, where `runtime/scripts/` is absent or belongs to someone else. The index used to ask
+# for the `$ORCA_FLEET_ROOT` substitution by hand, which is a step a protocol followed literally
+# never takes: the documented command looked in the project checkout while --check stayed green
+# (#322 review, P1). `runtime/scripts/` with no filename is prose about the directory, not an
+# invocation, so a name character after the slash is required.
+_RUNTIME_REF = r"runtime/(?:scripts/[A-Za-z0-9_][A-Za-z0-9_.-]*|[A-Za-z0-9_][A-Za-z0-9_.-]*\.json)"
+RUNTIME_LINK_RE = re.compile(rf"\[([^\]]*)\]\((?:\.\./)*({_RUNTIME_REF})(#[^)]*)?\)")
+RUNTIME_PATH_RE = re.compile(rf"(?<![\w/$.-])({_RUNTIME_REF})")
+# The template states the substitution as a manual step. The bundled copy has already had it made,
+# so the instruction would send a reader hunting for invocations that are no longer there.
+MANUAL_SUBSTITUTION_RE = re.compile(
+    r"Replace every `runtime/scripts/<file>` invocation below with\s+"
+    r"`\"\$ORCA_FLEET_ROOT/runtime/scripts/<file>\"`;\s+")
+MANUAL_SUBSTITUTION_NOTE = ('Runtime invocations below already name\n'
+                            '`"$ORCA_FLEET_ROOT/runtime/scripts/<file>"`; ')
 # The distribution's runtime interface, independent of what survived in the input tree.
 # Ship additional runtime files too, but never let discovery shrink this required floor.
 REQUIRED_RUNTIME = tuple(f"runtime/scripts/{name}" for name in (
@@ -143,6 +164,52 @@ def rewrite(text, mission, protocols):
     return out
 
 
+def shipped_runtime(mission_dir):
+    """Runtime payload paths, mission-relative, spelled as a protocol would spell them."""
+    runtime = mission_dir / "runtime"
+    if not runtime.is_dir():
+        return set()
+    return {path.relative_to(mission_dir).as_posix()
+            for path in runtime.rglob("*") if path.is_file()}
+
+
+def absolutize_runtime(text, shipped):
+    """Point a document's runtime invocations at the installed copy.
+
+    Rewrite only paths this bundle actually ships. An unshipped one is a reference to the
+    repository, and pointing it inside the installed mission would be a claim the reader
+    cannot check. A markdown link is replaced whole: `](runtime/scripts/verify.py)` resolves
+    to nothing beside the copy, and a backticked absolute path is what the reader runs.
+    """
+    def installed(path):
+        return f'"$ORCA_FLEET_ROOT/{path}"'
+
+    def link(match):
+        return f"`{installed(match.group(2))}`" if match.group(2) in shipped else match.group(0)
+
+    def bare(match):
+        return installed(match.group(1)) if match.group(1) in shipped else match.group(0)
+
+    text = MANUAL_SUBSTITUTION_RE.sub(MANUAL_SUBSTITUTION_NOTE, text)
+    return RUNTIME_PATH_RE.sub(bare, RUNTIME_LINK_RE.sub(link, text))
+
+
+def unbound_runtime(mission_dir, shipped):
+    """Invocations still naming a shipped runtime file by its repository path.
+
+    The inventory check passes on a bundle whose documented commands all reach for the project
+    checkout, so the paths need a check of their own or they rot back silently.
+    """
+    problems = []
+    for path in sorted(mission_dir.rglob("*.md")):
+        where = path.relative_to(mission_dir).as_posix()
+        for match in RUNTIME_PATH_RE.finditer(path.read_text(encoding="utf-8")):
+            if match.group(1) in shipped:
+                problems.append(f"{mission_dir.name}: runtime path is not installed-relative "
+                                f"({where}): {match.group(1)}")
+    return problems
+
+
 def reference_index(mission, names):
     """The `references/README.md` a bundled mission ships next to its copies."""
     rows = "\n".join(f"- `{name}` → [{name}.md]({name}.md)" for name in names)
@@ -156,8 +223,9 @@ def reference_index(mission, names):
         "Set `ORCA_FLEET_ROOT` to the absolute installed mission directory (the directory\n"
         "containing SKILL.md). Run commands from the PROJECT repository being worked on;\n"
         "keep manifests, contracts and other project paths relative to that repository.\n"
-        "For every `runtime/scripts/<file>` invocation in these protocols, use\n"
-        '`"$ORCA_FLEET_ROOT/runtime/scripts/<file>"` instead. Runtime JSON lives under\n'
+        "These protocols already name their runtime as\n"
+        '`"$ORCA_FLEET_ROOT/runtime/scripts/<file>"`, so export that variable and run the\n'
+        "commands as written; no path is left to substitute by hand. Runtime JSON lives under\n"
         '`"$ORCA_FLEET_ROOT/runtime/"`; helpers locate it relative to themselves.\n'
         "Read the mandatory `docs/runs/TEMPLATE.md` from\n"
         '`"$ORCA_FLEET_ROOT/docs/runs/TEMPLATE.md"` ([run-report template](../docs/runs/TEMPLATE.md));\n'
@@ -226,12 +294,15 @@ def build(out_dir):
             destination = target / source.relative_to(ROOT)
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source, destination)
-        (target / "SKILL.md").write_text(rewrite(text, skill_dir.name, protocols), encoding="utf-8")
+        shipped = shipped_runtime(target)   # after the runtime copy: only what really shipped
+        (target / "SKILL.md").write_text(
+            absolutize_runtime(rewrite(text, skill_dir.name, protocols), shipped), encoding="utf-8")
         # Record intended copies, not what survived copying: a dropped helper must fail --check.
         (target / REFERENCES / "bundle-files.json").write_text(
             json.dumps(sorted(inventory), indent=2) + "\n", encoding="utf-8")
         relink_vendored(target)   # after every copy: it needs to know what ended up beside it
         problems.extend(dangling(target))
+        problems.extend(unbound_runtime(target, shipped))
         built += 1
     return built, problems
 
@@ -248,6 +319,7 @@ def relink_vendored(mission_dir):
     if not refs.is_dir():
         return
     available = {path.name for path in refs.glob("*.md")}
+    shipped = shipped_runtime(mission_dir)
     for path in [*sorted(refs.glob("*.md")), *(mission_dir / name for name in SUPPORT_DOCS
                                              if (mission_dir / name).is_file())]:
         text = path.read_text(encoding="utf-8")
@@ -265,7 +337,9 @@ def relink_vendored(mission_dir):
                 return f"`{target}`"   # the label WAS the path; saying it twice helps nobody
             return f"{label} (`{target}` in the orca-fleet repository)"
 
-        rewritten = RELATIVE_LINK_RE.sub(fix, text)
+        # Runtime paths first: a `](runtime/scripts/verify.py)` left to `fix` would be de-linked
+        # as living in the repository, when the bundle ships it right there beside the mission.
+        rewritten = RELATIVE_LINK_RE.sub(fix, absolutize_runtime(text, shipped))
         if rewritten != text:
             path.write_text(rewritten, encoding="utf-8")
 

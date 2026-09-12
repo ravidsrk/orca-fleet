@@ -69,12 +69,13 @@ class BundleClosureTests(unittest.TestCase):
                                           "--offline", "--base", base, "--default", "main")
                 self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
             manifest = Path(install_tmp) / "evidence.json"
-            # Execute the protocol's recorder invocation using the index's substitution rule.
+            # Execute the protocol's recorder invocation VERBATIM. A worker following the
+            # protocol literally substitutes no paths, so the bundled line has to already name
+            # the installed runtime; only the placeholders are filled (#322 review, P1).
             protocol = (installed / "references/build-change.md").read_text()
-            invocation = next(line for line in protocol.splitlines()
-                              if line.startswith("runtime/scripts/evidence-run.py --label"))
-            invocation = invocation.replace("runtime/scripts/evidence-run.py",
-                                            '"$ORCA_FLEET_ROOT/runtime/scripts/evidence-run.py"')
+            invocation = next(
+                line for line in protocol.splitlines()
+                if line.startswith('"$ORCA_FLEET_ROOT/runtime/scripts/evidence-run.py" --label'))
             invocation = invocation.replace("<m.json>", '"$2"').replace(
                 "<criterion-bound command>", shlex.join(
                     [sys.executable, "-I", "-c", "print('installed recorder executed')"]))
@@ -181,6 +182,67 @@ class BundleClosureTests(unittest.TestCase):
                         if original is not None:
                             path.write_bytes(original)
             self.assertEqual(bundle.dangling(root), [])
+
+    def test_bundled_docs_name_the_installed_runtime_not_the_project_checkout(self):
+        # A worker runs these from the PROJECT repository, where `runtime/scripts/` is absent or
+        # belongs to someone else, and follows the protocol literally (#322 review, P1).
+        with tempfile.TemporaryDirectory() as tmp:
+            bundle.build(tmp)
+            for mission in ("ship-it", "pin-it", "clean-sweep"):
+                root = Path(tmp) / "skills" / mission
+                shipped = bundle.shipped_runtime(root)
+                self.assertIn("runtime/scripts/verify.py", shipped)
+                self.assertEqual(bundle.unbound_runtime(root, shipped), [])
+                for document in sorted(root.rglob("*.md")):
+                    with self.subTest(document=document.relative_to(root).as_posix()):
+                        for match in bundle.RUNTIME_PATH_RE.finditer(document.read_text()):
+                            self.assertNotIn(match.group(1), shipped)
+            template = (Path(tmp) / "skills/ship-it/docs/runs/TEMPLATE.md").read_text()
+            self.assertIn('`python3 "$ORCA_FLEET_ROOT/runtime/scripts/inventory.py" write <report>`',
+                          template)
+            # The manual-substitution instruction would send the reader hunting for what is gone.
+            self.assertNotIn("Replace every `runtime/scripts/<file>` invocation", template)
+            self.assertIn("already name", template)
+            self.assertIn('"$ORCA_FLEET_ROOT/runtime/scripts/preflight.py"',
+                          (Path(tmp) / "skills/ship-it/SKILL.md").read_text())
+
+    def test_a_runtime_path_that_reverts_to_the_repository_form_fails_the_check(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            bundle.build(tmp)
+            root = Path(tmp) / "skills/ship-it"
+            shipped = bundle.shipped_runtime(root)
+            document = root / "references/build-change.md"
+            saved = document.read_text()
+            document.write_text(saved.replace('"$ORCA_FLEET_ROOT/runtime/scripts/verify.py"',
+                                              "runtime/scripts/verify.py", 1))
+            try:
+                problems = bundle.unbound_runtime(root, shipped)
+                self.assertTrue(any("references/build-change.md" in p and "verify.py" in p
+                                    for p in problems), problems)
+            finally:
+                document.write_text(saved)
+            self.assertEqual(bundle.unbound_runtime(root, shipped), [])
+
+    def test_absolutize_leaves_unshipped_paths_and_directory_prose_alone(self):
+        shipped = {"runtime/scripts/verify.py", "runtime/pins.json"}
+        # Claiming an unshipped path lives inside the mission is a claim the reader cannot check.
+        self.assertEqual(
+            bundle.absolutize_runtime("run runtime/scripts/absent.py now", shipped),
+            "run runtime/scripts/absent.py now")
+        # `runtime/scripts/` with no filename is prose about the directory, not an invocation.
+        self.assertEqual(bundle.absolutize_runtime("`runtime/scripts/` never interpolates", shipped),
+                         "`runtime/scripts/` never interpolates")
+        self.assertEqual(bundle.absolutize_runtime("see runtime/*.md and runtime/scripts/,", shipped),
+                         "see runtime/*.md and runtime/scripts/,")
+        self.assertEqual(bundle.absolutize_runtime("python3 runtime/scripts/verify.py --help", shipped),
+                         'python3 "$ORCA_FLEET_ROOT/runtime/scripts/verify.py" --help')
+        # A link resolves to nothing beside the copy; replace it whole, and only once.
+        self.assertEqual(bundle.absolutize_runtime("[the verifier](runtime/scripts/verify.py)", shipped),
+                         '`"$ORCA_FLEET_ROOT/runtime/scripts/verify.py"`')
+        self.assertEqual(bundle.absolutize_runtime("[pins](../../runtime/pins.json)", shipped),
+                         '`"$ORCA_FLEET_ROOT/runtime/pins.json"`')
+        once = bundle.absolutize_runtime("python3 runtime/scripts/verify.py", shipped)
+        self.assertEqual(bundle.absolutize_runtime(once, shipped), once)
 
     def test_installed_verifier_oracle_rejects_a_usage_only_decoy(self):
         copy = shutil.copy2
@@ -328,10 +390,13 @@ class BundleClosureTests(unittest.TestCase):
             for placeholder, value in replacements.items():
                 command = command.replace(placeholder, value)
             command = command.replace(".txt --", suffix + ".txt --")
-            # Apply the index's path rule; shlex.join preserves a spaced install path.
+            # The command runs as written: the reader rewrites no paths, it only exports
+            # ORCA_FLEET_ROOT, so expand that and nothing else (#322 review, P1).
+            # shlex.join preserves a spaced install path.
             argv = [sys.executable if p == "python3" else
-                    str(installed / p) if p.startswith("runtime/scripts/") else p
+                    p.replace("$ORCA_FLEET_ROOT", str(installed))
                     for p in shlex.split(command)]
+            self.assertFalse(any(p.startswith("runtime/scripts/") for p in argv), command)
             result = self.run_command(project, *argv)
             return result, shlex.join(argv)
 
