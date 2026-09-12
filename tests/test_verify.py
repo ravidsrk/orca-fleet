@@ -2578,6 +2578,23 @@ class ProofInputOptions(unittest.TestCase):
             with self.subTest(command=command):
                 self.assertIsNone(self.paths(command), command)
 
+    def test_the_option_terminator_ends_option_reading(self):
+        """PR #323 review, P1. After `--` everything is an operand however much it looks like an
+        option, so `grep -- -f patterns.txt` names two files to SEARCH. Reading -f there marked a
+        data subject as an oracle input and rejected the valid negative control mutation-testing
+        it -- the false-positive direction, which blocks legitimate evidence."""
+        self.assertNotIn('patterns.txt', self.paths('grep -- -f patterns.txt'))
+        self.assertNotIn('custom.ini', self.paths('pytest -- -c custom.ini'))
+        self.assertNotIn('custom.ini', self.paths('grep -- --config=custom.ini app.py'))
+        # The terminator read is the SCRIPT's, not one the interpreter already consumed.
+        self.assertNotIn('custom.ini', self.paths('python3 runner.py -- --config custom.ini'))
+        self.assertIn('runner.py', self.paths('python3 runner.py -- --config custom.ini'))
+        self.assertIn('custom.ini', self.paths('python3 runner.py --config custom.ini'))
+        self.assertIn('custom.ini', self.paths('python3 -m pkg.mod --config custom.ini'))
+        self.assertIn('patterns.txt', self.paths('python3 -u runner.py -f patterns.txt'))
+        # A cluster after the terminator is an operand too, not a refusal.
+        self.assertIsNotNone(self.paths('grep -- -vf patterns.txt'))
+
     def test_unrelated_programs_keep_their_grammar(self):
         self.assertEqual(self.paths('python3 runner.py'), {'python3', 'runner.py'})
         self.assertIn('Makefile.ci', self.paths('make -f Makefile.ci test'))

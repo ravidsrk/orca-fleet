@@ -810,6 +810,9 @@ def _command_oracle_paths(command):
     python = re.fullmatch(r"(?:python(?:[0-9.]+)?|pypy[0-9]*)", program)
     interpreter = python or program in {"sh", "bash", "zsh", "node", "ruby", "perl"}
     module = None
+    # Where the sweep below starts: the option list it reads belongs to the program, and for an
+    # interpreter that is the SCRIPT, whose arguments begin after the script name.
+    scan_from = 1
     if interpreter:
         i = 1
         while python and i < len(argv) and argv[i] in {
@@ -823,12 +826,14 @@ def _command_oracle_paths(command):
             if not re.fullmatch(r"[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*", name):
                 return None
             module = name.replace(".", "/")
+            scan_from = i + 2 if arg == "-m" else i + 1
         else:
             if arg == "--":
                 i += 1
             if i >= len(argv) or argv[i].startswith("-"):
                 return None  # inline programs, preload options and stdin are not parsed
             inputs.append(argv[i])
+            scan_from = i + 1
     elif program in {"make", "gmake"}:
         i = 1
         while i < len(argv):
@@ -856,9 +861,15 @@ def _command_oracle_paths(command):
     # value at all, which is why this cannot simply be one longer list.
     value_opts = ("-f",) + {"pytest": ("-c",)}.get(program, ())
     long_opts = ("--config", "--config-file", "--file")
-    i = 0
+    i = scan_from
     while i < len(argv):
         arg = argv[i]
+        if arg == "--":
+            # POSIX: everything after is an operand however much it looks like an option, so
+            # `grep -- -f patterns.txt` names two files to search, not a pattern file. Reading
+            # -f there marked a data subject as an oracle input and rejected the valid negative
+            # control that mutation-tested it (PR #323 review, P1).
+            break
         if arg.startswith(tuple(opt + "=" for opt in long_opts)):
             inputs.append(arg.split("=", 1)[1])
         elif arg in long_opts and i + 1 < len(argv):
