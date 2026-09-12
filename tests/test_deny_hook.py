@@ -1096,6 +1096,89 @@ class TestThePayloadReaderStaysRunnable(HookBase):
         self.assertEqual(block["permissionDecision"], "deny")
 
 
+class TestShellCommentsAreNotShellCode(HookBase):
+    """PR #325 review, P1.
+
+    `git status # dont modify anything` is valid Bash that runs only `git status`, but the
+    tokenizer had no case for a comment: it parsed the prose as shell, the apostrophe opened a
+    quote that never closed, shlex raised, and the payload reader hard-DENIED a read-only
+    command. The comment has to be recognized BEFORE quote parsing, and it ends at the newline —
+    which therefore has to survive as a command boundary, or everything after a comment would be
+    swallowed with it.
+    """
+
+    def allowed(self, command, env_extra=None):
+        result = self.fire(event("Bash", command=command), env_extra=env_extra)
+        self.assertIsNone(self.decision(result), f"{command!r} must be allowed silently")
+
+    def denied(self, command, env_extra=None):
+        block = self.decision(self.fire(event("Bash", command=command), env_extra=env_extra))
+        self.assertIsNotNone(block, f"{command!r} must not be allowed")
+        self.assertEqual(block["permissionDecision"], "deny", block)
+
+    def test_the_reported_command_is_allowed(self):
+        self.allowed("git status # don't modify anything")
+
+    def test_an_apostrophe_in_a_comment_never_reaches_the_quote_parser(self):
+        for command in (
+            "git status # don't modify anything",
+            "ls -la  # it's fine",
+            "git diff # won't touch the worktree; don't worry",
+            "# don't run anything at all",
+            "git log --oneline #can't be a quote",
+            "git status # a lone \" double quote",
+        ):
+            with self.subTest(command=command):
+                self.allowed(command)
+
+    def test_a_comment_ends_at_its_newline_and_the_next_command_is_judged(self):
+        for command in (
+            "ls # harmless note\ngit push --force origin main",
+            "# a whole commented line\ngit push --force origin main",
+            "git status # don't\ngit push --force origin main",
+            "ls # note\r\ngit push --force origin main",
+        ):
+            with self.subTest(command=command):
+                self.denied(command)
+
+    def test_a_trailing_comment_does_not_pardon_the_command_it_follows(self):
+        for command in (
+            "git push --force origin main # just this once",
+            "rm -rf / # don't worry, it's fine",
+            "orca orchestration reset # resetting",
+        ):
+            with self.subTest(command=command):
+                self.denied(command)
+
+    def test_a_hash_that_opens_no_word_is_not_a_comment(self):
+        # Quoted, escaped, or mid-word, it is data. Un-seeing those words would lose the
+        # command that follows one.
+        for command in (
+            'echo "#" ; git push --force origin main',
+            "echo '#' && git push --force origin main",
+            "echo \\# ; git push --force origin main",
+            "echo a#b ; git push --force origin main",
+        ):
+            with self.subTest(command=command):
+                self.denied(command)
+
+    def test_a_comment_cannot_hide_a_write_past_the_worktree_boundary(self):
+        outside = self.tmp / "outside.txt"
+        for command in (
+            f"echo pwned > {outside} # just a note",
+            f"# note\necho pwned > {outside}",
+            f"echo pwned >{outside}#name",
+        ):
+            with self.subTest(command=command):
+                self.denied(command, env_extra={"ORCA_UNIT_WORKTREE": str(self.repo)})
+
+    def test_a_quoted_newline_stays_one_word_and_one_record(self):
+        # It cannot ride the line protocol as a newline; it must not become a separator either,
+        # or the rest of a quoted value would be judged as a command of its own.
+        self.allowed('git commit -m "first line\nsecond line"')
+        self.denied('git commit -m "note" ; git push --force origin main')
+
+
 class TestScriptShape(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp(prefix="deny-shape-"))

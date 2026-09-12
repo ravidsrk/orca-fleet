@@ -174,13 +174,20 @@ if not isinstance(ti, dict):
     ti = {}
 def s(v):
     return v.replace("\n", " ") if isinstance(v, str) else ""
+def r(v):
+    # The command as the shell sees it, newlines intact. `segments` needs them:
+    # a newline separates two commands, and it is also the only thing that ENDS
+    # a # comment. Pre-mapping it to `;` erased that boundary, so a comment had
+    # no end to find (PR #325 review, P1).
+    return v.replace("\r", "\n") if isinstance(v, str) else ""
 def c(v):
-    # The line protocol below cannot carry an embedded newline, but in a shell a
-    # newline SEPARATES two commands exactly as `;` does. Flattening it to a
-    # space glued them into one nonsense segment that matched nothing, so a
-    # two-line payload walked straight past the HIGH tier (#297). Map it to the
-    # separator it actually is and let the splitter do its job.
-    return v.replace("\r", "\n").replace("\n", " ; ") if isinstance(v, str) else ""
+    # The as-written Never-list pass reads this off a single line of the field
+    # protocol, which cannot carry an embedded newline. In a shell a newline
+    # SEPARATES two commands exactly as `;` does; flattening it to a space glued
+    # them into one nonsense segment that matched nothing, so a two-line payload
+    # walked straight past the HIGH tier (#297). Map it to the separator it
+    # actually is. The splitter reads `r` instead and needs no such compromise.
+    return r(v).replace("\n", " ; ")
 
 
 # NOTE: this whole program is the argument of a single-quoted sh string, so it may not contain
@@ -205,47 +212,70 @@ def segments(cmd):
     Quoting is parsed here rather than in sh because a POSIX shell cannot do it without eval, and
     python3 is already load-bearing above: no parser, no decision, and this whole script denies.
     Redirect operators are consumed whole so their | and & are never read as separators.
+
+    A # that OPENS A WORD opens a comment, which runs to the end of its line. Nothing recognized
+    them, so `git status # dont modify anything` was tokenized as shell: the apostrophe in the
+    comment opened a quote that never closed, shlex raised, and the payload reader hard-DENIED a
+    read-only command (PR #325 review, P1). Word position is what decides it, exactly as in a
+    shell: after a redirect operator `>#f` names a file, and un-seeing that word would lose a
+    write target, which is the one direction this parser must never fail in.
     """
     segs, cur = [], []
     i, n, quote = 0, len(cmd), ""
+    word_start = True
     while i < n:
         ch = cmd[i]
         if quote:
-            cur.append(ch)
+            # A newline inside a quoted word is data, not a boundary. It cannot travel on the
+            # one-line record protocol below, so it rides as a space: a value, still one word.
+            cur.append(" " if ch == "\n" else ch)
             if ch == "\\" and quote == DQ and i + 1 < n:
                 cur.append(cmd[i + 1])
                 i += 2
                 continue
             if ch == quote:
                 quote = ""
+            word_start = False
             i += 1
             continue
         if ch == SQ or ch == DQ:
             quote = ch
             cur.append(ch)
+            word_start = False
             i += 1
             continue
         if ch == "\\" and i + 1 < n:
             cur.append(ch)
             cur.append(cmd[i + 1])
+            # A backslash-newline is a line continuation: the shell removes both, so what
+            # follows still opens a word.
+            word_start = cmd[i + 1] == "\n"
             i += 2
             continue
+        if ch == "#" and word_start:
+            while i < n and cmd[i] != "\n":
+                i += 1
+            continue   # the newline itself falls through to the separator case below
         if ch in "<>" or (ch == "&" and i + 1 < n and cmd[i + 1] == ">"):
             j = i + 1
             while j < n and cmd[j] in "<>|&":
                 j += 1
             cur.append(cmd[i:j])
+            word_start = False
             i = j
             continue
         # && and || need no case of their own: the second character lands on a separator too, and
         # the empty segment between them is dropped below. Measured, not assumed — a mutant
         # removing a special case for them changed no decision, so there is no special case.
-        if ch in ";|&":
+        # A newline is a separator too, and the one that ends a comment.
+        if ch in ";|&\n":
             segs.append("".join(cur))
             cur = []
+            word_start = True
             i += 1
             continue
         cur.append(ch)
+        word_start = ch.isspace()
         i += 1
     segs.append("".join(cur))
     return [seg for seg in segs if seg.strip()]
@@ -295,7 +325,8 @@ def shell_tokens(seg):
         target = False
 
 
-command = c(ti.get("command"))
+raw_command = r(ti.get("command"))
+command = c(raw_command)
 print(s(d.get("tool_name")))
 print(command)
 # NotebookEdit names its target notebook_path, not file_path — reading only
@@ -304,7 +335,7 @@ print(command)
 print(s(ti.get("file_path") or ti.get("notebook_path")))
 # Line 4 onward: C = comparison command, W = write target, A = literal argument.
 # Paths stay decoded on their own lines; comparison words cannot split operands.
-for seg in segments(command):
+for seg in segments(raw_command):
     args, writes, pending = [], [], None
     for kind, value in shell_tokens(seg):
         if kind == "redirect":
