@@ -307,6 +307,222 @@ class TestEverySegmentIsJudged(HookBase):
         self.assertNotIn("can only ever produce MORE segments, and every", text)
 
 
+class TestGitGlobalOptionsAreStripped(HookBase):
+    """#297: every git rule anchored the subcommand to the word `git`.
+
+    A global option in between — `-C`, `-c`, `--git-dir` — laundered a refused
+    command past all of them: `git -C /x push --force` was the same push and was
+    allowed. The leading option run is stripped before a segment is judged.
+    """
+
+    def _deny(self, command):
+        block = self.decision(self.fire(event("Bash", command=command)))
+        self.assertIsNotNone(block, f"{command!r} produced no decision at all")
+        self.assertEqual(block["permissionDecision"], "deny", command)
+        return block
+
+    def test_a_global_option_does_not_launder_a_refused_push(self):
+        for command in (
+            "git -C /srv push --force origin main",
+            "git -c advice.detachedHead=false push -f origin main",
+            "git --git-dir=/srv/.git push --force",
+            "git --git-dir /srv/.git push -f",
+            "git -C /srv -c a=b push --force",
+            'git -C "/srv/a b" push --force',
+            "sudo git -C /srv push --force origin main",
+        ):
+            with self.subTest(command=command):
+                self._deny(command)
+
+    def test_a_global_option_does_not_launder_a_deletion_either(self):
+        self._deny("git -C /srv push origin :main")
+
+    def test_a_quoted_inline_option_value_cannot_hide_the_push(self):
+        # PR #321 review — `--opt="a b"` cut at the first space left
+        # `b" push …` where `push` belonged, and the refused push escaped.
+        for command in ('git --exec-path="/srv/git tools" push --force origin main',
+                        'git --git-dir="/srv/dir one" push -f origin main',
+                        "git --git-dir='/srv/dir one' push -f origin main"):
+            with self.subTest(command=command):
+                self._deny(command)
+
+    def test_partial_quoting_inside_an_option_value_cannot_hide_the_push(self):
+        # PR #321 review — a word may quote only its middle:
+        # `--git-dir=/srv/dir" one"` is ONE word; cutting at its space left
+        # `one" push …` where `push` belonged.
+        for command in ('git --git-dir=/srv/dir" one" push --force origin main',
+                        "git --git-dir=/srv/dir' one' push -f origin main",
+                        'git -C "/srv/dir one" push --force origin main'):
+            with self.subTest(command=command):
+                self._deny(command)
+
+    def test_an_escaped_space_cannot_hide_the_push(self):
+        # PR #321 review — `\ ` binds a space into the word; `-C /srv/dir\ one`
+        # is a two-token option, not three.
+        for command in ("git -C /srv/dir\\ one push --force origin main",
+                        "git --git-dir=/srv/dir\\ one push -f origin main",
+                        "X=/srv/dir\\ one git push -f origin main"):
+            with self.subTest(command=command):
+                self._deny(command)
+
+    def test_push_exec_operand_is_not_a_refspec(self):
+        # PR #321 review — `--exec` is push's alias for --receive-pack; its
+        # operand is a program name, not a refspec.
+        r = self.fire(event("Bash",
+              command="git push --exec :receive-tool origin feature"))
+        self.assertEqual(r.returncode, 0)
+        self.assertNotIn('"deny"', r.stdout)
+        self.assertNotIn('"ask"', r.stdout)
+        self._deny("git push --exec :receive-tool origin :main")
+
+    def test_whitespace_does_not_hide_an_option(self):
+        # PR #321 review — a tab or a double space left the option run unstripped.
+        for command in ("git\t-C\t/srv\tpush\t--force\torigin\tmain",
+                        "git  -C  /srv  push  --force  origin  main",
+                        "git\t-c a=b\tpush -f origin main"):
+            with self.subTest(command=command):
+                self._deny(command)
+
+    def test_immediate_exit_options_are_not_denied(self):
+        # PR #321 review — `git --html-path push --force` prints a path and
+        # exits; git never runs the subcommand. Denying it is a false positive.
+        for command in ("git --html-path push --force origin main",
+                        "git --man-path push origin :main",
+                        "git --info-path push -f",
+                        "git --exec-path push --force",
+                        "git --version push -f origin main",
+                        "git --help push --force"):
+            with self.subTest(command=command):
+                r = self.fire(event("Bash", command=command))
+                self.assertEqual(r.returncode, 0)
+                self.assertNotIn('"deny"', r.stdout, command)
+                self.assertNotIn('"ask"', r.stdout, command)
+
+    def test_a_ref_name_containing_git_dir_is_not_a_redirect(self):
+        # PR #321 review — `feature/GIT_DIR=config` is a ref name; only a
+        # LEADING env assignment redirects. This delete asks, not denies.
+        block = self.decision(self.fire(
+            event("Bash", command="git push -d origin feature/GIT_DIR=config")))
+        self.assertEqual(block["permissionDecision"], "ask")
+
+    def test_a_sudo_env_assignment_still_redirects(self):
+        self._deny("sudo GIT_DIR=/srv/.git git push -d origin main")
+
+    def test_a_redirect_inside_an_option_value_is_text_not_an_option(self):
+        # PR #321 review — `-c`'s operand may legitimately contain ` -C `;
+        # scanning it raw called a non-default delete a redirect and denied it.
+        for command in ("git -c 'core.sshCommand=ssh -C' push -d origin topic",
+                        'git -c "x=--git-dir /y" push -d origin topic'):
+            with self.subTest(command=command):
+                block = self.decision(self.fire(event("Bash", command=command)))
+                self.assertEqual(block["permissionDecision"], "ask",
+                                 f"{command!r} must ask, not deny")
+                self.assertNotIn("redirected", block["permissionDecisionReason"])
+
+    def test_a_push_option_operand_is_not_a_refspec(self):
+        # PR #321 review — `-o`'s operand is an option string; `:x` there is not
+        # a deletion. A plain push carrying one stays allowed.
+        r = self.fire(event("Bash",
+              command="git push -o :ci.skip origin feature"))
+        self.assertEqual(r.returncode, 0)
+        self.assertNotIn('"deny"', r.stdout)
+        self.assertNotIn('"ask"', r.stdout)
+        # …and a real `:dst` after the option still denies the default branch.
+        self._deny("git push -o :ci.skip origin :main")
+
+    def test_the_never_list_sees_the_same_subcommand(self):
+        # The ask tier scans the whole line, so it gets the normalized view the
+        # HIGH tier judged — otherwise the same option hides a question.
+        for command in ("git -C /srv reset --hard HEAD~2",
+                        "sudo git --git-dir=/srv/.git checkout ."):
+            with self.subTest(command=command):
+                block = self.decision(self.fire(event("Bash", command=command)))
+                self.assertIsNotNone(block)
+                self.assertEqual(block["permissionDecision"], "ask", command)
+
+    def test_global_options_on_an_allowed_command_stay_allowed(self):
+        for command in ("git -C /srv status",
+                        "git -c core.pager=cat log --oneline",
+                        "git --git-dir=/srv/.git push origin topic",
+                        "git -C /srv push --force-with-lease origin main"):
+            with self.subTest(command=command):
+                r = self.fire(event("Bash", command=command))
+                self.assertEqual(r.returncode, 0)
+                self.assertNotIn('"deny"', r.stdout, command)
+
+
+class TestDefaultBranchDeletion(HookBase):
+    """#297: `git push origin :main` deletes the default branch needing no flag.
+
+    The HIGH tier matched `-f`, `--force` and the `+ref` form — all absent from
+    a delete — so the most destructive push a bounded worker had was allowed.
+    """
+
+    def _deny(self, command):
+        block = self.decision(self.fire(event("Bash", command=command)))
+        self.assertIsNotNone(block, f"{command!r} produced no decision at all")
+        self.assertEqual(block["permissionDecision"], "deny", command)
+        return block
+
+    def test_deleting_the_default_branch_is_denied_in_every_form(self):
+        for command in (
+            "git push origin :main",
+            "git push origin +:main",
+            "git push -d origin main",
+            "git push --delete origin main",
+            "git push origin --delete main",
+            # The qualified ref names the same branch — comparing the raw token
+            # to "main" demoted these to ask (PR #321 review).
+            "git push origin :refs/heads/main",
+            "git push -d origin refs/heads/main",
+            "git push --delete origin refs/heads/main",
+        ):
+            with self.subTest(command=command):
+                self._deny(command)
+
+    def test_a_deletion_under_a_redirected_repository_is_denied(self):
+        # PR #321 review: -C/--git-dir/GIT_DIR target another repo, while the
+        # default branch is resolved in the hook's cwd — so there is no way to
+        # prove the deleted ref is not that repo's default. Fail closed.
+        for command in (
+            "git -C /srv push origin :main",
+            "git -C /srv push -d origin feature",
+            "git --git-dir=/srv/.git push --delete origin feature",
+            "GIT_DIR=/srv/.git git push origin :main",
+        ):
+            with self.subTest(command=command):
+                block = self._deny(command)
+                self.assertIn("redirected", block["permissionDecisionReason"])
+
+    def test_a_lease_does_not_pardon_a_deletion(self):
+        # --force-with-lease makes a REWRITE recoverable; a deleted ref is not a
+        # rewrite, and the lease says nothing about it.
+        self._deny("git push --force-with-lease origin :main")
+
+    def test_the_deny_reason_names_the_default_branch(self):
+        block = self._deny("git push origin :main")
+        self.assertIn("default branch", block["permissionDecisionReason"])
+
+    def test_deleting_any_other_ref_asks(self):
+        # Recoverable — re-pushing the ref restores it — so a human authorizes.
+        for command in ("git push origin :topic",
+                        "git push -d origin topic",
+                        "git push --delete origin topic"):
+            with self.subTest(command=command):
+                block = self.decision(self.fire(event("Bash", command=command)))
+                self.assertIsNotNone(block)
+                self.assertEqual(block["permissionDecision"], "ask", command)
+
+    def test_a_matching_push_and_an_update_push_are_not_deletions(self):
+        # `:` pushes every matching branch and `HEAD:main` updates main — the
+        # refspec colon is only a delete when its source side is empty.
+        for command in ("git push origin :", "git push origin HEAD:main",
+                        "git push origin topic"):
+            with self.subTest(command=command):
+                r = self.fire(event("Bash", command=command))
+                self.assertEqual(r.stdout.strip(), "", command)
+
+
 class TestNeverList(HookBase):
     def _ask(self, command):
         block = self.decision(self.fire(event("Bash", command=command)))
@@ -398,6 +614,21 @@ class TestWorktreeBoundary(HookBase):
                 block = self.decision(self._fire_edit(self.outside / "secret.py", tool=tool))
                 self.assertIsNotNone(block, f"{tool} wrote outside the boundary and was allowed")
                 self.assertEqual(block["permissionDecision"], "deny", tool)
+
+    def test_a_notebook_edit_names_its_path_differently(self):
+        # #297: the PreToolUse payload carries a notebook target as
+        # notebook_path, not file_path — reading only file_path left this one
+        # write tool free of the boundary.
+        block = self.decision(self.fire(
+            event("NotebookEdit", notebook_path=str(self.outside / "n.ipynb")),
+            env_extra={"ORCA_UNIT_WORKTREE": str(self.wt)}))
+        self.assertEqual(block["permissionDecision"], "deny")
+
+    def test_a_notebook_edit_inside_the_boundary_is_allowed(self):
+        r = self.fire(event("NotebookEdit",
+                            notebook_path=str(self.wt / "src" / "n.ipynb")),
+                      env_extra={"ORCA_UNIT_WORKTREE": str(self.wt)})
+        self.assertEqual(r.stdout.strip(), "")
 
     def test_a_symlink_out_of_the_boundary_is_judged_by_its_target(self):
         link = self.wt / "src" / "escape.py"
