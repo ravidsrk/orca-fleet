@@ -1,0 +1,114 @@
+{
+  "commands": [
+    {
+      "label": "AC-1-counterexample",
+      "ts": "2026-09-12T13:24:09Z",
+      "cmd": "/tmp/orca-release-audit-20260912/ci-venv/bin/python /tmp/orca-release-audit-20260912/claims-evidence/claims_probe.py provenance",
+      "cmd_sha256": "7b76f4cc920d43c1a9214b30c57d1ecb615e239de9fc0f78320378a4dd24dc8c",
+      "exit": 0,
+      "duration_s": 0.04,
+      "commit": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+      "wtree": "b1ce03c8463568add4f6056a3fb9bdc60332cbbc",
+      "artifact": "/tmp/orca-release-audit-20260912/claims-evidence/ac1-counterexample.txt"
+    },
+    {
+      "label": "AC-2-counterexample",
+      "ts": "2026-09-12T13:24:09Z",
+      "cmd": "/tmp/orca-release-audit-20260912/ci-venv/bin/python /tmp/orca-release-audit-20260912/claims-evidence/claims_probe.py hooks",
+      "cmd_sha256": "e4e2430c6cf1871d29a4b9419741352c10a1dbb1f41a5c5ecdbdec384eac17cb",
+      "exit": 0,
+      "duration_s": 0.066,
+      "commit": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+      "wtree": "b1ce03c8463568add4f6056a3fb9bdc60332cbbc",
+      "artifact": "/tmp/orca-release-audit-20260912/claims-evidence/ac2-counterexample.txt"
+    },
+    {
+      "label": "AC-3-red",
+      "ts": "2026-09-12T13:24:09Z",
+      "cmd": "/tmp/orca-release-audit-20260912/ci-venv/bin/python /tmp/orca-release-audit-20260912/claims-evidence/claims_probe.py oncall",
+      "cmd_sha256": "5641147b60c0023568b0d55ace819c408b07ebb98ba0f5cbaf7020cedd7ea496",
+      "exit": 1,
+      "duration_s": 0.032,
+      "commit": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+      "wtree": "b1ce03c8463568add4f6056a3fb9bdc60332cbbc",
+      "artifact": "/tmp/orca-release-audit-20260912/claims-evidence/ac3-red.txt"
+    },
+    {
+      "label": "AC-1-positive-controls",
+      "ts": "2026-09-12T13:25:03Z",
+      "cmd": "/tmp/orca-release-audit-20260912/ci-venv/bin/python -m unittest discover -s tests -p test_verify.py -k ProvenanceCheck",
+      "cmd_sha256": "34b1c0a092fd667bc3b61d047488e86418a825aa4375edf9af1a06ab66cd062d",
+      "exit": 0,
+      "duration_s": 0.058,
+      "commit": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+      "wtree": "575465cf58560115a15df1b5bbeaebcf23b1dddd",
+      "artifact": "/tmp/orca-release-audit-20260912/claims-evidence/ac1-positive-controls.txt"
+    },
+    {
+      "label": "AC-2-navigation",
+      "ts": "2026-09-12T13:25:18Z",
+      "cmd": "/tmp/orca-release-audit-20260912/ci-venv/bin/python -m unittest discover -s tests -p test_docs_navigation.py",
+      "cmd_sha256": "9e5ea2c3f541819692f6f262f7750820191f29e3c64ea95021746baa7c52b476",
+      "exit": 0,
+      "duration_s": 0.272,
+      "commit": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+      "wtree": "25861fb60815eac06fa8c8ef0c9c17f385f41e6b",
+      "artifact": "/tmp/orca-release-audit-20260912/claims-evidence/ac2-navigation.txt"
+    },
+    {
+      "label": "AC-3-green",
+      "ts": "2026-09-12T13:25:33Z",
+      "cmd": "/tmp/orca-release-audit-20260912/ci-venv/bin/python /tmp/orca-release-audit-20260912/claims-evidence/claims_probe.py oncall",
+      "cmd_sha256": "5641147b60c0023568b0d55ace819c408b07ebb98ba0f5cbaf7020cedd7ea496",
+      "exit": 0,
+      "duration_s": 0.029,
+      "commit": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+      "wtree": "163a4027932403fac9253e5af7d9406a9ad4b951",
+      "artifact": "/tmp/orca-release-audit-20260912/claims-evidence/ac3-green.txt"
+    },
+    {
+      "label": "adjacent-badge-triage",
+      "ts": "2026-09-12T13:25:33Z",
+      "cmd": "/tmp/orca-release-audit-20260912/ci-venv/bin/python /tmp/orca-release-audit-20260912/claims-evidence/claims_probe.py badge",
+      "cmd_sha256": "fcb16335ad503daae5121f644d9660f9bdf24662d9a4336ff31e5db8022b40e2",
+      "exit": 0,
+      "duration_s": 0.122,
+      "commit": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+      "wtree": "163a4027932403fac9253e5af7d9406a9ad4b951",
+      "artifact": "/tmp/orca-release-audit-20260912/claims-evidence/badge-counterexample.txt"
+    },
+    {
+      "label": "validate",
+      "ts": "2026-09-12T13:25:51Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 0,
+      "duration_s": 0.568,
+      "commit": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+      "wtree": "163a4027932403fac9253e5af7d9406a9ad4b951",
+      "artifact": "/tmp/orca-release-audit-20260912/claims-evidence/validate.txt"
+    },
+    {
+      "label": "ruff",
+      "ts": "2026-09-12T13:25:51Z",
+      "cmd": "/tmp/orca-release-audit-20260912/ci-venv/bin/ruff check .",
+      "cmd_sha256": "886e2274d1fb1998653c690c1e15420e186edbe506d8783abde7dc31d4f51e5b",
+      "exit": 0,
+      "duration_s": 0.015,
+      "commit": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+      "wtree": "163a4027932403fac9253e5af7d9406a9ad4b951",
+      "artifact": "/tmp/orca-release-audit-20260912/claims-evidence/ruff.txt"
+    },
+    {
+      "label": "tests",
+      "ts": "2026-09-12T13:28:16Z",
+      "cmd": "/tmp/orca-release-audit-20260912/ci-venv/bin/python -m unittest discover -s tests",
+      "cmd_sha256": "6c7113ee595c1ad70d84b1347f9d89f98387efac685058b1aa4ffdc7f531b1a1",
+      "exit": 1,
+      "duration_s": 144.99,
+      "commit": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+      "wtree": "163a4027932403fac9253e5af7d9406a9ad4b951",
+      "artifact": "/tmp/orca-release-audit-20260912/claims-evidence/full-suite.txt"
+    }
+  ]
+}

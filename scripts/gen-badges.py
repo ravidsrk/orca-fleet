@@ -5,7 +5,8 @@ never drift as missions and tests are added.
 
 Writes:
   assets/badges/missions.json  — count of skills/<name>/ mission dirs
-  assets/badges/tests.json     — count of `def test_*` methods under tests/
+  assets/badges/tests.json     — source inventory of `def test_*` definitions under tests/;
+                                 no test execution or pass/fail result
   docs/missions/<name>.md      — the "Activation load" callout, measured by
                                  scripts/validate.py's transitive_load (issue #276)
 
@@ -98,7 +99,7 @@ def compute() -> dict:
         )
     return {
         "missions.json": badge("missions", str(mission_count()), "1f6feb"),
-        "tests.json": badge("contract tests", f"{test_count()} passing", "2ea043"),
+        "tests.json": badge("test definitions", f"{test_count()} in source", "6e7781"),
     }
 
 

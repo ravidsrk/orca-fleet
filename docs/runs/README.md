@@ -8,11 +8,14 @@ retained at a named location when the run's artifacts live outside this repo), a
 deviations that happened — recorded, not hidden.
 
 `Binds?` is the only column that moves a mission's `metadata.proof`: **yes** means
-`runtime/scripts/run_report.py` re-derives everything this report rests on — a real
-`verify.py … --manifest` invocation in the body, the graded manifest inside this run's own
-directory and pinned by the inventory, and every one of this run's artifacts hashing true at the
-commit the `RUN:` header names. **no** means the run happened and something it rests on cannot be
-re-derived here — history, kept, claiming nothing.
+`runtime/scripts/run_report.py` checks the report's bindings: the `RUN:` header's mission,
+tier and commit, a recorded `verify.py … --manifest` invocation in the body and manifest ledger,
+the ledger's command hash and resolvable content object, and the manifest and listed artifacts
+inside this run's own directory re-hashing at that commit. These are worker-attested records;
+the checker does not rerun the verifier or independently establish its verdict. Clean-environment
+test reruns at the exact head and verification against the frozen contract and review authority
+remain coordinator-owned. **no** means the recorded report does not satisfy these binding checks
+here — history, kept, supporting no proof-tier advance.
 
 Nothing in the archive currently reads **yes**. That is the honest state, not a broken gate: three
 runs kept their artifacts outside this repository, and the fourth kept its artifacts but not its
