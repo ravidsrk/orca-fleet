@@ -1172,6 +1172,44 @@ class TestShellCommentsAreNotShellCode(HookBase):
             with self.subTest(command=command):
                 self.denied(command, env_extra={"ORCA_UNIT_WORKTREE": str(self.repo)})
 
+    def test_a_line_continuation_is_removed_and_keeps_word_position(self):
+        """PR #325 review, P1. A backslash-newline is removed by the shell, inside double quotes
+        as well as outside, and the text on either side is ONE word. Treating it as a word
+        boundary made `echo a\\<newline>#b` a comment and swallowed the command after it."""
+        self.denied("echo a\\\n#b ; git push --force origin main")
+        self.denied("echo a\\\nb#c ; git push --force origin main")
+        self.denied('echo "x\\\n#y" ; git push --force origin main')
+        # Single quotes take no escapes, so the backslash is literal and opens no comment there.
+        self.denied("echo 'a\\\nb' ; git push --force origin main")
+        # A continuation after a blank still leaves the next word at a word start.
+        self.allowed("git status \\\n# don't modify anything")
+
+    def test_only_shell_blanks_open_a_word(self):
+        """PR #325 review, P1. str.isspace() calls NBSP whitespace; a shell does not, so
+        `echo x<NBSP>#b` is the single word `x\xa0#b` and the command after it still runs."""
+        for blank in ("\xa0", "\u2007", "\u202f", "\v", "\f"):
+            with self.subTest(blank=repr(blank)):
+                self.denied(f"echo x{blank}#b ; git push --force origin main")
+        for blank in (" ", "\t", "  ", " \t "):
+            with self.subTest(blank=repr(blank)):
+                self.allowed(f"echo x{blank}# just a note")
+
+    def test_a_word_cannot_forge_a_record_delimiter(self):
+        """PR #325 review, P1. `tee "\\<newline>C echo" /tmp/outside`: bash removes the
+        continuation and passes `C echo` as a relative filename. Carried through verbatim, that
+        newline split the one-line record protocol, and the forged `C ` record reset tee
+        enforcement so the absolute destination after it was never checked."""
+        outside = self.tmp / "outside.txt"
+        for command in (
+            f'tee "\\\nC echo" {outside}',
+            f'tee "\\\nW /dev/null" {outside}',
+            f'tee "a\nC echo" {outside}',
+            f"tee 'a\nC echo' {outside}",
+            f'echo x > "a\nC echo" ; tee b {outside}',
+        ):
+            with self.subTest(command=command):
+                self.denied(command, env_extra={"ORCA_UNIT_WORKTREE": str(self.repo)})
+
     def test_a_quoted_newline_stays_one_word_and_one_record(self):
         # It cannot ride the line protocol as a newline; it must not become a separator either,
         # or the rest of a quoted value would be judged as a command of its own.

@@ -196,6 +196,10 @@ def c(v):
 # refuses every tool call.
 SQ = chr(39)
 DQ = chr(34)
+# What a shell splits words on. NOT str.isspace(): Python calls NBSP and friends
+# whitespace, a shell does not, and a word boundary the shell never saw is one this
+# parser must not invent either (PR #325 review, P1).
+BLANKS = chr(32) + chr(9)
 
 
 def segments(cmd):
@@ -225,9 +229,20 @@ def segments(cmd):
     word_start = True
     while i < n:
         ch = cmd[i]
+        # A backslash-newline is a line continuation. The shell REMOVES it -- inside double
+        # quotes as well as outside -- and the text on either side is one word. Keeping it opened
+        # two holes (PR #325 review, P1): the newline rode into a word and broke the one-line
+        # record protocol below, forging a C record that reset tee enforcement so the write
+        # target after it went unchecked; and counting it as a word boundary made
+        # echo a\<newline>#b a comment, swallowing the command after it. Removing it here leaves
+        # word_start untouched, which is the point: a continuation neither opens nor closes a
+        # word. Single quotes take no escapes, so it is literal there.
+        if ch == "\\" and quote != SQ and i + 1 < n and cmd[i + 1] == "\n":
+            i += 2
+            continue
         if quote:
-            # A newline inside a quoted word is data, not a boundary. It cannot travel on the
-            # one-line record protocol below, so it rides as a space: a value, still one word.
+            # A literal newline inside a quoted word is data, not a boundary. It cannot travel on
+            # the one-line record protocol below, so it rides as a space: a value, still one word.
             cur.append(" " if ch == "\n" else ch)
             if ch == "\\" and quote == DQ and i + 1 < n:
                 cur.append(cmd[i + 1])
@@ -247,9 +262,7 @@ def segments(cmd):
         if ch == "\\" and i + 1 < n:
             cur.append(ch)
             cur.append(cmd[i + 1])
-            # A backslash-newline is a line continuation: the shell removes both, so what
-            # follows still opens a word.
-            word_start = cmd[i + 1] == "\n"
+            word_start = False   # an escaped character is a word character
             i += 2
             continue
         if ch == "#" and word_start:
@@ -275,7 +288,7 @@ def segments(cmd):
             i += 1
             continue
         cur.append(ch)
-        word_start = ch.isspace()
+        word_start = ch in BLANKS
         i += 1
     segs.append("".join(cur))
     return [seg for seg in segs if seg.strip()]
@@ -325,6 +338,17 @@ def shell_tokens(seg):
         target = False
 
 
+def record(kind, value):
+    # One record, one line. A value carrying a newline forges the NEXT record, and a forged
+    # C line resets tee enforcement so the write target after it is never checked (PR #325
+    # review, P1). segments() makes this unreachable -- an unquoted newline separates, a
+    # quoted one rides as a space, a continuation is removed -- so anything arriving here
+    # means that reasoning is wrong somewhere, and dying is the fail-closed answer.
+    if "\n" in value or "\r" in value:
+        raise ValueError("a record value cannot contain a newline")
+    print(kind + " " + value)
+
+
 raw_command = r(ti.get("command"))
 command = c(raw_command)
 print(s(d.get("tool_name")))
@@ -346,11 +370,11 @@ for seg in segments(raw_command):
             pending = None
         else:
             args.append(value)
-    print("C " + " ".join(policy_word(word) for word in args))
+    record("C", " ".join(policy_word(word) for word in args))
     for path in writes:
-        print("W " + path)
+        record("W", path)
     for word in args:
-        print("A " + word)' 2>/dev/null) || {
+        record("A", word)' 2>/dev/null) || {
   decide deny "deny-hook: the tool payload could not be parsed. Fail-closed: an unreadable payload is refused, never allowed."
   exit 0
 }
