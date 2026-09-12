@@ -416,12 +416,7 @@ strip_prefix() {
       # (PR #308 review, P1); an ESCAPED quote inside stays beyond it.
       [A-Za-z_]*=*[!\ ]*\ *)
         case "${_c%% *}" in
-          [A-Za-z_]*=*)
-            case "$_c" in
-              [A-Za-z_]*=\"*) _rest=${_c#*=\"}; _c=${_rest#*\" } ;;
-              [A-Za-z_]*=\'*) _rest=${_c#*=\'}; _c=${_rest#*\' } ;;
-              *) _c=${_c#* } ;;
-            esac ;;
+          [A-Za-z_]*=*) _c=$(skip_tok "$_c") ;;
           *) break ;;
         esac ;;
       *) break ;;
@@ -450,11 +445,7 @@ strip_git_opts() {
       # Options taking a separate operand: drop the option, then the operand.
       -C\ *|-c\ *|--git-dir\ *|--work-tree\ *|--namespace\ *|--config-env\ *)
         _rest=${_rest#* }
-        case "$_rest" in
-          \"*) _rest=${_rest#*\" } ;;
-          \'*) _rest=${_rest#*\' } ;;
-          *)   _rest=${_rest#* } ;;
-        esac ;;
+        _rest=$(skip_tok "$_rest") ;;
       # Immediate-exit options print and stop — `git --html-path push --force`
       # never pushes at all, and stripping the option would judge tokens git
       # ignores (PR #321 review). Empty the rest so the segment normalizes to a
@@ -464,16 +455,12 @@ strip_git_opts() {
       --html-path|--html-path\ *|--man-path|--man-path\ *|--info-path|--info-path\ *|\
       --exec-path|--exec-path\ *|--version|--version\ *|--help|--help\ *|-h|-h\ *)
         _rest=""; break ;;
-      # Inline `--opt=value`: drop `name=` then the value — a quoted value cuts
-      # at its closing quote, or `--opt="a b"` would leave `b" …` in place of
-      # the subcommand and the refused push would escape (PR #321 review, P1).
-      --git-dir=*\ *|--work-tree=*\ *|--namespace=*\ *|--exec-path=*\ *|--config-env=*\ *)
+      # Inline `--opt=value`: drop `name=` then the whole word — the value may
+      # quote only its middle (`=/srv/dir" one"`), so it goes through skip_tok
+      # like any other operand (PR #321 review, P1).
+      --git-dir=*|--work-tree=*|--namespace=*|--exec-path=*|--config-env=*)
         _rest=${_rest#*=}
-        case "$_rest" in
-          \"*) _rest=${_rest#*\" } ;;
-          \'*) _rest=${_rest#*\' } ;;
-          *)   _rest=${_rest#* } ;;
-        esac ;;
+        _rest=$(skip_tok "$_rest") ;;
       # Valueless flags drop one token each.
       -p\ *|-P\ *|--paginate\ *|--no-pager\ *|--bare\ *|--no-replace-objects\ *|--no-advice\ *|\
       --literal-pathspecs\ *|--glob-pathspecs\ *|--noglob-pathspecs\ *|--icase-pathspecs\ *|\
@@ -494,6 +481,26 @@ norm_ws() {
   _n=$(printf '%s' "$1" | tr -s '[:space:]' ' ')
   _n=${_n# }; _n=${_n% }
   printf '%s' "$_n"
+}
+
+# Remove the first shell WORD from $1 and print what follows. A word may quote
+# only part of itself — `--git-dir=/srv/dir" one"` is one word — so scanning
+# must skip quoted spans anywhere, not just at the word's start (#321 review).
+# An unclosed quote eats to end: that mangles the line, it cannot free a
+# refused command — the refused text stays inside it.
+skip_tok() {
+  _w=$1
+  while : ; do
+    _p=$_w
+    case "$_w" in
+      \"*)    _w=${_w#\"}; _w=${_w#*\"} ;;
+      \'*)    _w=${_w#\'}; _w=${_w#*\'} ;;
+      *)      _h=${_w%%[\'\" ]*}; _w=${_w#"$_h"} ;;
+    esac
+    [ "$_w" = "$_p" ] && break
+    case "$_w" in \ *) break ;; esac
+  done
+  printf '%s' "${_w# }"
 }
 
 # `-C`, `--git-dir`, `--work-tree`, and GIT_DIR=/GIT_WORK_TREE= point a command
@@ -523,12 +530,7 @@ git_redirected() {
       # quote, not the first space inside.
       [A-Za-z_]*=*\ *)
         case "${_r%% *}" in
-          [A-Za-z_]*=*)
-            case "$_r" in
-              [A-Za-z_]*=\"*) _r=${_r#*\" } ;;
-              [A-Za-z_]*=\'*) _r=${_r#*\' } ;;
-              *)              _r=${_r#* } ;;
-            esac ;;
+          [A-Za-z_]*=*) _r=$(skip_tok "$_r") ;;
           *) break ;;
         esac ;;
       *) break ;;
@@ -545,18 +547,10 @@ git_redirected() {
         return 0 ;;
       -c\ *|-c|--namespace\ *|--namespace|--config-env\ *|--config-env)
         _r=${_r#* }
-        case "$_r" in
-          \"*) _r=${_r#*\" } ;;
-          \'*) _r=${_r#*\' } ;;
-          *)   _r=${_r#* } ;;
-        esac ;;
-      --namespace=*|--namespace=*\ *|--config-env=*|--config-env=*\ *|--exec-path=*|--exec-path=*\ *)
+        _r=$(skip_tok "$_r") ;;
+      --namespace=*|--config-env=*|--exec-path=*)
         _r=${_r#*=}
-        case "$_r" in
-          \"*) _r=${_r#*\" } ;;
-          \'*) _r=${_r#*\' } ;;
-          *)   _r=${_r#* } ;;
-        esac ;;
+        _r=$(skip_tok "$_r") ;;
       -p|-p\ *|-P|-P\ *|--paginate|--paginate\ *|--no-pager|--no-pager\ *|\
       --bare|--bare\ *|--no-replace-objects|--no-replace-objects\ *|\
       --no-advice|--no-advice\ *|--literal-pathspecs|--literal-pathspecs\ *|\
@@ -639,7 +633,7 @@ for _SEG in "$@"; do
       # deletion of x (#321 review).
       [ "$_SKIP" -eq 1 ] && _SKIP=0 && continue
       case "$TOK" in
-        -o|--push-option|--receive-pack|--repo) _SKIP=1 ;;
+        -o|--push-option|--receive-pack|--exec|--repo) _SKIP=1 ;;
         -d|--delete) _DEL=1; _DEL_FLAG=1 ;;
         +:*|:*) _dst=${TOK#+}; _dst=${_dst#:}; _dst=${_dst#refs/heads/}
                 [ -n "$_dst" ] || continue
@@ -667,7 +661,7 @@ for _SEG in "$@"; do
         TOK=${TOK#\"}; TOK=${TOK%\"}; TOK=${TOK#\'}; TOK=${TOK%\'}
         [ "$_SKIP" -eq 1 ] && _SKIP=0 && continue
         case "$TOK" in
-          -o|--push-option|--receive-pack|--repo) _SKIP=1; continue ;;
+          -o|--push-option|--receive-pack|--exec|--repo) _SKIP=1; continue ;;
           git|push|sudo|-*) continue ;;
         esac
         TOK=${TOK#refs/heads/}

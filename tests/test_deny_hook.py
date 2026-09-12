@@ -346,6 +346,26 @@ class TestGitGlobalOptionsAreStripped(HookBase):
             with self.subTest(command=command):
                 self._deny(command)
 
+    def test_partial_quoting_inside_an_option_value_cannot_hide_the_push(self):
+        # PR #321 review — a word may quote only its middle:
+        # `--git-dir=/srv/dir" one"` is ONE word; cutting at its space left
+        # `one" push …` where `push` belonged.
+        for command in ('git --git-dir=/srv/dir" one" push --force origin main',
+                        "git --git-dir=/srv/dir' one' push -f origin main",
+                        'git -C "/srv/dir one" push --force origin main'):
+            with self.subTest(command=command):
+                self._deny(command)
+
+    def test_push_exec_operand_is_not_a_refspec(self):
+        # PR #321 review — `--exec` is push's alias for --receive-pack; its
+        # operand is a program name, not a refspec.
+        r = self.fire(event("Bash",
+              command="git push --exec :receive-tool origin feature"))
+        self.assertEqual(r.returncode, 0)
+        self.assertNotIn('"deny"', r.stdout)
+        self.assertNotIn('"ask"', r.stdout)
+        self._deny("git push --exec :receive-tool origin :main")
+
     def test_whitespace_does_not_hide_an_option(self):
         # PR #321 review — a tab or a double space left the option run unstripped.
         for command in ("git\t-C\t/srv\tpush\t--force\torigin\tmain",
