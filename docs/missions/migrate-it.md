@@ -1,7 +1,7 @@
 # 🗄️ migrate-it — a stateful shape change landed across deploys, nothing ever invalid
 
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — a coordinator plus isolated per-phase workers; phases of one table are strictly serial, and the destructive CONTRACT step is your one-way door.
-> **Activation load:** ~31,300 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
+> **Activation load:** ~31,600 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
 
 > Point it at "we need to rename this column and we cannot take downtime." Come back to a table
@@ -17,12 +17,13 @@
 
 `migrate-it` is the migration fleet. A **coordinator** freezes the table set and the phase list,
 then dispatches **one phase at a time per table** through the release machine: expand, dual-write,
-backfill, switch reads, a zero-reader window, and finally contract. Each phase is its own
+backfill, switch reads, a zero-reader window, retiring the old writers, a zero-writer window, and
+finally contract. Each phase is its own
 deployable change with its own bake, its own review, and its own evidence.
 
 The unit of work is **one migration phase of one table or shape** — not a feature slice. That is
 the whole point: a deploy revert rolls back code, and data does not come back with it. So the
-oracle is not "the tests pass": it is a **parity probe** (row counts plus seeded sampled hashes)
+oracle is not "the tests pass": it is a **parity probe** (counts, full mismatch check, seeded hashes)
 and a **zero-reader window** on the old shape, with a `down` path that was written *and run* before
 each phase merged.
 
@@ -35,10 +36,10 @@ each phase merged.
 
 **When NOT to reach for it:**
 
-- A feature slice through one pass of the release machine — that is [`ship-it`](ship-it.md). A
-  schema slice *inside* a ship-it wave uses the same phase contract
-  ([`data-migration`](../../playbooks/data-migration.md)) but stays ship-it's unit.
-- Dependency or framework currency — [`modernize-it`](modernize-it.md).
+- Ordinary feature delivery — [`ship-it`](ship-it.md). A single additive schema slice can use
+  the phase contract inside a wave; a stateful change across deploys hands to `migrate-it`.
+- Code-only dependency or framework currency — [`modernize-it`](modernize-it.md). An upgrade
+  needing a stateful schema/data transition hands here, including its dependent upgrade stage.
 - Restructuring code behind unchanged behaviour — [`reshape-it`](reshape-it.md); no data at risk.
 - "Why is this data wrong?" — [`root-cause`](root-cause.md) diagnoses; this mission moves.
 
@@ -50,11 +51,14 @@ flowchart TD
     B --> C[EXPAND · deploy + bake]
     C --> D[DUAL-WRITE · deploy + bake]
     D --> E[BACKFILL<br/>batched · throttled · resumable]
-    E --> F{parity probe<br/>counts + sampled hashes}
+    E --> F{full parity probe<br/>counts + mismatches + sampled hashes}
     F -->|mismatch| E
     F -->|GREEN| G[SWITCH-READS · deploy + bake]
     G --> H[ZERO-READERS window<br/>telemetry pasted]
-    H --> I[[CONTRACT · separate deploy<br/>one-way human gate]]
+    H --> P[Archive full parity<br/>while writes are still dual]
+    P --> R[RETIRE-WRITES · deploy + bake<br/>old-shape writers retired]
+    R --> Z[ZERO-WRITERS window<br/>telemetry pasted]
+    Z --> I[[CONTRACT · separate deploy<br/>one-way human gate · verify removal]]
     I --> J{{MIGRATED}}
     H -->|no prod telemetry| K{{MIGRATED-WITH-PARKED}}
     C -.->|down path exercised| L{{ABANDONED}}
@@ -69,7 +73,7 @@ conductor, deploy, bake. Only then is the next phase dispatched.
 
 | State | Meaning | Who advances past it |
 |---|---|---|
-| `MIGRATED` | Parity 100% on the frozen table set, old-shape readers zero over the declared window with pasted telemetry, contract PR merged, every down path exercised | terminal — the promotion PR is yours |
+| `MIGRATED` | Complete pre-drop parity archived, zero old readers/writers over the declared window, removal verified, contract merged, down-path evidence retained | terminal — the promotion PR is yours |
 | `MIGRATED-WITH-PARKED` | The ladder is complete up to a phase whose bake or zero-reader evidence the fleet cannot reach (`CODE_CLOSED` + `VERIFY_AT_SCALE`, or `needs-human`) | a human or OPS clears the named park |
 | `ABANDONED` | The migration was walked back down the ladder using the exercised down paths, and the state it returned to is receipted | terminal, and honest — a half-expanded table is not |
 
@@ -90,14 +94,88 @@ Per phase, all of:
   in the file is not evidence.
 - **Dual-validity, both directions.** The pre-phase application revision green against the migrated
   schema, and the phase's revision green against the un-migrated schema (what a rollback lands on).
-- **Parity GREEN.** Row counts equal on the frozen table set, plus seeded sampled hashes matching
-  on the transformed value — re-derivable by a verifier, because the seed is recorded.
 - **Deployed and baked** for the declared window.
 
-The run is `MIGRATED` when parity is 100% on the frozen set, the old shape has zero readers over
-the declared window with the telemetry pasted rather than summarized, and the contract PR is
-merged with the drop verified against the dumped schema. The verifier re-runs the parity probe at
-the merged SHA and re-derives the schema diff; it never re-applies a landed migration.
+The parity requirement depends on the phase:
+
+| Phase | Required evidence before advancing |
+|---|---|
+| EXPAND | Additive schema and compatibility; the new shape may be empty on historical rows |
+| DUAL-WRITE | New inserts and updates agree in both shapes after activation; historical rows await backfill |
+| BACKFILL / SWITCH-READS | Cursor complete and complete transformed-data parity on the frozen set, checked again at switch |
+| RETIRE-WRITES | Pre-drop parity archived while writes were still dual, and the retirement deploy live |
+| ZERO-WRITERS | Telemetry over the declared window showing no writer of the old shape on that deploy |
+| CONTRACT | Archived pre-drop parity, zero old-shape readers/writers over their declared windows, and schema evidence of removal |
+
+Complete parity requires row counts and a full mismatch check; seeded sampled hashes provide
+repeatable diagnostics but cannot alone establish 100%. Each receipt names the phase SHA, data
+boundary, probe and seed. Keep dual writes through the pre-drop parity archive, then retire the
+old writers in their OWN deploy and observe zero use from it before removal — telemetry comes from
+a running deployment, so a rung that retired and dropped together could never observe a writer. Both application revisions in the drop rollout
+must already use only the new shape, so compatibility remains attainable. If recovery destroys
+data, declare it irreversible and use the human gate; a schema-only round trip proves no data recovery.
+
+After CONTRACT, the verifier checks the archived comparison and surviving shape against the bound
+data boundary, plus zero-use and removal receipts. It never queries a dropped column or re-applies
+a landed migration. That evidence, every phase's down-path evidence, and the merged contract PR
+are required for `MIGRATED`.
+
+## Populated SQLite walkthrough
+
+These blocks run in order on one disposable in-memory SQLite connection. They illustrate the
+phase data invariants; deploy bakes, rollback drills and zero-use telemetry still require their
+own evidence. The repository's `tests/test_migration_walkthrough.py` executes these exact blocks.
+
+```sql
+-- phase: setup
+CREATE TABLE users(id INTEGER PRIMARY KEY, name TEXT);
+INSERT INTO users VALUES (1, 'Alice'), (2, 'Bob');
+```
+
+EXPAND preserves the old reader; both historical `full_name` values are NULL. Requiring full
+parity here would block the next phase that can establish it.
+
+```sql
+-- phase: expand
+ALTER TABLE users ADD COLUMN full_name TEXT;
+```
+
+DUAL-WRITE models an updated old row and a new insert. Bob is intentionally still unfilled.
+In the application, every insert/update path must dual-write before backfill advances.
+
+```sql
+-- phase: dual-write
+UPDATE users SET name = 'Alicia', full_name = 'Alicia' WHERE id = 1;
+INSERT INTO users VALUES (3, 'Carol', 'Carol');
+```
+
+BACKFILL handles this fixture's one remaining batch. Real batches commit a resumable cursor and
+throttle; the identity transform here makes an exhaustive mismatch query easy to inspect.
+
+```sql
+-- phase: backfill
+UPDATE users SET full_name = name WHERE id <= 2 AND full_name IS NULL;
+```
+
+SWITCH reads only the new shape. The check requires zero mismatches on all three rows, including
+the untouched historical row; equal row counts alone would have missed Bob's NULL.
+
+```sql
+-- phase: switch-reads
+SELECT id, full_name FROM users ORDER BY id;
+SELECT count(*) AS mismatches FROM users WHERE name IS NOT full_name;
+```
+
+CONTRACT archives the full comparison while dual writes still maintain parity. The fixture then
+stands in for retiring old writers and obtaining zero-use evidence; it is not production telemetry
+or human approval. Only after those external gates would a real drop run. The archive remains
+queryable after the old column is gone and is tied to this pre-drop data boundary.
+
+```sql
+-- phase: contract
+CREATE TABLE parity_receipt AS SELECT id, name, full_name FROM users;
+ALTER TABLE users DROP COLUMN name;
+```
 
 ## Failure modes this mission is built to prevent
 
@@ -131,7 +209,7 @@ Runtime policies: [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 
 ## Related missions
 
-- [`ship-it`](ship-it.md) — a feature slice through the release machine once; a schema slice inside a wave keeps ship-it's unit.
+- [`ship-it`](ship-it.md) — ordinary feature delivery; cross-deploy stateful changes hand here.
 - [`modernize-it`](modernize-it.md) — dependency currency; it hands a data-shape change here.
 - [`reshape-it`](reshape-it.md) — code deepened behind unchanged behaviour, no data at risk.
 - [`clean-sweep`](clean-sweep.md) — a finite findings backlog, not a deploy-gated ladder.
