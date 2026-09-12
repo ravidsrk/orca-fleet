@@ -15,7 +15,7 @@ DUAL-WRITE    the app writes BOTH shapes on every insert/update              [de
 BACKFILL      copy old → new for existing rows, batched + throttled          [job, resumable]
 SWITCH-READS  reads move to the new shape, writes stay dual                  [deploy + bake]
 ZERO-READERS  telemetry shows no reader of the old shape over the window     [observation]
-CONTRACT      stop writing the old shape, then DROP it in a separate deploy  [one-way, human]
+CONTRACT      archive parity, retire old writers, prove zero use, then DROP [one-way, human]
 ```
 
 Additive first, destructive last and alone. Adds are safe in any deploy; drops and renames get
@@ -33,13 +33,12 @@ declared irreversible in the PR body and becomes a one-way human gate, never a s
 
 ## Dual-validity, proven both directions
 
-Per phase, two checks, both green, both pasted:
-
 - **old code vs new schema** — the pre-phase application revision run against the migrated schema.
 - **new code vs old schema** — the phase's application revision run against the un-migrated schema
   (what a rollback lands on).
 
-A phase whose new code needs the new shape to boot has failed dual-validity: split it.
+Split a phase whose new code cannot boot on the pre-phase schema. At CONTRACT, both rollout
+revisions must already use only the new shape; "old code" means pre-drop code, not pre-expand code.
 
 ## Index and lock rules
 
@@ -59,19 +58,21 @@ saturation signal — over the ceiling, it backs off, it does not power through.
 non-idempotent copy, corrupts what it already wrote. Every write is idempotent so a re-run of a
 batch is a no-op.
 
-## Parity probe (the phase oracle)
+## Phase oracle
 
-Parity is a probe, not an opinion. Its shape, run at the phase head and pasted:
+EXPAND proves additive schema/compatibility; historical rows may have an empty new shape.
+DUAL-WRITE proves parity of inserts/updates after activation; historical rows await backfill.
+BACKFILL completes its cursor and probes the frozen set; re-probe at SWITCH-READS:
 
 ```
 rows_old=<n> rows_new=<n>            equal on the frozen table set
-sample=<k rows, seeded, ordered>     hash(old_shape) == hash(new_shape) per sampled row
-mismatches=<list or empty>           any mismatch = phase RED, backfill resumes
+mismatches=<full comparison>        any transformed-value mismatch = RED; resume backfill
+sample=<k rows, seeded, ordered>    matching transformed-value hashes; diagnostics, not 100% proof
 ```
 
-The sample is seeded and re-derivable so a verifier can re-run it, and the sampled hash covers the
-transformed value, not just presence. Parity is re-probed after the LAST backfill batch and again
-at SWITCH-READS.
+Bind each probe to phase SHA, data boundary and seed. CONTRACT archives full parity while writes
+remain dual, retires old writers, then proves zero old readers/writers over the declared window
+before removal. After DROP, verify the archive, surviving shape and schema removal; query no dropped column.
 
 ## Cutover is decoupled from the deploy
 
@@ -83,8 +84,7 @@ claimed green.
 
 ## Completion (per phase)
 
-The phase is one deployable change; `down` was written, run, and produced an empty schema diff;
-old-code-vs-new-schema and new-code-vs-old-schema are both green; the backfill (if this phase) ran
-to its cursor end with parity GREEN on the frozen table set; index and lock rules are named for the
-engine; the ZERO-READERS window has pasted telemetry or is parked; CONTRACT is a separate deploy
-behind a human gate. Two phases of the same table are never in flight at once.
+One deployable phase; exercised down path (schema diff empty, data recovery separately proven or
+human-gated as irreversible); both compatibility checks and that phase's oracle above green;
+engine-specific index/lock rules named. Missing window telemetry parks the phase. CONTRACT has
+archived parity, zero-use/removal evidence and a human gate. One phase per table in flight.

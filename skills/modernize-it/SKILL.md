@@ -7,8 +7,8 @@ description: >-
   expand/migrate/contract) to get off old majors while keeping CI green → re-inventory until every
   major is current or pinned-with-a-reason. Use when "update the dependencies", "upgrade
   everything", "framework migration", "get off the old major", "move from Postgres 12 to 16", or
-  an unattended dependency-currency run. Not for stateful DB schema/data migration across deploys (hand that to ship-it) or
-  advisory exploit proof (harden-it).
+  an unattended dependency-currency run. Not for stateful DB schema/data migration across deploys
+  (hand that to migrate-it), ordinary feature delivery (ship-it), or advisory exploit proof (harden-it).
 license: MIT
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh; the package manager + a
@@ -37,9 +37,10 @@ addy — never co-mount a second router.
 
 Scope boundary: this mission owns DEPENDENCY/FRAMEWORK CURRENCY (bump → adapt call sites → CI green).
 STATEFUL DB schema/data migration across deploys is a different unit, state machine, and proof — hand
-a brief to `migrate-it`, which owns the expand → dual-write → backfill → switch → contract phases,
-one release each; the dependent upgrade is stage (2), between expand and contract. The upgrade is stage (2), never after contract. Never run a
-cross-deploy data migration inside a currency loop. Details: docs/missions/modernize-it.md.
+a brief to `migrate-it`, which owns each deploy-gated phase. Its plan places the dependent upgrade
+after expansion, preserves dual writes through backfill/switch, and contracts only after the
+upgraded code is deployed, stable and no longer uses the old shape. Track the handoff until its
+evidence returns; keep code-only upgrades here. Details: docs/missions/modernize-it.md.
 
 ## Two terminal outcomes
 
@@ -70,10 +71,10 @@ INVENTORY (outdated + advisories; read the CHANGELOG not the version delta; reac
     merge CHAIN (merge-serialization), regenerated at each rebase — and a rebase voids the review
     (reviewed-sha-freshness), so size coherent groups to keep the chain short)
   → FORCED-MIGRATION CHECK (risk-review data-migration lens): if an upgrade forces a stateful DB
-    schema/data change, do NOT run it here — open a staged ship-it handoff brief:
-    (1) expand release, (2) this dep upgrade + migrate-in-batches, (3) contract only after (2) is
-    deployed and stable. Parking the upgrade "behind the whole sequence" is wrong (would contract
-    first).
+    schema/data change, hand the migration and dependent upgrade to migrate-it with a phase brief:
+    expand → compatible upgrade/dual-write → backfill → switch → zero use → contract.
+    Track the handoff in the inventory; migrate-it places the upgrade between expand and contract,
+    with compatibility proven at each phase. Code-only upgrades continue through REVIEW below.
   → build-blind REVIEW (acceptance-review) → RUNTIME-PROVE (drive real entry points — green CI misses
     lazy imports and env-dependent init) → LAND
   → RE-INVENTORY → loop → outcome → REFLECT (`compound-learn`)
@@ -83,8 +84,10 @@ INVENTORY (outdated + advisories; read the CHANGELOG not the version delta; reac
 
 Every outdated dep: upgraded+merged with CI green (the green run referenced) OR pinned-and-parked with
 a written reason + human ref. Every merge kept CI green (check the merge commits' checks — a red
-pipeline never landed). Every upgrade that FORCED a stateful DB migration is handed off to ship-it with
-a brief and its dependent upgrade parked behind that handoff — never silently run inside this loop.
+pipeline never landed). Every upgrade that FORCED a stateful DB migration has a migrate-it handoff
+tracking the dependent upgrade between expand and contract; unresolved handoffs remain parked in
+the inventory with reason and human ref. Completed handoffs return phase/deploy evidence before
+the node can count as current — never silently run inside this loop.
 Advisory scan re-run clean (or each remaining one parked with reachability rationale). Final inventory
 pasted. Manifest names CURRENT or CURRENT-WITH-PINNED.
 
@@ -97,12 +100,12 @@ handoff). Stalls → WATCH; death → RESUME scoped to header coordinator + ledg
 ## Anti-patterns
 
 `audit fix --force` / mass-bump. Running a cross-deploy DB schema/data migration inside a currency loop
-(no deploy states here — hand it to ship-it). Rename-in-place code migrations (breaks dual-running
+(hand it to migrate-it). Rename-in-place code migrations (breaks dual-running
 deploys). Landing a red CI "to fix next PR". Bumping a major without its changelog. Dropping a compat
 shim without a gate. Hand-merging a lockfile conflict. Letting a just-bumped package's install hook run
 before its provenance is checked.
 
 ## Related
-`migrate-it` (owns stateful schema/data change across deploys), `ship-it` (the deploy states it
-rides), `clean-sweep`, `harden-it`
+`migrate-it` (owns stateful schema/data change across deploys), `ship-it` (ordinary feature
+delivery), `clean-sweep`, `harden-it`
 (advisory exploit proof), `review-it` (data-migration lens as a per-diff review).
