@@ -756,7 +756,8 @@ GRADER_SCHEMA = (
     'Return ONLY JSON: {"assertions":[{"text":string,"passed":boolean,'
     '"evidence":string}],"summary":{"passed":number,"failed":number,"total":number}}'
     ' Return each requested assertion exactly once, copying its text exactly. '
-    'For every passing assertion, cite the observed trace evidence in its evidence field.'
+    'For every passing assertion, evidence must be an exact, nonblank excerpt copied '
+    'from the agent trace, with no added citation labels or paraphrasing.'
 )
 
 
@@ -845,7 +846,10 @@ def _grade_trace(assertions: list[str], trace: str) -> dict | None:
             return None
         remaining.remove(text)
         evidence = row.get("evidence")
-        if row["passed"] and (not isinstance(evidence, str) or not evidence.strip()):
+        # Excerpt membership validates attribution, not the grader's semantic judgment.
+        if row["passed"] and (
+            not isinstance(evidence, str) or not evidence.strip() or evidence not in trace
+        ):
             return None
     return graded
 
