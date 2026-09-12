@@ -142,12 +142,84 @@ def _is_repo_verifier(token, root):
         return False  # an escape hatch out of the repo, wherever it currently points
     if tuple(parts[-3:]) != VERIFIER_PATH_PARTS:
         return False  # includes a bare `verify.py`, which resolves against cwd or PATH
-    if path.is_absolute():
-        try:
-            path.resolve().relative_to(Path(root).resolve())
-        except (ValueError, OSError):
-            return False
-    return True
+    try:
+        root = Path(root).resolve()
+        return (root / path).resolve() == root.joinpath(*VERIFIER_PATH_PARTS)
+    except (ValueError, OSError, RuntimeError):
+        return False
+
+
+def _valid_python_xoption(option):
+    """Known CPython 3.13 startup value constraints (using/cmdline.html#cmdoption-X).
+
+    This is argv validation, not authentication of the executable or its environment. In
+    particular gil=0 needs a free-threaded build; future/build-specific options are not modeled.
+    CPython permits arbitrary additional keys in sys._xoptions, so they are preserved.
+    """
+    name, sep, value = option.partition("=")
+    if name == "utf8":
+        return not sep or value in {"0", "1"}
+    if name == "gil":  # introduced in 3.13; build availability is a separate concern
+        return value in {"0", "1"}
+    if name == "frozen_modules":
+        return value in {"", "on", "off"}
+    if name not in {"int_max_str_digits", "cpu_count", "tracemalloc"}:
+        return True
+    if not sep:
+        return name == "tracemalloc"
+    if name == "cpu_count" and value == "default":  # introduced in 3.13
+        return True
+    # initconfig.c uses wcstol plus an INT_MAX bound, not Python's int grammar (underscores).
+    if value and not re.fullmatch(r"[ \t\r\n\f\v]*[+-]?[0-9]+", value):
+        return False
+    try:
+        number = int(value or "0")
+    except ValueError:
+        return False
+    if not 0 <= number <= 2147483647:
+        return False
+    if name == "int_max_str_digits":
+        return number == 0 or number >= 640
+    if name == "cpu_count":
+        return number >= 1
+    return number <= 65535  # tracemalloc's maximum traceback depth
+
+
+def _python_script_index(argv, i):
+    """Locate a script after Python options; reject non-script modes and unknown syntax.
+
+    Short options can cluster; -W/-X consume the rest of their token or the NEXT token.
+    Skipping all dash-prefixed tokens admits -cpass, -uV and --help without running a script.
+    """
+    xoptions = {}
+    while i < len(argv) and argv[i].startswith("-"):
+        token = argv[i]
+        if token == "--":
+            i += 1
+            break
+        if token == "--check-hash-based-pycs":
+            if i + 1 >= len(argv) or argv[i + 1] not in {"always", "default", "never"}:
+                return len(argv)
+            i += 2
+            continue
+        if token == "-" or token.startswith("--"):
+            return len(argv)
+        for offset, flag in enumerate(token[1:], start=1):
+            if flag in "WX":
+                value = token[offset + 1:]
+                if offset == len(token) - 1:
+                    i += 1  # consume the separate option argument, never mistake it for a script
+                    if i >= len(argv):
+                        return len(argv)
+                    value = argv[i]
+                if flag == "X":
+                    # CPython initializes from the FIRST occurrence of a key, not the last.
+                    xoptions.setdefault(value.partition("=")[0], value)
+                break
+            if flag not in "bBdEiIOPqRsSuvx":
+                return len(argv)  # includes c/m modes and h/?/V exits, even inside clusters
+        i += 1
+    return i if all(_valid_python_xoption(value) for value in xoptions.values()) else len(argv)
 
 
 class _SilentParser(argparse.ArgumentParser):
@@ -210,11 +282,7 @@ def executes_verifier(cmd, manifest_path, root=None):
     if i >= len(argv):
         return False
     if Path(argv[i]).name.startswith("python"):
-        i += 1
-        while i < len(argv) and argv[i].startswith("-"):
-            if argv[i] in ("-m", "-c"):
-                return False  # a module or an inline program, not the script on disk
-            i += 1
+        i = _python_script_index(argv, i + 1)
         if i >= len(argv):
             return False
     if not _is_repo_verifier(argv[i], root or ROOT):

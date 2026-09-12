@@ -82,14 +82,14 @@ def working_tree_fingerprint(cwd):
     return out, None
 
 
-def run_child(argv, artifact_path):
+def run_child(argv, artifact_path, cwd):
     """Run the child transparently. With an artifact, output is TEED — streamed to this process's
     stdout as it arrives AND written to the artifact file, so the evidence file and what a human
     watched are the same bytes."""
     started = time.monotonic()
     if artifact_path is None:
         try:
-            code = subprocess.run(argv, check=False).returncode
+            code = subprocess.run(argv, cwd=cwd, check=False).returncode
         except OSError as err:
             print(f"evidence-run: cannot execute {argv[0]!r}: {err}", file=sys.stderr)
             return None, time.monotonic() - started
@@ -99,10 +99,10 @@ def run_child(argv, artifact_path):
         sink = artifact_path.open("wb")
     except OSError as err:
         warn(f"cannot open artifact {artifact_path}: {err} — running without it")
-        return run_child(argv, None)
+        return run_child(argv, None, cwd)
     try:
         try:
-            proc = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            proc = subprocess.Popen(argv, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         except OSError as err:
             print(f"evidence-run: cannot execute {argv[0]!r}: {err}", file=sys.stderr)
             return None, time.monotonic() - started
@@ -145,9 +145,10 @@ def main(argv=None):
     ap = argparse.ArgumentParser(
         description="Run a command and record a content-bound evidence entry in the manifest.")
     ap.add_argument("--label", required=True, help="what this run proves, e.g. 'tests' / 'lint'")
-    ap.add_argument("--manifest", required=True, help="the unit's evidence manifest JSON")
+    ap.add_argument("--manifest", required=True,
+                    help="the unit's evidence manifest JSON (relative to --cwd)")
     ap.add_argument("--artifact", default=None,
-                    help="repo-relative path to tee the run's output into (recorded on the entry)")
+                    help="path to tee output into (relative to --cwd, recorded on the entry)")
     ap.add_argument("--cwd", default=None, help="directory to run in (default: the current one)")
     ap.add_argument("command", nargs=argparse.REMAINDER,
                     help="-- followed by the command to run (argv, never a shell line)")
@@ -170,7 +171,7 @@ def main(argv=None):
         warn(f"no working-tree fingerprint recorded: {err} — verify.py's commands check will treat "
              "this record as STALE")
 
-    code, duration = run_child(cmd, artifact_fs)
+    code, duration = run_child(cmd, artifact_fs, cwd)
     if code is None:
         return 1
 
@@ -178,7 +179,7 @@ def main(argv=None):
     commit, err = git_out(["rev-parse", "HEAD"], cwd)
     if err:
         warn(f"no HEAD commit recorded: {err}")
-    append_record(Path(args.manifest), {
+    append_record(cwd / args.manifest, {
         "label": args.label,
         "ts": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "cmd": line,
