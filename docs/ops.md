@@ -28,6 +28,8 @@ published: green preparation checks validate all historical releases too.
 Start on a clean release branch with full history and tags fetched. Set
 `RELEASE_VERSION` to the next semantic version and `RELEASE_DATE` to its ISO date
 (`export RELEASE_VERSION=0.6.2 RELEASE_DATE=2026-09-12`, for example).
+Run each complete block in order. Its subshell stops on any failed command
+without depending on error-handling options in your interactive shell.
 
 ### Prepare
 
@@ -36,6 +38,10 @@ newest heading as preparing. Regenerate badges if catalog content changed.
 
 <!-- release:prepare -->
 ```bash
+(
+set -eu
+status=$(git status --porcelain)
+test -z "$status"
 python3 - <<'PY_RELEASE'
 import json, os, re
 from datetime import date
@@ -64,6 +70,7 @@ data["preparing"] = {"version": version, "cut_date": day}
 path.write_text(json.dumps(data, indent=2) + "\n")
 PY_RELEASE
 python3 -m unittest tests.test_docs_navigation.TestDocsNavigation tests.test_docs_navigation.EveryReleaseHasTheTagItDescribes
+)
 ```
 
 Run the repository gates, including `python3 scripts/validate.py` and
@@ -73,8 +80,12 @@ newest preparing heading has no cut SHA. Green checks do not authorize publicati
 
 <!-- release:cut -->
 ```bash
+(
+set -eu
+python3 -c 'import json, os; assert json.load(open("docs/releases.json"))["preparing"]["version"] == os.environ["RELEASE_VERSION"]'
 git add CHANGELOG.md .claude-plugin/plugin.json .claude-plugin/marketplace.json docs/releases.json
 git commit -m "Prepare release $RELEASE_VERSION"
+)
 ```
 
 ### Tag and record provenance
@@ -85,51 +96,57 @@ rehearsal may create local tags in its disposable repository without publication
 
 <!-- release:tag -->
 ```bash
-test -z "$(git status --porcelain)"
+(
+set -eu
+status=$(git status --porcelain)
+test -z "$status"
 python3 -c 'import json, os; assert json.load(open("docs/releases.json"))["preparing"]["version"] == os.environ["RELEASE_VERSION"]'
 cut_sha=$(git rev-parse HEAD)
 git tag -a "v$RELEASE_VERSION" "$cut_sha" -m "orca-fleet $RELEASE_VERSION"
 python3 -m unittest tests.test_docs_navigation.TestDocsNavigation tests.test_docs_navigation.EveryReleaseHasTheTagItDescribes
+)
 ```
 
 Record the existing cut in a **new commit**, keeping the cut and its tag unchanged.
 The command rejects a missing tag, a lightweight tag, or a tag at another cut.
+Keep `RELEASE_VERSION` set to the authorized version. The same block accepts
+its exact recorded inventory on retry, including after the commit succeeded.
 
 <!-- release:record -->
 ```bash
+(
+set -eu
 python3 - <<'PY_RELEASE'
 import json, os, subprocess
 from pathlib import Path
 def git(*args):
     return subprocess.check_output(["git", *args], text=True).strip()
-version = os.environ["RELEASE_VERSION"]
-tag = "v" + version
+path = Path("docs/releases.json")
+data = json.loads(path.read_text())
+tag = "v" + os.environ["RELEASE_VERSION"]
 ref = "refs/tags/" + tag
 assert git("cat-file", "-t", ref) == "tag", "an annotated tag is required"
 cut = git("rev-parse", ref + "^{commit}")
 git("merge-base", "--is-ancestor", cut, "HEAD")
 # The cut is immutable, so it -- not the working tree -- says what this release records.
 at_cut = json.loads(git("show", cut + ":docs/releases.json"))
-pending = at_cut["preparing"]
-assert pending and pending["version"] == version, "the cut does not prepare this version"
+pending = at_cut.get("preparing")
+assert pending and pending["version"] == os.environ["RELEASE_VERSION"], "wrong release cut"
+recorded = {**at_cut, "preparing": None,
+            "releases": [*at_cut["releases"], {**pending, "tag": tag, "commit": cut}]}
+assert data in (at_cut, recorded), "inventory differs from the cut or its exact provenance"
+assert not git("status", "--porcelain", "--", ".", ":(exclude)docs/releases.json"), "unrelated changes"
 git("diff", "--exit-code", cut, "--", "CHANGELOG.md", ".claude-plugin")
-row = {**pending, "tag": tag, "commit": cut}
-path = Path("docs/releases.json")
-data = json.loads(path.read_text())
-# Resumable: the validation and the commit below both run AFTER this file is rewritten, so a
-# failure there leaves the release appended and preparing cleared. Rerunning the step has to
-# finish the release rather than stop at "no release is preparing".
-if data["preparing"] is None and data["releases"][-1:] == [row]:
-    assert data["releases"][:-1] == at_cut["releases"], "recorded rows do not match the cut"
-else:
-    assert data["preparing"] == pending and data["releases"] == at_cut["releases"]
-    data["releases"].append(row)
-    data["preparing"] = None
-    path.write_text(json.dumps(data, indent=2) + "\n")
+if data != recorded:
+    path.write_text(json.dumps(recorded, indent=2) + "\n")
 PY_RELEASE
 python3 -m unittest tests.test_docs_navigation.TestDocsNavigation tests.test_docs_navigation.EveryReleaseHasTheTagItDescribes
 git add docs/releases.json
-git diff --cached --quiet || git commit -m "Record release $RELEASE_VERSION provenance"
+changes=$(git diff --cached --name-only -- docs/releases.json)
+if [ -n "$changes" ]; then
+    git commit -m "Record release $RELEASE_VERSION provenance"
+fi
+)
 ```
 
 Re-run the repository gates and review the provenance commit before publishing
@@ -141,11 +158,14 @@ The executable rehearsal is `python3 -m unittest tests.test_docs_navigation.Rele
 **Recovery:** fetch missing historical tags first; compare each annotated tag's
 peeled commit with its existing row. A mismatch stops the release for maintainer
 investigation. Preserve published rows and refs; correct a bad release with a new
-version. If tagging succeeded but recording failed, rerun the record step as written:
-it takes the release row from the cut rather than the working tree, so it completes
-whether or not `docs/releases.json` was already rewritten, re-validating an
-already-recorded row instead of appending a second one. Do not amend the cut or
-recreate its tag.
+version. If tagging succeeded but recording failed, resolve the reported Git or
+validation error and rerun the entire record block with the same `RELEASE_VERSION`.
+Leave the inventory and any staged provenance in place: the block validates them
+against the existing tag's cut, completes an interrupted write/stage/commit sequence,
+and makes no new commit if recording already succeeded. Investigate a lock's owner
+before removing a stale lock; never delete an active process's lock. An inventory
+that differs from both expected states stops for investigation. Do not amend the
+cut, recreate its tag, or reset published mappings to make a retry pass.
 
 ## Incident (2 a.m.)
 

@@ -11,6 +11,7 @@ can reach it. Each invariant here failed once (issue number on the test).
     python3 -m unittest discover -s tests -v
 """
 import importlib.util
+import hashlib
 import json
 import os
 import re
@@ -47,7 +48,7 @@ class FreshHomeInstallation(unittest.TestCase):
                                 (home / ".claude/skills").mkdir(parents=True)
                             cwd = ROOT if "cd orca-fleet" in block else home
                             run = subprocess.run(
-                                ["sh", "-eu", "-c", "\n".join(commands)], cwd=cwd,
+                                ["sh", "-c", "\n".join(commands)], cwd=cwd,
                                 env={**os.environ, "HOME": tmp}, capture_output=True, text=True,
                             )
                             self.assertEqual(run.returncode, 0, run.stderr)
@@ -61,30 +62,91 @@ class FreshHomeInstallation(unittest.TestCase):
                                 self.assertTrue((link / "SKILL.md").read_text())
 
 
+def git_target(cwd, env):
+    """Where Git really acts from cwd: [worktree, git dir, common dir]. A path is not proof."""
+    out = subprocess.run(["git", "rev-parse", "--path-format=absolute", "--show-toplevel",
+                          "--absolute-git-dir", "--git-common-dir"], cwd=cwd, env=env,
+                         capture_output=True, text=True, check=True).stdout
+    return [Path(line).resolve() for line in out.splitlines()]
+
+
+class ReleaseRehearsalIsolation(unittest.TestCase):
+    def test_inherited_git_selection_cannot_mutate_another_repository(self):
+        # A hook or wrapper can export Git's repository selection; cwd does not override it.
+        with tempfile.TemporaryDirectory(prefix="fleet-release-decoy-") as tmp:
+            decoy = Path(tmp).resolve() / "decoy"
+            decoy.mkdir()
+            clean = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
+            clean.update(GIT_CONFIG_NOSYSTEM="1", GIT_CONFIG_GLOBAL="/dev/null")
+
+            def git(*args):
+                return subprocess.check_output(["git", *args], cwd=decoy, env=clean,
+                                               text=True, stderr=subprocess.PIPE).strip()
+
+            git("init", "--quiet")
+            self.assertEqual(git_target(decoy, clean), [decoy, decoy / ".git", decoy / ".git"])
+            git("remote", "add", "origin", str(Path(tmp) / "unused-owned-origin"))
+            git("-c", "user.name=Release Fixture", "-c", "user.email=fixture@example.invalid",
+                "-c", "commit.gpgsign=false", "-c", "core.hooksPath=/dev/null",
+                "commit", "--allow-empty", "-m", "Owned decoy")
+
+            def snapshot():
+                return {str(p.relative_to(decoy)): hashlib.sha256(p.read_bytes()).hexdigest()
+                        for p in decoy.rglob("*") if p.is_file()}
+
+            before = snapshot()
+            # Each of these made the unscrubbed rehearsal write into an owned decoy.
+            contaminated = {**clean, "GIT_DIR": str(decoy / ".git"),
+                            "GIT_COMMON_DIR": str(decoy / ".git"),
+                            "GIT_INDEX_FILE": str(decoy / ".git" / "index"),
+                            "GIT_OBJECT_DIRECTORY": str(decoy / ".git" / "objects")}
+            result = subprocess.run(
+                [sys.executable, "-m", "unittest", "tests.test_docs_navigation.ReleaseCutWalkthrough"],
+                cwd=ROOT, env=contaminated, capture_output=True, text=True)
+            self.assertEqual(snapshot(), before, "rehearsal modified the owned decoy repository")
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+
 class ReleaseCutWalkthrough(unittest.TestCase):
     def test_next_release_preparation_cut_tag_and_provenance(self):
         # Run the documented commands in an independent ref namespace. No network,
         # real tag mutation, or shell-command mocks; the historical refs are controls.
         with tempfile.TemporaryDirectory(prefix="fleet-release-") as tmp:
-            repo = Path(tmp) / "repo"
-            env = {**os.environ, "PATH": str(Path(sys.executable).parent) + os.pathsep
+            owned = Path(tmp).resolve()
+            repo = owned / "repo"
+            # Git's explicit repository/index/object selection overrides cwd.
+            # Scrub it before cloning AND for every descendant, including shell steps.
+            env = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
+            env.update({"PATH": str(Path(sys.executable).parent) + os.pathsep
                    + os.environ["PATH"], "GIT_CONFIG_COUNT": "5",
+                   "GIT_CONFIG_NOSYSTEM": "1", "GIT_CONFIG_GLOBAL": "/dev/null",
                    "GIT_CONFIG_KEY_0": "user.name", "GIT_CONFIG_VALUE_0": "Release Fixture",
                    "GIT_CONFIG_KEY_1": "user.email",
                    "GIT_CONFIG_VALUE_1": "fixture@example.invalid",
                    "GIT_CONFIG_KEY_2": "commit.gpgsign", "GIT_CONFIG_VALUE_2": "false",
                    "GIT_CONFIG_KEY_3": "core.hooksPath", "GIT_CONFIG_VALUE_3": "/dev/null",
-                   "GIT_CONFIG_KEY_4": "tag.gpgsign", "GIT_CONFIG_VALUE_4": "false"}
+                   "GIT_CONFIG_KEY_4": "tag.gpgsign", "GIT_CONFIG_VALUE_4": "false"})
 
             def run(*argv, ok=True):
+                # A directory name alone cannot prove where Git will write.
+                self.assertEqual(repo.resolve().parent, owned)
+                self.assertEqual(git_target(repo, env), [repo, repo / ".git", repo / ".git"],
+                                 "Git escaped the owned rehearsal repository")
                 p = subprocess.run(argv, cwd=repo, env=env, capture_output=True, text=True)
                 if ok:
                     self.assertEqual(p.returncode, 0, p.stdout + p.stderr)
                 return p
 
-            subprocess.run(["git", "clone", "--quiet", "--shared", str(ROOT), str(repo)],
-                           check=True, capture_output=True)
+            self.assertFalse(repo.exists())
+            subprocess.run(["git", "clone", "--quiet", "--no-hardlinks", str(ROOT), str(repo)],
+                           cwd=owned, env=env, check=True, capture_output=True)
             run("git", "remote", "remove", "origin")
+            # Own the fixture's HEAD. CI checks the PR merge ref out DETACHED with no local
+            # branch at it, and a clone of that source is detached too — so `symbolic-ref HEAD`
+            # below died with "ref HEAD is not a symbolic ref" in CI while passing locally,
+            # where a branch happens to point at HEAD. A rehearsal must not inherit the host's
+            # HEAD state any more than it inherits its GIT_* variables.
+            run("git", "checkout", "-B", "release-rehearsal")
             for path in ("docs/ops.md", "docs/releases.json", "tests/test_docs_navigation.py"):
                 shutil.copyfile(ROOT / path, repo / path)
             inventory = json.loads((repo / "docs/releases.json").read_text())
@@ -109,15 +171,36 @@ class ReleaseCutWalkthrough(unittest.TestCase):
             def step(name, ok=True):
                 match = re.search(rf"<!-- release:{name} -->\s*```bash\n(.*?)```", doc, re.S)
                 self.assertIsNotNone(match, f"Release {name} has no executable walkthrough")
-                return run("sh", "-eu", "-c", match.group(1), ok=ok)
+                # The ordinary invocation: no error-handling options beyond the block's own.
+                return run("sh", "-c", match.group(1), ok=ok)
 
+            def stopped(name, why):
+                head = run("git", "rev-parse", "HEAD").stdout
+                self.assertNotEqual(step(name, ok=False).returncode, 0, why)
+                self.assertEqual(run("git", "rev-parse", "HEAD").stdout, head, why)
+                self.assertEqual(run("git", "show-ref", "--tags").stdout, refs, why)
+
+            dirty = repo / "dirty-fixture.txt"
+            dirty.write_text("owned invalid state\n")
+            stopped("prepare", "a dirty tree must stop preparation")
+            self.assertEqual(run("git", "status", "--porcelain").stdout, "?? dirty-fixture.txt\n")
+            dirty.unlink()
             step("prepare")
+            env["RELEASE_VERSION"] = version + "9"
+            stopped("cut", "a mismatched version must stop the cut")
+            env["RELEASE_VERSION"] = version
             step("cut")
             cut = run("git", "rev-parse", "HEAD").stdout.strip()
             prepared = json.loads((repo / "docs/releases.json").read_text())
             self.assertEqual(prepared["releases"], historical)
             self.assertEqual(prepared["preparing"], {"version": version, "cut_date": "2026-09-12"})
             self.assertEqual(run("git", "show-ref", "--tags").stdout, refs)
+            env["RELEASE_VERSION"] = version + "9"
+            stopped("tag", "a mismatched version must stop tagging")
+            env["RELEASE_VERSION"] = version
+            dirty.write_text("owned invalid state\n")
+            stopped("tag", "a dirty tree must stop tagging")
+            dirty.unlink()
 
             def rejected_state():
                 result = run(sys.executable, "-m", "unittest",
@@ -190,6 +273,35 @@ class ReleaseCutWalkthrough(unittest.TestCase):
                                         "a rewritten row must not pass as an interrupted record")
             run("git", "reset", "--hard", cut)
 
+            # Interrupt recording after its inventory write: a failed in-block validation,
+            # then Git locks before staging and during commit. Each retry is the same block.
+            branch = run("git", "symbolic-ref", "HEAD").stdout.strip()
+
+            def history_missing():
+                run("git", "update-ref", "-d", historical_ref)
+                return lambda: run("git", "update-ref", historical_ref, historical_object)
+
+            def locked(name):
+                lock = repo / ".git" / name  # created only inside this owned clone
+                self.assertTrue(lock.resolve().is_relative_to(repo / ".git"))
+                lock.parent.mkdir(parents=True, exist_ok=True)
+                with lock.open("x") as handle:
+                    handle.write("owned interruption control\n")
+                return lock.unlink
+
+            for interrupt, reason in ((history_missing, "FAIL:"),
+                                      (lambda: locked("index.lock"), ".lock"),
+                                      (lambda: locked(branch + ".lock"), ".lock")):
+                undo = interrupt()
+                try:
+                    interrupted = step("record", ok=False)
+                finally:
+                    undo()
+                self.assertNotEqual(interrupted.returncode, 0)
+                self.assertIn(reason, interrupted.stderr)
+                self.assertIsNone(json.loads(inventory_path.read_text())["preparing"])
+                self.assertEqual(run("git", "rev-parse", "HEAD").stdout.strip(), cut)
+                self.assertEqual(run("git", "rev-parse", f"{tag}^{{commit}}").stdout.strip(), cut)
             step("record")
             final = json.loads((repo / "docs/releases.json").read_text())
             self.assertIsNone(final["preparing"])
@@ -197,9 +309,16 @@ class ReleaseCutWalkthrough(unittest.TestCase):
             self.assertEqual(final["releases"][-1], {"version": version, "tag": tag,
                                                     "commit": cut, "cut_date": "2026-09-12"})
             self.assertNotEqual(run("git", "rev-parse", "HEAD").stdout.strip(), cut)
+            provenance = run("git", "rev-parse", "HEAD").stdout.strip()
+            step("record")  # A retry after success must neither duplicate rows nor add a commit.
+            self.assertEqual(run("git", "rev-parse", "HEAD").stdout.strip(), provenance)
+            self.assertEqual(json.loads(inventory_path.read_text()), final)
             rewritten = json.loads(json.dumps(final))
             rewritten["releases"][0]["commit"] = cut
             inventory_path.write_text(json.dumps(rewritten))
+            self.assertNotEqual(step("record", ok=False).returncode, 0,
+                                "a retry must not adopt a rewritten published row")
+            self.assertEqual(run("git", "rev-parse", "HEAD").stdout.strip(), provenance)
             run("git", "tag", "-d", historical_tag)
             run("git", "tag", "-a", historical_tag, cut, "-m", "Rewritten fixture history")
             rejected_state()  # Changing both the row and its ref cannot rewrite a release.
