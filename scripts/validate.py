@@ -877,6 +877,11 @@ COUNT_LINT_FILES = (
     "README.md", "ARCHITECTURE.md", "AGENTS.md", "docs/concepts.md",
     "docs/getting-started.md",
     "CONTRIBUTING.md", ".claude-plugin/plugin.json", ".claude-plugin/marketplace.json",
+    # The GitHub About box is a repository setting, so no lint can reach it — but its
+    # canonical text is a file, and that file is why the box stopped carrying a count
+    # it had already gone stale on twice. Linting it keeps the count from creeping back
+    # into the one surface every external indexer scrapes. See docs/about.md.
+    "docs/about.md",
 )
 # Catalog-SIZE phrasings only: a digit or spelled number in the catalog range, landing
 # on a catalog noun ("11 missions", "eleven missions", "10 outcome-named"), hyphenated
