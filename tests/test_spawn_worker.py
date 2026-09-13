@@ -12,6 +12,7 @@ import json
 import subprocess
 import tempfile
 import unittest
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -161,13 +162,15 @@ class TestDangerSandboxEvidence(unittest.TestCase):
             '{"recipe": "lane-7", "ok": true, "failures": [], "warnings": []}',
             ORCA_SANDBOX_RECIPE="lane-7")
         self.assertIn("doctored clear by this script", err)
-        self.assertNotIn("sandbox", err.split("doctored clear by this script")[1])
+        self.assertEqual(rc, 2, err)
+        self.assertIn("authoritative placement", err)
 
     def test_a_clear_text_transcript_passes_the_gate(self):
         rc, _out, err = self._with_doctor("recipe lane-7 ok:true\n0 warnings, no failures\n",
                                           ORCA_SANDBOX_RECIPE="lane-7")
         self.assertIn("doctored clear by this script", err)
-        self.assertNotIn("sandbox", err.split("doctored clear by this script")[1])
+        self.assertEqual(rc, 2, err)
+        self.assertIn("authoritative placement", err)
 
     def test_the_transcript_is_written_where_the_ledger_wants_it(self):
         # ORCA_SANDBOX_DOCTOR inverted: an OUTPUT path for the lane ledger, not a trusted input.
@@ -381,6 +384,99 @@ esac
     RO = {"PROFILE": "ro"}
     ARGS = ["task_test", "path:/tmp/wt", "t"]
 
+    def _parallel_scratch_attempts(self, profile, pattern):
+        # AC-2: two distinct tasks with one title, followed by parallel retries of both.
+        # Assert retained receipt contents, not just a generated name or a timing-dependent race.
+        with tempfile.TemporaryDirectory(prefix="spawn shared ") as tmp:
+            root = Path(tmp)
+            self._stub(tmp)
+            (root / "task-list.json").write_text(json.dumps(task_list_payload(
+                {"id": "task_a", "status": "ready"}, {"id": "task_b", "status": "ready"})))
+            stub = root / "orca"
+            text = stub.read_text()
+            for name in ("receipt", "inject", "terminal-create"):
+                text = text.replace(f'cat "{tmp}/{name}.json"',
+                                    f'cat "{tmp}/{name}-$TEST_ATTEMPT.json"')
+            stub.write_text(text)
+            attempts = ["a1", "b1", "a2", "b2"]
+            for attempt in attempts:
+                receipt = copy.deepcopy(self.READY_RECEIPT)
+                receipt["result"].update(taskId=f"task_{attempt[0]}", dispatchId=attempt)
+                receipt["result"]["effects"][0]["id"] = f"term_{attempt}"
+                (root / f"receipt-{attempt}.json").write_text(json.dumps(receipt))
+                injection = json.loads((root / "inject.json").read_text())
+                injection["result"]["dispatch"]["id"] = attempt
+                (root / f"inject-{attempt}.json").write_text(json.dumps(injection))
+                (root / f"terminal-create-{attempt}.json").write_text(json.dumps(
+                    {"result": {"terminal": {"handle": f"term_{attempt}"}}}))
+
+            def start(attempt):
+                return self._run(tmp, [f"task_{attempt[0]}", "current", "Review unit"],
+                                 dict(profile, TEST_ATTEMPT=attempt))
+
+            results = []
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                results.extend(pool.map(start, attempts[:2]))
+                results.extend(pool.map(start, attempts[2:]))
+            for result in results:
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            receipts = list(root.rglob(pattern))
+            self.assertEqual(len(receipts), 4, "each attempt must retain its own receipt")
+            directories = {p.parent for p in receipts}
+            self.assertEqual(len(directories), 4, "all scratch files need per-attempt storage")
+            ids = set()
+            for receipt in receipts:
+                data = json.loads(receipt.read_text())["result"]
+                ids.add(data.get("dispatchId") or data["dispatch"]["id"])
+                self.assertEqual(len(list(receipt.parent.glob("tl-*.json"))), 1)
+            self.assertEqual(ids, set(attempts))
+            for attempt, result in zip(attempts, results):
+                self.assertIn(f"HANDLE=term_{attempt} ", result.stdout)
+                scratch = next(line.removeprefix("SCRATCH=") for line in result.stdout.splitlines()
+                               if line.startswith("SCRATCH="))
+                self.assertIn(Path(scratch), directories)
+
+    def test_parallel_same_title_tasks_and_retries_keep_supervised_receipts(self):
+        self._parallel_scratch_attempts(self.RW, "ws-*.json")
+
+    def test_parallel_same_title_tasks_and_retries_keep_custom_lane_receipts(self):
+        self._parallel_scratch_attempts(self.RO, "dispatch-*.json")
+
+    def test_danger_refuses_unbound_placement_after_clear_doctor_in_both_lanes(self):
+        # AC-1: a healthy recipe is not proof of where the worker will execute.
+        # Even a ready receipt with the bypass flag cannot establish this BEFORE launch.
+        for selector in ("current", "path:/tmp/local", "id:repo-b::/sandbox-b"):
+            for override in (False, True):
+                with self.subTest(selector=selector, override=override):
+                    with tempfile.TemporaryDirectory() as tmp:
+                        log = self._stub(tmp)
+                        doctor = Path(tmp) / "doctor.json"
+                        doctor.write_text(json.dumps({"recipe": "lane-7", "ok": True,
+                                                      "failures": [], "warnings": []}))
+                        stub = Path(tmp) / "orca"
+                        stub.write_text(stub.read_text().replace(
+                            'case "$*" in',
+                            f'case "$*" in\n  *"recipe doctor"*) cat "{doctor}" ;;', 1))
+                        env = {"PROFILE": "danger", "ORCA_COORD_ALLOW_DANGER": "1",
+                               "ORCA_SANDBOX_RECIPE": "lane-7"}
+                        if override:
+                            env.update(WORKER_CMD="claude --dangerously-skip-permissions",
+                                       ORCA_COORD_ALLOW_CMD_OVERRIDE="1")
+                        p = self._run(tmp, ["task_test", selector, "t"], env)
+                        self.assertEqual(p.returncode, 2, p.stdout + p.stderr)
+                        self.assertIn("doctored clear by this script", p.stderr)
+                        self.assertIn("SPAWN=REFUSED", p.stderr)
+                        self.assertIn("authoritative placement", p.stderr)
+                        self.assertIn("PROFILE=ro or PROFILE=rw", p.stderr)
+                        calls = log.read_text()
+                        self.assertIn("recipe doctor lane-7", calls)
+                        # #335 review: the refusal is unconditional, so no doctor verdict can
+                        # authorize this lane and provisioning a VM only bills for the privilege.
+                        self.assertNotIn("--provision", calls)
+                        for launch in ("worker-start", "terminal create", "--inject",
+                                       "task-update"):
+                            self.assertNotIn(launch, calls)
+
     # --- (a) custom-argv lane: receipted sends, no blind Enter ---------------------------
 
     def test_no_blind_enter_and_no_loop(self):
@@ -415,33 +511,63 @@ esac
             self.assertNotIn("terminal send", log.read_text(),
                              "no replay is possible without a requestId — and no resend either")
 
-    def test_missing_turn_start_replays_receipt_exactly_once(self):
-        # The replay is `terminal send --retry-request <id> --wait-submit <s>`: it REPLAYS the
-        # recorded receipt and never resends. v1.4.199 also requires --text with --enter, so the
-        # exact preamble is recovered with `dispatch-show --preamble` first.
-        with tempfile.TemporaryDirectory() as tmp:
-            log = self._stub(tmp, inject={"result": {"injected": True, "prompt": {
-                "requestId": "req_1", "stages": ["input_accepted"]}}})
-            p = self._run(tmp, self.ARGS, self.RO)
-            self.assertEqual(p.returncode, 0, p.stdout + p.stderr)
-            sends = [l for l in log.read_text().splitlines() if "terminal send" in l]
-            self.assertEqual(len(sends), 1, f"exactly one replay, never a loop: {sends}")
-            self.assertIn("--retry-request req_1", sends[0])
-            self.assertIn("--wait-submit", sends[0])
-            self.assertIn("--text", sends[0])
-            self.assertIn("dispatch-show --task task_test --preamble", log.read_text())
-            self.assertIn("STAGES=input_accepted,turn_started", p.stdout)
+    def test_dispatch_request_cannot_be_retried_as_terminal_send(self):
+        # AC-3 / pin helper-regenerated-retry: Orca 1.4.200 rejects the cross-method
+        # retry with request_mismatch. Even --return-preamble's original bytes cannot
+        # change the mutation method bound to a dispatch request. All identities here
+        # are synthetic; no real helper, capability, or terminal is reused.
+        for original in (None, "ORIGINAL BODY\n\n"):
+            with self.subTest(original_available=original is not None):
+                with tempfile.TemporaryDirectory() as tmp:
+                    injection = {"result": {"dispatch": {"id": "ctx_x"}, "injected": True,
+                                           "prompt": {"requestId": "req_1",
+                                                      "stages": ["input_accepted"]}}}
+                    if original is not None:
+                        injection["result"]["preamble"] = original
+                    log = self._stub(tmp, inject=injection,
+                                     preamble={"result": {"dispatch": {"id": "ctx_x"},
+                                                          "preamble": "REGENERATED BODY"}},
+                                     send={"error": {"code": "request_mismatch",
+                                                     "message": "Request used with different input"}},
+                                     send_rc=1)
+                    p = self._run(tmp, self.ARGS, self.RO)
+                    calls = log.read_text()
+                    self.assertNotIn("terminal send", calls,
+                                     "a dispatch request must never become a terminal-send retry")
+                    self.assertNotIn("dispatch-show", calls,
+                                     "a generated preview is not the original retry payload")
+                    self.assertEqual(p.returncode, 3, p.stdout + p.stderr)
+                    self.assertIn("HANDLE=term_shell1 STAGES=input_accepted", p.stdout)
+                    self.assertIn("SPAWN=UNPROVEN", p.stderr)
+                    self.assertIn("original", p.stderr)
+                    self.assertIn("orca terminal read --terminal term_shell1 --screen", p.stderr)
+                    self.assertIn("never respawn", p.stderr)
+                    self.assertEqual(calls.count("orchestration dispatch --task"), 1)
+                    self.assertEqual(calls.count("terminal create"), 1)
+                    for cleanup in ("worker-stop", "worker-abandon", "worker-release", "terminal close"):
+                        self.assertNotIn(cleanup, calls)
+                    receipts = list(Path(tmp).rglob("dispatch-*.json"))
+                    self.assertEqual(len(receipts), 1)
+                    self.assertEqual(json.loads(receipts[0].read_text()), injection)
+                    self.assertEqual(len(list(receipts[0].parent.glob("sw-*.json"))), 1)
 
-    def test_replay_refusal_never_falls_back_to_resend(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            log = self._stub(tmp, inject={"result": {"injected": True, "prompt": {
-                "requestId": "req_1", "stages": ["input_accepted"]}}},
-                send={"error": {"code": "incompatible_runtime"}}, send_rc=1)
-            p = self._run(tmp, self.ARGS, self.RO)
-            self.assertEqual(p.returncode, 3, p.stdout + p.stderr)
-            self.assertIn("SPAWN=REPLAY_REFUSED", p.stderr)
-            sends = [l for l in log.read_text().splitlines() if "terminal send" in l]
-            self.assertEqual(len(sends), 1, "a refused replay is never retried or downgraded")
+    def test_unbound_replay_turn_start_cannot_prove_dispatch(self):
+        # A different request's activity and a nonzero send with success-shaped JSON
+        # are neither proof of this dispatch starting. The wrapper must keep its
+        # original accepted-only receipt, including on a permissive/changed host.
+        for send_rc in (0, 1):
+            with self.subTest(send_rc=send_rc):
+                with tempfile.TemporaryDirectory() as tmp:
+                    log = self._stub(tmp, inject={"result": {"injected": True, "prompt": {
+                        "requestId": "req_1", "stages": ["input_accepted"]}}},
+                        send={"result": {"send": {"accepted": True, "prompt": {
+                            "requestId": "req_unrelated", "stages": ["turn_started"]}}}},
+                        send_rc=send_rc)
+                    p = self._run(tmp, self.ARGS, self.RO)
+                    self.assertEqual(p.returncode, 3, p.stdout + p.stderr)
+                    self.assertIn("STAGES=input_accepted", p.stdout)
+                    self.assertNotIn("turn_started", p.stdout)
+                    self.assertNotIn("terminal send", log.read_text())
 
     # --- (c) terminal wait: read wait.satisfied ------------------------------------------
 
