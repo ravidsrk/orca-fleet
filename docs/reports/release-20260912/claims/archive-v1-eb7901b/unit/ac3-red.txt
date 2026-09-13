@@ -1,0 +1,9 @@
+root: /Users/ravindra/orca/workspaces/orca-fleet/codex-release-claims-20260912
+commit: 9eb2e6f6171845100b969e2d59e65b0d34ddf86f
+authoritative mission terminal states: ['OPERABLE', 'OPERABLE-WITH-PARKED']
+field-proof plan row: | oncall-it | needs a live incident — an external service with a paging surface, or a replayed postmortem against a real timeline | external-run | `RESOLVED` (or `-WITH-PARKED`) | a target + Orca |
+Traceback (most recent call last):
+  File "/tmp/orca-release-audit-20260912/claims-evidence/claims_probe.py", line 61, in <module>
+    assert declared and declared <= allowed, f'plan terminals {declared} violate mission {allowed}'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: plan terminals {'RESOLVED'} violate mission {'OPERABLE', 'OPERABLE-WITH-PARKED'}

@@ -1,0 +1,35 @@
+{
+  "unit": "claims",
+  "title": "Accurate public and proof claims",
+  "finding_ids": [
+    "C8",
+    "C11",
+    "C10"
+  ],
+  "base_sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+  "criterion_ids": [
+    "AC-1",
+    "AC-2",
+    "AC-3"
+  ],
+  "criteria": [
+    {
+      "id": "AC-1",
+      "text": "Describe change provenance as supporting evidence only; no metadata-equals-regulatory-conformance guarantee. Verify legal applicability/date claims from current primary official sources and distinguish absent operational logging/disclosure/marking."
+    },
+    {
+      "id": "AC-2",
+      "text": "Distribution copy distinguishes deterministic checks, coordinator-owned reruns, worker-attested records and advisory native hooks."
+    },
+    {
+      "id": "AC-3",
+      "text": "Oncall field-proof plan targets OPERABLE and signals/alert receipt/induced failure/removal control with both blind oracle runs."
+    }
+  ],
+  "scope": [
+    "docs/compliance-provenance.md",
+    "docs/distribution.md",
+    "docs/runs/README.md"
+  ],
+  "lighting": "lit"
+}

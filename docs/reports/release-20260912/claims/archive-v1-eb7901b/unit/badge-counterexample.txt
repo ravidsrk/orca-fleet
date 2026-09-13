@@ -1,0 +1,26 @@
+root: /Users/ravindra/orca/workspaces/orca-fleet/codex-release-claims-20260912
+commit: 9eb2e6f6171845100b969e2d59e65b0d34ddf86f
+{"fixture": "False", "test_exit": 1, "badge": {"schemaVersion": 1, "label": "contract tests", "message": "1 passing", "color": "2ea043"}}
+F
+======================================================================
+FAIL: test_behavior (test_fixture.Fixture.test_behavior)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmpnno5qws4/test_fixture.py", line 4, in test_behavior
+    self.assertTrue(False)
+    ~~~~~~~~~~~~~~~^^^^^^^
+AssertionError: False is not true
+
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+FAILED (failures=1)
+
+{"fixture": "True", "test_exit": 0, "badge": {"schemaVersion": 1, "label": "contract tests", "message": "1 passing", "color": "2ea043"}}
+.
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+OK
+
+COUNTEREXAMPLE: failing and passing fixtures yield identical public passing badge.
