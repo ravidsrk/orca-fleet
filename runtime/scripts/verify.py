@@ -1633,8 +1633,12 @@ def _gitleaks_scan(path):
     (gitleaks unusable — the caller falls back to the built-in patterns)."""
     if shutil.which("gitleaks") is None:
         return None
-    code, _, _ = _run(["gitleaks", "detect", "--no-git", "--no-banner", "--redact",
-                       "--source", str(path)], timeout=120)
+    # cwd is the evidence copy's directory, never the unit checkout: gitleaks
+    # otherwise inherits the process cwd (the worker/test repo) and can write
+    # under .git/objects while tests tear that tree down (#340).
+    code, _, _ = _run_at(str(Path(path).parent),
+                         ["gitleaks", "detect", "--no-git", "--no-banner", "--redact",
+                          "--source", str(path)], timeout=120)
     if code == 0:
         return False
     if code == 1:
