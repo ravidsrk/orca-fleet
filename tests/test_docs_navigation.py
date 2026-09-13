@@ -405,11 +405,21 @@ class TestDocsNavigation(unittest.TestCase):
         # Issue #35: the index predated the newest run — the report that backs
         # oss-contribute's `proof: external-run` frontmatter was invisible from
         # the archive's own index. Every dated report must be a linked row.
+        #
+        # The glob was `2*.md`, i.e. flat files only. The newest run is a DIRECTORY
+        # (2026-09-12-runtime-repin/README.md), so the guard silently stopped covering the newest
+        # shape while still passing -- the same defect #35 filed, one directory level down.
         index = (DOCS / "runs" / "README.md").read_text(encoding="utf-8")
-        for f in sorted((DOCS / "runs").glob("2*.md")):
+        reports = sorted((DOCS / "runs").glob("2*.md"))
+        reports += sorted(d / "README.md" for d in (DOCS / "runs").glob("2*")
+                          if d.is_dir() and (d / "README.md").is_file())
+        self.assertTrue(reports, "no dated run reports found at all")
+        for f in reports:
+            # A directory run is linked by its directory, a flat one by its filename.
+            link = f"({f.parent.name}/)" if f.name == "README.md" else f"({f.name})"
             self.assertIn(
-                f"({f.name})", index,
-                f"docs/runs/{f.name} is not linked from the run-archive index",
+                link, index,
+                f"docs/runs/{f.relative_to(DOCS / 'runs')} is not linked from the run-archive index",
             )
 
     def test_run_archive_integrity_standard_matches_practice(self):

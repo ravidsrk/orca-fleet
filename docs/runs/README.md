@@ -18,8 +18,9 @@ remain coordinator-owned. **no** means the recorded report does not satisfy thes
 here — history, kept, supporting no proof-tier advance.
 
 Nothing in the archive currently reads **yes**. That is the honest state, not a broken gate: three
-runs kept their artifacts outside this repository, and the fourth kept its artifacts but not its
-verifier transcript. The mechanism is exercised by `tests/test_run_report.py`, which builds real
+runs kept their artifacts outside this repository; one kept its artifacts but not its verifier
+transcript; two pinned an inventory to a tree that moved, or recorded none; and the newest is a
+bounded re-witness that says of itself that it is not a completed mission run. The mechanism is exercised by `tests/test_run_report.py`, which builds real
 git repositories and includes a fully bound positive case alongside a dozen refused ones.
 
 | Date       | Mission     | Target                        | Ran as       | Binds? | Outcome |
@@ -30,6 +31,7 @@ git repositories and includes a fully bound positive case alongside a dozen refu
 | 2026-07-17 | [clean-sweep](2026-07-17-clean-sweep-tracker-self-run.md) | this repo (tracker, 26 issues) | self-run | no — no inventory block | DRY-WITH-PARKED (22 closed, 4 parked) |
 | 2026-08-28 | [ship-it](2026-08-28-ship-it-self-run.md) | this repo (proof-status slice) | self-run | no — 5/5 hashes re-derive at `748b328`, but the verifier transcript was never recorded | PROMOTION_READY (BUILT + promotion PR open) |
 | 2026-09-09 | [clean-sweep](2026-09-09-clean-sweep-tracker.md) | this repo (tracker, 6 issues) | self-run | no — inventory pinned to a moved tree | DRY-WITH-PARKED (5 closed, 1 needs-human) |
+| 2026-09-12 | [pin-it](2026-09-12-runtime-repin/) | this catalog's runtime doctrine against Orca 1.4.200 (#266) | self-run | no — the report states it is not a completed independent mission run | PARTIAL-WITNESS (doctrine repair prepared for review; `pins.json` stays at v1.4.199, all 21 missions stay `doctrine-only`) |
 
 Proof status across the catalog is validator-enforced: a mission cannot claim a tier
 above `doctrine-only` without a `proof_evidence:` path that resolves to a report here whose
