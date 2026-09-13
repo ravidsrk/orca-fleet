@@ -2512,6 +2512,29 @@ class ProofOracleProtection(RepoCase):
                 self.assertTrue(any('oracle' in e or 'TEST' in e for e in errors), errors)
                 execute.assert_not_called()
 
+    def test_module_pytest_config_cannot_supply_the_red(self):
+        """python3 -m pytest must use pytest's option grammar: -c is config.
+
+        If custom.ini stays a production path, a control that restores only that
+        file can go RED via addopts without reverting the implementation.
+        """
+        self.cmd = f'{shlex.quote(sys.executable)} -m pytest -c custom.ini'
+        self.write('custom.ini', '[pytest]\naddopts = -q\n')
+        self.write('app.py', 'VALUE = 1\n')
+        self.base = self.commit()
+        self.write('custom.ini', '[pytest]\naddopts = -v\n')
+        self.write('app.py', 'VALUE = 2\n')
+        self.head = self.commit()
+        m = self.manifest('hand', '--- a/custom.ini\n+++ b/custom.ini\n@@ -1,2 +1,2 @@\n'
+                                  ' [pytest]\n-addopts = -v\n+addopts = -q\n')
+        errors, executed = verify.check_negative_control(m, True, execute=True, nc_command=self.cmd)
+        self.assertFalse(executed, errors)
+        self.assertTrue(any('oracle' in e or 'TEST' in e for e in errors), errors)
+        with mock.patch.object(verify, 'execute_negative_control') as execute:
+            errors, _ = verify.check_negative_control(m, True, execute=True, nc_command=self.cmd)
+            self.assertTrue(errors)
+            execute.assert_not_called()
+
     def test_unknown_proof_forms_fail_before_creating_worktrees(self):
         for command in ('nice python3 runner.py', 'env -S "python3 runner.py"',
                         'env env python3 runner.py', 'sh -c "python3 runner.py"',
@@ -2554,7 +2577,10 @@ class ProofInputOptions(unittest.TestCase):
     def test_a_program_specific_config_option_is_a_proof_input(self):
         for command in ('pytest -c custom.ini', 'pytest -ccustom.ini',
                         'pytest --config-file=custom.ini', 'pytest --config-file custom.ini',
-                        'pytest --config=custom.ini', 'pytest -c custom.ini tests/'):
+                        'pytest --config=custom.ini', 'pytest -c custom.ini tests/',
+                        'python3 -m pytest -c custom.ini', 'python3 -mpytest -c custom.ini',
+                        'python3 -m pytest -ccustom.ini',
+                        'python3 -m pytest --config-file custom.ini'):
             with self.subTest(command=command):
                 self.assertIn('custom.ini', self.paths(command), command)
 
