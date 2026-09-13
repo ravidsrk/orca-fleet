@@ -1,0 +1,24 @@
+{
+  "unit": "pin",
+  "title": "Current runtime evidence",
+  "finding_ids": [
+    "I266"
+  ],
+  "base_sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+  "criterion_ids": [
+    "AC-1"
+  ],
+  "criteria": [
+    {
+      "id": "AC-1",
+      "text": "Re-witness current installed Orca 1.4.200 guide/source and required harmless live probes with receipts and verified teardown. Record untestable roster/placement claims as owed, not proven; preserve doctrine-only unless full proof protocol passes."
+    }
+  ],
+  "scope": [
+    "runtime/pins.json",
+    "runtime/dispatch-lifecycle.md",
+    "runtime/liveness-resume.md",
+    "runtime/orca-dag-semantics.md"
+  ],
+  "lighting": "lit"
+}

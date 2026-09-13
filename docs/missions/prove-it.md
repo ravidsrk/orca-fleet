@@ -1,7 +1,7 @@
 # 🧪 prove-it — a mutation-audited test on every critical path
 
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel characterize and mutate workers per critical path; you own the one-way doors.
-> **Activation load:** ~24,000 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
+> **Activation load:** ~24,500 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
 
 > Point it at the money, auth, and data paths nothing currently protects. Come back to a

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # spawn_worker.sh — fail-closed Orca worker dispatch for fleet coordinators. (v5)
 #
-# v5 contract (2026-09-10 upstream re-pin). Every mechanism below is source-witnessed at the TAG
-#   v1.4.199 — the shipped binary — not at upstream HEAD, which has already moved past it:
+# Base v5 contract (2026-09-10 upstream re-pin), source-witnessed at v1.4.199. The custom-lane
+# recovery correction below uses the Orca 1.4.200 receipt and source witness (release E2):
 #   - supervised lane = `worker-start` (compose: worktree + agent terminal + readiness + dispatch).
 #     READINESS SEMANTIC: at v1.4.199 `ready` means the preamble WRITE WAS ACCEPTED, not that the
 #     agent started a turn (`local-worker-start.ts:263` marks the dispatch ready straight after the
@@ -26,17 +26,13 @@
 #     `result.prompt{requestId, stages}`, stages drawn from `input_accepted | turn_started`
 #     (`runtime-terminal-contracts.ts:221-225`). v4's blind re-Enter/heartbeat loop is DELETED:
 #     the guide's rule is "never resend on silence"
-#     (`orchestration/recovery-and-cleanup:92-94`). When `turn_started` is absent we replay the
-#     receipt ONCE with
-#     `terminal send --retry-request <requestId> --wait-submit <secs>` — a replay, never a resend
-#     ("timeout returns the queued/input-accepted receipt and never resends",
-#     `terminal-send.ts:19-22`). At v1.4.199 that flag pair also REQUIRES `--text` with `--enter`
-#     (`terminal-send.ts:17-24` handler), so the exact preamble is recovered first via
-#     `dispatch-show --task <id> --preamble` (`dispatch-methods.ts:196-213`); if it cannot be
-#     recovered, or the host refuses the replay, the lane reports UNPROVEN rather than resending.
-#     Whether the regenerated preamble byte-matches the injected payload the requestId is bound to
-#     is source-witnessed only (`dispatch-methods.ts:199-212` omits dispatchCapability);
-#     live probe owed — pin-it.
+#     (`orchestration/recovery-and-cleanup:92-94`). Without `turn_started`, report UNPROVEN and
+#     retain the injection receipt. Orca 1.4.200 rejects a terminal-send retry of a dispatch
+#     request as `request_mismatch`: durable mutation identity binds the METHOD and payload
+#     (`orchestration-mutation-executor.ts:65-80`). `dispatch-show --preamble` regenerates a
+#     preview without the original capability; it is not the accepted payload. Even the original
+#     text from `dispatch --return-preamble` cannot change the method bound to that request ID.
+#     There is no supported cross-method wait-submit replay here; inspect without resending.
 #   - `terminal wait` result is READ: `wait.satisfied:false` is an unsatisfied condition. The CLI
 #     also sets exit 1 for it (`terminal.ts:126-130`), so v4 failed closed BY ACCIDENT; v5 reads
 #     the field, so a host that sets only one of the two still fails closed.
@@ -52,7 +48,8 @@
 #   - fail-closed: any failed step exits nonzero with a SPAWN=FAILED diagnostic line on stderr
 #   - respects the task DAG: never forces `ready`; `--mark-ready` is an explicit opt-in and
 #     only applies when every declared dep is already completed
-#   - least-privilege launch profiles: PROFILE=ro|rw|danger; danger requires ORCA_COORD_ALLOW_DANGER=1
+#   - least-privilege launch profiles: PROFILE=ro|rw|danger; danger is refused until authoritative
+#     prelaunch placement binding to the validated disposable sandbox is supported.
 #   - distinct exit codes so coordinators can react:
 #       0  dispatched — supervised: state=ready; custom-argv: `turn_started` observed
 #       1  a spawn/dispatch step failed (includes the refusal code `runtime_error`)
@@ -68,7 +65,8 @@
 # Usage:
 #   SP=<dir> [PROFILE=rw] spawn_worker.sh [--mark-ready] <task_id> <worktree_selector> <title> [agent] [effort]
 #   agent ∈ claude|codex|cursor|gemini|grok|droid|opencode|omp|pi (default claude)
-# Prints:  supervised: HANDLE=<h> READY=<state>, DISPATCH=<id>, and LAUNCH_EFFECTIVE=<json> when the
+# Prints:  SCRATCH=<per-attempt receipt directory>, then
+#          supervised: HANDLE=<h> READY=<state>, DISPATCH=<id>, and LAUNCH_EFFECTIVE=<json> when the
 #          receipt carries it.  custom-argv lane: HANDLE=<h> STAGES=<csv>
 #
 # Agent × profile coverage (flags are Orca's own autonomous "yolo" args from
@@ -93,14 +91,14 @@
 #   (unambiguous) or that full id. See runtime/dispatch-lifecycle.md.
 #
 # Env:
-#   SP                        scratchpad dir for JSON artifacts (default: cwd)
+#   SP                        parent dir for retained per-attempt JSON artifacts (default: cwd)
 #   PROFILE                   ro | rw (default) | danger — worker permission profile
 #   ORCA_COORD_ALLOW_AUTONOMOUS_WRITE  must be 1 for PROFILE=rw (accept autonomous bypass workers)
 #   ORCA_COORD_ALLOW_DANGER   must be 1 for PROFILE=danger (implies the above + ephemeral sandbox)
 #   ORCA_SANDBOX_RECIPE       PROFILE=danger only: the orca-per-workspace-env recipe id the lane
 #                             runs in. Required — the opt-in above is intent, this is evidence.
 #   ORCA_SANDBOX_DOCTOR       PROFILE=danger only, and an OUTPUT path since #283: where this
-#                             script WRITES the `vm recipe doctor <id> --provision` transcript it
+#                             script WRITES the `vm recipe doctor <id>` transcript it
 #                             ran itself, for the lane ledger. Optional; an unwritable path is a
 #                             refusal. It is no longer an input — a transcript the caller names is
 #                             not evidence (/etc/passwd passed the old grep).
@@ -108,8 +106,7 @@
 #                             read-only/write semantics become YOUR assertion). Legacy
 #                             CLAUDE_CMD / CODEX_CMD still work for those two. Any override
 #                             requires ORCA_COORD_ALLOW_CMD_OVERRIDE=1 (it bypasses the profile).
-#   SETTLE_SECS / SUBMIT_SECS  timing knobs (defaults 20 / 8) — custom-argv lane. SUBMIT_SECS is
-#                             the `--wait-submit` observation window, in SECONDS.
+#   SETTLE_SECS               TUI settle delay (default 20 seconds) — custom-argv lane.
 set -Eeuo pipefail  # -E: ERR trap fires inside functions (orca_json) too
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"  # sibling scripts (sandbox_doctor.py)
 
@@ -178,16 +175,14 @@ esac
 SP="${SP:-$(pwd)}"
 PROFILE="${PROFILE:-rw}"
 SETTLE_SECS="${SETTLE_SECS:-20}"
-SUBMIT_SECS="${SUBMIT_SECS:-8}"
-# The scratch-file key must be UNIQUE per spawn. `tr`-squashing alone collides: two titles
-# differing only in a squashed character (e.g. "Fix: a/b" vs "Fix: a\b") map to the same
-# name, so parallel spawns clobber each other's JSON artifacts. Append a checksum of the RAW
-# title so distinct titles never share a key, regardless of what `tr` folds together.
+# Keep a readable worktree/receipt label with a checksum to distinguish squashed titles (#44).
+# This is NOT attempt identity: identical titles, retries, and checksum collisions are possible.
+# Actual scratch isolation is the atomic directory allocation below, independent of this label.
 title_hash=$(printf '%s' "$title" | cksum | cut -d' ' -f1)
 safe_title="$(printf '%s' "$title" | tr -c 'A-Za-z0-9._-' '-')-${title_hash}"
 
 # Self-test hook: compute the two hardened values and exit before any orchestration side
-# effect. Lets the contract test assert effort-validation and scratch-key uniqueness without
+# effect. Lets the contract test assert effort-validation and title disambiguation without
 # a live runtime. Placed after both computations so it exercises the real code paths.
 if [ -n "${SW_SELFTEST:-}" ]; then
   printf 'safe_title=%s\neffort=%s\n' "$safe_title" "$effort"
@@ -265,7 +260,7 @@ if [ "$PROFILE" = "danger" ]; then
       exit 2 ;;
   esac
   if ! command -v orca >/dev/null 2>&1; then
-    echo "SPAWN=REFUSED task=${task} PROFILE=danger needs \`orca\` on PATH to run \`vm recipe doctor ${recipe} --provision\` — a sandbox cannot be certified without the runtime that provides it (#283)" >&2
+    echo "SPAWN=REFUSED task=${task} PROFILE=danger needs \`orca\` on PATH to run \`vm recipe doctor ${recipe}\` — a sandbox cannot be certified without the runtime that provides it (#283)" >&2
     exit 2
   fi
   step=sandbox-doctor
@@ -275,13 +270,18 @@ if [ "$PROFILE" = "danger" ]; then
   # [--repo-path] [--provision|--connect] for doctor. So ask for JSON and fall back to the
   # documented plain form when the flag is rejected. Source-witnessed, not binary-witnessed — the
   # same limitation pins.json records for itself; re-witness on the next pin-it wave.
-  orca vm recipe doctor "$recipe" --provision --json > "$doctor_out" 2>&1 || doctor_rc=$?
+  # NOT --provision. The refusal below is unconditional: no doctor verdict, clear or not, can
+  # authorize this lane, so bringing a VM up buys nothing and bills for it (#335 review). The
+  # health check itself is cheap and stays, because what it proves — and what it does NOT prove
+  # about placement — is the whole point of the refusal. `--provision` goes back when placement
+  # binding exists for it to gate; `vm.ts:6-9` documents the bare form as valid.
+  orca vm recipe doctor "$recipe" --json > "$doctor_out" 2>&1 || doctor_rc=$?
   if [ "$doctor_rc" -ne 0 ] && grep -qiE "unknown (option|flag|argument)|unrecognized|invalid option" "$doctor_out"; then
     doctor_rc=0
-    orca vm recipe doctor "$recipe" --provision > "$doctor_out" 2>&1 || doctor_rc=$?
+    orca vm recipe doctor "$recipe" > "$doctor_out" 2>&1 || doctor_rc=$?
   fi
   if [ "$doctor_rc" -ne 0 ]; then
-    echo "SPAWN=REFUSED task=${task} \`orca vm recipe doctor ${recipe} --provision\` exited ${doctor_rc} — the sandbox did not come up clean: $(head -c 300 "$doctor_out" | tr '\n' ' ')" >&2
+    echo "SPAWN=REFUSED task=${task} \`orca vm recipe doctor ${recipe}\` exited ${doctor_rc} — the sandbox did not come up clean: $(head -c 300 "$doctor_out" | tr '\n' ' ')" >&2
     rm -f "$doctor_out"
     exit 2
   fi
@@ -300,6 +300,13 @@ if [ "$PROFILE" = "danger" ]; then
   fi
   rm -f "$doctor_out"
   echo "SPAWN=NOTE task=${task} sandbox recipe='${recipe}' doctored clear by this script (#283)" >&2
+  # Doctor proves recipe health, not this selector's execution placement (R1). The documented
+  # probe can clean up its instance; worker-start --on names a saved server, not that instance.
+  # Neither supported launch lane binds the validated disposable environment BEFORE launch.
+  # Fail closed here, before task mutation or either launch, including command overrides.
+  # A receipt inspected after launch is too late; do not invent placement fields or trust a path.
+  echo "SPAWN=REFUSED task=${task} PROFILE=danger has no supported authoritative placement binding for worktree='${sel}' to the validated disposable sandbox. A clear doctor is insufficient. Implement and validate prelaunch placement binding before enabling danger; use PROFILE=ro or PROFILE=rw only for work authorized for those profiles." >&2
+  exit 2
 fi
 
 # Per-agent × profile launch command. Autonomy is the WHOLE POINT: a worker that blocks on a
@@ -356,6 +363,13 @@ else
   echo "SPAWN=REFUSED task=${task} agent '${agent}' has no verified PROFILE=$PROFILE launch flag — supply WORKER_CMD='<cmd>' with ORCA_COORD_ALLOW_CMD_OVERRIDE=1 (its read-only/write semantics are then your assertion)" >&2
   exit 2
 fi
+
+# Allocate atomically for every attempt, including identical task/title retries (R13).
+# All lane artifacts use this private directory; retain it even on failure for inspection.
+# Allocation failure exits through ERR before task mutation or launch, never reuses a directory.
+step=allocate-scratch
+SP="$(mktemp -d "$SP/spawn-XXXXXX")"
+printf 'SCRATCH=%s\n' "$SP"
 
 # --- verify task readiness against the DAG (never force ready) ---------------
 step=verify-task-ready
@@ -758,55 +772,15 @@ PY
   stages=${stages%% *}
   request=${rcpt#* REQUEST=}
 
-  case ",$stages," in
-    *,turn_started,*) : ;;
-    *)
-      # No observed turn start. Replay the receipt ONCE — never resend, never a bare Enter.
-      # --retry-request/--wait-submit require --text with --enter at v1.4.199, and the requestId
-      # is bound to the prompt payload, so recover the exact preamble first.
-      step=recover-preamble
-      pj="$SP/preamble-$safe_title.json"
-      pre_rc=0
-      orca orchestration dispatch-show --task "$task" --preamble --json > "$pj" 2>&1 || pre_rc=$?
-      preamble=$(python3 - "$pj" <<'PY'
-import json, sys
-try:
-    d = json.load(open(sys.argv[1]))
-except Exception:
-    raise SystemExit(0)
-r = d.get("result", d) if isinstance(d, dict) else {}
-if isinstance(r, dict) and isinstance(r.get("result"), dict):
-    r = r["result"]
-p = r.get("preamble") if isinstance(r, dict) else None
-if isinstance(p, str):
-    sys.stdout.write(p)
-PY
-)
-      if [ "$pre_rc" = "0" ] && [ -n "$request" ] && [ -n "$preamble" ]; then
-        step=replay-receipt
-        ts="$SP/ts-$safe_title.json"
-        # ONE replay. On timeout the runtime returns the queued/input-accepted receipt and
-        # never resends; a failure here leaves the lane UNPROVEN rather than duplicating input.
-        if orca terminal send --terminal "$h" --text "$preamble" --enter \
-             --retry-request "$request" --wait-submit "$SUBMIT_SECS" --json > "$ts" 2>&1; then
-          replay=$(read_stages "$ts")
-          replay_stages=${replay#STAGES=}
-          replay_stages=${replay_stages%% *}
-          if [ -n "$replay_stages" ]; then stages="$replay_stages"; fi
-        else
-          echo "SPAWN=REPLAY_REFUSED task=${task} handle=${h} — the host refused the receipt replay (see $ts); NOT resending" >&2
-        fi
-      else
-        echo "SPAWN=REPLAY_SKIPPED task=${task} handle=${h} — no requestId or no recoverable preamble, so the receipt cannot be replayed; NOT resending" >&2
-      fi
-      ;;
-  esac
-
+  # --inject owns this request; terminal send is a different durable mutation method.
+  # Never recover text from dispatch-show or send under this ID (Orca 1.4.200 E2).
+  # The original receipt remains authoritative; neither a preview nor unrelated terminal
+  # activity can promote it to turn_started. Keep the live pane and receipts for inspection.
   echo "HANDLE=$h STAGES=$stages"
   case ",$stages," in
     *,turn_started,*) : ;;
     *)
-      echo "SPAWN=UNPROVEN task=${task} handle=${h} stages=${stages:-none} — the input was accepted but no turn start was observed. accepted proves input acceptance, NOT a started turn. Inspect with: orca terminal read --terminal ${h} --screen — never resend on silence, and never respawn beside this pane (dispatch-lifecycle.md)" >&2
+      echo "SPAWN=UNPROVEN task=${task} handle=${h} stages=${stages:-none} request=${request:-absent} — the original dispatch receipt does not prove a turn start. A regenerated preamble is not the original payload, and terminal send cannot replay this dispatch request. No replay attempted; retained receipt: $dj. Inspect with: orca terminal read --terminal ${h} --screen — never resend on silence, and never respawn beside this pane (dispatch-lifecycle.md)" >&2
       exit 3
       ;;
   esac

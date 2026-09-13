@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T11:57:21.337101+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "skills",
+    "get",
+    "orca-cli",
+    "--reference",
+    "references/automations.md"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/codex-release-pin-20260912",
+  "exit": 0,
+  "stdout": "# Automations\n\nAn automation is a scheduled Orca prompt run by a chosen provider against either a repo-created worktree or an existing workspace.\n\n```text\nORCA automations list --json\nORCA automations show <automationId> --json\nORCA automations create --name \"Daily review\" --trigger daily --time 09:00 --prompt \"Review open changes\" --provider codex --repo id:<repoId> --json\nORCA automations create --name \"Weekday triage\" --trigger \"0 9 * * 1-5\" --prompt \"Triage issues\" --provider claude --repo path:/abs/repo --disabled --json\nORCA automations create --name \"Inbox digest\" --trigger hourly --prompt \"Summarize unread mail\" --provider codex --workspace active --reuse-session --json\nORCA automations edit <automationId> --trigger weekdays --time 09:30 --fresh-session --json\nORCA automations run <automationId> --json\nORCA automations runs --id <automationId> --json\nORCA automations remove <automationId> --json\n```\n\nSchedules accept `hourly`, `daily`, `weekdays`, `weekly`, 5-field cron, or RRULE. Use `--time <HH:MM>` with `daily`/`weekdays`/`weekly`, and `--day <0-6>` only with `weekly` where Sunday is `0`.\n\nUse `--repo <selector>` for a new worktree per run, or `--workspace <selector>` / `--workspace-mode existing` for an existing Orca worktree. `--repo` and `--workspace` are mutually exclusive. Use `--reuse-session` only for existing-workspace automations; if the previous terminal is gone, Orca falls back to a fresh session. Prefer `--disabled` while testing setup.\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

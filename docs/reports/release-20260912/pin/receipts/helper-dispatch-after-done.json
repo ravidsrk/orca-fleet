@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T12:06:28.180935+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "orchestration",
+    "dispatch-show",
+    "--task",
+    "task_1689929d2c14",
+    "--from",
+    "term_3e146225-18a4-43a0-bf3f-87545241b760",
+    "--json"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912",
+  "exit": 0,
+  "stdout": "{\n  \"id\": \"00051f02-a3f3-4fac-af7e-8425208efa86\",\n  \"ok\": true,\n  \"result\": {\n    \"dispatch\": {\n      \"id\": \"ctx_e41119c4ab64\",\n      \"run_id\": \"run_aad129c705b7\",\n      \"task_id\": \"task_1689929d2c14\",\n      \"contract_version\": 1,\n      \"launch_token_hash\": null,\n      \"assignee_handle\": \"term_2a591dec-4a81-4c3d-baef-c145582b3b34\",\n      \"assignee_pane_key\": \"f84d22b4-d9f2-482a-b0aa-a02c0a939f5f:6e045968-89b8-4114-ba97-7a87c6d5cc93\",\n      \"capability_hash\": \"08393570c19d2fdaa44a2f9c3c1b58c903571e618ffabb2363da94364b9dbff6\",\n      \"process_incarnation\": \"3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912@@57986eea:73c4c6a7-4008-4697-aa65-1b45732f7ac2\",\n      \"capability_revoked_at\": \"2026-09-12T12:06:27.837Z\",\n      \"status\": \"completed\",\n      \"failure_count\": 0,\n      \"last_failure\": null,\n      \"dispatched_at\": \"2026-09-12 12:05:02\",\n      \"completed_at\": \"2026-09-12T12:06:27.837Z\",\n      \"created_at\": \"2026-09-12 12:05:02\",\n      \"last_heartbeat_at\": null,\n      \"termination_reason\": null,\n      \"depth\": 1,\n      \"retry_of_dispatch_id\": null,\n      \"creator_dispatch_id\": null,\n      \"host_scope\": \"{\\\"kind\\\":\\\"local\\\",\\\"hostId\\\":\\\"local\\\"}\",\n      \"consumer_generation\": 1,\n      \"creator_handle\": \"term_3e146225-18a4-43a0-bf3f-87545241b760\",\n      \"creator_pane_key\": \"1058f1bd-8801-472c-b483-cc12789d840a:0652fbff-49cb-45f9-adb4-6f2dccc18a9e\"\n    }\n  },\n  \"_meta\": {\n    \"runtimeId\": \"2e075aba-10a5-40b7-aa95-9e82ae9fc5b7\"\n  }\n}\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

@@ -1,0 +1,99 @@
+#!/usr/bin/env python3
+"""Compute base_rewitness for coverage files the moved integration base changed.
+
+Run from the repo root. Relocates every inventory span by exact baseline-block match in the
+moved base; refuses (exit 2) on any absent or ambiguous relocation instead of guessing.
+"""
+import hashlib
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+PIN = Path('docs/reports/release-20260912/pin')
+BASE_SHA = '4c52b479a10d861a0f96fe00ef732e214232c5f5'
+
+
+def git(path, rev):
+    return subprocess.check_output(['git', 'show', f'{rev}:{path}'])
+
+
+def sha(data):
+    return hashlib.sha256(data).hexdigest()
+
+
+def locate(block, lines, near):
+    n = len(block)
+    hits = [k + 1 for k in range(len(lines) - n + 1) if lines[k:k + n] == block]
+    if not hits:
+        return None, 'absent'
+    hits.sort(key=lambda k: abs(k - near))
+    return hits[0], ('ambiguous' if len(hits) > 1 else 'unique')
+
+
+def main():
+    raw = (PIN / 'claim-corrections.json').read_text()
+    c = json.loads(raw)
+    c.pop('base_rewitness', None)
+    frozen = json.loads((PIN / 'claim-inventory.frozen.json').read_text())
+    original = json.loads((PIN / 'claim-atomization.json').read_text())
+    baseline = c['baseline_sha']
+    drift = [r for r in frozen['coverage'] if Path(r['path']).read_bytes() != git(r['path'], baseline)]
+    spans = {r['path']: [] for r in drift}
+    for row in original['children'] + original['excluded_records'] + c['added_children'] + c['added_parents']:
+        for s in [row['source']] + row.get('additional_sources', []):
+            if s['path'] in spans:
+                spans[s['path']].append((row['id'], s['line'], s['end_line']))
+    ind = json.loads((PIN / 'correction-input/review-pin-inventory-ro-source-bindings.json').read_text())
+    for i, r in enumerate(ind):
+        if r['path'] in spans:
+            spans[r['path']].append((f'independent-audit#{i}', r['line'], r['line']))
+    problems, files, stats = [], [], {'spans': 0, 'relocated': 0, 'ambiguous': 0}
+    for cov in drift:
+        path = cov['path']
+        old_data, new_data = git(path, baseline), git(path, BASE_SHA)
+        assert Path(path).read_bytes() == new_data, path
+        old, new = old_data.decode().splitlines(), new_data.decode().splitlines()
+        out = []
+        for record, line, end in spans[path]:
+            at, how = locate(old[line - 1:end], new, line)
+            if at is None:
+                problems.append((path, record, line, end, how))
+                continue
+            stats['spans'] += 1
+            stats['relocated'] += at != line
+            stats['ambiguous'] += how == 'ambiguous'
+            out.append({'record': record, 'line': line, 'end_line': end,
+                        'base_line': at, 'base_end_line': at + end - line})
+        ranges = []
+        for a, b in cov['included_ranges']:
+            at, how = locate(old[a - 1:b], new, a)
+            if at is None:
+                problems.append((path, 'included_range', a, b, how))
+                continue
+            ranges.append([at, at + b - a])
+        files.append({'path': path, 'baseline_sha256': sha(old_data), 'base_sha256': sha(new_data),
+                      'base_lines': len(new), 'included_ranges': ranges, 'spans': out})
+    if problems:
+        print(json.dumps(problems, indent=2))
+        return 2
+    c['base_rewitness'] = {
+        'definition': ('The integration base moved from the pin baseline to base_sha, which changed these '
+                       'coverage files. The frozen inventory stays bound to source_sha; each row re-binds the '
+                       'baseline and moved-base bytes and relocates every inventory span, independent-audit '
+                       'binding and included range to an identical baseline block in base_sha. No correction '
+                       'commit may change these files after base_sha. This records source drift, not runtime '
+                       'behavior or conformance.'),
+        'from_sha': baseline,
+        'base_sha': BASE_SHA,
+        'base_ref': 'origin/codex/release-audit-20260912',
+        'files': files,
+    }
+    (PIN / 'claim-corrections.json').write_text(json.dumps(c, indent=2, ensure_ascii=False) + '\n')
+    print(json.dumps({'files': len(files), **stats,
+                      'files_without_spans': sum(not f['spans'] for f in files)}, indent=2))
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())

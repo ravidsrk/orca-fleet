@@ -1,0 +1,1882 @@
+{
+  "source_sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+  "baseline_sha": "e2e7adab8a7ddf53844d2564734202e89bb78e98",
+  "captured_at": "2026-09-12T13:44:52.313737+00:00",
+  "method": "Exact Git bytes and frozen/snapshot records inspected before corrected graph publication; source inventory refutation only, no runtime probes.",
+  "coverage": {
+    "source_files": 53,
+    "original_parent_ids": 309,
+    "source_records_in_atomization": 563
+  },
+  "groups": [
+    {
+      "id": "G1",
+      "finding": "Omitted Droid absence contradicts retained positive launch assertion",
+      "verdict": "REPRODUCED-INVENTORY-DEFECT",
+      "source_records": [
+        {
+          "id": "C310.01",
+          "source": {
+            "path": "runtime/scripts/spawn_worker.sh",
+            "line": 167,
+            "end_line": 167,
+            "text": "# opencode/droid/omp/pi have no Orca autonomous launch flag at all. Any (agent, profile)",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "a0b90eeb01698656ec7dcc731158c6d0f6edd07c4d6716386696217adaa3cff0"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C310.02",
+          "source": {
+            "path": "runtime/scripts/spawn_worker.sh",
+            "line": 167,
+            "end_line": 167,
+            "text": "# opencode/droid/omp/pi have no Orca autonomous launch flag at all. Any (agent, profile)",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "a0b90eeb01698656ec7dcc731158c6d0f6edd07c4d6716386696217adaa3cff0"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C310.03",
+          "source": {
+            "path": "runtime/scripts/spawn_worker.sh",
+            "line": 167,
+            "end_line": 167,
+            "text": "# opencode/droid/omp/pi have no Orca autonomous launch flag at all. Any (agent, profile)",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "a0b90eeb01698656ec7dcc731158c6d0f6edd07c4d6716386696217adaa3cff0"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C310.04",
+          "source": {
+            "path": "runtime/scripts/spawn_worker.sh",
+            "line": 167,
+            "end_line": 167,
+            "text": "# opencode/droid/omp/pi have no Orca autonomous launch flag at all. Any (agent, profile)",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "a0b90eeb01698656ec7dcc731158c6d0f6edd07c4d6716386696217adaa3cff0"
+          },
+          "additional_sources": []
+        }
+      ],
+      "missing_child_ids_before": [
+        "C310.01",
+        "C310.02",
+        "C310.03",
+        "C310.04"
+      ],
+      "omitted_spans": [
+        {
+          "id": "C310.01",
+          "containing_frozen_parents": []
+        },
+        {
+          "id": "C310.02",
+          "containing_frozen_parents": []
+        },
+        {
+          "id": "C310.03",
+          "containing_frozen_parents": []
+        },
+        {
+          "id": "C310.04",
+          "containing_frozen_parents": []
+        }
+      ],
+      "opposing_sources": [
+        {
+          "path": "runtime/scripts/spawn_worker.sh",
+          "line": 82,
+          "end_line": 82,
+          "text": "#   droid               → rw + danger (Orca appends `--auto high`); ro → WORKER_CMD",
+          "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "source_sha256": "a0b90eeb01698656ec7dcc731158c6d0f6edd07c4d6716386696217adaa3cff0"
+        },
+        {
+          "path": "runtime/sandbox-policy.md",
+          "line": 35,
+          "end_line": 35,
+          "text": "| droid  | WORKER_CMD               | `--auto high`                                   |",
+          "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "source_sha256": "5b59108b2b56b30325d19e446edf33da75422fecfe816919e27c1037f375ce7d"
+        }
+      ],
+      "runtime_verdict": "UNRESOLVED: source contradiction is not an observed runtime refutation"
+    },
+    {
+      "id": "G2",
+      "finding": "Omitted operational commands and daemon environment assertion",
+      "verdict": "REPRODUCED-INVENTORY-DEFECT",
+      "source_records": [
+        {
+          "id": "C311.01",
+          "source": {
+            "path": "runtime/liveness-resume.md",
+            "line": 50,
+            "end_line": 51,
+            "text": "- End-of-run gate: `worker-list --run <id> --terminal-state reclaimable` — while any row is reclaimable,\n  something still owes a decision. That, not a clean inbox, is \"nothing outstanding\".",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "d7e457fd19312d6ed0be35e464848bc28299abe918119fa286761c929a21ad03"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C311.02",
+          "source": {
+            "path": "runtime/liveness-resume.md",
+            "line": 50,
+            "end_line": 51,
+            "text": "- End-of-run gate: `worker-list --run <id> --terminal-state reclaimable` — while any row is reclaimable,\n  something still owes a decision. That, not a clean inbox, is \"nothing outstanding\".",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "d7e457fd19312d6ed0be35e464848bc28299abe918119fa286761c929a21ad03"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C312.01",
+          "source": {
+            "path": "runtime/scripts/deny-hook.sh",
+            "line": 80,
+            "end_line": 83,
+            "text": "# It cannot, on either lane spawn_worker.sh has: the supervised `worker-start`\n# lane takes its launch args from the HOST's agentDefaultArgs, not from any\n# command this repo builds, and an env var exported here does not cross the Orca\n# daemon into the worker's process. A hook nobody registers is doctrine wearing a",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "d50e026711ed33b42cf702e8622deb844ec2a0b1252908aab6824d738ae89eea"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C313.01",
+          "source": {
+            "path": "runtime/scripts/spawn_worker.sh",
+            "line": 681,
+            "end_line": 681,
+            "text": "  orca_json \"$tj\" terminal create --worktree \"$sel\" --title \"$title\" --command \"$cmd\"",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "a0b90eeb01698656ec7dcc731158c6d0f6edd07c4d6716386696217adaa3cff0"
+          },
+          "additional_sources": [
+            {
+              "path": "runtime/scripts/spawn_worker.sh",
+              "line": 124,
+              "end_line": 124,
+              "text": "  orca \"$@\" --json > \"$out\"",
+              "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+              "source_sha256": "a0b90eeb01698656ec7dcc731158c6d0f6edd07c4d6716386696217adaa3cff0"
+            }
+          ]
+        },
+        {
+          "id": "C314.01",
+          "source": {
+            "path": "runtime/scripts/spawn_worker.sh",
+            "line": 703,
+            "end_line": 703,
+            "text": "  orca terminal wait --terminal \"$h\" --for tui-idle --timeout-ms 90000 --json > \"$tw\" 2>&1 || wait_rc=$?",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "a0b90eeb01698656ec7dcc731158c6d0f6edd07c4d6716386696217adaa3cff0"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C315.01",
+          "source": {
+            "path": "runtime/scripts/spawn_worker.sh",
+            "line": 729,
+            "end_line": 729,
+            "text": "  orca_json \"$dj\" orchestration dispatch --task \"$task\" --to \"$h\" --inject",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "a0b90eeb01698656ec7dcc731158c6d0f6edd07c4d6716386696217adaa3cff0"
+          },
+          "additional_sources": [
+            {
+              "path": "runtime/scripts/spawn_worker.sh",
+              "line": 124,
+              "end_line": 124,
+              "text": "  orca \"$@\" --json > \"$out\"",
+              "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+              "source_sha256": "a0b90eeb01698656ec7dcc731158c6d0f6edd07c4d6716386696217adaa3cff0"
+            }
+          ]
+        },
+        {
+          "id": "C316.01",
+          "source": {
+            "path": "runtime/scripts/spawn_worker.sh",
+            "line": 423,
+            "end_line": 423,
+            "text": "    orca_json \"$SP/tu-$safe_title.json\" orchestration task-update --id \"$task\" --status ready",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "a0b90eeb01698656ec7dcc731158c6d0f6edd07c4d6716386696217adaa3cff0"
+          },
+          "additional_sources": [
+            {
+              "path": "runtime/scripts/spawn_worker.sh",
+              "line": 124,
+              "end_line": 124,
+              "text": "  orca \"$@\" --json > \"$out\"",
+              "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+              "source_sha256": "a0b90eeb01698656ec7dcc731158c6d0f6edd07c4d6716386696217adaa3cff0"
+            }
+          ]
+        }
+      ],
+      "missing_child_ids_before": [
+        "C311.01",
+        "C311.02",
+        "C312.01",
+        "C313.01",
+        "C314.01",
+        "C315.01",
+        "C316.01"
+      ],
+      "omitted_spans": [
+        {
+          "id": "C311.01",
+          "containing_frozen_parents": []
+        },
+        {
+          "id": "C311.02",
+          "containing_frozen_parents": []
+        },
+        {
+          "id": "C312.01",
+          "containing_frozen_parents": []
+        },
+        {
+          "id": "C313.01",
+          "containing_frozen_parents": []
+        },
+        {
+          "id": "C314.01",
+          "containing_frozen_parents": []
+        },
+        {
+          "id": "C315.01",
+          "containing_frozen_parents": []
+        },
+        {
+          "id": "C316.01",
+          "containing_frozen_parents": []
+        }
+      ]
+    },
+    {
+      "id": "G3",
+      "finding": "Whole-record exclusions drop mechanics embedded in policy",
+      "verdict": "REPRODUCED-INVENTORY-DEFECT",
+      "source_records": [
+        {
+          "id": "C021.01",
+          "source": {
+            "path": "runtime/dispatch-lifecycle.md",
+            "line": 50,
+            "end_line": 50,
+            "text": "- A worker runs `check --terminal <its own handle>` at checkpoints and once before `worker_done`. A `consumer_fenced` from that check means **stop**: it no",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "aabe19dbb226d7d358100199beb16d1ebfa5204dfe58f04299be14f67cbe6962"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C045.01",
+          "source": {
+            "path": "runtime/dispatch-lifecycle.md",
+            "line": 130,
+            "end_line": 131,
+            "text": "  The rest is FLEET policy and it stands: every lifecycle message goes to a concrete terminal or `dispatch:<id>`. A `worker_done` for the active\n  `taskId`+`dispatchId` auto-completes the task; do NOT follow it with `task-update --status completed` (reserve manual status writes for recovery/override).",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "aabe19dbb226d7d358100199beb16d1ebfa5204dfe58f04299be14f67cbe6962"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C050.01",
+          "source": {
+            "path": "runtime/dispatch-lifecycle.md",
+            "line": 139,
+            "end_line": 140,
+            "text": "it at checkpoints — `orca worktree set --worktree active --comment \"<what is happening>\" --workspace-status <todo|in-progress|in-review|completed>`. It never\nreplaces the ledger (comments are best-effort and lossy).",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "aabe19dbb226d7d358100199beb16d1ebfa5204dfe58f04299be14f67cbe6962"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C104.01",
+          "source": {
+            "path": "runtime/liveness-resume.md",
+            "line": 61,
+            "end_line": 63,
+            "text": "  the reflection above. Exit 3 (custom-argv: input accepted, turn unproven) is a POSSIBLE false negative — READ\n  THE PANE first (`orca terminal read --terminal <h> --screen` or `worker-read --dispatch <id>`), not by eye: a\n  live TUI is a working worker and respawning beside it is a dual-writer (dispatch-lifecycle.md).",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "d7e457fd19312d6ed0be35e464848bc28299abe918119fa286761c929a21ad03"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C104.02",
+          "source": {
+            "path": "runtime/liveness-resume.md",
+            "line": 61,
+            "end_line": 63,
+            "text": "  the reflection above. Exit 3 (custom-argv: input accepted, turn unproven) is a POSSIBLE false negative — READ\n  THE PANE first (`orca terminal read --terminal <h> --screen` or `worker-read --dispatch <id>`), not by eye: a\n  live TUI is a working worker and respawning beside it is a dual-writer (dispatch-lifecycle.md).",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "d7e457fd19312d6ed0be35e464848bc28299abe918119fa286761c929a21ad03"
+          },
+          "additional_sources": []
+        }
+      ],
+      "missing_child_ids_before": [
+        "C021.01",
+        "C045.01",
+        "C050.01",
+        "C104.01",
+        "C104.02"
+      ],
+      "old_exclusions": [
+        {
+          "id": "C021",
+          "source": {
+            "path": "runtime/dispatch-lifecycle.md",
+            "line": 50,
+            "end_line": 50,
+            "text": "- A worker runs `check --terminal <its own handle>` at checkpoints and once before `worker_done`."
+          },
+          "category": "REPO-POLICY",
+          "reason": "When workers check their inbox is a fleet checkpoint requirement."
+        },
+        {
+          "id": "C045",
+          "source": {
+            "path": "runtime/dispatch-lifecycle.md",
+            "line": 130,
+            "end_line": 130,
+            "text": "  The rest is FLEET policy and it stands: every lifecycle message goes to a concrete terminal or `dispatch:<id>`."
+          },
+          "category": "REPO-POLICY",
+          "reason": "Concrete lifecycle addressing is explicitly declared fleet policy; runtime group behavior remains in C043/C044."
+        },
+        {
+          "id": "C050",
+          "source": {
+            "path": "runtime/dispatch-lifecycle.md",
+            "line": 139,
+            "end_line": 140,
+            "text": " It never\nreplaces the ledger (comments are best-effort and lossy)."
+          },
+          "category": "REPO-POLICY",
+          "reason": "Comments cannot replace ledger is an evidence-retention rule, not an API guarantee."
+        },
+        {
+          "id": "C104",
+          "source": {
+            "path": "runtime/liveness-resume.md",
+            "line": 61,
+            "end_line": 63,
+            "text": " Exit 3 (custom-argv: input accepted, turn unproven) is a POSSIBLE false negative — READ\n  THE PANE first (`orca terminal read --terminal <h> --screen` or `worker-read --dispatch <id>`), not by eye: a\n  live TUI is a working worker and respawning beside it is a dual-writer (dispatch-lifecycle.md)."
+          },
+          "category": "CONTEXT-OR-LOCAL-IMPLEMENTATION",
+          "reason": "Local helper exit 3 and pane-first dual-writer precautions are fleet recovery policy."
+        }
+      ]
+    },
+    {
+      "id": "G4",
+      "finding": "Retained-parent atomization drops independent qualifiers",
+      "verdict": "REPRODUCED-INVENTORY-DEFECT",
+      "source_records": [
+        {
+          "id": "C005.02",
+          "source": {
+            "path": "runtime/dispatch-lifecycle.md",
+            "line": 16,
+            "end_line": 17,
+            "text": "readiness → dispatch). It exits 0 only when the worker is **ready**, read narrowly: at v1.4.199 — the PIN — that means the preamble WRITE WAS ACCEPTED, not\nthat a turn started (`local-worker-start.ts:263`). **v1.4.200 changed it**: `worker-start-readiness-settlement.ts:91-129` needs an observed turn-start, else",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "aabe19dbb226d7d358100199beb16d1ebfa5204dfe58f04299be14f67cbe6962"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C105.02",
+          "source": {
+            "path": "runtime/liveness-resume.md",
+            "line": 64,
+            "end_line": 65,
+            "text": "- BREAK at 3 doctor attempts OR the dispatch-context circuit break (3 consecutive failures marks the task\n  failed) → escalate honestly (gate-classification.md).",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "d7e457fd19312d6ed0be35e464848bc28299abe918119fa286761c929a21ad03"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C117.03",
+          "source": {
+            "path": "runtime/liveness-resume.md",
+            "line": 98,
+            "end_line": 99,
+            "text": "The other half is CURRENT and is the real trap: `promoteReadyTasks` fires only when a dep COMPLETES, and\nrequires every dep `completed`. A dep that ends **`failed`** therefore strands the child in `pending` FOREVER",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "d7e457fd19312d6ed0be35e464848bc28299abe918119fa286761c929a21ad03"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C145.05",
+          "source": {
+            "path": "runtime/mission-scheduling.md",
+            "line": 23,
+            "end_line": 25,
+            "text": "**Every scheduled mission passes `--precheck`.** It runs a bounded command before the run; exit 0\ncontinues, anything else records a **skipped** run and spawns nothing (`automations.ts:62` at\nv1.4.199). That is exactly the enumeration question a mission asks in its first phase — and without",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "dd2c007e41ed87a2ef3633c28f10eb52f17bdae0c7fb7af67cfbee11522e502f"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C145.06",
+          "source": {
+            "path": "runtime/mission-scheduling.md",
+            "line": 23,
+            "end_line": 25,
+            "text": "**Every scheduled mission passes `--precheck`.** It runs a bounded command before the run; exit 0\ncontinues, anything else records a **skipped** run and spawns nothing (`automations.ts:62` at\nv1.4.199). That is exactly the enumeration question a mission asks in its first phase — and without",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "dd2c007e41ed87a2ef3633c28f10eb52f17bdae0c7fb7af67cfbee11522e502f"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C145.07",
+          "source": {
+            "path": "runtime/mission-scheduling.md",
+            "line": 23,
+            "end_line": 25,
+            "text": "**Every scheduled mission passes `--precheck`.** It runs a bounded command before the run; exit 0\ncontinues, anything else records a **skipped** run and spawns nothing (`automations.ts:62` at\nv1.4.199). That is exactly the enumeration question a mission asks in its first phase — and without",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "dd2c007e41ed87a2ef3633c28f10eb52f17bdae0c7fb7af67cfbee11522e502f"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C147.06",
+          "source": {
+            "path": "runtime/mission-scheduling.md",
+            "line": 34,
+            "end_line": 38,
+            "text": "silently deferred), `--reuse-session` / `--fresh-session` (existing-workspace automations only;\nprefer `--fresh-session` for missions, since a reused session carries the last run's context into a\nrun whose whole premise is independence), and `--host runtime:<environment-id>` to place the\nscheduled coordinator on a paired Orca server rather than the mortal desktop — pass the id from\n`orca environment list`, never the environment's name.",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "dd2c007e41ed87a2ef3633c28f10eb52f17bdae0c7fb7af67cfbee11522e502f"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C147.07",
+          "source": {
+            "path": "runtime/mission-scheduling.md",
+            "line": 34,
+            "end_line": 38,
+            "text": "silently deferred), `--reuse-session` / `--fresh-session` (existing-workspace automations only;\nprefer `--fresh-session` for missions, since a reused session carries the last run's context into a\nrun whose whole premise is independence), and `--host runtime:<environment-id>` to place the\nscheduled coordinator on a paired Orca server rather than the mortal desktop — pass the id from\n`orca environment list`, never the environment's name.",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "dd2c007e41ed87a2ef3633c28f10eb52f17bdae0c7fb7af67cfbee11522e502f"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C147.08",
+          "source": {
+            "path": "runtime/mission-scheduling.md",
+            "line": 36,
+            "end_line": 38,
+            "text": "run whose whole premise is independence), and `--host runtime:<environment-id>` to place the\nscheduled coordinator on a paired Orca server rather than the mortal desktop — pass the id from\n`orca environment list`, never the environment's name.",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "dd2c007e41ed87a2ef3633c28f10eb52f17bdae0c7fb7af67cfbee11522e502f"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C176.06",
+          "source": {
+            "path": "runtime/orca-dag-semantics.md",
+            "line": 75,
+            "end_line": 76,
+            "text": "**silent and untimestamped**. Reconstructible facts: creation, each dispatch attempt\n(latest = the active dispatch; `failure_count` carries MAX forward; circuit trips at 3),",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "93c275c7f627a7bb72dd42c02bf69f32f3c8c6869acf34b47d4c6c28036c3845"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C198.02",
+          "source": {
+            "path": "runtime/orca-dag-semantics.md",
+            "line": 128,
+            "end_line": 129,
+            "text": "v1.4.199): PowerShell strips JSON quotes, and a typed flag cannot be misspelled silently.\n",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "93c275c7f627a7bb72dd42c02bf69f32f3c8c6869acf34b47d4c6c28036c3845"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C255.11",
+          "source": {
+            "path": "runtime/scripts/spawn_worker.sh",
+            "line": 78,
+            "end_line": 80,
+            "text": "#   cursor              → rw + danger (`tui-agent-permissions.ts:21` maps cursor to `--yolo`; Orca\n#                         has no read-only mode for it) — also one of the three agents that\n#                         `--model`/`--effort` can target",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "a0b90eeb01698656ec7dcc731158c6d0f6edd07c4d6716386696217adaa3cff0"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C255.12",
+          "source": {
+            "path": "runtime/scripts/spawn_worker.sh",
+            "line": 78,
+            "end_line": 80,
+            "text": "#   cursor              → rw + danger (`tui-agent-permissions.ts:21` maps cursor to `--yolo`; Orca\n#                         has no read-only mode for it) — also one of the three agents that\n#                         `--model`/`--effort` can target",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "a0b90eeb01698656ec7dcc731158c6d0f6edd07c4d6716386696217adaa3cff0"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C255.13",
+          "source": {
+            "path": "runtime/scripts/spawn_worker.sh",
+            "line": 78,
+            "end_line": 80,
+            "text": "#   cursor              → rw + danger (`tui-agent-permissions.ts:21` maps cursor to `--yolo`; Orca\n#                         has no read-only mode for it) — also one of the three agents that\n#                         `--model`/`--effort` can target",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "a0b90eeb01698656ec7dcc731158c6d0f6edd07c4d6716386696217adaa3cff0"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C276.02",
+          "source": {
+            "path": "runtime/scripts/spawn_worker.sh",
+            "line": 544,
+            "end_line": 545,
+            "text": "# The agent terminal is the effects[] entry kind=terminal role=agent; agentTerminalHandle is a\n# worker-list/worker-show field, kept as a harmless fallback.",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "a0b90eeb01698656ec7dcc731158c6d0f6edd07c4d6716386696217adaa3cff0"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C276.03",
+          "source": {
+            "path": "runtime/scripts/spawn_worker.sh",
+            "line": 544,
+            "end_line": 545,
+            "text": "# The agent terminal is the effects[] entry kind=terminal role=agent; agentTerminalHandle is a\n# worker-list/worker-show field, kept as a harmless fallback.",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "a0b90eeb01698656ec7dcc731158c6d0f6edd07c4d6716386696217adaa3cff0"
+          },
+          "additional_sources": []
+        }
+      ],
+      "missing_child_ids_before": [
+        "C005.02",
+        "C105.02",
+        "C117.03",
+        "C145.05",
+        "C145.06",
+        "C145.07",
+        "C147.06",
+        "C147.07",
+        "C147.08",
+        "C176.06",
+        "C198.02",
+        "C255.11",
+        "C255.12",
+        "C255.13",
+        "C276.02",
+        "C276.03"
+      ],
+      "old_children": [
+        {
+          "id": "C005.01",
+          "parent_id": "C005",
+          "source": {
+            "path": "runtime/dispatch-lifecycle.md",
+            "line": 16,
+            "end_line": 17,
+            "text": " It exits 0 only when the worker is **ready**, read narrowly: at v1.4.199 — the PIN — that means the preamble WRITE WAS ACCEPTED, not\nthat a turn started (`local-worker-start.ts:263`)."
+          },
+          "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "assertion": "v1.4.199 worker-start ready requires accepted preamble write without observed turn start",
+          "family": "OLD",
+          "classification": "UNPROBED",
+          "disposition": "TODO",
+          "receipt_paths": [],
+          "probe": {
+            "procedure": "Replay accepted-but-unobserved start against exact older version and compare receipt. Existing v1.4.199 source witness remains source-only; 1.4.200 receipts cannot re-witness old binary semantics.",
+            "expected_receipt": "At exact installed version, establish this predicate independently: v1.4.199 worker-start ready requires accepted preamble write without observed turn start. Capture before/after authoritative state where mutation is involved.",
+            "precondition": "Separately installed v1.4.199 executable and isolated runtime; this worker has only required 1.4.200 live target."
+          },
+          "remaining": "Unattempted or incomplete; perform this child probe. Workload is not a parking reason.",
+          "continuation": "TODO-REQUIRES-OWNED-FIXTURE"
+        },
+        {
+          "id": "C105.01",
+          "parent_id": "C105",
+          "source": {
+            "path": "runtime/liveness-resume.md",
+            "line": 64,
+            "end_line": 64,
+            "text": "- BREAK at 3 doctor attempts OR the dispatch-context circuit break (3 consecutive failures marks the task"
+          },
+          "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "assertion": "three consecutive dispatch failures trip task circuit break",
+          "family": "DAG",
+          "classification": "UNPROBED",
+          "disposition": "TODO",
+          "receipt_paths": [],
+          "probe": {
+            "procedure": "Create good and bad parent dependencies plus multi-dependency child; reject missing/foreign deps and foreign parent; read parent_id and deps; complete only one dependency, then all; fail another. Compare task-list and scoped inbox before/after promotion. For failure circuit use three coordinator-supplied disposable Dispatch attempts, never simulated task-update failures. Legacy dangling deps require isolated imported legacy fixture.",
+            "expected_receipt": "At exact installed version, establish this predicate independently: three consecutive dispatch failures trip task circuit break. Capture before/after authoritative state where mutation is involved.",
+            "precondition": "Scratch coordinator and two owned Runs; native helper only for actual Dispatch/failure-count predicates."
+          },
+          "remaining": "Unattempted or incomplete; perform this child probe. Workload is not a parking reason.",
+          "continuation": "TODO-REQUIRES-OWNED-FIXTURE"
+        },
+        {
+          "id": "C117.01",
+          "parent_id": "C117",
+          "source": {
+            "path": "runtime/liveness-resume.md",
+            "line": 98,
+            "end_line": 99,
+            "text": "The other half is CURRENT and is the real trap: `promoteReadyTasks` fires only when a dep COMPLETES, and\nrequires every dep `completed`."
+          },
+          "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "assertion": "completing dependency promotes its pending child",
+          "family": "DAG",
+          "classification": "CURRENT",
+          "disposition": "WITNESSED",
+          "receipt_paths": [
+            "receipts/fixture2-create-good-child.json",
+            "receipts/fixture2-deps-before.json",
+            "receipts/fixture2-complete-good.json",
+            "receipts/fixture2-fail-bad.json",
+            "receipts/fixture2-deps-after.json"
+          ],
+          "probe": {
+            "procedure": "Create good and bad parent dependencies plus multi-dependency child; reject missing/foreign deps and foreign parent; read parent_id and deps; complete only one dependency, then all; fail another. Compare task-list and scoped inbox before/after promotion. For failure circuit use three coordinator-supplied disposable Dispatch attempts, never simulated task-update failures. Legacy dangling deps require isolated imported legacy fixture.",
+            "expected_receipt": "At exact installed version, establish this predicate independently: completing dependency promotes its pending child. Capture before/after authoritative state where mutation is involved.",
+            "precondition": "Scratch coordinator and two owned Runs; native helper only for actual Dispatch/failure-count predicates."
+          },
+          "remaining": null,
+          "continuation": null,
+          "witness_scope": "A single completed dependency promotes child; failed dependency leaves child pending at observation; parent_id distinct from deps. All-deps conjunction, forever and circuit behavior unproven."
+        },
+        {
+          "id": "C117.02",
+          "parent_id": "C117",
+          "source": {
+            "path": "runtime/liveness-resume.md",
+            "line": 98,
+            "end_line": 99,
+            "text": "The other half is CURRENT and is the real trap: `promoteReadyTasks` fires only when a dep COMPLETES, and\nrequires every dep `completed`."
+          },
+          "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "assertion": "promotion requires all dependencies completed",
+          "family": "DAG",
+          "classification": "UNPROBED",
+          "disposition": "TODO",
+          "receipt_paths": [],
+          "probe": {
+            "procedure": "Create good and bad parent dependencies plus multi-dependency child; reject missing/foreign deps and foreign parent; read parent_id and deps; complete only one dependency, then all; fail another. Compare task-list and scoped inbox before/after promotion. For failure circuit use three coordinator-supplied disposable Dispatch attempts, never simulated task-update failures. Legacy dangling deps require isolated imported legacy fixture.",
+            "expected_receipt": "At exact installed version, establish this predicate independently: promotion requires all dependencies completed. Capture before/after authoritative state where mutation is involved.",
+            "precondition": "Scratch coordinator and two owned Runs; native helper only for actual Dispatch/failure-count predicates."
+          },
+          "remaining": "Unattempted or incomplete; perform this child probe. Workload is not a parking reason.",
+          "continuation": "TODO-REQUIRES-OWNED-FIXTURE"
+        },
+        {
+          "id": "C145.01",
+          "parent_id": "C145",
+          "source": {
+            "path": "runtime/mission-scheduling.md",
+            "line": 23,
+            "end_line": 25,
+            "text": "**Every scheduled mission passes `--precheck`.** It runs a bounded command before the run; exit 0\ncontinues, anything else records a **skipped** run and spawns nothing (`automations.ts:62` at\nv1.4.199)."
+          },
+          "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "assertion": "automation runs precheck before agent launch",
+          "family": "AUTOMATION",
+          "classification": "UNPROBED",
+          "disposition": "TODO",
+          "receipt_paths": [],
+          "probe": {
+            "procedure": "Establish automation deletion/disable teardown first; create disabled schedule against owned scratch workspace with precheck exit 1; run once and verify skipped history with zero agent/terminal/worktree creation. Positive precheck and schedule firing require approved coordinator launch; test cron/hourly/daily/weekdays/weekly/RRULE/timezone/grace/session separately; remote host requires paired disposable fixture.",
+            "expected_receipt": "At exact installed version, establish this predicate independently: automation runs precheck before agent launch. Capture before/after authoritative state where mutation is involved.",
+            "precondition": "Coordinator-provided disabled automation fixture isolated from current schedules, approved no-cost provider/workspace, and controllable clock for schedule/grace cases."
+          },
+          "remaining": "Unattempted or incomplete; perform this child probe. Workload is not a parking reason.",
+          "continuation": "TODO-REQUIRES-OWNED-FIXTURE"
+        },
+        {
+          "id": "C145.02",
+          "parent_id": "C145",
+          "source": {
+            "path": "runtime/mission-scheduling.md",
+            "line": 23,
+            "end_line": 25,
+            "text": "**Every scheduled mission passes `--precheck`.** It runs a bounded command before the run; exit 0\ncontinues, anything else records a **skipped** run and spawns nothing (`automations.ts:62` at\nv1.4.199)."
+          },
+          "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "assertion": "precheck exit zero permits run",
+          "family": "AUTOMATION",
+          "classification": "UNPROBED",
+          "disposition": "TODO",
+          "receipt_paths": [],
+          "probe": {
+            "procedure": "Establish automation deletion/disable teardown first; create disabled schedule against owned scratch workspace with precheck exit 1; run once and verify skipped history with zero agent/terminal/worktree creation. Positive precheck and schedule firing require approved coordinator launch; test cron/hourly/daily/weekdays/weekly/RRULE/timezone/grace/session separately; remote host requires paired disposable fixture.",
+            "expected_receipt": "At exact installed version, establish this predicate independently: precheck exit zero permits run. Capture before/after authoritative state where mutation is involved.",
+            "precondition": "Coordinator-provided disabled automation fixture isolated from current schedules, approved no-cost provider/workspace, and controllable clock for schedule/grace cases."
+          },
+          "remaining": "Unattempted or incomplete; perform this child probe. Workload is not a parking reason.",
+          "continuation": "TODO-REQUIRES-OWNED-FIXTURE"
+        },
+        {
+          "id": "C145.03",
+          "parent_id": "C145",
+          "source": {
+            "path": "runtime/mission-scheduling.md",
+            "line": 23,
+            "end_line": 25,
+            "text": "**Every scheduled mission passes `--precheck`.** It runs a bounded command before the run; exit 0\ncontinues, anything else records a **skipped** run and spawns nothing (`automations.ts:62` at\nv1.4.199)."
+          },
+          "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "assertion": "nonzero precheck records skipped run",
+          "family": "AUTOMATION",
+          "classification": "UNPROBED",
+          "disposition": "TODO",
+          "receipt_paths": [],
+          "probe": {
+            "procedure": "Establish automation deletion/disable teardown first; create disabled schedule against owned scratch workspace with precheck exit 1; run once and verify skipped history with zero agent/terminal/worktree creation. Positive precheck and schedule firing require approved coordinator launch; test cron/hourly/daily/weekdays/weekly/RRULE/timezone/grace/session separately; remote host requires paired disposable fixture.",
+            "expected_receipt": "At exact installed version, establish this predicate independently: nonzero precheck records skipped run. Capture before/after authoritative state where mutation is involved.",
+            "precondition": "Coordinator-provided disabled automation fixture isolated from current schedules, approved no-cost provider/workspace, and controllable clock for schedule/grace cases."
+          },
+          "remaining": "Unattempted or incomplete; perform this child probe. Workload is not a parking reason.",
+          "continuation": "TODO-REQUIRES-OWNED-FIXTURE"
+        },
+        {
+          "id": "C145.04",
+          "parent_id": "C145",
+          "source": {
+            "path": "runtime/mission-scheduling.md",
+            "line": 23,
+            "end_line": 25,
+            "text": "**Every scheduled mission passes `--precheck`.** It runs a bounded command before the run; exit 0\ncontinues, anything else records a **skipped** run and spawns nothing (`automations.ts:62` at\nv1.4.199)."
+          },
+          "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "assertion": "nonzero precheck spawns no agent",
+          "family": "AUTOMATION",
+          "classification": "UNPROBED",
+          "disposition": "TODO",
+          "receipt_paths": [],
+          "probe": {
+            "procedure": "Establish automation deletion/disable teardown first; create disabled schedule against owned scratch workspace with precheck exit 1; run once and verify skipped history with zero agent/terminal/worktree creation. Positive precheck and schedule firing require approved coordinator launch; test cron/hourly/daily/weekdays/weekly/RRULE/timezone/grace/session separately; remote host requires paired disposable fixture.",
+            "expected_receipt": "At exact installed version, establish this predicate independently: nonzero precheck spawns no agent. Capture before/after authoritative state where mutation is involved.",
+            "precondition": "Coordinator-provided disabled automation fixture isolated from current schedules, approved no-cost provider/workspace, and controllable clock for schedule/grace cases."
+          },
+          "remaining": "Unattempted or incomplete; perform this child probe. Workload is not a parking reason.",
+          "continuation": "TODO-REQUIRES-OWNED-FIXTURE"
+        },
+        {
+          "id": "C147.01",
+          "parent_id": "C147",
+          "source": {
+            "path": "runtime/mission-scheduling.md",
+            "line": 32,
+            "end_line": 38,
+            "text": "Also on `create`/`edit`: `--timezone` (a cron with no zone drifts against the team's day),\n`--missed-run-grace-minutes` (how late a missed fire may still run — past it the run is dropped, not\nsilently deferred), `--reuse-session` / `--fresh-session` (existing-workspace automations only;\nprefer `--fresh-session` for missions, since a reused session carries the last run's context into a\nrun whose whole premise is independence), and `--host runtime:<environment-id>` to place the\nscheduled coordinator on a paired Orca server rather than the mortal desktop — pass the id from\n`orca environment list`, never the environment's name."
+          },
+          "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "assertion": "create and edit accept timezone",
+          "family": "AUTOMATION",
+          "classification": "UNPROBED",
+          "disposition": "TODO",
+          "receipt_paths": [],
+          "probe": {
+            "procedure": "Establish automation deletion/disable teardown first; create disabled schedule against owned scratch workspace with precheck exit 1; run once and verify skipped history with zero agent/terminal/worktree creation. Positive precheck and schedule firing require approved coordinator launch; test cron/hourly/daily/weekdays/weekly/RRULE/timezone/grace/session separately; remote host requires paired disposable fixture.",
+            "expected_receipt": "At exact installed version, establish this predicate independently: create and edit accept timezone. Capture before/after authoritative state where mutation is involved.",
+            "precondition": "Coordinator-provided disabled automation fixture isolated from current schedules, approved no-cost provider/workspace, and controllable clock for schedule/grace cases."
+          },
+          "remaining": "Unattempted or incomplete; perform this child probe. Workload is not a parking reason.",
+          "continuation": "TODO-REQUIRES-OWNED-FIXTURE"
+        },
+        {
+          "id": "C147.02",
+          "parent_id": "C147",
+          "source": {
+            "path": "runtime/mission-scheduling.md",
+            "line": 32,
+            "end_line": 38,
+            "text": "Also on `create`/`edit`: `--timezone` (a cron with no zone drifts against the team's day),\n`--missed-run-grace-minutes` (how late a missed fire may still run — past it the run is dropped, not\nsilently deferred), `--reuse-session` / `--fresh-session` (existing-workspace automations only;\nprefer `--fresh-session` for missions, since a reused session carries the last run's context into a\nrun whose whole premise is independence), and `--host runtime:<environment-id>` to place the\nscheduled coordinator on a paired Orca server rather than the mortal desktop — pass the id from\n`orca environment list`, never the environment's name."
+          },
+          "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "assertion": "missed-run-grace-minutes drops overly late fires",
+          "family": "AUTOMATION",
+          "classification": "UNPROBED",
+          "disposition": "TODO",
+          "receipt_paths": [],
+          "probe": {
+            "procedure": "Establish automation deletion/disable teardown first; create disabled schedule against owned scratch workspace with precheck exit 1; run once and verify skipped history with zero agent/terminal/worktree creation. Positive precheck and schedule firing require approved coordinator launch; test cron/hourly/daily/weekdays/weekly/RRULE/timezone/grace/session separately; remote host requires paired disposable fixture.",
+            "expected_receipt": "At exact installed version, establish this predicate independently: missed-run-grace-minutes drops overly late fires. Capture before/after authoritative state where mutation is involved.",
+            "precondition": "Coordinator-provided disabled automation fixture isolated from current schedules, approved no-cost provider/workspace, and controllable clock for schedule/grace cases."
+          },
+          "remaining": "Unattempted or incomplete; perform this child probe. Workload is not a parking reason.",
+          "continuation": "TODO-REQUIRES-OWNED-FIXTURE"
+        },
+        {
+          "id": "C147.03",
+          "parent_id": "C147",
+          "source": {
+            "path": "runtime/mission-scheduling.md",
+            "line": 32,
+            "end_line": 38,
+            "text": "Also on `create`/`edit`: `--timezone` (a cron with no zone drifts against the team's day),\n`--missed-run-grace-minutes` (how late a missed fire may still run — past it the run is dropped, not\nsilently deferred), `--reuse-session` / `--fresh-session` (existing-workspace automations only;\nprefer `--fresh-session` for missions, since a reused session carries the last run's context into a\nrun whose whole premise is independence), and `--host runtime:<environment-id>` to place the\nscheduled coordinator on a paired Orca server rather than the mortal desktop — pass the id from\n`orca environment list`, never the environment's name."
+          },
+          "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "assertion": "reuse-session reuses existing-workspace session",
+          "family": "AUTOMATION",
+          "classification": "UNPROBED",
+          "disposition": "TODO",
+          "receipt_paths": [],
+          "probe": {
+            "procedure": "Establish automation deletion/disable teardown first; create disabled schedule against owned scratch workspace with precheck exit 1; run once and verify skipped history with zero agent/terminal/worktree creation. Positive precheck and schedule firing require approved coordinator launch; test cron/hourly/daily/weekdays/weekly/RRULE/timezone/grace/session separately; remote host requires paired disposable fixture.",
+            "expected_receipt": "At exact installed version, establish this predicate independently: reuse-session reuses existing-workspace session. Capture before/after authoritative state where mutation is involved.",
+            "precondition": "Coordinator-provided disabled automation fixture isolated from current schedules, approved no-cost provider/workspace, and controllable clock for schedule/grace cases."
+          },
+          "remaining": "Unattempted or incomplete; perform this child probe. Workload is not a parking reason.",
+          "continuation": "TODO-REQUIRES-OWNED-FIXTURE"
+        },
+        {
+          "id": "C147.04",
+          "parent_id": "C147",
+          "source": {
+            "path": "runtime/mission-scheduling.md",
+            "line": 32,
+            "end_line": 38,
+            "text": "Also on `create`/`edit`: `--timezone` (a cron with no zone drifts against the team's day),\n`--missed-run-grace-minutes` (how late a missed fire may still run — past it the run is dropped, not\nsilently deferred), `--reuse-session` / `--fresh-session` (existing-workspace automations only;\nprefer `--fresh-session` for missions, since a reused session carries the last run's context into a\nrun whose whole premise is independence), and `--host runtime:<environment-id>` to place the\nscheduled coordinator on a paired Orca server rather than the mortal desktop — pass the id from\n`orca environment list`, never the environment's name."
+          },
+          "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "assertion": "fresh-session starts new existing-workspace session",
+          "family": "AUTOMATION",
+          "classification": "UNPROBED",
+          "disposition": "TODO",
+          "receipt_paths": [],
+          "probe": {
+            "procedure": "Establish automation deletion/disable teardown first; create disabled schedule against owned scratch workspace with precheck exit 1; run once and verify skipped history with zero agent/terminal/worktree creation. Positive precheck and schedule firing require approved coordinator launch; test cron/hourly/daily/weekdays/weekly/RRULE/timezone/grace/session separately; remote host requires paired disposable fixture.",
+            "expected_receipt": "At exact installed version, establish this predicate independently: fresh-session starts new existing-workspace session. Capture before/after authoritative state where mutation is involved.",
+            "precondition": "Coordinator-provided disabled automation fixture isolated from current schedules, approved no-cost provider/workspace, and controllable clock for schedule/grace cases."
+          },
+          "remaining": "Unattempted or incomplete; perform this child probe. Workload is not a parking reason.",
+          "continuation": "TODO-REQUIRES-OWNED-FIXTURE"
+        },
+        {
+          "id": "C147.05",
+          "parent_id": "C147",
+          "source": {
+            "path": "runtime/mission-scheduling.md",
+            "line": 32,
+            "end_line": 38,
+            "text": "Also on `create`/`edit`: `--timezone` (a cron with no zone drifts against the team's day),\n`--missed-run-grace-minutes` (how late a missed fire may still run — past it the run is dropped, not\nsilently deferred), `--reuse-session` / `--fresh-session` (existing-workspace automations only;\nprefer `--fresh-session` for missions, since a reused session carries the last run's context into a\nrun whose whole premise is independence), and `--host runtime:<environment-id>` to place the\nscheduled coordinator on a paired Orca server rather than the mortal desktop — pass the id from\n`orca environment list`, never the environment's name."
+          },
+          "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "assertion": "host runtime:environment-id places on paired server",
+          "family": "AUTOMATION",
+          "classification": "UNPROBED",
+          "disposition": "TODO",
+          "receipt_paths": [],
+          "probe": {
+            "procedure": "Establish automation deletion/disable teardown first; create disabled schedule against owned scratch workspace with precheck exit 1; run once and verify skipped history with zero agent/terminal/worktree creation. Positive precheck and schedule firing require approved coordinator launch; test cron/hourly/daily/weekdays/weekly/RRULE/timezone/grace/session separately; remote host requires paired disposable fixture.",
+            "expected_receipt": "At exact installed version, establish this predicate independently: host runtime:environment-id places on paired server. Capture before/after authoritative state where mutation is involved.",
+            "precondition": "Coordinator-provided disabled automation fixture isolated from current schedules, approved no-cost provider/workspace, and controllable clock for schedule/grace cases."
+          },
+          "remaining": "Unattempted or incomplete; perform this child probe. Workload is not a parking reason.",
+          "continuation": "TODO-REQUIRES-OWNED-FIXTURE"
+        },
+        {
+          "id": "C176.01",
+          "parent_id": "C176",
+          "source": {
+            "path": "runtime/orca-dag-semantics.md",
+            "line": 75,
+            "end_line": 77,
+            "text": " Reconstructible facts: creation, each dispatch attempt\n(latest = the active dispatch; `failure_count` carries MAX forward; circuit trips at 3),\ncompletion via `worker_done`."
+          },
+          "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "assertion": "dispatch attempts can be reconstructed from records",
+          "family": "DAG",
+          "classification": "UNPROBED",
+          "disposition": "TODO",
+          "receipt_paths": [],
+          "probe": {
+            "procedure": "Create good and bad parent dependencies plus multi-dependency child; reject missing/foreign deps and foreign parent; read parent_id and deps; complete only one dependency, then all; fail another. Compare task-list and scoped inbox before/after promotion. For failure circuit use three coordinator-supplied disposable Dispatch attempts, never simulated task-update failures. Legacy dangling deps require isolated imported legacy fixture.",
+            "expected_receipt": "At exact installed version, establish this predicate independently: dispatch attempts can be reconstructed from records. Capture before/after authoritative state where mutation is involved.",
+            "precondition": "Scratch coordinator and two owned Runs; native helper only for actual Dispatch/failure-count predicates."
+          },
+          "remaining": "Unattempted or incomplete; perform this child probe. Workload is not a parking reason.",
+          "continuation": "TODO-REQUIRES-OWNED-FIXTURE"
+        },
+        {
+          "id": "C176.02",
+          "parent_id": "C176",
+          "source": {
+            "path": "runtime/orca-dag-semantics.md",
+            "line": 75,
+            "end_line": 77,
+            "text": " Reconstructible facts: creation, each dispatch attempt\n(latest = the active dispatch; `failure_count` carries MAX forward; circuit trips at 3),\ncompletion via `worker_done`."
+          },
+          "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "assertion": "latest dispatch is active",
+          "family": "DAG",
+          "classification": "UNPROBED",
+          "disposition": "TODO",
+          "receipt_paths": [],
+          "probe": {
+            "procedure": "Create good and bad parent dependencies plus multi-dependency child; reject missing/foreign deps and foreign parent; read parent_id and deps; complete only one dependency, then all; fail another. Compare task-list and scoped inbox before/after promotion. For failure circuit use three coordinator-supplied disposable Dispatch attempts, never simulated task-update failures. Legacy dangling deps require isolated imported legacy fixture.",
+            "expected_receipt": "At exact installed version, establish this predicate independently: latest dispatch is active. Capture before/after authoritative state where mutation is involved.",
+            "precondition": "Scratch coordinator and two owned Runs; native helper only for actual Dispatch/failure-count predicates."
+          },
+          "remaining": "Unattempted or incomplete; perform this child probe. Workload is not a parking reason.",
+          "continuation": "TODO-REQUIRES-OWNED-FIXTURE"
+        },
+        {
+          "id": "C176.03",
+          "parent_id": "C176",
+          "source": {
+            "path": "runtime/orca-dag-semantics.md",
+            "line": 75,
+            "end_line": 77,
+            "text": " Reconstructible facts: creation, each dispatch attempt\n(latest = the active dispatch; `failure_count` carries MAX forward; circuit trips at 3),\ncompletion via `worker_done`."
+          },
+          "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "assertion": "failure_count carries maximum forward",
+          "family": "DAG",
+          "classification": "UNPROBED",
+          "disposition": "TODO",
+          "receipt_paths": [],
+          "probe": {
+            "procedure": "Create good and bad parent dependencies plus multi-dependency child; reject missing/foreign deps and foreign parent; read parent_id and deps; complete only one dependency, then all; fail another. Compare task-list and scoped inbox before/after promotion. For failure circuit use three coordinator-supplied disposable Dispatch attempts, never simulated task-update failures. Legacy dangling deps require isolated imported legacy fixture.",
+            "expected_receipt": "At exact installed version, establish this predicate independently: failure_count carries maximum forward. Capture before/after authoritative state where mutation is involved.",
+            "precondition": "Scratch coordinator and two owned Runs; native helper only for actual Dispatch/failure-count predicates."
+          },
+          "remaining": "Unattempted or incomplete; perform this child probe. Workload is not a parking reason.",
+          "continuation": "TODO-REQUIRES-OWNED-FIXTURE"
+        },
+        {
+          "id": "C176.04",
+          "parent_id": "C176",
+          "source": {
+            "path": "runtime/orca-dag-semantics.md",
+            "line": 75,
+            "end_line": 77,
+            "text": " Reconstructible facts: creation, each dispatch attempt\n(latest = the active dispatch; `failure_count` carries MAX forward; circuit trips at 3),\ncompletion via `worker_done`."
+          },
+          "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "assertion": "failure circuit trips at three",
+          "family": "DAG",
+          "classification": "UNPROBED",
+          "disposition": "TODO",
+          "receipt_paths": [],
+          "probe": {
+            "procedure": "Create good and bad parent dependencies plus multi-dependency child; reject missing/foreign deps and foreign parent; read parent_id and deps; complete only one dependency, then all; fail another. Compare task-list and scoped inbox before/after promotion. For failure circuit use three coordinator-supplied disposable Dispatch attempts, never simulated task-update failures. Legacy dangling deps require isolated imported legacy fixture.",
+            "expected_receipt": "At exact installed version, establish this predicate independently: failure circuit trips at three. Capture before/after authoritative state where mutation is involved.",
+            "precondition": "Scratch coordinator and two owned Runs; native helper only for actual Dispatch/failure-count predicates."
+          },
+          "remaining": "Unattempted or incomplete; perform this child probe. Workload is not a parking reason.",
+          "continuation": "TODO-REQUIRES-OWNED-FIXTURE"
+        },
+        {
+          "id": "C176.05",
+          "parent_id": "C176",
+          "source": {
+            "path": "runtime/orca-dag-semantics.md",
+            "line": 75,
+            "end_line": 77,
+            "text": " Reconstructible facts: creation, each dispatch attempt\n(latest = the active dispatch; `failure_count` carries MAX forward; circuit trips at 3),\ncompletion via `worker_done`."
+          },
+          "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "assertion": "worker_done records completion",
+          "family": "DAG",
+          "classification": "UNPROBED",
+          "disposition": "TODO",
+          "receipt_paths": [],
+          "probe": {
+            "procedure": "Create good and bad parent dependencies plus multi-dependency child; reject missing/foreign deps and foreign parent; read parent_id and deps; complete only one dependency, then all; fail another. Compare task-list and scoped inbox before/after promotion. For failure circuit use three coordinator-supplied disposable Dispatch attempts, never simulated task-update failures. Legacy dangling deps require isolated imported legacy fixture.",
+            "expected_receipt": "At exact installed version, establish this predicate independently: worker_done records completion. Capture before/after authoritative state where mutation is involved.",
+            "precondition": "Scratch coordinator and two owned Runs; native helper only for actual Dispatch/failure-count predicates."
+          },
+          "remaining": "Unattempted or incomplete; perform this child probe. Workload is not a parking reason.",
+          "continuation": "TODO-REQUIRES-OWNED-FIXTURE"
+        },
+        {
+          "id": "C198.01",
+          "parent_id": "C198",
+          "source": {
+            "path": "runtime/orca-dag-semantics.md",
+            "line": 126,
+            "end_line": 128,
+            "text": " Upstream's own rule is\n\"prefer `--task-id`/`--dispatch-id`/etc. over raw `--payload` JSON\" (`orchestration.ts:49,79` at\nv1.4.199): PowerShell strips JSON quotes, and a typed flag cannot be misspelled silently."
+          },
+          "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "assertion": "PowerShell raw payload quoting can strip JSON quotes",
+          "family": "PLATFORM",
+          "classification": "UNPROBED",
+          "disposition": "TODO",
+          "receipt_paths": [],
+          "probe": {
+            "procedure": "On target OS inspect executable resolution then execute harmless literal JSON quoting/CLI help probe; record exact installed Orca version and platform shell. Do not infer foreign-platform behavior from macOS.",
+            "expected_receipt": "At exact installed version, establish this predicate independently: PowerShell raw payload quoting can strip JSON quotes. Capture before/after authoritative state where mutation is involved.",
+            "precondition": "Owned Windows PowerShell or Linux installation fixture, depending on predicate. Current host is macOS."
+          },
+          "remaining": "Unattempted or incomplete; perform this child probe. Workload is not a parking reason.",
+          "continuation": "TODO-REQUIRES-OWNED-FIXTURE"
+        },
+        {
+          "id": "C255.01",
+          "parent_id": "C255",
+          "source": {
+            "path": "runtime/scripts/spawn_worker.sh",
+            "line": 69,
+            "end_line": 91,
+            "text": "#   SP=<dir> [PROFILE=rw] spawn_worker.sh [--mark-ready] <task_id> <worktree_selector> <title> [agent] [effort]\n#   agent ∈ claude|codex|cursor|gemini|grok|droid|opencode|omp|pi (default claude)\n# Prints:  supervised: HANDLE=<h> READY=<state>, DISPATCH=<id>, and LAUNCH_EFFECTIVE=<json> when the\n#          receipt carries it.  custom-argv lane: HANDLE=<h> STAGES=<csv>\n#\n# Agent × profile coverage (flags are Orca's own autonomous \"yolo\" args from\n# `tui-agent-permissions.ts:6-33`, so workers never block on a prompt; anything else fails closed\n# and needs WORKER_CMD):\n#   claude/codex/gemini → ro + rw + danger\n#   cursor              → rw + danger (`tui-agent-permissions.ts:21` maps cursor to `--yolo`; Orca\n#                         has no read-only mode for it) — also one of the three agents that\n#                         `--model`/`--effort` can target\n#   grok                → rw + danger (Orca has no read-only mode for grok)\n#   droid               → rw + danger (Orca appends `--auto high`); ro → WORKER_CMD\n#   opencode/omp/pi     → WORKER_CMD. opencode AND kilo are actively STRIPPED of\n#                         `--dangerously-skip-permissions` (`tui-agent-launch-defaults.ts:5-8`);\n#                         kilo stays off this roster for the same reason opencode fails closed.\n# rw and danger use the SAME non-blocking flag; danger only adds the ALLOW_DANGER gate + the\n# ephemeral-sandbox requirement (sandbox-policy.md). worker-start's `--effort` requires `--model`\n# (a provider model id the fleet does not pin) — the validated `effort` arg applies on the\n# override lane's launch command; the supervised path takes the agent's configured default.\n#\n# NOTE: <worktree_selector> is a RAW orca selector."
+          },
+          "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "assertion": "claude plan and skip-permissions map are supported",
+          "family": "PROFILE",
+          "classification": "UNPROBED",
+          "disposition": "TODO",
+          "receipt_paths": [],
+          "probe": {
+            "procedure": "Inspect exact host launch setting read-only, then coordinator runs allowed per-agent --model/--effort/profile matrix; compare effective argv with actual process and harmless permission outcome. Native CLI --help proves flag spelling only. Run doctor/launch inside disposable authorized host for danger lane. Missing credentials/unsupported IPC are preconditions, not absent APIs.",
+            "expected_receipt": "At exact installed version, establish this predicate independently: claude plan and skip-permissions map are supported. Capture before/after authoritative state where mutation is involved.",
+            "precondition": "Coordinator-provided per-agent fresh launch fixtures with approved installed models, trust and host settings; current task forbids paid/remote/danger launches and global changes. Native read-only cannot use IPC on observed substrate."
+          },
+          "remaining": "Unattempted or incomplete; perform this child probe. Workload is not a parking reason.",
+          "continuation": "TODO-REQUIRES-OWNED-FIXTURE"
+        },
+        {
+          "id": "C255.02",
+          "parent_id": "C255",
+          "source": {
+            "path": "runtime/scripts/spawn_worker.sh",
+            "line": 69,
+            "end_line": 91,
+            "text": "#   SP=<dir> [PROFILE=rw] spawn_worker.sh [--mark-ready] <task_id> <worktree_selector> <title> [agent] [effort]\n#   agent ∈ claude|codex|cursor|gemini|grok|droid|opencode|omp|pi (default claude)\n# Prints:  supervised: HANDLE=<h> READY=<state>, DISPATCH=<id>, and LAUNCH_EFFECTIVE=<json> when the\n#          receipt carries it.  custom-argv lane: HANDLE=<h> STAGES=<csv>\n#\n# Agent × profile coverage (flags are Orca's own autonomous \"yolo\" args from\n# `tui-agent-permissions.ts:6-33`, so workers never block on a prompt; anything else fails closed\n# and needs WORKER_CMD):\n#   claude/codex/gemini → ro + rw + danger\n#   cursor              → rw + danger (`tui-agent-permissions.ts:21` maps cursor to `--yolo`; Orca\n#                         has no read-only mode for it) — also one of the three agents that\n#                         `--model`/`--effort` can target\n#   grok                → rw + danger (Orca has no read-only mode for grok)\n#   droid               → rw + danger (Orca appends `--auto high`); ro → WORKER_CMD\n#   opencode/omp/pi     → WORKER_CMD. opencode AND kilo are actively STRIPPED of\n#                         `--dangerously-skip-permissions` (`tui-agent-launch-defaults.ts:5-8`);\n#                         kilo stays off this roster for the same reason opencode fails closed.\n# rw and danger use the SAME non-blocking flag; danger only adds the ALLOW_DANGER gate + the\n# ephemeral-sandbox requirement (sandbox-policy.md). worker-start's `--effort` requires `--model`\n# (a provider model id the fleet does not pin) — the validated `effort` arg applies on the\n# override lane's launch command; the supervised path takes the agent's configured default.\n#\n# NOTE: <worktree_selector> is a RAW orca selector."
+          },
+          "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "assertion": "codex read-only and bypass map are supported",
+          "family": "PROFILE",
+          "classification": "UNPROBED",
+          "disposition": "TODO",
+          "receipt_paths": [],
+          "probe": {
+            "procedure": "Inspect exact host launch setting read-only, then coordinator runs allowed per-agent --model/--effort/profile matrix; compare effective argv with actual process and harmless permission outcome. Native CLI --help proves flag spelling only. Run doctor/launch inside disposable authorized host for danger lane. Missing credentials/unsupported IPC are preconditions, not absent APIs.",
+            "expected_receipt": "At exact installed version, establish this predicate independently: codex read-only and bypass map are supported. Capture before/after authoritative state where mutation is involved.",
+            "precondition": "Coordinator-provided per-agent fresh launch fixtures with approved installed models, trust and host settings; current task forbids paid/remote/danger launches and global changes. Native read-only cannot use IPC on observed substrate."
+          },
+          "remaining": "Unattempted or incomplete; perform this child probe. Workload is not a parking reason.",
+          "continuation": "TODO-REQUIRES-OWNED-FIXTURE"
+        },
+        {
+          "id": "C255.03",
+          "parent_id": "C255",
+          "source": {
+            "path": "runtime/scripts/spawn_worker.sh",
+            "line": 69,
+            "end_line": 91,
+            "text": "#   SP=<dir> [PROFILE=rw] spawn_worker.sh [--mark-ready] <task_id> <worktree_selector> <title> [agent] [effort]\n#   agent ∈ claude|codex|cursor|gemini|grok|droid|opencode|omp|pi (default claude)\n# Prints:  supervised: HANDLE=<h> READY=<state>, DISPATCH=<id>, and LAUNCH_EFFECTIVE=<json> when the\n#          receipt carries it.  custom-argv lane: HANDLE=<h> STAGES=<csv>\n#\n# Agent × profile coverage (flags are Orca's own autonomous \"yolo\" args from\n# `tui-agent-permissions.ts:6-33`, so workers never block on a prompt; anything else fails closed\n# and needs WORKER_CMD):\n#   claude/codex/gemini → ro + rw + danger\n#   cursor              → rw + danger (`tui-agent-permissions.ts:21` maps cursor to `--yolo`; Orca\n#                         has no read-only mode for it) — also one of the three agents that\n#                         `--model`/`--effort` can target\n#   grok                → rw + danger (Orca has no read-only mode for grok)\n#   droid               → rw + danger (Orca appends `--auto high`); ro → WORKER_CMD\n#   opencode/omp/pi     → WORKER_CMD. opencode AND kilo are actively STRIPPED of\n#                         `--dangerously-skip-permissions` (`tui-agent-launch-defaults.ts:5-8`);\n#                         kilo stays off this roster for the same reason opencode fails closed.\n# rw and danger use the SAME non-blocking flag; danger only adds the ALLOW_DANGER gate + the\n# ephemeral-sandbox requirement (sandbox-policy.md). worker-start's `--effort` requires `--model`\n# (a provider model id the fleet does not pin) — the validated `effort` arg applies on the\n# override lane's launch command; the supervised path takes the agent's configured default.\n#\n# NOTE: <worktree_selector> is a RAW orca selector."
+          },
+          "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "assertion": "gemini plan and yolo map are supported",
+          "family": "PROFILE",
+          "classification": "UNPROBED",
+          "disposition": "TODO",
+          "receipt_paths": [],
+          "probe": {
+            "procedure": "Inspect exact host launch setting read-only, then coordinator runs allowed per-agent --model/--effort/profile matrix; compare effective argv with actual process and harmless permission outcome. Native CLI --help proves flag spelling only. Run doctor/launch inside disposable authorized host for danger lane. Missing credentials/unsupported IPC are preconditions, not absent APIs.",
+            "expected_receipt": "At exact installed version, establish this predicate independently: gemini plan and yolo map are supported. Capture before/after authoritative state where mutation is involved.",
+            "precondition": "Coordinator-provided per-agent fresh launch fixtures with approved installed models, trust and host settings; current task forbids paid/remote/danger launches and global changes. Native read-only cannot use IPC on observed substrate."
+          },
+          "remaining": "Unattempted or incomplete; perform this child probe. Workload is not a parking reason.",
+          "continuation": "TODO-REQUIRES-OWNED-FIXTURE"
+        },
+        {
+          "id": "C255.04",
+          "parent_id": "C255",
+          "source": {
+            "path": "runtime/scripts/spawn_worker.sh",
+            "line": 69,
+            "end_line": 91,
+            "text": "#   SP=<dir> [PROFILE=rw] spawn_worker.sh [--mark-ready] <task_id> <worktree_selector> <title> [agent] [effort]\n#   agent ∈ claude|codex|cursor|gemini|grok|droid|opencode|omp|pi (default claude)\n# Prints:  supervised: HANDLE=<h> READY=<state>, DISPATCH=<id>, and LAUNCH_EFFECTIVE=<json> when the\n#          receipt carries it.  custom-argv lane: HANDLE=<h> STAGES=<csv>\n#\n# Agent × profile coverage (flags are Orca's own autonomous \"yolo\" args from\n# `tui-agent-permissions.ts:6-33`, so workers never block on a prompt; anything else fails closed\n# and needs WORKER_CMD):\n#   claude/codex/gemini → ro + rw + danger\n#   cursor              → rw + danger (`tui-agent-permissions.ts:21` maps cursor to `--yolo`; Orca\n#                         has no read-only mode for it) — also one of the three agents that\n#                         `--model`/`--effort` can target\n#   grok                → rw + danger (Orca has no read-only mode for grok)\n#   droid               → rw + danger (Orca appends `--auto high`); ro → WORKER_CMD\n#   opencode/omp/pi     → WORKER_CMD. opencode AND kilo are actively STRIPPED of\n#                         `--dangerously-skip-permissions` (`tui-agent-launch-defaults.ts:5-8`);\n#                         kilo stays off this roster for the same reason opencode fails closed.\n# rw and danger use the SAME non-blocking flag; danger only adds the ALLOW_DANGER gate + the\n# ephemeral-sandbox requirement (sandbox-policy.md). worker-start's `--effort` requires `--model`\n# (a provider model id the fleet does not pin) — the validated `effort` arg applies on the\n# override lane's launch command; the supervised path takes the agent's configured default.\n#\n# NOTE: <worktree_selector> is a RAW orca selector."
+          },
+          "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "assertion": "cursor yolo map is supported",
+          "family": "PROFILE",
+          "classification": "UNPROBED",
+          "disposition": "TODO",
+          "receipt_paths": [],
+          "probe": {
+            "procedure": "Inspect exact host launch setting read-only, then coordinator runs allowed per-agent --model/--effort/profile matrix; compare effective argv with actual process and harmless permission outcome. Native CLI --help proves flag spelling only. Run doctor/launch inside disposable authorized host for danger lane. Missing credentials/unsupported IPC are preconditions, not absent APIs.",
+            "expected_receipt": "At exact installed version, establish this predicate independently: cursor yolo map is supported. Capture before/after authoritative state where mutation is involved.",
+            "precondition": "Coordinator-provided per-agent fresh launch fixtures with approved installed models, trust and host settings; current task forbids paid/remote/danger launches and global changes. Native read-only cannot use IPC on observed substrate."
+          },
+          "remaining": "Unattempted or incomplete; perform this child probe. Workload is not a parking reason.",
+          "continuation": "TODO-REQUIRES-OWNED-FIXTURE"
+        },
+        {
+          "id": "C255.05",
+          "parent_id": "C255",
+          "source": {
+            "path": "runtime/scripts/spawn_worker.sh",
+            "line": 69,
+            "end_line": 91,
+            "text": "#   SP=<dir> [PROFILE=rw] spawn_worker.sh [--mark-ready] <task_id> <worktree_selector> <title> [agent] [effort]\n#   agent ∈ claude|codex|cursor|gemini|grok|droid|opencode|omp|pi (default claude)\n# Prints:  supervised: HANDLE=<h> READY=<state>, DISPATCH=<id>, and LAUNCH_EFFECTIVE=<json> when the\n#          receipt carries it.  custom-argv lane: HANDLE=<h> STAGES=<csv>\n#\n# Agent × profile coverage (flags are Orca's own autonomous \"yolo\" args from\n# `tui-agent-permissions.ts:6-33`, so workers never block on a prompt; anything else fails closed\n# and needs WORKER_CMD):\n#   claude/codex/gemini → ro + rw + danger\n#   cursor              → rw + danger (`tui-agent-permissions.ts:21` maps cursor to `--yolo`; Orca\n#                         has no read-only mode for it) — also one of the three agents that\n#                         `--model`/`--effort` can target\n#   grok                → rw + danger (Orca has no read-only mode for grok)\n#   droid               → rw + danger (Orca appends `--auto high`); ro → WORKER_CMD\n#   opencode/omp/pi     → WORKER_CMD. opencode AND kilo are actively STRIPPED of\n#                         `--dangerously-skip-permissions` (`tui-agent-launch-defaults.ts:5-8`);\n#                         kilo stays off this roster for the same reason opencode fails closed.\n# rw and danger use the SAME non-blocking flag; danger only adds the ALLOW_DANGER gate + the\n# ephemeral-sandbox requirement (sandbox-policy.md). worker-start's `--effort` requires `--model`\n# (a provider model id the fleet does not pin) — the validated `effort` arg applies on the\n# override lane's launch command; the supervised path takes the agent's configured default.\n#\n# NOTE: <worktree_selector> is a RAW orca selector."
+          },
+          "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "assertion": "grok bypassPermissions map is supported",
+          "family": "PROFILE",
+          "classification": "UNPROBED",
+          "disposition": "TODO",
+          "receipt_paths": [],
+          "probe": {
+            "procedure": "Inspect exact host launch setting read-only, then coordinator runs allowed per-agent --model/--effort/profile matrix; compare effective argv with actual process and harmless permission outcome. Native CLI --help proves flag spelling only. Run doctor/launch inside disposable authorized host for danger lane. Missing credentials/unsupported IPC are preconditions, not absent APIs.",
+            "expected_receipt": "At exact installed version, establish this predicate independently: grok bypassPermissions map is supported. Capture before/after authoritative state where mutation is involved.",
+            "precondition": "Coordinator-provided per-agent fresh launch fixtures with approved installed models, trust and host settings; current task forbids paid/remote/danger launches and global changes. Native read-only cannot use IPC on observed substrate."
+          },
+          "remaining": "Unattempted or incomplete; perform this child probe. Workload is not a parking reason.",
+          "continuation": "TODO-REQUIRES-OWNED-FIXTURE"
+        },
+        {
+          "id": "C255.06",
+          "parent_id": "C255",
+          "source": {
+            "path": "runtime/scripts/spawn_worker.sh",
+            "line": 69,
+            "end_line": 91,
+            "text": "#   SP=<dir> [PROFILE=rw] spawn_worker.sh [--mark-ready] <task_id> <worktree_selector> <title> [agent] [effort]\n#   agent ∈ claude|codex|cursor|gemini|grok|droid|opencode|omp|pi (default claude)\n# Prints:  supervised: HANDLE=<h> READY=<state>, DISPATCH=<id>, and LAUNCH_EFFECTIVE=<json> when the\n#          receipt carries it.  custom-argv lane: HANDLE=<h> STAGES=<csv>\n#\n# Agent × profile coverage (flags are Orca's own autonomous \"yolo\" args from\n# `tui-agent-permissions.ts:6-33`, so workers never block on a prompt; anything else fails closed\n# and needs WORKER_CMD):\n#   claude/codex/gemini → ro + rw + danger\n#   cursor              → rw + danger (`tui-agent-permissions.ts:21` maps cursor to `--yolo`; Orca\n#                         has no read-only mode for it) — also one of the three agents that\n#                         `--model`/`--effort` can target\n#   grok                → rw + danger (Orca has no read-only mode for grok)\n#   droid               → rw + danger (Orca appends `--auto high`); ro → WORKER_CMD\n#   opencode/omp/pi     → WORKER_CMD. opencode AND kilo are actively STRIPPED of\n#                         `--dangerously-skip-permissions` (`tui-agent-launch-defaults.ts:5-8`);\n#                         kilo stays off this roster for the same reason opencode fails closed.\n# rw and danger use the SAME non-blocking flag; danger only adds the ALLOW_DANGER gate + the\n# ephemeral-sandbox requirement (sandbox-policy.md). worker-start's `--effort` requires `--model`\n# (a provider model id the fleet does not pin) — the validated `effort` arg applies on the\n# override lane's launch command; the supervised path takes the agent's configured default.\n#\n# NOTE: <worktree_selector> is a RAW orca selector."
+          },
+          "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "assertion": "droid auto high map is supported",
+          "family": "PROFILE",
+          "classification": "UNPROBED",
+          "disposition": "TODO",
+          "receipt_paths": [],
+          "probe": {
+            "procedure": "Inspect exact host launch setting read-only, then coordinator runs allowed per-agent --model/--effort/profile matrix; compare effective argv with actual process and harmless permission outcome. Native CLI --help proves flag spelling only. Run doctor/launch inside disposable authorized host for danger lane. Missing credentials/unsupported IPC are preconditions, not absent APIs.",
+            "expected_receipt": "At exact installed version, establish this predicate independently: droid auto high map is supported. Capture before/after authoritative state where mutation is involved.",
+            "precondition": "Coordinator-provided per-agent fresh launch fixtures with approved installed models, trust and host settings; current task forbids paid/remote/danger launches and global changes. Native read-only cannot use IPC on observed substrate."
+          },
+          "remaining": "Unattempted or incomplete; perform this child probe. Workload is not a parking reason.",
+          "continuation": "TODO-REQUIRES-OWNED-FIXTURE"
+        },
+        {
+          "id": "C255.07",
+          "parent_id": "C255",
+          "source": {
+            "path": "runtime/scripts/spawn_worker.sh",
+            "line": 69,
+            "end_line": 91,
+            "text": "#   SP=<dir> [PROFILE=rw] spawn_worker.sh [--mark-ready] <task_id> <worktree_selector> <title> [agent] [effort]\n#   agent ∈ claude|codex|cursor|gemini|grok|droid|opencode|omp|pi (default claude)\n# Prints:  supervised: HANDLE=<h> READY=<state>, DISPATCH=<id>, and LAUNCH_EFFECTIVE=<json> when the\n#          receipt carries it.  custom-argv lane: HANDLE=<h> STAGES=<csv>\n#\n# Agent × profile coverage (flags are Orca's own autonomous \"yolo\" args from\n# `tui-agent-permissions.ts:6-33`, so workers never block on a prompt; anything else fails closed\n# and needs WORKER_CMD):\n#   claude/codex/gemini → ro + rw + danger\n#   cursor              → rw + danger (`tui-agent-permissions.ts:21` maps cursor to `--yolo`; Orca\n#                         has no read-only mode for it) — also one of the three agents that\n#                         `--model`/`--effort` can target\n#   grok                → rw + danger (Orca has no read-only mode for grok)\n#   droid               → rw + danger (Orca appends `--auto high`); ro → WORKER_CMD\n#   opencode/omp/pi     → WORKER_CMD. opencode AND kilo are actively STRIPPED of\n#                         `--dangerously-skip-permissions` (`tui-agent-launch-defaults.ts:5-8`);\n#                         kilo stays off this roster for the same reason opencode fails closed.\n# rw and danger use the SAME non-blocking flag; danger only adds the ALLOW_DANGER gate + the\n# ephemeral-sandbox requirement (sandbox-policy.md). worker-start's `--effort` requires `--model`\n# (a provider model id the fleet does not pin) — the validated `effort` arg applies on the\n# override lane's launch command; the supervised path takes the agent's configured default.\n#\n# NOTE: <worktree_selector> is a RAW orca selector."
+          },
+          "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "assertion": "opencode and kilo strip skip-permissions",
+          "family": "PROFILE",
+          "classification": "UNPROBED",
+          "disposition": "TODO",
+          "receipt_paths": [],
+          "probe": {
+            "procedure": "Inspect exact host launch setting read-only, then coordinator runs allowed per-agent --model/--effort/profile matrix; compare effective argv with actual process and harmless permission outcome. Native CLI --help proves flag spelling only. Run doctor/launch inside disposable authorized host for danger lane. Missing credentials/unsupported IPC are preconditions, not absent APIs.",
+            "expected_receipt": "At exact installed version, establish this predicate independently: opencode and kilo strip skip-permissions. Capture before/after authoritative state where mutation is involved.",
+            "precondition": "Coordinator-provided per-agent fresh launch fixtures with approved installed models, trust and host settings; current task forbids paid/remote/danger launches and global changes. Native read-only cannot use IPC on observed substrate."
+          },
+          "remaining": "Unattempted or incomplete; perform this child probe. Workload is not a parking reason.",
+          "continuation": "TODO-REQUIRES-OWNED-FIXTURE"
+        },
+        {
+          "id": "C255.08",
+          "parent_id": "C255",
+          "source": {
+            "path": "runtime/scripts/spawn_worker.sh",
+            "line": 69,
+            "end_line": 91,
+            "text": "#   SP=<dir> [PROFILE=rw] spawn_worker.sh [--mark-ready] <task_id> <worktree_selector> <title> [agent] [effort]\n#   agent ∈ claude|codex|cursor|gemini|grok|droid|opencode|omp|pi (default claude)\n# Prints:  supervised: HANDLE=<h> READY=<state>, DISPATCH=<id>, and LAUNCH_EFFECTIVE=<json> when the\n#          receipt carries it.  custom-argv lane: HANDLE=<h> STAGES=<csv>\n#\n# Agent × profile coverage (flags are Orca's own autonomous \"yolo\" args from\n# `tui-agent-permissions.ts:6-33`, so workers never block on a prompt; anything else fails closed\n# and needs WORKER_CMD):\n#   claude/codex/gemini → ro + rw + danger\n#   cursor              → rw + danger (`tui-agent-permissions.ts:21` maps cursor to `--yolo`; Orca\n#                         has no read-only mode for it) — also one of the three agents that\n#                         `--model`/`--effort` can target\n#   grok                → rw + danger (Orca has no read-only mode for grok)\n#   droid               → rw + danger (Orca appends `--auto high`); ro → WORKER_CMD\n#   opencode/omp/pi     → WORKER_CMD. opencode AND kilo are actively STRIPPED of\n#                         `--dangerously-skip-permissions` (`tui-agent-launch-defaults.ts:5-8`);\n#                         kilo stays off this roster for the same reason opencode fails closed.\n# rw and danger use the SAME non-blocking flag; danger only adds the ALLOW_DANGER gate + the\n# ephemeral-sandbox requirement (sandbox-policy.md). worker-start's `--effort` requires `--model`\n# (a provider model id the fleet does not pin) — the validated `effort` arg applies on the\n# override lane's launch command; the supervised path takes the agent's configured default.\n#\n# NOTE: <worktree_selector> is a RAW orca selector."
+          },
+          "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "assertion": "omp and pi lack default autonomous argument mapping",
+          "family": "PROFILE",
+          "classification": "UNPROBED",
+          "disposition": "TODO",
+          "receipt_paths": [],
+          "probe": {
+            "procedure": "Inspect exact host launch setting read-only, then coordinator runs allowed per-agent --model/--effort/profile matrix; compare effective argv with actual process and harmless permission outcome. Native CLI --help proves flag spelling only. Run doctor/launch inside disposable authorized host for danger lane. Missing credentials/unsupported IPC are preconditions, not absent APIs.",
+            "expected_receipt": "At exact installed version, establish this predicate independently: omp and pi lack default autonomous argument mapping. Capture before/after authoritative state where mutation is involved.",
+            "precondition": "Coordinator-provided per-agent fresh launch fixtures with approved installed models, trust and host settings; current task forbids paid/remote/danger launches and global changes. Native read-only cannot use IPC on observed substrate."
+          },
+          "remaining": "Unattempted or incomplete; perform this child probe. Workload is not a parking reason.",
+          "continuation": "TODO-REQUIRES-OWNED-FIXTURE"
+        },
+        {
+          "id": "C255.09",
+          "parent_id": "C255",
+          "source": {
+            "path": "runtime/scripts/spawn_worker.sh",
+            "line": 69,
+            "end_line": 91,
+            "text": "#   SP=<dir> [PROFILE=rw] spawn_worker.sh [--mark-ready] <task_id> <worktree_selector> <title> [agent] [effort]\n#   agent ∈ claude|codex|cursor|gemini|grok|droid|opencode|omp|pi (default claude)\n# Prints:  supervised: HANDLE=<h> READY=<state>, DISPATCH=<id>, and LAUNCH_EFFECTIVE=<json> when the\n#          receipt carries it.  custom-argv lane: HANDLE=<h> STAGES=<csv>\n#\n# Agent × profile coverage (flags are Orca's own autonomous \"yolo\" args from\n# `tui-agent-permissions.ts:6-33`, so workers never block on a prompt; anything else fails closed\n# and needs WORKER_CMD):\n#   claude/codex/gemini → ro + rw + danger\n#   cursor              → rw + danger (`tui-agent-permissions.ts:21` maps cursor to `--yolo`; Orca\n#                         has no read-only mode for it) — also one of the three agents that\n#                         `--model`/`--effort` can target\n#   grok                → rw + danger (Orca has no read-only mode for grok)\n#   droid               → rw + danger (Orca appends `--auto high`); ro → WORKER_CMD\n#   opencode/omp/pi     → WORKER_CMD. opencode AND kilo are actively STRIPPED of\n#                         `--dangerously-skip-permissions` (`tui-agent-launch-defaults.ts:5-8`);\n#                         kilo stays off this roster for the same reason opencode fails closed.\n# rw and danger use the SAME non-blocking flag; danger only adds the ALLOW_DANGER gate + the\n# ephemeral-sandbox requirement (sandbox-policy.md). worker-start's `--effort` requires `--model`\n# (a provider model id the fleet does not pin) — the validated `effort` arg applies on the\n# override lane's launch command; the supervised path takes the agent's configured default.\n#\n# NOTE: <worktree_selector> is a RAW orca selector."
+          },
+          "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "assertion": "worker-start model and effort target supported providers",
+          "family": "PROFILE",
+          "classification": "UNPROBED",
+          "disposition": "TODO",
+          "receipt_paths": [],
+          "probe": {
+            "procedure": "Inspect exact host launch setting read-only, then coordinator runs allowed per-agent --model/--effort/profile matrix; compare effective argv with actual process and harmless permission outcome. Native CLI --help proves flag spelling only. Run doctor/launch inside disposable authorized host for danger lane. Missing credentials/unsupported IPC are preconditions, not absent APIs.",
+            "expected_receipt": "At exact installed version, establish this predicate independently: worker-start model and effort target supported providers. Capture before/after authoritative state where mutation is involved.",
+            "precondition": "Coordinator-provided per-agent fresh launch fixtures with approved installed models, trust and host settings; current task forbids paid/remote/danger launches and global changes. Native read-only cannot use IPC on observed substrate."
+          },
+          "remaining": "Unattempted or incomplete; perform this child probe. Workload is not a parking reason.",
+          "continuation": "TODO-REQUIRES-OWNED-FIXTURE"
+        },
+        {
+          "id": "C255.10",
+          "parent_id": "C255",
+          "source": {
+            "path": "runtime/scripts/spawn_worker.sh",
+            "line": 69,
+            "end_line": 91,
+            "text": "#   SP=<dir> [PROFILE=rw] spawn_worker.sh [--mark-ready] <task_id> <worktree_selector> <title> [agent] [effort]\n#   agent ∈ claude|codex|cursor|gemini|grok|droid|opencode|omp|pi (default claude)\n# Prints:  supervised: HANDLE=<h> READY=<state>, DISPATCH=<id>, and LAUNCH_EFFECTIVE=<json> when the\n#          receipt carries it.  custom-argv lane: HANDLE=<h> STAGES=<csv>\n#\n# Agent × profile coverage (flags are Orca's own autonomous \"yolo\" args from\n# `tui-agent-permissions.ts:6-33`, so workers never block on a prompt; anything else fails closed\n# and needs WORKER_CMD):\n#   claude/codex/gemini → ro + rw + danger\n#   cursor              → rw + danger (`tui-agent-permissions.ts:21` maps cursor to `--yolo`; Orca\n#                         has no read-only mode for it) — also one of the three agents that\n#                         `--model`/`--effort` can target\n#   grok                → rw + danger (Orca has no read-only mode for grok)\n#   droid               → rw + danger (Orca appends `--auto high`); ro → WORKER_CMD\n#   opencode/omp/pi     → WORKER_CMD. opencode AND kilo are actively STRIPPED of\n#                         `--dangerously-skip-permissions` (`tui-agent-launch-defaults.ts:5-8`);\n#                         kilo stays off this roster for the same reason opencode fails closed.\n# rw and danger use the SAME non-blocking flag; danger only adds the ALLOW_DANGER gate + the\n# ephemeral-sandbox requirement (sandbox-policy.md). worker-start's `--effort` requires `--model`\n# (a provider model id the fleet does not pin) — the validated `effort` arg applies on the\n# override lane's launch command; the supervised path takes the agent's configured default.\n#\n# NOTE: <worktree_selector> is a RAW orca selector."
+          },
+          "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "assertion": "worker-start effort requires model",
+          "family": "PROFILE",
+          "classification": "UNPROBED",
+          "disposition": "TODO",
+          "receipt_paths": [],
+          "probe": {
+            "procedure": "Inspect exact host launch setting read-only, then coordinator runs allowed per-agent --model/--effort/profile matrix; compare effective argv with actual process and harmless permission outcome. Native CLI --help proves flag spelling only. Run doctor/launch inside disposable authorized host for danger lane. Missing credentials/unsupported IPC are preconditions, not absent APIs.",
+            "expected_receipt": "At exact installed version, establish this predicate independently: worker-start effort requires model. Capture before/after authoritative state where mutation is involved.",
+            "precondition": "Coordinator-provided per-agent fresh launch fixtures with approved installed models, trust and host settings; current task forbids paid/remote/danger launches and global changes. Native read-only cannot use IPC on observed substrate."
+          },
+          "remaining": "Unattempted or incomplete; perform this child probe. Workload is not a parking reason.",
+          "continuation": "TODO-REQUIRES-OWNED-FIXTURE"
+        },
+        {
+          "id": "C276.01",
+          "parent_id": "C276",
+          "source": {
+            "path": "runtime/scripts/spawn_worker.sh",
+            "line": 542,
+            "end_line": 551,
+            "text": "state = r.get(\"state\") or (r.get(\"worker\") or {}).get(\"state\")\ndid = r.get(\"dispatchId\") or r.get(\"dispatch_id\") or \"\"\n# The agent terminal is the effects[] entry kind=terminal role=agent; agentTerminalHandle is a\n# worker-list/worker-show field, kept as a harmless fallback.\nh = r.get(\"agentTerminalHandle\") or \"\"\nif not h:\n    for e in r.get(\"effects\") or []:\n        if isinstance(e, dict) and e.get(\"kind\") == \"terminal\" and e.get(\"role\") == \"agent\":\n            h = e.get(\"id\") or \"\"\n            break"
+          },
+          "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "assertion": "worker-start terminal effects identify the agent handle",
+          "family": "START",
+          "classification": "CURRENT",
+          "disposition": "WITNESSED",
+          "receipt_paths": [
+            "receipts/helper-start.json"
+          ],
+          "probe": {
+            "procedure": "Coordinator supplies exact terminal or approved fresh launch. Start task with exact placement; record state/stage/setup/launch/effects/turnStart/prompt, then authoritative task/Dispatch/worker reads. For failures create specific missing task/unmet deps/inject refusal/timeout preconditions BEFORE start; distinguish task refusal from absent mechanism. Release/close all owned resources afterward.",
+            "expected_receipt": "At exact installed version, establish this predicate independently: worker-start terminal effects identify the agent handle. Capture before/after authoritative state where mutation is involved.",
+            "precondition": "Coordinator-provided idle native worker or explicit fresh-launch fixture, owned ready task and worktree; never dispatch another worker independently."
+          },
+          "remaining": null,
+          "continuation": null,
+          "witness_scope": "One already-authorized native Codex terminal reused: ready, observed turnStart, effects/setup/launch fields. Effective agent/model/effort null, so no fresh launch/profile proof."
+        }
+      ]
+    },
+    {
+      "id": "G5",
+      "finding": "Compound children require explicit conjunct links",
+      "verdict": "REPRODUCED-INVENTORY-DEFECT",
+      "source_records": [
+        {
+          "id": "C010.05",
+          "source": {
+            "path": "runtime/dispatch-lifecycle.md",
+            "line": 22,
+            "end_line": 24,
+            "text": "`effects[]` entry with `kind: terminal, role: agent`. Read `launch.effective`, never `requested` — a model, effort, or permission flag is only what the host\nactually applied. `--worktree current` / an exact worktree id = a fresh agent terminal, no setup rerun; `--terminal <handle>` = reuse an exact idle agent\n(cleanup ownership transfers).",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "aabe19dbb226d7d358100199beb16d1ebfa5204dfe58f04299be14f67cbe6962"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C010.06",
+          "source": {
+            "path": "runtime/dispatch-lifecycle.md",
+            "line": 22,
+            "end_line": 24,
+            "text": "`effects[]` entry with `kind: terminal, role: agent`. Read `launch.effective`, never `requested` — a model, effort, or permission flag is only what the host\nactually applied. `--worktree current` / an exact worktree id = a fresh agent terminal, no setup rerun; `--terminal <handle>` = reuse an exact idle agent\n(cleanup ownership transfers).",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "aabe19dbb226d7d358100199beb16d1ebfa5204dfe58f04299be14f67cbe6962"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C033.06",
+          "source": {
+            "path": "runtime/dispatch-lifecycle.md",
+            "line": 72,
+            "end_line": 74,
+            "text": "agent terminal that dispatch owned) — or `worker-retain` at the user's explicit request. Its exit contract: `retained`, `release_pending`, and\n`already_released` all exit 0 (it is idempotent); **only `release_unknown` exits 1** and needs the receipt's own recovery action\n(`orchestration-worker-specs.ts:102`). The pane that outlived its `worker_done` under a new handle (the old dual-writer class) is now fenced by the runtime at",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "aabe19dbb226d7d358100199beb16d1ebfa5204dfe58f04299be14f67cbe6962"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C033.07",
+          "source": {
+            "path": "runtime/dispatch-lifecycle.md",
+            "line": 72,
+            "end_line": 74,
+            "text": "agent terminal that dispatch owned) — or `worker-retain` at the user's explicit request. Its exit contract: `retained`, `release_pending`, and\n`already_released` all exit 0 (it is idempotent); **only `release_unknown` exits 1** and needs the receipt's own recovery action\n(`orchestration-worker-specs.ts:102`). The pane that outlived its `worker_done` under a new handle (the old dual-writer class) is now fenced by the runtime at",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "aabe19dbb226d7d358100199beb16d1ebfa5204dfe58f04299be14f67cbe6962"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C039.10",
+          "source": {
+            "path": "runtime/dispatch-lifecycle.md",
+            "line": 121,
+            "end_line": 123,
+            "text": "- Read-marking: `task-list`, `inbox`, and `dispatch-show` do NOT mark messages read; `check` (default and `--unread`) CONSUMES what it returns — to inspect\n  without consuming use `check --peek` (unread) or `check --all` (history). `task-list --brief` collapses whitespace and caps each echoed spec at 160 chars\n  (`spec_truncated` marks shortened rows); omit it when the full spec is needed.",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "aabe19dbb226d7d358100199beb16d1ebfa5204dfe58f04299be14f67cbe6962"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C039.11",
+          "source": {
+            "path": "runtime/dispatch-lifecycle.md",
+            "line": 121,
+            "end_line": 123,
+            "text": "- Read-marking: `task-list`, `inbox`, and `dispatch-show` do NOT mark messages read; `check` (default and `--unread`) CONSUMES what it returns — to inspect\n  without consuming use `check --peek` (unread) or `check --all` (history). `task-list --brief` collapses whitespace and caps each echoed spec at 160 chars\n  (`spec_truncated` marks shortened rows); omit it when the full spec is needed.",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "aabe19dbb226d7d358100199beb16d1ebfa5204dfe58f04299be14f67cbe6962"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C068.04",
+          "source": {
+            "path": "runtime/gate-classification.md",
+            "line": 16,
+            "end_line": 18,
+            "text": "**The option lists are spelled differently, and mixing them is a silent refusal:** `ask --options`\ntakes a **CSV** (`--options \"rollback,patch-forward\"`), `gate-create --options` takes a **JSON\narray** (`--options '[\"rollback\",\"patch-forward\"]'`) (`orchestration.ts:203,253` at v1.4.199).",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "fa5601ed3f2e673adac0b312604c4818db1f30d40219c205eb840d7a5ae96e06"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C068.05",
+          "source": {
+            "path": "runtime/gate-classification.md",
+            "line": 16,
+            "end_line": 18,
+            "text": "**The option lists are spelled differently, and mixing them is a silent refusal:** `ask --options`\ntakes a **CSV** (`--options \"rollback,patch-forward\"`), `gate-create --options` takes a **JSON\narray** (`--options '[\"rollback\",\"patch-forward\"]'`) (`orchestration.ts:203,253` at v1.4.199).",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "fa5601ed3f2e673adac0b312604c4818db1f30d40219c205eb840d7a5ae96e06"
+          },
+          "additional_sources": []
+        }
+      ],
+      "missing_child_ids_before": [
+        "C010.05",
+        "C010.06",
+        "C033.06",
+        "C033.07",
+        "C039.10",
+        "C039.11",
+        "C068.04",
+        "C068.05"
+      ],
+      "old_compounds": [
+        {
+          "id": "C010.02",
+          "parent_id": "C010",
+          "source": {
+            "path": "runtime/dispatch-lifecycle.md",
+            "line": 22,
+            "end_line": 24,
+            "text": " Read `launch.effective`, never `requested` — a model, effort, or permission flag is only what the host\nactually applied. `--worktree current` / an exact worktree id = a fresh agent terminal, no setup rerun; `--terminal <handle>` = reuse an exact idle agent\n(cleanup ownership transfers)."
+          },
+          "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "assertion": "worker-start existing worktree creates a fresh terminal without rerunning setup",
+          "family": "PROFILE",
+          "classification": "UNPROBED",
+          "disposition": "TODO",
+          "receipt_paths": [],
+          "probe": {
+            "procedure": "Inspect exact host launch setting read-only, then coordinator runs allowed per-agent --model/--effort/profile matrix; compare effective argv with actual process and harmless permission outcome. Native CLI --help proves flag spelling only. Run doctor/launch inside disposable authorized host for danger lane. Missing credentials/unsupported IPC are preconditions, not absent APIs.",
+            "expected_receipt": "At exact installed version, establish this predicate independently: worker-start existing worktree creates a fresh terminal without rerunning setup. Capture before/after authoritative state where mutation is involved.",
+            "precondition": "Coordinator-provided per-agent fresh launch fixtures with approved installed models, trust and host settings; current task forbids paid/remote/danger launches and global changes. Native read-only cannot use IPC on observed substrate."
+          },
+          "remaining": "Unattempted or incomplete; perform this child probe. Workload is not a parking reason.",
+          "continuation": "TODO-REQUIRES-OWNED-FIXTURE"
+        },
+        {
+          "id": "C033.05",
+          "parent_id": "C033",
+          "source": {
+            "path": "runtime/dispatch-lifecycle.md",
+            "line": 72,
+            "end_line": 74,
+            "text": " Its exit contract: `retained`, `release_pending`, and\n`already_released` all exit 0 (it is idempotent); **only `release_unknown` exits 1** and needs the receipt's own recovery action\n(`orchestration-worker-specs.ts:102`)."
+          },
+          "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "assertion": "worker-release release_unknown exits one and supplies recovery",
+          "family": "RELEASE",
+          "classification": "UNPROBED",
+          "disposition": "TODO",
+          "receipt_paths": [],
+          "probe": {
+            "procedure": "After explicit successful settlement run worker-release and repeat, inspect archive/output and exact process closure; separately retain, release_pending, already_released and release_unknown via documented controlled fixtures. Existing external helper only proves retained exit zero/idempotence, not owned terminal auto-close.",
+            "expected_receipt": "At exact installed version, establish this predicate independently: worker-release release_unknown exits one and supplies recovery. Capture before/after authoritative state where mutation is involved.",
+            "precondition": "Coordinator-provided worker whose terminal is runtime-owned, plus external-terminal comparison; controlled cleanup failure on disposable runtime."
+          },
+          "remaining": "Unattempted or incomplete; perform this child probe. Workload is not a parking reason.",
+          "continuation": "TODO-REQUIRES-OWNED-FIXTURE"
+        },
+        {
+          "id": "C039.09",
+          "parent_id": "C039",
+          "source": {
+            "path": "runtime/dispatch-lifecycle.md",
+            "line": 121,
+            "end_line": 123,
+            "text": "- Read-marking: `task-list`, `inbox`, and `dispatch-show` do NOT mark messages read; `check` (default and `--unread`) CONSUMES what it returns — to inspect\n  without consuming use `check --peek` (unread) or `check --all` (history). `task-list --brief` collapses whitespace and caps each echoed spec at 160 chars\n  (`spec_truncated` marks shortened rows); omit it when the full spec is needed."
+          },
+          "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "assertion": "task-list --brief truncates spec at 160 chars and sets spec_truncated",
+          "family": "MAIL",
+          "classification": "UNPROBED",
+          "disposition": "TODO",
+          "receipt_paths": [],
+          "probe": {
+            "procedure": "Through its actual terminal create >50 synthetic messages; compare inbox/task-list/dispatch-show/check --peek/check --all/default/--unread read state; check --wait --types handoff; compare mixed FIFO batch, replay, ack boundary; wait >31s for two stderr keepalives. For brief specs use whitespace and >160 characters. Crash behavior requires isolated runtime, not current shared app.",
+            "expected_receipt": "At exact installed version, establish this predicate independently: task-list --brief truncates spec at 160 chars and sets spec_truncated. Capture before/after authoritative state where mutation is involved.",
+            "precondition": "Coordinator-provided ordinary shell bound to fresh scratch Run; synthetic status/handoff messages only. Prior owned fixture has been retired."
+          },
+          "remaining": "Unattempted or incomplete; perform this child probe. Workload is not a parking reason.",
+          "continuation": "TODO-REQUIRES-OWNED-FIXTURE"
+        },
+        {
+          "id": "C068.03",
+          "parent_id": "C068",
+          "source": {
+            "path": "runtime/gate-classification.md",
+            "line": 16,
+            "end_line": 18,
+            "text": "**The option lists are spelled differently, and mixing them is a silent refusal:** `ask --options`\ntakes a **CSV** (`--options \"rollback,patch-forward\"`), `gate-create --options` takes a **JSON\narray** (`--options '[\"rollback\",\"patch-forward\"]'`) (`orchestration.ts:203,253` at v1.4.199)."
+          },
+          "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "assertion": "mixing option formats is refused",
+          "family": "GATE",
+          "classification": "UNPROBED",
+          "disposition": "TODO",
+          "receipt_paths": [],
+          "probe": {
+            "procedure": "Try missing task/question and both option encodings before valid gate-create --task --question --options JSON; read blocked task; resolve marker; read ready task; inspect regenerated preamble separately from retained exact worker-start or dispatch --inject original payload. Legacy injection uses versioned isolated legacy runtime.",
+            "expected_receipt": "At exact installed version, establish this predicate independently: mixing option formats is refused. Capture before/after authoritative state where mutation is involved.",
+            "precondition": "Scratch Run with owned ready task; native helper for original injected preamble, separate low-level helper for inject path."
+          },
+          "remaining": "Unattempted or incomplete; perform this child probe. Workload is not a parking reason.",
+          "continuation": "TODO-REQUIRES-OWNED-FIXTURE"
+        },
+        {
+          "id": "C255.07",
+          "parent_id": "C255",
+          "source": {
+            "path": "runtime/scripts/spawn_worker.sh",
+            "line": 69,
+            "end_line": 91,
+            "text": "#   SP=<dir> [PROFILE=rw] spawn_worker.sh [--mark-ready] <task_id> <worktree_selector> <title> [agent] [effort]\n#   agent ∈ claude|codex|cursor|gemini|grok|droid|opencode|omp|pi (default claude)\n# Prints:  supervised: HANDLE=<h> READY=<state>, DISPATCH=<id>, and LAUNCH_EFFECTIVE=<json> when the\n#          receipt carries it.  custom-argv lane: HANDLE=<h> STAGES=<csv>\n#\n# Agent × profile coverage (flags are Orca's own autonomous \"yolo\" args from\n# `tui-agent-permissions.ts:6-33`, so workers never block on a prompt; anything else fails closed\n# and needs WORKER_CMD):\n#   claude/codex/gemini → ro + rw + danger\n#   cursor              → rw + danger (`tui-agent-permissions.ts:21` maps cursor to `--yolo`; Orca\n#                         has no read-only mode for it) — also one of the three agents that\n#                         `--model`/`--effort` can target\n#   grok                → rw + danger (Orca has no read-only mode for grok)\n#   droid               → rw + danger (Orca appends `--auto high`); ro → WORKER_CMD\n#   opencode/omp/pi     → WORKER_CMD. opencode AND kilo are actively STRIPPED of\n#                         `--dangerously-skip-permissions` (`tui-agent-launch-defaults.ts:5-8`);\n#                         kilo stays off this roster for the same reason opencode fails closed.\n# rw and danger use the SAME non-blocking flag; danger only adds the ALLOW_DANGER gate + the\n# ephemeral-sandbox requirement (sandbox-policy.md). worker-start's `--effort` requires `--model`\n# (a provider model id the fleet does not pin) — the validated `effort` arg applies on the\n# override lane's launch command; the supervised path takes the agent's configured default.\n#\n# NOTE: <worktree_selector> is a RAW orca selector."
+          },
+          "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "assertion": "opencode and kilo strip skip-permissions",
+          "family": "PROFILE",
+          "classification": "UNPROBED",
+          "disposition": "TODO",
+          "receipt_paths": [],
+          "probe": {
+            "procedure": "Inspect exact host launch setting read-only, then coordinator runs allowed per-agent --model/--effort/profile matrix; compare effective argv with actual process and harmless permission outcome. Native CLI --help proves flag spelling only. Run doctor/launch inside disposable authorized host for danger lane. Missing credentials/unsupported IPC are preconditions, not absent APIs.",
+            "expected_receipt": "At exact installed version, establish this predicate independently: opencode and kilo strip skip-permissions. Capture before/after authoritative state where mutation is involved.",
+            "precondition": "Coordinator-provided per-agent fresh launch fixtures with approved installed models, trust and host settings; current task forbids paid/remote/danger launches and global changes. Native read-only cannot use IPC on observed substrate."
+          },
+          "remaining": "Unattempted or incomplete; perform this child probe. Workload is not a parking reason.",
+          "continuation": "TODO-REQUIRES-OWNED-FIXTURE"
+        }
+      ]
+    },
+    {
+      "id": "G6",
+      "finding": "Legacy-import explanation is unsupported by source",
+      "verdict": "REPRODUCED-INVENTORY-DEFECT",
+      "source_records": [
+        {
+          "id": "C183.03",
+          "source": {
+            "path": "runtime/orca-dag-semantics.md",
+            "line": 94,
+            "end_line": 95,
+            "text": "- a `pending` child whose dep **failed** or never existed (never auto-promotes — stuck-pending\n  watchdog must surface it; a failed dep is a permanent strand, not a retry)",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "93c275c7f627a7bb72dd42c02bf69f32f3c8c6869acf34b47d4c6c28036c3845"
+          },
+          "additional_sources": []
+        }
+      ],
+      "missing_child_ids_before": [
+        "C183.03"
+      ],
+      "unsupported_child": {
+        "id": "C183.02",
+        "parent_id": "C183",
+        "source": {
+          "path": "runtime/orca-dag-semantics.md",
+          "line": 94,
+          "end_line": 95,
+          "text": "- a `pending` child whose dep **failed** or never existed (never auto-promotes — stuck-pending\n  watchdog must surface it; a failed dep is a permanent strand, not a retry)"
+        },
+        "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+        "assertion": "missing dependency cannot newly be created but legacy imported missing-dependency child cannot promote",
+        "family": "DAG",
+        "classification": "UNPROBED",
+        "disposition": "TODO",
+        "receipt_paths": [],
+        "probe": {
+          "procedure": "Create good and bad parent dependencies plus multi-dependency child; reject missing/foreign deps and foreign parent; read parent_id and deps; complete only one dependency, then all; fail another. Compare task-list and scoped inbox before/after promotion. For failure circuit use three coordinator-supplied disposable Dispatch attempts, never simulated task-update failures. Legacy dangling deps require isolated imported legacy fixture.",
+          "expected_receipt": "At exact installed version, establish this predicate independently: missing dependency cannot newly be created but legacy imported missing-dependency child cannot promote. Capture before/after authoritative state where mutation is involved.",
+          "precondition": "Scratch coordinator and two owned Runs; native helper only for actual Dispatch/failure-count predicates."
+        },
+        "remaining": "Unattempted or incomplete; perform this child probe. Workload is not a parking reason.",
+        "continuation": "TODO-REQUIRES-OWNED-FIXTURE"
+      },
+      "tension_source": {
+        "path": "runtime/liveness-resume.md",
+        "line": 94,
+        "end_line": 96,
+        "text": "**Corrected:** `task-create` DOES validate `--deps` since upstream #9925 — a missing or foreign-Run dep throws\n`Dependency task <id> must belong to run <run>` (`task-store.ts:38-43` at v1.4.199). The typo'd-dep strand\nthis file used to warn about cannot happen; a fleet that budgeted for it was defending a closed hole.",
+        "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+        "source_sha256": "d7e457fd19312d6ed0be35e464848bc28299abe918119fa286761c929a21ad03"
+      }
+    },
+    {
+      "id": "G7",
+      "finding": "Delivery and marker evidence is overcredited as wake and alias behavior",
+      "verdict": "REPRODUCED-INVENTORY-DEFECT",
+      "source_records": [
+        {
+          "id": "C096.03",
+          "source": {
+            "path": "runtime/liveness-resume.md",
+            "line": 42,
+            "end_line": 44,
+            "text": "- Poll `check --wait --types worker_done,escalation,question` ({count:0} timeout is a checkup tick, not an\n  error). `--types` is only the WAKE condition — the Delivery still carries the whole FIFO batch, so process\n  every message before `--ack` (orca-dag-semantics.md). Keepalives (`{\"_keepalive\":true,…}`) go to **stderr**,",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "d7e457fd19312d6ed0be35e464848bc28299abe918119fa286761c929a21ad03"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C096.04",
+          "source": {
+            "path": "runtime/liveness-resume.md",
+            "line": 42,
+            "end_line": 44,
+            "text": "- Poll `check --wait --types worker_done,escalation,question` ({count:0} timeout is a checkup tick, not an\n  error). `--types` is only the WAKE condition — the Delivery still carries the whole FIFO batch, so process\n  every message before `--ack` (orca-dag-semantics.md). Keepalives (`{\"_keepalive\":true,…}`) go to **stderr**,",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "d7e457fd19312d6ed0be35e464848bc28299abe918119fa286761c929a21ad03"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C169.02",
+          "source": {
+            "path": "runtime/orca-dag-semantics.md",
+            "line": 57,
+            "end_line": 59,
+            "text": "**`--types` is the WAKE CONDITION, not a filter.** `check --wait --types worker_done,escalation`\ndecides when the waiter wakes; the Delivery it returns is always the **whole FIFO batch**, every\ntype included (`orchestration.ts:112`, `orchestration/messaging-and-gates:19-22` at v1.4.199). So",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "93c275c7f627a7bb72dd42c02bf69f32f3c8c6869acf34b47d4c6c28036c3845"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C169.03",
+          "source": {
+            "path": "runtime/orca-dag-semantics.md",
+            "line": 57,
+            "end_line": 59,
+            "text": "**`--types` is the WAKE CONDITION, not a filter.** `check --wait --types worker_done,escalation`\ndecides when the waiter wakes; the Delivery it returns is always the **whole FIFO batch**, every\ntype included (`orchestration.ts:112`, `orchestration/messaging-and-gates:19-22` at v1.4.199). So",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "93c275c7f627a7bb72dd42c02bf69f32f3c8c6869acf34b47d4c6c28036c3845"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C040.05",
+          "source": {
+            "path": "runtime/dispatch-lifecycle.md",
+            "line": 124,
+            "end_line": 125,
+            "text": "- Keepalives go to **stderr** every 15 s (`{\"_keepalive\":true,…}`, with `_heartbeat` alongside as a deprecated alias), NEVER stdout — pipe stdout only into\n  parsers (`runtime/scripts/pm.py <file>` for saved streams) (`check-keepalive.ts:18-26`).",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "aabe19dbb226d7d358100199beb16d1ebfa5204dfe58f04299be14f67cbe6962"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C040.06",
+          "source": {
+            "path": "runtime/dispatch-lifecycle.md",
+            "line": 124,
+            "end_line": 125,
+            "text": "- Keepalives go to **stderr** every 15 s (`{\"_keepalive\":true,…}`, with `_heartbeat` alongside as a deprecated alias), NEVER stdout — pipe stdout only into\n  parsers (`runtime/scripts/pm.py <file>` for saved streams) (`check-keepalive.ts:18-26`).",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "aabe19dbb226d7d358100199beb16d1ebfa5204dfe58f04299be14f67cbe6962"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C232.02",
+          "source": {
+            "path": "runtime/scripts/pm.py",
+            "line": 8,
+            "end_line": 11,
+            "text": "# v3 (2026-09-10 upstream re-pin): the skip keys on `_keepalive` FIRST. A keepalive line carries\n# both `_keepalive` and `_heartbeat`, but `_heartbeat` is only a deprecated alias retained for\n# scripts still filtering it during migration (`check-keepalive.ts:18-26` at Orca v1.4.199) —\n# v2 keyed on the alias alone, so it was correct by accident and would start miscounting every",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "fc31e4555925ceb97180ebbdcaf9c5049646728e4019a58dcf27f389f9aaa999"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C232.03",
+          "source": {
+            "path": "runtime/scripts/pm.py",
+            "line": 8,
+            "end_line": 11,
+            "text": "# v3 (2026-09-10 upstream re-pin): the skip keys on `_keepalive` FIRST. A keepalive line carries\n# both `_keepalive` and `_heartbeat`, but `_heartbeat` is only a deprecated alias retained for\n# scripts still filtering it during migration (`check-keepalive.ts:18-26` at Orca v1.4.199) —\n# v2 keyed on the alias alone, so it was correct by accident and would start miscounting every",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "fc31e4555925ceb97180ebbdcaf9c5049646728e4019a58dcf27f389f9aaa999"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C235.02",
+          "source": {
+            "path": "runtime/scripts/pm.py",
+            "line": 98,
+            "end_line": 106,
+            "text": "            # inside a heartbeat envelope). Checked BEFORE the heartbeat skip so it can't\n            # be swallowed; counting it as empty would misread a real inbox as empty.\n            unrecognized += 1\n            continue\n        if (\"_keepalive\" in obj or \"_heartbeat\" in obj) and not batch:\n            # Keepalive-only envelope; a mixed object still yields its messages below.\n            # `_keepalive` is the CURRENT marker and is checked FIRST; `_heartbeat` rides the\n            # same line only as a deprecated alias kept \"for scripts still filtering it while\n            # callers migrate\" (`check-keepalive.ts:18-26` at Orca v1.4.199). Keying on the",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "fc31e4555925ceb97180ebbdcaf9c5049646728e4019a58dcf27f389f9aaa999"
+          },
+          "additional_sources": []
+        },
+        {
+          "id": "C235.03",
+          "source": {
+            "path": "runtime/scripts/pm.py",
+            "line": 98,
+            "end_line": 106,
+            "text": "            # inside a heartbeat envelope). Checked BEFORE the heartbeat skip so it can't\n            # be swallowed; counting it as empty would misread a real inbox as empty.\n            unrecognized += 1\n            continue\n        if (\"_keepalive\" in obj or \"_heartbeat\" in obj) and not batch:\n            # Keepalive-only envelope; a mixed object still yields its messages below.\n            # `_keepalive` is the CURRENT marker and is checked FIRST; `_heartbeat` rides the\n            # same line only as a deprecated alias kept \"for scripts still filtering it while\n            # callers migrate\" (`check-keepalive.ts:18-26` at Orca v1.4.199). Keying on the",
+            "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+            "source_sha256": "fc31e4555925ceb97180ebbdcaf9c5049646728e4019a58dcf27f389f9aaa999"
+          },
+          "additional_sources": []
+        }
+      ],
+      "missing_child_ids_before": [
+        "C096.03",
+        "C096.04",
+        "C169.02",
+        "C169.03",
+        "C040.05",
+        "C040.06",
+        "C232.02",
+        "C232.03",
+        "C235.02",
+        "C235.03"
+      ],
+      "overcredited_children": [
+        {
+          "id": "C096.02",
+          "parent_id": "C096",
+          "source": {
+            "path": "runtime/liveness-resume.md",
+            "line": 42,
+            "end_line": 44,
+            "text": "- Poll `check --wait --types worker_done,escalation,question` ({count:0} timeout is a checkup tick, not an\n  error). `--types` is only the WAKE condition — the Delivery still carries the whole FIFO batch, so process\n  every message before `--ack` (orca-dag-semantics.md)."
+          },
+          "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "assertion": "types selects wake condition while delivery includes all FIFO types",
+          "family": "MAIL",
+          "classification": "CURRENT",
+          "disposition": "WITNESSED",
+          "receipt_paths": [
+            "receipts/mailbox-delivery.json",
+            "receipts/mailbox-replay.json",
+            "receipts/mailbox-ack.json",
+            "receipts/mailbox-final-ack.json"
+          ],
+          "probe": {
+            "procedure": "Through its actual terminal create >50 synthetic messages; compare inbox/task-list/dispatch-show/check --peek/check --all/default/--unread read state; check --wait --types handoff; compare mixed FIFO batch, replay, ack boundary; wait >31s for two stderr keepalives. For brief specs use whitespace and >160 characters. Crash behavior requires isolated runtime, not current shared app.",
+            "expected_receipt": "At exact installed version, establish this predicate independently: types selects wake condition while delivery includes all FIFO types. Capture before/after authoritative state where mutation is involved.",
+            "precondition": "Coordinator-provided ordinary shell bound to fresh scratch Run; synthetic status/handoff messages only. Prior owned fixture has been retired."
+          },
+          "remaining": null,
+          "continuation": null,
+          "witness_scope": "51 synthetic status/handoff messages: mixed-type FIFO 50, identical replay, then one and empty. Already queued handoff satisfies wake; delayed wake and crash durability unproven."
+        },
+        {
+          "id": "C169.01",
+          "parent_id": "C169",
+          "source": {
+            "path": "runtime/orca-dag-semantics.md",
+            "line": 57,
+            "end_line": 59,
+            "text": "**`--types` is the WAKE CONDITION, not a filter.** `check --wait --types worker_done,escalation`\ndecides when the waiter wakes; the Delivery it returns is always the **whole FIFO batch**, every\ntype included (`orchestration.ts:112`, `orchestration/messaging-and-gates:19-22` at v1.4.199)."
+          },
+          "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "assertion": "types controls wake rather than filtering delivery",
+          "family": "MAIL",
+          "classification": "CURRENT",
+          "disposition": "WITNESSED",
+          "receipt_paths": [
+            "receipts/mailbox-delivery.json",
+            "receipts/mailbox-replay.json",
+            "receipts/mailbox-ack.json",
+            "receipts/mailbox-final-ack.json"
+          ],
+          "probe": {
+            "procedure": "Through its actual terminal create >50 synthetic messages; compare inbox/task-list/dispatch-show/check --peek/check --all/default/--unread read state; check --wait --types handoff; compare mixed FIFO batch, replay, ack boundary; wait >31s for two stderr keepalives. For brief specs use whitespace and >160 characters. Crash behavior requires isolated runtime, not current shared app.",
+            "expected_receipt": "At exact installed version, establish this predicate independently: types controls wake rather than filtering delivery. Capture before/after authoritative state where mutation is involved.",
+            "precondition": "Coordinator-provided ordinary shell bound to fresh scratch Run; synthetic status/handoff messages only. Prior owned fixture has been retired."
+          },
+          "remaining": null,
+          "continuation": null,
+          "witness_scope": "51 synthetic status/handoff messages: mixed-type FIFO 50, identical replay, then one and empty. Already queued handoff satisfies wake; delayed wake and crash durability unproven."
+        },
+        {
+          "id": "C040.03",
+          "parent_id": "C040",
+          "source": {
+            "path": "runtime/dispatch-lifecycle.md",
+            "line": 124,
+            "end_line": 125,
+            "text": "- Keepalives go to **stderr** every 15 s (`{\"_keepalive\":true,…}`, with `_heartbeat` alongside as a deprecated alias), NEVER stdout — pipe stdout only into\n  parsers (`runtime/scripts/pm.py <file>` for saved streams) (`check-keepalive.ts:18-26`)."
+          },
+          "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "assertion": "keepalive carries both _keepalive and deprecated _heartbeat",
+          "family": "MAIL",
+          "classification": "CURRENT",
+          "disposition": "WITNESSED",
+          "receipt_paths": [
+            "receipts/mailbox-empty-wait.json"
+          ],
+          "probe": {
+            "procedure": "Through its actual terminal create >50 synthetic messages; compare inbox/task-list/dispatch-show/check --peek/check --all/default/--unread read state; check --wait --types handoff; compare mixed FIFO batch, replay, ack boundary; wait >31s for two stderr keepalives. For brief specs use whitespace and >160 characters. Crash behavior requires isolated runtime, not current shared app.",
+            "expected_receipt": "At exact installed version, establish this predicate independently: keepalive carries both _keepalive and deprecated _heartbeat. Capture before/after authoritative state where mutation is involved.",
+            "precondition": "Coordinator-provided ordinary shell bound to fresh scratch Run; synthetic status/handoff messages only. Prior owned fixture has been retired."
+          },
+          "remaining": null,
+          "continuation": null,
+          "witness_scope": "16-second empty wait: exit zero, count zero, timedOut true; stderr tick at 15001ms carries both markers, stdout parseable JSON. A recurring 15-second cadence needs another tick."
+        },
+        {
+          "id": "C232.01",
+          "parent_id": "C232",
+          "source": {
+            "path": "runtime/scripts/pm.py",
+            "line": 8,
+            "end_line": 11,
+            "text": " A keepalive line carries\n# both `_keepalive` and `_heartbeat`, but `_heartbeat` is only a deprecated alias retained for\n# scripts still filtering it during migration (`check-keepalive.ts:18-26` at Orca v1.4.199) —\n# v2 keyed on the alias alone, so it was correct by accident and would start miscounting every"
+          },
+          "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "assertion": "keepalive carries both markers with heartbeat as deprecated alias",
+          "family": "MAIL",
+          "classification": "CURRENT",
+          "disposition": "WITNESSED",
+          "receipt_paths": [
+            "receipts/mailbox-empty-wait.json"
+          ],
+          "probe": {
+            "procedure": "Through its actual terminal create >50 synthetic messages; compare inbox/task-list/dispatch-show/check --peek/check --all/default/--unread read state; check --wait --types handoff; compare mixed FIFO batch, replay, ack boundary; wait >31s for two stderr keepalives. For brief specs use whitespace and >160 characters. Crash behavior requires isolated runtime, not current shared app.",
+            "expected_receipt": "At exact installed version, establish this predicate independently: keepalive carries both markers with heartbeat as deprecated alias. Capture before/after authoritative state where mutation is involved.",
+            "precondition": "Coordinator-provided ordinary shell bound to fresh scratch Run; synthetic status/handoff messages only. Prior owned fixture has been retired."
+          },
+          "remaining": null,
+          "continuation": null,
+          "witness_scope": "16-second empty wait: exit zero, count zero, timedOut true; stderr tick at 15001ms carries both markers, stdout parseable JSON. A recurring 15-second cadence needs another tick."
+        },
+        {
+          "id": "C235.01",
+          "parent_id": "C235",
+          "source": {
+            "path": "runtime/scripts/pm.py",
+            "line": 98,
+            "end_line": 106,
+            "text": " Checked BEFORE the heartbeat skip so it can't\n            # be swallowed; counting it as empty would misread a real inbox as empty.\n            unrecognized += 1\n            continue\n        if (\"_keepalive\" in obj or \"_heartbeat\" in obj) and not batch:\n            # Keepalive-only envelope; a mixed object still yields its messages below.\n            # `_keepalive` is the CURRENT marker and is checked FIRST; `_heartbeat` rides the\n            # same line only as a deprecated alias kept \"for scripts still filtering it while\n            # callers migrate\" (`check-keepalive.ts:18-26` at Orca v1.4.199)."
+          },
+          "source_binding": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+          "assertion": "check keepalive carries current _keepalive and alias _heartbeat",
+          "family": "MAIL",
+          "classification": "CURRENT",
+          "disposition": "WITNESSED",
+          "receipt_paths": [
+            "receipts/mailbox-empty-wait.json"
+          ],
+          "probe": {
+            "procedure": "Through its actual terminal create >50 synthetic messages; compare inbox/task-list/dispatch-show/check --peek/check --all/default/--unread read state; check --wait --types handoff; compare mixed FIFO batch, replay, ack boundary; wait >31s for two stderr keepalives. For brief specs use whitespace and >160 characters. Crash behavior requires isolated runtime, not current shared app.",
+            "expected_receipt": "At exact installed version, establish this predicate independently: check keepalive carries current _keepalive and alias _heartbeat. Capture before/after authoritative state where mutation is involved.",
+            "precondition": "Coordinator-provided ordinary shell bound to fresh scratch Run; synthetic status/handoff messages only. Prior owned fixture has been retired."
+          },
+          "remaining": null,
+          "continuation": null,
+          "witness_scope": "16-second empty wait: exit zero, count zero, timedOut true; stderr tick at 15001ms carries both markers, stdout parseable JSON. A recurring 15-second cadence needs another tick."
+        }
+      ]
+    },
+    {
+      "id": "G8",
+      "finding": "309 mechanics-parent narrative is contradicted by the 175-ID mapping",
+      "verdict": "REPRODUCED-INVENTORY-DEFECT",
+      "source_records": [],
+      "missing_child_ids_before": [],
+      "snapshot_line_3": "The frozen denominator is still **309 source records**. This additive audit identifies **134 exclusions** and **309 mechanics-bearing parent records**, expanded into **429 child predicates**. It does not replace 309 with a smaller denominator or treat exclusions as passed tests.",
+      "actual": {
+        "frozen_parents": 309,
+        "excluded_parents": 134,
+        "mechanics_parents": 175,
+        "children": 429
+      }
+    }
+  ],
+  "snapshot_difference": "Snapshot CLAIM-AUDIT.md and CONTINUATION.md each have one additional final LF versus e2e7adab; both forms preserved byte-for-byte."
+}

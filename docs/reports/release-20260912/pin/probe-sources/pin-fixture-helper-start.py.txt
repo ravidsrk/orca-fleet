@@ -1,0 +1,18 @@
+import os,sys,json,traceback
+from pathlib import Path
+sys.path.insert(0,'/tmp/orca-release-audit-20260912')
+from pin_capture import call
+H='term_3e146225-18a4-43a0-bf3f-87545241b760';A='run_aad129c705b7';W='term_2a591dec-4a81-4c3d-baef-c145582b3b34';SCRATCH='/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912'
+state_path=Path('/tmp/orca-release-audit-20260912/pin-fixture-state.json');state=json.loads(state_path.read_text())
+def save():state_path.write_text(json.dumps(state,indent=2)+'\n')
+def c(label,args):
+ d=call('helper-'+label,['orca','orchestration']+args+['--json'],cwd=SCRATCH,timeout=40);r=json.loads(d['stdout']);assert r.get('ok'),(label,r);return r['result']
+assert os.environ.get('ORCA_TERMINAL_HANDLE')==H
+spec='''You are the single harmless #266 live-witness fixture, not a fleet coordinator. Use installed orca 1.4.200 and only the lifecycle commands in your injected preamble. Do not edit repository files, start agents, alter settings/permissions, use external services, or read any other Run. First ask your scratch coordinator exactly PIN_266_QUESTION with options synthetic-yes,synthetic-no and a 60000 ms timeout. If the question times out resume that exact message id. Once the coordinator replies synthetic-yes, check your own inbox and send worker_done exactly once with outcome succeeded and a three-sentence summary: I ran the harmless ask fixture. The coordinator replied synthetic-yes. No work remains for this fixture. Then stop. Heartbeats only at the injected cadence; do not send a separate report file or claim broader runtime proof.'''
+r=c('task',['task-create','--spec',spec,'--run',A,'--from',H]);t=r['task']['id'];state['tasks']['helper']=t;save()
+g=c('gate',['gate-create','--task',t,'--question','PIN_266_HELPER_GATE','--options','["yes","no"]','--from',H])['gate']['id'];state['gates']['helper']=g;save()
+c('resolve',['gate-resolve','--id',g,'--resolution','PIN_266_RESOLUTION_MARKER','--from',H])
+r=c('start',['worker-start','--task',t,'--terminal',W,'--worktree','path:'+SCRATCH,'--run',A,'--from',H,'--timeout-ms','15000']);state['helper_start']=r;save()
+c('preamble',['dispatch-show','--task',t,'--preamble','--from',H])
+c('workers-bound',['worker-list']);c('workers-explicit-a',['worker-list','--run',A]);c('workers-explicit-b',['worker-list','--run',state['run_b']])
+Path('/tmp/orca-release-audit-20260912/pin-fixture-helper-start.done').write_text('complete')

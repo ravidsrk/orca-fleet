@@ -1,0 +1,6 @@
+........................................................
+----------------------------------------------------------------------
+Ran 56 tests in 2.143s
+
+OK
+bundle: 21 self-contained mission(s) in a temp dir; no reference leaves its directory

@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T11:57:22.722620+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "terminal",
+    "wait",
+    "--help"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/codex-release-pin-20260912",
+  "exit": 0,
+  "stdout": "orca terminal wait\n\nUsage: orca terminal wait [--terminal <handle>] --for exit|tui-idle [--timeout-ms <ms>] [--json]\n\nWait for a terminal condition\n\nOptions:\n  --help                 Show this help message\n  --json                 Emit machine-readable JSON\n  --pairing-code\n  --environment\n  --terminal <handle>  Runtime-issued terminal handle\n  --for exit|tui-idle    Wait condition to satisfy\n  --timeout-ms <ms>     Maximum wait time before timing out\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T12:07:50.314367+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "orchestration",
+    "run-use",
+    "--id",
+    "run_05b8d4a02874",
+    "--from",
+    "term_3e146225-18a4-43a0-bf3f-87545241b760",
+    "--json"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912",
+  "exit": 0,
+  "stdout": "{\n  \"id\": \"79797a28-dcdb-413d-b672-b5bceed426e0\",\n  \"ok\": true,\n  \"result\": {\n    \"run\": {\n      \"id\": \"run_05b8d4a02874\",\n      \"objective\": \"Orca1.4.200 isolated pin witness fixture B; foreign-dependency/scoping controls only\",\n      \"coordinator_handle\": \"term_3e146225-18a4-43a0-bf3f-87545241b760\",\n      \"consumer_generation\": 5,\n      \"legacy\": 0,\n      \"created_at\": \"2026-09-12T12:00:05Z\",\n      \"updated_at\": \"2026-09-12T12:07:50Z\"\n    },\n    \"mutation\": {\n      \"requestId\": \"90481545-155c-48a7-9701-ae2391825734\",\n      \"replayed\": false\n    }\n  },\n  \"_meta\": {\n    \"runtimeId\": \"2e075aba-10a5-40b7-aa95-9e82ae9fc5b7\"\n  }\n}\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

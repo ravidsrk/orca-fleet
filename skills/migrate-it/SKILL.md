@@ -2,16 +2,15 @@
 name: migrate-it
 description: >-
   Land a stateful schema or data change across deploys with old and new code valid at every step:
-  expand → dual-write → backfill → switch reads → zero-readers → contract, each phase its own
-  deployed and baked change, each with a down path that was written AND run, dual-validity proven
-  in both directions, and a parity probe (row counts + sampled hashes) GREEN before the old shape
-  is dropped. The unit is one migration PHASE of one table or shape. Use when "migrate the
+  expand → dual-write → backfill → switch reads → zero-readers → retire-writes → zero-writers →
+  contract, each phase its own deployed and baked change, each with a down path that was written AND
+  run, dual-validity proven both directions, and a parity probe GREEN after backfill and archived
+  before the old shape is dropped. The unit is one migration PHASE of one table or shape. Use when "migrate the
   database", "rename this column safely", "expand/contract migration", "backfill this table",
-  "split this table without downtime", "we cannot take downtime for this schema change". Not for
-  building a feature slice through one release (ship-it), dependency or framework currency
-  (modernize-it), restructuring code behind unchanged behaviour (reshape-it), or a backlog of
-  findings (clean-sweep) — those pass the release machine once and revert with a deploy; data does
-  not.
+  "split this table without downtime", "we cannot take downtime for this schema change", or a
+  stateful dependency upgrade. Not for ordinary feature delivery through one release (ship-it),
+  code-only dependency or framework currency (modernize-it), restructuring code behind unchanged
+  behaviour (reshape-it), or a backlog of findings (clean-sweep).
 license: MIT
 compatibility: >-
   HARD dependency: Orca runtime + the orchestration skill (Orca CLI). git + gh. The project's own
@@ -22,11 +21,13 @@ metadata:
   proof: doctrine-only
   autonomy: L4
   unit: one migration phase of one table or shape
-  state_machine: expand → dual-write → throttled resumable backfill → switch reads → contract
-  convergence: data parity holds and zero readers of the old shape remain, across deploys
+  state_machine: expand → dual-write → backfill → switch reads → zero-readers → retire-writes →
+    zero-writers → contract
+  convergence: data parity holds and zero readers AND writers of the old shape remain, across deploys
   ordering: strictly phased — a phase never starts before its predecessor is proven in production
   parking: MIGRATED-WITH-PARKED, or ABANDONED with the expand rolled back
-  oracle: data parity between the two shapes plus a zero-old-shape-reader query, never the repo suite
+  oracle: data parity between the two shapes plus zero-old-shape-reader and zero-old-shape-writer
+    queries, never the repo suite
 ---
 
 # migrate-it — a stateful shape change landed across deploys, nothing ever invalid
@@ -50,8 +51,8 @@ machine once per phase, never once per run.
 
 ## Three terminal outcomes
 
-- **MIGRATED** — parity 100% on the frozen table set, old-shape readers zero over the declared
-  window with pasted telemetry, the contract PR merged, every phase's down path exercised.
+- **MIGRATED** — pre-drop complete parity archived on the frozen set, old-shape readers/writers
+  zero over the declared window, removal verified, contract merged, down-path evidence retained.
 - **MIGRATED-WITH-PARKED** (degraded) — the ladder is complete up to a phase whose bake or
   zero-reader evidence the fleet cannot reach: `CODE_CLOSED` + `VERIFY_AT_SCALE` naming the query
   and the window, or a `needs-human` one-way gate. Never reported as MIGRATED.
@@ -67,36 +68,46 @@ SELF-ORIENT → PLAN: freeze the TABLE SET and the phase list per table (one row
 → BOOTSTRAP integration BASE (runtime/scripts/preflight.py --base <BASE> --fork-point <sha>;
   BASE ≠ default — dispatch-lifecycle.md).
 → PER PHASE, strictly serial per table (data-migration.md):
-    EXPAND[deploy + bake] → DUAL-WRITE[deploy + bake] → BACKFILL (batched, throttled, resumable;
-    parity probe) → SWITCH-READS[deploy + bake] → ZERO-READERS window → CONTRACT[separate deploy]
+    EXPAND → DUAL-WRITE → BACKFILL (batched, throttled, resumable; parity probe) → SWITCH-READS →
+    ZERO-READERS → RETIRE-WRITES → ZERO-WRITERS → CONTRACT — each rung its own deploy, each baked
   each phase: build (one unit, one PR against BASE) → down written and RUN (schema dump diff
   empty) → dual-validity both directions → build-blind REVIEW → LAND → deploy → BAKE, then the
   next phase is dispatched. Never two phases of one table in flight.
 → PARITY: re-probe after the last backfill batch and at SWITCH-READS; any mismatch resumes the
   backfill from its cursor and re-probes — it does not restart, and it does not advance.
-→ ZERO-READERS: the declared window of telemetry showing no reader of the old shape, pasted.
-→ CONTRACT: its own deploy, its own PR, a one-way human gate. Only then is the old shape dropped.
+→ ZERO-READERS: paste the declared window; keep dual writes until the pre-drop parity archive.
+→ RETIRE-WRITES: archive parity while still dual, then DEPLOY the retirement; zero use is observed
+  FROM that deploy, so it cannot share a rung with the drop. ZERO-WRITERS: paste that window too.
+→ CONTRACT: drop in a separate deploy/PR behind the one-way human gate; removal verified.
 → VERDICT + `compound-learn`: MIGRATED / MIGRATED-WITH-PARKED / ABANDONED.
 ```
 
 ## Convergence proof (definition of done)
 
-Per phase: the down path was written **and run** — the negative control is up + down followed by a
-schema dump whose diff against the pre-up dump is EMPTY, command and diff pasted; old-code-vs-new-
-schema and new-code-vs-old-schema both GREEN at the phase head; the parity probe (row counts equal
-plus seeded sampled hashes matching) GREEN on the frozen table set; the phase deployed and baked
-for its declared window. Terminal: parity 100% on the frozen set, old-shape readers = 0 over the
-declared window (telemetry pasted, not summarized), the contract PR merged and the drop verified
-against the dumped schema. A phase whose evidence is a worker's assurance is not done: the verifier
-re-runs the parity probe at the merged SHA and re-derives the schema diff — it never re-applies a
-landed migration.
+Each phase: exercise the down path in a fixture (up/down schema diff EMPTY), prove both rollout
+revisions compatible with the phase's before/after schema, deploy and bake. Irreversible recovery
+is declared and human-gated, never asserted from a schema-only diff. Apply the phase oracle:
+
+| Phase | Required evidence before advancing |
+|---|---|
+| EXPAND | Additive schema and compatibility; existing rows may have an empty new shape |
+| DUAL-WRITE | Inserts/updates after activation agree in both shapes; historical rows await backfill |
+| BACKFILL / SWITCH-READS | Cursor complete; full transformed-data parity on the frozen set, re-probed at switch |
+| RETIRE-WRITES / ZERO-WRITERS | Parity archived while dual; retirement deployed; no writer over the window |
+| CONTRACT | Archived pre-drop parity; zero old readers/writers over their windows; schema proves removal |
+
+Parity includes row counts, a complete mismatch check, and seeded sampled hashes of transformed
+values; counts/samples alone cannot claim 100%. Bind receipts to the phase SHA, data boundary and
+probe/seed. After removal, verify the archive and surviving shape; never query a dropped column. The
+verifier re-derives evidence without re-applying a landed migration. Executable populated SQLite
+walkthrough: docs/missions/migrate-it.md; fixture proof never replaces production telemetry.
 
 ## Ledger + supervision
 
 Header at T0 per liveness-resume.md: `RUN · COORDINATOR · BASE · FORK_POINT · T0 · SOURCE · WIP`
 (SOURCE = the frozen table set + phase count; `WIP: builders=<n> reviewers=<n>` sized to
-attention-budget.md — a migration's real WIP is one phase per table, so the cap is usually the
-table count, not the builder count). One row per PHASE:
+attention-budget.md — real WIP is one phase per table, so the cap is usually the table count). One
+row per PHASE:
 
 `| task_id | table | phase | DOWN_RUN | DUAL_OK | BUILD_DONE | PR_OPEN | REVIEWED | MERGED | DEPLOYED | BAKED | PARITY | WT_CLEAN | park | evidence |`
 
@@ -107,8 +118,8 @@ schema, never from narration — the schema on disk says which phase actually la
 
 CONTRACT (the drop) is a one-way human gate, always, per gate-classification.md — as is any
 irreversible phase declared in its PR body. BASE→default promotion stays out of scope: open the
-promotion PR and stop. A bake window the fleet cannot observe is `CODE_CLOSED` + `VERIFY_AT_SCALE`
-with the exact query, never an assumed pass.
+promotion PR and stop. A window the fleet cannot observe is `CODE_CLOSED` + `VERIFY_AT_SCALE` with
+the exact query, never an assumed pass.
 
 ## Anti-patterns
 
@@ -123,8 +134,8 @@ flight. Treating a deploy revert as a data revert. Letting the frozen table set 
 
 ## Related
 
-`ship-it` (a feature slice through the release machine once — a schema slice inside a wave uses the
-same phase contract but keeps ship-it's unit), `modernize-it` (dependency currency; it hands a
+`ship-it` (ordinary feature delivery; cross-deploy stateful work hands here, while a single additive
+schema slice can use the phase contract inside its wave), `modernize-it` (code-only currency; it hands a
 data-shape change here explicitly), `reshape-it` (code restructured behind unchanged behaviour —
 no data at risk), `clean-sweep` (a findings backlog), `root-cause` (why the data is wrong; this
 mission moves it, it does not diagnose it).

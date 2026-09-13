@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T11:58:59.393353+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "terminal",
+    "send",
+    "--terminal",
+    "term_9ede7d48-337e-48fb-85b9-d1e7ea3fd554",
+    "--retry-request",
+    "pin-266-parser-only",
+    "--wait-submit",
+    "1",
+    "--json"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/codex-release-pin-20260912",
+  "exit": 1,
+  "stdout": "{\n  \"id\": \"local\",\n  \"ok\": false,\n  \"error\": {\n    \"code\": \"invalid_argument\",\n    \"message\": \"--retry-request must be the UUID Orca reported for the original request; pass it exactly as printed, or omit the flag to start a new request.\"\n  },\n  \"_meta\": {\n    \"runtimeId\": null\n  }\n}\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T11:57:22.864294+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "worktree",
+    "set",
+    "--help"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/codex-release-pin-20260912",
+  "exit": 0,
+  "stdout": "orca worktree set\n\nUsage: orca worktree set --worktree <selector> [--display-name <name>] [--issue <number|null>] [--linear-issue <identifier-or-url|null>] [--comment <text>] [--workspace-status <id>] [--parent-worktree <selector>|--no-parent] [--json]\n\nUpdate Orca metadata for a worktree\n\nOptions:\n  --help                 Show this help message\n  --json                 Emit machine-readable JSON\n  --pairing-code\n  --environment\n  --worktree <selector>  Worktree selector such as identity:<identity>, id:<repo-id>::<path>, name:<displayName>, branch:<branch>, issue:<number>, path:<path>, or active/current\n  --display-name <name>  Override the Orca display name\n  --issue <number|null>  Linked GitHub issue number\n  --linear-issue <id|url|null> Linked Linear issue identifier or URL; null clears on set\n  --comment <text>       Comment stored in Orca metadata\n  --workspace-status <id> Board status id (defaults: todo, in-progress, in-review, completed)\n  --parent-worktree <selector> Parent worktree selector such as identity:<identity>, id:<repo-id>::<path>, branch:<branch>, issue:<number>, path:<path>, or active/current\n  --no-parent            Force no parent lineage for unrelated work\n\nNotes:\n  Workspace status ids match the board columns (defaults: todo, in-progress, in-review, completed); custom statuses use their configured id.\n  Pass --linear-issue null to clear the Linear issue link.\n\nExamples:\n  $ orca worktree set --worktree active --linear-issue STA-335 --json\n  $ orca worktree set --worktree active --linear-issue null --json\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

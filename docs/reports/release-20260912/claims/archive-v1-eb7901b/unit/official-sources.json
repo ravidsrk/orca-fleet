@@ -1,0 +1,18 @@
+[
+  {
+    "url": "https://eur-lex.europa.eu/eli/reg/2024/1689/2026-07-27/eng",
+    "accessed": "2026-09-12",
+    "raw_sha256": "2c8b544f4bdb9b6c0f06d6bb2da4acc2fd8d71447299e6c5f083e6bd97f5efae",
+    "retained_excerpt": "eur-lex-excerpts.txt",
+    "raw_scratch_file": "/tmp/orca-release-audit-20260912/claims-evidence/eur-lex.html",
+    "method": "Independently opened with web tool and fetched successfully with curl -L --fail; excerpts parsed from fetched HTML."
+  },
+  {
+    "url": "https://digital-strategy.ec.europa.eu/en/faqs/navigating-ai-act",
+    "accessed": "2026-09-12",
+    "raw_sha256": "ada9298f8481713e585b5cf105641857c6a16b3254889f4e44755235f10339f1",
+    "retained_excerpt": "commission-faq-excerpts.txt",
+    "raw_scratch_file": "/tmp/orca-release-audit-20260912/claims-evidence/commission-faq.html",
+    "method": "Independently opened with web tool and fetched successfully with curl -L --fail; excerpts parsed from fetched HTML."
+  }
+]

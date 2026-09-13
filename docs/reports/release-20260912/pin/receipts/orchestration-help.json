@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T11:56:15.670122+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "orchestration",
+    "--help"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/codex-release-pin-20260912",
+  "exit": 0,
+  "stdout": "orca orchestration\n\nUsage: orca orchestration <command> [options]\n\nCommands:\n  run-create         Create and bind a lightweight orchestration Run\n  run-use            Bind this coordinator terminal to an existing Run\n  run-current        Show the Run bound to this coordinator terminal\n  run-list           List lightweight orchestration Runs\n  run-show           Show one lightweight orchestration Run\n  send               Send an inter-agent message\n  check              Check messages for a terminal\n  reply              Reply to a message\n  inbox              Show messages across (or for) recipients\n  task-create        Create an orchestration task\n  task-list          List orchestration tasks\n  task-update        Update a task status\n  worker-start       Start one supervised worker on the Run home or a connected Orca server\n  worker-show        Inspect one supervised worker Dispatch\n  worker-read        Read bounded output from one supervised worker\n  worker-stop        Fence one Dispatch and stop its supervised agent terminal\n  worker-abandon     Fence a worker without claiming its process stopped\n  worker-release     Release the terminal of one settled supervised worker\n  worker-retain      Keep one supervised worker terminal live for debugging\n  worker-list        List supervised worker terminal resource accounting\n  dispatch           Dispatch a task to a terminal\n  request-show       Ask whether one orchestration mutation request already took effect\n  dispatch-show      Show dispatch context for a task\n  ask                Ask the coordinator a question and block until answered\n  coordinator-start  Retired: load the current orchestration skill\n  coordinator-stop   Retired: load the current orchestration skill\n  gate-create        Create a decision gate blocking a task\n  gate-resolve       Resolve a pending decision gate\n  gate-list          List decision gates\n  reset              Reset one explicit orchestration state scope\n\nRun `orca orchestration <command> --help` for command-specific usage.\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

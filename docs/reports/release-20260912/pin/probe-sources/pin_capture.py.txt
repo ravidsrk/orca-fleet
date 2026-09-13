@@ -1,0 +1,18 @@
+from pathlib import Path
+import subprocess,json,datetime,re,hashlib,os
+ROOT=Path('/Users/ravindra/orca/workspaces/orca-fleet/codex-release-pin-20260912')
+OUT=ROOT/'docs/reports/release-20260912/pin'
+def redact(s):
+ return re.sub(r'dcap_[A-Za-z0-9_-]+','[REDACTED_DISPATCH_CAPABILITY]',s)
+def call(label,args,cwd=None,env=None,timeout=45):
+ version=subprocess.run(['orca','--version'],capture_output=True,text=True,timeout=10)
+ assert version.returncode==0 and version.stdout.strip()=='1.4.200',repr(version.stdout)
+ run=subprocess.run(args,cwd=cwd or ROOT,env=env,capture_output=True,text=True,timeout=timeout)
+ p=OUT/'receipts'/f'{label}.json';p.parent.mkdir(parents=True,exist_ok=True)
+ data={'schema':1,'captured_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'installed_cli':'orca','installed_version':version.stdout.strip(),'argv':args,'cwd':str(cwd or ROOT),'exit':run.returncode,'stdout':redact(run.stdout),'stderr':redact(run.stderr),'redaction':'Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication.'}
+ p.write_text(redact(json.dumps(data,indent=2,ensure_ascii=False))+'\n')
+ print(label,run.returncode,redact(run.stdout[:300]),redact(run.stderr[:100]))
+ return data
+if __name__=='__main__':
+ import sys
+ call(sys.argv[1],sys.argv[2:])

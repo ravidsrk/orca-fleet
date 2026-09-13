@@ -1,0 +1,35 @@
+[
+  {
+    "source_basename": "eval-build-observe.json",
+    "source_sha256": "0e0cdc599cbeee852be2c6bf84edde3138dd94c8f278eeaed876e821fe1623d8",
+    "historical_only": true,
+    "error": {
+      "code": "invalid_argument",
+      "message": "--retry-request and --wait-submit require --text with --enter and without --interrupt."
+    },
+    "ok": false,
+    "admissibility": "Untrusted historical corroboration; not a fresh live receipt and not an authentication test."
+  },
+  {
+    "source_basename": "verifier-build-observe.json",
+    "source_sha256": "0e0cdc599cbeee852be2c6bf84edde3138dd94c8f278eeaed876e821fe1623d8",
+    "historical_only": true,
+    "error": {
+      "code": "invalid_argument",
+      "message": "--retry-request and --wait-submit require --text with --enter and without --interrupt."
+    },
+    "ok": false,
+    "admissibility": "Untrusted historical corroboration; not a fresh live receipt and not an authentication test."
+  },
+  {
+    "source_basename": "bundle-build-observe.json",
+    "source_sha256": "0e0cdc599cbeee852be2c6bf84edde3138dd94c8f278eeaed876e821fe1623d8",
+    "historical_only": true,
+    "error": {
+      "code": "invalid_argument",
+      "message": "--retry-request and --wait-submit require --text with --enter and without --interrupt."
+    },
+    "ok": false,
+    "admissibility": "Untrusted historical corroboration; not a fresh live receipt and not an authentication test."
+  }
+]

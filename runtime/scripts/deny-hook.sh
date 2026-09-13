@@ -31,9 +31,9 @@
 #   2. force-push to the default branch, including the +main refspec form that
 #      needs no flag at all — and deleting it outright, which carries no flag
 #      either: `:main`, `git push -d`, `git push --delete` (#297)
-#   3. `git push --force` / `-f` without --force-with-lease, on any target: the
-#      lease is what makes a force-push recoverable, and a worker that has not
-#      earned the lease has not earned the push
+#   3. `git push --force` / `-f` on any target without an effective lease — and
+#      an effective explicit global force even with one, since Git documents
+#      that it disables the --force-with-lease checks
 #   4. `orca orchestration reset` — one command that discards a whole fleet's
 #      dispatch state
 # Git global options between `git` and the subcommand (-C, -c, --git-dir and
@@ -44,7 +44,8 @@
 # the default is resolved in the hook's own cwd and the ref cannot be shown
 # recoverable, so any remote-ref deletion denies (#321 review).
 # --force-with-lease is deliberately NOT matched as a force-push — but a
-# lease does not pardon a deletion, which is judged first.
+# lease does not pardon a deletion (judged first) or an effective explicit
+# global force, which Git documents as disabling the lease checks.
 #
 # Never list (ask, per runtime/sandbox-policy.md): live-prod mutation, credential
 # provisioning, destructive database or infrastructure teardown, unpinned remote
@@ -165,7 +166,7 @@ PAYLOAD=$(cat 2>/dev/null || true)
 
 # Extract tool_name, tool_input.command and tool_input.file_path as three lines.
 # A parse failure (or no python3) exits non-zero here and DENIES below.
-FIELDS=$(printf '%s' "$PAYLOAD" | python3 -c 'import json,sys
+FIELDS=$(printf '%s' "$PAYLOAD" | python3 -c 'import json,re,shlex,sys
 d = json.loads(sys.stdin.read())
 if not isinstance(d, dict):
     raise SystemExit(1)
@@ -174,13 +175,20 @@ if not isinstance(ti, dict):
     ti = {}
 def s(v):
     return v.replace("\n", " ") if isinstance(v, str) else ""
+def r(v):
+    # The command as the shell sees it, newlines intact. `segments` needs them:
+    # a newline separates two commands, and it is also the only thing that ENDS
+    # a # comment. Pre-mapping it to `;` erased that boundary, so a comment had
+    # no end to find (PR #325 review, P1).
+    return v.replace("\r", "\n") if isinstance(v, str) else ""
 def c(v):
-    # The line protocol below cannot carry an embedded newline, but in a shell a
-    # newline SEPARATES two commands exactly as `;` does. Flattening it to a
-    # space glued them into one nonsense segment that matched nothing, so a
-    # two-line payload walked straight past the HIGH tier (#297). Map it to the
-    # separator it actually is and let the splitter do its job.
-    return v.replace("\r", "\n").replace("\n", " ; ") if isinstance(v, str) else ""
+    # The as-written Never-list pass reads this off a single line of the field
+    # protocol, which cannot carry an embedded newline. In a shell a newline
+    # SEPARATES two commands exactly as `;` does; flattening it to a space glued
+    # them into one nonsense segment that matched nothing, so a two-line payload
+    # walked straight past the HIGH tier (#297). Map it to the separator it
+    # actually is. The splitter reads `r` instead and needs no such compromise.
+    return r(v).replace("\n", " ; ")
 
 
 # NOTE: this whole program is the argument of a single-quoted sh string, so it may not contain
@@ -189,6 +197,10 @@ def c(v):
 # refuses every tool call.
 SQ = chr(39)
 DQ = chr(34)
+# What a shell splits words on. NOT str.isspace(): Python calls NBSP and friends
+# whitespace, a shell does not, and a word boundary the shell never saw is one this
+# parser must not invent either (PR #325 review, P1).
+BLANKS = chr(32) + chr(9)
 
 
 def segments(cmd):
@@ -205,63 +217,165 @@ def segments(cmd):
     Quoting is parsed here rather than in sh because a POSIX shell cannot do it without eval, and
     python3 is already load-bearing above: no parser, no decision, and this whole script denies.
     Redirect operators are consumed whole so their | and & are never read as separators.
+
+    A # that OPENS A WORD opens a comment, which runs to the end of its line. Nothing recognized
+    them, so `git status # dont modify anything` was tokenized as shell: the apostrophe in the
+    comment opened a quote that never closed, shlex raised, and the payload reader hard-DENIED a
+    read-only command (PR #325 review, P1). Word position is what decides it, exactly as in a
+    shell: after a redirect operator `>#f` names a file, and un-seeing that word would lose a
+    write target, which is the one direction this parser must never fail in.
     """
     segs, cur = [], []
     i, n, quote = 0, len(cmd), ""
+    word_start = True
     while i < n:
         ch = cmd[i]
+        # A backslash-newline is a line continuation. The shell REMOVES it -- inside double
+        # quotes as well as outside -- and the text on either side is one word. Keeping it opened
+        # two holes (PR #325 review, P1): the newline rode into a word and broke the one-line
+        # record protocol below, forging a C record that reset tee enforcement so the write
+        # target after it went unchecked; and counting it as a word boundary made
+        # echo a\<newline>#b a comment, swallowing the command after it. Removing it here leaves
+        # word_start untouched, which is the point: a continuation neither opens nor closes a
+        # word. Single quotes take no escapes, so it is literal there.
+        if ch == "\\" and quote != SQ and i + 1 < n and cmd[i + 1] == "\n":
+            i += 2
+            continue
         if quote:
-            cur.append(ch)
+            # A literal newline inside a quoted word is data, not a boundary. It cannot travel on
+            # the one-line record protocol below, so it rides as a space: a value, still one word.
+            cur.append(" " if ch == "\n" else ch)
             if ch == "\\" and quote == DQ and i + 1 < n:
                 cur.append(cmd[i + 1])
                 i += 2
                 continue
             if ch == quote:
                 quote = ""
+            word_start = False
             i += 1
             continue
         if ch == SQ or ch == DQ:
             quote = ch
             cur.append(ch)
+            word_start = False
             i += 1
             continue
         if ch == "\\" and i + 1 < n:
             cur.append(ch)
             cur.append(cmd[i + 1])
+            word_start = False   # an escaped character is a word character
             i += 2
             continue
+        if ch == "#" and word_start:
+            while i < n and cmd[i] != "\n":
+                i += 1
+            continue   # the newline itself falls through to the separator case below
         if ch in "<>" or (ch == "&" and i + 1 < n and cmd[i + 1] == ">"):
             j = i + 1
             while j < n and cmd[j] in "<>|&":
                 j += 1
             cur.append(cmd[i:j])
+            word_start = False
             i = j
             continue
         # && and || need no case of their own: the second character lands on a separator too, and
         # the empty segment between them is dropped below. Measured, not assumed — a mutant
         # removing a special case for them changed no decision, so there is no special case.
-        if ch in ";|&":
+        # A newline is a separator too, and the one that ends a comment.
+        if ch in ";|&\n":
             segs.append("".join(cur))
             cur = []
+            word_start = True
             i += 1
             continue
         cur.append(ch)
+        word_start = ch in BLANKS
         i += 1
     segs.append("".join(cur))
     return [seg for seg in segs if seg.strip()]
 
 
-command = c(ti.get("command"))
+def policy_word(word):
+    # This is an internal comparison word, NEVER shell code. Encode whitespace,
+    # quotes and escapes so shell word splitting cannot turn one operand into
+    # flags/refspecs. Literal command/option words lose their shell quoting.
+    return "".join("\\%03o" % ord(ch) if ch.isspace() or ch in (SQ, DQ, "\\")
+                   else ch for ch in word) or "\\000"
+
+
+def shell_tokens(seg):
+    # Keep operator identity BEFORE quote removal: quoted/escaped > is data.
+    # A descriptor is optional and may have several digits. After an operator,
+    # however, the next word is its target: in 10>&1>file, 1 is not another fd.
+    ops = r"(?:&>>|&>|>>|>\||>&|<>|<<<|<<-|<<|<&|>|<)"
+    i, target = 0, False
+    while i < len(seg):
+        if seg[i].isspace():
+            i += 1
+            continue
+        op = re.match(ops if target else r"[0-9]*" + ops, seg[i:])
+        if op:
+            yield "redirect", op[0].lstrip("0123456789")
+            i += len(op[0])
+            target = True
+            continue
+        start, quote = i, ""
+        while i < len(seg):
+            ch = seg[i]
+            if ch == "\\" and quote != SQ:
+                i += 2
+                continue
+            if quote:
+                if ch == quote:
+                    quote = ""
+            elif ch in (SQ, DQ):
+                quote = ch
+            elif ch.isspace() or ch in "<>&":
+                break
+            i += 1
+        if i == start:
+            raise ValueError("unexpected operator")
+        yield "word", shlex.split(seg[start:i])[0]
+        target = False
+
+
+def record(kind, value):
+    # One record, one line. A value carrying a newline forges the NEXT record, and a forged
+    # C line resets tee enforcement so the write target after it is never checked (PR #325
+    # review, P1). segments() makes this unreachable -- an unquoted newline separates, a
+    # quoted one rides as a space, a continuation is removed -- so anything arriving here
+    # means that reasoning is wrong somewhere, and dying is the fail-closed answer.
+    if "\n" in value or "\r" in value:
+        raise ValueError("a record value cannot contain a newline")
+    print(kind + " " + value)
+
+
+raw_command = r(ti.get("command"))
+command = c(raw_command)
 print(s(d.get("tool_name")))
 print(command)
 # NotebookEdit names its target notebook_path, not file_path — reading only
 # file_path left the one write tool that spells the field differently free of
 # the boundary entirely (#297).
 print(s(ti.get("file_path") or ti.get("notebook_path")))
-# Line 4 onward: one segment per line, already split. A segment cannot hold a newline — the
-# command was flattened above — so the shell reads them as lines and never re-splits on words.
-for seg in segments(command):
-    print(seg)' 2>/dev/null) || {
+# Line 4 onward: C = comparison command, W = write target, A = literal argument.
+# Paths stay decoded on their own lines; comparison words cannot split operands.
+for seg in segments(raw_command):
+    args, writes, pending = [], [], None
+    for kind, value in shell_tokens(seg):
+        if kind == "redirect":
+            pending = value
+        elif pending:
+            if pending in (">", ">>", ">|", ">&", "&>", "&>>", "<>"):
+                writes.append(value)
+            pending = None
+        else:
+            args.append(value)
+    record("C", " ".join(policy_word(word) for word in args))
+    for path in writes:
+        record("W", path)
+    for word in args:
+        record("A", word)' 2>/dev/null) || {
   decide deny "deny-hook: the tool payload could not be parsed. Fail-closed: an unreadable payload is refused, never allowed."
   exit 0
 }
@@ -575,14 +689,79 @@ git_redirected() {
   done
 }
 
-# The segments come PRE-SPLIT from the payload reader above, one per line from line 4 on. They
+# Normalize push options only after the command/global-option run was resolved.
+# Operand-taking options consume the rest of a short cluster or the next word;
+# `-vof` carries push-option `f`, whereas `-vf` forces. Operand text must never
+# supply a force flag, a lease, or a deleted ref to the HIGH tier.
+push_policy() {
+  python3 -c 'import sys
+words = sys.argv[1].split()
+out, skip, options = [], False, True
+lease, force = False, False
+for word in words:
+    if skip:
+        skip = False
+        continue
+    if word == "--":
+        options = False
+    elif options and word in ("-o", "--push-option", "--receive-pack", "--exec", "--repo"):
+        skip = True
+        continue
+    elif word in ("--force", "--no-force", "-f"):
+        # The literal word still reaches the HIGH-tier text below; the ordered
+        # bit only decides whether a lease may still exempt the push.
+        if options:
+            force = word != "--no-force"
+    elif word == "--no-force-with-lease":
+        if options:
+            lease = False
+        else:
+            out.append("--lease-operand")
+        continue
+    elif word == "--force-with-lease" or word.startswith("--force-with-lease="):
+        if options:
+            lease = True
+        else:
+            # An operand grants no lease but keeps its position: after --, the
+            # deletion loops skip the word after -o/--repo, and dropping this
+            # one would hand them the deleted ref instead.
+            out.append("--lease-operand")
+        continue
+    elif options and word.startswith("-") and not word.startswith("--"):
+        cluster = word[1:]
+        for i, flag in enumerate(cluster):
+            if flag == "o":
+                skip = i == len(cluster) - 1
+                break
+            if flag not in "vqnfdu46":
+                out.append(word)
+                break
+            if flag == "f":
+                force = True
+            out.append("-" + flag)
+        continue
+    out.append(word)
+# Emit only the effective lease; canceled leases and operands after -- cannot
+# grant the HIGH-tier exemption. Explicit global force disables lease checks
+# (git-push 2.55), so an effective one replaces the lease marker. --no-force
+# clears that bit in command-line order but never removes a literal force word:
+# an unleased push keeps the trigger it had before E5, which only adds denials.
+if force:
+    out.append("--force")
+elif lease:
+    out.append("--force-with-lease")
+print(" ".join(out))' "$1"
+}
+
+# The C records carry PRE-SPLIT, word-normalized commands from the payload reader above. They
 # are split there because splitting is quote-aware and a POSIX shell cannot parse quoting without
 # eval: a separator inside a quoted value used to split too, leaving the rest of the value glued
 # to the FRONT of the next segment, and every rule below is anchored at `^`. `X="a&b" git push
 # --force origin main` became `b" git push --force origin main` and was allowed (PR #308 review,
-# P1). Loading them into positional parameters keeps the loop out of a subshell, so a
+# P1). Selecting only C records keeps literal path/argument records out of the HIGH tier.
+# Loading the commands into positional parameters keeps the loop out of a subshell, so a
 # `decide deny` inside it still exits the script.
-_SEGS=$(printf '%s\n' "$FIELDS" | sed -n '4,$p')
+_SEGS=$(printf '%s\n' "$FIELDS" | sed -n '4,$s/^C //p')
 _OLDIFS=$IFS
 IFS='
 '
@@ -620,11 +799,12 @@ for _SEG in "$@"; do
     fi
   fi
 
-  # 2/3. Force-push and deletion. A lease makes a force-push recoverable; a
+  # 2/3. Force-push and deletion. An effective lease guards concurrent updates; a
   # deletion recovers nothing, so it is judged FIRST and no lease pardons it:
   # `git push origin :main`, `-d` and `--delete` carry no force flag at all and
   # sailed under both force rules (#297).
   if has '^[[:space:]]*(sudo[[:space:]]+)?git[[:space:]]+push([[:space:]]|$)'; then
+    CMD=$(push_policy "$CMD")
     DEFAULT_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|^refs/remotes/origin/||' || true)
     if [ -z "$DEFAULT_BRANCH" ]; then
       if git show-ref --verify -q refs/remotes/origin/main 2>/dev/null; then DEFAULT_BRANCH="main"
@@ -691,7 +871,7 @@ for _SEG in "$@"; do
       exit 0
     fi
 
-    if ! has '(^|[[:space:]])--force-with-lease'; then
+    if ! has '(^|[[:space:]])--force-with-lease($|[[:space:]])'; then
       HAS_FORCE=0
       has '(^|[[:space:]])(-f|--force)($|[[:space:]])' && HAS_FORCE=1
       has '(^|[[:space:]])\+[^[:space:]]' && HAS_FORCE=1
@@ -710,7 +890,7 @@ for _SEG in "$@"; do
         if [ "$TARGETS_DEFAULT" -eq 1 ]; then
           decide deny "deny-hook[HIGH]: force-push to the default branch is refused. It rewrites the history everyone else builds on."
         else
-          decide deny "deny-hook[HIGH]: git push --force without --force-with-lease is refused. Use --force-with-lease so a concurrent push cannot be silently discarded."
+          decide deny "deny-hook[HIGH]: unleased or explicit global force is refused. Use --force-with-lease without -f/--force so a concurrent push cannot be silently discarded."
         fi
         exit 0
       fi
@@ -748,7 +928,6 @@ if [ -n "${ORCA_UNIT_WORKTREE:-}" ]; then
 
   bounded_write() {
     _t=$1
-    _t=${_t#\"}; _t=${_t%\"}; _t=${_t#\'}; _t=${_t%\'}
     case "$_t" in /*) : ;; *) return 0 ;; esac
     # The process's own standard streams and the bit bucket. `make > /dev/null`
     # is the most common redirect there is and writes nothing anyone can read;
@@ -765,45 +944,19 @@ if [ -n "${ORCA_UNIT_WORKTREE:-}" ]; then
     exit 0
   }
 
-  for _SEG in "$@"; do
-    # `tee` counts only as the segment's own command — `grep tee /etc/passwd`
-    # reads a file, and refusing a read here would be a boundary inventing work.
-    _TEE=0
-    case "$(strip_prefix "$_SEG")" in tee|tee\ *) _TEE=1 ;; esac
-    _PENDING=0
-    set -f
-    # shellcheck disable=SC2086
-    for TOK in $_SEG; do
-      if [ "$_PENDING" -eq 1 ]; then
-        _PENDING=0
-        bounded_write "$TOK"
-        continue
-      fi
-      case "$TOK" in
-        '>'|'>>'|'>|'|'>&'|'&>'|'&>>'|[0-9]'>'|[0-9]'>>'|[0-9]'>|') _PENDING=1 ;;
-        # `&>file` and `>&file` are both bash's both-streams redirect and write a
-        # file; `>&1` and `>&2` duplicate a descriptor. A bare digit is relative,
-        # so those reach bounded_write and only the path is ever judged.
-        #
-        # These two arms were deleted once as inert — correctly, when the splitter
-        # was a sed pass that cut at the `&` of `&>` and left `> file` whole in the
-        # next segment. Quote-aware splitting consumes a redirect operator WHOLE,
-        # so `&>` now arrives here as a token and needs reading (PR #308 review).
-        '&>>'*)     bounded_write "${TOK#'&>>'}" ;;
-        '&>'*)      bounded_write "${TOK#'&>'}" ;;
-        '>&'*)      bounded_write "${TOK#'>&'}" ;;
-        [0-9]'>>'*) bounded_write "${TOK#?'>>'}" ;;
-        [0-9]'>|'*) bounded_write "${TOK#?'>|'}" ;;
-        [0-9]'>'*)  bounded_write "${TOK#?'>'}" ;;
-        '>>'*)      bounded_write "${TOK#'>>'}" ;;
-        '>|'*)      bounded_write "${TOK#'>|'}" ;;
-        '>'*)       bounded_write "${TOK#'>'}" ;;
-        -*) : ;;
-        *) if [ "$_TEE" -eq 1 ]; then bounded_write "$TOK"; fi ;;
-      esac
-    done
-    set +f
-  done
+  # Consume typed records without splitting paths on whitespace. The here-doc
+  # keeps this loop in the main shell so a refusal exits the entire hook.
+  _TEE=0
+  while IFS= read -r _RECORD; do
+    case "$_RECORD" in
+      'C '*) _TEE=0
+             case "$(strip_prefix "${_RECORD#C }")" in tee|tee\ *) _TEE=1 ;; esac ;;
+      'W '*) bounded_write "${_RECORD#W }" ;;
+      'A '*) if [ "$_TEE" -eq 1 ]; then bounded_write "${_RECORD#A }"; fi ;;
+    esac
+  done <<EOF
+$(printf '%s\n' "$FIELDS" | sed -n '4,$p')
+EOF
 fi
 # --- Never list (ask) --------------------------------------------------------
 ask() { decide ask "deny-hook[NEVER-LIST]: $1 Per runtime/sandbox-policy.md this needs a recorded human grant before it runs."; exit 0; }

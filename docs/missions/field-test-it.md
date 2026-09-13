@@ -1,7 +1,7 @@
 # 📱 field-test-it — proven on hardware, not on hope
 
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel fix workers per device-observed defect, each re-verified on the target; device pairing and anything outside the paired device set are your one-way gates.
-> **Activation load:** ~29,200 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
+> **Activation load:** ~29,700 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
 
 > Point it at "works on my machine, breaks on my phone." Come back to each on-device defect
@@ -70,7 +70,8 @@ flowchart TD
 | `FIELD-PROVEN-WITH-PARKED` | ≥1 defect needs a device/step the session lacks; parked with the exact device + step named | the named owner runs the parked device step |
 
 `FIELD-PROVEN-WITH-PARKED` is a degraded terminal; a chain stops there per
-[`mission-chaining`](../../runtime/mission-chaining.md) unless the next link declares it tolerable.
+[`mission-chaining`](../../runtime/mission-chaining.md). Advancing requires a one-way human gate
+recorded in the ledger, even when the next link's allowlist declares this state tolerable.
 
 ## Human gates
 

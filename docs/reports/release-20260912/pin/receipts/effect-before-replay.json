@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T12:01:07.884807+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "python3",
+    "-c",
+    "from pathlib import Path; p=Path(\"/tmp/orca-release-audit-20260912/pin-replay-effect.txt\"); print(repr(p.read_bytes()) if p.exists() else \"ABSENT\")"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/codex-release-pin-20260912",
+  "exit": 0,
+  "stdout": "b'x'\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

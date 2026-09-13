@@ -1,0 +1,18 @@
+{
+  "argv": [
+    "/tmp/orca-release-audit-20260912/ci-venv/bin/python",
+    "-m",
+    "ruff",
+    "check",
+    "."
+  ],
+  "exit": 0,
+  "duration_s": 0.034,
+  "stdout": "All checks passed!\n",
+  "stderr": "",
+  "source_sha256": {
+    "runtime/dispatch-lifecycle.md": "a25834ad1de307eb0d113a5aa87dc013ccef52f74653a2f62f143e0eb01e3ea4",
+    "runtime/liveness-resume.md": "201e2c4a8fe1598e70fb6f715b8a9c7d93f0d36ef5df6d3b508bd9340cd769d6"
+  },
+  "toolchain": "Python 3.13.15"
+}

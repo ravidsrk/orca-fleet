@@ -1,0 +1,55 @@
+[
+  {
+    "probe": "foreign dependency",
+    "classification": "BLOCKED-BY-SUBSTRATE",
+    "receipt": "receipts/fixture-create-foreign.json",
+    "reason": "Scratch coordinator was bound to A; explicit mutation of B was consumer_fenced.",
+    "correction": "Through the authorized actual scratch coordinator, run-use B, create owned foreign task, then run-use A.",
+    "corrected_receipts": [
+      "receipts/fixture2-bind-b.json",
+      "receipts/fixture2-create-foreign.json",
+      "receipts/fixture2-bind-a.json",
+      "receipts/fixture2-foreign-dep.json"
+    ],
+    "effect_on_claim": "C115 classified from corrected dependency receipt, never from consumer_fenced."
+  },
+  {
+    "probe": "mixed mailbox",
+    "classification": "BLOCKED-BY-SUBSTRATE",
+    "receipt": "receipts/fixture2-message-01.json",
+    "reason": "An ordinary scratch coordinator has no active Dispatch authorizing a worker escalation.",
+    "correction": "Use permitted status/handoff for mixed FIFO; worker ask/lifecycle tested separately using the coordinator-provided helper.",
+    "corrected_receipts": [
+      "receipts/mailbox-delivery.json",
+      "receipts/helper-check-0.json"
+    ],
+    "effect_on_claim": "No mechanism was classified absent; full escalation-specific delivery remains unclaimed."
+  },
+  {
+    "probe": "retry grammar",
+    "classification": "INVALID-PRECONDITION",
+    "receipts": [
+      "receipts/retry-shorthand-refutation.json",
+      "receipts/retry-text-no-enter-refutation.json"
+    ],
+    "reason": "Initial stand-in was not a runtime UUID; those parser refusals do not test text/Enter requirements.",
+    "correction": "Get actual request UUID from the inert-shell initial send.",
+    "corrected_receipts": [
+      "receipts/scratch-original-send.json",
+      "receipts/retry-original-id-shorthand.json"
+    ],
+    "effect_on_claim": "Only corrected original-ID refusal is the prose negative control."
+  },
+  {
+    "probe": "worker release",
+    "classification": "INVALID-PRECONDITION",
+    "receipt": "receipts/helper-release.json",
+    "reason": "Unsupported --from flag on worker-release.",
+    "correction": "Omit unsupported flag while executing through the actual authorized scratch coordinator terminal.",
+    "corrected_receipts": [
+      "receipts/settle-release.json",
+      "receipts/settle-release-replay.json"
+    ],
+    "effect_on_claim": "Retained external-terminal behavior observed; no unknown-command or absent-release claim."
+  }
+]

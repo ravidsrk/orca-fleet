@@ -1,0 +1,16 @@
+import os,sys,json
+from pathlib import Path
+sys.path.insert(0,'/tmp/orca-release-audit-20260912')
+from pin_capture import call
+H='term_3e146225-18a4-43a0-bf3f-87545241b760';A='run_aad129c705b7';W='term_2a591dec-4a81-4c3d-baef-c145582b3b34';D='ctx_e41119c4ab64';T='task_1689929d2c14';SCRATCH='/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912'
+def c(label,args):
+ d=call('settle-'+label,['orca']+args+['--json'],cwd=SCRATCH);r=json.loads(d['stdout']);assert d['exit']==0 and r.get('ok'),(label,r);return r['result']
+assert os.environ.get('ORCA_TERMINAL_HANDLE')==H
+r=c('tasks',['orchestration','task-list','--run',A,'--from',H]);assert next(t for t in r['tasks'] if t['id']==T)['status']=='completed'
+c('release',['orchestration','worker-release','--dispatch',D]);c('release-replay',['orchestration','worker-release','--dispatch',D])
+r=c('inbox',['orchestration','check','--terminal',H,'--run',A])
+if r.get('deliveryId'):c('ack',['orchestration','check','--terminal',H,'--run',A,'--ack',r['deliveryId']])
+c('workers',['orchestration','worker-list','--run',A])
+c('helper-close',['terminal','close','--terminal',W])
+c('terminals-after',['terminal','list','--worktree','path:'+SCRATCH])
+Path('/tmp/orca-release-audit-20260912/pin-helper-cleanup.done').write_text('complete')

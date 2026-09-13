@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T12:03:59.572092+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "orchestration",
+    "check",
+    "--terminal",
+    "term_3e146225-18a4-43a0-bf3f-87545241b760",
+    "--run",
+    "run_aad129c705b7",
+    "--ack",
+    "delivery_0e66683aeb4c",
+    "--json"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912",
+  "exit": 0,
+  "stdout": "{\n  \"id\": \"7acdb9ce-501b-4580-adf9-3c3fc170e0e7\",\n  \"ok\": true,\n  \"result\": {\n    \"runId\": \"run_aad129c705b7\",\n    \"deliveryId\": null,\n    \"messages\": [],\n    \"count\": 0,\n    \"acknowledged\": \"delivery_0e66683aeb4c\",\n    \"timedOut\": false,\n    \"cancelled\": false,\n    \"connectionLost\": false,\n    \"mutation\": {\n      \"requestId\": \"23585e8a-f61f-404c-8ea5-ac98b16ad3c9\",\n      \"replayed\": false\n    }\n  },\n  \"_meta\": {\n    \"runtimeId\": \"2e075aba-10a5-40b7-aa95-9e82ae9fc5b7\"\n  }\n}\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

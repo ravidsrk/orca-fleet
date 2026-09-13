@@ -1,7 +1,7 @@
 # ♿ access-it — WCAG 2.2 conformance over a frozen surface
 
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel fix workers on isolated violation units against a deterministic axe oracle; the residual human-AT park and the promotion are gate classes you own.
-> **Activation load:** ~25,600 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
+> **Activation load:** ~26,200 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
 
 > Point it at a page/flow/component set and a WCAG target. Come back to a surface a deterministic

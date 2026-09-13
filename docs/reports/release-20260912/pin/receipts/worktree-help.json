@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T11:56:14.687081+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "worktree",
+    "--help"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/codex-release-pin-20260912",
+  "exit": 0,
+  "stdout": "orca worktree\n\nUsage: orca worktree <command> [options]\n\nCommands:\n  list               List Orca-managed worktrees\n  show               Show one worktree\n  current            Show the Orca-managed worktree for the current directory\n  create             Create a new Orca-managed worktree\n  set                Update Orca metadata for a worktree\n  rm                 Remove a worktree from Orca and git\n  ps                 Show a compact orchestration summary across worktrees\n\nRun `orca worktree <command> --help` for command-specific usage.\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

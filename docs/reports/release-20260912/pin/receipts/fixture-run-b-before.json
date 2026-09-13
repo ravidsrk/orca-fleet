@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T12:02:20.030000+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "orchestration",
+    "run-show",
+    "--id",
+    "run_05b8d4a02874",
+    "--json"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912",
+  "exit": 0,
+  "stdout": "{\n  \"id\": \"677231e3-25aa-4054-bbea-4774e8ce574c\",\n  \"ok\": true,\n  \"result\": {\n    \"run\": {\n      \"id\": \"run_05b8d4a02874\",\n      \"objective\": \"Orca1.4.200 isolated pin witness fixture B; foreign-dependency/scoping controls only\",\n      \"coordinator_handle\": null,\n      \"consumer_generation\": 2,\n      \"legacy\": 0,\n      \"created_at\": \"2026-09-12T12:00:05Z\",\n      \"updated_at\": \"2026-09-12T12:00:27Z\"\n    }\n  },\n  \"_meta\": {\n    \"runtimeId\": \"2e075aba-10a5-40b7-aa95-9e82ae9fc5b7\"\n  }\n}\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

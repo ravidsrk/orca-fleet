@@ -25,9 +25,15 @@ continues, anything else records a **skipped** run and spawns nothing (`automati
 v1.4.199). That is exactly the enumeration question a mission asks in its first phase — and without
 it, a nightly sweep of an empty backlog pays a full preflight, a coordinator, and a run report to
 discover there was nothing to do, then writes a report that looks like work. The precheck is the
-cheapest possible form of the mission's own denominator query (`gh pr list --json number -q .[0]`,
-`gh issue list -l <label> -q .[0]`), so a skipped run is an honest zero rather than a manufactured
-one.
+cheapest possible form of the mission's own denominator query. Pass one of these complete shell
+commands as the precheck (substitute the label; preserve the inner quotes):
+
+- PRs: `count=$(gh pr list --state open --limit 1 --json number --jq 'length') && test "$count" -gt 0`
+- Issues: `count=$(gh issue list --state open --label '<label>' --limit 1 --json number --jq 'length') && test "$count" -gt 0`
+
+Both exit zero only with work. Empty lists and API failures skip; inspect precheck stderr to
+distinguish an unavailable denominator from an empty one. Selecting a JSON value alone does not
+encode emptiness in the exit status. Keep `&&` so a failed query cannot launch a run.
 
 Also on `create`/`edit`: `--timezone` (a cron with no zone drifts against the team's day),
 `--missed-run-grace-minutes` (how late a missed fire may still run — past it the run is dropped, not

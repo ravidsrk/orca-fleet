@@ -72,6 +72,7 @@ How to wire
     grant:pr-open-on-base && gh pr create --body-file /tmp/body.md``
 """
 import argparse
+import fcntl
 import hashlib
 import json
 import os
@@ -160,19 +161,19 @@ def write_receipt(path, sink, host, payload_class, consent, nbytes=0, payload_sh
     if payload_sha256 is not None and not _is_sha256(payload_sha256):
         raise EgressError("payload_sha256 must be 64 lowercase hex characters or absent")
     try:
-        if not path.parent.exists():
-            path.parent.mkdir(parents=True, exist_ok=True)
-            os.chmod(path.parent, stat.S_IRWXU)  # 0700: the ledger dir is private
-        previous = last_raw_line(path)
-        record["prev"] = "" if previous is None else sha256_hex(previous)
-        record["id"] = record_id(record)
-        line = json.dumps({"id": record["id"], **{k: record[k] for k in FIELDS}},
-                          separators=(",", ":"), sort_keys=False)
-        existed = path.exists()
-        with path.open("a", encoding="utf-8") as fh:
+        path.parent.mkdir(mode=stat.S_IRWXU, parents=True, exist_ok=True)
+        with open(path, "a", encoding="utf-8",
+                  opener=lambda name, flags: os.open(name, flags, stat.S_IRUSR | stat.S_IWUSR)) as fh:
+            # All cooperating writers hold this inode's lock through the flush;
+            # the next tail reader must see the complete preceding receipt.
+            fcntl.flock(fh.fileno(), fcntl.LOCK_EX)
+            previous = last_raw_line(path)
+            record["prev"] = "" if previous is None else sha256_hex(previous)
+            record["id"] = record_id(record)
+            line = json.dumps({"id": record["id"], **{k: record[k] for k in FIELDS}},
+                              separators=(",", ":"), sort_keys=False)
             fh.write(line + "\n")
-        if not existed:
-            os.chmod(path, stat.S_IRUSR | stat.S_IWUSR)
+            fh.flush()
     except EgressError:
         raise
     except OSError as err:

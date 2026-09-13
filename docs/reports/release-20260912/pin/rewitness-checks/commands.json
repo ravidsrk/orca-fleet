@@ -1,0 +1,70 @@
+{
+  "commands": [
+    {
+      "label": "rewitness-consistency",
+      "ts": "2026-09-12T17:24:01Z",
+      "cmd": "/tmp/orca-release-audit-20260912/ci-venv/bin/python docs/reports/release-20260912/pin/check-correction.py",
+      "cmd_sha256": "6113243b6931d5e873b614263d6e93c0b79237370506c743cf8582e534bf7489",
+      "exit": 0,
+      "duration_s": 2.149,
+      "commit": "061207f4adb9542469da525e6828a60bc5153ae3",
+      "wtree": "a6ec95e509e82f829f0b07d196e83c82a8f2e752",
+      "artifact": "docs/reports/release-20260912/pin/rewitness-checks/consistency.txt"
+    },
+    {
+      "label": "rewitness-baseline-negative-control",
+      "ts": "2026-09-12T17:24:02Z",
+      "cmd": "/tmp/orca-release-audit-20260912/ci-venv/bin/python docs/reports/release-20260912/pin/check-correction.py --baseline",
+      "cmd_sha256": "3e1b3fb064f2b2ef44aec01d0436ce68a2c2240d323fc75e6dd6c963668efa44",
+      "exit": 1,
+      "duration_s": 0.71,
+      "commit": "061207f4adb9542469da525e6828a60bc5153ae3",
+      "wtree": "9cbbc5167881b39cad8bdab81c5808ebee851555",
+      "artifact": "docs/reports/release-20260912/pin/rewitness-checks/baseline.txt"
+    },
+    {
+      "label": "rewitness-negative-controls",
+      "ts": "2026-09-12T17:24:30Z",
+      "cmd": "/tmp/orca-release-audit-20260912/ci-venv/bin/python docs/reports/release-20260912/pin/probe-sources/pin-rewitness-controls.py.txt HEAD",
+      "cmd_sha256": "35c4446570524a9a69671e5ca237a20e9d8d808ade104834ff040deea86b1ae1",
+      "exit": 0,
+      "duration_s": 27.971,
+      "commit": "061207f4adb9542469da525e6828a60bc5153ae3",
+      "wtree": "df12fe7decdceb23d023be7d755e59cd22d01fa2",
+      "artifact": "docs/reports/release-20260912/pin/rewitness-checks/negative-controls.json"
+    },
+    {
+      "label": "validator",
+      "ts": "2026-09-12T17:24:30Z",
+      "cmd": "/tmp/orca-release-audit-20260912/ci-venv/bin/python scripts/validate.py",
+      "cmd_sha256": "f415d8165ae2443411eca4124e801dc94bda051411c2cd737784123f056c6b34",
+      "exit": 0,
+      "duration_s": 0.477,
+      "commit": "061207f4adb9542469da525e6828a60bc5153ae3",
+      "wtree": "be5c57070d213840813c08dad1d13a5d7f31167d",
+      "artifact": "docs/reports/release-20260912/pin/rewitness-checks/validator.txt"
+    },
+    {
+      "label": "ruff",
+      "ts": "2026-09-12T17:24:31Z",
+      "cmd": "/tmp/orca-release-audit-20260912/ci-venv/bin/ruff check scripts runtime/scripts tests bench demo docs/reports/release-20260912/pin/check-correction.py",
+      "cmd_sha256": "c319c6b3961702ec52672e530ad4c1ab944e150be62233da4bbf496e277941fe",
+      "exit": 0,
+      "duration_s": 0.041,
+      "commit": "061207f4adb9542469da525e6828a60bc5153ae3",
+      "wtree": "251459b92d41d27ec3cb61ad7ccf8af38cce6e43",
+      "artifact": "docs/reports/release-20260912/pin/rewitness-checks/ruff.txt"
+    },
+    {
+      "label": "full-suite",
+      "ts": "2026-09-12T17:27:50Z",
+      "cmd": "/tmp/orca-release-audit-20260912/ci-venv/bin/python -m unittest discover -s tests",
+      "cmd_sha256": "6c7113ee595c1ad70d84b1347f9d89f98387efac685058b1aa4ffdc7f531b1a1",
+      "exit": 1,
+      "duration_s": 199.536,
+      "commit": "061207f4adb9542469da525e6828a60bc5153ae3",
+      "wtree": "83e374e236fe2addaf400fa278015235160ff069",
+      "artifact": "docs/reports/release-20260912/pin/rewitness-checks/full-suite.txt"
+    }
+  ]
+}

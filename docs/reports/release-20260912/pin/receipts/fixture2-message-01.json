@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T12:02:45.942071+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "orchestration",
+    "send",
+    "--to",
+    "run:run_aad129c705b7",
+    "--from",
+    "term_3e146225-18a4-43a0-bf3f-87545241b760",
+    "--type",
+    "escalation",
+    "--subject",
+    "PIN_266_01",
+    "--body",
+    "Inert FIFO probe; no action requested",
+    "--json"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912",
+  "exit": 1,
+  "stdout": "{\n  \"id\": \"local\",\n  \"ok\": false,\n  \"error\": {\n    \"code\": \"sender_not_assignee\",\n    \"message\": \"No active Dispatch belongs to this message sender.\"\n  },\n  \"_meta\": {\n    \"runtimeId\": null\n  }\n}\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

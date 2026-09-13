@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T11:59:34.565268+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "/tmp/orca-release-audit-20260912/ci-venv/bin/python",
+    "runtime/scripts/preflight.py",
+    "--offline",
+    "--base",
+    "codex/release-pin-20260912",
+    "--default",
+    "origin/main",
+    "--fork-point",
+    "9eb2e6f6171845100b969e2d59e65b0d34ddf86f"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/codex-release-pin-20260912",
+  "exit": 0,
+  "stdout": "preflight: OK — repo=(offline — gh skipped), base=codex/release-pin-20260912, default=origin/main, fork_point=9eb2e6f61718\n",
+  "stderr": "preflight: WARN: BASE tip == default tip (9eb2e6f61718) — expected for a freshly created integration branch; confirm BASE is not another alias of the default.\n",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

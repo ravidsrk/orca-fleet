@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T12:02:20.662463+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "orchestration",
+    "task-create",
+    "--spec",
+    "PIN_266_foreign",
+    "--run",
+    "run_05b8d4a02874",
+    "--from",
+    "term_3e146225-18a4-43a0-bf3f-87545241b760",
+    "--json"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912",
+  "exit": 1,
+  "stdout": "{\n  \"id\": \"41626fc0-b01b-476b-a57f-3186f3c9f23e\",\n  \"ok\": false,\n  \"error\": {\n    \"code\": \"consumer_fenced\",\n    \"message\": \"This coordinator terminal is bound to run_aad129c705b7, not run_05b8d4a02874. Orchestration mutation request ID: 04b8e69e-0c03-442d-8cd8-46cf8c981040.\",\n    \"data\": {\n      \"orchestrationRequestId\": \"04b8e69e-0c03-442d-8cd8-46cf8c981040\",\n      \"originalCommand\": [\n        \"orca\",\n        \"orchestration\",\n        \"task-create\",\n        \"--spec\",\n        \"PIN_266_foreign\",\n        \"--run\",\n        \"run_05b8d4a02874\",\n        \"--from\",\n        \"term_3e146225-18a4-43a0-bf3f-87545241b760\",\n        \"--json\"\n      ]\n    }\n  },\n  \"_meta\": {\n    \"runtimeId\": \"2e075aba-10a5-40b7-aa95-9e82ae9fc5b7\"\n  }\n}\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

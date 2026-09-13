@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T11:57:22.585219+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "terminal",
+    "send",
+    "--help"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/codex-release-pin-20260912",
+  "exit": 0,
+  "stdout": "orca terminal send\n\nUsage: orca terminal send [--terminal <handle>] [--text <text>] [--enter] [--interrupt] [--wait-submit <seconds>] [--retry-request <id>] [--json]\n\nSend input to a live terminal\n\nOptions:\n  --help                 Show this help message\n  --json                 Emit machine-readable JSON\n  --pairing-code\n  --environment\n  --terminal <handle>  Runtime-issued terminal handle\n  --text <text>          Text payload to send or type\n  --enter                Append Enter after sending text\n  --interrupt            Send as an interrupt-style input when supported\n  --wait-submit\n  --retry-request\n\nNotes:\n  For a text-plus-Enter agent prompt, the result separates input acceptance from observed submission and turn start.\n  --wait-submit only observes the accepted prompt for the requested duration; timeout returns the queued/input-accepted receipt and never resends.\n  After an ambiguous transport failure, reissue the exact command with the reported --retry-request ID. The ID is bound to the prompt payload and exact terminal process incarnation.\n  Older hosts accept the legacy raw input but report provider old-host and do not offer idempotent retry or submission observation.\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

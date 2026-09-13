@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T12:05:10.811924+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "orchestration",
+    "worker-list",
+    "--run",
+    "run_aad129c705b7",
+    "--json"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912",
+  "exit": 0,
+  "stdout": "{\n  \"id\": \"1ddd8993-f76f-42b5-b062-28f0e02e738f\",\n  \"ok\": true,\n  \"result\": {\n    \"workers\": [\n      {\n        \"dispatchId\": \"ctx_e41119c4ab64\",\n        \"taskId\": \"task_1689929d2c14\",\n        \"runId\": \"run_aad129c705b7\",\n        \"workerState\": \"ready\",\n        \"dispatchStatus\": \"dispatched\",\n        \"agentTerminalHandle\": \"term_2a591dec-4a81-4c3d-baef-c145582b3b34\",\n        \"terminalState\": \"retained\",\n        \"resource\": {\n          \"id\": \"wtr_2bac2c1e03ae\",\n          \"ownershipState\": \"external\",\n          \"releaseState\": \"not_requested\",\n          \"retainedReason\": \"external_terminal\",\n          \"terminalHandle\": \"term_2a591dec-4a81-4c3d-baef-c145582b3b34\",\n          \"worktreeId\": \"3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912\",\n          \"endpointId\": \"2e075aba-10a5-40b7-aa95-9e82ae9fc5b7\",\n          \"endpointIncarnation\": \"3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912@@57986eea:73c4c6a7-4008-4697-aa65-1b45732f7ac2\",\n          \"originDispatchId\": \"ctx_e41119c4ab64\",\n          \"ownerDispatchId\": \"ctx_e41119c4ab64\",\n          \"releaseRequestedAt\": null,\n          \"releaseCompletedAt\": null,\n          \"releaseError\": null,\n          \"recoveryAttemptCount\": 0,\n          \"lastRecoveryAt\": null,\n          \"archive\": {\n            \"source\": null,\n            \"status\": null\n          }\n        },\n        \"projection\": {\n          \"id\": \"ctx_e41119c4ab64\",\n          \"dispatchId\": \"ctx_e41119c4ab64\",\n          \"taskId\": \"task_1689929d2c14\",\n          \"runId\": \"run_aad129c705b7\",\n          \"role\": \"worker\",\n          \"parent\": null,\n          \"provider\": null,\n          \"host\": {\n            \"kind\": \"local\",\n            \"id\": \"local\"\n          },\n          \"workspace\": {\n            \"id\": \"3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912\",\n            \"kind\": \"folder_or_worktree\"\n          },\n          \"stage\": {\n            \"worker\": \"ready\",\n            \"dispatch\": \"dispatched\",\n            \"detail\": \"input_accepted\",\n            \"activity\": \"unknown\"\n          },\n          \"outcome\": \"in_progress\",\n          \"liveness\": {\n            \"verdict\": \"unverifiable\",\n            \"reason\": \"missing_status\"\n          },\n          \"evidence\": {\n            \"durable\": true,\n            \"liveStatus\": \"unavailable\",\n            \"lastObservedAt\": null\n          },\n          \"resource\": {\n            \"state\": \"external\"\n          },\n          \"nextAction\": {\n            \"kind\": \"none\",\n            \"argv\": []\n          },\n          \"attention\": {\n            \"categories\": [\n              \"unverifiable\"\n            ],\n            \"requiresAction\": true\n          }\n        }\n      }\n    ],\n    \"counts\": {\n      \"retained\": 1\n    },\n    \"page\": {\n      \"limit\": 100,\n      \"total\": 1,\n      \"hasMore\": false,\n      \"nextCursor\": null\n    },\n    \"scope\": {\n      \"run\": \"run_aad129c705b7\",\n      \"source\": \"flag\"\n    }\n  },\n  \"_meta\": {\n    \"runtimeId\": \"2e075aba-10a5-40b7-aa95-9e82ae9fc5b7\"\n  }\n}\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

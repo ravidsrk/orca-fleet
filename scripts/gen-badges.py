@@ -5,7 +5,8 @@ never drift as missions and tests are added.
 
 Writes:
   assets/badges/missions.json  — count of skills/<name>/ mission dirs
-  assets/badges/tests.json     — count of `def test_*` methods under tests/
+  assets/badges/tests.json     — source inventory of `def test_*` definitions under tests/;
+                                 no test execution or pass/fail result
   docs/missions/<name>.md      — the "Activation load" callout, measured by
                                  scripts/validate.py's transitive_load (issue #276)
 
@@ -20,6 +21,7 @@ stale (someone added a mission without regenerating). Run this to refresh:
     python3 scripts/gen-badges.py           # write the files
     python3 scripts/gen-badges.py --check    # exit 1 if any file is stale
 """
+import ast
 import json
 import re
 import sys
@@ -30,7 +32,6 @@ SKILLS_DIR = ROOT / "skills"
 TESTS_DIR = ROOT / "tests"
 BADGES_DIR = ROOT / "assets" / "badges"
 
-TEST_DEF_RE = re.compile(r"^\s*def (test_\w+)\(", re.MULTILINE)
 GUIDES_DIR = ROOT / "docs" / "missions"
 # The callout sits directly under the Autonomy one in every mission guide.
 LOAD_CALLOUT_RE = re.compile(r"(?m)^> \*\*Activation load:\*\* .*$")
@@ -78,9 +79,22 @@ def mission_count() -> int:
 
 
 def test_count() -> int:
+    """Test definitions, PARSED rather than matched.
+
+    A regex over the text counted `def test_thing():` inside a fixture string too, and this
+    suite is full of them — a test about test files embeds test files, so tests/ contains
+    test sources as data (`BASE_TEST` in test_floor_guard.py is one). The badge is a public
+    inventory, so it counts what Python would call a test function and nothing that merely
+    reads like one (#334 review).
+
+    A file that does not parse is a real problem, not something to count around: it raises.
+    """
     total = 0
     for f in sorted(TESTS_DIR.glob("test_*.py")):
-        total += len(TEST_DEF_RE.findall(f.read_text(encoding="utf-8")))
+        tree = ast.parse(f.read_text(encoding="utf-8"), filename=str(f))
+        total += sum(1 for node in ast.walk(tree)
+                     if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+                     and node.name.startswith("test_"))
     return total
 
 
@@ -98,7 +112,7 @@ def compute() -> dict:
         )
     return {
         "missions.json": badge("missions", str(mission_count()), "1f6feb"),
-        "tests.json": badge("contract tests", f"{test_count()} passing", "2ea043"),
+        "tests.json": badge("test definitions", f"{test_count()} in source", "6e7781"),
     }
 
 

@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T12:27:31.175144+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "terminal",
+    "list",
+    "--worktree",
+    "path:/Users/ravindra/orca/workspaces/orca-fleet/pin-local-claims-20260912",
+    "--json"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/codex-release-pin-20260912",
+  "exit": 0,
+  "stdout": "{\n  \"id\": \"de275bed-a864-4f3d-a16f-b3bc90926d8e\",\n  \"ok\": true,\n  \"result\": {\n    \"terminals\": [],\n    \"hostScope\": {\n      \"hostIds\": [\n        \"local\"\n      ],\n      \"omittedHostIds\": []\n    },\n    \"topologyRevisions\": {},\n    \"totalCount\": 0,\n    \"truncated\": false\n  },\n  \"_meta\": {\n    \"runtimeId\": \"2e075aba-10a5-40b7-aa95-9e82ae9fc5b7\"\n  }\n}\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

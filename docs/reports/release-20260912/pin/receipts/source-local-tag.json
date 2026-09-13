@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T11:57:52.661494+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "git",
+    "-C",
+    "/Users/ravindra/projects/orca",
+    "rev-parse",
+    "--verify",
+    "v1.4.200^{commit}"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/codex-release-pin-20260912",
+  "exit": 128,
+  "stdout": "",
+  "stderr": "fatal: Needed a single revision\n",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

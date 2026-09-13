@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T12:08:15.082859+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "python3",
+    "-c",
+    "from pathlib import Path; p=Path(\"/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912\"); print(\"exists:\",p.exists()); raise SystemExit(int(p.exists()))"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/codex-release-pin-20260912",
+  "exit": 0,
+  "stdout": "exists: False\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

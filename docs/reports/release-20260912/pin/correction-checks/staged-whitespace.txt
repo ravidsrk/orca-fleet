@@ -1,0 +1,4 @@
+docs/reports/release-20260912/pin/history/snapshot/CLAIM-AUDIT.md:1101: new blank line at EOF.
+docs/reports/release-20260912/pin/history/snapshot/CONTINUATION.md:228: new blank line at EOF.
+
+Exit: 2. Both trailing blank lines are required byte-preserved snapshot content; no current authored file has a whitespace error.

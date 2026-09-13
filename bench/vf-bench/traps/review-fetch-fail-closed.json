@@ -39,7 +39,10 @@
     "negative_control": {
       "tool": "revert",
       "result": "reverting the change at head_sha turned the pinned test RED \u2014 mutant KILLED",
-      "artifact": "bench/vf-bench/fixtures/nc-revert-killed.txt"
+      "artifact": "bench/vf-bench/fixtures/nc-revert-killed.txt",
+      "paths": [
+        "ARCHITECTURE.md"
+      ]
     },
     "artifacts": [
       {

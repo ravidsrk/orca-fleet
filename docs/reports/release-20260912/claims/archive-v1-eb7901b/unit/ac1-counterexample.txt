@@ -1,0 +1,4 @@
+root: /Users/ravindra/orca/workspaces/orca-fleet/codex-release-claims-20260912
+commit: 9eb2e6f6171845100b969e2d59e65b0d34ddf86f
+COUNTEREXAMPLE: presence check accepts all four strings; no logger or marking exists.
+POSITIVE CONTROL: missing retention is rejected: ["provenance claims standard 'EU-AI-Act-Art-12' but is missing audit fields ['retention'] (EU AI Act Art-12/50 record incomplete)"]
