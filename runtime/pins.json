@@ -2,11 +2,11 @@
   "_about": "Upstream sources the missions execute against, pinned by commit and witness date (issue #271). pin-it re-witnesses and updates these; tests/test_pins.py requires an entry for every pack a SKILL.md compatibility: field names. witness: 'source' means the pin was read from a full-history clone of the upstream at that commit, not from a release note.",
   "orca": {
     "repo": "stablyai/orca",
-    "commit": "28957d6004",
-    "version": "v1.4.199",
-    "tag": "v1.4.199",
-    "witnessed": "2026-09-10",
-    "witness": "source",
+    "commit": "2ecde717b4561cae1701a27615f704434232399a",
+    "version": "v1.4.200",
+    "tag": "v1.4.200",
+    "witnessed": "2026-09-13",
+    "witness": "live",
     "aliases": ["orca", "stablyai/orca"]
   },
   "gstack": {
