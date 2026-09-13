@@ -153,7 +153,16 @@ class RunReportBinding(unittest.TestCase):
     """One temp repo per test: a run directory, its manifest, a committed artifact."""
 
     def setUp(self):
-        self._tmp = tempfile.TemporaryDirectory()
+        # ignore_cleanup_errors: same teardown race as #340 — something writes into
+        # .git/objects while rmtree walks it, and the rmdir fails with OSError 39
+        # (Directory not empty) AFTER every assertion in the test body has passed.
+        # It reddened main at a6ec0fd on a tree that had just gone green as a
+        # pull_request run, and the run before that needed a second attempt to pass.
+        # Unlike #340 the writer is NOT gitleaks: this suite runs in the workflow step
+        # that fails the build if gitleaks is on PATH at all, so it demonstrably is not.
+        # The writer here is unidentified; what is certain is that the failure is in
+        # cleanup of a throwaway repo, so it is not a signal and must not gate the build.
+        self._tmp = tempfile.TemporaryDirectory(ignore_cleanup_errors=True)
         self.repo = Path(self._tmp.name)
         _git(self.repo, "init", "-q", ".")
         _git(self.repo, "config", "user.email", "t@example.com")
