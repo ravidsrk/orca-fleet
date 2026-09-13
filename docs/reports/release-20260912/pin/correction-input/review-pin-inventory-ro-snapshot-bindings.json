@@ -1,0 +1,35 @@
+{
+  "files": [
+    {
+      "path": "claim-inventory.frozen.json",
+      "sha256": "bc87dd46ee92e1c984c6059b29846d274f4758f8c4c25ddf16c5380f5dd459c6",
+      "bytes": 362812
+    },
+    {
+      "path": "claim-atomization.json",
+      "sha256": "bd3c12d1470e034091fbd4a0f7bbdeeb5fd6a73cda1413a2e23c970949f842b3",
+      "bytes": 860837
+    },
+    {
+      "path": "source-location-audit.json",
+      "sha256": "c19bc7fc48a106a0e94707b30e00e42c1c100d443fa0e83e7fd72036825646fb",
+      "bytes": 1013
+    },
+    {
+      "path": "CLAIM-AUDIT.md",
+      "sha256": "2077431ac5e3a8f4ef2b7aa671bb52850af18ed24ec6ce3d35502a7a1c216fbd",
+      "bytes": 98547
+    },
+    {
+      "path": "CONTINUATION.md",
+      "sha256": "8e079975b31a3c4028041f756a36dba2d193297ecc4d4526364578235bfd96ee",
+      "bytes": 21495
+    }
+  ],
+  "motivation": {
+    "path": "/tmp/orca-release-audit-20260912/pin-inventory-snapshot/CLAIM-AUDIT.md",
+    "line": 3,
+    "text": "The frozen denominator is still **309 source records**. This additive audit identifies **134 exclusions** and **309 mechanics-bearing parent records**, expanded into **429 child predicates**. It does not replace 309 with a smaller denominator or treat exclusions as passed tests."
+  },
+  "verdict_scope": "Inventory fidelity only; no runtime behavior or release acceptance"
+}

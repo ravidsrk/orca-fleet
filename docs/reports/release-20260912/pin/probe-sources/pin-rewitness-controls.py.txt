@@ -1,0 +1,111 @@
+#!/usr/bin/env python3
+"""Negative controls for base_rewitness: every revert/mutation must turn check-correction.py RED.
+
+Run from the repo root on the candidate working tree. Each control mutates bytes in place, runs
+the checker, then restores the exact original bytes and asserts the restore (sha256).
+"""
+import copy
+import hashlib
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+PIN = Path('docs/reports/release-20260912/pin')
+CHECK = PIN / 'check-correction.py'
+CORR = PIN / 'claim-corrections.json'
+
+
+def sha(data):
+    return hashlib.sha256(data).hexdigest()
+
+
+def run():
+    proc = subprocess.run([sys.executable, str(CHECK)], capture_output=True, text=True)
+    return proc.returncode, json.loads(proc.stdout)['errors']
+
+
+def with_bytes(path, data, expect):
+    before = path.read_bytes()
+    try:
+        path.write_bytes(data)
+        code, errors = run()
+    finally:
+        path.write_bytes(before)
+    assert path.read_bytes() == before, f'restore failed: {path}'
+    return {'exit': code, 'errors': errors, 'expected_error': expect,
+            'red': code != 0 and any(expect in e for e in errors)}
+
+
+def corr_mutation(fn, expect):
+    data = json.loads(CORR.read_text())
+    fn(data)
+    return with_bytes(CORR, (json.dumps(data, indent=2, ensure_ascii=False) + '\n').encode(), expect)
+
+
+def row(data, path):
+    return next(r for r in data['base_rewitness']['files'] if r['path'] == path)
+
+
+def span(data, path, record):
+    return next(s for s in row(data, path)['spans'] if s['record'] == record)
+
+
+def main():
+    # The pre-rewitness revision whose checker/inventory bytes the revert controls restore.
+    before = sys.argv[1] if len(sys.argv) > 1 else 'HEAD'
+    head_corr = subprocess.check_output(['git', 'show', f'{before}:{CORR}'])
+    head_check = subprocess.check_output(['git', 'show', f'{before}:{CHECK}'])
+    controls = {}
+    code, errors = run()
+    controls['candidate'] = {'exit': code, 'errors': errors, 'green': code == 0 and not errors}
+    controls['revert_inventory_delta'] = with_bytes(CORR, head_corr, 'doctrine/source changed in correction: runtime/scripts/verify.py')
+    controls['revert_inventory_delta']['drift_errors'] = sum('doctrine/source changed in correction' in e
+                                                             for e in controls['revert_inventory_delta']['errors'])
+    controls['revert_checker_delta'] = with_bytes(CHECK, head_check, 'doctrine/source changed in correction: runtime/mission-scheduling.md')
+    controls['drop_file_row'] = corr_mutation(
+        lambda d: d['base_rewitness']['files'].remove(row(d, 'runtime/scripts/verify.py')),
+        'doctrine/source changed in correction: runtime/scripts/verify.py')
+    controls['drop_span'] = corr_mutation(
+        lambda d: row(d, 'runtime/mission-scheduling.md')['spans'].pop(),
+        're-witness span set mismatch: runtime/mission-scheduling.md')
+    controls['stale_relocation'] = corr_mutation(
+        lambda d: span(d, 'runtime/mission-scheduling.md', 'C148.01').update(
+            base_line=span(d, 'runtime/mission-scheduling.md', 'C148.01')['line'],
+            base_end_line=span(d, 'runtime/mission-scheduling.md', 'C148.01')['end_line']),
+        're-witness quote absent at moved base: runtime/mission-scheduling.md:C148.01')
+    controls['stale_independent_line'] = corr_mutation(
+        lambda d: next(s for s in row(d, 'runtime/mission-scheduling.md')['spans']
+                       if s['record'].startswith('independent-audit#')).update(base_line=1, base_end_line=1),
+        're-witness quote absent at moved base: runtime/mission-scheduling.md:independent-audit#')
+    controls['stale_included_range'] = corr_mutation(
+        lambda d: row(d, 'runtime/mission-scheduling.md')['included_ranges'][-1].__setitem__(0, 1),
+        're-witness included range changed: runtime/mission-scheduling.md')
+    controls['tampered_base_hash'] = corr_mutation(
+        lambda d: row(d, 'runtime/scripts/deny-hook.sh').update(base_sha256='0' * 64),
+        're-witness base hash mismatch: runtime/scripts/deny-hook.sh')
+    controls['overreach_undrifted_path'] = corr_mutation(
+        lambda d: d['base_rewitness']['files'].append(dict(copy.deepcopy(row(d, 'runtime/evidence-manifest.md')),
+                                                         path='runtime/dispatch-lifecycle.md')),
+        're-witness names an undrifted path: runtime/dispatch-lifecycle.md')
+    controls['non_ancestor_base'] = corr_mutation(
+        lambda d: d['base_rewitness'].update(base_sha='2f8dd685644990c5c93b27e804a9f8e4e8eeece4'),
+        're-witness base is not an ancestor of HEAD')
+    controls['wrong_from_sha'] = corr_mutation(
+        lambda d: d['base_rewitness'].update(from_sha=d['source_sha']),
+        're-witness does not start at the baseline')
+    doctrine = Path('runtime/mission-scheduling.md')
+    controls['doctrine_edit_after_base'] = with_bytes(doctrine, doctrine.read_bytes() + b'\n',
+                                                      'doctrine/source changed in correction: runtime/mission-scheduling.md')
+    assert sha(CORR.read_bytes()) == sha(Path(CORR).read_bytes())
+    ok = controls['candidate']['green'] and all(v['red'] for k, v in controls.items() if k != 'candidate')
+    ok = ok and controls['revert_inventory_delta']['drift_errors'] == 13
+    result = {'producer': 'rewitness negative controls (restores exact bytes after each control)',
+              'head': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
+              'all_controls_red_candidate_green': ok, 'controls': controls}
+    print(json.dumps(result, indent=2))
+    return 0 if ok else 1
+
+
+if __name__ == '__main__':
+    sys.exit(main())

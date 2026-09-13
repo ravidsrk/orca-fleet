@@ -1,0 +1,73 @@
+from pathlib import Path
+import json,hashlib,datetime,re,subprocess
+root=Path.cwd(); out=root/'docs/reports/release-20260912/pin'; out.mkdir(parents=True,exist_ok=True)
+def sha(b): return hashlib.sha256(b).hexdigest()
+def dump(p,x): p.write_text(json.dumps(x,indent=2,ensure_ascii=False)+'\n')
+# Explicit line ranges selected after scanning all runtime files; mixed passages retain
+# context but only the external control-plane assertion is a probe obligation.
+ranges={
+'runtime/attention-budget.md':[(26,28)],
+'runtime/dispatch-lifecycle.md':[(5,8),(15,38),(44,51),(55,76),(112,114),(118,134),(138,140),(147,150),(154,160)],
+'runtime/evidence-manifest.md':[(12,13)],
+'runtime/gate-classification.md':[(8,27),(31,37),(97,97)],
+'runtime/liveness-resume.md':[(3,5),(9,14),(18,26),(30,35),(42,49),(52,64),(68,79),(94,103),(107,109),(137,148)],
+'runtime/merge-serialization.md':[(9,13),(17,24),(28,31)],
+'runtime/mission-scheduling.md':[(3,6),(11,14),(17,19),(23,26),(32,43)],
+'runtime/orca-dag-semantics.md':[(3,6),(10,14),(17,19),(21,23),(27,32),(39,55),(57,62),(66,70),(74,77),(81,83),(87,95),(103,107),(113,115),(123,128)],
+'runtime/sandbox-policy.md':[(4,9),(11,37),(39,40),(67,69),(73,83)],
+'runtime/scripts/pm.py':[(2,11),(21,21),(91,122)],
+'runtime/scripts/sandbox_doctor.py':[(2,6),(32,38)],
+'runtime/scripts/deny-hook.sh':[(37,39),(721,722)],
+'runtime/scripts/spawn_worker.sh':[(4,48),(69,94),(137,139),(217,220),(273,283),(313,343),(370,403),(433,442),(446,459),(473,489),(525,583),(636,654),(656,674),(686,692),(705,716),(741,774)],
+'skills/ship-it/SKILL.md':[(60,60)],
+'skills/oss-contribute/SKILL.md':[(76,77)],
+'skills/pin-it/SKILL.md':[(14,16),(33,35),(40,44),(72,81)],
+}
+# Each record is one sentence or list row, preserving wrapped original bytes.
+claims=[]; coverage=[]
+files=sorted(list(root.glob('runtime/*.md'))+list(root.glob('runtime/scripts/*'))+list(root.glob('skills/*/SKILL.md')))
+for p in files:
+ rel=str(p.relative_to(root)); raw=p.read_bytes(); lines=raw.decode().splitlines(keepends=True)
+ spans=ranges.get(rel,[])
+ coverage.append({'path':rel,'sha256':sha(raw),'lines':len(lines),'included_ranges':spans,'excluded':'Repo-owned policy, verifier/hook implementation, proof/identity metadata, narrative, or indirect bare-name composition; mission preamble mechanics are centralized in dispatch-lifecycle.md. No independent inline dispatch preambles in remaining missions.'})
+ for a,b in spans:
+  text=''.join(lines[a-1:b]); chunks=list(re.finditer(r'[^\n]+(?:\n(?!\s*(?:[-*] |\d+\. |\|)|\n)[^\n]+)*',text))
+  for c in chunks:
+   # Split sentences only outside backticks, retaining exact whitespace in each source excerpt.
+   s=c.group(); start=0; tick=False
+   for m in re.finditer(r'`|[.!?](?=\s+[A-Z*])|\Z',s):
+    if m.group()=='`': tick=not tick; continue
+    if tick and m.start()!=len(s): continue
+    end=m.end(); part=s[start:end]
+    if part.strip():
+     offset=c.start()+start; ln=a+text[:offset].count('\n'); val=part.strip('\n')
+     claims.append({'id':f'C{len(claims)+1:03d}','source':{'path':rel,'line':ln,'end_line':ln+val.count('\n'),'text':val},'probe':{'procedure':'Replay the quoted control-plane assertion on owned scratch fixtures using installed orca 1.4.200; observe every behavior and field in this excerpt. Consult the topic guide for exact argv before execution.','expected_receipt':'Verbatim stdout/stderr and exit plus authoritative before/after state proving all external-runtime assertions in the source excerpt.','precondition':'An isolated scratch Run/worktree and any worker, remote host, legacy-state or scheduler fixture required by the source excerpt; no parent-run effects.'},'classification':'UNPROBED','receipt_path':f'docs/reports/release-20260912/pin/receipts/{len(claims)+1:03d}.json','disposition':'PENDING'})
+    start=end
+# Attach specific probe plans by concept, not only a generic promise.
+for c in claims:
+ s=c['source']['text']; q=c['probe']
+ if 'retry-request' in s or 'wait-submit' in s:
+  q.update(procedure='On an owned inert terminal capture an initial original-text --enter request; replay terminal send --terminal <owned> --retry-request <original-id> --wait-submit 1 --json, then correct missing original --text/--enter and compare request ID and terminal effects.',expected_receipt='Old shorthand refusal before effects; corrected replay result and original request identity, with no duplicate terminal input.',precondition='Owned inert terminal and original prompt bytes/request receipt. Dispatch-derived equivalence additionally needs coordinator-provided worker fixture.')
+ elif 'gate-' in s:
+  q.update(procedure='orca orchestration gate-create --task <owned-ready-task> --question <marker> --options <JSON-array> --json; task-show; gate-resolve --id <owned-gate> --resolution <marker> --json; task-show; dispatch-show --task <owned-task> --preamble --json.',expected_receipt='Task blocked then ready, durable gate resolution, and preamble marker presence/absence; dispatch preamble test requires an owned Dispatch.',precondition='Owned scratch Run and task; coordinator-provided independent Dispatch fixture for preamble.')
+ elif '--deps' in s or 'dep ' in s or 'deps' in s or 'promoteReadyTasks' in s:
+  q.update(procedure='task-create in owned Run with nonexistent and owned foreign-Run deps; create parent/child using --deps; complete/fail parent and reread child and run convergence.',expected_receipt='Missing/foreign dep refusal without creation; child state after completed versus failed predecessor, scoped Run convergence.',precondition='Two owned scratch Runs and terminal tasks; no dispatch required for basic dependency validation.')
+ elif 'check' in s or 'Delivery' in s or 'keepalive' in s or '_heartbeat' in s:
+  q.update(procedure='Enqueue mixed status and escalation messages in owned Run; check --wait --types escalation, replay, --ack; use 51-message fixture for batch ceiling; empty wait 16 seconds with separated stdout/stderr.',expected_receipt='FIFO whole-type batch, same Delivery on replay, next batch after ack, ceiling 50 and stderr keepalive at 15 seconds.',precondition='An independently owned scratch coordinator terminal able to consume its Run without rebinding the parent.')
+ elif 'worker-list' in s or 'run-' in s or 'task-list' in s:
+  q.update(procedure='Use run-create/run-current/run-show and task-list/worker-list with and without --run in an independently bound scratch terminal; compare explicit fixture sets across two owned Runs.',expected_receipt='Returned scope and rows match the claimed default/explicit Run filtering.',precondition='Owned scratch coordinator identity; second owned Run for cross-Run filtering.')
+ elif 'worktree' in s or 'terminal close' in s:
+  q.update(procedure='Read create, close, rm and archive help first; create minimum scratch worktree, inspect exact id/parent; close only owned inert terminal and archive when removal is unsupported.',expected_receipt='Worktree composite selector, parent ownership, close confirmation and remove/archive receipt; no unknown residual resource.',precondition='Owned scratch worktree on nondefault branch, no setup or agent process.')
+ elif 'worker' in s or 'dispatch' in s or 'launch' in s or 'agent' in s:
+  q.update(procedure='Coordinator provides independent owned fixture; record worker-start/dispatch launch receipt, worker-list/show, typed refusal/recovery, settlement and release; separately exercise exact assertion in excerpt.',expected_receipt='Exact claimed field/code/state transition at orca 1.4.200, with explicit process/Dispatch ownership and teardown.',precondition='Coordinator-provided independent worker identity; approved provider/trust and placement; no self-dispatch or paid/danger launch.')
+ elif 'automations' in s or '--precheck' in s or '--trigger' in s:
+  q.update(procedure='Create disabled scratch automation after teardown discovery; exercise schedule parsing and precheck-skip without agent launch; inspect runs then delete only owned automation.',expected_receipt='Stored schedule fields, skipped precheck receipt with no launched provider, exact teardown.',precondition='Owned automation fixture; assurance no provider executes and no global scheduling mutation.')
+ elif 'doctor' in s or 'recipe' in s or 'snapshot' in s:
+  q.update(procedure='On an authorized disposable environment replay vm recipe doctor <owned-recipe> --provision and inspect warn/fail fields; verify pairing identity only with owned noncredential fixture.',expected_receipt='Exact doctor schema and warnings plus distinct pairing/placement facts.',precondition='Coordinator-provided disposable provider/recipe; no paid or credential provisioning in this unit.')
+# Atomic freeze before any claim replay or doctrine edit. Never rewrite this file.
+assert not (out/'claim-inventory.frozen.json').exists()
+contract=Path('/tmp/orca-release-audit-20260912/pin-contract.json').read_bytes(); (out/'contract.json').write_bytes(contract)
+frozen={'schema':1,'status':'FROZEN-BEFORE-PROBES','frozen_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'base_sha':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'installed_target':'1.4.200','denominator':len(claims),'scope_cut':'External Orca mechanics only; source text may retain adjacent context but repo invariants are not runtime proof claims. No inference of CURRENT from guides, partial receipts or field presence.','coverage':coverage,'claims':claims}
+dump(out/'claim-inventory.frozen.json',frozen)
+(out/'freeze.sha256').write_text(sha((out/'claim-inventory.frozen.json').read_bytes())+'  claim-inventory.frozen.json\n')
+print('FROZEN',len(claims),'claims;',len(coverage),'files inspected; sha256',sha((out/'claim-inventory.frozen.json').read_bytes()))

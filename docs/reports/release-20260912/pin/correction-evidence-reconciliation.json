@@ -1,0 +1,301 @@
+{
+  "baseline_sha": "e2e7adab8a7ddf53844d2564734202e89bb78e98",
+  "captured_at": "2026-09-12T13:44:52.313737+00:00",
+  "new_runtime_probes": 0,
+  "original_manifest_artifacts_verified_at_base": 289,
+  "reference_retrieval": {
+    "id": "C003.03",
+    "mapping": [
+      {
+        "topic": "orchestration",
+        "listed_name": "coordinator-loop",
+        "individual_invocations": [
+          {
+            "path": "receipts/orchestration-coordinator-loop.json",
+            "argv": [
+              "orca",
+              "skills",
+              "get",
+              "orchestration",
+              "--reference",
+              "references/coordinator-loop.md"
+            ],
+            "exit": 0,
+            "sha256": "a3f8421fdbc5a1a89663ed817b8be0835d8435d0fd6c9310b70bd3e574a15ac3"
+          }
+        ]
+      },
+      {
+        "topic": "orchestration",
+        "listed_name": "legacy-contract-migration",
+        "individual_invocations": [
+          {
+            "path": "receipts/orchestration-legacy-contract-migration.json",
+            "argv": [
+              "orca",
+              "skills",
+              "get",
+              "orchestration",
+              "--reference",
+              "references/legacy-contract-migration.md"
+            ],
+            "exit": 0,
+            "sha256": "e4c9972267f784cab7715095dd1677b80619db9a85066a19ded701e9aad64033"
+          }
+        ]
+      },
+      {
+        "topic": "orchestration",
+        "listed_name": "low-level-topology",
+        "individual_invocations": [
+          {
+            "path": "receipts/orchestration-low-level-topology.json",
+            "argv": [
+              "orca",
+              "skills",
+              "get",
+              "orchestration",
+              "--reference",
+              "references/low-level-topology.md"
+            ],
+            "exit": 0,
+            "sha256": "0783994b95629623b7b313e8cf34f537a07ff40190358da0214a1c3e77ccf3d6"
+          }
+        ]
+      },
+      {
+        "topic": "orchestration",
+        "listed_name": "messaging-and-gates",
+        "individual_invocations": [
+          {
+            "path": "receipts/orchestration-messaging-and-gates.json",
+            "argv": [
+              "orca",
+              "skills",
+              "get",
+              "orchestration",
+              "--reference",
+              "references/messaging-and-gates.md"
+            ],
+            "exit": 0,
+            "sha256": "22fc2bf977d2b4131ee4e4985948b1c7cdfe723e064be8365b0ad72b3e750844"
+          }
+        ]
+      },
+      {
+        "topic": "orchestration",
+        "listed_name": "placement-and-remote",
+        "individual_invocations": [
+          {
+            "path": "receipts/orchestration-placement-and-remote.json",
+            "argv": [
+              "orca",
+              "skills",
+              "get",
+              "orchestration",
+              "--reference",
+              "references/placement-and-remote.md"
+            ],
+            "exit": 0,
+            "sha256": "464890de74d5d17ae186d605f29c037fcf307cd7e09845316f7010d66e7cfff2"
+          }
+        ]
+      },
+      {
+        "topic": "orchestration",
+        "listed_name": "recovery-and-cleanup",
+        "individual_invocations": [
+          {
+            "path": "receipts/orchestration-recovery-and-cleanup.json",
+            "argv": [
+              "orca",
+              "skills",
+              "get",
+              "orchestration",
+              "--reference",
+              "references/recovery-and-cleanup.md"
+            ],
+            "exit": 0,
+            "sha256": "5b56afb714b3fd4bf1de5572c539c366e045e7e0f98718254aedbca113a2f0ec"
+          }
+        ]
+      },
+      {
+        "topic": "orchestration",
+        "listed_name": "worker-contract",
+        "individual_invocations": [
+          {
+            "path": "receipts/orchestration-worker-contract.json",
+            "argv": [
+              "orca",
+              "skills",
+              "get",
+              "orchestration",
+              "--reference",
+              "references/worker-contract.md"
+            ],
+            "exit": 0,
+            "sha256": "7b0c2c9ab76896eb16ce51894fd07354487dda5835dee3414217ad13336e2ef5"
+          }
+        ]
+      },
+      {
+        "topic": "orca-cli",
+        "listed_name": "automations",
+        "individual_invocations": [
+          {
+            "path": "receipts/orca-cli-automations.json",
+            "argv": [
+              "orca",
+              "skills",
+              "get",
+              "orca-cli",
+              "--reference",
+              "references/automations.md"
+            ],
+            "exit": 0,
+            "sha256": "f9f9287b2a29eb6df38872e1c2399cc23f28c0fb09a7c2695099f2a3fce82736"
+          }
+        ]
+      },
+      {
+        "topic": "orca-cli",
+        "listed_name": "browser",
+        "individual_invocations": [
+          {
+            "path": "receipts/orca-cli-browser.json",
+            "argv": [
+              "orca",
+              "skills",
+              "get",
+              "orca-cli",
+              "--reference",
+              "references/browser.md"
+            ],
+            "exit": 0,
+            "sha256": "c4bb7ea587c94fa1a92945b93bd544cb94e53a2b64b072047bd26be4a2a23d24"
+          }
+        ]
+      },
+      {
+        "topic": "orca-cli",
+        "listed_name": "publishing",
+        "individual_invocations": [
+          {
+            "path": "receipts/orca-cli-publishing.json",
+            "argv": [
+              "orca",
+              "skills",
+              "get",
+              "orca-cli",
+              "--reference",
+              "references/publishing.md"
+            ],
+            "exit": 0,
+            "sha256": "170392625b632570548811c38d689381ef200e40c63e1558165166e8de1e2a7d"
+          }
+        ]
+      }
+    ],
+    "individual_retrievals": 10,
+    "listed_references": 10,
+    "verdict": "WITNESSED for guide retrieval only: all ten names have exit-zero individual invocation receipts at e2e7adab. The old seven-path mapping omitted seven available individual receipts."
+  },
+  "ask_gate_absence": {
+    "id": "C066.01",
+    "receipt": "receipts/helper-gates-during-ask.json",
+    "argv": [
+      "orca",
+      "orchestration",
+      "gate-list",
+      "--task",
+      "task_1689929d2c14",
+      "--from",
+      "term_3e146225-18a4-43a0-bf3f-87545241b760",
+      "--json"
+    ],
+    "observed_rows": [
+      {
+        "id": "gate_9515c6c5c45c",
+        "run_id": "run_aad129c705b7",
+        "task_id": "task_1689929d2c14",
+        "question": "PIN_266_HELPER_GATE",
+        "options": "[\"yes\",\"no\"]",
+        "status": "resolved",
+        "resolution": "PIN_266_RESOLUTION_MARKER",
+        "created_at": "2026-09-12 12:05:01",
+        "resolved_at": "2026-09-12 12:05:02"
+      }
+    ],
+    "prior_create": "receipts/helper-gate.json",
+    "prior_resolve": "receipts/helper-resolve.json",
+    "verdict": "PARTIAL-TODO: exact selected-task response has only the prior resolved row; no status selector was passed, so the audit summary of only pending gates was too narrow. Completeness across all gate states/Run rows and absence of transient creation are not established by these receipts."
+  },
+  "delivery": {
+    "ids": [
+      "C096.03",
+      "C169.02",
+      "C058.01",
+      "C137.01"
+    ],
+    "experiment": "mailbox-fifo-51",
+    "receipts": [
+      "receipts/mailbox-delivery.json",
+      "receipts/mailbox-replay.json",
+      "receipts/mailbox-ack.json",
+      "receipts/mailbox-final-ack.json"
+    ],
+    "observed": "50 mixed status/handoff messages, identical ID replay, 1 after ack, then 0",
+    "not_observed": "Waiter blocked with only nonmatching mail, then waking after later matching mail; no delayed-wake verdict."
+  },
+  "markers": {
+    "ids": [
+      "C040.05",
+      "C232.02",
+      "C235.02"
+    ],
+    "experiment": "mailbox-empty-wait-one-tick",
+    "receipt": "receipts/mailbox-empty-wait.json",
+    "tick": {
+      "_keepalive": true,
+      "_heartbeat": true,
+      "elapsedMs": 15001,
+      "deadlineMs": 16000
+    },
+    "not_observed": "Alias compatibility/deprecation semantics and recurring cadence; source descriptions remain declarations."
+  },
+  "bulk_close": {
+    "id": "C052.01",
+    "receipt": "receipts/followup-bulk-close.json",
+    "result": {
+      "closed": 2,
+      "stopped": 2,
+      "retiredSurfaces": true
+    },
+    "identities": [
+      {
+        "handle": "term_d66eaf6f-4393-49cc-ad47-a110f5697d9b",
+        "ptyId": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/pin-local-claims-20260912@@fe62149c",
+        "incarnationId": "c1c18115-7498-4e88-8271-7aae6cb0c7b1",
+        "worktreeId": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/pin-local-claims-20260912",
+        "identity_receipt": "receipts/followup-terminals-before.json",
+        "exit_receipt": "coordinator-evidence/pin-independent-terminal-term_d66eaf6f-4393-49cc-ad47-a110f5697d9b.json",
+        "exit_status": "exited"
+      },
+      {
+        "handle": "term_03a4904b-e10c-4a45-b42d-3c96ceee552e",
+        "ptyId": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/pin-local-claims-20260912@@c4805bb3",
+        "incarnationId": "b5970ad3-ca7a-42a2-9e53-2a45e899e390",
+        "worktreeId": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/pin-local-claims-20260912",
+        "identity_receipt": "receipts/followup-inert-create.json",
+        "exit_receipt": "coordinator-evidence/pin-independent-terminal-term_03a4904b-e10c-4a45-b42d-3c96ceee552e.json",
+        "exit_status": "exited"
+      }
+    ],
+    "scope": "Both identified inert processes in one owned workspace later have authoritative terminal status exited; no proof of restart durability or arbitrary process topology."
+  },
+  "workspace_card": {
+    "id": "C048.02",
+    "verdict": "TODO: metadata write/readback is present; no visible workspace-card evidence in the permitted packet."
+  }
+}

@@ -1,0 +1,181 @@
+{
+  "producer": "rewitness negative controls (restores exact bytes after each control)",
+  "head": "061207f4adb9542469da525e6828a60bc5153ae3",
+  "all_controls_red_candidate_green": true,
+  "controls": {
+    "candidate": {
+      "exit": 0,
+      "errors": [],
+      "green": true
+    },
+    "revert_inventory_delta": {
+      "exit": 1,
+      "errors": [
+        "doctrine/source changed in correction: runtime/evidence-manifest.md",
+        "doctrine/source changed in correction: runtime/merge-serialization.md",
+        "doctrine/source changed in correction: runtime/mission-scheduling.md",
+        "doctrine/source changed in correction: runtime/scripts/deny-hook.sh",
+        "doctrine/source changed in correction: runtime/scripts/diff_scope.py",
+        "doctrine/source changed in correction: runtime/scripts/evidence-run.py",
+        "doctrine/source changed in correction: runtime/scripts/floor_guard.py",
+        "doctrine/source changed in correction: runtime/scripts/preflight.py",
+        "doctrine/source changed in correction: runtime/scripts/run_report.py",
+        "doctrine/source changed in correction: runtime/scripts/verify.py",
+        "doctrine/source changed in correction: skills/absorb-it/SKILL.md",
+        "doctrine/source changed in correction: skills/migrate-it/SKILL.md",
+        "doctrine/source changed in correction: skills/modernize-it/SKILL.md"
+      ],
+      "expected_error": "doctrine/source changed in correction: runtime/scripts/verify.py",
+      "red": true,
+      "drift_errors": 13
+    },
+    "revert_checker_delta": {
+      "exit": 1,
+      "errors": [
+        "doctrine/source changed in correction: runtime/evidence-manifest.md",
+        "doctrine/source changed in correction: runtime/merge-serialization.md",
+        "doctrine/source changed in correction: runtime/mission-scheduling.md",
+        "doctrine/source changed in correction: runtime/scripts/deny-hook.sh",
+        "doctrine/source changed in correction: runtime/scripts/diff_scope.py",
+        "doctrine/source changed in correction: runtime/scripts/evidence-run.py",
+        "doctrine/source changed in correction: runtime/scripts/floor_guard.py",
+        "doctrine/source changed in correction: runtime/scripts/preflight.py",
+        "doctrine/source changed in correction: runtime/scripts/run_report.py",
+        "doctrine/source changed in correction: runtime/scripts/verify.py",
+        "doctrine/source changed in correction: skills/absorb-it/SKILL.md",
+        "doctrine/source changed in correction: skills/migrate-it/SKILL.md",
+        "doctrine/source changed in correction: skills/modernize-it/SKILL.md"
+      ],
+      "expected_error": "doctrine/source changed in correction: runtime/mission-scheduling.md",
+      "red": true
+    },
+    "drop_file_row": {
+      "exit": 1,
+      "errors": [
+        "doctrine/source changed in correction: runtime/scripts/verify.py"
+      ],
+      "expected_error": "doctrine/source changed in correction: runtime/scripts/verify.py",
+      "red": true
+    },
+    "drop_span": {
+      "exit": 1,
+      "errors": [
+        "re-witness span set mismatch: runtime/mission-scheduling.md"
+      ],
+      "expected_error": "re-witness span set mismatch: runtime/mission-scheduling.md",
+      "red": true
+    },
+    "stale_relocation": {
+      "exit": 1,
+      "errors": [
+        "re-witness quote absent at moved base: runtime/mission-scheduling.md:C148.01"
+      ],
+      "expected_error": "re-witness quote absent at moved base: runtime/mission-scheduling.md:C148.01",
+      "red": true
+    },
+    "stale_independent_line": {
+      "exit": 1,
+      "errors": [
+        "re-witness quote absent at moved base: runtime/mission-scheduling.md:independent-audit#43"
+      ],
+      "expected_error": "re-witness quote absent at moved base: runtime/mission-scheduling.md:independent-audit#",
+      "red": true
+    },
+    "stale_included_range": {
+      "exit": 1,
+      "errors": [
+        "re-witness included range changed: runtime/mission-scheduling.md:32-43"
+      ],
+      "expected_error": "re-witness included range changed: runtime/mission-scheduling.md",
+      "red": true
+    },
+    "tampered_base_hash": {
+      "exit": 1,
+      "errors": [
+        "re-witness base hash mismatch: runtime/scripts/deny-hook.sh"
+      ],
+      "expected_error": "re-witness base hash mismatch: runtime/scripts/deny-hook.sh",
+      "red": true
+    },
+    "overreach_undrifted_path": {
+      "exit": 1,
+      "errors": [
+        "re-witness names an undrifted path: runtime/dispatch-lifecycle.md",
+        "re-witness baseline hash mismatch: runtime/dispatch-lifecycle.md",
+        "re-witness base hash mismatch: runtime/dispatch-lifecycle.md",
+        "doctrine/source changed in correction: runtime/dispatch-lifecycle.md",
+        "re-witness span set mismatch: runtime/dispatch-lifecycle.md",
+        "re-witness included ranges mismatch: runtime/dispatch-lifecycle.md",
+        "re-witness included range changed: runtime/dispatch-lifecycle.md:5-8"
+      ],
+      "expected_error": "re-witness names an undrifted path: runtime/dispatch-lifecycle.md",
+      "red": true
+    },
+    "non_ancestor_base": {
+      "exit": 1,
+      "errors": [
+        "re-witness base is not an ancestor of HEAD",
+        "re-witness base hash mismatch: runtime/evidence-manifest.md",
+        "doctrine/source changed in correction: runtime/evidence-manifest.md",
+        "re-witness base hash mismatch: runtime/merge-serialization.md",
+        "doctrine/source changed in correction: runtime/merge-serialization.md",
+        "re-witness base hash mismatch: runtime/mission-scheduling.md",
+        "doctrine/source changed in correction: runtime/mission-scheduling.md",
+        "re-witness quote absent at moved base: runtime/mission-scheduling.md:C147.01",
+        "re-witness quote absent at moved base: runtime/mission-scheduling.md:C147.02",
+        "re-witness quote absent at moved base: runtime/mission-scheduling.md:C147.03",
+        "re-witness quote absent at moved base: runtime/mission-scheduling.md:C147.04",
+        "re-witness quote absent at moved base: runtime/mission-scheduling.md:C147.05",
+        "re-witness quote absent at moved base: runtime/mission-scheduling.md:C148.01",
+        "re-witness quote absent at moved base: runtime/mission-scheduling.md:C148.02",
+        "re-witness quote absent at moved base: runtime/mission-scheduling.md:C147.06",
+        "re-witness quote absent at moved base: runtime/mission-scheduling.md:C147.07",
+        "re-witness quote absent at moved base: runtime/mission-scheduling.md:C147.08",
+        "re-witness quote absent at moved base: runtime/mission-scheduling.md:independent-audit#45",
+        "re-witness quote absent at moved base: runtime/mission-scheduling.md:independent-audit#46",
+        "re-witness included range changed: runtime/mission-scheduling.md:32-43",
+        "re-witness base hash mismatch: runtime/scripts/deny-hook.sh",
+        "doctrine/source changed in correction: runtime/scripts/deny-hook.sh",
+        "re-witness quote absent at moved base: runtime/scripts/deny-hook.sh:C228.01",
+        "re-witness quote absent at moved base: runtime/scripts/deny-hook.sh:C229",
+        "re-witness included range changed: runtime/scripts/deny-hook.sh:721-722",
+        "re-witness base hash mismatch: runtime/scripts/diff_scope.py",
+        "doctrine/source changed in correction: runtime/scripts/diff_scope.py",
+        "re-witness base hash mismatch: runtime/scripts/evidence-run.py",
+        "doctrine/source changed in correction: runtime/scripts/evidence-run.py",
+        "re-witness base hash mismatch: runtime/scripts/floor_guard.py",
+        "doctrine/source changed in correction: runtime/scripts/floor_guard.py",
+        "re-witness base hash mismatch: runtime/scripts/preflight.py",
+        "doctrine/source changed in correction: runtime/scripts/preflight.py",
+        "re-witness base hash mismatch: runtime/scripts/run_report.py",
+        "doctrine/source changed in correction: runtime/scripts/run_report.py",
+        "re-witness base hash mismatch: runtime/scripts/verify.py",
+        "doctrine/source changed in correction: runtime/scripts/verify.py",
+        "re-witness base hash mismatch: skills/absorb-it/SKILL.md",
+        "doctrine/source changed in correction: skills/absorb-it/SKILL.md",
+        "re-witness base hash mismatch: skills/migrate-it/SKILL.md",
+        "doctrine/source changed in correction: skills/migrate-it/SKILL.md",
+        "re-witness base hash mismatch: skills/modernize-it/SKILL.md",
+        "doctrine/source changed in correction: skills/modernize-it/SKILL.md"
+      ],
+      "expected_error": "re-witness base is not an ancestor of HEAD",
+      "red": true
+    },
+    "wrong_from_sha": {
+      "exit": 1,
+      "errors": [
+        "re-witness does not start at the baseline"
+      ],
+      "expected_error": "re-witness does not start at the baseline",
+      "red": true
+    },
+    "doctrine_edit_after_base": {
+      "exit": 1,
+      "errors": [
+        "doctrine/source changed in correction: runtime/mission-scheduling.md"
+      ],
+      "expected_error": "doctrine/source changed in correction: runtime/mission-scheduling.md",
+      "red": true
+    }
+  }
+}

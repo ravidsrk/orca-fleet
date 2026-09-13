@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T12:38:11.880601+00:00",
+  "prior_manifest": "docs/reports/release-20260912/pin/manifest.pre-base-label.json",
+  "prior_sha256": "d77cb8b7d6bd1c05f8a0ccf4cfc5f40335e19ded2aba2666711746d7043c1106",
+  "correction": "Descriptive base_branch denotes intended parent integration target codex/release-audit-20260912. Specialist source branch remains codex/release-pin-20260912 and frozen source base remains 9eb2e6f6171845100b969e2d59e65b0d34ddf86f. Observed command commit/tree fields must not be relabeled.",
+  "authority": "Coordinator follow-up msg_ca72d8532977; no parent Run/branch state was probed."
+}

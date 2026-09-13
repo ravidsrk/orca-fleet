@@ -1,0 +1,29 @@
+{
+  "result": "bounded evidence consistent; full mission unproven",
+  "frozen_records": 309,
+  "dispositions": {
+    "MECHANICS-WITNESSED": 34,
+    "EXCLUDED-RETAINED": 134,
+    "MECHANICS-UNFINISHED": 138,
+    "PATCHED-PARTIAL": 1,
+    "PATCHED": 2
+  },
+  "all21_doctrine_only": true,
+  "baseline_failures": [
+    "test_credential_in_a_commands_artifact_fails_the_unit",
+    "test_credential_in_an_artifact_fails_the_unit"
+  ],
+  "scratch_teardown": "verified"
+}
+{
+  "additive_audit": "consistent; independent source completeness review owed",
+  "source_records": 309,
+  "scope_exclusions": 134,
+  "mechanics_parents": 175,
+  "child_predicates": 429,
+  "narrowly_witnessed_children": 105,
+  "refuted_children": 4,
+  "unfinished_children": 320,
+  "valid_parked_terminal": false,
+  "followup_scratch": "two shells bulk-closed; worktree removed"
+}

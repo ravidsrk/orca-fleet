@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T11:57:22.453786+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "skills",
+    "get",
+    "orca-per-workspace-env",
+    "--reference",
+    "references/windows-scripts.md"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/codex-release-pin-20260912",
+  "exit": 0,
+  "stdout": "# Windows local-side scripts\n\nLoad this when the user's desktop is Windows and you are scaffolding the local-side scripts. A bare\n`.sh` will not execute there. Either require WSL or Git Bash and point `orca.yaml` at a launcher such\nas `bash ./scripts/orca-vm/<name>.sh` through a `.cmd` file, or scaffold PowerShell equivalents.\n\nThe remote-side commands you run inside the Linux environment stay bash regardless of the desktop OS.\n\n```powershell\n#requires -Version 5\n$ErrorActionPreference = 'Stop'\n# resolve env→state→fallback; run the provider CLI / ssh the same way;\n# capture provider output; build the result object for the chosen mode and write ONE line of JSON to stdout.\n# Orca-server mode: @{ schemaVersion=1; pairingCode=$pairingCode; projectRoot=$projectRoot; userData=@{...} }\n# SSH mode:        @{ schemaVersion=1; connection=@{ type=\"ssh\"; projectRoot=$projectRoot;\n#                     target=@{ label=$label; host=$host; port=$port; username=$user } } }\n($result | ConvertTo-Json -Compress -Depth 6)\n# progress/errors → Write-Error / the error stream, never stdout.\n```\n\nThe doctor's executable-bit check is a POSIX concept and is skipped on Windows, so a script that is\nunusable on the user's machine for a different reason still has to be caught by the `--provision`\nself-test.\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

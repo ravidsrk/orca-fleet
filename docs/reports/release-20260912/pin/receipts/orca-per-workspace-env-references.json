@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T11:56:14.423791+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "skills",
+    "get",
+    "orca-per-workspace-env",
+    "--references"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/codex-release-pin-20260912",
+  "exit": 0,
+  "stdout": "docker-ssh\nfailure-modes\nprovider-vercel\nssh-host\nwindows-scripts\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

@@ -1,0 +1,11 @@
+# Prose negative controls
+
+The controls are archived prepatch refutations under the pin-it doctrine carve-out, not tests that grep replacement prose. All command receipts name installed orca 1.4.200. A reviewer must rerun them at the reviewed source commit using newly owned fixtures; the scratch handles in these receipts were retired.
+
+- C016: with the original runtime request UUID, the old command omitting text and Enter exits 1 with invalid_argument requiring both. Adding text without Enter also fails. Retaining the original terminal, original text, Enter and request UUID succeeds with replayed true. Receipts: retry-original-id-shorthand, retry-original-id-text-only, retry-original-exact; effect-original-send/effect-original-replay and effect-before-replay/effect-after-replay independently preserve one byte of shell effect.
+- C109: after correcting the syntax, dispatch-show regeneration supplied as text with the real native helper prompt UUID exits 1 with request_mismatch. Receipt: helper-regenerated-retry. This refutes the claim of exact original bytes; it does not authorize retrying with a new UUID. Original low-level dispatch injection is still owed, while source dispatch-methods shows that regeneration omits the injected capability.
+- C090: omission of --run returns one native helper and scope.source bound for owned Run A; explicit A returns that helper, while explicit owned Run B returns no workers. Receipts: helper-workers-bound, helper-workers-explicit-a, helper-workers-explicit-b. This refutes the universal whole-database claim. The unbound all fallback is not live-witnessed.
+
+The first two non-UUID parser attempts and the wrong-Run coordinator attempt were invalid preconditions; they are not these negative controls. Commands that failed because of unsupported --from or absent sender Dispatch were corrected before drawing mechanism conclusions. No receipt's version or capability_hash is treated as an authentication test.
+
+Post-merge replay, exact-SHA independent review, and the mission's >=10% sample remain owed. The coordinator did not supply an executable NC command for the retired scratch resources; this manifest does not invent a reusable one or claim verify.py GREEN.

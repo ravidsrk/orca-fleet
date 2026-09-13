@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T12:06:56.004843+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "terminal",
+    "list",
+    "--worktree",
+    "path:/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912",
+    "--json"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912",
+  "exit": 0,
+  "stdout": "{\n  \"id\": \"fb742a7d-bba9-49ae-830d-0e46c5400fe5\",\n  \"ok\": true,\n  \"result\": {\n    \"terminals\": [\n      {\n        \"handle\": \"term_9ede7d48-337e-48fb-85b9-d1e7ea3fd554\",\n        \"ptyId\": \"3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912@@a9badb01\",\n        \"incarnationId\": \"a75a7dfc-cba4-49d0-84c8-4a922ef045ac\",\n        \"orphaned\": false,\n        \"worktreeId\": \"3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912\",\n        \"worktreePath\": \"/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912\",\n        \"branch\": \"refs/heads/ravidsrk/pin-probe-20260912\",\n        \"tabId\": \"7c38e8c0-c3dc-4ae4-a2b9-5752df3b4b6c\",\n        \"leafId\": \"5d9e0abe-7cc9-4554-991c-ede6dc9f9fdc\",\n        \"title\": null,\n        \"connected\": true,\n        \"writable\": true,\n        \"lastOutputAt\": 1789214467857,\n        \"preview\": \"pin-probe-20260912  ravidsrk/pin-probe-20260912\\npin-probe-20260912  ravidsrk/pin-probe-20260912\\nprintftfx>>/tmp/orca-release-audit-20260912/pin-replay-effect.txt\\npin-probe-20260912  ravidsrk/pin-probe-20260912\\n❯\",\n        \"executionHostId\": \"local\"\n      },\n      {\n        \"handle\": \"term_3e146225-18a4-43a0-bf3f-87545241b760\",\n        \"ptyId\": \"3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912@@05bdd33b\",\n        \"incarnationId\": \"0dacdbb1-834e-48f0-89d7-c2c08698a2a0\",\n        \"orphaned\": false,\n        \"worktreeId\": \"3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912\",\n        \"worktreePath\": \"/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912\",\n        \"branch\": \"refs/heads/ravidsrk/pin-probe-20260912\",\n        \"tabId\": \"1058f1bd-8801-472c-b483-cc12789d840a\",\n        \"leafId\": \"0652fbff-49cb-45f9-adb4-6f2dccc18a9e\",\n        \"title\": \"Pin witness scratch coordinator\",\n        \"connected\": true,\n        \"writable\": true,\n        \"lastOutputAt\": 1789214814621,\n        \"preview\": \"in-fixture-stage1.py >\\nppyt2>&3 /tmp/orca-release-audit-20260912/pin-fixture-mailbox.py >\\nppython3 /tmp/2>&a-release-audit-20260912/pin-fixture-helper-start.py >\\nppython3 /tmp/or2>&release-audit-20260912/pin-fixture-helper-finish.py >\\npp2>&on3 /tmp/orca-release-audit-20260912/pin-helper-cleanup.py >\",\n        \"executionHostId\": \"local\"\n      }\n    ],\n    \"hostScope\": {\n      \"hostIds\": [\n        \"local\"\n      ],\n      \"omittedHostIds\": []\n    },\n    \"topologyRevisions\": {\n      \"3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912\": 147\n    },\n    \"totalCount\": 2,\n    \"truncated\": false\n  },\n  \"_meta\": {\n    \"runtimeId\": \"2e075aba-10a5-40b7-aa95-9e82ae9fc5b7\"\n  }\n}\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

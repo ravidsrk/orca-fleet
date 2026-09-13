@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T11:58:46.537038+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "terminal",
+    "list",
+    "--worktree",
+    "path:/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912",
+    "--json"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/codex-release-pin-20260912",
+  "exit": 0,
+  "stdout": "{\n  \"id\": \"52c668f5-ab1e-468b-8915-7aee34c220f3\",\n  \"ok\": true,\n  \"result\": {\n    \"terminals\": [\n      {\n        \"handle\": \"term_9ede7d48-337e-48fb-85b9-d1e7ea3fd554\",\n        \"ptyId\": \"3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912@@a9badb01\",\n        \"incarnationId\": \"a75a7dfc-cba4-49d0-84c8-4a922ef045ac\",\n        \"orphaned\": false,\n        \"worktreeId\": \"3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912\",\n        \"worktreePath\": \"/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912\",\n        \"branch\": \"refs/heads/ravidsrk/pin-probe-20260912\",\n        \"tabId\": \"7c38e8c0-c3dc-4ae4-a2b9-5752df3b4b6c\",\n        \"leafId\": \"5d9e0abe-7cc9-4554-991c-ede6dc9f9fdc\",\n        \"title\": null,\n        \"connected\": true,\n        \"writable\": true,\n        \"lastOutputAt\": 1789214274071,\n        \"preview\": \"pin-probe-20260912  ravidsrk/pin-probe-20260912\\n❯\",\n        \"executionHostId\": \"local\"\n      }\n    ],\n    \"hostScope\": {\n      \"hostIds\": [\n        \"local\"\n      ],\n      \"omittedHostIds\": []\n    },\n    \"topologyRevisions\": {\n      \"3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912\": 134\n    },\n    \"totalCount\": 1,\n    \"truncated\": false\n  },\n  \"_meta\": {\n    \"runtimeId\": \"2e075aba-10a5-40b7-aa95-9e82ae9fc5b7\"\n  }\n}\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

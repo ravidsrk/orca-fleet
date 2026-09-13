@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T12:27:31.276666+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "git",
+    "status",
+    "--porcelain"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/pin-local-claims-20260912",
+  "exit": 0,
+  "stdout": "",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

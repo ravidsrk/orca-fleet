@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "captured_at": "2026-09-12T11:57:20.182808+00:00",
+  "installed_cli": "orca",
+  "installed_version": "1.4.200",
+  "argv": [
+    "orca",
+    "skills",
+    "get",
+    "orchestration",
+    "--reference",
+    "references/coordinator-loop.md"
+  ],
+  "cwd": "/Users/ravindra/orca/workspaces/orca-fleet/codex-release-pin-20260912",
+  "exit": 0,
+  "stdout": "# Coordinator loop\n\nLoad this reference for expanded DAG waves, per-invocation launch preferences,\nsame-terminal reuse, or review ownership. The compact guide remains the source\nof truth for the loop order and completion boundary.\n\n## Ready waves\n\nCreate independent Tasks before the first wait. Encode only real dependencies,\nthen use the ready view as external memory:\n\n```text\nORCA orchestration task-create --spec \"<dependent work>\" --deps <json_array> --json\nORCA orchestration task-list --ready --brief --json\n```\n\n`--brief` collapses whitespace and caps echoed specs at 160 characters;\n`spec_truncated` identifies shortened rows. Omit it when full specs are needed or\nwhen an older CLI rejects the flag. A nested worker must respect\n`nested_worker_depth_exceeded`; creating another Run does not reset depth.\n\n## Launch preferences\n\nFor a fresh Claude, Codex, or Cursor terminal, `--model` accepts an opaque\nprovider model ID. Pass it only when the user named a model; otherwise omit it\nso the worker inherits the user's configured agent default. Add `--effort` only\nwhen that model supports it:\n\n```text\nORCA orchestration worker-start --task <task_id> --worktree current --agent claude --model opus --effort high --json\n```\n\n`--effort` requires `--model`; neither option combines with `--terminal`. A\nconnected worker server must advertise launch-preference support before Orca\nforwards either field. Compare `launch.requested` with `launch.effective`; never\nclaim a model or effort from requested arguments alone.\n\n## Reuse after settlement\n\nChoose the terminal's next owner before acknowledging the Delivery. When the\nsame exact agent has immediate follow-up work, recover the proven handle and\ntransfer cleanup ownership to the new Dispatch:\n\n```text\nORCA orchestration worker-show --dispatch <dispatch_id> --json\nORCA orchestration worker-start --task <next_task_id> --terminal <agent_terminal_handle> --json\n```\n\nOtherwise explicitly retain or release the settled worker. Do not leave it live\nonly to inspect output; archived output remains available through `worker-read`.\n\n## Review ownership\n\nA review-only `worker_done` authorizes synthesis of findings, not coordinator\nfile edits. Dispatch or hand off fixes unless the user explicitly assigned them\nto the coordinator. If the user's plan names a next owner, post-review fixes and\nPR preparation remain with that owner; the coordinator routes and synthesizes.\n",
+  "stderr": "",
+  "redaction": "Dispatch capabilities replaced by a marker; no task logs copied. Version label is observation, not authentication."
+}

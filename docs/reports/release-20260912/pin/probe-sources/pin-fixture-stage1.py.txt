@@ -1,0 +1,58 @@
+import os,sys,json,uuid,traceback
+from pathlib import Path
+sys.path.insert(0,'/tmp/orca-release-audit-20260912')
+from pin_capture import call,OUT
+H='term_3e146225-18a4-43a0-bf3f-87545241b760';A='run_aad129c705b7';B='run_05b8d4a02874'
+SCRATCH='/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912'
+STATE=Path('/tmp/orca-release-audit-20260912/pin-fixture-state.json')
+state={'coordinator':H,'run_a':A,'run_b':B,'tasks':{},'gates':{}}
+def c(label,args,ok=True):
+ d=call('fixture2-'+label,['orca','orchestration']+args+['--json'],cwd=SCRATCH,timeout=35)
+ r=json.loads(d['stdout'])
+ if ok: assert d['exit']==0 and r.get('ok'),(label,r)
+ return r.get('result',r)
+def save():STATE.write_text(json.dumps(state,indent=2)+'\n')
+def task(key,run=A,extra=()):
+ r=c('create-'+key,['task-create','--spec','PIN_266_'+key,'--run',run,'--from',H,*extra]);state['tasks'][key]=r['task']['id'];save();return r['task']['id']
+try:
+ assert os.environ.get('ORCA_TERMINAL_HANDLE')==H, 'Must execute through the actual scratch coordinator terminal'
+ r=c('run-current',['run-current','--from',H]);assert r['run']['id']==A,r
+ c('run-a-before',['run-show','--id',A]);c('run-b-before',['run-show','--id',B])
+ c('workers-bound',['worker-list']);c('workers-explicit-a',['worker-list','--run',A]);c('workers-explicit-b',['worker-list','--run',B])
+ c('bind-b',['run-use','--id',B,'--from',H])
+ foreign=task('foreign',B)
+ c('bind-a',['run-use','--id',A,'--from',H])
+ c('missing-dep',['task-create','--spec','PIN_266_MISSING_DEP','--run',A,'--from',H,'--deps','["PIN_266_NONEXISTENT_TASK"]'],ok=False)
+ c('foreign-dep',['task-create','--spec','PIN_266_FOREIGN_DEP','--run',A,'--from',H,'--deps',json.dumps([foreign])],ok=False)
+ good=task('good');child=task('good-child',extra=['--deps',json.dumps([good]),'--parent',good])
+ bad=task('bad');stranded=task('bad-child',extra=['--deps',json.dumps([bad])])
+ c('deps-before',['task-list','--run',A,'--from',H])
+ c('complete-good',['task-update','--id',good,'--status','completed','--run',A,'--from',H])
+ c('fail-bad',['task-update','--id',bad,'--status','failed','--run',A,'--from',H])
+ c('deps-after',['task-list','--run',A,'--from',H])
+ held=task('held')
+ gate=c('gate-create',['gate-create','--task',held,'--question','PIN_266_GATE_QUESTION','--options','["yes","no"]','--from',H])
+ state['gates']['held']=gate['gate']['id'];save()
+ c('gate-blocked',['task-list','--run',A,'--from',H]);c('gate-list-pending',['gate-list','--task',held,'--from',H])
+ c('gate-resolve',['gate-resolve','--id',state['gates']['held'],'--resolution','PIN_266_RESOLUTION_MARKER','--from',H])
+ c('gate-after',['task-list','--run',A,'--from',H]);c('gate-list-resolved',['gate-list','--task',held,'--from',H])
+ c('gate-preamble-preview',['dispatch-show','--task',held,'--preamble','--from',H])
+ # No worker or Dispatch is created in this stage.
+ c('inbox-before',['check','--terminal',H,'--run',A])
+ for i in range(51):
+  typ='status' if i%2==0 else 'escalation'
+  c('message-'+str(i).zfill(2),['send','--to','run:'+A,'--from',H,'--type',typ,'--subject',f'PIN_266_{i:02}','--body','Inert FIFO probe; no action requested'])
+ c('peek',['check','--terminal',H,'--run',A,'--peek'])
+ first=c('delivery',['check','--terminal',H,'--run',A,'--wait','--types','escalation','--timeout-ms','1000'])
+ c('delivery-replay',['check','--terminal',H,'--run',A]);state['delivery']=first.get('deliveryId');save()
+ # All sent messages are known inert probes; reading each receipt is processing them.
+ assert all(m['subject'].startswith('PIN_266_') for m in first['messages'])
+ second=c('delivery-ack',['check','--terminal',H,'--run',A,'--ack',first['deliveryId']]);state['delivery']=second.get('deliveryId');save()
+ assert all(m['subject'].startswith('PIN_266_') for m in second['messages'])
+ if second.get('deliveryId'):c('delivery-final-ack',['check','--terminal',H,'--run',A,'--ack',second['deliveryId']])
+ c('empty-wait',['check','--terminal',H,'--run',A,'--wait','--types','escalation','--timeout-ms','16000'])
+ c('run-a-after',['run-show','--id',A]);state['stage1']='complete';save()
+except BaseException:
+ state['stage1']='failed';state['error']=traceback.format_exc();save();raise
+finally:
+ Path('/tmp/orca-release-audit-20260912/pin-fixture-stage1.done').write_text(state.get('stage1','unknown'))

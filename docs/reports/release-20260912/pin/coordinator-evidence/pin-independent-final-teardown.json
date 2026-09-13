@@ -1,0 +1,32 @@
+[
+  {
+    "handle": "term_3e146225-18a4-43a0-bf3f-87545241b760",
+    "status": "exited"
+  },
+  {
+    "handle": "term_9ede7d48-337e-48fb-85b9-d1e7ea3fd554",
+    "status": "exited"
+  },
+  {
+    "handle": "term_2a591dec-4a81-4c3d-baef-c145582b3b34",
+    "status": "exited"
+  },
+  {
+    "handle": "term_d66eaf6f-4393-49cc-ad47-a110f5697d9b",
+    "status": "exited"
+  },
+  {
+    "handle": "term_03a4904b-e10c-4a45-b42d-3c96ceee552e",
+    "status": "exited"
+  },
+  {
+    "worktree": "/Users/ravindra/orca/workspaces/orca-fleet/pin-probe-20260912",
+    "filesystem_absent": true,
+    "selector_not_found": true
+  },
+  {
+    "worktree": "/Users/ravindra/orca/workspaces/orca-fleet/pin-local-claims-20260912",
+    "filesystem_absent": true,
+    "selector_not_found": true
+  }
+]

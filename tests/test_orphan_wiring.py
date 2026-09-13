@@ -431,6 +431,47 @@ class EveryMissionHasAPathToProof(unittest.TestCase):
         self.assertNotIn("Thirteen missions are", text)
 
 
+class ThePinPacketPublishesWhatItClaims(unittest.TestCase):
+    """PR #336 review, P1.
+
+    The packet README advertised a post-commit `manifest.json` binding the correction SHA, and no
+    such file was published — only `manifest.pre-base-label.json` and the historical one under
+    history/. A reader following the advertised reference found nothing, and that claim could not
+    have been true at publish time anyway: a manifest binding the correction SHA cannot ship in
+    the commit it binds.
+    """
+
+    PACKET = ROOT / "docs" / "reports" / "release-20260912" / "pin"
+
+    def setUp(self):
+        if not self.PACKET.is_dir():
+            self.skipTest("no pin packet in this tree")
+
+    def test_every_link_in_the_packet_resolves(self):
+        # history/ holds verbatim archived copies: their links were right where they were
+        # written, and rewriting them would edit retained evidence.
+        docs = [d for d in sorted(self.PACKET.rglob("*.md"))
+                if "history" not in d.relative_to(self.PACKET).parts]
+        for doc in docs:
+            for _label, target in re.findall(r"\[([^\]]+)\]\(([^)]+)\)", doc.read_text()):
+                link = target.split("#")[0]
+                if not link or link.startswith(("http", "mailto:")):
+                    continue
+                with self.subTest(doc=doc.relative_to(self.PACKET).as_posix(), link=link):
+                    self.assertTrue((doc.parent / link).exists(),
+                                    f"{doc.name} links {link}, which does not exist")
+
+    def test_the_packet_does_not_advertise_a_root_manifest_it_does_not_publish(self):
+        """The specific claim that broke: prose naming a root artifact, with no link to go dead."""
+        for doc in sorted(self.PACKET.glob("*.md")):
+            text = doc.read_text(encoding="utf-8")
+            for name in sorted(set(re.findall(r"(?<![\w/.-])(manifest[\w.-]*\.json)", text))):
+                with self.subTest(doc=doc.name, artifact=name):
+                    self.assertTrue((self.PACKET / name).is_file(),
+                                    f"{doc.name} names {name} as a packet artifact, but the packet "
+                                    f"root does not publish it")
+
+
 class EveryUnitHasOneCanonicalContract(unittest.TestCase):
     """PR #334 review, P2.
 

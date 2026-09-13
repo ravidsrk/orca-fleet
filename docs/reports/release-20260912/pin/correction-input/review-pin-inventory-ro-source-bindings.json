@@ -1,0 +1,452 @@
+[
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/scripts/spawn_worker.sh",
+    "line": 78,
+    "text": "#   cursor              \u2192 rw + danger (`tui-agent-permissions.ts:21` maps cursor to `--yolo`; Orca"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/scripts/spawn_worker.sh",
+    "line": 79,
+    "text": "#                         has no read-only mode for it) \u2014 also one of the three agents that"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/scripts/spawn_worker.sh",
+    "line": 80,
+    "text": "#                         `--model`/`--effort` can target"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/scripts/spawn_worker.sh",
+    "line": 81,
+    "text": "#   grok                \u2192 rw + danger (Orca has no read-only mode for grok)"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/scripts/spawn_worker.sh",
+    "line": 82,
+    "text": "#   droid               \u2192 rw + danger (Orca appends `--auto high`); ro \u2192 WORKER_CMD"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/scripts/spawn_worker.sh",
+    "line": 83,
+    "text": "#   opencode/omp/pi     \u2192 WORKER_CMD. opencode AND kilo are actively STRIPPED of"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/scripts/spawn_worker.sh",
+    "line": 84,
+    "text": "#                         `--dangerously-skip-permissions` (`tui-agent-launch-defaults.ts:5-8`);"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/scripts/spawn_worker.sh",
+    "line": 124,
+    "text": "  orca \"$@\" --json > \"$out\""
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/scripts/spawn_worker.sh",
+    "line": 167,
+    "text": "# opencode/droid/omp/pi have no Orca autonomous launch flag at all. Any (agent, profile)"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/scripts/spawn_worker.sh",
+    "line": 423,
+    "text": "    orca_json \"$SP/tu-$safe_title.json\" orchestration task-update --id \"$task\" --status ready"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/scripts/spawn_worker.sh",
+    "line": 544,
+    "text": "# The agent terminal is the effects[] entry kind=terminal role=agent; agentTerminalHandle is a"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/scripts/spawn_worker.sh",
+    "line": 545,
+    "text": "# worker-list/worker-show field, kept as a harmless fallback."
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/scripts/spawn_worker.sh",
+    "line": 681,
+    "text": "  orca_json \"$tj\" terminal create --worktree \"$sel\" --title \"$title\" --command \"$cmd\""
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/scripts/spawn_worker.sh",
+    "line": 703,
+    "text": "  orca terminal wait --terminal \"$h\" --for tui-idle --timeout-ms 90000 --json > \"$tw\" 2>&1 || wait_rc=$?"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/scripts/spawn_worker.sh",
+    "line": 729,
+    "text": "  orca_json \"$dj\" orchestration dispatch --task \"$task\" --to \"$h\" --inject"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/sandbox-policy.md",
+    "line": 35,
+    "text": "| droid  | WORKER_CMD               | `--auto high`                                   |"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/liveness-resume.md",
+    "line": 50,
+    "text": "- End-of-run gate: `worker-list --run <id> --terminal-state reclaimable` \u2014 while any row is reclaimable,"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/liveness-resume.md",
+    "line": 62,
+    "text": "  THE PANE first (`orca terminal read --terminal <h> --screen` or `worker-read --dispatch <id>`), not by eye: a"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/liveness-resume.md",
+    "line": 64,
+    "text": "- BREAK at 3 doctor attempts OR the dispatch-context circuit break (3 consecutive failures marks the task"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/liveness-resume.md",
+    "line": 65,
+    "text": "  failed) \u2192 escalate honestly (gate-classification.md)."
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/liveness-resume.md",
+    "line": 94,
+    "text": "**Corrected:** `task-create` DOES validate `--deps` since upstream #9925 \u2014 a missing or foreign-Run dep throws"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/liveness-resume.md",
+    "line": 95,
+    "text": "`Dependency task <id> must belong to run <run>` (`task-store.ts:38-43` at v1.4.199). The typo'd-dep strand"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/liveness-resume.md",
+    "line": 96,
+    "text": "this file used to warn about cannot happen; a fleet that budgeted for it was defending a closed hole."
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/liveness-resume.md",
+    "line": 97,
+    "text": ""
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/liveness-resume.md",
+    "line": 98,
+    "text": "The other half is CURRENT and is the real trap: `promoteReadyTasks` fires only when a dep COMPLETES, and"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/scripts/deny-hook.sh",
+    "line": 80,
+    "text": "# It cannot, on either lane spawn_worker.sh has: the supervised `worker-start`"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/scripts/deny-hook.sh",
+    "line": 81,
+    "text": "# lane takes its launch args from the HOST's agentDefaultArgs, not from any"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/scripts/deny-hook.sh",
+    "line": 82,
+    "text": "# command this repo builds, and an env var exported here does not cross the Orca"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/scripts/deny-hook.sh",
+    "line": 83,
+    "text": "# daemon into the worker's process. A hook nobody registers is doctrine wearing a"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/dispatch-lifecycle.md",
+    "line": 6,
+    "text": "orchestration` / `orca skills get orca-cli` \u2014 but the compact guide is a KERNEL, not the contract: enumerate `orca skills get <topic> --references` and load"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/dispatch-lifecycle.md",
+    "line": 7,
+    "text": "each `--reference <name>` (`--full` on older CLIs), because the worker contract, recovery, and legacy-migration rules live only there (`skills.ts:50-58`)."
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/dispatch-lifecycle.md",
+    "line": 16,
+    "text": "readiness \u2192 dispatch). It exits 0 only when the worker is **ready**, read narrowly: at v1.4.199 \u2014 the PIN \u2014 that means the preamble WRITE WAS ACCEPTED, not"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/dispatch-lifecycle.md",
+    "line": 23,
+    "text": "actually applied. `--worktree current` / an exact worktree id = a fresh agent terminal, no setup rerun; `--terminal <handle>` = reuse an exact idle agent"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/dispatch-lifecycle.md",
+    "line": 50,
+    "text": "- A worker runs `check --terminal <its own handle>` at checkpoints and once before `worker_done`. A `consumer_fenced` from that check means **stop**: it no"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/dispatch-lifecycle.md",
+    "line": 73,
+    "text": "`already_released` all exit 0 (it is idempotent); **only `release_unknown` exits 1** and needs the receipt's own recovery action"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/dispatch-lifecycle.md",
+    "line": 122,
+    "text": "  without consuming use `check --peek` (unread) or `check --all` (history). `task-list --brief` collapses whitespace and caps each echoed spec at 160 chars"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/dispatch-lifecycle.md",
+    "line": 123,
+    "text": "  (`spec_truncated` marks shortened rows); omit it when the full spec is needed."
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/dispatch-lifecycle.md",
+    "line": 124,
+    "text": "- Keepalives go to **stderr** every 15 s (`{\"_keepalive\":true,\u2026}`, with `_heartbeat` alongside as a deprecated alias), NEVER stdout \u2014 pipe stdout only into"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/dispatch-lifecycle.md",
+    "line": 130,
+    "text": "  The rest is FLEET policy and it stands: every lifecycle message goes to a concrete terminal or `dispatch:<id>`. A `worker_done` for the active"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/dispatch-lifecycle.md",
+    "line": 138,
+    "text": "The file ledger is the coordinator's durable brain; the Orca **worktree comment** is the live, human-glanceable status on the workspace card. Workers update"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/dispatch-lifecycle.md",
+    "line": 140,
+    "text": "replaces the ledger (comments are best-effort and lossy)."
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/dispatch-lifecycle.md",
+    "line": 147,
+    "text": "ledgered: `unit \u00b7 worktree \u00b7 retired ts`. Name the verbs: terminals first with `terminal close --worktree <selector> --all`, the canonical teardown that stops"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/dispatch-lifecycle.md",
+    "line": 148,
+    "text": "every process the workspace owns and durably removes its tabs, layouts, and resume records (`terminal-close.ts:8-14`; `terminal stop` is deprecated plumbing)"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/mission-scheduling.md",
+    "line": 23,
+    "text": "**Every scheduled mission passes `--precheck`.** It runs a bounded command before the run; exit 0"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/mission-scheduling.md",
+    "line": 24,
+    "text": "continues, anything else records a **skipped** run and spawns nothing (`automations.ts:62` at"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/mission-scheduling.md",
+    "line": 34,
+    "text": "silently deferred), `--reuse-session` / `--fresh-session` (existing-workspace automations only;"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/mission-scheduling.md",
+    "line": 38,
+    "text": "`orca environment list`, never the environment's name."
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/orca-dag-semantics.md",
+    "line": 57,
+    "text": "**`--types` is the WAKE CONDITION, not a filter.** `check --wait --types worker_done,escalation`"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/orca-dag-semantics.md",
+    "line": 58,
+    "text": "decides when the waiter wakes; the Delivery it returns is always the **whole FIFO batch**, every"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/orca-dag-semantics.md",
+    "line": 59,
+    "text": "type included (`orchestration.ts:112`, `orchestration/messaging-and-gates:19-22` at v1.4.199). So"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/orca-dag-semantics.md",
+    "line": 75,
+    "text": "**silent and untimestamped**. Reconstructible facts: creation, each dispatch attempt"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/orca-dag-semantics.md",
+    "line": 94,
+    "text": "- a `pending` child whose dep **failed** or never existed (never auto-promotes \u2014 stuck-pending"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/orca-dag-semantics.md",
+    "line": 95,
+    "text": "  watchdog must surface it; a failed dep is a permanent strand, not a retry)"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/orca-dag-semantics.md",
+    "line": 128,
+    "text": "v1.4.199): PowerShell strips JSON quotes, and a typed flag cannot be misspelled silently."
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/gate-classification.md",
+    "line": 11,
+    "text": "  CURRENT id with `reply --id <msg_id> --body \"<answer>\"`. On CLI fleets this often writes **no**"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/gate-classification.md",
+    "line": 12,
+    "text": "  `decision_gates` table row \u2014 reply by message id."
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/gate-classification.md",
+    "line": 16,
+    "text": "**The option lists are spelled differently, and mixing them is a silent refusal:** `ask --options`"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/gate-classification.md",
+    "line": 17,
+    "text": "takes a **CSV** (`--options \"rollback,patch-forward\"`), `gate-create --options` takes a **JSON"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/gate-classification.md",
+    "line": 18,
+    "text": "array** (`--options '[\"rollback\",\"patch-forward\"]'`) (`orchestration.ts:203,253` at v1.4.199)."
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/scripts/pm.py",
+    "line": 8,
+    "text": "# v3 (2026-09-10 upstream re-pin): the skip keys on `_keepalive` FIRST. A keepalive line carries"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/scripts/pm.py",
+    "line": 9,
+    "text": "# both `_keepalive` and `_heartbeat`, but `_heartbeat` is only a deprecated alias retained for"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "runtime/scripts/pm.py",
+    "line": 10,
+    "text": "# scripts still filtering it during migration (`check-keepalive.ts:18-26` at Orca v1.4.199) \u2014"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "skills/field-test-it/SKILL.md",
+    "line": 60,
+    "text": "PAIR: load the version-matched guides from the binary (`orca skills get orca-emulator`,"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "skills/field-test-it/SKILL.md",
+    "line": 61,
+    "text": "  `orca skills get orca-emulator-android`) and establish the session per them \u2014 Android: boot/attach"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "skills/field-test-it/SKILL.md",
+    "line": 62,
+    "text": "  an emulator or an adb-visible physical device (adb, accessibility tree, logcat are the command"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "skills/field-test-it/SKILL.md",
+    "line": 63,
+    "text": "  surface); iOS: the Simulator pane via the app's own xcodebuild/simctl build+install first \u2014 the"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "skills/field-test-it/SKILL.md",
+    "line": 64,
+    "text": "  emulator skill does not install apps, and PHYSICAL iOS devices are not a command surface of either"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "skills/field-test-it/SKILL.md",
+    "line": 65,
+    "text": "  skill (a flow that needs physical iOS is PARKED). Preconditions stated in the ledger: macOS+Xcode"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "skills/field-test-it/SKILL.md",
+    "line": 66,
+    "text": "  for iOS Simulator, Android SDK/adb for Android, the Orca emulator pane up. Record the session's"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "skills/field-test-it/SKILL.md",
+    "line": 67,
+    "text": "  oracle tier, frozen per defect, from the ladder `DEVICE | EMULATOR | BROWSER | DESKTOP |"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "skills/field-test-it/SKILL.md",
+    "line": 68,
+    "text": "  CLEAN-ENV`: DEVICE (== PHYSICAL \u2014 hardware radios, thermal, real sensors) \u2192 EMULATOR"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "skills/field-test-it/SKILL.md",
+    "line": 69,
+    "text": "  (rendering/input/lifecycle, simulated sensors) \u2192 BROWSER (a web surface driven through"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "skills/field-test-it/SKILL.md",
+    "line": 70,
+    "text": "  `browser-drive`, its engine named and its evidence lines labelled) \u2192 DESKTOP (an OS/window-level"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "skills/field-test-it/SKILL.md",
+    "line": 71,
+    "text": "  surface driven through the runtime's computer-use verbs, where every action carries a"
+  },
+  {
+    "sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+    "path": "skills/field-test-it/SKILL.md",
+    "line": 72,
+    "text": "  VERIFIED/UNVERIFIED result and an UNVERIFIED action is NEVER reported as success \u2014 if it could"
+  }
+]

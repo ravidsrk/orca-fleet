@@ -1,0 +1,13 @@
+{
+  "mode": "corrected graph",
+  "source_sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+  "baseline_sha": "e2e7adab8a7ddf53844d2564734202e89bb78e98",
+  "source_files": 53,
+  "original_parents": 309,
+  "appended_parents": 7,
+  "mechanics_parents": 186,
+  "excluded_parents": 130,
+  "children": 481,
+  "errors": [],
+  "runtime_claims_tested": 0
+}

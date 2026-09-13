@@ -1,0 +1,30 @@
+{
+  "id": "b4d955c2-48fa-4215-8af6-a931fdd783f1",
+  "ok": false,
+  "error": {
+    "code": "selector_not_found",
+    "message": "selector_not_found",
+    "data": {
+      "selector": "path:/Users/ravindra/orca/workspaces/orca-fleet/pin-local-claims-20260912",
+      "validSelectorForms": [
+        "id:<repo-id>::<absolute-path>",
+        "path:<absolute-path>",
+        "name:<display-name>",
+        "branch:<branch>",
+        "identity:<identity-key>",
+        "issue:<number>",
+        "current",
+        "active"
+      ],
+      "suggestions": [],
+      "nextSteps": [
+        "No Orca workspace matched the worktree selector \"path:/Users/ravindra/orca/workspaces/orca-fleet/pin-local-claims-20260912\".",
+        "Valid selector forms: id:<repo-id>::<absolute-path>, path:<absolute-path>, name:<display-name>, branch:<branch>, identity:<identity-key>, issue:<number>, current, active.",
+        "List the exact values with `orca worktree list --json`; a bare repository id is not a worktree id."
+      ]
+    }
+  },
+  "_meta": {
+    "runtimeId": "2e075aba-10a5-40b7-aa95-9e82ae9fc5b7"
+  }
+}

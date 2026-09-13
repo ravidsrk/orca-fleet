@@ -1,0 +1,1348 @@
+{
+  "schema": 1,
+  "unit": "pin",
+  "finding_ids": [
+    "I266"
+  ],
+  "unit_class": "mutation",
+  "base_sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f",
+  "head_sha": "e2e7adab8a7ddf53844d2564734202e89bb78e98",
+  "head_tree": "f56c78e2d2b93ae0af8b39d0f1cb5865ad69dcc8",
+  "base_branch": "codex/release-audit-20260912",
+  "status": "BOUNDED-PARTIAL-REVIEW-PACKET; FULL-PIN-UNFINISHED",
+  "contract": {
+    "source": "docs/reports/release-20260912/pin/contract.json@e2e7adab8a7ddf53844d2564734202e89bb78e98",
+    "digest": "sha256:f91c923d25680ff2a158626112af82495295776522cdb662c4f7f0af7b1cfc1c",
+    "criterion_ids": [
+      "AC-1"
+    ]
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "text": "Re-witness current installed Orca 1.4.200 guide/source and required harmless live probes with receipts and verified teardown. Record untestable roster/placement claims as owed, not proven; preserve doctrine-only unless full proof protocol passes.",
+      "addressed": false,
+      "progress": "Three source repairs, frozen 309 records retained, 134 individually justified scope exclusions and 429 child predicates; 320 children and independent source completeness/replay/review remain unfinished."
+    }
+  ],
+  "intent": {
+    "goal": "Correct only live-refuted runtime claims and preserve a reviewable partial 1.4.200 witness packet.",
+    "ruled_out": "Parent Run probes, extra worker launches, global settings, trust bypass, paid/remote/restart probes, wholesale doctrine rewrites and any proof-tier promotion.",
+    "why": "Frozen source records and prepatch refutation receipts constrain the repair; incomplete evidence cannot certify a runtime pin."
+  },
+  "lighting": "lit",
+  "claim_inventory": {
+    "path": "docs/reports/release-20260912/pin/claim-inventory.json",
+    "sha256": "23b15e73fb36ed2db6509efdf5f7262f1f03fdf07b78602442ef8580268a7408",
+    "frozen_path": "docs/reports/release-20260912/pin/claim-inventory.frozen.json",
+    "frozen_sha256": "bc87dd46ee92e1c984c6059b29846d274f4758f8c4c25ddf16c5380f5dd459c6",
+    "denominator": 309,
+    "classification_counts": {
+      "MECHANICS-WITNESSED": 34,
+      "EXCLUDED-RETAINED": 134,
+      "MECHANICS-UNFINISHED": 138,
+      "PATCHED-PARTIAL": 1,
+      "PATCHED": 2
+    },
+    "atomic_completeness": "Additive clause audit prepared with parent IDs and exact source spans; independent source completeness and exclusion review still owed.",
+    "atomization": {
+      "path": "docs/reports/release-20260912/pin/claim-atomization.json",
+      "sha256": "bd3c12d1470e034091fbd4a0f7bbdeeb5fd6a73cda1413a2e23c970949f842b3",
+      "counts": {
+        "frozen_source_records": 309,
+        "excluded_source_records": 134,
+        "mechanics_parent_records": 175,
+        "child_predicates": 429,
+        "child_dispositions": {
+          "WITNESSED": 105,
+          "TODO": 303,
+          "PARTIAL-TODO": 17,
+          "PATCHED": 4
+        }
+      }
+    }
+  },
+  "commands": [
+    {
+      "label": "pin-atomization-final-format",
+      "ts": "2026-09-12T12:41:06Z",
+      "cmd": "/tmp/orca-release-audit-20260912/ci-venv/bin/python /tmp/orca-release-audit-20260912/pin-evidence-audit.py",
+      "cmd_sha256": "9bd50248016566b46a7ecb61909a90294bfb69fbd66c314c9d412d2379cf36e4",
+      "exit": 0,
+      "duration_s": 0.149,
+      "commit": "2f8dd685644990c5c93b27e804a9f8e4e8eeece4",
+      "wtree": "f56c78e2d2b93ae0af8b39d0f1cb5865ad69dcc8",
+      "artifact": "docs/reports/release-20260912/pin/audit-result.json",
+      "artifact_copy_of": "/tmp/orca-release-audit-20260912/pin-final-head-audit.txt",
+      "artifact_sha256": "12af8ef2378f41a174ccc11bdc8845941534b656f3505067888f2e8e8770eeb0",
+      "artifact_storage": "post-commit sidecar"
+    },
+    {
+      "label": "followup-validator",
+      "ts": "2026-09-12T12:36:15.125508+00:00",
+      "cmd": "/tmp/orca-release-audit-20260912/ci-venv/bin/python scripts/validate.py",
+      "cmd_sha256": "f415d8165ae2443411eca4124e801dc94bda051411c2cd737784123f056c6b34",
+      "exit": 0,
+      "artifact": "docs/reports/release-20260912/pin/check-followup-validator.json",
+      "provenance": "Captured worker command; no invented command commit/tree fields. Final integrity hashes this archived output; coordinator clean-head rerun still required."
+    },
+    {
+      "label": "followup-ruff",
+      "ts": "2026-09-12T12:36:15.664921+00:00",
+      "cmd": "/tmp/orca-release-audit-20260912/ci-venv/bin/python -m ruff check .",
+      "cmd_sha256": "f24f824e8882edae93d9bc6635eb497324f0ae2c3f3b9c000be1a67ebbbb7418",
+      "exit": 0,
+      "artifact": "docs/reports/release-20260912/pin/check-followup-ruff.json",
+      "provenance": "Captured worker command; no invented command commit/tree fields. Final integrity hashes this archived output; coordinator clean-head rerun still required."
+    },
+    {
+      "label": "followup-full-suite",
+      "ts": "2026-09-12T12:36:15.692035+00:00",
+      "cmd": "/tmp/orca-release-audit-20260912/ci-venv/bin/python -m unittest discover -s tests -q",
+      "cmd_sha256": "d4fbf2450141e5b0e7b2083cbf317aea6f3e27b51f3f7c838a2fda09094b263d",
+      "exit": 1,
+      "artifact": "docs/reports/release-20260912/pin/check-followup-full-suite.json",
+      "provenance": "Captured worker command; no invented command commit/tree fields. Final integrity hashes this archived output; coordinator clean-head rerun still required."
+    }
+  ],
+  "negative_control": {
+    "tool": "revert",
+    "did": "Archived the old doctrine command/refuted assertion before each claim-scoped repair, using the pin-it prose carve-out.",
+    "result": "RED: original-ID shorthand invalid_argument; regenerated helper preamble request_mismatch; bound Run default contradicts always-all claim. Independent post-merge replay remains owed.",
+    "artifact": "docs/reports/release-20260912/pin/NEGATIVE-CONTROL.md",
+    "paths": [
+      "runtime/dispatch-lifecycle.md",
+      "runtime/liveness-resume.md"
+    ],
+    "post_merge_replay_required": true,
+    "command_status": "Coordinator-provided fresh fixture needed for independent replay; all original scratch resources are retired. No unavailable original low-level preamble bytes were fabricated."
+  },
+  "binding_audit": {
+    "coverage": "AC-1 partial: 309 frozen records; 134 exclusions; 175 mechanics parents; 429 child predicates (105 scoped observations, 4 refuted children across 3 repaired parents, 320 unfinished). Workload never used as a true park.",
+    "method": "Verbatim baseline source lookup; exact installed-version receipts; prepatch semantic refusals; authoritative scratch task/Dispatch/teardown state; integrity audit. No version/capability_hash authentication inference. Final artifact whitelist re-hashed from actual committed git blobs; final integrity command wtree equals head_tree. Earlier observed command commit/tree fields preserved in original archived manifest."
+  },
+  "review_status": "pending independent reviewer; no PR, review SHA, merge or release is asserted",
+  "toolchain": "Python 3.13.15 at /tmp/orca-release-audit-20260912/ci-venv/bin/python; installed orca 1.4.200",
+  "parked": [],
+  "known_baseline_failures": [
+    "test_verify.EndToEndMutationGreen.test_credential_in_a_commands_artifact_fails_the_unit",
+    "test_verify.EndToEndMutationGreen.test_credential_in_an_artifact_fails_the_unit"
+  ],
+  "artifacts": [
+    {
+      "path": "docs/reports/release-20260912/pin/CLAIM-AUDIT.md",
+      "sha256": "3c898ceae3211e6ddcb2222ea87a6423d542e9751394d14a1bf8c704a4f440d3"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/CONTINUATION.md",
+      "sha256": "e7c79840295b02b62186b3563ade0f93b545fdeab71519bb4bf1e1d6f2c36659"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/NEGATIVE-CONTROL.md",
+      "sha256": "922f9d0c1da661e8aec2d61c1fb9e8cb8ec4199a627f44c5bc198473f7011ddc"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/PARKED.md",
+      "sha256": "29f4ada6912bba7217ab5b0ef88c4aca5bfa1f797be2da1b1b09a56ad4a34e07"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/REPORT.md",
+      "sha256": "3a00a4277d021ee0f2d2c35a485435fd12e1fc3651ab2a03df2e89f8e93a94b2"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/base-identity-audit.json",
+      "sha256": "d7ae3210db816b220fdc08338bcb25e34010ce0c557635bff46b64634db17be0"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/check-affected-bundle.json",
+      "sha256": "b2270b3ca9882caaeb3c6fb60706fbef8dc49170cbb17511996e6a1635397bec"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/check-affected.json",
+      "sha256": "c5ee0d8c518a227dad10cd5800b6cc05f6412b425679afd9a11fe47cf9c73209"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/check-followup-full-suite.json",
+      "sha256": "a9200d62c03413d2f97b3789ce9a0bff958addab6a30cf87737be9943ca97574"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/check-followup-ruff.json",
+      "sha256": "e395e613b5f9156b34bcbbd2feef04b7a39a3793530da11664e2bc3ac7e698dc"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/check-followup-validator.json",
+      "sha256": "f1058853f49d7047eca8c94f9fd6e12a1a37d53082a8e37a2ab50e6b8c18461e"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/check-full-suite-before-link-fix.json",
+      "sha256": "75639f61fac4e5be908456c1dec97ece77e2c9c57f318f68da38b39b4b1952b3"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/check-full-suite.json",
+      "sha256": "fd26115a5db7c32217f43cd90d63a9dc4b7b031464a37e21576e42caaf9249d1"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/check-ruff-before-link-fix.json",
+      "sha256": "2ee6215df2c7ce7177eb048542accbfc99016485a614b91f54f44d722a12f1d6"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/check-ruff.json",
+      "sha256": "c009d817be9056fcd6525869df7d6a4bd3d16838d3b6c8bcbd902080e97b23c2"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/check-validator-before-link-fix.json",
+      "sha256": "3dd29fe2c8e08e191b128eec2976cfaf9796725d028df7100e9c924c1ccd55e5"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/check-validator.json",
+      "sha256": "5f5af639465bf5a1ebdd03166c862538b41ef2cacb450b93c245bb2273d64b6c"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/claim-atomization.json",
+      "sha256": "bd3c12d1470e034091fbd4a0f7bbdeeb5fd6a73cda1413a2e23c970949f842b3"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/claim-inventory.frozen.json",
+      "sha256": "bc87dd46ee92e1c984c6059b29846d274f4758f8c4c25ddf16c5380f5dd459c6"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/claim-inventory.json",
+      "sha256": "23b15e73fb36ed2db6509efdf5f7262f1f03fdf07b78602442ef8580268a7408"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/contract.json",
+      "sha256": "f91c923d25680ff2a158626112af82495295776522cdb662c4f7f0af7b1cfc1c"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/freeze.sha256",
+      "sha256": "46943ecac7192e0632dc573298eb6bed6a17bb9ca0793c11af554c2a0533abc2"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/guides/orca-cli.md",
+      "sha256": "5bfe32529a658c5434eb6d1b27e060fc3b4b1ed04e59bde8287f59798147bb31"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/guides/orca-per-workspace-env.md",
+      "sha256": "93afdc2533f850544442cc93e29980482c2d292ce06650681f212b185c942908"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/guides/orchestration.md",
+      "sha256": "bf1d0a09d2ab8794f9d9a1a67b24037492d16a92f89aa9d2711957d014989279"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/historical-corroboration.json",
+      "sha256": "dec460f35339c42be0ea971480e7b16180e71baf3053281d45ddc71d5ff4fb2f"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/manifest.pre-base-label.json",
+      "sha256": "d77cb8b7d6bd1c05f8a0ccf4cfc5f40335e19ded2aba2666711746d7043c1106"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/outstanding-claims.json",
+      "sha256": "fea8307284b21bf3be1c02f932cb3bcd3c0098fa8f510cbe1856975dbd4ec5f0"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/parked-register.json",
+      "sha256": "91f42716023f4cc4288176543eeaa8804b6ad522e5853713749a7725067eea65"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/probe-preconditions.json",
+      "sha256": "31f1d1ce3cd25de2af6456462483e05ae7f727cc32300ae2527e7785a878d7a0"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/probe-sources/freeze-pin.py.txt",
+      "sha256": "e92e0cebeefc39c3216b31455bc690b322f905e6021b8be9638828d35814b368"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/probe-sources/pin-atomization-evidence.py.txt",
+      "sha256": "08d61ebe3b435db6f0bb5e4b4f8039c6afc6bd4b72bd37df2065a29de9a648b7"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/probe-sources/pin-atomize.py.txt",
+      "sha256": "2f395bc553ecb95b65182f045b6fc513ba45bcd51ec44c8fce78b82ddd21c9f9"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/probe-sources/pin-evidence-audit.py.txt",
+      "sha256": "8b9d42d42122cff0be157f63c00fa2e1685aa083df47a2670e6f5604bf11864e"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/probe-sources/pin-fixture-helper-finish.py.txt",
+      "sha256": "f3831ab20e6944aa4bf10391b634a3126b133b7328bfd032022eebfd860e5eab"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/probe-sources/pin-fixture-helper-start.py.txt",
+      "sha256": "567afe516f49f1ca54cc3de1c688d95f40ee378b6c042b248cc731573d3e544a"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/probe-sources/pin-fixture-mailbox.py.txt",
+      "sha256": "2332786d5c003a50556e4c5877b9ee4a2af8e30207d81daca4fa6546a571f1c5"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/probe-sources/pin-fixture-stage1.py.txt",
+      "sha256": "3e23872cbb858bb570f8aaa8eb2acce13e5359eb83139a9a73014023b702949c"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/probe-sources/pin-helper-cleanup.py.txt",
+      "sha256": "182d49d98e394fb7ad4883351bfe679177ea98a94f04fa594e2535e930c21245"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/probe-sources/pin-publish-atomization.py.txt",
+      "sha256": "99c4885da1b77c6cd2940db03dc25cb9daba5008545e7ecf557883d1eaf8a68e"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/probe-sources/pin-scratch-settle.py.txt",
+      "sha256": "176c1b4a3948cfe46ceb359c8bc6654b266670fd29ee42d4d8892183d0d3f659"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/probe-sources/pin_capture.py.txt",
+      "sha256": "2602f257e0c4efb30f85ce4ddc60db3f0063008d7421c1e273a0cb67e12be6b6"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/branch-preflight.json",
+      "sha256": "a2e92dc53d39b9fad83ae303a25672e47b81077639222ebfc9f713462237f356"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/check-help.json",
+      "sha256": "664b0d6183a70e5035c1efcff714ae1fb7f6dfe70c611c604f68a619de491124"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/dispatch-show-help.json",
+      "sha256": "b4b1efd8fe663bdf24a8d89deedab5307cced573b4431537982273c3b6b22d3d"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/effect-after-replay.json",
+      "sha256": "ec44cfd3e82848e402f7e442d5e58df3f3fd258e53b6b0f4aef48b820bf01c3f"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/effect-before-replay.json",
+      "sha256": "a33c28575f05ade9ee9ef6a667037343607cb3bb1d78dd14d5d6bb36156d5cc5"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/effect-original-replay.json",
+      "sha256": "529679960359b394675e9f06ec7da0632ac61b94ca0962f3d20af073e07d381a"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/effect-original-send.json",
+      "sha256": "12e1978d2fd15cc7e236bcfc800719eb9a4b0e932c6ad2dff83f9f19458390a1"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/existing-version-drift-warning.json",
+      "sha256": "7f77f0ec9f158fddd02bfadc203d88c3ca027840675802a5e91686d1e5b91730"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/fixture-create-foreign.json",
+      "sha256": "fab4fe647217b591ae6f1d1eaf2b89a68b759039b78acbedaa6c5982728f4dd4"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/fixture-run-a-before.json",
+      "sha256": "8b3e3bf26d346102a60fb3f659b7bec2491d6ce5e6e22a17198a0abac6d72a5c"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/fixture-run-b-before.json",
+      "sha256": "ee19d7a281443b5796eb602b3fbf14178e36655b5d4d1608ba2fd9b37845a50d"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/fixture-run-current.json",
+      "sha256": "59baba875d427fdf7406e40f719786f869fab2dcabe5f01833f3a3aa4020a179"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/fixture-workers-bound.json",
+      "sha256": "34198f8a76eb7806ecb657da94b35eb5c3cfabfeb88dfc4f75aef20e5eedcb07"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/fixture-workers-explicit-a.json",
+      "sha256": "b879851ca2b791a0f6a07670d89f2daa713d2816e023ceaa52de6fc769884b97"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/fixture-workers-explicit-b.json",
+      "sha256": "800256a4331b2832d3ba959386649b340aa771894b4d98b1f75f68558350191d"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/fixture2-bind-a.json",
+      "sha256": "e5a120fc30ee27e5a0f25c3257218d04fb41290bc46bd378312e0eed5bd5aff9"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/fixture2-bind-b.json",
+      "sha256": "b7fca4c92031366db84257a906cff8218923cf1015d2187871bd10280c3d7b05"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/fixture2-complete-good.json",
+      "sha256": "75cb01bb1a4a162c1956d0a936b0ab54da7601d55ec2809e053a2c358bdd7103"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/fixture2-create-bad-child.json",
+      "sha256": "eb8566c200e065d87e74052774fc5d6b8c26d02d2c7ae905a0d54b89cdd1831f"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/fixture2-create-bad.json",
+      "sha256": "e7386c963d4ede8d8c50419eb1ea531c7deea6c70c2b65e0dccf563149656e6d"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/fixture2-create-foreign.json",
+      "sha256": "7c9c940fc3422d2098e327655f0abc22e680458a61fb35e02ac700b075d773ec"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/fixture2-create-good-child.json",
+      "sha256": "2c29e5c1ebb524d085a49278336efc08106e4bb617ae5113027a71daedd41419"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/fixture2-create-good.json",
+      "sha256": "98c841d148fe7545183fa2b178441342d99579eb257b32ce1667c951189abdb5"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/fixture2-create-held.json",
+      "sha256": "97ec20ef89c0bfedc18e56ff612aa6334ebd575e5a0b6c028e7aa4916dfd5e1f"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/fixture2-deps-after.json",
+      "sha256": "8463393b9152daaf28ae2ec3406cc421b899d1ecb7e34273ea18193b00f55862"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/fixture2-deps-before.json",
+      "sha256": "1e40dab8f633ff1746b455570db00103a5950307752b37c1bb0c8747c14f7f8b"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/fixture2-fail-bad.json",
+      "sha256": "809108d585775855e8698c69b91c183cb7de912ebce2ca601055fde5ead028f6"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/fixture2-foreign-dep.json",
+      "sha256": "2509d9f2b6df971641ed61c03cfd5d8056c5a6cb325e299ee2977c13c7f625ca"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/fixture2-gate-after.json",
+      "sha256": "e6d6d8a1139559cc8de02626e9e05f78b7170ebfa7111fec6e01df9e9cd34133"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/fixture2-gate-blocked.json",
+      "sha256": "ce9c2ee183c82f4e485bc667879832339be9bf7a829775f125419043009a83a9"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/fixture2-gate-create.json",
+      "sha256": "500b7b976da1450372ba9dc49c68dff1af4ed7867178e3afb8ef684d65a95a29"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/fixture2-gate-list-pending.json",
+      "sha256": "15051a3dbc35b05311134279cafa042f18cf8c37785e1ec61a9ebed359265c1a"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/fixture2-gate-list-resolved.json",
+      "sha256": "b79fa71bbe2b69d7d7d46c9faf83319128d775782e4bcd61018c3fd9045b6100"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/fixture2-gate-preamble-preview.json",
+      "sha256": "022d3daa7d6eb6cc1f066c60a3cce0ed2ceb9778402f75e2213729c5d6707cfa"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/fixture2-gate-resolve.json",
+      "sha256": "cbe93d4c901fc739fb63357a5d147266c42e4fbaeb1f80477e40262c23a18572"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/fixture2-inbox-before.json",
+      "sha256": "ae8eb17c1821e9e0bcbfb6d3ab61eab7e40ac2807f888c0470e612fb0327e214"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/fixture2-message-00.json",
+      "sha256": "1d55f7c81fa7992d4a4c83a0d4f1be14617be531ae54f969741686a9235ec104"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/fixture2-message-01.json",
+      "sha256": "cd45e9a0928b97e409a0bfdcafd20ce0a67c2375abf5582ae67ff6d688bc63df"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/fixture2-missing-dep.json",
+      "sha256": "40348203505b48d3449897463823132ee9c246731896adf81ba0b05e518701b9"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/fixture2-run-a-before.json",
+      "sha256": "7e2130adea7297163e1c81431c5533b747231ef52955b158b33307f35a74dd01"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/fixture2-run-b-before.json",
+      "sha256": "8fb30ea2c6f795a30c3bf3d8bffc1845354a4683a9fc9a4130d5c74ab20c616f"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/fixture2-run-current.json",
+      "sha256": "782497945949b9bbaaacee816a8c88bfcf4499113bdabfb012f9d048b938683e"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/fixture2-workers-bound.json",
+      "sha256": "a13466ba6cd2c2f3894546563ea714d650d2b69627e5b6b501e79f5954df7358"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/fixture2-workers-explicit-a.json",
+      "sha256": "654f2839baded408523012a67479459b5544e5fccfb67e89b2f5127fa626871c"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/fixture2-workers-explicit-b.json",
+      "sha256": "d9b447aef299313d3fcab2c785ddffc1d3dc092985b6cf8668411f5ef30e07ce"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/followup-bulk-close.json",
+      "sha256": "4a9613247cdedecaadfd60f9788e1e8bdc53a7862582578a7671a3ab27e41366"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/followup-comment.json",
+      "sha256": "5b620e44537f525b2b270443dff7bc0827913ad2efc7149061bd8cd1b1f4a85a"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/followup-git-clean.json",
+      "sha256": "fb806d3e0349adf50de94387517ec430239b747e92239436a8ccdc9823ddf00a"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/followup-inert-create.json",
+      "sha256": "958f0f624f660de0fedb64b18eeed48e2232c725cc17bf6b85047e22abedf307"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/followup-path-absent.json",
+      "sha256": "4183ba925c03f8696360eb6c4abd1358175a1602c6e56139397e25908e7ade84"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/followup-remove.json",
+      "sha256": "59b44e6d678aff113f49b151ef9511453f97820e47e926b3ead8c947c85b0e02"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/followup-scratch-create.json",
+      "sha256": "12545e52537682b69f397655399ab749178bf3080d795087ee0a195432a83f00"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/followup-terminals-after.json",
+      "sha256": "8263bb66a0b1672711aca7947b118371d05e3af1584267a1935360d9e01527b1"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/followup-terminals-before.json",
+      "sha256": "92b8c17b31f65ac53b4b3526f2c2b523be25e8b5473566094483a83c22e2904b"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/gate-create-help.json",
+      "sha256": "c7452a6fd5ed150b64dee48b3565b084e6bbe48359a16ac4a4af23f635e96854"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/gate-list-help.json",
+      "sha256": "1c1e13954c33a5a76ddb401efe04904322e437e72f4ca9abdc2d2a19bf2ce4d5"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/gate-resolve-help.json",
+      "sha256": "0071e703c01f3fb3df9b56b128663152acbd51a88916f992a7d8917e412a8c57"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/helper-check-0.json",
+      "sha256": "4f2b329c73b369257b6c6592b6f8b705eef413dbaf1bf9f1bc22f992e2022c5c"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/helper-check-1.json",
+      "sha256": "d0452a6a2462d6a2de44ae38cc63bba187591b19f7b461d23e79301cd9492ae6"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/helper-dispatch-after-done.json",
+      "sha256": "fbcb2a447393558bef03b817d464e0033f311c72addb7c168077644f88e98577"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/helper-gate.json",
+      "sha256": "42695d7cb1da97a00cd93bc741a81bb28aebabee93e4532f5cb04bd21a76a4f3"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/helper-gates-during-ask.json",
+      "sha256": "95334f343afefeb2fdd2d6c5b60aef95a4bde781084ecc3736c585342b52ad19"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/helper-preamble.json",
+      "sha256": "0ecca9da9087f31944fbc555307b1530964e318e4cb6be80bf61491ccb2d6931"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/helper-read-before.json",
+      "sha256": "657727a3d7e290e942a07b03ac5ca183d2334c24125b3e4a90be05af960c32e5"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/helper-regenerated-retry.json",
+      "sha256": "f679def528abfd9e99929a598be1e5b97202773ffd5b93ed73d3d1a49c37e485"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/helper-release.json",
+      "sha256": "78d74e3b70cff767422d9deb515079ccb646a3c8e5b48fd7b627033ba129ace3"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/helper-reply.json",
+      "sha256": "c3b68237b7de8a002a5fe1837953f2b566d08ca7b3b0fb1313c286728b0ec85e"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/helper-resolve.json",
+      "sha256": "b5854c965b62e8c593933a39000c266576fc0319a74a2afdb7b10e105ffd8a6c"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/helper-show-before.json",
+      "sha256": "66b991afdc2ef3893cbe92af41d6677ffc32e54e47ea990e0746898fa3b0585b"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/helper-start.json",
+      "sha256": "616dd637a6575c242550fc9a02d6a2cb9996875ab3d4f7415d3642c268a7aab5"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/helper-task.json",
+      "sha256": "ee24b488f4a3d16c07829282c177227ad4c03feeb81df44a55cb881608af2221"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/helper-tasks-after-done.json",
+      "sha256": "ef3bdb7858036f1d6ef98c6ed1ee648a72e291a9ac9b3664b484830cb82e5446"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/helper-tasks-during-ask.json",
+      "sha256": "bb9bb1689c48b8e2540d651ea1a34b9693b7eed25a47119deb46ea973339f7bf"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/helper-workers-bound.json",
+      "sha256": "4a5364e45bb06f5fadf20d583ed6f9386513b246ce40ff41015190c699cc537e"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/helper-workers-explicit-a.json",
+      "sha256": "60df15bd2a603b27d2a89240319e731005e895fcd4bc0738a4a0289674a03cc1"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/helper-workers-explicit-b.json",
+      "sha256": "b173478257d285c8835d565a699a4d3200a185b6cd7ab6f5e8573935e2e500e9"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/installed-build-metadata.json",
+      "sha256": "6abf30b17e1ebed5f693ea12cb0c4d94913489bb7bce474f6c751c49bc0b341f"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-ack.json",
+      "sha256": "424f0df18e83fcac83bddbcd8ce7b594ec3c63fc3dc469be3e07f569e387d616"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-delivery.json",
+      "sha256": "dcc290bd8df0d701ba138eab503c13bfaf8348f57a9c65bb93920944bab748ea"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-empty-wait.json",
+      "sha256": "8dfd1b44253a1d9bbd1f1dfe19cc3f3aac9b80e386be52e6d7f9a944a440ced9"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-final-ack.json",
+      "sha256": "9529e1b202674aa85827fd539197d0779b43c4c625ff292230604f9269a6ef43"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-peek.json",
+      "sha256": "63798c38572de39f836771843366c7edeaeb9ec8cdb05964cdbff77bf6821390"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-prior-ack-delivery_0e66683aeb4c.json",
+      "sha256": "b513bc1add8435ee36bcd71ddc86c3da5a5cb05c726813d4e6ebb117c8fe9854"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-prior.json",
+      "sha256": "ef55a4a2c63b7a0e0d57d648160418532017c4ac6a589be6b37a175a2182eb04"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-replay.json",
+      "sha256": "3797b54e3431f0068d7fa6300850b9e088a1fffe567eb73fe1290773d2b7d5b7"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-00.json",
+      "sha256": "f48fbbe9f6751f912f54f9182f7bd3a6b9d68ec28404330eecfff08a0be5f7c1"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-01.json",
+      "sha256": "eef122ad2338929d3b6865a597f7fca8a1a28d5efd3bff5a4c58bd27c9d68796"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-02.json",
+      "sha256": "6d0bfaa981a2e16c2884ad622c62c01121aab27dceebe418c3568bac24b3b5e8"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-03.json",
+      "sha256": "7ded7979afbef1fca28928b089c7519515e384dac07068232e1880eb754dd66f"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-04.json",
+      "sha256": "aabe56689a03e64df05828f5cf9f1602116ab38c8efec4387f577eb0eb4c902d"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-05.json",
+      "sha256": "1be03797ad49b202eb019cbf022110e719862fd76c311a57e6cd6c69dff55215"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-06.json",
+      "sha256": "8bb5805bd66730ff0cd28f0a15cee23a5de6a8929dcbf7ef574617f51e9d15ba"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-07.json",
+      "sha256": "4e54088848b61cc1e519abc10a2495a617e29987175b7c4c8ba968aa743e107e"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-08.json",
+      "sha256": "1b7ccc52a18108434c6db0699d27ad15ba81ca512af9c2dbe0ef4a188f44d694"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-09.json",
+      "sha256": "3117f4b2eee39fd0b3f9848ada5c9b13ecfa8a9ef1b2d004826162613e8caa0f"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-10.json",
+      "sha256": "6a06f89a0857f3f2be2541999e23f96bed9056f23660b599f01c93fdc2144fc7"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-11.json",
+      "sha256": "1c4e8b47a84f0b31b6193ffd3471554a08da43172209e97f10a6979898c2e6be"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-12.json",
+      "sha256": "6b0fbfd90b9c5948ace5a4bf8147e0d7d965b52782f3f4a0cfda694bcc8ed4b4"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-13.json",
+      "sha256": "93d0592381e7e856b1adcfbd64930c477f30d384b9aceb612d06c834e8db21b0"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-14.json",
+      "sha256": "a6ff7d03e088bdee0af5446060f54bb68b978711dfa6b46f1f7007ba4d3c75c1"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-15.json",
+      "sha256": "0335e52ec533815fabe1aeb8d735d97d9fb65b0b42fdac996a8734ded801dab4"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-16.json",
+      "sha256": "52bd43f20257888258eff1f26921e1160b20cc8e70a216c1529c4a8e6ebdf2c7"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-17.json",
+      "sha256": "20d8841d6db075c56ed9459b353e42eda46c45191aad5b6f119075a2f3d28f8c"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-18.json",
+      "sha256": "f7f1ff1d7c67b3c768a953cff3d387f9cf3dff805578f0ec3db2afd82521be0d"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-19.json",
+      "sha256": "84da8ab9334b0c81f333af951a9e7e9e147d1e1b103cb5bf5b3d66fe686dd670"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-20.json",
+      "sha256": "241afdefe77e09f818164bdd86327b5c36d9c33f758e3fd29f515eec98315813"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-21.json",
+      "sha256": "087167c6e0810e9e71ab61aad6a7f68f0fe3ff2864159d0ef92c3150fae5e743"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-22.json",
+      "sha256": "091084d508529af14da45435f2af44b256672339704fc7db26ba93ee42ff7e42"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-23.json",
+      "sha256": "cba96a2967d1a08f436e91fcce3009d1c958b4bac3d92ee89907f3b9e8a1fbc0"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-24.json",
+      "sha256": "04d1b853a946085742bf903775c014374469b338ee707e4ffdf6e988e17910bf"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-25.json",
+      "sha256": "efcfb44bef049b6f0237d87fa4c65b6194ef1f91ee692855ecd3bda4b40ce593"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-26.json",
+      "sha256": "5491c3338b868cb5fb2264f7525439d4bfcfd5aea8792304823404cdf3a903c1"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-27.json",
+      "sha256": "dff310605bb7e0a2e64e80bb56dd68a09e0278f8a3897b998723d229c3690bd3"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-28.json",
+      "sha256": "636e5227c493b2b60e251d41e1d70e404ea12e9e189dc59850dd86a19b773ed5"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-29.json",
+      "sha256": "257a21d2d244ac32276c27695f8b65190b25f69212dda955676ce6d119f6e909"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-30.json",
+      "sha256": "9b058e5cc54a5300d8ef5450152dd419148e0e448d2c6e69c95210af3493c048"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-31.json",
+      "sha256": "f91600f31482b9525cf550d1a227cbf077bd8dbc3af22d3c0432ce70158ecd7a"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-32.json",
+      "sha256": "90491e5e9587179ef5fd7fc680b5316001b34e54f81b851a50f95443484bafe8"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-33.json",
+      "sha256": "a5c44efc06d027c719f741b7d1ae057502e54d75328c863b72109ffe2f0a244b"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-34.json",
+      "sha256": "67f9116030608c0d477aef8900b50403eddcd8618f1ebaea00a4482650ddc229"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-35.json",
+      "sha256": "a68d1b8c731057e117202c45d1fdb6df1fb9622e5071a2b9d26dbdde7d0efe3e"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-36.json",
+      "sha256": "34eefac94970bb3e8d4650dc8a87d70e2b643819d9dc950274d3694cb627ffb5"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-37.json",
+      "sha256": "c8a10859fc71fad4a227a65b5094f08d09795fbaa16814d968ee36ab378d59bd"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-38.json",
+      "sha256": "02ec8f30510c5c34b5720d6fb125ba1535496395f1b72045fbc08990edd0f428"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-39.json",
+      "sha256": "d19ee51d11f7b1bcc311867e277db9f95033b73ffeda7ad66f326374a3fe5402"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-40.json",
+      "sha256": "5d36514ce3f22cd6358b91b718cad13e319ce6b053a184a971897fc10f19b67c"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-41.json",
+      "sha256": "5de46489087961f5911ac600a7e91458c21042e67487b32df445b4e471b5eb12"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-42.json",
+      "sha256": "b4230f3504b9c0d8e76ae5a2a849e5984b2f54e5ec372a2261a5bd488c29570e"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-43.json",
+      "sha256": "4412ed3f31c173dfc14730122ffd9c37c3d21a79a97c607823e3d7ed29281dc9"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-44.json",
+      "sha256": "49c71cca5c6920ef4a29b8a72ee842c677a41a9427968ce6d014493a1018a2ea"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-45.json",
+      "sha256": "b3a08f2219258d43631cc6114e7d23c9baebee2d491e509a1c9858cdd26943be"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-46.json",
+      "sha256": "2dff4708e08af8b2d40cffd30f6d9e4dedc60bbc0bd50f6cfa44a263ad7a1be1"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-47.json",
+      "sha256": "92c419f11120e33d7258751d34fd3841c11dd781ac6d7586ec3917df6496f4c7"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-48.json",
+      "sha256": "628f2d0487bfa47143e2c583e9d036a836d69a5355e77240bbd00c3cde050586"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-49.json",
+      "sha256": "37149866f38189e02619728038d731f0df2e2fd65f8266f3727e3113d845f961"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/mailbox-send-50.json",
+      "sha256": "d57c44eab7c41021d59b38635d50b055d4dbd04985bdac1f00f2617124366368"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/orca-cli-automations.json",
+      "sha256": "f9f9287b2a29eb6df38872e1c2399cc23f28c0fb09a7c2695099f2a3fce82736"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/orca-cli-browser.json",
+      "sha256": "c4bb7ea587c94fa1a92945b93bd544cb94e53a2b64b072047bd26be4a2a23d24"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/orca-cli-full.json",
+      "sha256": "184db80c1e69584191280c2077cfc7672f9ce41765a1e229803d4243b3c0a202"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/orca-cli-publishing.json",
+      "sha256": "170392625b632570548811c38d689381ef200e40c63e1558165166e8de1e2a7d"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/orca-cli-references.json",
+      "sha256": "042d2cf42d1325cbf93dc22262da9b0d77265bda705dd46fa0d0ab1a36621721"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/orca-per-workspace-env-docker-ssh.json",
+      "sha256": "c08d4830a53d22a9106c3ec61c994e3097d9a96f78c92dc78c011f52514612e2"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/orca-per-workspace-env-failure-modes.json",
+      "sha256": "e6e3a1b340308a713761554af47d30f907b5f3be12fb3ce6e297e4e3628c9640"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/orca-per-workspace-env-full.json",
+      "sha256": "e04be544d3946e0e7d490c74a4342dadaa569894277858797d2546203297695b"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/orca-per-workspace-env-provider-vercel.json",
+      "sha256": "fc4c2bf907b0db43965184a6e74afff9fd0bda49978e6bc67809d2b9bd087644"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/orca-per-workspace-env-references.json",
+      "sha256": "aac458ef4c736e01a8c8dab0120a455364b938908694be2db8c73fb8ca2b000a"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/orca-per-workspace-env-ssh-host.json",
+      "sha256": "fc97df194835eaae47fec24bbd132e8c712b3751d55b15ea83eaa9ea44782956"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/orca-per-workspace-env-windows-scripts.json",
+      "sha256": "076073c9ea368267175665947fe5ff0b9e89600cbff22aef01d1aa41c4c2b8cd"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/orchestration-coordinator-loop.json",
+      "sha256": "a3f8421fdbc5a1a89663ed817b8be0835d8435d0fd6c9310b70bd3e574a15ac3"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/orchestration-full.json",
+      "sha256": "fb7ada173e659ed0da5f21bcec1d60a5b4bc5302784dcd23521b2c028c535ded"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/orchestration-help.json",
+      "sha256": "9d2d56fd97d3fe2982272fbe58648bae9b7eeb288a457e5deb0f0de55b936ebd"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/orchestration-legacy-contract-migration.json",
+      "sha256": "e4c9972267f784cab7715095dd1677b80619db9a85066a19ded701e9aad64033"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/orchestration-low-level-topology.json",
+      "sha256": "0783994b95629623b7b313e8cf34f537a07ff40190358da0214a1c3e77ccf3d6"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/orchestration-messaging-and-gates.json",
+      "sha256": "22fc2bf977d2b4131ee4e4985948b1c7cdfe723e064be8365b0ad72b3e750844"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/orchestration-placement-and-remote.json",
+      "sha256": "464890de74d5d17ae186d605f29c037fcf307cd7e09845316f7010d66e7cfff2"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/orchestration-recovery-and-cleanup.json",
+      "sha256": "5b56afb714b3fd4bf1de5572c539c366e045e7e0f98718254aedbca113a2f0ec"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/orchestration-references.json",
+      "sha256": "4b74401983e215827c6b3d9c22d64c0c2beb65f953914cf9d2f2935bdc2622a0"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/orchestration-worker-contract.json",
+      "sha256": "7b0c2c9ab76896eb16ce51894fd07354487dda5835dee3414217ad13336e2ef5"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/request-show-help.json",
+      "sha256": "7878304bb59b35fee7d1c6fcf660b98c7513478e17cbc1b4c06ff254c212aa4d"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/reset-help.json",
+      "sha256": "20d513d276e10c0301a8ac3b2f43f85114462d7515268d1d0e58b44d375067a9"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/retry-original-exact.json",
+      "sha256": "5d69c9ae24e8f63be489b01f63bd25214366c23f603511cc2838cf410e2f7151"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/retry-original-id-shorthand.json",
+      "sha256": "bdcf59ec36b35eac57fe483b1260e3d1e42e9d69cf7aaa080d9ca2c06308654c"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/retry-original-id-text-only.json",
+      "sha256": "49281ff075d92a30cfcf8d653d5bacb2ac9e591bce6e840c71898ae96e072793"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/retry-shorthand-refutation.json",
+      "sha256": "286776a6a98dbcb14a9fc1b7f2aa338395808fea27ec8dfd4a25ef6d174e38c6"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/retry-text-no-enter-refutation.json",
+      "sha256": "68330367f2cdde198c5232f89c3272be93ea33511d5cd2054ca24ff52e53c70b"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/run-create-help.json",
+      "sha256": "17841514c6521230c7bbb8fad920104476893bad780bd3a6eda5ef4124b18649"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/run-current-help.json",
+      "sha256": "85cc8b5595a3d5ae2784a1c5480b61ebac2fef75712e1730a5bad0e6f6999f48"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/run-show-help.json",
+      "sha256": "cbc746ade5b9de197dae7a2a915b1854f45a38d07a0fce4d49a2c9d78c542adb"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/run-update-help.json",
+      "sha256": "e74a93421ab15f9600349d14be7d28673588b08dc27d1d476d8c714de8f90fd0"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/run-use-help.json",
+      "sha256": "a6f9ec3d9aa40edeba81c387b9c6b9414bc09d97c1f0e382251879c3836c37df"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/scratch-after-replay.json",
+      "sha256": "203b8ab9c060efbd0bcb76967d91f4157380a5b8f57cb3933873415a8b246e10"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/scratch-comment.json",
+      "sha256": "052693dbf08e607ec247e97cad37d4300e76008eb80025a6371aa3bdd46c3298"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/scratch-create.json",
+      "sha256": "46fe57085597f449e090ee7f36be34799a8293db20e99f048a611cb684eb334c"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/scratch-original-send.json",
+      "sha256": "679112c40b2d103de24966c27f8af4b0c85eb7dcf7fa0817e7187f4c135e16a7"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/scratch-terminals.json",
+      "sha256": "b7d5129061a5b404c6ae637ce77d8cbb14931c420a277916ffb725eedaecab7f"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/scratch-wait-exit-2s.json",
+      "sha256": "d3d16929892edcf3b261e238a935d477bf6891b61243f9d728bf424168d745f0"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/scratch-wait-unsatisfied.json",
+      "sha256": "afccce3fa1016edf6ac4a60ea8f145da6ecc935025e5474d284a680da3b3abe1"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/send-help.json",
+      "sha256": "fd5147b32a985bae787e3198b19070067d3ca9ad831daa90b2330a97f40a983b"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/settle-ack.json",
+      "sha256": "1c32c0b698ae633d0b851945971074b11d4f546e52304e80db312f1d962ad8ca"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/settle-helper-close.json",
+      "sha256": "0b2ea707044dc26674f59e1cac4b564570bc6810ee3247cfc58a5cc19862ee99"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/settle-inbox.json",
+      "sha256": "7722d9c08eb4049378976247e6929e64d6abcd4779eb89ca798518ec3c2eed50"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/settle-release-replay.json",
+      "sha256": "11aaf7c356f88a76e129937450f1c10a40f6c5bb7ddfeea78b5037f9d479ad59"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/settle-release.json",
+      "sha256": "ca3997264381da2c821c38e7fba956b9bc92d74dad3d7f132787079e72818fc3"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/settle-tasks.json",
+      "sha256": "6939bfa219ba0ab2a3c5adcef41c81c3970a8207c0bba33ffa57bd70cadc3871"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/settle-terminals-after.json",
+      "sha256": "2210f514c1ae14c97377ba4803d0e91fbd7264b5963c99f23aaeb0a50e619371"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/settle-workers.json",
+      "sha256": "dc916dc36ddae19d5aa77432ffb6c0b724e18fe2069cfccdd6fa2e8851ae0113"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/source-check-keepalive.ts.json",
+      "sha256": "88873a04b2a423174cee2785289e9982c07500391d901c28108cb615556c9330"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/source-commit.json",
+      "sha256": "d0af72054474c78e901ad3ce8118a8d89793a0cf7b838aaf34f999b16233b0be"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/source-dispatch-methods.ts.json",
+      "sha256": "288e211ac145e0c48ff7dac379ce914d2937012aedd9bec21253c0c12a78e275"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/source-local-history.json",
+      "sha256": "8575969985b933b518ce4bdf2df86fe2f29b38f112416022cab4dc7a949aa9f9"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/source-local-object.json",
+      "sha256": "5fecbdd071f67e2c8f14cd69690fbbec2179b99eea903a587291963d224374c0"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/source-local-tag.json",
+      "sha256": "2566358d544330365562424c22b8d3067d61f17446a72b7f7989f6baf9f1c891"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/source-paths.json",
+      "sha256": "87f18b3a923844af4aaa5518ac3404b9837cf1d9f3845a92a701add6f7e5e29c"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/source-task-store.ts.json",
+      "sha256": "b7f24e81041494c931db780b9e4f020ff2500cd7b849a5e6ff2e0b1afd7d7ed8"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/source-terminal-send-handler.json",
+      "sha256": "b48eecfc690b5557b22c00bfa1be372b75830ebe8f1b3621be594587bd7ca0eb"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/source-terminal-send.ts.json",
+      "sha256": "2e95fa25b746319d2031035171dfa3063a3a2108dd61c251263f1171dfffb29e"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/source-worker-list-run-scope.ts.json",
+      "sha256": "ceebf2512e080e31d65c8c519a9259c91b6a8a42bf1b6b4cb4f9026b0382691a"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/source-worker-start-readiness-settlement.ts.json",
+      "sha256": "dc228a438cb0d9b8bd1548ece3c014129522aa8d4b1f492fe364541895f4badc"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/task-create-help.json",
+      "sha256": "234b024736fa9451e4e0537bfc107c2b17312828667e106862665133bfd25745"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/task-list-help.json",
+      "sha256": "43be85fb853297e276b1040513400954c07b515a779e2073e69fdae319f21e68"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/task-update-help.json",
+      "sha256": "1eb3fa1551b28dad4e91e46d549647923e49e14832673f4795a3d19a3786d7b8"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/teardown-bind-a.json",
+      "sha256": "86a579cd134be47fde3362dfc87123c5097d9ff6e8cf01ebb89edec8e3758e89"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/teardown-bind-b.json",
+      "sha256": "f974ed90f4d7bd29b94818147e901d57a720e90f51ef64042c38c7570f7a427a"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/teardown-close-coordinator.json",
+      "sha256": "e86342d6d033eee278e31980c27b9d38615732c34d06f51b7ae1fc66348d8f0e"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/teardown-close-shell.json",
+      "sha256": "42878404d78c2c402da467b843fb22f88e84fd9ffd785f951b2dc8e1da996d30"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/teardown-gates-a.json",
+      "sha256": "7bb90b850b431acf5de079931363f3a3bea1ae2aee43df9baa936e9bee6db74a"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/teardown-gates-b.json",
+      "sha256": "d4426347984ff500dcdd81a3dfadcceaa0992cd131ce54345a5020e9918f5101"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/teardown-git-clean.json",
+      "sha256": "028c68cfd91bfb0435cd707f3a1fb30c1a9bfeaa23b101aeacb57895514e34cb"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/teardown-inbox-a.json",
+      "sha256": "215cd2b7057ad1b487caf88ed92073d1050ce70291abe5b29841475d977d23ab"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/teardown-inbox-b.json",
+      "sha256": "3f1867e96e2e6fb41324831974c0bf45ea9b3add8fc976ccf11a93e2934d2926"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/teardown-path-absent.json",
+      "sha256": "94cb912a9afcb63444da64af69bd205a3106353eb219d54ae2a2228ba37a5772"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/teardown-remove.json",
+      "sha256": "9891a5d8cf200bd6b2a6d2678f1d94d1c37ba247072867fd37f4fc864aee0d64"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/teardown-run-a.json",
+      "sha256": "67563e238c44a293ed11f43f205f756e0d6de04dad7ea0125a47c6acf2cc9291"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/teardown-run-b.json",
+      "sha256": "60604fada485e6d9e4fb99d1b470dbbb1881a2300a9aa47867b32725735de6bc"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/teardown-task-task_15df64730fdd.json",
+      "sha256": "4af2eb3ca8ce81d3c5d693957ad04639e6b96997e66b0e7d76836d76658939f2"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/teardown-task-task_561e2c14d2ce.json",
+      "sha256": "48a82d22d44a8d990d3cee9acd310169bc29539092ec5153715fc0e13248864c"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/teardown-task-task_8312972e7215.json",
+      "sha256": "d753660e2744dfafacb3266f37cb4732bb4854b813b7e37c7a83435bcc186597"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/teardown-task-task_d62e606bd9c6.json",
+      "sha256": "3032e8d978f32694d7398aa3c9bc564c29ba1b5d73dbe32bd789101ba90e1bf4"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/teardown-tasks-after-a.json",
+      "sha256": "ee46c7a3dec79c2a0db958136a576c87f8f6d99aa353e886696f16c03c1e7389"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/teardown-tasks-after-b.json",
+      "sha256": "7e19a8e3c6a7019b5ec034a7d7006f683e5f8707457cfc74d002d38aa7d21c4e"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/teardown-tasks-before-a.json",
+      "sha256": "7022c00d1ba882e2eae81014cfddc9dbc5091e4f3dedaeaad985207f294a71d9"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/teardown-tasks-before-b.json",
+      "sha256": "f553384ee9c8302b3e88ab4c39c1a379b9c0196e3a78479d81c7df31a8c6b89d"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/teardown-terminals-empty.json",
+      "sha256": "ec81ef340e774bf2c145b1deba52f283fe532f7fab28773952f510741905e0a8"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/teardown-workers-a.json",
+      "sha256": "5d1372d191c39ff4d3284f02d7a320112af765ff45ecab3acde06e979a20b22a"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/teardown-workers-b.json",
+      "sha256": "47c48069857f424e6194e8eca09a2f87a962b6afa7db8772903d3e0555a17445"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/terminal-close-help.json",
+      "sha256": "e3a9849f5fe585fb701f7afc0fbe3fe32633a58401f4400cc97ab6136637dbce"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/terminal-create-help.json",
+      "sha256": "c3ef9465ef1a679fde503731e40ca479b7322c394ad727b63be503d617dd87d5"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/terminal-send-help.json",
+      "sha256": "400daabd88735a7b7dcb68a452afce7bcc099e54f71e64cb24cecae28d748af4"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/terminal-wait-help.json",
+      "sha256": "3d627ecfbd468d0d719a9c24b9acaab48acd70abc945fabc981f88ba389aecd3"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/version.json",
+      "sha256": "60a554aaa6311c075a95e520a45b15a1172bea5fc96c0f74fea231e40ce548cf"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/worker-list-help.json",
+      "sha256": "bbda4312286740e0e79662c697a7823f53e5776b599283375f71b1f6703ad11b"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/worker-release-help.json",
+      "sha256": "a205452047f8d29795fb3b0de1386d77db16f6a3fc760f76b1366b0f3580bddb"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/worktree-archive-help.json",
+      "sha256": "8e4749ed7c386365ad7e9dcab53cc1cc0d4ffbb043a3afedb31fe1021e895d53"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/worktree-create-help.json",
+      "sha256": "d95b584d4bd888c1c57f338c304f16f76483486e411bcbbe196b6f80b7ad9aa5"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/worktree-help.json",
+      "sha256": "9165430556723a756591291a73cbf40152bfc411d5f9a174fbaaa36bb59eccd8"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/worktree-rm-help.json",
+      "sha256": "f0ca07f9148873fd06463ccf7ade5acfa5039978e47e26f5377b9e136fdd56b8"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/receipts/worktree-set-help.json",
+      "sha256": "b257471739fc3c43876660f6301b000aa07049cd145eae2c0154f556306e030b"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/source-location-audit.json",
+      "sha256": "c19bc7fc48a106a0e94707b30e00e42c1c100d443fa0e83e7fd72036825646fb"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/source/src/cli/handlers/orchestration/check-keepalive.ts",
+      "sha256": "8efb86b8dc07e14e63abb0e2999848f2d6d625f04f04ec6c3bdad716c1cacb8b"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/source/src/cli/handlers/orchestration/worker-list-run-scope.ts",
+      "sha256": "a1fb99643fd1fa72ef2491b323b40906294034df8a9b5b7d323c352b8ebca135"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/source/src/cli/handlers/terminal-send.ts",
+      "sha256": "9b45f7343bc0396ce3be65b4b91821db84be66e4cbca7947e11e2489b5fbd373"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/source/src/cli/specs/terminal-send.ts",
+      "sha256": "2983dc39f291ae9e874497b4676186d5daf2f6901a46e887e32d4461188d521b"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/source/src/main/runtime/orchestration/db/tasks/task-store.ts",
+      "sha256": "1e2c76ac04895b65373b27501f8041850104484071c3f3101de46b645d17e383"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/source/src/main/runtime/rpc/methods/orchestration/runs/dispatch-methods.ts",
+      "sha256": "2848e6bb52acdb95c396c640be33df6eae977d87f9acb175af587a5e10e3bd90"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/source/src/main/runtime/rpc/methods/orchestration/worker/worker-start-readiness-settlement.ts",
+      "sha256": "ec1ef19bdacd0f7fa9e8c44522abd697f5c88b84833dc535b012a55f87151463"
+    },
+    {
+      "path": "docs/runs/2026-09-12-runtime-repin/README.md",
+      "sha256": "6b12e158ade918d4cd17566d5dc58efc7d1ddcac91e102ffaadfdc25db2f570e"
+    },
+    {
+      "path": "docs/reports/release-20260912/pin/integrity.json",
+      "sha256": "0dab2a563408f181a72afda398305899959f3b119d915baad99447f37c1d8594"
+    }
+  ],
+  "manifest_storage": "Post-commit manifest.json and audit-result.json sidecars intentionally remain untracked. They name the exact committed packet SHA without a circular self-hash; all 289 listed source/receipt/report artifacts are verified at head_sha. Copy these two sidecars with the handoff; original pre-label manifest bytes are committed. Full mission review and clean-head tests remain owed.",
+  "claim": "Bounded evidence/patch prepared for review only; not merged, released, PINNED, or a proof-tier qualifying mission run.",
+  "source_branch": "codex/release-pin-20260912",
+  "base_sha_role": "Frozen source baseline, not a claim about the current parent integration branch head.",
+  "specialist_sub_base": {
+    "branch": "codex/release-pin-20260912",
+    "frozen_source_sha": "9eb2e6f6171845100b969e2d59e65b0d34ddf86f"
+  },
+  "integration_target": {
+    "branch": "codex/release-audit-20260912",
+    "authority": "Coordinator msg_ca72d8532977",
+    "current_head_observed": false
+  },
+  "outstanding": {
+    "count": 320,
+    "path": "docs/reports/release-20260912/pin/outstanding-claims.json",
+    "sha256": "fea8307284b21bf3be1c02f932cb3bcd3c0098fa8f510cbe1856975dbd4ec5f0",
+    "status": "TODO-NOT-PARKED"
+  },
+  "continuation": {
+    "path": "docs/reports/release-20260912/pin/CONTINUATION.md",
+    "sha256": "e7c79840295b02b62186b3563ade0f93b545fdeab71519bb4bf1e1d6f2c36659"
+  },
+  "prior_manifest": {
+    "path": "docs/reports/release-20260912/pin/manifest.pre-base-label.json",
+    "sha256": "d77cb8b7d6bd1c05f8a0ccf4cfc5f40335e19ded2aba2666711746d7043c1106",
+    "status": "Historical bytes before descriptive base-label correction and atomization; not current proof.",
+    "prior_audit_output_copy": "/tmp/orca-release-audit-20260912/pin-prior-audit-result.json"
+  },
+  "command_history": {
+    "path": "docs/reports/release-20260912/pin/manifest.pre-base-label.json",
+    "note": "Original affected/full/validator/Ruff/audit entries retained unchanged in archived bytes; their older observed commit/tree identities are not relabeled as final-head runs."
+  },
+  "source_files": [
+    {
+      "path": "runtime/dispatch-lifecycle.md",
+      "sha256": "62d43a75c03213f32cd557ff6b936e57a72ebe1f7b0177b5a7a5d512538538bb"
+    },
+    {
+      "path": "runtime/liveness-resume.md",
+      "sha256": "a9646fdafff1d3886b2508b2c68d3362d103b70da9dc72394062014b45865916"
+    },
+    {
+      "path": "runtime/pins.json",
+      "sha256": "2a79972e946ccaffa73be8c7334036c3efcfc6977693fdebc0959322ba74993a"
+    }
+  ],
+  "source_pin_status": "runtime/pins.json remains v1.4.199 source-only; installed 1.4.200 drift is bounded live evidence. All 21 missions remain doctrine-only.",
+  "head_lineage": {
+    "frozen_base_is_ancestor": true,
+    "source_repair_commit": "2f8dd685644990c5c93b27e804a9f8e4e8eeece4",
+    "followup_evidence_commit": "e2e7adab8a7ddf53844d2564734202e89bb78e98"
+  },
+  "artifact_audit": {
+    "committed_files": 289,
+    "every_git_blob_hash_matches": true,
+    "contract_exact_bytes": true,
+    "frozen_digest": "bc87dd46ee92e1c984c6059b29846d274f4758f8c4c25ddf16c5380f5dd459c6"
+  }
+}
