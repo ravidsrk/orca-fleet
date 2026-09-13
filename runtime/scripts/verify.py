@@ -826,6 +826,11 @@ def _command_oracle_paths(command):
                 return None
             module = name.replace(".", "/")
             scan_from = i + 2 if arg == "-m" else i + 1
+            # -c is pytest's config option, not the interpreter's. Leaving program
+            # as python3 left `python3 -m pytest -c custom.ini` classifying the
+            # config as production, so a config-only revert could fake RED.
+            if name == "pytest":
+                program = "pytest"
         else:
             if arg == "--":
                 i += 1

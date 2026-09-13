@@ -1070,6 +1070,21 @@ class TestBashWritesAreBounded(HookBase):
         block = self._deny(f"echo pwned > {self.outside / 'landed'}")
         self.assertIn("redirect", block["permissionDecisionReason"])
 
+    def test_unicode_whitespace_does_not_truncate_an_outside_redirect(self):
+        """str.isspace() treats U+00A0 as a blank; bash does not.
+
+        `> /worktree/dir<NBSP>/../../outside/file` is one filename to bash, and
+        lexically escapes. Splitting the W record at `dir` left only an
+        in-boundary prefix, so bounded_write allowed a write that lands outside.
+        """
+        nbsp = "\xa0"
+        (self.wt / f"dir{nbsp}").mkdir()
+        target = f"{self.wt}/dir{nbsp}/../../outside/file"
+        self._deny(f"printf x > {target}")
+        self._deny(f"printf x >{target}")
+        self.assertFalse((self.outside / "file").exists(),
+                         "decision fixtures must never execute payloads")
+
     def test_writes_inside_the_boundary_are_allowed(self):
         for command in (
             f"echo ok > {self.wt / 'real.txt'}",

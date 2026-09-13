@@ -310,7 +310,7 @@ def shell_tokens(seg):
     ops = r"(?:&>>|&>|>>|>\||>&|<>|<<<|<<-|<<|<&|>|<)"
     i, target = 0, False
     while i < len(seg):
-        if seg[i].isspace():
+        if seg[i] in BLANKS:
             i += 1
             continue
         op = re.match(ops if target else r"[0-9]*" + ops, seg[i:])
@@ -330,7 +330,7 @@ def shell_tokens(seg):
                     quote = ""
             elif ch in (SQ, DQ):
                 quote = ch
-            elif ch.isspace() or ch in "<>&":
+            elif ch in BLANKS or ch in "<>&":
                 break
             i += 1
         if i == start:
