@@ -7,6 +7,8 @@ it is fail-closed on write (a sink that cannot receipt must not send). Each has 
 test that would fail if the property were quietly dropped.
 """
 import hashlib
+import importlib.util
+import io
 import json
 import os
 import shutil
@@ -14,11 +16,18 @@ import stat
 import subprocess
 import sys
 import tempfile
+import threading
 import unittest
+from concurrent.futures import ThreadPoolExecutor, TimeoutError
+from contextlib import redirect_stderr
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parent.parent
 EGRESS = ROOT / "runtime" / "scripts" / "egress.py"
+SPEC = importlib.util.spec_from_file_location("egress", EGRESS)
+egress = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(egress)
 
 
 class EgressBase(unittest.TestCase):
@@ -48,6 +57,116 @@ class EgressBase(unittest.TestCase):
 
 
 class TestWrite(EgressBase):
+    def test_concurrent_processes_append_to_new_and_existing_ledgers(self):
+        for seeded in (False, True):
+            with self.subTest(seeded=seeded):
+                self.ledger = Path(self.tmp) / str(seeded) / "egress.jsonl"
+                if seeded:
+                    self.assertEqual(self.write_one(sink="seed").returncode, 0)
+                start = threading.Barrier(12)
+
+                def write(index):
+                    start.wait(timeout=10)
+                    return self.write_one(sink=f"writer-{index}")
+
+                with ThreadPoolExecutor(12) as pool:
+                    receipts = list(pool.map(write, range(12)))
+                for receipt in receipts:
+                    self.assertEqual(receipt.returncode, 0, receipt.stderr)
+                self.assertEqual(len({r.stdout.strip() for r in receipts}), 12)
+                self.assertEqual(len(self.records()), 12 + seeded)
+                self.assertEqual({r["sink"] for r in self.records()},
+                                 {f"writer-{i}" for i in range(12)} | ({"seed"} if seeded else set()))
+                verified = self.run_egress("verify")
+                self.assertEqual(verified.returncode, 0, verified.stderr)
+
+    def test_lock_failure_is_fail_closed_and_leaves_no_successful_receipt(self):
+        stderr = io.StringIO()
+        with patch("fcntl.flock", side_effect=OSError("fixture lock failure")), redirect_stderr(stderr):
+            code = egress.main(["--ledger", str(self.ledger), "write", "--sink", "fixture",
+                                "--host", "fixture.invalid", "--payload-class", "test",
+                                "--consent", "fixture"])
+        self.assertEqual(code, 3)
+        self.assertIn("EGRESS_RECEIPT_FAILED", stderr.getvalue())
+        self.assertEqual(self.records(), [])
+        self.assertEqual(self.write_one().returncode, 0)
+        self.assertEqual(self.run_egress("verify").returncode, 0)
+
+    def test_permissions_are_private_at_creation_before_any_chmod(self):
+        observed = {}
+        original_mkdir, original_open, original_io_open = os.mkdir, os.open, io.open
+
+        def observed_mkdir(path, *args, **kwargs):
+            original_mkdir(path, *args, **kwargs)
+            observed[Path(path)] = stat.S_IMODE(os.stat(path).st_mode)
+
+        def observe_open(opener, path, *args, **kwargs):
+            opened = opener(path, *args, **kwargs)
+            if not isinstance(path, int) and Path(path) == self.ledger:
+                fd = opened if isinstance(opened, int) else opened.fileno()
+                observed.setdefault(self.ledger, stat.S_IMODE(os.fstat(fd).st_mode))
+            return opened
+
+        # Observe actual OS modes at creation, so a later chmod cannot hide the
+        # interval where another user could open the receipt file or directory.
+        old_umask = os.umask(0)
+        try:
+            with patch.object(os, "mkdir", observed_mkdir), \
+                 patch.object(os, "open", lambda *a, **k: observe_open(original_open, *a, **k)), \
+                 patch.object(io, "open", lambda *a, **k: observe_open(original_io_open, *a, **k)):
+                egress.write_receipt(self.ledger, "fixture", "fixture.invalid", "test", "fixture")
+        finally:
+            os.umask(old_umask)
+        for path, mode in ((self.ledger.parent, 0o700), (self.ledger, 0o600)):
+            with self.subTest(path=path):
+                self.assertEqual(observed.get(path), mode, f"unsafe initial mode for {path}")
+        self.assertEqual(self.run_egress("verify").returncode, 0)
+
+    def test_overlapping_writers_preserve_every_successful_receipt_in_one_chain(self):
+        self.assertEqual(self.write_one().returncode, 0)
+        tail_read = threading.Event()
+        release = threading.Event()
+        original_open = Path.open
+
+        def observed_open(path, *args, **kwargs):
+            fh = original_open(path, *args, **kwargs)
+            if path == self.ledger and args == ("rb",):
+                original_read = fh.read
+
+                def paused_read(*read_args, **read_kwargs):
+                    snapshot = original_read(*read_args, **read_kwargs)
+                    if not tail_read.is_set():
+                        tail_read.set()
+                        if not release.wait(10):
+                            raise TimeoutError("test did not release the first tail snapshot")
+                    return snapshot
+
+                fh.read = paused_read
+            return fh
+
+        def write(sink):
+            return egress.write_receipt(self.ledger, sink, "fixture.invalid", "test", "fixture")
+
+        # Pause real filesystem I/O after the first tail snapshot. The second writer
+        # either completes (the buggy overlap) or waits for the first transaction.
+        with patch.object(Path, "open", observed_open), ThreadPoolExecutor(2) as pool:
+            first = pool.submit(write, "first")
+            try:
+                self.assertTrue(tail_read.wait(5), "first writer never read the ledger")
+                second = pool.submit(write, "second")
+                try:
+                    second.result(timeout=1)
+                except TimeoutError:
+                    pass
+            finally:
+                release.set()
+            receipts = [first.result(timeout=5), second.result(timeout=5)]
+        self.assertEqual(len(self.records()), 3)
+        self.assertEqual({r["id"] for r in self.records()[1:]}, {r["id"] for r in receipts})
+        verified = self.run_egress("verify")
+        self.assertEqual(verified.returncode, 0, verified.stderr)
+        self.assertIn("3 receipt(s)", verified.stdout)
+
     def test_write_creates_the_ledger_and_prints_an_id(self):
         r = self.write_one()
         self.assertEqual(r.returncode, 0, r.stderr)
