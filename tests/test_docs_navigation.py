@@ -107,6 +107,59 @@ class ReleaseRehearsalIsolation(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
 
+class NavigableDocsHaveNoDeadLinks(unittest.TestCase):
+    """The repo checked links in what it SHIPS (scripts/bundle.py, dist/) and never in what it IS.
+
+    Two exclusions, both principled rather than convenient, because a guard whose exclusions are
+    unexplained is a guard nobody can trust:
+
+    `docs/reports/**` and `docs/completion/evidence/**` are evidence records. They quote other
+    files verbatim -- `docs/completion/evidence/CF-05-r3-axis-spec.md` reproduces a line of
+    `docs/ops.md` including its link, which is correct relative to ops.md and dead relative to the
+    quoting file. Resolving a quoted link against the quoter is a category error, and rewriting it
+    would falsify the quote. Frozen report snapshots under `pin/history/` are the same shape one
+    level up: their relative links resolve against the live directory they were copied from, which
+    is what makes them faithful copies (see that directory's README).
+
+    Everything a reader actually navigates is checked.
+    """
+
+    EVIDENCE_TREES = ("docs/reports/", "docs/completion/evidence/")
+    LINK = re.compile(r"\[([^\]]*)\]\((?!https?:|mailto:|#)([^)\s]+?)(?:#[^)]*)?\)")
+
+    def _navigable(self):
+        out = subprocess.run(["git", "ls-files", "*.md"], cwd=ROOT,
+                             capture_output=True, text=True, check=True).stdout.split()
+        return [f for f in out if not f.startswith(self.EVIDENCE_TREES)]
+
+    def _dead(self, files):
+        dead = []
+        for rel in files:
+            path = ROOT / rel
+            for m in self.LINK.finditer(path.read_text(encoding="utf-8")):
+                target = m.group(2)
+                if target.startswith("/") or not (path.parent / target).exists():
+                    dead.append(f"{rel} -> {target}")
+        return dead
+
+    def test_no_navigable_doc_links_to_something_that_is_not_there(self):
+        files = self._navigable()
+        self.assertGreater(len(files), 50, "the file set collapsed; the guard would pass vacuously")
+        self.assertEqual(self._dead(files), [])
+
+    def test_the_guard_would_notice(self):
+        # A guard over a tree that happens to be clean proves nothing about the guard. Plant one.
+        with tempfile.TemporaryDirectory() as tmp:
+            planted = Path(tmp) / "planted.md"
+            planted.write_text("see [the thing](./no-such-file.md)\n", encoding="utf-8")
+            dead = []
+            for m in self.LINK.finditer(planted.read_text(encoding="utf-8")):
+                if not (planted.parent / m.group(2)).exists():
+                    dead.append(m.group(2))
+        self.assertEqual(dead, ["./no-such-file.md"],
+                         "the matcher does not detect a dead relative link")
+
+
 class ReleaseCutWalkthrough(unittest.TestCase):
     def test_next_release_preparation_cut_tag_and_provenance(self):
         # Run the documented commands in an independent ref namespace. No network,
