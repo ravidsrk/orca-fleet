@@ -14,7 +14,7 @@
       "limit": 100,
       "total": 299,
       "hasMore": true,
-      "nextCursor": "eyJ2ZXJzaW9uIjoyLCJzbmFwc2hvdCI6eyJkYXRhYmFzZUlkIjoyOTl9LCJhZnRlciI6eyJjcmVhdGVkQXQiOiIyMDI2LTA4LTI5IDA4OjM1OjI4IiwiZGlzcGF0Y2hJZCI6ImN0eF8xMTg4Njk1MTM2NDIiLCJkYXRhYmFzZUlkIjoxMDB9fQ"
+      "nextCursor": null
     },
     "scope": {
       "source": "all"
@@ -29,8 +29,11 @@
       "ok",
       "result.scope",
       "result.counts",
-      "result.page"
+      "result.page.limit",
+      "result.page.total",
+      "result.page.hasMore"
     ],
-    "reason": "worker rows named unrelated local workspaces, absolute paths, terminal handles, and dispatch IDs; the documented claim uses only scope.source=all, pagination, and totals"
+    "nextCursorOmitted": true,
+    "reason": "worker rows named unrelated local workspaces, absolute paths, terminal handles, and dispatch IDs; nextCursor decoded to a continuation record containing dispatchId; the documented claim uses only scope.source=all, pagination totals, and hasMore"
   }
 }

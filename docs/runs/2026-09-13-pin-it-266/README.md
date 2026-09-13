@@ -26,7 +26,7 @@ This continues the 2026-09-12 inventory (309 parents / 373 unfinished children).
 |---|---|---|
 | Installed version vs `runtime/pins.json` | [installed-version.txt](receipts/installed-version.txt) | STALE pin (was v1.4.199 source) → **patched** to v1.4.200 live |
 | `worker-list --run <id>` scopes to that Run | [worker-list-bound.json](receipts/worker-list-bound.json) `scope.source=flag`, total 0 | CURRENT |
-| Unscoped `worker-list` enumerates runtime history | [worker-list-unscoped.json](receipts/worker-list-unscoped.json) `scope.source=all`, total 299, paginated (worker rows omitted; they named unrelated workspaces) | CURRENT |
+| Unscoped `worker-list` enumerates runtime history | [worker-list-unscoped.json](receipts/worker-list-unscoped.json) `scope.source=all`, total 299, `hasMore` true (worker rows and `nextCursor` omitted; cursor decoded to a dispatch ID) | CURRENT |
 | `worker-list --from` | [worker-list-from-no-run.json](receipts/worker-list-from-no-run.json) `invalid_argument` | CURRENT (flag does not exist on this verb) |
 | Receipted-send / `request_mismatch` doctrine | already on `main` at `dispatch-lifecycle.md:35-36` citing 2026-09-12 receipts | CURRENT |
 | Original #266 line ("receipted sends exist only in unreleased source") | absent from current `dispatch-lifecycle.md` | SUPERSEDED (already patched before this run) |
