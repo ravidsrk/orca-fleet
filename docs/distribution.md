@@ -36,10 +36,37 @@ these specific guarantees and their limits, alongside the available run evidence
 | Plugin marketplace | try the whole catalog | `/plugin marketplace add ravidsrk/orca-fleet` → `/plugin install orca-fleet` (`.claude-plugin/`) |
 | Symlink a mission | fork/adapt one outcome | `ln -s .../skills/<mission> ~/.claude/skills/<mission>` (preserves the relative `playbooks/`/`runtime/` refs) |
 
-## Index check (2026-09-01)
+## Index check (2026-09-13; previous 2026-09-01)
 
 Agent-reachable surfaces. "Listed" means a search returned this repo, not that
 a human submitted it.
+
+**Re-run 2026-09-13: nothing moved in twelve days** — with one row that was not re-checked and
+says so. buildwithclaude, skills.sh and claudemarketplace.net were re-measured against their live
+endpoints and hold. The self-hosted marketplace is the documented install path and
+`agentskills validate` is a local check, so neither depends on an indexer.
+`anthropics/claude-plugins-official` could NOT be re-checked and carries
+`(unverified 2026-09-13)` in the table itself: read its `no` as of 2026-09-01, not today.
+
+Holding is the expected result while #235 (H-02) is unactioned — these surfaces need a human with
+submit rights, so an agent re-check can only confirm the gap, never close it. Two details
+sharpened:
+
+- buildwithclaude's record still carries `updatedAt` **2026-09-01** — it has not re-indexed
+  since the first check — and its blurb reads *"10 outcome-named autonomous fleets"*. That is
+  a cache of an older GitHub **About** string, which itself now reads 17, against a catalog of
+  **21**. Three different counts are in circulation and none of them is right. The About text
+  is a repository setting, not a file in this tree; fixing it is the upstream of this row.
+- claudemarketplace.net returns the literal page text `No results for "orca-fleet"`. The
+  string `orca-fleet` does appear three times in that HTML — in the title, the search input's
+  `value`, and the no-results line — so grepping the page for the slug reports a hit that is
+  only the query echoed back. Match on the result payload, not the page.
+
+`anthropics/claude-plugins-official` could not be re-checked from here: `marketplace.json`
+returns HTTP 404 at that path and the repository API returns 403 for this session. Its row is
+carried forward from 2026-09-01 and is **unverified at this date** rather than re-confirmed —
+said in the row as well as here, because a reader scanning a table dated today will not find a
+caveat three paragraphs above it (PR #342 review).
 
 | Surface | Listed? | Evidence |
 |---|---|---|
@@ -47,7 +74,7 @@ a human submitted it.
 | [buildwithclaude.com](https://buildwithclaude.com/api/search?q=orca-fleet) | yes (auto-index) | slug `@ravidsrk/orca-fleet`; 0 installs; description still carries a stale hardcoded catalog count |
 | [skills.sh](https://www.skills.sh/api/search?q=ravidsrk) | **no** — indexes the predecessor `ravidsrk/autonomous-fleet` instead | search `ravidsrk/orca-fleet` returns stablyai/orca skills, not this catalog |
 | [claudemarketplace.net](https://www.claudemarketplace.net/search?q=orca-fleet) | no | search payload `skills: []`, `mcpServers: []` |
-| [anthropics/claude-plugins-official](https://github.com/anthropics/claude-plugins-official) | no | `marketplace.json` has neither `orca-fleet` nor `ravidsrk` |
+| [anthropics/claude-plugins-official](https://github.com/anthropics/claude-plugins-official) | no **(unverified 2026-09-13)** | `marketplace.json` had neither `orca-fleet` nor `ravidsrk` **at 2026-09-01**; not re-checkable from this session — that path now 404s and the repository API returns 403 |
 | `agentskills validate` | name/description/compatibility/license pass | extras `proof`/`autonomy`/`proof_evidence` are intentional (issue #211) |
 
 No indexer currently publishes a does-it-load score for this catalog (buildwithclaude

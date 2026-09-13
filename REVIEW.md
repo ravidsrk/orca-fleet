@@ -1,5 +1,17 @@
 # REVIEW.md — deep review of ravidsrk/orca-fleet
 
+> **Status: worked and closed.** Every finding below is fixed and merged. #279–#306 landed in
+> PR #308, one commit per issue, alongside #309–#318 from a second independent review of the same
+> base; #307 stayed open until its nine release tags were published, and the test that demanded
+> them now passes. A 2026-09-12 release audit followed as #321–#338, with its evidence under
+> [`docs/reports/release-20260912/`](docs/reports/release-20260912/).
+>
+> This file keeps the `REVIEW.md` path because it is still the most recent review — the path means
+> "the current review", and archiving is what happens when a NEW review supersedes one, not when a
+> backlog finishes. Citations carrying a section or attack-id anchor still mean the archived
+> [2026-09-10 review](docs/reviews/2026-09-10-review.md), never this file: anchors are numbered per
+> review, so a bare one mis-resolves against whichever review holds this path (#295).
+
 Reviewed SHA: `2a9cb3a7dae6ccac4d6bb426bdbb24d8a8301d27` (`main`, 2026-09-10, merge of PR #277).
 Every `file:line` below is at that SHA. Read-only engagement: nothing in the repository was changed
 except this file. Every injection ran in a scratch clone; every attack was executed, not reasoned

@@ -107,6 +107,88 @@ class ReleaseRehearsalIsolation(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
 
+class NavigableDocsHaveNoDeadLinks(unittest.TestCase):
+    """The repo checked links in what it SHIPS (scripts/bundle.py, dist/) and never in what it IS.
+
+    Both link forms the repository actually writes are checked. README.md's navigation is raw HTML
+    -- `<a href="docs/getting-started.md">` -- so a markdown-only matcher would have watched the
+    form these docs mostly do not use and missed the one they do (PR #342 review).
+
+    Two exclusions, both principled rather than convenient, because a guard whose exclusions are
+    unexplained is a guard nobody can trust:
+
+    `docs/reports/**` and `docs/completion/evidence/**` are evidence records. They quote other
+    files verbatim -- `docs/completion/evidence/CF-05-r3-axis-spec.md` reproduces a line of
+    `docs/ops.md` including its link, which is correct relative to ops.md and dead relative to the
+    quoting file. Resolving a quoted link against the quoter is a category error, and rewriting it
+    would falsify the quote. Frozen report snapshots under `pin/history/` are the same shape one
+    level up: their relative links resolve against the live directory they were copied from, which
+    is what makes them faithful copies (see that directory's README).
+
+    Everything a reader actually navigates is checked.
+    """
+
+    EVIDENCE_TREES = ("docs/reports/", "docs/completion/evidence/")
+    # `](target)` and `href="target"` / `href='target'`, skipping absolute URLs and pure anchors.
+    LINK = re.compile(
+        r"""\]\((?!https?:|mailto:|\#)([^)\s]+?)(?:\#[^)]*)?\)"""
+        r"""|href=["'](?!https?:|mailto:|\#)([^"'\s]+?)(?:\#[^"']*)?["']""")
+
+    @classmethod
+    def _dead(cls, root, files):
+        """[`file -> target`] for every link in `files` that resolves to nothing under `root`.
+
+        The one detector. The control below plants a file and calls THIS, rather than repeating the
+        matching inline: a control that re-implements the mechanism cannot notice the mechanism
+        breaking, which is what the first cut of this test did -- gutting `_dead` left it green
+        (PR #342 review).
+        """
+        dead = []
+        for rel in files:
+            path = Path(root) / rel
+            for m in cls.LINK.finditer(path.read_text(encoding="utf-8")):
+                target = m.group(1) or m.group(2)
+                if target.startswith("/") or not (path.parent / target).exists():
+                    dead.append(f"{rel} -> {target}")
+        return dead
+
+    def _navigable(self):
+        out = subprocess.run(["git", "ls-files", "*.md"], cwd=ROOT,
+                             capture_output=True, text=True, check=True).stdout.split()
+        return [f for f in out if not f.startswith(self.EVIDENCE_TREES)]
+
+    def test_no_navigable_doc_links_to_something_that_is_not_there(self):
+        files = self._navigable()
+        self.assertGreater(len(files), 50, "the file set collapsed; the guard would pass vacuously")
+        self.assertEqual(self._dead(ROOT, files), [])
+
+    def test_the_detector_catches_each_form_the_repo_writes(self):
+        # A guard over a tree that happens to be clean proves nothing about the guard. Plant one of
+        # every shape, through the real detector.
+        planted = {
+            "md.md": "see [the thing](./no-such-file.md)\n",
+            "html.md": '<a href="no-such-file.md">nav</a>\n',
+            "html_single.md": "<a href='no-such-file.md'>nav</a>\n",
+            "absolute.md": "see [root-relative](/etc/passwd)\n",
+            "anchored.md": "see [the thing](./no-such-file.md#section)\n",
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            for name, text in planted.items():
+                (Path(tmp) / name).write_text(text, encoding="utf-8")
+            dead = self._dead(tmp, sorted(planted))
+        self.assertEqual(len(dead), len(planted),
+                         f"the detector missed a link form it must catch: {dead}")
+
+    def test_the_detector_does_not_cry_wolf(self):
+        # The other half: a link that resolves, in each form, must NOT be reported.
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "target.md").write_text("#\n", encoding="utf-8")
+            (Path(tmp) / "ok.md").write_text(
+                'see [x](target.md) and <a href="target.md">y</a> and [z](https://example.invalid)\n'
+                "and [anchor-only](#section)\n", encoding="utf-8")
+            self.assertEqual(self._dead(tmp, ["ok.md", "target.md"]), [])
+
+
 class ReleaseCutWalkthrough(unittest.TestCase):
     def test_next_release_preparation_cut_tag_and_provenance(self):
         # Run the documented commands in an independent ref namespace. No network,
@@ -405,11 +487,21 @@ class TestDocsNavigation(unittest.TestCase):
         # Issue #35: the index predated the newest run — the report that backs
         # oss-contribute's `proof: external-run` frontmatter was invisible from
         # the archive's own index. Every dated report must be a linked row.
+        #
+        # The glob was `2*.md`, i.e. flat files only. The newest run is a DIRECTORY
+        # (2026-09-12-runtime-repin/README.md), so the guard silently stopped covering the newest
+        # shape while still passing -- the same defect #35 filed, one directory level down.
         index = (DOCS / "runs" / "README.md").read_text(encoding="utf-8")
-        for f in sorted((DOCS / "runs").glob("2*.md")):
+        reports = sorted((DOCS / "runs").glob("2*.md"))
+        reports += sorted(d / "README.md" for d in (DOCS / "runs").glob("2*")
+                          if d.is_dir() and (d / "README.md").is_file())
+        self.assertTrue(reports, "no dated run reports found at all")
+        for f in reports:
+            # A directory run is linked by its directory, a flat one by its filename.
+            link = f"({f.parent.name}/)" if f.name == "README.md" else f"({f.name})"
             self.assertIn(
-                f"({f.name})", index,
-                f"docs/runs/{f.name} is not linked from the run-archive index",
+                link, index,
+                f"docs/runs/{f.relative_to(DOCS / 'runs')} is not linked from the run-archive index",
             )
 
     def test_run_archive_integrity_standard_matches_practice(self):
