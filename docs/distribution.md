@@ -36,10 +36,28 @@ these specific guarantees and their limits, alongside the available run evidence
 | Plugin marketplace | try the whole catalog | `/plugin marketplace add ravidsrk/orca-fleet` → `/plugin install orca-fleet` (`.claude-plugin/`) |
 | Symlink a mission | fork/adapt one outcome | `ln -s .../skills/<mission> ~/.claude/skills/<mission>` (preserves the relative `playbooks/`/`runtime/` refs) |
 
-## Index check (2026-09-01)
+## Index check (2026-09-13; previous 2026-09-01)
 
 Agent-reachable surfaces. "Listed" means a search returned this repo, not that
 a human submitted it.
+
+**Re-run 2026-09-13: nothing moved in twelve days.** Every row below holds, which is the
+expected result while #235 (H-02) is unactioned — these surfaces need a human with submit
+rights, so an agent re-check can only confirm the gap, never close it. Two details sharpened:
+
+- buildwithclaude's record still carries `updatedAt` **2026-09-01** — it has not re-indexed
+  since the first check — and its blurb reads *"10 outcome-named autonomous fleets"*. That is
+  a cache of an older GitHub **About** string, which itself now reads 17, against a catalog of
+  **21**. Three different counts are in circulation and none of them is right. The About text
+  is a repository setting, not a file in this tree; fixing it is the upstream of this row.
+- claudemarketplace.net returns the literal page text `No results for "orca-fleet"`. The
+  string `orca-fleet` does appear three times in that HTML — in the title, the search input's
+  `value`, and the no-results line — so grepping the page for the slug reports a hit that is
+  only the query echoed back. Match on the result payload, not the page.
+
+`anthropics/claude-plugins-official` could not be re-checked from here: `marketplace.json`
+returns HTTP 404 at that path and the repository API returns 403 for this session. Its row is
+carried forward from 2026-09-01 and is **unverified at this date** rather than re-confirmed.
 
 | Surface | Listed? | Evidence |
 |---|---|---|
