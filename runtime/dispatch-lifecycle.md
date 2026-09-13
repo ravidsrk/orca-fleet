@@ -32,10 +32,10 @@ three ONLY; the rest sit at their own sites, anchored per code beside POLICY_COD
 never touch that process. It is NOT invisible — `worker-list` lists it as `unsupervised` with terminal state `retained` (`orchestration-worker-specs.ts:124`).
 Use it for custom argv/topology `worker-start` cannot express (and for `PROFILE=ro`), and record the trade in the ledger. **`--inject` SUBMITS the preamble**
 — it does not merely paste it (`dispatch-methods.ts:155-165`) — and `--json` returns `result.prompt{requestId, stages}` over `input_accepted | turn_started`
-(`runtime-terminal-contracts.ts:221-225`). So: read the receipt; if `turn_started` is absent, replay it ONCE with `terminal send --retry-request <id>
---wait-submit <secs>`, which returns the input-accepted receipt on timeout and never resends (`terminal-send.ts:19-22`). `accepted: true` proves input
-acceptance, not a started turn — **never resend on silence** (`orchestration/recovery-and-cleanup:92-94`). The bounded re-Enter loop is deleted; an extra
-Enter on a started turn is a stray keystroke outside the receipt model.
+(`runtime-terminal-contracts.ts:221-225`). So: read the receipt and STOP. `--inject` OWNS that request id, and `terminal send` is a different durable
+mutation method — replaying under it is the cross-method retry Orca 1.4.200 E2 refuses, so the old `--retry-request` replay is gone. `accepted: true` proves
+input acceptance, not a started turn — **never resend on silence** (`orchestration/recovery-and-cleanup:92-94`). Inspect the live pane and the receipts; the
+original receipt stays authoritative, and no preview or unrelated terminal activity promotes it to `turn_started`.
 
 ## The worker contract (what every dispatch preamble must state)
 
@@ -123,7 +123,7 @@ recovery action; the loop is the manual one (task-create → worker-start → `c
   (`spec_truncated` marks shortened rows); omit it when the full spec is needed.
 - Keepalives go to **stderr** every 15 s (`{"_keepalive":true,…}`, with `_heartbeat` alongside as a deprecated alias), NEVER stdout — pipe stdout only into
   parsers (`runtime/scripts/pm.py <file>` for saved streams) (`check-keepalive.ts:18-26`).
-- Mutations accept `--retry-request <id>`: a lost response never risks a duplicate dispatch — re-issue with the same request id and the runtime dedupes
+- Mutations accept `--retry-request <id>` WITHIN one method: re-issue through the same method and the runtime dedupes; across methods it is refused (E2)
   (`request-show --request <id>`; `completed`/`pending`/`absent`). Use it on every non-idempotent orchestration call.
 - Group addresses (`@all`, `@idle`, `@claude`, `@codex`, `@grok`, `@cursor`, `@opencode`, `@gemini`, `@droid`, `@worktree:<id>`, …) are broadcast-only. The
   RUNTIME rejects a group address for `worker_done` and `heartbeat` only (`message-send-handler.ts:51-58`) — a `merge_ready` to `@all` really would fan out.
@@ -154,7 +154,7 @@ ledger it as a leak, never force it.
 Each is one receipt away on an installed v1.4.199 and none needs a remote host; until run, these claims are source-witnessed only.
 
 1. `worker-start` per roster agent — record `state`, `stage`, `launch.effective`, `turnStart`, and the host's `agentDefaultArgs` permission mode.
-2. `dispatch --inject --json` receipt `prompt.stages`, then a `--retry-request` replay.
+2. `dispatch --inject --json` receipt `prompt.stages` — inspected, never replayed under that id.
 3. Mixed-batch `check` (does a `--types` wake deliver other types?) and `send --to @all --type merge_ready` in a scratch Run.
 4. `task-create --deps '["bogus"]'` → archive the refutation.
 5. `gate-create` → `gate-resolve` → `dispatch-show --task --preamble`: is the resolution there?

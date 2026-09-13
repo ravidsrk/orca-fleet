@@ -469,7 +469,10 @@ esac
                         self.assertIn("authoritative placement", p.stderr)
                         self.assertIn("PROFILE=ro or PROFILE=rw", p.stderr)
                         calls = log.read_text()
-                        self.assertIn("recipe doctor lane-7 --provision", calls)
+                        self.assertIn("recipe doctor lane-7", calls)
+                        # #335 review: the refusal is unconditional, so no doctor verdict can
+                        # authorize this lane and provisioning a VM only bills for the privilege.
+                        self.assertNotIn("--provision", calls)
                         for launch in ("worker-start", "terminal create", "--inject",
                                        "task-update"):
                             self.assertNotIn(launch, calls)

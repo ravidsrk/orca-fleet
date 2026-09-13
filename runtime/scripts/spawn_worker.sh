@@ -98,7 +98,7 @@
 #   ORCA_SANDBOX_RECIPE       PROFILE=danger only: the orca-per-workspace-env recipe id the lane
 #                             runs in. Required — the opt-in above is intent, this is evidence.
 #   ORCA_SANDBOX_DOCTOR       PROFILE=danger only, and an OUTPUT path since #283: where this
-#                             script WRITES the `vm recipe doctor <id> --provision` transcript it
+#                             script WRITES the `vm recipe doctor <id>` transcript it
 #                             ran itself, for the lane ledger. Optional; an unwritable path is a
 #                             refusal. It is no longer an input — a transcript the caller names is
 #                             not evidence (/etc/passwd passed the old grep).
@@ -260,7 +260,7 @@ if [ "$PROFILE" = "danger" ]; then
       exit 2 ;;
   esac
   if ! command -v orca >/dev/null 2>&1; then
-    echo "SPAWN=REFUSED task=${task} PROFILE=danger needs \`orca\` on PATH to run \`vm recipe doctor ${recipe} --provision\` — a sandbox cannot be certified without the runtime that provides it (#283)" >&2
+    echo "SPAWN=REFUSED task=${task} PROFILE=danger needs \`orca\` on PATH to run \`vm recipe doctor ${recipe}\` — a sandbox cannot be certified without the runtime that provides it (#283)" >&2
     exit 2
   fi
   step=sandbox-doctor
@@ -270,13 +270,18 @@ if [ "$PROFILE" = "danger" ]; then
   # [--repo-path] [--provision|--connect] for doctor. So ask for JSON and fall back to the
   # documented plain form when the flag is rejected. Source-witnessed, not binary-witnessed — the
   # same limitation pins.json records for itself; re-witness on the next pin-it wave.
-  orca vm recipe doctor "$recipe" --provision --json > "$doctor_out" 2>&1 || doctor_rc=$?
+  # NOT --provision. The refusal below is unconditional: no doctor verdict, clear or not, can
+  # authorize this lane, so bringing a VM up buys nothing and bills for it (#335 review). The
+  # health check itself is cheap and stays, because what it proves — and what it does NOT prove
+  # about placement — is the whole point of the refusal. `--provision` goes back when placement
+  # binding exists for it to gate; `vm.ts:6-9` documents the bare form as valid.
+  orca vm recipe doctor "$recipe" --json > "$doctor_out" 2>&1 || doctor_rc=$?
   if [ "$doctor_rc" -ne 0 ] && grep -qiE "unknown (option|flag|argument)|unrecognized|invalid option" "$doctor_out"; then
     doctor_rc=0
-    orca vm recipe doctor "$recipe" --provision > "$doctor_out" 2>&1 || doctor_rc=$?
+    orca vm recipe doctor "$recipe" > "$doctor_out" 2>&1 || doctor_rc=$?
   fi
   if [ "$doctor_rc" -ne 0 ]; then
-    echo "SPAWN=REFUSED task=${task} \`orca vm recipe doctor ${recipe} --provision\` exited ${doctor_rc} — the sandbox did not come up clean: $(head -c 300 "$doctor_out" | tr '\n' ' ')" >&2
+    echo "SPAWN=REFUSED task=${task} \`orca vm recipe doctor ${recipe}\` exited ${doctor_rc} — the sandbox did not come up clean: $(head -c 300 "$doctor_out" | tr '\n' ' ')" >&2
     rm -f "$doctor_out"
     exit 2
   fi

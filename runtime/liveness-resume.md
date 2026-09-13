@@ -68,11 +68,11 @@ process exit, or a transcript whose final agent turn sent no `worker_done`.
   a rewritten TASK, or park. Counted toward the 3-attempt cap.
 - Re-confirm `ORCA_COORD_ALLOW_DANGER` before respawning a danger-profile worker.
 - Lost preamble ≠ dead worker: regenerate the exact preamble with `dispatch-show --task <id> --preamble` (it
-  is derived deterministically from the current task spec) and replay the receipt with `terminal send
-  --retry-request <id> --wait-submit <secs>`. Receipted sends shipped in v1.4.199
-  (`terminal-send.ts:8,19-22`): a timeout returns the input-accepted receipt and never resends. NEVER
-  blind-re-Enter — `accepted: true` proves input acceptance, not a started turn, and the rule is never resend
-  on silence.
+  is derived deterministically from the current task spec) to INSPECT what was sent. Do NOT replay it: the
+  `--inject` request id belongs to that method, and `terminal send --retry-request` under it is the
+  cross-method retry Orca 1.4.200 E2 refuses (spawn_worker.sh). The original receipt stays authoritative —
+  no preview or unrelated terminal activity promotes it to `turn_started`. NEVER blind-re-Enter: `accepted:
+  true` proves input acceptance, not a started turn, and the rule is never resend on silence.
 - A worker blocked on a human prompt shows `observation.agentWait` — a gate-classification problem, not a
   respawn (null and absent differ: absent means the host never reported).
 - NEVER run `orca orchestration reset` mid-run — it wipes the task/dispatch state every recovery path below
