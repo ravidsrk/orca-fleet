@@ -1,0 +1,170 @@
+diff --git a/docs/compliance-provenance.md b/docs/compliance-provenance.md
+index 4b45e5c..da2ca95 100644
+--- a/docs/compliance-provenance.md
++++ b/docs/compliance-provenance.md
+@@ -1,43 +1,47 @@
+-# Compliance provenance — mapping the evidence manifest to EU AI Act Art-12/50
++# Compliance provenance — supporting evidence for AI-system changes
+ 
+-The [evidence manifest](../runtime/evidence-manifest.md) already records most of what the EU AI Act's
+-transparency + logging obligations expect of a change to a high-risk AI system. Its optional
+-`provenance` block closes the remaining gap, turning the manifest into a regulated audit record.
++The [evidence manifest](../runtime/evidence-manifest.md) records change scope, revisions,
++commands and review references. Its optional `provenance` block adds context for an audit;
++these are supporting records, not a regulatory conformance guarantee. The verifier checks
++that required provenance strings are present when a standard is named. It does not validate
++their truth or establish that the operating AI system meets that standard.
+ 
+-> Not legal advice. A dated mapping (2026-08-28) to inform an `attest-it`-style conformance run;
+-> the authoritative text is the Act and the Commission's guidance.
++## Applicability checked 2026-09-12
+ 
+-## Why this exists
++Determine the system's scope, operator role, risk category and exceptions before selecting
++obligations. Under Article 113(c), Chapter III Sections 1–3 (except Article 6(5)) apply from
++**2 December 2027** for Article 6(2)/Annex III systems and **2 August 2028** for Article 6(1)/Annex I
++systems. Articles 12 and 26 fall within those sections; Article 111 adds existing-system
++transitions. [Consolidated AI Act, Articles 111 and 113](https://eur-lex.europa.eu/eli/reg/2024/1689/2026-07-27/eng).
+ 
+-EU AI Act **Article 12** (automatic, tamper-evident event logging for high-risk systems),
+-**Article 26(6)** (deployer log retention ≥ 6 months), and **Article 50** (AI-output transparency /
+-machine-readable marking) became enforceable **2 Aug 2026**. Guidance expects per-change provenance:
+-governing spec/policy version, model lineage, reviewer identity + timestamp, test outcomes,
+-security-scan results, and immutable/append-only storage. That is structurally the manifest.
++Article 50 generally applies from **2 August 2026**, with obligation-specific exceptions.
++Article 111(4) gives providers of covered synthetic-content systems placed on the market before
++that date until **2 December 2026** to comply with Article 50(2).
++[Consolidated AI Act](https://eur-lex.europa.eu/eli/reg/2024/1689/2026-07-27/eng);
++[Commission applicability FAQ](https://digital-strategy.ec.europa.eu/en/faqs/navigating-ai-act).
+ 
+-## Field mapping
++## What the manifest can support
+ 
+-| Regulatory expectation | Manifest field | Notes |
++| Change evidence | Field | Limit |
+ |---|---|---|
+-| Immutable event record of the change | `base_sha` → `head_sha`, `commands[]` (+ exit codes, artifacts), run-close **sha256 inventory** | git + the integrity inventory are the tamper-evident log |
+-| What was required (scope, frozen) | `contract.source` @ `contract.digest`, `criterion_ids`, `criteria[]` | the denominator can't be shrunk (§1/§2) |
+-| Independent verification that it holds | §2 independent verifier (re-derive from git, clean-env test, negative control) | "verified, not asserted" |
+-| Governing spec / policy version | `provenance.spec_version` | e.g. `security-policy@v3` |
+-| Model lineage | `provenance.model` | implementing model + version |
+-| Reviewer identity + timestamp | `provenance.reviewer`, `pr.reviewed_sha`, `reviewer_mode` | who reviewed, at which SHA, how independent |
+-| Retention / immutability | `provenance.retention` | pointer to the append-only store meeting Art-26(6) |
+-| Which standard is being attested | `provenance.standard` | `EU-AI-Act-Art-12` \| `SOC2` \| `SSDF` \| `none` |
+-| AI-output disclosure (Art-50) | `claim` + `provenance.model` | marks the change as agent-produced |
++| Revision and recorded checks | `base_sha`, `head_sha`, `commands[]`, artifact hashes | Hashes bind retained bytes; the coordinator still owns clean-environment reruns |
++| Frozen acceptance scope | `contract.source`, `contract.digest`, `criteria[]` | Scope completeness needs comparison with the authoritative contract |
++| Governing policy and implementing model | `provenance.spec_version`, `provenance.model` | Declared context; a model name does not characterize the deployed AI system |
++| Review attribution | `provenance.reviewer`, `pr.reviewed_sha`, `reviewer_mode` | Review identity and SHA require independent verification |
++| Retention reference | `provenance.retention` | A pointer does not provide storage, retention enforcement or access controls |
++| Intended assessment | `provenance.standard` | Naming `EU-AI-Act-Art-12`, `SOC2` or `SSDF` does not establish conformance |
+ 
+-## Gaps a full conformance run still owns
++## Obligations for the operating AI system need separate evidence
+ 
+-- **Retention infrastructure** (the append-only store itself) is deployment-specific — the manifest
+-  points at it; it does not provide it.
+-- **Per-obligation coverage** across a whole standard is the job of the proposed `attest-it` mission
+-  (#84): one unit per obligation from a frozen `standard@version` catalog, each independently
+-  re-derived, `CONFORMANT` / `CONFORMANT-WITH-GAPS`.
++| Scoped obligation | Evidence the change manifest does not supply |
++|---|---|
++| Article 12: automatic lifetime event logging for high-risk systems | Runtime logging capability and operational records |
++| Article 26(6): deployers retain controlled system logs appropriately, at least six months unless applicable law provides otherwise | Actual retained logs and retention enforcement |
++| Article 50(2): providers mark covered synthetic outputs in machine-readable form | Output marking and detectability checks; `claim` and `provenance.model` do not mark outputs |
++| Article 50(1), (3)–(5): applicable interaction/content disclosures | Recipient-facing disclosures at interaction or exposure, subject to the specified exceptions |
+ 
+-## Sources (accessed 2026-08-28)
+-
+-- EU transparency-obligations guidance — <https://digital-strategy.ec.europa.eu/en/library/guidelines-transparency-obligations-providers-and-deployers-ai-systems>
+-- Commission, "safer and more transparent AI" (2 Aug 2026) — <https://commission.europa.eu/news-and-media/news/safer-and-more-transparent-ai-2026-08-02_en>
++These obligations concern the operating system and its outputs, independently of build records.
++[Consolidated AI Act, Articles 12, 26 and 50](https://eur-lex.europa.eu/eli/reg/2024/1689/2026-07-27/eng).
++A full [attest-it](missions/attest-it.md) run must freeze the applicable obligations and obtain
++separate evidence for each; missing capability or evidence remains an explicit gap. This mapping
++is an engineering evidence aid, not an assessment of a particular deployment's legal compliance.
+diff --git a/docs/distribution.md b/docs/distribution.md
+index 592facd..b8425a8 100644
+--- a/docs/distribution.md
++++ b/docs/distribution.md
+@@ -1,25 +1,33 @@
+ # Distribution, discoverability & trust
+ 
+-*How orca-fleet reaches users in a market of ~23k plugins across thousands of marketplaces, and why
+-its machine-checked `proof:` field is the discovery advantage.*
++*How orca-fleet reaches users, and what its proof records establish.*
+ 
+-> Dated guidance (2026-08-28). Index check 2026-09-01 (issue #210). Submissions that
+-> need a human account remain [H-02](completion/HUMAN_ACTIONS.md).
++> Trust guidance checked 2026-09-12. Historical index check 2026-09-01 (issue #210).
++> Submissions that need a human account remain [H-02](completion/HUMAN_ACTIONS.md).
+ 
+-## The bottleneck is trust, not capability
++## State the evidence and who checks it
+ 
+-The Claude Code plugin ecosystem is large and noisy, and a "does it actually load / actually work"
+-scoring layer has emerged (indexers rebuild nightly from GitHub). In that market, **provable honesty
+-is a discovery advantage**: orca-fleet is one of the few packs whose claims are machine-checked —
++Listings should link to retained evidence and identify its authority:
+ 
+-- **`metadata.proof:`** (validator-enforced): no mission presents itself as more proven than a run report on
+-  disk (`doctrine-only` → `self-run` → `external-run`). See the [run archive](runs/).
+-- **`metadata.autonomy:`** (validator-enforced): every mission declares its Osmani L0–L5 level.
+-- **contract tests + count-lint + badge freshness**: the README badges (`missions`, `contract tests`,
+-  `version`) are generated from repo state, not hand-typed, so they can't rot.
++- **Deterministic checks:** the validator checks catalog structure, declared autonomy levels,
++  generated badge freshness and proof-report bindings. A tier above `doctrine-only` requires
++  a retained report with an inventory that re-hashes at its named commit. These checks do not
++  establish that a mission achieved its outcome. See the [run archive](runs/).
++- **Worker-attested records:** `commands[]`, provenance and recorded verifier outcomes originate
++  in the worker's environment. `run_report.py` checks bindings and hashes; it does not rerun
++  verification or independently authenticate the worker's ledger.
++- **Coordinator-owned reruns:** an independent process must use the frozen contract, inspect
++  authoritative git/review state, rerun tests in a clean environment at the exact SHA, and execute
++  the applicable negative control. Deploy/review identity also needs a coordinator check when
++  shipping. Installing the catalog does not perform these steps.
++- **Advisory native hooks:** `Stop`/`TaskCompleted` hooks run in the worker's session, where inputs
++  and keys are worker-influenceable. They provide local checks; independence requires execution
++  outside that session with coordinator-controlled inputs. See the
++  [gate trust boundary](verify-gate.md#trust-boundary).
+ 
+-Lead listings and the README with that trust story — the claim is checked by mechanism, outside the
+-run that made it — not a feature count.
++Badge freshness binds generated counts to repository state. A discovered test count does not
++establish that the tests passed; use an actual CI result for execution status. Lead listings with
++these specific guarantees and their limits, alongside the available run evidence.
+ 
+ ## Install paths (already shipped)
+ 
+@@ -64,7 +72,7 @@ A future `assets/badges/proof.json` (generated by `scripts/gen-badges.py`, check
+ `check_badge_freshness`) could surface the catalog's proof mix as `runtime/scripts/proof_status.py`
+ reports it — at this writing 0 external-run · 0 self-run · 21 doctrine-only, figures the navigation
+ test binds to the live rollup so they cannot rot silently — in the README badge row, turning honesty
+-into a visible, non-gameable signal.
++into a visible summary of retained proof records.
+ Deferred here to keep this change doc-only; tracked as a follow-up.
+ 
+ ## See also
+diff --git a/docs/runs/README.md b/docs/runs/README.md
+index f828326..dba3146 100644
+--- a/docs/runs/README.md
++++ b/docs/runs/README.md
+@@ -71,7 +71,17 @@ make each run concrete, self-run candidates first:
+ | absorb-it | this repo's own inbound PR queue once it has one; otherwise an external repo with open community PRs | external-run | `ABSORBED` (or `-WITH-PARKED`) | Orca; an inbound queue that exists |
+ | document-it | this catalog's own zero-coverage doc cells — `runtime/scripts/` has modules with no guide entry | self-run | `DOCUMENTED` | Orca; a frozen public surface to document against |
+ | migrate-it | needs a stateful schema — this catalog has no database; an external repo with a live migration | external-run | `MIGRATED` | a target with real data + Orca |
+-| oncall-it | needs a live incident — an external service with a paging surface, or a replayed postmortem against a real timeline | external-run | `RESOLVED` (or `-WITH-PARKED`) | a target + Orca |
++| oncall-it | a bounded external staging-service path set, with 2–4 frozen on-call questions per path; establish operability using the proof below | external-run | `OPERABLE` / `OPERABLE-WITH-PARKED` | Orca; staging failures that can be induced safely; an observable alert destination; human path/question and cost/ownership gates |
++
++For **oncall-it**, retain the question→signal queries and outputs, symptom alerts with two
++severities and justified thresholds, linked runbooks, and test-fire receipts from the destination.
++Record both oracle runs: a fresh source-blind worker locates an induced staging failure from
++telemetry alone; a second fresh source-blind worker cannot locate it after instrumentation is
++removed on a throwaway branch (RED). Neither worker wrote the instrumentation. Bind the evidence
++to the recorded head SHA and removal control, then re-check every frozen question at the final
++head. Missing staging, receipt or oracle evidence leaves the path parked; an incident resolved
++using existing telemetry is insufficient. The [mission protocol](../../skills/oncall-it/SKILL.md)
++owns the complete proof; a healthy service with missing telemetry is a valid starting target.
+ 
+ A run's report goes through the same gates as any change (PR, review bot, `validate.py`), and
+ `proof_status --check` keeps every tier honest until the report lands.

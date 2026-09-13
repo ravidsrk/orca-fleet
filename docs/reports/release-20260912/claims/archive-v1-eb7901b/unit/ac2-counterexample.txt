@@ -1,0 +1,6 @@
+root: /Users/ravindra/orca/workspaces/orca-fleet/codex-release-claims-20260912
+commit: 9eb2e6f6171845100b969e2d59e65b0d34ddf86f
+event=stop, exit=0: verify-gate: Stop with no unit in progress (ORCA_MANIFEST unset) — nothing to verify, allowing
+event=task, exit=2: verify-gate: no evidence manifest (ORCA_MANIFEST unset) — BLOCKING (fail-closed)
+COUNTEREXAMPLE: installed Stop hook permits an idle turn without running a verifier.
+POSITIVE CONTROL: TaskCompleted without evidence still blocks.
