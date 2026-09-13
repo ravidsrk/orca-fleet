@@ -10,6 +10,24 @@ The deep-review branches. The 2026-09-10 review (archived at `docs/reviews/2026-
 and the upstream deep audit under `docs/research/` opened issues #255–#276; the 2026-09-11 review
 (`REVIEW.md`) opened #279–#307.
 
+**Both review backlogs are now closed, and the release audit after them has landed.** The
+2026-09-11 backlog (#279–#306) and a second independent review's #309–#318 merged together in
+#308 — 38 issues, one commit each. #307 stayed open until its nine release tags were published;
+they now exist and the gate that demanded them passes. The release audit of 2026-09-12 landed as
+#321–#338 against `deny-hook.sh`, `verify.py`, `egress.py`, `bundle.py`, `spawn_worker.sh` and the
+mission contracts, with its evidence under `docs/reports/release-20260912/`.
+
+What the #308 round changed about the verifier is worth naming, because each was a way a unit
+could be graded against a proof it chose: `check_redaction` now scans `commands[].artifact`, the
+captured stdout where a leaked credential actually lands (#309); an unsigned `report-only` or
+`planning` class is measured against what `base_sha..head_sha` really changes, so one
+worker-controlled env var can no longer shed the negative control, intent packet, lighting and
+reviewer_mode (#310); the signed dispatch record covers the control's own inputs — `nc_paths`,
+`nc_command`, `nc_artifact_sha256` — so signing the class and contract no longer leaves the worker
+picking its own oracle (#311); a standing `CHANGES_REQUESTED` at the reviewed head is no longer
+overridden by a second approval (#317); and a floor-guard waiver is a DECISIONS record the ledger
+can retire, not a line that happens to contain a rule id and a path (#313).
+
 Landed on 2026-09-10 and previously unlisted here, which the entry below promised and did not do:
 missions `migrate-it`, `oncall-it`, `absorb-it`, `document-it`; scripts `bundle.py`, `deny-hook.sh`,
 `egress.py`, `floor_guard.py`, `guard_text.py`, `decisions.py`, `evidence-run.py`, `inventory.py`.
