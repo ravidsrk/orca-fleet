@@ -21,6 +21,7 @@ stale (someone added a mission without regenerating). Run this to refresh:
     python3 scripts/gen-badges.py           # write the files
     python3 scripts/gen-badges.py --check    # exit 1 if any file is stale
 """
+import ast
 import json
 import re
 import sys
@@ -31,7 +32,6 @@ SKILLS_DIR = ROOT / "skills"
 TESTS_DIR = ROOT / "tests"
 BADGES_DIR = ROOT / "assets" / "badges"
 
-TEST_DEF_RE = re.compile(r"^\s*def (test_\w+)\(", re.MULTILINE)
 GUIDES_DIR = ROOT / "docs" / "missions"
 # The callout sits directly under the Autonomy one in every mission guide.
 LOAD_CALLOUT_RE = re.compile(r"(?m)^> \*\*Activation load:\*\* .*$")
@@ -79,9 +79,22 @@ def mission_count() -> int:
 
 
 def test_count() -> int:
+    """Test definitions, PARSED rather than matched.
+
+    A regex over the text counted `def test_thing():` inside a fixture string too, and this
+    suite is full of them — a test about test files embeds test files, so tests/ contains
+    test sources as data (`BASE_TEST` in test_floor_guard.py is one). The badge is a public
+    inventory, so it counts what Python would call a test function and nothing that merely
+    reads like one (#334 review).
+
+    A file that does not parse is a real problem, not something to count around: it raises.
+    """
     total = 0
     for f in sorted(TESTS_DIR.glob("test_*.py")):
-        total += len(TEST_DEF_RE.findall(f.read_text(encoding="utf-8")))
+        tree = ast.parse(f.read_text(encoding="utf-8"), filename=str(f))
+        total += sum(1 for node in ast.walk(tree)
+                     if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+                     and node.name.startswith("test_"))
     return total
 
 

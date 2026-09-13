@@ -754,6 +754,35 @@ class TestCountAgnosticGuards(unittest.TestCase):
                 self.assertEqual(badge["color"], "6e7781")  # neutral inventory
         self.assertEqual(generated[0], generated[1])
 
+    def test_badge_counts_definitions_not_text_that_reads_like_one(self):
+        """PR #334 review, P2.
+
+        The count was a regex over the text, and this suite embeds test sources AS DATA — a test
+        about test files carries test files in fixture strings. Where such a string body starts a
+        line, the regex counted it as a definition. The badge is a public inventory, so it counts
+        what Python would call a test function.
+        """
+        spec = importlib.util.spec_from_file_location("_counts", ROOT / "scripts/gen-badges.py")
+        gb = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(gb)
+        cases = (
+            # (source, definitions actually present)
+            ('FIXTURE = """\ndef test_embedded():\n    pass\n"""\n\ndef test_real():\n    pass\n', 1),
+            ('BASE = """def test_inline():\n    pass\n"""\ndef test_real():\n    pass\n', 1),
+            ("def test_a():\n    pass\n\n\nasync def test_b():\n    pass\n", 2),
+            ('S = """\n    def test_indented(self):\n        pass\n"""\n', 0),
+            ("class T:\n    def test_method(self):\n        pass\n", 1),
+            ("def helper():\n    pass\n", 0),
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            tests = Path(tmp)
+            fixture = tests / "test_fixture.py"
+            with mock.patch.object(gb, "TESTS_DIR", tests):
+                for source, expected in cases:
+                    with self.subTest(source=source):
+                        fixture.write_text(source, encoding="utf-8")
+                        self.assertEqual(gb.test_count(), expected, source)
+
     def test_badge_inventory_refreshes_counts_and_rejects_success_claims(self):
         spec = importlib.util.spec_from_file_location("_counts", ROOT / "scripts/gen-badges.py")
         gb = importlib.util.module_from_spec(spec)
