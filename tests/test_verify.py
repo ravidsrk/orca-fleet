@@ -2105,16 +2105,17 @@ class PinnedEvidenceBytes(RepoCase):
         # TemporaryDirectory tore the tree down (OSError 39 on Linux CI).
         observed = []
 
-        def fake_run_at(cwd, args, timeout=20, stdin_bytes=None):
+        def fake_run(args, timeout=20, cwd=None):
             observed.append((cwd, list(args)))
             return 0, "", ""
 
         art = self.artifact("clean evidence")
         with mock.patch.object(shutil, "which", return_value="/bin/gitleaks"), \
-             mock.patch.object(verify, "_run_at", side_effect=fake_run_at):
+             mock.patch.object(verify, "_run", side_effect=fake_run):
             self.assertEqual(verify.check_redaction({"artifacts": [self.pin(art)]}, None), [])
-        self.assertTrue(observed, "gitleaks was not invoked")
-        cwd, args = observed[0]
+        leaks = [(cwd, args) for cwd, args in observed if args and args[0] == "gitleaks"]
+        self.assertTrue(leaks, f"gitleaks was not invoked: {observed!r}")
+        cwd, args = leaks[0]
         source = args[args.index("--source") + 1]
         self.assertEqual(Path(cwd).resolve(), Path(source).parent.resolve())
         self.assertIn("--no-git", args)

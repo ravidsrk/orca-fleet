@@ -98,10 +98,11 @@ _NC_ZERO_KILL_RE = re.compile(
     r"|\b0(?:\.0+)?\s*%\s+killed\b|\b0\s+mutants?\s+killed\b|\b0\s+killed\b)")
 
 
-def _run(args, timeout=20):
+def _run(args, timeout=20, cwd=None):
     """Run a command; return (code, stdout, stderr). Never raises."""
     try:
-        p = subprocess.run(args, capture_output=True, text=True, timeout=timeout, check=False)
+        p = subprocess.run(args, capture_output=True, text=True, timeout=timeout, check=False,
+                           cwd=cwd)
         return p.returncode, p.stdout, p.stderr
     except (subprocess.TimeoutExpired, OSError) as err:
         return 1, "", str(err)
@@ -1636,9 +1637,10 @@ def _gitleaks_scan(path):
     # cwd is the evidence copy's directory, never the unit checkout: gitleaks
     # otherwise inherits the process cwd (the worker/test repo) and can write
     # under .git/objects while tests tear that tree down (#340).
-    code, _, _ = _run_at(str(Path(path).parent),
-                         ["gitleaks", "detect", "--no-git", "--no-banner", "--redact",
-                          "--source", str(path)], timeout=120)
+    # Uses _run (not _run_at): _run_at is the negative-control executor, and
+    # admission tests assert it is not called before a control is authorized.
+    code, _, _ = _run(["gitleaks", "detect", "--no-git", "--no-banner", "--redact",
+                       "--source", str(path)], timeout=120, cwd=str(Path(path).parent))
     if code == 0:
         return False
     if code == 1:
