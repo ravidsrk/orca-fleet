@@ -1,0 +1,110 @@
+{
+  "head_sha": "eb7901be372b6091ed0d239c2c1073caeb2ba405",
+  "head_tree": "163a4027932403fac9253e5af7d9406a9ad4b951",
+  "artifacts": [
+    {
+      "path": "docs/reports/release-20260912/claims/ac1-counterexample.txt",
+      "sha256": "7bcf0d67b0d43c8924e1a50a251841a6e541b8486204a7d308e85031af5f9139"
+    },
+    {
+      "path": "docs/reports/release-20260912/claims/ac1-positive-controls.txt",
+      "sha256": "33060fd73862c5e1af97335504d5b45211fce6d229657f556d8deceeadc52ce4"
+    },
+    {
+      "path": "docs/reports/release-20260912/claims/ac2-counterexample.txt",
+      "sha256": "189b1568f19329baca1c45ff418477649a610a5ec15af330373cd62f5ccd148e"
+    },
+    {
+      "path": "docs/reports/release-20260912/claims/ac2-navigation.txt",
+      "sha256": "91b77a8c2c231c54cd1d7d2de5b30cc9f8b088c974afa7a4dd934331f756b509"
+    },
+    {
+      "path": "docs/reports/release-20260912/claims/ac3-green.txt",
+      "sha256": "1548ed9457d63b31cf08deec0f870b7975123003848e7b356f2d8ab66255b7c4"
+    },
+    {
+      "path": "docs/reports/release-20260912/claims/ac3-red.txt",
+      "sha256": "04c0c3987b7a6a335e416f292821e94bfbf2da50bb366251aefab7a3033659d6"
+    },
+    {
+      "path": "docs/reports/release-20260912/claims/artifact-ruff.txt",
+      "sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+    },
+    {
+      "path": "docs/reports/release-20260912/claims/badge-counterexample.txt",
+      "sha256": "f89c7fe4f4147d7f840e92990fe1e4e43d987f81ec69d9782dfb867ac42c810b"
+    },
+    {
+      "path": "docs/reports/release-20260912/claims/badge-triage.md",
+      "sha256": "26e9044e27efbb7e6658fa555a5865571e94656ee08383a439ea1d70707459fe"
+    },
+    {
+      "path": "docs/reports/release-20260912/claims/build-report.md",
+      "sha256": "103f251ab1c0b401ca2e2fc951fd6408e96480824e7bc49be0f77ab9dabe6042"
+    },
+    {
+      "path": "docs/reports/release-20260912/claims/claims.patch",
+      "sha256": "8d8fed8d30b6a327243ee0d59144afe5baaf7bf46a8fe23256fd6e2d6244e8df"
+    },
+    {
+      "path": "docs/reports/release-20260912/claims/claims_probe.py",
+      "sha256": "365d8482a4676bbac528a42828ce29845c4aa9376dfe7e9d2dae3fe79c7e527e"
+    },
+    {
+      "path": "docs/reports/release-20260912/claims/command-history.json",
+      "sha256": "4f1ab295f2710090c06177e7ed3bb7e8e0c435b9ca2101848b161a0c3f20abfe"
+    },
+    {
+      "path": "docs/reports/release-20260912/claims/commission-faq-excerpts.txt",
+      "sha256": "da63b848dcef08a466d53922fae3d0d6e4aebcd1fd834301294937f664a080f7"
+    },
+    {
+      "path": "docs/reports/release-20260912/claims/contract.json",
+      "sha256": "71d81d280bd089562ec05396b9d2e3b0b27e5eb7729c5b63672cd1b5627e9b87"
+    },
+    {
+      "path": "docs/reports/release-20260912/claims/coordinator-direction.txt",
+      "sha256": "27fb4dc47eec0bb59d64e8e4055d6524f0eab2325f8ab29afb81f6d9d7af8dd6"
+    },
+    {
+      "path": "docs/reports/release-20260912/claims/current-validate.txt",
+      "sha256": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6"
+    },
+    {
+      "path": "docs/reports/release-20260912/claims/eur-lex-excerpts.txt",
+      "sha256": "a48750f466ac6c2e09f3a28724bb380de0348a0d893b81312b3c0e4b8ef6159c"
+    },
+    {
+      "path": "docs/reports/release-20260912/claims/full-suite.txt",
+      "sha256": "0ca167e30cbec5e74e50e3177a238ea13f39d094b8389176ed76855636858ebf"
+    },
+    {
+      "path": "docs/reports/release-20260912/claims/official-sources.json",
+      "sha256": "b317a611930412a238fc4953e2282e41466f4d7bf33a241ad7f7ff71658f3ad6"
+    },
+    {
+      "path": "docs/reports/release-20260912/claims/ruff.txt",
+      "sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+    },
+    {
+      "path": "docs/reports/release-20260912/claims/source-bindings.json",
+      "sha256": "a4b388bb1683b8cc41b12d7146bcd94dffa9987791dd2371493a3a851d12c542"
+    },
+    {
+      "path": "docs/reports/release-20260912/claims/validate.txt",
+      "sha256": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6"
+    },
+    {
+      "path": "docs/reports/release-20260912/claims/verifier-input.json",
+      "sha256": "895faafbe5743f19afb9febb9fa62878a66b8c276278e18223dfae85972fa528"
+    },
+    {
+      "path": "docs/reports/release-20260912/claims/verifier.txt",
+      "sha256": "e608323e84befc12cf5e4d66017d18110471f27c8ba2d336dd857babb8f1e58e"
+    },
+    {
+      "path": "docs/reports/release-20260912/claims/walkthrough.md",
+      "sha256": "0c55f7804e4e29525f099344ec16038a89db77350863672ad3fc1c66a9ba581e"
+    }
+  ]
+}

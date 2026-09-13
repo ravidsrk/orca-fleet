@@ -1,0 +1,5 @@
+root: /Users/ravindra/orca/workspaces/orca-fleet/codex-release-claims-20260912
+commit: 9eb2e6f6171845100b969e2d59e65b0d34ddf86f
+authoritative mission terminal states: ['OPERABLE', 'OPERABLE-WITH-PARKED']
+field-proof plan row: | oncall-it | a bounded external staging-service path set, with 2–4 frozen on-call questions per path; establish operability using the proof below | external-run | `OPERABLE` / `OPERABLE-WITH-PARKED` | Orca; staging failures that can be induced safely; an observable alert destination; human path/question and cost/ownership gates |
+PASS: plan terminal states exist in the mission; blind-run semantics require walkthrough.

@@ -8,6 +8,9 @@ that stops the validator from firing would ship green. These tests lock each
 error branch to a fixture that must trip it.
 """
 import importlib.util
+import json
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -717,6 +720,97 @@ class TestCountAgnosticGuards(unittest.TestCase):
             with mock.patch.object(gb, "SKILLS_DIR", Path(tmp) / "nope"):
                 errs = gb.check()
         self.assertTrue(errs and "missing" in errs[0], errs)
+
+    def test_badge_inventory_is_honest_for_failing_and_passing_suites(self):
+        spec = importlib.util.spec_from_file_location("_inventory", ROOT / "scripts/gen-badges.py")
+        gb = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(gb)
+        generated = []
+        for outcome, expected_exit in ((False, 1), (True, 0)):
+            with self.subTest(outcome=outcome), tempfile.TemporaryDirectory() as tmp:
+                tests = Path(tmp)
+                (tests / "test_fixture.py").write_text(
+                    "import unittest\nclass Fixture(unittest.TestCase):\n"
+                    f"    def test_behavior(self):\n        self.assertTrue({outcome!r})\n",
+                    encoding="utf-8",
+                )
+                run = subprocess.run(
+                    [sys.executable, "-m", "unittest", "discover", "-s", str(tests)],
+                    capture_output=True, text=True,
+                )
+                self.assertEqual(run.returncode, expected_exit, run.stdout + run.stderr)
+                self.assertIn("Ran 1 test", run.stderr)
+                if not outcome:
+                    self.assertIn("AssertionError", run.stderr)
+                with mock.patch.object(gb, "TESTS_DIR", tests), \
+                     mock.patch.object(gb, "BADGES_DIR", tests / "badges"):
+                    gb.write()
+                    badge = json.loads((gb.BADGES_DIR / "tests.json").read_text())
+                    generated.append(badge)
+                    self.assertEqual(gb.check(), [])
+                # The fixture's single definition exists in source regardless of its exit.
+                self.assertEqual(badge["label"], "test definitions")
+                self.assertEqual(badge["message"], "1 in source")
+                self.assertEqual(badge["color"], "6e7781")  # neutral inventory
+        self.assertEqual(generated[0], generated[1])
+
+    def test_badge_counts_definitions_not_text_that_reads_like_one(self):
+        """PR #334 review, P2.
+
+        The count was a regex over the text, and this suite embeds test sources AS DATA — a test
+        about test files carries test files in fixture strings. Where such a string body starts a
+        line, the regex counted it as a definition. The badge is a public inventory, so it counts
+        what Python would call a test function.
+        """
+        spec = importlib.util.spec_from_file_location("_counts", ROOT / "scripts/gen-badges.py")
+        gb = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(gb)
+        cases = (
+            # (source, definitions actually present)
+            ('FIXTURE = """\ndef test_embedded():\n    pass\n"""\n\ndef test_real():\n    pass\n', 1),
+            ('BASE = """def test_inline():\n    pass\n"""\ndef test_real():\n    pass\n', 1),
+            ("def test_a():\n    pass\n\n\nasync def test_b():\n    pass\n", 2),
+            ('S = """\n    def test_indented(self):\n        pass\n"""\n', 0),
+            ("class T:\n    def test_method(self):\n        pass\n", 1),
+            ("def helper():\n    pass\n", 0),
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            tests = Path(tmp)
+            fixture = tests / "test_fixture.py"
+            with mock.patch.object(gb, "TESTS_DIR", tests):
+                for source, expected in cases:
+                    with self.subTest(source=source):
+                        fixture.write_text(source, encoding="utf-8")
+                        self.assertEqual(gb.test_count(), expected, source)
+
+    def test_badge_inventory_refreshes_counts_and_rejects_success_claims(self):
+        spec = importlib.util.spec_from_file_location("_counts", ROOT / "scripts/gen-badges.py")
+        gb = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(gb)
+        with tempfile.TemporaryDirectory() as tmp:
+            tests = Path(tmp)
+            fixture = tests / "test_fixture.py"
+            with mock.patch.object(gb, "TESTS_DIR", tests), \
+                 mock.patch.object(gb, "BADGES_DIR", tests / "badges"):
+                for source, count in (("", 0), ("def test_one(): pass\n", 1),
+                                      ("def test_one(): pass\ndef test_two(): pass\n", 2)):
+                    fixture.write_text(source, encoding="utf-8")
+                    self.assertTrue(any("tests.json" in err for err in gb.check()))
+                    gb.write()
+                    path = gb.BADGES_DIR / "tests.json"
+                    badge = json.loads(path.read_text())
+                    self.assertEqual(badge["message"], f"{count} in source")
+                    self.assertEqual(gb.check(), [])
+                for field, value in (("message", "2 passing"), ("color", "2ea043")):
+                    path.write_text(json.dumps({**badge, field: value}), encoding="utf-8")
+                    errors = gb.check()
+                    self.assertEqual(len(errors), 1, errors)
+                    self.assertIn("tests.json is stale", errors[0])
+                fixture.unlink()
+                self.assertTrue(any("tests.json is stale" in err for err in gb.check()))
+                gb.write()
+                self.assertEqual(json.loads(path.read_text())["message"], "0 in source")
+                self.assertEqual(gb.check(), [])
 
 class ParseFrontmatterBindingTest(unittest.TestCase):
     """prove-it self-run criterion PF-1: a YAML block-scalar frontmatter value

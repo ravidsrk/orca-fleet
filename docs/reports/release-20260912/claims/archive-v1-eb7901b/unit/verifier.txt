@@ -1,0 +1,7 @@
+FAIL: mutation unit: no pr.number to look up an independent review — unreviewed
+FAIL: negative_control.result must record the mutant KILLED / the proof going RED
+FAIL: --execute-nc: TAUTOLOGICAL — the proof does NOT go RED. The control was applied at head_sha and `/tmp/orca-release-audit-20260912/ci-venv/bin/python scripts/validate.py` still exited 0, so the command does not bind to the change it claims to prove (#255)
+FAIL: reviewer_mode must be one of ['cross-vendor', 'instructed-isolation', 'same-vendor-fresh'], got None
+verify: 4 invariant(s) failed — unit is NOT done
+NOTE: commands ledger FRESH — 1 exit-0 record(s) bound to head_sha's tree 163a40279324. This is the worker's own runner, so the coordinator's clean-env re-run at head_sha still stands as the stronger authority (evidence-manifest.md §2)
+NOTE: --base not given — ancestry check skipped (pre-merge/offline)

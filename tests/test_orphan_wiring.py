@@ -9,6 +9,7 @@ So each of these asserts the raw invocation is present in the document whose gua
 it. Deleting the line turns a test red, which is the whole point: the doc and the mechanism can no
 longer drift apart silently.
 """
+import json
 import re
 import unittest
 from pathlib import Path
@@ -378,11 +379,91 @@ class EveryMissionHasAPathToProof(unittest.TestCase):
         stale = sorted(r for r in self._plan_rows() if r and r not in missions and r not in header)
         self.assertEqual(stale, [], f"plan rows for missions that no longer exist: {stale}")
 
+    def _plan_cells(self):
+        text = read("docs/runs/README.md")
+        section = text[text.index("## Field-proof plan"):]
+        for line in section.splitlines():
+            if line.startswith("|") and line.count("|") >= 5:
+                cells = [c.strip() for c in line.split("|")[1:-1]]
+                if (SKILLS / cells[0] / "SKILL.md").is_file():
+                    yield cells[0], cells[3]
+
+    @staticmethod
+    def _plan_terminals(cell):
+        """The terminal names a plan row promises, with `(or `-WITH-PARKED`)` expanded."""
+        names, prev = [], None
+        for token in re.findall(r"`([^`]+)`", cell):
+            names.append(prev + token if token.startswith("-") and prev else token)
+            if not token.startswith("-"):
+                prev = token
+        return names
+
+    def test_every_plan_row_names_terminals_its_mission_declares(self):
+        """PR #334 review, P2.
+
+        The plan promised `oncall-it` would reach `RESOLVED`, a state that mission cannot report —
+        a field run following it would have had no terminal to land on. The maintained check only
+        asserted a row EXISTS, so the correction was protected by an archived one-off probe and a
+        return to the old wording would have passed CI.
+        """
+        for mission, cell in self._plan_cells():
+            with self.subTest(mission=mission):
+                declared = (SKILLS / mission / "SKILL.md").read_text()
+                named = set(re.findall(r"\b([A-Z][A-Z0-9_-]+)\b", declared))
+                promised = self._plan_terminals(cell)
+                self.assertTrue(promised, f"{mission}: the plan promises no terminal at all")
+                unknown = [n for n in promised if n not in named]
+                self.assertEqual(unknown, [], f"{mission}: the plan promises terminals the mission "
+                                              f"never declares: {unknown}")
+
+    def test_a_plan_row_promising_a_foreign_terminal_is_caught(self):
+        # The guard above only helps if it actually fails on the wording it replaced.
+        declared = (SKILLS / "oncall-it" / "SKILL.md").read_text()
+        named = set(re.findall(r"\b([A-Z][A-Z0-9_-]+)\b", declared))
+        stale = self._plan_terminals("`RESOLVED` / `RESOLVED-WITH-PARKED`")
+        self.assertEqual([n for n in stale if n not in named], stale,
+                         "oncall-it must not declare RESOLVED, or this guard proves nothing")
+
     def test_the_plan_does_not_carry_a_stale_catalog_count(self):
         # docs/runs/README.md is not in COUNT_LINT_FILES, so its "Thirteen missions are
         # doctrine-only" sat false and unpoliced while every mission was doctrine-only.
         text = read("docs/runs/README.md")
         self.assertNotIn("Thirteen missions are", text)
+
+
+class EveryUnitHasOneCanonicalContract(unittest.TestCase):
+    """PR #334 review, P2.
+
+    The claims unit shipped `claims/v2/contract.json` beside the canonical `contract.json`: a
+    second contract adding AC-4 and a wider scope, bound to no manifest, no verifier input and no
+    report, and referenced by nothing. A consumer following the canonical reference could not audit
+    AC-4 at all, while the live tree advertised it. An alternative contract is either the canonical
+    one or it is a dispatch artifact belonging in the archive — never a third thing sitting live.
+    """
+
+    REPORTS = ROOT / "docs" / "reports"
+
+    def _live_contracts(self):
+        if not self.REPORTS.is_dir():
+            return []
+        return [p for p in self.REPORTS.rglob("contract.json")
+                if not any(part.startswith("archive-") for part in p.relative_to(ROOT).parts)]
+
+    def test_no_unit_carries_a_second_live_contract(self):
+        by_unit = {}
+        for path in self._live_contracts():
+            by_unit.setdefault(path.parent.parent if path.parent.name == "v2" else path.parent, []
+                               ).append(path.relative_to(ROOT).as_posix())
+        extra = {str(unit): sorted(paths) for unit, paths in by_unit.items() if len(paths) > 1}
+        self.assertEqual(extra, {}, f"a unit with two live contracts binds neither: {extra}")
+
+    def test_a_live_contract_declares_exactly_the_criteria_it_lists(self):
+        for path in self._live_contracts():
+            with self.subTest(contract=path.relative_to(ROOT).as_posix()):
+                data = json.loads(path.read_text(encoding="utf-8"))
+                self.assertEqual(data["criterion_ids"], [c["id"] for c in data["criteria"]],
+                                 "criterion_ids and criteria must name the same criteria in order")
+                self.assertTrue(data.get("scope"), "a contract with no scope binds nothing")
 
 
 class TheRunArchiveMatchesGit(unittest.TestCase):

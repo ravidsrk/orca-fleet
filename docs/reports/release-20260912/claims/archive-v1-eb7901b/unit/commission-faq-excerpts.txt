@@ -1,0 +1,49 @@
+What are the obligations regarding disclosing interaction with AI systems and watermarking and labelling of AI outputs set out in the AI Act?
+The AI Act introduces specific
+transparency requirements
+for providers and deployers of certain interactive or generative AI systems (including
+chatbots or deep fakes
+). These transparency requirements aim to address the
+risks of misinformation and manipulation, fraud, impersonation and consumer deception:
+Providers of AI systems directly interacting with natural persons need designed and developed those systems in such a way that the natural persons concerned are informed that they are interacting with an AI system.
+Providers
+of generative AI systems need to
+mark the AI outputs in a machine-readable format
+and ensure they are
+detectable as artificially generated or manipulate
+d. The technical solutions must be effective, interoperable, robust and reliable as far as this is technically feasible, taking into account the specificities and limitations of various types of content, the costs of implementation and the generally acknowledged state of the art, as may be reflected in relevant technical standards.
+Deployers of emotion recognition or biometric categorisation systems must ensure that individuals exposed to these systems are informed.
+Deployers of generative AI systems that generate or manipulate image, audio or video content, constituting a
+deep fake
+, must visibly d
+isclose that the content has been artificially generated or manipulated
+. Similarly, deployers of AI systems that generate or manipulate text published with the purpose of informing the public on matters of public interest must also disclose that the text has been artificially generated or manipulated.
+Specific exceptions apply to all the transparency obligations mentioned.
+The AI Office will issue guidelines to provide further guidance for providers and deployers on the obligations in Article 50 which will become applicable on 2 August 2026.
+To assist with compliance with some of these transparency obligations, the AI Office has kick started the process of drawing up a
+code of practice on transparency of AI-generated content
+. The Code will be drafted by
+independent experts
+appointed by the AI Office, based on an inclusive process. More than 200 stakeholders from across sectors contribute to the drafting of the Code. If approved by the Commission, the final Code will serve as a voluntary tool for providers and deployers of generative AI systems to demonstrate compliance with their respective obligations.
+Governance, enforcement, and implementation
+When will the AI Act be fully applicable?
+The
+AI Act will apply 2 years after entry into force on 2 August 2026
+, except for the following specific provisions:
+The prohibitions, definitions and provisions related to
+AI literacy
+apply since 2 February 2025. The Commission has published
+guidelines on prohibitions
+and
+definitions
+, as well as a
+living repository of AI literacy practices
+and a
+dedicated FAQ
+.
+The rules on governance and the obligations for general purpose AI became applicable on 2 August 2025.
+The rules for high-risk AI systems will apply starting 2 December 2027. Rules on AI embedded in physical products (medical devices, toys, lifts, etc.) will apply starting 2 August 2028.
+On 19 November 2025, as part of the
+Digital Omnibus proposal
+, the Commission proposed to adjust the timeline for the application of high-risk rules by linking the application date to the availability of support measures such as harmonised standards, common specifications or Commission guidelines.
+The Digital Omnibus entered into force on 27 July 2026 allowing for the extension of these deadlines and thereby more time to prepare standards and set-up competent authorities in EU Member States to oversee implementation.
