@@ -1,0 +1,22 @@
+{
+  "id": "c9e7efbc-2eb4-4b1f-9bd3-93285c0e32f7",
+  "ok": true,
+  "result": {
+    "run": {
+      "id": "run_5378b2e2f926",
+      "objective": "pin-it #266 re-witness Orca 1.4.200",
+      "coordinator_handle": "term_577830b7-5cdb-46f7-ade9-39de699e5605",
+      "consumer_generation": 1,
+      "legacy": 0,
+      "created_at": "2026-09-13T07:22:08Z",
+      "updated_at": "2026-09-13T07:22:08Z"
+    },
+    "mutation": {
+      "requestId": "d09a9ecc-fbaf-4999-a608-2d9365340154",
+      "replayed": false
+    }
+  },
+  "_meta": {
+    "runtimeId": "2e075aba-10a5-40b7-aa95-9e82ae9fc5b7"
+  }
+}

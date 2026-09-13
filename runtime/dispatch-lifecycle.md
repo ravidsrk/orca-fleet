@@ -13,9 +13,8 @@ When BASE is CREATED, record its fork-point SHA (`git rev-parse <default>`) in t
 — a stale BASE is rejected, never silently reused.
 
 The normal supervised spawn is **`orca orchestration worker-start`** with `--task --worktree --name --agent --setup run --json` (worktree → terminal →
-readiness → dispatch). It exits 0 only when the worker is **ready**, read narrowly: at v1.4.199 — the PIN — that means the preamble WRITE WAS ACCEPTED, not
-that a turn started (`local-worker-start.ts:263`). **v1.4.200 changed it**: `worker-start-readiness-settlement.ts:91-129` needs an observed turn-start, else
-`outcome_unknown`; the top-level contract is unchanged, so v5 already branches right (#302). Witnessed at both tags; probe owed — pin-it.
+readiness → dispatch). It exits 0 only when the worker is **ready**, read narrowly: at v1.4.199 that meant the preamble WRITE WAS ACCEPTED, not
+that a turn started (`local-worker-start.ts:263`). **v1.4.200 — the live PIN (`runtime/pins.json`, `docs/runs/2026-09-13-pin-it-266`)** — needs an observed turn-start (`worker-start-readiness-settlement.ts:91-129`), else `outcome_unknown`; the top-level contract is unchanged, so v5 already branches right (#302).
 
 The receipt carries more than the flat four: `runId, taskId, dispatchId, state, stage, setup, launch{requested,effective}, mode, effects[],
 residualResources[]`, and on a bad start `failedStage, lastError, recovery, nextCommands` (`worker-start-receipt.ts:42-69`). The agent terminal is the
@@ -151,7 +150,7 @@ ledger it as a leak, never force it.
 
 ## Live probes owed (pin-it)
 
-Each is one receipt away on an installed v1.4.199 and none needs a remote host; until run, these claims are source-witnessed only.
+The live PIN is v1.4.200 (`docs/runs/2026-09-13-pin-it-266`). Bound `worker-list --run` and unscoped `source=all` were re-witnessed there. Remaining roster/remote/OS/isolated-runtime probes are PARKED in that run's park register — they are unfinished, not proof the mechanisms are absent.
 
 1. `worker-start` per roster agent — record `state`, `stage`, `launch.effective`, `turnStart`, and the host's `agentDefaultArgs` permission mode.
 2. `dispatch --inject --json` receipt `prompt.stages` — inspected, never replayed under that id.

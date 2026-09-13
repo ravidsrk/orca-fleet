@@ -55,7 +55,10 @@ class RepoCase(unittest.TestCase):
     verify.py's git legs and path resolution both run there."""
 
     def setUp(self):
-        self._td = tempfile.TemporaryDirectory()
+        # ignore_cleanup_errors: on Linux CI, gitleaks-on-PATH can leave a file in
+        # .git/objects while rmtree runs, and OSError 39 (Directory not empty)
+        # failed the gitleaks step of validate (#340). The repo is throwaway.
+        self._td = tempfile.TemporaryDirectory(ignore_cleanup_errors=True)
         self.repo = Path(self._td.name).resolve()
         self.git("init", "-q", "-b", "main")
         self._cwd = os.getcwd()
@@ -2096,6 +2099,26 @@ class PinnedEvidenceBytes(RepoCase):
             self.assertTrue(verify.check_redaction(m, None), m)
         with mock.patch.object(Path, 'read_bytes', side_effect=PermissionError('denied')):
             self.assertTrue(verify.check_redaction({'artifacts': [art]}, None))
+
+    def test_gitleaks_runs_in_the_evidence_copy_directory(self):
+        # #340: inheriting the test-repo cwd let gitleaks touch .git/objects while
+        # TemporaryDirectory tore the tree down (OSError 39 on Linux CI).
+        observed = []
+
+        def fake_run(args, timeout=20, cwd=None):
+            observed.append((cwd, list(args)))
+            return 0, "", ""
+
+        art = self.artifact("clean evidence")
+        with mock.patch.object(shutil, "which", return_value="/bin/gitleaks"), \
+             mock.patch.object(verify, "_run", side_effect=fake_run):
+            self.assertEqual(verify.check_redaction({"artifacts": [self.pin(art)]}, None), [])
+        leaks = [(cwd, args) for cwd, args in observed if args and args[0] == "gitleaks"]
+        self.assertTrue(leaks, f"gitleaks was not invoked: {observed!r}")
+        cwd, args = leaks[0]
+        source = args[args.index("--source") + 1]
+        self.assertEqual(Path(cwd).resolve(), Path(source).parent.resolve())
+        self.assertIn("--no-git", args)
 
     def test_scanner_receives_the_pinned_blob(self):
         art = self.artifact(b'committed\r\nbytes\n')
