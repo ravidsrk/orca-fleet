@@ -141,6 +141,12 @@ class ReleaseCutWalkthrough(unittest.TestCase):
             subprocess.run(["git", "clone", "--quiet", "--no-hardlinks", str(ROOT), str(repo)],
                            cwd=owned, env=env, check=True, capture_output=True)
             run("git", "remote", "remove", "origin")
+            # Own the fixture's HEAD. CI checks the PR merge ref out DETACHED with no local
+            # branch at it, and a clone of that source is detached too — so `symbolic-ref HEAD`
+            # below died with "ref HEAD is not a symbolic ref" in CI while passing locally,
+            # where a branch happens to point at HEAD. A rehearsal must not inherit the host's
+            # HEAD state any more than it inherits its GIT_* variables.
+            run("git", "checkout", "-B", "release-rehearsal")
             for path in ("docs/ops.md", "docs/releases.json", "tests/test_docs_navigation.py"):
                 shutil.copyfile(ROOT / path, repo / path)
             inventory = json.loads((repo / "docs/releases.json").read_text())
