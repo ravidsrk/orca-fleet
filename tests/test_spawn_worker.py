@@ -712,7 +712,7 @@ esac
             notes, p = self._notes(tmp, "orca 1.5.0 (build abc)")
             self.assertTrue(notes, "a drifted runtime produced no note at all")
             self.assertIn("1.5.0", notes[0])
-            self.assertIn("v1.4.199", notes[0], "the note must name the version it expected")
+            self.assertIn("v1.4.200", notes[0], "the note must name the version it expected")
             self.assertIn("pin-it", notes[0], "the note must arm the mission that re-witnesses")
             self.assertEqual(p.returncode, 0,
                              "drift is a NOTE, not a refusal — an upstream release must not "
@@ -721,15 +721,15 @@ esac
     def test_a_matching_runtime_is_silent(self):
         with tempfile.TemporaryDirectory() as tmp:
             self._stub(tmp)
-            notes, p = self._notes(tmp, "orca v1.4.199")
+            notes, p = self._notes(tmp, "orca v1.4.200")
             self.assertEqual(notes, [], "a matching runtime must say nothing")
             self.assertEqual(p.returncode, 0, p.stderr)
 
     def test_the_v_prefix_is_not_a_difference(self):
         with tempfile.TemporaryDirectory() as tmp:
             self._stub(tmp)
-            self.assertEqual(self._notes(tmp, "orca 1.4.199")[0], [],
-                             "`1.4.199` and `v1.4.199` are the same version")
+            self.assertEqual(self._notes(tmp, "orca 1.4.200")[0], [],
+                             "`1.4.200` and `v1.4.200` are the same version")
 
     def test_an_unreadable_version_says_so_rather_than_passing(self):
         # "Nothing noticed the drift" is the defect this check exists to fix, so a check that
