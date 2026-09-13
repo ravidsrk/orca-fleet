@@ -57,6 +57,9 @@ sharpened:
   a cache of an older GitHub **About** string, which itself now reads 17, against a catalog of
   **21**. Three different counts are in circulation and none of them is right. The About text
   is a repository setting, not a file in this tree; fixing it is the upstream of this row.
+  The text to paste is now checked in at [about.md](about.md) and carries no count at all —
+  the same way `plugin.json` and `marketplace.json` already describe this catalog — so a
+  re-index after the maintainer applies it cannot reintroduce a number that goes stale.
 - claudemarketplace.net returns the literal page text `No results for "orca-fleet"`. The
   string `orca-fleet` does appear three times in that HTML — in the title, the search input's
   `value`, and the no-results line — so grepping the page for the slug reports a hit that is

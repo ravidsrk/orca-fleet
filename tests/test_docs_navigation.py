@@ -641,6 +641,63 @@ class TestDocsNavigation(unittest.TestCase):
             self.assertEqual(int(m.group(1)), counts[tier],
                              f"distribution.md {tier} count is stale (live: {counts[tier]})")
 
+    def test_about_description_is_canonical_and_count_free(self):
+        # The GitHub About box is a repository setting, so nothing in CI can read the live
+        # value. What CI *can* hold is the text a maintainer pastes into it. That text went
+        # stale twice as a hardcoded count (H-04 evidence records the first repair), while
+        # every machine-readable description surface had already dropped the number. Three
+        # things must hold or docs/about.md stops being the handoff it claims to be.
+        about = (DOCS / "about.md").read_text(encoding="utf-8")
+        blocks = re.findall(r"```text\n(.*?)\n```", about, re.DOTALL)
+        self.assertEqual(len(blocks), 1,
+                         "docs/about.md must carry exactly one ```text block: the string to paste")
+        canonical = blocks[0]
+        self.assertNotIn("\n", canonical, "the About box is a single line; so is its canonical text")
+
+        # 1. GitHub truncates past 350 characters, silently.
+        self.assertLessEqual(len(canonical), 350,
+                             f"About descriptions are capped at 350 chars; this is {len(canonical)}")
+
+        # 2. It must agree with the surfaces that already say the same thing, so the three
+        #    cannot drift into three different blurbs the way the counts drifted.
+        marketplace = json.loads(
+            (ROOT / ".claude-plugin" / "marketplace.json").read_text(encoding="utf-8")
+        )["metadata"]["description"]
+        plugin = json.loads(
+            (ROOT / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8")
+        )["description"]
+        self.assertTrue(canonical.startswith(marketplace),
+                        f"canonical About text must open with the marketplace description\n"
+                        f"  marketplace: {marketplace!r}\n  about.md:    {canonical!r}")
+        self.assertTrue(plugin.startswith(marketplace),
+                        "plugin.json and marketplace.json descriptions have diverged")
+
+        # 3. The count lint must actually cover the file — a canonical string nothing lints
+        #    is exactly the surface that rotted in the first place.
+        self.assertIn("docs/about.md", validate.COUNT_LINT_FILES,
+                      "docs/about.md is not in COUNT_LINT_FILES; the count can creep back unseen")
+        self.assertEqual([f for f in validate.check_doc_counts() if "about.md" in f], [])
+
+        # 4. ...and the canonical line must be checked independently of that lint (#346).
+        #    check_doc_counts only recognises a count that lands on a catalog noun it knows,
+        #    so routing the whole guarantee through it would inherit every hole in its
+        #    vocabulary — which is how "twenty-one autonomous fleets" slipped past. The
+        #    About box has no business carrying a number in any phrasing, so say that
+        #    directly rather than through a noun set that has to keep up.
+        self.assertFalse(re.search(r"\d", canonical),
+                         f"the canonical About text must carry no digit: {canonical!r}")
+        number_word = re.compile(
+            r"\b(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|"
+            r"fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|"
+            r"fifty|sixty|seventy|eighty|ninety|hundred)\b", re.IGNORECASE)
+        # "one router per worker" is mission-identity prose, not a catalog size; only a
+        # number word standing before the catalog nouns would be a count here.
+        spelled_count = re.compile(
+            rf"{number_word.pattern}[-\s]+(?:\w+[-\s]+)?"
+            r"(?:missions?|fleets?|outcome-named|callable)\b", re.IGNORECASE)
+        self.assertIsNone(spelled_count.search(canonical),
+                          f"the canonical About text must carry no spelled catalog count: {canonical!r}")
+
     def test_mission_guides_show_proof_tier(self):
         # #124: every mission guide surfaces its proof tier (matching the SKILL frontmatter), so a
         # doctrine-only, never-run mission does not read as field-proven.

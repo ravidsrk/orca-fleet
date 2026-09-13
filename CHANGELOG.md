@@ -71,6 +71,14 @@ promises nothing (#293).
 - `docs/getting-started.md` states that the completion-gate hook is wired only under the plugin
   install and links the symlink-path snippet; `docs/distribution.md` drops the "verified, not
   asserted" framing.
+- The GitHub **About** blurb has a canonical, checked-in source: `docs/about.md`. The box is a
+  repository setting, so no workflow can write it and nothing in CI can read the live value —
+  which is why it is the one description surface that had gone stale twice on a hardcoded
+  catalog count while `plugin.json`, `marketplace.json` and the README badge had all stopped
+  stating a number. The canonical text drops the count too, `check_doc_counts` now lints
+  `docs/about.md` so it cannot creep back, and a contract test binds the text to the
+  marketplace description, the 350-character limit GitHub truncates at, and the lint wiring
+  itself. Applying it stays a maintainer action.
 
 ### Added
 
