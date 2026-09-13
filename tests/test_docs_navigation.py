@@ -678,6 +678,26 @@ class TestDocsNavigation(unittest.TestCase):
                       "docs/about.md is not in COUNT_LINT_FILES; the count can creep back unseen")
         self.assertEqual([f for f in validate.check_doc_counts() if "about.md" in f], [])
 
+        # 4. ...and the canonical line must be checked independently of that lint (#346).
+        #    check_doc_counts only recognises a count that lands on a catalog noun it knows,
+        #    so routing the whole guarantee through it would inherit every hole in its
+        #    vocabulary — which is how "twenty-one autonomous fleets" slipped past. The
+        #    About box has no business carrying a number in any phrasing, so say that
+        #    directly rather than through a noun set that has to keep up.
+        self.assertFalse(re.search(r"\d", canonical),
+                         f"the canonical About text must carry no digit: {canonical!r}")
+        number_word = re.compile(
+            r"\b(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|"
+            r"fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|"
+            r"fifty|sixty|seventy|eighty|ninety|hundred)\b", re.IGNORECASE)
+        # "one router per worker" is mission-identity prose, not a catalog size; only a
+        # number word standing before the catalog nouns would be a count here.
+        spelled_count = re.compile(
+            rf"{number_word.pattern}[-\s]+(?:\w+[-\s]+)?"
+            r"(?:missions?|fleets?|outcome-named|callable)\b", re.IGNORECASE)
+        self.assertIsNone(spelled_count.search(canonical),
+                          f"the canonical About text must carry no spelled catalog count: {canonical!r}")
+
     def test_mission_guides_show_proof_tier(self):
         # #124: every mission guide surfaces its proof tier (matching the SKILL frontmatter), so a
         # doctrine-only, never-run mission does not read as field-proven.

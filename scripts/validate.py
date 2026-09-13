@@ -887,9 +887,18 @@ COUNT_LINT_FILES = (
 # on a catalog noun ("11 missions", "eleven missions", "10 outcome-named"), hyphenated
 # ("ten-mission set"), or through one adjective and markdown emphasis ("Ten **autonomous
 # fleets**"). A bare "one mission" / "two missions" in the mission-identity prose is NOT
-# a catalog count and must not trip — so small spelled numbers are excluded.
-_SPELLED = ("ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|"
-            "nineteen|twenty")
+# a catalog count and must not trip — so a lone ones-word is never a count.
+_ONES = "one|two|three|four|five|six|seven|eight|nine"
+_TEENS = ("ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|"
+          "nineteen")
+_TENS = "twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety"
+# A compound is ONE number token, not a number followed by a word (#346). The old pattern
+# stopped at "twenty", so "thirty-one missions" was invisible; worse, in "twenty-one
+# autonomous fleets" the "one" was consumed by the single optional-adjective slot below,
+# leaving no room for "autonomous" — so the repo's own tagline shape slipped through at
+# the exact catalog size that made the phrase current. A ones-word still cannot stand
+# alone as a count, which is what keeps "one mission" out.
+_SPELLED = rf"(?:(?:{_TENS})(?:[-\s]+(?:{_ONES}))?|{_TEENS})"
 _NUM = rf"(?:\d+|{_SPELLED})"
 # Separator between count, optional adjective, and noun: a hyphen (ten-mission) or
 # whitespace with optional markdown emphasis markers (Ten **autonomous fleets**).

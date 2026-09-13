@@ -600,6 +600,23 @@ class TestCountAgnosticGuards(unittest.TestCase):
         self.assertNotRegex("Every mission in the catalog reads `doctrine-only`.",
                             validate.COUNT_LINT_RE)
 
+    def test_count_lint_matches_compound_spelled_counts(self):
+        # #346: the spelled set stopped at "twenty", so every count past it was invisible —
+        # and the compound form broke the guard in a second, sneakier way. In "twenty-one
+        # autonomous fleets" the "one" was eaten by the single optional-adjective slot,
+        # leaving nothing to match "autonomous", so the repo's OWN tagline shape slipped
+        # through at exactly the catalog size that made the phrase current. A compound is
+        # one number token, not a number plus a word.
+        for s in ("twenty-one autonomous fleets", "twenty-one **autonomous fleets**",
+                  "twenty-one outcome-named fleets", "twenty one missions",
+                  "thirty-one missions", "forty-two callable",
+                  "Twenty-one outcome-named autonomous fleets for the Orca runtime"):
+            self.assertRegex(s, validate.COUNT_LINT_RE, s)
+        # A lone ones-word is still mission-identity prose, not a catalog size — that is
+        # the invariant the compound must not cost us.
+        for s in ("one mission", "two missions", "three missions", "one router per worker"):
+            self.assertNotRegex(s, validate.COUNT_LINT_RE, s)
+
     def test_check_doc_counts_flags_all_n_near_mission_talk(self):
         # Issue #33: "…one mission or all ten." — a catalog count with no noun.
         with tempfile.TemporaryDirectory() as tmp:
