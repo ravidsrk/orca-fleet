@@ -32,8 +32,8 @@ three ONLY; the rest sit at their own sites, anchored per code beside POLICY_COD
 never touch that process. It is NOT invisible — `worker-list` lists it as `unsupervised` with terminal state `retained` (`orchestration-worker-specs.ts:124`).
 Use it for custom argv/topology `worker-start` cannot express (and for `PROFILE=ro`), and record the trade in the ledger. **`--inject` SUBMITS the preamble**
 — it does not merely paste it (`dispatch-methods.ts:155-165`) — and `--json` returns `result.prompt{requestId, stages}` over `input_accepted | turn_started`
-(`runtime-terminal-contracts.ts:221-225`). If `turn_started` is absent, replay ONCE with `terminal send --terminal <handle> --text <original-text> --enter
---retry-request <id> --wait-submit <secs>` with original bytes (1.4.200 receipts: catalog `docs/runs/2026-09-12-runtime-repin/`); timeout returns input acceptance, never resends. `accepted: true` proves input
+(`runtime-terminal-contracts.ts:221-225`). So: read the receipt; if `turn_started` is absent, replay it ONCE with `terminal send --retry-request <id>
+--wait-submit <secs>`, which returns the input-accepted receipt on timeout and never resends (`terminal-send.ts:19-22`). `accepted: true` proves input
 acceptance, not a started turn — **never resend on silence** (`orchestration/recovery-and-cleanup:92-94`). The bounded re-Enter loop is deleted; an extra
 Enter on a started turn is a stray keystroke outside the receipt model.
 
