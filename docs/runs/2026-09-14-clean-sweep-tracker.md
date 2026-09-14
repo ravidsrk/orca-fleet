@@ -25,7 +25,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | task_id | id | title | CLASS | BUILD_DONE | PR_OPEN | BOT | REVIEWED | MERGED | WT_CLEAN | lighting | park | evidence |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | STAB | — | land 4 PR-review hunks (deny-hook/run_report/verify/HUMAN_ACTIONS) + badge regen | conductor landing, worker-executed | t | n/a | n/a | n/a | t | n/a | lit | — | 1215e09 9651a52 8f7d5ac 917f9fd; pushed origin/BASE fast-forward (egress receipt); 1285 OK + full battery green; NC re-executed 11 failures; rides PR #387 |
-| T1 | #388 | evidence-run lockfile dirties worktree | real-bug | t | t | t | f | f | f | lit | — | PR #392 @c680ee0 (fix pushed, recovered); R2 re-verify underway @c680ee0 (batch: serialize-first + tests + N1) |
+| T1 | #388 | evidence-run lockfile dirties worktree | real-bug | t | t | t | f | f | f | lit | — | PR #392 @c680ee0; R2 axes all clean (0 Req; serialize-first unpinned noted Optional/Nit, unreachable from main); V388r2 verdict underway |
 | T2 | #389 | run_report WIP validation accepts incomplete reports | real-bug | t | t | t | f | f | f | lit | — | PR #391 @50cc4e6 (verdict batch fixed, 1302 OK, NCs RED, 8 leg mutants killed, Greptile check pass 0 new); R2 re-verify underway @50cc4e6 |
 | T3 | #364 | fixture-backed evals + workspace-state oracle (S1) | real-feature-small | f | f | f | f | f | f | lit | — | Q1: fixtures+oracle (wave 2; brief TBD) |
 | T4 | #385 | historical-docs polish, agent slice (status.json + parity test) | real-bug (docs) | t | t | t | t | t | t | lit | — | PR #390 MERGED 32da76e @d6fc2cc (reviewed==head; greptile APPROVED + 3 blind GO); verify.py OK all legs (scope/commands/freshness/NC-exec/review/change-on-base); conductor manifest corrections (head/source) disclosed in-file; worktree retired; #385 closed w/ evidence |
@@ -295,3 +295,10 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   spec task_545910b0a45c/ctx_5892ed94d0a0, test task_bb6c19fde0a2/ctx_db8cb1843f21,
   standards task_fbb5ed5f6751/ctx_7717a5069bb5. All turns live. 6 workers out
   (3xR388r2 + 3xR389r2).
+- R388r2 all done @c680ee0, all 0 Required (reports harvested, workers released):
+  SPEC (batch landed, controls re-run, optionals: serialize-first unpinned /
+  16-way litter), TEST (NCs reproduced, 1 Nit: serialize-order revert green —
+  unreached from main on 3.13), STANDARDS (batch landed, 4 carried Nits incl.
+  conductor-owned pending-SHA + source, 120s optional, O_CREAT 0-byte FYI).
+- V388r2 dispatched (task_e3d7793c3b8c/ctx_c863708aa984): verdict over clean R2
+  axes (bot declined + did-not-run noted). Turn live.
