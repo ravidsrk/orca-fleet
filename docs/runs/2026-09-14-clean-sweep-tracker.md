@@ -391,3 +391,10 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   3.13/3.14 clean-fail). Owed: in-thread replies + body count 1315→1329. Task
   completed, worker released. F364r1 spec written + dispatched
   (task_61d43269c538 → ctx_050877a459e7, terminal term_2fc38996).
+- F364r1 BLOCKED-ask (msg_0061b8b51bfc): F1 teeth vs guard test
+  test_fixture_backed_cases_do_not_fail_their_own_fixtures (proves 1 failure with
+  fix applied; evals.json-only cannot be green honestly). Answered Option A:
+  widen scope to tests/test_evals.py — frozen AGENT_MUST_EDIT map (1 entry) +
+  two-direction passability test; guard stays strict elsewhere. B rejected
+  (gaming), C declined (VALID P1 stands). Union b2bc68d clean; F2 re-run
+  confirms FP on 3.13/3.14.
