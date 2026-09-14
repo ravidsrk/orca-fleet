@@ -352,3 +352,13 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   is invisible to orca (terminal create timed out twice on it); worktrees for
   workers MUST come from orca worktree create (the first task was superseded
   before any dispatch, reflection recorded). 4 workers out.
+- U364 live ask msg_7ed51d849641 (badge file outside hot files — worker proposes
+  A: regen as mechanical commit): replied A immediately (standing run rule —
+  validator must be green at tip). No stall.
+- R389r3 all done @51019fb, all 0 Required (reports harvested, workers released):
+  SPEC (batch landed, union byte-verified, full 1309 OK, 1 Nit wave= rule),
+  TEST (batch mutant-killed, NC 21+1 matches manifest, Nit: TEMPLATE:87 still
+  false for the wave cell — accepted sub-finding, non-blocking), STANDARDS
+  (batch landed, 1 Optional 2nd parser, 3 Nit). FYI: base moved (ledger-only).
+- V389r3 dispatched (task_8ca75cf8e5e5/ctx_ec78474a584f): verdict over clean R3
+  axes. Turn live. 2 workers out (V389r3 + U364).
