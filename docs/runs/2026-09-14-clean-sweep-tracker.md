@@ -430,3 +430,4 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   boundary; (4) cheap adjacents (django (?i)+>=, pin-it/attest-it not_matches,
   S1, S5). P1 refutation UPHELD by SPEC (stays out). Task completed, worker
   released. F364r2 spec written + dispatched (90 min for the 21-case sweep).
+  task_9f99838be15f → ctx_aae5e8c1b779 (term_df0841ea).
