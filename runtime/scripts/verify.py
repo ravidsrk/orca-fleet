@@ -1652,21 +1652,26 @@ def check_commands(m, is_mutation, nc_command=None):
             want_cmd = shlex.join(shlex.split(nc_command))
         except ValueError:
             want_cmd = None
-        if want_cmd:
-            def _matches(rec):
-                line = rec.get("cmd")
-                if not isinstance(line, str):
-                    return False
-                try:
-                    return shlex.join(shlex.split(line)) == want_cmd
-                except ValueError:
-                    return False
-            if not any(_matches(rec) for rec in fresh):
-                ran = sorted({str(rec.get("cmd")) for rec in fresh})
-                return [f"commands ledger: fresh exit-0 record(s) exist, but none is the "
-                        f"coordinator-named proof command {want_cmd!r} (fresh records ran: {ran}) "
-                        "— the ledger proves SOMETHING ran green on this content, not the proof the "
-                        "coordinator named; fail-closed (#352)"]
+        if not want_cmd:
+            # An empty or unparseable --nc-command must not silently downgrade the gate to
+            # pre-#352 behavior (PR #387 security review): the named-command check cannot run,
+            # so the answer is RED, not a quiet skip.
+            return [f"commands ledger: --nc-command {nc_command!r} is empty or unparseable — "
+                    "the coordinator named no usable proof command; fail-closed (#352)"]
+        def _matches(rec):
+            line = rec.get("cmd")
+            if not isinstance(line, str):
+                return False
+            try:
+                return shlex.join(shlex.split(line)) == want_cmd
+            except ValueError:
+                return False
+        if not any(_matches(rec) for rec in fresh):
+            ran = sorted({str(rec.get("cmd")) for rec in fresh})
+            return [f"commands ledger: fresh exit-0 record(s) exist, but none is the "
+                    f"coordinator-named proof command {want_cmd!r} (fresh records ran: {ran}) "
+                    "— the ledger proves SOMETHING ran green on this content, not the proof the "
+                    "coordinator named; fail-closed (#352)"]
     return [f"NOTE: commands ledger FRESH — {len(fresh)} exit-0 record(s) bound to head_sha's tree "
             f"{want[:12]}. This is the worker's own runner, so the coordinator's clean-env re-run at "
             "head_sha still stands as the stronger authority (evidence-manifest.md §2)"]
