@@ -28,7 +28,7 @@ still blocked at the default depth of 1 (dispatch-lifecycle.md).
 `parent_id` is a decomposition hierarchy that is empty in real CLI fleets **only because the
 fleet never sets it** — `task-create --parent <task_id>` and `worker-start --parent` do exist
 and do write it, validated to the same Run, and worker-terminal listing/attention queries read
-it (`orchestration.ts:134`, `task-store.ts:32-36` at v1.4.199). Do not build or verify fleets
+it (`cli/specs/orchestration.ts:134`, `task-store.ts:32-36` at v1.4.199). Do not build or verify fleets (Anchors reading v1.4.199 await per-probe re-witness; the 2026-09-13 pin-it park register — docs/runs/2026-09-13-pin-it-266/PARK.md — says which are current at v1.4.200.)
 on parent/child nesting, but do not call the column unwritable either.
 
 **Fleet rule:** materialize and verify only via `--deps` and returned task ids
@@ -48,7 +48,7 @@ delivers it but triggers no built-in merge behavior. Expect it during serialized
 
 What *is* real and load-bearing: `worker_done`, `merge_ready`, `heartbeat`, `question`,
 `escalation`, `status`. `decision_gate`, `dispatch` and `handoff` are all valid `send --type`
-values a fleet *could* write (`orchestration.ts:71` lists all nine); the runtime writes a
+values a fleet *could* write (`cli/specs/orchestration.ts:71` lists all nine); the runtime writes a
 `decision_gate` only on the legacy direct-ask path (`legacy-ask-operation.ts:101`) and migrates
 existing ones to `status` (`message-inbox.ts:81`), and writes no `dispatch` or `handoff` at all.
 `decision_gate` sat in the load-bearing list until #302 — not because the CLI refuses it, which is
@@ -56,7 +56,7 @@ what that issue supposed, but because the runtime has stopped producing it.
 
 **`--types` is the WAKE CONDITION, not a filter.** `check --wait --types worker_done,escalation`
 decides when the waiter wakes; the Delivery it returns is always the **whole FIFO batch**, every
-type included (`orchestration.ts:112`, `orchestration/messaging-and-gates:19-22` at v1.4.199). So
+type included (`cli/specs/orchestration.ts:112`, `orchestration/messaging-and-gates:19-22` at v1.4.199). So
 heartbeats never "bury" lifecycle mail — but a loop that handles only the filtered type and then
 `--ack`s has just acknowledged the rest unprocessed. Process the whole Delivery, then ack
 (dispatch-lifecycle.md).
@@ -124,7 +124,7 @@ a gate-table id.
 manifest (evidence-manifest.md) is the definition of done; still make retained orchestration
 history point at the same artifacts — but via the TYPED flags, `--report-path <path>` and
 `--files-modified <csv>`, not a hand-rolled `reportPath` payload key. Upstream's own rule is
-"prefer `--task-id`/`--dispatch-id`/etc. over raw `--payload` JSON" (`orchestration.ts:49,79` at
+"prefer `--task-id`/`--dispatch-id`/etc. over raw `--payload` JSON" (`cli/specs/orchestration.ts:49,79` at
 v1.4.199): PowerShell strips JSON quotes, and a typed flag cannot be misspelled silently.
 
 ## Explicit non-goals (do not import from visualizers)

@@ -55,7 +55,7 @@ closed, or its feedback goes quiet:
   --json reviews,comments,statusCheckRollup` for review summaries and issue-level comments, AND
   `guard_text.py --source pr --fetch gh api --paginate .../pulls/<n>/comments` for INLINE review
   comments and their replies — `pr view` does not return those, and `--paginate` is not optional
-  (verify.py:409 learned it: without it GitHub returns the first 30 only). A WATCH loop missing
+  (verify.py's review fetch learned it: without it GitHub returns the first 30 only). A WATCH loop missing
   either will call a thread quiet while a maintainer is still asking for changes. Assist comments
   on others' PRs draw replies too.
 - TRIAGE each new thread against the CURRENT head, never the commit it was filed on — an earlier fix

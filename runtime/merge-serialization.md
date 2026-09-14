@@ -15,7 +15,7 @@ fleet owns the queue semantics.
 Two corrections against v1.4.199, both of which make this rule the FLEET's, not the runtime's:
 
 - **`--to` is optional** from an active Dispatch — an omitted recipient defaults to the owning Run
-  mailbox, which is the coordinator inbox and the address upstream prefers (`orchestration.ts:76`).
+  mailbox, which is the coordinator inbox and the address upstream prefers (`cli/specs/orchestration.ts:78`).
   Naming the conductor handle explicitly stays correct and stays this fleet's convention, because a
   merge queue has exactly one owner and the handle says so.
 - **A `merge_ready` to a group is NOT rejected.** The runtime refuses group addresses for

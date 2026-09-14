@@ -16,7 +16,7 @@ default host a supervised `PROFILE=ro` launch would be silently upgraded to bypa
 never takes `worker-start`, dispatch-lifecycle.md); on a manual host, `worker-start` launches
 PROMPTING workers while the fleet believes they are autonomous, and the run blocks on invisible
 dialogs. Neither is knowable from source: read `launch.effective` off the start receipt and record
-the host's permission mode in the ledger header. Source-witnessed at v1.4.199
+the host's permission mode in the ledger header. Source-witnessed at v1.4.199 (Anchors reading v1.4.199 await per-probe re-witness; the 2026-09-13 pin-it park register — docs/runs/2026-09-13-pin-it-266/PARK.md — says which are current at v1.4.200.)
 (`tui-agent-launch-defaults.ts:10`); live probe owed — pin-it.
 
 `spawn_worker.sh` maps each PROFILE per agent. **Orca has no read-only tier for ANY agent** — its

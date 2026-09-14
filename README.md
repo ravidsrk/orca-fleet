@@ -467,8 +467,13 @@ To check an existing copy install instead, confirm `playbooks/` and `runtime/` s
 the mission:
 
 ```bash
-ls "$(dirname "$(dirname "$(readlink -f ~/.claude/skills/ship-it 2>/dev/null || echo ~/.claude/skills/ship-it)")")"/playbooks
+shipit=$(python3 -c 'import os; print(os.path.realpath(os.path.expanduser("~/.claude/skills/ship-it")))')
+ls "$(dirname "$(dirname "$shipit")")/playbooks"
 ```
+
+(`readlink -f` is GNU-only; on stock macOS it fails and a naive fallback tests the wrong directory —
+reporting a correct install as broken. `os.path.realpath` is the portable resolver, and python3 is
+already a hard requirement of this repo.)
 
 If that fails, the references are broken — bundle, or use the symlink or plugin path above. The
 symlink path is verified to preserve them

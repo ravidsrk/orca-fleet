@@ -4,7 +4,7 @@ The mechanics of turning a task into a worker, and the hard-won specifics that m
 
 **Anti-drift rule:** this file describes the CLI the installed binary ships. After any Orca upgrade the mechanics are re-witnessed against `orca skills get
 orchestration` / `orca skills get orca-cli` — but the compact guide is a KERNEL, not the contract: enumerate `orca skills get <topic> --references` and load
-each `--reference <name>` (`--full` on older CLIs), because the worker contract, recovery, and legacy-migration rules live only there (`skills.ts:50-58`).
+each `--reference <name>` (`--full` prints everything at once; both are current at v1.4.200), because the worker contract, recovery, and legacy-migration rules live only there (`cli/specs/skills.ts:50-58`).
 pin-it owns that loop; hand-editing from memory is how it went stale twice.
 
 ## Worker unit = worktree + agent + fresh terminal (PR-per-unit)
@@ -41,11 +41,11 @@ turn unproven. `accepted: true` proves input acceptance, not a started turn — 
 The runtime enforces this and the fleet had none of it written down. Every mission's preamble says:
 
 - `worker_done` **requires `--outcome succeeded|failed`** and **omits `--to`** — an active Dispatch defaults to its owning Run mailbox, which is the preferred
-  address; a terminal handle is not (`orchestration.ts:74-76`, `orchestration/worker-contract:71`).
+  address; a terminal handle is not (`cli/specs/orchestration.ts:74-76`, `orchestration/worker-contract:71`).
 - Every worker send carries `--from <worker_handle> --dispatch-capability <capability>`, both handed to it in the preamble
   (`orchestration/worker-contract:13,25-27`).
 - Evidence rides TYPED flags — `--report-path <path>`, `--files-modified <csv>` — not a hand-rolled `--payload` JSON blob, which PowerShell strips quotes from
-  (`orchestration.ts:49`).
+  (`cli/specs/orchestration.ts:49`).
 - A worker runs `check --terminal <its own handle>` at checkpoints and once before `worker_done`. A `consumer_fenced` from that check means **stop**: it no
   longer owns its Dispatch and must not send `worker_done` (`orchestration/worker-contract:40-51`).
 
@@ -144,7 +144,7 @@ Retire each unit's worktree when its unit MERGES, not at run end — tearing dow
 `WT_CLEAN`. Verify first: the PR is `state=MERGED`, the branch is deleted, and `git status` in the worktree is clean. NEVER remove the coordinator's own
 worktree, a dirty worktree, or one whose branch is unmerged; if removal is refused, archive instead of forcing. Both leak and force-clean classes are
 ledgered: `unit · worktree · retired ts`. Name the verbs: terminals first with `terminal close --worktree <selector> --all`, the canonical teardown that stops
-every process the workspace owns and durably removes its tabs, layouts, and resume records (`terminal-close.ts:8-14`; `terminal stop` is deprecated plumbing)
+every process the workspace owns and durably removes its tabs, layouts, and resume records (`cli/specs/terminal-close.ts:8-14`; `terminal stop` is deprecated plumbing)
 — then the tree with `worktree rm --worktree id:<repoId>::<path>` (`orca-cli:91`). A bulk close that cannot confirm every PTY is `unverifiable`, not clean:
 ledger it as a leak, never force it.
 
