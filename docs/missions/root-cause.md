@@ -16,7 +16,7 @@
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="../../assets/diagrams/missions/root-cause.jpg">
     <source media="(prefers-color-scheme: light)" srcset="../../assets/diagrams/missions/root-cause-light.jpg">
-    <img src="../../assets/diagrams/missions/root-cause-light.jpg" alt="Mission contract for root-cause: you give it a symptom report; it interrupts you for authorizing the fix — after the diagnosis, never inside it; you get back DIAGNOSED or ARCHITECTURE HANDOFF, plus the pasted red-capable loop; ranked hypotheses with their falsifications; a fix handoff brief; it stops at diagnosis only — it never merges a fix; phases STOP-THE-LINE, RED LOOP, LOCALIZE, HYPOTHESES, FALSIFY, DEMONSTRATE" width="820">
+    <img src="../../assets/diagrams/missions/root-cause-light.jpg" alt="Mission contract for root-cause: you give it a symptom report; it interrupts you for authorizing the fix — after the diagnosis, never inside it; you get back DIAGNOSED or DIAGNOSED-WITH-HANDOFF or INCONCLUSIVE, plus the pasted red-capable loop; ranked hypotheses with their falsifications; a fix handoff brief; it stops at diagnosis only — it never merges a fix; phases STOP-THE-LINE, RED LOOP, LOCALIZE, HYPOTHESES, FALSIFY, DEMONSTRATE" width="820">
   </picture>
 </p>
 

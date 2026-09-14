@@ -15,7 +15,7 @@
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="../../assets/diagrams/missions/map-it.jpg">
     <source media="(prefers-color-scheme: light)" srcset="../../assets/diagrams/missions/map-it-light.jpg">
-    <img src="../../assets/diagrams/missions/map-it-light.jpg" alt="Mission contract for map-it: you give it a goal too foggy to spec; it interrupts you for every decision ticket, one per session; the freeze; you get back FROZEN MAP + DAG, plus decision tickets; a frozen spec; a verified Orca DAG that ship-it dispatches unchanged; it stops at no production code — decisions, not deliverables; phases NAME, CHART, CLEAR THE FRONTIER, FREEZE, PREPARE THE DAG" width="820">
+    <img src="../../assets/diagrams/missions/map-it-light.jpg" alt="Mission contract for map-it: you give it a goal too foggy to spec; it interrupts you for every decision ticket, one per session; the freeze; you get back MAPPED or MAPPED-WITH-BLOCKED, plus a frozen map + verified Orca DAG that ship-it dispatches unchanged; decision tickets; a frozen spec; it stops at no production code — decisions, not deliverables; phases NAME, CHART, CLEAR THE FRONTIER, FREEZE, PREPARE THE DAG" width="820">
   </picture>
 </p>
 

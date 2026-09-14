@@ -25,7 +25,7 @@ NEW_ALT = {
  "artifacts-map": "What a run leaves behind: a ledger with one row per unit; a docs/runs directory holding the report, a manifest per unit and a sha256 inventory; one PR per unit merged into BASE with reviewed_sha equal to head; and a promotion PR from BASE to default left to you",
  "mission-handoffs": "How missions hand off: map-it to ship-it with a frozen map and DAG; root-cause to ship-it or clean-sweep with a fix handoff brief; modernize-it and ship-it to migrate-it for stateful changes; deflake-it and prove-it to clean-sweep for deterministic and surfaced bugs; attest-it to ship-it for remediation; oncall-it to root-cause for telemetry; and a chain harden-it, prove-it, ship-it gated by each verified terminal",
  "proof-ladder": "The proof ladder: doctrine-only, then self-run, then external-run; advancing needs a run report that binds, with a RUN header, a manifest in the run's own directory and an inventory that re-hashes at the named commit; today every mission reads doctrine-only",
- "verify-gate": "The completion gate: the coordinator sets the gate env, a Stop or TaskCompleted hook fires verify-gate.sh, verify.py re-derives scope, review and the negative control, then exit 0 allows or exit 2 blocks, fail-closed; the verdict is advisory inside the worker's own session and sound where CI, MCP-Task or an SDK subprocess owns the env",
+ "verify-gate": "The completion gate: the coordinator sets the gate env, a Stop or TaskCompleted hook fires verify-gate.sh, verify.py re-derives scope and review and reads the negative control, replaying it in a throwaway worktree only when ORCA_EXECUTE_NC is set, then exit 0 allows or exit 2 blocks, fail-closed; the verdict is advisory inside the worker's own session and sound where CI, MCP-Task or an SDK subprocess owns the env",
  "mission-identity": "The six-point mission-identity test: unit of work, per-unit state machine, convergence proof, ordering and isolation, parking and failure semantics, and the oracle; audit findings, tracker issues and doc claims are one mission, clean-sweep, while a perf breach is a different proof and therefore a different mission, speed-it",
 }
 
@@ -38,29 +38,45 @@ def picture(prefix, name, alt, width):
             '  </picture>\n</p>')
 
 IMG = re.compile(r'<p align="center">\n  <img src="((?:\.\./)*)assets/diagrams/([A-Za-z0-9/_-]+)\.jpg" alt="([^"]*)" width="(\d+)">\n</p>')
+PIC = re.compile(r'<p align="center">\n  <picture>\n    <source media="\(prefers-color-scheme: dark\)" srcset="((?:\.\./)*)assets/diagrams/([A-Za-z0-9/_-]+)\.jpg">\n'
+                 r'    <source media="\(prefers-color-scheme: light\)" srcset="[^"]*">\n    <img src="[^"]*" alt="([^"]*)" width="(\d+)">\n  </picture>\n</p>')
+
+def _alt_for(name, alt):
+    base = name.split("/")[-1]
+    if name.startswith("missions/") and base in CONTRACT:
+        return mission_alt(base)
+    return NEW_ALT.get(base, alt)
 
 def convert_existing(text):
+    """Turn bare <img> embeds into picture blocks and refresh the alt text of blocks that already exist."""
     def rep(m):
         prefix, name, alt, width = m.groups()
-        base = name.split("/")[-1]
-        if name.startswith("missions/") and base in CONTRACT:
-            alt = mission_alt(base)
-        return picture(prefix, name, alt, width)
-    return IMG.sub(rep, text)
+        return picture(prefix, name, _alt_for(name, alt), width)
+    return PIC.sub(rep, IMG.sub(rep, text))
+
+def _has(text, block):
+    dark = re.search(r'srcset="([^"]+\.jpg)"', block).group(1)
+    return dark in text
 
 def insert_after(text, anchor, block, doc):
+    if _has(text, block):
+        return text
     assert text.count(anchor) == 1, (doc, anchor[:60], text.count(anchor))
     return text.replace(anchor, anchor + "\n\n" + block, 1)
 
 def insert_before(text, anchor, block, doc):
+    if _has(text, block):
+        return text
     assert text.count(anchor) == 1, (doc, anchor[:60], text.count(anchor))
     return text.replace(anchor, block + "\n\n" + anchor, 1)
 
 DRY = "--dry-run" in sys.argv
 
-def edit(path, fn):
+def edit(path, fn):  # idempotent: a rerun refreshes alt text and inserts only what is missing
     p = REPO / path; t = p.read_text(); n = fn(t)
-    assert n != t, path
+    if n == t:
+        print(f"unchanged {path}")
+        return
     before, after = t.count("<img "), n.count("<img ")
     pics = n.count("<picture>")
     if not DRY:
@@ -70,11 +86,12 @@ def edit(path, fn):
 # --- README -------------------------------------------------------------------------
 def readme(t):
     t = convert_existing(t)
-    ascii_start = t.index("```\n YOU SAY")
-    ascii_end = t.index("```\n", ascii_start + 4) + 4
-    ascii = t[ascii_start:ascii_end].rstrip("\n")
-    t = (t[:ascii_start] + picture("", "you-say", NEW_ALT["you-say"], 1000) + "\n\n"
-         "<details>\n<summary>Text version</summary>\n\n" + ascii + "\n\n</details>\n" + t[ascii_end:])
+    if "assets/diagrams/you-say.jpg" not in t:
+        ascii_start = t.index("```\n YOU SAY")
+        ascii_end = t.index("```\n", ascii_start + 4) + 4
+        ascii = t[ascii_start:ascii_end].rstrip("\n")
+        t = (t[:ascii_start] + picture("", "you-say", NEW_ALT["you-say"], 1000) + "\n\n"
+             "<details>\n<summary>Text version</summary>\n\n" + ascii + "\n\n</details>\n" + t[ascii_end:])
     t = insert_before(t, "Two workflows are the **same mission** only if they share all six of:",
         "Missions also hand work to one another, each handoff a separately authorized run:\n\n"
         + picture("", "mission-handoffs", NEW_ALT["mission-handoffs"], 900), "README")
@@ -105,6 +122,7 @@ def getting_started(t):
     return t
 
 def verify_gate(t):
+    t = convert_existing(t)
     return insert_before(t, "## Install paths, and which ones carry the gate",
         picture("../", "verify-gate", NEW_ALT["verify-gate"], 820), "verify-gate")
 

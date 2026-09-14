@@ -16,7 +16,7 @@
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="../../assets/diagrams/missions/ship-it.jpg">
     <source media="(prefers-color-scheme: light)" srcset="../../assets/diagrams/missions/ship-it-light.jpg">
-    <img src="../../assets/diagrams/missions/ship-it-light.jpg" alt="Mission contract for ship-it: you give it an intent, or a frozen spec; it interrupts you for gate 1 — confirm the frozen spec; gate 2 — merge the promotion PR; you get back BUILT or PROMOTION_READY or RELEASED or DEPLOYED_AND_VERIFIED, plus slice PRs on BASE; a promotion PR with a traceability table; an evidence manifest per unit; it stops at the highest release state you authorized — it never merges to the default branch itself; phases FREEZE, DECOMPOSE, BUILD, REVIEW, PROVE, LAND, RELEASE" width="820">
+    <img src="../../assets/diagrams/missions/ship-it-light.jpg" alt="Mission contract for ship-it: you give it an intent, or a frozen spec; it interrupts you for gate 1 — confirm the frozen spec; gate 2 — merge the promotion PR; you get back BUILT or PROMOTION_READY or RELEASED or DEPLOYED_AND_VERIFIED, plus slice PRs on BASE; a promotion PR with a traceability table; an evidence manifest per unit; it stops at the highest release state you authorized, suffixed -WITH-PARKED when units were parked with your approval — it never merges to the default branch itself; phases FREEZE, DECOMPOSE, BUILD, REVIEW, PROVE, LAND, RELEASE" width="820">
   </picture>
 </p>
 

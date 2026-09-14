@@ -87,7 +87,13 @@ def one(spec, size, raw_dir, force, attempts=3):
     raw_path = raw_dir / f"{sid}.png"
     out_path = REPO / spec["out"]
     if raw_path.exists() and not force:
-        return {"id": sid, "status": "cached", "raw": str(raw_path)}
+        if out_path.exists():
+            return {"id": sid, "status": "cached", "raw": str(raw_path)}
+        w, h = spec["dims"]  # the PNG landed but the JPEG never did: finish it without another API call
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        fit(Image.open(raw_path), w, h).save(out_path, "JPEG", quality=spec.get("q", 86), optimize=True,
+                                             progressive=True, subsampling=0)
+        return {"id": sid, "status": "refitted", "out": str(out_path.relative_to(REPO))}
     err = None
     for i in range(attempts):
         t0 = time.time()
@@ -130,10 +136,14 @@ def main():
     if missing:
         sys.exit(f"unknown ids: {sorted(missing)}")
     results = []
-    with cf.ThreadPoolExecutor(max_workers=a.workers) as ex:
-        for res in ex.map(lambda s: one(s, a.size, raw_dir, a.force), todo):
-            results.append(res)
-            print(json.dumps(res), flush=True)
+    # A light variant recolors its dark render, so every dark id in the run finishes before any
+    # light id starts; otherwise "--only x,x-light" could recolor the previous dark JPEG.
+    phases = [[s for s in todo if not s.get("from")], [s for s in todo if s.get("from")]]
+    for phase in phases:
+        with cf.ThreadPoolExecutor(max_workers=a.workers) as ex:
+            for res in ex.map(lambda s: one(s, a.size, raw_dir, a.force), phase):
+                results.append(res)
+                print(json.dumps(res), flush=True)
     bad = [r for r in results if r["status"] == "failed"]
     print(f"\n{len(results) - len(bad)} ok, {len(bad)} failed; raw PNGs in {raw_dir}")
     sys.exit(1 if bad else 0)

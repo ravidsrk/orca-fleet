@@ -75,7 +75,7 @@ Right side, a note with an amber marker: today every mission reads doctrine-only
 Footer, small, centred: a mission is never presented as more proven than its evidence — validate.py enforces the field"""),
 
 n("verify-gate", """Content: the completion gate and its trust boundary.
-Top row, left to right, joined by arrows: a box: the coordinator sets the gate env (caption: ORCA_MANIFEST · contract source + digest · unit class) → a box: Stop / TaskCompleted hook fires verify-gate.sh → a box: verify.py re-derives (caption: scope from the frozen contract · review from GitHub · negative control replayed in a throwaway worktree) → two outcome boxes stacked: a green one: exit 0 — allow, and a red one: exit 2 — BLOCK, with feedback
+Top row, left to right, joined by arrows: a box: the coordinator sets the gate env (caption: ORCA_MANIFEST · contract source + digest · unit class) → a box: Stop / TaskCompleted hook fires verify-gate.sh → a box: verify.py re-derives (caption: scope from the frozen contract · review from GitHub · negative control read, or replayed in a throwaway worktree when ORCA_EXECUTE_NC is set) → two outcome boxes stacked: a green one: exit 0 — allow, and a red one: exit 2 — BLOCK, with feedback
 Caption under the row: fail-closed — a missing manifest, a missing contract, or a verifier error blocks
 Bottom half, header: WHERE THE VERDICT IS SOUND, two cards side by side:
 Card 1, amber outline, header: native hook, inside the worker's own session, body: the worker can set ORCA_* itself — ADVISORY, defence in depth
