@@ -30,6 +30,9 @@ Checks (evidence-manifest.md section 2), scope FIRST:
      written by evidence-run.py — the clean-env re-run as a machine check (#3 of the audit ledger).
   6. redaction: the manifest and every named artifact are scanned for credential shapes (#14).
   7. ancestry (best-effort) · 8. symbol-on-base (best-effort).
+  9. intent packet (mutation units) · 10. lighting legality · 11. reviewer_mode legality ·
+  12. Art-12/50 provenance presence (claims only) · 13. signed dispatch provenance (#135) ·
+  14. class downgrade measured against the actual diff (#310).
 
 Every evidence path is repo-relative and bounded by the git toplevel; a manifest-named artifact is
 PINNED — tracked at head_sha, or hashed in the manifest's `artifacts[]` inventory (#267).
@@ -1746,7 +1749,7 @@ def check_redaction(m, manifest_path):
 
 
 def check_ancestry(m, base):
-    """5. Best-effort: head_sha is an ancestor of origin/<base> (post-merge)."""
+    """7. Best-effort: head_sha is an ancestor of origin/<base> (post-merge)."""
     if not base:
         return ["NOTE: --base not given — ancestry check skipped (pre-merge/offline)"]
     ref = f"origin/{base}"
@@ -1758,7 +1761,7 @@ def check_ancestry(m, base):
 
 
 def check_symbol_on_base(symbol, base):
-    """6. Best-effort: a unit symbol is greppable on origin/<base> (change is real on base)."""
+    """8. Best-effort: a unit symbol is greppable on origin/<base> (change is real on base)."""
     if not symbol or not base:
         return []
     code, out, _ = _run(["git", "grep", "-l", "-e", symbol, f"origin/{base}"])
@@ -1768,7 +1771,7 @@ def check_symbol_on_base(symbol, base):
 
 
 def check_intent(m, is_mutation):
-    """7. Mutation units carry a non-empty intent packet (goal · ruled_out · why) — presence only;
+    """9. Mutation units carry a non-empty intent packet (goal · ruled_out · why) — presence only;
     wisdom is a human/taste check (evidence-manifest.md §1)."""
     if not is_mutation:
         return []
@@ -1781,7 +1784,7 @@ def check_intent(m, is_mutation):
 
 
 def check_lighting(m, is_mutation, dispatch_lighting=None):
-    """8. Lighting is a legal value when present; omission defaults to lit — "Recording nothing
+    """10. Lighting is a legal value when present; omission defaults to lit — "Recording nothing
     means lit" (gate-classification.md). dark-eligibility's stop-list is a human gate; verify.py
     machine-checks that the value is legal and, when the dispatch supplied a lighting, that the
     worker's manifest did not swap it (the dispatch value is authoritative for the review waiver
@@ -1800,7 +1803,7 @@ def check_lighting(m, is_mutation, dispatch_lighting=None):
 
 
 def check_reviewer_mode(m, is_mutation):
-    """9. reviewer_mode is recorded and legal — how independent the review was. The strongest
+    """11. reviewer_mode is recorded and legal — how independent the review was. The strongest
     independence signal is the APPROVED GitHub review (check_review); this records the qualifier."""
     if not is_mutation:
         return []
@@ -1811,7 +1814,7 @@ def check_reviewer_mode(m, is_mutation):
 
 
 def check_provenance(m):
-    """10. EU AI Act Art-12/50: a manifest that CLAIMS a regulated standard must carry the provenance
+    """12. EU AI Act Art-12/50: a manifest that CLAIMS a regulated standard must carry the provenance
     fields that make it an audit record. Presence-only (not deep validation), but an incomplete packet
     claiming a standard is not a valid audit record — fail it rather than accept incomplete evidence."""
     prov = m.get("provenance")
@@ -1868,7 +1871,7 @@ def _manifest_nc_values(m):
 
 
 def check_dispatch_provenance(m, contract_digest, unit_class, lighting, record_ref, pubkey_ref):
-    """11. #135: verify a coordinator-signed dispatch record so a run's contract_digest / unit_class /
+    """13. #135: verify a coordinator-signed dispatch record so a run's contract_digest / unit_class /
     lighting can be checked against what the coordinator actually authorized. This is a SOUNDNESS
     boundary only when the *verifying key* is trusted — i.e. supplied by an OFF-WORKER context
     (CI/MCP/SDK, or an auditor re-running verify.py with the coordinator's real public key). In the
@@ -1944,7 +1947,7 @@ def check_dispatch_provenance(m, contract_digest, unit_class, lighting, record_r
 
 
 def check_class_downgrade(m, unit_class, record_ref, pubkey_ref):
-    """12. #310: `unit_class` reaches the native in-session gate through ORCA_UNIT_CLASS, and the
+    """14. #310: `unit_class` reaches the native in-session gate through ORCA_UNIT_CLASS, and the
     worker owns its own environment. Declaring `report-only` sheds the negative control, the intent
     packet, lighting legality and reviewer_mode in one move — the same manifest that fails seven
     invariants as `mutation` passed every check as `report-only`.

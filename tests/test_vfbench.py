@@ -361,7 +361,7 @@ class TheRefusedControlClassesAreSampled(unittest.TestCase):
 
     # The refusal each trap must earn. A RED alone is not evidence the benchmark still measures
     # the advertised bypass: a trap refused as MALFORMED, or by an unrelated prerequisite, scores
-    # the same 0/18 and says nothing (PR #308 review, P2). This is not hypothetical — the
+    # the same 0/20 and says nothing (PR #308 review, P2). This is not hypothetical — the
     # stillborn trap shipped in a first draft refused for exactly that reason, its diff in a
     # `negative_control.diff` field the manifest reader rejects, never reaching the check it names.
     REFUSAL = {

@@ -59,8 +59,8 @@ author. A gate that cannot execute a control cannot pass it.
 | `valid-control` | (not a trap — genuinely complete, report-only, built at run time) | passes (proves soundness ≠ always-RED for the scope leg): two real commits whose whole difference is a document, which is what an honest report-only unit looks like once `HEAD..HEAD` stopped counting as one (#310) |
 | `mutation-valid-control` | (not a trap — genuinely complete, MUTATION-class, built at run time) | passes only after a REAL executed revert + a real independent APPROVED review; proves soundness ≠ always-RED for the class the bypass log broke |
 
-The **ancestry leg** (`check_ancestry`) is exercised by #172's `non-ancestor-sha` trap (landing
-separately) — referenced here so it is not duplicated in this corpus.
+The **ancestry leg** (`check_ancestry`) is exercised by #172's `non-ancestor-sha` trap, in the
+corpus above — noted here so it is not duplicated.
 
 ### What the last four traps cost to add (#306)
 

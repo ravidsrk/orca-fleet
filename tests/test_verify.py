@@ -1264,8 +1264,9 @@ class EndToEndMutationGreen(RepoCase):
              "negative_control": nc or {"tool": "mutmut", "result": "KILLED", "mutant": "m7",
                                         "artifact": self.nc_artifact},
              # The content-bound ledger: an exit-0 run whose wtree is head_sha's tree, carrying the
-             # cmd_sha256 evidence-run.py writes. --execute-nc will only replay a command that is
-             # in here (PR #277 review): a unit does not get to nominate what proves it.
+             # cmd_sha256 evidence-run.py writes. Since #279 the replayed command comes from the
+             # coordinator's --nc-command and must AGREE with the manifest's — and since #352 a
+             # fresh record must be FOR that command: a unit does not get to nominate what proves it.
              "commands": commands if commands is not None else [
                  {"label": "tests", "cmd": self.proof_cmd,
                   "cmd_sha256": hashlib.sha256(self.proof_cmd.encode("utf-8")).hexdigest(),
