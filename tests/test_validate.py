@@ -738,6 +738,16 @@ class TestCountAgnosticGuards(unittest.TestCase):
                 errs = gb.check()
         self.assertTrue(errs and "missing" in errs[0], errs)
 
+    def test_gen_badges_rejects_unknown_arguments_without_writing(self):
+        # #353: `if "--check" in sys.argv[1:]` treated a typo'd --chek as "write" — CI would
+        # have mutated the committed badges instead of checking them.
+        badge = ROOT / "assets" / "badges" / "tests.json"
+        before = badge.read_bytes()
+        r = subprocess.run([sys.executable, str(ROOT / "scripts" / "gen-badges.py"), "--chek"],
+                           capture_output=True, text=True)
+        self.assertNotEqual(r.returncode, 0, "an unknown flag exited 0")
+        self.assertEqual(badge.read_bytes(), before, "an unknown flag rewrote the badge")
+
     def test_badge_inventory_is_honest_for_failing_and_passing_suites(self):
         spec = importlib.util.spec_from_file_location("_inventory", ROOT / "scripts/gen-badges.py")
         gb = importlib.util.module_from_spec(spec)
