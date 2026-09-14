@@ -25,10 +25,10 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | task_id | id | title | CLASS | BUILD_DONE | PR_OPEN | BOT | REVIEWED | MERGED | WT_CLEAN | lighting | park | evidence |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | STAB | — | land 4 PR-review hunks (deny-hook/run_report/verify/HUMAN_ACTIONS) + badge regen | conductor landing, worker-executed | t | n/a | n/a | n/a | t | n/a | lit | — | 1215e09 9651a52 8f7d5ac 917f9fd; pushed origin/BASE fast-forward (egress receipt); 1285 OK + full battery green; NC re-executed 11 failures; rides PR #387 |
-| T1 | #388 | evidence-run lockfile dirties worktree | real-bug | f | f | f | f | f | f | lit | — | U388 task_f7cfdaa731df term_f79fc6ef; digest d4ed45ce; nc: tests.test_evidence_run |
-| T2 | #389 | run_report WIP validation accepts incomplete reports | real-bug | f | f | f | f | f | f | lit | — | U389 task_0936788dace9 term_08869556; digest c540cb30; nc: tests.test_run_report |
+| T1 | #388 | evidence-run lockfile dirties worktree | real-bug | t | t | t | f | f | f | lit | — | PR #392 @da2f98a (base ✓ checks ✓); bot P1 mixed-version DECLINED on-PR (out of scope, disclosed) + follow-up filed (loop 2); review next |
+| T2 | #389 | run_report WIP validation accepts incomplete reports | real-bug | t | t | t | f | f | f | lit | — | PR #391 @f642700 (base ✓ checks ✓); bot 2 P1 + 1 P2 held VALID (template waves, manifest abs-paths, dup cells); review next |
 | T3 | #364 | fixture-backed evals + workspace-state oracle (S1) | real-feature-small | f | f | f | f | f | f | lit | — | Q1: fixtures+oracle (wave 2; brief TBD) |
-| T4 | #385 | historical-docs polish, agent slice (status.json + parity test) | real-bug (docs) | t | f | f | f | f | f | lit | — | ea77ce9 87619de e72155c on u385-parity; clean 1288 OK @e72155c; NC re-RED (C-1 only); manifest ✓ digest ✓ |
+| T4 | #385 | historical-docs polish, agent slice (status.json + parity test) | real-bug (docs) | t | t | t | f | f | f | lit | — | PR #390; r1 NO-GO @bcb4397 (1 Req _guides, deduped ×3; review 5201268896 COMMENTED — GH 422s self-REQUEST_CHANGES); F385r2 dispatching |
 | T5 | #386 | sign manifest+inventory, retention backend (S2) | — | — | — | — | — | — | — | — | needs-human: key custody + backend undecided (Q2) | Q2: park |
 | — | #235 | H-02 marketplace submissions (pre-parked needs-human) | needs-human | — | — | — | — | — | — | needs-human: external accounts | prior run + issue text |
 
@@ -122,3 +122,19 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   the count). U388 ask msg_ead6507afe29: same badge question → (A); plus branch name →
   bare u388-lockfile (create from tip; ravidsrk/* stays local-only). U388 otherwise
   green: 24/24, C-1/C-3 red-at-base, C-2 RED 10/10 vs no-lock mutant.
+- Builds verified + settled: U385 (ea77ce9 87619de e72155c; 1288 OK; NC re C-1-only RED),
+  U389 (e74dea0 0038a43 3ec17ee; 1289 OK; NC re 10F+1E), U388 (eddd3e0 e4ffbb7 75c0c91
+  8ec5c86; 1288 OK; NC re 2 NoLedgerLitter). PRs: #390 @bcb4397 (1 bot P2 held),
+  #391 @f642700 (3 bot held: 2 P1 + 1 P2). U385 axes: standards 1 Req + specs 1 Req +
+  test-adequacy clean — the two Requireds + bot P2 are ONE issue (_guides link forms),
+  found independently 3 ways.
+- Verdict dispatch blocked once by my own dead-link trip: pasting the bot finding's
+  bracket-link examples into taskspecs/verdict-385-r1.md failed
+  test_no_navigable_doc_links (run files are navigable; EVIDENCE_TREES excludes only
+  docs/reports + docs/completion/evidence). Fixed by rewording (no bracket-link forms in
+  run files — sanitize all future verdict specs the same way).
+- review-it consulted pre-verdict (mission cross-check): read-only verdict doctrine
+  agrees with our shape (SHA-bound, no rerank, quoted lines). Its "posting is a human
+  grant" rule governs review-it RUNS; in this clean-sweep run, verdict posts on feature
+  unit PRs (COMMENTED/REQUEST_CHANGES, never APPROVE, same identity, dismissible) are
+  routine pipeline evidence — classified taste, logged; the main-merge human gate stands.
