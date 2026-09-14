@@ -1,0 +1,51 @@
+# U388 negative control — tool=revert
+# worktree: git worktree add --detach <scratch>/nc-388 75c0c91130b69c8c629c0c5133896282501fcf21
+$ git checkout e04b0c20137d0d0a9a0886d6f9748e72252384a7 -- runtime/scripts/evidence-run.py
+$ git diff --stat HEAD
+ runtime/scripts/evidence-run.py | 22 ++++++++--------------
+ 1 file changed, 8 insertions(+), 14 deletions(-)
+$ python3 -m unittest tests.test_evidence_run   # production change REVERTED
+...........FF...........
+======================================================================
+FAIL: test_a_run_after_committing_the_manifest_records_the_committed_tree (tests.test_evidence_run.NoLedgerLitter.test_a_run_after_committing_the_manifest_records_the_committed_tree)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u388-lockfile/05d05830-7e19-4d4b-a4b8-a643e19a3d25/scratchpad/nc-388/tests/test_evidence_run.py", line 303, in test_a_run_after_committing_the_manifest_records_the_committed_tree
+    self.assertEqual(self.records(self.MANIFEST)[-1]["wtree"], committed)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'a2f1861973639f7e006b184c36eef2df4585bf1e' != '42645865d5b0b19b0707859ca7744855774af9c4'
+- a2f1861973639f7e006b184c36eef2df4585bf1e
++ 42645865d5b0b19b0707859ca7744855774af9c4
+
+
+======================================================================
+FAIL: test_sequential_runs_leave_nothing_beside_the_manifest (tests.test_evidence_run.NoLedgerLitter.test_sequential_runs_leave_nothing_beside_the_manifest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u388-lockfile/05d05830-7e19-4d4b-a4b8-a643e19a3d25/scratchpad/nc-388/tests/test_evidence_run.py", line 290, in test_sequential_runs_leave_nothing_beside_the_manifest
+    self.assertEqual(sorted(p.name for p in (self.repo / "reports").iterdir()), ["m.json"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['m.json', 'm.json.lock'] != ['m.json']
+
+First list contains 1 additional elements.
+First extra element 1:
+'m.json.lock'
+
+- ['m.json', 'm.json.lock']
++ ['m.json']
+
+----------------------------------------------------------------------
+Ran 24 tests in 3.429s
+
+FAILED (failures=2)
+exit=1  (REVERTED: expected NONZERO)
+
+$ git checkout HEAD -- runtime/scripts/evidence-run.py
+$ git status --porcelain
+$ python3 -m unittest tests.test_evidence_run   # clean head 75c0c91
+........................
+----------------------------------------------------------------------
+Ran 24 tests in 3.262s
+
+OK
+exit=0  (CLEAN HEAD: expected ZERO)
