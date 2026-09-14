@@ -418,3 +418,5 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   reads via bash only.) TEST in: 2 Required (R1 teeth-tests 20/21 missing, R2 F1
   boundary one-sample) + claims verified. SPEC in: C-1/C-2/C-3 MET, P1 refutation
   HOLDS, 1 Required (deflake venv false-fail via **/*.py Retry glob).
+  STANDARDS-re task_75891ec4b7f2→ctx_c1dc5c7ffd2a (term_43e1746e). SPEC+TEST tasks
+  completed, workers released, stuck terminal closed.
