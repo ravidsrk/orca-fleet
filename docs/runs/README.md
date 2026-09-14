@@ -41,9 +41,11 @@ inventory re-hashes at the commit its `RUN:` header names (`runtime/scripts/run_
 `scripts/validate.py` also requires the filename to carry the mission name and the body to name
 it. Start a new report from [TEMPLATE.md](TEMPLATE.md).
 
-Every mutating self-run records the WIP-curve protocol row from `attention-budget.md`
-(WIP setting, builder throughput, verification latency, rework rate, freshness
-violations). The 2026-08-28 ship-it self-run above records a first *qualitative* observation
+Every mutating self-run records the WIP-curve protocol from `attention-budget.md`: `waves=<n>`
+in its `RUN:` header and one row per dispatch wave 1..n, each labeling `wave=<k>`, the WIP setting
+(`builders=<n> reviewers=<n>`), builder throughput, verification latency (median and max), rework
+rate and freshness violations with a measured value — `run_report.py` refuses a missing, partial,
+doubled or out-of-range wave row ([TEMPLATE.md](TEMPLATE.md) shows the table). The 2026-08-28 ship-it self-run above records a first *qualitative* observation
 (it reached verified-BUILT, not verified-CLOSED) — not a protocol-compliant point; the caps stay
 ASSERTED until ≥3 runs at differing WIP settings measure verified-CLOSED-per-hour throughput.
 
