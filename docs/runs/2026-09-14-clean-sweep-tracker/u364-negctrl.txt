@@ -1,0 +1,91 @@
+U364 negative control - tool=revert, path=scripts/eval.py, NC-COMMAND: python3 -m unittest tests.test_evals
+Script: git worktree add --detach <scratch>/nc-364 HEAD; git checkout 506a05974f61c35eda4acbb7df15e84fdeeec8bb -- scripts/eval.py; run; git checkout HEAD -- scripts/eval.py; run; git worktree remove --force <scratch>/nc-364
+
+=== driver transcript
+Preparing worktree (detached HEAD 244209a)
+HEAD is now at 244209a chore(badges): regenerate tests badge, 1295 -> 1315 in source (#364)
+head=244209aa4d059c675425f944b9bb86fd1fd1386c
+== REVERTED: scripts/eval.py @ 506a059 (git diff --stat HEAD):
+ scripts/eval.py | 167 ++------------------------------------------------------
+ 1 file changed, 5 insertions(+), 162 deletions(-)
+exit=1  (REVERTED: expected NONZERO)
+== RESTORED (git status --porcelain empty?): []
+exit=0  (CLEAN HEAD: expected ZERO)
+
+=== REVERTED run (scripts/eval.py @ 506a059): failing tests
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='absorb-it', id=4)
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='access-it', id=4)
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='attest-it', id=4)
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='clean-sweep', id=4)
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='deflake-it', id=4)
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='document-it', id=4)
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='field-test-it', id=4)
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='floor-it', id=4)
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='harden-it', id=4)
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='map-it', id=4)
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='migrate-it', id=4)
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='modernize-it', id=4)
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='oncall-it', id=4)
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='oss-contribute', id=4)
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='pin-it', id=4)
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='prove-it', id=4)
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='reshape-it', id=4)
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='review-it', id=4)
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='root-cause', id=4)
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='ship-it', id=4)
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='speed-it', id=4)
+ERROR: test_a_deleted_file_cannot_dodge_a_path_check (tests.test_evals.TestWorkspaceStateChecks.test_a_deleted_file_cannot_dodge_a_path_check) (check={'path': 'tests/test_cache.py', 'matches': 'def test_expiry'})
+ERROR: test_a_deleted_file_cannot_dodge_a_path_check (tests.test_evals.TestWorkspaceStateChecks.test_a_deleted_file_cannot_dodge_a_path_check) (check={'path': 'tests/test_cache.py', 'not_matches': 'skip'})
+ERROR: test_a_glob_matches_any_file_and_not_matches_every_file (tests.test_evals.TestWorkspaceStateChecks.test_a_glob_matches_any_file_and_not_matches_every_file)
+ERROR: test_every_failing_check_is_reported_with_its_reason (tests.test_evals.TestWorkspaceStateChecks.test_every_failing_check_is_reported_with_its_reason)
+ERROR: test_exists_on_a_path_and_on_a_glob (tests.test_evals.TestWorkspaceStateChecks.test_exists_on_a_path_and_on_a_glob)
+ERROR: test_matches_and_not_matches_on_a_path (tests.test_evals.TestWorkspaceStateChecks.test_matches_and_not_matches_on_a_path)
+ERROR: test_paths_outside_the_workspace_fail_rather_than_read (tests.test_evals.TestWorkspaceStateChecks.test_paths_outside_the_workspace_fail_rather_than_read) (check={'path': '../secret.txt', 'matches': 'fail_under'})
+ERROR: test_paths_outside_the_workspace_fail_rather_than_read (tests.test_evals.TestWorkspaceStateChecks.test_paths_outside_the_workspace_fail_rather_than_read) (check={'path': 'link.txt', 'matches': 'fail_under'})
+ERROR: test_paths_outside_the_workspace_fail_rather_than_read (tests.test_evals.TestWorkspaceStateChecks.test_paths_outside_the_workspace_fail_rather_than_read) (check={'glob': '*.txt', 'matches': 'fail_under'})
+ERROR: test_the_oracle_spends_no_tokens (tests.test_evals.TestWorkspaceStateChecks.test_the_oracle_spends_no_tokens)
+ERROR: test_unchanged_holds_only_for_the_fixture_bytes (tests.test_evals.TestWorkspaceStateChecks.test_unchanged_holds_only_for_the_fixture_bytes)
+ERROR: test_a_held_workspace_does_not_rescue_a_failing_trace (tests.test_evals.TestWorkspaceStateOracle.test_a_held_workspace_does_not_rescue_a_failing_trace)
+ERROR: test_the_same_trace_over_the_asserted_workspace_passes (tests.test_evals.TestWorkspaceStateOracle.test_the_same_trace_over_the_asserted_workspace_passes)
+FAIL: test_a_passing_trace_over_a_wrong_workspace_fails (tests.test_evals.TestWorkspaceStateOracle.test_a_passing_trace_over_a_wrong_workspace_fails)
+FAIL: test_a_fixture_backed_case_cannot_also_claim_narration_only (tests.test_evals.TestWorkspaceStateSchema.test_a_fixture_backed_case_cannot_also_claim_narration_only)
+FAIL: test_asserted_state_without_fixtures_is_refused (tests.test_evals.TestWorkspaceStateSchema.test_asserted_state_without_fixtures_is_refused)
+FAIL: test_fixtures_with_no_asserted_state_are_refused (tests.test_evals.TestWorkspaceStateSchema.test_fixtures_with_no_asserted_state_are_refused) (state=None)
+FAIL: test_fixtures_with_no_asserted_state_are_refused (tests.test_evals.TestWorkspaceStateSchema.test_fixtures_with_no_asserted_state_are_refused) (state=[])
+FAIL: test_malformed_checks_are_refused (tests.test_evals.TestWorkspaceStateSchema.test_malformed_checks_are_refused) (reason='not an object')
+FAIL: test_malformed_checks_are_refused (tests.test_evals.TestWorkspaceStateSchema.test_malformed_checks_are_refused) (reason='no predicate')
+FAIL: test_malformed_checks_are_refused (tests.test_evals.TestWorkspaceStateSchema.test_malformed_checks_are_refused) (reason='two predicates')
+FAIL: test_malformed_checks_are_refused (tests.test_evals.TestWorkspaceStateSchema.test_malformed_checks_are_refused) (reason='no target')
+FAIL: test_malformed_checks_are_refused (tests.test_evals.TestWorkspaceStateSchema.test_malformed_checks_are_refused) (reason='two targets')
+FAIL: test_malformed_checks_are_refused (tests.test_evals.TestWorkspaceStateSchema.test_malformed_checks_are_refused) (reason='unknown key')
+FAIL: test_malformed_checks_are_refused (tests.test_evals.TestWorkspaceStateSchema.test_malformed_checks_are_refused) (reason='bad regex')
+FAIL: test_malformed_checks_are_refused (tests.test_evals.TestWorkspaceStateSchema.test_malformed_checks_are_refused) (reason='empty regex')
+FAIL: test_malformed_checks_are_refused (tests.test_evals.TestWorkspaceStateSchema.test_malformed_checks_are_refused) (reason='non-bool exists')
+FAIL: test_malformed_checks_are_refused (tests.test_evals.TestWorkspaceStateSchema.test_malformed_checks_are_refused) (reason='unchanged false')
+FAIL: test_malformed_checks_are_refused (tests.test_evals.TestWorkspaceStateSchema.test_malformed_checks_are_refused) (reason='unchanged on a glob')
+FAIL: test_malformed_checks_are_refused (tests.test_evals.TestWorkspaceStateSchema.test_malformed_checks_are_refused) (reason='unchanged on a non-fixture')
+FAIL: test_malformed_checks_are_refused (tests.test_evals.TestWorkspaceStateSchema.test_malformed_checks_are_refused) (reason='escaping path')
+FAIL: test_malformed_checks_are_refused (tests.test_evals.TestWorkspaceStateSchema.test_malformed_checks_are_refused) (reason='absolute glob')
+FAIL: test_malformed_checks_are_refused (tests.test_evals.TestWorkspaceStateSchema.test_malformed_checks_are_refused) (reason='non-string why')
+FAIL: test_the_runner_refuses_a_case_without_asserted_state_before_any_agent_runs (tests.test_evals.TestWorkspaceStateSchema.test_the_runner_refuses_a_case_without_asserted_state_before_any_agent_runs)
+
+=== REVERTED run: the C-2 witness
+FAIL: test_a_passing_trace_over_a_wrong_workspace_fails (tests.test_evals.TestWorkspaceStateOracle.test_a_passing_trace_over_a_wrong_workspace_fails)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<scratch>/nc-364/tests/test_evals.py", line 931, in test_a_passing_trace_over_a_wrong_workspace_fails
+    self.assertEqual(code, 1, result)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 1 : {'mission': 'fixture-it', 'cases': [{'id': 1, 'prompt': 'review', 'fixtures': 1, 'assertions': 2, 'passed': 2, 'failed': 0}], 'failures': 0, 'dry_run': False}
+
+=== REVERTED run: totals
+Ran 88 tests in 3.047s
+
+FAILED (failures=21, errors=34)
+exit=1  (REVERTED: expected NONZERO)
+
+=== CLEAN HEAD run (244209aa4d059c675425f944b9bb86fd1fd1386c): totals
+Ran 88 tests in 3.088s
+
+OK
+exit=0  (CLEAN HEAD: expected ZERO)

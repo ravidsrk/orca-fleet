@@ -1,0 +1,212 @@
+{
+  "schema": 1,
+  "unit": "U364",
+  "unit_class": "code-change",
+  "base_sha": "506a05974f61c35eda4acbb7df15e84fdeeec8bb",
+  "head_sha": "244209aa4d059c675425f944b9bb86fd1fd1386c",
+  "head_tree": "e742c4c08e85825cfed2d2045549c34b1cd0e1b5",
+  "head_sha_role": "head_sha is the last CONTENT commit 244209a (the badge regeneration that follows the two content commits 2827496 and 218bab6). The commit that adds this manifest follows it with a manifest-only delta and cannot name its own SHA; the pushed tip is named in worker_done and the conductor re-binds head_sha to the reviewed tip at close. Every commands[] record was made on a clean tree at head_sha: wtree e742c4c0 == head_tree.",
+  "base_branch": "review/2026-09-14-holistic-fixes",
+  "branch": "u364-eval-fixtures",
+  "contract": {
+    "source": "docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/build-364.md@506a05974f61c35eda4acbb7df15e84fdeeec8bb",
+    "digest": "sha256:35ce199cfb7b16d0aca00af25494a9ecc977cb1e41aa899019147d6290b22228",
+    "criterion_ids": [
+      "C-1",
+      "C-2",
+      "C-3"
+    ]
+  },
+  "criteria": [
+    {
+      "id": "C-1",
+      "text": "every mission in the dispatch-time catalog has >=1 fixture-backed behavioral case (files[] non-empty, narration_only absent or false) covering its riskiest behaviour.",
+      "addressed": true,
+      "commit": "218bab6",
+      "witness": "tests/test_evals.py::TestEvalInfrastructure::test_every_mission_has_a_fixture_backed_case iterates the literal EXPECTED_MISSIONS (the 21 missions at dispatch, not a catalog scan) and requires a case with files[] non-empty, narration_only not true, and workspace_state non-empty. RED at 506a059 and at 2827496: 21/21 subtests failed ('<mission> has no fixture-backed behavioral case'). GREEN at 218bab6: each mission's id-4 case. Each pick is defended per mission in the 218bab6 commit message, quoting the mission's own rule. tests/test_evals.py::TestEvalInfrastructure::test_fixture_backed_cases_do_not_fail_their_own_fixtures guards that no case's untouched fixture already breaks a check on its own files, which would make the case unpassable. A scratch sanity pass (not committed) ran every id-4 case's checks against three workspaces: untouched (only checks on files the agent must write fail: ATTESTATION.md, FIELD-REPORT.md, docs/DECISIONS.md, VERDICT.md), a doctrine-following one (0 failures in 21/21), and one showing the mission's riskiest behaviour (>=1 failure in 21/21)."
+    },
+    {
+      "id": "C-2",
+      "text": "the workspace-state oracle grades resulting state: a passing trace over a wrong workspace FAILS; fixtures change the verdict.",
+      "addressed": true,
+      "commit": "2827496",
+      "witness": "tests/test_evals.py::TestWorkspaceStateOracle::test_a_passing_trace_over_a_wrong_workspace_fails runs the real CLI (cmd_run --suite behavioral) with a local fake agent that rewrites src/auth.py (asserted unchanged) and a fake grader that passes 2/2 trace assertions. The case must fail: exit 1, failures 1, and state_failed naming src/auth.py. RED at 506a059: \"AssertionError: 0 != 1 : {... 'passed': 2, 'failed': 0}], 'failures': 0 ...}\". The same trace over the untouched workspace passes, and a held workspace does not rescue a failing trace. TestWorkspaceStateChecks covers the oracle over synthetic workspaces (unchanged, exists, matches and not_matches on paths and globs; a deleted file cannot dodge a path check; escaping and symlinked targets fail). test_the_oracle_spends_no_tokens patches subprocess.run to raise and the oracle still answers, so no model call sits in the pass/fail path. TestWorkspaceStateSchema: fixtures with no workspace_state, fixtures labeled narration_only, state without fixtures, and 15 malformed-check shapes are refused by validate_skill_eval, and the runner refuses such a case before any agent runs."
+    },
+    {
+      "id": "C-3",
+      "text": "narration-only cases stay explicitly labeled and bounded (frozen-list equality); the routing gate still passes at its threshold; the full suite stays green.",
+      "addressed": true,
+      "commit": "2827496",
+      "witness": "tests/test_evals.py::TestEvalInfrastructure::test_narration_only_cases_are_exactly_the_frozen_list compares the catalog's narration_only cases to the literal NARRATION_ONLY_CASES (21 missions x ids 1-3) and asserts the brief's count, 63, independently. It is green at base and head, because the 63 are unchanged and stay labeled. Sensitivity, on a scratch worktree at head: dropping review-it id 1's label gave exit 1 ('grew: [] shrank: [(review-it, 1)]'); adding a narration-only review-it id 5 gave exit 1 ('grew: [(review-it, 5)] shrank: []'); restored, exit 0. The existing label gate (a fixture-free case must say narration_only) is unchanged. Routing: the CI step `python3 scripts/eval.py run --suite routing --threshold 1.0` recorded at head gave 94/94 (100%), exit 0; evals/routing.json and the routing code are untouched. The full suite is recorded in commands[]."
+    }
+  ],
+  "intent": {
+    "goal": "Make the per-mission behavioral eval able to fail on what the agent did to the files, not only on what its trace says: at least one fixture-backed case per mission, and a deterministic post-run check of the workspace against state the case names, without touching the routing suite or promoting eval output to proof.",
+    "ruled_out": "Converting existing narration-only cases in place (their prompts and assertions are routing- and narration-shaped, and rewriting them would break the brief's frozen 63 without adding a fixture); fixture files under skills/<name>/evals/fixtures/ (new paths outside the hot files; inline {path, content} entries already materialize); a model-graded state check (it would put tokens back in the pass/fail path); prose-matching on the agent's free-form narrative, except in the four cases whose prompt names a report file and a one-line verdict format; a git-backed workspace (the runner materializes files only, and making it git-init would widen scope); skipping the trace grader when state already failed (saves tokens but changes the reported shape).",
+    "why": "The runner already materialized fixtures into a temporary directory; the smallest change is to read that directory before it is discarded. Each check is one target and one predicate, so the case record carries the end state as data and the oracle is a few file reads with no judgement. Because every mission is a coordinator and the runner's agent has no Orca, git, or human, the picks lean on invariants the doctrine requires however far the run gets (the file the mission must never mutate, the evidence it must never forge), and not on outputs a coordinator could legitimately not produce."
+  },
+  "lighting": "lit",
+  "reviewer_mode": "same-vendor-fresh",
+  "commands": [
+    {
+      "label": "nc-command (tests)",
+      "ts": "2026-09-14T21:46:37Z",
+      "cmd": "python3 -m unittest tests.test_evals",
+      "cmd_sha256": "2603b763de11dc5f22da2e3d4d09c88395fdf173c75ce734141e470284cb4736",
+      "exit": 0,
+      "duration_s": 3.087,
+      "commit": "244209aa4d059c675425f944b9bb86fd1fd1386c",
+      "wtree": "e742c4c08e85825cfed2d2045549c34b1cd0e1b5",
+      "artifact": null
+    },
+    {
+      "label": "validate",
+      "ts": "2026-09-14T21:46:38Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 0,
+      "duration_s": 0.54,
+      "commit": "244209aa4d059c675425f944b9bb86fd1fd1386c",
+      "wtree": "e742c4c08e85825cfed2d2045549c34b1cd0e1b5",
+      "artifact": null
+    },
+    {
+      "label": "routing gate (CI step)",
+      "ts": "2026-09-14T21:47:48Z",
+      "cmd": "python3 scripts/eval.py run --suite routing --threshold 1.0",
+      "cmd_sha256": "2ffd70179df671092b1947c2dde3acb6b86e5f0e2a746ca8d1a19498f3ac5edb",
+      "exit": 0,
+      "duration_s": 0.039,
+      "commit": "244209aa4d059c675425f944b9bb86fd1fd1386c",
+      "wtree": "e742c4c08e85825cfed2d2045549c34b1cd0e1b5",
+      "artifact": null
+    },
+    {
+      "label": "full-suite",
+      "ts": "2026-09-14T21:54:55Z",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "exit": 0,
+      "duration_s": 235.111,
+      "commit": "244209aa4d059c675425f944b9bb86fd1fd1386c",
+      "wtree": "e742c4c08e85825cfed2d2045549c34b1cd0e1b5",
+      "artifact": null
+    }
+  ],
+  "commands_note": "Every record was written by runtime/scripts/evidence-run.py on the clean tree of head_sha 244209a (wtree e742c4c0 == head_tree; git status --porcelain --untracked-files=all empty before and after), each into its own manifest in session scratch outside the working tree, and is concatenated here byte-for-byte. The first record is the coordinator-named NC-COMMAND verbatim (88 tests OK). artifact is null everywhere; output summaries are inlined in criteria[] and negative_control. A first full-suite record (ts 2026-09-14T21:50:35Z, 1315 tests OK, exit 0, wtree e742c4c0) was DISCARDED, not merely superseded: evidence-run.py fingerprints the tree before the command, and the draft of this manifest sat untracked under docs/runs/ for about 40 s mid-run, so tests that scan docs/runs could have read a dirty tree the fingerprint does not show. The full-suite record below is the re-run on a tree verified clean before and after.",
+  "negative_control": {
+    "tool": "revert",
+    "did": "git worktree add --detach <scratch>/nc-364 244209a; git checkout 506a05974f61c35eda4acbb7df15e84fdeeec8bb -- scripts/eval.py (the whole oracle path back to BASE: 5 insertions, 162 deletions); ran the NC-COMMAND; git checkout HEAD -- scripts/eval.py (git status --porcelain empty); ran the NC-COMMAND again; git worktree remove --force <scratch>/nc-364.",
+    "paths": [
+      "scripts/eval.py"
+    ],
+    "command": "python3 -m unittest tests.test_evals",
+    "result": "RED: exit 1 with scripts/eval.py reverted to 506a059 (Ran 88 tests, FAILED failures=21, errors=34); exit 0 at clean head 244209a (Ran 88 tests, OK). The C-2 witness fails under the revert for the defect itself: the passing trace over the rewritten src/auth.py exits 0 with failures 0.",
+    "exit": 1,
+    "clean_head_exit": 0,
+    "artifact": "docs/runs/2026-09-14-clean-sweep-tracker/u364-negctrl.txt",
+    "failures": [
+      "test_a_passing_trace_over_a_wrong_workspace_fails",
+      "test_the_same_trace_over_the_asserted_workspace_passes",
+      "test_a_held_workspace_does_not_rescue_a_failing_trace",
+      "TestWorkspaceStateChecks (8 tests, AttributeError: no check_workspace_state)",
+      "TestWorkspaceStateSchema (all refusal tests, 15 malformed-check subtests)",
+      "test_fixture_backed_cases_do_not_fail_their_own_fixtures (21 subtests)"
+    ],
+    "transcript": [
+      "head=244209aa4d059c675425f944b9bb86fd1fd1386c",
+      "== REVERTED: scripts/eval.py @ 506a059 (git diff --stat HEAD):",
+      " scripts/eval.py | 167 ++------------------------------------------------------",
+      " 1 file changed, 5 insertions(+), 162 deletions(-)",
+      "FAIL: test_a_passing_trace_over_a_wrong_workspace_fails (tests.test_evals.TestWorkspaceStateOracle.test_a_passing_trace_over_a_wrong_workspace_fails)",
+      "AssertionError: 0 != 1 : {'mission': 'fixture-it', 'cases': [{'id': 1, 'prompt': 'review', 'fixtures': 1, 'assertions': 2, 'passed': 2, 'failed': 0}], 'failures': 0, 'dry_run': False}",
+      "Ran 88 tests in 3.047s",
+      "FAILED (failures=21, errors=34)",
+      "exit=1  (REVERTED: expected NONZERO)",
+      "== RESTORED (git status --porcelain empty?): []",
+      "Ran 88 tests in 3.088s",
+      "OK",
+      "exit=0  (CLEAN HEAD: expected ZERO)"
+    ],
+    "not_witnessed_by_the_control": [
+      "tests/test_evals.py::TestEvalInfrastructure::test_every_mission_has_a_fixture_backed_case",
+      "tests/test_evals.py::TestEvalInfrastructure::test_narration_only_cases_are_exactly_the_frozen_list"
+    ],
+    "not_witnessed_note": "Both read the catalog data (skills/*/evals/evals.json), not scripts/eval.py, so reverting the oracle path leaves them green by design. The C-1 coverage test's RED is at 506a059 and 2827496 (21/21 missing) and its GREEN at 218bab6. The C-3 frozen-list test guards a kept property (green at base and head); its sensitivity is the grow/shrink demonstration in criteria[C-3]."
+  },
+  "binding_audit": {
+    "coverage": "C-1..C-3 (3/3)",
+    "method": "Each criterion is quoted, its covering test named, and its expected values taken from independent sources: the literal 21-mission set, the brief's count of 63, and literal file paths and exit codes. C-1 went RED at base on the catalog; C-2 went RED at base and under the revert control; C-3 is a guard whose sensitivity was shown by a grow/shrink mutation."
+  },
+  "artifacts": [
+    {
+      "path": "docs/runs/2026-09-14-clean-sweep-tracker/u364-negctrl.txt",
+      "sha256": "94704372872887ea0d498cdc1b82a0ab5d912d64eb096ebdda400a327b090b03"
+    }
+  ],
+  "noticed_not_touched": [
+    "No live behavioral run was made. The suite is opt-in, spends tokens, and is not a CI gate, so the 21 new cases have been exercised by the deterministic oracle (committed tests plus the scratch untouched/good/bad pass) but not against a real headless agent. How a live agent scores on them is unmeasured.",
+    "The runner's agent (claude -p --permission-mode acceptEdits) gets a bare temporary directory: no git, no Orca, no human. Every mission is a coordinator, so the cases assert invariants and prompt-named report files, never worker output a coordinator may legitimately not produce. A richer harness (git-initialised workspace, stub Orca) would allow stronger positive checks and is out of scope.",
+    "Four positive checks read a report file whose name and one-line format the prompt gives (ATTESTATION.md, FIELD-REPORT.md, VERDICT.md; docs/DECISIONS.md is named by oss-contribute's own doctrine). These are file state, but self-reported state.",
+    "The runner writes and reads fixtures as UTF-8 text; binary fixtures are unsupported, as before this change.",
+    "ruff: ruff.toml selects lint rules only; `ruff check` on scripts/eval.py and tests/test_evals.py is clean. `ruff format` is not the repo's gate and was not applied.",
+    "The existing TestBehavioralIntegrity harness still labels its synthetic case narration_only; it exercises the agent/grader plumbing, and the new TestWorkspaceStateOracle covers the fixture-backed path."
+  ],
+  "pr": {},
+  "files": {
+    "production": [
+      "scripts/eval.py",
+      "skills/absorb-it/evals/evals.json",
+      "skills/access-it/evals/evals.json",
+      "skills/attest-it/evals/evals.json",
+      "skills/clean-sweep/evals/evals.json",
+      "skills/deflake-it/evals/evals.json",
+      "skills/document-it/evals/evals.json",
+      "skills/field-test-it/evals/evals.json",
+      "skills/floor-it/evals/evals.json",
+      "skills/harden-it/evals/evals.json",
+      "skills/map-it/evals/evals.json",
+      "skills/migrate-it/evals/evals.json",
+      "skills/modernize-it/evals/evals.json",
+      "skills/oncall-it/evals/evals.json",
+      "skills/oss-contribute/evals/evals.json",
+      "skills/pin-it/evals/evals.json",
+      "skills/prove-it/evals/evals.json",
+      "skills/reshape-it/evals/evals.json",
+      "skills/review-it/evals/evals.json",
+      "skills/root-cause/evals/evals.json",
+      "skills/ship-it/evals/evals.json",
+      "skills/speed-it/evals/evals.json"
+    ],
+    "tests": [
+      "tests/test_evals.py"
+    ],
+    "generated": [
+      "assets/badges/tests.json"
+    ],
+    "evidence": [
+      "docs/runs/2026-09-14-clean-sweep-tracker/u364-manifest.json",
+      "docs/runs/2026-09-14-clean-sweep-tracker/u364-negctrl.txt"
+    ]
+  },
+  "commits": [
+    {
+      "sha": "2827496",
+      "subject": "feat(eval): grade the workspace a behavioral case leaves, not only its trace (#364)"
+    },
+    {
+      "sha": "218bab6",
+      "subject": "feat(evals): one fixture-backed behavioral case per mission (#364)"
+    },
+    {
+      "sha": "244209aa4d059c675425f944b9bb86fd1fd1386c",
+      "subject": "chore(badges): regenerate tests badge, 1295 -> 1315 in source (#364)"
+    }
+  ],
+  "decisions": [
+    "2026-09-15 dispatch binding (fork update): branch u364-eval-fixtures created from origin/review/2026-09-14-holistic-fixes at 506a059 (the spec commit), used as base_sha; the worktree's ravidsrk/-prefixed branch was left untouched.",
+    "2026-09-15 coordinator (option A): assets/badges/tests.json is regenerated with scripts/gen-badges.py as its own mechanical commit after the content commits, because validate.py's badge-freshness check must be green at the unit tip. Badges are the run's shared mechanical mount point, not a hot-file breach.",
+    "2026-09-15 coordinator (option A): commit u364-negctrl.txt (the verbatim NC transcript, scratch paths redacted to <scratch>) beside the manifest in the manifest commit, pinned by sha256 in artifacts[], as U388 did; verify.py requires negative_control.artifact to be an evidence path. commands[].artifact stays null.",
+    "Bisectability: 2827496 (oracle, schema and tests; catalog untouched) and 218bab6 (fixtures plus the coverage and self-consistency tests) each pass `python3 -m unittest tests.test_evals`. validate.py's badge check is red at those two commits until 244209a regenerates the count; the same pattern as U388."
+  ]
+}
