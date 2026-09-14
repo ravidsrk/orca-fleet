@@ -2,7 +2,7 @@
   "id": "grep-command-1",
   "class": "grep-command",
   "sound_expected": "RED",
-  "note": "#306 / A12. The nominated control command is a grep for the fix's own text. It behaves perfectly: exit 0 at clean head_sha, non-zero under the revert. It also never runs the test, so it proves the string is present and nothing about behaviour. Exit status alone cannot tell the two apart; the RED naming no assertion failure is what does (#280).",
+  "note": "#306 / A12. The nominated control command is a grep for the fix's own text. It behaves perfectly: exit 0 at clean head_sha, non-zero under the revert. It also never runs the test, so it proves the string is present and nothing about behaviour. Exit status alone cannot tell the two apart; the RED naming no assertion failure is what does (#280). The ledger records the grep itself ({{proof_cmd}} would now fail #352's named-command gate first): the trap isolates its #280 reason.",
   "unit_class": "mutation",
   "fixture": "mutation-revert",
   "execute_nc": true,
@@ -38,11 +38,11 @@
     "commands": [
       {
         "label": "tests",
-        "cmd": "{{proof_cmd}}",
+        "cmd": "grep -q 'a + b' mod.py",
         "exit": 0,
         "wtree": "{{head_tree}}",
         "artifact": "docs/reports/vf/nc.txt",
-        "cmd_sha256": "{{proof_cmd_sha256}}"
+        "cmd_sha256": "60faf476edd5e75f7317309f72977c44bd3d67b1ee77a9a5c066fd652e577f5d"
       }
     ],
     "artifacts": [
