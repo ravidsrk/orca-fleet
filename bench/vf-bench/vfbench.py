@@ -241,8 +241,13 @@ def fixture_gate(trap):
         mpath.write_text(json.dumps(manifest), encoding="utf-8")
         cmd = [sys.executable, str(VERIFY), "--manifest", str(mpath),
                "--contract-source", "contract.md",
-               "--contract-digest", facts["contract_digest"],
-               "--unit-class", trap.get("unit_class", "mutation")]
+               "--contract-digest", facts["contract_digest"]]
+        # unit_class is a DISPATCH fact the coordinator supplies out of band. "mutation" by default;
+        # an explicit null models the coordinator not classifying at all (the flag is omitted, and
+        # verify.py fail-safes to mutation) — that is the unclassified-mutation vector (#369).
+        unit_class = trap.get("unit_class", "mutation")
+        if unit_class is not None:
+            cmd += ["--unit-class", unit_class]
         if trap.get("lighting"):
             cmd += ["--lighting", trap["lighting"]]
         if trap.get("no_gh"):

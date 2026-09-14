@@ -14,16 +14,17 @@ python3 bench/vf-bench/vfbench.py --json  # machine summary
 ## What it does
 
 The corpus (`traps/*.json`) is a set of **gaming traps** — each a frozen contract + a planted defect
-whose SOUND verdict is RED — plus **two valid controls**, one report-only and one MUTATION-class. `vfbench.py` runs each gate over the corpus and
+whose SOUND verdict is RED — plus **three valid controls** (one report-only, one MUTATION-class,
+and one proving the manifest-level `unit_class` field is inert). `vfbench.py` runs each gate over the corpus and
 reports its false-done rate (traps it wrongly passed). A sound gate scores **0%**; a self-scoring gate
 scores high. v0 result:
 
 | Gate | false-done | rate |
 |---|---|---|
-| self-scoring (naive) | 19/19 | **100%** |
-| orca-fleet `verify.py` (sound) | 0/19 | **0%** |
+| self-scoring (naive) | 18/18 | **100%** |
+| orca-fleet `verify.py` (sound) | 0/18 | **0%** |
 
-Both valid controls pass both gates — the sound gate is not trivially always-RED. The mutation one
+All three valid controls pass both gates — the sound gate is not trivially always-RED. The mutation one
 is the load-bearing half: `mutation-valid-control` builds a **hermetic fixture repo at run time**
 (a real defect at `base_sha`, the fix at `head_sha`, a criterion-bound test), runs the gate with
 `--execute-nc`, and reaches GREEN only after the verifier really restores `mod.py` from `base_sha`
@@ -44,8 +45,8 @@ author. A gate that cannot execute a control cannot pass it.
 | `fabricated-negative-control` | NC fields present, artifact does not corroborate | the artifact must evidence the KILLED/RED outcome and reference the pinned mutant |
 | `wrong-sha` | right-looking logs against a phantom SHA | `git cat-file` on `head_sha` |
 | `non-ancestor-sha` | claims a head_sha that never landed on the integration base | `git merge-base --is-ancestor head_sha origin/<base>` (the phantom SHA also fails the `cat-file` real-commit leg — a hermetic trap cannot pin a commit that exists in every clone yet never lands on main, so the ancestry leg fires alongside it, not alone) |
-| `unclassified-mutation` | code-landing unit with no `unit_class` anywhere | dispatch-sourced class; a missing class ⇒ mutation (fail-safe), so review + NC still run |
-| `downgraded-class` | worker's manifest self-declares `report-only` to skip review/NC | verify.py never reads the manifest's class; it fail-safes to mutation |
+| `unclassified-mutation` | code-landing unit with no `unit_class` anywhere, and no negative control | dispatch-sourced class; a missing class ⇒ mutation (fail-safe, #178) — the NC refusal must still fire, or the unclassified unit shed the mutation floor. Rebuilt on the run-time fixture in #369 |
+| `downgraded-class` → GREEN control | worker's manifest self-declares `report-only` while carrying complete mutation evidence | verify.py never reads the manifest's class; the #178 fail-safe faces it with the full mutation floor, so the lie buys nothing and the control stays GREEN — if the manifest's class were ever read, it would go RED. Converted in #369: as a RED trap it could only fail on unrelated legs |
 | `class-downgrade` | the SAME downgrade through the channel the gate trusts — `--unit-class`, which `verify-gate.sh` fills from worker-controlled `ORCA_UNIT_CLASS` | an unsigned downgrade is measured against what `base_sha..head_sha` actually changes: a report-only unit that changed production code is refused, and every unsigned downgrade is marked `(unsupervised)` in the verdict (#310) |
 | `fabricated-negative-control-waiver-lane` (×2: `dark-eligible`, `no-gh`) | every leg satisfied EXCEPT that the negative control was only *read*, in a lane where the review is waived — docs/reviews/2026-09-10-review.md A1/A2/A4/A6/A9 | both waiver lanes now demand an **executed** control (`--execute-nc`); a control the gate did not run cannot be the whole oracle |
 | `decoy-path` | control nominates a file the change never touched | `negative_control.paths` bound to the production paths changed in `base_sha..head_sha` (#280) |
@@ -75,7 +76,7 @@ before #280 existed. Narrated, the static bind is the only thing between the man
 **malformed**, never reaching the stillborn check. A trap refused for the wrong reason measures
 nothing, so the fixture now writes an artifact quoting a real diff (`nc-stillborn.txt`) — and
 `tests/test_vfbench.py` asserts the refusal MESSAGE of each trap, not just its verdict, so a
-trap that starts being refused for some other reason fails rather than scoring the same 0/19.
+trap that starts being refused for some other reason fails rather than scoring the same 0/18.
 
 `decoy-hand-diff` came out of the review of this change: the static bind above covered
 `revert` and not `hand`, so a narrated hand control could quote a diff against an untouched

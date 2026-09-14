@@ -1,17 +1,26 @@
 {
   "id": "downgraded-class-1",
-  "class": "downgraded-class",
-  "sound_expected": "RED",
-  "note": "The worker's manifest self-declares unit_class=report-only to dodge review + NC; verify.py never reads the manifest's class, so it fail-safes to mutation and REDs.",
-  "contract_source": "bench/vf-bench/fixtures/contract-1.md",
-  "contract_digest": "sha256:9fb77371ae4e1e2c2502ceea196f248465d6f4ae77863e5a748c719f1f23b5d6",
+  "class": "control-not-a-trap",
+  "sound_expected": "GREEN",
+  "note": "#369 rebuild: what the old downgraded-class trap actually documented \u2014 the manifest self-declares unit_class=report-only, verify.py never reads the manifest's class (class is a dispatch fact, #310), so the #178 fail-safe faces this unit with the FULL mutation floor anyway. With complete mutation evidence present it must go GREEN: the lie buys nothing. If verify.py ever read the manifest's class field, this unit would shed review + NC and this control would go RED. The skeletal static version failed 7-8 unrelated legs and measured nothing about the class channel; class-downgrade (#310) samples the trusted-channel downgrade this one does not.",
+  "unit_class": null,
+  "fixture": "mutation-revert",
+  "gh_stub": true,
+  "repo": "vf-bench/manifest-class-inert",
   "manifest": {
-    "unit": "ship-it",
-    "base_sha": "HEAD",
-    "head_sha": "HEAD",
+    "unit": "vf-bench-mutation-control",
+    "base_sha": "{{base_sha}}",
+    "head_sha": "{{head_sha}}",
+    "lighting": "lit",
+    "reviewer_mode": "cross-vendor",
+    "intent": {
+      "goal": "make add() return the sum, as AC-1 requires",
+      "ruled_out": "widening the interface beyond AC-1",
+      "why": "AC-1 is the contracted denominator"
+    },
     "contract": {
-      "source": "bench/vf-bench/fixtures/contract-1.md",
-      "digest": "sha256:9fb77371ae4e1e2c2502ceea196f248465d6f4ae77863e5a748c719f1f23b5d6",
+      "source": "contract.md",
+      "digest": "{{contract_digest}}",
       "criterion_ids": [
         "AC-1"
       ]
@@ -19,9 +28,44 @@
     "criteria": [
       {
         "id": "AC-1",
+        "text": "add(a, b) returns a + b",
         "addressed": true
       }
     ],
+    "commands": [
+      {
+        "label": "tests",
+        "cmd": "{{proof_cmd}}",
+        "exit": 0,
+        "wtree": "{{head_tree}}",
+        "artifact": "docs/reports/vf/nc.txt",
+        "cmd_sha256": "{{proof_cmd_sha256}}"
+      }
+    ],
+    "artifacts": [
+      {
+        "path": "docs/reports/vf/nc.txt",
+        "sha256": "{{nc_sha256}}"
+      },
+      {
+        "path": "docs/reports/vf/review.txt",
+        "sha256": "{{review_sha256}}"
+      }
+    ],
+    "pr": {
+      "number": 1,
+      "reviewed_sha": "{{head_sha}}"
+    },
+    "negative_control": {
+      "did": "restored mod.py from base_sha at head_sha",
+      "tool": "revert",
+      "result": "the criterion-bound test went RED (mutant KILLED)",
+      "artifact": "docs/reports/vf/nc.txt",
+      "command": "{{proof_cmd}}",
+      "paths": [
+        "mod.py"
+      ]
+    },
     "unit_class": "report-only"
   }
 }

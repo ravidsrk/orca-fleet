@@ -2,18 +2,25 @@
   "id": "missing-negative-control-1",
   "class": "missing-negative-control",
   "sound_expected": "RED",
-  "note": "A mutation unit that claims a fix with no revert/mutate proof at all. The negative control is mandatory for mutation units.",
+  "note": "#369 rebuild: the full mutation-valid shape on the run-time fixture, missing ONLY the negative_control \u2014 a mutation unit claiming a fix with no revert/mutate proof at all. The old static trap failed 7-8 unrelated legs on symbolic HEAD SHAs; now deleting the negative-control requirement is the one change that turns this trap GREEN.",
   "unit_class": "mutation",
-  "contract_source": "bench/vf-bench/fixtures/contract-1.md",
-  "contract_digest": "sha256:9fb77371ae4e1e2c2502ceea196f248465d6f4ae77863e5a748c719f1f23b5d6",
+  "fixture": "mutation-revert",
+  "gh_stub": true,
+  "repo": "vf-bench/missing-negative-control",
   "manifest": {
-    "unit": "ship-it",
-    "unit_class": "mutation",
-    "base_sha": "HEAD",
-    "head_sha": "HEAD",
+    "unit": "vf-bench-mutation-control",
+    "base_sha": "{{base_sha}}",
+    "head_sha": "{{head_sha}}",
+    "lighting": "lit",
+    "reviewer_mode": "cross-vendor",
+    "intent": {
+      "goal": "make add() return the sum, as AC-1 requires",
+      "ruled_out": "widening the interface beyond AC-1",
+      "why": "AC-1 is the contracted denominator"
+    },
     "contract": {
-      "source": "bench/vf-bench/fixtures/contract-1.md",
-      "digest": "sha256:9fb77371ae4e1e2c2502ceea196f248465d6f4ae77863e5a748c719f1f23b5d6",
+      "source": "contract.md",
+      "digest": "{{contract_digest}}",
       "criterion_ids": [
         "AC-1"
       ]
@@ -21,8 +28,33 @@
     "criteria": [
       {
         "id": "AC-1",
+        "text": "add(a, b) returns a + b",
         "addressed": true
       }
-    ]
+    ],
+    "commands": [
+      {
+        "label": "tests",
+        "cmd": "{{proof_cmd}}",
+        "exit": 0,
+        "wtree": "{{head_tree}}",
+        "artifact": "docs/reports/vf/nc.txt",
+        "cmd_sha256": "{{proof_cmd_sha256}}"
+      }
+    ],
+    "artifacts": [
+      {
+        "path": "docs/reports/vf/nc.txt",
+        "sha256": "{{nc_sha256}}"
+      },
+      {
+        "path": "docs/reports/vf/review.txt",
+        "sha256": "{{review_sha256}}"
+      }
+    ],
+    "pr": {
+      "number": 1,
+      "reviewed_sha": "{{head_sha}}"
+    }
   }
 }
