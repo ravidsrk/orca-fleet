@@ -555,7 +555,7 @@ def validate_routing_eval() -> list[str]:
 # A mission's "Use when" clause advertises the phrases a user is expected to type. Nothing routed
 # them, so the catalog could promise a phrase that lands on a sibling and never notice (#287). Two
 # do, and each is a real lexical collision rather than a bug worth contorting a description to
-# dodge — so they are RECORDED here, with the mission that actually wins. A third cannot appear
+# dodge — so they are RECORDED here, with the mission that actually wins. Another cannot appear
 # silently: any unlisted misroute fails validation, and a listed one that starts routing correctly
 # fails too, so this table cannot rot in either direction (both directions are tested).
 RECORDED_TRIGGER_MISROUTES = {
@@ -563,6 +563,9 @@ RECORDED_TRIGGER_MISROUTES = {
     # idiom carrying ship-it's entire name.
     ("attest-it", "conformance"): "access-it",
     ("floor-it", "stop shipping junk"): "ship-it",
+    # "drifted from the docs" is document-it's home vocabulary; the false-claim reading belongs
+    # to clean-sweep. A 0.0004 margin is a coin flip — recorded, not contorted (#379).
+    ("clean-sweep", "the API contract drifted from the docs"): "document-it",
 }
 _QUOTED_TRIGGER_RE = re.compile(r'"([^"]{4,})"')
 

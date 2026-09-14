@@ -43,8 +43,9 @@ on this branch — the **negative control can be executed** for revert and hand 
 (`--execute-nc` reverts or re-applies the change in a fresh worktree and requires the proof to go
 red). Read that last one narrowly: execution is **opt-in**, off unless the coordinator passes the
 flag, and it proves only that the change the coordinator's `--nc-command` binds to really carries
-the behaviour — not that the unit is correct. It is a sample of one mutant, and the
-automated-repair literature puts coupled test-and-fix overfitting at 54–90% of plausible patches.
+the behaviour — not that the unit is correct. It is a sample of one mutant, and
+automated-repair studies (ASSERTED — uncited here) report coupled test-and-fix overfitting across a
+majority of plausible patches; treat the figure as directional, not load-bearing.
 The coordinator's clean-env re-run at the head SHA and its ≥10% re-execution sample of controls
 remain doctrine it performs, not mechanism the verifier performs for it. (Report-only missions
 like `review-it` bind their claims to the reviewed SHA instead of landing a change to control

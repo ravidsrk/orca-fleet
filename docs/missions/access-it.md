@@ -1,7 +1,7 @@
 # ♿ access-it — WCAG 2.2 conformance over a frozen surface
 
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel fix workers on isolated violation units against a deterministic axe oracle; the residual human-AT park and the promotion are gate classes you own.
-> **Activation load:** ~26,500 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
+> **Activation load:** ~26,600 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
 
 > Point it at a page/flow/component set and a WCAG target. Come back to a surface a deterministic
@@ -29,12 +29,16 @@ The unit of work is **one success-criterion violation instance on the frozen sur
 **~30–40% automation ceiling** is the defining property: axe-core is deterministic but partial, so the
 un-automatable criteria (screen-reader semantics, keyboard traps, cognitive load) are a first-class
 **human-AT park**, which is what keeps a green oracle run from masquerading as full conformance.
+The figure is measured, not guessed: Deque's automated-coverage report finds axe-core-class tooling
+flags ~32% of WCAG 2.1 AA success criteria by count (~57% by issue volume).
 
 ## When to reach for it
 
 - "Bring the checkout flow to WCAG 2.2 AA."
 - "Make this component accessible for screen-reader and keyboard users."
-- "Section 508 / EAA / ADA conformance sweep over these pages."
+- "Section 508 / EAA / ADA conformance sweep over these pages." (Those laws formally reference
+  WCAG 2.1/2.0 — this mission targets 2.2 AA, the backward-compatible engineering target that
+  satisfies them.)
 
 **When NOT to reach for it:**
 
