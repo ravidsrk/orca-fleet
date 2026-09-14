@@ -27,10 +27,10 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | STAB | — | land 4 PR-review hunks (deny-hook/run_report/verify/HUMAN_ACTIONS) + badge regen | conductor landing, worker-executed | t | n/a | n/a | n/a | t | n/a | lit | — | 1215e09 9651a52 8f7d5ac 917f9fd; pushed origin/BASE fast-forward (egress receipt); 1285 OK + full battery green; NC re-executed 11 failures; rides PR #387 |
 | T1 | #388 | evidence-run lockfile dirties worktree | real-bug | f | f | f | f | f | f | lit | — | triage/brief-388.md; repro: litter + STALE-cascade confirmed, 16/16 land |
 | T2 | #389 | run_report WIP validation accepts incomplete reports | real-bug | f | f | f | f | f | f | lit | — | triage/brief-389.md; repro: settings-only row binds, control refused |
-| T3 | #364 | per-skill behavioral evals ship zero fixtures (S1) | enhancement → Q1 pends | f | f | f | f | f | f | lit | — | triage verdict: fixtures-as-specified cannot work (trace-graded); Q1 |
-| T4 | #385 | historical-docs polish, agent slice (status.json + parity test) | real-bug (docs) | f | f | f | f | f | f | lit | — | triage/brief-385-slice.md; diagrams → Q3 |
-| T5 | #386 | sign manifest+inventory, retention backend (S2) | enhancement → Q2 pends | f | f | f | f | f | f | lit | — | triage verdict: key custody + backend are human calls; Q2 |
-| — | #235 | H-02 marketplace submissions (pre-parked needs-human) | needs-human | — | — | — | — | — | — | — | needs-human: external accounts | prior run + issue text |
+| T3 | #364 | fixture-backed evals + workspace-state oracle (S1) | real-feature-small | f | f | f | f | f | f | lit | — | Q1: fixtures+oracle (wave 2; brief TBD) |
+| T4 | #385 | historical-docs polish, agent slice (status.json + parity test) | real-bug (docs) | f | f | f | f | f | f | lit | — | triage/brief-385-slice.md; diagrams → parked (Q3) |
+| T5 | #386 | sign manifest+inventory, retention backend (S2) | — | — | — | — | — | — | — | — | needs-human: key custody + backend undecided (Q2) | Q2: park |
+| — | #235 | H-02 marketplace submissions (pre-parked needs-human) | needs-human | — | — | — | — | — | — | needs-human: external accounts | prior run + issue text |
 
 PHASE: ORIENT → ENUMERATE → TRIAGE done → FREEZE (6 ids, twin agreed) → BUILD next
 
@@ -90,6 +90,13 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   origin/BASE), closed its fallback shell, spawned claude ro → exit 3 UNPROVEN again; pane
   shows LIVE worker in plan mode (query 2 running). PATTERN: the WORKER_CMD lane never
   observes turn_started on this host — exit 3 + pane-live = proceed, no resend.
+- REVIEW-LEG DESIGN (read verify.py check_review before designing): one GitHub identity on
+  this host, so no second-identity APPROVED exists for verify.py's lookup; verdict workers
+  post COMMENTED verdict reviews (GO/NO-GO, blind-fix-first, 3 axes + aggregator), never
+  APPROVE (that would fake independence). Mission close = merged + executed NC + fresh
+  blind verdicts + revert audit (09-09 precedent); the verify.py review leg is RUN and its
+  honest result RECORDED, never hidden. Manifest pr.reviewed_sha is filled by the conductor
+  post-merge on BASE (record-keeping from the posted verdict, not a unit-head move).
 - TRIAGE done-by-transcription (deviation, recorded): the ro worker finished all reads
   (query2 + 6 verdicts) but plan-mode blocks /tmp writes, so its repros were unexecutable
   and it parked at the plan-approval gate; ESC dismissed the dialog but the terminal then
