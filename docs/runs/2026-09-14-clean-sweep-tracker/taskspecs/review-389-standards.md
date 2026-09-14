@@ -4,7 +4,7 @@ pack). Fresh terminal in the U389 worktree; you did not write the code. rw by la
 reads); commit NOTHING — verify with git log that no commit carries your session, and say
 so in worker_done.
 
-TARGET: PR #391 at HEAD f642700 (branch u389-wip-schema → BASE). Finding: the run-report
+TARGET: PR #391 at HEAD 30a6037 (branch u389-wip-schema → BASE; git fetch origin + checkout 30a6037 first — your worktree may sit at an older tip; commit NOTHING). Finding: the run-report
 checker's WIP-curve validation accepted any report with one settings-only row; the fix
 defines a per-wave row schema (wave identity cell + WIP setting + throughput +
 latency_median + latency_max + rework + freshness), requires exactly one complete row per
