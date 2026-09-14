@@ -4,7 +4,7 @@ pack). Fresh terminal in the U389 worktree; you did not write the code. rw by la
 reads); commit NOTHING — verify with git log that no commit carries your session, and say
 so in worker_done.
 
-TARGET: PR #391 at HEAD f642700 (branch u389-wip-schema → BASE). SPEC (first hit wins):
+TARGET: PR #391 at HEAD 30a6037 (branch u389-wip-schema → BASE; git fetch origin + checkout 30a6037 first — your worktree may sit at an older tip; commit NOTHING). SPEC (first hit wins):
 C-1 a settings-only row is refused; C-2 a multi-wave report with partial or missing wave
 rows is refused; C-3 complete per-wave rows bind, and the protocol prose names the
 enforced schema. OUT: changing WIP caps; the multi-run graduation analysis; other report

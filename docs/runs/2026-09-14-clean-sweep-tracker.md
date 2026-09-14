@@ -25,8 +25,8 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | task_id | id | title | CLASS | BUILD_DONE | PR_OPEN | BOT | REVIEWED | MERGED | WT_CLEAN | lighting | park | evidence |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | STAB | — | land 4 PR-review hunks (deny-hook/run_report/verify/HUMAN_ACTIONS) + badge regen | conductor landing, worker-executed | t | n/a | n/a | n/a | t | n/a | lit | — | 1215e09 9651a52 8f7d5ac 917f9fd; pushed origin/BASE fast-forward (egress receipt); 1285 OK + full battery green; NC re-executed 11 failures; rides PR #387 |
-| T1 | #388 | evidence-run lockfile dirties worktree | real-bug | t | t | t | f | f | f | lit | — | PR #392 @da2f98a (base ✓ checks ✓); bot P1 mixed-version DECLINED on-PR (out of scope, disclosed) + follow-up filed (loop 2); review next |
-| T2 | #389 | run_report WIP validation accepts incomplete reports | real-bug | t | t | t | f | f | f | lit | — | PR #391 @f642700 (base ✓ checks ✓); bot 2 P1 + 1 P2 held VALID (template waves, manifest abs-paths, dup cells); review next |
+| T1 | #388 | evidence-run lockfile dirties worktree | real-bug | t | t | t | f | f | f | lit | — | PR #392 @0775547 (conductor union, badges 1293); bot P1 DECLINED (reply 4008762873) + #393; review underway: standards done (1 Req truncate-before-dumps), spec/test redux after rm-dialog stall |
+| T2 | #389 | run_report WIP validation accepts incomplete reports | real-bug | t | t | t | f | f | f | lit | — | PR #391 @30a6037 (F1-F3 fixed: template 62ee4cd, dup-keys fcc9079, artifacts nulled 30a6037; 1296 OK; NCs RED; Greptile 0 new, no APPROVE yet); in-thread fix replies posted; review next |
 | T3 | #364 | fixture-backed evals + workspace-state oracle (S1) | real-feature-small | f | f | f | f | f | f | lit | — | Q1: fixtures+oracle (wave 2; brief TBD) |
 | T4 | #385 | historical-docs polish, agent slice (status.json + parity test) | real-bug (docs) | t | t | t | t | t | t | lit | — | PR #390 MERGED 32da76e @d6fc2cc (reviewed==head; greptile APPROVED + 3 blind GO); verify.py OK all legs (scope/commands/freshness/NC-exec/review/change-on-base); conductor manifest corrections (head/source) disclosed in-file; worktree retired; #385 closed w/ evidence |
 | T5 | #386 | sign manifest+inventory, retention backend (S2) | — | — | — | — | — | — | — | — | needs-human: key custody + backend undecided (Q2) | Q2: park |
@@ -165,3 +165,64 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
 - HYGIENE: a carried-over SHA (39751a3) did not exist in git (stale context) — every
   SHA in this log was re-derived from git before use (32da76e^2 = d6fc2cc). Never
   trust compacted SHAs; rev-parse first.
+- U392 bot loop honestly closed: the claimed on-PR decline of the mixed-version
+  finding was missing (no reply, no comment — only #393's body claimed it). Posted
+  decline reply 4008762873 on thread 4008072371 (real, out-of-scope, -> #393).
+- F389r2 dispatched (task_bc1558c5e272/ctx_bad13b2b8a83, WORKER_CMD claude rw):
+  union-first (badge 1289-vs-1290 re-regen, worker-side), then the 3 validated bot
+  findings (template waves+WIP schema + bind-canonical-template case; manifest
+  artifacts null; dup-WIP-key refusal + case), red-first, full battery, manifest
+  refresh, push to #391. Turn verified live on pane.
+- U388 union-first (conductor, branch idle): merged origin/BASE into u388-lockfile as
+  0775547 (badges-only conflict -> re-regen 1293; PR diff audited = unit files
+  only), pushed with receipt. Review specs retargeted da2f98a -> 0775547 (+ fetch/
+  checkout line). Rationale: reviewers must see the mergeable tip; the badge
+  hot-file forces serial review->merge per unit (a post-review unit merge would void
+  via badge conflict). 3 axes dispatched @0775547: spec task_2c4f031c49e5/
+  ctx_88c87c2bd18c, test task_11a1b85d960a/ctx_70a689d4f113, standards
+  task_0485ffc9ea00/ctx_5319e11df1da; all turns verified live.
+- R388 STANDARDS done (ctx_5319e11df1da, report harvested): 1 Required (R1:
+  evidence-run.py:152-154 truncate-before-dumps empties the manifest on a handled
+  failure; scratch-probed base-keeps vs head-empties; fix = serialize first), 5 Nit
+  (zero-length comment/docstring, duplicated commit helper, /tmp paths in committed
+  negctrl transcript, unresolvable contract.source -> conductor corrects at close,
+  "pending" SHA -> fill at post-merge pass), 2 Optional (120s timeouts hygiene,
+  zero-length test), 1 FYI (empty merge bodies); appendix: pre-existing
+  RecursionError never-raises gap (base+HEAD, out of scope -> file at close).
+  Worker released + terminal closed.
+- RM-DIALOG STALL (both R388 spec+test axes, identical signature): reviewers blocked
+  on Claude's dangerous-rm dialog (variable-path rm in mutant-probe cleanup);
+  coordinator ESC cleared the dialog but landed as a turn INTERRUPTION, and
+  follow-up text is agent_prompt_blocked (fenced; retry-with-ID refused twice — no
+  more retries). REFLECTION recorded on both tasks (-> failed): fix = TASK rewrite,
+  not another send. Redux dispatched with SANDBOX HYGIENE hard rule (no
+  variable-path rm; absolute literal /tmp or leave scratch): spec
+  task_12d2f7c4d52d/ctx_b275a4b7c790, test task_f06431fe4692/ctx_6c8a2eb52a70.
+  Lesson for run close: dangerous-rm dialogs are unrecoverable stalls — every future
+  TASK carries the hygiene rule (F389r2/U364 specs need it too if their workers rm).
+- R388 SPEC redux done (ctx_b275a4b7c790, report harvested): C-1..C-3 met, 0 Req,
+  1 Nit (zero-length-behavior untested — same as standards N1/O2), FYIs only; C-2
+  independently corroborated (own no-lock mutant RED 6/6, HEAD green 8/8). Released.
+- F389r2 done (ctx_bad13b2b8a83): union 4dcbfde (badges 1294), F1 62ee4cd, F3
+  fcc9079, badges 2d1e206 (1296), manifest 30a6037 (artifacts nulled, source now
+  build-389.md@5af2e6f, digest re-verified). Gates at 2d1e206: nc 57 OK, validate,
+  ruff, gitleaks, full 1296 OK; 4 NCs RED + clean GREEN; worker self-ran verify.py
+  (only expected pre-merge legs FAIL). Push f642700..30a6037 verified from git; PR
+  #391 OPEN @30a6037, CI SUCCESS, Greptile 0 new (COMMENTED, no APPROVE).
+  Coordinator posted in-thread fix replies (4009007847/112/333). Open: head re-bind
+  to reviewed tip at close (worker set 2d1e206, pre-manifest — the retired theory
+  again; future fix specs must state head := pushed tip incl. manifest commit).
+- R388 TEST redux done (ctx_6c8a2eb52a70, report harvested): 1 Required (untested
+  truncate at :153 — deleting it passes all 24; indent-8 seed silently corrupts
+  with exit 0), 1 Optional (litter assert after concurrent run), 1 Nit (l.297
+  returncode), FYI confirming standards R1 (truncate-before-dumps). Released.
+  Greptile state @0775547: no re-review (latest @da2f98a); decline reply stands.
+- V388r1 dispatched (task_3af951e9fadd/ctx_32b5523bb822): verdict over 3 axes
+  (2 Requireds incl. shared truncate root; no held bot finding; empty ravidsrk
+  COMMENTED @da2f98a noted inert) with batched-request framing (Requireds +
+  adjacent cheap items; conductor/filed/accepted exclusions recorded). Turn live.
+- R389 axes dispatched @30a6037 in parallel (specs retargeted f642700 -> 30a6037 +
+  fetch/checkout line; hygiene rule appended): spec task_51f6faeca355/
+  ctx_28af6981cdab, test task_660af294d3a0/ctx_9474d1d08054, standards
+  task_2599f8ed15fb/ctx_9e937ba13b49. All turns live. 4 workers out (V388r1 +
+  3xR389).

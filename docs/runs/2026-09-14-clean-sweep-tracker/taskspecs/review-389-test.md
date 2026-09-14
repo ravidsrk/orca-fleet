@@ -4,7 +4,7 @@ no other pack). Fresh terminal in the U389 worktree; you did not write the code.
 lane (gh reads + running tests); commit NOTHING — verify with git log that no commit
 carries your session, and say so in worker_done.
 
-TARGET: PR #391 at HEAD f642700 (branch u389-wip-schema → BASE). Claim: the checker now
+TARGET: PR #391 at HEAD 30a6037 (branch u389-wip-schema → BASE; git fetch origin + checkout 30a6037 first — your worktree may sit at an older tip; commit NOTHING). Claim: the checker now
 refuses settings-only rows and partial multi-wave rows and binds complete per-wave rows;
 two pre-existing tests that blessed incomplete rows were updated to the schema; the
 builder's negative control (revert the checker) exits 1 with 10 failures + 1 error and 0

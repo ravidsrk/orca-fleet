@@ -4,7 +4,7 @@ pack). Fresh terminal in the U388 worktree; you did not write the code. rw by la
 reads); commit NOTHING — verify with git log that no commit carries your session, and say
 so in worker_done.
 
-TARGET: PR #392 at HEAD da2f98a (branch u388-lockfile → BASE). Finding: the evidence-run
+TARGET: PR #392 at HEAD 0775547 (branch u388-lockfile → BASE; git fetch origin + checkout 0775547 first — your worktree may sit at the pre-union tip; commit NOTHING). Finding: the evidence-run
 wrapper littered a sibling lockfile (breaking clean-tree gates, shifting later
 fingerprints); the fix locks the manifest's own inode (open r+ with O_CREAT, read-through
 -write under LOCK_EX, in-place rewrite) instead of a sidecar. The wrapper's standing
