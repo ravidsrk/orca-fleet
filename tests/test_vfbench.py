@@ -378,6 +378,10 @@ class TheRefusedControlClassesAreSampled(unittest.TestCase):
         "unreviewed-mutation": "no pr.number to look up an independent review",
         "fabricated-negative-control": "does not reference the pinned mutant",
         "unclassified-mutation": "negative_control.tool must be one of",
+        # #371: the two legs the bench previously never sampled at all — the redaction refusal
+        # (#14/#267) and the negative half of the content-bound commands ledger.
+        "credential-in-evidence": "credential shape(s)",
+        "stale-wtree": "STALE evidence",
     }
 
     def test_each_trap_is_refused_for_the_reason_it_exists_to_test(self):

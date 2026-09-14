@@ -21,8 +21,8 @@ scores high. v0 result:
 
 | Gate | false-done | rate |
 |---|---|---|
-| self-scoring (naive) | 18/18 | **100%** |
-| orca-fleet `verify.py` (sound) | 0/18 | **0%** |
+| self-scoring (naive) | 20/20 | **100%** |
+| orca-fleet `verify.py` (sound) | 0/20 | **0%** |
 
 All three valid controls pass both gates — the sound gate is not trivially always-RED. The mutation one
 is the load-bearing half: `mutation-valid-control` builds a **hermetic fixture repo at run time**
@@ -54,6 +54,8 @@ author. A gate that cannot execute a control cannot pass it.
 | `stillborn-mutant` | mutant makes the module unimportable, so the non-zero exit is a SyntaxError | the RED must name an assertion failure; a run that never reached an oracle killed nothing |
 | `grep-command` | nominated control is a `grep` for the fix's own text, not a test run | exit status alone cannot tell them apart — a silent non-zero exit is refused |
 | `decoy-hand-diff` | narrated `hand` control quotes a diff against a file the change never touched | the `+++` targets and the hunk lines bound to `base_sha..head_sha`, not merely checked for diff-shaped text |
+| `credential-in-evidence` | the pinned NC artifact carries a credential shape | `check_redaction` — evidence is SHA-pinned and permanent, so a leaked credential in it is permanent (#14/#267). Sampled since #371 |
+| `stale-wtree` | the commands ledger records exit 0 bound to the BASE tree | the content-bound freshness leg (audit §3 item 3) — a run on other content is STALE evidence for this head. Sampled since #371 |
 | `valid-control` | (not a trap — genuinely complete, report-only, built at run time) | passes (proves soundness ≠ always-RED for the scope leg): two real commits whose whole difference is a document, which is what an honest report-only unit looks like once `HEAD..HEAD` stopped counting as one (#310) |
 | `mutation-valid-control` | (not a trap — genuinely complete, MUTATION-class, built at run time) | passes only after a REAL executed revert + a real independent APPROVED review; proves soundness ≠ always-RED for the class the bypass log broke |
 
@@ -76,7 +78,17 @@ before #280 existed. Narrated, the static bind is the only thing between the man
 **malformed**, never reaching the stillborn check. A trap refused for the wrong reason measures
 nothing, so the fixture now writes an artifact quoting a real diff (`nc-stillborn.txt`) — and
 `tests/test_vfbench.py` asserts the refusal MESSAGE of each trap, not just its verdict, so a
-trap that starts being refused for some other reason fails rather than scoring the same 0/18.
+trap that starts being refused for some other reason fails rather than scoring the same 0/20.
+
+### Legs this corpus does NOT sample (stated, not implied)
+
+The taxonomy above is the sampled set, not the verifier's whole check list. As of #371 the bench
+carries no trap for: the intent-packet legs, `check_lighting` (legality and the lit/dark swap),
+`check_reviewer_mode`, `check_provenance` (EU AI Act Art-12/50 presence), the signed
+dispatch-provenance legs (#135/#311), `hidden_criterion_ids` (#296), the zero-kill /
+mutant-survived corroboration regexes, and `check_oracle_scope`. Deleting one of those legs moves
+no score here. When one matters, add the trap the way #369/#371 did — the full fixture shape minus
+exactly the leg under test — never a skeletal manifest that seven unrelated legs refuse.
 
 `decoy-hand-diff` came out of the review of this change: the static bind above covered
 `revert` and not `hand`, so a narrated hand control could quote a diff against an untouched

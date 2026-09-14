@@ -162,6 +162,11 @@ def build_mutation_fixture(repo):
     (evidence / "nc.txt").write_text(FIXTURE_NC, encoding="utf-8")
     (evidence / "nc-stillborn.txt").write_text(FIXTURE_NC_STILLBORN, encoding="utf-8")
     (evidence / "nc-decoy.txt").write_text(FIXTURE_NC_DECOY, encoding="utf-8")
+    # The redaction trap's artifact (#371): a real credential SHAPE, assembled at runtime so this
+    # source file never carries a detectable literal (same discipline as the CI canary).
+    (evidence / "nc-leaky.txt").write_text(
+        FIXTURE_NC + "\nrun with " + ("AKIA" + "ZYXWVUTSRQPONMLK") + " exported\n",
+        encoding="utf-8")
     (evidence / "review.txt").write_text(
         f"build-blind review of {head}\nAPPROVED by vf-reviewer (local lane record)\n",
         encoding="utf-8")
@@ -171,10 +176,12 @@ def build_mutation_fixture(repo):
 
     return {
         "base_sha": base, "head_sha": head, "head_tree": _fixture_rev(repo, "HEAD^{tree}"),
+        "base_tree": _fixture_rev(repo, f"{base}^{{tree}}"),
         "contract_digest": "sha256:" + sha256("contract.md"),
         "nc_sha256": sha256("docs/reports/vf/nc.txt"),
         "nc_stillborn_sha256": sha256("docs/reports/vf/nc-stillborn.txt"),
         "nc_decoy_sha256": sha256("docs/reports/vf/nc-decoy.txt"),
+        "nc_leaky_sha256": sha256("docs/reports/vf/nc-leaky.txt"),
         "review_sha256": sha256("docs/reports/vf/review.txt"),
         # The SAME command line the negative control replays and the ledger records —
         # one token, so the trap cannot drift into proving nothing. sys.executable in
