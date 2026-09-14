@@ -961,6 +961,42 @@ def check_manifest_keywords():
     ]
 
 
+CANONICAL_LEDGER_FLAGS = ("BUILD_DONE", "PR_OPEN", "BOT", "REVIEWED", "MERGED", "WT_CLEAN", "lighting")
+
+
+def check_ledger_rows():
+    """A mission's unit row extends the canonical schema; it may never drop a flag (#357).
+
+    ledger-contract.md's "extend with mission fields, never drop flags" was a sentence until
+    something read it: absorb-it shipped a row missing BUILD_DONE/PR_OPEN/BOT/lighting, and a
+    lit/dark-eligible swap would have been invisible at RESUME. Any `| task_id |` row in a
+    SKILL.md must carry every canonical flag.
+    """
+    failures = []
+    if not SKILLS_DIR.is_dir():
+        return []
+    for skill_dir in sorted(SKILLS_DIR.iterdir()):
+        if not skill_dir.is_dir() or skill_dir.name.startswith((".", "_")):
+            continue
+        skill_md = skill_dir / "SKILL.md"
+        if not skill_md.is_file():
+            continue
+        text, read_err = read_text_safe(skill_md)
+        if read_err:
+            failures.append(f"{skill_dir.name}/SKILL.md: {read_err}")
+            continue
+        for line in text.splitlines():
+            row = line.strip().strip("`")
+            if not row.startswith("| task_id |"):
+                continue
+            missing = [flag for flag in CANONICAL_LEDGER_FLAGS if f"| {flag} |" not in row]
+            if missing:
+                failures.append(
+                    f"{skill_dir.name}: ledger row drops canonical flag(s) {', '.join(missing)} — "
+                    "extend the canonical row, never drop flags (ledger-contract.md)")
+    return failures
+
+
 def check_badge_freshness():
     """The generated badge JSON (assets/badges/) must match current repo state, so the
     dynamically-read README badges never go stale. Regenerate with scripts/gen-badges.py."""
@@ -1046,6 +1082,13 @@ def main():
         all_passed = False
         print("\nFAIL manifest keywords — a mission is missing from plugin.json keywords:")
         for failure in keyword_failures:
+            print(f"   - {failure}")
+
+    ledger_failures = check_ledger_rows()
+    if ledger_failures:
+        all_passed = False
+        print("\nFAIL ledger rows — a mission's unit row drops canonical flags:")
+        for failure in ledger_failures:
             print(f"   - {failure}")
 
     badge_failures = check_badge_freshness()

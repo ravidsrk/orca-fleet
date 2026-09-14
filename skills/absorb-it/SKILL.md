@@ -108,7 +108,7 @@ Header at T0 per liveness-resume.md: `RUN · COORDINATOR · BASE · FORK_POINT �
 (SOURCE = the inbound queue digest at T0; WIP sized to attention-budget.md). One row per inbound
 PR:
 
-`| task_id | pr | title | CLASS | REPRO | AUTHOR_OK | RECEIPTS | REVIEWED | MERGED | CLOSED | WT_CLEAN | park | evidence |`
+`| task_id | pr | title | CLASS | REPRO | AUTHOR_OK | RECEIPTS | BUILD_DONE | PR_OPEN | BOT | REVIEWED | MERGED | CLOSED | WT_CLEAN | lighting | park | evidence |`
 
 CLASS ∈ absorbable · superseded-by-main · duplicate-of · needs-contributor · design-disagreement ·
 cannot-reproduce · out-of-scope. RECEIPTS = the entry count of that PR's receipt log in `evidence`.

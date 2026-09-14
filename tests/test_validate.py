@@ -707,6 +707,24 @@ class TestCountAgnosticGuards(unittest.TestCase):
         self.assertEqual(validate.check_manifest_keywords(), [])
         self.assertEqual(validate.check_badge_freshness(), [])
 
+    def test_ledger_row_guard_passes_on_the_real_repo(self):
+        self.assertEqual(validate.check_ledger_rows(), [])
+
+    def test_a_ledger_row_dropping_a_canonical_flag_fails(self):
+        # #357: absorb-it's row shipped without `lighting` while gate-classification mandates it
+        # on every dispatched unit — the guard must catch exactly that drop.
+        with tempfile.TemporaryDirectory() as tmp:
+            skills = Path(tmp) / "skills"
+            (skills / "demo-it").mkdir(parents=True)
+            (skills / "demo-it" / "SKILL.md").write_text(
+                "---\nname: demo-it\n---\n\n`| task_id | unit | BUILD_DONE | PR_OPEN | BOT | "
+                "REVIEWED | MERGED | WT_CLEAN | park | evidence |`\n", encoding="utf-8")
+            with mock.patch.object(validate, "SKILLS_DIR", skills):
+                failures = validate.check_ledger_rows()
+        self.assertEqual(len(failures), 1, failures)
+        self.assertIn("demo-it", failures[0])
+        self.assertIn("lighting", failures[0])
+
     def test_badge_check_flags_stale(self):
         # tests.json is written CURRENT so the only error can come from missions.json's
         # staleness — a "missing file" error must not be able to satisfy this test.

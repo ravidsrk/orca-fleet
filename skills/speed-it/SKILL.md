@@ -88,7 +88,9 @@ OPTIMIZED-WITH-PARKED.
 ## Ledger + supervision
 
 Header per liveness-resume.md: `RUN · COORDINATOR · BASE · FORK_POINT · T0 · SOURCE · WIP` (`-` if N/A;
-SOURCE = journey-list + metric-contract digests). Rows include Orca task id + hotspot/journey fields.
+SOURCE = journey-list + metric-contract digests). One row per hotspot (canonical flags per
+ledger-contract.md): `| task_id | hotspot | BASELINE | BUILD_DONE | PR_OPEN | BOT | REVIEWED | MERGED | BEFORE_AFTER | WT_CLEAN | lighting | park | evidence |` — BEFORE_AFTER = the mandatory
+paired measurement, not a narrative.
 Stalls → WATCH; death → RESUME scoped to header coordinator + ledger task ids, git-verified.
 
 ## Anti-patterns

@@ -109,8 +109,10 @@ defect that only reproduced once is marked flaky and re-driven, not closed.
 
 Ledger header at T0 (`ledger-contract.md`) with `WIP: builders=<n> reviewers=<n>` sized to
 `attention-budget.md`. Header per liveness-resume.md: `RUN · COORDINATOR · BASE · FORK_POINT · T0 · SOURCE · WIP`
-(`-` if N/A; SOURCE = the defect set + device/capability tier). One row per defect: id, repro
-artifact, fix PR, re-verify artifact, NC result, verdict. Device sessions are serial by nature —
+(`-` if N/A; SOURCE = the defect set + device/capability tier). One row per defect (canonical flags
+per ledger-contract.md): `| task_id | defect | REPRO | BUILD_DONE | PR_OPEN | BOT | REVIEWED | MERGED | DEVICE_VERIFIED | WT_CLEAN | lighting | park | evidence |` — REPRO = the on-device
+artifact captured pre-fix; DEVICE_VERIFIED = the fix re-verified on-device with artifacts; NC result
+lives in `evidence`. Device sessions are serial by nature —
 one active device lane per physical device; emulators scale within attention-budget. Stalls →
 `liveness-resume.md` WATCH; device death (unpaired, battery, OS update) → RESUME re-pairs and
 re-derives from the baseline ledger, never from a worker's narration.
