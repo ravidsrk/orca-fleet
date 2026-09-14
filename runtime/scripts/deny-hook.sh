@@ -950,7 +950,10 @@ if [ -n "${ORCA_UNIT_WORKTREE:-}" ]; then
   while IFS= read -r _RECORD; do
     case "$_RECORD" in
       'C '*) _TEE=0
-             case "$(strip_prefix "${_RECORD#C }")" in tee|tee\ *) _TEE=1 ;; esac ;;
+             # sudo is peeled and REATTACHED by strip_prefix so the sudo-matching rules
+             # still fire — match `sudo tee` here too, or the reattach hides the one
+             # write shape this boundary exists to catch (#351).
+             case "$(strip_prefix "${_RECORD#C }")" in tee|tee\ *|sudo\ tee|sudo\ tee\ *) _TEE=1 ;; esac ;;
       'W '*) bounded_write "${_RECORD#W }" ;;
       'A '*) if [ "$_TEE" -eq 1 ]; then bounded_write "${_RECORD#A }"; fi ;;
     esac

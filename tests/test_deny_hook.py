@@ -1057,6 +1057,15 @@ class TestBashWritesAreBounded(HookBase):
             with self.subTest(command=command):
                 self._deny(command)
 
+    def test_a_sudo_tee_destination_is_bounded(self):
+        # #351: strip_prefix peels sudo and REATTACHES it, so `sudo tee` came back wearing
+        # a prefix the tee arm did not match — the #297 write shape, laundered.
+        for command in (f"cat real.txt | sudo tee {self.outside / 'stolen'}",
+                        f"cat real.txt | sudo tee -a {self.outside / 'stolen'}",
+                        f"cat real.txt | sudo env tee {self.outside / 'stolen'}"):
+            with self.subTest(command=command):
+                self._deny(command)
+
     def test_a_redirect_through_a_symlink_chain_is_bounded(self):
         # The same chain the Edit path follows: an in-boundary NAME whose target
         # is outside is an outside write, however many links it takes to get there.
