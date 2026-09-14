@@ -109,6 +109,17 @@ class TestEvalInfrastructure(unittest.TestCase):
         self.assertIsInstance(data["evals"], list)
         self.assertGreater(len(data["evals"]), 0)
 
+    def test_stemmer_clusters_the_inflections_its_docstring_claims(self):
+        # #354: the docstring named "flakes"/"flaky" while the code split them — an "es"
+        # strip followed by the bare-"s" rule stripped twice, and the y->i rule had no
+        # closing leg. Pin the pairs so the examples cannot go false again.
+        for a, b in (("flakes", "flaky"), ("flake", "flakes"), ("flakies", "flaky"),
+                     ("closes", "close"), ("upgrading", "upgrade"),
+                     ("committing", "committed"), ("tests", "test")):
+            with self.subTest(pair=(a, b)):
+                self.assertEqual(eval_mod._stem(a), eval_mod._stem(b),
+                                 f"{a!r} -> {eval_mod._stem(a)!r} but {b!r} -> {eval_mod._stem(b)!r}")
+
     def test_routing_eval_covers_every_mission_in_the_catalog(self):
         # Coverage is keyed to skills/ dirs, never to a hardcoded list: the four
         # missions in the proposals doc must fail validation until they have a
@@ -158,6 +169,75 @@ class TestEvalInfrastructure(unittest.TestCase):
             f"{ROUTING_SCORE_MARGIN:.0%} above the floor {ROUTING_MIN_SCORE:.0%}; "
             f"raise ROUTING_MIN_SCORE to track the live score",
         )
+
+
+class TestMarginAndBreadthGuards(unittest.TestCase):
+    """#354: these refusal branches were dead code to the suite — a mutant deleting them
+    stayed green, the exact defect class test_validate.py's header exists to prevent."""
+
+    def test_narrow_margin_without_a_declaration_is_refused(self):
+        why = eval_mod._margin_verdict({"id": 1, "prompt": "x"},
+                                       [("alpha-it", 0.20), ("beta-it", 0.17)])
+        self.assertIsNotNone(why)
+        self.assertIn("coin flip", why)
+
+    def test_a_wide_margin_with_a_declaration_is_stale_and_refused(self):
+        why = eval_mod._margin_verdict({"collision": "beta-it"},
+                                       [("alpha-it", 0.30), ("beta-it", 0.10)])
+        self.assertIsNotNone(why)
+        self.assertIn("drop the field", why)
+
+    def test_a_declaration_naming_the_wrong_runner_up_is_refused(self):
+        why = eval_mod._margin_verdict({"collision": "gamma-it"},
+                                       [("alpha-it", 0.20), ("beta-it", 0.19), ("gamma-it", 0.05)])
+        self.assertIsNotNone(why)
+        self.assertIn("gone stale", why)
+
+    def test_a_narrow_margin_with_an_accurate_declaration_passes(self):
+        self.assertIsNone(eval_mod._margin_verdict({"collision": "beta-it"},
+                                                   [("alpha-it", 0.20), ("beta-it", 0.19)]))
+
+    def test_expected_any_with_fewer_than_two_missions_is_refused(self):
+        why = eval_mod._over_broad_expected_any({"prompt": "x", "expected_any": ["alpha-it"]})
+        self.assertIsNotNone(why)
+        self.assertIn("fewer than two", why)
+
+    def test_expected_any_naming_a_mission_that_never_scores_is_refused(self):
+        with SyntheticCatalog({
+            "alpha-it": "Rebuild the widget conveyor. Use when the conveyor jams.",
+            "beta-it": "Audit the ledger for duplicate invoices. Use when invoices do not reconcile.",
+        }):
+            why = eval_mod._over_broad_expected_any(
+                {"prompt": "the widget conveyor jammed again",
+                 "expected_any": ["alpha-it", "beta-it"]})
+        self.assertIsNotNone(why)
+        self.assertIn("beta-it", why)
+        self.assertIn("never predicted", why)
+
+    def test_trigger_phrase_records_cannot_rot_in_either_direction(self):
+        # #354: the RECORDED_TRIGGER_MISROUTES comment claims the table fails validation in
+        # both directions; neither direction had a test.
+        skills = {
+            "alpha-it": 'Rebuild the widget conveyor. Use when "the conveyor jams".',
+            "beta-it": "Audit the ledger for duplicate invoices. Use when the invoices do not reconcile.",
+        }
+        with SyntheticCatalog(skills):
+            # An advertised phrase that lands on a sibling, with nothing recording it.
+            with patch.object(eval_mod, "route_prompt", return_value="beta-it"):
+                errs = eval_mod.validate_trigger_phrases()
+            self.assertTrue(any("advertises the trigger phrase" in e for e in errs), errs)
+            # A record whose phrase now routes correctly must be dropped.
+            with patch.object(eval_mod, "RECORDED_TRIGGER_MISROUTES",
+                              {("alpha-it", "the conveyor jams"): "beta-it"}), \
+                    patch.object(eval_mod, "route_prompt", return_value="alpha-it"):
+                errs = eval_mod.validate_trigger_phrases()
+            self.assertTrue(any("now routes correctly" in e for e in errs), errs)
+            # A record naming a winner the phrase no longer lands on has gone stale.
+            with patch.object(eval_mod, "RECORDED_TRIGGER_MISROUTES",
+                              {("alpha-it", "the conveyor jams"): "alpha-it"}), \
+                    patch.object(eval_mod, "route_prompt", return_value="beta-it"):
+                errs = eval_mod.validate_trigger_phrases()
+            self.assertTrue(any("gone stale" in e for e in errs), errs)
 
 
 class TestDescriptionRouter(unittest.TestCase):

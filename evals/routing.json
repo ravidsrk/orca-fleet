@@ -519,8 +519,7 @@
       "prompt": "cover the untested payment paths and fix the bugs you find",
       "type": "positive",
       "expected_mission": "prove-it",
-      "reason": "docs/reviews/2026-09-10-review.md §5 realistic prompt: missing coverage on a money path is prove-it.",
-      "collision": "root-cause"
+      "reason": "docs/reviews/2026-09-10-review.md §5 realistic prompt: missing coverage on a money path is prove-it. Collision declaration dropped in #354: the stemmer fix widened the margin past 0.05, and a declaration that outlives its margin is stale data, not a safety rail."
     },
     {
       "id": 125,

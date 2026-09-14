@@ -103,13 +103,19 @@ def _stem(token: str) -> str:
     """Light suffix stripping so "flakes"/"flaky", "upgrading"/"upgrade" cluster.
 
     Not a linguistic stemmer — a deterministic, dependency-free normalizer whose
-    only job is to stop a plural or a gerund from hiding a real match.
+    only job is to stop a plural or a gerund from hiding a real match. The rules
+    below were verified against their own examples (#354): an "es" strip followed by
+    the bare-"s" rule stripped TWICE ("closes" -> "clo" vs "close" -> "clos"), so a
+    stripped token skips the "s" rule; and the y->i rule alone left "flaky" -> "flaki"
+    apart from "flakes" -> "flak", so a trailing "i" folds back down.
     """
+    stripped = False
     for suffix in ("ally", "ing", "ed", "es", "al"):
         if len(token) > len(suffix) + 3 and token.endswith(suffix):
             token = token[: -len(suffix)]
+            stripped = True
             break
-    if len(token) > 3 and token.endswith("s") and not token.endswith("ss"):
+    if not stripped and len(token) > 3 and token.endswith("s") and not token.endswith("ss"):
         token = token[:-1]
     if len(token) > 4 and token.endswith("e"):
         token = token[:-1]
@@ -117,6 +123,8 @@ def _stem(token: str) -> str:
         token = token[:-1]  # "committ" -> "commit"
     if len(token) > 3 and token.endswith("y"):
         token = token[:-1] + "i"  # "flaky"/"flakies" -> "flaki"
+    if len(token) > 4 and token.endswith("i"):
+        token = token[:-1]  # "flaki" -> "flak", closing the gap to "flakes" (#354)
     return token
 
 
@@ -538,15 +546,14 @@ def validate_routing_eval() -> list[str]:
 
 
 # A mission's "Use when" clause advertises the phrases a user is expected to type. Nothing routed
-# them, so the catalog could promise a phrase that lands on a sibling and never notice (#287). Four
+# them, so the catalog could promise a phrase that lands on a sibling and never notice (#287). Two
 # do, and each is a real lexical collision rather than a bug worth contorting a description to
-# dodge — so they are RECORDED here, with the mission that actually wins. A fifth cannot appear
+# dodge — so they are RECORDED here, with the mission that actually wins. A third cannot appear
 # silently: any unlisted misroute fails validation, and a listed one that starts routing correctly
-# fails too, so this table cannot rot in either direction.
+# fails too, so this table cannot rot in either direction (both directions are tested).
 RECORDED_TRIGGER_MISROUTES = {
-    # Two single-word / idiomatic collisions that no description edit fixes without distorting
-    # what the mission actually says. "conformance" is one generic word both own a claim to;
-    # "shipping" is ship-it's entire name.
+    # "conformance" is one generic word both missions own a claim to; "stop shipping junk" is an
+    # idiom carrying ship-it's entire name.
     ("attest-it", "conformance"): "access-it",
     ("floor-it", "stop shipping junk"): "ship-it",
 }
