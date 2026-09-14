@@ -156,9 +156,11 @@ class OrcaAnchorsSayWhatTheyMean(unittest.TestCase):
     DAG = (ROOT / "runtime" / "orca-dag-semantics.md").read_text(encoding="utf-8")
 
     def test_the_doctor_rule_points_at_the_doctor_section(self):
-        # :110-122 of that guide is the SNAPSHOT section; the free-gate rule is at :346-348.
-        self.assertIn("orca-per-workspace-env:346-348", self.SANDBOX)
+        # #382: both line-pinned citations rotted (:110-122 was the snapshot section; :346-348
+        # drifted next) — the policy now names the section, not the numbers.
+        self.assertIn("orca-per-workspace-env`'s doctor-verdict section", self.SANDBOX)
         self.assertNotIn("orca-per-workspace-env:110-122", self.SANDBOX)
+        self.assertNotIn("orca-per-workspace-env:346-348", self.SANDBOX)
 
     def test_six_refusal_codes_are_not_all_pinned_to_one_three_code_file(self):
         # The contract file's union is task_not_found | task_not_startable | inject_rejected.
