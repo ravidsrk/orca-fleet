@@ -25,7 +25,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | task_id | id | title | CLASS | BUILD_DONE | PR_OPEN | BOT | REVIEWED | MERGED | WT_CLEAN | lighting | park | evidence |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | STAB | — | land 4 PR-review hunks (deny-hook/run_report/verify/HUMAN_ACTIONS) + badge regen | conductor landing, worker-executed | t | n/a | n/a | n/a | t | n/a | lit | — | 1215e09 9651a52 8f7d5ac 917f9fd; pushed origin/BASE fast-forward (egress receipt); 1285 OK + full battery green; NC re-executed 11 failures; rides PR #387 |
-| T1 | #388 | evidence-run lockfile dirties worktree | real-bug | t | t | t | f | f | f | lit | — | PR #392 @da2f98a (base ✓ checks ✓); bot P1 mixed-version DECLINED on-PR (out of scope, disclosed) + follow-up filed (loop 2); review next |
+| T1 | #388 | evidence-run lockfile dirties worktree | real-bug | t | t | t | f | f | f | lit | — | PR #392 @0775547 (conductor union, badges 1293); bot P1 DECLINED (reply 4008762873) + #393; review underway: standards done (1 Req truncate-before-dumps), spec/test redux after rm-dialog stall |
 | T2 | #389 | run_report WIP validation accepts incomplete reports | real-bug | t | t | t | f | f | f | lit | — | PR #391 @f642700 (base ✓ checks ✓); bot 2 P1 + 1 P2 held VALID (template waves, manifest abs-paths, dup cells); review next |
 | T3 | #364 | fixture-backed evals + workspace-state oracle (S1) | real-feature-small | f | f | f | f | f | f | lit | — | Q1: fixtures+oracle (wave 2; brief TBD) |
 | T4 | #385 | historical-docs polish, agent slice (status.json + parity test) | real-bug (docs) | t | t | t | t | t | t | lit | — | PR #390 MERGED 32da76e @d6fc2cc (reviewed==head; greptile APPROVED + 3 blind GO); verify.py OK all legs (scope/commands/freshness/NC-exec/review/change-on-base); conductor manifest corrections (head/source) disclosed in-file; worktree retired; #385 closed w/ evidence |
@@ -181,3 +181,22 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   via badge conflict). 3 axes dispatched @0775547: spec task_2c4f031c49e5/
   ctx_88c87c2bd18c, test task_11a1b85d960a/ctx_70a689d4f113, standards
   task_0485ffc9ea00/ctx_5319e11df1da; all turns verified live.
+- R388 STANDARDS done (ctx_5319e11df1da, report harvested): 1 Required (R1:
+  evidence-run.py:152-154 truncate-before-dumps empties the manifest on a handled
+  failure; scratch-probed base-keeps vs head-empties; fix = serialize first), 5 Nit
+  (zero-length comment/docstring, duplicated commit helper, /tmp paths in committed
+  negctrl transcript, unresolvable contract.source -> conductor corrects at close,
+  "pending" SHA -> fill at post-merge pass), 2 Optional (120s timeouts hygiene,
+  zero-length test), 1 FYI (empty merge bodies); appendix: pre-existing
+  RecursionError never-raises gap (base+HEAD, out of scope -> file at close).
+  Worker released + terminal closed.
+- RM-DIALOG STALL (both R388 spec+test axes, identical signature): reviewers blocked
+  on Claude's dangerous-rm dialog (variable-path rm in mutant-probe cleanup);
+  coordinator ESC cleared the dialog but landed as a turn INTERRUPTION, and
+  follow-up text is agent_prompt_blocked (fenced; retry-with-ID refused twice — no
+  more retries). REFLECTION recorded on both tasks (-> failed): fix = TASK rewrite,
+  not another send. Redux dispatched with SANDBOX HYGIENE hard rule (no
+  variable-path rm; absolute literal /tmp or leave scratch): spec
+  task_12d2f7c4d52d/ctx_b275a4b7c790, test task_f06431fe4692/ctx_6c8a2eb52a70.
+  Lesson for run close: dangerous-rm dialogs are unrecoverable stalls — every future
+  TASK carries the hygiene rule (F389r2/U364 specs need it too if their workers rm).
