@@ -27,7 +27,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | STAB | — | land 4 PR-review hunks (deny-hook/run_report/verify/HUMAN_ACTIONS) + badge regen | conductor landing, worker-executed | t | n/a | n/a | n/a | t | n/a | lit | — | 1215e09 9651a52 8f7d5ac 917f9fd; pushed origin/BASE fast-forward (egress receipt); 1285 OK + full battery green; NC re-executed 11 failures; rides PR #387 |
 | T1 | #388 | evidence-run lockfile dirties worktree | real-bug | t | t | t | t | t | t | lit | proof-park: needs post-merge independent APPROVE (2nd login) for verify review leg | PR #392 MERGED 8c36b4a @c680ee0 (reviewed==head; R2 GO 5202783703); verify 5/6 (review leg RED: no independent APPROVED — Greptile never re-reviewed; recoverable post-merge); #388 closed w/ evidence + gap note |
 | T2 | #389 | run_report WIP validation accepts incomplete reports | real-bug | t | t | t | f | f | f | lit | — | PR #391 @51019fb (RQ1 batch fixed ecb2380, 1304 OK, Greptile 0 new; conductor union 51019fb badges 1309); R3 re-verify underway |
-| T3 | #364 | fixture-backed evals + workspace-state oracle (S1) | real-feature-small | f | f | f | f | f | f | lit | — | Q1: fixtures+oracle (wave 2; brief TBD) |
+| T3 | #364 | fixture-backed evals + workspace-state oracle (S1) | real-feature-small | t | t | t | f | f | f | lit | — | U364 BUILDING (spec 506a059, digest 35ce199c, fork 506a059, task_c59e89f22f3f live) |
 | T4 | #385 | historical-docs polish, agent slice (status.json + parity test) | real-bug (docs) | t | t | t | t | t | t | lit | — | PR #390 MERGED 32da76e @d6fc2cc (reviewed==head; greptile APPROVED + 3 blind GO); verify.py OK all legs (scope/commands/freshness/NC-exec/review/change-on-base); conductor manifest corrections (head/source) disclosed in-file; worktree retired; #385 closed w/ evidence |
 | T5 | #386 | sign manifest+inventory, retention backend (S2) | — | — | — | — | — | — | — | — | needs-human: key custody + backend undecided (Q2) | Q2: park |
 | — | #235 | H-02 marketplace submissions (pre-parked needs-human) | needs-human | — | — | — | — | — | — | needs-human: external accounts | prior run + issue text |
@@ -345,3 +345,10 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
 - R389r3 dispatched @51019fb: spec task_b70b4d25a24a/ctx_54d9f1c9e38b, test
   task_df0845c1f17d/ctx_fe582d308f9e, standards task_7e32a206565a/ctx_60e59ea1c7a5.
   All turns live. 3 workers out.
+- U364 BUILD dispatched early (parallel with R389r3): build-364 spec committed
+  506a059 (digest 35ce199c over the placeholder file; fork updated to 506a059 in
+  the binding — the spec commit itself advanced BASE past the written fork line).
+  task_c59e89f22f3f/ctx_223ebf2eb60e, turn live. LESSON: a hand-made git worktree
+  is invisible to orca (terminal create timed out twice on it); worktrees for
+  workers MUST come from orca worktree create (the first task was superseded
+  before any dispatch, reflection recorded). 4 workers out.
