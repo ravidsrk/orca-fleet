@@ -244,3 +244,11 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   (README singular-row prose, TEMPLATE heading singular, duplicated header waves=
   collapse, run_report docstring), 6 FYI (waves= self-declared vs ledger prose,
   #365 scoping pre-existing). Released.
+- R389 STANDARDS done (ctx_9e937ba13b49, report harvested): 1 Required
+  (doubled-wave check has no negative-path test — deleting it leaves tests GREEN;
+  wave-digit filter + waves>=1 also untested; confirms test M2) + 5 Nit + 4
+  Optional. One unfenced metadata-only gh call, disclosed. Released.
+- V389r1 dispatched (task_b6f60aa32c39/ctx_b055f497860c): verdict over 3 axes
+  (3 Requireds: doubled-wave x2 axes + placeholder-values; reconciled bot threads
+  noted, no APPROVE from Greptile yet) with COMMENTED-for-both-outcomes post rule.
+  Turn live.
