@@ -137,6 +137,34 @@ class RecordShape(LedgerCase):
         self.assertEqual(data["unit"], "u")
         self.assertEqual(len(data["commands"]), 1)
 
+    def test_a_seed_looser_than_the_rewrite_leaves_no_stale_tail(self):
+        # The rewrite is in place (#388), so a manifest formatted more loosely than indent=2 is
+        # longer than its own rewrite: unless the file is cut to the new length, the seed's tail
+        # survives after the new JSON and the ledger no longer parses — with the run still green.
+        seed = json.dumps({"unit": "u", "commands": [
+            {"label": f"seed-{i}", "exit": 0, "commit": None, "wtree": None, "artifact": None}
+            for i in range(1, 9)]}, indent=8) + "\n"
+        (self.repo / "m.json").write_text(seed, encoding="utf-8")
+        r = self.run_wrapped(sys.executable, "-c", "pass")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual([c["label"] for c in self.records()],
+                         ["seed-1", "seed-2", "seed-3", "seed-4", "seed-5", "seed-6", "seed-7",
+                          "seed-8", "tests"])
+        self.assertLess(len((self.repo / "m.json").read_text(encoding="utf-8")), len(seed),
+                        "the seed must outlast its rewrite, or this case does not exercise a tail")
+
+    def test_a_pre_existing_empty_manifest_reads_as_a_new_ledger(self):
+        # Zero bytes on disk is the same state the wrapper's own create-on-open leaves, so it is
+        # recorded into as a new ledger (the sibling-lockfile wrapper warned "Expecting value"
+        # and recorded nothing).
+        (self.repo / "m.json").write_text("", encoding="utf-8")
+        r = self.run_wrapped(sys.executable, "-c", "pass")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertNotIn("WARNING", r.stderr)
+        data = json.loads((self.repo / "m.json").read_text(encoding="utf-8"))
+        self.assertEqual(list(data), ["commands"])
+        self.assertEqual([c["label"] for c in data["commands"]], ["tests"])
+
 
 class ContentBinding(LedgerCase):
     def test_recorded_wtree_is_head_tree_on_a_clean_checkout(self):
