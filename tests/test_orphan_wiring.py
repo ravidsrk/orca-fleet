@@ -686,10 +686,18 @@ class DormantMechanismsSaySo(unittest.TestCase):
         self.assertIn("no mission or playbook signs a dispatch", text,
                       "signed dispatch reads as live; no .orca/dispatch-pubkey is committed")
 
-    def test_egress_records_that_it_has_no_caller(self):
+    def test_egress_records_that_no_automated_sink_calls_it(self):
+        # #368: doctrine now names the receipt (merge-serialization.md), but honesty about the
+        # enforcement gap is the point — no code calls it yet, and the header must say so.
         text = (RUNTIME / "scripts" / "egress.py").read_text(encoding="utf-8")
-        self.assertIn("no caller", text,
-                      "egress.py claims to receipt every off-repo write and nothing calls it")
+        self.assertIn("no automated sink calls it yet", text,
+                      "egress.py reads as if receipts are being written; nothing automated calls it")
+
+    def test_doctrine_names_the_egress_receipt_before_off_repo_writes(self):
+        # The orphan mechanism is orphaned no longer: merge-serialization wires it ahead of sends.
+        text = read("runtime/merge-serialization.md")
+        self.assertIn("egress.py write", text,
+                      "no policy invokes the egress receipt — it rots uninvoked (#284/#368)")
 
 
 if __name__ == "__main__":
