@@ -514,11 +514,28 @@ has() { printf '%s' "$CMD" | grep -qE "$1" 2>/dev/null; }
 strip_prefix() {
   _c=$1
   _pre=""
-  case "$_c" in sudo\ *) _pre="sudo "; _c=${_c#sudo } ;; esac
+  case "$_c" in
+    sudo\ *)
+      _pre="sudo "; _c=${_c#sudo }
+      # sudo's own option run must peel too, or `sudo -n tee`, `sudo -- tee`,
+      # `sudo -u root tee`, and stacked `sudo sudo tee` launder the reattached
+      # prefix the tee boundary matches (PR #387 security review).
+      while : ; do
+        case "$_c" in
+          sudo\ *)                _c=${_c#sudo } ;;              # stacked sudo
+          --\ *)                  _c=${_c#-- }; break ;;         # options end here
+          --*=*\ *)               _c=${_c#* } ;;                 # --user=root
+          -[uUghpUCTRt]\ *\ *\ *) _c=${_c#* }; _c=${_c#* } ;;    # flag + separate operand
+          -*\ *)                  _c=${_c#* } ;;                 # bare flags: -n -E -A -k…
+          *) break ;;
+        esac
+      done ;;
+  esac
   while : ; do
     case "$_c" in
       env\ *)     _c=${_c#env } ;;
       nohup\ *)   _c=${_c#nohup } ;;
+      nice\ *)    _c=${_c#nice } ;;  # `nice tee` is the same write (#387 review)
       time\ *)    _c=${_c#time } ;;
       command\ *) _c=${_c#command } ;;
       builtin\ *) _c=${_c#builtin } ;;
