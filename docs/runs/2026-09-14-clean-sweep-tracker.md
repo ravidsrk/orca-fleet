@@ -389,4 +389,5 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   coordinator: FIX, overrides invariants-only for this case: the prompt's core
   demand is otherwise ungraded by oracle AND trace) + P2 FP symlink-loop (verified
   3.13/3.14 clean-fail). Owed: in-thread replies + body count 1315→1329. Task
-  completed, worker released. F364r1 spec written + dispatched.
+  completed, worker released. F364r1 spec written + dispatched
+  (task_61d43269c538 → ctx_050877a459e7, terminal term_2fc38996).
