@@ -18,6 +18,7 @@ import os
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -236,6 +237,43 @@ class ExplicitWorkingDirectory(LedgerCase):
                              manifest="reports/manifest.json", artifact="blocked/output.txt")
         self.assert_target_execution(r)
         self.assertIn("cannot open artifact", r.stderr)
+
+
+class ConcurrentAppends(LedgerCase):
+    """#382: parallel wrapped runs used to lose records silently. The append is serialized; this
+    releases sixteen runs at once so their appends contend, and demands every record land."""
+
+    RUNS = 16
+
+    def test_sixteen_concurrent_runs_land_sixteen_records(self):
+        gate = tempfile.TemporaryDirectory()
+        self.addCleanup(gate.cleanup)
+        go = Path(gate.name, "go")
+        # Each child announces itself, then waits for the shared release, so all sixteen wrappers
+        # reach their append within milliseconds of each other.
+        child = ("import os, sys, time\n"
+                 f"open(os.path.join({gate.name!r}, 'ready-' + sys.argv[1]), 'w').close()\n"
+                 f"while not os.path.exists({str(go)!r}):\n"
+                 "    time.sleep(0.002)\n")
+        procs = []
+        for i in range(self.RUNS):
+            procs.append(subprocess.Popen(
+                [sys.executable, str(RUNNER), "--label", f"run-{i:02d}", "--manifest", "m.json",
+                 "--", sys.executable, "-c", child, str(i)],
+                cwd=self.repo, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True))
+            self.addCleanup(procs[-1].kill)
+        deadline = time.monotonic() + 120
+        while len(list(Path(gate.name).glob("ready-*"))) < self.RUNS:
+            self.assertLess(time.monotonic(), deadline, "the sixteen children never all started")
+            time.sleep(0.01)
+        go.touch()
+        for p in procs:
+            _, err = p.communicate(timeout=120)
+            self.assertEqual(p.returncode, 0, err)
+        self.assertEqual(sorted(r["label"] for r in self.records()),
+                         ["run-00", "run-01", "run-02", "run-03", "run-04", "run-05", "run-06",
+                          "run-07", "run-08", "run-09", "run-10", "run-11", "run-12", "run-13",
+                          "run-14", "run-15"])
 
 
 if __name__ == "__main__":
