@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "I don't know the shape yet — chart this epic into a plan.",
+      "prompt": "I don't know the shape yet \u2014 chart this epic into a plan.",
       "expected_output": "Should route to map-it. Should name the destination, chart decision-tickets, clear the research/decision frontier with HITL at each decision, freeze the plan/spec, prepare (but not dispatch) a DAG, and hand off to ship-it.",
       "assertions": [
         "Routes to map-it",
@@ -13,7 +13,8 @@
         "Prepares DAG without dispatching",
         "Hands off frozen map to ship-it"
       ],
-      "files": []
+      "files": [],
+      "narration_only": true
     },
     {
       "id": 2,
@@ -25,7 +26,8 @@
         "Does not write production code",
         "Distinguishes planning from building"
       ],
-      "files": []
+      "files": [],
+      "narration_only": true
     },
     {
       "id": 3,
@@ -36,7 +38,8 @@
         "Routes to ship-it",
         "Cites ready-to-build vs foggy-goal threshold"
       ],
-      "files": []
+      "files": [],
+      "narration_only": true
     }
   ]
 }

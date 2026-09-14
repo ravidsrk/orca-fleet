@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Orca updated overnight and our dispatch docs feel off — re-pin the runtime contract against the installed binary.",
+      "prompt": "Orca updated overnight and our dispatch docs feel off \u2014 re-pin the runtime contract against the installed binary.",
       "expected_output": "Should route to pin-it. Should freeze a claim inventory from runtime policies/scripts/mission preambles, load version-matched guides via orca skills get, re-witness each claim against the live runtime with receipts, patch stale claims citing receipts, and terminate PINNED or PINNED-WITH-PARKED.",
       "assertions": [
         "Routes to pin-it",
@@ -13,7 +13,8 @@
         "Removed claims carry an archived refutation receipt",
         "Terminal is PINNED or PINNED-WITH-PARKED"
       ],
-      "files": []
+      "files": [],
+      "narration_only": true
     },
     {
       "id": 2,
@@ -24,18 +25,20 @@
         "Routes to modernize-it",
         "Distinguishes a doctrine claim about runtime mechanics from a dependency upgrade"
       ],
-      "files": []
+      "files": [],
+      "narration_only": true
     },
     {
       "id": 3,
-      "prompt": "The README claims a command that no longer exists — sweep all the stale doc claims.",
+      "prompt": "The README claims a command that no longer exists \u2014 sweep all the stale doc claims.",
       "expected_output": "Should NOT route to pin-it. A falsifiable prose-claims backlog against repo state is clean-sweep source=doc-claims. pin-it re-witnesses runtime-mechanics claims against the live Orca binary.",
       "assertions": [
         "Does not route to pin-it",
         "Routes to clean-sweep",
         "Distinguishes prose doc-claims about the repo from mechanics claims about the runtime binary"
       ],
-      "files": []
+      "files": [],
+      "narration_only": true
     }
   ]
 }

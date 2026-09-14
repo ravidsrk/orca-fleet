@@ -12,7 +12,8 @@
         "Uses red-by-revert ratchet",
         "Requires local AND CI green streak"
       ],
-      "files": []
+      "files": [],
+      "narration_only": true
     },
     {
       "id": 2,
@@ -23,7 +24,8 @@
         "Explains that retry hides flakes",
         "Requires root-cause fix"
       ],
-      "files": []
+      "files": [],
+      "narration_only": true
     },
     {
       "id": 3,
@@ -34,7 +36,8 @@
         "Routes to root-cause",
         "Cites missing suite-rate contract"
       ],
-      "files": []
+      "files": [],
+      "narration_only": true
     }
   ]
 }

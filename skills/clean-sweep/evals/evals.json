@@ -12,11 +12,12 @@
         "Requires failing-first test per fix",
         "Loops until DRY"
       ],
-      "files": []
+      "files": [],
+      "narration_only": true
     },
     {
       "id": 2,
-      "prompt": "The README lies — verify and fix every false claim.",
+      "prompt": "The README lies \u2014 verify and fix every false claim.",
       "expected_output": "Should route to clean-sweep with source=doc-claims. Should extract falsifiable claims from docs/README/code comments, verify each against file:symbol or a run, and correct/remove false claims. Should not generate new docs as the primary work.",
       "assertions": [
         "Routes to clean-sweep",
@@ -25,7 +26,8 @@
         "Verifies claims with evidence",
         "Does not scope-creep into new doc authorship"
       ],
-      "files": []
+      "files": [],
+      "narration_only": true
     },
     {
       "id": 3,
@@ -36,7 +38,8 @@
         "Routes to deflake-it",
         "Cites statistical streak / flake-rate contract"
       ],
-      "files": []
+      "files": [],
+      "narration_only": true
     }
   ]
 }

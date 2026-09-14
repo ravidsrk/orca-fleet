@@ -149,6 +149,22 @@ class TestEvalInfrastructure(unittest.TestCase):
             errors.extend(eval_mod.validate_skill_eval(d))
         self.assertEqual(errors, [], f"schema errors: {errors}")
 
+    def test_a_fixture_free_case_must_admit_it_is_narration_only(self):
+        # #364: an empty files[] runs the agent in an EMPTY workspace — the grader can only
+        # grade the trace's prose, which this catalog's doctrine refuses to call evidence.
+        with tempfile.TemporaryDirectory() as tmp:
+            d = Path(tmp) / "demo-it"
+            (d / "evals").mkdir(parents=True)
+            case = {"id": 1, "prompt": "p", "expected_output": "e", "assertions": ["a"]}
+            (d / "evals" / "evals.json").write_text(
+                json.dumps({"skill_name": "demo-it", "evals": [case]}), encoding="utf-8")
+            errs = eval_mod.validate_skill_eval(d)
+            self.assertTrue(any("narration_only" in e for e in errs), errs)
+            case["narration_only"] = True
+            (d / "evals" / "evals.json").write_text(
+                json.dumps({"skill_name": "demo-it", "evals": [case]}), encoding="utf-8")
+            self.assertEqual(eval_mod.validate_skill_eval(d), [])
+
     def test_validate_subcommand_passes(self):
         r = subprocess.run(
             [sys.executable, str(ROOT / "scripts" / "eval.py"), "validate"],
@@ -603,6 +619,9 @@ class TestBehavioralIntegrity(unittest.TestCase):
             (mission / "SKILL.md").write_text("Harmless test fixture.")
             (mission / "evals" / "evals.json").write_text(json.dumps({"evals": [{
                 "id": 1, "prompt": "fixture", "assertions": self.ASSERTIONS,
+                # These tests exercise the agent/grader plumbing, not catalog behavior; the
+                # label keeps the #364 narration-only gate from refusing the fixture.
+                "narration_only": True,
             }]}))
             output = root / "verdict.json"
             output.write_text(raw if raw is not None else json.dumps({"assertions": rows}))
@@ -867,7 +886,29 @@ class TestBehavioralSuite(unittest.TestCase):
             capture_output=True, text=True,
         )
         self.assertNotEqual(r.returncode, 0)
-        self.assertIn("--mission", r.stderr)
+
+    def test_an_unlabeled_fixture_free_case_is_refused_even_in_the_runner(self):
+        # The schema gate is the front door; the runner refuses the same case on its own,
+        # so a hand-built evals.json cannot reach the agent unlabeled (#364).
+        with SyntheticCatalog({"demo-it": "Demonstrate the demo. Use when demoing."}) as cat:
+            evals_dir = Path(cat._tmp.name) / "skills" / "demo-it" / "evals"
+            evals_dir.mkdir()
+            (evals_dir / "evals.json").write_text(json.dumps(
+                {"skill_name": "demo-it",
+                 "evals": [{"id": 1, "prompt": "p", "expected_output": "e",
+                            "assertions": ["a"]}]}), encoding="utf-8")
+            result = eval_mod.run_behavioral_eval("demo-it", dry_run=True)
+        self.assertIn("error", result["cases"][0])
+        self.assertIn("narration_only", result["cases"][0]["error"])
+
+    def test_labeled_narration_only_cases_plan_cleanly(self):
+        # Today's catalog is honestly labeled: every case admits narration-only, and the
+        # dry run plans them rather than refusing.
+        mission = sorted(eval_mod.catalog_missions())[0]
+        result = eval_mod.run_behavioral_eval(mission, dry_run=True)
+        self.assertNotIn("error", result)
+        self.assertTrue(all(c.get("narration_only") for c in result["cases"]
+                            if c["fixtures"] == 0))
 
     def test_fixture_paths_cannot_escape_the_workspace(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -12,18 +12,20 @@
         "Evidence bound to authoritative state and independently re-derived",
         "Terminal is CONFORMANT or CONFORMANT-WITH-GAPS (gaps parked to human/legal)"
       ],
-      "files": []
+      "files": [],
+      "narration_only": true
     },
     {
       "id": 2,
       "prompt": "Run a red-team security audit and exploit the auth flow.",
-      "expected_output": "Should NOT route to attest-it. An exploit→fix→re-attack security loop is harden-it. attest-it proves conformance to a standard's obligations; it does not exploit.",
+      "expected_output": "Should NOT route to attest-it. An exploit\u2192fix\u2192re-attack security loop is harden-it. attest-it proves conformance to a standard's obligations; it does not exploit.",
       "assertions": [
         "Does not route to attest-it",
         "Routes to harden-it",
         "Distinguishes conformance evidence from an exploit loop"
       ],
-      "files": []
+      "files": [],
+      "narration_only": true
     },
     {
       "id": 3,
@@ -34,7 +36,8 @@
         "Routes to review-it",
         "Distinguishes a standard's obligation set from a per-diff verdict"
       ],
-      "files": []
+      "files": [],
+      "narration_only": true
     }
   ]
 }

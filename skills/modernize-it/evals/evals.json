@@ -12,7 +12,8 @@
         "Upgrades one dep or coherent group per PR",
         "Requires CI green at every merge"
       ],
-      "files": []
+      "files": [],
+      "narration_only": true
     },
     {
       "id": 2,
@@ -24,7 +25,8 @@
         "Hands off stateful cross-deploy DB migration to migrate-it",
         "Does not run cross-deploy migration inside currency loop"
       ],
-      "files": []
+      "files": [],
+      "narration_only": true
     },
     {
       "id": 3,
@@ -36,7 +38,8 @@
         "Verifies advisory reachability",
         "Never recommends audit fix --force"
       ],
-      "files": []
+      "files": [],
+      "narration_only": true
     }
   ]
 }

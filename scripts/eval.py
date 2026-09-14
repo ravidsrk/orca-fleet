@@ -407,6 +407,13 @@ def validate_skill_eval(skill_dir: Path) -> list[str]:
             errors.append(f"{_rel(eval_file)}: eval[{idx}].assertions is not a list")
         if "files" in ev and not isinstance(ev.get("files"), list):
             errors.append(f"{_rel(eval_file)}: eval[{idx}].files is not a list")
+        # #364: a case with no fixtures runs the agent in an EMPTY workspace and the grader can
+        # only grade trace prose — narration, which this catalog's own doctrine refuses to grade
+        # on. Every case must either carry fixtures or admit what it is.
+        if not ev.get("files") and ev.get("narration_only") is not True:
+            errors.append(
+                f"{_rel(eval_file)}: eval[{idx}] has no files[] and no \"narration_only\": true — "
+                "a fixture-free case grades only the trace's narration; add fixtures or label it")
 
     return errors
 
@@ -921,6 +928,15 @@ def run_behavioral_eval(mission: str, dry_run: bool = False) -> dict:
             "fixtures": len(ev.get("files") or []),
             "assertions": len(assertions),
         }
+        if not ev.get("files") and ev.get("narration_only") is not True:
+            # #364: refuse the silent version of narration-only grading.
+            case["error"] = ("no files[] and no \"narration_only\": true — a fixture-free case "
+                             "grades only the trace's narration; label it or fixture it")
+            failures += 1
+            cases.append(case)
+            continue
+        if ev.get("narration_only") is True:
+            case["narration_only"] = True  # graded on trace prose — catalog tooling, never evidence
         if dry_run:
             case["planned"] = True
             case["agent_cmd"] = agent_cmd

@@ -12,7 +12,8 @@
         "Requires before/after per fix",
         "Adds CI regression guards"
       ],
-      "files": []
+      "files": [],
+      "narration_only": true
     },
     {
       "id": 2,
@@ -24,7 +25,8 @@
         "Pins device / throttle conditions",
         "Uses statistical contract, not one run"
       ],
-      "files": []
+      "files": [],
+      "narration_only": true
     },
     {
       "id": 3,
@@ -35,7 +37,8 @@
         "Routes post-deploy watch to ship-it / observe",
         "Distinguishes budget-meet from post-deploy watch"
       ],
-      "files": []
+      "files": [],
+      "narration_only": true
     }
   ]
 }

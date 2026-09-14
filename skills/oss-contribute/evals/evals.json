@@ -4,7 +4,7 @@
     {
       "id": 1,
       "prompt": "Contribute fixes for these open issues on an upstream repo we only have a fork of.",
-      "expected_output": "Should route to oss-contribute. Should fork, enumerate BOTH the open issues AND the upstream open PRs per issue, skeptic-triage, build on the fork with a failing-first test, review build-blind, and open etiquette-correct PRs against the upstream default branch — never merging (READ only). Terminal is CONTRIBUTED / CONTRIBUTED-WITH-PARKED.",
+      "expected_output": "Should route to oss-contribute. Should fork, enumerate BOTH the open issues AND the upstream open PRs per issue, skeptic-triage, build on the fork with a failing-first test, review build-blind, and open etiquette-correct PRs against the upstream default branch \u2014 never merging (READ only). Terminal is CONTRIBUTED / CONTRIBUTED-WITH-PARKED.",
       "assertions": [
         "Routes to oss-contribute",
         "Enumerates upstream OPEN PRs per issue, not just code (two denominators)",
@@ -13,7 +13,8 @@
         "Terminal state is PR-open + reviewed, not merged",
         "Rides evidence-manifest for SHA-bound completion"
       ],
-      "files": []
+      "files": [],
+      "narration_only": true
     },
     {
       "id": 2,
@@ -26,7 +27,8 @@
         "Does not open a silent duplicate",
         "Assist comments quote the target PR's own diff"
       ],
-      "files": []
+      "files": [],
+      "narration_only": true
     },
     {
       "id": 3,
@@ -37,7 +39,8 @@
         "Routes to clean-sweep",
         "Distinguishes merged-SHA closure (own repo) from PR-open contribution (upstream)"
       ],
-      "files": []
+      "files": [],
+      "narration_only": true
     }
   ]
 }
