@@ -1,122 +1,223 @@
 {
-  "schema": 1,
-  "unit": "U385",
-  "unit_class": "build-change",
-  "base_sha": "e04b0c20137d0d0a9a0886d6f9748e72252384a7",
-  "head_sha": "134eae14bdc43711868bf466e695ae1b2bc42830",
-  "head_tree": "022dc9a4a4197edf157b97e547c5c465d3d8899c",
-  "head_sha_role": "Round 2. head_sha is the badge commit that tops the round-2 fix: 70b5721 (merge of origin/BASE 76c70df, ledger/spec files only, conflict-free), 34e445e (the parity guide set reuses the index parser and equals the guides on disk, plus two regression cases) and 134eae1 (gen-badges.py output, 1288 -> 1290). Round 1's ea77ce9 and 87619de (status.json + the two test classes, badge) stay in base_sha..head_sha. The commit that adds this manifest follows head_sha and cannot name its own SHA; it carries no production or test content. Every commands[] record was made on a clean tree at head_sha: wtree 022dc9a = head_sha^{tree}.",
   "base_branch": "review/2026-09-14-holistic-fixes",
   "base_note": "Dispatched at e04b0c2. origin/BASE advanced to 5af2e6f (ledger-only: wave-1 taskspecs, DECISIONS, tracker) during the unit; the coordinator confirmed e04b0c2 as base and assigned the BASE merge to the integrator pre-PR. Round 2: the branch was 7 ledger-only commits behind origin/BASE (76c70df); merged conflict-free as 70b5721 before the fix, per the fix-385-r2 spec.",
+  "base_sha": "e04b0c20137d0d0a9a0886d6f9748e72252384a7",
+  "binding_audit": {
+    "coverage": "C-1..C-2 (2/2)",
+    "method": "criterion quoted, covering test named, red-first at base shown, criterion-violating control went RED (C-1: revert of the production path, replayed by verify.execute_negative_control; C-2: hand mutant on a listed guide); round 2: the Required item's two regression cases shown RED pre-fix, and a ./-linked asset-less guide plus an unlinked guide RED at head and GREEN at bcb4397"
+  },
   "branch": "u385-parity",
-  "status": "GREEN (round 2) - the round-1 NO-GO Required item is fixed (parity guide set reuses the index parser; count floor replaced by equality with the guides on disk); C-1 and C-2 still met; NC-COMMAND, scripts/validate.py and the full suite (1290 tests) exit 0 at head_sha; all controls RED at head",
+  "claim": "status.json current_commit now names the #238 run-3 merge (5f0bd30), witnessed from git history; the mission guide<->diagram parity is tested with the four missing diagrams named as KNOWN_GAPS. Informational only.",
+  "commands": [
+    {
+      "artifact": null,
+      "cmd": "python3 -m unittest tests.test_docs_navigation",
+      "cmd_sha256": "4156f366161430a8c3cf2601a7a754fee6e2bb3000037b143da0b075d0d84682",
+      "commit": "134eae14bdc43711868bf466e695ae1b2bc42830",
+      "duration_s": 12.11,
+      "exit": 0,
+      "label": "nc-command",
+      "ts": "2026-09-14T18:24:55Z",
+      "wtree": "022dc9a4a4197edf157b97e547c5c465d3d8899c"
+    },
+    {
+      "artifact": null,
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "commit": "134eae14bdc43711868bf466e695ae1b2bc42830",
+      "duration_s": 0.499,
+      "exit": 0,
+      "label": "validate",
+      "ts": "2026-09-14T18:24:56Z",
+      "wtree": "022dc9a4a4197edf157b97e547c5c465d3d8899c"
+    },
+    {
+      "artifact": null,
+      "artifact_note": "session-scratchpad tee of the full-suite output; not committed (no artifact path in the dispatch scope) - summary inlined: 'Ran 1290 tests in 237.495s' / 'OK'",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "commit": "134eae14bdc43711868bf466e695ae1b2bc42830",
+      "duration_s": 237.557,
+      "exit": 0,
+      "label": "full-suite",
+      "ts": "2026-09-14T18:28:58Z",
+      "wtree": "022dc9a4a4197edf157b97e547c5c465d3d8899c"
+    },
+    {
+      "artifact": null,
+      "cmd": "ruff check tests/test_docs_navigation.py",
+      "cmd_sha256": "2a7dfaf1eb99d0a2555cb1222d00cd7246ab7a7e5ecd4ee8531c6a6f49816075",
+      "commit": "134eae14bdc43711868bf466e695ae1b2bc42830",
+      "duration_s": 0.01,
+      "exit": 0,
+      "label": "ruff",
+      "ts": "2026-09-14T18:25:48Z",
+      "wtree": "022dc9a4a4197edf157b97e547c5c465d3d8899c"
+    },
+    {
+      "artifact": null,
+      "cmd": "gitleaks detect --source . --log-opts=e04b0c20137d0d0a9a0886d6f9748e72252384a7..HEAD --redact --no-banner",
+      "cmd_sha256": "60519cd8d980a4739d26909a118da80fd758ba9cd8ef603decd7e427eface0f0",
+      "commit": "134eae14bdc43711868bf466e695ae1b2bc42830",
+      "duration_s": 0.032,
+      "exit": 0,
+      "label": "gitleaks",
+      "ts": "2026-09-14T18:25:48Z",
+      "wtree": "022dc9a4a4197edf157b97e547c5c465d3d8899c"
+    }
+  ],
+  "commits": [
+    {
+      "sha": "ea77ce92a4746e5cbdbaa612bba6ffdd4e4e818a",
+      "subject": "fix(docs): status.json names the run-3 merge; guide<->diagram parity is tested (#385)"
+    },
+    {
+      "note": "coordinator-approved out-of-hot-file mechanical commit: validate.py badge freshness 1285 -> 1288; the integrator re-runs gen-badges.py on the union tree at BASE merge",
+      "sha": "87619def254e5f50e10a9158fbdca14d297fb617",
+      "subject": "chore(badges): regenerate tests badge for the #385 tests (gen-badges.py output only)"
+    },
+    {
+      "note": "round-1 manifest",
+      "sha": "e72155c",
+      "subject": "chore(run): U385 evidence manifest"
+    },
+    {
+      "sha": "70b57217ab6ec0afc916bbc5d949095e824e1c48",
+      "subject": "Merge review/2026-09-14-holistic-fixes into u385-parity (round 2 union: BASE ledger/spec commits, conflict-free)"
+    },
+    {
+      "sha": "34e445e0a40637d19b52574cca110a3024ecdb05",
+      "subject": "fix(tests): parity guide set reuses the index parser and equals the guides on disk (#385 round 2)"
+    },
+    {
+      "note": "mechanical commit under the same rule as 87619de: validate.py badge freshness 1288 -> 1290",
+      "sha": "134eae14bdc43711868bf466e695ae1b2bc42830",
+      "subject": "chore(badges): regenerate tests badge for the #385 round-2 tests (gen-badges.py output only)"
+    },
+    {
+      "sha": "pending",
+      "subject": "chore(run): U385 round-2 evidence manifest"
+    }
+  ],
   "contract": {
-    "source": "triage/brief-385-slice.md@e04b0c2 + issue #385 (agent slice)",
-    "digest": "sha256:eafaf7a1016e88ed6dd2065defaaecbc2f14ca647d9a7e710c3050c85a6e02aa",
     "criterion_ids": [
       "C-1",
       "C-2"
-    ]
+    ],
+    "digest": "sha256:eafaf7a1016e88ed6dd2065defaaecbc2f14ca647d9a7e710c3050c85a6e02aa",
+    "source": "triage/brief-385-slice.md@e04b0c2 + issue #385 (agent slice)"
   },
   "criteria": [
     {
-      "id": "C-1",
-      "text": "the status commit field matches the tree the snapshot describes.",
       "addressed": true,
-      "commit": "ea77ce9",
       "change": "docs/completion/status.json current_commit 6671913b3c5b0c893823896669b51a39ad6caa3e -> 5f0bd3047e9563ed938cada23e047c88898b79e1",
+      "commit": "ea77ce9",
       "derivation": "From the snapshot's own contents: run_pr = https://github.com/ravidsrk/orca-fleet/pull/238; `git log --merges --grep '#238'` -> 5f0bd30 'Merge pull request #238 from ravidsrk/ravidsrk/p7-completion-run3' (GitHub mergeCommit for #238 = 5f0bd3047e9563ed938cada23e047c88898b79e1, merged 2026-09-09T06:32:40Z); the same snapshot's STATUS.md reads 'the run-3 PR (#238, merged 5f0bd30)'. 6671913 is the #231 merge where run 3 resumed (gate.reason 'run 3 at 6671913'), predating the S5-B fixes c21a469 and the run-3 merge. history[] and gate.reason keep 6671913 as the resume point; only current_commit changed.",
-      "witness": "tests/test_docs_navigation.py::CompletionStatusNamesTheCommitItDescribes::test_current_commit_is_the_merge_of_the_recorded_run_pr",
-      "red_first": "at base: \"current_commit 6671913b3c5b is 'Merge pull request #231 from ravidsrk/claude/skills-improvements-review-oqc2zj', not the merge of the snapshot's own run PR #238\""
+      "id": "C-1",
+      "red_first": "at base: \"current_commit 6671913b3c5b is 'Merge pull request #231 from ravidsrk/claude/skills-improvements-review-oqc2zj', not the merge of the snapshot's own run PR #238\"",
+      "text": "the status commit field matches the tree the snapshot describes.",
+      "witness": "tests/test_docs_navigation.py::CompletionStatusNamesTheCommitItDescribes::test_current_commit_is_the_merge_of_the_recorded_run_pr"
     },
     {
-      "id": "C-2",
-      "text": "the parity test fails if any listed guide loses its diagram, with a known-gap list naming exactly the four missing diagrams.",
       "addressed": true,
-      "commit": "ea77ce9",
       "change": "tests/test_docs_navigation.py MissionGuidesEmbedTheirDiagram with the explicit constant KNOWN_GAPS = ['absorb-it', 'document-it', 'migrate-it', 'oncall-it'] (parked human item, run 2026-09-14 Q3); the guide set is read from docs/missions/README.md links, the asset set from assets/diagrams/missions/ on disk; the gap list is asserted by equality, so it names exactly four and a gap that gains its diagram fails until removed",
-      "witness": "tests/test_docs_navigation.py::MissionGuidesEmbedTheirDiagram::test_every_indexed_guide_embeds_its_own_diagram (and ::test_every_diagram_asset_is_embedded_by_its_guide, the orphan-asset direction #385 filed for modernize-it.jpg)",
+      "commit": "ea77ce9",
+      "control": "negative_control.second_witness (hand mutation, ship-it embed removed -> RED)",
+      "id": "C-2",
       "red_first": "at base, before KNOWN_GAPS existed: \"Lists differ: ['absorb-it', 'document-it', 'migrate-it', 'oncall-it'] != []\"",
-      "control": "negative_control.second_witness (hand mutation, ship-it embed removed -> RED)"
+      "text": "the parity test fails if any listed guide loses its diagram, with a known-gap list naming exactly the four missing diagrams.",
+      "witness": "tests/test_docs_navigation.py::MissionGuidesEmbedTheirDiagram::test_every_indexed_guide_embeds_its_own_diagram (and ::test_every_diagram_asset_is_embedded_by_its_guide, the orphan-asset direction #385 filed for modernize-it.jpg)"
     }
   ],
+  "files": {
+    "docs_and_generated": [
+      "assets/badges/tests.json",
+      "docs/runs/2026-09-14-clean-sweep-tracker/u385-manifest.json"
+    ],
+    "production": [
+      "docs/completion/status.json"
+    ],
+    "tests": [
+      "tests/test_docs_navigation.py"
+    ]
+  },
+  "head_sha": "134eae14bdc43711868bf466e695ae1b2bc42830",
+  "head_sha_role": "Round 2. head_sha is the badge commit that tops the round-2 fix: 70b5721 (merge of origin/BASE 76c70df, ledger/spec files only, conflict-free), 34e445e (the parity guide set reuses the index parser and equals the guides on disk, plus two regression cases) and 134eae1 (gen-badges.py output, 1288 -> 1290). Round 1's ea77ce9 and 87619de (status.json + the two test classes, badge) stay in base_sha..head_sha. The commit that adds this manifest follows head_sha and cannot name its own SHA; it carries no production or test content. Every commands[] record was made on a clean tree at head_sha: wtree 022dc9a = head_sha^{tree}.",
+  "head_tree": "022dc9a4a4197edf157b97e547c5c465d3d8899c",
   "intent": {
     "goal": "Make the completion status record name the commit its snapshot describes (the run-3 PR #238 merge) and put guide<->diagram parity under a test that names the four missing diagrams as an explicit known-gap list.",
     "ruled_out": "Rendering, copying or referencing the four missing diagrams (parked human item); any other completion-docs prose; rewriting history[] or gate.reason (they record where run 3 resumed, which is still true); reformatting the pre-existing test module (ruff format already fails it at base and CI runs ruff check only); the spec's literal both-paths revert, which the coordinator withdrew because verify.py refuses a TEST path in negative_control.paths (#280) and the base test module is green.",
     "why": "A status record whose commit pointer predates the fixes it records misleads anyone who checks out that SHA to audit it, and a parity convention nothing checks is how modernize-it.jpg went unreferenced. Both are now bound to independent sources: git history for the commit, the index and the assets directory for parity."
   },
   "lighting": "lit",
-  "reviewer_mode": "same-vendor-fresh",
-  "toolchain": "python 3.13.15 / ruff 0.16.7 / gitleaks 8.30.1 / macOS (Darwin 25.6.0)",
-  "commands": [
-    {
-      "label": "nc-command",
-      "ts": "2026-09-14T18:24:55Z",
-      "cmd": "python3 -m unittest tests.test_docs_navigation",
-      "cmd_sha256": "4156f366161430a8c3cf2601a7a754fee6e2bb3000037b143da0b075d0d84682",
-      "exit": 0,
-      "duration_s": 12.11,
-      "commit": "134eae14bdc43711868bf466e695ae1b2bc42830",
-      "wtree": "022dc9a4a4197edf157b97e547c5c465d3d8899c",
-      "artifact": null
-    },
-    {
-      "label": "validate",
-      "ts": "2026-09-14T18:24:56Z",
-      "cmd": "python3 scripts/validate.py",
-      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
-      "exit": 0,
-      "duration_s": 0.499,
-      "commit": "134eae14bdc43711868bf466e695ae1b2bc42830",
-      "wtree": "022dc9a4a4197edf157b97e547c5c465d3d8899c",
-      "artifact": null
-    },
-    {
-      "label": "full-suite",
-      "ts": "2026-09-14T18:28:58Z",
-      "cmd": "python3 -m unittest discover -s tests",
-      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
-      "exit": 0,
-      "duration_s": 237.557,
-      "commit": "134eae14bdc43711868bf466e695ae1b2bc42830",
-      "wtree": "022dc9a4a4197edf157b97e547c5c465d3d8899c",
-      "artifact": null,
-      "artifact_note": "session-scratchpad tee of the full-suite output; not committed (no artifact path in the dispatch scope) - summary inlined: 'Ran 1290 tests in 237.495s' / 'OK'"
-    },
-    {
-      "label": "ruff",
-      "ts": "2026-09-14T18:25:48Z",
-      "cmd": "ruff check tests/test_docs_navigation.py",
-      "cmd_sha256": "2a7dfaf1eb99d0a2555cb1222d00cd7246ab7a7e5ecd4ee8531c6a6f49816075",
-      "exit": 0,
-      "duration_s": 0.01,
-      "commit": "134eae14bdc43711868bf466e695ae1b2bc42830",
-      "wtree": "022dc9a4a4197edf157b97e547c5c465d3d8899c",
-      "artifact": null
-    },
-    {
-      "label": "gitleaks",
-      "ts": "2026-09-14T18:25:48Z",
-      "cmd": "gitleaks detect --source . --log-opts=e04b0c20137d0d0a9a0886d6f9748e72252384a7..HEAD --redact --no-banner",
-      "cmd_sha256": "60519cd8d980a4739d26909a118da80fd758ba9cd8ef603decd7e427eface0f0",
-      "exit": 0,
-      "duration_s": 0.032,
-      "commit": "134eae14bdc43711868bf466e695ae1b2bc42830",
-      "wtree": "022dc9a4a4197edf157b97e547c5c465d3d8899c",
-      "artifact": null
-    }
-  ],
   "negative_control": {
-    "tool": "revert",
+    "artifact": "docs/runs/2026-09-14-clean-sweep-tracker/u385-manifest.json",
+    "command": "python3 -m unittest tests.test_docs_navigation",
     "did": "verify.execute_negative_control replay (runtime/scripts/verify.py, imported, nc_command passed out of band): throwaway worktree detached at head_sha, docs/completion/status.json restored from base_sha, the test module left at head_sha, NC-COMMAND run; then the same command in a clean worktree at head_sha. Repeated by hand (git worktree add --detach; git checkout base_sha -- docs/completion/status.json; run; git worktree remove --force).",
+    "exit": 1,
     "paths": [
       "docs/completion/status.json"
     ],
     "paths_note": "Coordinator-approved amendment of the spec's 'revert BOTH touched paths': restoring tests/test_docs_navigation.py to base restores a module with no C-1/C-2 test that is green at base, so the command cannot go RED, and verify.execute_negative_control refuses it outright: \"negative_control.paths names 'tests/test_docs_navigation.py', which is a TEST path ... the control must revert the BEHAVIOUR (#280)\". Revert the production path, keep the oracle at head (STABILIZE precedent).",
-    "command": "python3 -m unittest tests.test_docs_navigation",
     "result": "RED - exit 1, 1 failure (test_current_commit_is_the_merge_of_the_recorded_run_pr); the same command exits 0 at clean head_sha (31 tests OK). Round 2, re-run at 134eae1.",
-    "exit": 1,
-    "artifact": "docs/runs/2026-09-14-clean-sweep-tracker/u385-manifest.json",
+    "second_witness": {
+      "command": "python3 -m unittest tests.test_docs_navigation",
+      "criterion": "C-2",
+      "did": "throwaway worktree detached at head_sha; removed the single line `<img src=\"../../assets/diagrams/missions/ship-it.jpg\" ...>` from docs/missions/ship-it.md (a listed guide, not a known gap); ran NC-COMMAND; git worktree remove --force (discarded, nothing committed). Re-run in round 2 at 134eae1.",
+      "exit": 1,
+      "mutant": "docs/missions/ship-it.md:16 embed line deleted",
+      "note": "C-2 changes no production path (the guides are untouched), so no revert of a changed path can witness it; the hand mutant on a guide is the control for the parity oracle.",
+      "result": "RED - exit 1, 2 failures",
+      "tool": "hand",
+      "transcript": [
+        ".......FF......................",
+        "FAIL: test_every_diagram_asset_is_embedded_by_its_guide (asset='ship-it.jpg')",
+        "AssertionError: 'ship-it.jpg' not found in [] : docs/missions/ship-it.md never embeds ship-it.jpg",
+        "FAIL: test_every_indexed_guide_embeds_its_own_diagram",
+        "AssertionError: Lists differ: ['absorb-it', 'document-it', 'migrate-it', 'oncall-it', 'ship-it'] != ['absorb-it', 'document-it', 'migrate-it', 'oncall-it']",
+        "Ran 31 tests in 11.802s",
+        "FAILED (failures=2)"
+      ]
+    },
+    "third_witness": {
+      "command": "python3 -m unittest tests.test_docs_navigation",
+      "criterion": "C-2 (round-2 Required item)",
+      "did": "throwaway worktrees (git worktree add --detach; mutate; run NC-COMMAND; git worktree remove --force), each mutant run at head_sha 134eae1 AND at the round-1 reviewed tip bcb4397, so the pair shows the hole and its closure. Nothing committed.",
+      "mutants": [
+        {
+          "at_bcb4397": "GREEN - exit 0 (Ran 29 tests / OK): the guide dropped out of parity silently",
+          "at_head": "RED - exit 1, 1 failure",
+          "mutant": "new docs/missions/new-it.md (no diagram, no asset) + index row linking it as ./new-it.md",
+          "transcript": [
+            "........F......................",
+            "FAIL: test_every_indexed_guide_embeds_its_own_diagram",
+            "AssertionError: Lists differ: ['absorb-it', 'document-it', 'migrate-it', 'new-it', 'oncall-it'] != ['absorb-it', 'document-it', 'migrate-it', 'oncall-it']",
+            "Ran 31 tests in 11.759s",
+            "FAILED (failures=1)"
+          ]
+        },
+        {
+          "at_bcb4397": "GREEN - exit 0 (Ran 29 tests / OK): 21 indexed guides cleared the '> 15' floor",
+          "at_head": "RED - exit 1, 2 failures (both parity tests, via _guides' on-disk equality)",
+          "mutant": "new docs/missions/new-it.md (no diagram, no asset), not linked from the index at all",
+          "transcript": [
+            ".......FF......................",
+            "FAIL: test_every_diagram_asset_is_embedded_by_its_guide",
+            "AssertionError: Lists differ: [...21 indexed stems...] != [...22 on-disk stems...] (+ 'new-it')",
+            "FAIL: test_every_indexed_guide_embeds_its_own_diagram",
+            "Ran 31 tests in 11.801s",
+            "FAILED (failures=2)"
+          ]
+        },
+        {
+          "at_bcb4397": "RED - exit 1, 1 failure: only the asset direction caught it ('ship-it' not found in the guide set), because ship-it has an asset. The hole was specific to a guide with no asset, which the new-it mutants above exercise.",
+          "at_head": "RED - exit 1, 2 failures (same two as second_witness)",
+          "mutant": "ship-it linked as ./ship-it.md AND its embed line deleted"
+        }
+      ],
+      "tool": "hand"
+    },
+    "tool": "revert",
     "transcript": [
       "round 2 (head 134eae1): verify.execute_negative_control -> executed_ok True",
       "NOTE: negative control EXECUTED - with the revert control applied at head_sha the bound command exited 1 on an assertion failure (RED, as required)",
@@ -128,114 +229,8 @@
       "FAILED (failures=1)",
       "clean head_sha: Ran 31 tests in 11.874s / OK"
     ],
-    "second_witness": {
-      "tool": "hand",
-      "criterion": "C-2",
-      "did": "throwaway worktree detached at head_sha; removed the single line `<img src=\"../../assets/diagrams/missions/ship-it.jpg\" ...>` from docs/missions/ship-it.md (a listed guide, not a known gap); ran NC-COMMAND; git worktree remove --force (discarded, nothing committed). Re-run in round 2 at 134eae1.",
-      "mutant": "docs/missions/ship-it.md:16 embed line deleted",
-      "command": "python3 -m unittest tests.test_docs_navigation",
-      "result": "RED - exit 1, 2 failures",
-      "exit": 1,
-      "transcript": [
-        ".......FF......................",
-        "FAIL: test_every_diagram_asset_is_embedded_by_its_guide (asset='ship-it.jpg')",
-        "AssertionError: 'ship-it.jpg' not found in [] : docs/missions/ship-it.md never embeds ship-it.jpg",
-        "FAIL: test_every_indexed_guide_embeds_its_own_diagram",
-        "AssertionError: Lists differ: ['absorb-it', 'document-it', 'migrate-it', 'oncall-it', 'ship-it'] != ['absorb-it', 'document-it', 'migrate-it', 'oncall-it']",
-        "Ran 31 tests in 11.802s",
-        "FAILED (failures=2)"
-      ],
-      "note": "C-2 changes no production path (the guides are untouched), so no revert of a changed path can witness it; the hand mutant on a guide is the control for the parity oracle."
-    },
-    "transcript_note": "Full transcripts (round 2: red-slice1.txt, red-slice2.txt, nc-a-verify-replay.txt, nc-a-status.txt, nc-b-embed.txt, nc-c-dotslash.txt, nc-c-prefix.txt, nc-e-newdot*.txt, nc-f-unlinked*.txt, nc-clean.txt, full-suite.txt) are in the session scratchpad; not committed because the dispatch scope named no artifact path for them, so the decisive lines are inlined here.",
-    "third_witness": {
-      "tool": "hand",
-      "criterion": "C-2 (round-2 Required item)",
-      "did": "throwaway worktrees (git worktree add --detach; mutate; run NC-COMMAND; git worktree remove --force), each mutant run at head_sha 134eae1 AND at the round-1 reviewed tip bcb4397, so the pair shows the hole and its closure. Nothing committed.",
-      "command": "python3 -m unittest tests.test_docs_navigation",
-      "mutants": [
-        {
-          "mutant": "new docs/missions/new-it.md (no diagram, no asset) + index row linking it as ./new-it.md",
-          "at_head": "RED - exit 1, 1 failure",
-          "at_bcb4397": "GREEN - exit 0 (Ran 29 tests / OK): the guide dropped out of parity silently",
-          "transcript": [
-            "........F......................",
-            "FAIL: test_every_indexed_guide_embeds_its_own_diagram",
-            "AssertionError: Lists differ: ['absorb-it', 'document-it', 'migrate-it', 'new-it', 'oncall-it'] != ['absorb-it', 'document-it', 'migrate-it', 'oncall-it']",
-            "Ran 31 tests in 11.759s",
-            "FAILED (failures=1)"
-          ]
-        },
-        {
-          "mutant": "new docs/missions/new-it.md (no diagram, no asset), not linked from the index at all",
-          "at_head": "RED - exit 1, 2 failures (both parity tests, via _guides' on-disk equality)",
-          "at_bcb4397": "GREEN - exit 0 (Ran 29 tests / OK): 21 indexed guides cleared the '> 15' floor",
-          "transcript": [
-            ".......FF......................",
-            "FAIL: test_every_diagram_asset_is_embedded_by_its_guide",
-            "AssertionError: Lists differ: [...21 indexed stems...] != [...22 on-disk stems...] (+ 'new-it')",
-            "FAIL: test_every_indexed_guide_embeds_its_own_diagram",
-            "Ran 31 tests in 11.801s",
-            "FAILED (failures=2)"
-          ]
-        },
-        {
-          "mutant": "ship-it linked as ./ship-it.md AND its embed line deleted",
-          "at_head": "RED - exit 1, 2 failures (same two as second_witness)",
-          "at_bcb4397": "RED - exit 1, 1 failure: only the asset direction caught it ('ship-it' not found in the guide set), because ship-it has an asset. The hole was specific to a guide with no asset, which the new-it mutants above exercise."
-        }
-      ]
-    }
+    "transcript_note": "Full transcripts (round 2: red-slice1.txt, red-slice2.txt, nc-a-verify-replay.txt, nc-a-status.txt, nc-b-embed.txt, nc-c-dotslash.txt, nc-c-prefix.txt, nc-e-newdot*.txt, nc-f-unlinked*.txt, nc-clean.txt, full-suite.txt) are in the session scratchpad; not committed because the dispatch scope named no artifact path for them, so the decisive lines are inlined here."
   },
-  "binding_audit": {
-    "coverage": "C-1..C-2 (2/2)",
-    "method": "criterion quoted, covering test named, red-first at base shown, criterion-violating control went RED (C-1: revert of the production path, replayed by verify.execute_negative_control; C-2: hand mutant on a listed guide); round 2: the Required item's two regression cases shown RED pre-fix, and a ./-linked asset-less guide plus an unlinked guide RED at head and GREEN at bcb4397"
-  },
-  "files": {
-    "production": [
-      "docs/completion/status.json"
-    ],
-    "tests": [
-      "tests/test_docs_navigation.py"
-    ],
-    "docs_and_generated": [
-      "assets/badges/tests.json",
-      "docs/runs/2026-09-14-clean-sweep-tracker/u385-manifest.json"
-    ]
-  },
-  "commits": [
-    {
-      "sha": "ea77ce92a4746e5cbdbaa612bba6ffdd4e4e818a",
-      "subject": "fix(docs): status.json names the run-3 merge; guide<->diagram parity is tested (#385)"
-    },
-    {
-      "sha": "87619def254e5f50e10a9158fbdca14d297fb617",
-      "subject": "chore(badges): regenerate tests badge for the #385 tests (gen-badges.py output only)",
-      "note": "coordinator-approved out-of-hot-file mechanical commit: validate.py badge freshness 1285 -> 1288; the integrator re-runs gen-badges.py on the union tree at BASE merge"
-    },
-    {
-      "sha": "e72155c",
-      "subject": "chore(run): U385 evidence manifest",
-      "note": "round-1 manifest"
-    },
-    {
-      "sha": "70b57217ab6ec0afc916bbc5d949095e824e1c48",
-      "subject": "Merge review/2026-09-14-holistic-fixes into u385-parity (round 2 union: BASE ledger/spec commits, conflict-free)"
-    },
-    {
-      "sha": "34e445e0a40637d19b52574cca110a3024ecdb05",
-      "subject": "fix(tests): parity guide set reuses the index parser and equals the guides on disk (#385 round 2)"
-    },
-    {
-      "sha": "134eae14bdc43711868bf466e695ae1b2bc42830",
-      "subject": "chore(badges): regenerate tests badge for the #385 round-2 tests (gen-badges.py output only)",
-      "note": "mechanical commit under the same rule as 87619de: validate.py badge freshness 1288 -> 1290"
-    },
-    {
-      "sha": "pending",
-      "subject": "chore(run): U385 round-2 evidence manifest"
-    }
-  ],
   "noticed_not_touched": [
     "tests/test_docs_navigation.py fails `ruff format --check` at base_sha as a whole (pre-existing; CI runs `ruff check` only, which is clean)",
     "NavigableDocsHaveNoDeadLinks.LINK matches `](...)` and `href=` but not `src=`, so a dangling <img src> anywhere outside the mission guides is unchecked (the new parity test covers mission-guide diagram src only)",
@@ -243,39 +238,43 @@
   ],
   "parked": [
     {
+      "gate": "run 2026-09-14 Q3 (park)",
       "item": "render the four missing mission diagrams (absorb-it, document-it, migrate-it, oncall-it); drop each name from KNOWN_GAPS as its asset lands",
-      "reason": "needs-human",
-      "gate": "run 2026-09-14 Q3 (park)"
+      "reason": "needs-human"
     }
   ],
   "pr": {
     "number": 390,
-    "url": "https://github.com/ravidsrk/orca-fleet/pull/390",
-    "reviewed_sha": "",
-    "reviewed_wtree": "",
-    "reviewed_note": "round-1 review was at bcb4397 (NO-GO); reviewed_sha/reviewed_wtree stay empty until a round-2 review at head_sha"
+    "reviewed_sha": "d6fc2cce9d414c93ae47acc89b5267c78ffcadc9",
+    "reviewed_wtree": "4ee55a0c1ba997717d264e924408905d9aed2d4d",
+    "url": "https://github.com/ravidsrk/orca-fleet/pull/390"
   },
-  "claim": "status.json current_commit now names the #238 run-3 merge (5f0bd30), witnessed from git history; the mission guide<->diagram parity is tested with the four missing diagrams named as KNOWN_GAPS. Informational only.",
   "review_rounds": [
     {
-      "round": 1,
-      "reviewed_sha": "bcb439739b51fc45c88d99c091f473437f6fd41f",
-      "verdict": "NO-GO",
+      "not_in_batch": "2 Optional, 4 Nit, 2 FYI - recorded as accepted by the coordinator; untouched",
       "required": "the parity test's guide-set parser accepted only bare lowercase index links, so a diagram-less guide linked ./-prefixed or anchored dropped out of parity while the '> 15' floor still passed (R385a F1, R385b B-1, Greptile P2 comment 4007925131)",
-      "not_in_batch": "2 Optional, 4 Nit, 2 FYI - recorded as accepted by the coordinator; untouched"
+      "reviewed_sha": "bcb439739b51fc45c88d99c091f473437f6fd41f",
+      "round": 1,
+      "verdict": "NO-GO"
     },
     {
-      "round": 2,
-      "fix_commit": "34e445e0a40637d19b52574cca110a3024ecdb05",
       "change": "tests/test_docs_navigation.py: the #143 index parser (test_mission_index_lists_every_skill) moves to module-level INDEX_LINK / index_targets() and both tests call it (moving it is the only way to reuse it; the index test's behaviour is unchanged); MissionGuidesEmbedTheirDiagram._guides asserts equality with docs/missions/*.md minus README instead of '> 15'",
-      "witnesses": [
-        "tests/test_docs_navigation.py::MissionGuidesEmbedTheirDiagram::test_a_diagram_less_guide_counts_in_every_link_form_the_index_accepts",
-        "tests/test_docs_navigation.py::MissionGuidesEmbedTheirDiagram::test_a_guide_the_index_set_misses_fails_loudly"
-      ],
+      "fix_commit": "34e445e0a40637d19b52574cca110a3024ecdb05",
       "red_first": [
         "pre-fix (working tree on bcb4397, new cases only): 4 subTest failures, one per form ./gap.md, gap.md#top, <gap.md>, gap.md \"t\": \"AssertionError: Lists differ: [] != ['gap']\" (fixture has 16 bare-linked guides, so the old '> 15' floor passed and the RED is the parser's)",
         "pre-fix floor (after the parser change, before the equality): test_a_guide_the_index_set_misses_fails_loudly \"AssertionError: AssertionError not raised\""
+      ],
+      "round": 2,
+      "witnesses": [
+        "tests/test_docs_navigation.py::MissionGuidesEmbedTheirDiagram::test_a_diagram_less_guide_counts_in_every_link_form_the_index_accepts",
+        "tests/test_docs_navigation.py::MissionGuidesEmbedTheirDiagram::test_a_guide_the_index_set_misses_fails_loudly"
       ]
     }
-  ]
+  ],
+  "reviewer_mode": "same-vendor-fresh",
+  "schema": 1,
+  "status": "GREEN (round 2) - the round-1 NO-GO Required item is fixed (parity guide set reuses the index parser; count floor replaced by equality with the guides on disk); C-1 and C-2 still met; NC-COMMAND, scripts/validate.py and the full suite (1290 tests) exit 0 at head_sha; all controls RED at head",
+  "toolchain": "python 3.13.15 / ruff 0.16.7 / gitleaks 8.30.1 / macOS (Darwin 25.6.0)",
+  "unit": "U385",
+  "unit_class": "build-change"
 }
