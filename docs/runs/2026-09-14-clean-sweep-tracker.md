@@ -26,7 +26,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | STAB | — | land 4 PR-review hunks (deny-hook/run_report/verify/HUMAN_ACTIONS) + badge regen | conductor landing, worker-executed | t | n/a | n/a | n/a | t | n/a | lit | — | 1215e09 9651a52 8f7d5ac 917f9fd; pushed origin/BASE fast-forward (egress receipt); 1285 OK + full battery green; NC re-executed 11 failures; rides PR #387 |
 | T1 | #388 | evidence-run lockfile dirties worktree | real-bug | t | t | t | t | t | t | lit | proof-park: needs post-merge independent APPROVE (2nd login) for verify review leg | PR #392 MERGED 8c36b4a @c680ee0 (reviewed==head; R2 GO 5202783703); verify 5/6 (review leg RED: no independent APPROVED — Greptile never re-reviewed; recoverable post-merge); #388 closed w/ evidence + gap note |
-| T2 | #389 | run_report WIP validation accepts incomplete reports | real-bug | t | t | t | f | f | f | lit | — | PR #391 @50cc4e6; R2 NO-GO (review 5202754078, RQ1 integer rule reproduced); F389r4 fixing (reviewers/wave int + waves= guard + 2 doc claims) |
+| T2 | #389 | run_report WIP validation accepts incomplete reports | real-bug | t | t | t | f | f | f | lit | — | PR #391 @51019fb (RQ1 batch fixed ecb2380, 1304 OK, Greptile 0 new; conductor union 51019fb badges 1309); R3 re-verify underway |
 | T3 | #364 | fixture-backed evals + workspace-state oracle (S1) | real-feature-small | f | f | f | f | f | f | lit | — | Q1: fixtures+oracle (wave 2; brief TBD) |
 | T4 | #385 | historical-docs polish, agent slice (status.json + parity test) | real-bug (docs) | t | t | t | t | t | t | lit | — | PR #390 MERGED 32da76e @d6fc2cc (reviewed==head; greptile APPROVED + 3 blind GO); verify.py OK all legs (scope/commands/freshness/NC-exec/review/change-on-base); conductor manifest corrections (head/source) disclosed in-file; worktree retired; #385 closed w/ evidence |
 | T5 | #386 | sign manifest+inventory, retention backend (S2) | — | — | — | — | — | — | — | — | needs-human: key custody + backend undecided (Q2) | Q2: park |
@@ -333,3 +333,15 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
 - F389r4 dispatched (task_fa89102f47a9/ctx_0e535f2cb200): the RQ1 batch with both
   standing lessons baked in (head := last CONTENT commit; bounded bot-wait, no
   background poller without foreground wait). Turn live.
+- F389r4 done (ctx_0e535f2cb200): union 4ea8497 (clean, pre-U388-merge) + 0a153d6
+  (RQ1 tests, red-first vs verdict mutants) + 6182dfb (TEMPLATE:87 + README:44-46
+  prose) + badges e068ddf (1304) + manifest ecb2380 (head e068ddf). Gates: nc 65
+  OK, validate, ruff, gitleaks, full 1304 OK; NCs RED (5 reverts + 12 mutants).
+  Push verified; Greptile re-reviewed ecb2380 (0 new). Released.
+- Conductor pre-R3 union (branch idle): merged origin/BASE (incl U388 merge) into
+  u389-wip-schema as 51019fb (badges-only conflict -> re-regen 1309; PR diff
+  audited = U389 files only), pushed with receipt. PR #391 @51019fb. Rationale:
+  R3 must review the mergeable tip (post-U388-merge union avoids a void-at-merge).
+- R389r3 dispatched @51019fb: spec task_b70b4d25a24a/ctx_54d9f1c9e38b, test
+  task_df0845c1f17d/ctx_fe582d308f9e, standards task_7e32a206565a/ctx_60e59ea1c7a5.
+  All turns live. 3 workers out.
