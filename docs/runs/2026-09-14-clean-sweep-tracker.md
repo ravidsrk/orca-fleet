@@ -372,4 +372,4 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   Manifest corrections disclosed in-file (head/tree re-bind, pending filled,
   coordinator records, verdict-r3 round appended; contract was already
   spec-form). Proof parked needs-human (same recoverable shape as U388); finding
-  closed. Worktree retired (orca dir already gone — same external cleanup).
+  closed (#389 CLOSED, manifest @9fb8316). Worktree retired (orca dir already gone — same external cleanup).
