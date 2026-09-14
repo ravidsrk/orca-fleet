@@ -74,9 +74,12 @@ Two rules the guide states and a lane will otherwise learn the expensive way:
   a warn is a lane that boots and then fails a build halfway through
   (`orca-per-workspace-env:346-348`). `spawn_worker.sh` **runs the doctor itself** (#283):
   `PROFILE=danger` needs `ORCA_COORD_ALLOW_DANGER=1`, a valid `ORCA_SANDBOX_RECIPE`, and `orca` on
-  PATH; the script runs `vm recipe doctor <recipe> --provision` and reads the verdict via
-  `sandbox_doctor.py`. `ORCA_SANDBOX_DOCTOR` is an **output** path: where that transcript is
-  written for the lane ledger. A transcript the caller names is not evidence.
+  PATH; the script runs `vm recipe doctor <recipe>` (WITHOUT `--provision` — #335: no doctor verdict,
+  clear or not, can authorize this lane, so bringing a VM up buys nothing and bills for it) and reads
+  the verdict via `sandbox_doctor.py`. Even a clear doctor is then REFUSED unconditionally until a
+  prelaunch placement binding exists — the doctor proves recipe health, not that this worker will
+  land in the validated sandbox. `ORCA_SANDBOX_DOCTOR` is an **output** path: where that transcript
+  is written for the lane ledger. A transcript the caller names is not evidence.
 - **Never snapshot a machine on which `orca serve` has already run.** The pairing identity is
   baked in, so every clone of that snapshot claims to be the same Orca server — the fleet then
   cannot tell two sandboxes apart, and remote placement resolves to the wrong host. Snapshot
