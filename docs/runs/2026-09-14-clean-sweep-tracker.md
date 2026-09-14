@@ -26,9 +26,9 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | STAB | — | land 4 PR-review hunks (deny-hook/run_report/verify/HUMAN_ACTIONS) + badge regen | conductor landing, worker-executed | t | n/a | n/a | n/a | t | n/a | lit | — | 1215e09 9651a52 8f7d5ac 917f9fd; pushed origin/BASE fast-forward (egress receipt); 1285 OK + full battery green; NC re-executed 11 failures; rides PR #387 |
 | T1 | #388 | evidence-run lockfile dirties worktree | real-bug | f | f | f | f | f | f | lit | — | U388 task_f7cfdaa731df term_f79fc6ef; digest d4ed45ce; nc: tests.test_evidence_run |
-| T2 | #389 | run_report WIP validation accepts incomplete reports | real-bug | t | f | f | f | f | f | lit | — | e74dea0 0038a43 3ec17ee on u389-wip-schema; clean 1289 OK @3ec17ee; NC re 10F+1E; manifest ✓ digest ✓ |
+| T2 | #389 | run_report WIP validation accepts incomplete reports | real-bug | t | f | f | f | f | f | lit | — | e74dea0 0038a43 3ec17ee; clean 1289 OK; NC re 10F+1E; I389 task_bf2e859e9c6d term_d1c94900 running |
 | T3 | #364 | fixture-backed evals + workspace-state oracle (S1) | real-feature-small | f | f | f | f | f | f | lit | — | Q1: fixtures+oracle (wave 2; brief TBD) |
-| T4 | #385 | historical-docs polish, agent slice (status.json + parity test) | real-bug (docs) | t | f | f | f | f | f | lit | — | ea77ce9 87619de e72155c; clean 1288 OK; NC re-RED; I385 task_01de34342b83 term_f1c327c0 running |
+| T4 | #385 | historical-docs polish, agent slice (status.json + parity test) | real-bug (docs) | t | t | t | f | f | f | lit | — | PR #390 head bcb4397 (base ✓ checks ✓); bot P2 held VALID (fix in batched round); axes R385a/b/c dispatching |
 | T5 | #386 | sign manifest+inventory, retention backend (S2) | — | — | — | — | — | — | — | — | needs-human: key custody + backend undecided (Q2) | Q2: park |
 | — | #235 | H-02 marketplace submissions (pre-parked needs-human) | needs-human | — | — | — | — | — | — | needs-human: external accounts | prior run + issue text |
 
