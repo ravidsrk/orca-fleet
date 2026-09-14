@@ -52,8 +52,9 @@ NAME the destination first (fixes scope — everything past it is out of scope; 
   → FOG-OF-WAR rule: only ticket what you can phrase SHARPLY now (the test is "can you state the
     question, not answer it"). Not-yet-sharp → "not yet specified".
   → clear the FRONTIER in parallel: Research tickets (AFK) gather evidence; Decision/Grill tickets are
-    HITL classified mechanical/taste/one-way per `gate-classification.md` (the agent never stands in
-    for the human's side); **Prototype tickets** (HITL) answer "how should it look/behave" with a cheap
+    HITL classified mechanical/taste/one-way per `gate-classification.md` — the classification picks
+    the GATE MECHANICS only (how the question is put to the human); a decision ticket is human-resolved
+    regardless of class, and the agent never stands in for the human's side (#361); **Prototype tickets** (HITL) answer "how should it look/behave" with a cheap
     THROWAWAY artifact (a scratch-worktree spike, `sandbox-policy`'s disposable lane) instead of prose
     grilling — CAPTURE before disposal: the spike lands on a throwaway branch or as a named artifact
     linked from its ticket (a logic prototype as a single shareable HTML page the human can open,
