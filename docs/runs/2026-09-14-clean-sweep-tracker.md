@@ -1,0 +1,48 @@
+# clean-sweep run — source=tracker — 2026-09-14 (takeover)
+
+RUN: run_0607bdc681e6 · COORDINATOR: term_9e23f85f-d8e7-4b36-86d1-232379b9aa21 (orca run-create binding; driving shell: Muse CLI on maintainer Mac) · BASE: review/2026-09-14-holistic-fixes · FORK_POINT: eb1a2f104c0f94a7af386b85f6a0a38dccf97a1d · T0: 2026-09-14T15:34:09Z · SOURCE: tracker (4 open at T0: #235 #364 #385 #386; +2 PR-review findings to file as A1 A2) · WIP: builders=3 reviewers=1
+
+Takeover provenance: kimi-code session_0b74c473-f848-457a-80d5-cf683b959158
+(`~/.kimi-code/sessions/wd_orca-fleet_e01cdf52740c/session_0b74c473-f848-457a-80d5-cf683b959158`,
+workDir this repo) died on provider quota (403 weekly limit) at 2026-09-14T15:30Z after opening
+PR #387 (36 commits, #349–#384 + #385) and leaving 4 uncommitted review-feedback hunks + 2 fresh
+review findings (A1: evidence-run lockfile litters the worktree; A2: run_report WIP check weaker
+than the attention-budget protocol). Prior-run inflation check: re-read
+docs/runs/2026-09-09-clean-sweep-tracker.md (DRY-WITH-PARKED); its parked #235 is re-confirmed
+OPEN below; its 5 closes stay closed and are outside this run's denominator.
+
+Substrate notes: orca 1.4.201 on PATH vs runtime/pins.json live PIN 1.4.200 — drift NOTE, not
+refusal (spawn_worker.sh records it per spawn; re-witness is pin-it's loop). Managed accounts:
+1 claude + 1 codex (active) — cross-vendor review available. Host permission mode: recorded at
+first spawn from launch.effective.
+
+## Units (loop 1 — FREEZE pending STABILIZE + A1/A2 filing + twin enumeration)
+
+| task_id | id | title | CLASS | BUILD_DONE | PR_OPEN | BOT | REVIEWED | MERGED | WT_CLEAN | lighting | park | evidence |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| STAB | — | land 4 PR-review hunks (deny-hook/run_report/verify/HUMAN_ACTIONS) + badge regen | conductor landing, worker-executed | f | n/a | n/a | n/a | f | f | lit | — | — |
+| T1 | A1 | evidence-run lockfile dirties worktree (to file) | needs-triage | f | f | f | f | f | f | lit | — | — |
+| T2 | A2 | run_report WIP validation accepts incomplete reports (to file) | needs-triage | f | f | f | f | f | f | lit | — | — |
+| T3 | #364 | per-skill behavioral evals ship zero fixtures (S1) | needs-triage | f | f | f | f | f | f | lit | — | — |
+| T4 | #385 | historical-docs polish (S2; commit 2d37bc2 partial) | needs-triage | f | f | f | f | f | f | lit | — | — |
+| T5 | #386 | optional hardening: sign manifest+inventory, retention backend (S2) | needs-triage | f | f | f | f | f | f | lit | — | — |
+| — | #235 | H-02 marketplace submissions (pre-parked needs-human) | needs-human | — | — | — | — | — | — | — | needs-human: external accounts | prior run + issue text |
+
+PHASE: ORIENT → ENUMERATE done · STABILIZE next · FREEZE after (green BASE + A1/A2 filed + twin enumeration agrees)
+
+## T0 enumeration (query 1, coordinator, 2026-09-14T15:34:09Z)
+
+```
+open: 4
+#386 enhancement,sev:S2 Optional hardening: sign the evidence manifest and run-close inventory
+#385 documentation,sev:S2 Historical-docs polish: snapshot banners, ASSUMPTIONS hole, status.json drift
+#364 sev:S1 Per-skill behavioral evals ship zero fixtures — they grade only narration
+#235 sev:S2,needs-human [H-02] Submit remaining marketplace aggregators per docs/distribution.md
+PR #387 OPEN base=main head=review/2026-09-14-holistic-fixes reviewDecision=(none) commits=36
+```
+
+BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f104c0f --require-gitleaks → OK (repo=ravidsrk/orca-fleet). BASE ≠ default; fork-point == merge-base(BASE, origin/main).
+
+## Loop log
+
+(append per unit: dispatch → build → PR → review → merge → close → re-enumerate)
