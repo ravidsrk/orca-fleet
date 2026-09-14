@@ -236,3 +236,11 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
 - F388r2 dispatched (task_bac9a0d7f725/ctx_a410df6c2e3c): the verdict batch,
   red-first, gates, manifest refresh with head := pushed tip INCL manifest commit
   (explicit — the retired pre-manifest theory ends here), push to #392. Turn live.
+- R389 TEST done (ctx_9474d1d08054, report harvested): 2 Required gaps (doubled-wave
+  leg unwitnessed in isolation — M2 survives via the absent-wave leg; digit-led
+  measured-value rule weakenable to presence-only — M5/M5b survive, TBD binds) +
+  Nits/Optionals. NC 11F+1E reproduced. Released.
+- R389 SPEC done (ctx_28af6981cdab, report harvested): C-1..C-3 met, 0 Req, 4 Nit
+  (README singular-row prose, TEMPLATE heading singular, duplicated header waves=
+  collapse, run_report docstring), 6 FYI (waves= self-declared vs ledger prose,
+  #365 scoping pre-existing). Released.
