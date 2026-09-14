@@ -33,7 +33,7 @@
     {
       "id": 3,
       "prompt": "Close every open issue in our backlog and merge the fixes.",
-      "expected_output": "Should NOT route to oss-contribute. A backlog you own and can merge to a merged-SHA closure is clean-sweep. oss-contribute is for a repo you do NOT control, where merge is the maintainer's and the terminal is an open PR.",
+      "expected_output": "Should NOT route to oss-contribute; routes to clean-sweep. Executable coverage of this boundary lives in evals/routing.json id 156 (#383); this case stays as the behavioral-suite narration.",
       "assertions": [
         "Does not route to oss-contribute",
         "Routes to clean-sweep",

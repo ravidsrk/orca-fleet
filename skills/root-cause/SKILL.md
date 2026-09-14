@@ -20,7 +20,7 @@ metadata:
   state_machine: stop-the-line → red-capable repro → rank hypotheses → falsify to one survivor → demonstrate
   convergence: one surviving cause is demonstrated on the reproduction and every rival is falsified
   ordering: reproduction BEFORE any theory; one variable falsified at a time
-  parking: INCONCLUSIVE, or DIAGNOSED-WITH-HANDOFF — the fix is a separate authorization
+  parking: INCONCLUSIVE (degraded) — every falsified hypothesis named, next experiments listed
   oracle: the red-capable reproduction — a theory that cannot move it is falsified
 ---
 
@@ -29,8 +29,8 @@ metadata:
 You are the **COORDINATOR**. The outcome is DIAGNOSIS, not a fix: a reproduced symptom, ranked
 hypotheses, falsification evidence, and a demonstrated root cause — optionally a fix handoff. Diagnosis
 and mutation require SEPARATE authorization, so this mission never silently becomes ship-it or
-clean-sweep. Composes `diagnose`, `agent-brief` (the DIAGNOSED-WITH-HANDOFF contract); rides `evidence-manifest`, `liveness-resume`, `gate-classification`
-(the fix handoff is a separately authorized gate), `sandbox-policy` (investigation workers run
+clean-sweep. Composes `diagnose`, `agent-brief` (the DIAGNOSED-WITH-HANDOFF contract); rides `evidence-manifest`, `liveness-resume`, `ledger-contract` (the row schema RESUME reads),
+`gate-classification` (the fix handoff is a separately authorized gate), `sandbox-policy` (investigation workers run
 PROFILE=rw in a THROWAWAY worktree — nothing from it lands on BASE or default; a networked,
 destructive, or otherwise host-unsafe repro goes to an ephemeral sandbox). Worker TASK pack: one of
 matt | addy. A multi-hypothesis bug uses competing-hypothesis debate (the theory that survives

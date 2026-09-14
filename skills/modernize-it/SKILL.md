@@ -20,7 +20,7 @@ metadata:
   state_machine: graph → order → upgrade → fix the breakage → review → land
   convergence: every node is current or pinned with a named reason, and CI is green at the tip
   ordering: topological on the compatibility graph — a node waits for everything it depends on
-  parking: CURRENT-WITH-PINNED — a pin carries its reason and its revisit condition
+  parking: CURRENT-WITH-PINNED — a pin carries its reason and a human ref
   oracle: the repo's own suite green at the upgraded tip
 ---
 
@@ -32,8 +32,10 @@ PR-per-outdated-package is often actively WRONG. Composes `remediate-finding`, `
 `risk-review` (data-migration lens as a REVIEW SIGNAL, not an execution engine), `runtime-prove`,
 `research-brief` (INVENTORY reads the upstream changelog, not a summary of it), `resolve-conflict`
 (lockfile and hot-file chains), `compound-learn`; rides `merge-serialization`, `reviewed-sha-freshness`, `dispatch-lifecycle`,
-`liveness-resume`, `evidence-manifest`, `ledger-contract`, `attention-budget`. Worker TASK pack:
-addy — never co-mount a second router.
+`liveness-resume`, `evidence-manifest`, `ledger-contract`, `attention-budget`,
+`gate-classification` (a pin decision needs a human ref), `sandbox-policy` (a bumped package's
+install hook is untrusted code — the run's single most dangerous execution surface). Worker TASK
+pack: addy — never co-mount a second router.
 
 Scope boundary: this mission owns DEPENDENCY/FRAMEWORK CURRENCY (bump → adapt call sites → CI green).
 STATEFUL DB schema/data migration across deploys is a different unit, state machine, and proof — hand
@@ -71,8 +73,8 @@ INVENTORY (outdated + advisories; read the CHANGELOG not the version delta; reac
     merge CHAIN (merge-serialization), regenerated at each rebase — and a rebase voids the review
     (reviewed-sha-freshness), so size coherent groups to keep the chain short)
   → FORCED-MIGRATION CHECK (risk-review data-migration lens): if an upgrade forces a stateful DB
-    schema/data change, hand the migration and dependent upgrade to migrate-it with a phase brief:
-    expand → compatible upgrade/dual-write → backfill → switch → zero use → contract.
+    schema/data change, hand the migration and dependent upgrade to migrate-it as an `agent-brief`
+    phase brief: expand → compatible upgrade/dual-write → backfill → switch → zero use → contract.
     Track the handoff in the inventory; migrate-it places the upgrade between expand and contract,
     with compatibility proven at each phase. Code-only upgrades continue through REVIEW below.
   → build-blind REVIEW (acceptance-review) → RUNTIME-PROVE (drive real entry points — green CI misses

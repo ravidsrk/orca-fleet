@@ -32,7 +32,7 @@
     {
       "id": 3,
       "prompt": "Close every issue in the tracker.",
-      "expected_output": "Should NOT route to ship-it. Should identify this as a finite backlog drain and route to clean-sweep. Ship-it is for building new work, not closing an existing enumerated set.",
+      "expected_output": "Should NOT route to ship-it; routes to clean-sweep. Executable coverage of this boundary lives in evals/routing.json id 155 (#383); this case stays as the behavioral-suite narration.",
       "assertions": [
         "Does not route to ship-it",
         "Routes to clean-sweep",

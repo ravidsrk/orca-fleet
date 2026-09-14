@@ -72,7 +72,7 @@ Two rules the guide states and a lane will otherwise learn the expensive way:
 
 - **`doctor` is clear only with no `fail` AND no `warn`.** `ok:true` on its own proves nothing —
   a warn is a lane that boots and then fails a build halfway through
-  (`orca-per-workspace-env:346-348`). `spawn_worker.sh` **runs the doctor itself** (#283):
+  (`orca-per-workspace-env`'s doctor-verdict section). `spawn_worker.sh` **runs the doctor itself** (#283):
   `PROFILE=danger` needs `ORCA_COORD_ALLOW_DANGER=1`, a valid `ORCA_SANDBOX_RECIPE`, and `orca` on
   PATH; the script runs `vm recipe doctor <recipe>` (WITHOUT `--provision` — #335: no doctor verdict,
   clear or not, can authorize this lane, so bringing a VM up buys nothing and bills for it) and reads

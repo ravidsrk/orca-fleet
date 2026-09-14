@@ -19,7 +19,7 @@
     {
       "id": 2,
       "prompt": "Plan this feature so we can build it next quarter.",
-      "expected_output": "Should route to map-it when authorization to build is not yet given. Should produce decisions + a frozen execution map, not production code.",
+      "expected_output": "Routes to map-it ONLY because authorization to build is not yet given ('so we can build it next quarter'); below that freeze bar, ship-it's own grill/freeze handles planning (#383).",
       "assertions": [
         "Routes to map-it",
         "Produces frozen plan / spec",

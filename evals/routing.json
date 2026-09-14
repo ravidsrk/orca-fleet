@@ -579,7 +579,7 @@
       "prompt": "the API contract drifted from the docs",
       "type": "positive",
       "reason": "docs/reviews/2026-09-10-review.md \u00a75 realistic prompt: prose that contradicts the code is a clean-sweep source, not runtime doctrine. #379: a 0.0004-margin coin flip that flipped when an UNRELATED description edit shifted corpus IDF \u2014 declared a genuine straddle (false doc claims are a clean-sweep source; doc drift is document-it vocabulary) rather than re-tuned.",
-      "collision": "clean-sweep",
+      "collision": "document-it",
       "expected_any": [
         "clean-sweep",
         "document-it"
@@ -758,6 +758,22 @@
       "owner": "field-test-it",
       "expected_mission": "access-it",
       "reason": "#381: a keyboard trap tempts access-it, but the defect is device-observed ('on my phone') \u2014 a works-here-breaks-there repro is field-test-it; access-it owns the criterion wherever it occurs."
+    },
+    {
+      "id": 155,
+      "prompt": "Close every issue in the tracker.",
+      "type": "negative",
+      "owner": "clean-sweep",
+      "expected_mission": "ship-it",
+      "reason": "#383: was ship-it/evals id 3 (unexecuted prose). A finite tracker drain is clean-sweep even though 'close issues' ships fixes."
+    },
+    {
+      "id": 156,
+      "prompt": "Close every open issue in our backlog and merge the fixes.",
+      "type": "negative",
+      "owner": "clean-sweep",
+      "expected_mission": "oss-contribute",
+      "reason": "#383: was oss-contribute/evals id 3 (unexecuted prose). A backlog we OWN and can merge is clean-sweep; oss-contribute is for repos we do not control."
     }
   ]
 }

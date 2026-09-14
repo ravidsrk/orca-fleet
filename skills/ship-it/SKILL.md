@@ -36,7 +36,7 @@ You dispatch, verify against authoritative state, and keep the ledger; you do no
 Read [ARCHITECTURE.md](../../ARCHITECTURE.md) once. Composes `decide-and-freeze`, `decompose-dag`,
 `build-change`, `acceptance-review`, `runtime-prove`, `linear-enumeration`; rides `dispatch-lifecycle`,
 `merge-serialization`, `reviewed-sha-freshness`, `evidence-manifest`, `gate-classification`, `liveness-resume`,
-`orca-dag-semantics`, `ledger-contract`, `attention-budget`. Worker TASK pack: exactly one of matt | addy |
+`ledger-contract`, `attention-budget`. Worker TASK pack: exactly one of matt | addy |
 gstack (tdd=matt, build/verify=addy|matt, review/ship=gstack; the grill is coordinator-side, matt) — never
 co-mount two routers.
 
@@ -78,7 +78,8 @@ ENTRY ─┬─ frozen spec  → VALIDATE (decide-and-freeze: validate branch) �
        └─ map-it handoff (frozen spec + frozen prepared DAG) → VALIDATE the freeze, re-run
           decompose-dag's VERIFY section on the prepared DAG, ADOPT its task ids — skip DECOMPOSE
           (re-decomposing would duplicate or orphan the prepared tasks)
-   → DECOMPOSE (decompose-dag: tracer-bullet slices → Orca DAG) — first two routes only
+   → DECOMPOSE (decompose-dag: tracer-bullet slices → Orca DAG; read orca-dag-semantics.md here — it
+     is the DAG phase's doc, not standing load) — first two routes only
    → BUILD waves (build-change per slice; foundation serializes, slices parallelize under
      attention-budget WIP)
    → ACCEPTANCE-REVIEW (build-blind, per slice) [+ RISK-REVIEW lens if the slice triggers one]

@@ -31,7 +31,7 @@
     {
       "id": 3,
       "prompt": "We just merged the billing wave \u2014 update the docs so they match what shipped.",
-      "expected_output": "Should NOT route to document-it as its own run. Syncing docs to one wave's diff is ship-it's doc-sync unit inside the release states; document-it owns the whole public surface, not a wave.",
+      "expected_output": "Should route to ship-it, not document-it: syncing docs to one wave's diff is a unit inside ship-it's release pipeline, and a router routes to missions, not sub-units (#383).",
       "assertions": [
         "Does not route to document-it",
         "Routes to ship-it's doc-sync unit",
