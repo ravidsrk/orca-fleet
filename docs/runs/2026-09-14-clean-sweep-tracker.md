@@ -27,7 +27,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | STAB | — | land 4 PR-review hunks (deny-hook/run_report/verify/HUMAN_ACTIONS) + badge regen | conductor landing, worker-executed | t | n/a | n/a | n/a | t | n/a | lit | — | 1215e09 9651a52 8f7d5ac 917f9fd; pushed origin/BASE fast-forward (egress receipt); 1285 OK + full battery green; NC re-executed 11 failures; rides PR #387 |
 | T1 | #388 | evidence-run lockfile dirties worktree | real-bug | t | t | t | t | t | t | lit | proof-park: needs post-merge independent APPROVE (2nd login) for verify review leg | PR #392 MERGED 8c36b4a @c680ee0 (reviewed==head; R2 GO 5202783703); verify 5/6 (review leg RED: no independent APPROVED — Greptile never re-reviewed; recoverable post-merge); #388 closed w/ evidence + gap note |
 | T2 | #389 | run_report WIP validation accepts incomplete reports | real-bug | t | t | t | t | t | t | lit | proof-park: needs post-merge independent APPROVE (2nd login) for verify review leg | PR #391 MERGED 1bdb20c @51019fb (reviewed==head; R3 GO 5203193997); verify 5/6 (review leg RED: no independent APPROVED — Greptile checks pass, no review object; recoverable post-merge); #389 closed w/ evidence + gap note |
-| T3 | #364 | fixture-backed evals + workspace-state oracle (S1) | real-feature-small | t | t | t | f | f | f | lit | — | PR #395 @f727692; Greptile 1 VALID (id-4 no positive check — coordinator: FIX, teeth on requirements.txt) + 1 FP (symlink, refute); F364r1 dispatched |
+| T3 | #364 | fixture-backed evals + workspace-state oracle (S1) | real-feature-small | t | t | t | f | f | f | lit | — | PR #395 @c5d4bb7; V364r1 NO-GO 5203909182 (3 Required reproduced: deflake venv glob, teeth coverage 20/21, F1 boundary; P1 refutation UPHELD); F364r2 dispatched (4-part batch, 90min) |
 | T4 | #385 | historical-docs polish, agent slice (status.json + parity test) | real-bug (docs) | t | t | t | t | t | t | lit | — | PR #390 MERGED 32da76e @d6fc2cc (reviewed==head; greptile APPROVED + 3 blind GO); verify.py OK all legs (scope/commands/freshness/NC-exec/review/change-on-base); conductor manifest corrections (head/source) disclosed in-file; worktree retired; #385 closed w/ evidence |
 | T5 | #386 | sign manifest+inventory, retention backend (S2) | — | — | — | — | — | — | — | — | needs-human: key custody + backend undecided (Q2) | Q2: park |
 | — | #235 | H-02 marketplace submissions (pre-parked needs-human) | needs-human | — | — | — | — | — | — | needs-human: external accounts | prior run + issue text |
@@ -391,3 +391,43 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   3.13/3.14 clean-fail). Owed: in-thread replies + body count 1315→1329. Task
   completed, worker released. F364r1 spec written + dispatched
   (task_61d43269c538 → ctx_050877a459e7, terminal term_2fc38996).
+- F364r1 BLOCKED-ask (msg_0061b8b51bfc): F1 teeth vs guard test
+  test_fixture_backed_cases_do_not_fail_their_own_fixtures (proves 1 failure with
+  fix applied; evals.json-only cannot be green honestly). Answered Option A:
+  widen scope to tests/test_evals.py — frozen AGENT_MUST_EDIT map (1 entry) +
+  two-direction passability test; guard stays strict elsewhere. B rejected
+  (gaming), C declined (VALID P1 stands). Union b2bc68d clean; F2 re-run
+  confirms FP on 3.13/3.14.
+- F364r1 worker_done (msg_e9c9f8af5340): union b2bc68d clean; F1 fixed red-first
+  (b23a96c: fixed-release matches + 2.31.0 not_matches + AGENT_MUST_EDIT +
+  both-directions passability, RED pre-checks); badge 1330 (97e5e44); manifest
+  re-bound c5d4bb7; thread replies posted; body 1330. Gates at content tip all
+  green (89 OK, validate, routing 94/94, full 1330 OK, gitleaks, ruff); NC r1
+  exit 1 (21F+35E, +1 F1 witness) / clean exit 0. F2 WITHDRAWN by Greptile.
+  NEW P1 (comment 4010263920, contradictory pins pass): reproduced, coordinator
+  REFUTES with reason (in-thread 4010303922: legit multi-specifier pins must
+  pass; solving needs engine work; no realistic agent emits unsatisfiable pins;
+  threat model covered). Task completed, worker released.
+- R364 axes dispatched @c5d4bb7 (spec/standards/test; SPEC judges the P1 call).
+  spec task_1208a815adca→ctx_9839b9447c67 (term_4c411ae3),
+  standards task_d352fd82e4c0→ctx_6c6e58112bdc (term_ce4430bc),
+  test task_187893f94e79→ctx_ca22723d3cb6 (term_a595898f). 3 workers out.
+- R364 STANDARDS stuck on a read-path permission dialog (file tools path-locked;
+  remote send to the TUI prompt blocked twice): worker stopped, task failed, spec
+  amended with bash-cat hygiene, re-dispatched fresh. (Future specs: out-of-worktree
+  reads via bash only.) TEST in: 2 Required (R1 teeth-tests 20/21 missing, R2 F1
+  boundary one-sample) + claims verified. SPEC in: C-1/C-2/C-3 MET, P1 refutation
+  HOLDS, 1 Required (deflake venv false-fail via **/*.py Retry glob).
+  STANDARDS-re task_75891ec4b7f2→ctx_c1dc5c7ffd2a (term_43e1746e). SPEC+TEST tasks
+  completed, workers released, stuck terminal closed.
+- R364 all in @c5d4bb7: SPEC 1 Required (deflake venv glob) + P1 refutation HOLDS;
+  TEST 2 Required (teeth coverage 20/21, F1 boundary) + claims verified; STANDARDS
+  0 Required (3 Nit, 2 Opt, 2 FYI). V364r1 spec assembled + dispatched
+  (task_183626f78548 → ctx_5de9d50b39b4, term_bd7d40e7).
+- V364r1 worker_done (msg_afb05c9b4dcd): NO-GO @c5d4bb7 (review 5203909182, wtree
+  61ca918c; all 3 Requireds reproduced). Batch: (1) deflake glob scoping +
+  venv-passes test; (2) violating workspace per case (21); (3) table-driven id-4
+  boundary; (4) cheap adjacents (django (?i)+>=, pin-it/attest-it not_matches,
+  S1, S5). P1 refutation UPHELD by SPEC (stays out). Task completed, worker
+  released. F364r2 spec written + dispatched (90 min for the 21-case sweep).
+  task_9f99838be15f → ctx_aae5e8c1b779 (term_df0841ea).
