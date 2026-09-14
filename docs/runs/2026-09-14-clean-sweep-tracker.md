@@ -25,14 +25,20 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | task_id | id | title | CLASS | BUILD_DONE | PR_OPEN | BOT | REVIEWED | MERGED | WT_CLEAN | lighting | park | evidence |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | STAB | — | land 4 PR-review hunks (deny-hook/run_report/verify/HUMAN_ACTIONS) + badge regen | conductor landing, worker-executed | t | n/a | n/a | n/a | t | n/a | lit | — | 1215e09 9651a52 8f7d5ac 917f9fd; pushed origin/BASE fast-forward (egress receipt); 1285 OK + full battery green; NC re-executed 11 failures; rides PR #387 |
-| T1 | #388 | evidence-run lockfile dirties worktree (filed 15:50Z) | needs-triage | f | f | f | f | f | f | lit | — | — |
-| T2 | #389 | run_report WIP validation accepts incomplete reports (filed 15:50Z) | needs-triage | f | f | f | f | f | f | lit | — | — |
-| T3 | #364 | per-skill behavioral evals ship zero fixtures (S1) | needs-triage | f | f | f | f | f | f | lit | — | — |
-| T4 | #385 | historical-docs polish (S2; commit 2d37bc2 partial) | needs-triage | f | f | f | f | f | f | lit | — | — |
-| T5 | #386 | optional hardening: sign manifest+inventory, retention backend (S2) | needs-triage | f | f | f | f | f | f | lit | — | — |
+| T1 | #388 | evidence-run lockfile dirties worktree | real-bug | f | f | f | f | f | f | lit | — | triage/brief-388.md; repro: litter + STALE-cascade confirmed, 16/16 land |
+| T2 | #389 | run_report WIP validation accepts incomplete reports | real-bug | f | f | f | f | f | f | lit | — | triage/brief-389.md; repro: settings-only row binds, control refused |
+| T3 | #364 | per-skill behavioral evals ship zero fixtures (S1) | enhancement → Q1 pends | f | f | f | f | f | f | lit | — | triage verdict: fixtures-as-specified cannot work (trace-graded); Q1 |
+| T4 | #385 | historical-docs polish, agent slice (status.json + parity test) | real-bug (docs) | f | f | f | f | f | f | lit | — | triage/brief-385-slice.md; diagrams → Q3 |
+| T5 | #386 | sign manifest+inventory, retention backend (S2) | enhancement → Q2 pends | f | f | f | f | f | f | lit | — | triage verdict: key custody + backend are human calls; Q2 |
 | — | #235 | H-02 marketplace submissions (pre-parked needs-human) | needs-human | — | — | — | — | — | — | — | needs-human: external accounts | prior run + issue text |
 
-PHASE: ORIENT → ENUMERATE done · STABILIZE landed 917f9fd (push pends full-suite green) · TRIAGE next · FREEZE after twin agreement
+PHASE: ORIENT → ENUMERATE → TRIAGE done → FREEZE (6 ids, twin agreed) → BUILD next
+
+FREEZE: query1 (coordinator, T0) 4 open + query2 (worker, 16:14Z) 6 open with
+created-since-T0 exactly {#388,#389} and closed-since-T0 none — agreement modulo the run's
+own 2 filings. Every frozen id maps to exactly one build unit: #388→U388, #389→U389,
+#385-agent-slice→U385, #385-diagrams→Q3, #364→Q1, #386→Q2, #235→park needs-human. No id
+without a unit; no unit without an id.
 
 Run-close integrity inventory: retained inline in the Final report section at close (this
 ledger is the living run record until then).
@@ -75,3 +81,22 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   release-rehearsal clones. The 09-09 compound-learn warned exactly this; my pre-commit search
   for the tests used wrong terms and I trusted the empty result — search negatives are not
   evidence. Fixed this commit: index row + inventory sentence. Re-running.
+- BASE green + pushed: 1285 OK + full local battery (validate/routing/proof/run_report/
+  bundle/ruff/gitleaks); pushed 58c180c then e8db0f2 (fast-forward, egress receipts).
+  STABILIZE closed (BUILD_DONE t, MERGED t; PR/review/bot n/a — rides PR #387).
+- TRIAGE spawn: task_43ca0562f283 → custom lane needs a pre-created child worktree
+  (worker-start-only "new-child" rejected with selector_not_found) → created
+  /Users/ravindra/orca/workspaces/orca-fleet/triage-wave1 (child of coordinator, from
+  origin/BASE), closed its fallback shell, spawned claude ro → exit 3 UNPROVEN again; pane
+  shows LIVE worker in plan mode (query 2 running). PATTERN: the WORKER_CMD lane never
+  observes turn_started on this host — exit 3 + pane-live = proceed, no resend.
+- TRIAGE done-by-transcription (deviation, recorded): the ro worker finished all reads
+  (query2 + 6 verdicts) but plan-mode blocks /tmp writes, so its repros were unexecutable
+  and it parked at the plan-approval gate; ESC dismissed the dialog but the terminal then
+  refused prompts (agent_prompt_blocked ×2 — no more retries). Harvested the full report
+  from the worker's plan file, stopped + released the dispatch, closed the task manually
+  (recovery write). Coordinator corroborated both code repros in /tmp clones (#388:
+  litter + STALE-cascade + 16/16; #389: differential settings-row-binds vs control
+  refused) with the repo untouched, and transcribed 3 agent-briefs + 3 human questions
+  from the verified findings. Greptile correlation: #388/#389 are its 2 P1 comments on
+  PR #387 verbatim — fixing them closes the bot loop there.
