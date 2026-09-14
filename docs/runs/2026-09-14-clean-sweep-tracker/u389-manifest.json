@@ -658,7 +658,7 @@
     "reviewed_wtree": "104db1c5dbb23bb740ac0c7ec10904637c8d7356"
   },
   "toolchain": "python 3.13 (stdlib unittest), ruff 0.16.7, gitleaks 8.30.1, macOS (Darwin 25.6.0)",
-  "badge_commit": "e068ddfd8db59e687d2d9716e0bc4389b2fb5c4d",
+  "badge_commit": "51019fb4539a37256964e6fc19a86a53c6695d34",
   "deviations": [
     "Branch: the worktree was checked out on `ravidsrk/u389-wip-schema` (Orca prefix). `u389-wip-schema` was created in this worktree at the verified base e04b0c2, not at origin/review/2026-09-14-holistic-fixes' tip 5af2e6f: the spec fixes the base at e04b0c2 and forbids rebasing onto BASE, and 5af2e6f adds only this run's taskspecs/DECISIONS/tracker docs (none touched here).",
     "Scope: assets/badges/tests.json (outside the three hot files) was regenerated in its own mechanical commit 0038a43 — coordinator-approved via orca orchestration ask (answer: yes-regen-tests-badge).",
@@ -670,7 +670,9 @@
     "Verdict-r1 round: the leg tests (22ba35b) and the waves= fix (885a04e) are separate commits so the pins land GREEN on the unchanged checker and the one real RED bisects to its fix; the badge regen is its own mechanical commit (ad1471b).",
     "Verdict-r2 round: RQ1 and the waves=two test pin existing checker legs (no production change this round), so each RED is shown against the one-line mutant that removes the leg, as in verdict r1. The three tests land in one test-only commit (0a153d6) GREEN on the unchanged checker; the doc corrections are their own commit (6182dfb); the badge regen is its own mechanical commit (e068ddf).",
     "Verdict-r2 round: the spec asked for the mutants killing the reviewers and wave keys; builders-not-a-count is recorded as well, so the per-key integer rule has a mutant for all three count keys (it was already RED on the verdict-r1 suite, via builders=2.5).",
-    "Verdict-r2 round, head_sha: the same binding as verdict r1 — head_sha is the last content commit e068ddf; the pushed tip including this manifest's commit is named in worker_done."
+    "Verdict-r2 round, head_sha: the same binding as verdict r1 — head_sha is the last content commit e068ddf; the pushed tip including this manifest's commit is named in worker_done.",
+    "CONDUCTOR CLOSE 2026-09-14T21:50Z (post-merge 1bdb20c): this manifest as committed at ecb2380 was corrected at close (head re-bind, pr/pending fills, verdict-r3 round and coordinator records in 2d87067; union commit entry, badge re-bind, base-note and these disclosures in this commit) — head_sha/head_tree re-bound e068ddf/469d8842 to the reviewed+merged tip 51019fb/104db1c5 (= 1bdb20c^2; union 51019fb merges ecb2380 + BASE 3e67ec4 which contains the merged U388 8c36b4a), pr filled (391, reviewed==head), commits[].pending filled (ecb2380), verdict-r3 round appended (GO, review 5203193997), three coordinator re-run records at 51019fb appended. contract needed no correction: {source, digest, criterion_ids} with criterion_ids == criteria ids (C-1..C-3). badge_commit re-bound to 51019fb (badges re-regened inside the union merge; the delta 51019fb-vs-e068ddf is BASE-files + badge regen only). No builder record was altered; every commands[] run stays true at its stated tree.",
+    "CONDUCTOR CLOSE 2026-09-14T21:50Z: verify.py over this manifest = 5/6 green (scope/commands/freshness/executed-NC/change-on-base) + review leg RED: no independent APPROVED review exists (Greptile checks pass with 0 comments but post no review object; single-login one-identity verdicts cannot satisfy the two-identity rule). PROOF GAP, disclosed and recoverable: a post-merge APPROVED review from a second login flips the leg (verify is re-runnable). Parked as the run's proof-completion item for the human gate; the finding itself is closed."
   ],
   "noticed_but_not_touched": [
     "Activation-load headroom: clean-sweep now measures 33,749 tokens (badge ~33,700) — 1 token below the rounding boundary and 251 below the 34,000 cap. Any other unit that grows attention-budget.md or clean-sweep's mandatory docs moves its badge; the integrator's gen-badges re-run on the union covers it.",
@@ -773,10 +775,14 @@
     {
       "sha": "ecb23802ff3551e0388626bff8e0c258b7015120",
       "subject": "chore(run): U389 verdict-r2 evidence manifest"
+    },
+    {
+      "sha": "51019fb4539a37256964e6fc19a86a53c6695d34",
+      "subject": "merge: union origin/review/2026-09-14-holistic-fixes into u389-wip-schema (pre-r3; badges re-regened 1309)"
     }
   ],
   "claim": "Settings-only, partial, missing, doubled, stray, non-numeric-wave, non-integer-wave, zero-count, non-numeric-count, doubled-waves= header, placeholder-metric, non-integer-setting (builders or reviewers) and self-contradicting (duplicate-cell) per-wave WIP rows are refused, each by a check a one-line mutant shows is witnessed — the integer rule once per count key (wave, builders, reviewers); complete rows bind; the protocol, the canonical run-report template and the run-archive index name the enforced schema. Informational only.",
-  "base_note": "Round 1 dispatched at e04b0c2. Bot-findings round: origin/review/2026-09-14-holistic-fixes (e86c42c) merged as 4dcbfde before the fix; only assets/badges/tests.json conflicted and was resolved by re-running scripts/gen-badges.py on the merged tree (1294). Verdict-r1 round: origin/review/2026-09-14-holistic-fixes (b9dc232) merged as 046cfa3 before the fix, no conflicts. Verdict-r2 round: origin/review/2026-09-14-holistic-fixes (f094356) merged as 4ea8497 before the fix, no conflicts.",
+  "base_note": "Round 1 dispatched at e04b0c2. Bot-findings round: origin/review/2026-09-14-holistic-fixes (e86c42c) merged as 4dcbfde before the fix; only assets/badges/tests.json conflicted and was resolved by re-running scripts/gen-badges.py on the merged tree (1294). Verdict-r1 round: origin/review/2026-09-14-holistic-fixes (b9dc232) merged as 046cfa3 before the fix, no conflicts. Verdict-r2 round: origin/review/2026-09-14-holistic-fixes (f094356) merged as 4ea8497 before the fix, no conflicts. Conductor pre-R3 union: origin/review/2026-09-14-holistic-fixes (3e67ec4, contains the merged U388 8c36b4a) merged as 51019fb; tests badge re-regened inside the merge (1309 in source).",
   "review_rounds": [
     {
       "round": "bot-findings",
