@@ -726,6 +726,38 @@
       "owner": "modernize-it",
       "expected_mission": "migrate-it",
       "reason": "Currency is modernize-it; the drop it forces is a one-way stateful step migrate-it runs as its own deploy after the writers are retired and zero use is observed. The seam is a handoff, not a re-route."
+    },
+    {
+      "id": 151,
+      "prompt": "Open PRs against the upstream repo we only have a fork of.",
+      "type": "negative",
+      "owner": "oss-contribute",
+      "expected_mission": "absorb-it",
+      "reason": "#381: PR-queue vocabulary tempts absorb-it, but absorb-it drains INBOUND PRs on our own repo; writing TO a repo we do not control is oss-contribute."
+    },
+    {
+      "id": 152,
+      "prompt": "The README's install steps contradict the code \u2014 fix every false claim in it.",
+      "type": "negative",
+      "owner": "clean-sweep",
+      "expected_mission": "document-it",
+      "reason": "#381: doc vocabulary tempts document-it, but verified FALSE documentation claims are a clean-sweep source; document-it covers the UNDOCUMENTED surface."
+    },
+    {
+      "id": 153,
+      "prompt": "Prove to our auditors that the codebase conforms to SOC 2.",
+      "type": "negative",
+      "owner": "attest-it",
+      "expected_mission": "floor-it",
+      "reason": "#381: 'prove conformance' tempts floor-it's bar-setting, but auditor-grade evidence against an external standard is attest-it; floor-it sets OUR bar."
+    },
+    {
+      "id": 154,
+      "prompt": "On my phone, the modal traps keyboard focus and cannot be dismissed.",
+      "type": "negative",
+      "owner": "field-test-it",
+      "expected_mission": "access-it",
+      "reason": "#381: a keyboard trap tempts access-it, but the defect is device-observed ('on my phone') \u2014 a works-here-breaks-there repro is field-test-it; access-it owns the criterion wherever it occurs."
     }
   ]
 }

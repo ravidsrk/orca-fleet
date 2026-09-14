@@ -152,9 +152,9 @@ class TestNeverGateMatchesThePolicy(unittest.TestCase):
         )
 
     def test_a_never_gate_lens_never_gates_off(self):
-        # The behaviour the tuple exists for, checked per lens rather than assumed.
-        for lens in decisions.NEVER_GATE:
-            self.assertIn(lens, decisions.NEVER_GATE)
+        # The behavioural property is exercised per lens in TestTally
+        # (test_no_never_gate_lens_gates_off) — a membership re-assertion here
+        # would prove nothing (the loop it replaces was tautological, #381).
         self.assertIn("privacy", decisions.NEVER_GATE)
 
 
@@ -345,6 +345,16 @@ class TestTally(DecisionsBase):
         self._zeros("data-migration", 40)
         data = json.loads(self.run_dec("tally", "--lens", "data-migration", "--json").stdout)
         self.assertFalse(data["may_gate_off"])
+
+    def test_no_never_gate_lens_gates_off(self):
+        # The behavioural property over the whole tuple, not two named lenses (#381): a lens the
+        # registry adds later inherits the refusal without anyone remembering a test.
+        for lens in decisions.NEVER_GATE:
+            with self.subTest(lens=lens):
+                self._zeros(lens, 40)
+                data = json.loads(self.run_dec("tally", "--lens", lens, "--json").stdout)
+                self.assertTrue(data["never_gate"])
+                self.assertFalse(data["may_gate_off"])
 
     def test_an_unknown_lens_reads_as_zero_dispatches(self):
         self._zeros("a11y", 3)

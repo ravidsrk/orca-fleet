@@ -44,11 +44,13 @@ class RefusedTranscripts(unittest.TestCase):
         if because:
             self.assertIn(because, reason)
 
-    def test_a_file_that_merely_mentions_the_recipe_is_refused(self):
+    def test_a_verdictless_quiet_file_reads_as_clear_by_design(self):
         # THE #283 bug, in one line: ORCA_SANDBOX_RECIPE=root, ORCA_SANDBOX_DOCTOR=/etc/passwd.
         # The passwd file names "root" and carries neither "fail" nor "warn", so the old grep
         # read it as a clean sandbox. spawn_worker.sh no longer accepts a caller-named file at
         # all; this asserts the reader alone would not call such a thing a doctor verdict either.
+        # (Named "refused" while asserting acceptance until #381 — a failure here would have
+        # printed a name claiming the opposite of what broke.)
         passwd = "root:x:0:0:root:/root:/bin/bash\ndaemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin\n"
         clear, _reason = sandbox_doctor.verdict(passwd, "root")
         self.assertTrue(clear, "guard the honest limit: text with no verdict words reads as clear")

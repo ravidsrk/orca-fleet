@@ -566,9 +566,9 @@ class TestArchitecture(unittest.TestCase):
                 normal_annotated.update(re.findall(pat, text))
 
         self.assertTrue(declared, "no terminal declarations parsed from docs/missions/*.md")
-        # 1) Every declared terminal is DECIDABLE (the rule is total — no ambiguity, no crash).
-        for t in declared:
-            self.assertIn(classify(t), ("clean", "degraded"), t)
+        # (Step 1 — "the rule is total" via assertIn(classify(t), ("clean", "degraded")) — was
+        # true by construction: classify returns nothing else. Dropped in #381; the cross-checks
+        # below carry the real property.)
         # 2) A terminal carrying a degradation marker MUST be degraded.
         for t in declared:
             if any(mk in t for mk in DEGRADE_MARKERS):

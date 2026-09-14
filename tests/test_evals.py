@@ -355,24 +355,6 @@ class TestDescriptionRouter(unittest.TestCase):
             with self.subTest(prompt=prompt):
                 self.assertEqual(eval_mod.route_prompt(prompt), expected)
 
-    def test_known_description_collisions_still_misroute(self):
-        """Tripwire, not an endorsement.
-
-        Each row is a prompt the descriptions cannot currently resolve; the fix
-        is a SKILL.md description edit, not a router tweak. When an edit fixes
-        one, this test fails — delete the row then. Both original rows (the
-        characterization-net prompt and the mobile-LCP prompt) were fixed by the
-        description pass that followed the router rewrite, so the list is empty:
-        every misroute the router knows about is now resolved.
-        """
-        unresolved = []
-        for prompt, current, owed in unresolved:
-            with self.subTest(prompt=prompt):
-                self.assertEqual(
-                    eval_mod.route_prompt(prompt), current,
-                    f"routing moved; if it now reaches {owed}, drop this row",
-                )
-
     def test_negative_passes_only_when_the_owner_outranks(self):
         ev = {"id": 1, "prompt": "p", "type": "negative", "owner": "alpha-it",
               "expected_mission": "beta-it", "reason": "r"}

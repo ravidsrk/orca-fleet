@@ -260,6 +260,7 @@ class UnitClassSelection(RepoCase):
 
     def _write_manifest(self, m):
         fh = tempfile.NamedTemporaryFile("w", suffix=".json", delete=False)
+        self.addCleanup(lambda: os.path.exists(fh.name) and os.unlink(fh.name))  # no leaks (#381)
         json.dump(m, fh)
         fh.close()
         return fh.name
@@ -327,7 +328,7 @@ class FreshnessCheck(unittest.TestCase):
             tree = g("rev-parse", "HEAD^{tree}").stdout.strip()
             g("commit", "--amend", "-qm", "one amended")  # same tree, new SHA
             new_head = g("rev-parse", "HEAD").stdout.strip()
-            assert old_head != new_head
+            self.assertNotEqual(old_head, new_head)  # a bare assert is stripped under python -O
             m = {"head_sha": new_head,
                  "pr": {"reviewed_sha": old_head, "reviewed_wtree": tree}}
             cwd = __import__("os").getcwd()
@@ -467,11 +468,70 @@ class NegativeControlCheck(RepoCase):
             "tool": "mutmut", "mutant": "m#7", "result": "KILLED", "artifact": str(outside)}}
         self.assertTrue(any("absolute evidence path refused" in e for e in self._errs(m)))
 
+
     def test_escaping_relative_artifact_path_is_refused(self):
         m = {"unit": "ship-it", "negative_control": {
             "tool": "mutmut", "mutant": "m#7", "result": "KILLED",
             "artifact": "../outside/nc.txt"}}
         self.assertTrue(any("escapes the repo toplevel" in e for e in self._errs(m)))
+
+
+class NegativeControlExecutorLegs(RepoCase):
+    """#381: the executor's failure legs (worktree-add failure, no-op control, timeout,
+    clean-phase nonzero) had no coverage — the paths most likely to matter in production."""
+
+    PROOF = f"{sys.executable} -m unittest test_mod"
+
+    def _manifest(self):
+        self.write("app.py", "def add(a, b):\n    return a - b  # the defect\n")
+        base = self.commit("base")
+        self.write("app.py", "def add(a, b):\n    return a + b  # the fix\n")
+        head = self.commit("fix")
+        rel = self.artifact("reverted; the suite went RED (mutant KILLED)\n")
+        return {"unit": "u", "base_sha": base, "head_sha": head,
+                "artifacts": [self.pin(rel)],
+                "negative_control": {"tool": "revert", "result": "RED — mutant KILLED",
+                                     "artifact": rel, "command": self.PROOF, "paths": ["app.py"]}}
+
+    def _run_with(self, run_at_effects):
+        m = self._manifest()
+        with mock.patch.object(verify, "_apply_control", return_value=None), \
+                mock.patch.object(verify, "_run", return_value=(0, "", "")), \
+                mock.patch.object(verify, "_run_at", side_effect=list(run_at_effects)):
+            return verify.execute_negative_control(m, self.PROOF)
+
+    def test_a_worktree_that_cannot_be_made_fails_closed(self):
+        m = self._manifest()
+
+        def fake_run(args, **kw):
+            if "add" in args:
+                return (1, "", "fatal: worktree add exploded")
+            return (0, "", "")
+        with mock.patch.object(verify, "_run", side_effect=fake_run):
+            ok, msgs = verify.execute_negative_control(m, self.PROOF)
+        self.assertFalse(ok)
+        self.assertTrue(any("could not create the control worktree" in x for x in msgs), msgs)
+
+    def test_a_control_that_changes_nothing_is_no_proof(self):
+        # git status clean after the apply: a no-op mutant cannot make any proof go RED.
+        ok, msgs = self._run_with([(0, "", "")])  # status --porcelain: empty
+        self.assertFalse(ok)
+        self.assertTrue(any("changed NOTHING" in x for x in msgs), msgs)
+
+    def test_a_control_run_that_times_out_is_not_a_kill(self):
+        ok, msgs = self._run_with([(0, " M app.py", ""), (124, "", "timed out")])
+        self.assertFalse(ok)
+        self.assertTrue(any("did not complete under the control" in x for x in msgs), msgs)
+
+    def test_a_command_red_at_clean_head_proves_nothing(self):
+        effects = [
+            (0, " M app.py", ""),                      # control phase: dirty after apply
+            (1, "", "FAILED (failures=1)\n"),          # control phase: RED with an oracle failing
+            (1, "", "FAILED (failures=1)\n"),          # clean phase: RED too — the suite is broken
+        ]
+        ok, msgs = self._run_with(effects)
+        self.assertFalse(ok)
+        self.assertTrue(any("at CLEAN head_sha too" in x for x in msgs), msgs)
 
 
 class ReadSourceGuard(unittest.TestCase):
@@ -926,6 +986,7 @@ class MalformedManifest(unittest.TestCase):
 
     def _tmp(self, text):
         f = tempfile.NamedTemporaryFile("w", suffix=".json", delete=False)
+        self.addCleanup(lambda: os.path.exists(f.name) and os.unlink(f.name))  # no leaks (#381)
         f.write(text)
         f.close()
         return f.name
