@@ -30,12 +30,12 @@ VERDICT-TASK (after the 3 axes report; AXIS-REPORTS pasted at dispatch):
 1) Aggregate SIDE BY SIDE (no rerank): every axis finding stands with its severity.
    Verdict GO iff zero Critical/Required open (Nits/Optionals/FYI never block; held bot
    VALID comments from the integrator join as Required unless refuted with reason).
-2) Post ONE GitHub review on PR (egress.py write --sink pr-review FIRST): GO = COMMENTED
-   verdict review ("verdict: GO — <brief ≤400 words>" + reviewed SHA HEAD); NO-GO =
-   REQUEST_CHANGES with the ONE batched change request (axis findings + held bot
-   comments). NEVER post APPROVE (single GitHub identity — approval would fake
-   independence; the COMMENTED/REQUEST_CHANGES record + this worker_done are the review
-   evidence).
+2) Post ONE GitHub review on PR (egress.py write --sink pr-review FIRST). GitHub
+   refuses REQUEST_CHANGES on self-authored PRs (422, single identity), so the verdict
+   ALWAYS posts as COMMENTED with a machine-readable first line: GO = "verdict: GO —
+   <brief ≤400 words>"; NO-GO = "verdict: NO-GO (change requested)" + the ONE batched
+   change request (axis findings + held bot comments). NEVER post APPROVE (that would
+   fake independence). The posted review + this worker_done are the review evidence.
 3) worker_done: verdict + reviewed_sha (HEAD) + reviewed_wtree (git rev-parse HEAD^{tree})
    + round number. Omit --to. Contract flags as usual. STOP: over 30 min.
 
