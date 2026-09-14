@@ -203,13 +203,17 @@ class WipCurveObligation(unittest.TestCase):
     # #389: the rows below are the protocol's own words (attention-budget.md §"The WIP-curve
     # protocol"), never rebuilt from the checker's pattern — a settings row is not a data point.
     def test_a_settings_only_row_is_refused(self):
-        for row in ("| 1 | builders=4 reviewers=2 | 3.1 |",
-                    "| wave=1 | builders=4 reviewers=2 |",
-                    "| deviation | raised mid-run to builders=3 reviewers=1 |"):
+        # Each case names the check that has to fire, so one leg cannot stand in for another.
+        no_metrics = "carries no measured ['throughput', 'latency_median', 'latency_max', 'rework'"
+        for row, expected in (("| 1 | builders=4 reviewers=2 | 3.1 |", "— none found;"),
+                              ("| wave=1 | builders=4 reviewers=2 |", no_metrics),
+                              ("| deviation | raised mid-run to builders=3 reviewers=1 |",
+                               "— none found;")):
             with self.subTest(row=row):
                 body = f"RUN: mission=ship-it waves=1\n\n## WIP curve\n\n{row}\n"
                 errs = run_report._wip_curve_errors(body, "ship-it", ROOT, "r.md")
-                self.assertTrue(errs, f"a settings-only row bound as a WIP-curve data point: {row}")
+                self.assertTrue(any(expected in e for e in errs),
+                                f"a settings-only row bound as a WIP-curve data point: {row} {errs}")
 
     ROW_1 = ("| wave=1 | builders=3 reviewers=1 | throughput=1.5/h | latency_median=12m "
              "| latency_max=40m | rework=0/3 | freshness=0 |")
@@ -221,19 +225,68 @@ class WipCurveObligation(unittest.TestCase):
         # header's waves=<n> (attention-budget.md). A row standing in for the others, a wave with
         # no row, a row whose metric is absent, and a count recorded nowhere each fail to bind.
         partial_2 = self.ROW_2.replace("| latency_max=55m ", "")
+        no_row_for_2 = "RUN: waves=2 but no WIP-curve row for wave(s) [2]"
         cases = {
-            "one row for three waves": ("waves=3", [self.ROW_1]),
-            "wave 2 of 2 has no row": ("waves=2", [self.ROW_1]),
-            "wave 2 row lacks latency_max": ("waves=2", [self.ROW_1, partial_2]),
-            "wave 1 recorded twice, wave 2 never": ("waves=2", [self.ROW_1, self.ROW_1]),
-            "a row for an unrecorded wave": ("waves=1", [self.ROW_1, self.ROW_2]),
-            "no waves= recorded at all": ("", [self.ROW_1, self.ROW_2]),
+            "one row for three waves": ("waves=3", [self.ROW_1],
+                                        "RUN: waves=3 but no WIP-curve row for wave(s) [2, 3]"),
+            "wave 2 of 2 has no row": ("waves=2", [self.ROW_1], no_row_for_2),
+            "wave 2 row lacks latency_max": ("waves=2", [self.ROW_1, partial_2],
+                                             "carries no measured ['latency_max']"),
+            "wave 1 recorded twice, wave 2 never": ("waves=2", [self.ROW_1, self.ROW_1],
+                                                    no_row_for_2),
+            "a row for an unrecorded wave": ("waves=1", [self.ROW_1, self.ROW_2],
+                                             "wave(s) [2] outside the recorded waves 1..1"),
+            "no waves= recorded at all": ("", [self.ROW_1, self.ROW_2], "RUN: waves=<missing>"),
         }
-        for name, (waves, rows) in cases.items():
+        for name, (waves, rows, expected) in cases.items():
             with self.subTest(case=name):
                 body = f"RUN: mission=ship-it {waves}\n\n## WIP curve\n\n" + "\n".join(rows) + "\n"
                 errs = run_report._wip_curve_errors(body, "ship-it", ROOT, "r.md")
-                self.assertTrue(errs, f"{name}: bound with incomplete per-wave rows")
+                self.assertTrue(any(expected in e for e in errs),
+                                f"{name}: bound with incomplete per-wave rows {errs}")
+
+    def test_a_wave_carrying_two_rows_is_refused_with_none_missing(self):
+        # Verdict r1 (PR #391): the doubled-wave check only ever ran beside a missing wave, so a
+        # mutant without it stayed green. Here waves 1..2 each have a row and wave 1 has two.
+        body = ("RUN: mission=ship-it waves=2\n\n## WIP curve\n\n"
+                + "\n".join([self.ROW_1, self.ROW_1, self.ROW_2]) + "\n")
+        errs = run_report._wip_curve_errors(body, "ship-it", ROOT, "r.md")
+        self.assertEqual(len(errs), 1, errs)
+        self.assertIn("wave(s) [1] carry more than one WIP-curve row", errs[0])
+
+    def test_a_wave_that_is_not_a_number_is_refused_without_crashing(self):
+        # wave=one names a wave, so the row is a WIP-curve row, but it names no number: refused as
+        # a cell, and kept out of the per-wave count rather than crashing int().
+        row = self.ROW_1.replace("wave=1", "wave=one")
+        body = f"RUN: mission=ship-it waves=1\n\n## WIP curve\n\n{row}\n"
+        errs = run_report._wip_curve_errors(body, "ship-it", ROOT, "r.md")
+        self.assertTrue(any("carries no measured ['wave']" in e for e in errs), errs)
+
+    def test_a_zero_wave_count_is_refused(self):
+        body = f"RUN: mission=ship-it waves=0\n\n## WIP curve\n\n{self.ROW_1}\n"
+        errs = run_report._wip_curve_errors(body, "ship-it", ROOT, "r.md")
+        self.assertTrue(any("RUN: waves=0 — a mutating run records" in e for e in errs), errs)
+
+    def test_a_row_with_placeholder_metrics_is_refused(self):
+        # Verdict r1: every key present, no value measured. Only the digit-led metric rule refuses
+        # it — a mutant taking any non-blank value stayed green.
+        row = (self.ROW_1.replace("throughput=1.5/h", "throughput=TBD")
+               .replace("latency_median=12m", "latency_median=?"))
+        body = f"RUN: mission=ship-it waves=1\n\n## WIP curve\n\n{row}\n"
+        errs = run_report._wip_curve_errors(body, "ship-it", ROOT, "r.md")
+        self.assertEqual(len(errs), 1, errs)
+        self.assertIn("carries no measured ['throughput', 'latency_median']", errs[0])
+
+    def test_a_wip_setting_that_is_not_an_integer_is_refused(self):
+        # The settings are counts. builders=two is no number at all; builders=2.5 is one the
+        # digit-led metric rule would take, so only the integer rule refuses it.
+        for value in ("two", "2.5"):
+            with self.subTest(builders=value):
+                row = self.ROW_1.replace("builders=3", f"builders={value}")
+                body = f"RUN: mission=ship-it waves=1\n\n## WIP curve\n\n{row}\n"
+                errs = run_report._wip_curve_errors(body, "ship-it", ROOT, "r.md")
+                self.assertEqual(len(errs), 1, errs)
+                self.assertIn("carries no measured ['builders']", errs[0])
 
     def test_a_row_carrying_a_cell_twice_is_refused(self):
         # PR #391 review (P2): a copy-edited row kept only the LAST occurrence of each key, so
@@ -241,7 +294,7 @@ class WipCurveObligation(unittest.TestCase):
         row = self.ROW_1.replace("throughput=1.5/h", "throughput=TBD throughput=1")
         body = f"RUN: mission=ship-it waves=1\n\n## WIP curve\n\n{row}\n"
         errs = run_report._wip_curve_errors(body, "ship-it", ROOT, "r.md")
-        self.assertTrue(any("throughput" in e for e in errs), errs)
+        self.assertTrue(any("carries ['throughput'] more than once" in e for e in errs), errs)
 
     def test_complete_per_wave_rows_bind(self):
         # Cell order and extra cells are free; only the schema's cells are owed, once per wave.
