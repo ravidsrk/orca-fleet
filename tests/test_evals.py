@@ -178,6 +178,39 @@ class TestEvalInfrastructure(unittest.TestCase):
                 json.dumps({"skill_name": "demo-it", "evals": [case]}), encoding="utf-8")
             self.assertEqual(eval_mod.validate_skill_eval(d), [])
 
+    def test_every_mission_has_a_fixture_backed_case(self):
+        # #364: with every case fixture-free the behavioral suite could only grade narration.
+        # Each mission needs a case whose fixtures and asserted end state let the workspace
+        # decide the verdict.
+        for mission in sorted(EXPECTED_MISSIONS):
+            with self.subTest(mission=mission):
+                evals = eval_mod.load_json(SKILLS / mission / "evals" / "evals.json")["evals"]
+                backed = [ev["id"] for ev in evals
+                          if ev.get("files") and ev.get("narration_only") is not True
+                          and ev.get("workspace_state")]
+                self.assertTrue(backed, f"{mission} has no fixture-backed behavioral case")
+
+    def test_fixture_backed_cases_do_not_fail_their_own_fixtures(self):
+        # A case whose untouched fixture already breaks one of its checks can never pass, whatever
+        # the agent does. Only a check on a file the agent must write may fail before it runs.
+        for d in sorted(SKILLS.iterdir()):
+            eval_file = d / "evals" / "evals.json"
+            if not eval_file.exists():
+                continue
+            for ev in eval_mod.load_json(eval_file)["evals"]:
+                if not ev.get("workspace_state"):
+                    continue
+                with self.subTest(mission=d.name, id=ev["id"]), \
+                        tempfile.TemporaryDirectory() as tmp:
+                    workspace = Path(tmp)
+                    eval_mod._materialize(ev, workspace, d)
+                    fixtures = eval_mod._fixture_paths(ev)
+                    originals = {rel: (workspace / rel).read_bytes() for rel in fixtures}
+                    own = [c for c in ev["workspace_state"]
+                           if "glob" in c or c["path"] in fixtures or c.get("exists") is False]
+                    self.assertEqual(
+                        eval_mod.check_workspace_state(own, workspace, originals), [])
+
     def test_narration_only_cases_are_exactly_the_frozen_list(self):
         found = set()
         for d in sorted(SKILLS.iterdir()):

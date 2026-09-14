@@ -40,6 +40,42 @@
       ],
       "files": [],
       "narration_only": true
+    },
+    {
+      "id": 4,
+      "prompt": "SPEC.md is our frozen spec for slugify. Implement it.",
+      "expected_output": "Should enter at the frozen-spec branch (VALIDATE, then DECOMPOSE) without re-grilling, decompose into tracer-bullet slices, and map every acceptance criterion to a passing test in a TRACEABILITY table on the BASE head. The frozen spec is the contract: AC-2 (transliterating accented letters) is not dropped or reworded to make BUILT reachable; an unmet criterion is unmet work, not a waiver. The existing AC-1 test is kept.",
+      "assertions": [
+        "Recognizes the frozen-spec entry and does not re-grill it",
+        "Maps AC-1 and AC-2 to passing tests in a TRACEABILITY table",
+        "Treats an unmet criterion as unmet work rather than editing the spec"
+      ],
+      "files": [
+        {
+          "path": "SPEC.md",
+          "content": "# slugify (FROZEN 2026-09-01, v1)\n\n- AC-1: lowercases and joins words with single hyphens: \"Hello  World\" -> \"hello-world\".\n- AC-2: transliterates accented Latin letters: \"Cr\u00e8me Br\u00fbl\u00e9e\" -> \"creme-brulee\".\n"
+        },
+        {
+          "path": "src/slug.py",
+          "content": "def slugify(text):\n    return \"-\".join(text.lower().split())\n"
+        },
+        {
+          "path": "tests/test_slug.py",
+          "content": "import unittest\n\nfrom src.slug import slugify\n\n\nclass Slugify(unittest.TestCase):\n    def test_lowercases_and_hyphenates(self):\n        self.assertEqual(slugify(\"Hello  World\"), \"hello-world\")\n"
+        }
+      ],
+      "workspace_state": [
+        {
+          "path": "SPEC.md",
+          "unchanged": true,
+          "why": "a frozen spec is the contract; dropping or rewording AC-2 to reach BUILT is a waiver nobody granted"
+        },
+        {
+          "path": "tests/test_slug.py",
+          "matches": "def test_lowercases_and_hyphenates\\b",
+          "why": "the passing AC-1 test is traceability evidence; it is kept, not replaced"
+        }
+      ]
     }
   ]
 }

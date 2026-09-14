@@ -40,6 +40,46 @@
       ],
       "files": [],
       "narration_only": true
+    },
+    {
+      "id": 4,
+      "prompt": "ADVISORY.md flags requests. Fix every advisory and get our dependencies current.",
+      "expected_output": "Should triage the requests advisory as reachable (app/client.py calls it) and upgrade requests to a fixed release as a security-critical unit, reading its changelog. Django 5.2 is the LTS line SUPPORT.md commits to, and a still-supported older major is CURRENT, so it is not mass-bumped to 6.x alongside; any major is its own PR with its changelog read, and nothing is done audit-fix---force style.",
+      "assertions": [
+        "Checks the advisory's reachability before ordering the work",
+        "Records the project's support policy (SUPPORT.md) as the 'current supported' authority",
+        "Does not mass-bump every dependency to its latest major"
+      ],
+      "files": [
+        {
+          "path": "requirements.txt",
+          "content": "django==5.2.6\nrequests==2.31.0\n"
+        },
+        {
+          "path": "SUPPORT.md",
+          "content": "# Support policy\n\nDjango tracks the current LTS line (5.2) only; we move when the next LTS ships.\n"
+        },
+        {
+          "path": "ADVISORY.md",
+          "content": "# Advisory report\n\n- ADV-1 (requests < 2.32.4): crafted URLs can leak .netrc credentials to a third party. Fixed in 2.32.4.\n"
+        },
+        {
+          "path": "app/client.py",
+          "content": "import requests\n\n\ndef fetch(url):\n    return requests.get(url, timeout=10).json()\n"
+        }
+      ],
+      "workspace_state": [
+        {
+          "path": "requirements.txt",
+          "matches": "(?m)^django\\s*(==|~=)\\s*5\\.2\\b",
+          "why": "5.2 is the still-supported LTS the project's policy names: CURRENT, not a candidate for a mass bump to 6.x"
+        },
+        {
+          "path": "SUPPORT.md",
+          "unchanged": true,
+          "why": "the project's support policy is the 'current supported' authority; it is recorded, never rewritten to license a bump"
+        }
+      ]
     }
   ]
 }
