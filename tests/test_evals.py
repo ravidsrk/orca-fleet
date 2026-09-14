@@ -52,6 +52,12 @@ NARRATION_ONLY_CASES = {
     "root-cause": (1, 2, 3), "ship-it": (1, 2, 3), "speed-it": (1, 2, 3),
 }
 
+# #364 F1: fixtures a case's agent is REQUIRED to edit, so their checks fail before it runs by
+# design (modernize-it id-4 must move requirements.txt off the vulnerable requests pin). Only these
+# are exempt from the untouched-fixture guard; each entry needs a passability test pinning both
+# directions, and this literal is what stops the exemption growing silently.
+AGENT_MUST_EDIT = {("modernize-it", 4): {"requirements.txt"}}
+
 
 # Issue #260: the floor tracks what the description-based router actually
 # scores, never a rubber stamp. Measured on the full fixture set (74 rows: the
@@ -192,7 +198,8 @@ class TestEvalInfrastructure(unittest.TestCase):
 
     def test_fixture_backed_cases_do_not_fail_their_own_fixtures(self):
         # A case whose untouched fixture already breaks one of its checks can never pass, whatever
-        # the agent does. Only a check on a file the agent must write may fail before it runs.
+        # the agent does. Only a check on a file the agent must write, or on a fixture
+        # AGENT_MUST_EDIT names, may fail before it runs.
         for d in sorted(SKILLS.iterdir()):
             eval_file = d / "evals" / "evals.json"
             if not eval_file.exists():
@@ -206,10 +213,33 @@ class TestEvalInfrastructure(unittest.TestCase):
                     eval_mod._materialize(ev, workspace, d)
                     fixtures = eval_mod._fixture_paths(ev)
                     originals = {rel: (workspace / rel).read_bytes() for rel in fixtures}
+                    exempt = AGENT_MUST_EDIT.get((d.name, ev["id"]), set())
                     own = [c for c in ev["workspace_state"]
-                           if "glob" in c or c["path"] in fixtures or c.get("exists") is False]
+                           if ("glob" in c or c["path"] in fixtures or c.get("exists") is False)
+                           and c.get("path") not in exempt]
                     self.assertEqual(
                         eval_mod.check_workspace_state(own, workspace, originals), [])
+
+    def test_the_advisory_case_fails_untouched_and_passes_once_requests_is_fixed(self):
+        # #364 F1: modernize-it id-4 says "Fix every advisory" over requests==2.31.0 (ADV-1, fixed
+        # in 2.32.4). Left untouched, the case must fail on requirements.txt; bumping requests
+        # while django stays on 5.2 and SUPPORT.md is untouched must pass every check it names.
+        d = SKILLS / "modernize-it"
+        ev = next(e for e in eval_mod.load_json(d / "evals" / "evals.json")["evals"]
+                  if e["id"] == 4)
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace = Path(tmp)
+            eval_mod._materialize(ev, workspace, d)
+            originals = {rel: (workspace / rel).read_bytes()
+                         for rel in eval_mod._fixture_paths(ev)}
+            untouched = eval_mod.check_workspace_state(ev["workspace_state"], workspace, originals)
+            self.assertTrue(untouched, "the unfixed advisory passed the case")
+            self.assertTrue(all(line.startswith("requirements.txt:") and "requests" in line
+                                for line in untouched), untouched)
+            (workspace / "requirements.txt").write_text(
+                "django==5.2.6\nrequests==2.32.4\n", encoding="utf-8")
+            self.assertEqual(
+                eval_mod.check_workspace_state(ev["workspace_state"], workspace, originals), [])
 
     def test_narration_only_cases_are_exactly_the_frozen_list(self):
         found = set()

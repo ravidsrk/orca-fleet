@@ -75,6 +75,16 @@
           "why": "5.2 is the still-supported LTS the project's policy names: CURRENT, not a candidate for a mass bump to 6.x"
         },
         {
+          "path": "requirements.txt",
+          "matches": "(?im)^\\s*requests(?:\\[[^\\]]*\\])?\\s*(?:==|>=|~=)\\s*(?:2\\.32\\.(?:[4-9]|[1-9]\\d+)|2\\.(?:3[3-9]|[4-9]\\d|[1-9]\\d{2,})(?:\\.\\d+)?|(?:[3-9]|[1-9]\\d+)(?:\\.\\d+){0,2})(?=[ \\t]*(?:[,;#]|$))",
+          "why": "ADV-1 is reachable (app/client.py calls requests) and fixed in 2.32.4: \"fix every advisory\" means the pin moves to a fixed release, not only that nothing else regresses"
+        },
+        {
+          "path": "requirements.txt",
+          "not_matches": "(?im)^\\s*requests(?:\\[[^\\]]*\\])?\\s*==\\s*2\\.31\\.0(?!\\d)",
+          "why": "the vulnerable requests==2.31.0 pin must not survive beside the fix"
+        },
+        {
           "path": "SUPPORT.md",
           "unchanged": true,
           "why": "the project's support policy is the 'current supported' authority; it is recorded, never rewritten to license a bump"
