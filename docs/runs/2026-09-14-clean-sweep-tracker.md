@@ -165,3 +165,19 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
 - HYGIENE: a carried-over SHA (39751a3) did not exist in git (stale context) — every
   SHA in this log was re-derived from git before use (32da76e^2 = d6fc2cc). Never
   trust compacted SHAs; rev-parse first.
+- U392 bot loop honestly closed: the claimed on-PR decline of the mixed-version
+  finding was missing (no reply, no comment — only #393's body claimed it). Posted
+  decline reply 4008762873 on thread 4008072371 (real, out-of-scope, -> #393).
+- F389r2 dispatched (task_bc1558c5e272/ctx_bad13b2b8a83, WORKER_CMD claude rw):
+  union-first (badge 1289-vs-1290 re-regen, worker-side), then the 3 validated bot
+  findings (template waves+WIP schema + bind-canonical-template case; manifest
+  artifacts null; dup-WIP-key refusal + case), red-first, full battery, manifest
+  refresh, push to #391. Turn verified live on pane.
+- U388 union-first (conductor, branch idle): merged origin/BASE into u388-lockfile as
+  0775547 (badges-only conflict -> re-regen 1293; PR diff audited = unit files
+  only), pushed with receipt. Review specs retargeted da2f98a -> 0775547 (+ fetch/
+  checkout line). Rationale: reviewers must see the mergeable tip; the badge
+  hot-file forces serial review->merge per unit (a post-review unit merge would void
+  via badge conflict). 3 axes dispatched @0775547: spec task_2c4f031c49e5/
+  ctx_88c87c2bd18c, test task_11a1b85d960a/ctx_70a689d4f113, standards
+  task_0485ffc9ea00/ctx_5319e11df1da; all turns verified live.
