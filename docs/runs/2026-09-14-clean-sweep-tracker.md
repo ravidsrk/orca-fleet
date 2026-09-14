@@ -302,3 +302,11 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   conductor-owned pending-SHA + source, 120s optional, O_CREAT 0-byte FYI).
 - V388r2 dispatched (task_e3d7793c3b8c/ctx_c863708aa984): verdict over clean R2
   axes (bot declined + did-not-run noted). Turn live.
+- R389r2 all done @50cc4e6 (reports harvested, workers released): SPEC 0 Req
+  (batch mutant-pinned, 3 Nit, 4 FYI), TEST 1 Required (RQ1: integer rule tested
+  for builders only — reviewers=2.5 / wave=1.5 BIND via surviving mutants,
+  falsifies manifest claim; + Nit: waves= guard untested → crash), STANDARDS 0
+  Req (batch landed, 2 Optional, 7 Nit led by TEMPLATE unlabeled-cells claim).
+- V389r2 dispatched (task_273b73442c57/ctx_7daf6fbe9170): verdict over R2 axes
+  (1 Required expected → small batch: reviewers/wave integer + waves= guard).
+  Turn live. 2 workers out (V388r2 + V389r2).
