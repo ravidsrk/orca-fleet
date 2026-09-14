@@ -212,3 +212,12 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   Coordinator posted in-thread fix replies (4009007847/112/333). Open: head re-bind
   to reviewed tip at close (worker set 2d1e206, pre-manifest — the retired theory
   again; future fix specs must state head := pushed tip incl. manifest commit).
+- R388 TEST redux done (ctx_6c8a2eb52a70, report harvested): 1 Required (untested
+  truncate at :153 — deleting it passes all 24; indent-8 seed silently corrupts
+  with exit 0), 1 Optional (litter assert after concurrent run), 1 Nit (l.297
+  returncode), FYI confirming standards R1 (truncate-before-dumps). Released.
+  Greptile state @0775547: no re-review (latest @da2f98a); decline reply stands.
+- V388r1 dispatched (task_3af951e9fadd/ctx_32b5523bb822): verdict over 3 axes
+  (2 Requireds incl. shared truncate root; no held bot finding; empty ravidsrk
+  COMMENTED @da2f98a noted inert) with batched-request framing (Requireds +
+  adjacent cheap items; conductor/filed/accepted exclusions recorded). Turn live.
