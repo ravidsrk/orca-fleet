@@ -25,8 +25,8 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | task_id | id | title | CLASS | BUILD_DONE | PR_OPEN | BOT | REVIEWED | MERGED | WT_CLEAN | lighting | park | evidence |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | STAB | — | land 4 PR-review hunks (deny-hook/run_report/verify/HUMAN_ACTIONS) + badge regen | conductor landing, worker-executed | t | n/a | n/a | n/a | t | n/a | lit | — | 1215e09 9651a52 8f7d5ac 917f9fd; pushed origin/BASE fast-forward (egress receipt); 1285 OK + full battery green; NC re-executed 11 failures; rides PR #387 |
-| T1 | #388 | evidence-run lockfile dirties worktree | real-bug | t | t | t | f | f | f | lit | — | PR #392 @c680ee0; R2 axes all clean (0 Req; serialize-first unpinned noted Optional/Nit, unreachable from main); V388r2 verdict underway |
-| T2 | #389 | run_report WIP validation accepts incomplete reports | real-bug | t | t | t | f | f | f | lit | — | PR #391 @50cc4e6 (verdict batch fixed, 1302 OK, NCs RED, 8 leg mutants killed, Greptile check pass 0 new); R2 re-verify underway @50cc4e6 |
+| T1 | #388 | evidence-run lockfile dirties worktree | real-bug | t | t | t | t | t | t | lit | proof-park: needs post-merge independent APPROVE (2nd login) for verify review leg | PR #392 MERGED 8c36b4a @c680ee0 (reviewed==head; R2 GO 5202783703); verify 5/6 (review leg RED: no independent APPROVED — Greptile never re-reviewed; recoverable post-merge); #388 closed w/ evidence + gap note |
+| T2 | #389 | run_report WIP validation accepts incomplete reports | real-bug | t | t | t | f | f | f | lit | — | PR #391 @50cc4e6; R2 NO-GO (review 5202754078, RQ1 integer rule reproduced); F389r4 fixing (reviewers/wave int + waves= guard + 2 doc claims) |
 | T3 | #364 | fixture-backed evals + workspace-state oracle (S1) | real-feature-small | f | f | f | f | f | f | lit | — | Q1: fixtures+oracle (wave 2; brief TBD) |
 | T4 | #385 | historical-docs polish, agent slice (status.json + parity test) | real-bug (docs) | t | t | t | t | t | t | lit | — | PR #390 MERGED 32da76e @d6fc2cc (reviewed==head; greptile APPROVED + 3 blind GO); verify.py OK all legs (scope/commands/freshness/NC-exec/review/change-on-base); conductor manifest corrections (head/source) disclosed in-file; worktree retired; #385 closed w/ evidence |
 | T5 | #386 | sign manifest+inventory, retention backend (S2) | — | — | — | — | — | — | — | — | needs-human: key custody + backend undecided (Q2) | Q2: park |
@@ -302,6 +302,22 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   conductor-owned pending-SHA + source, 120s optional, O_CREAT 0-byte FYI).
 - V388r2 dispatched (task_e3d7793c3b8c/ctx_c863708aa984): verdict over clean R2
   axes (bot declined + did-not-run noted). Turn live.
+- V388r2 done: GO @c680ee0 (review 5202783703, wtree caeab0db matches; verdict
+  worker re-ran unit 26/26 + full 1295 + validate + ruff). Released.
+- U388 MERGED (PR #392 → 8c36b4a 2026-09-14T20:54:10Z, match-head c680ee0; ancestry
+  + state verified; branch deleted+pruned). Evidence close: verify.py 5/6 green
+  (scope/commands/freshness/NC-exec/change-on-base; coordinator re-runs at
+  c680ee0: 1295 OK, nc 26 OK, validate green) + review leg RED (no independent
+  APPROVED: Greptile never re-reviewed 0775547/c680ee0; verdicts are COMMENTED
+  self-reviews). Manifest corrections disclosed in-file (head/tree re-bind,
+  source brief→spec, pending SHAs filled, coordinator records). LESSON: secure
+  the independent APPROVED BEFORE merging when the bot is the only 2nd identity
+  (merge kills the option on a dead bot — but holding open on a flaky bot stalls
+  the run; U389 follows the same merge-on-GO + recoverable-gap shape, and the
+  human gate carries the 2nd-login ask for both). Proof parked needs-human
+  (post-merge 2nd-login APPROVE flips the leg — verify is re-runnable); finding
+  closed (bug fixed, all behavioral legs green). Worktree retired (orca dir was
+  already gone at retire time — external cleanup, git metadata verified clean).
 - R389r2 all done @50cc4e6 (reports harvested, workers released): SPEC 0 Req
   (batch mutant-pinned, 3 Nit, 4 FYI), TEST 1 Required (RQ1: integer rule tested
   for builders only — reviewers=2.5 / wave=1.5 BIND via surviving mutants,
@@ -310,3 +326,10 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
 - V389r2 dispatched (task_273b73442c57/ctx_7daf6fbe9170): verdict over R2 axes
   (1 Required expected → small batch: reviewers/wave integer + waves= guard).
   Turn live. 2 workers out (V388r2 + V389r2).
+- V389r2 done (ctx_7daf6fbe9170): NO-GO @50cc4e6 (review 5202754078, verified).
+  RQ1 reproduced by the verdict worker. Batched: (1) reviewers=2.5 + wave=1.5
+  tests + manifest claim fix, (2) waves=two test, (3) TEMPLATE:87 claim,
+  (4) README:44-46 schema; exclusions recorded. Released.
+- F389r4 dispatched (task_fa89102f47a9/ctx_0e535f2cb200): the RQ1 batch with both
+  standing lessons baked in (head := last CONTENT commit; bounded bot-wait, no
+  background poller without foreground wait). Turn live.
