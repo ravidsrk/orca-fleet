@@ -12,6 +12,10 @@
 
 ---
 
+<p align="center">
+  <img src="../../assets/diagrams/missions/modernize-it.jpg" alt="Pipeline: inventory outdated dependencies and advisories with reachability triage, order along a compatibility graph, upgrade one dependency or coherent group per PR with CI green at every merge, to CURRENT or CURRENT-WITH-PINNED" width="820">
+</p>
+
 ## What it does
 
 `modernize-it` is the dependency-currency fleet. A **coordinator** inventories what is outdated

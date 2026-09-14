@@ -1,5 +1,7 @@
 # STATUS — 360° completion audit
 
+> **Dated snapshot.** This ledger describes the catalog as of the 2026-09-09 run 3 (13 missions; proof tiers as recorded then), reconciled 2026-09-14 (#372: the five items closed that day were flipped to closed). It is a dated audit, not live state — for the current catalog read `python3 runtime/scripts/proof_status.py` and the README. (#385)
+
 <!-- RUN3-REPORT -->
 ## Run 3 report (2026-09-09, resume at `6671913`)
 
@@ -10,7 +12,7 @@ CRITICAL FLOWS: 6 total · 6 verified (CF-05 re-witnessed 2026-09-09 at 9e1237f 
 GAPS: S0 0 open / 0 closed · S1 0 open / 3 closed · S2 0 open / 6 closed · S3 1 open (G-09 DEFER) / 11 closed · CUT 0 · DEFER 1 · ACCEPT 0  (G-15/G-17/G-19/G-20/G-21 closed 2026-09-09 — #232/#233/#234/#236/#237; reconciled 2026-09-14, #372)
 TASKS: 10/10 done (T-01..T-13, ids stable) · BLOCKED 0 · HUMAN ACTIONS gating launch: 0
 ISSUES: created 6 (#232–#237) · updated 0 · reopened 0 · dedup-skipped 1 (G-09, A-27) · existing fetched 96
-NEXT: S6 cleanup → run-3 PR merge → final record
+NEXT: none — S6 cleanup, the run-3 PR (#238, merged 5f0bd30), and the final record all landed 2026-09-09 (SHIPLOG)
 
 Angles (score/4, RAG):
 1 Product 3/G · 2 Functional 3/G · 3 Code 3/G · 4 Testing 3/G · 5 Security 3/G · 6 Data N/A · 7 Infra 3/G · 8 Reliability 3/G · 9 Observability 2/A · 10 Perf 2/A · 11 Integrations 2/A · 12 AI N/A · 13 UX N/A · 14 Docs 3/G · 15 Legal 2/A · 16 GTM 2/A · 17 Ownership 3/G
@@ -26,7 +28,7 @@ Human Actions gating launch: none.
 
 Assumptions made this run: A-28 (REPO_PATH=cwd) · A-29 (claude dir trust) · A-30 (grok worker substrate)
 Second look: almost aggregated "GO (nits only)" from the standards axis alone — the isolated spec axis's Required findings are why no cross-rerank exists. Verdict on PR #231 stands at NO-GO; findings registered as G-19/G-20/G-21.
-Evidence added: 16 files (run 3, incl. 3 axis reports + dispatch record + cold-start set)
+Evidence added: 18 files (run 3, incl. 3 axis reports + dispatch record + cold-start set)
 ```
 
 ### Run-3 gate check (delta vs the run-2 table below)

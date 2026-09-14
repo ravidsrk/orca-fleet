@@ -74,9 +74,15 @@ The load-bearing insight: **every existing benchmark measures agent capability; 
   > **Correction (#304).** This bullet previously carried *"the level you can safely reach is exactly the level you can cheaply prove"* as a quotation from the autonomy-levels piece. That sentence is not in it — it is a paraphrase of the back-pressure rule above, which lives in a different article. A repository whose thesis is that claims must be checkable does not get to carry an unchecked quotation in its own research file. The replacement was read off the source page, and the date is the one printed there: the review that found this recorded 22 July, the page says 20 July.
 - **Turn the evidence manifest into an EU AI Act Art-12 provenance record.** Articles 12/50 enforceable **2 Aug 2026** expect per-change provenance (governing spec/policy version, model lineage, reviewer identity + timestamp, test outcomes, security-scan results, tamper-evident retention) — **structurally the orca-fleet manifest**. This is the strongest enterprise wedge surfaced this round and the prerequisite for `attest-it`.
 
+  > **Correction (2026-09-14, #379/#385).** The "enforceable 2 Aug 2026" date was already wrong at
+  > writing time: the Digital Omnibus (Regulation (EU) 2026/1744, in force 2026-07-27) deferred
+  > Article 12 to 2 Dec 2027 (Annex III) / 2 Aug 2028 (Annex I); only Article 50 applies from
+  > 2 Aug 2026. `docs/compliance-provenance.md` carries the corrected dates. The wedge argument
+  > stands; its timing premise does not.
+
 ## Catalog expansion — two new missions pass the identity test
 
-Run against the five-part mission-identity test (unit of work · state machine · convergence proof · ordering/isolation · parking/failure):
+Run against the five-part mission-identity test (unit of work · state machine · convergence proof · ordering/isolation · parking/failure — since extended to six with the oracle point; AGENTS.md carries the current form, and the 2026-09-10 deep audit's §4.3 records the decision point):
 
 - **`attest-it` (PASS, strongest).** Prove a codebase/change-set conforms to a standard (EU AI Act Art-12/50, SOC 2, NIST SSDF) with auditor-grade, independently-re-derived evidence, or name the gaps. Unit = one obligation from a *frozen standard catalog* (`standard@version`, not a discovered finding); state machine `UNAUDITED → EVIDENCED → VERIFIED / GAP`; convergence = every obligation evidence-bound + re-derived; parking = `CONFORMANT-WITH-GAPS` to a human/legal owner. Rides the moat directly; timed to the enforcement wave. Depends on the Art-12 manifest extension.
 - **`access-it` (PASS).** WCAG 2.2 AA (EAA/ADA/508) conformance over a *frozen surface*. Deterministic oracle (axe-core/Lighthouse) + mandatory negative control (revert → violation returns) + a hard **30–40% automation ceiling** that forces screen-reader/cognitive criteria into a first-class human-AT park — a distinct convergence + parking semantics. (Caveat: without the standard-frozen denominator + ceiling-parking it degenerates into a clean-sweep variant — those are what keep it distinct.)

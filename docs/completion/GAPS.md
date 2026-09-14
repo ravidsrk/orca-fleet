@@ -1,5 +1,7 @@
 # Gap register
 
+> **Dated snapshot** — reconciled 2026-09-14 (#372). The register's closes through that date are recorded in place; anything newer lives in the issue tracker, not here. (#385)
+
 Every standing finding that sits between HEAD and `DEFINITION.md`. Decisions follow the driver rules: S0 → FINISH or CUT; S1 → FINISH (CUT if not on a critical flow); S2/S3 → DEFER unless small and on a critical flow. Run 2 deviation: G-15 and G-17 are FINISH by a one-line Human Action although off-flow (A-23).
 
 | id | source | angle | flow | sev | decision | rationale |
