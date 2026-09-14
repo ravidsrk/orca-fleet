@@ -29,6 +29,15 @@ _spec.loader.exec_module(validate)
 DOCS = ROOT / "docs"
 RUNTIME = ROOT / "runtime"
 
+# An index's inline links with optional <>, #fragment, and "title" — captures the .md path only.
+INDEX_LINK = re.compile(r"\[[^\]]+\]\(\s*<?([^)>#\s]+\.md)(?:#[^)>\s]*)?>?(?:\s+\"[^\"]*\")?\s*\)")
+
+
+def index_targets(index_path):
+    """Real files an index links to, each resolved against the index's own directory."""
+    links = INDEX_LINK.findall(index_path.read_text(encoding="utf-8"))
+    return {p for p in ((index_path.parent / t).resolve() for t in links) if p.is_file()}
+
 
 class FreshHomeInstallation(unittest.TestCase):
     def test_documented_symlinks_resolve_in_fresh_and_existing_homes(self):
@@ -610,14 +619,7 @@ class TestDocsNavigation(unittest.TestCase):
         # must link every skills/<name> guide. #143 review: resolve each link target against the
         # index's directory and require it to point at a REAL file — a basename match through a
         # broken path is not a link a reader can follow.
-        index_path = DOCS / "missions" / "README.md"
-        index = index_path.read_text(encoding="utf-8")
-        resolved = set()
-        # accept inline links with optional <>, #fragment, and "title" — capture the .md path only.
-        for target in re.findall(r"\[[^\]]+\]\(\s*<?([^)>#\s]+\.md)(?:#[^)>\s]*)?>?(?:\s+\"[^\"]*\")?\s*\)", index):
-            p = (index_path.parent / target).resolve()
-            if p.is_file():
-                resolved.add(p)
+        resolved = index_targets(DOCS / "missions" / "README.md")
         for d in sorted((ROOT / "skills").iterdir()):
             if d.is_dir() and not d.name.startswith((".", "_")):
                 guide = (DOCS / "missions" / f"{d.name}.md").resolve()
@@ -937,12 +939,14 @@ class MissionGuidesEmbedTheirDiagram(unittest.TestCase):
 
     def _guides(self):
         """Guide stem -> text, for every docs/missions/*.md the index links (the index is the list)."""
-        guides = {}
-        for target in re.findall(r"\]\(([a-z0-9-]+\.md)\)", self.INDEX.read_text(encoding="utf-8")):
-            path = self.INDEX.parent / target
-            if path.is_file() and path.name != "README.md":
-                guides[path.stem] = path.read_text(encoding="utf-8")
-        self.assertGreater(len(guides), 15, "the index yielded too few guides; parity would be vacuous")
+        # The index test's own parser, so every link form it accepts counts here too.
+        missions = self.INDEX.parent.resolve()
+        guides = {p.stem: p.read_text(encoding="utf-8") for p in index_targets(self.INDEX)
+                  if p.parent == missions and p.name != "README.md"}
+        # Equal to the guides on disk, not a count floor: a narrowed set would skip the difference.
+        on_disk = sorted(p.stem for p in missions.glob("*.md") if p.name != "README.md")
+        self.assertEqual(sorted(guides), on_disk,
+                         "the index's guide set != the guides on disk; parity would skip the difference")
         return guides
 
     def test_every_indexed_guide_embeds_its_own_diagram(self):
@@ -963,6 +967,39 @@ class MissionGuidesEmbedTheirDiagram(unittest.TestCase):
                 self.assertIn(asset.stem, guides, f"{asset.name} has no indexed guide of that name")
                 self.assertIn(asset.name, self.EMBED.findall(guides[asset.stem]),
                               f"docs/missions/{asset.stem}.md never embeds {asset.name}")
+
+    def _fixture(self, tmp, index_links, unlinked=()):
+        """A parity check over a throwaway repo: sixteen bare-linked guides that embed their own
+        diagram, plus the extra index lines given, a diagram-less `gap.md`, and `unlinked` guides."""
+        missions, assets = tmp / "docs" / "missions", tmp / "assets" / "diagrams" / "missions"
+        missions.mkdir(parents=True)
+        assets.mkdir(parents=True)
+        embedded = [f"g{i:02d}" for i in range(16)]
+        for stem in embedded:
+            (missions / f"{stem}.md").write_text(f'<img src="../../assets/diagrams/missions/{stem}.jpg">\n')
+            (assets / f"{stem}.jpg").write_bytes(b"")
+        for stem in ("gap", *unlinked):
+            (missions / f"{stem}.md").write_text("no diagram yet\n")
+        lines = [f"| [{s}]({s}.md) | x |" for s in embedded] + list(index_links)
+        (missions / "README.md").write_text("\n".join(lines) + "\n")
+        check = MissionGuidesEmbedTheirDiagram("test_every_indexed_guide_embeds_its_own_diagram")
+        check.INDEX, check.ASSETS, check.KNOWN_GAPS = missions / "README.md", assets, ["gap"]
+        return check
+
+    def test_a_diagram_less_guide_counts_in_every_link_form_the_index_accepts(self):
+        # Round-2 review: the guide set was read with a bare `](x.md)` pattern, so a gap linked as
+        # `./gap.md` dropped out of parity while the index test (which accepts it) stayed green.
+        for link in ("[gap](./gap.md)", "[gap](gap.md#top)", "[gap](<gap.md>)", '[gap](gap.md "t")'):
+            with self.subTest(link=link), tempfile.TemporaryDirectory() as tmp:
+                check = self._fixture(Path(tmp), [f"| {link} | x |"])
+                check.test_every_indexed_guide_embeds_its_own_diagram()
+
+    def test_a_guide_the_index_set_misses_fails_loudly(self):
+        # A count floor let a narrowed guide set pass; the set must equal the guides on disk.
+        with tempfile.TemporaryDirectory() as tmp:
+            check = self._fixture(Path(tmp), ["| [gap](gap.md) | x |"], unlinked=["orphan"])
+            with self.assertRaisesRegex(AssertionError, "orphan"):
+                check._guides()
 
 
 class CompletionStatusNamesTheCommitItDescribes(unittest.TestCase):
