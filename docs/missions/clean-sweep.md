@@ -14,7 +14,11 @@
 **Skill:** [`skills/clean-sweep/SKILL.md`](../../skills/clean-sweep/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes
 
 <p align="center">
-  <img src="../../assets/diagrams/missions/clean-sweep.jpg" alt="State machine: ENUMERATE the full denominator at T0, SKEPTIC-TRIAGE with a batch human gate for refuted and duplicate closes, FREEZE, parallel fix-and-PR workers, build-blind REVIEW, LAND, CLOSE with merge SHA and red-first test, RE-ENUMERATE looping on new items until DRY" width="820">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/diagrams/missions/clean-sweep.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../../assets/diagrams/missions/clean-sweep-light.jpg">
+    <img src="../../assets/diagrams/missions/clean-sweep-light.jpg" alt="Mission contract for clean-sweep: you give it an audit report, an issue tracker, or docs that lie; it interrupts you for batch approval of refuted and duplicate closes; the promotion PR; you get back DRY or DRY-WITH-PARKED, plus one merged PR per finding; a test that failed pre-fix; the final enumeration pasted in the ledger; it stops at the promotion PR — every close backed by a merge SHA, never by worker memory; phases ENUMERATE, TRIAGE, FIX, REVIEW, LAND, CLOSE, RE-ENUMERATE" width="820">
+  </picture>
 </p>
 
 ---

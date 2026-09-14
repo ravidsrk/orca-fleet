@@ -13,7 +13,11 @@
 ---
 
 <p align="center">
-  <img src="../../assets/diagrams/missions/modernize-it.jpg" alt="Pipeline: inventory outdated dependencies and advisories with reachability triage, order along a compatibility graph, upgrade one dependency or coherent group per PR with CI green at every merge, to CURRENT or CURRENT-WITH-PINNED" width="820">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/diagrams/missions/modernize-it.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../../assets/diagrams/missions/modernize-it-light.jpg">
+    <img src="../../assets/diagrams/missions/modernize-it-light.jpg" alt="Mission contract for modernize-it: you give it a repo with a green CI baseline; it interrupts you for pinning a dependency, with a written reason and your reference; a forced stateful migration, handed to migrate-it; you get back CURRENT or CURRENT-WITH-PINNED, plus one PR per dependency or coherent group; CI green at every merge; runtime-prove transcripts; it stops at the lockfile regenerated, never hand-edited — and never audit fix --force; phases INVENTORY, ORDER, UPGRADE, REVIEW, PROVE, LAND, RE-INVENTORY" width="820">
+  </picture>
 </p>
 
 ## What it does

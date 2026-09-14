@@ -12,7 +12,11 @@
 **Skill:** [`skills/oncall-it/SKILL.md`](../../skills/oncall-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes — instrumentation lands as PRs
 
 <p align="center">
-  <img src="../../assets/diagrams/missions/oncall-it.jpg" alt="State machine: FREEZE the path set and on-call questions at a human gate, INSTRUMENT, ALERT, RUNBOOK, build-blind REVIEW and LAND, TEST-FIRE with a channel receipt, INDUCE a staging failure that a source-blind worker must name, then a removal negative control, ending OPERABLE or OPERABLE-WITH-PARKED" width="820">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/diagrams/missions/oncall-it.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../../assets/diagrams/missions/oncall-it-light.jpg">
+    <img src="../../assets/diagrams/missions/oncall-it-light.jpg" alt="Mission contract for oncall-it: you give it a path set, with 2–4 on-call questions per path; it interrupts you for freezing the questions; cardinality and cost decisions; who gets paged; you get back OPERABLE or OPERABLE-WITH-PARKED, plus instrumentation PRs; test-fired alerts with runbooks; a source-blind worker's manifest and its removal control; it stops at a missing staging or alert channel parks — the oracle is never downgraded; phases FREEZE, INSTRUMENT, ALERT, RUNBOOK, TEST-FIRE, INDUCE" width="820">
+  </picture>
 </p>
 
 ---

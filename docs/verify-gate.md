@@ -7,6 +7,14 @@ that anchors to authorities OUTSIDE the worker's manifest (the coordinator's fro
 scope, GitHub for review, the artifact/replay for the negative control) — is the differentiator, and
 it runs the same `verify.py` no matter which surface fires it.
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../assets/diagrams/verify-gate.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../assets/diagrams/verify-gate-light.jpg">
+    <img src="../assets/diagrams/verify-gate-light.jpg" alt="The completion gate: the coordinator sets the gate env, a Stop or TaskCompleted hook fires verify-gate.sh, verify.py re-derives scope, review and the negative control, then exit 0 allows or exit 2 blocks, fail-closed; the verdict is advisory inside the worker's own session and sound where CI, MCP-Task or an SDK subprocess owns the env" width="820">
+  </picture>
+</p>
+
 ## Install paths, and which ones carry the gate
 
 | Install | `${CLAUDE_PLUGIN_ROOT}` | Gate |

@@ -11,7 +11,11 @@
 **Skill:** [`skills/speed-it/SKILL.md`](../../skills/speed-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes
 
 <p align="center">
-  <img src="../../assets/diagrams/missions/speed-it.jpg" alt="State machine: DECLARE the metric contract before any number, BASELINE every journey, RANK by gap times traffic, DIAGNOSE one dominant cause, FIX with a PR per hotspot plus CI guard, PROVE by driving the journey, LAND, RE-BENCHMARK looping while breaches remain, ending WITHIN-BUDGET or OPTIMIZED-WITH-PARKED" width="820">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/diagrams/missions/speed-it.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../../assets/diagrams/missions/speed-it-light.jpg">
+    <img src="../../assets/diagrams/missions/speed-it-light.jpg" alt="Mission contract for speed-it: you give it the journeys and their budgets; it interrupts you for a metric that cannot be measured to its contract; parking a journey; promotion; you get back WITHIN-BUDGET or OPTIMIZED-WITH-PARKED, plus before, after on every fix PR; CI regression guards; a re-benchmark to the contract; it stops at never a weaker proxy metric, never a lucky single run; phases DECLARE, BASELINE, RANK, DIAGNOSE, FIX, PROVE, RE-BENCHMARK" width="820">
+  </picture>
 </p>
 
 ---

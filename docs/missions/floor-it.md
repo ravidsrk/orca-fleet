@@ -12,7 +12,11 @@
 **Skill:** [`skills/floor-it/SKILL.md`](../../skills/floor-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes — `PROFILE=rw` wire workers
 
 <p align="center">
-  <img src="../../assets/diagrams/missions/floor-it.jpg" alt="State machine: DETECT measured current values, FREEZE a numbered CONSTRAINTS bar, WIRE one tool per dimension, PROVE-FIRES with an injected violation going RED, ENFORCE in CI, ending FLOORED or FLOORED-WITH-PARKED" width="820">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/diagrams/missions/floor-it.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../../assets/diagrams/missions/floor-it-light.jpg">
+    <img src="../../assets/diagrams/missions/floor-it-light.jpg" alt="Mission contract for floor-it: you give it a repo whose standards live in people's heads; it interrupts you for freezing CONSTRAINTS.md — a one-way gate; headless runs park here; you get back FLOORED or FLOORED-WITH-PARKED, plus CONSTRAINTS.md; one tool per dimension, proven RED; canary PRs; a guard against lowering the bar; it stops at violations injected only on throwaway branches, never on BASE; phases DETECT, FREEZE, WIRE, PROVE-FIRES, ENFORCE, GUARD" width="820">
+  </picture>
 </p>
 
 ---

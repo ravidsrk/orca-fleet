@@ -8,7 +8,11 @@ illustrative fiction; the incidents below each changed a runtime policy, and thi
 which.
 
 <p align="center">
-  <img src="../../assets/diagrams/run-timeline.jpg" alt="Timeline of the chimely run: triage, a four-builder wave with a respawn incident, overlapping review rounds, the discovery of a parallel contributor's PRs, the pivot to assists and alternative PRs, and the closing state" width="860">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/diagrams/run-timeline.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../../assets/diagrams/run-timeline-light.jpg">
+    <img src="../../assets/diagrams/run-timeline-light.jpg" alt="Timeline of the chimely run: triage, a four-builder wave with a respawn incident, overlapping review rounds, the discovery of a parallel contributor's PRs, the pivot to assists and alternative PRs, and the closing state" width="860">
+  </picture>
 </p>
 
 ## T0 — the header is written before anything runs

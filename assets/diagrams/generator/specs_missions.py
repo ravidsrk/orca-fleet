@@ -1,152 +1,202 @@
+"""One developer-contract card per mission: what you give it, what it interrupts you for, what you
+get back, where it stops. The pipeline itself stays in each guide's mermaid block."""
 from specs import STYLE, D
 
-M = STYLE + """This is the state-machine diagram of one mission. Phase boxes flow left to right, wrapping onto a second row when needed with a clear connecting arrow. Terminal states are hexagons: the clean terminal outlined in green, the degraded terminal outlined in amber. Human gates are marked with a small amber person icon next to the box. Unless the text below names a loop arrow there are NO dashed or looping arrows anywhere. Draw ONLY the loop arrows the text names, each starting and ending exactly at the boxes named; a loop from row 2 to row 1 is a dashed arrow that leaves the top of its start box, runs along the top margin, and comes down into its end box. Draw a person icon ONLY where the text says "with an amber person icon", nowhere else. Alternative terminals sit side by side and are never chained in sequence. Every phase box carries its uppercase name with a short muted caption beneath it, all captions in the same monospace font. Put the mission title small at the top-left.
+C = STYLE + """This is a one-screen developer contract card for one mission: large type, few words, no pipeline detail.
+Layout: the mission title top-left in white monospace with a muted one-line outcome after it. Below it a 2-by-2 grid of four equal panels, each a rounded box with a small uppercase muted header in its top-left corner and one to three short lines of white monospace text in LARGE type:
+top-left panel header: YOU GIVE IT
+top-right panel header: IT INTERRUPTS YOU FOR
+bottom-left panel header: YOU GET BACK — its first line is the terminal states drawn as small hexagons side by side (the clean one outlined green, the degraded one outlined amber), and its second line names the artifacts in muted text
+bottom-right panel header: IT STOPS AT
+Along the very bottom a thin strip: the phases as a chain of uppercase words separated by small arrows, in small muted type, no captions.
+Every line must stay legible when the image is shown at half size: big primary text, short lines.
+The title line is the ONLY text above the grid: the mission name, a dash, and the outcome, all on one line; never repeat the outcome as a second line or subtitle. No arrows, connector lines or brackets between panels or between lines of text inside a panel. No icons or symbols inside a line of text. The four panels are the same size. Draw exactly the hexagons listed under YOU GET BACK and no others — each hexagon contains its state name, and there are no empty or decorative hexagons or shapes. Exactly four panels; the artifacts line lives inside YOU GET BACK, never in a fifth panel or strip. The mission name in the title is lowercase, exactly as written.
 
 """
 
-def m(id_, prompt):
-    return {"id": id_, "out": f"assets/diagrams/missions/{id_}.jpg", **D, "prompt": M + prompt}
+def m(id_, outcome, give, gates, states, artifacts, stops, phases):
+    hexes = " and ".join(f"a hexagon {name} outlined {colour}" for name, colour in states)
+    if len(states) == 1:
+        hexes += " — this mission has exactly ONE terminal state, so exactly one hexagon: no amber hexagon, no degraded state, nothing else on that line"
+    prompt = C + f"""Title: {id_} — {outcome}
+YOU GIVE IT: {give}
+IT INTERRUPTS YOU FOR: {gates}
+YOU GET BACK: {hexes}; second line: {artifacts}
+IT STOPS AT: {stops}
+Phase strip: {phases}"""
+    return {"id": id_, "out": f"assets/diagrams/missions/{id_}.jpg", **D, "prompt": prompt,
+            "contract": {"outcome": outcome, "give": give, "gates": gates,
+                         "states": [n for n, _ in states], "artifacts": artifacts,
+                         "stops": stops, "phases": phases}}
+
+G, A, R, X = "green", "amber", "red", "grey"
 
 MISSIONS = [
-m("ship-it", """Title: ship-it — build → review → release
-Row 1, left to right:
-FREEZE (caption: gate 1 — you confirm the spec) with an amber person icon
-→ DECOMPOSE (caption: tracer-bullet slices → Orca DAG)
-→ a bracketed group of three parallel boxes stacked vertically: slice w1, slice w2, slice w3 (group caption: BUILD — one worker per slice, failing test first)
-→ REVIEW (caption: build-blind, per slice) with a dashed red loop arrow back to the slices labelled: fix rounds, max 3
-→ PROVE (caption: drive the real entry point)
-→ LAND (caption: one merge train)
-→ INTEGRATED PROVE (caption: at the BASE head, traceability table verified)
-Row 2, left to right, connected from row 1:
-hexagon BUILT (green) → PROMOTION PR (caption: traceability table) → hexagon PROMOTION_READY (green, caption: gate 2 — you merge) with an amber person icon → hexagon RELEASED (drawn dim grey, caption: human merged to default) → hexagon DEPLOYED_AND_VERIFIED (drawn dim grey, caption: deploy + canary window)
-Footer, small, centred: stop where your authorization ends — PROMOTION_READY is never reported as RELEASED"""),
+m("ship-it", "build → review → release",
+  "an intent, or a frozen spec",
+  "gate 1 — confirm the frozen spec · gate 2 — merge the promotion PR",
+  [("BUILT", G), ("PROMOTION_READY", G), ("RELEASED", X), ("DEPLOYED_AND_VERIFIED", X)],
+  "slice PRs on BASE · a promotion PR with a traceability table · an evidence manifest per unit",
+  "the highest release state you authorized — it never merges to the default branch itself",
+  "FREEZE → DECOMPOSE → BUILD → REVIEW → PROVE → LAND → RELEASE"),
 
-m("clean-sweep", """Title: clean-sweep — a backlog exhausted to zero, PR per finding
-Far left, three small stacked source boxes feeding the first phase: audit document · tracker at T0 · doc claims
-Row 1: ENUMERATE (caption: the full denominator, paginated) → SKEPTIC-TRIAGE (caption: reproduce or refute, per finding; batch gate for refuted / duplicate closes) with an amber person icon → FREEZE (caption: the findings list) → BOOTSTRAP BASE (caption: preflight — BASE ≠ default) → PER-FINDING (caption: verify-real → fix → PR → build-blind review; one finding = one PR)
-Row 2: LAND (caption: one merge conductor, one train) → CLOSE (caption: merge SHA + a test that failed pre-fix) → RE-ENUMERATE with a dashed loop arrow back to SKEPTIC-TRIAGE labelled: new or reopened items → VERIFY THE FINAL TIP (caption: validate + test suite green at the final head) → hexagon DRY (green) and hexagon DRY-WITH-PARKED (amber) → a small grey box: promotion PR — left to you
-Footer, small, centred: a finding closes off the verified merge, never off worker memory"""),
+m("clean-sweep", "a backlog exhausted to zero, PR per finding",
+  "an audit report, an issue tracker, or docs that lie",
+  "batch approval of refuted and duplicate closes · the promotion PR",
+  [("DRY", G), ("DRY-WITH-PARKED", A)],
+  "one merged PR per finding · a test that failed pre-fix · the final enumeration pasted in the ledger",
+  "the promotion PR — every close backed by a merge SHA, never by worker memory",
+  "ENUMERATE → TRIAGE → FIX → REVIEW → LAND → CLOSE → RE-ENUMERATE"),
 
-m("harden-it", """Title: harden-it — a threat model closed, the fix re-attacked
-Row 1: THREAT-MODEL (caption: STRIDE per trust boundary) → AUDIT (caption: security lens, a PoC per P0/P1) → PoC ROUTING (caption: ro / rw / ephemeral sandbox / parked — before any PoC runs) → QUORUM VERIFY (caption: refute false positives, vote table recorded) → FIX (caption: exploit test first, audit the whole class)
-Row 2: REVIEW + RUNTIME-PROVE (caption: drive the patched surface) → LAND (caption: merge conductor, one train) → RE-ATTACK (caption: independent worker — original exploit + variants) → RE-AUDIT (caption: full fresh pass) → hexagon CLEAN (green, caption: zero unrefuted P0/P1) and hexagon HARDENED-WITH-OPEN-ITEMS (amber, caption: parked P0/P1 named per item)
-Align the rows so that RE-ATTACK on row 2 sits directly beneath PoC ROUTING on row 1. Exactly ONE dashed red arrow in the whole diagram, and it points UP only: it starts at the top edge of RE-ATTACK and ends with its single arrowhead at the bottom edge of PoC ROUTING, labelled: new holes. There is no arrow pointing down from PoC ROUTING. RE-AUDIT forks into the two hexagons, which are stacked one above the other to its right, each hexagon reached by its own solid arrow from RE-AUDIT.
-A small amber person icon beside FIX with the caption: secret rotation and auth changes are one-way — done by you, verified dead
-Footer, small, centred: HARDENED-WITH-OPEN-ITEMS is never reported as CLEAN"""),
+m("harden-it", "a threat model closed, the fix re-attacked",
+  "a system and its trust boundaries",
+  "one-way remediations you perform yourself, like a secret rotation · the danger-sandbox grant",
+  [("CLEAN", G), ("HARDENED-WITH-OPEN-ITEMS", A)],
+  "exploit tests · class-wide fixes on BASE · re-attack transcripts · a fresh full audit",
+  "parked P0/P1 named per item — no PoC ever runs on your machine",
+  "THREAT-MODEL → AUDIT → FIX → LAND → RE-ATTACK → RE-AUDIT"),
 
-m("speed-it", """Title: speed-it — every journey within budget, on a declared contract
-Row 1: DECLARE (caption: metric contract per metric — before any number) → BASELINE (caption: every journey measured to its contract) → RANK (caption: breaches by gap × traffic) → DIAGNOSE (caption: profile, name the one dominant cause) → FIX (caption: PR per hotspot — before → after + CI GUARD)
-Row 2: REVIEW + RUNTIME-PROVE (caption: drive the journey end to end) → LAND (caption: merge conductor, one train) → RE-BENCHMARK (caption: to the contract, never a lucky single run) → hexagon WITHIN-BUDGET (green) and hexagon OPTIMIZED-WITH-PARKED (amber, caption: infra or inherent-cost tradeoff, human ref)
-Position RE-BENCHMARK on row 2 directly beneath RANK on row 1. Exactly one dashed loop arrow in the whole diagram: it rises vertically from the top of RE-BENCHMARK straight up into the bottom of RANK, labelled: breaches remain. The two hexagons are stacked one above the other to the right of RE-BENCHMARK, each with its own arrow from RE-BENCHMARK; nothing connects the two hexagons to each other. No person icons.
-Footer, small, centred: fast but behaviourally wrong is a bug, not a win"""),
+m("speed-it", "every journey within budget, on a declared contract",
+  "the journeys and their budgets",
+  "a metric that cannot be measured to its contract · parking a journey · promotion",
+  [("WITHIN-BUDGET", G), ("OPTIMIZED-WITH-PARKED", A)],
+  "before → after on every fix PR · CI regression guards · a re-benchmark to the contract",
+  "never a weaker proxy metric, never a lucky single run",
+  "DECLARE → BASELINE → RANK → DIAGNOSE → FIX → PROVE → RE-BENCHMARK"),
 
-m("modernize-it", """Title: modernize-it — dependency currency, CI green at every merge
-Row 1: INVENTORY (caption: outdated + advisories, changelog not version delta, reachability triage) → ORDER (caption: compatibility graph — security-reachable → patch/minor groups → majors, one per PR) → UPGRADE (caption: one dep or coherent group per PR, adapt call sites, shims) → a diamond: forces a stateful schema or data change?
-From the diamond, branch labelled yes: HANDOFF → migrate-it (caption: parked until its phase evidence returns).  Branch labelled no: REVIEW (caption: build-blind) → RUNTIME-PROVE (caption: drive the real entry points) → LAND (caption: merge conductor, CI green at every merge)
-Row 2: both branches join into RE-INVENTORY with a dashed loop arrow back to ORDER labelled: inventory not dry → hexagon CURRENT (green, caption: zero pins) and hexagon CURRENT-WITH-PINNED (amber, caption: every pin has a written reason + a human ref)
-No person icons anywhere. Exactly one dashed loop arrow: from RE-INVENTORY back to ORDER, labelled: inventory not dry.
-Footer, small, centred: registry-latest is not the truth — a supported older major is already current"""),
+m("modernize-it", "dependency currency, CI green at every merge",
+  "a repo with a green CI baseline",
+  "pinning a dependency, with a written reason and your reference · a forced stateful migration, handed to migrate-it",
+  [("CURRENT", G), ("CURRENT-WITH-PINNED", A)],
+  "one PR per dependency or coherent group · CI green at every merge · runtime-prove transcripts",
+  "the lockfile regenerated, never hand-edited — and never audit fix --force",
+  "INVENTORY → ORDER → UPGRADE → REVIEW → PROVE → LAND → RE-INVENTORY"),
 
-m("prove-it", """Title: prove-it — a mutation-audited critical surface
-Row 1: MAP (caption: coverage gaps × money / auth / data / external-contract paths) → SCOPE CONFIRM (caption: a human bounds the critical list) with an amber person icon → CHARACTERIZE (caption: assert real behaviour — expected value from an independent source) → a diamond: passes, or reveals a bug?
-From the diamond, branch labelled passes: MUTATION AUDIT (caption: flip a boundary, negate a condition — the assertion must die).  Branch labelled bug: SURFACED-BUG SUB-LOOP (caption: fix in-PR, park, or hand to clean-sweep — never assert the bug as correct)
-Row 2: both branches join into REVIEW (caption: build-blind) → RUNTIME-PROVE (caption: the asserted behaviour is real at the true entry point) → LAND (caption: merge conductor) → RE-MAP → hexagon COVERED (green) and hexagon COVERED-WITH-PARKED (amber, caption: a bug or path parked needs-human)
-Position RE-MAP on row 2 directly beneath CHARACTERIZE on row 1. Exactly one dashed loop arrow in the whole diagram: it rises vertically from the top of RE-MAP straight up into the bottom of CHARACTERIZE, labelled: paths remain. The two hexagons are stacked one above the other to the right of RE-MAP, each with its own arrow from RE-MAP. The only person icon is the one at SCOPE CONFIRM.
-Footer, small, centred: a test that survives its mutation proves nothing"""),
+m("prove-it", "a mutation-audited critical surface",
+  "a runnable suite and a coverage tool",
+  "confirming the critical surface · behaviour calls on bugs the tests surface",
+  [("COVERED", G), ("COVERED-WITH-PARKED", A)],
+  "merged tests that die under mutation · surfaced bugs fixed, parked, or handed off",
+  "never asserting buggy behaviour as correct",
+  "MAP → CONFIRM → CHARACTERIZE → MUTATION-AUDIT → REVIEW → LAND → RE-MAP"),
 
-m("deflake-it", """Title: deflake-it — flake zero, proven by a streak
-Row 1: DETECT (caption: repeat runs, varied seed and order + CI retry history) → a diamond: deterministic — fails N of N?  Branch labelled yes: a dim grey box: route to clean-sweep — a bug, not a flake.  Branch labelled intermittent: DIAGNOSE (caption: build a loop that RAISES the failure rate, then classify) → FIX (caption: the root cause + red-by-revert RATCHET — retry wrappers banned)
-Row 2: CLOSE (caption: PR per flake → build-blind review → conductor LAND) → PROVE (caption: GREEN_STREAK consecutive full-suite runs, local AND CI, at one SHA) → then PROVE forks into two alternative terminal hexagons stacked side by side, never in sequence: STABLE (green, caption: zero flakes, zero retry wrappers) and STABLE-WITH-QUARANTINE (amber, caption: human-approved ticket) with an amber person icon
-Position PROVE on row 2 directly beneath DETECT on row 1. Exactly ONE dashed red arrow in the whole diagram, pointing UP only: it starts at the top edge of PROVE and ends with its single arrowhead at the bottom edge of DETECT, labelled: any flake resets the streak. The only person icon is the one at STABLE-WITH-QUARANTINE.
-Footer, small, centred: one green run is an anecdote — the streak is the contract"""),
+m("deflake-it", "flake zero, proven by a streak",
+  "a suite nobody trusts",
+  "quarantining a flake — only with a ticket you approve",
+  [("STABLE", G), ("STABLE-WITH-QUARANTINE", A)],
+  "one PR per flake with a red-by-revert ratchet · a GREEN_STREAK, local and CI, at one SHA",
+  "no retry wrappers, ever — the diff is grepped for them",
+  "DETECT → DIAGNOSE → FIX → CLOSE → PROVE"),
 
-m("review-it", """Title: review-it — a read-only, SHA-bound GO / NO-GO
-Left: PIN (caption: the fixed point — non-empty diff, spec source named, reviewed_sha recorded)
-From PIN, arrows fan out to four parallel boxes stacked vertically in the middle: STANDARDS (caption: repo standards + smell baseline) · SPEC (caption: faithful to the frozen spec or issue?) · TEST-ADEQUACY (caption: would reverting the fix fail a test? judged statically) · RISK LENS (caption: scope-gated — security / perf / a11y / data-migration, only when the diff triggers it). A bracket beside the first three labelled: acceptance review — always, build-blind, isolated fresh sessions
-All four arrows converge into AGGREGATE (caption: anti-false-positive gate — every finding quotes its motivating line; severity per finding)
-Right: hexagon GO (green) and hexagon NO-GO (red, caption: any Critical or Required finding)
-No person icons anywhere — this mission has zero human gates. No loop arrows. The only arrows are PIN → each axis, each axis → AGGREGATE, AGGREGATE → GO and AGGREGATE → NO-GO.
-Footer, small, centred: PROFILE=ro — no fix authority, not one byte modified; the verdict is void if the head moves"""),
+m("review-it", "a read-only, SHA-bound GO / NO-GO",
+  "a PR or branch, and the spec it claims to implement",
+  "nothing during the run — acting on the verdict is yours",
+  [("GO", G), ("NO-GO", R)],
+  "findings per axis, each quoting its motivating line · the verdict bound to reviewed_sha",
+  "read-only — PROFILE=ro, not one byte of the tree modified",
+  "PIN → STANDARDS · SPEC · TEST-ADEQUACY · RISK → AGGREGATE"),
 
-m("map-it", """Title: map-it — a foggy goal charted into a frozen map
-Row 1: NAME THE DESTINATION (caption: past it = out of scope, unsharp = FOG) → CHART THE MAP (caption: decision tickets — sharp questions only) → CLEAR THE FRONTIER, drawn as two parallel boxes stacked: RESEARCH TICKETS (caption: AFK evidence gathering) and DECISION / GRILL TICKETS (caption: HITL — one decision per session) with an amber person icon → FOG CLEARS (caption: graduate newly sharp tickets) with a dashed loop arrow back to CLEAR THE FRONTIER labelled: route still foggy
-Row 2: FREEZE THE PLAN (caption: decide-and-freeze — you confirm the spec) with an amber person icon → PREPARE THE DAG (caption: materialize + verify, never dispatch) → hexagon FROZEN MAP + DAG (green) → a dim grey box: handed to ship-it, unchanged
-Footer, small, centred: decisions, not deliverables — no production code is written"""),
+m("map-it", "a foggy goal charted into a frozen map",
+  "a goal too foggy to spec",
+  "every decision ticket, one per session · the freeze",
+  [("FROZEN MAP + DAG", G)],
+  "decision tickets · a frozen spec · a verified Orca DAG that ship-it dispatches unchanged",
+  "no production code — decisions, not deliverables",
+  "NAME → CHART → CLEAR THE FRONTIER → FREEZE → PREPARE THE DAG"),
 
-m("root-cause", """Title: root-cause — a reproduced symptom, one demonstrated cause
-Row 1: STOP-THE-LINE (caption: preserve evidence) → RED-CAPABLE LOOP (caption: build it, RUN it, paste command + output) with a dashed loop arrow onto itself labelled: no red loop, no phase 2 → LOCALIZE + REDUCE (caption: layer table · git bisect run · minimize) → 3–5 RANKED HYPOTHESES (caption: falsifiable, shown before testing any) with a small side box: COMPETING-HYPOTHESIS DEBATE (caption: when causes are mutually exclusive)
-Row 2: FALSIFY (caption: one variable at a time, DEBUG-tagged instrumentation) → DEMONSTRATE THE SURVIVOR (caption: evidence + a regression test at a correct seam) → hexagon DIAGNOSED (green), with a side hexagon ARCHITECTURE HANDOFF (amber, caption: no correct seam exists) → a dim grey box: FIX HANDOFF BRIEF (caption: separately authorized) with an amber person icon labelled: the one gate — authorizing the fix
-Footer, small, centred: diagnosis only — the fix is never merged here"""),
+m("root-cause", "a reproduced symptom, one demonstrated cause",
+  "a symptom report",
+  "authorizing the fix — after the diagnosis, never inside it",
+  [("DIAGNOSED", G), ("ARCHITECTURE HANDOFF", A)],
+  "the pasted red-capable loop · ranked hypotheses with their falsifications · a fix handoff brief",
+  "diagnosis only — it never merges a fix",
+  "STOP-THE-LINE → RED LOOP → LOCALIZE → HYPOTHESES → FALSIFY → DEMONSTRATE"),
 
-m("oss-contribute", """Title: oss-contribute — upstream PRs on a repo you cannot merge
-Row 1: ENUMERATE (caption: two denominators at T0 — open issues AND open PRs, paginated) → SKEPTIC-TRIAGE (caption: reproduce or refute; search code AND open PRs) → a diamond: classify
-From the diamond, branch labelled buildable: BUILD ON THE FORK (caption: failing test first) → ACCEPTANCE-REVIEW (caption: build-blind, bounded fix rounds) → OPEN PR (caption: fork head → upstream default) → FOLLOW UP (caption: every review thread answered)
-Branch labelled already-has-PR: CONTRIBUTION DECISION with an amber person icon (caption: taste gate) with three small outcomes beneath it: assist — quoted review comment on their PR · alternative PR — only on maintainer invitation · stand-down — externally covered
-Branch labelled needs-human: PARK (caption: CLA / DCO / design call — the gate named)
-Row 2: everything joins into RE-ENUMERATE (caption: both denominators) with a dashed loop arrow back to SKEPTIC-TRIAGE labelled: new or reclassified issues → hexagon CONTRIBUTED (green) and hexagon CONTRIBUTED-WITH-PARKED (amber)
-Footer, small, centred: the maintainer merges, never the fleet — awaiting-maintainer-merge is a normal terminal"""),
+m("oss-contribute", "upstream PRs on a repo you cannot merge",
+  "issues on an upstream repo you can only fork",
+  "refuted and stand-down closes, in a batch · assist vs alternative PR · CLA and DCO signatures",
+  [("CONTRIBUTED", G), ("CONTRIBUTED-WITH-PARKED", A)],
+  "open, reviewed, etiquette-correct upstream PRs · review-assist comments · every thread answered",
+  "the maintainer merges, never the fleet",
+  "ENUMERATE → TRIAGE → BUILD ON THE FORK → REVIEW → OPEN PR → FOLLOW UP"),
 
-m("attest-it", """Title: attest-it — conformance proven, or the gaps named
-Row 1: a small input box: standard@version + codebase → FREEZE (caption: the obligation set, enumerated into a DAG, digest-locked) → EVIDENCE (caption: per obligation — ro workers, bound to authoritative state) → RE-DERIVE (caption: independently, in a fresh session) → a diamond: control satisfied?
-From the diamond two separate branches leave, drawn as two parallel rows on the right-hand half, one above the other, and nothing connects the two rows to each other:
-Upper branch, labelled evidence re-derived: VERIFIED (green outline) → hexagon CONFORMANT (green).
-Lower branch, labelled no re-derivable artifact: GAP (caption: named, parked to a human / legal owner) with an amber person icon → hexagon CONFORMANT-WITH-GAPS (amber).
-No arrow between VERIFIED and GAP, none between CONFORMANT and VERIFIED, none between the two hexagons. No loop arrows.
-Footer, small, centred: no control is marked satisfied on an agent's word — the verdict is a one-way human door"""),
+m("attest-it", "conformance proven, or the gaps named",
+  "a standard at a version, and a codebase",
+  "the conformance verdict · every accepted gap",
+  [("CONFORMANT", G), ("CONFORMANT-WITH-GAPS", A)],
+  "evidence per obligation, re-derived in a fresh session · gaps with a named owner",
+  "read-only — remediation is a separate ship-it or clean-sweep run",
+  "FREEZE → EVIDENCE → RE-DERIVE → ATTEST"),
 
-m("access-it", """Title: access-it — WCAG 2.2 AA, oracle-clean, ceiling parked to a human
-Row 1: a small input box: surface + WCAG 2.2 AA target → FREEZE (caption: surface × criteria — digest-locked denominator, BASE bootstrapped) → DETECT (caption: at the BASE head — axe-core / Lighthouse, violations to a DAG) → FIX (caption: rw workers, structural items serialized) → REVIEW → LAND (caption: build-blind; one merge train)
-Row 2: RE-VERIFY (caption: at the BASE head — oracle clean + revert-to-violation negative control) → PARK CEILING CRITERIA (caption: screen-reader / cognitive → human-AT reviewer) with an amber person icon → hexagon CONFORMANT (green) and hexagon CONFORMANT-WITH-MANUAL-PARKED (amber)
-No dashed or looping arrows anywhere in this diagram; the flow is strictly forward. The only person icon is the one at PARK CEILING CRITERIA.
-Footer, small, centred: the oracle sees roughly a third of WCAG — its silence is never a pass"""),
+m("access-it", "WCAG 2.2 AA, oracle-clean, ceiling parked to a human",
+  "a page, flow or component set and a WCAG 2.2 AA target",
+  "the human-AT park — screen-reader and cognitive criteria · promotion",
+  [("CONFORMANT", G), ("CONFORMANT-WITH-MANUAL-PARKED", A)],
+  "an axe-core clean report · revert-to-violation controls · parked criteria with reasons",
+  "never passing a criterion on the oracle's silence",
+  "FREEZE → DETECT → FIX → LAND → RE-VERIFY → PARK"),
 
-m("pin-it", """Title: pin-it — doctrine re-witnessed against the installed binary
-Row 1: a small input box: runtime policies + scripts → FREEZE (caption: the claim inventory — digest-locked, CLI version recorded) → BOOTSTRAP BASE (caption: preflight — BASE ≠ default) → LOAD GUIDES (caption: orca skills get — a hypothesis, not proof) → RE-WITNESS (caption: each claim from a live Orca terminal; probes in a scratch worktree + teardown)
-Row 2: CLASSIFY (caption: CURRENT · STALE · SUPERSEDED · BLOCKED-BY-SUBSTRATE — from receipts only) → PATCH (caption: rw workers, one claim per unit — a deletion needs a refutation receipt) → REVIEW → LAND (caption: build-blind; every edited line traces to a receipt) → hexagon PINNED (green) and hexagon PINNED-WITH-PARKED (amber, caption: the exact probe it waits on)
-No dashed or looping arrows anywhere in this diagram; the flow is strictly forward. No person icons anywhere.
-Footer, small, centred: a refuted claim is removed with its receipt archived — never merely closed"""),
+m("pin-it", "doctrine re-witnessed against the installed binary",
+  "runtime doctrine and the installed Orca binary",
+  "probes that are one-way — paid, remote, or human-only",
+  [("PINNED", G), ("PINNED-WITH-PARKED", A)],
+  "a receipt per claim · an archive of refuted claims · doctrine patched with citations",
+  "a substrate failure never rewrites doctrine",
+  "FREEZE → RE-WITNESS → CLASSIFY → PATCH → LAND"),
 
-m("floor-it", """Title: floor-it — a written, numbered bar that CI enforces
-Row 1: DETECT (caption: measure current values, draft the dimensions) → BOOTSTRAP BASE (caption: preflight — BASE ≠ default) → FREEZE (caption: one-way gate — CONSTRAINTS.md is the first commit on BASE; headless runs park here) with an amber person icon → WIRE (caption: one tool per dimension, rw workers) → PROVE-FIRES (caption: throwaway injection → harness RED, revert → GREEN; a harness that stays GREEN never lands)
-Row 2: REVIEW → LAND (caption: build-blind) → ENFORCE IN CI (caption: on BASE; a canary PR per gate must go RED, closed unmerged) → GUARD (caption: validator + CI job against bar-lowering diffs) → REFLECT (caption: untoolable dimensions recorded) → hexagon FLOORED (green) and hexagon FLOORED-WITH-PARKED (amber)
-No dashed or looping arrows anywhere in this diagram; the flow is strictly forward. The only person icon is the one at FREEZE.
-Footer, small, centred: a gate that was never seen RED is a belief, not a control"""),
+m("floor-it", "a written, numbered bar that CI enforces",
+  "a repo whose standards live in people's heads",
+  "freezing CONSTRAINTS.md — a one-way gate; headless runs park here",
+  [("FLOORED", G), ("FLOORED-WITH-PARKED", A)],
+  "CONSTRAINTS.md · one tool per dimension, proven RED · canary PRs · a guard against lowering the bar",
+  "violations injected only on throwaway branches, never on BASE",
+  "DETECT → FREEZE → WIRE → PROVE-FIRES → ENFORCE → GUARD"),
 
-m("reshape-it", """Title: reshape-it — hot modules deepened, behaviour unchanged
-Row 1: a small input box: git history + import graph → SCAN (caption: 90-day window — churn × width, fan-in tiebreak, YAGNI cut) → CONFIRM-SURFACE (caption: one-way gate — a human bounds the target list) with an amber person icon → BOOTSTRAP BASE (caption: preflight — BASE ≠ default) → CHARACTERIZE (caption: the net pinned + mutation-audited BEFORE any restructure)
-Row 2: DEEPEN (caption: rw workers, one module per unit — API breaks gated) → REVIEW (caption: build-blind) → LAND (caption: merge conductor) → RE-SCAN (caption: the confirmed surface, same probes — every module deepened or parked) → hexagon RESHAPED (green) and hexagon RESHAPED-WITH-PARKED (amber)
-No dashed or looping arrows anywhere in this diagram; the flow is strictly forward. The only person icon is the one at CONFIRM-SURFACE.
-Footer, small, centred: the net is green on both sides of every move — the suite staying green is the contract, not the proof"""),
+m("reshape-it", "hot modules deepened, behaviour unchanged",
+  "git history and the import graph",
+  "confirming the target surface · any public-API break",
+  [("RESHAPED", G), ("RESHAPED-WITH-PARKED", A)],
+  "a characterization net pinned first · before → after interface measurements · one PR per module",
+  "the target list never grows on its own",
+  "SCAN → CONFIRM → CHARACTERIZE → DEEPEN → REVIEW → RE-SCAN"),
 
-m("field-test-it", """Title: field-test-it — proven on the device, not on the desktop
-Row 1: a small input box: device or emulator → PAIR (caption: orca skills get guides; oracle tier + preconditions recorded) → BOOTSTRAP BASE (caption: preflight — BASE ≠ default) → BASELINE (caption: pre-change flows driven on-device, ledgered) → REPRODUCE (caption: per defect — recording / a11y tree / logs)
-Row 2: FIX (caption: rw workers, one defect per unit) → REVIEW (caption: build-blind) → LAND (caption: merge conductor) → RE-VERIFY ON-DEVICE (caption: at the head SHA — GREEN + revert-to-red negative control) → SNAPSHOT-LEDGER (caption: post-change baseline recorded) → hexagon FIELD-PROVEN (green) and hexagon FIELD-PROVEN-WITH-PARKED (amber, caption: the exact device and step it waits on)
-No dashed or looping arrows anywhere in this diagram; the flow is strictly forward. No person icons anywhere.
-Footer, small, centred: the ledgered device session is the oracle — a green desktop run is never device evidence"""),
+m("field-test-it", "proven on the device, not on the desktop",
+  "a paired device or emulator, and the app",
+  "device pairing, permission grants, store and account surfaces",
+  [("FIELD-PROVEN", G), ("FIELD-PROVEN-WITH-PARKED", A)],
+  "repro recordings · on-device re-verify at the head SHA · a revert-to-red control · before and after baselines",
+  "a green desktop run is never device evidence",
+  "PAIR → BASELINE → REPRODUCE → FIX → RE-VERIFY → SNAPSHOT"),
 
-m("migrate-it", """Title: migrate-it — a data shape moved one deployable phase at a time
-Row 1: PLAN (caption: freeze the table set + the phase list, each with its down path) → BOOTSTRAP BASE (caption: preflight — BASE ≠ default) → EXPAND (caption: deploy + bake) → DUAL-WRITE (caption: deploy + bake) → BACKFILL (caption: batched · throttled · resumable) → a diamond: full parity probe — counts + mismatches + sampled hashes, with a dashed loop arrow back to BACKFILL labelled: mismatch
-Row 2: SWITCH-READS (caption: deploy + bake) → ZERO-READERS WINDOW (caption: telemetry pasted) → ARCHIVE PARITY (caption: while writes are still dual) → RETIRE-WRITES (caption: deploy + bake) → ZERO-WRITERS WINDOW (caption: telemetry pasted) → CONTRACT (caption: a separate deploy — verify removal) with an amber person icon labelled: one-way human gate → hexagon MIGRATED (green)
-Two side hexagons: MIGRATED-WITH-PARKED (amber, caption: no prod telemetry the fleet can query) and ABANDONED (grey, caption: walked back down the exercised down paths)
-Footer, small, centred: every phase — up, down, an empty schema diff; old code on the new schema and new code on the old schema both green; one phase of one table in flight"""),
+m("migrate-it", "a data shape moved one deployable phase at a time",
+  "a table set and a phase list, each phase with its down path",
+  "CONTRACT — dropping the old shape · bake windows that need production telemetry",
+  [("MIGRATED", G), ("MIGRATED-WITH-PARKED", A), ("ABANDONED", X)],
+  "one PR per phase · up + down receipts with an empty schema diff · a parity archive · zero-use telemetry",
+  "one phase of one table in flight — nothing dropped before the zero-reader window",
+  "EXPAND → DUAL-WRITE → BACKFILL → SWITCH-READS → RETIRE-WRITES → CONTRACT"),
 
-m("oncall-it", """Title: oncall-it — operable, proven by a worker who cannot read the source
-Row 1: FREEZE (caption: the path set + 2–4 on-call questions per path) with an amber person icon → BOOTSTRAP BASE (caption: preflight — BASE ≠ default) → INSTRUMENT (caption: events · correlation ID · RED/USE with bounded labels) → ALERT (caption: symptom-based, two severities, a justified threshold) → RUNBOOK (caption: Means / First check / Escalate-to)
-Row 2: REVIEW (caption: build-blind) → LAND (caption: merge conductor) → TEST-FIRE (caption: a receipt from the channel) → INDUCE (caption: a failure in staging — a source-blind worker names the component) → a diamond: negative control — instrumentation removed, blind worker RED?  Branch labelled yes: hexagon OPERABLE (green).  Branch labelled no staging / no channel / cost call: hexagon OPERABLE-WITH-PARKED (amber)
-No dashed or looping arrows anywhere in this diagram; the flow is strictly forward. The only person icon is the one at FREEZE.
-Footer, small, centred: green on the induce without RED on the removal proves only that the failure was guessable"""),
+m("oncall-it", "operable, proven by a worker who cannot read the source",
+  "a path set, with 2–4 on-call questions per path",
+  "freezing the questions · cardinality and cost decisions · who gets paged",
+  [("OPERABLE", G), ("OPERABLE-WITH-PARKED", A)],
+  "instrumentation PRs · test-fired alerts with runbooks · a source-blind worker's manifest and its removal control",
+  "a missing staging or alert channel parks — the oracle is never downgraded",
+  "FREEZE → INSTRUMENT → ALERT → RUNBOOK → TEST-FIRE → INDUCE"),
 
-m("absorb-it", """Title: absorb-it — an inbound PR queue drained with credit intact
-Row 1: ENUMERATE (caption: at T0 — every open inbound PR, paginated, + linked issues) → CLASSIFY (caption: reproduce the claim on current main) → a diamond: class?
-From the diamond, branch labelled absorbable: RECLASSIFY (caption: at the pinned current BASE, initial-main receipt retained) → ABSORB (caption: apply preserving Author: — a fleet amendment is a separate commit) → RECEIPT (caption: regression test RED on the pre-absorption base, GREEN on the absorbed head) → REVIEW (caption: build-blind) → LAND (caption: one PR against BASE) → CLOSE (caption: the inbound PR — landing SHA + credit line)
-Branch labelled superseded / duplicate: BATCH GATE (caption: close citing the winning SHA) with an amber person icon.  Branch labelled needs-contributor / design-disagreement: PARK (caption: with a named ask — one follow-up, no nagging)
-Row 2: RE-ENUMERATE (caption: the whole queue, paginated, again), with solid arrows coming into it from CLOSE, from BATCH GATE and from PARK. RE-ENUMERATE forks into two hexagons stacked one above the other to its right, each reached by its own solid arrow from RE-ENUMERATE: ABSORBED (green) and ABSORBED-WITH-PARKED (amber); nothing connects the two hexagons to each other. Exactly one dashed arrow in the whole diagram: it starts at RE-ENUMERATE and ends at CLASSIFY, labelled: non-terminal PRs remain.
-RE-ENUMERATE is a normal-sized phase box like every other. The only person icon is the one at BATCH GATE. The only dashed arrow is the RE-ENUMERATE → CLASSIFY loop.
-Footer, small, centred: the contributor's name stays on the commit — the credit is the outcome"""),
+m("absorb-it", "an inbound PR queue drained with credit intact",
+  "an inbound pull-request queue",
+  "closing a contribution without landing it, in a batch · design disagreements",
+  [("ABSORBED", G), ("ABSORBED-WITH-PARKED", A)],
+  "landed commits with the contributor's authorship · RED-on-base, GREEN-on-head receipts · closing comments with credit",
+  "authorship is never rewritten — one follow-up, no nagging",
+  "ENUMERATE → CLASSIFY → ABSORB → RECEIPT → REVIEW → LAND → CLOSE"),
 
-m("document-it", """Title: document-it — every public-surface cell filled, every claim anchored
-Row 1: EXTRACT (caption: the public surface — a script at the BASE head, output + SHA pasted) → MAP (caption: coverage per quadrant — reference · how-to · tutorial · explanation; every cell cites file:line) → FREEZE THE GAP LIST (caption: critical = zero coverage; a human bounds tutorial / explanation) with an amber person icon → BOOTSTRAP BASE (caption: preflight — BASE ≠ default) → WRITE (caption: one cell per unit — reference first, from code archaeology)
-Row 2: CLAIM-VERIFY (caption: every claim → file:symbol or a run; the rename control must go RED) → REVIEW (caption: build-blind — voice · accuracy · reachable in one hop) → LAND → RE-MAP (caption: at the final head — same extractor, new SHA) → hexagon DOCUMENTED (green, caption: zero critical gaps) and hexagon DOCUMENTED-WITH-PARKED (amber, caption: explanation-needs-author · tutorial-not-warranted · diagram-needs-human)
-No dashed or looping arrows anywhere in this diagram; the flow is strictly forward. The only person icon is the one at FREEZE THE GAP LIST.
-Footer, small, centred: prose quality is not the oracle — coverage, anchoring and reachability are"""),
+m("document-it", "every public-surface cell filled, every claim anchored",
+  "a public surface — extracted by a script, not by hand",
+  "freezing the gap list · which entities deserve a tutorial or an explanation",
+  [("DOCUMENTED", G), ("DOCUMENTED-WITH-PARKED", A)],
+  "a page per cell with every claim anchored · rename-control transcripts · the coverage map re-derived at the final head",
+  "never inventing a why, never rewriting a diagram",
+  "EXTRACT → MAP → FREEZE → WRITE → CLAIM-VERIFY → REVIEW → LAND → RE-MAP"),
 ]

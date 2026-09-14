@@ -17,6 +17,14 @@ have used Claude Code before but never run a multi-agent fleet.
 
 ## Prerequisites
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../assets/diagrams/install-stack.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../assets/diagrams/install-stack-light.jpg">
+    <img src="../assets/diagrams/install-stack-light.jpg" alt="The stack, bottom to top: the Orca app with orchestration enabled, the orca CLI, the orchestration and orca-cli skills, the orca-fleet missions, and the upstream packs, one per worker; three install paths: a symlink with the completion gate off until the settings snippet is wired, the Claude Code plugin with the gate on by construction, and the skills CLI, which severs playbook references and is not supported today" width="820">
+  </picture>
+</p>
+
 Two hard requirements, without which no mission will start:
 
 1. **The Orca runtime and its `orchestration` skill** (shipped with the Orca CLI, not with this
@@ -144,7 +152,11 @@ stops. Merging that PR is human gate #2 — always yours.
 ## What you will see while a fleet runs
 
 <p align="center">
-  <img src="../assets/diagrams/first-run.jpg" alt="A single command prompt fans out into a fleet of worker terminals over a node graph, converging into one evidence document stamped with a checkmark" width="820">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../assets/diagrams/first-run.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../assets/diagrams/first-run-light.jpg">
+    <img src="../assets/diagrams/first-run-light.jpg" alt="A single command prompt fans out into a fleet of worker terminals over a node graph, converging into one evidence document stamped with a checkmark" width="820">
+  </picture>
 </p>
 
 For a blow-by-blow of a real run — including the incidents and what the coordinator did about
@@ -164,6 +176,14 @@ A fleet is not one scrolling transcript. Expect:
   default branch), each merged only by the conductor after verification.
 
 ## Where the evidence lands
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../assets/diagrams/artifacts-map.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../assets/diagrams/artifacts-map-light.jpg">
+    <img src="../assets/diagrams/artifacts-map-light.jpg" alt="What a run leaves behind: a ledger with one row per unit; a docs/runs directory holding the report, a manifest per unit and a sha256 inventory; one PR per unit merged into BASE with reviewed_sha equal to head; and a promotion PR from BASE to default left to you" width="820">
+  </picture>
+</p>
 
 Every unit of work produces a SHA-bound **evidence manifest** — the JSON contract described in
 [concepts](concepts.md#the-evidence-manifest) and specified in
@@ -185,6 +205,14 @@ When a coordinator says a unit is done, it means an independent verifier has alr
 manifest against git and a clean test run — not that a worker said so.
 
 ## Your side of the human gates
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../assets/diagrams/gates-terminal.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../assets/diagrams/gates-terminal-light.jpg">
+    <img src="../assets/diagrams/gates-terminal-light.jpg" alt="A freeze decision as it reaches your terminal: two options with one recommended, reply a or b, no timeout default because the freeze is a one-way gate; beside it a taste gate that takes the recommendation and keeps working for your later veto, and the promotion PR the fleet opens and leaves for you to merge" width="820">
+  </picture>
+</p>
 
 Fleets classify every decision as **mechanical** (auto-resolved, audited), **taste**
 (recommendation picked, batched for your veto, work continues), or **one-way** (yours, always).

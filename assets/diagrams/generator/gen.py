@@ -4,8 +4,11 @@
     OPENROUTER_API_KEY=... python3 assets/diagrams/generator/gen.py                 # everything
     OPENROUTER_API_KEY=... python3 assets/diagrams/generator/gen.py --only mission-map,ship-it
 
-Prompts live next to this file: specs.py (concept diagrams + brand images) and
-specs_missions.py (one state machine per mission). Each spec names its output path, the
+Prompts live next to this file: specs.py (concept diagrams + brand images), specs_missions.py
+(one developer-contract card per mission), specs_new.py (the README and deep-dive visuals) and
+specs_light.py, which derives a "-light" variant of every diagram by asking the model to recolor
+the finished dark render, so layout and text stay identical. Generate the dark ids first; a light
+id reads its dark JPEG from the repo. Each spec names its output path, the
 aspect ratio requested from the model, and the final pixel size; the returned PNG is scaled to
 cover that size, centre-cropped, and written as a progressive JPEG at the repo path.
 
@@ -39,10 +42,15 @@ MODEL = os.environ.get("IMAGE_MODEL", "google/gemini-3-pro-image")
 REPO = HERE.parents[2]
 
 
-def call(prompt, aspect, size, timeout=420):
+def call(prompt, aspect, size, timeout=420, image_bytes=None, mime="image/jpeg"):
+    """One generation. With image_bytes the model edits that image (used for the light variants)."""
+    content = prompt
+    if image_bytes is not None:
+        content = [{"type": "text", "text": prompt},
+                   {"type": "image_url", "image_url": {"url": f"data:{mime};base64," + base64.b64encode(image_bytes).decode()}}]
     body = {
         "model": MODEL,
-        "messages": [{"role": "user", "content": prompt}],
+        "messages": [{"role": "user", "content": content}],
         "modalities": ["image", "text"],
         "image_config": {"aspect_ratio": aspect, "image_size": size},
     }
@@ -84,7 +92,9 @@ def one(spec, size, raw_dir, force, attempts=3):
     for i in range(attempts):
         t0 = time.time()
         try:
-            raw, usage = call(spec["prompt"], spec["aspect"], spec.get("size", size))
+            src = spec.get("from")  # light variants recolor the finished dark render
+            raw, usage = call(spec["prompt"], spec["aspect"], spec.get("size", size),
+                              image_bytes=(REPO / src).read_bytes() if src else None)
             raw_path.write_bytes(raw)
             img = Image.open(io.BytesIO(raw))
             w, h = spec["dims"]

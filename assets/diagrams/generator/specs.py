@@ -67,10 +67,12 @@ Lane 2 label: TASTE   caption: reversible, reasonable people disagree — API sh
 Lane 3 label: ONE-WAY   caption: merge to default · deploy · rollback · delete · spend · secret rotation.  Flow: an arrow that stops at a heavy closed vault door with an amber lock and an amber person icon, labelled: HUMAN, ALWAYS, caption: never auto-resolved, never defaulted on timeout.
 Footer, small, centred: every unit is lit by default — a reviewer reads the change; dark-eligible is opt-in and narrow"""},
 
-    {"id": "merge-train", "out": "assets/diagrams/merge-train.jpg", **D, "prompt": STYLE + """Content: a single railway track running from the left edge to a station platform at the right labelled: BASE, caption: integration branch — never the default branch.
-On the track a train of four rounded cars moving right, labelled from the front: PR #14  ·  PR #13  ·  PR #12  ·  PR #11, each car carrying a small tag: reviewed_sha.
+    {"id": "merge-train", "out": "assets/diagrams/merge-train.jpg", **D, "prompt": STYLE + """Every piece of text in this image is set in the same monospace font, captions included.
+Content: a single railway track running from the left edge to a station platform at the right labelled: BASE, caption: integration branch — never the default branch.
+On the track a train of THREE rounded cars moving right toward the platform, labelled from the front: PR #11  ·  PR #12  ·  PR #14, each car carrying a small tag: reviewed_sha.
 At the front of the train a conductor figure holding a lantern, labelled: CONDUCTOR — one per BASE, with a small checklist beside it: open?  targets BASE?  head == reviewed_sha?  merge-base --is-ancestor.
-One car, PR #13, is diverted onto a dashed side track curving away from the main track, with a red tag: STALE — head moved, and a caption on the side track: bounce to re-review, requeue at the back.
+A FOURTH car, PR #13, appears only once, on a dashed side track that curves away from the main track, carrying a red tag: STALE — head moved, with a caption on the side track: bounce to re-review, requeue at the back.
+The platform labelled BASE is a low, small station at the right edge of the track, not a large box.
 Captions along the bottom, small: arrival order, no priority lanes  ·  hot files build in parallel, merge as a chain"""},
 
     {"id": "attention-budget", "out": "assets/diagrams/attention-budget.jpg", **D, "prompt": STYLE + """Content: a left-to-right funnel composition.
@@ -155,9 +157,6 @@ Footer, small, centred: missions are named for outcomes, never for packs"""},
     {"id": "social-preview", "out": "assets/social-preview.jpg", "aspect": "16:9", "dims": (2560, 1280), "q": 88, "prompt": SOCIAL},
 ]
 
-from specs_missions import MISSIONS  # noqa: E402
-SPECS += MISSIONS
-
 SPECS.append({"id": "run-timeline", "out": "assets/diagrams/run-timeline.jpg", **D, "prompt": STYLE + """Content: a timeline of one real fleet run, read left to right.
 Across the upper half, six phase boxes joined by arrows:
 TRIAGE (caption: 10 issues → 7 build units + 3 parks)
@@ -170,3 +169,11 @@ TRIAGE (caption: 10 issues → 7 build units + 3 parks)
 Across the lower half, a horizontal timeline axis with tick marks and labels, evenly spread: T0 · +6m · +30m · +75m · +14h · close, aligned under the matching boxes.
 Two callout lines from the axis to small notes beneath it: under +30m the note: dual-writer prevented — respawn pane closed;  under +14h the note: the two-denominator rule was born here.
 Footer, small, centred: nothing here is illustrative fiction — every incident changed a runtime policy"""})
+
+
+from specs_missions import MISSIONS  # noqa: E402
+from specs_new import NEW  # noqa: E402
+SPECS += MISSIONS + NEW
+
+from specs_light import light_variants  # noqa: E402
+SPECS += light_variants(SPECS)

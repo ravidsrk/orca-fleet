@@ -51,6 +51,17 @@ remain doctrine it performs, not mechanism the verifier performs for it. (Report
 like `review-it` bind their claims to the reviewed SHA instead of landing a change to control
 against.)
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/diagrams/you-say.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="assets/diagrams/you-say-light.jpg">
+    <img src="assets/diagrams/you-say-light.jpg" alt="Three columns, what you say, what the fleet runs, what you get: ship this becomes freeze, build, review and PROMOTION_READY with evidence; close every issue becomes triage, fix, re-enumerate and a backlog at zero, SHA-linked; harden this becomes audit, exploit, re-attack and a CLEAN re-audit or named gaps; why is this flaky becomes reproduce, falsify, prove and a demonstrated root cause" width="1000">
+  </picture>
+</p>
+
+<details>
+<summary>Text version</summary>
+
 ```
  YOU SAY                          THE FLEET RUNS                        YOU GET
 ┌──────────────────────┐      ┌─────────────────────────────┐      ┌──────────────────────────────┐
@@ -60,6 +71,8 @@ against.)
 │ "why is this flaky"  │ ───▶ │ reproduce → falsify → prove │ ───▶ │ demonstrated root cause      │
 └──────────────────────┘      └─────────────────────────────┘      └──────────────────────────────┘
 ```
+
+</details>
 
 No mission is named for a vendor or a technique. There are no `matt-*` or `gstack-*` skills here —
 the upstream packs ([mattpocock/skills](https://github.com/mattpocock/skills),
@@ -154,6 +167,14 @@ one-way gate class, not a lower rung. A scheduled unattended run is the L5 shape
 
 ## Proof status — honesty first
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/diagrams/proof-ladder.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="assets/diagrams/proof-ladder-light.jpg">
+    <img src="assets/diagrams/proof-ladder-light.jpg" alt="The proof ladder: doctrine-only, then self-run, then external-run; advancing needs a run report that binds, with a RUN header, a manifest in the run's own directory and an inventory that re-hashes at the named commit; today every mission reads doctrine-only" width="900">
+  </picture>
+</p>
+
 Every mission's `metadata:` block carries a validator-enforced `proof:` field: `doctrine-only`,
 `self-run`, or `external-run`. A tier cannot be claimed without **artifacts that hash true at a
 named commit**: `runtime/scripts/run_report.py` requires a `RUN:` header, an evidence manifest
@@ -210,7 +231,11 @@ where each link proceeds only on the previous mission's verified terminal state 
 ## Which mission do I want?
 
 <p align="center">
-  <img src="assets/diagrams/mission-map.jpg" alt="Decision map: a goal to build routes to map-it then ship-it; known problems route to clean-sweep, oss-contribute, absorb-it, harden-it, speed-it, modernize-it, migrate-it, prove-it, deflake-it, floor-it, reshape-it, attest-it, access-it, oncall-it, document-it, or field-test-it; a question routes to review-it or root-cause; drifted tooling routes to pin-it" width="900">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/diagrams/mission-map.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="assets/diagrams/mission-map-light.jpg">
+    <img src="assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it then ship-it; known problems route to clean-sweep, oss-contribute, absorb-it, harden-it, speed-it, modernize-it, migrate-it, prove-it, deflake-it, floor-it, reshape-it, attest-it, access-it, oncall-it, document-it, or field-test-it; a question routes to review-it or root-cause; drifted tooling routes to pin-it" width="900">
+  </picture>
 </p>
 
 <details>
@@ -248,6 +273,16 @@ flowchart TD
 
 </details>
 
+Missions also hand work to one another, each handoff a separately authorized run:
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/diagrams/mission-handoffs.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="assets/diagrams/mission-handoffs-light.jpg">
+    <img src="assets/diagrams/mission-handoffs-light.jpg" alt="How missions hand off: map-it to ship-it with a frozen map and DAG; root-cause to ship-it or clean-sweep with a fix handoff brief; modernize-it and ship-it to migrate-it for stateful changes; deflake-it and prove-it to clean-sweep for deterministic and surfaced bugs; attest-it to ship-it for remediation; oncall-it to root-cause for telemetry; and a chain harden-it, prove-it, ship-it gated by each verified terminal" width="900">
+  </picture>
+</p>
+
 Two workflows are the **same mission** only if they share all six of: unit of work, per-unit
 state machine, convergence proof, ordering/isolation constraints, parking/failure semantics, and
 the oracle the proof binds to — where a different oracle makes a different mission only when it
@@ -262,7 +297,11 @@ Every mission runs the same shape: a **coordinator** that never writes code, and
 **workers** that never coordinate.
 
 <p align="center">
-  <img src="assets/diagrams/fleet-topology.jpg" alt="Fleet topology: a human answers one-way gates; the coordinator holds the ledger and verifier; builder, reviewer, and conductor workers receive dispatches and return evidence" width="900">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/diagrams/fleet-topology.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="assets/diagrams/fleet-topology-light.jpg">
+    <img src="assets/diagrams/fleet-topology-light.jpg" alt="Fleet topology: a human answers one-way gates; the coordinator holds the ledger and verifier; builder, reviewer, and conductor workers receive dispatches and return evidence" width="900">
+  </picture>
 </p>
 
 <details>
@@ -325,7 +364,11 @@ can run the right-looking commands against the wrong SHA. So completion is never
 narration. It is a two-part protocol:
 
 <p align="center">
-  <img src="assets/diagrams/evidence-protocol.jpg" alt="Evidence protocol: a worker's claim travels as a manifest to a fresh-session verifier, which checks git, tests, and the deploy target before marking the unit verified — or re-dispatches it" width="900">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/diagrams/evidence-protocol.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="assets/diagrams/evidence-protocol-light.jpg">
+    <img src="assets/diagrams/evidence-protocol-light.jpg" alt="Evidence protocol: a worker's claim travels as a manifest to a fresh-session verifier, which checks git, tests, and the deploy target before marking the unit verified — or re-dispatches it" width="900">
+  </picture>
 </p>
 
 <details>
@@ -348,6 +391,17 @@ sequenceDiagram
 ```
 
 </details>
+
+The difference that matters is checkable. On the same gamed manifest a self-scoring gate goes GREEN and
+the verifier goes RED, reproducibly ([demo/negative-control/](demo/negative-control/README.md)):
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/diagrams/negative-control.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="assets/diagrams/negative-control-light.jpg">
+    <img src="assets/diagrams/negative-control-light.jpg" alt="Head-to-head on the same gamed manifest that reports only AC-1 of a two-criterion spec: a self-scoring gate grades the worker's own list and returns GREEN; orca-fleet's verifier re-derives the criterion set from the frozen spec in a fresh session and returns RED, AC-2 not addressed; and for every fix the negative control reverts it and the proof must go RED" width="900">
+  </picture>
+</p>
 
 The manifest binds every claim to a SHA and an artifact; `verify.py` re-derives what it can
 from authoritative state, scope first: the criterion set from `contract.source` at
@@ -374,7 +428,11 @@ never trust.**
 ## Three layers, strictly separated
 
 <p align="center">
-  <img src="assets/diagrams/three-layers.jpg" alt="Three layers: MISSIONS (discoverable, one outcome each) compose PLAYBOOKS (callable phase protocols), which run on RUNTIME (invisible policies and primitives)" width="900">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/diagrams/three-layers.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="assets/diagrams/three-layers-light.jpg">
+    <img src="assets/diagrams/three-layers-light.jpg" alt="Three layers: MISSIONS (discoverable, one outcome each) compose PLAYBOOKS (callable phase protocols), which run on RUNTIME (invisible policies and primitives)" width="900">
+  </picture>
 </p>
 
 > Missions are discoverable. Playbooks are callable. Runtime mechanisms are invisible unless
@@ -485,6 +543,14 @@ install transcript yet.
 
 ## Requirements
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/diagrams/install-stack.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="assets/diagrams/install-stack-light.jpg">
+    <img src="assets/diagrams/install-stack-light.jpg" alt="The stack, bottom to top: the Orca app with orchestration enabled, the orca CLI, the orchestration and orca-cli skills, the orca-fleet missions, and the upstream packs, one per worker; three install paths: a symlink with the completion gate off until the settings snippet is wired, the Claude Code plugin with the gate on by construction, and the skills CLI, which severs playbook references and is not supported today" width="900">
+  </picture>
+</p>
+
 Every mission has a **hard dependency on companions not published in this repo**:
 
 1. **Orca app** running, orchestration experimental feature enabled  
@@ -516,7 +582,7 @@ skills/       missions — the discoverable catalog (one SKILL.md each)
 playbooks/    callable phase protocols missions compose by name
 runtime/      policies + runtime/scripts/ (spawn_worker, preflight, pm)
 docs/         human documentation: getting started, concepts, mission guides
-assets/       banners and images
+assets/       banners, diagrams (dark + light), generated badges, and the image generator
 scripts/      validate.py — spec + three-layer + cross-reference validation
 tests/        architecture contracts + validator negative-path fixtures (stdlib unittest)
 ```

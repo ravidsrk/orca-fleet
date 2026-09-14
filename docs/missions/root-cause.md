@@ -13,7 +13,11 @@
 **Skill:** [`skills/root-cause/SKILL.md`](../../skills/root-cause/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** **diagnosis only** — the mission runs the diagnose playbook's DIAGNOSIS phases and stops before its fix phase; a fix is a separately authorized handoff
 
 <p align="center">
-  <img src="../../assets/diagrams/missions/root-cause.jpg" alt="State machine: STOP-THE-LINE to preserve evidence, RED LOOP until reliably red, LOCALIZE by bisect and minimize, three to five ranked falsifiable HYPOTHESES, FALSIFY one variable at a time, DEMONSTRATE the survivor with a regression seam, ending DIAGNOSED with the fix handoff separately authorized" width="820">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/diagrams/missions/root-cause.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../../assets/diagrams/missions/root-cause-light.jpg">
+    <img src="../../assets/diagrams/missions/root-cause-light.jpg" alt="Mission contract for root-cause: you give it a symptom report; it interrupts you for authorizing the fix — after the diagnosis, never inside it; you get back DIAGNOSED or ARCHITECTURE HANDOFF, plus the pasted red-capable loop; ranked hypotheses with their falsifications; a fix handoff brief; it stops at diagnosis only — it never merges a fix; phases STOP-THE-LINE, RED LOOP, LOCALIZE, HYPOTHESES, FALSIFY, DEMONSTRATE" width="820">
+  </picture>
 </p>
 
 ---

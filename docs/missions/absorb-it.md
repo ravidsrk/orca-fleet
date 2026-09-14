@@ -12,7 +12,11 @@
 **Skill:** [`skills/absorb-it/SKILL.md`](../../skills/absorb-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes — the fleet lands and closes
 
 <p align="center">
-  <img src="../../assets/diagrams/missions/absorb-it.jpg" alt="State machine: ENUMERATE every open inbound PR at T0, CLASSIFY by reproducing the claim on current main, then either RECLASSIFY at the pinned BASE, ABSORB preserving authorship, RECEIPT with RED-on-base and GREEN-on-head, build-blind REVIEW, LAND and CLOSE with credit, or close through a batch human gate, or PARK with a named ask; RE-ENUMERATE until ABSORBED or ABSORBED-WITH-PARKED" width="820">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/diagrams/missions/absorb-it.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../../assets/diagrams/missions/absorb-it-light.jpg">
+    <img src="../../assets/diagrams/missions/absorb-it-light.jpg" alt="Mission contract for absorb-it: you give it an inbound pull-request queue; it interrupts you for closing a contribution without landing it, in a batch; design disagreements; you get back ABSORBED or ABSORBED-WITH-PARKED, plus landed commits with the contributor's authorship; RED-on-base, GREEN-on-head receipts; closing comments with credit; it stops at authorship is never rewritten — one follow-up, no nagging; phases ENUMERATE, CLASSIFY, ABSORB, RECEIPT, REVIEW, LAND, CLOSE" width="820">
+  </picture>
 </p>
 
 ---

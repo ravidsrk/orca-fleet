@@ -108,6 +108,20 @@ promises nothing (#293).
   physical device — baseline, reproduce, fix, re-verify at `head_sha` with a revert negative
   control; terminals `FIELD-PROVEN` / `FIELD-PROVEN-WITH-PARKED`.
 
+**The images are now generated from a committed prompt source, and they answer developer
+questions instead of restating the mermaid.** Every banner and diagram under `assets/` is
+re-rendered with Nano Banana Pro from the prompts in `assets/diagrams/generator/`, so a stale
+picture is a prompt edit and a rerun rather than a redraw. The 21 mission diagrams became
+developer-contract cards: what you give it, what it interrupts you for, what you get back, and
+where it stops, at 60 words or fewer so the captions survive the guide's embed width; the
+pipeline stays in each guide's mermaid block. Nine visuals were added where a question had no
+picture: the you-say table that opens the README, the negative-control head-to-head, the install
+stack with its three paths and their gate status, the gates as they reach your terminal, the
+artifacts a run leaves behind, the mission handoff graph, the proof ladder, the verify-gate
+trust boundary, and the mission-identity test. Every diagram ships a light variant behind a
+`<picture>` element. ARCHITECTURE.md deliberately carries no image: it counts toward every
+mission's activation load, and the validator said so.
+
 ## [0.6.1] - 2026-09-09
 
 plugin.json, marketplace.json, and this heading now agree on 0.6.1 (issue #237).

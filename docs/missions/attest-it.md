@@ -12,7 +12,11 @@
 **Skill:** [`skills/attest-it/SKILL.md`](../../skills/attest-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** evidence-gathering (`ro`); remediation that lands code routes to `ship-it` / `clean-sweep`
 
 <p align="center">
-  <img src="../../assets/diagrams/missions/attest-it.jpg" alt="State machine: INVENTORY the frozen obligations, COLLECT evidence per obligation, VERIFY by independent re-derivation, ATTEST, ending CONFORMANT or CONFORMANT-WITH-GAPS" width="820">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/diagrams/missions/attest-it.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../../assets/diagrams/missions/attest-it-light.jpg">
+    <img src="../../assets/diagrams/missions/attest-it-light.jpg" alt="Mission contract for attest-it: you give it a standard at a version, and a codebase; it interrupts you for the conformance verdict; every accepted gap; you get back CONFORMANT or CONFORMANT-WITH-GAPS, plus evidence per obligation, re-derived in a fresh session; gaps with a named owner; it stops at read-only — remediation is a separate ship-it or clean-sweep run; phases FREEZE, EVIDENCE, RE-DERIVE, ATTEST" width="820">
+  </picture>
 </p>
 
 ---

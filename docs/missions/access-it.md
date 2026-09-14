@@ -12,7 +12,11 @@
 **Skill:** [`skills/access-it/SKILL.md`](../../skills/access-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes — `PROFILE=rw` fix workers
 
 <p align="center">
-  <img src="../../assets/diagrams/missions/access-it.jpg" alt="State machine: FREEZE the surface and WCAG target, DETECT with the axe-core oracle, FIX via rw workers, RE-VERIFY by reverting to bring the violation back, ending CONFORMANT or CONFORMANT-WITH-MANUAL-PARKED" width="820">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/diagrams/missions/access-it.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../../assets/diagrams/missions/access-it-light.jpg">
+    <img src="../../assets/diagrams/missions/access-it-light.jpg" alt="Mission contract for access-it: you give it a page, flow or component set and a WCAG 2.2 AA target; it interrupts you for the human-AT park — screen-reader and cognitive criteria; promotion; you get back CONFORMANT or CONFORMANT-WITH-MANUAL-PARKED, plus an axe-core clean report; revert-to-violation controls; parked criteria with reasons; it stops at never passing a criterion on the oracle's silence; phases FREEZE, DETECT, FIX, LAND, RE-VERIFY, PARK" width="820">
+  </picture>
 </p>
 
 ---

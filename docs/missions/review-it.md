@@ -13,7 +13,11 @@
 **Skill:** [`skills/review-it/SKILL.md`](../../skills/review-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** **no** — the catalog's read-only permission boundary
 
 <p align="center">
-  <img src="../../assets/diagrams/missions/review-it.jpg" alt="State machine: PIN the SHA-bound diff, four isolated review axes (standards, spec, tests, scope-gated risk lens), AGGREGATE through an anti-false-positive gate, ending GO or NO-GO; read-only with no fix authority" width="820">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/diagrams/missions/review-it.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../../assets/diagrams/missions/review-it-light.jpg">
+    <img src="../../assets/diagrams/missions/review-it-light.jpg" alt="Mission contract for review-it: you give it a PR or branch, and the spec it claims to implement; it interrupts you for nothing during the run — acting on the verdict is yours; you get back GO or NO-GO, plus findings per axis, each quoting its motivating line; the verdict bound to reviewed_sha; it stops at read-only — PROFILE=ro, not one byte of the tree modified; phases PIN, STANDARDS; SPEC; TEST-ADEQUACY; RISK, AGGREGATE" width="820">
+  </picture>
 </p>
 
 ---

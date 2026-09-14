@@ -13,7 +13,11 @@
 **Skill:** [`skills/ship-it/SKILL.md`](../../skills/ship-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes
 
 <p align="center">
-  <img src="../../assets/diagrams/missions/ship-it.jpg" alt="State machine: FREEZE (gate 1, you confirm the spec) through DECOMPOSE, parallel slice builders, build-blind REVIEW with bounded fix rounds, PROVE at the real entry point, LAND via one merge train, to PROMOTION_READY (gate 2, you merge), then RELEASED and DEPLOYED_AND_VERIFIED" width="820">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/diagrams/missions/ship-it.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../../assets/diagrams/missions/ship-it-light.jpg">
+    <img src="../../assets/diagrams/missions/ship-it-light.jpg" alt="Mission contract for ship-it: you give it an intent, or a frozen spec; it interrupts you for gate 1 — confirm the frozen spec; gate 2 — merge the promotion PR; you get back BUILT or PROMOTION_READY or RELEASED or DEPLOYED_AND_VERIFIED, plus slice PRs on BASE; a promotion PR with a traceability table; an evidence manifest per unit; it stops at the highest release state you authorized — it never merges to the default branch itself; phases FREEZE, DECOMPOSE, BUILD, REVIEW, PROVE, LAND, RELEASE" width="820">
+  </picture>
 </p>
 
 ---

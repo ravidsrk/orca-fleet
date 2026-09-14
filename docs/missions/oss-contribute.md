@@ -14,7 +14,11 @@
 **Skill:** [`skills/oss-contribute/SKILL.md`](../../skills/oss-contribute/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** on the fork, yes; merge authority: never
 
 <p align="center">
-  <img src="../../assets/diagrams/missions/oss-contribute.jpg" alt="State machine: ENUMERATE open issues and open PRs, SKEPTIC-TRIAGE, a fork on already-has-a-PR into the assist/stand-down taste gate (an alternative PR only on maintainer invitation) or BUILD on fork with failing test first, build-blind REVIEW, OPEN PR to the upstream default, FOLLOW UP until every thread is answered, re-enumerating until CONTRIBUTED; the maintainer merges, never the fleet" width="820">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/diagrams/missions/oss-contribute.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../../assets/diagrams/missions/oss-contribute-light.jpg">
+    <img src="../../assets/diagrams/missions/oss-contribute-light.jpg" alt="Mission contract for oss-contribute: you give it issues on an upstream repo you can only fork; it interrupts you for refuted and stand-down closes, in a batch; assist vs alternative PR; CLA and DCO signatures; you get back CONTRIBUTED or CONTRIBUTED-WITH-PARKED, plus open, reviewed, etiquette-correct upstream PRs; review-assist comments; every thread answered; it stops at the maintainer merges, never the fleet; phases ENUMERATE, TRIAGE, BUILD ON THE FORK, REVIEW, OPEN PR, FOLLOW UP" width="820">
+  </picture>
 </p>
 
 ---

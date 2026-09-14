@@ -12,7 +12,11 @@
 **Skill:** [`skills/migrate-it/SKILL.md`](../../skills/migrate-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes — one PR per phase
 
 <p align="center">
-  <img src="../../assets/diagrams/missions/migrate-it.jpg" alt="State machine: PLAN the table set and phase list with down paths, then per table EXPAND, DUAL-WRITE, BACKFILL with a full parity probe, SWITCH-READS, a ZERO-READERS window, archived parity, RETIRE-WRITES, a ZERO-WRITERS window, and CONTRACT behind a one-way human gate, ending MIGRATED, MIGRATED-WITH-PARKED, or ABANDONED via exercised down paths" width="820">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/diagrams/missions/migrate-it.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../../assets/diagrams/missions/migrate-it-light.jpg">
+    <img src="../../assets/diagrams/missions/migrate-it-light.jpg" alt="Mission contract for migrate-it: you give it a table set and a phase list, each phase with its down path; it interrupts you for CONTRACT — dropping the old shape; bake windows that need production telemetry; you get back MIGRATED or MIGRATED-WITH-PARKED or ABANDONED, plus one PR per phase; up + down receipts with an empty schema diff; a parity archive; zero-use telemetry; it stops at one phase of one table in flight — nothing dropped before the zero-reader window; phases EXPAND, DUAL-WRITE, BACKFILL, SWITCH-READS, RETIRE-WRITES, CONTRACT" width="820">
+  </picture>
 </p>
 
 ---

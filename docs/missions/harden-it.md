@@ -12,7 +12,11 @@
 **Skill:** [`skills/harden-it/SKILL.md`](../../skills/harden-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes
 
 <p align="center">
-  <img src="../../assets/diagrams/missions/harden-it.jpg" alt="State machine: THREAT-MODEL, AUDIT with a PoC per P0/P1 in an ephemeral sandbox, QUORUM VERIFY to refute false positives, FIX with exploit test first, REVIEW and PROVE, LAND, RE-ATTACK with variants looping back on new holes, RE-AUDIT ending CLEAN or HARDENED-WITH-OPEN-ITEMS" width="820">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/diagrams/missions/harden-it.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../../assets/diagrams/missions/harden-it-light.jpg">
+    <img src="../../assets/diagrams/missions/harden-it-light.jpg" alt="Mission contract for harden-it: you give it a system and its trust boundaries; it interrupts you for one-way remediations you perform yourself, like a secret rotation; the danger-sandbox grant; you get back CLEAN or HARDENED-WITH-OPEN-ITEMS, plus exploit tests; class-wide fixes on BASE; re-attack transcripts; a fresh full audit; it stops at parked P0/P1 named per item — no PoC ever runs on your machine; phases THREAT-MODEL, AUDIT, FIX, LAND, RE-ATTACK, RE-AUDIT" width="820">
+  </picture>
 </p>
 
 ---

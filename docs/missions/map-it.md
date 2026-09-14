@@ -12,7 +12,11 @@
 **Skill:** [`skills/map-it/SKILL.md`](../../skills/map-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** **no** — decisions, not deliverables; no production code is written
 
 <p align="center">
-  <img src="../../assets/diagrams/missions/map-it.jpg" alt="State machine: NAME the destination, CHART decision tickets, clear the frontier with AFK research and one human decision per session, looping while foggy, FREEZE, PREPARE the DAG without dispatching, ending FROZEN MAP + DAG handed to ship-it" width="820">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/diagrams/missions/map-it.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../../assets/diagrams/missions/map-it-light.jpg">
+    <img src="../../assets/diagrams/missions/map-it-light.jpg" alt="Mission contract for map-it: you give it a goal too foggy to spec; it interrupts you for every decision ticket, one per session; the freeze; you get back FROZEN MAP + DAG, plus decision tickets; a frozen spec; a verified Orca DAG that ship-it dispatches unchanged; it stops at no production code — decisions, not deliverables; phases NAME, CHART, CLEAR THE FRONTIER, FREEZE, PREPARE THE DAG" width="820">
+  </picture>
 </p>
 
 ---
