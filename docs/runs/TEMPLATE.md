@@ -83,8 +83,10 @@ Required by `attention-budget` for every mutating self-run in the catalog; for e
 and report-only missions, record why this self-run measurement is inapplicable.
 
 One row per dispatch wave, `wave=1` … `wave=<n>` for the `RUN:` header's `waves=<n>`, each
-carrying every labeled cell below with a digit-led measured value; `run_report.py` refuses a
-missing, doubled, or unlabeled cell. The two rows show a two-wave run — add or delete rows to match.
+carrying every labeled cell below with a digit-led measured value (whole numbers for `wave`,
+`builders`, `reviewers`). `run_report.py` refuses a row whose labeled cell is missing, unmeasured
+or written twice — a bare value without its `key=` label counts as missing; other cells, such as a
+note, are free. The two rows show a two-wave run — add or delete rows to match.
 
 | Wave | WIP setting | Builder throughput | Verification latency | Rework rate | Freshness violations |
 |---|---|---|---|---|---|
