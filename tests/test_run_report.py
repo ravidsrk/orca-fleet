@@ -262,10 +262,28 @@ class WipCurveObligation(unittest.TestCase):
         errs = run_report._wip_curve_errors(body, "ship-it", ROOT, "r.md")
         self.assertTrue(any("carries no measured ['wave']" in e for e in errs), errs)
 
+    def test_a_wave_that_is_not_an_integer_is_refused(self):
+        # Verdict r2: wave=1.5 is digit-led, so the metric rule would take it, and the per-wave
+        # count skips it — beside a complete wave 1 row, only the integer rule refuses it.
+        row = self.ROW_2.replace("wave=2", "wave=1.5")
+        body = ("RUN: mission=ship-it waves=1\n\n## WIP curve\n\n"
+                + "\n".join([self.ROW_1, row]) + "\n")
+        errs = run_report._wip_curve_errors(body, "ship-it", ROOT, "r.md")
+        self.assertEqual(len(errs), 1, errs)
+        self.assertIn("carries no measured ['wave']", errs[0])
+
     def test_a_zero_wave_count_is_refused(self):
         body = f"RUN: mission=ship-it waves=0\n\n## WIP curve\n\n{self.ROW_1}\n"
         errs = run_report._wip_curve_errors(body, "ship-it", ROOT, "r.md")
         self.assertTrue(any("RUN: waves=0 — a mutating run records" in e for e in errs), errs)
+
+    def test_a_wave_count_that_is_not_a_number_is_refused_without_crashing(self):
+        # Verdict r2: waves=two reaches int() only past the digit guard — without it the checker
+        # raised ValueError instead of refusing the header.
+        body = f"RUN: mission=ship-it waves=two\n\n## WIP curve\n\n{self.ROW_1}\n"
+        errs = run_report._wip_curve_errors(body, "ship-it", ROOT, "r.md")
+        self.assertEqual(len(errs), 1, errs)
+        self.assertIn("RUN: waves=two — a mutating run records", errs[0])
 
     def test_a_run_header_carrying_waves_twice_is_refused(self):
         # Verdict r1: dict() kept the LAST waves=, so `waves=3 waves=1` plus one row bound on the 1
@@ -286,15 +304,17 @@ class WipCurveObligation(unittest.TestCase):
         self.assertIn("carries no measured ['throughput', 'latency_median']", errs[0])
 
     def test_a_wip_setting_that_is_not_an_integer_is_refused(self):
-        # The settings are counts. builders=two is no number at all; builders=2.5 is one the
-        # digit-led metric rule would take, so only the integer rule refuses it.
-        for value in ("two", "2.5"):
-            with self.subTest(builders=value):
-                row = self.ROW_1.replace("builders=3", f"builders={value}")
+        # The settings are counts. builders=two is no number at all; builders=2.5 and reviewers=2.5
+        # are ones the digit-led metric rule would take, so only the integer rule refuses them —
+        # for each setting, since dropping one key from the rule is one line (verdict r2).
+        for cell, value in (("builders=3", "builders=two"), ("builders=3", "builders=2.5"),
+                            ("reviewers=1", "reviewers=2.5")):
+            with self.subTest(setting=value):
+                row = self.ROW_1.replace(cell, value)
                 body = f"RUN: mission=ship-it waves=1\n\n## WIP curve\n\n{row}\n"
                 errs = run_report._wip_curve_errors(body, "ship-it", ROOT, "r.md")
                 self.assertEqual(len(errs), 1, errs)
-                self.assertIn("carries no measured ['builders']", errs[0])
+                self.assertIn(f"carries no measured ['{value.split('=')[0]}']", errs[0])
 
     def test_a_row_carrying_a_cell_twice_is_refused(self):
         # PR #391 review (P2): a copy-edited row kept only the LAST occurrence of each key, so
