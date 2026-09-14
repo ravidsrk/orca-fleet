@@ -185,6 +185,44 @@ class TheActivationLoadTableIsGenerated(unittest.TestCase):
         self.assertEqual(self._gen().check_architecture(), [],
                          "the committed table no longer matches validate.py's measurement")
 
+    def test_the_aggregate_check_reports_a_stale_guide_callout(self):
+        """Same dropped-call mutant, one aggregate over: check_guides() must be wired into check().
+
+        check_architecture got this guard after a real miss; the guides half had none — a
+        mutant dropping check_guides() from check() left the suite green (#355).
+        """
+        gen = self._gen()
+        with tempfile.TemporaryDirectory() as tmp:
+            guides = Path(tmp) / "guides"
+            guides.mkdir()
+            (guides / "ship-it.md").write_text(
+                "> **Activation load:** ~1 tokens — stale on purpose\n", encoding="utf-8")
+            gen.GUIDES_DIR = guides
+            errors = gen.check()
+        self.assertTrue(any("Activation load" in e and "ship-it" in e for e in errors),
+                        f"check() does not run the guides check: {errors}")
+
+    def test_the_generator_actually_refreshes_a_guide_callout(self):
+        # And the write-side mutant: write_guides() dropped from write() must not stay invisible.
+        gen = self._gen()
+        with tempfile.TemporaryDirectory() as tmp:
+            guides = Path(tmp) / "guides"
+            guides.mkdir()
+            guide = guides / "ship-it.md"
+            guide.write_text("> **Autonomy:** high\n"
+                             "> **Activation load:** ~1 tokens — stale on purpose\n",
+                             encoding="utf-8")
+            gen.GUIDES_DIR = guides
+            gen.BADGES_DIR = Path(tmp) / "badges"
+            arch = Path(tmp) / "ARCHITECTURE.md"
+            arch.write_text(f"{gen.ARCH_BEGIN}\nplaceholder\n{gen.ARCH_END}\n", encoding="utf-8")
+            gen.ARCH = arch
+            with contextlib.redirect_stdout(io.StringIO()):
+                gen.write()
+            written = guide.read_text(encoding="utf-8")
+        want = gen.load_callout("ship-it", gen.activation_loads()["ship-it"])
+        self.assertIn(want, written, "write() left the stale guide callout in place")
+
     def test_the_aggregate_check_reports_a_stale_table(self):
         """Calling check_architecture() directly proves the function works, NOT that CI runs it.
 
