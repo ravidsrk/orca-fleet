@@ -28,7 +28,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | T1 | #388 | evidence-run lockfile dirties worktree | real-bug | t | t | t | f | f | f | lit | — | PR #392 @da2f98a (base ✓ checks ✓); bot P1 mixed-version DECLINED on-PR (out of scope, disclosed) + follow-up filed (loop 2); review next |
 | T2 | #389 | run_report WIP validation accepts incomplete reports | real-bug | t | t | t | f | f | f | lit | — | PR #391 @f642700 (base ✓ checks ✓); bot 2 P1 + 1 P2 held VALID (template waves, manifest abs-paths, dup cells); review next |
 | T3 | #364 | fixture-backed evals + workspace-state oracle (S1) | real-feature-small | f | f | f | f | f | f | lit | — | Q1: fixtures+oracle (wave 2; brief TBD) |
-| T4 | #385 | historical-docs polish, agent slice (status.json + parity test) | real-bug (docs) | t | t | t | f | f | f | lit | — | PR #390; r1 NO-GO @bcb4397 (1 Req _guides, deduped ×3; review 5201268896 COMMENTED — GH 422s self-REQUEST_CHANGES); F385r2 dispatching |
+| T4 | #385 | historical-docs polish, agent slice (status.json + parity test) | real-bug (docs) | t | t | t | f | f | f | lit | — | PR #390 @d6fc2cc (fix 34e445e; clean 1290 OK); r2 axes dispatching (round 1/3) |
 | T5 | #386 | sign manifest+inventory, retention backend (S2) | — | — | — | — | — | — | — | — | needs-human: key custody + backend undecided (Q2) | Q2: park |
 | — | #235 | H-02 marketplace submissions (pre-parked needs-human) | needs-human | — | — | — | — | — | — | needs-human: external accounts | prior run + issue text |
 
