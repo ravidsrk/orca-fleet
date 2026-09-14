@@ -26,7 +26,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | STAB | — | land 4 PR-review hunks (deny-hook/run_report/verify/HUMAN_ACTIONS) + badge regen | conductor landing, worker-executed | t | n/a | n/a | n/a | t | n/a | lit | — | 1215e09 9651a52 8f7d5ac 917f9fd; pushed origin/BASE fast-forward (egress receipt); 1285 OK + full battery green; NC re-executed 11 failures; rides PR #387 |
 | T1 | #388 | evidence-run lockfile dirties worktree | real-bug | t | t | t | f | f | f | lit | — | PR #392 @c680ee0 (fix pushed, recovered); R2 re-verify underway @c680ee0 (batch: serialize-first + tests + N1) |
-| T2 | #389 | run_report WIP validation accepts incomplete reports | real-bug | t | t | t | f | f | f | lit | — | PR #391 @30a6037; R1 NO-GO (review 5202412008, both mutants re-checked by verdict worker); F389r3 fixing (doubled-wave + measured-rule tests, msg asserts, builders=int, waves= dup, docstring) |
+| T2 | #389 | run_report WIP validation accepts incomplete reports | real-bug | t | t | t | f | f | f | lit | — | PR #391 @50cc4e6 (verdict batch fixed, 1302 OK, NCs RED, 8 leg mutants killed, Greptile check pass 0 new); R2 re-verify underway @50cc4e6 |
 | T3 | #364 | fixture-backed evals + workspace-state oracle (S1) | real-feature-small | f | f | f | f | f | f | lit | — | Q1: fixtures+oracle (wave 2; brief TBD) |
 | T4 | #385 | historical-docs polish, agent slice (status.json + parity test) | real-bug (docs) | t | t | t | t | t | t | lit | — | PR #390 MERGED 32da76e @d6fc2cc (reviewed==head; greptile APPROVED + 3 blind GO); verify.py OK all legs (scope/commands/freshness/NC-exec/review/change-on-base); conductor manifest corrections (head/source) disclosed in-file; worktree retired; #385 closed w/ evidence |
 | T5 | #386 | sign manifest+inventory, retention backend (S2) | — | — | — | — | — | — | — | — | needs-human: key custody + backend undecided (Q2) | Q2: park |
@@ -283,3 +283,15 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   spec task_c39bba0e65b2/ctx_cc530e2d51ae, test task_41bc3590ddb0/ctx_9548dad3d578,
   standards task_011722839062/ctx_aaff62a2022f. All turns live. 4 workers out
   (3xR388r2 + F389r3).
+- F389r3 done (ctx_38cb2e0beeaa): union 046cfa3 (clean) + 22ba35b (R1/R2/a/b
+  tests; builders=2.5 added — only 2.5 witnesses the integer rule) + 885a04e (c
+  waves= twice refused, real RED pre-fix + d docstring) + badges ad1471b (1302) +
+  manifest 50cc4e6 (head ad1471b per option A). Gates at ad1471b: nc 63 OK,
+  validate, ruff, gitleaks, full 1302 OK; NCs RED (18F/1E, F3 2F, F1 1F,
+  both-paths 19F/1E, r3-to-30a6037 1F) + 8 leg mutants killed on own tests. Push
+  30a6037..50cc4e6 verified; PR #391 OPEN @50cc4e6; Greptile check pass, 0 new
+  comments/threads (no APPROVED object — same shape as before). Released.
+- R389r2 dispatched @50cc4e6 (specs copied + retargeted + batch-verify line):
+  spec task_545910b0a45c/ctx_5892ed94d0a0, test task_bb6c19fde0a2/ctx_db8cb1843f21,
+  standards task_fbb5ed5f6751/ctx_7717a5069bb5. All turns live. 6 workers out
+  (3xR388r2 + 3xR389r2).
