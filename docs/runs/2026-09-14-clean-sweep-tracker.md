@@ -25,8 +25,8 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | task_id | id | title | CLASS | BUILD_DONE | PR_OPEN | BOT | REVIEWED | MERGED | WT_CLEAN | lighting | park | evidence |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | STAB | — | land 4 PR-review hunks (deny-hook/run_report/verify/HUMAN_ACTIONS) + badge regen | conductor landing, worker-executed | f | n/a | n/a | n/a | f | f | lit | — | — |
-| T1 | A1 | evidence-run lockfile dirties worktree (to file) | needs-triage | f | f | f | f | f | f | lit | — | — |
-| T2 | A2 | run_report WIP validation accepts incomplete reports (to file) | needs-triage | f | f | f | f | f | f | lit | — | — |
+| T1 | #388 | evidence-run lockfile dirties worktree (filed 15:50Z) | needs-triage | f | f | f | f | f | f | lit | — | — |
+| T2 | #389 | run_report WIP validation accepts incomplete reports (filed 15:50Z) | needs-triage | f | f | f | f | f | f | lit | — | — |
 | T3 | #364 | per-skill behavioral evals ship zero fixtures (S1) | needs-triage | f | f | f | f | f | f | lit | — | — |
 | T4 | #385 | historical-docs polish (S2; commit 2d37bc2 partial) | needs-triage | f | f | f | f | f | f | lit | — | — |
 | T5 | #386 | optional hardening: sign manifest+inventory, retention backend (S2) | needs-triage | f | f | f | f | f | f | lit | — | — |
@@ -56,3 +56,9 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   2026-09-19. REFLECTION: what failed? unprovable profile flags + dead provider. Fix? stop per
   contract, respawn claude via WORKER_CMD custom-argv (explicit flags, no host dependence).
   Repeating? No — new lane, new agent. → worker-stop ctx_39334916997c.
+- 15:48 STABILIZE spawn 2: WORKER_CMD claude custom-argv → exit 3 UNPROVEN (input_accepted,
+  no turn_started); pane read shows a LIVE worker mid-turn (false negative) — no resend, no
+  respawn beside it. HANDLE term_15569166.
+- 15:50 A1/A2 filed as #388/#389 (egress receipts first, consent
+  run-2026-09-14-clean-sweep:tracker-writes). Loop-1 denominator now 6: #235 #364 #385 #386
+  #388 #389.
