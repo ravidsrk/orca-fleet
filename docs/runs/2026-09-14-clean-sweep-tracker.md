@@ -25,7 +25,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | task_id | id | title | CLASS | BUILD_DONE | PR_OPEN | BOT | REVIEWED | MERGED | WT_CLEAN | lighting | park | evidence |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | STAB | — | land 4 PR-review hunks (deny-hook/run_report/verify/HUMAN_ACTIONS) + badge regen | conductor landing, worker-executed | t | n/a | n/a | n/a | t | n/a | lit | — | 1215e09 9651a52 8f7d5ac 917f9fd; pushed origin/BASE fast-forward (egress receipt); 1285 OK + full battery green; NC re-executed 11 failures; rides PR #387 |
-| T1 | #388 | evidence-run lockfile dirties worktree | real-bug | t | t | t | f | f | f | lit | — | PR #392 @0775547 (conductor union, badges 1293); bot P1 DECLINED (reply 4008762873) + #393; review underway: standards done (1 Req truncate-before-dumps), spec/test redux after rm-dialog stall |
+| T1 | #388 | evidence-run lockfile dirties worktree | real-bug | t | t | t | f | f | f | lit | — | PR #392 @0775547; R1 NO-GO (review 5202287611, both Req reproduced by verdict worker); F388r2 fixing (serialize-first + 2 tests + N1) |
 | T2 | #389 | run_report WIP validation accepts incomplete reports | real-bug | t | t | t | f | f | f | lit | — | PR #391 @30a6037 (F1-F3 fixed: template 62ee4cd, dup-keys fcc9079, artifacts nulled 30a6037; 1296 OK; NCs RED; Greptile 0 new, no APPROVE yet); in-thread fix replies posted; review next |
 | T3 | #364 | fixture-backed evals + workspace-state oracle (S1) | real-feature-small | f | f | f | f | f | f | lit | — | Q1: fixtures+oracle (wave 2; brief TBD) |
 | T4 | #385 | historical-docs polish, agent slice (status.json + parity test) | real-bug (docs) | t | t | t | t | t | t | lit | — | PR #390 MERGED 32da76e @d6fc2cc (reviewed==head; greptile APPROVED + 3 blind GO); verify.py OK all legs (scope/commands/freshness/NC-exec/review/change-on-base); conductor manifest corrections (head/source) disclosed in-file; worktree retired; #385 closed w/ evidence |
@@ -226,3 +226,13 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   ctx_28af6981cdab, test task_660af294d3a0/ctx_9474d1d08054, standards
   task_2599f8ed15fb/ctx_9e937ba13b49. All turns live. 4 workers out (V388r1 +
   3xR389).
+- V388r1 done (ctx_32b5523bb822, report harvested): NO-GO @0775547 (wtree a17f20bd
+  matches conductor computation). Both Requireds reproduced by the verdict worker.
+  Batched: (1) serialize-first, (2) loose-seed test, (3) zero-length test, (4) N1
+  touch-up; exclusions recorded (conductor items, O1, RecursionError->file).
+  GitHub 422s REQUEST_CHANGES on own-PR — verdict posted as COMMENTED 5202287611
+  (verified on GitHub). LESSON: all future verdict specs say COMMENTED for both
+  outcomes (GitHub forbids self-REQUEST_CHANGES); NEVER APPROVE stands.
+- F388r2 dispatched (task_bac9a0d7f725/ctx_a410df6c2e3c): the verdict batch,
+  red-first, gates, manifest refresh with head := pushed tip INCL manifest commit
+  (explicit — the retired pre-manifest theory ends here), push to #392. Turn live.
