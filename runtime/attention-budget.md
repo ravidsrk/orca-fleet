@@ -57,7 +57,7 @@ dominates. Never spawn more agents to feel busy; throughput equals review+verify
 
 ## The WIP-curve protocol (how a cap graduates from asserted to measured)
 
-Every mutating fleet run from 2026-08-28 forward records, per dispatch wave, one row in its run report under `docs/runs/`:
+Every mutating fleet run from 2026-08-28 forward records, per dispatch wave, one row in its run report under `docs/runs/`. The row is machine-checked by `run_report.py`: a table row carrying the WIP setting as `builders=<n>` / `reviewers=<n>` plus the five metric values below; a mutating-run report without it does not bind (#365).
 
 | Metric | Definition |
 |----------------------|--------------------------------------------------------------------|

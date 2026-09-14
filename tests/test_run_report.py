@@ -150,6 +150,49 @@ class ExecutionIdentity(unittest.TestCase):
                 self.assertEqual(run_report.executes_verifier(cmd, "m.json", self.repo), expected)
 
 
+class WipCurveObligation(unittest.TestCase):
+    """#365: the per-wave WIP row was mandated by attention-budget.md and machine-checked nowhere."""
+
+    def test_mutation_missions_come_from_the_evidence_manifest(self):
+        missions = run_report._mutation_missions(ROOT)
+        self.assertIsNotNone(missions)
+        self.assertIn("ship-it", missions)
+        self.assertIn("absorb-it", missions)
+        self.assertNotIn("review-it", missions)  # report-only: no dispatch waves
+        self.assertNotIn("map-it", missions)     # planning
+        self.assertEqual(len(missions), 17)
+
+    def test_a_mutating_report_without_a_wip_row_does_not_bind(self):
+        errs = run_report._wip_curve_errors("RUN: x\nno curve here\n", "ship-it", ROOT, "r.md")
+        self.assertEqual(len(errs), 1, errs)
+        self.assertIn("WIP-curve", errs[0])
+
+    def test_a_mutating_report_with_a_wip_row_binds(self):
+        body = ("## WIP curve\n\n| wave | WIP | throughput |\n| 1 | builders=4 reviewers=2 | 3.1 |\n")
+        self.assertEqual(run_report._wip_curve_errors(body, "ship-it", ROOT, "r.md"), [])
+
+    def test_report_only_and_planning_runs_are_exempt(self):
+        for mission in ("review-it", "attest-it", "map-it", "root-cause"):
+            with self.subTest(mission=mission):
+                self.assertEqual(run_report._wip_curve_errors("no rows\n", mission, ROOT, "r.md"), [])
+
+    def test_a_repo_without_the_protocol_is_unscoped_not_refused(self):
+        # The obligation starts with the policy's existence: a rev (or repo) without
+        # runtime/evidence-manifest.md predates the protocol and owes no row.
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertEqual(run_report._wip_curve_errors("anything", "ship-it", tmp, "r.md"), [])
+
+    def test_the_policy_is_read_at_the_pinned_revision(self):
+        # The report binds to inventory_at; the policy in force for the run is THAT commit's,
+        # so a report pinned at a commit with the protocol owes the row even if the worktree
+        # is mid-edit.
+        rev = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT,
+                             capture_output=True, text=True).stdout.strip()
+        errs = run_report._wip_curve_errors("RUN: x\nno curve here\n", "ship-it", ROOT, "r.md",
+                                            rev=rev)
+        self.assertEqual(len(errs), 1, errs)
+
+
 class RunReportBinding(unittest.TestCase):
     """One temp repo per test: a run directory, its manifest, a committed artifact."""
 

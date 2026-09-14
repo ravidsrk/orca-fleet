@@ -415,6 +415,64 @@ def verifier_ran(manifest_path, rev, root):
             + "; ".join(problems)]
 
 
+def _mutation_missions(root, rev=None):
+    """The mutation-class mission set from evidence-manifest.md §3 — the one place the class list
+    lives, so this check and the done-floor never enumerate different sets. Read at the report's
+    pinned revision first (the policy in force for the run), then the working tree. None means the
+    policy exists at neither — the repo predates the protocol, and the obligation is unscoped
+    rather than violated."""
+    for text in (_read_at_rev(rev, "runtime/evidence-manifest.md", root) if rev else None,
+                 _read_worktree(root)):
+        if text is None:
+            continue
+        m = re.search(r"\*\*Mutation units\*\* \(([^)]*)\)", text)
+        if m:
+            return {name.strip() for name in m.group(1).split(",")}
+    return None
+
+
+def _read_at_rev(rev, path_text, root):
+    try:
+        proc = subprocess.run(
+            ["git", "cat-file", "blob", f"{rev}:{path_text}"],
+            cwd=str(root), stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+    except OSError:
+        return None
+    if proc.returncode != 0:
+        return None
+    try:
+        return proc.stdout.decode("utf-8")
+    except UnicodeDecodeError:
+        return None
+
+
+def _read_worktree(root):
+    try:
+        return (Path(root) / "runtime" / "evidence-manifest.md").read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return None
+
+
+# attention-budget.md's WIP-curve protocol, machine-checked (#365): every mutating run records one
+# row per dispatch wave, or the ≥3-run graduation evidence base can silently never accumulate — "a
+# cap recorded nowhere was never a cap". The row is a table row carrying the WIP setting as
+# builders=<n>/reviewers=<n>.
+_WIP_CURVE_ROW_RE = re.compile(r"^\s*\|.*\bbuilders=\d+.*\breviewers=\d+", re.M)
+
+
+def _wip_curve_errors(text, mission, root, report_path, rev=None):
+    missions = _mutation_missions(root, rev)
+    if missions is None:
+        return []  # the protocol exists at neither the pinned rev nor the worktree — unscoped
+    if mission not in missions:
+        return []  # report-only and planning runs carry no dispatch waves
+    if not _WIP_CURVE_ROW_RE.search(text):
+        return [f"{report_path}: a mutating run records one WIP-curve row per dispatch wave, as a "
+                "table row carrying builders=<n>/reviewers=<n> (attention-budget.md) — none found; "
+                "a cap recorded nowhere was never a cap (#365)"]
+    return []
+
+
 def check_report(report_path, mission, tier, root=None):
     """Errors that stop `mission` claiming `tier` on this report. [] means bound."""
     root = root or ROOT
@@ -483,6 +541,8 @@ def check_report(report_path, mission, tier, root=None):
     # #286: the tier must cost a command execution, not a sentence describing one.
     for problem in verifier_ran(manifest, rev, root):
         errors.append(f"{report_path}: {problem}")
+
+    errors.extend(_wip_curve_errors(text, mission, root, report_path, rev=rev))
 
     try:
         _report, _lines, entries = inventory.load(report)
