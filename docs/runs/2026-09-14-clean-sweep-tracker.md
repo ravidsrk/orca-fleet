@@ -420,3 +420,6 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   HOLDS, 1 Required (deflake venv false-fail via **/*.py Retry glob).
   STANDARDS-re task_75891ec4b7f2→ctx_c1dc5c7ffd2a (term_43e1746e). SPEC+TEST tasks
   completed, workers released, stuck terminal closed.
+- R364 all in @c5d4bb7: SPEC 1 Required (deflake venv glob) + P1 refutation HOLDS;
+  TEST 2 Required (teeth coverage 20/21, F1 boundary) + claims verified; STANDARDS
+  0 Required (3 Nit, 2 Opt, 2 FYI). V364r1 spec assembled + dispatched.
