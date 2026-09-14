@@ -19,6 +19,9 @@ What a tier advance has to survive here instead:
   ``verify.py`` invocation it came from (a RED is a legitimate recorded outcome:
   a solo run cannot manufacture an independent approver, and saying so is the
   point of the field);
+* ``waves=`` (a mutating mission's report) written once, recording the number of
+  dispatch waves the run ran; its WIP-curve table carries one complete row per
+  wave 1..n (attention-budget.md's WIP-curve protocol, #365/#389);
 * the run-close integrity inventory re-deriving **at that commit**: at least one
   path verified and zero mismatched.
 
@@ -517,8 +520,14 @@ def _wip_curve_errors(text, mission, root, report_path, rev=None):
                           f"the protocol's row is {_WIP_ROW_SCHEMA} (attention-budget.md, #389)")
     # The recorded waves are 1..n of the RUN: header's waves=<n> — the report's own count of the
     # dispatch waves it ran. Without it one row can stand in for a whole multi-wave run (#389).
+    # Read every waves=, never a dict: `waves=3 waves=1` would bind on the 1 (the F3 collapse).
     header = RUN_HEADER_RE.search(text)
-    declared = dict(FIELD_RE.findall(header.group(1))).get("waves") if header else None
+    counts = [v for k, v in FIELD_RE.findall(header.group(1)) if k == "waves"] if header else []
+    if len(counts) > 1:
+        errors.append(f"{report_path}: RUN: header carries waves= more than once ({counts}) — one "
+                      "count of the dispatch waves, or the header contradicts itself (#389)")
+        return errors
+    declared = counts[0] if counts else None
     if declared is None or not _COUNT_RE.fullmatch(declared) or int(declared) < 1:
         errors.append(f"{report_path}: RUN: waves={declared or '<missing>'} — a mutating run records "
                       "the number of dispatch waves it ran as waves=<n> (n ≥ 1); its WIP-curve rows "

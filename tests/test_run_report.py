@@ -267,6 +267,14 @@ class WipCurveObligation(unittest.TestCase):
         errs = run_report._wip_curve_errors(body, "ship-it", ROOT, "r.md")
         self.assertTrue(any("RUN: waves=0 — a mutating run records" in e for e in errs), errs)
 
+    def test_a_run_header_carrying_waves_twice_is_refused(self):
+        # Verdict r1: dict() kept the LAST waves=, so `waves=3 waves=1` plus one row bound on the 1
+        # while the same header said three waves ran — the F3 collapse, one line up.
+        body = f"RUN: mission=ship-it waves=3 waves=1\n\n## WIP curve\n\n{self.ROW_1}\n"
+        errs = run_report._wip_curve_errors(body, "ship-it", ROOT, "r.md")
+        self.assertEqual(len(errs), 1, errs)
+        self.assertIn("RUN: header carries waves= more than once", errs[0])
+
     def test_a_row_with_placeholder_metrics_is_refused(self):
         # Verdict r1: every key present, no value measured. Only the digit-led metric rule refuses
         # it — a mutant taking any non-blank value stayed green.
