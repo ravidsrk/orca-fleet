@@ -608,7 +608,6 @@ def run_directory(report, mission, root=None):
     if not m or mission not in report.stem:
         return None
     date = m.group(1)
-    flat = mission.replace("-", "")
     runs_dir = ((root or ROOT) / "docs" / "runs") if root is not None else RUNS_DIR
     for candidate in sorted(runs_dir.glob(f"{date}-*")):
         if not candidate.is_dir():
@@ -616,9 +615,15 @@ def run_directory(report, mission, root=None):
         stem = candidate.name
         if not stem.startswith(date + "-"):
             continue
-        # Boundary-anchored: "map-it" is a substring of "map-iteration" (#382).
-        if re.search(rf"(?<![\w-]){re.escape(mission)}(?:-|$)", stem) or \
-                flat in stem.replace("-", ""):
+        # Token-contiguous, never substring (#382, PR #387 review): "map-it" must not match
+        # "map-iteration". The directory's tokens after the date must contain the mission's
+        # tokens as a contiguous run — an anchored regex's lookbehind rejects the "-" that the
+        # glob convention always puts before the mission token, which is what made the first
+        # cut's anchored branch dead code.
+        tokens = stem[len(date) + 1:].split("-")
+        mtoks = mission.split("-")
+        if any(tokens[i:i + len(mtoks)] == mtoks
+               for i in range(len(tokens) - len(mtoks) + 1)):
             return f"docs/runs/{stem}"
     return f"docs/runs/{report.stem}"
 

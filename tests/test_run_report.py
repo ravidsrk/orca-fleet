@@ -150,6 +150,30 @@ class ExecutionIdentity(unittest.TestCase):
                 self.assertEqual(run_report.executes_verifier(cmd, "m.json", self.repo), expected)
 
 
+class RunDirectoryBinding(unittest.TestCase):
+    """#382 + PR #387 review: the mission match must be token-contiguous, never substring —
+    and the first fix's anchored regex was dead code under the glob's own naming convention."""
+
+    def _run_dir(self, dirs, mission, stem):
+        with tempfile.TemporaryDirectory() as tmp:
+            runs = Path(tmp) / "docs" / "runs"
+            for d in dirs:
+                (runs / d).mkdir(parents=True)
+            report = runs / f"{stem}.md"
+            report.write_text("x", encoding="utf-8")
+            return run_report.run_directory(report, mission, Path(tmp))
+
+    def test_a_prefix_colliding_directory_is_not_borrowed(self):
+        got = self._run_dir(["2026-09-14-map-iteration"], "map-it", "2026-09-14-map-it-selfrun")
+        self.assertEqual(got, "docs/runs/2026-09-14-map-it-selfrun",
+                         "map-it matched the map-iteration directory")
+
+    def test_the_real_directory_is_found(self):
+        got = self._run_dir(["2026-09-13-pin-it-266", "2026-09-14-pin-its-neighbor"],
+                            "pin-it", "2026-09-13-pin-it-266-selfrun")
+        self.assertEqual(got, "docs/runs/2026-09-13-pin-it-266")
+
+
 class WipCurveObligation(unittest.TestCase):
     """#365: the per-wave WIP row was mandated by attention-budget.md and machine-checked nowhere."""
 
