@@ -25,8 +25,8 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | task_id | id | title | CLASS | BUILD_DONE | PR_OPEN | BOT | REVIEWED | MERGED | WT_CLEAN | lighting | park | evidence |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | STAB | — | land 4 PR-review hunks (deny-hook/run_report/verify/HUMAN_ACTIONS) + badge regen | conductor landing, worker-executed | t | n/a | n/a | n/a | t | n/a | lit | — | 1215e09 9651a52 8f7d5ac 917f9fd; pushed origin/BASE fast-forward (egress receipt); 1285 OK + full battery green; NC re-executed 11 failures; rides PR #387 |
-| T1 | #388 | evidence-run lockfile dirties worktree | real-bug | t | t | t | f | f | f | lit | — | PR #392 @0775547; R1 NO-GO (review 5202287611, both Req reproduced by verdict worker); F388r2 fixing (serialize-first + 2 tests + N1) |
-| T2 | #389 | run_report WIP validation accepts incomplete reports | real-bug | t | t | t | f | f | f | lit | — | PR #391 @30a6037 (F1-F3 fixed: template 62ee4cd, dup-keys fcc9079, artifacts nulled 30a6037; 1296 OK; NCs RED; Greptile 0 new, no APPROVE yet); in-thread fix replies posted; review next |
+| T1 | #388 | evidence-run lockfile dirties worktree | real-bug | t | t | t | f | f | f | lit | — | PR #392 @c680ee0; R2 axes all clean (0 Req; serialize-first unpinned noted Optional/Nit, unreachable from main); V388r2 verdict underway |
+| T2 | #389 | run_report WIP validation accepts incomplete reports | real-bug | t | t | t | f | f | f | lit | — | PR #391 @50cc4e6 (verdict batch fixed, 1302 OK, NCs RED, 8 leg mutants killed, Greptile check pass 0 new); R2 re-verify underway @50cc4e6 |
 | T3 | #364 | fixture-backed evals + workspace-state oracle (S1) | real-feature-small | f | f | f | f | f | f | lit | — | Q1: fixtures+oracle (wave 2; brief TBD) |
 | T4 | #385 | historical-docs polish, agent slice (status.json + parity test) | real-bug (docs) | t | t | t | t | t | t | lit | — | PR #390 MERGED 32da76e @d6fc2cc (reviewed==head; greptile APPROVED + 3 blind GO); verify.py OK all legs (scope/commands/freshness/NC-exec/review/change-on-base); conductor manifest corrections (head/source) disclosed in-file; worktree retired; #385 closed w/ evidence |
 | T5 | #386 | sign manifest+inventory, retention backend (S2) | — | — | — | — | — | — | — | — | needs-human: key custody + backend undecided (Q2) | Q2: park |
@@ -252,3 +252,61 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   (3 Requireds: doubled-wave x2 axes + placeholder-values; reconciled bot threads
   noted, no APPROVE from Greptile yet) with COMMENTED-for-both-outcomes post rule.
   Turn live.
+- F388r2 live ask msg_e020b050c175 (head circularity — worker proposed A: head =
+  code tip c7a76d9, pushed manifest tip named separately, conductor re-binds at
+  close): worker right (== U385 evidence-closure routine) → replied A immediately
+  (mechanical). No stall (worker proceeded unless-overridden).
+- V389r1 done (ctx_b055f497860c): NO-GO @30a6037 (wtree b288c4ab matches). Both
+  Required mutants re-checked by the verdict worker. Batched: R1 doubled-wave
+  isolated + wave=one + waves=0, R2 placeholder-row, adjacent a/b/c/d (msg asserts,
+  builders=int, waves= dup refused, docstring); exclusions recorded (accepted
+  design, pre-existing -> file, nits/optionals, conductor head). Posted COMMENTED
+  5202412008 (verified). Released.
+- F389r3 dispatched (task_3fe775bc2a6c/ctx_38cb2e0beeaa): the verdict batch,
+  red-first, gates, manifest refresh (head := pushed tip INCL manifest), push to
+  #391. Turn live.
+- F389r3 live ask msg_a7efb8e1b918 (same head circularity; worker recommends A,
+  rejects B): replied A-last-content-commit immediately (mechanical). Both fix
+  workers independently derived A — the spec's "head := pushed tip INCL manifest"
+  is confirmed unimplementable-as-written. LESSON applied: build-364 draft now
+  states head := last CONTENT commit + pushed tip named separately + conductor
+  re-bind (no future worker needs to ask).
+- F388r2 RECOVERED (no worker_done): pushed c680ee0 (union 56cdc6a docs-only +
+  test d150d98 + fix 1217fb2 + badges c7a76d9 1295 + manifest c680ee0), then idled
+  16+ min polling for a Greptile re-review that never came (bot latest @da2f98a;
+  did-not-run checkpoint, doctrine's own path). Conductor verified from git (PR
+  OPEN @c680ee0; commands[] bound to tree 0830350a == c7a76d9 tree; manifest-only
+  delta; digest matches) and completed the task by recovery with full disclosure.
+  Worker stopped + terminal closed. Note: worker kept brief-form contract.source
+  (fix spec's corrected source not copied) — conductor corrects at close.
+- R388r2 dispatched @c680ee0 (specs copied + retargeted + batch-verify line):
+  spec task_c39bba0e65b2/ctx_cc530e2d51ae, test task_41bc3590ddb0/ctx_9548dad3d578,
+  standards task_011722839062/ctx_aaff62a2022f. All turns live. 4 workers out
+  (3xR388r2 + F389r3).
+- F389r3 done (ctx_38cb2e0beeaa): union 046cfa3 (clean) + 22ba35b (R1/R2/a/b
+  tests; builders=2.5 added — only 2.5 witnesses the integer rule) + 885a04e (c
+  waves= twice refused, real RED pre-fix + d docstring) + badges ad1471b (1302) +
+  manifest 50cc4e6 (head ad1471b per option A). Gates at ad1471b: nc 63 OK,
+  validate, ruff, gitleaks, full 1302 OK; NCs RED (18F/1E, F3 2F, F1 1F,
+  both-paths 19F/1E, r3-to-30a6037 1F) + 8 leg mutants killed on own tests. Push
+  30a6037..50cc4e6 verified; PR #391 OPEN @50cc4e6; Greptile check pass, 0 new
+  comments/threads (no APPROVED object — same shape as before). Released.
+- R389r2 dispatched @50cc4e6 (specs copied + retargeted + batch-verify line):
+  spec task_545910b0a45c/ctx_5892ed94d0a0, test task_bb6c19fde0a2/ctx_db8cb1843f21,
+  standards task_fbb5ed5f6751/ctx_7717a5069bb5. All turns live. 6 workers out
+  (3xR388r2 + 3xR389r2).
+- R388r2 all done @c680ee0, all 0 Required (reports harvested, workers released):
+  SPEC (batch landed, controls re-run, optionals: serialize-first unpinned /
+  16-way litter), TEST (NCs reproduced, 1 Nit: serialize-order revert green —
+  unreached from main on 3.13), STANDARDS (batch landed, 4 carried Nits incl.
+  conductor-owned pending-SHA + source, 120s optional, O_CREAT 0-byte FYI).
+- V388r2 dispatched (task_e3d7793c3b8c/ctx_c863708aa984): verdict over clean R2
+  axes (bot declined + did-not-run noted). Turn live.
+- R389r2 all done @50cc4e6 (reports harvested, workers released): SPEC 0 Req
+  (batch mutant-pinned, 3 Nit, 4 FYI), TEST 1 Required (RQ1: integer rule tested
+  for builders only — reviewers=2.5 / wave=1.5 BIND via surviving mutants,
+  falsifies manifest claim; + Nit: waves= guard untested → crash), STANDARDS 0
+  Req (batch landed, 2 Optional, 7 Nit led by TEMPLATE unlabeled-cells claim).
+- V389r2 dispatched (task_273b73442c57/ctx_7daf6fbe9170): verdict over R2 axes
+  (1 Required expected → small batch: reviewers/wave integer + waves= guard).
+  Turn live. 2 workers out (V388r2 + V389r2).
