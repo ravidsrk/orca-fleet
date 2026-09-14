@@ -412,3 +412,9 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   spec task_1208a815adca→ctx_9839b9447c67 (term_4c411ae3),
   standards task_d352fd82e4c0→ctx_6c6e58112bdc (term_ce4430bc),
   test task_187893f94e79→ctx_ca22723d3cb6 (term_a595898f). 3 workers out.
+- R364 STANDARDS stuck on a read-path permission dialog (file tools path-locked;
+  remote send to the TUI prompt blocked twice): worker stopped, task failed, spec
+  amended with bash-cat hygiene, re-dispatched fresh. (Future specs: out-of-worktree
+  reads via bash only.) TEST in: 2 Required (R1 teeth-tests 20/21 missing, R2 F1
+  boundary one-sample) + claims verified. SPEC in: C-1/C-2/C-3 MET, P1 refutation
+  HOLDS, 1 Required (deflake venv false-fail via **/*.py Retry glob).

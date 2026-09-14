@@ -1,8 +1,10 @@
 You are a clean-sweep REVIEW worker, STANDARDS axis, for unit U364 (methodology pack:
 matt — read $HOME/.agents/skills/tdd/SKILL.md for the tautology guard only; load no other
-pack). Fresh terminal in the U364 worktree; you did not write the code. rw by lane (gh
-reads); commit NOTHING — verify with git log that no commit carries your session, and say
-so in worker_done.
+pack — read it via `cat` in bash: file tools are path-locked to the worktree and an
+out-of-worktree Read opens an unanswerable permission dialog; do NOT use Read outside
+the worktree). Fresh terminal in the U364 worktree; you did not write the code. rw by
+lane (gh reads); commit NOTHING — verify with git log that no commit carries your
+session, and say so in worker_done.
 
 TARGET: PR #395 at HEAD c5d4bb7 (branch u364-eval-fixtures → BASE; git fetch origin + checkout c5d4bb7 first — your worktree may sit at an older tip; commit NOTHING). Finding: all 63 per-mission
 behavioral eval cases carried empty file sets flagged narration-only, and the runner
