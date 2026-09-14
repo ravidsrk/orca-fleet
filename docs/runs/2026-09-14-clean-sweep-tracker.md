@@ -422,4 +422,5 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   completed, workers released, stuck terminal closed.
 - R364 all in @c5d4bb7: SPEC 1 Required (deflake venv glob) + P1 refutation HOLDS;
   TEST 2 Required (teeth coverage 20/21, F1 boundary) + claims verified; STANDARDS
-  0 Required (3 Nit, 2 Opt, 2 FYI). V364r1 spec assembled + dispatched.
+  0 Required (3 Nit, 2 Opt, 2 FYI). V364r1 spec assembled + dispatched
+  (task_183626f78548 → ctx_5de9d50b39b4, term_bd7d40e7).
