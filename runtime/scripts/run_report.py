@@ -61,6 +61,7 @@ import argparse
 import hashlib
 import importlib.util
 import json
+import os
 import re
 import shlex
 import subprocess
@@ -151,8 +152,15 @@ def _is_repo_verifier(token, root):
 
 _PYTHON_NAME_RE = re.compile(r"python(?:\d+(?:\.\d+)?)?t?", re.ASCII)
 # World-writable and shared. No toolchain installs an interpreter under them, so anything wearing
-# an interpreter's name there was put there by the run.
-_SCRATCH_ROOTS = (Path("/tmp"), Path("/var/tmp"), Path("/dev/shm"))
+# an interpreter's name there was put there by the run. Resolution matters: Path.is_relative_to is
+# lexical, and on macOS /tmp and /var/tmp are symlinks into /private — the UNRESOLVED spelling of
+# the same world-writable file escaped the refusal until both sides were resolved (#349).
+def _scratch_roots():
+    roots = [Path("/tmp"), Path("/var/tmp"), Path("/dev/shm")]
+    tmpdir = os.environ.get("TMPDIR")  # tempfile tooling lands here; also run-writable
+    if tmpdir:
+        roots.append(Path(tmpdir))
+    return tuple(root.resolve() for root in roots)
 
 
 def _is_python_interpreter(token, root):
@@ -180,11 +188,12 @@ def _is_python_interpreter(token, root):
         return False   # resolves against a cwd this check cannot know, or climbs out of one
     try:
         repo = Path(root).resolve()
+        resolved = path.resolve()  # non-strict: resolves a symlinked prefix even for absent files
     except (ValueError, OSError, RuntimeError):
         return False
-    if path.is_relative_to(repo):
+    if resolved.is_relative_to(repo):
         return False   # the tree under review is the one place the run certainly writes
-    return not any(path.is_relative_to(scratch) for scratch in _SCRATCH_ROOTS)
+    return not any(resolved.is_relative_to(scratch) for scratch in _scratch_roots())
 
 
 def _valid_python_xoption(option):

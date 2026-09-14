@@ -13,6 +13,7 @@ import hashlib
 import importlib.util
 import json
 import shlex
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -163,7 +164,10 @@ class RunReportBinding(unittest.TestCase):
         # The writer here is unidentified; what is certain is that the failure is in
         # cleanup of a throwaway repo, so it is not a signal and must not gate the build.
         self._tmp = tempfile.TemporaryDirectory(ignore_cleanup_errors=True)
-        self.repo = Path(self._tmp.name)
+        # resolve(): the check under test resolves both sides of its containment comparison
+        # (#349); handing it an unresolved /var/folders path on macOS would test the platform's
+        # symlink spelling, not the refusal.
+        self.repo = Path(self._tmp.name).resolve()
         _git(self.repo, "init", "-q", ".")
         _git(self.repo, "config", "user.email", "t@example.com")
         _git(self.repo, "config", "user.name", "t")
@@ -325,6 +329,23 @@ class RunReportBinding(unittest.TestCase):
         for token in ("/opt/checkouts/other/python3", "/usr/bin/python3", "python3"):
             with self.subTest(token=token):
                 self.assertTrue(run_report._is_python_interpreter(token, root), token)
+
+    def test_symlink_spellings_of_the_same_file_are_refused_too(self):
+        # #349: the comparison used to be lexical on the token side, so on macOS the
+        # /var/folders spelling of an interpreter inside a /private/var/folders repo (and the
+        # /private/tmp spelling of /tmp) escaped both refusals.
+        alias = Path(tempfile.mkdtemp(prefix="run-report alias "))
+        self.addCleanup(shutil.rmtree, alias, True)
+        real = self.repo / "real-tree"
+        real.mkdir()
+        (alias / "linked").symlink_to(real, target_is_directory=True)
+        self.assertFalse(run_report._is_python_interpreter(str(alias / "linked" / "python3"), real))
+        tmp = Path("/tmp").resolve()
+        if tmp != Path("/tmp"):  # only a symlinked /tmp (macOS) has a second spelling to test
+            self.assertFalse(
+                run_report._is_python_interpreter(str(tmp / "python3"), self.repo),
+                f"{tmp}/python3 is the resolved spelling of /tmp/python3",
+            )
 
     def test_a_decoy_interpreter_does_not_buy_a_tier(self):
         # End to end: the ledger record hashes true and names a real tree, and still buys nothing.
