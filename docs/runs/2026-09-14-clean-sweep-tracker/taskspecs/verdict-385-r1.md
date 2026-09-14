@@ -42,8 +42,9 @@ I reviewed the fenced PR #390 diff at bcb4397 against the U385 spec, writing my 
 I wrote my expectation before opening the diff. Then I read PR #390 fenced (guard_text rc=0) at bcb4397 and ran 14 mutants in a throwaway /tmp clone, now deleted. Both fixes are guarded by real, non-tautological tests. Reverting status.json to base goes RED on the C-1 git-history test (merge-parent check plus 'Merge pull request #238' subject, expected value read from git, not restated), matching the manifest. Deleting ship-it's embed goes RED, 2 failures, also matching the manifest; a wrong asset, an orphan asset, unlinking a guide from the index and a gap gaining its diagram all go RED too, and the four gaps are independently correct (21 indexed guides minus 17 assets). CI runs with fetch-depth 0 and gates pass. Nit 1 (test_docs_navigation.py:261/279): the EMBED regex scans raw markdown, so an HTML-commented, code-fenced or plain-hyperlinked diagram stays GREEN. Nit 2 (:286): the orphan check uses iterdir, so a gitignored .DS_Store gives a false RED on macOS. FYI 1: C-1 checks run_pr against current_commit in git history, so a coordinated wrong pair (#231/6671913) or a subject-forged local merge passes. FYI 2: C-2 changes no production path, so its control is a hand mutant, which I reproduced. I verified the manifest's structural claims myself: KNOWN_GAPS equality, the index-derived guide set, the disk-derived asset set, the 29-test module and both controls. I committed nothing: git log --all shows no commit carrying this session and the worktree is clean at bcb4397. Nothing is left on this axis.
 
 --- HELD BOT FINDING (Greptile P2, PR #390 comment 4007925131, tests/test_docs_navigation.py:942) ---
-The parity check recognizes only bare lowercase links such as [ship-it](ship-it.md),
-although repository navigation also supports forms such as [ship-it](./ship-it.md) and
-links with anchors. If a guide uses one of those forms, _guides() silently omits it, and
-the loose >15 assertion can still pass. Candidate fix (bot's): tolerate ./ and #anchor,
-or assert the parsed set equals the on-disk guide set minus README.
+The parity check recognizes only bare lowercase links such as ship-it.md, although
+repository navigation also supports ./-prefixed and anchored forms. If a guide uses one
+of those forms, _guides() silently omits it, and the loose >15 assertion can still pass.
+Candidate fix (bot's): tolerate ./ and #anchor, or assert the parsed set equals the
+on-disk guide set minus README. (Quoted finding reworded to avoid bracket-link forms:
+the dead-link guard scans run files too.)

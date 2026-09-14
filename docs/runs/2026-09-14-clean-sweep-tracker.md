@@ -122,3 +122,19 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   the count). U388 ask msg_ead6507afe29: same badge question → (A); plus branch name →
   bare u388-lockfile (create from tip; ravidsrk/* stays local-only). U388 otherwise
   green: 24/24, C-1/C-3 red-at-base, C-2 RED 10/10 vs no-lock mutant.
+- Builds verified + settled: U385 (ea77ce9 87619de e72155c; 1288 OK; NC re C-1-only RED),
+  U389 (e74dea0 0038a43 3ec17ee; 1289 OK; NC re 10F+1E), U388 (eddd3e0 e4ffbb7 75c0c91
+  8ec5c86; 1288 OK; NC re 2 NoLedgerLitter). PRs: #390 @bcb4397 (1 bot P2 held),
+  #391 @f642700 (3 bot held: 2 P1 + 1 P2). U385 axes: standards 1 Req + specs 1 Req +
+  test-adequacy clean — the two Requireds + bot P2 are ONE issue (_guides link forms),
+  found independently 3 ways.
+- Verdict dispatch blocked once by my own dead-link trip: pasting the bot finding's
+  bracket-link examples into taskspecs/verdict-385-r1.md failed
+  test_no_navigable_doc_links (run files are navigable; EVIDENCE_TREES excludes only
+  docs/reports + docs/completion/evidence). Fixed by rewording (no bracket-link forms in
+  run files — sanitize all future verdict specs the same way).
+- review-it consulted pre-verdict (mission cross-check): read-only verdict doctrine
+  agrees with our shape (SHA-bound, no rerank, quoted lines). Its "posting is a human
+  grant" rule governs review-it RUNS; in this clean-sweep run, verdict posts on feature
+  unit PRs (COMMENTED/REQUEST_CHANGES, never APPROVE, same identity, dismissible) are
+  routine pipeline evidence — classified taste, logged; the main-merge human gate stands.
