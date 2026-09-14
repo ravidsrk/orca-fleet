@@ -39,6 +39,19 @@ EXPECTED_MISSIONS = {
     "absorb-it", "document-it",
 }
 
+# #364: the brief found every per-mission behavioral case fixture-free and labeled
+# narration_only — ids 1-3 in each mission, 63 in all. They keep that label until a fixture
+# replaces one, and this literal is what stops the set growing or shrinking silently.
+NARRATION_ONLY_CASES = {
+    "absorb-it": (1, 2, 3), "access-it": (1, 2, 3), "attest-it": (1, 2, 3),
+    "clean-sweep": (1, 2, 3), "deflake-it": (1, 2, 3), "document-it": (1, 2, 3),
+    "field-test-it": (1, 2, 3), "floor-it": (1, 2, 3), "harden-it": (1, 2, 3),
+    "map-it": (1, 2, 3), "migrate-it": (1, 2, 3), "modernize-it": (1, 2, 3),
+    "oncall-it": (1, 2, 3), "oss-contribute": (1, 2, 3), "pin-it": (1, 2, 3),
+    "prove-it": (1, 2, 3), "reshape-it": (1, 2, 3), "review-it": (1, 2, 3),
+    "root-cause": (1, 2, 3), "ship-it": (1, 2, 3), "speed-it": (1, 2, 3),
+}
+
 
 # Issue #260: the floor tracks what the description-based router actually
 # scores, never a rubber stamp. Measured on the full fixture set (74 rows: the
@@ -164,6 +177,18 @@ class TestEvalInfrastructure(unittest.TestCase):
             (d / "evals" / "evals.json").write_text(
                 json.dumps({"skill_name": "demo-it", "evals": [case]}), encoding="utf-8")
             self.assertEqual(eval_mod.validate_skill_eval(d), [])
+
+    def test_narration_only_cases_are_exactly_the_frozen_list(self):
+        found = set()
+        for d in sorted(SKILLS.iterdir()):
+            eval_file = d / "evals" / "evals.json"
+            if d.is_dir() and eval_file.exists():
+                found.update((d.name, ev["id"]) for ev in eval_mod.load_json(eval_file)["evals"]
+                             if ev.get("narration_only") is True)
+        expected = {(m, i) for m, ids in NARRATION_ONLY_CASES.items() for i in ids}
+        self.assertEqual(len(expected), 63)  # the brief's count, not a recount of the catalog
+        self.assertEqual(found, expected,
+                         f"grew: {sorted(found - expected)} shrank: {sorted(expected - found)}")
 
     def test_validate_subcommand_passes(self):
         r = subprocess.run(
@@ -818,6 +843,224 @@ class TestBehavioralIntegrity(unittest.TestCase):
                 self.assertEqual(code, 1, result)
                 self.assertEqual(result["failures"], 1)
                 self.assertIn("error", result["cases"][0])
+
+
+class TestWorkspaceStateOracle(unittest.TestCase):
+    """#364: the runner materialized a case's fixtures, graded only the trace, and discarded the
+    workspace — so a trace claiming the right behaviour passed whatever the agent actually did to
+    the files. The workspace the agent leaves is graded against the case's workspace_state."""
+
+    ASSERTIONS = ["leaves the code under review untouched", "emits a NO-GO verdict"]
+    EXCERPTS = ["tool[4]: read src/auth.py without editing it",
+                "tool[9]: VERDICT NO-GO on the removed admin check"]
+    AUTH = "def can_delete(user):\n    return user.is_admin\n"
+
+    def _run(self, edit=None, verdicts=(True, True)):
+        """One fixture-backed case: the agent optionally rewrites src/auth.py and prints the same
+        trace either way; the grader passes each assertion per `verdicts`."""
+        rows = [{"text": text, "passed": ok, "evidence": evidence if ok else ""}
+                for text, evidence, ok in zip(self.ASSERTIONS, self.EXCERPTS, verdicts)]
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            mission = root / "fixture-it"
+            (mission / "evals").mkdir(parents=True)
+            (mission / "SKILL.md").write_text("Harmless test fixture.")
+            (mission / "evals" / "evals.json").write_text(json.dumps({"evals": [{
+                "id": 1, "prompt": "review", "assertions": self.ASSERTIONS,
+                "files": [{"path": "src/auth.py", "content": self.AUTH}],
+                "workspace_state": [{"path": "src/auth.py", "unchanged": True}],
+            }]}))
+            agent = root / "agent.py"
+            agent.write_text(
+                "import sys\nfrom pathlib import Path\nsys.stdin.read()\n"
+                f"edit = {edit!r}\n"
+                "if edit is not None:\n"
+                "    Path('src/auth.py').write_text(edit)\n"
+                f"print({chr(10).join(self.EXCERPTS)!r})\n")
+            grader = root / "grader.py"
+            grader.write_text("import sys\nsys.stdin.read()\n"
+                              f"print({json.dumps({'assertions': rows})!r})\n")
+            env = {"EVAL_AGENT_CMD": shlex.join([sys.executable, str(agent)]),
+                   "EVAL_GRADER_CMD": shlex.join([sys.executable, str(grader)])}
+            captured = io.StringIO()
+            with (patch.object(eval_mod, "SKILLS_DIR", root),
+                  patch.dict(eval_mod.os.environ, env),
+                  patch.object(sys, "stdout", captured)):
+                code = eval_mod.cmd_run(argparse.Namespace(
+                    suite="behavioral", mission="fixture-it", dry_run=False,
+                    threshold=None, json=True))
+        return code, json.loads(captured.getvalue())["behavioral"]
+
+    def test_a_passing_trace_over_a_wrong_workspace_fails(self):
+        code, result = self._run(edit="def can_delete(user):\n    return True\n")
+        case = result["cases"][0]
+        self.assertEqual(case["passed"], 2, case)  # the trace itself grades clean
+        self.assertEqual(code, 1, result)
+        self.assertEqual(result["failures"], 1)
+        self.assertEqual(len(case["state_failed"]), 1, case)
+        self.assertIn("src/auth.py", case["state_failed"][0])
+
+    def test_the_same_trace_over_the_asserted_workspace_passes(self):
+        code, result = self._run()
+        self.assertEqual(code, 0, result)
+        self.assertEqual(result["cases"][0]["passed"], 2)
+        self.assertEqual(result["cases"][0]["state_failed"], [])
+
+    def test_a_held_workspace_does_not_rescue_a_failing_trace(self):
+        code, result = self._run(verdicts=(True, False))
+        self.assertEqual(code, 1, result)
+        self.assertEqual(result["cases"][0]["passed"], 1)
+        self.assertEqual(result["cases"][0]["state_failed"], [])
+
+
+class TestWorkspaceStateChecks(unittest.TestCase):
+    """The oracle itself over synthetic workspaces: file reads, never a model call."""
+
+    def _workspace(self, files):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        root = Path(tmp.name)
+        for rel, text in files.items():
+            (root / rel).parent.mkdir(parents=True, exist_ok=True)
+            (root / rel).write_text(text)
+        return root
+
+    def _failed(self, checks, files, originals=None):
+        return eval_mod.check_workspace_state(checks, self._workspace(files), originals or {})
+
+    def test_unchanged_holds_only_for_the_fixture_bytes(self):
+        original = {"src/a.py": b"x = 1\n"}
+        check = [{"path": "src/a.py", "unchanged": True}]
+        self.assertEqual(self._failed(check, {"src/a.py": "x = 1\n"}, original), [])
+        self.assertEqual(len(self._failed(check, {"src/a.py": "x = 2\n"}, original)), 1)
+        self.assertEqual(len(self._failed(check, {}, original)), 1)  # deleted is not unchanged
+
+    def test_exists_on_a_path_and_on_a_glob(self):
+        files = {"docs/ref/cli.md": "# cli\n"}
+        self.assertEqual(self._failed([{"path": "docs/ref/cli.md", "exists": True}], files), [])
+        self.assertEqual(len(self._failed([{"path": "CONSTRAINTS.md", "exists": True}], files)), 1)
+        self.assertEqual(self._failed([{"path": "CONSTRAINTS.md", "exists": False}], files), [])
+        self.assertEqual(self._failed([{"glob": "docs/**/*.md", "exists": True}], files), [])
+        self.assertEqual(len(self._failed([{"glob": "**/*access*review*", "exists": False}],
+                                          {"evidence/access-review-q3.md": "signed\n"})), 1)
+
+    def test_matches_and_not_matches_on_a_path(self):
+        floor = [{"path": "pyproject.toml", "matches": r"fail_under\s*=\s*80\b"}]
+        self.assertEqual(self._failed(floor, {"pyproject.toml": "fail_under = 80\n"}), [])
+        self.assertEqual(len(self._failed(floor, {"pyproject.toml": "fail_under = 70\n"})), 1)
+        omit = [{"path": "pyproject.toml", "not_matches": r"omit\s*="}]
+        self.assertEqual(self._failed(omit, {"pyproject.toml": "fail_under = 80\n"}), [])
+        self.assertEqual(len(self._failed(omit, {"pyproject.toml": "omit = ['src/*']\n"})), 1)
+
+    def test_a_deleted_file_cannot_dodge_a_path_check(self):
+        for check in ({"path": "tests/test_cache.py", "matches": "def test_expiry"},
+                      {"path": "tests/test_cache.py", "not_matches": "skip"}):
+            with self.subTest(check=check):
+                self.assertEqual(len(self._failed([check], {})), 1)
+
+    def test_a_glob_matches_any_file_and_not_matches_every_file(self):
+        files = {"tests/test_a.py": "ok\n", "tests/test_b.py": "@retry(3)\n"}
+        self.assertEqual(self._failed([{"glob": "**/*.py", "matches": "@retry"}], files), [])
+        self.assertEqual(len(self._failed([{"glob": "**/*.py", "not_matches": "@retry"}], files)), 1)
+        self.assertEqual(self._failed([{"glob": "**/*.py", "not_matches": "@retry"}],
+                                      {"NOTES.md": "@retry"}), [])
+
+    def test_every_failing_check_is_reported_with_its_reason(self):
+        failed = self._failed([
+            {"path": "SPEC.md", "exists": True, "why": "the frozen spec is the contract"},
+            {"path": "SPEC.md", "matches": "AC-2"},
+            {"path": "NOTES.md", "exists": True},
+        ], {"NOTES.md": "x\n"})
+        self.assertEqual(len(failed), 2, failed)
+        self.assertIn("the frozen spec is the contract", failed[0])
+        self.assertTrue(all(f.startswith("SPEC.md") for f in failed), failed)
+
+    def test_paths_outside_the_workspace_fail_rather_than_read(self):
+        root = self._workspace({})
+        outside = tempfile.TemporaryDirectory()
+        self.addCleanup(outside.cleanup)
+        secret = Path(outside.name) / "secret.txt"
+        secret.write_text("fail_under = 80\n")
+        (root / "link.txt").symlink_to(secret)
+        for check in ({"path": "../secret.txt", "matches": "fail_under"},
+                      {"path": "link.txt", "matches": "fail_under"},
+                      {"glob": "*.txt", "matches": "fail_under"}):
+            with self.subTest(check=check):
+                self.assertEqual(len(eval_mod.check_workspace_state([check], root, {})), 1)
+
+    def test_the_oracle_spends_no_tokens(self):
+        with patch.object(eval_mod.subprocess, "run",
+                          side_effect=AssertionError("the state oracle must not call a model")):
+            self.assertEqual(self._failed([{"path": "a.md", "matches": "ok"}], {"a.md": "ok\n"}), [])
+
+
+class TestWorkspaceStateSchema(unittest.TestCase):
+    """#364: a fixture-backed case must name its end state, well-formed, or it is refused."""
+
+    CASE = {"id": 1, "prompt": "p", "expected_output": "e", "assertions": ["a"],
+            "files": [{"path": "src/a.py", "content": "x = 1\n"}],
+            "workspace_state": [{"path": "src/a.py", "unchanged": True, "why": "report-only"}]}
+
+    def _errors(self, **overrides):
+        case = {k: v for k, v in {**self.CASE, **overrides}.items() if v is not None}
+        with tempfile.TemporaryDirectory() as tmp:
+            d = Path(tmp) / "demo-it"
+            (d / "evals").mkdir(parents=True)
+            (d / "evals" / "evals.json").write_text(
+                json.dumps({"skill_name": "demo-it", "evals": [case]}), encoding="utf-8")
+            return eval_mod.validate_skill_eval(d)
+
+    def test_a_well_formed_fixture_backed_case_validates(self):
+        self.assertEqual(self._errors(), [])
+
+    def test_fixtures_with_no_asserted_state_are_refused(self):
+        for state in (None, []):
+            with self.subTest(state=state):
+                errs = self._errors(workspace_state=state)
+                self.assertTrue(any("workspace_state" in e for e in errs), errs)
+
+    def test_a_fixture_backed_case_cannot_also_claim_narration_only(self):
+        errs = self._errors(narration_only=True)
+        self.assertTrue(any("narration_only" in e for e in errs), errs)
+
+    def test_asserted_state_without_fixtures_is_refused(self):
+        errs = self._errors(files=None, narration_only=True)
+        self.assertTrue(any("workspace_state" in e for e in errs), errs)
+
+    def test_malformed_checks_are_refused(self):
+        bad = {
+            "not an object": "src/a.py",
+            "no predicate": {"path": "src/a.py"},
+            "two predicates": {"path": "src/a.py", "exists": True, "matches": "x"},
+            "no target": {"exists": True},
+            "two targets": {"path": "src/a.py", "glob": "*.py", "exists": True},
+            "unknown key": {"path": "src/a.py", "contains": "x"},
+            "bad regex": {"path": "src/a.py", "matches": "("},
+            "empty regex": {"path": "src/a.py", "not_matches": ""},
+            "non-bool exists": {"path": "src/a.py", "exists": "yes"},
+            "unchanged false": {"path": "src/a.py", "unchanged": False},
+            "unchanged on a glob": {"glob": "src/*.py", "unchanged": True},
+            "unchanged on a non-fixture": {"path": "src/b.py", "unchanged": True},
+            "escaping path": {"path": "../a.py", "exists": False},
+            "absolute glob": {"glob": "/etc/*", "exists": False},
+            "non-string why": {"path": "src/a.py", "exists": True, "why": 3},
+        }
+        for reason, check in bad.items():
+            with self.subTest(reason=reason):
+                self.assertTrue(self._errors(workspace_state=[check]), reason)
+
+    def test_the_runner_refuses_a_case_without_asserted_state_before_any_agent_runs(self):
+        with SyntheticCatalog({"demo-it": "Demonstrate the demo. Use when demoing."}) as cat:
+            evals_dir = Path(cat._tmp.name) / "skills" / "demo-it" / "evals"
+            evals_dir.mkdir()
+            case = {k: v for k, v in self.CASE.items() if k != "workspace_state"}
+            (evals_dir / "evals.json").write_text(
+                json.dumps({"skill_name": "demo-it", "evals": [case]}), encoding="utf-8")
+            with patch.object(eval_mod.subprocess, "run",
+                              side_effect=AssertionError("no agent may run")):
+                result = eval_mod.run_behavioral_eval("demo-it", dry_run=False)
+        self.assertEqual(result["failures"], 1)
+        self.assertIn("workspace_state", result["cases"][0]["error"])
 
 
 class TestBehavioralSuite(unittest.TestCase):
