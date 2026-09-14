@@ -4,7 +4,7 @@ pack). Fresh terminal in the U388 worktree; you did not write the code. rw by la
 reads); commit NOTHING — verify with git log that no commit carries your session, and say
 so in worker_done.
 
-TARGET: PR #392 at HEAD da2f98a (branch u388-lockfile → BASE). SPEC (first hit wins):
+TARGET: PR #392 at HEAD 0775547 (branch u388-lockfile → BASE; git fetch origin + checkout 0775547 first — your worktree may sit at the pre-union tip; commit NOTHING). SPEC (first hit wins):
 C-1 no new untracked file remains beside the manifest after sequential wrapped runs;
 C-2 16 concurrent appends land 16 records (mutual exclusion kept); C-3 recorded
 fingerprints equal the committed tree on an otherwise-clean tree. OUT: manifest schema

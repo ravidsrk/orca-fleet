@@ -4,7 +4,7 @@ no other pack). Fresh terminal in the U388 worktree; you did not write the code.
 lane (gh reads + running tests); commit NOTHING — verify with git log that no commit
 carries your session, and say so in worker_done.
 
-TARGET: PR #392 at HEAD da2f98a (branch u388-lockfile → BASE). Claim: a litter test
+TARGET: PR #392 at HEAD 0775547 (branch u388-lockfile → BASE; git fetch origin + checkout 0775547 first — your worktree may sit at the pre-union tip; commit NOTHING). Claim: a litter test
 (sequential runs leave nothing beside the manifest), a 16-way concurrency guard test
 (green at base, RED 10/10 against a no-lock mutant), and a fingerprint-equality test;
 the builder's negative control (revert the wrapper) exits 1 with both litter tests RED
