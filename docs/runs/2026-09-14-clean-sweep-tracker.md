@@ -25,14 +25,14 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | task_id | id | title | CLASS | BUILD_DONE | PR_OPEN | BOT | REVIEWED | MERGED | WT_CLEAN | lighting | park | evidence |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | STAB | — | land 4 PR-review hunks (deny-hook/run_report/verify/HUMAN_ACTIONS) + badge regen | conductor landing, worker-executed | t | n/a | n/a | n/a | t | n/a | lit | — | 1215e09 9651a52 8f7d5ac 917f9fd; pushed origin/BASE fast-forward (egress receipt); 1285 OK + full battery green; NC re-executed 11 failures; rides PR #387 |
-| T1 | #388 | evidence-run lockfile dirties worktree | real-bug | f | f | f | f | f | f | lit | — | triage/brief-388.md; repro: litter + STALE-cascade confirmed, 16/16 land |
-| T2 | #389 | run_report WIP validation accepts incomplete reports | real-bug | f | f | f | f | f | f | lit | — | triage/brief-389.md; repro: settings-only row binds, control refused |
+| T1 | #388 | evidence-run lockfile dirties worktree | real-bug | f | f | f | f | f | f | lit | — | U388 task_f7cfdaa731df term_f79fc6ef; digest d4ed45ce; nc: tests.test_evidence_run |
+| T2 | #389 | run_report WIP validation accepts incomplete reports | real-bug | f | f | f | f | f | f | lit | — | U389 task_0936788dace9 term_08869556; digest c540cb30; nc: tests.test_run_report |
 | T3 | #364 | fixture-backed evals + workspace-state oracle (S1) | real-feature-small | f | f | f | f | f | f | lit | — | Q1: fixtures+oracle (wave 2; brief TBD) |
-| T4 | #385 | historical-docs polish, agent slice (status.json + parity test) | real-bug (docs) | f | f | f | f | f | f | lit | — | triage/brief-385-slice.md; diagrams → parked (Q3) |
+| T4 | #385 | historical-docs polish, agent slice (status.json + parity test) | real-bug (docs) | t | f | f | f | f | f | lit | — | ea77ce9 87619de e72155c on u385-parity; clean 1288 OK @e72155c; NC re-RED (C-1 only); manifest ✓ digest ✓ |
 | T5 | #386 | sign manifest+inventory, retention backend (S2) | — | — | — | — | — | — | — | — | needs-human: key custody + backend undecided (Q2) | Q2: park |
 | — | #235 | H-02 marketplace submissions (pre-parked needs-human) | needs-human | — | — | — | — | — | — | needs-human: external accounts | prior run + issue text |
 
-PHASE: ORIENT → ENUMERATE → TRIAGE done → FREEZE (6 ids, twin agreed) → BUILD next
+PHASE: ORIENT → ENUMERATE → TRIAGE done → FREEZE → BUILD wave 1 running (U388 U389 U385) → wave 2: U364
 
 FREEZE: query1 (coordinator, T0) 4 open + query2 (worker, 16:14Z) 6 open with
 created-since-T0 exactly {#388,#389} and closed-since-T0 none — agreement modulo the run's
@@ -107,3 +107,18 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   refused) with the repo untouched, and transcribed 3 agent-briefs + 3 human questions
   from the verified findings. Greptile correlation: #388/#389 are its 2 P1 comments on
   PR #387 verbatim — fixing them closes the bot loop there.
+- WAVE 1 dispatched (3 builders, WIP ok): U388 task_f7cfdaa731df/ctx_4b956f9ab4ba,
+  U389 task_0936788dace9/ctx_47bc79e5b377, U385 task_f5169734fd96/ctx_d28d22e7bbf3
+  (digests d4ed45ce/c540cb30/eafaf7a1; units fork e04b0c2; specs landed 5af2e6f).
+- U385 live ask msg_8a4540b37c04: spec's both-paths NC revert cannot go RED (restores
+  base test module = green; verify.py refuses test paths per #280). Worker right, spec
+  wrong → approved A+B (revert production path only + throwaway hand-mutation witness
+  for the test-only C-2). Reply sent immediately; question was inside an acked batch —
+  ack-before-reply is closed by this reply, no stall.
+- U385 ask 2 msg_adc25bd5fa78: badge count moves 1285→1288 (outside hot files) → (a)
+  regen on branch as a mechanical commit; integration collisions resolve by re-regen
+  (integrator on unions, conductor after every merge). Replied + acked.
+- U389 ask msg_cace8bc63c0e: same badge question → same answer (never cut tests to hold
+  the count). U388 ask msg_ead6507afe29: same badge question → (A); plus branch name →
+  bare u388-lockfile (create from tip; ravidsrk/* stays local-only). U388 otherwise
+  green: 24/24, C-1/C-3 red-at-base, C-2 RED 10/10 vs no-lock mutant.
