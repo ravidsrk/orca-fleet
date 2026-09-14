@@ -917,6 +917,77 @@ class QuotationsAreAttributedToWhatTheySay(unittest.TestCase):
                       "the quotation is not linked to a source a reader can check")
 
 
+class MissionGuidesEmbedTheirDiagram(unittest.TestCase):
+    """#385: guide<->diagram parity was a convention nothing checked.
+
+    modernize-it.jpg sat in the assets directory while its guide never referenced it, and four
+    guides had no diagram at all; sixteen others embedded theirs. Every guide the mission index
+    links must embed its own asset from assets/diagrams/missions/, and every asset there must be
+    embedded by the guide of the same name.
+    """
+
+    # Guides with no rendered diagram yet: generated rasters with no in-repo source, parked as a
+    # human item (#385, run 2026-09-14 Q3). Named, not skipped: a guide leaving this set by
+    # gaining its diagram fails the test until its name is removed here.
+    KNOWN_GAPS = ["absorb-it", "document-it", "migrate-it", "oncall-it"]
+    INDEX = DOCS / "missions" / "README.md"
+    ASSETS = ROOT / "assets" / "diagrams" / "missions"
+    # `src="../../assets/diagrams/missions/x.jpg"` and `](../../assets/diagrams/missions/x.jpg)`.
+    EMBED = re.compile(r"""(?:src=["']|\]\()\.\./\.\./assets/diagrams/missions/([^"')\s]+)""")
+
+    def _guides(self):
+        """Guide stem -> text, for every docs/missions/*.md the index links (the index is the list)."""
+        guides = {}
+        for target in re.findall(r"\]\(([a-z0-9-]+\.md)\)", self.INDEX.read_text(encoding="utf-8")):
+            path = self.INDEX.parent / target
+            if path.is_file() and path.name != "README.md":
+                guides[path.stem] = path.read_text(encoding="utf-8")
+        self.assertGreater(len(guides), 15, "the index yielded too few guides; parity would be vacuous")
+        return guides
+
+    def test_every_indexed_guide_embeds_its_own_diagram(self):
+        without = []
+        for stem, text in sorted(self._guides().items()):
+            refs = self.EMBED.findall(text)
+            dangling = [r for r in refs if not (self.ASSETS / r).is_file()]
+            self.assertEqual(dangling, [], f"docs/missions/{stem}.md embeds a diagram that is not there")
+            if not any(Path(r).stem == stem for r in refs):
+                without.append(stem)
+        self.assertEqual(without, self.KNOWN_GAPS,
+                         "guides with no embedded diagram of their own != the named known gaps")
+
+    def test_every_diagram_asset_is_embedded_by_its_guide(self):
+        guides = self._guides()
+        for asset in sorted(p for p in self.ASSETS.iterdir() if p.is_file()):
+            with self.subTest(asset=asset.name):
+                self.assertIn(asset.stem, guides, f"{asset.name} has no indexed guide of that name")
+                self.assertIn(asset.name, self.EMBED.findall(guides[asset.stem]),
+                              f"docs/missions/{asset.stem}.md never embeds {asset.name}")
+
+
+class CompletionStatusNamesTheCommitItDescribes(unittest.TestCase):
+    """#385: status.json's current_commit named 6671913 (PR #231's merge, where run 3 resumed)
+    while the record it heads describes the tree after run 3's own PR merged: S5-B fixes, issue
+    filing and run_pr all land inside that PR. The snapshot names its run PR, so the commit it
+    describes is that PR's merge commit, read from history rather than restated here."""
+
+    def test_current_commit_is_the_merge_of_the_recorded_run_pr(self):
+        status = json.loads((DOCS / "completion" / "status.json").read_text(encoding="utf-8"))
+        number = re.fullmatch(r"https://github\.com/[^/]+/[^/]+/pull/(\d+)", status["run_pr"])
+        self.assertIsNotNone(number, f"run_pr is not a pull-request URL: {status['run_pr']!r}")
+        commit = status["current_commit"]
+        self.assertRegex(commit, r"^[0-9a-f]{40}$")
+        shown = subprocess.run(["git", "show", "-s", "--format=%P%n%s", commit],
+                               cwd=ROOT, capture_output=True, text=True)
+        self.assertEqual(shown.returncode, 0, f"current_commit {commit[:12]} is not a commit here "
+                         "(a shallow checkout needs fetch-depth: 0)")
+        parents, subject = shown.stdout.splitlines()[:2]
+        self.assertEqual(len(parents.split()), 2, f"{commit[:12]} is not a merge commit")
+        self.assertTrue(subject.startswith(f"Merge pull request #{number.group(1)} "),
+                        f"current_commit {commit[:12]} is {subject!r}, not the merge of the "
+                        f"snapshot's own run PR #{number.group(1)}")
+
+
 class EveryReleaseHasTheTagItDescribes(unittest.TestCase):
     """#307: docs/releases.json bound nine versions to commits and `git tag` was empty.
 
