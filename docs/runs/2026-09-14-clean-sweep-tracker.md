@@ -25,7 +25,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | task_id | id | title | CLASS | BUILD_DONE | PR_OPEN | BOT | REVIEWED | MERGED | WT_CLEAN | lighting | park | evidence |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | STAB | — | land 4 PR-review hunks (deny-hook/run_report/verify/HUMAN_ACTIONS) + badge regen | conductor landing, worker-executed | t | n/a | n/a | n/a | t | n/a | lit | — | 1215e09 9651a52 8f7d5ac 917f9fd; pushed origin/BASE fast-forward (egress receipt); 1285 OK + full battery green; NC re-executed 11 failures; rides PR #387 |
-| T1 | #388 | evidence-run lockfile dirties worktree | real-bug | t | t | t | f | f | f | lit | — | PR #392 @0775547; R1 NO-GO (review 5202287611, both Req reproduced by verdict worker); F388r2 fixing (serialize-first + 2 tests + N1) |
+| T1 | #388 | evidence-run lockfile dirties worktree | real-bug | t | t | t | f | f | f | lit | — | PR #392 @c680ee0 (fix pushed, recovered); R2 re-verify underway @c680ee0 (batch: serialize-first + tests + N1) |
 | T2 | #389 | run_report WIP validation accepts incomplete reports | real-bug | t | t | t | f | f | f | lit | — | PR #391 @30a6037; R1 NO-GO (review 5202412008, both mutants re-checked by verdict worker); F389r3 fixing (doubled-wave + measured-rule tests, msg asserts, builders=int, waves= dup, docstring) |
 | T3 | #364 | fixture-backed evals + workspace-state oracle (S1) | real-feature-small | f | f | f | f | f | f | lit | — | Q1: fixtures+oracle (wave 2; brief TBD) |
 | T4 | #385 | historical-docs polish, agent slice (status.json + parity test) | real-bug (docs) | t | t | t | t | t | t | lit | — | PR #390 MERGED 32da76e @d6fc2cc (reviewed==head; greptile APPROVED + 3 blind GO); verify.py OK all legs (scope/commands/freshness/NC-exec/review/change-on-base); conductor manifest corrections (head/source) disclosed in-file; worktree retired; #385 closed w/ evidence |
@@ -265,3 +265,21 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
 - F389r3 dispatched (task_3fe775bc2a6c/ctx_38cb2e0beeaa): the verdict batch,
   red-first, gates, manifest refresh (head := pushed tip INCL manifest), push to
   #391. Turn live.
+- F389r3 live ask msg_a7efb8e1b918 (same head circularity; worker recommends A,
+  rejects B): replied A-last-content-commit immediately (mechanical). Both fix
+  workers independently derived A — the spec's "head := pushed tip INCL manifest"
+  is confirmed unimplementable-as-written. LESSON applied: build-364 draft now
+  states head := last CONTENT commit + pushed tip named separately + conductor
+  re-bind (no future worker needs to ask).
+- F388r2 RECOVERED (no worker_done): pushed c680ee0 (union 56cdc6a docs-only +
+  test d150d98 + fix 1217fb2 + badges c7a76d9 1295 + manifest c680ee0), then idled
+  16+ min polling for a Greptile re-review that never came (bot latest @da2f98a;
+  did-not-run checkpoint, doctrine's own path). Conductor verified from git (PR
+  OPEN @c680ee0; commands[] bound to tree 0830350a == c7a76d9 tree; manifest-only
+  delta; digest matches) and completed the task by recovery with full disclosure.
+  Worker stopped + terminal closed. Note: worker kept brief-form contract.source
+  (fix spec's corrected source not copied) — conductor corrects at close.
+- R388r2 dispatched @c680ee0 (specs copied + retargeted + batch-verify line):
+  spec task_c39bba0e65b2/ctx_cc530e2d51ae, test task_41bc3590ddb0/ctx_9548dad3d578,
+  standards task_011722839062/ctx_aaff62a2022f. All turns live. 4 workers out
+  (3xR388r2 + F389r3).
