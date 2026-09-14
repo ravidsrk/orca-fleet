@@ -409,3 +409,6 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   pass; solving needs engine work; no realistic agent emits unsatisfiable pins;
   threat model covered). Task completed, worker released.
 - R364 axes dispatched @c5d4bb7 (spec/standards/test; SPEC judges the P1 call).
+  spec task_1208a815adca→ctx_9839b9447c67 (term_4c411ae3),
+  standards task_d352fd82e4c0→ctx_6c6e58112bdc (term_ce4430bc),
+  test task_187893f94e79→ctx_ca22723d3cb6 (term_a595898f). 3 workers out.
