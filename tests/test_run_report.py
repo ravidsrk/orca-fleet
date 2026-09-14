@@ -258,6 +258,14 @@ class WipCurveObligation(unittest.TestCase):
         self.assertEqual(run_report._wip_curve_errors(f"RUN: waves=1\n\n{row}\n", "ship-it", ROOT,
                                                       "r.md"), [], row)
 
+    def test_a_report_filled_in_from_the_canonical_template_binds(self):
+        # PR #391 review (P1): docs/runs/TEMPLATE.md kept the pre-#389 header (no waves=) and an
+        # unlabelled single WIP row, so a mutating run that followed the repo's own template
+        # produced a report that could not bind. Fill every <blank> as a two-wave run would.
+        template = (ROOT / "docs" / "runs" / "TEMPLATE.md").read_text(encoding="utf-8")
+        filled = re.sub(r"<[^<>\n]+>", "2", template)
+        self.assertEqual(run_report._wip_curve_errors(filled, "ship-it", ROOT, "TEMPLATE.md"), [])
+
     def test_report_only_and_planning_runs_are_exempt(self):
         for mission in ("review-it", "attest-it", "map-it", "root-cause"):
             with self.subTest(mission=mission):
