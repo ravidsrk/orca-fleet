@@ -27,7 +27,8 @@ One record is appended to the manifest's `commands[]`:
     STALE and does not certify the head.
 
 The manifest is created (`{"commands": []}`) if absent, so a unit can start recording before it has
-anything else to say. Ported in shape from gstack `bin/gstack-evidence` (MIT); see
+anything else to say. A zero-length manifest, absent or pre-existing-empty, reads as a new ledger.
+Ported in shape from gstack `bin/gstack-evidence` (MIT); see
 docs/research/2026-09-10-upstream-audit/gstack.md §4.1. Unlike upstream's advisory `check`, the
 downstream gate is FAIL-CLOSED.
 
@@ -141,7 +142,7 @@ def append_record(manifest_path, record):
                 if not isinstance(data, dict):
                     warn(f"{manifest_path} is not a JSON object — not recording")
                     return
-            else:  # absent until the open above created it empty
+            else:  # zero-length: just created by the open above, or already empty on disk
                 data = {"commands": []}
             commands = data.setdefault("commands", [])
             if not isinstance(commands, list):
@@ -149,9 +150,10 @@ def append_record(manifest_path, record):
                 return
             commands.append(record)
             data["commands"] = commands
+            payload = json.dumps(data, indent=2) + "\n"  # before truncate: a failure keeps the file
             fh.seek(0)
             fh.truncate()
-            fh.write(json.dumps(data, indent=2) + "\n")
+            fh.write(payload)
     except (OSError, json.JSONDecodeError, ValueError, TypeError) as err:
         warn(f"could not record into {manifest_path}: {err}")
 
