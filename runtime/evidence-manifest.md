@@ -150,10 +150,10 @@ CLASS — a negative control is always required, but what one IS differs:
 
 - **Mutation units** (ship-it, clean-sweep, oss-contribute, harden-it, speed-it, modernize-it, prove-it, deflake-it,
   access-it, pin-it, floor-it, reshape-it, field-test-it, migrate-it, oncall-it, absorb-it, document-it): runtime-verified, not just compiled/typechecked; no new red at head SHA; the negative control is the §1 proof, EXECUTED per §2.
-- **Report-only units** (review-it): no code is touched (that IS a checked invariant — a dirty worktree fails the
-  unit); the negative-control analogue is SOURCE-BINDING: every finding quotes a line that exists at `head_sha`
-  (the SHA reviewed), and the verdict binds to that SHA. A finding whose quoted line does not exist there is a
-  fabricated finding — the unit fails.
+- **Report-only units** (review-it, attest-it): no code is touched (that IS a checked invariant — a dirty worktree fails the
+  unit); the negative-control analogue is SOURCE-BINDING: every finding quotes a line that exists at `head_sha` and the verdict
+  binds to that SHA — a quoted line absent there is fabricated and fails the unit. For attest-it that analogue is INDEPENDENT
+  RE-DERIVATION: each obligation's evidence re-derives from authoritative state (code, config, live system), never narration.
 - **Planning units** (map-it, root-cause diagnosis): the negative-control analogue is ARTIFACT VERIFICATION: the frozen
   DAG passes decompose-dag's verify section / the reproduction command was actually run and its failing output is pasted;
   a decision ticket answered by the agent instead of the human fails the unit.
