@@ -24,7 +24,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 
 | task_id | id | title | CLASS | BUILD_DONE | PR_OPEN | BOT | REVIEWED | MERGED | WT_CLEAN | lighting | park | evidence |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| STAB | — | land 4 PR-review hunks (deny-hook/run_report/verify/HUMAN_ACTIONS) + badge regen | conductor landing, worker-executed | f | n/a | n/a | n/a | f | f | lit | — | — |
+| STAB | — | land 4 PR-review hunks (deny-hook/run_report/verify/HUMAN_ACTIONS) + badge regen | conductor landing, worker-executed | t | n/a | n/a | n/a | f | n/a | lit | — | 1215e09 9651a52 8f7d5ac 917f9fd on HEAD; manifest tracked; 430 criterion tests OK (coordinator re-run); NC re-executed exit 1 / 11 failures; rides PR #387 (review pends there) |
 | T1 | #388 | evidence-run lockfile dirties worktree (filed 15:50Z) | needs-triage | f | f | f | f | f | f | lit | — | — |
 | T2 | #389 | run_report WIP validation accepts incomplete reports (filed 15:50Z) | needs-triage | f | f | f | f | f | f | lit | — | — |
 | T3 | #364 | per-skill behavioral evals ship zero fixtures (S1) | needs-triage | f | f | f | f | f | f | lit | — | — |
@@ -32,7 +32,10 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | T5 | #386 | optional hardening: sign manifest+inventory, retention backend (S2) | needs-triage | f | f | f | f | f | f | lit | — | — |
 | — | #235 | H-02 marketplace submissions (pre-parked needs-human) | needs-human | — | — | — | — | — | — | — | needs-human: external accounts | prior run + issue text |
 
-PHASE: ORIENT → ENUMERATE done · STABILIZE next · FREEZE after (green BASE + A1/A2 filed + twin enumeration agrees)
+PHASE: ORIENT → ENUMERATE done · STABILIZE landed 917f9fd (push pends full-suite green) · TRIAGE next · FREEZE after twin agreement
+
+Run-close integrity inventory: retained inline in the Final report section at close (this
+ledger is the living run record until then).
 
 ## T0 enumeration (query 1, coordinator, 2026-09-14T15:34:09Z)
 
@@ -62,3 +65,13 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
 - 15:50 A1/A2 filed as #388/#389 (egress receipts first, consent
   run-2026-09-14-clean-sweep:tracker-writes). Loop-1 denominator now 6: #235 #364 #385 #386
   #388 #389.
+- 15:58 STABILIZE worker_done (succeeded): 4 commits 1215e09 9651a52 8f7d5ac 917f9fd, manifest
+  tracked. Coordinator verified: all SHAs on HEAD, 430 criterion tests OK (re-run), validate +
+  badges green, NC re-executed exit 1 / 11 failures (matches claim). Delivery acked, worker
+  released (retained/no_owned_resource — custom lane owns no terminal; pane kept for forensics).
+- Full suite at 917f9fd: 4 failures, ALL mine — the new ledger tripped
+  test_run_archive_index_lists_every_report (no index row) +
+  test_run_archive_integrity_standard_matches_practice (no inventory sentence), each ×2 via
+  release-rehearsal clones. The 09-09 compound-learn warned exactly this; my pre-commit search
+  for the tests used wrong terms and I trusted the empty result — search negatives are not
+  evidence. Fixed this commit: index row + inventory sentence. Re-running.
