@@ -276,5 +276,32 @@ class ConcurrentAppends(LedgerCase):
                           "run-14", "run-15"])
 
 
+class NoLedgerLitter(LedgerCase):
+    """#388: whatever serializes the append must not leave a file of its own beside the manifest.
+    An untracked sibling fails every clean-tree gate once the manifest is committed, and it is
+    content: the next run's fingerprint includes it and no longer equals the committed tree."""
+
+    MANIFEST = "reports/m.json"
+
+    def test_sequential_runs_leave_nothing_beside_the_manifest(self):
+        for label in ("tests", "lint", "tests"):
+            r = self.run_wrapped(sys.executable, "-c", "pass", label=label, manifest=self.MANIFEST)
+            self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual(sorted(p.name for p in (self.repo / "reports").iterdir()), ["m.json"])
+        self.git("add", self.MANIFEST)
+        self.git("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "record")
+        self.assertEqual(self.git("status", "--porcelain", "--untracked-files=all"), "",
+                         "committing the manifest must leave a clean tree")
+
+    def test_a_run_after_committing_the_manifest_records_the_committed_tree(self):
+        self.run_wrapped(sys.executable, "-c", "pass", manifest=self.MANIFEST)
+        self.git("add", self.MANIFEST)
+        self.git("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "record")
+        committed = self.git("rev-parse", "HEAD^{tree}")
+        r = self.run_wrapped(sys.executable, "-c", "pass", label="rerun", manifest=self.MANIFEST)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual(self.records(self.MANIFEST)[-1]["wtree"], committed)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

@@ -123,21 +123,25 @@ def run_child(argv, artifact_path, cwd):
 def append_record(manifest_path, record):
     """Append to `commands[]`, creating the manifest if absent. Never raises.
 
-    The read-modify-write runs under an flock on a sibling lockfile (#382): two parallel
+    The read-modify-write runs under an flock on the manifest itself (#382): two parallel
     wrapped runs used to lose one record silently, and the wrapper's transparency meant no
     failure was even warned about. The lock covers read-through-write, so the loser waits.
+    Not a sibling lockfile (#388): that outlives the run as untracked content, failing
+    clean-tree gates and moving the next run's fingerprint off the committed tree. The
+    rewrite is in place, so every waiter locks the same inode the holder wrote.
     """
-    lock_path = manifest_path.with_suffix(manifest_path.suffix + ".lock")
     try:
         manifest_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(lock_path, "a", encoding="utf-8") as lock:
-            fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
-            if manifest_path.exists():
-                data = json.loads(manifest_path.read_text(encoding="utf-8"))
+        with open(manifest_path, "r+", encoding="utf-8",
+                  opener=lambda name, flags: os.open(name, flags | os.O_CREAT, 0o666)) as fh:
+            fcntl.flock(fh.fileno(), fcntl.LOCK_EX)
+            text = fh.read()
+            if text:
+                data = json.loads(text)
                 if not isinstance(data, dict):
                     warn(f"{manifest_path} is not a JSON object — not recording")
                     return
-            else:
+            else:  # absent until the open above created it empty
                 data = {"commands": []}
             commands = data.setdefault("commands", [])
             if not isinstance(commands, list):
@@ -145,7 +149,9 @@ def append_record(manifest_path, record):
                 return
             commands.append(record)
             data["commands"] = commands
-            manifest_path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+            fh.seek(0)
+            fh.truncate()
+            fh.write(json.dumps(data, indent=2) + "\n")
     except (OSError, json.JSONDecodeError, ValueError, TypeError) as err:
         warn(f"could not record into {manifest_path}: {err}")
 
