@@ -58,6 +58,36 @@ NARRATION_ONLY_CASES = {
 # directions, and this literal is what stops the exemption growing silently.
 AGENT_MUST_EDIT = {("modernize-it", 4): {"requirements.txt"}}
 
+# #364 V1/V2: committed workspaces, each an overlay on a case's materialized fixtures (see its
+# "_about"). They live beside this file so a case's teeth are reviewable data, not test code.
+WORKSPACES = json.loads((Path(__file__).resolve().parent / "eval_workspaces.json")
+                        .read_text(encoding="utf-8"))
+
+
+def _case(mission: str, case_id: int) -> dict:
+    return next(ev for ev in eval_mod.load_json(SKILLS / mission / "evals" / "evals.json")["evals"]
+                if ev["id"] == case_id)
+
+
+def _state_after(mission: str, case_id: int, write: dict | None = None,
+                 venv: bool = False) -> list[str]:
+    """What the real oracle says of case `case_id` once `write` (path -> text), and optionally
+    the committed .venv, is laid over the fixtures it materializes."""
+    ev = _case(mission, case_id)
+    with tempfile.TemporaryDirectory() as tmp:
+        workspace = Path(tmp)
+        eval_mod._materialize(ev, workspace, SKILLS / mission)
+        originals = {rel: (workspace / rel).read_bytes() for rel in eval_mod._fixture_paths(ev)}
+        for rel, text in {**(WORKSPACES["venv"] if venv else {}), **(write or {})}.items():
+            (workspace / rel).parent.mkdir(parents=True, exist_ok=True)
+            (workspace / rel).write_text(text, encoding="utf-8")
+        return eval_mod.check_workspace_state(ev["workspace_state"], workspace, originals)
+
+
+def _labels(failed: list[str]) -> list[str]:
+    """'<target>: <predicate>' of each failure line: the part that names the check."""
+    return sorted(" ".join(line.split(" ", 2)[:2]) for line in failed)
+
 
 # Issue #260: the floor tracks what the description-based router actually
 # scores, never a rubber stamp. Measured on the full fixture set (74 rows: the
@@ -1057,6 +1087,93 @@ class TestWorkspaceStateChecks(unittest.TestCase):
             self.assertEqual(self._failed([{"path": "a.md", "matches": "ok"}], {"a.md": "ok\n"}), [])
 
 
+class TestCasesCatchTheirViolation(unittest.TestCase):
+    """#364 V1-V3: a fixture-backed case earns its place only if the real oracle FAILS a workspace
+    showing the behaviour it exists to catch, and passes one that follows the doctrine. Every
+    violating workspace is otherwise doctrine-following, so the checks it fails are exactly the
+    ones that name its violation: gut one and its row goes red."""
+
+    def test_every_fixture_backed_case_has_a_violating_workspace(self):
+        cases = set()
+        for d in sorted(SKILLS.iterdir()):
+            eval_file = d / "evals" / "evals.json"
+            if eval_file.exists():
+                cases.update((d.name, ev["id"]) for ev in eval_mod.load_json(eval_file)["evals"]
+                             if ev.get("workspace_state"))
+        covered = {(w["mission"], w["id"]) for w in WORKSPACES["violating"]}
+        self.assertEqual(sorted(cases - covered), [], "cases no violating workspace exercises")
+        self.assertEqual(sorted(covered - cases), [], "violating workspaces naming no such case")
+
+    def test_each_violating_workspace_fails_on_exactly_its_violation(self):
+        for w in WORKSPACES["violating"]:
+            with self.subTest(mission=w["mission"], violation=w["violation"]):
+                failed = _state_after(w["mission"], w["id"], w["write"], w.get("venv", False))
+                self.assertEqual(_labels(failed), w["fails"], failed)
+
+    def test_doctrine_following_workspaces_pass(self):
+        for w in WORKSPACES["passing"]:
+            with self.subTest(mission=w["mission"], name=w["name"]):
+                self.assertEqual(_state_after(w["mission"], w["id"], w["write"]), [])
+
+    def test_a_venv_beside_a_root_cause_fix_passes_the_deflake_case(self):
+        # V1: `python -m venv .venv` in the workspace is doctrine-following, and pip's own code
+        # carries Retry( and @retry. The committed excerpt must really hit the ban, or its passing
+        # proves nothing about how the ban is scoped.
+        ban = next(c["not_matches"] for c in _case("deflake-it", 4)["workspace_state"]
+                   if "glob" in c)
+        sources = {rel: text for rel, text in WORKSPACES["venv"].items() if rel.endswith(".py")}
+        self.assertEqual(len(sources), 7)
+        for rel, text in sources.items():
+            with self.subTest(path=rel):
+                self.assertRegex(text, ban)
+        self.assertEqual(_state_after("deflake-it", 4, WORKSPACES["deflake_fix"], venv=True), [])
+
+    # V3: modernize-it id-4's advisory boundary (ADV-1, fixed in requests 2.32.4), one row per
+    # shape. django stays on 5.2 in every row, so every failure is the requests boundary's.
+    REQUESTS_ROWS = (
+        ("requests==2.32.3", ["requirements.txt: matches"], "one patch short of the fix"),
+        ("requests~=2.32", ["requirements.txt: matches"], "~=2.32 still admits 2.32.0-2.32.3"),
+        ("requests>=2.31.0", ["requirements.txt: matches"], "a floor at the vulnerable release"),
+        ("requests==2.31.0\nrequests==2.32.4", ["requirements.txt: not_matches"],
+         "the fix added, the vulnerable pin kept beside it"),
+        ("", ["requirements.txt: matches"], "requests dropped from requirements.txt"),
+        ("requests==2.32.4", [], "the fixed release"),
+        ("requests>=2.32.4", [], "a floor at the fix"),
+        ("requests~=2.32.4", [], "compatible with the fix"),
+        ("requests==2.32.10", [], "a later patch"),
+        ("requests==2.33.0", [], "a newer minor"),
+        ("requests>=2.40,<3", [], "a newer-minor range"),
+        ("requests==3.0.0", [], "a newer major"),
+        ("requests[socks]==2.32.4", [], "extras on the fixed release"),
+        # Pinned as it behaves, not fixed: Greptile's P1 on PR #395 (comment 4010263920) was
+        # refuted and the refutation upheld at verdict r1. The agent never sees the checks, and a
+        # real range like >=2.32.4,<3 has to pass, so the regex reads the floor only.
+        ("requests>=2.32.4,<2.32.4", [], "contradictory: passes, by the upheld refutation"),
+    )
+
+    def test_the_requests_advisory_boundary(self):
+        for line, fails, why in self.REQUESTS_ROWS:
+            with self.subTest(requests=line, why=why):
+                failed = _state_after("modernize-it", 4,
+                                      {"requirements.txt": f"django==5.2.6\n{line}\n"})
+                self.assertEqual(_labels(failed), fails, failed)
+                self.assertTrue(all("requests" in f for f in failed), failed)
+
+    DJANGO_ROWS = (
+        ("django==5.2.6", True), ("django~=5.2.6", True), ("django>=5.2.6,<5.3", True),
+        ("Django==5.2.7", True), ("django==6.0.1", False), ("django>=6.0", False),
+    )
+
+    def test_the_django_lts_pin_accepts_every_spelling_of_5_2(self):
+        for line, holds in self.DJANGO_ROWS:
+            with self.subTest(django=line):
+                failed = _state_after("modernize-it", 4,
+                                      {"requirements.txt": f"{line}\nrequests==2.32.4\n"})
+                self.assertEqual(_labels(failed), [] if holds else ["requirements.txt: matches"],
+                                 failed)
+                self.assertTrue(all("django" in f for f in failed), failed)
+
+
 class TestWorkspaceStateSchema(unittest.TestCase):
     """#364: a fixture-backed case must name its end state, well-formed, or it is refused."""
 
@@ -1111,6 +1228,15 @@ class TestWorkspaceStateSchema(unittest.TestCase):
         for reason, check in bad.items():
             with self.subTest(reason=reason):
                 self.assertTrue(self._errors(workspace_state=[check]), reason)
+
+    def test_a_non_list_workspace_state_is_named_not_a_list(self):
+        # S5: without the guard a dict iterates its keys and a string its characters, and the
+        # errors read as per-check problems naming nothing the author wrote.
+        for state in ({"path": "src/a.py", "unchanged": True}, "src/a.py"):
+            with self.subTest(state=state):
+                errs = self._errors(workspace_state=state)
+                self.assertTrue(any(e.endswith("workspace_state is not a list") for e in errs),
+                                errs)
 
     def test_the_runner_refuses_a_case_without_asserted_state_before_any_agent_runs(self):
         with SyntheticCatalog({"demo-it": "Demonstrate the demo. Use when demoing."}) as cat:

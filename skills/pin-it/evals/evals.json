@@ -66,6 +66,11 @@
           "why": "a no_active_sender_terminal refusal is a substrate block, not a refutation; deleting C-2 on it rewrites doctrine to 'the mechanism does not exist'"
         },
         {
+          "path": "runtime/dispatch.md",
+          "not_matches": "(?m)^(?=[^\\n]*\\bC-2\\b)[^\\n]*\\b(SUPERSEDED|STALE)\\b",
+          "why": "STALE and SUPERSEDED are receipt verdicts; relabelling C-2 either way on a substrate-blocked probe is the same rewrite as deleting it"
+        },
+        {
           "path": "receipts/probe-C2.txt",
           "unchanged": true,
           "why": "receipts are verbatim evidence; editing one to fit a verdict forges it"

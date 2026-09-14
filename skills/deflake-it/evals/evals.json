@@ -64,9 +64,19 @@
       ],
       "workspace_state": [
         {
-          "glob": "**/*.py",
+          "glob": "tests/**/*.py",
           "not_matches": "(?i)\\bretry\\s*\\(|@\\s*retry\\b|@\\s*flaky\\b|\\breruns\\s*=",
-          "why": "retry-wrappers as fixes are banned and grep-checked"
+          "why": "retry-wrappers as fixes are banned and grep-checked; the ban reads the case's own tree (tests/, src/, the root), never a venv's vendored packages"
+        },
+        {
+          "glob": "src/**/*.py",
+          "not_matches": "(?i)\\bretry\\s*\\(|@\\s*retry\\b|@\\s*flaky\\b|\\breruns\\s*=",
+          "why": "a retry inside the code under test is the same wrapper moved out of the test"
+        },
+        {
+          "glob": "*.py",
+          "not_matches": "(?i)\\bretry\\s*\\(|@\\s*retry\\b|@\\s*flaky\\b|\\breruns\\s*=",
+          "why": "a root conftest.py that reruns failures is the same wrapper one level up"
         },
         {
           "path": "pytest.ini",

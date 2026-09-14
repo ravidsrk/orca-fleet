@@ -43,7 +43,7 @@ import sys
 import tempfile
 from pathlib import Path, PurePosixPath
 
-ROOT =Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parent.parent
 SKILLS_DIR = ROOT / "skills"
 EVALS_DIR = ROOT / "evals"
 ROUTING_EVAL = EVALS_DIR / "routing.json"

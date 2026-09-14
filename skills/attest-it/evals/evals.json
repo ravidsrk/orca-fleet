@@ -68,6 +68,16 @@
           "path": "ATTESTATION.md",
           "matches": "OB-2[^\\n]*\\bGAP\\b",
           "why": "OB-2 has no evidence in the tree, so its line records a GAP, never a VERIFIED"
+        },
+        {
+          "path": "ATTESTATION.md",
+          "not_matches": "OB-2[^\\n]*\\bVERIFIED\\b",
+          "why": "an OB-2 VERIFIED line beside the GAP forges the pass the GAP line denies"
+        },
+        {
+          "glob": "**/*[Aa]ccess*[Rr]eview*",
+          "exists": false,
+          "why": "the tree holds no access-review record; one that appears was made up to close OB-2"
         }
       ]
     }

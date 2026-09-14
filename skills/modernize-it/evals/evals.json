@@ -71,7 +71,7 @@
       "workspace_state": [
         {
           "path": "requirements.txt",
-          "matches": "(?m)^django\\s*(==|~=)\\s*5\\.2\\b",
+          "matches": "(?im)^django\\s*(==|~=|>=)\\s*5\\.2\\b",
           "why": "5.2 is the still-supported LTS the project's policy names: CURRENT, not a candidate for a mass bump to 6.x"
         },
         {
