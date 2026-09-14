@@ -10,6 +10,10 @@
 
 **Skill:** [`skills/document-it/SKILL.md`](../../skills/document-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes — docs land as PRs
 
+<p align="center">
+  <img src="../../assets/diagrams/missions/document-it.jpg" alt="State machine: EXTRACT the public surface by script, MAP coverage per quadrant, FREEZE the gap list at a human gate, WRITE one cell per unit reference-first, CLAIM-VERIFY with a rename control that must go RED, build-blind REVIEW, LAND, RE-MAP at the final head, ending DOCUMENTED or DOCUMENTED-WITH-PARKED" width="820">
+</p>
+
 ---
 
 ## What it does

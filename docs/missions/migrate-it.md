@@ -11,6 +11,10 @@
 
 **Skill:** [`skills/migrate-it/SKILL.md`](../../skills/migrate-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes — one PR per phase
 
+<p align="center">
+  <img src="../../assets/diagrams/missions/migrate-it.jpg" alt="State machine: PLAN the table set and phase list with down paths, then per table EXPAND, DUAL-WRITE, BACKFILL with a full parity probe, SWITCH-READS, a ZERO-READERS window, archived parity, RETIRE-WRITES, a ZERO-WRITERS window, and CONTRACT behind a one-way human gate, ending MIGRATED, MIGRATED-WITH-PARKED, or ABANDONED via exercised down paths" width="820">
+</p>
+
 ---
 
 ## What it does

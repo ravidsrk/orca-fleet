@@ -11,6 +11,10 @@
 
 **Skill:** [`skills/absorb-it/SKILL.md`](../../skills/absorb-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes — the fleet lands and closes
 
+<p align="center">
+  <img src="../../assets/diagrams/missions/absorb-it.jpg" alt="State machine: ENUMERATE every open inbound PR at T0, CLASSIFY by reproducing the claim on current main, then either RECLASSIFY at the pinned BASE, ABSORB preserving authorship, RECEIPT with RED-on-base and GREEN-on-head, build-blind REVIEW, LAND and CLOSE with credit, or close through a batch human gate, or PARK with a named ask; RE-ENUMERATE until ABSORBED or ABSORBED-WITH-PARKED" width="820">
+</p>
+
 ---
 
 ## What it does
