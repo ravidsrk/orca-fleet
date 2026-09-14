@@ -1,6 +1,6 @@
 # clean-sweep run — source=tracker — 2026-09-14 (takeover)
 
-RUN: run_0607bdc681e6 · COORDINATOR: term_9e23f85f-d8e7-4b36-86d1-232379b9aa21 (orca run-create binding; driving shell: Muse CLI on maintainer Mac) · BASE: review/2026-09-14-holistic-fixes · FORK_POINT: eb1a2f104c0f94a7af386b85f6a0a38dccf97a1d · T0: 2026-09-14T15:34:09Z · SOURCE: tracker (4 open at T0: #235 #364 #385 #386; +2 PR-review findings to file as A1 A2) · WIP: builders=3 reviewers=1
+RUN: run_0607bdc681e6 · COORDINATOR: term_324d4430-b72d-40f7-8caa-0707d1a2adc0 (run-use adoption gen 2; driving shell: Muse CLI on maintainer Mac) · BASE: review/2026-09-14-holistic-fixes · FORK_POINT: eb1a2f104c0f94a7af386b85f6a0a38dccf97a1d · T0: 2026-09-14T15:34:09Z · SOURCE: tracker (4 open at T0: #235 #364 #385 #386; +2 PR-review findings to file as A1 A2) · WIP: builders=3 reviewers=1
 
 Takeover provenance: kimi-code session_0b74c473-f848-457a-80d5-cf683b959158
 (`~/.kimi-code/sessions/wd_orca-fleet_e01cdf52740c/session_0b74c473-f848-457a-80d5-cf683b959158`,
