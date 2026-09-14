@@ -473,13 +473,17 @@ _WIP_ROW_SCHEMA = " ".join(f"{k}={_WIP_COUNTS.get(k, '<v>')}" for k in WIP_ROW_K
 
 
 def _wip_rows(text):
-    """(row, {key: value}) for every table row that names a wave — the report's WIP-curve rows."""
+    """(row, {key: value}, doubled keys) for every table row that names a wave — the report's
+    WIP-curve rows. A key written twice is reported, never collapsed: dict() keeps the last value,
+    so `throughput=TBD throughput=1` would bind on the 1 (PR #391 review)."""
     rows = []
     for line in text.splitlines():
         if line.lstrip().startswith("|"):
-            cells = dict(_WIP_CELL_RE.findall(line))
-            if "wave" in cells:
-                rows.append((line.strip(), cells))
+            pairs = _WIP_CELL_RE.findall(line)
+            keys = [k for k, _v in pairs]
+            if "wave" in keys:
+                doubled = sorted({k for k in keys if keys.count(k) > 1})
+                rows.append((line.strip(), dict(pairs), doubled))
     return rows
 
 
@@ -502,7 +506,11 @@ def _wip_curve_errors(text, mission, root, report_path, rev=None):
                 f"table row carrying {_WIP_ROW_SCHEMA} (attention-budget.md) — none found; "
                 "a cap recorded nowhere was never a cap (#365)"]
     errors = []
-    for row, cells in rows:
+    for row, cells, doubled_keys in rows:
+        if doubled_keys:
+            errors.append(f"{report_path}: WIP-curve row {row!r} carries {doubled_keys} more than "
+                          "once — one value per cell, or the row contradicts itself (#389)")
+            continue
         missing = [k for k in WIP_ROW_KEYS if not _wip_cell_ok(k, cells.get(k))]
         if missing:
             errors.append(f"{report_path}: WIP-curve row {row!r} carries no measured {missing} — "
@@ -517,7 +525,7 @@ def _wip_curve_errors(text, mission, root, report_path, rev=None):
                       "are checked against waves 1..n (attention-budget.md, #389)")
         return errors
     recorded = range(1, int(declared) + 1)
-    named = [int(c["wave"]) for _row, c in rows if _COUNT_RE.fullmatch(c["wave"])]
+    named = [int(c["wave"]) for _row, c, _doubled in rows if _COUNT_RE.fullmatch(c["wave"])]
     absent = [k for k in recorded if k not in named]
     doubled = sorted({k for k in named if named.count(k) > 1})
     stray = sorted({k for k in named if k not in recorded})

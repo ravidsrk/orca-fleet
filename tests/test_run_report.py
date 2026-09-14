@@ -235,6 +235,14 @@ class WipCurveObligation(unittest.TestCase):
                 errs = run_report._wip_curve_errors(body, "ship-it", ROOT, "r.md")
                 self.assertTrue(errs, f"{name}: bound with incomplete per-wave rows")
 
+    def test_a_row_carrying_a_cell_twice_is_refused(self):
+        # PR #391 review (P2): a copy-edited row kept only the LAST occurrence of each key, so
+        # throughput=TBD throughput=1 bound on the 1 while still saying it was never measured.
+        row = self.ROW_1.replace("throughput=1.5/h", "throughput=TBD throughput=1")
+        body = f"RUN: mission=ship-it waves=1\n\n## WIP curve\n\n{row}\n"
+        errs = run_report._wip_curve_errors(body, "ship-it", ROOT, "r.md")
+        self.assertTrue(any("throughput" in e for e in errs), errs)
+
     def test_complete_per_wave_rows_bind(self):
         # Cell order and extra cells are free; only the schema's cells are owed, once per wave.
         reordered = ("| wave=2 | note: second wave | freshness=1 | rework=1/2 | throughput=0.8/h "
