@@ -3,9 +3,9 @@
   "unit": "U389",
   "unit_class": "code-change",
   "base_sha": "e04b0c20137d0d0a9a0886d6f9748e72252384a7",
-  "head_sha": "ad1471b73a76ca463692a2ee8d72185139dbd9f4",
-  "head_tree": "6e1f032612da1c31572165ec2e32e598f17f24df",
-  "head_sha_role": "Verdict-r1 fix round (review 5202412008, NO-GO on two untested checker legs). head_sha is the last content commit: 22ba35b (leg tests R1/R2/a/b), 885a04e (a doubled RUN: waves= refused + docstring d), ad1471b (tests badge, gen-badges.py output). Every commands[] record from this round was made by evidence-run.py on a clean tree at ad1471b (wtree 6e1f0326 == head_sha^{tree}). The commit that adds this manifest follows head_sha, changes only this file, and cannot name its own SHA; the coordinator confirmed this binding (orca ask, option A-last-content-commit) and re-binds head_sha to the reviewed tip at close per the tracker's evidence-closure routine.",
+  "head_sha": "e068ddfd8db59e687d2d9716e0bc4389b2fb5c4d",
+  "head_tree": "469d884213060e67e8983c91fce3bdb60d35cd99",
+  "head_sha_role": "Verdict-r2 fix round (review 5202754078, NO-GO on RQ1: the integer rule was witnessed for builders only). head_sha is the last content commit: 0a153d6 (reviewers=2.5 subtest, wave=1.5 row test, waves=two test — tests only, the checker unchanged), 6182dfb (docs/runs/TEMPLATE.md and docs/runs/README.md prose), e068ddf (tests badge, gen-badges.py output). Every commands[] record from this round was made by evidence-run.py on a clean tree at e068ddf (wtree 469d8842 == head_sha^{tree}). The commit that adds this manifest follows head_sha, changes only this file, and cannot name its own SHA; the binding is the one the coordinator confirmed in verdict r1 (orca ask, option A-last-content-commit), and the conductor re-binds head_sha to the reviewed tip at close per the tracker's evidence-closure routine.",
   "base_branch": "review/2026-09-14-holistic-fixes",
   "branch": "u389-wip-schema",
   "contract": {
@@ -24,14 +24,14 @@
       "text": "a settings-only row is refused.",
       "addressed": true,
       "commit": "e74dea0",
-      "witness": "tests/test_run_report.py::WipCurveObligation::test_a_settings_only_row_is_refused (3 subtests: the formerly blessed `| 1 | builders=4 reviewers=2 | 3.1 |`, a wave-named settings row, an unrelated row carrying the two settings); also LiveCatalog::test_ship_its_artifacts_still_hash_true_but_its_transcript_is_missing (the 2026-08-28 ship-it report's settings-only WIP row is now refused on the WIP-curve leg); verdict r1 hardening (22ba35b): each subtest asserts the message of the check that must fire, plus ::test_a_row_with_placeholder_metrics_is_refused and ::test_a_wip_setting_that_is_not_an_integer_is_refused"
+      "witness": "tests/test_run_report.py::WipCurveObligation::test_a_settings_only_row_is_refused (3 subtests: the formerly blessed `| 1 | builders=4 reviewers=2 | 3.1 |`, a wave-named settings row, an unrelated row carrying the two settings); also LiveCatalog::test_ship_its_artifacts_still_hash_true_but_its_transcript_is_missing (the 2026-08-28 ship-it report's settings-only WIP row is now refused on the WIP-curve leg); verdict r1 hardening (22ba35b): each subtest asserts the message of the check that must fire, plus ::test_a_row_with_placeholder_metrics_is_refused and ::test_a_wip_setting_that_is_not_an_integer_is_refused; verdict r2 (0a153d6): ::test_a_wip_setting_that_is_not_an_integer_is_refused gains reviewers=2.5 (3 subtests: builders=two, builders=2.5, reviewers=2.5), so the integer rule is witnessed for both settings"
     },
     {
       "id": "C-2",
       "text": "a multi-wave report with partial or missing wave rows is refused.",
       "addressed": true,
       "commit": "e74dea0",
-      "witness": "tests/test_run_report.py::WipCurveObligation::test_a_multi_wave_report_with_partial_or_missing_wave_rows_is_refused (6 subtests: one row for three waves; wave 2 of 2 has no row; wave 2 row lacks latency_max; wave 1 twice, wave 2 never; a row for an unrecorded wave; no waves= recorded); verdict r1 hardening (22ba35b, 885a04e): each subtest asserts the message of the check that must fire, plus ::test_a_wave_carrying_two_rows_is_refused_with_none_missing, ::test_a_wave_that_is_not_a_number_is_refused_without_crashing, ::test_a_zero_wave_count_is_refused, ::test_a_run_header_carrying_waves_twice_is_refused"
+      "witness": "tests/test_run_report.py::WipCurveObligation::test_a_multi_wave_report_with_partial_or_missing_wave_rows_is_refused (6 subtests: one row for three waves; wave 2 of 2 has no row; wave 2 row lacks latency_max; wave 1 twice, wave 2 never; a row for an unrecorded wave; no waves= recorded); verdict r1 hardening (22ba35b, 885a04e): each subtest asserts the message of the check that must fire, plus ::test_a_wave_carrying_two_rows_is_refused_with_none_missing, ::test_a_wave_that_is_not_a_number_is_refused_without_crashing, ::test_a_zero_wave_count_is_refused, ::test_a_run_header_carrying_waves_twice_is_refused; verdict r2 (0a153d6): ::test_a_wave_that_is_not_an_integer_is_refused (a wave=1.5 row beside a complete wave 1 row — the integer rule for the wave key) and ::test_a_wave_count_that_is_not_a_number_is_refused_without_crashing (RUN: waves=two)"
     },
     {
       "id": "C-3",
@@ -209,9 +209,69 @@
       "wtree": "6e1f032612da1c31572165ec2e32e598f17f24df",
       "artifact": null,
       "artifact_note": "session-scratchpad transcript, not committed (no artifact path in the dispatch scope). Summary inlined: full suite 'Ran 1302 tests' / 'OK'"
+    },
+    {
+      "label": "nc-command",
+      "ts": "2026-09-14T21:00:01Z",
+      "cmd": "python3 -m unittest tests.test_run_report",
+      "cmd_sha256": "b4603da428a8b70130fdb60edeb399d52a044ad679ee7f857305707f53e97f6a",
+      "exit": 0,
+      "duration_s": 5.474,
+      "commit": "e068ddfd8db59e687d2d9716e0bc4389b2fb5c4d",
+      "wtree": "469d884213060e67e8983c91fce3bdb60d35cd99",
+      "artifact": null,
+      "artifact_note": "session-scratchpad transcript, not committed (no artifact path in the dispatch scope). Summary inlined: 'Ran 65 tests' / 'OK' / 'no mission claims a tier above doctrine-only'"
+    },
+    {
+      "label": "validate",
+      "ts": "2026-09-14T21:00:02Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 0,
+      "duration_s": 0.516,
+      "commit": "e068ddfd8db59e687d2d9716e0bc4389b2fb5c4d",
+      "wtree": "469d884213060e67e8983c91fce3bdb60d35cd99",
+      "artifact": null,
+      "artifact_note": "session-scratchpad transcript, not committed (no artifact path in the dispatch scope). Summary inlined: 'All 21 missions valid; three-layer separation holds; evals valid.'"
+    },
+    {
+      "label": "lint",
+      "ts": "2026-09-14T21:00:02Z",
+      "cmd": "ruff check runtime/scripts/run_report.py tests/test_run_report.py",
+      "cmd_sha256": "29ca390fe653a2b4bb701173e5bd2554c01163ec838146c6f51f517b920c4934",
+      "exit": 0,
+      "duration_s": 0.01,
+      "commit": "e068ddfd8db59e687d2d9716e0bc4389b2fb5c4d",
+      "wtree": "469d884213060e67e8983c91fce3bdb60d35cd99",
+      "artifact": null,
+      "artifact_note": "session-scratchpad transcript, not committed (no artifact path in the dispatch scope). Summary inlined: 'All checks passed!'"
+    },
+    {
+      "label": "gitleaks",
+      "ts": "2026-09-14T21:00:04Z",
+      "cmd": "gitleaks detect --no-banner --redact",
+      "cmd_sha256": "2d98ca8d9f7804977c80cc7bcb19c17f43cdffb6f23563d37dd957a098246120",
+      "exit": 0,
+      "duration_s": 1.885,
+      "commit": "e068ddfd8db59e687d2d9716e0bc4389b2fb5c4d",
+      "wtree": "469d884213060e67e8983c91fce3bdb60d35cd99",
+      "artifact": null,
+      "artifact_note": "session-scratchpad transcript, not committed (no artifact path in the dispatch scope). Summary inlined: 'no leaks found'"
+    },
+    {
+      "label": "tests",
+      "ts": "2026-09-14T21:03:56Z",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "exit": 0,
+      "duration_s": 231.954,
+      "commit": "e068ddfd8db59e687d2d9716e0bc4389b2fb5c4d",
+      "wtree": "469d884213060e67e8983c91fce3bdb60d35cd99",
+      "artifact": null,
+      "artifact_note": "session-scratchpad transcript, not committed (no artifact path in the dispatch scope). Summary inlined: full suite 'Ran 1304 tests' / 'OK'"
     }
   ],
-  "commands_binding_note": "Every commands[].artifact is null (PR #391 review F2: absolute scratchpad paths are refused and unpinned); each record's artifact_note inlines the transcript summary. The first four records are round 1 at 0038a43 and the next five the bot-findings round at 2d1e206 (both historical, stale for this head). The last five were written by runtime/scripts/evidence-run.py (no --artifact) on a clean tree at head_sha ad1471b with this manifest held in the session scratchpad, so each wtree equals head_sha^{tree}.",
+  "commands_binding_note": "Every commands[].artifact is null (PR #391 review F2: absolute scratchpad paths are refused and unpinned); each record's artifact_note inlines the transcript summary. The first four records are round 1 at 0038a43, the next five the bot-findings round at 2d1e206 and the next five verdict r1 at ad1471b (all historical, stale for this head). The last five were written by runtime/scripts/evidence-run.py (no --artifact) on a clean tree at head_sha e068ddf with this manifest held in the session scratchpad, so each wtree equals head_sha^{tree}.",
   "red_first": {
     "note": "Each criterion test was run RED against the pre-fix checker before its slice of production code was written (vertical slices, tdd pack).",
     "slices": [
@@ -254,19 +314,35 @@
       {
         "finding": "V1-c",
         "result": "RED exit 1 at 22ba35b on the real checker — test_a_run_header_carrying_waves_twice_is_refused 'AssertionError: 0 != 1 : []' (`waves=3 waves=1` + one row bound); GREEN exit 0 after 885a04e (Ran 63, OK)."
+      },
+      {
+        "finding": "V2-RQ1-reviewers",
+        "result": "Pin of an existing leg, so RED is shown against the mutant the verdict reproduced, in a throwaway worktree (the verdict-r2-reviewed tip's 63 tests stay GREEN under it: Ran 63, OK): reviewers dropped from _WIP_COUNTS -> test_a_wip_setting_that_is_not_an_integer_is_refused (setting='reviewers=2.5') FAIL 'AssertionError: 0 != 1 : []'. GREEN on the unchanged checker (0a153d6)."
+      },
+      {
+        "finding": "V2-RQ1-wave",
+        "result": "wave dropped from _WIP_COUNTS (the reviewed tip's 63 tests GREEN under it: Ran 63, OK) -> test_a_wave_that_is_not_an_integer_is_refused FAIL 'AssertionError: 0 != 1 : []' (the wave=1.5 row bound: digit-led, and skipped by the per-wave count). GREEN on the unchanged checker (0a153d6)."
+      },
+      {
+        "finding": "V2-2",
+        "result": "waves= digit guard dropped (`not _COUNT_RE.fullmatch(declared) or` removed; the reviewed tip's 63 tests GREEN under it: Ran 63, OK) -> test_a_wave_count_that_is_not_a_number_is_refused_without_crashing ERROR \"ValueError: invalid literal for int() with base 10: 'two'\". GREEN on the unchanged checker (0a153d6)."
+      },
+      {
+        "finding": "V2-3/V2-4",
+        "result": "Prose corrections (docs/runs/TEMPLATE.md, docs/runs/README.md), no RED: no test reads either sentence. The TEMPLATE claim's halves are witnessed by existing tests — a bare value counts as missing (test_a_settings_only_row_is_refused, '| 1 | builders=4 reviewers=2 | 3.1 |') and an unlabeled extra cell is free (test_complete_per_wave_rows_bind, 'note: second wave'); test_a_report_filled_in_from_the_canonical_template_binds stays GREEN on the new template."
       }
     ]
   },
   "negative_control": {
     "tool": "revert",
-    "did": "Re-run at the verdict-r1 head ad1471b in one throwaway worktree (git worktree add --detach <scratchpad>/mut; per control: git checkout ad1471b -- . ; apply the revert or one-line mutant; ran the NC-COMMAND), then the same command clean at ad1471b. Five reverts — (a) the round-1 replay, run_report.py from base_sha e04b0c2; (b) F3, run_report.py from f642700; (c) F1, docs/runs/TEMPLATE.md from f642700; (d) the declared paths both from base_sha; (e) r3, run_report.py from the reviewed tip 30a6037 — and eight one-line mutants of run_report.py, one per checker leg the verdict asked to witness. The mutants are exact single-occurrence string replacements applied by an uncommitted session-scratch helper; they are recorded controls, not declared-path reverts.",
+    "did": "Re-run at the verdict-r2 head e068ddf in one throwaway worktree (git worktree add --detach <scratchpad>/mut; per control: git checkout e068ddf -- . ; apply the revert or one-line mutant; ran the NC-COMMAND), then the same command clean at e068ddf. Five reverts — (a) the round-1 replay, run_report.py from base_sha e04b0c2; (b) F3, run_report.py from f642700; (c) F1, docs/runs/TEMPLATE.md from f642700; (d) the declared paths both from base_sha; (e) r3, run_report.py from 30a6037 — and twelve one-line mutants of run_report.py: verdict r1's eight plus verdict r2's four (wave, builders and reviewers each dropped from _WIP_COUNTS; the waves= digit guard dropped). The mutants are exact single-occurrence string replacements applied by an uncommitted session-scratch helper; they are recorded controls, not declared-path reverts. The throwaway worktree's HEAD stayed at 4ea8497 while the controls ran (its detach was refused over a copied test file), so each control restored e068ddf's content with `git checkout e068ddf -- .`; its index tree equalled e068ddf^{tree} (469d8842) afterwards, and the clean run was repeated after detaching at e068ddf (65 OK).",
     "paths": [
       "runtime/scripts/run_report.py",
       "docs/runs/TEMPLATE.md"
     ],
     "command": "python3 -m unittest tests.test_run_report",
     "artifact": "docs/runs/2026-09-14-clean-sweep-tracker/u389-manifest.json",
-    "result": "RED — every control exits 1 at ad1471b and clean exits 0 (63 OK). (a) FAILED (failures=18, errors=1); (b) FAILED (failures=2); (c) FAILED (failures=1); (d) FAILED (failures=19, errors=1); (e) FAILED (failures=1); each mutant FAILED on the test that names its leg.",
+    "result": "RED — every control exits 1 at e068ddf and clean exits 0 (65 OK). (a) FAILED (failures=21, errors=1); (b) FAILED (failures=2); (c) FAILED (failures=1); (d) FAILED (failures=22, errors=1); (e) FAILED (failures=1); each mutant FAILED on the test that names its leg.",
     "exit": 1,
     "clean_exit": 0,
     "controls": [
@@ -283,13 +359,15 @@
           "WipCurveObligation.test_a_zero_wave_count_is_refused",
           "WipCurveObligation.test_a_run_header_carrying_waves_twice_is_refused",
           "WipCurveObligation.test_a_row_with_placeholder_metrics_is_refused",
-          "WipCurveObligation.test_a_wip_setting_that_is_not_an_integer_is_refused (2 subtests)",
+          "WipCurveObligation.test_a_wip_setting_that_is_not_an_integer_is_refused (3 subtests)",
           "LiveCatalog.test_ship_its_artifacts_still_hash_true_but_its_transcript_is_missing",
+          "WipCurveObligation.test_a_wave_that_is_not_an_integer_is_refused",
+          "WipCurveObligation.test_a_wave_count_that_is_not_a_number_is_refused_without_crashing",
           "WipCurveObligation.test_the_protocol_names_the_schema_the_checker_enforces (ERROR: the reverted checker has no WIP_ROW_KEYS)"
         ],
         "transcript": [
-          "Ran 63 tests",
-          "FAILED (failures=18, errors=1)",
+          "Ran 65 tests",
+          "FAILED (failures=21, errors=1)",
           "exit 1"
         ]
       },
@@ -302,7 +380,7 @@
           "WipCurveObligation.test_a_run_header_carrying_waves_twice_is_refused"
         ],
         "transcript": [
-          "Ran 63 tests",
+          "Ran 65 tests",
           "FAILED (failures=2)",
           "exit 1"
         ]
@@ -315,7 +393,7 @@
           "WipCurveObligation.test_a_report_filled_in_from_the_canonical_template_binds"
         ],
         "transcript": [
-          "Ran 63 tests",
+          "Ran 65 tests",
           "FAILED (failures=1)",
           "exit 1"
         ]
@@ -325,11 +403,11 @@
         "revert": "git checkout e04b0c2 -- runtime/scripts/run_report.py docs/runs/TEMPLATE.md",
         "exit": 1,
         "failures": [
-          "the eighteen failures and one error of the round-1 replay, plus WipCurveObligation.test_a_report_filled_in_from_the_canonical_template_binds"
+          "the twenty-one failures and one error of the round-1 replay, plus WipCurveObligation.test_a_report_filled_in_from_the_canonical_template_binds"
         ],
         "transcript": [
-          "Ran 63 tests",
-          "FAILED (failures=19, errors=1)",
+          "Ran 65 tests",
+          "FAILED (failures=22, errors=1)",
           "exit 1"
         ]
       },
@@ -341,7 +419,7 @@
           "WipCurveObligation.test_a_run_header_carrying_waves_twice_is_refused"
         ],
         "transcript": [
-          "Ran 63 tests",
+          "Ran 65 tests",
           "FAILED (failures=1)",
           "exit 1"
         ]
@@ -354,7 +432,7 @@
           "WipCurveObligation.test_a_wave_carrying_two_rows_is_refused_with_none_missing"
         ],
         "transcript": [
-          "Ran 63 tests",
+          "Ran 65 tests",
           "FAILED (failures=1)",
           "exit 1"
         ]
@@ -364,11 +442,12 @@
         "revert": "one-line mutant of runtime/scripts/run_report.py: drop `if _COUNT_RE.fullmatch(c[\"wave\"])` from the per-wave count (the wave-digit filter)",
         "exit": 1,
         "failures": [
-          "WipCurveObligation.test_a_wave_that_is_not_a_number_is_refused_without_crashing (ERROR: ValueError 'one')"
+          "WipCurveObligation.test_a_wave_that_is_not_a_number_is_refused_without_crashing (ERROR: ValueError 'one')",
+          "WipCurveObligation.test_a_wave_that_is_not_an_integer_is_refused (ERROR: ValueError '1.5')"
         ],
         "transcript": [
-          "Ran 63 tests",
-          "FAILED (errors=1)",
+          "Ran 65 tests",
+          "FAILED (errors=2)",
           "exit 1"
         ]
       },
@@ -380,7 +459,7 @@
           "WipCurveObligation.test_a_zero_wave_count_is_refused"
         ],
         "transcript": [
-          "Ran 63 tests",
+          "Ran 65 tests",
           "FAILED (failures=1)",
           "exit 1"
         ]
@@ -393,7 +472,7 @@
           "WipCurveObligation.test_a_row_with_placeholder_metrics_is_refused"
         ],
         "transcript": [
-          "Ran 63 tests",
+          "Ran 65 tests",
           "FAILED (failures=1)",
           "exit 1"
         ]
@@ -403,11 +482,12 @@
         "revert": "one-line mutant of runtime/scripts/run_report.py: counts graded by `_MEASURED_RE` (the integer rule demoted)",
         "exit": 1,
         "failures": [
-          "WipCurveObligation.test_a_wip_setting_that_is_not_an_integer_is_refused (builders='2.5')"
+          "WipCurveObligation.test_a_wip_setting_that_is_not_an_integer_is_refused (builders='2.5', reviewers='2.5')",
+          "WipCurveObligation.test_a_wave_that_is_not_an_integer_is_refused"
         ],
         "transcript": [
-          "Ran 63 tests",
-          "FAILED (failures=1)",
+          "Ran 65 tests",
+          "FAILED (failures=3)",
           "exit 1"
         ]
       },
@@ -416,12 +496,13 @@
         "revert": "one-line mutant of runtime/scripts/run_report.py: counts graded by `\\S+` (no count rule)",
         "exit": 1,
         "failures": [
-          "WipCurveObligation.test_a_wip_setting_that_is_not_an_integer_is_refused (builders='two', '2.5')",
+          "WipCurveObligation.test_a_wip_setting_that_is_not_an_integer_is_refused (builders='two', '2.5'; reviewers='2.5')",
+          "WipCurveObligation.test_a_wave_that_is_not_an_integer_is_refused",
           "WipCurveObligation.test_a_wave_that_is_not_a_number_is_refused_without_crashing"
         ],
         "transcript": [
-          "Ran 63 tests",
-          "FAILED (failures=3)",
+          "Ran 65 tests",
+          "FAILED (failures=5)",
           "exit 1"
         ]
       },
@@ -433,7 +514,7 @@
           "WipCurveObligation.test_a_multi_wave_report_with_partial_or_missing_wave_rows_is_refused (3 subtests, incl. 'wave 1 recorded twice, wave 2 never' — witnessed only since the per-case message assertion)"
         ],
         "transcript": [
-          "Ran 63 tests",
+          "Ran 65 tests",
           "FAILED (failures=3)",
           "exit 1"
         ]
@@ -446,8 +527,60 @@
           "WipCurveObligation.test_a_row_carrying_a_cell_twice_is_refused"
         ],
         "transcript": [
-          "Ran 63 tests",
+          "Ran 65 tests",
           "FAILED (failures=1)",
+          "exit 1"
+        ]
+      },
+      {
+        "name": "mutant:wave-not-a-count",
+        "revert": "one-line mutant of runtime/scripts/run_report.py: `_WIP_COUNTS` without \"wave\" (the integer rule for wave=)",
+        "exit": 1,
+        "failures": [
+          "WipCurveObligation.test_a_wave_that_is_not_an_integer_is_refused"
+        ],
+        "transcript": [
+          "Ran 65 tests",
+          "FAILED (failures=1)",
+          "exit 1"
+        ]
+      },
+      {
+        "name": "mutant:builders-not-a-count",
+        "revert": "one-line mutant of runtime/scripts/run_report.py: `_WIP_COUNTS` without \"builders\" (the integer rule for builders=)",
+        "exit": 1,
+        "failures": [
+          "WipCurveObligation.test_a_wip_setting_that_is_not_an_integer_is_refused (builders='2.5')"
+        ],
+        "transcript": [
+          "Ran 65 tests",
+          "FAILED (failures=1)",
+          "exit 1"
+        ]
+      },
+      {
+        "name": "mutant:reviewers-not-a-count",
+        "revert": "one-line mutant of runtime/scripts/run_report.py: `_WIP_COUNTS` without \"reviewers\" (the integer rule for reviewers=)",
+        "exit": 1,
+        "failures": [
+          "WipCurveObligation.test_a_wip_setting_that_is_not_an_integer_is_refused (reviewers='2.5')"
+        ],
+        "transcript": [
+          "Ran 65 tests",
+          "FAILED (failures=1)",
+          "exit 1"
+        ]
+      },
+      {
+        "name": "mutant:no-waves-digit-guard",
+        "revert": "one-line mutant of runtime/scripts/run_report.py: drop `not _COUNT_RE.fullmatch(declared) or` (the waves= digit guard)",
+        "exit": 1,
+        "failures": [
+          "WipCurveObligation.test_a_wave_count_that_is_not_a_number_is_refused_without_crashing (ERROR: ValueError 'two')"
+        ],
+        "transcript": [
+          "Ran 65 tests",
+          "FAILED (errors=1)",
           "exit 1"
         ]
       },
@@ -456,7 +589,7 @@
         "revert": "none",
         "exit": 0,
         "transcript": [
-          "Ran 63 tests",
+          "Ran 65 tests",
           "OK",
           "exit 0"
         ]
@@ -467,12 +600,13 @@
       "tests/test_run_report.py::WipCurveObligation::test_complete_per_wave_rows_bind",
       "tests/test_run_report.py::WipCurveObligation::test_a_mutating_report_with_a_wip_row_binds"
     ],
-    "not_witnessed_note": "Both pass at base_sha: the old check bound any row carrying builders=/reviewers=, so complete rows bound there too. They pin the other direction (the fix must not over-refuse). The F1 template test is likewise GREEN under control (a), since the base checker binds the new template's rows; control (c) is the one that witnesses it.",
-    "round2": "At 2d1e206 (bot-findings round) the same four reverts gave (a) failures=11, errors=1; (b) failures=1; (c) failures=1; (d) failures=12, errors=1 of 57; clean 57 OK. Under six of this round's eight mutants that 57-test suite stayed GREEN (the verdict-r1 finding); every mutant is RED now."
+    "not_witnessed_note": "Both pass at base_sha: the old check bound any row carrying builders=/reviewers=, so complete rows bound there too. They pin the other direction (the fix must not over-refuse). The F1 template test is likewise GREEN under control (a), since the base checker binds the new template's rows; control (c) is the one that witnesses it. The verdict-r2 prose corrections in docs/runs/TEMPLATE.md and docs/runs/README.md are witnessed by no control: no test reads either sentence. run_report.py reverted to 50cc4e6 (the verdict-r2-reviewed tip) exits 0 (65 OK) — expected and not a control: this round changes no checker line, it adds the tests that witness existing legs, so their RED is the mutants'.",
+    "round2": "At 2d1e206 (bot-findings round) the same four reverts gave (a) failures=11, errors=1; (b) failures=1; (c) failures=1; (d) failures=12, errors=1 of 57; clean 57 OK. Under six of this round's eight mutants that 57-test suite stayed GREEN (the verdict-r1 finding); every mutant is RED now.",
+    "round3": "At ad1471b (verdict r1) the same five reverts gave (a) failures=18, errors=1; (b) failures=2; (c) failures=1; (d) failures=19, errors=1; (e) failures=1 of 63; clean 63 OK; each of the eight mutants RED. Under three of this round's four new mutants (wave-not-a-count, reviewers-not-a-count, no-waves-digit-guard) that 63-test suite stayed GREEN (the verdict-r2 finding, re-run here at 4ea8497, whose checker and tests are 50cc4e6's: OK each); builders-not-a-count was already RED on that suite (50cc4e6's content: failures=1, builders='2.5'). Every mutant is RED now."
   },
   "binding_audit": {
     "coverage": "C-1..C-3 (3/3)",
-    "method": "criterion quoted, covering test named, the revert of the checker turned C-1, C-2 and C-3's prose half RED; C-3's binding half is an other-direction pin (see not_witnessed_by_the_control); verdict r1: each WIP-curve check leg has a one-line mutant that only its own test catches (negative_control.controls mutant:*)"
+    "method": "criterion quoted, covering test named, the revert of the checker turned C-1, C-2 and C-3's prose half RED; C-3's binding half is an other-direction pin (see not_witnessed_by_the_control); verdict r1: each WIP-curve check leg has a one-line mutant that only its own test catches (negative_control.controls mutant:*); verdict r2: the integer rule has a one-key mutant for each of wave, builders and reviewers, and the waves= digit guard has one, each caught by its own test"
   },
   "intent": {
     "goal": "Make run_report.py's WIP-curve check require one complete row per recorded dispatch wave — wave=<k> + builders=<n> reviewers=<n> + every protocol metric — and make attention-budget.md name that exact schema so the text and the check cannot drift again.",
@@ -483,7 +617,7 @@
   "reviewer_mode": "same-vendor-fresh",
   "pr": {},
   "toolchain": "python 3.13 (stdlib unittest), ruff 0.16.7, gitleaks 8.30.1, macOS (Darwin 25.6.0)",
-  "badge_commit": "ad1471b73a76ca463692a2ee8d72185139dbd9f4",
+  "badge_commit": "e068ddfd8db59e687d2d9716e0bc4389b2fb5c4d",
   "deviations": [
     "Branch: the worktree was checked out on `ravidsrk/u389-wip-schema` (Orca prefix). `u389-wip-schema` was created in this worktree at the verified base e04b0c2, not at origin/review/2026-09-14-holistic-fixes' tip 5af2e6f: the spec fixes the base at e04b0c2 and forbids rebasing onto BASE, and 5af2e6f adds only this run's taskspecs/DECISIONS/tracker docs (none touched here).",
     "Scope: assets/badges/tests.json (outside the three hot files) was regenerated in its own mechanical commit 0038a43 — coordinator-approved via orca orchestration ask (answer: yes-regen-tests-badge).",
@@ -492,14 +626,18 @@
     "Bot-findings round: F1 and F3 are separate commits (62ee4cd, fcc9079) so each regression test bisects to its own fix; the badge regen is its own mechanical commit (2d1e206).",
     "Verdict-r1 round, b: the spec named builders=two; the test also carries builders=2.5, because 'two' is refused by the metric rule as well and so does not witness the integer rule (mutant counts-as-metrics stays GREEN on 'two'). Same test, one extra subtest, no production change.",
     "Verdict-r1 round, head_sha: the spec asked head_sha to name the pushed tip including this manifest's commit, which no committed file can do; the coordinator chose head_sha = the last content commit ad1471b (orca ask, A-last-content-commit). The pushed tip is named in worker_done.",
-    "Verdict-r1 round: the leg tests (22ba35b) and the waves= fix (885a04e) are separate commits so the pins land GREEN on the unchanged checker and the one real RED bisects to its fix; the badge regen is its own mechanical commit (ad1471b)."
+    "Verdict-r1 round: the leg tests (22ba35b) and the waves= fix (885a04e) are separate commits so the pins land GREEN on the unchanged checker and the one real RED bisects to its fix; the badge regen is its own mechanical commit (ad1471b).",
+    "Verdict-r2 round: RQ1 and the waves=two test pin existing checker legs (no production change this round), so each RED is shown against the one-line mutant that removes the leg, as in verdict r1. The three tests land in one test-only commit (0a153d6) GREEN on the unchanged checker; the doc corrections are their own commit (6182dfb); the badge regen is its own mechanical commit (e068ddf).",
+    "Verdict-r2 round: the spec asked for the mutants killing the reviewers and wave keys; builders-not-a-count is recorded as well, so the per-key integer rule has a mutant for all three count keys (it was already RED on the verdict-r1 suite, via builders=2.5).",
+    "Verdict-r2 round, head_sha: the same binding as verdict r1 — head_sha is the last content commit e068ddf; the pushed tip including this manifest's commit is named in worker_done."
   ],
   "noticed_but_not_touched": [
     "Activation-load headroom: clean-sweep now measures 33,749 tokens (badge ~33,700) — 1 token below the rounding boundary and 251 below the 34,000 cap. Any other unit that grows attention-budget.md or clean-sweep's mandatory docs moves its badge; the integrator's gen-badges re-run on the union covers it.",
     "docs/runs/2026-08-28-ship-it-self-run.md's WIP table is transposed (metric per row) and predates the schema; it is historical record at doctrine-only and was not edited.",
     "Resolved in the verdict-r1 round (885a04e): run_report.py's module docstring RUN: field list now names waves= and the per-wave WIP-curve rows.",
     "Neither base file is `ruff format`-clean at e04b0c2; CI runs `ruff check` only, so no formatter was applied.",
-    "origin/review/2026-09-14-holistic-fixes moved to d95f58d after this round's step-1 union (046cfa3 merged b9dc232); the spec forbids a second merge, so the conductor's union covers it."
+    "origin/review/2026-09-14-holistic-fixes moved to d95f58d after this round's step-1 union (046cfa3 merged b9dc232); the spec forbids a second merge, so the conductor's union covers it.",
+    "origin/review/2026-09-14-holistic-fixes moved to f094356 after verdict r1; the verdict-r2 step-1 union merged it as 4ea8497 (no conflicts; tracker docs and taskspecs only)."
   ],
   "files": {
     "production": [
@@ -511,6 +649,7 @@
     "docs_and_generated": [
       "runtime/attention-budget.md",
       "docs/runs/TEMPLATE.md",
+      "docs/runs/README.md",
       "assets/badges/tests.json",
       "docs/runs/2026-09-14-clean-sweep-tracker/u389-manifest.json"
     ]
@@ -569,12 +708,34 @@
       "subject": "chore(badges): regenerate the tests badge after the PR #391 verdict-r1 tests (1302 in source)"
     },
     {
+      "sha": "50cc4e64b99dbe56deb0fc537303afea65dabbfe",
+      "subject": "chore(run): U389 verdict-r1 evidence manifest (PR #391 verdict r1 R1/R2/a-d)",
+      "note": "verdict-r1 manifest; the tip verdict r2 reviewed"
+    },
+    {
+      "sha": "4ea8497e6030208ed1fa72e2cdf1f58377cc3aeb",
+      "subject": "merge: union origin/review/2026-09-14-holistic-fixes into u389-wip-schema",
+      "note": "verdict-r2 step 1, merged f094356, no conflicts"
+    },
+    {
+      "sha": "0a153d6137a6a3c9a51372ab969a827b5e5e8001",
+      "subject": "test(run-report): the integer rule is witnessed for wave, builders and reviewers; waves=two is refused without crashing (#389, PR #391 verdict r2)"
+    },
+    {
+      "sha": "6182dfb73ed984f45bd19753675a5c30cddf351d",
+      "subject": "docs(runs): the template and the archive index state the per-wave WIP schema the checker enforces (#389, PR #391 verdict r2)"
+    },
+    {
+      "sha": "e068ddfd8db59e687d2d9716e0bc4389b2fb5c4d",
+      "subject": "chore(badges): regenerate the tests badge after the PR #391 verdict-r2 tests (1304 in source)"
+    },
+    {
       "sha": "pending",
-      "subject": "chore(run): U389 verdict-r1 evidence manifest"
+      "subject": "chore(run): U389 verdict-r2 evidence manifest"
     }
   ],
-  "claim": "Settings-only, partial, missing, doubled, stray, non-numeric-wave, zero-count, doubled-waves= header, placeholder-metric, non-integer-setting and self-contradicting (duplicate-cell) per-wave WIP rows are refused, each by a check a one-line mutant shows is witnessed; complete rows bind; the protocol and the canonical run-report template name the enforced schema. Informational only.",
-  "base_note": "Round 1 dispatched at e04b0c2. Bot-findings round: origin/review/2026-09-14-holistic-fixes (e86c42c) merged as 4dcbfde before the fix; only assets/badges/tests.json conflicted and was resolved by re-running scripts/gen-badges.py on the merged tree (1294). Verdict-r1 round: origin/review/2026-09-14-holistic-fixes (b9dc232) merged as 046cfa3 before the fix, no conflicts.",
+  "claim": "Settings-only, partial, missing, doubled, stray, non-numeric-wave, non-integer-wave, zero-count, non-numeric-count, doubled-waves= header, placeholder-metric, non-integer-setting (builders or reviewers) and self-contradicting (duplicate-cell) per-wave WIP rows are refused, each by a check a one-line mutant shows is witnessed — the integer rule once per count key (wave, builders, reviewers); complete rows bind; the protocol, the canonical run-report template and the run-archive index name the enforced schema. Informational only.",
+  "base_note": "Round 1 dispatched at e04b0c2. Bot-findings round: origin/review/2026-09-14-holistic-fixes (e86c42c) merged as 4dcbfde before the fix; only assets/badges/tests.json conflicted and was resolved by re-running scripts/gen-badges.py on the merged tree (1294). Verdict-r1 round: origin/review/2026-09-14-holistic-fixes (b9dc232) merged as 046cfa3 before the fix, no conflicts. Verdict-r2 round: origin/review/2026-09-14-holistic-fixes (f094356) merged as 4ea8497 before the fix, no conflicts.",
   "review_rounds": [
     {
       "round": "bot-findings",
@@ -651,6 +812,42 @@
           "finding": "module docstring RUN: field list omitted waves=",
           "fix": "885a04e",
           "witness": "runtime/scripts/run_report.py module docstring"
+        }
+      ]
+    },
+    {
+      "round": "verdict-r2",
+      "reviewer": "clean-sweep verdict worker (review 5202754078)",
+      "reviewed_sha": "50cc4e6",
+      "verdict": "NO-GO: the R1 batch landed, but the integer rule was witnessed for builders only",
+      "findings": [
+        {
+          "id": "RQ1",
+          "severity": "Required",
+          "finding": "dropping reviewers or wave from _WIP_COUNTS let reviewers=2.5 or a wave=1.5 row bind with the suite green",
+          "fix": "0a153d6",
+          "witness": "::test_a_wip_setting_that_is_not_an_integer_is_refused (setting='reviewers=2.5'), ::test_a_wave_that_is_not_an_integer_is_refused; negative_control mutant:reviewers-not-a-count, mutant:wave-not-a-count"
+        },
+        {
+          "id": "2",
+          "severity": "batched",
+          "finding": "waves=two unwitnessed: dropping the digit guard crashed int() with a ValueError",
+          "fix": "0a153d6",
+          "witness": "::test_a_wave_count_that_is_not_a_number_is_refused_without_crashing; negative_control mutant:no-waves-digit-guard"
+        },
+        {
+          "id": "3",
+          "severity": "batched",
+          "finding": "docs/runs/TEMPLATE.md:87 said run_report.py refuses an unlabeled cell, and test_complete_per_wave_rows_bind binds one",
+          "fix": "6182dfb",
+          "witness": "docs/runs/TEMPLATE.md WIP-curve section (prose)"
+        },
+        {
+          "id": "4",
+          "severity": "batched",
+          "finding": "docs/runs/README.md:44-46 described the pre-#389 single WIP row",
+          "fix": "6182dfb",
+          "witness": "docs/runs/README.md WIP-curve paragraph (prose)"
         }
       ]
     }
