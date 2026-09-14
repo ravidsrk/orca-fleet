@@ -27,7 +27,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | STAB | — | land 4 PR-review hunks (deny-hook/run_report/verify/HUMAN_ACTIONS) + badge regen | conductor landing, worker-executed | t | n/a | n/a | n/a | t | n/a | lit | — | 1215e09 9651a52 8f7d5ac 917f9fd; pushed origin/BASE fast-forward (egress receipt); 1285 OK + full battery green; NC re-executed 11 failures; rides PR #387 |
 | T1 | #388 | evidence-run lockfile dirties worktree | real-bug | t | t | t | t | t | t | lit | proof-park: needs post-merge independent APPROVE (2nd login) for verify review leg | PR #392 MERGED 8c36b4a @c680ee0 (reviewed==head; R2 GO 5202783703); verify 5/6 (review leg RED: no independent APPROVED — Greptile never re-reviewed; recoverable post-merge); #388 closed w/ evidence + gap note |
 | T2 | #389 | run_report WIP validation accepts incomplete reports | real-bug | t | t | t | t | t | t | lit | proof-park: needs post-merge independent APPROVE (2nd login) for verify review leg | PR #391 MERGED 1bdb20c @51019fb (reviewed==head; R3 GO 5203193997); verify 5/6 (review leg RED: no independent APPROVED — Greptile checks pass, no review object; recoverable post-merge); #389 closed w/ evidence + gap note |
-| T3 | #364 | fixture-backed evals + workspace-state oracle (S1) | real-feature-small | t | t | t | f | f | f | lit | — | U364 BUILDING (spec 506a059, digest 35ce199c, fork 506a059, task_c59e89f22f3f live) |
+| T3 | #364 | fixture-backed evals + workspace-state oracle (S1) | real-feature-small | t | f | f | f | f | f | lit | — | U364 BUILT 494ae0b (oracle 2827496 + 21 cases 218bab6 + badge 1315 + manifest/NC; head 244209a; worker_done ok); I364 dispatched |
 | T4 | #385 | historical-docs polish, agent slice (status.json + parity test) | real-bug (docs) | t | t | t | t | t | t | lit | — | PR #390 MERGED 32da76e @d6fc2cc (reviewed==head; greptile APPROVED + 3 blind GO); verify.py OK all legs (scope/commands/freshness/NC-exec/review/change-on-base); conductor manifest corrections (head/source) disclosed in-file; worktree retired; #385 closed w/ evidence |
 | T5 | #386 | sign manifest+inventory, retention backend (S2) | — | — | — | — | — | — | — | — | needs-human: key custody + backend undecided (Q2) | Q2: park |
 | — | #235 | H-02 marketplace submissions (pre-parked needs-human) | needs-human | — | — | — | — | — | — | needs-human: external accounts | prior run + issue text |
@@ -376,3 +376,9 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
 - U364 builder (task_c59e89f22f3f) asked NC-artifact Q (msg_b8ab0b517e73): answered
   Option A — commit u364-negctrl.txt beside the manifest (U388 precedent). Builder
   at 244209a (spec + 2 feat + badge 1315), phase reviewing.
+- U364 worker_done (msg_b66b08d4a3c6): oracle + 21 fixture cases, pushed 494ae0b
+  (manifest + NC transcript; head 244209a). C-1 RED 21/21 at base → green; C-2 NC
+  exit 1 (21F+34E) / clean exit 0; C-3 frozen 63 unchanged, grow/shrink RED;
+  routing 94/94, 1315 OK, gitleaks clean. Caveat: cases never run against a live
+  agent (oracle + scratch pass only). Task completed, worker released.
+- I364 dispatched: integrate-364 spec (union + gates + PR + bot reconcile).
