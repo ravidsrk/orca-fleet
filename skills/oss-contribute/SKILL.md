@@ -22,7 +22,7 @@ metadata:
   state_machine: triage → build-change → build-blind review → open PR upstream → follow up until quiet
   convergence: re-enumeration finds every frozen issue PR-opened-and-followed or parked; merging is not yours
   ordering: PR-per-issue from a fork head against the asserted upstream base
-  parking: already-has-PR / needs-human / externally-resolved / stood-down
+  parking: awaiting-maintainer-merge / externally-covered / externally-resolved / refuted / duplicate / out-of-scope / needs-human
   oracle: the UPSTREAM repo's CI and its maintainers, not your suite
 ---
 
