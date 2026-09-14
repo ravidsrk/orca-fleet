@@ -221,3 +221,8 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   (2 Requireds incl. shared truncate root; no held bot finding; empty ravidsrk
   COMMENTED @da2f98a noted inert) with batched-request framing (Requireds +
   adjacent cheap items; conductor/filed/accepted exclusions recorded). Turn live.
+- R389 axes dispatched @30a6037 in parallel (specs retargeted f642700 -> 30a6037 +
+  fetch/checkout line; hygiene rule appended): spec task_51f6faeca355/
+  ctx_28af6981cdab, test task_660af294d3a0/ctx_9474d1d08054, standards
+  task_2599f8ed15fb/ctx_9e937ba13b49. All turns live. 4 workers out (V388r1 +
+  3xR389).
