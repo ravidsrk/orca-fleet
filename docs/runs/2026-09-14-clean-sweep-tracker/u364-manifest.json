@@ -3,9 +3,9 @@
   "unit": "U364",
   "unit_class": "code-change",
   "base_sha": "506a05974f61c35eda4acbb7df15e84fdeeec8bb",
-  "head_sha": "244209aa4d059c675425f944b9bb86fd1fd1386c",
-  "head_tree": "e742c4c08e85825cfed2d2045549c34b1cd0e1b5",
-  "head_sha_role": "head_sha is the last CONTENT commit 244209a (the badge regeneration that follows the two content commits 2827496 and 218bab6). The commit that adds this manifest follows it with a manifest-only delta and cannot name its own SHA; the pushed tip is named in worker_done and the conductor re-binds head_sha to the reviewed tip at close. Every commands[] record was made on a clean tree at head_sha: wtree e742c4c0 == head_tree.",
+  "head_sha": "97e5e440dbf41a428e4337dce12600176163edd3",
+  "head_tree": "20a4250a1e90feaefd149fafc7493683364334ea",
+  "head_sha_role": "head_sha is the last CONTENT commit 97e5e44 of bot round r1 (the badge regeneration that follows the r1 fix b23a96c; round r0's content commits were 2827496, 218bab6 and 244209a, joined to the base by the union merges f727692 and b2bc68d). The commit that re-binds this manifest follows it with a manifest-and-transcript-only delta and cannot name its own SHA; the pushed tip is named in worker_done and the conductor re-binds head_sha to the reviewed tip at close. Every commands[] record was made on a clean tree at head_sha: wtree 20a4250a == head_tree.",
   "base_branch": "review/2026-09-14-holistic-fixes",
   "branch": "u364-eval-fixtures",
   "contract": {
@@ -50,58 +50,58 @@
   "commands": [
     {
       "label": "nc-command (tests)",
-      "ts": "2026-09-14T21:46:37Z",
+      "ts": "2026-09-14T22:35:22Z",
       "cmd": "python3 -m unittest tests.test_evals",
       "cmd_sha256": "2603b763de11dc5f22da2e3d4d09c88395fdf173c75ce734141e470284cb4736",
       "exit": 0,
-      "duration_s": 3.087,
-      "commit": "244209aa4d059c675425f944b9bb86fd1fd1386c",
-      "wtree": "e742c4c08e85825cfed2d2045549c34b1cd0e1b5",
+      "duration_s": 3.046,
+      "commit": "97e5e440dbf41a428e4337dce12600176163edd3",
+      "wtree": "20a4250a1e90feaefd149fafc7493683364334ea",
       "artifact": null
     },
     {
       "label": "validate",
-      "ts": "2026-09-14T21:46:38Z",
+      "ts": "2026-09-14T22:35:24Z",
       "cmd": "python3 scripts/validate.py",
       "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
       "exit": 0,
-      "duration_s": 0.54,
-      "commit": "244209aa4d059c675425f944b9bb86fd1fd1386c",
-      "wtree": "e742c4c08e85825cfed2d2045549c34b1cd0e1b5",
+      "duration_s": 0.511,
+      "commit": "97e5e440dbf41a428e4337dce12600176163edd3",
+      "wtree": "20a4250a1e90feaefd149fafc7493683364334ea",
       "artifact": null
     },
     {
       "label": "routing gate (CI step)",
-      "ts": "2026-09-14T21:47:48Z",
+      "ts": "2026-09-14T22:35:24Z",
       "cmd": "python3 scripts/eval.py run --suite routing --threshold 1.0",
       "cmd_sha256": "2ffd70179df671092b1947c2dde3acb6b86e5f0e2a746ca8d1a19498f3ac5edb",
       "exit": 0,
-      "duration_s": 0.039,
-      "commit": "244209aa4d059c675425f944b9bb86fd1fd1386c",
-      "wtree": "e742c4c08e85825cfed2d2045549c34b1cd0e1b5",
+      "duration_s": 0.035,
+      "commit": "97e5e440dbf41a428e4337dce12600176163edd3",
+      "wtree": "20a4250a1e90feaefd149fafc7493683364334ea",
       "artifact": null
     },
     {
       "label": "full-suite",
-      "ts": "2026-09-14T21:54:55Z",
+      "ts": "2026-09-14T22:39:22Z",
       "cmd": "python3 -m unittest discover -s tests",
       "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
       "exit": 0,
-      "duration_s": 235.111,
-      "commit": "244209aa4d059c675425f944b9bb86fd1fd1386c",
-      "wtree": "e742c4c08e85825cfed2d2045549c34b1cd0e1b5",
+      "duration_s": 236.505,
+      "commit": "97e5e440dbf41a428e4337dce12600176163edd3",
+      "wtree": "20a4250a1e90feaefd149fafc7493683364334ea",
       "artifact": null
     }
   ],
-  "commands_note": "Every record was written by runtime/scripts/evidence-run.py on the clean tree of head_sha 244209a (wtree e742c4c0 == head_tree; git status --porcelain --untracked-files=all empty before and after), each into its own manifest in session scratch outside the working tree, and is concatenated here byte-for-byte. The first record is the coordinator-named NC-COMMAND verbatim (88 tests OK). artifact is null everywhere; output summaries are inlined in criteria[] and negative_control. A first full-suite record (ts 2026-09-14T21:50:35Z, 1315 tests OK, exit 0, wtree e742c4c0) was DISCARDED, not merely superseded: evidence-run.py fingerprints the tree before the command, and the draft of this manifest sat untracked under docs/runs/ for about 40 s mid-run, so tests that scan docs/runs could have read a dirty tree the fingerprint does not show. The full-suite record below is the re-run on a tree verified clean before and after.",
+  "commands_note": "Round r1: every record was written by runtime/scripts/evidence-run.py on the clean tree of head_sha 97e5e44 (wtree 20a4250a == head_tree; git status --porcelain --untracked-files=all empty before and after), each into its own manifest in session scratch outside the working tree, and is concatenated here byte-for-byte. They replace round r0's records (made at 244209a), which the r1 commits made stale. The first record is the coordinator-named NC-COMMAND verbatim (89 tests OK); the full suite ran 1330 tests OK. artifact is null everywhere; output summaries are inlined in criteria[] and negative_control. gitleaks detect (650 commits) found no leaks and ruff check on tests/test_evals.py and scripts/eval.py is clean; neither is recorded here.",
   "negative_control": {
     "tool": "revert",
-    "did": "git worktree add --detach <scratch>/nc-364 244209a; git checkout 506a05974f61c35eda4acbb7df15e84fdeeec8bb -- scripts/eval.py (the whole oracle path back to BASE: 5 insertions, 162 deletions); ran the NC-COMMAND; git checkout HEAD -- scripts/eval.py (git status --porcelain empty); ran the NC-COMMAND again; git worktree remove --force <scratch>/nc-364.",
+    "did": "git worktree add --detach <scratch>/nc-364 97e5e44 (round r1; round r0 ran the same at 244209a); git checkout 506a05974f61c35eda4acbb7df15e84fdeeec8bb -- scripts/eval.py (the whole oracle path back to BASE: 5 insertions, 162 deletions); ran the NC-COMMAND; git checkout HEAD -- scripts/eval.py (git status --porcelain empty); ran the NC-COMMAND again; git worktree remove --force <scratch>/nc-364.",
     "paths": [
       "scripts/eval.py"
     ],
     "command": "python3 -m unittest tests.test_evals",
-    "result": "RED: exit 1 with scripts/eval.py reverted to 506a059 (Ran 88 tests, FAILED failures=21, errors=34); exit 0 at clean head 244209a (Ran 88 tests, OK). The C-2 witness fails under the revert for the defect itself: the passing trace over the rewritten src/auth.py exits 0 with failures 0.",
+    "result": "RED: exit 1 with scripts/eval.py reverted to 506a059 (Ran 89 tests, FAILED failures=21, errors=35); exit 0 at clean head 97e5e44 (Ran 89 tests, OK). The C-2 witness fails under the revert for the defect itself: the passing trace over the rewritten src/auth.py exits 0 with failures 0. Round r1 adds one ERROR over round r0, the F1 witness test_the_advisory_case_fails_untouched_and_passes_once_requests_is_fixed (AttributeError: module 'eval' has no attribute '_fixture_paths'. Did you mean: '_fixture_path'?); every r0 failure recurs.",
     "exit": 1,
     "clean_head_exit": 0,
     "artifact": "docs/runs/2026-09-14-clean-sweep-tracker/u364-negctrl.txt",
@@ -111,20 +111,21 @@
       "test_a_held_workspace_does_not_rescue_a_failing_trace",
       "TestWorkspaceStateChecks (8 tests, AttributeError: no check_workspace_state)",
       "TestWorkspaceStateSchema (all refusal tests, 15 malformed-check subtests)",
-      "test_fixture_backed_cases_do_not_fail_their_own_fixtures (21 subtests)"
+      "test_fixture_backed_cases_do_not_fail_their_own_fixtures (21 subtests)",
+      "test_the_advisory_case_fails_untouched_and_passes_once_requests_is_fixed (round r1 F1 witness)"
     ],
     "transcript": [
-      "head=244209aa4d059c675425f944b9bb86fd1fd1386c",
+      "head=97e5e440dbf41a428e4337dce12600176163edd3",
       "== REVERTED: scripts/eval.py @ 506a059 (git diff --stat HEAD):",
       " scripts/eval.py | 167 ++------------------------------------------------------",
       " 1 file changed, 5 insertions(+), 162 deletions(-)",
       "FAIL: test_a_passing_trace_over_a_wrong_workspace_fails (tests.test_evals.TestWorkspaceStateOracle.test_a_passing_trace_over_a_wrong_workspace_fails)",
       "AssertionError: 0 != 1 : {'mission': 'fixture-it', 'cases': [{'id': 1, 'prompt': 'review', 'fixtures': 1, 'assertions': 2, 'passed': 2, 'failed': 0}], 'failures': 0, 'dry_run': False}",
-      "Ran 88 tests in 3.047s",
-      "FAILED (failures=21, errors=34)",
+      "Ran 89 tests in 3.010s",
+      "FAILED (failures=21, errors=35)",
       "exit=1  (REVERTED: expected NONZERO)",
       "== RESTORED (git status --porcelain empty?): []",
-      "Ran 88 tests in 3.088s",
+      "Ran 89 tests in 3.037s",
       "OK",
       "exit=0  (CLEAN HEAD: expected ZERO)"
     ],
@@ -132,7 +133,21 @@
       "tests/test_evals.py::TestEvalInfrastructure::test_every_mission_has_a_fixture_backed_case",
       "tests/test_evals.py::TestEvalInfrastructure::test_narration_only_cases_are_exactly_the_frozen_list"
     ],
-    "not_witnessed_note": "Both read the catalog data (skills/*/evals/evals.json), not scripts/eval.py, so reverting the oracle path leaves them green by design. The C-1 coverage test's RED is at 506a059 and 2827496 (21/21 missing) and its GREEN at 218bab6. The C-3 frozen-list test guards a kept property (green at base and head); its sensitivity is the grow/shrink demonstration in criteria[C-3]."
+    "not_witnessed_note": "Both read the catalog data (skills/*/evals/evals.json), not scripts/eval.py, so reverting the oracle path leaves them green by design. The C-1 coverage test's RED is at 506a059 and 2827496 (21/21 missing) and its GREEN at 218bab6. The C-3 frozen-list test guards a kept property (green at base and head); its sensitivity is the grow/shrink demonstration in criteria[C-3].",
+    "rounds": [
+      {
+        "round": "r0",
+        "head": "244209aa4d059c675425f944b9bb86fd1fd1386c",
+        "reverted": "Ran 88 tests, FAILED (failures=21, errors=34), exit 1",
+        "clean_head": "Ran 88 tests, OK, exit 0"
+      },
+      {
+        "round": "r1",
+        "head": "97e5e440dbf41a428e4337dce12600176163edd3",
+        "reverted": "Ran 89 tests, FAILED (failures=21, errors=35), exit 1",
+        "clean_head": "Ran 89 tests, OK, exit 0"
+      }
+    ]
   },
   "binding_audit": {
     "coverage": "C-1..C-3 (3/3)",
@@ -141,7 +156,7 @@
   "artifacts": [
     {
       "path": "docs/runs/2026-09-14-clean-sweep-tracker/u364-negctrl.txt",
-      "sha256": "94704372872887ea0d498cdc1b82a0ab5d912d64eb096ebdda400a327b090b03"
+      "sha256": "1212c3a09e497297fbf83202e50aad841414e039ec1bc729cdfce6342db43419"
     }
   ],
   "noticed_not_touched": [
@@ -201,12 +216,23 @@
     {
       "sha": "244209aa4d059c675425f944b9bb86fd1fd1386c",
       "subject": "chore(badges): regenerate tests badge, 1295 -> 1315 in source (#364)"
+    },
+    {
+      "sha": "b23a96c",
+      "subject": "fix(evals): modernize-it id-4 fails when the requests advisory is left unfixed (#364)"
+    },
+    {
+      "sha": "97e5e440dbf41a428e4337dce12600176163edd3",
+      "subject": "chore(badges): regenerate tests badge, 1329 -> 1330 in source (#364)"
     }
   ],
   "decisions": [
     "2026-09-15 dispatch binding (fork update): branch u364-eval-fixtures created from origin/review/2026-09-14-holistic-fixes at 506a059 (the spec commit), used as base_sha; the worktree's ravidsrk/-prefixed branch was left untouched.",
     "2026-09-15 coordinator (option A): assets/badges/tests.json is regenerated with scripts/gen-badges.py as its own mechanical commit after the content commits, because validate.py's badge-freshness check must be green at the unit tip. Badges are the run's shared mechanical mount point, not a hot-file breach.",
     "2026-09-15 coordinator (option A): commit u364-negctrl.txt (the verbatim NC transcript, scratch paths redacted to <scratch>) beside the manifest in the manifest commit, pinned by sha256 in artifacts[], as U388 did; verify.py requires negative_control.artifact to be an evidence path. commands[].artifact stays null.",
-    "Bisectability: 2827496 (oracle, schema and tests; catalog untouched) and 218bab6 (fixtures plus the coverage and self-consistency tests) each pass `python3 -m unittest tests.test_evals`. validate.py's badge check is red at those two commits until 244209a regenerates the count; the same pattern as U388."
+    "Bisectability: 2827496 (oracle, schema and tests; catalog untouched) and 218bab6 (fixtures plus the coverage and self-consistency tests) each pass `python3 -m unittest tests.test_evals`. validate.py's badge check is red at those two commits until 244209a regenerates the count; the same pattern as U388.",
+    "2026-09-15 bot round r1 (fix-364-r1), Greptile F1 (P1) FIXED in b23a96c: modernize-it id-4 passed with requests==2.31.0 unfixed. requirements.txt must now pin requests to a fixed release (==, >= or ~= at 2.32.4 or later) and must not keep requests==2.31.0. RED first on the real oracle over the shipped fixture: untouched, file deleted, 2.32.3, ~=2.32, >=2.31.0, fix-added-but-2.31.0-kept and requests-dropped all fail; 8 fixed variants with django 5.2 and SUPPORT.md intact pass. The untouched-fixture guard encoded the invariants-only design, so the coordinator approved option A: scope widened to tests/test_evals.py with the literal AGENT_MUST_EDIT (one entry) and a both-directions passability test. Option B, spelling the path ./requirements.txt to slip the guard's string compare, was rejected as gaming the guard.",
+    "2026-09-15 bot round r1, Greptile F2 (P2, symlink loop at scripts/eval.py:952) REFUTED, no code change: an a.md<->b.md loop run through the real check_workspace_state on CPython 3.13.15 (the CI pin) and 3.14.7 raised nothing. Glob loop members are dropped as non-files and path checks on a loop fail cleanly. Only <=3.12, where non-strict Path.resolve raised RuntimeError on a loop, would escape, and neither CI nor the local mise pin runs it (not re-run here: no 3.12 interpreter is installed).",
+    "2026-09-15 bot round r1: 97e5e44 regenerates assets/badges/tests.json 1329 -> 1330 as its own mechanical commit after b23a96c (the new passability test is one more definition). b23a96c passes tests.test_evals alone; validate.py's badge check is red there until 97e5e44, the same pattern as round r0."
   ]
 }
