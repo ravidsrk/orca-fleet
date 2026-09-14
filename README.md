@@ -175,8 +175,8 @@ a leg the worker cannot type at all: a coordinator-signed verifier transcript ch
 committed key ([#281](https://github.com/ravidsrk/orca-fleet/issues/281)), on top of making the
 tier cost an actual run ([#286](https://github.com/ravidsrk/orca-fleet/issues/286)).
 
-**No mission clears that bar today.** Four runs really happened; none of them is currently a tier
-claim:
+**No mission clears that bar today.** The [run archive](docs/runs/) records every run that really
+happened; none of them is currently a tier claim:
 
 - [`clean-sweep`](docs/runs/2026-07-13-clean-sweep-self-run.md) (drained six false doc-claims to
   DRY; a later [tracker run](docs/runs/2026-07-17-clean-sweep-tracker-self-run.md) closed 22 of 26
@@ -188,6 +188,11 @@ claim:
   promotion PR since human-merged) kept its artifacts — all five hashes still re-derive at
   `748b328` — but never wrote down the verifier's command line, which its own template asked for
   verbatim. So its recorded outcome is the coordinator's word.
+- The September runs against this repository — the [clean-sweep tracker](
+  docs/runs/2026-09-09-clean-sweep-tracker.md) (5 issues closed, 1 needs-human, its mis-pinned
+  inventory recorded rather than re-hashed) and the two pin-it re-witnesses of Orca 1.4.200
+  ([PARTIAL-WITNESS](docs/runs/2026-09-12-runtime-repin/),
+  [PINNED-WITH-PARKED](docs/runs/2026-09-13-pin-it-266/)) — bind no tier either.
 
 Each report says so in its own "Evidence binding" section. Every mission in the catalog reads
 `doctrine-only`.

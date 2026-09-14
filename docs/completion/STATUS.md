@@ -7,7 +7,7 @@
 VERDICT: GO
 COMPLETION: 68% (was 68% at 005ab1f; 52% at baseline 6abf548)   GATE: met — all 8 frozen items evidenced on current main; no launch-gating Human Action open
 CRITICAL FLOWS: 6 total · 6 verified (CF-05 re-witnessed 2026-09-09 at 9e1237f via Orca worker dispatch) · 0 cut
-GAPS: S0 0 open / 0 closed · S1 0 open / 3 closed · S2 3 open (G-15 · G-19 · G-20) / 3 closed · S3 3 open (G-09 DEFER · G-17 · G-21) / 9 closed · CUT 0 · DEFER 4 · ACCEPT 0
+GAPS: S0 0 open / 0 closed · S1 0 open / 3 closed · S2 0 open / 6 closed · S3 1 open (G-09 DEFER) / 11 closed · CUT 0 · DEFER 1 · ACCEPT 0  (G-15/G-17/G-19/G-20/G-21 closed 2026-09-09 — #232/#233/#234/#236/#237; reconciled 2026-09-14, #372)
 TASKS: 10/10 done (T-01..T-13, ids stable) · BLOCKED 0 · HUMAN ACTIONS gating launch: 0
 ISSUES: created 6 (#232–#237) · updated 0 · reopened 0 · dedup-skipped 1 (G-09, A-27) · existing fetched 96
 NEXT: S6 cleanup → run-3 PR merge → final record
@@ -16,10 +16,10 @@ Angles (score/4, RAG):
 1 Product 3/G · 2 Functional 3/G · 3 Code 3/G · 4 Testing 3/G · 5 Security 3/G · 6 Data N/A · 7 Infra 3/G · 8 Reliability 3/G · 9 Observability 2/A · 10 Perf 2/A · 11 Integrations 2/A · 12 AI N/A · 13 UX N/A · 14 Docs 3/G · 15 Legal 2/A · 16 GTM 2/A · 17 Ownership 3/G
 
 Top risks (max 5):
-- G-20 the -m 1 rollback fix is unbound by any test (revert stays green) → post-launch issue
-- G-19 docs/ops.md step 4 omits the checkable workflows N/A + dated rehearsal cites → post-launch issue
-- G-15 GitHub About description says 10 fleets, catalog is 13 → H-04
-- G-17 version badge lags HEAD ([Unreleased] vs 0.6.0) → H-05
+- ~~G-20~~ closed 2026-09-09 (#233): the -m 1 rollback command is pinned in tests
+- ~~G-19~~ closed 2026-09-09 (#232): ops.md step 4 carries the checkable clause + rehearsal cites
+- ~~G-15~~ closed 2026-09-09 (H-04, #236); moot permanently since 2026-09-14 (count-free About, #376)
+- ~~G-17~~ closed 2026-09-09 (H-05, #237): 0.6.1 cut landed
 - Substrate: claude OAuth expired machine-wide; codex usage-limited until 2026-09-15 → maintainer re-login/credits before the next agent fleet run
 
 Human Actions gating launch: none.

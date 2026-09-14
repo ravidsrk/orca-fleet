@@ -54,7 +54,7 @@ flowchart TD
     C2 --> D[CHARACTERIZE<br/>net pinned + mutation-audited BEFORE restructure]
     D --> E[DEEPEN — rw workers<br/>one module per unit · API breaks gated]
     E --> F[Build-blind REVIEW → LAND]
-    F --> G[RE-SCAN the confirmed surface<br/>same probes · width at/below starting median]
+    F --> G[RE-SCAN the confirmed surface<br/>same probes · every module deepened or parked<br/>a median heuristic never closes the loop early]
     G --> H{{RESHAPED}}
     G --> I{{RESHAPED-WITH-PARKED}}
 ```

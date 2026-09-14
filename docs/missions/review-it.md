@@ -86,10 +86,10 @@ Phase by phase:
    dispatched only when the change surface triggers them: auth/query/route/dep change → security,
    render/query/bundle → performance, component/markup → accessibility, schema/migration →
    data-migration. Each lens is a fresh-context worker with its own protocol — threat-model-first
-   security demanding a concrete exploit scenario, measure-first performance, WCAG 2.1 AA,
+   security demanding a concrete exploit scenario, measure-first performance, WCAG 2.2 AA,
    expand→migrate→contract. Gating adapts: a lens with zero findings across 10+ dispatches
-   auto-gates off, but security and data-migration are `NEVER_GATE` — their value is the miss
-   they would catch.
+   auto-gates off, but security, privacy and data-migration are `NEVER_GATE` — their value is
+   the miss they would catch.
 4. **Aggregate.** Findings land side by side per axis with severity
    (Critical / Required / Nit / Optional / FYI). The anti-false-positive gate: a finding **must
    quote its verbatim motivating code line**, or its confidence drops and it moves to an appendix —

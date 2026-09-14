@@ -12,8 +12,8 @@ Three things are checked:
      doctrine-only requires proof_evidence: a run-report path that exists. Ten
      unproven missions presented as proven is how the predecessor repo died;
      the honesty is machine-checked here.
-   - instruction budget: missions ≤ 130 lines, playbooks ≤ 90, runtime policies
-     ≤ 160. Doctrine creep gets caught by CI, not by a postmortem. Raise a cap
+   - instruction budget: mission body ≤ 110 + frontmatter ≤ 34 lines, playbooks ≤ 90,
+     runtime policies ≤ 160. Doctrine creep gets caught by CI, not by a postmortem. Raise a cap
      only by deliberate edit with a reason in the commit.
 
 2. The three-layer separation holds:
@@ -36,7 +36,7 @@ Three things are checked:
    - Every `skills/<name>/evals/evals.json` is valid JSON, its `skill_name` matches
      the folder, and each eval has the required fields.
 
-Exit code: 0 if all valid, 1 if any failure.
+Exit code: 0 if all valid, 1 if any failure, 2 if the skills/ catalog itself is missing.
 
 Spec: https://agentskills.io/specification
 """

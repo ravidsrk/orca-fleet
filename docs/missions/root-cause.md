@@ -106,6 +106,7 @@ Phase by phase:
 | Demonstrated root cause | red-capable command + output actually run (or elevated repro rate); one survivor; rivals falsified | terminal for this mission                        |
 | Architecture handoff    | no correct seam exists for the regression test — the missing seam is the finding                   | an architecture change, separately owned         |
 | Fix handoff brief       | behavioral, testable acceptance criteria + out-of-scope, routed onward                             | `ship-it` / `clean-sweep`, separately authorized |
+| **INCONCLUSIVE** (degraded) | repro exists but every ranked hypothesis was falsified, or no red-capable loop could be built | parked with next experiments — never reported as diagnosed |
 
 The mission names which of these it reached. "We found it and fixed it" is not on the list — a
 quiet fix is the overclaim this boundary exists to prevent.

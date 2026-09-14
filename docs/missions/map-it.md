@@ -75,10 +75,12 @@ Phase by phase:
    phrase **sharply** now. The test is "can you *state the question*" — not answer it. Anything
    you cannot yet phrase is recorded as "not yet specified", never dressed up as a vague ticket
    that pretends more is known than is.
-3. **Clear the frontier** in parallel. Two ticket kinds with two session shapes. **Research
-   tickets** run AFK — workers gather evidence while you are away. **Decision and grill tickets**
-   are HITL: the agent never stands in for the human's side of a decision, and each session
-   resolves exactly one decision. Under [`decide-and-freeze`](../../playbooks/decide-and-freeze.md)
+3. **Clear the frontier** in parallel. Four ticket kinds. **Research tickets** run AFK — workers
+   gather evidence while you are away. **Decision and grill tickets** are HITL: the agent never
+   stands in for the human's side of a decision, and each session resolves exactly one decision.
+   **Prototype tickets** (HITL) answer "how should it look/behave" with a cheap throwaway artifact —
+   a scratch-worktree spike, captured before disposal. **Task tickets** carry what is already sharp.
+   Under [`decide-and-freeze`](../../playbooks/decide-and-freeze.md)
    discipline, facts get looked up in the codebase, never asked; only genuine decisions reach you,
    each with a recommended answer attached. Resolving a ticket clears fog — questions that just
    became sharp graduate into fresh tickets, and the frontier advances.
@@ -158,7 +160,9 @@ sharp, and the frontier loop repeats until the route is clear.
 
 **Freeze → prepare.** The map freezes (destination, decisions, non-goals), and `decompose-dag`
 materializes a fourteen-slice DAG — verified for real dep ids, cycles, hot-file chains — and
-**never dispatches it**. Terminal: **FROZEN MAP + DAG**, an artifact `ship-it` consumes as-is.
+**never dispatches it**. Terminal: **FROZEN MAP + DAG** — the mission's terminal states are
+`MAPPED` (every ticket resolved or honestly "not yet specified") or `MAPPED-WITH-BLOCKED`
+(degraded: ≥1 decision parked on a human gate) — an artifact `ship-it` consumes as-is.
 A map that quietly started building would be the failure mode, not the bonus.
 
 ## Failure modes this mission is built to prevent
