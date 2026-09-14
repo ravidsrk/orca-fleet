@@ -53,8 +53,8 @@ the documented exception, and only for the contributor's own commit:** an absorb
 original `Author:` — that is the credit, and rewriting it is misattribution. Everything the fleet
 adds (a review-driven amendment, a lint fix, a test the fleet wrote) is a SEPARATE
 maintainer-authored commit on top, with no trailers, so the history shows exactly who wrote what.
-The repo's squash policy is read BEFORE the first absorption: a squash-merge repo needs the
-contributor's authorship on the resulting commit, or the absorption lands as a merge instead.
+The repo's merge policy is read BEFORE the first absorption: a squash-only repo breaks the
+ancestry-verified merge the convergence proof requires — PARK `needs-human`, never squash (#360).
 DCO/CLA state is checked per PR; unsigned is `needs-contributor`, never a fleet signature.
 
 ## Two terminal outcomes
