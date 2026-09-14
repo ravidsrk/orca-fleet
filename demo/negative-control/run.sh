@@ -42,8 +42,18 @@ echo
 
 echo "== verdict =="
 # vf must be 2 (an INVARIANT failure), not merely nonzero: a git/dependency error (exit 1) is a
-# broken run, not the scope-shrink RED this demo proves.
+# broken run, not the scope-shrink RED this demo proves. And the RED must NAME the dropped
+# criterion: a refusal for any other reason (e.g. the #310 class-downgrade guard, which also
+# fires on this manifest) would still print PASS on a broken check_scope otherwise (#370).
 if [ "$ss" -eq 0 ] && [ "$vf" -eq 2 ]; then
+  case "$out" in
+    *"not addressed"*"AC-2"*) scope_named=1 ;;
+    *) scope_named=0 ;;
+  esac
+else
+  scope_named=0
+fi
+if [ "$ss" -eq 0 ] && [ "$vf" -eq 2 ] && [ "$scope_named" -eq 1 ]; then
   echo "PASS: self-scorer GREEN (exit $ss) while orca-fleet caught the dropped criterion RED (exit $vf)."
   echo "The moat is the frozen denominator + independent re-derivation, not the gate mechanism."
   exit 0
