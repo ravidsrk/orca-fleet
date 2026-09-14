@@ -563,9 +563,6 @@ RECORDED_TRIGGER_MISROUTES = {
     # idiom carrying ship-it's entire name.
     ("attest-it", "conformance"): "access-it",
     ("floor-it", "stop shipping junk"): "ship-it",
-    # "drifted from the docs" is document-it's home vocabulary; the false-claim reading belongs
-    # to clean-sweep. A 0.0004 margin is a coin flip — recorded, not contorted (#379).
-    ("clean-sweep", "the API contract drifted from the docs"): "document-it",
 }
 _QUOTED_TRIGGER_RE = re.compile(r'"([^"]{4,})"')
 
