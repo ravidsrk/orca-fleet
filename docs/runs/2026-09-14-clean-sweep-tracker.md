@@ -373,3 +373,6 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   coordinator records, verdict-r3 round appended; contract was already
   spec-form). Proof parked needs-human (same recoverable shape as U388); finding
   closed (#389 CLOSED, manifest @9fb8316). Worktree retired (orca dir already gone — same external cleanup).
+- U364 builder (task_c59e89f22f3f) asked NC-artifact Q (msg_b8ab0b517e73): answered
+  Option A — commit u364-negctrl.txt beside the manifest (U388 precedent). Builder
+  at 244209a (spec + 2 feat + badge 1315), phase reviewing.
