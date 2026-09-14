@@ -1624,6 +1624,25 @@ class EndToEndMutationGreen(RepoCase):
         self.assertEqual(rc, 2)
         self.assertIn("STALE evidence", err)
 
+    def test_a_fresh_record_of_the_wrong_command_fails_when_the_coordinator_named_one(self):
+        # #352: `evidence-run.py -- true` is content-bound and exit-0, and proved nothing.
+        # When the coordinator names the proof command out of band, the ledger must show THAT
+        # command green on this content.
+        decoy = "true"
+        path = self._manifest(commands=[{"label": "tests", "cmd": decoy,
+                                         "cmd_sha256": hashlib.sha256(decoy.encode()).hexdigest(),
+                                         "exit": 0, "wtree": self.head_tree}])
+        rc, _out, err = self._run_main(path, "--nc-command", self.proof_cmd)
+        self.assertEqual(rc, 2)
+        self.assertIn("none is the coordinator-named proof command", err)
+
+    def test_a_fresh_record_of_the_named_command_still_passes(self):
+        # The same manifest that is green without --nc-command stays green when the coordinator
+        # names the very command the ledger records.
+        path = self._manifest()
+        rc, _out, err = self._run_main(path, "--nc-command", self.proof_cmd)
+        self.assertEqual(rc, 0, err)
+
     def test_missing_commands_ledger_is_red(self):
         path = self._manifest(commands=[])
         rc, _out, err = self._run_main(path)

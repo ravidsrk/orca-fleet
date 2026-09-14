@@ -1577,7 +1577,7 @@ def check_negative_control(m, is_mutation, execute=False, nc_command=None):
     return errs, executed_ok
 
 
-def check_commands(m, is_mutation):
+def check_commands(m, is_mutation, nc_command=None):
     """5. The CONTENT-BOUND evidence ledger (audit §3 item 3; gstack `bin/gstack-evidence`).
 
     "Tests pass at that exact SHA in a clean env" was doctrine — a sentence in evidence-manifest §2
@@ -1586,6 +1586,10 @@ def check_commands(m, is_mutation):
     this check requires at least ONE record with `exit == 0` whose `wtree` equals
     `git rev-parse <head_sha>^{tree}` — the content actually committed at the head. A record made on
     other content (an earlier tree, a dirty tree with extra files) is STALE and does not count.
+
+    When the coordinator names the proof command out of band (`--nc-command`), one of those fresh
+    records must be FOR THAT command — otherwise `evidence-run.py -- true` satisfies the gate and
+    "tests really ran on this content" is asserted of a run that ran no tests (#352).
 
     FAIL-CLOSED, unlike upstream's advisory `check`: no record means nothing proved the suite ran on
     this content. The NOTE says what the pass does NOT mean — the coordinator's clean-env re-run is
@@ -1624,6 +1628,30 @@ def check_commands(m, is_mutation):
         return [f"commands ledger: no recorded command with exit 0 whose wtree is head_sha's tree "
                 f"{want} (exit-0 records carry {seen or 'no wtree at all'}) — the recorded run was "
                 "made on other content, so it is STALE evidence for this head; fail-closed"]
+    if nc_command is not None:
+        # The coordinator named the proof command out of band (#279); the ledger must show THAT
+        # command green on this content, not merely some exit-0 record — `evidence-run.py -- true`
+        # is content-bound and still proves nothing (#352). Same shlex normalization as
+        # _nc_command's agreement rule, so quoting differences alone cannot split the comparison.
+        try:
+            want_cmd = shlex.join(shlex.split(nc_command))
+        except ValueError:
+            want_cmd = None
+        if want_cmd:
+            def _matches(rec):
+                line = rec.get("cmd")
+                if not isinstance(line, str):
+                    return False
+                try:
+                    return shlex.join(shlex.split(line)) == want_cmd
+                except ValueError:
+                    return False
+            if not any(_matches(rec) for rec in fresh):
+                ran = sorted({str(rec.get("cmd")) for rec in fresh})
+                return [f"commands ledger: fresh exit-0 record(s) exist, but none is the "
+                        f"coordinator-named proof command {want_cmd!r} (fresh records ran: {ran}) "
+                        "— the ledger proves SOMETHING ran green on this content, not the proof the "
+                        "coordinator named; fail-closed (#352)"]
     return [f"NOTE: commands ledger FRESH — {len(fresh)} exit-0 record(s) bound to head_sha's tree "
             f"{want[:12]}. This is the worker's own runner, so the coordinator's clean-env re-run at "
             "head_sha still stands as the stronger authority (evidence-manifest.md §2)"]
@@ -2010,7 +2038,7 @@ def verify(manifest_path, contract_source=None, contract_digest=None, repo=None,
                                           dispatch_record, dispatch_pubkey),
         lambda: check_class_downgrade(m, unit_class, dispatch_record, dispatch_pubkey),
         lambda: check_freshness(m),
-        lambda: check_commands(m, is_mut),
+        lambda: check_commands(m, is_mut, nc_command),
         lambda: check_redaction(m, manifest_path),
         lambda: check_intent(m, is_mut),
         lambda: check_lighting(m, is_mut, lighting),
