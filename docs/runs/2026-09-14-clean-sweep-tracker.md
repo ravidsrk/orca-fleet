@@ -27,7 +27,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | STAB | — | land 4 PR-review hunks (deny-hook/run_report/verify/HUMAN_ACTIONS) + badge regen | conductor landing, worker-executed | t | n/a | n/a | n/a | t | n/a | lit | — | 1215e09 9651a52 8f7d5ac 917f9fd; pushed origin/BASE fast-forward (egress receipt); 1285 OK + full battery green; NC re-executed 11 failures; rides PR #387 |
 | T1 | #388 | evidence-run lockfile dirties worktree | real-bug | t | t | t | t | t | t | lit | proof-park: needs post-merge independent APPROVE (2nd login) for verify review leg | PR #392 MERGED 8c36b4a @c680ee0 (reviewed==head; R2 GO 5202783703); verify 5/6 (review leg RED: no independent APPROVED — Greptile never re-reviewed; recoverable post-merge); #388 closed w/ evidence + gap note |
 | T2 | #389 | run_report WIP validation accepts incomplete reports | real-bug | t | t | t | t | t | t | lit | proof-park: needs post-merge independent APPROVE (2nd login) for verify review leg | PR #391 MERGED 1bdb20c @51019fb (reviewed==head; R3 GO 5203193997); verify 5/6 (review leg RED: no independent APPROVED — Greptile checks pass, no review object; recoverable post-merge); #389 closed w/ evidence + gap note |
-| T3 | #364 | fixture-backed evals + workspace-state oracle (S1) | real-feature-small | t | t | t | f | f | f | lit | — | PR #395 @f727692; Greptile 1 VALID (id-4 no positive check — coordinator: FIX, teeth on requirements.txt) + 1 FP (symlink, refute); F364r1 dispatched |
+| T3 | #364 | fixture-backed evals + workspace-state oracle (S1) | real-feature-small | t | t | t | f | f | f | lit | — | PR #395 @c5d4bb7 (F1 fixed b23a96c + guard/passability, F2 refuted+withdrawn, body 1330); new P1 contradictory-pins refuted in-thread 4010303922 (out of threat model; SPEC axis judges); R364 axes dispatched |
 | T4 | #385 | historical-docs polish, agent slice (status.json + parity test) | real-bug (docs) | t | t | t | t | t | t | lit | — | PR #390 MERGED 32da76e @d6fc2cc (reviewed==head; greptile APPROVED + 3 blind GO); verify.py OK all legs (scope/commands/freshness/NC-exec/review/change-on-base); conductor manifest corrections (head/source) disclosed in-file; worktree retired; #385 closed w/ evidence |
 | T5 | #386 | sign manifest+inventory, retention backend (S2) | — | — | — | — | — | — | — | — | needs-human: key custody + backend undecided (Q2) | Q2: park |
 | — | #235 | H-02 marketplace submissions (pre-parked needs-human) | needs-human | — | — | — | — | — | — | needs-human: external accounts | prior run + issue text |
@@ -398,3 +398,14 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   two-direction passability test; guard stays strict elsewhere. B rejected
   (gaming), C declined (VALID P1 stands). Union b2bc68d clean; F2 re-run
   confirms FP on 3.13/3.14.
+- F364r1 worker_done (msg_e9c9f8af5340): union b2bc68d clean; F1 fixed red-first
+  (b23a96c: fixed-release matches + 2.31.0 not_matches + AGENT_MUST_EDIT +
+  both-directions passability, RED pre-checks); badge 1330 (97e5e44); manifest
+  re-bound c5d4bb7; thread replies posted; body 1330. Gates at content tip all
+  green (89 OK, validate, routing 94/94, full 1330 OK, gitleaks, ruff); NC r1
+  exit 1 (21F+35E, +1 F1 witness) / clean exit 0. F2 WITHDRAWN by Greptile.
+  NEW P1 (comment 4010263920, contradictory pins pass): reproduced, coordinator
+  REFUTES with reason (in-thread 4010303922: legit multi-specifier pins must
+  pass; solving needs engine work; no realistic agent emits unsatisfiable pins;
+  threat model covered). Task completed, worker released.
+- R364 axes dispatched @c5d4bb7 (spec/standards/test; SPEC judges the P1 call).
