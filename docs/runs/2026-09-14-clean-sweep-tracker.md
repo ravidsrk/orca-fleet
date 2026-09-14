@@ -25,8 +25,8 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | task_id | id | title | CLASS | BUILD_DONE | PR_OPEN | BOT | REVIEWED | MERGED | WT_CLEAN | lighting | park | evidence |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | STAB | — | land 4 PR-review hunks (deny-hook/run_report/verify/HUMAN_ACTIONS) + badge regen | conductor landing, worker-executed | t | n/a | n/a | n/a | t | n/a | lit | — | 1215e09 9651a52 8f7d5ac 917f9fd; pushed origin/BASE fast-forward (egress receipt); 1285 OK + full battery green; NC re-executed 11 failures; rides PR #387 |
-| T1 | #388 | evidence-run lockfile dirties worktree | real-bug | t | f | f | f | f | f | lit | — | eddd3e0 e4ffbb7 75c0c91 8ec5c86 on u388-lockfile; clean 1288 OK @8ec5c86; NC re 2 NoLedgerLitter; manifest ✓ digest ✓ artifact ✓ |
-| T2 | #389 | run_report WIP validation accepts incomplete reports | real-bug | t | f | f | f | f | f | lit | — | e74dea0 0038a43 3ec17ee; clean 1289 OK; NC re 10F+1E; I389 task_bf2e859e9c6d term_d1c94900 running |
+| T1 | #388 | evidence-run lockfile dirties worktree | real-bug | t | f | f | f | f | f | lit | — | eddd3e0 e4ffbb7 75c0c91 8ec5c86; clean 1288 OK; NC re 2 NoLedgerLitter; I388 task_ed1282375c4b term_a74527b0 running |
+| T2 | #389 | run_report WIP validation accepts incomplete reports | real-bug | t | t | t | f | f | f | lit | — | PR #391 @f642700 (base ✓ checks ✓); bot 2 P1 + 1 P2 held VALID (template waves, manifest abs-paths, dup cells); review next |
 | T3 | #364 | fixture-backed evals + workspace-state oracle (S1) | real-feature-small | f | f | f | f | f | f | lit | — | Q1: fixtures+oracle (wave 2; brief TBD) |
 | T4 | #385 | historical-docs polish, agent slice (status.json + parity test) | real-bug (docs) | t | t | t | f | f | f | lit | — | PR #390 @bcb4397; bot P2 held; axes R385a task_b865c036295d / R385b task_d1f583774723 / R385c task_65940316b418 live |
 | T5 | #386 | sign manifest+inventory, retention backend (S2) | — | — | — | — | — | — | — | — | needs-human: key custody + backend undecided (Q2) | Q2: park |
