@@ -382,3 +382,4 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   routing 94/94, 1315 OK, gitleaks clean. Caveat: cases never run against a live
   agent (oracle + scratch pass only). Task completed, worker released.
 - I364 dispatched: integrate-364 spec (union + gates + PR + bot reconcile).
+  task_9b7d6a68e7d9 → ctx_05ecf7dbad00 (terminal term_7437a4b7, claude lane).
