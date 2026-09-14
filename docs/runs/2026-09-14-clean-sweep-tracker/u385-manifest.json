@@ -64,6 +64,42 @@
       "label": "gitleaks",
       "ts": "2026-09-14T18:25:48Z",
       "wtree": "022dc9a4a4197edf157b97e547c5c465d3d8899c"
+    },
+    {
+      "artifact": null,
+      "artifact_note": "coordinator clean-env re-run (git worktree detached at head_sha d6fc2cc, tree clean at start): 'Ran 1290 tests in 235.913s' / 'OK', exit 0. Log kept in coordinator session scratch (not committed).",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "commit": "d6fc2cce9d414c93ae47acc89b5267c78ffcadc9",
+      "duration_s": 235.913,
+      "exit": 0,
+      "label": "coordinator full-suite re-run at head",
+      "ts": "2026-09-14T19:20:13Z",
+      "wtree": "4ee55a0c1ba997717d264e924408905d9aed2d4d"
+    },
+    {
+      "artifact": null,
+      "artifact_note": "coordinator clean worktree at head_sha d6fc2cc: 'Ran 31 tests in 12.291s' / 'OK', exit 0. This is the coordinator-named proof command (--nc-command), green on the head content.",
+      "cmd": "python3 -m unittest tests.test_docs_navigation",
+      "cmd_sha256": "4156f366161430a8c3cf2601a7a754fee6e2bb3000037b143da0b075d0d84682",
+      "commit": "d6fc2cce9d414c93ae47acc89b5267c78ffcadc9",
+      "duration_s": 12.291,
+      "exit": 0,
+      "label": "coordinator nc-command at head",
+      "ts": "2026-09-14T19:21:21Z",
+      "wtree": "4ee55a0c1ba997717d264e924408905d9aed2d4d"
+    },
+    {
+      "artifact": null,
+      "artifact_note": "coordinator clean worktree at head_sha d6fc2cc: 'All 21 missions valid; three-layer separation holds; evals valid.', exit 0. Duration measured; ts approximate within the minute.",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "commit": "d6fc2cce9d414c93ae47acc89b5267c78ffcadc9",
+      "duration_s": 0.493,
+      "exit": 0,
+      "label": "coordinator validate at head",
+      "ts": "2026-09-14T19:21:15Z",
+      "wtree": "4ee55a0c1ba997717d264e924408905d9aed2d4d"
     }
   ],
   "commits": [
@@ -104,8 +140,9 @@
       "C-1",
       "C-2"
     ],
+    "conductor_note": "CORRECTION 2026-09-14T19:25Z: source was the triage-brief string (coordinator issuance slip: its content does not hash to the digest). Corrected to the frozen task-spec file@dispatch-commit whose blob sha256 IS the digest (verified: git show <ref>:<path> | sha256sum).",
     "digest": "sha256:eafaf7a1016e88ed6dd2065defaaecbc2f14ca647d9a7e710c3050c85a6e02aa",
-    "source": "triage/brief-385-slice.md@e04b0c2 + issue #385 (agent slice)"
+    "source": "docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/build-385.md@5af2e6fb26229b0a4c435a0aad400324c55f5d90"
   },
   "criteria": [
     {
@@ -141,8 +178,8 @@
       "tests/test_docs_navigation.py"
     ]
   },
-  "head_sha": "134eae14bdc43711868bf466e695ae1b2bc42830",
-  "head_sha_role": "Round 2. head_sha is the badge commit that tops the round-2 fix: 70b5721 (merge of origin/BASE 76c70df, ledger/spec files only, conflict-free), 34e445e (the parity guide set reuses the index parser and equals the guides on disk, plus two regression cases) and 134eae1 (gen-badges.py output, 1288 -> 1290). Round 1's ea77ce9 and 87619de (status.json + the two test classes, badge) stay in base_sha..head_sha. The commit that adds this manifest follows head_sha and cannot name its own SHA; it carries no production or test content. Every commands[] record was made on a clean tree at head_sha: wtree 022dc9a = head_sha^{tree}.",
+  "head_sha": "d6fc2cce9d414c93ae47acc89b5267c78ffcadc9",
+  "head_sha_role": "CONDUCTOR CORRECTION 2026-09-14T19:25Z (post-merge): the builder theory below (head = badge commit 134eae1, manifest commit unnameable) conflicts with the doctrine, which binds evidence to the REVIEWED tip (check_freshness: reviewed_sha == head_sha; check_commands: wtree == head tree). head_sha is therefore the reviewed+merged tip d6fc2cc = 32da76e^2 (PR #390); the d6fc2cc-vs-134eae1 delta is the manifest file only. Builder records at 134eae1 stay as true historical runs; the three coordinator commands[] records re-ran the gates at d6fc2cc. Original builder note follows. Round 2. head_sha was the badge commit that tops the round-2 fix: 70b5721 (merge of origin/BASE 76c70df, ledger/spec files only, conflict-free), 34e445e (the parity guide set reuses the index parser and equals the guides on disk, plus two regression cases) and 134eae1 (gen-badges.py output, 1288 -> 1290). Round 1's ea77ce9 and 87619de (status.json + the two test classes, badge) stay in base_sha..head_sha. The commit that adds this manifest follows head_sha and cannot name its own SHA; it carries no production or test content. Every commands[] record was made on a clean tree at head_sha: wtree 022dc9a = head_sha^{tree}.",
   "head_tree": "022dc9a4a4197edf157b97e547c5c465d3d8899c",
   "intent": {
     "goal": "Make the completion status record name the commit its snapshot describes (the run-3 PR #238 merge) and put guide<->diagram parity under a test that names the four missing diagrams as an explicit known-gap list.",

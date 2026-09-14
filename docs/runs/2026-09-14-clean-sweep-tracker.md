@@ -28,11 +28,11 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | T1 | #388 | evidence-run lockfile dirties worktree | real-bug | t | t | t | f | f | f | lit | — | PR #392 @da2f98a (base ✓ checks ✓); bot P1 mixed-version DECLINED on-PR (out of scope, disclosed) + follow-up filed (loop 2); review next |
 | T2 | #389 | run_report WIP validation accepts incomplete reports | real-bug | t | t | t | f | f | f | lit | — | PR #391 @f642700 (base ✓ checks ✓); bot 2 P1 + 1 P2 held VALID (template waves, manifest abs-paths, dup cells); review next |
 | T3 | #364 | fixture-backed evals + workspace-state oracle (S1) | real-feature-small | f | f | f | f | f | f | lit | — | Q1: fixtures+oracle (wave 2; brief TBD) |
-| T4 | #385 | historical-docs polish, agent slice (status.json + parity test) | real-bug (docs) | t | t | t | f | f | f | lit | — | PR #390 @d6fc2cc (fix 34e445e; clean 1290 OK); r2 axes dispatching (round 1/3) |
+| T4 | #385 | historical-docs polish, agent slice (status.json + parity test) | real-bug (docs) | t | t | t | t | t | t | lit | — | PR #390 MERGED 32da76e @d6fc2cc (reviewed==head; greptile APPROVED + 3 blind GO); verify.py OK all legs (scope/commands/freshness/NC-exec/review/change-on-base); conductor manifest corrections (head/source) disclosed in-file; worktree retired; #385 closed w/ evidence |
 | T5 | #386 | sign manifest+inventory, retention backend (S2) | — | — | — | — | — | — | — | — | needs-human: key custody + backend undecided (Q2) | Q2: park |
 | — | #235 | H-02 marketplace submissions (pre-parked needs-human) | needs-human | — | — | — | — | — | — | needs-human: external accounts | prior run + issue text |
 
-PHASE: ORIENT → ENUMERATE → TRIAGE done → FREEZE → BUILD wave 1 running (U388 U389 U385) → wave 2: U364
+PHASE: ORIENT → ENUMERATE → TRIAGE done → FREEZE → BUILD wave 1: U385 CLOSED, U388 U389 in fix-round → wave 2: U364
 
 FREEZE: query1 (coordinator, T0) 4 open + query2 (worker, 16:14Z) 6 open with
 created-since-T0 exactly {#388,#389} and closed-since-T0 none — agreement modulo the run's
@@ -138,3 +138,30 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   grant" rule governs review-it RUNS; in this clean-sweep run, verdict posts on feature
   unit PRs (COMMENTED/REQUEST_CHANGES, never APPROVE, same identity, dismissible) are
   routine pipeline evidence — classified taste, logged; the main-merge human gate stands.
+- U385 MERGED (PR #390 → 32da76e 2026-09-14T19:03:52Z, match-head d6fc2cc; ancestry +
+  state verified) then evidence-closed: verify.py OK — ALL legs green (scope over
+  build-385.md@5af2e6f digest eafaf7a1; 3 fresh coordinator commands records at tree
+  4ee55a0; freshness reviewed==head d6fc2cc; NC EXECUTED exit-1-on-assertion + clean
+  exit-0; review leg via greptile-apps[bot] APPROVED@d6fc2cc; change-on-base).
+  Coordinator clean-env re-runs at d6fc2cc: full suite "Ran 1290 tests" OK (235.9s),
+  nc-command "Ran 31 tests" OK, validate.py green.
+- REVIEW-LEG OUTCOME (corrects the DESIGN premise above): a second identity EXISTS —
+  repo-installed reviewer apps. Greptile COMMENTED@bcb4397 (P2, real finding, fixed)
+  then APPROVED@d6fc2cc; bot login != PR author satisfies review_ok, and a
+  build-blind third-party review is what gate-classification's "human or build-blind
+  reviewer" names. No second-login chase needed while bots approve final tips; the
+  human gate keeps a taste spot-check, not a proof chase. U389/U388 must land bot
+  approval at their final tips (their held findings are the way there).
+- EVIDENCE-CLOSURE PATTERN (doctrine-derived, applies to all remaining units): the
+  builder head theory (head = pre-manifest commit, "manifest cannot name itself") is
+  RETIRED — check_freshness + check_commands jointly require head_sha == reviewed_sha
+  == the reviewed tip with >=1 exit-0 record at its tree. Conductor post-verdict
+  routine: set manifest head_sha := reviewed tip (objective git truth, disclosed);
+  re-run gates in a clean worktree at the tip; append coordinator commands[]
+  records. Builder records at older trees stay as true history. Union merges make
+  builder evidence stale by construction, so the coordinator re-run is mandatory,
+  not a fallback. U385 corrections (head 134eae1→d6fc2cc, contract.source
+  brief→spec-file@dispatch-commit) are disclosed in the manifest in-file.
+- HYGIENE: a carried-over SHA (39751a3) did not exist in git (stale context) — every
+  SHA in this log was re-derived from git before use (32da76e^2 = d6fc2cc). Never
+  trust compacted SHAs; rev-parse first.
