@@ -12,6 +12,7 @@ paths at the recorded commit" — a fake that never touches git would test nothi
 import hashlib
 import importlib.util
 import json
+import re
 import shlex
 import shutil
 import subprocess
@@ -192,8 +193,70 @@ class WipCurveObligation(unittest.TestCase):
         self.assertIn("WIP-curve", errs[0])
 
     def test_a_mutating_report_with_a_wip_row_binds(self):
-        body = ("## WIP curve\n\n| wave | WIP | throughput |\n| 1 | builders=4 reviewers=2 | 3.1 |\n")
+        # #389: this test used to bless `| 1 | builders=4 reviewers=2 | 3.1 |` — a settings row
+        # with one unlabelled number, which is the bug. The row now carries the protocol's schema.
+        body = ("RUN: mission=ship-it waves=1\n\n## WIP curve\n\n"
+                "| wave=1 | builders=4 reviewers=2 | throughput=3.1/h | latency_median=9m "
+                "| latency_max=31m | rework=1/5 | freshness=0 |\n")
         self.assertEqual(run_report._wip_curve_errors(body, "ship-it", ROOT, "r.md"), [])
+
+    # #389: the rows below are the protocol's own words (attention-budget.md §"The WIP-curve
+    # protocol"), never rebuilt from the checker's pattern — a settings row is not a data point.
+    def test_a_settings_only_row_is_refused(self):
+        for row in ("| 1 | builders=4 reviewers=2 | 3.1 |",
+                    "| wave=1 | builders=4 reviewers=2 |",
+                    "| deviation | raised mid-run to builders=3 reviewers=1 |"):
+            with self.subTest(row=row):
+                body = f"RUN: mission=ship-it waves=1\n\n## WIP curve\n\n{row}\n"
+                errs = run_report._wip_curve_errors(body, "ship-it", ROOT, "r.md")
+                self.assertTrue(errs, f"a settings-only row bound as a WIP-curve data point: {row}")
+
+    ROW_1 = ("| wave=1 | builders=3 reviewers=1 | throughput=1.5/h | latency_median=12m "
+             "| latency_max=40m | rework=0/3 | freshness=0 |")
+    ROW_2 = ("| wave=2 | builders=2 reviewers=1 | throughput=0.8/h | latency_median=20m "
+             "| latency_max=55m | rework=1/2 | freshness=1 |")
+
+    def test_a_multi_wave_report_with_partial_or_missing_wave_rows_is_refused(self):
+        # One complete row per recorded wave: the waves the report records are 1..n of its RUN:
+        # header's waves=<n> (attention-budget.md). A row standing in for the others, a wave with
+        # no row, a row whose metric is absent, and a count recorded nowhere each fail to bind.
+        partial_2 = self.ROW_2.replace("| latency_max=55m ", "")
+        cases = {
+            "one row for three waves": ("waves=3", [self.ROW_1]),
+            "wave 2 of 2 has no row": ("waves=2", [self.ROW_1]),
+            "wave 2 row lacks latency_max": ("waves=2", [self.ROW_1, partial_2]),
+            "wave 1 recorded twice, wave 2 never": ("waves=2", [self.ROW_1, self.ROW_1]),
+            "a row for an unrecorded wave": ("waves=1", [self.ROW_1, self.ROW_2]),
+            "no waves= recorded at all": ("", [self.ROW_1, self.ROW_2]),
+        }
+        for name, (waves, rows) in cases.items():
+            with self.subTest(case=name):
+                body = f"RUN: mission=ship-it {waves}\n\n## WIP curve\n\n" + "\n".join(rows) + "\n"
+                errs = run_report._wip_curve_errors(body, "ship-it", ROOT, "r.md")
+                self.assertTrue(errs, f"{name}: bound with incomplete per-wave rows")
+
+    def test_complete_per_wave_rows_bind(self):
+        # Cell order and extra cells are free; only the schema's cells are owed, once per wave.
+        reordered = ("| wave=2 | note: second wave | freshness=1 | rework=1/2 | throughput=0.8/h "
+                     "| builders=2 reviewers=1 | latency_max=55m | latency_median=20m |")
+        for rows in ([self.ROW_1, self.ROW_2], [self.ROW_1, reordered]):
+            with self.subTest(rows=rows):
+                body = "RUN: mission=ship-it waves=2\n\n## WIP curve\n\n" + "\n".join(rows) + "\n"
+                self.assertEqual(run_report._wip_curve_errors(body, "ship-it", ROOT, "r.md"), [])
+
+    def test_the_protocol_names_the_schema_the_checker_enforces(self):
+        # The text and the check drifted once (#389: the prose owed five metrics, the check read
+        # two settings). The protocol section must name every row key the checker enforces — and
+        # no other — plus the waves=<n> count, and a row filled in from its Row cells must bind.
+        budget = (ROOT / "runtime" / "attention-budget.md").read_text(encoding="utf-8")
+        section = budget.split("## The WIP-curve protocol", 1)[1].split("\n## ", 1)[0]
+        self.assertIn("`waves=<n>`", section, "the protocol no longer defines the recorded waves")
+        cells = [c for cell in re.findall(r"^\|[^|]*\| `([^`]+)` \|", section, re.M)
+                 for c in cell.split()]
+        self.assertEqual({c.split("=")[0] for c in cells}, set(run_report.WIP_ROW_KEYS))
+        row = "| " + " | ".join(re.sub(r"<\w+>", "1", c) for c in cells) + " |"
+        self.assertEqual(run_report._wip_curve_errors(f"RUN: waves=1\n\n{row}\n", "ship-it", ROOT,
+                                                      "r.md"), [], row)
 
     def test_report_only_and_planning_runs_are_exempt(self):
         for mission in ("review-it", "attest-it", "map-it", "root-cause"):
@@ -690,6 +753,11 @@ class LiveCatalog(unittest.TestCase):
         gap: the report body shows no invocation, AND the graded manifest's commands[]
         ledger records no verifier run. The run really did not write the command line
         down — its own report says so — so a gate that costs a run must fail it here.
+
+        Since #389 its WIP-curve table is refused too, and truthfully: its only row carrying
+        builders=/reviewers= is a settings row (`| WIP setting | builders=1 reviewers=1 |`) whose
+        throughput cell reads "not measured to protocol" — the report calls itself "NOT a
+        protocol-compliant data point". The old check bound it on the settings alone.
         """
         errs = run_report.check_report(
             "docs/runs/2026-08-28-ship-it-self-run.md", "ship-it", "self-run"
@@ -697,10 +765,12 @@ class LiveCatalog(unittest.TestCase):
         missing_transcript = [e for e in errs
                               if "invocation" in e or "records no commands[] entry" in e
                               or "RUN: tier=doctrine-only" in e]
+        no_wip_curve_row = [e for e in errs if "WIP-curve" in e]
         self.assertEqual(
-            [e for e in errs if e not in missing_transcript], [],
-            "only the missing verifier transcript should stop this report binding",
+            [e for e in errs if e not in missing_transcript + no_wip_curve_row], [],
+            "only the missing verifier transcript and WIP-curve row should stop this report binding",
         )
+        self.assertEqual(len(no_wip_curve_row), 1, "the WIP-curve leg (#389) stopped reporting")
         self.assertTrue(any("invocation" in e for e in errs), "the prose leg stopped reporting")
         self.assertTrue(any("records no commands[] entry" in e for e in errs),
                         "the ledger leg (#286) stopped reporting")
