@@ -213,9 +213,9 @@ Runtime policies: [`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) ·
 [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`gate-classification`](../../runtime/gate-classification.md) ·
 [`liveness-resume`](../../runtime/liveness-resume.md) ·
-[`orca-dag-semantics`](../../runtime/orca-dag-semantics.md) ·
 [`ledger-contract`](../../runtime/ledger-contract.md) ·
 [`attention-budget`](../../runtime/attention-budget.md) ·
+`orca-dag-semantics` (phase-cued: read when composing the DAG, not standing load) ·
 [`mission-chaining`](../../runtime/mission-chaining.md)
 
 ## Related missions

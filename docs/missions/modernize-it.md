@@ -196,15 +196,17 @@ Playbooks: [`remediate-finding`](../../playbooks/remediate-finding.md) ·
 [`runtime-prove`](../../playbooks/runtime-prove.md) ·
 [`compound-learn`](../../playbooks/compound-learn.md) ·
 [`research-brief`](../../playbooks/research-brief.md) ·
-[`resolve-conflict`](../../playbooks/resolve-conflict.md)
+[`resolve-conflict`](../../playbooks/resolve-conflict.md) ·
+[`agent-brief`](../../playbooks/agent-brief.md) (the phase brief handed to migrate-it)
 
 Runtime policies: [`merge-serialization`](../../runtime/merge-serialization.md) ·
 [`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md) ·
 [`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) ·
 [`liveness-resume`](../../runtime/liveness-resume.md) ·
+[`gate-classification`](../../runtime/gate-classification.md) (a pin decision needs a human ref) ·
+[`sandbox-policy`](../../runtime/sandbox-policy.md) (install hooks are untrusted code) ·
 [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`ledger-contract`](../../runtime/ledger-contract.md) ·
-[`gate-classification`](../../runtime/gate-classification.md) ·
 [`attention-budget`](../../runtime/attention-budget.md)
 
 ## Related missions

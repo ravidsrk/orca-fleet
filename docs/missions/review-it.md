@@ -184,7 +184,9 @@ Runtime policies: [`sandbox-policy`](../../runtime/sandbox-policy.md) ·
 [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md) ·
 [`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) ·
-[`mission-scheduling`](../../runtime/mission-scheduling.md)
+[`mission-scheduling`](../../runtime/mission-scheduling.md) ·
+[`gate-classification`](../../runtime/gate-classification.md) (posting the verdict is the run's one
+outward, human-granted action)
 
 ## Related missions
 

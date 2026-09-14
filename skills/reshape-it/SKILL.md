@@ -103,8 +103,8 @@ RESHAPED, or RESHAPED-WITH-PARKED with each parked module's one-way decision nam
 
 ## Ledger + supervision
 
-Ledger header at T0 per liveness-resume.md — `RUN · COORDINATOR · BASE · FORK_POINT · T0 · SOURCE · WIP`,
-row schema per `ledger-contract.md`, WIP sized to `attention-budget.md` — one statement, so the two
+Ledger header at T0 per liveness-resume.md: `RUN · COORDINATOR · BASE · FORK_POINT · T0 · SOURCE · WIP`
+— row schema per `ledger-contract.md`, WIP sized to `attention-budget.md`, one statement so the two
 cannot drift (#383). WIP: builders=<n> reviewers=<n> (`-` if N/A; SOURCE = the shallowness-inventory digest + the confirmed surface). One row per (module, phase) — CHARACTERIZE and DEEPEN are separate units with separate SHAs; a god file with many seams is many DEEPEN rows:
 id, surface before/after, net evidence, PR, reviewed SHA, verdict. CHARACTERIZE precedes DEEPEN
 strictly per module; deepen waves run ≤3 builders. Stalls → `liveness-resume.md` WATCH; death →

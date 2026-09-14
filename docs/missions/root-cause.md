@@ -185,7 +185,8 @@ before its fix phase) ·
 Runtime policies: [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`liveness-resume`](../../runtime/liveness-resume.md) ·
 [`sandbox-policy`](../../runtime/sandbox-policy.md) ·
-[`gate-classification`](../../runtime/gate-classification.md)
+[`gate-classification`](../../runtime/gate-classification.md) ·
+[`ledger-contract`](../../runtime/ledger-contract.md) (the row schema RESUME reads)
 
 ## Related missions
 

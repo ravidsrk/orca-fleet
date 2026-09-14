@@ -185,6 +185,8 @@ Playbooks: [`decide-and-freeze`](../../playbooks/decide-and-freeze.md) ·
 [`human-handoff`](../../playbooks/human-handoff.md)
 
 Runtime policies: [`gate-classification`](../../runtime/gate-classification.md) ·
+[`ledger-contract`](../../runtime/ledger-contract.md) (the DECISIONS log and handoff obligations) ·
+[`attention-budget`](../../runtime/attention-budget.md) ·
 [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`merge-serialization`](../../runtime/merge-serialization.md) (hot-file merge chains are declared
 at DAG-prepare time) · [`liveness-resume`](../../runtime/liveness-resume.md) (the slice ↔ task-id
