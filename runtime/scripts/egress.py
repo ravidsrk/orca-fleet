@@ -192,6 +192,10 @@ def read_ledger(path):
         text = path.read_text(encoding="utf-8")
     except FileNotFoundError:
         return []
+    except UnicodeDecodeError as err:
+        # A ValueError, not an OSError — without this arm the forensic reader tracebacks
+        # (exit 1) instead of failing closed on-contract (exit 3) (#382).
+        raise EgressError(f"{path} is not valid UTF-8: {err}") from err
     except OSError as err:
         raise EgressError(f"{path} is unreadable: {err}") from err
     out = []

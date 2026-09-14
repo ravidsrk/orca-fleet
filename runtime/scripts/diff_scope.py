@@ -18,7 +18,7 @@ Categories are independent booleans -- a file can be TESTS and BACKEND at once.
 Only BACKEND is deliberately exclusive of frontend view files.
 
 ===============  =============================================================
-flag             path signals (and content signals, scanned in the file at HEAD)
+flag             path signals (and content signals, read from the working tree)
 ===============  =============================================================
 SCOPE_FRONTEND   .css/.scss/.less/.sass, .tsx/.jsx/.vue/.svelte/.astro, .html,
                  .erb/.haml/.slim/.hbs/.ejs, tailwind/postcss config,
@@ -136,9 +136,10 @@ CONTENT_RULES = [
 class ScopeError(Exception):
     """A base or required acquisition failed; partial results are not a verdict."""
 
-    def __init__(self, message, kind="no_base"):
+    def __init__(self, message, kind="no_base", resolved=None):
         super().__init__(message)
         self.kind = kind
+        self.resolved = resolved  # the base that WAS resolved before acquisition failed (#382)
 
 
 def git(repo, *args, tolerate=False):
@@ -173,7 +174,7 @@ def changed_files(repo, base):
 
     def absorb(out, phase):
         if out is None:
-            raise ScopeError(f"{phase} acquisition failed", kind="diff_failed")
+            raise ScopeError(f"{phase} acquisition failed", kind="diff_failed", resolved=base)
         for name in out.split("\0"):
             if name:
                 names.add(name)
@@ -188,7 +189,7 @@ def changed_files(repo, base):
     return sorted(names)
 
 
-def read_head(repo, path):
+def read_worktree(repo, path):
     p = Path(repo) / path
     try:
         if not p.is_file():
@@ -218,7 +219,7 @@ def classify(repo, path):
     if "FRONTEND" not in hits and suffix in BACKEND_EXT:
         hits.add("BACKEND")
 
-    text = read_head(repo, path)
+    text = read_worktree(repo, path)
     if text:
         for flag, pattern in CONTENT_RULES:
             if flag not in hits and pattern.search(text):
@@ -269,7 +270,7 @@ def main(argv=None):
         empty = {f: False for f in FLAGS}
         if args.json:
             print(json.dumps({"flags": empty, "error": err.kind,
-                              "base": str(err) if err.kind == "no_base" else args.base,
+                              "base": str(err) if err.kind == "no_base" else (err.resolved or args.base),
                               "unmatched": []}, indent=2))
         else:
             for line in render_flags(empty):

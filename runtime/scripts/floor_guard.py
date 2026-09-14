@@ -272,6 +272,16 @@ def scan(added, removed, constraints_name, repo):
     def flag(rule, path, line, detail):
         findings.append({"rule": rule, "path": path or "(unknown)", "line": line, "detail": detail})
 
+    def file_has_exceptions_heading(path):
+        # A bullet added under a PRE-EXISTING ## Exceptions heading carries no heading line in
+        # the diff, so the in-diff marker alone cleared it (#382). The on-disk file is the other
+        # half of the evidence.
+        try:
+            text = (repo / path).read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            return False
+        return any(EXCEPTIONS_HEADING.match(ln) for ln in text.splitlines())
+
     in_exceptions = {}
     for path, line, text in added:
         if is_constraints(path, constraints_name) and EXCEPTIONS_HEADING.match(text):
@@ -291,7 +301,8 @@ def scan(added, removed, constraints_name, repo):
         if is_constraints(path, constraints_name):
             if EXCEPTION_ROW.match(text):
                 flag("new-exception", path, line, "exception-row")
-            elif in_exceptions.get(path) and text.strip().startswith(("-", "*")):
+            elif text.strip().startswith(("-", "*")) and (
+                    in_exceptions.get(path) or file_has_exceptions_heading(path)):
                 flag("new-exception", path, line, "exceptions-bullet")
 
     for path, line, text in removed:
@@ -369,7 +380,7 @@ def _path_waived_by(token, path):
     return path.split("/")[:len(prefix)] == prefix
 
 
-def is_waived(finding, waivers):
+def is_waived(finding, waivers, decisions=None):
     """A waiver is a DECISIONS RECORD that grants one, identified by the scope it covers.
 
     Four rounds of this, each fixing the previous one's blind spot, so the shape is worth stating
@@ -387,10 +398,11 @@ def is_waived(finding, waivers):
     path = finding.get("path")
     if not path:
         return False
-    try:
-        decisions = _load_decisions()
-    except Exception:  # noqa: BLE001 - an unloadable sibling must not start granting waivers
-        return False
+    if decisions is None:
+        try:
+            decisions = _load_decisions()
+        except Exception:  # noqa: BLE001 - an unloadable sibling must not start granting waivers
+            return False
     records = []
     for line in waivers:
         record = decisions.parse_line(line)
@@ -468,7 +480,11 @@ def main(argv=None):
               "  write the id as `floor-waiver:<rule>:<path>` (or `:<dir>/**`), answer `allow`",
               file=sys.stderr)
 
-    live = [f for f in findings if not is_waived(f, waivers)]
+    try:
+        _decisions = _load_decisions()  # once per run, not once per finding (#382)
+    except Exception:  # noqa: BLE001 - an unloadable sibling waives nothing
+        _decisions = None
+    live = [f for f in findings if not is_waived(f, waivers, _decisions)]
     if not live:
         if not args.quiet:
             waived = len(findings)

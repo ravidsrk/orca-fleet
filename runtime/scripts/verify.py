@@ -426,6 +426,11 @@ def check_real_commits(m, is_mutation=False):
         return errs + ["NOTE: not inside a git repo — commit-existence check skipped"]
     for field in ("base_sha", "head_sha"):
         sha = m.get(field)
+        if sha and str(sha).startswith("-"):
+            # read_source guards its ref the same way; an option-shaped SHA must not reach
+            # git as an option on ANY lane, not only the mutation lane's HEX40 gate (#382).
+            errs.append(f"{field} {sha!r} is option-shaped — refusing before git sees it")
+            continue
         if sha and _git(["cat-file", "-e", f"{sha}^{{commit}}"])[0] != 0:
             errs.append(f"{field} '{sha}' is not a real commit")
     return errs
@@ -759,10 +764,11 @@ def _production_changes(base, head):
     if not (base and head and HEX40_RE.match(str(base)) and HEX40_RE.match(str(head))):
         return None, ("base_sha and head_sha must both be pinned 40-hex commits before the class "
                       "claim can be measured against the change")
-    code, out = _git(["diff", "--name-only", f"{base}..{head}"])
+    code, out = _git(["diff", "--name-only", "-z", f"{base}..{head}"])
     if code != 0:
         return None, "cannot diff base_sha..head_sha, so the class claim cannot be measured"
-    changed = [ln.strip() for ln in out.splitlines() if ln.strip()]
+    # -z: a filename containing a newline must not split into phantom paths (#382)
+    changed = [p for p in out.split("\0") if p]
     return [p for p in changed if Path(p).suffix.lower() not in _PROSE_SUFFIXES], None
 
 
@@ -777,11 +783,11 @@ def _changed_paths(base, head, nc_command=None):
     if not (base and head and HEX40_RE.match(str(base)) and HEX40_RE.match(str(head))):
         return None, None, ("the control cannot be bound to the change without pinned 40-hex "
                             "base_sha and head_sha")
-    code, out = _git(["diff", "--name-only", f"{base}..{head}"])
+    code, out = _git(["diff", "--name-only", "-z", f"{base}..{head}"])
     if code != 0:
         return None, None, ("cannot diff base_sha..head_sha to bind the control to the change; "
                             "fail-closed")
-    changed = [ln.strip() for ln in out.splitlines() if ln.strip()]
+    changed = [p for p in out.split("\0") if p]  # -z: newline-safe (#382)
     prod, tests = [], []
     for path in changed:
         verdict = _is_oracle_path(path, nc_command)
@@ -939,7 +945,7 @@ def _is_oracle_path(path, nc_command=None):
 def _bind_paths_to_change(paths, m, what, nc_command=None):
     """Every path the control touches must be a PRODUCTION path this unit actually changed.
     Returns an error string or None."""
-    prod, _tests, err = _changed_paths(m.get("base_sha"), m.get("head_sha"))
+    prod, _tests, err = _changed_paths(m.get("base_sha"), m.get("head_sha"), nc_command)
     if err:
         return err
     scope = getattr(m, "oracle_scope", None)
@@ -1487,8 +1493,14 @@ def check_negative_control(m, is_mutation, execute=False, nc_command=None):
     tool = nc.get("tool")
     if tool not in NC_TOOLS:
         errs.append(f"negative_control.tool must be one of {sorted(NC_TOOLS)}, got {tool!r}")
-    if not re.search(r"(?i)\b(killed|red)\b", nc.get("result") or ""):
+    result_text = nc.get("result") or ""
+    if not re.search(r"(?i)\b(killed|red)\b", result_text):
         errs.append("negative_control.result must record the mutant KILLED / the proof going RED")
+    elif re.search(r"(?i)(?:\bnot\b|\bnever\b|n't\b)[^.;]{0,20}\b(?:killed|red)\b",
+                   result_text):
+        # "the mutant was NOT killed" satisfied the bare keyword scan (#382); the narrated
+        # field gets the same negation guard the artifact-level _NC_ZERO_KILL_RE applies.
+        errs.append("negative_control.result negates the kill ('not killed' is not KILLED)")
     mutant = nc.get("mutant")
     if tool and tool not in ("revert", "hand") and not mutant:
         errs.append("negative_control.mutant (a pinned mutant id) is required for a mutation tool")

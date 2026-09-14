@@ -36,6 +36,7 @@ Exit: the child's exit code · 1 only when there is no child to run (usage / exe
 from __future__ import annotations
 
 import argparse
+import fcntl
 import hashlib
 import json
 import os
@@ -120,23 +121,31 @@ def run_child(argv, artifact_path, cwd):
 
 
 def append_record(manifest_path, record):
-    """Append to `commands[]`, creating the manifest if absent. Never raises."""
+    """Append to `commands[]`, creating the manifest if absent. Never raises.
+
+    The read-modify-write runs under an flock on a sibling lockfile (#382): two parallel
+    wrapped runs used to lose one record silently, and the wrapper's transparency meant no
+    failure was even warned about. The lock covers read-through-write, so the loser waits.
+    """
+    lock_path = manifest_path.with_suffix(manifest_path.suffix + ".lock")
     try:
-        if manifest_path.exists():
-            data = json.loads(manifest_path.read_text(encoding="utf-8"))
-            if not isinstance(data, dict):
-                warn(f"{manifest_path} is not a JSON object — not recording")
+        manifest_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(lock_path, "a", encoding="utf-8") as lock:
+            fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
+            if manifest_path.exists():
+                data = json.loads(manifest_path.read_text(encoding="utf-8"))
+                if not isinstance(data, dict):
+                    warn(f"{manifest_path} is not a JSON object — not recording")
+                    return
+            else:
+                data = {"commands": []}
+            commands = data.setdefault("commands", [])
+            if not isinstance(commands, list):
+                warn(f"{manifest_path} has a non-list 'commands' — not recording")
                 return
-        else:
-            manifest_path.parent.mkdir(parents=True, exist_ok=True)
-            data = {"commands": []}
-        commands = data.setdefault("commands", [])
-        if not isinstance(commands, list):
-            warn(f"{manifest_path} has a non-list 'commands' — not recording")
-            return
-        commands.append(record)
-        data["commands"] = commands
-        manifest_path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+            commands.append(record)
+            data["commands"] = commands
+            manifest_path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
     except (OSError, json.JSONDecodeError, ValueError, TypeError) as err:
         warn(f"could not record into {manifest_path}: {err}")
 

@@ -474,7 +474,7 @@ class RunReportBinding(unittest.TestCase):
             "cmd_sha256": hashlib.sha256(cmd.encode("utf-8")).hexdigest(),
             "exit": 0, "wtree": "0" * 40}]})
         errs = self._check()
-        self.assertTrue(any("is not an object in this repository" in e for e in errs), errs)
+        self.assertTrue(any("does not resolve to a tree object" in e for e in errs), errs)
 
     def test_a_recorded_red_verifier_run_still_counts_as_a_run(self):
         # A RED is a legitimate recorded outcome — the point is that the verifier RAN.

@@ -368,9 +368,9 @@ def verifier_ran(manifest_path, rev, root):
     minutes because writing a command line costs nothing.
 
     So the tier now costs a command EXECUTION: the graded manifest's own `commands[]` ledger must
-    carry a record of the verifier running, with a `wtree` that resolves to the tree of a commit
-    the report pins. `evidence-run.py` writes those records; a hand-written one has to name a tree
-    that really exists in this repository and hash its own command line.
+    carry a record of the verifier running, with a `wtree` that resolves to a real tree object
+    in this repository. `evidence-run.py` writes those records; a hand-written one has to name a
+    tree that really exists here and hash its own command line.
 
     Said plainly, because it bounds what this buys: the ledger is still written on the worker, so
     this raises the floor from "wrote a sentence" to "ran a command and recorded it against real
@@ -395,7 +395,10 @@ def verifier_ran(manifest_path, rev, root):
                 f"verify.py against itself — a tier costs a RUN, not a sentence about one. Wrap the "
                 f"verifier in evidence-run.py so the ledger carries it (#286). Recorded there: {seen}"]
 
-    # Every candidate must bind to content, or the record describes nothing.
+    # Every candidate must bind to content, or the record describes nothing. The bound is
+    # tree-shaped existence in THIS repo: evidence-run records DURING the run, before the
+    # closing commit exists, so equality with the pinned commit's tree would refuse every real
+    # run — but a blob or an unresolvable object binds to nothing (#382).
     problems = []
     for rec in verifier:
         line = rec["cmd"]
@@ -407,8 +410,9 @@ def verifier_ran(manifest_path, rev, root):
         if not (isinstance(wtree, str) and wtree):
             problems.append("it carries no wtree, so it is bound to no content at all")
             continue
-        if not inventory.rev_exists(wtree, root) and tree_of(wtree, root) is None:
-            problems.append(f"its wtree {wtree[:12]}… is not an object in this repository")
+        if tree_of(wtree, root) is None:
+            problems.append(f"its wtree {wtree[:12]}… does not resolve to a tree object in this "
+                            "repository")
             continue
         return []  # one sound record is enough
     return [f"the graded manifest {manifest_path} records a verify.py run that binds to nothing: "
@@ -610,7 +614,11 @@ def run_directory(report, mission, root=None):
         if not candidate.is_dir():
             continue
         stem = candidate.name
-        if stem.startswith(date + "-") and (mission in stem or flat in stem.replace("-", "")):
+        if not stem.startswith(date + "-"):
+            continue
+        # Boundary-anchored: "map-it" is a substring of "map-iteration" (#382).
+        if re.search(rf"(?<![\w-]){re.escape(mission)}(?:-|$)", stem) or \
+                flat in stem.replace("-", ""):
             return f"docs/runs/{stem}"
     return f"docs/runs/{report.stem}"
 

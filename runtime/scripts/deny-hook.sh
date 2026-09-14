@@ -30,7 +30,9 @@
 #      recursive delete carrying --no-preserve-root
 #   2. force-push to the default branch, including the +main refspec form that
 #      needs no flag at all — and deleting it outright, which carries no flag
-#      either: `:main`, `git push -d`, `git push --delete` (#297)
+#      either: `:main`, `git push -d`, `git push --delete` (#297). An effective
+#      --force-with-lease exempts even the default branch (the lease pins the
+#      remote head); the rule above reads unconditional, so say so here (#382).
 #   3. `git push --force` / `-f` on any target without an effective lease — and
 #      an effective explicit global force even with one, since Git documents
 #      that it disables the --force-with-lease checks
