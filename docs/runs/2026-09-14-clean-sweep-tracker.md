@@ -24,7 +24,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 
 | task_id | id | title | CLASS | BUILD_DONE | PR_OPEN | BOT | REVIEWED | MERGED | WT_CLEAN | lighting | park | evidence |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| STAB | — | land 4 PR-review hunks (deny-hook/run_report/verify/HUMAN_ACTIONS) + badge regen | conductor landing, worker-executed | t | n/a | n/a | n/a | f | n/a | lit | — | 1215e09 9651a52 8f7d5ac 917f9fd on HEAD; manifest tracked; 430 criterion tests OK (coordinator re-run); NC re-executed exit 1 / 11 failures; rides PR #387 (review pends there) |
+| STAB | — | land 4 PR-review hunks (deny-hook/run_report/verify/HUMAN_ACTIONS) + badge regen | conductor landing, worker-executed | t | n/a | n/a | n/a | t | n/a | lit | — | 1215e09 9651a52 8f7d5ac 917f9fd; pushed origin/BASE fast-forward (egress receipt); 1285 OK + full battery green; NC re-executed 11 failures; rides PR #387 |
 | T1 | #388 | evidence-run lockfile dirties worktree (filed 15:50Z) | needs-triage | f | f | f | f | f | f | lit | — | — |
 | T2 | #389 | run_report WIP validation accepts incomplete reports (filed 15:50Z) | needs-triage | f | f | f | f | f | f | lit | — | — |
 | T3 | #364 | per-skill behavioral evals ship zero fixtures (S1) | needs-triage | f | f | f | f | f | f | lit | — | — |
