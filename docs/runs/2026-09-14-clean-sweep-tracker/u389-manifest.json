@@ -3,9 +3,9 @@
   "unit": "U389",
   "unit_class": "code-change",
   "base_sha": "e04b0c20137d0d0a9a0886d6f9748e72252384a7",
-  "head_sha": "e068ddfd8db59e687d2d9716e0bc4389b2fb5c4d",
-  "head_tree": "469d884213060e67e8983c91fce3bdb60d35cd99",
-  "head_sha_role": "Verdict-r2 fix round (review 5202754078, NO-GO on RQ1: the integer rule was witnessed for builders only). head_sha is the last content commit: 0a153d6 (reviewers=2.5 subtest, wave=1.5 row test, waves=two test — tests only, the checker unchanged), 6182dfb (docs/runs/TEMPLATE.md and docs/runs/README.md prose), e068ddf (tests badge, gen-badges.py output). Every commands[] record from this round was made by evidence-run.py on a clean tree at e068ddf (wtree 469d8842 == head_sha^{tree}). The commit that adds this manifest follows head_sha, changes only this file, and cannot name its own SHA; the binding is the one the coordinator confirmed in verdict r1 (orca ask, option A-last-content-commit), and the conductor re-binds head_sha to the reviewed tip at close per the tracker's evidence-closure routine.",
+  "head_sha": "51019fb4539a37256964e6fc19a86a53c6695d34",
+  "head_tree": "104db1c5dbb23bb740ac0c7ec10904637c8d7356",
+  "head_sha_role": "CONDUCTOR CLOSE 2026-09-14T21:50Z (post-merge 1bdb20c): re-bound head_sha/head_tree to the reviewed+merged tip 51019fb = 1bdb20c^2 (PR #391, incl. the conductor pre-R3 union with the merged U388); the 51019fb-vs-e068ddf delta is BASE-files + badge regen only. Builder records stay as true runs at older trees; three coordinator records re-ran the gates at 51019fb. Original note follows. Verdict-r2 fix round (review 5202754078, NO-GO on RQ1: the integer rule was witnessed for builders only). head_sha was the last content commit: 0a153d6 (reviewers=2.5 subtest, wave=1.5 row test, waves=two test — tests only, the checker unchanged), 6182dfb (docs/runs/TEMPLATE.md and docs/runs/README.md prose), e068ddf (tests badge, gen-badges.py output). Every commands[] record from this round was made by evidence-run.py on a clean tree at e068ddf (wtree 469d8842 == the code tip's tree). The commit that adds this manifest follows head_sha, changes only this file, and cannot name its own SHA; the binding is the one the coordinator confirmed in verdict r1 (orca ask, option A-last-content-commit), and the conductor re-binds head_sha to the reviewed tip at close per the tracker's evidence-closure routine.",
   "base_branch": "review/2026-09-14-holistic-fixes",
   "branch": "u389-wip-schema",
   "contract": {
@@ -269,9 +269,45 @@
       "wtree": "469d884213060e67e8983c91fce3bdb60d35cd99",
       "artifact": null,
       "artifact_note": "session-scratchpad transcript, not committed (no artifact path in the dispatch scope). Summary inlined: full suite 'Ran 1304 tests' / 'OK'"
+    },
+    {
+      "label": "coordinator full-suite re-run at head",
+      "ts": "2026-09-14T21:43:31Z",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "exit": 0,
+      "duration_s": 236.319,
+      "commit": "51019fb4539a37256964e6fc19a86a53c6695d34",
+      "wtree": "104db1c5dbb23bb740ac0c7ec10904637c8d7356",
+      "artifact": null,
+      "artifact_note": "coordinator clean-env re-run (git worktree detached at head_sha 51019fb, tree clean at start): 'Ran 1309 tests in 236.319s' / 'OK', exit 0. Log kept in coordinator session scratch (not committed); ts = log-mtime end minus reported duration."
+    },
+    {
+      "label": "coordinator nc-command at head",
+      "ts": "2026-09-14T21:47:33Z",
+      "cmd": "python3 -m unittest tests.test_run_report",
+      "cmd_sha256": "b4603da428a8b70130fdb60edeb399d52a044ad679ee7f857305707f53e97f6a",
+      "exit": 0,
+      "duration_s": 5.776,
+      "commit": "51019fb4539a37256964e6fc19a86a53c6695d34",
+      "wtree": "104db1c5dbb23bb740ac0c7ec10904637c8d7356",
+      "artifact": null,
+      "artifact_note": "coordinator clean worktree at head_sha 51019fb: 'Ran 65 tests in 5.776s' / 'OK', exit 0. This is the coordinator-named proof command (--nc-command), green on the head content."
+    },
+    {
+      "label": "coordinator validate at head",
+      "ts": "2026-09-14T21:47:39Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 0,
+      "duration_s": 0.527,
+      "commit": "51019fb4539a37256964e6fc19a86a53c6695d34",
+      "wtree": "104db1c5dbb23bb740ac0c7ec10904637c8d7356",
+      "artifact": null,
+      "artifact_note": "coordinator clean worktree at head_sha 51019fb: 'All 21 missions valid; three-layer separation holds; evals valid.', exit 0. Duration measured; ts approximate within the minute."
     }
   ],
-  "commands_binding_note": "Every commands[].artifact is null (PR #391 review F2: absolute scratchpad paths are refused and unpinned); each record's artifact_note inlines the transcript summary. The first four records are round 1 at 0038a43, the next five the bot-findings round at 2d1e206 and the next five verdict r1 at ad1471b (all historical, stale for this head). The last five were written by runtime/scripts/evidence-run.py (no --artifact) on a clean tree at head_sha e068ddf with this manifest held in the session scratchpad, so each wtree equals head_sha^{tree}.",
+  "commands_binding_note": "Every commands[].artifact is null (PR #391 review F2: absolute scratchpad paths are refused and unpinned); each record's artifact_note inlines the transcript summary. The first four records are round 1 at 0038a43, the next five the bot-findings round at 2d1e206 and the next five verdict r1 at ad1471b (all historical, stale for this head). The last five were written by runtime/scripts/evidence-run.py (no --artifact) on a clean tree at head_sha e068ddf with this manifest held in the session scratchpad, so each wtree equaled head_sha^{tree} at write time. CONDUCTOR CLOSE: head re-bound to the reviewed+merged tip 51019fb (PR #391, merge 1bdb20c); the three coordinator records below re-ran the gates at its tree 104db1c5.",
   "red_first": {
     "note": "Each criterion test was run RED against the pre-fix checker before its slice of production code was written (vertical slices, tdd pack).",
     "slices": [
@@ -615,7 +651,12 @@
   },
   "lighting": "lit",
   "reviewer_mode": "same-vendor-fresh",
-  "pr": {},
+  "pr": {
+    "number": 391,
+    "url": "https://github.com/ravidsrk/orca-fleet/pull/391",
+    "reviewed_sha": "51019fb4539a37256964e6fc19a86a53c6695d34",
+    "reviewed_wtree": "104db1c5dbb23bb740ac0c7ec10904637c8d7356"
+  },
   "toolchain": "python 3.13 (stdlib unittest), ruff 0.16.7, gitleaks 8.30.1, macOS (Darwin 25.6.0)",
   "badge_commit": "e068ddfd8db59e687d2d9716e0bc4389b2fb5c4d",
   "deviations": [
@@ -730,7 +771,7 @@
       "subject": "chore(badges): regenerate the tests badge after the PR #391 verdict-r2 tests (1304 in source)"
     },
     {
-      "sha": "pending",
+      "sha": "ecb23802ff3551e0388626bff8e0c258b7015120",
       "subject": "chore(run): U389 verdict-r2 evidence manifest"
     }
   ],
@@ -850,6 +891,13 @@
           "witness": "docs/runs/README.md WIP-curve paragraph (prose)"
         }
       ]
+    },
+    {
+      "round": "verdict-r3 (conductor-recorded)",
+      "reviewer": "clean-sweep verdict worker (review 5203193997)",
+      "reviewed_sha": "51019fb4539a37256964e6fc19a86a53c6695d34",
+      "verdict": "GO: R2 batch landed on the mergeable tip incl. the U388 union; SPEC/TEST/STANDARDS 0 Required",
+      "findings": []
     }
   ]
 }

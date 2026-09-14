@@ -26,7 +26,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | STAB | — | land 4 PR-review hunks (deny-hook/run_report/verify/HUMAN_ACTIONS) + badge regen | conductor landing, worker-executed | t | n/a | n/a | n/a | t | n/a | lit | — | 1215e09 9651a52 8f7d5ac 917f9fd; pushed origin/BASE fast-forward (egress receipt); 1285 OK + full battery green; NC re-executed 11 failures; rides PR #387 |
 | T1 | #388 | evidence-run lockfile dirties worktree | real-bug | t | t | t | t | t | t | lit | proof-park: needs post-merge independent APPROVE (2nd login) for verify review leg | PR #392 MERGED 8c36b4a @c680ee0 (reviewed==head; R2 GO 5202783703); verify 5/6 (review leg RED: no independent APPROVED — Greptile never re-reviewed; recoverable post-merge); #388 closed w/ evidence + gap note |
-| T2 | #389 | run_report WIP validation accepts incomplete reports | real-bug | t | t | t | f | f | f | lit | — | PR #391 @51019fb (RQ1 batch fixed ecb2380, 1304 OK, Greptile 0 new; conductor union 51019fb badges 1309); R3 re-verify underway |
+| T2 | #389 | run_report WIP validation accepts incomplete reports | real-bug | t | t | t | t | t | t | lit | proof-park: needs post-merge independent APPROVE (2nd login) for verify review leg | PR #391 MERGED 1bdb20c @51019fb (reviewed==head; R3 GO 5203193997); verify 5/6 (review leg RED: no independent APPROVED — Greptile checks pass, no review object; recoverable post-merge); #389 closed w/ evidence + gap note |
 | T3 | #364 | fixture-backed evals + workspace-state oracle (S1) | real-feature-small | t | t | t | f | f | f | lit | — | U364 BUILDING (spec 506a059, digest 35ce199c, fork 506a059, task_c59e89f22f3f live) |
 | T4 | #385 | historical-docs polish, agent slice (status.json + parity test) | real-bug (docs) | t | t | t | t | t | t | lit | — | PR #390 MERGED 32da76e @d6fc2cc (reviewed==head; greptile APPROVED + 3 blind GO); verify.py OK all legs (scope/commands/freshness/NC-exec/review/change-on-base); conductor manifest corrections (head/source) disclosed in-file; worktree retired; #385 closed w/ evidence |
 | T5 | #386 | sign manifest+inventory, retention backend (S2) | — | — | — | — | — | — | — | — | needs-human: key custody + backend undecided (Q2) | Q2: park |
@@ -362,3 +362,14 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   (batch landed, 1 Optional 2nd parser, 3 Nit). FYI: base moved (ledger-only).
 - V389r3 dispatched (task_8ca75cf8e5e5/ctx_ec78474a584f): verdict over clean R3
   axes. Turn live. 2 workers out (V389r3 + U364).
+- V389r3 done: GO @51019fb (review 5203193997, wtree 104db1c5 matches; 65 OK +
+  1309 OK re-verified). Released.
+- U389 MERGED (PR #391 → 1bdb20c 2026-09-14T21:43:03Z, match-head 51019fb; ancestry
+  + state verified; branch deleted+pruned). Evidence close: verify.py 5/6 green
+  (scope/commands/freshness/NC-exec/change-on-base; coordinator re-runs at
+  51019fb: 1309 OK, nc 65 OK, validate green) + review leg RED (no independent
+  APPROVED: Greptile checks pass with 0 comments but posts no review object).
+  Manifest corrections disclosed in-file (head/tree re-bind, pending filled,
+  coordinator records, verdict-r3 round appended; contract was already
+  spec-form). Proof parked needs-human (same recoverable shape as U388); finding
+  closed. Worktree retired (orca dir already gone — same external cleanup).
