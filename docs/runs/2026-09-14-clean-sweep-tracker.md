@@ -13,8 +13,12 @@ OPEN below; its 5 closes stay closed and are outside this run's denominator.
 
 Substrate notes: orca 1.4.201 on PATH vs runtime/pins.json live PIN 1.4.200 — drift NOTE, not
 refusal (spawn_worker.sh records it per spawn; re-witness is pin-it's loop). Managed accounts:
-1 claude + 1 codex (active) — cross-vendor review available. Host permission mode: recorded at
-first spawn from launch.effective.
+1 claude + 1 codex. CODEX DEAD until 2026-09-19 (usage limit; pane-verified 15:47Z) — cross-vendor
+review via codex impossible this run. First spawn (codex, worker-start): exit 5 LAUNCHED_UNUSABLE —
+1.4.201 launch.effective carries no args field at all ({agent,effort:null,model:null}), so no
+PROFILE flag is provable on the supervised lane; worker-start unusable until pin-it re-witnesses.
+Lane decision: ALL workers via WORKER_CMD custom-argv (explicit flags, coordinator-owned
+semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits args).
 
 ## Units (loop 1 — FREEZE pending STABILIZE + A1/A2 filing + twin enumeration)
 
@@ -46,3 +50,9 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
 ## Loop log
 
 (append per unit: dispatch → build → PR → review → merge → close → re-enumerate)
+
+- 15:47 STABILIZE spawn 1: task_a6c1dfe46f13 → codex supervised (selector current) → exit 5
+  LAUNCHED_UNUSABLE (launch.effective has no args on 1.4.201) + pane shows codex usage limit to
+  2026-09-19. REFLECTION: what failed? unprovable profile flags + dead provider. Fix? stop per
+  contract, respawn claude via WORKER_CMD custom-argv (explicit flags, no host dependence).
+  Repeating? No — new lane, new agent. → worker-stop ctx_39334916997c.
