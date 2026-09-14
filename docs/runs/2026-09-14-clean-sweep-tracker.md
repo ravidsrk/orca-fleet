@@ -26,7 +26,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | STAB | — | land 4 PR-review hunks (deny-hook/run_report/verify/HUMAN_ACTIONS) + badge regen | conductor landing, worker-executed | t | n/a | n/a | n/a | t | n/a | lit | — | 1215e09 9651a52 8f7d5ac 917f9fd; pushed origin/BASE fast-forward (egress receipt); 1285 OK + full battery green; NC re-executed 11 failures; rides PR #387 |
 | T1 | #388 | evidence-run lockfile dirties worktree | real-bug | t | t | t | f | f | f | lit | — | PR #392 @0775547; R1 NO-GO (review 5202287611, both Req reproduced by verdict worker); F388r2 fixing (serialize-first + 2 tests + N1) |
-| T2 | #389 | run_report WIP validation accepts incomplete reports | real-bug | t | t | t | f | f | f | lit | — | PR #391 @30a6037 (F1-F3 fixed: template 62ee4cd, dup-keys fcc9079, artifacts nulled 30a6037; 1296 OK; NCs RED; Greptile 0 new, no APPROVE yet); in-thread fix replies posted; review next |
+| T2 | #389 | run_report WIP validation accepts incomplete reports | real-bug | t | t | t | f | f | f | lit | — | PR #391 @30a6037; R1 NO-GO (review 5202412008, both mutants re-checked by verdict worker); F389r3 fixing (doubled-wave + measured-rule tests, msg asserts, builders=int, waves= dup, docstring) |
 | T3 | #364 | fixture-backed evals + workspace-state oracle (S1) | real-feature-small | f | f | f | f | f | f | lit | — | Q1: fixtures+oracle (wave 2; brief TBD) |
 | T4 | #385 | historical-docs polish, agent slice (status.json + parity test) | real-bug (docs) | t | t | t | t | t | t | lit | — | PR #390 MERGED 32da76e @d6fc2cc (reviewed==head; greptile APPROVED + 3 blind GO); verify.py OK all legs (scope/commands/freshness/NC-exec/review/change-on-base); conductor manifest corrections (head/source) disclosed in-file; worktree retired; #385 closed w/ evidence |
 | T5 | #386 | sign manifest+inventory, retention backend (S2) | — | — | — | — | — | — | — | — | needs-human: key custody + backend undecided (Q2) | Q2: park |
@@ -252,3 +252,16 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   (3 Requireds: doubled-wave x2 axes + placeholder-values; reconciled bot threads
   noted, no APPROVE from Greptile yet) with COMMENTED-for-both-outcomes post rule.
   Turn live.
+- F388r2 live ask msg_e020b050c175 (head circularity — worker proposed A: head =
+  code tip c7a76d9, pushed manifest tip named separately, conductor re-binds at
+  close): worker right (== U385 evidence-closure routine) → replied A immediately
+  (mechanical). No stall (worker proceeded unless-overridden).
+- V389r1 done (ctx_b055f497860c): NO-GO @30a6037 (wtree b288c4ab matches). Both
+  Required mutants re-checked by the verdict worker. Batched: R1 doubled-wave
+  isolated + wave=one + waves=0, R2 placeholder-row, adjacent a/b/c/d (msg asserts,
+  builders=int, waves= dup refused, docstring); exclusions recorded (accepted
+  design, pre-existing -> file, nits/optionals, conductor head). Posted COMMENTED
+  5202412008 (verified). Released.
+- F389r3 dispatched (task_3fe775bc2a6c/ctx_38cb2e0beeaa): the verdict batch,
+  red-first, gates, manifest refresh (head := pushed tip INCL manifest), push to
+  #391. Turn live.
