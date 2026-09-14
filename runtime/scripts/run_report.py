@@ -19,6 +19,9 @@ What a tier advance has to survive here instead:
   ``verify.py`` invocation it came from (a RED is a legitimate recorded outcome:
   a solo run cannot manufacture an independent approver, and saying so is the
   point of the field);
+* ``waves=`` (a mutating mission's report) written once, recording the number of
+  dispatch waves the run ran; its WIP-curve table carries one complete row per
+  wave 1..n (attention-budget.md's WIP-curve protocol, #365/#389);
 * the run-close integrity inventory re-deriving **at that commit**: at least one
   path verified and zero mismatched.
 
@@ -459,9 +462,39 @@ def _read_worktree(root):
 
 # attention-budget.md's WIP-curve protocol, machine-checked (#365): every mutating run records one
 # row per dispatch wave, or the ≥3-run graduation evidence base can silently never accumulate — "a
-# cap recorded nowhere was never a cap". The row is a table row carrying the WIP setting as
-# builders=<n>/reviewers=<n>.
-_WIP_CURVE_ROW_RE = re.compile(r"^\s*\|.*\bbuilders=\d+.*\breviewers=\d+", re.M)
+# cap recorded nowhere was never a cap". The row schema is the one the protocol's table names
+# (#389 — "any row carrying builders=/reviewers=" bound a settings-only row): a table row whose
+# cells carry wave=<k>, the WIP setting as builders=<n> reviewers=<n>, and a measured value for
+# every metric. A row is a WIP-curve row when it names a wave; the settings alone are not a point.
+WIP_ROW_KEYS = ("wave", "builders", "reviewers", "throughput", "latency_median", "latency_max",
+                "rework", "freshness")
+_WIP_CELL_RE = re.compile(r"(?<![\w=])([a-z_]+)=([^\s|`]*)")
+_COUNT_RE = re.compile(r"\d+")
+_MEASURED_RE = re.compile(r"\d\S*")  # a number, units free after it: 1.5/h, 12m, 1/4
+_WIP_COUNTS = {"wave": "<k>", "builders": "<n>", "reviewers": "<n>"}  # integers; metrics are <v>
+_WIP_ROW_SCHEMA = " ".join(f"{k}={_WIP_COUNTS.get(k, '<v>')}" for k in WIP_ROW_KEYS)
+
+
+def _wip_rows(text):
+    """(row, {key: value}, doubled keys) for every table row that names a wave — the report's
+    WIP-curve rows. A key written twice is reported, never collapsed: dict() keeps the last value,
+    so `throughput=TBD throughput=1` would bind on the 1 (PR #391 review)."""
+    rows = []
+    for line in text.splitlines():
+        if line.lstrip().startswith("|"):
+            pairs = _WIP_CELL_RE.findall(line)
+            keys = [k for k, _v in pairs]
+            if "wave" in keys:
+                doubled = sorted({k for k in keys if keys.count(k) > 1})
+                rows.append((line.strip(), dict(pairs), doubled))
+    return rows
+
+
+def _wip_cell_ok(key, value):
+    if value is None:
+        return False
+    pattern = _COUNT_RE if key in _WIP_COUNTS else _MEASURED_RE
+    return bool(pattern.fullmatch(value))
 
 
 def _wip_curve_errors(text, mission, root, report_path, rev=None):
@@ -470,11 +503,51 @@ def _wip_curve_errors(text, mission, root, report_path, rev=None):
         return []  # the protocol exists at neither the pinned rev nor the worktree — unscoped
     if mission not in missions:
         return []  # report-only and planning runs carry no dispatch waves
-    if not _WIP_CURVE_ROW_RE.search(text):
+    rows = _wip_rows(text)
+    if not rows:
         return [f"{report_path}: a mutating run records one WIP-curve row per dispatch wave, as a "
-                "table row carrying builders=<n>/reviewers=<n> (attention-budget.md) — none found; "
+                f"table row carrying {_WIP_ROW_SCHEMA} (attention-budget.md) — none found; "
                 "a cap recorded nowhere was never a cap (#365)"]
-    return []
+    errors = []
+    for row, cells, doubled_keys in rows:
+        if doubled_keys:
+            errors.append(f"{report_path}: WIP-curve row {row!r} carries {doubled_keys} more than "
+                          "once — one value per cell, or the row contradicts itself (#389)")
+            continue
+        missing = [k for k in WIP_ROW_KEYS if not _wip_cell_ok(k, cells.get(k))]
+        if missing:
+            errors.append(f"{report_path}: WIP-curve row {row!r} carries no measured {missing} — "
+                          f"the protocol's row is {_WIP_ROW_SCHEMA} (attention-budget.md, #389)")
+    # The recorded waves are 1..n of the RUN: header's waves=<n> — the report's own count of the
+    # dispatch waves it ran. Without it one row can stand in for a whole multi-wave run (#389).
+    # Read every waves=, never a dict: `waves=3 waves=1` would bind on the 1 (the F3 collapse).
+    header = RUN_HEADER_RE.search(text)
+    counts = [v for k, v in FIELD_RE.findall(header.group(1)) if k == "waves"] if header else []
+    if len(counts) > 1:
+        errors.append(f"{report_path}: RUN: header carries waves= more than once ({counts}) — one "
+                      "count of the dispatch waves, or the header contradicts itself (#389)")
+        return errors
+    declared = counts[0] if counts else None
+    if declared is None or not _COUNT_RE.fullmatch(declared) or int(declared) < 1:
+        errors.append(f"{report_path}: RUN: waves={declared or '<missing>'} — a mutating run records "
+                      "the number of dispatch waves it ran as waves=<n> (n ≥ 1); its WIP-curve rows "
+                      "are checked against waves 1..n (attention-budget.md, #389)")
+        return errors
+    recorded = range(1, int(declared) + 1)
+    named = [int(c["wave"]) for _row, c, _doubled in rows if _COUNT_RE.fullmatch(c["wave"])]
+    absent = [k for k in recorded if k not in named]
+    doubled = sorted({k for k in named if named.count(k) > 1})
+    stray = sorted({k for k in named if k not in recorded})
+    if absent:
+        errors.append(f"{report_path}: RUN: waves={declared} but no WIP-curve row for wave(s) "
+                      f"{absent} — one complete row per recorded wave (attention-budget.md, #389)")
+    if doubled:
+        errors.append(f"{report_path}: wave(s) {doubled} carry more than one WIP-curve row — "
+                      "one row per wave, or the curve double-counts it (#389)")
+    if stray:
+        errors.append(f"{report_path}: WIP-curve row(s) for wave(s) {stray} outside the recorded "
+                      f"waves 1..{declared} (RUN: waves={declared}) (#389)")
+    return errors
 
 
 def check_report(report_path, mission, tier, root=None):
