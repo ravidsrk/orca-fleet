@@ -32,13 +32,13 @@ placeholders):
 contract.source = docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/build-364ff.md
 at the dispatch commit named in your binding.
 contract.digest = sha256:__DIGEST_364FF__ (of THIS task spec file).
-criterion_ids = [C-FF1, C-FF2, C-FF3].
-C-FF1: prove-it's two bans are scoped to the case tree; a committed libcst-venv row
+criterion_ids = [C-1, C-2, C-3].
+C-1: prove-it's two bans are scoped to the case tree; a committed libcst-venv row
 (a .venv holding mutmut/libcst beside the fix) PASSES; committed excerpts assert the
 bans still hit real tautologies.
-C-FF2: oncall-it's two **/*.py bans are scoped the same way, with a committed venv
+C-2: oncall-it's two **/*.py bans are scoped the same way, with a committed venv
 row passing beside the fix.
-C-FF3: the full suite stays green (1339 in source, plus only YOUR new tests); the
+C-3: the full suite stays green (1339 in source, plus only YOUR new tests); the
 routing gate still passes; the V2 violating-workspace rows for prove-it/oncall-it
 still fail (if scoping legitimately changes a V2 row's verdict, update the row and
 disclose why — never silently).
@@ -70,7 +70,7 @@ STEPS:
    (pre-manifest — a commit cannot name its own SHA; the manifest commit follows
    with a manifest-only delta and you name the pushed tip separately in
    worker_done; the conductor re-binds head_sha to the reviewed tip at close),
-   contract above, C-FF1..C-FF3 with witnesses, commands, negative_control (revert,
+   contract above, C-1..C-3 with witnesses, commands, negative_control (revert,
    the two case files, NC-COMMAND verbatim, RED), intent non-empty, lighting lit,
    reviewer_mode same-vendor-fresh. Leave pr EMPTY. Commit the verbatim NC
    transcript as docs/runs/2026-09-14-clean-sweep-tracker/u364ff-negctrl.txt beside
