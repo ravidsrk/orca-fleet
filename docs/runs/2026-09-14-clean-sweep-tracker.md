@@ -472,3 +472,6 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   all 5 threads replied. 1 survivor (deflake root *.py) out-of-batch, in
   noticed. Task completed, worker released.
 - R364r3 axes dispatched @8323c98 (final round — NO-GO here parks the unit).
+  spec task_0e51f4445183→ctx_0c6c8b735add (term_173b3bec),
+  standards task_6b950febad5d→ctx_72d38575617c (term_648d4920),
+  test task_8d82e55c08d3→ctx_61a2680506d9 (term_2ce1e414). 3 workers out.
