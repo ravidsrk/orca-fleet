@@ -180,7 +180,7 @@ change in what a coordinator reads at activation, not a relabelling. Where they 
 |---|---|---|
 | `clean-sweep` | ~33,800 | ~200 |
 | `oncall-it` | ~33,600 | ~400 |
-| `oss-contribute` | ~33,100 | ~900 |
+| `oss-contribute` | ~33,200 | ~800 |
 
 The cap is **34,000**. The lightest mission, `root-cause`, is ~18,000, so the whole catalog sits in a ~15,800-token band.
 <!-- END GENERATED: activation-load -->
