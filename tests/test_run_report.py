@@ -428,6 +428,17 @@ class WipCurveObligation(unittest.TestCase):
                           f"{self.ROW_1}\n{self.ROW_2}\n")
                 self.assertEqual(run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md"), [])
 
+    def test_a_backtick_run_with_a_backtick_after_it_opens_no_fence(self):
+        # PR #401 review (P2): CommonMark opens no backtick fence whose info string holds a
+        # backtick, so '```text`example``' is prose with inline code, not a fence swallowing the
+        # rows after it. A tilde fence's info string may hold one, and that fence still opens.
+        rows = f"{self.ROW_1}\n{self.ROW_2}\n"
+        report = f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n```text`example``\n\n{rows}"
+        self.assertEqual(run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md"), [])
+        tilde = f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n~~~text`example``\n{rows}~~~\n"
+        errs = run_report._wip_curve_errors(tilde, "ship-it", ROOT, "r.md")
+        self.assertTrue(any("— none found;" in e for e in errs), errs)
+
     def test_the_protocol_names_the_schema_the_checker_enforces(self):
         # The text and the check drifted once (#389: the prose owed five metrics, the check read
         # two settings). The protocol section must name every row key the checker enforces — and

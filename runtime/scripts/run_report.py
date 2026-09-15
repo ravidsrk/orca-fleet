@@ -483,7 +483,9 @@ _WIP_ROW_SCHEMA = " ".join(f"{k}={_WIP_COUNTS.get(k, '<v>')}" for k in WIP_ROW_K
 WIP_SECTION = "## WIP-curve protocol row"
 _WIP_SECTION_RE = re.compile(r" {0,3}#{1,6}[ \t]+WIP-curve[ \t]+protocol[ \t]+row\b")
 _HEADING_RE = re.compile(r" {0,3}#{1,6}(?:[ \t]|$)")
-_FENCE_RE = re.compile(r" {0,3}(`{3,}|~{3,})")
+# A backtick fence's info string holds no backtick (CommonMark): '```text`example``' is prose with
+# inline code, and read as a fence it swallowed the rows after it (PR #401 review).
+_FENCE_RE = re.compile(r" {0,3}(`{3,}(?=[^`]*$)|~{3,})")
 
 
 def _wip_section_lines(text):
