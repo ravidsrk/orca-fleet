@@ -654,3 +654,5 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   protocol-schema fixture extended (heading-less → heading from prose) — TEST
   axis must validate the new checker against REAL reports in docs/runs/ for
   false-fails. Integrator spec taskspecs/integrate-387w.md frozen.
+- I387W dispatched: integrate-387w spec (union + gates + PR + bot reconcile).
+  task_418c6155f58e → ctx_0d68e48b0558 (claude, unit worktree).
