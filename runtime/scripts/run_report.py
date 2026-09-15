@@ -20,8 +20,8 @@ What a tier advance has to survive here instead:
   a solo run cannot manufacture an independent approver, and saying so is the
   point of the field);
 * ``waves=`` (a mutating mission's report) written once, recording the number of
-  dispatch waves the run ran; its WIP-curve table carries one complete row per
-  wave 1..n (attention-budget.md's WIP-curve protocol, #365/#389);
+  dispatch waves the run ran; its WIP-curve section's table carries one complete row
+  per wave 1..n (attention-budget.md's WIP-curve protocol, #365/#389/#387);
 * the run-close integrity inventory re-deriving **at that commit**: at least one
   path verified and zero mismatched.
 
@@ -473,14 +473,44 @@ _COUNT_RE = re.compile(r"\d+")
 _MEASURED_RE = re.compile(r"\d\S*")  # a number, units free after it: 1.5/h, 12m, 1/4
 _WIP_COUNTS = {"wave": "<k>", "builders": "<n>", "reviewers": "<n>"}  # integers; metrics are <v>
 _WIP_ROW_SCHEMA = " ".join(f"{k}={_WIP_COUNTS.get(k, '<v>')}" for k in WIP_ROW_KEYS)
+# Where the rows live (#387): the report's WIP-curve section — docs/runs/TEMPLATE.md's
+# `## WIP-curve protocol row` heading — outside fenced code. Every pipe-prefixed line used to be
+# read, so a complete row quoted in a fenced example or a deviations table bound as the run's
+# evidence, or tripped the duplicate/stray-wave checks against the real rows. An ATX heading
+# whose text begins by naming the WIP curve opens the section; the next heading of any kind ends it.
+WIP_SECTION = "## WIP-curve protocol row"
+_WIP_SECTION_RE = re.compile(r" {0,3}#{1,6}[ \t]+WIP(?:-|[ \t]+)curve\b", re.I)
+_HEADING_RE = re.compile(r" {0,3}#{1,6}(?:[ \t]|$)")
+_FENCE_RE = re.compile(r" {0,3}(`{3,}|~{3,})")
+
+
+def _wip_section_lines(text):
+    """The lines inside the report's WIP-curve section(s), fenced code excluded. A heading quoted
+    inside a fence is code too, so it neither opens nor closes the section."""
+    inside, fence = False, None
+    for line in text.splitlines():
+        opener = _FENCE_RE.match(line)
+        if fence:
+            # CommonMark: the closing fence is the same character, at least as long, bare.
+            if (opener and opener.group(1)[0] == fence[0] and len(opener.group(1)) >= len(fence)
+                    and not line[opener.end():].strip()):
+                fence = None
+            continue
+        if opener:
+            fence = opener.group(1)
+        elif _HEADING_RE.match(line):
+            inside = bool(_WIP_SECTION_RE.match(line))
+        elif inside:
+            yield line
 
 
 def _wip_rows(text):
-    """(row, {key: value}, doubled keys) for every table row that names a wave — the report's
-    WIP-curve rows. A key written twice is reported, never collapsed: dict() keeps the last value,
-    so `throughput=TBD throughput=1` would bind on the 1 (PR #391 review)."""
+    """(row, {key: value}, doubled keys) for every table row in the report's WIP-curve section
+    that names a wave — its WIP-curve rows (#387). A key written twice is reported, never
+    collapsed: dict() keeps the last value, so `throughput=TBD throughput=1` would bind on the 1
+    (PR #391 review)."""
     rows = []
-    for line in text.splitlines():
+    for line in _wip_section_lines(text):
         if line.lstrip().startswith("|"):
             pairs = _WIP_CELL_RE.findall(line)
             keys = [k for k, _v in pairs]
@@ -506,8 +536,9 @@ def _wip_curve_errors(text, mission, root, report_path, rev=None):
     rows = _wip_rows(text)
     if not rows:
         return [f"{report_path}: a mutating run records one WIP-curve row per dispatch wave, as a "
-                f"table row carrying {_WIP_ROW_SCHEMA} (attention-budget.md) — none found; "
-                "a cap recorded nowhere was never a cap (#365)"]
+                f"table row carrying {_WIP_ROW_SCHEMA} under the report's `{WIP_SECTION}` heading, "
+                "outside fenced code (docs/runs/TEMPLATE.md, attention-budget.md) — none found; "
+                "a cap recorded nowhere was never a cap (#365, #387)"]
     errors = []
     for row, cells, doubled_keys in rows:
         if doubled_keys:
