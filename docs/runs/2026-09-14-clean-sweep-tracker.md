@@ -35,7 +35,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | T7 | #393 | mixed-version rollout lock (opportunistic sidecar + test) | real-bug | t | t | t | t | t | t | lit | needs-human: post-merge independent APPROVE (2nd login) for verify review leg (see gate-batch.md G3) | V393-r1 GO 5206137160 @7630815 (F1+P1 close-owed, P2 FIFO accepted low-sev Optional → backlog); MERGED 6d9e46a; verify 5/6 (review RED, parked — see gate-batch.md G3); #393 CLOSED with evidence |
 | T8 | #387-threads | ledger/process remediation (parks, u385 tree, templates, close doc) | process | t | t | t | t | t | t | lit | — | V387P-r3 GO 5207105770 @19be7a1 (0 Required all axes + Greptile APPROVED); 2 thread replies posted pre-merge (4013297581/4013297827); MERGED b9b71df6 (--match-head-commit + --delete-branch, branch 404); verify 6/6 GREEN (review leg via Greptile APPROVED); manifest closed (head re-bind 4142b63→19be7a1, 3 coordinator re-runs: probe/validate/1360); worktree retired |
 | T9 | #387-threads | eval-glob holes (T6 regression: app//lib/ miss; empty-glob survey) | real-bug (evals) | t | t | t | t | t | t | lit | needs-human: post-merge independent APPROVE (2nd login) for verify review leg (see gate-batch.md G3) | V387G-r2 GO 5206446623 @318542b (delta: T9 byte-identical, badge 1360 recomputed, 1360 OK); MERGED a769a64e (--match-head-commit + --delete-branch, branch 404); verify 5/6 (review RED, parked); manifest closed (head re-bind 0a3f4ab→318542b, 3 coordinator re-runs: 109/validate/1360); worktree retired |
-| T10 | #387-threads | WIP-curve rows: scope to canonical section (U389 residual) | real-bug | t | t | t | f | f | f | lit | — | PR #401 (u387w-wipsection) @f8a0d87 (r3 batch landed: content-column fix, D6/D7/C8/C10/D15 + M13 kills, test-cited nnt); Greptile NEW P1 4013782318 (list-state, untriaged-VALID?); 3 r4 axes live; 4 thread replies OWED conductor-side pre-merge |
+| T10 | #387-threads | WIP-curve rows: scope to canonical section (U389 residual) | real-bug | t | t | t | f | f | f | lit | — | PR #401 (u387w-wipsection) @f8a0d87: V387W-r4 NO-GO (S-1 stale body, S-2 indented-code fail-open, R-1 :551 unwitnessed; P1 FP all-axes); S-1 done coordinator-side (body refreshed, bot block kept); r5 fix live (S-2+R-1+S4-1/MX11/MX15/S-4); 4 thread replies OWED conductor-side pre-merge |
 
 PHASE: ORIENT → ENUMERATE → TRIAGE done → FREEZE → BUILD wave 1: U385 CLOSED, U388 U389 in fix-round → wave 2: U364
 
@@ -1083,3 +1083,16 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   W-r4 totals: SPEC 0, TEST 1, STANDARDS 2 → V387W-r4 spec frozen (3
   verbatim from /tmp archives + FP-reconcile + reply-exclude +
   suite-gap notes). Dispatched — expect NO-GO → r5 fix.
+- V387W-r4 NO-GO (msg_55fdae42a7e4, review 5208015370 COMMENTED @f8a0d87,
+  released, verified, body archived /tmp): 3 Required, all reproduced
+  (1376/81/validate/ruff re-ran): S-2 indented-code-arms-setext
+  fail-open (binds [], base refuses — NOT nnt[2]), R-1 :551 mutant
+  survives all 81, S-1 stale PR body; + adjacent S4-1 (empty-item
+  close), MX11/MX15, S-4 comment. P1 4013782318 FP (3-axis agree +
+  oracle). Excluded: 4 thread replies OWED CONDUCTOR-side, S-3/S-5/
+  nnt[2]. S-1 DONE COORDINATOR-SIDE: PR body rewritten for f8a0d87
+  (rule + rounds + 81/validate/1376 + 35-control NC; stale r1 text +
+  integrator trailer dropped; Greptile block byte-preserved;
+  egress pr-edit/pr-body c2f7fd17 receipted; verified live). Fix
+  spec fix-387w-r5.md frozen (S-1 marked done, builder must not
+  touch body). Dispatched.
