@@ -867,3 +867,394 @@ M13m a wide gap after the marker counts in full: Ran 81 tests in 5.519s / FAILED
 M13n an empty item holds a paragraph: Ran 81 tests in 5.690s / FAILED (failures=1) exit=1
     FAIL test_a_thematic_break_is_neither_a_list_item_nor_a_paragraph (case='an empty list item')
     restore: Ran 81 tests in 5.661s / OK exit=0
+
+# ==================== ROUND 5 (fix-387w-r5, verdict r4 review 5208015370) ====================
+# worktree: git worktree add --detach <scratchpad>/nc aef6a92 (code tip)
+# HEAD=aef6a929a61b5bd35741f1cdba18e4c54f21c552 tree=6bf3e748eecf0ea2cf3008e521bfe4c20b1ee77e
+# NC-COMMAND: python3 -m unittest tests.test_run_report
+# Each control below: apply it, run the NC-COMMAND, then git checkout HEAD -- <path> and run it again
+# (the 'restore' line). A text control must match each of its targets exactly once, or it is
+# reported INVALID and not run (none was). NC-1..NC-12 and the round-4 mutants (D6/D7/C8/C10/D15,
+# M13a-n) are re-expressed on the tip's code where they are text mutants; NC-13 reverts to the
+# round-4 reviewed checker (f8a0d87); M14a-c mutate the branches round 5 adds; M14d is the mechanism
+# PR #401 P1 4013782318 describes (verdict r4 TEST R-1); MX11 and MX15 are verdict r4's survivors.
+
+BASELINE: Ran 83 tests in 5.330s / OK exit=0
+NC-1 checker at base 9a115f7: Ran 83 tests in 5.313s / FAILED (failures=41) exit=1   (runtime/scripts/run_report.py sha256 06864de9b0f4)
+    FAIL test_a_backtick_run_with_a_backtick_after_it_opens_no_fence
+    FAIL test_a_fence_closes_only_on_a_bare_run_of_its_own_character_at_least_as_long (case='a shorter run')
+    FAIL test_a_fence_closes_only_on_a_bare_run_of_its_own_character_at_least_as_long (case='an info string')
+    FAIL test_a_fence_closes_only_on_a_bare_run_of_its_own_character_at_least_as_long (case='the other character')
+    FAIL test_a_fence_nested_in_a_list_item_hides_its_rows (case='a nested item', rows='a wave=3 example beside the real row')
+    FAIL test_a_fence_nested_in_a_list_item_hides_its_rows (case='a nested item', rows='the example alone')
+    FAIL test_a_fence_nested_in_a_list_item_hides_its_rows (case='an ordered item', rows='a wave=3 example beside the real row')
+    FAIL test_a_fence_nested_in_a_list_item_hides_its_rows (case='an ordered item', rows='the example alone')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case="short of the item's column 4", rows='under a setext heading')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case="short of the item's column 5", rows='under a setext heading')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='after an empty item and a blank line, ---', rows='under a setext heading')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='after an empty item and a blank line, ===', rows='under a setext heading')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='at column 2', rows='under a setext heading')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='at column 4', rows='under a setext heading')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='back at the margin', rows='under a setext heading')
+    FAIL test_a_look_alike_heading_does_not_open_the_section
+    FAIL test_a_look_alike_heading_does_not_open_the_section (heading='## Deviations — WIP-curve cap raised')
+    FAIL test_a_look_alike_heading_does_not_open_the_section (heading='## WIP curve')
+    FAIL test_a_look_alike_heading_does_not_open_the_section (heading='## WIP-curve example (from another run)')
+    FAIL test_a_look_alike_heading_does_not_open_the_section (heading='## WIP-curve protocol rows')
+    FAIL test_a_look_alike_heading_does_not_open_the_section (heading='## wip-curve protocol row')
+    FAIL test_a_look_alike_heading_does_not_open_the_section (heading='### WIP \t curve')
+    FAIL test_a_setext_heading_after_the_section_ends_it (underline='---')
+    FAIL test_a_setext_heading_after_the_section_ends_it (underline='===')
+    FAIL test_a_thematic_break_is_neither_a_list_item_nor_a_paragraph (case='* * *')
+    FAIL test_a_thematic_break_is_neither_a_list_item_nor_a_paragraph (case='a list item, ---')
+    FAIL test_an_incomplete_section_row_is_refused_whatever_lies_outside
+    FAIL test_an_ordered_item_not_numbered_1_under_a_paragraph_line_is_its_text (case='10)')
+    FAIL test_an_ordered_item_not_numbered_1_under_a_paragraph_line_is_its_text (case='2.')
+    FAIL test_an_ordered_item_not_numbered_1_under_a_paragraph_line_is_its_text (case='an empty item')
+    FAIL test_complete_rows_outside_the_wip_curve_section_do_not_bind (case='a deviations table')
+    FAIL test_complete_rows_outside_the_wip_curve_section_do_not_bind (case='a fenced example and a deviations table')
+    FAIL test_complete_rows_outside_the_wip_curve_section_do_not_bind (case='a fenced example inside the section')
+    FAIL test_complete_rows_outside_the_wip_curve_section_do_not_bind (case='a tilde-fenced example inside the section')
+    FAIL test_complete_rows_outside_the_wip_curve_section_do_not_bind (case='another section, and no WIP-curve section')
+    FAIL test_complete_rows_outside_the_wip_curve_section_do_not_bind (case='rows before any heading')
+    FAIL test_complete_rows_outside_the_wip_curve_section_do_not_bind (case='the section heading quoted inside a fence')
+    FAIL test_rows_outside_the_section_do_not_count_against_the_rows_inside_it
+    FAIL test_the_marker_heading_and_underline_edges_commonmark_draws (case="an empty '##' heading")
+    FAIL test_the_protocol_names_the_schema_the_checker_enforces (other='## Deviations and lessons (recorded, not hidden)\n\n| Deviation | Detail |\n|---|---|\n')
+    FAIL test_the_protocol_names_the_schema_the_checker_enforces (other='## WIP-curve example\n\n')
+    restore: Ran 83 tests in 5.348s / OK exit=0
+NC-2 prose at base 9a115f7: Ran 83 tests in 5.396s / FAILED (failures=1) exit=1   (runtime/attention-budget.md sha256 162a4b407e82)
+    FAIL test_the_protocol_names_the_schema_the_checker_enforces
+    restore: Ran 83 tests in 5.362s / OK exit=0
+NC-3 checker at round-1 d94c6c1: Ran 83 tests in 5.379s / FAILED (failures=26) exit=1   (runtime/scripts/run_report.py sha256 d19568674de7)
+    FAIL test_a_backtick_run_with_a_backtick_after_it_opens_no_fence
+    FAIL test_a_fence_nested_in_a_list_item_hides_its_rows (case='a nested item', rows='a wave=3 example beside the real row')
+    FAIL test_a_fence_nested_in_a_list_item_hides_its_rows (case='a nested item', rows='the example alone')
+    FAIL test_a_fence_nested_in_a_list_item_hides_its_rows (case='an ordered item', rows='a wave=3 example beside the real row')
+    FAIL test_a_fence_nested_in_a_list_item_hides_its_rows (case='an ordered item', rows='the example alone')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case="short of the item's column 4", rows='under a setext heading')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case="short of the item's column 5", rows='under a setext heading')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='after an empty item and a blank line, ---', rows='under a setext heading')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='after an empty item and a blank line, ===', rows='under a setext heading')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='at column 2', rows='under a setext heading')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='at column 4', rows='under a setext heading')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='back at the margin', rows='under a setext heading')
+    FAIL test_a_look_alike_heading_does_not_open_the_section
+    FAIL test_a_look_alike_heading_does_not_open_the_section (heading='## WIP curve')
+    FAIL test_a_look_alike_heading_does_not_open_the_section (heading='## WIP-curve example (from another run)')
+    FAIL test_a_look_alike_heading_does_not_open_the_section (heading='## WIP-curve protocol rows')
+    FAIL test_a_look_alike_heading_does_not_open_the_section (heading='## wip-curve protocol row')
+    FAIL test_a_look_alike_heading_does_not_open_the_section (heading='### WIP \t curve')
+    FAIL test_a_setext_heading_after_the_section_ends_it (underline='---')
+    FAIL test_a_setext_heading_after_the_section_ends_it (underline='===')
+    FAIL test_a_thematic_break_is_neither_a_list_item_nor_a_paragraph (case='* * *')
+    FAIL test_a_thematic_break_is_neither_a_list_item_nor_a_paragraph (case='a list item, ---')
+    FAIL test_an_ordered_item_not_numbered_1_under_a_paragraph_line_is_its_text (case='10)')
+    FAIL test_an_ordered_item_not_numbered_1_under_a_paragraph_line_is_its_text (case='2.')
+    FAIL test_an_ordered_item_not_numbered_1_under_a_paragraph_line_is_its_text (case='an empty item')
+    FAIL test_the_protocol_names_the_schema_the_checker_enforces (other='## WIP-curve example\n\n')
+    restore: Ran 83 tests in 5.676s / OK exit=0
+NC-4 any fence line closes (R2 mutant): Ran 83 tests in 5.855s / FAILED (failures=3) exit=1
+    FAIL test_a_fence_closes_only_on_a_bare_run_of_its_own_character_at_least_as_long (case='a shorter run')
+    FAIL test_a_fence_closes_only_on_a_bare_run_of_its_own_character_at_least_as_long (case='an info string')
+    FAIL test_a_fence_closes_only_on_a_bare_run_of_its_own_character_at_least_as_long (case='the other character')
+    restore: Ran 83 tests in 5.703s / OK exit=0
+NC-5 prose at round-1 d94c6c1: Ran 83 tests in 5.620s / FAILED (failures=1) exit=1   (runtime/attention-budget.md sha256 a00105c7a0f7)
+    FAIL test_the_protocol_names_the_schema_the_checker_enforces
+    restore: Ran 83 tests in 5.792s / OK exit=0
+NC-6 checker at round-2 04b780f: Ran 83 tests in 6.172s / FAILED (failures=28) exit=1   (runtime/scripts/run_report.py sha256 aca58bd5851e)
+    FAIL test_a_fence_nested_in_a_list_item_hides_its_rows (case='a nested item', rows='a wave=3 example beside the real row')
+    FAIL test_a_fence_nested_in_a_list_item_hides_its_rows (case='a nested item', rows='the example alone')
+    FAIL test_a_fence_nested_in_a_list_item_hides_its_rows (case='an ordered item', rows='a wave=3 example beside the real row')
+    FAIL test_a_fence_nested_in_a_list_item_hides_its_rows (case='an ordered item', rows='the example alone')
+    FAIL test_a_list_item_or_block_quote_underlined_does_not_end_the_section (case="a block quote's continuation, ---")
+    FAIL test_a_list_item_or_block_quote_underlined_does_not_end_the_section (case="a list item's continuation, ---")
+    FAIL test_a_list_item_or_block_quote_underlined_does_not_end_the_section (case='a block quote, ---')
+    FAIL test_a_list_item_or_block_quote_underlined_does_not_end_the_section (case='a list item, ---')
+    FAIL test_a_list_item_or_block_quote_underlined_does_not_end_the_section (case='a list item, ===')
+    FAIL test_a_list_item_or_block_quote_underlined_does_not_end_the_section (case='an ordered list item, ---')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='a list item', rows='an incomplete second wave=2')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='a list item', rows='complete')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='an ordered item, content at column 4', rows='an incomplete second wave=2')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='an ordered item, content at column 4', rows='complete')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='at column 4', rows='under a setext heading')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='text five spaces past the marker', rows='an incomplete second wave=2')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='text five spaces past the marker', rows='complete')
+    FAIL test_a_row_after_a_list_item_and_a_thematic_break_is_still_read
+    FAIL test_a_thematic_break_in_a_list_item_keeps_that_item_open
+    FAIL test_a_thematic_break_is_neither_a_list_item_nor_a_paragraph (case='an empty list item')
+    FAIL test_an_ordered_item_not_numbered_1_under_a_paragraph_line_is_its_text
+    FAIL test_indented_code_is_never_underlined (case="a list item's block after a blank line, ---")
+    FAIL test_indented_code_is_never_underlined (case="a list item's first block, ---")
+    FAIL test_indented_code_is_never_underlined (case='at the margin, ---')
+    FAIL test_indented_code_is_never_underlined (case='at the margin, ===')
+    FAIL test_the_marker_heading_and_underline_edges_commonmark_draws (case="a ')' ordered item")
+    FAIL test_the_marker_heading_and_underline_edges_commonmark_draws (case="a '*' list item")
+    FAIL test_the_marker_heading_and_underline_edges_commonmark_draws (case="a '+' list item")
+    restore: Ran 83 tests in 5.779s / OK exit=0
+NC-7a gate drops the fence: Ran 83 tests in 5.745s / FAILED (failures=1) exit=1
+    FAIL test_a_thematic_break_after_a_table_row_a_heading_or_a_fence_keeps_the_section_open (case='a closed fence')
+    restore: Ran 83 tests in 5.797s / OK exit=0
+NC-7b gate drops the heading: Ran 83 tests in 5.883s / FAILED (failures=1) exit=1
+    FAIL test_a_thematic_break_after_a_table_row_a_heading_or_a_fence_keeps_the_section_open (case='the section heading')
+    restore: Ran 83 tests in 6.124s / OK exit=0
+NC-7c gate drops the table row: Ran 83 tests in 5.819s / FAILED (failures=1) exit=1
+    FAIL test_a_thematic_break_after_a_table_row_a_heading_or_a_fence_keeps_the_section_open (case='a table row')
+    restore: Ran 83 tests in 6.057s / OK exit=0
+NC-7d gate drops all three: Ran 83 tests in 5.926s / FAILED (failures=3) exit=1
+    FAIL test_a_thematic_break_after_a_table_row_a_heading_or_a_fence_keeps_the_section_open (case='a closed fence')
+    FAIL test_a_thematic_break_after_a_table_row_a_heading_or_a_fence_keeps_the_section_open (case='a table row')
+    FAIL test_a_thematic_break_after_a_table_row_a_heading_or_a_fence_keeps_the_section_open (case='the section heading')
+    restore: Ran 83 tests in 5.858s / OK exit=0
+NC-7e gate drops the setext (equivalent): Ran 83 tests in 5.696s / OK exit=0
+    restore: Ran 83 tests in 5.697s / OK exit=0
+NC-8 heading anchor folds case: Ran 83 tests in 5.759s / FAILED (failures=1) exit=1
+    FAIL test_a_look_alike_heading_does_not_open_the_section (heading='## wip-curve protocol row')
+    restore: Ran 83 tests in 5.890s / OK exit=0
+NC-9 heading anchor loses the word boundary: Ran 83 tests in 5.912s / FAILED (failures=1) exit=1
+    FAIL test_a_look_alike_heading_does_not_open_the_section (heading='## WIP-curve protocol rows')
+    restore: Ran 83 tests in 5.788s / OK exit=0
+NC-10 no list item or block quote: Ran 83 tests in 6.528s / FAILED (failures=23) exit=1
+    FAIL test_a_fence_nested_in_a_list_item_hides_its_rows (case='a nested item', rows='a wave=3 example beside the real row')
+    FAIL test_a_fence_nested_in_a_list_item_hides_its_rows (case='a nested item', rows='the example alone')
+    FAIL test_a_fence_nested_in_a_list_item_hides_its_rows (case='an ordered item', rows='a wave=3 example beside the real row')
+    FAIL test_a_fence_nested_in_a_list_item_hides_its_rows (case='an ordered item', rows='the example alone')
+    FAIL test_a_list_item_or_block_quote_underlined_does_not_end_the_section (case="a block quote's continuation, ---")
+    FAIL test_a_list_item_or_block_quote_underlined_does_not_end_the_section (case="a list item's continuation, ---")
+    FAIL test_a_list_item_or_block_quote_underlined_does_not_end_the_section (case='a block quote, ---')
+    FAIL test_a_list_item_or_block_quote_underlined_does_not_end_the_section (case='a list item, ---')
+    FAIL test_a_list_item_or_block_quote_underlined_does_not_end_the_section (case='a list item, ===')
+    FAIL test_a_list_item_or_block_quote_underlined_does_not_end_the_section (case='an ordered list item, ---')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='a list item', rows='an incomplete second wave=2')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='a list item', rows='complete')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='at column 4', rows='under a setext heading')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='text five spaces past the marker', rows='an incomplete second wave=2')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='text five spaces past the marker', rows='complete')
+    FAIL test_a_row_after_a_list_item_and_a_thematic_break_is_still_read
+    FAIL test_a_thematic_break_in_a_list_item_keeps_that_item_open
+    FAIL test_a_thematic_break_is_neither_a_list_item_nor_a_paragraph (case='an empty list item')
+    FAIL test_an_ordered_item_not_numbered_1_under_a_paragraph_line_is_its_text
+    FAIL test_indented_code_is_never_underlined (case="a list item's first block, ---")
+    FAIL test_the_marker_heading_and_underline_edges_commonmark_draws (case="a ')' ordered item")
+    FAIL test_the_marker_heading_and_underline_edges_commonmark_draws (case="a '*' list item")
+    FAIL test_the_marker_heading_and_underline_edges_commonmark_draws (case="a '+' list item")
+    restore: Ran 83 tests in 5.926s / OK exit=0
+NC-11 a continuation starts a new paragraph: Ran 83 tests in 5.861s / FAILED (failures=2) exit=1
+    FAIL test_a_list_item_or_block_quote_underlined_does_not_end_the_section (case="a block quote's continuation, ---")
+    FAIL test_a_list_item_or_block_quote_underlined_does_not_end_the_section (case="a list item's continuation, ---")
+    restore: Ran 83 tests in 6.034s / OK exit=0
+NC-12 checker at round-3 3ce5825: Ran 83 tests in 6.139s / FAILED (failures=18) exit=1   (runtime/scripts/run_report.py sha256 159dd7aa9f56)
+    FAIL test_a_fence_nested_in_a_list_item_hides_its_rows (case='a nested item', rows='a wave=3 example beside the real row')
+    FAIL test_a_fence_nested_in_a_list_item_hides_its_rows (case='a nested item', rows='the example alone')
+    FAIL test_a_fence_nested_in_a_list_item_hides_its_rows (case='an ordered item', rows='a wave=3 example beside the real row')
+    FAIL test_a_fence_nested_in_a_list_item_hides_its_rows (case='an ordered item', rows='the example alone')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='a list item', rows='an incomplete second wave=2')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='a list item', rows='complete')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='an ordered item, content at column 4', rows='an incomplete second wave=2')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='an ordered item, content at column 4', rows='complete')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='at column 4', rows='under a setext heading')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='text five spaces past the marker', rows='an incomplete second wave=2')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='text five spaces past the marker', rows='complete')
+    FAIL test_a_thematic_break_is_neither_a_list_item_nor_a_paragraph (case='a list item, ---')
+    FAIL test_an_ordered_item_not_numbered_1_under_a_paragraph_line_is_its_text (case='10)')
+    FAIL test_an_ordered_item_not_numbered_1_under_a_paragraph_line_is_its_text (case='2.')
+    FAIL test_an_ordered_item_not_numbered_1_under_a_paragraph_line_is_its_text (case='an empty item')
+    FAIL test_indented_code_is_never_underlined (case="a list item's block after a blank line, ---")
+    FAIL test_indented_code_is_never_underlined (case='at the margin, ---')
+    FAIL test_indented_code_is_never_underlined (case='at the margin, ===')
+    restore: Ran 83 tests in 5.879s / OK exit=0
+NC-13 checker at round-4 f8a0d87: Ran 83 tests in 5.666s / FAILED (failures=6) exit=1   (runtime/scripts/run_report.py sha256 08770c3497e1)
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='after an empty item and a blank line, ---', rows='under a setext heading')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='after an empty item and a blank line, ===', rows='under a setext heading')
+    FAIL test_indented_code_is_never_underlined (case="a list item's block after a blank line, ---")
+    FAIL test_indented_code_is_never_underlined (case="a list item's first block, ---")
+    FAIL test_indented_code_is_never_underlined (case='at the margin, ---')
+    FAIL test_indented_code_is_never_underlined (case='at the margin, ===')
+    restore: Ran 83 tests in 5.556s / OK exit=0
+D6 bullets '-' only: Ran 83 tests in 5.685s / FAILED (failures=2) exit=1
+    FAIL test_the_marker_heading_and_underline_edges_commonmark_draws (case="a '*' list item")
+    FAIL test_the_marker_heading_and_underline_edges_commonmark_draws (case="a '+' list item")
+    restore: Ran 83 tests in 5.667s / OK exit=0
+D7 ordered '.' only: Ran 83 tests in 5.889s / FAILED (failures=1) exit=1
+    FAIL test_the_marker_heading_and_underline_edges_commonmark_draws (case="a ')' ordered item")
+    restore: Ran 83 tests in 5.960s / OK exit=0
+C8 no empty ATX heading: Ran 83 tests in 5.857s / FAILED (failures=1) exit=1
+    FAIL test_the_marker_heading_and_underline_edges_commonmark_draws (case="an empty '##' heading")
+    restore: Ran 83 tests in 5.885s / OK exit=0
+C10 seven #s open a heading: Ran 83 tests in 5.700s / FAILED (failures=1) exit=1
+    FAIL test_the_marker_heading_and_underline_edges_commonmark_draws (case='seven #s')
+    restore: Ran 83 tests in 5.752s / OK exit=0
+D15 an underline at any indent: Ran 83 tests in 5.748s / FAILED (failures=1) exit=1
+    FAIL test_the_marker_heading_and_underline_edges_commonmark_draws (case='an underline indented four spaces')
+    restore: Ran 83 tests in 5.829s / OK exit=0
+M13a a thematic break opens list items: Ran 83 tests in 5.950s / FAILED (failures=1) exit=1
+    FAIL test_a_thematic_break_is_neither_a_list_item_nor_a_paragraph (case='* * *')
+    restore: Ran 83 tests in 5.970s / OK exit=0
+M13b a thematic break continues a paragraph: Ran 83 tests in 6.170s / FAILED (failures=1) exit=1
+    FAIL test_a_thematic_break_is_neither_a_list_item_nor_a_paragraph (case='a list item, ---')
+    restore: Ran 83 tests in 5.833s / OK exit=0
+M13c any item interrupts a paragraph: Ran 83 tests in 5.734s / FAILED (failures=3) exit=1
+    FAIL test_an_ordered_item_not_numbered_1_under_a_paragraph_line_is_its_text (case='10)')
+    FAIL test_an_ordered_item_not_numbered_1_under_a_paragraph_line_is_its_text (case='2.')
+    FAIL test_an_ordered_item_not_numbered_1_under_a_paragraph_line_is_its_text (case='an empty item')
+    restore: Ran 83 tests in 5.858s / OK exit=0
+M13d any ordinal interrupts a paragraph: Ran 83 tests in 5.501s / FAILED (failures=2) exit=1
+    FAIL test_an_ordered_item_not_numbered_1_under_a_paragraph_line_is_its_text (case='10)')
+    FAIL test_an_ordered_item_not_numbered_1_under_a_paragraph_line_is_its_text (case='2.')
+    restore: Ran 83 tests in 5.578s / OK exit=0
+M13e an empty item interrupts a paragraph: Ran 83 tests in 5.531s / FAILED (failures=1) exit=1
+    FAIL test_an_ordered_item_not_numbered_1_under_a_paragraph_line_is_its_text (case='an empty item')
+    restore: Ran 83 tests in 5.430s / OK exit=0
+M13f a fence opens only near the margin: Ran 83 tests in 5.416s / FAILED (failures=4) exit=1
+    FAIL test_a_fence_nested_in_a_list_item_hides_its_rows (case='a nested item', rows='a wave=3 example beside the real row')
+    FAIL test_a_fence_nested_in_a_list_item_hides_its_rows (case='a nested item', rows='the example alone')
+    FAIL test_a_fence_nested_in_a_list_item_hides_its_rows (case='an ordered item', rows='a wave=3 example beside the real row')
+    FAIL test_a_fence_nested_in_a_list_item_hides_its_rows (case='an ordered item', rows='the example alone')
+    restore: Ran 83 tests in 5.644s / OK exit=0
+M13g a fence closes only near the margin: Ran 83 tests in 5.623s / FAILED (failures=2) exit=1
+    FAIL test_a_fence_nested_in_a_list_item_hides_its_rows (case='a nested item', rows='a wave=3 example beside the real row')
+    FAIL test_a_fence_nested_in_a_list_item_hides_its_rows (case='an ordered item', rows='a wave=3 example beside the real row')
+    restore: Ran 83 tests in 5.879s / OK exit=0
+M13h item content one column past the marker: Ran 83 tests in 5.767s / FAILED (failures=2) exit=1
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case="short of the item's column 4", rows='under a setext heading')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case="short of the item's column 5", rows='under a setext heading')
+    restore: Ran 83 tests in 5.646s / OK exit=0
+M13i list items never close: Ran 83 tests in 5.542s / FAILED (failures=4) exit=1
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case="short of the item's column 4", rows='under a setext heading')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case="short of the item's column 5", rows='under a setext heading')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='back at the margin', rows='under a setext heading')
+    FAIL test_a_thematic_break_is_neither_a_list_item_nor_a_paragraph (case='a list item, ---')
+    restore: Ran 83 tests in 5.684s / OK exit=0
+M13j an underline measured from the margin: Ran 83 tests in 5.668s / FAILED (failures=1) exit=1
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='at column 4', rows='under a setext heading')
+    restore: Ran 83 tests in 5.482s / OK exit=0
+M13k an underline left of its paragraph's column: Ran 83 tests in 5.539s / FAILED (failures=11, errors=3) exit=1
+    ERROR test_a_list_item_or_block_quote_underlined_does_not_end_the_section (case="a block quote's continuation, ---")
+    ERROR test_a_list_item_or_block_quote_underlined_does_not_end_the_section (case='a block quote, ---')
+    ERROR test_ship_its_artifacts_still_hash_true_but_its_transcript_is_missing
+    FAIL test_a_list_item_or_block_quote_underlined_does_not_end_the_section (case="a list item's continuation, ---")
+    FAIL test_a_list_item_or_block_quote_underlined_does_not_end_the_section (case='a list item, ---')
+    FAIL test_a_list_item_or_block_quote_underlined_does_not_end_the_section (case='a list item, ===')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='a list item', rows='an incomplete second wave=2')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='a list item', rows='complete')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='text five spaces past the marker', rows='an incomplete second wave=2')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='text five spaces past the marker', rows='complete')
+    FAIL test_a_row_after_a_list_item_and_a_thematic_break_is_still_read
+    FAIL test_a_thematic_break_in_a_list_item_keeps_that_item_open
+    FAIL test_the_marker_heading_and_underline_edges_commonmark_draws (case="a '*' list item")
+    FAIL test_the_marker_heading_and_underline_edges_commonmark_draws (case="a '+' list item")
+    restore: Ran 83 tests in 5.669s / OK exit=0
+M13l a block quote's paragraph is plain: Ran 83 tests in 5.853s / FAILED (failures=2) exit=1
+    FAIL test_a_list_item_or_block_quote_underlined_does_not_end_the_section (case="a block quote's continuation, ---")
+    FAIL test_a_list_item_or_block_quote_underlined_does_not_end_the_section (case='a block quote, ---')
+    restore: Ran 83 tests in 5.858s / OK exit=0
+M13m a wide gap after the marker counts in full: Ran 83 tests in 5.803s / FAILED (failures=2) exit=1
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='text five spaces past the marker', rows='an incomplete second wave=2')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='text five spaces past the marker', rows='complete')
+    restore: Ran 83 tests in 5.834s / OK exit=0
+M13n an empty item holds a paragraph: Ran 83 tests in 5.745s / FAILED (failures=1) exit=1
+    FAIL test_a_thematic_break_is_neither_a_list_item_nor_a_paragraph (case='an empty list item')
+    restore: Ran 83 tests in 5.511s / OK exit=0
+M14a indented code is a paragraph again (S-2): Ran 83 tests in 5.442s / FAILED (failures=4) exit=1
+    FAIL test_indented_code_is_never_underlined (case="a list item's block after a blank line, ---")
+    FAIL test_indented_code_is_never_underlined (case="a list item's first block, ---")
+    FAIL test_indented_code_is_never_underlined (case='at the margin, ---')
+    FAIL test_indented_code_is_never_underlined (case='at the margin, ===')
+    restore: Ran 83 tests in 5.431s / OK exit=0
+M14b an empty item survives a blank line (S4-1): Ran 83 tests in 5.360s / FAILED (failures=2) exit=1
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='after an empty item and a blank line, ---', rows='under a setext heading')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='after an empty item and a blank line, ===', rows='under a setext heading')
+    restore: Ran 83 tests in 5.667s / OK exit=0
+M14c a blank line closes any item opened on the line before (S4-1): Ran 83 tests in 5.650s / FAILED (failures=9) exit=1
+    FAIL test_a_fence_nested_in_a_list_item_hides_its_rows (case='a nested item', rows='a wave=3 example beside the real row')
+    FAIL test_a_fence_nested_in_a_list_item_hides_its_rows (case='a nested item', rows='the example alone')
+    FAIL test_a_fence_nested_in_a_list_item_hides_its_rows (case='an ordered item', rows='a wave=3 example beside the real row')
+    FAIL test_a_fence_nested_in_a_list_item_hides_its_rows (case='an ordered item', rows='the example alone')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='a list item', rows='an incomplete second wave=2')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='a list item', rows='complete')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='at column 4', rows='under a setext heading')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='text five spaces past the marker', rows='an incomplete second wave=2')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='text five spaces past the marker', rows='complete')
+    restore: Ran 83 tests in 5.588s / OK exit=0
+M14d a break drops every open item (the P1's mechanism, R-1): Ran 83 tests in 5.522s / FAILED (failures=1) exit=1
+    FAIL test_a_thematic_break_in_a_list_item_keeps_that_item_open
+    restore: Ran 83 tests in 5.452s / OK exit=0
+MX11 a four-space marker gap is indented code: Ran 83 tests in 5.168s / FAILED (failures=1) exit=1
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case="short of the item's column 5", rows='under a setext heading')
+    restore: Ran 83 tests in 5.193s / OK exit=0
+MX15 rows before any heading are read: Ran 83 tests in 5.476s / FAILED (failures=1) exit=1
+    FAIL test_complete_rows_outside_the_wip_curve_section_do_not_bind (case='rows before any heading')
+    restore: Ran 83 tests in 5.592s / OK exit=0
+# index tree after the last restore: 6bf3e748eecf0ea2cf3008e521bfe4c20b1ee77e  head tree: 6bf3e748eecf0ea2cf3008e521bfe4c20b1ee77e  status=[]
+
+## NC-13 (round 5: verdict r4 S-2, S4-1): git checkout f8a0d87 -- runtime/scripts/run_report.py   (checker back to the round-4 reviewed tip; tests + prose kept), FAIL/assertion/summary lines of the same run
+FAIL: test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (tests.test_run_report.WipCurveObligation.test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list) (case='after an empty item and a blank line, ---', rows='under a setext heading')
+AssertionError: False is not true : []
+FAIL: test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (tests.test_run_report.WipCurveObligation.test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list) (case='after an empty item and a blank line, ===', rows='under a setext heading')
+AssertionError: False is not true : []
+FAIL: test_indented_code_is_never_underlined (tests.test_run_report.WipCurveObligation.test_indented_code_is_never_underlined) (case='at the margin, ---')
+AssertionError: 0 != 2 : []
+FAIL: test_indented_code_is_never_underlined (tests.test_run_report.WipCurveObligation.test_indented_code_is_never_underlined) (case='at the margin, ===')
+AssertionError: 0 != 2 : []
+FAIL: test_indented_code_is_never_underlined (tests.test_run_report.WipCurveObligation.test_indented_code_is_never_underlined) (case="a list item's first block, ---")
+AssertionError: 0 != 2 : []
+FAIL: test_indented_code_is_never_underlined (tests.test_run_report.WipCurveObligation.test_indented_code_is_never_underlined) (case="a list item's block after a blank line, ---")
+AssertionError: 0 != 2 : []
+Ran 83 tests in 5.666s
+FAILED (failures=6)
+
+# ---- RED FIRST, before the fix: the new tests on the unchanged checker (worktree <scratchpad>/pre at
+# ---- the union tip d67b413, whose run_report.py is f8a0d87's, sha256 08770c34; tests copied in),
+# ---- then each witness mutant on that checker, restored by rewriting the file's bytes.
+BASELINE: Ran 83 tests in 5.720s / FAILED (failures=6) exit=1
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='after an empty item and a blank line, ---', rows='under a setext heading')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='after an empty item and a blank line, ===', rows='under a setext heading')
+    FAIL test_indented_code_is_never_underlined (case="a list item's block after a blank line, ---")
+    FAIL test_indented_code_is_never_underlined (case="a list item's first block, ---")
+    FAIL test_indented_code_is_never_underlined (case='at the margin, ---')
+    FAIL test_indented_code_is_never_underlined (case='at the margin, ===')
+M14d a break drops every open item (the P1's mechanism, R-1): Ran 83 tests in 5.741s / FAILED (failures=7) exit=1
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='after an empty item and a blank line, ---', rows='under a setext heading')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='after an empty item and a blank line, ===', rows='under a setext heading')
+    FAIL test_a_thematic_break_in_a_list_item_keeps_that_item_open
+    FAIL test_indented_code_is_never_underlined (case="a list item's block after a blank line, ---")
+    FAIL test_indented_code_is_never_underlined (case="a list item's first block, ---")
+    FAIL test_indented_code_is_never_underlined (case='at the margin, ---')
+    FAIL test_indented_code_is_never_underlined (case='at the margin, ===')
+    restore: Ran 83 tests in 5.402s / FAILED (failures=6) exit=1
+      FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='after an empty item and a blank line, ---', rows='under a setext heading')
+      FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='after an empty item and a blank line, ===', rows='under a setext heading')
+      FAIL test_indented_code_is_never_underlined (case="a list item's block after a blank line, ---")
+      FAIL test_indented_code_is_never_underlined (case="a list item's first block, ---")
+      FAIL test_indented_code_is_never_underlined (case='at the margin, ---')
+      FAIL test_indented_code_is_never_underlined (case='at the margin, ===')
+MX11 a four-space marker gap is indented code: Ran 83 tests in 6.511s / FAILED (failures=7) exit=1
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case="short of the item's column 5", rows='under a setext heading')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='after an empty item and a blank line, ---', rows='under a setext heading')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='after an empty item and a blank line, ===', rows='under a setext heading')
+    FAIL test_indented_code_is_never_underlined (case="a list item's block after a blank line, ---")
+    FAIL test_indented_code_is_never_underlined (case="a list item's first block, ---")
+    FAIL test_indented_code_is_never_underlined (case='at the margin, ---')
+    FAIL test_indented_code_is_never_underlined (case='at the margin, ===')
+    restore: Ran 83 tests in 5.834s / FAILED (failures=6) exit=1
+      FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='after an empty item and a blank line, ---', rows='under a setext heading')
+      FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='after an empty item and a blank line, ===', rows='under a setext heading')
+      FAIL test_indented_code_is_never_underlined (case="a list item's block after a blank line, ---")
+      FAIL test_indented_code_is_never_underlined (case="a list item's first block, ---")
+      FAIL test_indented_code_is_never_underlined (case='at the margin, ---')
+      FAIL test_indented_code_is_never_underlined (case='at the margin, ===')
+MX15 rows before any heading are read: Ran 83 tests in 5.621s / FAILED (failures=7) exit=1
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='after an empty item and a blank line, ---', rows='under a setext heading')
+    FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='after an empty item and a blank line, ===', rows='under a setext heading')
+    FAIL test_complete_rows_outside_the_wip_curve_section_do_not_bind (case='rows before any heading')
+    FAIL test_indented_code_is_never_underlined (case="a list item's block after a blank line, ---")
+    FAIL test_indented_code_is_never_underlined (case="a list item's first block, ---")
+    FAIL test_indented_code_is_never_underlined (case='at the margin, ---')
+    FAIL test_indented_code_is_never_underlined (case='at the margin, ===')
+    restore: Ran 83 tests in 5.483s / FAILED (failures=6) exit=1
+      FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='after an empty item and a blank line, ---', rows='under a setext heading')
+      FAIL test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='after an empty item and a blank line, ===', rows='under a setext heading')
+      FAIL test_indented_code_is_never_underlined (case="a list item's block after a blank line, ---")
+      FAIL test_indented_code_is_never_underlined (case="a list item's first block, ---")
+      FAIL test_indented_code_is_never_underlined (case='at the margin, ---')
+      FAIL test_indented_code_is_never_underlined (case='at the margin, ===')
