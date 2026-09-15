@@ -109,10 +109,20 @@ If a mission is visible but errors on start about missing playbooks, you copied 
 **Wiring the gate on a symlink install.** `sh hooks/print-settings-snippet.sh` prints a JSON
 object with a `hooks` key — a `TaskCompleted` entry and a `Stop` entry, each running
 `verify-gate.sh` from your clone by absolute path — plus a `_comment` key you can delete. Merge
-the `hooks` entries into `~/.claude/settings.json`, then run the script again with `--check`; it
-must print `ok`. The `Stop` hook fires on every turn end, which is harmless: with no unit in
-progress (`ORCA_MANIFEST` unset) it allows the turn, and it blocks only a turn that is mid-unit
-with a failing manifest ([docs/verify-gate.md](verify-gate.md#native-path--plugin-hooks-set-claude_plugin_root)).
+the `hooks` entries into `~/.claude/settings.json`. The script's `--check` flag only confirms the
+clone still holds the template and `verify-gate.sh`; it never reads your settings, so it prints
+`ok` whether or not the hooks are installed. Confirm the wiring itself, then exercise the gate:
+
+```bash
+grep -c verify-gate.sh ~/.claude/settings.json                        # 2 — one per hook entry
+ORCA_MANIFEST=/nonexistent.json sh runtime/scripts/verify-gate.sh --event stop; echo "exit $?"
+```
+
+The second line must end in `BLOCKING (fail-closed)` and `exit 2`: a named-but-missing manifest is
+refused, which is the behavior a mis-wired gate would silently lack. The `Stop` hook fires on every
+turn end, which is harmless: with no unit in progress (`ORCA_MANIFEST` unset) it allows the turn,
+and it blocks only a turn that is mid-unit with a failing manifest
+([docs/verify-gate.md](verify-gate.md#native-path--plugin-hooks-set-claude_plugin_root)).
 
 ## Your first mission: a review-it dry run
 
@@ -322,10 +332,12 @@ with their reasoning; taste decisions arrive batched in a brief you can veto. If
 one-way decision without you, that is a bug — file it.
 
 **A unit was marked done on a manifest that should have failed.** On a symlink install the
-completion gate is not wired until the settings snippet is merged; run
-`sh hooks/print-settings-snippet.sh --check` and confirm it prints `ok`. Remember what the gate
-checks from inside the worker's own session is advisory; the sound surfaces are CI, an MCP task
-or an SDK subprocess ([docs/verify-gate.md](verify-gate.md#trust-boundary)).
+completion gate is not wired until the settings snippet is merged. `print-settings-snippet.sh
+--check` cannot tell you: it only checks that the gate script exists in the clone. Look for the
+two `verify-gate.sh` entries in `~/.claude/settings.json` and run the gate by hand against a
+missing manifest, as shown under [Install the catalog](#install-the-catalog) — it must block. Remember what the gate checks from inside the worker's own session is advisory;
+the sound surfaces are CI, an MCP task or an SDK subprocess
+([docs/verify-gate.md](verify-gate.md#trust-boundary)).
 
 ---
 

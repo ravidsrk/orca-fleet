@@ -53,6 +53,7 @@ define them. Each is one line here and explained in full in its own section or r
   quoted diff. The verifier executes one only when the coordinator passes `--execute-nc`.
 - **Mechanical / taste / one-way** — the three decision classes: auto-resolved with an audit line;
   recommendation taken and batched for your later veto; yours, always, never defaulted on timeout.
+  The audit lines land in the target repo's `docs/DECISIONS.md`, one per resolved gate.
 - **Lane 0 / A / B** — how a gate on hard-to-reverse work resolves: refuse (0); proceed as
   reversible work such as testnet or fixtures (A); draft both options for a human to pick (B).
 - **Lit / dark-eligible** — `lit`, the default, means a human or build-blind reviewer reads the
@@ -64,7 +65,8 @@ define them. Each is one line here and explained in full in its own section or r
 - **Merge train / hot-file chain** — one conductor drains merge-ready PRs in arrival order; PRs
   that touch the same mount-point file (a route registry, DI wiring, a migration) merge as a chain.
 - **Attention budget / WIP** — concurrent builders capped to what review can absorb (default ≤3),
-  counted as live panes rather than tasks.
+  counted as live panes rather than tasks. A mutating run's report records the cap it ran at and
+  what it measured, one row per dispatch wave, so the caps can graduate from asserted to measured.
 - **Skeptic triage** — reproduce or refute every finding before anyone builds.
 - **Tracer-bullet slice** — a narrow but complete path through every layer a change touches, sized
   for one fresh context window and demoable alone.
