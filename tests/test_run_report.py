@@ -459,25 +459,31 @@ class WipCurveObligation(unittest.TestCase):
         # two settings). The protocol section must name every row key the checker enforces — and
         # no other — plus the waves=<n> count, and a row filled in from its Row cells must bind.
         # #387: it must also name the section the rows live in, the template's heading, and the
-        # check must read exactly that: the row binds under the heading and nowhere else.
+        # check must read exactly that: the row binds under the heading and nowhere else. Verdict
+        # r1 (F-2): the prose named one heading while the check opened on any 'WIP curve' heading,
+        # so the named text is tried both ways — at any level and suffix, and cut to its first word.
         budget = (ROOT / "runtime" / "attention-budget.md").read_text(encoding="utf-8")
         section = budget.split("## The WIP-curve protocol", 1)[1].split("\n## ", 1)[0]
         self.assertIn("`waves=<n>`", section, "the protocol no longer defines the recorded waves")
         cells = [c for cell in re.findall(r"^\|[^|]*\| `([^`]+)` \|", section, re.M)
                  for c in cell.split()]
         self.assertEqual({c.split("=")[0] for c in cells}, set(run_report.WIP_ROW_KEYS))
-        named = re.search(r"under the report's `(#+ [^`]+)` heading", section)
+        named = re.search(r"under an ATX heading whose text begins `([^`]+)`", section)
         self.assertIsNotNone(named, "the protocol no longer names the section its rows live in")
-        heading = named.group(1)
+        text = named.group(1)
         template = (ROOT / "docs" / "runs" / "TEMPLATE.md").read_text(encoding="utf-8")
-        self.assertRegex(template, rf"(?m)^{re.escape(heading)}\b",
+        self.assertRegex(template, rf"(?m)^#+ {re.escape(text)}\b",
                          "the protocol names a section heading the run template does not carry")
         row = "| " + " | ".join(re.sub(r"<\w+>", "1", c) for c in cells) + " |"
-        self.assertEqual(run_report._wip_curve_errors(f"RUN: waves=1\n\n{heading}\n\n{row}\n",
-                                                      "ship-it", ROOT, "r.md"), [], row)
-        errs = run_report._wip_curve_errors(f"RUN: waves=1\n\n{self.DEVIATIONS}{row}\n",
-                                            "ship-it", ROOT, "r.md")
-        self.assertTrue(any("— none found;" in e for e in errs), errs)
+        for heading in (f"## {text}", f"#### {text} (this run)"):
+            with self.subTest(heading=heading):
+                self.assertEqual(run_report._wip_curve_errors(
+                    f"RUN: waves=1\n\n{heading}\n\n{row}\n", "ship-it", ROOT, "r.md"), [], row)
+        for other in (self.DEVIATIONS, f"## {text.split()[0]} example\n\n"):
+            with self.subTest(other=other):
+                errs = run_report._wip_curve_errors(f"RUN: waves=1\n\n{other}{row}\n",
+                                                    "ship-it", ROOT, "r.md")
+                self.assertTrue(any("— none found;" in e for e in errs), errs)
 
     def test_a_report_filled_in_from_the_canonical_template_binds(self):
         # PR #391 review (P1): docs/runs/TEMPLATE.md kept the pre-#389 header (no waves=) and an
