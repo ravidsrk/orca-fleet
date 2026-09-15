@@ -1218,3 +1218,9 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   rounds stale + 4 threads owed coordinator-side; base moved
   docs-only, no overlap. Released. SPEC + TEST out — T10 GO
   in reach.
+- R387W-r7 2/3 in: TEST 0 Required (Nit T7-1 deep sub-heading
+  false pass '### Deviations'; Optional T7-2 _FENCE_RE 0-3
+  limit unwitnessed). Batch in; transcript reproduces (83,
+  NC-2 1, MR1 2, MN1a/b 1; NC-1 46); oracle agrees all 3
+  shapes; bot 5/5. Body + 4 threads owed coordinator-side.
+  Released. SPEC out — one axis from GO.
