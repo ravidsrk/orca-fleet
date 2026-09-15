@@ -643,6 +643,30 @@ class WipCurveObligation(unittest.TestCase):
                                 for e in errs), f"the row after the item was not read {errs}")
             self.assertTrue(any("wave(s) [2] carry more than one WIP-curve row" in e for e in errs),
                             errs)
+        # Verdict r6 (TEST R-1, N-1): a blank line is not a line left of the item's column, so it
+        # ends neither the item nor its fence (markdown-it-py): a wave=2 example after one is still
+        # code, in an item at the margin or one indented off it, and wave 2 stays unrecorded.
+        for name, item in {"at the margin": "- ", "off the margin": "  - "}.items():
+            pad = " " * len(item)
+            with self.subTest(case=f"a blank line in the fence of an item {name}"):
+                report = (f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n{self.ROW_1}\n\n"
+                          f"{item}Filled in as the example shows:\n{pad}```text\n{pad}example\n\n"
+                          f"{pad}{self.ROW_2}\n{pad}```\n")
+                errs = run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md")
+                self.assertEqual(len(errs), 1, errs)
+                self.assertIn("no WIP-curve row for wave(s) [2]", errs[0])
+        # And a line one column short of an item indented off the margin ends that item and its
+        # fence, so the incomplete second wave=2 row there is read. A fence ended only by a line at
+        # the margin, or by one a column further left, swallowed it (verdict r6 N-1).
+        with self.subTest(case="an unclosed fence ends with an item off the margin"):
+            report = (f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n{self.ROW_1}\n{self.ROW_2}\n\n"
+                      f"  - a note\n    ```\n    example\n   {partial_2}\n")
+            errs = run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md")
+            self.assertEqual(len(errs), 2, errs)
+            self.assertTrue(any("| wave=2 |" in e and "carries no measured ['latency_max']" in e
+                                for e in errs), f"the row after the item was not read {errs}")
+            self.assertTrue(any("wave(s) [2] carry more than one WIP-curve row" in e for e in errs),
+                            errs)
 
     def test_a_thematic_break_is_neither_a_list_item_nor_a_paragraph(self):
         # The list items followed for PR #401 review: '* * *' is a thematic break, not three list
