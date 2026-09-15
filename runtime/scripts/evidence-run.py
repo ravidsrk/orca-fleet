@@ -178,15 +178,30 @@ def append_record(manifest_path, record):
     nothing this append holds. A new writer that joined the sidecar waits on the manifest lock,
     which this one has already released.
 
-    Residual window: a legacy writer that creates the sidecar, locks it and reads the manifest
-    between the last look and the close that flushes this write can still silently drop one of
-    the two records. If the legacy rewrite lands after this one, this record is dropped; if its
-    whole cycle fits before this truncate, the legacy record is. That gap is a seek, a truncate
-    and the payload's buffered write, whose last bytes reach the file only as the `with` closes
-    it. No lock wait, read or parse is inside it. Closing it would mean creating the sidecar
-    here, which #388 forbids. Looking right after the manifest lock instead would leave the read
-    and the parse inside the gap. A sidecar that appears at any earlier point is still there at
-    the last look, since a legacy writer never removes its sidecar.
+    Residual window: a legacy writer can still create the sidecar, lock it and start its cycle
+    between the last look and the close that flushes this write. That gap is a seek, a truncate
+    and the payload's buffered write, whose bytes reach the file only as the `with` closes it.
+    No lock wait, read or parse is inside it. The outcome turns on where the legacy steps land:
+      - its whole cycle before the truncate: this write replaces its rewrite, and the legacy
+        record is dropped with no warning;
+      - its read before the truncate, its rewrite after the close: that rewrite replaces this
+        one, and this record is dropped with no warning;
+      - its read before the truncate, its rewrite between the truncate and the flush: the flush
+        writes this payload over it from offset 0, and when the legacy rewrite is the longer its
+        tail survives past this JSON. The manifest no longer parses ("Extra data"), and this
+        append warns nothing. Every later append, of either version, then warns and records
+        nothing until the file is repaired by hand;
+      - its read inside the gap: it cannot parse the empty or partly flushed file, so it warns
+        and drops its own record.
+    Closing the gap would mean creating the sidecar here, which #388 forbids. Looking right
+    after the manifest lock instead would leave the read and the parse inside the gap. A sidecar
+    that appears at any earlier point is still there at the last look, since a legacy writer
+    never removes its sidecar.
+
+    Second loss path: the last attempt writes even when its look finds a sidecar it did not join
+    (REJOIN_ATTEMPTS). A legacy writer holding that sidecar can then overlap the whole attempt,
+    not just the gap, with the same outcomes. That needs the sidecar deleted and recreated
+    between attempts, which a legacy writer never does.
     """
     try:
         manifest_path.parent.mkdir(parents=True, exist_ok=True)
