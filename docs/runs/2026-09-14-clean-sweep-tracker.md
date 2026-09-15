@@ -1197,4 +1197,4 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   boundary), F6-1 (nnt[9] blockquote/list-marker). Excluded:
   stale body + 4 replies (Required-conductor-side, block merge),
   S6-2 (not cheap), S6-3/O-1, FYIs. Fix spec fix-387w-r7.md
-  frozen. Dispatched.
+  frozen. Dispatched (task_737b2081eb4e→ctx_a4edf7c19706).
