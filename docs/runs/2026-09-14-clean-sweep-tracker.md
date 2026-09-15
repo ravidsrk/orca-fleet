@@ -1398,3 +1398,11 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   NEW-REAL via T11 f1b0a4f); #386/#235 human-gated (G1/G2/G4 + parked note);
   T11 merged+closed (verify 5/6, review RED parked via G3). Human gate batch
   (G1/G2-amended/G3/G4) is the remaining ask.
+- #387 MERGED to main as 1ac5ff8 (explicit user order; --merge + --match-head-
+  commit 14b215d; parents eb1a2f1+14b215d, M^2==head; CI was green pre-merge:
+  Greptile pass + gates pass; egress branch-tip receipted under base-writes,
+  disclosed: the #387->main merge rode run receipts per explicit instruction).
+  Post-merge health at 1ac5ff8: validate.py green (21 missions), evidence suite
+  31 OK (scratch worktree, removed). Review branch KEPT (no --delete-branch —
+  G2 still references it; delete at maintainer discretion). RUN FULLY CLOSED
+  except the human gate batch (G1/G2/G3/G4) and #386/#235 parks.
