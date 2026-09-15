@@ -515,17 +515,25 @@ class SidecarRejoin(LedgerCase):
         # truncate then finds a sidecar this append never joined, and the last attempt must
         # write anyway. An append that rejoins on every attempt writes nothing and warns nothing.
         manifest, sidecar = self.manifest, self.sidecar
+        fired = []  # what the stand-in did, in order
 
         def open_(file, *args, **kwargs):
             if Path(file) == sidecar:
                 sidecar.unlink(missing_ok=True)  # gone just before the join opens it
+                fired.append("delete")
             elif Path(file) == manifest:
                 sidecar.touch()  # back just after the join found none
+                fired.append("recreate")
             return open(file, *args, **kwargs)
 
         with mock.patch.object(self.runner, "open", open_, create=True), \
                 contextlib.redirect_stderr(io.StringIO()) as stderr:
             self.runner.append_record(manifest, {"label": "new"})
+        # One delete and one recreate on each of the three attempts. A refactor that opens either
+        # file without the module's `open` name bypasses the stand-in, and the append then writes
+        # before its last attempt, so the labels below would pass without testing the bound.
+        self.assertEqual(fired, ["delete", "recreate", "delete", "recreate", "delete", "recreate"],
+                         "the open stand-in was bypassed: the last attempt was never reached")
         self.assertNotIn("WARNING", stderr.getvalue())
         self.assertEqual(self.labels(), ["seed", "new"])
 
