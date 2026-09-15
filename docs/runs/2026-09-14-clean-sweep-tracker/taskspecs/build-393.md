@@ -32,9 +32,14 @@ lock. This unit covers sidecar-discipline peers only (any writer that flocks
 - C-4: `python3 -m unittest` and `python3 scripts/validate.py` green.
 
 ## Negative control
-`git show HEAD:runtime/scripts/evidence-run.py > runtime/scripts/evidence-run.py`
-(revert ONLY the wrapper, keep the new tests): the C-3 test fails with lost
-records. Restore the fix: green. Both directions observed and quoted.
+CORRECTED (Greptile thread 4012031759 — the frozen v1 restored from HEAD,
+which already contains the fix once committed, a no-op): restore the FORK-POINT
+base version, keeping the new tests:
+`git show <base_sha>:runtime/scripts/evidence-run.py > runtime/scripts/evidence-run.py`
+where `<base_sha>` is the unit branch's fork point (f66bd20 for this dispatch;
+confirm with `git merge-base`). The C-3 test fails with lost records. Restore
+the fix with `git checkout HEAD -- runtime/scripts/evidence-run.py` (HEAD holds
+the fix commit): green. Both directions observed and quoted.
 
 ## Red-first
 C-3 test lands and FAILS before the C-1 change (paste the failing output in the

@@ -597,3 +597,9 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   REAL → T10 (1: out-of-section wave= rows bind — U389 residual, not defect).
   #386 stays needs-human (Q2 open); Q1 overtaken by action (fixtures+oracle
   built — disclose + retro-confirm at gate); #235 parked (row exists).
+- SPEC BUG (Greptile thread 4012031759, valid): build-393.md v1 NC restored
+  evidence-run.py from HEAD (no-op once the fix commits — C-3 could never go
+  RED). Corrected to fork-point base (f66bd20); worker notified via
+  msg_dd0841387778; contract.source digest unchanged (frozen v1 issued),
+  conductor correction note at close per U388 precedent. T9/T10 specs use the
+  correct <base> pattern; T8 probes use git show <rev> — no same bug.
