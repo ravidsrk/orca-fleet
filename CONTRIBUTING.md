@@ -60,7 +60,7 @@ A mission PR must include:
      existing mission, not a new one.
    - within the instruction budget: mission BODY ≤ 110 lines and frontmatter ≤ 34 (playbooks ≤ 90,
      runtime ≤ 160). If your mission needs more body, the overflow is probably a playbook.
-2. An entry in the README mission table and in AGENTS.md's intent → mission mapping.
+2. An entry in the README mission table and in [AGENTS.md](AGENTS.md)'s intent → mission mapping.
 3. A guide at `docs/missions/<name>.md` following the structure of
    [docs/missions/ship-it.md](docs/missions/ship-it.md).
 4. An updated `EXPECTED_MISSIONS` set in `tests/test_architecture.py` AND `tests/test_evals.py` —
@@ -115,7 +115,8 @@ python3 -m unittest discover -s tests -v   # all contract + validator fixture te
 # (CI runs ruff 0.16.5 on E9/F63/F7/F82 only — see ruff.toml)
 ```
 
-The first two run in under a second; there is no excuse to skip them. PRs that fail either
+The validator finishes in under a second; the suite takes a few minutes because it builds real
+git repositories. Neither is optional. PRs that fail either
 will be asked to fix before review. ruff is CI-only (not required locally). If you add validator behavior, add the negative-path fixture that proves
 the new failure branch fires — the suite's standard is that every guard must be demonstrably
 capable of failing.

@@ -41,9 +41,10 @@ outcome includes their name staying on it.
 trailers. **absorb-it is the documented exception, and only for the contributor's own commit** —
 an absorbed commit keeps its original author, because that is the credit. Everything the fleet adds
 (a review-driven amendment, a lint fix, a test the fleet wrote) is a **separate,
-maintainer-authored commit** on top, so the history shows exactly who wrote what. The repo's squash
-policy is read before the first absorption: a squash-merge repo needs the contributor's authorship
-on the resulting commit, or the absorption lands as a merge instead. DCO/CLA state is checked per
+maintainer-authored commit** on top, so the history shows exactly who wrote what. The repo's merge
+policy is read before the first absorption: a squash-only repo breaks the ancestry-verified merge
+the convergence proof requires, so its units park `needs-human` — the fleet never squashes
+([#360](https://github.com/ravidsrk/orca-fleet/issues/360)). DCO/CLA state is checked per
 PR — unsigned is `needs-contributor`, never a fleet signature.
 
 ## When to reach for it
@@ -91,7 +92,7 @@ Main stays unchanged throughout the run; BASE→default promotion remains a sepa
 | State | Meaning | Who advances past it |
 |---|---|---|
 | `ABSORBED` | Re-enumeration finds zero inbound PRs outside a terminal class; every absorbed contribution has preserved authorship, a RED-on-base / GREEN-on-head receipt, a merged SHA on BASE, and a closing comment linking both with credit | terminal — the promotion PR is yours |
-| `ABSORBED-WITH-PARKED` | The queue is exhausted but ≥1 PR waits on a contributor, a maintainer decision (`design-disagreement`), or a `cannot-reproduce` refutation inside its batch gate | a human clears each named park |
+| `ABSORBED-WITH-PARKED` | The queue is exhausted but ≥1 PR waits on a contributor, a maintainer decision (`design-disagreement`), a `cannot-reproduce` refutation inside its batch gate, or a squash-only merge policy | a human clears each named park |
 
 ## Human gates
 

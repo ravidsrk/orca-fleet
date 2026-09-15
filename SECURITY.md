@@ -29,7 +29,7 @@ Out of scope: vulnerabilities in the Orca runtime, Claude Code, or
 Never commit private keys. `.gitignore` excludes `.env` and `.secrets/*`
 except `*.pub`. Coordinator keys are generated with
 `runtime/scripts/dispatch-sign.py gen-key` **outside** the clone unless
-you pass the documented in-repo override.
+you pass `--in-repo-ok` (see `dispatch-sign.py --help`).
 
 The native Stop/TaskCompleted hook is **advisory** in-session; the
 soundness boundary is off-worker. See `docs/verify-gate.md`.
