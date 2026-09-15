@@ -32,7 +32,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | T5 | #386 | sign manifest+inventory, retention backend (S2) | — | — | — | — | — | — | — | — | needs-human: key custody + backend undecided (Q2) | Q2: park |
 | T6 | #364 | prove-it/oncall-it venv glob scoping (U364 fix-forward) | real-bug (evals) | t | t | t | t | t | t | lit | — | PR #397 MERGED 01d954e @2967804 (reviewed==head; GO 5205447863; merged ~7min pre-verdict, disclosed); verify 6/6 incl. Greptile-APPROVED review leg; remediates U364 SPEC-r3 F-1 |
 | — | #235 | H-02 marketplace submissions (pre-parked needs-human) | needs-human | — | — | — | — | — | — | needs-human: external accounts | prior run + issue text |
-| T7 | #393 | mixed-version rollout lock (opportunistic sidecar + test) | real-bug | f | f | f | f | f | f | lit | — | spec build-393.md @f66bd20; BUILD task_8c6ba8a5688e live |
+| T7 | #393 | mixed-version rollout lock (opportunistic sidecar + test) | real-bug | t | f | f | f | f | f | lit | — | BUILD task_baa2b1f25ab0 done: d709296+ccca9a4→a74139b+53eb269; coordinator-verified (28 OK + validate @a74139b); C-1..C-4, NC RED/GREEN, 1351 full OK; disclosed gaps x2 for review |
 | T8 | #387-threads | ledger/process remediation (parks, u385 tree, templates, close doc) | process | f | f | f | f | f | f | lit | — | spec build-387-process.md; 7 threads REAL → fix, incl. proof-park → needs-human (T1/T2/T3) |
 | T9 | #387-threads | eval-glob holes (T6 regression: app//lib/ miss; empty-glob survey) | real-bug (evals) | f | f | f | f | f | f | lit | — | spec build-387-eval-globs.md; inverts T6 (broad positive + central denylist) |
 | T10 | #387-threads | WIP-curve rows: scope to canonical section (U389 residual) | real-bug | f | f | f | f | f | f | lit | — | spec build-387-wip-section.md; out-of-section wave= rows bind today |
@@ -614,3 +614,37 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   #20 awaiting maintainer, 1 replied NC-bug).
 - INBOX: acked delivery_c66026837d58 (29 msgs, all pre-takeover through
   V364ff-r1 GO — every outcome already in this ledger); inbox empty after.
+- PROVIDER EXHAUSTION 05:10Z: all 4 codex builders blocked on "usage limit till
+  Sep 19" (TUIs wedged on the model-switch dialog; luna probe also exhausted —
+  account-level). Model-switch + resume-nudge recovery attempted on T7 (send
+  gate agent_prompt_blocked ×3, kimi-session pattern); interrupt exited T7's
+  TUI to shell. Stopped + released all 4 dispatches (reclaimable 0), failed
+  task_8c6ba8a5688e (0 commits, superseded). FF'd all 4 worktrees to 9a115f7
+  (no code drift f66bd20..9a115f7 — run docs only). RELAUNCH on claude: T7
+  task_baa2b1f25ab0→ctx_6ce13e771159 (fresh task, corrected pins:
+  source@9a115f7 digest 2809338b, base 9a115f7), T8 ctx_ce5a5a405b35, T9
+  ctx_05af8bbabdf9, T10 ctx_7aa6e7cadaec (same tasks, --retry-of). Monitor:
+  claude plan-mode/approval gates per kimi ledger (RM dialogs, prompt gates).
+- RULING T8 (msg_412e94ff50af, all 3 sustained): NC = committed u387p-probe.sh
+  (6th hot file, coordinator amendment) + revert over C-1..C-3 paths; C-4 via
+  hand second_witness (U385 shape) + not_witnessed note (U388 shape); C-1 probe
+  scoped to park cells (whole-file grep unreachable). B/C declined. Logged
+  DECISIONS.md t8-nc-reshape.
+- RULING T10 (msg_d99177c4f590): regen-loads (option A) — keep C-3 prose,
+  mechanical badge commit incl. 9 guide callouts + ARCH table + tests.json
+  (verbatim, numbers-only; hot-list amendment for generated outputs). B
+  declined (don't trim normative prose to game a counter; 197 cap headroom).
+  Logged DECISIONS.md t10-regen-loads. T7 fix+badge committed (ccca9a4,
+  a74139b); T10 editing (uncommitted); T8/T9 heartbeating, no commits yet.
+- T7 BUILD done (msg_fc30eff52193, succeeded, released): manifest verified
+  (pins/contract/C-1..C-4/NC/intent all check) + coordinator re-ran 28 OK and
+  validate @a74139b. BUILD_DONE=t. Integrator spec taskspecs/integrate-393.md
+  frozen. Noted for review: unopenable-sidecar drops record (warns); post-check
+  sidecar creation not joined (TOCTOU).
+- EGRESS HYGIENE: integrate-template step 5 never named a --consent (prior PRs
+  #390-#397 went out with ZERO pr-open receipts in the ledger — gap, not
+  retrofixable). Fixed the template (tracker-writes consent) + all future
+  instantiations carry it. 1 dangling pr-open receipt c5db3155 (coordinator
+  validation probe, no send) stays in the chain, documented here.
+- I393 dispatched: integrate-393 spec (union + gates + PR + bot reconcile).
+  task_70df62d85fd6 → ctx_d7b0bde3cdb1 (claude, unit worktree).
