@@ -665,3 +665,5 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   Required). Released. PR_OPEN=t, BOT=t.
 - R393 axes dispatched @7630815 (specs review-393-{spec,test,standards}.md;
   corrected && checkout form — T8 template fix previewed).
+  task_4c83e87548a2→ctx_3c1720ffff82 (spec), task_29b54cb87089→ctx_babb73b09c6f
+  (test), task_5b1ee74345a1→ctx_fa87588877d6 (standards). 6 workers live.
