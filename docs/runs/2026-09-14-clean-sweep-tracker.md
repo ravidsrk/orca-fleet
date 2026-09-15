@@ -1172,3 +1172,10 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   (tip comments predate push). PR body 2 rounds stale + 4 threads
   owed coordinator-side. Released. SPEC + TEST out — T10 GO in
   reach.
+- R387W-r6 2/3 in: SPEC 0 Critical/Required (Nit F6-2 carried
+  prose/boundary; FYI F6-3 indented-code/HTML rows; FYI F6-1
+  partly disclosed blockquote/list-marker headings; FYI F6-4
+  base moved docs-only, PR still MERGEABLE/CLEAN). Batch
+  landed + oracle-matched; 83/1378-suite/validate/ruff green.
+  Bot 5/5 confirmed. Body + 4 threads owed coordinator-side.
+  Released. TEST out — one axis from GO.
