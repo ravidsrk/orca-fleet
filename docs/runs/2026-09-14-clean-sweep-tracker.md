@@ -453,4 +453,7 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
 - R364r2 all in @6766265: SPEC 1 Required (harden-it venv glob, R-1 residual) +
   G2 refutation HOLDS; TEST 3 Required (django table holes, per-check teeth
   13/55, 2 undemonstrated positive checks; r1 R1 CLOSED); STANDARDS 0 Required.
-  V364r2 spec assembled + dispatched.
+  V364r2 spec assembled + dispatched (task_d20467d453cf → ctx_f0c6155ad1c9,
+  term_c485bd4e). NOTE: reviewers leave the unit worktree on detached HEAD (they
+  checkout the pinned SHA) — branch: selector then fails; conductor reattaches
+  (checkout <branch>, tree verified clean) before dispatching. Routine now.
