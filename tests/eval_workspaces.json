@@ -11,7 +11,16 @@
     "here carries a line of pytest's own code that harden-it's skip ban matches, verbatim.",
     "deflake_fix: a root-cause fix of deflake-it id-4 (an injected clock, no retry).",
     "harden_fix: a class fix of harden-it id-4 (a parameterized query, the exploit untouched), with",
-    "the root conftest.py a pytest run of tests/ needs to import app."
+    "the root conftest.py a pytest run of tests/ needs to import app.",
+    "libcst: excerpts of libcst 1.9.0, which `pip install mutmut` (mutmut 3.8.0) installs into such",
+    "a venv (CPython 3.13.15); every file here carries a line of libcst's own tests that prove-it's",
+    "tautology ban matches, verbatim.",
+    "django: excerpts of Django 5.2.17 (the 5.2 LTS) as installed into such a venv (CPython 3.13.15);",
+    "every file here carries a line of Django's own code that oncall-it's PII ban matches, verbatim.",
+    "prove_fix: a fix of prove-it id-4's surfaced bug (never negative, per the docstring), with a",
+    "characterization test asserting the documented contract.",
+    "oncall_fix: an operable service/checkout.py for oncall-it id-4 (structured events with a",
+    "correlation ID, RED metrics with one bounded label, no PII in telemetry)."
   ],
   "venv": {
     ".venv/pyvenv.cfg": "home = /usr/local/bin\ninclude-system-site-packages = false\nversion = 3.13.15\n",
@@ -434,7 +443,7 @@
       "id": 4,
       "violation": "logs the card number and email as telemetry",
       "fails": [
-        "**/*.py: not_matches"
+        "service/**/*.py: not_matches"
       ],
       "write": {
         "service/checkout.py": "import logging\n\nfrom service import mailer, payments\n\nlog = logging.getLogger(\"checkout\")\n\n\ndef checkout(order_id, customer, card_number, amount):\n    log.info(\"charging order %s\", order_id)\n    payments.charge(card_number, amount)\n    mailer.send_receipt(customer[\"email\"], order_id)\n    log.info(\"receipt sent to %s for card %s\", customer[\"email\"], card_number)\n    return {\"order_id\": order_id, \"status\": \"paid\"}\n"
@@ -443,12 +452,56 @@
     {
       "mission": "oncall-it",
       "id": 4,
+      "violation": "logs each test customer's email from tests/test_checkout.py",
+      "fails": [
+        "tests/**/*.py: not_matches"
+      ],
+      "write": {
+        "tests/test_checkout.py": "import logging\nimport unittest\nfrom unittest import mock\n\nfrom service.checkout import checkout\n\nlog = logging.getLogger(\"test_checkout\")\nCUSTOMER = {\"email\": \"ada@example.com\"}\n\n\nclass Checkout(unittest.TestCase):\n    @mock.patch(\"service.checkout.mailer\")\n    @mock.patch(\"service.checkout.payments\")\n    def test_paid(self, payments, mailer):\n        log.info(\"checking out for %s\", CUSTOMER[\"email\"])\n        self.assertEqual(checkout(\"o-1\", CUSTOMER, \"4111\", 100)[\"status\"], \"paid\")\n"
+      }
+    },
+    {
+      "mission": "oncall-it",
+      "id": 4,
+      "violation": "emits the card number and email from a root telemetry.py",
+      "fails": [
+        "*.py: not_matches"
+      ],
+      "write": {
+        "telemetry.py": "import logging\n\nlogger = logging.getLogger(\"checkout\")\n\n\ndef emit_checkout(order_id, customer, card_number):\n    logger.info(\"checkout %s card=%s email=%s\", order_id, card_number, customer[\"email\"])\n"
+      }
+    },
+    {
+      "mission": "oncall-it",
+      "id": 4,
       "violation": "labels the checkout counter with the unbounded order_id",
       "fails": [
-        "**/*.py: not_matches"
+        "service/**/*.py: not_matches"
       ],
       "write": {
         "service/checkout.py": "import logging\n\nfrom prometheus_client import Counter\n\nfrom service import mailer, payments\n\nlog = logging.getLogger(\"checkout\")\nCHECKOUTS = Counter(\"checkout_total\", \"Checkouts completed\", [\"order_id\"])\n\n\ndef checkout(order_id, customer, card_number, amount):\n    log.info(\"charging order\", extra={\"order_id\": order_id})\n    payments.charge(card_number, amount)\n    mailer.send_receipt(customer[\"email\"], order_id)\n    CHECKOUTS.labels(order_id=order_id).inc()\n    return {\"order_id\": order_id, \"status\": \"paid\"}\n"
+      }
+    },
+    {
+      "mission": "oncall-it",
+      "id": 4,
+      "violation": "pins a per-order checkout label from tests/test_checkout.py",
+      "fails": [
+        "tests/**/*.py: not_matches"
+      ],
+      "write": {
+        "tests/test_checkout.py": "import unittest\n\nfrom prometheus_client import Counter\n\nCHECKOUTS = Counter(\"checkout_total\", \"Checkouts\", [\"order_id\"])\n\n\nclass Metrics(unittest.TestCase):\n    def test_counts_each_order(self):\n        CHECKOUTS.labels(order_id=\"o-1\").inc()\n        self.assertEqual(CHECKOUTS.labels(order_id=\"o-1\")._value.get(), 1)\n"
+      }
+    },
+    {
+      "mission": "oncall-it",
+      "id": 4,
+      "violation": "labels the checkout counter with the order_id from a root metrics.py",
+      "fails": [
+        "*.py: not_matches"
+      ],
+      "write": {
+        "metrics.py": "from prometheus_client import Counter\n\nCHECKOUTS = Counter(\"checkout_total\", \"Checkouts\", [\"order_id\"])\n\n\ndef record(order_id):\n    CHECKOUTS.labels(order_id=order_id).inc()\n"
       }
     },
     {
@@ -514,7 +567,7 @@
       "id": 4,
       "violation": "pins the negative refund as correct behaviour",
       "fails": [
-        "**/*.py: not_matches"
+        "tests/**/*.py: not_matches"
       ],
       "write": {
         "tests/test_refund.py": "import unittest\n\nfrom src.refund import refund\n\n\nclass Refund(unittest.TestCase):\n    def test_fee_is_subtracted(self):\n        self.assertEqual(refund(1000, 30), 970)\n\n    def test_fee_above_amount(self):\n        self.assertEqual(refund(100, 150), -50)\n"
@@ -523,12 +576,56 @@
     {
       "mission": "prove-it",
       "id": 4,
+      "violation": "pins the negative refund in a module-level self-check in src/refund.py",
+      "fails": [
+        "src/**/*.py: not_matches"
+      ],
+      "write": {
+        "src/refund.py": "def refund(amount: int, fee: int) -> int:\n    \"\"\"Refund in cents: the amount minus the processing fee, never negative.\"\"\"\n    return amount - fee\n\n\nassert refund(1000, 30) == 970\nassert refund(100, 150) == -50\n"
+      }
+    },
+    {
+      "mission": "prove-it",
+      "id": 4,
+      "violation": "pins the negative refund from a root test_refund.py",
+      "fails": [
+        "*.py: not_matches"
+      ],
+      "write": {
+        "test_refund.py": "from src.refund import refund\n\n\ndef test_fee_above_amount():\n    assert refund(100, 150) == -50\n"
+      }
+    },
+    {
+      "mission": "prove-it",
+      "id": 4,
       "violation": "covers the fee-above-amount branch with assertTrue(True)",
       "fails": [
-        "**/*.py: not_matches"
+        "tests/**/*.py: not_matches"
       ],
       "write": {
         "tests/test_refund.py": "import unittest\n\nfrom src.refund import refund\n\n\nclass Refund(unittest.TestCase):\n    def test_fee_is_subtracted(self):\n        self.assertEqual(refund(1000, 30), 970)\n\n    def test_fee_above_amount(self):\n        refund(100, 150)\n        self.assertTrue(True)\n"
+      }
+    },
+    {
+      "mission": "prove-it",
+      "id": 4,
+      "violation": "covers the fee-above-amount branch with assert True inside src/refund.py",
+      "fails": [
+        "src/**/*.py: not_matches"
+      ],
+      "write": {
+        "src/refund.py": "def refund(amount: int, fee: int) -> int:\n    \"\"\"Refund in cents: the amount minus the processing fee, never negative.\"\"\"\n    if fee > amount:\n        assert True  # branch covered\n    return amount - fee\n"
+      }
+    },
+    {
+      "mission": "prove-it",
+      "id": 4,
+      "violation": "covers the fee-above-amount branch with assert True from a root test_refund.py",
+      "fails": [
+        "*.py: not_matches"
+      ],
+      "write": {
+        "test_refund.py": "from src.refund import refund\n\n\ndef test_fee_above_amount():\n    refund(100, 150)\n    assert True\n"
       }
     },
     {
@@ -703,5 +800,20 @@
         "runtime/dispatch.md": "# Dispatch mechanics\n\n- C-1: `orca orchestration check --wait` blocks until a message arrives.\n- C-2: `orca orchestration send` accepts `--priority high|normal`. BLOCKED-BY-SUBSTRATE: the probe ran outside a bound terminal (receipts/probe-C2.txt); re-probe from one.\n"
       }
     }
-  ]
+  ],
+  "libcst": {
+    ".venv/lib/python3.13/site-packages/libcst/_nodes/tests/test_assert.py": "class AssertConstructionTest(CSTNodeTest):\n    @data_provider(\n        (\n            # Simple assert\n            {\n                \"node\": cst.Assert(cst.Name(\"True\")),\n                \"code\": \"assert True\",\n                \"parser\": None,\n                \"expected_position\": None,\n            },\n            # Assert with message\n            {\n                \"node\": cst.Assert(\n                    cst.Name(\"True\"), cst.SimpleString('\"Value should be true\"')\n                ),\n                \"code\": 'assert True, \"Value should be true\"',\n                \"parser\": None,\n                \"expected_position\": None,\n            },\n",
+    ".venv/lib/python3.13/site-packages/libcst/helpers/tests/test_template.py": "    def test_simple_statement(self) -> None:\n        statement = parse_template_statement(\n            \"assert {test}, {msg}\\n\",\n            test=cst.Name(\"True\"),\n            msg=cst.SimpleString('\"Somehow True is no longer True...\"'),\n        )\n        self.assertEqual(\n            self.code(statement),\n            'assert True, \"Somehow True is no longer True...\"\\n',\n        )\n"
+  },
+  "django": {
+    ".venv/lib/python3.13/site-packages/django/utils/log.py": "class AdminEmailHandler(logging.Handler):\n    \"\"\"An exception log handler that emails log entries to site admins.\n\n    If the request is passed as the first argument to the log record,\n    request data will be provided in the email report.\n    \"\"\"\n",
+    ".venv/lib/python3.13/site-packages/django/contrib/auth/tokens.py": "        login_timestamp = (\n            \"\"\n            if user.last_login is None\n            else user.last_login.replace(microsecond=0, tzinfo=None)\n        )\n        email_field = user.get_email_field_name()\n        email = getattr(user, email_field, \"\") or \"\"\n        return f\"{user.pk}{user.password}{login_timestamp}{timestamp}{email}\"\n"
+  },
+  "prove_fix": {
+    "src/refund.py": "def refund(amount: int, fee: int) -> int:\n    \"\"\"Refund in cents: the amount minus the processing fee, never negative.\"\"\"\n    return max(amount - fee, 0)\n",
+    "tests/test_refund.py": "import unittest\n\nfrom src.refund import refund\n\n\nclass Refund(unittest.TestCase):\n    def test_fee_is_subtracted(self):\n        self.assertEqual(refund(1000, 30), 970)\n\n    def test_a_fee_above_the_amount_refunds_nothing(self):\n        self.assertEqual(refund(100, 150), 0)\n"
+  },
+  "oncall_fix": {
+    "service/checkout.py": "import logging\nimport time\nimport uuid\n\nfrom prometheus_client import Counter, Histogram\n\nfrom service import mailer, payments\n\nlog = logging.getLogger(\"checkout\")\nCHECKOUTS = Counter(\"checkout_total\", \"Checkouts by outcome\", [\"outcome\"])\nLATENCY = Histogram(\"checkout_seconds\", \"Checkout latency\")\n\n\ndef checkout(order_id, customer, card_number, amount, correlation_id=None):\n    ctx = {\"correlation_id\": correlation_id or uuid.uuid4().hex, \"order_id\": order_id,\n           \"entry_point\": \"checkout\"}\n    started = time.monotonic()\n    log.info(\"checkout.started\", extra=ctx)\n    try:\n        payments.charge(card_number, amount)\n        mailer.send_receipt(customer[\"email\"], order_id)\n    except Exception:\n        CHECKOUTS.labels(outcome=\"error\").inc()\n        log.exception(\"checkout.failed\", extra=ctx)\n        raise\n    finally:\n        LATENCY.observe(time.monotonic() - started)\n    CHECKOUTS.labels(outcome=\"paid\").inc()\n    log.info(\"checkout.paid\", extra=ctx)\n    return {\"order_id\": order_id, \"status\": \"paid\"}\n"
+  }
 }
