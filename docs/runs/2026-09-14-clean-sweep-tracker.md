@@ -994,3 +994,22 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   digest re-derived by coordinator (git show == d2b86806). MERGED=t,
   WT_CLEAN=t (worktree retired from git + orca registries, dir gone).
   THIRD WAVE-2 UNIT DONE. T10 r3 axes (spec/test) still live.
+- R387W-r3 2/3 in: SPEC 3 Required (F-1 C-2 fail-open indented-para+---
+  binds [] + nnt[1] 'fails closed' false same-class; F-2 C-1 fail-open
+  'Text/2.x/---' setext binds; F-3 C-1 NEW 4+-space nested fence binds —
+  original #387 bug through a container, undisclosed) + F-4 Nit. P1
+  4013204408 VALID (halves = F-2/F-1). Batch landed; C-3 78 lines; C-4
+  1371 OK re-ran. Reply correction: P1 4012744258's fix is ac9395d,
+  NOT 3ce5825 (manifest-only). Released.
+- R387W-r3 3/3 in: TEST 2 Required (no container-under-plain-text /
+  indented-para-after-blank test; false nnt[1] claim) + 3 Nits
+  (D6/D7/C8/C10/D15 survivors) + P1 VALID both shapes (markdown-it
+  oracle; 36 mutants, 30 killed, NC counts reproduced). Same reply
+  correction (ac9395d + fb6308d). GAP (disclosed): TEST did NOT
+  verify the full suite (capture lost summary line) — coverage
+  stands via SPEC's 1371 re-run. Released. W-r3 totals: SPEC 3,
+  TEST 2, STANDARDS 1 → V387W-r3 spec frozen (3 bodies transcribed
+  from the delivered batch — message store purged before
+  re-extraction, TEST prefix cross-checked vs its transcript; + bot
+  status w/ ac9395d-cite + TEST-gap notes). Dispatched — expect
+  NO-GO → r4 fix.
