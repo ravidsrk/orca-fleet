@@ -58,22 +58,30 @@ def _has(text, block):
     dark = re.search(r'srcset="([^"]+\.jpg)"', block).group(1)
     return dark in text
 
+def _anchor_re(anchor):
+    # A heading anchor is the whole line: `## Proof status` must not be satisfied by
+    # `## Proof status — details` (PR #398 review). A prose anchor is an exact substring.
+    if anchor.startswith("#"):
+        return re.compile(r"^" + re.escape(anchor) + r"[ \t]*$", re.M)
+    return re.compile(re.escape(anchor))
+
 def _anchored(text, anchor, doc):
     # Checked on every run, not only when the picture is missing: a committed embed used to hide a
     # renamed heading until the next regeneration asserted on it (PR #387 review).
-    assert text.count(anchor) == 1, (doc, anchor[:60], text.count(anchor))
+    hits = len(_anchor_re(anchor).findall(text))
+    assert hits == 1, (doc, anchor[:60], hits)
 
 def insert_after(text, anchor, block, doc):
     _anchored(text, anchor, doc)
     if _has(text, block):
         return text
-    return text.replace(anchor, anchor + "\n\n" + block, 1)
+    return _anchor_re(anchor).sub(lambda m: m.group(0) + "\n\n" + block, text, count=1)
 
 def insert_before(text, anchor, block, doc):
     _anchored(text, anchor, doc)
     if _has(text, block):
         return text
-    return text.replace(anchor, block + "\n\n" + anchor, 1)
+    return _anchor_re(anchor).sub(lambda m: block + "\n\n" + m.group(0), text, count=1)
 
 DRY = "--dry-run" in sys.argv
 

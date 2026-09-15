@@ -66,6 +66,42 @@ class WiringScriptAnchors(unittest.TestCase):
             self.assertIn("'## Proof status'", r.stderr)
             self.assertIn("'README'", r.stderr)
 
+    def test_a_heading_kept_as_a_prefix_still_fails_the_rerun(self):
+        # PR #398 review: a substring count let `## Proof status — details` satisfy the anchor
+        # `## Proof status`; a heading anchor is matched as the whole line.
+        with tempfile.TemporaryDirectory() as d:
+            tmp = Path(d)
+            self._copy_docs(tmp)
+            readme = tmp / "README.md"
+            text = readme.read_text(encoding="utf-8")
+            readme.write_text(text.replace("## Proof status\n", "## Proof status — details\n", 1),
+                              encoding="utf-8")
+            r = dry_run(tmp)
+            self.assertNotEqual(r.returncode, 0, "a heading kept as a prefix passed the rerun")
+            self.assertIn("'## Proof status'", r.stderr)
+
+    def test_a_removed_picture_is_put_back_under_its_heading(self):
+        # The positive half of the anchor: with the embed gone, the rerun restores it directly
+        # under the heading line, and only there — never inside a longer heading that shares the
+        # prefix.
+        with tempfile.TemporaryDirectory() as d:
+            tmp = Path(d)
+            self._copy_docs(tmp)
+            readme = tmp / "README.md"
+            text = readme.read_text(encoding="utf-8")
+            start = text.index('<p align="center">\n  <picture>\n    <source media="(prefers-color-scheme: dark)" '
+                               'srcset="assets/diagrams/proof-ladder.jpg">')
+            end = text.index("</p>\n", start) + len("</p>\n")
+            stripped = text[:start] + text[end:].lstrip("\n")
+            stripped = stripped.replace("## Proof status\n", "### Proof status (prefix decoy)\n\n## Proof status\n", 1)
+            readme.write_text(stripped, encoding="utf-8")
+            r = subprocess.run([sys.executable, str(SCRIPT), str(tmp)], capture_output=True, text=True)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            wired = readme.read_text(encoding="utf-8")
+            self.assertIn("## Proof status\n\n<p align=\"center\">\n  <picture>\n    <source media=\"(prefers-color-scheme: dark)\" "
+                          "srcset=\"assets/diagrams/proof-ladder.jpg\">", wired)
+            self.assertNotIn("### Proof status (prefix decoy)\n\n<p align", wired)
+
     def test_the_unchanged_copy_passes(self):
         # The negative case fails for the rename, not for the copy.
         with tempfile.TemporaryDirectory() as d:
