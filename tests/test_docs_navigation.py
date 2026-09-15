@@ -989,17 +989,27 @@ class MissionGuidesEmbedTheirDiagram(unittest.TestCase):
     modernize-it.jpg sat in the assets directory while its guide never referenced it, and four
     guides had no diagram at all; sixteen others embedded theirs. Every guide the mission index
     links must embed its own asset from assets/diagrams/missions/, and every asset there must be
-    embedded by the guide of the same name.
+    embedded by the guide of the same name. A `<name>-light.jpg` beside `<name>.jpg` is the same
+    diagram rendered for a light theme (PR #394): it belongs to the guide `<name>`, which embeds
+    both through a `<picture>` block, so it is held to the same parity.
     """
 
-    # Guides with no rendered diagram yet: generated rasters with no in-repo source, parked as a
-    # human item (#385, run 2026-09-14 Q3). Named, not skipped: a guide leaving this set by
-    # gaining its diagram fails the test until its name is removed here.
-    KNOWN_GAPS = ["absorb-it", "document-it", "migrate-it", "oncall-it"]
+    # Guides with no rendered diagram yet. Named, not skipped: a guide leaving this set by gaining
+    # its diagram fails the test until its name is removed here. The four gaps #385 parked as a
+    # human item (absorb-it, document-it, migrate-it, oncall-it; run 2026-09-14 Q3) closed when
+    # PR #394 regenerated every mission's contract card from a committed prompt, so the set is empty.
+    KNOWN_GAPS = []
     INDEX = DOCS / "missions" / "README.md"
     ASSETS = ROOT / "assets" / "diagrams" / "missions"
-    # `src="../../assets/diagrams/missions/x.jpg"` and `](../../assets/diagrams/missions/x.jpg)`.
-    EMBED = re.compile(r"""(?:src=["']|\]\()\.\./\.\./assets/diagrams/missions/([^"')\s]+)""")
+    # `src="../../assets/diagrams/missions/x.jpg"`, a `<picture>` source's `srcset="…"`, and
+    # `](../../assets/diagrams/missions/x.jpg)`.
+    EMBED = re.compile(
+        r"""(?:srcset=["']|src=["']|\]\()\.\./\.\./assets/diagrams/missions/([^"')\s]+)""")
+
+    @staticmethod
+    def _guide_of(asset_name):
+        """The guide stem an asset belongs to: `x.jpg` and `x-light.jpg` are both guide `x`'s."""
+        return re.sub(r"-light$", "", Path(asset_name).stem)
 
     def _guides(self):
         """Guide stem -> text, for every docs/missions/*.md the index links (the index is the list)."""
@@ -1019,7 +1029,7 @@ class MissionGuidesEmbedTheirDiagram(unittest.TestCase):
             refs = self.EMBED.findall(text)
             dangling = [r for r in refs if not (self.ASSETS / r).is_file()]
             self.assertEqual(dangling, [], f"docs/missions/{stem}.md embeds a diagram that is not there")
-            if not any(Path(r).stem == stem for r in refs):
+            if not any(self._guide_of(r) == stem for r in refs):
                 without.append(stem)
         self.assertEqual(without, self.KNOWN_GAPS,
                          "guides with no embedded diagram of their own != the named known gaps")
@@ -1028,9 +1038,10 @@ class MissionGuidesEmbedTheirDiagram(unittest.TestCase):
         guides = self._guides()
         for asset in sorted(p for p in self.ASSETS.iterdir() if p.is_file()):
             with self.subTest(asset=asset.name):
-                self.assertIn(asset.stem, guides, f"{asset.name} has no indexed guide of that name")
-                self.assertIn(asset.name, self.EMBED.findall(guides[asset.stem]),
-                              f"docs/missions/{asset.stem}.md never embeds {asset.name}")
+                guide = self._guide_of(asset.name)
+                self.assertIn(guide, guides, f"{asset.name} has no indexed guide of that name")
+                self.assertIn(asset.name, self.EMBED.findall(guides[guide]),
+                              f"docs/missions/{guide}.md never embeds {asset.name}")
 
     def _fixture(self, tmp, index_links, unlinked=()):
         """A parity check over a throwaway repo: sixteen bare-linked guides that embed their own
@@ -1064,6 +1075,22 @@ class MissionGuidesEmbedTheirDiagram(unittest.TestCase):
             check = self._fixture(Path(tmp), ["| [gap](gap.md) | x |"], unlinked=["orphan"])
             with self.assertRaisesRegex(AssertionError, "orphan"):
                 check._guides()
+
+    def test_a_light_variant_is_held_to_its_guide(self):
+        # PR #394 review of the parity check: `g00-light.jpg` is guide g00's diagram, not a guide
+        # of its own, and a `<picture>` embeds it through `srcset=`, which `src=` never matched.
+        with tempfile.TemporaryDirectory() as tmp:
+            check = self._fixture(Path(tmp), ["| [gap](gap.md) | x |"])
+            light = check.ASSETS / "g00-light.jpg"
+            light.write_bytes(b"")
+            with self.assertRaisesRegex(AssertionError, "g00.md never embeds g00-light.jpg"):
+                check.test_every_diagram_asset_is_embedded_by_its_guide()
+            guide = check.INDEX.parent / "g00.md"
+            guide.write_text('<picture><source media="(prefers-color-scheme: light)" '
+                             'srcset="../../assets/diagrams/missions/g00-light.jpg">'
+                             '<img src="../../assets/diagrams/missions/g00.jpg"></picture>\n')
+            check.test_every_diagram_asset_is_embedded_by_its_guide()
+            check.test_every_indexed_guide_embeds_its_own_diagram()
 
 
 class CompletionStatusNamesTheCommitItDescribes(unittest.TestCase):
