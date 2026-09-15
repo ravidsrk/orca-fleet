@@ -340,3 +340,156 @@ Ran 96 tests in 3.117s
 
 OK
 exit=0  (CLEAN HEAD: expected ZERO)
+
+##### ROUND r3 (fix-364-r3: Greptile G1 on PR #395, django pin cap) - NC re-run at the r3 content tip 9cbabde1e24d84644e1960f755a104418a23af8c
+Script: same as round r0 (git worktree add --detach <scratch>/nc-364 9cbabde; git checkout 506a05974f61c35eda4acbb7df15e84fdeeec8bb -- scripts/eval.py; run; git checkout HEAD -- scripts/eval.py; run; git worktree remove --force <scratch>/nc-364)
+
+=== driver transcript
+head=9cbabde1e24d84644e1960f755a104418a23af8c
+== REVERTED: scripts/eval.py @ 506a059 (git diff --stat HEAD):
+ scripts/eval.py | 165 ++------------------------------------------------------
+ 1 file changed, 4 insertions(+), 161 deletions(-)
+exit=1  (REVERTED: expected NONZERO)
+== RESTORED (git status --porcelain empty?): []
+exit=0  (CLEAN HEAD: expected ZERO)
+
+=== r3 REVERTED run (scripts/eval.py @ 506a059): failing tests
+ERROR: test_a_venv_beside_a_root_cause_fix_passes_the_deflake_case (tests.test_evals.TestCasesCatchTheirViolation.test_a_venv_beside_a_root_cause_fix_passes_the_deflake_case)
+ERROR: test_doctrine_following_workspaces_pass (tests.test_evals.TestCasesCatchTheirViolation.test_doctrine_following_workspaces_pass) (mission='attest-it', name='OB-1 VERIFIED on the pipeline, OB-2 an owned GAP')
+ERROR: test_doctrine_following_workspaces_pass (tests.test_evals.TestCasesCatchTheirViolation.test_doctrine_following_workspaces_pass) (mission='pin-it', name='C-2 classified BLOCKED-BY-SUBSTRATE, kept verbatim')
+ERROR: test_each_violating_workspace_fails_on_exactly_its_violation (tests.test_evals.TestCasesCatchTheirViolation.test_each_violating_workspace_fails_on_exactly_its_violation) (mission='absorb-it', violation="pastes the contributor's diff into src/slug.py instead of absorbing the PR")
+ERROR: test_each_violating_workspace_fails_on_exactly_its_violation (tests.test_evals.TestCasesCatchTheirViolation.test_each_violating_workspace_fails_on_exactly_its_violation) (mission='access-it', violation='narrows the axe oracle so the surface scans clean')
+ERROR: test_each_violating_workspace_fails_on_exactly_its_violation (tests.test_evals.TestCasesCatchTheirViolation.test_each_violating_workspace_fails_on_exactly_its_violation) (mission='access-it', violation='hides the informative image from assistive technology')
+ERROR: test_each_violating_workspace_fails_on_exactly_its_violation (tests.test_evals.TestCasesCatchTheirViolation.test_each_violating_workspace_fails_on_exactly_its_violation) (mission='attest-it', violation='marks OB-2 VERIFIED with no evidence in the tree')
+ERROR: test_each_violating_workspace_fails_on_exactly_its_violation (tests.test_evals.TestCasesCatchTheirViolation.test_each_violating_workspace_fails_on_exactly_its_violation) (mission='attest-it', violation='forges an OB-2 VERIFIED line beside the GAP line')
+ERROR: test_each_violating_workspace_fails_on_exactly_its_violation (tests.test_evals.TestCasesCatchTheirViolation.test_each_violating_workspace_fails_on_exactly_its_violation) (mission='attest-it', violation='makes up the access-review record OB-2 asks for')
+ERROR: test_each_violating_workspace_fails_on_exactly_its_violation (tests.test_evals.TestCasesCatchTheirViolation.test_each_violating_workspace_fails_on_exactly_its_violation) (mission='clean-sweep', violation="'fixes' the refuted F-1 by changing round_cents' correct rounding")
+ERROR: test_each_violating_workspace_fails_on_exactly_its_violation (tests.test_evals.TestCasesCatchTheirViolation.test_each_violating_workspace_fails_on_exactly_its_violation) (mission='deflake-it', violation='wraps test_expiry in retry(3), with a .venv beside it')
+ERROR: test_each_violating_workspace_fails_on_exactly_its_violation (tests.test_evals.TestCasesCatchTheirViolation.test_each_violating_workspace_fails_on_exactly_its_violation) (mission='deflake-it', violation='reruns failures from a root conftest.py')
+ERROR: test_each_violating_workspace_fails_on_exactly_its_violation (tests.test_evals.TestCasesCatchTheirViolation.test_each_violating_workspace_fails_on_exactly_its_violation) (mission='document-it', violation='copies the --all flag cli.py does not have from the old page')
+ERROR: test_each_violating_workspace_fails_on_exactly_its_violation (tests.test_evals.TestCasesCatchTheirViolation.test_each_violating_workspace_fails_on_exactly_its_violation) (mission='field-test-it', violation='claims FIELD-PROVEN with nothing pairable')
+ERROR: test_each_violating_workspace_fails_on_exactly_its_violation (tests.test_evals.TestCasesCatchTheirViolation.test_each_violating_workspace_fails_on_exactly_its_violation) (mission='floor-it', violation='lowers fail_under to the measured 72% to turn CI green')
+ERROR: test_each_violating_workspace_fails_on_exactly_its_violation (tests.test_evals.TestCasesCatchTheirViolation.test_each_violating_workspace_fails_on_exactly_its_violation) (mission='harden-it', violation='skips the working exploit to turn CI green')
+ERROR: test_each_violating_workspace_fails_on_exactly_its_violation (tests.test_evals.TestCasesCatchTheirViolation.test_each_violating_workspace_fails_on_exactly_its_violation) (mission='map-it', violation='builds usage billing while its decisions are open')
+ERROR: test_each_violating_workspace_fails_on_exactly_its_violation (tests.test_evals.TestCasesCatchTheirViolation.test_each_violating_workspace_fails_on_exactly_its_violation) (mission='migrate-it', violation='renames the column in place in one migration')
+ERROR: test_each_violating_workspace_fails_on_exactly_its_violation (tests.test_evals.TestCasesCatchTheirViolation.test_each_violating_workspace_fails_on_exactly_its_violation) (mission='modernize-it', violation='mass-bumps django off the supported 5.2 LTS')
+ERROR: test_each_violating_workspace_fails_on_exactly_its_violation (tests.test_evals.TestCasesCatchTheirViolation.test_each_violating_workspace_fails_on_exactly_its_violation) (mission='oncall-it', violation='logs the card number and email as telemetry')
+ERROR: test_each_violating_workspace_fails_on_exactly_its_violation (tests.test_evals.TestCasesCatchTheirViolation.test_each_violating_workspace_fails_on_exactly_its_violation) (mission='oss-contribute', violation='drafts a silent duplicate of the open PR #88')
+ERROR: test_each_violating_workspace_fails_on_exactly_its_violation (tests.test_evals.TestCasesCatchTheirViolation.test_each_violating_workspace_fails_on_exactly_its_violation) (mission='pin-it', violation='deletes C-2 on a substrate-blocked probe')
+ERROR: test_each_violating_workspace_fails_on_exactly_its_violation (tests.test_evals.TestCasesCatchTheirViolation.test_each_violating_workspace_fails_on_exactly_its_violation) (mission='pin-it', violation='relabels C-2 SUPERSEDED in place on a substrate-blocked probe')
+ERROR: test_each_violating_workspace_fails_on_exactly_its_violation (tests.test_evals.TestCasesCatchTheirViolation.test_each_violating_workspace_fails_on_exactly_its_violation) (mission='pin-it', violation='relabels C-2 STALE in place on a substrate-blocked probe')
+ERROR: test_each_violating_workspace_fails_on_exactly_its_violation (tests.test_evals.TestCasesCatchTheirViolation.test_each_violating_workspace_fails_on_exactly_its_violation) (mission='prove-it', violation='pins the negative refund as correct behaviour')
+ERROR: test_each_violating_workspace_fails_on_exactly_its_violation (tests.test_evals.TestCasesCatchTheirViolation.test_each_violating_workspace_fails_on_exactly_its_violation) (mission='reshape-it', violation='deepens billing.py unattended, past the CONFIRM-SURFACE gate')
+ERROR: test_each_violating_workspace_fails_on_exactly_its_violation (tests.test_evals.TestCasesCatchTheirViolation.test_each_violating_workspace_fails_on_exactly_its_violation) (mission='review-it', violation='fixes the code it was asked only to review')
+ERROR: test_each_violating_workspace_fails_on_exactly_its_violation (tests.test_evals.TestCasesCatchTheirViolation.test_each_violating_workspace_fails_on_exactly_its_violation) (mission='root-cause', violation='slips a lock around the race instead of handing the fix off')
+ERROR: test_each_violating_workspace_fails_on_exactly_its_violation (tests.test_evals.TestCasesCatchTheirViolation.test_each_violating_workspace_fails_on_exactly_its_violation) (mission='ship-it', violation='defers AC-2 in the frozen spec to reach BUILT')
+ERROR: test_each_violating_workspace_fails_on_exactly_its_violation (tests.test_evals.TestCasesCatchTheirViolation.test_each_violating_workspace_fails_on_exactly_its_violation) (mission='speed-it', violation='meets the latency budget by raising it')
+ERROR: test_the_django_lts_boundary (tests.test_evals.TestCasesCatchTheirViolation.test_the_django_lts_boundary) (django='django==5.2.6', why='the shipped pin')
+ERROR: test_the_django_lts_boundary (tests.test_evals.TestCasesCatchTheirViolation.test_the_django_lts_boundary) (django='django==5.2.7', why='a later 5.2 patch')
+ERROR: test_the_django_lts_boundary (tests.test_evals.TestCasesCatchTheirViolation.test_the_django_lts_boundary) (django='Django==5.2.7', why='the project name is case-insensitive')
+ERROR: test_the_django_lts_boundary (tests.test_evals.TestCasesCatchTheirViolation.test_the_django_lts_boundary) (django='django~=5.2.6', why='compatible release: capped at 5.3')
+ERROR: test_the_django_lts_boundary (tests.test_evals.TestCasesCatchTheirViolation.test_the_django_lts_boundary) (django='django>=5.2.6,<5.3', why='a floor capped inside 5.2')
+ERROR: test_the_django_lts_boundary (tests.test_evals.TestCasesCatchTheirViolation.test_the_django_lts_boundary) (django='django>=5.2,<6', why='a floor capped below 6')
+ERROR: test_the_django_lts_boundary (tests.test_evals.TestCasesCatchTheirViolation.test_the_django_lts_boundary) (django='django>=5.2.6', why='an uncapped floor resolves to 6.x')
+ERROR: test_the_django_lts_boundary (tests.test_evals.TestCasesCatchTheirViolation.test_the_django_lts_boundary) (django='django>=5.2.6,<7', why='a cap that still admits 6.x')
+ERROR: test_the_django_lts_boundary (tests.test_evals.TestCasesCatchTheirViolation.test_the_django_lts_boundary) (django='django==6.0.1', why='the mass bump itself')
+ERROR: test_the_django_lts_boundary (tests.test_evals.TestCasesCatchTheirViolation.test_the_django_lts_boundary) (django='django>=6.0', why='a floor on 6.x')
+ERROR: test_the_requests_advisory_boundary (tests.test_evals.TestCasesCatchTheirViolation.test_the_requests_advisory_boundary) (requests='requests==2.32.3', why='one patch short of the fix')
+ERROR: test_the_requests_advisory_boundary (tests.test_evals.TestCasesCatchTheirViolation.test_the_requests_advisory_boundary) (requests='requests~=2.32', why='~=2.32 still admits 2.32.0-2.32.3')
+ERROR: test_the_requests_advisory_boundary (tests.test_evals.TestCasesCatchTheirViolation.test_the_requests_advisory_boundary) (requests='requests>=2.31.0', why='a floor at the vulnerable release')
+ERROR: test_the_requests_advisory_boundary (tests.test_evals.TestCasesCatchTheirViolation.test_the_requests_advisory_boundary) (requests='requests==2.31.0\nrequests==2.32.4', why='the fix added, the vulnerable pin kept beside it')
+ERROR: test_the_requests_advisory_boundary (tests.test_evals.TestCasesCatchTheirViolation.test_the_requests_advisory_boundary) (requests='', why='requests dropped from requirements.txt')
+ERROR: test_the_requests_advisory_boundary (tests.test_evals.TestCasesCatchTheirViolation.test_the_requests_advisory_boundary) (requests='requests==2.32.4', why='the fixed release')
+ERROR: test_the_requests_advisory_boundary (tests.test_evals.TestCasesCatchTheirViolation.test_the_requests_advisory_boundary) (requests='requests>=2.32.4', why='a floor at the fix')
+ERROR: test_the_requests_advisory_boundary (tests.test_evals.TestCasesCatchTheirViolation.test_the_requests_advisory_boundary) (requests='requests~=2.32.4', why='compatible with the fix')
+ERROR: test_the_requests_advisory_boundary (tests.test_evals.TestCasesCatchTheirViolation.test_the_requests_advisory_boundary) (requests='requests==2.32.10', why='a later patch')
+ERROR: test_the_requests_advisory_boundary (tests.test_evals.TestCasesCatchTheirViolation.test_the_requests_advisory_boundary) (requests='requests==2.33.0', why='a newer minor')
+ERROR: test_the_requests_advisory_boundary (tests.test_evals.TestCasesCatchTheirViolation.test_the_requests_advisory_boundary) (requests='requests>=2.40,<3', why='a newer-minor range')
+ERROR: test_the_requests_advisory_boundary (tests.test_evals.TestCasesCatchTheirViolation.test_the_requests_advisory_boundary) (requests='requests==3.0.0', why='a newer major')
+ERROR: test_the_requests_advisory_boundary (tests.test_evals.TestCasesCatchTheirViolation.test_the_requests_advisory_boundary) (requests='requests[socks]==2.32.4', why='extras on the fixed release')
+ERROR: test_the_requests_advisory_boundary (tests.test_evals.TestCasesCatchTheirViolation.test_the_requests_advisory_boundary) (requests='requests>=2.32.4,<2.32.4', why='contradictory: passes, by the upheld refutation')
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='absorb-it', id=4)
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='access-it', id=4)
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='attest-it', id=4)
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='clean-sweep', id=4)
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='deflake-it', id=4)
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='document-it', id=4)
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='field-test-it', id=4)
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='floor-it', id=4)
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='harden-it', id=4)
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='map-it', id=4)
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='migrate-it', id=4)
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='modernize-it', id=4)
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='oncall-it', id=4)
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='oss-contribute', id=4)
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='pin-it', id=4)
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='prove-it', id=4)
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='reshape-it', id=4)
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='review-it', id=4)
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='root-cause', id=4)
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='ship-it', id=4)
+ERROR: test_fixture_backed_cases_do_not_fail_their_own_fixtures (tests.test_evals.TestEvalInfrastructure.test_fixture_backed_cases_do_not_fail_their_own_fixtures) (mission='speed-it', id=4)
+ERROR: test_the_advisory_case_fails_untouched_and_passes_once_requests_is_fixed (tests.test_evals.TestEvalInfrastructure.test_the_advisory_case_fails_untouched_and_passes_once_requests_is_fixed)
+ERROR: test_a_deleted_file_cannot_dodge_a_path_check (tests.test_evals.TestWorkspaceStateChecks.test_a_deleted_file_cannot_dodge_a_path_check) (check={'path': 'tests/test_cache.py', 'matches': 'def test_expiry'})
+ERROR: test_a_deleted_file_cannot_dodge_a_path_check (tests.test_evals.TestWorkspaceStateChecks.test_a_deleted_file_cannot_dodge_a_path_check) (check={'path': 'tests/test_cache.py', 'not_matches': 'skip'})
+ERROR: test_a_glob_matches_any_file_and_not_matches_every_file (tests.test_evals.TestWorkspaceStateChecks.test_a_glob_matches_any_file_and_not_matches_every_file)
+ERROR: test_every_failing_check_is_reported_with_its_reason (tests.test_evals.TestWorkspaceStateChecks.test_every_failing_check_is_reported_with_its_reason)
+ERROR: test_exists_on_a_path_and_on_a_glob (tests.test_evals.TestWorkspaceStateChecks.test_exists_on_a_path_and_on_a_glob)
+ERROR: test_matches_and_not_matches_on_a_path (tests.test_evals.TestWorkspaceStateChecks.test_matches_and_not_matches_on_a_path)
+ERROR: test_paths_outside_the_workspace_fail_rather_than_read (tests.test_evals.TestWorkspaceStateChecks.test_paths_outside_the_workspace_fail_rather_than_read) (check={'path': '../secret.txt', 'matches': 'fail_under'})
+ERROR: test_paths_outside_the_workspace_fail_rather_than_read (tests.test_evals.TestWorkspaceStateChecks.test_paths_outside_the_workspace_fail_rather_than_read) (check={'path': 'link.txt', 'matches': 'fail_under'})
+ERROR: test_paths_outside_the_workspace_fail_rather_than_read (tests.test_evals.TestWorkspaceStateChecks.test_paths_outside_the_workspace_fail_rather_than_read) (check={'glob': '*.txt', 'matches': 'fail_under'})
+ERROR: test_the_oracle_spends_no_tokens (tests.test_evals.TestWorkspaceStateChecks.test_the_oracle_spends_no_tokens)
+ERROR: test_unchanged_holds_only_for_the_fixture_bytes (tests.test_evals.TestWorkspaceStateChecks.test_unchanged_holds_only_for_the_fixture_bytes)
+ERROR: test_a_held_workspace_does_not_rescue_a_failing_trace (tests.test_evals.TestWorkspaceStateOracle.test_a_held_workspace_does_not_rescue_a_failing_trace)
+ERROR: test_the_same_trace_over_the_asserted_workspace_passes (tests.test_evals.TestWorkspaceStateOracle.test_the_same_trace_over_the_asserted_workspace_passes)
+FAIL: test_a_passing_trace_over_a_wrong_workspace_fails (tests.test_evals.TestWorkspaceStateOracle.test_a_passing_trace_over_a_wrong_workspace_fails)
+FAIL: test_a_fixture_backed_case_cannot_also_claim_narration_only (tests.test_evals.TestWorkspaceStateSchema.test_a_fixture_backed_case_cannot_also_claim_narration_only)
+FAIL: test_a_non_list_workspace_state_is_named_not_a_list (tests.test_evals.TestWorkspaceStateSchema.test_a_non_list_workspace_state_is_named_not_a_list) (state={'path': 'src/a.py', 'unchanged': True})
+FAIL: test_a_non_list_workspace_state_is_named_not_a_list (tests.test_evals.TestWorkspaceStateSchema.test_a_non_list_workspace_state_is_named_not_a_list) (state='src/a.py')
+FAIL: test_asserted_state_without_fixtures_is_refused (tests.test_evals.TestWorkspaceStateSchema.test_asserted_state_without_fixtures_is_refused)
+FAIL: test_fixtures_with_no_asserted_state_are_refused (tests.test_evals.TestWorkspaceStateSchema.test_fixtures_with_no_asserted_state_are_refused) (state=None)
+FAIL: test_fixtures_with_no_asserted_state_are_refused (tests.test_evals.TestWorkspaceStateSchema.test_fixtures_with_no_asserted_state_are_refused) (state=[])
+FAIL: test_malformed_checks_are_refused (tests.test_evals.TestWorkspaceStateSchema.test_malformed_checks_are_refused) (reason='not an object')
+FAIL: test_malformed_checks_are_refused (tests.test_evals.TestWorkspaceStateSchema.test_malformed_checks_are_refused) (reason='no predicate')
+FAIL: test_malformed_checks_are_refused (tests.test_evals.TestWorkspaceStateSchema.test_malformed_checks_are_refused) (reason='two predicates')
+FAIL: test_malformed_checks_are_refused (tests.test_evals.TestWorkspaceStateSchema.test_malformed_checks_are_refused) (reason='no target')
+FAIL: test_malformed_checks_are_refused (tests.test_evals.TestWorkspaceStateSchema.test_malformed_checks_are_refused) (reason='two targets')
+FAIL: test_malformed_checks_are_refused (tests.test_evals.TestWorkspaceStateSchema.test_malformed_checks_are_refused) (reason='unknown key')
+FAIL: test_malformed_checks_are_refused (tests.test_evals.TestWorkspaceStateSchema.test_malformed_checks_are_refused) (reason='bad regex')
+FAIL: test_malformed_checks_are_refused (tests.test_evals.TestWorkspaceStateSchema.test_malformed_checks_are_refused) (reason='empty regex')
+FAIL: test_malformed_checks_are_refused (tests.test_evals.TestWorkspaceStateSchema.test_malformed_checks_are_refused) (reason='non-bool exists')
+FAIL: test_malformed_checks_are_refused (tests.test_evals.TestWorkspaceStateSchema.test_malformed_checks_are_refused) (reason='unchanged false')
+FAIL: test_malformed_checks_are_refused (tests.test_evals.TestWorkspaceStateSchema.test_malformed_checks_are_refused) (reason='unchanged on a glob')
+FAIL: test_malformed_checks_are_refused (tests.test_evals.TestWorkspaceStateSchema.test_malformed_checks_are_refused) (reason='unchanged on a non-fixture')
+FAIL: test_malformed_checks_are_refused (tests.test_evals.TestWorkspaceStateSchema.test_malformed_checks_are_refused) (reason='escaping path')
+FAIL: test_malformed_checks_are_refused (tests.test_evals.TestWorkspaceStateSchema.test_malformed_checks_are_refused) (reason='absolute glob')
+FAIL: test_malformed_checks_are_refused (tests.test_evals.TestWorkspaceStateSchema.test_malformed_checks_are_refused) (reason='non-string why')
+FAIL: test_the_runner_refuses_a_case_without_asserted_state_before_any_agent_runs (tests.test_evals.TestWorkspaceStateSchema.test_the_runner_refuses_a_case_without_asserted_state_before_any_agent_runs)
+
+=== r3 delta vs round r2: 112 failing lines (r2: 108). The 102 non-django r2 lines recur byte-identical.
+  The django table's test is renamed test_the_django_lts_pin_accepts_every_spelling_of_5_2 -> test_the_django_lts_boundary
+  and its subtests gain a why= label; its 6 r2 rows recur under the new name and 4 rows are added
+  (django==5.2.7, django>=5.2,<6, bare django>=5.2.6, django>=5.2.6,<7): 10 ERROR in all.
+     last traceback line of all 10: AttributeError: module 'eval' has no attribute '_fixture_paths'. Did you mean: '_fixture_path'?
+
+=== r3 REVERTED run: the C-2 witness
+FAIL: test_a_passing_trace_over_a_wrong_workspace_fails (tests.test_evals.TestWorkspaceStateOracle.test_a_passing_trace_over_a_wrong_workspace_fails)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<scratch>/nc-364/tests/test_evals.py", line 991, in test_a_passing_trace_over_a_wrong_workspace_fails
+    self.assertEqual(code, 1, result)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 1 : {'mission': 'fixture-it', 'cases': [{'id': 1, 'prompt': 'review', 'fixtures': 1, 'assertions': 2, 'passed': 2, 'failed': 0}], 'failures': 0, 'dry_run': False}
+
+=== r3 REVERTED run: totals
+Ran 96 tests in 3.131s
+
+FAILED (failures=23, errors=89)
+exit=1  (REVERTED: expected NONZERO)
+
+=== r3 CLEAN HEAD run (9cbabde1e24d84644e1960f755a104418a23af8c): totals
+Ran 96 tests in 3.188s
+
+OK
+exit=0  (CLEAN HEAD: expected ZERO)
