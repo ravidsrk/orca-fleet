@@ -104,5 +104,5 @@ install transcript yet.
 ## Check the install
 
 Ask your agent "which missions are available?" — the outcome-named skills should list; with the
-two symlinks above you get `ship-it` and `review-it`. If a mission is visible but stops on start
+two symlinks above you get `ship-it` and `clean-sweep`. If a mission is visible but stops on start
 saying it cannot find a playbook, it was copied rather than linked.

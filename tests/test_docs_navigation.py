@@ -610,8 +610,10 @@ class TestDocsNavigation(unittest.TestCase):
         # prove-it listing gate-classification and map-it listing merge-serialization under
         # Composes, none of which their SKILL.md mentions at all: a false catalog in the other
         # direction, invisible because only guide ⊇ clause was checked. A guide may list a
-        # protocol the skill composes, rides, or names as a phase-cued read (`name.md`), and
-        # nothing else.
+        # protocol the skill composes or rides, names in its DEFERRED READS paragraph (anything
+        # after a "Never" there is an exclusion, not a read), or tells the coordinator to
+        # `read <name>.md` at a phase — and nothing else. A bare mention elsewhere in the skill
+        # is prose, not a declaration (PR #396 review).
         protocols = {p.stem for p in (ROOT / "playbooks").glob("*.md")}
         protocols |= {p.stem for p in RUNTIME.glob("*.md")}
         guide_links = re.compile(
@@ -620,13 +622,18 @@ class TestDocsNavigation(unittest.TestCase):
         guide_section = re.compile(
             r"^## Composes\n(.*?)(?=^## |\Z)", re.DOTALL | re.MULTILINE
         )
-        mention = re.compile(r"\b([a-z][a-z0-9-]+)\.md\b")
+        name_md = re.compile(r"\b([a-z][a-z0-9-]+)\.md\b")
+        deferred_para = re.compile(r"DEFERRED READS.*?(?:\n\n|\Z)", re.DOTALL)
+        phase_read = re.compile(r"\bread\s+([a-z][a-z0-9-]+)\.md\b")
         for d in sorted((ROOT / "skills").iterdir()):
             if not d.is_dir() or d.name.startswith((".", "_")):
                 continue
             skill = (d / "SKILL.md").read_text(encoding="utf-8")
             allowed = set(validate.guide_declared_protocol_names(skill))
-            allowed |= set(mention.findall(skill))
+            para = deferred_para.search(skill)
+            if para:
+                allowed |= set(name_md.findall(para.group(0).split("Never")[0]))
+            allowed |= set(phase_read.findall(skill))
             allowed &= protocols
             guide = (DOCS / "missions" / f"{d.name}.md").read_text(encoding="utf-8")
             section = guide_section.search(guide)
@@ -645,14 +652,18 @@ class TestDocsNavigation(unittest.TestCase):
         # a measurement harness, mutation tooling, a docs-framework build). The guide's Needs
         # line is the SKILL's `compatibility` field verbatim, so the two cannot drift.
         needs = re.compile(r"^\*\*Needs\*\* \(the skill's `compatibility` field, verbatim\): (.+)$", re.M)
-        compat_re = re.compile(r"^compatibility:\s*>-?\n((?:[ \t]+.*\n)+)", re.M)
+        # The same frontmatter path the validator's eval checks use, so any scalar style it
+        # accepts is accepted here (PR #396 review).
+        spec = importlib.util.spec_from_file_location("evalmod", ROOT / "scripts" / "eval.py")
+        evalmod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(evalmod)
         for d in sorted((ROOT / "skills").iterdir()):
             if not d.is_dir() or d.name.startswith((".", "_")):
                 continue
             skill = (d / "SKILL.md").read_text(encoding="utf-8")
-            m = compat_re.search(skill)
-            self.assertIsNotNone(m, f"skills/{d.name}/SKILL.md has no block-scalar compatibility field")
-            compat = " ".join(m.group(1).split())
+            value = evalmod.parse_frontmatter(skill).get("compatibility")
+            self.assertTrue(value, f"skills/{d.name}/SKILL.md has no compatibility field")
+            compat = " ".join(str(value).split())
             guide = (DOCS / "missions" / f"{d.name}.md").read_text(encoding="utf-8")
             g = needs.search(guide)
             self.assertIsNotNone(g, f"docs/missions/{d.name}.md has no Needs line")
