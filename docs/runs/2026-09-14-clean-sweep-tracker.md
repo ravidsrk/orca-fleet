@@ -1110,3 +1110,14 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   3 axes dispatched (spec task_26d8c15d665d→ctx_a2dd48bdee4c, test
   task_8ce42fba2912→ctx_98299204ac12, standards task_dbb562e1ff26→
   ctx_16b0dc79dfb1).
+- R387W-r5 1/3 in: TEST 1 Required (T5-1, medium confidence:
+  tab-indented code line + --- still closes section, hides
+  incomplete dup wave=2 — the S-2 fail-open with a tab) + 3 Nits
+  (survivors on R5 lines: :562 3-space threshold, :538 empty
+  reset, :519 pop-vs-clear; each misparses a markdown-it shape) +
+  2 FYI (PR body re-staled — describes r4/f8a0d87 not fd12ce4,
+  needs a close refresh; Greptile block intact 5/5). Batch
+  landed; 83/validate re-ran; NC-1/NC-2/M14s/MX11/MX15
+  reproduced; full suite NOT re-ran. 4 threads owed
+  coordinator replies. Released. SPEC + STANDARDS out. T10 →
+  likely NO-GO → r6 fix.
