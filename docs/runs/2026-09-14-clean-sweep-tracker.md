@@ -35,7 +35,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | T7 | #393 | mixed-version rollout lock (opportunistic sidecar + test) | real-bug | t | t | t | t | t | t | lit | needs-human: post-merge independent APPROVE (2nd login) for verify review leg (see gate-batch.md G3) | V393-r1 GO 5206137160 @7630815 (F1+P1 close-owed, P2 FIFO accepted low-sev Optional → backlog); MERGED 6d9e46a; verify 5/6 (review RED, parked — see gate-batch.md G3); #393 CLOSED with evidence |
 | T8 | #387-threads | ledger/process remediation (parks, u385 tree, templates, close doc) | process | t | t | t | t | t | t | lit | — | V387P-r3 GO 5207105770 @19be7a1 (0 Required all axes + Greptile APPROVED); 2 thread replies posted pre-merge (4013297581/4013297827); MERGED b9b71df6 (--match-head-commit + --delete-branch, branch 404); verify 6/6 GREEN (review leg via Greptile APPROVED); manifest closed (head re-bind 4142b63→19be7a1, 3 coordinator re-runs: probe/validate/1360); worktree retired |
 | T9 | #387-threads | eval-glob holes (T6 regression: app//lib/ miss; empty-glob survey) | real-bug (evals) | t | t | t | t | t | t | lit | needs-human: post-merge independent APPROVE (2nd login) for verify review leg (see gate-batch.md G3) | V387G-r2 GO 5206446623 @318542b (delta: T9 byte-identical, badge 1360 recomputed, 1360 OK); MERGED a769a64e (--match-head-commit + --delete-branch, branch 404); verify 5/6 (review RED, parked); manifest closed (head re-bind 0a3f4ab→318542b, 3 coordinator re-runs: 109/validate/1360); worktree retired |
-| T10 | #387-threads | WIP-curve rows: scope to canonical section (U389 residual) | real-bug | t | t | t | f | f | f | lit | — | PR #401 (u387w-wipsection) @0d55f10 (r6 batch landed: R-1/N-1 witnesses, docstring+prose, nnt[9]); Greptile 5/5 clean, no new findings; 3 r7 axes live; PR body + 4 thread replies OWED conductor-side pre-merge |
+| T10 | #387-threads | WIP-curve rows: scope to canonical section (U389 residual) | real-bug | t | t | t | t | t | t | lit | needs-human: post-merge independent APPROVE (2nd login) for verify review leg (see gate-batch.md G3) | V387W-r7 GO 5209642813 @0d55f10 (0 Required all axes + Greptile 5/5); 4 thread replies posted pre-merge (4015319392/4015319611/4015319861/4015320146) + PR body refreshed; MERGED bff42ff1 (--match-head-commit + --delete-branch, branch 404); verify 5/6 (review RED, parked); manifest closed (reviewer_mode filled + head re-bind 47d5867→0d55f10, 3 coordinator re-runs: 83/validate/1378); worktree retired |
 
 PHASE: ORIENT → ENUMERATE → TRIAGE done → FREEZE → BUILD wave 1: U385 CLOSED, U388 U389 in fix-round → wave 2: U364
 
@@ -1233,3 +1233,32 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   STANDARDS 0 → V387W-r7 spec frozen (3 verbatim from /tmp
   archives + body-reply conductor-excludes). Dispatched —
   expect GO → replies + body + merge.
+- V387W-r7 GO (msg_3d37a76c745, review 5209642813 COMMENTED @0d55f10,
+  released, verified, body archived /tmp): 0 Critical/Required all
+  axes (3 Nits + 2 Optionals + 5 FYI carried); verdict reproduced
+  the TEST nit mutants + re-ran 83/1378/validate/ruff/78-lines/
+  oracle/bot-5/5; blind-fix misses disclosed. REVIEWED=t.
+- T10 THREAD REPLIES (coordinator lane, pre-merge, egress receipted
+  with payload-file hashes; first P2 draft receipt 69ac2553 SUPERSEDED
+  — draft misstated the fix, corrected receipt 1b7cc846 covers the
+  send after verifying d52ff42's diff): 4015319392→P2 (fixed in
+  d52ff42, backtick-info rule), 4015319611→P1-7458 (code fix
+  ac9395d, NOT manifest tip), 4015319861→P1-0408 (fixed in
+  de82be7, content-column), 4015320146→P1-7818 (FP with reasons +
+  witness ad1eea8/6c23677). All verified posted in-thread.
+- T10 PR BODY (coordinator lane, pre-merge, egress pr-edit/pr-body
+  ef3f10cd receipted): rewritten for 0d55f10 (rule + 7 rounds +
+  83/validate/1378 + 52-control NC; Greptile block byte-preserved;
+  verified live, 2 markers).
+- T10 MERGED bff42ff1 (PR #401 --merge; --match-head-commit 0d55f10...
+  + --delete-branch both honored; parents 4bd7e7d+0d55f10, ancestry
+  OK, branch 404; egress branch-tip + branch-delete receipted).
+  CLOSE: 3 coordinator re-runs GREEN at reviewed tip (83 OK /
+  validate / 1378 OK, detached worktree, tree clean); manifest
+  reviewer_mode filled (was null, true) + head re-bound
+  47d5867→0d55f10 + pr filled + conductor_note; verify.py 5/6
+  (review RED: no independent APPROVED on #401 — needs-human park
+  + G3 append, same as T1/T2/T3/T7/T9). Contract digest re-derived
+  by coordinator (git show == d7b4e72c). MERGED=t, WT_CLEAN=t
+  (worktree retired from git + orca registries, dir gone). FOURTH
+  WAVE-2 UNIT DONE — WAVE 2 COMPLETE (T7+T9+T8+T10 merged).
