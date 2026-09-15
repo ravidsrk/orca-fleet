@@ -622,6 +622,14 @@ class WipCurveObligation(unittest.TestCase):
             with self.subTest(case=name, rows="a wave=3 example beside the real row"):
                 report = f"{head}{nested.format(row=stray)}\n{self.ROW_1}\n"
                 self.assertEqual(run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md"), [])
+        # A nested fence ends at its own closer, so the item's content after it is read: a closer
+        # looked for only near the margin never matched, and the fence swallowed the item's real row
+        # (mutant M13g; since verdict r5 F-2 a row back at the margin ends the fence regardless).
+        with self.subTest(case="the item's row after its closed fence"):
+            report = (f"RUN: mission=ship-it waves=1\n\n{self.SECTION}\n\n"
+                      f"1. Filled in as the example shows:\n\n    ```text\n    {stray}\n    ```\n\n"
+                      f"    {self.ROW_1}\n")
+            self.assertEqual(run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md"), [])
         # Verdict r5 (SPEC F-2): and only while its item lasts. A line left of the item's content
         # column ends the item, and an unclosed fence in it with it (markdown-it-py), so an
         # incomplete second wave=2 row after that line is read, never swallowed as code.
