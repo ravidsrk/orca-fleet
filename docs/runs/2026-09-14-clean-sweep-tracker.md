@@ -1095,4 +1095,4 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   integrator trailer dropped; Greptile block byte-preserved;
   egress pr-edit/pr-body c2f7fd17 receipted; verified live). Fix
   spec fix-387w-r5.md frozen (S-1 marked done, builder must not
-  touch body). Dispatched.
+  touch body). Dispatched (task_77388b5f3c2c→ctx_3249c2af0fe6).
