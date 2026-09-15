@@ -1107,4 +1107,6 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   threads — no new findings). NO posts, NO body touch (4 threads
   owed coordinator-side pre-merge). R387W-r5 specs frozen (copies +
   retarget fd12ce4 + batch-verify + bot-clean-confirm + S-1-verify);
-  3 axes dispatched.
+  3 axes dispatched (spec task_26d8c15d665d→ctx_a2dd48bdee4c, test
+  task_8ce42fba2912→ctx_98299204ac12, standards task_dbb562e1ff26→
+  ctx_16b0dc79dfb1).
