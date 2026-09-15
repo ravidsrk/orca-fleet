@@ -35,7 +35,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | T7 | #393 | mixed-version rollout lock (opportunistic sidecar + test) | real-bug | t | t | t | t | t | t | lit | needs-human: post-merge independent APPROVE (2nd login) for verify review leg (run_0607bdc681e6) | V393-r1 GO 5206137160 @7630815 (F1+P1 close-owed, P2 FIFO accepted low-sev Optional → backlog); MERGED 6d9e46a; verify 5/6 (review RED, parked); #393 CLOSED with evidence |
 | T8 | #387-threads | ledger/process remediation (parks, u385 tree, templates, close doc) | process | t | t | t | f | f | f | lit | — | PR #403 (u387p-process) @19be7a1 (r2 batch landed: TA-R1 pin, G3 refs+ASK, park-scope, note fix); Greptile APPROVED 5206957088, no new findings; 3 r3 axes live; 2 thread replies OWED conductor-side pre-merge |
 | T9 | #387-threads | eval-glob holes (T6 regression: app//lib/ miss; empty-glob survey) | real-bug (evals) | t | t | t | t | t | t | lit | needs-human: post-merge independent APPROVE (2nd login) for verify review leg (run_0607bdc681e6) | V387G-r2 GO 5206446623 @318542b (delta: T9 byte-identical, badge 1360 recomputed, 1360 OK); MERGED a769a64e (--match-head-commit + --delete-branch, branch 404); verify 5/6 (review RED, parked); manifest closed (head re-bind 0a3f4ab→318542b, 3 coordinator re-runs: 109/validate/1360); worktree retired |
-| T10 | #387-threads | WIP-curve rows: scope to canonical section (U389 residual) | real-bug | t | t | t | f | f | f | lit | — | PR #401 (u387w-wipsection) @04b780f: V387W-r2 NO-GO (P1 Required fail-open+closed, M7a-d/M8/M9 survivors); r3 fix live (plain-para setext + witnesses + look-alikes); 2 thread replies OWED conductor-side pre-merge |
+| T10 | #387-threads | WIP-curve rows: scope to canonical section (U389 residual) | real-bug | t | t | t | f | f | f | lit | — | PR #401 (u387w-wipsection) @3ce5825 (r2 batch landed: plain-para setext, M7a-d/M8/M9 witnesses, note correction); Greptile NEW P1 4013204408 (container boundaries, noticed-not-touched); 3 r3 axes live; 2 thread replies OWED conductor-side pre-merge |
 
 PHASE: ORIENT → ENUMERATE → TRIAGE done → FREEZE → BUILD wave 1: U385 CLOSED, U388 U389 in fix-round → wave 2: U364
 
@@ -929,3 +929,16 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   dispatched (spec task_68ebec81432a→ctx_1170f77893e2, test
   task_739400a96748→ctx_69498e2af4f0, standards task_f0643c0a15ab→
   ctx_16bf58f0f92e).
+- FIX387W-r3 worker_done (msg_30a9f5bf0311, released, verified): PR #401
+  @3ce5825 (union 0fcb18d over ede9098 badge-only + 4 commits per worker
+  list, 5cde1f1→3ce5825 manifest-only; origin==PR head, mergeable
+  clean). Gates re-ran coordinator-side @3ce5825: 76 OK + validate.
+  Manifest checks (head=5cde1f1 code tip, C-1..C-4, NC 1/0, 3 cmds
+  bound 54322e6; item-5 fix confirmed — nnt[1] carries an explicit
+  round-3 Correction quoting the wrong r2 claim). NEW Greptile P1
+  4013204408 @3ce5825 (container boundaries: '2. item' as container
+  fails open under setext; indented list para after blank fails
+  closed) left noticed-not-touched, needs a spec if VALID. NO posts
+  (P2→d52ff42 + P1→3ce5825 replies owed coordinator-side pre-merge).
+  R387W-r3 specs frozen (copies + retarget 3ce5825 + batch-verify +
+  new-P1 judge); 3 axes dispatched.
