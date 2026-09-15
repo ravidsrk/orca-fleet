@@ -32,7 +32,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | T5 | #386 | sign manifest+inventory, retention backend (S2) | — | — | — | — | — | — | — | — | needs-human: key custody + backend undecided (Q2) | Q2: park |
 | T6 | #364 | prove-it/oncall-it venv glob scoping (U364 fix-forward) | real-bug (evals) | t | t | t | t | t | t | lit | — | PR #397 MERGED 01d954e @2967804 (reviewed==head; GO 5205447863; merged ~7min pre-verdict, disclosed); verify 6/6 incl. Greptile-APPROVED review leg; remediates U364 SPEC-r3 F-1 |
 | — | #235 | H-02 marketplace submissions (pre-parked needs-human) | needs-human | — | — | — | — | — | — | needs-human: external accounts | prior run + issue text |
-| T7 | #393 | mixed-version rollout lock (opportunistic sidecar + test) | real-bug | t | f | f | f | f | f | lit | — | BUILD task_baa2b1f25ab0 done: d709296+ccca9a4→a74139b+53eb269; coordinator-verified (28 OK + validate @a74139b); C-1..C-4, NC RED/GREEN, 1351 full OK; disclosed gaps x2 for review |
+| T7 | #393 | mixed-version rollout lock (opportunistic sidecar + test) | real-bug | t | t | t | f | f | f | lit | — | PR #400 @7630815 (union over 2094f61, docs-only); Greptile 4/5, 2 VALID held (P1 union-staleness = close-step, P2 FIFO sidecar = fix candidate); 3 axes live |
 | T8 | #387-threads | ledger/process remediation (parks, u385 tree, templates, close doc) | process | f | f | f | f | f | f | lit | — | spec build-387-process.md; 7 threads REAL → fix, incl. proof-park → needs-human (T1/T2/T3) |
 | T9 | #387-threads | eval-glob holes (T6 regression: app//lib/ miss; empty-glob survey) | real-bug (evals) | f | f | f | f | f | f | lit | — | spec build-387-eval-globs.md; inverts T6 (broad positive + central denylist) |
 | T10 | #387-threads | WIP-curve rows: scope to canonical section (U389 residual) | real-bug | t | f | f | f | f | f | lit | — | BUILD task_746b7c0da3b6 done: 4c72718+d657941→d31ef62+6ae6cf0; coordinator-verified (69 OK + validate @d31ef62); C-1..C-4, NC RED/GREEN, 1353 full OK; fixture-change noted for review |
@@ -656,3 +656,12 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   false-fails. Integrator spec taskspecs/integrate-387w.md frozen.
 - I387W dispatched: integrate-387w spec (union + gates + PR + bot reconcile).
   task_418c6155f58e → ctx_0d68e48b0558 (claude, unit worktree).
+- I393 worker_done (msg_392c0c1e5e8d): PR #400 @7630815 (union over 2094f61,
+  docs-only, gates green on union; gitleaks branch-range clean, 3 pre-existing
+  fixture hits out of range). Greptile 4/5, 0 comments pushed, 2 VALID held:
+  P1 4012297723 (manifest binds a74139b not union tip — coordinator close
+  re-bind, NOT a builder defect; verdict refutes with reason) + P2 4012297731
+  (FIFO at sidecar path blocks O_RDONLY open, reproduced — joins verdict as
+  Required). Released. PR_OPEN=t, BOT=t.
+- R393 axes dispatched @7630815 (specs review-393-{spec,test,standards}.md;
+  corrected && checkout form — T8 template fix previewed).
