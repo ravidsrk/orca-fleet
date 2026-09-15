@@ -107,6 +107,41 @@ worker reverts the fix on a throwaway branch and re-drives the on-device flow ex
 (landed BASE is never modified). A green desktop run is never accepted as device evidence; a
 one-time repro is marked flaky and re-driven, not closed.
 
+## A worked example
+
+*A run, sketched — the shape of one, not a transcript.*
+
+> test on a real device: the camera-upload flow crashes on Android 14
+
+**Pair.** An Android emulator through `orca-emulator-android`; the oracle tier `EMULATOR` and its
+preconditions (API 34 image, camera permission granted) are recorded in the ledger.
+
+**Baseline.** The pre-change flows are driven on the emulator and ledgered.
+
+**Reproduce.** A recording plus `logcat` show the crash on return from the camera intent — the
+artifact is the repro, not a description of it.
+
+**Fix → review → land.** An `rw` worker writes the failing instrumented test first, then the fix.
+
+**Re-verify on-device.** At the head SHA the flow is GREEN; the revert control re-drives it with
+the fix reverted and the crash returns.
+
+**Snapshot.** The post-change baseline is ledgered. One reported defect — thermal throttling on a
+physical device — is parked: a hardware-only class is never "verified" on the emulator tier. The
+run ends `FIELD-PROVEN-WITH-PARKED`.
+
+## Failure modes this mission is built to prevent
+
+| Anti-pattern | Why it burns you |
+|---|---|
+| Accepting an emulator-tier pass for a hardware-only defect class — sensors, thermal, radios | The oracle tier is recorded per defect and never upgraded silently |
+| Accepting a desktop or simulator pass as device proof, or pairing hardware for an emulator flow | The oracle is the target the mission declared, in either direction |
+| Closing a defect from a fix that "should work" | Only the on-device re-verify at the head SHA counts |
+| Skipping the revert control because re-pairing is tedious | It is the only proof the fix caused the green |
+| Treating a one-time repro as a fix target | Mark it flaky and re-drive; one observation is not a defect |
+| Installing builds on devices outside the paired set | That is the sandbox-policy danger lane — a stranger's device is never touched |
+| Leaving the baseline unledgered | The next run starts from memory |
+
 ## Composes
 Playbooks:
 [`diagnose`](../../playbooks/diagnose.md) ·

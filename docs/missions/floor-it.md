@@ -108,6 +108,43 @@ bound to `head_sha` — or PARKED as untoolable with the human gate named. The v
 RECORDED injection artifacts (archived canary runs and RED/GREEN transcripts); it never injects
 fresh violations into landed code. The table never shrank mid-run.
 
+## A worked example
+
+*A run, sketched — the shape of one, not a transcript.*
+
+> set the quality bar
+
+**Detect.** Measured with the repo's existing counters: line coverage 63%, no secret scanning, no
+performance budget, a linter already on.
+
+**Freeze (your one-way gate).** Interactive, so you are interviewed with recommended defaults and
+you freeze: coverage ≥ 60% and ratcheting up, `gitleaks`, a Lighthouse budget for the two key
+journeys, and no lint suppression without a reason. `CONSTRAINTS.md` is the first commit on BASE.
+A headless run would have published the proposal and parked here.
+
+**Wire → prove-fires.** One tool per dimension. Before review, the coordinator injects a violation
+on a throwaway branch — a fake credential in a fixture, a coverage drop — and each harness goes
+RED; reverting the injection goes GREEN. A harness that stayed GREEN would never land.
+
+**Review → land → enforce → guard.** CI on BASE; a canary PR per gate goes RED and is closed
+unmerged; a checked-in validator watches for a threshold quietly lowered.
+
+**Reflect.** Accessibility is recorded as untoolable for now (no rendered UI in CI) and parked.
+The run ends `FLOORED-WITH-PARKED`.
+
+## Failure modes this mission is built to prevent
+
+| Anti-pattern | Why it burns you |
+|---|---|
+| A prose bar with no tool per dimension | A wiki page, not a floor |
+| A gate admitted to CI before its RED was observed, locally and on a canary PR | A green `continue-on-error` job is a vacuous gate |
+| Auto-freezing thresholds in an unattended run | One-way doors are human-only; the run parks at the freeze |
+| Injecting violations on BASE or the default branch | Injections live on throwaway branches only |
+| Delegating the injection to a worker | It is coordinator-executed, and the security injection is a fixture the scanner reads, never a real known-bad package |
+| Editing a threshold down to make a run green | The GUARD's exact target — one-way, never mechanical |
+| Letting `speed-it`'s journey budgets stand in for the bar | Journey-level optimization is a different unit; this mission installs the standing repo-wide bar |
+| Picking tools before the freeze | DETECT measures with the repo's existing counters; a tool chosen early anchors the bar to the tool |
+
 ## Composes
 Playbooks:
 [`decide-and-freeze`](../../playbooks/decide-and-freeze.md) ·

@@ -108,6 +108,43 @@ Receipts name the CLI version they were captured from; the verifier re-derives a
 re-running probes at `head_sha`. The inventory never shrank mid-run, and the repo gates (validator,
 tests) are green at the landing SHA.
 
+## A worked example
+
+*A run, sketched — the shape of one, not a transcript.*
+
+> Orca updated — re-pin the runtime contract
+
+**Freeze.** The claim inventory — every mechanics claim in `runtime/*.md` — is digest-locked and
+the installed CLI version recorded.
+
+**Load guides.** `orca skills get` fetches the version-matched guides: a hypothesis about the
+binary, never proof.
+
+**Re-witness.** Each claim is replayed from a live Orca terminal; control-plane probes run in a
+scratch worktree with full teardown.
+
+**Classify from receipts.** `CURRENT` (the `worker_done` shape still matches), `STALE` (a flag
+renamed), `SUPERSEDED` (a command removed), `BLOCKED-BY-SUBSTRATE` (a probe that needs a second
+datadir this host does not have).
+
+**Patch → review → land.** One claim per unit; a deletion carries its refutation receipt; every
+edited line traces to a receipt. The run ends `PINNED-WITH-PARKED`, the blocked probes named with
+their precondition. The 2026-09-13 run against Orca 1.4.200 had exactly this shape — its report
+is in the [run archive](../runs/2026-09-13-pin-it-266/).
+
+## Failure modes this mission is built to prevent
+
+| Anti-pattern | Why it burns you |
+|---|---|
+| Classifying from the version-matched guide without replaying the claim | Guides drift too |
+| Classifying from a substrate-failed receipt | `BLOCKED-BY-SUBSTRATE` is a precondition verdict, never evidence about the mechanism |
+| Putting fleet-policy invariants in the inventory | They are preflight- and verify-enforced; the binary cannot reject them |
+| Wholesale doctrine rewrites ("modernise the page") | The unit is the claim |
+| Dropping a claim because its probe is awkward | That is a park, and it is named |
+| Shrinking the inventory mid-run | The denominator is frozen |
+| Marking doctrine current because a run "worked" | A run that succeeded through an undocumented fallback is evidence for drift, not against it |
+| Control-plane probes without teardown | Orphaned runs, terminals and worktrees in the local Orca state |
+
 ## Composes
 Playbooks:
 [`remediate-finding`](../../playbooks/remediate-finding.md) ·

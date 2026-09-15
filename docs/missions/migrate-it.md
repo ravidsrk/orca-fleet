@@ -193,6 +193,29 @@ CREATE TABLE parity_receipt AS SELECT id, name, full_name FROM users;
 ALTER TABLE users DROP COLUMN name;
 ```
 
+## A worked example
+
+*A run, sketched — the shape of one, not a transcript.*
+
+> migrate the database: users.name → users.full_name, no downtime
+
+**Plan.** One table, the phase ladder, a down path per phase; the integration BASE is bootstrapped.
+
+**Expand → dual-write.** `full_name` is added; deploy, bake. Every insert and update path writes
+both shapes; deploy, bake. Each phase's `up` then `down` leaves an empty schema diff, pasted.
+
+**Backfill.** Batched and resumable. The full parity probe finds three mismatches — a
+trailing-space normalizer — so the transform is fixed and the backfill resumes from its cursor;
+the probe goes GREEN.
+
+**Switch reads → zero-readers window.** Deploy, bake; the telemetry query over 48 hours shows no
+reader of the old shape, pasted. Parity is archived while writes are still dual.
+
+**Retire writes → zero-writers window.** Deploy, bake, telemetry pasted.
+
+**Contract (your one-way gate).** You approve the drop; it ships as its own deploy and the
+removal is verified. The run ends `MIGRATED`, with every phase's down-path evidence retained.
+
 ## Failure modes this mission is built to prevent
 
 | Anti-pattern | Why it burns you |

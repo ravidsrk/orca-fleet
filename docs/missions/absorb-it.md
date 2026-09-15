@@ -127,6 +127,31 @@ Refuted PRs carry the reproduction attempt on current main with its commands. Th
 re-derives authorship and re-runs the receipt at the merged SHA — "authorship was preserved" is a
 claim to check, never a fact to record.
 
+## A worked example
+
+*A run, sketched — the shape of one, not a transcript.*
+
+> drain the PR queue
+
+**Enumerate.** Fourteen open inbound PRs at `T0`, paginated to the end, with their linked issues.
+
+**Classify.** Each claim is reproduced on pinned current `main`: nine absorbable, two superseded
+by main, one a duplicate, two `needs-contributor` (unsigned DCO).
+
+**Reclassify → absorb → receipt.** Against the pinned BASE the nine still carry a delta. Each is
+applied preserving `Author:`; a lint fix the fleet needed lands as a separate, maintainer-authored
+commit. The receipt is the PR's own regression test RED on the pre-absorption base and GREEN on
+the absorbed head, both pasted.
+
+**Review → land → close.** One PR per contribution against BASE; the inbound PR is closed with
+the landing SHA and a credit line.
+
+**Batch gate (yours).** The three closes without a landing — superseded and duplicate — wait for
+your single batch approval, each citing the winning SHA.
+
+**Re-enumerate.** Dry, except the two parked with a named ask the contributor can answer. The run
+ends `ABSORBED-WITH-PARKED`.
+
 ## Failure modes this mission is built to prevent
 
 | Anti-pattern | Why it burns you |

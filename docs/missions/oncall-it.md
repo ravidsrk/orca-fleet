@@ -110,6 +110,31 @@ Per path, all of:
 Both oracle runs are done by fresh workers that did not write the instrumentation, at the recorded
 head SHA.
 
+## A worked example
+
+*A run, sketched — the shape of one, not a transcript.*
+
+> make this operable: the checkout service
+
+**Freeze (your gate).** The path set — `POST /checkout`, the payment webhook, the nightly
+reconciliation job — and two to four questions per path ("is it failing for everyone or one
+region?", "which dependency is slow?"). Those questions are the denominator.
+
+**Instrument → alert → runbook.** Events with a correlation id and RED metrics with bounded
+labels; symptom alerts with two severities and thresholds justified from thirty days of history;
+a runbook per alert with Means, First check and Escalate-to.
+
+**Review → land → test-fire.** Every alert is fired to the on-call channel and the receipt pasted.
+
+**Induce.** A webhook timeout is broken into staging. A fresh worker with no source access,
+given only the dashboards and logs, names the failing component.
+
+**Negative control.** The instrumentation is removed on a throwaway branch and a second blind
+worker cannot locate the same failure — RED, so the green was not guessable.
+
+The reconciliation job has no staging equivalent, so its path parks. The run ends
+`OPERABLE-WITH-PARKED`.
+
 ## Failure modes this mission is built to prevent
 
 | Anti-pattern | Why it burns you |

@@ -110,6 +110,30 @@ The verifier re-runs the extractor and the claim check at the merged SHA. Prose 
 the oracle here — coverage, anchoring, and reachability are; taste findings go to the review round
 or park.
 
+## A worked example
+
+*A run, sketched — the shape of one, not a transcript.*
+
+> document this project
+
+**Extract.** A script at the BASE head lists 41 exported symbols, 12 CLI flags and 7 environment
+variables; its output and SHA are pasted, so the denominator is not whatever a writer noticed.
+
+**Map.** Every entity is scored per quadrant. Fifteen cells have zero coverage (critical); twenty
+are reference-only (common).
+
+**Freeze (your gate).** You bound the taste: three entities deserve a tutorial, none an
+explanation page. The gap list freezes.
+
+**Write → claim-verify.** One worker per cell, reference first, from code archaeology. Every
+claim is anchored to a `file:symbol`; the negative control renames `parse_config` on a throwaway
+branch and the claim check goes RED.
+
+**Review → land → re-map.** Build-blind review checks voice, accuracy and that each page is
+reachable in one hop. The map re-derived at the final head shows zero critical gaps. Two cells
+are parked `explanation-needs-author` — the design rationale is not in the tree, and an invented
+"why" is worse than a blank. The run ends `DOCUMENTED-WITH-PARKED`.
+
 ## Failure modes this mission is built to prevent
 
 | Anti-pattern | Why it burns you |

@@ -96,6 +96,38 @@ is PARKED to a named human-AT reviewer with the reason the oracle cannot decide 
 `CONFORMANT` or `CONFORMANT-WITH-MANUAL-PARKED`; the denominator was never shrunk to only the
 automatable criteria.
 
+## A worked example
+
+*A run, sketched — the shape of one, not a transcript.*
+
+> accessibility: bring the checkout flow — cart, address, payment, confirmation — to WCAG 2.2 AA
+
+**Freeze.** Four pages × the AA criteria, digest recorded; the integration BASE is bootstrapped.
+
+**Detect.** axe-core at the BASE head reports 23 violations, each a DAG unit; the structural ones
+(landmark order, heading hierarchy) are serialized, the rest run in parallel.
+
+**Fix → review → land.** One `rw` worker per violation. Every PR carries the negative control:
+revert the markup fix on a throwaway branch and the oracle reports the violation again. The
+build-blind reviewer judges semantics, not the oracle's silence — an `aria-label` that silences
+axe over a worse experience fails review.
+
+**Re-verify.** At the new BASE head the oracle is clean across the surface.
+
+**Park.** Nine ceiling criteria — screen-reader announcement order, error-suggestion clarity,
+cognitive load — go to a named human-AT reviewer with the reason the oracle cannot decide them.
+The run ends `CONFORMANT-WITH-MANUAL-PARKED`; the denominator was never shrunk to what axe sees.
+
+## Failure modes this mission is built to prevent
+
+| Anti-pattern | Why it burns you |
+|---|---|
+| Declaring `CONFORMANT` off a green axe run alone | The oracle sees roughly a third of WCAG; its silence is not proof, and the un-automatable criteria must be parked, not assumed passing |
+| Shrinking the denominator to what axe checks | The frozen surface × WCAG set is the denominator; the ceiling criteria still count |
+| A fix with no revert-to-violation control | A green oracle over reverted markup proves nothing |
+| Silencing the oracle — empty `alt`, `aria-label` stuffing, `aria-hidden` on real content, role soup | A clean axe over a worse experience; the build-blind review judges semantics, not silence |
+| Treating this as `review-it`'s accessibility lens, or as `attest-it` | One is a per-diff verdict and the other a standard's obligation set; this mission's unit is a rendered surface's violations |
+
 ## Composes
 Playbooks:
 [`decompose-dag`](../../playbooks/decompose-dag.md) ·
