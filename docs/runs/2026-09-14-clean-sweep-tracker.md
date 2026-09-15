@@ -941,4 +941,6 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   closed) left noticed-not-touched, needs a spec if VALID. NO posts
   (P2→d52ff42 + P1→3ce5825 replies owed coordinator-side pre-merge).
   R387W-r3 specs frozen (copies + retarget 3ce5825 + batch-verify +
-  new-P1 judge); 3 axes dispatched.
+  new-P1 judge); 3 axes dispatched (spec task_cc1038d220e4→ctx_f49904ee9b37,
+  test task_727c9a7df24d→ctx_0eb530efb6f4, standards task_6dca99aac7cb→
+  ctx_c4021ca4e326).
