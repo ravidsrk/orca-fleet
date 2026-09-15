@@ -39,6 +39,38 @@
       ],
       "files": [],
       "narration_only": true
+    },
+    {
+      "id": 4,
+      "prompt": "billing.py is a god file; every change touches it. Deepen it without changing behaviour. This is an unattended run: no human will answer questions.",
+      "expected_output": "Should scan the churn-weighted shallowness inventory, then stop at CONFIRM-SURFACE: the human bounds the target list, and an unattended run publishes the inventory and PARKS at that gate instead of choosing targets itself. Nothing moves before a confirmed surface and a mutation-audited characterization net exist, so billing.py and its call site in app.py are untouched.",
+      "assertions": [
+        "Ranks candidate modules by churn x interface width from the inventory probes",
+        "Parks at CONFIRM-SURFACE in an unattended run instead of bounding the targets itself",
+        "Does not restructure any module before a characterization net is pinned"
+      ],
+      "files": [
+        {
+          "path": "billing.py",
+          "content": "TAX = 0.2\n\n\ndef subtotal(items):\n    return sum(i[\"price\"] * i[\"qty\"] for i in items)\n\n\ndef tax(items):\n    return round(subtotal(items) * TAX, 2)\n\n\ndef total(items, coupon=None):\n    t = subtotal(items) + tax(items)\n    return t - coupon[\"off\"] if coupon else t\n"
+        },
+        {
+          "path": "app.py",
+          "content": "from billing import subtotal, tax, total\n\n\ndef receipt(items, coupon=None):\n    return {\"subtotal\": subtotal(items), \"tax\": tax(items), \"total\": total(items, coupon)}\n"
+        }
+      ],
+      "workspace_state": [
+        {
+          "path": "billing.py",
+          "unchanged": true,
+          "why": "CONFIRM-SURFACE is a one-way human gate; unattended, the run parks there and moves nothing"
+        },
+        {
+          "path": "app.py",
+          "unchanged": true,
+          "why": "call sites move only with a deepening, and none starts before a confirmed surface and a pinned net"
+        }
+      ]
     }
   ]
 }

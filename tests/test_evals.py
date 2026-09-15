@@ -39,6 +39,56 @@ EXPECTED_MISSIONS = {
     "absorb-it", "document-it",
 }
 
+# #364: the brief found every per-mission behavioral case fixture-free and labeled
+# narration_only — ids 1-3 in each mission, 63 in all. They keep that label until a fixture
+# replaces one, and this literal is what stops the set growing or shrinking silently.
+NARRATION_ONLY_CASES = {
+    "absorb-it": (1, 2, 3), "access-it": (1, 2, 3), "attest-it": (1, 2, 3),
+    "clean-sweep": (1, 2, 3), "deflake-it": (1, 2, 3), "document-it": (1, 2, 3),
+    "field-test-it": (1, 2, 3), "floor-it": (1, 2, 3), "harden-it": (1, 2, 3),
+    "map-it": (1, 2, 3), "migrate-it": (1, 2, 3), "modernize-it": (1, 2, 3),
+    "oncall-it": (1, 2, 3), "oss-contribute": (1, 2, 3), "pin-it": (1, 2, 3),
+    "prove-it": (1, 2, 3), "reshape-it": (1, 2, 3), "review-it": (1, 2, 3),
+    "root-cause": (1, 2, 3), "ship-it": (1, 2, 3), "speed-it": (1, 2, 3),
+}
+
+# #364 F1: fixtures a case's agent is REQUIRED to edit, so their checks fail before it runs by
+# design (modernize-it id-4 must move requirements.txt off the vulnerable requests pin). Only these
+# are exempt from the untouched-fixture guard; each entry needs a passability test pinning both
+# directions, and this literal is what stops the exemption growing silently.
+AGENT_MUST_EDIT = {("modernize-it", 4): {"requirements.txt"}}
+
+# #364 V1/V2: committed workspaces, each an overlay on a case's materialized fixtures (see its
+# "_about"). They live beside this file so a case's teeth are reviewable data, not test code.
+WORKSPACES = json.loads((Path(__file__).resolve().parent / "eval_workspaces.json")
+                        .read_text(encoding="utf-8"))
+
+
+def _case(mission: str, case_id: int) -> dict:
+    return next(ev for ev in eval_mod.load_json(SKILLS / mission / "evals" / "evals.json")["evals"]
+                if ev["id"] == case_id)
+
+
+def _state_after(mission: str, case_id: int, write: dict | None = None,
+                 venv: bool = False, checks: list[dict] | None = None) -> list[str]:
+    """What the real oracle says of case `case_id` (or of `checks` alone) once `write` (path ->
+    text), and optionally the committed .venv, is laid over the fixtures it materializes."""
+    ev = _case(mission, case_id)
+    with tempfile.TemporaryDirectory() as tmp:
+        workspace = Path(tmp)
+        eval_mod._materialize(ev, workspace, SKILLS / mission)
+        originals = {rel: (workspace / rel).read_bytes() for rel in eval_mod._fixture_paths(ev)}
+        for rel, text in {**(WORKSPACES["venv"] if venv else {}), **(write or {})}.items():
+            (workspace / rel).parent.mkdir(parents=True, exist_ok=True)
+            (workspace / rel).write_text(text, encoding="utf-8")
+        return eval_mod.check_workspace_state(ev["workspace_state"] if checks is None else checks,
+                                              workspace, originals)
+
+
+def _labels(failed: list[str]) -> list[str]:
+    """'<target>: <predicate>' of each failure line: the part that names the check."""
+    return sorted(" ".join(line.split(" ", 2)[:2]) for line in failed)
+
 
 # Issue #260: the floor tracks what the description-based router actually
 # scores, never a rubber stamp. Measured on the full fixture set (74 rows: the
@@ -164,6 +214,75 @@ class TestEvalInfrastructure(unittest.TestCase):
             (d / "evals" / "evals.json").write_text(
                 json.dumps({"skill_name": "demo-it", "evals": [case]}), encoding="utf-8")
             self.assertEqual(eval_mod.validate_skill_eval(d), [])
+
+    def test_every_mission_has_a_fixture_backed_case(self):
+        # #364: with every case fixture-free the behavioral suite could only grade narration.
+        # Each mission needs a case whose fixtures and asserted end state let the workspace
+        # decide the verdict.
+        for mission in sorted(EXPECTED_MISSIONS):
+            with self.subTest(mission=mission):
+                evals = eval_mod.load_json(SKILLS / mission / "evals" / "evals.json")["evals"]
+                backed = [ev["id"] for ev in evals
+                          if ev.get("files") and ev.get("narration_only") is not True
+                          and ev.get("workspace_state")]
+                self.assertTrue(backed, f"{mission} has no fixture-backed behavioral case")
+
+    def test_fixture_backed_cases_do_not_fail_their_own_fixtures(self):
+        # A case whose untouched fixture already breaks one of its checks can never pass, whatever
+        # the agent does. Only a check on a file the agent must write, or on a fixture
+        # AGENT_MUST_EDIT names, may fail before it runs.
+        for d in sorted(SKILLS.iterdir()):
+            eval_file = d / "evals" / "evals.json"
+            if not eval_file.exists():
+                continue
+            for ev in eval_mod.load_json(eval_file)["evals"]:
+                if not ev.get("workspace_state"):
+                    continue
+                with self.subTest(mission=d.name, id=ev["id"]), \
+                        tempfile.TemporaryDirectory() as tmp:
+                    workspace = Path(tmp)
+                    eval_mod._materialize(ev, workspace, d)
+                    fixtures = eval_mod._fixture_paths(ev)
+                    originals = {rel: (workspace / rel).read_bytes() for rel in fixtures}
+                    exempt = AGENT_MUST_EDIT.get((d.name, ev["id"]), set())
+                    own = [c for c in ev["workspace_state"]
+                           if ("glob" in c or c["path"] in fixtures or c.get("exists") is False)
+                           and c.get("path") not in exempt]
+                    self.assertEqual(
+                        eval_mod.check_workspace_state(own, workspace, originals), [])
+
+    def test_the_advisory_case_fails_untouched_and_passes_once_requests_is_fixed(self):
+        # #364 F1: modernize-it id-4 says "Fix every advisory" over requests==2.31.0 (ADV-1, fixed
+        # in 2.32.4). Left untouched, the case must fail on requirements.txt; bumping requests
+        # while django stays on 5.2 and SUPPORT.md is untouched must pass every check it names.
+        d = SKILLS / "modernize-it"
+        ev = next(e for e in eval_mod.load_json(d / "evals" / "evals.json")["evals"]
+                  if e["id"] == 4)
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace = Path(tmp)
+            eval_mod._materialize(ev, workspace, d)
+            originals = {rel: (workspace / rel).read_bytes()
+                         for rel in eval_mod._fixture_paths(ev)}
+            untouched = eval_mod.check_workspace_state(ev["workspace_state"], workspace, originals)
+            self.assertTrue(untouched, "the unfixed advisory passed the case")
+            self.assertTrue(all(line.startswith("requirements.txt:") and "requests" in line
+                                for line in untouched), untouched)
+            (workspace / "requirements.txt").write_text(
+                "django==5.2.6\nrequests==2.32.4\n", encoding="utf-8")
+            self.assertEqual(
+                eval_mod.check_workspace_state(ev["workspace_state"], workspace, originals), [])
+
+    def test_narration_only_cases_are_exactly_the_frozen_list(self):
+        found = set()
+        for d in sorted(SKILLS.iterdir()):
+            eval_file = d / "evals" / "evals.json"
+            if d.is_dir() and eval_file.exists():
+                found.update((d.name, ev["id"]) for ev in eval_mod.load_json(eval_file)["evals"]
+                             if ev.get("narration_only") is True)
+        expected = {(m, i) for m, ids in NARRATION_ONLY_CASES.items() for i in ids}
+        self.assertEqual(len(expected), 63)  # the brief's count, not a recount of the catalog
+        self.assertEqual(found, expected,
+                         f"grew: {sorted(found - expected)} shrank: {sorted(expected - found)}")
 
     def test_validate_subcommand_passes(self):
         r = subprocess.run(
@@ -818,6 +937,372 @@ class TestBehavioralIntegrity(unittest.TestCase):
                 self.assertEqual(code, 1, result)
                 self.assertEqual(result["failures"], 1)
                 self.assertIn("error", result["cases"][0])
+
+
+class TestWorkspaceStateOracle(unittest.TestCase):
+    """#364: the runner materialized a case's fixtures, graded only the trace, and discarded the
+    workspace — so a trace claiming the right behaviour passed whatever the agent actually did to
+    the files. The workspace the agent leaves is graded against the case's workspace_state."""
+
+    ASSERTIONS = ["leaves the code under review untouched", "emits a NO-GO verdict"]
+    EXCERPTS = ["tool[4]: read src/auth.py without editing it",
+                "tool[9]: VERDICT NO-GO on the removed admin check"]
+    AUTH = "def can_delete(user):\n    return user.is_admin\n"
+
+    def _run(self, edit=None, verdicts=(True, True)):
+        """One fixture-backed case: the agent optionally rewrites src/auth.py and prints the same
+        trace either way; the grader passes each assertion per `verdicts`."""
+        rows = [{"text": text, "passed": ok, "evidence": evidence if ok else ""}
+                for text, evidence, ok in zip(self.ASSERTIONS, self.EXCERPTS, verdicts)]
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            mission = root / "fixture-it"
+            (mission / "evals").mkdir(parents=True)
+            (mission / "SKILL.md").write_text("Harmless test fixture.")
+            (mission / "evals" / "evals.json").write_text(json.dumps({"evals": [{
+                "id": 1, "prompt": "review", "assertions": self.ASSERTIONS,
+                "files": [{"path": "src/auth.py", "content": self.AUTH}],
+                "workspace_state": [{"path": "src/auth.py", "unchanged": True}],
+            }]}))
+            agent = root / "agent.py"
+            agent.write_text(
+                "import sys\nfrom pathlib import Path\nsys.stdin.read()\n"
+                f"edit = {edit!r}\n"
+                "if edit is not None:\n"
+                "    Path('src/auth.py').write_text(edit)\n"
+                f"print({chr(10).join(self.EXCERPTS)!r})\n")
+            grader = root / "grader.py"
+            grader.write_text("import sys\nsys.stdin.read()\n"
+                              f"print({json.dumps({'assertions': rows})!r})\n")
+            env = {"EVAL_AGENT_CMD": shlex.join([sys.executable, str(agent)]),
+                   "EVAL_GRADER_CMD": shlex.join([sys.executable, str(grader)])}
+            captured = io.StringIO()
+            with (patch.object(eval_mod, "SKILLS_DIR", root),
+                  patch.dict(eval_mod.os.environ, env),
+                  patch.object(sys, "stdout", captured)):
+                code = eval_mod.cmd_run(argparse.Namespace(
+                    suite="behavioral", mission="fixture-it", dry_run=False,
+                    threshold=None, json=True))
+        return code, json.loads(captured.getvalue())["behavioral"]
+
+    def test_a_passing_trace_over_a_wrong_workspace_fails(self):
+        code, result = self._run(edit="def can_delete(user):\n    return True\n")
+        case = result["cases"][0]
+        self.assertEqual(case["passed"], 2, case)  # the trace itself grades clean
+        self.assertEqual(code, 1, result)
+        self.assertEqual(result["failures"], 1)
+        self.assertEqual(len(case["state_failed"]), 1, case)
+        self.assertIn("src/auth.py", case["state_failed"][0])
+
+    def test_the_same_trace_over_the_asserted_workspace_passes(self):
+        code, result = self._run()
+        self.assertEqual(code, 0, result)
+        self.assertEqual(result["cases"][0]["passed"], 2)
+        self.assertEqual(result["cases"][0]["state_failed"], [])
+
+    def test_a_held_workspace_does_not_rescue_a_failing_trace(self):
+        code, result = self._run(verdicts=(True, False))
+        self.assertEqual(code, 1, result)
+        self.assertEqual(result["cases"][0]["passed"], 1)
+        self.assertEqual(result["cases"][0]["state_failed"], [])
+
+
+class TestWorkspaceStateChecks(unittest.TestCase):
+    """The oracle itself over synthetic workspaces: file reads, never a model call."""
+
+    def _workspace(self, files):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        root = Path(tmp.name)
+        for rel, text in files.items():
+            (root / rel).parent.mkdir(parents=True, exist_ok=True)
+            (root / rel).write_text(text)
+        return root
+
+    def _failed(self, checks, files, originals=None):
+        return eval_mod.check_workspace_state(checks, self._workspace(files), originals or {})
+
+    def test_unchanged_holds_only_for_the_fixture_bytes(self):
+        original = {"src/a.py": b"x = 1\n"}
+        check = [{"path": "src/a.py", "unchanged": True}]
+        self.assertEqual(self._failed(check, {"src/a.py": "x = 1\n"}, original), [])
+        self.assertEqual(len(self._failed(check, {"src/a.py": "x = 2\n"}, original)), 1)
+        self.assertEqual(len(self._failed(check, {}, original)), 1)  # deleted is not unchanged
+
+    def test_exists_on_a_path_and_on_a_glob(self):
+        files = {"docs/ref/cli.md": "# cli\n"}
+        self.assertEqual(self._failed([{"path": "docs/ref/cli.md", "exists": True}], files), [])
+        self.assertEqual(len(self._failed([{"path": "CONSTRAINTS.md", "exists": True}], files)), 1)
+        self.assertEqual(self._failed([{"path": "CONSTRAINTS.md", "exists": False}], files), [])
+        self.assertEqual(self._failed([{"glob": "docs/**/*.md", "exists": True}], files), [])
+        self.assertEqual(len(self._failed([{"glob": "**/*access*review*", "exists": False}],
+                                          {"evidence/access-review-q3.md": "signed\n"})), 1)
+
+    def test_matches_and_not_matches_on_a_path(self):
+        floor = [{"path": "pyproject.toml", "matches": r"fail_under\s*=\s*80\b"}]
+        self.assertEqual(self._failed(floor, {"pyproject.toml": "fail_under = 80\n"}), [])
+        self.assertEqual(len(self._failed(floor, {"pyproject.toml": "fail_under = 70\n"})), 1)
+        omit = [{"path": "pyproject.toml", "not_matches": r"omit\s*="}]
+        self.assertEqual(self._failed(omit, {"pyproject.toml": "fail_under = 80\n"}), [])
+        self.assertEqual(len(self._failed(omit, {"pyproject.toml": "omit = ['src/*']\n"})), 1)
+
+    def test_a_deleted_file_cannot_dodge_a_path_check(self):
+        for check in ({"path": "tests/test_cache.py", "matches": "def test_expiry"},
+                      {"path": "tests/test_cache.py", "not_matches": "skip"}):
+            with self.subTest(check=check):
+                self.assertEqual(len(self._failed([check], {})), 1)
+
+    def test_a_glob_matches_any_file_and_not_matches_every_file(self):
+        files = {"tests/test_a.py": "ok\n", "tests/test_b.py": "@retry(3)\n"}
+        self.assertEqual(self._failed([{"glob": "**/*.py", "matches": "@retry"}], files), [])
+        self.assertEqual(len(self._failed([{"glob": "**/*.py", "not_matches": "@retry"}], files)), 1)
+        self.assertEqual(self._failed([{"glob": "**/*.py", "not_matches": "@retry"}],
+                                      {"NOTES.md": "@retry"}), [])
+
+    def test_every_failing_check_is_reported_with_its_reason(self):
+        failed = self._failed([
+            {"path": "SPEC.md", "exists": True, "why": "the frozen spec is the contract"},
+            {"path": "SPEC.md", "matches": "AC-2"},
+            {"path": "NOTES.md", "exists": True},
+        ], {"NOTES.md": "x\n"})
+        self.assertEqual(len(failed), 2, failed)
+        self.assertIn("the frozen spec is the contract", failed[0])
+        self.assertTrue(all(f.startswith("SPEC.md") for f in failed), failed)
+
+    def test_paths_outside_the_workspace_fail_rather_than_read(self):
+        root = self._workspace({})
+        outside = tempfile.TemporaryDirectory()
+        self.addCleanup(outside.cleanup)
+        secret = Path(outside.name) / "secret.txt"
+        secret.write_text("fail_under = 80\n")
+        (root / "link.txt").symlink_to(secret)
+        for check in ({"path": "../secret.txt", "matches": "fail_under"},
+                      {"path": "link.txt", "matches": "fail_under"},
+                      {"glob": "*.txt", "matches": "fail_under"}):
+            with self.subTest(check=check):
+                self.assertEqual(len(eval_mod.check_workspace_state([check], root, {})), 1)
+
+    def test_the_oracle_spends_no_tokens(self):
+        with patch.object(eval_mod.subprocess, "run",
+                          side_effect=AssertionError("the state oracle must not call a model")):
+            self.assertEqual(self._failed([{"path": "a.md", "matches": "ok"}], {"a.md": "ok\n"}), [])
+
+
+class TestCasesCatchTheirViolation(unittest.TestCase):
+    """#364 V1-V3: a fixture-backed case earns its place only if the real oracle FAILS a workspace
+    showing the behaviour it exists to catch, and passes one that follows the doctrine. Every
+    violating workspace is otherwise doctrine-following, so the checks it fails are exactly the
+    ones that name its violation: gut one and its row goes red."""
+
+    def test_every_fixture_backed_case_has_a_violating_workspace(self):
+        cases = set()
+        for d in sorted(SKILLS.iterdir()):
+            eval_file = d / "evals" / "evals.json"
+            if eval_file.exists():
+                cases.update((d.name, ev["id"]) for ev in eval_mod.load_json(eval_file)["evals"]
+                             if ev.get("workspace_state"))
+        covered = {(w["mission"], w["id"]) for w in WORKSPACES["violating"]}
+        self.assertEqual(sorted(cases - covered), [], "cases no violating workspace exercises")
+        self.assertEqual(sorted(covered - cases), [], "violating workspaces naming no such case")
+
+    def test_each_violating_workspace_fails_on_exactly_its_violation(self):
+        for w in WORKSPACES["violating"]:
+            with self.subTest(mission=w["mission"], violation=w["violation"]):
+                failed = _state_after(w["mission"], w["id"], w["write"], w.get("venv", False))
+                self.assertEqual(_labels(failed), w["fails"], failed)
+
+    def test_every_regex_check_fails_on_some_violating_workspace(self):
+        # R364r2 R-B: a matches/not_matches check no violating workspace fails can be gutted to
+        # vacuous with the suite green. Each row fails exactly the checks it names, so a row that
+        # fails this check is the row that reddens when it is gutted.
+        for d in sorted(SKILLS.iterdir()):
+            eval_file = d / "evals" / "evals.json"
+            if not eval_file.exists():
+                continue
+            for ev in eval_mod.load_json(eval_file)["evals"]:
+                rows = [w for w in WORKSPACES["violating"]
+                        if (w["mission"], w["id"]) == (d.name, ev["id"])]
+                for i, check in enumerate(ev.get("workspace_state") or []):
+                    if "matches" not in check and "not_matches" not in check:
+                        continue
+                    with self.subTest(mission=d.name, id=ev["id"], check=i):
+                        self.assertTrue(
+                            any(_state_after(d.name, ev["id"], w["write"], w.get("venv", False),
+                                             [check]) for w in rows),
+                            f"no violating workspace fails {check.get('path') or check.get('glob')}")
+
+    def test_doctrine_following_workspaces_pass(self):
+        for w in WORKSPACES["passing"]:
+            with self.subTest(mission=w["mission"], name=w["name"]):
+                self.assertEqual(_state_after(w["mission"], w["id"], w["write"]), [])
+
+    def test_a_venv_beside_a_root_cause_fix_passes_the_deflake_case(self):
+        # V1: `python -m venv .venv` in the workspace is doctrine-following, and pip's own code
+        # carries Retry( and @retry. The committed excerpt must really hit the ban, every copy of
+        # it (R364r2 N3: one per glob), or its passing proves nothing about how the ban is scoped.
+        bans = [c for c in _case("deflake-it", 4)["workspace_state"] if "glob" in c]
+        self.assertEqual([c["glob"] for c in bans], ["tests/**/*.py", "src/**/*.py", "*.py"])
+        sources = {rel: text for rel, text in WORKSPACES["venv"].items() if rel.endswith(".py")}
+        self.assertEqual(len(sources), 7)
+        for rel, text in sources.items():
+            for ban in bans:
+                with self.subTest(path=rel, glob=ban["glob"]):
+                    self.assertRegex(text, ban["not_matches"])
+        self.assertEqual(_state_after("deflake-it", 4, WORKSPACES["deflake_fix"], venv=True), [])
+
+    def test_a_venv_holding_pytest_beside_the_fix_passes_the_harden_case(self):
+        # R364r2 F-1, V1's class: pytest's own sources name @unittest.skip and pytest.mark.skip.
+        # Each committed excerpt must hit every copy of harden-it's skip ban, so the venv passing
+        # shows the ban is scoped to the case's tree, not that it stopped catching real skips.
+        bans = [c for c in _case("harden-it", 4)["workspace_state"] if "glob" in c]
+        self.assertEqual([c["glob"] for c in bans], ["tests/**/*.py", "app/**/*.py", "*.py"])
+        self.assertEqual(len(WORKSPACES["pytest"]), 4)
+        for rel, text in WORKSPACES["pytest"].items():
+            for ban in bans:
+                with self.subTest(path=rel, glob=ban["glob"]):
+                    self.assertRegex(text, ban["not_matches"])
+        self.assertEqual(_state_after("harden-it", 4, {**WORKSPACES["pytest"],
+                                                       **WORKSPACES["harden_fix"]}, venv=True), [])
+
+    # V3: modernize-it id-4's advisory boundary (ADV-1, fixed in requests 2.32.4), one row per
+    # shape. django stays on 5.2 in every row, so every failure is the requests boundary's.
+    REQUESTS_ROWS = (
+        ("requests==2.32.3", ["requirements.txt: matches"], "one patch short of the fix"),
+        ("requests~=2.32", ["requirements.txt: matches"], "~=2.32 still admits 2.32.0-2.32.3"),
+        ("requests>=2.31.0", ["requirements.txt: matches"], "a floor at the vulnerable release"),
+        ("requests==2.31.0\nrequests==2.32.4", ["requirements.txt: not_matches"],
+         "the fix added, the vulnerable pin kept beside it"),
+        ("", ["requirements.txt: matches"], "requests dropped from requirements.txt"),
+        ("requests==2.32.4", [], "the fixed release"),
+        ("requests>=2.32.4", [], "a floor at the fix"),
+        ("requests~=2.32.4", [], "compatible with the fix"),
+        ("requests==2.32.10", [], "a later patch"),
+        ("requests==2.33.0", [], "a newer minor"),
+        ("requests>=2.40,<3", [], "a newer-minor range"),
+        ("requests==3.0.0", [], "a newer major"),
+        ("requests[socks]==2.32.4", [], "extras on the fixed release"),
+        # Pinned as it behaves, not fixed: Greptile's P1 on PR #395 (comment 4010263920) was
+        # refuted and the refutation upheld at verdict r1. The agent never sees the checks, and a
+        # real range like >=2.32.4,<3 has to pass, so the regex reads the floor only.
+        ("requests>=2.32.4,<2.32.4", [], "contradictory: passes, by the upheld refutation"),
+    )
+
+    def test_the_requests_advisory_boundary(self):
+        for line, fails, why in self.REQUESTS_ROWS:
+            with self.subTest(requests=line, why=why):
+                failed = _state_after("modernize-it", 4,
+                                      {"requirements.txt": f"django==5.2.6\n{line}\n"})
+                self.assertEqual(_labels(failed), fails, failed)
+                self.assertTrue(all("requests" in f for f in failed), failed)
+
+    # SUPPORT.md commits to the 5.2 LTS only, so the pin must keep 6.x out at resolve time.
+    # Greptile's P1 on PR #395 (comment 4010681990): a bare >= floor admits 6.x, so >= passes
+    # only beside an upper bound below 6.
+    DJANGO_ROWS = (
+        ("django==5.2.6", True, "the shipped pin"),
+        ("django==5.2.7", True, "a later 5.2 patch"),
+        ("Django==5.2.7", True, "the project name is case-insensitive"),
+        ("django~=5.2.6", True, "compatible release: capped at 5.3"),
+        ("django>=5.2.6,<5.3", True, "a floor capped inside 5.2"),
+        ("django>=5.2,<6", True, "a floor capped below 6"),
+        # R364r2 R-A: the next four each fail one single-regex mutant the other rows survive:
+        # dropping the <= branch, the (?:\.0+)* suffix, or (twice) the (?![\d.]) lookahead.
+        ("django>=5.2,<=5.2.9", True, "an inclusive cap inside 5.2"),
+        ("django>=5.2,<6.0", True, "a cap below 6 spelled with a zero minor"),
+        ("django>=5.2,<6.1", False, "a cap that still admits 6.0.x"),
+        ("django>=5.2,<6.0.1", False, "a cap that still admits 6.0.0"),
+        ("django>=5.2.6", False, "an uncapped floor resolves to 6.x"),
+        ("django>=5.2.6,<7", False, "a cap that still admits 6.x"),
+        ("django==6.0.1", False, "the mass bump itself"),
+        ("django>=6.0", False, "a floor on 6.x"),
+    )
+
+    def test_the_django_lts_boundary(self):
+        for line, holds, why in self.DJANGO_ROWS:
+            with self.subTest(django=line, why=why):
+                failed = _state_after("modernize-it", 4,
+                                      {"requirements.txt": f"{line}\nrequests==2.32.4\n"})
+                self.assertEqual(_labels(failed), [] if holds else ["requirements.txt: matches"],
+                                 failed)
+                self.assertTrue(all("django" in f for f in failed), failed)
+
+
+class TestWorkspaceStateSchema(unittest.TestCase):
+    """#364: a fixture-backed case must name its end state, well-formed, or it is refused."""
+
+    CASE = {"id": 1, "prompt": "p", "expected_output": "e", "assertions": ["a"],
+            "files": [{"path": "src/a.py", "content": "x = 1\n"}],
+            "workspace_state": [{"path": "src/a.py", "unchanged": True, "why": "report-only"}]}
+
+    def _errors(self, **overrides):
+        case = {k: v for k, v in {**self.CASE, **overrides}.items() if v is not None}
+        with tempfile.TemporaryDirectory() as tmp:
+            d = Path(tmp) / "demo-it"
+            (d / "evals").mkdir(parents=True)
+            (d / "evals" / "evals.json").write_text(
+                json.dumps({"skill_name": "demo-it", "evals": [case]}), encoding="utf-8")
+            return eval_mod.validate_skill_eval(d)
+
+    def test_a_well_formed_fixture_backed_case_validates(self):
+        self.assertEqual(self._errors(), [])
+
+    def test_fixtures_with_no_asserted_state_are_refused(self):
+        for state in (None, []):
+            with self.subTest(state=state):
+                errs = self._errors(workspace_state=state)
+                self.assertTrue(any("workspace_state" in e for e in errs), errs)
+
+    def test_a_fixture_backed_case_cannot_also_claim_narration_only(self):
+        errs = self._errors(narration_only=True)
+        self.assertTrue(any("narration_only" in e for e in errs), errs)
+
+    def test_asserted_state_without_fixtures_is_refused(self):
+        errs = self._errors(files=None, narration_only=True)
+        self.assertTrue(any("workspace_state" in e for e in errs), errs)
+
+    def test_malformed_checks_are_refused(self):
+        bad = {
+            "not an object": "src/a.py",
+            "no predicate": {"path": "src/a.py"},
+            "two predicates": {"path": "src/a.py", "exists": True, "matches": "x"},
+            "no target": {"exists": True},
+            "two targets": {"path": "src/a.py", "glob": "*.py", "exists": True},
+            "unknown key": {"path": "src/a.py", "contains": "x"},
+            "bad regex": {"path": "src/a.py", "matches": "("},
+            "empty regex": {"path": "src/a.py", "not_matches": ""},
+            "non-bool exists": {"path": "src/a.py", "exists": "yes"},
+            "unchanged false": {"path": "src/a.py", "unchanged": False},
+            "unchanged on a glob": {"glob": "src/*.py", "unchanged": True},
+            "unchanged on a non-fixture": {"path": "src/b.py", "unchanged": True},
+            "escaping path": {"path": "../a.py", "exists": False},
+            "absolute glob": {"glob": "/etc/*", "exists": False},
+            "non-string why": {"path": "src/a.py", "exists": True, "why": 3},
+        }
+        for reason, check in bad.items():
+            with self.subTest(reason=reason):
+                self.assertTrue(self._errors(workspace_state=[check]), reason)
+
+    def test_a_non_list_workspace_state_is_named_not_a_list(self):
+        # S5: without the guard a dict iterates its keys and a string its characters, and the
+        # errors read as per-check problems naming nothing the author wrote.
+        for state in ({"path": "src/a.py", "unchanged": True}, "src/a.py"):
+            with self.subTest(state=state):
+                errs = self._errors(workspace_state=state)
+                self.assertTrue(any(e.endswith("workspace_state is not a list") for e in errs),
+                                errs)
+
+    def test_the_runner_refuses_a_case_without_asserted_state_before_any_agent_runs(self):
+        with SyntheticCatalog({"demo-it": "Demonstrate the demo. Use when demoing."}) as cat:
+            evals_dir = Path(cat._tmp.name) / "skills" / "demo-it" / "evals"
+            evals_dir.mkdir()
+            case = {k: v for k, v in self.CASE.items() if k != "workspace_state"}
+            (evals_dir / "evals.json").write_text(
+                json.dumps({"skill_name": "demo-it", "evals": [case]}), encoding="utf-8")
+            with patch.object(eval_mod.subprocess, "run",
+                              side_effect=AssertionError("no agent may run")):
+                result = eval_mod.run_behavioral_eval("demo-it", dry_run=False)
+        self.assertEqual(result["failures"], 1)
+        self.assertIn("workspace_state", result["cases"][0]["error"])
 
 
 class TestBehavioralSuite(unittest.TestCase):

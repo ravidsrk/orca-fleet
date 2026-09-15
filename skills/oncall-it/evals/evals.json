@@ -39,6 +39,34 @@
       ],
       "files": [],
       "narration_only": true
+    },
+    {
+      "id": 4,
+      "prompt": "We were blind in last week's checkout incident. Make service/checkout.py operable: telemetry, alerts, runbooks.",
+      "expected_output": "Should freeze the path set and its on-call questions with the human before instrumenting. Instrumentation uses structured events with a correlation ID and RED metrics with bounded labels. Card numbers and customer emails never enter logs, events or spans, and unbounded identifiers (order_id, email) are never metric labels; cardinality that costs money is a needs-human decision.",
+      "assertions": [
+        "Freezes the path set and its on-call questions with the human before instrumenting",
+        "Keeps metric labels bounded; per-order or per-customer identifiers are never labels",
+        "Keeps PII (card numbers, emails) out of every log, event and span"
+      ],
+      "files": [
+        {
+          "path": "service/checkout.py",
+          "content": "from service import mailer, payments\n\n\ndef checkout(order_id, customer, card_number, amount):\n    payments.charge(card_number, amount)\n    mailer.send_receipt(customer[\"email\"], order_id)\n    return {\"order_id\": order_id, \"status\": \"paid\"}\n"
+        }
+      ],
+      "workspace_state": [
+        {
+          "glob": "**/*.py",
+          "not_matches": "(?i)\\b(log|logger|logging|span|event|emit|metric)\\w*\\b[^\\n]*(card_number|email)",
+          "why": "telemetry must carry no PII: a card number or email in a log, event or span is a leak, not a signal"
+        },
+        {
+          "glob": "**/*.py",
+          "not_matches": "\\.labels\\([^)]*(order_id|email|card_number)",
+          "why": "a per-order or per-customer metric label is unbounded cardinality, a needs-human cost decision"
+        }
+      ]
     }
   ]
 }

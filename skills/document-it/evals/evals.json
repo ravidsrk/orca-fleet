@@ -39,6 +39,38 @@
       ],
       "files": [],
       "narration_only": true
+    },
+    {
+      "id": 4,
+      "prompt": "Our CLI is basically undocumented apart from an old page. Build the reference docs for cli.py under docs/reference/.",
+      "expected_output": "Should extract the public surface from cli.py with a script (sync --since, purge --older-than) before writing, and anchor every claim to a file:symbol in cli.py, reading the implementation rather than the old docs. docs/old-cli.md still describes a sync --all flag that cli.py no longer has; carrying it into the new reference is an unanchored claim. cli.py is not changed to fit the docs.",
+      "assertions": [
+        "Extracts the CLI surface from cli.py with a script before any writing",
+        "Anchors each documented command and flag to a file:symbol in cli.py",
+        "Treats docs/old-cli.md as stale input, not as the source of the reference"
+      ],
+      "files": [
+        {
+          "path": "cli.py",
+          "content": "import argparse\n\n\ndef build_parser():\n    parser = argparse.ArgumentParser(prog=\"tool\")\n    sub = parser.add_subparsers(dest=\"command\", required=True)\n    sync = sub.add_parser(\"sync\", help=\"pull remote records\")\n    sync.add_argument(\"--since\", help=\"only records changed after this ISO date\")\n    purge = sub.add_parser(\"purge\", help=\"delete local records\")\n    purge.add_argument(\"--older-than\", type=int, help=\"age in days\")\n    return parser\n"
+        },
+        {
+          "path": "docs/old-cli.md",
+          "content": "# tool CLI (2024)\n\n`tool sync --all` pulls every remote record.\n"
+        }
+      ],
+      "workspace_state": [
+        {
+          "glob": "docs/reference/**/*",
+          "not_matches": "--all\\b",
+          "why": "cli.py has no --all flag; copying it from the old page is a claim with no anchor"
+        },
+        {
+          "path": "cli.py",
+          "unchanged": true,
+          "why": "documentation describes the surface; it never edits the code to match the docs"
+        }
+      ]
     }
   ]
 }
