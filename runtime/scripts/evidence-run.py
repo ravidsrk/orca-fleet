@@ -37,6 +37,7 @@ Exit: the child's exit code · 1 only when there is no child to run (usage / exe
 from __future__ import annotations
 
 import argparse
+import contextlib
 import fcntl
 import hashlib
 import json
@@ -121,6 +122,25 @@ def run_child(argv, artifact_path, cwd):
         sink.close()
 
 
+@contextlib.contextmanager
+def sidecar_lock(manifest_path):
+    """Hold LOCK_EX on a PRE-EXISTING `<manifest>.lock`; do nothing if there is none (#393).
+
+    A pre-#388 wrapper serializes its append on that sibling file, not on the manifest inode, so
+    during a rollout the two versions would not exclude each other and records are lost again.
+    Joining the sidecar when it is already there makes them exclude each other. It is opened
+    without O_CREAT: this wrapper never creates one (#388), and an absent sidecar is no error.
+    """
+    try:
+        peer = open(manifest_path.with_suffix(manifest_path.suffix + ".lock"), "rb")
+    except FileNotFoundError:
+        yield
+        return
+    with peer:
+        fcntl.flock(peer.fileno(), fcntl.LOCK_EX)
+        yield
+
+
 def append_record(manifest_path, record):
     """Append to `commands[]`, creating the manifest if absent. Never raises.
 
@@ -130,11 +150,16 @@ def append_record(manifest_path, record):
     Not a sibling lockfile (#388): that outlives the run as untracked content, failing
     clean-tree gates and moving the next run's fingerprint off the committed tree. The
     rewrite is in place, so every waiter locks the same inode the holder wrote.
+
+    Lock order, the only one: the pre-existing sidecar first (`sidecar_lock`, #393), then the
+    manifest inode. Every writer that takes both takes them in this order, so no two can each
+    hold one while waiting on the other.
     """
     try:
         manifest_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(manifest_path, "r+", encoding="utf-8",
-                  opener=lambda name, flags: os.open(name, flags | os.O_CREAT, 0o666)) as fh:
+        with sidecar_lock(manifest_path), \
+                open(manifest_path, "r+", encoding="utf-8",
+                     opener=lambda name, flags: os.open(name, flags | os.O_CREAT, 0o666)) as fh:
             fcntl.flock(fh.fileno(), fcntl.LOCK_EX)
             text = fh.read()
             if text:
