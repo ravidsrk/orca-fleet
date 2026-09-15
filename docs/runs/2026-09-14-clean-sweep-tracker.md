@@ -1224,3 +1224,12 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   NC-2 1, MR1 2, MN1a/b 1; NC-1 46); oracle agrees all 3
   shapes; bot 5/5. Body + 4 threads owed coordinator-side.
   Released. SPEC out — one axis from GO.
+- R387W-r7 3/3 in: SPEC 0 Critical/Required (FYIs only:
+  container-nested headings parked nnt[9]; same-named sections
+  both read; generated changes ~200 tokens under cap). Batch
+  in; 1378-suite/validate/ruff green; bot 5/5 last-reviewed
+  0d55f10, checks SUCCESS. Body + 4 threads owed
+  coordinator-side. Released. W-r7 totals: SPEC 0, TEST 0,
+  STANDARDS 0 → V387W-r7 spec frozen (3 verbatim from /tmp
+  archives + body-reply conductor-excludes). Dispatched —
+  expect GO → replies + body + merge.
