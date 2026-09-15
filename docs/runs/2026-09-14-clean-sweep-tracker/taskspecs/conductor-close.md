@@ -12,7 +12,12 @@ record's contract source + digest; the coordinator-named nc-command; the unit cl
 CLOSE (in order; any mismatch is a STOP, logged, never patched over):
 1) Resolve the tip: T := git rev-parse M^2 (the merged PR head). Assert T == the verdict's
    reviewed_sha and git merge-base --is-ancestor T BASE. T != reviewed_sha means the
-   review is stale (see union-invalidates).
+   review is stale (see union-invalidates). M must be a merge commit: ledger-contract
+   MERGED = merge-commit (not squash) (runtime/ledger-contract.md, unit-row flags), so
+   unit PRs merge with gh pr merge --merge only. A squash, rebase or fast-forward merge
+   has no M^2 (git rev-parse M^2 fails): the merge is non-conforming, so STOP and raise a
+   human gate naming M and its merge method. Fail closed: never derive T another way
+   (not M, M^1, the PR's headRefOid or a guessed commit).
 2) Re-run in a clean worktree at the merge tip: git worktree add --detach
    <scratch>/close-<unit> T; git status --porcelain empty; then the nc-command,
    python3 scripts/validate.py and python3 -m unittest discover -s tests, each wrapped by
