@@ -33,11 +33,15 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | T6 | #364 | prove-it/oncall-it venv glob scoping (U364 fix-forward) | real-bug (evals) | t | t | t | t | t | t | lit | — | PR #397 MERGED 01d954e @2967804 (reviewed==head; GO 5205447863; merged ~7min pre-verdict, disclosed); verify 6/6 incl. Greptile-APPROVED review leg; remediates U364 SPEC-r3 F-1 |
 | — | #235 | H-02 marketplace submissions (pre-parked needs-human) | needs-human | — | — | — | — | — | — | needs-human: external accounts | prior run + issue text |
 | T7 | #393 | mixed-version rollout lock (opportunistic sidecar + test) | real-bug | t | t | t | t | t | t | lit | needs-human: post-merge independent APPROVE (2nd login) for verify review leg (run_0607bdc681e6) | V393-r1 GO 5206137160 @7630815 (F1+P1 close-owed, P2 FIFO accepted low-sev Optional → backlog); MERGED 6d9e46a; verify 5/6 (review RED, parked); #393 CLOSED with evidence |
-| T8 | #387-threads | ledger/process remediation (parks, u385 tree, templates, close doc) | process | t | t | t | f | f | f | lit | — | PR #403 @ed8a7c5 (union over 5174ed4, clean); Greptile 2 VALID held (P2 reattach-gap, P2 no-M^2-fallback); 3 axes live |
-| T9 | #387-threads | eval-glob holes (T6 regression: app//lib/ miss; empty-glob survey) | real-bug (evals) | t | t | t | f | f | f | lit | — | PR #402 @15d0eea (union over a41608e, clean); Greptile 5/5, 0 threads, none held (bot edits body — template note for T8 fix round); 3 axes live |
-| T10 | #387-threads | WIP-curve rows: scope to canonical section (U389 residual) | real-bug | t | t | t | f | f | f | lit | — | PR #401 @d94c6c1 (union over aab35f9, docs-only); Greptile 1 VALID held (P2 fence info-string); 3 axes live |
+| T8 | #387-threads | ledger/process remediation (parks, u385 tree, templates, close doc) | process | t | t | t | f | f | f | lit | — | PR #403 (u387p-process) @7f52bf6: V387P-r2 NO-GO (TA-R1 park-class pin; Greptile APPROVED held); r3 fix live (park pin + ask text + 4 adjacent); 2 thread replies OWED conductor-side pre-merge |
+| T9 | #387-threads | eval-glob holes (T6 regression: app//lib/ miss; empty-glob survey) | real-bug (evals) | t | t | t | t | t | t | lit | needs-human: post-merge independent APPROVE (2nd login) for verify review leg (run_0607bdc681e6) | V387G-r2 GO 5206446623 @318542b (delta: T9 byte-identical, badge 1360 recomputed, 1360 OK); MERGED a769a64e (--match-head-commit + --delete-branch, branch 404); verify 5/6 (review RED, parked); manifest closed (head re-bind 0a3f4ab→318542b, 3 coordinator re-runs: 109/validate/1360); worktree retired |
+| T10 | #387-threads | WIP-curve rows: scope to canonical section (U389 residual) | real-bug | t | t | t | f | f | f | lit | — | PR #401 (u387w-wipsection) @04b780f: V387W-r2 NO-GO (P1 Required fail-open+closed, M7a-d/M8/M9 survivors); r3 fix live (plain-para setext + witnesses + look-alikes); 2 thread replies OWED conductor-side pre-merge |
 
 PHASE: ORIENT → ENUMERATE → TRIAGE done → FREEZE → BUILD wave 1: U385 CLOSED, U388 U389 in fix-round → wave 2: U364
+
+BRANCHES: PR heads are origin short names (`u387p-process`, `u387g-evalglobs`,
+`u387w-wipsection`); local worktree checkouts carry the `ravidsrk/` prefix mapping
+to the same tips. Not drift — do not "fix".
 
 FREEZE: query1 (coordinator, T0) 4 open + query2 (worker, 16:14Z) 6 open with
 created-since-T0 exactly {#388,#389} and closed-since-T0 none — agreement modulo the run's
@@ -746,6 +750,27 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   answer, (4) adjacent setext; S4/S1/S3/M2/M15/Optionals/FYIs excluded with
   reasons. Fix spec fix-387w-r2.md frozen (with reattach-first instruction —
   T8's gap, previewed). Dispatched.
+- V387G-r1 GO (msg_ebce7e2f778a, review 5206253681 COMMENTED @15d0eea,
+  released, verified): 0 Required all axes + bot none. REVIEWED flag HELD at f
+  (head moved by reunion — flips at r2 GO).
+- V387P-r1 NO-GO (msg_2ed7a42929d3, review 5206282948 COMMENTED @ed8a7c5,
+  released, verified): 4 Required (TEST F1/F2 probe strength, STANDARDS R-1
+  reattach + R-2 T3-ref) + 2 VALID bot P2s; batch has 5 items (reattach,
+  M^2-fallback, C-4 probe bodies, C-1 probe contract+cites+flags+F3/F4,
+  T3-ref). Conductor wrote gate-batch.md G1-G4 (T3 ask lives at G3 — the
+  verdict's excluded conductor-side item). Fix spec fix-387p-r2.md frozen.
+  Dispatched. Coordinator chore: integrate-template bot step now says to
+  re-read the PR body (#402 lesson).
+- MERGE TRAIN T9: PR #402 mergeable:false — badge-count conflict only (1358 vs
+  1351). Coordinator re-union (merge --no-ff, NOT rebase — branch history is
+  evidence; deviation from merge-serialization's letter recorded here):
+  318542b = merge(15d0eea, BASE 5a853b2), badges regen'd (1360 = union count),
+  T9-owned paths byte-identical 15d0eea→318542b, gates green at reunion
+  (wrapped: nc 109 OK, validate, full exit 0). Pushed bare (egressed);
+  mergeable:true. V387G-r2 delta-verdict spec frozen; dispatched. NOTE: T7's
+  merge omitted --match-head-commit (compensated by post-merge parent check)
+  and --delete-branch (branch deleted late, verified 404) — both REQUIRED for
+  all future merges; first-merge spot-check dispatched (task_b412a57a96dd).
 - R387G 2/3 in: STANDARDS 0 Required (1 Optional unpinned survey claim; 6 Nits
   incl. why-contract parentheticals, dup helper, scope inconsistency; 4 FYI).
   Released. SPEC still out — T9 clean so far (0 Required, bot none).
@@ -757,9 +782,8 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   verdict as Required → fix round. Released. PR_OPEN=t, BOT=t.
 - I387G worker_done (msg_cab0bcb62041): PR #402 @15d0eea (union over a41608e,
   gates green). Greptile 5/5 clean, 0 threads, none held. NOTE: bot edits the
-  PR BODY (integrator's comment-poll hit cap) — integrate-template should say
-  to re-read the body (adjacent fix for T8's fix round). Released. PR_OPEN=t,
-  BOT=t.
+  PR BODY (integrator's comment-poll hit cap) — integrate-template bot step
+  fixed by coordinator (2026-09-15). Released. PR_OPEN=t, BOT=t.
 - R387P + R387G axes dispatched (6 workers, specs review-387{p,g}-{spec,test,
   standards}.md).
 - R393 2/3 in: STANDARDS 0 Required (4 Nit incl. stale 'Not a sibling
@@ -767,3 +791,128 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   S4) + TEST 0 Required (51 mutation runs: NC-1 10/10 RED, NC-2 exact-3,
   HEAD 10/10 GREEN; O-1 timing-dependent base RED). Both released. SPEC axis
   still out.
+- TAKEOVER-2 2026-09-15T06:42Z: Muse session sage-equinox (compacted) adopted
+  run_0607bdc681e6 via run-use gen 3 (term_324d4430). Harvested 2 completions
+  + 8 heartbeats; released both settled dispatches (retained/no-owned-process).
+- SPOTCHECK T7 (msg_2967268e870c, released): 4/4 PASS on merge 6d9e46a (PR
+  #400): (a) SHAPE two parents, no squash, ancestry holds; (b) AUTHORSHIP 5
+  commits Ravindra Kumar, zero trailers; (c) BRANCH DELETED 404; (d) WORKTREE
+  RETIRED (git + orca registries). Side note: merge commit itself authored
+  ravindrakumar8088@gmail.com (committer GitHub) vs ravidsrk@gmail.com on PR
+  commits — cosmetic, recorded. Merge protocol (--match-head-commit +
+  --delete-branch) stands validated.
+- V387G-r2 GO (msg_9b5d4de8d970, review 5206446623 COMMENTED @318542b,
+  released, coordinator-verified: review object present, 0 threads): delta
+  clean (T9 blobs byte-identical, diff==BASE-side-only excl. badge, 1360
+  recomputed via gen-badges --check + independent AST count, 109/validate/
+  1360-OK/ruff re-run at HEAD). REVIEWED=t.
+- T9 MERGED a769a64e (PR #402 --merge; --match-head-commit 318542b... +
+  --delete-branch both honored; parents 8cddd8c+318542b, ancestry OK, branch
+  404; egress branch-tip + branch-delete receipted). CLOSE: 3 coordinator
+  re-runs GREEN at reviewed tip (109 OK / validate / 1360 OK, detached
+  worktree, tree clean); manifest re-bound 0a3f4ab→318542b + pr filled +
+  conductor_note (reviewer_mode was builder-filled, true); verify.py 5/6
+  (review RED: no independent APPROVED on #402 — needs-human park, same as
+  T1/T2/T3/T7). Contract digest re-derived by coordinator (git show ==
+  7c3921a1). MERGED=t, WT_CLEAN=t (worktree retired from git + orca
+  registries, dir gone). SECOND WAVE-2 UNIT DONE. FIX387W-r2 (reviewing) +
+  FIX387P-r2 (implementing) still live at merge time; their unions absorb.
+- FIX387P-r2 QUESTION (msg_7e11076aae7f): fix-387p-r2 step 5 'head_sha :=
+  pushed tip INCLUDING the manifest commit' unimplementable (self-naming
+  SHA) + contradicts option-A. RULING (A) CONFIRMED (msg_b92468884470):
+  head_sha = code tip, pushed tip named in worker_done, step-5 disclosed
+  as superseded; close re-binds. Logged DECISIONS.md fix-step5-headsha.
+  SAME DEFECT in fix-387w-r2.md step 5 — W worker self-applied option-A
+  (head 0ba9a75 code tip, re-bind asked). No mid-flight spec edits.
+- FIX387W-r2 worker_done (msg_3e68a2467598, released, verified): PR #401
+  @04b780f (union b6f5a41 over 5a853b2 + 8 fix commits per worker list,
+  0ba9a75→04b780f manifest-only; origin==PR head). Gates re-ran
+  coordinator-side @04b780f: 73 OK + validate. Manifest checks
+  (head=code tip w/ option-A note, C-1..C-4, NC 1/0, 3 cmds bound
+  b548251). NEW Greptile P1 4012744258 (thematic-break closes section,
+  @04b780f, review 5206468138) left noticed-not-touched per spec; NO
+  thread replies posted (r2 axes must flag the owed P2 thread answer).
+  R387W-r2 specs frozen (copies + retarget 04b780f + batch-verify + new-P1
+  judge lines); 3 axes dispatched (spec task_51da2cc08def→ctx_9f59bd914e98,
+  test task_0807d8965db5→ctx_a205476091d4, standards task_dd4862432d31→
+  ctx_99cde08dc0e8; all heartbeating investigating 06:54Z).
+- FIX387P-r2 worker_done (msg_484c6c846b7c, released, verified): PR #403
+  @7f52bf6 (union e7fb91d over 889a794 + 5 commits per worker list,
+  708b5a8→7f52bf6 manifest-only; origin==PR head, mergeable clean).
+  Gates re-ran coordinator-side @7f52bf6: probe 0/4 + validate.
+  Manifest checks (head=708b5a8 code tip w/ ruling-A disclosure,
+  C-1..C-5, NC 1/0, 4 cmds bound 7b98166). Greptile APPROVED
+  5206614322 @7f52bf6, 5/5, no new inline findings — T8's review leg
+  can go GREEN (T6 precedent). NO thread replies posted (2 held P2s
+  owe in-thread answers; r2 axes must flag the lane). R387P-r2 specs
+  frozen (copies + retarget 7f52bf6 + batch-verify + approval-confirm
+  lines); 3 axes dispatched (spec task_0ad50956c002→ctx_6c4f6574b62a,
+  test task_82c98c36539b→ctx_9e6ac76f6155, standards task_ab417cdb21b6→
+  ctx_c36946457e07).
+- R387W-r2 1/3 in: TEST 2 Required (R-1 para-gate exclusions @run_report.py:
+  511-512 unwitnessed — M7a-e incl. para=bool(line.strip()) stay green; R-2
+  Greptile P1 4012744258 VALID: list/blockquote/indented + --- renders hr,
+  checker false-refuses, manifest 'never bound' wrong) + N-1 Nit + N-2
+  Optional + 2 FYI. R1 batch witnessed landed; 18 mutants reproduce NCs;
+  no commits, no posts. Thread replies STILL OWED (P2 4012319774 + P1
+  4012744258). Released. SPEC + STANDARDS out. T10 → NO-GO → r3 fix.
+- R387W-r2 2/3 in: SPEC 0 Required (all 8 R1 SHAs on branch, each item
+  mutant-witnessed; C-3 78 lines; C-4 green 1359 OK/validate/ruff; no
+  scope creep; tautology guard passes). P1 4012744258 VALID but rated
+  Nit (fail-closed false refusal @run_report.py:506 breaks C-2 'complete
+  rows bind' + prose drift; SPEC/TEST agree VALID, differ on severity —
+  verdict reconciles). F-2 Nit (table-row para mutant survives :518),
+  F-3 FYI. Thread replies owed both threads. Released. STANDARDS out.
+- R387W-r2 3/3 in: STANDARDS 1 Required (R-1: both bot threads unanswered
+  in-thread — P2 resolved zero-reply owes 'fixed in d52ff42', P1 open+silent)
+  + P1 VALID fail-closed (list/blockquote + --- → hr, false 'none found';
+  also === lazy continuation) + 3 Nits + 2 Optional + FYI (close re-bind
+  owed). Released. W-r2 totals: SPEC 0, TEST 2, STANDARDS 1 → V387W-r2
+  spec frozen (3 reports verbatim + bot status w/ severity-reconcile
+  instruction). Dispatched — expect NO-GO → r3 fix.
+- R387P-r2 1/3 in: TEST 1 Required (TA-R1: C-1 probe accepts ANY
+  ledger-contract class on T1-T3 — relabelling T1's park to 'refuted:'
+  stays GREEN though C-1 says needs-human) + 6 Nits (C-4 anchors match
+  anywhere not per-step; C-3 misses returning promise; G3 heading-only;
+  ask text unchecked; checkout-line anywhere; stale '2 hand mutants'
+  note) + 1 Optional. All 5 batch items in tree; Greptile APPROVED
+  confirmed; probe replays reproduce (4/4 base, 3/4 union, 0/4 head,
+  per-commit REDs; executed_ok True). Thread replies owed (builder
+  lane or conductor pre-merge audit). Released. SPEC + STANDARDS out.
+  T8 → likely NO-GO → r3 fix.
+- R387P-r2 2/3 in: SPEC 0 Required (C-1..C-5 met; 1 Nit out-of-process
+  rule unnamed STOP; 1 Optional T1/T2 refs→loop-log not G3; 5 FYI).
+  All 6 batch SHAs landed; validate/probe/U385-verify/1351 re-ran.
+  Greptile APPROVED confirmed; both P2 threads AUTO-RESOLVED by
+  greptile-bot with no reply → in-thread answers owed from COORDINATOR
+  lane (build-387-process 'coordinator replies'; fix spec gave builder
+  no reply step), citing 708b5a8 + 2c029dd. Released. STANDARDS out.
+- R387P-r2 3/3 in: STANDARDS 0 Required (6 Nit incl. out-of-process
+  contradiction, T1/T2 refs→loop-log, union-invalidates restatement, 0/31
+  anchors spec-literal; 1 Optional; 4 FYI incl. STALE 'ruling missing from
+  DECISIONS.md' — it IS on BASE b7708d9, worker's union predates it).
+  Greptile APPROVED confirmed; 2 P2 threads owe coordinator-lane replies
+  pre-merge. Released. P-r2 totals: SPEC 0, TEST 1, STANDARDS 0 →
+  V387P-r2 spec frozen (3 verbatim + bot status + stale-FYI exclude
+  note). Dispatched — expect NO-GO (TA-R1) → r3 fix.
+- V387P-r2 NO-GO (msg_5b31094cb76b, review 5206777406 COMMENTED @7f52bf6,
+  released, verified): 1 Required (TA-R1, verdict-reproduced in disposable
+  clone); batch = pin T1-T3 park needs-human + ask text in C-1 probe w/
+  relabel-mutant RED + 4 adjacent (T1/T2→G3 + assertion, G3 ASK body,
+  'cannot park' scoping, '2→9 mutants' note). Excluded: bot threads
+  (coordinator-lane replies owed), stale DECISIONS FYI, other nits.
+  Fix spec fix-387p-r3.md frozen (step-5 defect CORRECTED to option-A +
+  ruling cite; builder posts NO replies). Dispatched.
+- V387W-r2 NO-GO (msg_9c0bee159064, review 5206786113 COMMENTED @04b780f,
+  released, verified): P1 reconciled to ONE Required (verdict reproduced
+  fail-CLOSED false refusal AND fail-OPEN [] bind on incomplete dup wave=2
+  row — settles the SPEC-Nit vs TEST-Required split) + R-1/F-2 M7a-d
+  survivors (M7e equivalent) + M8/M9 case-fold/boundary survivors. Batch =
+  (1) setext arms only after plain paragraph + 4 binding cases + fail-open
+  refused naming wave 2, (2) gate witnesses killing M7a-d, (3) anchor
+  look-alikes (plural/lowercase), (4) :515 comment fix, (5) 'never bound'
+  claim correction. Excluded: thread replies OWED CONDUCTOR-side
+  (Required, blocks merge: P2 'fixed in d52ff42', P1 'fixed in <r3>'),
+  manifest re-bind, optionals, outside nits, FYIs. Fix spec fix-387w-r3.md
+  frozen (step-5 corrected to option-A; prose-drift guard added).
+  Dispatched.
