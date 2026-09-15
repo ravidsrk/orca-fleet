@@ -895,3 +895,11 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   pre-merge. Released. P-r2 totals: SPEC 0, TEST 1, STANDARDS 0 →
   V387P-r2 spec frozen (3 verbatim + bot status + stale-FYI exclude
   note). Dispatched — expect NO-GO (TA-R1) → r3 fix.
+- V387P-r2 NO-GO (msg_5b31094cb76b, review 5206777406 COMMENTED @7f52bf6,
+  released, verified): 1 Required (TA-R1, verdict-reproduced in disposable
+  clone); batch = pin T1-T3 park needs-human + ask text in C-1 probe w/
+  relabel-mutant RED + 4 adjacent (T1/T2→G3 + assertion, G3 ASK body,
+  'cannot park' scoping, '2→9 mutants' note). Excluded: bot threads
+  (coordinator-lane replies owed), stale DECISIONS FYI, other nits.
+  Fix spec fix-387p-r3.md frozen (step-5 defect CORRECTED to option-A +
+  ruling cite; builder posts NO replies). Dispatched.
