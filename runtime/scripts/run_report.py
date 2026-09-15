@@ -495,6 +495,13 @@ _ITEM_RE = re.compile(r" {0,3}(?:[-+*]|(\d{1,9})[.)])(?=[ \t]|$)")
 _QUOTED = float("inf")
 
 
+def _indent(line, start=0):
+    """The columns of blank space line[start:] opens with. Lines are measured with their tabs
+    expanded to CommonMark's stops of 4, so '\tnote' is as deep as '    note' (verdict r5)."""
+    rest = line[start:]
+    return len(rest) - len(rest.lstrip(" "))
+
+
 def _wip_section_lines(text):
     """The lines inside the report's WIP-curve section(s), fenced code excluded. A heading quoted
     inside a fence is code too, so it neither opens nor closes the section. A setext heading — a
@@ -502,17 +509,22 @@ def _wip_section_lines(text):
     (verdict r1). List items are followed by the column their content starts at (CommonMark), so
     a fence nested in one is still code, and a paragraph indented into one is still its own."""
     inside, fence, para, items, empty = False, None, None, [], False
-    for line in text.splitlines():
-        indent = len(line) - len(line.lstrip(" "))
+    for raw in text.splitlines():
+        line = raw.expandtabs(4)
+        indent = _indent(line)
         if fence:
             # CommonMark: the closing fence is the same character, at least as long, bare, and
-            # up to three spaces past the column of the list item holding the fence.
+            # up to three spaces past the column of the list item holding the fence. A line left
+            # of that column ends the item, and the fence with it, and is read (verdict r5 F-2).
             char, col = fence
-            closer = _FENCE_RE.match(line, col)
-            if (closer and closer.group(1)[0] == char[0] and len(closer.group(1)) >= len(char)
-                    and not line[closer.end():].strip()):
+            if line.strip() and indent < col:
                 fence = None
-            continue
+            else:
+                closer = _FENCE_RE.match(line, col)
+                if (closer and closer.group(1)[0] == char[0] and len(closer.group(1)) >= len(char)
+                        and not line[closer.end():].strip()):
+                    fence = None
+                continue
         if not line.strip():
             # An item begins with at most one blank line, so one still empty ends here (verdict r4).
             if empty:
@@ -532,7 +544,7 @@ def _wip_section_lines(text):
             if not item or (not opened and para == base
                             and not (rest.strip() and int(item.group(1) or 1) == 1)):
                 break
-            gap = len(rest) - len(rest.lstrip(" "))
+            gap = _indent(line, item.end())
             base = item.end() + (gap if rest.strip() and 0 < gap <= 4 else 1)
             opened.append(base)
         empty = bool(opened) and not line[base:].strip()
@@ -546,7 +558,7 @@ def _wip_section_lines(text):
         elif setext:
             inside = False
         elif inside:
-            yield line
+            yield raw
         # Only a paragraph can be underlined, and only in its own container. After a table row, a
         # heading, a fence or a thematic break, --- is a thematic break or table syntax. Under a
         # list item's paragraph but left of its content, or under a block quote's, --- is a
@@ -556,10 +568,11 @@ def _wip_section_lines(text):
                 or line.lstrip().startswith("|")):
             items[kept:], para = opened, None
         elif opened or para is None or quote:
-            # Four spaces past the column is indented code, which nothing underlines (verdict r4).
+            # Four columns past it is indented code, which nothing underlines (verdict r4), a tab
+            # included (verdict r5).
             items[kept:] = opened
             para = (_QUOTED if quote else
-                    base if line[base:].strip() and not line.startswith("    ", base) else None)
+                    base if line[base:].strip() and _indent(line, base) < 4 else None)
         # Otherwise the line continues the open paragraph, lazily or not, and closes nothing.
 
 

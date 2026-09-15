@@ -489,11 +489,18 @@ class WipCurveObligation(unittest.TestCase):
         # indented code, not a paragraph, so a --- or === under it underlines nothing (CommonMark).
         # Read as a paragraph, '    note' / '---' closed the section and hid an incomplete second
         # wave=2 row after it, and the report bound [] where base refused it twice.
+        # Verdict r5 (SPEC F-1, TEST T5-1): a tab runs to the next column that is a multiple of 4,
+        # so a tab reaches the same four columns; counting spaces only, '\tnote' was a paragraph
+        # and '  \tnote' after an empty item one at column 2, both underlined (markdown-it-py).
         partial_2 = self.ROW_2.replace("| latency_max=55m ", "")
         for name, code in {"at the margin, ---": "    note\n---",
                            "at the margin, ===": "    note\n===",
                            "a list item's first block, ---": "-     note\n  ---",
-                           "a list item's block after a blank line, ---": "- a\n\n      note\n  ---"
+                           "a list item's block after a blank line, ---": "- a\n\n      note\n  ---",
+                           "a tab at the margin, ---": "\tnote\n---",
+                           "a tab after two spaces, after an empty item and a blank line, ===":
+                               "*\n\n  \tnote\n===",
+                           "tabs after the marker, a list item's first block, ---": "-\t\tnote\n  ---"
                            }.items():
             with self.subTest(case=name):
                 report = (f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n{self.ROW_1}\n"
@@ -573,7 +580,9 @@ class WipCurveObligation(unittest.TestCase):
                            "short of the item's column 4": "-   a note\n\n  Deviations\n---",
                            "short of the item's column 5": "-    a note\n\n  Deviations\n---",
                            "after an empty item and a blank line, ---": "-\n\n  Deviations\n---",
-                           "after an empty item and a blank line, ===": "*\n\n  Deviations\n==="
+                           "after an empty item and a blank line, ===": "*\n\n  Deviations\n===",
+                           # A tab after the marker runs to column 4 (verdict r5): content at 4.
+                           "a tab after the marker, at column 4": "-\tDeviations\n    ---"
                            }.items():
             with self.subTest(case=name, rows="under a setext heading"):
                 report = f"{head}{lead}\n\n{self.ROW_1}\n{self.ROW_2}\n"
@@ -599,6 +608,19 @@ class WipCurveObligation(unittest.TestCase):
             with self.subTest(case=name, rows="a wave=3 example beside the real row"):
                 report = f"{head}{nested.format(row=stray)}\n{self.ROW_1}\n"
                 self.assertEqual(run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md"), [])
+        # Verdict r5 (SPEC F-2): and only while its item lasts. A line left of the item's content
+        # column ends the item, and an unclosed fence in it with it (markdown-it-py), so an
+        # incomplete second wave=2 row after that line is read, never swallowed as code.
+        with self.subTest(case="an unclosed fence ends with its item"):
+            partial_2 = self.ROW_2.replace("| latency_max=55m ", "")
+            report = (f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n{self.ROW_1}\n{self.ROW_2}\n\n"
+                      f"- a note\n  ```\n  example\n\nNext paragraph.\n\n{partial_2}\n")
+            errs = run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md")
+            self.assertEqual(len(errs), 2, errs)
+            self.assertTrue(any("| wave=2 |" in e and "carries no measured ['latency_max']" in e
+                                for e in errs), f"the row after the item was not read {errs}")
+            self.assertTrue(any("wave(s) [2] carry more than one WIP-curve row" in e for e in errs),
+                            errs)
 
     def test_a_thematic_break_is_neither_a_list_item_nor_a_paragraph(self):
         # The list items followed for PR #401 review: '* * *' is a thematic break, not three list
