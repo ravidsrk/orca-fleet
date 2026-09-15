@@ -463,3 +463,4 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   violating rows + 2 passing rows; (4) N3 every-copy assert (11 unchanged rows
   optional). Failed round 2 of 3 — r3 verdict is the last before park. Task
   completed, worker released. F364r4 spec written + dispatched (90 min).
+  task_abd09350176f → ctx_b1c71bc3d2ac (term_cd9c89f0).
