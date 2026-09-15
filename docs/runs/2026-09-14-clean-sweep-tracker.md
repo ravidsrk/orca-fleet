@@ -1337,3 +1337,18 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   residual, #388 bars closure). FIX393R-r2 dispatched (task_fd55bc4d1d67):
   F-1 M1 killer + F-2 M2 killer + F-3 coordinator M3 (nullcontext rejoin,
   survives 20/20) + F-4 text fixes + F-5 records.
+- ORCA RESET ~15:00Z (gen-4 fenced): runtime blip dropped the coordinator
+  binding (term_f6780ccc: stable_pane_required, then consumer_fenced; run-use
+  from it fails 'no stable pane identity'). RECOVERY (gen-3 precedent):
+  re-adopted from a LIVE retained worker terminal (term_53a67a6a, completed
+  FIX393R-r2 worker) via run-use -> gen 7 OK, coordinator_handle
+  term_53a67a6a. Message store NOT purged this time — fix worker_done intact.
+  Coordinator reads/writes now use term_53a67a6a.
+- FIX393R-r2 DONE (msg_4ec0fb486b2e, task_fd55bc4d1d67): adce115 F-1 killer +
+  53c4894 F-2+F-3 killer + bd6b310 F-4 text + 0de1e87 badge 1381 + acdf998
+  docstring + 55ef070 records. Coordinator-verified: 6 commits, 5 owned
+  files, production behavior-AST identical (docstrings blanked); killers
+  GREEN at tip; M1 kill replayed in scratch (FAILED failures=1). M1/M2/M3
+  RED 20/20 each per builder + transcripts. Pushed bare u393-race (egressed)
+  -> PR #404 head 55ef070. R2 axes dispatched (spec task_2d4987c1e714, test
+  task_b4d523a17f0a, standards task_c20a33d202b9).
