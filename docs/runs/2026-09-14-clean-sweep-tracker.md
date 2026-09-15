@@ -1150,4 +1150,4 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   body + 4 thread replies (conductor-side, block merge), manifest
   re-bind, F-2 Optional, F-4, FYIs. Fix spec fix-387w-r6.md frozen
   (tab-stop-4 helper folding F-3; body/replies coordinator-side).
-  Dispatched.
+  Dispatched (task_0b24b17082da→ctx_61492d54f660).
