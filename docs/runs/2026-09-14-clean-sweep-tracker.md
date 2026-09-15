@@ -498,3 +498,8 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
 - T6 build-364ff spec written (C-FF1 prove-it scoping + libcst row, C-FF2
   oncall-it scoping + venv row, C-FF3 suite green + V2 rows hold; NC revert the
   two case files). Branch u364ff-venv-globs + build worker next.
+- T6 BUILD dispatched: worktree u364ff-venv-globs @87fd2a2 (cleaned orca
+  scaffold package.json + pnpm-lock; branch renamed off the ravidsrk/ prefix),
+  task_d139018c1bae → ctx_49242f543cbd (term_715fc281), binding source
+  build-364ff.md@87fd2a2 digest c14d66d6. 2 workers out (V364r3 record +
+  B364ff).
