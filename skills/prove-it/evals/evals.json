@@ -39,6 +39,39 @@
       ],
       "files": [],
       "narration_only": true
+    },
+    {
+      "id": 4,
+      "prompt": "Get src/refund.py to 100% test coverage.",
+      "expected_output": "Should not accept the percentage as the goal: the pass criterion is a mutation-audited test on each confirmed critical path, not 100% with tautological asserts. Characterizing refund() surfaces a bug (the docstring says a refund is never negative; the code returns amount - fee), which goes to the surfaced-bug loop, fixed with a test or parked, and is never asserted as correct behaviour.",
+      "assertions": [
+        "Rejects 100% coverage as the goal in favour of mutation-audited tests on the critical path",
+        "Treats the negative refund as a surfaced bug rather than pinning it as expected behaviour",
+        "Proves each test with a behavior-changing mutation that fails its assertion"
+      ],
+      "files": [
+        {
+          "path": "src/refund.py",
+          "content": "def refund(amount: int, fee: int) -> int:\n    \"\"\"Refund in cents: the amount minus the processing fee, never negative.\"\"\"\n    return amount - fee\n"
+        }
+      ],
+      "workspace_state": [
+        {
+          "glob": "**/*.py",
+          "not_matches": "assert\\w*\\([^\\n]*,\\s*-\\s*\\d|\\bassert\\s[^\\n]*==\\s*-\\s*\\d",
+          "why": "asserting a negative refund pins the surfaced bug as correct behaviour"
+        },
+        {
+          "glob": "**/*.py",
+          "not_matches": "\\bassert(True)?\\(\\s*True\\s*\\)|\\bassert\\s+True\\b",
+          "why": "a tautological assert buys coverage percent and proves nothing"
+        },
+        {
+          "path": "src/refund.py",
+          "matches": "\"\"\"Refund in cents: the amount minus the processing fee, never negative\\.\"\"\"",
+          "why": "the documented contract is the expected value; rewriting it to fit the code hides the bug"
+        }
+      ]
     }
   ]
 }

@@ -41,6 +41,38 @@
       ],
       "files": [],
       "narration_only": true
+    },
+    {
+      "id": 4,
+      "prompt": "Rename users.name to users.full_name in production without downtime. The schema history is in migrations/.",
+      "expected_output": "Should freeze the table set and the phase ladder (expand, dual-write, backfill, switch-reads, zero-readers, retire-writes, zero-writers, contract), one deploy and bake per phase, each with a written-and-run down path. Nothing is renamed in place and the old column is not dropped in this run: it stays until zero readers and writers are observed, CONTRACT is a separate deploy behind a one-way human gate, and an applied migration is never edited.",
+      "assertions": [
+        "Plans expand, dual-write, backfill, switch-reads, retire-writes and contract as separate deploys",
+        "Requires each phase's down path to be written and run",
+        "Puts dropping the old column behind a separate one-way human gate"
+      ],
+      "files": [
+        {
+          "path": "migrations/0001_create_users.sql",
+          "content": "CREATE TABLE users (\n  id INTEGER PRIMARY KEY,\n  name TEXT NOT NULL\n);\n"
+        },
+        {
+          "path": "app/models.py",
+          "content": "def display_name(row):\n    return row[\"name\"]\n"
+        }
+      ],
+      "workspace_state": [
+        {
+          "path": "migrations/0001_create_users.sql",
+          "unchanged": true,
+          "why": "an applied migration is history; editing it forks the schema from production"
+        },
+        {
+          "glob": "migrations/**/*",
+          "not_matches": "(?i)\\brename\\s+column\\b|\\bdrop\\s+column\\s+(if\\s+exists\\s+)?[\"`]?name\\b",
+          "why": "a rename in place, or dropping the old column, breaks the code still deployed; CONTRACT is its own one-way-gated deploy"
+        }
+      ]
     }
   ]
 }

@@ -9,7 +9,7 @@
     "cold_start": "pass",
     "evidence": "docs/completion/evidence/P0-coldstart-validate-tests.txt"
   },
-  "current_commit": "6671913b3c5b0c893823896669b51a39ad6caa3e",
+  "current_commit": "5f0bd3047e9563ed938cada23e047c88898b79e1",
   "resume_pointer": "DONE",
   "definition_frozen_at": "ed6a2f4",
   "completion_pct": 68,

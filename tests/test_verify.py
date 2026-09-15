@@ -414,6 +414,30 @@ class NegativeControlCheck(RepoCase):
                     tool="mutmut", mutant="m#7", result="KILLED")
         self.assertTrue(any("SURVIVED" in e for e in self._errs(m)))
 
+    def test_a_negated_result_narration_fails(self):
+        # PR #387 review: "the mutant was NOT killed" satisfied the bare killed/red keyword
+        # scan until the #382 guard; revert the guard and this test is the only witness.
+        m = self._m("mutant m#7 was KILLED\n", tool="mutmut", mutant="m#7",
+                    result="the mutant was NOT killed")
+        self.assertTrue(any("negates the kill" in e for e in self._errs(m)))
+
+    def test_an_unparseable_nc_command_fails_closed_on_the_plain_lane(self):
+        # PR #387 security review: an empty or unparseable --nc-command silently skipped the
+        # named-command gate (want_cmd = None → pass). Now it must refuse.
+        self.write("app.py", "x = 1\n")
+        head = self.commit("c")
+        rel = self.artifact("mutant m#7 was KILLED\n")
+        m = {"unit": "u", "base_sha": head, "head_sha": head,
+             "artifacts": [self.pin(rel)],
+             "negative_control": {"tool": "revert", "result": "RED — mutant KILLED",
+                                  "artifact": rel, "command": "true"},
+             "commands": [{"cmd": "true", "exit": 0,
+                           "wtree": self.git("rev-parse", "HEAD^{tree}")}]}
+        for bad in ("", "pytest -k 'flaky"):
+            with self.subTest(nc_command=bad):
+                errs = verify.check_commands(m, True, nc_command=bad)
+                self.assertTrue(any("no usable proof command" in e for e in errs), errs)
+
     def test_execute_nc_fails_closed_for_an_unreplayable_tool(self):
         # #255: replay exists for `revert` and `hand`. Every other tool under --execute-nc must
         # fail CLOSED — an unreplayable control is not an executed one, and a caller that ASKED
