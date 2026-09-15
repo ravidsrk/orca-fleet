@@ -525,8 +525,11 @@ class WipCurveObligation(unittest.TestCase):
         # second wave=2 row after it is refused naming the wave, never hidden.
         partial_2 = self.ROW_2.replace("| latency_max=55m ", "")
         head = f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n"
+        # Text five spaces past its marker is indented code in the item, whose content starts at
+        # column 2, not 7 (CommonMark), so the line at column 2 is still the item's.
         for name, item in {"a list item": "- a note\n\n  that runs on",
-                           "an ordered item, content at column 4": "10. a note\n\n    that runs on"}.items():
+                           "an ordered item, content at column 4": "10. a note\n\n    that runs on",
+                           "text five spaces past the marker": "-     a note\n\n  that runs on"}.items():
             with self.subTest(case=name, rows="complete"):
                 complete = f"{head}{item}\n---\n\n{self.ROW_1}\n{self.ROW_2}\n"
                 self.assertEqual(run_report._wip_curve_errors(complete, "ship-it", ROOT, "r.md"), [])
@@ -538,10 +541,12 @@ class WipCurveObligation(unittest.TestCase):
                 self.assertTrue(any("wave(s) [2] carry more than one WIP-curve row" in e
                                     for e in errs), errs)
         # Underlined at the item's own column, that paragraph is a heading; so is a line back at
-        # the margin, which has left the list. Either ends the section.
+        # the margin, or short of an item whose text starts three spaces past its marker, which
+        # has left the list. Either ends the section.
         for name, lead in {"at column 2": "- a note\n\n  Deviations\n  ---",
                            "at column 4": "10. a note\n\n    Deviations\n    ---",
-                           "back at the margin": "- a note\n\nDeviations\n---"}.items():
+                           "back at the margin": "- a note\n\nDeviations\n---",
+                           "short of the item's column 4": "-   a note\n\n  Deviations\n---"}.items():
             with self.subTest(case=name, rows="under a setext heading"):
                 report = f"{head}{lead}\n\n{self.ROW_1}\n{self.ROW_2}\n"
                 errs = run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md")
@@ -579,6 +584,10 @@ class WipCurveObligation(unittest.TestCase):
                 errs = run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md")
                 self.assertTrue(any("— none found;" in e for e in errs),
                                 f"bound under a setext heading {errs}")
+        # An empty list item holds no paragraph, so the --- in it is a thematic break.
+        with self.subTest(case="an empty list item"):
+            report = f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n-\n  ---\n\n{rows}"
+            self.assertEqual(run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md"), [])
 
     def test_the_marker_heading_and_underline_edges_commonmark_draws(self):
         # Verdict r3 (TEST nits: mutants D6, D7, C8, C10, D15 survived): every marker the checker
