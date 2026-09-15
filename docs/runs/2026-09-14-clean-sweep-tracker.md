@@ -32,9 +32,9 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | T5 | #386 | sign manifest+inventory, retention backend (S2) | — | — | — | — | — | — | — | — | needs-human: key custody + backend undecided (Q2) | Q2: park |
 | T6 | #364 | prove-it/oncall-it venv glob scoping (U364 fix-forward) | real-bug (evals) | t | t | t | t | t | t | lit | — | PR #397 MERGED 01d954e @2967804 (reviewed==head; GO 5205447863; merged ~7min pre-verdict, disclosed); verify 6/6 incl. Greptile-APPROVED review leg; remediates U364 SPEC-r3 F-1 |
 | — | #235 | H-02 marketplace submissions (pre-parked needs-human) | needs-human | — | — | — | — | — | — | needs-human: external accounts | prior run + issue text |
-| T7 | #393 | mixed-version rollout lock (opportunistic sidecar + test) | real-bug | t | t | t | t | t | t | lit | needs-human: post-merge independent APPROVE (2nd login) for verify review leg (run_0607bdc681e6) | V393-r1 GO 5206137160 @7630815 (F1+P1 close-owed, P2 FIFO accepted low-sev Optional → backlog); MERGED 6d9e46a; verify 5/6 (review RED, parked); #393 CLOSED with evidence |
+| T7 | #393 | mixed-version rollout lock (opportunistic sidecar + test) | real-bug | t | t | t | t | t | t | lit | needs-human: post-merge independent APPROVE (2nd login) for verify review leg (see gate-batch.md G3) | V393-r1 GO 5206137160 @7630815 (F1+P1 close-owed, P2 FIFO accepted low-sev Optional → backlog); MERGED 6d9e46a; verify 5/6 (review RED, parked — see gate-batch.md G3); #393 CLOSED with evidence |
 | T8 | #387-threads | ledger/process remediation (parks, u385 tree, templates, close doc) | process | t | t | t | f | f | f | lit | — | PR #403 (u387p-process) @19be7a1 (r2 batch landed: TA-R1 pin, G3 refs+ASK, park-scope, note fix); Greptile APPROVED 5206957088, no new findings; 3 r3 axes live; 2 thread replies OWED conductor-side pre-merge |
-| T9 | #387-threads | eval-glob holes (T6 regression: app//lib/ miss; empty-glob survey) | real-bug (evals) | t | t | t | t | t | t | lit | needs-human: post-merge independent APPROVE (2nd login) for verify review leg (run_0607bdc681e6) | V387G-r2 GO 5206446623 @318542b (delta: T9 byte-identical, badge 1360 recomputed, 1360 OK); MERGED a769a64e (--match-head-commit + --delete-branch, branch 404); verify 5/6 (review RED, parked); manifest closed (head re-bind 0a3f4ab→318542b, 3 coordinator re-runs: 109/validate/1360); worktree retired |
+| T9 | #387-threads | eval-glob holes (T6 regression: app//lib/ miss; empty-glob survey) | real-bug (evals) | t | t | t | t | t | t | lit | needs-human: post-merge independent APPROVE (2nd login) for verify review leg (see gate-batch.md G3) | V387G-r2 GO 5206446623 @318542b (delta: T9 byte-identical, badge 1360 recomputed, 1360 OK); MERGED a769a64e (--match-head-commit + --delete-branch, branch 404); verify 5/6 (review RED, parked); manifest closed (head re-bind 0a3f4ab→318542b, 3 coordinator re-runs: 109/validate/1360); worktree retired |
 | T10 | #387-threads | WIP-curve rows: scope to canonical section (U389 residual) | real-bug | t | t | t | f | f | f | lit | — | PR #401 (u387w-wipsection) @3ce5825 (r2 batch landed: plain-para setext, M7a-d/M8/M9 witnesses, note correction); Greptile NEW P1 4013204408 (container boundaries, noticed-not-touched); 3 r3 axes live; 2 thread replies OWED conductor-side pre-merge |
 
 PHASE: ORIENT → ENUMERATE → TRIAGE done → FREEZE → BUILD wave 1: U385 CLOSED, U388 U389 in fix-round → wave 2: U364
@@ -944,3 +944,11 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   new-P1 judge); 3 axes dispatched (spec task_cc1038d220e4→ctx_f49904ee9b37,
   test task_727c9a7df24d→ctx_0eb530efb6f4, standards task_6dca99aac7cb→
   ctx_c4021ca4e326).
+- R387P-r3 1/3 in: STANDARDS 0 Required (3 Nits + 1 carried Optional + 3
+  FYI). All 6 r3 items landed; '2 hand mutants' hits confirmed '22'
+  substrings (matches coordinator's own finding); probe + validate
+  re-ran; Greptile APPROVED confirmed. Thread replies owed
+  coordinator-side. Released. CORRECTIVE: S3-2 (G3 lacks #402, no G3
+  pointer in T7/T9 cells) ACCEPTED — T9's close omitted the G3 append;
+  G3 now lists #402 U387G 318542b (merged a769a64e) and T7/T9 park
+  cells point at G3. SPEC + TEST out.
