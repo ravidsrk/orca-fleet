@@ -1121,3 +1121,14 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   reproduced; full suite NOT re-ran. 4 threads owed
   coordinator replies. Released. SPEC + STANDARDS out. T10 →
   likely NO-GO → r6 fix.
+- R387W-r5 2/3 in: SPEC 1 Required + 1 Required-record + 1 Nit + FYI.
+  F-1 Required (C-2 fail-open): S-2 fixed SPACES only — tab code
+  '\tnote'/---/incomplete-wave=2 binds [] at HEAD, base refuses;
+  PLUS new r5-only regression ('*/blank/'  \tnote'/===' hides a
+  row r4 read). F-2 Nit pre-existing (list-item fence never closes
+  w/ item — binds [] vs base refuses). F-3 Required RECORD
+  (coordinator lane): PR body still r4/f8a0d87 — refresh to
+  fd12ce4 owed again. FYI A-1 (CommonMark/GFM text-after-table).
+  Full suite re-ran 1378 OK (coverage stands); bot 5/5 intact,
+  no new inline (2 tip comments predate the push). 4 threads
+  owed coordinator replies. Released. STANDARDS out.
