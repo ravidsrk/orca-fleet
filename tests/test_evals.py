@@ -1333,11 +1333,13 @@ class TestGlobScope(unittest.TestCase):
 
     def test_the_denylist_names_whole_directories_not_substrings(self):
         # A module named like a dependency dir, or a dir whose name only contains one, is
-        # first-party code, and a file named .env is still a file a glob reads.
+        # first-party code, and a file named .env is still a file a glob reads. A clean first-party
+        # file sits beside each one so the match set is never empty: an empty set fails closed on
+        # its own, which let a denylist matching substrings (over-excluding environment/) pass.
         for rel in ("src/env.py", "src/venv.py", "environment/config.py",
                     "app/venv_tools/mod.py", "lib/git/hooks.py"):
             with self.subTest(path=rel):
-                self.assertEqual(len(self._failed({rel: "BANNED\n"})), 1)
+                self.assertEqual(len(self._failed({rel: "BANNED\n", "src/app.py": "clean\n"})), 1)
         self.assertEqual(self._failed({".env": "API_KEY=x\n"},
                                       {"glob": "**/.env", "matches": "API_KEY"}), [])
 
