@@ -135,7 +135,7 @@ def sidecar_lock(manifest_path):
     during a rollout the two versions would not exclude each other and records are lost again.
     Joining the sidecar when it is already there makes them exclude each other. It is opened
     without O_CREAT: this wrapper never creates one (#388), and an absent sidecar is no error.
-    Yields whether it joined one: an append that joined none looks again before it writes.
+    Yields True when it joined a sidecar and False when there was none.
     """
     try:
         peer = open(sidecar_path(manifest_path), "rb")
@@ -179,13 +179,14 @@ def append_record(manifest_path, record):
     which this one has already released.
 
     Residual window: a legacy writer that creates the sidecar, locks it and reads the manifest
-    between the last look and the end of this write can still silently drop one of the two
-    records. If the legacy rewrite lands after this one, this record is dropped; if its whole
-    cycle fits before this truncate, the legacy record is. That gap is a seek, a truncate and
-    one write, with no lock wait, read or parse inside it. Closing it would mean creating the
-    sidecar here, which #388 forbids. Looking right after the manifest lock instead would leave
-    the read and the parse inside the gap. A sidecar that appears at any earlier point is still
-    there at the last look, since a legacy writer never removes its sidecar.
+    between the last look and the close that flushes this write can still silently drop one of
+    the two records. If the legacy rewrite lands after this one, this record is dropped; if its
+    whole cycle fits before this truncate, the legacy record is. That gap is a seek, a truncate
+    and the payload's buffered write, whose last bytes reach the file only as the `with` closes
+    it. No lock wait, read or parse is inside it. Closing it would mean creating the sidecar
+    here, which #388 forbids. Looking right after the manifest lock instead would leave the read
+    and the parse inside the gap. A sidecar that appears at any earlier point is still there at
+    the last look, since a legacy writer never removes its sidecar.
     """
     try:
         manifest_path.parent.mkdir(parents=True, exist_ok=True)
@@ -208,7 +209,8 @@ def append_record(manifest_path, record):
                     return
                 commands.append(record)
                 data["commands"] = commands
-                payload = json.dumps(data, indent=2) + "\n"  # before truncate: failure keeps it
+                # Serialized before the truncate, so a failure here leaves the manifest as it was.
+                payload = json.dumps(data, indent=2) + "\n"
                 if not joined and attempt < REJOIN_ATTEMPTS and sidecar_path(manifest_path).exists():
                     continue  # a legacy writer arrived after the check: rejoin, then re-read
                 fh.seek(0)
