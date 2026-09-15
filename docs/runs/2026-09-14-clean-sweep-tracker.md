@@ -36,6 +36,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | T8 | #387-threads | ledger/process remediation (parks, u385 tree, templates, close doc) | process | t | t | t | t | t | t | lit | — | V387P-r3 GO 5207105770 @19be7a1 (0 Required all axes + Greptile APPROVED); 2 thread replies posted pre-merge (4013297581/4013297827); MERGED b9b71df6 (--match-head-commit + --delete-branch, branch 404); verify 6/6 GREEN (review leg via Greptile APPROVED); manifest closed (head re-bind 4142b63→19be7a1, 3 coordinator re-runs: probe/validate/1360); worktree retired |
 | T9 | #387-threads | eval-glob holes (T6 regression: app//lib/ miss; empty-glob survey) | real-bug (evals) | t | t | t | t | t | t | lit | needs-human: post-merge independent APPROVE (2nd login) for verify review leg (see gate-batch.md G3) | V387G-r2 GO 5206446623 @318542b (delta: T9 byte-identical, badge 1360 recomputed, 1360 OK); MERGED a769a64e (--match-head-commit + --delete-branch, branch 404); verify 5/6 (review RED, parked); manifest closed (head re-bind 0a3f4ab→318542b, 3 coordinator re-runs: 109/validate/1360); worktree retired |
 | T10 | #387-threads | WIP-curve rows: scope to canonical section (U389 residual) | real-bug | t | t | t | t | t | t | lit | needs-human: post-merge independent APPROVE (2nd login) for verify review leg (see gate-batch.md G3) | V387W-r7 GO 5209642813 @0d55f10 (0 Required all axes + Greptile 5/5); 4 thread replies posted pre-merge (4015319392/4015319611/4015319861/4015320146) + PR body refreshed; MERGED bff42ff1 (--match-head-commit + --delete-branch, branch 404); verify 5/6 (review RED, parked); manifest closed (reviewer_mode filled + head re-bind 47d5867→0d55f10, 3 coordinator re-runs: 83/validate/1378); worktree retired |
+| T11 | #387-thread-4012510839 | sidecar-creation race: rejoin a sidecar that appears mid-append | real-bug | t | t | t | t | t | t | lit | needs-human: post-merge independent APPROVE (2nd login) for verify review leg (see gate-batch.md G3) | V393R-r3 GO 5212392123 @1e8ae08 (0 Required all axes; r1 NO-GO M1/M2 pins + r2 NO-GO residual-doc/vacuity, all closed; bot P1 accepted with reason); 1 thread reply posted pre-merge (4015794383) + resolved; MERGED f1b0a4f (--match-head-commit + --delete-branch, branch 404); verify 5/6 (review RED, parked); manifest closed (reviewer_mode filled + head re-bind 3ec3f27→1e8ae08 with CONDUCTOR CLOSE prepend, 3 coordinator re-runs: 31/validate/1381); worktree retired |
 
 PHASE: ORIENT → ENUMERATE → TRIAGE done → FREEZE → BUILD wave 1: U385 CLOSED, U388 U389 in fix-round → wave 2: U364
 
@@ -1373,3 +1374,17 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   CORRECTION: r3 specs first written with an UNVERIFIED full SHA suffix —
   caught by coordinator rev-parse check before dispatch, fixed to
   1e8ae0877c60... (cat-file commit). r2's 55ef0704d04... re-confirmed valid.
+- T11 MERGED f1b0a4f (PR #404 --merge; --match-head-commit 1e8ae08 + --delete-
+  branch honored; parents 8c10615+1e8ae08, ancestry OK, branch 404; egress
+  branch-tip + branch-delete receipted). Pre-merge: held bot thread 4015794383
+  replied (accept-with-reason 4017577136) + resolved. CLOSE: 3 coordinator
+  re-runs GREEN at reviewed tip (31 OK / validate / 1381 OK, detached
+  worktree, tree clean; suite wrapped twice, both exit 0); manifest
+  reviewer_mode filled (was null, same-vendor-fresh) + head re-bound
+  3ec3f27→1e8ae08 WITH step-4 prepend + commands_note prepend + pr filled +
+  pending SHA filled + conductor_note; contract digest re-derived by
+  coordinator (git show == 7565569e); verify.py 5/6 (review RED: no
+  independent APPROVED on #404 — needs-human park + G3 append, same as
+  T1/T2/T3/T7/T9/T10). MERGED=t, WT_CLEAN=t (worktree retired from git +
+  orca registries, dir gone). FIFTH WAVE-2 UNIT DONE — #387 THREADS AT ZERO
+  (4012510839 fix merged; in-thread FIXED reply next).

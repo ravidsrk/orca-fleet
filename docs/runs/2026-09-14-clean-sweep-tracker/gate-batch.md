@@ -38,7 +38,8 @@ so far: #392 U388 c680ee0, #391 U389 51019fb, #395 U364 8323c98 (merged as
 1b64781), #400 U393 7630815, #402 U387G 318542b (merged as a769a64e; appended
 2026-09-15T07:50Z per R387P-r3 STANDARDS S3-2 — T9's close omitted it),
 #403 U387P 19be7a1 (merged as b9b71df6; review leg GREEN via Greptile APPROVED —
-listed for completeness, no ask), #401 U387W 0d55f10 (merged as bff42ff1).
+listed for completeness, no ask), #401 U387W 0d55f10 (merged as bff42ff1),
+#404 U393R 1e8ae08 (merged as f1b0a4f).
 Later units append theirs at close. Pre-existing ask, restated at close.
 
 ## G4 · Q1 overtaken: fixtures + oracle built without the maintainer's pick

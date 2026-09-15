@@ -3,9 +3,9 @@
   "unit": "U393R",
   "unit_class": "code-change",
   "base_sha": "62da77cd4fa471b9a2f03c0b675cb22a70987579",
-  "head_sha": "3ec3f27903056144f039817426c2ee7d8f9bffbc",
-  "head_tree": "e4160246285ac1eeadaf67f5a0f6f6731534ed5e",
-  "head_sha_role": "Round 3 (fix-393r-r3.md). Code tip 3ec3f27: 428753e (RQ-2: the last-attempt test asserts its `open` stand-in fired, a literal ['delete', 'recreate'] per attempt), 5d2f572 (RQ-1: the append_record residual docstring names every outcome and the second loss path; the module's AST with docstrings stripped is identical to 55ef070's), 3ec3f27 (S-3: the SidecarRejoin docstring names its stand-ins). The test count did not move (31 in the module, 1381 in source; `gen-badges.py --check` exit 0), so this round has no badge commit. Rounds 1 and 2 (f6a2657 .. 55ef070) stay in base_sha..head_sha. The commit that adds these round-3 records follows head_sha, changes only this manifest and u393r-negctrl.txt, and cannot name its own SHA; per the spec the coordinator re-binds head_sha at close. The three round-3 commands[] records were made by evidence-run.py on the clean tree of head_sha (wtree e4160246 == head_tree); rounds 1 and 2 stay above them as true historical runs.",
+  "head_sha": "1e8ae0877c60b5dc044ec83871a467b9ab76af0c",
+  "head_tree": "97a2749e0f683e16a37c487412b4176abc8c6374",
+  "head_sha_role": "CONDUCTOR CLOSE 2026-09-15T16:03Z (post-merge f1b0a4f, PR #404): re-bound head_sha/head_tree to the reviewed+merged tip 1e8ae08 = f1b0a4f^2 (=1e8ae08^{tree} 97a2749e); T-vs-builder-head delta 3ec3f27..1e8ae08 is the single records commit (u393r-manifest.json + u393r-negctrl.txt only). Round 3 (fix-393r-r3.md). Code tip 3ec3f27: 428753e (RQ-2: the last-attempt test asserts its `open` stand-in fired, a literal ['delete', 'recreate'] per attempt), 5d2f572 (RQ-1: the append_record residual docstring names every outcome and the second loss path; the module's AST with docstrings stripped is identical to 55ef070's), 3ec3f27 (S-3: the SidecarRejoin docstring names its stand-ins). The test count did not move (31 in the module, 1381 in source; `gen-badges.py --check` exit 0), so this round has no badge commit. Rounds 1 and 2 (f6a2657 .. 55ef070) stay in base_sha..head_sha. The commit that adds these round-3 records follows head_sha, changes only this manifest and u393r-negctrl.txt, and cannot name its own SHA; per the spec the coordinator re-binds head_sha at close. The three round-3 commands[] records were made by evidence-run.py on the clean tree of head_sha (wtree e4160246 == head_tree); rounds 1 and 2 stay above them as true historical runs.",
   "base_branch": "review/2026-09-14-holistic-fixes",
   "branch": "ravidsrk/u393-race",
   "contract": {
@@ -161,9 +161,45 @@
       "commit": "3ec3f27903056144f039817426c2ee7d8f9bffbc",
       "wtree": "e4160246285ac1eeadaf67f5a0f6f6731534ed5e",
       "artifact": null
+    },
+    {
+      "label": "coordinator nc at head",
+      "ts": "2026-09-15T15:53:42Z",
+      "cmd": "python3 -m unittest tests.test_evidence_run",
+      "cmd_sha256": "a5fa1dc973a43bdf18642c7610c8bea18563ac07be57cda5f16de46aea477498",
+      "exit": 0,
+      "duration_s": 4.052,
+      "commit": "1e8ae0877c60b5dc044ec83871a467b9ab76af0c",
+      "wtree": "97a2749e0f683e16a37c487412b4176abc8c6374",
+      "artifact": null,
+      "artifact_note": "coordinator clean-env re-run (git worktree detached at head_sha 1e8ae08, tree clean at start): 'Ran 31 tests in 3.998s / OK'"
+    },
+    {
+      "label": "coordinator validate at head",
+      "ts": "2026-09-15T15:53:46Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 0,
+      "duration_s": 0.543,
+      "commit": "1e8ae0877c60b5dc044ec83871a467b9ab76af0c",
+      "wtree": "97a2749e0f683e16a37c487412b4176abc8c6374",
+      "artifact": null,
+      "artifact_note": "coordinator clean-env re-run (git worktree detached at head_sha 1e8ae08, tree clean at start): 'All 21 missions valid; three-layer separation holds; evals valid.'"
+    },
+    {
+      "label": "coordinator full suite at head",
+      "ts": "2026-09-15T16:03:02Z",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "exit": 0,
+      "duration_s": 250.487,
+      "commit": "1e8ae0877c60b5dc044ec83871a467b9ab76af0c",
+      "wtree": "97a2749e0f683e16a37c487412b4176abc8c6374",
+      "artifact": null,
+      "artifact_note": "coordinator clean-env re-run (git worktree detached at head_sha 1e8ae08, tree clean at start): 'Ran 1381 tests in 250.407s / OK' (second wrapped run; first wrapped run same tip exit 0, summary line lost to output tail — disclosed)"
     }
   ],
-  "commands_note": "Round 1 (the first three): written by the fixed wrapper on the clean tree of 076f880 (wtree 46257fe1); see that round's note in u393r-negctrl.txt and git history. Round 2 (the middle three): written by runtime/scripts/evidence-run.py on the clean tree of head_sha acdf998 (wtree 8f685d15 == head_tree; `git status --porcelain --untracked-files=all` was empty before and after each run). Each went into its own manifest outside the working tree so the tree stayed clean, and they are concatenated here as the recorder wrote them. tests printed 'Ran 31 tests' / 'OK'. validate printed 'All 21 missions valid; three-layer separation holds; evals valid.' full-suite printed 'Ran 1381 tests in 310.007s' / 'OK'. Round 3 (the last three): the same procedure on the clean tree of head_sha 3ec3f27 (wtree e4160246 == head_tree; `git status --porcelain --untracked-files=all` empty before and after). tests printed 'Ran 31 tests' / 'OK'. validate printed 'All 21 missions valid; three-layer separation holds; evals valid.' full-suite printed 'Ran 1381 tests in 253.990s' / 'OK'.",
+  "commands_note": "CONDUCTOR CLOSE: 3 coordinator close records at 1e8ae08 (wtree 97a2749e) follow the 9 builder records below; the builder prose describes its own trees. Round 1 (the first three): written by the fixed wrapper on the clean tree of 076f880 (wtree 46257fe1); see that round's note in u393r-negctrl.txt and git history. Round 2 (the middle three): written by runtime/scripts/evidence-run.py on the clean tree of head_sha acdf998 (wtree 8f685d15 == head_tree; `git status --porcelain --untracked-files=all` was empty before and after each run). Each went into its own manifest outside the working tree so the tree stayed clean, and they are concatenated here as the recorder wrote them. tests printed 'Ran 31 tests' / 'OK'. validate printed 'All 21 missions valid; three-layer separation holds; evals valid.' full-suite printed 'Ran 1381 tests in 310.007s' / 'OK'. Round 3 (the last three): the same procedure on the clean tree of head_sha 3ec3f27 (wtree e4160246 == head_tree; `git status --porcelain --untracked-files=all` empty before and after). tests printed 'Ran 31 tests' / 'OK'. validate printed 'All 21 missions valid; three-layer separation holds; evals valid.' full-suite printed 'Ran 1381 tests in 253.990s' / 'OK'.",
   "negative_control": {
     "tool": "revert",
     "did": "At head_sha 3ec3f27, in a scratch worktree (git worktree add --detach). The fork point is 666d55d = git merge-base HEAD <BASE tip pinned at f10613c>, and its evidence-run.py is 62da77c's (empty diff --stat, quoted). NC-1: the production file restored to the fork point, new tests kept. NC-2: REJOIN_ATTEMPTS = 3 -> 1. M1: the look drops `attempt < REJOIN_ATTEMPTS`. M2: the look moves to right after the manifest flock. M3: attempts after the first take contextlib.nullcontext(True) instead of sidecar_lock. REFACTOR+M1 and REFACTOR (V393R-r2 S-1): the sidecar opened via os.fdopen(os.open(..., os.O_RDONLY)), behaviour-neutral, with and without M1. The mutants are exact-text edits, each anchor asserted to occur the stated number of times, and each diff -U0 is quoted. For each: the NC-COMMAND, git checkout HEAD -- the file, the NC-COMMAND again. The RQ-1 demo ran first on the clean tree. Then git worktree remove --force.",
@@ -307,7 +343,7 @@
       "subject": "test(evidence-run): SidecarRejoin docstring names its stand-ins and how a bypass fails (#387 thread 4012510839, V393R-r2 S-3)"
     },
     {
-      "sha": "pending",
+      "sha": "1e8ae0877c60b5dc044ec83871a467b9ab76af0c",
       "subject": "chore(run): U393R round-3 records: residual outcomes forced, F-1 vacuity kill both ways, NC at the code tip, gates (#387 thread 4012510839)"
     }
   ],
@@ -486,5 +522,13 @@
         }
       ]
     }
-  ]
+  ],
+  "pr": {
+    "number": 404,
+    "url": "https://github.com/ravidsrk/orca-fleet/pull/404",
+    "reviewed_sha": "1e8ae0877c60b5dc044ec83871a467b9ab76af0c",
+    "reviewed_wtree": "97a2749e0f683e16a37c487412b4176abc8c6374"
+  },
+  "reviewer_mode": "same-vendor-fresh",
+  "conductor_note": "Close corrections (coordinator, disclosed): (1) reviewer_mode filled at close — builder left it null; value same-vendor-fresh (B393R/FIX builders + all R393R r1-r3 axes + V393R-r1..r3 fresh claude sessions, same vendor as builder). (2) head_sha/head_tree re-bound 3ec3f27->1e8ae08 (reviewed tip, option A) with 3 coordinator re-runs appended (31 OK / validate / 1381 OK, detached worktree at T, tree clean) and pr block filled; full suite wrapped twice (both exit 0; first summary lost to tail). (3) Pre-merge the coordinator replied+resolved the held bot thread 4015794383 (accept-with-reason, receipted, reply 4017577136). Merge f1b0a4f: --merge, M^2==reviewed 1e8ae08, parents 8c10615+1e8ae08, bare branch deleted (404)."
 }
