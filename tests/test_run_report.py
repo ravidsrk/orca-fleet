@@ -511,6 +511,14 @@ class WipCurveObligation(unittest.TestCase):
                                     for e in errs), f"the row after the code was not read {errs}")
                 self.assertTrue(any("wave(s) [2] carry more than one WIP-curve row" in e
                                     for e in errs), errs)
+        # Verdict r5 (TEST T5-2): three spaces short of that is still a paragraph, and underlined
+        # it is a setext heading that ends the section (markdown-it-py).
+        with self.subTest(case="three spaces in, a paragraph, ---"):
+            report = (f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n   Deviations\n---\n\n"
+                      f"{self.ROW_1}\n{self.ROW_2}\n")
+            errs = run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md")
+            self.assertTrue(any("— none found;" in e for e in errs),
+                            f"bound under a setext heading {errs}")
 
     def test_a_thematic_break_after_a_table_row_a_heading_or_a_fence_keeps_the_section_open(self):
         # Verdict r2 (TEST R-1): each paragraph-gate exclusion is witnessed on its own. Straight
@@ -555,10 +563,16 @@ class WipCurveObligation(unittest.TestCase):
         partial_2 = self.ROW_2.replace("| latency_max=55m ", "")
         head = f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n"
         # Text five spaces past its marker is indented code in the item, whose content starts at
-        # column 2, not 7 (CommonMark), so the line at column 2 is still the item's.
+        # column 2, not 7 (CommonMark), so the line at column 2 is still the item's. Verdict r5
+        # (TEST T5-3, T5-4): an empty item given content on its next line is no longer empty, so a
+        # blank line after that keeps it; and a blank line after a nested empty item ends only
+        # that item, not the one holding it (markdown-it-py).
         for name, item in {"a list item": "- a note\n\n  that runs on",
                            "an ordered item, content at column 4": "10. a note\n\n    that runs on",
-                           "text five spaces past the marker": "-     a note\n\n  that runs on"}.items():
+                           "text five spaces past the marker": "-     a note\n\n  that runs on",
+                           "an empty item's content on the next line": "-\n  a note\n\n  that runs on",
+                           "after a nested empty item and a blank line":
+                               "- a\n\n  -\n\n  that runs on"}.items():
             with self.subTest(case=name, rows="complete"):
                 complete = f"{head}{item}\n---\n\n{self.ROW_1}\n{self.ROW_2}\n"
                 self.assertEqual(run_report._wip_curve_errors(complete, "ship-it", ROOT, "r.md"), [])
