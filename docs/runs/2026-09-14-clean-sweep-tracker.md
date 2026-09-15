@@ -27,7 +27,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | STAB | — | land 4 PR-review hunks (deny-hook/run_report/verify/HUMAN_ACTIONS) + badge regen | conductor landing, worker-executed | t | n/a | n/a | n/a | t | n/a | lit | — | 1215e09 9651a52 8f7d5ac 917f9fd; pushed origin/BASE fast-forward (egress receipt); 1285 OK + full battery green; NC re-executed 11 failures; rides PR #387 |
 | T1 | #388 | evidence-run lockfile dirties worktree | real-bug | t | t | t | t | t | t | lit | proof-park: needs post-merge independent APPROVE (2nd login) for verify review leg | PR #392 MERGED 8c36b4a @c680ee0 (reviewed==head; R2 GO 5202783703); verify 5/6 (review leg RED: no independent APPROVED — Greptile never re-reviewed; recoverable post-merge); #388 closed w/ evidence + gap note |
 | T2 | #389 | run_report WIP validation accepts incomplete reports | real-bug | t | t | t | t | t | t | lit | proof-park: needs post-merge independent APPROVE (2nd login) for verify review leg | PR #391 MERGED 1bdb20c @51019fb (reviewed==head; R3 GO 5203193997); verify 5/6 (review leg RED: no independent APPROVED — Greptile checks pass, no review object; recoverable post-merge); #389 closed w/ evidence + gap note |
-| T3 | #364 | fixture-backed evals + workspace-state oracle (S1) | real-feature-small | t | t | t | f | f | f | lit | — | PR #395 @6766265 (r3 django cap, 10-row table, reply r4010798795; no Greptile re-review yet); R364r2 axes dispatched (SPEC judges G2 refute) |
+| T3 | #364 | fixture-backed evals + workspace-state oracle (S1) | real-feature-small | t | t | t | f | f | f | lit | — | PR #395 @6766265; V364r2 NO-GO 5204457473 (4 Required: harden venv, django rows, per-check teeth, 2 undemoed; failed round 2/3); F364r4 dispatched |
 | T4 | #385 | historical-docs polish, agent slice (status.json + parity test) | real-bug (docs) | t | t | t | t | t | t | lit | — | PR #390 MERGED 32da76e @d6fc2cc (reviewed==head; greptile APPROVED + 3 blind GO); verify.py OK all legs (scope/commands/freshness/NC-exec/review/change-on-base); conductor manifest corrections (head/source) disclosed in-file; worktree retired; #385 closed w/ evidence |
 | T5 | #386 | sign manifest+inventory, retention backend (S2) | — | — | — | — | — | — | — | — | needs-human: key custody + backend undecided (Q2) | Q2: park |
 | — | #235 | H-02 marketplace submissions (pre-parked needs-human) | needs-human | — | — | — | — | — | — | needs-human: external accounts | prior run + issue text |
@@ -457,3 +457,9 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   term_c485bd4e). NOTE: reviewers leave the unit worktree on detached HEAD (they
   checkout the pinned SHA) — branch: selector then fails; conductor reattaches
   (checkout <branch>, tree verified clean) before dispatching. Routine now.
+- V364r2 worker_done (msg_6e7b05d4ca14): NO-GO @6766265 (review 5204457473, wtree
+  4e6ed421; all reproduced). Batch: (1) harden-it glob scoping + venv row +
+  _pytest excerpts; (2) 4 DJANGO_ROWS (2 fail, 2 hold); (3) 13 per-check
+  violating rows + 2 passing rows; (4) N3 every-copy assert (11 unchanged rows
+  optional). Failed round 2 of 3 — r3 verdict is the last before park. Task
+  completed, worker released. F364r4 spec written + dispatched (90 min).
