@@ -34,7 +34,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | — | #235 | H-02 marketplace submissions (pre-parked needs-human) | needs-human | — | — | — | — | — | — | needs-human: external accounts | prior run + issue text |
 | T7 | #393 | mixed-version rollout lock (opportunistic sidecar + test) | real-bug | t | t | t | t | t | t | lit | needs-human: post-merge independent APPROVE (2nd login) for verify review leg (run_0607bdc681e6) | V393-r1 GO 5206137160 @7630815 (F1+P1 close-owed, P2 FIFO accepted low-sev Optional → backlog); MERGED 6d9e46a; verify 5/6 (review RED, parked); #393 CLOSED with evidence |
 | T8 | #387-threads | ledger/process remediation (parks, u385 tree, templates, close doc) | process | t | t | t | f | f | f | lit | — | PR #403 (u387p-process) @ed8a7c5 (union over 5174ed4, clean); Greptile 2 VALID held (P2 reattach-gap, P2 no-M^2-fallback); 3 axes live |
-| T9 | #387-threads | eval-glob holes (T6 regression: app//lib/ miss; empty-glob survey) | real-bug (evals) | t | t | t | f | f | f | lit | — | PR #402 (u387g-evalglobs): V387G-r1 GO (0 Required all axes, bot none); post-GO badge conflict → reunion 318542b (T9 byte-identical, gates green); V387G-r2 delta verdict live |
+| T9 | #387-threads | eval-glob holes (T6 regression: app//lib/ miss; empty-glob survey) | real-bug (evals) | t | t | t | t | t | t | lit | needs-human: post-merge independent APPROVE (2nd login) for verify review leg (run_0607bdc681e6) | V387G-r2 GO 5206446623 @318542b (delta: T9 byte-identical, badge 1360 recomputed, 1360 OK); MERGED a769a64e (--match-head-commit + --delete-branch, branch 404); verify 5/6 (review RED, parked); manifest closed (head re-bind 0a3f4ab→318542b, 3 coordinator re-runs: 109/validate/1360); worktree retired |
 | T10 | #387-threads | WIP-curve rows: scope to canonical section (U389 residual) | real-bug | t | t | t | f | f | f | lit | — | PR #401 (u387w-wipsection) @d94c6c1 (union over aab35f9, docs-only); Greptile 1 VALID held (P2 fence info-string); 3 axes live |
 
 PHASE: ORIENT → ENUMERATE → TRIAGE done → FREEZE → BUILD wave 1: U385 CLOSED, U388 U389 in fix-round → wave 2: U364
@@ -791,3 +791,29 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   S4) + TEST 0 Required (51 mutation runs: NC-1 10/10 RED, NC-2 exact-3,
   HEAD 10/10 GREEN; O-1 timing-dependent base RED). Both released. SPEC axis
   still out.
+- TAKEOVER-2 2026-09-15T06:42Z: Muse session sage-equinox (compacted) adopted
+  run_0607bdc681e6 via run-use gen 3 (term_324d4430). Harvested 2 completions
+  + 8 heartbeats; released both settled dispatches (retained/no-owned-process).
+- SPOTCHECK T7 (msg_2967268e870c, released): 4/4 PASS on merge 6d9e46a (PR
+  #400): (a) SHAPE two parents, no squash, ancestry holds; (b) AUTHORSHIP 5
+  commits Ravindra Kumar, zero trailers; (c) BRANCH DELETED 404; (d) WORKTREE
+  RETIRED (git + orca registries). Side note: merge commit itself authored
+  ravindrakumar8088@gmail.com (committer GitHub) vs ravidsrk@gmail.com on PR
+  commits — cosmetic, recorded. Merge protocol (--match-head-commit +
+  --delete-branch) stands validated.
+- V387G-r2 GO (msg_9b5d4de8d970, review 5206446623 COMMENTED @318542b,
+  released, coordinator-verified: review object present, 0 threads): delta
+  clean (T9 blobs byte-identical, diff==BASE-side-only excl. badge, 1360
+  recomputed via gen-badges --check + independent AST count, 109/validate/
+  1360-OK/ruff re-run at HEAD). REVIEWED=t.
+- T9 MERGED a769a64e (PR #402 --merge; --match-head-commit 318542b... +
+  --delete-branch both honored; parents 8cddd8c+318542b, ancestry OK, branch
+  404; egress branch-tip + branch-delete receipted). CLOSE: 3 coordinator
+  re-runs GREEN at reviewed tip (109 OK / validate / 1360 OK, detached
+  worktree, tree clean); manifest re-bound 0a3f4ab→318542b + pr filled +
+  conductor_note (reviewer_mode was builder-filled, true); verify.py 5/6
+  (review RED: no independent APPROVED on #402 — needs-human park, same as
+  T1/T2/T3/T7). Contract digest re-derived by coordinator (git show ==
+  7c3921a1). MERGED=t, WT_CLEAN=t (worktree retired from git + orca
+  registries, dir gone). SECOND WAVE-2 UNIT DONE. FIX387W-r2 (reviewing) +
+  FIX387P-r2 (implementing) still live at merge time; their unions absorb.

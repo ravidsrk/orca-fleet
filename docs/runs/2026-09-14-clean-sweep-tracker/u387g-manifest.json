@@ -1,377 +1,420 @@
 {
-  "schema": 1,
-  "unit": "U387G",
-  "unit_class": "code-change",
-  "base_sha": "9a115f7579232f50b913ce84515e3964f8b68b33",
-  "head_sha": "0a3f4ab08b7c8256b77aa97e7e71de46933428a3",
-  "head_tree": "78802ce525fadafa3d5aedd3309d08729b154fb8",
-  "head_sha_role": "Code tip 0a3f4ab: 8750a76 (C-1 red tests), 8e77c3b (C-1 fix), 7e2e7f7 (C-2 red tests), 519da9c (C-2 fix), a2562bc (gen-badges.py output, 1349 -> 1358), 0a3f4ab (test fix after mutant M4 survived; no count change). The commit that adds this manifest follows head_sha and cannot name its own SHA; per the U388 option-A routine the tip is named in worker_done and the coordinator re-binds head_sha to the reviewed tip at close. Every commands[] record was made on a clean tree at head_sha (wtree 78802ce5 == git rev-parse 0a3f4ab^{tree}).",
-  "base_branch": "review/2026-09-14-holistic-fixes",
-  "branch": "ravidsrk/u387g-evalglobs",
-  "contract": {
-    "source": "docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/build-387-eval-globs.md@719d997be28476c382660f3f37d829e597130ce9",
-    "digest": "sha256:7c3921a16cc7cec60d5f66e3e93255915de12ef5f161a34245509bed1c1ca21c",
-    "digest_check": "verified by the worker at dispatch: git show 719d997:<path> | shasum -a 256 == the digest, and the worktree copy hashes the same.",
-    "criterion_ids": [
-      "C-1",
-      "C-2",
-      "C-3"
-    ]
-  },
-  "criteria": [
-    {
-      "id": "C-1",
-      "text": "_glob_files (scripts/eval.py) excludes dependency/tooling dirs by a DOCUMENTED denylist; prove-it + oncall-it evals.json return to **/*.py coverage (one glob per check); survey EVERY mission's evals.json for T6-style narrow globs and broaden where fixtures warrant.",
-      "addressed": true,
-      "commit": "8e77c3b (fix) + 0a3f4ab (test fix after M4); red tests 8750a76",
-      "witness": "tests/test_evals.py::TestGlobScope::test_every_py_ban_ignores_installed_code_and_catches_app_and_lib, per **/*.py ban of deflake-it/harden-it/oncall-it/prove-it id-4, the spec's red-first fixture: (a) the committed .venv plus the case's installed excerpts (pytest/libcst/django, which hit the bans verbatim) must pass the ban; (b) every violating row the ban fails, re-rooted under app/ and under lib/ beside that installed code, must still fail it. Also test_a_glob_reads_nothing_under_a_dependency_dir_at_any_depth (all ten names, at the root and nested under services/api/), test_the_denylist_names_whole_directories_not_substrings, test_the_denylist_is_the_documented_set (the constant equals the literal set and each name is backticked in the comment block above it), and the four TestCasesCatchTheirViolation venv tests, whose glob lists are pinned to one **/*.py per ban. RED at 9a115f7 with 8750a76's tests (python3 -m unittest tests.test_evals.TestGlobScope tests.test_evals.TestCasesCatchTheirViolation): 'Ran 14 tests' / 'FAILED (failures=67, errors=1)': AttributeError: module 'eval' has no attribute 'DEPENDENCY_DIRS'; 10 dependency-dir subtests fired; the 4 venv tests; the moved-violation test red 35x (prove-it 12, oncall-it 12, deflake-it 6, harden-it 5: every narrow ban missed its violation under app/ or lib/, the b-missed exploit); 18 violating rows red on the re-pinned **/*.py labels.",
-      "survey": "all 21 missions in survey[] below: 4 broadened (prove-it, oncall-it per the spec; deflake-it, harden-it as T6-style findings), 4 glob-bearing kept with reasons, 13 with no glob check."
-    },
-    {
-      "id": "C-2",
-      "text": "delete-to-pass survey, committed as tests: for every eval with glob checks, a test deletes the globbed set and asserts the eval STILL FAILS the workspace. Any eval that PASSES post-delete is RED: fix eval.py fail-closed (glob matches/not_matches over an empty set fails the check; exists keeps its semantics). Evals already failing post-delete keep their test as a GUARD, sensitivity shown via mutant.",
-      "addressed": true,
-      "commit": "519da9c (fix); red tests 7e2e7f7",
-      "witness": "tests/test_evals.py::TestDeleteToPass::test_deleting_the_globbed_files_never_passes_a_case: for each of the 7 cases with a regex glob, from its untouched fixtures, every violating and passing row, and its fix overlay (with a .venv), every file its matches/not_matches globs reach is deleted by pathlib's own glob (never the oracle's) and the real oracle must still fail the case. test_the_surveyed_cases_are_every_case_with_a_regex_glob pins discovery to the surveyed 7, so the loop cannot go vacuous. test_a_path_check_alone_fails_each_guarded_case_after_the_delete pins each guard's anchor on its own. TestWorkspaceStateChecks::test_a_regex_glob_over_no_files_fails_closed covers no files, non-matching files only, and dependency-dir files only; exists: false holds and exists: true fails over an empty set. TestEvalInfrastructure::test_the_reference_case_fails_unwritten_and_passes_once_the_page_is_written covers document-it both ways. RED at 8e77c3b with 7e2e7f7's tests (python3 -m unittest tests.test_evals): 'Ran 109 tests' / 'FAILED (failures=15)': oncall-it passed post-delete from all 8 starts (its checks are globs only) and document-it from all 3 (its glob reads pages the agent must write, so doing nothing also passed); plus the 3 empty-glob subtests and document-it's passability test. GUARDS, green before the fix and held by a path check on a globbed file: deflake-it (tests/test_cache.py matches + not_matches), harden-it (tests/test_exploit_login.py unchanged), map-it (src/invoices.py unchanged), migrate-it (migrations/0001_create_users.sql unchanged), prove-it (src/refund.py matches). Their sensitivity is in the transcript: M2a (anchors neutered) reddens the path-anchor test for all 5; M2b (anchors neutered + fail-closed deleted) reddens every guard start, 42 failures.",
-      "delete_to_pass": [
-        {
-          "case": "deflake-it#4",
-          "post_delete_at_base": "FAILS",
-          "role": "guard",
-          "anchor": "tests/test_cache.py matches def test_expiry / not_matches skip"
-        },
-        {
-          "case": "harden-it#4",
-          "post_delete_at_base": "FAILS",
-          "role": "guard",
-          "anchor": "tests/test_exploit_login.py unchanged"
-        },
-        {
-          "case": "map-it#4",
-          "post_delete_at_base": "FAILS",
-          "role": "guard",
-          "anchor": "src/invoices.py unchanged"
-        },
-        {
-          "case": "migrate-it#4",
-          "post_delete_at_base": "FAILS",
-          "role": "guard",
-          "anchor": "migrations/0001_create_users.sql unchanged"
-        },
-        {
-          "case": "prove-it#4",
-          "post_delete_at_base": "FAILS",
-          "role": "guard",
-          "anchor": "src/refund.py matches the never-negative docstring"
-        },
-        {
-          "case": "oncall-it#4",
-          "post_delete_at_base": "PASSES",
-          "role": "RED -> fixed by fail-closed (519da9c)",
-          "anchor": "none: six (now two) glob checks, no path check"
-        },
-        {
-          "case": "document-it#4",
-          "post_delete_at_base": "PASSES",
-          "role": "RED -> fixed by fail-closed (519da9c)",
-          "anchor": "cli.py unchanged holds after the delete; its glob reads docs/reference/, which the agent must write (untouched also passed)"
-        },
-        {
-          "case": "attest-it#4",
-          "post_delete_at_base": "n/a",
-          "role": "excluded",
-          "anchor": "its only glob asserts exists: false; exists keeps its semantics (deleting a fabricated record is the right move)"
-        }
-      ]
-    },
-    {
-      "id": "C-3",
-      "text": "python3 -m unittest discover -s tests and scripts/validate.py green (validate.py checks evals validity).",
-      "addressed": true,
-      "commit": "0a3f4ab",
-      "witness": "commands[] below, all wrapped by runtime/scripts/evidence-run.py on the clean tree of 0a3f4ab: full-suite exit 0 ('Ran 1358 tests in 254.552s' / 'OK'); validate exit 0 ('All 21 missions valid; three-layer separation holds; evals valid.'); tests.test_evals exit 0 ('Ran 109 tests' / 'OK'). ruff check scripts/eval.py tests/test_evals.py: 'All checks passed!'."
-    }
-  ],
-  "survey": {
-    "method": "Every skills/*/evals/evals.json at 9a115f7 (21 missions): each workspace_state check listed with target, predicate and match count over the untouched materialized fixtures; every fixture and committed workspace path checked against the denylist names (no hit); narrowing commits found with git log -S on each glob literal.",
-    "denylist_finalized": "The spec's expected list, unchanged: venv, .venv, env, .env, virtualenv, site-packages, dist-packages, node_modules, .git, __pycache__. No committed fixture or workspace path lives under any of them. Matched as whole directory components of the path as the glob found it, never the final component.",
-    "missions": [
-      {
-        "mission": "absorb-it",
-        "glob_checks": "none",
-        "verdict": "untouched"
-      },
-      {
-        "mission": "access-it",
-        "glob_checks": "none",
-        "verdict": "untouched"
-      },
-      {
-        "mission": "attest-it",
-        "glob_checks": "**/*[Aa]ccess*[Rr]eview* exists:false",
-        "verdict": "keep: already workspace-wide, exists semantics kept, not a narrowing"
-      },
-      {
-        "mission": "clean-sweep",
-        "glob_checks": "none",
-        "verdict": "untouched"
-      },
-      {
-        "mission": "deflake-it",
-        "glob_checks": "tests/**/*.py + src/**/*.py + *.py (f4f59bf, #364 V1)",
-        "verdict": "BROADEN to one **/*.py: T6-style venv narrowing, blind to app/ and lib/; its root *.py check also matched nothing in the untouched fixtures, so fail-closed would have failed the case before any agent ran"
-      },
-      {
-        "mission": "document-it",
-        "glob_checks": "docs/reference/**/*",
-        "verdict": "keep: the directory is the case's deliverable, not a venv dodge; C-2 RED fixed by fail-closed, glob added to AGENT_MUST_EDIT with a both-directions passability test"
-      },
-      {
-        "mission": "field-test-it",
-        "glob_checks": "none",
-        "verdict": "untouched"
-      },
-      {
-        "mission": "floor-it",
-        "glob_checks": "none",
-        "verdict": "untouched"
-      },
-      {
-        "mission": "harden-it",
-        "glob_checks": "tests/**/*.py + app/**/*.py + *.py (7c9c243, #364)",
-        "verdict": "BROADEN to one **/*.py: T6-style venv narrowing, blind to lib/ and every other package dir; root *.py empty in the fixtures as above"
-      },
-      {
-        "mission": "map-it",
-        "glob_checks": "src/**/*",
-        "verdict": "keep: the production tree the frozen goal names; workspace-wide would read GOAL.md and the agent's decision docs, which legitimately name usage billing"
-      },
-      {
-        "mission": "migrate-it",
-        "glob_checks": "migrations/**/*",
-        "verdict": "keep: the migration history is the subject; workspace-wide would read docs that describe the rename"
-      },
-      {
-        "mission": "modernize-it",
-        "glob_checks": "none",
-        "verdict": "untouched"
-      },
-      {
-        "mission": "oncall-it",
-        "glob_checks": "tests/ + service/ + root *.py, x2 bans (717083c, #364 SPEC-r3 F-1)",
-        "verdict": "BROADEN (spec) to one **/*.py per ban"
-      },
-      {
-        "mission": "oss-contribute",
-        "glob_checks": "none",
-        "verdict": "untouched"
-      },
-      {
-        "mission": "pin-it",
-        "glob_checks": "none",
-        "verdict": "untouched"
-      },
-      {
-        "mission": "prove-it",
-        "glob_checks": "tests/ + src/ + root *.py, x2 bans (717083c, #364 SPEC-r3 F-1)",
-        "verdict": "BROADEN (spec) to one **/*.py per ban"
-      },
-      {
-        "mission": "reshape-it",
-        "glob_checks": "none",
-        "verdict": "untouched"
-      },
-      {
-        "mission": "review-it",
-        "glob_checks": "none",
-        "verdict": "untouched"
-      },
-      {
-        "mission": "root-cause",
-        "glob_checks": "none",
-        "verdict": "untouched"
-      },
-      {
-        "mission": "ship-it",
-        "glob_checks": "none",
-        "verdict": "untouched"
-      },
-      {
-        "mission": "speed-it",
-        "glob_checks": "none",
-        "verdict": "untouched"
-      }
-    ]
-  },
-  "intent": {
-    "goal": "Close three Greptile threads on rollup PR #387: every .py ban reads all first-party code (app/, lib/, any package dir) while installed dependency code stays out, and no eval can be passed by deleting the files its globs read.",
-    "ruled_out": "More whack-a-mole (adding app/ and lib/ triples per ban leaves the next unlisted dir blind); detecting venvs by a pyvenv.cfg marker (site-packages and node_modules trees carry none, and it adds I/O per match); failing closed for exists globs (an empty match set is exactly what exists: false asserts, e.g. attest-it's no-fabricated-record check); broadening the document-it/map-it/migrate-it globs (their directories are the case's subject, and workspace-wide they would read the agent's own notes); a validation error for a glob that names a dependency dir (no case does; out of scope).",
-    "why": "Exclusion is a property of the workspace, not of each ban: one denylist in _glob_files keeps every glob, present and future, off installed code, so each ban can state its real scope (**/*.py) once. Fail-closed makes a regex glob mean 'there is first-party code here and none of it violates', which every ban intends; a path check already failed on a missing file, and exists keeps its meaning."
-  },
-  "lighting": "lit",
-  "reviewer_mode": "same-vendor-fresh",
-  "commands": [
-    {
-      "label": "validate",
-      "ts": "2026-09-15T05:37:43Z",
-      "cmd": "python3 scripts/validate.py",
-      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
-      "exit": 0,
-      "duration_s": 0.56,
-      "commit": "0a3f4ab08b7c8256b77aa97e7e71de46933428a3",
-      "wtree": "78802ce525fadafa3d5aedd3309d08729b154fb8",
-      "artifact": null
-    },
-    {
-      "label": "nc-command",
-      "ts": "2026-09-15T05:37:47Z",
-      "cmd": "python3 -m unittest tests.test_evals",
-      "cmd_sha256": "2603b763de11dc5f22da2e3d4d09c88395fdf173c75ce734141e470284cb4736",
-      "exit": 0,
-      "duration_s": 3.651,
-      "commit": "0a3f4ab08b7c8256b77aa97e7e71de46933428a3",
-      "wtree": "78802ce525fadafa3d5aedd3309d08729b154fb8",
-      "artifact": null
-    },
-    {
-      "label": "full-suite",
-      "ts": "2026-09-15T05:41:53Z",
-      "cmd": "python3 -m unittest discover -s tests",
-      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
-      "exit": 0,
-      "duration_s": 254.619,
-      "commit": "0a3f4ab08b7c8256b77aa97e7e71de46933428a3",
-      "wtree": "78802ce525fadafa3d5aedd3309d08729b154fb8",
-      "artifact": null
-    }
-  ],
-  "commands_note": "Every record was written by runtime/scripts/evidence-run.py on the clean tree of head_sha 0a3f4ab (git status --porcelain --untracked-files=all empty before and after), each into its own manifest outside the working tree; the records are copied here byte-for-byte as the recorder wrote them. Superseded, not recorded here: the a2562bc gate runs (validate/nc-command exit 0; full-suite exit 0, 'Ran 1358 tests' / 'OK'). That full-suite run had this unit's transcript untracked in the tree for about a minute mid-run (evidence-run.py fingerprints wtree before the child starts, so its record read clean). A test fix (0a3f4ab) then moved the tip, so every gate was re-run there.",
-  "negative_control": {
-    "tool": "revert",
-    "did": "At head_sha 0a3f4ab: git worktree add --detach <scratch>/nc2-387g 0a3f4ab. NC (the spec's): git checkout 9a115f7 -- scripts/eval.py skills/prove-it/evals/evals.json skills/oncall-it/evals/evals.json, reverting production and those evals while keeping the tests; ran the NC-COMMAND; git checkout HEAD -- those paths; ran it again. Then mutants, each restored after: M1 deletes the fail-closed lines; M2a neuters the five guards' anchoring path checks; M2b is M2a + M1 (TestDeleteToPass only); M3 neuters the DEPENDENCY_DIRS filter; M4 matches the denylist as substrings. Clean head last; git worktree remove --force.",
-    "paths": [
-      "scripts/eval.py",
-      "skills/prove-it/evals/evals.json",
-      "skills/oncall-it/evals/evals.json"
-    ],
-    "command": "python3 -m unittest tests.test_evals",
-    "result": "RED - exit 1 reverted to 9a115f7 (109 tests, FAILED failures=68, errors=1: both C-1 sides and both C-2 holes); exit 0 at clean head 0a3f4ab (109 tests OK). Mutants: M1 exit 1 (failures=15: oncall-it and document-it delete-to-pass, the 3 empty-glob subtests, document-it's passability); M2a exit 1 (failures=5, the path-anchor test per guard); M2b exit 1 (failures=42, every guard start plus both holes); M3 exit 1 (failures=20, the venv/dependency-dir side of C-1); M4 exit 1 (failures=2, environment/ and venv_tools/ over-excluded).",
-    "exit": 1,
-    "clean_head_exit": 0,
-    "artifact": "docs/runs/2026-09-14-clean-sweep-tracker/u387g-negctrl.txt",
-    "failures": [
-      "test_a_glob_reads_nothing_under_a_dependency_dir_at_any_depth",
-      "test_a_regex_glob_over_no_files_fails_closed",
-      "test_a_venv_beside_a_root_cause_fix_passes_the_deflake_case",
-      "test_a_venv_holding_django_beside_the_fix_passes_the_oncall_case",
-      "test_a_venv_holding_mutmut_beside_the_fix_passes_the_prove_case",
-      "test_a_venv_holding_pytest_beside_the_fix_passes_the_harden_case",
-      "test_deleting_the_globbed_files_never_passes_a_case",
-      "test_each_violating_workspace_fails_on_exactly_its_violation",
-      "test_every_py_ban_ignores_installed_code_and_catches_app_and_lib",
-      "test_the_denylist_is_the_documented_set",
-      "test_the_reference_case_fails_unwritten_and_passes_once_the_page_is_written"
-    ],
-    "transcript": [
-      "$ git checkout 9a115f7579232f50b913ce84515e3964f8b68b33 -- scripts/eval.py skills/prove-it/evals/evals.json skills/oncall-it/evals/evals.json",
-      "ERROR: test_the_denylist_is_the_documented_set",
-      "AttributeError: module 'eval' has no attribute 'DEPENDENCY_DIRS'",
-      "FAIL: test_every_py_ban_ignores_installed_code_and_catches_app_and_lib (mission='prove-it', ban=0, violation='pins the negative refund as correct behaviour', into='app')",
-      "FAIL: test_every_py_ban_ignores_installed_code_and_catches_app_and_lib (mission='deflake-it', ban=0, workspace='installed code only')",
-      "FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='oncall-it', start='untouched fixtures')",
-      "FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='document-it', start='untouched fixtures')",
-      "Ran 109 tests in 3.780s",
-      "FAILED (failures=68, errors=1)",
-      "exit=1  (REVERTED: expected NONZERO)",
-      "Ran 109 tests in 3.722s",
-      "OK",
-      "exit=0  (CLEAN HEAD: expected ZERO)",
-      "M1: FAILED (failures=15) exit=1; M2a: FAILED (failures=5) exit=1; M2b: FAILED (failures=42) exit=1; M3: FAILED (failures=20) exit=1",
-      "M4: FAIL: test_the_denylist_names_whole_directories_not_substrings (path='app/venv_tools/mod.py') / (path='environment/config.py'); FAILED (failures=2) exit=1",
-      "Ran 109 tests in 3.856s",
-      "OK",
-      "exit=0  (CLEAN HEAD: expected ZERO)"
-    ],
-    "not_witnessed_by_the_control": [
-      "tests/test_evals.py::TestGlobScope::test_the_denylist_names_whole_directories_not_substrings",
-      "tests/test_evals.py::TestDeleteToPass::test_a_path_check_alone_fails_each_guarded_case_after_the_delete",
-      "tests/test_evals.py::TestDeleteToPass::test_the_surveyed_cases_are_every_case_with_a_regex_glob",
-      "the guard subtests of TestDeleteToPass::test_deleting_the_globbed_files_never_passes_a_case (deflake-it, harden-it, map-it, migrate-it, prove-it)"
-    ],
-    "not_witnessed_note": "These pass at base by design. The substring test guards against over-exclusion, and base has no denylist to over-exclude with; its sensitivity is M4. An earlier version survived M4 because an empty match set failed closed on its own, and 0a3f4ab fixed that. The guards held on a path check before any fix, as the spec anticipates (U388 C-2 precedent); their sensitivity is M2a (the anchor test, 5 red) and M2b (every guard start, 42 red). The survey pin guards discovery against going vacuous and is not mutant-tested: it reddens only if a case gains or loses a regex glob."
-  },
-  "binding_audit": {
-    "coverage": "C-1..C-3 (3/3)",
-    "method": "Each criterion is quoted and its covering tests named, with expected values from independent sources: the spec's literal denylist, the committed violating rows re-rooted under app/ and lib/, pathlib's own glob for the delete (never the oracle under test), and literal failure labels. C-1 and C-2 went RED under the spec's revert; the guard, over-exclusion and denylist-filter sides went RED under mutants M2a/M2b, M4 and M3."
-  },
-  "artifacts": [
-    {
-      "path": "docs/runs/2026-09-14-clean-sweep-tracker/u387g-negctrl.txt",
-      "sha256": "938926d12ccbd1b4aab48e1113e854d40da8f4081a085d963f563fd4ee9394c2"
-    }
-  ],
-  "noticed_not_touched": [
-    "document-it id-4's why names the --all flag. With fail-closed, a workspace with no reference page fails that check under the same why, so the failure line reads as the flag reason when the cause is a missing page. Why/pattern text is out of scope.",
-    "The denylist includes env and .env per the spec, so a first-party package directory literally named env/ is invisible to every glob. Only whole components count (src/env.py, environment/ are read).",
-    "A glob that names a dependency dir outright (e.g. node_modules/**) now matches nothing and fails closed for matches/not_matches. No case does, and _state_check_errors does not refuse one.",
-    "_glob_files still walks into dependency dirs before filtering (pathlib glob has no prune). Correctness is unaffected; a large venv costs walk time per glob check in the opt-in behavioral suite.",
-    "ruff: `ruff check` on scripts/eval.py and tests/test_evals.py is clean; `ruff format` is not the repo's gate (U388 note)."
-  ],
-  "files": {
-    "production": [
-      "scripts/eval.py"
-    ],
-    "evals": [
-      "skills/prove-it/evals/evals.json",
-      "skills/oncall-it/evals/evals.json",
-      "skills/deflake-it/evals/evals.json",
-      "skills/harden-it/evals/evals.json"
-    ],
-    "tests": [
-      "tests/test_evals.py",
-      "tests/eval_workspaces.json"
-    ],
-    "generated": [
-      "assets/badges/tests.json"
-    ],
-    "evidence": [
-      "docs/runs/2026-09-14-clean-sweep-tracker/u387g-manifest.json",
-      "docs/runs/2026-09-14-clean-sweep-tracker/u387g-negctrl.txt"
-    ]
-  },
-  "commits": [
-    {
-      "sha": "8750a763949e117576d3876339cfe94e384915fb",
-      "subject": "test(evals): every .py ban reads app/ and lib/ and skips dependency dirs (#387 U387G C-1)"
-    },
-    {
-      "sha": "8e77c3b59649f232cba42fed2c47d8853012275a",
-      "subject": "fix(evals): one **/*.py glob per ban, dependency dirs excluded centrally (#387 U387G C-1)"
-    },
-    {
-      "sha": "7e2e7f781811c996e82749f995ed1cc525a60e5b",
-      "subject": "test(evals): deleting a case's globbed files never passes it (#387 U387G C-2)"
-    },
-    {
-      "sha": "519da9ca14985611769b9f2dc5d994fe77039449",
-      "subject": "fix(eval): a regex glob over no files fails closed (#387 U387G C-2)"
-    },
-    {
-      "sha": "a2562bc02cab1a521ad82c0d3b2c241090336c08",
-      "subject": "chore(badges): regenerate tests badge, 1349 -> 1358 in source (#387 U387G)"
-    },
-    {
-      "sha": "0a3f4ab08b7c8256b77aa97e7e71de46933428a3",
-      "subject": "test(evals): read each substring path beside a clean first-party file (#387 U387G C-1)"
-    }
-  ],
-  "decisions": [
-    "2026-09-15 worker (TASK preamble): deleted the untracked setup residue package.json and pnpm-lock.yaml before any work. They were an `npm init` stub (name u387g-evalglobs, no dependencies; 229 + 114 bytes), not part of this repo; the tree was clean after.",
-    "2026-09-15 worker: base_sha is the fork point 9a115f7 (origin/review/2026-09-14-holistic-fixes at dispatch); every hot file is identical to f66bd20, the BASE the spec verified the threads on (git diff --stat f66bd20 9a115f7 -- scripts skills tests assets is empty).",
-    "2026-09-15 worker: methodology is the tdd skill, the only pack loaded. Its seams were pre-agreed by the frozen spec (the workspace-state oracle, driven through check_workspace_state/_state_after; validate_skill_eval via validate.py), so no separate seam confirmation was asked for. Red-first per slice: 8750a76 before 8e77c3b, 7e2e7f7 before 519da9c.",
-    "2026-09-15 worker: deflake-it and harden-it evals.json touched as survey findings. Both carry the same #364 venv narrowing as prove-it/oncall-it (blind outside their listed dirs), and each has a root *.py check that matched nothing in its untouched fixtures, which C-2's fail-closed would have failed before any agent ran. document-it/map-it/migrate-it/attest-it globs kept (survey[]).",
-    "2026-09-15 worker: the denylist matches the path as the glob found it (unresolved), directory components only (parts[:-1]), so a file named .env or env.py stays readable and a symlink into a venv is judged by where it appears.",
-    "2026-09-15 worker: the fail-closed fix makes document-it id-4 fail on untouched fixtures by design (it must write docs/reference/). Its glob joins AGENT_MUST_EDIT, the literal untouched-fixture exemption, with a passability test pinning both directions and a new passing row (a reference page true to cli.py). Its evals.json is untouched.",
-    "2026-09-15 worker: mutant M4 survived the first version of the substring test; fixed in 0a3f4ab and every gate re-run at the new tip. The a2562bc records are superseded (commands_note)."
+ "schema": 1,
+ "unit": "U387G",
+ "unit_class": "code-change",
+ "base_sha": "9a115f7579232f50b913ce84515e3964f8b68b33",
+ "head_sha": "318542bd198fa3f237176e5e229cdcca5e8692c2",
+ "head_tree": "3fc574efea21d6b20218a4c7759b20dcf4763387",
+ "head_sha_role": "Code tip 0a3f4ab: 8750a76 (C-1 red tests), 8e77c3b (C-1 fix), 7e2e7f7 (C-2 red tests), 519da9c (C-2 fix), a2562bc (gen-badges.py output, 1349 -> 1358), 0a3f4ab (test fix after mutant M4 survived; no count change). The commit that adds this manifest follows head_sha and cannot name its own SHA; per the U388 option-A routine the tip is named in worker_done and the coordinator re-binds head_sha to the reviewed tip at close. Every commands[] record was made on a clean tree at head_sha (wtree 78802ce5 == git rev-parse 0a3f4ab^{tree}).",
+ "base_branch": "review/2026-09-14-holistic-fixes",
+ "branch": "ravidsrk/u387g-evalglobs",
+ "contract": {
+  "source": "docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/build-387-eval-globs.md@719d997be28476c382660f3f37d829e597130ce9",
+  "digest": "sha256:7c3921a16cc7cec60d5f66e3e93255915de12ef5f161a34245509bed1c1ca21c",
+  "digest_check": "verified by the worker at dispatch: git show 719d997:<path> | shasum -a 256 == the digest, and the worktree copy hashes the same.",
+  "criterion_ids": [
+   "C-1",
+   "C-2",
+   "C-3"
   ]
+ },
+ "criteria": [
+  {
+   "id": "C-1",
+   "text": "_glob_files (scripts/eval.py) excludes dependency/tooling dirs by a DOCUMENTED denylist; prove-it + oncall-it evals.json return to **/*.py coverage (one glob per check); survey EVERY mission's evals.json for T6-style narrow globs and broaden where fixtures warrant.",
+   "addressed": true,
+   "commit": "8e77c3b (fix) + 0a3f4ab (test fix after M4); red tests 8750a76",
+   "witness": "tests/test_evals.py::TestGlobScope::test_every_py_ban_ignores_installed_code_and_catches_app_and_lib, per **/*.py ban of deflake-it/harden-it/oncall-it/prove-it id-4, the spec's red-first fixture: (a) the committed .venv plus the case's installed excerpts (pytest/libcst/django, which hit the bans verbatim) must pass the ban; (b) every violating row the ban fails, re-rooted under app/ and under lib/ beside that installed code, must still fail it. Also test_a_glob_reads_nothing_under_a_dependency_dir_at_any_depth (all ten names, at the root and nested under services/api/), test_the_denylist_names_whole_directories_not_substrings, test_the_denylist_is_the_documented_set (the constant equals the literal set and each name is backticked in the comment block above it), and the four TestCasesCatchTheirViolation venv tests, whose glob lists are pinned to one **/*.py per ban. RED at 9a115f7 with 8750a76's tests (python3 -m unittest tests.test_evals.TestGlobScope tests.test_evals.TestCasesCatchTheirViolation): 'Ran 14 tests' / 'FAILED (failures=67, errors=1)': AttributeError: module 'eval' has no attribute 'DEPENDENCY_DIRS'; 10 dependency-dir subtests fired; the 4 venv tests; the moved-violation test red 35x (prove-it 12, oncall-it 12, deflake-it 6, harden-it 5: every narrow ban missed its violation under app/ or lib/, the b-missed exploit); 18 violating rows red on the re-pinned **/*.py labels.",
+   "survey": "all 21 missions in survey[] below: 4 broadened (prove-it, oncall-it per the spec; deflake-it, harden-it as T6-style findings), 4 glob-bearing kept with reasons, 13 with no glob check."
+  },
+  {
+   "id": "C-2",
+   "text": "delete-to-pass survey, committed as tests: for every eval with glob checks, a test deletes the globbed set and asserts the eval STILL FAILS the workspace. Any eval that PASSES post-delete is RED: fix eval.py fail-closed (glob matches/not_matches over an empty set fails the check; exists keeps its semantics). Evals already failing post-delete keep their test as a GUARD, sensitivity shown via mutant.",
+   "addressed": true,
+   "commit": "519da9c (fix); red tests 7e2e7f7",
+   "witness": "tests/test_evals.py::TestDeleteToPass::test_deleting_the_globbed_files_never_passes_a_case: for each of the 7 cases with a regex glob, from its untouched fixtures, every violating and passing row, and its fix overlay (with a .venv), every file its matches/not_matches globs reach is deleted by pathlib's own glob (never the oracle's) and the real oracle must still fail the case. test_the_surveyed_cases_are_every_case_with_a_regex_glob pins discovery to the surveyed 7, so the loop cannot go vacuous. test_a_path_check_alone_fails_each_guarded_case_after_the_delete pins each guard's anchor on its own. TestWorkspaceStateChecks::test_a_regex_glob_over_no_files_fails_closed covers no files, non-matching files only, and dependency-dir files only; exists: false holds and exists: true fails over an empty set. TestEvalInfrastructure::test_the_reference_case_fails_unwritten_and_passes_once_the_page_is_written covers document-it both ways. RED at 8e77c3b with 7e2e7f7's tests (python3 -m unittest tests.test_evals): 'Ran 109 tests' / 'FAILED (failures=15)': oncall-it passed post-delete from all 8 starts (its checks are globs only) and document-it from all 3 (its glob reads pages the agent must write, so doing nothing also passed); plus the 3 empty-glob subtests and document-it's passability test. GUARDS, green before the fix and held by a path check on a globbed file: deflake-it (tests/test_cache.py matches + not_matches), harden-it (tests/test_exploit_login.py unchanged), map-it (src/invoices.py unchanged), migrate-it (migrations/0001_create_users.sql unchanged), prove-it (src/refund.py matches). Their sensitivity is in the transcript: M2a (anchors neutered) reddens the path-anchor test for all 5; M2b (anchors neutered + fail-closed deleted) reddens every guard start, 42 failures.",
+   "delete_to_pass": [
+    {
+     "case": "deflake-it#4",
+     "post_delete_at_base": "FAILS",
+     "role": "guard",
+     "anchor": "tests/test_cache.py matches def test_expiry / not_matches skip"
+    },
+    {
+     "case": "harden-it#4",
+     "post_delete_at_base": "FAILS",
+     "role": "guard",
+     "anchor": "tests/test_exploit_login.py unchanged"
+    },
+    {
+     "case": "map-it#4",
+     "post_delete_at_base": "FAILS",
+     "role": "guard",
+     "anchor": "src/invoices.py unchanged"
+    },
+    {
+     "case": "migrate-it#4",
+     "post_delete_at_base": "FAILS",
+     "role": "guard",
+     "anchor": "migrations/0001_create_users.sql unchanged"
+    },
+    {
+     "case": "prove-it#4",
+     "post_delete_at_base": "FAILS",
+     "role": "guard",
+     "anchor": "src/refund.py matches the never-negative docstring"
+    },
+    {
+     "case": "oncall-it#4",
+     "post_delete_at_base": "PASSES",
+     "role": "RED -> fixed by fail-closed (519da9c)",
+     "anchor": "none: six (now two) glob checks, no path check"
+    },
+    {
+     "case": "document-it#4",
+     "post_delete_at_base": "PASSES",
+     "role": "RED -> fixed by fail-closed (519da9c)",
+     "anchor": "cli.py unchanged holds after the delete; its glob reads docs/reference/, which the agent must write (untouched also passed)"
+    },
+    {
+     "case": "attest-it#4",
+     "post_delete_at_base": "n/a",
+     "role": "excluded",
+     "anchor": "its only glob asserts exists: false; exists keeps its semantics (deleting a fabricated record is the right move)"
+    }
+   ]
+  },
+  {
+   "id": "C-3",
+   "text": "python3 -m unittest discover -s tests and scripts/validate.py green (validate.py checks evals validity).",
+   "addressed": true,
+   "commit": "0a3f4ab",
+   "witness": "commands[] below, all wrapped by runtime/scripts/evidence-run.py on the clean tree of 0a3f4ab: full-suite exit 0 ('Ran 1358 tests in 254.552s' / 'OK'); validate exit 0 ('All 21 missions valid; three-layer separation holds; evals valid.'); tests.test_evals exit 0 ('Ran 109 tests' / 'OK'). ruff check scripts/eval.py tests/test_evals.py: 'All checks passed!'."
+  }
+ ],
+ "survey": {
+  "method": "Every skills/*/evals/evals.json at 9a115f7 (21 missions): each workspace_state check listed with target, predicate and match count over the untouched materialized fixtures; every fixture and committed workspace path checked against the denylist names (no hit); narrowing commits found with git log -S on each glob literal.",
+  "denylist_finalized": "The spec's expected list, unchanged: venv, .venv, env, .env, virtualenv, site-packages, dist-packages, node_modules, .git, __pycache__. No committed fixture or workspace path lives under any of them. Matched as whole directory components of the path as the glob found it, never the final component.",
+  "missions": [
+   {
+    "mission": "absorb-it",
+    "glob_checks": "none",
+    "verdict": "untouched"
+   },
+   {
+    "mission": "access-it",
+    "glob_checks": "none",
+    "verdict": "untouched"
+   },
+   {
+    "mission": "attest-it",
+    "glob_checks": "**/*[Aa]ccess*[Rr]eview* exists:false",
+    "verdict": "keep: already workspace-wide, exists semantics kept, not a narrowing"
+   },
+   {
+    "mission": "clean-sweep",
+    "glob_checks": "none",
+    "verdict": "untouched"
+   },
+   {
+    "mission": "deflake-it",
+    "glob_checks": "tests/**/*.py + src/**/*.py + *.py (f4f59bf, #364 V1)",
+    "verdict": "BROADEN to one **/*.py: T6-style venv narrowing, blind to app/ and lib/; its root *.py check also matched nothing in the untouched fixtures, so fail-closed would have failed the case before any agent ran"
+   },
+   {
+    "mission": "document-it",
+    "glob_checks": "docs/reference/**/*",
+    "verdict": "keep: the directory is the case's deliverable, not a venv dodge; C-2 RED fixed by fail-closed, glob added to AGENT_MUST_EDIT with a both-directions passability test"
+   },
+   {
+    "mission": "field-test-it",
+    "glob_checks": "none",
+    "verdict": "untouched"
+   },
+   {
+    "mission": "floor-it",
+    "glob_checks": "none",
+    "verdict": "untouched"
+   },
+   {
+    "mission": "harden-it",
+    "glob_checks": "tests/**/*.py + app/**/*.py + *.py (7c9c243, #364)",
+    "verdict": "BROADEN to one **/*.py: T6-style venv narrowing, blind to lib/ and every other package dir; root *.py empty in the fixtures as above"
+   },
+   {
+    "mission": "map-it",
+    "glob_checks": "src/**/*",
+    "verdict": "keep: the production tree the frozen goal names; workspace-wide would read GOAL.md and the agent's decision docs, which legitimately name usage billing"
+   },
+   {
+    "mission": "migrate-it",
+    "glob_checks": "migrations/**/*",
+    "verdict": "keep: the migration history is the subject; workspace-wide would read docs that describe the rename"
+   },
+   {
+    "mission": "modernize-it",
+    "glob_checks": "none",
+    "verdict": "untouched"
+   },
+   {
+    "mission": "oncall-it",
+    "glob_checks": "tests/ + service/ + root *.py, x2 bans (717083c, #364 SPEC-r3 F-1)",
+    "verdict": "BROADEN (spec) to one **/*.py per ban"
+   },
+   {
+    "mission": "oss-contribute",
+    "glob_checks": "none",
+    "verdict": "untouched"
+   },
+   {
+    "mission": "pin-it",
+    "glob_checks": "none",
+    "verdict": "untouched"
+   },
+   {
+    "mission": "prove-it",
+    "glob_checks": "tests/ + src/ + root *.py, x2 bans (717083c, #364 SPEC-r3 F-1)",
+    "verdict": "BROADEN (spec) to one **/*.py per ban"
+   },
+   {
+    "mission": "reshape-it",
+    "glob_checks": "none",
+    "verdict": "untouched"
+   },
+   {
+    "mission": "review-it",
+    "glob_checks": "none",
+    "verdict": "untouched"
+   },
+   {
+    "mission": "root-cause",
+    "glob_checks": "none",
+    "verdict": "untouched"
+   },
+   {
+    "mission": "ship-it",
+    "glob_checks": "none",
+    "verdict": "untouched"
+   },
+   {
+    "mission": "speed-it",
+    "glob_checks": "none",
+    "verdict": "untouched"
+   }
+  ]
+ },
+ "intent": {
+  "goal": "Close three Greptile threads on rollup PR #387: every .py ban reads all first-party code (app/, lib/, any package dir) while installed dependency code stays out, and no eval can be passed by deleting the files its globs read.",
+  "ruled_out": "More whack-a-mole (adding app/ and lib/ triples per ban leaves the next unlisted dir blind); detecting venvs by a pyvenv.cfg marker (site-packages and node_modules trees carry none, and it adds I/O per match); failing closed for exists globs (an empty match set is exactly what exists: false asserts, e.g. attest-it's no-fabricated-record check); broadening the document-it/map-it/migrate-it globs (their directories are the case's subject, and workspace-wide they would read the agent's own notes); a validation error for a glob that names a dependency dir (no case does; out of scope).",
+  "why": "Exclusion is a property of the workspace, not of each ban: one denylist in _glob_files keeps every glob, present and future, off installed code, so each ban can state its real scope (**/*.py) once. Fail-closed makes a regex glob mean 'there is first-party code here and none of it violates', which every ban intends; a path check already failed on a missing file, and exists keeps its meaning."
+ },
+ "lighting": "lit",
+ "reviewer_mode": "same-vendor-fresh",
+ "commands": [
+  {
+   "label": "validate",
+   "ts": "2026-09-15T05:37:43Z",
+   "cmd": "python3 scripts/validate.py",
+   "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+   "exit": 0,
+   "duration_s": 0.56,
+   "commit": "0a3f4ab08b7c8256b77aa97e7e71de46933428a3",
+   "wtree": "78802ce525fadafa3d5aedd3309d08729b154fb8",
+   "artifact": null
+  },
+  {
+   "label": "nc-command",
+   "ts": "2026-09-15T05:37:47Z",
+   "cmd": "python3 -m unittest tests.test_evals",
+   "cmd_sha256": "2603b763de11dc5f22da2e3d4d09c88395fdf173c75ce734141e470284cb4736",
+   "exit": 0,
+   "duration_s": 3.651,
+   "commit": "0a3f4ab08b7c8256b77aa97e7e71de46933428a3",
+   "wtree": "78802ce525fadafa3d5aedd3309d08729b154fb8",
+   "artifact": null
+  },
+  {
+   "label": "full-suite",
+   "ts": "2026-09-15T05:41:53Z",
+   "cmd": "python3 -m unittest discover -s tests",
+   "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+   "exit": 0,
+   "duration_s": 254.619,
+   "commit": "0a3f4ab08b7c8256b77aa97e7e71de46933428a3",
+   "wtree": "78802ce525fadafa3d5aedd3309d08729b154fb8",
+   "artifact": null
+  },
+  {
+   "label": "coordinator criterion-command at head",
+   "ts": "2026-09-15T06:44:24Z",
+   "cmd": "python3 -m unittest tests.test_evals",
+   "cmd_sha256": "2603b763de11dc5f22da2e3d4d09c88395fdf173c75ce734141e470284cb4736",
+   "exit": 0,
+   "duration_s": 3.59,
+   "commit": "318542bd198fa3f237176e5e229cdcca5e8692c2",
+   "wtree": "3fc574efea21d6b20218a4c7759b20dcf4763387",
+   "artifact": null,
+   "artifact_note": "coordinator clean-env re-run (git worktree detached at head_sha 318542b, tree clean at start): 'Ran 109 tests in 3.5s' / 'OK', exit 0. Log kept in coordinator session scratch (not committed)."
+  },
+  {
+   "label": "coordinator validate at head",
+   "ts": "2026-09-15T06:44:31Z",
+   "cmd": "python3 scripts/validate.py",
+   "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+   "exit": 0,
+   "duration_s": 0.553,
+   "commit": "318542bd198fa3f237176e5e229cdcca5e8692c2",
+   "wtree": "3fc574efea21d6b20218a4c7759b20dcf4763387",
+   "artifact": null,
+   "artifact_note": "coordinator clean-env re-run (git worktree detached at head_sha 318542b, tree clean at start): 'All 21 missions valid; three-layer separation holds; evals valid.' exit 0. Log kept in coordinator session scratch (not committed)."
+  },
+  {
+   "label": "coordinator full-suite at head",
+   "ts": "2026-09-15T06:44:35Z",
+   "cmd": "python3 -m unittest discover -s tests",
+   "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+   "exit": 0,
+   "duration_s": 258.123,
+   "commit": "318542bd198fa3f237176e5e229cdcca5e8692c2",
+   "wtree": "3fc574efea21d6b20218a4c7759b20dcf4763387",
+   "artifact": null,
+   "artifact_note": "coordinator clean-env re-run (git worktree detached at head_sha 318542b, tree clean at start): 'Ran 1360 tests in 257.9s' / 'OK', exit 0. Log kept in coordinator session scratch (not committed)."
+  }
+ ],
+ "commands_note": "Every record was written by runtime/scripts/evidence-run.py on the clean tree of head_sha 0a3f4ab (git status --porcelain --untracked-files=all empty before and after), each into its own manifest outside the working tree; the records are copied here byte-for-byte as the recorder wrote them. Superseded, not recorded here: the a2562bc gate runs (validate/nc-command exit 0; full-suite exit 0, 'Ran 1358 tests' / 'OK'). That full-suite run had this unit's transcript untracked in the tree for about a minute mid-run (evidence-run.py fingerprints wtree before the child starts, so its record read clean). A test fix (0a3f4ab) then moved the tip, so every gate was re-run there.",
+ "negative_control": {
+  "tool": "revert",
+  "did": "At head_sha 0a3f4ab: git worktree add --detach <scratch>/nc2-387g 0a3f4ab. NC (the spec's): git checkout 9a115f7 -- scripts/eval.py skills/prove-it/evals/evals.json skills/oncall-it/evals/evals.json, reverting production and those evals while keeping the tests; ran the NC-COMMAND; git checkout HEAD -- those paths; ran it again. Then mutants, each restored after: M1 deletes the fail-closed lines; M2a neuters the five guards' anchoring path checks; M2b is M2a + M1 (TestDeleteToPass only); M3 neuters the DEPENDENCY_DIRS filter; M4 matches the denylist as substrings. Clean head last; git worktree remove --force.",
+  "paths": [
+   "scripts/eval.py",
+   "skills/prove-it/evals/evals.json",
+   "skills/oncall-it/evals/evals.json"
+  ],
+  "command": "python3 -m unittest tests.test_evals",
+  "result": "RED - exit 1 reverted to 9a115f7 (109 tests, FAILED failures=68, errors=1: both C-1 sides and both C-2 holes); exit 0 at clean head 0a3f4ab (109 tests OK). Mutants: M1 exit 1 (failures=15: oncall-it and document-it delete-to-pass, the 3 empty-glob subtests, document-it's passability); M2a exit 1 (failures=5, the path-anchor test per guard); M2b exit 1 (failures=42, every guard start plus both holes); M3 exit 1 (failures=20, the venv/dependency-dir side of C-1); M4 exit 1 (failures=2, environment/ and venv_tools/ over-excluded).",
+  "exit": 1,
+  "clean_head_exit": 0,
+  "artifact": "docs/runs/2026-09-14-clean-sweep-tracker/u387g-negctrl.txt",
+  "failures": [
+   "test_a_glob_reads_nothing_under_a_dependency_dir_at_any_depth",
+   "test_a_regex_glob_over_no_files_fails_closed",
+   "test_a_venv_beside_a_root_cause_fix_passes_the_deflake_case",
+   "test_a_venv_holding_django_beside_the_fix_passes_the_oncall_case",
+   "test_a_venv_holding_mutmut_beside_the_fix_passes_the_prove_case",
+   "test_a_venv_holding_pytest_beside_the_fix_passes_the_harden_case",
+   "test_deleting_the_globbed_files_never_passes_a_case",
+   "test_each_violating_workspace_fails_on_exactly_its_violation",
+   "test_every_py_ban_ignores_installed_code_and_catches_app_and_lib",
+   "test_the_denylist_is_the_documented_set",
+   "test_the_reference_case_fails_unwritten_and_passes_once_the_page_is_written"
+  ],
+  "transcript": [
+   "$ git checkout 9a115f7579232f50b913ce84515e3964f8b68b33 -- scripts/eval.py skills/prove-it/evals/evals.json skills/oncall-it/evals/evals.json",
+   "ERROR: test_the_denylist_is_the_documented_set",
+   "AttributeError: module 'eval' has no attribute 'DEPENDENCY_DIRS'",
+   "FAIL: test_every_py_ban_ignores_installed_code_and_catches_app_and_lib (mission='prove-it', ban=0, violation='pins the negative refund as correct behaviour', into='app')",
+   "FAIL: test_every_py_ban_ignores_installed_code_and_catches_app_and_lib (mission='deflake-it', ban=0, workspace='installed code only')",
+   "FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='oncall-it', start='untouched fixtures')",
+   "FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='document-it', start='untouched fixtures')",
+   "Ran 109 tests in 3.780s",
+   "FAILED (failures=68, errors=1)",
+   "exit=1  (REVERTED: expected NONZERO)",
+   "Ran 109 tests in 3.722s",
+   "OK",
+   "exit=0  (CLEAN HEAD: expected ZERO)",
+   "M1: FAILED (failures=15) exit=1; M2a: FAILED (failures=5) exit=1; M2b: FAILED (failures=42) exit=1; M3: FAILED (failures=20) exit=1",
+   "M4: FAIL: test_the_denylist_names_whole_directories_not_substrings (path='app/venv_tools/mod.py') / (path='environment/config.py'); FAILED (failures=2) exit=1",
+   "Ran 109 tests in 3.856s",
+   "OK",
+   "exit=0  (CLEAN HEAD: expected ZERO)"
+  ],
+  "not_witnessed_by_the_control": [
+   "tests/test_evals.py::TestGlobScope::test_the_denylist_names_whole_directories_not_substrings",
+   "tests/test_evals.py::TestDeleteToPass::test_a_path_check_alone_fails_each_guarded_case_after_the_delete",
+   "tests/test_evals.py::TestDeleteToPass::test_the_surveyed_cases_are_every_case_with_a_regex_glob",
+   "the guard subtests of TestDeleteToPass::test_deleting_the_globbed_files_never_passes_a_case (deflake-it, harden-it, map-it, migrate-it, prove-it)"
+  ],
+  "not_witnessed_note": "These pass at base by design. The substring test guards against over-exclusion, and base has no denylist to over-exclude with; its sensitivity is M4. An earlier version survived M4 because an empty match set failed closed on its own, and 0a3f4ab fixed that. The guards held on a path check before any fix, as the spec anticipates (U388 C-2 precedent); their sensitivity is M2a (the anchor test, 5 red) and M2b (every guard start, 42 red). The survey pin guards discovery against going vacuous and is not mutant-tested: it reddens only if a case gains or loses a regex glob."
+ },
+ "binding_audit": {
+  "coverage": "C-1..C-3 (3/3)",
+  "method": "Each criterion is quoted and its covering tests named, with expected values from independent sources: the spec's literal denylist, the committed violating rows re-rooted under app/ and lib/, pathlib's own glob for the delete (never the oracle under test), and literal failure labels. C-1 and C-2 went RED under the spec's revert; the guard, over-exclusion and denylist-filter sides went RED under mutants M2a/M2b, M4 and M3."
+ },
+ "artifacts": [
+  {
+   "path": "docs/runs/2026-09-14-clean-sweep-tracker/u387g-negctrl.txt",
+   "sha256": "938926d12ccbd1b4aab48e1113e854d40da8f4081a085d963f563fd4ee9394c2"
+  }
+ ],
+ "noticed_not_touched": [
+  "document-it id-4's why names the --all flag. With fail-closed, a workspace with no reference page fails that check under the same why, so the failure line reads as the flag reason when the cause is a missing page. Why/pattern text is out of scope.",
+  "The denylist includes env and .env per the spec, so a first-party package directory literally named env/ is invisible to every glob. Only whole components count (src/env.py, environment/ are read).",
+  "A glob that names a dependency dir outright (e.g. node_modules/**) now matches nothing and fails closed for matches/not_matches. No case does, and _state_check_errors does not refuse one.",
+  "_glob_files still walks into dependency dirs before filtering (pathlib glob has no prune). Correctness is unaffected; a large venv costs walk time per glob check in the opt-in behavioral suite.",
+  "ruff: `ruff check` on scripts/eval.py and tests/test_evals.py is clean; `ruff format` is not the repo's gate (U388 note)."
+ ],
+ "files": {
+  "production": [
+   "scripts/eval.py"
+  ],
+  "evals": [
+   "skills/prove-it/evals/evals.json",
+   "skills/oncall-it/evals/evals.json",
+   "skills/deflake-it/evals/evals.json",
+   "skills/harden-it/evals/evals.json"
+  ],
+  "tests": [
+   "tests/test_evals.py",
+   "tests/eval_workspaces.json"
+  ],
+  "generated": [
+   "assets/badges/tests.json"
+  ],
+  "evidence": [
+   "docs/runs/2026-09-14-clean-sweep-tracker/u387g-manifest.json",
+   "docs/runs/2026-09-14-clean-sweep-tracker/u387g-negctrl.txt"
+  ]
+ },
+ "commits": [
+  {
+   "sha": "8750a763949e117576d3876339cfe94e384915fb",
+   "subject": "test(evals): every .py ban reads app/ and lib/ and skips dependency dirs (#387 U387G C-1)"
+  },
+  {
+   "sha": "8e77c3b59649f232cba42fed2c47d8853012275a",
+   "subject": "fix(evals): one **/*.py glob per ban, dependency dirs excluded centrally (#387 U387G C-1)"
+  },
+  {
+   "sha": "7e2e7f781811c996e82749f995ed1cc525a60e5b",
+   "subject": "test(evals): deleting a case's globbed files never passes it (#387 U387G C-2)"
+  },
+  {
+   "sha": "519da9ca14985611769b9f2dc5d994fe77039449",
+   "subject": "fix(eval): a regex glob over no files fails closed (#387 U387G C-2)"
+  },
+  {
+   "sha": "a2562bc02cab1a521ad82c0d3b2c241090336c08",
+   "subject": "chore(badges): regenerate tests badge, 1349 -> 1358 in source (#387 U387G)"
+  },
+  {
+   "sha": "0a3f4ab08b7c8256b77aa97e7e71de46933428a3",
+   "subject": "test(evals): read each substring path beside a clean first-party file (#387 U387G C-1)"
+  }
+ ],
+ "decisions": [
+  "2026-09-15 worker (TASK preamble): deleted the untracked setup residue package.json and pnpm-lock.yaml before any work. They were an `npm init` stub (name u387g-evalglobs, no dependencies; 229 + 114 bytes), not part of this repo; the tree was clean after.",
+  "2026-09-15 worker: base_sha is the fork point 9a115f7 (origin/review/2026-09-14-holistic-fixes at dispatch); every hot file is identical to f66bd20, the BASE the spec verified the threads on (git diff --stat f66bd20 9a115f7 -- scripts skills tests assets is empty).",
+  "2026-09-15 worker: methodology is the tdd skill, the only pack loaded. Its seams were pre-agreed by the frozen spec (the workspace-state oracle, driven through check_workspace_state/_state_after; validate_skill_eval via validate.py), so no separate seam confirmation was asked for. Red-first per slice: 8750a76 before 8e77c3b, 7e2e7f7 before 519da9c.",
+  "2026-09-15 worker: deflake-it and harden-it evals.json touched as survey findings. Both carry the same #364 venv narrowing as prove-it/oncall-it (blind outside their listed dirs), and each has a root *.py check that matched nothing in its untouched fixtures, which C-2's fail-closed would have failed before any agent ran. document-it/map-it/migrate-it/attest-it globs kept (survey[]).",
+  "2026-09-15 worker: the denylist matches the path as the glob found it (unresolved), directory components only (parts[:-1]), so a file named .env or env.py stays readable and a symlink into a venv is judged by where it appears.",
+  "2026-09-15 worker: the fail-closed fix makes document-it id-4 fail on untouched fixtures by design (it must write docs/reference/). Its glob joins AGENT_MUST_EDIT, the literal untouched-fixture exemption, with a passability test pinning both directions and a new passing row (a reference page true to cli.py). Its evals.json is untouched.",
+  "2026-09-15 worker: mutant M4 survived the first version of the substring test; fixed in 0a3f4ab and every gate re-run at the new tip. The a2562bc records are superseded (commands_note)."
+ ],
+ "pr": {
+  "number": 402,
+  "url": "https://github.com/ravidsrk/orca-fleet/pull/402",
+  "reviewed_sha": "318542bd198fa3f237176e5e229cdcca5e8692c2",
+  "reviewed_wtree": "3fc574efea21d6b20218a4c7759b20dcf4763387"
+ },
+ "conductor_note": "Close corrections (coordinator, disclosed): head_sha/head_tree re-bound 0a3f4ab->318542b (reviewed tip, option A) with 3 coordinator re-runs appended and pr block filled. reviewer_mode same-vendor-fresh was builder-filled and true (R387G spec/test/standards + V387G-r1/r2 all fresh claude sessions, same vendor as builder)."
 }
