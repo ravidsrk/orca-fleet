@@ -402,8 +402,10 @@ class WipCurveObligation(unittest.TestCase):
         # Verdict r1 (F-1): any heading beginning 'WIP curve' opened the section, so another run's
         # quoted example bound as this run's evidence. Only the protocol's heading opens it.
         rows = f"{self.ROW_1}\n{self.ROW_2}\n"
+        # Verdict r2 (N-1): the heading's case and its word boundary after 'row' are the anchor too.
         for heading in ("## WIP-curve example (from another run)",
-                        "## Deviations — WIP-curve cap raised", "## WIP curve", "### WIP \t curve"):
+                        "## Deviations — WIP-curve cap raised", "## WIP curve", "### WIP \t curve",
+                        "## WIP-curve protocol rows", "## wip-curve protocol row"):
             with self.subTest(heading=heading):
                 report = f"RUN: mission=ship-it waves=2\n\n{heading}\n\n{rows}"
                 errs = run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md")
@@ -480,6 +482,23 @@ class WipCurveObligation(unittest.TestCase):
                             for e in errs), f"the row after the break was not read {errs}")
         self.assertTrue(any("wave(s) [2] carry more than one WIP-curve row" in e for e in errs),
                         errs)
+
+    def test_a_thematic_break_after_a_table_row_a_heading_or_a_fence_keeps_the_section_open(self):
+        # Verdict r2 (TEST R-1): each paragraph-gate exclusion is witnessed on its own. Straight
+        # after a table row, the section heading or a closed fence, --- underlines nothing, so the
+        # wave=2 row after it is still the section's: complete it binds, incomplete it is refused.
+        partial_2 = self.ROW_2.replace("| latency_max=55m ", "")
+        for name, lead in {"a table row": f"\n{self.ROW_1}\n---\n",
+                           "the section heading": f"---\n{self.ROW_1}\n",
+                           "a closed fence": f"\n```text\nan example\n```\n---\n{self.ROW_1}\n"}.items():
+            with self.subTest(case=name):
+                report = f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n{lead}"
+                self.assertEqual(run_report._wip_curve_errors(f"{report}{self.ROW_2}\n", "ship-it",
+                                                              ROOT, "r.md"), [])
+                errs = run_report._wip_curve_errors(f"{report}{partial_2}\n", "ship-it", ROOT, "r.md")
+                self.assertEqual(len(errs), 1, errs)
+                self.assertIn("| wave=2 |", errs[0])
+                self.assertIn("carries no measured ['latency_max']", errs[0])
 
     def test_the_protocol_names_the_schema_the_checker_enforces(self):
         # The text and the check drifted once (#389: the prose owed five metrics, the check read
