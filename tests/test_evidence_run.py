@@ -491,8 +491,13 @@ class SidecarCreationRace(LedgerCase):
 class SidecarRejoin(LedgerCase):
     """#387 thread 4012510839, the rest of the rejoin (V393R-r1 R-1, R-2). The race above pins
     the re-read. These pin the retry bound, where the look sits and that the rejoin waits on
-    the sidecar. Each drives the real `append_record`, loaded by path, through delegating
-    stand-ins for the module's own names that hand every call to the real one."""
+    the sidecar. Each drives the real `append_record`, loaded by path, through stand-ins for
+    the module's own names that hand every call to the real one. The last-attempt test stands
+    in for `open`, deleting the sidecar before each join and recreating it as the manifest
+    opens. The read-then-sidecar test stands in for `fcntl.flock` and `json.loads`, which
+    pause. A refactor that stops calling a stand-in fails its test instead of leaving it
+    vacuous: the first asserts a literal log of what its stand-in did (V393R-r2 RQ-2), and the
+    second stalls on its liveness bound."""
 
     TIMEOUT = 30  # a liveness bound on every wait, never a pacing delay
 
