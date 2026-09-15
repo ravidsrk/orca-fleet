@@ -35,7 +35,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | T7 | #393 | mixed-version rollout lock (opportunistic sidecar + test) | real-bug | t | t | t | f | f | f | lit | — | PR #400 @7630815 (union over 2094f61, docs-only); Greptile 4/5, 2 VALID held (P1 union-staleness = close-step, P2 FIFO sidecar = fix candidate); 3 axes live |
 | T8 | #387-threads | ledger/process remediation (parks, u385 tree, templates, close doc) | process | f | f | f | f | f | f | lit | — | spec build-387-process.md; 7 threads REAL → fix, incl. proof-park → needs-human (T1/T2/T3) |
 | T9 | #387-threads | eval-glob holes (T6 regression: app//lib/ miss; empty-glob survey) | real-bug (evals) | t | f | f | f | f | f | lit | — | BUILD task_2792e3c556b8 done: 8750a76..0a3f4ab+191d248; coordinator-verified (109 OK + validate @0a3f4ab); C-1..C-3, NC RED/GREEN, 1358 full OK; M4-test watched for review |
-| T10 | #387-threads | WIP-curve rows: scope to canonical section (U389 residual) | real-bug | t | f | f | f | f | f | lit | — | BUILD task_746b7c0da3b6 done: 4c72718+d657941→d31ef62+6ae6cf0; coordinator-verified (69 OK + validate @d31ef62); C-1..C-4, NC RED/GREEN, 1353 full OK; fixture-change noted for review |
+| T10 | #387-threads | WIP-curve rows: scope to canonical section (U389 residual) | real-bug | t | t | t | f | f | f | lit | — | PR #401 @d94c6c1 (union over aab35f9, docs-only); Greptile 1 VALID held (P2 fence info-string); 3 axes live |
 
 PHASE: ORIENT → ENUMERATE → TRIAGE done → FREEZE → BUILD wave 1: U385 CLOSED, U388 U389 in fix-round → wave 2: U364
 
@@ -674,3 +674,11 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   document-it red (fixed); M4 mutant survived once then killed by 0a3f4ab test
   hardening (TEST axis watches for tautology). Integrator spec
   taskspecs/integrate-387g.md frozen.
+- I387G dispatched: integrate-387g spec (union + gates + PR + bot reconcile).
+  task_6c904f928296 → ctx_c6b1faafcee2 (claude, unit worktree).
+- I387W worker_done (msg_3c548f224242): PR #401 @d94c6c1 (union over aab35f9,
+  docs-only, gates green; BASE since moved to 64222f1 by a ledger line — merge
+  train absorbs at merge). Greptile 1 VALID held: P2 4012319774 (fence
+  info-string rule — reproduced, joins verdict as Required; in-thread answer
+  owed in fix round). Released. PR_OPEN=t, BOT=t.
+- R387W axes dispatched @d94c6c1 (specs review-387w-{spec,test,standards}.md).
