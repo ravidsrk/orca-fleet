@@ -16,7 +16,7 @@ worker quietly **reported only `AC-1`** in its manifest. This is one of round-2'
 | Gate | What it does | Verdict on the trap |
 |---|---|---|
 | [`selfscore.py`](selfscore.py) — a faithful **self-scoring** stand-in | grades the worker's OWN self-reported criteria (no frozen denominator, no independent session, no negative control) | **GREEN** (exit 0) — it never sees the dropped `AC-2` |
-| [`verify.py`](../../runtime/scripts/verify.py) — orca-fleet's **independent** verifier | re-derives the criterion set from the frozen source (`frozen-spec.md`) and checks the reported `criteria` cover it | **RED** (exit 2) — "scope shrunk: `AC-2` missing" |
+| [`verify.py`](../../runtime/scripts/verify.py) — orca-fleet's **independent** verifier | re-derives the criterion set from the frozen source (`frozen-spec.md`) and checks the reported `criteria` cover it | **RED** (exit 2) — `scope: authoritative criteria not addressed in criteria[] … ['AC-2']` (the transcript also records the #310 empty-range refusal, which fires on the same manifest) |
 
 Recorded run: [`head-to-head.txt`](head-to-head.txt). The delta is not the gate *mechanism* (anyone
 can ship a gate) — it is the **frozen denominator + independent re-derivation**, which a self-scorer
@@ -47,9 +47,12 @@ predates convergence (round-2 threat brief: competitors run public priority doss
 
 | Artifact | sha256 |
 |----------|--------|
-| `head-to-head.txt` | `0b99f4894429763c746ccf73ab0c13aa0defeb71f0ae35d27a6d8906bafa97c5` |
+| `head-to-head.txt` | `055e8725df76853ec97dc369557ee1f7d52e0c6fb21a192c818a1908a1a11c0e` |
 
 (Re-running `run.sh` re-stamps the timestamp line, so a fresh transcript hashes differently; the value
 above pins the committed snapshot and is re-derived from it, not carried forward — the 2026-09-10 deep
 review found this row stale against the file it names, which is exactly the failure an integrity
-inventory exists to prevent. `tests/test_negative_control.py` now re-checks it.)
+inventory exists to prevent. `tests/test_negative_control.py` now re-checks it. The transcript
+records two FAIL lines — the scope-shrink this demo is about, and the #310 empty-range guard that
+also fires on this manifest; `run.sh`'s PASS requires the AC-2 line, so a broken `check_scope`
+cannot print PASS on the strength of the structural refusal alone (#370).)

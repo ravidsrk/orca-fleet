@@ -14,14 +14,14 @@ artifact paths stay relative to the target project. Protocol names resolve throu
 `references/README.md` index (or the catalog's playbooks/runtime directories for a source install).
 
 Record exactly one `RUN:` header: mission, tier, the target-project evidence commit as
-`inventory_at`, the manifest in this run's own artifact directory, and the actual verifier
-outcome. Keep a RED result as RED; it cannot certify completion. A coordinator independently
+`inventory_at`, the manifest in this run's own artifact directory, the actual verifier
+outcome, and the number of dispatch waves the run ran as `waves`. Keep a RED result as RED; it cannot certify completion. A coordinator independently
 checks the manifest under `evidence-manifest` before a unit advances. If artifacts remain
 uncommitted, record that explicitly in **Evidence binding**, use `inventory_at=uncommitted`,
 and retain a content-hashed archive location; do not invent a commit or claim proof promotion.
 
 ```
-RUN: mission=<mission> tier=<doctrine-only|self-run|external-run> inventory_at=<commit> manifest=docs/runs/<YYYY-MM-DD>-<mission>…/<manifest>.json verifier=<GREEN|RED>
+RUN: mission=<mission> tier=<doctrine-only|self-run|external-run> inventory_at=<commit> manifest=docs/runs/<YYYY-MM-DD>-<mission>…/<manifest>.json verifier=<GREEN|RED> waves=<n>
 ```
 
 | Field | Value |
@@ -82,9 +82,16 @@ flags is a fail-closed scope RED to record, not a flag to drop. `evidence-manife
 Required by `attention-budget` for every mutating self-run in the catalog; for external runs
 and report-only missions, record why this self-run measurement is inapplicable.
 
-| WIP setting | builder throughput | verification latency | rework rate | freshness violations |
-|---|---|---|---|---|
-| `<n>` | `<verified-CLOSED per hour>` | `<median>` | `<rate>` | `<count>` |
+One row per dispatch wave, `wave=1` … `wave=<n>` for the `RUN:` header's `waves=<n>`, each
+carrying every labeled cell below with a digit-led measured value (whole numbers for `wave`,
+`builders`, `reviewers`). `run_report.py` refuses a row whose labeled cell is missing, unmeasured
+or written twice — a bare value without its `key=` label counts as missing; other cells, such as a
+note, are free. The two rows show a two-wave run — add or delete rows to match.
+
+| Wave | WIP setting | Builder throughput | Verification latency | Rework rate | Freshness violations |
+|---|---|---|---|---|---|
+| `wave=1` | `builders=<n> reviewers=<n>` | `throughput=<v>` | `latency_median=<v> latency_max=<v>` | `rework=<v>` | `freshness=<v>` |
+| `wave=2` | `builders=<n> reviewers=<n>` | `throughput=<v>` | `latency_median=<v> latency_max=<v>` | `rework=<v>` | `freshness=<v>` |
 
 ## Deviations and lessons (recorded, not hidden)
 

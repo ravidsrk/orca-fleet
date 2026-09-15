@@ -260,6 +260,7 @@ class UnitClassSelection(RepoCase):
 
     def _write_manifest(self, m):
         fh = tempfile.NamedTemporaryFile("w", suffix=".json", delete=False)
+        self.addCleanup(lambda: os.path.exists(fh.name) and os.unlink(fh.name))  # no leaks (#381)
         json.dump(m, fh)
         fh.close()
         return fh.name
@@ -327,7 +328,7 @@ class FreshnessCheck(unittest.TestCase):
             tree = g("rev-parse", "HEAD^{tree}").stdout.strip()
             g("commit", "--amend", "-qm", "one amended")  # same tree, new SHA
             new_head = g("rev-parse", "HEAD").stdout.strip()
-            assert old_head != new_head
+            self.assertNotEqual(old_head, new_head)  # a bare assert is stripped under python -O
             m = {"head_sha": new_head,
                  "pr": {"reviewed_sha": old_head, "reviewed_wtree": tree}}
             cwd = __import__("os").getcwd()
@@ -413,6 +414,30 @@ class NegativeControlCheck(RepoCase):
                     tool="mutmut", mutant="m#7", result="KILLED")
         self.assertTrue(any("SURVIVED" in e for e in self._errs(m)))
 
+    def test_a_negated_result_narration_fails(self):
+        # PR #387 review: "the mutant was NOT killed" satisfied the bare killed/red keyword
+        # scan until the #382 guard; revert the guard and this test is the only witness.
+        m = self._m("mutant m#7 was KILLED\n", tool="mutmut", mutant="m#7",
+                    result="the mutant was NOT killed")
+        self.assertTrue(any("negates the kill" in e for e in self._errs(m)))
+
+    def test_an_unparseable_nc_command_fails_closed_on_the_plain_lane(self):
+        # PR #387 security review: an empty or unparseable --nc-command silently skipped the
+        # named-command gate (want_cmd = None → pass). Now it must refuse.
+        self.write("app.py", "x = 1\n")
+        head = self.commit("c")
+        rel = self.artifact("mutant m#7 was KILLED\n")
+        m = {"unit": "u", "base_sha": head, "head_sha": head,
+             "artifacts": [self.pin(rel)],
+             "negative_control": {"tool": "revert", "result": "RED — mutant KILLED",
+                                  "artifact": rel, "command": "true"},
+             "commands": [{"cmd": "true", "exit": 0,
+                           "wtree": self.git("rev-parse", "HEAD^{tree}")}]}
+        for bad in ("", "pytest -k 'flaky"):
+            with self.subTest(nc_command=bad):
+                errs = verify.check_commands(m, True, nc_command=bad)
+                self.assertTrue(any("no usable proof command" in e for e in errs), errs)
+
     def test_execute_nc_fails_closed_for_an_unreplayable_tool(self):
         # #255: replay exists for `revert` and `hand`. Every other tool under --execute-nc must
         # fail CLOSED — an unreplayable control is not an executed one, and a caller that ASKED
@@ -467,11 +492,70 @@ class NegativeControlCheck(RepoCase):
             "tool": "mutmut", "mutant": "m#7", "result": "KILLED", "artifact": str(outside)}}
         self.assertTrue(any("absolute evidence path refused" in e for e in self._errs(m)))
 
+
     def test_escaping_relative_artifact_path_is_refused(self):
         m = {"unit": "ship-it", "negative_control": {
             "tool": "mutmut", "mutant": "m#7", "result": "KILLED",
             "artifact": "../outside/nc.txt"}}
         self.assertTrue(any("escapes the repo toplevel" in e for e in self._errs(m)))
+
+
+class NegativeControlExecutorLegs(RepoCase):
+    """#381: the executor's failure legs (worktree-add failure, no-op control, timeout,
+    clean-phase nonzero) had no coverage — the paths most likely to matter in production."""
+
+    PROOF = f"{sys.executable} -m unittest test_mod"
+
+    def _manifest(self):
+        self.write("app.py", "def add(a, b):\n    return a - b  # the defect\n")
+        base = self.commit("base")
+        self.write("app.py", "def add(a, b):\n    return a + b  # the fix\n")
+        head = self.commit("fix")
+        rel = self.artifact("reverted; the suite went RED (mutant KILLED)\n")
+        return {"unit": "u", "base_sha": base, "head_sha": head,
+                "artifacts": [self.pin(rel)],
+                "negative_control": {"tool": "revert", "result": "RED — mutant KILLED",
+                                     "artifact": rel, "command": self.PROOF, "paths": ["app.py"]}}
+
+    def _run_with(self, run_at_effects):
+        m = self._manifest()
+        with mock.patch.object(verify, "_apply_control", return_value=None), \
+                mock.patch.object(verify, "_run", return_value=(0, "", "")), \
+                mock.patch.object(verify, "_run_at", side_effect=list(run_at_effects)):
+            return verify.execute_negative_control(m, self.PROOF)
+
+    def test_a_worktree_that_cannot_be_made_fails_closed(self):
+        m = self._manifest()
+
+        def fake_run(args, **kw):
+            if "add" in args:
+                return (1, "", "fatal: worktree add exploded")
+            return (0, "", "")
+        with mock.patch.object(verify, "_run", side_effect=fake_run):
+            ok, msgs = verify.execute_negative_control(m, self.PROOF)
+        self.assertFalse(ok)
+        self.assertTrue(any("could not create the control worktree" in x for x in msgs), msgs)
+
+    def test_a_control_that_changes_nothing_is_no_proof(self):
+        # git status clean after the apply: a no-op mutant cannot make any proof go RED.
+        ok, msgs = self._run_with([(0, "", "")])  # status --porcelain: empty
+        self.assertFalse(ok)
+        self.assertTrue(any("changed NOTHING" in x for x in msgs), msgs)
+
+    def test_a_control_run_that_times_out_is_not_a_kill(self):
+        ok, msgs = self._run_with([(0, " M app.py", ""), (124, "", "timed out")])
+        self.assertFalse(ok)
+        self.assertTrue(any("did not complete under the control" in x for x in msgs), msgs)
+
+    def test_a_command_red_at_clean_head_proves_nothing(self):
+        effects = [
+            (0, " M app.py", ""),                      # control phase: dirty after apply
+            (1, "", "FAILED (failures=1)\n"),          # control phase: RED with an oracle failing
+            (1, "", "FAILED (failures=1)\n"),          # clean phase: RED too — the suite is broken
+        ]
+        ok, msgs = self._run_with(effects)
+        self.assertFalse(ok)
+        self.assertTrue(any("at CLEAN head_sha too" in x for x in msgs), msgs)
 
 
 class ReadSourceGuard(unittest.TestCase):
@@ -926,6 +1010,7 @@ class MalformedManifest(unittest.TestCase):
 
     def _tmp(self, text):
         f = tempfile.NamedTemporaryFile("w", suffix=".json", delete=False)
+        self.addCleanup(lambda: os.path.exists(f.name) and os.unlink(f.name))  # no leaks (#381)
         f.write(text)
         f.close()
         return f.name
@@ -1203,8 +1288,9 @@ class EndToEndMutationGreen(RepoCase):
              "negative_control": nc or {"tool": "mutmut", "result": "KILLED", "mutant": "m7",
                                         "artifact": self.nc_artifact},
              # The content-bound ledger: an exit-0 run whose wtree is head_sha's tree, carrying the
-             # cmd_sha256 evidence-run.py writes. --execute-nc will only replay a command that is
-             # in here (PR #277 review): a unit does not get to nominate what proves it.
+             # cmd_sha256 evidence-run.py writes. Since #279 the replayed command comes from the
+             # coordinator's --nc-command and must AGREE with the manifest's — and since #352 a
+             # fresh record must be FOR that command: a unit does not get to nominate what proves it.
              "commands": commands if commands is not None else [
                  {"label": "tests", "cmd": self.proof_cmd,
                   "cmd_sha256": hashlib.sha256(self.proof_cmd.encode("utf-8")).hexdigest(),
@@ -1623,6 +1709,25 @@ class EndToEndMutationGreen(RepoCase):
         rc, _out, err = self._run_main(path)
         self.assertEqual(rc, 2)
         self.assertIn("STALE evidence", err)
+
+    def test_a_fresh_record_of_the_wrong_command_fails_when_the_coordinator_named_one(self):
+        # #352: `evidence-run.py -- true` is content-bound and exit-0, and proved nothing.
+        # When the coordinator names the proof command out of band, the ledger must show THAT
+        # command green on this content.
+        decoy = "true"
+        path = self._manifest(commands=[{"label": "tests", "cmd": decoy,
+                                         "cmd_sha256": hashlib.sha256(decoy.encode()).hexdigest(),
+                                         "exit": 0, "wtree": self.head_tree}])
+        rc, _out, err = self._run_main(path, "--nc-command", self.proof_cmd)
+        self.assertEqual(rc, 2)
+        self.assertIn("none is the coordinator-named proof command", err)
+
+    def test_a_fresh_record_of_the_named_command_still_passes(self):
+        # The same manifest that is green without --nc-command stays green when the coordinator
+        # names the very command the ledger records.
+        path = self._manifest()
+        rc, _out, err = self._run_main(path, "--nc-command", self.proof_cmd)
+        self.assertEqual(rc, 0, err)
 
     def test_missing_commands_ledger_is_red(self):
         path = self._manifest(commands=[])

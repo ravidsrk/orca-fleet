@@ -22,7 +22,7 @@ metadata:
   state_machine: triage → build-change → build-blind review → open PR upstream → follow up until quiet
   convergence: re-enumeration finds every frozen issue PR-opened-and-followed or parked; merging is not yours
   ordering: PR-per-issue from a fork head against the asserted upstream base
-  parking: already-has-PR / needs-human / externally-resolved / stood-down
+  parking: awaiting-maintainer-merge / externally-covered / externally-resolved / refuted / duplicate / out-of-scope / needs-human
   oracle: the UPSTREAM repo's CI and its maintainers, not your suite
 ---
 
@@ -103,9 +103,9 @@ PR. A closing keyword goes on a concrete issue only, never an RFC/meta/tracking 
 Header per liveness-resume.md: `RUN · COORDINATOR · BASE=- · FORK_POINT=- · T0 · SOURCE · WIP ·
 UPSTREAM · FORK` (BASE/FORK_POINT stay `-`, never renamed — no integration base; UPSTREAM and FORK
 are additive trailing columns). Phase marker + unit flags per ledger-contract.md — every canonical flag
-kept except `MERGED` (merge is the maintainer's), extended with `CLASS` and `FOLLOWED_UP`:
+kept in full — `MERGED` tracks the maintainer's upstream merge, not ours — extended with `CLASS` and `FOLLOWED_UP`:
 
-`| task_id | issue | title | CLASS | BUILD_DONE | REVIEWED | PR_OPEN | BOT | FOLLOWED_UP | WT_CLEAN | lighting | park | evidence |`
+`| task_id | issue | title | CLASS | BUILD_DONE | PR_OPEN | BOT | REVIEWED | MERGED | FOLLOWED_UP | WT_CLEAN | lighting | park | evidence |`
 CLASS ∈ buildable · already-has-PR · refuted · duplicate · needs-human · externally-resolved ·
 out-of-scope. `park` is empty while a posted PR or assist is still live, `awaiting-maintainer-merge`
 once a posted PR's feedback is quiet (a clean handoff — still clause (a) of the convergence proof), or

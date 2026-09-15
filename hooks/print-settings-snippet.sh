@@ -25,4 +25,7 @@ if [ "${1:-}" = "--check" ]; then
   exit 0
 fi
 
-sed "s|__ORCA_FLEET_ROOT__|$ROOT|g" "$TEMPLATE"
+# The substitution delimiter is | and & is sed-special in the replacement: escape both in the
+# path, or a clone at a path containing either corrupts the emitted settings block (#382).
+ESCAPED=$(printf '%s' "$ROOT" | sed 's/[&|]/\\&/g')
+sed "s|__ORCA_FLEET_ROOT__|$ESCAPED|g" "$TEMPLATE"

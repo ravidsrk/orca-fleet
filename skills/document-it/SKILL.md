@@ -92,7 +92,7 @@ Header at T0 per liveness-resume.md: `RUN · COORDINATOR · BASE · FORK_POINT �
 (SOURCE = the extractor command + the surface digest; WIP sized to attention-budget.md). One row
 per CELL:
 
-`| task_id | entity | quadrant | GAP | BUILD_DONE | CLAIMS_OK | NC_RED | PR_OPEN | REVIEWED | MERGED | REACHABLE | WT_CLEAN | park | evidence |`
+`| task_id | entity | quadrant | GAP | BUILD_DONE | CLAIMS_OK | NC_RED | PR_OPEN | BOT | REVIEWED | MERGED | REACHABLE | WT_CLEAN | lighting | park | evidence |`
 
 Stalls → liveness-resume.md WATCH; RESUME re-derives the map from the extractor at the current
 head, never from the frozen list alone — cells landed since the freeze are already filled.

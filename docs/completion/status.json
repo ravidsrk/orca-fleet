@@ -9,7 +9,7 @@
     "cold_start": "pass",
     "evidence": "docs/completion/evidence/P0-coldstart-validate-tests.txt"
   },
-  "current_commit": "6671913b3c5b0c893823896669b51a39ad6caa3e",
+  "current_commit": "5f0bd3047e9563ed938cada23e047c88898b79e1",
   "resume_pointer": "DONE",
   "definition_frozen_at": "ed6a2f4",
   "completion_pct": 68,
@@ -582,11 +582,12 @@
       "critical_flow": null,
       "severity": "S2",
       "decision": "FINISH",
-      "status": "open",
+      "status": "closed",
       "tasks": [],
       "accept_expiry": null,
       "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/236",
-      "human_action": "H-04"
+      "human_action": "H-04",
+      "closed_note": "closed 2026-09-09 via H-04 (#236); made moot permanently by the count-free canonical About text (#376, applied 2026-09-14)"
     },
     {
       "id": "G-16",
@@ -614,11 +615,12 @@
       "critical_flow": null,
       "severity": "S3",
       "decision": "FINISH",
-      "status": "open",
+      "status": "closed",
       "tasks": [],
       "accept_expiry": null,
       "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/237",
-      "human_action": "H-05"
+      "human_action": "H-05",
+      "closed_note": "closed 2026-09-09 via H-05 (#237) \u2014 0.6.1 cut landed"
     },
     {
       "id": "G-18",
@@ -647,11 +649,12 @@
       "critical_flow": null,
       "severity": "S2",
       "decision": "DEFER",
-      "status": "open",
+      "status": "closed",
       "tasks": [],
       "accept_expiry": null,
       "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/232",
-      "note": "docs/ops.md step 4 precision: add the checkable 'no deploy job in .github/workflows' clause, cite both dated rehearsals, lead with the -m 1 form"
+      "note": "docs/ops.md step 4 precision: add the checkable 'no deploy job in .github/workflows' clause, cite both dated rehearsals, lead with the -m 1 form",
+      "closed_note": "closed 2026-09-09 \u2014 filed as #232 and fixed the same day"
     },
     {
       "id": "G-20",
@@ -663,11 +666,12 @@
       "critical_flow": null,
       "severity": "S2",
       "decision": "DEFER",
-      "status": "open",
+      "status": "closed",
       "tasks": [],
       "accept_expiry": null,
       "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/233",
-      "note": "the -m 1 rollback fix is unbound: no test mentions revert; extend the ops/release tests to pin the merge-shaped command"
+      "note": "the -m 1 rollback fix is unbound: no test mentions revert; extend the ops/release tests to pin the merge-shaped command",
+      "closed_note": "closed 2026-09-09 \u2014 filed as #233 and fixed the same day"
     },
     {
       "id": "G-21",
@@ -679,11 +683,12 @@
       "critical_flow": null,
       "severity": "S3",
       "decision": "DEFER",
-      "status": "open",
+      "status": "closed",
       "tasks": [],
       "accept_expiry": null,
       "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/234",
-      "note": "ledger hygiene batch; spec F1 was Required at the review axis and is carried at driver-severity S3 (a stale file-set sentence in an already-merged PR body is not a live product defect) \u2014 mapping recorded, not dropped (S5-B RV-07)"
+      "note": "ledger hygiene batch; spec F1 was Required at the review axis and is carried at driver-severity S3 (a stale file-set sentence in an already-merged PR body is not a live product defect) \u2014 mapping recorded, not dropped (S5-B RV-07)",
+      "closed_note": "closed 2026-09-09 \u2014 filed as #234 and fixed the same day"
     }
   ],
   "phases": [
@@ -1085,7 +1090,7 @@
       ],
       "gates_launch": false,
       "verification": "agent re-reads the description via the GitHub API \u2192 evidence/H-04-repo-description.txt",
-      "status": "open",
+      "status": "done 2026-09-09 (#236); count-free canonical text applied 2026-09-14 (#376)",
       "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/236"
     },
     {
@@ -1096,7 +1101,7 @@
       ],
       "gates_launch": false,
       "verification": "plugin.json version equals the latest dated CHANGELOG heading; gen-badges.py --check exit 0",
-      "status": "open",
+      "status": "done 2026-09-09 (#237)",
       "issue_url": "https://github.com/ravidsrk/orca-fleet/issues/237"
     },
     {

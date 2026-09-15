@@ -1,7 +1,7 @@
 # 📚 document-it — every public-surface cell filled, every claim anchored
 
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — a coordinator plus parallel per-cell writer workers, each reviewed build-blind; which entities deserve a tutorial or an explanation is your call.
-> **Activation load:** ~28,900 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
+> **Activation load:** ~29,400 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
 
 > Point it at a public surface nobody has documented. Come back to a coverage map re-derived at
@@ -10,7 +10,23 @@
 
 **Skill:** [`skills/document-it/SKILL.md`](../../skills/document-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes — docs land as PRs
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/diagrams/missions/document-it.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../../assets/diagrams/missions/document-it-light.jpg">
+    <img src="../../assets/diagrams/missions/document-it-light.jpg" alt="Mission contract for document-it: you give it a public surface — extracted by a script, not by hand; it interrupts you for freezing the gap list; which entities deserve a tutorial or an explanation; you get back DOCUMENTED or DOCUMENTED-WITH-PARKED, plus a page per cell with every claim anchored; rename-control transcripts; the coverage map re-derived at the final head; it stops at never inventing a why, never rewriting a diagram; phases EXTRACT, MAP, FREEZE, WRITE, CLAIM-VERIFY, REVIEW, LAND, RE-MAP" width="820">
+  </picture>
+</p>
+
 ---
+
+## Invoke it
+
+```
+> document this project
+```
+
+**Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + the orchestration skill (Orca CLI). git + gh. A machine-derivable public surface (an extractor script the repo has or the run writes) and a runnable claim check. Where the docs live in a framework (Docusaurus, MkDocs, Nextra), its build must run locally. One worker playbook pack per worker (matt or addy) — never two routers in one worker.
 
 ## What it does
 
@@ -66,7 +82,7 @@ touching one doc file form a merge chain.
 
 ## Terminal states
 
-| State | Meaning | Who advances past it |
+| State | Meaning | Who acts on it |
 |---|---|---|
 | `DOCUMENTED` | The re-derived map shows zero critical gaps and every frozen cell filled; every claim anchored with its rename control RED; every doc reachable in one hop; diagram entities cross-reference clean | terminal — the promotion PR is yours |
 | `DOCUMENTED-WITH-PARKED` | ≥1 cell parked `explanation-needs-author`, `tutorial-not-warranted`, or `diagram-needs-human` | a human writes the "why", declines the tutorial, or fixes the diagram |
@@ -94,6 +110,30 @@ The verifier re-runs the extractor and the claim check at the merged SHA. Prose 
 the oracle here — coverage, anchoring, and reachability are; taste findings go to the review round
 or park.
 
+## A worked example
+
+*A run, sketched — the shape of one, not a transcript.*
+
+> document this project
+
+**Extract.** A script at the BASE head lists 41 exported symbols, 12 CLI flags and 7 environment
+variables; its output and SHA are pasted, so the denominator is not whatever a writer noticed.
+
+**Map.** Every entity is scored per quadrant. Fifteen cells have zero coverage (critical); twenty
+are reference-only (common).
+
+**Freeze (your gate).** You bound the taste: three entities deserve a tutorial, none an
+explanation page. The gap list freezes.
+
+**Write → claim-verify.** One worker per cell, reference first, from code archaeology. Every
+claim is anchored to a `file:symbol`; the negative control renames `parse_config` on a throwaway
+branch and the claim check goes RED.
+
+**Review → land → re-map.** Build-blind review checks voice, accuracy and that each page is
+reachable in one hop. The map re-derived at the final head shows zero critical gaps. Two cells
+are parked `explanation-needs-author` — the design rationale is not in the tree, and an invented
+"why" is worse than a blank. The run ends `DOCUMENTED-WITH-PARKED`.
+
 ## Failure modes this mission is built to prevent
 
 | Anti-pattern | Why it burns you |
@@ -109,13 +149,14 @@ or park.
 | Clobbering the changelog / bumping a version | Those are history and a decision, not side effects |
 
 ## Composes
-
-Playbooks: [`doc-coverage`](../../playbooks/doc-coverage.md) ·
+Playbooks:
+[`doc-coverage`](../../playbooks/doc-coverage.md) ·
 [`remediate-finding`](../../playbooks/remediate-finding.md) ·
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
 [`compound-learn`](../../playbooks/compound-learn.md)
 
-Runtime policies: [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
+Runtime policies:
+[`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`merge-serialization`](../../runtime/merge-serialization.md) ·
 [`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md) ·
 [`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) ·

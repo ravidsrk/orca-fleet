@@ -44,7 +44,11 @@ set -eu
 
 HERE=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 EVENT=""
-if [ "${1:-}" = "--event" ]; then EVENT="${2:-}"; shift 2; fi
+if [ "${1:-}" = "--event" ]; then
+  EVENT="${2:-}"
+  [ -n "$EVENT" ] || { echo "verify-gate: --event needs a value" >&2; exit 2; }  # usage is 2, never a bare set -eu exit 1 (#382)
+  shift 2
+fi
 MANIFEST="${ORCA_MANIFEST:-${1:-}}"
 CONTRACT_SOURCE="${ORCA_CONTRACT_SOURCE:-}"
 CONTRACT_DIGEST="${ORCA_CONTRACT_DIGEST:-}"

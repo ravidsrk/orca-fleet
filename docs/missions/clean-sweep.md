@@ -1,7 +1,7 @@
 # 🧹 clean-sweep — a finite backlog exhausted to zero, with evidence
 
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — coordinator plus parallel isolated fix workers, one finding each; you own the one-way doors.
-> **Activation load:** ~33,100 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
+> **Activation load:** ~33,800 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — it ran ([self-run report](../runs/2026-07-13-clean-sweep-self-run.md)), but that run's
 > artifacts were retained outside this repository, so the tier is not re-derivable here
 > (`runtime/scripts/run_report.py`, issue #259)
@@ -14,10 +14,22 @@
 **Skill:** [`skills/clean-sweep/SKILL.md`](../../skills/clean-sweep/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes
 
 <p align="center">
-  <img src="../../assets/diagrams/missions/clean-sweep.jpg" alt="State machine: ENUMERATE the full denominator at T0, SKEPTIC-TRIAGE with a batch human gate for refuted and duplicate closes, FREEZE, parallel fix-and-PR workers, build-blind REVIEW, LAND, CLOSE with merge SHA and red-first test, RE-ENUMERATE looping on new items until DRY" width="820">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/diagrams/missions/clean-sweep.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../../assets/diagrams/missions/clean-sweep-light.jpg">
+    <img src="../../assets/diagrams/missions/clean-sweep-light.jpg" alt="Mission contract for clean-sweep: you give it an audit report, an issue tracker, or docs that lie; it interrupts you for batch approval of refuted and duplicate closes; the promotion PR; you get back DRY or DRY-WITH-PARKED, plus one merged PR per finding; a test that failed pre-fix; the final enumeration pasted in the ledger; it stops at the promotion PR — every close backed by a merge SHA, never by worker memory; phases ENUMERATE, TRIAGE, FIX, REVIEW, LAND, CLOSE, RE-ENUMERATE" width="820">
+  </picture>
 </p>
 
 ---
+
+## Invoke it
+
+```
+> close every issue in <the tracker, or the path to an audit report>
+```
+
+**Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + the orchestration skill (Orca CLI). git + gh (or a tracker via orca linear). One worker playbook pack per worker (Matt triage/tdd, or Addy debug/build) — never two routers in one worker.
 
 ## What it does
 
@@ -127,13 +139,15 @@ Phase by phase:
    reported and the promotion PR opens. Any later commit re-runs it; a green per-finding history
    under a red report commit is still a red branch.
 
-## Terminal states — every item ends in exactly one
+## Terminal states
 
-| State    | Meaning                                                                                            | Who advances past it                                  |
-|----------|----------------------------------------------------------------------------------------------------|-------------------------------------------------------|
-| `CLOSED` | Merged, ancestry-verified PR + a test that failed pre-fix, both linked in the closing comment      | nobody — the evidence chain is the authorization      |
+*Every item ends in exactly one.*
+
+| State | Meaning | Who acts on it |
+|---|---|---|
+| `CLOSED` | Merged, ancestry-verified PR + a test that failed pre-fix, both linked in the closing comment | nobody — the evidence chain is the authorization |
 | `PARKED` | Two kinds, per the ledger contract. **Clean:** `refuted` / `duplicate` / `externally-resolved` through the batch gate, or `out-of-scope` handed off — not real work for this run. **Degraded:** `needs-human` naming its gate, or `CODE_CLOSED` + `VERIFY_AT_SCALE` with its OPS plan — honest incomplete | the batch gate (clean); a human or OPS (degraded) |
-| `DRY`    | A full enumeration finds zero items outside `CLOSED` and the clean parks, and the final tip (after every run-close commit) passes the repo's own validate/test suite; the output is pasted in the ledger | terminal — the promotion PR is opened and left to you |
+| `DRY` | A full enumeration finds zero items outside `CLOSED` and the clean parks, and the final tip (after every run-close commit) passes the repo's own validate/test suite; the output is pasted in the ledger | terminal — the promotion PR is opened and left to you |
 | `DRY-WITH-PARKED` | The set is exhausted but at least one degraded park remains; never reported as `DRY` | a human clears each named park |
 
 The run ends by pasting the dry enumeration, never by asserting it. For `source=tracker`, issues
@@ -209,27 +223,27 @@ with the full close table, the park named in it.
 | Driving the loop with `orchestration run`     | The file-ledger boolean gate must stay under the coordinator's manual control |
 
 ## Composes
+At activation — the SKILL's Composes/rides clause, what a coordinator loads before the first dispatch:
 
-Playbooks: [`remediate-finding`](../../playbooks/remediate-finding.md) ·
+Playbooks:
+[`remediate-finding`](../../playbooks/remediate-finding.md) ·
 [`build-change`](../../playbooks/build-change.md) ·
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
-[`compound-learn`](../../playbooks/compound-learn.md) ·
 [`triage-state`](../../playbooks/triage-state.md) ·
-[`linear-enumeration`](../../playbooks/linear-enumeration.md) ·
-[`completion-audit`](../../playbooks/completion-audit.md) ·
-[`agent-brief`](../../playbooks/agent-brief.md)
+[`linear-enumeration`](../../playbooks/linear-enumeration.md)
 
-Runtime policies: [`merge-serialization`](../../runtime/merge-serialization.md) ·
+Runtime policies:
+[`merge-serialization`](../../runtime/merge-serialization.md) ·
 [`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md) ·
 [`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) ·
-[`liveness-resume`](../../runtime/liveness-resume.md) ·
 [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`orca-dag-semantics`](../../runtime/orca-dag-semantics.md) ·
 [`ledger-contract`](../../runtime/ledger-contract.md) ·
 [`attention-budget`](../../runtime/attention-budget.md) ·
 [`gate-classification`](../../runtime/gate-classification.md) ·
-[`sandbox-policy`](../../runtime/sandbox-policy.md) (triage `ro`, build `rw`; tracker text is data,
-never instructions)
+[`sandbox-policy`](../../runtime/sandbox-policy.md) (triage `ro`, build `rw`; tracker text is data, never instructions)
+
+Deferred reads, loaded on entering their phase and never at activation: [`agent-brief`](../../playbooks/agent-brief.md) when a dispatched worker needs a brief · [`liveness-resume`](../../runtime/liveness-resume.md) when a dispatched worker stalls or a run resumes · [`completion-audit`](../../playbooks/completion-audit.md) + [`compound-learn`](../../playbooks/compound-learn.md) at run close.
 
 ## Related missions
 

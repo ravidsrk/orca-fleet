@@ -397,6 +397,14 @@ def main(argv=None):
         print(f"skills/ not found at {SKILLS_DIR}", file=sys.stderr)
         return 2
 
+    if not args.check:
+        # build() rmtrees <out>/skills before rebuilding; `--out .` resolves that to the real
+        # catalog and deletes all 21 missions it was asked to copy (#350). Refuse the footgun.
+        if (Path(args.out) / "skills").resolve() == SKILLS_DIR.resolve():
+            print(f"--out {args.out}: its skills/ IS the source catalog; refusing to delete what "
+                  "this script copies from", file=sys.stderr)
+            return 2
+
     if args.check:
         with tempfile.TemporaryDirectory() as tmp:
             built, problems = build(tmp)

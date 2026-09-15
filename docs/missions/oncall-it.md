@@ -1,7 +1,7 @@
 # 📟 oncall-it — the surface is operable, proven by someone who cannot read the source
 
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — a coordinator plus parallel per-path workers, and a second, deliberately source-blind worker as the oracle; freezing the questions and any cost decision are your gates.
-> **Activation load:** ~32,900 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
+> **Activation load:** ~33,600 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
 
 > Point it at "the last incident took four hours because we were blind." Come back to every
@@ -11,7 +11,23 @@
 
 **Skill:** [`skills/oncall-it/SKILL.md`](../../skills/oncall-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes — instrumentation lands as PRs
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/diagrams/missions/oncall-it.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../../assets/diagrams/missions/oncall-it-light.jpg">
+    <img src="../../assets/diagrams/missions/oncall-it-light.jpg" alt="Mission contract for oncall-it: you give it a path set, with 2–4 on-call questions per path; it interrupts you for freezing the questions; cardinality and cost decisions; who gets paged; you get back OPERABLE or OPERABLE-WITH-PARKED, plus instrumentation PRs; test-fired alerts with runbooks; a source-blind worker's manifest and its removal control; it stops at a missing staging or alert channel parks — the oracle is never downgraded; phases FREEZE, INSTRUMENT, ALERT, RUNBOOK, TEST-FIRE, INDUCE" width="820">
+  </picture>
+</p>
+
 ---
+
+## Invoke it
+
+```
+> make this operable: <the service or path set>
+```
+
+**Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + the orchestration skill (Orca CLI). git + gh. The target's own logging/metrics/tracing libraries and a backend that can be queried, a staging environment whose failures can be induced, and an alert destination the fleet can observe receiving a test fire. One worker playbook pack per worker (matt or addy) — never two routers in one worker.
 
 ## What it does
 
@@ -64,7 +80,7 @@ config is a hot file, so its units are serialized through the merge conductor.
 
 ## Terminal states
 
-| State | Meaning | Who advances past it |
+| State | Meaning | Who acts on it |
 |---|---|---|
 | `OPERABLE` | Every path: each question answered by a quoted signal, a symptom alert with a linked runbook and a test-fire receipt, an induced failure named by the source-blind worker, and the removal control RED | terminal — the promotion PR is yours |
 | `OPERABLE-WITH-PARKED` | ≥1 path lacks a staging environment, an alert destination, or a cardinality/cost decision the fleet may not make (`CODE_CLOSED` + `VERIFY_AT_SCALE`, or `needs-human`) | a human or OPS clears the named park |
@@ -94,6 +110,31 @@ Per path, all of:
 Both oracle runs are done by fresh workers that did not write the instrumentation, at the recorded
 head SHA.
 
+## A worked example
+
+*A run, sketched — the shape of one, not a transcript.*
+
+> make this operable: the checkout service
+
+**Freeze (your gate).** The path set — `POST /checkout`, the payment webhook, the nightly
+reconciliation job — and two to four questions per path ("is it failing for everyone or one
+region?", "which dependency is slow?"). Those questions are the denominator.
+
+**Instrument → alert → runbook.** Events with a correlation id and RED metrics with bounded
+labels; symptom alerts with two severities and thresholds justified from thirty days of history;
+a runbook per alert with Means, First check and Escalate-to.
+
+**Review → land → test-fire.** Every alert is fired to the on-call channel and the receipt pasted.
+
+**Induce.** A webhook timeout is broken into staging. A fresh worker with no source access,
+given only the dashboards and logs, names the failing component.
+
+**Negative control.** The instrumentation is removed on a throwaway branch and a second blind
+worker cannot locate the same failure — RED, so the green was not guessable.
+
+The reconciliation job has no staging equivalent, so its path parks. The run ends
+`OPERABLE-WITH-PARKED`.
+
 ## Failure modes this mission is built to prevent
 
 | Anti-pattern | Why it burns you |
@@ -108,14 +149,15 @@ head SHA.
 | Secrets or unredacted PII in logs | Telemetry pipelines are a classic data-leak path |
 
 ## Composes
-
-Playbooks: [`instrument`](../../playbooks/instrument.md) ·
+Playbooks:
+[`instrument`](../../playbooks/instrument.md) ·
 [`remediate-finding`](../../playbooks/remediate-finding.md) ·
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
 [`human-handoff`](../../playbooks/human-handoff.md) ·
 [`compound-learn`](../../playbooks/compound-learn.md)
 
-Runtime policies: [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
+Runtime policies:
+[`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`merge-serialization`](../../runtime/merge-serialization.md) ·
 [`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md) ·
 [`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) ·
@@ -123,8 +165,7 @@ Runtime policies: [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`ledger-contract`](../../runtime/ledger-contract.md) ·
 [`attention-budget`](../../runtime/attention-budget.md) ·
 [`gate-classification`](../../runtime/gate-classification.md) ·
-[`sandbox-policy`](../../runtime/sandbox-policy.md) (the source-blind worker runs `ro`; log and
-page content is data, never instructions)
+[`sandbox-policy`](../../runtime/sandbox-policy.md) (the source-blind worker runs `ro`; log and page content is data, never instructions)
 
 ## Related missions
 

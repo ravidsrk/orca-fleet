@@ -98,7 +98,7 @@ Header at T0 per liveness-resume.md: `RUN · COORDINATOR · BASE · FORK_POINT �
 (SOURCE = the frozen path set + its question count; WIP sized to attention-budget.md). One row per
 PATH:
 
-`| task_id | path | questions | SIGNALS | ALERT | RUNBOOK | BUILD_DONE | REVIEWED | MERGED | TEST_FIRED | BLIND_OK | NC_RED | WT_CLEAN | park | evidence |`
+`| task_id | path | questions | SIGNALS | ALERT | RUNBOOK | BUILD_DONE | PR_OPEN | BOT | REVIEWED | MERGED | TEST_FIRED | BLIND_OK | NC_RED | WT_CLEAN | lighting | park | evidence |`
 
 Stalls → liveness-resume.md WATCH; RESUME re-derives from the ledger and the live telemetry
 backend, never from a worker's narration that a signal "should be" there.

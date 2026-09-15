@@ -2,18 +2,25 @@
   "id": "unreviewed-mutation-1",
   "class": "unreviewed-mutation",
   "sound_expected": "RED",
-  "note": "A mutation unit with no independent PR review (and no negative control). GitHub is the review authority, not the manifest.",
+  "note": "#369 rebuild: the full mutation-valid shape on the run-time fixture, missing ONLY the pr \u2014 no independent review to look up. The old static trap failed 7-8 unrelated legs; now only check_review's unreviewed refusal can redden it.",
   "unit_class": "mutation",
-  "contract_source": "bench/vf-bench/fixtures/contract-1.md",
-  "contract_digest": "sha256:9fb77371ae4e1e2c2502ceea196f248465d6f4ae77863e5a748c719f1f23b5d6",
+  "fixture": "mutation-revert",
+  "gh_stub": true,
+  "repo": "vf-bench/unreviewed-mutation",
   "manifest": {
-    "unit": "ship-it",
-    "unit_class": "mutation",
-    "base_sha": "HEAD",
-    "head_sha": "HEAD",
+    "unit": "vf-bench-mutation-control",
+    "base_sha": "{{base_sha}}",
+    "head_sha": "{{head_sha}}",
+    "lighting": "lit",
+    "reviewer_mode": "cross-vendor",
+    "intent": {
+      "goal": "make add() return the sum, as AC-1 requires",
+      "ruled_out": "widening the interface beyond AC-1",
+      "why": "AC-1 is the contracted denominator"
+    },
     "contract": {
-      "source": "bench/vf-bench/fixtures/contract-1.md",
-      "digest": "sha256:9fb77371ae4e1e2c2502ceea196f248465d6f4ae77863e5a748c719f1f23b5d6",
+      "source": "contract.md",
+      "digest": "{{contract_digest}}",
       "criterion_ids": [
         "AC-1"
       ]
@@ -21,8 +28,39 @@
     "criteria": [
       {
         "id": "AC-1",
+        "text": "add(a, b) returns a + b",
         "addressed": true
       }
-    ]
+    ],
+    "commands": [
+      {
+        "label": "tests",
+        "cmd": "{{proof_cmd}}",
+        "exit": 0,
+        "wtree": "{{head_tree}}",
+        "artifact": "docs/reports/vf/nc.txt",
+        "cmd_sha256": "{{proof_cmd_sha256}}"
+      }
+    ],
+    "artifacts": [
+      {
+        "path": "docs/reports/vf/nc.txt",
+        "sha256": "{{nc_sha256}}"
+      },
+      {
+        "path": "docs/reports/vf/review.txt",
+        "sha256": "{{review_sha256}}"
+      }
+    ],
+    "negative_control": {
+      "did": "restored mod.py from base_sha at head_sha",
+      "tool": "revert",
+      "result": "the criterion-bound test went RED (mutant KILLED)",
+      "artifact": "docs/reports/vf/nc.txt",
+      "command": "{{proof_cmd}}",
+      "paths": [
+        "mod.py"
+      ]
+    }
   }
 }

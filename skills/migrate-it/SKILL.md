@@ -109,7 +109,7 @@ Header at T0 per liveness-resume.md: `RUN · COORDINATOR · BASE · FORK_POINT �
 attention-budget.md — real WIP is one phase per table, so the cap is usually the table count). One
 row per PHASE:
 
-`| task_id | table | phase | DOWN_RUN | DUAL_OK | BUILD_DONE | PR_OPEN | REVIEWED | MERGED | DEPLOYED | BAKED | PARITY | WT_CLEAN | park | evidence |`
+`| task_id | table | phase | DOWN_RUN | DUAL_OK | BUILD_DONE | PR_OPEN | BOT | REVIEWED | MERGED | DEPLOYED | BAKED | PARITY | WT_CLEAN | lighting | park | evidence |`
 
 Stalls → liveness-resume.md WATCH; a dead coordinator RESUMES from the ledger and the dumped
 schema, never from narration — the schema on disk says which phase actually landed.

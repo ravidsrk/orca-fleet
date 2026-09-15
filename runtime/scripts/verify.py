@@ -30,6 +30,9 @@ Checks (evidence-manifest.md section 2), scope FIRST:
      written by evidence-run.py — the clean-env re-run as a machine check (#3 of the audit ledger).
   6. redaction: the manifest and every named artifact are scanned for credential shapes (#14).
   7. ancestry (best-effort) · 8. symbol-on-base (best-effort).
+  9. intent packet (mutation units) · 10. lighting legality · 11. reviewer_mode legality ·
+  12. Art-12/50 provenance presence (claims only) · 13. signed dispatch provenance (#135) ·
+  14. class downgrade measured against the actual diff (#310).
 
 Every evidence path is repo-relative and bounded by the git toplevel; a manifest-named artifact is
 PINNED — tracked at head_sha, or hashed in the manifest's `artifacts[]` inventory (#267).
@@ -426,6 +429,11 @@ def check_real_commits(m, is_mutation=False):
         return errs + ["NOTE: not inside a git repo — commit-existence check skipped"]
     for field in ("base_sha", "head_sha"):
         sha = m.get(field)
+        if sha and str(sha).startswith("-"):
+            # read_source guards its ref the same way; an option-shaped SHA must not reach
+            # git as an option on ANY lane, not only the mutation lane's HEX40 gate (#382).
+            errs.append(f"{field} {sha!r} is option-shaped — refusing before git sees it")
+            continue
         if sha and _git(["cat-file", "-e", f"{sha}^{{commit}}"])[0] != 0:
             errs.append(f"{field} '{sha}' is not a real commit")
     return errs
@@ -759,10 +767,11 @@ def _production_changes(base, head):
     if not (base and head and HEX40_RE.match(str(base)) and HEX40_RE.match(str(head))):
         return None, ("base_sha and head_sha must both be pinned 40-hex commits before the class "
                       "claim can be measured against the change")
-    code, out = _git(["diff", "--name-only", f"{base}..{head}"])
+    code, out = _git(["diff", "--name-only", "-z", f"{base}..{head}"])
     if code != 0:
         return None, "cannot diff base_sha..head_sha, so the class claim cannot be measured"
-    changed = [ln.strip() for ln in out.splitlines() if ln.strip()]
+    # -z: a filename containing a newline must not split into phantom paths (#382)
+    changed = [p for p in out.split("\0") if p]
     return [p for p in changed if Path(p).suffix.lower() not in _PROSE_SUFFIXES], None
 
 
@@ -777,11 +786,11 @@ def _changed_paths(base, head, nc_command=None):
     if not (base and head and HEX40_RE.match(str(base)) and HEX40_RE.match(str(head))):
         return None, None, ("the control cannot be bound to the change without pinned 40-hex "
                             "base_sha and head_sha")
-    code, out = _git(["diff", "--name-only", f"{base}..{head}"])
+    code, out = _git(["diff", "--name-only", "-z", f"{base}..{head}"])
     if code != 0:
         return None, None, ("cannot diff base_sha..head_sha to bind the control to the change; "
                             "fail-closed")
-    changed = [ln.strip() for ln in out.splitlines() if ln.strip()]
+    changed = [p for p in out.split("\0") if p]  # -z: newline-safe (#382)
     prod, tests = [], []
     for path in changed:
         verdict = _is_oracle_path(path, nc_command)
@@ -939,7 +948,7 @@ def _is_oracle_path(path, nc_command=None):
 def _bind_paths_to_change(paths, m, what, nc_command=None):
     """Every path the control touches must be a PRODUCTION path this unit actually changed.
     Returns an error string or None."""
-    prod, _tests, err = _changed_paths(m.get("base_sha"), m.get("head_sha"))
+    prod, _tests, err = _changed_paths(m.get("base_sha"), m.get("head_sha"), nc_command)
     if err:
         return err
     scope = getattr(m, "oracle_scope", None)
@@ -1487,8 +1496,14 @@ def check_negative_control(m, is_mutation, execute=False, nc_command=None):
     tool = nc.get("tool")
     if tool not in NC_TOOLS:
         errs.append(f"negative_control.tool must be one of {sorted(NC_TOOLS)}, got {tool!r}")
-    if not re.search(r"(?i)\b(killed|red)\b", nc.get("result") or ""):
+    result_text = nc.get("result") or ""
+    if not re.search(r"(?i)\b(killed|red)\b", result_text):
         errs.append("negative_control.result must record the mutant KILLED / the proof going RED")
+    elif re.search(r"(?i)(?:\bnot\b|\bnever\b|n't\b)[^.;]{0,20}\b(?:killed|red)\b",
+                   result_text):
+        # "the mutant was NOT killed" satisfied the bare keyword scan (#382); the narrated
+        # field gets the same negation guard the artifact-level _NC_ZERO_KILL_RE applies.
+        errs.append("negative_control.result negates the kill ('not killed' is not KILLED)")
     mutant = nc.get("mutant")
     if tool and tool not in ("revert", "hand") and not mutant:
         errs.append("negative_control.mutant (a pinned mutant id) is required for a mutation tool")
@@ -1577,7 +1592,7 @@ def check_negative_control(m, is_mutation, execute=False, nc_command=None):
     return errs, executed_ok
 
 
-def check_commands(m, is_mutation):
+def check_commands(m, is_mutation, nc_command=None):
     """5. The CONTENT-BOUND evidence ledger (audit §3 item 3; gstack `bin/gstack-evidence`).
 
     "Tests pass at that exact SHA in a clean env" was doctrine — a sentence in evidence-manifest §2
@@ -1586,6 +1601,10 @@ def check_commands(m, is_mutation):
     this check requires at least ONE record with `exit == 0` whose `wtree` equals
     `git rev-parse <head_sha>^{tree}` — the content actually committed at the head. A record made on
     other content (an earlier tree, a dirty tree with extra files) is STALE and does not count.
+
+    When the coordinator names the proof command out of band (`--nc-command`), one of those fresh
+    records must be FOR THAT command — otherwise `evidence-run.py -- true` satisfies the gate and
+    "tests really ran on this content" is asserted of a run that ran no tests (#352).
 
     FAIL-CLOSED, unlike upstream's advisory `check`: no record means nothing proved the suite ran on
     this content. The NOTE says what the pass does NOT mean — the coordinator's clean-env re-run is
@@ -1624,6 +1643,35 @@ def check_commands(m, is_mutation):
         return [f"commands ledger: no recorded command with exit 0 whose wtree is head_sha's tree "
                 f"{want} (exit-0 records carry {seen or 'no wtree at all'}) — the recorded run was "
                 "made on other content, so it is STALE evidence for this head; fail-closed"]
+    if nc_command is not None:
+        # The coordinator named the proof command out of band (#279); the ledger must show THAT
+        # command green on this content, not merely some exit-0 record — `evidence-run.py -- true`
+        # is content-bound and still proves nothing (#352). Same shlex normalization as
+        # _nc_command's agreement rule, so quoting differences alone cannot split the comparison.
+        try:
+            want_cmd = shlex.join(shlex.split(nc_command))
+        except ValueError:
+            want_cmd = None
+        if not want_cmd:
+            # An empty or unparseable --nc-command must not silently downgrade the gate to
+            # pre-#352 behavior (PR #387 security review): the named-command check cannot run,
+            # so the answer is RED, not a quiet skip.
+            return [f"commands ledger: --nc-command {nc_command!r} is empty or unparseable — "
+                    "the coordinator named no usable proof command; fail-closed (#352)"]
+        def _matches(rec):
+            line = rec.get("cmd")
+            if not isinstance(line, str):
+                return False
+            try:
+                return shlex.join(shlex.split(line)) == want_cmd
+            except ValueError:
+                return False
+        if not any(_matches(rec) for rec in fresh):
+            ran = sorted({str(rec.get("cmd")) for rec in fresh})
+            return [f"commands ledger: fresh exit-0 record(s) exist, but none is the "
+                    f"coordinator-named proof command {want_cmd!r} (fresh records ran: {ran}) "
+                    "— the ledger proves SOMETHING ran green on this content, not the proof the "
+                    "coordinator named; fail-closed (#352)"]
     return [f"NOTE: commands ledger FRESH — {len(fresh)} exit-0 record(s) bound to head_sha's tree "
             f"{want[:12]}. This is the worker's own runner, so the coordinator's clean-env re-run at "
             "head_sha still stands as the stronger authority (evidence-manifest.md §2)"]
@@ -1706,7 +1754,7 @@ def check_redaction(m, manifest_path):
 
 
 def check_ancestry(m, base):
-    """5. Best-effort: head_sha is an ancestor of origin/<base> (post-merge)."""
+    """7. Best-effort: head_sha is an ancestor of origin/<base> (post-merge)."""
     if not base:
         return ["NOTE: --base not given — ancestry check skipped (pre-merge/offline)"]
     ref = f"origin/{base}"
@@ -1718,7 +1766,7 @@ def check_ancestry(m, base):
 
 
 def check_symbol_on_base(symbol, base):
-    """6. Best-effort: a unit symbol is greppable on origin/<base> (change is real on base)."""
+    """8. Best-effort: a unit symbol is greppable on origin/<base> (change is real on base)."""
     if not symbol or not base:
         return []
     code, out, _ = _run(["git", "grep", "-l", "-e", symbol, f"origin/{base}"])
@@ -1728,7 +1776,7 @@ def check_symbol_on_base(symbol, base):
 
 
 def check_intent(m, is_mutation):
-    """7. Mutation units carry a non-empty intent packet (goal · ruled_out · why) — presence only;
+    """9. Mutation units carry a non-empty intent packet (goal · ruled_out · why) — presence only;
     wisdom is a human/taste check (evidence-manifest.md §1)."""
     if not is_mutation:
         return []
@@ -1741,7 +1789,7 @@ def check_intent(m, is_mutation):
 
 
 def check_lighting(m, is_mutation, dispatch_lighting=None):
-    """8. Lighting is a legal value when present; omission defaults to lit — "Recording nothing
+    """10. Lighting is a legal value when present; omission defaults to lit — "Recording nothing
     means lit" (gate-classification.md). dark-eligibility's stop-list is a human gate; verify.py
     machine-checks that the value is legal and, when the dispatch supplied a lighting, that the
     worker's manifest did not swap it (the dispatch value is authoritative for the review waiver
@@ -1760,7 +1808,7 @@ def check_lighting(m, is_mutation, dispatch_lighting=None):
 
 
 def check_reviewer_mode(m, is_mutation):
-    """9. reviewer_mode is recorded and legal — how independent the review was. The strongest
+    """11. reviewer_mode is recorded and legal — how independent the review was. The strongest
     independence signal is the APPROVED GitHub review (check_review); this records the qualifier."""
     if not is_mutation:
         return []
@@ -1771,7 +1819,7 @@ def check_reviewer_mode(m, is_mutation):
 
 
 def check_provenance(m):
-    """10. EU AI Act Art-12/50: a manifest that CLAIMS a regulated standard must carry the provenance
+    """12. EU AI Act Art-12/50: a manifest that CLAIMS a regulated standard must carry the provenance
     fields that make it an audit record. Presence-only (not deep validation), but an incomplete packet
     claiming a standard is not a valid audit record — fail it rather than accept incomplete evidence."""
     prov = m.get("provenance")
@@ -1828,7 +1876,7 @@ def _manifest_nc_values(m):
 
 
 def check_dispatch_provenance(m, contract_digest, unit_class, lighting, record_ref, pubkey_ref):
-    """11. #135: verify a coordinator-signed dispatch record so a run's contract_digest / unit_class /
+    """13. #135: verify a coordinator-signed dispatch record so a run's contract_digest / unit_class /
     lighting can be checked against what the coordinator actually authorized. This is a SOUNDNESS
     boundary only when the *verifying key* is trusted — i.e. supplied by an OFF-WORKER context
     (CI/MCP/SDK, or an auditor re-running verify.py with the coordinator's real public key). In the
@@ -1904,7 +1952,7 @@ def check_dispatch_provenance(m, contract_digest, unit_class, lighting, record_r
 
 
 def check_class_downgrade(m, unit_class, record_ref, pubkey_ref):
-    """12. #310: `unit_class` reaches the native in-session gate through ORCA_UNIT_CLASS, and the
+    """14. #310: `unit_class` reaches the native in-session gate through ORCA_UNIT_CLASS, and the
     worker owns its own environment. Declaring `report-only` sheds the negative control, the intent
     packet, lighting legality and reviewer_mode in one move — the same manifest that fails seven
     invariants as `mutation` passed every check as `report-only`.
@@ -2010,7 +2058,7 @@ def verify(manifest_path, contract_source=None, contract_digest=None, repo=None,
                                           dispatch_record, dispatch_pubkey),
         lambda: check_class_downgrade(m, unit_class, dispatch_record, dispatch_pubkey),
         lambda: check_freshness(m),
-        lambda: check_commands(m, is_mut),
+        lambda: check_commands(m, is_mut, nc_command),
         lambda: check_redaction(m, manifest_path),
         lambda: check_intent(m, is_mut),
         lambda: check_lighting(m, is_mut, lighting),

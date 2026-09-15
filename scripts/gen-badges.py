@@ -22,6 +22,7 @@ stale (someone added a mission without regenerating). Run this to refresh:
     python3 scripts/gen-badges.py --check    # exit 1 if any file is stale
 """
 import ast
+import argparse
 import json
 import re
 import sys
@@ -259,7 +260,16 @@ def write() -> None:
 
 
 if __name__ == "__main__":
-    if "--check" in sys.argv[1:]:
+    # argparse, not `"--check" in sys.argv`: under the old test a typo'd `--chek` in CI
+    # REWROTE the committed badges instead of checking them (#353).
+    parser = argparse.ArgumentParser(
+        prog="gen-badges.py",
+        description="Regenerate the endpoint badges; --check verifies freshness, writing nothing.",
+    )
+    parser.add_argument("--check", action="store_true",
+                        help="fail if the committed badges differ from a fresh computation")
+    args = parser.parse_args()
+    if args.check:
         errs = check()
         for e in errs:
             print(e, file=sys.stderr)

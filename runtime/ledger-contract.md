@@ -49,6 +49,7 @@ the same edit that logs the verify.
 | `refuted` / `duplicate` / `externally-resolved` | Not real work for this run | Yes after batch gate where required |
 | `out-of-scope` | Wrong mission (hand off) | Not this mission's denominator |
 | `awaiting-maintainer-merge` / `externally-covered` | oss-contribute handoffs (upstream-contribution.md): a posted PR whose feedback went quiet, or an issue another open PR already covers; ref = that PR url | Yes — a handoff, not a degradation (mission-chaining.md) |
+| `needs-contributor` / `design-disagreement` / `cannot-reproduce` | absorb-it inbound-PR parks: the PR needs its author's action, the maintainer alone decides a design dispute, or the report could not be reproduced on current main; ref = the PR url + the follow-up round or reproduction log | No — degraded terminal (the queue is not drained while a real contribution sits unanswered) |
 
 `CODE_CLOSED` **requires** a written verify plan (command or checklist) and an OPS/human ref in
 the run's OPS actions note under `docs/` (or the ledger OPS section). Never use it to skip a test

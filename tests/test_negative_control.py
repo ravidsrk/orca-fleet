@@ -78,6 +78,22 @@ class NegativeControlIntegrityInventory(unittest.TestCase):
                          "integrity inventory is STALE — re-run demo/negative-control/run.sh, "
                          "commit the transcript, and re-stamp the sha256 in README.md")
 
+    def test_the_committed_transcript_matches_a_fresh_run_modulo_timestamp(self):
+        # #370: nothing pinned transcript ↔ current verifier output, so the recorded run drifted
+        # (one FAIL recorded while the verifier emitted two) with the README claiming only the
+        # timestamp moved.
+        fresh = subprocess.run(["/bin/sh", str(RUN_SH)], capture_output=True, text=True, cwd=ROOT)
+        self.assertEqual(fresh.returncode, 0, fresh.stderr)
+        committed = (ROOT / "demo" / "negative-control" / "head-to-head.txt").read_text(
+            encoding="utf-8")
+        strip = [line for line in committed.splitlines()
+                 if not line.startswith("### negative-control head-to-head")]
+        fresh_lines = [line for line in fresh.stdout.splitlines()
+                       if not line.startswith("### negative-control head-to-head")]
+        self.assertEqual(fresh_lines, strip,
+                         "the committed transcript no longer matches what the verifier emits — "
+                         "re-run, commit, and re-stamp the README inventory")
+
 
 if __name__ == "__main__":
     unittest.main()

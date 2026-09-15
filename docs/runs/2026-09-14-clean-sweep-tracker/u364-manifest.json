@@ -1,0 +1,337 @@
+{
+  "schema": 1,
+  "unit": "U364",
+  "unit_class": "code-change",
+  "base_sha": "506a05974f61c35eda4acbb7df15e84fdeeec8bb",
+  "head_sha": "8323c98e56b37b93d56c82ad171c3a9897a9fb7f",
+  "head_tree": "80ac2efdc21613a42487c3e1db95ad3bef7da109",
+  "head_sha_role": "head_sha is the last CONTENT commit 3943be8 of verdict round r2's fix batch fix-364-r4: the badge regeneration that follows the fix commit 7c9c243 (the union merge f7eaec1 of origin/review/2026-09-14-holistic-fixes precedes both; round r0's content commits were 2827496, 218bab6 and 244209a, round r1's b23a96c and 97e5e44, verdict round r1's f4f59bf and ad6d18e, bot round r2's 9cbabde). 7c9c243 passes tests.test_evals alone; validate.py's badge check is red there until 3943be8 (1337 -> 1339, the two test definitions this batch adds). The commit that re-binds this manifest follows it with a manifest-and-transcript-only delta and cannot name its own SHA; the pushed tip is named in worker_done and the conductor re-binds head_sha to the reviewed tip at close. Every commands[] record was made on a clean tree at head_sha: wtree 6361a2b8 == head_tree. CONDUCTOR CLOSE 2026-09-15T04:39Z (post-merge 1b64781): re-bound head_sha/head_tree 3943be8/6361a2b8 to the reviewed+merged tip 8323c98/80ac2efdc (= 1b64781^2; the 8323c98-vs-3943be8 delta is the manifest + NC transcript commit only). Every commands[] record stays true at its stated tree; coordinator re-runs at the new head are appended.",
+  "base_branch": "review/2026-09-14-holistic-fixes",
+  "branch": "u364-eval-fixtures",
+  "contract": {
+    "source": "docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/build-364.md@506a05974f61c35eda4acbb7df15e84fdeeec8bb",
+    "digest": "sha256:35ce199cfb7b16d0aca00af25494a9ecc977cb1e41aa899019147d6290b22228",
+    "criterion_ids": [
+      "C-1",
+      "C-2",
+      "C-3"
+    ]
+  },
+  "criteria": [
+    {
+      "id": "C-1",
+      "text": "every mission in the dispatch-time catalog has >=1 fixture-backed behavioral case (files[] non-empty, narration_only absent or false) covering its riskiest behaviour.",
+      "addressed": true,
+      "commit": "218bab6",
+      "witness": "tests/test_evals.py::TestEvalInfrastructure::test_every_mission_has_a_fixture_backed_case iterates the literal EXPECTED_MISSIONS (the 21 missions at dispatch, not a catalog scan) and requires a case with files[] non-empty, narration_only not true, and workspace_state non-empty. RED at 506a059 and at 2827496: 21/21 subtests failed ('<mission> has no fixture-backed behavioral case'). GREEN at 218bab6: each mission's id-4 case. Each pick is defended per mission in the 218bab6 commit message, quoting the mission's own rule. tests/test_evals.py::TestEvalInfrastructure::test_fixture_backed_cases_do_not_fail_their_own_fixtures guards that no case's untouched fixture already breaks a check on its own files, which would make the case unpassable. A scratch sanity pass (not committed) ran every id-4 case's checks against three workspaces: untouched (only checks on files the agent must write fail: ATTESTATION.md, FIELD-REPORT.md, docs/DECISIONS.md, VERDICT.md), a doctrine-following one (0 failures in 21/21), and one showing the mission's riskiest behaviour (>=1 failure in 21/21)."
+    },
+    {
+      "id": "C-2",
+      "text": "the workspace-state oracle grades resulting state: a passing trace over a wrong workspace FAILS; fixtures change the verdict.",
+      "addressed": true,
+      "commit": "2827496",
+      "witness": "tests/test_evals.py::TestWorkspaceStateOracle::test_a_passing_trace_over_a_wrong_workspace_fails runs the real CLI (cmd_run --suite behavioral) with a local fake agent that rewrites src/auth.py (asserted unchanged) and a fake grader that passes 2/2 trace assertions. The case must fail: exit 1, failures 1, and state_failed naming src/auth.py. RED at 506a059: \"AssertionError: 0 != 1 : {... 'passed': 2, 'failed': 0}], 'failures': 0 ...}\". The same trace over the untouched workspace passes, and a held workspace does not rescue a failing trace. TestWorkspaceStateChecks covers the oracle over synthetic workspaces (unchanged, exists, matches and not_matches on paths and globs; a deleted file cannot dodge a path check; escaping and symlinked targets fail). test_the_oracle_spends_no_tokens patches subprocess.run to raise and the oracle still answers, so no model call sits in the pass/fail path. TestWorkspaceStateSchema: fixtures with no workspace_state, fixtures labeled narration_only, state without fixtures, and 15 malformed-check shapes are refused by validate_skill_eval, and the runner refuses such a case before any agent runs."
+    },
+    {
+      "id": "C-3",
+      "text": "narration-only cases stay explicitly labeled and bounded (frozen-list equality); the routing gate still passes at its threshold; the full suite stays green.",
+      "addressed": true,
+      "commit": "2827496",
+      "witness": "tests/test_evals.py::TestEvalInfrastructure::test_narration_only_cases_are_exactly_the_frozen_list compares the catalog's narration_only cases to the literal NARRATION_ONLY_CASES (21 missions x ids 1-3) and asserts the brief's count, 63, independently. It is green at base and head, because the 63 are unchanged and stay labeled. Sensitivity, on a scratch worktree at head: dropping review-it id 1's label gave exit 1 ('grew: [] shrank: [(review-it, 1)]'); adding a narration-only review-it id 5 gave exit 1 ('grew: [(review-it, 5)] shrank: []'); restored, exit 0. The existing label gate (a fixture-free case must say narration_only) is unchanged. Routing: the CI step `python3 scripts/eval.py run --suite routing --threshold 1.0` recorded at head gave 94/94 (100%), exit 0; evals/routing.json and the routing code are untouched. The full suite is recorded in commands[]."
+    }
+  ],
+  "intent": {
+    "goal": "Make the per-mission behavioral eval able to fail on what the agent did to the files, not only on what its trace says: at least one fixture-backed case per mission, and a deterministic post-run check of the workspace against state the case names, without touching the routing suite or promoting eval output to proof.",
+    "ruled_out": "Converting existing narration-only cases in place (their prompts and assertions are routing- and narration-shaped, and rewriting them would break the brief's frozen 63 without adding a fixture); fixture files under skills/<name>/evals/fixtures/ (new paths outside the hot files; inline {path, content} entries already materialize); a model-graded state check (it would put tokens back in the pass/fail path); prose-matching on the agent's free-form narrative, except in the four cases whose prompt names a report file and a one-line verdict format; a git-backed workspace (the runner materializes files only, and making it git-init would widen scope); skipping the trace grader when state already failed (saves tokens but changes the reported shape).",
+    "why": "The runner already materialized fixtures into a temporary directory; the smallest change is to read that directory before it is discarded. Each check is one target and one predicate, so the case record carries the end state as data and the oracle is a few file reads with no judgement. Because every mission is a coordinator and the runner's agent has no Orca, git, or human, the picks lean on invariants the doctrine requires however far the run gets (the file the mission must never mutate, the evidence it must never forge), and not on outputs a coordinator could legitimately not produce."
+  },
+  "lighting": "lit",
+  "reviewer_mode": "same-vendor-fresh",
+  "commands": [
+    {
+      "label": "nc-command (tests)",
+      "ts": "2026-09-15T01:30:39Z",
+      "cmd": "python3 -m unittest tests.test_evals",
+      "cmd_sha256": "2603b763de11dc5f22da2e3d4d09c88395fdf173c75ce734141e470284cb4736",
+      "exit": 0,
+      "duration_s": 3.335,
+      "commit": "3943be8807726414947ff08fbc1abe64b3394267",
+      "wtree": "6361a2b870b003d33b7aa18ed92db6ed36a528aa",
+      "artifact": null
+    },
+    {
+      "label": "validate",
+      "ts": "2026-09-15T01:30:40Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 0,
+      "duration_s": 0.529,
+      "commit": "3943be8807726414947ff08fbc1abe64b3394267",
+      "wtree": "6361a2b870b003d33b7aa18ed92db6ed36a528aa",
+      "artifact": null
+    },
+    {
+      "label": "routing gate (CI step)",
+      "ts": "2026-09-15T01:30:40Z",
+      "cmd": "python3 scripts/eval.py run --suite routing --threshold 1.0",
+      "cmd_sha256": "2ffd70179df671092b1947c2dde3acb6b86e5f0e2a746ca8d1a19498f3ac5edb",
+      "exit": 0,
+      "duration_s": 0.036,
+      "commit": "3943be8807726414947ff08fbc1abe64b3394267",
+      "wtree": "6361a2b870b003d33b7aa18ed92db6ed36a528aa",
+      "artifact": null
+    },
+    {
+      "label": "full-suite",
+      "ts": "2026-09-15T01:34:50Z",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "exit": 0,
+      "duration_s": 250.434,
+      "commit": "3943be8807726414947ff08fbc1abe64b3394267",
+      "wtree": "6361a2b870b003d33b7aa18ed92db6ed36a528aa",
+      "artifact": null
+    },
+    {
+      "label": "coordinator re-run (full suite)",
+      "ts": "2026-09-15T04:39:25Z",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "exit": 0,
+      "duration_s": 256.007,
+      "commit": "8323c98e56b37b93d56c82ad171c3a9897a9fb7f",
+      "wtree": "80ac2efdc21613a42487c3e1db95ad3bef7da109",
+      "artifact": null,
+      "artifact_note": "Ran 1339 tests / OK in a clean detached scratch worktree at head_sha"
+    },
+    {
+      "label": "coordinator re-run (nc-command)",
+      "ts": "2026-09-15T04:39:25Z",
+      "cmd": "python3 -m unittest tests.test_evals",
+      "cmd_sha256": "2603b763de11dc5f22da2e3d4d09c88395fdf173c75ce734141e470284cb4736",
+      "exit": 0,
+      "duration_s": 3.243,
+      "commit": "8323c98e56b37b93d56c82ad171c3a9897a9fb7f",
+      "wtree": "80ac2efdc21613a42487c3e1db95ad3bef7da109",
+      "artifact": null,
+      "artifact_note": "Ran 98 tests / OK in a clean detached scratch worktree at head_sha"
+    },
+    {
+      "label": "coordinator re-run (validate)",
+      "ts": "2026-09-15T04:39:25Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 0,
+      "duration_s": 0.516,
+      "commit": "8323c98e56b37b93d56c82ad171c3a9897a9fb7f",
+      "wtree": "80ac2efdc21613a42487c3e1db95ad3bef7da109",
+      "artifact": null,
+      "artifact_note": "All 21 missions valid; three-layer separation holds; evals valid"
+    }
+  ],
+  "commands_note": "Round r4 (fix-364-r4): every record was written by runtime/scripts/evidence-run.py with --cwd a clean detached scratch worktree at head_sha 3943be8 (wtree 6361a2b8 == head_tree; git status --porcelain --untracked-files=all empty before and after), each into its own manifest in session scratch outside the working tree, and is concatenated here unchanged. They replace round r3's records (made at 9cbabde), which the r4 commits made stale. The first record is the coordinator-named NC-COMMAND verbatim (98 tests OK); the full suite ran 1339 tests OK (the count from unittest discovery on the same tree). artifact is null everywhere; output summaries are inlined in criteria[] and negative_control. gitleaks detect (674 commits) found no leaks and ruff check on tests/test_evals.py and scripts/eval.py is clean; neither is recorded here.",
+  "negative_control": {
+    "tool": "revert",
+    "did": "git worktree add --detach <scratch>/nc-364 7c9c243, ran the NC-COMMAND there (bisectability: OK), git checkout --detach 3943be8 (round r4; round r0 ran the same at 244209a, round r1 at 97e5e44, round r2 at ad6d18e and round r3 at 9cbabde); git checkout 506a05974f61c35eda4acbb7df15e84fdeeec8bb -- scripts/eval.py (the whole oracle path back to BASE: 4 insertions, 161 deletions); ran the NC-COMMAND; git checkout HEAD -- scripts/eval.py (git status --porcelain empty); ran the NC-COMMAND again; git worktree remove --force <scratch>/nc-364.",
+    "paths": [
+      "scripts/eval.py"
+    ],
+    "command": "python3 -m unittest tests.test_evals",
+    "result": "RED: exit 1 with scripts/eval.py reverted to 506a059 (Ran 98 tests, FAILED failures=23, errors=160); exit 0 at clean head 3943be8 (Ran 98 tests, OK). The C-2 witness fails under the revert for the defect itself: the passing trace over the rewritten src/auth.py exits 0 with failures 0. Round r4 keeps all 112 r3 failing lines byte-identical and adds 71, every one a test or row this round added: 71 ERROR on the reverted oracle's missing _fixture_paths.",
+    "exit": 1,
+    "clean_head_exit": 0,
+    "artifact": "docs/runs/2026-09-14-clean-sweep-tracker/u364-negctrl.txt",
+    "failures": [
+      "test_a_passing_trace_over_a_wrong_workspace_fails",
+      "test_the_same_trace_over_the_asserted_workspace_passes",
+      "test_a_held_workspace_does_not_rescue_a_failing_trace",
+      "TestWorkspaceStateChecks (8 tests, AttributeError: no check_workspace_state)",
+      "TestWorkspaceStateSchema (all refusal tests, 15 malformed-check subtests)",
+      "test_fixture_backed_cases_do_not_fail_their_own_fixtures (21 subtests)",
+      "test_the_advisory_case_fails_untouched_and_passes_once_requests_is_fixed (round r1 F1 witness)",
+      "TestCasesCatchTheirViolation (round r2: 50 subtests error on the reverted oracle's missing _fixture_paths; round r3: 54, the django table now 10 rows; round r4: 125, adding the teeth test's 36 subtests, 28 violating rows, 4 django rows, 2 passing rows and the harden-it pytest-venv test)",
+      "test_a_non_list_workspace_state_is_named_not_a_list (round r2 S5 witness, 2 subtests)"
+    ],
+    "transcript": [
+      "head=3943be8807726414947ff08fbc1abe64b3394267",
+      "== REVERTED: scripts/eval.py @ 506a059 (git diff --stat HEAD):",
+      " scripts/eval.py | 165 ++------------------------------------------------------",
+      " 1 file changed, 4 insertions(+), 161 deletions(-)",
+      "FAIL: test_a_passing_trace_over_a_wrong_workspace_fails (tests.test_evals.TestWorkspaceStateOracle.test_a_passing_trace_over_a_wrong_workspace_fails)",
+      "AssertionError: 0 != 1 : {'mission': 'fixture-it', 'cases': [{'id': 1, 'prompt': 'review', 'fixtures': 1, 'assertions': 2, 'passed': 2, 'failed': 0}], 'failures': 0, 'dry_run': False}",
+      "Ran 98 tests in 3.236s",
+      "FAILED (failures=23, errors=160)",
+      "exit=1  (REVERTED: expected NONZERO)",
+      "== RESTORED (git status --porcelain empty?): []",
+      "Ran 98 tests in 3.274s",
+      "OK",
+      "exit=0  (CLEAN HEAD: expected ZERO)"
+    ],
+    "not_witnessed_by_the_control": [
+      "tests/test_evals.py::TestEvalInfrastructure::test_every_mission_has_a_fixture_backed_case",
+      "tests/test_evals.py::TestEvalInfrastructure::test_narration_only_cases_are_exactly_the_frozen_list",
+      "tests/test_evals.py::TestCasesCatchTheirViolation::test_every_fixture_backed_case_has_a_violating_workspace"
+    ],
+    "not_witnessed_note": "Both read the catalog data (skills/*/evals/evals.json), not scripts/eval.py, so reverting the oracle path leaves them green by design. The C-1 coverage test's RED is at 506a059 and 2827496 (21/21 missing) and its GREEN at 218bab6. The C-3 frozen-list test guards a kept property (green at base and head); its sensitivity is the grow/shrink demonstration in criteria[C-3]. Round r2's coverage test also reads catalog data plus tests/eval_workspaces.json only; its RED is the absent-row case (a fixture-backed case with no violating workspace), and every other r2 test's RED before the evals.json fixes is in decisions[].",
+    "rounds": [
+      {
+        "round": "r0",
+        "head": "244209aa4d059c675425f944b9bb86fd1fd1386c",
+        "reverted": "Ran 88 tests, FAILED (failures=21, errors=34), exit 1",
+        "clean_head": "Ran 88 tests, OK, exit 0"
+      },
+      {
+        "round": "r1",
+        "head": "97e5e440dbf41a428e4337dce12600176163edd3",
+        "reverted": "Ran 89 tests, FAILED (failures=21, errors=35), exit 1",
+        "clean_head": "Ran 89 tests, OK, exit 0"
+      },
+      {
+        "round": "r2",
+        "head": "ad6d18e00071f645281071e716d2a44fec790305",
+        "reverted": "Ran 96 tests, FAILED (failures=23, errors=85), exit 1",
+        "clean_head": "Ran 96 tests, OK, exit 0"
+      },
+      {
+        "round": "r3",
+        "head": "9cbabde1e24d84644e1960f755a104418a23af8c",
+        "reverted": "Ran 96 tests, FAILED (failures=23, errors=89), exit 1",
+        "clean_head": "Ran 96 tests, OK, exit 0"
+      },
+      {
+        "round": "r4",
+        "head": "3943be8807726414947ff08fbc1abe64b3394267",
+        "reverted": "Ran 98 tests, FAILED (failures=23, errors=160), exit 1",
+        "clean_head": "Ran 98 tests, OK, exit 0"
+      }
+    ]
+  },
+  "binding_audit": {
+    "coverage": "C-1..C-3 (3/3)",
+    "method": "Each criterion is quoted, its covering test named, and its expected values taken from independent sources: the literal 21-mission set, the brief's count of 63, and literal file paths and exit codes. C-1 went RED at base on the catalog; C-2 went RED at base and under the revert control; C-3 is a guard whose sensitivity was shown by a grow/shrink mutation."
+  },
+  "artifacts": [
+    {
+      "path": "docs/runs/2026-09-14-clean-sweep-tracker/u364-negctrl.txt",
+      "sha256": "d9da1d5d80935406a43e3cfc5ae50aeeaf1238e3cc9a098d2a202f821b4d83d2"
+    }
+  ],
+  "noticed_not_touched": [
+    "No live behavioral run was made. The suite is opt-in, spends tokens, and is not a CI gate, so the 21 new cases have been exercised by the deterministic oracle (committed tests plus the scratch untouched/good/bad pass) but not against a real headless agent. How a live agent scores on them is unmeasured.",
+    "The runner's agent (claude -p --permission-mode acceptEdits) gets a bare temporary directory: no git, no Orca, no human. Every mission is a coordinator, so the cases assert invariants and prompt-named report files, never worker output a coordinator may legitimately not produce. A richer harness (git-initialised workspace, stub Orca) would allow stronger positive checks and is out of scope.",
+    "Four positive checks read a report file whose name and one-line format the prompt gives (ATTESTATION.md, FIELD-REPORT.md, VERDICT.md; docs/DECISIONS.md is named by oss-contribute's own doctrine). These are file state, but self-reported state.",
+    "The runner writes and reads fixtures as UTF-8 text; binary fixtures are unsupported, as before this change.",
+    "ruff: ruff.toml selects lint rules only; `ruff check` on scripts/eval.py and tests/test_evals.py is clean. `ruff format` is not the repo's gate and was not applied.",
+    "The existing TestBehavioralIntegrity harness still labels its synthetic case narration_only; it exercises the agent/grader plumbing, and the new TestWorkspaceStateOracle covers the fixture-backed path.",
+    "Round r2: a pip-only .venv trips no other id-4 glob (surveyed through the real oracle: harden-it, oncall-it and prove-it read **/*.py and stayed green), but a venv holding more third-party packages could hit their skip, PII-log or assert patterns the same way V1 did. Not scoped here: the batch named the deflake glob only.",
+    "Round r2: attest-it's **/*[Aa]ccess*[Rr]eview* exists:false would also fail an honest GAP hand-off note whose file name names the access review (the doctrine files each GAP with an artifact). Kept as the batch specified; the prompt asks for ATTESTATION.md only.",
+    "Round r3: the django check reads the first >= clause's upper bound only when it follows the floor (django>=5.2.6,<5.3); the reversed django<5.3,>=5.2.6 fails the check, as it did before this round, and extras (django[argon2]==5.2.6) fail as before. Neither is in the batch.",
+    "Round r4: deflake-it id-4's root *.py retry ban survives an unmatchable mutant (not_matches (?:), failing any root .py file): no committed passing workspace carries a root .py. Found by the scratch mutation survey; not in the batch, which named harden-it's globs (harden-it's root *.py now has a passing root conftest.py).",
+    "Round r4: the _pytest excerpts come from a uv-created scratch venv (uv venv --python 3.13, uv pip install pytest: pytest 9.1.1 on CPython 3.13.15), laid beside the pip-created .venv excerpts; both tools lay packages out at .venv/lib/python3.13/site-packages.",
+    "Round r4: test_every_regex_check_fails_on_some_violating_workspace asks only that some violating row fails each regex check; with exact fails lists that is what turns a row red when the check is gutted. It does not ask that the row fail that check alone: the 17 rows this round adds each name one check, while four older rows (attest-it OB-1+OB-2, harden-it, map-it, oss-contribute) name two."
+  ],
+  "pr": {
+    "number": 395,
+    "url": "https://github.com/ravidsrk/orca-fleet/pull/395",
+    "reviewed_sha": "8323c98e56b37b93d56c82ad171c3a9897a9fb7f",
+    "reviewed_wtree": "80ac2efdc21613a42487c3e1db95ad3bef7da109",
+    "verdict": "NO-GO (round 3, posted as record after the merge)",
+    "verdict_review": 5205125758,
+    "merge_commit": "1b64781a40b481ce022ccd8c5b2bf757f98ade91",
+    "merge_note": "merged out-of-process by ravidsrk while round-3 review was in flight (open Required: SPEC F-1 prove-it venv glob). Kept per user decision; the sticking finding was remediated by fix-forward unit U364-FF (PR #397, merged 01d954e, verify 6/6). Reviewed==head==merged holds at 8323c98."
+  },
+  "files": {
+    "production": [
+      "scripts/eval.py",
+      "skills/absorb-it/evals/evals.json",
+      "skills/access-it/evals/evals.json",
+      "skills/attest-it/evals/evals.json",
+      "skills/clean-sweep/evals/evals.json",
+      "skills/deflake-it/evals/evals.json",
+      "skills/document-it/evals/evals.json",
+      "skills/field-test-it/evals/evals.json",
+      "skills/floor-it/evals/evals.json",
+      "skills/harden-it/evals/evals.json",
+      "skills/map-it/evals/evals.json",
+      "skills/migrate-it/evals/evals.json",
+      "skills/modernize-it/evals/evals.json",
+      "skills/oncall-it/evals/evals.json",
+      "skills/oss-contribute/evals/evals.json",
+      "skills/pin-it/evals/evals.json",
+      "skills/prove-it/evals/evals.json",
+      "skills/reshape-it/evals/evals.json",
+      "skills/review-it/evals/evals.json",
+      "skills/root-cause/evals/evals.json",
+      "skills/ship-it/evals/evals.json",
+      "skills/speed-it/evals/evals.json"
+    ],
+    "tests": [
+      "tests/test_evals.py",
+      "tests/eval_workspaces.json"
+    ],
+    "generated": [
+      "assets/badges/tests.json"
+    ],
+    "evidence": [
+      "docs/runs/2026-09-14-clean-sweep-tracker/u364-manifest.json",
+      "docs/runs/2026-09-14-clean-sweep-tracker/u364-negctrl.txt"
+    ]
+  },
+  "commits": [
+    {
+      "sha": "2827496",
+      "subject": "feat(eval): grade the workspace a behavioral case leaves, not only its trace (#364)"
+    },
+    {
+      "sha": "218bab6",
+      "subject": "feat(evals): one fixture-backed behavioral case per mission (#364)"
+    },
+    {
+      "sha": "244209aa4d059c675425f944b9bb86fd1fd1386c",
+      "subject": "chore(badges): regenerate tests badge, 1295 -> 1315 in source (#364)"
+    },
+    {
+      "sha": "b23a96c",
+      "subject": "fix(evals): modernize-it id-4 fails when the requests advisory is left unfixed (#364)"
+    },
+    {
+      "sha": "97e5e440dbf41a428e4337dce12600176163edd3",
+      "subject": "chore(badges): regenerate tests badge, 1329 -> 1330 in source (#364)"
+    },
+    {
+      "sha": "f4f59bf",
+      "subject": "fix(evals): every fixture-backed case fails its own violation; deflake ban off venvs (#364)"
+    },
+    {
+      "sha": "ad6d18e00071f645281071e716d2a44fec790305",
+      "subject": "chore(badges): regenerate tests badge, 1330 -> 1337 in source (#364)"
+    },
+    {
+      "sha": "9cbabde1e24d84644e1960f755a104418a23af8c",
+      "subject": "fix(evals): modernize-it id-4 django pin must keep 6.x out at resolve time (#364)"
+    },
+    {
+      "sha": "7c9c243",
+      "subject": "fix(evals): harden-it skip ban off venvs; every regex check has a violating row (#364)"
+    },
+    {
+      "sha": "3943be8807726414947ff08fbc1abe64b3394267",
+      "subject": "chore(badges): regenerate tests badge, 1337 -> 1339 in source (#364)"
+    }
+  ],
+  "decisions": [
+    "2026-09-15 dispatch binding (fork update): branch u364-eval-fixtures created from origin/review/2026-09-14-holistic-fixes at 506a059 (the spec commit), used as base_sha; the worktree's ravidsrk/-prefixed branch was left untouched.",
+    "2026-09-15 coordinator (option A): assets/badges/tests.json is regenerated with scripts/gen-badges.py as its own mechanical commit after the content commits, because validate.py's badge-freshness check must be green at the unit tip. Badges are the run's shared mechanical mount point, not a hot-file breach.",
+    "2026-09-15 coordinator (option A): commit u364-negctrl.txt (the verbatim NC transcript, scratch paths redacted to <scratch>) beside the manifest in the manifest commit, pinned by sha256 in artifacts[], as U388 did; verify.py requires negative_control.artifact to be an evidence path. commands[].artifact stays null.",
+    "Bisectability: 2827496 (oracle, schema and tests; catalog untouched) and 218bab6 (fixtures plus the coverage and self-consistency tests) each pass `python3 -m unittest tests.test_evals`. validate.py's badge check is red at those two commits until 244209a regenerates the count; the same pattern as U388.",
+    "2026-09-15 bot round r1 (fix-364-r1), Greptile F1 (P1) FIXED in b23a96c: modernize-it id-4 passed with requests==2.31.0 unfixed. requirements.txt must now pin requests to a fixed release (==, >= or ~= at 2.32.4 or later) and must not keep requests==2.31.0. RED first on the real oracle over the shipped fixture: untouched, file deleted, 2.32.3, ~=2.32, >=2.31.0, fix-added-but-2.31.0-kept and requests-dropped all fail; 8 fixed variants with django 5.2 and SUPPORT.md intact pass. The untouched-fixture guard encoded the invariants-only design, so the coordinator approved option A: scope widened to tests/test_evals.py with the literal AGENT_MUST_EDIT (one entry) and a both-directions passability test. Option B, spelling the path ./requirements.txt to slip the guard's string compare, was rejected as gaming the guard.",
+    "2026-09-15 bot round r1, Greptile F2 (P2, symlink loop at scripts/eval.py:952) REFUTED, no code change: an a.md<->b.md loop run through the real check_workspace_state on CPython 3.13.15 (the CI pin) and 3.14.7 raised nothing. Glob loop members are dropped as non-files and path checks on a loop fail cleanly. Only <=3.12, where non-strict Path.resolve raised RuntimeError on a loop, would escape, and neither CI nor the local mise pin runs it (not re-run here: no 3.12 interpreter is installed).",
+    "2026-09-15 bot round r1: 97e5e44 regenerates assets/badges/tests.json 1329 -> 1330 as its own mechanical commit after b23a96c (the new passability test is one more definition). b23a96c passes tests.test_evals alone; validate.py's badge check is red there until 97e5e44, the same pattern as round r0.",
+    "2026-09-15 verdict r1 (review 5203909182 @c5d4bb7) NO-GO, batched fix fix-364-r2 in f4f59bf. V1: deflake-it id-4's retry ban read **/*.py and failed a doctrine-following workspace holding a real python3 -m venv .venv (pip 26.2.1: 9 banned-pattern lines across 7 files; reproduced through the real oracle before the fix). The ban now reads tests/**/*.py, src/**/*.py and root *.py, the case's own tree, so a venv of any name is out of scope while retry(3) beside the same .venv and reruns in a root conftest.py still fail. V2: tests/eval_workspaces.json holds a violating workspace for each of the 21 fixture-backed cases (27 rows), otherwise doctrine-following, and each must fail exactly the checks it names; gutting review-it id-4 to exists:true reddens its row (shown on a scratch worktree). V3: 14 requests rows through the real oracle; dropping the fixed-pin check reddens 4 rows, accepting 2.32.3 reddens 1; the contradictory >=2.32.4,<2.32.4 is pinned as passing, the upheld P1 refutation, not fixed. Adjacent: the modernize-it django check gains (?i) and >= (django>=5.2.6,<5.3 and Django==5.2.7 were RED, now pass); pin-it forbids SUPERSEDED/STALE on the C-2 line and attest-it a forged OB-2 VERIFIED line and a made-up **/*[Aa]ccess*[Rr]eview* record (all RED before); S1 whitespace at scripts/eval.py:46; S5 test for the non-list workspace_state guard (RED with the guard removed). Before the evals.json fixes the new tests gave 10 failures, each the expected one.",
+    "2026-09-15 round r2: ad6d18e regenerates assets/badges/tests.json 1330 -> 1337 as its own mechanical commit after f4f59bf (seven new test definitions). f4f59bf passes tests.test_evals alone; validate.py's badge check is red there until the badge commit, the same pattern as rounds r0 and r1.",
+    "2026-09-15 bot round r2 (fix-364-r3), Greptile G1 (P1, comment 4010681990 @b2c5d49) FIXED in 9cbabde: modernize-it id-4's django check accepted an uncapped django>=5.2.6, which resolves to 6.x against SUPPORT.md's 5.2-only LTS policy. == and ~= on 5.2 still pass; >= passes only beside an upper bound below 6 (<5.x, <=5.x, or <6 with zero components). RED first through the real oracle at ef8f311 with the new table: exactly 2 of 10 rows failed, bare django>=5.2.6 and django>=5.2.6,<7, each 'Lists differ: [] != [requirements.txt: matches]'. GREEN at 9cbabde: 10 rows (pass ==5.2.6, ==5.2.7, Django==5.2.7, ~=5.2.6, >=5.2.6,<5.3, >=5.2,<6; fail bare >=5.2.6, >=5.2.6,<7, ==6.0.1, >=6.0). A scratch probe (not committed) through the same oracle passed >=5.2.6,<6.0, <6.0.0, <=5.2.9 and spaced separators, and failed <6.0.1, <=6, <6.1, <50, ==5.20 and >=5.20,<5.21. The V2 violating row django==6.0.1 fails the same check and is unchanged. Greptile G2 (P1, attest-it access-review exists:false) REFUTED by the coordinator, no code change. The union merge ef8f311 brought docs only, no conflict.",
+    "2026-09-15 verdict r2 (review 5204457473 @6766265) NO-GO, batched fix fix-364-r4 in 7c9c243. W1 (SPEC F-1): harden-it id-4's skip ban read **/*.py and failed a doctrine-following workspace holding a .venv with pytest (pytest 9.1.1 on CPython 3.13.15: 5 banned-pattern lines across 4 _pytest files; reproduced through the real oracle before the fix). The ban now reads tests/**/*.py, app/**/*.py and root *.py. The 4 committed _pytest excerpts each hit all three copies, the pip .venv plus pytest beside a parameterized-query fix (with the root conftest.py a pytest run needs) passes, and a skip in tests/, app/__init__.py or a root conftest.py fails its own glob. W2 (TEST R-A): DJANGO_ROWS gains >=5.2,<6.1 and <6.0.1 (fail) and <=5.2.9 and <6.0 (pass); the regex already agreed with all four, so skills/modernize-it is untouched, and each of the three single-regex mutants survived the old 10 rows and fails the new table (scratch probe through the committed test). W3 (TEST R-B): new test test_every_regex_check_fails_on_some_violating_workspace, RED before the rows on 17 subtests: the 13 named, the 2 globs W1 adds, and modernize-it's two requests checks, which REQUESTS_ROWS already killed and which got rows so the test carries no exemption. 17 violating rows each fail exactly one check. W4 (TEST R-C): passing rows for field-test-it (FIELD-REPORT.md) and oss-contribute (docs/DECISIONS.md). N3: the deflake venv test reads all three ban copies (a gutted 2nd or 3rd copy passed it before). Optional: 11 violating rows, one per input-unchanged check. A scratch mutation survey (each check gutted alone, the catalog-reading test classes re-run) went from 24/55 vacuous and 4 unmatchable survivors at f7eaec1 to 0/57 and 1 (deflake-it's root *.py, not in the batch). The union merge f7eaec1 brought docs only, no conflict.",
+    "2026-09-15 round r4: 3943be8 regenerates assets/badges/tests.json 1337 -> 1339 as its own mechanical commit after 7c9c243 (two new test definitions). 7c9c243 passes tests.test_evals alone (run in the NC scratch worktree); validate.py's badge check is red there until the badge commit, the same pattern as rounds r0-r2.",
+    "CONDUCTOR CLOSE 2026-09-15T04:39Z (post-merge 1b64781): head_sha/head_tree re-bound 3943be8/6361a2b8 to the reviewed+merged tip 8323c98/80ac2efdc; pr filled (395, reviewed==head, r3 NO-GO 5205125758 posted as record); three coordinator re-run records at head appended (1339 OK, 98 OK, validate green). PROCESS DEVIATION (disclosed): merged out-of-process by ravidsrk while r3 was in flight with 1 Required open (SPEC F-1 prove-it venv glob); kept per user decision; the sticking finding was remediated by fix-forward unit U364-FF (PR #397 merged 01d954e, verify 6/6). Review history: r1 NO-GO (3 Required, all fixed), r2 NO-GO (4 Required, all fixed), r3 NO-GO (1 Required, fixed forward). No builder record was altered."
+  ]
+}

@@ -69,7 +69,7 @@ Waves respect `attention-budget` WIP.
 
 Every critical-surface path: a merged test that fails at its assertion under a behavior-changing,
 harness-preserving mutation (the audit recorded as `negative_control` + `binding_audit`; the verifier
-re-runs the pinned mutant on a sample).
+re-runs the pinned mutant on a sample — ≥10% rounded up, the evidence-manifest §3 floor).
 Every surfaced bug: fixed-with-test, or parked with a reason, or handed to clean-sweep. No assertion
 weakened to pass (diff-audit). Coverage before/after pasted — but the pass criterion is the
 mutation-audit set, not the percent. Manifest names COVERED or COVERED-WITH-PARKED.

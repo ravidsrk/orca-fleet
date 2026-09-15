@@ -10,9 +10,9 @@
 #   step "<instruction>"        show it, wait for Enter
 #   capture VAR "<question>"    ask it, read the answer into VAR (echoed back)
 #
-# Capture OBSERVATIONS, never actions: leave signing in and clicking as steps.
-# The loop is bounded (--rounds, default 3) and every round ends at a human
-# checkpoint, so a non-reproducing bug stops instead of asking forever.
+# Capture OBSERVATIONS, never actions: leave signing in and clicking as steps. The verdict is the
+# REPRODUCED= line, never the exit code (#382). The loop is bounded (--rounds, default 3), ending
+# at a human checkpoint, so a non-reproducing bug stops instead of asking forever.
 #
 # Usage: hitl-loop.template.sh [--rounds N] [--dry-run] [--help]
 #   --dry-run runs the whole script with no reads and placeholder answers, so

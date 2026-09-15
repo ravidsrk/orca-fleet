@@ -1,0 +1,240 @@
+{
+  "schema": 1,
+  "unit": "U364-FF",
+  "unit_class": "code-change",
+  "base_sha": "87fd2a2eac2868521f9b9aab17d2211685422725",
+  "head_sha": "29678049c939eec0b7d7ba06da715e739d11afbc",
+  "head_tree": "a35e3e4cf2e7c500495c4643e38fee8a17ebce65",
+  "head_sha_role": "head_sha is the last CONTENT commit eeeb38b: the badge regeneration that follows the fix commit 717083c. 717083c passes tests.test_evals alone; validate.py's badge check (and test_architecture's test_validator_passes, which runs it) is red there until eeeb38b (1339 -> 1341, the two test definitions this unit adds), the U364 r0-r4 pattern, approved by the coordinator for this unit. The commit that adds this manifest and the NC transcript follows with a manifest-and-transcript-only delta and cannot name its own SHA; the pushed tip is named in worker_done and the conductor re-binds head_sha to the reviewed tip at close. Every commands[] record was made on a clean tree at head_sha: wtree 40263c54 == head_tree. CONDUCTOR CLOSE 2026-09-15T04:32Z (post-merge 01d954e): re-bound head_sha/head_tree eeeb38b/40263c54 to the reviewed+merged tip 2967804/a35e3e4c (= 01d954e^2; union 2967804 merges 288707c + BASE 967d049; the 2967804-vs-288707c delta is BASE-files + badge regen 1341->1344 only — unit files byte-identical, verified by diff). Every commands[] record stays true at its stated tree; coordinator re-runs at the new head are appended.",
+  "base_branch": "review/2026-09-14-holistic-fixes",
+  "branch": "u364ff-venv-globs",
+  "contract": {
+    "source": "docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/build-364ff.md@8adf609df57f0a9fa74c090b928120e9b8aa6900",
+    "digest": "sha256:f69003a2ecc516cac81eeaa3f3419c96286fefe2c53cf6b382b7ad3e3893299c",
+    "criterion_ids": [
+      "C-1",
+      "C-2",
+      "C-3"
+    ]
+  },
+  "criteria": [
+    {
+      "id": "C-1",
+      "text": "prove-it's two bans are scoped to the case tree; a committed libcst-venv row (a .venv holding mutmut/libcst beside the fix) PASSES; committed excerpts assert the bans still hit real tautologies.",
+      "addressed": true,
+      "commit": "717083c",
+      "witness": "tests/test_evals.py::TestCasesCatchTheirViolation::test_a_venv_holding_mutmut_beside_the_fix_passes_the_prove_case. Its first assertion runs the real oracle over the committed pip .venv, two verbatim excerpts of libcst 1.9.0 (installed by pip install mutmut, mutmut 3.8.0, on CPython 3.13.15; the full install has 9 banned-pattern lines across 2 files, all in libcst's own tests) and prove_fix (refund() returns max(amount - fee, 0), docstring kept, a test asserting 970 and 0). It expects [], the brief's 'a doctrine-following workspace passes'. RED with the case file at BASE 87fd2a2 (the red step before the fix and the revert control): exactly one failure, \"**/*.py: not_matches '\\\\bassert(True)?...' did not hold - a tautological assert buys coverage percent and proves nothing\". GREEN at the fix: both bans now read tests/**/*.py, src/**/*.py and root *.py (the deflake-it/harden-it pattern, src/ being the case's code dir), and the test pins that literal glob list and requires each libcst excerpt to hit all three copies of the tautology ban, so the venv passing shows scoping, not blindness. Teeth: tests/eval_workspaces.json holds one violating row per ban copy (a negative pin and an assert True, each in tests/, in src/refund.py and in a root test_refund.py), and each fails exactly its copy; test_every_regex_check_fails_on_some_violating_workspace requires a row failing each of the six copies. A scratch mutation survey (each copy gutted alone to (?!x)x, TestCasesCatchTheirViolation re-run) reddened 6/6. The negative-refund ban had 0 hits in the mutmut venv and is scoped on the same pass, as the brief requires."
+    },
+    {
+      "id": "C-2",
+      "text": "oncall-it's two **/*.py bans are scoped the same way, with a committed venv row passing beside the fix.",
+      "addressed": true,
+      "commit": "717083c",
+      "witness": "tests/test_evals.py::TestCasesCatchTheirViolation::test_a_venv_holding_django_beside_the_fix_passes_the_oncall_case runs the real oracle over the pip .venv, two verbatim excerpts of Django 5.2.17 (the 5.2 LTS: django/utils/log.py's AdminEmailHandler docstring, 'An exception log handler that emails log entries', and django/contrib/auth/tokens.py's login_timestamp/email line) and oncall_fix (structured events with a correlation ID and entry-point field, RED metrics with one bounded outcome label, no PII in telemetry). It expects []. RED with the case file at BASE: exactly one failure, the unscoped PII ban \"**/*.py: not_matches '(?i)\\\\b(log|logger|...)...(card_number|email)' did not hold\". GREEN at the fix: both bans read tests/**/*.py, service/**/*.py (the case's code dir) and root *.py, and the test requires each Django excerpt to hit all three PII copies. The brief's probe found 0 hits in a plain venv. A Django service's venv has 4 real hits in 2 Django files (stripe 15.6.1 adds 2 in docstrings). The label ban had 0 hits in everything probed (sentry-sdk 2.69.1, prometheus-client 0.26.0, opentelemetry-sdk 1.44.0, structlog 26.1.0, Django, stripe) and is scoped preemptively. One violating row per copy (a PII log line and an order_id label, each in service/checkout.py, tests/test_checkout.py and a root module) fails exactly its copy. Mutation survey: 6/6 copies reddened when gutted alone."
+    },
+    {
+      "id": "C-3",
+      "text": "the full suite stays green (1339 in source, plus only YOUR new tests); the routing gate still passes; the V2 violating-workspace rows for prove-it/oncall-it still fail (if scoping legitimately changes a V2 row's verdict, update the row and disclose why - never silently).",
+      "addressed": true,
+      "commit": "eeeb38b",
+      "witness": "commands[]: python3 -m unittest discover -s tests exit 0, 1341 tests (1339 + the two definitions this unit adds; assets/badges/tests.json reads '1341 in source'); python3 scripts/eval.py run --suite routing --threshold 1.0 exit 0; python3 scripts/validate.py exit 0; the NC-COMMAND exit 0 (100 tests, 98 at base). V2: the five BASE violating rows for prove-it/oncall-it id-4 all still fail. The four that failed the unscoped glob now fail its scoped copy, so their fails label was updated: prove-it's negative-pin and assertTrue(True) rows (both in tests/test_refund.py) from '**/*.py: not_matches' to 'tests/**/*.py: not_matches'; oncall-it's PII-log and order_id-label rows (both in service/checkout.py) to 'service/**/*.py: not_matches'. The verdict is unchanged (fail, exactly one check); only the check's name moved with the glob. The docstring row ('src/refund.py: matches') is unchanged. test_each_violating_workspace_fails_on_exactly_its_violation runs all 63 rows."
+    }
+  ],
+  "intent": {
+    "goal": "Stop prove-it id-4 and oncall-it id-4 failing a doctrine-following workspace whose .venv holds third-party code that matches their **/*.py bans, without blunting the bans on the case's own tree.",
+    "ruled_out": "Excluding .venv/ by name (a venv of any other name, or site-packages elsewhere, would still trip the ban); an oracle-level ignore list (the oracle engine is out of scope and would change every case); narrowing the regexes (they would stop catching real violations); a fabricated third-party excerpt for oncall-it's label ban (nothing installed hits it, so its venv proof is the PII ban's).",
+    "why": "deflake-it and harden-it already scope the same class of ban to tests/**, the case's code dir and root *.py, so reading only the case tree is the pattern the reviewers accepted. Committed verbatim excerpts, each required to hit every scoped copy, keep the venv proof honest, and one violating row per copy keeps each copy's teeth."
+  },
+  "lighting": "lit",
+  "reviewer_mode": "same-vendor-fresh",
+  "commands": [
+    {
+      "label": "nc-command (tests)",
+      "ts": "2026-09-15T03:22:25Z",
+      "cmd": "python3 -m unittest tests.test_evals",
+      "cmd_sha256": "2603b763de11dc5f22da2e3d4d09c88395fdf173c75ce734141e470284cb4736",
+      "exit": 0,
+      "duration_s": 3.434,
+      "commit": "eeeb38b5636a60a10d36f000f91c601ea1690b25",
+      "wtree": "40263c54e534df14d79e3fbf11d04c3112c5d508",
+      "artifact": null
+    },
+    {
+      "label": "validate",
+      "ts": "2026-09-15T03:22:26Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 0,
+      "duration_s": 0.554,
+      "commit": "eeeb38b5636a60a10d36f000f91c601ea1690b25",
+      "wtree": "40263c54e534df14d79e3fbf11d04c3112c5d508",
+      "artifact": null
+    },
+    {
+      "label": "routing gate (CI step)",
+      "ts": "2026-09-15T03:22:26Z",
+      "cmd": "python3 scripts/eval.py run --suite routing --threshold 1.0",
+      "cmd_sha256": "2ffd70179df671092b1947c2dde3acb6b86e5f0e2a746ca8d1a19498f3ac5edb",
+      "exit": 0,
+      "duration_s": 0.037,
+      "commit": "eeeb38b5636a60a10d36f000f91c601ea1690b25",
+      "wtree": "40263c54e534df14d79e3fbf11d04c3112c5d508",
+      "artifact": null
+    },
+    {
+      "label": "full-suite",
+      "ts": "2026-09-15T03:26:58Z",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "exit": 0,
+      "duration_s": 272.416,
+      "commit": "eeeb38b5636a60a10d36f000f91c601ea1690b25",
+      "wtree": "40263c54e534df14d79e3fbf11d04c3112c5d508",
+      "artifact": null
+    },
+    {
+      "label": "coordinator re-run (full suite)",
+      "ts": "2026-09-15T04:32:28Z",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "exit": 0,
+      "duration_s": 250.01,
+      "commit": "29678049c939eec0b7d7ba06da715e739d11afbc",
+      "wtree": "a35e3e4cf2e7c500495c4643e38fee8a17ebce65",
+      "artifact": null,
+      "artifact_note": "Ran 1344 tests / OK in a clean detached scratch worktree at head_sha"
+    },
+    {
+      "label": "coordinator re-run (nc-command)",
+      "ts": "2026-09-15T04:32:28Z",
+      "cmd": "python3 -m unittest tests.test_evals",
+      "cmd_sha256": "2603b763de11dc5f22da2e3d4d09c88395fdf173c75ce734141e470284cb4736",
+      "exit": 0,
+      "duration_s": 3.37,
+      "commit": "29678049c939eec0b7d7ba06da715e739d11afbc",
+      "wtree": "a35e3e4cf2e7c500495c4643e38fee8a17ebce65",
+      "artifact": null,
+      "artifact_note": "Ran 100 tests / OK in a clean detached scratch worktree at head_sha"
+    },
+    {
+      "label": "coordinator re-run (validate)",
+      "ts": "2026-09-15T04:32:28Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 0,
+      "duration_s": 0.506,
+      "commit": "29678049c939eec0b7d7ba06da715e739d11afbc",
+      "wtree": "a35e3e4cf2e7c500495c4643e38fee8a17ebce65",
+      "artifact": null,
+      "artifact_note": "All 21 missions valid; three-layer separation holds; evals valid"
+    }
+  ],
+  "commands_note": "Every record was written by runtime/scripts/evidence-run.py in this worktree at head_sha eeeb38b with git status --porcelain empty before and after (wtree 40263c54 == head_tree), into a ledger in session scratch outside the working tree, and is copied here unchanged. The first record is the coordinator-named NC-COMMAND verbatim. artifact is null everywhere; output summaries are inlined in criteria[] and negative_control. Not recorded here: gitleaks detect over 87fd2a2..eeeb38b (2 commits) found no leaks; ruff check tests/test_evals.py is clean. ruff format --check reports the file unformatted at BASE too (pre-existing, whole-file), so it was not reformatted. An early full-suite run started before the badge commit failed only test_architecture's test_validator_passes on the stale badge, which is why the badge commit exists. Self-check: runtime/scripts/verify.py (--contract-source/--contract-digest from the dispatch binding, --nc-command the NC-COMMAND, --execute-nc, --unit-class code-change, --lighting lit, --no-gh) reports the commands ledger FRESH (4 exit-0 records bound to head_tree) and fails 2 invariants. (1) 'scope: no criterion ids in the authoritative contract': the frozen spec's ids C-FF1..C-FF3 do not match verify.py's criterion-id regex ([A-Z][A-Z0-9]*-\\d+ needs digits right after the hyphen), so the spec parses to no ids. This is contract-side: the manifest copies the ids exactly as issued. Because verify.py replays the control only when admission has no failure (verify.py:2071), --execute-nc did not replay it; the recorded control is in the artifact. (2) 'missing review.artifact': expected before review; the U364 manifest fails the same way with --no-gh.",
+  "negative_control": {
+    "tool": "revert",
+    "did": "git worktree add --detach <scratch>/nc-364ff eeeb38b; git checkout 87fd2a2eac2868521f9b9aab17d2211685422725 -- skills/prove-it/evals/evals.json skills/oncall-it/evals/evals.json (the two case files back to BASE: 4 insertions, 44 deletions); ran the NC-COMMAND; git checkout HEAD -- the two files (git status --porcelain empty); ran the NC-COMMAND again; git worktree remove --force <scratch>/nc-364ff.",
+    "paths": [
+      "skills/prove-it/evals/evals.json",
+      "skills/oncall-it/evals/evals.json"
+    ],
+    "command": "python3 -m unittest tests.test_evals",
+    "result": "RED: exit 1 with the two case files reverted to 87fd2a2 (Ran 100 tests, FAILED failures=14); exit 0 at clean head (Ran 100 tests, OK). Both venv witnesses fail for the defect itself: each venv beside a clean fix fails exactly the unscoped **/*.py ban (prove-it's tautology ban on libcst, oncall-it's PII ban on Django). The other 12 are the violating rows naming a scoped copy: the 4 relabeled BASE rows and the 8 new ones, each failing '**/*.py: not_matches' instead.",
+    "exit": 1,
+    "clean_head_exit": 0,
+    "artifact": "docs/runs/2026-09-14-clean-sweep-tracker/u364ff-negctrl.txt",
+    "failures": [
+      "test_a_venv_holding_mutmut_beside_the_fix_passes_the_prove_case",
+      "test_a_venv_holding_django_beside_the_fix_passes_the_oncall_case",
+      "test_each_violating_workspace_fails_on_exactly_its_violation (12 subtests: 6 prove-it rows, 6 oncall-it rows)"
+    ],
+    "transcript": [
+      "head=eeeb38b5636a60a10d36f000f91c601ea1690b25",
+      "== REVERTED: the two case files @ 87fd2a2 (git diff --stat HEAD):",
+      " 2 files changed, 4 insertions(+), 44 deletions(-)",
+      "exit=1  (REVERTED: expected NONZERO)",
+      "Ran 100 tests ... FAILED (failures=14)",
+      "== RESTORED (git status --porcelain empty?): []",
+      "exit=0  (CLEAN HEAD: expected ZERO)",
+      "Ran 100 tests ... OK"
+    ]
+  },
+  "binding_audit": {
+    "coverage": "C-1..C-3 (3/3)",
+    "method": "Each criterion is quoted, its covering test named, and its expected values taken from the brief, not recomputed the runner's way: [] for a doctrine-following workspace, the literal glob lists from the brief's tests/**, app-or-src/**, root *.py pattern, and the V2 rows' fail verdicts. C-1 and C-2 went RED at BASE in the red step and under the revert control; each scoped copy's teeth were shown by a gut-one mutation survey."
+  },
+  "artifacts": [
+    {
+      "path": "docs/runs/2026-09-14-clean-sweep-tracker/u364ff-negctrl.txt",
+      "sha256": "1d2abd200cc2cb53c3cbff9ffca7b35ea5942ea08268837cd0f92f97b89782ea"
+    }
+  ],
+  "noticed_not_touched": [
+    "oncall-it's label ban (\\.labels\\(...order_id|email|card_number) has no real third-party hit in anything probed, so its scoping is proven by the violating rows and the shared venv test, not by a real excerpt that fails it pre-fix.",
+    "prove-it's negative-refund ban had 0 hits in the mutmut venv; like the label ban it was scoped on the same pass with no real venv excerpt that fails it.",
+    "tests/test_evals.py is not ruff-format clean at BASE (whole-file drift); left as is.",
+    "Other cases with a **/*.py-style glob were not surveyed; out of scope (any other case file)."
+  ],
+  "deviations": [
+    "Contract amendment (fix F364ff-r1, coordinator-issued): contract.source/contract.digest re-bound from build-364ff.md@87fd2a2eac2868521f9b9aab17d2211685422725 (sha256:c14d66d606903ed35181b55b096ed2ca3645e8eccd3c3012e0da9fff277929cf) to build-364ff.md@8adf609df57f0a9fa74c090b928120e9b8aa6900 (sha256:f69003a2ecc516cac81eeaa3f3419c96286fefe2c53cf6b382b7ad3e3893299c), and the criterion ids renamed C-FF1 -> C-1, C-FF2 -> C-2, C-FF3 -> C-3 in contract.criterion_ids, criteria[] and binding_audit. Reason: verify.py's CRIT_ID_RE needs digits right after the hyphen ([A-Z][A-Z0-9]*-\\d+), so the C-FF shape parsed to no ids, the scope leg failed, and the negative control was never replayed (replay runs only when admission has no failure). The coordinator amended the frozen spec on BASE in 8adf609, which changes only the id tokens. Criterion text, witnesses, commits, commands[] and the negative control are unchanged. The self-check in commands_note describes the run before the amendment.",
+    "CONDUCTOR CLOSE 2026-09-15T04:32Z (post-merge 01d954e): head_sha/head_tree re-bound eeeb38b/40263c54 to the reviewed+merged tip 2967804/a35e3e4c; pr filled (397, reviewed==head, GO 5205447863); commits[] completed (7ceaf5b, caf3532, 288707c, 2967804); three coordinator re-run records at head appended (1344 OK, 100 OK, validate green). PROCESS DEVIATION (disclosed): PR #397 was merged out-of-process ~7 min BEFORE the GO verdict posted (mergedBy ravidsrk 04:13:31Z); the merged tip is exactly the reviewed tip, so reviewed==head==merged still holds. STALENESS (disclosed, all true at their stated commits): PR body cites pre-union 1341 (union tip runs 1344); manifest C-3 text cites eeeb38b/1341; negctrl.txt line 35 said 'C-FF1 and C-FF2' (STANDARDS F2) — corrected to 'C-1 and C-2' in this commit with artifacts[] re-pinned (transcript outcome lines untouched). No builder record was altered."
+  ],
+  "pr": {
+    "number": 397,
+    "url": "https://github.com/ravidsrk/orca-fleet/pull/397",
+    "reviewed_sha": "29678049c939eec0b7d7ba06da715e739d11afbc",
+    "reviewed_wtree": "a35e3e4cf2e7c500495c4643e38fee8a17ebce65",
+    "verdict": "GO",
+    "verdict_review": 5205447863,
+    "merge_commit": "01d954ebddcdc6738ca8efc9f3ec57c302beb7c7",
+    "merge_note": "merged out-of-process ~7 min BEFORE the GO verdict posted (mergedBy ravidsrk 04:13:31Z, verdict 5205447863 after); the merged tip is exactly the reviewed tip, so the verdict still binds reviewed==head==merged."
+  },
+  "files": {
+    "production": [
+      "skills/prove-it/evals/evals.json",
+      "skills/oncall-it/evals/evals.json"
+    ],
+    "tests": [
+      "tests/test_evals.py",
+      "tests/eval_workspaces.json"
+    ],
+    "generated": [
+      "assets/badges/tests.json"
+    ],
+    "evidence": [
+      "docs/runs/2026-09-14-clean-sweep-tracker/u364ff-manifest.json",
+      "docs/runs/2026-09-14-clean-sweep-tracker/u364ff-negctrl.txt"
+    ]
+  },
+  "commits": [
+    {
+      "sha": "717083c7c7c385f0952dd47ff7544b59b0bf8d93",
+      "subject": "fix(evals): scope prove-it and oncall-it **/*.py bans to the case tree (#364 SPEC-r3 F-1)"
+    },
+    {
+      "sha": "eeeb38b5636a60a10d36f000f91c601ea1690b25",
+      "subject": "chore(badges): regenerate tests badge, 1339 -> 1341 in source (#364 SPEC-r3 F-1)"
+    },
+    {
+      "sha": "7ceaf5bee0975611686af1b375f6ec5245622ba8",
+      "subject": "chore(run): U364-FF manifest and negative-control transcript (#364 SPEC-r3 F-1)"
+    },
+    {
+      "sha": "caf3532f96015ea6bb430ea49bf3ba2879a77752",
+      "subject": "Merge remote-tracking branch 'origin/review/2026-09-14-holistic-fixes' into u364ff-venv-globs"
+    },
+    {
+      "sha": "288707ceb941ec19064ed4fa10e42b319ca909c7",
+      "subject": "chore(run): re-bind U364-FF manifest to amended contract C-1..C-3 (#364 SPEC-r3 F-1)"
+    },
+    {
+      "sha": "29678049c939eec0b7d7ba06da715e739d11afbc",
+      "subject": "Merge commit '967d0492cb7223b6afd95301eeccd198a2d934fe' into u364ff-venv-globs"
+    }
+  ],
+  "decisions": [
+    "Globs per case layout: prove-it tests/**/*.py, src/**/*.py, *.py; oncall-it tests/**/*.py, service/**/*.py, *.py (the brief's app-or-src/** read as the case's own code dir).",
+    "Each venv test runs the oracle verdict first, so the red and the revert control fail on the finding itself, not on the glob-list pin.",
+    "oncall-it's real venv source is Django 5.2 LTS (the version SUPPORT.md's policy names in modernize-it's case); stripe's two docstring hits were not used.",
+    "The badge regeneration (assets/badges/tests.json, outside the hot files) was approved by the coordinator as its own mechanical commit."
+  ]
+}

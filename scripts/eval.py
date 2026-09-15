@@ -16,8 +16,10 @@ Three suites:
               catalog collisions (>= error → validate.py fails).
   skills      schema of every skills/<name>/evals/evals.json.
   behavioral  opt-in: materialize a fixture repo from a mission's evals.json
-              `files[]`, run one headless agent over the prompt, and have a
-              second headless call grade the trace against `assertions[]`.
+              `files[]`, run one headless agent over the prompt, check the
+              workspace it leaves against `workspace_state[]` (file reads, no
+              model), and have a second headless call grade the trace against
+              `assertions[]`. A case passes only when both hold.
 
 NOTHING here is proof evidence. A behavioral run grades a trace to ask a
 CATALOG question ("does this mission's text make an agent freeze the spec
@@ -39,7 +41,7 @@ import shlex
 import subprocess
 import sys
 import tempfile
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 ROOT = Path(__file__).resolve().parent.parent
 SKILLS_DIR = ROOT / "skills"
@@ -103,13 +105,19 @@ def _stem(token: str) -> str:
     """Light suffix stripping so "flakes"/"flaky", "upgrading"/"upgrade" cluster.
 
     Not a linguistic stemmer — a deterministic, dependency-free normalizer whose
-    only job is to stop a plural or a gerund from hiding a real match.
+    only job is to stop a plural or a gerund from hiding a real match. The rules
+    below were verified against their own examples (#354): an "es" strip followed by
+    the bare-"s" rule stripped TWICE ("closes" -> "clo" vs "close" -> "clos"), so a
+    stripped token skips the "s" rule; and the y->i rule alone left "flaky" -> "flaki"
+    apart from "flakes" -> "flak", so a trailing "i" folds back down.
     """
+    stripped = False
     for suffix in ("ally", "ing", "ed", "es", "al"):
         if len(token) > len(suffix) + 3 and token.endswith(suffix):
             token = token[: -len(suffix)]
+            stripped = True
             break
-    if len(token) > 3 and token.endswith("s") and not token.endswith("ss"):
+    if not stripped and len(token) > 3 and token.endswith("s") and not token.endswith("ss"):
         token = token[:-1]
     if len(token) > 4 and token.endswith("e"):
         token = token[:-1]
@@ -117,6 +125,8 @@ def _stem(token: str) -> str:
         token = token[:-1]  # "committ" -> "commit"
     if len(token) > 3 and token.endswith("y"):
         token = token[:-1] + "i"  # "flaky"/"flakies" -> "flaki"
+    if len(token) > 4 and token.endswith("i"):
+        token = token[:-1]  # "flaki" -> "flak", closing the gap to "flakes" (#354)
     return token
 
 
@@ -399,6 +409,15 @@ def validate_skill_eval(skill_dir: Path) -> list[str]:
             errors.append(f"{_rel(eval_file)}: eval[{idx}].assertions is not a list")
         if "files" in ev and not isinstance(ev.get("files"), list):
             errors.append(f"{_rel(eval_file)}: eval[{idx}].files is not a list")
+        # #364: a case with no fixtures runs the agent in an EMPTY workspace and the grader can
+        # only grade trace prose — narration, which this catalog's own doctrine refuses to grade
+        # on. Every case must either carry fixtures or admit what it is.
+        if not ev.get("files") and ev.get("narration_only") is not True:
+            errors.append(
+                f"{_rel(eval_file)}: eval[{idx}] has no files[] and no \"narration_only\": true — "
+                "a fixture-free case grades only the trace's narration; add fixtures or label it")
+        errors.extend(f"{_rel(eval_file)}: eval[{idx}] {problem}"
+                      for problem in workspace_state_errors(ev))
 
     return errors
 
@@ -538,15 +557,14 @@ def validate_routing_eval() -> list[str]:
 
 
 # A mission's "Use when" clause advertises the phrases a user is expected to type. Nothing routed
-# them, so the catalog could promise a phrase that lands on a sibling and never notice (#287). Four
+# them, so the catalog could promise a phrase that lands on a sibling and never notice (#287). Two
 # do, and each is a real lexical collision rather than a bug worth contorting a description to
-# dodge — so they are RECORDED here, with the mission that actually wins. A fifth cannot appear
+# dodge — so they are RECORDED here, with the mission that actually wins. Another cannot appear
 # silently: any unlisted misroute fails validation, and a listed one that starts routing correctly
-# fails too, so this table cannot rot in either direction.
+# fails too, so this table cannot rot in either direction (both directions are tested).
 RECORDED_TRIGGER_MISROUTES = {
-    # Two single-word / idiomatic collisions that no description edit fixes without distorting
-    # what the mission actually says. "conformance" is one generic word both own a claim to;
-    # "shipping" is ship-it's entire name.
+    # "conformance" is one generic word both missions own a claim to; "stop shipping junk" is an
+    # idiom carrying ship-it's entire name.
     ("attest-it", "conformance"): "access-it",
     ("floor-it", "stop shipping junk"): "ship-it",
 }
@@ -844,6 +862,162 @@ def _materialize(ev: dict, workspace: Path, mission_dir: Path) -> int:
     return written
 
 
+# ---------------------------------------------------------------------------
+# workspace-state oracle (#364)
+#
+# The runner used to grade only the trace and discard the workspace, so fixtures could never move
+# a verdict. A fixture-backed case now names the state its workspace must reach: `workspace_state`
+# is a list of checks, each ONE target and ONE predicate, read straight off the files the agent
+# left behind — no model call sits between the workspace and the verdict.
+#
+#   target  "path": one file (relative)  ·  "glob": the files it matches under the workspace,
+#           minus any under a dependency dir (DEPENDENCY_DIRS, below)
+#   exists       bool   path: the file is there (false: absent) · glob: any match (false: none)
+#   unchanged    true   path only, a files[] path: byte-identical to what was materialized
+#   matches      regex  path: the file exists and has it · glob: at least one match has it
+#   not_matches  regex  path: the file exists and lacks it · glob: it matches files, none has it
+#
+# Deleting what a check reads cannot dodge it: a path check on a missing file fails, and a glob
+# `matches`/`not_matches` over an empty match set fails (#387: `not_matches` over nothing held
+# vacuously, so deleting the files a ban reads passed the ban). `exists` keeps its meaning, since
+# an empty match set is exactly what `exists: false` asserts. An optional "why" names the risk the
+# check guards; it is carried into the failure line.
+# ---------------------------------------------------------------------------
+STATE_PREDICATES = {"exists": bool, "unchanged": bool, "matches": str, "not_matches": str}
+STATE_TARGETS = ("path", "glob")
+
+
+def _fixture_paths(ev: dict) -> list[str]:
+    return [str(entry.get("path", "")) if isinstance(entry, dict) else str(entry)
+            for entry in ev.get("files") or []]
+
+
+def _state_check_errors(check: object, fixtures: set[str]) -> list[str]:
+    """Why one workspace_state check is malformed ([] when it is well-formed)."""
+    if not isinstance(check, dict):
+        return ["is not an object"]
+    unknown = set(check) - set(STATE_TARGETS) - set(STATE_PREDICATES) - {"why"}
+    targets = [key for key in STATE_TARGETS if key in check]
+    predicates = [key for key in STATE_PREDICATES if key in check]
+    if unknown:
+        return [f"has unknown key(s) {sorted(unknown)}"]
+    if len(targets) != 1 or len(predicates) != 1:
+        return [f"needs exactly one target of {list(STATE_TARGETS)} and one predicate of "
+                f"{sorted(STATE_PREDICATES)}"]
+    target, predicate = targets[0], predicates[0]
+    where, value = check[target], check[predicate]
+    errors = []
+    if (not isinstance(where, str) or not where.strip() or os.path.isabs(where)
+            or ".." in PurePosixPath(where).parts):
+        errors.append(f"{target} must be a relative path inside the workspace")
+    if not isinstance(value, STATE_PREDICATES[predicate]):
+        errors.append(f"{predicate} must be a {STATE_PREDICATES[predicate].__name__}")
+    elif predicate == "unchanged" and (value is not True or target != "path" or where not in fixtures):
+        errors.append("unchanged must be true on a \"path\" that files[] materializes")
+    elif isinstance(value, str):
+        try:
+            re.compile(value)
+        except re.error as err:
+            errors.append(f"{predicate} is not a valid regex: {err}")
+        if not value:
+            errors.append(f"{predicate} is empty — it would match every file")
+    if "why" in check and not isinstance(check["why"], str):
+        errors.append("why must be a string")
+    return errors
+
+
+def workspace_state_errors(ev: dict) -> list[str]:
+    """Why a case's files[], narration_only and workspace_state do not fit together, if they don't.
+
+    Fixtures that no check reads cannot change a verdict — they are narration grading with extra
+    steps — so a case with files[] must name its end state, and cannot also claim narration_only.
+    """
+    files, checks = ev.get("files") or [], ev.get("workspace_state")
+    if files and ev.get("narration_only") is True:
+        return ["carries files[] but is labeled \"narration_only\": true — a fixture-backed case "
+                "is graded on its workspace, so the label is false"]
+    if files and not checks:
+        return ["has files[] but no workspace_state — fixtures that no check reads cannot change "
+                "the verdict; name the end state the workspace must reach"]
+    if checks is None:
+        return []
+    if not files:
+        return ["has workspace_state but no files[] — asserted state needs fixtures to start from"]
+    if not isinstance(checks, list):
+        return ["workspace_state is not a list"]
+    fixtures = set(_fixture_paths(ev))
+    return [f"workspace_state[{i}] {problem}"
+            for i, check in enumerate(checks) for problem in _state_check_errors(check, fixtures)]
+
+
+# A glob reads the case's own tree, never what a toolchain installs beside it (#387). A file whose
+# path under the workspace, as the glob found it, passes through a directory named here is in no
+# glob's match set, at any depth: `venv`, `.venv`, `env`, `.env` and `virtualenv` (where venv and
+# virtualenv put an environment), `site-packages` and `dist-packages` (where pip and the distro
+# install packages), `node_modules` (npm), `.git` (the repository's own store) and `__pycache__`
+# (bytecode). Only whole directory names count: `src/env.py` and `environment/` are first-party.
+# #364 kept venvs out by narrowing each ban to a few dirs instead, which blinded app/, lib/ and
+# every other first-party dir. Surveyed against every committed fixture and workspace: none of a
+# case's own files lives under one. A "path" check names its file and is never filtered.
+DEPENDENCY_DIRS = frozenset({
+    "venv", ".venv", "env", ".env", "virtualenv", "site-packages", "dist-packages",
+    "node_modules", ".git", "__pycache__",
+})
+
+
+def _glob_files(workspace: Path, pattern: str) -> list[Path]:
+    """Files matching `pattern` that really live inside the workspace (symlinks resolved), minus
+    any the glob found under a DEPENDENCY_DIRS directory."""
+    root = workspace.resolve()
+    found = (path for path in workspace.glob(pattern)
+             if not DEPENDENCY_DIRS.intersection(path.relative_to(workspace).parts[:-1]))
+    return [p for p in sorted(path.resolve() for path in found)
+            if p.is_file() and root in p.parents]
+
+
+def _state_holds(check: dict, workspace: Path, originals: dict[str, bytes]) -> bool:
+    predicate = next(key for key in STATE_PREDICATES if key in check)
+    expected = check[predicate]
+    try:
+        if "path" in check:
+            target = _fixture_path(workspace, check["path"])
+            if predicate == "exists":
+                return target.is_file() is expected
+            if not target.is_file():
+                return False
+            if predicate == "unchanged":
+                return target.read_bytes() == originals.get(check["path"])
+            files = [target]
+        else:
+            files = _glob_files(workspace, check["glob"])
+            if predicate == "exists":
+                return bool(files) is expected
+            if not files:
+                return False  # fail closed (#387): a regex over no files holds nothing either way
+        hit = any(re.search(expected, f.read_text(encoding="utf-8", errors="replace"))
+                  for f in files)
+    except (OSError, ValueError, NotImplementedError, re.error):
+        return False  # an unreadable or escaping target never counts as the asserted state
+    return hit if predicate == "matches" else not hit
+
+
+def check_workspace_state(checks: list[dict], workspace: Path,
+                          originals: dict[str, bytes]) -> list[str]:
+    """Every check the workspace fails, one line each; [] when it reached the asserted state.
+
+    `originals` maps each files[] path to the bytes materialized before the agent ran. Plain file
+    reads only — deterministic, and no tokens in the pass/fail path.
+    """
+    failed = []
+    for check in checks:
+        if _state_holds(check, workspace, originals):
+            continue
+        predicate = next(key for key in STATE_PREDICATES if key in check)
+        line = f"{check.get('path') or check.get('glob')}: {predicate} {check[predicate]!r} did not hold"
+        failed.append(f"{line} — {check['why']}" if check.get("why") else line)
+    return failed
+
+
 def _grade_trace(assertions: list[str], trace: str) -> dict | None:
     """Second headless call: grade `trace` against `assertions`, trace fenced."""
     remaining = set(assertions)
@@ -908,12 +1082,31 @@ def run_behavioral_eval(mission: str, dry_run: bool = False) -> dict:
     failures = 0
     for ev in evals:
         assertions = [str(a) for a in ev.get("assertions") or []]
+        checks = ev.get("workspace_state") or []
         case = {
             "id": ev.get("id"),
             "prompt": ev.get("prompt", ""),
             "fixtures": len(ev.get("files") or []),
             "assertions": len(assertions),
+            "state_checks": len(checks) if isinstance(checks, list) else 0,
         }
+        if not ev.get("files") and ev.get("narration_only") is not True:
+            # #364: refuse the silent version of narration-only grading.
+            case["error"] = ("no files[] and no \"narration_only\": true — a fixture-free case "
+                             "grades only the trace's narration; label it or fixture it")
+            failures += 1
+            cases.append(case)
+            continue
+        problems = workspace_state_errors(ev)
+        if problems:
+            # #364: a fixture-backed case with no (or a malformed) asserted state would quietly
+            # fall back to grading the trace alone — refuse it before any agent runs.
+            case["error"] = "; ".join(problems)
+            failures += 1
+            cases.append(case)
+            continue
+        if ev.get("narration_only") is True:
+            case["narration_only"] = True  # graded on trace prose — catalog tooling, never evidence
         if dry_run:
             case["planned"] = True
             case["agent_cmd"] = agent_cmd
@@ -924,6 +1117,8 @@ def run_behavioral_eval(mission: str, dry_run: bool = False) -> dict:
             workspace = Path(tmp)
             try:
                 case["fixtures"] = _materialize(ev, workspace, mission_dir)
+                originals = {rel: _fixture_path(workspace, rel).read_bytes()
+                             for rel in _fixture_paths(ev)}
             except ValueError as err:
                 case["error"] = str(err)
                 failures += 1
@@ -941,6 +1136,9 @@ def run_behavioral_eval(mission: str, dry_run: bool = False) -> dict:
                 failures += 1
                 cases.append(case)
                 continue
+            if checks:
+                # #364: grade the state the agent left BEFORE the temporary workspace is discarded.
+                case["state_failed"] = check_workspace_state(checks, workspace, originals)
             try:
                 graded = _grade_trace(assertions, run.stdout)
             except (OSError, subprocess.SubprocessError) as err:
@@ -955,7 +1153,8 @@ def run_behavioral_eval(mission: str, dry_run: bool = False) -> dict:
             passed = sum(1 for row in graded["assertions"] if row.get("passed"))
             case["passed"] = passed
             case["failed"] = len(assertions) - passed
-            if passed < len(assertions):
+            # A clean trace over a workspace that missed its asserted state still fails (#364).
+            if passed < len(assertions) or case.get("state_failed"):
                 failures += 1
         cases.append(case)
 
@@ -1026,6 +1225,7 @@ def cmd_run(args: argparse.Namespace) -> int:
                 print(f"{head}Behavioral evals for {result['mission']}: {len(result['cases'])} case(s)")
                 for case in result["cases"]:
                     line = (f"  {head}eval {case['id']}: {case['fixtures']} fixture(s), "
+                            f"{case['state_checks']} state check(s), "
                             f"{case['assertions']} assertion(s)")
                     if result["dry_run"]:
                         line += f"\n      agent : {' '.join(case['agent_cmd'])}"
@@ -1034,6 +1234,10 @@ def cmd_run(args: argparse.Namespace) -> int:
                         line += f" — {case['error']}"
                     else:
                         line += f" — {case.get('passed', 0)}/{case['assertions']} assertions passed"
+                        if "state_failed" in case:
+                            held = case["state_checks"] - len(case["state_failed"])
+                            line += f", {held}/{case['state_checks']} state checks held"
+                            line += "".join(f"\n      state: {f}" for f in case["state_failed"])
                     print(line)
         if result.get("error") or result.get("failures"):
             exit_code = 1

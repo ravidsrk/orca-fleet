@@ -68,10 +68,11 @@ HUMAN SCOPE CONFIRM: freeze the critical-journey list + per-journey budgets (an 
     and do not claim WITHIN-BUDGET on a lab-only delta (OPTIMIZED-WITH-PARKED until field confirms).
   → KEEP-OR-REVERT (the decision table, in precedence order): WORSE than baseline → REVERT —
     even if the number sits within budget; NEUTRAL (inside the noise band) → REVERT — neutral is
-    not a keep; IMPROVEMENT over baseline → LAND, whether or not the budget is reached yet —
-    budget attainment gates the journey's exit from the loop, never the landing of a measured
-    gain, so two independent partial fixes accumulate across hotspot PRs. (Precedence: revert
-    first, land last.) Every attempt, kept or reverted, is one
+    not a keep; IMPROVEMENT over baseline → KEEP, whether or not the budget is reached yet —
+    budget attainment gates the journey's exit from the loop, never the keeping of a measured
+    gain, so two independent partial fixes accumulate across hotspot PRs. The pipeline's LAND above
+    is the merge; a REVERT verdict after a landed PR lands as a follow-up revert PR, never a quiet
+    history edit. (Precedence: revert first, keep last.) Every attempt, kept or reverted, is one
     ledger line (hypothesis · before→after · verdict · why) in the run's attempt ledger, so a
     reverted idea is never re-tried next quarter.
   → loop → outcome → REFLECT (`compound-learn`)
@@ -88,7 +89,9 @@ OPTIMIZED-WITH-PARKED.
 ## Ledger + supervision
 
 Header per liveness-resume.md: `RUN · COORDINATOR · BASE · FORK_POINT · T0 · SOURCE · WIP` (`-` if N/A;
-SOURCE = journey-list + metric-contract digests). Rows include Orca task id + hotspot/journey fields.
+SOURCE = journey-list + metric-contract digests). One row per hotspot (canonical flags per
+ledger-contract.md): `| task_id | hotspot | BASELINE | BUILD_DONE | PR_OPEN | BOT | REVIEWED | MERGED | BEFORE_AFTER | WT_CLEAN | lighting | park | evidence |` — BEFORE_AFTER = the mandatory
+paired measurement, not a narrative.
 Stalls → WATCH; death → RESUME scoped to header coordinator + ledger task ids, git-verified.
 
 ## Anti-patterns

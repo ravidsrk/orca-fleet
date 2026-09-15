@@ -15,7 +15,7 @@ policy is enforced, not requested.
 
 **The option lists are spelled differently, and mixing them is a silent refusal:** `ask --options`
 takes a **CSV** (`--options "rollback,patch-forward"`), `gate-create --options` takes a **JSON
-array** (`--options '["rollback","patch-forward"]'`) (`orchestration.ts:203,253` at v1.4.199).
+array** (`--options '["rollback","patch-forward"]'`) (`cli/specs/orchestration.ts:205,253` at v1.4.199). (Anchors reading v1.4.199 await per-probe re-witness; the 2026-09-13 pin-it park register — docs/runs/2026-09-13-pin-it-266/PARK.md — says which are current at v1.4.200.)
 
 **`gate-resolve` does NOT inject the resolution into the next dispatch preamble.** That injection
 exists only in the RETIRED scheduler path (`coordinator-task-dispatch.ts:130-139`); the live
@@ -45,7 +45,7 @@ must act now." Full DAG context: orca-dag-semantics.md.
 |-------|------|----------|
 | **Mechanical** | one defensible answer (tooling with a repo precedent, naming, retry-on-transient) | coordinator auto-resolves; append the DECISIONS log (ledger-contract.md) |
 | **Taste** | reasonable disagreement, reversible (API shape, copy, structure within spec) | pick recommendation (or Lane B); log DECISIONS; human may veto |
-| **One-way** | hard/impossible to reverse or out-of-authority: merge to default, deploy, rollback, deletion, spend, scope change, secret rotation, real credentials | HUMAN ONLY. Never auto-resolved. Never defaulted on timeout. |
+| **One-way** | hard/impossible to reverse or out-of-authority — the enumerated registry is `one-way-doors.json`: merge to default, deploy, rollback, deletion, spend, freeze, scope change, secret rotation, live credentials | HUMAN ONLY. Never auto-resolved. Never defaulted on timeout. |
 
 ## Three lanes (what a unit is allowed to do)
 

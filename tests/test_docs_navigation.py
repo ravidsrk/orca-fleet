@@ -29,6 +29,15 @@ _spec.loader.exec_module(validate)
 DOCS = ROOT / "docs"
 RUNTIME = ROOT / "runtime"
 
+# An index's inline links with optional <>, #fragment, and "title" — captures the .md path only.
+INDEX_LINK = re.compile(r"\[[^\]]+\]\(\s*<?([^)>#\s]+\.md)(?:#[^)>\s]*)?>?(?:\s+\"[^\"]*\")?\s*\)")
+
+
+def index_targets(index_path):
+    """Real files an index links to, each resolved against the index's own directory."""
+    links = INDEX_LINK.findall(index_path.read_text(encoding="utf-8"))
+    return {p for p in ((index_path.parent / t).resolve() for t in links) if p.is_file()}
+
 
 class FreshHomeInstallation(unittest.TestCase):
     def test_documented_symlinks_resolve_in_fresh_and_existing_homes(self):
@@ -605,19 +614,76 @@ class TestDocsNavigation(unittest.TestCase):
                 f"declared in skills/{d.name}/SKILL.md",
             )
 
+    def test_mission_guides_compose_only_what_the_skill_declares(self):
+        # The reverse direction of the test above. The 2026-09-15 docs review found deflake-it and
+        # prove-it listing gate-classification and map-it listing merge-serialization under
+        # Composes, none of which their SKILL.md mentions at all: a false catalog in the other
+        # direction, invisible because only guide ⊇ clause was checked. A guide may list a
+        # protocol the skill composes or rides, names in its DEFERRED READS paragraph (anything
+        # after a "Never" there is an exclusion, not a read), or tells the coordinator to
+        # `read <name>.md` at a phase — and nothing else. A bare mention elsewhere in the skill
+        # is prose, not a declaration (PR #396 review).
+        protocols = {p.stem for p in (ROOT / "playbooks").glob("*.md")}
+        protocols |= {p.stem for p in RUNTIME.glob("*.md")}
+        guide_links = re.compile(
+            r"\]\(\.\./\.\./(?:playbooks|runtime)/([a-z0-9-]+)\.md\)"
+        )
+        guide_section = re.compile(
+            r"^## Composes\n(.*?)(?=^## |\Z)", re.DOTALL | re.MULTILINE
+        )
+        name_md = re.compile(r"\b([a-z][a-z0-9-]+)\.md\b")
+        deferred_para = re.compile(r"DEFERRED READS.*?(?:\n\n|\Z)", re.DOTALL)
+        phase_read = re.compile(r"\bread\s+([a-z][a-z0-9-]+)\.md\b")
+        for d in sorted((ROOT / "skills").iterdir()):
+            if not d.is_dir() or d.name.startswith((".", "_")):
+                continue
+            skill = (d / "SKILL.md").read_text(encoding="utf-8")
+            allowed = set(validate.guide_declared_protocol_names(skill))
+            para = deferred_para.search(skill)
+            if para:
+                allowed |= set(name_md.findall(para.group(0).split("Never")[0]))
+            allowed |= set(phase_read.findall(skill))
+            allowed &= protocols
+            guide = (DOCS / "missions" / f"{d.name}.md").read_text(encoding="utf-8")
+            section = guide_section.search(guide)
+            self.assertIsNotNone(section, f"docs/missions/{d.name}.md has no ## Composes section")
+            named = set(validate.BACKTICK_RE.findall(section.group(1)))
+            named.update(guide_links.findall(section.group(1)))
+            extra = sorted((named & protocols) - allowed)
+            self.assertEqual(
+                extra, [],
+                f"docs/missions/{d.name}.md Composes names {extra}, which "
+                f"skills/{d.name}/SKILL.md neither composes, rides, nor reads",
+            )
+
+    def test_mission_guides_state_the_skills_compatibility(self):
+        # 2026-09-15 docs review: no guide surfaced its skill's hard prerequisites (gitleaks,
+        # a measurement harness, mutation tooling, a docs-framework build). The guide's Needs
+        # line is the SKILL's `compatibility` field verbatim, so the two cannot drift.
+        needs = re.compile(r"^\*\*Needs\*\* \(the skill's `compatibility` field, verbatim\): (.+)$", re.M)
+        # The validator's own frontmatter parser, so every scalar style validate.py accepts
+        # (block, plain, quoted — quotes stripped) is read the same way here (PR #396 review).
+        for d in sorted((ROOT / "skills").iterdir()):
+            if not d.is_dir() or d.name.startswith((".", "_")):
+                continue
+            skill = (d / "SKILL.md").read_text(encoding="utf-8")
+            data, err = validate.parse_frontmatter(skill)
+            self.assertIsNone(err, f"skills/{d.name}/SKILL.md frontmatter: {err}")
+            value = data.get("compatibility")
+            self.assertTrue(value, f"skills/{d.name}/SKILL.md has no compatibility field")
+            compat = " ".join(str(value).split())
+            guide = (DOCS / "missions" / f"{d.name}.md").read_text(encoding="utf-8")
+            g = needs.search(guide)
+            self.assertIsNotNone(g, f"docs/missions/{d.name}.md has no Needs line")
+            self.assertEqual(" ".join(g.group(1).split()), compat,
+                             f"docs/missions/{d.name}.md Needs line drifted from the skill's compatibility field")
+
     def test_mission_index_lists_every_skill(self):
         # #125: docs/missions/README.md indexed 11 of 13 (attest-it, access-it missing). The index
         # must link every skills/<name> guide. #143 review: resolve each link target against the
         # index's directory and require it to point at a REAL file — a basename match through a
         # broken path is not a link a reader can follow.
-        index_path = DOCS / "missions" / "README.md"
-        index = index_path.read_text(encoding="utf-8")
-        resolved = set()
-        # accept inline links with optional <>, #fragment, and "title" — capture the .md path only.
-        for target in re.findall(r"\[[^\]]+\]\(\s*<?([^)>#\s]+\.md)(?:#[^)>\s]*)?>?(?:\s+\"[^\"]*\")?\s*\)", index):
-            p = (index_path.parent / target).resolve()
-            if p.is_file():
-                resolved.add(p)
+        resolved = index_targets(DOCS / "missions" / "README.md")
         for d in sorted((ROOT / "skills").iterdir()):
             if d.is_dir() and not d.name.startswith((".", "_")):
                 guide = (DOCS / "missions" / f"{d.name}.md").resolve()
@@ -915,6 +981,139 @@ class QuotationsAreAttributedToWhatTheySay(unittest.TestCase):
                       "the quotation does not name the article it comes from")
         self.assertIn("addyosmani.com/blog/software-factories", text,
                       "the quotation is not linked to a source a reader can check")
+
+
+class MissionGuidesEmbedTheirDiagram(unittest.TestCase):
+    """#385: guide<->diagram parity was a convention nothing checked.
+
+    modernize-it.jpg sat in the assets directory while its guide never referenced it, and four
+    guides had no diagram at all; sixteen others embedded theirs. Every guide the mission index
+    links must embed its own asset from assets/diagrams/missions/, and every asset there must be
+    embedded by the guide of the same name. A `<name>-light.jpg` beside `<name>.jpg` is the same
+    diagram rendered for a light theme (PR #394): it belongs to the guide `<name>`, which embeds
+    both through a `<picture>` block, so it is held to the same parity.
+    """
+
+    # Guides with no rendered diagram yet. Named, not skipped: a guide leaving this set by gaining
+    # its diagram fails the test until its name is removed here. The four gaps #385 parked as a
+    # human item (absorb-it, document-it, migrate-it, oncall-it; run 2026-09-14 Q3) closed when
+    # PR #394 regenerated every mission's contract card from a committed prompt, so the set is empty.
+    KNOWN_GAPS = []
+    INDEX = DOCS / "missions" / "README.md"
+    ASSETS = ROOT / "assets" / "diagrams" / "missions"
+    # `src="../../assets/diagrams/missions/x.jpg"`, a `<picture>` source's `srcset="…"`, and
+    # `](../../assets/diagrams/missions/x.jpg)`.
+    EMBED = re.compile(
+        r"""(?:srcset=["']|src=["']|\]\()\.\./\.\./assets/diagrams/missions/([^"')\s]+)""")
+
+    @staticmethod
+    def _guide_of(asset_name):
+        """The guide stem an asset belongs to: `x.jpg` and `x-light.jpg` are both guide `x`'s."""
+        return re.sub(r"-light$", "", Path(asset_name).stem)
+
+    def _guides(self):
+        """Guide stem -> text, for every docs/missions/*.md the index links (the index is the list)."""
+        # The index test's own parser, so every link form it accepts counts here too.
+        missions = self.INDEX.parent.resolve()
+        guides = {p.stem: p.read_text(encoding="utf-8") for p in index_targets(self.INDEX)
+                  if p.parent == missions and p.name != "README.md"}
+        # Equal to the guides on disk, not a count floor: a narrowed set would skip the difference.
+        on_disk = sorted(p.stem for p in missions.glob("*.md") if p.name != "README.md")
+        self.assertEqual(sorted(guides), on_disk,
+                         "the index's guide set != the guides on disk; parity would skip the difference")
+        return guides
+
+    def test_every_indexed_guide_embeds_its_own_diagram(self):
+        without = []
+        for stem, text in sorted(self._guides().items()):
+            refs = self.EMBED.findall(text)
+            dangling = [r for r in refs if not (self.ASSETS / r).is_file()]
+            self.assertEqual(dangling, [], f"docs/missions/{stem}.md embeds a diagram that is not there")
+            if not any(self._guide_of(r) == stem for r in refs):
+                without.append(stem)
+        self.assertEqual(without, self.KNOWN_GAPS,
+                         "guides with no embedded diagram of their own != the named known gaps")
+
+    def test_every_diagram_asset_is_embedded_by_its_guide(self):
+        guides = self._guides()
+        for asset in sorted(p for p in self.ASSETS.iterdir() if p.is_file()):
+            with self.subTest(asset=asset.name):
+                guide = self._guide_of(asset.name)
+                self.assertIn(guide, guides, f"{asset.name} has no indexed guide of that name")
+                self.assertIn(asset.name, self.EMBED.findall(guides[guide]),
+                              f"docs/missions/{guide}.md never embeds {asset.name}")
+
+    def _fixture(self, tmp, index_links, unlinked=()):
+        """A parity check over a throwaway repo: sixteen bare-linked guides that embed their own
+        diagram, plus the extra index lines given, a diagram-less `gap.md`, and `unlinked` guides."""
+        missions, assets = tmp / "docs" / "missions", tmp / "assets" / "diagrams" / "missions"
+        missions.mkdir(parents=True)
+        assets.mkdir(parents=True)
+        embedded = [f"g{i:02d}" for i in range(16)]
+        for stem in embedded:
+            (missions / f"{stem}.md").write_text(f'<img src="../../assets/diagrams/missions/{stem}.jpg">\n')
+            (assets / f"{stem}.jpg").write_bytes(b"")
+        for stem in ("gap", *unlinked):
+            (missions / f"{stem}.md").write_text("no diagram yet\n")
+        lines = [f"| [{s}]({s}.md) | x |" for s in embedded] + list(index_links)
+        (missions / "README.md").write_text("\n".join(lines) + "\n")
+        check = MissionGuidesEmbedTheirDiagram("test_every_indexed_guide_embeds_its_own_diagram")
+        check.INDEX, check.ASSETS, check.KNOWN_GAPS = missions / "README.md", assets, ["gap"]
+        return check
+
+    def test_a_diagram_less_guide_counts_in_every_link_form_the_index_accepts(self):
+        # Round-2 review: the guide set was read with a bare `](x.md)` pattern, so a gap linked as
+        # `./gap.md` dropped out of parity while the index test (which accepts it) stayed green.
+        for link in ("[gap](./gap.md)", "[gap](gap.md#top)", "[gap](<gap.md>)", '[gap](gap.md "t")'):
+            with self.subTest(link=link), tempfile.TemporaryDirectory() as tmp:
+                check = self._fixture(Path(tmp), [f"| {link} | x |"])
+                check.test_every_indexed_guide_embeds_its_own_diagram()
+
+    def test_a_guide_the_index_set_misses_fails_loudly(self):
+        # A count floor let a narrowed guide set pass; the set must equal the guides on disk.
+        with tempfile.TemporaryDirectory() as tmp:
+            check = self._fixture(Path(tmp), ["| [gap](gap.md) | x |"], unlinked=["orphan"])
+            with self.assertRaisesRegex(AssertionError, "orphan"):
+                check._guides()
+
+    def test_a_light_variant_is_held_to_its_guide(self):
+        # PR #394 review of the parity check: `g00-light.jpg` is guide g00's diagram, not a guide
+        # of its own, and a `<picture>` embeds it through `srcset=`, which `src=` never matched.
+        with tempfile.TemporaryDirectory() as tmp:
+            check = self._fixture(Path(tmp), ["| [gap](gap.md) | x |"])
+            light = check.ASSETS / "g00-light.jpg"
+            light.write_bytes(b"")
+            with self.assertRaisesRegex(AssertionError, "g00.md never embeds g00-light.jpg"):
+                check.test_every_diagram_asset_is_embedded_by_its_guide()
+            guide = check.INDEX.parent / "g00.md"
+            guide.write_text('<picture><source media="(prefers-color-scheme: light)" '
+                             'srcset="../../assets/diagrams/missions/g00-light.jpg">'
+                             '<img src="../../assets/diagrams/missions/g00.jpg"></picture>\n')
+            check.test_every_diagram_asset_is_embedded_by_its_guide()
+            check.test_every_indexed_guide_embeds_its_own_diagram()
+
+
+class CompletionStatusNamesTheCommitItDescribes(unittest.TestCase):
+    """#385: status.json's current_commit named 6671913 (PR #231's merge, where run 3 resumed)
+    while the record it heads describes the tree after run 3's own PR merged: S5-B fixes, issue
+    filing and run_pr all land inside that PR. The snapshot names its run PR, so the commit it
+    describes is that PR's merge commit, read from history rather than restated here."""
+
+    def test_current_commit_is_the_merge_of_the_recorded_run_pr(self):
+        status = json.loads((DOCS / "completion" / "status.json").read_text(encoding="utf-8"))
+        number = re.fullmatch(r"https://github\.com/[^/]+/[^/]+/pull/(\d+)", status["run_pr"])
+        self.assertIsNotNone(number, f"run_pr is not a pull-request URL: {status['run_pr']!r}")
+        commit = status["current_commit"]
+        self.assertRegex(commit, r"^[0-9a-f]{40}$")
+        shown = subprocess.run(["git", "show", "-s", "--format=%P%n%s", commit],
+                               cwd=ROOT, capture_output=True, text=True)
+        self.assertEqual(shown.returncode, 0, f"current_commit {commit[:12]} is not a commit here "
+                         "(a shallow checkout needs fetch-depth: 0)")
+        parents, subject = shown.stdout.splitlines()[:2]
+        self.assertEqual(len(parents.split()), 2, f"{commit[:12]} is not a merge commit")
+        self.assertTrue(subject.startswith(f"Merge pull request #{number.group(1)} "),
+                        f"current_commit {commit[:12]} is {subject!r}, not the merge of the "
+                        f"snapshot's own run PR #{number.group(1)}")
 
 
 class EveryReleaseHasTheTagItDescribes(unittest.TestCase):

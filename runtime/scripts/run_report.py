@@ -19,6 +19,9 @@ What a tier advance has to survive here instead:
   ``verify.py`` invocation it came from (a RED is a legitimate recorded outcome:
   a solo run cannot manufacture an independent approver, and saying so is the
   point of the field);
+* ``waves=`` (a mutating mission's report) written once, recording the number of
+  dispatch waves the run ran; its WIP-curve section's table carries one complete row
+  per wave 1..n (attention-budget.md's WIP-curve protocol, #365/#389/#387);
 * the run-close integrity inventory re-deriving **at that commit**: at least one
   path verified and zero mismatched.
 
@@ -61,6 +64,7 @@ import argparse
 import hashlib
 import importlib.util
 import json
+import os
 import re
 import shlex
 import subprocess
@@ -151,8 +155,15 @@ def _is_repo_verifier(token, root):
 
 _PYTHON_NAME_RE = re.compile(r"python(?:\d+(?:\.\d+)?)?t?", re.ASCII)
 # World-writable and shared. No toolchain installs an interpreter under them, so anything wearing
-# an interpreter's name there was put there by the run.
-_SCRATCH_ROOTS = (Path("/tmp"), Path("/var/tmp"), Path("/dev/shm"))
+# an interpreter's name there was put there by the run. Resolution matters: Path.is_relative_to is
+# lexical, and on macOS /tmp and /var/tmp are symlinks into /private — the UNRESOLVED spelling of
+# the same world-writable file escaped the refusal until both sides were resolved (#349).
+def _scratch_roots():
+    roots = [Path("/tmp"), Path("/var/tmp"), Path("/dev/shm")]
+    tmpdir = os.environ.get("TMPDIR")  # tempfile tooling lands here; also run-writable
+    if tmpdir:
+        roots.append(Path(tmpdir))
+    return tuple(root.resolve() for root in roots)
 
 
 def _is_python_interpreter(token, root):
@@ -180,11 +191,12 @@ def _is_python_interpreter(token, root):
         return False   # resolves against a cwd this check cannot know, or climbs out of one
     try:
         repo = Path(root).resolve()
+        resolved = path.resolve()  # non-strict: resolves a symlinked prefix even for absent files
     except (ValueError, OSError, RuntimeError):
         return False
-    if path.is_relative_to(repo):
+    if resolved.is_relative_to(repo):
         return False   # the tree under review is the one place the run certainly writes
-    return not any(path.is_relative_to(scratch) for scratch in _SCRATCH_ROOTS)
+    return not any(resolved.is_relative_to(scratch) for scratch in _scratch_roots())
 
 
 def _valid_python_xoption(option):
@@ -359,9 +371,9 @@ def verifier_ran(manifest_path, rev, root):
     minutes because writing a command line costs nothing.
 
     So the tier now costs a command EXECUTION: the graded manifest's own `commands[]` ledger must
-    carry a record of the verifier running, with a `wtree` that resolves to the tree of a commit
-    the report pins. `evidence-run.py` writes those records; a hand-written one has to name a tree
-    that really exists in this repository and hash its own command line.
+    carry a record of the verifier running, with a `wtree` that resolves to a real tree object
+    in this repository. `evidence-run.py` writes those records; a hand-written one has to name a
+    tree that really exists here and hash its own command line.
 
     Said plainly, because it bounds what this buys: the ledger is still written on the worker, so
     this raises the floor from "wrote a sentence" to "ran a command and recorded it against real
@@ -386,7 +398,10 @@ def verifier_ran(manifest_path, rev, root):
                 f"verify.py against itself — a tier costs a RUN, not a sentence about one. Wrap the "
                 f"verifier in evidence-run.py so the ledger carries it (#286). Recorded there: {seen}"]
 
-    # Every candidate must bind to content, or the record describes nothing.
+    # Every candidate must bind to content, or the record describes nothing. The bound is
+    # tree-shaped existence in THIS repo: evidence-run records DURING the run, before the
+    # closing commit exists, so equality with the pinned commit's tree would refuse every real
+    # run — but a blob or an unresolvable object binds to nothing (#382).
     problems = []
     for rec in verifier:
         line = rec["cmd"]
@@ -398,12 +413,245 @@ def verifier_ran(manifest_path, rev, root):
         if not (isinstance(wtree, str) and wtree):
             problems.append("it carries no wtree, so it is bound to no content at all")
             continue
-        if not inventory.rev_exists(wtree, root) and tree_of(wtree, root) is None:
-            problems.append(f"its wtree {wtree[:12]}… is not an object in this repository")
+        if tree_of(wtree, root) is None:
+            problems.append(f"its wtree {wtree[:12]}… does not resolve to a tree object in this "
+                            "repository")
             continue
         return []  # one sound record is enough
     return [f"the graded manifest {manifest_path} records a verify.py run that binds to nothing: "
             + "; ".join(problems)]
+
+
+def _mutation_missions(root, rev=None):
+    """The mutation-class mission set from evidence-manifest.md §3 — the one place the class list
+    lives, so this check and the done-floor never enumerate different sets. Read at the report's
+    pinned revision first (the policy in force for the run), then the working tree. None means the
+    policy exists at neither — the repo predates the protocol, and the obligation is unscoped
+    rather than violated."""
+    for text in (_read_at_rev(rev, "runtime/evidence-manifest.md", root) if rev else None,
+                 _read_worktree(root)):
+        if text is None:
+            continue
+        m = re.search(r"\*\*Mutation units\*\* \(([^)]*)\)", text)
+        if m:
+            return {name.strip() for name in m.group(1).split(",")}
+    return None
+
+
+def _read_at_rev(rev, path_text, root):
+    try:
+        proc = subprocess.run(
+            ["git", "cat-file", "blob", f"{rev}:{path_text}"],
+            cwd=str(root), stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+    except OSError:
+        return None
+    if proc.returncode != 0:
+        return None
+    try:
+        return proc.stdout.decode("utf-8")
+    except UnicodeDecodeError:
+        return None
+
+
+def _read_worktree(root):
+    try:
+        return (Path(root) / "runtime" / "evidence-manifest.md").read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return None
+
+
+# attention-budget.md's WIP-curve protocol, machine-checked (#365): every mutating run records one
+# row per dispatch wave, or the ≥3-run graduation evidence base can silently never accumulate — "a
+# cap recorded nowhere was never a cap". The row schema is the one the protocol's table names
+# (#389 — "any row carrying builders=/reviewers=" bound a settings-only row): a table row whose
+# cells carry wave=<k>, the WIP setting as builders=<n> reviewers=<n>, and a measured value for
+# every metric. A row is a WIP-curve row when it names a wave; the settings alone are not a point.
+WIP_ROW_KEYS = ("wave", "builders", "reviewers", "throughput", "latency_median", "latency_max",
+                "rework", "freshness")
+_WIP_CELL_RE = re.compile(r"(?<![\w=])([a-z_]+)=([^\s|`]*)")
+_COUNT_RE = re.compile(r"\d+")
+_MEASURED_RE = re.compile(r"\d\S*")  # a number, units free after it: 1.5/h, 12m, 1/4
+_WIP_COUNTS = {"wave": "<k>", "builders": "<n>", "reviewers": "<n>"}  # integers; metrics are <v>
+_WIP_ROW_SCHEMA = " ".join(f"{k}={_WIP_COUNTS.get(k, '<v>')}" for k in WIP_ROW_KEYS)
+# Where the rows live (#387): the report's WIP-curve section — docs/runs/TEMPLATE.md's
+# `## WIP-curve protocol row` heading — outside fenced code. Every pipe-prefixed line used to be
+# read, so a complete row quoted in a fenced example or a deviations table bound as the run's
+# evidence, or tripped the duplicate/stray-wave checks against the real rows. An ATX heading
+# whose text begins `WIP-curve protocol row` as whole words (so not `... rows`) opens the section
+# (any level; what follows varies by report) — one that merely begins by naming the WIP curve,
+# such as another run's quoted example, does not (verdict r1); the next heading of any kind ends it.
+WIP_SECTION = "## WIP-curve protocol row"
+_WIP_SECTION_RE = re.compile(r" {0,3}#{1,6}[ \t]+WIP-curve[ \t]+protocol[ \t]+row\b")
+_HEADING_RE = re.compile(r" {0,3}#{1,6}(?:[ \t]|$)")
+# A backtick fence's info string holds no backtick (CommonMark): '```text`example``' is prose with
+# inline code, and read as a fence it swallowed the rows after it (PR #401 review).
+_FENCE_RE = re.compile(r" {0,3}(`{3,}(?=[^`]*$)|~{3,})")
+_SETEXT_RE = re.compile(r" {0,3}(?:=+|-+)[ \t]*$")
+_BREAK_RE = re.compile(r" {0,3}([-*_])(?:[ \t]*\1){2,}[ \t]*$")
+_QUOTE_RE = re.compile(r" {0,3}>")
+_ITEM_RE = re.compile(r" {0,3}(?:[-+*]|(\d{1,9})[.)])(?=[ \t]|$)")
+# A block quote's paragraph sits at a column no line reaches: its lines carry '>', so a line under
+# it without one is never its underline (--- is a thematic break, === is more of its text).
+_QUOTED = float("inf")
+
+
+def _indent(line, start=0):
+    """The number of spaces line[start:] opens with; a tab counts as none here. The tab rule is
+    the caller's: _wip_section_lines expands each line to CommonMark's stops of 4 before it
+    measures, so there '\tnote' is as deep as '    note' (verdict r5, r6 S6-1)."""
+    rest = line[start:]
+    return len(rest) - len(rest.lstrip(" "))
+
+
+def _wip_section_lines(text):
+    """The lines inside the report's WIP-curve section(s), fenced code excluded. A heading quoted
+    inside a fence is code too, so it neither opens nor closes the section. A setext heading — a
+    paragraph underlined with = or - in its own container — ends the section like any other
+    (verdict r1). List items are followed by the column their content starts at (CommonMark), so
+    a fence nested in one is still code, and a paragraph indented into one is still its own."""
+    inside, fence, para, items, empty = False, None, None, [], False
+    for raw in text.splitlines():
+        line = raw.expandtabs(4)
+        indent = _indent(line)
+        if fence:
+            # CommonMark: the closing fence is the same character, at least as long, bare, and
+            # up to three spaces past the column of the list item holding the fence. A line left
+            # of that column ends the item, and the fence with it, and is read (verdict r5 F-2).
+            char, col = fence
+            if line.strip() and indent < col:
+                fence = None
+            else:
+                closer = _FENCE_RE.match(line, col)
+                if (closer and closer.group(1)[0] == char[0] and len(closer.group(1)) >= len(char)
+                        and not line[closer.end():].strip()):
+                    fence = None
+                continue
+        if not line.strip():
+            # An item begins with at most one blank line, so one still empty ends here (verdict r4).
+            if empty:
+                items.pop()
+            para, empty = None, False
+            continue
+        # The list items this line is indented into, then any it opens. An item interrupts a
+        # paragraph in its own container only with content, and an ordered one only from 1:
+        # 'Deviations / 2. x / ---' is one paragraph underlined (PR #401 review).
+        kept = len(items)
+        while kept and items[kept - 1] > indent:
+            kept -= 1
+        base, opened = (items[kept - 1] if kept else 0), []
+        while not _BREAK_RE.match(line, base):
+            item = _ITEM_RE.match(line, base)
+            rest = line[item.end():] if item else ""
+            if not item or (not opened and para == base
+                            and not (rest.strip() and int(item.group(1) or 1) == 1)):
+                break
+            gap = _indent(line, item.end())
+            base = item.end() + (gap if rest.strip() and 0 < gap <= 4 else 1)
+            opened.append(base)
+        empty = bool(opened) and not line[base:].strip()
+        opener = _FENCE_RE.match(line, base)
+        heading = _HEADING_RE.match(line)
+        setext = not opened and para is not None and indent >= para and _SETEXT_RE.match(line, para)
+        if opener:
+            fence = (opener.group(1), base)
+        elif heading:
+            inside = bool(_WIP_SECTION_RE.match(line))
+        elif setext:
+            inside = False
+        elif inside:
+            yield raw
+        # Only a paragraph can be underlined, and only in its own container. After a table row, a
+        # heading, a fence or a thematic break, --- is a thematic break or table syntax. Under a
+        # list item's paragraph but left of its content, or under a block quote's, --- is a
+        # thematic break and === is more of its text (PR #401 review). The section stays open.
+        quote = _QUOTE_RE.match(line, base)
+        if (opener or heading or setext or _BREAK_RE.match(line, base)
+                or line.lstrip().startswith("|")):
+            items[kept:], para = opened, None
+        elif opened or para is None or quote:
+            # Four columns past it is indented code, which nothing underlines (verdict r4), a tab
+            # included (verdict r5).
+            items[kept:] = opened
+            para = (_QUOTED if quote else
+                    base if line[base:].strip() and _indent(line, base) < 4 else None)
+        # Otherwise the line continues the open paragraph, lazily or not, and closes nothing.
+
+
+def _wip_rows(text):
+    """(row, {key: value}, doubled keys) for every table row in the report's WIP-curve section
+    that names a wave — its WIP-curve rows (#387). A key written twice is reported, never
+    collapsed: dict() keeps the last value, so `throughput=TBD throughput=1` would bind on the 1
+    (PR #391 review)."""
+    rows = []
+    for line in _wip_section_lines(text):
+        if line.lstrip().startswith("|"):
+            pairs = _WIP_CELL_RE.findall(line)
+            keys = [k for k, _v in pairs]
+            if "wave" in keys:
+                doubled = sorted({k for k in keys if keys.count(k) > 1})
+                rows.append((line.strip(), dict(pairs), doubled))
+    return rows
+
+
+def _wip_cell_ok(key, value):
+    if value is None:
+        return False
+    pattern = _COUNT_RE if key in _WIP_COUNTS else _MEASURED_RE
+    return bool(pattern.fullmatch(value))
+
+
+def _wip_curve_errors(text, mission, root, report_path, rev=None):
+    missions = _mutation_missions(root, rev)
+    if missions is None:
+        return []  # the protocol exists at neither the pinned rev nor the worktree — unscoped
+    if mission not in missions:
+        return []  # report-only and planning runs carry no dispatch waves
+    rows = _wip_rows(text)
+    if not rows:
+        return [f"{report_path}: a mutating run records one WIP-curve row per dispatch wave, as a "
+                f"table row carrying {_WIP_ROW_SCHEMA} under the report's `{WIP_SECTION}` heading, "
+                "outside fenced code (docs/runs/TEMPLATE.md, attention-budget.md) — none found; "
+                "a cap recorded nowhere was never a cap (#365, #387)"]
+    errors = []
+    for row, cells, doubled_keys in rows:
+        if doubled_keys:
+            errors.append(f"{report_path}: WIP-curve row {row!r} carries {doubled_keys} more than "
+                          "once — one value per cell, or the row contradicts itself (#389)")
+            continue
+        missing = [k for k in WIP_ROW_KEYS if not _wip_cell_ok(k, cells.get(k))]
+        if missing:
+            errors.append(f"{report_path}: WIP-curve row {row!r} carries no measured {missing} — "
+                          f"the protocol's row is {_WIP_ROW_SCHEMA} (attention-budget.md, #389)")
+    # The recorded waves are 1..n of the RUN: header's waves=<n> — the report's own count of the
+    # dispatch waves it ran. Without it one row can stand in for a whole multi-wave run (#389).
+    # Read every waves=, never a dict: `waves=3 waves=1` would bind on the 1 (the F3 collapse).
+    header = RUN_HEADER_RE.search(text)
+    counts = [v for k, v in FIELD_RE.findall(header.group(1)) if k == "waves"] if header else []
+    if len(counts) > 1:
+        errors.append(f"{report_path}: RUN: header carries waves= more than once ({counts}) — one "
+                      "count of the dispatch waves, or the header contradicts itself (#389)")
+        return errors
+    declared = counts[0] if counts else None
+    if declared is None or not _COUNT_RE.fullmatch(declared) or int(declared) < 1:
+        errors.append(f"{report_path}: RUN: waves={declared or '<missing>'} — a mutating run records "
+                      "the number of dispatch waves it ran as waves=<n> (n ≥ 1); its WIP-curve rows "
+                      "are checked against waves 1..n (attention-budget.md, #389)")
+        return errors
+    recorded = range(1, int(declared) + 1)
+    named = [int(c["wave"]) for _row, c, _doubled in rows if _COUNT_RE.fullmatch(c["wave"])]
+    absent = [k for k in recorded if k not in named]
+    doubled = sorted({k for k in named if named.count(k) > 1})
+    stray = sorted({k for k in named if k not in recorded})
+    if absent:
+        errors.append(f"{report_path}: RUN: waves={declared} but no WIP-curve row for wave(s) "
+                      f"{absent} — one complete row per recorded wave (attention-budget.md, #389)")
+    if doubled:
+        errors.append(f"{report_path}: wave(s) {doubled} carry more than one WIP-curve row — "
+                      "one row per wave, or the curve double-counts it (#389)")
+    if stray:
+        errors.append(f"{report_path}: WIP-curve row(s) for wave(s) {stray} outside the recorded "
+                      f"waves 1..{declared} (RUN: waves={declared}) (#389)")
+    return errors
 
 
 def check_report(report_path, mission, tier, root=None):
@@ -475,6 +723,8 @@ def check_report(report_path, mission, tier, root=None):
     for problem in verifier_ran(manifest, rev, root):
         errors.append(f"{report_path}: {problem}")
 
+    errors.extend(_wip_curve_errors(text, mission, root, report_path, rev=rev))
+
     try:
         _report, _lines, entries = inventory.load(report)
     except inventory.InventoryError as exc:
@@ -535,13 +785,22 @@ def run_directory(report, mission, root=None):
     if not m or mission not in report.stem:
         return None
     date = m.group(1)
-    flat = mission.replace("-", "")
     runs_dir = ((root or ROOT) / "docs" / "runs") if root is not None else RUNS_DIR
     for candidate in sorted(runs_dir.glob(f"{date}-*")):
         if not candidate.is_dir():
             continue
         stem = candidate.name
-        if stem.startswith(date + "-") and (mission in stem or flat in stem.replace("-", "")):
+        if not stem.startswith(date + "-"):
+            continue
+        # Token-contiguous, never substring (#382, PR #387 review): "map-it" must not match
+        # "map-iteration". The directory's tokens after the date must contain the mission's
+        # tokens as a contiguous run — an anchored regex's lookbehind rejects the "-" that the
+        # glob convention always puts before the mission token, which is what made the first
+        # cut's anchored branch dead code.
+        tokens = stem[len(date) + 1:].split("-")
+        mtoks = mission.split("-")
+        if any(tokens[i:i + len(mtoks)] == mtoks
+               for i in range(len(tokens) - len(mtoks) + 1)):
             return f"docs/runs/{stem}"
     return f"docs/runs/{report.stem}"
 

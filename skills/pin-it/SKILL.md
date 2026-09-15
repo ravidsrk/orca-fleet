@@ -105,9 +105,9 @@ silence. Repo gates (validator, tests) green at the landing SHA.
 
 ## Ledger + supervision
 
-Ledger header at T0 (`ledger-contract.md`) with `WIP: builders=<n> reviewers=<n>` sized to
-`attention-budget.md`. Header per liveness-resume.md: `RUN · COORDINATOR · BASE · FORK_POINT · T0 · SOURCE · WIP`
-(`-` if N/A; SOURCE = the claim-inventory digest + the installed CLI version). One row per claim:
+Ledger header at T0 per liveness-resume.md: `RUN · COORDINATOR · BASE · FORK_POINT · T0 · SOURCE · WIP`
+— row schema per `ledger-contract.md`, WIP sized to `attention-budget.md`, one statement so the two
+cannot drift (#383). WIP: builders=<n> reviewers=<n> (`-` if N/A; SOURCE = the claim-inventory digest + the installed CLI version). One row per claim:
 id, source file:line, class, receipt path, patch PR, verdict. Re-witness probes are cheap and
 parallel within `attention-budget`; PATCH waves are doc-mutation units (≤3 builders, 1 reviewer per
 3 builders). Stalls → `liveness-resume.md` WATCH; death → RESUME (ledger-scoped; receipts on disk

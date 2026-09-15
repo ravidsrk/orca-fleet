@@ -3,7 +3,7 @@
 
 sandbox-policy.md states the rule the `danger` lane rests on: clear means **no `fail` AND no
 `warn`**; `ok:true` on its own proves nothing, because a warn is a lane that boots and then fails
-a build halfway through (`orca-per-workspace-env:110-122`).
+a build halfway through (`orca-per-workspace-env`'s doctor-verdict section (cited by name, not line — line pins rot, #382)).
 
 `spawn_worker.sh` used to enforce that rule with `grep -qiE '(^|[^a-z])(fail|warn)'` over a file
 the CALLER named, which got the answer wrong in both directions (#283):

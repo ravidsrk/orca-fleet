@@ -312,6 +312,19 @@ class BundleClosureTests(unittest.TestCase):
                         finally:
                             path.write_bytes(saved)
 
+    def test_out_pointing_at_the_checkout_is_refused_before_any_delete(self):
+        # #350: build() rmtrees <out>/skills before rebuilding; `--out .` resolved that to the
+        # real catalog and deleted all 21 missions it was asked to copy.
+        sentinel = bundle.SKILLS_DIR / "ship-it" / "SKILL.md"
+        before = sentinel.read_bytes()
+        for out in (str(ROOT), str(ROOT / "dist" / "..")):
+            with self.subTest(out=out):
+                with mock.patch("sys.stderr") as err:
+                    self.assertEqual(bundle.main(["--out", out]), 2)
+                written = "".join(call.args[0] for call in err.write.call_args_list)
+                self.assertIn("source catalog", written)
+                self.assertEqual(sentinel.read_bytes(), before)
+
     def test_missing_or_malformed_inventory_is_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
             bundle.build(tmp)

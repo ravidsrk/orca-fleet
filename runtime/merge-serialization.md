@@ -15,7 +15,7 @@ fleet owns the queue semantics.
 Two corrections against v1.4.199, both of which make this rule the FLEET's, not the runtime's:
 
 - **`--to` is optional** from an active Dispatch — an omitted recipient defaults to the owning Run
-  mailbox, which is the coordinator inbox and the address upstream prefers (`orchestration.ts:76`).
+  mailbox, which is the coordinator inbox and the address upstream prefers (`cli/specs/orchestration.ts:78`).
   Naming the conductor handle explicitly stays correct and stays this fleet's convention, because a
   merge queue has exactly one owner and the handle says so.
 - **A `merge_ready` to a group is NOT rejected.** The runtime refuses group addresses for
@@ -42,6 +42,11 @@ Two corrections against v1.4.199, both of which make this rule the FLEET's, not 
    content-CHANGING rebase VOIDS the review — the PR leaves the train and re-boards on a new
    merge_ready; a content-identical one keeps it (the tree test above). Clean →
    `gh pr merge <n> --merge --delete-branch --match-head-commit <reviewed_sha>`.
+   Every coordinator off-repo write — the `gh pr create`, this merge, issue closes, deploy
+   triggers — is preceded by `egress.py write … &&` (#368): the receipt is appended BEFORE the
+   send, and its exit 3 stops the send. At run close, `egress.py verify` runs beside the
+   integrity inventory; together they answer "what did this run produce, and what left the
+   machine".
    A concurrent head change refuses the merge: requeue for fresh review, then repeat FRESH;
    never retry without the expected-head guard. `--admin` only under a recorded once-per-run human
    grant when a merge-trap check hangs (gate-classification.md), never routinely.

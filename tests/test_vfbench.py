@@ -361,7 +361,7 @@ class TheRefusedControlClassesAreSampled(unittest.TestCase):
 
     # The refusal each trap must earn. A RED alone is not evidence the benchmark still measures
     # the advertised bypass: a trap refused as MALFORMED, or by an unrelated prerequisite, scores
-    # the same 0/18 and says nothing (PR #308 review, P2). This is not hypothetical — the
+    # the same 0/20 and says nothing (PR #308 review, P2). This is not hypothetical — the
     # stillborn trap shipped in a first draft refused for exactly that reason, its diff in a
     # `negative_control.diff` field the manifest reader rejects, never reaching the check it names.
     REFUSAL = {
@@ -371,6 +371,17 @@ class TheRefusedControlClassesAreSampled(unittest.TestCase):
         "grep-command": "produced NO output at all",
         "decoy-hand-diff": "the hand mutant's diff names",
         "class-downgrade": "changed code",
+        # #369: the four legacy skeletal traps rebuilt on the run-time fixture, each missing
+        # exactly one leg — deleting the check it exists to measure now turns the trap GREEN,
+        # and this map pins WHICH refusal must fire.
+        "missing-negative-control": "negative_control.tool must be one of",
+        "unreviewed-mutation": "no pr.number to look up an independent review",
+        "fabricated-negative-control": "does not reference the pinned mutant",
+        "unclassified-mutation": "negative_control.tool must be one of",
+        # #371: the two legs the bench previously never sampled at all — the redaction refusal
+        # (#14/#267) and the negative half of the content-bound commands ledger.
+        "credential-in-evidence": "credential shape(s)",
+        "stale-wtree": "STALE evidence",
     }
 
     def test_each_trap_is_refused_for_the_reason_it_exists_to_test(self):
@@ -407,8 +418,10 @@ class TheRefusedControlClassesAreSampled(unittest.TestCase):
                 json.dumps(vb._render(trap["manifest"], facts)), encoding="utf-8")
             cmd = [sys.executable, str(vb.VERIFY), "--manifest", str(repo / "vf-manifest.json"),
                    "--contract-source", "contract.md",
-                   "--contract-digest", facts["contract_digest"],
-                   "--unit-class", trap.get("unit_class", "mutation")]
+                   "--contract-digest", facts["contract_digest"]]
+            unit_class = trap.get("unit_class", "mutation")
+            if unit_class is not None:  # explicit null models the coordinator not classifying (#369)
+                cmd += ["--unit-class", unit_class]
             if trap.get("lighting"):
                 cmd += ["--lighting", trap["lighting"]]
             if trap.get("execute_nc"):

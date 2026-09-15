@@ -53,8 +53,8 @@ the documented exception, and only for the contributor's own commit:** an absorb
 original `Author:` — that is the credit, and rewriting it is misattribution. Everything the fleet
 adds (a review-driven amendment, a lint fix, a test the fleet wrote) is a SEPARATE
 maintainer-authored commit on top, with no trailers, so the history shows exactly who wrote what.
-The repo's squash policy is read BEFORE the first absorption: a squash-merge repo needs the
-contributor's authorship on the resulting commit, or the absorption lands as a merge instead.
+The repo's merge policy is read BEFORE the first absorption: a squash-only repo breaks the
+ancestry-verified merge the convergence proof requires — PARK `needs-human`, never squash (#360).
 DCO/CLA state is checked per PR; unsigned is `needs-contributor`, never a fleet signature.
 
 ## Two terminal outcomes
@@ -80,7 +80,8 @@ SELF-ORIENT → ENUMERATE at T0: every open inbound PR, PAGINATED TO THE END (a 
 → ABSORB (per absorbable PR): apply the diff preserving `Author:`; the fleet's amendment is a
   separate maintainer-authored commit; DCO/CLA checked.
 → RECEIPT: the PR's own regression test — or one the fleet writes — RED on a scratch worktree of
-  the PRE-ABSORPTION base, GREEN on the absorbed head. Both SHAs recorded. No receipt, no landing.
+  the PRE-ABSORPTION base, GREEN on the absorbed head. Both SHAs recorded. No receipt, no landing —
+  documentation-only diffs ride evidence-manifest.md's `oracle_scope` carve-out instead (#383).
 → build-blind REVIEW (acceptance-review) → LAND: one PR per absorbed contribution, against BASE,
   through the conductor (merge-serialization.md).
 → CLOSE the inbound PR with the landing SHA + a credit line naming the contributor; close its
@@ -105,13 +106,12 @@ authorship, re-runs the receipt at the merged SHA and re-counts the log.
 ## Ledger + supervision
 
 Header at T0 per liveness-resume.md: `RUN · COORDINATOR · BASE · FORK_POINT · T0 · SOURCE · WIP`
-(SOURCE = the inbound queue digest at T0; WIP sized to attention-budget.md). One row per inbound
-PR:
+(SOURCE = the inbound queue digest at T0; WIP sized to attention-budget.md). One row per inbound PR:
 
-`| task_id | pr | title | CLASS | REPRO | AUTHOR_OK | RECEIPTS | REVIEWED | MERGED | CLOSED | WT_CLEAN | park | evidence |`
+`| task_id | pr | title | CLASS | REPRO | AUTHOR_OK | RECEIPTS | BUILD_DONE | PR_OPEN | BOT | REVIEWED | MERGED | CLOSED | WT_CLEAN | lighting | park | evidence |`
 
 CLASS ∈ absorbable · superseded-by-main · duplicate-of · needs-contributor · design-disagreement ·
-cannot-reproduce · out-of-scope. RECEIPTS = the entry count of that PR's receipt log in `evidence`.
+cannot-reproduce · out-of-scope. RECEIPTS = the entry count of that PR's receipt log in `evidence`. (Read gate-classification.md when entering Gates — its taxonomy runs the batch gate.)
 Stalls → liveness-resume.md WATCH; RESUME re-derives from the ledger and the live PR list.
 
 ## Gates

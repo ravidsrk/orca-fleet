@@ -1,0 +1,131 @@
+{
+  "schema": 1,
+  "unit": "STABILIZE",
+  "unit_class": "code-change",
+  "base_sha": "8ff66b95cf7037d4e564505a442cac4ea775474d",
+  "head_sha": "8f7d5ac8c040f15d30791904377b18a1eaa578af",
+  "head_tree": "7245a2af9ca232cd114ced872835f05ee96895e0",
+  "head_sha_role": "base_sha..head_sha is the three-commit production/test range the negative control reverts (deny-hook 1215e09, run_report 9651a52, verify 8f7d5ac). The commit that adds this manifest \u2014 together with HUMAN_ACTIONS.md and the regenerated tests badge \u2014 necessarily follows head_sha and cannot name its own SHA; it carries no production or test content, so it is outside the control's range by construction.",
+  "base_branch": "review/2026-09-14-holistic-fixes",
+  "status": "GREEN \u2014 4 review-feedback hunks landed; BASE green on the criterion-bound suite and scripts/validate.py",
+  "criteria": [
+    {
+      "id": "C-1",
+      "text": "PR #387 security review: sudo's own option run, stacked sudo and an unpeeled `nice` launder the deny-hook tee boundary, allowing an out-of-boundary write.",
+      "addressed": true,
+      "commit": "1215e09",
+      "witness": "tests/test_deny_hook.py::TestBashWritesAreBounded::test_sudo_options_and_wrappers_do_not_launder_tee"
+    },
+    {
+      "id": "C-2",
+      "text": "PR #387 review of #382: run_directory's anchored-regex branch is dead code under the `<date>-<mission>\u2026` naming convention, so mission matching is still substring matching and `map-it` borrows `map-iteration`.",
+      "addressed": true,
+      "commit": "9651a52",
+      "witness": "tests/test_run_report.py::RunDirectoryBinding::test_a_prefix_colliding_directory_is_not_borrowed (and ::test_the_real_directory_is_found for the other direction)"
+    },
+    {
+      "id": "C-3",
+      "text": "PR #387 security review: an empty or unparseable --nc-command silently downgraded verify.check_commands to pre-#352 behavior instead of failing closed.",
+      "addressed": true,
+      "commit": "8f7d5ac",
+      "witness": "tests/test_verify.py::NegativeControlCheck::test_an_unparseable_nc_command_fails_closed_on_the_plain_lane (and ::test_a_negated_result_narration_fails pinning the #382 negated-narration guard)"
+    },
+    {
+      "id": "C-4",
+      "text": "HUMAN_ACTIONS.md rows H-04 and H-05 carried a stray `||` that emitted an empty cell and shifted the status column; the tests badge was stale at 1280 definitions.",
+      "addressed": true,
+      "commit": "pending (the commit that adds this manifest)",
+      "witness": "python3 scripts/gen-badges.py (assets/badges/tests.json now reads 1285 in source); python3 scripts/validate.py exit 0"
+    }
+  ],
+  "intent": {
+    "goal": "Land the four uncommitted PR #387 review-feedback hunks on review/2026-09-14-holistic-fixes as one per-hunk commit each, so BASE is green on the criterion-bound suite and on scripts/validate.py.",
+    "ruled_out": "Any fix outside the four hunks; review verdicts on PR #387; push, rebase or merge; edits to the clean-sweep tracker ledger, docs/DECISIONS.md, the taskspecs directory, .claude/ or .orca/; sub-worker dispatch (nesting forbidden); `git add -A` \u2014 every commit staged by named path.",
+    "why": "The dirty working tree WAS the unit (the clean-baseline rule was waived with reason and recorded in the run ledger), and two RunDirectoryBinding tests were already red-first: _run_dir passed a str root into run_directory, whose contract is Path-or-None, so both errored with TypeError before they could assert anything. Widening the change would have put unreviewed content inside a range whose negative control is a three-file revert."
+  },
+  "lighting": "lit",
+  "commands": [
+    {
+      "label": "tests",
+      "ts": "2026-09-14T15:50:45Z",
+      "cmd": "python3 -m unittest tests.test_deny_hook tests.test_run_report tests.test_verify",
+      "cmd_sha256": "ee9d5a3818b127c5b483a7902fc5f8e54fcd906d06f1837e5316fb5692016347",
+      "exit": 0,
+      "duration_s": 85.077,
+      "commit": "99c22130198f80f574f20e71f96df112079b576a",
+      "wtree": "165515a144541590b3445f2648c661b73c63e0c8",
+      "artifact": null
+    }
+  ],
+  "negative_control": {
+    "tool": "revert",
+    "did": "git worktree add /tmp/nc-stab HEAD, detached at 99c2213 \u2014 HEAD at the time the control ran. base_sha 8ff66b9 landed on the branch mid-run and is a doc-only run-log commit; `git diff 99c2213 8ff66b9` touches no file in negative_control.paths, so the three production files in the control worktree are byte-identical to their base_sha versions. The three modified test files were copied in; the production files were left at their committed versions; the exact step-4 test command was run; git worktree remove --force /tmp/nc-stab.",
+    "paths": [
+      "runtime/scripts/deny-hook.sh",
+      "runtime/scripts/run_report.py",
+      "runtime/scripts/verify.py"
+    ],
+    "command": "python3 -m unittest tests.test_deny_hook tests.test_run_report tests.test_verify",
+    "result": "RED \u2014 exit 1, 11 failures across the three criterion tests (exit 0, 430 tests OK with the production change).",
+    "exit": 1,
+    "artifact": "docs/runs/2026-09-14-clean-sweep-tracker/stabilize-manifest.json",
+    "failures": [
+      "test_a_prefix_colliding_directory_is_not_borrowed",
+      "test_an_unparseable_nc_command_fails_closed_on_the_plain_lane",
+      "test_sudo_options_and_wrappers_do_not_launder_tee"
+    ],
+    "failure_counts": {
+      "test_sudo_options_and_wrappers_do_not_launder_tee": 8,
+      "test_an_unparseable_nc_command_fails_closed_on_the_plain_lane": 2,
+      "test_a_prefix_colliding_directory_is_not_borrowed": 1
+    },
+    "transcript": [
+      "Ran 430 tests in 85.864s",
+      "",
+      "FAILED (failures=11)",
+      "no mission claims a tier above doctrine-only"
+    ],
+    "transcript_note": "Full transcript captured to the session scratchpad at nc-transcript.txt; it is not committed because the dispatch scope named no artifact path for it, so the roster, the per-test failure counts and the run tail are inlined here instead.",
+    "not_witnessed_by_the_control": [
+      "tests/test_run_report.py::RunDirectoryBinding::test_the_real_directory_is_found",
+      "tests/test_verify.py::NegativeControlCheck::test_a_negated_result_narration_fails"
+    ],
+    "not_witnessed_note": "Both pass at base_sha. They are regression pins on behavior already correct there \u2014 the other-direction check for the token match, and the first witness for the #382 negated-narration guard \u2014 not witnesses of this unit's production change."
+  },
+  "commands_binding_note": "The commands[] record was written by runtime/scripts/evidence-run.py at step 4, before the unit was committed, so its `wtree` (165515a1) fingerprints the dirty working tree of the unit and not head_sha's tree (7245a2af) \u2014 the manifest itself is content that changes between the run and the commit, so no single in-tree record can be self-binding here. verify.py's freshness gate will read this record as STALE; the coordinator's clean-env re-run at head_sha is the authority (evidence-manifest.md \u00a72).",
+  "files": {
+    "production": [
+      "runtime/scripts/deny-hook.sh",
+      "runtime/scripts/run_report.py",
+      "runtime/scripts/verify.py"
+    ],
+    "tests": [
+      "tests/test_deny_hook.py",
+      "tests/test_run_report.py",
+      "tests/test_verify.py"
+    ],
+    "docs_and_generated": [
+      "docs/completion/HUMAN_ACTIONS.md",
+      "assets/badges/tests.json",
+      "docs/runs/2026-09-14-clean-sweep-tracker/stabilize-manifest.json"
+    ]
+  },
+  "commits": [
+    {
+      "sha": "1215e09",
+      "subject": "fix(deny-hook): sudo's own option run must peel before the tee boundary (#387)"
+    },
+    {
+      "sha": "9651a52",
+      "subject": "fix(run-report): match the mission by contiguous tokens, not by substring (#387)"
+    },
+    {
+      "sha": "8f7d5ac",
+      "subject": "fix(verify): an unusable --nc-command fails closed, it does not skip the gate (#387)"
+    },
+    {
+      "sha": "pending",
+      "subject": "chore(stabilize): HUMAN_ACTIONS cell repair, tests badge, evidence manifest (#387)"
+    }
+  ]
+}

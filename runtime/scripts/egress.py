@@ -6,11 +6,11 @@ records what it SENT. This ledger is the second half: one line per off-repo
 write the fleet performs -- opening a PR, posting a comment, closing an issue,
 triggering a deploy, creating a schedule -- appended BEFORE the send.
 
-Status, stated first because it bounds what this is worth today: this ledger
-has no caller (#284). No mission or playbook invokes it, so the receipts it
-describes are not being written. It is a working library waiting to be wired
-into the fleet's own sinks, not a guarantee in force -- read every sentence
-below as what it WILL record once called, not what is recorded now.
+Status, stated first because it bounds what this is worth today: doctrine now names it —
+merge-serialization.md requires every coordinator off-repo write to be preceded by
+``egress.py write … &&`` (#368) — but no automated sink calls it yet, so the receipts are
+still not being written by anything but a coordinator that follows the policy by hand. Read
+every sentence below as what it records once called, not as a guarantee a daemon enforces.
 
 Threat model, stated because it bounds what this is worth even then: the
 ledger is forensic observability, not an exfiltration control. It records ATTEMPTED
@@ -192,6 +192,10 @@ def read_ledger(path):
         text = path.read_text(encoding="utf-8")
     except FileNotFoundError:
         return []
+    except UnicodeDecodeError as err:
+        # A ValueError, not an OSError — without this arm the forensic reader tracebacks
+        # (exit 1) instead of failing closed on-contract (exit 3) (#382).
+        raise EgressError(f"{path} is not valid UTF-8: {err}") from err
     except OSError as err:
         raise EgressError(f"{path} is unreadable: {err}") from err
     out = []

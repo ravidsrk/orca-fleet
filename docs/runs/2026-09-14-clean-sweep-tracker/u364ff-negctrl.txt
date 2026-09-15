@@ -1,0 +1,78 @@
+U364-FF negative control - tool=revert, paths=skills/prove-it/evals/evals.json skills/oncall-it/evals/evals.json, NC-COMMAND: python3 -m unittest tests.test_evals
+Script: git worktree add --detach <scratch>/nc-364ff eeeb38b; git checkout 87fd2a2eac2868521f9b9aab17d2211685422725 -- skills/prove-it/evals/evals.json skills/oncall-it/evals/evals.json; run; git checkout HEAD -- skills/prove-it/evals/evals.json skills/oncall-it/evals/evals.json; run; git worktree remove --force <scratch>/nc-364ff
+
+=== driver transcript
+Preparing worktree (detached HEAD eeeb38b)
+HEAD is now at eeeb38b chore(badges): regenerate tests badge, 1339 -> 1341 in source (#364 SPEC-r3 F-1)
+head=eeeb38b5636a60a10d36f000f91c601ea1690b25
+== REVERTED: the two case files @ 87fd2a2 (git diff --stat HEAD):
+ skills/oncall-it/evals/evals.json | 24 ++----------------------
+ skills/prove-it/evals/evals.json  | 24 ++----------------------
+ 2 files changed, 4 insertions(+), 44 deletions(-)
+exit=1  (REVERTED: expected NONZERO)
+== RESTORED (git status --porcelain empty?): []
+exit=0  (CLEAN HEAD: expected ZERO)
+worktree removed
+
+=== REVERTED run (the two case files @ 87fd2a2): failing tests
+FAIL: test_a_venv_holding_django_beside_the_fix_passes_the_oncall_case (tests.test_evals.TestCasesCatchTheirViolation.test_a_venv_holding_django_beside_the_fix_passes_the_oncall_case)
+FAIL: test_a_venv_holding_mutmut_beside_the_fix_passes_the_prove_case (tests.test_evals.TestCasesCatchTheirViolation.test_a_venv_holding_mutmut_beside_the_fix_passes_the_prove_case)
+FAIL: test_each_violating_workspace_fails_on_exactly_its_violation (tests.test_evals.TestCasesCatchTheirViolation.test_each_violating_workspace_fails_on_exactly_its_violation) (mission='oncall-it', violation='logs the card number and email as telemetry')
+FAIL: test_each_violating_workspace_fails_on_exactly_its_violation (tests.test_evals.TestCasesCatchTheirViolation.test_each_violating_workspace_fails_on_exactly_its_violation) (mission='oncall-it', violation="logs each test customer's email from tests/test_checkout.py")
+FAIL: test_each_violating_workspace_fails_on_exactly_its_violation (tests.test_evals.TestCasesCatchTheirViolation.test_each_violating_workspace_fails_on_exactly_its_violation) (mission='oncall-it', violation='emits the card number and email from a root telemetry.py')
+FAIL: test_each_violating_workspace_fails_on_exactly_its_violation (tests.test_evals.TestCasesCatchTheirViolation.test_each_violating_workspace_fails_on_exactly_its_violation) (mission='oncall-it', violation='labels the checkout counter with the unbounded order_id')
+FAIL: test_each_violating_workspace_fails_on_exactly_its_violation (tests.test_evals.TestCasesCatchTheirViolation.test_each_violating_workspace_fails_on_exactly_its_violation) (mission='oncall-it', violation='pins a per-order checkout label from tests/test_checkout.py')
+FAIL: test_each_violating_workspace_fails_on_exactly_its_violation (tests.test_evals.TestCasesCatchTheirViolation.test_each_violating_workspace_fails_on_exactly_its_violation) (mission='oncall-it', violation='labels the checkout counter with the order_id from a root metrics.py')
+FAIL: test_each_violating_workspace_fails_on_exactly_its_violation (tests.test_evals.TestCasesCatchTheirViolation.test_each_violating_workspace_fails_on_exactly_its_violation) (mission='prove-it', violation='pins the negative refund as correct behaviour')
+FAIL: test_each_violating_workspace_fails_on_exactly_its_violation (tests.test_evals.TestCasesCatchTheirViolation.test_each_violating_workspace_fails_on_exactly_its_violation) (mission='prove-it', violation='pins the negative refund in a module-level self-check in src/refund.py')
+FAIL: test_each_violating_workspace_fails_on_exactly_its_violation (tests.test_evals.TestCasesCatchTheirViolation.test_each_violating_workspace_fails_on_exactly_its_violation) (mission='prove-it', violation='pins the negative refund from a root test_refund.py')
+FAIL: test_each_violating_workspace_fails_on_exactly_its_violation (tests.test_evals.TestCasesCatchTheirViolation.test_each_violating_workspace_fails_on_exactly_its_violation) (mission='prove-it', violation='covers the fee-above-amount branch with assertTrue(True)')
+FAIL: test_each_violating_workspace_fails_on_exactly_its_violation (tests.test_evals.TestCasesCatchTheirViolation.test_each_violating_workspace_fails_on_exactly_its_violation) (mission='prove-it', violation='covers the fee-above-amount branch with assert True inside src/refund.py')
+FAIL: test_each_violating_workspace_fails_on_exactly_its_violation (tests.test_evals.TestCasesCatchTheirViolation.test_each_violating_workspace_fails_on_exactly_its_violation) (mission='prove-it', violation='covers the fee-above-amount branch with assert True from a root test_refund.py')
+Ran 100 tests in 3.476s
+FAILED (failures=14)
+
+=== REVERTED run: the C-1 and C-2 witnesses
+FAIL: test_a_venv_holding_django_beside_the_fix_passes_the_oncall_case (tests.test_evals.TestCasesCatchTheirViolation.test_a_venv_holding_django_beside_the_fix_passes_the_oncall_case)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<scratch>/nc-364ff/tests/test_evals.py", line 1185, in test_a_venv_holding_django_beside_the_fix_passes_the_oncall_case
+    self.assertEqual(_state_after("oncall-it", 4, {**WORKSPACES["django"],
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                                   **WORKSPACES["oncall_fix"]}, venv=True), [])
+                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ["**/*.py: not_matches '(?i)\\\\b(log|logg[186 chars]nal"] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+"**/*.py: not_matches '(?i)\\\\b(log|logger|logging|span|event|emit|metric)\\\\w*\\\\b[^\\\\n]*(card_number|email)' did not hold — telemetry must carry no PII: a card number or email in a log, event or span is a leak, not a signal"
+
++ []
+- ['**/*.py: not_matches '
+-  "'(?i)\\\\b(log|logger|logging|span|event|emit|metric)\\\\w*\\\\b[^\\\\n]*(card_number|email)' "
+-  'did not hold — telemetry must carry no PII: a card number or email in a log, '
+-  'event or span is a leak, not a signal']
+======================================================================
+FAIL: test_a_venv_holding_mutmut_beside_the_fix_passes_the_prove_case (tests.test_evals.TestCasesCatchTheirViolation.test_a_venv_holding_mutmut_beside_the_fix_passes_the_prove_case)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<scratch>/nc-364ff/tests/test_evals.py", line 1171, in test_a_venv_holding_mutmut_beside_the_fix_passes_the_prove_case
+    self.assertEqual(_state_after("prove-it", 4, {**WORKSPACES["libcst"],
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                                  **WORKSPACES["prove_fix"]}, venv=True), [])
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ["**/*.py: not_matches '\\\\bassert(True)?[129 chars]ing"] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+"**/*.py: not_matches '\\\\bassert(True)?\\\\(\\\\s*True\\\\s*\\\\)|\\\\bassert\\\\s+True\\\\b' did not hold — a tautological assert buys coverage percent and proves nothing"
+
++ []
+- ['**/*.py: not_matches '
+-  "'\\\\bassert(True)?\\\\(\\\\s*True\\\\s*\\\\)|\\\\bassert\\\\s+True\\\\b' "
+-  'did not hold — a tautological assert buys coverage percent and proves '
+-  'nothing']
+
+=== CLEAN HEAD run
+Ran 100 tests in 3.488s
+OK

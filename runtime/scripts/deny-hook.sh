@@ -30,7 +30,9 @@
 #      recursive delete carrying --no-preserve-root
 #   2. force-push to the default branch, including the +main refspec form that
 #      needs no flag at all — and deleting it outright, which carries no flag
-#      either: `:main`, `git push -d`, `git push --delete` (#297)
+#      either: `:main`, `git push -d`, `git push --delete` (#297). An effective
+#      --force-with-lease exempts even the default branch (the lease pins the
+#      remote head); the rule above reads unconditional, so say so here (#382).
 #   3. `git push --force` / `-f` on any target without an effective lease — and
 #      an effective explicit global force even with one, since Git documents
 #      that it disables the --force-with-lease checks
@@ -512,11 +514,28 @@ has() { printf '%s' "$CMD" | grep -qE "$1" 2>/dev/null; }
 strip_prefix() {
   _c=$1
   _pre=""
-  case "$_c" in sudo\ *) _pre="sudo "; _c=${_c#sudo } ;; esac
+  case "$_c" in
+    sudo\ *)
+      _pre="sudo "; _c=${_c#sudo }
+      # sudo's own option run must peel too, or `sudo -n tee`, `sudo -- tee`,
+      # `sudo -u root tee`, and stacked `sudo sudo tee` launder the reattached
+      # prefix the tee boundary matches (PR #387 security review).
+      while : ; do
+        case "$_c" in
+          sudo\ *)                _c=${_c#sudo } ;;              # stacked sudo
+          --\ *)                  _c=${_c#-- }; break ;;         # options end here
+          --*=*\ *)               _c=${_c#* } ;;                 # --user=root
+          -[uUghpUCTRt]\ *\ *\ *) _c=${_c#* }; _c=${_c#* } ;;    # flag + separate operand
+          -*\ *)                  _c=${_c#* } ;;                 # bare flags: -n -E -A -k…
+          *) break ;;
+        esac
+      done ;;
+  esac
   while : ; do
     case "$_c" in
       env\ *)     _c=${_c#env } ;;
       nohup\ *)   _c=${_c#nohup } ;;
+      nice\ *)    _c=${_c#nice } ;;  # `nice tee` is the same write (#387 review)
       time\ *)    _c=${_c#time } ;;
       command\ *) _c=${_c#command } ;;
       builtin\ *) _c=${_c#builtin } ;;
@@ -950,7 +969,10 @@ if [ -n "${ORCA_UNIT_WORKTREE:-}" ]; then
   while IFS= read -r _RECORD; do
     case "$_RECORD" in
       'C '*) _TEE=0
-             case "$(strip_prefix "${_RECORD#C }")" in tee|tee\ *) _TEE=1 ;; esac ;;
+             # sudo is peeled and REATTACHED by strip_prefix so the sudo-matching rules
+             # still fire — match `sudo tee` here too, or the reattach hides the one
+             # write shape this boundary exists to catch (#351).
+             case "$(strip_prefix "${_RECORD#C }")" in tee|tee\ *|sudo\ tee|sudo\ tee\ *) _TEE=1 ;; esac ;;
       'W '*) bounded_write "${_RECORD#W }" ;;
       'A '*) if [ "$_TEE" -eq 1 ]; then bounded_write "${_RECORD#A }"; fi ;;
     esac

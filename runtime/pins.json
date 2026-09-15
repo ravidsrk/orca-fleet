@@ -1,10 +1,9 @@
 {
-  "_about": "Upstream sources the missions execute against, pinned by commit and witness date (issue #271). pin-it re-witnesses and updates these; tests/test_pins.py requires an entry for every pack a SKILL.md compatibility: field names. witness: 'source' means the pin was read from a full-history clone of the upstream at that commit, not from a release note.",
+  "_about": "Upstream sources the missions execute against, pinned by commit and witness date (issue #271). tests/test_pins.py requires an entry for every pack a SKILL.md compatibility: field names. witness: 'source' means the pin was read from a full-history clone of the upstream at that commit, not from a release note; 'live' means the mechanism claims were re-witnessed against the INSTALLED binary in a pin-it run (the commit then records what that build reports, which may sit on a pre-release line rather than at the named tag — see docs/runs/2026-09-13-pin-it-266/). Ownership: pin-it re-witnesses the `orca` entry against the installed binary; the pack pins (gstack, addyosmani, mattpocock) are re-witnessed by the upstream-adoption audit cadence (docs/research/2026-09-10-upstream-audit/), not by pin-it, whose SKILL scopes to runtime mechanics (#377). Pack pins should be re-witnessed whenever an audit runs or an adopted skill changes upstream (#378).",
   "orca": {
     "repo": "stablyai/orca",
     "commit": "2ecde717b4561cae1701a27615f704434232399a",
     "version": "v1.4.200",
-    "tag": "v1.4.200",
     "witnessed": "2026-09-13",
     "witness": "live",
     "aliases": ["orca", "stablyai/orca"]
@@ -19,9 +18,9 @@
   },
   "addyosmani": {
     "repo": "addyosmani/agent-skills",
-    "commit": "6ca0cd7",
+    "commit": "be4e44a9fbc5e8df0beaefadbb28bd22ee61cc39",
     "version": "0.6.9",
-    "witnessed": "2026-09-10",
+    "witnessed": "2026-09-14",
     "witness": "source",
     "aliases": ["addyosmani", "addy", "addyosmani/agent-skills"]
   },

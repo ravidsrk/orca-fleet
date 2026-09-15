@@ -19,7 +19,7 @@ new handles.
 `projection.liveness` (the fleet verdict), `projection.attention.categories`,
 `projection.attention.requiresAction`, and a literal `projection.nextAction.argv` to run. `worker-show`'s
 `observation.status` is **PTY liveness only** — a `live` terminal can still hold an agent that died at a trust
-prompt (`orchestration/recovery-and-cleanup:25-31` at v1.4.199). The fleet taught this inverted for two runs;
+prompt (`orchestration/recovery-and-cleanup:25-31` at v1.4.199). The fleet taught this inverted for two runs; (Anchors reading v1.4.199 await per-probe re-witness; the 2026-09-13 pin-it park register — docs/runs/2026-09-13-pin-it-266/PARK.md — says which are current at v1.4.200.)
 it is the reason pane-reading felt authoritative.
 
 Always scope it: `worker-list --run <run_id>`. Unscoped, it reports every Dispatch this runtime ever recorded

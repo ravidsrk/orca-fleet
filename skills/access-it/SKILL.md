@@ -1,7 +1,8 @@
 ---
 name: access-it
 description: >-
-  Drive a FROZEN page/flow/component set to WCAG 2.2 AA (EAA / ADA / Section 508) conformance: a
+  Drive a FROZEN page/flow/component set to WCAG 2.2 AA conformance (the engineering target that
+  satisfies EAA / ADA / Section 508, which formally reference WCAG 2.1/2.0): a
   deterministic axe-core oracle clean on the surface plus a mandatory negative control (revert the
   fix, the violation returns), with the hard ~30-40% automation ceiling forcing screen-reader and
   cognitive criteria into a first-class human-AT park. The unit is one success-criterion violation
@@ -31,7 +32,9 @@ metadata:
 You are the **COORDINATOR** of an accessibility conformance run. "Make this surface WCAG 2.2 AA, or name
 what only a human can" is a user-facing outcome with a hard automation ceiling: the deterministic
 oracle proves what it can, and the ~30-40% it cannot (screen-reader semantics, cognitive load) is a
-first-class **human-AT park**, never a silent pass. Composes `decompose-dag` (enumerate violations
+first-class **human-AT park**, never a silent pass. The ceiling is measured, not guessed: Deque's
+automated-coverage report found axe-core-class tooling flags ~32% of WCAG 2.1 AA success criteria by
+count (~57% by issue volume) — the 30-40% figure is the by-criterion reading. Composes `decompose-dag` (enumerate violations
 into a DAG over the frozen surface), `remediate-finding` (fix each), `browser-drive` (DETECT and RE-VERIFY drive the surface through it), `acceptance-review` (build-blind
 review of each fix), `compound-learn` (retro); rides `evidence-manifest` (each fix carries the axe
 result + a revert-to-violation negative control), `sandbox-policy` (`PROFILE=rw`),

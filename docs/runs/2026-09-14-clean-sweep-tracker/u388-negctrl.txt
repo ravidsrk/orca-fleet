@@ -1,0 +1,189 @@
+# U388 negative control — tool=revert
+# worktree: git worktree add --detach <scratch>/nc-388 75c0c91130b69c8c629c0c5133896282501fcf21
+$ git checkout e04b0c20137d0d0a9a0886d6f9748e72252384a7 -- runtime/scripts/evidence-run.py
+$ git diff --stat HEAD
+ runtime/scripts/evidence-run.py | 22 ++++++++--------------
+ 1 file changed, 8 insertions(+), 14 deletions(-)
+$ python3 -m unittest tests.test_evidence_run   # production change REVERTED
+...........FF...........
+======================================================================
+FAIL: test_a_run_after_committing_the_manifest_records_the_committed_tree (tests.test_evidence_run.NoLedgerLitter.test_a_run_after_committing_the_manifest_records_the_committed_tree)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u388-lockfile/05d05830-7e19-4d4b-a4b8-a643e19a3d25/scratchpad/nc-388/tests/test_evidence_run.py", line 303, in test_a_run_after_committing_the_manifest_records_the_committed_tree
+    self.assertEqual(self.records(self.MANIFEST)[-1]["wtree"], committed)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'a2f1861973639f7e006b184c36eef2df4585bf1e' != '42645865d5b0b19b0707859ca7744855774af9c4'
+- a2f1861973639f7e006b184c36eef2df4585bf1e
++ 42645865d5b0b19b0707859ca7744855774af9c4
+
+
+======================================================================
+FAIL: test_sequential_runs_leave_nothing_beside_the_manifest (tests.test_evidence_run.NoLedgerLitter.test_sequential_runs_leave_nothing_beside_the_manifest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u388-lockfile/05d05830-7e19-4d4b-a4b8-a643e19a3d25/scratchpad/nc-388/tests/test_evidence_run.py", line 290, in test_sequential_runs_leave_nothing_beside_the_manifest
+    self.assertEqual(sorted(p.name for p in (self.repo / "reports").iterdir()), ["m.json"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['m.json', 'm.json.lock'] != ['m.json']
+
+First list contains 1 additional elements.
+First extra element 1:
+'m.json.lock'
+
+- ['m.json', 'm.json.lock']
++ ['m.json']
+
+----------------------------------------------------------------------
+Ran 24 tests in 3.429s
+
+FAILED (failures=2)
+exit=1  (REVERTED: expected NONZERO)
+
+$ git checkout HEAD -- runtime/scripts/evidence-run.py
+$ git status --porcelain
+$ python3 -m unittest tests.test_evidence_run   # clean head 75c0c91
+........................
+----------------------------------------------------------------------
+Ran 24 tests in 3.262s
+
+OK
+exit=0  (CLEAN HEAD: expected ZERO)
+
+# ==================================================================================
+# ROUND 2 (fix for round-1 verdict, review 5202287611). Round-1 control above kept as run.
+# ==================================================================================
+# U388 round-2 negative controls — at c7a76d9b4f2d25fd72e0c2a03f64ce14749d4bc5 (code tip)
+# worktree: git worktree add --detach <scratch>/nc-388r2 c7a76d9b4f2d25fd72e0c2a03f64ce14749d4bc5
+
+## NC-1 (round-1 control, re-run) tool=revert: production change reverted to base e04b0c2
+$ git checkout e04b0c20137d0d0a9a0886d6f9748e72252384a7 -- runtime/scripts/evidence-run.py
+$ git diff --stat HEAD
+ runtime/scripts/evidence-run.py | 26 +++++++++-----------------
+ 1 file changed, 9 insertions(+), 17 deletions(-)
+$ python3 -m unittest tests.test_evidence_run   # production change REVERTED
+...........FFF............
+======================================================================
+FAIL: test_a_run_after_committing_the_manifest_records_the_committed_tree (tests.test_evidence_run.NoLedgerLitter.test_a_run_after_committing_the_manifest_records_the_committed_tree)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<scratch>/nc-388r2/tests/test_evidence_run.py", line 331, in test_a_run_after_committing_the_manifest_records_the_committed_tree
+    self.assertEqual(self.records(self.MANIFEST)[-1]["wtree"], committed)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'b11c9cf813fdac979b4cc3dc65da4ce6c109ef46' != '9ff63ae9592efea11fdd12e5bf8b8435e9c4cef6'
+- b11c9cf813fdac979b4cc3dc65da4ce6c109ef46
++ 9ff63ae9592efea11fdd12e5bf8b8435e9c4cef6
+
+
+======================================================================
+FAIL: test_sequential_runs_leave_nothing_beside_the_manifest (tests.test_evidence_run.NoLedgerLitter.test_sequential_runs_leave_nothing_beside_the_manifest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<scratch>/nc-388r2/tests/test_evidence_run.py", line 318, in test_sequential_runs_leave_nothing_beside_the_manifest
+    self.assertEqual(sorted(p.name for p in (self.repo / "reports").iterdir()), ["m.json"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['m.json', 'm.json.lock'] != ['m.json']
+
+First list contains 1 additional elements.
+First extra element 1:
+'m.json.lock'
+
+- ['m.json', 'm.json.lock']
++ ['m.json']
+
+======================================================================
+FAIL: test_a_pre_existing_empty_manifest_reads_as_a_new_ledger (tests.test_evidence_run.RecordShape.test_a_pre_existing_empty_manifest_reads_as_a_new_ledger)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<scratch>/nc-388r2/tests/test_evidence_run.py", line 163, in test_a_pre_existing_empty_manifest_reads_as_a_new_ledger
+    self.assertNotIn("WARNING", r.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'WARNING' unexpectedly found in 'evidence-run: WARNING — could not record into <tmp>/m.json: Expecting value: line 1 column 1 (char 0)\n'
+
+----------------------------------------------------------------------
+Ran 26 tests in 3.478s
+
+FAILED (failures=3)
+exit=1  (REVERTED: expected NONZERO)
+$ git checkout HEAD -- runtime/scripts/evidence-run.py
+
+## NC-2 tool=mutant: fh.truncate() deleted (the loose-seed test must go RED)
+$ sed -i '' '/^            fh.truncate()$/d' runtime/scripts/evidence-run.py
+$ git diff HEAD
+diff --git a/runtime/scripts/evidence-run.py b/runtime/scripts/evidence-run.py
+index 3aa4fff..1c32058 100755
+--- a/runtime/scripts/evidence-run.py
++++ b/runtime/scripts/evidence-run.py
+@@ -152,7 +152,6 @@ def append_record(manifest_path, record):
+             data["commands"] = commands
+             payload = json.dumps(data, indent=2) + "\n"  # before truncate: a failure keeps the file
+             fh.seek(0)
+-            fh.truncate()
+             fh.write(payload)
+     except (OSError, json.JSONDecodeError, ValueError, TypeError) as err:
+         warn(f"could not record into {manifest_path}: {err}")
+$ python3 -m unittest tests.test_evidence_run   # truncate DELETED
+..............E...........
+======================================================================
+ERROR: test_a_seed_looser_than_the_rewrite_leaves_no_stale_tail (tests.test_evidence_run.RecordShape.test_a_seed_looser_than_the_rewrite_leaves_no_stale_tail)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<scratch>/nc-388r2/tests/test_evidence_run.py", line 150, in test_a_seed_looser_than_the_rewrite_leaves_no_stale_tail
+    self.assertEqual([c["label"] for c in self.records()],
+                                          ~~~~~~~~~~~~^^
+  File "<scratch>/nc-388r2/tests/test_evidence_run.py", line 64, in records
+    return json.loads((self.repo / manifest).read_text(encoding="utf-8"))["commands"]
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<python>/lib/python3.13/json/__init__.py", line 352, in loads
+    return _default_decoder.decode(s)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "<python>/lib/python3.13/json/decoder.py", line 348, in decode
+    raise JSONDecodeError("Extra data", s, end)
+json.decoder.JSONDecodeError: Extra data: line 73 column 9 (char 1452)
+
+----------------------------------------------------------------------
+Ran 26 tests in 3.524s
+
+FAILED (errors=1)
+exit=1  (MUTANT: expected NONZERO)
+$ git checkout HEAD -- runtime/scripts/evidence-run.py
+
+## NC-3 tool=revert + probe: item 1 (serialize before truncate) reverted to 0775547's append_record
+# Unreachable from main() (records carry only str/int/float/None), so no committed test can
+# see it through the wrapped-command seam; this probe calls append_record directly with a
+# record json.dumps rejects and demands the seeded manifest stay byte-identical.
+$ git checkout 077554703de11477c4fe9f313e14d565c084a030 -- runtime/scripts/evidence-run.py
+$ python3 <scratch>/probe_item1.py runtime/scripts/evidence-run.py   # item 1 REVERTED
+evidence-run: WARNING — could not record into <tmp>/m.json: Object of type object is not JSON serializable
+bytes before=73 after=0 intact=False
+exit=1  (REVERTED: expected NONZERO)
+$ git checkout HEAD -- runtime/scripts/evidence-run.py
+$ python3 <scratch>/probe_item1.py runtime/scripts/evidence-run.py   # clean head
+evidence-run: WARNING — could not record into <tmp>/m.json: Object of type object is not JSON serializable
+bytes before=73 after=73 intact=True
+exit=0  (CLEAN HEAD: expected ZERO)
+
+## clean head
+$ git status --porcelain
+$ python3 -m unittest tests.test_evidence_run   # clean head c7a76d9
+..........................
+----------------------------------------------------------------------
+Ran 26 tests in 3.533s
+
+OK
+exit=0  (CLEAN HEAD: expected ZERO)
+
+# <scratch>/probe_item1.py (NC-3 probe source, verbatim):
+#   """Item-1 probe: a record json.dumps rejects must leave the manifest byte-identical (warn only)."""
+#   import importlib.util, json, sys, tempfile
+#   from pathlib import Path
+#   spec = importlib.util.spec_from_file_location("er", sys.argv[1])
+#   er = importlib.util.module_from_spec(spec); spec.loader.exec_module(er)
+#   with tempfile.TemporaryDirectory() as td:
+#       m = Path(td, "m.json")
+#       before = json.dumps({"unit": "u", "commands": [{"label": "seed"}]}, indent=2) + "\n"
+#       m.write_text(before, encoding="utf-8")
+#       er.append_record(m, {"label": "bad", "x": object()})   # TypeError inside json.dumps
+#       after = m.read_text(encoding="utf-8")
+#       print(f"bytes before={len(before)} after={len(after)} intact={after == before}")
+#       sys.exit(0 if after == before else 1)

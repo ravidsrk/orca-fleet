@@ -1,0 +1,261 @@
+{
+ "schema": 1,
+ "unit": "U393",
+ "unit_class": "code-change",
+ "base_sha": "9a115f7579232f50b913ce84515e3964f8b68b33",
+ "head_sha": "76308159960b890b9976d59f46178876a2573154",
+ "head_tree": "e53e0e4f3ace160f104b0a96ef45098af54e2880",
+ "head_sha_role": "CONDUCTOR CLOSE 2026-09-15T12:29Z corrective prepend (close d4118b4, post-merge 6d9e46a PR #400): re-bound head_sha a74139b -> 7630815 and head_tree 451cac2 -> e53e0e4 (=7630815^{tree}); T-vs-builder-head delta: 6 files: u393-manifest.json + u393-negctrl.txt + DECISIONS.md, tracker ledger, integrate-393.md and integrate-template.md churn. Code tip a74139b: d709296 (red tests), ccca9a4 (the fix), a74139b (gen-badges.py output, 1349 -> 1351). The commit that adds this manifest and u393-negctrl.txt follows head_sha, changes only those two files, and cannot name its own SHA; per the spec the coordinator re-binds head_sha at close. Every commands[] record was made by evidence-run.py on the clean tree of a74139b (wtree 451cac2c == head_tree).",
+ "base_branch": "review/2026-09-14-holistic-fixes",
+ "branch": "ravidsrk/u393-sidecar-lock",
+ "contract": {
+  "source": "docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/build-393.md@9a115f7579232f50b913ce84515e3964f8b68b33",
+  "digest": "sha256:2809338b23a3fbf0b686b4d9a711f4a66ce2610b59158e4bd6be32ae65a7e26f",
+  "criterion_ids": [
+   "C-1",
+   "C-2",
+   "C-3",
+   "C-4"
+  ]
+ },
+ "criteria": [
+  {
+   "id": "C-1",
+   "text": "append_record takes LOCK_EX on a pre-existing sibling <manifest>.lock (open WITHOUT O_CREAT; absent sidecar = skip, no error), then the manifest inode lock as today. Lock order everywhere: sidecar first, inode second (document it; one order, no ABBA).",
+   "addressed": true,
+   "commit": "ccca9a4",
+   "witness": "tests/test_evidence_run.py::MixedVersionRollout::test_old_sidecar_writers_and_new_runs_lose_no_records is the behavioural witness: the old-discipline writers hold only the sidecar, so the 248 records land only if append_record takes it too (RED at 9a115f7, GREEN at head \u2014 C-3). Mechanism: runtime/scripts/evidence-run.py sidecar_lock opens the sidecar with mode 'rb' (O_RDONLY, no O_CREAT) and treats FileNotFoundError as absent (skip); append_record enters it in one `with sidecar_lock(manifest_path), open(manifest_path, ...)` statement before the inode flock, so the order is fixed by construction and documented in its docstring. 'absent = no error' is pinned by tests/test_evidence_run.py::NoLedgerLitter::test_no_run_creates_the_rollout_sidecar (no WARNING on stderr). The order is global: `rg -n flock runtime scripts` finds only this manifest lock and egress.py's lock on its own ledger, a different file."
+  },
+  {
+   "id": "C-2",
+   "text": "#388 invariant preserved: no wrapped run CREATES a sidecar. A test asserts that after wrapped runs with no pre-existing sidecar, no <manifest>.lock exists on disk.",
+   "addressed": true,
+   "commit": "d709296 (guard, green at base by design) \u2014 the no-O_CREAT open it guards is ccca9a4",
+   "witness": "tests/test_evidence_run.py::NoLedgerLitter::test_no_run_creates_the_rollout_sidecar \u2014 two sequential wrapped runs with no sidecar on disk: each exits 0 with no WARNING, reports/m.json.lock does not exist afterwards, and both records land. Green at 9a115f7 (nothing there creates a sidecar); its sensitivity is NC-2: with the sidecar opened 'ab' (O_CREAT) it goes RED ('a wrapped run created the sidecar'), alongside the two #388 NoLedgerLitter tests."
+  },
+  {
+   "id": "C-3",
+   "text": "mixed-version concurrency test: N appends via the new code run concurrently with M appends via a sidecar-only-discipline writer (flock sidecar -> read -> modify -> write -> release) with a pre-existing sidecar, and all N+M records land. Stable (barrier-start workers, generous attempts, no bare sleeps).",
+   "addressed": true,
+   "commit": "d709296 (test) + ccca9a4 (fix)",
+   "witness": "tests/test_evidence_run.py::MixedVersionRollout::test_old_sidecar_writers_and_new_runs_lose_no_records \u2014 N=8 wrapped runs (the real CLI) and 4 old-discipline writers x 60 appends (M=240; e04b0c2's append_record in shape: open(lock,'a') -> flock -> read_text -> append -> write_text, a failure drops the record with a stderr line) start against a pre-existing m.json.lock through one file gate (every worker announces ready-*, then polls for 'go'; no fixed sleeps), 120 s timeouts. Expected labels are the literal new-0..7 / old-W-II set (248, asserted). RED at 9a115f7: base 20x: ok=0 lost=1 corrupt=19, plus the captured red-first run (78 records lost). GREEN at ccca9a4: 30/30 consecutive runs, and in every run below."
+  },
+  {
+   "id": "C-4",
+   "text": "python3 -m unittest and python3 scripts/validate.py green.",
+   "addressed": true,
+   "commit": "a74139b",
+   "witness": "commands[] below: full-suite `python3 -m unittest discover -s tests` exit 0 and `python3 scripts/validate.py` exit 0, both written by evidence-run.py on the clean tree of head_sha (wtree == head_tree)."
+  }
+ ],
+ "intent": {
+  "goal": "Close the #393 rollout window: while pre-#388 wrappers (sidecar lock) and post-#388 wrappers (manifest-inode lock) append to one manifest, they must exclude each other, without ever creating a sidecar (#388).",
+  "ruled_out": "Creating the sidecar when absent (reintroduces the #388 litter and fingerprint drift); locking the sidecar INSTEAD of the inode (new-vs-new exclusion with no sidecar on disk rests on the inode lock); a rollout note only (coordinator-declined in the spec); lock-free peers (no lock taken here can force a peer to lock \u2014 spec scope note); re-checking for a sidecar that appears after the absence check (it would need a drop-and-retake of the inode lock to keep the one order; see noticed_not_touched).",
+  "why": "The pre-#388 wrapper opens the sidecar with mode 'a' and never removes it (e04b0c2), so every manifest an old wrapper has touched carries one; joining it when present puts old and new writers under the same lock, and taking it before the inode lock keeps a single order among new writers. Opening it 'rb' carries no O_CREAT, so a manifest no old wrapper ever touched stays sidecar-free."
+ },
+ "red_first": {
+  "commit": "d709296",
+  "at": "tests committed over 9a115f7579232f50b913ce84515e3964f8b68b33, runtime/scripts/evidence-run.py unchanged",
+  "command": "python3 -m unittest tests.test_evidence_run",
+  "output": [
+   "FAIL: test_old_sidecar_writers_and_new_runs_lose_no_records (tests.test_evidence_run.MixedVersionRollout.test_old_sidecar_writers_and_new_runs_lose_no_records)",
+   "AssertionError: Lists differ: ['new-0', 'new-1', 'new-2', 'new-3', 'new-[871 chars]-21'] != []",
+   "First list contains 78 additional elements.",
+   "Diff is 1157 characters long. Set self.maxDiff to None to see it. : records lost",
+   "Ran 28 tests in 3.858s",
+   "FAILED (failures=1)",
+   "exit=1"
+  ],
+  "rate": "base 20x: ok=0 lost=1 corrupt=19 (MixedVersionRollout alone, 20 runs at 9a115f7)",
+  "green_after_fix": "fix 30x C-3: ok=30 bad=0 (MixedVersionRollout alone at ccca9a4)"
+ },
+ "lighting": "lit",
+ "commands": [
+  {
+   "label": "tests",
+   "ts": "2026-09-15T05:21:52Z",
+   "cmd": "python3 -m unittest tests.test_evidence_run",
+   "cmd_sha256": "a5fa1dc973a43bdf18642c7610c8bea18563ac07be57cda5f16de46aea477498",
+   "exit": 0,
+   "duration_s": 3.692,
+   "commit": "a74139bc28e871f08d88a7eeb0f59f67163d7e3e",
+   "wtree": "451cac2cd1444b3b29e8828b3f5c42e35cbc561a",
+   "artifact": null
+  },
+  {
+   "label": "validate",
+   "ts": "2026-09-15T05:21:53Z",
+   "cmd": "python3 scripts/validate.py",
+   "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+   "exit": 0,
+   "duration_s": 0.528,
+   "commit": "a74139bc28e871f08d88a7eeb0f59f67163d7e3e",
+   "wtree": "451cac2cd1444b3b29e8828b3f5c42e35cbc561a",
+   "artifact": null
+  },
+  {
+   "label": "full-suite",
+   "ts": "2026-09-15T05:26:15Z",
+   "cmd": "python3 -m unittest discover -s tests",
+   "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+   "exit": 0,
+   "duration_s": 262.069,
+   "commit": "a74139bc28e871f08d88a7eeb0f59f67163d7e3e",
+   "wtree": "451cac2cd1444b3b29e8828b3f5c42e35cbc561a",
+   "artifact": null
+  },
+  {
+   "label": "coordinator full-suite re-run at head",
+   "ts": "2026-09-15T06:16:17Z",
+   "cmd": "python3 -m unittest discover -s tests",
+   "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+   "exit": 0,
+   "duration_s": 246.026,
+   "commit": "76308159960b890b9976d59f46178876a2573154",
+   "wtree": "e53e0e4f3ace160f104b0a96ef45098af54e2880",
+   "artifact": null,
+   "artifact_note": "coordinator clean-env re-run (git worktree detached at head_sha 7630815, tree clean at start): exit 0 in 246.0s; tree count 1351 per assets/badges/tests.json (verdict worker independently re-ran 'Ran 1351 tests' OK at this SHA). Log kept in coordinator session scratch (not committed)."
+  },
+  {
+   "label": "coordinator nc-command at head",
+   "ts": "2026-09-15T06:16:21Z",
+   "cmd": "python3 -m unittest tests.test_evidence_run",
+   "cmd_sha256": "a5fa1dc973a43bdf18642c7610c8bea18563ac07be57cda5f16de46aea477498",
+   "exit": 0,
+   "duration_s": 3.597,
+   "commit": "76308159960b890b9976d59f46178876a2573154",
+   "wtree": "e53e0e4f3ace160f104b0a96ef45098af54e2880",
+   "artifact": null,
+   "artifact_note": "coordinator clean-env re-run (git worktree detached at head_sha 7630815, tree clean at start): 'Ran 28 tests in 3.6s' / 'OK', exit 0. Log kept in coordinator session scratch (not committed)."
+  },
+  {
+   "label": "coordinator validate at head",
+   "ts": "2026-09-15T06:16:22Z",
+   "cmd": "python3 scripts/validate.py",
+   "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+   "exit": 0,
+   "duration_s": 0.518,
+   "commit": "76308159960b890b9976d59f46178876a2573154",
+   "wtree": "e53e0e4f3ace160f104b0a96ef45098af54e2880",
+   "artifact": null,
+   "artifact_note": "coordinator clean-env re-run (git worktree detached at head_sha 7630815, tree clean at start): 'All 21 missions valid; three-layer separation holds; evals valid.' exit 0. Log kept in coordinator session scratch (not committed)."
+  }
+ ],
+ "commands_note": "CONDUCTOR CLOSE (close d4118b4): 3 coordinator close records at 7630815 (wtree e53e0e4) follow the 3 builder records below; the builder prose describes its own tree. All three records were written by runtime/scripts/evidence-run.py (the fixed wrapper) on the clean tree of head_sha a74139b (wtree 451cac2c == head_tree; `git status --porcelain --untracked-files=all` empty before and after each run), each into its own manifest outside the working tree so the tree stayed clean; the records are concatenated here as the recorder wrote them. The first is the NC-COMMAND ('Ran 28 tests' / 'OK'); validate printed 'All 21 missions valid; three-layer separation holds; evals valid.'; full-suite printed 'Ran 1351 tests in 261.917s' / 'OK'.",
+ "negative_control": {
+  "tool": "revert",
+  "did": "At head_sha a74139b: git worktree add --detach <scratch>/nc-393 a74139b; confirmed the fork point (git merge-base HEAD 9a115f7 = 9a115f7 = parent of d709296); NC-1: git show 9a115f7:runtime/scripts/evidence-run.py > runtime/scripts/evidence-run.py (the FORK-POINT base, not HEAD \u2014 Greptile 4012031759), new tests kept, ran the NC-COMMAND, git checkout HEAD -- runtime/scripts/evidence-run.py, ran it again; NC-2 (mutant for C-2): sidecar open mode 'rb' -> 'ab' (O_CREAT), ran the NC-COMMAND, restored, ran it again; git worktree remove --force.",
+  "paths": [
+   "runtime/scripts/evidence-run.py"
+  ],
+  "command": "python3 -m unittest tests.test_evidence_run",
+  "result": "RED - the proof went RED under both controls and GREEN at clean head. NC-1: exit 1 with the production file at the fork-point base 9a115f7 (FAILED failures=1: MixedVersionRollout \u2014 records lost, the ledger no longer parses); exit 0 at clean head a74139b (28 tests OK). NC-2: exit 1 with the sidecar opened O_CREAT (FAILED failures=3: test_no_run_creates_the_rollout_sidecar plus both #388 NoLedgerLitter tests); exit 0 restored.",
+  "exit": 1,
+  "clean_head_exit": 0,
+  "artifact": "docs/runs/2026-09-14-clean-sweep-tracker/u393-negctrl.txt",
+  "failures": [
+   "test_old_sidecar_writers_and_new_runs_lose_no_records"
+  ],
+  "mutant_failures": [
+   "test_a_run_after_committing_the_manifest_records_the_committed_tree",
+   "test_no_run_creates_the_rollout_sidecar",
+   "test_sequential_runs_leave_nothing_beside_the_manifest"
+  ],
+  "transcript": [
+   "FAIL: test_old_sidecar_writers_and_new_runs_lose_no_records",
+   "AssertionError: records lost: the ledger no longer parses (Extra data: line 112 column 1 (char 3842))",
+   "Ran 28 tests in 4.114s",
+   "FAILED (failures=1)",
+   "exit=1  (REVERTED: expected NONZERO)",
+   "Ran 28 tests in 4.003s",
+   "OK",
+   "exit=0  (CLEAN HEAD: expected ZERO)",
+   "FAIL: test_a_run_after_committing_the_manifest_records_the_committed_tree",
+   "AssertionError: 'eb316c295574ac949344e4603e6d9771c4207bae' != '17ab4465f4073fb257a95fb4d0c34af4d7771f60'",
+   "FAIL: test_no_run_creates_the_rollout_sidecar",
+   "AssertionError: True is not false : a wrapped run created the sidecar",
+   "FAIL: test_sequential_runs_leave_nothing_beside_the_manifest",
+   "AssertionError: Lists differ: ['m.json', 'm.json.lock'] != ['m.json']",
+   "Ran 28 tests in 3.965s",
+   "FAILED (failures=3)",
+   "exit=1  (MUTANT: expected NONZERO)",
+   "Ran 28 tests in 3.936s",
+   "OK",
+   "exit=0  (CLEAN HEAD: expected ZERO)"
+  ],
+  "not_witnessed_by_the_control": [
+   "tests/test_evidence_run.py::NoLedgerLitter::test_no_run_creates_the_rollout_sidecar"
+  ],
+  "not_witnessed_note": "C-2's test passes under NC-1 by design: the fork-point wrapper never opens a sidecar, so it cannot create one. It guards the property the fix must keep; its sensitivity is NC-2 (the fix's open given O_CREAT -> RED)."
+ },
+ "binding_audit": {
+  "coverage": "C-1..C-4 (4/4)",
+  "method": "criterion quoted, covering test named, expected values from independent sources (the literal 248-label set, os-level existence of the sidecar path, the literal label list); C-3 went RED under the fork-point revert and C-2 under an O_CREAT mutant; C-4 is the wrapped gate records."
+ },
+ "artifacts": [
+  {
+   "path": "docs/runs/2026-09-14-clean-sweep-tracker/u393-negctrl.txt",
+   "sha256": "ba025ffea24c60e062f0b83994f1019f19a418040a91e6188ff150f70cc5f621"
+  }
+ ],
+ "noticed_not_touched": [
+  "A sidecar that a pre-#388 wrapper CREATES after this wrapper's absence check (the first old-wrapper append to a manifest, racing a new one) is not joined: the new run holds only the inode, the old one only the new sidecar. C-1 scopes the fix to a pre-existing sidecar; closing it would need a re-check under the inode lock and a drop-and-retake to keep the one order.",
+  "A sidecar that exists but cannot be opened (EACCES, a directory) is not treated as absent: only FileNotFoundError is. The OSError reaches append_record's existing handler \u2014 a WARNING, the record is not written, the run's exit code is unchanged (the base wrapper warned the same way for any open failure). No test pins this path.",
+  "The in-place truncate+write is still not atomic for LOCK-FREE readers (verify.py reads without a lock); unchanged from base, and lock-free peers are out of scope.",
+  "<manifest>.lock files left by pre-#388 runs are still never removed (the fix now relies on them during rollout; cleanup is out of scope).",
+  "ruff: `ruff check` on both touched files is clean; `ruff format` is not the repo's gate (see u388 noticed_not_touched).",
+  "Builder-side `verify.py --no-gh` (contract pinned to the dispatch source/digest) reports the commands ledger FRESH (3 exit-0 records bound to 451cac2c) and two open invariants that belong to review/close, not the builder: reviewer_mode unset and no review.artifact at head_sha. unit_class stays 'code-change' as in u388-manifest.json (verify.py notes it as unknown and applies mutation-strict checks)."
+ ],
+ "files": {
+  "production": [
+   "runtime/scripts/evidence-run.py"
+  ],
+  "tests": [
+   "tests/test_evidence_run.py"
+  ],
+  "generated": [
+   "assets/badges/tests.json"
+  ],
+  "evidence": [
+   "docs/runs/2026-09-14-clean-sweep-tracker/u393-manifest.json",
+   "docs/runs/2026-09-14-clean-sweep-tracker/u393-negctrl.txt"
+  ]
+ },
+ "commits": [
+  {
+   "sha": "d709296",
+   "subject": "test(evidence-run): mixed-version rollout appends lose no records; no run creates the sidecar (#393)"
+  },
+  {
+   "sha": "ccca9a4",
+   "subject": "fix(evidence-run): join a pre-existing <manifest>.lock before the inode lock (#393)"
+  },
+  {
+   "sha": "a74139b",
+   "subject": "chore(badges): regenerate tests badge, 1349 -> 1351 in source (#393)"
+  },
+  {
+   "sha": "pending",
+   "subject": "chore(run): U393 evidence manifest + negative-control transcript (#393)"
+  }
+ ],
+ "decisions": [
+  "2026-09-15 RELAUNCH: the first attempt (codex) died on provider exhaustion before writing anything; this is a fresh claude start on the same worktree at BASE 9a115f7 with zero prior commits (git log 9a115f7..HEAD was empty at start).",
+  "2026-09-15: deleted untracked setup residue package.json and pnpm-lock.yaml (an empty `pnpm init` stub, not part of this repo) before any work, per the TASK preamble; the tree was clean from then on.",
+  "Fork point: the spec's NC text names f66bd20 'for this dispatch'; the relaunch forks at 9a115f7 (TASK preamble; git merge-base HEAD 9a115f7 = 9a115f7 = parent of d709296, quoted in the transcript). runtime/, tests/ and scripts/ are identical at f66bd20 and 9a115f7 (`git diff --stat f66bd20 9a115f7 -- runtime tests scripts` is empty), so the control restores the same content either way.",
+  "BASE moved during the run: origin/review/2026-09-14-holistic-fixes is now d4c16fe (contains 9a115f7). Not rebased or merged \u2014 the TASK forbids touching BASE or rebasing.",
+  "Methodology: the `tdd` skill only (red-first). Its seams are the ones the frozen spec names: the wrapper CLI for the new-code appends (as ConcurrentAppends/NoLedgerLitter already do) and the on-disk sidecar path \u2014 no import seam into append_record.",
+  "The C-2 guard test is committed with the red C-3 test (d709296), before the fix, and is green at base by design; its RED evidence is NC-2.",
+  "Red-first tightening before commit: the first run at base ERRORED with JSONDecodeError (interleaved rewrites left an unparseable ledger); the test now reports that as a failure 'records lost: the ledger no longer parses', so both loss modes read as lost records.",
+  "The sidecar is opened 'rb' (O_RDONLY): flock needs no write access, and no write mode can sneak in O_CREAT.",
+  "Commits are local on ravidsrk/u393-sidecar-lock; nothing pushed or merged. No Co-Authored-By/Generated trailers, per the user's global CLAUDE.md."
+ ],
+ "pr": {
+  "number": 400,
+  "url": "https://github.com/ravidsrk/orca-fleet/pull/400",
+  "reviewed_sha": "76308159960b890b9976d59f46178876a2573154",
+  "reviewed_wtree": "e53e0e4f3ace160f104b0a96ef45098af54e2880"
+ },
+ "reviewer_mode": "same-vendor-fresh",
+ "conductor_note": "Close corrections (coordinator, disclosed): (1) reviewer_mode filled at close \u2014 builder omission; value true (R393 spec/test/standards + V393-r1 all fresh claude sessions, same vendor as builder). (2) head_sha/head_tree re-bound a74139b->7630815 (reviewed tip, option A) with 3 coordinator re-runs appended and pr block filled."
+}

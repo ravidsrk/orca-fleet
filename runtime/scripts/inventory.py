@@ -109,12 +109,10 @@ def find_blocks(lines):
 def parse_entries(lines, start, end):
     """[(lineno, path, recorded_hash, shape)] for one inventory block."""
     entries = []
-    in_fence = False
     for idx in range(start + 1, end):
         line = lines[idx]
         if FENCE.match(line):
-            in_fence = not in_fence
-            continue
+            continue  # fence markers bound the block; entries are read anywhere inside it
         m = SHA_LINE.match(line.strip())
         if m:
             entries.append((idx, m.group(2).strip(), m.group(1).lower(), "fenced"))
@@ -135,7 +133,14 @@ def parse_entries(lines, start, end):
 
 
 def resolve(path_text, report, root):
-    """Repo root first, then the report's own directory. Returns a Path or None."""
+    """Repo root first, then the report's own directory. Returns a Path or None.
+
+    An entry names a file UNDER one of those two roots: an absolute path or one climbing out
+    with `..` resolves to None here — a report must not point the audit at arbitrary local
+    files (#382)."""
+    p = Path(path_text)
+    if p.is_absolute() or ".." in p.parts:
+        return None
     candidates = []
     if root is not None:
         candidates.append(root / path_text)
@@ -189,7 +194,18 @@ def check_entries(entries, report, root, at=None):
     matched, mismatched, missing = [], [], []
     for _idx, path_text, recorded, _shape in entries:
         if at:
-            actual = sha256_at(at, path_text, root or report.parent)
+            base = root or report.parent
+            actual = sha256_at(at, path_text, base)
+            if actual is None and root is not None:
+                # rev:path resolves against the repo ROOT; the documented report-relative
+                # shape (a per-directory README listing its siblings) needs the second
+                # spelling or every sibling entry reads MISSING (#382).
+                try:
+                    rel_dir = report.parent.resolve().relative_to(Path(root).resolve())
+                except ValueError:
+                    rel_dir = None
+                if rel_dir is not None:
+                    actual = sha256_at(at, f"{rel_dir.as_posix()}/{path_text}", base)
             if actual is None:
                 missing.append(path_text)
                 continue

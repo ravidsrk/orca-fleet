@@ -1,7 +1,7 @@
 # 🛡️ harden-it — a threat model closed by a clean re-audit
 
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel audit, PoC, and fix workers on isolated findings; PoC routing and the promotion are your one-way gates.
-> **Activation load:** ~30,400 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
+> **Activation load:** ~31,200 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
 
 > Fix it, then try to break the fix. Give it a system to harden and come back to a closed threat
@@ -12,10 +12,22 @@
 **Skill:** [`skills/harden-it/SKILL.md`](../../skills/harden-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes
 
 <p align="center">
-  <img src="../../assets/diagrams/missions/harden-it.jpg" alt="State machine: THREAT-MODEL, AUDIT with a PoC per P0/P1 in an ephemeral sandbox, QUORUM VERIFY to refute false positives, FIX with exploit test first, REVIEW and PROVE, LAND, RE-ATTACK with variants looping back on new holes, RE-AUDIT ending CLEAN or HARDENED-WITH-OPEN-ITEMS" width="820">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/diagrams/missions/harden-it.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../../assets/diagrams/missions/harden-it-light.jpg">
+    <img src="../../assets/diagrams/missions/harden-it-light.jpg" alt="Mission contract for harden-it: you give it a system and its trust boundaries; it interrupts you for one-way remediations you perform yourself, like a secret rotation; the danger-sandbox grant; you get back CLEAN or HARDENED-WITH-OPEN-ITEMS, plus exploit tests; class-wide fixes on BASE; re-attack transcripts; a fresh full audit; it stops at parked P0/P1 named per item — no PoC ever runs on your machine; phases THREAT-MODEL, AUDIT, FIX, LAND, RE-ATTACK, RE-AUDIT" width="820">
+  </picture>
 </p>
 
 ---
+
+## Invoke it
+
+```
+> harden this: <the system and its trust boundaries>
+```
+
+**Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh; gitleaks. A security worker playbook (addyosmani security-and-hardening or gstack /cso) — one router per worker. An ephemeral per-workspace sandbox (sandbox-policy) for exploit PoCs that can't run safely on the host.
 
 ## What it does
 
@@ -101,11 +113,13 @@ Phase by phase:
    exploit plus variants and sweeps the class. New holes re-enter the loop. When the loop goes
    quiet, a full fresh audit pass names the outcome.
 
-## Terminal states — name the one reached
+## Terminal states
 
-| State                      | Meaning                                                                                                                              | Who advances past it           |
-|----------------------------|--------------------------------------------------------------------------------------------------------------------------------------|--------------------------------|
-| `CLEAN`                    | Every P0/P1 that ever surfaced is fixed + merged with a re-attack pass, or refuted; a final full re-audit finds zero unrefuted P0/P1 | terminal                       |
+*Name the one reached.*
+
+| State | Meaning | Who acts on it |
+|---|---|---|
+| `CLEAN` | Every P0/P1 that ever surfaced is fixed + merged with a re-attack pass, or refuted; a final full re-audit finds zero unrefuted P0/P1 | terminal |
 | `HARDENED-WITH-OPEN-ITEMS` | All fixable findings closed, but ≥1 P0/P1 is parked awaiting a verified one-way human action or has no safe sandbox — named per item | a human clears each named item |
 
 One-way remediations count toward `CLEAN` only when the human action is **verified complete** — a
@@ -171,8 +185,8 @@ so it parked for you — executed and verified before the run counted it.
 | Deleting a leaked secret's line and moving on        | The key is still live; rotation, verified dead, is the fix                |
 
 ## Composes
-
-Playbooks: [`risk-review`](../../playbooks/risk-review.md) ·
+Playbooks:
+[`risk-review`](../../playbooks/risk-review.md) ·
 [`remediate-finding`](../../playbooks/remediate-finding.md) ·
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
 [`runtime-prove`](../../playbooks/runtime-prove.md) ·
@@ -180,7 +194,8 @@ Playbooks: [`risk-review`](../../playbooks/risk-review.md) ·
 [`triage-findings`](../../playbooks/triage-findings.md) ·
 [`human-handoff`](../../playbooks/human-handoff.md)
 
-Runtime policies: [`sandbox-policy`](../../runtime/sandbox-policy.md) ·
+Runtime policies:
+[`sandbox-policy`](../../runtime/sandbox-policy.md) ·
 [`gate-classification`](../../runtime/gate-classification.md) ·
 [`merge-serialization`](../../runtime/merge-serialization.md) ·
 [`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md) ·

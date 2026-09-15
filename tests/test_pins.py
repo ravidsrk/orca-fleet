@@ -164,6 +164,11 @@ class TestPins(unittest.TestCase):
             self.assertRegex(entry["repo"], r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$", f"pins.json[{name}].repo is not owner/repo")
             self.assertTrue(entry["aliases"], f"pins.json[{name}] has no aliases to match compatibility text")
             self.assertIn(
+                entry["witness"], ("source", "live"),
+                f"pins.json[{name}].witness {entry['witness']!r} is not a defined value — "
+                "_about defines 'source' and 'live' (#377)",
+            )
+            self.assertIn(
                 entry["repo"].lower(), [a.lower() for a in entry["aliases"]],
                 f"pins.json[{name}].aliases must include its own repo slug",
             )

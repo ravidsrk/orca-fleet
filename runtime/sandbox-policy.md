@@ -16,7 +16,7 @@ default host a supervised `PROFILE=ro` launch would be silently upgraded to bypa
 never takes `worker-start`, dispatch-lifecycle.md); on a manual host, `worker-start` launches
 PROMPTING workers while the fleet believes they are autonomous, and the run blocks on invisible
 dialogs. Neither is knowable from source: read `launch.effective` off the start receipt and record
-the host's permission mode in the ledger header. Source-witnessed at v1.4.199
+the host's permission mode in the ledger header. Source-witnessed at v1.4.199 (Anchors reading v1.4.199 await per-probe re-witness; the 2026-09-13 pin-it park register — docs/runs/2026-09-13-pin-it-266/PARK.md — says which are current at v1.4.200.)
 (`tui-agent-launch-defaults.ts:10`); live probe owed — pin-it.
 
 `spawn_worker.sh` maps each PROFILE per agent. **Orca has no read-only tier for ANY agent** — its
@@ -72,11 +72,14 @@ Two rules the guide states and a lane will otherwise learn the expensive way:
 
 - **`doctor` is clear only with no `fail` AND no `warn`.** `ok:true` on its own proves nothing —
   a warn is a lane that boots and then fails a build halfway through
-  (`orca-per-workspace-env:346-348`). `spawn_worker.sh` **runs the doctor itself** (#283):
+  (`orca-per-workspace-env`'s doctor-verdict section). `spawn_worker.sh` **runs the doctor itself** (#283):
   `PROFILE=danger` needs `ORCA_COORD_ALLOW_DANGER=1`, a valid `ORCA_SANDBOX_RECIPE`, and `orca` on
-  PATH; the script runs `vm recipe doctor <recipe> --provision` and reads the verdict via
-  `sandbox_doctor.py`. `ORCA_SANDBOX_DOCTOR` is an **output** path: where that transcript is
-  written for the lane ledger. A transcript the caller names is not evidence.
+  PATH; the script runs `vm recipe doctor <recipe>` (WITHOUT `--provision` — #335: no doctor verdict,
+  clear or not, can authorize this lane, so bringing a VM up buys nothing and bills for it) and reads
+  the verdict via `sandbox_doctor.py`. Even a clear doctor is then REFUSED unconditionally until a
+  prelaunch placement binding exists — the doctor proves recipe health, not that this worker will
+  land in the validated sandbox. `ORCA_SANDBOX_DOCTOR` is an **output** path: where that transcript
+  is written for the lane ledger. A transcript the caller names is not evidence.
 - **Never snapshot a machine on which `orca serve` has already run.** The pairing identity is
   baked in, so every clone of that snapshot claims to be the same Orca server — the fleet then
   cannot tell two sandboxes apart, and remote placement resolves to the wrong host. Snapshot
@@ -99,9 +102,10 @@ buckets map onto gate-classification.md — the taxonomy is the planning surface
 
 - **Always** — inside the worker's granted profile: read/analyze anywhere, build/test/commit on
   the unit's own branch and worktree, static PoCs under `ro`. Mechanical/taste class; no gate.
-- **Ask-First** — one-way or out-of-authority per gate-classification.md (merge to default,
-  deploy, rollback, deletion, spend, secret rotation, live credentials, scope change): a recorded
-  human grant BEFORE execution, never defaulted on timeout.
+- **Ask-First** — one-way or out-of-authority per gate-classification.md, enumerated in
+  `one-way-doors.json` (merge to default, deploy, rollback, deletion, spend, freeze, secret
+  rotation, live credentials, scope change): a recorded human grant BEFORE execution, never
+  defaulted on timeout.
 - **Never** — no grant makes it safe on the mortal host: destructive / networked / supply-chain
   exploit PoCs (danger profile inside an ephemeral sandbox only, above), live-prod mutation,
   credential provisioning — Lane 0 refuse-and-surface, or route to a sandbox per this policy.

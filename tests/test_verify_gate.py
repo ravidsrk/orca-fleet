@@ -5,6 +5,7 @@ The completion-gate hook entrypoint must FAIL CLOSED: block (exit 2) when there 
 verify, no authoritative contract, or the verifier fails; allow (exit 0) only when the manifest
 passes against the coordinator-supplied contract.
 """
+import atexit
 import hashlib
 import itertools
 import json
@@ -65,13 +66,20 @@ def run_gate(manifest=None, contract_source=None, contract_digest=None, unit_cla
     return subprocess.run(argv, capture_output=True, text=True, cwd=cwd or ROOT, env=env)
 
 
+_KEY_DIRS = []
+
+
 def _mint_key():
     """Mint an Ed25519 keypair; returns (secret_path, public_hex). The public half is what a repo
-    pins as .orca/dispatch-pubkey."""
+    pins as .orca/dispatch-pubkey. The temp dir is reaped at interpreter exit (#381)."""
     d = Path(tempfile.mkdtemp())
+    _KEY_DIRS.append(d)
     subprocess.run([sys.executable, str(SCRIPTS / "dispatch-sign.py"), "gen-key",
                     "--out", str(d / "key")], check=True, capture_output=True)
     return d / "key", (d / "key.pub").read_text(encoding="utf-8")
+
+
+atexit.register(lambda: [shutil.rmtree(d, ignore_errors=True) for d in _KEY_DIRS])
 
 
 def _sign(repo, digest, unit_class, manifest_id="review-it", lighting=None, key=None):
