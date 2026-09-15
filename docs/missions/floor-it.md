@@ -21,6 +21,14 @@
 
 ---
 
+## Invoke it
+
+```
+> set the quality bar
+```
+
+**Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh. The target repo's toolchain for each dimension's tool (coverage, linter, perf harness, axe-core…). CI write access on BASE. A worker pack (matt | addy | gstack) — one router per worker.
+
 ## What it does
 
 `floor-it` installs the quality bar. A **coordinator** reads the stack and drafts the constraint
@@ -69,9 +77,9 @@ flowchart TD
     H --> J{{FLOORED-WITH-PARKED}}
 ```
 
-## Terminal outcomes
+## Terminal states
 
-| Verdict | Meaning | Who acts on it |
+| State | Meaning | Who acts on it |
 |---|---|---|
 | `FLOORED` | every frozen dimension wired, proven-RED (local + canary PR), enforced in CI; guard in CI; CONSTRAINTS.md committed | nobody — the bar holds |
 | `FLOORED-WITH-PARKED` | ≥1 dimension has no measurable tool (parked with the human gate named), or the run parked AT the freeze in a headless session | the named human gate covers that dimension / answers the freeze |
@@ -101,14 +109,15 @@ RECORDED injection artifacts (archived canary runs and RED/GREEN transcripts); i
 fresh violations into landed code. The table never shrank mid-run.
 
 ## Composes
-
-Playbooks: [`decide-and-freeze`](../../playbooks/decide-and-freeze.md) ·
+Playbooks:
+[`decide-and-freeze`](../../playbooks/decide-and-freeze.md) ·
 [`remediate-finding`](../../playbooks/remediate-finding.md) ·
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
 [`compound-learn`](../../playbooks/compound-learn.md) ·
 [`human-handoff`](../../playbooks/human-handoff.md)
 
-Runtime policies: [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
+Runtime policies:
+[`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`merge-serialization`](../../runtime/merge-serialization.md) ·
 [`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md) ·
 [`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) ·

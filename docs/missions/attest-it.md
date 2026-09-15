@@ -21,6 +21,14 @@
 
 ---
 
+## Invoke it
+
+```
+> prove compliance with <standard@version>
+```
+
+**Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh; a FROZEN standard catalog (standard@version) as the denominator. A review/verify worker playbook (addyosmani specialists, mattpocock code-review, gstack review army) — one router per worker.
+
 ## What it does
 
 `attest-it` is the conformance fleet. A **coordinator** freezes a standard at a version, enumerates its
@@ -60,9 +68,9 @@ flowchart TD
     G --> I{{CONFORMANT-WITH-GAPS}}
 ```
 
-## Terminal outcomes
+## Terminal states
 
-| Verdict | Meaning | Who acts on it |
+| State | Meaning | Who acts on it |
 |---|---|---|
 | `CONFORMANT` | every obligation VERIFIED with independently re-derived evidence | a human/legal owner accepts the attestation |
 | `CONFORMANT-WITH-GAPS` | one or more GAPs, each with missing evidence + a named owner | the owner closes the gaps or accepts residual risk (a one-way gate) |
@@ -84,14 +92,15 @@ gatherer's narration); each GAP names its missing evidence and a human/legal own
 shrunk.
 
 ## Composes
-
-Playbooks: [`decompose-dag`](../../playbooks/decompose-dag.md) ·
+Playbooks:
+[`decompose-dag`](../../playbooks/decompose-dag.md) ·
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
 [`research-brief`](../../playbooks/research-brief.md) ·
 [`completion-audit`](../../playbooks/completion-audit.md) ·
 [`human-handoff`](../../playbooks/human-handoff.md)
 
-Runtime policies: [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
+Runtime policies:
+[`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`gate-classification`](../../runtime/gate-classification.md) ·
 [`sandbox-policy`](../../runtime/sandbox-policy.md) ·
 [`ledger-contract`](../../runtime/ledger-contract.md) ·

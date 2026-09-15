@@ -20,6 +20,14 @@
 
 ---
 
+## Invoke it
+
+```
+> document this project
+```
+
+**Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + the orchestration skill (Orca CLI). git + gh. A machine-derivable public surface (an extractor script the repo has or the run writes) and a runnable claim check. Where the docs live in a framework (Docusaurus, MkDocs, Nextra), its build must run locally. One worker playbook pack per worker (matt or addy) — never two routers in one worker.
+
 ## What it does
 
 `document-it` is the documentation-coverage fleet. The surface is **extracted by a script**, not by
@@ -74,7 +82,7 @@ touching one doc file form a merge chain.
 
 ## Terminal states
 
-| State | Meaning | Who advances past it |
+| State | Meaning | Who acts on it |
 |---|---|---|
 | `DOCUMENTED` | The re-derived map shows zero critical gaps and every frozen cell filled; every claim anchored with its rename control RED; every doc reachable in one hop; diagram entities cross-reference clean | terminal — the promotion PR is yours |
 | `DOCUMENTED-WITH-PARKED` | ≥1 cell parked `explanation-needs-author`, `tutorial-not-warranted`, or `diagram-needs-human` | a human writes the "why", declines the tutorial, or fixes the diagram |
@@ -117,13 +125,14 @@ or park.
 | Clobbering the changelog / bumping a version | Those are history and a decision, not side effects |
 
 ## Composes
-
-Playbooks: [`doc-coverage`](../../playbooks/doc-coverage.md) ·
+Playbooks:
+[`doc-coverage`](../../playbooks/doc-coverage.md) ·
 [`remediate-finding`](../../playbooks/remediate-finding.md) ·
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
 [`compound-learn`](../../playbooks/compound-learn.md)
 
-Runtime policies: [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
+Runtime policies:
+[`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`merge-serialization`](../../runtime/merge-serialization.md) ·
 [`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md) ·
 [`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) ·

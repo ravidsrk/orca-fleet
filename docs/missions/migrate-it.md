@@ -21,6 +21,14 @@
 
 ---
 
+## Invoke it
+
+```
+> migrate the database: <table> — <the shape change>, no downtime
+```
+
+**Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + the orchestration skill (Orca CLI). git + gh. The project's own migration runner and a database the fleet can migrate and dump (a schema-dump command is the down-path oracle), plus a deploy path per phase and read/write telemetry for the zero-reader window. One worker playbook pack per worker (matt or addy) — never two routers in one worker.
+
 ## What it does
 
 `migrate-it` is the migration fleet. A **coordinator** freezes the table set and the phase list,
@@ -79,7 +87,7 @@ conductor, deploy, bake. Only then is the next phase dispatched.
 
 ## Terminal states
 
-| State | Meaning | Who advances past it |
+| State | Meaning | Who acts on it |
 |---|---|---|
 | `MIGRATED` | Complete pre-drop parity archived, zero old readers/writers over the declared window, removal verified, contract merged, down-path evidence retained | terminal — the promotion PR is yours |
 | `MIGRATED-WITH-PARKED` | The ladder is complete up to a phase whose bake or zero-reader evidence the fleet cannot reach (`CODE_CLOSED` + `VERIFY_AT_SCALE`, or `needs-human`) | a human or OPS clears the named park |
@@ -199,14 +207,15 @@ ALTER TABLE users DROP COLUMN name;
 | Two phases of one table in flight | The second phase's base is a schema that no longer exists |
 
 ## Composes
-
-Playbooks: [`data-migration`](../../playbooks/data-migration.md) ·
+Playbooks:
+[`data-migration`](../../playbooks/data-migration.md) ·
 [`remediate-finding`](../../playbooks/remediate-finding.md) ·
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
 [`completion-audit`](../../playbooks/completion-audit.md) ·
 [`compound-learn`](../../playbooks/compound-learn.md)
 
-Runtime policies: [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
+Runtime policies:
+[`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`merge-serialization`](../../runtime/merge-serialization.md) ·
 [`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md) ·
 [`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) ·

@@ -22,6 +22,14 @@
 
 ---
 
+## Invoke it
+
+```
+> diagnose this: <the symptom, and where it was seen>
+```
+
+**Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh. A feedback-loop-first debugging playbook (mattpocock diagnosing-bugs or addyosmani debug) — one router per worker.
+
 ## What it does
 
 `root-cause` is the diagnosis fleet. Its outcome is not a fix: a reproduced symptom, ranked
@@ -67,8 +75,8 @@ flowchart TD
     G --> H
     H --> I[DEMONSTRATE the survivor<br/>evidence + regression-test seam]
     I --> J{{DIAGNOSED}}
-    I -->|no correct seam exists| K{{ARCHITECTURE HANDOFF}}
-    J -->|separately authorized| L{{FIX HANDOFF BRIEF}}
+    J -->|+ a durable fix brief, separately authorized| L{{DIAGNOSED-WITH-HANDOFF}}
+    H -->|every hypothesis falsified, or no red loop| K{{INCONCLUSIVE}}
 ```
 
 Phase by phase:
@@ -103,16 +111,17 @@ Phase by phase:
    [`ship-it`](ship-it.md) or [`clean-sweep`](clean-sweep.md). This mission does not merge the
    fix; fixing was never in its authority.
 
-## Terminal outcomes — a diagnosis, not a patch
+## Terminal states
 
-| Outcome                 | Meaning                                                                                            | Who advances past it                             |
-|-------------------------|----------------------------------------------------------------------------------------------------|--------------------------------------------------|
-| Demonstrated root cause | red-capable command + output actually run (or elevated repro rate); one survivor; rivals falsified | terminal for this mission                        |
-| Architecture handoff    | no correct seam exists for the regression test — the missing seam is the finding                   | an architecture change, separately owned         |
-| Fix handoff brief       | behavioral, testable acceptance criteria + out-of-scope, routed onward                             | `ship-it` / `clean-sweep`, separately authorized |
-| **INCONCLUSIVE** (degraded) | repro exists but every ranked hypothesis was falsified, or no red-capable loop could be built | parked with next experiments — never reported as diagnosed |
+*A diagnosis, not a patch.*
 
-The mission names which of these it reached. "We found it and fixed it" is not on the list — a
+| State | Meaning | Who acts on it |
+|---|---|---|
+| `DIAGNOSED` | one demonstrated root cause: a red-capable command and its output actually run (or an elevated repro rate), every rival hypothesis falsified, and a regression test at a correct seam — or, when no correct seam exists, the missing seam named as the finding for an architecture owner | terminal for this mission |
+| `DIAGNOSED-WITH-HANDOFF` | the same, plus a durable fix brief — behavioral, testable acceptance criteria and an explicit out-of-scope list — routed onward | `ship-it` / `clean-sweep`, separately authorized |
+| `INCONCLUSIVE` (degraded) | a repro exists but every ranked hypothesis was falsified, or no red-capable loop could be built | parked with the next experiments named |
+
+`INCONCLUSIVE` is a degraded terminal; it is never reported as `DIAGNOSED`. The mission names which of these it reached. "We found it and fixed it" is not on the list — a
 quiet fix is the overclaim this boundary exists to prevent.
 
 ## Human gates
@@ -181,12 +190,12 @@ brief — dispatching it is a separately authorized decision, not this mission's
 | Forcing a test through the wrong seam   | The missing seam IS the finding — hand it to an architecture change          |
 
 ## Composes
-
-Playbooks: [`diagnose`](../../playbooks/diagnose.md) (DIAGNOSIS phases only — the mission stops
-before its fix phase) ·
+Playbooks:
+[`diagnose`](../../playbooks/diagnose.md) (DIAGNOSIS phases only — the mission stops before its fix phase) ·
 [`agent-brief`](../../playbooks/agent-brief.md)
 
-Runtime policies: [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
+Runtime policies:
+[`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`liveness-resume`](../../runtime/liveness-resume.md) ·
 [`sandbox-policy`](../../runtime/sandbox-policy.md) ·
 [`gate-classification`](../../runtime/gate-classification.md) ·

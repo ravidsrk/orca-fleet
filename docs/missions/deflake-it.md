@@ -20,6 +20,14 @@
 
 ---
 
+## Invoke it
+
+```
+> kill the flaky tests
+```
+
+**Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh; a runnable suite. A feedback-loop-first debugging playbook (mattpocock diagnosing-bugs or addyosmani debug) — one router per worker.
+
 ## What it does
 
 `deflake-it` is the flake-eradication fleet. The unit of work is an **intermittent failure
@@ -102,12 +110,14 @@ Phase by phase:
    or `gh workflow run`, never empty commits. Any flake anywhere resets the streak to zero and
    re-enters detection. The streak is the contract; one green run is an anecdote.
 
-## Terminal states — quarantined is not stable
+## Terminal states
 
-| State                    | Meaning                                                                                            |
-|--------------------------|----------------------------------------------------------------------------------------------------|
-| `STABLE`                 | Full suite green for the whole streak, local AND CI; zero flakes, zero retry-wrappers              |
-| `STABLE-WITH-QUARANTINE` | At least one flake survived diagnosis with no root cause, quarantined with a human-approved ticket |
+*Quarantined is not stable.*
+
+| State | Meaning | Who acts on it |
+|---|---|---|
+| `STABLE` | Full suite green for the whole streak, local AND CI; zero flakes, zero retry-wrappers | terminal — the promotion PR is yours |
+| `STABLE-WITH-QUARANTINE` | At least one flake survived diagnosis with no root cause, quarantined with a human-approved ticket | a human approves each quarantine ticket |
 
 The degraded state is never reported as `STABLE`, and there is no "documented and left flaky"
 exit: every detected flake ends root-caused-and-fixed or quarantined-with-a-ticket.
@@ -171,20 +181,20 @@ itself permission to give up.
 | Trusting the local streak for a CI-only flake | It flakes in an environment local runs never reproduce   |
 
 ## Composes
-
-Playbooks: [`diagnose`](../../playbooks/diagnose.md) ·
+Playbooks:
+[`diagnose`](../../playbooks/diagnose.md) ·
 [`build-change`](../../playbooks/build-change.md) ·
 [`remediate-finding`](../../playbooks/remediate-finding.md) ·
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
 [`compound-learn`](../../playbooks/compound-learn.md)
 
-Runtime policies: [`merge-serialization`](../../runtime/merge-serialization.md) ·
+Runtime policies:
+[`merge-serialization`](../../runtime/merge-serialization.md) ·
 [`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md) ·
 [`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) ·
 [`liveness-resume`](../../runtime/liveness-resume.md) ·
 [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`ledger-contract`](../../runtime/ledger-contract.md) ·
-[`gate-classification`](../../runtime/gate-classification.md) ·
 [`attention-budget`](../../runtime/attention-budget.md)
 
 ## Related missions

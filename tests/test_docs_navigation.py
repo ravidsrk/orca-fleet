@@ -605,6 +605,60 @@ class TestDocsNavigation(unittest.TestCase):
                 f"declared in skills/{d.name}/SKILL.md",
             )
 
+    def test_mission_guides_compose_only_what_the_skill_declares(self):
+        # The reverse direction of the test above. The 2026-09-15 docs review found deflake-it and
+        # prove-it listing gate-classification and map-it listing merge-serialization under
+        # Composes, none of which their SKILL.md mentions at all: a false catalog in the other
+        # direction, invisible because only guide ⊇ clause was checked. A guide may list a
+        # protocol the skill composes, rides, or names as a phase-cued read (`name.md`), and
+        # nothing else.
+        protocols = {p.stem for p in (ROOT / "playbooks").glob("*.md")}
+        protocols |= {p.stem for p in RUNTIME.glob("*.md")}
+        guide_links = re.compile(
+            r"\]\(\.\./\.\./(?:playbooks|runtime)/([a-z0-9-]+)\.md\)"
+        )
+        guide_section = re.compile(
+            r"^## Composes\n(.*?)(?=^## |\Z)", re.DOTALL | re.MULTILINE
+        )
+        mention = re.compile(r"\b([a-z][a-z0-9-]+)\.md\b")
+        for d in sorted((ROOT / "skills").iterdir()):
+            if not d.is_dir() or d.name.startswith((".", "_")):
+                continue
+            skill = (d / "SKILL.md").read_text(encoding="utf-8")
+            allowed = set(validate.guide_declared_protocol_names(skill))
+            allowed |= set(mention.findall(skill))
+            allowed &= protocols
+            guide = (DOCS / "missions" / f"{d.name}.md").read_text(encoding="utf-8")
+            section = guide_section.search(guide)
+            self.assertIsNotNone(section, f"docs/missions/{d.name}.md has no ## Composes section")
+            named = set(validate.BACKTICK_RE.findall(section.group(1)))
+            named.update(guide_links.findall(section.group(1)))
+            extra = sorted((named & protocols) - allowed)
+            self.assertEqual(
+                extra, [],
+                f"docs/missions/{d.name}.md Composes names {extra}, which "
+                f"skills/{d.name}/SKILL.md neither composes, rides, nor reads",
+            )
+
+    def test_mission_guides_state_the_skills_compatibility(self):
+        # 2026-09-15 docs review: no guide surfaced its skill's hard prerequisites (gitleaks,
+        # a measurement harness, mutation tooling, a docs-framework build). The guide's Needs
+        # line is the SKILL's `compatibility` field verbatim, so the two cannot drift.
+        needs = re.compile(r"^\*\*Needs\*\* \(the skill's `compatibility` field, verbatim\): (.+)$", re.M)
+        compat_re = re.compile(r"^compatibility:\s*>-?\n((?:[ \t]+.*\n)+)", re.M)
+        for d in sorted((ROOT / "skills").iterdir()):
+            if not d.is_dir() or d.name.startswith((".", "_")):
+                continue
+            skill = (d / "SKILL.md").read_text(encoding="utf-8")
+            m = compat_re.search(skill)
+            self.assertIsNotNone(m, f"skills/{d.name}/SKILL.md has no block-scalar compatibility field")
+            compat = " ".join(m.group(1).split())
+            guide = (DOCS / "missions" / f"{d.name}.md").read_text(encoding="utf-8")
+            g = needs.search(guide)
+            self.assertIsNotNone(g, f"docs/missions/{d.name}.md has no Needs line")
+            self.assertEqual(" ".join(g.group(1).split()), compat,
+                             f"docs/missions/{d.name}.md Needs line drifted from the skill's compatibility field")
+
     def test_mission_index_lists_every_skill(self):
         # #125: docs/missions/README.md indexed 11 of 13 (attest-it, access-it missing). The index
         # must link every skills/<name> guide. #143 review: resolve each link target against the

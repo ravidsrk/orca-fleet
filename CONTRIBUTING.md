@@ -94,11 +94,14 @@ fail-closed exits documented in the header comment.
 
 ## Documentation
 
-- `docs/missions/<name>.md` pages follow the ship-it template: what it does, when (and when
-  NOT) to reach for it, a mermaid pipeline, terminal states, human gates, convergence proof,
-  failure modes, composes, related. The guide's `## Composes` section must name every playbook
-  and runtime policy the mission's SKILL compose/rides clause declares — a contract test
-  rejects drift.
+- `docs/missions/<name>.md` pages follow the ship-it template: an invoke-it line and a Needs
+  line copied verbatim from the skill's `compatibility` field (a test keeps them equal), what it
+  does, when (and when NOT) to reach for it, a mermaid pipeline, a `## Terminal states` table
+  (State · Meaning · Who acts on it, degraded terminals annotated as such), human gates,
+  convergence proof, a worked example, failure modes, composes, related. The `## Composes`
+  section must name every playbook and runtime policy the SKILL's compose/rides clause declares
+  and nothing the SKILL neither declares nor names as a phase-cued read; deferred reads are
+  listed separately — contract tests reject drift in both directions.
 - Cross-references between catalog files use bare protocol names — the validator flags
   path-prefixed or case-typo'd `<name>.md` references anywhere in `skills/`, `playbooks/`, or
   `runtime/`.

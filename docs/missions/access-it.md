@@ -21,6 +21,14 @@
 
 ---
 
+## Invoke it
+
+```
+> accessibility: bring <pages or flows> to WCAG 2.2 AA
+```
+
+**Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh; a deterministic a11y oracle (axe-core / Lighthouse) and a runnable surface. A fix worker playbook (addyosmani, mattpocock, gstack) — one router per worker.
+
 ## What it does
 
 `access-it` is the accessibility-conformance fleet. A **coordinator** freezes the surface (the
@@ -65,9 +73,9 @@ flowchart TD
     F --> H{{CONFORMANT-WITH-MANUAL-PARKED}}
 ```
 
-## Terminal outcomes
+## Terminal states
 
-| Verdict | Meaning | Who acts on it |
+| State | Meaning | Who acts on it |
 |---|---|---|
 | `CONFORMANT` | *near-unreachable* — only when the frozen surface has no criteria past the ~30–40% automation ceiling (rare); axe-core clean, every criterion covered with a revert-to-violation NC | a human promotes |
 | `CONFORMANT-WITH-MANUAL-PARKED` | automatable criteria clean; ceiling criteria parked to a named human-AT reviewer | the human-AT reviewer closes the parked criteria (a one-way gate) |
@@ -89,14 +97,15 @@ is PARKED to a named human-AT reviewer with the reason the oracle cannot decide 
 automatable criteria.
 
 ## Composes
-
-Playbooks: [`decompose-dag`](../../playbooks/decompose-dag.md) ·
+Playbooks:
+[`decompose-dag`](../../playbooks/decompose-dag.md) ·
 [`remediate-finding`](../../playbooks/remediate-finding.md) ·
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
 [`compound-learn`](../../playbooks/compound-learn.md) ·
 [`browser-drive`](../../playbooks/browser-drive.md)
 
-Runtime policies: [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
+Runtime policies:
+[`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`sandbox-policy`](../../runtime/sandbox-policy.md) ·
 [`merge-serialization`](../../runtime/merge-serialization.md) ·
 [`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md) ·

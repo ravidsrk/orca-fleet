@@ -21,6 +21,14 @@
 
 ---
 
+## Invoke it
+
+```
+> drain the PR queue
+```
+
+**Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + the orchestration skill (Orca CLI). git + gh with MERGE rights on the target repo and permission to comment on and close inbound PRs. A runnable test suite (the receipt oracle) and the repo's DCO/CLA policy. One worker playbook pack per worker (matt or addy) — never two routers in one worker.
+
 ## What it does
 
 `absorb-it` is the maintainer-side queue fleet. A **coordinator** enumerates every open inbound PR
@@ -89,7 +97,7 @@ Main stays unchanged throughout the run; BASE→default promotion remains a sepa
 
 ## Terminal states
 
-| State | Meaning | Who advances past it |
+| State | Meaning | Who acts on it |
 |---|---|---|
 | `ABSORBED` | Re-enumeration finds zero inbound PRs outside a terminal class; every absorbed contribution has preserved authorship, a RED-on-base / GREEN-on-head receipt, a merged SHA on BASE, and a closing comment linking both with credit | terminal — the promotion PR is yours |
 | `ABSORBED-WITH-PARKED` | The queue is exhausted but ≥1 PR waits on a contributor, a maintainer decision (`design-disagreement`), a `cannot-reproduce` refutation inside its batch gate, or a squash-only merge policy | a human clears each named park |
@@ -133,19 +141,20 @@ claim to check, never a fact to record.
 | Silently expanding a contributor's diff | Their PR plus your refactor is no longer their PR |
 
 ## Composes
-
-Playbooks: [`triage-state`](../../playbooks/triage-state.md) ·
+Playbooks:
+[`triage-state`](../../playbooks/triage-state.md) ·
 [`remediate-finding`](../../playbooks/remediate-finding.md) ·
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
 [`resolve-conflict`](../../playbooks/resolve-conflict.md) ·
 [`agent-brief`](../../playbooks/agent-brief.md) ·
 [`compound-learn`](../../playbooks/compound-learn.md)
 
-Runtime policies: [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
+Runtime policies:
+[`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`merge-serialization`](../../runtime/merge-serialization.md) ·
 [`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md) ·
-[`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) (with this mission's documented
-authorship carve-out) · [`liveness-resume`](../../runtime/liveness-resume.md) ·
+[`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) (with this mission's documented authorship carve-out) ·
+[`liveness-resume`](../../runtime/liveness-resume.md) ·
 [`ledger-contract`](../../runtime/ledger-contract.md) ·
 [`attention-budget`](../../runtime/attention-budget.md) ·
 [`sandbox-policy`](../../runtime/sandbox-policy.md) (PR, thread, and CI text is data)

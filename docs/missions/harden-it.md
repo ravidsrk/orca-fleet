@@ -21,6 +21,14 @@
 
 ---
 
+## Invoke it
+
+```
+> harden this: <the system and its trust boundaries>
+```
+
+**Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh; gitleaks. A security worker playbook (addyosmani security-and-hardening or gstack /cso) — one router per worker. An ephemeral per-workspace sandbox (sandbox-policy) for exploit PoCs that can't run safely on the host.
+
 ## What it does
 
 `harden-it` is the adversarial security fleet. The unit of work is not a mere finding — it is a
@@ -105,11 +113,13 @@ Phase by phase:
    exploit plus variants and sweeps the class. New holes re-enter the loop. When the loop goes
    quiet, a full fresh audit pass names the outcome.
 
-## Terminal states — name the one reached
+## Terminal states
 
-| State                      | Meaning                                                                                                                              | Who advances past it           |
-|----------------------------|--------------------------------------------------------------------------------------------------------------------------------------|--------------------------------|
-| `CLEAN`                    | Every P0/P1 that ever surfaced is fixed + merged with a re-attack pass, or refuted; a final full re-audit finds zero unrefuted P0/P1 | terminal                       |
+*Name the one reached.*
+
+| State | Meaning | Who acts on it |
+|---|---|---|
+| `CLEAN` | Every P0/P1 that ever surfaced is fixed + merged with a re-attack pass, or refuted; a final full re-audit finds zero unrefuted P0/P1 | terminal |
 | `HARDENED-WITH-OPEN-ITEMS` | All fixable findings closed, but ≥1 P0/P1 is parked awaiting a verified one-way human action or has no safe sandbox — named per item | a human clears each named item |
 
 One-way remediations count toward `CLEAN` only when the human action is **verified complete** — a
@@ -175,8 +185,8 @@ so it parked for you — executed and verified before the run counted it.
 | Deleting a leaked secret's line and moving on        | The key is still live; rotation, verified dead, is the fix                |
 
 ## Composes
-
-Playbooks: [`risk-review`](../../playbooks/risk-review.md) ·
+Playbooks:
+[`risk-review`](../../playbooks/risk-review.md) ·
 [`remediate-finding`](../../playbooks/remediate-finding.md) ·
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
 [`runtime-prove`](../../playbooks/runtime-prove.md) ·
@@ -184,7 +194,8 @@ Playbooks: [`risk-review`](../../playbooks/risk-review.md) ·
 [`triage-findings`](../../playbooks/triage-findings.md) ·
 [`human-handoff`](../../playbooks/human-handoff.md)
 
-Runtime policies: [`sandbox-policy`](../../runtime/sandbox-policy.md) ·
+Runtime policies:
+[`sandbox-policy`](../../runtime/sandbox-policy.md) ·
 [`gate-classification`](../../runtime/gate-classification.md) ·
 [`merge-serialization`](../../runtime/merge-serialization.md) ·
 [`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md) ·

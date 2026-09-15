@@ -20,6 +20,14 @@
 
 ---
 
+## Invoke it
+
+```
+> test on a real device: <the flow or defect>
+```
+
+**Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + orchestration skill (Orca CLI) plus the Orca emulator skills (orca-emulator for iOS simulators, orca-emulator-android for Android) or a paired physical device. git + gh. The app's own build/run toolchain. A fix worker playbook pack (mattpocock, addyosmani, gstack) — one router per worker.
+
 ## What it does
 
 `field-test-it` is the on-device verification fleet. A **coordinator** loads the version-matched
@@ -66,9 +74,9 @@ flowchart TD
     H --> J{{FIELD-PROVEN-WITH-PARKED}}
 ```
 
-## Terminal outcomes
+## Terminal states
 
-| Verdict | Meaning | Who acts on it |
+| State | Meaning | Who acts on it |
 |---|---|---|
 | `FIELD-PROVEN` | every on-device defect fixed + re-verified on-device at head SHA; revert NC holds; baseline re-ledgered | nobody |
 | `FIELD-PROVEN-WITH-PARKED` | ≥1 defect needs a device/step the session lacks; parked with the exact device + step named | the named owner runs the parked device step |
@@ -100,15 +108,16 @@ worker reverts the fix on a throwaway branch and re-drives the on-device flow ex
 one-time repro is marked flaky and re-driven, not closed.
 
 ## Composes
-
-Playbooks: [`diagnose`](../../playbooks/diagnose.md) ·
+Playbooks:
+[`diagnose`](../../playbooks/diagnose.md) ·
 [`remediate-finding`](../../playbooks/remediate-finding.md) ·
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
 [`compound-learn`](../../playbooks/compound-learn.md) ·
 [`browser-drive`](../../playbooks/browser-drive.md) ·
 [`human-handoff`](../../playbooks/human-handoff.md)
 
-Runtime policies: [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
+Runtime policies:
+[`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`merge-serialization`](../../runtime/merge-serialization.md) ·
 [`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md) ·
 [`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) ·

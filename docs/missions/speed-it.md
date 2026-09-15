@@ -20,6 +20,14 @@
 
 ---
 
+## Invoke it
+
+```
+> the app is slow — journeys: <list them>; budgets: <the targets>
+```
+
+**Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh. A real MEASUREMENT path (Lighthouse/DevTools for web CWV, or a load/profiler harness). A perf worker playbook (addyosmani performance-optimization or gstack benchmark) — one router per worker.
+
 ## What it does
 
 `speed-it` is the performance-budget fleet, and it is deliberately not a findings mission. Here
@@ -99,11 +107,13 @@ Phase by phase:
    run is not confirmation. Because fixes interact systemically, the loop re-ranks whatever is
    still breached and goes again.
 
-## Terminal states — name the one reached
+## Terminal states
 
-| State                   | Meaning                                                                                                                                          | Who advances past it         |
-|-------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------|
-| `WITHIN-BUDGET`         | Every critical journey meets its budget on its metric contract's confirmation                                                                    | terminal                     |
+*Name the one reached.*
+
+| State | Meaning | Who acts on it |
+|---|---|---|
+| `WITHIN-BUDGET` | Every critical journey meets its budget on its metric contract's confirmation | terminal |
 | `OPTIMIZED-WITH-PARKED` | All fixable hotspots fixed; ≥1 journey needs an infra/architecture change beyond scope or is an inherent-cost tradeoff — parked with a human ref | a human decides the tradeoff |
 
 `OPTIMIZED-WITH-PARKED` is a degraded outcome, never a synonym — reporting it as `WITHIN-BUDGET`
@@ -166,15 +176,16 @@ migration, that journey would park with a human reference and the run would end
 | Downgrading an unmeasurable metric to a proxy | It is `unmeasured` and human-flagged — never an invented number |
 
 ## Composes
-
-Playbooks: [`risk-review`](../../playbooks/risk-review.md) (performance lens) ·
+Playbooks:
+[`risk-review`](../../playbooks/risk-review.md) (performance lens) ·
 [`remediate-finding`](../../playbooks/remediate-finding.md) ·
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
 [`runtime-prove`](../../playbooks/runtime-prove.md) ·
 [`compound-learn`](../../playbooks/compound-learn.md) ·
 [`browser-drive`](../../playbooks/browser-drive.md)
 
-Runtime policies: [`merge-serialization`](../../runtime/merge-serialization.md) ·
+Runtime policies:
+[`merge-serialization`](../../runtime/merge-serialization.md) ·
 [`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md) ·
 [`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) ·
 [`liveness-resume`](../../runtime/liveness-resume.md) ·

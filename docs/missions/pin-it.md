@@ -21,6 +21,14 @@
 
 ---
 
+## Invoke it
+
+```
+> Orca updated — re-pin the runtime contract
+```
+
+**Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + orchestration skill (Orca CLI) — the binary under audit; `orca skills get <name>` must work, and re-witness probes run against the live local runtime from a live Orca terminal. git. A worker playbook pack (mattpocock, addyosmani, gstack) — one router per worker.
+
 ## What it does
 
 `pin-it` re-pins the runtime contract. A **coordinator** freezes the *claim inventory* — every claim
@@ -66,9 +74,9 @@ flowchart TD
     G --> I{{PINNED-WITH-PARKED}}
 ```
 
-## Terminal outcomes
+## Terminal states
 
-| Verdict | Meaning | Who acts on it |
+| State | Meaning | Who acts on it |
 |---|---|---|
 | `PINNED` | every claim in the inventory is CURRENT with a live receipt; patches receipt-backed at the merged SHA | nobody — doctrine is true |
 | `PINNED-WITH-PARKED` | claims needing a surface the session lacks (remote host, paid tier, human-only action, an unfixable-in-session precondition) are PARKED, each named with the exact probe it waits on | the named owner runs the probe |
@@ -101,12 +109,13 @@ re-running probes at `head_sha`. The inventory never shrank mid-run, and the rep
 tests) are green at the landing SHA.
 
 ## Composes
-
-Playbooks: [`remediate-finding`](../../playbooks/remediate-finding.md) ·
+Playbooks:
+[`remediate-finding`](../../playbooks/remediate-finding.md) ·
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
 [`compound-learn`](../../playbooks/compound-learn.md)
 
-Runtime policies: [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
+Runtime policies:
+[`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`merge-serialization`](../../runtime/merge-serialization.md) ·
 [`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md) ·
 [`ledger-contract`](../../runtime/ledger-contract.md) ·

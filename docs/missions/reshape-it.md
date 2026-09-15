@@ -20,6 +20,14 @@
 
 ---
 
+## Invoke it
+
+```
+> refactor the hot path safely: <the module or god file>
+```
+
+**Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh. The target repo's test suite must be runnable and its mutation tooling available for the characterization net. A fix worker playbook pack (mattpocock, addyosmani, gstack) — one router per worker.
+
 ## What it does
 
 `reshape-it` repairs architectural erosion. A **coordinator** builds a churn-weighted shallowness
@@ -63,9 +71,9 @@ flowchart TD
     G --> I{{RESHAPED-WITH-PARKED}}
 ```
 
-## Terminal outcomes
+## Terminal states
 
-| Verdict | Meaning | Who acts on it |
+| State | Meaning | Who acts on it |
 |---|---|---|
 | `RESHAPED` | every confirmed module deepened; net green at both SHAs; review passed | nobody |
 | `RESHAPED-WITH-PARKED` | ≥1 module needs a one-way API-break / behaviour decision; parked with the decision named | the human decides the parked API breaks |
@@ -93,8 +101,8 @@ The confirmed surface never grew mid-run. `RESHAPED`, or `RESHAPED-WITH-PARKED` 
 module's one-way decision named.
 
 ## Composes
-
-Playbooks: [`characterize`](../../playbooks/characterize.md) ·
+Playbooks:
+[`characterize`](../../playbooks/characterize.md) ·
 [`decide-and-freeze`](../../playbooks/decide-and-freeze.md) ·
 [`remediate-finding`](../../playbooks/remediate-finding.md) ·
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
@@ -103,7 +111,8 @@ Playbooks: [`characterize`](../../playbooks/characterize.md) ·
 [`record-decision`](../../playbooks/record-decision.md) ·
 [`plan-review`](../../playbooks/plan-review.md)
 
-Runtime policies: [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
+Runtime policies:
+[`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`merge-serialization`](../../runtime/merge-serialization.md) ·
 [`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md) ·
 [`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) ·
