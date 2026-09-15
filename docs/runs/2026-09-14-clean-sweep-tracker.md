@@ -736,6 +736,16 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
 - R387G 3/3 in: all axes 0 Required (SPEC 1 Nit + 2 FYI; TEST 1 Optional + 1
   Nit; STANDARDS 1 Optional + 6 Nits) + bot none. V387G-r1 spec frozen (3
   reports verbatim, no held bot). Dispatched — expect GO.
+- R387P 3/3 in: SPEC 0 Required (1 Nit reattach dupes R-1; 3 FYI) + TEST 2
+  Required + STANDARDS 2 Required (R-1 reattach dupes bot P2; R-2 T3-ref fails
+  human/OPS-ref). V387P-r1 spec frozen (3 reports verbatim + 2 held bot P2s).
+  Dispatched — expect NO-GO → fix round.
+- V387W-r1 NO-GO (msg_09cb937e5ee6, review 5206177974 COMMENTED @d94c6c1,
+  released, verified): batched (1) F-1=R1 section anchor + 13 fixtures +
+  look-alikes, (2) R2 fence tests, (3) bot P2 info-string + repro + thread
+  answer, (4) adjacent setext; S4/S1/S3/M2/M15/Optionals/FYIs excluded with
+  reasons. Fix spec fix-387w-r2.md frozen (with reattach-first instruction —
+  T8's gap, previewed). Dispatched.
 - R387G 2/3 in: STANDARDS 0 Required (1 Optional unpinned survey claim; 6 Nits
   incl. why-contract parentheticals, dup helper, scope inconsistency; 4 FYI).
   Released. SPEC still out — T9 clean so far (0 Required, bot none).
