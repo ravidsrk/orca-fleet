@@ -926,4 +926,6 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   5206957088 @19be7a1, no new findings. NO posts (2 P2 thread replies
   owed coordinator-side pre-merge). R387P-r3 specs frozen (copies +
   retarget 19be7a1 + batch-verify + approval-confirm); 3 axes
-  dispatched.
+  dispatched (spec task_68ebec81432a→ctx_1170f77893e2, test
+  task_739400a96748→ctx_69498e2af4f0, standards task_f0643c0a15ab→
+  ctx_16bf58f0f92e).
