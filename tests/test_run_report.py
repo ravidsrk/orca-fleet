@@ -352,6 +352,7 @@ class WipCurveObligation(unittest.TestCase):
             "a fenced example and a deviations table": (f"{section}```\n{self.ROW_1}\n```\n\n"
                                                         f"{self.DEVIATIONS}{self.ROW_2}\n"),
             "another section, and no WIP-curve section": f"## Pipeline evidence\n\n{rows}",
+            "rows before any heading": rows,
             "the section heading quoted inside a fence": f"```markdown\n{self.SECTION}\n\n{rows}```\n",
         }
         for name, body in cases.items():
@@ -562,14 +563,15 @@ class WipCurveObligation(unittest.TestCase):
                 self.assertTrue(any("wave(s) [2] carry more than one WIP-curve row" in e
                                     for e in errs), errs)
         # Underlined at the item's own column, that paragraph is a heading; so is a line back at
-        # the margin, or short of an item whose text starts three spaces past its marker, which
-        # has left the list. Either ends the section. So does a line after an empty item and a
-        # blank line: an item begins with at most one blank line, so the item ended empty
+        # the margin, or short of an item whose text starts three or four spaces past its marker,
+        # which has left the list. Either ends the section. So does a line after an empty item and
+        # a blank line: an item begins with at most one blank line, so the item ended empty
         # (CommonMark; verdict r4 SPEC S4-1).
         for name, lead in {"at column 2": "- a note\n\n  Deviations\n  ---",
                            "at column 4": "10. a note\n\n    Deviations\n    ---",
                            "back at the margin": "- a note\n\nDeviations\n---",
                            "short of the item's column 4": "-   a note\n\n  Deviations\n---",
+                           "short of the item's column 5": "-    a note\n\n  Deviations\n---",
                            "after an empty item and a blank line, ---": "-\n\n  Deviations\n---",
                            "after an empty item and a blank line, ===": "*\n\n  Deviations\n==="
                            }.items():
@@ -615,6 +617,21 @@ class WipCurveObligation(unittest.TestCase):
             report = f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n-\n  ---\n\n{rows}"
             self.assertEqual(run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md"), [])
 
+    def test_a_thematic_break_in_a_list_item_keeps_that_item_open(self):
+        # Verdict r4 (TEST R-1; PR #401 P1 4013782318, a false positive): a thematic break closes
+        # only the items it is not indented into. '  ***' closes '  - b' but sits in '- a', so
+        # '  para' is a's paragraph and a --- at the margin under it is a thematic break: the
+        # incomplete second wave=2 row after it is still read. Dropping every open item on the
+        # break made '  para' a plain paragraph and the --- its underline, which hid that row.
+        partial_2 = self.ROW_2.replace("| latency_max=55m ", "")
+        report = (f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n{self.ROW_1}\n{self.ROW_2}\n\n"
+                  f"- a\n  - b\n  ***\n  para\n---\n\n{partial_2}\n")
+        errs = run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md")
+        self.assertEqual(len(errs), 2, errs)
+        self.assertTrue(any("| wave=2 |" in e and "carries no measured ['latency_max']" in e
+                            for e in errs), f"the row after the break was not read {errs}")
+        self.assertTrue(any("wave(s) [2] carry more than one WIP-curve row" in e for e in errs),
+                        errs)
 
     def test_the_marker_heading_and_underline_edges_commonmark_draws(self):
         # Verdict r3 (TEST nits: mutants D6, D7, C8, C10, D15 survived): every marker the checker
