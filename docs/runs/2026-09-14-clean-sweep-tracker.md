@@ -30,7 +30,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | T3 | #364 | fixture-backed evals + workspace-state oracle (S1) | real-feature-small | t | t | t | t | t | f | lit | process gap: merged w/o GO, remediated via T6 | PR #395 MERGED out-of-process 1b64781 @8323c98; r3 NO-GO recorded 5205125758 (SPEC F-1 reproduced, batch = T6 scope); sticking finding → T6; #364 closes after T6 |
 | T4 | #385 | historical-docs polish, agent slice (status.json + parity test) | real-bug (docs) | t | t | t | t | t | t | lit | — | PR #390 MERGED 32da76e @d6fc2cc (reviewed==head; greptile APPROVED + 3 blind GO); verify.py OK all legs (scope/commands/freshness/NC-exec/review/change-on-base); conductor manifest corrections (head/source) disclosed in-file; worktree retired; #385 closed w/ evidence |
 | T5 | #386 | sign manifest+inventory, retention backend (S2) | — | — | — | — | — | — | — | — | needs-human: key custody + backend undecided (Q2) | Q2: park |
-| T6 | #364 | prove-it/oncall-it venv glob scoping (U364 fix-forward) | real-bug (evals) | t | f | f | f | f | f | lit | — | U364-FF @288707c (re-bound C-1..3, verify scope green + NC replayed, only pre-review leg open); I364ff dispatched |
+| T6 | #364 | prove-it/oncall-it venv glob scoping (U364 fix-forward) | real-bug (evals) | t | t | t | f | f | f | lit | — | PR #397 @2967804 (union over 967d049, badges 1344, baseRef ok; Greptile APPROVED 5205310163, 0 comments); R364ff axes dispatched |
 | — | #235 | H-02 marketplace submissions (pre-parked needs-human) | needs-human | — | — | — | — | — | — | needs-human: external accounts | prior run + issue text |
 
 PHASE: ORIENT → ENUMERATE → TRIAGE done → FREEZE → BUILD wave 1: U385 CLOSED, U388 U389 in fix-round → wave 2: U364
@@ -525,6 +525,13 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   replayed RED/GREEN, 4 FRESH records). Task completed, worker released.
 - I364ff dispatched: integrate-364ff spec (union + gates + PR + bot reconcile).
   task_2cf0696054bf → ctx_e33a714da22c (term_83144519).
+- I364ff worker_done (msg_8a11334c3b08): PR #397 @2967804 (union over 967d049,
+  badges 1344 = 1342 BASE + 2 unit, gates green: 100 OK evals, validate,
+  routing 94/94, full 1344 OK, gitleaks). Greptile APPROVED 5205310163, 0
+  comments — VALID set empty. Body cites pre-union 1341 (left; disclosed at
+  close). Task completed, worker released.
+- R364ff axes dispatched @2967804 (PR body staleness NOT in scope — coordinator
+  owns it).
 - PARALLEL MERGE 09:04 IST: PR #394 (repo-images, other agent) merged as 8d53321
   into BASE; local spec commit rebased clean (no conflicts, validate green) and
   pushed as f5d1a56. T6 integrator unions it in; gates re-run on the union.
