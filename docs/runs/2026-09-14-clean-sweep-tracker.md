@@ -450,3 +450,7 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   the G2 attest-glob refute). spec task_131a041f6f12→ctx_d2b2071653a1
   (term_f562b093), standards task_3bde4cb954cc→ctx_63d8db81ad31 (term_8cffa010),
   test task_0603f08b4e67→ctx_64695ac1b563 (term_5750b7b9). 3 workers out.
+- R364r2 all in @6766265: SPEC 1 Required (harden-it venv glob, R-1 residual) +
+  G2 refutation HOLDS; TEST 3 Required (django table holes, per-check teeth
+  13/55, 2 undemonstrated positive checks; r1 R1 CLOSED); STANDARDS 0 Required.
+  V364r2 spec assembled + dispatched.
