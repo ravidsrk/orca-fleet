@@ -1,0 +1,133 @@
+# U393 negative control — tool=revert (+ one mutant for C-2)
+# code tip a74139bc28e871f08d88a7eeb0f59f67163d7e3e; fork-point base 9a115f7579232f50b913ce84515e3964f8b68b33
+# worktree: git worktree add --detach <scratch>/nc-393 a74139bc28e871f08d88a7eeb0f59f67163d7e3e
+$ git rev-parse HEAD
+a74139bc28e871f08d88a7eeb0f59f67163d7e3e
+$ git merge-base HEAD 9a115f7579232f50b913ce84515e3964f8b68b33
+9a115f7579232f50b913ce84515e3964f8b68b33
+$ git rev-parse d70929699cf16334170581a32dc794f060f86195^
+9a115f7579232f50b913ce84515e3964f8b68b33
+
+## NC-1 tool=revert: production file restored to the FORK-POINT base (not HEAD), new tests kept
+$ git show 9a115f7579232f50b913ce84515e3964f8b68b33:runtime/scripts/evidence-run.py > runtime/scripts/evidence-run.py
+$ git diff --stat HEAD
+ runtime/scripts/evidence-run.py | 29 ++---------------------------
+ 1 file changed, 2 insertions(+), 27 deletions(-)
+$ python3 -m unittest tests.test_evidence_run   # production change REVERTED to 9a115f7579232f50b913ce84515e3964f8b68b33
+...........F................
+======================================================================
+FAIL: test_old_sidecar_writers_and_new_runs_lose_no_records (tests.test_evidence_run.MixedVersionRollout.test_old_sidecar_writers_and_new_runs_lose_no_records)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u393-sidecar-lock/f7ceb851-c827-424a-b3ef-1dc6e71e3473/scratchpad/nc-393/tests/test_evidence_run.py", line 377, in test_old_sidecar_writers_and_new_runs_lose_no_records
+    landed = sorted(r["label"] for r in self.records())
+                                        ~~~~~~~~~~~~^^
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u393-sidecar-lock/f7ceb851-c827-424a-b3ef-1dc6e71e3473/scratchpad/nc-393/tests/test_evidence_run.py", line 64, in records
+    return json.loads((self.repo / manifest).read_text(encoding="utf-8"))["commands"]
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/json/__init__.py", line 352, in loads
+    return _default_decoder.decode(s)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/json/decoder.py", line 348, in decode
+    raise JSONDecodeError("Extra data", s, end)
+json.decoder.JSONDecodeError: Extra data: line 112 column 1 (char 3842)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u393-sidecar-lock/f7ceb851-c827-424a-b3ef-1dc6e71e3473/scratchpad/nc-393/tests/test_evidence_run.py", line 379, in test_old_sidecar_writers_and_new_runs_lose_no_records
+    self.fail(f"records lost: the ledger no longer parses ({err})")
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: records lost: the ledger no longer parses (Extra data: line 112 column 1 (char 3842))
+
+----------------------------------------------------------------------
+Ran 28 tests in 4.114s
+
+FAILED (failures=1)
+exit=1  (REVERTED: expected NONZERO)
+
+## NC-1 restore
+$ git checkout HEAD -- runtime/scripts/evidence-run.py
+$ git status --porcelain --untracked-files=all
+$ python3 -m unittest tests.test_evidence_run   # clean head a74139bc28e871f08d88a7eeb0f59f67163d7e3e
+............................
+----------------------------------------------------------------------
+Ran 28 tests in 4.003s
+
+OK
+exit=0  (CLEAN HEAD: expected ZERO)
+
+## NC-2 tool=mutant: the sidecar is opened WITH O_CREAT ('rb' -> 'ab'), i.e. the fix creates it
+$ sed -i '' 's/suffix + ".lock"), "rb")/suffix + ".lock"), "ab")/' runtime/scripts/evidence-run.py
+$ git diff HEAD
+diff --git a/runtime/scripts/evidence-run.py b/runtime/scripts/evidence-run.py
+index fe8d0ee..97b1606 100755
+--- a/runtime/scripts/evidence-run.py
++++ b/runtime/scripts/evidence-run.py
+@@ -132,7 +132,7 @@ def sidecar_lock(manifest_path):
+     without O_CREAT: this wrapper never creates one (#388), and an absent sidecar is no error.
+     """
+     try:
+-        peer = open(manifest_path.with_suffix(manifest_path.suffix + ".lock"), "rb")
++        peer = open(manifest_path.with_suffix(manifest_path.suffix + ".lock"), "ab")
+     except FileNotFoundError:
+         yield
+         return
+$ python3 -m unittest tests.test_evidence_run   # MUTANT: sidecar created when absent
+............FFF.............
+======================================================================
+FAIL: test_a_run_after_committing_the_manifest_records_the_committed_tree (tests.test_evidence_run.NoLedgerLitter.test_a_run_after_committing_the_manifest_records_the_committed_tree)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u393-sidecar-lock/f7ceb851-c827-424a-b3ef-1dc6e71e3473/scratchpad/nc-393/tests/test_evidence_run.py", line 422, in test_a_run_after_committing_the_manifest_records_the_committed_tree
+    self.assertEqual(self.records(self.MANIFEST)[-1]["wtree"], committed)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'eb316c295574ac949344e4603e6d9771c4207bae' != '17ab4465f4073fb257a95fb4d0c34af4d7771f60'
+- eb316c295574ac949344e4603e6d9771c4207bae
++ 17ab4465f4073fb257a95fb4d0c34af4d7771f60
+
+
+======================================================================
+FAIL: test_no_run_creates_the_rollout_sidecar (tests.test_evidence_run.NoLedgerLitter.test_no_run_creates_the_rollout_sidecar)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u393-sidecar-lock/f7ceb851-c827-424a-b3ef-1dc6e71e3473/scratchpad/nc-393/tests/test_evidence_run.py", line 411, in test_no_run_creates_the_rollout_sidecar
+    self.assertFalse((self.repo / "reports" / "m.json.lock").exists(),
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                     "a wrapped run created the sidecar")
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false : a wrapped run created the sidecar
+
+======================================================================
+FAIL: test_sequential_runs_leave_nothing_beside_the_manifest (tests.test_evidence_run.NoLedgerLitter.test_sequential_runs_leave_nothing_beside_the_manifest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u393-sidecar-lock/f7ceb851-c827-424a-b3ef-1dc6e71e3473/scratchpad/nc-393/tests/test_evidence_run.py", line 398, in test_sequential_runs_leave_nothing_beside_the_manifest
+    self.assertEqual(sorted(p.name for p in (self.repo / "reports").iterdir()), ["m.json"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['m.json', 'm.json.lock'] != ['m.json']
+
+First list contains 1 additional elements.
+First extra element 1:
+'m.json.lock'
+
+- ['m.json', 'm.json.lock']
++ ['m.json']
+
+----------------------------------------------------------------------
+Ran 28 tests in 3.965s
+
+FAILED (failures=3)
+exit=1  (MUTANT: expected NONZERO)
+
+## NC-2 restore
+$ git checkout HEAD -- runtime/scripts/evidence-run.py
+$ git status --porcelain --untracked-files=all
+$ python3 -m unittest tests.test_evidence_run   # clean head a74139bc28e871f08d88a7eeb0f59f67163d7e3e
+............................
+----------------------------------------------------------------------
+Ran 28 tests in 3.936s
+
+OK
+exit=0  (CLEAN HEAD: expected ZERO)
+
