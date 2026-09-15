@@ -968,3 +968,9 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   (76/validate/ruff re-ran). All 3 threads zero-reply, owed
   coordinator-side pre-merge. Released. SPEC + TEST out. T10 → NO-GO
   → r4 fix.
+- R387P-r3 3/3 in: SPEC 0 Required (2 Nits: C-5 witness cites stale r2
+  head/count; C-4 list omits ee988da; 4 FYI). All batch items landed;
+  probe/validate/suite/U385-verify re-ran; Greptile APPROVED confirmed.
+  Released. P-r3 totals: SPEC 0, TEST 0, STANDARDS 0 → V387P-r3 spec
+  frozen (3 verbatim + bot status w/ coordinator-reply exclude note).
+  Dispatched — expect GO → thread replies + merge.
