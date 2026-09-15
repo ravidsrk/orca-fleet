@@ -25,17 +25,17 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | task_id | id | title | CLASS | BUILD_DONE | PR_OPEN | BOT | REVIEWED | MERGED | WT_CLEAN | lighting | park | evidence |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | STAB | — | land 4 PR-review hunks (deny-hook/run_report/verify/HUMAN_ACTIONS) + badge regen | conductor landing, worker-executed | t | n/a | n/a | n/a | t | n/a | lit | — | 1215e09 9651a52 8f7d5ac 917f9fd; pushed origin/BASE fast-forward (egress receipt); 1285 OK + full battery green; NC re-executed 11 failures; rides PR #387 |
-| T1 | #388 | evidence-run lockfile dirties worktree | real-bug | t | t | t | t | t | t | lit | proof-park: needs post-merge independent APPROVE (2nd login) for verify review leg | PR #392 MERGED 8c36b4a @c680ee0 (reviewed==head; R2 GO 5202783703); verify 5/6 (review leg RED: no independent APPROVED — Greptile never re-reviewed; recoverable post-merge); #388 closed w/ evidence + gap note |
-| T2 | #389 | run_report WIP validation accepts incomplete reports | real-bug | t | t | t | t | t | t | lit | proof-park: needs post-merge independent APPROVE (2nd login) for verify review leg | PR #391 MERGED 1bdb20c @51019fb (reviewed==head; R3 GO 5203193997); verify 5/6 (review leg RED: no independent APPROVED — Greptile checks pass, no review object; recoverable post-merge); #389 closed w/ evidence + gap note |
-| T3 | #364 | fixture-backed evals + workspace-state oracle (S1) | real-feature-small | t | t | t | t | t | t | lit | proof-park: needs post-merge independent APPROVE (2nd login) for verify review leg | PR #395 MERGED 1b64781 @8323c98 (reviewed==head; r3 NO-GO recorded, sticking F-1 remediated by T6 PR #397); verify 5/6 (review leg RED, recoverable); #364 closed w/ evidence |
-| T4 | #385 | historical-docs polish, agent slice (status.json + parity test) | real-bug (docs) | t | t | t | t | t | t | lit | — | PR #390 MERGED 32da76e @d6fc2cc (reviewed==head; greptile APPROVED + 3 blind GO); verify.py OK all legs (scope/commands/freshness/NC-exec/review/change-on-base); conductor manifest corrections (head/source) disclosed in-file; worktree retired; #385 closed w/ evidence |
+| T1 | #388 | evidence-run lockfile dirties worktree | real-bug | t | t | t | t | t | t | lit | needs-human: needs post-merge independent APPROVE (2nd login) for verify review leg · ref run_0607bdc681e6 human gate (docs/runs/2026-09-14-clean-sweep-tracker/gate-batch.md G3) | PR #392 MERGED 8c36b4a @c680ee0 (reviewed==head; R2 GO 5202783703); verify 5/6 (review leg RED: no independent APPROVED — Greptile never re-reviewed; recoverable post-merge); #388 closed w/ evidence + gap note; REVIEWED=t is the build-blind GO at reviewed==head (ledger-contract REVIEWED), the independence bar is the disclosed RED review leg carried by the needs-human park (park class legalized by U387P) |
+| T2 | #389 | run_report WIP validation accepts incomplete reports | real-bug | t | t | t | t | t | t | lit | needs-human: needs post-merge independent APPROVE (2nd login) for verify review leg · ref run_0607bdc681e6 human gate (docs/runs/2026-09-14-clean-sweep-tracker/gate-batch.md G3) | PR #391 MERGED 1bdb20c @51019fb (reviewed==head; R3 GO 5203193997); verify 5/6 (review leg RED: no independent APPROVED — Greptile checks pass, no review object; recoverable post-merge); #389 closed w/ evidence + gap note; REVIEWED=t is the build-blind GO at reviewed==head (ledger-contract REVIEWED), the independence bar is the disclosed RED review leg carried by the needs-human park (park class legalized by U387P) |
+| T3 | #364 | fixture-backed evals + workspace-state oracle (S1) | real-feature-small | t | t | t | t | t | t | lit | needs-human: needs post-merge independent APPROVE (2nd login) for verify review leg · ref run_0607bdc681e6 human gate (docs/runs/2026-09-14-clean-sweep-tracker/gate-batch.md G3) | PR #395 MERGED 1b64781 @8323c98 (reviewed==head; r3 NO-GO recorded, sticking F-1 remediated by T6 PR #397); verify 5/6 (review leg RED, recoverable); #364 closed w/ evidence; REVIEWED=t per the maintainer's condition (reply 4011794979: until T6 lands and receives a passing review) — met by T6 GO 5205447863 + verify 6/6 (park class legalized by U387P) |
+| T4 | #385 | historical-docs polish, agent slice (status.json + parity test) | real-bug (docs) | t | t | t | t | t | t | lit | — | PR #390 MERGED 32da76e @d6fc2cc (reviewed==head; greptile APPROVED + 3 blind GO); verify.py OK all legs (scope/commands/freshness/NC-exec/review/change-on-base); conductor manifest corrections (head/source) disclosed in-file; worktree retired; #385 closed w/ evidence; u385 head_tree corrected 022dc9a → 4ee55a0 = d6fc2cc^{tree} by U387P C-2 (Greptile 4008769533; 022dc9a was builder head 134eae1's tree), disclosed in-file |
 | T5 | #386 | sign manifest+inventory, retention backend (S2) | — | — | — | — | — | — | — | — | needs-human: key custody + backend undecided (Q2) | Q2: park |
 | T6 | #364 | prove-it/oncall-it venv glob scoping (U364 fix-forward) | real-bug (evals) | t | t | t | t | t | t | lit | — | PR #397 MERGED 01d954e @2967804 (reviewed==head; GO 5205447863; merged ~7min pre-verdict, disclosed); verify 6/6 incl. Greptile-APPROVED review leg; remediates U364 SPEC-r3 F-1 |
 | — | #235 | H-02 marketplace submissions (pre-parked needs-human) | needs-human | — | — | — | — | — | — | needs-human: external accounts | prior run + issue text |
-| T7 | #393 | mixed-version rollout lock (opportunistic sidecar + test) | real-bug | t | t | t | t | t | t | lit | needs-human: post-merge independent APPROVE (2nd login) for verify review leg (run_0607bdc681e6) | V393-r1 GO 5206137160 @7630815 (F1+P1 close-owed, P2 FIFO accepted low-sev Optional → backlog); MERGED 6d9e46a; verify 5/6 (review RED, parked); #393 CLOSED with evidence |
-| T8 | #387-threads | ledger/process remediation (parks, u385 tree, templates, close doc) | process | t | t | t | f | f | f | lit | — | PR #403 (u387p-process) @7f52bf6: V387P-r2 NO-GO (TA-R1 park-class pin; Greptile APPROVED held); r3 fix live (park pin + ask text + 4 adjacent); 2 thread replies OWED conductor-side pre-merge |
-| T9 | #387-threads | eval-glob holes (T6 regression: app//lib/ miss; empty-glob survey) | real-bug (evals) | t | t | t | t | t | t | lit | needs-human: post-merge independent APPROVE (2nd login) for verify review leg (run_0607bdc681e6) | V387G-r2 GO 5206446623 @318542b (delta: T9 byte-identical, badge 1360 recomputed, 1360 OK); MERGED a769a64e (--match-head-commit + --delete-branch, branch 404); verify 5/6 (review RED, parked); manifest closed (head re-bind 0a3f4ab→318542b, 3 coordinator re-runs: 109/validate/1360); worktree retired |
-| T10 | #387-threads | WIP-curve rows: scope to canonical section (U389 residual) | real-bug | t | t | t | f | f | f | lit | — | PR #401 (u387w-wipsection) @04b780f: V387W-r2 NO-GO (P1 Required fail-open+closed, M7a-d/M8/M9 survivors); r3 fix live (plain-para setext + witnesses + look-alikes); 2 thread replies OWED conductor-side pre-merge |
+| T7 | #393 | mixed-version rollout lock (opportunistic sidecar + test) | real-bug | t | t | t | t | t | t | lit | needs-human: post-merge independent APPROVE (2nd login) for verify review leg (see gate-batch.md G3) | V393-r1 GO 5206137160 @7630815 (F1+P1 close-owed, P2 FIFO accepted low-sev Optional → backlog); MERGED 6d9e46a; verify 5/6 (review RED, parked — see gate-batch.md G3); #393 CLOSED with evidence |
+| T8 | #387-threads | ledger/process remediation (parks, u385 tree, templates, close doc) | process | t | t | t | t | t | t | lit | — | V387P-r3 GO 5207105770 @19be7a1 (0 Required all axes + Greptile APPROVED); 2 thread replies posted pre-merge (4013297581/4013297827); MERGED b9b71df6 (--match-head-commit + --delete-branch, branch 404); verify 6/6 GREEN (review leg via Greptile APPROVED); manifest closed (head re-bind 4142b63→19be7a1, 3 coordinator re-runs: probe/validate/1360); worktree retired |
+| T9 | #387-threads | eval-glob holes (T6 regression: app//lib/ miss; empty-glob survey) | real-bug (evals) | t | t | t | t | t | t | lit | needs-human: post-merge independent APPROVE (2nd login) for verify review leg (see gate-batch.md G3) | V387G-r2 GO 5206446623 @318542b (delta: T9 byte-identical, badge 1360 recomputed, 1360 OK); MERGED a769a64e (--match-head-commit + --delete-branch, branch 404); verify 5/6 (review RED, parked); manifest closed (head re-bind 0a3f4ab→318542b, 3 coordinator re-runs: 109/validate/1360); worktree retired |
+| T10 | #387-threads | WIP-curve rows: scope to canonical section (U389 residual) | real-bug | t | t | t | f | f | f | lit | — | PR #401 (u387w-wipsection) @3ce5825: V387W-r3 NO-GO (4 Required: ordinal setext, indented-para both directions, nested fence, false nnt claim); r4 fix live; 3 thread replies OWED conductor-side pre-merge |
 
 PHASE: ORIENT → ENUMERATE → TRIAGE done → FREEZE → BUILD wave 1: U385 CLOSED, U388 U389 in fix-round → wave 2: U364
 
@@ -916,3 +916,126 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   manifest re-bind, optionals, outside nits, FYIs. Fix spec fix-387w-r3.md
   frozen (step-5 corrected to option-A; prose-drift guard added).
   Dispatched.
+- FIX387P-r3 worker_done (msg_f1f176165e33, released, verified): PR #403
+  @19be7a1 (union 2f8312c over 34c05f1 + 6 commits per worker list,
+  4142b63→19be7a1 manifest-only; origin==PR head, mergeable clean).
+  Gates re-ran coordinator-side @19be7a1: probe 0/4 + validate.
+  Manifest checks (head=4142b63 code tip, C-1..C-5, NC 1/0, 4 cmds
+  bound 8cd7601; 2d fix confirmed — 'nine hand mutants', the 3 '2 hand
+  mutants' hits are '22 hand mutants' substrings). Greptile APPROVED
+  5206957088 @19be7a1, no new findings. NO posts (2 P2 thread replies
+  owed coordinator-side pre-merge). R387P-r3 specs frozen (copies +
+  retarget 19be7a1 + batch-verify + approval-confirm); 3 axes
+  dispatched (spec task_68ebec81432a→ctx_1170f77893e2, test
+  task_739400a96748→ctx_69498e2af4f0, standards task_f0643c0a15ab→
+  ctx_16bf58f0f92e).
+- FIX387W-r3 worker_done (msg_30a9f5bf0311, released, verified): PR #401
+  @3ce5825 (union 0fcb18d over ede9098 badge-only + 4 commits per worker
+  list, 5cde1f1→3ce5825 manifest-only; origin==PR head, mergeable
+  clean). Gates re-ran coordinator-side @3ce5825: 76 OK + validate.
+  Manifest checks (head=5cde1f1 code tip, C-1..C-4, NC 1/0, 3 cmds
+  bound 54322e6; item-5 fix confirmed — nnt[1] carries an explicit
+  round-3 Correction quoting the wrong r2 claim). NEW Greptile P1
+  4013204408 @3ce5825 (container boundaries: '2. item' as container
+  fails open under setext; indented list para after blank fails
+  closed) left noticed-not-touched, needs a spec if VALID. NO posts
+  (P2→d52ff42 + P1→3ce5825 replies owed coordinator-side pre-merge).
+  R387W-r3 specs frozen (copies + retarget 3ce5825 + batch-verify +
+  new-P1 judge); 3 axes dispatched (spec task_cc1038d220e4→ctx_f49904ee9b37,
+  test task_727c9a7df24d→ctx_0eb530efb6f4, standards task_6dca99aac7cb→
+  ctx_c4021ca4e326).
+- R387P-r3 1/3 in: STANDARDS 0 Required (3 Nits + 1 carried Optional + 3
+  FYI). All 6 r3 items landed; '2 hand mutants' hits confirmed '22'
+  substrings (matches coordinator's own finding); probe + validate
+  re-ran; Greptile APPROVED confirmed. Thread replies owed
+  coordinator-side. Released. CORRECTIVE: S3-2 (G3 lacks #402, no G3
+  pointer in T7/T9 cells) ACCEPTED — T9's close omitted the G3 append;
+  G3 now lists #402 U387G 318542b (merged a769a64e) and T7/T9 park
+  cells point at G3. SPEC + TEST out.
+- R387P-r3 2/3 in: TEST 0 Required (2 Nits: cannot-park scoping
+  untested — builder-disclosed; G3 pointer not head-list-checked; 1
+  Optional C-3 file-wide grep; 3 FYI). All 7 batch items checked;
+  probe replays reproduce (4/4 base, 3/4 reverted, GREEN head;
+  executed_ok True); Greptile APPROVED confirmed. Thread replies owed
+  coordinator-side. Released. SPEC out — T8 GO in reach.
+- R387W-r3 1/3 in: STANDARDS 1 Required (S-1: the NEW nnt[1] claim
+  'fails closed... none bind' is FALSE — same class as the 'never
+  bound' error it replaced; list-item/blank/indented-para/--- lead +
+  incomplete wave=2 binds []) + 7 Nit + 1 Optional + 3 FYI. New P1
+  4013204408 VALID both halves (markdown-it-py + checker repro:
+  'Text/2. a/---' + '10)' setext shapes BIND [] fail-open; indented
+  continuation binds [] w/ --- or ===). R3 batch verified landed
+  (76/validate/ruff re-ran). All 3 threads zero-reply, owed
+  coordinator-side pre-merge. Released. SPEC + TEST out. T10 → NO-GO
+  → r4 fix.
+- R387P-r3 3/3 in: SPEC 0 Required (2 Nits: C-5 witness cites stale r2
+  head/count; C-4 list omits ee988da; 4 FYI). All batch items landed;
+  probe/validate/suite/U385-verify re-ran; Greptile APPROVED confirmed.
+  Released. P-r3 totals: SPEC 0, TEST 0, STANDARDS 0 → V387P-r3 spec
+  frozen (3 verbatim + bot status w/ coordinator-reply exclude note).
+  Dispatched — expect GO → thread replies + merge.
+- V387P-r3 GO (msg_e4e10602a105, review 5207105770 COMMENTED @19be7a1,
+  released, verified): 0 Required all axes (SPEC 2N/4FYI, TEST 2N/1O/3FYI,
+  STANDARDS 4N/1O/3FYI) + Greptile APPROVED 5206957088; 2 P2 threads
+  excluded as conductor-side replies owed. Noted G3-#402 corrective
+  already on BASE. REVIEWED=t.
+- T8 THREAD REPLIES (coordinator lane, pre-merge, egress receipted with
+  payload-file hashes 00704bb5/037bf264): 4013297581→4012397534 (fixed
+  in 708b5a8, reattach defined) + 4013297827→4012397546 (fixed in
+  2c029dd, M^2 fail-closed). Both verified posted in-thread.
+- T8 MERGED b9b71df6 (PR #403 --merge; --match-head-commit 19be7a1... +
+  --delete-branch both honored; parents 3483b38+19be7a1, ancestry OK,
+  branch 404; egress branch-tip + branch-delete receipted). CLOSE: 3
+  coordinator re-runs GREEN at reviewed tip (probe 0/4 / validate /
+  1360 OK, detached worktree, tree clean); manifest re-bound
+  4142b63→19be7a1 + pr filled + conductor_note (reviewer_mode was
+  builder-filled, true); verify.py 6/6 GREEN (review leg via Greptile
+  APPROVED 5206957088 — second full-green unit after T6). Contract
+  digest re-derived by coordinator (git show == d2b86806). MERGED=t,
+  WT_CLEAN=t (worktree retired from git + orca registries, dir gone).
+  THIRD WAVE-2 UNIT DONE. T10 r3 axes (spec/test) still live.
+- R387W-r3 2/3 in: SPEC 3 Required (F-1 C-2 fail-open indented-para+---
+  binds [] + nnt[1] 'fails closed' false same-class; F-2 C-1 fail-open
+  'Text/2.x/---' setext binds; F-3 C-1 NEW 4+-space nested fence binds —
+  original #387 bug through a container, undisclosed) + F-4 Nit. P1
+  4013204408 VALID (halves = F-2/F-1). Batch landed; C-3 78 lines; C-4
+  1371 OK re-ran. Reply correction: P1 4012744258's fix is ac9395d,
+  NOT 3ce5825 (manifest-only). Released.
+- R387W-r3 3/3 in: TEST 2 Required (no container-under-plain-text /
+  indented-para-after-blank test; false nnt[1] claim) + 3 Nits
+  (D6/D7/C8/C10/D15 survivors) + P1 VALID both shapes (markdown-it
+  oracle; 36 mutants, 30 killed, NC counts reproduced). Same reply
+  correction (ac9395d + fb6308d). GAP (disclosed): TEST did NOT
+  verify the full suite (capture lost summary line) — coverage
+  stands via SPEC's 1371 re-run. Released. W-r3 totals: SPEC 3,
+  TEST 2, STANDARDS 1 → V387W-r3 spec frozen (3 bodies transcribed
+  from the delivered batch — message store purged before
+  re-extraction, TEST prefix cross-checked vs its transcript; + bot
+  status w/ ac9395d-cite + TEST-gap notes). Dispatched — expect
+  NO-GO → r4 fix.
+- ORCA RESET ~08:00Z: worker-start from term_324d4430 began failing
+  consumer_fenced; run-use from it fails 'no stable pane identity';
+  the message store is purged (check --all → 0, inbox empty). Server-
+  side reset fenced gen 3. RECOVERY: re-adopted from a LIVE retained
+  worker terminal (term_f6780ccc, R387W-r3 TEST — terminal+agent
+  live) → gen 4 OK; V387W-r3 dispatched from the new binding
+  (task_f721170312ff→ctx_42c0eaafd764). Coordinator reads/writes now
+  use term_f6780ccc. Lesson: transcribe worker_done bodies to /tmp
+  at delivery (done for W-r3 verdict spec) — the store is not an
+  archive. No unit state lost (all verdicts/releases confirmed
+  pre-reset; only post-hoc re-extraction broke).
+- V387W-r3 NO-GO (msg_42b6567a48e6, review 5207297740 COMMENTED @3ce5825,
+  released, verified, body archived /tmp): 4 Required, all
+  verdict-reproduced w/ markdown-it-py oracle (1371/validate/ruff
+  re-ran): (1) F-2 ordinal setext fail-open, (2) F-1 indented-para
+  fail-open + false refusal, (3) F-3 4+-space nested fence binds,
+  (4) false nnt[1] claim; + adjacent D6/D7/C8/C10/D15 kills.
+  Excluded: thread replies OWED CONDUCTOR-side (P2→d52ff42, P1→
+  ac9395d NOT 3ce5825, P1-4408 unanswered), F-4 (disclosed,
+  headroom), other nits/FYIs; TEST gap weighed disclosed. CORRECTION
+  to spec provenance: the new binding REPLAYED the SPEC+TEST
+  worker_done bodies untruncated — both verified BYTE-VERBATIM in
+  the dispatched spec (STANDARDS not replayed; transcribed from the
+  complete delivered batch). Fix spec fix-387w-r4.md frozen
+  (markdown-it oracle instruction; suite-capture guard; test-cited
+  claims only). Dispatched.
