@@ -168,3 +168,287 @@ Ran 73 tests in 5.804s
 OK
 exit=0  (CLEAN HEAD: expected ZERO)
 # index tree after restore: b548251257cb34f425cf5dafa0556f23a2e4fcf3  status=[]
+
+# Round 3 (fix-387w-r3), at the code tip 5cde1f16e2d9bdd3e0fdce263dbbd268287df1e6 (tree 54322e6e3f74c858ca299e2c29560b9e40f69ab7), in a throwaway worktree
+# (git worktree add --detach <scratchpad>/nc 5cde1f1). NC-COMMAND: python3 -m unittest tests.test_run_report
+
+## NC-1 (round 1, the spec's control): git checkout 9a115f7 -- runtime/scripts/run_report.py   (checker reverted to base; tests + prose kept)
+# runtime/scripts/run_report.py sha256: 06864de9b0f49640cd8c4ce57939b08012c6959ce42fec1c99e89969140396d9
+FAIL: test_a_backtick_run_with_a_backtick_after_it_opens_no_fence
+AssertionError: False is not true : []
+FAIL: test_a_fence_closes_only_on_a_bare_run_of_its_own_character_at_least_as_long (case='a shorter run')
+AssertionError: Lists differ: ['r.md: WIP-curve row(s) for wave(s) [3] o[49 chars]89)'] != []
+FAIL: test_a_fence_closes_only_on_a_bare_run_of_its_own_character_at_least_as_long (case='the other character')
+AssertionError: Lists differ: ['r.md: WIP-curve row(s) for wave(s) [3] o[49 chars]89)'] != []
+FAIL: test_a_fence_closes_only_on_a_bare_run_of_its_own_character_at_least_as_long (case='an info string')
+AssertionError: Lists differ: ['r.md: WIP-curve row(s) for wave(s) [3] o[49 chars]89)'] != []
+FAIL: test_a_look_alike_heading_does_not_open_the_section (heading='## WIP-curve example (from another run)')
+AssertionError: False is not true : '## WIP-curve example (from another run)' opened the section []
+FAIL: test_a_look_alike_heading_does_not_open_the_section (heading='## Deviations — WIP-curve cap raised')
+AssertionError: False is not true : '## Deviations — WIP-curve cap raised' opened the section []
+FAIL: test_a_look_alike_heading_does_not_open_the_section (heading='## WIP curve')
+AssertionError: False is not true : '## WIP curve' opened the section []
+FAIL: test_a_look_alike_heading_does_not_open_the_section (heading='### WIP \t curve')
+AssertionError: False is not true : '### WIP \t curve' opened the section []
+FAIL: test_a_look_alike_heading_does_not_open_the_section (heading='## WIP-curve protocol rows')
+AssertionError: False is not true : '## WIP-curve protocol rows' opened the section []
+FAIL: test_a_look_alike_heading_does_not_open_the_section (heading='## wip-curve protocol row')
+AssertionError: False is not true : '## wip-curve protocol row' opened the section []
+FAIL: test_a_look_alike_heading_does_not_open_the_section
+AssertionError: Lists differ: ['r.md: WIP-curve row(s) for wave(s) [3] o[49 chars]89)'] != []
+FAIL: test_a_setext_heading_after_the_section_ends_it (underline='---')
+AssertionError: False is not true : bound under a setext heading []
+FAIL: test_a_setext_heading_after_the_section_ends_it (underline='===')
+AssertionError: False is not true : bound under a setext heading []
+FAIL: test_an_incomplete_section_row_is_refused_whatever_lies_outside
+AssertionError: 2 != 1 : ["r.md: WIP-curve row '| wave=2 | builders=2 reviewers=1 | throughput=0.8/h | latency_median=20m | rework=1/2 | freshness=1 |' carries no measured ['latency_max'] — the protocol's row is wave=<k> builders=<n> reviewers=<n> throughput=<v> latency_median=<v> latency_max=<v> rework=<v> freshness=<v> (attention-budget.md, #389)", 'r.md: wave(s) [2] carry more than one WIP-curve row — one row per wave, or the curve double-counts it (#389)']
+FAIL: test_complete_rows_outside_the_wip_curve_section_do_not_bind (case='a fenced example inside the section')
+AssertionError: False is not true : a fenced example inside the section: bound on rows outside the WIP-curve section []
+FAIL: test_complete_rows_outside_the_wip_curve_section_do_not_bind (case='a tilde-fenced example inside the section')
+AssertionError: False is not true : a tilde-fenced example inside the section: bound on rows outside the WIP-curve section []
+FAIL: test_complete_rows_outside_the_wip_curve_section_do_not_bind (case='a deviations table')
+AssertionError: False is not true : a deviations table: bound on rows outside the WIP-curve section []
+FAIL: test_complete_rows_outside_the_wip_curve_section_do_not_bind (case='a fenced example and a deviations table')
+AssertionError: False is not true : a fenced example and a deviations table: bound on rows outside the WIP-curve section []
+FAIL: test_complete_rows_outside_the_wip_curve_section_do_not_bind (case='another section, and no WIP-curve section')
+AssertionError: False is not true : another section, and no WIP-curve section: bound on rows outside the WIP-curve section []
+FAIL: test_complete_rows_outside_the_wip_curve_section_do_not_bind (case='the section heading quoted inside a fence')
+AssertionError: False is not true : the section heading quoted inside a fence: bound on rows outside the WIP-curve section []
+FAIL: test_rows_outside_the_section_do_not_count_against_the_rows_inside_it
+AssertionError: Lists differ: ["r.md: WIP-curve row '| wave=2 | raised m[497 chars]89)'] != []
+FAIL: test_the_protocol_names_the_schema_the_checker_enforces (other='## Deviations and lessons (recorded, not hidden)\n\n| Deviation | Detail |\n|---|---|\n')
+AssertionError: False is not true : []
+FAIL: test_the_protocol_names_the_schema_the_checker_enforces (other='## WIP-curve example\n\n')
+AssertionError: False is not true : []
+Ran 76 tests in 6.081s
+FAILED (failures=23)
+exit=1  (REVERTED: expected NONZERO)
+
+## NC-1 restore: git checkout HEAD -- runtime/scripts/run_report.py
+Ran 76 tests in 5.972s
+OK
+exit=0  (RESTORED: expected ZERO)
+
+## NC-2 (round 1, C-3): git checkout 9a115f7 -- runtime/attention-budget.md   (prose reverted to base; checker + tests kept)
+# runtime/attention-budget.md sha256: 162a4b407e824ac47178ff938d66ea78ac794355e4a46c405d337873790fe4e5
+FAIL: test_the_protocol_names_the_schema_the_checker_enforces
+AssertionError: unexpectedly None : the protocol no longer names the section its rows live in
+Ran 76 tests in 5.887s
+FAILED (failures=1)
+exit=1  (REVERTED: expected NONZERO)
+
+## NC-2 restore: git checkout HEAD -- runtime/attention-budget.md
+Ran 76 tests in 5.858s
+OK
+exit=0  (RESTORED: expected ZERO)
+
+## NC-3 (round 2: F-1, bot P2, setext): git checkout d94c6c1 -- runtime/scripts/run_report.py   (checker back to the round-1 reviewed tip)
+# runtime/scripts/run_report.py sha256: d19568674de775ccdcd4f54efbb50fef67bcf80a4255ec45cd6cd0904adfa131
+FAIL: test_a_backtick_run_with_a_backtick_after_it_opens_no_fence
+AssertionError: Lists differ: ["r.md: a mutating run records one WIP-cur[344 chars]87)"] != []
+FAIL: test_a_look_alike_heading_does_not_open_the_section (heading='## WIP-curve example (from another run)')
+AssertionError: False is not true : '## WIP-curve example (from another run)' opened the section []
+FAIL: test_a_look_alike_heading_does_not_open_the_section (heading='## WIP curve')
+AssertionError: False is not true : '## WIP curve' opened the section []
+FAIL: test_a_look_alike_heading_does_not_open_the_section (heading='### WIP \t curve')
+AssertionError: False is not true : '### WIP \t curve' opened the section []
+FAIL: test_a_look_alike_heading_does_not_open_the_section (heading='## WIP-curve protocol rows')
+AssertionError: False is not true : '## WIP-curve protocol rows' opened the section []
+FAIL: test_a_look_alike_heading_does_not_open_the_section (heading='## wip-curve protocol row')
+AssertionError: False is not true : '## wip-curve protocol row' opened the section []
+FAIL: test_a_look_alike_heading_does_not_open_the_section
+AssertionError: Lists differ: ['r.md: WIP-curve row(s) for wave(s) [3] o[49 chars]89)'] != []
+FAIL: test_a_setext_heading_after_the_section_ends_it (underline='---')
+AssertionError: False is not true : bound under a setext heading []
+FAIL: test_a_setext_heading_after_the_section_ends_it (underline='===')
+AssertionError: False is not true : bound under a setext heading []
+FAIL: test_the_protocol_names_the_schema_the_checker_enforces (other='## WIP-curve example\n\n')
+AssertionError: False is not true : []
+Ran 76 tests in 5.841s
+FAILED (failures=10)
+exit=1  (REVERTED: expected NONZERO)
+
+## NC-3 restore: git checkout HEAD -- runtime/scripts/run_report.py
+Ran 76 tests in 6.096s
+OK
+exit=0  (RESTORED: expected ZERO)
+
+## NC-4 (round 2: R2): the fence-close clause replaced by 'if opener:' (any fence line closes) in the tip's checker
+FAIL: test_a_fence_closes_only_on_a_bare_run_of_its_own_character_at_least_as_long (case='a shorter run')
+AssertionError: Lists differ: ['r.md: RUN: waves=2 but no WIP-curve row [176 chars]89)'] != []
+FAIL: test_a_fence_closes_only_on_a_bare_run_of_its_own_character_at_least_as_long (case='the other character')
+AssertionError: Lists differ: ['r.md: RUN: waves=2 but no WIP-curve row [176 chars]89)'] != []
+FAIL: test_a_fence_closes_only_on_a_bare_run_of_its_own_character_at_least_as_long (case='an info string')
+AssertionError: Lists differ: ['r.md: RUN: waves=2 but no WIP-curve row [176 chars]89)'] != []
+Ran 76 tests in 6.059s
+FAILED (failures=3)
+exit=1  (MUTATED: expected NONZERO)
+
+## NC-4 restore: git checkout HEAD -- runtime/scripts/run_report.py
+Ran 76 tests in 5.978s
+OK
+exit=0  (RESTORED: expected ZERO)
+
+## NC-5 (round 2: F-2 prose): git checkout d94c6c1 -- runtime/attention-budget.md   (prose back to the round-1 reviewed tip)
+# runtime/attention-budget.md sha256: a00105c7a0f7d670658c6bbe689cb740d5451457a21b664baf425394d3b704a6
+FAIL: test_the_protocol_names_the_schema_the_checker_enforces
+AssertionError: unexpectedly None : the protocol no longer names the section its rows live in
+Ran 76 tests in 6.054s
+FAILED (failures=1)
+exit=1  (REVERTED: expected NONZERO)
+
+## NC-5 restore: git checkout HEAD -- runtime/attention-budget.md
+Ran 76 tests in 5.847s
+OK
+exit=0  (RESTORED: expected ZERO)
+
+## NC-6 (round 3: P1 4012744258): git checkout 04b780f -- runtime/scripts/run_report.py   (checker back to the round-2 reviewed tip; tests + prose kept)
+# runtime/scripts/run_report.py sha256: aca58bd5851e96f9d78bb9d63f47462ab33fead8749bddaa91777a50b744a82d
+FAIL: test_a_list_item_or_block_quote_underlined_does_not_end_the_section (case='a list item, ---')
+AssertionError: Lists differ: ["r.md: a mutating run records one WIP-cur[344 chars]87)"] != []
+FAIL: test_a_list_item_or_block_quote_underlined_does_not_end_the_section (case='an ordered list item, ---')
+AssertionError: Lists differ: ["r.md: a mutating run records one WIP-cur[344 chars]87)"] != []
+FAIL: test_a_list_item_or_block_quote_underlined_does_not_end_the_section (case='a block quote, ---')
+AssertionError: Lists differ: ["r.md: a mutating run records one WIP-cur[344 chars]87)"] != []
+FAIL: test_a_list_item_or_block_quote_underlined_does_not_end_the_section (case='a list item, ===')
+AssertionError: Lists differ: ["r.md: a mutating run records one WIP-cur[344 chars]87)"] != []
+FAIL: test_a_list_item_or_block_quote_underlined_does_not_end_the_section (case="a list item's continuation, ---")
+AssertionError: Lists differ: ["r.md: a mutating run records one WIP-cur[344 chars]87)"] != []
+FAIL: test_a_list_item_or_block_quote_underlined_does_not_end_the_section (case="a block quote's continuation, ---")
+AssertionError: Lists differ: ["r.md: a mutating run records one WIP-cur[344 chars]87)"] != []
+FAIL: test_a_row_after_a_list_item_and_a_thematic_break_is_still_read
+AssertionError: False is not true : the row after the break was not read []
+Ran 76 tests in 5.952s
+FAILED (failures=7)
+exit=1  (REVERTED: expected NONZERO)
+
+## NC-6 restore: git checkout HEAD -- runtime/scripts/run_report.py
+Ran 76 tests in 6.103s
+OK
+exit=0  (RESTORED: expected ZERO)
+
+## NC-7a (round 3: TEST R-1, M7a): the paragraph gate drops the fence exclusion ('opener or ')
+FAIL: test_a_thematic_break_after_a_table_row_a_heading_or_a_fence_keeps_the_section_open (case='a closed fence')
+AssertionError: Lists differ: ["r.md: a mutating run records one WIP-cur[344 chars]87)"] != []
+Ran 76 tests in 6.133s
+FAILED (failures=1)
+exit=1  (MUTATED: expected NONZERO)
+
+## NC-7a restore: git checkout HEAD -- runtime/scripts/run_report.py
+Ran 76 tests in 6.072s
+OK
+exit=0  (RESTORED: expected ZERO)
+
+## NC-7b (round 3: TEST R-1, M7b): the paragraph gate drops the heading exclusion ('heading or ')
+FAIL: test_a_thematic_break_after_a_table_row_a_heading_or_a_fence_keeps_the_section_open (case='the section heading')
+AssertionError: Lists differ: ["r.md: a mutating run records one WIP-cur[344 chars]87)"] != []
+Ran 76 tests in 5.905s
+FAILED (failures=1)
+exit=1  (MUTATED: expected NONZERO)
+
+## NC-7b restore: git checkout HEAD -- runtime/scripts/run_report.py
+Ran 76 tests in 5.983s
+OK
+exit=0  (RESTORED: expected ZERO)
+
+## NC-7c (round 3: TEST R-1, M7c): the paragraph gate drops the table-row exclusion
+FAIL: test_a_thematic_break_after_a_table_row_a_heading_or_a_fence_keeps_the_section_open (case='a table row')
+AssertionError: Lists differ: ['r.md: RUN: waves=2 but no WIP-curve row [77 chars]89)'] != []
+Ran 76 tests in 5.840s
+FAILED (failures=1)
+exit=1  (MUTATED: expected NONZERO)
+
+## NC-7c restore: git checkout HEAD -- runtime/scripts/run_report.py
+Ran 76 tests in 6.109s
+OK
+exit=0  (RESTORED: expected ZERO)
+
+## NC-7d (round 3: TEST R-1, M7d): only a blank line ends a paragraph (para = bool(line.strip()) in round 2's form)
+FAIL: test_a_thematic_break_after_a_table_row_a_heading_or_a_fence_keeps_the_section_open (case='a table row')
+AssertionError: Lists differ: ['r.md: RUN: waves=2 but no WIP-curve row [77 chars]89)'] != []
+FAIL: test_a_thematic_break_after_a_table_row_a_heading_or_a_fence_keeps_the_section_open (case='the section heading')
+AssertionError: Lists differ: ["r.md: a mutating run records one WIP-cur[344 chars]87)"] != []
+FAIL: test_a_thematic_break_after_a_table_row_a_heading_or_a_fence_keeps_the_section_open (case='a closed fence')
+AssertionError: Lists differ: ["r.md: a mutating run records one WIP-cur[344 chars]87)"] != []
+Ran 76 tests in 6.499s
+FAILED (failures=3)
+exit=1  (MUTATED: expected NONZERO)
+
+## NC-7d restore: git checkout HEAD -- runtime/scripts/run_report.py
+Ran 76 tests in 6.219s
+OK
+exit=0  (RESTORED: expected ZERO)
+
+## NC-7e (round 3: M7e, EQUIVALENT by design): the paragraph gate drops the setext exclusion; a second underline only re-closes a closed section
+Ran 76 tests in 6.301s
+OK
+exit=0  (EQUIVALENT: expected ZERO)
+
+## NC-7e restore: git checkout HEAD -- runtime/scripts/run_report.py
+Ran 76 tests in 5.865s
+OK
+exit=0  (RESTORED: expected ZERO)
+
+## NC-8 (round 3: N-1, M8): the heading anchor case-folds (re.I)
+FAIL: test_a_look_alike_heading_does_not_open_the_section (heading='## wip-curve protocol row')
+AssertionError: False is not true : '## wip-curve protocol row' opened the section []
+Ran 76 tests in 6.349s
+FAILED (failures=1)
+exit=1  (MUTATED: expected NONZERO)
+
+## NC-8 restore: git checkout HEAD -- runtime/scripts/run_report.py
+Ran 76 tests in 7.034s
+OK
+exit=0  (RESTORED: expected ZERO)
+
+## NC-9 (round 3: N-1, M9): the heading anchor drops the \b after 'row'
+FAIL: test_a_look_alike_heading_does_not_open_the_section (heading='## WIP-curve protocol rows')
+AssertionError: False is not true : '## WIP-curve protocol rows' opened the section []
+Ran 76 tests in 7.514s
+FAILED (failures=1)
+exit=1  (MUTATED: expected NONZERO)
+
+## NC-9 restore: git checkout HEAD -- runtime/scripts/run_report.py
+Ran 76 tests in 7.173s
+OK
+exit=0  (RESTORED: expected ZERO)
+
+## NC-10 (round 3: P1, the container rule): the list-item/block-quote branch removed (every non-blank line is plain again)
+FAIL: test_a_list_item_or_block_quote_underlined_does_not_end_the_section (case='a list item, ---')
+AssertionError: Lists differ: ["r.md: a mutating run records one WIP-cur[344 chars]87)"] != []
+FAIL: test_a_list_item_or_block_quote_underlined_does_not_end_the_section (case='an ordered list item, ---')
+AssertionError: Lists differ: ["r.md: a mutating run records one WIP-cur[344 chars]87)"] != []
+FAIL: test_a_list_item_or_block_quote_underlined_does_not_end_the_section (case='a block quote, ---')
+AssertionError: Lists differ: ["r.md: a mutating run records one WIP-cur[344 chars]87)"] != []
+FAIL: test_a_list_item_or_block_quote_underlined_does_not_end_the_section (case='a list item, ===')
+AssertionError: Lists differ: ["r.md: a mutating run records one WIP-cur[344 chars]87)"] != []
+FAIL: test_a_list_item_or_block_quote_underlined_does_not_end_the_section (case="a list item's continuation, ---")
+AssertionError: Lists differ: ["r.md: a mutating run records one WIP-cur[344 chars]87)"] != []
+FAIL: test_a_list_item_or_block_quote_underlined_does_not_end_the_section (case="a block quote's continuation, ---")
+AssertionError: Lists differ: ["r.md: a mutating run records one WIP-cur[344 chars]87)"] != []
+FAIL: test_a_row_after_a_list_item_and_a_thematic_break_is_still_read
+AssertionError: False is not true : the row after the break was not read []
+Ran 76 tests in 7.422s
+FAILED (failures=7)
+exit=1  (MUTATED: expected NONZERO)
+
+## NC-10 restore: git checkout HEAD -- runtime/scripts/run_report.py
+Ran 76 tests in 7.530s
+OK
+exit=0  (RESTORED: expected ZERO)
+
+## NC-11 (round 3: P1, continuations): a container paragraph's continuation line turns plain ('elif not para:' -> 'else:')
+FAIL: test_a_list_item_or_block_quote_underlined_does_not_end_the_section (case="a list item's continuation, ---")
+AssertionError: Lists differ: ["r.md: a mutating run records one WIP-cur[344 chars]87)"] != []
+FAIL: test_a_list_item_or_block_quote_underlined_does_not_end_the_section (case="a block quote's continuation, ---")
+AssertionError: Lists differ: ["r.md: a mutating run records one WIP-cur[344 chars]87)"] != []
+Ran 76 tests in 7.803s
+FAILED (failures=2)
+exit=1  (MUTATED: expected NONZERO)
+
+## NC-11 restore: git checkout HEAD -- runtime/scripts/run_report.py
+Ran 76 tests in 7.430s
+OK
+exit=0  (RESTORED: expected ZERO)
+
+# index tree after the last restore: 54322e6e3f74c858ca299e2c29560b9e40f69ab7  status=[]

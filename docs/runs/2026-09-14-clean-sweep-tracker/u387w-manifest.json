@@ -3,9 +3,9 @@
   "unit": "U387W",
   "unit_class": "code-change",
   "base_sha": "9a115f7579232f50b913ce84515e3964f8b68b33",
-  "head_sha": "0ba9a750954ce8c389f79ff3657054cb17cae598",
-  "head_tree": "b548251257cb34f425cf5dafa0556f23a2e4fcf3",
-  "head_sha_role": "Round 2 (fix-387w-r2, verdict r1 NO-GO, review 5206177974): head_sha is the round-2 code tip 0ba9a75. On top of round 1 (4c72718 red tests, d657941 fix, c57c248 prose, d31ef62 badges, 6ae6cf0 manifest, d94c6c1 union), round 2 adds b6f5a41 (union merge of origin/review/2026-09-14-holistic-fixes 5a853b2; the badge conflict was regenerated), 1917488 (fixture migration), d886a6c (heading anchor), 15e351a (fence-close tests), d52ff42 (backtick info string), 58dc956 (setext), 9cc9bee (prose) and 0ba9a75 (gen-badges.py outputs). The TASK asks for head_sha to be the pushed tip, including the manifest commit. No commit can carry its own SHA, and commands[] cannot bind the tree of a commit that contains those records. So the manifest commit, which changes only this file and u387w-negctrl.txt, is named as the pushed tip in worker_done, and the conductor re-binds head_sha to it at close (U388/U389 option-A precedent). Every commands[] record was made on a clean tree at head_sha: wtree b5482512 == head_tree.",
+  "head_sha": "5cde1f16e2d9bdd3e0fdce263dbbd268287df1e6",
+  "head_tree": "54322e6e3f74c858ca299e2c29560b9e40f69ab7",
+  "head_sha_role": "Round 3 (fix-387w-r3, verdict r2 NO-GO, review 5206786113): head_sha is the round-3 code tip 5cde1f1. On top of round 2 (pushed tip 04b780f), round 3 adds 0fcb18d (union merge of origin/review/2026-09-14-holistic-fixes ede9098; the badge conflict was regenerated), ac9395d (a list item or block quote underlined does not end the section: PR #401 P1 4012744258), fb6308d (paragraph-gate and heading case/word-boundary witnesses) and 5cde1f1 (gen-badges.py outputs). Option A (DECISIONS.md fix-step5-headsha, ruling msg_b92468884470): a manifest cannot name the SHA of the commit containing it, and commands[] cannot bind that commit's tree. So the manifest commit, which changes only this file and u387w-negctrl.txt, is named as the pushed tip in worker_done, and the conductor re-binds head_sha to it at close. Every commands[] record was made on a clean tree at head_sha: wtree 54322e6e == head_tree.",
   "base_branch": "review/2026-09-14-holistic-fixes",
   "branch": "ravidsrk/u387w-wipsection",
   "contract": {
@@ -24,15 +24,15 @@
       "id": "C-1",
       "text": "_wip_rows collects rows ONLY inside the canonical WIP-curve section (confirm the exact header from TEMPLATE.md + real self-run reports; match ATX headings naming the WIP-curve row table, tolerate whitespace; rows in fenced blocks, deviations tables, or other sections are ignored).",
       "addressed": true,
-      "commit": "d657941; r2: d886a6c, 15e351a, d52ff42, 58dc956",
-      "witness": "tests/test_run_report.py::WipCurveObligation::test_complete_rows_outside_the_wip_curve_section_do_not_bind (6 subtests: backtick fence and tilde fence inside the section, a deviations table, a fence plus a deviations table, another section with no WIP-curve section, the section heading quoted inside a fence; each must be refused '— none found;' naming 'WIP-curve protocol row') and ::test_rows_outside_the_section_do_not_count_against_the_rows_inside_it (a complete section plus a fenced wave-1 example, an unmeasured wave=2 deviation row and a wave=3 row outside it must bind []). The heading literal '## WIP-curve protocol row (mutating self-runs)' is TEMPLATE.md's, asserted present in the template by the test. Guard ::test_the_section_heading_tolerates_its_real_spellings covers the template's heading, the 2026-08-28 ship-it report's real heading, the module's '## WIP curve' fixtures, loose whitespace, a deeper level and a closing sequence. RED at 4c72718 (base checker): six subtests bound with errs == [], and the false-fail test returned the unmeasured-row error. Round 2 (verdict r1 F-1, R2, PR #401 P2 4012319774, setext): only an ATX heading whose text begins 'WIP-curve protocol row' opens the section (d886a6c; ::test_a_look_alike_heading_does_not_open_the_section: '## WIP-curve example (from another run)', '## WIP curve' and '### WIP \\t curve' with complete rows and no canonical section are refused '— none found;', '## Deviations — WIP-curve cap raised' likewise, and a look-alike after the section does not reopen it). The CommonMark fence-close rule is pinned by ::test_a_fence_closes_only_on_a_bare_run_of_its_own_character_at_least_as_long (shorter run, other character, info string; 15e351a). A backtick run with a backtick after it opens no fence (d52ff42; ::test_a_backtick_run_with_a_backtick_after_it_opens_no_fence, the review's '```text`example``' repro). A setext heading after the section ends it (58dc956; ::test_a_setext_heading_after_the_section_ends_it, --- and ===, with a thematic-break guard). RED on the round-1 checker under NC-3 (8 failures) and, for the fence-close test, under NC-4 (the R2 mutant, 3 failures)."
+      "commit": "d657941; r2: d886a6c, 15e351a, d52ff42, 58dc956; r3: ac9395d, fb6308d",
+      "witness": "tests/test_run_report.py::WipCurveObligation::test_complete_rows_outside_the_wip_curve_section_do_not_bind (6 subtests: backtick fence and tilde fence inside the section, a deviations table, a fence plus a deviations table, another section with no WIP-curve section, the section heading quoted inside a fence; each must be refused '— none found;' naming 'WIP-curve protocol row') and ::test_rows_outside_the_section_do_not_count_against_the_rows_inside_it (a complete section plus a fenced wave-1 example, an unmeasured wave=2 deviation row and a wave=3 row outside it must bind []). The heading literal '## WIP-curve protocol row (mutating self-runs)' is TEMPLATE.md's, asserted present in the template by the test. Guard ::test_the_section_heading_tolerates_its_real_spellings covers the template's heading, the 2026-08-28 ship-it report's real heading, the module's '## WIP curve' fixtures, loose whitespace, a deeper level and a closing sequence. RED at 4c72718 (base checker): six subtests bound with errs == [], and the false-fail test returned the unmeasured-row error. Round 2 (verdict r1 F-1, R2, PR #401 P2 4012319774, setext): only an ATX heading whose text begins 'WIP-curve protocol row' opens the section (d886a6c; ::test_a_look_alike_heading_does_not_open_the_section: '## WIP-curve example (from another run)', '## WIP curve' and '### WIP \\t curve' with complete rows and no canonical section are refused '— none found;', '## Deviations — WIP-curve cap raised' likewise, and a look-alike after the section does not reopen it). The CommonMark fence-close rule is pinned by ::test_a_fence_closes_only_on_a_bare_run_of_its_own_character_at_least_as_long (shorter run, other character, info string; 15e351a). A backtick run with a backtick after it opens no fence (d52ff42; ::test_a_backtick_run_with_a_backtick_after_it_opens_no_fence, the review's '```text`example``' repro). A setext heading after the section ends it (58dc956; ::test_a_setext_heading_after_the_section_ends_it, --- and ===, with a thematic-break guard). RED on the round-1 checker under NC-3 (8 failures) and, for the fence-close test, under NC-4 (the R2 mutant, 3 failures). Round 3 (PR #401 P1 4012744258, verdict r2 TEST R-1 / SPEC F-2, N-1): only a plain paragraph line, or its continuation, arms the setext rule (ac9395d). ::test_a_list_item_or_block_quote_underlined_does_not_end_the_section: a list item, an ordered list item and a block quote with ---, a list item with ===, and a list item's and a block quote's lazy continuation with --- all bind complete rows. RED under NC-6 (the round-2 checker, 6 subtests), NC-10 (container branch removed) and NC-11 (continuations turn plain, the two continuation subtests). ::test_a_thematic_break_after_a_table_row_a_heading_or_a_fence_keeps_the_section_open witnesses each paragraph-gate exclusion on its own (fb6308d; RED under NC-7a fence, NC-7b heading, NC-7c table row, NC-7d all three; M7e is equivalent). The look-alike test gains '## WIP-curve protocol rows' and '## wip-curve protocol row' (RED under NC-9 and NC-8)."
     },
     {
       "id": "C-2",
       "text": "per-wave completeness inside the section still enforced: complete section rows bind; incomplete section rows are refused naming the wave; all pre-existing run_report tests stay green (guards).",
       "addressed": true,
-      "commit": "d657941; r2: 1917488",
-      "witness": "tests/test_run_report.py::WipCurveObligation::test_an_incomplete_section_row_is_refused_whatever_lies_outside: an unmeasured wave=2 row in the section is refused with exactly one error naming '| wave=2 |' and \"carries no measured ['latency_max']\", and a complete wave-2 copy in a deviations table neither rescues it nor doubles the wave (RED at base: 2 != 1, the doubled-wave error). All 65 pre-existing run_report tests stay green at head (69 = 65 + 4 new, OK); every existing WIP-curve completeness test (partial rows, missing waves, doubled cells, doubled/stray waves, non-integer waves and settings, placeholders, waves= header checks) runs unchanged under its '## WIP curve' heading. Round 2: 73 = 69 + 4 new tests, all green at 0ba9a75. The 13 '## WIP curve' fixtures moved to the canonical heading (1917488). Each asserts a per-row or per-wave rule that the narrowed heading would otherwise have hidden behind '— none found;'. Bodies and assertions are unchanged."
+      "commit": "d657941; r2: 1917488; r3: ac9395d",
+      "witness": "tests/test_run_report.py::WipCurveObligation::test_an_incomplete_section_row_is_refused_whatever_lies_outside: an unmeasured wave=2 row in the section is refused with exactly one error naming '| wave=2 |' and \"carries no measured ['latency_max']\", and a complete wave-2 copy in a deviations table neither rescues it nor doubles the wave (RED at base: 2 != 1, the doubled-wave error). All 65 pre-existing run_report tests stay green at head (69 = 65 + 4 new, OK); every existing WIP-curve completeness test (partial rows, missing waves, doubled cells, doubled/stray waves, non-integer waves and settings, placeholders, waves= header checks) runs unchanged under its '## WIP curve' heading. Round 2: 73 = 69 + 4 new tests, all green at 0ba9a75. The 13 '## WIP curve' fixtures moved to the canonical heading (1917488). Each asserts a per-row or per-wave rule that the narrowed heading would otherwise have hidden behind '— none found;'. Bodies and assertions are unchanged. Round 3: ::test_a_row_after_a_list_item_and_a_thematic_break_is_still_read is the P1's fail-open repro: '- a note' then '---' before an incomplete, duplicate wave=2 row inside the section. It is refused naming '| wave=2 |' with \"carries no measured ['latency_max']\" and 'wave(s) [2] carry more than one WIP-curve row' (it bound [] on the round-2 checker: NC-6, NC-10). The gate test's incomplete wave=2 rows are refused the same way after a table row, the section heading and a closed fence. 76 = 73 + 3 new tests, all green at 5cde1f1."
     },
     {
       "id": "C-3",
@@ -45,8 +45,8 @@
       "id": "C-4",
       "text": "python3 -m unittest discover -s tests and scripts/validate.py green.",
       "addressed": true,
-      "commit": "0ba9a75",
-      "witness": "commands[] below, recorded by runtime/scripts/evidence-run.py on the clean tree at head_sha 0ba9a75: nc-command 'Ran 73 tests in 5.924s' / 'OK', exit 0; validate 'All 21 missions valid; three-layer separation holds; evals valid.', exit 0; full-suite 'Ran 1359 tests in 280.239s' / 'OK', exit 0."
+      "commit": "5cde1f1",
+      "witness": "commands[] below, recorded by runtime/scripts/evidence-run.py on the clean tree at head_sha 5cde1f1: nc-command 'Ran 76 tests' / 'OK', exit 0; validate 'All 21 missions valid; three-layer separation holds; evals valid.', exit 0; full-suite 'Ran 1371 tests in 254.530s' / 'OK', exit 0."
     }
   ],
   "intent": {
@@ -60,39 +60,39 @@
   "commands": [
     {
       "label": "nc-command",
-      "ts": "2026-09-15T06:40:26Z",
+      "ts": "2026-09-15T07:26:48Z",
       "cmd": "python3 -m unittest tests.test_run_report",
       "cmd_sha256": "b4603da428a8b70130fdb60edeb399d52a044ad679ee7f857305707f53e97f6a",
       "exit": 0,
-      "duration_s": 5.953,
-      "commit": "0ba9a750954ce8c389f79ff3657054cb17cae598",
-      "wtree": "b548251257cb34f425cf5dafa0556f23a2e4fcf3",
+      "duration_s": 6.514,
+      "commit": "5cde1f16e2d9bdd3e0fdce263dbbd268287df1e6",
+      "wtree": "54322e6e3f74c858ca299e2c29560b9e40f69ab7",
       "artifact": null
     },
     {
       "label": "validate",
-      "ts": "2026-09-15T06:35:31Z",
+      "ts": "2026-09-15T07:26:49Z",
       "cmd": "python3 scripts/validate.py",
       "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
       "exit": 0,
-      "duration_s": 0.557,
-      "commit": "0ba9a750954ce8c389f79ff3657054cb17cae598",
-      "wtree": "b548251257cb34f425cf5dafa0556f23a2e4fcf3",
+      "duration_s": 0.556,
+      "commit": "5cde1f16e2d9bdd3e0fdce263dbbd268287df1e6",
+      "wtree": "54322e6e3f74c858ca299e2c29560b9e40f69ab7",
       "artifact": null
     },
     {
       "label": "full-suite",
-      "ts": "2026-09-15T06:40:11Z",
+      "ts": "2026-09-15T07:37:20Z",
       "cmd": "python3 -m unittest discover -s tests",
       "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
       "exit": 0,
-      "duration_s": 280.324,
-      "commit": "0ba9a750954ce8c389f79ff3657054cb17cae598",
-      "wtree": "b548251257cb34f425cf5dafa0556f23a2e4fcf3",
+      "duration_s": 254.604,
+      "commit": "5cde1f16e2d9bdd3e0fdce263dbbd268287df1e6",
+      "wtree": "54322e6e3f74c858ca299e2c29560b9e40f69ab7",
       "artifact": null
     }
   ],
-  "commands_note": "All three records were written by runtime/scripts/evidence-run.py on the clean tree of head_sha 0ba9a75 (git status --porcelain --untracked-files=all empty before and after; wtree b5482512 == head_tree). Each went into its own manifest in the session scratchpad so the tree stayed clean, and they are concatenated here as the recorder wrote them, artifact null on each. The first is the spec's NC-COMMAND. nc-command 'Ran 73 tests in 5.924s' / 'OK', exit 0; validate 'All 21 missions valid; three-layer separation holds; evals valid.', exit 0; full-suite 'Ran 1359 tests in 280.239s' / 'OK', exit 0.",
+  "commands_note": "All three records were written by runtime/scripts/evidence-run.py on the clean tree of head_sha 5cde1f1 (git status --porcelain --untracked-files=all empty before and after; wtree 54322e6e == head_tree). Each went into its own manifest in the session scratchpad so the tree stayed clean, and they are concatenated here as the recorder wrote them, artifact null on each. The first is the spec's NC-COMMAND. nc-command 'Ran 76 tests' / 'OK', exit 0; validate 'All 21 missions valid; three-layer separation holds; evals valid.', exit 0; full-suite 'Ran 1371 tests in 254.530s' / 'OK', exit 0.",
   "red_first": {
     "note": "tdd skill (the single methodology pack): vertical slices at the seam every WipCurveObligation test already uses, run_report._wip_curve_errors; each slice's test was run before its production change. Expected values come from TEMPLATE.md's heading, the 2026-08-28 ship-it report's real heading and the protocol's own words, never from the checker's regex.",
     "slices": [
@@ -146,17 +146,34 @@
           "result": "RED: FAILED (failures=1), 'unexpectedly None : the protocol no longer names the section its rows live in' (the test reads the new sentence). GREEN 73 OK."
         }
       ]
+    },
+    "round_3": {
+      "note": "tdd skill only (the matt pack). Seam unchanged: run_report._wip_curve_errors. The item-1 tests were written and run against the unchanged round-2 checker before any production change. The item-2/3 tests witness code that was already right, so their RED is under the mutants they kill (NC-7a-d, NC-8, NC-9), run in a throwaway worktree. Every commit is green on its own (bisectable).",
+      "slices": [
+        {
+          "slice": "1 (P1 4012744258: list item / block quote + --- or ===, ac9395d)",
+          "result": "RED on the unchanged checker (tests only): FAILED (failures=7). The six binding subtests were refused '— none found', and the fail-open repro bound ('the row after the break was not read []'). GREEN 75 OK with the fix."
+        },
+        {
+          "slice": "2 (TEST R-1 / SPEC F-2 gate exclusions, fb6308d)",
+          "result": "Green on arrival on the fixed checker, by design. RED under M7a (fence case), M7b (heading case), M7c (table-row case) and M7d (all three), both before the fix (round-2 form) and at 5cde1f1 (NC-7a-d). M7e is equivalent and green."
+        },
+        {
+          "slice": "3 (N-1 heading case and word boundary, fb6308d)",
+          "result": "Green on arrival, by design. RED under M8 (re.I: the lowercase subtest) and M9 (no \\b: the plural subtest), both before the fix and at 5cde1f1 (NC-8, NC-9). GREEN 76 OK."
+        }
+      ]
     }
   },
   "negative_control": {
     "tool": "revert",
-    "did": "At head_sha d31ef62 in one throwaway worktree (git worktree add --detach <scratchpad>/base 9a115f7; git checkout --detach d31ef62). NC-1 (the spec's control): git checkout 9a115f7 -- runtime/scripts/run_report.py (checker reverted to base, tests and prose kept), ran the NC-COMMAND, then git checkout HEAD -- runtime/scripts/run_report.py and ran it again. NC-2 (C-3 witness): git checkout 9a115f7 -- runtime/attention-budget.md (prose reverted, checker and tests kept), ran the NC-COMMAND, restored and ran it again. The index tree after restoring equalled head_tree f503c225 with a clean status; then git worktree remove --force. Round 2, at the code tip 0ba9a75, in one throwaway worktree (git worktree add --detach <scratchpad>/nc 0ba9a75): NC-1 and NC-2 re-run as above. NC-3: git checkout d94c6c1 -- runtime/scripts/run_report.py (the round-1 reviewed checker). NC-4: the tip's fence-close clause replaced by 'if opener:' (R2's 'any fence line closes'). NC-5: git checkout d94c6c1 -- runtime/attention-budget.md (the round-1 prose). Each control was followed by git checkout HEAD -- <path> and the NC-COMMAND. The index tree after the last restore equalled head_tree b5482512 with a clean status; then git worktree remove --force.",
+    "did": "At head_sha d31ef62 in one throwaway worktree (git worktree add --detach <scratchpad>/base 9a115f7; git checkout --detach d31ef62). NC-1 (the spec's control): git checkout 9a115f7 -- runtime/scripts/run_report.py (checker reverted to base, tests and prose kept), ran the NC-COMMAND, then git checkout HEAD -- runtime/scripts/run_report.py and ran it again. NC-2 (C-3 witness): git checkout 9a115f7 -- runtime/attention-budget.md (prose reverted, checker and tests kept), ran the NC-COMMAND, restored and ran it again. The index tree after restoring equalled head_tree f503c225 with a clean status; then git worktree remove --force. Round 2, at the code tip 0ba9a75, in one throwaway worktree (git worktree add --detach <scratchpad>/nc 0ba9a75): NC-1 and NC-2 re-run as above. NC-3: git checkout d94c6c1 -- runtime/scripts/run_report.py (the round-1 reviewed checker). NC-4: the tip's fence-close clause replaced by 'if opener:' (R2's 'any fence line closes'). NC-5: git checkout d94c6c1 -- runtime/attention-budget.md (the round-1 prose). Each control was followed by git checkout HEAD -- <path> and the NC-COMMAND. The index tree after the last restore equalled head_tree b5482512 with a clean status; then git worktree remove --force. Round 3, at the code tip 5cde1f1, in one throwaway worktree (git worktree add --detach <scratchpad>/nc 5cde1f1): NC-1 through NC-5 re-run as above (NC-4's mutant re-expressed on the tip's clause). NC-6: git checkout 04b780f -- runtime/scripts/run_report.py (the round-2 reviewed checker). NC-7a-e: the paragraph gate drops its fence, heading, table-row or all three exclusions (a-d), or the setext exclusion (e, equivalent). NC-8: the heading anchor gains re.I. NC-9: it loses the \\b after 'row'. NC-10: the list-item/block-quote branch is removed. NC-11: a container paragraph's continuation turns plain ('elif not para:' -> 'else:'). Each control was followed by git checkout HEAD -- <path> and the NC-COMMAND. The index tree after the last restore equalled head_tree 54322e6e with a clean status; then git worktree remove --force.",
     "paths": [
       "runtime/scripts/run_report.py",
       "runtime/attention-budget.md"
     ],
     "command": "python3 -m unittest tests.test_run_report",
-    "result": "RED. Round 1 at d31ef62: NC-1 failures=9, NC-2 failures=1, both restored to 69 OK. Round 2 at 0ba9a75: NC-1 (checker at base 9a115f7) exit 1, FAILED (failures=21): every section, look-alike, fence, info-string and setext case bound or miscounted, plus the protocol test's two refusal legs. NC-2 (prose at base) exit 1, failures=1. NC-3 (checker at d94c6c1) exit 1, failures=8: the look-alike heading test (3 headings plus the reopening case), the info-string repro, both setext underlines, and the protocol test's '## WIP-curve example' leg. NC-4 (the R2 mutant) exit 1, failures=3: the three fence-close subtests. NC-5 (prose at d94c6c1) exit 1, failures=1: the protocol test. Every restore: 73 OK, exit 0.",
+    "result": "RED. Round 1 at d31ef62: NC-1 failures=9, NC-2 failures=1, both restored to 69 OK. Round 2 at 0ba9a75: NC-1 (checker at base 9a115f7) exit 1, FAILED (failures=21): every section, look-alike, fence, info-string and setext case bound or miscounted, plus the protocol test's two refusal legs. NC-2 (prose at base) exit 1, failures=1. NC-3 (checker at d94c6c1) exit 1, failures=8: the look-alike heading test (3 headings plus the reopening case), the info-string repro, both setext underlines, and the protocol test's '## WIP-curve example' leg. NC-4 (the R2 mutant) exit 1, failures=3: the three fence-close subtests. NC-5 (prose at d94c6c1) exit 1, failures=1: the protocol test. Every restore: 73 OK, exit 0. Round 3 at 5cde1f1: NC-1 failures=23, NC-2 failures=1, NC-3 failures=10, NC-4 failures=3, NC-5 failures=1, NC-6 failures=7 (the six list/block-quote subtests and the fail-open repro), NC-7a failures=1 (closed fence), NC-7b failures=1 (section heading), NC-7c failures=1 (table row), NC-7d failures=3, NC-8 failures=1 (lowercase heading), NC-9 failures=1 (plural heading), NC-10 failures=7, NC-11 failures=2 (the two continuation subtests); each exit 1. NC-7e (equivalent) 76 OK, exit 0. Every restore: 76 OK, exit 0.",
     "exit": 1,
     "clean_head_exit": 0,
     "artifact": "docs/runs/2026-09-14-clean-sweep-tracker/u387w-negctrl.txt",
@@ -192,34 +209,45 @@
       "NC-4: AssertionError: Lists differ: ['r.md: RUN: waves=2 but no WIP-curve row [176 chars]89)'] != []  (x3: shorter run, other character, info string)",
       "NC-4: FAILED (failures=3)  exit=1  (MUTATED: expected NONZERO); restore: OK exit=0",
       "NC-5: AssertionError: unexpectedly None : the protocol no longer names the section its rows live in; FAILED (failures=1)  exit=1",
-      "Ran 73 tests / OK / exit=0  (CLEAN HEAD: expected ZERO); index tree b5482512, status=[]"
+      "Ran 73 tests / OK / exit=0  (CLEAN HEAD: expected ZERO); index tree b5482512, status=[]",
+      "ROUND 3 at 5cde1f1 (tree 54322e6e):",
+      "NC-6: FAIL x6 test_a_list_item_or_block_quote_underlined_does_not_end_the_section (list/ordered/quote ---, list ===, list/quote continuation ---): Lists differ: [\"r.md: a mutating run records one WIP-cur[344 chars]87)\"] != []; FAIL test_a_row_after_a_list_item_and_a_thematic_break_is_still_read; FAILED (failures=7) exit=1",
+      "NC-7a/b/c: FAILED (failures=1) each: closed fence / section heading / table row; NC-7d: FAILED (failures=3); NC-7e: OK exit=0 (EQUIVALENT: expected ZERO)",
+      "NC-8: FAIL heading='## wip-curve protocol row'; NC-9: FAIL heading='## WIP-curve protocol rows'; NC-10: FAILED (failures=7); NC-11: FAILED (failures=2)",
+      "Every restore: Ran 76 tests / OK exit=0; index tree after the last restore 54322e6e status=[]"
     ],
     "not_witnessed_by_the_control": [
       "tests/test_run_report.py::WipCurveObligation::test_the_section_heading_tolerates_its_real_spellings",
       "test_a_setext_heading_after_the_section_ends_it's thematic-break case (a guard: green under every control)"
     ],
-    "not_witnessed_note": "The heading-spellings test passes at base by design: an unscoped checker reads rows under any heading. It guards the C-1 'tolerate whitespace' clause against a scoping rule that is too strict (it goes RED if the heading match requires the full template text or an exact '## ' prefix), and is not a witness of the section rule itself. Round 2: the setext test's thematic-break case (--- after a blank line keeps the section open) guards against closing on any ---. It passes under every control by design. The '## Deviations — WIP-curve cap raised' look-alike subtest is RED only under NC-1 (the unscoped base checker); the round-1 pattern already refused it. The fence-close test passes under NC-3, because the round-1 checker already held the clause. NC-4 is its witness.",
+    "not_witnessed_note": "The heading-spellings test passes at base by design: an unscoped checker reads rows under any heading. It guards the C-1 'tolerate whitespace' clause against a scoping rule that is too strict (it goes RED if the heading match requires the full template text or an exact '## ' prefix), and is not a witness of the section rule itself. Round 2: the setext test's thematic-break case (--- after a blank line keeps the section open) guards against closing on any ---. It passes under every control by design. The '## Deviations — WIP-curve cap raised' look-alike subtest is RED only under NC-1 (the unscoped base checker); the round-1 pattern already refused it. The fence-close test passes under NC-3, because the round-1 checker already held the clause. NC-4 is its witness. Round 3: NC-7e (drop the setext exclusion from the paragraph gate) is equivalent and green by design: the line after an underline can only underline again, and an underline only closes the section, which is already closed. The verdict ruled it equivalent; it is recorded, not chased. The round-2 thematic-break guard (--- after a blank) now has table-row, heading and closed-fence siblings, each with its own witness (NC-7a-d).",
     "failures_round_2": [
       "test_a_look_alike_heading_does_not_open_the_section (NC-1, NC-3)",
       "test_a_fence_closes_only_on_a_bare_run_of_its_own_character_at_least_as_long (NC-1, NC-4)",
       "test_a_backtick_run_with_a_backtick_after_it_opens_no_fence (NC-1, NC-3)",
       "test_a_setext_heading_after_the_section_ends_it (NC-1, NC-3)",
       "test_the_protocol_names_the_schema_the_checker_enforces (NC-1, NC-2, NC-3, NC-5)"
+    ],
+    "failures_round_3": [
+      "test_a_list_item_or_block_quote_underlined_does_not_end_the_section (NC-6, NC-10; NC-11 for the two continuation subtests)",
+      "test_a_row_after_a_list_item_and_a_thematic_break_is_still_read (NC-6, NC-10)",
+      "test_a_thematic_break_after_a_table_row_a_heading_or_a_fence_keeps_the_section_open (NC-7a, NC-7b, NC-7c, NC-7d)",
+      "test_a_look_alike_heading_does_not_open_the_section: '## wip-curve protocol row' (NC-8, NC-1, NC-3), '## WIP-curve protocol rows' (NC-9, NC-1, NC-3)"
     ]
   },
   "binding_audit": {
     "coverage": "C-1..C-4 (4/4)",
-    "method": "Each criterion is quoted and its covering test named. Expected values come from independent sources: TEMPLATE.md's heading literal (asserted present in the template), the 2026-08-28 ship-it report's real heading, the protocol's own sentence and Row cells, and literal refusal substrings. C-1 and C-2 went RED under NC-1 (checker reverted) and C-3 under NC-2 (prose reverted); C-4 is the recorded commands[]. Round 2: the look-alike, info-string and setext tests went RED under NC-3 (the round-1 checker), the fence-close test under NC-4 (R2's mutant), and the protocol test under NC-5 (the round-1 prose). Expected values are the verdict's own headings, the review's own repro line, and literal refusal substrings."
+    "method": "Each criterion is quoted and its covering test named. Expected values come from independent sources: TEMPLATE.md's heading literal (asserted present in the template), the 2026-08-28 ship-it report's real heading, the protocol's own sentence and Row cells, and literal refusal substrings. C-1 and C-2 went RED under NC-1 (checker reverted) and C-3 under NC-2 (prose reverted); C-4 is the recorded commands[]. Round 2: the look-alike, info-string and setext tests went RED under NC-3 (the round-1 checker), the fence-close test under NC-4 (R2's mutant), and the protocol test under NC-5 (the round-1 prose). Expected values are the verdict's own headings, the review's own repro line, and literal refusal substrings. Round 3: the list/block-quote and fail-open tests went RED under NC-6 (the round-2 checker), NC-10 and NC-11; the gate-exclusion test under NC-7a-d; the new look-alike subtests under NC-8/NC-9. Expected values are the P1's own repro shape and literal refusal substrings."
   },
   "artifacts": [
     {
       "path": "docs/runs/2026-09-14-clean-sweep-tracker/u387w-negctrl.txt",
-      "sha256": "ecba7a2360db33a3bed8d577b7afa2e157b0d6eb6f8b3a70f8005bc7c85b9fe8"
+      "sha256": "199c39a706eec082cbbab24da4da21a4ef4611eb3523b82663cee8b33775d206"
     }
   ],
   "noticed_not_touched": [
     "Activation-load headroom: the #387 sentence adds 56 tokens to every mission's transitive load; clean-sweep measures 33,803 of the 34,000 MISSION_MAX_LOAD_TOKENS cap (197 headroom, 47 tokens below the next rounding boundary at 33,850). Any other unit that grows attention-budget.md or clean-sweep's mandatory docs moves these callouts again; the integrator's gen-badges re-run on the union covers it (U389 note).",
-    "Setext headings (a paragraph line underlined with === or ---) now END the section (round 2) but never OPEN it: the spec and the prose name ATX, and TEMPLATE.md and every report under docs/runs/ use ATX. The paragraph test is line-level, so a list item or block quote line followed by --- (CommonMark: a thematic break) also ends the section. That fails closed: rows after it are refused, never bound.",
+    "Setext headings (a paragraph line underlined with === or ---) END the section (round 2) but never OPEN it: the spec and the prose name ATX, and TEMPLATE.md and every report under docs/runs/ use ATX. Correction (round 3): the round-2 entry here said a list item or block quote line followed by --- 'fails closed: rows after it are refused, never bound'. That was wrong. The round-2 checker refused a complete section ('— none found'), and it also bound []: an incomplete, duplicate wave=2 row after '- a note' / '---' was never read (PR #401 P1 4012744258, reproduced by the verdict). Now (ac9395d), only a plain paragraph line or its continuation arms the setext rule. A list item or block quote line and its lazy continuation never end the section, and the fail-open repro is refused naming wave 2. The rule is still line-level, not a CommonMark parse, and two shapes remain. First, a list item's indented paragraph after a blank line ('- a', '', '  b', '---') is read as plain, so its --- ends the section. That fails closed: rows after it are refused, and none bind. Second, an ordered item not numbered 1 directly under a paragraph line ('Text', '2. a', '---') is read as a container, though CommonMark makes it paragraph text under a setext heading. The section then stays open under that heading. Neither shape is in the batch.",
     "Indented (four-space) code blocks are not treated as code: a pipe line there still reads if it sits inside the section. This is unchanged from base, and a WIP row is a table line, which an indented block is not.",
     "Every WIP-curve section in a report is read; a report with two sections gets one row per wave across both, so a wave duplicated between them trips the doubled-wave check (one row per wave, by design).",
     "Round 1: the integration branch moved during the run and the branch was not rebased. Round 2: step 1 merged origin/review/2026-09-14-holistic-fixes 5a853b2 (b6f5a41). Only assets/badges/tests.json conflicted, and it was regenerated (1355). base_sha stays the fork point 9a115f7, which NC-1 reverts to.",
@@ -318,8 +346,28 @@
       "subject": "chore(badges): regenerate gen-badges.py outputs, tests 1355 -> 1359, activation loads (#387)"
     },
     {
-      "sha": "(this commit; named in worker_done)",
+      "sha": "04b780f64344a64c1cc6beea89c9c44f83d8b8fe",
       "subject": "chore(run): U387W round-2 evidence manifest + extended negative-control transcript (#387)"
+    },
+    {
+      "sha": "0fcb18d",
+      "subject": "Merge origin/review/2026-09-14-holistic-fixes (ede9098) into u387w-wipsection"
+    },
+    {
+      "sha": "ac9395d",
+      "subject": "fix(run-report): a list item or block quote underlined does not end the WIP-curve section (#387)"
+    },
+    {
+      "sha": "fb6308d",
+      "subject": "test(run-report): witness the paragraph-gate exclusions and the heading's case and word boundary (#387)"
+    },
+    {
+      "sha": "5cde1f1",
+      "subject": "chore(badges): regenerate gen-badges.py outputs, tests 1368 -> 1371 (#387)"
+    },
+    {
+      "sha": "(this commit; named in worker_done)",
+      "subject": "chore(run): U387W round-3 evidence manifest + extended negative-control transcript (#387)"
     }
   ],
   "decisions": [
@@ -333,18 +381,34 @@
     "2026-09-15 worker (round 2, step 1): merged origin/review/2026-09-14-holistic-fixes 5a853b2 into the branch (b6f5a41). The only conflict was assets/badges/tests.json (1353 vs 1351), resolved by re-running scripts/gen-badges.py (1355) as the TASK's mechanical rule allows.",
     "2026-09-15 worker (round 2): the heading anchor no longer folds case. The protocol names one spelling and the prose names exactly it. Loose whitespace between the words, any ATX level and any suffix are still tolerated: the template's and the 2026-08-28 report's suffixes differ.",
     "2026-09-15 worker (round 2): every commit is green on its own. The RED for each slice is recorded in red_first.round_2 and in NC-3/NC-4/NC-5, not in a red-tests commit.",
-    "2026-09-15 worker (round 2): the TASK names the pushed tip as head_sha. That tip is the manifest commit, which cannot carry its own SHA, and commands[] cannot bind its tree. head_sha is the code tip 0ba9a75, and the pushed tip is named in worker_done for the conductor's re-bind (see head_sha_role)."
+    "2026-09-15 worker (round 2): the TASK names the pushed tip as head_sha. That tip is the manifest commit, which cannot carry its own SHA, and commands[] cannot bind its tree. head_sha is the code tip 0ba9a75, and the pushed tip is named in worker_done for the conductor's re-bind (see head_sha_role).",
+    "2026-09-15 worker (round 3, step 1): merged origin/review/2026-09-14-holistic-fixes ede9098 into the branch (0fcb18d). The only conflict was assets/badges/tests.json (1359 vs 1360), resolved by re-running scripts/gen-badges.py (1368) as the TASK's mechanical rule allows.",
+    "2026-09-15 worker (round 3): head_sha is the code tip 5cde1f1, per option A (DECISIONS.md fix-step5-headsha, ruling msg_b92468884470). The manifest-commit tip is named in worker_done.",
+    "2026-09-15 worker (round 3): no prose drift, so attention-budget.md is untouched. Line 60 reads the rows 'up to the next heading'. A setext heading needs a plain paragraph, and a list item's or block quote's --- is a thematic break, not a heading, so the plain-paragraph rule is what the sentence already says.",
+    "2026-09-15 worker (round 3): intent.why's 'whitespace and case tolerant' is round-1 wording, left unchanged as the TASK requires. Case tolerance was dropped in round 2 (d886a6c), and round 3 pins that with the lowercase look-alike (NC-8).",
+    "2026-09-15 worker (round 3): the item-2 and item-3 tests pass on the pre-fix checker by design, because that code was already right. Their RED is under the mutants they kill (NC-7a-d, NC-8, NC-9), recorded before the fix and again at 5cde1f1. M7e is equivalent: it is recorded green and not chased."
   ],
-  "round": 2,
+  "round": 3,
   "verdict_addressed": {
-    "review": "5206177974 (round 1, NO-GO, reviewed d94c6c1)",
+    "review": "5206786113 (round 2, NO-GO, reviewed 04b780f)",
     "items": {
-      "F-1 (R1)": "d886a6c + 1917488",
-      "R2": "15e351a",
-      "bot P2 4012319774": "d52ff42",
-      "setext (verdict adjacent)": "58dc956",
-      "F-2/S2 prose": "9cc9bee"
+      "1 P1 4012744258 (list/block-quote paragraph arms setext; fail-open repro)": "ac9395d",
+      "2 TEST R-1 = SPEC F-2 (paragraph-gate witnesses, M7a-d)": "fb6308d",
+      "3 N-1 (M8 case-fold, M9 word boundary look-alikes)": "fb6308d",
+      "4 run_report.py para comment": "ac9395d",
+      "5 manifest 'never bound' claim": "this commit (noticed_not_touched[1])"
     },
-    "not_in_batch": "S1/S3/M2/M15/Optionals/Nits/FYI untouched; S4 is conductor-side; no thread replies posted (the coordinator answers bot P2 4012319774)."
+    "not_in_batch": "SPEC/TEST/STANDARDS Nits outside the touched lines, accepted Optionals and FYIs are untouched. No thread replies were posted: the coordinator answers bot P2 4012319774 (fixed in d52ff42) and P1 4012744258 at the fix close.",
+    "previous": {
+      "review": "5206177974 (round 1, NO-GO, reviewed d94c6c1)",
+      "items": {
+        "F-1 (R1)": "d886a6c + 1917488",
+        "R2": "15e351a",
+        "bot P2 4012319774": "d52ff42",
+        "setext (verdict adjacent)": "58dc956",
+        "F-2/S2 prose": "9cc9bee"
+      },
+      "not_in_batch": "S1/S3/M2/M15/Optionals/Nits/FYI untouched; S4 is conductor-side; no thread replies posted (the coordinator answers bot P2 4012319774)."
+    }
   }
 }
