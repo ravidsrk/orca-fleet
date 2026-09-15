@@ -625,3 +625,14 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   source@9a115f7 digest 2809338b, base 9a115f7), T8 ctx_ce5a5a405b35, T9
   ctx_05af8bbabdf9, T10 ctx_7aa6e7cadaec (same tasks, --retry-of). Monitor:
   claude plan-mode/approval gates per kimi ledger (RM dialogs, prompt gates).
+- RULING T8 (msg_412e94ff50af, all 3 sustained): NC = committed u387p-probe.sh
+  (6th hot file, coordinator amendment) + revert over C-1..C-3 paths; C-4 via
+  hand second_witness (U385 shape) + not_witnessed note (U388 shape); C-1 probe
+  scoped to park cells (whole-file grep unreachable). B/C declined. Logged
+  DECISIONS.md t8-nc-reshape.
+- RULING T10 (msg_d99177c4f590): regen-loads (option A) — keep C-3 prose,
+  mechanical badge commit incl. 9 guide callouts + ARCH table + tests.json
+  (verbatim, numbers-only; hot-list amendment for generated outputs). B
+  declined (don't trim normative prose to game a counter; 197 cap headroom).
+  Logged DECISIONS.md t10-regen-loads. T7 fix+badge committed (ccca9a4,
+  a74139b); T10 editing (uncommitted); T8/T9 heartbeating, no commits yet.
