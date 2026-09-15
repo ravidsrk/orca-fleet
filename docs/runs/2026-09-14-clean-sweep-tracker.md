@@ -691,6 +691,15 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   was always the green one); spec expectation wrong, evidence recorded right.
   Noted: stray '-- true' record dropped (TEST axis watches). Integrator spec
   taskspecs/integrate-387p.md frozen (with ledger-union warning).
+- I387P dispatched: task_8873ef8a563b → ctx_09d69c461e37 (claude, unit
+  worktree). ALL 4 BUILDS DONE (T7/T8/T9/T10 BUILD_DONE=t).
+- R393 SPEC in (msg_c4c050af4859, released): C-1..C-3 met at source + reran
+  1351 OK @7630815; F1 Required = C-4 evidence binds a74139b not head
+  (coordinator-owned close re-bind, per its own text); F5 Nit (len==248
+  self-check), F2/F3/F4/F6 FYI. All 3 axes: 1 Required total (F1, close-owed).
+- V393-r1 spec frozen (verdict-393-r1.md): 3 axis reports pasted verbatim +
+  held bot P1 (union-staleness, conductor-side record item per exclusion
+  clause) + P2 (FIFO, in-scope). Dispatched (fresh terminal, unit worktree).
 - R393 2/3 in: STANDARDS 0 Required (4 Nit incl. stale 'Not a sibling
   lockfile' docstring S2, FIFO S3 dupes Greptile, untested unopenable-branch
   S4) + TEST 0 Required (51 mutation runs: NC-1 10/10 RED, NC-2 exact-3,
