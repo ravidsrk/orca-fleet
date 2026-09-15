@@ -1013,3 +1013,14 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   re-extraction, TEST prefix cross-checked vs its transcript; + bot
   status w/ ac9395d-cite + TEST-gap notes). Dispatched — expect
   NO-GO → r4 fix.
+- ORCA RESET ~08:00Z: worker-start from term_324d4430 began failing
+  consumer_fenced; run-use from it fails 'no stable pane identity';
+  the message store is purged (check --all → 0, inbox empty). Server-
+  side reset fenced gen 3. RECOVERY: re-adopted from a LIVE retained
+  worker terminal (term_f6780ccc, R387W-r3 TEST — terminal+agent
+  live) → gen 4 OK; V387W-r3 dispatched from the new binding
+  (task_f721170312ff→ctx_42c0eaafd764). Coordinator reads/writes now
+  use term_f6780ccc. Lesson: transcribe worker_done bodies to /tmp
+  at delivery (done for W-r3 verdict spec) — the store is not an
+  archive. No unit state lost (all verdicts/releases confirmed
+  pre-reset; only post-hoc re-extraction broke).
