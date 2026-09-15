@@ -7,6 +7,7 @@ doubt, the policy file is the source of truth.
 
 ## Contents
 
+- [Glossary](#glossary)
 - [A fleet is an outcome, not an ingredient](#a-fleet-is-an-outcome-not-an-ingredient)
 - [Coordinators and workers](#coordinators-and-workers)
 - [The evidence manifest](#the-evidence-manifest)
@@ -22,6 +23,63 @@ doubt, the policy file is the source of truth.
 - [Proof status](#proof-status)
 - [Autonomy](#autonomy)
 - [The mission-identity test](#the-mission-identity-test)
+
+## Glossary
+
+The words the rest of this page, the README and the mission guides use without stopping to
+define them. Each is one line here and explained in full in its own section or runtime policy.
+
+- **BASE** — the integration branch a fleet merges into, never the default branch; promotion from
+  BASE to the default branch is a one-way human gate.
+- **Coordinator** — the terminal you started. It decomposes the goal, dispatches, verifies and keeps
+  the ledger; it never writes code.
+- **Worker** — a fresh agent in its own git worktree and terminal, dispatched with a task spec and
+  torn down after its unit. **Builders** write the change, **build-blind reviewers** review code
+  they did not write and were not told the conclusion about, **integrators** open PRs against BASE,
+  and one **conductor** owns every merge.
+- **Ledger** — the coordinator's durable memory: one row per unit with its exit flags, lighting,
+  PR, reviewed SHA, merge SHA and evidence pointer. Git is truth; the ledger is its cache.
+- **T0** — the timestamp in the ledger header at which the run's denominator was enumerated.
+- **Denominator** — the frozen set a run must account for: acceptance criteria, findings, journeys,
+  paths. A worker cannot shrink it; the verifier re-derives it from the frozen source.
+- **Evidence manifest** — the SHA-bound JSON a worker emits with `worker_done`, the definition of
+  done as data. **`worker_done`** is the Orca message that says a unit is finished: a claim to
+  verify, never a fact to record.
+- **Verifier** — a session other than the one that did the work (`runtime/scripts/verify.py`,
+  or a fresh verifier worker) that re-derives the manifest's claims from git, GitHub and the
+  frozen contract.
+- **Negative control** — proof that the proof can fail: revert or mutate the change and watch the
+  covering test go red. A *revert* control restores the changed paths; a *hand* control applies a
+  quoted diff. The verifier executes one only when the coordinator passes `--execute-nc`.
+- **Mechanical / taste / one-way** — the three decision classes: auto-resolved with an audit line;
+  recommendation taken and batched for your later veto; yours, always, never defaulted on timeout.
+  The audit lines land in the target repo's `docs/DECISIONS.md`, one per resolved gate.
+- **Lane 0 / A / B** — how a gate on hard-to-reverse work resolves: refuse (0); proceed as
+  reversible work such as testnet or fixtures (A); draft both options for a human to pick (B).
+- **Lit / dark-eligible** — `lit`, the default, means a human or build-blind reviewer reads the
+  change before it lands; `dark-eligible` is opt-in for Lane A work with an unfakeable oracle.
+- **`PROFILE=ro` / `rw` / `danger`** — worker privilege: read-only, workspace-write, or bypass
+  approvals inside a disposable sandbox only.
+- **`reviewed_sha`** — the commit a review approved. A merge requires it to equal the head; a
+  rebase, a bot autofix or a late push voids the review.
+- **Merge train / hot-file chain** — one conductor drains merge-ready PRs in arrival order; PRs
+  that touch the same mount-point file (a route registry, DI wiring, a migration) merge as a chain.
+- **Attention budget / WIP** — concurrent builders capped to what review can absorb (default ≤3),
+  counted as live panes rather than tasks. A mutating run's report records the cap it ran at and
+  what it measured, one row per dispatch wave, so the caps can graduate from asserted to measured.
+- **Skeptic triage** — reproduce or refute every finding before anyone builds.
+- **Tracer-bullet slice** — a narrow but complete path through every layer a change touches, sized
+  for one fresh context window and demoable alone.
+- **Terminal state** — the named end state a mission stops at. A *degraded* terminal
+  (`-WITH-PARKED`, `-WITH-OPEN-ITEMS`, `NO-GO`, `INCONCLUSIVE`, …) is never reported as the clean one.
+- **`SUSPECT`** — a unit Orca's provenance calls completed but git disagrees with; treated as failed.
+- **`DRY`** — clean-sweep's clean terminal: a full re-enumeration finds nothing open.
+- **Playbook / runtime policy / pack** — a callable phase protocol a mission injects into a worker's
+  task; an Orca mechanics policy under `runtime/`; an upstream skill collection
+  (mattpocock/skills, garrytan/gstack, addyosmani/agent-skills) a worker draws its method from —
+  exactly one pack per worker.
+- **Proof tier** — `doctrine-only`, `self-run` or `external-run`; advancing needs a run report that
+  binds at a named commit.
 
 ## A fleet is an outcome, not an ingredient
 
@@ -40,7 +98,11 @@ catalog is built around three things:
 ## Coordinators and workers
 
 <p align="center">
-  <img src="../assets/diagrams/fleet-topology.jpg" alt="Fleet topology: a human answers one-way gates; the coordinator holds the ledger and verifier; builder, reviewer, and conductor workers receive dispatches and return evidence" width="820">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../assets/diagrams/fleet-topology.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../assets/diagrams/fleet-topology-light.jpg">
+    <img src="../assets/diagrams/fleet-topology-light.jpg" alt="Fleet topology: a human answers one-way gates; the coordinator holds the ledger and verifier; builder, reviewer, and conductor workers receive dispatches and return evidence" width="820">
+  </picture>
 </p>
 
 Every mission runs the same topology on the Orca runtime:
@@ -131,7 +193,11 @@ Why this and not "read the transcript"? Three reasons, all learned the hard way:
 ## Independent verification
 
 <p align="center">
-  <img src="../assets/diagrams/evidence-protocol.jpg" alt="Evidence protocol: a worker's claim travels as a manifest to a fresh-session verifier, which checks git, tests, and the deploy target before marking the unit verified — or re-dispatches it" width="820">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../assets/diagrams/evidence-protocol.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../assets/diagrams/evidence-protocol-light.jpg">
+    <img src="../assets/diagrams/evidence-protocol-light.jpg" alt="Evidence protocol: a worker's claim travels as a manifest to a fresh-session verifier, which checks git, tests, and the deploy target before marking the unit verified — or re-dispatches it" width="820">
+  </picture>
 </p>
 
 The manifest is a claim. A **different session** than the one that produced the work checks it
@@ -148,6 +214,14 @@ denominator is the most dangerous false "done":
 | the change is real on base  | a symbol from the unit is greppable on `origin/<BASE>`           |
 | deployed == reviewed *(coordinator)* | (ship only) deployed revision equals the released SHA            |
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../assets/diagrams/negative-control.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../assets/diagrams/negative-control-light.jpg">
+    <img src="../assets/diagrams/negative-control-light.jpg" alt="Head-to-head on the same gamed manifest that reports only AC-1 of a two-criterion spec: a self-scoring gate grades the worker's own list and returns GREEN; orca-fleet's verifier re-derives the criterion set from the frozen spec in a fresh session and returns RED, AC-2 not addressed; and for every fix the negative control reverts it and the proof must go RED" width="820">
+  </picture>
+</p>
+
 A unit that fails any required check is not done — it returns to its state machine. When Orca's
 provenance says "completed" but git disagrees, the unit is marked SUSPECT and treated as failed.
 Git is truth; the ledger is its cache.
@@ -162,7 +236,11 @@ close, a sha256 inventory of every referenced artifact makes the evidence tamper
 ## Decision gates: mechanical, taste, one-way
 
 <p align="center">
-  <img src="../assets/diagrams/decision-gates.jpg" alt="Three decision lanes: mechanical flows straight through automatically, taste batches cards and continues, one-way stops at a vault door only a human can open" width="820">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../assets/diagrams/decision-gates.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../assets/diagrams/decision-gates-light.jpg">
+    <img src="../assets/diagrams/decision-gates-light.jpg" alt="Three decision lanes: mechanical flows straight through automatically, taste batches cards and continues, one-way stops at a vault door only a human can open" width="820">
+  </picture>
 </p>
 
 Fleets hit hundreds of decisions per run. Sending every one to a human makes autonomy pointless;
@@ -195,7 +273,11 @@ questions get parked and the run continues elsewhere or winds down.
 ## The merge train
 
 <p align="center">
-  <img src="../assets/diagrams/merge-train.jpg" alt="A train of PR cars on a single track entering the BASE station; the conductor inspects the lead car; one stale car is diverted to a dashed re-review side track" width="820">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../assets/diagrams/merge-train.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../assets/diagrams/merge-train-light.jpg">
+    <img src="../assets/diagrams/merge-train-light.jpg" alt="A train of PR cars on a single track entering the BASE station; the conductor inspects the lead car; one stale car is diverted to a dashed re-review side track" width="820">
+  </picture>
 </p>
 
 Parallel workers opening PRs onto one integration BASE invites two failure modes: merge races
@@ -215,7 +297,11 @@ cure is boring and absolute ([`runtime/merge-serialization.md`](../runtime/merge
 ## Attention budget (orchestration tax)
 
 <p align="center">
-  <img src="../assets/diagrams/attention-budget.jpg" alt="Many worker terminals funnel toward a narrow neck where one human reviews; only three lanes pass the WIP gate while the rest queue; a single calm outflow is labeled merged" width="820">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../assets/diagrams/attention-budget.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../assets/diagrams/attention-budget-light.jpg">
+    <img src="../assets/diagrams/attention-budget-light.jpg" alt="Many worker terminals funnel toward a narrow neck where one human reviews; only three lanes pass the WIP gate while the rest queue; a single calm outflow is labeled merged" width="820">
+  </picture>
 </p>
 
 Starting agents is cheap; closing the loop is not. Your judgment is the serial bottleneck, so
@@ -229,7 +315,11 @@ fleet from burying you under unreviewed diffs.
 ## Reviewed-SHA freshness
 
 <p align="center">
-  <img src="../assets/diagrams/reviewed-sha-freshness.jpg" alt="A commit carries a glowing reviewed seal; the branch advances one commit and the seal over the new head turns dashed red and void; a loop arrow returns for a fresh review" width="820">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../assets/diagrams/reviewed-sha-freshness.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../assets/diagrams/reviewed-sha-freshness-light.jpg">
+    <img src="../assets/diagrams/reviewed-sha-freshness-light.jpg" alt="A commit carries a glowing reviewed seal; the branch advances one commit and the seal over the new head turns dashed red and void; a loop arrow returns for a fresh review" width="820">
+  </picture>
 </p>
 
 The single most common way a fleet ships unreviewed code: a branch head that moved *after*
@@ -242,7 +332,11 @@ restores freshness.
 ## Liveness, crash, resume
 
 <p align="center">
-  <img src="../assets/diagrams/liveness-resume.jpg" alt="A heartbeat line flatlines at a red X over a crashed terminal; below, the ledger document seeds a fresh coordinator terminal that reconnects to its workers" width="820">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../assets/diagrams/liveness-resume.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../assets/diagrams/liveness-resume-light.jpg">
+    <img src="../assets/diagrams/liveness-resume-light.jpg" alt="A heartbeat line flatlines at a red X over a crashed terminal; below, the ledger document seeds a fresh coordinator terminal that reconnects to its workers" width="820">
+  </picture>
 </p>
 
 Long runs die in boring ways: a worker hangs, a terminal is killed, the coordinator's machine
@@ -263,7 +357,11 @@ sleeps. The runtime tracks heartbeats and provenance in SQLite; the fleet suppli
 ## Sandbox profiles
 
 <p align="center">
-  <img src="../assets/diagrams/sandbox-profiles.jpg" alt="Three containment vessels: an open glass dome labeled ro, a workbench box labeled rw, and a sealed chamber labeled danger on a detached disposable platform, pushing a git branch to safety before teardown" width="820">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../assets/diagrams/sandbox-profiles.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../assets/diagrams/sandbox-profiles-light.jpg">
+    <img src="../assets/diagrams/sandbox-profiles-light.jpg" alt="Three containment vessels: an open glass dome labeled ro, a workbench box labeled rw, and a sealed chamber labeled danger on a detached disposable platform, pushing a git branch to safety before teardown" width="820">
+  </picture>
 </p>
 
 Workers get the least privilege that does their job
@@ -283,7 +381,11 @@ sandbox died before the push is a failed lane, not a shrug.
 ## One router per worker
 
 <p align="center">
-  <img src="../assets/diagrams/one-router-per-worker.jpg" alt="Three worker desks each hold exactly one glowing playbook; a fourth desk with two overlapping playbooks is struck through with a red X" width="820">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../assets/diagrams/one-router-per-worker.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../assets/diagrams/one-router-per-worker-light.jpg">
+    <img src="../assets/diagrams/one-router-per-worker-light.jpg" alt="Three worker desks each hold exactly one glowing playbook; a fourth desk with two overlapping playbooks is struck through with a red X" width="820">
+  </picture>
 </p>
 
 Missions draw worker methodology from three upstream packs, and each pack ships its own
@@ -296,7 +398,11 @@ Addy-style security — never inside a single worker's context.
 ## Chaining missions
 
 <p align="center">
-  <img src="../assets/diagrams/mission-chaining.jpg" alt="A chain of mission links joined by gate valves; the first two glow with checkmarks; the gate before the dim third link is closed with a red bar and requires a human" width="820">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../assets/diagrams/mission-chaining.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../assets/diagrams/mission-chaining-light.jpg">
+    <img src="../assets/diagrams/mission-chaining-light.jpg" alt="A chain of mission links joined by gate valves; the first two glow with checkmarks; the gate before the dim third link is closed with a red bar and requires a human" width="820">
+  </picture>
 </p>
 
 "Make this repo production-ready" is not one mission — it is harden-it, then prove-it, then
@@ -310,11 +416,40 @@ N+1's enumeration as findings to triage. A chain that stops early is a correct o
 
 ## Proof status
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../assets/diagrams/proof-ladder.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../assets/diagrams/proof-ladder-light.jpg">
+    <img src="../assets/diagrams/proof-ladder-light.jpg" alt="The proof ladder: doctrine-only, then self-run, then external-run; advancing needs a run report that binds, with a RUN header, a manifest in the run's own directory and an inventory that re-hashes at the named commit; today every mission reads doctrine-only" width="820">
+  </picture>
+</p>
+
 Every mission declares how proven it is — `doctrine-only`, `self-run`, or `external-run` — in
 validator-enforced frontmatter, and cannot advance without a linked run report on disk. This is
 the inherited lesson from this catalog's failed predecessor, which shipped twelve missions with
 two proven: doctrine is allowed to encode hard-won lessons, but it is never allowed to dress up
 as evidence.
+
+Be precise about what the gate buys, because it is weaker than "re-derives" would imply and
+[`run_report.py`](../runtime/scripts/run_report.py) says so in its own docstring: **it hashes, it
+does not re-run the verifier.** The [2026-09-11 review](../REVIEW.md) fabricated a `map-it`
+self-run — seven files, one commit, under fifteen minutes — that reported "bound" and passed
+`validate.py`, `proof_status.py --check` and the whole suite, because files a worker writes and
+commits hash true at the commit that contains them. What the gate really refuses is a tier claimed
+on a report whose artifacts were never retained, re-pointed at another mission, or pinned to a
+commit where the bytes differ. It does not refuse a tier whose artifacts were manufactured, and
+re-running the verifier afterwards would not fix that: the authorities that made the original
+verdict — the coordinator's out-of-band contract, a live GitHub review lookup, the worktree as it
+stood — are gone. Closing this needs a leg the worker cannot type at all: a coordinator-signed
+verifier transcript checked against a committed key
+([#281](https://github.com/ravidsrk/orca-fleet/issues/281)), on top of making the tier cost an
+actual run ([#286](https://github.com/ravidsrk/orca-fleet/issues/286)).
+
+Today every mission reads `doctrine-only`, and that number went *down* as the mechanism got
+stronger, which is the mechanism working: the predecessor shipped twelve missions with two proven
+and paid for it, and a tier whose artifacts are gone is the same claim in better packaging. The
+[run archive](runs/) records every run that really happened and says, per run, why it does not
+bind.
 
 ## Autonomy
 
@@ -339,6 +474,14 @@ to the human-owed queue — but the mission's declared level stays L4: the level
 mission's structure, and scheduling is a way of invoking it.
 
 ## The mission-identity test
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../assets/diagrams/mission-identity.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../assets/diagrams/mission-identity-light.jpg">
+    <img src="../assets/diagrams/mission-identity-light.jpg" alt="The six-point mission-identity test: unit of work, per-unit state machine, convergence proof, ordering and isolation, parking and failure semantics, and the oracle; audit findings, tracker issues and doc claims are one mission, clean-sweep, while a perf breach is a different proof and therefore a different mission, speed-it" width="820">
+  </picture>
+</p>
 
 The catalog stays deliberately small because of a bright-line test. Two workflows are the **same
 mission** only if they share *all six*:

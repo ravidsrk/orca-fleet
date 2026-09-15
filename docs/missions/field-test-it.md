@@ -11,10 +11,22 @@
 **Skill:** [`skills/field-test-it/SKILL.md`](../../skills/field-test-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes — `PROFILE=rw` fix workers
 
 <p align="center">
-  <img src="../../assets/diagrams/missions/field-test-it.jpg" alt="State machine: PAIR a device session, BASELINE, REPRODUCE with artifacts captured, FIX, RE-VERIFY on-device at the head SHA, ending FIELD-PROVEN or FIELD-PROVEN-WITH-PARKED" width="820">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/diagrams/missions/field-test-it.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../../assets/diagrams/missions/field-test-it-light.jpg">
+    <img src="../../assets/diagrams/missions/field-test-it-light.jpg" alt="Mission contract for field-test-it: you give it a paired device or emulator, and the app; it interrupts you for device pairing, permission grants, store and account surfaces; you get back FIELD-PROVEN or FIELD-PROVEN-WITH-PARKED, plus repro recordings; on-device re-verify at the head SHA; a revert-to-red control; before and after baselines; it stops at a green desktop run is never device evidence; phases PAIR, BASELINE, REPRODUCE, FIX, RE-VERIFY, SNAPSHOT" width="820">
+  </picture>
 </p>
 
 ---
+
+## Invoke it
+
+```
+> test on a real device: <the flow or defect>
+```
+
+**Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + orchestration skill (Orca CLI) plus the Orca emulator skills (orca-emulator for iOS simulators, orca-emulator-android for Android) or a paired physical device. git + gh. The app's own build/run toolchain. A fix worker playbook pack (mattpocock, addyosmani, gstack) — one router per worker.
 
 ## What it does
 
@@ -62,9 +74,9 @@ flowchart TD
     H --> J{{FIELD-PROVEN-WITH-PARKED}}
 ```
 
-## Terminal outcomes
+## Terminal states
 
-| Verdict | Meaning | Who acts on it |
+| State | Meaning | Who acts on it |
 |---|---|---|
 | `FIELD-PROVEN` | every on-device defect fixed + re-verified on-device at head SHA; revert NC holds; baseline re-ledgered | nobody |
 | `FIELD-PROVEN-WITH-PARKED` | ≥1 defect needs a device/step the session lacks; parked with the exact device + step named | the named owner runs the parked device step |
@@ -95,16 +107,52 @@ worker reverts the fix on a throwaway branch and re-drives the on-device flow ex
 (landed BASE is never modified). A green desktop run is never accepted as device evidence; a
 one-time repro is marked flaky and re-driven, not closed.
 
-## Composes
+## A worked example
 
-Playbooks: [`diagnose`](../../playbooks/diagnose.md) ·
+*A run, sketched — the shape of one, not a transcript.*
+
+> test on a real device: the camera-upload flow crashes on Android 14
+
+**Pair.** An Android emulator through `orca-emulator-android`; the oracle tier `EMULATOR` and its
+preconditions (API 34 image, camera permission granted) are recorded in the ledger.
+
+**Baseline.** The pre-change flows are driven on the emulator and ledgered.
+
+**Reproduce.** A recording plus `logcat` show the crash on return from the camera intent — the
+artifact is the repro, not a description of it.
+
+**Fix → review → land.** An `rw` worker writes the failing instrumented test first, then the fix.
+
+**Re-verify on-device.** At the head SHA the flow is GREEN; the revert control re-drives it with
+the fix reverted and the crash returns.
+
+**Snapshot.** The post-change baseline is ledgered. One reported defect — thermal throttling on a
+physical device — is parked: a hardware-only class is never "verified" on the emulator tier. The
+run ends `FIELD-PROVEN-WITH-PARKED`.
+
+## Failure modes this mission is built to prevent
+
+| Anti-pattern | Why it burns you |
+|---|---|
+| Accepting an emulator-tier pass for a hardware-only defect class — sensors, thermal, radios | The oracle tier is recorded per defect and never upgraded silently |
+| Accepting a desktop or simulator pass as device proof, or pairing hardware for an emulator flow | The oracle is the target the mission declared, in either direction |
+| Closing a defect from a fix that "should work" | Only the on-device re-verify at the head SHA counts |
+| Skipping the revert control because re-pairing is tedious | It is the only proof the fix caused the green |
+| Treating a one-time repro as a fix target | Mark it flaky and re-drive; one observation is not a defect |
+| Installing builds on devices outside the paired set | That is the sandbox-policy danger lane — a stranger's device is never touched |
+| Leaving the baseline unledgered | The next run starts from memory |
+
+## Composes
+Playbooks:
+[`diagnose`](../../playbooks/diagnose.md) ·
 [`remediate-finding`](../../playbooks/remediate-finding.md) ·
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
 [`compound-learn`](../../playbooks/compound-learn.md) ·
 [`browser-drive`](../../playbooks/browser-drive.md) ·
 [`human-handoff`](../../playbooks/human-handoff.md)
 
-Runtime policies: [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
+Runtime policies:
+[`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`merge-serialization`](../../runtime/merge-serialization.md) ·
 [`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md) ·
 [`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) ·

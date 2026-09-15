@@ -34,6 +34,23 @@ missions `migrate-it`, `oncall-it`, `absorb-it`, `document-it`; scripts `bundle.
 A changelog that says "each is listed below as it lands" and then lists none is worse than one that
 promises nothing (#293).
 
+**The 2026-09-14 holistic review** (`docs/reviews/2026-09-14-holistic-review.md`, filed as
+#349–#386) landed on the `review/2026-09-14-holistic-fixes` line. Its P0 was the macOS-red suite:
+`run_report.py` resolved the interpreter root but compared the token lexically, so a symlinked-prefix
+interpreter inside a graded tree passed as the system one (#349). Two blast-radius holes closed:
+`bundle.py --out .` no longer removes the source catalog (#350), and `deny-hook.sh` bounds `sudo
+tee` through sudo's own options, stacked `sudo`, `nice` and `--` (#351). The verifier requires the
+commands ledger to show the coordinator-named proof command green on head's tree rather than any
+exit-0 record, and an empty or unparseable `--nc-command` is RED, never a silent skip (#352, #382).
+`evidence-run.py` locks the manifest itself, so parallel wrapped runs neither lose a record nor
+leave a lockfile beside it (#382, #388). A mutating run's report carries `waves=<n>` and one
+measured WIP-curve row per wave; `run_report.py` refuses a missing, partial or doubled row (#365,
+#389). Every mission's behavioral eval has a fixture-backed case graded on the workspace the agent
+leaves, through `workspace_state` checks that read files with no model in between; the
+narration-only cases are labeled and their set frozen (#364). Mission guides and their diagrams
+are held to parity by a test (#385). CI's action pins moved to checkout v7.0.1 and setup-python
+v7.0.0 before the Node 20 actions left the runners (#367).
+
 ### Changed
 
 - README no longer claims "verified, not asserted"; it states the claim the mechanism supports
@@ -107,6 +124,20 @@ promises nothing (#293).
 - `field-test-it` mission: on-device verification via the Orca emulator skills or a paired
   physical device — baseline, reproduce, fix, re-verify at `head_sha` with a revert negative
   control; terminals `FIELD-PROVEN` / `FIELD-PROVEN-WITH-PARKED`.
+
+**The images are now generated from a committed prompt source, and they answer developer
+questions instead of restating the mermaid.** Every banner and diagram under `assets/` is
+re-rendered with Nano Banana Pro from the prompts in `assets/diagrams/generator/`, so a stale
+picture is a prompt edit and a rerun rather than a redraw. The 21 mission diagrams became
+developer-contract cards: what you give it, what it interrupts you for, what you get back, and
+where it stops, at 60 words or fewer so the captions survive the guide's embed width; the
+pipeline stays in each guide's mermaid block. Nine visuals were added where a question had no
+picture: the you-say table that opens the README, the negative-control head-to-head, the install
+stack with its three paths and their gate status, the gates as they reach your terminal, the
+artifacts a run leaves behind, the mission handoff graph, the proof ladder, the verify-gate
+trust boundary, and the mission-identity test. Every diagram ships a light variant behind a
+`<picture>` element. ARCHITECTURE.md deliberately carries no image: it counts toward every
+mission's activation load, and the validator said so.
 
 ## [0.6.1] - 2026-09-09
 

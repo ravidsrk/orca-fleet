@@ -8,7 +8,11 @@ illustrative fiction; the incidents below each changed a runtime policy, and thi
 which.
 
 <p align="center">
-  <img src="../../assets/diagrams/run-timeline.jpg" alt="Timeline of the chimely run: triage, a four-builder wave with a respawn incident, overlapping review rounds, the discovery of a parallel contributor's PRs, the pivot to assists and alternative PRs, and the closing state" width="860">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/diagrams/run-timeline.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../../assets/diagrams/run-timeline-light.jpg">
+    <img src="../../assets/diagrams/run-timeline-light.jpg" alt="Timeline of the chimely run: triage, a four-builder wave with a respawn incident, overlapping review rounds, the discovery of a parallel contributor's PRs, the pivot to assists and alternative PRs, and the closing state" width="860">
+  </picture>
 </p>
 
 ## T0 — the header is written before anything runs
@@ -53,6 +57,10 @@ The dispatch log, verbatim:
 18:22Z · cs-55 · task_741dbc6d010a · builder term_a856f374 HB ok · fork 55-A answer injected
 18:25Z · cs-58 · task_6491862e2f23 · builder term_d9cc0af3 HB ok · forks 58-A/B answers injected
 ```
+
+(`HB` is the worker's heartbeat; the *doctor* is the liveness watchdog that respawns a worker
+whose heartbeat stops; a *fork* is a decision question the builder raised and the coordinator
+answered.)
 
 Two things happened here worth study. First, a heartbeat **false negative**: cs-56's builder was
 alive but had not heartbeated inside the spawn window, so the doctor respawned it — creating two

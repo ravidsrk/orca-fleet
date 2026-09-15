@@ -12,10 +12,22 @@
 **Skill:** [`skills/access-it/SKILL.md`](../../skills/access-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes — `PROFILE=rw` fix workers
 
 <p align="center">
-  <img src="../../assets/diagrams/missions/access-it.jpg" alt="State machine: FREEZE the surface and WCAG target, DETECT with the axe-core oracle, FIX via rw workers, RE-VERIFY by reverting to bring the violation back, ending CONFORMANT or CONFORMANT-WITH-MANUAL-PARKED" width="820">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/diagrams/missions/access-it.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../../assets/diagrams/missions/access-it-light.jpg">
+    <img src="../../assets/diagrams/missions/access-it-light.jpg" alt="Mission contract for access-it: you give it a page, flow or component set and a WCAG 2.2 AA target; it interrupts you for the human-AT park — screen-reader and cognitive criteria; promotion; you get back CONFORMANT or CONFORMANT-WITH-MANUAL-PARKED, plus an axe-core clean report; revert-to-violation controls; parked criteria with reasons; it stops at never passing a criterion on the oracle's silence; phases FREEZE, DETECT, FIX, LAND, RE-VERIFY, PARK" width="820">
+  </picture>
 </p>
 
 ---
+
+## Invoke it
+
+```
+> accessibility: bring <pages or flows> to WCAG 2.2 AA
+```
+
+**Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh; a deterministic a11y oracle (axe-core / Lighthouse) and a runnable surface. A fix worker playbook (addyosmani, mattpocock, gstack) — one router per worker.
 
 ## What it does
 
@@ -61,9 +73,9 @@ flowchart TD
     F --> H{{CONFORMANT-WITH-MANUAL-PARKED}}
 ```
 
-## Terminal outcomes
+## Terminal states
 
-| Verdict | Meaning | Who acts on it |
+| State | Meaning | Who acts on it |
 |---|---|---|
 | `CONFORMANT` | *near-unreachable* — only when the frozen surface has no criteria past the ~30–40% automation ceiling (rare); axe-core clean, every criterion covered with a revert-to-violation NC | a human promotes |
 | `CONFORMANT-WITH-MANUAL-PARKED` | automatable criteria clean; ceiling criteria parked to a named human-AT reviewer | the human-AT reviewer closes the parked criteria (a one-way gate) |
@@ -84,15 +96,48 @@ is PARKED to a named human-AT reviewer with the reason the oracle cannot decide 
 `CONFORMANT` or `CONFORMANT-WITH-MANUAL-PARKED`; the denominator was never shrunk to only the
 automatable criteria.
 
-## Composes
+## A worked example
 
-Playbooks: [`decompose-dag`](../../playbooks/decompose-dag.md) ·
+*A run, sketched — the shape of one, not a transcript.*
+
+> accessibility: bring the checkout flow — cart, address, payment, confirmation — to WCAG 2.2 AA
+
+**Freeze.** Four pages × the AA criteria, digest recorded; the integration BASE is bootstrapped.
+
+**Detect.** axe-core at the BASE head reports 23 violations, each a DAG unit; the structural ones
+(landmark order, heading hierarchy) are serialized, the rest run in parallel.
+
+**Fix → review → land.** One `rw` worker per violation. Every PR carries the negative control:
+revert the markup fix on a throwaway branch and the oracle reports the violation again. The
+build-blind reviewer judges semantics, not the oracle's silence — an `aria-label` that silences
+axe over a worse experience fails review.
+
+**Re-verify.** At the new BASE head the oracle is clean across the surface.
+
+**Park.** Nine ceiling criteria — screen-reader announcement order, error-suggestion clarity,
+cognitive load — go to a named human-AT reviewer with the reason the oracle cannot decide them.
+The run ends `CONFORMANT-WITH-MANUAL-PARKED`; the denominator was never shrunk to what axe sees.
+
+## Failure modes this mission is built to prevent
+
+| Anti-pattern | Why it burns you |
+|---|---|
+| Declaring `CONFORMANT` off a green axe run alone | The oracle sees roughly a third of WCAG; its silence is not proof, and the un-automatable criteria must be parked, not assumed passing |
+| Shrinking the denominator to what axe checks | The frozen surface × WCAG set is the denominator; the ceiling criteria still count |
+| A fix with no revert-to-violation control | A green oracle over reverted markup proves nothing |
+| Silencing the oracle — empty `alt`, `aria-label` stuffing, `aria-hidden` on real content, role soup | A clean axe over a worse experience; the build-blind review judges semantics, not silence |
+| Treating this as `review-it`'s accessibility lens, or as `attest-it` | One is a per-diff verdict and the other a standard's obligation set; this mission's unit is a rendered surface's violations |
+
+## Composes
+Playbooks:
+[`decompose-dag`](../../playbooks/decompose-dag.md) ·
 [`remediate-finding`](../../playbooks/remediate-finding.md) ·
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
 [`compound-learn`](../../playbooks/compound-learn.md) ·
 [`browser-drive`](../../playbooks/browser-drive.md)
 
-Runtime policies: [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
+Runtime policies:
+[`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`sandbox-policy`](../../runtime/sandbox-policy.md) ·
 [`merge-serialization`](../../runtime/merge-serialization.md) ·
 [`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md) ·

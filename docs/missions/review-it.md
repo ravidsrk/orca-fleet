@@ -13,10 +13,22 @@
 **Skill:** [`skills/review-it/SKILL.md`](../../skills/review-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** **no** — the catalog's read-only permission boundary
 
 <p align="center">
-  <img src="../../assets/diagrams/missions/review-it.jpg" alt="State machine: PIN the SHA-bound diff, four isolated review axes (standards, spec, tests, scope-gated risk lens), AGGREGATE through an anti-false-positive gate, ending GO or NO-GO; read-only with no fix authority" width="820">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/diagrams/missions/review-it.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../../assets/diagrams/missions/review-it-light.jpg">
+    <img src="../../assets/diagrams/missions/review-it-light.jpg" alt="Mission contract for review-it: you give it a PR or branch, and the spec it claims to implement; it interrupts you for nothing during the run — acting on the verdict is yours; you get back GO or NO-GO, plus findings per axis, each quoting its motivating line; the verdict bound to reviewed_sha; it stops at read-only — PROFILE=ro, not one byte of the tree modified; phases PIN, STANDARDS; SPEC; TEST-ADEQUACY; RISK, AGGREGATE" width="820">
+  </picture>
 </p>
 
 ---
+
+## Invoke it
+
+```
+> review this PR: <number or branch> — is it ready to merge?
+```
+
+**Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh. Review worker playbooks (mattpocock code-review, addyosmani specialists, gstack review army) — one router per worker.
 
 ## What it does
 
@@ -102,11 +114,13 @@ Phase by phase:
    [`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md), a review is valid only for
    the exact SHA it reviewed — if the head moves, the verdict is void.
 
-## Terminal verdicts — two, both SHA-bound
+## Terminal states
 
-| Verdict | Meaning                                                                     | Who acts on it                                  |
-|---------|-----------------------------------------------------------------------------|-------------------------------------------------|
-| `GO`    | Every axis reported, zero Critical and zero Required findings, the whole bound to `reviewed_sha` | a human, or the mission that owns the merge     |
+*Two, both SHA-bound.*
+
+| State | Meaning | Who acts on it |
+|---|---|---|
+| `GO` | Every axis reported, zero Critical and zero Required findings, the whole bound to `reviewed_sha` | a human, or the mission that owns the merge |
 | `NO-GO` | Any Critical or any Required (merge-blocking) finding — a "conditional" note may accompany it, never rename it | route the findings to `ship-it` / `clean-sweep` |
 
 Either way the verdict names the worst issue per axis, and it expires with its SHA: a head that
@@ -175,18 +189,18 @@ exactly such a run: the NO-GO on a live gstack PR linked from the frontmatter.)
 | Honoring a GO after the head moved    | The verdict is bound to `reviewed_sha`; a moved head voids it                   |
 
 ## Composes
-
-Playbooks: [`acceptance-review`](../../playbooks/acceptance-review.md) ·
+Playbooks:
+[`acceptance-review`](../../playbooks/acceptance-review.md) ·
 [`risk-review`](../../playbooks/risk-review.md) ·
 [`triage-findings`](../../playbooks/triage-findings.md)
 
-Runtime policies: [`sandbox-policy`](../../runtime/sandbox-policy.md) ·
+Runtime policies:
+[`sandbox-policy`](../../runtime/sandbox-policy.md) ·
 [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md) ·
 [`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) ·
 [`mission-scheduling`](../../runtime/mission-scheduling.md) ·
-[`gate-classification`](../../runtime/gate-classification.md) (posting the verdict is the run's one
-outward, human-granted action)
+[`gate-classification`](../../runtime/gate-classification.md) (posting the verdict is the run's one outward, human-granted action)
 
 ## Related missions
 
