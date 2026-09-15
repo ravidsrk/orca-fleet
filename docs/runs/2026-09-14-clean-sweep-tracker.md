@@ -1367,7 +1367,9 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   (REFACTOR+M1) RED replayed in scratch. RQ-1 corruption demo reproduced by
   builder (Extra data char 108, silent tear, poisoned ledger). Pushed bare
   (egressed) -> PR #404 head 1e8ae08 MERGEABLE. R3 axes dispatched (spec
-  task_69df55e214ff, test task_47d00b4b6c62, standards task_969367633f19).
+  task_dbe370603631, test task_c37d9e229a9a, standards task_8c7d14a36f0e;
+  CORRECTION: first ledgered with placeholder ids, fixed to dispatch
+  receipts).
   CORRECTION: r3 specs first written with an UNVERIFIED full SHA suffix —
   caught by coordinator rev-parse check before dispatch, fixed to
   1e8ae0877c60... (cat-file commit). r2's 55ef0704d04... re-confirmed valid.
