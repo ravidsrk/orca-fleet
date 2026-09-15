@@ -846,4 +846,6 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   can go GREEN (T6 precedent). NO thread replies posted (2 held P2s
   owe in-thread answers; r2 axes must flag the lane). R387P-r2 specs
   frozen (copies + retarget 7f52bf6 + batch-verify + approval-confirm
-  lines); 3 axes dispatched.
+  lines); 3 axes dispatched (spec task_0ad50956c002→ctx_6c4f6574b62a,
+  test task_82c98c36539b→ctx_9e6ac76f6155, standards task_ab417cdb21b6→
+  ctx_c36946457e07).
