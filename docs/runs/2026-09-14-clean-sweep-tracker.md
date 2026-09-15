@@ -887,3 +887,11 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   greptile-bot with no reply → in-thread answers owed from COORDINATOR
   lane (build-387-process 'coordinator replies'; fix spec gave builder
   no reply step), citing 708b5a8 + 2c029dd. Released. STANDARDS out.
+- R387P-r2 3/3 in: STANDARDS 0 Required (6 Nit incl. out-of-process
+  contradiction, T1/T2 refs→loop-log, union-invalidates restatement, 0/31
+  anchors spec-literal; 1 Optional; 4 FYI incl. STALE 'ruling missing from
+  DECISIONS.md' — it IS on BASE b7708d9, worker's union predates it).
+  Greptile APPROVED confirmed; 2 P2 threads owe coordinator-lane replies
+  pre-merge. Released. P-r2 totals: SPEC 0, TEST 1, STANDARDS 0 →
+  V387P-r2 spec frozen (3 verbatim + bot status + stale-FYI exclude
+  note). Dispatched — expect NO-GO (TA-R1) → r3 fix.
