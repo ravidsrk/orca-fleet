@@ -454,6 +454,33 @@ class WipCurveObligation(unittest.TestCase):
         report = f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\nA note.\n\n---\n\n{rows}"
         self.assertEqual(run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md"), [])
 
+    def test_a_list_item_or_block_quote_underlined_does_not_end_the_section(self):
+        # PR #401 review (P1 4012744258): only a plain paragraph can be underlined. After a list
+        # item or a block quote, or a lazy continuation of one, --- is a thematic break and === is
+        # more of its text (CommonMark), so the section stays open and its complete rows bind.
+        rows = f"{self.ROW_1}\n{self.ROW_2}\n"
+        for name, lead in {"a list item, ---": "- a note\n---",
+                           "an ordered list item, ---": "1. a note\n---",
+                           "a block quote, ---": "> a note\n---",
+                           "a list item, ===": "- a note\n===",
+                           "a list item's continuation, ---": "- a note\nthat runs on\n---",
+                           "a block quote's continuation, ---": "> a note\nthat runs on\n---"}.items():
+            with self.subTest(case=name):
+                report = f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n{lead}\n\n{rows}"
+                self.assertEqual(run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md"), [])
+
+    def test_a_row_after_a_list_item_and_a_thematic_break_is_still_read(self):
+        # PR #401 review (P1 4012744258), the fail-open side: closing the section on a list item's
+        # --- hid an incomplete second wave=2 row after it, and the report bound [].
+        partial_2 = self.ROW_2.replace("| latency_max=55m ", "")
+        report = (f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n{self.ROW_1}\n{self.ROW_2}\n\n"
+                  f"- a note\n---\n\n{partial_2}\n")
+        errs = run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md")
+        self.assertTrue(any("| wave=2 |" in e and "carries no measured ['latency_max']" in e
+                            for e in errs), f"the row after the break was not read {errs}")
+        self.assertTrue(any("wave(s) [2] carry more than one WIP-curve row" in e for e in errs),
+                        errs)
+
     def test_the_protocol_names_the_schema_the_checker_enforces(self):
         # The text and the check drifted once (#389: the prose owed five metrics, the check read
         # two settings). The protocol section must name every row key the checker enforces — and

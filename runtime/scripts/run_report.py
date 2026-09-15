@@ -487,13 +487,15 @@ _HEADING_RE = re.compile(r" {0,3}#{1,6}(?:[ \t]|$)")
 # inline code, and read as a fence it swallowed the rows after it (PR #401 review).
 _FENCE_RE = re.compile(r" {0,3}(`{3,}(?=[^`]*$)|~{3,})")
 _SETEXT_RE = re.compile(r" {0,3}(?:=+|-+)[ \t]*$")
+# A list item or block quote line: its paragraph is in a container, not a plain one (CommonMark).
+_CONTAINER_RE = re.compile(r" {0,3}(?:>|(?:[-+*]|\d{1,9}[.)])(?:[ \t]|$))")
 
 
 def _wip_section_lines(text):
     """The lines inside the report's WIP-curve section(s), fenced code excluded. A heading quoted
     inside a fence is code too, so it neither opens nor closes the section. A setext heading — a
-    paragraph line underlined with = or - — ends the section like any other (verdict r1)."""
-    inside, fence, para = False, None, False
+    plain paragraph line underlined with = or - — ends the section like any other (verdict r1)."""
+    inside, fence, para = False, None, None
     for line in text.splitlines():
         opener = _FENCE_RE.match(line)
         if fence:
@@ -503,7 +505,7 @@ def _wip_section_lines(text):
                 fence = None
             continue
         heading = _HEADING_RE.match(line)
-        setext = para and _SETEXT_RE.match(line)
+        setext = para == "plain" and _SETEXT_RE.match(line)
         if opener:
             fence = opener.group(1)
         elif heading:
@@ -512,10 +514,16 @@ def _wip_section_lines(text):
             inside = False
         elif inside:
             yield line
-        # Only paragraph text can be underlined: after a blank, a table row, a heading or a fence,
-        # --- is a thematic break or table syntax, and the section stays open.
-        para = bool(line.strip()) and not (opener or heading or setext
-                                            or line.lstrip().startswith("|"))
+        # A plain paragraph line, or its continuation, is all that arms the setext rule. After a
+        # blank, a table row, a heading or a fence, --- is a thematic break or table syntax; after
+        # a list item or block quote line, or its lazy continuation, --- is a thematic break and
+        # === is more of its text (PR #401 review). The section stays open either way.
+        if not line.strip() or opener or heading or setext or line.lstrip().startswith("|"):
+            para = None
+        elif _CONTAINER_RE.match(line):
+            para = "container"
+        elif not para:
+            para = "plain"
 
 
 def _wip_rows(text):
