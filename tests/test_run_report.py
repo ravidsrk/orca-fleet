@@ -333,19 +333,95 @@ class WipCurveObligation(unittest.TestCase):
                 body = "RUN: mission=ship-it waves=2\n\n## WIP curve\n\n" + "\n".join(rows) + "\n"
                 self.assertEqual(run_report._wip_curve_errors(body, "ship-it", ROOT, "r.md"), [])
 
+    # #387: the rows are the ones in the report's WIP-curve section (docs/runs/TEMPLATE.md's
+    # heading, below) and nowhere else. Scanning every pipe-prefixed line bound a complete row
+    # quoted in a fenced example or a deviations table as the run's evidence.
+    SECTION = "## WIP-curve protocol row (mutating self-runs)"
+    DEVIATIONS = ("## Deviations and lessons (recorded, not hidden)\n\n"
+                  "| Deviation | Detail |\n|---|---|\n")
+
+    def test_complete_rows_outside_the_wip_curve_section_do_not_bind(self):
+        template = (ROOT / "docs" / "runs" / "TEMPLATE.md").read_text(encoding="utf-8")
+        self.assertIn(f"\n{self.SECTION}\n", template, "the fixture's heading is not the template's")
+        rows = f"{self.ROW_1}\n{self.ROW_2}\n"
+        section = f"{self.SECTION}\n\nNot measured to protocol this run.\n\n"
+        cases = {
+            "a fenced example inside the section": f"{section}```\n{rows}```\n",
+            "a tilde-fenced example inside the section": f"{section}~~~text\n{rows}~~~\n",
+            "a deviations table": f"{section}{self.DEVIATIONS}{rows}",
+            "a fenced example and a deviations table": (f"{section}```\n{self.ROW_1}\n```\n\n"
+                                                        f"{self.DEVIATIONS}{self.ROW_2}\n"),
+            "another section, and no WIP-curve section": f"## Pipeline evidence\n\n{rows}",
+            "the section heading quoted inside a fence": f"```markdown\n{self.SECTION}\n\n{rows}```\n",
+        }
+        for name, body in cases.items():
+            with self.subTest(case=name):
+                report = f"RUN: mission=ship-it waves=2\n\n{body}"
+                errs = run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md")
+                self.assertTrue(any("— none found;" in e and "WIP-curve protocol row" in e
+                                    for e in errs),
+                                f"{name}: bound on rows outside the WIP-curve section {errs}")
+
+    def test_rows_outside_the_section_do_not_count_against_the_rows_inside_it(self):
+        # The false fail: the section is complete, and rows quoted elsewhere (an example of wave 1,
+        # a deviation about wave 2's WIP, a third wave planned and never run) tripped the
+        # duplicate, unmeasured-row and stray-wave checks. The fence comes first, so a fence that
+        # never closed would swallow the real rows.
+        report = (f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n"
+                  f"Filled in as the protocol's example shows:\n\n```text\n{self.ROW_1}\n```\n\n"
+                  "| Wave | WIP setting | Throughput | Latency | Rework | Freshness |\n"
+                  f"|---|---|---|---|---|---|\n{self.ROW_1}\n{self.ROW_2}\n\n{self.DEVIATIONS}"
+                  "| wave=2 | raised mid-run to builders=3 reviewers=1 |\n"
+                  f"{self.ROW_2.replace('wave=2', 'wave=3')}\n")
+        self.assertEqual(run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md"), [])
+
+    def test_an_incomplete_section_row_is_refused_whatever_lies_outside(self):
+        # Completeness still binds inside the section: the unmeasured row is refused naming its
+        # wave, and a complete copy outside the section neither rescues it nor doubles the wave.
+        partial_2 = self.ROW_2.replace("| latency_max=55m ", "")
+        report = (f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n{self.ROW_1}\n{partial_2}\n\n"
+                  f"{self.DEVIATIONS}{self.ROW_2}\n")
+        errs = run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md")
+        self.assertEqual(len(errs), 1, errs)
+        self.assertIn("| wave=2 |", errs[0])
+        self.assertIn("carries no measured ['latency_max']", errs[0])
+
+    def test_the_section_heading_tolerates_its_real_spellings(self):
+        # The template's heading, the 2026-08-28 ship-it report's, this module's fixtures', and
+        # loose whitespace, a deeper level or a closing sequence around them.
+        for heading in (self.SECTION,
+                        "## WIP-curve protocol row (qualitative first observation — NOT a "
+                        "protocol-compliant data point)",
+                        "## WIP curve", "##   WIP-curve protocol row   ", "### WIP \t curve",
+                        "   ## WIP-curve protocol row (mutating self-runs) ##"):
+            with self.subTest(heading=heading):
+                report = f"RUN: mission=ship-it waves=2\n\n{heading}\n\n{self.ROW_1}\n{self.ROW_2}\n"
+                self.assertEqual(run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md"), [])
+
     def test_the_protocol_names_the_schema_the_checker_enforces(self):
         # The text and the check drifted once (#389: the prose owed five metrics, the check read
         # two settings). The protocol section must name every row key the checker enforces — and
         # no other — plus the waves=<n> count, and a row filled in from its Row cells must bind.
+        # #387: it must also name the section the rows live in, the template's heading, and the
+        # check must read exactly that: the row binds under the heading and nowhere else.
         budget = (ROOT / "runtime" / "attention-budget.md").read_text(encoding="utf-8")
         section = budget.split("## The WIP-curve protocol", 1)[1].split("\n## ", 1)[0]
         self.assertIn("`waves=<n>`", section, "the protocol no longer defines the recorded waves")
         cells = [c for cell in re.findall(r"^\|[^|]*\| `([^`]+)` \|", section, re.M)
                  for c in cell.split()]
         self.assertEqual({c.split("=")[0] for c in cells}, set(run_report.WIP_ROW_KEYS))
+        named = re.search(r"under the report's `(#+ [^`]+)` heading", section)
+        self.assertIsNotNone(named, "the protocol no longer names the section its rows live in")
+        heading = named.group(1)
+        template = (ROOT / "docs" / "runs" / "TEMPLATE.md").read_text(encoding="utf-8")
+        self.assertRegex(template, rf"(?m)^{re.escape(heading)}\b",
+                         "the protocol names a section heading the run template does not carry")
         row = "| " + " | ".join(re.sub(r"<\w+>", "1", c) for c in cells) + " |"
-        self.assertEqual(run_report._wip_curve_errors(f"RUN: waves=1\n\n{row}\n", "ship-it", ROOT,
-                                                      "r.md"), [], row)
+        self.assertEqual(run_report._wip_curve_errors(f"RUN: waves=1\n\n{heading}\n\n{row}\n",
+                                                      "ship-it", ROOT, "r.md"), [], row)
+        errs = run_report._wip_curve_errors(f"RUN: waves=1\n\n{self.DEVIATIONS}{row}\n",
+                                            "ship-it", ROOT, "r.md")
+        self.assertTrue(any("— none found;" in e for e in errs), errs)
 
     def test_a_report_filled_in_from_the_canonical_template_binds(self):
         # PR #391 review (P1): docs/runs/TEMPLATE.md kept the pre-#389 header (no waves=) and an
