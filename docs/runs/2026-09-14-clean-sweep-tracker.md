@@ -870,3 +870,13 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   owed). Released. W-r2 totals: SPEC 0, TEST 2, STANDARDS 1 → V387W-r2
   spec frozen (3 reports verbatim + bot status w/ severity-reconcile
   instruction). Dispatched — expect NO-GO → r3 fix.
+- R387P-r2 1/3 in: TEST 1 Required (TA-R1: C-1 probe accepts ANY
+  ledger-contract class on T1-T3 — relabelling T1's park to 'refuted:'
+  stays GREEN though C-1 says needs-human) + 6 Nits (C-4 anchors match
+  anywhere not per-step; C-3 misses returning promise; G3 heading-only;
+  ask text unchecked; checkout-line anywhere; stale '2 hand mutants'
+  note) + 1 Optional. All 5 batch items in tree; Greptile APPROVED
+  confirmed; probe replays reproduce (4/4 base, 3/4 union, 0/4 head,
+  per-commit REDs; executed_ok True). Thread replies owed (builder
+  lane or conductor pre-merge audit). Released. SPEC + STANDARDS out.
+  T8 → likely NO-GO → r3 fix.
