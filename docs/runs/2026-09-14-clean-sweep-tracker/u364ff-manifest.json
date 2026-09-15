@@ -9,31 +9,31 @@
   "base_branch": "review/2026-09-14-holistic-fixes",
   "branch": "u364ff-venv-globs",
   "contract": {
-    "source": "docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/build-364ff.md@87fd2a2eac2868521f9b9aab17d2211685422725",
-    "digest": "sha256:c14d66d606903ed35181b55b096ed2ca3645e8eccd3c3012e0da9fff277929cf",
+    "source": "docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/build-364ff.md@8adf609df57f0a9fa74c090b928120e9b8aa6900",
+    "digest": "sha256:f69003a2ecc516cac81eeaa3f3419c96286fefe2c53cf6b382b7ad3e3893299c",
     "criterion_ids": [
-      "C-FF1",
-      "C-FF2",
-      "C-FF3"
+      "C-1",
+      "C-2",
+      "C-3"
     ]
   },
   "criteria": [
     {
-      "id": "C-FF1",
+      "id": "C-1",
       "text": "prove-it's two bans are scoped to the case tree; a committed libcst-venv row (a .venv holding mutmut/libcst beside the fix) PASSES; committed excerpts assert the bans still hit real tautologies.",
       "addressed": true,
       "commit": "717083c",
       "witness": "tests/test_evals.py::TestCasesCatchTheirViolation::test_a_venv_holding_mutmut_beside_the_fix_passes_the_prove_case. Its first assertion runs the real oracle over the committed pip .venv, two verbatim excerpts of libcst 1.9.0 (installed by pip install mutmut, mutmut 3.8.0, on CPython 3.13.15; the full install has 9 banned-pattern lines across 2 files, all in libcst's own tests) and prove_fix (refund() returns max(amount - fee, 0), docstring kept, a test asserting 970 and 0). It expects [], the brief's 'a doctrine-following workspace passes'. RED with the case file at BASE 87fd2a2 (the red step before the fix and the revert control): exactly one failure, \"**/*.py: not_matches '\\\\bassert(True)?...' did not hold - a tautological assert buys coverage percent and proves nothing\". GREEN at the fix: both bans now read tests/**/*.py, src/**/*.py and root *.py (the deflake-it/harden-it pattern, src/ being the case's code dir), and the test pins that literal glob list and requires each libcst excerpt to hit all three copies of the tautology ban, so the venv passing shows scoping, not blindness. Teeth: tests/eval_workspaces.json holds one violating row per ban copy (a negative pin and an assert True, each in tests/, in src/refund.py and in a root test_refund.py), and each fails exactly its copy; test_every_regex_check_fails_on_some_violating_workspace requires a row failing each of the six copies. A scratch mutation survey (each copy gutted alone to (?!x)x, TestCasesCatchTheirViolation re-run) reddened 6/6. The negative-refund ban had 0 hits in the mutmut venv and is scoped on the same pass, as the brief requires."
     },
     {
-      "id": "C-FF2",
+      "id": "C-2",
       "text": "oncall-it's two **/*.py bans are scoped the same way, with a committed venv row passing beside the fix.",
       "addressed": true,
       "commit": "717083c",
       "witness": "tests/test_evals.py::TestCasesCatchTheirViolation::test_a_venv_holding_django_beside_the_fix_passes_the_oncall_case runs the real oracle over the pip .venv, two verbatim excerpts of Django 5.2.17 (the 5.2 LTS: django/utils/log.py's AdminEmailHandler docstring, 'An exception log handler that emails log entries', and django/contrib/auth/tokens.py's login_timestamp/email line) and oncall_fix (structured events with a correlation ID and entry-point field, RED metrics with one bounded outcome label, no PII in telemetry). It expects []. RED with the case file at BASE: exactly one failure, the unscoped PII ban \"**/*.py: not_matches '(?i)\\\\b(log|logger|...)...(card_number|email)' did not hold\". GREEN at the fix: both bans read tests/**/*.py, service/**/*.py (the case's code dir) and root *.py, and the test requires each Django excerpt to hit all three PII copies. The brief's probe found 0 hits in a plain venv. A Django service's venv has 4 real hits in 2 Django files (stripe 15.6.1 adds 2 in docstrings). The label ban had 0 hits in everything probed (sentry-sdk 2.69.1, prometheus-client 0.26.0, opentelemetry-sdk 1.44.0, structlog 26.1.0, Django, stripe) and is scoped preemptively. One violating row per copy (a PII log line and an order_id label, each in service/checkout.py, tests/test_checkout.py and a root module) fails exactly its copy. Mutation survey: 6/6 copies reddened when gutted alone."
     },
     {
-      "id": "C-FF3",
+      "id": "C-3",
       "text": "the full suite stays green (1339 in source, plus only YOUR new tests); the routing gate still passes; the V2 violating-workspace rows for prove-it/oncall-it still fail (if scoping legitimately changes a V2 row's verdict, update the row and disclose why - never silently).",
       "addressed": true,
       "commit": "eeeb38b",
@@ -123,8 +123,8 @@
     ]
   },
   "binding_audit": {
-    "coverage": "C-FF1..C-FF3 (3/3)",
-    "method": "Each criterion is quoted, its covering test named, and its expected values taken from the brief, not recomputed the runner's way: [] for a doctrine-following workspace, the literal glob lists from the brief's tests/**, app-or-src/**, root *.py pattern, and the V2 rows' fail verdicts. C-FF1 and C-FF2 went RED at BASE in the red step and under the revert control; each scoped copy's teeth were shown by a gut-one mutation survey."
+    "coverage": "C-1..C-3 (3/3)",
+    "method": "Each criterion is quoted, its covering test named, and its expected values taken from the brief, not recomputed the runner's way: [] for a doctrine-following workspace, the literal glob lists from the brief's tests/**, app-or-src/**, root *.py pattern, and the V2 rows' fail verdicts. C-1 and C-2 went RED at BASE in the red step and under the revert control; each scoped copy's teeth were shown by a gut-one mutation survey."
   },
   "artifacts": [
     {
@@ -137,6 +137,9 @@
     "prove-it's negative-refund ban had 0 hits in the mutmut venv; like the label ban it was scoped on the same pass with no real venv excerpt that fails it.",
     "tests/test_evals.py is not ruff-format clean at BASE (whole-file drift); left as is.",
     "Other cases with a **/*.py-style glob were not surveyed; out of scope (any other case file)."
+  ],
+  "deviations": [
+    "Contract amendment (fix F364ff-r1, coordinator-issued): contract.source/contract.digest re-bound from build-364ff.md@87fd2a2eac2868521f9b9aab17d2211685422725 (sha256:c14d66d606903ed35181b55b096ed2ca3645e8eccd3c3012e0da9fff277929cf) to build-364ff.md@8adf609df57f0a9fa74c090b928120e9b8aa6900 (sha256:f69003a2ecc516cac81eeaa3f3419c96286fefe2c53cf6b382b7ad3e3893299c), and the criterion ids renamed C-FF1 -> C-1, C-FF2 -> C-2, C-FF3 -> C-3 in contract.criterion_ids, criteria[] and binding_audit. Reason: verify.py's CRIT_ID_RE needs digits right after the hyphen ([A-Z][A-Z0-9]*-\\d+), so the C-FF shape parsed to no ids, the scope leg failed, and the negative control was never replayed (replay runs only when admission has no failure). The coordinator amended the frozen spec on BASE in 8adf609, which changes only the id tokens. Criterion text, witnesses, commits, commands[] and the negative control are unchanged. The self-check in commands_note describes the run before the amendment."
   ],
   "pr": {},
   "files": {
