@@ -35,7 +35,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | T7 | #393 | mixed-version rollout lock (opportunistic sidecar + test) | real-bug | t | t | t | t | t | t | lit | needs-human: post-merge independent APPROVE (2nd login) for verify review leg (run_0607bdc681e6) | V393-r1 GO 5206137160 @7630815 (F1+P1 close-owed, P2 FIFO accepted low-sev Optional → backlog); MERGED 6d9e46a; verify 5/6 (review RED, parked); #393 CLOSED with evidence |
 | T8 | #387-threads | ledger/process remediation (parks, u385 tree, templates, close doc) | process | t | t | t | f | f | f | lit | — | PR #403 (u387p-process) @ed8a7c5 (union over 5174ed4, clean); Greptile 2 VALID held (P2 reattach-gap, P2 no-M^2-fallback); 3 axes live |
 | T9 | #387-threads | eval-glob holes (T6 regression: app//lib/ miss; empty-glob survey) | real-bug (evals) | t | t | t | t | t | t | lit | needs-human: post-merge independent APPROVE (2nd login) for verify review leg (run_0607bdc681e6) | V387G-r2 GO 5206446623 @318542b (delta: T9 byte-identical, badge 1360 recomputed, 1360 OK); MERGED a769a64e (--match-head-commit + --delete-branch, branch 404); verify 5/6 (review RED, parked); manifest closed (head re-bind 0a3f4ab→318542b, 3 coordinator re-runs: 109/validate/1360); worktree retired |
-| T10 | #387-threads | WIP-curve rows: scope to canonical section (U389 residual) | real-bug | t | t | t | f | f | f | lit | — | PR #401 (u387w-wipsection) @d94c6c1 (union over aab35f9, docs-only); Greptile 1 VALID held (P2 fence info-string); 3 axes live |
+| T10 | #387-threads | WIP-curve rows: scope to canonical section (U389 residual) | real-bug | t | t | t | f | f | f | lit | — | PR #401 (u387w-wipsection) @04b780f (r1 batch landed: anchor+fixtures, fence tests, P2 fix, setext; builder posted NO thread reply); Greptile NEW P1 4012744258 (thematic-break, noticed-not-touched); 3 r2 axes live |
 
 PHASE: ORIENT → ENUMERATE → TRIAGE done → FREEZE → BUILD wave 1: U385 CLOSED, U388 U389 in fix-round → wave 2: U364
 
@@ -817,3 +817,20 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   7c3921a1). MERGED=t, WT_CLEAN=t (worktree retired from git + orca
   registries, dir gone). SECOND WAVE-2 UNIT DONE. FIX387W-r2 (reviewing) +
   FIX387P-r2 (implementing) still live at merge time; their unions absorb.
+- FIX387P-r2 QUESTION (msg_7e11076aae7f): fix-387p-r2 step 5 'head_sha :=
+  pushed tip INCLUDING the manifest commit' unimplementable (self-naming
+  SHA) + contradicts option-A. RULING (A) CONFIRMED (msg_b92468884470):
+  head_sha = code tip, pushed tip named in worker_done, step-5 disclosed
+  as superseded; close re-binds. Logged DECISIONS.md fix-step5-headsha.
+  SAME DEFECT in fix-387w-r2.md step 5 — W worker self-applied option-A
+  (head 0ba9a75 code tip, re-bind asked). No mid-flight spec edits.
+- FIX387W-r2 worker_done (msg_3e68a2467598, released, verified): PR #401
+  @04b780f (union b6f5a41 over 5a853b2 + 8 fix commits per worker list,
+  0ba9a75→04b780f manifest-only; origin==PR head). Gates re-ran
+  coordinator-side @04b780f: 73 OK + validate. Manifest checks
+  (head=code tip w/ option-A note, C-1..C-4, NC 1/0, 3 cmds bound
+  b548251). NEW Greptile P1 4012744258 (thematic-break closes section,
+  @04b780f, review 5206468138) left noticed-not-touched per spec; NO
+  thread replies posted (r2 axes must flag the owed P2 thread answer).
+  R387W-r2 specs frozen (copies + retarget 04b780f + batch-verify + new-P1
+  judge lines); 3 axes dispatched.
