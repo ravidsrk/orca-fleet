@@ -3,9 +3,9 @@
   "unit": "U387W",
   "unit_class": "code-change",
   "base_sha": "9a115f7579232f50b913ce84515e3964f8b68b33",
-  "head_sha": "5cde1f16e2d9bdd3e0fdce263dbbd268287df1e6",
-  "head_tree": "54322e6e3f74c858ca299e2c29560b9e40f69ab7",
-  "head_sha_role": "Round 3 (fix-387w-r3, verdict r2 NO-GO, review 5206786113): head_sha is the round-3 code tip 5cde1f1. On top of round 2 (pushed tip 04b780f), round 3 adds 0fcb18d (union merge of origin/review/2026-09-14-holistic-fixes ede9098; the badge conflict was regenerated), ac9395d (a list item or block quote underlined does not end the section: PR #401 P1 4012744258), fb6308d (paragraph-gate and heading case/word-boundary witnesses) and 5cde1f1 (gen-badges.py outputs). Option A (DECISIONS.md fix-step5-headsha, ruling msg_b92468884470): a manifest cannot name the SHA of the commit containing it, and commands[] cannot bind that commit's tree. So the manifest commit, which changes only this file and u387w-negctrl.txt, is named as the pushed tip in worker_done, and the conductor re-binds head_sha to it at close. Every commands[] record was made on a clean tree at head_sha: wtree 54322e6e == head_tree.",
+  "head_sha": "99b73cac0a37cd2e9cba438a17609d9b6df95669",
+  "head_tree": "744ab26e9821929f48570836b598af2572359994",
+  "head_sha_role": "Round 4 (fix-387w-r4, verdict r3 NO-GO, review 5207297740): head_sha is the round-4 code tip 99b73ca. On top of round 3 (pushed tip 3ce5825), round 4 adds d9f0a2a (union merge of origin/review/2026-09-14-holistic-fixes e97b824, conflict-free), de82be7 (list items followed by their content column: verdict r3 F-1/F-2/F-3, PR #401 P1 4013204408), 19b638f (item-5 witnesses for D6, D7, C8, C10, D15), 5accc45 (gen-badges.py outputs, tests 1371 -> 1376) and 99b73ca (list-item column witnesses that kill M13h, M13m and M13n, which survived the controls at 5accc45). Option A (DECISIONS.md fix-step5-headsha, ruling msg_b92468884470): a manifest cannot name the SHA of the commit containing it, and commands[] cannot bind that commit's tree. So the manifest commit, which changes only this file and u387w-negctrl.txt, is named as the pushed tip in worker_done, and the conductor re-binds head_sha to it at close. Every commands[] record was made on a clean tree at head_sha: wtree 744ab26e == head_tree.",
   "base_branch": "review/2026-09-14-holistic-fixes",
   "branch": "ravidsrk/u387w-wipsection",
   "contract": {
@@ -24,15 +24,15 @@
       "id": "C-1",
       "text": "_wip_rows collects rows ONLY inside the canonical WIP-curve section (confirm the exact header from TEMPLATE.md + real self-run reports; match ATX headings naming the WIP-curve row table, tolerate whitespace; rows in fenced blocks, deviations tables, or other sections are ignored).",
       "addressed": true,
-      "commit": "d657941; r2: d886a6c, 15e351a, d52ff42, 58dc956; r3: ac9395d, fb6308d",
-      "witness": "tests/test_run_report.py::WipCurveObligation::test_complete_rows_outside_the_wip_curve_section_do_not_bind (6 subtests: backtick fence and tilde fence inside the section, a deviations table, a fence plus a deviations table, another section with no WIP-curve section, the section heading quoted inside a fence; each must be refused '— none found;' naming 'WIP-curve protocol row') and ::test_rows_outside_the_section_do_not_count_against_the_rows_inside_it (a complete section plus a fenced wave-1 example, an unmeasured wave=2 deviation row and a wave=3 row outside it must bind []). The heading literal '## WIP-curve protocol row (mutating self-runs)' is TEMPLATE.md's, asserted present in the template by the test. Guard ::test_the_section_heading_tolerates_its_real_spellings covers the template's heading, the 2026-08-28 ship-it report's real heading, the module's '## WIP curve' fixtures, loose whitespace, a deeper level and a closing sequence. RED at 4c72718 (base checker): six subtests bound with errs == [], and the false-fail test returned the unmeasured-row error. Round 2 (verdict r1 F-1, R2, PR #401 P2 4012319774, setext): only an ATX heading whose text begins 'WIP-curve protocol row' opens the section (d886a6c; ::test_a_look_alike_heading_does_not_open_the_section: '## WIP-curve example (from another run)', '## WIP curve' and '### WIP \\t curve' with complete rows and no canonical section are refused '— none found;', '## Deviations — WIP-curve cap raised' likewise, and a look-alike after the section does not reopen it). The CommonMark fence-close rule is pinned by ::test_a_fence_closes_only_on_a_bare_run_of_its_own_character_at_least_as_long (shorter run, other character, info string; 15e351a). A backtick run with a backtick after it opens no fence (d52ff42; ::test_a_backtick_run_with_a_backtick_after_it_opens_no_fence, the review's '```text`example``' repro). A setext heading after the section ends it (58dc956; ::test_a_setext_heading_after_the_section_ends_it, --- and ===, with a thematic-break guard). RED on the round-1 checker under NC-3 (8 failures) and, for the fence-close test, under NC-4 (the R2 mutant, 3 failures). Round 3 (PR #401 P1 4012744258, verdict r2 TEST R-1 / SPEC F-2, N-1): only a plain paragraph line, or its continuation, arms the setext rule (ac9395d). ::test_a_list_item_or_block_quote_underlined_does_not_end_the_section: a list item, an ordered list item and a block quote with ---, a list item with ===, and a list item's and a block quote's lazy continuation with --- all bind complete rows. RED under NC-6 (the round-2 checker, 6 subtests), NC-10 (container branch removed) and NC-11 (continuations turn plain, the two continuation subtests). ::test_a_thematic_break_after_a_table_row_a_heading_or_a_fence_keeps_the_section_open witnesses each paragraph-gate exclusion on its own (fb6308d; RED under NC-7a fence, NC-7b heading, NC-7c table row, NC-7d all three; M7e is equivalent). The look-alike test gains '## WIP-curve protocol rows' and '## wip-curve protocol row' (RED under NC-9 and NC-8)."
+      "commit": "d657941; r2: d886a6c, 15e351a, d52ff42, 58dc956; r3: ac9395d, fb6308d; r4: de82be7, 19b638f",
+      "witness": "tests/test_run_report.py::WipCurveObligation::test_complete_rows_outside_the_wip_curve_section_do_not_bind (6 subtests: backtick fence and tilde fence inside the section, a deviations table, a fence plus a deviations table, another section with no WIP-curve section, the section heading quoted inside a fence; each must be refused '— none found;' naming 'WIP-curve protocol row') and ::test_rows_outside_the_section_do_not_count_against_the_rows_inside_it (a complete section plus a fenced wave-1 example, an unmeasured wave=2 deviation row and a wave=3 row outside it must bind []). The heading literal '## WIP-curve protocol row (mutating self-runs)' is TEMPLATE.md's, asserted present in the template by the test. Guard ::test_the_section_heading_tolerates_its_real_spellings covers the template's heading, the 2026-08-28 ship-it report's real heading, the module's '## WIP curve' fixtures, loose whitespace, a deeper level and a closing sequence. RED at 4c72718 (base checker): six subtests bound with errs == [], and the false-fail test returned the unmeasured-row error. Round 2 (verdict r1 F-1, R2, PR #401 P2 4012319774, setext): only an ATX heading whose text begins 'WIP-curve protocol row' opens the section (d886a6c; ::test_a_look_alike_heading_does_not_open_the_section: '## WIP-curve example (from another run)', '## WIP curve' and '### WIP \\t curve' with complete rows and no canonical section are refused '— none found;', '## Deviations — WIP-curve cap raised' likewise, and a look-alike after the section does not reopen it). The CommonMark fence-close rule is pinned by ::test_a_fence_closes_only_on_a_bare_run_of_its_own_character_at_least_as_long (shorter run, other character, info string; 15e351a). A backtick run with a backtick after it opens no fence (d52ff42; ::test_a_backtick_run_with_a_backtick_after_it_opens_no_fence, the review's '```text`example``' repro). A setext heading after the section ends it (58dc956; ::test_a_setext_heading_after_the_section_ends_it, --- and ===, with a thematic-break guard). RED on the round-1 checker under NC-3 (8 failures) and, for the fence-close test, under NC-4 (the R2 mutant, 3 failures). Round 3 (PR #401 P1 4012744258, verdict r2 TEST R-1 / SPEC F-2, N-1): only a plain paragraph line, or its continuation, arms the setext rule (ac9395d). ::test_a_list_item_or_block_quote_underlined_does_not_end_the_section: a list item, an ordered list item and a block quote with ---, a list item with ===, and a list item's and a block quote's lazy continuation with --- all bind complete rows. RED under NC-6 (the round-2 checker, 6 subtests), NC-10 (container branch removed) and NC-11 (continuations turn plain, the two continuation subtests). ::test_a_thematic_break_after_a_table_row_a_heading_or_a_fence_keeps_the_section_open witnesses each paragraph-gate exclusion on its own (fb6308d; RED under NC-7a fence, NC-7b heading, NC-7c table row, NC-7d all three; M7e is equivalent). The look-alike test gains '## WIP-curve protocol rows' and '## wip-curve protocol row' (RED under NC-9 and NC-8). Round 4 (verdict r3 F-2 and F-3, PR #401 P1 4013204408 half 1, TEST nits D6/D7/C8/C10/D15): list items are followed by the column their content starts at (de82be7). ::test_an_ordered_item_not_numbered_1_under_a_paragraph_line_is_its_text: 'Deviations' then '2. raised mid-run', '10) raised mid-run' or an empty '*', then '---', with complete rows after, is refused '— none found;'; 'A note:' / '1. raised mid-run' / '---' binds []. ::test_a_fence_nested_in_a_list_item_hides_its_rows: a fence at 4 spaces under '1. ' and at 6 spaces under a nested '  - ' item: its complete wave=1 row alone is refused '— none found;', and its wave=3 row beside the real wave-1 row binds []. ::test_a_thematic_break_is_neither_a_list_item_nor_a_paragraph: '* * *' / blank / '  Deviations' / '---' and '- a note' / '---' / 'Deviations' / '---' are refused '— none found;', and '-' / '  ---' (a thematic break in an empty item) binds []. ::test_the_marker_heading_and_underline_edges_commonmark_draws (19b638f): '+', '*' and ')' items then '---', a '#######' line and a four-space underline bind []; a bare '##' is refused '— none found;'. RED on the unchanged checker (tests only: 13 failures), under NC-12 (the round-3 checker 3ce5825, FAILED (failures=15)), and each item-5 subtest under its mutant, on the pre-fix checker and at head_sha."
     },
     {
       "id": "C-2",
       "text": "per-wave completeness inside the section still enforced: complete section rows bind; incomplete section rows are refused naming the wave; all pre-existing run_report tests stay green (guards).",
       "addressed": true,
-      "commit": "d657941; r2: 1917488; r3: ac9395d",
-      "witness": "tests/test_run_report.py::WipCurveObligation::test_an_incomplete_section_row_is_refused_whatever_lies_outside: an unmeasured wave=2 row in the section is refused with exactly one error naming '| wave=2 |' and \"carries no measured ['latency_max']\", and a complete wave-2 copy in a deviations table neither rescues it nor doubles the wave (RED at base: 2 != 1, the doubled-wave error). All 65 pre-existing run_report tests stay green at head (69 = 65 + 4 new, OK); every existing WIP-curve completeness test (partial rows, missing waves, doubled cells, doubled/stray waves, non-integer waves and settings, placeholders, waves= header checks) runs unchanged under its '## WIP curve' heading. Round 2: 73 = 69 + 4 new tests, all green at 0ba9a75. The 13 '## WIP curve' fixtures moved to the canonical heading (1917488). Each asserts a per-row or per-wave rule that the narrowed heading would otherwise have hidden behind '— none found;'. Bodies and assertions are unchanged. Round 3: ::test_a_row_after_a_list_item_and_a_thematic_break_is_still_read is the P1's fail-open repro: '- a note' then '---' before an incomplete, duplicate wave=2 row inside the section. It is refused naming '| wave=2 |' with \"carries no measured ['latency_max']\" and 'wave(s) [2] carry more than one WIP-curve row' (it bound [] on the round-2 checker: NC-6, NC-10). The gate test's incomplete wave=2 rows are refused the same way after a table row, the section heading and a closed fence. 76 = 73 + 3 new tests, all green at 5cde1f1."
+      "commit": "d657941; r2: 1917488; r3: ac9395d; r4: de82be7",
+      "witness": "tests/test_run_report.py::WipCurveObligation::test_an_incomplete_section_row_is_refused_whatever_lies_outside: an unmeasured wave=2 row in the section is refused with exactly one error naming '| wave=2 |' and \"carries no measured ['latency_max']\", and a complete wave-2 copy in a deviations table neither rescues it nor doubles the wave (RED at base: 2 != 1, the doubled-wave error). All 65 pre-existing run_report tests stay green at head (69 = 65 + 4 new, OK); every existing WIP-curve completeness test (partial rows, missing waves, doubled cells, doubled/stray waves, non-integer waves and settings, placeholders, waves= header checks) runs unchanged under its '## WIP curve' heading. Round 2: 73 = 69 + 4 new tests, all green at 0ba9a75. The 13 '## WIP curve' fixtures moved to the canonical heading (1917488). Each asserts a per-row or per-wave rule that the narrowed heading would otherwise have hidden behind '— none found;'. Bodies and assertions are unchanged. Round 3: ::test_a_row_after_a_list_item_and_a_thematic_break_is_still_read is the P1's fail-open repro: '- a note' then '---' before an incomplete, duplicate wave=2 row inside the section. It is refused naming '| wave=2 |' with \"carries no measured ['latency_max']\" and 'wave(s) [2] carry more than one WIP-curve row' (it bound [] on the round-2 checker: NC-6, NC-10). The gate test's incomplete wave=2 rows are refused the same way after a table row, the section heading and a closed fence. 76 = 73 + 3 new tests, all green at 5cde1f1. Round 4 (verdict r3 F-1, PR #401 P1 4013204408 half 2): ::test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list: after '- a note' / blank / '  that runs on' / '---', after '10. a note' / blank / '    that runs on' / '---', and after '-     a note' / blank / '  that runs on' / '---' (that item's content starts at column 2), complete rows bind []; with rows 1 and 2 before that lead and an incomplete second wave=2 row after it, the report is refused with '| wave=2 |' \"carries no measured ['latency_max']\" and 'wave(s) [2] carry more than one WIP-curve row'. The same paragraph underlined at the item's column ('  ---' under '- ', '    ---' under '10. '), and 'Deviations' / '---' back at the margin after '- a note' and a blank line, and 'Deviations' at column 2 under '-   a note' (short of that item's column 4), are refused '— none found;'. Each direction is its own subtest, RED on the unchanged checker and under NC-12. 81 = 76 + 5 new tests, all green at 99b73ca (99b73ca adds subtests, not tests)."
     },
     {
       "id": "C-3",
@@ -45,8 +45,8 @@
       "id": "C-4",
       "text": "python3 -m unittest discover -s tests and scripts/validate.py green.",
       "addressed": true,
-      "commit": "5cde1f1",
-      "witness": "commands[] below, recorded by runtime/scripts/evidence-run.py on the clean tree at head_sha 5cde1f1: nc-command 'Ran 76 tests' / 'OK', exit 0; validate 'All 21 missions valid; three-layer separation holds; evals valid.', exit 0; full-suite 'Ran 1371 tests in 254.530s' / 'OK', exit 0."
+      "commit": "99b73ca",
+      "witness": "commands[] below, recorded by runtime/scripts/evidence-run.py on the clean tree at head_sha 99b73ca: nc-command 'Ran 81 tests in 6.035s' / 'OK', exit 0; validate 'All 21 missions valid; three-layer separation holds; evals valid.', exit 0; full-suite 'Ran 1376 tests in 252.008s' / 'OK', exit 0."
     }
   ],
   "intent": {
@@ -60,39 +60,39 @@
   "commands": [
     {
       "label": "nc-command",
-      "ts": "2026-09-15T07:26:48Z",
+      "ts": "2026-09-15T08:42:18Z",
       "cmd": "python3 -m unittest tests.test_run_report",
       "cmd_sha256": "b4603da428a8b70130fdb60edeb399d52a044ad679ee7f857305707f53e97f6a",
       "exit": 0,
-      "duration_s": 6.514,
-      "commit": "5cde1f16e2d9bdd3e0fdce263dbbd268287df1e6",
-      "wtree": "54322e6e3f74c858ca299e2c29560b9e40f69ab7",
+      "duration_s": 6.064,
+      "commit": "99b73cac0a37cd2e9cba438a17609d9b6df95669",
+      "wtree": "744ab26e9821929f48570836b598af2572359994",
       "artifact": null
     },
     {
       "label": "validate",
-      "ts": "2026-09-15T07:26:49Z",
+      "ts": "2026-09-15T08:42:18Z",
       "cmd": "python3 scripts/validate.py",
       "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
       "exit": 0,
-      "duration_s": 0.556,
-      "commit": "5cde1f16e2d9bdd3e0fdce263dbbd268287df1e6",
-      "wtree": "54322e6e3f74c858ca299e2c29560b9e40f69ab7",
+      "duration_s": 0.55,
+      "commit": "99b73cac0a37cd2e9cba438a17609d9b6df95669",
+      "wtree": "744ab26e9821929f48570836b598af2572359994",
       "artifact": null
     },
     {
       "label": "full-suite",
-      "ts": "2026-09-15T07:37:20Z",
+      "ts": "2026-09-15T08:46:30Z",
       "cmd": "python3 -m unittest discover -s tests",
       "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
       "exit": 0,
-      "duration_s": 254.604,
-      "commit": "5cde1f16e2d9bdd3e0fdce263dbbd268287df1e6",
-      "wtree": "54322e6e3f74c858ca299e2c29560b9e40f69ab7",
+      "duration_s": 252.082,
+      "commit": "99b73cac0a37cd2e9cba438a17609d9b6df95669",
+      "wtree": "744ab26e9821929f48570836b598af2572359994",
       "artifact": null
     }
   ],
-  "commands_note": "All three records were written by runtime/scripts/evidence-run.py on the clean tree of head_sha 5cde1f1 (git status --porcelain --untracked-files=all empty before and after; wtree 54322e6e == head_tree). Each went into its own manifest in the session scratchpad so the tree stayed clean, and they are concatenated here as the recorder wrote them, artifact null on each. The first is the spec's NC-COMMAND. nc-command 'Ran 76 tests' / 'OK', exit 0; validate 'All 21 missions valid; three-layer separation holds; evals valid.', exit 0; full-suite 'Ran 1371 tests in 254.530s' / 'OK', exit 0.",
+  "commands_note": "All three records were written by runtime/scripts/evidence-run.py on the clean tree of head_sha 99b73ca (git status --porcelain --untracked-files=all empty before and after; wtree 744ab26e == head_tree). Each went into its own manifest in the session scratchpad so the tree stayed clean, and they are concatenated here as the recorder wrote them, artifact null on each. The recorder's output was also teed to a scratchpad log and grepped for the summary lines, so the full-suite summary is captured: nc-command 'Ran 81 tests in 6.035s' / 'OK', exit 0; validate 'All 21 missions valid; three-layer separation holds; evals valid.', exit 0; full-suite 'Ran 1376 tests in 252.008s' / 'OK', exit 0. Also run at 99b73ca: ruff check on runtime/scripts/run_report.py and tests/test_run_report.py ('All checks passed!'), and gitleaks detect --log-opts=9a115f7..HEAD ('96 commits scanned', 'no leaks found', exit 0; that count is at 5accc45; at 99b73ca, 97 commits scanned, no leaks found, exit 0).",
   "red_first": {
     "note": "tdd skill (the single methodology pack): vertical slices at the seam every WipCurveObligation test already uses, run_report._wip_curve_errors; each slice's test was run before its production change. Expected values come from TEMPLATE.md's heading, the 2026-08-28 ship-it report's real heading and the protocol's own words, never from the checker's regex.",
     "slices": [
@@ -163,17 +163,38 @@
           "result": "Green on arrival, by design. RED under M8 (re.I: the lowercase subtest) and M9 (no \\b: the plural subtest), both before the fix and at 5cde1f1 (NC-8, NC-9). GREEN 76 OK."
         }
       ]
+    },
+    "round_4": {
+      "note": "tdd skill only (the matt pack). Seam unchanged: run_report._wip_curve_errors. The item-1/2/3 tests were written and run against the unchanged checker (the union tip d9f0a2a) before any production change. Each direction is its own subtest, so both directions show RED. The item-5 tests witness code that was already right, so their RED is under the mutants they kill. Every commit is green on its own (de82be7: 80 OK; 19b638f, 5accc45 and 99b73ca: 81 OK).",
+      "slices": [
+        {
+          "slice": "1-3 (F-2, F-1, F-3: de82be7)",
+          "result": "RED on the unchanged checker, tests only (the item-5 test was written in the same pass and is green there): Ran 80 tests, FAILED (failures=7), then FAILED (failures=11) once each direction was its own subtest. That is every item-1/2/3 subtest (F-2: '2.', '10)', empty item; F-1: both leads, both directions; F-3: both nestings, both directions). GREEN with the change: Ran 80 tests, OK."
+        },
+        {
+          "slice": "guards for the fix's own branches (de82be7)",
+          "result": "Written after the first green, for branches the fix adds: a thematic break opens no item and ends a list item's paragraph; an underline is measured from its paragraph's column; a line back at the margin leaves the list. Two of them were RED on the unchanged checker too, which bound [] on each: '- a note' / '---' / 'Deviations' / '---', and the underline at column 4. With them the unchanged checker gives Ran 81 tests, FAILED (failures=13). At 99b73ca each guard is RED under a mutant of its own branch: '* * *' under M13a; '- a note' / '---' / 'Deviations' / '---' under M13b and M13i; the margin case under M13i; and the column-4 underline under M13j. GREEN: Ran 81 tests, OK. The fix commit de82be7, without the item-5 test, is Ran 80 tests, OK on its own."
+        },
+        {
+          "slice": "5 (D6, D7, C8, C10, D15: 19b638f)",
+          "result": "Green on arrival. RED under its mutant on the pre-fix checker d9f0a2a, beside the 13 item-1/2/3 failures: D6 fails the '+' and '*' subtests, D7 the ')' one, C8 the empty '##', C10 the seven #s, D15 the four-space underline. RED again at 99b73ca (NC transcript). GREEN: Ran 81 tests, OK."
+        },
+        {
+          "slice": "column witnesses (99b73ca)",
+          "result": "The first control run, at 5accc45, left M13h, M13m and M13n alive: every fixture had a one-space gap after its marker and no empty item. Subtests were added to two existing tests, each shape checked against the oracle first. They are green on arrival and RED at 5accc45 under M13h (1 failure), M13m (2) and M13n (1). GREEN: Ran 81 tests, OK."
+        }
+      ]
     }
   },
   "negative_control": {
     "tool": "revert",
-    "did": "At head_sha d31ef62 in one throwaway worktree (git worktree add --detach <scratchpad>/base 9a115f7; git checkout --detach d31ef62). NC-1 (the spec's control): git checkout 9a115f7 -- runtime/scripts/run_report.py (checker reverted to base, tests and prose kept), ran the NC-COMMAND, then git checkout HEAD -- runtime/scripts/run_report.py and ran it again. NC-2 (C-3 witness): git checkout 9a115f7 -- runtime/attention-budget.md (prose reverted, checker and tests kept), ran the NC-COMMAND, restored and ran it again. The index tree after restoring equalled head_tree f503c225 with a clean status; then git worktree remove --force. Round 2, at the code tip 0ba9a75, in one throwaway worktree (git worktree add --detach <scratchpad>/nc 0ba9a75): NC-1 and NC-2 re-run as above. NC-3: git checkout d94c6c1 -- runtime/scripts/run_report.py (the round-1 reviewed checker). NC-4: the tip's fence-close clause replaced by 'if opener:' (R2's 'any fence line closes'). NC-5: git checkout d94c6c1 -- runtime/attention-budget.md (the round-1 prose). Each control was followed by git checkout HEAD -- <path> and the NC-COMMAND. The index tree after the last restore equalled head_tree b5482512 with a clean status; then git worktree remove --force. Round 3, at the code tip 5cde1f1, in one throwaway worktree (git worktree add --detach <scratchpad>/nc 5cde1f1): NC-1 through NC-5 re-run as above (NC-4's mutant re-expressed on the tip's clause). NC-6: git checkout 04b780f -- runtime/scripts/run_report.py (the round-2 reviewed checker). NC-7a-e: the paragraph gate drops its fence, heading, table-row or all three exclusions (a-d), or the setext exclusion (e, equivalent). NC-8: the heading anchor gains re.I. NC-9: it loses the \\b after 'row'. NC-10: the list-item/block-quote branch is removed. NC-11: a container paragraph's continuation turns plain ('elif not para:' -> 'else:'). Each control was followed by git checkout HEAD -- <path> and the NC-COMMAND. The index tree after the last restore equalled head_tree 54322e6e with a clean status; then git worktree remove --force.",
+    "did": "At head_sha d31ef62 in one throwaway worktree (git worktree add --detach <scratchpad>/base 9a115f7; git checkout --detach d31ef62). NC-1 (the spec's control): git checkout 9a115f7 -- runtime/scripts/run_report.py (checker reverted to base, tests and prose kept), ran the NC-COMMAND, then git checkout HEAD -- runtime/scripts/run_report.py and ran it again. NC-2 (C-3 witness): git checkout 9a115f7 -- runtime/attention-budget.md (prose reverted, checker and tests kept), ran the NC-COMMAND, restored and ran it again. The index tree after restoring equalled head_tree f503c225 with a clean status; then git worktree remove --force. Round 2, at the code tip 0ba9a75, in one throwaway worktree (git worktree add --detach <scratchpad>/nc 0ba9a75): NC-1 and NC-2 re-run as above. NC-3: git checkout d94c6c1 -- runtime/scripts/run_report.py (the round-1 reviewed checker). NC-4: the tip's fence-close clause replaced by 'if opener:' (R2's 'any fence line closes'). NC-5: git checkout d94c6c1 -- runtime/attention-budget.md (the round-1 prose). Each control was followed by git checkout HEAD -- <path> and the NC-COMMAND. The index tree after the last restore equalled head_tree b5482512 with a clean status; then git worktree remove --force. Round 3, at the code tip 5cde1f1, in one throwaway worktree (git worktree add --detach <scratchpad>/nc 5cde1f1): NC-1 through NC-5 re-run as above (NC-4's mutant re-expressed on the tip's clause). NC-6: git checkout 04b780f -- runtime/scripts/run_report.py (the round-2 reviewed checker). NC-7a-e: the paragraph gate drops its fence, heading, table-row or all three exclusions (a-d), or the setext exclusion (e, equivalent). NC-8: the heading anchor gains re.I. NC-9: it loses the \\b after 'row'. NC-10: the list-item/block-quote branch is removed. NC-11: a container paragraph's continuation turns plain ('elif not para:' -> 'else:'). Each control was followed by git checkout HEAD -- <path> and the NC-COMMAND. The index tree after the last restore equalled head_tree 54322e6e with a clean status; then git worktree remove --force. Round 4, at the code tip 99b73ca, in one throwaway worktree (git worktree add --detach <scratchpad>/pre d9f0a2a; git checkout --force --detach 99b73ca): NC-1 through NC-11 re-run, the text mutants re-expressed on the tip's code (NC-4: the closer clause becomes 'if closer:'; NC-7a-e: the paragraph gate drops opener, heading, the table row, all three, or setext; NC-10: no list item and no block quote is ever matched; NC-11: every continuation line starts a new paragraph). NC-12: git checkout 3ce5825 -- runtime/scripts/run_report.py (the round-3 reviewed checker), also run with full output in a second throwaway worktree at 99b73ca. D6, D7, C8, C10, D15: the verdict's surviving mutants. M13a-n: mutants of the branches round 4 adds. Each control was followed by git checkout HEAD -- <path> and the NC-COMMAND. The index tree after the last restore equalled head_tree 744ab26e with a clean status; then git worktree remove --force. M13h, M13m and M13n survived the same run at 5accc45 and are killed by 99b73ca's subtests. Before the fix, the item-5 mutants were also run on the pre-fix checker d9f0a2a with the new tests (red_first.round_4).",
     "paths": [
       "runtime/scripts/run_report.py",
       "runtime/attention-budget.md"
     ],
     "command": "python3 -m unittest tests.test_run_report",
-    "result": "RED. Round 1 at d31ef62: NC-1 failures=9, NC-2 failures=1, both restored to 69 OK. Round 2 at 0ba9a75: NC-1 (checker at base 9a115f7) exit 1, FAILED (failures=21): every section, look-alike, fence, info-string and setext case bound or miscounted, plus the protocol test's two refusal legs. NC-2 (prose at base) exit 1, failures=1. NC-3 (checker at d94c6c1) exit 1, failures=8: the look-alike heading test (3 headings plus the reopening case), the info-string repro, both setext underlines, and the protocol test's '## WIP-curve example' leg. NC-4 (the R2 mutant) exit 1, failures=3: the three fence-close subtests. NC-5 (prose at d94c6c1) exit 1, failures=1: the protocol test. Every restore: 73 OK, exit 0. Round 3 at 5cde1f1: NC-1 failures=23, NC-2 failures=1, NC-3 failures=10, NC-4 failures=3, NC-5 failures=1, NC-6 failures=7 (the six list/block-quote subtests and the fail-open repro), NC-7a failures=1 (closed fence), NC-7b failures=1 (section heading), NC-7c failures=1 (table row), NC-7d failures=3, NC-8 failures=1 (lowercase heading), NC-9 failures=1 (plural heading), NC-10 failures=7, NC-11 failures=2 (the two continuation subtests); each exit 1. NC-7e (equivalent) 76 OK, exit 0. Every restore: 76 OK, exit 0.",
+    "result": "RED. Round 1 at d31ef62: NC-1 failures=9, NC-2 failures=1, both restored to 69 OK. Round 2 at 0ba9a75: NC-1 (checker at base 9a115f7) exit 1, FAILED (failures=21): every section, look-alike, fence, info-string and setext case bound or miscounted, plus the protocol test's two refusal legs. NC-2 (prose at base) exit 1, failures=1. NC-3 (checker at d94c6c1) exit 1, failures=8: the look-alike heading test (3 headings plus the reopening case), the info-string repro, both setext underlines, and the protocol test's '## WIP-curve example' leg. NC-4 (the R2 mutant) exit 1, failures=3: the three fence-close subtests. NC-5 (prose at d94c6c1) exit 1, failures=1: the protocol test. Every restore: 73 OK, exit 0. Round 3 at 5cde1f1: NC-1 failures=23, NC-2 failures=1, NC-3 failures=10, NC-4 failures=3, NC-5 failures=1, NC-6 failures=7 (the six list/block-quote subtests and the fail-open repro), NC-7a failures=1 (closed fence), NC-7b failures=1 (section heading), NC-7c failures=1 (table row), NC-7d failures=3, NC-8 failures=1 (lowercase heading), NC-9 failures=1 (plural heading), NC-10 failures=7, NC-11 failures=2 (the two continuation subtests); each exit 1. NC-7e (equivalent) 76 OK, exit 0. Every restore: 76 OK, exit 0. Round 4 at 99b73ca: NC-1 failures=37, NC-2 failures=1, NC-3 failures=23, NC-4 failures=3, NC-5 failures=1, NC-6 failures=23, NC-7a failures=1, NC-7b failures=1, NC-7c failures=1, NC-7d failures=3, NC-7e OK (exit 0), NC-8 failures=1, NC-9 failures=1, NC-10 failures=23, NC-11 failures=2, NC-12 failures=15, D6 failures=2, D7 failures=1, C8 failures=1, C10 failures=1, D15 failures=1, M13a failures=1, M13b failures=1, M13c failures=3, M13d failures=2, M13e failures=1, M13f failures=4, M13g failures=2, M13h failures=1, M13i failures=3, M13j failures=1, M13k failures=10, errors=3, M13l failures=2, M13m failures=2, M13n failures=1. Every control but NC-7e exited 1; every restore: Ran 81 tests / OK exit=0; the index tree after the last restore was 744ab26e with a clean status.",
     "exit": 1,
     "clean_head_exit": 0,
     "artifact": "docs/runs/2026-09-14-clean-sweep-tracker/u387w-negctrl.txt",
@@ -214,13 +235,50 @@
       "NC-6: FAIL x6 test_a_list_item_or_block_quote_underlined_does_not_end_the_section (list/ordered/quote ---, list ===, list/quote continuation ---): Lists differ: [\"r.md: a mutating run records one WIP-cur[344 chars]87)\"] != []; FAIL test_a_row_after_a_list_item_and_a_thematic_break_is_still_read; FAILED (failures=7) exit=1",
       "NC-7a/b/c: FAILED (failures=1) each: closed fence / section heading / table row; NC-7d: FAILED (failures=3); NC-7e: OK exit=0 (EQUIVALENT: expected ZERO)",
       "NC-8: FAIL heading='## wip-curve protocol row'; NC-9: FAIL heading='## WIP-curve protocol rows'; NC-10: FAILED (failures=7); NC-11: FAILED (failures=2)",
-      "Every restore: Ran 76 tests / OK exit=0; index tree after the last restore 54322e6e status=[]"
+      "Every restore: Ran 76 tests / OK exit=0; index tree after the last restore 54322e6e status=[]",
+      "ROUND 4 at 99b73ca (tree 744ab26e):",
+      "NC-1 (checker at base 9a115f7): FAILED (failures=37) exit=1",
+      "NC-2 (prose at base 9a115f7): FAILED (failures=1) exit=1: test_the_protocol_names_the_schema_the_checker_enforces",
+      "NC-3 (checker at round-1 d94c6c1): FAILED (failures=23) exit=1",
+      "NC-4 (any fence line closes (R2 mutant)): FAILED (failures=3) exit=1: test_a_fence_closes_only_on_a_bare_run_of_its_own_character_at_least_as_long (case='a shorter run'); test_a_fence_closes_only_on_a_bare_run_of_its_own_character_at_least_as_long (case='the other character'); test_a_fence_closes_only_on_a_bare_run_of_its_own_character_at_least_as_long (case='an info string')",
+      "NC-5 (prose at round-1 d94c6c1): FAILED (failures=1) exit=1: test_the_protocol_names_the_schema_the_checker_enforces",
+      "NC-6 (checker at round-2 04b780f): FAILED (failures=23) exit=1",
+      "NC-7a (gate drops the fence): FAILED (failures=1) exit=1: test_a_thematic_break_after_a_table_row_a_heading_or_a_fence_keeps_the_section_open (case='a closed fence')",
+      "NC-7b (gate drops the heading): FAILED (failures=1) exit=1: test_a_thematic_break_after_a_table_row_a_heading_or_a_fence_keeps_the_section_open (case='the section heading')",
+      "NC-7c (gate drops the table row): FAILED (failures=1) exit=1: test_a_thematic_break_after_a_table_row_a_heading_or_a_fence_keeps_the_section_open (case='a table row')",
+      "NC-7d (gate drops all three): FAILED (failures=3) exit=1: test_a_thematic_break_after_a_table_row_a_heading_or_a_fence_keeps_the_section_open (case='a table row'); test_a_thematic_break_after_a_table_row_a_heading_or_a_fence_keeps_the_section_open (case='the section heading'); test_a_thematic_break_after_a_table_row_a_heading_or_a_fence_keeps_the_section_open (case='a closed fence')",
+      "NC-7e (gate drops the setext (equivalent)): OK exit=0",
+      "NC-8 (heading anchor folds case): FAILED (failures=1) exit=1: test_a_look_alike_heading_does_not_open_the_section (heading='## wip-curve protocol row')",
+      "NC-9 (heading anchor loses the word boundary): FAILED (failures=1) exit=1: test_a_look_alike_heading_does_not_open_the_section (heading='## WIP-curve protocol rows')",
+      "NC-10 (no list item or block quote): FAILED (failures=23) exit=1",
+      "NC-11 (a continuation starts a new paragraph): FAILED (failures=2) exit=1: test_a_list_item_or_block_quote_underlined_does_not_end_the_section (case=\"a list item's continuation, ---\"); test_a_list_item_or_block_quote_underlined_does_not_end_the_section (case=\"a block quote's continuation, ---\")",
+      "NC-12 (checker at round-3 3ce5825): FAILED (failures=15) exit=1",
+      "D6 (bullets '-' only): FAILED (failures=2) exit=1: test_the_marker_heading_and_underline_edges_commonmark_draws (case=\"a '+' list item\"); test_the_marker_heading_and_underline_edges_commonmark_draws (case=\"a '*' list item\")",
+      "D7 (ordered '.' only): FAILED (failures=1) exit=1: test_the_marker_heading_and_underline_edges_commonmark_draws (case=\"a ')' ordered item\")",
+      "C8 (no empty ATX heading): FAILED (failures=1) exit=1: test_the_marker_heading_and_underline_edges_commonmark_draws (case=\"an empty '##' heading\")",
+      "C10 (seven #s open a heading): FAILED (failures=1) exit=1: test_the_marker_heading_and_underline_edges_commonmark_draws (case='seven #s')",
+      "D15 (an underline at any indent): FAILED (failures=1) exit=1: test_the_marker_heading_and_underline_edges_commonmark_draws (case='an underline indented four spaces')",
+      "M13a (a thematic break opens list items): FAILED (failures=1) exit=1: test_a_thematic_break_is_neither_a_list_item_nor_a_paragraph (case='* * *')",
+      "M13b (a thematic break continues a paragraph): FAILED (failures=1) exit=1: test_a_thematic_break_is_neither_a_list_item_nor_a_paragraph (case='a list item, ---')",
+      "M13c (any item interrupts a paragraph): FAILED (failures=3) exit=1: test_an_ordered_item_not_numbered_1_under_a_paragraph_line_is_its_text (case='2.'); test_an_ordered_item_not_numbered_1_under_a_paragraph_line_is_its_text (case='10)'); test_an_ordered_item_not_numbered_1_under_a_paragraph_line_is_its_text (case='an empty item')",
+      "M13d (any ordinal interrupts a paragraph): FAILED (failures=2) exit=1: test_an_ordered_item_not_numbered_1_under_a_paragraph_line_is_its_text (case='2.'); test_an_ordered_item_not_numbered_1_under_a_paragraph_line_is_its_text (case='10)')",
+      "M13e (an empty item interrupts a paragraph): FAILED (failures=1) exit=1: test_an_ordered_item_not_numbered_1_under_a_paragraph_line_is_its_text (case='an empty item')",
+      "M13f (a fence opens only near the margin): FAILED (failures=4) exit=1: test_a_fence_nested_in_a_list_item_hides_its_rows (case='an ordered item', rows='the example alone'); test_a_fence_nested_in_a_list_item_hides_its_rows (case='an ordered item', rows='a wave=3 example beside the real row'); test_a_fence_nested_in_a_list_item_hides_its_rows (case='a nested item', rows='the example alone'); test_a_fence_nested_in_a_list_item_hides_its_rows (case='a nested item', rows='a wave=3 example beside the real row')",
+      "M13g (a fence closes only near the margin): FAILED (failures=2) exit=1: test_a_fence_nested_in_a_list_item_hides_its_rows (case='an ordered item', rows='a wave=3 example beside the real row'); test_a_fence_nested_in_a_list_item_hides_its_rows (case='a nested item', rows='a wave=3 example beside the real row')",
+      "M13h (item content one column past the marker): FAILED (failures=1) exit=1: test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case=\"short of the item's column 4\", rows='under a setext heading')",
+      "M13i (list items never close): FAILED (failures=3) exit=1: test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='back at the margin', rows='under a setext heading'); test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case=\"short of the item's column 4\", rows='under a setext heading'); test_a_thematic_break_is_neither_a_list_item_nor_a_paragraph (case='a list item, ---')",
+      "M13j (an underline measured from the margin): FAILED (failures=1) exit=1: test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='at column 4', rows='under a setext heading')",
+      "M13k (an underline left of its paragraph's column): FAILED (failures=10, errors=3) exit=1",
+      "M13l (a block quote's paragraph is plain): FAILED (failures=2) exit=1: test_a_list_item_or_block_quote_underlined_does_not_end_the_section (case='a block quote, ---'); test_a_list_item_or_block_quote_underlined_does_not_end_the_section (case=\"a block quote's continuation, ---\")",
+      "M13m (a wide gap after the marker counts in full): FAILED (failures=2) exit=1: test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='text five spaces past the marker', rows='complete'); test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (case='text five spaces past the marker', rows='an incomplete second wave=2')",
+      "M13n (an empty item holds a paragraph): FAILED (failures=1) exit=1: test_a_thematic_break_is_neither_a_list_item_nor_a_paragraph (case='an empty list item')",
+      "Every restore: Ran 81 tests / OK exit=0; index tree after the last restore 744ab26e status=[]"
     ],
     "not_witnessed_by_the_control": [
       "tests/test_run_report.py::WipCurveObligation::test_the_section_heading_tolerates_its_real_spellings",
       "test_a_setext_heading_after_the_section_ends_it's thematic-break case (a guard: green under every control)"
     ],
-    "not_witnessed_note": "The heading-spellings test passes at base by design: an unscoped checker reads rows under any heading. It guards the C-1 'tolerate whitespace' clause against a scoping rule that is too strict (it goes RED if the heading match requires the full template text or an exact '## ' prefix), and is not a witness of the section rule itself. Round 2: the setext test's thematic-break case (--- after a blank line keeps the section open) guards against closing on any ---. It passes under every control by design. The '## Deviations — WIP-curve cap raised' look-alike subtest is RED only under NC-1 (the unscoped base checker); the round-1 pattern already refused it. The fence-close test passes under NC-3, because the round-1 checker already held the clause. NC-4 is its witness. Round 3: NC-7e (drop the setext exclusion from the paragraph gate) is equivalent and green by design: the line after an underline can only underline again, and an underline only closes the section, which is already closed. The verdict ruled it equivalent; it is recorded, not chased. The round-2 thematic-break guard (--- after a blank) now has table-row, heading and closed-fence siblings, each with its own witness (NC-7a-d).",
+    "not_witnessed_note": "The heading-spellings test passes at base by design: an unscoped checker reads rows under any heading. It guards the C-1 'tolerate whitespace' clause against a scoping rule that is too strict (it goes RED if the heading match requires the full template text or an exact '## ' prefix), and is not a witness of the section rule itself. Round 2: the setext test's thematic-break case (--- after a blank line keeps the section open) guards against closing on any ---. It passes under every control by design. The '## Deviations — WIP-curve cap raised' look-alike subtest is RED only under NC-1 (the unscoped base checker); the round-1 pattern already refused it. The fence-close test passes under NC-3, because the round-1 checker already held the clause. NC-4 is its witness. Round 3: NC-7e (drop the setext exclusion from the paragraph gate) is equivalent and green by design: the line after an underline can only underline again, and an underline only closes the section, which is already closed. The verdict ruled it equivalent; it is recorded, not chased. The round-2 thematic-break guard (--- after a blank) now has table-row, heading and closed-fence siblings, each with its own witness (NC-7a-d). Round 4: NC-7e stays equivalent and green by design, as in round 3. Every other round-4 control is RED at 99b73ca, including the 14 mutants of the branches round 4 adds (M13a-n). M13h, M13m and M13n survived the first run at 5accc45 and are killed by 99b73ca's subtests. M13k also errors 3 times: without the column guard, a block quote's sentinel column (float infinity) reaches a slice index. One of the errors is LiveCatalog::test_ship_its_artifacts_still_hash_true_but_its_transcript_is_missing, which reads a real report; the mutant is killed either way.",
     "failures_round_2": [
       "test_a_look_alike_heading_does_not_open_the_section (NC-1, NC-3)",
       "test_a_fence_closes_only_on_a_bare_run_of_its_own_character_at_least_as_long (NC-1, NC-4)",
@@ -233,6 +291,13 @@
       "test_a_row_after_a_list_item_and_a_thematic_break_is_still_read (NC-6, NC-10)",
       "test_a_thematic_break_after_a_table_row_a_heading_or_a_fence_keeps_the_section_open (NC-7a, NC-7b, NC-7c, NC-7d)",
       "test_a_look_alike_heading_does_not_open_the_section: '## wip-curve protocol row' (NC-8, NC-1, NC-3), '## WIP-curve protocol rows' (NC-9, NC-1, NC-3)"
+    ],
+    "failures_round_4": [
+      "test_an_ordered_item_not_numbered_1_under_a_paragraph_line_is_its_text (NC-1, NC-3, NC-6, NC-10, NC-12, M13c, M13d, M13e)",
+      "test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list (NC-1, NC-3, NC-6, NC-10, NC-12, M13h, M13i, M13j, M13k, M13m)",
+      "test_a_fence_nested_in_a_list_item_hides_its_rows (NC-1, NC-3, NC-6, NC-10, NC-12, M13f, M13g)",
+      "test_a_thematic_break_is_neither_a_list_item_nor_a_paragraph (NC-1, NC-3, NC-6, NC-10, NC-12, M13a, M13b, M13i, M13n)",
+      "test_the_marker_heading_and_underline_edges_commonmark_draws (NC-1, NC-6, NC-10, D6, D7, C8, C10, D15, M13k)"
     ]
   },
   "binding_audit": {
@@ -242,19 +307,20 @@
   "artifacts": [
     {
       "path": "docs/runs/2026-09-14-clean-sweep-tracker/u387w-negctrl.txt",
-      "sha256": "199c39a706eec082cbbab24da4da21a4ef4611eb3523b82663cee8b33775d206"
+      "sha256": "628d3d37deb8e01a112d5c21fbc899c141ace190a0c2ad96dc9174435a9acec5"
     }
   ],
   "noticed_not_touched": [
     "Activation-load headroom: the #387 sentence adds 56 tokens to every mission's transitive load; clean-sweep measures 33,803 of the 34,000 MISSION_MAX_LOAD_TOKENS cap (197 headroom, 47 tokens below the next rounding boundary at 33,850). Any other unit that grows attention-budget.md or clean-sweep's mandatory docs moves these callouts again; the integrator's gen-badges re-run on the union covers it (U389 note).",
-    "Setext headings (a paragraph line underlined with === or ---) END the section (round 2) but never OPEN it: the spec and the prose name ATX, and TEMPLATE.md and every report under docs/runs/ use ATX. Correction (round 3): the round-2 entry here said a list item or block quote line followed by --- 'fails closed: rows after it are refused, never bound'. That was wrong. The round-2 checker refused a complete section ('— none found'), and it also bound []: an incomplete, duplicate wave=2 row after '- a note' / '---' was never read (PR #401 P1 4012744258, reproduced by the verdict). Now (ac9395d), only a plain paragraph line or its continuation arms the setext rule. A list item or block quote line and its lazy continuation never end the section, and the fail-open repro is refused naming wave 2. The rule is still line-level, not a CommonMark parse, and two shapes remain. First, a list item's indented paragraph after a blank line ('- a', '', '  b', '---') is read as plain, so its --- ends the section. That fails closed: rows after it are refused, and none bind. Second, an ordered item not numbered 1 directly under a paragraph line ('Text', '2. a', '---') is read as a container, though CommonMark makes it paragraph text under a setext heading. The section then stays open under that heading. Neither shape is in the batch.",
+    "Setext headings (a paragraph line underlined with === or ---) END the section (round 2) but never OPEN it: the spec and the prose name ATX, and TEMPLATE.md and every report under docs/runs/ use ATX. Corrections: round 2 said a list item or block quote line followed by --- 'fails closed ... never bound', and round 3 said a list item's indented paragraph after a blank line 'fails closed: rows after it are refused, and none bind'. Both were wrong: verdicts r2 and r3 each reproduced a report binding [] on the shape. This entry now states only what the committed tests prove at 99b73ca, test by test. (1) ::test_a_list_item_or_block_quote_underlined_does_not_end_the_section: after '- a note', '1. a note' or '> a note' then '---'; after '- a note' then '==='; and after '- a note' or '> a note', 'that runs on', '---', complete rows bind []. (2) ::test_a_row_after_a_list_item_and_a_thematic_break_is_still_read: rows 1 and 2, '- a note', '---', then an incomplete second wave=2 row is refused naming '| wave=2 |' and the doubled wave. (3) ::test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list: after '- a note' / blank / '  that runs on' / '---', after '10. a note' / blank / '    that runs on' / '---', and after '-     a note' / blank / '  that runs on' / '---', complete rows bind []. Rows 1 and 2 before any of these leads and an incomplete second wave=2 row after it are refused naming '| wave=2 |' and the doubled wave. The same paragraph underlined at the item's column, 'Deviations' / '---' at the margin after the list and a blank line, and '-   a note' / blank / '  Deviations' / '---', are refused '— none found;'. (4) ::test_an_ordered_item_not_numbered_1_under_a_paragraph_line_is_its_text: 'Deviations' then '2. raised mid-run', '10) raised mid-run' or '*', then '---': complete rows after are refused '— none found;'. After 'A note:' / '1. raised mid-run' / '---' they bind []. (5) ::test_a_thematic_break_is_neither_a_list_item_nor_a_paragraph: '* * *' / blank / '  Deviations' / '---', and '- a note' / '---' / 'Deviations' / '---': complete rows after are refused '— none found;'. After '-' / '  ---' they bind []. (6) ::test_a_fence_nested_in_a_list_item_hides_its_rows: with a fence at 4 spaces under '1. ' or at 6 spaces under a nested '  - ' item, its complete wave=1 row alone is refused '— none found;', and its wave=3 row beside the real wave-1 row binds []. (7) ::test_the_marker_heading_and_underline_edges_commonmark_draws: after '+ a note', '* a note' or '1) a note' then '---', after '####### not a heading', and after 'Deviations' / '    ---', complete rows bind []. After a bare '##' they are refused '— none found;'. No other shape is claimed. The rule reads line by line and is not a CommonMark parse.",
     "Indented (four-space) code blocks are not treated as code: a pipe line there still reads if it sits inside the section. This is unchanged from base, and a WIP row is a table line, which an indented block is not.",
     "Every WIP-curve section in a report is read; a report with two sections gets one row per wave across both, so a wave duplicated between them trips the doubled-wave check (one row per wave, by design).",
     "Round 1: the integration branch moved during the run and the branch was not rebased. Round 2: step 1 merged origin/review/2026-09-14-holistic-fixes 5a853b2 (b6f5a41). Only assets/badges/tests.json conflicted, and it was regenerated (1355). base_sha stays the fork point 9a115f7, which NC-1 reverts to.",
     "ruff: `ruff check` on the touched Python files is clean; `ruff format` is not the repo's gate (U388 note).",
     "Machine-checking ledger park classes (G-08 candidate): out of scope per the spec.",
     "Activation load (round 2): the reworded sentence moves four missions' callouts by +100 (0ba9a75). clean-sweep stays at ~33,800 of the 34,000 MISSION_MAX_LOAD_TOKENS cap, and validate.py is green.",
-    "The heading anchor keeps '\\b' after 'row', so '## WIP-curve protocol rows' opens nothing. The prose's 'text begins `WIP-curve protocol row`' is read word by word."
+    "The heading anchor keeps '\\b' after 'row', so '## WIP-curve protocol rows' opens nothing. The prose's 'text begins `WIP-curve protocol row`' is read word by word.",
+    "Round 4 oracle check, scoped to the committed fixtures: every report text the WipCurveObligation tests pass to _wip_curve_errors (98 distinct at 99b73ca) was compared with markdown-it-py 4.2.0 (MarkdownIt('commonmark')). The check compared the table lines the checker reads in the section with the ones CommonMark places under the section's heading, outside fenced and indented code. They agree for 96. The 2 that differ are the 'a table row' cases of ::test_a_thematic_break_after_a_table_row_a_heading_or_a_fence_keeps_the_section_open. The check reads '| row |' / '---' as a table followed by a thematic break (GFM). CommonMark has no tables, so it reads the pair as a setext heading. Round 3 accepted the GFM reading, and it is not in this batch. The harness lives in the session scratchpad and is not committed (the scope is four files). Also untouched, with no test: an ATX heading is still matched at the margin (up to three spaces), not at a list item's content column."
   ],
   "files": {
     "production": [
@@ -366,8 +432,32 @@
       "subject": "chore(badges): regenerate gen-badges.py outputs, tests 1368 -> 1371 (#387)"
     },
     {
-      "sha": "(this commit; named in worker_done)",
+      "sha": "3ce58258edad524e4dab30d9939830b39b0971de",
       "subject": "chore(run): U387W round-3 evidence manifest + extended negative-control transcript (#387)"
+    },
+    {
+      "sha": "d9f0a2a04d9945b6487d22f92505ec6feca70406",
+      "subject": "Merge origin/review/2026-09-14-holistic-fixes (e97b824) into u387w-wipsection"
+    },
+    {
+      "sha": "de82be71bf26f7e55eb1cce50eaec24c11a0793a",
+      "subject": "fix(run-report): the WIP-curve section follows list items by their content column (#387)"
+    },
+    {
+      "sha": "19b638ffcc69e7974c1109a1fbb3d8602c08ee48",
+      "subject": "test(run-report): witness the '+', '*' and ')' markers, the empty and seven-# headings and a four-space underline (#387)"
+    },
+    {
+      "sha": "5accc452393c1e5c3ee0d6405124d1fdc2e3c680",
+      "subject": "chore(badges): regenerate gen-badges.py outputs, tests 1371 -> 1376 (#387)"
+    },
+    {
+      "sha": "99b73cac0a37cd2e9cba438a17609d9b6df95669",
+      "subject": "test(run-report): witness the list-item content column: a three- and a five-space marker gap, and an empty item (#387)"
+    },
+    {
+      "sha": "(this commit; named in worker_done)",
+      "subject": "chore(run): U387W round-4 evidence manifest + extended negative-control transcript (#387)"
     }
   ],
   "decisions": [
@@ -386,29 +476,47 @@
     "2026-09-15 worker (round 3): head_sha is the code tip 5cde1f1, per option A (DECISIONS.md fix-step5-headsha, ruling msg_b92468884470). The manifest-commit tip is named in worker_done.",
     "2026-09-15 worker (round 3): no prose drift, so attention-budget.md is untouched. Line 60 reads the rows 'up to the next heading'. A setext heading needs a plain paragraph, and a list item's or block quote's --- is a thematic break, not a heading, so the plain-paragraph rule is what the sentence already says.",
     "2026-09-15 worker (round 3): intent.why's 'whitespace and case tolerant' is round-1 wording, left unchanged as the TASK requires. Case tolerance was dropped in round 2 (d886a6c), and round 3 pins that with the lowercase look-alike (NC-8).",
-    "2026-09-15 worker (round 3): the item-2 and item-3 tests pass on the pre-fix checker by design, because that code was already right. Their RED is under the mutants they kill (NC-7a-d, NC-8, NC-9), recorded before the fix and again at 5cde1f1. M7e is equivalent: it is recorded green and not chased."
+    "2026-09-15 worker (round 3): the item-2 and item-3 tests pass on the pre-fix checker by design, because that code was already right. Their RED is under the mutants they kill (NC-7a-d, NC-8, NC-9), recorded before the fix and again at 5cde1f1. M7e is equivalent: it is recorded green and not chased.",
+    "2026-09-15 worker (round 4, step 1): merged origin/review/2026-09-14-holistic-fixes e97b824 into the branch (d9f0a2a). There was no conflict; the incoming commits touch docs/runs/ only.",
+    "2026-09-15 worker (round 4): head_sha is the code tip 99b73ca, per option A (DECISIONS.md fix-step5-headsha, ruling msg_b92468884470). The manifest-commit tip is named in worker_done.",
+    "2026-09-15 worker (round 4): items 1-3 are one change, following open list items by the column their content starts at instead of reading each line alone. An item interrupts a paragraph only as CommonMark allows. A paragraph or a fence belongs to the item its indentation reaches. An underline counts only in its paragraph's own container. A thematic break must open no item, or '* * *' would open three; that is the one change outside items 1-3, the fix cannot land without it, and de82be7's message says so.",
+    "2026-09-15 worker (round 4): no prose drift, so attention-budget.md is untouched. Line 60 reads the rows 'up to the next heading and outside fenced code'. A paragraph underlined inside a list item is a heading and a fence nested in one is fenced code, so the change makes the check do what the sentence already says.",
+    "2026-09-15 worker (round 4): the oracle is markdown-it-py 4.2.0 (uv run --no-project --with markdown-it-py), driven by a scratchpad harness that records every report text the WipCurveObligation tests pass to _wip_curve_errors and compares section rows (the last noticed_not_touched entry). The item-1/2/3 fixtures agree with it; before the fix, those are exactly where the checker diverged.",
+    "2026-09-15 worker (round 4): the item-5 subtests pass on the pre-fix checker by design. Their RED is under D6, D7, C8, C10 and D15, run on the pre-fix checker d9f0a2a and again at 99b73ca.",
+    "2026-09-15 worker (round 4): the first control run, at 5accc45, left three mutants of the new column tracking alive (M13h, M13m, M13n). They are branches of this batch's own fix, and item 2 is about which lines belong to a list item, so 99b73ca kills them with subtests instead of disclosing them. The number of test methods is unchanged, so there is no badge commit."
   ],
-  "round": 3,
+  "round": 4,
   "verdict_addressed": {
-    "review": "5206786113 (round 2, NO-GO, reviewed 04b780f)",
+    "review": "5207297740 (round 3, NO-GO, reviewed 3ce5825)",
     "items": {
-      "1 P1 4012744258 (list/block-quote paragraph arms setext; fail-open repro)": "ac9395d",
-      "2 TEST R-1 = SPEC F-2 (paragraph-gate witnesses, M7a-d)": "fb6308d",
-      "3 N-1 (M8 case-fold, M9 word boundary look-alikes)": "fb6308d",
-      "4 run_report.py para comment": "ac9395d",
-      "5 manifest 'never bound' claim": "this commit (noticed_not_touched[1])"
+      "1 SPEC F-2 = P1 4013204408 half 1 (an ordinal under a paragraph line keeps the section open)": "de82be7",
+      "2 SPEC F-1 = P1 4013204408 half 2 = TEST (a list item's paragraph after a blank, both directions)": "de82be7",
+      "3 SPEC F-3 (a fence nested 4+ spaces in a list item binds)": "de82be7",
+      "4 STANDARDS S-1 = TEST (noticed_not_touched[1] claim)": "this commit (noticed_not_touched[1])",
+      "5 TEST nits D6, D7, C8, C10, D15": "19b638f"
     },
-    "not_in_batch": "SPEC/TEST/STANDARDS Nits outside the touched lines, accepted Optionals and FYIs are untouched. No thread replies were posted: the coordinator answers bot P2 4012319774 (fixed in d52ff42) and P1 4012744258 at the fix close.",
+    "not_in_batch": "SPEC F-4 (disclosed at noticed_not_touched[8]), STANDARDS Nits, Optional and FYIs, the pre-existing indented-code FYI (noticed_not_touched[2]) and the TEST suite-summary gap are untouched. No thread replies were posted: the coordinator answers 4012319774, 4012744258 and 4013204408 at the fix close.",
     "previous": {
-      "review": "5206177974 (round 1, NO-GO, reviewed d94c6c1)",
+      "review": "5206786113 (round 2, NO-GO, reviewed 04b780f)",
       "items": {
-        "F-1 (R1)": "d886a6c + 1917488",
-        "R2": "15e351a",
-        "bot P2 4012319774": "d52ff42",
-        "setext (verdict adjacent)": "58dc956",
-        "F-2/S2 prose": "9cc9bee"
+        "1 P1 4012744258 (list/block-quote paragraph arms setext; fail-open repro)": "ac9395d",
+        "2 TEST R-1 = SPEC F-2 (paragraph-gate witnesses, M7a-d)": "fb6308d",
+        "3 N-1 (M8 case-fold, M9 word boundary look-alikes)": "fb6308d",
+        "4 run_report.py para comment": "ac9395d",
+        "5 manifest 'never bound' claim": "this commit (noticed_not_touched[1])"
       },
-      "not_in_batch": "S1/S3/M2/M15/Optionals/Nits/FYI untouched; S4 is conductor-side; no thread replies posted (the coordinator answers bot P2 4012319774)."
+      "not_in_batch": "SPEC/TEST/STANDARDS Nits outside the touched lines, accepted Optionals and FYIs are untouched. No thread replies were posted: the coordinator answers bot P2 4012319774 (fixed in d52ff42) and P1 4012744258 at the fix close.",
+      "previous": {
+        "review": "5206177974 (round 1, NO-GO, reviewed d94c6c1)",
+        "items": {
+          "F-1 (R1)": "d886a6c + 1917488",
+          "R2": "15e351a",
+          "bot P2 4012319774": "d52ff42",
+          "setext (verdict adjacent)": "58dc956",
+          "F-2/S2 prose": "9cc9bee"
+        },
+        "not_in_batch": "S1/S3/M2/M15/Optionals/Nits/FYI untouched; S4 is conductor-side; no thread replies posted (the coordinator answers bot P2 4012319774)."
+      }
     }
   }
 }
