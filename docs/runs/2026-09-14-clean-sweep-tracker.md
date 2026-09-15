@@ -538,7 +538,8 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   real installs); TEST 0 Required (NC 14F reproduced, 36-mutant survey 0
   survivors, V2 rows hold); STANDARDS 0 Required. Nits: C-FF label in negctrl
   (F2), stale badge/head cites in manifest (close-fixes), merge-body template
-  (F3). Axis tasks completed, workers released. V364ff-r1 spec + dispatched.
+  (F3). Axis tasks completed, workers released. V364ff-r1 spec + dispatched
+  (task_3c1d45b9a9fd → ctx_0832401c7cd9, term_a141d272).
 - PARALLEL MERGE 09:04 IST: PR #394 (repo-images, other agent) merged as 8d53321
   into BASE; local spec commit rebased clean (no conflicts, validate green) and
   pushed as f5d1a56. T6 integrator unions it in; gates re-run on the union.
