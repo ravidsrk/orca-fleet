@@ -447,4 +447,6 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   No Greptile re-review on 6766265 yet. (Worker's "coordinator owns G2 refute"
   was stale — posted 4010718894.) Task completed, worker released.
 - R364r2 axes dispatched @6766265 (re-verify r1 batch + django cap; SPEC judges
-  the G2 attest-glob refute).
+  the G2 attest-glob refute). spec task_131a041f6f12→ctx_d2b2071653a1
+  (term_f562b093), standards task_3bde4cb954cc→ctx_63d8db81ad31 (term_8cffa010),
+  test task_0603f08b4e67→ctx_64695ac1b563 (term_5750b7b9). 3 workers out.
