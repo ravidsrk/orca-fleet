@@ -875,10 +875,13 @@ def _materialize(ev: dict, workspace: Path, mission_dir: Path) -> int:
 #   exists       bool   path: the file is there (false: absent) · glob: any match (false: none)
 #   unchanged    true   path only, a files[] path: byte-identical to what was materialized
 #   matches      regex  path: the file exists and has it · glob: at least one match has it
-#   not_matches  regex  path: the file exists and lacks it · glob: no match has it
+#   not_matches  regex  path: the file exists and lacks it · glob: it matches files, none has it
 #
-# A path check on a missing file fails, so deleting a file cannot dodge `not_matches`. An optional
-# "why" names the risk the check guards; it is carried into the failure line.
+# Deleting what a check reads cannot dodge it: a path check on a missing file fails, and a glob
+# `matches`/`not_matches` over an empty match set fails (#387: `not_matches` over nothing held
+# vacuously, so deleting the files a ban reads passed the ban). `exists` keeps its meaning, since
+# an empty match set is exactly what `exists: false` asserts. An optional "why" names the risk the
+# check guards; it is carried into the failure line.
 # ---------------------------------------------------------------------------
 STATE_PREDICATES = {"exists": bool, "unchanged": bool, "matches": str, "not_matches": str}
 STATE_TARGETS = ("path", "glob")
@@ -989,6 +992,8 @@ def _state_holds(check: dict, workspace: Path, originals: dict[str, bytes]) -> b
             files = _glob_files(workspace, check["glob"])
             if predicate == "exists":
                 return bool(files) is expected
+            if not files:
+                return False  # fail closed (#387): a regex over no files holds nothing either way
         hit = any(re.search(expected, f.read_text(encoding="utf-8", errors="replace"))
                   for f in files)
     except (OSError, ValueError, NotImplementedError, re.error):
