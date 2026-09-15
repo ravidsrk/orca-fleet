@@ -1274,9 +1274,9 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
 - DRAIN-387 DONE (msg_2c782f6a5281, task_ca0f442b5f88, released): 20/22
   replied+resolved, 2 parked (4012510839 NEW-REAL race, 4013413622 VALID-doc).
   Coordinator-verified fresh via GraphQL: all 20 reply ids present in-thread +
-  isResolved=true; egress chain intact (verify rc=0; 21 thread-reply + 20
-  thread-resolve in the drain window — one extra reply vs resolves is the
-  coordinator's later status post, counted separately).
+  isResolved=true; egress chain intact (verify rc=0; drain posted exactly
+  20 thread-reply + 20 thread-resolve 12:23-12:24Z — the 21st in-window reply
+  receipt 1b7cc846 is T10's pre-drain P2 reply, not drain's).
 - MANIFEST PREPENDS (coordinator lane, e54abdb, pushed): T8/T10/T9/T7 closes
   skipped conductor-close step-4 CONDUCTOR CLOSE prepend (rule 7f84b63 on their
   lineage). Corrective prepends on u387p/u387w/u387g/u393 (head_sha_role re-bind
