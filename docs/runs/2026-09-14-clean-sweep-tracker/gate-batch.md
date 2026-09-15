@@ -19,7 +19,13 @@ prerequisite — or park the whole unit. No unit work until answered.
 PR #397 was merged by the maintainer ~7 min before its verdict (out-of-process,
 disclosed, verify 6/6 after). No protocol binds a direct human merge. ASK:
 enable branch protection requiring a passing review before merge on the review
-branch (and main, if not already). Closes Greptile thread 4011973700's ask.
+branch (and main, if not already). AMENDED 2026-09-15T12:35Z (DRAIN-387):
+"a passing review" alone is insufficient — #397 carried a Greptile APPROVED
+before its merge while the pipeline's own blind verdict (the real gate) was
+still in flight. The required check should derive from the verdict: block merge
+until the unit's GO verdict review is posted at the merge tip (reviewed_sha ==
+head_sha), not merely until any APPROVED exists. Closes Greptile thread
+4011973700's ask.
 
 ## G3 · Merged-unit needs-human parks: post-merge independent APPROVE (2nd login)
 
