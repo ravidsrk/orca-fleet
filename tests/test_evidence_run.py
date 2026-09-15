@@ -13,14 +13,20 @@ Two properties carry the mechanism:
      which is exactly what `verify.py check_commands` demands. Untracked source changes it;
      committing identical content does not.
 """
+import contextlib
+import fcntl
+import importlib.util
+import io
 import json
 import os
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPTS = ROOT / "runtime" / "scripts"
@@ -382,6 +388,231 @@ class MixedVersionRollout(LedgerCase):
         for err in errs:
             self.assertNotIn("WARNING", err)
             self.assertNotIn("dropped", err)
+
+
+class _Probe:
+    """A stand-in for a module that overrides some callables and delegates everything else."""
+
+    def __init__(self, real, **overrides):
+        self._real = real
+        self.__dict__.update(overrides)
+
+    def __getattr__(self, name):
+        return getattr(self._real, name)
+
+
+class SidecarCreationRace(LedgerCase):
+    """#387 thread 4012510839: the #393 join is check-then-act. With no sidecar on disk the new
+    wrapper goes on under the manifest lock alone, and a pre-#388 writer can create and lock
+    `<manifest>.lock` after that check. The two read-modify-writes then run under different
+    locks, and one record is silently lost. The natural window is too thin to hit by chance
+    (0/60 unforced trials), so this test forces the schedule. Probes on the module's own
+    `fcntl.flock` and `json.loads` pause the real `append_record` at each step and hand every
+    lock and parse to the real call:
+
+        new: no sidecar -> legacy: create + lock the sidecar, read -> new: lock the manifest,
+        read (stale) -> legacy: write -> new: write
+
+    A fixed wrapper may block on the sidecar the legacy writer holds before it ever reads.
+    That also releases the legacy writer, so the same schedule forces the loss on the broken
+    code and cannot deadlock a fixed one."""
+
+    TIMEOUT = 30  # a liveness bound on every wait, never a pacing delay
+
+    def test_a_sidecar_created_after_the_absence_check_loses_no_record(self):
+        spec = importlib.util.spec_from_file_location("evidence_run", RUNNER)
+        runner = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(runner)
+        manifest, sidecar = self.repo / "m.json", self.repo / "m.json.lock"
+        manifest.write_text(json.dumps({"unit": "u", "commands": [{"label": "seed"}]}),
+                            encoding="utf-8")
+        new_checked = threading.Event()   # new: saw no sidecar, is about to lock the manifest
+        legacy_read = threading.Event()   # legacy: holds the sidecar and has read the manifest
+        new_moved = threading.Event()     # new: has read the manifest, or waits on the sidecar
+        legacy_wrote = threading.Event()  # legacy: has rewritten the manifest
+
+        def wait(event, what):
+            if not event.wait(self.TIMEOUT):
+                raise RuntimeError(f"schedule stalled waiting for {what}")
+
+        def flock(fd, op):
+            if op & fcntl.LOCK_EX:
+                ino = os.fstat(fd).st_ino
+                if sidecar.exists() and ino == sidecar.stat().st_ino:
+                    new_moved.set()
+                elif ino == manifest.stat().st_ino and not new_checked.is_set():
+                    new_checked.set()
+                    wait(legacy_read, "the legacy writer to lock the sidecar and read")
+            return fcntl.flock(fd, op)
+
+        def loads(text, *args, **kwargs):
+            data = json.loads(text, *args, **kwargs)
+            new_moved.set()
+            wait(legacy_wrote, "the legacy writer to write")
+            return data
+
+        def legacy():  # e04b0c2's append discipline, one step at a time
+            wait(new_checked, "the new wrapper to pass its sidecar check")
+            with open(sidecar, "a", encoding="utf-8") as lock:
+                fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
+                data = json.loads(manifest.read_text(encoding="utf-8"))
+                legacy_read.set()
+                wait(new_moved, "the new wrapper to read the manifest or wait on the sidecar")
+                data.setdefault("commands", []).append({"label": "legacy"})
+                manifest.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+                legacy_wrote.set()
+
+        errors = []
+
+        def thread(target, *args):
+            def run():
+                try:
+                    target(*args)
+                except BaseException as err:  # surfaced below, not lost with the thread
+                    errors.append(err)
+            return threading.Thread(target=run, daemon=True)
+
+        threads = [thread(runner.append_record, manifest, {"label": "new"}), thread(legacy)]
+        with mock.patch.object(runner, "fcntl", _Probe(fcntl, flock=flock)), \
+                mock.patch.object(runner, "json", _Probe(json, loads=loads)), \
+                contextlib.redirect_stderr(io.StringIO()) as stderr:
+            for t in threads:
+                t.start()
+            for t in threads:
+                t.join(3 * self.TIMEOUT)
+        self.assertEqual([t.is_alive() for t in threads], [False, False], "a writer hung")
+        self.assertEqual(errors, [])
+        self.assertNotIn("WARNING", stderr.getvalue())
+        labels = [c["label"] for c in json.loads(manifest.read_text(encoding="utf-8"))["commands"]]
+        self.assertEqual(sorted({"seed", "legacy", "new"} - set(labels)), [], "records lost")
+        self.assertEqual(labels, ["seed", "legacy", "new"])
+
+
+class SidecarRejoin(LedgerCase):
+    """#387 thread 4012510839, the rest of the rejoin (V393R-r1 R-1, R-2). The race above pins
+    the re-read. These pin the retry bound, where the look sits and that the rejoin waits on
+    the sidecar. Each drives the real `append_record`, loaded by path, through stand-ins for
+    the module's own names that hand every call to the real one. The last-attempt test stands
+    in for `open`, deleting the sidecar before each join and recreating it as the manifest
+    opens. The read-then-sidecar test stands in for `fcntl.flock` and `json.loads`, which
+    pause. A refactor that stops calling a stand-in fails its test instead of leaving it
+    vacuous: the first asserts a literal log of what its stand-in did (V393R-r2 RQ-2), and the
+    second stalls on its liveness bound."""
+
+    TIMEOUT = 30  # a liveness bound on every wait, never a pacing delay
+
+    def setUp(self):
+        super().setUp()
+        spec = importlib.util.spec_from_file_location("evidence_run", RUNNER)
+        self.runner = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(self.runner)
+        self.manifest, self.sidecar = self.repo / "m.json", self.repo / "m.json.lock"
+        self.manifest.write_text(json.dumps({"unit": "u", "commands": [{"label": "seed"}]}),
+                                 encoding="utf-8")
+
+    def labels(self):
+        return [c["label"] for c in
+                json.loads(self.manifest.read_text(encoding="utf-8"))["commands"]]
+
+    def test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar(self):
+        # The case the retry bound exists for: something other than a legacy writer deletes the
+        # sidecar just before each join and recreates it just after. Every look before the
+        # truncate then finds a sidecar this append never joined, and the last attempt must
+        # write anyway. An append that rejoins on every attempt writes nothing and warns nothing.
+        manifest, sidecar = self.manifest, self.sidecar
+        fired = []  # what the stand-in did, in order
+
+        def open_(file, *args, **kwargs):
+            if Path(file) == sidecar:
+                sidecar.unlink(missing_ok=True)  # gone just before the join opens it
+                fired.append("delete")
+            elif Path(file) == manifest:
+                sidecar.touch()  # back just after the join found none
+                fired.append("recreate")
+            return open(file, *args, **kwargs)
+
+        with mock.patch.object(self.runner, "open", open_, create=True), \
+                contextlib.redirect_stderr(io.StringIO()) as stderr:
+            self.runner.append_record(manifest, {"label": "new"})
+        # One delete and one recreate on each of the three attempts. A refactor that opens either
+        # file without the module's `open` name bypasses the stand-in, and the append then writes
+        # before its last attempt, so the labels below would pass without testing the bound.
+        self.assertEqual(fired, ["delete", "recreate", "delete", "recreate", "delete", "recreate"],
+                         "the open stand-in was bypassed: the last attempt was never reached")
+        self.assertNotIn("WARNING", stderr.getvalue())
+        self.assertEqual(self.labels(), ["seed", "new"])
+
+    def test_a_sidecar_created_after_the_read_is_waited_out_before_the_write(self):
+        # The legacy writer arrives only once this append has read, and writes only once this
+        # append waits on its sidecar or has finished:
+        #
+        #     new: no sidecar, lock the manifest, read -> legacy: create + lock the sidecar,
+        #     read -> new: look, rejoin -> legacy: write, release -> new: re-read, write
+        #
+        # A look taken before the read misses the sidecar. A rejoin that re-reads without
+        # waiting on the sidecar re-reads before the legacy write. Either way this append
+        # writes over the legacy writer's read, and the legacy rewrite then drops 'new'.
+        manifest, sidecar = self.manifest, self.sidecar
+        new_read = threading.Event()     # new: has read the manifest, with no sidecar joined
+        legacy_read = threading.Event()  # legacy: holds the sidecar and has read the manifest
+        new_moved = threading.Event()    # new: waits on the sidecar, or its append is over
+
+        def wait(event, what):
+            if not event.wait(self.TIMEOUT):
+                raise RuntimeError(f"schedule stalled waiting for {what}")
+
+        def flock(fd, op):
+            if (op & fcntl.LOCK_EX and sidecar.exists()
+                    and os.fstat(fd).st_ino == sidecar.stat().st_ino):
+                new_moved.set()
+            return fcntl.flock(fd, op)
+
+        def loads(text, *args, **kwargs):
+            data = json.loads(text, *args, **kwargs)
+            new_read.set()
+            wait(legacy_read, "the legacy writer to lock the sidecar and read")
+            return data
+
+        def new():
+            try:
+                self.runner.append_record(manifest, {"label": "new"})
+            finally:
+                new_moved.set()
+
+        def legacy():  # e04b0c2's append discipline, one step at a time
+            wait(new_read, "the new wrapper to read the manifest")
+            with open(sidecar, "a", encoding="utf-8") as lock:
+                fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
+                data = json.loads(manifest.read_text(encoding="utf-8"))
+                legacy_read.set()
+                wait(new_moved, "the new wrapper to wait on the sidecar or finish")
+                data.setdefault("commands", []).append({"label": "legacy"})
+                manifest.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+
+        errors = []
+
+        def thread(target):
+            def run():
+                try:
+                    target()
+                except BaseException as err:  # surfaced below, not lost with the thread
+                    errors.append(err)
+            return threading.Thread(target=run, daemon=True)
+
+        threads = [thread(new), thread(legacy)]
+        with mock.patch.object(self.runner, "fcntl", _Probe(fcntl, flock=flock)), \
+                mock.patch.object(self.runner, "json", _Probe(json, loads=loads)), \
+                contextlib.redirect_stderr(io.StringIO()) as stderr:
+            for t in threads:
+                t.start()
+            for t in threads:
+                t.join(3 * self.TIMEOUT)
+        self.assertEqual([t.is_alive() for t in threads], [False, False], "a writer hung")
+        self.assertEqual(errors, [])
+        self.assertNotIn("WARNING", stderr.getvalue())
+        labels = self.labels()
+        self.assertEqual(sorted({"seed", "legacy", "new"} - set(labels)), [], "records lost")
+        self.assertEqual(labels, ["seed", "legacy", "new"])
 
 
 class NoLedgerLitter(LedgerCase):
