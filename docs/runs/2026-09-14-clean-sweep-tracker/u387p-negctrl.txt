@@ -1,0 +1,113 @@
+# U387P negative-control transcript (build-387-process.md C-1..C-4) — tool=revert (C-1..C-3) + hand second witness (C-4)
+# Probe = the committed NC-COMMAND docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh (1b40b43); it reads the WORKING TREE.
+
+## RED-FIRST at base_sha 9a115f7, before any fix: probe copied into a clean detached worktree at base
+$ git worktree add --detach <scratch>/red-base 9a115f7579232f50b913ce84515e3964f8b68b33
+$ cp docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh <scratch>/red-base/docs/runs/2026-09-14-clean-sweep-tracker/
+$ git status --porcelain   # only the copied probe
+$ sh docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh   # base, no fix applied
+?? docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh
+FAIL: C-1 3 T-row park cell(s) still read proof-park
+head_sha=d6fc2cc head_tree=022dc9a rev-parse=4ee55a0 reviewed_wtree=4ee55a0
+FAIL: C-2 u385 head_tree does not match git rev-parse head_sha^{tree}
+FAIL: C-3 [malformed separator or 'as usual' present] [no TARGET fetch && checkout line] [worker_done contract lacks --outcome succeeded|failed] [worker_done contract lacks --report-path] [worker_done contract lacks --files-modified] [worker_done contract lacks --from] [worker_done contract lacks --dispatch-capability]
+FAIL: C-4 docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/conductor-close.md does not exist
+u387p probes: 4 failed of 4
+exit=1  (BASE: expected NONZERO)
+
+# U387P negative control — worktree: git worktree add --detach <scratch>/nc-387p 8241aabbadac7cf7d25e9f04942be0e953480ec2 (code tip)
+# base_sha 9a115f7579232f50b913ce84515e3964f8b68b33; NC-COMMAND: sh docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh
+
+## NC-1 tool=revert: the C-1..C-3 fixes restored from base_sha (negative_control.paths)
+$ git checkout 9a115f7579232f50b913ce84515e3964f8b68b33 -- docs/runs/2026-09-14-clean-sweep-tracker.md docs/runs/2026-09-14-clean-sweep-tracker/u385-manifest.json docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/review-template.md
+$ git diff --stat HEAD
+ docs/runs/2026-09-14-clean-sweep-tracker.md        |  8 +++----
+ .../taskspecs/review-template.md                   | 26 ++--------------------
+ .../u385-manifest.json                             |  4 ++--
+ 3 files changed, 8 insertions(+), 30 deletions(-)
+$ sh docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh   # C-1..C-3 fixes REVERTED
+FAIL: C-1 3 T-row park cell(s) still read proof-park
+head_sha=d6fc2cc head_tree=022dc9a rev-parse=4ee55a0 reviewed_wtree=4ee55a0
+FAIL: C-2 u385 head_tree does not match git rev-parse head_sha^{tree}
+FAIL: C-3 [malformed separator or 'as usual' present] [no TARGET fetch && checkout line] [worker_done contract lacks --outcome succeeded|failed] [worker_done contract lacks --report-path] [worker_done contract lacks --files-modified] [worker_done contract lacks --from] [worker_done contract lacks --dispatch-capability]
+ok: C-4 conductor-close.md documents CLOSE + option-A + union + out-of-process
+u387p probes: 3 failed of 4
+exit=1  (REVERTED: expected NONZERO)
+$ git checkout HEAD -- docs/runs/2026-09-14-clean-sweep-tracker.md docs/runs/2026-09-14-clean-sweep-tracker/u385-manifest.json docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/review-template.md
+
+## NC-2 tool=hand (second witness, C-4): conductor-close.md is NEW, so no base_sha revert can restore it
+$ git rm -q docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/conductor-close.md
+$ git diff --cached --stat HEAD
+ .../taskspecs/conductor-close.md                   | 66 ----------------------
+ 1 file changed, 66 deletions(-)
+$ sh docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh   # conductor-close.md ABSENT
+ok: C-1 no T-row park cell is proof-park
+head_sha=d6fc2cc head_tree=4ee55a0 rev-parse=4ee55a0 reviewed_wtree=4ee55a0
+ok: C-2 u385 head_tree == git rev-parse head_sha^{tree}
+ok: C-3 review template TARGET line + explicit worker_done contract
+FAIL: C-4 docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/conductor-close.md does not exist
+u387p probes: 1 failed of 4
+exit=1  (MUTANT: expected NONZERO)
+$ git checkout HEAD -- docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/conductor-close.md
+
+## NC-3 tool=hand (C-4 content): the option-A rule line deleted
+$ sed -i '' '/^- option-A (self-reference)/d' docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/conductor-close.md
+$ git diff HEAD
+diff --git a/docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/conductor-close.md b/docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/conductor-close.md
+index 183fc1d..d8dd480 100644
+--- a/docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/conductor-close.md
++++ b/docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/conductor-close.md
+@@ -43,7 +43,6 @@ CLOSE (in order; any mismatch is a STOP, logged, never patched over):
+    the unit worktree (dispatch-lifecycle guards).
+ 
+ RULES:
+-- option-A (self-reference). A commit cannot name its own SHA, and a commands[] record
+   cannot bind the tree of a commit that contains the record. So at BUILD the worker sets
+   head_sha = its last CONTENT commit (the code tip: every commands[] wtree == that
+   commit's tree) and names the pushed manifest-commit tip separately in worker_done.
+$ sh docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh   # option-A rule DELETED
+ok: C-1 no T-row park cell is proof-park
+head_sha=d6fc2cc head_tree=4ee55a0 rev-parse=4ee55a0 reviewed_wtree=4ee55a0
+ok: C-2 u385 head_tree == git rev-parse head_sha^{tree}
+ok: C-3 review template TARGET line + explicit worker_done contract
+FAIL: C-4 conductor-close.md missing: [option-A]
+u387p probes: 1 failed of 4
+exit=1  (MUTANT: expected NONZERO)
+$ git checkout HEAD -- docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/conductor-close.md
+
+## clean head
+$ git status --porcelain
+$ sh docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh   # clean head 8241aab
+ok: C-1 no T-row park cell is proof-park
+head_sha=d6fc2cc head_tree=4ee55a0 rev-parse=4ee55a0 reviewed_wtree=4ee55a0
+ok: C-2 u385 head_tree == git rev-parse head_sha^{tree}
+ok: C-3 review template TARGET line + explicit worker_done contract
+ok: C-4 conductor-close.md documents CLOSE + option-A + union + out-of-process
+u387p probes: 0 failed of 4
+exit=0  (CLEAN HEAD: expected ZERO)
+
+## per-probe one-liners on committed content, both directions (REV=base_sha: expected NONZERO; REV=code tip: expected ZERO)
+$ git show 9a115f7:docs/runs/2026-09-14-clean-sweep-tracker.md | grep -E '^\| T[0-9]+ \|' | cut -d'|' -f13 | grep -c proof-park   # C-1
+3
+exit=1
+$ git show 9a115f7:docs/runs/2026-09-14-clean-sweep-tracker/u385-manifest.json | python3 -c '<head_tree == rev-parse head_sha^{tree}>'   # C-2
+head_tree 022dc9a rev-parse 4ee55a0
+exit=1
+$ git show 9a115f7:docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/review-template.md | grep -Ec 'fetch origin \+|as usual'   # C-3
+2
+exit=1
+$ git show 9a115f7:docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/conductor-close.md | grep -c option-A   # C-4
+0
+exit=1
+$ git show 8241aab:docs/runs/2026-09-14-clean-sweep-tracker.md | grep -E '^\| T[0-9]+ \|' | cut -d'|' -f13 | grep -c proof-park   # C-1
+0
+exit=0
+$ git show 8241aab:docs/runs/2026-09-14-clean-sweep-tracker/u385-manifest.json | python3 -c '<head_tree == rev-parse head_sha^{tree}>'   # C-2
+head_tree 4ee55a0 rev-parse 4ee55a0
+exit=0
+$ git show 8241aab:docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/review-template.md | grep -Ec 'fetch origin \+|as usual'   # C-3
+0
+exit=0
+$ git show 8241aab:docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/conductor-close.md | grep -c option-A   # C-4
+1
+exit=0
