@@ -34,7 +34,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | — | #235 | H-02 marketplace submissions (pre-parked needs-human) | needs-human | — | — | — | — | — | — | needs-human: external accounts | prior run + issue text |
 | T7 | #393 | mixed-version rollout lock (opportunistic sidecar + test) | real-bug | t | t | t | f | f | f | lit | — | PR #400 @7630815 (union over 2094f61, docs-only); Greptile 4/5, 2 VALID held (P1 union-staleness = close-step, P2 FIFO sidecar = fix candidate); 3 axes live |
 | T8 | #387-threads | ledger/process remediation (parks, u385 tree, templates, close doc) | process | f | f | f | f | f | f | lit | — | spec build-387-process.md; 7 threads REAL → fix, incl. proof-park → needs-human (T1/T2/T3) |
-| T9 | #387-threads | eval-glob holes (T6 regression: app//lib/ miss; empty-glob survey) | real-bug (evals) | f | f | f | f | f | f | lit | — | spec build-387-eval-globs.md; inverts T6 (broad positive + central denylist) |
+| T9 | #387-threads | eval-glob holes (T6 regression: app//lib/ miss; empty-glob survey) | real-bug (evals) | t | f | f | f | f | f | lit | — | BUILD task_2792e3c556b8 done: 8750a76..0a3f4ab+191d248; coordinator-verified (109 OK + validate @0a3f4ab); C-1..C-3, NC RED/GREEN, 1358 full OK; M4-test watched for review |
 | T10 | #387-threads | WIP-curve rows: scope to canonical section (U389 residual) | real-bug | t | f | f | f | f | f | lit | — | BUILD task_746b7c0da3b6 done: 4c72718+d657941→d31ef62+6ae6cf0; coordinator-verified (69 OK + validate @d31ef62); C-1..C-4, NC RED/GREEN, 1353 full OK; fixture-change noted for review |
 
 PHASE: ORIENT → ENUMERATE → TRIAGE done → FREEZE → BUILD wave 1: U385 CLOSED, U388 U389 in fix-round → wave 2: U364
@@ -667,3 +667,10 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   corrected && checkout form — T8 template fix previewed).
   task_4c83e87548a2→ctx_3c1720ffff82 (spec), task_29b54cb87089→ctx_babb73b09c6f
   (test), task_5b1ee74345a1→ctx_fa87588877d6 (standards). 6 workers live.
+- T9 BUILD done (msg_28ee7c39c9a4, succeeded, released): manifest verified
+  (pins/contract/C-1..C-3/NC/intent all check) + coordinator re-ran 109 OK and
+  validate @0a3f4ab. BUILD_DONE=t. Survey covered all 21 missions (4 evals
+  broadened, rest kept — manifest lists verdicts); C-2 found oncall-it AND
+  document-it red (fixed); M4 mutant survived once then killed by 0a3f4ab test
+  hardening (TEST axis watches for tautology). Integrator spec
+  taskspecs/integrate-387g.md frozen.
