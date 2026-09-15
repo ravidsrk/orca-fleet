@@ -32,7 +32,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | T5 | #386 | sign manifest+inventory, retention backend (S2) | — | — | — | — | — | — | — | — | needs-human: key custody + backend undecided (Q2) | Q2: park |
 | T6 | #364 | prove-it/oncall-it venv glob scoping (U364 fix-forward) | real-bug (evals) | t | t | t | t | t | t | lit | — | PR #397 MERGED 01d954e @2967804 (reviewed==head; GO 5205447863; merged ~7min pre-verdict, disclosed); verify 6/6 incl. Greptile-APPROVED review leg; remediates U364 SPEC-r3 F-1 |
 | — | #235 | H-02 marketplace submissions (pre-parked needs-human) | needs-human | — | — | — | — | — | — | needs-human: external accounts | prior run + issue text |
-| T7 | #393 | mixed-version rollout lock (opportunistic sidecar + test) | real-bug | f | f | f | f | f | f | lit | — | spec build-393.md @9a115f7 (NC corrected c44d00f); BUILD task_baa2b1f25ab0 live (codex attempt task_8c6ba8a5688e failed: provider-exhausted, 0 commits) |
+| T7 | #393 | mixed-version rollout lock (opportunistic sidecar + test) | real-bug | t | f | f | f | f | f | lit | — | BUILD task_baa2b1f25ab0 done: d709296+ccca9a4→a74139b+53eb269; coordinator-verified (28 OK + validate @a74139b); C-1..C-4, NC RED/GREEN, 1351 full OK; disclosed gaps x2 for review |
 | T8 | #387-threads | ledger/process remediation (parks, u385 tree, templates, close doc) | process | f | f | f | f | f | f | lit | — | spec build-387-process.md; 7 threads REAL → fix, incl. proof-park → needs-human (T1/T2/T3) |
 | T9 | #387-threads | eval-glob holes (T6 regression: app//lib/ miss; empty-glob survey) | real-bug (evals) | f | f | f | f | f | f | lit | — | spec build-387-eval-globs.md; inverts T6 (broad positive + central denylist) |
 | T10 | #387-threads | WIP-curve rows: scope to canonical section (U389 residual) | real-bug | f | f | f | f | f | f | lit | — | spec build-387-wip-section.md; out-of-section wave= rows bind today |
@@ -636,3 +636,13 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   declined (don't trim normative prose to game a counter; 197 cap headroom).
   Logged DECISIONS.md t10-regen-loads. T7 fix+badge committed (ccca9a4,
   a74139b); T10 editing (uncommitted); T8/T9 heartbeating, no commits yet.
+- T7 BUILD done (msg_fc30eff52193, succeeded, released): manifest verified
+  (pins/contract/C-1..C-4/NC/intent all check) + coordinator re-ran 28 OK and
+  validate @a74139b. BUILD_DONE=t. Integrator spec taskspecs/integrate-393.md
+  frozen. Noted for review: unopenable-sidecar drops record (warns); post-check
+  sidecar creation not joined (TOCTOU).
+- EGRESS HYGIENE: integrate-template step 5 never named a --consent (prior PRs
+  #390-#397 went out with ZERO pr-open receipts in the ledger — gap, not
+  retrofixable). Fixed the template (tracker-writes consent) + all future
+  instantiations carry it. 1 dangling pr-open receipt c5db3155 (coordinator
+  validation probe, no send) stays in the chain, documented here.

@@ -19,7 +19,7 @@ STEPS:
 4) Push (egress.py write --sink git-push --host github.com --payload-class branch-tip
    --consent run-2026-09-14-clean-sweep:base-writes FIRST).
 5) Open the PR (egress.py write --sink pr-open --host github.com --payload-class pr-body
-   FIRST): gh pr create --base review/2026-09-14-holistic-fixes --head BRANCH --title
+   --consent run-2026-09-14-clean-sweep:tracker-writes FIRST): gh pr create --base review/2026-09-14-holistic-fixes --head BRANCH --title
    "PR-TITLE" --body <short receipt: finding, commits, tests, NC result>. ASSERT
    baseRefName == review/2026-09-14-holistic-fixes from the create output; anything else
    is a STOP.
