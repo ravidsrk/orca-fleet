@@ -494,6 +494,8 @@ class SidecarRejoin(LedgerCase):
     the sidecar. Each drives the real `append_record`, loaded by path, through a delegating
     stand-in for one of the module's own names, and hands every call to the real one."""
 
+    TIMEOUT = 30  # a liveness bound on every wait, never a pacing delay
+
     def setUp(self):
         super().setUp()
         spec = importlib.util.spec_from_file_location("evidence_run", RUNNER)
@@ -526,6 +528,78 @@ class SidecarRejoin(LedgerCase):
             self.runner.append_record(manifest, {"label": "new"})
         self.assertNotIn("WARNING", stderr.getvalue())
         self.assertEqual(self.labels(), ["seed", "new"])
+
+    def test_a_sidecar_created_after_the_read_is_waited_out_before_the_write(self):
+        # The legacy writer arrives only once this append has read, and writes only once this
+        # append waits on its sidecar or has finished:
+        #
+        #     new: no sidecar, lock the manifest, read -> legacy: create + lock the sidecar,
+        #     read -> new: look, rejoin -> legacy: write, release -> new: re-read, write
+        #
+        # A look taken before the read misses the sidecar. A rejoin that re-reads without
+        # waiting on the sidecar re-reads before the legacy write. Either way this append
+        # writes over the legacy writer's read, and the legacy rewrite then drops 'new'.
+        manifest, sidecar = self.manifest, self.sidecar
+        new_read = threading.Event()     # new: has read the manifest, with no sidecar joined
+        legacy_read = threading.Event()  # legacy: holds the sidecar and has read the manifest
+        new_moved = threading.Event()    # new: waits on the sidecar, or its append is over
+
+        def wait(event, what):
+            if not event.wait(self.TIMEOUT):
+                raise RuntimeError(f"schedule stalled waiting for {what}")
+
+        def flock(fd, op):
+            if (op & fcntl.LOCK_EX and sidecar.exists()
+                    and os.fstat(fd).st_ino == sidecar.stat().st_ino):
+                new_moved.set()
+            return fcntl.flock(fd, op)
+
+        def loads(text, *args, **kwargs):
+            data = json.loads(text, *args, **kwargs)
+            new_read.set()
+            wait(legacy_read, "the legacy writer to lock the sidecar and read")
+            return data
+
+        def new():
+            try:
+                self.runner.append_record(manifest, {"label": "new"})
+            finally:
+                new_moved.set()
+
+        def legacy():  # e04b0c2's append discipline, one step at a time
+            wait(new_read, "the new wrapper to read the manifest")
+            with open(sidecar, "a", encoding="utf-8") as lock:
+                fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
+                data = json.loads(manifest.read_text(encoding="utf-8"))
+                legacy_read.set()
+                wait(new_moved, "the new wrapper to wait on the sidecar or finish")
+                data.setdefault("commands", []).append({"label": "legacy"})
+                manifest.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+
+        errors = []
+
+        def thread(target):
+            def run():
+                try:
+                    target()
+                except BaseException as err:  # surfaced below, not lost with the thread
+                    errors.append(err)
+            return threading.Thread(target=run, daemon=True)
+
+        threads = [thread(new), thread(legacy)]
+        with mock.patch.object(self.runner, "fcntl", _Probe(fcntl, flock=flock)), \
+                mock.patch.object(self.runner, "json", _Probe(json, loads=loads)), \
+                contextlib.redirect_stderr(io.StringIO()) as stderr:
+            for t in threads:
+                t.start()
+            for t in threads:
+                t.join(3 * self.TIMEOUT)
+        self.assertEqual([t.is_alive() for t in threads], [False, False], "a writer hung")
+        self.assertEqual(errors, [])
+        self.assertNotIn("WARNING", stderr.getvalue())
+        labels = self.labels()
+        self.assertEqual(sorted({"seed", "legacy", "new"} - set(labels)), [], "records lost")
+        self.assertEqual(labels, ["seed", "legacy", "new"])
 
 
 class NoLedgerLitter(LedgerCase):
