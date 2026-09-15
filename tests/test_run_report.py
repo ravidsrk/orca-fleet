@@ -415,6 +415,19 @@ class WipCurveObligation(unittest.TestCase):
                   f"## WIP-curve example (from another run)\n\n{self.ROW_2.replace('wave=2', 'wave=3')}\n")
         self.assertEqual(run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md"), [])
 
+    def test_a_fence_closes_only_on_a_bare_run_of_its_own_character_at_least_as_long(self):
+        # Verdict r1 (R2): the CommonMark closing rule went unwitnessed — "any fence line closes"
+        # kept the suite green. Each second line below is content of the example's fence, so the
+        # wave=3 row after it is still the example's; the real closer then ends the fence.
+        stray = self.ROW_2.replace("wave=2", "wave=3")
+        for name, fenced in {"a shorter run": f"````\n```\n{stray}\n````\n",
+                             "the other character": f"```\n~~~\n{stray}\n```\n",
+                             "an info string": f"```\n```text\n{stray}\n```\n"}.items():
+            with self.subTest(case=name):
+                report = (f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n{fenced}\n"
+                          f"{self.ROW_1}\n{self.ROW_2}\n")
+                self.assertEqual(run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md"), [])
+
     def test_the_protocol_names_the_schema_the_checker_enforces(self):
         # The text and the check drifted once (#389: the prose owed five metrics, the check read
         # two settings). The protocol section must name every row key the checker enforces — and
