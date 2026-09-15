@@ -32,10 +32,10 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | T5 | #386 | sign manifest+inventory, retention backend (S2) | — | — | — | — | — | — | — | — | needs-human: key custody + backend undecided (Q2) | Q2: park |
 | T6 | #364 | prove-it/oncall-it venv glob scoping (U364 fix-forward) | real-bug (evals) | t | t | t | t | t | t | lit | — | PR #397 MERGED 01d954e @2967804 (reviewed==head; GO 5205447863; merged ~7min pre-verdict, disclosed); verify 6/6 incl. Greptile-APPROVED review leg; remediates U364 SPEC-r3 F-1 |
 | — | #235 | H-02 marketplace submissions (pre-parked needs-human) | needs-human | — | — | — | — | — | — | needs-human: external accounts | prior run + issue text |
-| T7 | #393 | mixed-version rollout lock (opportunistic sidecar + test) | real-bug | t | t | t | f | f | f | lit | — | PR #400 @7630815 (union over 2094f61, docs-only); Greptile 4/5, 2 VALID held (P1 union-staleness = close-step, P2 FIFO sidecar = fix candidate); 3 axes live |
-| T8 | #387-threads | ledger/process remediation (parks, u385 tree, templates, close doc) | process | f | f | f | f | f | f | lit | — | spec build-387-process.md; 7 threads REAL → fix, incl. proof-park → needs-human (T1/T2/T3) |
-| T9 | #387-threads | eval-glob holes (T6 regression: app//lib/ miss; empty-glob survey) | real-bug (evals) | t | f | f | f | f | f | lit | — | BUILD task_2792e3c556b8 done: 8750a76..0a3f4ab+191d248; coordinator-verified (109 OK + validate @0a3f4ab); C-1..C-3, NC RED/GREEN, 1358 full OK; M4-test watched for review |
-| T10 | #387-threads | WIP-curve rows: scope to canonical section (U389 residual) | real-bug | t | f | f | f | f | f | lit | — | BUILD task_746b7c0da3b6 done: 4c72718+d657941→d31ef62+6ae6cf0; coordinator-verified (69 OK + validate @d31ef62); C-1..C-4, NC RED/GREEN, 1353 full OK; fixture-change noted for review |
+| T7 | #393 | mixed-version rollout lock (opportunistic sidecar + test) | real-bug | t | t | t | t | t | t | lit | needs-human: post-merge independent APPROVE (2nd login) for verify review leg (run_0607bdc681e6) | V393-r1 GO 5206137160 @7630815 (F1+P1 close-owed, P2 FIFO accepted low-sev Optional → backlog); MERGED 6d9e46a; verify 5/6 (review RED, parked); #393 CLOSED with evidence |
+| T8 | #387-threads | ledger/process remediation (parks, u385 tree, templates, close doc) | process | t | t | t | f | f | f | lit | — | PR #403 @ed8a7c5 (union over 5174ed4, clean); Greptile 2 VALID held (P2 reattach-gap, P2 no-M^2-fallback); 3 axes live |
+| T9 | #387-threads | eval-glob holes (T6 regression: app//lib/ miss; empty-glob survey) | real-bug (evals) | t | t | t | f | f | f | lit | — | PR #402 @15d0eea (union over a41608e, clean); Greptile 5/5, 0 threads, none held (bot edits body — template note for T8 fix round); 3 axes live |
+| T10 | #387-threads | WIP-curve rows: scope to canonical section (U389 residual) | real-bug | t | t | t | f | f | f | lit | — | PR #401 @d94c6c1 (union over aab35f9, docs-only); Greptile 1 VALID held (P2 fence info-string); 3 axes live |
 
 PHASE: ORIENT → ENUMERATE → TRIAGE done → FREEZE → BUILD wave 1: U385 CLOSED, U388 U389 in fix-round → wave 2: U364
 
@@ -674,3 +674,96 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   document-it red (fixed); M4 mutant survived once then killed by 0a3f4ab test
   hardening (TEST axis watches for tautology). Integrator spec
   taskspecs/integrate-387g.md frozen.
+- I387G dispatched: integrate-387g spec (union + gates + PR + bot reconcile).
+  task_6c904f928296 → ctx_c6b1faafcee2 (claude, unit worktree).
+- I387W worker_done (msg_3c548f224242): PR #401 @d94c6c1 (union over aab35f9,
+  docs-only, gates green; BASE since moved to 64222f1 by a ledger line — merge
+  train absorbs at merge). Greptile 1 VALID held: P2 4012319774 (fence
+  info-string rule — reproduced, joins verdict as Required; in-thread answer
+  owed in fix round). Released. PR_OPEN=t, BOT=t.
+- R387W axes dispatched @d94c6c1 (specs review-387w-{spec,test,standards}.md).
+  task_9b6526d8c903→ctx_5246a2eccbe4 (spec), task_8d537065d878→ctx_088fa07c74d0
+  (test), task_51db61b95c99→ctx_297a4e233081 (standards). 8 workers live.
+- T8 BUILD done (msg_ab16bf4adaa1, succeeded, released): manifest verified +
+  coordinator replayed probe GREEN (0/4) at head / RED (3/4) reverted; C-4 by
+  hand second_witness as ruled. BUILD_DONE=t. CORRECTION: spec C-2 expected
+  U385's review leg RED — worker showed GREEN via Greptile APPROVED (T4 row
+  was always the green one); spec expectation wrong, evidence recorded right.
+  Noted: stray '-- true' record dropped (TEST axis watches). Integrator spec
+  taskspecs/integrate-387p.md frozen (with ledger-union warning).
+- I387P dispatched: task_8873ef8a563b → ctx_09d69c461e37 (claude, unit
+  worktree). ALL 4 BUILDS DONE (T7/T8/T9/T10 BUILD_DONE=t).
+- R393 SPEC in (msg_c4c050af4859, released): C-1..C-3 met at source + reran
+  1351 OK @7630815; F1 Required = C-4 evidence binds a74139b not head
+  (coordinator-owned close re-bind, per its own text); F5 Nit (len==248
+  self-check), F2/F3/F4/F6 FYI. All 3 axes: 1 Required total (F1, close-owed).
+- V393-r1 spec frozen (verdict-393-r1.md): 3 axis reports pasted verbatim +
+  held bot P1 (union-staleness, conductor-side record item per exclusion
+  clause) + P2 (FIFO, in-scope). Dispatched (fresh terminal, unit worktree).
+- R387W 1/3 in: STANDARDS 0 Required (S1 Optional duplicated scanner vs
+  inventory.py; S2 Nit prose/check drift on heading match; S3/S4 Nits; S5 FYI
+  33,803/34,000). Released. SPEC + TEST still out.
+- R387W 2/3 in: SPEC F-1 Required (C-1 partial: section regex opens on ANY
+  'WIP curve' heading, so a 'WIP-curve example' section binds — false pass
+  returns in a new form; fix must thread real-report variance vs examples);
+  F-2 Nit (prose/check drift, dupes S2); F-3/F-4 FYI (fixture edit accepted
+  as C-1-required). Released. TEST still out. T10 heads to NO-GO (F-1 + P2
+  fence) → fix round.
+- R387W 3/3 in: TEST 2 Required (R1 over-broad opener lets 'Deviations —
+  WIP-curve cap raised' bind, same class as SPEC F-1; R2 fence-close clause
+  replaceable, ~~~-rows bind; 9/18 mutants survive) + Nits/Optional. Released.
+  V387W-r1 spec frozen (3 reports verbatim + held P2 fence). Dispatched.
+- R387P 1/3 in: TEST 2 Required (F1 C-4 probe is keyword-presence only —
+  gutted rules stay GREEN; F2 C-1 probe is one-word denylist + manifest
+  overclaims it reads the contract) + 2 Nit (F3 fail-open on missing ledger;
+  F4 whole-file greps) + 4 FYI. Probe replay confirmed (4/4 RED base, 0/4
+  head, 3/4 reverted, executed_ok True). Released. SPEC + STANDARDS out.
+- R387G 1/3 in: TEST 0 Required (NC + M1-M4 + R2/R3/R4 mutants reproduced and
+  killed; M4-killer validated legit, not tautological). OPTIONAL (unpinned
+  relative-to-workspace property, TMPDIR-under-env edge) + NIT (2 vacuous
+  installed-excerpt subtests) + 3 FYI. Released. SPEC + STANDARDS out.
+- V393-r1 GO (msg_2cc014876636, review 5206137160 COMMENTED @7630815, released):
+  F1+P1 excluded as conductor-side record (builder cannot fix; close re-binds),
+  P2 FIFO accepted as valid low-sev Optional (consistent with STANDARDS S3) →
+  backlog note (not lost). 'Must block merge' wording read as blocks-DONE
+  (re-bind is post-merge by option-A design). GO ACCEPTED. REVIEWED=t.
+- T7 MERGED 6d9e46a (PR #400 --merge; ancestry OK; egress receipted). CLOSE:
+  3 coordinator re-runs GREEN at reviewed tip (246s/28/validate); manifest
+  re-bound a74139b→7630815 + pr filled + reviewer_mode close-corrected
+  (builder omission, disclosed); verify.py 5/6 (review RED: Greptile
+  COMMENTED only, no APPROVED — needs-human park). #393 CLOSED with evidence.
+  MERGED=t. FIRST WAVE-2 UNIT DONE.
+- R387G 3/3 in: all axes 0 Required (SPEC 1 Nit + 2 FYI; TEST 1 Optional + 1
+  Nit; STANDARDS 1 Optional + 6 Nits) + bot none. V387G-r1 spec frozen (3
+  reports verbatim, no held bot). Dispatched — expect GO.
+- R387P 3/3 in: SPEC 0 Required (1 Nit reattach dupes R-1; 3 FYI) + TEST 2
+  Required + STANDARDS 2 Required (R-1 reattach dupes bot P2; R-2 T3-ref fails
+  human/OPS-ref). V387P-r1 spec frozen (3 reports verbatim + 2 held bot P2s).
+  Dispatched — expect NO-GO → fix round.
+- V387W-r1 NO-GO (msg_09cb937e5ee6, review 5206177974 COMMENTED @d94c6c1,
+  released, verified): batched (1) F-1=R1 section anchor + 13 fixtures +
+  look-alikes, (2) R2 fence tests, (3) bot P2 info-string + repro + thread
+  answer, (4) adjacent setext; S4/S1/S3/M2/M15/Optionals/FYIs excluded with
+  reasons. Fix spec fix-387w-r2.md frozen (with reattach-first instruction —
+  T8's gap, previewed). Dispatched.
+- R387G 2/3 in: STANDARDS 0 Required (1 Optional unpinned survey claim; 6 Nits
+  incl. why-contract parentheticals, dup helper, scope inconsistency; 4 FYI).
+  Released. SPEC still out — T9 clean so far (0 Required, bot none).
+- I387P worker_done (msg_73692087dc99): PR #403 @ed8a7c5 (union over 5174ed4,
+  T1-T3 fixes + BASE rows kept byte-identical, gates green). Greptile
+  COMMENTED 5206046575, 2 VALID held: P2 4012397534 (review-template promises
+  'conductor reattaches the branch' — no reattach step defined) + P2 4012397546
+  (CLOSE T:=M^2 has no squash/rebase/ff fallback; STOPs fail-closed). Both join
+  verdict as Required → fix round. Released. PR_OPEN=t, BOT=t.
+- I387G worker_done (msg_cab0bcb62041): PR #402 @15d0eea (union over a41608e,
+  gates green). Greptile 5/5 clean, 0 threads, none held. NOTE: bot edits the
+  PR BODY (integrator's comment-poll hit cap) — integrate-template should say
+  to re-read the body (adjacent fix for T8's fix round). Released. PR_OPEN=t,
+  BOT=t.
+- R387P + R387G axes dispatched (6 workers, specs review-387{p,g}-{spec,test,
+  standards}.md).
+- R393 2/3 in: STANDARDS 0 Required (4 Nit incl. stale 'Not a sibling
+  lockfile' docstring S2, FIFO S3 dupes Greptile, untested unopenable-branch
+  S4) + TEST 0 Required (51 mutation runs: NC-1 10/10 RED, NC-2 exact-3,
+  HEAD 10/10 GREEN; O-1 timing-dependent base RED). Both released. SPEC axis
+  still out.
