@@ -958,3 +958,13 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   probe replays reproduce (4/4 base, 3/4 reverted, GREEN head;
   executed_ok True); Greptile APPROVED confirmed. Thread replies owed
   coordinator-side. Released. SPEC out — T8 GO in reach.
+- R387W-r3 1/3 in: STANDARDS 1 Required (S-1: the NEW nnt[1] claim
+  'fails closed... none bind' is FALSE — same class as the 'never
+  bound' error it replaced; list-item/blank/indented-para/--- lead +
+  incomplete wave=2 binds []) + 7 Nit + 1 Optional + 3 FYI. New P1
+  4013204408 VALID both halves (markdown-it-py + checker repro:
+  'Text/2. a/---' + '10)' setext shapes BIND [] fail-open; indented
+  continuation binds [] w/ --- or ===). R3 batch verified landed
+  (76/validate/ruff re-ran). All 3 threads zero-reply, owed
+  coordinator-side pre-merge. Released. SPEC + TEST out. T10 → NO-GO
+  → r4 fix.
