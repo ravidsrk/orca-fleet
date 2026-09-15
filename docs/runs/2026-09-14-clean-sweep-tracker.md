@@ -1210,3 +1210,11 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   + batch-verify + bot-clean-confirm); 3 axes dispatched
   (spec task_56712c8fcd7f→ctx_8be0b4509c4b, test task_d21e69a7383e→
   ctx_dc6e2d8b7d67, standards task_5cc7ad844375→ctx_0bae5ecd5938).
+- R387W-r7 1/3 in: STANDARDS 0 Critical/Required (Nit ST7-1
+  assertion-triple dup; Optional ST7-2 64-line test; FYI ST7-3
+  manifest cites ':520 guard' but guard at :521 in its own
+  head). Batch landed; witnesses oracle-agree; 83/validate/
+  ruff green (no suite re-run); bot 5/5 + gates pass. Body 3
+  rounds stale + 4 threads owed coordinator-side; base moved
+  docs-only, no overlap. Released. SPEC + TEST out — T10 GO
+  in reach.
