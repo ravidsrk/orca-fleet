@@ -1075,3 +1075,11 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   landed; 81/validate/ruff re-ran; full suite NOT re-ran (2nd axis
   gap of this kind). 4 threads owed coordinator replies (3
   resolved-answerless). Released. TEST out. T10 → NO-GO → r5 fix.
+- R387W-r4 3/3 in: TEST 1 Required (R-1: :551 line unwitnessed —
+  drop-items mutant survives all 81, binds [] on incomplete dup) + 2
+  Nits (MX11 4-space gap fails open; MX15 rows-before-heading). P1
+  4013782318 FALSE-POSITIVE as defect (9/9 oracle agree). Batch in +
+  covered; NC-1/NC-2 reproduce; fixture not tautological. Released.
+  W-r4 totals: SPEC 0, TEST 1, STANDARDS 2 → V387W-r4 spec frozen (3
+  verbatim from /tmp archives + FP-reconcile + reply-exclude +
+  suite-gap notes). Dispatched — expect NO-GO → r5 fix.
