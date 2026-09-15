@@ -580,6 +580,24 @@ class WipCurveObligation(unittest.TestCase):
                 self.assertTrue(any("— none found;" in e for e in errs),
                                 f"bound under a setext heading {errs}")
 
+    def test_the_marker_heading_and_underline_edges_commonmark_draws(self):
+        # Verdict r3 (TEST nits: mutants D6, D7, C8, C10, D15 survived): every marker the checker
+        # reads has its own witness. '+' and '*' bullets and a ')' ordered item are list items, so
+        # a --- after them is a thematic break; seven #s are text; an underline indented four
+        # spaces is text: the section stays open. A bare '##' is an empty heading, and ends it.
+        rows = f"{self.ROW_1}\n{self.ROW_2}\n"
+        for name, lead in {"a '+' list item": "+ a note\n---", "a '*' list item": "* a note\n---",
+                           "a ')' ordered item": "1) a note\n---",
+                           "seven #s": "####### not a heading",
+                           "an underline indented four spaces": "Deviations\n    ---"}.items():
+            with self.subTest(case=name):
+                report = f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n{lead}\n\n{rows}"
+                self.assertEqual(run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md"), [])
+        with self.subTest(case="an empty '##' heading"):
+            report = f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n##\n\n{rows}"
+            errs = run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md")
+            self.assertTrue(any("— none found;" in e for e in errs), errs)
+
     def test_the_protocol_names_the_schema_the_checker_enforces(self):
         # The text and the check drifted once (#389: the prose owed five metrics, the check read
         # two settings). The protocol section must name every row key the checker enforces — and
