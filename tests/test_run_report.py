@@ -483,6 +483,27 @@ class WipCurveObligation(unittest.TestCase):
         self.assertTrue(any("wave(s) [2] carry more than one WIP-curve row" in e for e in errs),
                         errs)
 
+    def test_indented_code_is_never_underlined(self):
+        # Verdict r4 (STANDARDS S-2, SPEC C-2): a line four spaces past its container's column is
+        # indented code, not a paragraph, so a --- or === under it underlines nothing (CommonMark).
+        # Read as a paragraph, '    note' / '---' closed the section and hid an incomplete second
+        # wave=2 row after it, and the report bound [] where base refused it twice.
+        partial_2 = self.ROW_2.replace("| latency_max=55m ", "")
+        for name, code in {"at the margin, ---": "    note\n---",
+                           "at the margin, ===": "    note\n===",
+                           "a list item's first block, ---": "-     note\n  ---",
+                           "a list item's block after a blank line, ---": "- a\n\n      note\n  ---"
+                           }.items():
+            with self.subTest(case=name):
+                report = (f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n{self.ROW_1}\n"
+                          f"{self.ROW_2}\n\n{code}\n\n{partial_2}\n")
+                errs = run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md")
+                self.assertEqual(len(errs), 2, errs)
+                self.assertTrue(any("| wave=2 |" in e and "carries no measured ['latency_max']" in e
+                                    for e in errs), f"the row after the code was not read {errs}")
+                self.assertTrue(any("wave(s) [2] carry more than one WIP-curve row" in e
+                                    for e in errs), errs)
+
     def test_a_thematic_break_after_a_table_row_a_heading_or_a_fence_keeps_the_section_open(self):
         # Verdict r2 (TEST R-1): each paragraph-gate exclusion is witnessed on its own. Straight
         # after a table row, the section heading or a closed fence, --- underlines nothing, so the
@@ -542,11 +563,16 @@ class WipCurveObligation(unittest.TestCase):
                                     for e in errs), errs)
         # Underlined at the item's own column, that paragraph is a heading; so is a line back at
         # the margin, or short of an item whose text starts three spaces past its marker, which
-        # has left the list. Either ends the section.
+        # has left the list. Either ends the section. So does a line after an empty item and a
+        # blank line: an item begins with at most one blank line, so the item ended empty
+        # (CommonMark; verdict r4 SPEC S4-1).
         for name, lead in {"at column 2": "- a note\n\n  Deviations\n  ---",
                            "at column 4": "10. a note\n\n    Deviations\n    ---",
                            "back at the margin": "- a note\n\nDeviations\n---",
-                           "short of the item's column 4": "-   a note\n\n  Deviations\n---"}.items():
+                           "short of the item's column 4": "-   a note\n\n  Deviations\n---",
+                           "after an empty item and a blank line, ---": "-\n\n  Deviations\n---",
+                           "after an empty item and a blank line, ===": "*\n\n  Deviations\n==="
+                           }.items():
             with self.subTest(case=name, rows="under a setext heading"):
                 report = f"{head}{lead}\n\n{self.ROW_1}\n{self.ROW_2}\n"
                 errs = run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md")
@@ -588,6 +614,7 @@ class WipCurveObligation(unittest.TestCase):
         with self.subTest(case="an empty list item"):
             report = f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n-\n  ---\n\n{rows}"
             self.assertEqual(run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md"), [])
+
 
     def test_the_marker_heading_and_underline_edges_commonmark_draws(self):
         # Verdict r3 (TEST nits: mutants D6, D7, C8, C10, D15 survived): every marker the checker

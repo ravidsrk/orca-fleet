@@ -490,7 +490,9 @@ _SETEXT_RE = re.compile(r" {0,3}(?:=+|-+)[ \t]*$")
 _BREAK_RE = re.compile(r" {0,3}([-*_])(?:[ \t]*\1){2,}[ \t]*$")
 _QUOTE_RE = re.compile(r" {0,3}>")
 _ITEM_RE = re.compile(r" {0,3}(?:[-+*]|(\d{1,9})[.)])(?=[ \t]|$)")
-_QUOTED = float("inf")  # a block quote's paragraph: its lines carry '>', so no underline here is its
+# A block quote's paragraph sits at a column no line reaches: its lines carry '>', so a line under
+# it without one is never its underline (--- is a thematic break, === is more of its text).
+_QUOTED = float("inf")
 
 
 def _wip_section_lines(text):
@@ -499,7 +501,7 @@ def _wip_section_lines(text):
     paragraph underlined with = or - in its own container — ends the section like any other
     (verdict r1). List items are followed by the column their content starts at (CommonMark), so
     a fence nested in one is still code, and a paragraph indented into one is still its own."""
-    inside, fence, para, items = False, None, None, []
+    inside, fence, para, items, empty = False, None, None, [], False
     for line in text.splitlines():
         indent = len(line) - len(line.lstrip(" "))
         if fence:
@@ -512,7 +514,10 @@ def _wip_section_lines(text):
                 fence = None
             continue
         if not line.strip():
-            para = None
+            # An item begins with at most one blank line, so one still empty ends here (verdict r4).
+            if empty:
+                items.pop()
+            para, empty = None, False
             continue
         # The list items this line is indented into, then any it opens. An item interrupts a
         # paragraph in its own container only with content, and an ordered one only from 1:
@@ -530,6 +535,7 @@ def _wip_section_lines(text):
             gap = len(rest) - len(rest.lstrip(" "))
             base = item.end() + (gap if rest.strip() and 0 < gap <= 4 else 1)
             opened.append(base)
+        empty = bool(opened) and not line[base:].strip()
         opener = _FENCE_RE.match(line, base)
         heading = _HEADING_RE.match(line)
         setext = not opened and para is not None and indent >= para and _SETEXT_RE.match(line, para)
@@ -550,8 +556,10 @@ def _wip_section_lines(text):
                 or line.lstrip().startswith("|")):
             items[kept:], para = opened, None
         elif opened or para is None or quote:
+            # Four spaces past the column is indented code, which nothing underlines (verdict r4).
             items[kept:] = opened
-            para = _QUOTED if quote else (base if line[base:].strip() else None)
+            para = (_QUOTED if quote else
+                    base if line[base:].strip() and not line.startswith("    ", base) else None)
         # Otherwise the line continues the open paragraph, lazily or not, and closes nothing.
 
 
