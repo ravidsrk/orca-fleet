@@ -99,3 +99,486 @@ Ran 29 tests in 4.175s
 OK
 exit=0  (CLEAN HEAD: expected ZERO)
 $ git worktree remove --force /private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u393-race/f489ff47-2508-4a89-aae2-9daf9ae1a452/scratchpad/nc-393r
+
+# ==============================================================================================
+# ROUND 2 — fix-393r-r2.md@f774a9979d4a4aa53330f731d267bc2b9ef19fa8 (sha256 701cb126cca74ad9b2852d082ecb56aa94de3475cbebc83dbdf8e91ccd28ec34)
+# V393R-r1 NO-GO (review 5211486225 @abaf175): R-1 (M1), R-2 (M2) and the coordinator's M3
+# each passed all 29 tests. Part A is red-first, before any production touch. Part B is
+# the negative control at the round-2 code tip acdf998.
+# ==============================================================================================
+
+## A1. F-1 red-first: abaf175 + the F-1 test in the working tree (= adce115's tree), M1 applied
+diff --git a/runtime/scripts/evidence-run.py b/runtime/scripts/evidence-run.py
+index d8c45bc..4712186 100755
+--- a/runtime/scripts/evidence-run.py
++++ b/runtime/scripts/evidence-run.py
+@@ -212 +212 @@ def append_record(manifest_path, record):
+-                if not joined and attempt < REJOIN_ATTEMPTS and sidecar_path(manifest_path).exists():
++                if not joined and sidecar_path(manifest_path).exists():
+F
+======================================================================
+FAIL: test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar (tests.test_evidence_run.SidecarRejoin.test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u393-race/a98e036b-3cf4-4d67-bce7-93e5c3209701/scratchpad/red/tests/test_evidence_run.py", line 528, in test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar
+    self.assertEqual(self.labels(), ["seed", "new"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['seed'] != ['seed', 'new']
+
+Second list contains 1 additional elements.
+First extra element 1:
+'new'
+
+- ['seed']
++ ['seed', 'new']
+
+----------------------------------------------------------------------
+Ran 1 test in 0.044s
+
+FAILED (failures=1)
+exit=1
+## A1 GREEN: the same test on the unmutated fix (main worktree, before commit)
+$ python3 -m unittest tests.test_evidence_run.SidecarRejoin
+Ran 1 test in 0.044s
+OK
+exit=0
+
+## A2. F-2/F-3 red-first: abaf175 + both new tests in the working tree (= 53c4894's test file), M2 applied
+diff --git a/runtime/scripts/evidence-run.py b/runtime/scripts/evidence-run.py
+index d8c45bc..214287e 100755
+--- a/runtime/scripts/evidence-run.py
++++ b/runtime/scripts/evidence-run.py
+@@ -196,0 +197,2 @@ def append_record(manifest_path, record):
++                if not joined and attempt < REJOIN_ATTEMPTS and sidecar_path(manifest_path).exists():
++                    continue  # a legacy writer arrived after the check: rejoin, then re-read
+@@ -212,2 +213,0 @@ def append_record(manifest_path, record):
+-                if not joined and attempt < REJOIN_ATTEMPTS and sidecar_path(manifest_path).exists():
+-                    continue  # a legacy writer arrived after the check: rejoin, then re-read
+test_a_sidecar_created_after_the_read_is_waited_out_before_the_write (tests.test_evidence_run.SidecarRejoin.test_a_sidecar_created_after_the_read_is_waited_out_before_the_write) ... FAIL
+test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar (tests.test_evidence_run.SidecarRejoin.test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar) ... ok
+
+======================================================================
+FAIL: test_a_sidecar_created_after_the_read_is_waited_out_before_the_write (tests.test_evidence_run.SidecarRejoin.test_a_sidecar_created_after_the_read_is_waited_out_before_the_write)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u393-race/a98e036b-3cf4-4d67-bce7-93e5c3209701/scratchpad/red/tests/test_evidence_run.py", line 601, in test_a_sidecar_created_after_the_read_is_waited_out_before_the_write
+    self.assertEqual(sorted({"seed", "legacy", "new"} - set(labels)), [], "records lost")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['new'] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+'new'
+
+- ['new']
++ [] : records lost
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.087s
+
+FAILED (failures=1)
+exit=1
+
+## A3. F-3 red-first: the same tree, M3 applied
+diff --git a/runtime/scripts/evidence-run.py b/runtime/scripts/evidence-run.py
+index d8c45bc..204d619 100755
+--- a/runtime/scripts/evidence-run.py
++++ b/runtime/scripts/evidence-run.py
+@@ -193 +193,2 @@ def append_record(manifest_path, record):
+-            with sidecar_lock(manifest_path) as joined, \
++            with (sidecar_lock(manifest_path) if attempt == 1
++                  else contextlib.nullcontext(True)) as joined, \
+test_a_sidecar_created_after_the_read_is_waited_out_before_the_write (tests.test_evidence_run.SidecarRejoin.test_a_sidecar_created_after_the_read_is_waited_out_before_the_write) ... FAIL
+test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar (tests.test_evidence_run.SidecarRejoin.test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar) ... ok
+
+======================================================================
+FAIL: test_a_sidecar_created_after_the_read_is_waited_out_before_the_write (tests.test_evidence_run.SidecarRejoin.test_a_sidecar_created_after_the_read_is_waited_out_before_the_write)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u393-race/a98e036b-3cf4-4d67-bce7-93e5c3209701/scratchpad/red/tests/test_evidence_run.py", line 601, in test_a_sidecar_created_after_the_read_is_waited_out_before_the_write
+    self.assertEqual(sorted({"seed", "legacy", "new"} - set(labels)), [], "records lost")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['new'] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+'new'
+
+- ['new']
++ [] : records lost
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.088s
+
+FAILED (failures=1)
+exit=1
+
+## A4. determinism: each killer 20x on the fix and on its mutant (RED count; loss strings truncated)
+fix tests.test_evidence_run.SidecarRejoin.test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar: RED 0/20 
+fix tests.test_evidence_run.SidecarRejoin.test_a_sidecar_created_after_the_read_is_waited_out_before_the_write: RED 0/20 
+M1 tests.test_evidence_run.SidecarRejoin.test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar: RED 20/20 Lists differ: ['seed'] != ['seed', 'new'];Lists differ: ['seed'] != ['seed', 'new'];Lists differ: ['seed'] != ['seed', '
+M2 tests.test_evidence_run.SidecarRejoin.test_a_sidecar_created_after_the_read_is_waited_out_before_the_write: RED 20/20 Lists differ: ['new'] != [];Lists differ: ['new'] != [];Lists differ: ['new'] != [];Lists differ: ['new'] != [];Lists di
+M3 tests.test_evidence_run.SidecarRejoin.test_a_sidecar_created_after_the_read_is_waited_out_before_the_write: RED 20/20 Lists differ: ['new'] != [];Lists differ: ['new'] != [];Lists differ: ['new'] != [];Lists differ: ['new'] != [];Lists di
+
+## B. negative control at the round-2 code tip
+# U393R round-2 negative control (#387 thread 4012510839; V393R-r1 R-1/R-2 + coordinator M3) — 2026-09-15T14:55:21Z
+# NC-COMMAND: python3 -m unittest tests.test_evidence_run
+$ git rev-parse HEAD
+acdf9988ffd9b80e496d706f20ba07942f7040cd
+$ git log --oneline -6
+acdf998 test(evidence-run): SidecarRejoin docstring names both stand-ins (#387 thread 4012510839)
+0de1e87 chore(badges): regenerate tests badge, 1379 -> 1381 in source (#387 thread 4012510839)
+bd6b310 docs(evidence-run): residual gap runs to the close, sidecar_lock docstring, payload comment (#387 thread 4012510839, V393R-r1 text)
+53c4894 test(evidence-run): a sidecar created after the read is waited out before the write (#387 thread 4012510839, V393R-r1 R-2)
+adce115 test(evidence-run): the last rejoin attempt writes even if every look finds a sidecar (#387 thread 4012510839, V393R-r1 R-1)
+abaf175 Merge review/2026-09-14-holistic-fixes (666d55d) into u393-race: ledger-only union (#387 thread 4012510839)
+## fork point: merge-base with BASE (tip pinned: d117bd8746fae0119c2282fd5306c635345a4d11); the production file there is 62da77c's
+$ git merge-base HEAD d117bd8746fae0119c2282fd5306c635345a4d11
+666d55da20620c04fa367a2e0752b683be7a9623
+$ git diff --stat 62da77c 666d55da20620c04fa367a2e0752b683be7a9623 -- runtime/scripts/evidence-run.py
+$ git worktree add --detach /private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u393-race/a98e036b-3cf4-4d67-bce7-93e5c3209701/scratchpad/nc-393r2 acdf9988ffd9b80e496d706f20ba07942f7040cd
+Preparing worktree (detached HEAD acdf998)
+HEAD is now at acdf998 test(evidence-run): SidecarRejoin docstring names both stand-ins (#387 thread 4012510839)
+
+## NC-1: production file restored to the fork point, new tests kept
+$ git show 666d55da20620c04fa367a2e0752b683be7a9623:runtime/scripts/evidence-run.py > runtime/scripts/evidence-run.py
+$ git diff -U0 runtime/scripts/evidence-run.py
+diff --git a/runtime/scripts/evidence-run.py b/runtime/scripts/evidence-run.py
+index 1d3793f..fe8d0ee 100755
+--- a/runtime/scripts/evidence-run.py
++++ b/runtime/scripts/evidence-run.py
+@@ -125,5 +124,0 @@ def run_child(argv, artifact_path, cwd):
+-def sidecar_path(manifest_path):
+-    """The pre-#388 wrapper's lockfile: `<manifest>.lock`, beside the manifest."""
+-    return manifest_path.with_suffix(manifest_path.suffix + ".lock")
+-
+-
+@@ -138 +132,0 @@ def sidecar_lock(manifest_path):
+-    Yields True when it joined a sidecar and False when there was none.
+@@ -141 +135 @@ def sidecar_lock(manifest_path):
+-        peer = open(sidecar_path(manifest_path), "rb")
++        peer = open(manifest_path.with_suffix(manifest_path.suffix + ".lock"), "rb")
+@@ -143 +137 @@ def sidecar_lock(manifest_path):
+-        yield False
++        yield
+@@ -147,7 +141 @@ def sidecar_lock(manifest_path):
+-        yield True
+-
+-
+-# Attempts per append. A sidecar that appears mid-append is joined on the next one, and a
+-# legacy writer never removes its sidecar, so the second attempt holds it. The bound only
+-# matters if something else deletes and recreates the file; the last attempt writes regardless.
+-REJOIN_ATTEMPTS = 3
++        yield
+@@ -169,21 +156,0 @@ def append_record(manifest_path, record):
+-
+-    The sidecar join is check-then-act (#387 thread 4012510839). With none on disk this append
+-    goes on under the manifest lock alone, and a legacy writer can create and lock one after
+-    the check; its read-modify-write would then overlap this one under the other lock. So an
+-    append that joined no sidecar looks again immediately before it truncates. If one has
+-    appeared, it abandons the attempt (closing the manifest releases its lock), joins the
+-    sidecar, which blocks until the legacy rewrite is on disk, and starts over from the read.
+-    The rejoin cannot deadlock: the manifest lock is released BEFORE the sidecar is awaited, so
+-    the order above still holds. A legacy holder never takes the manifest lock, so it waits on
+-    nothing this append holds. A new writer that joined the sidecar waits on the manifest lock,
+-    which this one has already released.
+-
+-    Residual window: a legacy writer that creates the sidecar, locks it and reads the manifest
+-    between the last look and the close that flushes this write can still silently drop one of
+-    the two records. If the legacy rewrite lands after this one, this record is dropped; if its
+-    whole cycle fits before this truncate, the legacy record is. That gap is a seek, a truncate
+-    and the payload's buffered write, whose last bytes reach the file only as the `with` closes
+-    it. No lock wait, read or parse is inside it. Closing it would mean creating the sidecar
+-    here, which #388 forbids. Looking right after the manifest lock instead would leave the read
+-    and the parse inside the gap. A sidecar that appears at any earlier point is still there at
+-    the last look, since a legacy writer never removes its sidecar.
+@@ -193,16 +160,9 @@ def append_record(manifest_path, record):
+-        for attempt in range(1, REJOIN_ATTEMPTS + 1):
+-            with sidecar_lock(manifest_path) as joined, \
+-                    open(manifest_path, "r+", encoding="utf-8",
+-                         opener=lambda name, flags: os.open(name, flags | os.O_CREAT, 0o666)) as fh:
+-                fcntl.flock(fh.fileno(), fcntl.LOCK_EX)
+-                text = fh.read()
+-                if text:
+-                    data = json.loads(text)
+-                    if not isinstance(data, dict):
+-                        warn(f"{manifest_path} is not a JSON object — not recording")
+-                        return
+-                else:  # zero-length: just created by the open above, or already empty on disk
+-                    data = {"commands": []}
+-                commands = data.setdefault("commands", [])
+-                if not isinstance(commands, list):
+-                    warn(f"{manifest_path} has a non-list 'commands' — not recording")
++        with sidecar_lock(manifest_path), \
++                open(manifest_path, "r+", encoding="utf-8",
++                     opener=lambda name, flags: os.open(name, flags | os.O_CREAT, 0o666)) as fh:
++            fcntl.flock(fh.fileno(), fcntl.LOCK_EX)
++            text = fh.read()
++            if text:
++                data = json.loads(text)
++                if not isinstance(data, dict):
++                    warn(f"{manifest_path} is not a JSON object — not recording")
+@@ -210,9 +170,5 @@ def append_record(manifest_path, record):
+-                commands.append(record)
+-                data["commands"] = commands
+-                # Serialized before the truncate, so a failure here leaves the manifest as it was.
+-                payload = json.dumps(data, indent=2) + "\n"
+-                if not joined and attempt < REJOIN_ATTEMPTS and sidecar_path(manifest_path).exists():
+-                    continue  # a legacy writer arrived after the check: rejoin, then re-read
+-                fh.seek(0)
+-                fh.truncate()
+-                fh.write(payload)
++            else:  # zero-length: just created by the open above, or already empty on disk
++                data = {"commands": []}
++            commands = data.setdefault("commands", [])
++            if not isinstance(commands, list):
++                warn(f"{manifest_path} has a non-list 'commands' — not recording")
+@@ -219,0 +176,6 @@ def append_record(manifest_path, record):
++            commands.append(record)
++            data["commands"] = commands
++            payload = json.dumps(data, indent=2) + "\n"  # before truncate: a failure keeps the file
++            fh.seek(0)
++            fh.truncate()
++            fh.write(payload)
+$ python3 -m unittest tests.test_evidence_run
+......................FF.......
+======================================================================
+FAIL: test_a_sidecar_created_after_the_absence_check_loses_no_record (tests.test_evidence_run.SidecarCreationRace.test_a_sidecar_created_after_the_absence_check_loses_no_record)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u393-race/a98e036b-3cf4-4d67-bce7-93e5c3209701/scratchpad/nc-393r2/tests/test_evidence_run.py", line 487, in test_a_sidecar_created_after_the_absence_check_loses_no_record
+    self.assertEqual(sorted({"seed", "legacy", "new"} - set(labels)), [], "records lost")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['legacy'] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+'legacy'
+
+- ['legacy']
++ [] : records lost
+
+======================================================================
+FAIL: test_a_sidecar_created_after_the_read_is_waited_out_before_the_write (tests.test_evidence_run.SidecarRejoin.test_a_sidecar_created_after_the_read_is_waited_out_before_the_write)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u393-race/a98e036b-3cf4-4d67-bce7-93e5c3209701/scratchpad/nc-393r2/tests/test_evidence_run.py", line 601, in test_a_sidecar_created_after_the_read_is_waited_out_before_the_write
+    self.assertEqual(sorted({"seed", "legacy", "new"} - set(labels)), [], "records lost")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['new'] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+'new'
+
+- ['new']
++ [] : records lost
+
+----------------------------------------------------------------------
+Ran 31 tests in 3.934s
+
+FAILED (failures=2)
+exit=1  (REVERTED: expected NONZERO)
+$ git checkout HEAD -- runtime/scripts/evidence-run.py
+$ git status --porcelain
+$ python3 -m unittest tests.test_evidence_run
+...............................
+----------------------------------------------------------------------
+Ran 31 tests in 4.002s
+
+OK
+exit=0  (CLEAN HEAD: expected ZERO)
+
+## NC-2 (mutant): REJOIN_ATTEMPTS = 1, so the look never gets a second attempt
+$ python3 /private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u393-race/a98e036b-3cf4-4d67-bce7-93e5c3209701/scratchpad/mutate.py . NC2
+$ git diff -U0 runtime/scripts/evidence-run.py
+diff --git a/runtime/scripts/evidence-run.py b/runtime/scripts/evidence-run.py
+index 1d3793f..b9fe150 100755
+--- a/runtime/scripts/evidence-run.py
++++ b/runtime/scripts/evidence-run.py
+@@ -153 +153 @@ def sidecar_lock(manifest_path):
+-REJOIN_ATTEMPTS = 3
++REJOIN_ATTEMPTS = 1
+$ python3 -m unittest tests.test_evidence_run
+......................FF.......
+======================================================================
+FAIL: test_a_sidecar_created_after_the_absence_check_loses_no_record (tests.test_evidence_run.SidecarCreationRace.test_a_sidecar_created_after_the_absence_check_loses_no_record)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u393-race/a98e036b-3cf4-4d67-bce7-93e5c3209701/scratchpad/nc-393r2/tests/test_evidence_run.py", line 487, in test_a_sidecar_created_after_the_absence_check_loses_no_record
+    self.assertEqual(sorted({"seed", "legacy", "new"} - set(labels)), [], "records lost")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['legacy'] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+'legacy'
+
+- ['legacy']
++ [] : records lost
+
+======================================================================
+FAIL: test_a_sidecar_created_after_the_read_is_waited_out_before_the_write (tests.test_evidence_run.SidecarRejoin.test_a_sidecar_created_after_the_read_is_waited_out_before_the_write)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u393-race/a98e036b-3cf4-4d67-bce7-93e5c3209701/scratchpad/nc-393r2/tests/test_evidence_run.py", line 601, in test_a_sidecar_created_after_the_read_is_waited_out_before_the_write
+    self.assertEqual(sorted({"seed", "legacy", "new"} - set(labels)), [], "records lost")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['new'] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+'new'
+
+- ['new']
++ [] : records lost
+
+----------------------------------------------------------------------
+Ran 31 tests in 3.990s
+
+FAILED (failures=2)
+exit=1  (MUTANT: expected NONZERO)
+$ git checkout HEAD -- runtime/scripts/evidence-run.py
+$ git status --porcelain
+$ python3 -m unittest tests.test_evidence_run
+...............................
+----------------------------------------------------------------------
+Ran 31 tests in 4.154s
+
+OK
+exit=0  (CLEAN HEAD: expected ZERO)
+
+## M1 (V393R-r1 R-1): the look drops its attempt < REJOIN_ATTEMPTS guard, so a sidecar present on the last attempt makes it write nothing
+$ python3 /private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u393-race/a98e036b-3cf4-4d67-bce7-93e5c3209701/scratchpad/mutate.py . M1
+$ git diff -U0 runtime/scripts/evidence-run.py
+diff --git a/runtime/scripts/evidence-run.py b/runtime/scripts/evidence-run.py
+index 1d3793f..66b5519 100755
+--- a/runtime/scripts/evidence-run.py
++++ b/runtime/scripts/evidence-run.py
+@@ -214 +214 @@ def append_record(manifest_path, record):
+-                if not joined and attempt < REJOIN_ATTEMPTS and sidecar_path(manifest_path).exists():
++                if not joined and sidecar_path(manifest_path).exists():
+$ python3 -m unittest tests.test_evidence_run
+........................F......
+======================================================================
+FAIL: test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar (tests.test_evidence_run.SidecarRejoin.test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u393-race/a98e036b-3cf4-4d67-bce7-93e5c3209701/scratchpad/nc-393r2/tests/test_evidence_run.py", line 530, in test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar
+    self.assertEqual(self.labels(), ["seed", "new"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['seed'] != ['seed', 'new']
+
+Second list contains 1 additional elements.
+First extra element 1:
+'new'
+
+- ['seed']
++ ['seed', 'new']
+
+----------------------------------------------------------------------
+Ran 31 tests in 4.078s
+
+FAILED (failures=1)
+exit=1  (MUTANT: expected NONZERO)
+$ git checkout HEAD -- runtime/scripts/evidence-run.py
+$ git status --porcelain
+$ python3 -m unittest tests.test_evidence_run
+...............................
+----------------------------------------------------------------------
+Ran 31 tests in 4.079s
+
+OK
+exit=0  (CLEAN HEAD: expected ZERO)
+
+## M2 (V393R-r1 R-2): the look moves to right after the manifest flock, before the read
+$ python3 /private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u393-race/a98e036b-3cf4-4d67-bce7-93e5c3209701/scratchpad/mutate.py . M2
+$ git diff -U0 runtime/scripts/evidence-run.py
+diff --git a/runtime/scripts/evidence-run.py b/runtime/scripts/evidence-run.py
+index 1d3793f..fac8e9d 100755
+--- a/runtime/scripts/evidence-run.py
++++ b/runtime/scripts/evidence-run.py
+@@ -197,0 +198,2 @@ def append_record(manifest_path, record):
++                if not joined and attempt < REJOIN_ATTEMPTS and sidecar_path(manifest_path).exists():
++                    continue  # a legacy writer arrived after the check: rejoin, then re-read
+@@ -214,2 +215,0 @@ def append_record(manifest_path, record):
+-                if not joined and attempt < REJOIN_ATTEMPTS and sidecar_path(manifest_path).exists():
+-                    continue  # a legacy writer arrived after the check: rejoin, then re-read
+$ python3 -m unittest tests.test_evidence_run
+.......................F.......
+======================================================================
+FAIL: test_a_sidecar_created_after_the_read_is_waited_out_before_the_write (tests.test_evidence_run.SidecarRejoin.test_a_sidecar_created_after_the_read_is_waited_out_before_the_write)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u393-race/a98e036b-3cf4-4d67-bce7-93e5c3209701/scratchpad/nc-393r2/tests/test_evidence_run.py", line 601, in test_a_sidecar_created_after_the_read_is_waited_out_before_the_write
+    self.assertEqual(sorted({"seed", "legacy", "new"} - set(labels)), [], "records lost")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['new'] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+'new'
+
+- ['new']
++ [] : records lost
+
+----------------------------------------------------------------------
+Ran 31 tests in 4.076s
+
+FAILED (failures=1)
+exit=1  (MUTANT: expected NONZERO)
+$ git checkout HEAD -- runtime/scripts/evidence-run.py
+$ git status --porcelain
+$ python3 -m unittest tests.test_evidence_run
+...............................
+----------------------------------------------------------------------
+Ran 31 tests in 4.104s
+
+OK
+exit=0  (CLEAN HEAD: expected ZERO)
+
+## M3 (coordinator): attempts after the first skip the sidecar join (contextlib.nullcontext(True)), so the rejoin re-reads without blocking
+$ python3 /private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u393-race/a98e036b-3cf4-4d67-bce7-93e5c3209701/scratchpad/mutate.py . M3
+$ git diff -U0 runtime/scripts/evidence-run.py
+diff --git a/runtime/scripts/evidence-run.py b/runtime/scripts/evidence-run.py
+index 1d3793f..41ff58b 100755
+--- a/runtime/scripts/evidence-run.py
++++ b/runtime/scripts/evidence-run.py
+@@ -194 +194,2 @@ def append_record(manifest_path, record):
+-            with sidecar_lock(manifest_path) as joined, \
++            with (sidecar_lock(manifest_path) if attempt == 1
++                  else contextlib.nullcontext(True)) as joined, \
+$ python3 -m unittest tests.test_evidence_run
+.......................F.......
+======================================================================
+FAIL: test_a_sidecar_created_after_the_read_is_waited_out_before_the_write (tests.test_evidence_run.SidecarRejoin.test_a_sidecar_created_after_the_read_is_waited_out_before_the_write)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u393-race/a98e036b-3cf4-4d67-bce7-93e5c3209701/scratchpad/nc-393r2/tests/test_evidence_run.py", line 601, in test_a_sidecar_created_after_the_read_is_waited_out_before_the_write
+    self.assertEqual(sorted({"seed", "legacy", "new"} - set(labels)), [], "records lost")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['new'] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+'new'
+
+- ['new']
++ [] : records lost
+
+----------------------------------------------------------------------
+Ran 31 tests in 4.153s
+
+FAILED (failures=1)
+exit=1  (MUTANT: expected NONZERO)
+$ git checkout HEAD -- runtime/scripts/evidence-run.py
+$ git status --porcelain
+$ python3 -m unittest tests.test_evidence_run
+...............................
+----------------------------------------------------------------------
+Ran 31 tests in 4.176s
+
+OK
+exit=0  (CLEAN HEAD: expected ZERO)
+
+$ git worktree remove --force /private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u393-race/a98e036b-3cf4-4d67-bce7-93e5c3209701/scratchpad/nc-393r2
