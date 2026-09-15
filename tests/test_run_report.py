@@ -398,6 +398,23 @@ class WipCurveObligation(unittest.TestCase):
                 report = f"RUN: mission=ship-it waves=2\n\n{heading}\n\n{self.ROW_1}\n{self.ROW_2}\n"
                 self.assertEqual(run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md"), [])
 
+    def test_a_look_alike_heading_does_not_open_the_section(self):
+        # Verdict r1 (F-1): any heading beginning 'WIP curve' opened the section, so another run's
+        # quoted example bound as this run's evidence. Only the protocol's heading opens it.
+        rows = f"{self.ROW_1}\n{self.ROW_2}\n"
+        for heading in ("## WIP-curve example (from another run)",
+                        "## Deviations — WIP-curve cap raised", "## WIP curve", "### WIP \t curve"):
+            with self.subTest(heading=heading):
+                report = f"RUN: mission=ship-it waves=2\n\n{heading}\n\n{rows}"
+                errs = run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md")
+                self.assertTrue(any("— none found;" in e and "WIP-curve protocol row" in e
+                                    for e in errs), f"{heading!r} opened the section {errs}")
+        # Nor does a look-alike after the section reopen it: a wave planned and never run, quoted
+        # under it, is not a stray row of this run.
+        report = (f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n{rows}\n"
+                  f"## WIP-curve example (from another run)\n\n{self.ROW_2.replace('wave=2', 'wave=3')}\n")
+        self.assertEqual(run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md"), [])
+
     def test_the_protocol_names_the_schema_the_checker_enforces(self):
         # The text and the check drifted once (#389: the prose owed five metrics, the check read
         # two settings). The protocol section must name every row key the checker enforces — and
