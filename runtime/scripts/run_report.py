@@ -487,43 +487,72 @@ _HEADING_RE = re.compile(r" {0,3}#{1,6}(?:[ \t]|$)")
 # inline code, and read as a fence it swallowed the rows after it (PR #401 review).
 _FENCE_RE = re.compile(r" {0,3}(`{3,}(?=[^`]*$)|~{3,})")
 _SETEXT_RE = re.compile(r" {0,3}(?:=+|-+)[ \t]*$")
-# A list item or block quote line: its paragraph is in a container, not a plain one (CommonMark).
-_CONTAINER_RE = re.compile(r" {0,3}(?:>|(?:[-+*]|\d{1,9}[.)])(?:[ \t]|$))")
+_BREAK_RE = re.compile(r" {0,3}([-*_])(?:[ \t]*\1){2,}[ \t]*$")
+_QUOTE_RE = re.compile(r" {0,3}>")
+_ITEM_RE = re.compile(r" {0,3}(?:[-+*]|(\d{1,9})[.)])(?=[ \t]|$)")
+_QUOTED = float("inf")  # a block quote's paragraph: its lines carry '>', so no underline here is its
 
 
 def _wip_section_lines(text):
     """The lines inside the report's WIP-curve section(s), fenced code excluded. A heading quoted
     inside a fence is code too, so it neither opens nor closes the section. A setext heading — a
-    plain paragraph line underlined with = or - — ends the section like any other (verdict r1)."""
-    inside, fence, para = False, None, None
+    paragraph underlined with = or - in its own container — ends the section like any other
+    (verdict r1). List items are followed by the column their content starts at (CommonMark), so
+    a fence nested in one is still code, and a paragraph indented into one is still its own."""
+    inside, fence, para, items = False, None, None, []
     for line in text.splitlines():
-        opener = _FENCE_RE.match(line)
+        indent = len(line) - len(line.lstrip(" "))
         if fence:
-            # CommonMark: the closing fence is the same character, at least as long, bare.
-            if (opener and opener.group(1)[0] == fence[0] and len(opener.group(1)) >= len(fence)
-                    and not line[opener.end():].strip()):
+            # CommonMark: the closing fence is the same character, at least as long, bare, and
+            # up to three spaces past the column of the list item holding the fence.
+            char, col = fence
+            closer = _FENCE_RE.match(line, col)
+            if (closer and closer.group(1)[0] == char[0] and len(closer.group(1)) >= len(char)
+                    and not line[closer.end():].strip()):
                 fence = None
             continue
+        if not line.strip():
+            para = None
+            continue
+        # The list items this line is indented into, then any it opens. An item interrupts a
+        # paragraph in its own container only with content, and an ordered one only from 1:
+        # 'Deviations / 2. x / ---' is one paragraph underlined (PR #401 review).
+        kept = len(items)
+        while kept and items[kept - 1] > indent:
+            kept -= 1
+        base, opened = (items[kept - 1] if kept else 0), []
+        while not _BREAK_RE.match(line, base):
+            item = _ITEM_RE.match(line, base)
+            rest = line[item.end():] if item else ""
+            if not item or (not opened and para == base
+                            and not (rest.strip() and int(item.group(1) or 1) == 1)):
+                break
+            gap = len(rest) - len(rest.lstrip(" "))
+            base = item.end() + (gap if rest.strip() and 0 < gap <= 4 else 1)
+            opened.append(base)
+        opener = _FENCE_RE.match(line, base)
         heading = _HEADING_RE.match(line)
-        setext = para == "plain" and _SETEXT_RE.match(line)
+        setext = not opened and para is not None and indent >= para and _SETEXT_RE.match(line, para)
         if opener:
-            fence = opener.group(1)
+            fence = (opener.group(1), base)
         elif heading:
             inside = bool(_WIP_SECTION_RE.match(line))
         elif setext:
             inside = False
         elif inside:
             yield line
-        # A plain paragraph line, or its continuation, is all that arms the setext rule. After a
-        # blank, a table row, a heading or a fence, --- is a thematic break or table syntax; after
-        # a list item or block quote line, or its lazy continuation, --- is a thematic break and
-        # === is more of its text (PR #401 review). The section stays open either way.
-        if not line.strip() or opener or heading or setext or line.lstrip().startswith("|"):
-            para = None
-        elif _CONTAINER_RE.match(line):
-            para = "container"
-        elif not para:
-            para = "plain"
+        # Only a paragraph can be underlined, and only in its own container. After a table row, a
+        # heading, a fence or a thematic break, --- is a thematic break or table syntax. Under a
+        # list item's paragraph but left of its content, or under a block quote's, --- is a
+        # thematic break and === is more of its text (PR #401 review). The section stays open.
+        quote = _QUOTE_RE.match(line, base)
+        if (opener or heading or setext or _BREAK_RE.match(line, base)
+                or line.lstrip().startswith("|")):
+            items[kept:], para = opened, None
+        elif opened or para is None or quote:
+            items[kept:] = opened
+            para = _QUOTED if quote else (base if line[base:].strip() else None)
+        # Otherwise the line continues the open paragraph, lazily or not, and closes nothing.
 
 
 def _wip_rows(text):

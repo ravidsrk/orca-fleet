@@ -500,6 +500,86 @@ class WipCurveObligation(unittest.TestCase):
                 self.assertIn("| wave=2 |", errs[0])
                 self.assertIn("carries no measured ['latency_max']", errs[0])
 
+    def test_an_ordered_item_not_numbered_1_under_a_paragraph_line_is_its_text(self):
+        # PR #401 review (P1 4013204408, verdict r3 F-2): a list item interrupts a paragraph only
+        # with content, and an ordered one only from 1 (CommonMark). So 'Deviations / 2. x / ---'
+        # is one paragraph underlined, a setext heading: the section ends, and the rows under it
+        # are not the run's. '1. x' does interrupt, and the --- after it is a thematic break.
+        rows = f"{self.ROW_1}\n{self.ROW_2}\n"
+        for name, lead in {"2.": "Deviations\n2. raised mid-run\n---",
+                           "10)": "Deviations\n10) raised mid-run\n---",
+                           "an empty item": "Deviations\n*\n---"}.items():
+            with self.subTest(case=name):
+                report = (f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n"
+                          f"Not measured to protocol this run.\n\n{lead}\n\n{rows}")
+                errs = run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md")
+                self.assertTrue(any("— none found;" in e and "WIP-curve protocol row" in e
+                                    for e in errs), f"bound under a setext heading {errs}")
+        report = f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\nA note:\n1. raised mid-run\n---\n\n{rows}"
+        self.assertEqual(run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md"), [])
+
+    def test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list(self):
+        # PR #401 review (P1 4013204408, verdict r3 F-1): a line indented to a list item's content
+        # after a blank line is that item's paragraph, not a plain one, so a --- at the margin
+        # after it is a thematic break (CommonMark). Complete rows after it bind, and an incomplete
+        # second wave=2 row after it is refused naming the wave, never hidden.
+        partial_2 = self.ROW_2.replace("| latency_max=55m ", "")
+        head = f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n"
+        for name, item in {"a list item": "- a note\n\n  that runs on",
+                           "an ordered item, content at column 4": "10. a note\n\n    that runs on"}.items():
+            with self.subTest(case=name, rows="complete"):
+                complete = f"{head}{item}\n---\n\n{self.ROW_1}\n{self.ROW_2}\n"
+                self.assertEqual(run_report._wip_curve_errors(complete, "ship-it", ROOT, "r.md"), [])
+            with self.subTest(case=name, rows="an incomplete second wave=2"):
+                hidden = f"{head}{self.ROW_1}\n{self.ROW_2}\n\n{item}\n---\n\n{partial_2}\n"
+                errs = run_report._wip_curve_errors(hidden, "ship-it", ROOT, "r.md")
+                self.assertTrue(any("| wave=2 |" in e and "carries no measured ['latency_max']" in e
+                                    for e in errs), f"the row after the break was not read {errs}")
+                self.assertTrue(any("wave(s) [2] carry more than one WIP-curve row" in e
+                                    for e in errs), errs)
+        # Underlined at the item's own column, that paragraph is a heading; so is a line back at
+        # the margin, which has left the list. Either ends the section.
+        for name, lead in {"at column 2": "- a note\n\n  Deviations\n  ---",
+                           "at column 4": "10. a note\n\n    Deviations\n    ---",
+                           "back at the margin": "- a note\n\nDeviations\n---"}.items():
+            with self.subTest(case=name, rows="under a setext heading"):
+                report = f"{head}{lead}\n\n{self.ROW_1}\n{self.ROW_2}\n"
+                errs = run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md")
+                self.assertTrue(any("— none found;" in e for e in errs), errs)
+
+    def test_a_fence_nested_in_a_list_item_hides_its_rows(self):
+        # Verdict r3 (F-3): a fence may sit up to three spaces past the content column of the list
+        # item holding it, so an example fenced four or more spaces deep is still code (CommonMark),
+        # and its rows are not the run's: alone they are none found, and beside the real rows a
+        # wave=3 example is no stray wave.
+        stray = self.ROW_2.replace("wave=2", "wave=3")
+        for name, nested in {"an ordered item": "1. Filled in as the example shows:\n\n"
+                                                "    ```text\n    {row}\n    ```\n",
+                             "a nested item": "- Example\n  - quoted from another run:\n\n"
+                                              "      ~~~\n      {row}\n      ~~~\n"}.items():
+            head = f"RUN: mission=ship-it waves=1\n\n{self.SECTION}\n\n"
+            with self.subTest(case=name, rows="the example alone"):
+                errs = run_report._wip_curve_errors(f"{head}{nested.format(row=self.ROW_1)}",
+                                                    "ship-it", ROOT, "r.md")
+                self.assertTrue(any("— none found;" in e for e in errs),
+                                f"bound on a fenced example {errs}")
+            with self.subTest(case=name, rows="a wave=3 example beside the real row"):
+                report = f"{head}{nested.format(row=stray)}\n{self.ROW_1}\n"
+                self.assertEqual(run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md"), [])
+
+    def test_a_thematic_break_is_neither_a_list_item_nor_a_paragraph(self):
+        # The list items followed for PR #401 review: '* * *' is a thematic break, not three list
+        # items, so the paragraph under it is a plain one; and a --- ending a list item closes it,
+        # so the next line starts a plain paragraph. Underlined, each is a setext heading.
+        rows = f"{self.ROW_1}\n{self.ROW_2}\n"
+        for name, lead in {"* * *": "* * *\n\n  Deviations\n---",
+                           "a list item, ---": "- a note\n---\nDeviations\n---"}.items():
+            with self.subTest(case=name):
+                report = f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n{lead}\n\n{rows}"
+                errs = run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md")
+                self.assertTrue(any("— none found;" in e for e in errs),
+                                f"bound under a setext heading {errs}")
+
     def test_the_protocol_names_the_schema_the_checker_enforces(self):
         # The text and the check drifted once (#389: the prose owed five metrics, the check read
         # two settings). The protocol section must name every row key the checker enforces — and
