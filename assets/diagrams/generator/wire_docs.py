@@ -58,17 +58,30 @@ def _has(text, block):
     dark = re.search(r'srcset="([^"]+\.jpg)"', block).group(1)
     return dark in text
 
+def _anchor_re(anchor):
+    # A heading anchor is the whole line: `## Proof status` must not be satisfied by
+    # `## Proof status — details` (PR #398 review). A prose anchor is an exact substring.
+    if anchor.startswith("#"):
+        return re.compile(r"^" + re.escape(anchor) + r"[ \t]*$", re.M)
+    return re.compile(re.escape(anchor))
+
+def _anchored(text, anchor, doc):
+    # Checked on every run, not only when the picture is missing: a committed embed used to hide a
+    # renamed heading until the next regeneration asserted on it (PR #387 review).
+    hits = len(_anchor_re(anchor).findall(text))
+    assert hits == 1, (doc, anchor[:60], hits)
+
 def insert_after(text, anchor, block, doc):
+    _anchored(text, anchor, doc)
     if _has(text, block):
         return text
-    assert text.count(anchor) == 1, (doc, anchor[:60], text.count(anchor))
-    return text.replace(anchor, anchor + "\n\n" + block, 1)
+    return _anchor_re(anchor).sub(lambda m: m.group(0) + "\n\n" + block, text, count=1)
 
 def insert_before(text, anchor, block, doc):
+    _anchored(text, anchor, doc)
     if _has(text, block):
         return text
-    assert text.count(anchor) == 1, (doc, anchor[:60], text.count(anchor))
-    return text.replace(anchor, block + "\n\n" + anchor, 1)
+    return _anchor_re(anchor).sub(lambda m: block + "\n\n" + m.group(0), text, count=1)
 
 DRY = "--dry-run" in sys.argv
 
@@ -86,20 +99,19 @@ def edit(path, fn):  # idempotent: a rerun refreshes alt text and inserts only w
 # --- README -------------------------------------------------------------------------
 def readme(t):
     t = convert_existing(t)
+    _anchored(t, "```\n YOU SAY", "README")
     if "assets/diagrams/you-say.jpg" not in t:
         ascii_start = t.index("```\n YOU SAY")
         ascii_end = t.index("```\n", ascii_start + 4) + 4
         ascii = t[ascii_start:ascii_end].rstrip("\n")
         t = (t[:ascii_start] + picture("", "you-say", NEW_ALT["you-say"], 1000) + "\n\n"
              "<details>\n<summary>Text version</summary>\n\n" + ascii + "\n\n</details>\n" + t[ascii_end:])
-    t = insert_before(t, "Two workflows are the **same mission** only if they share all six of:",
-        "Missions also hand work to one another, each handoff a separately authorized run:\n\n"
-        + picture("", "mission-handoffs", NEW_ALT["mission-handoffs"], 900), "README")
-    t = insert_before(t, "The manifest binds every claim to a SHA and an artifact;",
-        "The difference that matters is checkable. On the same gamed manifest a self-scoring gate goes GREEN and\n"
-        "the verifier goes RED, reproducibly ([demo/negative-control/](demo/negative-control/README.md)):\n\n"
-        + picture("", "negative-control", NEW_ALT["negative-control"], 900), "README")
-    t = insert_after(t, "## Proof status — honesty first",
+    # The README's intro sentences are prose now; each picture sits right after its own.
+    t = insert_after(t, "Missions also hand work to one another, each handoff a separately authorized run:",
+        picture("", "mission-handoffs", NEW_ALT["mission-handoffs"], 900), "README")
+    t = insert_after(t, "([demo/negative-control/](demo/negative-control/README.md)):",
+        picture("", "negative-control", NEW_ALT["negative-control"], 900), "README")
+    t = insert_after(t, "## Proof status",
         picture("", "proof-ladder", NEW_ALT["proof-ladder"], 900), "README")
     t = insert_after(t, "## Requirements",
         picture("", "install-stack", NEW_ALT["install-stack"], 900), "README")
