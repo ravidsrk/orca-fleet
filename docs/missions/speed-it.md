@@ -11,10 +11,22 @@
 **Skill:** [`skills/speed-it/SKILL.md`](../../skills/speed-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes
 
 <p align="center">
-  <img src="../../assets/diagrams/missions/speed-it.jpg" alt="State machine: DECLARE the metric contract before any number, BASELINE every journey, RANK by gap times traffic, DIAGNOSE one dominant cause, FIX with a PR per hotspot plus CI guard, PROVE by driving the journey, LAND, RE-BENCHMARK looping while breaches remain, ending WITHIN-BUDGET or OPTIMIZED-WITH-PARKED" width="820">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/diagrams/missions/speed-it.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../../assets/diagrams/missions/speed-it-light.jpg">
+    <img src="../../assets/diagrams/missions/speed-it-light.jpg" alt="Mission contract for speed-it: you give it the journeys and their budgets; it interrupts you for a metric that cannot be measured to its contract; parking a journey; promotion; you get back WITHIN-BUDGET or OPTIMIZED-WITH-PARKED, plus before, after on every fix PR; CI regression guards; a re-benchmark to the contract; it stops at never a weaker proxy metric, never a lucky single run; phases DECLARE, BASELINE, RANK, DIAGNOSE, FIX, PROVE, RE-BENCHMARK" width="820">
+  </picture>
 </p>
 
 ---
+
+## Invoke it
+
+```
+> the app is slow — journeys: <list them>; budgets: <the targets>
+```
+
+**Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh. A real MEASUREMENT path (Lighthouse/DevTools for web CWV, or a load/profiler harness). A perf worker playbook (addyosmani performance-optimization or gstack benchmark) — one router per worker.
 
 ## What it does
 
@@ -95,11 +107,13 @@ Phase by phase:
    run is not confirmation. Because fixes interact systemically, the loop re-ranks whatever is
    still breached and goes again.
 
-## Terminal states — name the one reached
+## Terminal states
 
-| State                   | Meaning                                                                                                                                          | Who advances past it         |
-|-------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------|
-| `WITHIN-BUDGET`         | Every critical journey meets its budget on its metric contract's confirmation                                                                    | terminal                     |
+*Name the one reached.*
+
+| State | Meaning | Who acts on it |
+|---|---|---|
+| `WITHIN-BUDGET` | Every critical journey meets its budget on its metric contract's confirmation | terminal |
 | `OPTIMIZED-WITH-PARKED` | All fixable hotspots fixed; ≥1 journey needs an infra/architecture change beyond scope or is an inherent-cost tradeoff — parked with a human ref | a human decides the tradeoff |
 
 `OPTIMIZED-WITH-PARKED` is a degraded outcome, never a synonym — reporting it as `WITHIN-BUDGET`
@@ -162,15 +176,16 @@ migration, that journey would park with a human reference and the run would end
 | Downgrading an unmeasurable metric to a proxy | It is `unmeasured` and human-flagged — never an invented number |
 
 ## Composes
-
-Playbooks: [`risk-review`](../../playbooks/risk-review.md) (performance lens) ·
+Playbooks:
+[`risk-review`](../../playbooks/risk-review.md) (performance lens) ·
 [`remediate-finding`](../../playbooks/remediate-finding.md) ·
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
 [`runtime-prove`](../../playbooks/runtime-prove.md) ·
 [`compound-learn`](../../playbooks/compound-learn.md) ·
 [`browser-drive`](../../playbooks/browser-drive.md)
 
-Runtime policies: [`merge-serialization`](../../runtime/merge-serialization.md) ·
+Runtime policies:
+[`merge-serialization`](../../runtime/merge-serialization.md) ·
 [`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md) ·
 [`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) ·
 [`liveness-resume`](../../runtime/liveness-resume.md) ·

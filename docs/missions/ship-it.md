@@ -13,10 +13,22 @@
 **Skill:** [`skills/ship-it/SKILL.md`](../../skills/ship-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes
 
 <p align="center">
-  <img src="../../assets/diagrams/missions/ship-it.jpg" alt="State machine: FREEZE (gate 1, you confirm the spec) through DECOMPOSE, parallel slice builders, build-blind REVIEW with bounded fix rounds, PROVE at the real entry point, LAND via one merge train, to PROMOTION_READY (gate 2, you merge), then RELEASED and DEPLOYED_AND_VERIFIED" width="820">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/diagrams/missions/ship-it.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../../assets/diagrams/missions/ship-it-light.jpg">
+    <img src="../../assets/diagrams/missions/ship-it-light.jpg" alt="Mission contract for ship-it: you give it an intent, or a frozen spec; it interrupts you for gate 1 — confirm the frozen spec; gate 2 — merge the promotion PR; you get back BUILT or PROMOTION_READY or RELEASED or DEPLOYED_AND_VERIFIED, plus slice PRs on BASE; a promotion PR with a traceability table; an evidence manifest per unit; it stops at the highest release state you authorized, suffixed -WITH-PARKED when units were parked with your approval — it never merges to the default branch itself; phases FREEZE, DECOMPOSE, BUILD, REVIEW, PROVE, LAND, RELEASE" width="820">
+  </picture>
 </p>
 
 ---
+
+## Invoke it
+
+```
+> ship this: <what to build, or the path to a frozen spec>
+```
+
+**Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + the orchestration skill (Orca CLI). git + gh. One worker playbook pack per worker (mattpocock/skills for grill/tdd, addyosmani for build/verify, gstack for review-army/ship) — never two routers in one worker. Deploy tooling + canary surface for the RELEASED/DEPLOYED states.
 
 ## What it does
 
@@ -109,18 +121,25 @@ Phase by phase:
    traceability table; a human merges to the default branch; deploy and a canary window follow
    only where authorized.
 
-## Terminal states — stop where your authorization ends
+## Terminal states
 
-| State                   | Meaning                                                            | Who advances past it |
-|-------------------------|--------------------------------------------------------------------|----------------------|
-| `BUILT`                 | Every slice merged to BASE, ancestry-verified                      | the fleet            |
-| `PROMOTION_READY`       | Promotion PR open with a traceability table                        | a human, always      |
-| `RELEASED`              | Human merged the promotion PR to the default branch                | ops / authorization  |
-| `DEPLOYED_AND_VERIFIED` | Deployed revision equals the released SHA, canary green over its window | terminal        |
+*Stop where your authorization ends.*
+
+| State | Meaning | Who acts on it |
+|---|---|---|
+| `BUILT` | Every slice merged to BASE, ancestry-verified | the fleet |
+| `PROMOTION_READY` | Promotion PR open with a traceability table | a human, always |
+| `RELEASED` | Human merged the promotion PR to the default branch | ops / authorization |
+| `DEPLOYED_AND_VERIFIED` | Deployed revision equals the released SHA, canary green over its window | terminal |
+| `BUILT-WITH-PARKED` (or any higher state, suffixed) | units or criteria parked with human-approved reasons while the rest landed; allowed parks are `needs-human`, `CODE_CLOSED` + `VERIFY_AT_SCALE` with a plan, or a human-authorized scope exclusion | a human clears each named park |
 
 The mission **names the state it reached** and what blocks the next one. Reaching BASE with an
 open promotion PR is `PROMOTION_READY` — reporting it as `RELEASED` is the overclaim this state
 machine exists to prevent.
+
+A **solo run** — no second GitHub identity to review the work — cannot close a mutation unit: it
+records RED and stops at `BUILT`, or takes the executed-control lane; it never self-approves.
+`BUILT-WITH-PARKED` is a degraded terminal; it is never reported as `BUILT`.
 
 ## Human gates
 
@@ -193,21 +212,18 @@ test ↔ merge SHA) and stops at `PROMOTION_READY`. Merging to `main` is your cl
 | Two playbook routers in one worker | Upstream packs fight when co-mounted; one worker, one pack            |
 
 ## Composes
+At activation — the SKILL's Composes/rides clause, what a coordinator loads before the first dispatch:
 
-Playbooks: [`decide-and-freeze`](../../playbooks/decide-and-freeze.md) ·
+Playbooks:
+[`decide-and-freeze`](../../playbooks/decide-and-freeze.md) ·
 [`decompose-dag`](../../playbooks/decompose-dag.md) ·
 [`build-change`](../../playbooks/build-change.md) ·
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
-[`risk-review`](../../playbooks/risk-review.md) ·
 [`runtime-prove`](../../playbooks/runtime-prove.md) ·
-[`release`](../../playbooks/release.md) · [`observe`](../../playbooks/observe.md) ·
-[`compound-learn`](../../playbooks/compound-learn.md) ·
-[`plan-review`](../../playbooks/plan-review.md) ·
-[`completion-audit`](../../playbooks/completion-audit.md) ·
-[`linear-enumeration`](../../playbooks/linear-enumeration.md) ·
-[`human-handoff`](../../playbooks/human-handoff.md)
+[`linear-enumeration`](../../playbooks/linear-enumeration.md)
 
-Runtime policies: [`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) ·
+Runtime policies:
+[`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) ·
 [`merge-serialization`](../../runtime/merge-serialization.md) ·
 [`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md) ·
 [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
@@ -215,8 +231,9 @@ Runtime policies: [`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) ·
 [`liveness-resume`](../../runtime/liveness-resume.md) ·
 [`ledger-contract`](../../runtime/ledger-contract.md) ·
 [`attention-budget`](../../runtime/attention-budget.md) ·
-`orca-dag-semantics` (phase-cued: read when composing the DAG, not standing load) ·
-[`mission-chaining`](../../runtime/mission-chaining.md)
+`orca-dag-semantics` (phase-cued: read when composing the DAG, not standing load)
+
+Deferred reads, loaded on entering their phase and never at activation: [`plan-review`](../../playbooks/plan-review.md) on the map-it handoff route · [`risk-review`](../../playbooks/risk-review.md) when a slice's surface triggers a lens · [`release`](../../playbooks/release.md) at RELEASE · [`observe`](../../playbooks/observe.md) at DEPLOYED_AND_VERIFIED · [`human-handoff`](../../playbooks/human-handoff.md) at a handoff · [`completion-audit`](../../playbooks/completion-audit.md) + [`compound-learn`](../../playbooks/compound-learn.md) at run close · [`mission-chaining`](../../runtime/mission-chaining.md) as a chain link.
 
 ## Related missions
 

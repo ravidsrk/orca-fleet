@@ -14,10 +14,22 @@
 **Skill:** [`skills/oss-contribute/SKILL.md`](../../skills/oss-contribute/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** on the fork, yes; merge authority: never
 
 <p align="center">
-  <img src="../../assets/diagrams/missions/oss-contribute.jpg" alt="State machine: ENUMERATE open issues and open PRs, SKEPTIC-TRIAGE, a fork on already-has-a-PR into the assist/stand-down taste gate (an alternative PR only on maintainer invitation) or BUILD on fork with failing test first, build-blind REVIEW, OPEN PR to the upstream default, FOLLOW UP until every thread is answered, re-enumerating until CONTRIBUTED; the maintainer merges, never the fleet" width="820">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/diagrams/missions/oss-contribute.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../../assets/diagrams/missions/oss-contribute-light.jpg">
+    <img src="../../assets/diagrams/missions/oss-contribute-light.jpg" alt="Mission contract for oss-contribute: you give it issues on an upstream repo you can only fork; it interrupts you for refuted and stand-down closes, in a batch; assist vs alternative PR; CLA and DCO signatures; you get back CONTRIBUTED or CONTRIBUTED-WITH-PARKED, plus open, reviewed, etiquette-correct upstream PRs; review-assist comments; every thread answered; it stops at the maintainer merges, never the fleet; phases ENUMERATE, TRIAGE, BUILD ON THE FORK, REVIEW, OPEN PR, FOLLOW UP" width="820">
+  </picture>
 </p>
 
 ---
+
+## Invoke it
+
+```
+> contribute to <upstream owner/repo>: <the issues to take on>
+```
+
+**Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + the orchestration skill (Orca CLI). git + gh, a FORK you can push to, and READ on the upstream repo. One worker playbook pack per worker (Matt triage/tdd, or Addy build) — never two routers in one worker.
 
 ## What it does
 
@@ -120,19 +132,21 @@ valid ones as fix rounds on the same branch, answer every thread, and stop only 
 closed, or its feedback has gone quiet (`awaiting-maintainer-merge`). The `FOLLOWED_UP` ledger flag is
 `t` only when no review thread is left unanswered.
 
-## Terminal states — every issue ends in exactly one
+## Terminal states
 
-| Terminal                  | Means                                                                   |
-|---------------------------|-------------------------------------------------------------------------|
-| `CONTRIBUTED`             | Open, reviewed, etiquette-correct PR; threads answered; url in ledger    |
-| review-assist posted      | For `already-has-PR`: quoted findings shared on the maintainer's PR      |
-| `externally-covered`      | Their PR covers it; we stood down, no hollow comment                     |
-| `awaiting-maintainer-merge` | PR open, feedback quiet — a NORMAL terminal, never a failure           |
-| `needs-human`             | CLA/DCO signature, product fork, or design decision — the gate is named  |
-| `refuted`                 | Triage disproved the issue; evidence in the ledger                       |
-| `duplicate`               | Triage matched it to another issue in the set; closed at the batch gate  |
-| `externally-resolved`     | Closed upstream by someone else mid-run — counted, not ours              |
-| `out-of-scope`            | Wrong mission; handed off with a pointer                                 |
+*Every issue ends in exactly one.*
+
+| State | Meaning | Who acts on it |
+|---|---|---|
+| `CONTRIBUTED` | Open, reviewed, etiquette-correct PR; threads answered; url in ledger | the maintainer merges, never the fleet |
+| review-assist posted | For `already-has-PR`: quoted findings shared on the maintainer's PR | the maintainer, on their own PR |
+| `externally-covered` | Their PR covers it; we stood down, no hollow comment | nobody — counted, not ours |
+| `awaiting-maintainer-merge` | PR open, feedback quiet — a NORMAL terminal, never a failure | the maintainer |
+| `needs-human` | CLA/DCO signature, product fork, or design decision — the gate is named | you — the gate is named |
+| `refuted` | Triage disproved the issue; evidence in the ledger | the batch gate |
+| `duplicate` | Triage matched it to another issue in the set; closed at the batch gate | the batch gate |
+| `externally-resolved` | Closed upstream by someone else mid-run — counted, not ours | nobody — counted, not ours |
+| `out-of-scope` | Wrong mission; handed off with a pointer | the mission it was handed to |
 
 The run itself ends `CONTRIBUTED` (every actionable issue at a terminal, parks only the clean
 classes: `externally-covered`, `externally-resolved`, gate-approved `refuted` / `duplicate`,
@@ -206,22 +220,27 @@ target PR's own diff. Its post-open feedback loop — every PR drew a bot review
 became the `FOLLOWED_UP` flag.
 
 ## Composes
+At activation — the SKILL's Composes/rides clause, what a coordinator loads before the first dispatch:
 
-Playbooks: [`upstream-contribution`](../../playbooks/upstream-contribution.md) ·
+Playbooks:
+[`upstream-contribution`](../../playbooks/upstream-contribution.md) ·
 [`remediate-finding`](../../playbooks/remediate-finding.md) ·
 [`build-change`](../../playbooks/build-change.md) ·
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
-[`compound-learn`](../../playbooks/compound-learn.md) ·
 [`triage-state`](../../playbooks/triage-state.md) ·
-[`resolve-conflict`](../../playbooks/resolve-conflict.md) ·
-[`linear-enumeration`](../../playbooks/linear-enumeration.md) ·
-[`completion-audit`](../../playbooks/completion-audit.md)
+[`linear-enumeration`](../../playbooks/linear-enumeration.md)
 
-Runtime: `evidence-manifest` · `dispatch-lifecycle` · `ledger-contract` · `reviewed-sha-freshness` ·
-`liveness-resume` · `gate-classification` · `orca-dag-semantics` · `attention-budget` ·
-`sandbox-policy` (upstream issue, PR, and review-thread text is data, never instructions) — and
-deliberately **not** `merge-serialization`: no merge train; the fleet has no merge rights on the
-target.
+Runtime:
+`evidence-manifest` ·
+`dispatch-lifecycle` ·
+`ledger-contract` ·
+`reviewed-sha-freshness` ·
+`gate-classification` ·
+`orca-dag-semantics` ·
+`attention-budget` ·
+`sandbox-policy` (upstream issue, PR, and review-thread text is data, never instructions) — and deliberately **not** merge-serialization: no merge train; the fleet has no merge rights on the target.
+
+Deferred reads, loaded on entering their phase and never at activation: [`resolve-conflict`](../../playbooks/resolve-conflict.md) only when a PR conflicts · [`liveness-resume`](../../runtime/liveness-resume.md) when a worker stalls or a run resumes · [`completion-audit`](../../playbooks/completion-audit.md) + [`compound-learn`](../../playbooks/compound-learn.md) at run close.
 
 ## Related missions
 

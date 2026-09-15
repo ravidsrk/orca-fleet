@@ -13,8 +13,20 @@
 ---
 
 <p align="center">
-  <img src="../../assets/diagrams/missions/modernize-it.jpg" alt="Pipeline: inventory outdated dependencies and advisories with reachability triage, order along a compatibility graph, upgrade one dependency or coherent group per PR with CI green at every merge, to CURRENT or CURRENT-WITH-PINNED" width="820">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/diagrams/missions/modernize-it.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../../assets/diagrams/missions/modernize-it-light.jpg">
+    <img src="../../assets/diagrams/missions/modernize-it-light.jpg" alt="Mission contract for modernize-it: you give it a repo with a green CI baseline; it interrupts you for pinning a dependency, with a written reason and your reference; a forced stateful migration, handed to migrate-it; you get back CURRENT or CURRENT-WITH-PINNED, plus one PR per dependency or coherent group; CI green at every merge; runtime-prove transcripts; it stops at the lockfile regenerated, never hand-edited — and never audit fix --force; phases INVENTORY, ORDER, UPGRADE, REVIEW, PROVE, LAND, RE-INVENTORY" width="820">
+  </picture>
 </p>
+
+## Invoke it
+
+```
+> update the dependencies
+```
+
+**Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh; the package manager + a green CI baseline. addyosmani deprecation-and-migration playbook — one router per worker.
 
 ## What it does
 
@@ -110,12 +122,14 @@ Phase by phase:
    One conductor serializes merges to BASE; then the inventory is re-run and the loop continues
    until it comes back dry.
 
-## Terminal states — pinned is not current
+## Terminal states
 
-| State                 | Meaning                                                                              |
-|-----------------------|--------------------------------------------------------------------------------------|
-| `CURRENT`             | Every dep on a current supported version, zero reachable unaddressed advisories      |
-| `CURRENT-WITH-PINNED` | All upgradable deps current; one or more pinned-and-parked with a reason + human ref |
+*Pinned is not current.*
+
+| State | Meaning | Who acts on it |
+|---|---|---|
+| `CURRENT` | Every dep on a current supported version, zero reachable unaddressed advisories | terminal — the promotion PR is yours |
+| `CURRENT-WITH-PINNED` | All upgradable deps current; one or more pinned-and-parked with a reason + human ref | a human owns each pin's written reason |
 
 The degraded state is never reported as `CURRENT`. Every pin carries a written reason —
 breaking upstream, dropped platform, unresolved conflict — and a human reference.
@@ -193,17 +207,17 @@ merge along the way — and no upgrade silently dropped from the tally.
 | Hand-editing the lockfile                   | The recorded resolution lies; regenerate it instead        |
 
 ## Composes
-
-Playbooks: [`remediate-finding`](../../playbooks/remediate-finding.md) ·
+Playbooks:
+[`remediate-finding`](../../playbooks/remediate-finding.md) ·
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
 [`risk-review`](../../playbooks/risk-review.md) ·
 [`runtime-prove`](../../playbooks/runtime-prove.md) ·
 [`compound-learn`](../../playbooks/compound-learn.md) ·
 [`research-brief`](../../playbooks/research-brief.md) ·
-[`resolve-conflict`](../../playbooks/resolve-conflict.md) ·
-[`agent-brief`](../../playbooks/agent-brief.md) (the phase brief handed to migrate-it)
+[`resolve-conflict`](../../playbooks/resolve-conflict.md)
 
-Runtime policies: [`merge-serialization`](../../runtime/merge-serialization.md) ·
+Runtime policies:
+[`merge-serialization`](../../runtime/merge-serialization.md) ·
 [`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md) ·
 [`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) ·
 [`liveness-resume`](../../runtime/liveness-resume.md) ·

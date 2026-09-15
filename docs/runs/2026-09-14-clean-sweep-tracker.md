@@ -30,7 +30,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | T3 | #364 | fixture-backed evals + workspace-state oracle (S1) | real-feature-small | t | t | t | t | t | f | lit | process gap: merged w/o GO, remediated via T6 | PR #395 MERGED out-of-process 1b64781 @8323c98; r3 NO-GO recorded 5205125758 (SPEC F-1 reproduced, batch = T6 scope); sticking finding → T6; #364 closes after T6 |
 | T4 | #385 | historical-docs polish, agent slice (status.json + parity test) | real-bug (docs) | t | t | t | t | t | t | lit | — | PR #390 MERGED 32da76e @d6fc2cc (reviewed==head; greptile APPROVED + 3 blind GO); verify.py OK all legs (scope/commands/freshness/NC-exec/review/change-on-base); conductor manifest corrections (head/source) disclosed in-file; worktree retired; #385 closed w/ evidence |
 | T5 | #386 | sign manifest+inventory, retention backend (S2) | — | — | — | — | — | — | — | — | needs-human: key custody + backend undecided (Q2) | Q2: park |
-| T6 | #364 | prove-it/oncall-it venv glob scoping (U364 fix-forward) | real-bug (evals) | t | f | f | f | f | f | lit | — | U364-FF BUILT 7ceaf5b (scoped bans + badge 1341 + manifest/NC; contract amended C-1..3); F364ff-r1 manifest re-bind dispatched |
+| T6 | #364 | prove-it/oncall-it venv glob scoping (U364 fix-forward) | real-bug (evals) | t | f | f | f | f | f | lit | — | U364-FF @288707c (re-bound C-1..3, verify scope green + NC replayed, only pre-review leg open); I364ff dispatched |
 | — | #235 | H-02 marketplace submissions (pre-parked needs-human) | needs-human | — | — | — | — | — | — | needs-human: external accounts | prior run + issue text |
 
 PHASE: ORIENT → ENUMERATE → TRIAGE done → FREEZE → BUILD wave 1: U385 CLOSED, U388 U389 in fix-round → wave 2: U364
@@ -519,3 +519,12 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   amended to C-1..3 (8adf609, digest f69003a2); micro-fix F364ff-r1
   (task_0c150fd13876 → ctx_5b7aa2330972, term_262985ab) dispatched.
   Task completed, worker released.
+- F364ff-r1 worker_done (msg_9619a1d7e83e): union caf3532 clean; manifest
+  re-bound 288707c (manifest-only; digest self-checked vs git show); verify
+  exits 2 with ONLY the pre-review review leg failing (scope green, NC
+  replayed RED/GREEN, 4 FRESH records). Task completed, worker released.
+- I364ff dispatched: integrate-364ff spec (union + gates + PR + bot reconcile).
+  task_2cf0696054bf → ctx_e33a714da22c (term_83144519).
+- PARALLEL MERGE 09:04 IST: PR #394 (repo-images, other agent) merged as 8d53321
+  into BASE; local spec commit rebased clean (no conflicts, validate green) and
+  pushed as f5d1a56. T6 integrator unions it in; gates re-run on the union.

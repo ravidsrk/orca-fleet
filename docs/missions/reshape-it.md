@@ -11,10 +11,22 @@
 **Skill:** [`skills/reshape-it/SKILL.md`](../../skills/reshape-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** yes — `PROFILE=rw` deepening workers
 
 <p align="center">
-  <img src="../../assets/diagrams/missions/reshape-it.jpg" alt="State machine: SCAN a churn-weighted inventory, CONFIRM the human-bounded surface, CHARACTERIZE with the net pinned first, DEEPEN one seam per unit, REVIEW, ending RESHAPED or RESHAPED-WITH-PARKED" width="820">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/diagrams/missions/reshape-it.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../../assets/diagrams/missions/reshape-it-light.jpg">
+    <img src="../../assets/diagrams/missions/reshape-it-light.jpg" alt="Mission contract for reshape-it: you give it git history and the import graph; it interrupts you for confirming the target surface; any public-API break; you get back RESHAPED or RESHAPED-WITH-PARKED, plus a characterization net pinned first; before, after interface measurements; one PR per module; it stops at the target list never grows on its own; phases SCAN, CONFIRM, CHARACTERIZE, DEEPEN, REVIEW, RE-SCAN" width="820">
+  </picture>
 </p>
 
 ---
+
+## Invoke it
+
+```
+> refactor the hot path safely: <the module or god file>
+```
+
+**Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh. The target repo's test suite must be runnable and its mutation tooling available for the characterization net. A fix worker playbook pack (mattpocock, addyosmani, gstack) — one router per worker.
 
 ## What it does
 
@@ -59,9 +71,9 @@ flowchart TD
     G --> I{{RESHAPED-WITH-PARKED}}
 ```
 
-## Terminal outcomes
+## Terminal states
 
-| Verdict | Meaning | Who acts on it |
+| State | Meaning | Who acts on it |
 |---|---|---|
 | `RESHAPED` | every confirmed module deepened; net green at both SHAs; review passed | nobody |
 | `RESHAPED-WITH-PARKED` | ≥1 module needs a one-way API-break / behaviour decision; parked with the decision named | the human decides the parked API breaks |
@@ -88,9 +100,44 @@ SHA, and (d) the deletion test — the module's remaining interface justifies it
 The confirmed surface never grew mid-run. `RESHAPED`, or `RESHAPED-WITH-PARKED` with each parked
 module's one-way decision named.
 
-## Composes
+## A worked example
 
-Playbooks: [`characterize`](../../playbooks/characterize.md) ·
+*A run, sketched — the shape of one, not a transcript.*
+
+> refactor the hot path safely: src/api/handlers.py
+
+**Scan.** Ninety days of churn × interface width, fan-in as the tiebreak: `handlers.py` tops the
+list — 38 commits, 61 exported names, imported from 14 modules.
+
+**Confirm surface (your one-way gate).** You bound the target to `handlers.py` and its two
+helpers; the fleet never grows that list itself.
+
+**Characterize.** A net of characterization tests is pinned and mutation-audited *before* any
+restructuring — the pinned mutant dies.
+
+**Deepen → review → land.** One module per unit: `handlers.py` goes behind a nine-name interface;
+no public-API break, so no extra gate. At the merged head the pinned mutant still dies, and
+reverting the deepening makes the interface measurement no longer smaller — the legal
+negative-control pair for a behaviour-preserving change.
+
+**Re-scan.** The same probes over the confirmed surface: every module deepened or parked. One
+helper is parked — its remaining interface is its whole reason to exist, so the deletion test
+says leave it. The run ends `RESHAPED-WITH-PARKED`.
+
+## Failure modes this mission is built to prevent
+
+| Anti-pattern | Why it burns you |
+|---|---|
+| Restructuring before the characterization net exists and is mutation-audited | The net is the only thing that makes "behaviour unchanged" a claim with evidence |
+| Growing the confirmed surface mid-run ("while we're in here") | Scope creep with extra steps; the surface is a one-way human bound |
+| Deepening modules nobody changes | Erosion is churn-relative; a stable shallow module is fine |
+| Landing an interface shrink whose call sites broke "temporarily" | The net stays green or the unit does not land |
+| Confusing `reshape-it` with `clean-sweep` or `prove-it` | A findings backlog and a test gap are different units; this one is a module |
+| Silently deepening a parked module later in the same run | A park is a decision that stays made |
+
+## Composes
+Playbooks:
+[`characterize`](../../playbooks/characterize.md) ·
 [`decide-and-freeze`](../../playbooks/decide-and-freeze.md) ·
 [`remediate-finding`](../../playbooks/remediate-finding.md) ·
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
@@ -99,7 +146,8 @@ Playbooks: [`characterize`](../../playbooks/characterize.md) ·
 [`record-decision`](../../playbooks/record-decision.md) ·
 [`plan-review`](../../playbooks/plan-review.md)
 
-Runtime policies: [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
+Runtime policies:
+[`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`merge-serialization`](../../runtime/merge-serialization.md) ·
 [`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md) ·
 [`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) ·

@@ -8,6 +8,14 @@ for topology and isolation, keep the verification + ops-hardening layer as the d
 
 ## The principle
 
+The letters are the four defensibility claims of the
+[competitive-landscape snapshot](research/2026-08-28-competitive-landscape-differentiation.md):
+**A** an outcome commitment with a per-unit state machine and a convergence proof; **B** the
+evidence protocol (SHA-bound manifest, independent second-session verifier, negative control,
+frozen denominator); **C** the coordinator/worker topology; **D** the operational hardening
+(merge-train serialization, reviewed-SHA freshness, attention budget, liveness-resume, one router
+per worker).
+
 The substrate is absorbing **claim C** (coordinator/worker topology) and the isolation slice of
 **claim D** right now, and it ships **no completion oracle**. So the durable value is **claim B**
 (a SHA-bound evidence manifest + an independent second-session verifier that re-derives from git,

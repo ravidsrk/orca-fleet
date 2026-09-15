@@ -7,13 +7,21 @@ that anchors to authorities OUTSIDE the worker's manifest (the coordinator's fro
 scope, GitHub for review, the artifact/replay for the negative control) — is the differentiator, and
 it runs the same `verify.py` no matter which surface fires it.
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../assets/diagrams/verify-gate.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../assets/diagrams/verify-gate-light.jpg">
+    <img src="../assets/diagrams/verify-gate-light.jpg" alt="The completion gate: the coordinator sets the gate env, a Stop or TaskCompleted hook fires verify-gate.sh, verify.py re-derives scope and review and reads the negative control, replaying it in a throwaway worktree only when ORCA_EXECUTE_NC is set, then exit 0 allows or exit 2 blocks, fail-closed; the verdict is advisory inside the worker's own session and sound where CI, MCP-Task or an SDK subprocess owns the env" width="820">
+  </picture>
+</p>
+
 ## Install paths, and which ones carry the gate
 
 | Install | `${CLAUDE_PLUGIN_ROOT}` | Gate |
 |---|---|---|
 | `/plugin install orca-fleet` | set by Claude Code | wired by [`hooks/hooks.json`](../hooks/hooks.json) — nothing to do |
 | `ln -s … ~/.claude/skills/<mission>` | **unset** | **none until you wire it**: `sh hooks/print-settings-snippet.sh` and merge the output into `settings.json` |
-| `npx skills add …` (copy installer) | unset | same as symlink — wire the snippet, and check the `../../` references survived the copy |
+| `npx skills add …` (copy installer) | unset | **not supported today** — the copy severs the mission's bare-name lookups and its `../../ARCHITECTURE.md` link ([#294](https://github.com/ravidsrk/orca-fleet/issues/294)); see [Install](../README.md#install) |
 
 This is issue #262: the README recommends the symlink path for trying the catalog out, and that
 path loads no plugin, so the hook file below never fires. A mission installed that way runs with
@@ -87,7 +95,7 @@ worker-set; anything else in the environment is ignored):
   are the same authority twice, and binding one to the other is circular. A worker that writes both
   can nominate `grep -q FIXED calc.py` as its "criterion-bound proof", record it green at
   `head_sha`'s tree, and clear the executed-control gate without running a test. That is attack A12
-  of the 2026-09-11 review, and A15 is the same move in the strongest lane the repo documents.
+  of [the 2026-09-11 review](../REVIEW.md), and A15 is the same move in the strongest lane the repo documents.
 - `ORCA_EXECUTE_NC` — set (to anything non-empty) to forward `--execute-nc`, which **executes the
   negative control** instead of reading it. verify.py checks out `head_sha` in a throwaway worktree,
   applies the control from the manifest — `tool: revert` restores `negative_control.paths` from

@@ -614,6 +614,70 @@ class TestDocsNavigation(unittest.TestCase):
                 f"declared in skills/{d.name}/SKILL.md",
             )
 
+    def test_mission_guides_compose_only_what_the_skill_declares(self):
+        # The reverse direction of the test above. The 2026-09-15 docs review found deflake-it and
+        # prove-it listing gate-classification and map-it listing merge-serialization under
+        # Composes, none of which their SKILL.md mentions at all: a false catalog in the other
+        # direction, invisible because only guide ⊇ clause was checked. A guide may list a
+        # protocol the skill composes or rides, names in its DEFERRED READS paragraph (anything
+        # after a "Never" there is an exclusion, not a read), or tells the coordinator to
+        # `read <name>.md` at a phase — and nothing else. A bare mention elsewhere in the skill
+        # is prose, not a declaration (PR #396 review).
+        protocols = {p.stem for p in (ROOT / "playbooks").glob("*.md")}
+        protocols |= {p.stem for p in RUNTIME.glob("*.md")}
+        guide_links = re.compile(
+            r"\]\(\.\./\.\./(?:playbooks|runtime)/([a-z0-9-]+)\.md\)"
+        )
+        guide_section = re.compile(
+            r"^## Composes\n(.*?)(?=^## |\Z)", re.DOTALL | re.MULTILINE
+        )
+        name_md = re.compile(r"\b([a-z][a-z0-9-]+)\.md\b")
+        deferred_para = re.compile(r"DEFERRED READS.*?(?:\n\n|\Z)", re.DOTALL)
+        phase_read = re.compile(r"\bread\s+([a-z][a-z0-9-]+)\.md\b")
+        for d in sorted((ROOT / "skills").iterdir()):
+            if not d.is_dir() or d.name.startswith((".", "_")):
+                continue
+            skill = (d / "SKILL.md").read_text(encoding="utf-8")
+            allowed = set(validate.guide_declared_protocol_names(skill))
+            para = deferred_para.search(skill)
+            if para:
+                allowed |= set(name_md.findall(para.group(0).split("Never")[0]))
+            allowed |= set(phase_read.findall(skill))
+            allowed &= protocols
+            guide = (DOCS / "missions" / f"{d.name}.md").read_text(encoding="utf-8")
+            section = guide_section.search(guide)
+            self.assertIsNotNone(section, f"docs/missions/{d.name}.md has no ## Composes section")
+            named = set(validate.BACKTICK_RE.findall(section.group(1)))
+            named.update(guide_links.findall(section.group(1)))
+            extra = sorted((named & protocols) - allowed)
+            self.assertEqual(
+                extra, [],
+                f"docs/missions/{d.name}.md Composes names {extra}, which "
+                f"skills/{d.name}/SKILL.md neither composes, rides, nor reads",
+            )
+
+    def test_mission_guides_state_the_skills_compatibility(self):
+        # 2026-09-15 docs review: no guide surfaced its skill's hard prerequisites (gitleaks,
+        # a measurement harness, mutation tooling, a docs-framework build). The guide's Needs
+        # line is the SKILL's `compatibility` field verbatim, so the two cannot drift.
+        needs = re.compile(r"^\*\*Needs\*\* \(the skill's `compatibility` field, verbatim\): (.+)$", re.M)
+        # The validator's own frontmatter parser, so every scalar style validate.py accepts
+        # (block, plain, quoted — quotes stripped) is read the same way here (PR #396 review).
+        for d in sorted((ROOT / "skills").iterdir()):
+            if not d.is_dir() or d.name.startswith((".", "_")):
+                continue
+            skill = (d / "SKILL.md").read_text(encoding="utf-8")
+            data, err = validate.parse_frontmatter(skill)
+            self.assertIsNone(err, f"skills/{d.name}/SKILL.md frontmatter: {err}")
+            value = data.get("compatibility")
+            self.assertTrue(value, f"skills/{d.name}/SKILL.md has no compatibility field")
+            compat = " ".join(str(value).split())
+            guide = (DOCS / "missions" / f"{d.name}.md").read_text(encoding="utf-8")
+            g = needs.search(guide)
+            self.assertIsNotNone(g, f"docs/missions/{d.name}.md has no Needs line")
+            self.assertEqual(" ".join(g.group(1).split()), compat,
+                             f"docs/missions/{d.name}.md Needs line drifted from the skill's compatibility field")
+
     def test_mission_index_lists_every_skill(self):
         # #125: docs/missions/README.md indexed 11 of 13 (attest-it, access-it missing). The index
         # must link every skills/<name> guide. #143 review: resolve each link target against the
@@ -925,17 +989,27 @@ class MissionGuidesEmbedTheirDiagram(unittest.TestCase):
     modernize-it.jpg sat in the assets directory while its guide never referenced it, and four
     guides had no diagram at all; sixteen others embedded theirs. Every guide the mission index
     links must embed its own asset from assets/diagrams/missions/, and every asset there must be
-    embedded by the guide of the same name.
+    embedded by the guide of the same name. A `<name>-light.jpg` beside `<name>.jpg` is the same
+    diagram rendered for a light theme (PR #394): it belongs to the guide `<name>`, which embeds
+    both through a `<picture>` block, so it is held to the same parity.
     """
 
-    # Guides with no rendered diagram yet: generated rasters with no in-repo source, parked as a
-    # human item (#385, run 2026-09-14 Q3). Named, not skipped: a guide leaving this set by
-    # gaining its diagram fails the test until its name is removed here.
-    KNOWN_GAPS = ["absorb-it", "document-it", "migrate-it", "oncall-it"]
+    # Guides with no rendered diagram yet. Named, not skipped: a guide leaving this set by gaining
+    # its diagram fails the test until its name is removed here. The four gaps #385 parked as a
+    # human item (absorb-it, document-it, migrate-it, oncall-it; run 2026-09-14 Q3) closed when
+    # PR #394 regenerated every mission's contract card from a committed prompt, so the set is empty.
+    KNOWN_GAPS = []
     INDEX = DOCS / "missions" / "README.md"
     ASSETS = ROOT / "assets" / "diagrams" / "missions"
-    # `src="../../assets/diagrams/missions/x.jpg"` and `](../../assets/diagrams/missions/x.jpg)`.
-    EMBED = re.compile(r"""(?:src=["']|\]\()\.\./\.\./assets/diagrams/missions/([^"')\s]+)""")
+    # `src="../../assets/diagrams/missions/x.jpg"`, a `<picture>` source's `srcset="…"`, and
+    # `](../../assets/diagrams/missions/x.jpg)`.
+    EMBED = re.compile(
+        r"""(?:srcset=["']|src=["']|\]\()\.\./\.\./assets/diagrams/missions/([^"')\s]+)""")
+
+    @staticmethod
+    def _guide_of(asset_name):
+        """The guide stem an asset belongs to: `x.jpg` and `x-light.jpg` are both guide `x`'s."""
+        return re.sub(r"-light$", "", Path(asset_name).stem)
 
     def _guides(self):
         """Guide stem -> text, for every docs/missions/*.md the index links (the index is the list)."""
@@ -955,7 +1029,7 @@ class MissionGuidesEmbedTheirDiagram(unittest.TestCase):
             refs = self.EMBED.findall(text)
             dangling = [r for r in refs if not (self.ASSETS / r).is_file()]
             self.assertEqual(dangling, [], f"docs/missions/{stem}.md embeds a diagram that is not there")
-            if not any(Path(r).stem == stem for r in refs):
+            if not any(self._guide_of(r) == stem for r in refs):
                 without.append(stem)
         self.assertEqual(without, self.KNOWN_GAPS,
                          "guides with no embedded diagram of their own != the named known gaps")
@@ -964,9 +1038,10 @@ class MissionGuidesEmbedTheirDiagram(unittest.TestCase):
         guides = self._guides()
         for asset in sorted(p for p in self.ASSETS.iterdir() if p.is_file()):
             with self.subTest(asset=asset.name):
-                self.assertIn(asset.stem, guides, f"{asset.name} has no indexed guide of that name")
-                self.assertIn(asset.name, self.EMBED.findall(guides[asset.stem]),
-                              f"docs/missions/{asset.stem}.md never embeds {asset.name}")
+                guide = self._guide_of(asset.name)
+                self.assertIn(guide, guides, f"{asset.name} has no indexed guide of that name")
+                self.assertIn(asset.name, self.EMBED.findall(guides[guide]),
+                              f"docs/missions/{guide}.md never embeds {asset.name}")
 
     def _fixture(self, tmp, index_links, unlinked=()):
         """A parity check over a throwaway repo: sixteen bare-linked guides that embed their own
@@ -1000,6 +1075,22 @@ class MissionGuidesEmbedTheirDiagram(unittest.TestCase):
             check = self._fixture(Path(tmp), ["| [gap](gap.md) | x |"], unlinked=["orphan"])
             with self.assertRaisesRegex(AssertionError, "orphan"):
                 check._guides()
+
+    def test_a_light_variant_is_held_to_its_guide(self):
+        # PR #394 review of the parity check: `g00-light.jpg` is guide g00's diagram, not a guide
+        # of its own, and a `<picture>` embeds it through `srcset=`, which `src=` never matched.
+        with tempfile.TemporaryDirectory() as tmp:
+            check = self._fixture(Path(tmp), ["| [gap](gap.md) | x |"])
+            light = check.ASSETS / "g00-light.jpg"
+            light.write_bytes(b"")
+            with self.assertRaisesRegex(AssertionError, "g00.md never embeds g00-light.jpg"):
+                check.test_every_diagram_asset_is_embedded_by_its_guide()
+            guide = check.INDEX.parent / "g00.md"
+            guide.write_text('<picture><source media="(prefers-color-scheme: light)" '
+                             'srcset="../../assets/diagrams/missions/g00-light.jpg">'
+                             '<img src="../../assets/diagrams/missions/g00.jpg"></picture>\n')
+            check.test_every_diagram_asset_is_embedded_by_its_guide()
+            check.test_every_indexed_guide_embeds_its_own_diagram()
 
 
 class CompletionStatusNamesTheCommitItDescribes(unittest.TestCase):

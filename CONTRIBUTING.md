@@ -48,9 +48,11 @@ A mission PR must include:
    - `metadata.proof: doctrine-only` — every mission starts there. It advances to `self-run` or
      `external-run` only with a run report that BINDS: a `RUN:` header, a manifest inside the
      run's own `docs/runs/<date>-<mission>…/` directory, and an integrity inventory that
-     re-hashes at the commit the header names (`runtime/scripts/run_report.py`). A report whose
-     artifacts were not retained here is history, not a tier. Do not argue a mission is proven
-     in prose; bind the run.
+     re-hashes at the commit the header names (`runtime/scripts/run_report.py`) — and, for a
+     mutating mission, `waves=<n>` in that header with one measured WIP-curve row per dispatch
+     wave (`runtime/attention-budget.md`; the checker refuses a missing, partial or doubled row).
+     A report whose artifacts were not retained here is history, not a tier. Do not argue a
+     mission is proven in prose; bind the run.
    - `metadata.autonomy:` — the Osmani L0–L5 level.
    - the six identity points — `unit`, `state_machine`, `convergence`, `ordering`, `parking`,
      `oracle`. This is ARCHITECTURE.md's "what makes a mission a mission" test in machine-readable
@@ -60,10 +62,21 @@ A mission PR must include:
      existing mission, not a new one.
    - within the instruction budget: mission BODY ≤ 110 lines and frontmatter ≤ 34 (playbooks ≤ 90,
      runtime ≤ 160). If your mission needs more body, the overflow is probably a playbook.
-2. An entry in the README mission table and in AGENTS.md's intent → mission mapping.
-3. A guide at `docs/missions/<name>.md` following the structure of
-   [docs/missions/ship-it.md](docs/missions/ship-it.md).
-4. An updated `EXPECTED_MISSIONS` set in `tests/test_architecture.py` AND `tests/test_evals.py` —
+2. `skills/<name>/evals/evals.json` — `scripts/eval.py validate` checks its schema, and
+   `tests/test_evals.py` requires at least one **fixture-backed** case: `files[]` that
+   materialize a small repo plus a `workspace_state[]` naming the end state the agent's workspace
+   must reach (`exists`, `unchanged`, `matches`, `not_matches` on one `path` or `glob`), read
+   straight off the files with no model in between. A case with no fixtures must be labeled
+   `"narration_only": true`, is graded on its trace alone, and the set of those is frozen in the
+   same test. Nothing in `evals/` is proof evidence; it asks whether the mission's *text* steers an
+   agent, and only a run report moves `metadata.proof`.
+3. An entry in the README mission table and in [AGENTS.md](AGENTS.md)'s intent → mission mapping.
+4. A guide at `docs/missions/<name>.md` following the structure of
+   [docs/missions/ship-it.md](docs/missions/ship-it.md). The guide embeds the mission's contract
+   card from `assets/diagrams/missions/<name>.jpg` (dark) and `<name>-light.jpg`, rendered from a
+   spec in `assets/diagrams/generator/specs_missions.py` — a test holds guides and assets to parity
+   in both directions.
+5. An updated `EXPECTED_MISSIONS` set in `tests/test_architecture.py` AND `tests/test_evals.py` —
    the mission set is locked on purpose; changing it is a deliberate act.
 
 Naming: outcome verbs (`ship-it`, `clean-sweep`), never vendors or techniques. The contract
@@ -94,11 +107,14 @@ fail-closed exits documented in the header comment.
 
 ## Documentation
 
-- `docs/missions/<name>.md` pages follow the ship-it template: what it does, when (and when
-  NOT) to reach for it, a mermaid pipeline, terminal states, human gates, convergence proof,
-  failure modes, composes, related. The guide's `## Composes` section must name every playbook
-  and runtime policy the mission's SKILL compose/rides clause declares — a contract test
-  rejects drift.
+- `docs/missions/<name>.md` pages follow the ship-it template: an invoke-it line and a Needs
+  line copied verbatim from the skill's `compatibility` field (a test keeps them equal), what it
+  does, when (and when NOT) to reach for it, a mermaid pipeline, a `## Terminal states` table
+  (State · Meaning · Who acts on it, degraded terminals annotated as such), human gates,
+  convergence proof, a worked example, failure modes, composes, related. The `## Composes`
+  section must name every playbook and runtime policy the SKILL's compose/rides clause declares
+  and nothing the SKILL neither declares nor names as a phase-cued read; deferred reads are
+  listed separately — contract tests reject drift in both directions.
 - Cross-references between catalog files use bare protocol names — the validator flags
   path-prefixed or case-typo'd `<name>.md` references anywhere in `skills/`, `playbooks/`, or
   `runtime/`.
@@ -115,7 +131,8 @@ python3 -m unittest discover -s tests -v   # all contract + validator fixture te
 # (CI runs ruff 0.16.5 on E9/F63/F7/F82 only — see ruff.toml)
 ```
 
-The first two run in under a second; there is no excuse to skip them. PRs that fail either
+The validator finishes in under a second; the suite takes a few minutes because it builds real
+git repositories. Neither is optional. PRs that fail either
 will be asked to fix before review. ruff is CI-only (not required locally). If you add validator behavior, add the negative-path fixture that proves
 the new failure branch fires — the suite's standard is that every guard must be demonstrably
 capable of failing.

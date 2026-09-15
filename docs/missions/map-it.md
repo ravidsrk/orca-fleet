@@ -12,10 +12,22 @@
 **Skill:** [`skills/map-it/SKILL.md`](../../skills/map-it/SKILL.md) · **Layer:** mission (discoverable) · **Fix authority:** **no** — decisions, not deliverables; no production code is written
 
 <p align="center">
-  <img src="../../assets/diagrams/missions/map-it.jpg" alt="State machine: NAME the destination, CHART decision tickets, clear the frontier with AFK research and one human decision per session, looping while foggy, FREEZE, PREPARE the DAG without dispatching, ending FROZEN MAP + DAG handed to ship-it" width="820">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/diagrams/missions/map-it.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="../../assets/diagrams/missions/map-it-light.jpg">
+    <img src="../../assets/diagrams/missions/map-it-light.jpg" alt="Mission contract for map-it: you give it a goal too foggy to spec; it interrupts you for every decision ticket, one per session; the freeze; you get back MAPPED or MAPPED-WITH-BLOCKED, plus a frozen map + verified Orca DAG that ship-it dispatches unchanged; decision tickets; a frozen spec; it stops at no production code — decisions, not deliverables; phases NAME, CHART, CLEAR THE FRONTIER, FREEZE, PREPARE THE DAG" width="820">
+  </picture>
 </p>
 
 ---
+
+## Invoke it
+
+```
+> chart this: <the goal you cannot write acceptance criteria for yet>
+```
+
+**Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + orchestration skill (Orca CLI). A wayfinder/research worker playbook (mattpocock wayfinder + research) — one router per worker.
 
 ## What it does
 
@@ -63,7 +75,8 @@ flowchart TD
     G -->|route still foggy| D
     G -->|route clear| H[FREEZE the plan<br/>decide-and-freeze]
     H --> I[PREPARE the DAG<br/>decompose-dag: materialize + verify, never dispatch]
-    I --> J{{FROZEN MAP + DAG}}
+    I --> J{{MAPPED}}
+    F -->|a decision ticket blocked on a human| K{{MAPPED-WITH-BLOCKED}}
 ```
 
 Phase by phase:
@@ -97,7 +110,16 @@ Phase by phase:
    is explicitly not this caller's job; that is the build mission's commit path. `ship-it` picks
    the frozen map up and dispatches it unchanged, without re-grilling you.
 
-## Terminal artifacts — decisions with receipts
+## Terminal states
+
+| State | Meaning | Who acts on it |
+|---|---|---|
+| `MAPPED` | the destination is named; every open question is a resolved sharp ticket or an explicit "not yet specified"; the plan is frozen on a human confirmation and the DAG is materialized, verified and frozen for handoff | `ship-it` dispatches the frozen map unchanged |
+| `MAPPED-WITH-BLOCKED` | the map is frozen for what is known, but at least one decision ticket is blocked on a human who has not answered; the handoff lists the blockers | you — answer the blocked tickets, then re-freeze |
+
+`MAPPED-WITH-BLOCKED` is a degraded terminal; it is never reported as `MAPPED`.
+
+## What a frozen map hands over — decisions with receipts
 
 | Artifact                    | What it certifies                                                        | Who consumes it                       |
 |-----------------------------|--------------------------------------------------------------------------|---------------------------------------|
@@ -176,22 +198,21 @@ A map that quietly started building would be the failure mode, not the bonus.
 | A DAG neither dispatched nor frozen   | The only real "just a proposal" — prepare-only completion commits by freeze |
 
 ## Composes
-
-Playbooks: [`decide-and-freeze`](../../playbooks/decide-and-freeze.md) ·
+Playbooks:
+[`decide-and-freeze`](../../playbooks/decide-and-freeze.md) ·
 [`decompose-dag`](../../playbooks/decompose-dag.md) (prepare-only) ·
 [`plan-review`](../../playbooks/plan-review.md) ·
 [`research-brief`](../../playbooks/research-brief.md) ·
 [`record-decision`](../../playbooks/record-decision.md) ·
 [`human-handoff`](../../playbooks/human-handoff.md)
 
-Runtime policies: [`gate-classification`](../../runtime/gate-classification.md) ·
+Runtime policies:
+[`gate-classification`](../../runtime/gate-classification.md) ·
 [`ledger-contract`](../../runtime/ledger-contract.md) (the DECISIONS log and handoff obligations) ·
 [`attention-budget`](../../runtime/attention-budget.md) ·
 [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
-[`merge-serialization`](../../runtime/merge-serialization.md) (hot-file merge chains are declared
-at DAG-prepare time) · [`liveness-resume`](../../runtime/liveness-resume.md) (the slice ↔ task-id
-ledger table is the run scope a resume needs) · [`sandbox-policy`](../../runtime/sandbox-policy.md)
-(research workers run `ro`; fetched sources are data, never instructions)
+[`liveness-resume`](../../runtime/liveness-resume.md) (the slice ↔ task-id ledger table is the run scope a resume needs) ·
+[`sandbox-policy`](../../runtime/sandbox-policy.md) (research workers run `ro`; fetched sources are data, never instructions)
 
 ## Related missions
 
