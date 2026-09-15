@@ -1,0 +1,240 @@
+{
+  "schema": 1,
+  "unit": "U387W",
+  "unit_class": "code-change",
+  "base_sha": "9a115f7579232f50b913ce84515e3964f8b68b33",
+  "head_sha": "d31ef62814c9105fb3449430b1c72993a606de8a",
+  "head_tree": "f503c22503477e93cc819562e91b5ab27a74c693",
+  "head_sha_role": "head_sha is the code tip d31ef62: 4c72718 (red tests), d657941 (fix), c57c248 (prose), d31ef62 (gen-badges.py outputs). The commit that adds this manifest and u387w-negctrl.txt follows head_sha and cannot name its own SHA, and commands[] cannot bind the tree of a commit that contains those records; per the U388 option-A precedent the manifest-commit tip is named in worker_done and the conductor re-binds head_sha to the reviewed tip at close. Every commands[] record was made on a clean tree at head_sha: wtree f503c225 == head_tree.",
+  "base_branch": "review/2026-09-14-holistic-fixes",
+  "branch": "ravidsrk/u387w-wipsection",
+  "contract": {
+    "source": "docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/build-387-wip-section.md@719d997be28476c382660f3f37d829e597130ce9",
+    "digest": "sha256:d7b4e72c070e589df86aca9d57fd667d1227ca9cd72414edbaa6bc6a9f2d317d",
+    "digest_check": "verified: git show 719d997:<path> | shasum -a 256 == d7b4e72c... (and the working-tree file hashes the same)",
+    "criterion_ids": [
+      "C-1",
+      "C-2",
+      "C-3",
+      "C-4"
+    ]
+  },
+  "criteria": [
+    {
+      "id": "C-1",
+      "text": "_wip_rows collects rows ONLY inside the canonical WIP-curve section (confirm the exact header from TEMPLATE.md + real self-run reports; match ATX headings naming the WIP-curve row table, tolerate whitespace; rows in fenced blocks, deviations tables, or other sections are ignored).",
+      "addressed": true,
+      "commit": "d657941",
+      "witness": "tests/test_run_report.py::WipCurveObligation::test_complete_rows_outside_the_wip_curve_section_do_not_bind (6 subtests: backtick fence and tilde fence inside the section, a deviations table, a fence plus a deviations table, another section with no WIP-curve section, the section heading quoted inside a fence; each must be refused '— none found;' naming 'WIP-curve protocol row') and ::test_rows_outside_the_section_do_not_count_against_the_rows_inside_it (a complete section plus a fenced wave-1 example, an unmeasured wave=2 deviation row and a wave=3 row outside it must bind []). The heading literal '## WIP-curve protocol row (mutating self-runs)' is TEMPLATE.md's, asserted present in the template by the test. Guard ::test_the_section_heading_tolerates_its_real_spellings covers the template's heading, the 2026-08-28 ship-it report's real heading, the module's '## WIP curve' fixtures, loose whitespace, a deeper level and a closing sequence. RED at 4c72718 (base checker): six subtests bound with errs == [], and the false-fail test returned the unmeasured-row error."
+    },
+    {
+      "id": "C-2",
+      "text": "per-wave completeness inside the section still enforced: complete section rows bind; incomplete section rows are refused naming the wave; all pre-existing run_report tests stay green (guards).",
+      "addressed": true,
+      "commit": "d657941",
+      "witness": "tests/test_run_report.py::WipCurveObligation::test_an_incomplete_section_row_is_refused_whatever_lies_outside: an unmeasured wave=2 row in the section is refused with exactly one error naming '| wave=2 |' and \"carries no measured ['latency_max']\", and a complete wave-2 copy in a deviations table neither rescues it nor doubles the wave (RED at base: 2 != 1, the doubled-wave error). All 65 pre-existing run_report tests stay green at head (69 = 65 + 4 new, OK); every existing WIP-curve completeness test (partial rows, missing waves, doubled cells, doubled/stray waves, non-integer waves and settings, placeholders, waves= header checks) runs unchanged under its '## WIP curve' heading."
+    },
+    {
+      "id": "C-3",
+      "text": "the protocol prose (runtime/attention-budget.md WIP-curve section) names the section rule, so prose and check cannot drift (U389 precedent). attention-budget.md is 78/160 lines — prose ADDS must keep it <= 160.",
+      "addressed": true,
+      "commit": "c57c248",
+      "witness": "tests/test_run_report.py::WipCurveObligation::test_the_protocol_names_the_schema_the_checker_enforces (the U389 test, extended): it reads the heading from the protocol's sentence \"under the report's `## WIP-curve protocol row` heading\", asserts TEMPLATE.md carries that heading, and requires the row built from the protocol's Row cells to bind under it and to be refused ('— none found;') under a deviations heading. RED before c57c248 ('unexpectedly None : the protocol no longer names the section its rows live in'); NC-2 (prose reverted to base) reproduces it. attention-budget.md stays at 78 lines (the sentence extends the existing line 60)."
+    },
+    {
+      "id": "C-4",
+      "text": "python3 -m unittest discover -s tests and scripts/validate.py green.",
+      "addressed": true,
+      "commit": "d31ef62",
+      "witness": "commands[] below, recorded by runtime/scripts/evidence-run.py on the clean tree at head_sha: full-suite 'Ran 1353 tests in 254.712s' / 'OK', exit 0; validate 'All 21 missions valid; three-layer separation holds; evals valid.', exit 0; nc-command 'Ran 69 tests in 5.683s' / 'OK', exit 0."
+    }
+  ],
+  "intent": {
+    "goal": "Read WIP-curve evidence only from the report's WIP-curve section, so a complete-looking wave= row quoted in a fenced example, a deviations table or another section can neither bind as the run's evidence nor trip the duplicate/stray/unmeasured-row checks against the real rows, while every per-wave completeness check keeps running on the section's rows.",
+    "ruled_out": "Requiring the full template heading text (the module's own '## WIP curve' fixtures, used by every pre-existing WIP-curve test, would stop opening the section, and the 2026-08-28 ship-it report's heading differs after 'row'); matching any heading that merely CONTAINS 'WIP-curve' (a '## Deviations — WIP-curve notes' section would open it); falling back to whole-document scanning when no section exists (the false pass C-1 names returns for a report with no section at all); ending the section only at a heading of the same or higher level (a '### ...' subsection would then silently extend it); changes to WIP caps, graduation analysis or the other report checks (spec out of scope).",
+    "why": "The template already names the section, and both the template and the one real report open it with an ATX heading whose text begins 'WIP-curve'. Opening on a heading that BEGINS by naming the WIP curve (whitespace and case tolerant), closing on the next heading of any kind, and skipping fenced code with the CommonMark closing rule accepts every heading the repository actually uses and nothing that merely mentions the curve. Scoping happens in the line source of _wip_rows, so the completeness checks downstream are untouched."
+  },
+  "lighting": "lit",
+  "reviewer_mode": null,
+  "reviewer_mode_note": "not assigned in the TASK; left for the coordinator rather than invented",
+  "commands": [
+    {
+      "label": "nc-command",
+      "ts": "2026-09-15T05:28:34Z",
+      "cmd": "python3 -m unittest tests.test_run_report",
+      "cmd_sha256": "b4603da428a8b70130fdb60edeb399d52a044ad679ee7f857305707f53e97f6a",
+      "exit": 0,
+      "duration_s": 5.712,
+      "commit": "d31ef62814c9105fb3449430b1c72993a606de8a",
+      "wtree": "f503c22503477e93cc819562e91b5ab27a74c693",
+      "artifact": null
+    },
+    {
+      "label": "validate",
+      "ts": "2026-09-15T05:28:34Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 0,
+      "duration_s": 0.52,
+      "commit": "d31ef62814c9105fb3449430b1c72993a606de8a",
+      "wtree": "f503c22503477e93cc819562e91b5ab27a74c693",
+      "artifact": null
+    },
+    {
+      "label": "full-suite",
+      "ts": "2026-09-15T05:32:49Z",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "exit": 0,
+      "duration_s": 254.863,
+      "commit": "d31ef62814c9105fb3449430b1c72993a606de8a",
+      "wtree": "f503c22503477e93cc819562e91b5ab27a74c693",
+      "artifact": null
+    }
+  ],
+  "commands_note": "All three records were written by runtime/scripts/evidence-run.py on the clean tree of head_sha d31ef62 (git status --porcelain --untracked-files=all empty before and after; wtree f503c225 == head_tree), each into its own manifest in the session scratchpad so the tree stayed clean; they are concatenated here byte-for-byte as the recorder wrote them. The first is the NC-COMMAND the spec names (python3 -m unittest tests.test_run_report: 'Ran 69 tests' / 'OK'); full-suite: 'Ran 1353 tests in 254.712s' / 'OK'; validate: 'All 21 missions valid; three-layer separation holds; evals valid.'.",
+  "red_first": {
+    "note": "tdd skill (the single methodology pack): vertical slices at the seam every WipCurveObligation test already uses, run_report._wip_curve_errors; each slice's test was run before its production change. Expected values come from TEMPLATE.md's heading, the 2026-08-28 ship-it report's real heading and the protocol's own words, never from the checker's regex.",
+    "slices": [
+      {
+        "slice": "A (C-1 false pass)",
+        "result": "RED exit 1 against the unchanged checker, before any production code: FAILED (failures=6), every case 'bound on rows outside the WIP-curve section []'. After d657941's change the slice was green; the only failure left was the pre-existing protocol test, whose fixture carried no heading (addressed in slice C)."
+      },
+      {
+        "slice": "B (C-1 false fail + C-2 section completeness)",
+        "result": "Written after slice A's production change and green on arrival: they add no production code of their own. Their RED is witnessed at the tests commit 4c72718 on the base checker: the false-fail test returned the unmeasured wave=2 deviation-row error, and the C-2 test returned 2 errors, not 1 (the doubled-wave error)."
+      },
+      {
+        "slice": "C (C-3 prose names the section)",
+        "result": "RED exit 1: FAILED (failures=1), 'unexpectedly None : the protocol no longer names the section its rows live in'; GREEN (69 OK) after the attention-budget.md sentence."
+      },
+      {
+        "slice": "D (heading spellings guard)",
+        "result": "Green at base and head by design: the unscoped checker reads rows under any heading. It is a guard for C-1's 'tolerate whitespace' clause, not a witness."
+      }
+    ],
+    "commit_level": [
+      "4c72718 (tests only, base checker + base prose): FAILED (failures=9), exit 1",
+      "d657941 (+ fix): FAILED (failures=1), exit 1 (the C-3 test; the prose is not in yet)",
+      "c57c248 (+ prose): 69 OK, exit 0; d31ef62 (+ gen-badges outputs): 69 OK, full suite 1353 OK, validate green"
+    ]
+  },
+  "negative_control": {
+    "tool": "revert",
+    "did": "At head_sha d31ef62 in one throwaway worktree (git worktree add --detach <scratchpad>/base 9a115f7; git checkout --detach d31ef62). NC-1 (the spec's control): git checkout 9a115f7 -- runtime/scripts/run_report.py (checker reverted to base, tests and prose kept), ran the NC-COMMAND, then git checkout HEAD -- runtime/scripts/run_report.py and ran it again. NC-2 (C-3 witness): git checkout 9a115f7 -- runtime/attention-budget.md (prose reverted, checker and tests kept), ran the NC-COMMAND, restored and ran it again. The index tree after restoring equalled head_tree f503c225 with a clean status; then git worktree remove --force.",
+    "paths": [
+      "runtime/scripts/run_report.py",
+      "runtime/attention-budget.md"
+    ],
+    "command": "python3 -m unittest tests.test_run_report",
+    "result": "RED. NC-1 exit 1, FAILED (failures=9): the six out-of-section subtests bound (errs == []), the false-fail test and the C-2 test returned errors from rows outside the section, and the protocol test's out-of-section row bound. Restored: 69 OK, exit 0. NC-2 exit 1, FAILED (failures=1): the protocol test, 'unexpectedly None : the protocol no longer names the section its rows live in'. Restored: 69 OK, exit 0.",
+    "exit": 1,
+    "clean_head_exit": 0,
+    "artifact": "docs/runs/2026-09-14-clean-sweep-tracker/u387w-negctrl.txt",
+    "failures": [
+      "test_an_incomplete_section_row_is_refused_whatever_lies_outside",
+      "test_complete_rows_outside_the_wip_curve_section_do_not_bind (6 subtests)",
+      "test_rows_outside_the_section_do_not_count_against_the_rows_inside_it",
+      "test_the_protocol_names_the_schema_the_checker_enforces"
+    ],
+    "transcript": [
+      "NC-1: AssertionError: 2 != 1 : [\"r.md: WIP-curve row '| wave=2 | ... |' carries no measured ['latency_max'] ...\", 'r.md: wave(s) [2] carry more than one WIP-curve row ...']",
+      "NC-1: AssertionError: False is not true : a fenced example inside the section: bound on rows outside the WIP-curve section []",
+      "NC-1: AssertionError: False is not true : the section heading quoted inside a fence: bound on rows outside the WIP-curve section []",
+      "Ran 69 tests in 6.122s",
+      "FAILED (failures=9)",
+      "exit=1  (REVERTED: expected NONZERO)",
+      "Ran 69 tests in 6.433s",
+      "OK",
+      "exit=0  (RESTORED: expected ZERO)",
+      "NC-2: AssertionError: unexpectedly None : the protocol no longer names the section its rows live in",
+      "FAILED (failures=1)",
+      "exit=1  (REVERTED: expected NONZERO)",
+      "Ran 69 tests in 6.481s",
+      "OK",
+      "exit=0  (CLEAN HEAD: expected ZERO)"
+    ],
+    "not_witnessed_by_the_control": [
+      "tests/test_run_report.py::WipCurveObligation::test_the_section_heading_tolerates_its_real_spellings"
+    ],
+    "not_witnessed_note": "The heading-spellings test passes at base by design: an unscoped checker reads rows under any heading. It guards the C-1 'tolerate whitespace' clause against a scoping rule that is too strict (it goes RED if the heading match requires the full template text or an exact '## ' prefix), and is not a witness of the section rule itself."
+  },
+  "binding_audit": {
+    "coverage": "C-1..C-4 (4/4)",
+    "method": "Each criterion is quoted and its covering test named. Expected values come from independent sources: TEMPLATE.md's heading literal (asserted present in the template), the 2026-08-28 ship-it report's real heading, the protocol's own sentence and Row cells, and literal refusal substrings. C-1 and C-2 went RED under NC-1 (checker reverted) and C-3 under NC-2 (prose reverted); C-4 is the recorded commands[]."
+  },
+  "artifacts": [
+    {
+      "path": "docs/runs/2026-09-14-clean-sweep-tracker/u387w-negctrl.txt",
+      "sha256": "a4e4aa3256345707a86a54a756036ae9b13f469aa1f84a3135af5605c576e970"
+    }
+  ],
+  "noticed_not_touched": [
+    "Activation-load headroom: the #387 sentence adds 56 tokens to every mission's transitive load; clean-sweep measures 33,803 of the 34,000 MISSION_MAX_LOAD_TOKENS cap (197 headroom, 47 tokens below the next rounding boundary at 33,850). Any other unit that grows attention-budget.md or clean-sweep's mandatory docs moves these callouts again; the integrator's gen-badges re-run on the union covers it (U389 note).",
+    "Setext headings (underlined with === or ---) neither open nor close the section: the spec names ATX headings, and TEMPLATE.md and every report under docs/runs/ use ATX.",
+    "Indented (four-space) code blocks are not treated as code: a pipe line there still reads if it sits inside the section. This is unchanged from base, and a WIP row is a table line, which an indented block is not.",
+    "Every WIP-curve section in a report is read; a report with two sections gets one row per wave across both, so a wave duplicated between them trips the doubled-wave check (one row per wave, by design).",
+    "The integration branch moved to d4c16fe during the run; this branch forks at 9a115f7 and was not rebased (TASK: do not rebase or touch BASE). run_report.py, its tests and attention-budget.md are byte-identical between the spec's verified BASE f66bd20 and 9a115f7.",
+    "ruff: `ruff check` on the touched Python files is clean; `ruff format` is not the repo's gate (U388 note).",
+    "Machine-checking ledger park classes (G-08 candidate): out of scope per the spec."
+  ],
+  "files": {
+    "production": [
+      "runtime/scripts/run_report.py"
+    ],
+    "tests": [
+      "tests/test_run_report.py"
+    ],
+    "docs": [
+      "runtime/attention-budget.md"
+    ],
+    "generated": [
+      "assets/badges/tests.json",
+      "ARCHITECTURE.md",
+      "docs/missions/absorb-it.md",
+      "docs/missions/access-it.md",
+      "docs/missions/clean-sweep.md",
+      "docs/missions/floor-it.md",
+      "docs/missions/harden-it.md",
+      "docs/missions/map-it.md",
+      "docs/missions/migrate-it.md",
+      "docs/missions/ship-it.md",
+      "docs/missions/speed-it.md"
+    ],
+    "evidence": [
+      "docs/runs/2026-09-14-clean-sweep-tracker/u387w-manifest.json",
+      "docs/runs/2026-09-14-clean-sweep-tracker/u387w-negctrl.txt"
+    ]
+  },
+  "commits": [
+    {
+      "sha": "4c72718b83ac5cbcff8d2330f87b725d544f78dc",
+      "subject": "test(run-report): WIP-curve rows count only inside the canonical section (#387)"
+    },
+    {
+      "sha": "d657941e95304ae4e8894090c7c418ac31b506ed",
+      "subject": "fix(run-report): read WIP-curve rows only under the WIP-curve heading, outside fences (#387)"
+    },
+    {
+      "sha": "c57c248f22eee399c1ba5aacb6925aa275dd7610",
+      "subject": "docs(attention-budget): the WIP-curve protocol names the section its rows live in (#387)"
+    },
+    {
+      "sha": "d31ef62814c9105fb3449430b1c72993a606de8a",
+      "subject": "chore(badges): regenerate gen-badges.py outputs, tests 1349 -> 1353, activation loads +100 (#387)"
+    },
+    {
+      "sha": "(this commit; named in worker_done)",
+      "subject": "chore(run): U387W evidence manifest + negative-control transcript (#387)"
+    }
+  ],
+  "decisions": [
+    "2026-09-15 worker (per TASK): deleted the untracked setup residue package.json and pnpm-lock.yaml before any work; they are not part of this repository, and the tree was clean afterwards.",
+    "2026-09-15 coordinator ruling (orchestration ask, option A): the #387 sentence made validate.py's badge-freshness check stale for nine docs/missions callouts and the ARCHITECTURE.md activation-load table, both outside the spec's hot list. Ruling: regenerate and commit gen-badges.py's outputs verbatim as one mechanical commit (d31ef62: 12 lines across 11 files, numbers and callouts only, no hand edits). The hot list gains those outputs for that commit only. Option B (trim the protocol prose to stay token-neutral) was declined.",
+    "2026-09-15 worker: methodology is the tdd skill only. The seam is run_report._wip_curve_errors, the one every existing WipCurveObligation test uses; the spec names _wip_rows, which it wraps. The spec pre-agrees the seam, so there was no separate confirmation step for a dispatched worker.",
+    "2026-09-15 worker: base_sha is the unit branch's fork point 9a115f7 (on review/2026-09-14-holistic-fixes). The NC reverts to it; its run_report.py is byte-identical to the spec's verified BASE f66bd20.",
+    "2026-09-15 worker: one pre-existing test body changed. test_the_protocol_names_the_schema_the_checker_enforces fed its row with no heading, which only the unscoped checker could bind. It now reads the section heading from the protocol prose (the C-3 extension, U389 precedent) and keeps every original assertion. The other 64 pre-existing run_report tests are untouched and green.",
+    "2026-09-15 worker: the section rule. An ATX heading (up to 3 leading spaces, 1-6 '#') whose text begins 'WIP-curve' or 'WIP curve' (case-insensitive, any whitespace) opens the section; the next ATX heading of any level closes it; fenced code (``` or ~~~, CommonMark closing rule) is skipped, so a heading inside a fence does neither. The rule accepts the template's heading, the real ship-it report's heading and the module's '## WIP curve' fixtures.",
+    "2026-09-15 worker: head_sha is the code tip d31ef62. The manifest commit follows it and cannot name itself; the conductor re-binds at close (U388 option-A precedent)."
+  ]
+}
