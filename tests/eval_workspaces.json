@@ -799,6 +799,14 @@
       "write": {
         "runtime/dispatch.md": "# Dispatch mechanics\n\n- C-1: `orca orchestration check --wait` blocks until a message arrives.\n- C-2: `orca orchestration send` accepts `--priority high|normal`. BLOCKED-BY-SUBSTRATE: the probe ran outside a bound terminal (receipts/probe-C2.txt); re-probe from one.\n"
       }
+    },
+    {
+      "mission": "document-it",
+      "id": 4,
+      "name": "a reference page true to cli.py, with no --all",
+      "write": {
+        "docs/reference/cli.md": "# tool CLI reference\n\n## sync\n\n`tool sync [--since DATE]` pulls remote records changed after DATE.\n\n## purge\n\n`tool purge [--older-than DAYS]` deletes local records.\n"
+      }
     }
   ],
   "libcst": {
