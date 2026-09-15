@@ -27,7 +27,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | STAB | — | land 4 PR-review hunks (deny-hook/run_report/verify/HUMAN_ACTIONS) + badge regen | conductor landing, worker-executed | t | n/a | n/a | n/a | t | n/a | lit | — | 1215e09 9651a52 8f7d5ac 917f9fd; pushed origin/BASE fast-forward (egress receipt); 1285 OK + full battery green; NC re-executed 11 failures; rides PR #387 |
 | T1 | #388 | evidence-run lockfile dirties worktree | real-bug | t | t | t | t | t | t | lit | proof-park: needs post-merge independent APPROVE (2nd login) for verify review leg | PR #392 MERGED 8c36b4a @c680ee0 (reviewed==head; R2 GO 5202783703); verify 5/6 (review leg RED: no independent APPROVED — Greptile never re-reviewed; recoverable post-merge); #388 closed w/ evidence + gap note |
 | T2 | #389 | run_report WIP validation accepts incomplete reports | real-bug | t | t | t | t | t | t | lit | proof-park: needs post-merge independent APPROVE (2nd login) for verify review leg | PR #391 MERGED 1bdb20c @51019fb (reviewed==head; R3 GO 5203193997); verify 5/6 (review leg RED: no independent APPROVED — Greptile checks pass, no review object; recoverable post-merge); #389 closed w/ evidence + gap note |
-| T3 | #364 | fixture-backed evals + workspace-state oracle (S1) | real-feature-small | t | t | t | f | f | f | lit | — | PR #395 @b2c5d49 (r2 batch done, 1337 OK); Greptile 2 new P1: django-uncapped VALID→FIX, attest-glob REFUTED 4010718894 (GAP-never-fabricate); F364r3 dispatched |
+| T3 | #364 | fixture-backed evals + workspace-state oracle (S1) | real-feature-small | t | t | t | f | f | f | lit | — | PR #395 @6766265 (r3 django cap, 10-row table, reply r4010798795; no Greptile re-review yet); R364r2 axes dispatched (SPEC judges G2 refute) |
 | T4 | #385 | historical-docs polish, agent slice (status.json + parity test) | real-bug (docs) | t | t | t | t | t | t | lit | — | PR #390 MERGED 32da76e @d6fc2cc (reviewed==head; greptile APPROVED + 3 blind GO); verify.py OK all legs (scope/commands/freshness/NC-exec/review/change-on-base); conductor manifest corrections (head/source) disclosed in-file; worktree retired; #385 closed w/ evidence |
 | T5 | #386 | sign manifest+inventory, retention backend (S2) | — | — | — | — | — | — | — | — | needs-human: key custody + backend undecided (Q2) | Q2: park |
 | — | #235 | H-02 marketplace submissions (pre-parked needs-human) | needs-human | — | — | — | — | — | — | needs-human: external accounts | prior run + issue text |
@@ -440,3 +440,11 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   Task completed, worker released. F364r3 spec (django tighten + rows) written
   + dispatched — pre-review fix to save a NO-GO cycle.
   task_31e81b93ffcb → ctx_5d85c985b894 (term_cddc7408).
+- F364r3 worker_done (msg_c312379cad54): G1 fixed red-first @6766265 (union
+  ef8f311, fix 9cbabde, manifest 6766265; 10-row django table; uncapped >= now
+  fails, bounded passes). Gates green (96 OK, validate, routing 94/94, full
+  1337 OK); NC r3 exit 1 (23F+89E) / clean 96 OK. G1 reply r4010798795 posted.
+  No Greptile re-review on 6766265 yet. (Worker's "coordinator owns G2 refute"
+  was stale — posted 4010718894.) Task completed, worker released.
+- R364r2 axes dispatched @6766265 (re-verify r1 batch + django cap; SPEC judges
+  the G2 attest-glob refute).
