@@ -856,3 +856,10 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   Optional + 2 FYI. R1 batch witnessed landed; 18 mutants reproduce NCs;
   no commits, no posts. Thread replies STILL OWED (P2 4012319774 + P1
   4012744258). Released. SPEC + STANDARDS out. T10 → NO-GO → r3 fix.
+- R387W-r2 2/3 in: SPEC 0 Required (all 8 R1 SHAs on branch, each item
+  mutant-witnessed; C-3 78 lines; C-4 green 1359 OK/validate/ruff; no
+  scope creep; tautology guard passes). P1 4012744258 VALID but rated
+  Nit (fail-closed false refusal @run_report.py:506 breaks C-2 'complete
+  rows bind' + prose drift; SPEC/TEST agree VALID, differ on severity —
+  verdict reconciles). F-2 Nit (table-row para mutant survives :518),
+  F-3 FYI. Thread replies owed both threads. Released. STANDARDS out.
