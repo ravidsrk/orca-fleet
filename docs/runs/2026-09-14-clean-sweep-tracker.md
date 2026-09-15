@@ -33,8 +33,8 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | T6 | #364 | prove-it/oncall-it venv glob scoping (U364 fix-forward) | real-bug (evals) | t | t | t | t | t | t | lit | — | PR #397 MERGED 01d954e @2967804 (reviewed==head; GO 5205447863; merged ~7min pre-verdict, disclosed); verify 6/6 incl. Greptile-APPROVED review leg; remediates U364 SPEC-r3 F-1 |
 | — | #235 | H-02 marketplace submissions (pre-parked needs-human) | needs-human | — | — | — | — | — | — | needs-human: external accounts | prior run + issue text |
 | T7 | #393 | mixed-version rollout lock (opportunistic sidecar + test) | real-bug | t | t | t | f | f | f | lit | — | PR #400 @7630815 (union over 2094f61, docs-only); Greptile 4/5, 2 VALID held (P1 union-staleness = close-step, P2 FIFO sidecar = fix candidate); 3 axes live |
-| T8 | #387-threads | ledger/process remediation (parks, u385 tree, templates, close doc) | process | t | f | f | f | f | f | lit | — | BUILD task_6c7e4ed50873 done: 1b40b43..8241aab+9db2b83; coordinator-replayed probe GREEN/RED; C-1..C-5, 1349 full OK; U385-leg GREEN (spec said RED — worker corrected) |
-| T9 | #387-threads | eval-glob holes (T6 regression: app//lib/ miss; empty-glob survey) | real-bug (evals) | t | f | f | f | f | f | lit | — | BUILD task_2792e3c556b8 done: 8750a76..0a3f4ab+191d248; coordinator-verified (109 OK + validate @0a3f4ab); C-1..C-3, NC RED/GREEN, 1358 full OK; M4-test watched for review |
+| T8 | #387-threads | ledger/process remediation (parks, u385 tree, templates, close doc) | process | t | t | t | f | f | f | lit | — | PR #403 @ed8a7c5 (union over 5174ed4, clean); Greptile 2 VALID held (P2 reattach-gap, P2 no-M^2-fallback); 3 axes live |
+| T9 | #387-threads | eval-glob holes (T6 regression: app//lib/ miss; empty-glob survey) | real-bug (evals) | t | t | t | f | f | f | lit | — | PR #402 @15d0eea (union over a41608e, clean); Greptile 5/5, 0 threads, none held (bot edits body — template note for T8 fix round); 3 axes live |
 | T10 | #387-threads | WIP-curve rows: scope to canonical section (U389 residual) | real-bug | t | t | t | f | f | f | lit | — | PR #401 @d94c6c1 (union over aab35f9, docs-only); Greptile 1 VALID held (P2 fence info-string); 3 axes live |
 
 PHASE: ORIENT → ENUMERATE → TRIAGE done → FREEZE → BUILD wave 1: U385 CLOSED, U388 U389 in fix-round → wave 2: U364
@@ -700,6 +700,28 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
 - V393-r1 spec frozen (verdict-393-r1.md): 3 axis reports pasted verbatim +
   held bot P1 (union-staleness, conductor-side record item per exclusion
   clause) + P2 (FIFO, in-scope). Dispatched (fresh terminal, unit worktree).
+- R387W 1/3 in: STANDARDS 0 Required (S1 Optional duplicated scanner vs
+  inventory.py; S2 Nit prose/check drift on heading match; S3/S4 Nits; S5 FYI
+  33,803/34,000). Released. SPEC + TEST still out.
+- R387W 2/3 in: SPEC F-1 Required (C-1 partial: section regex opens on ANY
+  'WIP curve' heading, so a 'WIP-curve example' section binds — false pass
+  returns in a new form; fix must thread real-report variance vs examples);
+  F-2 Nit (prose/check drift, dupes S2); F-3/F-4 FYI (fixture edit accepted
+  as C-1-required). Released. TEST still out. T10 heads to NO-GO (F-1 + P2
+  fence) → fix round.
+- I387P worker_done (msg_73692087dc99): PR #403 @ed8a7c5 (union over 5174ed4,
+  T1-T3 fixes + BASE rows kept byte-identical, gates green). Greptile
+  COMMENTED 5206046575, 2 VALID held: P2 4012397534 (review-template promises
+  'conductor reattaches the branch' — no reattach step defined) + P2 4012397546
+  (CLOSE T:=M^2 has no squash/rebase/ff fallback; STOPs fail-closed). Both join
+  verdict as Required → fix round. Released. PR_OPEN=t, BOT=t.
+- I387G worker_done (msg_cab0bcb62041): PR #402 @15d0eea (union over a41608e,
+  gates green). Greptile 5/5 clean, 0 threads, none held. NOTE: bot edits the
+  PR BODY (integrator's comment-poll hit cap) — integrate-template should say
+  to re-read the body (adjacent fix for T8's fix round). Released. PR_OPEN=t,
+  BOT=t.
+- R387P + R387G axes dispatched (6 workers, specs review-387{p,g}-{spec,test,
+  standards}.md).
 - R393 2/3 in: STANDARDS 0 Required (4 Nit incl. stale 'Not a sibling
   lockfile' docstring S2, FIFO S3 dupes Greptile, untested unopenable-branch
   S4) + TEST 0 Required (51 mutation runs: NC-1 10/10 RED, NC-2 exact-3,
