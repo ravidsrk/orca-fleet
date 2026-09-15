@@ -1207,4 +1207,6 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   95a63ed). Greptile 5/5 clean in PR BODY (2 tip-anchored comments
   predate push). NO posts, NO body touch, NO badge regen (1378),
   prose 78 lines. R387W-r7 specs frozen (copies + retarget 0d55f10
-  + batch-verify + bot-clean-confirm); 3 axes dispatched.
+  + batch-verify + bot-clean-confirm); 3 axes dispatched
+  (spec task_56712c8fcd7f→ctx_8be0b4509c4b, test task_d21e69a7383e→
+  ctx_dc6e2d8b7d67, standards task_5cc7ad844375→ctx_0bae5ecd5938).
