@@ -32,6 +32,10 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | T5 | #386 | sign manifest+inventory, retention backend (S2) | — | — | — | — | — | — | — | — | needs-human: key custody + backend undecided (Q2) | Q2: park |
 | T6 | #364 | prove-it/oncall-it venv glob scoping (U364 fix-forward) | real-bug (evals) | t | t | t | t | t | t | lit | — | PR #397 MERGED 01d954e @2967804 (reviewed==head; GO 5205447863; merged ~7min pre-verdict, disclosed); verify 6/6 incl. Greptile-APPROVED review leg; remediates U364 SPEC-r3 F-1 |
 | — | #235 | H-02 marketplace submissions (pre-parked needs-human) | needs-human | — | — | — | — | — | — | needs-human: external accounts | prior run + issue text |
+| T7 | #393 | mixed-version rollout lock (opportunistic sidecar + test) | real-bug | f | f | f | f | f | f | lit | — | spec build-393.md @f66bd20; BUILD task_8c6ba8a5688e live |
+| T8 | #387-threads | ledger/process remediation (parks, u385 tree, templates, close doc) | process | f | f | f | f | f | f | lit | — | spec build-387-process.md; 7 threads REAL → fix, incl. proof-park → needs-human (T1/T2/T3) |
+| T9 | #387-threads | eval-glob holes (T6 regression: app//lib/ miss; empty-glob survey) | real-bug (evals) | f | f | f | f | f | f | lit | — | spec build-387-eval-globs.md; inverts T6 (broad positive + central denylist) |
+| T10 | #387-threads | WIP-curve rows: scope to canonical section (U389 residual) | real-bug | f | f | f | f | f | f | lit | — | spec build-387-wip-section.md; out-of-section wave= rows bind today |
 
 PHASE: ORIENT → ENUMERATE → TRIAGE done → FREEZE → BUILD wave 1: U385 CLOSED, U388 U389 in fix-round → wave 2: U364
 
@@ -574,5 +578,22 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   T7 dispatch: ef0ee1c.
 - T7 (U393) spec frozen: taskspecs/build-393.md (coordinator-picked code fix:
   opportunistic pre-existing-sidecar flock + mixed-version concurrency test;
-  rollout-note direction declined). A-series: T7=#393, T8=#387 Greptile
-  rollup-thread remainder, T9=#386, T10=#235 (order per triage).
+  rollout-note direction declined). BUILD dispatched task_8c6ba8a5688e →
+  ctx_f96ab3cefd07 (codex, worktree u393-sidecar-lock).
+- TRIAGE 20 open #387 threads (content-based, all read + checked vs BASE):
+  FIXED-already: lockfile→U388/#388, WIP-validation→U389/#389, wire_docs→#398
+  (resolve, maintainer already replied). STALE: U364 premature gates (all true
+  now: merged 1b64781, PR #395, bot ingested I364). HISTORICAL: truncation
+  narrative (frozen log; fix 1217fb2 + NC-3 landed). CONCEDE+REFUTE: T6
+  merge-before-verdict (actor = maintainer out-of-process, disclosed, verify
+  6/6; human ask = branch protection). REAL → T8 (7: proof-park T1/T2/T3,
+  u385 head_tree verified stale 022dc9a vs 4ee55a0, review-template abbreviated
+  worker_done + missing TARGET line, close-refresh/union/option-A tribal);
+  T1/T2 REVIEWED=t DEFENDED (blind-verdict GO at reviewed==head; contract text
+  + 09-09 precedent; independence gap stays disclosed RED + needs-human);
+  T3 REVIEWED=t stands per maintainer condition MET (T6 GO 5205447863, 6/6 —
+  reply 4011794979). REAL → T9 (3: T6 REGRESSED prove-it/oncall-it globs —
+  **/*.py narrowed, app//lib/ now miss; empty-glob vacuous pass to survey).
+  REAL → T10 (1: out-of-section wave= rows bind — U389 residual, not defect).
+  #386 stays needs-human (Q2 open); Q1 overtaken by action (fixtures+oracle
+  built — disclose + retro-confirm at gate); #235 parked (row exists).
