@@ -534,6 +534,11 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   owns it). spec task_9d70202c5dc4→ctx_2c82e14a7b11 (term_33f7f789),
   standards task_4aca5adcd455→ctx_4318b6662066 (term_c85b640f),
   test task_94b698d7b326→ctx_d97d6889854a (term_c9b8bea6). 3 workers out.
+- R364ff all in @2967804: SPEC 0 Required (C-1..C-3 met, excerpts verified vs
+  real installs); TEST 0 Required (NC 14F reproduced, 36-mutant survey 0
+  survivors, V2 rows hold); STANDARDS 0 Required. Nits: C-FF label in negctrl
+  (F2), stale badge/head cites in manifest (close-fixes), merge-body template
+  (F3). Axis tasks completed, workers released. V364ff-r1 spec + dispatched.
 - PARALLEL MERGE 09:04 IST: PR #394 (repo-images, other agent) merged as 8d53321
   into BASE; local spec commit rebased clean (no conflicts, validate green) and
   pushed as f5d1a56. T6 integrator unions it in; gates re-run on the union.
