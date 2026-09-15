@@ -304,6 +304,86 @@ class ConcurrentAppends(LedgerCase):
                           "run-14", "run-15"])
 
 
+class MixedVersionRollout(LedgerCase):
+    """#393: during a rollout, a pre-#388 wrapper (flock `<manifest>.lock` → read → modify → write
+    → release) appends to the same manifest as this one. The two locks are different files, so
+    unless this wrapper also takes the sidecar when it exists, their read-modify-writes interleave
+    and records are lost. Both kinds of writer are released at once through a file gate; the old
+    ones keep appending while the new ones reach theirs, and every record must land."""
+
+    NEW_RUNS = 8
+    OLD_WRITERS = 4
+    OLD_APPENDS = 60
+
+    # The pre-#388 append discipline in shape (e04b0c2's append_record): a bookkeeping failure is
+    # a warning and the record is dropped, exactly as that wrapper dropped it.
+    OLD_WRITER = (
+        "import fcntl, json, os, sys, time\n"
+        "from pathlib import Path\n"
+        "gate, manifest, who, count = sys.argv[1], Path(sys.argv[2]), sys.argv[3], int(sys.argv[4])\n"
+        "lock_path = manifest.with_suffix(manifest.suffix + '.lock')\n"
+        "open(os.path.join(gate, 'ready-old-' + who), 'w').close()\n"
+        "while not os.path.exists(os.path.join(gate, 'go')):\n"
+        "    time.sleep(0.002)\n"
+        "for i in range(count):\n"
+        "    try:\n"
+        "        with open(lock_path, 'a', encoding='utf-8') as lock:\n"
+        "            fcntl.flock(lock.fileno(), fcntl.LOCK_EX)\n"
+        "            if manifest.exists():\n"
+        "                data = json.loads(manifest.read_text(encoding='utf-8'))\n"
+        "            else:\n"
+        "                data = {'commands': []}\n"
+        "            data.setdefault('commands', []).append({'label': f'old-{who}-{i:02d}'})\n"
+        "            manifest.write_text(json.dumps(data, indent=2) + '\\n', encoding='utf-8')\n"
+        "    except (OSError, ValueError) as err:\n"
+        "        print(f'old writer {who}: dropped old-{who}-{i:02d}: {err}', file=sys.stderr)\n")
+
+    def test_old_sidecar_writers_and_new_runs_lose_no_records(self):
+        (self.repo / "m.json.lock").touch()  # left behind by an earlier pre-#388 run
+        gate = tempfile.TemporaryDirectory()
+        self.addCleanup(gate.cleanup)
+        go = Path(gate.name, "go")
+        child = ("import os, sys, time\n"
+                 f"open(os.path.join({gate.name!r}, 'ready-new-' + sys.argv[1]), 'w').close()\n"
+                 f"while not os.path.exists({str(go)!r}):\n"
+                 "    time.sleep(0.002)\n")
+        procs = []
+        for i in range(self.NEW_RUNS):
+            procs.append(subprocess.Popen(
+                [sys.executable, str(RUNNER), "--label", f"new-{i}", "--manifest", "m.json",
+                 "--", sys.executable, "-c", child, str(i)],
+                cwd=self.repo, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True))
+            self.addCleanup(procs[-1].kill)
+        for w in range(self.OLD_WRITERS):
+            procs.append(subprocess.Popen(
+                [sys.executable, "-c", self.OLD_WRITER, gate.name, str(self.repo / "m.json"),
+                 str(w), str(self.OLD_APPENDS)],
+                cwd=self.repo, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True))
+            self.addCleanup(procs[-1].kill)
+        deadline = time.monotonic() + 120
+        while len(list(Path(gate.name).glob("ready-*"))) < len(procs):
+            self.assertLess(time.monotonic(), deadline, "the writers never all started")
+            time.sleep(0.01)
+        go.touch()
+        errs = []
+        for p in procs:
+            _, err = p.communicate(timeout=120)
+            self.assertEqual(p.returncode, 0, err)
+            errs.append(err)
+        expected = ([f"new-{i}" for i in range(8)]
+                    + [f"old-{w}-{i:02d}" for w in range(4) for i in range(60)])
+        self.assertEqual(len(expected), 248)
+        try:
+            landed = sorted(r["label"] for r in self.records())
+        except json.JSONDecodeError as err:  # two unserialized in-place rewrites overlapped
+            self.fail(f"records lost: the ledger no longer parses ({err})")
+        self.assertEqual(sorted(set(expected) - set(landed)), [], "records lost")
+        self.assertEqual(landed, sorted(expected))
+        for err in errs:
+            self.assertNotIn("WARNING", err)
+            self.assertNotIn("dropped", err)
+
+
 class NoLedgerLitter(LedgerCase):
     """#388: whatever serializes the append must not leave a file of its own beside the manifest.
     An untracked sibling fails every clean-tree gate once the manifest is committed, and it is
@@ -320,6 +400,17 @@ class NoLedgerLitter(LedgerCase):
         self.git("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "record")
         self.assertEqual(self.git("status", "--porcelain", "--untracked-files=all"), "",
                          "committing the manifest must leave a clean tree")
+
+    def test_no_run_creates_the_rollout_sidecar(self):
+        # #393 joins a `<manifest>.lock` only when one is already there; with none on disk the
+        # runs must neither create it nor complain that it is missing.
+        for label in ("tests", "lint"):
+            r = self.run_wrapped(sys.executable, "-c", "pass", label=label, manifest=self.MANIFEST)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            self.assertNotIn("WARNING", r.stderr)
+        self.assertFalse((self.repo / "reports" / "m.json.lock").exists(),
+                         "a wrapped run created the sidecar")
+        self.assertEqual([c["label"] for c in self.records(self.MANIFEST)], ["tests", "lint"])
 
     def test_a_run_after_committing_the_manifest_records_the_committed_tree(self):
         self.run_wrapped(sys.executable, "-c", "pass", manifest=self.MANIFEST)
