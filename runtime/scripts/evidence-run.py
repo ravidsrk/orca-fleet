@@ -122,6 +122,11 @@ def run_child(argv, artifact_path, cwd):
         sink.close()
 
 
+def sidecar_path(manifest_path):
+    """The pre-#388 wrapper's lockfile: `<manifest>.lock`, beside the manifest."""
+    return manifest_path.with_suffix(manifest_path.suffix + ".lock")
+
+
 @contextlib.contextmanager
 def sidecar_lock(manifest_path):
     """Hold LOCK_EX on a PRE-EXISTING `<manifest>.lock`; do nothing if there is none (#393).
@@ -130,15 +135,22 @@ def sidecar_lock(manifest_path):
     during a rollout the two versions would not exclude each other and records are lost again.
     Joining the sidecar when it is already there makes them exclude each other. It is opened
     without O_CREAT: this wrapper never creates one (#388), and an absent sidecar is no error.
+    Yields whether it joined one: an append that joined none looks again before it writes.
     """
     try:
-        peer = open(manifest_path.with_suffix(manifest_path.suffix + ".lock"), "rb")
+        peer = open(sidecar_path(manifest_path), "rb")
     except FileNotFoundError:
-        yield
+        yield False
         return
     with peer:
         fcntl.flock(peer.fileno(), fcntl.LOCK_EX)
-        yield
+        yield True
+
+
+# Attempts per append. A sidecar that appears mid-append is joined on the next one, and a
+# legacy writer never removes its sidecar, so the second attempt holds it. The bound only
+# matters if something else deletes and recreates the file; the last attempt writes regardless.
+REJOIN_ATTEMPTS = 3
 
 
 def append_record(manifest_path, record):
@@ -154,31 +166,55 @@ def append_record(manifest_path, record):
     Lock order, the only one: the pre-existing sidecar first (`sidecar_lock`, #393), then the
     manifest inode. Every writer that takes both takes them in this order, so no two can each
     hold one while waiting on the other.
+
+    The sidecar join is check-then-act (#387 thread 4012510839). With none on disk this append
+    goes on under the manifest lock alone, and a legacy writer can create and lock one after
+    the check; its read-modify-write would then overlap this one under the other lock. So an
+    append that joined no sidecar looks again immediately before it truncates. If one has
+    appeared, it abandons the attempt (closing the manifest releases its lock), joins the
+    sidecar, which blocks until the legacy rewrite is on disk, and starts over from the read.
+    The rejoin cannot deadlock: the manifest lock is released BEFORE the sidecar is awaited, so
+    the order above still holds. A legacy holder never takes the manifest lock, so it waits on
+    nothing this append holds. A new writer that joined the sidecar waits on the manifest lock,
+    which this one has already released.
+
+    Residual window: a legacy writer that creates the sidecar, locks it and reads the manifest
+    between the last look and the end of this write can still silently drop one of the two
+    records. If the legacy rewrite lands after this one, this record is dropped; if its whole
+    cycle fits before this truncate, the legacy record is. That gap is a seek, a truncate and
+    one write, with no lock wait, read or parse inside it. Closing it would mean creating the
+    sidecar here, which #388 forbids. Looking right after the manifest lock instead would leave
+    the read and the parse inside the gap. A sidecar that appears at any earlier point is still
+    there at the last look, since a legacy writer never removes its sidecar.
     """
     try:
         manifest_path.parent.mkdir(parents=True, exist_ok=True)
-        with sidecar_lock(manifest_path), \
-                open(manifest_path, "r+", encoding="utf-8",
-                     opener=lambda name, flags: os.open(name, flags | os.O_CREAT, 0o666)) as fh:
-            fcntl.flock(fh.fileno(), fcntl.LOCK_EX)
-            text = fh.read()
-            if text:
-                data = json.loads(text)
-                if not isinstance(data, dict):
-                    warn(f"{manifest_path} is not a JSON object — not recording")
+        for attempt in range(1, REJOIN_ATTEMPTS + 1):
+            with sidecar_lock(manifest_path) as joined, \
+                    open(manifest_path, "r+", encoding="utf-8",
+                         opener=lambda name, flags: os.open(name, flags | os.O_CREAT, 0o666)) as fh:
+                fcntl.flock(fh.fileno(), fcntl.LOCK_EX)
+                text = fh.read()
+                if text:
+                    data = json.loads(text)
+                    if not isinstance(data, dict):
+                        warn(f"{manifest_path} is not a JSON object — not recording")
+                        return
+                else:  # zero-length: just created by the open above, or already empty on disk
+                    data = {"commands": []}
+                commands = data.setdefault("commands", [])
+                if not isinstance(commands, list):
+                    warn(f"{manifest_path} has a non-list 'commands' — not recording")
                     return
-            else:  # zero-length: just created by the open above, or already empty on disk
-                data = {"commands": []}
-            commands = data.setdefault("commands", [])
-            if not isinstance(commands, list):
-                warn(f"{manifest_path} has a non-list 'commands' — not recording")
+                commands.append(record)
+                data["commands"] = commands
+                payload = json.dumps(data, indent=2) + "\n"  # before truncate: failure keeps it
+                if not joined and attempt < REJOIN_ATTEMPTS and sidecar_path(manifest_path).exists():
+                    continue  # a legacy writer arrived after the check: rejoin, then re-read
+                fh.seek(0)
+                fh.truncate()
+                fh.write(payload)
                 return
-            commands.append(record)
-            data["commands"] = commands
-            payload = json.dumps(data, indent=2) + "\n"  # before truncate: a failure keeps the file
-            fh.seek(0)
-            fh.truncate()
-            fh.write(payload)
     except (OSError, json.JSONDecodeError, ValueError, TypeError) as err:
         warn(f"could not record into {manifest_path}: {err}")
 
