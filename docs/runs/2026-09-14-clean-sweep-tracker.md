@@ -1300,3 +1300,17 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
 - G2 AMENDED (gate-batch.md, coordinator): "a passing review" insufficient —
   #397 carried Greptile APPROVED pre-merge with the blind verdict in flight;
   required check must derive from the verdict (GO posted at merge tip).
+- T11 BUILD DONE (B393R msg_37840c7f5e52, task_1dc46f04d766): f6a2657 RED test
+  (SidecarCreationRace, forced schedule, RED 20/20 at 62da77c) + 305c0c5 fix
+  (re-check before truncate, release/rejoin/re-read, REJOIN_ATTEMPTS=3) +
+  076f880 badge 1378->1379 + f482be1 manifest. Coordinator-verified: scope =
+  5 owned files, tree clean; fix read (order preserved, residual honestly
+  scoped); race test GREEN at tip + RED (failures=1) replayed at fork in a
+  scratch worktree. Residual: syscall-width window, disclosed.
+- T11 INTEGRATED (I393R msg_edd8b2a87f48, task_b711f468a3fc): union abaf175
+  over 666d55d (ledger-only, conflict-free), gates green (29 OK / validate /
+  gitleaks), PR #404 opened vs BASE (baseRefName asserted, ancestry OK,
+  verified by coordinator). Bot: 1 VALID held (Greptile P1 4015794383, "Race
+  still loses records" = the disclosed residual; no in-thread answer yet —
+  owed pre-merge). R393R axes dispatched (spec task_8665725e14ee, test
+  task_7a09f9297cb4, standards task_7fea2861a35f).
