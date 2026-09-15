@@ -863,3 +863,10 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   rows bind' + prose drift; SPEC/TEST agree VALID, differ on severity —
   verdict reconciles). F-2 Nit (table-row para mutant survives :518),
   F-3 FYI. Thread replies owed both threads. Released. STANDARDS out.
+- R387W-r2 3/3 in: STANDARDS 1 Required (R-1: both bot threads unanswered
+  in-thread — P2 resolved zero-reply owes 'fixed in d52ff42', P1 open+silent)
+  + P1 VALID fail-closed (list/blockquote + --- → hr, false 'none found';
+  also === lazy continuation) + 3 Nits + 2 Optional + FYI (close re-bind
+  owed). Released. W-r2 totals: SPEC 0, TEST 2, STANDARDS 1 → V387W-r2
+  spec frozen (3 reports verbatim + bot status w/ severity-reconcile
+  instruction). Dispatched — expect NO-GO → r3 fix.
