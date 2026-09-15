@@ -849,3 +849,10 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   lines); 3 axes dispatched (spec task_0ad50956c002→ctx_6c4f6574b62a,
   test task_82c98c36539b→ctx_9e6ac76f6155, standards task_ab417cdb21b6→
   ctx_c36946457e07).
+- R387W-r2 1/3 in: TEST 2 Required (R-1 para-gate exclusions @run_report.py:
+  511-512 unwitnessed — M7a-e incl. para=bool(line.strip()) stay green; R-2
+  Greptile P1 4012744258 VALID: list/blockquote/indented + --- renders hr,
+  checker false-refuses, manifest 'never bound' wrong) + N-1 Nit + N-2
+  Optional + 2 FYI. R1 batch witnessed landed; 18 mutants reproduce NCs;
+  no commits, no posts. Thread replies STILL OWED (P2 4012319774 + P1
+  4012744258). Released. SPEC + STANDARDS out. T10 → NO-GO → r3 fix.
