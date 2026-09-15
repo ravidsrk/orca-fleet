@@ -33,7 +33,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | T6 | #364 | prove-it/oncall-it venv glob scoping (U364 fix-forward) | real-bug (evals) | t | t | t | t | t | t | lit | — | PR #397 MERGED 01d954e @2967804 (reviewed==head; GO 5205447863; merged ~7min pre-verdict, disclosed); verify 6/6 incl. Greptile-APPROVED review leg; remediates U364 SPEC-r3 F-1 |
 | — | #235 | H-02 marketplace submissions (pre-parked needs-human) | needs-human | — | — | — | — | — | — | needs-human: external accounts | prior run + issue text |
 | T7 | #393 | mixed-version rollout lock (opportunistic sidecar + test) | real-bug | t | t | t | t | t | t | lit | needs-human: post-merge independent APPROVE (2nd login) for verify review leg (run_0607bdc681e6) | V393-r1 GO 5206137160 @7630815 (F1+P1 close-owed, P2 FIFO accepted low-sev Optional → backlog); MERGED 6d9e46a; verify 5/6 (review RED, parked); #393 CLOSED with evidence |
-| T8 | #387-threads | ledger/process remediation (parks, u385 tree, templates, close doc) | process | t | t | t | f | f | f | lit | — | PR #403 (u387p-process) @ed8a7c5 (union over 5174ed4, clean); Greptile 2 VALID held (P2 reattach-gap, P2 no-M^2-fallback); 3 axes live |
+| T8 | #387-threads | ledger/process remediation (parks, u385 tree, templates, close doc) | process | t | t | t | f | f | f | lit | — | PR #403 (u387p-process) @7f52bf6 (r1 batch landed: reattach, M^2-fallback, probe bodies, C-1 contract, T3-ref; builder posted NO thread replies); Greptile APPROVED 5206614322, no new findings; 3 r2 axes live |
 | T9 | #387-threads | eval-glob holes (T6 regression: app//lib/ miss; empty-glob survey) | real-bug (evals) | t | t | t | t | t | t | lit | needs-human: post-merge independent APPROVE (2nd login) for verify review leg (run_0607bdc681e6) | V387G-r2 GO 5206446623 @318542b (delta: T9 byte-identical, badge 1360 recomputed, 1360 OK); MERGED a769a64e (--match-head-commit + --delete-branch, branch 404); verify 5/6 (review RED, parked); manifest closed (head re-bind 0a3f4ab→318542b, 3 coordinator re-runs: 109/validate/1360); worktree retired |
 | T10 | #387-threads | WIP-curve rows: scope to canonical section (U389 residual) | real-bug | t | t | t | f | f | f | lit | — | PR #401 (u387w-wipsection) @04b780f (r1 batch landed: anchor+fixtures, fence tests, P2 fix, setext; builder posted NO thread reply); Greptile NEW P1 4012744258 (thematic-break, noticed-not-touched); 3 r2 axes live |
 
@@ -836,3 +836,14 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   judge lines); 3 axes dispatched (spec task_51da2cc08def→ctx_9f59bd914e98,
   test task_0807d8965db5→ctx_a205476091d4, standards task_dd4862432d31→
   ctx_99cde08dc0e8; all heartbeating investigating 06:54Z).
+- FIX387P-r2 worker_done (msg_484c6c846b7c, released, verified): PR #403
+  @7f52bf6 (union e7fb91d over 889a794 + 5 commits per worker list,
+  708b5a8→7f52bf6 manifest-only; origin==PR head, mergeable clean).
+  Gates re-ran coordinator-side @7f52bf6: probe 0/4 + validate.
+  Manifest checks (head=708b5a8 code tip w/ ruling-A disclosure,
+  C-1..C-5, NC 1/0, 4 cmds bound 7b98166). Greptile APPROVED
+  5206614322 @7f52bf6, 5/5, no new inline findings — T8's review leg
+  can go GREEN (T6 precedent). NO thread replies posted (2 held P2s
+  owe in-thread answers; r2 axes must flag the lane). R387P-r2 specs
+  frozen (copies + retarget 7f52bf6 + batch-verify + approval-confirm
+  lines); 3 axes dispatched.
