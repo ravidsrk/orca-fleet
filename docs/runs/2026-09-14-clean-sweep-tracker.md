@@ -1271,3 +1271,32 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   thread; NEW-REAL parks unfixed with repro; 75-min STOP with
   partial report). Dispatched (main checkout, read-only + gh)
   (task_ca0f442b5f88→ctx_17670380fe49).
+- DRAIN-387 DONE (msg_2c782f6a5281, task_ca0f442b5f88, released): 20/22
+  replied+resolved, 2 parked (4012510839 NEW-REAL race, 4013413622 VALID-doc).
+  Coordinator-verified fresh via GraphQL: all 20 reply ids present in-thread +
+  isResolved=true; egress chain intact (verify rc=0; drain posted exactly
+  20 thread-reply + 20 thread-resolve 12:23-12:24Z — the 21st in-window reply
+  receipt 1b7cc846 is T10's pre-drain P2 reply, not drain's).
+- MANIFEST PREPENDS (coordinator lane, e54abdb, pushed): T8/T10/T9/T7 closes
+  skipped conductor-close step-4 CONDUCTOR CLOSE prepend (rule 7f84b63 on their
+  lineage). Corrective prepends on u387p/u387w/u387g/u393 (head_sha_role re-bind
+  old->T + T-vs-builder delta from git; commands_note names the 3 close records
+  following the builder records). Asserted prose-only (SHAs/trees/records
+  untouched); M^2==T verified x4. Threads 4013413622->FIXED/4015579984,
+  4015436130->FIXED/4015580946, 4015436138->FP/4015581223 (frozen spec; the
+  --task-id contract Greptile cites is not this pipeline's worker_done shape —
+  payload taskId correlated, msg_2c782f6a5281). All resolved, fresh-rechecked.
+- T11 SPECCED (sidecar-creation race, thread 4012510839): coordinator
+  independently reproduced — deterministic forced-schedule run on the real
+  module path drops the legacy record (final tags [N, seed], L lost);
+  unforced 0/60 (thin but unsynchronized window). Accept-with-reason declined
+  (rollout-transience unevidenced; stale checkouts run legacy indefinitely).
+  build-393-race.md @62da77c (digest 7565569e...), branch ravidsrk/u393-race,
+  worktree /Users/ravindra/orca/workspaces/orca-fleet/u393-race @62da77c clean.
+  B393R dispatched (task_1dc46f04d766->ctx_9b6946ecaf05, claude): C-1
+  deterministic RED test (barriers, no bare sleeps) + C-2 fix preserving #388
+  no-create and sidecar-first order with residual documented. Status reply
+  4015617746 posted; thread stays open until the fix merges.
+- G2 AMENDED (gate-batch.md, coordinator): "a passing review" insufficient —
+  #397 carried Greptile APPROVED pre-merge with the blind verdict in flight;
+  required check must derive from the verdict (GO posted at merge tip).
