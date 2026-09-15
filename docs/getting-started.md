@@ -66,6 +66,9 @@ repeating it.
 
 ## Install the catalog
 
+Every install path, and which ones carry the completion gate, is walked in
+[docs/install.md](install.md); the two that a first run needs are below.
+
 **Symlink (recommended while evaluating).** Some missions link `../../ARCHITECTURE.md` relative
 to their own directory, and every mission resolves its playbooks by bare name against the repo
 tree. A symlink preserves both; a copy severs them — this is the single most common

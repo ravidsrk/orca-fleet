@@ -372,6 +372,27 @@ the inherited lesson from this catalog's failed predecessor, which shipped twelv
 two proven: doctrine is allowed to encode hard-won lessons, but it is never allowed to dress up
 as evidence.
 
+Be precise about what the gate buys, because it is weaker than "re-derives" would imply and
+[`run_report.py`](../runtime/scripts/run_report.py) says so in its own docstring: **it hashes, it
+does not re-run the verifier.** The [2026-09-11 review](../REVIEW.md) fabricated a `map-it`
+self-run — seven files, one commit, under fifteen minutes — that reported "bound" and passed
+`validate.py`, `proof_status.py --check` and the whole suite, because files a worker writes and
+commits hash true at the commit that contains them. What the gate really refuses is a tier claimed
+on a report whose artifacts were never retained, re-pointed at another mission, or pinned to a
+commit where the bytes differ. It does not refuse a tier whose artifacts were manufactured, and
+re-running the verifier afterwards would not fix that: the authorities that made the original
+verdict — the coordinator's out-of-band contract, a live GitHub review lookup, the worktree as it
+stood — are gone. Closing this needs a leg the worker cannot type at all: a coordinator-signed
+verifier transcript checked against a committed key
+([#281](https://github.com/ravidsrk/orca-fleet/issues/281)), on top of making the tier cost an
+actual run ([#286](https://github.com/ravidsrk/orca-fleet/issues/286)).
+
+Today every mission reads `doctrine-only`, and that number went *down* as the mechanism got
+stronger, which is the mechanism working: the predecessor shipped twelve missions with two proven
+and paid for it, and a tier whose artifacts are gone is the same claim in better packaging. The
+[run archive](runs/) records every run that really happened and says, per run, why it does not
+bind.
+
 ## Autonomy
 
 Every mission's `metadata:` block carries `autonomy:`, checked by the validator against Addy Osmani's
