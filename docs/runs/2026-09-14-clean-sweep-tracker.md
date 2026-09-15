@@ -33,11 +33,15 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | T6 | #364 | prove-it/oncall-it venv glob scoping (U364 fix-forward) | real-bug (evals) | t | t | t | t | t | t | lit | — | PR #397 MERGED 01d954e @2967804 (reviewed==head; GO 5205447863; merged ~7min pre-verdict, disclosed); verify 6/6 incl. Greptile-APPROVED review leg; remediates U364 SPEC-r3 F-1 |
 | — | #235 | H-02 marketplace submissions (pre-parked needs-human) | needs-human | — | — | — | — | — | — | needs-human: external accounts | prior run + issue text |
 | T7 | #393 | mixed-version rollout lock (opportunistic sidecar + test) | real-bug | t | t | t | t | t | t | lit | needs-human: post-merge independent APPROVE (2nd login) for verify review leg (run_0607bdc681e6) | V393-r1 GO 5206137160 @7630815 (F1+P1 close-owed, P2 FIFO accepted low-sev Optional → backlog); MERGED 6d9e46a; verify 5/6 (review RED, parked); #393 CLOSED with evidence |
-| T8 | #387-threads | ledger/process remediation (parks, u385 tree, templates, close doc) | process | t | t | t | f | f | f | lit | — | PR #403 @ed8a7c5 (union over 5174ed4, clean); Greptile 2 VALID held (P2 reattach-gap, P2 no-M^2-fallback); 3 axes live |
-| T9 | #387-threads | eval-glob holes (T6 regression: app//lib/ miss; empty-glob survey) | real-bug (evals) | t | t | t | f | f | f | lit | — | V387G-r1 GO (0 Required all axes, bot none); post-GO badge conflict → reunion 318542b (T9 byte-identical, gates green); V387G-r2 delta verdict live |
-| T10 | #387-threads | WIP-curve rows: scope to canonical section (U389 residual) | real-bug | t | t | t | f | f | f | lit | — | PR #401 @d94c6c1 (union over aab35f9, docs-only); Greptile 1 VALID held (P2 fence info-string); 3 axes live |
+| T8 | #387-threads | ledger/process remediation (parks, u385 tree, templates, close doc) | process | t | t | t | f | f | f | lit | — | PR #403 (u387p-process) @ed8a7c5 (union over 5174ed4, clean); Greptile 2 VALID held (P2 reattach-gap, P2 no-M^2-fallback); 3 axes live |
+| T9 | #387-threads | eval-glob holes (T6 regression: app//lib/ miss; empty-glob survey) | real-bug (evals) | t | t | t | f | f | f | lit | — | PR #402 (u387g-evalglobs): V387G-r1 GO (0 Required all axes, bot none); post-GO badge conflict → reunion 318542b (T9 byte-identical, gates green); V387G-r2 delta verdict live |
+| T10 | #387-threads | WIP-curve rows: scope to canonical section (U389 residual) | real-bug | t | t | t | f | f | f | lit | — | PR #401 (u387w-wipsection) @d94c6c1 (union over aab35f9, docs-only); Greptile 1 VALID held (P2 fence info-string); 3 axes live |
 
 PHASE: ORIENT → ENUMERATE → TRIAGE done → FREEZE → BUILD wave 1: U385 CLOSED, U388 U389 in fix-round → wave 2: U364
+
+BRANCHES: PR heads are origin short names (`u387p-process`, `u387g-evalglobs`,
+`u387w-wipsection`); local worktree checkouts carry the `ravidsrk/` prefix mapping
+to the same tips. Not drift — do not "fix".
 
 FREEZE: query1 (coordinator, T0) 4 open + query2 (worker, 16:14Z) 6 open with
 created-since-T0 exactly {#388,#389} and closed-since-T0 none — agreement modulo the run's
