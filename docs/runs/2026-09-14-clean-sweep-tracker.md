@@ -33,7 +33,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | T6 | #364 | prove-it/oncall-it venv glob scoping (U364 fix-forward) | real-bug (evals) | t | t | t | t | t | t | lit | — | PR #397 MERGED 01d954e @2967804 (reviewed==head; GO 5205447863; merged ~7min pre-verdict, disclosed); verify 6/6 incl. Greptile-APPROVED review leg; remediates U364 SPEC-r3 F-1 |
 | — | #235 | H-02 marketplace submissions (pre-parked needs-human) | needs-human | — | — | — | — | — | — | needs-human: external accounts | prior run + issue text |
 | T7 | #393 | mixed-version rollout lock (opportunistic sidecar + test) | real-bug | t | t | t | t | t | t | lit | needs-human: post-merge independent APPROVE (2nd login) for verify review leg (see gate-batch.md G3) | V393-r1 GO 5206137160 @7630815 (F1+P1 close-owed, P2 FIFO accepted low-sev Optional → backlog); MERGED 6d9e46a; verify 5/6 (review RED, parked — see gate-batch.md G3); #393 CLOSED with evidence |
-| T8 | #387-threads | ledger/process remediation (parks, u385 tree, templates, close doc) | process | t | t | t | f | f | f | lit | — | PR #403 (u387p-process) @19be7a1 (r2 batch landed: TA-R1 pin, G3 refs+ASK, park-scope, note fix); Greptile APPROVED 5206957088, no new findings; 3 r3 axes live; 2 thread replies OWED conductor-side pre-merge |
+| T8 | #387-threads | ledger/process remediation (parks, u385 tree, templates, close doc) | process | t | t | t | t | t | t | lit | — | V387P-r3 GO 5207105770 @19be7a1 (0 Required all axes + Greptile APPROVED); 2 thread replies posted pre-merge (4013297581/4013297827); MERGED b9b71df6 (--match-head-commit + --delete-branch, branch 404); verify 6/6 GREEN (review leg via Greptile APPROVED); manifest closed (head re-bind 4142b63→19be7a1, 3 coordinator re-runs: probe/validate/1360); worktree retired |
 | T9 | #387-threads | eval-glob holes (T6 regression: app//lib/ miss; empty-glob survey) | real-bug (evals) | t | t | t | t | t | t | lit | needs-human: post-merge independent APPROVE (2nd login) for verify review leg (see gate-batch.md G3) | V387G-r2 GO 5206446623 @318542b (delta: T9 byte-identical, badge 1360 recomputed, 1360 OK); MERGED a769a64e (--match-head-commit + --delete-branch, branch 404); verify 5/6 (review RED, parked); manifest closed (head re-bind 0a3f4ab→318542b, 3 coordinator re-runs: 109/validate/1360); worktree retired |
 | T10 | #387-threads | WIP-curve rows: scope to canonical section (U389 residual) | real-bug | t | t | t | f | f | f | lit | — | PR #401 (u387w-wipsection) @3ce5825 (r2 batch landed: plain-para setext, M7a-d/M8/M9 witnesses, note correction); Greptile NEW P1 4013204408 (container boundaries, noticed-not-touched); 3 r3 axes live; 2 thread replies OWED conductor-side pre-merge |
 
@@ -974,3 +974,23 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   Released. P-r3 totals: SPEC 0, TEST 0, STANDARDS 0 → V387P-r3 spec
   frozen (3 verbatim + bot status w/ coordinator-reply exclude note).
   Dispatched — expect GO → thread replies + merge.
+- V387P-r3 GO (msg_e4e10602a105, review 5207105770 COMMENTED @19be7a1,
+  released, verified): 0 Required all axes (SPEC 2N/4FYI, TEST 2N/1O/3FYI,
+  STANDARDS 4N/1O/3FYI) + Greptile APPROVED 5206957088; 2 P2 threads
+  excluded as conductor-side replies owed. Noted G3-#402 corrective
+  already on BASE. REVIEWED=t.
+- T8 THREAD REPLIES (coordinator lane, pre-merge, egress receipted with
+  payload-file hashes 00704bb5/037bf264): 4013297581→4012397534 (fixed
+  in 708b5a8, reattach defined) + 4013297827→4012397546 (fixed in
+  2c029dd, M^2 fail-closed). Both verified posted in-thread.
+- T8 MERGED b9b71df6 (PR #403 --merge; --match-head-commit 19be7a1... +
+  --delete-branch both honored; parents 3483b38+19be7a1, ancestry OK,
+  branch 404; egress branch-tip + branch-delete receipted). CLOSE: 3
+  coordinator re-runs GREEN at reviewed tip (probe 0/4 / validate /
+  1360 OK, detached worktree, tree clean); manifest re-bound
+  4142b63→19be7a1 + pr filled + conductor_note (reviewer_mode was
+  builder-filled, true); verify.py 6/6 GREEN (review leg via Greptile
+  APPROVED 5206957088 — second full-green unit after T6). Contract
+  digest re-derived by coordinator (git show == d2b86806). MERGED=t,
+  WT_CLEAN=t (worktree retired from git + orca registries, dir gone).
+  THIRD WAVE-2 UNIT DONE. T10 r3 axes (spec/test) still live.
