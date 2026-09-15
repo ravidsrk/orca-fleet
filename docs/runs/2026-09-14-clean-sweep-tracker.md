@@ -1327,3 +1327,13 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   runs and the full 29-test module (3.9s, OK) — the forced schedule pins the
   re-read but not the blocking join. Reproduced by coordinator in /tmp
   (scratch, deleted after); goes to fix-393r-r2 alongside R-1/R-2.
+- R393R COMPLETE: SPEC retry (msg_38e152ec44e0) C-1/C-2/C-3 met, 0 Required
+  (F1 Optional unguarded lock-order, F2 Nit exists() premise, 2 FYI).
+  V393R-r1 (attempt 1 task_b0b3932a89b7 wedged on a dead provider stream,
+  nudged unanswered, stopped; retry task_b3a6c1a3fcbf): NO-GO, review
+  5211486225 COMMENTED @abaf175 (verified: exactly 2 reviews on #404, ours
+  first-lines "verdict: NO-GO — round 1"). R-1 + R-2 stand (verdict re-ran
+  M1/M2, both pass 29/29); bot P1 4015794383 accepted with reason (disclosed
+  residual, #388 bars closure). FIX393R-r2 dispatched (task_fd55bc4d1d67):
+  F-1 M1 killer + F-2 M2 killer + F-3 coordinator M3 (nullcontext rejoin,
+  survives 20/20) + F-4 text fixes + F-5 records.
