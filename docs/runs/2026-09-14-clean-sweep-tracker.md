@@ -778,9 +778,8 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   verdict as Required → fix round. Released. PR_OPEN=t, BOT=t.
 - I387G worker_done (msg_cab0bcb62041): PR #402 @15d0eea (union over a41608e,
   gates green). Greptile 5/5 clean, 0 threads, none held. NOTE: bot edits the
-  PR BODY (integrator's comment-poll hit cap) — integrate-template should say
-  to re-read the body (adjacent fix for T8's fix round). Released. PR_OPEN=t,
-  BOT=t.
+  PR BODY (integrator's comment-poll hit cap) — integrate-template bot step
+  fixed by coordinator (2026-09-15). Released. PR_OPEN=t, BOT=t.
 - R387P + R387G axes dispatched (6 workers, specs review-387{p,g}-{spec,test,
   standards}.md).
 - R393 2/3 in: STANDARDS 0 Required (4 Nit incl. stale 'Not a sibling
