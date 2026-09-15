@@ -8,7 +8,8 @@ fail() { echo "FAIL: $1"; failed=$((failed + 1)); }
 ok() { echo "ok: $1"; }
 
 # C-1: every T-row park cell (column 12) is empty or '<class>: ...' with <class> parsed from
-# the '## Park classes' table of runtime/ledger-contract.md; T1/T2/T3 carry the run ref, T3
+# the '## Park classes' table of runtime/ledger-contract.md; T1/T2/T3 park as 'needs-human:'
+# (spec C-1: no other class, even a legal one) with the base ask text and the run ref, T3
 # points at gate-batch.md G3 (which must exist) and cites T6 GO 5205447863; T1-T4 columns
 # 1-11 equal their cells at base_sha 9a115f7. A missing ledger, contract or gate file fails.
 if python3 - "$R.md" runtime/ledger-contract.md "$R/gate-batch.md" <<'EOF'
@@ -16,6 +17,7 @@ import re, subprocess, sys
 ledger, contract, gates = sys.argv[1:4]
 BASE = "9a115f7579232f50b913ce84515e3964f8b68b33"  # u387p-manifest.json base_sha
 RUN = "run_0607bdc681e6"
+ASK = "needs post-merge independent APPROVE (2nd login) for verify review leg"  # base proof-park ask
 errs = []
 
 def read(path):
@@ -56,7 +58,14 @@ if led is not None and classes:
         if tid not in rows or len(rows[tid]) != 13:
             errs.append(f"[{tid} row missing]")
     for tid in ("T1", "T2", "T3"):
-        if tid in rows and len(rows[tid]) == 13 and RUN not in rows[tid][11]:
+        if tid not in rows or len(rows[tid]) != 13:
+            continue
+        park = rows[tid][11]
+        if not park.startswith("needs-human:"):
+            errs.append(f"[{tid} park class is not needs-human]")
+        if ASK not in park:
+            errs.append(f"[{tid} park lacks the ask text]")
+        if RUN not in park:
             errs.append(f"[{tid} park lacks run ref {RUN}]")
     t3 = rows.get("T3", [])
     if len(t3) == 13:
@@ -77,7 +86,7 @@ if led is not None and classes:
 print(" ".join(errs))
 sys.exit(1 if errs else 0)
 EOF
-then ok "C-1 T-row parks in ledger-contract classes; T1-T3 run ref; T3 G3 ref + T6 GO; T1-T4 flags = base"
+then ok "C-1 T-row parks in ledger-contract classes; T1-T3 needs-human + ask + run ref; T3 G3 ref + T6 GO; T1-T4 flags = base"
 else fail "C-1 ledger park/ref/flag check (errors above)"; fi
 
 # C-2: u385-manifest.json head_tree is the tree of its own head_sha.
