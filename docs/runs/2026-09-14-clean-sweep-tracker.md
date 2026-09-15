@@ -524,3 +524,7 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   exits 2 with ONLY the pre-review review leg failing (scope green, NC
   replayed RED/GREEN, 4 FRESH records). Task completed, worker released.
 - I364ff dispatched: integrate-364ff spec (union + gates + PR + bot reconcile).
+  task_2cf0696054bf → ctx_e33a714da22c (term_83144519).
+- PARALLEL MERGE 09:04 IST: PR #394 (repo-images, other agent) merged as 8d53321
+  into BASE; local spec commit rebased clean (no conflicts, validate green) and
+  pushed as f5d1a56. T6 integrator unions it in; gates re-run on the union.
