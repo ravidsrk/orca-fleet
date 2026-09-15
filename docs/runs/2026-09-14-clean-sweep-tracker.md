@@ -495,9 +495,11 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
 - V364r3 dispatched as record (task_7482f88b5c5a → ctx_84c1fe93e387,
   term_1ad270ef; supersedes blocked task_8bbd650d5c5e whose snapshot predates
   the record-posting amendment).
-- T6 build-364ff spec written (C-FF1 prove-it scoping + libcst row, C-FF2
-  oncall-it scoping + venv row, C-FF3 suite green + V2 rows hold; NC revert the
+- T6 build-364ff spec written (C-1 prove-it scoping + libcst row, C-2
+  oncall-it scoping + venv row, C-3 suite green + V2 rows hold; NC revert the
   two case files). Branch u364ff-venv-globs + build worker next.
+  AMENDED: C-FF1..3 → C-1..3 (C-FF shape fails verify.py CRIT_ID_RE; caught by
+  the builder pre-PR — contract amendment with new digest, disclosed).
 - T6 BUILD dispatched: worktree u364ff-venv-globs @87fd2a2 (cleaned orca
   scaffold package.json + pnpm-lock; branch renamed off the ravidsrk/ prefix),
   task_d139018c1bae → ctx_49242f543cbd (term_715fc281), binding source
@@ -509,3 +511,10 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   excluded with reasons). Task completed, worker released.
 - B364ff asked badge Q (msg_cbed32c610b6): answered yes-badge-commit (spec's own
   mechanical-commit rule; 1339→1341). Builder in reviewing phase.
+- B364ff worker_done (msg_3a415a64f6ef): scoped prove-it/oncall-it bans (717083c)
+  + badge 1341 (eeeb38b) + manifest/NC (7ceaf5b), pushed. Red-first via real
+  oracle (libcst + Django venv excerpts); gut-one survey 12/12 red; NC exit 1
+  (14F) / clean exit 0; 1341 OK, routing 94/94, validate, gitleaks green.
+  FLAGGED: C-FF ids fail CRIT_ID_RE (blocks verify scope + NC replay) → contract
+  amended to C-1..3; micro-fix F364ff-r1 (manifest ids + verify green) next.
+  Task completed, worker released.
