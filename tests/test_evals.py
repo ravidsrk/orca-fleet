@@ -52,11 +52,14 @@ NARRATION_ONLY_CASES = {
     "root-cause": (1, 2, 3), "ship-it": (1, 2, 3), "speed-it": (1, 2, 3),
 }
 
-# #364 F1: fixtures a case's agent is REQUIRED to edit, so their checks fail before it runs by
-# design (modernize-it id-4 must move requirements.txt off the vulnerable requests pin). Only these
-# are exempt from the untouched-fixture guard; each entry needs a passability test pinning both
-# directions, and this literal is what stops the exemption growing silently.
-AGENT_MUST_EDIT = {("modernize-it", 4): {"requirements.txt"}}
+# #364 F1: fixtures a case's agent is REQUIRED to edit, and (U387G) globs over files it is REQUIRED
+# to write, so their checks fail before it runs by design (modernize-it id-4 must move
+# requirements.txt off the vulnerable requests pin; document-it id-4 must write docs/reference/,
+# and a regex glob over no files fails closed). Only these are exempt from the untouched-fixture
+# guard; each entry needs a passability test pinning both directions, and this literal is what
+# stops the exemption growing silently.
+AGENT_MUST_EDIT = {("modernize-it", 4): {"requirements.txt"},
+                   ("document-it", 4): {"docs/reference/**/*"}}
 
 # #364 V1/V2: committed workspaces, each an overlay on a case's materialized fixtures (see its
 # "_about"). They live beside this file so a case's teeth are reviewable data, not test code.
@@ -70,9 +73,12 @@ def _case(mission: str, case_id: int) -> dict:
 
 
 def _state_after(mission: str, case_id: int, write: dict | None = None,
-                 venv: bool = False, checks: list[dict] | None = None) -> list[str]:
+                 venv: bool = False, checks: list[dict] | None = None,
+                 delete: list[str] = ()) -> list[str]:
     """What the real oracle says of case `case_id` (or of `checks` alone) once `write` (path ->
-    text), and optionally the committed .venv, is laid over the fixtures it materializes."""
+    text), and optionally the committed .venv, is laid over the fixtures it materializes, and every
+    file a `delete` glob reaches is then removed (by pathlib's own glob, never the oracle's, so what
+    the removal reaches does not depend on the code under test)."""
     ev = _case(mission, case_id)
     with tempfile.TemporaryDirectory() as tmp:
         workspace = Path(tmp)
@@ -81,6 +87,8 @@ def _state_after(mission: str, case_id: int, write: dict | None = None,
         for rel, text in {**(WORKSPACES["venv"] if venv else {}), **(write or {})}.items():
             (workspace / rel).parent.mkdir(parents=True, exist_ok=True)
             (workspace / rel).write_text(text, encoding="utf-8")
+        for path in [p for pattern in delete for p in workspace.glob(pattern) if p.is_file()]:
+            path.unlink(missing_ok=True)
         return eval_mod.check_workspace_state(ev["workspace_state"] if checks is None else checks,
                                               workspace, originals)
 
@@ -247,9 +255,18 @@ class TestEvalInfrastructure(unittest.TestCase):
                     exempt = AGENT_MUST_EDIT.get((d.name, ev["id"]), set())
                     own = [c for c in ev["workspace_state"]
                            if ("glob" in c or c["path"] in fixtures or c.get("exists") is False)
-                           and c.get("path") not in exempt]
+                           and (c.get("path") or c.get("glob")) not in exempt]
                     self.assertEqual(
                         eval_mod.check_workspace_state(own, workspace, originals), [])
+
+    def test_the_reference_case_fails_unwritten_and_passes_once_the_page_is_written(self):
+        # U387G C-2: document-it id-4 asks for docs/reference/, which no fixture holds, so its ban
+        # on the old page's --all flag read no page at all and doing nothing passed the case. A
+        # regex glob over no files now fails closed; a page true to cli.py passes every check.
+        self.assertEqual(_labels(_state_after("document-it", 4)),
+                         ["docs/reference/**/*: not_matches"])
+        page = next(w["write"] for w in WORKSPACES["passing"] if w["mission"] == "document-it")
+        self.assertEqual(_state_after("document-it", 4, page), [])
 
     def test_the_advisory_case_fails_untouched_and_passes_once_requests_is_fixed(self):
         # #364 F1: modernize-it id-4 says "Fix every advisory" over requests==2.31.0 (ADV-1, fixed
@@ -1057,7 +1074,23 @@ class TestWorkspaceStateChecks(unittest.TestCase):
         self.assertEqual(self._failed([{"glob": "**/*.py", "matches": "@retry"}], files), [])
         self.assertEqual(len(self._failed([{"glob": "**/*.py", "not_matches": "@retry"}], files)), 1)
         self.assertEqual(self._failed([{"glob": "**/*.py", "not_matches": "@retry"}],
-                                      {"NOTES.md": "@retry"}), [])
+                                      {"NOTES.md": "@retry", "src/a.py": "ok\n"}), [])
+
+    def test_a_regex_glob_over_no_files_fails_closed(self):
+        # U387G C-2: `not_matches` over an empty match set held vacuously, so deleting the files a
+        # ban reads passed it. A regex glob needs something to read: no match, or matches only
+        # under a dependency dir, fails. `exists` keeps its meaning: an empty glob is exactly what
+        # `exists: false` asserts.
+        for check in ({"glob": "**/*.py", "not_matches": "@retry"},
+                      {"glob": "**/*.py", "matches": "def test_"}):
+            for files in ({}, {"NOTES.md": "@retry\n"},
+                          {".venv/lib/pip/retry.py": "def test_x(): pass\n"}):
+                with self.subTest(check=check, files=sorted(files)):
+                    self.assertEqual(len(self._failed([check], files)), 1)
+        self.assertEqual(self._failed([{"glob": "**/*.py", "exists": False}],
+                                      {"NOTES.md": "x\n"}), [])
+        self.assertEqual(len(self._failed([{"glob": "**/*.py", "exists": True}],
+                                          {"NOTES.md": "x\n"})), 1)
 
     def test_every_failing_check_is_reported_with_its_reason(self):
         failed = self._failed([
@@ -1138,10 +1171,11 @@ class TestCasesCatchTheirViolation(unittest.TestCase):
 
     def test_a_venv_beside_a_root_cause_fix_passes_the_deflake_case(self):
         # V1: `python -m venv .venv` in the workspace is doctrine-following, and pip's own code
-        # carries Retry( and @retry. The committed excerpt must really hit the ban, every copy of
-        # it (R364r2 N3: one per glob), or its passing proves nothing about how the ban is scoped.
+        # carries Retry( and @retry. The committed excerpt must really hit the ban, or its passing
+        # proves nothing about how the ban is scoped (U387G: one `**/*.py` glob, the venv kept out
+        # by DEPENDENCY_DIRS rather than by a narrower glob).
         bans = [c for c in _case("deflake-it", 4)["workspace_state"] if "glob" in c]
-        self.assertEqual([c["glob"] for c in bans], ["tests/**/*.py", "src/**/*.py", "*.py"])
+        self.assertEqual([c["glob"] for c in bans], ["**/*.py"])
         sources = {rel: text for rel, text in WORKSPACES["venv"].items() if rel.endswith(".py")}
         self.assertEqual(len(sources), 7)
         for rel, text in sources.items():
@@ -1152,10 +1186,10 @@ class TestCasesCatchTheirViolation(unittest.TestCase):
 
     def test_a_venv_holding_pytest_beside_the_fix_passes_the_harden_case(self):
         # R364r2 F-1, V1's class: pytest's own sources name @unittest.skip and pytest.mark.skip.
-        # Each committed excerpt must hit every copy of harden-it's skip ban, so the venv passing
-        # shows the ban is scoped to the case's tree, not that it stopped catching real skips.
+        # Each committed excerpt must hit harden-it's skip ban, so the venv passing shows the ban
+        # skips dependency dirs, not that it stopped catching real skips.
         bans = [c for c in _case("harden-it", 4)["workspace_state"] if "glob" in c]
-        self.assertEqual([c["glob"] for c in bans], ["tests/**/*.py", "app/**/*.py", "*.py"])
+        self.assertEqual([c["glob"] for c in bans], ["**/*.py"])
         self.assertEqual(len(WORKSPACES["pytest"]), 4)
         for rel, text in WORKSPACES["pytest"].items():
             for ban in bans:
@@ -1166,30 +1200,29 @@ class TestCasesCatchTheirViolation(unittest.TestCase):
 
     def test_a_venv_holding_mutmut_beside_the_fix_passes_the_prove_case(self):
         # SPEC-r3 F-1 on PR #395, V1's class: mutmut needs libcst, whose own tests spell
-        # `assert True`. Each committed excerpt must hit every copy of prove-it's tautology ban,
-        # so the venv passing shows the ban is scoped to the case's tree, not that it went blind.
+        # `assert True`. Each committed excerpt must hit prove-it's tautology ban, so the venv
+        # passing shows the ban skips dependency dirs, not that it went blind.
         self.assertEqual(_state_after("prove-it", 4, {**WORKSPACES["libcst"],
                                                       **WORKSPACES["prove_fix"]}, venv=True), [])
         bans = [c for c in _case("prove-it", 4)["workspace_state"] if "glob" in c]
-        self.assertEqual([c["glob"] for c in bans], ["tests/**/*.py", "src/**/*.py", "*.py"] * 2)
+        self.assertEqual([c["glob"] for c in bans], ["**/*.py"] * 2)
         self.assertEqual(len(WORKSPACES["libcst"]), 2)
         for rel, text in WORKSPACES["libcst"].items():
-            for ban in bans[3:]:
+            for ban in bans[1:]:
                 with self.subTest(path=rel, glob=ban["glob"]):
                     self.assertRegex(text, ban["not_matches"])
 
     def test_a_venv_holding_django_beside_the_fix_passes_the_oncall_case(self):
         # SPEC-r3 F-1's class in oncall-it: Django's own logging and auth code names email on a
-        # log line. Each committed excerpt must hit every copy of the PII ban; nothing installed
-        # was found to hit the label ban, which is scoped on the same pass.
+        # log line. Each committed excerpt must hit the PII ban; nothing installed was found to
+        # hit the label ban, which skips dependency dirs the same way.
         self.assertEqual(_state_after("oncall-it", 4, {**WORKSPACES["django"],
                                                        **WORKSPACES["oncall_fix"]}, venv=True), [])
         bans = [c for c in _case("oncall-it", 4)["workspace_state"] if "glob" in c]
-        self.assertEqual([c["glob"] for c in bans],
-                         ["tests/**/*.py", "service/**/*.py", "*.py"] * 2)
+        self.assertEqual([c["glob"] for c in bans], ["**/*.py"] * 2)
         self.assertEqual(len(WORKSPACES["django"]), 2)
         for rel, text in WORKSPACES["django"].items():
-            for ban in bans[:3]:
+            for ban in bans[:1]:
                 with self.subTest(path=rel, glob=ban["glob"]):
                     self.assertRegex(text, ban["not_matches"])
 
@@ -1254,6 +1287,146 @@ class TestCasesCatchTheirViolation(unittest.TestCase):
                 self.assertEqual(_labels(failed), [] if holds else ["requirements.txt: matches"],
                                  failed)
                 self.assertTrue(all("django" in f for f in failed), failed)
+
+
+# U387G C-1: the cases whose bans read every first-party .py file, each with the installed code
+# (tests/eval_workspaces.json) a real environment for it carries beside the committed .venv.
+PY_BAN_CASES = {("deflake-it", 4): (), ("harden-it", 4): ("pytest",),
+                ("oncall-it", 4): ("django",), ("prove-it", 4): ("libcst",)}
+DOCUMENTED_DEPENDENCY_DIRS = {"venv", ".venv", "env", ".env", "virtualenv", "site-packages",
+                              "dist-packages", "node_modules", ".git", "__pycache__"}
+
+
+class TestGlobScope(unittest.TestCase):
+    """U387G C-1 (Greptile 4011878433, 4011878440 on PR #387): #364 kept a venv out of the .py
+    bans by scoping each one to tests/, one package dir and the root, which blinded every other
+    first-party dir, so a violation in app/ or lib/ passed. Each ban reads `**/*.py` again, and one
+    documented denylist in scripts/eval.py keeps dependency dirs out of every glob."""
+
+    BAN = {"glob": "**/*.py", "not_matches": "BANNED"}
+
+    def _failed(self, files, check=None):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            for rel, text in files.items():
+                (root / rel).parent.mkdir(parents=True, exist_ok=True)
+                (root / rel).write_text(text, encoding="utf-8")
+            return eval_mod.check_workspace_state([check or self.BAN], root, {})
+
+    def test_the_denylist_is_the_documented_set(self):
+        self.assertEqual(set(eval_mod.DEPENDENCY_DIRS), DOCUMENTED_DEPENDENCY_DIRS)
+        source = (ROOT / "scripts" / "eval.py").read_text(encoding="utf-8")
+        above = source[:source.index("DEPENDENCY_DIRS = ")]
+        doc = above[above.rindex("\n\n"):]  # the comment block directly above the constant
+        for name in sorted(DOCUMENTED_DEPENDENCY_DIRS):
+            with self.subTest(dir=name):
+                self.assertIn(f"`{name}`", doc, f"{name} is excluded but not documented")
+
+    def test_a_glob_reads_nothing_under_a_dependency_dir_at_any_depth(self):
+        for name in sorted(DOCUMENTED_DEPENDENCY_DIRS):
+            with self.subTest(dir=name):
+                self.assertEqual(self._failed({
+                    f"{name}/pkg/mod.py": "BANNED\n",
+                    f"services/api/{name}/pkg/mod.py": "BANNED\n",
+                    "src/app.py": "clean\n",
+                }), [])
+
+    def test_the_denylist_names_whole_directories_not_substrings(self):
+        # A module named like a dependency dir, or a dir whose name only contains one, is
+        # first-party code, and a file named .env is still a file a glob reads. A clean first-party
+        # file sits beside each one so the match set is never empty: an empty set fails closed on
+        # its own, which let a denylist matching substrings (over-excluding environment/) pass.
+        for rel in ("src/env.py", "src/venv.py", "environment/config.py",
+                    "app/venv_tools/mod.py", "lib/git/hooks.py"):
+            with self.subTest(path=rel):
+                self.assertEqual(len(self._failed({rel: "BANNED\n", "src/app.py": "clean\n"})), 1)
+        self.assertEqual(self._failed({".env": "API_KEY=x\n"},
+                                      {"glob": "**/.env", "matches": "API_KEY"}), [])
+
+    def test_every_py_ban_ignores_installed_code_and_catches_app_and_lib(self):
+        # The red-first fixture, per ban: (a) the committed .venv plus the case's installed
+        # excerpts, which hit its bans verbatim, must pass it; (b) every violating row it fails,
+        # moved under app/ or lib/ beside that installed code, must still fail it.
+        for (mission, case_id), extras in sorted(PY_BAN_CASES.items()):
+            installed = {rel: text for key in extras for rel, text in WORKSPACES[key].items()}
+            rows = [w for w in WORKSPACES["violating"] if (w["mission"], w["id"]) == (mission, case_id)]
+            bans = [c for c in _case(mission, case_id)["workspace_state"] if "glob" in c]
+            self.assertTrue(bans, f"{mission} has no glob ban")
+            for i, ban in enumerate(bans):
+                with self.subTest(mission=mission, ban=i, workspace="installed code only"):
+                    self.assertEqual(
+                        _state_after(mission, case_id, installed, venv=True, checks=[ban]), [])
+                caught = [w for w in rows
+                          if _state_after(mission, case_id, w["write"], w.get("venv", False), [ban])]
+                self.assertTrue(caught, f"{mission} ban {i}: no violating row fails it")
+                for w in caught:
+                    for pkg in ("app", "lib"):
+                        moved = {(f"{pkg}/{rel}" if rel.endswith(".py") else rel): text
+                                 for rel, text in w["write"].items()}
+                        with self.subTest(mission=mission, ban=i, violation=w["violation"], into=pkg):
+                            self.assertTrue(
+                                _state_after(mission, case_id, {**installed, **moved}, venv=True,
+                                             checks=[ban]),
+                                f"the violation moved under {pkg}/ passed the ban")
+
+
+# U387G C-2: every case with a matches/not_matches glob, surveyed at 9a115f7. Deleting the files
+# its regex globs read empties their match sets. A path check on one of those files already failed
+# deflake-it, harden-it, map-it, migrate-it and prove-it; oncall-it (globs only) and document-it
+# (whose glob reads pages the agent must write) passed until an empty match set failed closed.
+# attest-it's only glob asserts `exists: false`, which an empty match set is meant to pass.
+REGEX_GLOB_CASES = {("deflake-it", 4), ("document-it", 4), ("harden-it", 4), ("map-it", 4),
+                    ("migrate-it", 4), ("oncall-it", 4), ("prove-it", 4)}
+PATH_ANCHORED_CASES = REGEX_GLOB_CASES - {("document-it", 4), ("oncall-it", 4)}
+# The doctrine-following overlay tests/eval_workspaces.json holds for a case, where there is one.
+FIX_OVERLAYS = {("deflake-it", 4): "deflake_fix", ("harden-it", 4): "harden_fix",
+                ("oncall-it", 4): "oncall_fix", ("prove-it", 4): "prove_fix"}
+
+
+def _regex_globs(ev: dict) -> list[str]:
+    return [c["glob"] for c in ev.get("workspace_state") or []
+            if "glob" in c and ("matches" in c or "not_matches" in c)]
+
+
+class TestDeleteToPass(unittest.TestCase):
+    """U387G C-2 (Greptile 4011297664 on PR #387): a glob `not_matches` over an empty match set
+    held vacuously (`any([])` is False), so deleting the files a ban reads passed the ban. Whether
+    that passed the whole case turned on its path checks, so every case is tested, not assumed."""
+
+    def test_the_surveyed_cases_are_every_case_with_a_regex_glob(self):
+        found = {(d.name, ev["id"]) for d in sorted(SKILLS.iterdir())
+                 if (d / "evals" / "evals.json").exists()
+                 for ev in eval_mod.load_json(d / "evals" / "evals.json")["evals"]
+                 if _regex_globs(ev)}
+        self.assertEqual(found, REGEX_GLOB_CASES)
+
+    def test_deleting_the_globbed_files_never_passes_a_case(self):
+        # From every workspace the suite holds for the case (untouched, violating, passing, the
+        # fix), delete every file its regex globs reach: the case must still fail.
+        for mission, case_id in sorted(REGEX_GLOB_CASES):
+            starts = [("untouched fixtures", {}, False)]
+            starts += [(w.get("violation") or w["name"], w["write"], w.get("venv", False))
+                       for w in WORKSPACES["violating"] + WORKSPACES["passing"]
+                       if (w["mission"], w["id"]) == (mission, case_id)]
+            if (mission, case_id) in FIX_OVERLAYS:
+                starts.append(("the fix, a .venv beside it",
+                               WORKSPACES[FIX_OVERLAYS[(mission, case_id)]], True))
+            globs = _regex_globs(_case(mission, case_id))
+            for name, write, venv in starts:
+                with self.subTest(mission=mission, start=name):
+                    self.assertTrue(_state_after(mission, case_id, write, venv, delete=globs),
+                                    "the case passed with every file its regex globs read deleted")
+
+    def test_a_path_check_alone_fails_each_guarded_case_after_the_delete(self):
+        # The guards: these cases failed post-delete before any fix, on a path check. Their path
+        # checks alone must still fail the deleted workspace, so the guard holds on its anchor and
+        # not only on the fail-closed glob; neutering the anchor turns this row red.
+        for mission, case_id in sorted(PATH_ANCHORED_CASES):
+            ev = _case(mission, case_id)
+            paths = [c for c in ev["workspace_state"] if "path" in c]
+            with self.subTest(mission=mission):
+                self.assertTrue(_state_after(mission, case_id, checks=paths,
+                                             delete=_regex_globs(ev)))
 
 
 class TestWorkspaceStateSchema(unittest.TestCase):
