@@ -33,7 +33,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | T6 | #364 | prove-it/oncall-it venv glob scoping (U364 fix-forward) | real-bug (evals) | t | t | t | t | t | t | lit | — | PR #397 MERGED 01d954e @2967804 (reviewed==head; GO 5205447863; merged ~7min pre-verdict, disclosed); verify 6/6 incl. Greptile-APPROVED review leg; remediates U364 SPEC-r3 F-1 |
 | — | #235 | H-02 marketplace submissions (pre-parked needs-human) | needs-human | — | — | — | — | — | — | needs-human: external accounts | prior run + issue text |
 | T7 | #393 | mixed-version rollout lock (opportunistic sidecar + test) | real-bug | t | t | t | t | t | t | lit | needs-human: post-merge independent APPROVE (2nd login) for verify review leg (run_0607bdc681e6) | V393-r1 GO 5206137160 @7630815 (F1+P1 close-owed, P2 FIFO accepted low-sev Optional → backlog); MERGED 6d9e46a; verify 5/6 (review RED, parked); #393 CLOSED with evidence |
-| T8 | #387-threads | ledger/process remediation (parks, u385 tree, templates, close doc) | process | t | t | t | f | f | f | lit | — | PR #403 (u387p-process) @7f52bf6: V387P-r2 NO-GO (TA-R1 park-class pin; Greptile APPROVED held); r3 fix live (park pin + ask text + 4 adjacent); 2 thread replies OWED conductor-side pre-merge |
+| T8 | #387-threads | ledger/process remediation (parks, u385 tree, templates, close doc) | process | t | t | t | f | f | f | lit | — | PR #403 (u387p-process) @19be7a1 (r2 batch landed: TA-R1 pin, G3 refs+ASK, park-scope, note fix); Greptile APPROVED 5206957088, no new findings; 3 r3 axes live; 2 thread replies OWED conductor-side pre-merge |
 | T9 | #387-threads | eval-glob holes (T6 regression: app//lib/ miss; empty-glob survey) | real-bug (evals) | t | t | t | t | t | t | lit | needs-human: post-merge independent APPROVE (2nd login) for verify review leg (run_0607bdc681e6) | V387G-r2 GO 5206446623 @318542b (delta: T9 byte-identical, badge 1360 recomputed, 1360 OK); MERGED a769a64e (--match-head-commit + --delete-branch, branch 404); verify 5/6 (review RED, parked); manifest closed (head re-bind 0a3f4ab→318542b, 3 coordinator re-runs: 109/validate/1360); worktree retired |
 | T10 | #387-threads | WIP-curve rows: scope to canonical section (U389 residual) | real-bug | t | t | t | f | f | f | lit | — | PR #401 (u387w-wipsection) @04b780f: V387W-r2 NO-GO (P1 Required fail-open+closed, M7a-d/M8/M9 survivors); r3 fix live (plain-para setext + witnesses + look-alikes); 2 thread replies OWED conductor-side pre-merge |
 
@@ -916,3 +916,14 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   manifest re-bind, optionals, outside nits, FYIs. Fix spec fix-387w-r3.md
   frozen (step-5 corrected to option-A; prose-drift guard added).
   Dispatched.
+- FIX387P-r3 worker_done (msg_f1f176165e33, released, verified): PR #403
+  @19be7a1 (union 2f8312c over 34c05f1 + 6 commits per worker list,
+  4142b63→19be7a1 manifest-only; origin==PR head, mergeable clean).
+  Gates re-ran coordinator-side @19be7a1: probe 0/4 + validate.
+  Manifest checks (head=4142b63 code tip, C-1..C-5, NC 1/0, 4 cmds
+  bound 8cd7601; 2d fix confirmed — 'nine hand mutants', the 3 '2 hand
+  mutants' hits are '22 hand mutants' substrings). Greptile APPROVED
+  5206957088 @19be7a1, no new findings. NO posts (2 P2 thread replies
+  owed coordinator-side pre-merge). R387P-r3 specs frozen (copies +
+  retarget 19be7a1 + batch-verify + approval-confirm); 3 axes
+  dispatched.
