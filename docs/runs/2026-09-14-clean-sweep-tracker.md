@@ -646,3 +646,5 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   retrofixable). Fixed the template (tracker-writes consent) + all future
   instantiations carry it. 1 dangling pr-open receipt c5db3155 (coordinator
   validation probe, no send) stays in the chain, documented here.
+- I393 dispatched: integrate-393 spec (union + gates + PR + bot reconcile).
+  task_70df62d85fd6 → ctx_d7b0bde3cdb1 (claude, unit worktree).
