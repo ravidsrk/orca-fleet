@@ -1055,3 +1055,12 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   axes dispatched (spec task_118a47023ba5→ctx_4d2baada35f1, test
   task_463e851be337→ctx_2976a70e271f, standards task_4adfc0b77e68→
   ctx_c7862b21d964).
+- R387W-r4 1/3 in: SPEC 0 Required (1 Nit S4-1: empty list item +
+  blank keeps column open — same class as r3 F-1; only non-indented-
+  code divergence in a 151,981-shape oracle sweep; needs a fix-or-
+  record decision). C-1..C-4 met; 1376 OK re-ran; no scope creep.
+  Greptile P1 4013782318 FALSE-POSITIVE (truncation only from kept;
+  all 15 Greptile shapes oracle-agree; 0 indented-break divergences;
+  other 5,906 = pre-existing indented-code FYI). 4 threads owed
+  coordinator replies. Released. TEST + STANDARDS out — T10 GO in
+  reach.
