@@ -439,3 +439,4 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   in-thread 4010718894: agent-authored record IS fabrication per GAP doctrine).
   Task completed, worker released. F364r3 spec (django tighten + rows) written
   + dispatched — pre-review fix to save a NO-GO cycle.
+  task_31e81b93ffcb → ctx_5d85c985b894 (term_cddc7408).
