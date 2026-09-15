@@ -1352,3 +1352,11 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   RED 20/20 each per builder + transcripts. Pushed bare u393-race (egressed)
   -> PR #404 head 55ef070. R2 axes dispatched (spec task_2d4987c1e714, test
   task_b4d523a17f0a, standards task_c20a33d202b9).
+- R393R-r2 IN: SPEC 1 Required (residual doc omits corruption+poisoning —
+  forced demo corrupts JSON, tearing append silent, later appends record
+  nothing) + 2 FYI; TEST 0/0 (N-1 stand-in vacuity, N-2 X6, 2 Optional);
+  STANDARDS 1 Required (S-1 = N-1 same root: os.fdopen refactor + M1 passes
+  31/31) + 2 Optional + 2 Nit. V393R-r2 NO-GO, review 5211964513 COMMENTED
+  @55ef070 (verified: 3 reviews, correct first line; no new bot comments;
+  P1 stays accepted). Batch: RQ-1 full residual outcomes + RQ-2 fired-
+  assertion + S-3 docstring. FIX393R-r3 dispatched (spec d849a90).
