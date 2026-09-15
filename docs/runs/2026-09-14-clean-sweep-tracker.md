@@ -749,6 +749,14 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
 - V387G-r1 GO (msg_ebce7e2f778a, review 5206253681 COMMENTED @15d0eea,
   released, verified): 0 Required all axes + bot none. REVIEWED flag HELD at f
   (head moved by reunion — flips at r2 GO).
+- V387P-r1 NO-GO (msg_2ed7a42929d3, review 5206282948 COMMENTED @ed8a7c5,
+  released, verified): 4 Required (TEST F1/F2 probe strength, STANDARDS R-1
+  reattach + R-2 T3-ref) + 2 VALID bot P2s; batch has 5 items (reattach,
+  M^2-fallback, C-4 probe bodies, C-1 probe contract+cites+flags+F3/F4,
+  T3-ref). Conductor wrote gate-batch.md G1-G4 (T3 ask lives at G3 — the
+  verdict's excluded conductor-side item). Fix spec fix-387p-r2.md frozen.
+  Dispatched. Coordinator chore: integrate-template bot step now says to
+  re-read the PR body (#402 lesson).
 - MERGE TRAIN T9: PR #402 mergeable:false — badge-count conflict only (1358 vs
   1351). Coordinator re-union (merge --no-ff, NOT rebase — branch history is
   evidence; deviation from merge-serialization's letter recorded here):

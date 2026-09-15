@@ -24,9 +24,11 @@ STEPS:
    baseRefName == review/2026-09-14-holistic-fixes from the create output; anything else
    is a STOP.
 6) BOT reconcile (Greptile): poll gh pr checks + review comments every ~30s, floor 2-3
-   min, cap 10 min. Cap elapsed with no bot = log did-not-run, proceed. Ingest each bot
-   comment: VALID or FALSE-POSITIVE with a recorded reason. HOLD the VALID set (do not
-   change code); report it in worker_done for batching with the internal review.
+   min, cap 10 min. ALSO re-read the PR BODY at the end (Greptile sometimes edits the
+   body with its summary instead of posting comments — seen on #402: 5/5 clean lived
+   only in the body). Cap elapsed with no bot = log did-not-run, proceed. Ingest each
+   bot comment: VALID or FALSE-POSITIVE with a recorded reason. HOLD the VALID set (do
+   not change code); report it in worker_done for batching with the internal review.
 7) worker_done: PR number + head SHA + bot verdict (did-not-run | none | held VALID list)
    + merge-base ancestry line. Omit --to. Preamble --from + --dispatch-capability on
    every send; consumer_fenced = stop, no worker_done.
