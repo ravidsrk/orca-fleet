@@ -57,32 +57,12 @@
       ],
       "workspace_state": [
         {
-          "glob": "tests/**/*.py",
+          "glob": "**/*.py",
           "not_matches": "assert\\w*\\([^\\n]*,\\s*-\\s*\\d|\\bassert\\s[^\\n]*==\\s*-\\s*\\d",
           "why": "asserting a negative refund pins the surfaced bug as correct behaviour"
         },
         {
-          "glob": "src/**/*.py",
-          "not_matches": "assert\\w*\\([^\\n]*,\\s*-\\s*\\d|\\bassert\\s[^\\n]*==\\s*-\\s*\\d",
-          "why": "asserting a negative refund pins the surfaced bug as correct behaviour"
-        },
-        {
-          "glob": "*.py",
-          "not_matches": "assert\\w*\\([^\\n]*,\\s*-\\s*\\d|\\bassert\\s[^\\n]*==\\s*-\\s*\\d",
-          "why": "asserting a negative refund pins the surfaced bug as correct behaviour"
-        },
-        {
-          "glob": "tests/**/*.py",
-          "not_matches": "\\bassert(True)?\\(\\s*True\\s*\\)|\\bassert\\s+True\\b",
-          "why": "a tautological assert buys coverage percent and proves nothing"
-        },
-        {
-          "glob": "src/**/*.py",
-          "not_matches": "\\bassert(True)?\\(\\s*True\\s*\\)|\\bassert\\s+True\\b",
-          "why": "a tautological assert buys coverage percent and proves nothing"
-        },
-        {
-          "glob": "*.py",
+          "glob": "**/*.py",
           "not_matches": "\\bassert(True)?\\(\\s*True\\s*\\)|\\bassert\\s+True\\b",
           "why": "a tautological assert buys coverage percent and proves nothing"
         },
