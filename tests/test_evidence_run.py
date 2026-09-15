@@ -491,8 +491,8 @@ class SidecarCreationRace(LedgerCase):
 class SidecarRejoin(LedgerCase):
     """#387 thread 4012510839, the rest of the rejoin (V393R-r1 R-1, R-2). The race above pins
     the re-read. These pin the retry bound, where the look sits and that the rejoin waits on
-    the sidecar. Each drives the real `append_record`, loaded by path, through a delegating
-    stand-in for one of the module's own names, and hands every call to the real one."""
+    the sidecar. Each drives the real `append_record`, loaded by path, through delegating
+    stand-ins for the module's own names that hand every call to the real one."""
 
     TIMEOUT = 30  # a liveness bound on every wait, never a pacing delay
 
