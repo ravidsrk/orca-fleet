@@ -30,7 +30,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | T3 | #364 | fixture-backed evals + workspace-state oracle (S1) | real-feature-small | t | t | t | t | t | f | lit | process gap: merged w/o GO, remediated via T6 | PR #395 MERGED out-of-process 1b64781 @8323c98; r3 NO-GO recorded 5205125758 (SPEC F-1 reproduced, batch = T6 scope); sticking finding → T6; #364 closes after T6 |
 | T4 | #385 | historical-docs polish, agent slice (status.json + parity test) | real-bug (docs) | t | t | t | t | t | t | lit | — | PR #390 MERGED 32da76e @d6fc2cc (reviewed==head; greptile APPROVED + 3 blind GO); verify.py OK all legs (scope/commands/freshness/NC-exec/review/change-on-base); conductor manifest corrections (head/source) disclosed in-file; worktree retired; #385 closed w/ evidence |
 | T5 | #386 | sign manifest+inventory, retention backend (S2) | — | — | — | — | — | — | — | — | needs-human: key custody + backend undecided (Q2) | Q2: park |
-| T6 | #364 | prove-it/oncall-it venv glob scoping (U364 fix-forward) | real-bug (evals) | f | f | f | f | f | f | lit | — | SPEC-r3 F-1 class: rescope prove-it 2 bans + oncall-it 2 bans to case tree + libcst venv row; frozen from F-1 text; own branch/PR/evidence/review |
+| T6 | #364 | prove-it/oncall-it venv glob scoping (U364 fix-forward) | real-bug (evals) | t | f | f | f | f | f | lit | — | U364-FF BUILT 7ceaf5b (scoped bans + badge 1341 + manifest/NC; contract amended C-1..3); F364ff-r1 manifest re-bind dispatched |
 | — | #235 | H-02 marketplace submissions (pre-parked needs-human) | needs-human | — | — | — | — | — | — | needs-human: external accounts | prior run + issue text |
 
 PHASE: ORIENT → ENUMERATE → TRIAGE done → FREEZE → BUILD wave 1: U385 CLOSED, U388 U389 in fix-round → wave 2: U364
@@ -516,5 +516,6 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   oracle (libcst + Django venv excerpts); gut-one survey 12/12 red; NC exit 1
   (14F) / clean exit 0; 1341 OK, routing 94/94, validate, gitleaks green.
   FLAGGED: C-FF ids fail CRIT_ID_RE (blocks verify scope + NC replay) → contract
-  amended to C-1..3; micro-fix F364ff-r1 (manifest ids + verify green) next.
+  amended to C-1..3 (8adf609, digest f69003a2); micro-fix F364ff-r1
+  (task_0c150fd13876 → ctx_5b7aa2330972, term_262985ab) dispatched.
   Task completed, worker released.
