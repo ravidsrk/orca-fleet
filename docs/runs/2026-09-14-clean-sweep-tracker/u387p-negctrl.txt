@@ -111,3 +111,290 @@ exit=0
 $ git show 8241aab:docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/conductor-close.md | grep -c option-A   # C-4
 1
 exit=0
+
+# ===== ROUND 2 (fix-387p-r2.md; V387P-r1 NO-GO, review 5206282948 @ed8a7c5) =====
+# Union e7fb91d over BASE 889a794 first (conflict-free). Probe strengthened in a632f43 (TEST F1 rule
+# bodies + CLOSE steps, F2 park classes parsed from runtime/ledger-contract.md + refs + flags, F3 missing
+# files fail, F4 worker_done flags scoped to the contract block); fixes 2c029dd (M^2 fallback), c8a52a5
+# (T3 ref -> gate-batch.md G3), 708b5a8 (reattach rule + template ref). Round-1 sections above are history.
+
+## R2 RED-FIRST at union tip e7fb91d with the round-2 probe (content as committed in a632f43), before any fix
+$ sh docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh   # e7fb91d + a632f43 probe, no fix applied
+[T3 park does not point at gate-batch.md G3]
+FAIL: C-1 ledger park/ref/flag check (errors above)
+head_sha=d6fc2cc head_tree=4ee55a0 rev-parse=4ee55a0 reviewed_wtree=4ee55a0
+ok: C-2 u385 head_tree == git rev-parse head_sha^{tree}
+FAIL: C-3 [TARGET reattach note does not name conductor-close.md reattach]
+FAIL: C-4 conductor-close.md missing: [ledger-contract MERGED = merge-commit (not squash)] [A squash, rebase or fast-forward merge has no M^2] [STOP and raise a human gate] [never derive T another way] [- reattach. Review workers check out the reviewed SHA] [they leave it detached, commit nothing, and say so in worker_done] [reattaches BEFORE the first commit] [git rev-parse HEAD == the expected tip] [never commit on a detached HEAD]
+u387p probes: 3 failed of 4
+exit=1  (PRE-FIX: expected NONZERO)
+
+# U387P round-2 negative controls — worktree: git worktree add --detach <scratch>/nc-387p-r2 708b5a877ce2f1edf56201b13e8f877813a863ee (code tip)
+# base_sha 9a115f7579232f50b913ce84515e3964f8b68b33; NC-COMMAND: sh docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh (round-2 probe, a632f43)
+# Each hand mutant also runs the round-1 probe (ed8a7c5) to show what the strengthening adds.
+
+## R2-NC-1 tool=revert: the C-1..C-3 fixes restored from base_sha (negative_control.paths)
+$ git checkout 9a115f7579232f50b913ce84515e3964f8b68b33 -- docs/runs/2026-09-14-clean-sweep-tracker.md docs/runs/2026-09-14-clean-sweep-tracker/u385-manifest.json docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/review-template.md
+ docs/runs/2026-09-14-clean-sweep-tracker.md        | 190 +--------------------
+ .../taskspecs/review-template.md                   |  28 +--
+ .../u385-manifest.json                             |   4 +-
+ 3 files changed, 12 insertions(+), 210 deletions(-)
+$ sh docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh   # C-1..C-3 fixes REVERTED
+[T1 park class 'proof-park' not in ledger-contract] [T2 park class 'proof-park' not in ledger-contract] [T3 park class 'proof-park' not in ledger-contract] [T1 park lacks run ref run_0607bdc681e6] [T2 park lacks run ref run_0607bdc681e6] [T3 park lacks run ref run_0607bdc681e6] [T3 park does not point at gate-batch.md G3] [T3 evidence lacks T6 GO 5205447863]
+FAIL: C-1 ledger park/ref/flag check (errors above)
+head_sha=d6fc2cc head_tree=022dc9a rev-parse=4ee55a0 reviewed_wtree=4ee55a0
+FAIL: C-2 u385 head_tree does not match git rev-parse head_sha^{tree}
+FAIL: C-3 [malformed separator or 'as usual' present] [no TARGET fetch && checkout line] [TARGET reattach note does not name conductor-close.md reattach] [no WORKER_DONE CONTRACT block] [worker_done contract lacks --outcome succeeded|failed] [worker_done contract lacks --report-path] [worker_done contract lacks --files-modified] [worker_done contract lacks --from] [worker_done contract lacks --dispatch-capability]
+ok: C-4 conductor-close.md CLOSE steps 1-7 + option-A, union, out-of-process, reattach bodies
+u387p probes: 3 failed of 4
+exit=1  (REVERTED: expected NONZERO)
+
+## R2-NC-2 tool=hand: conductor-close.md removed (round-1 NC-2)
+$ git rm -q docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/conductor-close.md
+ 1 file changed, 80 deletions(-)
+round-1 probe (ed8a7c5:docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh): u387p probes: 1 failed of 4 / exit=1
+$ sh docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh   # round-2 probe, mutant applied
+
+ok: C-1 T-row parks in ledger-contract classes; T1-T3 run ref; T3 G3 ref + T6 GO; T1-T4 flags = base
+head_sha=d6fc2cc head_tree=4ee55a0 rev-parse=4ee55a0 reviewed_wtree=4ee55a0
+ok: C-2 u385 head_tree == git rev-parse head_sha^{tree}
+ok: C-3 review template TARGET line + reattach ref + explicit worker_done contract
+FAIL: C-4 docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/conductor-close.md does not exist
+u387p probes: 1 failed of 4
+exit=1  (MUTANT: expected NONZERO)
+
+## R2-NC-3 tool=hand: option-A rule line deleted (round-1 NC-3)
+$ sed -i '' '/^- option-A (self-reference)/d' docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/conductor-close.md
+ 1 file changed, 1 deletion(-)
+round-1 probe (ed8a7c5:docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh): u387p probes: 1 failed of 4 / exit=1
+$ sh docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh   # round-2 probe, mutant applied
+
+ok: C-1 T-row parks in ledger-contract classes; T1-T3 run ref; T3 G3 ref + T6 GO; T1-T4 flags = base
+head_sha=d6fc2cc head_tree=4ee55a0 rev-parse=4ee55a0 reviewed_wtree=4ee55a0
+ok: C-2 u385 head_tree == git rev-parse head_sha^{tree}
+ok: C-3 review template TARGET line + reattach ref + explicit worker_done contract
+FAIL: C-4 conductor-close.md missing: [- option-A (self-reference). A commit cannot name its own SHA]
+u387p probes: 1 failed of 4
+exit=1  (MUTANT: expected NONZERO)
+
+## R2-C1a tool=hand: T1 park class 'needs-human' -> bogus 'waived'
+$ python3 <scratch>/edit.py sub docs/runs/2026-09-14-clean-sweep-tracker.md | T1 | | lit | needs-human: | lit | waived:
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+round-1 probe (ed8a7c5:docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh): u387p probes: 0 failed of 4 / exit=0
+$ sh docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh   # round-2 probe, mutant applied
+[T1 park class 'waived' not in ledger-contract]
+FAIL: C-1 ledger park/ref/flag check (errors above)
+head_sha=d6fc2cc head_tree=4ee55a0 rev-parse=4ee55a0 reviewed_wtree=4ee55a0
+ok: C-2 u385 head_tree == git rev-parse head_sha^{tree}
+ok: C-3 review template TARGET line + reattach ref + explicit worker_done contract
+ok: C-4 conductor-close.md CLOSE steps 1-7 + option-A, union, out-of-process, reattach bodies
+u387p probes: 1 failed of 4
+exit=1  (MUTANT: expected NONZERO)
+
+## R2-C1b tool=hand: T1 REVIEWED flag t -> f (column 8)
+$ python3 <scratch>/edit.py sub docs/runs/2026-09-14-clean-sweep-tracker.md | T1 | | real-bug | t | t | t | t | | real-bug | t | t | t | f |
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+round-1 probe (ed8a7c5:docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh): u387p probes: 0 failed of 4 / exit=0
+$ sh docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh   # round-2 probe, mutant applied
+[T1 columns 1-11 differ from base 9a115f7]
+FAIL: C-1 ledger park/ref/flag check (errors above)
+head_sha=d6fc2cc head_tree=4ee55a0 rev-parse=4ee55a0 reviewed_wtree=4ee55a0
+ok: C-2 u385 head_tree == git rev-parse head_sha^{tree}
+ok: C-3 review template TARGET line + reattach ref + explicit worker_done contract
+ok: C-4 conductor-close.md CLOSE steps 1-7 + option-A, union, out-of-process, reattach bodies
+u387p probes: 1 failed of 4
+exit=1  (MUTANT: expected NONZERO)
+
+## R2-C1c tool=hand: T2 run ref dropped from the park cell
+$ python3 <scratch>/edit.py sub docs/runs/2026-09-14-clean-sweep-tracker.md '| T2 |' ' · ref run_0607bdc681e6 human gate (U389 close, loop log)' ''
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+round-1 probe (ed8a7c5:docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh): u387p probes: 0 failed of 4 / exit=0
+$ sh docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh   # round-2 probe, mutant applied
+[T2 park lacks run ref run_0607bdc681e6]
+FAIL: C-1 ledger park/ref/flag check (errors above)
+head_sha=d6fc2cc head_tree=4ee55a0 rev-parse=4ee55a0 reviewed_wtree=4ee55a0
+ok: C-2 u385 head_tree == git rev-parse head_sha^{tree}
+ok: C-3 review template TARGET line + reattach ref + explicit worker_done contract
+ok: C-4 conductor-close.md CLOSE steps 1-7 + option-A, union, out-of-process, reattach bodies
+u387p probes: 1 failed of 4
+exit=1  (MUTANT: expected NONZERO)
+
+## R2-C1d tool=hand: T3 evidence loses the T6 GO 5205447863 citation
+$ python3 <scratch>/edit.py sub docs/runs/2026-09-14-clean-sweep-tracker.md | T3 | met by T6 GO 5205447863 + verify 6/6 met by verify 6/6
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+round-1 probe (ed8a7c5:docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh): u387p probes: 0 failed of 4 / exit=0
+$ sh docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh   # round-2 probe, mutant applied
+[T3 evidence lacks T6 GO 5205447863]
+FAIL: C-1 ledger park/ref/flag check (errors above)
+head_sha=d6fc2cc head_tree=4ee55a0 rev-parse=4ee55a0 reviewed_wtree=4ee55a0
+ok: C-2 u385 head_tree == git rev-parse head_sha^{tree}
+ok: C-3 review template TARGET line + reattach ref + explicit worker_done contract
+ok: C-4 conductor-close.md CLOSE steps 1-7 + option-A, union, out-of-process, reattach bodies
+u387p probes: 1 failed of 4
+exit=1  (MUTANT: expected NONZERO)
+
+## R2-C1e tool=hand: T3 ref back to '(U364 close, loop log)' (round-1 text)
+$ python3 <scratch>/edit.py sub docs/runs/2026-09-14-clean-sweep-tracker.md | T3 | (docs/runs/2026-09-14-clean-sweep-tracker/gate-batch.md G3) (U364 close, loop log)
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+round-1 probe (ed8a7c5:docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh): u387p probes: 0 failed of 4 / exit=0
+$ sh docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh   # round-2 probe, mutant applied
+[T3 park does not point at gate-batch.md G3]
+FAIL: C-1 ledger park/ref/flag check (errors above)
+head_sha=d6fc2cc head_tree=4ee55a0 rev-parse=4ee55a0 reviewed_wtree=4ee55a0
+ok: C-2 u385 head_tree == git rev-parse head_sha^{tree}
+ok: C-3 review template TARGET line + reattach ref + explicit worker_done contract
+ok: C-4 conductor-close.md CLOSE steps 1-7 + option-A, union, out-of-process, reattach bodies
+u387p probes: 1 failed of 4
+exit=1  (MUTANT: expected NONZERO)
+
+## R2-C1f tool=hand: ledger file removed (TEST F3)
+$ git rm -q docs/runs/2026-09-14-clean-sweep-tracker.md
+ 1 file changed, 790 deletions(-)
+round-1 probe (ed8a7c5:docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh): u387p probes: 0 failed of 4 / exit=0
+$ sh docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh   # round-2 probe, mutant applied
+[docs/runs/2026-09-14-clean-sweep-tracker.md missing]
+FAIL: C-1 ledger park/ref/flag check (errors above)
+head_sha=d6fc2cc head_tree=4ee55a0 rev-parse=4ee55a0 reviewed_wtree=4ee55a0
+ok: C-2 u385 head_tree == git rev-parse head_sha^{tree}
+ok: C-3 review template TARGET line + reattach ref + explicit worker_done contract
+ok: C-4 conductor-close.md CLOSE steps 1-7 + option-A, union, out-of-process, reattach bodies
+u387p probes: 1 failed of 4
+exit=1  (MUTANT: expected NONZERO)
+
+## R2-C3a tool=hand: WORKER_DONE CONTRACT header renamed, flags left elsewhere in the file (TEST F4)
+$ python3 <scratch>/edit.py sub docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/review-template.md WORKER_DONE CONTRACT ( WORKER_DONE CONTRACT ( NOTES (
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+round-1 probe (ed8a7c5:docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh): u387p probes: 0 failed of 4 / exit=0
+$ sh docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh   # round-2 probe, mutant applied
+
+ok: C-1 T-row parks in ledger-contract classes; T1-T3 run ref; T3 G3 ref + T6 GO; T1-T4 flags = base
+head_sha=d6fc2cc head_tree=4ee55a0 rev-parse=4ee55a0 reviewed_wtree=4ee55a0
+ok: C-2 u385 head_tree == git rev-parse head_sha^{tree}
+FAIL: C-3 [no WORKER_DONE CONTRACT block] [worker_done contract lacks --outcome succeeded|failed] [worker_done contract lacks --report-path] [worker_done contract lacks --files-modified] [worker_done contract lacks --from] [worker_done contract lacks --dispatch-capability]
+ok: C-4 conductor-close.md CLOSE steps 1-7 + option-A, union, out-of-process, reattach bodies
+u387p probes: 1 failed of 4
+exit=1  (MUTANT: expected NONZERO)
+
+## R2-C3b tool=hand: review template restored to round-1 ed8a7c5 (reattach promise, no rule named)
+$ git checkout -q ed8a7c5f0c92ad093a82339d7d87743581fd4511 -- docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/review-template.md
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+round-1 probe (ed8a7c5:docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh): u387p probes: 0 failed of 4 / exit=0
+$ sh docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh   # round-2 probe, mutant applied
+
+ok: C-1 T-row parks in ledger-contract classes; T1-T3 run ref; T3 G3 ref + T6 GO; T1-T4 flags = base
+head_sha=d6fc2cc head_tree=4ee55a0 rev-parse=4ee55a0 reviewed_wtree=4ee55a0
+ok: C-2 u385 head_tree == git rev-parse head_sha^{tree}
+FAIL: C-3 [TARGET reattach note does not name conductor-close.md reattach]
+ok: C-4 conductor-close.md CLOSE steps 1-7 + option-A, union, out-of-process, reattach bodies
+u387p probes: 1 failed of 4
+exit=1  (MUTANT: expected NONZERO)
+
+## R2-C4a tool=hand: union-invalidates rule deleted (header + body)
+$ python3 <scratch>/edit.py cut docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/conductor-close.md - union-invalidates. - out-of-process-merge. 0
+ 1 file changed, 6 deletions(-)
+round-1 probe (ed8a7c5:docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh): u387p probes: 0 failed of 4 / exit=0
+$ sh docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh   # round-2 probe, mutant applied
+
+ok: C-1 T-row parks in ledger-contract classes; T1-T3 run ref; T3 G3 ref + T6 GO; T1-T4 flags = base
+head_sha=d6fc2cc head_tree=4ee55a0 rev-parse=4ee55a0 reviewed_wtree=4ee55a0
+ok: C-2 u385 head_tree == git rev-parse head_sha^{tree}
+ok: C-3 review template TARGET line + reattach ref + explicit worker_done contract
+FAIL: C-4 conductor-close.md missing: [- union-invalidates. A merge of BASE into the unit branch (a union) changes the tree under every earlier binding] [they are STALE until re-run at the post-union tip] [never count as fresh]
+u387p probes: 1 failed of 4
+exit=1  (MUTANT: expected NONZERO)
+
+## R2-C4b tool=hand: option-A body gutted (rule line kept)
+$ python3 <scratch>/edit.py cut docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/conductor-close.md - option-A (self-reference). - union-invalidates. 1
+ 1 file changed, 7 deletions(-)
+round-1 probe (ed8a7c5:docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh): u387p probes: 0 failed of 4 / exit=0
+$ sh docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh   # round-2 probe, mutant applied
+
+ok: C-1 T-row parks in ledger-contract classes; T1-T3 run ref; T3 G3 ref + T6 GO; T1-T4 flags = base
+head_sha=d6fc2cc head_tree=4ee55a0 rev-parse=4ee55a0 reviewed_wtree=4ee55a0
+ok: C-2 u385 head_tree == git rev-parse head_sha^{tree}
+ok: C-3 review template TARGET line + reattach ref + explicit worker_done contract
+FAIL: C-4 conductor-close.md missing: [at BUILD the worker sets head_sha = its last CONTENT commit] [At CLOSE the conductor re-binds head_sha to the reviewed tip]
+u387p probes: 1 failed of 4
+exit=1  (MUTANT: expected NONZERO)
+
+## R2-C4c tool=hand: out-of-process-merge body gutted (rule line kept)
+$ python3 <scratch>/edit.py cut docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/conductor-close.md - out-of-process-merge. - reattach. 1
+ 1 file changed, 6 deletions(-)
+round-1 probe (ed8a7c5:docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh): u387p probes: 0 failed of 4 / exit=0
+$ sh docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh   # round-2 probe, mutant applied
+
+ok: C-1 T-row parks in ledger-contract classes; T1-T3 run ref; T3 G3 ref + T6 GO; T1-T4 flags = base
+head_sha=d6fc2cc head_tree=4ee55a0 rev-parse=4ee55a0 reviewed_wtree=4ee55a0
+ok: C-2 u385 head_tree == git rev-parse head_sha^{tree}
+ok: C-3 review template TARGET line + reattach ref + explicit worker_done contract
+FAIL: C-4 conductor-close.md missing: [is disclosed, not normalised] [re-verify from step 1 at that merge's tip]
+u387p probes: 1 failed of 4
+exit=1  (MUTANT: expected NONZERO)
+
+## R2-C4d tool=hand: CLOSE step 3 deleted
+$ python3 <scratch>/edit.py cut docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/conductor-close.md 3) Append coordinator records 4) Re-bind 0
+ 1 file changed, 4 deletions(-)
+round-1 probe (ed8a7c5:docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh): u387p probes: 0 failed of 4 / exit=0
+$ sh docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh   # round-2 probe, mutant applied
+
+ok: C-1 T-row parks in ledger-contract classes; T1-T3 run ref; T3 G3 ref + T6 GO; T1-T4 flags = base
+head_sha=d6fc2cc head_tree=4ee55a0 rev-parse=4ee55a0 reviewed_wtree=4ee55a0
+ok: C-2 u385 head_tree == git rev-parse head_sha^{tree}
+ok: C-3 review template TARGET line + reattach ref + explicit worker_done contract
+FAIL: C-4 conductor-close.md missing: [3) Append coordinator records] [Builder records at older trees STAY as true history]
+u387p probes: 1 failed of 4
+exit=1  (MUTANT: expected NONZERO)
+
+## R2-C4e tool=hand: CLOSE step 5 deleted
+$ python3 <scratch>/edit.py cut docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/conductor-close.md 5) pr fill 6) verify.py 0
+ 1 file changed, 5 deletions(-)
+round-1 probe (ed8a7c5:docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh): u387p probes: 0 failed of 4 / exit=0
+$ sh docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh   # round-2 probe, mutant applied
+
+ok: C-1 T-row parks in ledger-contract classes; T1-T3 run ref; T3 G3 ref + T6 GO; T1-T4 flags = base
+head_sha=d6fc2cc head_tree=4ee55a0 rev-parse=4ee55a0 reviewed_wtree=4ee55a0
+ok: C-2 u385 head_tree == git rev-parse head_sha^{tree}
+ok: C-3 review template TARGET line + reattach ref + explicit worker_done contract
+FAIL: C-4 conductor-close.md missing: [5) pr fill] [pr.reviewed_sha := T]
+u387p probes: 1 failed of 4
+exit=1  (MUTANT: expected NONZERO)
+
+## R2-C4f tool=hand: reattach rule deleted
+$ python3 <scratch>/edit.py cut docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/conductor-close.md - reattach.  0
+ 1 file changed, 9 deletions(-)
+round-1 probe (ed8a7c5:docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh): u387p probes: 0 failed of 4 / exit=0
+$ sh docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh   # round-2 probe, mutant applied
+
+ok: C-1 T-row parks in ledger-contract classes; T1-T3 run ref; T3 G3 ref + T6 GO; T1-T4 flags = base
+head_sha=d6fc2cc head_tree=4ee55a0 rev-parse=4ee55a0 reviewed_wtree=4ee55a0
+ok: C-2 u385 head_tree == git rev-parse head_sha^{tree}
+ok: C-3 review template TARGET line + reattach ref + explicit worker_done contract
+FAIL: C-4 conductor-close.md missing: [- reattach. Review workers check out the reviewed SHA] [they leave it detached, commit nothing, and say so in worker_done] [reattaches BEFORE the first commit] [git rev-parse HEAD == the expected tip] [never commit on a detached HEAD]
+u387p probes: 1 failed of 4
+exit=1  (MUTANT: expected NONZERO)
+
+## R2-C4g tool=hand: conductor-close.md restored to round-1 ed8a7c5 (no M^2 fallback, no reattach rule)
+$ git checkout -q ed8a7c5f0c92ad093a82339d7d87743581fd4511 -- docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/conductor-close.md
+ 1 file changed, 1 insertion(+), 15 deletions(-)
+round-1 probe (ed8a7c5:docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh): u387p probes: 0 failed of 4 / exit=0
+$ sh docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh   # round-2 probe, mutant applied
+
+ok: C-1 T-row parks in ledger-contract classes; T1-T3 run ref; T3 G3 ref + T6 GO; T1-T4 flags = base
+head_sha=d6fc2cc head_tree=4ee55a0 rev-parse=4ee55a0 reviewed_wtree=4ee55a0
+ok: C-2 u385 head_tree == git rev-parse head_sha^{tree}
+ok: C-3 review template TARGET line + reattach ref + explicit worker_done contract
+FAIL: C-4 conductor-close.md missing: [ledger-contract MERGED = merge-commit (not squash)] [A squash, rebase or fast-forward merge has no M^2] [STOP and raise a human gate] [never derive T another way] [- reattach. Review workers check out the reviewed SHA] [they leave it detached, commit nothing, and say so in worker_done] [reattaches BEFORE the first commit] [git rev-parse HEAD == the expected tip] [never commit on a detached HEAD]
+u387p probes: 1 failed of 4
+exit=1  (MUTANT: expected NONZERO)
+
+## clean head
+$ git status --porcelain
+$ sh docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh   # clean head 708b5a8
+
+ok: C-1 T-row parks in ledger-contract classes; T1-T3 run ref; T3 G3 ref + T6 GO; T1-T4 flags = base
+head_sha=d6fc2cc head_tree=4ee55a0 rev-parse=4ee55a0 reviewed_wtree=4ee55a0
+ok: C-2 u385 head_tree == git rev-parse head_sha^{tree}
+ok: C-3 review template TARGET line + reattach ref + explicit worker_done contract
+ok: C-4 conductor-close.md CLOSE steps 1-7 + option-A, union, out-of-process, reattach bodies
+u387p probes: 0 failed of 4
+exit=0  (CLEAN HEAD: expected ZERO)

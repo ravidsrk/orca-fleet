@@ -3,13 +3,13 @@
   "unit": "U387P",
   "unit_class": "build-change",
   "base_sha": "9a115f7579232f50b913ce84515e3964f8b68b33",
-  "head_sha": "8241aabbadac7cf7d25e9f04942be0e953480ec2",
-  "head_tree": "642c4f1ae45de643459099d1e24760d71c9d8706",
-  "head_sha_role": "option-A (taskspecs/conductor-close.md): head_sha is the code tip 8241aab, the last CONTENT commit (1b40b43 probe, 91640d6 C-1, 7bc6336 C-3, 7f84b63 C-4, 8241aab C-2). The commit that adds this manifest and u387p-negctrl.txt follows head_sha and cannot name its own SHA, and commands[] cannot bind the tree of a commit that contains those records; its SHA is named in worker_done and the conductor re-binds head_sha/head_tree to the reviewed tip at close (conductor-close.md step 4). Every commands[] record was made on the clean tree of head_sha: wtree 642c4f1 == git rev-parse 8241aab^{tree}.",
+  "head_sha": "708b5a877ce2f1edf56201b13e8f877813a863ee",
+  "head_tree": "7b9816639e32c0f3ff8c0f54917bafc9cb69319d",
+  "head_sha_role": "option-A (taskspecs/conductor-close.md), round 2: head_sha is the code tip 708b5a8, the last CONTENT commit of round 2 (e7fb91d union over BASE 889a794, a632f43 probe, 2c029dd M^2 fallback, c8a52a5 T3 ref, 708b5a8 reattach rule). fix-387p-r2.md step 5 asks for head_sha := the pushed tip including the manifest commit; that cannot be implemented (a manifest cannot name the SHA of the commit that contains it, and check_commands binds every commands[] wtree to head_sha^{tree}, which a commit carrying those records never has), so option-A holds: the pushed manifest-commit tip is named in worker_done and the conductor re-binds at close (step 4). Coordinator RULING (A) CONFIRMED on ask msg_7e11076aae7f: step 5's instruction is superseded by option-A. Every commands[] record was made on the clean tree of head_sha: wtree 7b98166 == git rev-parse 708b5a8^{tree}. Round 1's head 8241aab (wtree 642c4f1) and its records are superseded (union-invalidates).",
   "base_branch": "review/2026-09-14-holistic-fixes",
-  "base_note": "Dispatched at 9a115f7 (worktree HEAD at dispatch; the contract spec commit 719d997 is its ancestor). No union, no rebase: base_sha..head_sha is linear with no merge commits.",
+  "base_note": "Dispatched at 9a115f7 (worktree HEAD at dispatch; the contract spec commit 719d997 is its ancestor). base_sha..head_sha is not linear: ed8a7c5 (conductor union over BASE 5174ed4, round 1) and e7fb91d (round-2 union over BASE 889a794, fix-387p-r2 step 1, conflict-free: the ledger auto-merged keeping the branch's T1-T4 edits and BASE's newer rows and loop-log bullets) are merge commits, so the range also carries BASE's own changes. The unit's own delta is git diff 889a794 708b5a8: the seven docs/runs files in files{}, nothing else. The revert control names negative_control.paths, which verify.py restores from base_sha on a non-linear range.",
   "branch": "ravidsrk/u387p-process",
-  "claim": "T1/T2/T3 park as needs-human (a ledger-contract class) with their existing ask and a run ref; u385 head_tree names d6fc2cc's tree 4ee55a0; the review template carries a 'git fetch origin && git checkout <sha>' TARGET line and a spelled-out worker_done contract; taskspecs/conductor-close.md documents CLOSE and the option-A, union-invalidates and out-of-process-merge rules. Process records only: no code, tests, evals or badges changed.",
+  "claim": "T1/T2/T3 park as needs-human (a ledger-contract class) with their existing ask and a run ref; u385 head_tree names d6fc2cc's tree 4ee55a0; the review template carries a 'git fetch origin && git checkout <sha>' TARGET line and a spelled-out worker_done contract; taskspecs/conductor-close.md documents CLOSE and the option-A, union-invalidates and out-of-process-merge rules. Process records only: no code, tests, evals or badges changed. Round 2: conductor-close.md step 1 fails closed when the merge has no M^2 (unit PRs merge with --merge, citing ledger-contract MERGED = merge-commit) and a reattach rule defines who reattaches a review-detached worktree; the review template names that rule; T3's needs-human ref names gate-batch.md G3; the probe validates park classes parsed from ledger-contract.md, refs, T1-T4 flags against base, and each CLOSE step and rule body.",
   "contract": {
     "source": "docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/build-387-process.md@719d997be28476c382660f3f37d829e597130ce9",
     "digest": "sha256:d2b868060256e8ff541121e8eb1897d9f94b7d3e0eccf45f02e068313414331f",
@@ -27,10 +27,10 @@
       "id": "C-1",
       "text": "T1/T2/T3 park reads `needs-human:` + the existing ask text + run ref; no other flag changes; T3 evidence cites T6 GO 5205447863; T4 evidence notes the C-2 correction. No `proof-park` remains in the ledger.",
       "addressed": true,
-      "commit": "91640d6",
-      "change": "T1/T2/T3 park cell: 'proof-park: needs post-merge independent APPROVE (2nd login) for verify review leg' -> 'needs-human: needs post-merge independent APPROVE (2nd login) for verify review leg · ref run_0607bdc681e6 human gate (U388|U389|U364 close, loop log)'. T1/T2 evidence gains the DEFENDED trace (REVIEWED=t is the build-blind GO at reviewed==head; the independence bar is the disclosed RED review leg under the needs-human park). T3 evidence cites the maintainer condition (reply 4011794979) met by T6 GO 5205447863 + verify 6/6. T4 evidence notes the u385 head_tree correction 022dc9a -> 4ee55a0. Flag columns 1-11 of T1-T4 are byte-identical at base and head (sha256 of the cut, both revisions).",
-      "witness": "docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh C-1 block: no ledger T-row park cell (column 12) reads proof-park. Scoped per the coordinator ruling: the word also appears in T8's own row evidence and in frozen loop-log line 589, neither of which is a park.",
-      "red_first": "at base 9a115f7: \"FAIL: C-1 3 T-row park cell(s) still read proof-park\""
+      "commit": "91640d6, c8a52a5",
+      "change": "T1/T2/T3 park cell: 'proof-park: needs post-merge independent APPROVE (2nd login) for verify review leg' -> 'needs-human: needs post-merge independent APPROVE (2nd login) for verify review leg · ref run_0607bdc681e6 human gate (U388|U389|U364 close, loop log)'. T1/T2 evidence gains the DEFENDED trace (REVIEWED=t is the build-blind GO at reviewed==head; the independence bar is the disclosed RED review leg under the needs-human park). T3 evidence cites the maintainer condition (reply 4011794979) met by T6 GO 5205447863 + verify 6/6. T4 evidence notes the u385 head_tree correction 022dc9a -> 4ee55a0. Flag columns 1-11 of T1-T4 are byte-identical at base and head (sha256 of the cut, both revisions). Round 2 (c8a52a5, STANDARDS R-2): T3 park ref '(U364 close, loop log)' -> '(docs/runs/2026-09-14-clean-sweep-tracker/gate-batch.md G3)', the conductor-written 2nd-login ask that lists #395 U364 8323c98 (the loop-log entry named before holds no ask).",
+      "witness": "u387p-probe.sh C-1 block (round 2): parses the class names from the '## Park classes' table of runtime/ledger-contract.md and requires every T-row park cell (column 12) to be empty/'—' or '<class>: ...' with <class> in that set; 13 cells per T-row; T1/T2/T3 park cells carry run_0607bdc681e6; T3 park names 'gate-batch.md G3' and gate-batch.md has a '## G3 ' entry; T3 evidence carries 'T6 GO 5205447863'; T1-T4 columns 1-11 equal git show 9a115f7:<ledger>; a missing ledger, contract or gate file FAILs. It does not check T4's evidence note text.",
+      "red_first": "round 1 at base 9a115f7: \"FAIL: C-1 3 T-row park cell(s) still read proof-park\"; round 2 at union e7fb91d with the a632f43 probe: \"[T3 park does not point at gate-batch.md G3]\" / \"FAIL: C-1 ledger park/ref/flag check (errors above)\""
     },
     {
       "id": "C-2",
@@ -52,27 +52,27 @@
       "id": "C-3",
       "text": "review-template.md carries a TARGET line with a correct separator (`git fetch origin && git checkout <sha>`) and an explicit worker_done contract (`--outcome succeeded|failed`, `--report-path`, `--files-modified`, preamble `--from`/`--dispatch-capability`); no \"as usual\" remains.",
       "addressed": true,
-      "commit": "7bc6336",
-      "change": "New TARGET block (PR/HEAD/BRANCH filled at dispatch; 'git fetch origin && git checkout <sha>' then assert git rev-parse HEAD == <sha>; failed/misplaced checkout = STOP). Both 'Contract flags as usual' lines replaced by 'Follow the WORKER_DONE CONTRACT below'; new WORKER_DONE CONTRACT block: preamble --from/--dispatch-capability on every send/ask/check; worker_done exactly once with --task-id + --dispatch-id and --outcome succeeded|failed (with their meanings); --report-path; --files-modified omitted (reviewers change nothing; a changed file is named and is a STOP); 3-sentence --body; idle after; consumer_fenced = stop. The verdict worker_done also names the posted review id.",
-      "witness": "u387p-probe.sh C-3 block: no 'fetch origin +' or 'as usual'; 'git fetch origin && git checkout' present; each of --outcome succeeded|failed, --report-path, --files-modified, --from, --dispatch-capability present. Stronger than the spec's absence-only grep.",
-      "red_first": "at base 9a115f7: \"FAIL: C-3 [malformed separator or 'as usual' present] [no TARGET fetch && checkout line] [worker_done contract lacks --outcome succeeded|failed] [worker_done contract lacks --report-path] [worker_done contract lacks --files-modified] [worker_done contract lacks --from] [worker_done contract lacks --dispatch-capability]\""
+      "commit": "7bc6336, 708b5a8",
+      "change": "New TARGET block (PR/HEAD/BRANCH filled at dispatch; 'git fetch origin && git checkout <sha>' then assert git rev-parse HEAD == <sha>; failed/misplaced checkout = STOP). Both 'Contract flags as usual' lines replaced by 'Follow the WORKER_DONE CONTRACT below'; new WORKER_DONE CONTRACT block: preamble --from/--dispatch-capability on every send/ask/check; worker_done exactly once with --task-id + --dispatch-id and --outcome succeeded|failed (with their meanings); --report-path; --files-modified omitted (reviewers change nothing; a changed file is named and is a STOP); 3-sentence --body; idle after; consumer_fenced = stop. The verdict worker_done also names the posted review id. Round 2 (708b5a8, STANDARDS R-1 = SPEC F-1 = Greptile 4012397534): the TARGET note no longer promises 'the conductor reattaches the branch'; reviewers leave HEAD detached, say so in worker_done, and the note names the conductor-close.md reattach rule.",
+      "witness": "u387p-probe.sh C-3 block (round 2): file-wide, no 'fetch origin +' or 'as usual' and a 'git fetch origin && git checkout' line; the TARGET block (line starting TARGET to the next blank line) names conductor-close.md then reattach; a WORKER_DONE CONTRACT block (header to the next blank line) exists and contains each of --outcome succeeded|failed, --report-path, --files-modified, --from, --dispatch-capability (TEST F4: flags grepped in that block only); missing file FAILs. Flag presence only, not the stated meanings.",
+      "red_first": "at base 9a115f7: \"FAIL: C-3 [malformed separator or 'as usual' present] [no TARGET fetch && checkout line] [worker_done contract lacks --outcome succeeded|failed] [worker_done contract lacks --report-path] [worker_done contract lacks --files-modified] [worker_done contract lacks --from] [worker_done contract lacks --dispatch-capability]\"; round 2 at union e7fb91d: \"FAIL: C-3 [TARGET reattach note does not name conductor-close.md reattach]\""
     },
     {
       "id": "C-4",
       "text": "new taskspecs/conductor-close.md documents CLOSE (clean-worktree re-runs at the merge tip, coordinator records appended, head/head_tree re-bind, pr fill, verify.py, chore(run) commit), the option-A rule (head_sha = code tip at build; conductor re-binds to the reviewed tip at close — a commit cannot name its own SHA), the union-invalidates rule (pre-union bindings are stale until re-run at the tip), and the out-of-process-merge rule (disclose actor + re-verify, T6 precedent).",
       "addressed": true,
-      "commit": "7f84b63",
-      "change": "New taskspecs/conductor-close.md: actor (the coordinator itself), when, inputs, CLOSE steps 1-7 (resolve tip T = M^2 and assert == reviewed_sha; re-run in a clean worktree at the merge tip via evidence-run.py; append coordinator records; re-bind head_sha/head_tree recomputed from git; pr fill + pending SHAs + contract.source correction; verify.py with the per-leg outcome recorded and a RED review leg parked needs-human; one chore(run) commit) and RULES option-A, union-invalidates, out-of-process-merge with U388/U389/T6/U364 precedents.",
-      "witness": "u387p-probe.sh C-4 block: the file exists and names option-A, union-invalidates, out-of-process-merge, clean worktree, head_tree, verify.py, chore(run).",
-      "red_first": "at base 9a115f7: \"FAIL: C-4 docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/conductor-close.md does not exist\"",
-      "control": "negative_control.second_witness (hand: file removed -> RED; option-A rule line deleted -> RED); not witnessed by the replayed revert control (new file)"
+      "commit": "7f84b63, 2c029dd, 708b5a8",
+      "change": "New taskspecs/conductor-close.md: actor (the coordinator itself), when, inputs, CLOSE steps 1-7 (resolve tip T = M^2 and assert == reviewed_sha; re-run in a clean worktree at the merge tip via evidence-run.py; append coordinator records; re-bind head_sha/head_tree recomputed from git; pr fill + pending SHAs + contract.source correction; verify.py with the per-leg outcome recorded and a RED review leg parked needs-human; one chore(run) commit) and RULES option-A, union-invalidates, out-of-process-merge with U388/U389/T6/U364 precedents. Round 2: step 1 (2c029dd, Greptile 4012397546 = SPEC F-3) says M must be a merge commit (ledger-contract MERGED = merge-commit (not squash); unit PRs merge with gh pr merge --merge only); a squash, rebase or fast-forward merge has no M^2, is non-conforming, and STOPs with a human gate; T is never derived another way. RULES gain reattach (708b5a8): reviewers leave the worktree detached and say so; whoever commits next there (fix builder, or conductor/integrator making a union) checks porcelain, checks out the unit branch and asserts branch + expected tip before the first commit; any mismatch is a STOP.",
+      "witness": "u387p-probe.sh C-4 block (round 2): the file exists and its whitespace-collapsed text contains 31 literal anchors: each CLOSE step number + title (1-7) with one or two key sentences, the M^2 fallback sentences, and the rule name + key body sentences of option-A, union-invalidates, out-of-process-merge and reattach (TEST F1). Anchors, not full text: unanchored sentences (e.g. the precedents, step 2's evidence-run.py detail, step 7's push/retire) can change without RED.",
+      "red_first": "at base 9a115f7: \"FAIL: C-4 docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/conductor-close.md does not exist\"; round 2 at union e7fb91d: \"FAIL: C-4 conductor-close.md missing:\" the four M^2-fallback and five reattach anchors",
+      "control": "negative_control.second_witness: 9 hand mutants on conductor-close.md (file removed, option-A line deleted, union-invalidates rule deleted, option-A and out-of-process bodies gutted, CLOSE steps 3 and 5 deleted, reattach rule deleted, round-1 text restored), all RED; not witnessed by the replayed revert control (new file)"
     },
     {
       "id": "C-5",
       "text": "`python3 -m unittest discover -s tests` and `scripts/validate.py` green.",
       "addressed": true,
-      "commit": "8241aab",
-      "witness": "commands[] at head_sha 8241aab (wtree 642c4f1): full-suite 'Ran 1349 tests in 262.338s' / 'OK' exit 0; validate 'All 21 missions valid; three-layer separation holds; evals valid.' exit 0. Test count unchanged (no test added or removed; validate.py badge freshness green, so no badge regen)."
+      "commit": "708b5a8",
+      "witness": "commands[] at head_sha 708b5a8 (wtree 7b98166): full-suite 'Ran 1351 tests in 252.503s' / 'OK' exit 0; validate 'All 21 missions valid; three-layer separation holds; evals valid.' exit 0. This unit adds or removes no test (1351 is BASE 889a794's count, badge brought by the union); validate.py badge freshness green, so no badge regen."
     }
   ],
   "intent": {
@@ -82,59 +82,59 @@
   },
   "verify": {
     "cli": "python3 runtime/scripts/verify.py --manifest docs/runs/2026-09-14-clean-sweep-tracker/u387p-manifest.json --contract-source <contract.source> --contract-digest <contract.digest> --nc-command 'sh docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh' --execute-nc --base review/2026-09-14-holistic-fixes --unit-class build-change",
-    "cli_result": "exit 2, and exactly the two pre-merge legs fail: 'head_sha is not an ancestor of origin/review/2026-09-14-holistic-fixes (not merged / wrong base)' and 'mutation unit: no pr.number to look up an independent review — unreviewed'. There is no PR yet; conductor-close fills pr and re-runs. Commands ledger FRESH (4 exit-0 records at 642c4f1). main() runs the NC replay only when no other invariant failed (verify.py:2071), so the pre-merge ancestry failure skips it here; it was replayed through the module instead.",
-    "module_replay": "verify.check_scope -> [] (green: C-1..C-5 addressed against build-387-process.md@719d997, digest matches); check_commands -> the FRESH note only; check_freshness -> []; check_negative_control(execute=True, nc_command out of band) -> executed_ok True: 'negative control EXECUTED — with the revert control applied at head_sha the bound command exited 1 on an assertion failure (RED, as required)' / 'the same command exits 0 at clean head_sha — the RED above is the control's doing, not a broken suite'"
+    "cli_result": "at 708b5a8 (pre-merge): exit 2, and exactly the two pre-merge legs fail: 'head_sha is not an ancestor of origin/review/2026-09-14-holistic-fixes (not merged / wrong base)' and 'mutation unit: no pr.number to look up an independent review — unreviewed' (PR #403 exists; pr.* is filled by the conductor at close). NOTE commands ledger FRESH (4 exit-0 records at 7b98166). main() runs the NC replay only when no other invariant failed, so the pre-merge ancestry failure skips it here; it was replayed through the module instead.",
+    "module_replay": "at 708b5a8: verify.check_scope -> [] (C-1..C-5 addressed against build-387-process.md@719d997, digest matches); check_commands -> the FRESH note only; check_freshness -> []; check_negative_control(execute=True, nc_command out of band) -> executed_ok True: 'negative control EXECUTED — with the revert control applied at head_sha the bound command exited 1 on an assertion failure (RED, as required)' / 'the same command exits 0 at clean head_sha — the RED above is the control's doing, not a broken suite'"
   },
   "lighting": "lit",
   "reviewer_mode": "same-vendor-fresh",
   "commands": [
     {
       "label": "validate",
-      "ts": "2026-09-15T05:33:06Z",
+      "ts": "2026-09-15T06:43:31Z",
       "cmd": "python3 scripts/validate.py",
       "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
       "exit": 0,
-      "duration_s": 0.6,
-      "commit": "8241aabbadac7cf7d25e9f04942be0e953480ec2",
-      "wtree": "642c4f1ae45de643459099d1e24760d71c9d8706",
+      "duration_s": 0.551,
+      "commit": "708b5a877ce2f1edf56201b13e8f877813a863ee",
+      "wtree": "7b9816639e32c0f3ff8c0f54917bafc9cb69319d",
       "artifact": null
     },
     {
       "label": "nc-command",
-      "ts": "2026-09-15T05:33:07Z",
+      "ts": "2026-09-15T06:43:31Z",
       "cmd": "sh docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh",
       "cmd_sha256": "4cdf8641c61c45de4a6b5e5afd56619325676589964a214e70507fbc286dc1ff",
       "exit": 0,
-      "duration_s": 0.06,
-      "commit": "8241aabbadac7cf7d25e9f04942be0e953480ec2",
-      "wtree": "642c4f1ae45de643459099d1e24760d71c9d8706",
+      "duration_s": 0.124,
+      "commit": "708b5a877ce2f1edf56201b13e8f877813a863ee",
+      "wtree": "7b9816639e32c0f3ff8c0f54917bafc9cb69319d",
       "artifact": null
     },
     {
       "label": "gitleaks",
-      "ts": "2026-09-15T05:33:07Z",
+      "ts": "2026-09-15T06:43:31Z",
       "cmd": "gitleaks detect --source . --log-opts=9a115f7579232f50b913ce84515e3964f8b68b33..HEAD --redact --no-banner",
       "cmd_sha256": "c322c4dfefd039ca5008e7740ff86b9e98373f2da3bf8751648b75db66d20a30",
       "exit": 0,
-      "duration_s": 0.03,
-      "commit": "8241aabbadac7cf7d25e9f04942be0e953480ec2",
-      "wtree": "642c4f1ae45de643459099d1e24760d71c9d8706",
+      "duration_s": 0.042,
+      "commit": "708b5a877ce2f1edf56201b13e8f877813a863ee",
+      "wtree": "7b9816639e32c0f3ff8c0f54917bafc9cb69319d",
       "artifact": null
     },
     {
       "label": "full-suite",
-      "ts": "2026-09-15T05:37:29Z",
+      "ts": "2026-09-15T06:57:28Z",
       "cmd": "python3 -m unittest discover -s tests",
       "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
       "exit": 0,
-      "duration_s": 262.506,
-      "commit": "8241aabbadac7cf7d25e9f04942be0e953480ec2",
-      "wtree": "642c4f1ae45de643459099d1e24760d71c9d8706",
+      "duration_s": 252.682,
+      "commit": "708b5a877ce2f1edf56201b13e8f877813a863ee",
+      "wtree": "7b9816639e32c0f3ff8c0f54917bafc9cb69319d",
       "artifact": null,
-      "artifact_note": "session-scratchpad tee of the full-suite output; not committed - summary inlined: 'Ran 1349 tests in 262.338s' / 'OK'"
+      "artifact_note": "output not committed (session scratch) - summary inlined: 'Ran 1351 tests in 252.503s' / 'OK'"
     }
   ],
-  "commands_note": "All four records were written by runtime/scripts/evidence-run.py on the clean tree of head_sha 8241aab (git status --porcelain --untracked-files=all empty before and after), into one scratch manifest outside the working tree, and are copied here field-for-field (artifact_note added). One more record in that scratch ledger is DROPPED: a mistyped invocation (`evidence-run.py --label full-suite ... -- true`, exit 0 in 0.003s) ran no tests and proves nothing. Its --artifact tee path resolved outside the repo to /Users/ravindra/private/tmp/x, and it created that empty file plus its two parent directories, all born 2026-09-15 11:03:07. They were removed after an audit confirmed nothing else was in them; the real full-suite record follows it. Toolchain: gitleaks scanned 5 commits, no leaks. ruff not run: no Python file changed.",
+  "commands_note": "All four records were written by runtime/scripts/evidence-run.py on the clean tree of head_sha 708b5a8 (git status --porcelain --untracked-files=all empty before and after) into scratch manifests outside the working tree and copied here field-for-field (artifact_note added). validate, nc-command and gitleaks ran in the unit worktree; full-suite ran in a clean detached scratch worktree at 708b5a8. One more full-suite record is DROPPED: the unit worktree's first run (same commit/wtree, exit 0, ts 2026-09-15T06:47:52Z) overlapped the append to u387p-negctrl.txt, so its tree was not clean for the whole run. gitleaks scanned 34 commits (the range spans both unions), no leaks. ruff not run: no Python file changed by this unit. Round-1 records at 8241aab (wtree 642c4f1) are superseded by the unions and not carried.",
   "negative_control": {
     "tool": "revert",
     "command": "sh docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh",
@@ -144,52 +144,171 @@
       "docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/review-template.md"
     ],
     "paths_note": "The three production paths whose C-1..C-3 fixes a base_sha restore can revert. conductor-close.md (C-4) is new, so git checkout base_sha -- <it> has nothing to restore; it is witnessed by second_witness. The probe script is the oracle (an input of the NC command), never a revert target (#280).",
-    "did": "Throwaway worktree detached at head_sha 8241aab: git checkout 9a115f7 -- <the three paths>; ran NC-COMMAND; git checkout HEAD -- <paths>; then the C-4 hand mutants (second_witness) each run and restored; NC-COMMAND at clean head; the spec's per-probe git show one-liners at 9a115f7 and 8241aab; git worktree remove --force.",
-    "result": "RED - exit 1 with the C-1..C-3 fixes restored from base_sha ('u387p probes: 3 failed of 4': C-1, C-2, C-3 FAIL, C-4 ok); exit 0 at clean head 8241aab ('0 failed of 4').",
+    "did": "Round 2 (u387p-negctrl.txt '===== ROUND 2'): throwaway worktree detached at head_sha 708b5a8: git checkout 9a115f7 -- <the three paths>; ran NC-COMMAND; restored; then 17 hand mutants (second_witness) each applied, run under the round-1 probe (ed8a7c5) and the round-2 probe, and restored (porcelain empty after each); NC-COMMAND at clean head; git worktree remove --force. Round 1's run at 8241aab stays above it in the transcript as history.",
+    "result": "RED - exit 1 at 708b5a8 with the C-1..C-3 fixes restored from base_sha ('u387p probes: 3 failed of 4': C-1, C-2, C-3 FAIL, C-4 ok); exit 0 at clean head 708b5a8 ('0 failed of 4').",
     "exit": 1,
     "clean_head_exit": 0,
     "artifact": "docs/runs/2026-09-14-clean-sweep-tracker/u387p-negctrl.txt",
     "transcript": [
-      "FAIL: C-1 3 T-row park cell(s) still read proof-park",
+      "[T1 park class 'proof-park' not in ledger-contract] [T2 park class 'proof-park' not in ledger-contract] [T3 park class 'proof-park' not in ledger-contract] [T1 park lacks run ref run_0607bdc681e6] [T2 park lacks run ref run_0607bdc681e6] [T3 park lacks run ref run_0607bdc681e6] [T3 park does not point at gate-batch.md G3] [T3 evidence lacks T6 GO 5205447863]",
+      "FAIL: C-1 ledger park/ref/flag check (errors above)",
       "head_sha=d6fc2cc head_tree=022dc9a rev-parse=4ee55a0 reviewed_wtree=4ee55a0",
       "FAIL: C-2 u385 head_tree does not match git rev-parse head_sha^{tree}",
-      "FAIL: C-3 [malformed separator or 'as usual' present] [no TARGET fetch && checkout line] [worker_done contract lacks --outcome succeeded|failed] [worker_done contract lacks --report-path] [worker_done contract lacks --files-modified] [worker_done contract lacks --from] [worker_done contract lacks --dispatch-capability]",
-      "ok: C-4 conductor-close.md documents CLOSE + option-A + union + out-of-process",
+      "FAIL: C-3 [malformed separator or 'as usual' present] [no TARGET fetch && checkout line] [TARGET reattach note does not name conductor-close.md reattach] [no WORKER_DONE CONTRACT block] [worker_done contract lacks --outcome succeeded|failed] [worker_done contract lacks --report-path] [worker_done contract lacks --files-modified] [worker_done contract lacks --from] [worker_done contract lacks --dispatch-capability]",
+      "ok: C-4 conductor-close.md CLOSE steps 1-7 + option-A, union, out-of-process, reattach bodies",
       "u387p probes: 3 failed of 4",
       "exit=1  (REVERTED: expected NONZERO)",
-      "clean head 8241aab: u387p probes: 0 failed of 4 / exit=0  (CLEAN HEAD: expected ZERO)"
+      "clean head 708b5a8: u387p probes: 0 failed of 4 / exit=0  (CLEAN HEAD: expected ZERO)"
     ],
     "second_witness": {
-      "criterion": "C-4",
+      "criterion": "C-1, C-3, C-4",
       "tool": "hand",
       "command": "sh docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh",
-      "did": "Same throwaway worktree at head_sha 8241aab, after the revert control was restored: (a) git rm -q taskspecs/conductor-close.md, ran NC-COMMAND, git checkout HEAD -- <it>; (b) sed deleted the '- option-A (self-reference)' rule line, ran NC-COMMAND, git checkout HEAD -- <it>. Nothing committed.",
+      "did": "Same throwaway worktree at head_sha 708b5a8, after the revert control was restored: each mutant applied by hand (git rm, sed, git checkout ed8a7c5 -- <file>, or a one-line/line-range edit), then the round-1 probe (ed8a7c5) and the NC-COMMAND run, then git checkout HEAD -- <file> with porcelain empty. Nothing committed. Exact commands and full output: u387p-negctrl.txt ROUND 2.",
       "mutants": [
         {
-          "mutant": "docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/conductor-close.md removed (66 lines)",
-          "result": "RED - exit 1, 'FAIL: C-4 docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/conductor-close.md does not exist', 1 failed of 4"
+          "id": "R2-NC-2",
+          "criterion": "C-4",
+          "mutant": "conductor-close.md removed (round-1 NC-2)",
+          "result": "RED - exit 1, 'FAIL: C-4 ... conductor-close.md does not exist', 1 failed of 4",
+          "round1_probe": "RED 1 of 4"
         },
         {
-          "mutant": "conductor-close.md:46 '- option-A (self-reference). A commit cannot name its own SHA, and a commands[] record' deleted",
-          "result": "RED - exit 1, 'FAIL: C-4 conductor-close.md missing: [option-A]', 1 failed of 4"
+          "id": "R2-NC-3",
+          "criterion": "C-4",
+          "mutant": "'- option-A (self-reference)' rule line deleted (round-1 NC-3)",
+          "result": "RED - exit 1, 'FAIL: C-4 conductor-close.md missing: [- option-A (self-reference). A commit cannot name its own SHA]', 1 failed of 4",
+          "round1_probe": "RED 1 of 4"
+        },
+        {
+          "id": "R2-C1a",
+          "criterion": "C-1",
+          "mutant": "T1 park class needs-human -> bogus 'waived'",
+          "result": "RED - exit 1, '[T1 park class 'waived' not in ledger-contract]', 1 failed of 4",
+          "round1_probe": "GREEN 0 of 4"
+        },
+        {
+          "id": "R2-C1b",
+          "criterion": "C-1",
+          "mutant": "T1 REVIEWED flag t -> f",
+          "result": "RED - exit 1, '[T1 columns 1-11 differ from base 9a115f7]', 1 failed of 4",
+          "round1_probe": "GREEN 0 of 4"
+        },
+        {
+          "id": "R2-C1c",
+          "criterion": "C-1",
+          "mutant": "T2 run ref dropped from the park cell",
+          "result": "RED - exit 1, '[T2 park lacks run ref run_0607bdc681e6]', 1 failed of 4",
+          "round1_probe": "GREEN 0 of 4"
+        },
+        {
+          "id": "R2-C1d",
+          "criterion": "C-1",
+          "mutant": "T3 evidence loses 'T6 GO 5205447863'",
+          "result": "RED - exit 1, '[T3 evidence lacks T6 GO 5205447863]', 1 failed of 4",
+          "round1_probe": "GREEN 0 of 4"
+        },
+        {
+          "id": "R2-C1e",
+          "criterion": "C-1",
+          "mutant": "T3 ref back to '(U364 close, loop log)'",
+          "result": "RED - exit 1, '[T3 park does not point at gate-batch.md G3]', 1 failed of 4",
+          "round1_probe": "GREEN 0 of 4"
+        },
+        {
+          "id": "R2-C1f",
+          "criterion": "C-1",
+          "mutant": "ledger file removed (TEST F3)",
+          "result": "RED - exit 1, '[docs/runs/2026-09-14-clean-sweep-tracker.md missing]', 1 failed of 4",
+          "round1_probe": "GREEN 0 of 4"
+        },
+        {
+          "id": "R2-C3a",
+          "criterion": "C-3",
+          "mutant": "WORKER_DONE CONTRACT header renamed, flags left in the file (TEST F4)",
+          "result": "RED - exit 1, 'FAIL: C-3 [no WORKER_DONE CONTRACT block] + the five flags', 1 failed of 4",
+          "round1_probe": "GREEN 0 of 4"
+        },
+        {
+          "id": "R2-C3b",
+          "criterion": "C-3",
+          "mutant": "review-template.md restored to round-1 ed8a7c5",
+          "result": "RED - exit 1, 'FAIL: C-3 [TARGET reattach note does not name conductor-close.md reattach]', 1 failed of 4",
+          "round1_probe": "GREEN 0 of 4"
+        },
+        {
+          "id": "R2-C4a",
+          "criterion": "C-4",
+          "mutant": "union-invalidates rule deleted",
+          "result": "RED - exit 1, 'FAIL: C-4 missing the union-invalidates rule line + 2 body anchors', 1 failed of 4",
+          "round1_probe": "GREEN 0 of 4"
+        },
+        {
+          "id": "R2-C4b",
+          "criterion": "C-4",
+          "mutant": "option-A body gutted (rule line kept)",
+          "result": "RED - exit 1, 'FAIL: C-4 missing [at BUILD the worker sets head_sha = its last CONTENT commit] [At CLOSE the conductor re-binds head_sha to the reviewed tip]', 1 failed of 4",
+          "round1_probe": "GREEN 0 of 4"
+        },
+        {
+          "id": "R2-C4c",
+          "criterion": "C-4",
+          "mutant": "out-of-process-merge body gutted (rule line kept)",
+          "result": "RED - exit 1, 'FAIL: C-4 missing [is disclosed, not normalised] [re-verify from step 1 at that merge's tip]', 1 failed of 4",
+          "round1_probe": "GREEN 0 of 4"
+        },
+        {
+          "id": "R2-C4d",
+          "criterion": "C-4",
+          "mutant": "CLOSE step 3 deleted",
+          "result": "RED - exit 1, 'FAIL: C-4 missing [3) Append coordinator records] [Builder records at older trees STAY as true history]', 1 failed of 4",
+          "round1_probe": "GREEN 0 of 4"
+        },
+        {
+          "id": "R2-C4e",
+          "criterion": "C-4",
+          "mutant": "CLOSE step 5 deleted",
+          "result": "RED - exit 1, 'FAIL: C-4 missing [5) pr fill] [pr.reviewed_sha := T]', 1 failed of 4",
+          "round1_probe": "GREEN 0 of 4"
+        },
+        {
+          "id": "R2-C4f",
+          "criterion": "C-4",
+          "mutant": "reattach rule deleted",
+          "result": "RED - exit 1, 'FAIL: C-4 missing the five reattach anchors', 1 failed of 4",
+          "round1_probe": "GREEN 0 of 4"
+        },
+        {
+          "id": "R2-C4g",
+          "criterion": "C-4",
+          "mutant": "conductor-close.md restored to round-1 ed8a7c5 (no M^2 fallback, no reattach)",
+          "result": "RED - exit 1, 'FAIL: C-4 missing the four M^2-fallback + five reattach anchors', 1 failed of 4",
+          "round1_probe": "GREEN 0 of 4"
         }
       ],
-      "note": "C-4 adds a file base_sha does not have, so no revert of a changed path can witness it; the hand mutants on that file are its control (U385 second_witness shape)."
+      "note": "All 17 mutants are RED under the round-2 probe, each on exactly the criterion it targets (the other three probes stay ok). 15 of them were GREEN under the round-1 probe, which is what TEST F1/F2/F3/F4 reported; only the round-1 controls (file removed, option-A line deleted) were already RED. C-4 adds a file base_sha does not have, so no revert of a changed path can witness it; its hand mutants are its control (U385 second_witness shape)."
     },
     "not_witnessed_by_the_control": [
       "C-4: docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/conductor-close.md (u387p-probe.sh C-4 block)"
     ],
     "not_witnessed_note": "The replayed revert control restores only the three paths base_sha has; with it applied the C-4 probe stays 'ok', and the RED comes from C-1..C-3. C-4's sensitivity is shown by second_witness (two hand mutants, both RED). C-5 is the suite + validate gate at head, not a behaviour a control reverts (U388 not_witnessed shape).",
-    "per_probe_one_liners": "u387p-negctrl.txt closing section: the spec's four `git show <rev>:<path>` probes run at base_sha 9a115f7 (C-1 count 3, C-2 022dc9a vs 4ee55a0, C-3 count 2, C-4 count 0: each exit 1) and at 8241aab (0 / match / 0 / 1: each exit 0)."
+    "per_probe_one_liners": "Round 1 only (history): u387p-negctrl.txt closing section: the spec's four `git show <rev>:<path>` probes run at base_sha 9a115f7 (C-1 count 3, C-2 022dc9a vs 4ee55a0, C-3 count 2, C-4 count 0: each exit 1) and at 8241aab (0 / match / 0 / 1: each exit 0)."
   },
   "binding_audit": {
     "coverage": "C-1..C-5 (5/5)",
-    "method": "criterion quoted, covering probe block named, expected values from independent sources (git rev-parse for trees, runtime/ledger-contract.md for park classes, the spec's literal strings for C-3/C-4); red-first at base shown for C-1..C-4 (4 failed of 4 in a clean base worktree); C-1..C-3 went RED under the replayed revert control, C-4 under two hand mutants; C-5 bound to content-fingerprinted gate records at head."
+    "method": "Criterion quoted, covering probe block named, expected values from independent sources: git rev-parse for trees (C-2); runtime/ledger-contract.md parsed at run time for park classes and git show 9a115f7 for T1-T4 columns 1-11 (C-1); the spec's and the batch's literal strings for C-3/C-4 anchors. Red-first: round 1 at base 9a115f7 (4 failed of 4); round 2 at union e7fb91d (3 failed of 4, on the unfixed batch items). Revert control RED (3 of 4, C-1..C-3); 17 hand mutants RED (C-1 x6, C-3 x2, C-4 x9), 15 of them GREEN under the round-1 probe. C-5 bound to content-fingerprinted gate records at head.",
+    "probes_check": {
+      "C-1": "parses the class names from the '## Park classes' table of runtime/ledger-contract.md and requires every T-row park cell (column 12) to be empty/'—' or '<class>: ...' with <class> in that set; 13 cells per T-row; T1/T2/T3 park cells carry run_0607bdc681e6; T3 park names 'gate-batch.md G3' and gate-batch.md has a '## G3 ' entry; T3 evidence carries 'T6 GO 5205447863'; T1-T4 columns 1-11 equal git show 9a115f7:<ledger>; a missing ledger, contract or gate file FAILs. It does not check T4's evidence note text.",
+      "C-2": "u385-manifest.json head_tree == git rev-parse head_sha^{tree} == pr.reviewed_wtree (u385 only).",
+      "C-3": "file-wide, no 'fetch origin +' or 'as usual' and a 'git fetch origin && git checkout' line; the TARGET block (line starting TARGET to the next blank line) names conductor-close.md then reattach; a WORKER_DONE CONTRACT block (header to the next blank line) exists and contains each of --outcome succeeded|failed, --report-path, --files-modified, --from, --dispatch-capability (TEST F4: flags grepped in that block only); missing file FAILs. Flag presence only, not the stated meanings.",
+      "C-4": "the file exists and its whitespace-collapsed text contains 31 literal anchors: each CLOSE step number + title (1-7) with one or two key sentences, the M^2 fallback sentences, and the rule name + key body sentences of option-A, union-invalidates, out-of-process-merge and reattach (TEST F1). Anchors, not full text: unanchored sentences (e.g. the precedents, step 2's evidence-run.py detail, step 7's push/retire) can change without RED."
+    },
+    "correction": "Round 1's method line said the probes took park classes from runtime/ledger-contract.md; the round-1 C-1 probe never read that file and only counted the word 'proof-park' in T-row park cells (TEST F2), and its C-4 probe checked seven keywords, not rule bodies or steps (TEST F1). Round 2 changes the probes to what this audit describes."
   },
   "artifacts": [
     {
       "path": "docs/runs/2026-09-14-clean-sweep-tracker/u387p-negctrl.txt",
-      "sha256": "0cdbfc820230de5a4ed24fff1ed84265b4af153fe5822c8b40afb4f78e3a60de"
+      "sha256": "147e8916574bf9ebdf925090accf2e466bd50d19b984788e511c474619201099"
     }
   ],
   "files": {
@@ -229,9 +348,39 @@
       "subject": "fix(run): u385 head_tree is d6fc2cc^{tree} 4ee55a0, not the builder tree 022dc9a (#387 threads)"
     },
     {
-      "sha": "pending",
+      "sha": "9db2b83",
       "subject": "chore(run): U387P evidence manifest + negative-control transcript (#387 threads)",
-      "note": "follows head_sha and cannot name itself (option-A); its SHA is in worker_done; the conductor fills it at close"
+      "note": "round-1 manifest commit, named here because it is now history"
+    },
+    {
+      "sha": "ed8a7c5",
+      "subject": "Merge commit '5174ed40a2613b4574a5ba70e265ce15d088991a' into ravidsrk/u387p-process",
+      "note": "conductor union, round 1"
+    },
+    {
+      "sha": "e7fb91d",
+      "subject": "Merge origin/review/2026-09-14-holistic-fixes 889a794 into ravidsrk/u387p-process (fix-387p-r2 step 1 union; conflict-free)"
+    },
+    {
+      "sha": "a632f43",
+      "subject": "test(run): U387P r2 probes check park classes from ledger-contract, rule bodies and CLOSE steps, RED at union e7fb91d (#387 threads)"
+    },
+    {
+      "sha": "2c029dd",
+      "subject": "docs(run): conductor-close step 1 fails closed when the merge has no M^2 (#387 threads, Greptile 4012397546)"
+    },
+    {
+      "sha": "c8a52a5",
+      "subject": "fix(run): T3 needs-human ref points at gate-batch.md G3, the written 2nd-login ask (#387 threads, STANDARDS R-2)"
+    },
+    {
+      "sha": "708b5a877ce2f1edf56201b13e8f877813a863ee",
+      "subject": "docs(run): conductor-close reattach rule; review template points at it instead of promising the conductor reattaches (#387 threads, Greptile 4012397534)"
+    },
+    {
+      "sha": "pending",
+      "subject": "chore(run): U387P r2 evidence manifest + negative-control transcript (#387 threads)",
+      "note": "follows head_sha and cannot name itself (option-A); its SHA is in worker_done"
     }
   ],
   "decisions": [
@@ -242,7 +391,14 @@
     "The replayable probe reads the working tree, because verify.py's revert control restores negative_control.paths into the control worktree (a git show HEAD:<path> probe would stay GREEN under it). The spec's git show <rev>:<path> one-liners are recorded separately in u387p-negctrl.txt, both directions.",
     "The C-3 probe is stronger than the spec's absence grep: it also requires the TARGET fetch && checkout line and all five worker_done flags, so deleting the new contract block alone turns it RED.",
     "T1/T2 evidence carries the DEFENDED trace (REVIEWED=t = build-blind GO at reviewed==head; independence gap = RED review leg under needs-human). Text only, no flag changed: columns 1-11 of rows T1-T4 hash identically at base and head.",
-    "option-A head: head_sha = code tip 8241aab; the manifest commit is named in worker_done and re-bound by the conductor at close."
+    "option-A head: head_sha = code tip 8241aab; the manifest commit is named in worker_done and re-bound by the conductor at close.",
+    "2026-09-15 round 2 (fix-387p-r2.md): reattached the detached worktree to ravidsrk/u387p-process at ed8a7c5 (porcelain clean) before any commit, then unioned BASE 889a794 (pinned; conflict-free) as e7fb91d.",
+    "2026-09-15 round 2: base_sha kept at dispatch 9a115f7 (U385 shape: a union inside the range, disclosed in base_note), so the revert control and the C-1 flag check keep one fixed reference.",
+    "2026-09-15 round 2: C-1 parses ledger-contract.md at run time rather than pinning its class list, so a class the contract adds or drops moves the probe with it; T1/T2 refs are checked for the run id only (the batch repoints T3 alone).",
+    "2026-09-15 round 2: C-4 anchors are matched on the whitespace-collapsed file, so re-wrapping lines stays green while deleting or gutting a step or rule goes RED.",
+    "2026-09-15 round 2: the reattach procedure is a RULE, not a CLOSE step, because it binds whoever commits in a review-touched worktree before merge (fix builder, union), which CLOSE (post-merge) never is.",
+    "2026-09-15 round 2: head_sha = code tip 708b5a8 under option-A despite fix-387p-r2 step 5's 'name the pushed tip' (unimplementable, see head_sha_role); coordinator RULING (A) CONFIRMED on ask msg_7e11076aae7f (logged in DECISIONS.md + tracker; spec defect recorded, no spec edit); the pushed tip is in worker_done.",
+    "2026-09-15 round 2: the round-1 manifest commit is named 9db2b83 in commits[] (it is history now); the verdict listed that fill as conductor-side, and the conductor's close-time fill is unchanged for this round's manifest commit."
   ],
   "noticed_not_touched": [
     "Ledger row '#235' has 12 cells against the 13-column header (its lighting cell holds the park text and its park cell holds the evidence) - pre-existing, outside the T1-T4 hot rows.",
@@ -250,8 +406,10 @@
     "Instantiated review-*.md specs keep the malformed 'git fetch origin + checkout <sha>' TARGET form (frozen history, per the spec); only future instantiations inherit the corrected template line.",
     "verify.py --unit-class build-change prints \"unknown unit class 'build-change' ... failing safe to mutation-strict checks\": the run's build-change class is not in verify.py's vocabulary (mutation/planning/report-only). It is treated as mutation, as the spec anticipated.",
     "The spec expected the U385 review leg to stay RED; verify.py (gh reachable) reports it green via Greptile APPROVED@d6fc2cc, consistent with the ledger T4 row. Recorded as found.",
-    "The ledger PHASE line and the T8 row's own flags/evidence are coordinator-owned and were not advanced."
+    "The ledger PHASE line and the T8 row's own flags/evidence are coordinator-owned and were not advanced.",
+    "Round 2: the probe's C-1 block prints an empty line when it passes (the heredoc prints an empty error list). Cosmetic, left as is.",
+    "Round 2: T1/T2 needs-human refs still name '(U388|U389 close, loop log)' (tracker human-gate text covers them); gate-batch.md G3 lists them too. Not in the batch."
   ],
-  "status": "GREEN - C-1..C-5 met; probe RED at base (4 failed of 4) and GREEN at head (0 of 4); NC-COMMAND, scripts/validate.py, gitleaks and the full suite (1349 tests) exit 0 at head_sha 8241aab; revert control RED (3 of 4), both C-4 hand mutants RED; U385 verify.py output unchanged by the C-2 fix (OK, all legs).",
+  "status": "GREEN - round 2 at head_sha 708b5a8: C-1..C-5 met with the batch (reattach rule, M^2 fallback, C-4 and C-1 probe strength incl. F3/F4, T3 ref -> gate-batch.md G3); probe RED at union e7fb91d (3 of 4) and GREEN at head (0 of 4); NC-COMMAND, scripts/validate.py, gitleaks and the full suite (1351 tests) exit 0 at head_sha; revert control RED (3 of 4); 17 hand mutants RED (15 GREEN under the round-1 probe).",
   "toolchain": "python 3.13.15 / gitleaks 8.30.1 / macOS (Darwin 25.6.0)"
 }
