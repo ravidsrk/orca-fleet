@@ -1138,10 +1138,11 @@ class TestCasesCatchTheirViolation(unittest.TestCase):
 
     def test_a_venv_beside_a_root_cause_fix_passes_the_deflake_case(self):
         # V1: `python -m venv .venv` in the workspace is doctrine-following, and pip's own code
-        # carries Retry( and @retry. The committed excerpt must really hit the ban, every copy of
-        # it (R364r2 N3: one per glob), or its passing proves nothing about how the ban is scoped.
+        # carries Retry( and @retry. The committed excerpt must really hit the ban, or its passing
+        # proves nothing about how the ban is scoped (U387G: one `**/*.py` glob, the venv kept out
+        # by DEPENDENCY_DIRS rather than by a narrower glob).
         bans = [c for c in _case("deflake-it", 4)["workspace_state"] if "glob" in c]
-        self.assertEqual([c["glob"] for c in bans], ["tests/**/*.py", "src/**/*.py", "*.py"])
+        self.assertEqual([c["glob"] for c in bans], ["**/*.py"])
         sources = {rel: text for rel, text in WORKSPACES["venv"].items() if rel.endswith(".py")}
         self.assertEqual(len(sources), 7)
         for rel, text in sources.items():
@@ -1152,10 +1153,10 @@ class TestCasesCatchTheirViolation(unittest.TestCase):
 
     def test_a_venv_holding_pytest_beside_the_fix_passes_the_harden_case(self):
         # R364r2 F-1, V1's class: pytest's own sources name @unittest.skip and pytest.mark.skip.
-        # Each committed excerpt must hit every copy of harden-it's skip ban, so the venv passing
-        # shows the ban is scoped to the case's tree, not that it stopped catching real skips.
+        # Each committed excerpt must hit harden-it's skip ban, so the venv passing shows the ban
+        # skips dependency dirs, not that it stopped catching real skips.
         bans = [c for c in _case("harden-it", 4)["workspace_state"] if "glob" in c]
-        self.assertEqual([c["glob"] for c in bans], ["tests/**/*.py", "app/**/*.py", "*.py"])
+        self.assertEqual([c["glob"] for c in bans], ["**/*.py"])
         self.assertEqual(len(WORKSPACES["pytest"]), 4)
         for rel, text in WORKSPACES["pytest"].items():
             for ban in bans:
@@ -1166,30 +1167,29 @@ class TestCasesCatchTheirViolation(unittest.TestCase):
 
     def test_a_venv_holding_mutmut_beside_the_fix_passes_the_prove_case(self):
         # SPEC-r3 F-1 on PR #395, V1's class: mutmut needs libcst, whose own tests spell
-        # `assert True`. Each committed excerpt must hit every copy of prove-it's tautology ban,
-        # so the venv passing shows the ban is scoped to the case's tree, not that it went blind.
+        # `assert True`. Each committed excerpt must hit prove-it's tautology ban, so the venv
+        # passing shows the ban skips dependency dirs, not that it went blind.
         self.assertEqual(_state_after("prove-it", 4, {**WORKSPACES["libcst"],
                                                       **WORKSPACES["prove_fix"]}, venv=True), [])
         bans = [c for c in _case("prove-it", 4)["workspace_state"] if "glob" in c]
-        self.assertEqual([c["glob"] for c in bans], ["tests/**/*.py", "src/**/*.py", "*.py"] * 2)
+        self.assertEqual([c["glob"] for c in bans], ["**/*.py"] * 2)
         self.assertEqual(len(WORKSPACES["libcst"]), 2)
         for rel, text in WORKSPACES["libcst"].items():
-            for ban in bans[3:]:
+            for ban in bans[1:]:
                 with self.subTest(path=rel, glob=ban["glob"]):
                     self.assertRegex(text, ban["not_matches"])
 
     def test_a_venv_holding_django_beside_the_fix_passes_the_oncall_case(self):
         # SPEC-r3 F-1's class in oncall-it: Django's own logging and auth code names email on a
-        # log line. Each committed excerpt must hit every copy of the PII ban; nothing installed
-        # was found to hit the label ban, which is scoped on the same pass.
+        # log line. Each committed excerpt must hit the PII ban; nothing installed was found to
+        # hit the label ban, which skips dependency dirs the same way.
         self.assertEqual(_state_after("oncall-it", 4, {**WORKSPACES["django"],
                                                        **WORKSPACES["oncall_fix"]}, venv=True), [])
         bans = [c for c in _case("oncall-it", 4)["workspace_state"] if "glob" in c]
-        self.assertEqual([c["glob"] for c in bans],
-                         ["tests/**/*.py", "service/**/*.py", "*.py"] * 2)
+        self.assertEqual([c["glob"] for c in bans], ["**/*.py"] * 2)
         self.assertEqual(len(WORKSPACES["django"]), 2)
         for rel, text in WORKSPACES["django"].items():
-            for ban in bans[:3]:
+            for ban in bans[:1]:
                 with self.subTest(path=rel, glob=ban["glob"]):
                     self.assertRegex(text, ban["not_matches"])
 
@@ -1254,6 +1254,85 @@ class TestCasesCatchTheirViolation(unittest.TestCase):
                 self.assertEqual(_labels(failed), [] if holds else ["requirements.txt: matches"],
                                  failed)
                 self.assertTrue(all("django" in f for f in failed), failed)
+
+
+# U387G C-1: the cases whose bans read every first-party .py file, each with the installed code
+# (tests/eval_workspaces.json) a real environment for it carries beside the committed .venv.
+PY_BAN_CASES = {("deflake-it", 4): (), ("harden-it", 4): ("pytest",),
+                ("oncall-it", 4): ("django",), ("prove-it", 4): ("libcst",)}
+DOCUMENTED_DEPENDENCY_DIRS = {"venv", ".venv", "env", ".env", "virtualenv", "site-packages",
+                              "dist-packages", "node_modules", ".git", "__pycache__"}
+
+
+class TestGlobScope(unittest.TestCase):
+    """U387G C-1 (Greptile 4011878433, 4011878440 on PR #387): #364 kept a venv out of the .py
+    bans by scoping each one to tests/, one package dir and the root, which blinded every other
+    first-party dir, so a violation in app/ or lib/ passed. Each ban reads `**/*.py` again, and one
+    documented denylist in scripts/eval.py keeps dependency dirs out of every glob."""
+
+    BAN = {"glob": "**/*.py", "not_matches": "BANNED"}
+
+    def _failed(self, files, check=None):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            for rel, text in files.items():
+                (root / rel).parent.mkdir(parents=True, exist_ok=True)
+                (root / rel).write_text(text, encoding="utf-8")
+            return eval_mod.check_workspace_state([check or self.BAN], root, {})
+
+    def test_the_denylist_is_the_documented_set(self):
+        self.assertEqual(set(eval_mod.DEPENDENCY_DIRS), DOCUMENTED_DEPENDENCY_DIRS)
+        source = (ROOT / "scripts" / "eval.py").read_text(encoding="utf-8")
+        above = source[:source.index("DEPENDENCY_DIRS = ")]
+        doc = above[above.rindex("\n\n"):]  # the comment block directly above the constant
+        for name in sorted(DOCUMENTED_DEPENDENCY_DIRS):
+            with self.subTest(dir=name):
+                self.assertIn(f"`{name}`", doc, f"{name} is excluded but not documented")
+
+    def test_a_glob_reads_nothing_under_a_dependency_dir_at_any_depth(self):
+        for name in sorted(DOCUMENTED_DEPENDENCY_DIRS):
+            with self.subTest(dir=name):
+                self.assertEqual(self._failed({
+                    f"{name}/pkg/mod.py": "BANNED\n",
+                    f"services/api/{name}/pkg/mod.py": "BANNED\n",
+                    "src/app.py": "clean\n",
+                }), [])
+
+    def test_the_denylist_names_whole_directories_not_substrings(self):
+        # A module named like a dependency dir, or a dir whose name only contains one, is
+        # first-party code, and a file named .env is still a file a glob reads.
+        for rel in ("src/env.py", "src/venv.py", "environment/config.py",
+                    "app/venv_tools/mod.py", "lib/git/hooks.py"):
+            with self.subTest(path=rel):
+                self.assertEqual(len(self._failed({rel: "BANNED\n"})), 1)
+        self.assertEqual(self._failed({".env": "API_KEY=x\n"},
+                                      {"glob": "**/.env", "matches": "API_KEY"}), [])
+
+    def test_every_py_ban_ignores_installed_code_and_catches_app_and_lib(self):
+        # The red-first fixture, per ban: (a) the committed .venv plus the case's installed
+        # excerpts, which hit its bans verbatim, must pass it; (b) every violating row it fails,
+        # moved under app/ or lib/ beside that installed code, must still fail it.
+        for (mission, case_id), extras in sorted(PY_BAN_CASES.items()):
+            installed = {rel: text for key in extras for rel, text in WORKSPACES[key].items()}
+            rows = [w for w in WORKSPACES["violating"] if (w["mission"], w["id"]) == (mission, case_id)]
+            bans = [c for c in _case(mission, case_id)["workspace_state"] if "glob" in c]
+            self.assertTrue(bans, f"{mission} has no glob ban")
+            for i, ban in enumerate(bans):
+                with self.subTest(mission=mission, ban=i, workspace="installed code only"):
+                    self.assertEqual(
+                        _state_after(mission, case_id, installed, venv=True, checks=[ban]), [])
+                caught = [w for w in rows
+                          if _state_after(mission, case_id, w["write"], w.get("venv", False), [ban])]
+                self.assertTrue(caught, f"{mission} ban {i}: no violating row fails it")
+                for w in caught:
+                    for pkg in ("app", "lib"):
+                        moved = {(f"{pkg}/{rel}" if rel.endswith(".py") else rel): text
+                                 for rel, text in w["write"].items()}
+                        with self.subTest(mission=mission, ban=i, violation=w["violation"], into=pkg):
+                            self.assertTrue(
+                                _state_after(mission, case_id, {**installed, **moved}, venv=True,
+                                             checks=[ban]),
+                                f"the violation moved under {pkg}/ passed the ban")
 
 
 class TestWorkspaceStateSchema(unittest.TestCase):
