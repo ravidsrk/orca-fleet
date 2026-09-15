@@ -9,8 +9,8 @@ ok() { echo "ok: $1"; }
 
 # C-1: every T-row park cell (column 12) is empty or '<class>: ...' with <class> parsed from
 # the '## Park classes' table of runtime/ledger-contract.md; T1/T2/T3 park as 'needs-human:'
-# (spec C-1: no other class, even a legal one) with the base ask text and the run ref, T3
-# points at gate-batch.md G3 (which must exist) and cites T6 GO 5205447863; T1-T4 columns
+# (spec C-1: no other class, even a legal one) with the base ask text, the run ref and a
+# pointer at gate-batch.md G3 (which must exist); T3 cites T6 GO 5205447863; T1-T4 columns
 # 1-11 equal their cells at base_sha 9a115f7. A missing ledger, contract or gate file fails.
 if python3 - "$R.md" runtime/ledger-contract.md "$R/gate-batch.md" <<'EOF'
 import re, subprocess, sys
@@ -67,12 +67,11 @@ if led is not None and classes:
             errs.append(f"[{tid} park lacks the ask text]")
         if RUN not in park:
             errs.append(f"[{tid} park lacks run ref {RUN}]")
+        if "gate-batch.md G3" not in park:
+            errs.append(f"[{tid} park does not point at gate-batch.md G3]")
     t3 = rows.get("T3", [])
-    if len(t3) == 13:
-        if "gate-batch.md G3" not in t3[11]:
-            errs.append("[T3 park does not point at gate-batch.md G3]")
-        if "T6 GO 5205447863" not in t3[12]:
-            errs.append("[T3 evidence lacks T6 GO 5205447863]")
+    if len(t3) == 13 and "T6 GO 5205447863" not in t3[12]:
+        errs.append("[T3 evidence lacks T6 GO 5205447863]")
     if gat is not None and not re.search(r"(?m)^## G3 ", gat):
         errs.append("[gate-batch.md has no '## G3' entry]")
     base = subprocess.run(["git", "show", f"{BASE}:{ledger}"], capture_output=True, text=True)
@@ -86,7 +85,7 @@ if led is not None and classes:
 print(" ".join(errs))
 sys.exit(1 if errs else 0)
 EOF
-then ok "C-1 T-row parks in ledger-contract classes; T1-T3 needs-human + ask + run ref; T3 G3 ref + T6 GO; T1-T4 flags = base"
+then ok "C-1 T-row parks in ledger-contract classes; T1-T3 needs-human + ask + run ref + G3 ref; T3 T6 GO; T1-T4 flags = base"
 else fail "C-1 ledger park/ref/flag check (errors above)"; fi
 
 # C-2: u385-manifest.json head_tree is the tree of its own head_sha.
