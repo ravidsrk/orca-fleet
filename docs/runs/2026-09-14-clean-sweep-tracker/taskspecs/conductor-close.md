@@ -69,3 +69,12 @@ RULES:
   merged unit cannot park, so an open review round posts as a record and a sticking finding
   goes to a fix-forward unit. Precedent: T6 (PR #397 merged ~7 min before its GO verdict,
   disclosed; verify 6/6) and U364 (PR #395 merged mid-r3; fix-forward by T6).
+- reattach. Review workers check out the reviewed SHA (review-template.md TARGET), which
+  leaves the unit worktree on a detached HEAD; they leave it detached, commit nothing, and
+  say so in worker_done. Whoever commits next in a review-touched worktree (the fix
+  builder, or the conductor or integrator making a union) reattaches BEFORE the first
+  commit: git status --porcelain empty; git checkout <unit-branch>; assert
+  git branch --show-current == <unit-branch> and git rev-parse HEAD == the expected tip
+  (the reviewed_sha, or the tip the dispatch names). A dirty tree, a failed checkout or a
+  tip mismatch is a STOP: never commit on a detached HEAD (the commit sits on no branch
+  and the push leaves it behind).

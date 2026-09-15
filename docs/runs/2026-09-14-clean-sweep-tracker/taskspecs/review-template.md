@@ -8,7 +8,9 @@ TARGET (PR/HEAD/BRANCH filled at dispatch; every instantiated spec carries this 
 PR #<n> at HEAD <sha> (branch <unit-branch> → BASE). Before reading anything, run
   git fetch origin && git checkout <sha>
 then assert git rev-parse HEAD == <sha> (your worktree may sit at an older or pre-union
-tip; the detached HEAD this leaves is expected — the conductor reattaches the branch).
+tip; the detached HEAD this leaves is expected — leave it detached and say so in
+worker_done; whoever commits next reattaches first, per the conductor-close.md reattach
+rule).
 A checkout that fails or lands elsewhere = STOP. Commit NOTHING.
 
 All PR reads fenced: guard_text.py --source pr --fetch <gh ...> (non-zero = NO data).
