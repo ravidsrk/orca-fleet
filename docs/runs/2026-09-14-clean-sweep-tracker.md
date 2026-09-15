@@ -1262,3 +1262,11 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   by coordinator (git show == d7b4e72c). MERGED=t, WT_CLEAN=t
   (worktree retired from git + orca registries, dir gone). FOURTH
   WAVE-2 UNIT DONE — WAVE 2 COMPLETE (T7+T9+T8+T10 merged).
+- THREAD DRAIN scoped (GraphQL, coordinator): 22 unresolved on #387 —
+  17 on frozen run-docs (specs/manifests/gate-batch), 5 on code
+  (4009895678 T10-finding FIXED bff42ff1; 4012510839 T7-file race to
+  verify; 4012783264/4012783267 T9-file denylist+perf to verify;
+  4015351682 nested-### = r7 Nit T7-1 already adjudicated). Spec
+  taskspecs/drain-387-threads.md frozen (verify→reply→resolve per
+  thread; NEW-REAL parks unfixed with repro; 75-min STOP with
+  partial report). Dispatched (main checkout, read-only + gh).
