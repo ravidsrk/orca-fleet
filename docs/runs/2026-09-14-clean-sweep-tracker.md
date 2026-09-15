@@ -1388,3 +1388,13 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   T1/T2/T3/T7/T9/T10). MERGED=t, WT_CLEAN=t (worktree retired from git +
   orca registries, dir gone). FIFTH WAVE-2 UNIT DONE — #387 THREADS AT ZERO
   (4012510839 fix merged; in-thread FIXED reply next).
+- #387 AT ZERO (coordinator lane, fresh GraphQL: 42 threads, 0 unresolved):
+  4012510839 FIXED (reply 4017698327 cites T11 f1b0a4f + GO 5212392123) +
+  resolved; 4015855947 SUPERSEDED (T11-row gap, closed by e93ab1a; reply
+  4017698579) + resolved. FINAL VALIDATION at e93ab1a: validate.py green
+  (21 missions), egress chain intact (300 receipts), full suite 1381 OK.
+  RUN TAKEOVER COMPLETE: wave 2 (T7/T9/T8/T10) merged pre-takeover; drain
+  20/22 + 2 parked -> both parks closed (VALID-doc via e54abdb prepends,
+  NEW-REAL via T11 f1b0a4f); #386/#235 human-gated (G1/G2/G4 + parked note);
+  T11 merged+closed (verify 5/6, review RED parked via G3). Human gate batch
+  (G1/G2-amended/G3/G4) is the remaining ask.
