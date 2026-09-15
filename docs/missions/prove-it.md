@@ -21,6 +21,14 @@
 
 ---
 
+## Invoke it
+
+```
+> close the test gap on <the money, auth and data paths>
+```
+
+**Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh; a runnable suite + coverage tool. A TDD worker playbook (addyosmani or mattpocock) — one router per worker.
+
 ## What it does
 
 `prove-it` is the test-debt fleet. Unlike a finding-driven mission, the work here **creates
@@ -106,12 +114,14 @@ Phase by phase:
    actually exhibits, not behavior the test harness fabricates; the conductor lands; coverage
    is re-mapped and the loop continues until the confirmed surface is exhausted.
 
-## Terminal states — parked is not covered
+## Terminal states
 
-| State                 | Meaning                                                                                      |
-|-----------------------|----------------------------------------------------------------------------------------------|
-| `COVERED`             | Every confirmed path has a merged, mutation-audited test; every surfaced bug fixed-with-test |
-| `COVERED-WITH-PARKED` | All writable paths mutation-audited; at least one bug or path parked as needs-human          |
+*Parked is not covered.*
+
+| State | Meaning | Who acts on it |
+|---|---|---|
+| `COVERED` | Every confirmed path has a merged, mutation-audited test; every surfaced bug fixed-with-test | terminal — the promotion PR is yours |
+| `COVERED-WITH-PARKED` | All writable paths mutation-audited; at least one bug or path parked as needs-human | a human decides each parked path or bug |
 
 The degraded state is never reported as `COVERED`. A parked item names its blocker — a
 load-bearing quirk, a behavior-change decision, a path untestable without a human call.
@@ -178,8 +188,8 @@ hold) — so honestly, **COVERED-WITH-PARKED**.
 | Expected values recomputed the code's way | A tautological test that can never fail                    |
 
 ## Composes
-
-Playbooks: [`characterize`](../../playbooks/characterize.md) ·
+Playbooks:
+[`characterize`](../../playbooks/characterize.md) ·
 [`build-change`](../../playbooks/build-change.md) ·
 [`remediate-finding`](../../playbooks/remediate-finding.md) ·
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
@@ -187,13 +197,13 @@ Playbooks: [`characterize`](../../playbooks/characterize.md) ·
 [`compound-learn`](../../playbooks/compound-learn.md) ·
 [`design-twice`](../../playbooks/design-twice.md)
 
-Runtime policies: [`merge-serialization`](../../runtime/merge-serialization.md) ·
+Runtime policies:
+[`merge-serialization`](../../runtime/merge-serialization.md) ·
 [`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md) ·
 [`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) ·
 [`liveness-resume`](../../runtime/liveness-resume.md) ·
 [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`ledger-contract`](../../runtime/ledger-contract.md) ·
-[`gate-classification`](../../runtime/gate-classification.md) ·
 [`attention-budget`](../../runtime/attention-budget.md)
 
 ## Related missions

@@ -7,6 +7,7 @@ doubt, the policy file is the source of truth.
 
 ## Contents
 
+- [Glossary](#glossary)
 - [A fleet is an outcome, not an ingredient](#a-fleet-is-an-outcome-not-an-ingredient)
 - [Coordinators and workers](#coordinators-and-workers)
 - [The evidence manifest](#the-evidence-manifest)
@@ -22,6 +23,61 @@ doubt, the policy file is the source of truth.
 - [Proof status](#proof-status)
 - [Autonomy](#autonomy)
 - [The mission-identity test](#the-mission-identity-test)
+
+## Glossary
+
+The words the rest of this page, the README and the mission guides use without stopping to
+define them. Each is one line here and explained in full in its own section or runtime policy.
+
+- **BASE** — the integration branch a fleet merges into, never the default branch; promotion from
+  BASE to the default branch is a one-way human gate.
+- **Coordinator** — the terminal you started. It decomposes the goal, dispatches, verifies and keeps
+  the ledger; it never writes code.
+- **Worker** — a fresh agent in its own git worktree and terminal, dispatched with a task spec and
+  torn down after its unit. **Builders** write the change, **build-blind reviewers** review code
+  they did not write and were not told the conclusion about, **integrators** open PRs against BASE,
+  and one **conductor** owns every merge.
+- **Ledger** — the coordinator's durable memory: one row per unit with its exit flags, lighting,
+  PR, reviewed SHA, merge SHA and evidence pointer. Git is truth; the ledger is its cache.
+- **T0** — the timestamp in the ledger header at which the run's denominator was enumerated.
+- **Denominator** — the frozen set a run must account for: acceptance criteria, findings, journeys,
+  paths. A worker cannot shrink it; the verifier re-derives it from the frozen source.
+- **Evidence manifest** — the SHA-bound JSON a worker emits with `worker_done`, the definition of
+  done as data. **`worker_done`** is the Orca message that says a unit is finished: a claim to
+  verify, never a fact to record.
+- **Verifier** — a session other than the one that did the work (`runtime/scripts/verify.py`,
+  or a fresh verifier worker) that re-derives the manifest's claims from git, GitHub and the
+  frozen contract.
+- **Negative control** — proof that the proof can fail: revert or mutate the change and watch the
+  covering test go red. A *revert* control restores the changed paths; a *hand* control applies a
+  quoted diff. The verifier executes one only when the coordinator passes `--execute-nc`.
+- **Mechanical / taste / one-way** — the three decision classes: auto-resolved with an audit line;
+  recommendation taken and batched for your later veto; yours, always, never defaulted on timeout.
+- **Lane 0 / A / B** — how a gate on hard-to-reverse work resolves: refuse (0); proceed as
+  reversible work such as testnet or fixtures (A); draft both options for a human to pick (B).
+- **Lit / dark-eligible** — `lit`, the default, means a human or build-blind reviewer reads the
+  change before it lands; `dark-eligible` is opt-in for Lane A work with an unfakeable oracle.
+- **`PROFILE=ro` / `rw` / `danger`** — worker privilege: read-only, workspace-write, or bypass
+  approvals inside a disposable sandbox only.
+- **`reviewed_sha`** — the commit a review approved. A merge requires it to equal the head; a
+  rebase, a bot autofix or a late push voids the review.
+- **Merge train / hot-file chain** — one conductor drains merge-ready PRs in arrival order; PRs
+  that touch the same mount-point file (a route registry, DI wiring, a migration) merge as a chain.
+- **Attention budget / WIP** — concurrent builders capped to what review can absorb (default ≤3),
+  counted as live panes rather than tasks.
+- **Skeptic triage** — reproduce or refute every finding before anyone builds.
+- **Tracer-bullet slice** — a narrow but complete path through every layer a change touches, sized
+  for one fresh context window and demoable alone.
+- **Terminal state** — the named end state a mission stops at. A *degraded* terminal
+  (`-WITH-PARKED`, `-WITH-OPEN-ITEMS`, `NO-GO`, `INCONCLUSIVE`, …) is never reported as the clean one.
+- **`SUSPECT`** — a unit Orca's provenance calls completed but git disagrees with; treated as failed.
+- **`DRY`** — clean-sweep's clean terminal: a full re-enumeration finds nothing open.
+- **Playbook / runtime policy / pack** — a callable phase protocol a mission injects into a worker's
+  task; an Orca mechanics policy under `runtime/`; an upstream skill collection
+  (mattpocock/skills, garrytan/gstack, addyosmani/agent-skills) a worker draws its method from —
+  exactly one pack per worker.
+- **Proof tier** — `doctrine-only`, `self-run` or `external-run`; advancing needs a run report that
+  binds at a named commit.
 
 ## A fleet is an outcome, not an ingredient
 
@@ -371,6 +427,27 @@ validator-enforced frontmatter, and cannot advance without a linked run report o
 the inherited lesson from this catalog's failed predecessor, which shipped twelve missions with
 two proven: doctrine is allowed to encode hard-won lessons, but it is never allowed to dress up
 as evidence.
+
+Be precise about what the gate buys, because it is weaker than "re-derives" would imply and
+[`run_report.py`](../runtime/scripts/run_report.py) says so in its own docstring: **it hashes, it
+does not re-run the verifier.** The [2026-09-11 review](../REVIEW.md) fabricated a `map-it`
+self-run — seven files, one commit, under fifteen minutes — that reported "bound" and passed
+`validate.py`, `proof_status.py --check` and the whole suite, because files a worker writes and
+commits hash true at the commit that contains them. What the gate really refuses is a tier claimed
+on a report whose artifacts were never retained, re-pointed at another mission, or pinned to a
+commit where the bytes differ. It does not refuse a tier whose artifacts were manufactured, and
+re-running the verifier afterwards would not fix that: the authorities that made the original
+verdict — the coordinator's out-of-band contract, a live GitHub review lookup, the worktree as it
+stood — are gone. Closing this needs a leg the worker cannot type at all: a coordinator-signed
+verifier transcript checked against a committed key
+([#281](https://github.com/ravidsrk/orca-fleet/issues/281)), on top of making the tier cost an
+actual run ([#286](https://github.com/ravidsrk/orca-fleet/issues/286)).
+
+Today every mission reads `doctrine-only`, and that number went *down* as the mechanism got
+stronger, which is the mechanism working: the predecessor shipped twelve missions with two proven
+and paid for it, and a tier whose artifacts are gone is the same claim in better packaging. The
+[run archive](runs/) records every run that really happened and says, per run, why it does not
+bind.
 
 ## Autonomy
 

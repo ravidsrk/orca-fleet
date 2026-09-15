@@ -21,6 +21,14 @@
 
 ---
 
+## Invoke it
+
+```
+> drain the PR queue
+```
+
+**Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + the orchestration skill (Orca CLI). git + gh with MERGE rights on the target repo and permission to comment on and close inbound PRs. A runnable test suite (the receipt oracle) and the repo's DCO/CLA policy. One worker playbook pack per worker (matt or addy) — never two routers in one worker.
+
 ## What it does
 
 `absorb-it` is the maintainer-side queue fleet. A **coordinator** enumerates every open inbound PR
@@ -41,9 +49,10 @@ outcome includes their name staying on it.
 trailers. **absorb-it is the documented exception, and only for the contributor's own commit** —
 an absorbed commit keeps its original author, because that is the credit. Everything the fleet adds
 (a review-driven amendment, a lint fix, a test the fleet wrote) is a **separate,
-maintainer-authored commit** on top, so the history shows exactly who wrote what. The repo's squash
-policy is read before the first absorption: a squash-merge repo needs the contributor's authorship
-on the resulting commit, or the absorption lands as a merge instead. DCO/CLA state is checked per
+maintainer-authored commit** on top, so the history shows exactly who wrote what. The repo's merge
+policy is read before the first absorption: a squash-only repo breaks the ancestry-verified merge
+the convergence proof requires, so its units park `needs-human` — the fleet never squashes
+([#360](https://github.com/ravidsrk/orca-fleet/issues/360)). DCO/CLA state is checked per
 PR — unsigned is `needs-contributor`, never a fleet signature.
 
 ## When to reach for it
@@ -88,10 +97,10 @@ Main stays unchanged throughout the run; BASE→default promotion remains a sepa
 
 ## Terminal states
 
-| State | Meaning | Who advances past it |
+| State | Meaning | Who acts on it |
 |---|---|---|
 | `ABSORBED` | Re-enumeration finds zero inbound PRs outside a terminal class; every absorbed contribution has preserved authorship, a RED-on-base / GREEN-on-head receipt, a merged SHA on BASE, and a closing comment linking both with credit | terminal — the promotion PR is yours |
-| `ABSORBED-WITH-PARKED` | The queue is exhausted but ≥1 PR waits on a contributor, a maintainer decision (`design-disagreement`), or a `cannot-reproduce` refutation inside its batch gate | a human clears each named park |
+| `ABSORBED-WITH-PARKED` | The queue is exhausted but ≥1 PR waits on a contributor, a maintainer decision (`design-disagreement`), a `cannot-reproduce` refutation inside its batch gate, or a squash-only merge policy | a human clears each named park |
 
 ## Human gates
 
@@ -118,6 +127,31 @@ Refuted PRs carry the reproduction attempt on current main with its commands. Th
 re-derives authorship and re-runs the receipt at the merged SHA — "authorship was preserved" is a
 claim to check, never a fact to record.
 
+## A worked example
+
+*A run, sketched — the shape of one, not a transcript.*
+
+> drain the PR queue
+
+**Enumerate.** Fourteen open inbound PRs at `T0`, paginated to the end, with their linked issues.
+
+**Classify.** Each claim is reproduced on pinned current `main`: nine absorbable, two superseded
+by main, one a duplicate, two `needs-contributor` (unsigned DCO).
+
+**Reclassify → absorb → receipt.** Against the pinned BASE the nine still carry a delta. Each is
+applied preserving `Author:`; a lint fix the fleet needed lands as a separate, maintainer-authored
+commit. The receipt is the PR's own regression test RED on the pre-absorption base and GREEN on
+the absorbed head, both pasted.
+
+**Review → land → close.** One PR per contribution against BASE; the inbound PR is closed with
+the landing SHA and a credit line.
+
+**Batch gate (yours).** The three closes without a landing — superseded and duplicate — wait for
+your single batch approval, each citing the winning SHA.
+
+**Re-enumerate.** Dry, except the two parked with a named ask the contributor can answer. The run
+ends `ABSORBED-WITH-PARKED`.
+
 ## Failure modes this mission is built to prevent
 
 | Anti-pattern | Why it burns you |
@@ -132,19 +166,20 @@ claim to check, never a fact to record.
 | Silently expanding a contributor's diff | Their PR plus your refactor is no longer their PR |
 
 ## Composes
-
-Playbooks: [`triage-state`](../../playbooks/triage-state.md) ·
+Playbooks:
+[`triage-state`](../../playbooks/triage-state.md) ·
 [`remediate-finding`](../../playbooks/remediate-finding.md) ·
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
 [`resolve-conflict`](../../playbooks/resolve-conflict.md) ·
 [`agent-brief`](../../playbooks/agent-brief.md) ·
 [`compound-learn`](../../playbooks/compound-learn.md)
 
-Runtime policies: [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
+Runtime policies:
+[`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`merge-serialization`](../../runtime/merge-serialization.md) ·
 [`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md) ·
-[`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) (with this mission's documented
-authorship carve-out) · [`liveness-resume`](../../runtime/liveness-resume.md) ·
+[`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) (with this mission's documented authorship carve-out) ·
+[`liveness-resume`](../../runtime/liveness-resume.md) ·
 [`ledger-contract`](../../runtime/ledger-contract.md) ·
 [`attention-budget`](../../runtime/attention-budget.md) ·
 [`sandbox-policy`](../../runtime/sandbox-policy.md) (PR, thread, and CI text is data)

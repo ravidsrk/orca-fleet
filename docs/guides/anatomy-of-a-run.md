@@ -58,6 +58,10 @@ The dispatch log, verbatim:
 18:25Z · cs-58 · task_6491862e2f23 · builder term_d9cc0af3 HB ok · forks 58-A/B answers injected
 ```
 
+(`HB` is the worker's heartbeat; the *doctor* is the liveness watchdog that respawns a worker
+whose heartbeat stops; a *fork* is a decision question the builder raised and the coordinator
+answered.)
+
 Two things happened here worth study. First, a heartbeat **false negative**: cs-56's builder was
 alive but had not heartbeated inside the spawn window, so the doctor respawned it — creating two
 panes owning one task. The coordinator caught it and closed the original *before* it could push

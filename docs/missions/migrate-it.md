@@ -21,6 +21,14 @@
 
 ---
 
+## Invoke it
+
+```
+> migrate the database: <table> — <the shape change>, no downtime
+```
+
+**Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + the orchestration skill (Orca CLI). git + gh. The project's own migration runner and a database the fleet can migrate and dump (a schema-dump command is the down-path oracle), plus a deploy path per phase and read/write telemetry for the zero-reader window. One worker playbook pack per worker (matt or addy) — never two routers in one worker.
+
 ## What it does
 
 `migrate-it` is the migration fleet. A **coordinator** freezes the table set and the phase list,
@@ -79,7 +87,7 @@ conductor, deploy, bake. Only then is the next phase dispatched.
 
 ## Terminal states
 
-| State | Meaning | Who advances past it |
+| State | Meaning | Who acts on it |
 |---|---|---|
 | `MIGRATED` | Complete pre-drop parity archived, zero old readers/writers over the declared window, removal verified, contract merged, down-path evidence retained | terminal — the promotion PR is yours |
 | `MIGRATED-WITH-PARKED` | The ladder is complete up to a phase whose bake or zero-reader evidence the fleet cannot reach (`CODE_CLOSED` + `VERIFY_AT_SCALE`, or `needs-human`) | a human or OPS clears the named park |
@@ -185,6 +193,29 @@ CREATE TABLE parity_receipt AS SELECT id, name, full_name FROM users;
 ALTER TABLE users DROP COLUMN name;
 ```
 
+## A worked example
+
+*A run, sketched — the shape of one, not a transcript.*
+
+> migrate the database: users.name → users.full_name, no downtime
+
+**Plan.** One table, the phase ladder, a down path per phase; the integration BASE is bootstrapped.
+
+**Expand → dual-write.** `full_name` is added; deploy, bake. Every insert and update path writes
+both shapes; deploy, bake. Each phase's `up` then `down` leaves an empty schema diff, pasted.
+
+**Backfill.** Batched and resumable. The full parity probe finds three mismatches — a
+trailing-space normalizer — so the transform is fixed and the backfill resumes from its cursor;
+the probe goes GREEN.
+
+**Switch reads → zero-readers window.** Deploy, bake; the telemetry query over 48 hours shows no
+reader of the old shape, pasted. Parity is archived while writes are still dual.
+
+**Retire writes → zero-writers window.** Deploy, bake, telemetry pasted.
+
+**Contract (your one-way gate).** You approve the drop; it ships as its own deploy and the
+removal is verified. The run ends `MIGRATED`, with every phase's down-path evidence retained.
+
 ## Failure modes this mission is built to prevent
 
 | Anti-pattern | Why it burns you |
@@ -199,14 +230,15 @@ ALTER TABLE users DROP COLUMN name;
 | Two phases of one table in flight | The second phase's base is a schema that no longer exists |
 
 ## Composes
-
-Playbooks: [`data-migration`](../../playbooks/data-migration.md) ·
+Playbooks:
+[`data-migration`](../../playbooks/data-migration.md) ·
 [`remediate-finding`](../../playbooks/remediate-finding.md) ·
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
 [`completion-audit`](../../playbooks/completion-audit.md) ·
 [`compound-learn`](../../playbooks/compound-learn.md)
 
-Runtime policies: [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
+Runtime policies:
+[`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`merge-serialization`](../../runtime/merge-serialization.md) ·
 [`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md) ·
 [`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) ·

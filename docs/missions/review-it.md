@@ -22,6 +22,14 @@
 
 ---
 
+## Invoke it
+
+```
+> review this PR: <number or branch> — is it ready to merge?
+```
+
+**Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh. Review worker playbooks (mattpocock code-review, addyosmani specialists, gstack review army) — one router per worker.
+
 ## What it does
 
 `review-it` is the report-only fleet. A **coordinator** pins the change to a fixed point,
@@ -106,11 +114,13 @@ Phase by phase:
    [`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md), a review is valid only for
    the exact SHA it reviewed — if the head moves, the verdict is void.
 
-## Terminal verdicts — two, both SHA-bound
+## Terminal states
 
-| Verdict | Meaning                                                                     | Who acts on it                                  |
-|---------|-----------------------------------------------------------------------------|-------------------------------------------------|
-| `GO`    | Every axis reported, zero Critical and zero Required findings, the whole bound to `reviewed_sha` | a human, or the mission that owns the merge     |
+*Two, both SHA-bound.*
+
+| State | Meaning | Who acts on it |
+|---|---|---|
+| `GO` | Every axis reported, zero Critical and zero Required findings, the whole bound to `reviewed_sha` | a human, or the mission that owns the merge |
 | `NO-GO` | Any Critical or any Required (merge-blocking) finding — a "conditional" note may accompany it, never rename it | route the findings to `ship-it` / `clean-sweep` |
 
 Either way the verdict names the worst issue per axis, and it expires with its SHA: a head that
@@ -179,18 +189,18 @@ exactly such a run: the NO-GO on a live gstack PR linked from the frontmatter.)
 | Honoring a GO after the head moved    | The verdict is bound to `reviewed_sha`; a moved head voids it                   |
 
 ## Composes
-
-Playbooks: [`acceptance-review`](../../playbooks/acceptance-review.md) ·
+Playbooks:
+[`acceptance-review`](../../playbooks/acceptance-review.md) ·
 [`risk-review`](../../playbooks/risk-review.md) ·
 [`triage-findings`](../../playbooks/triage-findings.md)
 
-Runtime policies: [`sandbox-policy`](../../runtime/sandbox-policy.md) ·
+Runtime policies:
+[`sandbox-policy`](../../runtime/sandbox-policy.md) ·
 [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md) ·
 [`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) ·
 [`mission-scheduling`](../../runtime/mission-scheduling.md) ·
-[`gate-classification`](../../runtime/gate-classification.md) (posting the verdict is the run's one
-outward, human-granted action)
+[`gate-classification`](../../runtime/gate-classification.md) (posting the verdict is the run's one outward, human-granted action)
 
 ## Related missions
 

@@ -20,6 +20,14 @@
   </picture>
 </p>
 
+## Invoke it
+
+```
+> update the dependencies
+```
+
+**Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh; the package manager + a green CI baseline. addyosmani deprecation-and-migration playbook — one router per worker.
+
 ## What it does
 
 `modernize-it` is the dependency-currency fleet. A **coordinator** inventories what is outdated
@@ -114,12 +122,14 @@ Phase by phase:
    One conductor serializes merges to BASE; then the inventory is re-run and the loop continues
    until it comes back dry.
 
-## Terminal states — pinned is not current
+## Terminal states
 
-| State                 | Meaning                                                                              |
-|-----------------------|--------------------------------------------------------------------------------------|
-| `CURRENT`             | Every dep on a current supported version, zero reachable unaddressed advisories      |
-| `CURRENT-WITH-PINNED` | All upgradable deps current; one or more pinned-and-parked with a reason + human ref |
+*Pinned is not current.*
+
+| State | Meaning | Who acts on it |
+|---|---|---|
+| `CURRENT` | Every dep on a current supported version, zero reachable unaddressed advisories | terminal — the promotion PR is yours |
+| `CURRENT-WITH-PINNED` | All upgradable deps current; one or more pinned-and-parked with a reason + human ref | a human owns each pin's written reason |
 
 The degraded state is never reported as `CURRENT`. Every pin carries a written reason —
 breaking upstream, dropped platform, unresolved conflict — and a human reference.
@@ -197,17 +207,17 @@ merge along the way — and no upgrade silently dropped from the tally.
 | Hand-editing the lockfile                   | The recorded resolution lies; regenerate it instead        |
 
 ## Composes
-
-Playbooks: [`remediate-finding`](../../playbooks/remediate-finding.md) ·
+Playbooks:
+[`remediate-finding`](../../playbooks/remediate-finding.md) ·
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
 [`risk-review`](../../playbooks/risk-review.md) ·
 [`runtime-prove`](../../playbooks/runtime-prove.md) ·
 [`compound-learn`](../../playbooks/compound-learn.md) ·
 [`research-brief`](../../playbooks/research-brief.md) ·
-[`resolve-conflict`](../../playbooks/resolve-conflict.md) ·
-[`agent-brief`](../../playbooks/agent-brief.md) (the phase brief handed to migrate-it)
+[`resolve-conflict`](../../playbooks/resolve-conflict.md)
 
-Runtime policies: [`merge-serialization`](../../runtime/merge-serialization.md) ·
+Runtime policies:
+[`merge-serialization`](../../runtime/merge-serialization.md) ·
 [`reviewed-sha-freshness`](../../runtime/reviewed-sha-freshness.md) ·
 [`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) ·
 [`liveness-resume`](../../runtime/liveness-resume.md) ·

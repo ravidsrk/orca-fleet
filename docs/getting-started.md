@@ -25,35 +25,54 @@ have used Claude Code before but never run a multi-agent fleet.
   </picture>
 </p>
 
-Two hard requirements, without which no mission will start:
+Three hard requirements, without which no mission will start:
 
-1. **The Orca runtime and its `orchestration` skill** (shipped with the Orca CLI, not with this
-   repo). Missions are coordinators for Orca fleets: they create worktrees, spawn worker
-   terminals, dispatch tasks, and read `worker_done` messages through Orca. Verify with:
+1. **The Orca app, the `orca` CLI, and Orca's two public skills, `orchestration` and
+   `orca-cli`** (all shipped with Orca, not with this repo; on Linux outside an Orca terminal the
+   CLI is `orca-ide`). Missions are coordinators for Orca fleets: they create worktrees, spawn
+   worker terminals, dispatch tasks, and read `worker_done` messages (the message a worker sends
+   when it claims a unit is finished) through Orca. Verify with:
 
    ```bash
    orca status --json
    ```
 
+   With the app closed it answers `"runtime": {"state": "not_running", "reachable": false}`.
+   Run `orca open`, wait until `runtime.state` reads `ready`, and a mission can start. The
+   before-and-after transcript is
+   [P0-r3-orca-status.txt](completion/evidence/P0-r3-orca-status.txt).
+
 2. **`git` and `gh`**, authenticated. Fleets open PRs per unit of work and verify merges by
    ancestry; `gh auth status` must succeed. Repos on a tracker other than GitHub issues can use
    `orca linear` where a mission supports it.
 
-3. **Python 3.13** for the catalog gates (`scripts/validate.py`, `tests/`, `verify.py`). CI is
-   pinned to 3.13; stdlib only — no venv required.
+3. **Python 3.13** for the catalog gates (`scripts/validate.py`, `tests/`) and for the runtime
+   scripts a fleet runs (`runtime/scripts/verify.py` and its neighbours). CI is pinned to 3.13;
+   stdlib only — no venv required.
 
 Per-mission tooling on top of that — each mission declares its own in `SKILL.md` frontmatter:
 
-| If you plan to run | Also install                                                        |
-|--------------------|----------------------------------------------------------------------|
-| harden-it          | `gitleaks`, plus an ephemeral per-workspace sandbox for exploit PoCs |
-| speed-it           | Lighthouse/DevTools access, or a load/profiler harness                |
-| modernize-it       | nothing extra — but CI must be green at baseline                     |
-| prove-it           | a coverage tool your suite already supports                          |
-| deflake-it         | nothing extra — CI history is read via `gh run list`                 |
-| ship-it            | your deploy tooling, if you want the states past `RELEASED`          |
+| If you plan to run | Also install |
+|---|---|
+| any mission | `git` + `gh`, or a tracker reachable via `orca linear` |
+| harden-it | `gitleaks`, plus an ephemeral per-workspace sandbox for exploit PoCs |
+| speed-it | a real measurement path: Lighthouse/DevTools access, or a load/profiler harness |
+| modernize-it | the project's package manager; CI must be green at baseline |
+| prove-it | a runnable suite plus a coverage tool it already supports |
+| deflake-it | a runnable suite; CI history is read via `gh run list` |
+| ship-it | your deploy tooling and a canary surface, if you want the states past `RELEASED` |
+| pin-it | the installed Orca CLI itself (`orca skills get` is the re-witness oracle) |
+| floor-it | the repo's own counters per dimension (coverage runner, scanner, harness, linter) and CI write access on BASE |
+| reshape-it | the repo's mutation tooling (or the hand-mutant fallback) plus a runnable suite |
+| field-test-it | an Orca emulator skill (`orca-emulator` / `orca-emulator-android`) or a paired device, plus the app's build toolchain |
+
+This table is the single home of the per-mission list; the README links here rather than
+repeating it.
 
 ## Install the catalog
+
+Every install path, and which ones carry the completion gate, is walked in
+[docs/install.md](install.md); the two that a first run needs are below.
 
 **Symlink (recommended while evaluating).** Some missions link `../../ARCHITECTURE.md` relative
 to their own directory, and every mission resolves its playbooks by bare name against the repo
@@ -62,9 +81,10 @@ broken-install cause.
 
 One thing the symlink path does **not** wire: the native completion gate. `hooks/hooks.json`
 registers `verify-gate.sh` on `Stop` / `TaskCompleted` through `${CLAUDE_PLUGIN_ROOT}`, a path
-that exists only under the plugin install below. On a symlinked mission the gate is a step the
-coordinator runs by hand until you add the hook yourself — the settings snippet that resolves
-the repo path is in [docs/verify-gate.md](verify-gate.md).
+that exists only under the plugin install below. On a symlinked mission nothing fires that hook
+until you wire it yourself: the coordinator still runs `verify.py` where its playbooks say so,
+but no hook blocks a turn on a failing manifest. The settings snippet that resolves the repo path
+is in [docs/verify-gate.md](verify-gate.md); `sh hooks/print-settings-snippet.sh` prints it.
 
 ```bash
 git clone https://github.com/ravidsrk/orca-fleet.git
@@ -83,13 +103,22 @@ mission catalog at once; the relative references resolve inside the copied plugi
 ```
 
 Confirm the install by asking your agent "which missions are available?" — the
-outcome-named skills should list. If a mission is visible but errors on start about missing
-playbooks, you copied instead of linking.
+outcome-named skills should list; with the two symlinks above you get `ship-it` and `review-it`.
+If a mission is visible but errors on start about missing playbooks, you copied instead of linking.
+
+**Wiring the gate on a symlink install.** `sh hooks/print-settings-snippet.sh` prints a JSON
+object with a `hooks` key — a `TaskCompleted` entry and a `Stop` entry, each running
+`verify-gate.sh` from your clone by absolute path — plus a `_comment` key you can delete. Merge
+the `hooks` entries into `~/.claude/settings.json`, then run the script again with `--check`; it
+must print `ok`. The `Stop` hook fires on every turn end, which is harmless: with no unit in
+progress (`ORCA_MANIFEST` unset) it allows the turn, and it blocks only a turn that is mid-unit
+with a failing manifest ([docs/verify-gate.md](verify-gate.md#native-path--plugin-hooks-set-claude_plugin_root)).
 
 ## Your first mission: a review-it dry run
 
 Start with [`review-it`](missions/review-it.md), because it has **no fix authority** — the worst
-it can do is be wrong in a report. In a repo with an open PR or a feature branch:
+it can do is be wrong in a report. Open a Claude Code session in a repo that has an open PR or a
+feature branch, and type:
 
 ```
 review this PR: is it ready to merge?
@@ -107,12 +136,29 @@ What happens, in order:
 4. You get a GO / NO-GO verdict bound to the reviewed SHA. Any Critical finding defaults the
    verdict to NO-GO.
 
+The first thing the coordinator writes, before any dispatch, is the ledger header. This one is
+real, from the run [Anatomy of a run](guides/anatomy-of-a-run.md) walks:
+
+```
+RUN: clean-sweep-chimely-20260715 · COORDINATOR: term_905ccdf2… + term_c5e4d798… ·
+BASE: clean-sweep/integration · FORK_POINT: ce7891bf… · T0: 2026-07-15T17:40:00Z ·
+SOURCE: tracker dodopayments/chimely open issues #34,35,36,37,38,39,55,56,58,61
+(count=10, enumerated via gh api --paginate state=open)
+```
+
+A `review-it` header has the same shape with `BASE: -`, because a report-only mission has no
+integration branch to merge into ([`runtime/liveness-resume.md`](../runtime/liveness-resume.md)).
+Everything a crash-resume needs is on that line: which terminals own the run, which branch
+integrates, and the exact denominator with how it was enumerated (`T0` is the moment it was
+frozen).
+
 Total cost: a few worker sessions, no writes, and you have now seen the coordinator/worker shape
 without risking a single line of code.
 
 ## Your second mission: ship-it end to end
 
-Pick something real but small — a feature you could build by hand in an afternoon.
+Pick something real but small — a feature you could build by hand in an afternoon — and, in a
+Claude Code session opened in that repo, type:
 
 ```
 ship this: add a /healthz endpoint that reports version and DB connectivity,
@@ -161,7 +207,7 @@ stops. Merging that PR is human gate #2 — always yours.
 
 For a blow-by-blow of a real run — including the incidents and what the coordinator did about
 them — read [Anatomy of a run](guides/anatomy-of-a-run.md), which walks the actual ledger of
-the chimely sweep hour by hour.
+the 2026-07-15 sweep of `dodopayments/chimely` hour by hour.
 
 A fleet is not one scrolling transcript. Expect:
 
@@ -202,7 +248,9 @@ human:
 - `claim` — the worker's own narration. Informational only; never the completion oracle.
 
 When a coordinator says a unit is done, it means an independent verifier has already checked the
-manifest against git and a clean test run — not that a worker said so.
+manifest against git, and the coordinator has re-run the suite in a clean environment at that
+SHA — not that a worker said so. (The clean-env run is the coordinator's job, not `verify.py`'s;
+[concepts](concepts.md#independent-verification) lists which check belongs to whom.)
 
 ## Your side of the human gates
 
@@ -272,6 +320,12 @@ it. See [`runtime/liveness-resume.md`](../runtime/liveness-resume.md).
 **You want to know why a decision was made.** Mechanical decisions are audited in the ledger
 with their reasoning; taste decisions arrive batched in a brief you can veto. If a fleet made a
 one-way decision without you, that is a bug — file it.
+
+**A unit was marked done on a manifest that should have failed.** On a symlink install the
+completion gate is not wired until the settings snippet is merged; run
+`sh hooks/print-settings-snippet.sh --check` and confirm it prints `ok`. Remember what the gate
+checks from inside the worker's own session is advisory; the sound surfaces are CI, an MCP task
+or an SDK subprocess ([docs/verify-gate.md](verify-gate.md#trust-boundary)).
 
 ---
 

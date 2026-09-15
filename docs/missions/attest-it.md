@@ -21,6 +21,14 @@
 
 ---
 
+## Invoke it
+
+```
+> prove compliance with <standard@version>
+```
+
+**Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh; a FROZEN standard catalog (standard@version) as the denominator. A review/verify worker playbook (addyosmani specialists, mattpocock code-review, gstack review army) — one router per worker.
+
 ## What it does
 
 `attest-it` is the conformance fleet. A **coordinator** freezes a standard at a version, enumerates its
@@ -60,9 +68,9 @@ flowchart TD
     G --> I{{CONFORMANT-WITH-GAPS}}
 ```
 
-## Terminal outcomes
+## Terminal states
 
-| Verdict | Meaning | Who acts on it |
+| State | Meaning | Who acts on it |
 |---|---|---|
 | `CONFORMANT` | every obligation VERIFIED with independently re-derived evidence | a human/legal owner accepts the attestation |
 | `CONFORMANT-WITH-GAPS` | one or more GAPs, each with missing evidence + a named owner | the owner closes the gaps or accepts residual risk (a one-way gate) |
@@ -83,15 +91,47 @@ gatherer's narration); each GAP names its missing evidence and a human/legal own
 `CONFORMANT` or `CONFORMANT-WITH-GAPS`. No obligation is silently dropped, and the denominator was never
 shrunk.
 
-## Composes
+## A worked example
 
-Playbooks: [`decompose-dag`](../../playbooks/decompose-dag.md) ·
+*A run, sketched — the shape of one, not a transcript.*
+
+> prove compliance with NIST SSDF 1.1 for this service
+
+**Freeze.** The practices are enumerated from the standard at a digest into a DAG — `PS.1`,
+`PW.4`, `RV.1` and the rest — one unit each; nothing is dropped for being hard.
+
+**Evidence.** `ro` workers bind each practice to authoritative state: branch-protection settings
+re-read through the GitHub API, the dependency-review workflow's runs, the advisory-intake process
+as it exists in the tree.
+
+**Re-derive.** A fresh session repeats each check without the gatherer's notes. `PS.1` and `PW.4`
+re-derive and are VERIFIED. `RV.1` has no documented intake SLA anywhere in the tree — a GAP,
+named and parked to the security owner, not buried.
+
+**Attest.** The verdict is `CONFORMANT-WITH-GAPS`; accepting the residual gap is your one-way
+door, and remediation that lands code is a separate `ship-it` or `clean-sweep` run.
+
+## Failure modes this mission is built to prevent
+
+| Anti-pattern | Why it burns you |
+|---|---|
+| Marking a control satisfied on the gatherer's word | The evidence must be re-derived independently — that is the whole point |
+| Shrinking the obligation set to the ones you can pass | The denominator is frozen at a version digest |
+| Burying a GAP as a failure | A GAP is a named, parked terminal with an owner |
+| Confusing `attest-it` with `harden-it` or `review-it` | harden-it runs exploit → fix → re-attack and review-it is a per-PR verdict; this mission proves conformance to a standard |
+| Re-using evidence whose `provenance.spec_version` no longer matches the frozen standard | Evidence for a different version proves nothing about this one |
+| Enumerating obligations from model memory | The catalog is a sourced document at a digest; a plausible control list is not the standard |
+
+## Composes
+Playbooks:
+[`decompose-dag`](../../playbooks/decompose-dag.md) ·
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
 [`research-brief`](../../playbooks/research-brief.md) ·
 [`completion-audit`](../../playbooks/completion-audit.md) ·
 [`human-handoff`](../../playbooks/human-handoff.md)
 
-Runtime policies: [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
+Runtime policies:
+[`evidence-manifest`](../../runtime/evidence-manifest.md) ·
 [`gate-classification`](../../runtime/gate-classification.md) ·
 [`sandbox-policy`](../../runtime/sandbox-policy.md) ·
 [`ledger-contract`](../../runtime/ledger-contract.md) ·
