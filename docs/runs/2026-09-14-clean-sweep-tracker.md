@@ -1064,3 +1064,14 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   other 5,906 = pre-existing indented-code FYI). 4 threads owed
   coordinator replies. Released. TEST + STANDARDS out — T10 GO in
   reach.
+- R387W-r4 2/3 in: STANDARDS 2 Required (S-1: PR BODY still states the
+  rejected rule — 'ATX heading... begins WIP-curve', 'Ran 69 tests' —
+  PR-body edit only; S-2 cross-axis SPEC C-2: NEW fail-open, an
+  indented-code line arms a setext close (:554→:535): rows 1-2 +
+  '    note'/'---' + incomplete wave=2 binds [] at HEAD, base
+  refuses w/ 2 errors — NOT the pre-existing indented-code FYI) +
+  1 Optional + 1 Nit + 1 FYI. P1 4013782318 FALSE-POSITIVE (no-op
+  for indented breaks; 15 shapes + 168,416 fuzz agree). Batch
+  landed; 81/validate/ruff re-ran; full suite NOT re-ran (2nd axis
+  gap of this kind). 4 threads owed coordinator replies (3
+  resolved-answerless). Released. TEST out. T10 → NO-GO → r5 fix.
