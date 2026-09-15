@@ -709,6 +709,10 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   F-2 Nit (prose/check drift, dupes S2); F-3/F-4 FYI (fixture edit accepted
   as C-1-required). Released. TEST still out. T10 heads to NO-GO (F-1 + P2
   fence) → fix round.
+- R387W 3/3 in: TEST 2 Required (R1 over-broad opener lets 'Deviations —
+  WIP-curve cap raised' bind, same class as SPEC F-1; R2 fence-close clause
+  replaceable, ~~~-rows bind; 9/18 mutants survive) + Nits/Optional. Released.
+  V387W-r1 spec frozen (3 reports verbatim + held P2 fence). Dispatched.
 - I387P worker_done (msg_73692087dc99): PR #403 @ed8a7c5 (union over 5174ed4,
   T1-T3 fixes + BASE rows kept byte-identical, gates green). Greptile
   COMMENTED 5206046575, 2 VALID held: P2 4012397534 (review-template promises
