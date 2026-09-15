@@ -488,6 +488,46 @@ class SidecarCreationRace(LedgerCase):
         self.assertEqual(labels, ["seed", "legacy", "new"])
 
 
+class SidecarRejoin(LedgerCase):
+    """#387 thread 4012510839, the rest of the rejoin (V393R-r1 R-1, R-2). The race above pins
+    the re-read. These pin the retry bound, where the look sits and that the rejoin waits on
+    the sidecar. Each drives the real `append_record`, loaded by path, through a delegating
+    stand-in for one of the module's own names, and hands every call to the real one."""
+
+    def setUp(self):
+        super().setUp()
+        spec = importlib.util.spec_from_file_location("evidence_run", RUNNER)
+        self.runner = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(self.runner)
+        self.manifest, self.sidecar = self.repo / "m.json", self.repo / "m.json.lock"
+        self.manifest.write_text(json.dumps({"unit": "u", "commands": [{"label": "seed"}]}),
+                                 encoding="utf-8")
+
+    def labels(self):
+        return [c["label"] for c in
+                json.loads(self.manifest.read_text(encoding="utf-8"))["commands"]]
+
+    def test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar(self):
+        # The case the retry bound exists for: something other than a legacy writer deletes the
+        # sidecar just before each join and recreates it just after. Every look before the
+        # truncate then finds a sidecar this append never joined, and the last attempt must
+        # write anyway. An append that rejoins on every attempt writes nothing and warns nothing.
+        manifest, sidecar = self.manifest, self.sidecar
+
+        def open_(file, *args, **kwargs):
+            if Path(file) == sidecar:
+                sidecar.unlink(missing_ok=True)  # gone just before the join opens it
+            elif Path(file) == manifest:
+                sidecar.touch()  # back just after the join found none
+            return open(file, *args, **kwargs)
+
+        with mock.patch.object(self.runner, "open", open_, create=True), \
+                contextlib.redirect_stderr(io.StringIO()) as stderr:
+            self.runner.append_record(manifest, {"label": "new"})
+        self.assertNotIn("WARNING", stderr.getvalue())
+        self.assertEqual(self.labels(), ["seed", "new"])
+
+
 class NoLedgerLitter(LedgerCase):
     """#388: whatever serializes the append must not leave a file of its own beside the manifest.
     An untracked sibling fails every clean-tree gate once the manifest is committed, and it is
