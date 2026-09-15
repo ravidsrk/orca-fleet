@@ -57,12 +57,32 @@
       ],
       "workspace_state": [
         {
-          "glob": "**/*.py",
+          "glob": "tests/**/*.py",
           "not_matches": "(?i)\\b(log|logger|logging|span|event|emit|metric)\\w*\\b[^\\n]*(card_number|email)",
           "why": "telemetry must carry no PII: a card number or email in a log, event or span is a leak, not a signal"
         },
         {
-          "glob": "**/*.py",
+          "glob": "service/**/*.py",
+          "not_matches": "(?i)\\b(log|logger|logging|span|event|emit|metric)\\w*\\b[^\\n]*(card_number|email)",
+          "why": "telemetry must carry no PII: a card number or email in a log, event or span is a leak, not a signal"
+        },
+        {
+          "glob": "*.py",
+          "not_matches": "(?i)\\b(log|logger|logging|span|event|emit|metric)\\w*\\b[^\\n]*(card_number|email)",
+          "why": "telemetry must carry no PII: a card number or email in a log, event or span is a leak, not a signal"
+        },
+        {
+          "glob": "tests/**/*.py",
+          "not_matches": "\\.labels\\([^)]*(order_id|email|card_number)",
+          "why": "a per-order or per-customer metric label is unbounded cardinality, a needs-human cost decision"
+        },
+        {
+          "glob": "service/**/*.py",
+          "not_matches": "\\.labels\\([^)]*(order_id|email|card_number)",
+          "why": "a per-order or per-customer metric label is unbounded cardinality, a needs-human cost decision"
+        },
+        {
+          "glob": "*.py",
           "not_matches": "\\.labels\\([^)]*(order_id|email|card_number)",
           "why": "a per-order or per-customer metric label is unbounded cardinality, a needs-human cost decision"
         }

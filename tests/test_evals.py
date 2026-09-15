@@ -1164,6 +1164,35 @@ class TestCasesCatchTheirViolation(unittest.TestCase):
         self.assertEqual(_state_after("harden-it", 4, {**WORKSPACES["pytest"],
                                                        **WORKSPACES["harden_fix"]}, venv=True), [])
 
+    def test_a_venv_holding_mutmut_beside_the_fix_passes_the_prove_case(self):
+        # SPEC-r3 F-1 on PR #395, V1's class: mutmut needs libcst, whose own tests spell
+        # `assert True`. Each committed excerpt must hit every copy of prove-it's tautology ban,
+        # so the venv passing shows the ban is scoped to the case's tree, not that it went blind.
+        self.assertEqual(_state_after("prove-it", 4, {**WORKSPACES["libcst"],
+                                                      **WORKSPACES["prove_fix"]}, venv=True), [])
+        bans = [c for c in _case("prove-it", 4)["workspace_state"] if "glob" in c]
+        self.assertEqual([c["glob"] for c in bans], ["tests/**/*.py", "src/**/*.py", "*.py"] * 2)
+        self.assertEqual(len(WORKSPACES["libcst"]), 2)
+        for rel, text in WORKSPACES["libcst"].items():
+            for ban in bans[3:]:
+                with self.subTest(path=rel, glob=ban["glob"]):
+                    self.assertRegex(text, ban["not_matches"])
+
+    def test_a_venv_holding_django_beside_the_fix_passes_the_oncall_case(self):
+        # SPEC-r3 F-1's class in oncall-it: Django's own logging and auth code names email on a
+        # log line. Each committed excerpt must hit every copy of the PII ban; nothing installed
+        # was found to hit the label ban, which is scoped on the same pass.
+        self.assertEqual(_state_after("oncall-it", 4, {**WORKSPACES["django"],
+                                                       **WORKSPACES["oncall_fix"]}, venv=True), [])
+        bans = [c for c in _case("oncall-it", 4)["workspace_state"] if "glob" in c]
+        self.assertEqual([c["glob"] for c in bans],
+                         ["tests/**/*.py", "service/**/*.py", "*.py"] * 2)
+        self.assertEqual(len(WORKSPACES["django"]), 2)
+        for rel, text in WORKSPACES["django"].items():
+            for ban in bans[:3]:
+                with self.subTest(path=rel, glob=ban["glob"]):
+                    self.assertRegex(text, ban["not_matches"])
+
     # V3: modernize-it id-4's advisory boundary (ADV-1, fixed in requests 2.32.4), one row per
     # shape. django stays on 5.2 in every row, so every failure is the requests boundary's.
     REQUESTS_ROWS = (
