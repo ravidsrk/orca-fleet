@@ -439,6 +439,21 @@ class WipCurveObligation(unittest.TestCase):
         errs = run_report._wip_curve_errors(tilde, "ship-it", ROOT, "r.md")
         self.assertTrue(any("— none found;" in e for e in errs), errs)
 
+    def test_a_setext_heading_after_the_section_ends_it(self):
+        # Verdict r1: only an ATX heading ended the section, so a 'Deviations' line underlined as a
+        # setext heading left it open, and the rows under that heading bound as the run's evidence.
+        rows = f"{self.ROW_1}\n{self.ROW_2}\n"
+        for underline in ("---", "==="):
+            with self.subTest(underline=underline):
+                report = (f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n"
+                          f"Not measured to protocol this run.\n\nDeviations\n{underline}\n\n{rows}")
+                errs = run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md")
+                self.assertTrue(any("— none found;" in e and "WIP-curve protocol row" in e
+                                    for e in errs), f"bound under a setext heading {errs}")
+        # After a blank line --- is a thematic break, not a heading: the section stays open.
+        report = f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\nA note.\n\n---\n\n{rows}"
+        self.assertEqual(run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md"), [])
+
     def test_the_protocol_names_the_schema_the_checker_enforces(self):
         # The text and the check drifted once (#389: the prose owed five metrics, the check read
         # two settings). The protocol section must name every row key the checker enforces — and

@@ -486,12 +486,14 @@ _HEADING_RE = re.compile(r" {0,3}#{1,6}(?:[ \t]|$)")
 # A backtick fence's info string holds no backtick (CommonMark): '```text`example``' is prose with
 # inline code, and read as a fence it swallowed the rows after it (PR #401 review).
 _FENCE_RE = re.compile(r" {0,3}(`{3,}(?=[^`]*$)|~{3,})")
+_SETEXT_RE = re.compile(r" {0,3}(?:=+|-+)[ \t]*$")
 
 
 def _wip_section_lines(text):
     """The lines inside the report's WIP-curve section(s), fenced code excluded. A heading quoted
-    inside a fence is code too, so it neither opens nor closes the section."""
-    inside, fence = False, None
+    inside a fence is code too, so it neither opens nor closes the section. A setext heading — a
+    paragraph line underlined with = or - — ends the section like any other (verdict r1)."""
+    inside, fence, para = False, None, False
     for line in text.splitlines():
         opener = _FENCE_RE.match(line)
         if fence:
@@ -500,12 +502,20 @@ def _wip_section_lines(text):
                     and not line[opener.end():].strip()):
                 fence = None
             continue
+        heading = _HEADING_RE.match(line)
+        setext = para and _SETEXT_RE.match(line)
         if opener:
             fence = opener.group(1)
-        elif _HEADING_RE.match(line):
+        elif heading:
             inside = bool(_WIP_SECTION_RE.match(line))
+        elif setext:
+            inside = False
         elif inside:
             yield line
+        # Only paragraph text can be underlined: after a blank, a table row, a heading or a fence,
+        # --- is a thematic break or table syntax, and the section stays open.
+        para = bool(line.strip()) and not (opener or heading or setext
+                                            or line.lstrip().startswith("|"))
 
 
 def _wip_rows(text):
