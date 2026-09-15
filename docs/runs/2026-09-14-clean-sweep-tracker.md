@@ -603,3 +603,14 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   msg_dd0841387778; contract.source digest unchanged (frozen v1 issued),
   conductor correction note at close per U388 precedent. T9/T10 specs use the
   correct <base> pattern; T8 probes use git show <rev> — no same bug.
+- WAVE 2 dispatched: T8 task_6c7e4ed50873→ctx_b64e211c1465, T9
+  task_2792e3c556b8→ctx_4eb9f0f35d8b, T10 task_746b7c0da3b6→ctx_c4971d6637f1
+  (all codex; specs @719d997). 4 builders live (T7–T10).
+- REPLIES posted (6, all with egress receipts): 4012065421 (lockfile→U388),
+  4012065607 (WIP→U389), 4012065770 (U364 gates overtaken), 4012065917
+  (truncation historical), 4012066055 (T6 merge concede+refute), 4012074332
+  (NC-bug conceded + fixed c44d00f). wire_docs thread already resolved=true
+  (no action). Unresolved on #387: 13 (7 T8-bound, 3 T9, 1 T10, 1 replied
+  #20 awaiting maintainer, 1 replied NC-bug).
+- INBOX: acked delivery_c66026837d58 (29 msgs, all pre-takeover through
+  V364ff-r1 GO — every outcome already in this ledger); inbox empty after.
