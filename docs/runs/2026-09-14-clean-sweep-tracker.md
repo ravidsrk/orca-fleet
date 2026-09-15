@@ -833,4 +833,6 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   @04b780f, review 5206468138) left noticed-not-touched per spec; NO
   thread replies posted (r2 axes must flag the owed P2 thread answer).
   R387W-r2 specs frozen (copies + retarget 04b780f + batch-verify + new-P1
-  judge lines); 3 axes dispatched.
+  judge lines); 3 axes dispatched (spec task_51da2cc08def→ctx_9f59bd914e98,
+  test task_0807d8965db5→ctx_a205476091d4, standards task_dd4862432d31→
+  ctx_99cde08dc0e8; all heartbeating investigating 06:54Z).
