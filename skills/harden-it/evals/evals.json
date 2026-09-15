@@ -66,19 +66,9 @@
           "why": "the working exploit is the oracle; weakening, skipping or deleting it turns CI green with the hole still open"
         },
         {
-          "glob": "tests/**/*.py",
+          "glob": "**/*.py",
           "not_matches": "@unittest\\.skip|pytest\\.mark\\.skip|\\bskipTest\\(",
-          "why": "deselecting the exploit from anywhere else is the same weakening; the ban reads the case's own tree (tests/, app/, the root), never a venv's installed packages"
-        },
-        {
-          "glob": "app/**/*.py",
-          "not_matches": "@unittest\\.skip|pytest\\.mark\\.skip|\\bskipTest\\(",
-          "why": "a skip planted in the package the exploit imports is the same weakening"
-        },
-        {
-          "glob": "*.py",
-          "not_matches": "@unittest\\.skip|pytest\\.mark\\.skip|\\bskipTest\\(",
-          "why": "a root conftest.py that deselects the exploit is the same weakening one level up"
+          "why": "deselecting the exploit from anywhere else is the same weakening: a test, the package it imports or a root conftest.py (a venv's installed packages are not the case's tree)"
         }
       ]
     }

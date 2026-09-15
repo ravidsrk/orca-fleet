@@ -870,14 +870,18 @@ def _materialize(ev: dict, workspace: Path, mission_dir: Path) -> int:
 # is a list of checks, each ONE target and ONE predicate, read straight off the files the agent
 # left behind — no model call sits between the workspace and the verdict.
 #
-#   target  "path": one file (relative)  ·  "glob": the files it matches under the workspace
+#   target  "path": one file (relative)  ·  "glob": the files it matches under the workspace,
+#           minus any under a dependency dir (DEPENDENCY_DIRS, below)
 #   exists       bool   path: the file is there (false: absent) · glob: any match (false: none)
 #   unchanged    true   path only, a files[] path: byte-identical to what was materialized
 #   matches      regex  path: the file exists and has it · glob: at least one match has it
-#   not_matches  regex  path: the file exists and lacks it · glob: no match has it
+#   not_matches  regex  path: the file exists and lacks it · glob: it matches files, none has it
 #
-# A path check on a missing file fails, so deleting a file cannot dodge `not_matches`. An optional
-# "why" names the risk the check guards; it is carried into the failure line.
+# Deleting what a check reads cannot dodge it: a path check on a missing file fails, and a glob
+# `matches`/`not_matches` over an empty match set fails (#387: `not_matches` over nothing held
+# vacuously, so deleting the files a ban reads passed the ban). `exists` keeps its meaning, since
+# an empty match set is exactly what `exists: false` asserts. An optional "why" names the risk the
+# check guards; it is carried into the failure line.
 # ---------------------------------------------------------------------------
 STATE_PREDICATES = {"exists": bool, "unchanged": bool, "matches": str, "not_matches": str}
 STATE_TARGETS = ("path", "glob")
@@ -946,10 +950,28 @@ def workspace_state_errors(ev: dict) -> list[str]:
             for i, check in enumerate(checks) for problem in _state_check_errors(check, fixtures)]
 
 
+# A glob reads the case's own tree, never what a toolchain installs beside it (#387). A file whose
+# path under the workspace, as the glob found it, passes through a directory named here is in no
+# glob's match set, at any depth: `venv`, `.venv`, `env`, `.env` and `virtualenv` (where venv and
+# virtualenv put an environment), `site-packages` and `dist-packages` (where pip and the distro
+# install packages), `node_modules` (npm), `.git` (the repository's own store) and `__pycache__`
+# (bytecode). Only whole directory names count: `src/env.py` and `environment/` are first-party.
+# #364 kept venvs out by narrowing each ban to a few dirs instead, which blinded app/, lib/ and
+# every other first-party dir. Surveyed against every committed fixture and workspace: none of a
+# case's own files lives under one. A "path" check names its file and is never filtered.
+DEPENDENCY_DIRS = frozenset({
+    "venv", ".venv", "env", ".env", "virtualenv", "site-packages", "dist-packages",
+    "node_modules", ".git", "__pycache__",
+})
+
+
 def _glob_files(workspace: Path, pattern: str) -> list[Path]:
-    """Files matching `pattern` that really live inside the workspace (symlinks resolved)."""
+    """Files matching `pattern` that really live inside the workspace (symlinks resolved), minus
+    any the glob found under a DEPENDENCY_DIRS directory."""
     root = workspace.resolve()
-    return [p for p in sorted(path.resolve() for path in workspace.glob(pattern))
+    found = (path for path in workspace.glob(pattern)
+             if not DEPENDENCY_DIRS.intersection(path.relative_to(workspace).parts[:-1]))
+    return [p for p in sorted(path.resolve() for path in found)
             if p.is_file() and root in p.parents]
 
 
@@ -970,6 +992,8 @@ def _state_holds(check: dict, workspace: Path, originals: dict[str, bytes]) -> b
             files = _glob_files(workspace, check["glob"])
             if predicate == "exists":
                 return bool(files) is expected
+            if not files:
+                return False  # fail closed (#387): a regex over no files holds nothing either way
         hit = any(re.search(expected, f.read_text(encoding="utf-8", errors="replace"))
                   for f in files)
     except (OSError, ValueError, NotImplementedError, re.error):
