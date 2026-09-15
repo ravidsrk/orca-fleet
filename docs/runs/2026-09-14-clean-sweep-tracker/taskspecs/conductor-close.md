@@ -66,9 +66,11 @@ RULES:
   a review is in flight, another agent's PR landing on BASE) is disclosed, not normalised:
   record the actor (gh pr view --json mergedBy), the merge commit and what was in flight,
   in the loop log and in the manifest; then re-verify from step 1 at that merge's tip. A
-  merged unit cannot park, so an open review round posts as a record and a sticking finding
-  goes to a fix-forward unit. Precedent: T6 (PR #397 merged ~7 min before its GO verdict,
-  disclosed; verify 6/6) and U364 (PR #395 merged mid-r3; fix-forward by T6).
+  merged unit cannot park on an open review finding: the review round posts as a record and
+  a sticking finding goes to a fix-forward unit. A RED verify.py leg still parks the row per
+  step 6 (T1-T3: needs-human for the review leg). Precedent: T6 (PR #397 merged ~7 min
+  before its GO verdict, disclosed; verify 6/6) and U364 (PR #395 merged mid-r3;
+  fix-forward by T6).
 - reattach. Review workers check out the reviewed SHA (review-template.md TARGET), which
   leaves the unit worktree on a detached HEAD; they leave it detached, commit nothing, and
   say so in worker_done. Whoever commits next in a review-touched worktree (the fix
