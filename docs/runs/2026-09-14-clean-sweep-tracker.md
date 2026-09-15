@@ -35,7 +35,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | T7 | #393 | mixed-version rollout lock (opportunistic sidecar + test) | real-bug | t | t | t | t | t | t | lit | needs-human: post-merge independent APPROVE (2nd login) for verify review leg (see gate-batch.md G3) | V393-r1 GO 5206137160 @7630815 (F1+P1 close-owed, P2 FIFO accepted low-sev Optional → backlog); MERGED 6d9e46a; verify 5/6 (review RED, parked — see gate-batch.md G3); #393 CLOSED with evidence |
 | T8 | #387-threads | ledger/process remediation (parks, u385 tree, templates, close doc) | process | t | t | t | t | t | t | lit | — | V387P-r3 GO 5207105770 @19be7a1 (0 Required all axes + Greptile APPROVED); 2 thread replies posted pre-merge (4013297581/4013297827); MERGED b9b71df6 (--match-head-commit + --delete-branch, branch 404); verify 6/6 GREEN (review leg via Greptile APPROVED); manifest closed (head re-bind 4142b63→19be7a1, 3 coordinator re-runs: probe/validate/1360); worktree retired |
 | T9 | #387-threads | eval-glob holes (T6 regression: app//lib/ miss; empty-glob survey) | real-bug (evals) | t | t | t | t | t | t | lit | needs-human: post-merge independent APPROVE (2nd login) for verify review leg (see gate-batch.md G3) | V387G-r2 GO 5206446623 @318542b (delta: T9 byte-identical, badge 1360 recomputed, 1360 OK); MERGED a769a64e (--match-head-commit + --delete-branch, branch 404); verify 5/6 (review RED, parked); manifest closed (head re-bind 0a3f4ab→318542b, 3 coordinator re-runs: 109/validate/1360); worktree retired |
-| T10 | #387-threads | WIP-curve rows: scope to canonical section (U389 residual) | real-bug | t | t | t | f | f | f | lit | — | PR #401 (u387w-wipsection) @3ce5825: V387W-r3 NO-GO (4 Required: ordinal setext, indented-para both directions, nested fence, false nnt claim); r4 fix live; 3 thread replies OWED conductor-side pre-merge |
+| T10 | #387-threads | WIP-curve rows: scope to canonical section (U389 residual) | real-bug | t | t | t | f | f | f | lit | — | PR #401 (u387w-wipsection) @f8a0d87 (r3 batch landed: content-column fix, D6/D7/C8/C10/D15 + M13 kills, test-cited nnt); Greptile NEW P1 4013782318 (list-state, untriaged-VALID?); 3 r4 axes live; 4 thread replies OWED conductor-side pre-merge |
 
 PHASE: ORIENT → ENUMERATE → TRIAGE done → FREEZE → BUILD wave 1: U385 CLOSED, U388 U389 in fix-round → wave 2: U364
 
@@ -1039,3 +1039,17 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   complete delivered batch). Fix spec fix-387w-r4.md frozen
   (markdown-it oracle instruction; suite-capture guard; test-cited
   claims only). Dispatched.
+- FIX387W-r4 worker_done (msg_9523ba369dcb, released, verified, body
+  archived /tmp FULL 2787 chars): PR #401 @f8a0d87 (union d9f0a2a over
+  e97b824 conflict-free + 5 commits per worker list, 99b73ca→f8a0d87
+  manifest-only; origin==PR head). Gates re-ran coordinator-side
+  @f8a0d87: 81 OK + validate. Manifest checks (head=99b73ca code tip,
+  C-1..C-4, NC 1/0, 3 cmds bound 744ab26). 1 disclosed out-of-batch
+  change (thematic break opens no list item — fix-needed, in commit
+  msg). NEW Greptile P1 4013782318 @f8a0d87 ('List State Drops
+  Early') NOT chased; builder's 6-shape oracle triage did NOT
+  reproduce (5/6 CommonMark-agree, 1 div = pre-existing
+  indented-code FYI) — r4 axes judge VALID/FP. NO posts (4 threads
+  owed coordinator-side pre-merge). R387W-r4 specs frozen (copies +
+  retarget f8a0d87 + batch-verify + new-P1 judge w/ triage note); 3
+  axes dispatched.
