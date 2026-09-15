@@ -713,6 +713,18 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   WIP-curve cap raised' bind, same class as SPEC F-1; R2 fence-close clause
   replaceable, ~~~-rows bind; 9/18 mutants survive) + Nits/Optional. Released.
   V387W-r1 spec frozen (3 reports verbatim + held P2 fence). Dispatched.
+- R387P 1/3 in: TEST 2 Required (F1 C-4 probe is keyword-presence only —
+  gutted rules stay GREEN; F2 C-1 probe is one-word denylist + manifest
+  overclaims it reads the contract) + 2 Nit (F3 fail-open on missing ledger;
+  F4 whole-file greps) + 4 FYI. Probe replay confirmed (4/4 RED base, 0/4
+  head, 3/4 reverted, executed_ok True). Released. SPEC + STANDARDS out.
+- R387G 1/3 in: TEST 0 Required (NC + M1-M4 + R2/R3/R4 mutants reproduced and
+  killed; M4-killer validated legit, not tautological). OPTIONAL (unpinned
+  relative-to-workspace property, TMPDIR-under-env edge) + NIT (2 vacuous
+  installed-excerpt subtests) + 3 FYI. Released. SPEC + STANDARDS out.
+- R387G 2/3 in: STANDARDS 0 Required (1 Optional unpinned survey claim; 6 Nits
+  incl. why-contract parentheticals, dup helper, scope inconsistency; 4 FYI).
+  Released. SPEC still out — T9 clean so far (0 Required, bot none).
 - I387P worker_done (msg_73692087dc99): PR #403 @ed8a7c5 (union over 5174ed4,
   T1-T3 fixes + BASE rows kept byte-identical, gates green). Greptile
   COMMENTED 5206046575, 2 VALID held: P2 4012397534 (review-template promises
