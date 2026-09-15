@@ -652,16 +652,15 @@ class TestDocsNavigation(unittest.TestCase):
         # a measurement harness, mutation tooling, a docs-framework build). The guide's Needs
         # line is the SKILL's `compatibility` field verbatim, so the two cannot drift.
         needs = re.compile(r"^\*\*Needs\*\* \(the skill's `compatibility` field, verbatim\): (.+)$", re.M)
-        # The same frontmatter path the validator's eval checks use, so any scalar style it
-        # accepts is accepted here (PR #396 review).
-        spec = importlib.util.spec_from_file_location("evalmod", ROOT / "scripts" / "eval.py")
-        evalmod = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(evalmod)
+        # The validator's own frontmatter parser, so every scalar style validate.py accepts
+        # (block, plain, quoted — quotes stripped) is read the same way here (PR #396 review).
         for d in sorted((ROOT / "skills").iterdir()):
             if not d.is_dir() or d.name.startswith((".", "_")):
                 continue
             skill = (d / "SKILL.md").read_text(encoding="utf-8")
-            value = evalmod.parse_frontmatter(skill).get("compatibility")
+            data, err = validate.parse_frontmatter(skill)
+            self.assertIsNone(err, f"skills/{d.name}/SKILL.md frontmatter: {err}")
+            value = data.get("compatibility")
             self.assertTrue(value, f"skills/{d.name}/SKILL.md has no compatibility field")
             compat = " ".join(str(value).split())
             guide = (DOCS / "missions" / f"{d.name}.md").read_text(encoding="utf-8")
