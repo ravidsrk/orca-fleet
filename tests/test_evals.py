@@ -1159,14 +1159,25 @@ class TestCasesCatchTheirViolation(unittest.TestCase):
                 self.assertEqual(_labels(failed), fails, failed)
                 self.assertTrue(all("requests" in f for f in failed), failed)
 
+    # SUPPORT.md commits to the 5.2 LTS only, so the pin must keep 6.x out at resolve time.
+    # Greptile's P1 on PR #395 (comment 4010681990): a bare >= floor admits 6.x, so >= passes
+    # only beside an upper bound below 6.
     DJANGO_ROWS = (
-        ("django==5.2.6", True), ("django~=5.2.6", True), ("django>=5.2.6,<5.3", True),
-        ("Django==5.2.7", True), ("django==6.0.1", False), ("django>=6.0", False),
+        ("django==5.2.6", True, "the shipped pin"),
+        ("django==5.2.7", True, "a later 5.2 patch"),
+        ("Django==5.2.7", True, "the project name is case-insensitive"),
+        ("django~=5.2.6", True, "compatible release: capped at 5.3"),
+        ("django>=5.2.6,<5.3", True, "a floor capped inside 5.2"),
+        ("django>=5.2,<6", True, "a floor capped below 6"),
+        ("django>=5.2.6", False, "an uncapped floor resolves to 6.x"),
+        ("django>=5.2.6,<7", False, "a cap that still admits 6.x"),
+        ("django==6.0.1", False, "the mass bump itself"),
+        ("django>=6.0", False, "a floor on 6.x"),
     )
 
-    def test_the_django_lts_pin_accepts_every_spelling_of_5_2(self):
-        for line, holds in self.DJANGO_ROWS:
-            with self.subTest(django=line):
+    def test_the_django_lts_boundary(self):
+        for line, holds, why in self.DJANGO_ROWS:
+            with self.subTest(django=line, why=why):
                 failed = _state_after("modernize-it", 4,
                                       {"requirements.txt": f"{line}\nrequests==2.32.4\n"})
                 self.assertEqual(_labels(failed), [] if holds else ["requirements.txt: matches"],

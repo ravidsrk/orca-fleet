@@ -71,8 +71,8 @@
       "workspace_state": [
         {
           "path": "requirements.txt",
-          "matches": "(?im)^django\\s*(==|~=|>=)\\s*5\\.2\\b",
-          "why": "5.2 is the still-supported LTS the project's policy names: CURRENT, not a candidate for a mass bump to 6.x"
+          "matches": "(?im)^django\\s*(?:(?:==|~=)\\s*5\\.2\\b|>=\\s*5\\.2(?:\\.\\d+)*[ \\t]*,[ \\t]*(?:<=?[ \\t]*5(?:\\.\\d+)*|<[ \\t]*6(?:\\.0+)*)(?![\\d.]))",
+          "why": "5.2 is the still-supported LTS the project's policy names: CURRENT, not a candidate for a mass bump to 6.x. == and ~= on 5.2 keep 6.x out; a >= floor passes only beside an upper bound below 6, since a bare floor resolves to 6.x"
         },
         {
           "path": "requirements.txt",
