@@ -492,3 +492,9 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   bans + oncall-it 2 bans + libcst venv row forward on its own branch with full
   evidence + review; U364 closes with the deviation disclosed; #364 closes
   after T6 merges.
+- V364r3 dispatched as record (task_7482f88b5c5a → ctx_84c1fe93e387,
+  term_1ad270ef; supersedes blocked task_8bbd650d5c5e whose snapshot predates
+  the record-posting amendment).
+- T6 build-364ff spec written (C-FF1 prove-it scoping + libcst row, C-FF2
+  oncall-it scoping + venv row, C-FF3 suite green + V2 rows hold; NC revert the
+  two case files). Branch u364ff-venv-globs + build worker next.
