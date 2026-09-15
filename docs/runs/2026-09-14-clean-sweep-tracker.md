@@ -1360,3 +1360,14 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   @55ef070 (verified: 3 reviews, correct first line; no new bot comments;
   P1 stays accepted). Batch: RQ-1 full residual outcomes + RQ-2 fired-
   assertion + S-3 docstring. FIX393R-r3 dispatched (spec d849a90).
+- FIX393R-r3 DONE (msg_b52f80a91543, task_9f0c5e821221): 428753e RQ-2 fired-
+  assertion + 5d2f572 RQ-1 residual outcomes + 3ec3f27 S-3 + 1e8ae08 records
+  (no badge — count steady 1381). Coordinator-verified: 4 commits, 4 owned
+  files, production behavior-AST identical; SidecarRejoin GREEN at tip;
+  (REFACTOR+M1) RED replayed in scratch. RQ-1 corruption demo reproduced by
+  builder (Extra data char 108, silent tear, poisoned ledger). Pushed bare
+  (egressed) -> PR #404 head 1e8ae08 MERGEABLE. R3 axes dispatched (spec
+  task_69df55e214ff, test task_47d00b4b6c62, standards task_969367633f19).
+  CORRECTION: r3 specs first written with an UNVERIFIED full SHA suffix —
+  caught by coordinator rev-parse check before dispatch, fixed to
+  1e8ae0877c60... (cat-file commit). r2's 55ef0704d04... re-confirmed valid.
