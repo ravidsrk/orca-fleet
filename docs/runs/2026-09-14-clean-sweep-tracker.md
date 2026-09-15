@@ -952,3 +952,9 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   pointer in T7/T9 cells) ACCEPTED — T9's close omitted the G3 append;
   G3 now lists #402 U387G 318542b (merged a769a64e) and T7/T9 park
   cells point at G3. SPEC + TEST out.
+- R387P-r3 2/3 in: TEST 0 Required (2 Nits: cannot-park scoping
+  untested — builder-disclosed; G3 pointer not head-list-checked; 1
+  Optional C-3 file-wide grep; 3 FYI). All 7 batch items checked;
+  probe replays reproduce (4/4 base, 3/4 reverted, GREEN head;
+  executed_ok True); Greptile APPROVED confirmed. Thread replies owed
+  coordinator-side. Released. SPEC out — T8 GO in reach.
