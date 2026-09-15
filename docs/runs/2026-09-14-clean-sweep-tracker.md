@@ -1179,3 +1179,13 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   landed + oracle-matched; 83/1378-suite/validate/ruff green.
   Bot 5/5 confirmed. Body + 4 threads owed coordinator-side.
   Released. TEST out — one axis from GO.
+- R387W-r6 3/3 in: TEST 1 Required (R-1, conf 0.8: :520
+  'line.strip()' unwitnessed — dropping it passes all 83 but
+  fails open on wave-2-in-list-fence-after-blank, oracle agrees
+  w/ HEAD) + Nit N-1 (margin-only witness) + Optional O-1
+  ('yield raw' untested). Batch in; NC-1/NC-14/NC-2/M15/MT2-4/
+  M13g reproduce; bot 5/5, gates pass. Body + 4 threads owed
+  coordinator-side. Released. W-r6 totals: SPEC 0, STANDARDS 0,
+  TEST 1 → V387W-r6 spec frozen (3 verbatim from /tmp archives
+  + body-reply conductor-excludes). Dispatched — expect NO-GO
+  (R-1) → r7 fix.
