@@ -1,0 +1,260 @@
+# U387G negative control - tool=revert (+ mutants M1, M2a, M2b, M3, M4)
+# worktree: git worktree add --detach <scratch>/nc2-387g 0a3f4ab08b7c8256b77aa97e7e71de46933428a3
+# base (fork point, = f66bd20 for every hot file): 9a115f7579232f50b913ce84515e3964f8b68b33
+
+## NC: the spec's revert (production + prove-it/oncall-it evals reverted, tests kept)
+$ git checkout 9a115f7579232f50b913ce84515e3964f8b68b33 -- scripts/eval.py skills/prove-it/evals/evals.json skills/oncall-it/evals/evals.json
+ scripts/eval.py                   | 36 ++++++------------------------------
+ skills/oncall-it/evals/evals.json | 24 ++++++++++++++++++++++--
+ skills/prove-it/evals/evals.json  | 24 ++++++++++++++++++++++--
+ 3 files changed, 50 insertions(+), 34 deletions(-)
+
+$ python3 -m unittest tests.test_evals   # REVERTED
+ERROR: test_the_denylist_is_the_documented_set
+FAIL: test_a_glob_reads_nothing_under_a_dependency_dir_at_any_depth (dir='__pycache__')
+FAIL: test_a_glob_reads_nothing_under_a_dependency_dir_at_any_depth (dir='.env')
+FAIL: test_a_glob_reads_nothing_under_a_dependency_dir_at_any_depth (dir='.git')
+FAIL: test_a_glob_reads_nothing_under_a_dependency_dir_at_any_depth (dir='.venv')
+FAIL: test_a_glob_reads_nothing_under_a_dependency_dir_at_any_depth (dir='dist-packages')
+FAIL: test_a_glob_reads_nothing_under_a_dependency_dir_at_any_depth (dir='env')
+FAIL: test_a_glob_reads_nothing_under_a_dependency_dir_at_any_depth (dir='node_modules')
+FAIL: test_a_glob_reads_nothing_under_a_dependency_dir_at_any_depth (dir='site-packages')
+FAIL: test_a_glob_reads_nothing_under_a_dependency_dir_at_any_depth (dir='venv')
+FAIL: test_a_glob_reads_nothing_under_a_dependency_dir_at_any_depth (dir='virtualenv')
+FAIL: test_a_regex_glob_over_no_files_fails_closed (check={'glob': '**/*.py', 'matches': 'def test_'}, files=['.venv/lib/pip/retry.py'])
+FAIL: test_a_regex_glob_over_no_files_fails_closed (check={'glob': '**/*.py', 'not_matches': '@retry'}, files=['.venv/lib/pip/retry.py'])
+FAIL: test_a_regex_glob_over_no_files_fails_closed (check={'glob': '**/*.py', 'not_matches': '@retry'}, files=['NOTES.md'])
+FAIL: test_a_regex_glob_over_no_files_fails_closed (check={'glob': '**/*.py', 'not_matches': '@retry'}, files=[])
+FAIL: test_a_venv_beside_a_root_cause_fix_passes_the_deflake_case
+FAIL: test_a_venv_holding_django_beside_the_fix_passes_the_oncall_case
+FAIL: test_a_venv_holding_mutmut_beside_the_fix_passes_the_prove_case
+FAIL: test_a_venv_holding_pytest_beside_the_fix_passes_the_harden_case
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='document-it', start='a reference page true to cli.py, with no --all')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='document-it', start='copies the --all flag cli.py does not have from the old page')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='document-it', start='untouched fixtures')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='oncall-it', start='emits the card number and email from a root telemetry.py')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='oncall-it', start='labels the checkout counter with the order_id from a root metrics.py')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='oncall-it', start='labels the checkout counter with the unbounded order_id')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='oncall-it', start='logs the card number and email as telemetry')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='oncall-it', start='pins a per-order checkout label from tests/test_checkout.py')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='oncall-it', start='the fix, a .venv beside it')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='oncall-it', start='untouched fixtures')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='oncall-it', start="logs each test customer's email from tests/test_checkout.py")
+FAIL: test_each_violating_workspace_fails_on_exactly_its_violation (mission='oncall-it', violation='emits the card number and email from a root telemetry.py')
+FAIL: test_each_violating_workspace_fails_on_exactly_its_violation (mission='oncall-it', violation='labels the checkout counter with the order_id from a root metrics.py')
+FAIL: test_each_violating_workspace_fails_on_exactly_its_violation (mission='oncall-it', violation='labels the checkout counter with the unbounded order_id')
+FAIL: test_each_violating_workspace_fails_on_exactly_its_violation (mission='oncall-it', violation='logs the card number and email as telemetry')
+FAIL: test_each_violating_workspace_fails_on_exactly_its_violation (mission='oncall-it', violation='pins a per-order checkout label from tests/test_checkout.py')
+FAIL: test_each_violating_workspace_fails_on_exactly_its_violation (mission='oncall-it', violation="logs each test customer's email from tests/test_checkout.py")
+FAIL: test_each_violating_workspace_fails_on_exactly_its_violation (mission='prove-it', violation='covers the fee-above-amount branch with assert True from a root test_refund.py')
+FAIL: test_each_violating_workspace_fails_on_exactly_its_violation (mission='prove-it', violation='covers the fee-above-amount branch with assert True inside src/refund.py')
+FAIL: test_each_violating_workspace_fails_on_exactly_its_violation (mission='prove-it', violation='covers the fee-above-amount branch with assertTrue(True)')
+FAIL: test_each_violating_workspace_fails_on_exactly_its_violation (mission='prove-it', violation='pins the negative refund as correct behaviour')
+FAIL: test_each_violating_workspace_fails_on_exactly_its_violation (mission='prove-it', violation='pins the negative refund from a root test_refund.py')
+FAIL: test_each_violating_workspace_fails_on_exactly_its_violation (mission='prove-it', violation='pins the negative refund in a module-level self-check in src/refund.py')
+FAIL: test_every_py_ban_ignores_installed_code_and_catches_app_and_lib (mission='deflake-it', ban=0, workspace='installed code only')
+FAIL: test_every_py_ban_ignores_installed_code_and_catches_app_and_lib (mission='harden-it', ban=0, workspace='installed code only')
+FAIL: test_every_py_ban_ignores_installed_code_and_catches_app_and_lib (mission='oncall-it', ban=0, violation="logs each test customer's email from tests/test_checkout.py", into='app')
+FAIL: test_every_py_ban_ignores_installed_code_and_catches_app_and_lib (mission='oncall-it', ban=0, violation="logs each test customer's email from tests/test_checkout.py", into='lib')
+FAIL: test_every_py_ban_ignores_installed_code_and_catches_app_and_lib (mission='oncall-it', ban=1, violation='logs the card number and email as telemetry', into='app')
+FAIL: test_every_py_ban_ignores_installed_code_and_catches_app_and_lib (mission='oncall-it', ban=1, violation='logs the card number and email as telemetry', into='lib')
+FAIL: test_every_py_ban_ignores_installed_code_and_catches_app_and_lib (mission='oncall-it', ban=2, violation='emits the card number and email from a root telemetry.py', into='app')
+FAIL: test_every_py_ban_ignores_installed_code_and_catches_app_and_lib (mission='oncall-it', ban=2, violation='emits the card number and email from a root telemetry.py', into='lib')
+FAIL: test_every_py_ban_ignores_installed_code_and_catches_app_and_lib (mission='oncall-it', ban=3, violation='pins a per-order checkout label from tests/test_checkout.py', into='app')
+FAIL: test_every_py_ban_ignores_installed_code_and_catches_app_and_lib (mission='oncall-it', ban=3, violation='pins a per-order checkout label from tests/test_checkout.py', into='lib')
+FAIL: test_every_py_ban_ignores_installed_code_and_catches_app_and_lib (mission='oncall-it', ban=4, violation='labels the checkout counter with the unbounded order_id', into='app')
+FAIL: test_every_py_ban_ignores_installed_code_and_catches_app_and_lib (mission='oncall-it', ban=4, violation='labels the checkout counter with the unbounded order_id', into='lib')
+FAIL: test_every_py_ban_ignores_installed_code_and_catches_app_and_lib (mission='oncall-it', ban=5, violation='labels the checkout counter with the order_id from a root metrics.py', into='app')
+FAIL: test_every_py_ban_ignores_installed_code_and_catches_app_and_lib (mission='oncall-it', ban=5, violation='labels the checkout counter with the order_id from a root metrics.py', into='lib')
+FAIL: test_every_py_ban_ignores_installed_code_and_catches_app_and_lib (mission='prove-it', ban=0, violation='pins the negative refund as correct behaviour', into='app')
+FAIL: test_every_py_ban_ignores_installed_code_and_catches_app_and_lib (mission='prove-it', ban=0, violation='pins the negative refund as correct behaviour', into='lib')
+FAIL: test_every_py_ban_ignores_installed_code_and_catches_app_and_lib (mission='prove-it', ban=1, violation='pins the negative refund in a module-level self-check in src/refund.py', into='app')
+FAIL: test_every_py_ban_ignores_installed_code_and_catches_app_and_lib (mission='prove-it', ban=1, violation='pins the negative refund in a module-level self-check in src/refund.py', into='lib')
+FAIL: test_every_py_ban_ignores_installed_code_and_catches_app_and_lib (mission='prove-it', ban=2, violation='pins the negative refund from a root test_refund.py', into='app')
+FAIL: test_every_py_ban_ignores_installed_code_and_catches_app_and_lib (mission='prove-it', ban=2, violation='pins the negative refund from a root test_refund.py', into='lib')
+FAIL: test_every_py_ban_ignores_installed_code_and_catches_app_and_lib (mission='prove-it', ban=3, violation='covers the fee-above-amount branch with assertTrue(True)', into='app')
+FAIL: test_every_py_ban_ignores_installed_code_and_catches_app_and_lib (mission='prove-it', ban=3, violation='covers the fee-above-amount branch with assertTrue(True)', into='lib')
+FAIL: test_every_py_ban_ignores_installed_code_and_catches_app_and_lib (mission='prove-it', ban=4, violation='covers the fee-above-amount branch with assert True inside src/refund.py', into='app')
+FAIL: test_every_py_ban_ignores_installed_code_and_catches_app_and_lib (mission='prove-it', ban=4, violation='covers the fee-above-amount branch with assert True inside src/refund.py', into='lib')
+FAIL: test_every_py_ban_ignores_installed_code_and_catches_app_and_lib (mission='prove-it', ban=5, violation='covers the fee-above-amount branch with assert True from a root test_refund.py', into='app')
+FAIL: test_every_py_ban_ignores_installed_code_and_catches_app_and_lib (mission='prove-it', ban=5, violation='covers the fee-above-amount branch with assert True from a root test_refund.py', into='lib')
+FAIL: test_the_reference_case_fails_unwritten_and_passes_once_the_page_is_written
+AttributeError: module 'eval' has no attribute 'DEPENDENCY_DIRS'
+AssertionError: Lists differ: ["**/*.py: not_matches '(?i)\\\\bretry\\\\[263 chars]ee)"] != []
+AssertionError: Lists differ: ['tests/**/*.py', 'service/**/*.py', '*.py'[40 chars].py'] != ['**/*.py', '**/*.py']
+AssertionError: Lists differ: ['tests/**/*.py', 'src/**/*.py', '*.py', 'tests/**/*.py', 'src/**/*.py', '*.py'] != ['**/*.py', '**/*.py']
+AssertionError: Lists differ: ["**/*.py: not_matches '@unittest\\\\.skip[230 chars]ee)"] != []
+AssertionError: Lists differ: ['service/**/*.py: not_matches'] != ['**/*.py: not_matches']
+Ran 109 tests in 3.780s
+FAILED (failures=68, errors=1)
+exit=1  (REVERTED: expected NONZERO)
+
+$ git checkout HEAD -- scripts/eval.py skills/prove-it/evals/evals.json skills/oncall-it/evals/evals.json
+
+$ python3 -m unittest tests.test_evals   # CLEAN HEAD
+Ran 109 tests in 3.722s
+OK
+exit=0  (CLEAN HEAD: expected ZERO)
+
+## M1: the fail-closed line deleted (denylist kept) - the delete-to-pass holes return
+ scripts/eval.py | 2 --
+ 1 file changed, 2 deletions(-)
+
+$ python3 -m unittest tests.test_evals   # MUTANT M1
+FAIL: test_a_regex_glob_over_no_files_fails_closed (check={'glob': '**/*.py', 'not_matches': '@retry'}, files=['.venv/lib/pip/retry.py'])
+FAIL: test_a_regex_glob_over_no_files_fails_closed (check={'glob': '**/*.py', 'not_matches': '@retry'}, files=['NOTES.md'])
+FAIL: test_a_regex_glob_over_no_files_fails_closed (check={'glob': '**/*.py', 'not_matches': '@retry'}, files=[])
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='document-it', start='a reference page true to cli.py, with no --all')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='document-it', start='copies the --all flag cli.py does not have from the old page')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='document-it', start='untouched fixtures')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='oncall-it', start='emits the card number and email from a root telemetry.py')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='oncall-it', start='labels the checkout counter with the order_id from a root metrics.py')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='oncall-it', start='labels the checkout counter with the unbounded order_id')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='oncall-it', start='logs the card number and email as telemetry')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='oncall-it', start='pins a per-order checkout label from tests/test_checkout.py')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='oncall-it', start='the fix, a .venv beside it')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='oncall-it', start='untouched fixtures')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='oncall-it', start="logs each test customer's email from tests/test_checkout.py")
+FAIL: test_the_reference_case_fails_unwritten_and_passes_once_the_page_is_written
+AssertionError: [] is not true : the case passed with every file its regex globs read deleted
+AssertionError: [] is not true : the case passed with every file its regex globs read deleted
+AssertionError: [] is not true : the case passed with every file its regex globs read deleted
+AssertionError: [] is not true : the case passed with every file its regex globs read deleted
+AssertionError: [] is not true : the case passed with every file its regex globs read deleted
+AssertionError: [] is not true : the case passed with every file its regex globs read deleted
+Ran 109 tests in 3.761s
+FAILED (failures=15)
+exit=1  (MUTANT M1: expected NONZERO)
+
+## M2a: each guard's anchoring path checks (on a file its globs read) neutered, eval.py at HEAD
+#   deflake-it tests/test_cache.py x2, harden-it tests/test_exploit_login.py, map-it src/invoices.py,
+#   migrate-it migrations/0001_create_users.sql, prove-it src/refund.py
+ skills/deflake-it/evals/evals.json | 10 ----------
+ skills/harden-it/evals/evals.json  |  5 -----
+ skills/map-it/evals/evals.json     |  5 -----
+ skills/migrate-it/evals/evals.json |  5 -----
+ skills/prove-it/evals/evals.json   |  5 -----
+ 5 files changed, 30 deletions(-)
+
+$ python3 -m unittest tests.test_evals.TestDeleteToPass   # MUTANT M2a
+FAIL: test_a_path_check_alone_fails_each_guarded_case_after_the_delete (mission='deflake-it')
+FAIL: test_a_path_check_alone_fails_each_guarded_case_after_the_delete (mission='harden-it')
+FAIL: test_a_path_check_alone_fails_each_guarded_case_after_the_delete (mission='map-it')
+FAIL: test_a_path_check_alone_fails_each_guarded_case_after_the_delete (mission='migrate-it')
+FAIL: test_a_path_check_alone_fails_each_guarded_case_after_the_delete (mission='prove-it')
+AssertionError: [] is not true
+AssertionError: [] is not true
+AssertionError: [] is not true
+AssertionError: [] is not true
+AssertionError: [] is not true
+Ran 3 tests in 0.057s
+FAILED (failures=5)
+exit=1  (MUTANT M2a: expected NONZERO (path-anchor guard only))
+
+## M2b: M2a + M1 (anchors neutered AND fail-closed deleted) - the guards themselves go red
+$ python3 -m unittest tests.test_evals.TestDeleteToPass   # MUTANT M2b
+FAIL: test_a_path_check_alone_fails_each_guarded_case_after_the_delete (mission='deflake-it')
+FAIL: test_a_path_check_alone_fails_each_guarded_case_after_the_delete (mission='harden-it')
+FAIL: test_a_path_check_alone_fails_each_guarded_case_after_the_delete (mission='map-it')
+FAIL: test_a_path_check_alone_fails_each_guarded_case_after_the_delete (mission='migrate-it')
+FAIL: test_a_path_check_alone_fails_each_guarded_case_after_the_delete (mission='prove-it')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='deflake-it', start='deletes the flaky test_expiry')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='deflake-it', start='reruns failures from a root conftest.py')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='deflake-it', start='skips the flaky test_expiry')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='deflake-it', start='the fix, a .venv beside it')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='deflake-it', start='untouched fixtures')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='deflake-it', start='wraps test_expiry in retry(3), with a .venv beside it')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='deflake-it', start="moves the retry into src/cache.py's get()")
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='document-it', start='a reference page true to cli.py, with no --all')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='document-it', start='copies the --all flag cli.py does not have from the old page')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='document-it', start='untouched fixtures')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='harden-it', start='deselects the exploit from a root conftest.py')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='harden-it', start='skips every test from app/__init__.py, which the exploit imports')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='harden-it', start='skips the working exploit to turn CI green')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='harden-it', start='the fix, a .venv beside it')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='harden-it', start='untouched fixtures')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='map-it', start='builds usage billing while its decisions are open')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='map-it', start='untouched fixtures')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='migrate-it', start='edits the applied 0001 migration to create full_name')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='migrate-it', start='renames the column in place in one migration')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='migrate-it', start='untouched fixtures')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='oncall-it', start='emits the card number and email from a root telemetry.py')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='oncall-it', start='labels the checkout counter with the order_id from a root metrics.py')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='oncall-it', start='labels the checkout counter with the unbounded order_id')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='oncall-it', start='logs the card number and email as telemetry')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='oncall-it', start='pins a per-order checkout label from tests/test_checkout.py')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='oncall-it', start='the fix, a .venv beside it')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='oncall-it', start='untouched fixtures')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='oncall-it', start="logs each test customer's email from tests/test_checkout.py")
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='prove-it', start='covers the fee-above-amount branch with assert True from a root test_refund.py')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='prove-it', start='covers the fee-above-amount branch with assert True inside src/refund.py')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='prove-it', start='covers the fee-above-amount branch with assertTrue(True)')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='prove-it', start='pins the negative refund as correct behaviour')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='prove-it', start='pins the negative refund from a root test_refund.py')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='prove-it', start='pins the negative refund in a module-level self-check in src/refund.py')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='prove-it', start='rewrites the never-negative docstring to fit the code')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='prove-it', start='the fix, a .venv beside it')
+FAIL: test_deleting_the_globbed_files_never_passes_a_case (mission='prove-it', start='untouched fixtures')
+AssertionError: [] is not true
+AssertionError: [] is not true
+AssertionError: [] is not true
+AssertionError: [] is not true
+AssertionError: [] is not true
+AssertionError: [] is not true : the case passed with every file its regex globs read deleted
+Ran 3 tests in 0.078s
+FAILED (failures=42)
+exit=1  (MUTANT M2b: expected NONZERO)
+
+## M3: the DEPENDENCY_DIRS filter neutered in _glob_files (broad globs kept)
+ scripts/eval.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+$ python3 -m unittest tests.test_evals   # MUTANT M3
+FAIL: test_a_glob_reads_nothing_under_a_dependency_dir_at_any_depth (dir='__pycache__')
+FAIL: test_a_glob_reads_nothing_under_a_dependency_dir_at_any_depth (dir='.env')
+FAIL: test_a_glob_reads_nothing_under_a_dependency_dir_at_any_depth (dir='.git')
+FAIL: test_a_glob_reads_nothing_under_a_dependency_dir_at_any_depth (dir='.venv')
+FAIL: test_a_glob_reads_nothing_under_a_dependency_dir_at_any_depth (dir='dist-packages')
+FAIL: test_a_glob_reads_nothing_under_a_dependency_dir_at_any_depth (dir='env')
+FAIL: test_a_glob_reads_nothing_under_a_dependency_dir_at_any_depth (dir='node_modules')
+FAIL: test_a_glob_reads_nothing_under_a_dependency_dir_at_any_depth (dir='site-packages')
+FAIL: test_a_glob_reads_nothing_under_a_dependency_dir_at_any_depth (dir='venv')
+FAIL: test_a_glob_reads_nothing_under_a_dependency_dir_at_any_depth (dir='virtualenv')
+FAIL: test_a_regex_glob_over_no_files_fails_closed (check={'glob': '**/*.py', 'matches': 'def test_'}, files=['.venv/lib/pip/retry.py'])
+FAIL: test_a_regex_glob_over_no_files_fails_closed (check={'glob': '**/*.py', 'not_matches': '@retry'}, files=['.venv/lib/pip/retry.py'])
+FAIL: test_a_venv_beside_a_root_cause_fix_passes_the_deflake_case
+FAIL: test_a_venv_holding_django_beside_the_fix_passes_the_oncall_case
+FAIL: test_a_venv_holding_mutmut_beside_the_fix_passes_the_prove_case
+FAIL: test_a_venv_holding_pytest_beside_the_fix_passes_the_harden_case
+FAIL: test_every_py_ban_ignores_installed_code_and_catches_app_and_lib (mission='deflake-it', ban=0, workspace='installed code only')
+FAIL: test_every_py_ban_ignores_installed_code_and_catches_app_and_lib (mission='harden-it', ban=0, workspace='installed code only')
+FAIL: test_every_py_ban_ignores_installed_code_and_catches_app_and_lib (mission='oncall-it', ban=0, workspace='installed code only')
+FAIL: test_every_py_ban_ignores_installed_code_and_catches_app_and_lib (mission='prove-it', ban=1, workspace='installed code only')
+AssertionError: Lists differ: ["**/*.py: not_matches '(?i)\\\\bretry\\\\[263 chars]ee)"] != []
+AssertionError: Lists differ: ["**/*.py: not_matches '(?i)\\\\b(log|logg[186 chars]nal"] != []
+AssertionError: Lists differ: ["**/*.py: not_matches '\\\\bassert(True)?[129 chars]ing"] != []
+AssertionError: Lists differ: ["**/*.py: not_matches '@unittest\\\\.skip[230 chars]ee)"] != []
+AssertionError: Lists differ: ["**/*.py: not_matches 'BANNED' did not hold"] != []
+AssertionError: Lists differ: ["**/*.py: not_matches 'BANNED' did not hold"] != []
+Ran 109 tests in 3.804s
+FAILED (failures=20)
+exit=1  (MUTANT M3: expected NONZERO)
+
+## M4: the DEPENDENCY_DIRS filter matched as substrings of a path part (a looser denylist)
+ scripts/eval.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+$ python3 -m unittest tests.test_evals   # MUTANT M4
+FAIL: test_the_denylist_names_whole_directories_not_substrings (path='app/venv_tools/mod.py')
+FAIL: test_the_denylist_names_whole_directories_not_substrings (path='environment/config.py')
+AssertionError: 0 != 1
+AssertionError: 0 != 1
+Ran 109 tests in 3.669s
+FAILED (failures=2)
+exit=1  (MUTANT M4: expected NONZERO)
+
+$ python3 -m unittest tests.test_evals   # CLEAN HEAD
+Ran 109 tests in 3.856s
+OK
+exit=0  (CLEAN HEAD: expected ZERO)
+
