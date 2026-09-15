@@ -880,3 +880,10 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   per-commit REDs; executed_ok True). Thread replies owed (builder
   lane or conductor pre-merge audit). Released. SPEC + STANDARDS out.
   T8 → likely NO-GO → r3 fix.
+- R387P-r2 2/3 in: SPEC 0 Required (C-1..C-5 met; 1 Nit out-of-process
+  rule unnamed STOP; 1 Optional T1/T2 refs→loop-log not G3; 5 FYI).
+  All 6 batch SHAs landed; validate/probe/U385-verify/1351 re-ran.
+  Greptile APPROVED confirmed; both P2 threads AUTO-RESOLVED by
+  greptile-bot with no reply → in-thread answers owed from COORDINATOR
+  lane (build-387-process 'coordinator replies'; fix spec gave builder
+  no reply step), citing 708b5a8 + 2c029dd. Released. STANDARDS out.
