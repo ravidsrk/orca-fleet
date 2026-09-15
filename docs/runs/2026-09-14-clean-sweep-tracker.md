@@ -560,3 +560,19 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
 - PARALLEL MERGE 09:04 IST: PR #394 (repo-images, other agent) merged as 8d53321
   into BASE; local spec commit rebased clean (no conflicts, validate green) and
   pushed as f5d1a56. T6 integrator unions it in; gates re-run on the union.
+- TAKEOVER 2026-09-15: coordinator session session_0b74c473 (kimi) handed to
+  Muse session sage-equinox. State at takeover (verified via gh): U385/U388/
+  U389 issues CLOSED, U364+T6 closed, BASE review/2026-09-14-holistic-fixes;
+  remaining DRY scope: open issues #393 (mixed-version rollout lock window,
+  P1 ex-#392-Greptile — read this session) + #386 (optional P2: sign
+  manifest/inventory, specify retention backend — read; likely human-gate on
+  the backend choice) + #235 (H-02 marketplace submissions — pure human
+  action, park via gate, no unit) + rollup PR #387 Greptile threads (20 open).
+- PARALLEL MERGES at takeover: BASE also took PR #398 (claude/pr387-greptile-
+  fixes, merged 00ce545 — another agent's Greptile fixes, triage must diff
+  against the #387 threads) and PR #399 (badge regen 1347->1349). BASE tip at
+  T7 dispatch: ef0ee1c.
+- T7 (U393) spec frozen: taskspecs/build-393.md (coordinator-picked code fix:
+  opportunistic pre-existing-sidecar flock + mixed-version concurrency test;
+  rollout-note direction declined). A-series: T7=#393, T8=#387 Greptile
+  rollup-thread remainder, T9=#386, T10=#235 (order per triage).
