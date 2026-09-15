@@ -3,9 +3,9 @@
   "unit": "U364",
   "unit_class": "code-change",
   "base_sha": "506a05974f61c35eda4acbb7df15e84fdeeec8bb",
-  "head_sha": "3943be8807726414947ff08fbc1abe64b3394267",
-  "head_tree": "6361a2b870b003d33b7aa18ed92db6ed36a528aa",
-  "head_sha_role": "head_sha is the last CONTENT commit 3943be8 of verdict round r2's fix batch fix-364-r4: the badge regeneration that follows the fix commit 7c9c243 (the union merge f7eaec1 of origin/review/2026-09-14-holistic-fixes precedes both; round r0's content commits were 2827496, 218bab6 and 244209a, round r1's b23a96c and 97e5e44, verdict round r1's f4f59bf and ad6d18e, bot round r2's 9cbabde). 7c9c243 passes tests.test_evals alone; validate.py's badge check is red there until 3943be8 (1337 -> 1339, the two test definitions this batch adds). The commit that re-binds this manifest follows it with a manifest-and-transcript-only delta and cannot name its own SHA; the pushed tip is named in worker_done and the conductor re-binds head_sha to the reviewed tip at close. Every commands[] record was made on a clean tree at head_sha: wtree 6361a2b8 == head_tree.",
+  "head_sha": "8323c98e56b37b93d56c82ad171c3a9897a9fb7f",
+  "head_tree": "80ac2efdc21613a42487c3e1db95ad3bef7da109",
+  "head_sha_role": "head_sha is the last CONTENT commit 3943be8 of verdict round r2's fix batch fix-364-r4: the badge regeneration that follows the fix commit 7c9c243 (the union merge f7eaec1 of origin/review/2026-09-14-holistic-fixes precedes both; round r0's content commits were 2827496, 218bab6 and 244209a, round r1's b23a96c and 97e5e44, verdict round r1's f4f59bf and ad6d18e, bot round r2's 9cbabde). 7c9c243 passes tests.test_evals alone; validate.py's badge check is red there until 3943be8 (1337 -> 1339, the two test definitions this batch adds). The commit that re-binds this manifest follows it with a manifest-and-transcript-only delta and cannot name its own SHA; the pushed tip is named in worker_done and the conductor re-binds head_sha to the reviewed tip at close. Every commands[] record was made on a clean tree at head_sha: wtree 6361a2b8 == head_tree. CONDUCTOR CLOSE 2026-09-15T04:39Z (post-merge 1b64781): re-bound head_sha/head_tree 3943be8/6361a2b8 to the reviewed+merged tip 8323c98/80ac2efdc (= 1b64781^2; the 8323c98-vs-3943be8 delta is the manifest + NC transcript commit only). Every commands[] record stays true at its stated tree; coordinator re-runs at the new head are appended.",
   "base_branch": "review/2026-09-14-holistic-fixes",
   "branch": "u364-eval-fixtures",
   "contract": {
@@ -91,6 +91,42 @@
       "commit": "3943be8807726414947ff08fbc1abe64b3394267",
       "wtree": "6361a2b870b003d33b7aa18ed92db6ed36a528aa",
       "artifact": null
+    },
+    {
+      "label": "coordinator re-run (full suite)",
+      "ts": "2026-09-15T04:39:25Z",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "exit": 0,
+      "duration_s": 256.007,
+      "commit": "8323c98e56b37b93d56c82ad171c3a9897a9fb7f",
+      "wtree": "80ac2efdc21613a42487c3e1db95ad3bef7da109",
+      "artifact": null,
+      "artifact_note": "Ran 1339 tests / OK in a clean detached scratch worktree at head_sha"
+    },
+    {
+      "label": "coordinator re-run (nc-command)",
+      "ts": "2026-09-15T04:39:25Z",
+      "cmd": "python3 -m unittest tests.test_evals",
+      "cmd_sha256": "2603b763de11dc5f22da2e3d4d09c88395fdf173c75ce734141e470284cb4736",
+      "exit": 0,
+      "duration_s": 3.243,
+      "commit": "8323c98e56b37b93d56c82ad171c3a9897a9fb7f",
+      "wtree": "80ac2efdc21613a42487c3e1db95ad3bef7da109",
+      "artifact": null,
+      "artifact_note": "Ran 98 tests / OK in a clean detached scratch worktree at head_sha"
+    },
+    {
+      "label": "coordinator re-run (validate)",
+      "ts": "2026-09-15T04:39:25Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 0,
+      "duration_s": 0.516,
+      "commit": "8323c98e56b37b93d56c82ad171c3a9897a9fb7f",
+      "wtree": "80ac2efdc21613a42487c3e1db95ad3bef7da109",
+      "artifact": null,
+      "artifact_note": "All 21 missions valid; three-layer separation holds; evals valid"
     }
   ],
   "commands_note": "Round r4 (fix-364-r4): every record was written by runtime/scripts/evidence-run.py with --cwd a clean detached scratch worktree at head_sha 3943be8 (wtree 6361a2b8 == head_tree; git status --porcelain --untracked-files=all empty before and after), each into its own manifest in session scratch outside the working tree, and is concatenated here unchanged. They replace round r3's records (made at 9cbabde), which the r4 commits made stale. The first record is the coordinator-named NC-COMMAND verbatim (98 tests OK); the full suite ran 1339 tests OK (the count from unittest discovery on the same tree). artifact is null everywhere; output summaries are inlined in criteria[] and negative_control. gitleaks detect (674 commits) found no leaks and ruff check on tests/test_evals.py and scripts/eval.py is clean; neither is recorded here.",
@@ -194,7 +230,16 @@
     "Round r4: the _pytest excerpts come from a uv-created scratch venv (uv venv --python 3.13, uv pip install pytest: pytest 9.1.1 on CPython 3.13.15), laid beside the pip-created .venv excerpts; both tools lay packages out at .venv/lib/python3.13/site-packages.",
     "Round r4: test_every_regex_check_fails_on_some_violating_workspace asks only that some violating row fails each regex check; with exact fails lists that is what turns a row red when the check is gutted. It does not ask that the row fail that check alone: the 17 rows this round adds each name one check, while four older rows (attest-it OB-1+OB-2, harden-it, map-it, oss-contribute) name two."
   ],
-  "pr": {},
+  "pr": {
+    "number": 395,
+    "url": "https://github.com/ravidsrk/orca-fleet/pull/395",
+    "reviewed_sha": "8323c98e56b37b93d56c82ad171c3a9897a9fb7f",
+    "reviewed_wtree": "80ac2efdc21613a42487c3e1db95ad3bef7da109",
+    "verdict": "NO-GO (round 3, posted as record after the merge)",
+    "verdict_review": 5205125758,
+    "merge_commit": "1b64781a40b481ce022ccd8c5b2bf757f98ade91",
+    "merge_note": "merged out-of-process by ravidsrk while round-3 review was in flight (open Required: SPEC F-1 prove-it venv glob). Kept per user decision; the sticking finding was remediated by fix-forward unit U364-FF (PR #397, merged 01d954e, verify 6/6). Reviewed==head==merged holds at 8323c98."
+  },
   "files": {
     "production": [
       "scripts/eval.py",
@@ -286,6 +331,7 @@
     "2026-09-15 round r2: ad6d18e regenerates assets/badges/tests.json 1330 -> 1337 as its own mechanical commit after f4f59bf (seven new test definitions). f4f59bf passes tests.test_evals alone; validate.py's badge check is red there until the badge commit, the same pattern as rounds r0 and r1.",
     "2026-09-15 bot round r2 (fix-364-r3), Greptile G1 (P1, comment 4010681990 @b2c5d49) FIXED in 9cbabde: modernize-it id-4's django check accepted an uncapped django>=5.2.6, which resolves to 6.x against SUPPORT.md's 5.2-only LTS policy. == and ~= on 5.2 still pass; >= passes only beside an upper bound below 6 (<5.x, <=5.x, or <6 with zero components). RED first through the real oracle at ef8f311 with the new table: exactly 2 of 10 rows failed, bare django>=5.2.6 and django>=5.2.6,<7, each 'Lists differ: [] != [requirements.txt: matches]'. GREEN at 9cbabde: 10 rows (pass ==5.2.6, ==5.2.7, Django==5.2.7, ~=5.2.6, >=5.2.6,<5.3, >=5.2,<6; fail bare >=5.2.6, >=5.2.6,<7, ==6.0.1, >=6.0). A scratch probe (not committed) through the same oracle passed >=5.2.6,<6.0, <6.0.0, <=5.2.9 and spaced separators, and failed <6.0.1, <=6, <6.1, <50, ==5.20 and >=5.20,<5.21. The V2 violating row django==6.0.1 fails the same check and is unchanged. Greptile G2 (P1, attest-it access-review exists:false) REFUTED by the coordinator, no code change. The union merge ef8f311 brought docs only, no conflict.",
     "2026-09-15 verdict r2 (review 5204457473 @6766265) NO-GO, batched fix fix-364-r4 in 7c9c243. W1 (SPEC F-1): harden-it id-4's skip ban read **/*.py and failed a doctrine-following workspace holding a .venv with pytest (pytest 9.1.1 on CPython 3.13.15: 5 banned-pattern lines across 4 _pytest files; reproduced through the real oracle before the fix). The ban now reads tests/**/*.py, app/**/*.py and root *.py. The 4 committed _pytest excerpts each hit all three copies, the pip .venv plus pytest beside a parameterized-query fix (with the root conftest.py a pytest run needs) passes, and a skip in tests/, app/__init__.py or a root conftest.py fails its own glob. W2 (TEST R-A): DJANGO_ROWS gains >=5.2,<6.1 and <6.0.1 (fail) and <=5.2.9 and <6.0 (pass); the regex already agreed with all four, so skills/modernize-it is untouched, and each of the three single-regex mutants survived the old 10 rows and fails the new table (scratch probe through the committed test). W3 (TEST R-B): new test test_every_regex_check_fails_on_some_violating_workspace, RED before the rows on 17 subtests: the 13 named, the 2 globs W1 adds, and modernize-it's two requests checks, which REQUESTS_ROWS already killed and which got rows so the test carries no exemption. 17 violating rows each fail exactly one check. W4 (TEST R-C): passing rows for field-test-it (FIELD-REPORT.md) and oss-contribute (docs/DECISIONS.md). N3: the deflake venv test reads all three ban copies (a gutted 2nd or 3rd copy passed it before). Optional: 11 violating rows, one per input-unchanged check. A scratch mutation survey (each check gutted alone, the catalog-reading test classes re-run) went from 24/55 vacuous and 4 unmatchable survivors at f7eaec1 to 0/57 and 1 (deflake-it's root *.py, not in the batch). The union merge f7eaec1 brought docs only, no conflict.",
-    "2026-09-15 round r4: 3943be8 regenerates assets/badges/tests.json 1337 -> 1339 as its own mechanical commit after 7c9c243 (two new test definitions). 7c9c243 passes tests.test_evals alone (run in the NC scratch worktree); validate.py's badge check is red there until the badge commit, the same pattern as rounds r0-r2."
+    "2026-09-15 round r4: 3943be8 regenerates assets/badges/tests.json 1337 -> 1339 as its own mechanical commit after 7c9c243 (two new test definitions). 7c9c243 passes tests.test_evals alone (run in the NC scratch worktree); validate.py's badge check is red there until the badge commit, the same pattern as rounds r0-r2.",
+    "CONDUCTOR CLOSE 2026-09-15T04:39Z (post-merge 1b64781): head_sha/head_tree re-bound 3943be8/6361a2b8 to the reviewed+merged tip 8323c98/80ac2efdc; pr filled (395, reviewed==head, r3 NO-GO 5205125758 posted as record); three coordinator re-run records at head appended (1339 OK, 98 OK, validate green). PROCESS DEVIATION (disclosed): merged out-of-process by ravidsrk while r3 was in flight with 1 Required open (SPEC F-1 prove-it venv glob); kept per user decision; the sticking finding was remediated by fix-forward unit U364-FF (PR #397 merged 01d954e, verify 6/6). Review history: r1 NO-GO (3 Required, all fixed), r2 NO-GO (4 Required, all fixed), r3 NO-GO (1 Required, fixed forward). No builder record was altered."
   ]
 }
