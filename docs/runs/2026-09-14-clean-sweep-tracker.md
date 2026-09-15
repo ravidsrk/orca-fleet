@@ -30,7 +30,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | T3 | #364 | fixture-backed evals + workspace-state oracle (S1) | real-feature-small | t | t | t | t | t | f | lit | process gap: merged w/o GO, remediated via T6 | PR #395 MERGED out-of-process 1b64781 @8323c98; r3 NO-GO recorded 5205125758 (SPEC F-1 reproduced, batch = T6 scope); sticking finding → T6; #364 closes after T6 |
 | T4 | #385 | historical-docs polish, agent slice (status.json + parity test) | real-bug (docs) | t | t | t | t | t | t | lit | — | PR #390 MERGED 32da76e @d6fc2cc (reviewed==head; greptile APPROVED + 3 blind GO); verify.py OK all legs (scope/commands/freshness/NC-exec/review/change-on-base); conductor manifest corrections (head/source) disclosed in-file; worktree retired; #385 closed w/ evidence |
 | T5 | #386 | sign manifest+inventory, retention backend (S2) | — | — | — | — | — | — | — | — | needs-human: key custody + backend undecided (Q2) | Q2: park |
-| T6 | #364 | prove-it/oncall-it venv glob scoping (U364 fix-forward) | real-bug (evals) | t | t | t | f | f | f | lit | — | PR #397 @2967804 (union over 967d049, badges 1344, baseRef ok; Greptile APPROVED 5205310163, 0 comments); R364ff axes dispatched |
+| T6 | #364 | prove-it/oncall-it venv glob scoping (U364 fix-forward) | real-bug (evals) | t | t | t | t | t | t | lit | — | PR #397 MERGED 01d954e @2967804 (reviewed==head; GO 5205447863; merged ~7min pre-verdict, disclosed); verify 6/6 incl. Greptile-APPROVED review leg; remediates U364 SPEC-r3 F-1 |
 | — | #235 | H-02 marketplace submissions (pre-parked needs-human) | needs-human | — | — | — | — | — | — | needs-human: external accounts | prior run + issue text |
 
 PHASE: ORIENT → ENUMERATE → TRIAGE done → FREEZE → BUILD wave 1: U385 CLOSED, U388 U389 in fix-round → wave 2: U364
@@ -540,6 +540,17 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   (F2), stale badge/head cites in manifest (close-fixes), merge-body template
   (F3). Axis tasks completed, workers released. V364ff-r1 spec + dispatched
   (task_3c1d45b9a9fd → ctx_0832401c7cd9, term_a141d272).
+- V364ff-r1 worker_done (msg_f9f22e8ad2ae): GO @2967804 (review 5205447863,
+  wtree a35e3e4c matches; gates re-run by verdict worker). REPORTS: PR #397 was
+  already MERGED 01d954e @2967804 (~7 min pre-verdict, mergedBy ravidsrk — 2nd
+  out-of-process merge) + BASE also took parallel PR #398 (repo-images agent).
+  Task completed, worker released.
+- T6 CLOSED: manifest close edits (head re-bind 2967804, pr fill GO 5205447863,
+  commits completed, 3 coordinator re-runs at head: 1344 OK / 100 OK / validate
+  green; negctrl C-FF label fixed + re-pinned; merge-before-verdict + staleness
+  disclosed in-file). verify.py 6/6 GREEN (incl. independent-review leg via
+  Greptile APPROVED — first full-green unit this run). Worktree + branch
+  retired.
 - PARALLEL MERGE 09:04 IST: PR #394 (repo-images, other agent) merged as 8d53321
   into BASE; local spec commit rebased clean (no conflicts, validate green) and
   pushed as f5d1a56. T6 integrator unions it in; gates re-run on the union.

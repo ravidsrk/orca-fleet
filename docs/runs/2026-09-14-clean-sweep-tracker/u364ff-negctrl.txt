@@ -32,7 +32,7 @@ FAIL: test_each_violating_workspace_fails_on_exactly_its_violation (tests.test_e
 Ran 100 tests in 3.476s
 FAILED (failures=14)
 
-=== REVERTED run: the C-FF1 and C-FF2 witnesses
+=== REVERTED run: the C-1 and C-2 witnesses
 FAIL: test_a_venv_holding_django_beside_the_fix_passes_the_oncall_case (tests.test_evals.TestCasesCatchTheirViolation.test_a_venv_holding_django_beside_the_fix_passes_the_oncall_case)
 ----------------------------------------------------------------------
 Traceback (most recent call last):

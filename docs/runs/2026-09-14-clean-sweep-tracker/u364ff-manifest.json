@@ -3,9 +3,9 @@
   "unit": "U364-FF",
   "unit_class": "code-change",
   "base_sha": "87fd2a2eac2868521f9b9aab17d2211685422725",
-  "head_sha": "eeeb38b5636a60a10d36f000f91c601ea1690b25",
-  "head_tree": "40263c54e534df14d79e3fbf11d04c3112c5d508",
-  "head_sha_role": "head_sha is the last CONTENT commit eeeb38b: the badge regeneration that follows the fix commit 717083c. 717083c passes tests.test_evals alone; validate.py's badge check (and test_architecture's test_validator_passes, which runs it) is red there until eeeb38b (1339 -> 1341, the two test definitions this unit adds), the U364 r0-r4 pattern, approved by the coordinator for this unit. The commit that adds this manifest and the NC transcript follows with a manifest-and-transcript-only delta and cannot name its own SHA; the pushed tip is named in worker_done and the conductor re-binds head_sha to the reviewed tip at close. Every commands[] record was made on a clean tree at head_sha: wtree 40263c54 == head_tree.",
+  "head_sha": "29678049c939eec0b7d7ba06da715e739d11afbc",
+  "head_tree": "a35e3e4cf2e7c500495c4643e38fee8a17ebce65",
+  "head_sha_role": "head_sha is the last CONTENT commit eeeb38b: the badge regeneration that follows the fix commit 717083c. 717083c passes tests.test_evals alone; validate.py's badge check (and test_architecture's test_validator_passes, which runs it) is red there until eeeb38b (1339 -> 1341, the two test definitions this unit adds), the U364 r0-r4 pattern, approved by the coordinator for this unit. The commit that adds this manifest and the NC transcript follows with a manifest-and-transcript-only delta and cannot name its own SHA; the pushed tip is named in worker_done and the conductor re-binds head_sha to the reviewed tip at close. Every commands[] record was made on a clean tree at head_sha: wtree 40263c54 == head_tree. CONDUCTOR CLOSE 2026-09-15T04:32Z (post-merge 01d954e): re-bound head_sha/head_tree eeeb38b/40263c54 to the reviewed+merged tip 2967804/a35e3e4c (= 01d954e^2; union 2967804 merges 288707c + BASE 967d049; the 2967804-vs-288707c delta is BASE-files + badge regen 1341->1344 only — unit files byte-identical, verified by diff). Every commands[] record stays true at its stated tree; coordinator re-runs at the new head are appended.",
   "base_branch": "review/2026-09-14-holistic-fixes",
   "branch": "u364ff-venv-globs",
   "contract": {
@@ -91,6 +91,42 @@
       "commit": "eeeb38b5636a60a10d36f000f91c601ea1690b25",
       "wtree": "40263c54e534df14d79e3fbf11d04c3112c5d508",
       "artifact": null
+    },
+    {
+      "label": "coordinator re-run (full suite)",
+      "ts": "2026-09-15T04:32:28Z",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "exit": 0,
+      "duration_s": 250.01,
+      "commit": "29678049c939eec0b7d7ba06da715e739d11afbc",
+      "wtree": "a35e3e4cf2e7c500495c4643e38fee8a17ebce65",
+      "artifact": null,
+      "artifact_note": "Ran 1344 tests / OK in a clean detached scratch worktree at head_sha"
+    },
+    {
+      "label": "coordinator re-run (nc-command)",
+      "ts": "2026-09-15T04:32:28Z",
+      "cmd": "python3 -m unittest tests.test_evals",
+      "cmd_sha256": "2603b763de11dc5f22da2e3d4d09c88395fdf173c75ce734141e470284cb4736",
+      "exit": 0,
+      "duration_s": 3.37,
+      "commit": "29678049c939eec0b7d7ba06da715e739d11afbc",
+      "wtree": "a35e3e4cf2e7c500495c4643e38fee8a17ebce65",
+      "artifact": null,
+      "artifact_note": "Ran 100 tests / OK in a clean detached scratch worktree at head_sha"
+    },
+    {
+      "label": "coordinator re-run (validate)",
+      "ts": "2026-09-15T04:32:28Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 0,
+      "duration_s": 0.506,
+      "commit": "29678049c939eec0b7d7ba06da715e739d11afbc",
+      "wtree": "a35e3e4cf2e7c500495c4643e38fee8a17ebce65",
+      "artifact": null,
+      "artifact_note": "All 21 missions valid; three-layer separation holds; evals valid"
     }
   ],
   "commands_note": "Every record was written by runtime/scripts/evidence-run.py in this worktree at head_sha eeeb38b with git status --porcelain empty before and after (wtree 40263c54 == head_tree), into a ledger in session scratch outside the working tree, and is copied here unchanged. The first record is the coordinator-named NC-COMMAND verbatim. artifact is null everywhere; output summaries are inlined in criteria[] and negative_control. Not recorded here: gitleaks detect over 87fd2a2..eeeb38b (2 commits) found no leaks; ruff check tests/test_evals.py is clean. ruff format --check reports the file unformatted at BASE too (pre-existing, whole-file), so it was not reformatted. An early full-suite run started before the badge commit failed only test_architecture's test_validator_passes on the stale badge, which is why the badge commit exists. Self-check: runtime/scripts/verify.py (--contract-source/--contract-digest from the dispatch binding, --nc-command the NC-COMMAND, --execute-nc, --unit-class code-change, --lighting lit, --no-gh) reports the commands ledger FRESH (4 exit-0 records bound to head_tree) and fails 2 invariants. (1) 'scope: no criterion ids in the authoritative contract': the frozen spec's ids C-FF1..C-FF3 do not match verify.py's criterion-id regex ([A-Z][A-Z0-9]*-\\d+ needs digits right after the hyphen), so the spec parses to no ids. This is contract-side: the manifest copies the ids exactly as issued. Because verify.py replays the control only when admission has no failure (verify.py:2071), --execute-nc did not replay it; the recorded control is in the artifact. (2) 'missing review.artifact': expected before review; the U364 manifest fails the same way with --no-gh.",
@@ -129,7 +165,7 @@
   "artifacts": [
     {
       "path": "docs/runs/2026-09-14-clean-sweep-tracker/u364ff-negctrl.txt",
-      "sha256": "6c933d67706207fbb655911397c26a89d70038666004651d15121d50bd91f341"
+      "sha256": "1d2abd200cc2cb53c3cbff9ffca7b35ea5942ea08268837cd0f92f97b89782ea"
     }
   ],
   "noticed_not_touched": [
@@ -139,9 +175,19 @@
     "Other cases with a **/*.py-style glob were not surveyed; out of scope (any other case file)."
   ],
   "deviations": [
-    "Contract amendment (fix F364ff-r1, coordinator-issued): contract.source/contract.digest re-bound from build-364ff.md@87fd2a2eac2868521f9b9aab17d2211685422725 (sha256:c14d66d606903ed35181b55b096ed2ca3645e8eccd3c3012e0da9fff277929cf) to build-364ff.md@8adf609df57f0a9fa74c090b928120e9b8aa6900 (sha256:f69003a2ecc516cac81eeaa3f3419c96286fefe2c53cf6b382b7ad3e3893299c), and the criterion ids renamed C-FF1 -> C-1, C-FF2 -> C-2, C-FF3 -> C-3 in contract.criterion_ids, criteria[] and binding_audit. Reason: verify.py's CRIT_ID_RE needs digits right after the hyphen ([A-Z][A-Z0-9]*-\\d+), so the C-FF shape parsed to no ids, the scope leg failed, and the negative control was never replayed (replay runs only when admission has no failure). The coordinator amended the frozen spec on BASE in 8adf609, which changes only the id tokens. Criterion text, witnesses, commits, commands[] and the negative control are unchanged. The self-check in commands_note describes the run before the amendment."
+    "Contract amendment (fix F364ff-r1, coordinator-issued): contract.source/contract.digest re-bound from build-364ff.md@87fd2a2eac2868521f9b9aab17d2211685422725 (sha256:c14d66d606903ed35181b55b096ed2ca3645e8eccd3c3012e0da9fff277929cf) to build-364ff.md@8adf609df57f0a9fa74c090b928120e9b8aa6900 (sha256:f69003a2ecc516cac81eeaa3f3419c96286fefe2c53cf6b382b7ad3e3893299c), and the criterion ids renamed C-FF1 -> C-1, C-FF2 -> C-2, C-FF3 -> C-3 in contract.criterion_ids, criteria[] and binding_audit. Reason: verify.py's CRIT_ID_RE needs digits right after the hyphen ([A-Z][A-Z0-9]*-\\d+), so the C-FF shape parsed to no ids, the scope leg failed, and the negative control was never replayed (replay runs only when admission has no failure). The coordinator amended the frozen spec on BASE in 8adf609, which changes only the id tokens. Criterion text, witnesses, commits, commands[] and the negative control are unchanged. The self-check in commands_note describes the run before the amendment.",
+    "CONDUCTOR CLOSE 2026-09-15T04:32Z (post-merge 01d954e): head_sha/head_tree re-bound eeeb38b/40263c54 to the reviewed+merged tip 2967804/a35e3e4c; pr filled (397, reviewed==head, GO 5205447863); commits[] completed (7ceaf5b, caf3532, 288707c, 2967804); three coordinator re-run records at head appended (1344 OK, 100 OK, validate green). PROCESS DEVIATION (disclosed): PR #397 was merged out-of-process ~7 min BEFORE the GO verdict posted (mergedBy ravidsrk 04:13:31Z); the merged tip is exactly the reviewed tip, so reviewed==head==merged still holds. STALENESS (disclosed, all true at their stated commits): PR body cites pre-union 1341 (union tip runs 1344); manifest C-3 text cites eeeb38b/1341; negctrl.txt line 35 said 'C-FF1 and C-FF2' (STANDARDS F2) — corrected to 'C-1 and C-2' in this commit with artifacts[] re-pinned (transcript outcome lines untouched). No builder record was altered."
   ],
-  "pr": {},
+  "pr": {
+    "number": 397,
+    "url": "https://github.com/ravidsrk/orca-fleet/pull/397",
+    "reviewed_sha": "29678049c939eec0b7d7ba06da715e739d11afbc",
+    "reviewed_wtree": "a35e3e4cf2e7c500495c4643e38fee8a17ebce65",
+    "verdict": "GO",
+    "verdict_review": 5205447863,
+    "merge_commit": "01d954ebddcdc6738ca8efc9f3ec57c302beb7c7",
+    "merge_note": "merged out-of-process ~7 min BEFORE the GO verdict posted (mergedBy ravidsrk 04:13:31Z, verdict 5205447863 after); the merged tip is exactly the reviewed tip, so the verdict still binds reviewed==head==merged."
+  },
   "files": {
     "production": [
       "skills/prove-it/evals/evals.json",
@@ -167,6 +213,22 @@
     {
       "sha": "eeeb38b5636a60a10d36f000f91c601ea1690b25",
       "subject": "chore(badges): regenerate tests badge, 1339 -> 1341 in source (#364 SPEC-r3 F-1)"
+    },
+    {
+      "sha": "7ceaf5bee0975611686af1b375f6ec5245622ba8",
+      "subject": "chore(run): U364-FF manifest and negative-control transcript (#364 SPEC-r3 F-1)"
+    },
+    {
+      "sha": "caf3532f96015ea6bb430ea49bf3ba2879a77752",
+      "subject": "Merge remote-tracking branch 'origin/review/2026-09-14-holistic-fixes' into u364ff-venv-globs"
+    },
+    {
+      "sha": "288707ceb941ec19064ed4fa10e42b319ca909c7",
+      "subject": "chore(run): re-bind U364-FF manifest to amended contract C-1..C-3 (#364 SPEC-r3 F-1)"
+    },
+    {
+      "sha": "29678049c939eec0b7d7ba06da715e739d11afbc",
+      "subject": "Merge commit '967d0492cb7223b6afd95301eeccd198a2d934fe' into u364ff-venv-globs"
     }
   ],
   "decisions": [
