@@ -27,7 +27,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | STAB | — | land 4 PR-review hunks (deny-hook/run_report/verify/HUMAN_ACTIONS) + badge regen | conductor landing, worker-executed | t | n/a | n/a | n/a | t | n/a | lit | — | 1215e09 9651a52 8f7d5ac 917f9fd; pushed origin/BASE fast-forward (egress receipt); 1285 OK + full battery green; NC re-executed 11 failures; rides PR #387 |
 | T1 | #388 | evidence-run lockfile dirties worktree | real-bug | t | t | t | t | t | t | lit | proof-park: needs post-merge independent APPROVE (2nd login) for verify review leg | PR #392 MERGED 8c36b4a @c680ee0 (reviewed==head; R2 GO 5202783703); verify 5/6 (review leg RED: no independent APPROVED — Greptile never re-reviewed; recoverable post-merge); #388 closed w/ evidence + gap note |
 | T2 | #389 | run_report WIP validation accepts incomplete reports | real-bug | t | t | t | t | t | t | lit | proof-park: needs post-merge independent APPROVE (2nd login) for verify review leg | PR #391 MERGED 1bdb20c @51019fb (reviewed==head; R3 GO 5203193997); verify 5/6 (review leg RED: no independent APPROVED — Greptile checks pass, no review object; recoverable post-merge); #389 closed w/ evidence + gap note |
-| T3 | #364 | fixture-backed evals + workspace-state oracle (S1) | real-feature-small | t | t | t | f | t | f | lit | process gap: merged w/o GO, remediated via T6 | PR #395 MERGED out-of-process 1b64781 @8323c98 (ravidsrk 07:41 IST, r3 in flight; SPEC r3 1 Required open: prove-it venv glob; TEST/STANDARDS clean); r3 verdict posts as record; sticking finding → T6; #364 closes after T6 |
+| T3 | #364 | fixture-backed evals + workspace-state oracle (S1) | real-feature-small | t | t | t | t | t | f | lit | process gap: merged w/o GO, remediated via T6 | PR #395 MERGED out-of-process 1b64781 @8323c98; r3 NO-GO recorded 5205125758 (SPEC F-1 reproduced, batch = T6 scope); sticking finding → T6; #364 closes after T6 |
 | T4 | #385 | historical-docs polish, agent slice (status.json + parity test) | real-bug (docs) | t | t | t | t | t | t | lit | — | PR #390 MERGED 32da76e @d6fc2cc (reviewed==head; greptile APPROVED + 3 blind GO); verify.py OK all legs (scope/commands/freshness/NC-exec/review/change-on-base); conductor manifest corrections (head/source) disclosed in-file; worktree retired; #385 closed w/ evidence |
 | T5 | #386 | sign manifest+inventory, retention backend (S2) | — | — | — | — | — | — | — | — | needs-human: key custody + backend undecided (Q2) | Q2: park |
 | T6 | #364 | prove-it/oncall-it venv glob scoping (U364 fix-forward) | real-bug (evals) | f | f | f | f | f | f | lit | — | SPEC-r3 F-1 class: rescope prove-it 2 bans + oncall-it 2 bans to case tree + libcst venv row; frozen from F-1 text; own branch/PR/evidence/review |
@@ -503,3 +503,9 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   task_d139018c1bae → ctx_49242f543cbd (term_715fc281), binding source
   build-364ff.md@87fd2a2 digest c14d66d6. 2 workers out (V364r3 record +
   B364ff).
+- V364r3 worker_done (msg_02c9ce7c6e42): NO-GO record posted (review 5205125758
+  @8323c98/wtree 80ac2efdc; SPEC F-1 reproduced via real oracle; batch =
+  prove-it 2 bans + libcst row + oncall-it 2 bans = T6 scope exactly; Nits/opts
+  excluded with reasons). Task completed, worker released.
+- B364ff asked badge Q (msg_cbed32c610b6): answered yes-badge-commit (spec's own
+  mechanical-commit rule; 1339→1341). Builder in reviewing phase.
