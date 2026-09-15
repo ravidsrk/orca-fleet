@@ -1,0 +1,101 @@
+# U393R negative control (#387 thread 4012510839) — 2026-09-15T12:42:58Z
+# NC-COMMAND: python3 -m unittest tests.test_evidence_run
+$ git rev-parse HEAD
+076f880b7d8aaed0dd4933e4780cc18c55963f78
+$ git log --oneline -4
+076f880 chore(badges): regenerate tests badge, 1378 -> 1379 in source (#387 thread 4012510839)
+305c0c5 fix(evidence-run): re-check for a sidecar before truncating, rejoin if one appeared (#387 thread 4012510839)
+f6a2657 test(evidence-run): a sidecar created after the absence check loses no record (#387 thread 4012510839)
+62da77c chore(run): T11 build spec for the sidecar-creation race (#387 thread 4012510839)
+## fork point: merge-base with BASE, and the parent of the unit's first commit
+$ git merge-base HEAD origin/review/2026-09-14-holistic-fixes
+62da77cd4fa471b9a2f03c0b675cb22a70987579
+$ git rev-parse f6a2657^
+62da77cd4fa471b9a2f03c0b675cb22a70987579
+$ git worktree add --detach /private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u393-race/f489ff47-2508-4a89-aae2-9daf9ae1a452/scratchpad/nc-393r 076f880
+Preparing worktree (detached HEAD 076f880)
+HEAD is now at 076f880 chore(badges): regenerate tests badge, 1378 -> 1379 in source (#387 thread 4012510839)
+
+## NC-1: production file restored to the fork point 62da77c, new tests kept
+$ git show 62da77c:runtime/scripts/evidence-run.py > runtime/scripts/evidence-run.py
+$ git status --porcelain
+ M runtime/scripts/evidence-run.py
+$ python3 -m unittest tests.test_evidence_run
+......................F......
+======================================================================
+FAIL: test_a_sidecar_created_after_the_absence_check_loses_no_record (tests.test_evidence_run.SidecarCreationRace.test_a_sidecar_created_after_the_absence_check_loses_no_record)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u393-race/f489ff47-2508-4a89-aae2-9daf9ae1a452/scratchpad/nc-393r/tests/test_evidence_run.py", line 487, in test_a_sidecar_created_after_the_absence_check_loses_no_record
+    self.assertEqual(sorted({"seed", "legacy", "new"} - set(labels)), [], "records lost")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['legacy'] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+'legacy'
+
+- ['legacy']
++ [] : records lost
+
+----------------------------------------------------------------------
+Ran 29 tests in 4.972s
+
+FAILED (failures=1)
+exit=1  (REVERTED: expected NONZERO)
+$ git checkout HEAD -- runtime/scripts/evidence-run.py
+$ git status --porcelain
+$ python3 -m unittest tests.test_evidence_run
+.............................
+----------------------------------------------------------------------
+Ran 29 tests in 4.394s
+
+OK
+exit=0  (CLEAN HEAD: expected ZERO)
+
+## NC-2 (mutant): REJOIN_ATTEMPTS = 1, so the re-check never gets a second attempt
+$ sed -i '' 's/^REJOIN_ATTEMPTS = 3$/REJOIN_ATTEMPTS = 1/' runtime/scripts/evidence-run.py
+$ git diff --stat
+ runtime/scripts/evidence-run.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+$ git diff -U0
+diff --git a/runtime/scripts/evidence-run.py b/runtime/scripts/evidence-run.py
+index d8c45bc..cb16a5f 100755
+--- a/runtime/scripts/evidence-run.py
++++ b/runtime/scripts/evidence-run.py
+@@ -153 +153 @@ def sidecar_lock(manifest_path):
+-REJOIN_ATTEMPTS = 3
++REJOIN_ATTEMPTS = 1
+$ python3 -m unittest tests.test_evidence_run
+......................F......
+======================================================================
+FAIL: test_a_sidecar_created_after_the_absence_check_loses_no_record (tests.test_evidence_run.SidecarCreationRace.test_a_sidecar_created_after_the_absence_check_loses_no_record)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u393-race/f489ff47-2508-4a89-aae2-9daf9ae1a452/scratchpad/nc-393r/tests/test_evidence_run.py", line 487, in test_a_sidecar_created_after_the_absence_check_loses_no_record
+    self.assertEqual(sorted({"seed", "legacy", "new"} - set(labels)), [], "records lost")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['legacy'] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+'legacy'
+
+- ['legacy']
++ [] : records lost
+
+----------------------------------------------------------------------
+Ran 29 tests in 3.779s
+
+FAILED (failures=1)
+exit=1  (MUTANT: expected NONZERO)
+$ git checkout HEAD -- runtime/scripts/evidence-run.py
+$ git status --porcelain
+$ python3 -m unittest tests.test_evidence_run
+.............................
+----------------------------------------------------------------------
+Ran 29 tests in 4.175s
+
+OK
+exit=0  (CLEAN HEAD: expected ZERO)
+$ git worktree remove --force /private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u393-race/f489ff47-2508-4a89-aae2-9daf9ae1a452/scratchpad/nc-393r
