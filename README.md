@@ -139,9 +139,9 @@ sh hooks/print-settings-snippet.sh   # merge the output into ~/.claude/settings.
 
 > **Step 3 is not optional if you want the gate.** `hooks/hooks.json` wires the verifier through
 > `${CLAUDE_PLUGIN_ROOT}`, which Claude Code sets only for **plugin** installs. A `ln -s` into
-> `~/.claude/skills/` loads no plugin, so without the snippet above the missions run with no
-> completion gate at all ([#262](https://github.com/ravidsrk/orca-fleet/issues/262)). The plugin
-> install needs nothing extra.
+> `~/.claude/skills/` loads no plugin, so without the snippet above the missions run with
+> no completion gate at all ([#262](https://github.com/ravidsrk/orca-fleet/issues/262)).
+> The plugin install needs nothing extra.
 
 [Getting started](docs/getting-started.md) walks a first run end to end: what the coordinator
 does, what the workers do, where the evidence lands, and what the two human gates look like from
@@ -194,12 +194,13 @@ verified terminal state — see [`runtime/mission-chaining.md`](runtime/mission-
 </p>
 
 Every mission's `metadata:` block carries a validator-enforced `proof:` field: `doctrine-only`,
-`self-run`, or `external-run`. A tier cannot be claimed without a run report that binds: a `RUN:`
-header, an evidence manifest inside the run's own `docs/runs/` directory, and an integrity
-inventory that re-hashes at the commit the header names. **Today every mission reads
-`doctrine-only`.** The [run archive](docs/runs/) records every run that really happened and says,
-per run, why it does not bind. The gate hashes but does not re-run the verifier, and
-[the 2026-09-11 review](REVIEW.md) showed that a fabricated run can pass it; closing that is
+`self-run`, or `external-run`. A tier cannot be claimed without artifacts that hash true at a
+named commit: a run report with a `RUN:` header, an evidence manifest inside the run's own
+`docs/runs/` directory, and an integrity inventory that re-hashes at the commit the header names.
+**Today every mission reads `doctrine-only`.** The [run archive](docs/runs/) records every run
+that really happened and says, per run, why it does not bind. Be precise about what the gate
+buys: it hashes, it does not re-run the verifier, and [the 2026-09-11 review](REVIEW.md) showed
+that a fabricated run can pass it; closing that is
 [#281](https://github.com/ravidsrk/orca-fleet/issues/281) and
 [#286](https://github.com/ravidsrk/orca-fleet/issues/286). Why the number went *down* as the
 mechanism got stronger is explained in [docs/concepts.md](docs/concepts.md#proof-status).
