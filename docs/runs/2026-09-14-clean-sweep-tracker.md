@@ -1162,4 +1162,6 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   BODY (names tab-stop + fence-lifetime changes; 2 tip-anchored
   comments predate push). NO posts, NO body touch, NO badge regen
   (1378), NO prose change. R387W-r6 specs frozen (copies + retarget
-  0fb838c + batch-verify + bot-clean-confirm); 3 axes dispatched.
+  0fb838c + batch-verify + bot-clean-confirm); 3 axes dispatched
+  (spec task_6132a10202e4→ctx_929fe6a1dfb4, test task_a0873d431062→
+  ctx_c83389772e15, standards task_363dc72f6365→ctx_6b2c6cbbed1e).
