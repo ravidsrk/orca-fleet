@@ -1314,3 +1314,16 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   still loses records" = the disclosed residual; no in-thread answer yet —
   owed pre-merge). R393R axes dispatched (spec task_8665725e14ee, test
   task_7a09f9297cb4, standards task_7fea2861a35f).
+- R393R PARTIAL: TEST (msg_cda774f901c9) C-1 sound + 2 Required (R-1 last-
+  attempt write-through unpinned; R-2 re-check position unpinned; both with
+  verified killer tests) + Optional/Nit notes. STANDARDS (msg_e688b11b01a8)
+  0/0 + 3 Nit (N1: manifest's exists()-on-OSError premise false on py313,
+  conclusion holds) + 2 Optional + 4 FYI. SPEC attempt 1 (task_8665725e14ee)
+  STOPPED after 60+ min, transcript frozen 20+ min mid-command, no report;
+  nudged first (msg_20447fb136a0, unanswered — agent was inside the hung
+  call). Retry dispatched (task_74b882a0ac38, timeouts + report-by-35).
+- COORDINATOR DATA for the fix batch: the no-join-on-rejoin mutant
+  (attempt>1 uses nullcontext instead of joining) SURVIVES 20/20 race-test
+  runs and the full 29-test module (3.9s, OK) — the forced schedule pins the
+  re-read but not the blocking join. Reproduced by coordinator in /tmp
+  (scratch, deleted after); goes to fix-393r-r2 alongside R-1/R-2.
