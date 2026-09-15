@@ -1132,3 +1132,13 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   Full suite re-ran 1378 OK (coverage stands); bot 5/5 intact,
   no new inline (2 tip comments predate the push). 4 threads
   owed coordinator replies. Released. STANDARDS out.
+- R387W-r5 3/3 in: STANDARDS 1 Required-record + 1 Optional + 2 Nit
+  + FYI. F-1 (coordinator-side): PR body still r4 — gh pr edit for
+  r5 owed (Greptile block intact, says 83 @fd12ce4). F-2 Optional
+  (Long Function +1 state var), F-3/F-4 Nits, F-5 FYI (nnt[2]
+  probe [] — disclosed). Full suite re-ran 1378 OK; bot 5/5
+  confirmed (2 tip comments predate push). 4 threads owed
+  coordinator replies. Released. W-r5 totals: SPEC 1+record, TEST
+  1, STANDARDS 1-record → V387W-r5 spec frozen (3 verbatim from
+  /tmp archives + body-reply conductor-excludes). Dispatched —
+  expect NO-GO (tab) → r6 fix.
