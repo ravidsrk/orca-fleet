@@ -35,7 +35,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | T7 | #393 | mixed-version rollout lock (opportunistic sidecar + test) | real-bug | t | f | f | f | f | f | lit | — | BUILD task_baa2b1f25ab0 done: d709296+ccca9a4→a74139b+53eb269; coordinator-verified (28 OK + validate @a74139b); C-1..C-4, NC RED/GREEN, 1351 full OK; disclosed gaps x2 for review |
 | T8 | #387-threads | ledger/process remediation (parks, u385 tree, templates, close doc) | process | f | f | f | f | f | f | lit | — | spec build-387-process.md; 7 threads REAL → fix, incl. proof-park → needs-human (T1/T2/T3) |
 | T9 | #387-threads | eval-glob holes (T6 regression: app//lib/ miss; empty-glob survey) | real-bug (evals) | f | f | f | f | f | f | lit | — | spec build-387-eval-globs.md; inverts T6 (broad positive + central denylist) |
-| T10 | #387-threads | WIP-curve rows: scope to canonical section (U389 residual) | real-bug | f | f | f | f | f | f | lit | — | spec build-387-wip-section.md; out-of-section wave= rows bind today |
+| T10 | #387-threads | WIP-curve rows: scope to canonical section (U389 residual) | real-bug | t | f | f | f | f | f | lit | — | BUILD task_746b7c0da3b6 done: 4c72718+d657941→d31ef62+6ae6cf0; coordinator-verified (69 OK + validate @d31ef62); C-1..C-4, NC RED/GREEN, 1353 full OK; fixture-change noted for review |
 
 PHASE: ORIENT → ENUMERATE → TRIAGE done → FREEZE → BUILD wave 1: U385 CLOSED, U388 U389 in fix-round → wave 2: U364
 
@@ -648,3 +648,9 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   validation probe, no send) stays in the chain, documented here.
 - I393 dispatched: integrate-393 spec (union + gates + PR + bot reconcile).
   task_70df62d85fd6 → ctx_d7b0bde3cdb1 (claude, unit worktree).
+- T10 BUILD done (msg_b1e30066ee35, succeeded, released): manifest verified
+  (pins/contract/C-1..C-4/NC/intent all check) + coordinator re-ran 69 OK and
+  validate @d31ef62. BUILD_DONE=t. Noted for review: pre-existing
+  protocol-schema fixture extended (heading-less → heading from prose) — TEST
+  axis must validate the new checker against REAL reports in docs/runs/ for
+  false-fails. Integrator spec taskspecs/integrate-387w.md frozen.
