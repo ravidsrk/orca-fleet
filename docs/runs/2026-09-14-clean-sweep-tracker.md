@@ -1052,4 +1052,6 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   indented-code FYI) — r4 axes judge VALID/FP. NO posts (4 threads
   owed coordinator-side pre-merge). R387W-r4 specs frozen (copies +
   retarget f8a0d87 + batch-verify + new-P1 judge w/ triage note); 3
-  axes dispatched.
+  axes dispatched (spec task_118a47023ba5→ctx_4d2baada35f1, test
+  task_463e851be337→ctx_2976a70e271f, standards task_4adfc0b77e68→
+  ctx_c7862b21d964).
