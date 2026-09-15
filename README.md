@@ -31,7 +31,8 @@
 Each mission is a complete autonomous fleet: a coordinator that decomposes a goal, dispatches
 isolated workers, and stops at a named end state whose claims an independent verifier re-derives
 from git. You give it a goal in plain words. You get back a verified end state, or the exact place
-it stopped and why.
+it stopped and why. The vocabulary this page leans on is one line each in the
+[glossary](docs/concepts.md#glossary).
 
 <p align="center">
   <picture>

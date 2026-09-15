@@ -37,6 +37,11 @@ Three hard requirements, without which no mission will start:
    orca status --json
    ```
 
+   With the app closed it answers `"runtime": {"state": "not_running", "reachable": false}`.
+   Run `orca open`, wait until `runtime.state` reads `ready`, and a mission can start. The
+   before-and-after transcript is
+   [P0-r3-orca-status.txt](completion/evidence/P0-r3-orca-status.txt).
+
 2. **`git` and `gh`**, authenticated. Fleets open PRs per unit of work and verify merges by
    ancestry; `gh auth status` must succeed. Repos on a tracker other than GitHub issues can use
    `orca linear` where a mission supports it.
@@ -98,13 +103,22 @@ mission catalog at once; the relative references resolve inside the copied plugi
 ```
 
 Confirm the install by asking your agent "which missions are available?" — the
-outcome-named skills should list. If a mission is visible but errors on start about missing
-playbooks, you copied instead of linking.
+outcome-named skills should list; with the two symlinks above you get `ship-it` and `review-it`.
+If a mission is visible but errors on start about missing playbooks, you copied instead of linking.
+
+**Wiring the gate on a symlink install.** `sh hooks/print-settings-snippet.sh` prints a JSON
+object with a `hooks` key — a `TaskCompleted` entry and a `Stop` entry, each running
+`verify-gate.sh` from your clone by absolute path — plus a `_comment` key you can delete. Merge
+the `hooks` entries into `~/.claude/settings.json`, then run the script again with `--check`; it
+must print `ok`. The `Stop` hook fires on every turn end, which is harmless: with no unit in
+progress (`ORCA_MANIFEST` unset) it allows the turn, and it blocks only a turn that is mid-unit
+with a failing manifest ([docs/verify-gate.md](verify-gate.md#native-path--plugin-hooks-set-claude_plugin_root)).
 
 ## Your first mission: a review-it dry run
 
 Start with [`review-it`](missions/review-it.md), because it has **no fix authority** — the worst
-it can do is be wrong in a report. In a repo with an open PR or a feature branch:
+it can do is be wrong in a report. Open a Claude Code session in a repo that has an open PR or a
+feature branch, and type:
 
 ```
 review this PR: is it ready to merge?
@@ -122,12 +136,29 @@ What happens, in order:
 4. You get a GO / NO-GO verdict bound to the reviewed SHA. Any Critical finding defaults the
    verdict to NO-GO.
 
+The first thing the coordinator writes, before any dispatch, is the ledger header. This one is
+real, from the run [Anatomy of a run](guides/anatomy-of-a-run.md) walks:
+
+```
+RUN: clean-sweep-chimely-20260715 · COORDINATOR: term_905ccdf2… + term_c5e4d798… ·
+BASE: clean-sweep/integration · FORK_POINT: ce7891bf… · T0: 2026-07-15T17:40:00Z ·
+SOURCE: tracker dodopayments/chimely open issues #34,35,36,37,38,39,55,56,58,61
+(count=10, enumerated via gh api --paginate state=open)
+```
+
+A `review-it` header has the same shape with `BASE: -`, because a report-only mission has no
+integration branch to merge into ([`runtime/liveness-resume.md`](../runtime/liveness-resume.md)).
+Everything a crash-resume needs is on that line: which terminals own the run, which branch
+integrates, and the exact denominator with how it was enumerated (`T0` is the moment it was
+frozen).
+
 Total cost: a few worker sessions, no writes, and you have now seen the coordinator/worker shape
 without risking a single line of code.
 
 ## Your second mission: ship-it end to end
 
-Pick something real but small — a feature you could build by hand in an afternoon.
+Pick something real but small — a feature you could build by hand in an afternoon — and, in a
+Claude Code session opened in that repo, type:
 
 ```
 ship this: add a /healthz endpoint that reports version and DB connectivity,
@@ -289,6 +320,12 @@ it. See [`runtime/liveness-resume.md`](../runtime/liveness-resume.md).
 **You want to know why a decision was made.** Mechanical decisions are audited in the ledger
 with their reasoning; taste decisions arrive batched in a brief you can veto. If a fleet made a
 one-way decision without you, that is a bug — file it.
+
+**A unit was marked done on a manifest that should have failed.** On a symlink install the
+completion gate is not wired until the settings snippet is merged; run
+`sh hooks/print-settings-snippet.sh --check` and confirm it prints `ok`. Remember what the gate
+checks from inside the worker's own session is advisory; the sound surfaces are CI, an MCP task
+or an SDK subprocess ([docs/verify-gate.md](verify-gate.md#trust-boundary)).
 
 ---
 
