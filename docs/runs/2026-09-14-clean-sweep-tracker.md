@@ -903,3 +903,16 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   (coordinator-lane replies owed), stale DECISIONS FYI, other nits.
   Fix spec fix-387p-r3.md frozen (step-5 defect CORRECTED to option-A +
   ruling cite; builder posts NO replies). Dispatched.
+- V387W-r2 NO-GO (msg_9c0bee159064, review 5206786113 COMMENTED @04b780f,
+  released, verified): P1 reconciled to ONE Required (verdict reproduced
+  fail-CLOSED false refusal AND fail-OPEN [] bind on incomplete dup wave=2
+  row — settles the SPEC-Nit vs TEST-Required split) + R-1/F-2 M7a-d
+  survivors (M7e equivalent) + M8/M9 case-fold/boundary survivors. Batch =
+  (1) setext arms only after plain paragraph + 4 binding cases + fail-open
+  refused naming wave 2, (2) gate witnesses killing M7a-d, (3) anchor
+  look-alikes (plural/lowercase), (4) :515 comment fix, (5) 'never bound'
+  claim correction. Excluded: thread replies OWED CONDUCTOR-side
+  (Required, blocks merge: P2 'fixed in d52ff42', P1 'fixed in <r3>'),
+  manifest re-bind, optionals, outside nits, FYIs. Fix spec fix-387w-r3.md
+  frozen (step-5 corrected to option-A; prose-drift guard added).
+  Dispatched.
