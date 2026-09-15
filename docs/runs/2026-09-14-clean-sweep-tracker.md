@@ -33,7 +33,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | T6 | #364 | prove-it/oncall-it venv glob scoping (U364 fix-forward) | real-bug (evals) | t | t | t | t | t | t | lit | — | PR #397 MERGED 01d954e @2967804 (reviewed==head; GO 5205447863; merged ~7min pre-verdict, disclosed); verify 6/6 incl. Greptile-APPROVED review leg; remediates U364 SPEC-r3 F-1 |
 | — | #235 | H-02 marketplace submissions (pre-parked needs-human) | needs-human | — | — | — | — | — | — | needs-human: external accounts | prior run + issue text |
 | T7 | #393 | mixed-version rollout lock (opportunistic sidecar + test) | real-bug | t | t | t | f | f | f | lit | — | PR #400 @7630815 (union over 2094f61, docs-only); Greptile 4/5, 2 VALID held (P1 union-staleness = close-step, P2 FIFO sidecar = fix candidate); 3 axes live |
-| T8 | #387-threads | ledger/process remediation (parks, u385 tree, templates, close doc) | process | f | f | f | f | f | f | lit | — | spec build-387-process.md; 7 threads REAL → fix, incl. proof-park → needs-human (T1/T2/T3) |
+| T8 | #387-threads | ledger/process remediation (parks, u385 tree, templates, close doc) | process | t | f | f | f | f | f | lit | — | BUILD task_6c7e4ed50873 done: 1b40b43..8241aab+9db2b83; coordinator-replayed probe GREEN/RED; C-1..C-5, 1349 full OK; U385-leg GREEN (spec said RED — worker corrected) |
 | T9 | #387-threads | eval-glob holes (T6 regression: app//lib/ miss; empty-glob survey) | real-bug (evals) | t | f | f | f | f | f | lit | — | BUILD task_2792e3c556b8 done: 8750a76..0a3f4ab+191d248; coordinator-verified (109 OK + validate @0a3f4ab); C-1..C-3, NC RED/GREEN, 1358 full OK; M4-test watched for review |
 | T10 | #387-threads | WIP-curve rows: scope to canonical section (U389 residual) | real-bug | t | t | t | f | f | f | lit | — | PR #401 @d94c6c1 (union over aab35f9, docs-only); Greptile 1 VALID held (P2 fence info-string); 3 axes live |
 
@@ -682,3 +682,17 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   info-string rule — reproduced, joins verdict as Required; in-thread answer
   owed in fix round). Released. PR_OPEN=t, BOT=t.
 - R387W axes dispatched @d94c6c1 (specs review-387w-{spec,test,standards}.md).
+  task_9b6526d8c903→ctx_5246a2eccbe4 (spec), task_8d537065d878→ctx_088fa07c74d0
+  (test), task_51db61b95c99→ctx_297a4e233081 (standards). 8 workers live.
+- T8 BUILD done (msg_ab16bf4adaa1, succeeded, released): manifest verified +
+  coordinator replayed probe GREEN (0/4) at head / RED (3/4) reverted; C-4 by
+  hand second_witness as ruled. BUILD_DONE=t. CORRECTION: spec C-2 expected
+  U385's review leg RED — worker showed GREEN via Greptile APPROVED (T4 row
+  was always the green one); spec expectation wrong, evidence recorded right.
+  Noted: stray '-- true' record dropped (TEST axis watches). Integrator spec
+  taskspecs/integrate-387p.md frozen (with ledger-union warning).
+- R393 2/3 in: STANDARDS 0 Required (4 Nit incl. stale 'Not a sibling
+  lockfile' docstring S2, FIFO S3 dupes Greptile, untested unopenable-branch
+  S4) + TEST 0 Required (51 mutation runs: NC-1 10/10 RED, NC-2 exact-3,
+  HEAD 10/10 GREEN; O-1 timing-dependent base RED). Both released. SPEC axis
+  still out.
