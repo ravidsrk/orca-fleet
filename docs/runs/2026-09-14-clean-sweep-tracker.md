@@ -34,7 +34,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | — | #235 | H-02 marketplace submissions (pre-parked needs-human) | needs-human | — | — | — | — | — | — | needs-human: external accounts | prior run + issue text |
 | T7 | #393 | mixed-version rollout lock (opportunistic sidecar + test) | real-bug | t | t | t | t | t | t | lit | needs-human: post-merge independent APPROVE (2nd login) for verify review leg (run_0607bdc681e6) | V393-r1 GO 5206137160 @7630815 (F1+P1 close-owed, P2 FIFO accepted low-sev Optional → backlog); MERGED 6d9e46a; verify 5/6 (review RED, parked); #393 CLOSED with evidence |
 | T8 | #387-threads | ledger/process remediation (parks, u385 tree, templates, close doc) | process | t | t | t | f | f | f | lit | — | PR #403 @ed8a7c5 (union over 5174ed4, clean); Greptile 2 VALID held (P2 reattach-gap, P2 no-M^2-fallback); 3 axes live |
-| T9 | #387-threads | eval-glob holes (T6 regression: app//lib/ miss; empty-glob survey) | real-bug (evals) | t | t | t | f | f | f | lit | — | PR #402 @15d0eea (union over a41608e, clean); Greptile 5/5, 0 threads, none held (bot edits body — template note for T8 fix round); 3 axes live |
+| T9 | #387-threads | eval-glob holes (T6 regression: app//lib/ miss; empty-glob survey) | real-bug (evals) | t | t | t | f | f | f | lit | — | V387G-r1 GO (0 Required all axes, bot none); post-GO badge conflict → reunion 318542b (T9 byte-identical, gates green); V387G-r2 delta verdict live |
 | T10 | #387-threads | WIP-curve rows: scope to canonical section (U389 residual) | real-bug | t | t | t | f | f | f | lit | — | PR #401 @d94c6c1 (union over aab35f9, docs-only); Greptile 1 VALID held (P2 fence info-string); 3 axes live |
 
 PHASE: ORIENT → ENUMERATE → TRIAGE done → FREEZE → BUILD wave 1: U385 CLOSED, U388 U389 in fix-round → wave 2: U364
@@ -746,6 +746,19 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   answer, (4) adjacent setext; S4/S1/S3/M2/M15/Optionals/FYIs excluded with
   reasons. Fix spec fix-387w-r2.md frozen (with reattach-first instruction —
   T8's gap, previewed). Dispatched.
+- V387G-r1 GO (msg_ebce7e2f778a, review 5206253681 COMMENTED @15d0eea,
+  released, verified): 0 Required all axes + bot none. REVIEWED flag HELD at f
+  (head moved by reunion — flips at r2 GO).
+- MERGE TRAIN T9: PR #402 mergeable:false — badge-count conflict only (1358 vs
+  1351). Coordinator re-union (merge --no-ff, NOT rebase — branch history is
+  evidence; deviation from merge-serialization's letter recorded here):
+  318542b = merge(15d0eea, BASE 5a853b2), badges regen'd (1360 = union count),
+  T9-owned paths byte-identical 15d0eea→318542b, gates green at reunion
+  (wrapped: nc 109 OK, validate, full exit 0). Pushed bare (egressed);
+  mergeable:true. V387G-r2 delta-verdict spec frozen; dispatched. NOTE: T7's
+  merge omitted --match-head-commit (compensated by post-merge parent check)
+  and --delete-branch (branch deleted late, verified 404) — both REQUIRED for
+  all future merges; first-merge spot-check dispatched (task_b412a57a96dd).
 - R387G 2/3 in: STANDARDS 0 Required (1 Optional unpinned survey claim; 6 Nits
   incl. why-contract parentheticals, dup helper, scope inconsistency; 4 FYI).
   Released. SPEC still out — T9 clean so far (0 Required, bot none).
