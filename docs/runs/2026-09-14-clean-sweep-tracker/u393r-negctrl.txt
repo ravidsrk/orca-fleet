@@ -582,3 +582,976 @@ OK
 exit=0  (CLEAN HEAD: expected ZERO)
 
 $ git worktree remove --force /private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u393-race/a98e036b-3cf4-4d67-bce7-93e5c3209701/scratchpad/nc-393r2
+
+# ==============================================================================================
+# ROUND 3 — fix-393r-r3.md@d849a902af1127d512005bfc0b2e85ec74ee1d0c (sha256 62ac6520992cec1c77ac04be0d0379c81f474b1391140e1b117f848712125004)
+# V393R-r2 NO-GO (review 5211964513 @55ef070): RQ-1 the residual docs name only a dropped record,
+# but a legacy rewrite between the truncate and the flush tears the manifest; RQ-2 the F-1
+# killer's `open` stand-in goes vacuous under a behaviour-neutral os.fdopen(os.open) refactor,
+# and M1 then survives 31/31. <scratch> is this session's scratchpad; residual_demo.py and
+# mutate3.py/mutate3b.py are quoted at the end so every run below can be repeated.
+# Order: A reproduces the vacuity, B is RQ-2 red-first (before any other change), E checks the
+# F-2 bypass claim, R reproduces RQ-1 at 55ef070 before the docstring changed, C is the
+# negative control and the demo again at the code tip 3ec3f27.
+# ==============================================================================================
+
+## R3-A. X8b/S-1 reproduced: 55ef070 as committed (unhardened F-1), REFACTOR + M1 applied
+$ git rev-parse HEAD
+55ef0704d0498a16c4d3034f537ab3ddffdffdab
+$ python3 mutate3.py . REFACTOR M1
+$ git diff -U0 runtime/scripts/evidence-run.py
+diff --git a/runtime/scripts/evidence-run.py b/runtime/scripts/evidence-run.py
+index 1d3793f..cd10804 100755
+--- a/runtime/scripts/evidence-run.py
++++ b/runtime/scripts/evidence-run.py
+@@ -141 +141 @@ def sidecar_lock(manifest_path):
+-        peer = open(sidecar_path(manifest_path), "rb")
++        peer = os.fdopen(os.open(sidecar_path(manifest_path), os.O_RDONLY), "rb")
+@@ -214 +214 @@ def append_record(manifest_path, record):
+-                if not joined and attempt < REJOIN_ATTEMPTS and sidecar_path(manifest_path).exists():
++                if not joined and sidecar_path(manifest_path).exists():
+$ python3 -m unittest tests.test_evidence_run
+...............................
+----------------------------------------------------------------------
+Ran 31 tests in 3.829s
+
+OK
+exit=0
+$ python3 -m unittest -v tests.test_evidence_run.SidecarRejoin
+test_a_sidecar_created_after_the_read_is_waited_out_before_the_write (tests.test_evidence_run.SidecarRejoin.test_a_sidecar_created_after_the_read_is_waited_out_before_the_write) ... ok
+test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar (tests.test_evidence_run.SidecarRejoin.test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.084s
+
+OK
+exit=0
+
+## R3-B1. RQ-2 red-first: the hardened F-1 test copied in (nothing else changed), REFACTOR + M1 still applied
+$ cp <u393-race>/tests/test_evidence_run.py tests/test_evidence_run.py
+$ git diff -U0
+diff --git a/runtime/scripts/evidence-run.py b/runtime/scripts/evidence-run.py
+index 1d3793f..cd10804 100755
+--- a/runtime/scripts/evidence-run.py
++++ b/runtime/scripts/evidence-run.py
+@@ -141 +141 @@ def sidecar_lock(manifest_path):
+-        peer = open(sidecar_path(manifest_path), "rb")
++        peer = os.fdopen(os.open(sidecar_path(manifest_path), os.O_RDONLY), "rb")
+@@ -214 +214 @@ def append_record(manifest_path, record):
+-                if not joined and attempt < REJOIN_ATTEMPTS and sidecar_path(manifest_path).exists():
++                if not joined and sidecar_path(manifest_path).exists():
+diff --git a/tests/test_evidence_run.py b/tests/test_evidence_run.py
+index b343f5c..35c6ce3 100644
+--- a/tests/test_evidence_run.py
++++ b/tests/test_evidence_run.py
+@@ -517,0 +518 @@ class SidecarRejoin(LedgerCase):
++        fired = []  # what the stand-in did, in order
+@@ -521,0 +523 @@ class SidecarRejoin(LedgerCase):
++                fired.append("delete")
+@@ -523,0 +526 @@ class SidecarRejoin(LedgerCase):
++                fired.append("recreate")
+@@ -528,0 +532,5 @@ class SidecarRejoin(LedgerCase):
++        # One delete and one recreate on each of the three attempts. A refactor that opens either
++        # file without the module's `open` name bypasses the stand-in, and the append then writes
++        # before its last attempt, so the labels below would pass without testing the bound.
++        self.assertEqual(fired, ["delete", "recreate", "delete", "recreate", "delete", "recreate"],
++                         "the open stand-in was bypassed: the last attempt was never reached")
+$ python3 -m unittest tests.test_evidence_run
+........................F......
+======================================================================
+FAIL: test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar (tests.test_evidence_run.SidecarRejoin.test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<scratch>/red3/tests/test_evidence_run.py", line 535, in test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar
+    self.assertEqual(fired, ["delete", "recreate", "delete", "recreate", "delete", "recreate"],
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                     "the open stand-in was bypassed: the last attempt was never reached")
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['recreate', 'recreate'] != ['delete', 'recreate', 'delete', 'recreate', 'delete', 'recreate']
+
+First differing element 0:
+'recreate'
+'delete'
+
+Second list contains 4 additional elements.
+First extra element 2:
+'delete'
+
+- ['recreate', 'recreate']
++ ['delete', 'recreate', 'delete', 'recreate', 'delete', 'recreate'] : the open stand-in was bypassed: the last attempt was never reached
+
+----------------------------------------------------------------------
+Ran 31 tests in 3.790s
+
+FAILED (failures=1)
+exit=1
+
+## R3-B2. REFACTOR alone (behaviour-neutral): the bypass is loud on its own
+$ python3 mutate3.py . REFACTOR
+$ python3 -m unittest tests.test_evidence_run.SidecarRejoin.test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar
+F
+======================================================================
+FAIL: test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar (tests.test_evidence_run.SidecarRejoin.test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<scratch>/red3/tests/test_evidence_run.py", line 535, in test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar
+    self.assertEqual(fired, ["delete", "recreate", "delete", "recreate", "delete", "recreate"],
+                     "the open stand-in was bypassed: the last attempt was never reached")
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['recreate', 'recreate'] != ['delete', 'recreate', 'delete', 'recreate', 'delete', 'recreate']
+
+First differing element 0:
+'recreate'
+'delete'
+
+Second list contains 4 additional elements.
+First extra element 2:
+'delete'
+
+- ['recreate', 'recreate']
++ ['delete', 'recreate', 'delete', 'recreate', 'delete', 'recreate'] : the open stand-in was bypassed: the last attempt was never reached
+
+----------------------------------------------------------------------
+Ran 1 test in 0.044s
+
+FAILED (failures=1)
+exit=1
+
+## R3-B3. M1 alone: still killed
+$ python3 mutate3.py . M1
+$ python3 -m unittest tests.test_evidence_run.SidecarRejoin.test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar
+F
+======================================================================
+FAIL: test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar (tests.test_evidence_run.SidecarRejoin.test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<scratch>/red3/tests/test_evidence_run.py", line 538, in test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar
+    self.assertEqual(self.labels(), ["seed", "new"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['seed'] != ['seed', 'new']
+
+Second list contains 1 additional elements.
+First extra element 1:
+'new'
+
+- ['seed']
++ ['seed', 'new']
+
+----------------------------------------------------------------------
+Ran 1 test in 0.039s
+
+FAILED (failures=1)
+exit=1
+
+## R3-B4. GREEN: the hardened test on the unmutated fix
+$ git diff --stat
+ tests/test_evidence_run.py | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+$ python3 -m unittest tests.test_evidence_run
+...............................
+----------------------------------------------------------------------
+Ran 31 tests in 3.768s
+
+OK
+exit=0
+
+## R3-B5. determinism: the hardened F-1 test 20x each (RED count)
+FIX: RED 0/20 
+REFACTOR M1: RED 20/20 AssertionError: Lists differ: ['recreate', 'recreate'] != ['delete', 'recreate', 'delete', 'recreate', 'delete', 'recreate']
+REFACTOR: RED 20/20 AssertionError: Lists differ: ['recreate', 'recreate'] != ['delete', 'recreate', 'delete', 'recreate', 'delete', 'recreate']
+M1: RED 20/20 AssertionError: Lists differ: ['seed'] != ['seed', 'new']
+$ git status --porcelain
+ M tests/test_evidence_run.py
+
+## R3-E. F-2 under FLOCKALIAS (behaviour-neutral bypass of its stand-in): must fail, not pass
+$ python3 mutate3b.py . FLOCKALIAS
+$ git diff -U0 runtime/scripts/evidence-run.py
+diff --git a/runtime/scripts/evidence-run.py b/runtime/scripts/evidence-run.py
+index 1d3793f..34918dc 100755
+--- a/runtime/scripts/evidence-run.py
++++ b/runtime/scripts/evidence-run.py
+@@ -41,0 +42 @@ import fcntl
++from fcntl import flock as _flock
+@@ -146 +147 @@ def sidecar_lock(manifest_path):
+-        fcntl.flock(peer.fileno(), fcntl.LOCK_EX)
++        _flock(peer.fileno(), fcntl.LOCK_EX)
+@@ -197 +198 @@ def append_record(manifest_path, record):
+-                fcntl.flock(fh.fileno(), fcntl.LOCK_EX)
++                _flock(fh.fileno(), fcntl.LOCK_EX)
+$ python3 -m unittest tests.test_evidence_run.SidecarRejoin.test_a_sidecar_created_after_the_read_is_waited_out_before_the_write
+F
+======================================================================
+FAIL: test_a_sidecar_created_after_the_read_is_waited_out_before_the_write (tests.test_evidence_run.SidecarRejoin.test_a_sidecar_created_after_the_read_is_waited_out_before_the_write)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<scratch>/red3/tests/test_evidence_run.py", line 606, in test_a_sidecar_created_after_the_read_is_waited_out_before_the_write
+    self.assertEqual(errors, [])
+AssertionError: Lists differ: [RuntimeError('schedule stalled waiting fo[48 chars]sh')] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+RuntimeError('schedule stalled waiting for the new wrapper to wait on the sidecar or finish')
+
+- [RuntimeError('schedule stalled waiting for the new wrapper to wait on the sidecar or finish')]
++ []
+
+----------------------------------------------------------------------
+Ran 1 test in 30.060s
+
+FAILED (failures=1)
+exit=1
+
+## R3-E. F-2 under JSONALIAS (behaviour-neutral bypass of its stand-in): must fail, not pass
+$ python3 mutate3b.py . JSONALIAS
+$ git diff -U0 runtime/scripts/evidence-run.py
+diff --git a/runtime/scripts/evidence-run.py b/runtime/scripts/evidence-run.py
+index 1d3793f..28d8c2f 100755
+--- a/runtime/scripts/evidence-run.py
++++ b/runtime/scripts/evidence-run.py
+@@ -200 +200 @@ def append_record(manifest_path, record):
+-                    data = json.loads(text)
++                    data = json.JSONDecoder().decode(text)
+$ python3 -m unittest tests.test_evidence_run.SidecarRejoin.test_a_sidecar_created_after_the_read_is_waited_out_before_the_write
+F
+======================================================================
+FAIL: test_a_sidecar_created_after_the_read_is_waited_out_before_the_write (tests.test_evidence_run.SidecarRejoin.test_a_sidecar_created_after_the_read_is_waited_out_before_the_write)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<scratch>/red3/tests/test_evidence_run.py", line 606, in test_a_sidecar_created_after_the_read_is_waited_out_before_the_write
+    self.assertEqual(errors, [])
+AssertionError: Lists differ: [RuntimeError('schedule stalled waiting fo[36 chars]st')] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+RuntimeError('schedule stalled waiting for the new wrapper to read the manifest')
+
+- [RuntimeError('schedule stalled waiting for the new wrapper to read the manifest')]
++ []
+
+----------------------------------------------------------------------
+Ran 1 test in 30.051s
+
+FAILED (failures=1)
+exit=1
+
+$ git diff --stat -- runtime
+
+## R3-R. RQ-1 reproduced first, at 55ef070 (production file == 55ef070), three schedules
+$ python3 residual_demo.py . tear
+== case tear
+new: write() returned 107 chars; on disk now 0 bytes
+legacy: wrote 110 bytes
+threads alive: [False, False]  errors: []
+stderr of the tearing append: ''
+manifest: 110 bytes; last 40: b'  {\n      "label": "new"\n    }\n  ]\n}\n\n}\n'
+does not parse: Extra data: line 13 column 1 (char 108)
+later append 1 (new): stderr 'evidence-run: WARNING — could not record into /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmp94xy6yjr/m.json: Extra data: line 13 column 1 (char 108)'; manifest unchanged
+later append 2 (new): stderr 'evidence-run: WARNING — could not record into /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmp94xy6yjr/m.json: Extra data: line 13 column 1 (char 108)'; manifest unchanged
+later append 3 (legacy e04b0c2): stderr 'evidence-run: WARNING — could not record into /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmp94xy6yjr/m.json: Extra data: line 13 column 1 (char 108)'; manifest unchanged
+exit=0
+$ python3 residual_demo.py . drop-new
+== case drop-new
+new: write() returned 107 chars; on disk now 0 bytes
+legacy: wrote 110 bytes
+threads alive: [False, False]  errors: []
+stderr of the tearing append: ''
+manifest: 110 bytes; last 40: b'  {\n      "label": "legacy"\n    }\n  ]\n}\n'
+parses: labels ['seed', 'legacy']
+later append 1 (new): stderr ''; manifest changed
+later append 2 (new): stderr ''; manifest changed
+later append 3 (legacy e04b0c2): stderr ''; manifest changed
+exit=0
+$ python3 residual_demo.py . drop-legacy
+== case drop-legacy
+legacy: wrote 110 bytes
+new: write() returned 107 chars; on disk now 0 bytes
+threads alive: [False, False]  errors: []
+stderr of the tearing append: ''
+manifest: 107 bytes; last 40: b'\n    {\n      "label": "new"\n    }\n  ]\n}\n'
+parses: labels ['seed', 'new']
+later append 1 (new): stderr ''; manifest changed
+later append 2 (new): stderr ''; manifest changed
+later append 3 (legacy e04b0c2): stderr ''; manifest changed
+exit=0
+
+## R3-C. at the code tip 3ec3f27
+# U393R round-3 negative control at the code tip — 2026-09-15T15:31:25Z
+# NC-COMMAND: python3 -m unittest tests.test_evidence_run
+$ git rev-parse HEAD
+3ec3f27903056144f039817426c2ee7d8f9bffbc
+$ git log --oneline -4
+3ec3f27 test(evidence-run): SidecarRejoin docstring names its stand-ins and how a bypass fails (#387 thread 4012510839, V393R-r2 S-3)
+5d2f572 docs(evidence-run): the residual window names every outcome and the last attempt's write-through (#387 thread 4012510839, V393R-r2 RQ-1)
+428753e test(evidence-run): the last-attempt test asserts its open stand-in fired, once per attempt (#387 thread 4012510839, V393R-r2 RQ-2)
+55ef070 chore(run): U393R round-2 records: killer RED/GREEN, M1/M2/M3 negative control, gates at the code tip (#387 thread 4012510839)
+## fork point: merge-base with BASE (tip pinned: f10613c51b3b7fd7b40e6b0d7de550ff40169863)
+$ git merge-base HEAD f10613c51b3b7fd7b40e6b0d7de550ff40169863
+666d55da20620c04fa367a2e0752b683be7a9623
+$ git diff --stat 62da77c 666d55da20620c04fa367a2e0752b683be7a9623 -- runtime/scripts/evidence-run.py   (empty = the fork point's file is 62da77c's)
+
+## RQ-1 demo at the code tip (clean tree): four schedules through the real append_record
+$ python3 residual_demo.py . tear
+== case tear
+legacy: read 46 chars
+new: write() returned 107 chars; on disk now 0 bytes
+legacy: wrote 110 bytes
+threads alive: [False, False]  errors: []
+stderr of the new append: ''
+manifest: 110 bytes; last 40: b'  {\n      "label": "new"\n    }\n  ]\n}\n\n}\n'
+does not parse: Extra data: line 13 column 1 (char 108)
+later append 1 (new): stderr 'evidence-run: WARNING — could not record into /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmppsmgber1/m.json: Extra data: line 13 column 1 (char 108)'; manifest unchanged
+later append 2 (new): stderr 'evidence-run: WARNING — could not record into /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmppsmgber1/m.json: Extra data: line 13 column 1 (char 108)'; manifest unchanged
+later append 3 (legacy e04b0c2): stderr 'evidence-run: WARNING — could not record into /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmppsmgber1/m.json: Extra data: line 13 column 1 (char 108)'; manifest unchanged
+exit=0
+$ python3 residual_demo.py . drop-new
+== case drop-new
+legacy: read 46 chars
+new: write() returned 107 chars; on disk now 0 bytes
+legacy: wrote 110 bytes
+threads alive: [False, False]  errors: []
+stderr of the new append: ''
+manifest: 110 bytes; last 40: b'  {\n      "label": "legacy"\n    }\n  ]\n}\n'
+parses: labels ['seed', 'legacy']
+later append 1 (new): stderr ''; manifest changed
+later append 2 (new): stderr ''; manifest changed
+later append 3 (legacy e04b0c2): stderr ''; manifest changed
+exit=0
+$ python3 residual_demo.py . drop-legacy
+== case drop-legacy
+legacy: read 46 chars
+legacy: wrote 110 bytes
+new: write() returned 107 chars; on disk now 0 bytes
+threads alive: [False, False]  errors: []
+stderr of the new append: ''
+manifest: 107 bytes; last 40: b'\n    {\n      "label": "new"\n    }\n  ]\n}\n'
+parses: labels ['seed', 'new']
+later append 1 (new): stderr ''; manifest changed
+later append 2 (new): stderr ''; manifest changed
+later append 3 (legacy e04b0c2): stderr ''; manifest changed
+exit=0
+$ python3 residual_demo.py . empty-read
+== case empty-read
+legacy: read 0 chars
+legacy: WARNING — could not record: Expecting value: line 1 column 1 (char 0)
+new: write() returned 107 chars; on disk now 0 bytes
+threads alive: [False, False]  errors: []
+stderr of the new append: ''
+manifest: 107 bytes; last 40: b'\n    {\n      "label": "new"\n    }\n  ]\n}\n'
+parses: labels ['seed', 'new']
+later append 1 (new): stderr ''; manifest changed
+later append 2 (new): stderr ''; manifest changed
+later append 3 (legacy e04b0c2): stderr ''; manifest changed
+exit=0
+
+## NC-1: production file restored to the fork point, new tests kept
+$ git show 666d55da20620c04fa367a2e0752b683be7a9623:runtime/scripts/evidence-run.py > runtime/scripts/evidence-run.py
+$ git diff --stat
+ runtime/scripts/evidence-run.py | 99 ++++++++++-------------------------------
+ 1 file changed, 23 insertions(+), 76 deletions(-)
+$ python3 -m unittest tests.test_evidence_run
+......................FFF......
+======================================================================
+FAIL: test_a_sidecar_created_after_the_absence_check_loses_no_record (tests.test_evidence_run.SidecarCreationRace.test_a_sidecar_created_after_the_absence_check_loses_no_record)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<scratch>/nc3/tests/test_evidence_run.py", line 487, in test_a_sidecar_created_after_the_absence_check_loses_no_record
+    self.assertEqual(sorted({"seed", "legacy", "new"} - set(labels)), [], "records lost")
+AssertionError: Lists differ: ['legacy'] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+'legacy'
+
+- ['legacy']
++ [] : records lost
+
+======================================================================
+FAIL: test_a_sidecar_created_after_the_read_is_waited_out_before_the_write (tests.test_evidence_run.SidecarRejoin.test_a_sidecar_created_after_the_read_is_waited_out_before_the_write)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<scratch>/nc3/tests/test_evidence_run.py", line 614, in test_a_sidecar_created_after_the_read_is_waited_out_before_the_write
+    self.assertEqual(sorted({"seed", "legacy", "new"} - set(labels)), [], "records lost")
+AssertionError: Lists differ: ['new'] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+'new'
+
+- ['new']
++ [] : records lost
+
+======================================================================
+FAIL: test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar (tests.test_evidence_run.SidecarRejoin.test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<scratch>/nc3/tests/test_evidence_run.py", line 540, in test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar
+    self.assertEqual(fired, ["delete", "recreate", "delete", "recreate", "delete", "recreate"],
+                     "the open stand-in was bypassed: the last attempt was never reached")
+AssertionError: Lists differ: ['delete', 'recreate'] != ['delete', 'recreate', 'delete', 'recreate', 'delete', 'recreate']
+
+Second list contains 4 additional elements.
+First extra element 2:
+'delete'
+
+- ['delete', 'recreate']
++ ['delete', 'recreate', 'delete', 'recreate', 'delete', 'recreate'] : the open stand-in was bypassed: the last attempt was never reached
+
+----------------------------------------------------------------------
+Ran 31 tests in 4.072s
+
+FAILED (failures=3)
+exit=1  (REVERTED: expected NONZERO)
+$ git checkout HEAD -- runtime/scripts/evidence-run.py
+$ git status --porcelain
+$ python3 -m unittest tests.test_evidence_run
+Ran 31 tests in 4.035s
+
+OK
+exit=0  (CLEAN HEAD: expected ZERO)
+
+## NC2
+$ python3 mutate3.py . NC2
+$ git diff -U0 runtime/scripts/evidence-run.py
+diff --git a/runtime/scripts/evidence-run.py b/runtime/scripts/evidence-run.py
+index 675c976..19dd11f 100755
+--- a/runtime/scripts/evidence-run.py
++++ b/runtime/scripts/evidence-run.py
+@@ -153 +153 @@ def sidecar_lock(manifest_path):
+-REJOIN_ATTEMPTS = 3
++REJOIN_ATTEMPTS = 1
+$ python3 -m unittest tests.test_evidence_run
+......................FFF......
+======================================================================
+FAIL: test_a_sidecar_created_after_the_absence_check_loses_no_record (tests.test_evidence_run.SidecarCreationRace.test_a_sidecar_created_after_the_absence_check_loses_no_record)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<scratch>/nc3/tests/test_evidence_run.py", line 487, in test_a_sidecar_created_after_the_absence_check_loses_no_record
+    self.assertEqual(sorted({"seed", "legacy", "new"} - set(labels)), [], "records lost")
+AssertionError: Lists differ: ['legacy'] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+'legacy'
+
+- ['legacy']
++ [] : records lost
+
+======================================================================
+FAIL: test_a_sidecar_created_after_the_read_is_waited_out_before_the_write (tests.test_evidence_run.SidecarRejoin.test_a_sidecar_created_after_the_read_is_waited_out_before_the_write)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<scratch>/nc3/tests/test_evidence_run.py", line 614, in test_a_sidecar_created_after_the_read_is_waited_out_before_the_write
+    self.assertEqual(sorted({"seed", "legacy", "new"} - set(labels)), [], "records lost")
+AssertionError: Lists differ: ['new'] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+'new'
+
+- ['new']
++ [] : records lost
+
+======================================================================
+FAIL: test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar (tests.test_evidence_run.SidecarRejoin.test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<scratch>/nc3/tests/test_evidence_run.py", line 540, in test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar
+    self.assertEqual(fired, ["delete", "recreate", "delete", "recreate", "delete", "recreate"],
+                     "the open stand-in was bypassed: the last attempt was never reached")
+AssertionError: Lists differ: ['delete', 'recreate'] != ['delete', 'recreate', 'delete', 'recreate', 'delete', 'recreate']
+
+Second list contains 4 additional elements.
+First extra element 2:
+'delete'
+
+- ['delete', 'recreate']
++ ['delete', 'recreate', 'delete', 'recreate', 'delete', 'recreate'] : the open stand-in was bypassed: the last attempt was never reached
+
+----------------------------------------------------------------------
+Ran 31 tests in 3.985s
+
+FAILED (failures=3)
+exit=1  (MUTANT: expected NONZERO)
+$ git checkout HEAD -- runtime/scripts/evidence-run.py
+$ git status --porcelain
+$ python3 -m unittest tests.test_evidence_run
+Ran 31 tests in 4.107s
+
+OK
+exit=0  (CLEAN HEAD: expected ZERO)
+
+## M1
+$ python3 mutate3.py . M1
+$ git diff -U0 runtime/scripts/evidence-run.py
+diff --git a/runtime/scripts/evidence-run.py b/runtime/scripts/evidence-run.py
+index 675c976..994ec1a 100755
+--- a/runtime/scripts/evidence-run.py
++++ b/runtime/scripts/evidence-run.py
+@@ -229 +229 @@ def append_record(manifest_path, record):
+-                if not joined and attempt < REJOIN_ATTEMPTS and sidecar_path(manifest_path).exists():
++                if not joined and sidecar_path(manifest_path).exists():
+$ python3 -m unittest tests.test_evidence_run
+........................F......
+======================================================================
+FAIL: test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar (tests.test_evidence_run.SidecarRejoin.test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<scratch>/nc3/tests/test_evidence_run.py", line 543, in test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar
+    self.assertEqual(self.labels(), ["seed", "new"])
+AssertionError: Lists differ: ['seed'] != ['seed', 'new']
+
+Second list contains 1 additional elements.
+First extra element 1:
+'new'
+
+- ['seed']
++ ['seed', 'new']
+
+----------------------------------------------------------------------
+Ran 31 tests in 4.137s
+
+FAILED (failures=1)
+exit=1  (MUTANT: expected NONZERO)
+$ git checkout HEAD -- runtime/scripts/evidence-run.py
+$ git status --porcelain
+$ python3 -m unittest tests.test_evidence_run
+Ran 31 tests in 4.066s
+
+OK
+exit=0  (CLEAN HEAD: expected ZERO)
+
+## M2
+$ python3 mutate3.py . M2
+$ git diff -U0 runtime/scripts/evidence-run.py
+diff --git a/runtime/scripts/evidence-run.py b/runtime/scripts/evidence-run.py
+index 675c976..389df2e 100755
+--- a/runtime/scripts/evidence-run.py
++++ b/runtime/scripts/evidence-run.py
+@@ -212,0 +213,2 @@ def append_record(manifest_path, record):
++                if not joined and attempt < REJOIN_ATTEMPTS and sidecar_path(manifest_path).exists():
++                    continue  # a legacy writer arrived after the check: rejoin, then re-read
+@@ -229,2 +230,0 @@ def append_record(manifest_path, record):
+-                if not joined and attempt < REJOIN_ATTEMPTS and sidecar_path(manifest_path).exists():
+-                    continue  # a legacy writer arrived after the check: rejoin, then re-read
+$ python3 -m unittest tests.test_evidence_run
+.......................F.......
+======================================================================
+FAIL: test_a_sidecar_created_after_the_read_is_waited_out_before_the_write (tests.test_evidence_run.SidecarRejoin.test_a_sidecar_created_after_the_read_is_waited_out_before_the_write)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<scratch>/nc3/tests/test_evidence_run.py", line 614, in test_a_sidecar_created_after_the_read_is_waited_out_before_the_write
+    self.assertEqual(sorted({"seed", "legacy", "new"} - set(labels)), [], "records lost")
+AssertionError: Lists differ: ['new'] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+'new'
+
+- ['new']
++ [] : records lost
+
+----------------------------------------------------------------------
+Ran 31 tests in 3.908s
+
+FAILED (failures=1)
+exit=1  (MUTANT: expected NONZERO)
+$ git checkout HEAD -- runtime/scripts/evidence-run.py
+$ git status --porcelain
+$ python3 -m unittest tests.test_evidence_run
+Ran 31 tests in 3.857s
+
+OK
+exit=0  (CLEAN HEAD: expected ZERO)
+
+## M3
+$ python3 mutate3.py . M3
+$ git diff -U0 runtime/scripts/evidence-run.py
+diff --git a/runtime/scripts/evidence-run.py b/runtime/scripts/evidence-run.py
+index 675c976..f6b5237 100755
+--- a/runtime/scripts/evidence-run.py
++++ b/runtime/scripts/evidence-run.py
+@@ -209 +209,2 @@ def append_record(manifest_path, record):
+-            with sidecar_lock(manifest_path) as joined, \
++            with (sidecar_lock(manifest_path) if attempt == 1
++                  else contextlib.nullcontext(True)) as joined, \
+$ python3 -m unittest tests.test_evidence_run
+.......................FF......
+======================================================================
+FAIL: test_a_sidecar_created_after_the_read_is_waited_out_before_the_write (tests.test_evidence_run.SidecarRejoin.test_a_sidecar_created_after_the_read_is_waited_out_before_the_write)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<scratch>/nc3/tests/test_evidence_run.py", line 614, in test_a_sidecar_created_after_the_read_is_waited_out_before_the_write
+    self.assertEqual(sorted({"seed", "legacy", "new"} - set(labels)), [], "records lost")
+AssertionError: Lists differ: ['new'] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+'new'
+
+- ['new']
++ [] : records lost
+
+======================================================================
+FAIL: test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar (tests.test_evidence_run.SidecarRejoin.test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<scratch>/nc3/tests/test_evidence_run.py", line 540, in test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar
+    self.assertEqual(fired, ["delete", "recreate", "delete", "recreate", "delete", "recreate"],
+                     "the open stand-in was bypassed: the last attempt was never reached")
+AssertionError: Lists differ: ['delete', 'recreate', 'recreate'] != ['delete', 'recreate', 'delete', 'recreate', 'delete', 'recreate']
+
+First differing element 2:
+'recreate'
+'delete'
+
+Second list contains 3 additional elements.
+First extra element 3:
+'recreate'
+
+- ['delete', 'recreate', 'recreate']
++ ['delete', 'recreate', 'delete', 'recreate', 'delete', 'recreate'] : the open stand-in was bypassed: the last attempt was never reached
+
+----------------------------------------------------------------------
+Ran 31 tests in 4.096s
+
+FAILED (failures=2)
+exit=1  (MUTANT: expected NONZERO)
+$ git checkout HEAD -- runtime/scripts/evidence-run.py
+$ git status --porcelain
+$ python3 -m unittest tests.test_evidence_run
+Ran 31 tests in 3.995s
+
+OK
+exit=0  (CLEAN HEAD: expected ZERO)
+
+## REFACTOR M1
+$ python3 mutate3.py . REFACTOR M1
+$ git diff -U0 runtime/scripts/evidence-run.py
+diff --git a/runtime/scripts/evidence-run.py b/runtime/scripts/evidence-run.py
+index 675c976..49cbc6c 100755
+--- a/runtime/scripts/evidence-run.py
++++ b/runtime/scripts/evidence-run.py
+@@ -141 +141 @@ def sidecar_lock(manifest_path):
+-        peer = open(sidecar_path(manifest_path), "rb")
++        peer = os.fdopen(os.open(sidecar_path(manifest_path), os.O_RDONLY), "rb")
+@@ -229 +229 @@ def append_record(manifest_path, record):
+-                if not joined and attempt < REJOIN_ATTEMPTS and sidecar_path(manifest_path).exists():
++                if not joined and sidecar_path(manifest_path).exists():
+$ python3 -m unittest tests.test_evidence_run
+........................F......
+======================================================================
+FAIL: test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar (tests.test_evidence_run.SidecarRejoin.test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<scratch>/nc3/tests/test_evidence_run.py", line 540, in test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar
+    self.assertEqual(fired, ["delete", "recreate", "delete", "recreate", "delete", "recreate"],
+                     "the open stand-in was bypassed: the last attempt was never reached")
+AssertionError: Lists differ: ['recreate', 'recreate'] != ['delete', 'recreate', 'delete', 'recreate', 'delete', 'recreate']
+
+First differing element 0:
+'recreate'
+'delete'
+
+Second list contains 4 additional elements.
+First extra element 2:
+'delete'
+
+- ['recreate', 'recreate']
++ ['delete', 'recreate', 'delete', 'recreate', 'delete', 'recreate'] : the open stand-in was bypassed: the last attempt was never reached
+
+----------------------------------------------------------------------
+Ran 31 tests in 4.042s
+
+FAILED (failures=1)
+exit=1  (MUTANT: expected NONZERO)
+$ git checkout HEAD -- runtime/scripts/evidence-run.py
+$ git status --porcelain
+$ python3 -m unittest tests.test_evidence_run
+Ran 31 tests in 4.104s
+
+OK
+exit=0  (CLEAN HEAD: expected ZERO)
+
+## REFACTOR
+$ python3 mutate3.py . REFACTOR
+$ git diff -U0 runtime/scripts/evidence-run.py
+diff --git a/runtime/scripts/evidence-run.py b/runtime/scripts/evidence-run.py
+index 675c976..252dfc7 100755
+--- a/runtime/scripts/evidence-run.py
++++ b/runtime/scripts/evidence-run.py
+@@ -141 +141 @@ def sidecar_lock(manifest_path):
+-        peer = open(sidecar_path(manifest_path), "rb")
++        peer = os.fdopen(os.open(sidecar_path(manifest_path), os.O_RDONLY), "rb")
+$ python3 -m unittest tests.test_evidence_run
+........................F......
+======================================================================
+FAIL: test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar (tests.test_evidence_run.SidecarRejoin.test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<scratch>/nc3/tests/test_evidence_run.py", line 540, in test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar
+    self.assertEqual(fired, ["delete", "recreate", "delete", "recreate", "delete", "recreate"],
+                     "the open stand-in was bypassed: the last attempt was never reached")
+AssertionError: Lists differ: ['recreate', 'recreate'] != ['delete', 'recreate', 'delete', 'recreate', 'delete', 'recreate']
+
+First differing element 0:
+'recreate'
+'delete'
+
+Second list contains 4 additional elements.
+First extra element 2:
+'delete'
+
+- ['recreate', 'recreate']
++ ['delete', 'recreate', 'delete', 'recreate', 'delete', 'recreate'] : the open stand-in was bypassed: the last attempt was never reached
+
+----------------------------------------------------------------------
+Ran 31 tests in 4.021s
+
+FAILED (failures=1)
+exit=1  (MUTANT: expected NONZERO)
+$ git checkout HEAD -- runtime/scripts/evidence-run.py
+$ git status --porcelain
+$ python3 -m unittest tests.test_evidence_run
+Ran 31 tests in 4.033s
+
+OK
+exit=0  (CLEAN HEAD: expected ZERO)
+
+$ git worktree remove --force <scratch>/nc3
+
+## source: <scratch>/residual_demo.py
+"""RQ-1: the residual window's outcomes, forced through the real append_record.
+
+    python3 residual_demo.py <worktree> tear|drop-new|drop-legacy
+
+The new append runs in one thread; a legacy writer (e04b0c2's discipline: open the sidecar 'a',
+flock, read, write_text) runs in the other. A stand-in for the module's `open` name wraps the real
+manifest file object so the new append pauses as it truncates (its last look has already found
+no sidecar) and, for `tear`, again after its write() has buffered the payload but before the
+`with` closes the file and flushes it. Every lock, read, parse and write is the real call.
+
+  tear:        legacy reads after the look, writes between the truncate and the flush
+  drop-new:    legacy reads after the look, writes after the flush
+  drop-legacy: legacy's whole cycle runs between the look and the truncate
+"""
+import contextlib
+import fcntl
+import importlib.util
+import io
+import json
+import subprocess
+import sys
+import tempfile
+import threading
+from pathlib import Path
+from unittest import mock
+
+root, case = Path(sys.argv[1]), sys.argv[2]
+
+
+def load(path, name):
+    spec = importlib.util.spec_from_file_location(name, path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+runner = load(root / "runtime/scripts/evidence-run.py", "evidence_run")
+legacy_src = Path(tempfile.mkdtemp()) / "evidence_run_e04b0c2.py"
+legacy_src.write_bytes(subprocess.check_output(
+    ["git", "show", "e04b0c2:runtime/scripts/evidence-run.py"], cwd=root))
+legacy_runner = load(legacy_src, "evidence_run_e04b0c2")  # the real pre-#388 append_record
+
+d = Path(tempfile.mkdtemp())
+manifest, sidecar = d / "m.json", d / "m.json.lock"
+manifest.write_text(json.dumps({"unit": "u", "commands": [{"label": "seed"}]}), encoding="utf-8")
+
+looked = threading.Event()        # new: its last look found no sidecar; it is at the truncate
+legacy_read = threading.Event()   # legacy: holds the sidecar and has read the manifest
+buffered = threading.Event()      # new: truncated and wrote into its buffer; not yet flushed
+legacy_wrote = threading.Event()  # legacy: its write_text has returned
+new_done = threading.Event()      # new: append_record has returned (the file is closed)
+log = []
+
+
+def wait(event, what):
+    if not event.wait(30):
+        raise RuntimeError(f"schedule stalled waiting for {what}")
+
+
+class Paused:
+    """The real manifest file object, paused at the truncate and after the buffered write."""
+
+    def __init__(self, real):
+        self._real = real
+
+    def __getattr__(self, name):
+        return getattr(self._real, name)
+
+    def __enter__(self):
+        self._real.__enter__()
+        return self
+
+    def __exit__(self, *exc):
+        return self._real.__exit__(*exc)
+
+    def truncate(self, *args):
+        if case == "empty-read":  # the legacy writer reads inside the gap, after the truncate
+            n = self._real.truncate(*args)
+            looked.set()
+            wait(legacy_wrote, "the legacy writer")
+            return n
+        looked.set()
+        wait(legacy_wrote if case == "drop-legacy" else legacy_read, "the legacy writer")
+        return self._real.truncate(*args)
+
+    def write(self, text):
+        n = self._real.write(text)
+        log.append(f"new: write() returned {n} chars; on disk now {manifest.stat().st_size} bytes")
+        buffered.set()
+        if case == "tear":
+            wait(legacy_wrote, "the legacy write")
+        return n
+
+
+def open_(file, *args, **kwargs):
+    fh = open(file, *args, **kwargs)
+    return Paused(fh) if Path(file) == manifest else fh
+
+
+def new():
+    try:
+        runner.append_record(manifest, {"label": "new"})
+    finally:
+        new_done.set()
+
+
+def legacy():  # e04b0c2's append discipline, one step at a time
+    wait(looked, "the new append's last look")
+    try:
+        with open(sidecar, "a", encoding="utf-8") as lock:
+            fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
+            text = manifest.read_text(encoding="utf-8")
+            log.append(f"legacy: read {len(text)} chars")
+            data = json.loads(text)
+            legacy_read.set()
+            if case == "tear":
+                wait(buffered, "the new append's buffered write")
+            elif case == "drop-new":
+                wait(new_done, "the new append to close")
+            data.setdefault("commands", []).append({"label": "legacy"})
+            manifest.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+            log.append(f"legacy: wrote {manifest.stat().st_size} bytes")
+    except (OSError, ValueError) as err:  # e04b0c2: a warning, and its record is dropped
+        log.append(f"legacy: WARNING — could not record: {err}")
+    finally:
+        legacy_wrote.set()
+
+
+errors = []
+
+
+def thread(target):
+    def run():
+        try:
+            target()
+        except BaseException as err:
+            errors.append(err)
+    return threading.Thread(target=run, daemon=True)
+
+
+threads = [thread(new), thread(legacy)]
+with mock.patch.object(runner, "open", open_, create=True), \
+        contextlib.redirect_stderr(io.StringIO()) as stderr:
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join(90)
+print(f"== case {case}")
+for line in log:
+    print(line)
+print(f"threads alive: {[t.is_alive() for t in threads]}  errors: {errors}")
+print(f"stderr of the new append: {stderr.getvalue()!r}")
+raw = manifest.read_bytes()
+print(f"manifest: {len(raw)} bytes; last 40: {raw[-40:]!r}")
+try:
+    labels = [c["label"] for c in json.loads(raw)["commands"]]
+    print(f"parses: labels {labels}")
+except json.JSONDecodeError as err:
+    print(f"does not parse: {err}")
+for n, (who, append) in enumerate([("new", runner.append_record), ("new", runner.append_record),
+                                   ("legacy e04b0c2", legacy_runner.append_record)], 1):
+    before = manifest.read_bytes()
+    with contextlib.redirect_stderr(io.StringIO()) as later:
+        append(manifest, {"label": f"later-{n}"})
+    print(f"later append {n} ({who}): stderr {later.getvalue().strip()!r}; "
+          f"manifest {'unchanged' if manifest.read_bytes() == before else 'changed'}")
+
+## source: <scratch>/mutate3.py
+"""Exact-text mutants of runtime/scripts/evidence-run.py; each anchor must occur the stated number of times.
+
+    python3 mutate3.py <worktree> REFACTOR [M1] [FLOCKALIAS]
+"""
+import sys
+from pathlib import Path
+
+MUTANTS = {
+    # V393R-r2 S-1: behaviour-neutral, the sidecar opened without the module's `open` name.
+    "REFACTOR": [('peer = open(sidecar_path(manifest_path), "rb")',
+                  'peer = os.fdopen(os.open(sidecar_path(manifest_path), os.O_RDONLY), "rb")', 1)],
+    # V393R-r1 R-1: the look loses its retry bound.
+    "M1": [("if not joined and attempt < REJOIN_ATTEMPTS and sidecar_path(manifest_path).exists():",
+            "if not joined and sidecar_path(manifest_path).exists():", 1)],
+    # Round 2's controls, same anchors: no second attempt; the look before the read; no rejoin block.
+    "NC2": [("REJOIN_ATTEMPTS = 3\n", "REJOIN_ATTEMPTS = 1\n", 1)],
+    "M2": [("                if not joined and attempt < REJOIN_ATTEMPTS and sidecar_path(manifest_path).exists():\n"
+            "                    continue  # a legacy writer arrived after the check: rejoin, then re-read\n", "", 1),
+           ("                fcntl.flock(fh.fileno(), fcntl.LOCK_EX)\n",
+            "                fcntl.flock(fh.fileno(), fcntl.LOCK_EX)\n"
+            "                if not joined and attempt < REJOIN_ATTEMPTS and sidecar_path(manifest_path).exists():\n"
+            "                    continue  # a legacy writer arrived after the check: rejoin, then re-read\n", 1)],
+    "M3": [("            with sidecar_lock(manifest_path) as joined, \\\n",
+            "            with (sidecar_lock(manifest_path) if attempt == 1\n"
+            "                  else contextlib.nullcontext(True)) as joined, \\\n", 1)],
+    # Behaviour-neutral: every flock called without the module's `fcntl` name.
+    "FLOCKALIAS": [("import fcntl\n", "import fcntl\nfrom fcntl import flock as _flock\n", 1),
+                   ("fcntl.flock(", "_flock(", 2)],
+}
+
+root, names = Path(sys.argv[1]), sys.argv[2:]
+target = root / "runtime/scripts/evidence-run.py"
+text = target.read_text(encoding="utf-8")
+for name in names:
+    for old, new, count in MUTANTS[name]:
+        found = text.count(old)
+        if found != count:
+            sys.exit(f"{name}: anchor {old!r} occurs {found} times, expected {count}")
+        text = text.replace(old, new)
+target.write_text(text, encoding="utf-8")
+
+## source: <scratch>/mutate3b.py
+"""Behaviour-neutral bypasses of F-2's stand-ins (fcntl.flock, json.loads); exact-text, counted anchors.
+
+    python3 mutate3b.py <worktree> FLOCKALIAS|JSONALIAS
+"""
+import sys
+from pathlib import Path
+
+MUTANTS = {
+    # every flock called without the module's `fcntl` name
+    "FLOCKALIAS": [("import fcntl\n", "import fcntl\nfrom fcntl import flock as _flock\n", 1),
+                   ("fcntl.flock(", "_flock(", 2)],
+    # the parse done without the module's `json.loads` (json.loads(s) is _default_decoder.decode(s))
+    "JSONALIAS": [("data = json.loads(text)", "data = json.JSONDecoder().decode(text)", 1)],
+}
+
+root, name = Path(sys.argv[1]), sys.argv[2]
+target = root / "runtime/scripts/evidence-run.py"
+text = target.read_text(encoding="utf-8")
+for old, new, count in MUTANTS[name]:
+    found = text.count(old)
+    if found != count:
+        sys.exit(f"{name}: anchor {old!r} occurs {found} times, expected {count}")
+    text = text.replace(old, new)
+target.write_text(text, encoding="utf-8")
+

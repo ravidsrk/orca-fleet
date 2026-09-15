@@ -3,9 +3,9 @@
   "unit": "U393R",
   "unit_class": "code-change",
   "base_sha": "62da77cd4fa471b9a2f03c0b675cb22a70987579",
-  "head_sha": "acdf9988ffd9b80e496d706f20ba07942f7040cd",
-  "head_tree": "8f685d15528fe0c7c4cd0aec609f792dcce700b7",
-  "head_sha_role": "Round 2 (fix-393r-r2.md). Code tip acdf998: adce115 (F-1 killer, M1), 53c4894 (F-2/F-3 killer, M2 + M3), bd6b310 (F-4 comment/docstring fixes: the module's AST with docstrings stripped is identical to abaf175's), 0de1e87 (gen-badges.py output, 1379 -> 1381), acdf998 (the SidecarRejoin docstring names both stand-ins). Round 1's f6a2657, 305c0c5, 076f880, its ledger commit f482be1 and the ledger-only union abaf175 stay in base_sha..head_sha. The commit that adds these round-2 records follows head_sha, changes only this manifest and u393r-negctrl.txt, and cannot name its own SHA; per the spec the coordinator re-binds head_sha at close. The three round-2 commands[] records were made by evidence-run.py on the clean tree of head_sha (wtree 8f685d15 == head_tree); the three round-1 records at 076f880 stay above them as true historical runs.",
+  "head_sha": "3ec3f27903056144f039817426c2ee7d8f9bffbc",
+  "head_tree": "e4160246285ac1eeadaf67f5a0f6f6731534ed5e",
+  "head_sha_role": "Round 3 (fix-393r-r3.md). Code tip 3ec3f27: 428753e (RQ-2: the last-attempt test asserts its `open` stand-in fired, a literal ['delete', 'recreate'] per attempt), 5d2f572 (RQ-1: the append_record residual docstring names every outcome and the second loss path; the module's AST with docstrings stripped is identical to 55ef070's), 3ec3f27 (S-3: the SidecarRejoin docstring names its stand-ins). The test count did not move (31 in the module, 1381 in source; `gen-badges.py --check` exit 0), so this round has no badge commit. Rounds 1 and 2 (f6a2657 .. 55ef070) stay in base_sha..head_sha. The commit that adds these round-3 records follows head_sha, changes only this manifest and u393r-negctrl.txt, and cannot name its own SHA; per the spec the coordinator re-binds head_sha at close. The three round-3 commands[] records were made by evidence-run.py on the clean tree of head_sha (wtree e4160246 == head_tree); rounds 1 and 2 stay above them as true historical runs.",
   "base_branch": "review/2026-09-14-holistic-fixes",
   "branch": "ravidsrk/u393-race",
   "contract": {
@@ -36,8 +36,8 @@
       "id": "C-3",
       "text": "`python3 -m unittest` and `python3 scripts/validate.py` green.",
       "addressed": true,
-      "commit": "acdf998",
-      "witness": "commands[] below, round 2: three exit-0 records written by evidence-run.py at acdf998 on its clean tree (wtree 8f685d15 == head_tree): the NC-COMMAND (Ran 31 tests / OK), validate ('All 21 missions valid; three-layer separation holds; evals valid.') and the full suite `python3 -m unittest discover -s tests` (Ran 1381 tests in 310.007s / OK). Round 1's three records at 076f880 stay above them."
+      "commit": "3ec3f27",
+      "witness": "commands[] below, round 3: three exit-0 records written by evidence-run.py at 3ec3f27 on its clean tree (wtree e4160246 == head_tree): the NC-COMMAND (Ran 31 tests / OK), validate ('All 21 missions valid; three-layer separation holds; evals valid.') and the full suite `python3 -m unittest discover -s tests` (Ran 1381 tests in 253.990s / OK). Rounds 1 and 2 stay above them."
     }
   ],
   "intent": {
@@ -128,28 +128,63 @@
       "commit": "acdf9988ffd9b80e496d706f20ba07942f7040cd",
       "wtree": "8f685d15528fe0c7c4cd0aec609f792dcce700b7",
       "artifact": null
+    },
+    {
+      "label": "tests",
+      "ts": "2026-09-15T15:29:17Z",
+      "cmd": "python3 -m unittest tests.test_evidence_run",
+      "cmd_sha256": "a5fa1dc973a43bdf18642c7610c8bea18563ac07be57cda5f16de46aea477498",
+      "exit": 0,
+      "duration_s": 3.803,
+      "commit": "3ec3f27903056144f039817426c2ee7d8f9bffbc",
+      "wtree": "e4160246285ac1eeadaf67f5a0f6f6731534ed5e",
+      "artifact": null
+    },
+    {
+      "label": "validate",
+      "ts": "2026-09-15T15:29:17Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 0,
+      "duration_s": 0.547,
+      "commit": "3ec3f27903056144f039817426c2ee7d8f9bffbc",
+      "wtree": "e4160246285ac1eeadaf67f5a0f6f6731534ed5e",
+      "artifact": null
+    },
+    {
+      "label": "full-suite",
+      "ts": "2026-09-15T15:33:31Z",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "exit": 0,
+      "duration_s": 254.068,
+      "commit": "3ec3f27903056144f039817426c2ee7d8f9bffbc",
+      "wtree": "e4160246285ac1eeadaf67f5a0f6f6731534ed5e",
+      "artifact": null
     }
   ],
-  "commands_note": "Round 1 (the first three): written by the fixed wrapper on the clean tree of 076f880 (wtree 46257fe1); see that round's note in u393r-negctrl.txt and git history. Round 2 (the last three): written by runtime/scripts/evidence-run.py on the clean tree of head_sha acdf998 (wtree 8f685d15 == head_tree; `git status --porcelain --untracked-files=all` was empty before and after each run). Each went into its own manifest outside the working tree so the tree stayed clean, and they are concatenated here as the recorder wrote them. tests printed 'Ran 31 tests' / 'OK'. validate printed 'All 21 missions valid; three-layer separation holds; evals valid.' full-suite printed 'Ran 1381 tests in 310.007s' / 'OK'.",
+  "commands_note": "Round 1 (the first three): written by the fixed wrapper on the clean tree of 076f880 (wtree 46257fe1); see that round's note in u393r-negctrl.txt and git history. Round 2 (the middle three): written by runtime/scripts/evidence-run.py on the clean tree of head_sha acdf998 (wtree 8f685d15 == head_tree; `git status --porcelain --untracked-files=all` was empty before and after each run). Each went into its own manifest outside the working tree so the tree stayed clean, and they are concatenated here as the recorder wrote them. tests printed 'Ran 31 tests' / 'OK'. validate printed 'All 21 missions valid; three-layer separation holds; evals valid.' full-suite printed 'Ran 1381 tests in 310.007s' / 'OK'. Round 3 (the last three): the same procedure on the clean tree of head_sha 3ec3f27 (wtree e4160246 == head_tree; `git status --porcelain --untracked-files=all` empty before and after). tests printed 'Ran 31 tests' / 'OK'. validate printed 'All 21 missions valid; three-layer separation holds; evals valid.' full-suite printed 'Ran 1381 tests in 253.990s' / 'OK'.",
   "negative_control": {
     "tool": "revert",
-    "did": "At head_sha acdf998, in a scratch worktree (git worktree add --detach). The fork point is 666d55d = git merge-base HEAD <BASE tip pinned at d117bd8>, and its evidence-run.py is 62da77c's (empty diff --stat, quoted). NC-1: the production file restored to the fork point, new tests kept. NC-2: REJOIN_ATTEMPTS = 3 -> 1. M1: the look drops `attempt < REJOIN_ATTEMPTS`. M2: the look moves to right after the manifest flock. M3: attempts after the first take contextlib.nullcontext(True) instead of sidecar_lock. The mutants are exact-text edits, each anchor asserted to occur once, and each diff -U0 is quoted. For each: the NC-COMMAND, git checkout HEAD -- the file, the NC-COMMAND again. Then git worktree remove --force.",
+    "did": "At head_sha 3ec3f27, in a scratch worktree (git worktree add --detach). The fork point is 666d55d = git merge-base HEAD <BASE tip pinned at f10613c>, and its evidence-run.py is 62da77c's (empty diff --stat, quoted). NC-1: the production file restored to the fork point, new tests kept. NC-2: REJOIN_ATTEMPTS = 3 -> 1. M1: the look drops `attempt < REJOIN_ATTEMPTS`. M2: the look moves to right after the manifest flock. M3: attempts after the first take contextlib.nullcontext(True) instead of sidecar_lock. REFACTOR+M1 and REFACTOR (V393R-r2 S-1): the sidecar opened via os.fdopen(os.open(..., os.O_RDONLY)), behaviour-neutral, with and without M1. The mutants are exact-text edits, each anchor asserted to occur the stated number of times, and each diff -U0 is quoted. For each: the NC-COMMAND, git checkout HEAD -- the file, the NC-COMMAND again. The RQ-1 demo ran first on the clean tree. Then git worktree remove --force.",
     "paths": [
       "runtime/scripts/evidence-run.py"
     ],
     "command": "python3 -m unittest tests.test_evidence_run",
-    "result": "RED under all five, GREEN at clean head after each (Ran 31 tests / OK, exit 0, five times). NC-1 exit 1, failures=2: SidecarCreationRace loses ['legacy'], the read-then-sidecar test loses ['new']. NC-2 exit 1, the same two. M1 exit 1, failures=1: the last-attempt test, ['seed'] != ['seed', 'new']. M2 exit 1, failures=1: the read-then-sidecar test loses ['new']. M3 exit 1, failures=1: the same test loses ['new']. Round 1's NC-1/NC-2 at 076f880 stay in the transcript above round 2.",
+    "result": "RED under all seven, GREEN at clean head after each (Ran 31 tests / OK, exit 0, seven times). NC-1 exit 1, failures=3: SidecarCreationRace loses ['legacy'], the read-then-sidecar test loses ['new'], and the last-attempt test's log is ['delete', 'recreate'] (one attempt). NC-2 exit 1, the same three. M1 exit 1, failures=1: the last-attempt test, ['seed'] != ['seed', 'new']. M2 exit 1, failures=1: the read-then-sidecar test loses ['new']. M3 exit 1, failures=2: the read-then-sidecar test loses ['new'], and the last-attempt log is ['delete', 'recreate', 'recreate']. REFACTOR+M1 and REFACTOR exit 1, failures=1 each: the last-attempt log is ['recreate', 'recreate']. Rounds 1 and 2's controls stay in the transcript above round 3.",
     "exit": 1,
     "clean_head_exit": 0,
     "artifact": "docs/runs/2026-09-14-clean-sweep-tracker/u393r-negctrl.txt",
     "failures": [
       "test_a_sidecar_created_after_the_absence_check_loses_no_record",
-      "test_a_sidecar_created_after_the_read_is_waited_out_before_the_write"
+      "test_a_sidecar_created_after_the_read_is_waited_out_before_the_write",
+      "test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar"
     ],
     "mutant_failures": {
       "NC-2": [
         "test_a_sidecar_created_after_the_absence_check_loses_no_record",
-        "test_a_sidecar_created_after_the_read_is_waited_out_before_the_write"
+        "test_a_sidecar_created_after_the_read_is_waited_out_before_the_write",
+        "test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar"
       ],
       "M1": [
         "test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar"
@@ -158,33 +193,42 @@
         "test_a_sidecar_created_after_the_read_is_waited_out_before_the_write"
       ],
       "M3": [
-        "test_a_sidecar_created_after_the_read_is_waited_out_before_the_write"
+        "test_a_sidecar_created_after_the_read_is_waited_out_before_the_write",
+        "test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar"
+      ],
+      "REFACTOR+M1": [
+        "test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar"
+      ],
+      "REFACTOR": [
+        "test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar"
       ]
     },
     "transcript": [
-      "$ git merge-base HEAD d117bd8746fae0119c2282fd5306c635345a4d11",
+      "$ git merge-base HEAD f10613c51b3b7fd7b40e6b0d7de550ff40169863",
       "666d55da20620c04fa367a2e0752b683be7a9623",
-      "$ git diff --stat 62da77c 666d55d -- runtime/scripts/evidence-run.py   (empty)",
-      "## NC-1: FAILED (failures=2) ['legacy'] lost / ['new'] lost; exit=1; restored: OK exit=0",
-      "## NC-2: FAILED (failures=2) ['legacy'] lost / ['new'] lost; exit=1; restored: OK exit=0",
+      "$ git diff --stat 62da77c 666d55da20620c04fa367a2e0752b683be7a9623 -- runtime/scripts/evidence-run.py   (empty)",
+      "## NC-1: FAILED (failures=3) ['legacy'] lost / ['new'] lost / ['delete', 'recreate'] != ['delete', 'recreate', 'delete', 'recreate', 'delete', 'recreate']; exit=1; restored: OK exit=0",
+      "## NC-2: FAILED (failures=3) the same three; exit=1; restored: OK exit=0",
       "## M1: AssertionError: Lists differ: ['seed'] != ['seed', 'new']; FAILED (failures=1); exit=1; restored: OK exit=0",
       "## M2: AssertionError: Lists differ: ['new'] != [] (records lost); FAILED (failures=1); exit=1; restored: OK exit=0",
-      "## M3: AssertionError: Lists differ: ['new'] != [] (records lost); FAILED (failures=1); exit=1; restored: OK exit=0"
+      "## M3: ['new'] != [] (records lost) / ['delete', 'recreate', 'recreate'] != [...]; FAILED (failures=2); exit=1; restored: OK exit=0",
+      "## REFACTOR M1: AssertionError: Lists differ: ['recreate', 'recreate'] != ['delete', 'recreate', 'delete', 'recreate', 'delete', 'recreate']; FAILED (failures=1); exit=1; restored: OK exit=0",
+      "## REFACTOR: the same; FAILED (failures=1); exit=1; restored: OK exit=0"
     ],
-    "guards_note": "By design the last-attempt test stays green under NC-1 and NC-2: a wrapper with no rejoin writes on its only attempt, which is what that test demands of the last one. M1 is the mutant it exists for. NoLedgerLitter (#388) and MixedVersionRollout (steady state) stay green under every control. Their own sensitivity was shown in u393-negctrl.txt and u388-negctrl.txt."
+    "guards_note": "Round 2's 'the last-attempt test stays green under NC-1 and NC-2 by design' no longer holds: since 428753e that test asserts the literal log of what its `open` stand-in did, three attempts' worth, so any control that opens the files fewer times (NC-1 and NC-2 write on the first attempt; M3 skips the sidecar open on attempts 2 and 3) now turns it RED as well. NoLedgerLitter (#388) and MixedVersionRollout (steady state) stay green under every control; their own sensitivity was shown in u393-negctrl.txt and u388-negctrl.txt."
   },
   "binding_audit": {
-    "coverage": "C-1..C-3 (3/3); round 2 F-1..F-5 (5/5)",
-    "method": "criterion quoted, covering test or record named, expected values from independent sources (the literal label lists ['seed', 'legacy', 'new'] and ['seed', 'new']; the wrapper's own records bound to git's HEAD^{tree}). C-1 went RED under the fork-point revert and C-2 under the no-rejoin mutant. Round 2: each killer went RED on its mutant before any production touch (20/20) and GREEN on the fix (20/20)."
+    "coverage": "C-1..C-3 (3/3); round 2 F-1..F-5 (5/5); round 3 RQ-1, RQ-2, records (3/3)",
+    "method": "criterion quoted, covering test or record named, expected values from independent sources (the literal label lists ['seed', 'legacy', 'new'] and ['seed', 'new']; the wrapper's own records bound to git's HEAD^{tree}). C-1 went RED under the fork-point revert and C-2 under the no-rejoin mutant. Round 2: each killer went RED on its mutant before any production touch (20/20) and GREEN on the fix (20/20). Round 3: RQ-2's hardened assertion went RED on REFACTOR + M1 before any other change (20/20) and GREEN on the fix (20/20); its expected log is a literal written from the documented bound (REJOIN_ATTEMPTS = 3), not read back from the code. RQ-1's outcomes were forced through the real append_record before the text changed."
   },
   "artifacts": [
     {
       "path": "docs/runs/2026-09-14-clean-sweep-tracker/u393r-negctrl.txt",
-      "sha256": "aa8e1018fda0ce450de9e30224cb9c3a32d8e1330ebf88211e66bc339e384310"
+      "sha256": "1c7af9bbc13916e40b3856716b88b835965937279fe1f1404c295d05d3559873"
     }
   ],
   "noticed_not_touched": [
-    "RESIDUAL (disclosed, not closed): a legacy writer that creates the sidecar, locks it and reads the manifest between this append's last look and the close that flushes its write can still silently drop one record: this one if the legacy rewrite lands after, the legacy one if its whole cycle fits before the truncate. That gap is a seek, a truncate and the payload's buffered write, whose last bytes reach the file only as the `with` closes it. Closing it needs the new wrapper to create the sidecar, which #388 forbids. It is unforced-unreachable in practice (the wider pre-fix window already showed 0/60 unforced). V393R-r1 accepted it with reason (Greptile P1 4015794383).",
+    "RESIDUAL (disclosed, not closed): a legacy writer can still create the sidecar, lock it and start its cycle between this append's last look and the close that flushes its write (a seek, a truncate and the payload's buffered write). The outcome turns on where the legacy steps land. (1) Its whole cycle before the truncate: this write replaces its rewrite, and the legacy record is dropped with no warning. (2) Its read before the truncate, its rewrite after the close: that rewrite replaces this one, and this record is dropped with no warning. (3) Its read before the truncate, its rewrite between the truncate and the flush: the flush writes this payload over it from offset 0, and when the legacy rewrite is the longer its tail survives past this JSON. The manifest no longer parses ('Extra data'), the tearing append warns nothing, and every later append, of either version, warns and records nothing until the file is repaired by hand: the ledger is poisoned. (4) Its read inside the gap: it cannot parse the empty or partly flushed file, so it warns and drops its own record. All four are forced through the real append_record in u393r-negctrl.txt ROUND 3 (the tear: 'Extra data: line 13 column 1 (char 108)', the tearing append's stderr empty, three later appends each WARNING with the manifest unchanged). Second loss path: the last attempt writes even when its look finds a sidecar it did not join (REJOIN_ATTEMPTS). A legacy writer holding that sidecar can then overlap the whole attempt, not just the gap, with the same outcomes. That needs the sidecar deleted and recreated between attempts, which a legacy writer never does. Closing the window needs the new wrapper to create the sidecar, which #388 forbids. It is unforced-unreachable in practice (the wider pre-fix window already showed 0/60 unforced). V393R-r1 accepted it with reason (Greptile P1 4015794383); V393R-r2 kept that acceptance and asked only that the outcomes be named.",
     "A sidecar that appears mid-append and cannot be opened (EACCES, a directory) now makes the rejoin's open raise OSError: WARNING, record not written, exit code unchanged. That is the same handling U393 gives a pre-existing unopenable sidecar. A legacy writer creates it 0666 & umask, so this needs a hostile or broken peer. No test pins it.",
     "The rejoin waits on the sidecar without a bound, as the U393 join and the manifest lock already do: a hung legacy holder stalls the wrapper after the child has exited (the exit code is already fixed). Unchanged in kind from base.",
     "Lock-free peers stay out of scope (spec scope note). The in-place truncate+write is still not atomic for LOCK-FREE readers such as verify.py; unchanged from base.",
@@ -247,8 +291,24 @@
       "subject": "test(evidence-run): SidecarRejoin docstring names both stand-ins (#387 thread 4012510839)"
     },
     {
-      "sha": "pending",
+      "sha": "55ef0704d0498a16c4d3034f537ab3ddffdffdab",
       "subject": "chore(run): U393R round-2 records: killer RED/GREEN, M1/M2/M3 negative control, gates at the code tip (#387 thread 4012510839)"
+    },
+    {
+      "sha": "428753e4d1019ae627e1b81af8a0ddf6bc4f70d8",
+      "subject": "test(evidence-run): the last-attempt test asserts its open stand-in fired, once per attempt (#387 thread 4012510839, V393R-r2 RQ-2)"
+    },
+    {
+      "sha": "5d2f572f8dfa3109cc6c59d414bcd95ed840db9c",
+      "subject": "docs(evidence-run): the residual window names every outcome and the last attempt's write-through (#387 thread 4012510839, V393R-r2 RQ-1)"
+    },
+    {
+      "sha": "3ec3f27903056144f039817426c2ee7d8f9bffbc",
+      "subject": "test(evidence-run): SidecarRejoin docstring names its stand-ins and how a bypass fails (#387 thread 4012510839, V393R-r2 S-3)"
+    },
+    {
+      "sha": "pending",
+      "subject": "chore(run): U393R round-3 records: residual outcomes forced, F-1 vacuity kill both ways, NC at the code tip, gates (#387 thread 4012510839)"
     }
   ],
   "decisions": [
@@ -257,16 +317,22 @@
     "Threads, not processes, carry the two writers so the barriers can be threading.Events with no file polling. flock is per open file description: a probe showed a second open() in the same process BLOCKED on the first's LOCK_EX (macOS, Python 3.13.15).",
     "The re-check point improves on the suggested shape: immediately before the truncate, not right after the manifest lock. Same rejoin mechanics and lock order, and a smaller residual (see intent.ruled_out and noticed_not_touched).",
     "REJOIN_ATTEMPTS = 3: legacy writers never remove the sidecar, so the second attempt holds it. The bound only matters if a third party deletes and recreates the file, and the last attempt writes regardless, per the spec's 'bounded retries, then proceed'.",
-    "RESIDUAL window, stated for adjudication: see noticed_not_touched[0] and the append_record docstring. The builder judges it acceptable: it is syscall-width, it cannot be closed under #388, and C-1's forced schedule, the natural shape of the race, is closed.",
+    "RESIDUAL window, stated for adjudication: see noticed_not_touched[0] and the append_record docstring. The builder judges it acceptable: the gap is a few syscalls wide, it cannot be closed under #388, and C-1's forced schedule, the natural shape of the race, is closed. Its outcomes are not only a dropped record (as first written): a legacy rewrite between the truncate and the flush tears the manifest, with no warning at the time, and every later append then warns and records nothing; a legacy read inside the gap drops the legacy record with a warning; and the last attempt's write-through past an unjoined sidecar is a second loss path with the same outcomes (corrected in round 3, V393R-r2 RQ-1).",
     "Fork point for the NC: 62da77c = git merge-base HEAD origin/review/2026-09-14-holistic-fixes = f6a2657^ (quoted in the transcript). BASE was not touched, rebased or merged.",
     "Commits are local on ravidsrk/u393-race; nothing pushed or merged. No Co-Authored-By/Generated trailers, per the user's global CLAUDE.md.",
     "2026-09-15 round 2: preconditions asserted before the first commit: `git status --porcelain` empty, reattached to ravidsrk/u393-race, HEAD abaf17502a25f16dbd4cfaf28fafba1e211ab40a; the spec at f774a99 hashes to 701cb126... (matches).",
-    "Round 2 methodology: the `tdd` skill only. One slice per killer; each went RED on its mutant (scratch worktree, exact-text mutant) before any production touch. The seam is the same module-level append_record, loaded by path. Disclosed coupling: the F-1 stand-in shadows the module's `open` name, and the F-2 pause points are fcntl.flock (by the sidecar's inode) and json.loads. A future fix that stopped calling them would stall on the 30 s liveness bound (F-2), or would need the F-1 stand-in re-pointed; neither passes silently.",
+    "Round 2 methodology: the `tdd` skill only. One slice per killer; each went RED on its mutant (scratch worktree, exact-text mutant) before any production touch. The seam is the same module-level append_record, loaded by path. Disclosed coupling: the F-1 stand-in shadows the module's `open` name, and the F-2 pause points are fcntl.flock (by the sidecar's inode) and json.loads. As first written, a refactor that stopped calling the F-1 stand-in passed silently (V393R-r2 S-1: an os.fdopen(os.open) sidecar open plus M1 passed 31/31, reproduced in u393r-negctrl.txt ROUND 3 A). Since 428753e F-1 asserts a literal log of what its stand-in did, so that bypass FAILS it (20/20); F-2 stalls on its 30 s liveness bound and fails on its `errors` check, shown for a `from fcntl import flock` alias and a json.JSONDecoder().decode refactor (ROUND 3 E). Corrected in round 3.",
     "F-3 needed no production change: the block can be observed from outside, because the rejoin's flock on the sidecar inode is a call the stand-in sees. So the legacy writer waits for that call (or the end of the append) instead of the read, and a non-blocking rejoin loses ['new'].",
     "F-1 models the case the retry-bound comment names ('something else deletes and recreates the file'), not a legacy writer: a legacy writer never removes its sidecar, so it cannot starve a rejoin.",
     "F-4's evidence-run.py edit is comment/docstring-only (AST-identical modulo docstrings), so the spec's 'production changes ZERO' holds for behavior. The touched text is the three passages V393R-r1 named.",
     "Round 2 fork point for the NC: 666d55d = git merge-base HEAD <BASE pinned at d117bd8> (the abaf175 union moved it off 62da77c); its evidence-run.py equals 62da77c's (empty diff --stat, quoted). BASE was not touched, rebased or merged.",
-    "Round 2 commits are local on ravidsrk/u393-race; nothing pushed or merged. No trailers, per the user's global CLAUDE.md."
+    "Round 2 commits are local on ravidsrk/u393-race; nothing pushed or merged. No trailers, per the user's global CLAUDE.md.",
+    "2026-09-15 round 3: preconditions asserted before the first commit: `git status --porcelain` empty, reattached to ravidsrk/u393-race, HEAD 55ef0704d0498a16c4d3034f537ab3ddffdffdab; the spec at d849a90 hashes to 62ac6520... (matches).",
+    "Round 3 methodology: the `tdd` skill only. The seam is unchanged: the module-level append_record, loaded by path. RQ-2 went RED first: the hardened test was copied into a scratch worktree of 55ef070 with REFACTOR + M1 applied, before any other change (failing output in review_rounds[2].items RQ-2.red_first). The count assertion is the contract's explicit ask and is coupling by design: it pins how often the module opens the sidecar and the manifest across three attempts, so a refactor that changes that must re-derive the literal.",
+    "RQ-1 is text only. The four outcomes were forced through the real append_record at 55ef070 before the docstring changed, and again at the code tip on a clean tree, by a scratch harness quoted in full in u393r-negctrl.txt (a stand-in for the module's `open` wraps the real manifest file object and pauses at its truncate and after its buffered write; the legacy side is e04b0c2's discipline, and the later appends include e04b0c2's real append_record).",
+    "Round 3 fork point for the NC: 666d55d = git merge-base HEAD <BASE pinned at f10613c>; its evidence-run.py equals 62da77c's (empty diff --stat, quoted). BASE was not touched, rebased or merged.",
+    "A first attempt at the round-3 NC was discarded unrecorded: zsh read `$FORK:runtime` as the `:r` modifier, so NC-1 wrote an empty production file into the scratch worktree. It was stopped, the scratch worktree removed, and the NC re-run from scratch with the expansion braced.",
+    "Round 3 commits are local on ravidsrk/u393-race; nothing pushed or merged. No trailers, per the user's global CLAUDE.md."
   ],
   "review_rounds": [
     {
@@ -349,6 +415,74 @@
           "id": "F-5",
           "commit": "0de1e87ee211f1db1044b44bee7eaa42b1878bdc",
           "change": "RED/GREEN and M1/M2/M3 kill transcripts in u393r-negctrl.txt (round 2 appended; both directions quoted). Badge 1379 -> 1381 in its own commit. C-3 gates re-recorded at the code tip (commands[] round 2)."
+        }
+      ],
+      "reviewed_sha": "55ef0704d0498a16c4d3034f537ab3ddffdffdab",
+      "verdict": "NO-GO",
+      "review": "V393R-r2, review 5211964513 (COMMENTED) on PR #404. M1/M2/M3 killers stand; C-1 and C-3 met, C-2 mechanics met, no scope creep. Two Requireds, both reproduced by the verdict worker on a scratch copy of 55ef070: RQ-1 (SPEC) the residual docs omit the tear; RQ-2 (STANDARDS S-1 merged with TEST N-1) the F-1 stand-in goes vacuous under an os.fdopen(os.open) refactor."
+    },
+    {
+      "round": 3,
+      "contract": {
+        "source": "docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/fix-393r-r3.md@d849a902af1127d512005bfc0b2e85ec74ee1d0c",
+        "digest": "sha256:62ac6520992cec1c77ac04be0d0379c81f474b1391140e1b117f848712125004",
+        "criterion_ids": [
+          "RQ-1",
+          "RQ-2",
+          "records"
+        ]
+      },
+      "production_behavior_changes": 0,
+      "items": [
+        {
+          "id": "RQ-1",
+          "commit": "5d2f572f8dfa3109cc6c59d414bcd95ed840db9c",
+          "change": "The append_record 'Residual window' docstring, noticed_not_touched[0] and the RESIDUAL decision now name four outcomes by where the legacy steps land (silent drop of the legacy record, silent drop of this one, the tear that poisons the ledger, a loud legacy drop), each with its mechanism, and the last attempt's write-through past an unjoined sidecar as the second loss path. AST with docstrings stripped identical to 55ef070's; ruff check clean.",
+          "reproduced": [
+            "== case tear",
+            "new: write() returned 107 chars; on disk now 0 bytes",
+            "legacy: wrote 110 bytes",
+            "stderr of the new append: ''",
+            "does not parse: Extra data: line 13 column 1 (char 108)",
+            "later append 1 (new): stderr 'evidence-run: WARNING — could not record into <tmp>/m.json: Extra data: line 13 column 1 (char 108)'; manifest unchanged",
+            "later append 3 (legacy e04b0c2): stderr 'evidence-run: WARNING — could not record into <tmp>/m.json: Extra data: line 13 column 1 (char 108)'; manifest unchanged"
+          ]
+        },
+        {
+          "id": "RQ-2",
+          "commit": "428753e4d1019ae627e1b81af8a0ddf6bc4f70d8",
+          "witness": "tests/test_evidence_run.py::SidecarRejoin::test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar",
+          "change": "The `open` stand-in logs each delete and recreate; the test asserts the literal ['delete', 'recreate', 'delete', 'recreate', 'delete', 'recreate'] before the labels. S-3 (3ec3f27): the SidecarRejoin docstring names `open`, `fcntl.flock` and `json.loads` and says how a bypass of each fails.",
+          "vacuity_reproduced": [
+            "55ef070 as committed + REFACTOR + M1:",
+            "-        peer = open(sidecar_path(manifest_path), \"rb\")",
+            "+        peer = os.fdopen(os.open(sidecar_path(manifest_path), os.O_RDONLY), \"rb\")",
+            "-                if not joined and attempt < REJOIN_ATTEMPTS and sidecar_path(manifest_path).exists():",
+            "+                if not joined and sidecar_path(manifest_path).exists():",
+            "Ran 31 tests in 3.829s",
+            "OK",
+            "exit=0"
+          ],
+          "red_first": [
+            "55ef070 + REFACTOR + M1 + the hardened test (= 428753e's test file):",
+            "FAIL: test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar (tests.test_evidence_run.SidecarRejoin.test_the_last_attempt_writes_even_if_every_look_finds_an_unjoined_sidecar)",
+            "AssertionError: Lists differ: ['recreate', 'recreate'] != ['delete', 'recreate', 'delete', 'recreate', 'delete', 'recreate']",
+            "+ ['delete', 'recreate', 'delete', 'recreate', 'delete', 'recreate'] : the open stand-in was bypassed: the last attempt was never reached",
+            "Ran 31 tests in 3.790s",
+            "FAILED (failures=1)",
+            "exit=1"
+          ],
+          "green": [
+            "the hardened test on the unmutated fix: Ran 31 tests in 3.768s",
+            "OK",
+            "exit=0"
+          ],
+          "determinism": "20x each: fix RED 0/20; REFACTOR+M1 RED 20/20 and REFACTOR alone RED 20/20 (['recreate', 'recreate'] != [...]); M1 alone RED 20/20 (['seed'] != ['seed', 'new']).",
+          "f2_bypass": "F-2 under FLOCKALIAS (`from fcntl import flock as _flock`) and JSONALIAS (json.JSONDecoder().decode): each FAIL in ~30 s on `errors`, RuntimeError('schedule stalled waiting for ...')."
+        },
+        {
+          "id": "records",
+          "change": "u393r-negctrl.txt ROUND 3: the vacuity kill both directions (A, B), the F-2 bypass check (E), the RQ-1 demo at 55ef070 (R) and at the code tip, and the negative control at the code tip (C), with the harness sources. No badge regen: the count did not move (gen-badges.py --check exit 0). C-3 gates re-recorded at 3ec3f27 (commands[] round 3)."
         }
       ]
     }
