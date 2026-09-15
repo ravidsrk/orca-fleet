@@ -32,7 +32,7 @@ semantics) — 09-09 precedent. Host permission mode: UNPROVEN (receipt omits ar
 | T5 | #386 | sign manifest+inventory, retention backend (S2) | — | — | — | — | — | — | — | — | needs-human: key custody + backend undecided (Q2) | Q2: park |
 | T6 | #364 | prove-it/oncall-it venv glob scoping (U364 fix-forward) | real-bug (evals) | t | t | t | t | t | t | lit | — | PR #397 MERGED 01d954e @2967804 (reviewed==head; GO 5205447863; merged ~7min pre-verdict, disclosed); verify 6/6 incl. Greptile-APPROVED review leg; remediates U364 SPEC-r3 F-1 |
 | — | #235 | H-02 marketplace submissions (pre-parked needs-human) | needs-human | — | — | — | — | — | — | needs-human: external accounts | prior run + issue text |
-| T7 | #393 | mixed-version rollout lock (opportunistic sidecar + test) | real-bug | t | t | t | f | f | f | lit | — | PR #400 @7630815 (union over 2094f61, docs-only); Greptile 4/5, 2 VALID held (P1 union-staleness = close-step, P2 FIFO sidecar = fix candidate); 3 axes live |
+| T7 | #393 | mixed-version rollout lock (opportunistic sidecar + test) | real-bug | t | t | t | t | t | t | lit | needs-human: post-merge independent APPROVE (2nd login) for verify review leg (run_0607bdc681e6) | V393-r1 GO 5206137160 @7630815 (F1+P1 close-owed, P2 FIFO accepted low-sev Optional → backlog); MERGED 6d9e46a; verify 5/6 (review RED, parked); #393 CLOSED with evidence |
 | T8 | #387-threads | ledger/process remediation (parks, u385 tree, templates, close doc) | process | t | t | t | f | f | f | lit | — | PR #403 @ed8a7c5 (union over 5174ed4, clean); Greptile 2 VALID held (P2 reattach-gap, P2 no-M^2-fallback); 3 axes live |
 | T9 | #387-threads | eval-glob holes (T6 regression: app//lib/ miss; empty-glob survey) | real-bug (evals) | t | t | t | f | f | f | lit | — | PR #402 @15d0eea (union over a41608e, clean); Greptile 5/5, 0 threads, none held (bot edits body — template note for T8 fix round); 3 axes live |
 | T10 | #387-threads | WIP-curve rows: scope to canonical section (U389 residual) | real-bug | t | t | t | f | f | f | lit | — | PR #401 @d94c6c1 (union over aab35f9, docs-only); Greptile 1 VALID held (P2 fence info-string); 3 axes live |
@@ -722,6 +722,17 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   killed; M4-killer validated legit, not tautological). OPTIONAL (unpinned
   relative-to-workspace property, TMPDIR-under-env edge) + NIT (2 vacuous
   installed-excerpt subtests) + 3 FYI. Released. SPEC + STANDARDS out.
+- V393-r1 GO (msg_2cc014876636, review 5206137160 COMMENTED @7630815, released):
+  F1+P1 excluded as conductor-side record (builder cannot fix; close re-binds),
+  P2 FIFO accepted as valid low-sev Optional (consistent with STANDARDS S3) →
+  backlog note (not lost). 'Must block merge' wording read as blocks-DONE
+  (re-bind is post-merge by option-A design). GO ACCEPTED. REVIEWED=t.
+- T7 MERGED 6d9e46a (PR #400 --merge; ancestry OK; egress receipted). CLOSE:
+  3 coordinator re-runs GREEN at reviewed tip (246s/28/validate); manifest
+  re-bound a74139b→7630815 + pr filled + reviewer_mode close-corrected
+  (builder omission, disclosed); verify.py 5/6 (review RED: Greptile
+  COMMENTED only, no APPROVED — needs-human park). #393 CLOSED with evidence.
+  MERGED=t. FIRST WAVE-2 UNIT DONE.
 - R387G 2/3 in: STANDARDS 0 Required (1 Optional unpinned survey claim; 6 Nits
   incl. why-contract parentheticals, dup helper, scope inconsistency; 4 FYI).
   Released. SPEC still out — T9 clean so far (0 Required, bot none).
