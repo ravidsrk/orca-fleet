@@ -70,9 +70,9 @@ def _case(mission: str, case_id: int) -> dict:
 
 
 def _state_after(mission: str, case_id: int, write: dict | None = None,
-                 venv: bool = False) -> list[str]:
-    """What the real oracle says of case `case_id` once `write` (path -> text), and optionally
-    the committed .venv, is laid over the fixtures it materializes."""
+                 venv: bool = False, checks: list[dict] | None = None) -> list[str]:
+    """What the real oracle says of case `case_id` (or of `checks` alone) once `write` (path ->
+    text), and optionally the committed .venv, is laid over the fixtures it materializes."""
     ev = _case(mission, case_id)
     with tempfile.TemporaryDirectory() as tmp:
         workspace = Path(tmp)
@@ -81,7 +81,8 @@ def _state_after(mission: str, case_id: int, write: dict | None = None,
         for rel, text in {**(WORKSPACES["venv"] if venv else {}), **(write or {})}.items():
             (workspace / rel).parent.mkdir(parents=True, exist_ok=True)
             (workspace / rel).write_text(text, encoding="utf-8")
-        return eval_mod.check_workspace_state(ev["workspace_state"], workspace, originals)
+        return eval_mod.check_workspace_state(ev["workspace_state"] if checks is None else checks,
+                                              workspace, originals)
 
 
 def _labels(failed: list[str]) -> list[str]:
@@ -1110,6 +1111,26 @@ class TestCasesCatchTheirViolation(unittest.TestCase):
                 failed = _state_after(w["mission"], w["id"], w["write"], w.get("venv", False))
                 self.assertEqual(_labels(failed), w["fails"], failed)
 
+    def test_every_regex_check_fails_on_some_violating_workspace(self):
+        # R364r2 R-B: a matches/not_matches check no violating workspace fails can be gutted to
+        # vacuous with the suite green. Each row fails exactly the checks it names, so a row that
+        # fails this check is the row that reddens when it is gutted.
+        for d in sorted(SKILLS.iterdir()):
+            eval_file = d / "evals" / "evals.json"
+            if not eval_file.exists():
+                continue
+            for ev in eval_mod.load_json(eval_file)["evals"]:
+                rows = [w for w in WORKSPACES["violating"]
+                        if (w["mission"], w["id"]) == (d.name, ev["id"])]
+                for i, check in enumerate(ev.get("workspace_state") or []):
+                    if "matches" not in check and "not_matches" not in check:
+                        continue
+                    with self.subTest(mission=d.name, id=ev["id"], check=i):
+                        self.assertTrue(
+                            any(_state_after(d.name, ev["id"], w["write"], w.get("venv", False),
+                                             [check]) for w in rows),
+                            f"no violating workspace fails {check.get('path') or check.get('glob')}")
+
     def test_doctrine_following_workspaces_pass(self):
         for w in WORKSPACES["passing"]:
             with self.subTest(mission=w["mission"], name=w["name"]):
@@ -1117,16 +1138,31 @@ class TestCasesCatchTheirViolation(unittest.TestCase):
 
     def test_a_venv_beside_a_root_cause_fix_passes_the_deflake_case(self):
         # V1: `python -m venv .venv` in the workspace is doctrine-following, and pip's own code
-        # carries Retry( and @retry. The committed excerpt must really hit the ban, or its passing
-        # proves nothing about how the ban is scoped.
-        ban = next(c["not_matches"] for c in _case("deflake-it", 4)["workspace_state"]
-                   if "glob" in c)
+        # carries Retry( and @retry. The committed excerpt must really hit the ban, every copy of
+        # it (R364r2 N3: one per glob), or its passing proves nothing about how the ban is scoped.
+        bans = [c for c in _case("deflake-it", 4)["workspace_state"] if "glob" in c]
+        self.assertEqual([c["glob"] for c in bans], ["tests/**/*.py", "src/**/*.py", "*.py"])
         sources = {rel: text for rel, text in WORKSPACES["venv"].items() if rel.endswith(".py")}
         self.assertEqual(len(sources), 7)
         for rel, text in sources.items():
-            with self.subTest(path=rel):
-                self.assertRegex(text, ban)
+            for ban in bans:
+                with self.subTest(path=rel, glob=ban["glob"]):
+                    self.assertRegex(text, ban["not_matches"])
         self.assertEqual(_state_after("deflake-it", 4, WORKSPACES["deflake_fix"], venv=True), [])
+
+    def test_a_venv_holding_pytest_beside_the_fix_passes_the_harden_case(self):
+        # R364r2 F-1, V1's class: pytest's own sources name @unittest.skip and pytest.mark.skip.
+        # Each committed excerpt must hit every copy of harden-it's skip ban, so the venv passing
+        # shows the ban is scoped to the case's tree, not that it stopped catching real skips.
+        bans = [c for c in _case("harden-it", 4)["workspace_state"] if "glob" in c]
+        self.assertEqual([c["glob"] for c in bans], ["tests/**/*.py", "app/**/*.py", "*.py"])
+        self.assertEqual(len(WORKSPACES["pytest"]), 4)
+        for rel, text in WORKSPACES["pytest"].items():
+            for ban in bans:
+                with self.subTest(path=rel, glob=ban["glob"]):
+                    self.assertRegex(text, ban["not_matches"])
+        self.assertEqual(_state_after("harden-it", 4, {**WORKSPACES["pytest"],
+                                                       **WORKSPACES["harden_fix"]}, venv=True), [])
 
     # V3: modernize-it id-4's advisory boundary (ADV-1, fixed in requests 2.32.4), one row per
     # shape. django stays on 5.2 in every row, so every failure is the requests boundary's.
@@ -1169,6 +1205,12 @@ class TestCasesCatchTheirViolation(unittest.TestCase):
         ("django~=5.2.6", True, "compatible release: capped at 5.3"),
         ("django>=5.2.6,<5.3", True, "a floor capped inside 5.2"),
         ("django>=5.2,<6", True, "a floor capped below 6"),
+        # R364r2 R-A: the next four each fail one single-regex mutant the other rows survive:
+        # dropping the <= branch, the (?:\.0+)* suffix, or (twice) the (?![\d.]) lookahead.
+        ("django>=5.2,<=5.2.9", True, "an inclusive cap inside 5.2"),
+        ("django>=5.2,<6.0", True, "a cap below 6 spelled with a zero minor"),
+        ("django>=5.2,<6.1", False, "a cap that still admits 6.0.x"),
+        ("django>=5.2,<6.0.1", False, "a cap that still admits 6.0.0"),
         ("django>=5.2.6", False, "an uncapped floor resolves to 6.x"),
         ("django>=5.2.6,<7", False, "a cap that still admits 6.x"),
         ("django==6.0.1", False, "the mass bump itself"),
