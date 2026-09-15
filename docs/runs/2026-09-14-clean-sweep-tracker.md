@@ -1269,4 +1269,5 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   4015351682 nested-### = r7 Nit T7-1 already adjudicated). Spec
   taskspecs/drain-387-threads.md frozen (verify→reply→resolve per
   thread; NEW-REAL parks unfixed with repro; 75-min STOP with
-  partial report). Dispatched (main checkout, read-only + gh).
+  partial report). Dispatched (main checkout, read-only + gh)
+  (task_ca0f442b5f88→ctx_17670380fe49).
