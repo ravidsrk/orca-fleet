@@ -477,9 +477,9 @@ _WIP_ROW_SCHEMA = " ".join(f"{k}={_WIP_COUNTS.get(k, '<v>')}" for k in WIP_ROW_K
 # `## WIP-curve protocol row` heading — outside fenced code. Every pipe-prefixed line used to be
 # read, so a complete row quoted in a fenced example or a deviations table bound as the run's
 # evidence, or tripped the duplicate/stray-wave checks against the real rows. An ATX heading
-# whose text begins `WIP-curve protocol row` opens the section (any level; what follows varies by
-# report) — one that merely begins by naming the WIP curve, such as another run's quoted example,
-# does not (verdict r1); the next heading of any kind ends it.
+# whose text begins `WIP-curve protocol row` as whole words (so not `... rows`) opens the section
+# (any level; what follows varies by report) — one that merely begins by naming the WIP curve,
+# such as another run's quoted example, does not (verdict r1); the next heading of any kind ends it.
 WIP_SECTION = "## WIP-curve protocol row"
 _WIP_SECTION_RE = re.compile(r" {0,3}#{1,6}[ \t]+WIP-curve[ \t]+protocol[ \t]+row\b")
 _HEADING_RE = re.compile(r" {0,3}#{1,6}(?:[ \t]|$)")
@@ -496,8 +496,9 @@ _QUOTED = float("inf")
 
 
 def _indent(line, start=0):
-    """The columns of blank space line[start:] opens with. Lines are measured with their tabs
-    expanded to CommonMark's stops of 4, so '\tnote' is as deep as '    note' (verdict r5)."""
+    """The number of spaces line[start:] opens with; a tab counts as none here. The tab rule is
+    the caller's: _wip_section_lines expands each line to CommonMark's stops of 4 before it
+    measures, so there '\tnote' is as deep as '    note' (verdict r5, r6 S6-1)."""
     rest = line[start:]
     return len(rest) - len(rest.lstrip(" "))
 
