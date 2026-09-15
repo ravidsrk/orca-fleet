@@ -534,7 +534,9 @@ If a fleet touches your default branch, that is a bug — file it. The full trus
 - [docs/research/](docs/research/README.md) — dated research snapshots and the ledger of rejected
   mission candidates.
 - [REVIEW.md](REVIEW.md) — the 2026-09-11 review; the earlier one is
-  [docs/reviews/2026-09-10-review.md](docs/reviews/2026-09-10-review.md).
+  [docs/reviews/2026-09-10-review.md](docs/reviews/2026-09-10-review.md), the later one
+  [docs/reviews/2026-09-14-holistic-review.md](docs/reviews/2026-09-14-holistic-review.md)
+  (filed as #349–#386).
 - [AGENTS.md](AGENTS.md) — the agent-facing summary of this page; [docs/about.md](docs/about.md) —
   the canonical repository description; [docs/ops.md](docs/ops.md) — maintainer ops.
 

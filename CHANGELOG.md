@@ -34,6 +34,23 @@ missions `migrate-it`, `oncall-it`, `absorb-it`, `document-it`; scripts `bundle.
 A changelog that says "each is listed below as it lands" and then lists none is worse than one that
 promises nothing (#293).
 
+**The 2026-09-14 holistic review** (`docs/reviews/2026-09-14-holistic-review.md`, filed as
+#349–#386) landed on the `review/2026-09-14-holistic-fixes` line. Its P0 was the macOS-red suite:
+`run_report.py` resolved the interpreter root but compared the token lexically, so a symlinked-prefix
+interpreter inside a graded tree passed as the system one (#349). Two blast-radius holes closed:
+`bundle.py --out .` no longer removes the source catalog (#350), and `deny-hook.sh` bounds `sudo
+tee` through sudo's own options, stacked `sudo`, `nice` and `--` (#351). The verifier requires the
+commands ledger to show the coordinator-named proof command green on head's tree rather than any
+exit-0 record, and an empty or unparseable `--nc-command` is RED, never a silent skip (#352, #382).
+`evidence-run.py` locks the manifest itself, so parallel wrapped runs neither lose a record nor
+leave a lockfile beside it (#382, #388). A mutating run's report carries `waves=<n>` and one
+measured WIP-curve row per wave; `run_report.py` refuses a missing, partial or doubled row (#365,
+#389). Every mission's behavioral eval has a fixture-backed case graded on the workspace the agent
+leaves, through `workspace_state` checks that read files with no model in between; the
+narration-only cases are labeled and their set frozen (#364). Mission guides and their diagrams
+are held to parity by a test (#385). CI's action pins moved to checkout v7.0.1 and setup-python
+v7.0.0 before the Node 20 actions left the runners (#367).
+
 ### Changed
 
 - README no longer claims "verified, not asserted"; it states the claim the mechanism supports
