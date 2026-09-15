@@ -195,7 +195,7 @@ class WipCurveObligation(unittest.TestCase):
     def test_a_mutating_report_with_a_wip_row_binds(self):
         # #389: this test used to bless `| 1 | builders=4 reviewers=2 | 3.1 |` — a settings row
         # with one unlabelled number, which is the bug. The row now carries the protocol's schema.
-        body = ("RUN: mission=ship-it waves=1\n\n## WIP curve\n\n"
+        body = (f"RUN: mission=ship-it waves=1\n\n{self.SECTION}\n\n"
                 "| wave=1 | builders=4 reviewers=2 | throughput=3.1/h | latency_median=9m "
                 "| latency_max=31m | rework=1/5 | freshness=0 |\n")
         self.assertEqual(run_report._wip_curve_errors(body, "ship-it", ROOT, "r.md"), [])
@@ -210,7 +210,7 @@ class WipCurveObligation(unittest.TestCase):
                               ("| deviation | raised mid-run to builders=3 reviewers=1 |",
                                "— none found;")):
             with self.subTest(row=row):
-                body = f"RUN: mission=ship-it waves=1\n\n## WIP curve\n\n{row}\n"
+                body = f"RUN: mission=ship-it waves=1\n\n{self.SECTION}\n\n{row}\n"
                 errs = run_report._wip_curve_errors(body, "ship-it", ROOT, "r.md")
                 self.assertTrue(any(expected in e for e in errs),
                                 f"a settings-only row bound as a WIP-curve data point: {row} {errs}")
@@ -240,7 +240,7 @@ class WipCurveObligation(unittest.TestCase):
         }
         for name, (waves, rows, expected) in cases.items():
             with self.subTest(case=name):
-                body = f"RUN: mission=ship-it {waves}\n\n## WIP curve\n\n" + "\n".join(rows) + "\n"
+                body = f"RUN: mission=ship-it {waves}\n\n{self.SECTION}\n\n" + "\n".join(rows) + "\n"
                 errs = run_report._wip_curve_errors(body, "ship-it", ROOT, "r.md")
                 self.assertTrue(any(expected in e for e in errs),
                                 f"{name}: bound with incomplete per-wave rows {errs}")
@@ -248,7 +248,7 @@ class WipCurveObligation(unittest.TestCase):
     def test_a_wave_carrying_two_rows_is_refused_with_none_missing(self):
         # Verdict r1 (PR #391): the doubled-wave check only ever ran beside a missing wave, so a
         # mutant without it stayed green. Here waves 1..2 each have a row and wave 1 has two.
-        body = ("RUN: mission=ship-it waves=2\n\n## WIP curve\n\n"
+        body = (f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n"
                 + "\n".join([self.ROW_1, self.ROW_1, self.ROW_2]) + "\n")
         errs = run_report._wip_curve_errors(body, "ship-it", ROOT, "r.md")
         self.assertEqual(len(errs), 1, errs)
@@ -258,7 +258,7 @@ class WipCurveObligation(unittest.TestCase):
         # wave=one names a wave, so the row is a WIP-curve row, but it names no number: refused as
         # a cell, and kept out of the per-wave count rather than crashing int().
         row = self.ROW_1.replace("wave=1", "wave=one")
-        body = f"RUN: mission=ship-it waves=1\n\n## WIP curve\n\n{row}\n"
+        body = f"RUN: mission=ship-it waves=1\n\n{self.SECTION}\n\n{row}\n"
         errs = run_report._wip_curve_errors(body, "ship-it", ROOT, "r.md")
         self.assertTrue(any("carries no measured ['wave']" in e for e in errs), errs)
 
@@ -266,21 +266,21 @@ class WipCurveObligation(unittest.TestCase):
         # Verdict r2: wave=1.5 is digit-led, so the metric rule would take it, and the per-wave
         # count skips it — beside a complete wave 1 row, only the integer rule refuses it.
         row = self.ROW_2.replace("wave=2", "wave=1.5")
-        body = ("RUN: mission=ship-it waves=1\n\n## WIP curve\n\n"
+        body = (f"RUN: mission=ship-it waves=1\n\n{self.SECTION}\n\n"
                 + "\n".join([self.ROW_1, row]) + "\n")
         errs = run_report._wip_curve_errors(body, "ship-it", ROOT, "r.md")
         self.assertEqual(len(errs), 1, errs)
         self.assertIn("carries no measured ['wave']", errs[0])
 
     def test_a_zero_wave_count_is_refused(self):
-        body = f"RUN: mission=ship-it waves=0\n\n## WIP curve\n\n{self.ROW_1}\n"
+        body = f"RUN: mission=ship-it waves=0\n\n{self.SECTION}\n\n{self.ROW_1}\n"
         errs = run_report._wip_curve_errors(body, "ship-it", ROOT, "r.md")
         self.assertTrue(any("RUN: waves=0 — a mutating run records" in e for e in errs), errs)
 
     def test_a_wave_count_that_is_not_a_number_is_refused_without_crashing(self):
         # Verdict r2: waves=two reaches int() only past the digit guard — without it the checker
         # raised ValueError instead of refusing the header.
-        body = f"RUN: mission=ship-it waves=two\n\n## WIP curve\n\n{self.ROW_1}\n"
+        body = f"RUN: mission=ship-it waves=two\n\n{self.SECTION}\n\n{self.ROW_1}\n"
         errs = run_report._wip_curve_errors(body, "ship-it", ROOT, "r.md")
         self.assertEqual(len(errs), 1, errs)
         self.assertIn("RUN: waves=two — a mutating run records", errs[0])
@@ -288,7 +288,7 @@ class WipCurveObligation(unittest.TestCase):
     def test_a_run_header_carrying_waves_twice_is_refused(self):
         # Verdict r1: dict() kept the LAST waves=, so `waves=3 waves=1` plus one row bound on the 1
         # while the same header said three waves ran — the F3 collapse, one line up.
-        body = f"RUN: mission=ship-it waves=3 waves=1\n\n## WIP curve\n\n{self.ROW_1}\n"
+        body = f"RUN: mission=ship-it waves=3 waves=1\n\n{self.SECTION}\n\n{self.ROW_1}\n"
         errs = run_report._wip_curve_errors(body, "ship-it", ROOT, "r.md")
         self.assertEqual(len(errs), 1, errs)
         self.assertIn("RUN: header carries waves= more than once", errs[0])
@@ -298,7 +298,7 @@ class WipCurveObligation(unittest.TestCase):
         # it — a mutant taking any non-blank value stayed green.
         row = (self.ROW_1.replace("throughput=1.5/h", "throughput=TBD")
                .replace("latency_median=12m", "latency_median=?"))
-        body = f"RUN: mission=ship-it waves=1\n\n## WIP curve\n\n{row}\n"
+        body = f"RUN: mission=ship-it waves=1\n\n{self.SECTION}\n\n{row}\n"
         errs = run_report._wip_curve_errors(body, "ship-it", ROOT, "r.md")
         self.assertEqual(len(errs), 1, errs)
         self.assertIn("carries no measured ['throughput', 'latency_median']", errs[0])
@@ -311,7 +311,7 @@ class WipCurveObligation(unittest.TestCase):
                             ("reviewers=1", "reviewers=2.5")):
             with self.subTest(setting=value):
                 row = self.ROW_1.replace(cell, value)
-                body = f"RUN: mission=ship-it waves=1\n\n## WIP curve\n\n{row}\n"
+                body = f"RUN: mission=ship-it waves=1\n\n{self.SECTION}\n\n{row}\n"
                 errs = run_report._wip_curve_errors(body, "ship-it", ROOT, "r.md")
                 self.assertEqual(len(errs), 1, errs)
                 self.assertIn(f"carries no measured ['{value.split('=')[0]}']", errs[0])
@@ -320,7 +320,7 @@ class WipCurveObligation(unittest.TestCase):
         # PR #391 review (P2): a copy-edited row kept only the LAST occurrence of each key, so
         # throughput=TBD throughput=1 bound on the 1 while still saying it was never measured.
         row = self.ROW_1.replace("throughput=1.5/h", "throughput=TBD throughput=1")
-        body = f"RUN: mission=ship-it waves=1\n\n## WIP curve\n\n{row}\n"
+        body = f"RUN: mission=ship-it waves=1\n\n{self.SECTION}\n\n{row}\n"
         errs = run_report._wip_curve_errors(body, "ship-it", ROOT, "r.md")
         self.assertTrue(any("carries ['throughput'] more than once" in e for e in errs), errs)
 
@@ -330,22 +330,425 @@ class WipCurveObligation(unittest.TestCase):
                      "| builders=2 reviewers=1 | latency_max=55m | latency_median=20m |")
         for rows in ([self.ROW_1, self.ROW_2], [self.ROW_1, reordered]):
             with self.subTest(rows=rows):
-                body = "RUN: mission=ship-it waves=2\n\n## WIP curve\n\n" + "\n".join(rows) + "\n"
+                body = f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n" + "\n".join(rows) + "\n"
                 self.assertEqual(run_report._wip_curve_errors(body, "ship-it", ROOT, "r.md"), [])
+
+    # #387: the rows are the ones in the report's WIP-curve section (docs/runs/TEMPLATE.md's
+    # heading, below) and nowhere else. Scanning every pipe-prefixed line bound a complete row
+    # quoted in a fenced example or a deviations table as the run's evidence.
+    SECTION = "## WIP-curve protocol row (mutating self-runs)"
+    DEVIATIONS = ("## Deviations and lessons (recorded, not hidden)\n\n"
+                  "| Deviation | Detail |\n|---|---|\n")
+
+    def test_complete_rows_outside_the_wip_curve_section_do_not_bind(self):
+        template = (ROOT / "docs" / "runs" / "TEMPLATE.md").read_text(encoding="utf-8")
+        self.assertIn(f"\n{self.SECTION}\n", template, "the fixture's heading is not the template's")
+        rows = f"{self.ROW_1}\n{self.ROW_2}\n"
+        section = f"{self.SECTION}\n\nNot measured to protocol this run.\n\n"
+        cases = {
+            "a fenced example inside the section": f"{section}```\n{rows}```\n",
+            "a tilde-fenced example inside the section": f"{section}~~~text\n{rows}~~~\n",
+            "a deviations table": f"{section}{self.DEVIATIONS}{rows}",
+            "a fenced example and a deviations table": (f"{section}```\n{self.ROW_1}\n```\n\n"
+                                                        f"{self.DEVIATIONS}{self.ROW_2}\n"),
+            "another section, and no WIP-curve section": f"## Pipeline evidence\n\n{rows}",
+            "rows before any heading": rows,
+            "the section heading quoted inside a fence": f"```markdown\n{self.SECTION}\n\n{rows}```\n",
+        }
+        for name, body in cases.items():
+            with self.subTest(case=name):
+                report = f"RUN: mission=ship-it waves=2\n\n{body}"
+                errs = run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md")
+                self.assertTrue(any("— none found;" in e and "WIP-curve protocol row" in e
+                                    for e in errs),
+                                f"{name}: bound on rows outside the WIP-curve section {errs}")
+
+    def test_rows_outside_the_section_do_not_count_against_the_rows_inside_it(self):
+        # The false fail: the section is complete, and rows quoted elsewhere (an example of wave 1,
+        # a deviation about wave 2's WIP, a third wave planned and never run) tripped the
+        # duplicate, unmeasured-row and stray-wave checks. The fence comes first, so a fence that
+        # never closed would swallow the real rows.
+        report = (f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n"
+                  f"Filled in as the protocol's example shows:\n\n```text\n{self.ROW_1}\n```\n\n"
+                  "| Wave | WIP setting | Throughput | Latency | Rework | Freshness |\n"
+                  f"|---|---|---|---|---|---|\n{self.ROW_1}\n{self.ROW_2}\n\n{self.DEVIATIONS}"
+                  "| wave=2 | raised mid-run to builders=3 reviewers=1 |\n"
+                  f"{self.ROW_2.replace('wave=2', 'wave=3')}\n")
+        self.assertEqual(run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md"), [])
+
+    def test_an_incomplete_section_row_is_refused_whatever_lies_outside(self):
+        # Completeness still binds inside the section: the unmeasured row is refused naming its
+        # wave, and a complete copy outside the section neither rescues it nor doubles the wave.
+        partial_2 = self.ROW_2.replace("| latency_max=55m ", "")
+        report = (f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n{self.ROW_1}\n{partial_2}\n\n"
+                  f"{self.DEVIATIONS}{self.ROW_2}\n")
+        errs = run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md")
+        self.assertEqual(len(errs), 1, errs)
+        self.assertIn("| wave=2 |", errs[0])
+        self.assertIn("carries no measured ['latency_max']", errs[0])
+
+    def test_the_section_heading_tolerates_its_real_spellings(self):
+        # The template's heading, the 2026-08-28 ship-it report's, and loose whitespace, a deeper
+        # level or a closing sequence around them.
+        for heading in (self.SECTION,
+                        "## WIP-curve protocol row (qualitative first observation — NOT a "
+                        "protocol-compliant data point)",
+                        "##   WIP-curve protocol row   ", "### WIP-curve \t protocol  row",
+                        "   ## WIP-curve protocol row (mutating self-runs) ##"):
+            with self.subTest(heading=heading):
+                report = f"RUN: mission=ship-it waves=2\n\n{heading}\n\n{self.ROW_1}\n{self.ROW_2}\n"
+                self.assertEqual(run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md"), [])
+
+    def test_a_look_alike_heading_does_not_open_the_section(self):
+        # Verdict r1 (F-1): any heading beginning 'WIP curve' opened the section, so another run's
+        # quoted example bound as this run's evidence. Only the protocol's heading opens it.
+        rows = f"{self.ROW_1}\n{self.ROW_2}\n"
+        # Verdict r2 (N-1): the heading's case and its word boundary after 'row' are the anchor too.
+        for heading in ("## WIP-curve example (from another run)",
+                        "## Deviations — WIP-curve cap raised", "## WIP curve", "### WIP \t curve",
+                        "## WIP-curve protocol rows", "## wip-curve protocol row"):
+            with self.subTest(heading=heading):
+                report = f"RUN: mission=ship-it waves=2\n\n{heading}\n\n{rows}"
+                errs = run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md")
+                self.assertTrue(any("— none found;" in e and "WIP-curve protocol row" in e
+                                    for e in errs), f"{heading!r} opened the section {errs}")
+        # Nor does a look-alike after the section reopen it: a wave planned and never run, quoted
+        # under it, is not a stray row of this run.
+        report = (f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n{rows}\n"
+                  f"## WIP-curve example (from another run)\n\n{self.ROW_2.replace('wave=2', 'wave=3')}\n")
+        self.assertEqual(run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md"), [])
+
+    def test_a_fence_closes_only_on_a_bare_run_of_its_own_character_at_least_as_long(self):
+        # Verdict r1 (R2): the CommonMark closing rule went unwitnessed — "any fence line closes"
+        # kept the suite green. Each second line below is content of the example's fence, so the
+        # wave=3 row after it is still the example's; the real closer then ends the fence.
+        stray = self.ROW_2.replace("wave=2", "wave=3")
+        for name, fenced in {"a shorter run": f"````\n```\n{stray}\n````\n",
+                             "the other character": f"```\n~~~\n{stray}\n```\n",
+                             "an info string": f"```\n```text\n{stray}\n```\n"}.items():
+            with self.subTest(case=name):
+                report = (f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n{fenced}\n"
+                          f"{self.ROW_1}\n{self.ROW_2}\n")
+                self.assertEqual(run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md"), [])
+
+    def test_a_backtick_run_with_a_backtick_after_it_opens_no_fence(self):
+        # PR #401 review (P2): CommonMark opens no backtick fence whose info string holds a
+        # backtick, so '```text`example``' is prose with inline code, not a fence swallowing the
+        # rows after it. A tilde fence's info string may hold one, and that fence still opens.
+        rows = f"{self.ROW_1}\n{self.ROW_2}\n"
+        report = f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n```text`example``\n\n{rows}"
+        self.assertEqual(run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md"), [])
+        tilde = f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n~~~text`example``\n{rows}~~~\n"
+        errs = run_report._wip_curve_errors(tilde, "ship-it", ROOT, "r.md")
+        self.assertTrue(any("— none found;" in e for e in errs), errs)
+
+    def test_a_setext_heading_after_the_section_ends_it(self):
+        # Verdict r1: only an ATX heading ended the section, so a 'Deviations' line underlined as a
+        # setext heading left it open, and the rows under that heading bound as the run's evidence.
+        rows = f"{self.ROW_1}\n{self.ROW_2}\n"
+        for underline in ("---", "==="):
+            with self.subTest(underline=underline):
+                report = (f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n"
+                          f"Not measured to protocol this run.\n\nDeviations\n{underline}\n\n{rows}")
+                errs = run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md")
+                self.assertTrue(any("— none found;" in e and "WIP-curve protocol row" in e
+                                    for e in errs), f"bound under a setext heading {errs}")
+        # After a blank line --- is a thematic break, not a heading: the section stays open.
+        report = f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\nA note.\n\n---\n\n{rows}"
+        self.assertEqual(run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md"), [])
+
+    def test_a_list_item_or_block_quote_underlined_does_not_end_the_section(self):
+        # PR #401 review (P1 4012744258): only a plain paragraph can be underlined. After a list
+        # item or a block quote, or a lazy continuation of one, --- is a thematic break and === is
+        # more of its text (CommonMark), so the section stays open and its complete rows bind.
+        rows = f"{self.ROW_1}\n{self.ROW_2}\n"
+        for name, lead in {"a list item, ---": "- a note\n---",
+                           "an ordered list item, ---": "1. a note\n---",
+                           "a block quote, ---": "> a note\n---",
+                           "a list item, ===": "- a note\n===",
+                           "a list item's continuation, ---": "- a note\nthat runs on\n---",
+                           "a block quote's continuation, ---": "> a note\nthat runs on\n---"}.items():
+            with self.subTest(case=name):
+                report = f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n{lead}\n\n{rows}"
+                self.assertEqual(run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md"), [])
+
+    def test_a_row_after_a_list_item_and_a_thematic_break_is_still_read(self):
+        # PR #401 review (P1 4012744258), the fail-open side: closing the section on a list item's
+        # --- hid an incomplete second wave=2 row after it, and the report bound [].
+        partial_2 = self.ROW_2.replace("| latency_max=55m ", "")
+        report = (f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n{self.ROW_1}\n{self.ROW_2}\n\n"
+                  f"- a note\n---\n\n{partial_2}\n")
+        errs = run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md")
+        self.assertTrue(any("| wave=2 |" in e and "carries no measured ['latency_max']" in e
+                            for e in errs), f"the row after the break was not read {errs}")
+        self.assertTrue(any("wave(s) [2] carry more than one WIP-curve row" in e for e in errs),
+                        errs)
+
+    def test_indented_code_is_never_underlined(self):
+        # Verdict r4 (STANDARDS S-2, SPEC C-2): a line four spaces past its container's column is
+        # indented code, not a paragraph, so a --- or === under it underlines nothing (CommonMark).
+        # Read as a paragraph, '    note' / '---' closed the section and hid an incomplete second
+        # wave=2 row after it, and the report bound [] where base refused it twice.
+        # Verdict r5 (SPEC F-1, TEST T5-1): a tab runs to the next column that is a multiple of 4,
+        # so a tab reaches the same four columns; counting spaces only, '\tnote' was a paragraph
+        # and '  \tnote' after an empty item one at column 2, both underlined (markdown-it-py).
+        partial_2 = self.ROW_2.replace("| latency_max=55m ", "")
+        for name, code in {"at the margin, ---": "    note\n---",
+                           "at the margin, ===": "    note\n===",
+                           "a list item's first block, ---": "-     note\n  ---",
+                           "a list item's block after a blank line, ---": "- a\n\n      note\n  ---",
+                           "a tab at the margin, ---": "\tnote\n---",
+                           "a tab after two spaces, after an empty item and a blank line, ===":
+                               "*\n\n  \tnote\n===",
+                           "tabs after the marker, a list item's first block, ---": "-\t\tnote\n  ---"
+                           }.items():
+            with self.subTest(case=name):
+                report = (f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n{self.ROW_1}\n"
+                          f"{self.ROW_2}\n\n{code}\n\n{partial_2}\n")
+                errs = run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md")
+                self.assertEqual(len(errs), 2, errs)
+                self.assertTrue(any("| wave=2 |" in e and "carries no measured ['latency_max']" in e
+                                    for e in errs), f"the row after the code was not read {errs}")
+                self.assertTrue(any("wave(s) [2] carry more than one WIP-curve row" in e
+                                    for e in errs), errs)
+        # Verdict r5 (TEST T5-2): three spaces short of that is still a paragraph, and underlined
+        # it is a setext heading that ends the section (markdown-it-py).
+        with self.subTest(case="three spaces in, a paragraph, ---"):
+            report = (f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n   Deviations\n---\n\n"
+                      f"{self.ROW_1}\n{self.ROW_2}\n")
+            errs = run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md")
+            self.assertTrue(any("— none found;" in e for e in errs),
+                            f"bound under a setext heading {errs}")
+
+    def test_a_thematic_break_after_a_table_row_a_heading_or_a_fence_keeps_the_section_open(self):
+        # Verdict r2 (TEST R-1): each paragraph-gate exclusion is witnessed on its own. Straight
+        # after a table row, the section heading or a closed fence, --- underlines nothing, so the
+        # wave=2 row after it is still the section's: complete it binds, incomplete it is refused.
+        partial_2 = self.ROW_2.replace("| latency_max=55m ", "")
+        for name, lead in {"a table row": f"\n{self.ROW_1}\n---\n",
+                           "the section heading": f"---\n{self.ROW_1}\n",
+                           "a closed fence": f"\n```text\nan example\n```\n---\n{self.ROW_1}\n"}.items():
+            with self.subTest(case=name):
+                report = f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n{lead}"
+                self.assertEqual(run_report._wip_curve_errors(f"{report}{self.ROW_2}\n", "ship-it",
+                                                              ROOT, "r.md"), [])
+                errs = run_report._wip_curve_errors(f"{report}{partial_2}\n", "ship-it", ROOT, "r.md")
+                self.assertEqual(len(errs), 1, errs)
+                self.assertIn("| wave=2 |", errs[0])
+                self.assertIn("carries no measured ['latency_max']", errs[0])
+
+    def test_an_ordered_item_not_numbered_1_under_a_paragraph_line_is_its_text(self):
+        # PR #401 review (P1 4013204408, verdict r3 F-2): a list item interrupts a paragraph only
+        # with content, and an ordered one only from 1 (CommonMark). So 'Deviations / 2. x / ---'
+        # is one paragraph underlined, a setext heading: the section ends, and the rows under it
+        # are not the run's. '1. x' does interrupt, and the --- after it is a thematic break.
+        rows = f"{self.ROW_1}\n{self.ROW_2}\n"
+        for name, lead in {"2.": "Deviations\n2. raised mid-run\n---",
+                           "10)": "Deviations\n10) raised mid-run\n---",
+                           "an empty item": "Deviations\n*\n---"}.items():
+            with self.subTest(case=name):
+                report = (f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n"
+                          f"Not measured to protocol this run.\n\n{lead}\n\n{rows}")
+                errs = run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md")
+                self.assertTrue(any("— none found;" in e and "WIP-curve protocol row" in e
+                                    for e in errs), f"bound under a setext heading {errs}")
+        report = f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\nA note:\n1. raised mid-run\n---\n\n{rows}"
+        self.assertEqual(run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md"), [])
+
+    def test_a_list_items_paragraph_after_a_blank_line_is_still_in_the_list(self):
+        # PR #401 review (P1 4013204408, verdict r3 F-1): a line indented to a list item's content
+        # after a blank line is that item's paragraph, not a plain one, so a --- at the margin
+        # after it is a thematic break (CommonMark). Complete rows after it bind, and an incomplete
+        # second wave=2 row after it is refused naming the wave, never hidden.
+        partial_2 = self.ROW_2.replace("| latency_max=55m ", "")
+        head = f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n"
+        # Text five spaces past its marker is indented code in the item, whose content starts at
+        # column 2, not 7 (CommonMark), so the line at column 2 is still the item's. Verdict r5
+        # (TEST T5-3, T5-4): an empty item given content on its next line is no longer empty, so a
+        # blank line after that keeps it; and a blank line after a nested empty item ends only
+        # that item, not the one holding it (markdown-it-py).
+        for name, item in {"a list item": "- a note\n\n  that runs on",
+                           "an ordered item, content at column 4": "10. a note\n\n    that runs on",
+                           "text five spaces past the marker": "-     a note\n\n  that runs on",
+                           "an empty item's content on the next line": "-\n  a note\n\n  that runs on",
+                           "after a nested empty item and a blank line":
+                               "- a\n\n  -\n\n  that runs on"}.items():
+            with self.subTest(case=name, rows="complete"):
+                complete = f"{head}{item}\n---\n\n{self.ROW_1}\n{self.ROW_2}\n"
+                self.assertEqual(run_report._wip_curve_errors(complete, "ship-it", ROOT, "r.md"), [])
+            with self.subTest(case=name, rows="an incomplete second wave=2"):
+                hidden = f"{head}{self.ROW_1}\n{self.ROW_2}\n\n{item}\n---\n\n{partial_2}\n"
+                errs = run_report._wip_curve_errors(hidden, "ship-it", ROOT, "r.md")
+                self.assertTrue(any("| wave=2 |" in e and "carries no measured ['latency_max']" in e
+                                    for e in errs), f"the row after the break was not read {errs}")
+                self.assertTrue(any("wave(s) [2] carry more than one WIP-curve row" in e
+                                    for e in errs), errs)
+        # Underlined at the item's own column, that paragraph is a heading; so is a line back at
+        # the margin, or short of an item whose text starts three or four spaces past its marker,
+        # which has left the list. Either ends the section. So does a line after an empty item and
+        # a blank line: an item begins with at most one blank line, so the item ended empty
+        # (CommonMark; verdict r4 SPEC S4-1).
+        for name, lead in {"at column 2": "- a note\n\n  Deviations\n  ---",
+                           "at column 4": "10. a note\n\n    Deviations\n    ---",
+                           "back at the margin": "- a note\n\nDeviations\n---",
+                           "short of the item's column 4": "-   a note\n\n  Deviations\n---",
+                           "short of the item's column 5": "-    a note\n\n  Deviations\n---",
+                           "after an empty item and a blank line, ---": "-\n\n  Deviations\n---",
+                           "after an empty item and a blank line, ===": "*\n\n  Deviations\n===",
+                           # A tab after the marker runs to column 4 (verdict r5): content at 4.
+                           "a tab after the marker, at column 4": "-\tDeviations\n    ---"
+                           }.items():
+            with self.subTest(case=name, rows="under a setext heading"):
+                report = f"{head}{lead}\n\n{self.ROW_1}\n{self.ROW_2}\n"
+                errs = run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md")
+                self.assertTrue(any("— none found;" in e for e in errs), errs)
+
+    def test_a_fence_nested_in_a_list_item_hides_its_rows(self):
+        # Verdict r3 (F-3): a fence may sit up to three spaces past the content column of the list
+        # item holding it, so an example fenced four or more spaces deep is still code (CommonMark),
+        # and its rows are not the run's: alone they are none found, and beside the real rows a
+        # wave=3 example is no stray wave.
+        stray = self.ROW_2.replace("wave=2", "wave=3")
+        for name, nested in {"an ordered item": "1. Filled in as the example shows:\n\n"
+                                                "    ```text\n    {row}\n    ```\n",
+                             "a nested item": "- Example\n  - quoted from another run:\n\n"
+                                              "      ~~~\n      {row}\n      ~~~\n"}.items():
+            head = f"RUN: mission=ship-it waves=1\n\n{self.SECTION}\n\n"
+            with self.subTest(case=name, rows="the example alone"):
+                errs = run_report._wip_curve_errors(f"{head}{nested.format(row=self.ROW_1)}",
+                                                    "ship-it", ROOT, "r.md")
+                self.assertTrue(any("— none found;" in e for e in errs),
+                                f"bound on a fenced example {errs}")
+            with self.subTest(case=name, rows="a wave=3 example beside the real row"):
+                report = f"{head}{nested.format(row=stray)}\n{self.ROW_1}\n"
+                self.assertEqual(run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md"), [])
+        # A nested fence ends at its own closer, so the item's content after it is read: a closer
+        # looked for only near the margin never matched, and the fence swallowed the item's real row
+        # (mutant M13g; since verdict r5 F-2 a row back at the margin ends the fence regardless).
+        with self.subTest(case="the item's row after its closed fence"):
+            report = (f"RUN: mission=ship-it waves=1\n\n{self.SECTION}\n\n"
+                      f"1. Filled in as the example shows:\n\n    ```text\n    {stray}\n    ```\n\n"
+                      f"    {self.ROW_1}\n")
+            self.assertEqual(run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md"), [])
+        # Verdict r5 (SPEC F-2): and only while its item lasts. A line left of the item's content
+        # column ends the item, and an unclosed fence in it with it (markdown-it-py), so an
+        # incomplete second wave=2 row after that line is read, never swallowed as code.
+        with self.subTest(case="an unclosed fence ends with its item"):
+            partial_2 = self.ROW_2.replace("| latency_max=55m ", "")
+            report = (f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n{self.ROW_1}\n{self.ROW_2}\n\n"
+                      f"- a note\n  ```\n  example\n\nNext paragraph.\n\n{partial_2}\n")
+            errs = run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md")
+            self.assertEqual(len(errs), 2, errs)
+            self.assertTrue(any("| wave=2 |" in e and "carries no measured ['latency_max']" in e
+                                for e in errs), f"the row after the item was not read {errs}")
+            self.assertTrue(any("wave(s) [2] carry more than one WIP-curve row" in e for e in errs),
+                            errs)
+        # Verdict r6 (TEST R-1, N-1): a blank line is not a line left of the item's column, so it
+        # ends neither the item nor its fence (markdown-it-py): a wave=2 example after one is still
+        # code, in an item at the margin or one indented off it, and wave 2 stays unrecorded.
+        for name, item in {"at the margin": "- ", "off the margin": "  - "}.items():
+            pad = " " * len(item)
+            with self.subTest(case=f"a blank line in the fence of an item {name}"):
+                report = (f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n{self.ROW_1}\n\n"
+                          f"{item}Filled in as the example shows:\n{pad}```text\n{pad}example\n\n"
+                          f"{pad}{self.ROW_2}\n{pad}```\n")
+                errs = run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md")
+                self.assertEqual(len(errs), 1, errs)
+                self.assertIn("no WIP-curve row for wave(s) [2]", errs[0])
+        # And a line one column short of an item indented off the margin ends that item and its
+        # fence, so the incomplete second wave=2 row there is read. A fence ended only by a line at
+        # the margin, or by one a column further left, swallowed it (verdict r6 N-1).
+        with self.subTest(case="an unclosed fence ends with an item off the margin"):
+            report = (f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n{self.ROW_1}\n{self.ROW_2}\n\n"
+                      f"  - a note\n    ```\n    example\n   {partial_2}\n")
+            errs = run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md")
+            self.assertEqual(len(errs), 2, errs)
+            self.assertTrue(any("| wave=2 |" in e and "carries no measured ['latency_max']" in e
+                                for e in errs), f"the row after the item was not read {errs}")
+            self.assertTrue(any("wave(s) [2] carry more than one WIP-curve row" in e for e in errs),
+                            errs)
+
+    def test_a_thematic_break_is_neither_a_list_item_nor_a_paragraph(self):
+        # The list items followed for PR #401 review: '* * *' is a thematic break, not three list
+        # items, so the paragraph under it is a plain one; and a --- ending a list item closes it,
+        # so the next line starts a plain paragraph. Underlined, each is a setext heading.
+        rows = f"{self.ROW_1}\n{self.ROW_2}\n"
+        for name, lead in {"* * *": "* * *\n\n  Deviations\n---",
+                           "a list item, ---": "- a note\n---\nDeviations\n---"}.items():
+            with self.subTest(case=name):
+                report = f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n{lead}\n\n{rows}"
+                errs = run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md")
+                self.assertTrue(any("— none found;" in e for e in errs),
+                                f"bound under a setext heading {errs}")
+        # An empty list item holds no paragraph, so the --- in it is a thematic break.
+        with self.subTest(case="an empty list item"):
+            report = f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n-\n  ---\n\n{rows}"
+            self.assertEqual(run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md"), [])
+
+    def test_a_thematic_break_in_a_list_item_keeps_that_item_open(self):
+        # Verdict r4 (TEST R-1; PR #401 P1 4013782318, a false positive): a thematic break closes
+        # only the items it is not indented into. '  ***' closes '  - b' but sits in '- a', so
+        # '  para' is a's paragraph and a --- at the margin under it is a thematic break: the
+        # incomplete second wave=2 row after it is still read. Dropping every open item on the
+        # break made '  para' a plain paragraph and the --- its underline, which hid that row.
+        partial_2 = self.ROW_2.replace("| latency_max=55m ", "")
+        report = (f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n{self.ROW_1}\n{self.ROW_2}\n\n"
+                  f"- a\n  - b\n  ***\n  para\n---\n\n{partial_2}\n")
+        errs = run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md")
+        self.assertEqual(len(errs), 2, errs)
+        self.assertTrue(any("| wave=2 |" in e and "carries no measured ['latency_max']" in e
+                            for e in errs), f"the row after the break was not read {errs}")
+        self.assertTrue(any("wave(s) [2] carry more than one WIP-curve row" in e for e in errs),
+                        errs)
+
+    def test_the_marker_heading_and_underline_edges_commonmark_draws(self):
+        # Verdict r3 (TEST nits: mutants D6, D7, C8, C10, D15 survived): every marker the checker
+        # reads has its own witness. '+' and '*' bullets and a ')' ordered item are list items, so
+        # a --- after them is a thematic break; seven #s are text; an underline indented four
+        # spaces is text: the section stays open. A bare '##' is an empty heading, and ends it.
+        rows = f"{self.ROW_1}\n{self.ROW_2}\n"
+        for name, lead in {"a '+' list item": "+ a note\n---", "a '*' list item": "* a note\n---",
+                           "a ')' ordered item": "1) a note\n---",
+                           "seven #s": "####### not a heading",
+                           "an underline indented four spaces": "Deviations\n    ---"}.items():
+            with self.subTest(case=name):
+                report = f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n{lead}\n\n{rows}"
+                self.assertEqual(run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md"), [])
+        with self.subTest(case="an empty '##' heading"):
+            report = f"RUN: mission=ship-it waves=2\n\n{self.SECTION}\n\n##\n\n{rows}"
+            errs = run_report._wip_curve_errors(report, "ship-it", ROOT, "r.md")
+            self.assertTrue(any("— none found;" in e for e in errs), errs)
 
     def test_the_protocol_names_the_schema_the_checker_enforces(self):
         # The text and the check drifted once (#389: the prose owed five metrics, the check read
         # two settings). The protocol section must name every row key the checker enforces — and
         # no other — plus the waves=<n> count, and a row filled in from its Row cells must bind.
+        # #387: it must also name the section the rows live in, the template's heading, and the
+        # check must read exactly that: the row binds under the heading and nowhere else. Verdict
+        # r1 (F-2): the prose named one heading while the check opened on any 'WIP curve' heading,
+        # so the named text is tried both ways — at any level and suffix, and cut to its first word.
         budget = (ROOT / "runtime" / "attention-budget.md").read_text(encoding="utf-8")
         section = budget.split("## The WIP-curve protocol", 1)[1].split("\n## ", 1)[0]
         self.assertIn("`waves=<n>`", section, "the protocol no longer defines the recorded waves")
         cells = [c for cell in re.findall(r"^\|[^|]*\| `([^`]+)` \|", section, re.M)
                  for c in cell.split()]
         self.assertEqual({c.split("=")[0] for c in cells}, set(run_report.WIP_ROW_KEYS))
+        named = re.search(r"under an ATX heading whose text begins `([^`]+)`", section)
+        self.assertIsNotNone(named, "the protocol no longer names the section its rows live in")
+        text = named.group(1)
+        template = (ROOT / "docs" / "runs" / "TEMPLATE.md").read_text(encoding="utf-8")
+        self.assertRegex(template, rf"(?m)^#+ {re.escape(text)}\b",
+                         "the protocol names a section heading the run template does not carry")
         row = "| " + " | ".join(re.sub(r"<\w+>", "1", c) for c in cells) + " |"
-        self.assertEqual(run_report._wip_curve_errors(f"RUN: waves=1\n\n{row}\n", "ship-it", ROOT,
-                                                      "r.md"), [], row)
+        for heading in (f"## {text}", f"#### {text} (this run)"):
+            with self.subTest(heading=heading):
+                self.assertEqual(run_report._wip_curve_errors(
+                    f"RUN: waves=1\n\n{heading}\n\n{row}\n", "ship-it", ROOT, "r.md"), [], row)
+        for other in (self.DEVIATIONS, f"## {text.split()[0]} example\n\n"):
+            with self.subTest(other=other):
+                errs = run_report._wip_curve_errors(f"RUN: waves=1\n\n{other}{row}\n",
+                                                    "ship-it", ROOT, "r.md")
+                self.assertTrue(any("— none found;" in e for e in errs), errs)
 
     def test_a_report_filled_in_from_the_canonical_template_binds(self):
         # PR #391 review (P1): docs/runs/TEMPLATE.md kept the pre-#389 header (no waves=) and an

@@ -20,8 +20,8 @@ What a tier advance has to survive here instead:
   a solo run cannot manufacture an independent approver, and saying so is the
   point of the field);
 * ``waves=`` (a mutating mission's report) written once, recording the number of
-  dispatch waves the run ran; its WIP-curve table carries one complete row per
-  wave 1..n (attention-budget.md's WIP-curve protocol, #365/#389);
+  dispatch waves the run ran; its WIP-curve section's table carries one complete row
+  per wave 1..n (attention-budget.md's WIP-curve protocol, #365/#389/#387);
 * the run-close integrity inventory re-deriving **at that commit**: at least one
   path verified and zero mismatched.
 
@@ -473,14 +473,117 @@ _COUNT_RE = re.compile(r"\d+")
 _MEASURED_RE = re.compile(r"\d\S*")  # a number, units free after it: 1.5/h, 12m, 1/4
 _WIP_COUNTS = {"wave": "<k>", "builders": "<n>", "reviewers": "<n>"}  # integers; metrics are <v>
 _WIP_ROW_SCHEMA = " ".join(f"{k}={_WIP_COUNTS.get(k, '<v>')}" for k in WIP_ROW_KEYS)
+# Where the rows live (#387): the report's WIP-curve section — docs/runs/TEMPLATE.md's
+# `## WIP-curve protocol row` heading — outside fenced code. Every pipe-prefixed line used to be
+# read, so a complete row quoted in a fenced example or a deviations table bound as the run's
+# evidence, or tripped the duplicate/stray-wave checks against the real rows. An ATX heading
+# whose text begins `WIP-curve protocol row` as whole words (so not `... rows`) opens the section
+# (any level; what follows varies by report) — one that merely begins by naming the WIP curve,
+# such as another run's quoted example, does not (verdict r1); the next heading of any kind ends it.
+WIP_SECTION = "## WIP-curve protocol row"
+_WIP_SECTION_RE = re.compile(r" {0,3}#{1,6}[ \t]+WIP-curve[ \t]+protocol[ \t]+row\b")
+_HEADING_RE = re.compile(r" {0,3}#{1,6}(?:[ \t]|$)")
+# A backtick fence's info string holds no backtick (CommonMark): '```text`example``' is prose with
+# inline code, and read as a fence it swallowed the rows after it (PR #401 review).
+_FENCE_RE = re.compile(r" {0,3}(`{3,}(?=[^`]*$)|~{3,})")
+_SETEXT_RE = re.compile(r" {0,3}(?:=+|-+)[ \t]*$")
+_BREAK_RE = re.compile(r" {0,3}([-*_])(?:[ \t]*\1){2,}[ \t]*$")
+_QUOTE_RE = re.compile(r" {0,3}>")
+_ITEM_RE = re.compile(r" {0,3}(?:[-+*]|(\d{1,9})[.)])(?=[ \t]|$)")
+# A block quote's paragraph sits at a column no line reaches: its lines carry '>', so a line under
+# it without one is never its underline (--- is a thematic break, === is more of its text).
+_QUOTED = float("inf")
+
+
+def _indent(line, start=0):
+    """The number of spaces line[start:] opens with; a tab counts as none here. The tab rule is
+    the caller's: _wip_section_lines expands each line to CommonMark's stops of 4 before it
+    measures, so there '\tnote' is as deep as '    note' (verdict r5, r6 S6-1)."""
+    rest = line[start:]
+    return len(rest) - len(rest.lstrip(" "))
+
+
+def _wip_section_lines(text):
+    """The lines inside the report's WIP-curve section(s), fenced code excluded. A heading quoted
+    inside a fence is code too, so it neither opens nor closes the section. A setext heading — a
+    paragraph underlined with = or - in its own container — ends the section like any other
+    (verdict r1). List items are followed by the column their content starts at (CommonMark), so
+    a fence nested in one is still code, and a paragraph indented into one is still its own."""
+    inside, fence, para, items, empty = False, None, None, [], False
+    for raw in text.splitlines():
+        line = raw.expandtabs(4)
+        indent = _indent(line)
+        if fence:
+            # CommonMark: the closing fence is the same character, at least as long, bare, and
+            # up to three spaces past the column of the list item holding the fence. A line left
+            # of that column ends the item, and the fence with it, and is read (verdict r5 F-2).
+            char, col = fence
+            if line.strip() and indent < col:
+                fence = None
+            else:
+                closer = _FENCE_RE.match(line, col)
+                if (closer and closer.group(1)[0] == char[0] and len(closer.group(1)) >= len(char)
+                        and not line[closer.end():].strip()):
+                    fence = None
+                continue
+        if not line.strip():
+            # An item begins with at most one blank line, so one still empty ends here (verdict r4).
+            if empty:
+                items.pop()
+            para, empty = None, False
+            continue
+        # The list items this line is indented into, then any it opens. An item interrupts a
+        # paragraph in its own container only with content, and an ordered one only from 1:
+        # 'Deviations / 2. x / ---' is one paragraph underlined (PR #401 review).
+        kept = len(items)
+        while kept and items[kept - 1] > indent:
+            kept -= 1
+        base, opened = (items[kept - 1] if kept else 0), []
+        while not _BREAK_RE.match(line, base):
+            item = _ITEM_RE.match(line, base)
+            rest = line[item.end():] if item else ""
+            if not item or (not opened and para == base
+                            and not (rest.strip() and int(item.group(1) or 1) == 1)):
+                break
+            gap = _indent(line, item.end())
+            base = item.end() + (gap if rest.strip() and 0 < gap <= 4 else 1)
+            opened.append(base)
+        empty = bool(opened) and not line[base:].strip()
+        opener = _FENCE_RE.match(line, base)
+        heading = _HEADING_RE.match(line)
+        setext = not opened and para is not None and indent >= para and _SETEXT_RE.match(line, para)
+        if opener:
+            fence = (opener.group(1), base)
+        elif heading:
+            inside = bool(_WIP_SECTION_RE.match(line))
+        elif setext:
+            inside = False
+        elif inside:
+            yield raw
+        # Only a paragraph can be underlined, and only in its own container. After a table row, a
+        # heading, a fence or a thematic break, --- is a thematic break or table syntax. Under a
+        # list item's paragraph but left of its content, or under a block quote's, --- is a
+        # thematic break and === is more of its text (PR #401 review). The section stays open.
+        quote = _QUOTE_RE.match(line, base)
+        if (opener or heading or setext or _BREAK_RE.match(line, base)
+                or line.lstrip().startswith("|")):
+            items[kept:], para = opened, None
+        elif opened or para is None or quote:
+            # Four columns past it is indented code, which nothing underlines (verdict r4), a tab
+            # included (verdict r5).
+            items[kept:] = opened
+            para = (_QUOTED if quote else
+                    base if line[base:].strip() and _indent(line, base) < 4 else None)
+        # Otherwise the line continues the open paragraph, lazily or not, and closes nothing.
 
 
 def _wip_rows(text):
-    """(row, {key: value}, doubled keys) for every table row that names a wave — the report's
-    WIP-curve rows. A key written twice is reported, never collapsed: dict() keeps the last value,
-    so `throughput=TBD throughput=1` would bind on the 1 (PR #391 review)."""
+    """(row, {key: value}, doubled keys) for every table row in the report's WIP-curve section
+    that names a wave — its WIP-curve rows (#387). A key written twice is reported, never
+    collapsed: dict() keeps the last value, so `throughput=TBD throughput=1` would bind on the 1
+    (PR #391 review)."""
     rows = []
-    for line in text.splitlines():
+    for line in _wip_section_lines(text):
         if line.lstrip().startswith("|"):
             pairs = _WIP_CELL_RE.findall(line)
             keys = [k for k, _v in pairs]
@@ -506,8 +609,9 @@ def _wip_curve_errors(text, mission, root, report_path, rev=None):
     rows = _wip_rows(text)
     if not rows:
         return [f"{report_path}: a mutating run records one WIP-curve row per dispatch wave, as a "
-                f"table row carrying {_WIP_ROW_SCHEMA} (attention-budget.md) — none found; "
-                "a cap recorded nowhere was never a cap (#365)"]
+                f"table row carrying {_WIP_ROW_SCHEMA} under the report's `{WIP_SECTION}` heading, "
+                "outside fenced code (docs/runs/TEMPLATE.md, attention-budget.md) — none found; "
+                "a cap recorded nowhere was never a cap (#365, #387)"]
     errors = []
     for row, cells, doubled_keys in rows:
         if doubled_keys:
