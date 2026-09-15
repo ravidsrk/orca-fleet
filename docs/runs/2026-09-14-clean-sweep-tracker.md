@@ -733,6 +733,9 @@ BOOTSTRAP: preflight --base review/2026-09-14-holistic-fixes --fork-point eb1a2f
   (builder omission, disclosed); verify.py 5/6 (review RED: Greptile
   COMMENTED only, no APPROVED — needs-human park). #393 CLOSED with evidence.
   MERGED=t. FIRST WAVE-2 UNIT DONE.
+- R387G 3/3 in: all axes 0 Required (SPEC 1 Nit + 2 FYI; TEST 1 Optional + 1
+  Nit; STANDARDS 1 Optional + 6 Nits) + bot none. V387G-r1 spec frozen (3
+  reports verbatim, no held bot). Dispatched — expect GO.
 - R387G 2/3 in: STANDARDS 0 Required (1 Optional unpinned survey claim; 6 Nits
   incl. why-contract parentheticals, dup helper, scope inconsistency; 4 FYI).
   Released. SPEC still out — T9 clean so far (0 Required, bot none).
