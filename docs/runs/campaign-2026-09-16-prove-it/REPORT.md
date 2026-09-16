@@ -1,6 +1,6 @@
 # Run report — prove-it campaign self-test, 2026-09-16
 
-RUN: mission=prove-it tier=self-run inventory_at=<evidence-close-TBD> manifest=docs/runs/campaign-2026-09-16-prove-it/manifest.json verifier=GREEN waves=1
+RUN: mission=prove-it tier=self-run inventory_at=12028cf159142d9e7f5b722b0c335011afb52163 manifest=docs/runs/campaign-2026-09-16-prove-it/manifest.json verifier=GREEN waves=1
 
 The header above is what this report's inventory re-derives: the manifest exists
 inside this run's own directory at the header commit; the inventory below
@@ -234,10 +234,11 @@ OK
 Final-state re-runs (report on top of evidence close; pasted, not recorded —
 the manifest froze at evidence close):
 
-- `python3 scripts/validate.py` → exit 0 (pasted at close)
-- `python3 -m unittest tests.test_verify.OracleScopeCharacterizationGateTest` → exit 0 (pasted at close)
+- `python3 scripts/validate.py` → exit 0 (`All 21 missions valid; three-layer separation holds; evals valid.`)
+- `python3 -m unittest tests.test_verify.OracleScopeCharacterizationGateTest` → `Ran 3 tests … OK`, exit 0
+- `python3 runtime/scripts/verify.py` (close-time invocation, same flags as §Verifier outcome) → `verify: OK — all required checks passed`, exit 0
 - `python3 runtime/scripts/proof_status.py --check` → exit 0 (rollup: self-run 2 · external-run 0 · total 21)
 - `python3 runtime/scripts/run_report.py` → exit 0 (prior two bindings intact; this campaign layout unread by design, D6)
-- `python3 runtime/scripts/inventory.py check <report> --at <inventory_at>` → zero mismatches (pasted at close)
-- `ruff check .` → `All checks passed!`
+- `python3 runtime/scripts/inventory.py check <report> --at 12028cf159142d9e7f5b722b0c335011afb52163` → `inventory: 28 verified, 0 mismatched, 0 missing`, exit 0
+- `ruff check .` → `All checks passed!` (whole repo, including the touched test file)
 - `gitleaks detect` over the evidence dir and over `c46d4b3f..HEAD` → `no leaks found`
