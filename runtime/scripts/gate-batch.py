@@ -5,8 +5,9 @@ The 2026-09-14 run parked maintainer questions in a hand-edited gate-batch.md:
 no schema, no state machine, no reminder when a gate sat owed for days. This
 tool keeps the same gate semantics (owed/answered/waived/overtaken) but stores
 each gate as a typed record in docs/runs/<run>/gate-batch.json. The .md stays
-beside it as a rendered VIEW: `render` regenerates it, so prose never drifts
-from the store. `related`/`blocking` are store-only and never render.
+beside it as a rendered VIEW: every mutation re-renders it on save
+(`render --check` verifies the two agree), so prose never drifts from the
+store. `related`/`blocking` are store-only and never render.
 
 State machine: add creates owed; answer/waive/overtake move owed -> their
 status exactly once (re-transitioning is an error, not an overwrite — the
@@ -20,6 +21,7 @@ Storage: one JSON file per run, docs/runs/<run>/gate-batch.json. Pass --run
 import argparse
 import datetime
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -32,10 +34,12 @@ DATE_RE = re.compile(r"^[0-9]{4}-[0-9]{2}-[0-9]{2}$")
 # A parked unit cites a gate as "gate-batch.json G<n>" (pre-tooling refs say
 # gate-batch.md; both resolve). The id must sit right at the anchor — bare "G3"
 # prose elsewhere ("the G3 ASK body") is not a citation. Covered forms:
-# "gate-batch.md G3", "gate-batch.md:22 (G2 ...)" (line-anchored), "G1-G4".
+# "gate-batch.md G3", "gate-batch.md:22 (G2 ...)" (line-anchored), "G1-G4"
+# (a range counts every id inside it, not just its endpoints).
 CITE_RE = re.compile(r"gate-batch\.(?:md|json)(?::[0-9]+)?\s*\(?\s*"
                      r"(G[0-9]+(?:\s*-\s*G[0-9]+)?)")
 CITE_ID_RE = re.compile(r"\bG[0-9]+\b")
+CITE_RANGE_RE = re.compile(r"^(G[0-9]+)\s*-\s*(G[0-9]+)$")
 REQUIRED_BATCH_KEYS = ("schema", "run_id", "run_title", "intro", "gates",
                        "resolved_by_events")
 REQUIRED_GATE_KEYS = ("id", "title", "question", "asked", "status", "answer",
@@ -146,12 +150,25 @@ def load_batch(path):
     return data
 
 
+def _atomic_write_text(path, text):
+    """Crash-safe write: the bytes land in a tmp sibling first, and os.replace
+    commits them — an interrupt leaves the old file (or nothing), never half
+    a write."""
+    path = Path(path)
+    tmp = path.with_name(path.name + ".tmp")
+    with open(tmp, "w", encoding="utf-8") as handle:
+        handle.write(text)
+        handle.flush()
+        os.fsync(handle.fileno())
+    os.replace(tmp, path)
+
+
 def save_batch(path, data):
     validate_batch(data)
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n",
-                    encoding="utf-8")
+    _atomic_write_text(path,
+                       json.dumps(data, indent=2, ensure_ascii=False) + "\n")
 
 
 def next_gate_id(data):
@@ -218,12 +235,16 @@ def transition(data, gid, status, text, answered=None):
     return gate
 
 
-def list_gates(data, status=None):
+def list_gates(data, status=None, blocking=None):
+    """Gates by status and, optionally, by blocked ref. The close rule waits
+    on list(status="owed", blocking=<unit>): every owed blocker whatever its
+    age — `stale` is only a reminder report and must never gate a close."""
     if status is not None and status not in STATUSES:
         raise GateError(f"status {status!r} is not one of "
                         f"{', '.join(STATUSES)}")
     return [g for g in data["gates"]
-            if status is None or g["status"] == status]
+            if (status is None or g["status"] == status)
+            and (blocking is None or blocking in g["blocking"])]
 
 
 def stale_gates(data, days, today=None):
@@ -239,6 +260,17 @@ def stale_gates(data, days, today=None):
             stale.append((gate, age))
     stale.sort(key=lambda pair: pair[0]["asked"])
     return stale
+
+
+def _expand_cite_token(token):
+    """Every id a citation token names: a lone G<n>, or a G<a>-G<b> range
+    expanded inclusively — a deleted intermediate inside a cited range must
+    still warn, so endpoints alone are never enough."""
+    match = CITE_RANGE_RE.match(token.strip())
+    if not match:
+        return CITE_ID_RE.findall(token)
+    lo, hi = sorted((int(match.group(1)[1:]), int(match.group(2)[1:])))
+    return [f"G{n}" for n in range(lo, hi + 1)]
 
 
 def cited_gate_ids(run_dir):
@@ -258,7 +290,7 @@ def cited_gate_ids(run_dir):
         except (OSError, UnicodeDecodeError):
             continue
         for match in CITE_RE.finditer(text):
-            for ref in CITE_ID_RE.findall(match.group(1)):
+            for ref in _expand_cite_token(match.group(1)):
                 cited.setdefault(ref, [])
                 if manifest.name not in cited[ref]:
                     cited[ref].append(manifest.name)
@@ -300,6 +332,15 @@ def render_batch(data):
         parts += ["", "## Resolved by events (report only, no ask)", "",
                   data["resolved_by_events"]]
     return "\n".join(parts) + "\n"
+
+
+def refresh_view(path, data):
+    """Rewrite the sibling .md view from the store. Every CLI mutation calls
+    this right after saving, so "md is a view" holds without the operator
+    remembering a second command."""
+    md = Path(path).parent / "gate-batch.md"
+    _atomic_write_text(md, render_batch(data))
+    return md
 
 
 def _read_prose(direct, file, stdin_text, field):
@@ -442,14 +483,20 @@ def build_parser():
 
     p = subs.add_parser("list", parents=[store],
                         help="list gates; warn on dangling manifest citations",
-                        description="List gates (all, or one status). Then "
-                                    "scan sibling *-manifest.json files for "
+                        description="List gates (all, one status, or one "
+                                    "blocked ref). Then scan sibling "
+                                    "*-manifest.json files for "
                                     "gate-batch.json G<n> citations and warn "
                                     "on stderr about ids no gate carries.",
                         epilog="example: gate-batch.py --run my-run list "
-                               "--status owed")
+                               "--status owed --blocking '#386'")
     p.add_argument("--status", default=None, choices=list(STATUSES),
                    help="show only this status (default: all)")
+    p.add_argument("--blocking", default=None, metavar="REF",
+                   help="show only gates blocking this unit/issue ref "
+                        "(e.g. '#386'); with --status owed this is the "
+                        "close wait-predicate: every owed blocker, "
+                        "whatever its age)")
 
     p = subs.add_parser("stale", parents=[store],
                         help="report gates owed >= N days (default 7)",
@@ -475,8 +522,9 @@ def build_parser():
                         help="regenerate the .md view from the JSON store",
                         description="Regenerate gate-batch.md from the JSON "
                                     "store. The .md is a view, never edited "
-                                    "by hand: edit via add/answer/waive/"
-                                    "overtake, then render.",
+                                    "by hand: every mutation re-renders it "
+                                    "on save, and render --check verifies "
+                                    "the two agree.",
                         epilog="example: gate-batch.py --run my-run render "
                                "--check")
     p.add_argument("--out", default=None, metavar="PATH",
@@ -507,8 +555,10 @@ def main(argv=None):
             resolved = _read_prose(args.resolved, args.resolved_file,
                                    stdin_text, "--resolved") \
                 if (args.resolved is not None or args.resolved_file) else ""
-            init_batch(path, run_id=run_id, run_title=args.title,
-                       intro=intro.rstrip("\n"), resolved=resolved.rstrip("\n"))
+            data = init_batch(path, run_id=run_id, run_title=args.title,
+                               intro=intro.rstrip("\n"),
+                               resolved=resolved.rstrip("\n"))
+            refresh_view(path, data)
             print(f"initialized {path}")
             return 0
         data = load_batch(path)
@@ -521,6 +571,7 @@ def main(argv=None):
                             related=_split_refs(args.related),
                             blocking=_split_refs(args.blocking))
             save_batch(path, data)
+            refresh_view(path, data)
             print(f"added {gate['id']} (owed)")
             return 0
         if args.command in ("answer", "waive", "overtake"):
@@ -532,10 +583,11 @@ def main(argv=None):
             gate = transition(data, args.gid, status, text,
                               answered=args.date)
             save_batch(path, data)
+            refresh_view(path, data)
             print(f"{gate['id']} -> {status}")
             return 0
         if args.command == "list":
-            for gate in list_gates(data, args.status):
+            for gate in list_gates(data, args.status, args.blocking):
                 print(_fmt_list(gate))
             for warning in check_citations(data, path.parent):
                 print(warning, file=sys.stderr)
@@ -565,7 +617,7 @@ def main(argv=None):
                     return 1
                 print(f"{out} matches the store")
                 return 0
-            Path(out).write_text(rendered, encoding="utf-8")
+            _atomic_write_text(out, rendered)
             print(f"rendered {out}")
             return 0
     except GateError as e:

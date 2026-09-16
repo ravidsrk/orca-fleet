@@ -5,8 +5,10 @@ Human gates used to be hand-appended prose in a run's gate-batch.md — no
 schema, no state machine, and a renumbered gate silently orphaned every
 parked-unit citation. The tool stores typed records; these tests pin the
 state machine (owed moves exactly once), the staleness boundary, the
-2026-09-14 migration's byte-identical round-trip, and the warn-not-error
-citation check.
+2026-09-14 migration's byte-identical round-trip, the warn-not-error
+citation check, the close wait-predicate (--blocking, not stale),
+mutations re-rendering the .md view, schema/CLI agreement, inclusive
+citation ranges, and atomic store writes.
 """
 import datetime
 import importlib.util
@@ -17,6 +19,7 @@ import tempfile
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parent.parent
 _spec = importlib.util.spec_from_file_location(
@@ -167,6 +170,36 @@ class StaleBoundary(unittest.TestCase):
                 gb.stale_gates(data, 7, datetime.date(2026, 9, 17)), [])
 
 
+class BlockingWaitPredicate(unittest.TestCase):
+    def test_list_status_owed_blocking_catches_a_fresh_blocker(self):
+        # A gate asked TODAY blocking #386: `stale` is quiet (age 0 < 7)
+        # but the close wait-predicate must still show it — the fresh
+        # gate that used to slip through step 7.
+        with tempfile.TemporaryDirectory() as tmp:
+            path, data = fresh_batch(tmp)
+            gb.add_gate(data, gid="G1", title="fresh", question="q",
+                        asked="2026-09-16", blocking=["#386"])
+            gb.add_gate(data, gid="G2", title="other unit", question="q",
+                        asked="2026-09-16", blocking=["#999"])
+            gb.add_gate(data, gid="G3", title="blocks nothing", question="q",
+                        asked="2026-09-16")
+            self.assertEqual(
+                [g["id"] for g in gb.list_gates(data, "owed", "#386")],
+                ["G1"])
+            self.assertEqual(
+                gb.stale_gates(data, 7, datetime.date(2026, 9, 16)), [],
+                "the reminder query is quiet: the gate is hours old")
+            gb.save_batch(path, data)
+            out = io.StringIO()
+            with redirect_stdout(out), redirect_stderr(io.StringIO()):
+                code = gb.main(["--file", str(path), "list",
+                                "--status", "owed", "--blocking", "#386"])
+            self.assertEqual(code, 0)
+            self.assertIn("G1", out.getvalue())
+            self.assertNotIn("G2", out.getvalue())
+            self.assertNotIn("G3", out.getvalue())
+
+
 def _parse_legacy_md(text):
     """Split a hand-written batch into (run_id, run_title, intro, gates, resolved).
 
@@ -285,14 +318,32 @@ class DanglingCitationsWarn(unittest.TestCase):
     def test_line_anchored_and_range_citations_resolve(self):
         # Forms the 2026-09-14 corpus actually uses: drain-387-threads cites
         # "gate-batch.md:22 (G2 ...)", the run report "gate-batch.md G1-G4".
+        # A range counts every id inside it: G3 is cited, not skipped.
         with tempfile.TemporaryDirectory() as tmp:
             (Path(tmp) / "u1-manifest.json").write_text(
                 json.dumps({"a": "4012708598 gate-batch.md:22 (G2 branch)",
                             "b": "wrote gate-batch.md G1-G4 at close"}),
                 encoding="utf-8")
             cited = gb.cited_gate_ids(Path(tmp))
-            self.assertEqual(set(cited), {"G1", "G2", "G4"})
+            self.assertEqual(set(cited), {"G1", "G2", "G3", "G4"})
             self.assertEqual(cited["G2"], ["u1-manifest.json"])
+
+    def test_a_range_whose_middle_is_missing_warns_on_the_middle(self):
+        # G1-G4 cited but the batch carries only G1, G2, G4: the check
+        # must name G3 — the exact case endpoint-only parsing missed.
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "gate-batch.json"
+            data = gb.init_batch(path, run_id="r", run_title="t")
+            for gid in ("G1", "G2", "G4"):
+                add_owed(data, gid)
+            gb.save_batch(path, data)
+            (Path(tmp) / "u1-manifest.json").write_text(
+                json.dumps({"note": "see gate-batch.md G1-G4"}),
+                encoding="utf-8")
+            warnings = gb.check_citations(gb.load_batch(path), Path(tmp))
+            self.assertEqual(len(warnings), 1)
+            self.assertIn("G3", warnings[0])
+            self.assertIn("u1-manifest.json", warnings[0])
 
 
 class HelpAndWiring(unittest.TestCase):
@@ -316,6 +367,8 @@ class HelpAndWiring(unittest.TestCase):
         self.assertIn("gate-batch.py", text)
         self.assertIn("stale", text)
         self.assertIn("overtaken", text)
+        self.assertIn("--blocking", text)
+        self.assertNotIn("waits while `stale`", text)
 
     def test_the_schema_file_and_the_module_agree(self):
         schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
@@ -323,6 +376,202 @@ class HelpAndWiring(unittest.TestCase):
         self.assertEqual(enum, list(gb.STATUSES))
         required = schema["$defs"]["gate"]["required"]
         self.assertEqual(set(required), set(gb.REQUIRED_GATE_KEYS))
+
+
+def _schema_check(root, subschema, value, path, errors):
+    """A stdlib JSON-Schema-subset evaluator (the suite takes no third-party
+    deps): type/const/enum/pattern/minLength/properties/required/
+    additionalProperties/items/$ref/if-then/allOf. Draft 2020-12 semantics
+    for the keywords the gate-batch schema uses; anything else is ignored
+    as annotation. Cross-checked against the real `jsonschema` lib on every
+    record below before it was committed."""
+    if "$ref" in subschema:
+        node = root
+        for part in subschema["$ref"].removeprefix("#/").split("/"):
+            node = node[part]
+        _schema_check(root, node, value, path, errors)
+    want = subschema.get("type")
+    if want is not None:
+        wants = [want] if isinstance(want, str) else list(want)
+        kinds = {"null": value is None, "string": isinstance(value, str),
+                 "array": isinstance(value, list),
+                 "object": isinstance(value, dict)}
+        if not any(kinds.get(kind, False) for kind in wants):
+            errors.append(f"{path}: want type {wants}")
+            return
+    if "const" in subschema and value != subschema["const"]:
+        errors.append(f"{path}: want const {subschema['const']!r}")
+    if "enum" in subschema and value not in subschema["enum"]:
+        errors.append(f"{path}: not one of {subschema['enum']}")
+    if "pattern" in subschema and isinstance(value, str):
+        if not re.search(subschema["pattern"], value):
+            errors.append(f"{path}: {value!r} misses {subschema['pattern']}")
+    if "minLength" in subschema and isinstance(value, str):
+        if len(value) < subschema["minLength"]:
+            errors.append(f"{path}: shorter than {subschema['minLength']}")
+    if isinstance(value, dict):
+        for key in subschema.get("required", ()):
+            if key not in value:
+                errors.append(f"{path}: missing {key}")
+        props = subschema.get("properties", {})
+        for key, sub in props.items():
+            if key in value:
+                _schema_check(root, sub, value[key], f"{path}.{key}",
+                              errors)
+        if subschema.get("additionalProperties") is False:
+            for key in value:
+                if key not in props:
+                    errors.append(f"{path}: unknown field {key}")
+    if isinstance(value, list) and "items" in subschema:
+        for pos, item in enumerate(value):
+            _schema_check(root, subschema["items"], item, f"{path}[{pos}]",
+                          errors)
+    for pos, sub in enumerate(subschema.get("allOf", ())):
+        _schema_check(root, sub, value, f"{path}<all{pos}>", errors)
+    if "if" in subschema:
+        trial = []
+        _schema_check(root, subschema["if"], value, path, trial)
+        if not trial and "then" in subschema:
+            _schema_check(root, subschema["then"], value, path, errors)
+
+
+def _schema_errors(schema, batch):
+    errors = []
+    _schema_check(schema, schema, batch, "$", errors)
+    return errors
+
+
+def _batch_with_gate(**gate_fields):
+    gate = {"id": "G1", "title": "ask", "question": "the ask?",
+            "asked": "2026-09-14", "status": "owed", "answer": None,
+            "answered": None, "related": [], "blocking": []}
+    gate.update(gate_fields)
+    return {"schema": "gate-batch/1", "run_id": "r", "run_title": "t",
+            "intro": "", "gates": [gate], "resolved_by_events": ""}
+
+
+class SchemaAndCliAgree(unittest.TestCase):
+    VALID = (
+        ("owed", {}),
+        ("answered", {"status": "answered", "answer": "yes",
+                      "answered": "2026-09-15"}),
+        ("waived", {"status": "waived", "answer": "moot",
+                    "answered": "2026-09-15"}),
+        ("overtaken without a note",
+         {"status": "overtaken", "answered": "2026-09-14"}),
+        ("overtaken with a note",
+         {"status": "overtaken", "answer": "merged already",
+          "answered": "2026-09-14"}),
+    )
+    INVALID = (
+        # Every class the schema used to accept while the CLI rejected.
+        ("owed carrying answer text", {"answer": "early"}),
+        ("owed carrying an answered date", {"answered": "2026-09-15"}),
+        ("answered with a null answer",
+         {"status": "answered", "answered": "2026-09-15"}),
+        ("answered with a blank answer",
+         {"status": "answered", "answer": "   ", "answered": "2026-09-15"}),
+        ("waived with a null answer",
+         {"status": "waived", "answered": "2026-09-15"}),
+        ("blank title", {"title": "  "}),
+        ("blank question", {"question": "\n\t "}),
+        ("impossible asked date", {"asked": "2026-99-99"}),
+        ("impossible answered date",
+         {"status": "answered", "answer": "y", "answered": "2026-13-40"}),
+    )
+
+    def test_representative_records_agree_across_both_validators(self):
+        schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
+        for name, fields in self.VALID:
+            with self.subTest(name=name):
+                batch = _batch_with_gate(**fields)
+                gb.validate_batch(batch)
+                self.assertEqual(_schema_errors(schema, batch), [])
+        for name, fields in self.INVALID:
+            with self.subTest(name=name):
+                batch = _batch_with_gate(**fields)
+                with self.assertRaises(gb.GateError):
+                    gb.validate_batch(batch)
+                self.assertNotEqual(_schema_errors(schema, batch), [])
+
+    def test_a_blank_run_title_fails_both_validators(self):
+        schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
+        batch = _batch_with_gate()
+        batch["run_title"] = "  "
+        with self.assertRaises(gb.GateError):
+            gb.validate_batch(batch)
+        self.assertNotEqual(_schema_errors(schema, batch), [])
+
+    def test_the_real_batch_passes_both_validators(self):
+        schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
+        committed = json.loads(REAL_JSON.read_text(encoding="utf-8"))
+        gb.validate_batch(committed)
+        self.assertEqual(_schema_errors(schema, committed), [])
+
+
+class MutationsRenderTheView(unittest.TestCase):
+    def test_init_add_and_answer_re_render_the_sibling_md(self):
+        # "md is a view" holds only when no second command is needed: each
+        # mutation rewrites gate-batch.md, and render --check then agrees.
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "gate-batch.json"
+            md = Path(tmp) / "gate-batch.md"
+            with redirect_stdout(io.StringIO()):
+                self.assertEqual(
+                    gb.main(["--file", str(path), "init", "--title", "t",
+                             "--intro", "standing"]),
+                    0)
+            self.assertTrue(md.is_file(), "init renders the empty view")
+            with redirect_stdout(io.StringIO()):
+                self.assertEqual(
+                    gb.main(["--file", str(path), "add", "--title", "ask me",
+                             "--question", "the ask?",
+                             "--asked", "2026-09-14"]),
+                    0)
+            self.assertIn("## G1 \u00b7 ask me",
+                          md.read_text(encoding="utf-8"))
+            with redirect_stdout(io.StringIO()):
+                self.assertEqual(
+                    gb.main(["--file", str(path), "answer", "G1",
+                             "--answer", "yes", "--date", "2026-09-15"]),
+                    0)
+            self.assertIn("**Answered 2026-09-15:** yes",
+                          md.read_text(encoding="utf-8"))
+            with redirect_stdout(io.StringIO()):
+                self.assertEqual(
+                    gb.main(["--file", str(path), "render", "--check"]), 0)
+
+
+class AtomicSaves(unittest.TestCase):
+    def test_a_failed_replace_leaves_the_old_store_untouched(self):
+        # The bytes land in a tmp sibling; os.replace commits them. If the
+        # commit dies, the old store reads back whole — never half a write.
+        with tempfile.TemporaryDirectory() as tmp:
+            path, data = fresh_batch(tmp)
+            add_owed(data, "G1")
+            gb.save_batch(path, data)
+            before = path.read_bytes()
+            add_owed(data, "G2")
+            with mock.patch.object(gb.os, "replace",
+                                   side_effect=OSError("boom")):
+                with self.assertRaises(OSError):
+                    gb.save_batch(path, data)
+            try:
+                self.assertEqual(path.read_bytes(), before)
+                staged = Path(str(path) + ".tmp")
+                self.assertTrue(staged.is_file(), "the new bytes stage first")
+                self.assertIn("G2", staged.read_text(encoding="utf-8"))
+            finally:
+                for litter in Path(tmp).glob("*.tmp"):
+                    litter.unlink()
+
+    def test_a_successful_save_leaves_no_tmp_sibling_behind(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path, data = fresh_batch(tmp)
+            add_owed(data, "G1")
+            gb.save_batch(path, data)
+            self.assertEqual(list(Path(tmp).glob("*.tmp")), [])
+            self.assertEqual(gb.load_batch(path)["gates"], data["gates"])
 
 
 if __name__ == "__main__":

@@ -1,7 +1,83 @@
 {
   "$defs": {
+    "date": {
+      "description": "UTC calendar date YYYY-MM-DD with a sane month (01-12) and day (01-31). Full calendar validity (Feb 30, leap days) and answered-never-precedes-asked stay CLI-only: parse_date rejects what a pattern cannot express.",
+      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+      "type": "string"
+    },
     "gate": {
       "additionalProperties": false,
+      "allOf": [
+        {
+          "description": "Owed gates carry no answer metadata.",
+          "if": {
+            "properties": {
+              "status": {
+                "const": "owed"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "answer": {
+                "type": "null"
+              },
+              "answered": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "description": "Answered/waived gates carry non-blank text and a recorded date.",
+          "if": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "answered",
+                  "waived"
+                ]
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "answer": {
+                "$ref": "#/$defs/prose"
+              },
+              "answered": {
+                "$ref": "#/$defs/date"
+              }
+            }
+          }
+        },
+        {
+          "description": "Overtaken gates carry a recorded date; the note may stay null when the question body already records the overtaking events.",
+          "if": {
+            "properties": {
+              "status": {
+                "const": "overtaken"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "answered": {
+                "$ref": "#/$defs/date"
+              }
+            }
+          }
+        }
+      ],
       "description": "One human gate: a question parked for the maintainer. Statuses owed/answered/waived/overtaken keep their 2026-09-14 meaning (#419 changes the store, not the semantics).",
       "properties": {
         "answer": {
@@ -13,7 +89,7 @@
         },
         "answered": {
           "description": "Date the answer/waiver/overtake was recorded (UTC, YYYY-MM-DD). Null while owed. Never precedes asked.",
-          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+          "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
           "type": [
             "string",
             "null"
@@ -21,8 +97,7 @@
         },
         "asked": {
           "description": "Date the question was parked (UTC, YYYY-MM-DD).",
-          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
-          "type": "string"
+          "$ref": "#/$defs/date"
         },
         "blocking": {
           "description": "Units/issues with no work until this gate resolves (refs as written, e.g. \"#386\"). Empty when the gate blocks nothing.",
@@ -38,8 +113,7 @@
         },
         "question": {
           "description": "The full ask, verbatim prose (may span lines). Rendered verbatim under the gate heading.",
-          "minLength": 1,
-          "type": "string"
+          "$ref": "#/$defs/prose"
         },
         "related": {
           "description": "Related issues/PRs (refs as written, e.g. \"#397\"). Store-only: never rendered into the .md view.",
@@ -60,8 +134,7 @@
         },
         "title": {
           "description": "Short heading suffix rendered as \"## <id> \u00b7 <title>\".",
-          "minLength": 1,
-          "type": "string"
+          "$ref": "#/$defs/prose"
         }
       },
       "required": [
@@ -76,6 +149,12 @@
         "title"
       ],
       "type": "object"
+    },
+    "prose": {
+      "description": "Non-blank prose: at least one non-whitespace character.",
+      "minLength": 1,
+      "pattern": "\\S",
+      "type": "string"
     }
   },
   "$id": "https://github.com/ravidsrk/orca-fleet/blob/main/runtime/schemas/gate-batch.schema.json",
@@ -100,13 +179,11 @@
     },
     "run_id": {
       "description": "Stable run id, e.g. run_0607bdc681e6.",
-      "minLength": 1,
-      "type": "string"
+      "$ref": "#/$defs/prose"
     },
     "run_title": {
       "description": "Human run name rendered in the header, e.g. 2026-09-14 clean-sweep tracker.",
-      "minLength": 1,
-      "type": "string"
+      "$ref": "#/$defs/prose"
     },
     "schema": {
       "const": "gate-batch/1",

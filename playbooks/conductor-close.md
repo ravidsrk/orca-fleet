@@ -44,8 +44,7 @@ CLOSE (in order; any mismatch is a STOP, logged, never patched over):
    contract allows no other class for it.
 7) Commit: ONE chore commit on BASE with the manifest edits, the ledger row
    (MERGED/WT_CLEAN flips, park, evidence) and a loop-log line. Push with
-   its egress receipt, then retire the unit worktree
-   (dispatch-lifecycle.md guards).
+   its egress receipt, then retire the unit worktree (dispatch-lifecycle.md guards).
 
 Scope: the unit binds T (records must bind head_sha's tree — evidence-manifest.md); the integrated tree M is covered by the PR's merge-commit CI, never this close.
 
@@ -78,9 +77,10 @@ RULES:
   it behind).
 - gates. A close that needs a human raises a gate instead of guessing:
   `gate-batch.py --run <run> add --title T --question Q` (owed; cite its
-  `gate-batch.json` G<n> id in the park ref). Step 7 waits while `stale`
-  shows a gate blocking this unit. `overtaken` means events answered first
-  (record only, no ask); `waived` records the waiver reason as its answer.
+  `gate-batch.json` G<n> id in the park ref). Step 7 waits while `list
+  --status owed --blocking <unit>` shows a gate; `stale` only reminds
+  about old owed gates. `overtaken` means events answered first (record
+  only, no ask); `waived` records the waiver reason as its answer.
 
 ## Completion
 
