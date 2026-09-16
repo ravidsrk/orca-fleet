@@ -1,7 +1,7 @@
 # Run report — harden-it self-run, 2026-09-16 (campaign-2026-09-16-harden-it)
 
 ```
-RUN: mission=harden-it tier=doctrine-only inventory_at=6a7afaac65e55322f455165e8f2d27f70c5aad0a manifest=docs/runs/campaign-2026-09-16-harden-it/manifest.json verifier=GREEN waves=0
+RUN: mission=harden-it tier=doctrine-only inventory_at=590373a34ff1efe81b9360e5130333cd606c10ec manifest=docs/runs/campaign-2026-09-16-harden-it/manifest.json verifier=GREEN waves=0
 ```
 
 | Field | Value |
@@ -33,7 +33,10 @@ No open items; no parks filed.
 
 Readiness: nothing landed (audit-only; branch holds evidence commits only).
 Backlog (noticed, not touched — all below the gated bar): C1 env-indirection
-hardening, C3 comment refresh, C5 install pinning. OPS queue: empty.
+hardening, C3 comment refresh, C5 install pinning. OPS queue: one non-security
+item — the dead-history waiver-vs-surgery owner decision
+(`ADDENDUM-gitleaks-waiver.md`, with verify-complete observation); the branch
+must not merge until it closes.
 
 ## Convergence proof
 
@@ -64,6 +67,8 @@ hardening, C3 comment refresh, C5 install pinning. OPS queue: empty.
 | REFLECT | compound-learn proposal | 5 bullets, unmerged | `REFLECTION.md` |
 | Gates | `scripts/validate.py` | exit 0, 21 missions valid | `receipts/validation.txt` |
 | Gates | `python3 -m unittest discover -s tests` | exit 0, 1490 tests OK | `receipts/tests.txt` |
+| Waiver loop | round-1 capture flagged dead history → waiver attempted (scan green, canary tight) → repo contract test rejected widening → waiver reverted, owner decision parked | 6 dead-history rows, fake bytes, no rotation | `ADDENDUM-gitleaks-waiver.md` |
+| Gates (final) | full suite re-run at end state | exit 0, 1490 tests OK | `receipts/tests-final.txt` |
 
 Re-audit transcript (2026-09-16, fixed point unchanged):
 
@@ -135,22 +140,35 @@ dispatched).
 | `docs/runs/campaign-2026-09-16-harden-it/receipts/verifier.txt` | `815dfe31d7669df7715a610728308aad13ad548636227a170582c5902f09360a` | evidence-run.py + verify.py round 2 2026-09-16 |
 | `docs/runs/campaign-2026-09-16-harden-it/receipts/verifier-final.txt` | `815dfe31d7669df7715a610728308aad13ad548636227a170582c5902f09360a` | verify.py final bytes 2026-09-16 |
 
-Inventory commands (run after freezing the bytes above):
+## Post-report integrity inventory (sha256)
 
-`python3 runtime/scripts/inventory.py write <report>` (not used — hashes filled by hand from frozen bytes; see below)
+Late evidence (waiver loop + final suite), anchored at the same `inventory_at`:
+
+| Artifact | sha256 | producer |
+|---|---|---|
+| `.gitleaksignore` | `983b7b10ab19a2e23e0edf24733836d7b0e8f44c1d62d8a1dc122cca434e18f7` | solo coordinator 2026-09-16 (reverted to fixed-point bytes; waiver parked) |
+| `docs/runs/campaign-2026-09-16-harden-it/ADDENDUM-gitleaks-waiver.md` | `71d40d771355dfd21a01445b3b7ad0193bc82f522c53940a3703b01972f1c7eb` | solo coordinator 2026-09-16 |
+| `docs/runs/campaign-2026-09-16-harden-it/receipts/tests-final.txt` | `777c32b6886ea96ede25b69f9869385953d68edc37ce887f4bed0d1e66acf184` | unittest 2026-09-16 |
+
+Inventory commands (run after freezing the bytes above):
 
 `python3 runtime/scripts/inventory.py check docs/runs/campaign-2026-09-16-harden-it/REPORT.md`
 
-`python3 runtime/scripts/inventory.py check docs/runs/campaign-2026-09-16-harden-it/REPORT.md --at 6a7afaac65e55322f455165e8f2d27f70c5aad0a`
+`python3 runtime/scripts/inventory.py check docs/runs/campaign-2026-09-16-harden-it/REPORT.md --at 590373a34ff1efe81b9360e5130333cd606c10ec`
+
+(Hashes computed via sha256sum over frozen bytes; `inventory.py write` not
+used. Both blocks verified: 17/17, zero mismatched, zero missing.)
 
 ## Gates
 
 Project gates at the evidence head (commit `199fe89e`, content-identical for all
 non-run paths to the fixed point `c46d4b3` — the run changed only its own dir):
 
-- `python3 scripts/validate.py` → exit 0 (`receipts/validation.txt`)
+- `python3 scripts/validate.py` → exit 0 (`receipts/validation.txt`; re-run
+  green after the waiver loop, `/tmp/revalidate.txt` not retained)
 - `python3 -m unittest discover -s tests` → exit 0, Ran 1490 tests, OK
-  (`receipts/tests.txt`)
+  (`receipts/tests.txt`; re-run at end state, same verdict,
+  `receipts/tests-final.txt`)
 - `python3 runtime/scripts/proof_status.py --check` → see Catalog proof promotion
 
 ## Catalog proof promotion
@@ -167,7 +185,9 @@ README row added — per the TEMPLATE, recording alone advances nothing.
 ## Evidence binding
 
 All run-owned evidence is committed on branch `campaign/harden-it-selftest`
-(unpushed, per task orders). `inventory_at=6a7afaac65e55322f455165e8f2d27f70c5aad0a`
-holds every artifact above including the graded manifest; `REPORT.md` itself and
-the LEDGER terminal update land in the following commit (the report is excluded
-from its own inventory by construction).
+(unpushed, per task orders). `inventory_at=590373a34ff1efe81b9360e5130333cd606c10ec`
+holds every artifact in both blocks including the graded manifest; this report
+lands in the following commit (the report is excluded from its own inventory by
+construction). Commit chain from the fixed point: evidence → prose-only
+checkpoint → graded manifest → report → waiver + addendum → scrub → waiver
+revert + park → final transcript → this report.
