@@ -1,0 +1,40 @@
+name: negative-control-demo
+
+# #413: demo/negative-control/ is the repo's executable elevator pitch, and demos rot faster
+# than any other artifact. This job re-runs run.sh on every PR and fails on any drift
+# between fresh output and the checked-in head-to-head.txt. Separate file (not a job in
+# validate.yml) so the sibling vf-bench gate (#412) can land in either order conflict-free.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  pinned-demo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 (Node 24; same pin as validate.yml)
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0 (Node 24, #367)
+        with:
+          python-version: "3.13"  # pin: CI 3.x was a moving target (G-03)
+      - name: Re-run the demo and diff against pinned expectations
+        run: |
+          set -uo pipefail
+          sh demo/negative-control/run.sh 2>&1 | tee fresh-head-to-head.txt
+          rc="${PIPESTATUS[0]}"
+          if [ "$rc" -ne 0 ]; then
+            echo "::error::demo/negative-control/run.sh exited $rc — the demo itself is RED, not just drifted"
+            exit 1
+          fi
+          # Line 1 carries a run timestamp by design (README integrity-inventory note);
+          # normalize it on both sides so only real drift fails the build.
+          norm() { sed '1s/ — .*Z//'; }
+          if ! diff <(norm < demo/negative-control/head-to-head.txt) <(norm < fresh-head-to-head.txt); then
+            echo "::error::demo/negative-control DRIFTED: fresh run.sh output differs from head-to-head.txt. To change expected output, change the demo AND explain why — see demo/negative-control/README.md."
+            exit 1
+          fi
+          echo "negative-control demo matches pinned expectations"
