@@ -47,3 +47,11 @@ one of its string mutations on line 181).
 A full `prove-it` self-run over the repo's correctness surface (`scripts/validate.py`, `scripts/eval.py`,
 `scripts/gen-badges.py`, `runtime/scripts/`) with a multi-criterion mutation audit + the WIP-curve row —
 that report would land in `docs/runs/` and advance the tier.
+
+## Runner credit
+
+Runner: unconfirmed — this 2026-08-28 demonstration predates the
+[runner-credit convention](../../run-submission-guide.md#runner-credit-convention).
+The #410 promotion PR confirms the name line or records why the run stays
+unattributed; until then no name is assumed here. Bindable core: none yet —
+authored by #410 per the retrofit notes in the submission guide.

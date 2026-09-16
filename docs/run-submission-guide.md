@@ -152,11 +152,11 @@ The report is one hop from `metadata.proof_evidence:`, which cites it.)
 3. **The CHANGELOG promotion entry**, appended to the mission's tier-advance
    line: `run by <Full Name> (@<handle>)`.
 
-The worked application of this convention is the first bound submission
-through this intake; Phase-1 promotions adopt it per the retrofit notes
-below (their runners are recorded there once confirmed — the August
-demonstrations predate the convention and their credit lines are
-maintainer-confirmed, not assumed).
+The first application is the `## Runner credit` section in the prove-it
+envelope (runner unconfirmed — the August demonstration predates the
+convention; #410 confirms it). Every later submission carries the rows
+above with confirmed values, and Phase-1 promotions adopt them per the
+retrofit notes below.
 
 ## Retrofit notes for the Phase-1 reports (acceptance: bundle conformance)
 
