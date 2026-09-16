@@ -8,18 +8,22 @@
 # Trigger design (measured, not assumed — PR #454/#455 post-mortem):
 # GitHub branch protection treats a FAILED conclusion on the head SHA as
 # sticky: a newer SUCCESS beside it does NOT clear it (only a re-run does).
-# So this workflow must never conclude FAILURE on a transient state:
+# So this workflow evaluates only reviews that can actually satisfy the check:
 #   - NO push triggers. A push is evaluated by absence: the new head has no
 #     verdict runs, so the required check reads "expected" and blocks until a
 #     fresh GO arrives. Fail-closed with zero poison.
-#   - Review events only, and the job runs only for reviews whose body
-#     contains a GO marker (Greptile re-reviews every push; evaluating those
-#     would fail-poison each new head before the coordinator's GO lands).
-#   - Dismissals always evaluate: dismissing the GO must actively re-block.
-# Residual poison case: a GO review with a STALE reviewed_sha fails the head
-# it lands on; the fix is the standard UX — post a fresh GO, then re-run the
-# failed job. Post a new review per verdict; editing a submitted review does
-# not re-trigger evaluation.
+#   - Review events only, and the job runs only for GO-marker reviews from a
+#     trusted author (PR author or OWNER/MEMBER/COLLABORATOR — mirroring the
+#     script's trust tiers). Greptile re-reviews every push and any stranger
+#     can COMMENT; evaluating those would fail-poison each head, letting an
+#     untrusted reviewer grief the PR (PR #465 review, P1).
+#   - Dismissals of GO-marker reviews evaluate (same gate): dismissing the GO
+#     must actively re-block. Dismissals of anything else skip.
+# Residual poison cases (both need the standard re-run escape hatch after the
+# fresh GO): a GO review with a STALE reviewed_sha, and a GO dismissed then
+# replaced on the same head (PR #465 review, P1 — accepted: a withdrawn
+# verdict SHOULD take conscious re-acknowledgment to clear). Post a new review
+# per verdict; editing a submitted review does not re-trigger evaluation.
 name: verdict-check
 
 on:
@@ -31,11 +35,14 @@ permissions:
 
 jobs:
   verdict:
-    # Dismissals always re-evaluate (a dismissed GO must re-block); submitted
-    # reviews evaluate only when they carry a GO marker.
+    # GO-marker reviews from trusted authors only (PR #465 review, P1):
+    # evaluating a stranger's GO marker would fail-poison the head.
     if: >-
-      github.event.action == 'dismissed' ||
-      contains(github.event.review.body, 'VERDICT: GO')
+      contains(github.event.review.body, 'VERDICT: GO') &&
+      (github.event.review.author_association == 'OWNER' ||
+       github.event.review.author_association == 'MEMBER' ||
+       github.event.review.author_association == 'COLLABORATOR' ||
+       github.event.review.user.login == github.event.pull_request.user.login)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 (Node 24; Node 20 left runners 2026-09-23, #367)
