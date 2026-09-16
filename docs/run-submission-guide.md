@@ -179,14 +179,19 @@ as real inventory entries and re-derive today
 
 Per report:
 
-- `harden-it` ([envelope](reports/harden-it-externalrun/README.md),
-  #409): add the `RUN:` header (`mission=harden-it`,
-  `tier=self-run`); run the mission's verifier through `evidence-run.py`
-  for real against a committed graded manifest; extend the inventory to pin
-  that manifest; author the `docs/runs/` core and link it from the
-  envelope; add the runner-credit row. Note the envelope's honest-scope
-  header: the planted-secret control is one unit of the full self-run
-  (audit → exploit → fix → re-attack → clean re-audit), not the run itself.
+- `harden-it` (#409, re-scoped to `self-run` per the #212 plan): author
+  a FRESH envelope at `docs/reports/harden-it-selfrun/` (`README.md` +
+  `negctrl.txt`) plus the bindable
+  `docs/runs/<date>-harden-it-selfrun.md` core — `RUN:` header
+  (`mission=harden-it`, `tier=self-run`), the audit → exploit → fix →
+  re-attack → clean re-audit loop against `runtime/scripts/` with the
+  verifier run through `evidence-run.py` for real, a committed graded
+  manifest pinned by the inventory, and the runner-credit row. The
+  gitleaks-control transcript carries over as one unit of that run. The
+  existing [external-run envelope](reports/harden-it-externalrun/README.md)
+  stays the historical scoped-demo record — it is NOT the promotion
+  envelope, and a `self-run` core beside it fails intake (the check
+  matches normalized core/envelope tiers).
 - `prove-it` ([envelope](reports/prove-it-selfrun/README.md), #410): same
   five steps (`mission=prove-it`, `tier=self-run`); the PF-1 pinned mutant
   is likewise one unit of the multi-criterion self-run, and as a mutating
