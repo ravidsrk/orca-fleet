@@ -47,12 +47,14 @@ class VerdictAtTip(unittest.TestCase):
         self.assertFalse(verdict_at_tip([review("VERDICT: GOAHEAD\nreviewed_sha: " + HEAD)], HEAD))
         self.assertFalse(verdict_at_tip([review("VERDICT: NO-GO\nreviewed_sha: " + HEAD)], HEAD))
 
-    def test_go_counts_on_approve_or_comment_only(self):
-        for state in ("APPROVED", "COMMENTED"):
+    def test_go_counts_on_approval_only(self):
+        self.assertTrue(verdict_at_tip([review(go_body(HEAD), state="APPROVED")], HEAD))
+        # PR #460 review, P1: COMMENTED is open to any signed-in user, so a
+        # drive-by comment must never satisfy this required check.
+        for state in ("COMMENTED", "CHANGES_REQUESTED", "DISMISSED", "PENDING"):
             with self.subTest(state=state):
-                self.assertTrue(verdict_at_tip([review(go_body(HEAD), state=state)], HEAD))
-        self.assertFalse(verdict_at_tip(
-            [review(go_body(HEAD), state="CHANGES_REQUESTED")], HEAD))
+                self.assertFalse(verdict_at_tip(
+                    [review(go_body(HEAD), state=state)], HEAD))
 
     def test_newest_go_wins_among_several(self):
         reviews = [review(go_body(OTHER)), review(go_body(HEAD))]

@@ -5,15 +5,18 @@ script is the custom required check: it passes iff the pull request carries a
 GO verdict review whose ``reviewed_sha`` equals the PR's current head SHA. Any
 push moves the head and fails the check until a fresh GO is posted.
 
-Verdict convention (posted as a PR review body, any review state)::
+Verdict convention (posted as the body of an APPROVING review)::
 
     VERDICT: GO
     reviewed_sha: <full 40-hex head sha>
 
-Scope is deliberately one property — SHA binding only. Approval state and
-change requests stay enforced by branch protection itself (required approvals,
-resolved conversations); this check neither duplicates nor weakens those.
-Dismissed and change-requested reviews never count. Short SHAs are rejected:
+Only APPROVED reviews can carry a GO. That is the authorization signal: GitHub
+restricts the Approve action to collaborators with write access, while any
+signed-in user can COMMENT — so accepting COMMENTED reviews would let a
+drive-by comment satisfy a required check. Approval state beyond that (how
+many, from whom, conversations resolved) stays enforced by branch protection
+itself; this check adds SHA binding, not a second approval rule. Dismissed,
+commented, and change-requested reviews never count. Short SHAs are rejected:
 ambiguity in what was reviewed is exactly the failure mode.
 """
 
@@ -41,10 +44,11 @@ def go_reviews_at_tip(reviews, head_sha):
     head = head_sha.lower()
     hits = []
     for review in reviews:
-        if review.get("state") not in ("APPROVED", "COMMENTED"):
-            # DISMISSED never counts; CHANGES_REQUESTED cannot carry a GO —
-            # a change request with a GO marker is self-contradictory, and
-            # counting it would let a stale GO ride beside an open objection.
+        if review.get("state") != "APPROVED":
+            # PR #460 review, P1: only approvals (a collaborator-only action)
+            # can carry a GO. COMMENTED is open to any signed-in user;
+            # CHANGES_REQUESTED with a GO marker is self-contradictory;
+            # DISMISSED never counts.
             continue
         body = review.get("body") or ""
         if not VERDICT_RE.search(body):
@@ -108,7 +112,7 @@ def main(argv=None):
     except RuntimeError as exc:
         print(f"verdict_check: {exc}", file=sys.stderr)
         return 2
-    gos = [r for r in reviews if r.get("state") in ("APPROVED", "COMMENTED")
+    gos = [r for r in reviews if r.get("state") == "APPROVED"
            and VERDICT_RE.search(r.get("body") or "")]
     print(f"head: {head_sha}")
     print(f"GO verdict reviews: {len(gos)} submitted, {len(hits)} at tip")
