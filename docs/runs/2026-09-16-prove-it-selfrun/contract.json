@@ -1,0 +1,18 @@
+{
+  "mission": "prove-it",
+  "run": "2026-09-16 self-run (issue #410)",
+  "criterion_ids": ["PF-2"],
+  "criteria": [
+    {
+      "id": "PF-2",
+      "text": "verify.py check_oracle_scope refuses an oracle_scope whose kind is neither characterization nor documentation, and admits both legal kinds past the kind gate."
+    }
+  ],
+  "frozen_at": "2026-09-16T05:47:42Z",
+  "dispatch": {
+    "lighting": "dark-eligible",
+    "why": "characterization-test-only change on reversible fixtures, oracle is types/tests — gate-classification.md's concrete dark-eligible example",
+    "authorized_by": "maintainer issue #410 (minimal prove-it re-run); human backstop: promotion PR review before merge"
+  },
+  "note": "Denominator frozen before the characterization wave. oracle_scope coordinates are authorized after mutant inspection, per evidence-manifest.md section 1 (Coordinator oracle scope)."
+}
