@@ -1,0 +1,5 @@
+FAIL: redaction: artifact docs/runs/campaign-2026-09-16-modernize-it/verifier-u1.txt unreadable: artifact 'docs/runs/campaign-2026-09-16-modernize-it/verifier-u1.txt' is neither tracked at head_sha nor pinned by a sha256 in the manifest's artifacts[] integrity inventory — unpinned evidence (#267)
+FAIL: dark-eligible mutation: the independent review is WAIVED in this lane, so the negative control is the ONLY oracle left — and a control that was merely READ is a text file the worker wrote. It must be EXECUTED (--execute-nc / ORCA_EXECUTE_NC) and go RED. Fail-closed (#256; docs/reviews/2026-09-10-review.md A1/A2/A4/A6/A9 all landed on exactly this)
+verify: 2 invariant(s) failed — unit is NOT done
+NOTE: origin/campaign/modernize-it-selftest-BASE not found — ancestry check skipped
+NOTE: commands ledger FRESH — 2 exit-0 record(s) bound to head_sha's tree 2a1146fc6ab1. This is the worker's own runner, so the coordinator's clean-env re-run at head_sha still stands as the stronger authority (evidence-manifest.md §2)
