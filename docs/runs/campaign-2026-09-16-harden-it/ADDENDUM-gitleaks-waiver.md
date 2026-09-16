@@ -31,5 +31,9 @@ tree already carries the redacted capture; the waiver covers dead history).
   (post-waiver, this branch).
 - Canary negative control (validate.yml shape, throwaway clone): plant a
   real-shaped key in `tests/test_decisions.py`, commit, scan → must go red.
-  Observed: `leaks found: 1` (the planted key only), exit 1. The waiver is
-  tight: it suppresses exactly the 5 listed fingerprints.
+  Observed: exit 1 with the planted key the only finding. The waiver is
+  tight: it suppresses exactly the listed fingerprints.
+- Self-quote incident, kept in the record: this addendum's first revision
+  quoted one fixture literal verbatim and flagged `generic-api-key` on
+  itself; the text was scrubbed (describe, never quote) and that dead
+  revision's fingerprint waived alongside the other five.
