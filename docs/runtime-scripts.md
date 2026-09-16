@@ -308,3 +308,23 @@ state file across invocations.
 
 Exits: 0 tick done, nothing needs the coordinator · 1 at least one (WOULD-)recommendation
 · 2 could-not-run.
+
+## `wtree.sh`
+
+Prints a working-tree CONTENT fingerprint (a git tree hash). Builds a temp index, stages
+the full tree into it, prints `git write-tree` of that index — the real index is never
+touched. Source `runtime/scripts/wtree.sh:1-30`; exercised by `tests/test_evidence_run.py`.
+
+Usage: `wtree.sh [repo-dir]` (default: current directory).
+
+Flags: none — one optional positional argument.
+
+Untracked non-ignored files are included; .gitignore'd scratch stays out. Committing
+identical content does not change the fingerprint, so a record made on a dirty tree stays
+valid once committed; content-preserving rebase/amend/squash does not change it either.
+The temp index seeds from a copy of the real one (stat cache preserved, mtime restored
+against racy-index reads), falling back to `read-tree HEAD` when the restore fails.
+Staged blobs enter the object store as unreachable objects until gc, like `git stash -u`.
+
+Exits: 0 prints the hash · 1 outside a git repo, or no commits and no usable index
+(callers fail closed on nonzero — never treat it as an empty fingerprint).

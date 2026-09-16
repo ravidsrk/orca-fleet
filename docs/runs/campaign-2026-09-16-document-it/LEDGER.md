@@ -23,8 +23,8 @@ solo self-test; the mechanical oracle is the claim check + rename control + re-d
 | doc-r10 | cli:runtime/scripts/pm.py | reference | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-r10.md @6036c0a |
 | doc-r11 | cli:runtime/scripts/sandbox_doctor.py | reference | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-r11.md @a6cedd3 |
 | doc-r12 | cli:runtime/scripts/spawn_worker.sh | reference | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-r12.md @65fb669 |
-| doc-r13 | cli:runtime/scripts/watchdog.py | reference | critical | t | t | t | n/a | n/a | t | f | f | n/a | lit | | cells/doc-r13.md |
-| doc-r14 | cli:runtime/scripts/wtree.sh | reference | critical | f | f | f | n/a | n/a | f | f | f | n/a | lit | | |
+| doc-r13 | cli:runtime/scripts/watchdog.py | reference | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-r13.md @52d9f20 |
+| doc-r14 | cli:runtime/scripts/wtree.sh | reference | critical | t | t | t | n/a | n/a | t | f | f | n/a | lit | | cells/doc-r14.md |
 | doc-r15 | config:runtime/one-way-doors.json | reference | critical | f | f | f | n/a | n/a | f | f | f | n/a | lit | | |
 | doc-r16 | config:runtime/watchdog.json | reference | critical | f | f | f | n/a | n/a | f | f | f | n/a | lit | | |
 | doc-x01 | cli:runtime/scripts/decisions.py | explanation | critical | f | f | f | n/a | n/a | f | f | f | n/a | lit | | |
