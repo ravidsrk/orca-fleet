@@ -186,6 +186,16 @@ never from an ignore file, never prose. Run it OFF the worker.
 
 Exits: 0 clean · 1 un-waived findings · 2 could-not-run (never read as clean).
 
+> Why: each bar-lowering move is invisible to a green build and obvious in a diff — so
+> the guard reads the diff, and only loosening is loud. Waivers come from the DECISIONS
+> log (`runtime/scripts/floor_guard.py:_WAIVER_ID_PREFIX`, retired through the sibling
+> `runtime/scripts/floor_guard.py:_load_decisions`) rather than an ignore file, because
+> scope in the id gives the waiver an identity the ledger can retire — and no prose is
+> parsed, since a sentence mentioning a rule and a path is not a waiver. Reporting names
+> the pattern, never the matched text, which may be the credential someone tried to
+> suppress; and the guard runs OFF the worker, because a guard the builder can see is a
+> guard the builder edits.
+
 ## `gate-batch.py`
 
 Run-close human gates as typed records, not prose. Store is
