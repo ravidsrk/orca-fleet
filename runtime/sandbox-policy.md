@@ -16,21 +16,22 @@ default host a supervised `PROFILE=ro` launch would be silently upgraded to bypa
 never takes `worker-start`, dispatch-lifecycle.md); on a manual host, `worker-start` launches
 PROMPTING workers while the fleet believes they are autonomous, and the run blocks on invisible
 dialogs. Neither is knowable from source: read `launch.effective` off the start receipt and record
-the host's permission mode in the ledger header. Source-witnessed at v1.4.199 (Anchors reading v1.4.199 await per-probe re-witness; the 2026-09-13 pin-it park register — docs/runs/2026-09-13-pin-it-266/PARK.md — says which are current at v1.4.200.)
+the host's permission mode in the ledger header. Source-witnessed at v1.4.203 (the 2026-09-16 pin-it run — docs/runs/2026-09-16-pin-it-416/ — re-read the YOLO map and launch defaults at the build commit)
 (`tui-agent-launch-defaults.ts:10`); live probe owed — pin-it.
 
 `spawn_worker.sh` maps each PROFILE per agent. **Orca has no read-only tier for ANY agent** — its
-only map is `YOLO_TUI_AGENT_ARGS` (`tui-agent-permissions.ts:6-33`), which is autonomous flags and
-nothing else. Every entry in the `ro` column below is that agent's OWN native flag, chosen here; the
-dashes are agents for which no such flag has been verified, not agents Orca singles out. The note
-used to read "(no RO in Orca)" beside two of them, which implied Orca supplied the others (#302).
+maps are `YOLO_TUI_AGENT_ARGS` (`tui-agent-permissions.ts:7-33`) plus a small `YOLO_TUI_AGENT_ENV`
+env map: autonomous flags and nothing else. Every entry in the `ro` column below is that agent's
+OWN native flag, chosen here; the dashes are agents for which no such flag has been verified, not
+agents Orca singles out. The note used to read "(no RO in Orca)" beside two of them, which implied
+Orca supplied the others (#302).
 
 | Agent  | `ro` (read-only review) | `rw` = `danger` flag (autonomous, non-blocking) |
 |--------|-------------------------|--------------------------------------------------|
 | claude | `--permission-mode plan` | `--dangerously-skip-permissions`                |
 | codex  | `--sandbox read-only`    | `--dangerously-bypass-approvals-and-sandbox`    |
 | gemini | `--approval-mode plan`   | `--yolo`                                        |
-| cursor | — none verified → WORKER_CMD | `--yolo` (`tui-agent-permissions.ts:21`)     |
+| cursor | — none verified → WORKER_CMD | `--yolo` (`tui-agent-permissions.ts:25`)     |
 | grok   | — none verified → WORKER_CMD | `--permission-mode bypassPermissions`        |
 | droid  | WORKER_CMD               | `--auto high`                                   |
 | opencode / kilo | WORKER_CMD      | WORKER_CMD — Orca **strips** `--dangerously-skip-permissions` from both (`tui-agent-launch-defaults.ts:5-8`) |

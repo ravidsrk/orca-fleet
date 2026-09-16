@@ -22,7 +22,7 @@ spawn per the roster (sandbox-policy.md).
 
 **Every scheduled mission passes `--precheck`.** It runs a bounded command before the run; exit 0
 continues, anything else records a **skipped** run and spawns nothing (`automations.ts:62` at
-v1.4.199). That is exactly the enumeration question a mission asks in its first phase — and without (Anchors reading v1.4.199 await per-probe re-witness; the 2026-09-13 pin-it park register — docs/runs/2026-09-13-pin-it-266/PARK.md — says which are current at v1.4.200.)
+v1.4.203 — re-witnessed by docs/runs/2026-09-16-pin-it-416/). That is exactly the enumeration question a mission asks in its first phase — and without
 it, a nightly sweep of an empty backlog pays a full preflight, a coordinator, and a run report to
 discover there was nothing to do, then writes a report that looks like work. The precheck is the
 cheapest possible form of the mission's own denominator query. Pass one of these complete shell
