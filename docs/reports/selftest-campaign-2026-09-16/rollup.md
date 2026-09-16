@@ -1,9 +1,12 @@
 # Self-test campaign 2026-09-16 — rollup
 
 All 21 missions ran against orca-fleet itself on 2026-09-16, one isolated
-worktree per mission, base `origin/main` tip (`6390743`/`c46d4b3`, pre-#451).
-Each mission kept its full transcript on its own archive branch
-(`origin/campaign/<mission>-selftest`); this report is the curated index.
+worktree per mission, in two waves as `origin/main` moved mid-campaign:
+morning wave at `6390743` (pre-#445: absorb-it, access-it, attest-it,
+clean-sweep, deflake-it, document-it, field-test-it) and afternoon wave at
+`c46d4b3` (post-#445 merge: all other 14). Each mission kept its full
+transcript on its own archive branch (`origin/campaign/<mission>-selftest`);
+this report is the curated index.
 Full per-mission dirs were deliberately NOT merged to `main`: none of the
 21 runs bids for a proof-tier advance except through the follow-ups named
 below, and their dirs were not built to BIND.
@@ -38,9 +41,15 @@ promotion claim.
 | ship-it | `b0199f15` | PARKED at entry (no input) | recorded history, doctrine-only |
 | speed-it | `816a3ce3` | OPTIMIZED-WITH-PARKED (H1 fixed; J1/J3 parked) | H1 owes a promotion PR (lever 3); J1 infra + #440 repro queued |
 
-7 missions reached a mission-named DONE-class terminal; 8 parked on a
-genuinely missing target (correct behavior — no run was fabricated); 6 ended
-degraded-with-evidence and produced the follow-up queue below.
+Partition (criteria: DONE-class = mission-named non-degraded terminal;
+missing-target = park on absent target, not on a human gate; the rest are
+degraded-with-evidence): 5 DONE-class (absorb-it, document-it, harden-it,
+prove-it, review-it); 6 missing-target parks (access-it, field-test-it,
+migrate-it, oncall-it, oss-contribute, ship-it — correct behavior, no run
+fabricated); 10 degraded-with-evidence, which produced the follow-up queue
+below (attest-it, clean-sweep, deflake-it, floor-it, map-it, modernize-it,
+pin-it, reshape-it, root-cause, speed-it — floor-it and reshape-it parked at
+human gates, hence degraded, not missing-target).
 
 ## What the campaign proved
 
@@ -72,7 +81,10 @@ degraded-with-evidence and produced the follow-up queue below.
 
 ```bash
 git ls-remote origin 'campaign/*-selftest'   # all 21 archive branches
-git show origin/campaign/<m>-selftest:docs/runs/campaign-2026-09-16-<m>/  # full transcript
+# list a mission's transcript files:
+git archive origin/campaign/<m>-selftest docs/runs/campaign-2026-09-16-<m> | tar -t
+# extract it:
+git archive origin/campaign/<m>-selftest docs/runs/campaign-2026-09-16-<m> | tar -x -C /tmp/<m>-transcript
 ```
 
 Archive SHAs above are the branch tips at push time (2026-09-16); the
