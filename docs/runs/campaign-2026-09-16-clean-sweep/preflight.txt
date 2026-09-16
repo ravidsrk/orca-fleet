@@ -1,0 +1,2 @@
+preflight: WARN: BASE tip == default tip (6390743815f8) — expected for a freshly created integration branch; confirm BASE is not another alias of the default.
+preflight: OK — repo=ravidsrk/orca-fleet, base=campaign/clean-sweep-selftest, default=refs/remotes/origin/main, fork_point=6390743815f8
