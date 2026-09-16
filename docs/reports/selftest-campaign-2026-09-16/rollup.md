@@ -84,7 +84,7 @@ git ls-remote origin 'campaign/*-selftest'   # all 21 archive branches
 # list a mission's transcript files:
 git archive origin/campaign/<m>-selftest docs/runs/campaign-2026-09-16-<m> | tar -t
 # extract it:
-git archive origin/campaign/<m>-selftest docs/runs/campaign-2026-09-16-<m> | tar -x -C /tmp/<m>-transcript
+mkdir -p /tmp/<m>-transcript && git archive origin/campaign/<m>-selftest docs/runs/campaign-2026-09-16-<m> | tar -x -C /tmp/<m>-transcript
 ```
 
 Archive SHAs above are the branch tips at push time (2026-09-16); the
