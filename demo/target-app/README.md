@@ -56,6 +56,10 @@ curl -s 'http://127.0.0.1:9090/api/v1/query?query=app_issues_total'   # PromQL
 docker compose down -v   # teardown
 ```
 
+> Local runs: set `TARGET_APP_SCRAPE_GAUGE=1` to refresh `app_issues_total`
+> from a live `COUNT(*)` at scrape time (compose sets this; without it the
+> gauge tracks increments since boot only).
+
 ## Database
 
 SQLite for local dev (`app.db`, created by the migrate step above); PostgreSQL

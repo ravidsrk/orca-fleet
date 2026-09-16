@@ -117,3 +117,15 @@ def _hist_count(method: str, path: str, status: str) -> float:
             ):
                 return float(sample.value)
     return 0.0
+
+
+def test_ui_form_create_increments_gauge(client: TestClient) -> None:
+    ISSUE_COUNT.set(0)
+    response = client.post(
+        "/issues/new",
+        data={"title": "via-ui", "body": "", "status": "open", "priority": "2"},
+        follow_redirects=False,
+    )
+    assert response.status_code == 303
+    body = client.get("/metrics").text
+    assert "app_issues_total 1.0" in body

@@ -10,3 +10,7 @@
 
 Both B1/B2 are honest future mission fodder (clean-sweep finding material),
 not scope drops: no acceptance criterion names them.
+- B3 (coordinator note during #451 review): latency-histogram `path` label falls
+  back to the raw URL path when no route matches (404s) — unbounded label
+  values, a cardinality risk per observability-and-instrumentation. Fix: label
+  unmatched paths as a fixed `unmatched` route. Future telemetry-hardening fodder.

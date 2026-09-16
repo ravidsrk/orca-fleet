@@ -86,8 +86,9 @@ async def telemetry_middleware(
     REQUEST_LATENCY.labels(request.method, path, str(response.status_code)).observe(
         elapsed
     )
-    if request.method == "POST" and path == "/issues":
-        if response.status_code == 201:
+    if request.method == "POST" and path in ("/issues", "/issues/new"):
+        # 201 = JSON create, 303 = UI form create (redirects to the list page).
+        if response.status_code in (200, 201, 303):
             ISSUE_COUNT.inc()
     get_logger().info(
         "request",
