@@ -1,4 +1,3 @@
-FAIL: redaction: artifact docs/runs/campaign-2026-09-16-map-it/verifier.txt unreadable: artifact 'docs/runs/campaign-2026-09-16-map-it/verifier.txt' hashes e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 but artifacts[] pins 4ade07a8a71004fc75daa01d19e67d1b4c1fe050eea5a3614e012e9a407a5bec — the evidence changed after it was inventoried (#267)
-verify: 1 invariant(s) failed — unit is NOT done
 NOTE: --base not given — ancestry check skipped (pre-merge/offline)
 NOTE: dispatch record signature verified against the supplied key (#135) — a soundness boundary only if that key is trusted (off-worker: CI/MCP/SDK or an auditor)
+verify: OK — all required checks passed

@@ -1,162 +1,173 @@
 {
- "artifacts": [
-  {
-   "path": "docs/runs/campaign-2026-09-16-map-it/ledger.md",
-   "sha256": "038636dbefda7205d3da5625ff09656a5d412d9ccd34aa4cedbce8d6a3c42878"
-  },
-  {
-   "path": "docs/runs/campaign-2026-09-16-map-it/plan.md",
-   "sha256": "d42f69cd6611129924334924aac25430b2a25a84e8aa32bbdcc20c132ae95eb6"
-  },
-  {
-   "path": "docs/runs/campaign-2026-09-16-map-it/facts.md",
-   "sha256": "ac8834202df6b2656b720e0ba7fa48f62220f4d345d5325eabe16b5e29d4613e"
-  },
-  {
-   "path": "docs/runs/campaign-2026-09-16-map-it/research-sweep.md",
-   "sha256": "77ce6c2350b097ac599ca6b08506e05738c4fa4245b0beab656ee67d1b44c6ee"
-  },
-  {
-   "path": "docs/runs/campaign-2026-09-16-map-it/handoff-questionnaire.md",
-   "sha256": "acdd17cc0b911bf277345db12124ea9074893b5d13edb61b5c3124428341bf05"
-  },
-  {
-   "path": "docs/runs/campaign-2026-09-16-map-it/DECISIONS.md",
-   "sha256": "cbad0c84457dd5a67282f074c4f81060c8e4e15feb8d58d9ea52447f414fde9a"
-  },
-  {
-   "path": "docs/runs/campaign-2026-09-16-map-it/dag-table.md",
-   "sha256": "ff2ea45603e7e521e6a7b463eb395dd1d258ee1457f4419cac0a22b41ed76039"
-  },
-  {
-   "path": "docs/runs/campaign-2026-09-16-map-it/dag-task-list.json",
-   "sha256": "66e4048d553aa7643904ac1ed835d0edf218421d74c6b9dba8647ebe13c11085"
-  },
-  {
-   "path": "docs/runs/campaign-2026-09-16-map-it/skeptic.md",
-   "sha256": "fd7186f65ab7f3ee6ee2471c36614906351d0b4d5c834081c9e901e2447a6189"
-  },
-  {
-   "path": "docs/runs/campaign-2026-09-16-map-it/contract.json",
-   "sha256": "e009989260ffab7f81e3b44bc391fb972dd4ad749deadbf15f20a16f35ce7eff"
-  },
-  "docs/runs/campaign-2026-09-16-map-it/verifier.txt",
-  {
-   "path": "docs/runs/campaign-2026-09-16-map-it/dispatch-record.json",
-   "sha256": "80e47393c4c5d962b8d6185a7c1aeae8730ea1ef4c06dfe291c514e38a19d44a"
-  },
-  {
-   "path": "docs/runs/campaign-2026-09-16-map-it/dispatch-pubkey.hex",
-   "sha256": "a9486f57cb0194b796e18128cacd7fb18567eae2a407adc60f5a19c41c734d04"
-  }
- ],
- "base_sha": "c46d4b3f3371e41408aed19e54476fa194c20b42",
- "claim": "MAPPED-WITH-BLOCKED: G-09 map freeze-prepared (plan + verified 31-task DAG); 21 decision tickets + 3 task tickets + freeze sign-off blocked on human (Q-0..Q-21); no production code written; nothing dispatched.",
- "contract": {
-  "criterion_ids": [
-   "AC-1",
-   "AC-2",
-   "AC-3",
-   "AC-4",
-   "AC-5",
-   "AC-6"
+  "artifacts": [
+    {
+      "path": "docs/runs/campaign-2026-09-16-map-it/ledger.md",
+      "sha256": "038636dbefda7205d3da5625ff09656a5d412d9ccd34aa4cedbce8d6a3c42878"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-map-it/plan.md",
+      "sha256": "d42f69cd6611129924334924aac25430b2a25a84e8aa32bbdcc20c132ae95eb6"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-map-it/facts.md",
+      "sha256": "ac8834202df6b2656b720e0ba7fa48f62220f4d345d5325eabe16b5e29d4613e"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-map-it/research-sweep.md",
+      "sha256": "77ce6c2350b097ac599ca6b08506e05738c4fa4245b0beab656ee67d1b44c6ee"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-map-it/handoff-questionnaire.md",
+      "sha256": "acdd17cc0b911bf277345db12124ea9074893b5d13edb61b5c3124428341bf05"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-map-it/DECISIONS.md",
+      "sha256": "cbad0c84457dd5a67282f074c4f81060c8e4e15feb8d58d9ea52447f414fde9a"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-map-it/dag-table.md",
+      "sha256": "ff2ea45603e7e521e6a7b463eb395dd1d258ee1457f4419cac0a22b41ed76039"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-map-it/dag-task-list.json",
+      "sha256": "66e4048d553aa7643904ac1ed835d0edf218421d74c6b9dba8647ebe13c11085"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-map-it/skeptic.md",
+      "sha256": "fd7186f65ab7f3ee6ee2471c36614906351d0b4d5c834081c9e901e2447a6189"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-map-it/contract.json",
+      "sha256": "e009989260ffab7f81e3b44bc391fb972dd4ad749deadbf15f20a16f35ce7eff"
+    },
+    "docs/runs/campaign-2026-09-16-map-it/verifier.txt",
+    {
+      "path": "docs/runs/campaign-2026-09-16-map-it/dispatch-record.json",
+      "sha256": "80e47393c4c5d962b8d6185a7c1aeae8730ea1ef4c06dfe291c514e38a19d44a"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-map-it/dispatch-pubkey.hex",
+      "sha256": "a9486f57cb0194b796e18128cacd7fb18567eae2a407adc60f5a19c41c734d04"
+    }
   ],
-  "digest": "e009989260ffab7f81e3b44bc391fb972dd4ad749deadbf15f20a16f35ce7eff",
-  "source": "docs/runs/campaign-2026-09-16-map-it/contract.json"
- },
- "criteria": [
-  {
-   "addressed": true,
-   "id": "AC-1",
-   "text": "Destination named: G-09 field-proof completion over the 19 doctrine-only missions"
+  "base_sha": "c46d4b3f3371e41408aed19e54476fa194c20b42",
+  "claim": "MAPPED-WITH-BLOCKED: G-09 map freeze-prepared (plan + verified 31-task DAG); 21 decision tickets + 3 task tickets + freeze sign-off blocked on human (Q-0..Q-21); no production code written; nothing dispatched.",
+  "contract": {
+    "criterion_ids": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4",
+      "AC-5",
+      "AC-6"
+    ],
+    "digest": "e009989260ffab7f81e3b44bc391fb972dd4ad749deadbf15f20a16f35ce7eff",
+    "source": "docs/runs/campaign-2026-09-16-map-it/contract.json"
   },
-  {
-   "addressed": true,
-   "id": "AC-2",
-   "text": "Every open question is a sharp ticket (resolved/blocked) or explicit not-yet-specified"
+  "criteria": [
+    {
+      "addressed": true,
+      "id": "AC-1",
+      "text": "Destination named: G-09 field-proof completion over the 19 doctrine-only missions"
+    },
+    {
+      "addressed": true,
+      "id": "AC-2",
+      "text": "Every open question is a sharp ticket (resolved/blocked) or explicit not-yet-specified"
+    },
+    {
+      "addressed": true,
+      "id": "AC-3",
+      "text": "Every decision ticket human-resolved or explicitly blocked; agent answered none"
+    },
+    {
+      "addressed": true,
+      "id": "AC-4",
+      "text": "Frozen plan/spec exists on the planning branch (freeze-prepared, sign-off parked as D-0)"
+    },
+    {
+      "addressed": true,
+      "id": "AC-5",
+      "text": "Materialized, verified DAG frozen for handoff exists with task-id table; nothing dispatched"
+    },
+    {
+      "addressed": true,
+      "id": "AC-6",
+      "text": "Handoff checklist complete: freeze commit+path, DAG path+table, blocked list, manifest naming MAPPED-WITH-BLOCKED"
+    }
+  ],
+  "head_sha": "cf290747893506a117508309166371b77b7255a7",
+  "lighting": "lit",
+  "negative_control": {
+    "artifact": "docs/runs/campaign-2026-09-16-map-it/dag-task-list.json",
+    "command": "python3 /tmp/map-it-dag-verify.py (read-only DAG re-verification against run run_b28a7dacdd9e)",
+    "did": "planning analogue per evidence-manifest s3: the frozen DAG re-verifies mechanically (31/31 present, deps resolve, acyclic, foundation-first, single-writer hot-file, contract on all tasks)",
+    "result": "DAG VERIFY: PASS at prepare; no decision ticket answered by the agent (all D/T BLOCKED with handoff)",
+    "tool": "hand"
   },
-  {
-   "addressed": true,
-   "id": "AC-3",
-   "text": "Every decision ticket human-resolved or explicitly blocked; agent answered none"
-  },
-  {
-   "addressed": true,
-   "id": "AC-4",
-   "text": "Frozen plan/spec exists on the planning branch (freeze-prepared, sign-off parked as D-0)"
-  },
-  {
-   "addressed": true,
-   "id": "AC-5",
-   "text": "Materialized, verified DAG frozen for handoff exists with task-id table; nothing dispatched"
-  },
-  {
-   "addressed": true,
-   "id": "AC-6",
-   "text": "Handoff checklist complete: freeze commit+path, DAG path+table, blocked list, manifest naming MAPPED-WITH-BLOCKED"
-  }
- ],
- "head_sha": "cf290747893506a117508309166371b77b7255a7",
- "lighting": "lit",
- "negative_control": {
-  "artifact": "docs/runs/campaign-2026-09-16-map-it/dag-task-list.json",
-  "command": "python3 /tmp/map-it-dag-verify.py (read-only DAG re-verification against run run_b28a7dacdd9e)",
-  "did": "planning analogue per evidence-manifest s3: the frozen DAG re-verifies mechanically (31/31 present, deps resolve, acyclic, foundation-first, single-writer hot-file, contract on all tasks)",
-  "result": "DAG VERIFY: PASS at prepare; no decision ticket answered by the agent (all D/T BLOCKED with handoff)",
-  "tool": "hand"
- },
- "parked": [
-  {
-   "gate": "Q-0",
-   "item": "D-0 human freeze sign-off",
-   "reason": "one-way: spawned session, no human"
-  },
-  {
-   "gate": "Q-1..Q-21",
-   "item": "D-1..D-20 scope/selection/gate/timing decisions",
-   "reason": "map-it oracle: human-resolved or blocked"
-  },
-  {
-   "gate": "Q-20",
-   "item": "T-1..T-3 manual checklists",
-   "reason": "needs-human bounded work"
-  }
- ],
- "toolchain": "python 3.12 / orca 1.4.203",
- "unit": "map-it-selftest-G-09",
- "commands": [
-  {
-   "label": "verifier",
-   "ts": "2026-09-16T12:33:21Z",
-   "cmd": "python3 runtime/scripts/verify.py --manifest docs/runs/campaign-2026-09-16-map-it/manifest.json --contract-source docs/runs/campaign-2026-09-16-map-it/contract.json --contract-digest e009989260ffab7f81e3b44bc391fb972dd4ad749deadbf15f20a16f35ce7eff --unit-class planning",
-   "cmd_sha256": "e8adeb85eac457bcbb271b404a1a80eb4b89b5cbeecdd7e706bed468642b655c",
-   "exit": 2,
-   "duration_s": 0.448,
-   "commit": "4f87dca6fe61eafe90bfca01f6aad721e0cd1279",
-   "wtree": "afee00b3149a9b470ca014421b9c021c202d6f20",
-   "artifact": "docs/runs/campaign-2026-09-16-map-it/verifier.txt"
-  },
-  {
-   "label": "verifier-supervised",
-   "ts": "2026-09-16T12:34:07Z",
-   "cmd": "python3 runtime/scripts/verify.py --manifest docs/runs/campaign-2026-09-16-map-it/manifest.json --contract-source docs/runs/campaign-2026-09-16-map-it/contract.json --contract-digest e009989260ffab7f81e3b44bc391fb972dd4ad749deadbf15f20a16f35ce7eff --unit-class planning --lighting lit --dispatch-record docs/runs/campaign-2026-09-16-map-it/dispatch-record.json --dispatch-pubkey docs/runs/campaign-2026-09-16-map-it/dispatch-pubkey.hex",
-   "cmd_sha256": "df917c6e4e21c11c25794a3d4ea92eeefae7f02cdc6e8fa5f81f78aa0a934679",
-   "exit": 2,
-   "duration_s": 0.627,
-   "commit": "4f87dca6fe61eafe90bfca01f6aad721e0cd1279",
-   "wtree": "964858f02f9d797a950831c88066b8dcfd4806fc",
-   "artifact": "docs/runs/campaign-2026-09-16-map-it/verifier.txt"
-  },
-  {
-   "label": "verifier-supervised",
-   "ts": "2026-09-16T12:34:37Z",
-   "cmd": "python3 runtime/scripts/verify.py --manifest docs/runs/campaign-2026-09-16-map-it/manifest.json --contract-source docs/runs/campaign-2026-09-16-map-it/contract.json --contract-digest e009989260ffab7f81e3b44bc391fb972dd4ad749deadbf15f20a16f35ce7eff --unit-class planning --lighting lit --dispatch-record docs/runs/campaign-2026-09-16-map-it/dispatch-record.json --dispatch-pubkey docs/runs/campaign-2026-09-16-map-it/dispatch-pubkey.hex",
-   "cmd_sha256": "df917c6e4e21c11c25794a3d4ea92eeefae7f02cdc6e8fa5f81f78aa0a934679",
-   "exit": 2,
-   "duration_s": 0.675,
-   "commit": "4f87dca6fe61eafe90bfca01f6aad721e0cd1279",
-   "wtree": "1d92d675e534d78b4972ffae1905d6568341d03b",
-   "artifact": "docs/runs/campaign-2026-09-16-map-it/verifier.txt"
-  }
- ]
+  "parked": [
+    {
+      "gate": "Q-0",
+      "item": "D-0 human freeze sign-off",
+      "reason": "one-way: spawned session, no human"
+    },
+    {
+      "gate": "Q-1..Q-21",
+      "item": "D-1..D-20 scope/selection/gate/timing decisions",
+      "reason": "map-it oracle: human-resolved or blocked"
+    },
+    {
+      "gate": "Q-20",
+      "item": "T-1..T-3 manual checklists",
+      "reason": "needs-human bounded work"
+    }
+  ],
+  "toolchain": "python 3.12 / orca 1.4.203",
+  "unit": "map-it-selftest-G-09",
+  "commands": [
+    {
+      "label": "verifier",
+      "ts": "2026-09-16T12:33:21Z",
+      "cmd": "python3 runtime/scripts/verify.py --manifest docs/runs/campaign-2026-09-16-map-it/manifest.json --contract-source docs/runs/campaign-2026-09-16-map-it/contract.json --contract-digest e009989260ffab7f81e3b44bc391fb972dd4ad749deadbf15f20a16f35ce7eff --unit-class planning",
+      "cmd_sha256": "e8adeb85eac457bcbb271b404a1a80eb4b89b5cbeecdd7e706bed468642b655c",
+      "exit": 2,
+      "duration_s": 0.448,
+      "commit": "4f87dca6fe61eafe90bfca01f6aad721e0cd1279",
+      "wtree": "afee00b3149a9b470ca014421b9c021c202d6f20",
+      "artifact": "docs/runs/campaign-2026-09-16-map-it/verifier.txt"
+    },
+    {
+      "label": "verifier-supervised",
+      "ts": "2026-09-16T12:34:07Z",
+      "cmd": "python3 runtime/scripts/verify.py --manifest docs/runs/campaign-2026-09-16-map-it/manifest.json --contract-source docs/runs/campaign-2026-09-16-map-it/contract.json --contract-digest e009989260ffab7f81e3b44bc391fb972dd4ad749deadbf15f20a16f35ce7eff --unit-class planning --lighting lit --dispatch-record docs/runs/campaign-2026-09-16-map-it/dispatch-record.json --dispatch-pubkey docs/runs/campaign-2026-09-16-map-it/dispatch-pubkey.hex",
+      "cmd_sha256": "df917c6e4e21c11c25794a3d4ea92eeefae7f02cdc6e8fa5f81f78aa0a934679",
+      "exit": 2,
+      "duration_s": 0.627,
+      "commit": "4f87dca6fe61eafe90bfca01f6aad721e0cd1279",
+      "wtree": "964858f02f9d797a950831c88066b8dcfd4806fc",
+      "artifact": "docs/runs/campaign-2026-09-16-map-it/verifier.txt"
+    },
+    {
+      "label": "verifier-supervised",
+      "ts": "2026-09-16T12:34:37Z",
+      "cmd": "python3 runtime/scripts/verify.py --manifest docs/runs/campaign-2026-09-16-map-it/manifest.json --contract-source docs/runs/campaign-2026-09-16-map-it/contract.json --contract-digest e009989260ffab7f81e3b44bc391fb972dd4ad749deadbf15f20a16f35ce7eff --unit-class planning --lighting lit --dispatch-record docs/runs/campaign-2026-09-16-map-it/dispatch-record.json --dispatch-pubkey docs/runs/campaign-2026-09-16-map-it/dispatch-pubkey.hex",
+      "cmd_sha256": "df917c6e4e21c11c25794a3d4ea92eeefae7f02cdc6e8fa5f81f78aa0a934679",
+      "exit": 2,
+      "duration_s": 0.675,
+      "commit": "4f87dca6fe61eafe90bfca01f6aad721e0cd1279",
+      "wtree": "1d92d675e534d78b4972ffae1905d6568341d03b",
+      "artifact": "docs/runs/campaign-2026-09-16-map-it/verifier.txt"
+    },
+    {
+      "label": "verifier-green",
+      "ts": "2026-09-16T12:35:45Z",
+      "cmd": "python3 runtime/scripts/verify.py --manifest docs/runs/campaign-2026-09-16-map-it/manifest.json --contract-source docs/runs/campaign-2026-09-16-map-it/contract.json --contract-digest e009989260ffab7f81e3b44bc391fb972dd4ad749deadbf15f20a16f35ce7eff --unit-class planning --lighting lit --dispatch-record docs/runs/campaign-2026-09-16-map-it/dispatch-record.json --dispatch-pubkey docs/runs/campaign-2026-09-16-map-it/dispatch-pubkey.hex",
+      "cmd_sha256": "df917c6e4e21c11c25794a3d4ea92eeefae7f02cdc6e8fa5f81f78aa0a934679",
+      "exit": 0,
+      "duration_s": 0.724,
+      "commit": "897e44a4918fd1ca5b1ea46880fc433e3525ac0b",
+      "wtree": "f7d54b4e304247ee527047cbc7b3ae6c4f37bf79",
+      "artifact": "docs/runs/campaign-2026-09-16-map-it/verifier.txt"
+    }
+  ]
 }
