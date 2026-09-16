@@ -131,6 +131,17 @@
       "commit": "27391b3ecddf0465c771cca7001323923e1695e2",
       "wtree": "ba9df824f2d414e6cb3c488ad36e216b55829988",
       "artifact": "docs/runs/2026-09-16-reshape-it-unpark/rv-c1-verifier.txt"
+    },
+    {
+      "label": "verifier-v4",
+      "ts": "2026-09-16T21:22:11Z",
+      "cmd": "python3 runtime/scripts/verify.py --manifest docs/runs/2026-09-16-reshape-it-unpark/manifest-rv-c1.json --contract-source docs/runs/2026-09-16-reshape-it-unpark/contract-rv-c1.json@5c9002a0b9016855e14e483ebe8b72828b823de1 --contract-digest sha256:a144ff21568661bb5599b8dcba1527a6f3a22159ade2e015dd4001e5aa0d4976 --unit-class mutation --lighting dark-eligible --execute-nc --nc-command 'python3 -m unittest tests.test_reshape_net_validate'",
+      "cmd_sha256": "6822b0faa3eefc3ac9e67b6a3955a4056d641ec19ecf2d4dad522adb4ad5a7fa",
+      "exit": 0,
+      "duration_s": 1.584,
+      "commit": "6b3acc8f783ce088e0b1dec30495c9dc2daea6d3",
+      "wtree": "0b25633199c7c3e5392551bfff26f44b4f1bd807",
+      "artifact": "docs/runs/2026-09-16-reshape-it-unpark/rv-c1-verifier.txt"
     }
   ],
   "unit": "RV-C1",
