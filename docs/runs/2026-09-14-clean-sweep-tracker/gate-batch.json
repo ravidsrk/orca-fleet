@@ -9,9 +9,9 @@
       "title": "Q2 / #386 (S2): sign the manifest/inventory — key custody + backend",
       "question": "#386 stays needs-human parked. Triage-confirmed: the retention pointer is a\nplaceholder, the run-close inventory is hash-only, and the prerequisite\ntranscript was never built. An agent CAN implement signing against the existing\nkey scheme and specify a backend on paper. NEEDS: (a) key custody / role\nseparation (the private key stays out of band by design — who holds it?);\n(b) retention backend choice (a concrete tamper-evident store, or a\nSigstore/Rekor anchor); (c) whether to re-open/track the transcript\nprerequisite — or park the whole unit. No unit work until answered.",
       "asked": "2026-09-14",
-      "status": "owed",
-      "answer": null,
-      "answered": null,
+      "status": "answered",
+      "answer": "Key custody: maintainer holds the offline private key, agents verify against the public half. Retention: Sigstore/Rekor anchor. Transcript prerequisite: TRACKED work before signing lands. #386 unparks on these terms.",
+      "answered": "2026-09-16",
       "related": [
         "#386"
       ],
@@ -24,9 +24,9 @@
       "title": "Branch protection on review/2026-09-14-holistic-fixes",
       "question": "PR #397 was merged by the maintainer ~7 min before its verdict (out-of-process,\ndisclosed, verify 6/6 after). No protocol binds a direct human merge. ASK:\nenable branch protection requiring a passing review before merge on the review\nbranch (and main, if not already). AMENDED 2026-09-15T12:35Z (DRAIN-387):\n\"a passing review\" alone is insufficient — #397 carried a Greptile APPROVED\nbefore its merge while the pipeline's own blind verdict (the real gate) was\nstill in flight. The required check should derive from the verdict: block merge\nuntil the unit's GO verdict review is posted at the merge tip (reviewed_sha ==\nhead_sha), not merely until any APPROVED exists. Closes Greptile thread\n4011973700's ask.",
       "asked": "2026-09-14",
-      "status": "owed",
-      "answer": null,
-      "answered": null,
+      "status": "answered",
+      "answer": "Applied 2026-09-16: main + review/2026-09-14-holistic-fixes protected (strict gates + Greptile, 1 approval + dismiss-stale, conversation resolution, admins enforced). Verdict-derived reviewed_sha==head_sha remainder tracked as #452.",
+      "answered": "2026-09-16",
       "related": [
         "#397"
       ],
@@ -37,9 +37,9 @@
       "title": "Merged-unit needs-human parks: post-merge independent APPROVE (2nd login)",
       "question": "One GitHub identity exists on this host, so merged unit PRs carry blind-verdict\nGOs but no independent APPROVED review, and their verify.py review legs stay\nRED (5/6, disclosed). ASK: with a second login, independently approve each\nmerged head below — or rule the blind-verdict + executed-negative-control\ncompensation sufficient and waive, with the waiver recorded here. Reviewed heads\nso far: #392 U388 c680ee0, #391 U389 51019fb, #395 U364 8323c98 (merged as\n1b64781), #400 U393 7630815, #402 U387G 318542b (merged as a769a64e; appended\n2026-09-15T07:50Z per R387P-r3 STANDARDS S3-2 — T9's close omitted it),\n#403 U387P 19be7a1 (merged as b9b71df6; review leg GREEN via Greptile APPROVED —\nlisted for completeness, no ask), #401 U387W 0d55f10 (merged as bff42ff1),\n#404 U393R 1e8ae08 (merged as f1b0a4f).\nLater units append theirs at close. Pre-existing ask, restated at close.",
       "asked": "2026-09-14",
-      "status": "owed",
-      "answer": null,
-      "answered": null,
+      "status": "waived",
+      "answer": "Single GitHub identity: independent APPROVEs impossible in-session. Maintainer accepts build-blind COMMENTED GO + executed-NC + green CI as sufficient; recorded per the ask.",
+      "answered": "2026-09-16",
       "related": [
         "#392",
         "#391",

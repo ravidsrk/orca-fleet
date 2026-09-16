@@ -218,6 +218,11 @@ def _parse_legacy_md(text):
             resolved = qbody
             continue
         gid, title = re.match(r"## (G[0-9]+) \u00b7 (.*)", head).groups()
+        # Annotations are view-only (the answer lives in the JSON store);
+        # strip a trailing one before comparing question prose.
+        qbody = re.sub(
+            r"\n\n\*\*(?:Answered|Waived|Overtaken) \d{4}-\d{2}-\d{2}:\*\*.*\Z",
+            "", qbody, flags=re.S)
         # The CLI rstrips ingested prose; the replay honors the same rule.
         gates.append((gid, title, qbody.rstrip("\n")))
     return run_id, run_title, intro, gates, resolved
@@ -226,15 +231,22 @@ def _parse_legacy_md(text):
 # The migration's store-only judgments: what each gate relates to and blocks,
 # and G4's overtaken status (its heading says it: the question was resolved
 # by events before the human replied). Pinned here, not re-derived.
+# Advanced 2026-09-16 by the gate session (G1/G2 answered, G3 waived via the
+# CLI; the md view carries the annotations, the JSON the answers).
 MIGRATED_META = {
-    "G1": {"asked": "2026-09-14", "status": "owed", "related": ["#386"],
-           "blocking": ["#386"], "answer": None, "answered": None},
-    "G2": {"asked": "2026-09-14", "status": "owed", "related": ["#397"],
-           "blocking": [], "answer": None, "answered": None},
-    "G3": {"asked": "2026-09-14", "status": "owed",
+    "G1": {"asked": "2026-09-14", "status": "answered", "related": ["#386"],
+           "blocking": ["#386"],
+           "answer": "Key custody: maintainer holds the offline private key, agents verify against the public half. Retention: Sigstore/Rekor anchor. Transcript prerequisite: TRACKED work before signing lands. #386 unparks on these terms.",
+           "answered": "2026-09-16"},
+    "G2": {"asked": "2026-09-14", "status": "answered", "related": ["#397"],
+           "blocking": [],
+           "answer": "Applied 2026-09-16: main + review/2026-09-14-holistic-fixes protected (strict gates + Greptile, 1 approval + dismiss-stale, conversation resolution, admins enforced). Verdict-derived reviewed_sha==head_sha remainder tracked as #452.",
+           "answered": "2026-09-16"},
+    "G3": {"asked": "2026-09-14", "status": "waived",
            "related": ["#392", "#391", "#395", "#400", "#402", "#403", "#401",
-                       "#404"], "blocking": [], "answer": None,
-           "answered": None},
+                       "#404"], "blocking": [],
+           "answer": "Single GitHub identity: independent APPROVEs impossible in-session. Maintainer accepts build-blind COMMENTED GO + executed-NC + green CI as sufficient; recorded per the ask.",
+           "answered": "2026-09-16"},
     "G4": {"asked": "2026-09-14", "status": "overtaken", "related": ["#364"],
            "blocking": [], "answer": None, "answered": "2026-09-14"},
 }
