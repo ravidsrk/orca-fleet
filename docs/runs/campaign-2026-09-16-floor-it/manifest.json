@@ -1,0 +1,326 @@
+{
+  "commands": [
+    {
+      "label": "detect-validate",
+      "ts": "2026-09-16T12:27:16Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 0,
+      "duration_s": 0.907,
+      "commit": "c46d4b3f3371e41408aed19e54476fa194c20b42",
+      "wtree": "b33a22a432c569eb46af6f8e98f56762360bbcd0",
+      "artifact": "docs/runs/campaign-2026-09-16-floor-it/transcripts/validate.txt"
+    },
+    {
+      "label": "detect-ruff",
+      "ts": "2026-09-16T12:27:17Z",
+      "cmd": "ruff check scripts runtime/scripts tests bench demo",
+      "cmd_sha256": "bc7439aa639f0ea487b93fd1887085c7f74e99a549a59bc5307c4015d423f74e",
+      "exit": 0,
+      "duration_s": 0.045,
+      "commit": "c46d4b3f3371e41408aed19e54476fa194c20b42",
+      "wtree": "52ff536c426dddd0e99f8fecad474614163fde0a",
+      "artifact": "docs/runs/campaign-2026-09-16-floor-it/transcripts/ruff.txt"
+    },
+    {
+      "label": "detect-gitleaks",
+      "ts": "2026-09-16T12:27:19Z",
+      "cmd": "gitleaks detect --redact --no-banner --source .",
+      "cmd_sha256": "32fea361cbd1c4bb34cfdcfae3ee6db8fa1dd178be4e67f0e04029769d013bd8",
+      "exit": 0,
+      "duration_s": 2.033,
+      "commit": "c46d4b3f3371e41408aed19e54476fa194c20b42",
+      "wtree": "29f0efc7dcc8849e2a54b896c92a9bbee1f6c985",
+      "artifact": "docs/runs/campaign-2026-09-16-floor-it/transcripts/gitleaks.txt"
+    },
+    {
+      "label": "detect-routing",
+      "ts": "2026-09-16T12:27:32Z",
+      "cmd": "python3 scripts/eval.py run --suite routing",
+      "cmd_sha256": "d4299a2719e7e629a031674cadef12fadc65485fee23c1f11ea6d38ded512d96",
+      "exit": 0,
+      "duration_s": 0.038,
+      "commit": "c46d4b3f3371e41408aed19e54476fa194c20b42",
+      "wtree": "ff4c72c828198b550485d4a311830dce057886ab",
+      "artifact": "docs/runs/campaign-2026-09-16-floor-it/transcripts/routing.txt"
+    },
+    {
+      "label": "detect-proof-status",
+      "ts": "2026-09-16T12:27:32Z",
+      "cmd": "python3 runtime/scripts/proof_status.py",
+      "cmd_sha256": "bee612fadded55e623ff278e89b19a7579b17dca70e45e4064358ab8866d7a4d",
+      "exit": 0,
+      "duration_s": 0.021,
+      "commit": "c46d4b3f3371e41408aed19e54476fa194c20b42",
+      "wtree": "c722b78eb5b5ab6ce6d00c1642ca1a6aa7567c4b",
+      "artifact": "docs/runs/campaign-2026-09-16-floor-it/transcripts/proof-status.txt"
+    },
+    {
+      "label": "detect-run-report",
+      "ts": "2026-09-16T12:27:38Z",
+      "cmd": "python3 runtime/scripts/run_report.py",
+      "cmd_sha256": "d980063e1a66d4b6bc69ca6d99d4f3e654fd9eecc0be33416e77d8fdba48e497",
+      "exit": 0,
+      "duration_s": 0.371,
+      "commit": "c46d4b3f3371e41408aed19e54476fa194c20b42",
+      "wtree": "354881845d8492651f0de23148c83150f142b852",
+      "artifact": "docs/runs/campaign-2026-09-16-floor-it/transcripts/run-report.txt"
+    },
+    {
+      "label": "detect-bundle",
+      "ts": "2026-09-16T12:27:39Z",
+      "cmd": "python3 scripts/bundle.py --check",
+      "cmd_sha256": "e16bc7a63b431ecdb6f44521490cb3f825419c3f07a9bcd042dbcc42b76f8551",
+      "exit": 0,
+      "duration_s": 0.701,
+      "commit": "c46d4b3f3371e41408aed19e54476fa194c20b42",
+      "wtree": "37f56ce55e6f9183116fe5ebe1310b56262444de",
+      "artifact": "docs/runs/campaign-2026-09-16-floor-it/transcripts/bundle.txt"
+    },
+    {
+      "label": "detect-coverage-absent",
+      "ts": "2026-09-16T12:27:39Z",
+      "cmd": "python3 -m coverage --version",
+      "cmd_sha256": "54e9b6bc19cdd4a8dad251fedfe9196243c5dca771dc6f6e78e5ef0764e0d166",
+      "exit": 1,
+      "duration_s": 0.014,
+      "commit": "c46d4b3f3371e41408aed19e54476fa194c20b42",
+      "wtree": "d74e0c1a746da8eb388374712000ba0380541c09",
+      "artifact": "docs/runs/campaign-2026-09-16-floor-it/transcripts/coverage-absent.txt"
+    },
+    {
+      "label": "bootstrap-preflight",
+      "ts": "2026-09-16T12:27:45Z",
+      "cmd": "python3 runtime/scripts/preflight.py --base campaign/floor-it-selftest --fork-point c46d4b3f3371e41408aed19e54476fa194c20b42",
+      "cmd_sha256": "96996e08aee016435ce2a5cd12d1f855c5bc604c4820c7ccad608eeffe426fdb",
+      "exit": 0,
+      "duration_s": 1.11,
+      "commit": "c46d4b3f3371e41408aed19e54476fa194c20b42",
+      "wtree": "5682cb7af20615e7f043a28a17c8786b6bfd33e8",
+      "artifact": "docs/runs/campaign-2026-09-16-floor-it/transcripts/preflight.txt"
+    },
+    {
+      "label": "detect-vfbench",
+      "ts": "2026-09-16T12:27:58Z",
+      "cmd": "python3 bench/vf-bench/gate.py",
+      "cmd_sha256": "58bc1f2f911a74bc89c92c1ec2aa8ef11e767faf27c663091b59bcc942ff2b6f",
+      "exit": 0,
+      "duration_s": 12.682,
+      "commit": "c46d4b3f3371e41408aed19e54476fa194c20b42",
+      "wtree": "0fae072c19d9199370694f0996f8857c8d8e1a29",
+      "artifact": "docs/runs/campaign-2026-09-16-floor-it/transcripts/vfbench.txt"
+    },
+    {
+      "label": "detect-unittests",
+      "ts": "2026-09-16T12:32:44Z",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "exit": 0,
+      "duration_s": 281.16,
+      "commit": "c46d4b3f3371e41408aed19e54476fa194c20b42",
+      "wtree": "c07af949302673a3453f806a1d8e11e801071dde",
+      "artifact": "docs/runs/campaign-2026-09-16-floor-it/transcripts/unittests.txt"
+    },
+    {
+      "label": "detect-orca-status",
+      "ts": "2026-09-16T12:33:08Z",
+      "cmd": "orca status --json",
+      "cmd_sha256": "a609f0cd42554d918c6e1d3cf14c0b9bbbe90f56be2ae39b42e49565b7a0b7fb",
+      "exit": 0,
+      "duration_s": 0.094,
+      "commit": "c46d4b3f3371e41408aed19e54476fa194c20b42",
+      "wtree": "43790f263d1a9ce3d975a1f836612320aee9d62c",
+      "artifact": "docs/runs/campaign-2026-09-16-floor-it/transcripts/orca-status.txt"
+    },
+    {
+      "label": "detect-agentskills-absent",
+      "ts": "2026-09-16T12:33:08Z",
+      "cmd": "which agentskills",
+      "cmd_sha256": "a27ddc2472a7e273a32b13aad2ceeee52b6c78d54bb0e83a4926df7a5558128f",
+      "exit": 1,
+      "duration_s": 0.002,
+      "commit": "c46d4b3f3371e41408aed19e54476fa194c20b42",
+      "wtree": "48ea1b3d12609448737b227acacacbead83c2887",
+      "artifact": "docs/runs/campaign-2026-09-16-floor-it/transcripts/agentskills-absent.txt"
+    },
+    {
+      "label": "final-validate",
+      "ts": "2026-09-16T12:35:39Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 0,
+      "duration_s": 0.874,
+      "commit": "c46d4b3f3371e41408aed19e54476fa194c20b42",
+      "wtree": "1eaffbf93e055998cb9bf21032b150d6efbbacb3",
+      "artifact": "docs/runs/campaign-2026-09-16-floor-it/transcripts/final-validate.txt"
+    },
+    {
+      "label": "final-tests",
+      "ts": "2026-09-16T12:40:52Z",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "exit": 0,
+      "duration_s": 313.155,
+      "commit": "c46d4b3f3371e41408aed19e54476fa194c20b42",
+      "wtree": "b557c85415b08a1fb2f5effa4078734df581d467",
+      "artifact": "docs/runs/campaign-2026-09-16-floor-it/transcripts/final-tests.txt"
+    },
+    {
+      "label": "verifier",
+      "ts": "2026-09-16T12:42:17Z",
+      "cmd": "python3 runtime/scripts/verify.py --manifest docs/runs/campaign-2026-09-16-floor-it/manifest.json --contract-source skills/floor-it/SKILL.md@c46d4b3f3371e41408aed19e54476fa194c20b42 --contract-digest 6eab79297529a7ec3c70bf4a5ff6e6fbdd9a4cd5a45c5b9f49dc5cf76b8bbd39 --unit-class report-only --base campaign/floor-it-selftest",
+      "cmd_sha256": "d7c8c941c4d7f901c2631180618a3540363ed8dc7926edb610fa152492007a62",
+      "exit": 2,
+      "duration_s": 0.659,
+      "commit": "c46d4b3f3371e41408aed19e54476fa194c20b42",
+      "wtree": "8cec473d0b652595a5cadd405f244274aacb0834",
+      "artifact": "docs/runs/campaign-2026-09-16-floor-it/verifier.txt"
+    }
+  ],
+  "unit": "floor-it-selftest",
+  "base_sha": "c46d4b3f3371e41408aed19e54476fa194c20b42",
+  "head_sha": "c46d4b3f3371e41408aed19e54476fa194c20b42",
+  "base_branch": "campaign/floor-it-selftest",
+  "contract": {
+    "source": "skills/floor-it/SKILL.md@c46d4b3f3371e41408aed19e54476fa194c20b42",
+    "digest": "6eab79297529a7ec3c70bf4a5ff6e6fbdd9a4cd5a45c5b9f49dc5cf76b8bbd39",
+    "criterion_ids": [
+      "DETECT",
+      "BOOTSTRAP",
+      "FREEZE-PARK"
+    ]
+  },
+  "criteria": [
+    {
+      "id": "DETECT",
+      "text": "Draft the dimension set with measured current values from the repo's own counters",
+      "addressed": true
+    },
+    {
+      "id": "BOOTSTRAP",
+      "text": "Integration BASE passes preflight (BASE != default, fork-point fresh)",
+      "addressed": true
+    },
+    {
+      "id": "FREEZE-PARK",
+      "text": "Headless freeze parks with a published proposal + human-handoff artifact (no auto-freeze)",
+      "addressed": true
+    }
+  ],
+  "negative_control": {
+    "did": "class analogue for report-only (evidence-manifest \u00a73 source-binding): every quoted measurement re-derives from transcripts/ at head_sha; absence probes (coverage exit=1, agentskills exit=1) recorded RED to prove the ledger is not green-only",
+    "result": "analogue satisfied: quoted lines exist at head_sha; RED probes present in commands[]",
+    "artifact": "docs/runs/campaign-2026-09-16-floor-it/transcripts/coverage-absent.txt",
+    "command": "python3 -m unittest discover -s tests",
+    "paths": []
+  },
+  "binding_audit": {
+    "coverage": "DETECT, BOOTSTRAP, FREEZE-PARK (3/3)",
+    "method": "criterion quoted, covering transcript quoted, absence probes RED"
+  },
+  "intent": {
+    "goal": "Run floor-it against orca-fleet itself through DETECT+BOOTSTRAP and park honestly at the human-only FREEZE",
+    "ruled_out": "auto-freezing thresholds, dispatching WIRE workers pre-freeze, writing an unfrozen CONSTRAINTS.md",
+    "why": "one-way doors are human-only; a headless run that defaulted policy into being would fabricate the bar it exists to enforce"
+  },
+  "lighting": "lit",
+  "artifacts": [
+    {
+      "path": "docs/runs/campaign-2026-09-16-floor-it/DECISIONS.md",
+      "sha256": "f4f4eaeb2909097833d6ade73aa8dfff387aa08e542d2f8d2483b28a382c5d9e"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-floor-it/DETECT.md",
+      "sha256": "53ac18844bc67547deeeee11628d29813b13a2f6457a7e17bbdfe192bd1244af"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-floor-it/FREEZE-PROPOSAL.md",
+      "sha256": "833d722f33d2621136535422371483c6e966f497894e3335d1653eddb000818b"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-floor-it/FREEZE-QUESTIONNAIRE.md",
+      "sha256": "927ab95cb4e8d69a9ada7c2630475c05e31c32061e372c2e7b8b758aa198b1d4"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-floor-it/LEDGER.md",
+      "sha256": "b42696d587f8c43f778eaa8d8e92082c2a5767c75ba773ad560bf93040ab3510"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-floor-it/REFLECTION.md",
+      "sha256": "3044faec5a495de946311cb7bf0aa65f6a0ce091317a5c4bbde0b984619039f7"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-floor-it/transcripts/agentskills-absent.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-floor-it/transcripts/bundle.txt",
+      "sha256": "60c5ec0dd1550fcfa204606144dd78efe48939f418ffafb0b53dd6f47e586c00"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-floor-it/transcripts/coverage-absent.txt",
+      "sha256": "a845f5439846d6ca4f7b589c5c5cfadc83084d8b95547b2aa824353eccdc9c83"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-floor-it/transcripts/final-tests.txt",
+      "sha256": "3f15525f9585c95856e32dba2e0b55891fdb5c32ff2837dee8ead553c6e003f7"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-floor-it/transcripts/final-validate.txt",
+      "sha256": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-floor-it/transcripts/gitleaks.txt",
+      "sha256": "1a145b27e2dc6b53d747306046080128010e3b55bad8cc58b27d9c9a5fec8d40"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-floor-it/transcripts/orca-status.txt",
+      "sha256": "f85b39f7164c34ae532f22f92cc51a5d38488800e9a0998adbc6b99b68b93556"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-floor-it/transcripts/preflight.txt",
+      "sha256": "dc5517ddd9ff5590971db13e48c2153ee58da5cadf26845a996b486002344651"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-floor-it/transcripts/proof-status.txt",
+      "sha256": "b1e6e3988e6142ce64be2e21c8dc24faee807d94db29b19a566f0dfcf436c110"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-floor-it/transcripts/routing.txt",
+      "sha256": "cf7aef8662b40390466e19c0a2b063df19961e5916b6d516ddc34f141002dc38"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-floor-it/transcripts/ruff.txt",
+      "sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-floor-it/transcripts/run-report.txt",
+      "sha256": "8d3a1a04b55019cd2139d4b54cc70aac27dbdc06214760c67fc1c2d44e3ba31d"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-floor-it/transcripts/unittests.txt",
+      "sha256": "3840dec722a1ec2e6516628d77a5dd2856e387de8639a83f900ef8004e01b4b0"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-floor-it/transcripts/validate.txt",
+      "sha256": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-floor-it/transcripts/vfbench.txt",
+      "sha256": "3e8d0abc965460c9b4b9abe46e409f02081697d982cb985b51a937bbda0b1f29"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-floor-it/verifier.txt",
+      "sha256": "fd243055755835026f75daeb42f37e518dc5f7335efb85e1b6d70fdfc4f1446a"
+    }
+  ],
+  "toolchain": "python 3.13.15, ruff+gitleaks (homebrew), orca runtime 1.4.203 reachable",
+  "parked": [
+    {
+      "item": "FREEZE + WIRE + PROVE-FIRES + ENFORCE + GUARD + VERDICT",
+      "reason": "one-way human gate (freeze) in a headless session",
+      "gate": "OPS-1"
+    }
+  ],
+  "claim": "FLOORED-WITH-PARKED (freeze park): 13 counters measured at c46d4b3, BASE preflight OK, proposal published, zero units dispatched"
+}
