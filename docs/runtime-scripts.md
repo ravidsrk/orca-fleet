@@ -61,7 +61,9 @@ history-discarding local git. When `ORCA_UNIT_WORKTREE` is set, writes outside i
 Edit/Write `file_path`, NotebookEdit `notebook_path`, and absolute-path Bash redirects and
 `tee` destinations — resolved through the full symlink chain.
 
-Exits: always 0 — the decision is the output, not the status.
+Exits: always 0 in hook-decision mode — the decision is the output, not the status.
+`--settings` exits 2 when the worktree is missing/invalid or python3 is absent; any other
+argument exits 2 as well.
 
 > Why: doctrine sits above the model and this sits below it — a read-write worker runs
 > with prompts turned down, so the hook is the only thing between an improvised command
@@ -81,9 +83,9 @@ Fail-loud scope classification: which review lenses a change earns. Emits shell-
 Usage: `diff_scope.py [--base REF] [--repo DIR] [--strict] [--json]` (also sourcable as
 `source <(diff_scope.py)`).
 
-Flags: `--base` (default origin/HEAD, then origin/main, main, master), `--repo` (default
-`.`), `--strict` (any unmatched path exits nonzero), `--json` (emit an object instead of
-shell assignments).
+Flags: `--base` (default origin/HEAD, then origin/main, origin/master, main, master),
+`--repo` (default `.`), `--strict` (any unmatched path exits nonzero), `--json` (emit an
+object instead of shell assignments).
 
 Changed set = committed diff vs merge base + working tree + untracked files. Twelve
 independent flags: `FRONTEND`, `BACKEND`, `PROMPTS`, `TESTS`, `DOCS`, `CONFIG`,
@@ -221,7 +223,8 @@ is an error. Gate ids look like `G1`. `stale` reports gates owed past N days and
 notifies; `render --check` verifies the view matches the store. `related`/`blocking` are
 store-only and never render.
 
-Exits: 0 ok (stale/list report exit 0 either way) · 2 usage or store error.
+Exits: 0 ok (stale/list report exit 0 either way) · 1 `render --check` drift (the view
+differs from the store) · 2 usage or store error.
 
 > Why: the 2026-09-14 run parked maintainer questions in a hand-edited file with no
 > schema, no state machine, and no reminder when a gate sat owed for days. The same gate
@@ -248,8 +251,9 @@ label, sanitized and capped), `--timeout` (fetch timeout seconds, default 60), `
 
 Labels (`[INJECTION-PATTERN:...]`): instruction-override, authority-claim,
 suppression-request, command-execution, role-play-marker — matched over an NFKC-folded
-copy with Unicode format characters stripped; the emitted text is always the original
-bytes. Forged banners inside the content are defused with a spliced zero-width space.
+copy with Unicode format characters stripped; the emitted text is the original bytes
+except for forged banners inside the content, which are defused with a spliced
+zero-width space (so byte-for-byte identity holds only when no banner is defused).
 Output is a rendering for a reader — never round-trip it into a live PR or issue.
 
 Exits: 0 envelope written · 2 usage error · 3 fetch failed or timed out (no envelope on stdout).
@@ -306,7 +310,9 @@ Flags: none — the single argument is the input file. There is no help flag: pa
 --help tries to read a file literally named --help.
 
 Output prints `MESSAGES: <n>`, then per message `ID`, `FROM`, `TYPE`, `SUBJ`, `BODY`,
-`PAYLOAD`. Missing fields print as `?`. Every printed field passes through escaping for
+`PAYLOAD`. Missing `ID`/`FROM`/`TYPE`/`SUBJ` print as `?`, but a missing `BODY` prints
+as an empty string and a missing `PAYLOAD` prints as `None`. Every printed field passes
+through escaping for
 C0/C1 controls, DEL, and invisible Unicode (Cf, Zl, Zp), so hostile text can neither
 drive the terminal nor reorder what it shows. Malformed segments are skipped line-wise
 (counted on stderr); envelopes carrying a `messages` key outside the expected shape warn
@@ -371,7 +377,9 @@ Agents: `claude`, `codex`, `cursor`, `gemini`, `grok`, `droid`, `opencode`, `omp
 (default `claude`; effort default `xhigh`); unknown agents refuse. Profiles: `ro`, `rw`
 (default), `danger` — least privilege; `danger` needs the ephemeral sandbox plus
 `ORCA_SANDBOX_RECIPE`, and the script runs the doctor transcript itself into
-`ORCA_SANDBOX_DOCTOR` for `runtime/scripts/sandbox_doctor.py`. Env: `SP` (receipt dir,
+`ORCA_SANDBOX_DOCTOR` for `runtime/scripts/sandbox_doctor.py`. Note: `danger` is
+currently undispatched — after a clear doctor the script still refuses with exit 2
+because no authoritative prelaunch placement binding is supported yet. Env: `SP` (receipt dir,
 default cwd), `PROFILE`, `ORCA_COORD_ALLOW_AUTONOMOUS_WRITE` (must be 1 for rw),
 `ORCA_COORD_ALLOW_DANGER` (must be 1 for danger), `ORCA_SANDBOX_RECIPE`,
 `ORCA_SANDBOX_DOCTOR`, `WORKER_CMD` (generic override; needs
