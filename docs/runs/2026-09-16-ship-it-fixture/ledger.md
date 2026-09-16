@@ -46,3 +46,11 @@ mapped), no gold, order correct, no stubs. Two non-blocking notes, both applied
   re-executed all 4 checks green in clean worktrees at C1/C2, and replayed the
   NC via verify.py (all other legs pass). S1–S4 specs amended with `## Criteria`
   blocks before dispatch; their scope legs run unmodified.
+- D4 (S1 scope+NC executed-control): (a) `SN-ACn` ids do not match CRIT_ID_RE
+  (digit-before-dash), so the taskspec-as-contract yields zero ids — coordinator
+  verified S1-AC1..3 ↔ checks mapping manually and re-executed all green.
+  S2–S4 close via coordinator-committed JSON contracts (criterion_ids arrays,
+  the preferred form) instead. (b) S1's NC diff has bare-empty context lines,
+  which verify.py's hunk grammar rejects though git applies it; coordinator
+  replayed the mutant manually: RED 3 failed/13 passed, GREEN 16 passed on
+  restore. S2–S4 workers instructed: space-prefix every context line in NC diffs.

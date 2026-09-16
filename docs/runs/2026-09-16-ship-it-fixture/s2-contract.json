@@ -1,0 +1,1 @@
+{"criterion_ids":["S2-AC1","S2-AC2","S2-AC3"],"criteria":[{"id":"S2-AC1","text":"full fixture pytest green"},{"id":"S2-AC2","text":"/, /issues/new, one /issues/{id} return 200 with key markers"},{"id":"S2-AC3","text":"ruff clean"}]}

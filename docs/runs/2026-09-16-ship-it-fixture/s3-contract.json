@@ -1,0 +1,1 @@
+{"criterion_ids":["S3-AC1","S3-AC2","S3-AC3","S3-AC4"],"criteria":[{"id":"S3-AC1","text":"fixture pytest green"},{"id":"S3-AC2","text":"compose smoke transcript at head (build, /healthz, PromQL, LogQL, teardown)"},{"id":"S3-AC3","text":"F1 measurable — seeded list endpoint >500ms documented with command"},{"id":"S3-AC4","text":"ruff clean"}]}
