@@ -55,3 +55,10 @@ for retro-confirmation; the work is evidence-bound either way. No blocking ask.
   suite passes with KNOWN_GAPS empty.
 - #235 (H-02 marketplace submissions): remains needs-human parked (external
   accounts/listings); the maintainer works it directly.
+
+## Resolutions (gate session 2026-09-16, reporter Ravindra — explicit)
+- G1: ANSWERED. (a) Key custody: maintainer holds the offline private key; agents verify against the public half. (b) Retention backend: Sigstore/Rekor anchor. (c) Transcript prerequisite: TRACKED work before signing lands. #386 unparked on these terms.
+- G2: APPLIED 2026-09-16 via API (receipt: main + review/2026-09-14-holistic-fixes protected — strict checks [gates, Greptile Review], 1 approval + dismiss-stale, conversation resolution, admins enforced, no force-push/deletion). Remainder (verdict-derived reviewed_sha==head_sha custom check) tracked as #452.
+- G3: WAIVED with record. Rationale: single GitHub identity makes independent APPROVEs impossible in-session; every merged unit carried a build-blind COMMENTED GO + coordinator-executed negative control + green CI, which the maintainer accepts as sufficient evidence. Waiver recorded here per the ask.
+- G4: CONFIRMED. Fixtures-plus-oracle overtake stands as built (U364 @ 1b64781, F-1 remediation @ 01d954e).
+- U434 (regen 401): maintainer will add the provider key as a repo/Actions secret; unit stays needs-human parked until the secret exists.
