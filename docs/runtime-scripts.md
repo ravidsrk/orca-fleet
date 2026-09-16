@@ -189,3 +189,22 @@ bytes. Forged banners inside the content are defused with a spliced zero-width s
 Output is a rendering for a reader — never round-trip it into a live PR or issue.
 
 Exits: 0 envelope written · 2 usage error · 3 fetch failed or timed out (no envelope on stdout).
+
+## `hitl-loop.template.sh`
+
+Template for a bounded human-in-the-loop reproduction loop — bugs that only reproduce
+through a human: a login, a device, a click. Copy it beside the diagnosis notes, edit
+only between the EDIT markers, run it from the diagnosis loop. Source
+`runtime/scripts/hitl-loop.template.sh:1-26`; behavior pinned by `tests/test_hitl_loop.py`.
+
+Usage: `hitl-loop.template.sh [--rounds N] [--dry-run] [--help]`
+
+Flags: `--rounds` (default 3; must be a number), `--dry-run` (no reads, placeholder
+answers, so the steps parse before a human sits through them), `--help`.
+
+Helpers: `step "<instruction>"` (show, wait for Enter), `capture VAR "<question>"` (ask,
+read the answer). Capture OBSERVATIONS, never actions. The verdict is the `REPRODUCED=`
+line (`REPRODUCED=yes` stops at once; otherwise `REPRODUCED=no` plus `ROUNDS_USED=` after
+N rounds) — never the exit code. A checkpoint step ends each unreproduced round.
+
+Exits: 0 done · 2 usage.
