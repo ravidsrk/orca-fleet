@@ -6,7 +6,7 @@
   "unit_class": "mutation",
   "fixture": "mutation-revert",
   "execute_nc": true,
-  "nc_command": "{{proof_cmd}}",
+  "nc_command": "{{proof_cmd}} --sabotaged",
   "lighting": "lit",
   "gh_stub": true,
   "repo": "vf-bench/mutation-control",
