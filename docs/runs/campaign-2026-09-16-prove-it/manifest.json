@@ -1,0 +1,15 @@
+{
+  "commands": [
+    {
+      "label": "tests",
+      "ts": "2026-09-16T13:27:06Z",
+      "cmd": "python3 -m unittest tests.test_verify.OracleScopeCharacterizationGateTest",
+      "cmd_sha256": "dd30015823d49b8b7b7b6cfa4567b90f93a3f408edc153bef3740253c58ef98b",
+      "exit": 0,
+      "duration_s": 0.318,
+      "commit": "18ee8633720835c88e4f5401d3be59f254069fa4",
+      "wtree": "dd57b4dd3b4beb45809e1c1f785f584097c60f94",
+      "artifact": "docs/runs/campaign-2026-09-16-prove-it/tests.txt"
+    }
+  ]
+}

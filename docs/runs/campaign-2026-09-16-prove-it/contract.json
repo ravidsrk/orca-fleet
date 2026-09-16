@@ -1,0 +1,34 @@
+{
+  "criteria": [
+    {
+      "id": "PF-3",
+      "text": "verify.py check_oracle_scope refuses a characterization oracle_scope over a commit pair that changes no test, and admits a pair that changes a test past that gate (falling through to the pinned hand-mutant requirement)."
+    }
+  ],
+  "criterion_ids": [
+    "PF-3"
+  ],
+  "dispatch": {
+    "authorized_by": "workflow-host campaign task (spawned session, explicit 'run the mission for real'); interactive human scope confirm NOT obtained \u2014 backstop: this run pushes nothing, opens no PRs, merges nothing; any promotion rides a human-reviewed PR",
+    "lighting": "dark-eligible",
+    "why": "characterization-test-only change on reversible fixtures, oracle is types/tests \u2014 gate-classification.md's concrete dark-eligible example"
+  },
+  "frozen_at": "2026-09-16T13:17:19Z",
+  "mission": "prove-it",
+  "note": "Denominator frozen before the characterization wave. Single-criterion wave: the oracle-scope tail below PF-2 holds several untested refusal gates (MAP.md); this wave pins the characterization must-change-a-test gate only \u2014 siblings stay future work, not silent scope. oracle_scope coordinates are authorized after mutant inspection, per evidence-manifest.md section 1 (Coordinator oracle scope).",
+  "run": "2026-09-16 campaign self-test (prove-it against orca-fleet at c46d4b3f)",
+  "oracle_scope": {
+    "kind": "characterization",
+    "base_sha": "c46d4b3f3371e41408aed19e54476fa194c20b42",
+    "head_sha": "18ee8633720835c88e4f5401d3be59f254069fa4",
+    "criterion_ids": [
+      "PF-3"
+    ],
+    "paths": {
+      "runtime/scripts/verify.py": [
+        1012
+      ]
+    },
+    "artifact_sha256": "04a10bc5e606bce43556a0a60b14359298a23bd75dd7113e6207a2dfea30496e"
+  }
+}
