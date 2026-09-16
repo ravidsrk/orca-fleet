@@ -125,7 +125,15 @@ installed recorder. Full output is also retained at
 
 `python3 runtime/scripts/evidence-run.py --label 'promotion re-verification 2026-09-16 (run close-time invocation, rerun)' --manifest docs/runs/2026-09-14-clean-sweep-tracker/u387p-manifest.json --artifact docs/reports/clean-sweep-selfrun/verifier-u387p.txt -- python3 runtime/scripts/verify.py --manifest docs/runs/2026-09-14-clean-sweep-tracker/u387p-manifest.json --contract-source docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/build-387-process.md@719d997be28476c382660f3f37d829e597130ce9 --contract-digest sha256:d2b868060256e8ff541121e8eb1897d9f94b7d3e0eccf45f02e068313414331f --nc-command 'sh docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh' --execute-nc --base review/2026-09-14-holistic-fixes --unit-class mutation`
 
-TRANSCRIPT-PENDING (pasted from the evidence-run artifact before close, with exit code)
+Output verbatim (exit 0), byte-identical to
+`docs/reports/clean-sweep-selfrun/verifier-u387p.txt`:
+
+```
+NOTE: commands ledger FRESH — 3 exit-0 record(s) bound to head_sha's tree 97a41a299b6a. This is the worker's own runner, so the coordinator's clean-env re-run at head_sha still stands as the stronger authority (evidence-manifest.md §2)
+NOTE: negative control EXECUTED — with the revert control applied at head_sha the bound command exited 1 on an assertion failure (RED, as required)
+NOTE: the same command exits 0 at clean head_sha — the RED above is the control's doing, not a broken suite
+verify: OK — all required checks passed
+```
 
 The `RUN:` header records `verifier=GREEN`: scope (authoritative contract
 digest matches; `C-1`..`C-5` cover the frozen spec), real commits, freshness
@@ -198,23 +206,23 @@ bytes; the authoritative frozen contract is the `@719d997` blob whose digest
 the verifier checked (re-derived `d2b86806…` at close and 2026-09-16).
 
 ```
-0000000000000000000000000000000000000000000000000000000000000000  docs/runs/2026-09-14-clean-sweep-tracker/u387p-manifest.json
-0000000000000000000000000000000000000000000000000000000000000000  docs/runs/2026-09-14-clean-sweep-tracker/u387p-negctrl.txt
-0000000000000000000000000000000000000000000000000000000000000000  docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh
-0000000000000000000000000000000000000000000000000000000000000000  docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/build-387-process.md
-0000000000000000000000000000000000000000000000000000000000000000  docs/runs/2026-09-14-clean-sweep-tracker/gate-batch.md
-0000000000000000000000000000000000000000000000000000000000000000  docs/runs/2026-09-14-clean-sweep-tracker/stabilize-manifest.json
-0000000000000000000000000000000000000000000000000000000000000000  docs/runs/2026-09-14-clean-sweep-tracker/u364-manifest.json
-0000000000000000000000000000000000000000000000000000000000000000  docs/runs/2026-09-14-clean-sweep-tracker/u364ff-manifest.json
-0000000000000000000000000000000000000000000000000000000000000000  docs/runs/2026-09-14-clean-sweep-tracker/u385-manifest.json
-0000000000000000000000000000000000000000000000000000000000000000  docs/runs/2026-09-14-clean-sweep-tracker/u388-manifest.json
-0000000000000000000000000000000000000000000000000000000000000000  docs/runs/2026-09-14-clean-sweep-tracker/u389-manifest.json
-0000000000000000000000000000000000000000000000000000000000000000  docs/runs/2026-09-14-clean-sweep-tracker/u393-manifest.json
-0000000000000000000000000000000000000000000000000000000000000000  docs/runs/2026-09-14-clean-sweep-tracker/u387g-manifest.json
-0000000000000000000000000000000000000000000000000000000000000000  docs/runs/2026-09-14-clean-sweep-tracker/u387w-manifest.json
-0000000000000000000000000000000000000000000000000000000000000000  docs/runs/2026-09-14-clean-sweep-tracker/u393r-manifest.json
-0000000000000000000000000000000000000000000000000000000000000000  docs/runs/2026-09-14-clean-sweep-tracker.md
-0000000000000000000000000000000000000000000000000000000000000000  docs/reports/clean-sweep-selfrun/verifier-u387p.txt
+51950cfc0586b74b37b830c52835cefc34c980735936ec97cc81c5f6ec48aa20  docs/runs/2026-09-14-clean-sweep-tracker/u387p-manifest.json
+d763ba782ef7b7a7fb7cd4e2c06d31d290e7e4ba7951f20c7ea0439d26c18d77  docs/runs/2026-09-14-clean-sweep-tracker/u387p-negctrl.txt
+324c9024cba05d00a05db05308b0a8f17e0f111f2063be38ef31e762e2138af0  docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh
+d2b868060256e8ff541121e8eb1897d9f94b7d3e0eccf45f02e068313414331f  docs/runs/2026-09-14-clean-sweep-tracker/taskspecs/build-387-process.md
+8350348b78f2862432fe57ef219896ae9603b2d97e028fbd767ebe72ad9d9b7c  docs/runs/2026-09-14-clean-sweep-tracker/gate-batch.md
+361eebbd25e4fe09661eb98e5d98ea5a06410109a9fca7a0815cd08b6675e6b9  docs/runs/2026-09-14-clean-sweep-tracker/stabilize-manifest.json
+f1f4192b58dcca9568e34fd59d763992044989955ef41638d3db7f0743b31f7b  docs/runs/2026-09-14-clean-sweep-tracker/u364-manifest.json
+6e4cea239af372f6cd5bd0aebd07024dab7c4f031f40804d62e1a4823c63e06e  docs/runs/2026-09-14-clean-sweep-tracker/u364ff-manifest.json
+c2857c9b352dfca928923bdb0d5927948e5154e590544c9b9d8cb511a62ea2de  docs/runs/2026-09-14-clean-sweep-tracker/u385-manifest.json
+d83d5bc50af8c4ef97f32df282281d34b3c98e29db6cdc1925d932e19230cc6e  docs/runs/2026-09-14-clean-sweep-tracker/u388-manifest.json
+5f94855bac04938720c67dcf47c2ef870f05cb4df38bcb6f27f68a588c8b39e2  docs/runs/2026-09-14-clean-sweep-tracker/u389-manifest.json
+cdb6adad5d689c07b6c860411bb145614e9219ca001a130fa0b0bec224013f96  docs/runs/2026-09-14-clean-sweep-tracker/u393-manifest.json
+1760fb0052a40b8b40c9032bdbabb804da5021fbf946b6ce4704f80312f7a39f  docs/runs/2026-09-14-clean-sweep-tracker/u387g-manifest.json
+95fb9ce1fd4753d4fa00f7c8e8ea4c87f7330c46bcbc8bbf856812c3e4e80674  docs/runs/2026-09-14-clean-sweep-tracker/u387w-manifest.json
+3ff7add7f9fc459cb520b68a522a9471b77937bd4b1f787c7ba6718f7db244e7  docs/runs/2026-09-14-clean-sweep-tracker/u393r-manifest.json
+972c9c1ba95fb1c7f46956bb192e6f740e9e82bcaa350b32d5337ee3672cb34b  docs/runs/2026-09-14-clean-sweep-tracker.md
+de459793d0070d5bafca2e2af6a1d0b1b687a10bb05aa19a96e6902d274a65a9  docs/reports/clean-sweep-selfrun/verifier-u387p.txt
 ```
 
 ## Gates
