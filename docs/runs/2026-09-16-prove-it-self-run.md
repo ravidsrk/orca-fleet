@@ -1,6 +1,6 @@
 # Run report — prove-it self-run, 2026-09-16
 
-RUN: mission=prove-it tier=self-run inventory_at=5467fd54275469835fd151fea11a14ab81fab6d0 manifest=docs/runs/2026-09-16-prove-it-selfrun/manifest.json verifier=GREEN waves=1
+RUN: mission=prove-it tier=self-run inventory_at=f5c69f1783804d1f7a38589310499e6754b4abde manifest=docs/runs/2026-09-16-prove-it-selfrun/manifest.json verifier=GREEN waves=1
 
 The header above is what `runtime/scripts/run_report.py` re-derives: mission and tier match the frontmatter claim; the inventory below re-hashes 16/16 at the header commit; the manifest exists at that commit inside this run's own directory and is pinned by the inventory; the manifest's ledger carries the recorded `verify.py` run against itself (exit 0) — the binding record is the promotion-time re-record (D6), whose `wtree` is a pushed commit's tree; and the WIP-curve row records the single dispatch wave. First catalog run to bind: the archive's `Binds?` column reads `yes` for the first time.
 
