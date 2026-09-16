@@ -83,8 +83,8 @@
   "head_sha": "a46671986b2542b2da6d8e349ecf6c216f9ecc25",
   "base_branch": "main",
   "contract": {
-    "source": "docs/runs/2026-09-16-prove-it-selfrun/contract.json@7942be928fc96b66597616690fc3d01edf5c94a6",
-    "digest": "sha256:f17d6eb9b39caa1719b257fbe609a9b595e4d083ec75d5a106920791ec89b734",
+    "source": "docs/runs/2026-09-16-prove-it-selfrun/contract.json@24de9f93307b36be11f10476fbc0e22424729abc",
+    "digest": "sha256:0f8836ef4fd16067f176f68abf02e437f9c87c16bbb31c109afa24c857fa8d8c",
     "criterion_ids": [
       "PF-2"
     ]
@@ -209,12 +209,16 @@
     {
       "path": "docs/runs/2026-09-16-prove-it-selfrun/coverage-rerun.txt",
       "sha256": "f7e56ad1522a8a99902784aaedc6a407c16f41119a468b61fcf161d01cd687e6"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/review-rerun.txt",
+      "sha256": "de33a0b64c734086ce3e152f6ab39b55d9fccc521a4fe81455f2b47ab8229a15"
     }
   ],
   "reviewer_mode": "cross-vendor",
   "review": {
-    "artifact": "docs/runs/2026-09-16-prove-it-selfrun/review.txt"
+    "artifact": "docs/runs/2026-09-16-prove-it-selfrun/review-rerun.txt"
   },
-  "toolchain": "CPython 3.13.15 on macOS arm64; git; unittest; claude CLI 2.1.272 (reviewer); builder claude-opus-5[1m] (Orca worker task_2f6b230aab94) via Orca (wave 2)",
-  "claim": "PF-2 characterized by OracleScopeKindTest (4 tests), pinned hand mutant m1 KILLED with supporting mutants m2/m3/m4 KILLED (wave-2 re-execution), build-blind review pending."
+  "toolchain": "CPython 3.13.15 on macOS arm64; git; unittest; claude CLI 2.1.272 (reviewer); builder claude-opus-5[1m] (Orca worker task_2f6b230aab94) via Orca (wave 2); reviewer grok-4.6 via Orca (wave 2, task_065e9d165753)",
+  "claim": "PF-2 characterized by OracleScopeKindTest (4 tests), pinned hand mutant m1 KILLED with supporting mutants m2/m3/m4 KILLED (wave-2 re-execution), build-blind cross-vendor review GO (round 1)."
 }
