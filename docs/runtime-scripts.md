@@ -279,3 +279,32 @@ typed refusal code) · 3 custom-argv turn UNPROVEN (inspect, never respawn, neve
 re-Enter) · 4 supervised outcome_unknown (inspect via the receipt's nextCommands, never
 respawn) · 5 LAUNCHED_UNUSABLE (worker live but the profile flag unproven — stop it, fix
 the host).
+
+## `watchdog.py`
+
+Liveness watchdog: mechanized first response from the worker-supervision policy.
+Classifies workers OK/SLOW/HUNG/WEDGED from a heartbeats snapshot, auto-nudges HUNG
+once, recommends stop-redispatch on still-HUNG or WEDGED. Source
+`runtime/scripts/watchdog.py:1-53`; behavior pinned by `tests/test_watchdog.py`.
+
+Usage: `watchdog.py --heartbeats SNAPSHOT [--config FILE] [--state FILE] [--log FILE] [--now ISO] [--dry-run]`
+
+Flags: `--heartbeats` (required JSON snapshot: run id plus per-worker dispatch,
+movement, stop, terminal, wedge markers, nudge history), `--config`
+(threshold/rate-limit JSON, default `runtime/watchdog.json`), `--state` (nudge-history
+JSON, default .orca/watchdog-state.json), `--log` (JSONL action log, default
+.orca/watchdog.jsonl), `--now` (override the tick timestamp), `--dry-run` (classify
+only: print WOULD-nudge/WOULD-recommend, change nothing — the mode for CI and cautious
+coordinators).
+
+Classes: `OK` (movement within slow_after_s), `SLOW` (idle past slow_after_s but short of
+hung_after_s and STOP — no action), `HUNG` (idle past hung_after_s, or past STOP with no
+report — one auto-nudge, then a stop-redispatch recommendation), `WEDGED` (explicit wedge
+markers, or transcript frozen past wedge_frozen_s beyond STOP with an unanswered nudge —
+immediate recommendation, never nudged). Live mode execs `nudge_command` with argv
+placeholders and refuses to run without one configured. Rate limits cap nudges per
+dispatch, spacing per worker, and nudges per worker per hour; history persists in the
+state file across invocations.
+
+Exits: 0 tick done, nothing needs the coordinator · 1 at least one (WOULD-)recommendation
+· 2 could-not-run.
