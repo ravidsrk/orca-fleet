@@ -2,7 +2,7 @@
 
 RUN: solo-no-orca-run · COORDINATOR: workflow-child-a4a0bde3 · BASE: campaign/document-it-selftest · FORK_POINT: 6390743815f8f435181fa410cce374587128b30a · T0: 2026-09-16T10:06:08Z · SOURCE: extractor `python3 docs/runs/campaign-2026-09-16-document-it/extractor/extract.py` digest sha256:058e51cdf0384da8e4f1d958f115a5beac080c453fc796c1849921a00022993a (57 entities) · WIP: builders=1 reviewers=1
 
-PHASE: FREEZE
+PHASE: BUILDING
 
 Worker pack router: matt (sole router for every cell worker; addy never co-mounted).
 No-gh lane: local-merge chain on BASE, one commit per cell, `no-gh: local-merge`.
@@ -11,7 +11,7 @@ solo self-test; the mechanical oracle is the claim check + rename control + re-d
 
 | task_id | entity | quadrant | GAP | BUILD_DONE | CLAIMS_OK | NC_RED | PR_OPEN | BOT | REVIEWED | MERGED | REACHABLE | WT_CLEAN | lighting | park | evidence |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| doc-r01 | cli:runtime/scripts/decisions.py | reference | critical | f | f | f | n/a | n/a | f | f | f | n/a | lit | | |
+| doc-r01 | cli:runtime/scripts/decisions.py | reference | critical | t | t | t | n/a | n/a | t | f | f | n/a | lit | | cells/doc-r01.md |
 | doc-r02 | cli:runtime/scripts/deny-hook.sh | reference | critical | f | f | f | n/a | n/a | f | f | f | n/a | lit | | |
 | doc-r03 | cli:runtime/scripts/diff_scope.py | reference | critical | f | f | f | n/a | n/a | f | f | f | n/a | lit | | |
 | doc-r04 | cli:runtime/scripts/ed25519.py | reference | critical | f | f | f | n/a | n/a | f | f | f | n/a | lit | | |
