@@ -52,3 +52,24 @@ Edit/Write `file_path`, NotebookEdit `notebook_path`, and absolute-path Bash red
 `tee` destinations — resolved through the full symlink chain.
 
 Exits: always 0 — the decision is the output, not the status.
+
+## `diff_scope.py`
+
+Fail-loud scope classification: which review lenses a change earns. Emits shell-safe
+`SCOPE_<FLAG>=true|false` assignments (sourcable) or a JSON object. Source
+`runtime/scripts/diff_scope.py:1-75`; behavior pinned by `tests/test_diff_scope.py`.
+
+Usage: `diff_scope.py [--base REF] [--repo DIR] [--strict] [--json]` (also sourcable as
+`source <(diff_scope.py)`).
+
+Flags: `--base` (default origin/HEAD, then origin/main, main, master), `--repo` (default
+`.`), `--strict` (any unmatched path exits nonzero), `--json` (emit an object instead of
+shell assignments).
+
+Changed set = committed diff vs merge base + working tree + untracked files. Twelve
+independent flags: `FRONTEND`, `BACKEND`, `PROMPTS`, `TESTS`, `DOCS`, `CONFIG`,
+`MIGRATIONS`, `API`, `AUTH`, `SECURITY`, `A11Y`, `PERF` — path signals plus working-tree
+content signals (capped at 256 KiB per file; deleted files contribute path signals only).
+Only `BACKEND` is exclusive of frontend view files.
+
+Exits: 0 classified · 2 SCOPE_ERROR=no_base|diff_failed|unmatched.
