@@ -25,6 +25,14 @@
   <a href="docs/ops.md">Ops</a>
 </p>
 
+**Install — one command** (needs `git` + Python ≥ 3.13; to *run* missions add Orca ≥ v1.4.200, `gh`, Claude Code — [pinned list](docs/distribution.md#prerequisites-pinned)):
+
+```bash
+git clone https://github.com/ravidsrk/orca-fleet.git && cd orca-fleet && sh scripts/install.sh
+```
+
+The installer validates the catalog, links every mission into `~/.claude/skills`, and tells you how to wire the completion gate. Verified from a clean container ([transcript](docs/completion/evidence/414-clean-container-install.txt)); every install-path PR re-runs it in CI.
+
 ---
 
 **orca-fleet** is a catalog of missions for the [Orca](https://github.com/stablyai/orca) runtime.
@@ -102,16 +110,19 @@ that missions compose — one pack per worker, never two in the same context
   </picture>
 </p>
 
-Every mission has a hard dependency on companions not published in this repo:
+Every mission has a hard dependency on companions not published in this repo
+(the enforced-vs-observed pin table is in [distribution](docs/distribution.md#prerequisites-pinned)):
 
-1. **The Orca app**, running, with the orchestration experimental feature enabled.
+1. **The Orca app**, running, with the orchestration experimental feature enabled — at or above
+   the catalog pin, currently **v1.4.200** (`runtime/pins.json`; the installer warns below it).
 2. **The `orca` CLI** (`orca-ide` on Linux outside Orca terminals).
 3. **Orca's two public skills, `orchestration` and `orca-cli`**, installed for the agent host —
    they provide the worktrees, terminals, task DAG, ask/reply and `worker_done` primitives.
    orca-fleet is the *outcome* layer; those two are the *substrate*, and without them no mission
    can dispatch.
 4. **`git` and `gh`**, authenticated — or a tracker reachable via `orca linear`.
-5. **Python 3.13** for the catalog gates and the runtime scripts; stdlib only.
+5. **Python 3.13** for the catalog gates and the runtime scripts; stdlib only. The installer
+   refuses to run below 3.13.
 
 Each mission declares any extra tooling in its `SKILL.md` frontmatter; the per-mission list lives
 in [Getting started](docs/getting-started.md#prerequisites).
@@ -414,8 +425,10 @@ counts as a new mission versus a new playbook, is in [ARCHITECTURE.md](ARCHITECT
 Two paths work today and a third does not yet; each is walked step by step in
 [docs/install.md](docs/install.md).
 
-- **Symlink individual missions** (recommended while evaluating): the Quick start above, one
-  `ln -s` per mission, then wire the completion gate with `sh hooks/print-settings-snippet.sh`.
+- **Symlink the catalog** (recommended while evaluating): the one command at the top —
+  `sh scripts/install.sh` validates the catalog and links every mission, or hand-roll one
+  `ln -s` per mission as in the Quick start above — then wire the completion gate with
+  `sh hooks/print-settings-snippet.sh`.
 - **Claude Code plugin** (whole catalog): `/plugin marketplace add ravidsrk/orca-fleet`, then
   `/plugin install orca-fleet`. The gate wires itself.
 - **skills CLI**: not from this repository, today. A copy installer severs the tree a mission

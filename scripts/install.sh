@@ -124,5 +124,9 @@ if [ "$MODE" = "install" ]; then
 fi
 if [ "$WARN" -gt 0 ]; then
   say ""
-  say "$WARN warning(s): install complete, but missions will not RUN until these clear."
+  if [ "$MODE" = "install" ]; then
+    say "$WARN warning(s): install complete, but missions will not RUN until these clear."
+  else
+    say "$WARN warning(s): install verifies, but missions will not RUN until these clear."
+  fi
 fi
