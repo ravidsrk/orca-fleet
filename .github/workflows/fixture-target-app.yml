@@ -1,0 +1,30 @@
+# Slice S0 skeleton: pytest + ruff jobs. S4 owns smoke/CI wiring.
+name: fixture-target-app
+
+on:
+  push:
+    paths:
+      - "demo/target-app/**"
+      - ".github/workflows/fixture-target-app.yml"
+  pull_request:
+    paths:
+      - "demo/target-app/**"
+      - ".github/workflows/fixture-target-app.yml"
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: demo/target-app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv run pytest
+
+  ruff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uvx ruff check demo/target-app

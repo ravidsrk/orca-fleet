@@ -1,0 +1,10 @@
+# Slice S0 skeleton: app service only. S3 owns staging/telemetry/observability.
+services:
+  app:
+    image: python:3.13-slim
+    working_dir: /srv/app
+    volumes:
+      - .:/srv/app
+    command: sh -c "pip install --quiet -e . && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    ports:
+      - "8000:8000"
