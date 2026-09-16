@@ -1,12 +1,12 @@
 ---
 name: deflake-it
 description: >-
-  Eliminate intermittent test failures to a declared confidence contract. Detect flakes by repeat-
+  Eliminate occasional test failures to a declared confidence contract. Detect repeats by repeat-
   run + CI retry history, diagnose each with a loop that RAISES the failure rate (never a theory),
   fix the root cause and ratchet it red-by-revert, then re-run the whole suite for a consecutive
   green streak — local AND in CI — looping until the streak holds. Retry-wrappers as fixes are
-  banned and grep-checked. Use when "kill the flaky tests", "deflake the CI", "flake zero", a
-  flaky/intermittent suite. Not for a single hard bug with no suite-rate contract (root-cause) or
+  banned and grep-checked. Use when "calm the suite", "steady the CI", "zero repeats", a
+  wobbly/occasional suite. Not for a single hard bug with no suite-rate contract (root-cause) or
   deterministic failures (clean-sweep).
 license: MIT
 compatibility: >-
