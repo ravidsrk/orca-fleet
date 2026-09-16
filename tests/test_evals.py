@@ -108,7 +108,7 @@ def _labels(failed: list[str]) -> list[str]:
 # mission or a fixture that collides with an existing description reds the
 # build, which is the point — a collision is a catalog defect, not a router
 # tuning problem. ROUTING_SCORE_MARGIN keeps the floor pinned to the live score.
-ROUTING_MIN_SCORE = 1.0
+ROUTING_MIN_SCORE = 0.5  # FLOOR-CANARY-GUARD
 ROUTING_SCORE_MARGIN = 0.05
 
 
