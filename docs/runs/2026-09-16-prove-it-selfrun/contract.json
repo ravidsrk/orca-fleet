@@ -17,7 +17,7 @@
   "note": "Denominator frozen before the characterization wave. oracle_scope coordinates are authorized after mutant inspection, per evidence-manifest.md section 1 (Coordinator oracle scope).",
   "oracle_scope": {
     "kind": "characterization",
-    "base_sha": "eacd4cfa7f178cb4c473bd0fdbc8d5c5743ef959",
+    "base_sha": "f5df568649d02dd862460275e4c3fd504095253a",
     "head_sha": "a46671986b2542b2da6d8e349ecf6c216f9ecc25",
     "criterion_ids": ["PF-2"],
     "paths": {
