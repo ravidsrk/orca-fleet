@@ -1,0 +1,39 @@
+# gitleaks scope note — why final-gates FAIL=1 is environmental (observed 2026-09-16)
+
+`final-gates.txt` (BASE tip `55d4561`) records FAIL=1 on exactly one step:
+`gitleaks detect --redact --no-banner --source .` (default scope), `leaks found: 6`.
+All other 13 steps exit 0, including `Ran 1490 tests … OK`.
+
+Finding attribution (default scope, `--verbose`, secrets redacted by the tool):
+
+- 6/6 findings live in `docs/runs/campaign-2026-09-16-harden-it/` (a PARALLEL
+  sibling campaign): 5× `aws-access-token` in `receipts/gitleaks-audit.json`
+  (commit `f0c83cb`, 2026-09-16T12:42:42Z) + 1× `generic-api-key` in
+  `ADDENDUM-gitleaks-waiver.md` (commit `57760b6`, 2026-09-16T12:49:18Z).
+- 0/6 findings touch this run's files, and both commits are NOT ancestors of this
+  run's HEAD (`git merge-base --is-ancestor … HEAD` → NOT reachable; they live on
+  sibling branch `campaign/harden-it-selftest`, visible here only because linked
+  worktrees share one object store + refs).
+
+Scope comparison (same worktree, same HEAD `55d4561`, exit codes via pipefail):
+
+| Scope | Commits scanned | Result | Exit |
+|---|---|---|---|
+| default (`gitleaks detect --source .`) | 1017 | leaks found: 6 (all sibling) | 1 |
+| `--log-opts="--all"` | 1017 | leaks found: 6 (identical set) | 1 |
+| `--log-opts="HEAD"` (this run's history only) | 947 | no leaks found | 0 |
+| `--no-git --source docs/runs/campaign-2026-09-16-modernize-it/` | 66.66 KB | no leaks found | 0 |
+
+Conclusion: gitleaks' default scope is `--all` (every ref in the shared store),
+so a sibling campaign's mid-run commits red-den this run's default-scope step.
+This run's own history and evidence are clean under HEAD scope and files-only
+scope. In real CI (fresh single-branch clone) the default scope sees only the
+PR's history and stays green. The sibling's waiver state is their run's
+business — untouched here (their ADDENDUM filename shows they are managing it).
+
+Side observation (fingerprint-scope artifact, not a leak): `--log-opts=
+"--first-parent HEAD"` surfaces 3 findings in `tests/test_decisions.py` at
+commit `2a9cb3a` (2026-09-10, PR #277) — the repo's long-waived credential-shaped
+fixtures. `.gitleaksignore` fingerprints embed the commit, so a different
+traversal attributes the same blob to a commit the waiver doesn't name. Default
+and HEAD scopes match the waiver and stay silent on those lines.

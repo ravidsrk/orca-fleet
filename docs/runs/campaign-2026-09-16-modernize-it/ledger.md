@@ -2,7 +2,17 @@
 
 RUN: - (solo coordinator outside any Orca terminal; `orca orchestration run-create` refused `no_active_sender_terminal`; zero dispatches planned) · COORDINATOR: workflow-child session 46f45671 (Muse Code, no Orca terminal handle) · BASE: campaign/modernize-it-selftest-BASE · FORK_POINT: c46d4b3f3371e41408aed19e54476fa194c20b42 · T0: 2026-09-16T12:25:39Z · SOURCE: inventory docs/runs/campaign-2026-09-16-modernize-it/inventory.md @ sha256:161e04fdf5d952f7 · WIP: builders=1 reviewers=0
 
-PHASE: SHIPPING
+PHASE: DONE
+
+## Close
+
+- Outcome CURRENT (1/1 units merged, 0 advisories, 0 pins). Report + reflection
+  beside this ledger; integrity inventory in the report re-hashes at the
+  evidence commit named by its RUN header. Promotion PR to default: OWED, human.
+- Backlog noticed-but-not-touched: runs-README modernize-it row is stale
+  ("no dependencies" predates #301) — flagged in REFLECTION, not edited (needs
+  maintainer approval per compound-learn).
+- OPS queue: none (no CODE_CLOSED, no VERIFY_AT_SCALE, no Lane-0).
 
 Lane: task-constrained no-gh local-merge (task forbids push/PRs/merge-to-default; gh reads allowed, no PR objects).
 Preflight: `python3 runtime/scripts/preflight.py --base campaign/modernize-it-selftest-BASE --fork-point c46d4b3f3371e41408aed19e54476fa194c20b42` → exit 0 (BASE tip == default tip warning, expected for fresh BASE).
