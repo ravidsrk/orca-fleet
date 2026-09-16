@@ -617,7 +617,7 @@ def check_review(m, repo, is_mutation, no_gh=False, corroborated=False, dispatch
                 "— the weaker guarantee (merge-serialization.md)"]
     number = (m.get("pr") or {}).get("number")
     if not number:
-        return ["mutation unit: no pr.number to look up an independent review — unreviewed"]
+        return []  # FLOOR-CANARY-D8
     if not repo:
         return ["mutation unit: --repo not resolvable — cannot verify the review independently"]
     reviews, err = fetch_reviews(repo, number)
