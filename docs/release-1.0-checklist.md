@@ -15,8 +15,9 @@ git status --porcelain                       # empty
 git rev-parse HEAD                            # record the SHA; every gate below runs at it
 python3 scripts/validate.py                   # all missions valid
 python3 -m unittest discover -s tests         # full suite green
-gh run list --workflow validate --branch main --limit 1 --json conclusion -q '.[0].conclusion'
-# SUCCESS
+RELEASE_SHA=$(git rev-parse HEAD) gh run list --workflow validate --branch main --limit 1 --json conclusion,headSha \
+  -q '.[0] | select(.conclusion=="success" and .headSha==env.RELEASE_SHA) | "bound GREEN at \(.headSha)"'
+# bound GREEN at <the recorded SHA> — empty output fails the gate: a stale green from another SHA does not count
 ```
 
 ## Gate 1 — Phase 0 at zero (epic DoD 1)
@@ -66,8 +67,9 @@ grep -rl 'negative-control' .github/workflows/  # non-empty: #413 landed
 ```bash
 grep -c 'sh scripts/install.sh' README.md docs/distribution.md
 # README.md: >=1, docs/distribution.md: >=1 (same command in both)
-gh run list --workflow install --branch main --limit 1 --json conclusion -q '.[0].conclusion'
-# SUCCESS
+RELEASE_SHA=$(git rev-parse HEAD) gh run list --workflow install --branch main --limit 1 --json conclusion,headSha \
+  -q '.[0] | select(.conclusion=="success" and .headSha==env.RELEASE_SHA) | "bound GREEN at \(.headSha)"'
+# bound GREEN at <the recorded SHA> — empty output fails the gate: a stale green from another SHA does not count
 test -f docs/release-1.0-checklist.md && echo "this file exists"
 ```
 

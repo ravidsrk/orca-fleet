@@ -54,7 +54,11 @@ ORCA_MIN="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["orc
 if command -v orca >/dev/null 2>&1 || command -v orca-ide >/dev/null 2>&1; then
   ORCA_BIN="$(command -v orca || command -v orca-ide)"
   ORCA_VER="$("$ORCA_BIN" --version 2>/dev/null | head -n 1 || true)"
-  if [ -n "$ORCA_MIN" ] && [ -n "$ORCA_VER" ]; then
+  if [ -z "$ORCA_MIN" ]; then
+    warn "cannot read the Orca version pin (runtime/pins.json) — unable to verify the Orca floor"
+  elif [ -z "$ORCA_VER" ]; then
+    warn "orca CLI at $ORCA_BIN returned no version output — unable to verify it meets the catalog pin ${ORCA_MIN}"
+  else
     python3 - "$ORCA_VER" "$ORCA_MIN" 2>/dev/null <<'PY' || warn "orca CLI reports '${ORCA_VER:-unknown}', below the catalog pin ${ORCA_MIN} (runtime/pins.json); missions may misbehave"
 import re, sys
 def parts(s):
@@ -79,6 +83,16 @@ if [ "$MODE" = "install" ]; then
   say "validating the catalog..."
   python3 "$ROOT/scripts/validate.py" || die "scripts/validate.py failed — refusing to install a broken catalog"
   mkdir -p "$SKILLS_DIR"
+  # Pre-check every destination BEFORE linking anything: a conflict in a
+  # later mission must refuse the whole install, not leave a partial one.
+  for d in "$ROOT"/skills/*/; do
+    [ -f "$d/SKILL.md" ] || continue
+    m="$(basename "$d")"
+    case "$m" in .*|_*) continue ;; esac
+    if [ -e "$SKILLS_DIR/$m" ] && [ ! -L "$SKILLS_DIR/$m" ]; then
+      die "$SKILLS_DIR/$m exists and is not a symlink (a copy install severs playbook resolution — remove it and re-run)"
+    fi
+  done
   n=0
   for d in "$ROOT"/skills/*/; do
     [ -f "$d/SKILL.md" ] || continue

@@ -7,6 +7,8 @@ on:
   pull_request:
     paths:
       - scripts/install.sh
+      - scripts/validate.py
+      - runtime/scripts/verify-gate.sh
       - hooks/**
       - skills/*/SKILL.md
       - runtime/pins.json
@@ -20,6 +22,8 @@ on:
     branches: [main]
     paths:
       - scripts/install.sh
+      - scripts/validate.py
+      - runtime/scripts/verify-gate.sh
       - hooks/**
       - skills/*/SKILL.md
       - runtime/pins.json
