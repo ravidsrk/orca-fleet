@@ -49,6 +49,27 @@ transcript persists and stays citable):
    same shape without guardrails is the identical-error class: kill it, don't
    loop it.
 
+## Watchdog: what is mechanized, what stays manual
+
+`runtime/scripts/watchdog.py --heartbeats <snapshot>.json --dry-run`
+(classify only; drop `--dry-run` and add `--state`/`--log` for live) polls
+worker heartbeats and classifies OK / SLOW / HUNG / WEDGED per the ladder:
+past-STOP silence is HUNG, an explicit wedge marker (or frozen-past-STOP
+plus an unanswered nudge) is WEDGED, slow-but-alive is not stuck. Every
+threshold lives in `runtime/watchdog.json` — tunable without code edits.
+
+Owned by the watchdog: classification, one auto-nudge per HUNG worker
+(finish-or-report, no new experiments), and the stop-redispatch
+RECOMMENDATION with JSONL evidence (run/worker ids, timestamps) on
+still-HUNG or WEDGED. Nudge rate limits: at most 1 nudge per dispatch, 1
+per worker per hour, one window between nudges — a flapping worker cannot
+cause a nudge storm.
+
+Stays manual, always: the stop, the re-dispatch (dispatch spends money and
+mutates run state), coordinator re-bind after fencing, and every verdict on
+the work itself. A recommendation is a decision trail for the coordinator,
+not an action taken.
+
 ## Transcribe at delivery
 
 The message store is a QUEUE, not an archive: a runtime reset purged it once,

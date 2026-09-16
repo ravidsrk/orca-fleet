@@ -163,6 +163,15 @@ from the run's own taskspec. All three compose from clean-sweep's deferred
 reads, keeping them out of activation load; the one ARCHITECTURE bullet the
 new policy required cost clean-sweep ~100 tokens of headroom (33,800→33,900).
 
+**The supervision ladder's first responses are mechanized (#418).**
+`runtime/scripts/watchdog.py` polls worker heartbeats, classifies
+OK/SLOW/HUNG/WEDGED, auto-nudges HUNG once, and emits stop-redispatch
+RECOMMENDATIONS with JSONL evidence on still-HUNG or WEDGED — the stop and
+re-dispatch stay coordinator decisions. Thresholds and rate limits live in
+`runtime/watchdog.json` (tunable without code edits); `--dry-run`
+classifies with zero side effects. A recorded 2026-09-14 heartbeat trace
+ships as the replay fixture.
+
 ## [0.6.1] - 2026-09-09
 
 plugin.json, marketplace.json, and this heading now agree on 0.6.1 (issue #237).
