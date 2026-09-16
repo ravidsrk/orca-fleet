@@ -1,0 +1,11 @@
+diff --git a/scripts/floor_canary_d3.py b/scripts/floor_canary_d3.py
+new file mode 100644
+index 00000000..9814b492
+--- /dev/null
++++ b/scripts/floor_canary_d3.py
+@@ -0,0 +1,5 @@
++"""FLOOR-CANARY-D3 (throwaway): undefined name must trip lint-clean."""
++
++
++def canary():
++    return floor_canary_undefined_name + 1

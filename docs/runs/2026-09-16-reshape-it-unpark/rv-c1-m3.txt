@@ -1,0 +1,41 @@
+RV-C1 supporting mutant M3 (corroboration — the pinned control is M1 in rv-c1-negctrl.txt)
+Added round 2 for the Greptile P2 (* and _ emphasis joints).
+M3 did: star-blind _SEP — removed '*' from the _SEP character class in
+scripts/validate.py:905, so bold-jointed counts ('Ten **autonomous fleets**')
+no longer match COUNT_LINT_RE. Compiles, imports, runs.
+
+M3 RED transcript (exit 1):
+.F.....
+======================================================================
+FAIL: test_emphasis_joint_counts_match (tests.test_reshape_net_validate.CountLintSeamNet.test_emphasis_joint_counts_match)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/rv-c1-nc2/tests/test_reshape_net_validate.py", line 55, in test_emphasis_joint_counts_match
+    self.assertRegex(s, validate.COUNT_LINT_RE, s)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Regex didn't match: '\\b(?:\\d+|(?:(?:twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety)(?:[-\\s]+(?:one|two|three|four|five|six|seven|eight|nine))?|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen))(?:-|[\\s*_]+)(?:[a-z]+(?:-|[\\s*_]+))?(?:missions?|fleets?|outcome-named|callable|`?(?:doctrine-only|self-run|external-run)`?)\\b' not found in '21 `missions`' : 21 `missions`
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.001s
+
+FAILED (failures=1)
+M3 exit: 1
+
+VERDICT: M3 KILLED — FAILED failures=1 (AssertionError in
+test_emphasis_joint_counts_match), all other net tests green under M3.
+
+M3 unified diff (same seam line as M1; kept out of the NC artifact so the
+executed control quotes exactly one diff):
+diff --git a/scripts/validate.py b/scripts/validate.py
+index 197a5557..ad299b72 100755
+--- a/scripts/validate.py
++++ b/scripts/validate.py
+@@ -902,7 +902,7 @@ _SPELLED = rf"(?:(?:{_TENS})(?:[-\s]+(?:{_ONES}))?|{_TEENS})"
+ _NUM = rf"(?:\d+|{_SPELLED})"
+ # Separator between count, optional adjective, and noun: a hyphen (ten-mission) or
+ # whitespace with optional markdown emphasis markers (Ten **autonomous fleets**).
+-_SEP = r"(?:-|[\s*_`]+)"
++_SEP = r"(?:-|[\s_`]+)"
+ # The proof tiers are catalog nouns too: "21 `doctrine-only`" is a hardcoded catalog count that
+ # the noun set could not see, and it sat in README.md while this very guard was green (#282).
+ _CATALOG_NOUN = (r"(?:missions?|fleets?|outcome-named|callable|"

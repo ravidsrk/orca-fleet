@@ -1,0 +1,36 @@
+### D5 cross-fire map (on D5 injection ff752a4f) — 2026-09-16T20:28:56Z
+### $ python3 scripts/validate.py
+ok   absorb-it
+ok   access-it
+ok   attest-it
+ok   clean-sweep
+ok   deflake-it
+ok   document-it
+ok   field-test-it
+ok   floor-it
+ok   harden-it
+ok   map-it
+ok   migrate-it
+ok   modernize-it
+ok   oncall-it
+ok   oss-contribute
+ok   pin-it
+ok   prove-it
+ok   reshape-it
+ok   review-it
+ok   root-cause
+ok   ship-it
+ok   speed-it
+
+FAIL eval schema — invalid eval JSON or routing coverage:
+   - evals/routing.json: eval[62] expected_any names ['deflake-it'], which do not score on this prompt at all — the row passes on a mission it never predicted. Narrow it to expected_mission
+   - evals/routing.json: eval[67] expected_any names ['deflake-it'], which do not score on this prompt at all — the row passes on a mission it never predicted. Narrow it to expected_mission
+
+FAIL badge freshness — run scripts/gen-badges.py and commit:
+   - docs/missions/deflake-it.md Activation load is stale (want ~23,600 tokens) — run scripts/gen-badges.py
+
+Validation failed.
+### exit=1
+### $ python3 scripts/bundle.py --check
+bundle: 21 self-contained mission(s) in a temp dir; no reference leaves its directory
+### exit=0

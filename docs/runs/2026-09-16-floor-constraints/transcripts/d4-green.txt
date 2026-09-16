@@ -1,0 +1,9 @@
+### D4 GREEN (main-history-only clone) — 2026-09-16T20:27:31Z
+### repo: /tmp/fcmain (single-branch clone: main line only, no campaign refs) @ 57c32e0d
+### note: HEAD 57c32e0d is 7 PRs past the floor/constraints base 10e45f72; its history is a SUPERSET of the base history
+### command: gitleaks detect --redact --no-banner --source .
+[90m1:57AM[0m [32mINF[0m [1mUnknown SCM platform. Use --platform to include links in findings.[0m [36mhost=[0m
+[90m1:57AM[0m [32mINF[0m [1m984 commits scanned.[0m
+[90m1:57AM[0m [32mINF[0m [1mscanned ~19719273 bytes (19.72 MB) in 2.05s[0m
+[90m1:57AM[0m [32mINF[0m [1mno leaks found[0m
+gitleaks_exit=0

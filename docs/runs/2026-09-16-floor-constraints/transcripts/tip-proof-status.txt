@@ -1,0 +1,27 @@
+absorb-it       doctrine-only  [—      ] —
+access-it       doctrine-only  [—      ] —
+attest-it       doctrine-only  [—      ] —
+clean-sweep     self-run       [ok     ] docs/runs/2026-09-14-clean-sweep-self-run.md
+deflake-it      doctrine-only  [—      ] —
+document-it     doctrine-only  [—      ] —
+field-test-it   doctrine-only  [—      ] —
+floor-it        doctrine-only  [—      ] —
+harden-it       doctrine-only  [—      ] —
+map-it          doctrine-only  [—      ] —
+migrate-it      doctrine-only  [—      ] —
+modernize-it    doctrine-only  [—      ] —
+oncall-it       doctrine-only  [—      ] —
+oss-contribute  doctrine-only  [—      ] —
+pin-it          doctrine-only  [—      ] —
+prove-it        self-run       [ok     ] docs/runs/2026-09-16-prove-it-self-run.md
+reshape-it      doctrine-only  [—      ] —
+review-it       doctrine-only  [—      ] —
+root-cause      doctrine-only  [—      ] —
+ship-it         doctrine-only  [—      ] —
+speed-it        doctrine-only  [—      ] —
+
+coverage rollup:
+  doctrine-only  19
+  self-run       2
+  external-run   0
+  total          21
