@@ -1,12 +1,16 @@
 """Tests for scripts/verdict_check.py (#452): GO-at-tip verdict rule."""
 
-import sys
+import importlib.util
 import unittest
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
-
-from verdict_check import go_reviews_at_tip, verdict_at_tip
+_ROOT = Path(__file__).resolve().parent.parent
+_spec = importlib.util.spec_from_file_location(
+    "verdict_check", _ROOT / "scripts" / "verdict_check.py")
+verdict_check = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(verdict_check)
+go_reviews_at_tip = verdict_check.go_reviews_at_tip
+verdict_at_tip = verdict_check.verdict_at_tip
 
 HEAD = "a" * 40
 OTHER = "b" * 40
