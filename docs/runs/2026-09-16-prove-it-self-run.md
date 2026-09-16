@@ -2,7 +2,7 @@
 
 RUN: mission=prove-it tier=self-run inventory_at=5467fd54275469835fd151fea11a14ab81fab6d0 manifest=docs/runs/2026-09-16-prove-it-selfrun/manifest.json verifier=GREEN waves=1
 
-The header above is what `runtime/scripts/run_report.py` re-derives: mission and tier match the frontmatter claim; the inventory below re-hashes 15/15 at `5467fd5`; the manifest exists at that commit inside this run's own directory and is pinned by the inventory; the manifest's ledger carries the recorded `verify.py` run against itself (exit 0); and the WIP-curve row records the single dispatch wave. First catalog run to bind: the archive's `Binds?` column reads `yes` for the first time.
+The header above is what `runtime/scripts/run_report.py` re-derives: mission and tier match the frontmatter claim; the inventory below re-hashes 16/16 at the header commit; the manifest exists at that commit inside this run's own directory and is pinned by the inventory; the manifest's ledger carries the recorded `verify.py` run against itself (exit 0) — the binding record is the promotion-time re-record (D6), whose `wtree` is a pushed commit's tree; and the WIP-curve row records the single dispatch wave. First catalog run to bind: the archive's `Binds?` column reads `yes` for the first time.
 
 Minimal prove-it self-run against this catalog (roadmap issue #410): one critical-surface criterion (PF-2, the `verify.py` oracle-scope kind gate), one characterization test, a 4/4 mutation audit, a build-blind cross-vendor review, and a GREEN executed-control verification. Prior art: the August PF-1 demonstration (`docs/reports/prove-it-selfrun/`) — recorded history that supports no tier; this run's PF-2 complements it.
 
@@ -76,6 +76,21 @@ verify: OK — all required checks passed
 
 (Retained: `verifier.txt`. `--contract-source`, `--contract-digest`, and `--nc-command` are the coordinator's out-of-band inputs; `--lighting dark-eligible` is the dispatch value from the frozen contract's dispatch note, authorized by #410 — the characterization-test-only example `gate-classification.md` names.)
 
+Re-record (promotion-time fixup, D6 — the binding `commands[]` record): the run's close-time verifier invocation above was re-executed for real through `evidence-run.py` from the clean tree at `862b487` (the pins commit), so the record's `wtree c1255e6a…` equals `862b487^{tree}` and resolves on fresh clones:
+
+`python3 runtime/scripts/evidence-run.py --label "verifier re-record 2026-09-16 (run close-time invocation, rerun)" --manifest docs/runs/2026-09-16-prove-it-selfrun/manifest.json --artifact docs/runs/2026-09-16-prove-it-selfrun/verifier-rerecord.txt -- python3 runtime/scripts/verify.py --manifest docs/runs/2026-09-16-prove-it-selfrun/manifest.json --contract-source docs/runs/2026-09-16-prove-it-selfrun/contract.json@7942be928fc96b66597616690fc3d01edf5c94a6 --contract-digest sha256:f17d6eb9b39caa1719b257fbe609a9b595e4d083ec75d5a106920791ec89b734 --unit-class mutation --lighting dark-eligible --execute-nc --nc-command 'python3 -m unittest tests.test_verify.OracleScopeKindTest'`
+
+Output (verbatim, exit 0 — byte-identical to the run-time transcript above, `sha256 37e9cebd…` both files; retained in `verifier-rerecord.txt`, original record and transcript retained alongside):
+
+```
+NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+NOTE: commands ledger FRESH — 1 exit-0 record(s) bound to head_sha's tree 6c4bcbddc646. This is the worker's own runner, so the coordinator's clean-env re-run at head_sha still stands as the stronger authority (evidence-manifest.md §2)
+NOTE: negative control EXECUTED — with the hand control applied at head_sha the bound command exited 1 on an assertion failure (RED, as required)
+NOTE: the same command exits 0 at clean head_sha — the RED above is the control's doing, not a broken suite
+NOTE: independent review waived — dark-eligible unit (gate-classification.md); the EXECUTED negative control + tests are the oracle, not a human review
+verify: OK — all required checks passed
+```
+
 ## WIP-curve protocol row
 
 Single-unit solo wave: builder in-session, reviewer headless; wall S→verify-GREEN 400s; latency A→verify-GREEN 72s.
@@ -93,6 +108,7 @@ Single-unit solo wave: builder in-session, reviewer headless; wall S→verify-GR
 - D3 Reviewer's minor gap (non-dict scope / absent `kind` unpinned; hardening note on kill sharpness): documented follow-up for the next prove-it run. Rework now would invalidate the reviewed content; the review is GO and the gap is a coverage note, not a bug.
 - D4 A `codex exec` review attempt failed before any model contact (usage limit through Sep 19); no review content came from it. The `claude -p` retry succeeded.
 - D5 The first recorded validation run exited 1 (stale `assets/badges/tests.json`: 1381 vs 1384 after the 3 new tests) → `scripts/gen-badges.py` → exit 0. Both records retained in the ledger.
+- D6 Promotion-time verifier re-record (coordinator Critical on PR #437): the run-time `verifier` record's `wtree 53d3760d…` lived only in the author's object store, so `run_report.py` failed on fresh clones ("binds to nothing"). Fix per sibling #436: pinned the three unpinned `commands[]` artifacts (`verifier.txt`, `validation.txt`, `tests-full.txt` — the `tests.txt` precedent) so the 5-record manifest re-verifies GREEN, then re-executed the run's close-time verifier invocation for real via `evidence-run.py` from the clean tree at `862b487`, appending `verifier re-record 2026-09-16 (run close-time invocation, rerun)` with `wtree = 862b487^{tree}` (exit 0, transcript byte-identical, retained in `verifier-rerecord.txt`). Original record and transcript retained alongside; no run-time transcript byte edited; the re-record is the binding record and the header pins the evidence commit carrying it.
 - L1 (reflect): the oracle_scope characterization lane now has fully-executed field evidence (GREEN with an executed hand replay) — no prior catalog run had recorded this lane end to end.
 - L2 (reflect): `reviewer_mode` has no honest value without a second context — a solo run must ARRANGE one (a blind headless-agent review works; retain the prompt to evidence the blindness) or record RED, never self-certify a mode.
 - L3 (reflect): test-adding runs trip the badge-freshness gate — regenerate badges before run-close validation.
@@ -101,12 +117,13 @@ Single-unit solo wave: builder in-session, reviewer headless; wall S→verify-GR
 
 | Artifact | sha256 | producer |
 |---|---|---|
-| `docs/runs/2026-09-16-prove-it-selfrun/manifest.json` | `a90c1f2989e5d36ca8bc58eb9fd03d0bc04f2cc4b9642c8b8691d378c76fae41` | worker assembly + evidence-run.py 2026-09-16 |
+| `docs/runs/2026-09-16-prove-it-selfrun/manifest.json` | `d47b3869c953fa2ce50d9ecbafd16716b192b5a4e1ffd0b854c851ec65678e0c` | worker assembly + evidence-run.py 2026-09-16 + promotion re-record |
 | `docs/runs/2026-09-16-prove-it-selfrun/contract.json` | `f17d6eb9b39caa1719b257fbe609a9b595e4d083ec75d5a106920791ec89b734` | coordinator (frozen scope + authorized coords) 2026-09-16 |
 | `docs/runs/2026-09-16-prove-it-selfrun/negctrl.txt` | `33448afa8bfb91f4aea9225c878cf6ecb14cb77c272f011a8c373ee8c944a232` | unittest transcripts + git diff 2026-09-16 |
 | `docs/runs/2026-09-16-prove-it-selfrun/review.txt` | `c7c649fd8eda98d80908cda9b70a371570fb920b5c27ef6acd90591e92743fa4` | claude -p (Claude Code 2.1.272) 2026-09-16 |
 | `docs/runs/2026-09-16-prove-it-selfrun/tests.txt` | `11b4d660dc96a9e817dba113485e2e25781c647f08fdb946404362b001fd6083` | evidence-run.py unittest 2026-09-16 |
 | `docs/runs/2026-09-16-prove-it-selfrun/verifier.txt` | `37e9cebdd5756b5c4bb511f808664c87b122aeb7f7c3e149ee5701a858c65db5` | evidence-run.py verify.py 2026-09-16 |
+| `docs/runs/2026-09-16-prove-it-selfrun/verifier-rerecord.txt` | `37e9cebdd5756b5c4bb511f808664c87b122aeb7f7c3e149ee5701a858c65db5` | evidence-run.py verify.py re-record 2026-09-16 (D6) |
 | `docs/runs/2026-09-16-prove-it-selfrun/validation.txt` | `90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6` | evidence-run.py validate.py 2026-09-16 |
 | `docs/runs/2026-09-16-prove-it-selfrun/tests-full.txt` | `ab76dbeaea3198bbfe75d54e2c7e6614e6045c9ec9e60bf20e67699a52ed2570` | evidence-run.py unittest 2026-09-16 |
 | `docs/runs/2026-09-16-prove-it-selfrun/audit-m1.diff` | `358d4a4045a1d58c0db0cb2f3450e9e1cd6dcaad565acd1419b85c73a1066980` | git diff 2026-09-16 |

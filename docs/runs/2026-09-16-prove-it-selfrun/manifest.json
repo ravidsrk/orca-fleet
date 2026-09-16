@@ -54,6 +54,17 @@
       "commit": "7942be928fc96b66597616690fc3d01edf5c94a6",
       "wtree": "9c1784bee8dad42b111c0194e338cf2c04259ed1",
       "artifact": "docs/runs/2026-09-16-prove-it-selfrun/tests-full.txt"
+    },
+    {
+      "label": "verifier re-record 2026-09-16 (run close-time invocation, rerun)",
+      "ts": "2026-09-16T06:37:59Z",
+      "cmd": "python3 runtime/scripts/verify.py --manifest docs/runs/2026-09-16-prove-it-selfrun/manifest.json --contract-source docs/runs/2026-09-16-prove-it-selfrun/contract.json@7942be928fc96b66597616690fc3d01edf5c94a6 --contract-digest sha256:f17d6eb9b39caa1719b257fbe609a9b595e4d083ec75d5a106920791ec89b734 --unit-class mutation --lighting dark-eligible --execute-nc --nc-command 'python3 -m unittest tests.test_verify.OracleScopeKindTest'",
+      "cmd_sha256": "653df7293110b0ebf9dfbdc0baee08b08c4b074e1ef1288d7dc31c061a2e7a1b",
+      "exit": 0,
+      "duration_s": 1.274,
+      "commit": "862b487ca308a53ea0fc15bd09f09e4de93dca84",
+      "wtree": "c1255e6a0721bcb846d5ba1be1a6e48f0a7b9cc6",
+      "artifact": "docs/runs/2026-09-16-prove-it-selfrun/verifier-rerecord.txt"
     }
   ],
   "unit": "prove-it-2026-09-16-PF-2",
@@ -143,6 +154,10 @@
     {
       "path": "docs/runs/2026-09-16-prove-it-selfrun/tests-full.txt",
       "sha256": "ab76dbeaea3198bbfe75d54e2c7e6614e6045c9ec9e60bf20e67699a52ed2570"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/verifier-rerecord.txt",
+      "sha256": "37e9cebdd5756b5c4bb511f808664c87b122aeb7f7c3e149ee5701a858c65db5"
     }
   ],
   "reviewer_mode": "cross-vendor",
