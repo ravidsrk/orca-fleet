@@ -109,15 +109,26 @@
       "commit": "96acc0ba8c03df5c6ad012f103fd3f0461affabd",
       "wtree": "a9d1b1e8881f1fdb42ef098986825c306ef7d81d",
       "artifact": "docs/runs/2026-09-16-prove-it-selfrun/tests-full-rerun.txt"
+    },
+    {
+      "label": "verifier rerun 2026-09-16 (wave 2, Orca-built unit)",
+      "ts": "2026-09-16T07:18:39Z",
+      "cmd": "python3 runtime/scripts/verify.py --manifest docs/runs/2026-09-16-prove-it-selfrun/manifest.json --contract-source docs/runs/2026-09-16-prove-it-selfrun/contract.json@24de9f93307b36be11f10476fbc0e22424729abc --contract-digest sha256:0f8836ef4fd16067f176f68abf02e437f9c87c16bbb31c109afa24c857fa8d8c --unit-class mutation --lighting dark-eligible --execute-nc --nc-command 'python3 -m unittest tests.test_verify.OracleScopeKindTest'",
+      "cmd_sha256": "25a83d888653ee2a53b4b89714f5e60a2c8fa4cae1f0d67e2a38d05b9f679a37",
+      "exit": 2,
+      "duration_s": 0.903,
+      "commit": "22c8e50d98b301dd87a94eb8423000760500c444",
+      "wtree": "fb36b9165846421e5255fccaf24a5a15c82f6ab6",
+      "artifact": "docs/runs/2026-09-16-prove-it-selfrun/verifier-rerun.txt"
     }
   ],
   "unit": "prove-it-2026-09-16-PF-2",
-  "base_sha": "eacd4cfa7f178cb4c473bd0fdbc8d5c5743ef959",
+  "base_sha": "f5df568649d02dd862460275e4c3fd504095253a",
   "head_sha": "a46671986b2542b2da6d8e349ecf6c216f9ecc25",
   "base_branch": "main",
   "contract": {
-    "source": "docs/runs/2026-09-16-prove-it-selfrun/contract.json@24de9f93307b36be11f10476fbc0e22424729abc",
-    "digest": "sha256:0f8836ef4fd16067f176f68abf02e437f9c87c16bbb31c109afa24c857fa8d8c",
+    "source": "docs/runs/2026-09-16-prove-it-selfrun/contract.json@3e7109e14f6071ab493f158a9d8e91d7196621ae",
+    "digest": "sha256:c69f2ba0fff38089974864bf4f4a05c299720ea4ab42bacddcb60603200d4303",
     "criterion_ids": [
       "PF-2"
     ]
@@ -246,6 +257,18 @@
     {
       "path": "docs/runs/2026-09-16-prove-it-selfrun/review-rerun.txt",
       "sha256": "de33a0b64c734086ce3e152f6ab39b55d9fccc521a4fe81455f2b47ab8229a15"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/validation-rerun.txt",
+      "sha256": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/tests-full-rerun.txt",
+      "sha256": "b21f2180bb02c47ad29ca28a76a534646285cc2b3eaed090409021f49f5408ab"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/verifier-rerun.txt",
+      "sha256": "46e1de9b8d6146c663471332b6d24a6facd8ccf0cdb35e9c8f2f7edd7080d123"
     }
   ],
   "reviewer_mode": "cross-vendor",
