@@ -82,8 +82,8 @@ remain (`needs-human` on #386, #235, and seven review legs). Never reported as D
 - The integration TIP was verified green: FINAL VALIDATION at `e93ab1a`
   (validate.py green over 21 missions, egress chain intact over 300 receipts,
   full suite 1381 OK). Promotion PR #387 merged as `1ac5ff8` with CI gates
-  green, and the follow-up tip `8784aa9` likewise — the final head is green
-  after every run-close commit.
+  green, and the post-run mainline likewise (`8784aa9`, `fff8810` — gates green
+  on both) — the final head is green after every run-close commit.
 
 ## Pipeline evidence (per phase)
 
