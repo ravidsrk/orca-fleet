@@ -1257,6 +1257,8 @@ class TestFailClosed(HookBase):
 
 
 class TestOutputEncoding(HookBase):
+    FRESH_REPO_PER_TEST = True  # fixed out"side/wt2 dirs under self.tmp (PR #458 review, P2)
+
     def test_a_path_with_a_quote_still_yields_valid_json(self):
         weird = self.tmp / 'out"side'
         weird.mkdir()
@@ -1318,6 +1320,8 @@ class TestShellCommentsAreNotShellCode(HookBase):
     which therefore has to survive as a command boundary, or everything after a comment would be
     swallowed with it.
     """
+
+    FRESH_REPO_PER_TEST = True  # fixed unit-worktree/we"ird dirs under self.tmp (PR #458 audit)
 
     def allowed(self, command, env_extra=None):
         result = self.fire(event("Bash", command=command), env_extra=env_extra)
