@@ -64,7 +64,10 @@ parked-clean, zero degraded, no new findings. Final tip 6 passed, wtree-bound.
 Per-unit manifests: `leg1/manifest-f3.json`, `manifest-f5.json`,
 `manifest-f6.json`; mission rollup `leg1/manifest-leg1.json`. Re-derivability
 for the local-only target: `leg1/seed-*` (seed files) + `leg1/full-diff.txt`
-(`892eae2..c5e807c`, 77 lines) reconstruct every byte.
+(`892eae2..c5e807c`, 77 lines) reconstruct every byte, and
+`leg1/target-417.bundle` (see `leg1/RESTORE.md`) preserves the full git history
+— all 9 commits, every cited SHA — so ancestry and worktree bindings verify
+without the original scratch repo (review fix, Greptile P1).
 
 ## Why the chain stopped (two holds, in order)
 

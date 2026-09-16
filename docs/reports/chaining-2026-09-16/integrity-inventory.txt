@@ -1,7 +1,7 @@
 # Integrity inventory — chaining run 2026-09-16 (#417)
 # producer=subagent-01a0a9a5 ts=2026-09-16T10:50Z
 # sha256  path
-037efd8e372f4ed54d7c1cad4a98e860cfb6376a3efd5e70344a7ce929f6e0ef  CHAIN-REPORT.md
+551e24d7787d3e35cdeef0013dd89854bea7a5990688556bf4cfee392a07e718  CHAIN-REPORT.md
 e89d7fe61922d878828aed1d1e21bdd43d7028f357c786adf81cb304b177a7c7  handoff-log.md
 b01fb50dbdc93cbd96e914b48b68a79bba1ea7419e114d217ad4bd1d4b02c50e  gaps.md
 cf899c4fab9f4c933e00b270e073fd4d81cd7381ae3d53b78996163122e0cc0d  leg1/enumeration.md
@@ -23,6 +23,8 @@ bcf0469d7b7bd39d13eeb810ea9e6ac3ee5e3700f31fba48e0d5013da60d1a50  leg1/nc-f3-red
 4a8400d65684863ab78d79021c29e545acaaf43223ce3e732da9f496befde242  leg1/review-selfcheck-f5.txt
 0bae5c0128dec59c7794af5746abac21131aa3a2514754186576d277da0720bc  leg1/review-selfcheck-f6.txt
 b5d9e400d12cb661200bd24e0927bd223153185f50fdb208dcc0f38b12d8c3f7  leg1/full-diff.txt
+4f1ac66a07d4578c30106b096dce6b758afc59b7c5c20d4507b1383a0b3f78e5  leg1/target-417.bundle
+ee0b46c1d96f68eda718bd219b9c3f592fd54f9c3290306b2ab1e7a9cbffa608  leg1/RESTORE.md
 c5f2cbe5b6c90f2e0d2d69758ba676eea80234523135e2d69a8410e6b3b78c64  leg1/seed-notes.py
 ccd1a77748f4c027dec9a14d070c4b3c1678f4e3348718248123bd29d038ea57  leg1/seed-test_notes.py
 f2c40b9f5fc3fdf8e68e84f7b3f4e8eba96fc98735dba26485dd6212def319bc  leg1/seed-README.md
