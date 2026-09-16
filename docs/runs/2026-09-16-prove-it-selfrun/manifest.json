@@ -1,0 +1,142 @@
+{
+  "commands": [
+    {
+      "label": "tests",
+      "ts": "2026-09-16T05:56:00Z",
+      "cmd": "python3 -m unittest tests.test_verify.OracleScopeKindTest",
+      "cmd_sha256": "2ce1cdd8d71d2aff07dfa3c9ec8a441ed44dba79df8c00debabc8059a6e34063",
+      "exit": 0,
+      "duration_s": 0.149,
+      "commit": "d96e15e79177da57c51874913f032eb620be2acc",
+      "wtree": "6c4bcbddc6464c4785771c36d2063549b9901892",
+      "artifact": "docs/runs/2026-09-16-prove-it-selfrun/tests.txt"
+    },
+    {
+      "label": "verifier",
+      "ts": "2026-09-16T05:56:55Z",
+      "cmd": "python3 runtime/scripts/verify.py --manifest docs/runs/2026-09-16-prove-it-selfrun/manifest.json --contract-source docs/runs/2026-09-16-prove-it-selfrun/contract.json@7942be928fc96b66597616690fc3d01edf5c94a6 --contract-digest sha256:f17d6eb9b39caa1719b257fbe609a9b595e4d083ec75d5a106920791ec89b734 --unit-class mutation --lighting dark-eligible --execute-nc --nc-command 'python3 -m unittest tests.test_verify.OracleScopeKindTest'",
+      "cmd_sha256": "653df7293110b0ebf9dfbdc0baee08b08c4b074e1ef1288d7dc31c061a2e7a1b",
+      "exit": 0,
+      "duration_s": 1.316,
+      "commit": "7942be928fc96b66597616690fc3d01edf5c94a6",
+      "wtree": "53d3760d52654d7bb2a6ba343dc4ec79a6375acc",
+      "artifact": "docs/runs/2026-09-16-prove-it-selfrun/verifier.txt"
+    },
+    {
+      "label": "validation",
+      "ts": "2026-09-16T05:57:07Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 1,
+      "duration_s": 0.575,
+      "commit": "7942be928fc96b66597616690fc3d01edf5c94a6",
+      "wtree": "1f85c30dbe2affa3b18b8dfc5f00284a8b608c6d",
+      "artifact": "docs/runs/2026-09-16-prove-it-selfrun/validation.txt"
+    },
+    {
+      "label": "validation",
+      "ts": "2026-09-16T05:57:20Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 0,
+      "duration_s": 0.539,
+      "commit": "7942be928fc96b66597616690fc3d01edf5c94a6",
+      "wtree": "938069bcd3718911d54024562688e5998f15e486",
+      "artifact": "docs/runs/2026-09-16-prove-it-selfrun/validation.txt"
+    },
+    {
+      "label": "tests-full",
+      "ts": "2026-09-16T06:02:40Z",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "exit": 0,
+      "duration_s": 316.664,
+      "commit": "7942be928fc96b66597616690fc3d01edf5c94a6",
+      "wtree": "9c1784bee8dad42b111c0194e338cf2c04259ed1",
+      "artifact": "docs/runs/2026-09-16-prove-it-selfrun/tests-full.txt"
+    }
+  ],
+  "unit": "prove-it-2026-09-16-PF-2",
+  "base_sha": "eacd4cfa7f178cb4c473bd0fdbc8d5c5743ef959",
+  "head_sha": "d96e15e79177da57c51874913f032eb620be2acc",
+  "base_branch": "main",
+  "contract": {
+    "source": "docs/runs/2026-09-16-prove-it-selfrun/contract.json@7942be928fc96b66597616690fc3d01edf5c94a6",
+    "digest": "sha256:f17d6eb9b39caa1719b257fbe609a9b595e4d083ec75d5a106920791ec89b734",
+    "criterion_ids": [
+      "PF-2"
+    ]
+  },
+  "criteria": [
+    {
+      "id": "PF-2",
+      "text": "verify.py check_oracle_scope refuses an oracle_scope whose kind is neither characterization nor documentation, and admits both legal kinds past the kind gate.",
+      "addressed": true
+    }
+  ],
+  "negative_control": {
+    "did": "deleted verify.py check_oracle_scope kind-gate lines 988-989 (hand mutant m1)",
+    "tool": "hand",
+    "result": "the criterion-bound test went RED (mutant KILLED): exit 1, FAILED failures=1, AssertionError at the PF-2 assertion",
+    "artifact": "docs/runs/2026-09-16-prove-it-selfrun/negctrl.txt",
+    "command": "python3 -m unittest tests.test_verify.OracleScopeKindTest"
+  },
+  "binding_audit": {
+    "coverage": "PF-2 (1/1)",
+    "method": "criterion quoted, covering test quoted, criterion-violating mutation went RED (4/4 mutants killed across the kind-gate expression)"
+  },
+  "intent": {
+    "goal": "Pin verify.py's oracle-scope kind gate with a mutation-audited characterization test (PF-2).",
+    "ruled_out": "a broader multi-criterion sweep (disproportionate for a minimal promotion run; the WIP-curve and builder-wave depth belong to a full-mission run); asserting gate-5 behavior as the criterion (it is the passage oracle, not the property)",
+    "why": "the kind gate decides which shape rules apply to a waived review, so an unknown kind slipping past it would skip both \u2014 the load-bearing branch of the lane this run rides"
+  },
+  "lighting": "dark-eligible",
+  "artifacts": [
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/negctrl.txt",
+      "sha256": "33448afa8bfb91f4aea9225c878cf6ecb14cb77c272f011a8c373ee8c944a232"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/review.txt",
+      "sha256": "c7c649fd8eda98d80908cda9b70a371570fb920b5c27ef6acd90591e92743fa4"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/tests.txt",
+      "sha256": "11b4d660dc96a9e817dba113485e2e25781c647f08fdb946404362b001fd6083"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/audit-m1.diff",
+      "sha256": "358d4a4045a1d58c0db0cb2f3450e9e1cd6dcaad565acd1419b85c73a1066980"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/audit-clean.txt",
+      "sha256": "9e3618c465353a9e4a6828d5e621fa61c3754bf90d19d768cd975a69fc4289e2"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/audit-m1-red.txt",
+      "sha256": "8988fdd1a0600c22688a0dbc3e2d069b8d4c92e146ddf53cffe32364b9c41c40"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/audit-m2-red.txt",
+      "sha256": "ed5109ec4aabe62d8659e731afb81eeaba1e51b1b76c188362c3fe91552df33f"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/audit-m3-red.txt",
+      "sha256": "f524c54872873509f27b766cd52d03c3106f045421e059cb0676f78d4c2272b1"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/audit-m4-red.txt",
+      "sha256": "28363352a48a4236822902b79ec50a463753ddf789806986e2d198c8585c0a1f"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/audit-reverted.txt",
+      "sha256": "800346069b7c77896a63bf9caf4716560e8342f5599a74f58ff8b74006e44266"
+    }
+  ],
+  "reviewer_mode": "cross-vendor",
+  "review": {
+    "artifact": "docs/runs/2026-09-16-prove-it-selfrun/review.txt"
+  },
+  "toolchain": "CPython 3.13.15 on macOS arm64; git; unittest; claude CLI 2.1.272 (reviewer)",
+  "claim": "PF-2 characterized by OracleScopeKindTest (3 tests), pinned hand mutant m1 KILLED with supporting mutants m2/m3/m4 KILLED, build-blind review GO."
+}

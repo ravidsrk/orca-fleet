@@ -1,0 +1,146 @@
+### prove-it self-run 2026-09-16 — PF-2 build-blind review (acceptance-review)
+### reviewer: fresh-context headless agent (see model line in reply); reviewed content: frozen PF-2 criterion + OracleScopeKindTest + pinned mutant diff
+### completed: 2026-09-16T05:54:25Z; verdict: GO (minor non-blocking gap recorded below and in the run report)
+
+How the blindness was constructed (auditable): the reviewer ran as a separate process
+(`claude -p`, Claude Code 2.1.272) with cwd an empty non-repo dir, prompt via argv, no repo
+access, no outcome information in the prompt (no transcripts, no verdicts). The prompt and
+the reply are both retained verbatim below; the reply's appendix ('taken on the prompt's
+word') evidences no file access. Exact command:
+
+  cd /tmp/prove-review/empty && claude -p --max-turns 3 --output-format text "$(cat /tmp/prove-review/prompt.txt)"
+
+exit 0. reviewer_mode claimed on this: cross-vendor (Anthropic reviewer, Meta builder),
+fresh blind context. A first attempt via `codex exec` failed before any model contact
+(usage limit); no review content came from it.
+
+================ PROMPT (verbatim, $(wc -c < /tmp/prove-review/prompt.txt) bytes) ================
+
+You are a BUILD-BLIND acceptance reviewer. Judge ONLY the artifacts pasted below. You have no project access: reason over this prompt alone; do not read, list, search, or execute anything.
+
+First line of your reply must be: `model: <your model id> | vendor: <your vendor>`.
+
+FROZEN CONTRACT (the entire denominator — one criterion PF-2):
+> verify.py check_oracle_scope refuses an oracle_scope whose kind is neither characterization nor documentation, and admits both legal kinds past the kind gate.
+
+PRODUCTION CONTEXT (runtime/scripts/verify.py, check_oracle_scope), gates in order:
+1. contract bytes must match the digest;
+2. contract must be JSON declaring criterion_ids, carrying oracle_scope;
+3. a None scope passes (returns []);
+4. THE KIND GATE: `if not isinstance(scope, dict) or scope.get("kind") not in ("characterization", "documentation"): return ["oracle scope: kind must be characterization or documentation"]`;
+5. then the commit-pair gate: `if any(scope.get(k) != m.get(k) for k in ("base_sha", "head_sha")): return ["oracle scope: authorized commit pair differs from the manifest"]`;
+6. then ids/paths/shape gates (ids must be a non-empty list equal to the contract's criterion_ids, etc.).
+
+THE TEST UNDER REVIEW (new class in tests/test_verify.py; RepoCase gives each test a hermetic temp git repo as cwd; _digest returns "sha256:"+hex of the raw file bytes; check_oracle_scope(m, source, digest) is called with a plain-dict manifest {}):
+
+```python
+class OracleScopeKindTest(RepoCase):
+    def _contract(self, scope):
+        rel = "contract-pf2.json"
+        Path(rel).write_text(
+            json.dumps({"criterion_ids": ["PF-2"], "oracle_scope": scope}),
+            encoding="utf-8")
+        return rel, _digest(rel)
+
+    def test_bogus_kind_refused_at_kind_gate(self):
+        rel, digest = self._contract({"kind": "bogus"})
+        self.assertEqual(
+            verify.check_oracle_scope({}, rel, digest),
+            ["oracle scope: kind must be characterization or documentation"])
+
+    def test_characterization_passes_kind_gate(self):
+        rel, digest = self._contract({"kind": "characterization",
+                                      "base_sha": "a" * 40, "head_sha": "b" * 40})
+        self.assertEqual(
+            verify.check_oracle_scope({}, rel, digest),
+            ["oracle scope: authorized commit pair differs from the manifest"])
+
+    def test_documentation_passes_kind_gate(self):
+        rel, digest = self._contract({"kind": "documentation",
+                                      "base_sha": "a" * 40, "head_sha": "b" * 40})
+        self.assertEqual(
+            verify.check_oracle_scope({}, rel, digest),
+            ["oracle scope: authorized commit pair differs from the manifest"])
+```
+
+THE PINNED MUTANT (tool=hand; the two kind-gate lines deleted):
+
+```diff
+@@ -985,8 +985,6 @@ def check_oracle_scope(m, source, digest):
+     scope = doc.get("oracle_scope") if doc else None
+     if scope is None:
+         return []
+-    if not isinstance(scope, dict) or scope.get("kind") not in ("characterization", "documentation"):
+-        return ["oracle scope: kind must be characterization or documentation"]
+     if any(scope.get(k) != m.get(k) for k in ("base_sha", "head_sha")):
+         return ["oracle scope: authorized commit pair differs from the manifest"]
+     ids = scope.get("criterion_ids")
+```
+
+JUDGE on three axes:
+1. Spec fidelity: does the test assert EXACTLY what PF-2 says — refusal of an illegal kind AT the kind gate (not at some deeper gate), and admission of BOTH legal kinds PAST the kind gate? Quote the test lines carrying each half. Flag any gap.
+2. Mutant validity: is the mutant behavior-changing while harness-preserving (module still imports, suite still collects and runs)? Would test_bogus_kind_refused_at_kind_gate FAIL under it — trace precisely which gate the bogus scope reaches instead and what error comes back. Would the other two tests still pass — trace why.
+3. Tautology guard: could any assertion pass while the behavior is broken? State plainly whether each assertion binds to the kind gate.
+
+RULES: every finding MUST quote its verbatim motivating line; a finding that cannot quote goes to an appendix as unconfirmed.
+
+RETURN: first the `model: ...` line, then GO or NO-GO, then the per-axis judgment. Under 60 lines.
+
+================ REPLY (verbatim, $(wc -c < /tmp/prove-review/reply.txt) bytes) ================
+
+model: claude-opus-5[1m] | vendor: Anthropic
+
+**GO**
+
+## Axis 1 — Spec fidelity: PASS
+
+PF-2 has two halves; both are asserted, and both are anchored to the kind gate by *error-string identity*.
+
+Refusal half — quoted:
+```python
+        rel, digest = self._contract({"kind": "bogus"})
+            ["oracle scope: kind must be characterization or documentation"])
+```
+That string is emitted by exactly one `return` in production (gate 4). Asserting equality to it — not `assertTrue(errors)` — pins refusal **at** the kind gate, not at a deeper one.
+
+Admission half — quoted:
+```python
+        rel, digest = self._contract({"kind": "characterization",
+                                      "base_sha": "a" * 40, "head_sha": "b" * 40})
+        rel, digest = self._contract({"kind": "documentation",
+                                      "base_sha": "a" * 40, "head_sha": "b" * 40})
+            ["oracle scope: authorized commit pair differs from the manifest"])
+```
+Expecting gate 5's message is the right technique: the only way to observe gate 5 is to have survived gate 4. Both legal kinds are covered separately.
+
+Gap (minor, non-blocking) — production gate 4 is a disjunction:
+> `if not isinstance(scope, dict) or scope.get("kind") not in (...)`
+
+The tests exercise only the second disjunct, and only one illegal sample (`{"kind": "bogus"}`). Uncovered: non-dict scope (`"oracle_scope": "characterization"`, or a list), and a dict with the `kind` key absent. Deleting `not isinstance(scope, dict) or` would survive this suite for dict inputs. Outside the pinned mutant, but inside PF-2's plain wording.
+
+## Axis 2 — Mutant validity: VALID, killed
+
+Harness-preserving: the diff deletes two statements from the middle of a function body whose next line `if any(scope.get(k) != m.get(k) ...)` is at the same indent — module still parses, imports, collects.
+
+Behavior-changing, traced for `test_bogus_kind_refused_at_kind_gate`:
+- `scope = {"kind": "bogus"}` — no `base_sha`/`head_sha` keys; manifest is the plain dict `{}`.
+- Gate 5 evaluates `scope.get("base_sha") != m.get("base_sha")` → `None != None` → `False`; same for `head_sha`. `any(...)` is `False` — gate 5 does **not** fire.
+- Control reaches gate 6 with `ids = scope.get("criterion_ids")` → `None`, which is not a non-empty list equal to `["PF-2"]`, so an ids-shaped error returns.
+- Either way the value is not `["oracle scope: kind must be characterization or documentation"]` — that string is unreachable once the two lines are gone. `assertEqual` **FAILS**. Mutant killed.
+
+Other two still pass: `"a"*40 != None` is `True`, so gate 5 fires and returns its message identically with or without gate 4 — their expected value is unchanged by the mutant. Correct: the "admits past" half is structurally mutant-insensitive here, and the suite does not need it to kill.
+
+Hardening (not required for GO): give the bogus case `"base_sha"`/`"head_sha"` and valid `criterion_ids` so gate-4 removal yields a clean `[]` rather than a *different* error — a sharper kill, immune to gate-6 message drift.
+
+## Axis 3 — Tautology guard: PASS
+
+No assertion can pass while PF-2 is broken.
+
+- Bogus case: binds by unique string; the only producer is the deleted branch. Cannot pass vacuously (`assertEqual` against a one-element list, not truthiness).
+- Both legal cases: bind in the wrong-direction sense. Narrow the tuple to `("characterization",)` and `test_documentation_passes_kind_gate` returns the kind-gate message instead of `["oracle scope: authorized commit pair differs from the manifest"]` → fails. So each legal kind is individually pinned as admitted.
+- Residual coupling, quoted: `["oracle scope: authorized commit pair differs from the manifest"]` — rewording gate 5 breaks two PF-2 tests for a non-PF-2 reason. Fragility, not tautology; acceptable as the only observable proof of passage.
+
+## Appendix — unconfirmed (no verbatim line available)
+
+- Gate 6's exact error text is described, not pasted, so the bogus case's post-mutant return value is inferred by class, not quoted. The kill does not depend on it: the expected string is unreachable under the mutant regardless.
+- `RepoCase`, `_digest`, and `verify` import are described, not shown; hermeticity of the temp-cwd write `Path(rel).write_text(...)` is taken on the prompt's word.
