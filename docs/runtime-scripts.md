@@ -139,3 +139,30 @@ Waivers come from the DECISIONS log as `floor-waiver:<rule>:<path-or-glob>` reco
 never from an ignore file, never prose. Run it OFF the worker.
 
 Exits: 0 clean · 1 un-waived findings · 2 could-not-run (never read as clean).
+
+## `gate-batch.py`
+
+Run-close human gates as typed records, not prose. Store is
+docs/runs/&lt;run&gt;/gate-batch.json (schema `gate-batch/1`); the sibling `.md` is a
+rendered view re-rendered on every mutation. Source `runtime/scripts/gate-batch.py:1-20`;
+behavior pinned by `tests/test_gate_batch.py`.
+
+Usage: `gate-batch.py [--run DIR | --file PATH] <subcommand> ...`
+
+Subcommands: `init`, `add`, `answer`, `waive`, `overtake`, `list`, `stale`, `show`, `render`.
+
+Flags: `--run` (run directory under docs/runs) or `--file` (explicit batch path, for
+tests and scratch). `init` takes `--title`, `--run-id`, `--intro`, `--intro-file`,
+`--resolved`, `--resolved-file`, `--force-init-over-md`; `add` takes `--id`, `--title`,
+`--question`, `--question-file`, `--asked`, `--related`, `--blocking`; `answer` takes a
+gate id plus `--answer`, `--date`; `waive` takes a gate id plus `--reason`, `--date`;
+`overtake` takes a gate id plus `--note`, `--date`; `list` takes `--status`,
+`--blocking`; `stale` takes `--days` (default 7), `--today`; `show` takes a gate id;
+`render` takes `--out`, `--check`.
+
+Gates move `owed` to exactly one of `answered`, `waived`, `overtaken` — re-transitioning
+is an error. Gate ids look like `G1`. `stale` reports gates owed past N days and never
+notifies; `render --check` verifies the view matches the store. `related`/`blocking` are
+store-only and never render.
+
+Exits: 0 ok (stale/list report exit 0 either way) · 2 usage or store error.
