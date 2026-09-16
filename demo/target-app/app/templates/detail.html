@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}{{ issue.title }}{% endblock %}
+{% block content %}
+<h1>{{ issue.title }}</h1>
+<p>Status: {{ issue.status }} · Priority: {{ issue.priority }}</p>
+{% if issue.body %}
+<p>{{ issue.body }}</p>
+{% endif %}
+<p><a href="/issues/{{ issue.id }}/edit">Edit issue</a> · <a href="/">Back to list</a></p>
+<h2>Comments</h2>
+<ul>
+  {% for comment in comments %}
+  <li>{{ comment.body }}</li>
+  {% else %}
+  <li>No comments yet.</li>
+  {% endfor %}
+</ul>
+{% endblock %}

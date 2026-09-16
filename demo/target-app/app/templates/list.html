@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}All issues{% endblock %}
+{% block content %}
+<h1>Issues</h1>
+<p><a href="/issues/new">New issue</a></p>
+<ul>
+  {% for issue in issues %}
+  <li>
+    <a href="/issues/{{ issue.id }}/view">{{ issue.title }}</a>
+    [{{ issue.status }} · P{{ issue.priority }}]
+    <a href="/issues/{{ issue.id }}/edit">edit</a>
+  </li>
+  {% else %}
+  <li>No issues yet.</li>
+  {% endfor %}
+</ul>
+{% endblock %}
