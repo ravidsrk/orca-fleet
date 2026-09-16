@@ -1,8 +1,8 @@
 # 📌 pin-it — doctrine that matches the binary
 
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel re-witness probes, one claim each, against the installed binary; doctrine patches land through the normal review + merge gates.
-> **Activation load:** ~27,200 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
-> **Proof:** doctrine-only — it ran twice against Orca 1.4.200 ([PARTIAL-WITNESS](../runs/2026-09-12-runtime-repin/), [PINNED-WITH-PARKED](../runs/2026-09-13-pin-it-266/)), but neither run's tier is re-derivable here; the protocol is mechanism, not yet field-proven.
+> **Activation load:** ~28,300 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
+> **Proof:** doctrine-only — it ran twice against Orca 1.4.200 ([PARTIAL-WITNESS](../runs/2026-09-12-runtime-repin/), [PINNED-WITH-PARKED](../runs/2026-09-13-pin-it-266/)) and once against 1.4.203 ([PINNED-WITH-PARKED](../runs/2026-09-16-pin-it-416/)), but no run's tier is re-derivable here; the protocol is mechanism, not yet field-proven.
 
 > Point it at a freshly upgraded Orca runtime — or at the queasy feeling that the dispatch docs
 > describe a binary you no longer have. Come back to a doctrine where every surviving mechanics
@@ -160,7 +160,8 @@ Runtime policies:
 [`gate-classification`](../../runtime/gate-classification.md) ·
 [`dispatch-lifecycle`](../../runtime/dispatch-lifecycle.md) ·
 [`sandbox-policy`](../../runtime/sandbox-policy.md) ·
-[`attention-budget`](../../runtime/attention-budget.md)
+[`attention-budget`](../../runtime/attention-budget.md) ·
+[`orca-pin`](../../runtime/orca-pin.md)
 
 ## Related missions
 

@@ -199,7 +199,8 @@ Every mission's `metadata:` block carries a validator-enforced `proof:` field: `
 `self-run`, or `external-run`. A tier cannot be claimed without artifacts that hash true at a
 named commit: a run report with a `RUN:` header, an evidence manifest inside the run's own
 `docs/runs/` directory, and an integrity inventory that re-hashes at the commit the header names.
-**Today every mission reads `doctrine-only` except [`prove-it`](skills/prove-it/SKILL.md), which reads `self-run` since [its 2026-09-16 run](docs/runs/2026-09-16-prove-it-self-run.md).** The [run archive](docs/runs/) records every run
+**Today `clean-sweep` and `prove-it` read `self-run` — the first tiers earned under the binding gate — and
+every other mission reads `doctrine-only`.** The [run archive](docs/runs/) records every run
 that really happened and says, per run, whether and why it binds. Be precise about what the gate
 buys: it hashes, it does not re-run the verifier, and [the 2026-09-11 review](REVIEW.md) showed
 that a fabricated run can pass it; closing that is

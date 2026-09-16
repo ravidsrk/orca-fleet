@@ -1,0 +1,32 @@
+{
+  "id": "local",
+  "ok": false,
+  "error": {
+    "code": "invalid_argument",
+    "message": "Unknown flag --from for command: orchestration worker-list",
+    "data": {
+      "validFlags": [
+        "cursor",
+        "environment",
+        "help",
+        "include-remote",
+        "json",
+        "limit",
+        "pairing-code",
+        "run",
+        "terminal-state"
+      ],
+      "suggestions": [
+        "json",
+        "run"
+      ],
+      "nextSteps": [
+        "Did you mean: --json, --run",
+        "Valid flags: --cursor, --environment, --help, --include-remote, --json, --limit, --pairing-code, --run, --terminal-state"
+      ]
+    }
+  },
+  "_meta": {
+    "runtimeId": null
+  }
+}

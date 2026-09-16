@@ -447,10 +447,12 @@ verifier transcript checked against a committed key
 ([#281](https://github.com/ravidsrk/orca-fleet/issues/281)), on top of making the tier cost an
 actual run ([#286](https://github.com/ravidsrk/orca-fleet/issues/286)).
 
-Today every mission reads `doctrine-only` except `prove-it`, which reads `self-run` since its 2026-09-16 run, and that number went *down* as the mechanism got
-stronger, which is the mechanism working: the predecessor shipped twelve missions with two proven
+Today `clean-sweep` and `prove-it` read `self-run` and every other mission reads `doctrine-only`: the first
+tiers earned under the binding gate, after the proven count went *down* as the mechanism got
+stronger — which is the mechanism working. The predecessor shipped twelve missions with two proven
 and paid for it, and a tier whose artifacts are gone is the same claim in better packaging. The
-[run archive](runs/) records every run that really happened and says, per run, whether and why it binds.
+[run archive](runs/) records every run that really happened and says, per run, whether and why it
+binds.
 
 ## Autonomy
 

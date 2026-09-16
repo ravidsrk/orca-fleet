@@ -15,7 +15,7 @@ policy is enforced, not requested.
 
 **The option lists are spelled differently, and mixing them is a silent refusal:** `ask --options`
 takes a **CSV** (`--options "rollback,patch-forward"`), `gate-create --options` takes a **JSON
-array** (`--options '["rollback","patch-forward"]'`) (`cli/specs/orchestration.ts:205,253` at v1.4.199). (Anchors reading v1.4.199 await per-probe re-witness; the 2026-09-13 pin-it park register — docs/runs/2026-09-13-pin-it-266/PARK.md — says which are current at v1.4.200.)
+array** (`--options '["rollback","patch-forward"]'`) (`cli/specs/orchestration.ts:205,256` at v1.4.203 — re-witnessed by docs/runs/2026-09-16-pin-it-416/).
 
 **`gate-resolve` does NOT inject the resolution into the next dispatch preamble.** That injection
 exists only in the RETIRED scheduler path (`coordinator-task-dispatch.ts:130-139`); the live
@@ -23,7 +23,7 @@ exists only in the RETIRED scheduler path (`coordinator-task-dispatch.ts:130-139
 (`deliver-worker-dispatch-preamble.ts`). So the resolution reaches the worker only if the
 COORDINATOR puts it there: write it into the task spec (or the dispatch preamble) by hand before
 re-dispatching. Treat the old promise as false until a probe shows otherwise — source-witnessed at
-v1.4.199; live probe owed (`gate-create` → `gate-resolve` → `dispatch-show --task --preamble`) —
+v1.4.203 (the live builder carries no gate context); live probe owed (`gate-create` → `gate-resolve` → `dispatch-show --task --preamble`) —
 pin-it. A worker that was told "the gate is resolved" and receives no resolution will invent one.
 
 ## Live ask ≠ historical unanswered ≠ DAG `blocked`
