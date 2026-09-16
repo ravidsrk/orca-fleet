@@ -6,22 +6,33 @@ wired by hand; the plugin install wires it by construction. The
 [prerequisites](getting-started.md#prerequisites) are the same for every path.
 
 <details>
-<summary><b>Symlink individual missions (recommended for trying it out)</b></summary>
+<summary><b>Symlink the catalog (recommended for trying it out)</b></summary>
+
+One command — it validates the catalog, links every mission, and checks the gate
+snippet is available (prerequisites: `git` + Python ≥ 3.13; the
+[pinned table](distribution.md#prerequisites-pinned) names the run substrate too):
 
 ```bash
 git clone https://github.com/ravidsrk/orca-fleet.git
 cd orca-fleet
+sh scripts/install.sh
+```
 
-# Link the missions you want — link, don't copy. A mission names its playbooks and
-# runtime policies by bare name and finds them in playbooks/ and runtime/ two levels
-# above its own directory (and links ../../ARCHITECTURE.md); a symlink keeps that
-# tree intact, a copy breaks it.
+To link only the missions you want by hand instead — link, don't copy. A mission
+names its playbooks and runtime policies by bare name and finds them in
+playbooks/ and runtime/ two levels above its own directory (and links
+../../ARCHITECTURE.md); a symlink keeps that tree intact, a copy breaks it.
+
+```bash
 mkdir -p ~/.claude/skills
 ln -s "$(pwd)/skills/ship-it"     ~/.claude/skills/ship-it
 ln -s "$(pwd)/skills/clean-sweep" ~/.claude/skills/clean-sweep
+```
 
-# Then wire the completion gate — a symlink install loads no plugin, so
-# hooks/hooks.json (which resolves through ${CLAUDE_PLUGIN_ROOT}) never fires.
+Then wire the completion gate — a symlink install loads no plugin, so
+hooks/hooks.json (which resolves through ${CLAUDE_PLUGIN_ROOT}) never fires.
+
+```bash
 sh hooks/print-settings-snippet.sh          # merge into ~/.claude/settings.json
 sh hooks/print-settings-snippet.sh --check  # confirm the gate script resolves
 ```

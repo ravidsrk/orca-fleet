@@ -34,7 +34,31 @@ these specific guarantees and their limits, alongside the available run evidence
 | Path | For | Mechanism |
 |---|---|---|
 | Plugin marketplace | try the whole catalog | `/plugin marketplace add ravidsrk/orca-fleet` → `/plugin install orca-fleet` (`.claude-plugin/`) |
-| Symlink a mission | fork/adapt one outcome | `ln -s .../skills/<mission> ~/.claude/skills/<mission>` (preserves the relative `playbooks/`/`runtime/` refs) |
+| Symlink the catalog | fork/adapt, or evaluate | `git clone https://github.com/ravidsrk/orca-fleet.git && cd orca-fleet && sh scripts/install.sh` (validates + links every mission; preserves the relative `playbooks/`/`runtime/` refs) |
+
+## Prerequisites, pinned
+
+Two classes. *Install* prerequisites must hold or `scripts/install.sh` exits 1;
+*run* prerequisites warn only — the catalog installs and verifies without them,
+but no mission will dispatch until they clear.
+
+| Prerequisite | Class | Enforced | Observed 2026-09-16 |
+|---|---|---|---|
+| `git` | install | present (hard) | 2.47.3 (clean container), 2.55.0 (macOS host) |
+| `python3` | install | ≥ 3.13 (hard; same pin as CI) | 3.13.15 |
+| Orca app + CLI | run | ≥ the `runtime/pins.json` pin, currently v1.4.200 (warn) | 1.4.203 (`orca --version`, app `runtime.state: ready`) |
+| `gh`, authenticated | run | present + `gh auth status` green (warn) | 2.100.0 |
+| Claude Code | run | present (warn; the symlinked skills load under it) | 2.1.272 |
+
+The Orca floor is read from `runtime/pins.json` at install time, not copied into
+the script — a pin-it re-pin moves the floor with no installer edit. The clean-
+container run that fixed this table is
+[414-clean-container-install.txt](completion/evidence/414-clean-container-install.txt):
+from `python:3.13-slim` the only setup was `apt-get install git ca-certificates`
+(the image ships no git), then the one command above exited 0 with the three
+expected run-substrate warnings, and `sh scripts/install.sh --check` re-verified
+without changes. `.github/workflows/install.yml` repeats that shape — empty HOME,
+no credentials — on every PR touching an install path.
 
 ## Index check (2026-09-13; previous 2026-09-01)
 
