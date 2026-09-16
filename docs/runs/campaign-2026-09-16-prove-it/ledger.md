@@ -2,10 +2,14 @@
 
 RUN: - (solo; no Orca dispatch — deviation D1) · COORDINATOR: workflow-child session 46f15471 (Muse Spark) · BASE: campaign/prove-it-selftest · FORK_POINT: c46d4b3f3371e41408aed19e54476fa194c20b42 · T0: 2026-09-16T13:17:19Z (scope freeze) · SOURCE: contract PF-3 sha256:9c1ff32569d64b2ec9f0ab8cec7d8ca026243a1192b97d3c152f3d91ed049a62 · WIP: builders=1 reviewers=1
 
-PHASE: PROVING
+PHASE: DONE
+
+Terminal: COVERED (consummated at promotion merge; pre-merge verified-CLOSED).
 
 - 2026-09-16: BUILD_DONE=t — net `OracleScopeCharacterizationGateTest` (3 tests) committed test-only as `18ee8633` (+54, `tests/test_verify.py` only); class GREEN exit 0 (`audit-clean.txt`); mutation audit 3/3 KILLED at `assertEqual` (`audit-m1/m2/m3-red.txt`, harness intact); `verify.py` restored byte-identical (`cmp` clean).
 - 2026-09-16: REVIEWED=t — build-blind cross-vendor review GO round 1 @ `reviewed_sha == 18ee8633` (`review.txt`: blind expectation + judgment, prompts+replies verbatim; G1→sibling-wave follow-up, T1→answered by m2, appendix→corroborated).
+- 2026-09-16: RUNTIME-PROVE GREEN — recorded `verify.py --execute-nc` exit 0 (`verifier.txt`); clean-env re-run at head 3/3 OK (`clean-env.txt`); full suite 1493 OK post-badge-fix (`tests-full-green.txt`; RED1 `tests-full.txt` retained); `validate.py` exit 0 (`validation.txt`); ruff + gitleaks clean.
+- 2026-09-16: LAND on branch — `18ee8633` test-only pair tip; `fc84a46d` evidence ckpt 1; `d3bd2fea` badges (outside pair); evidence close + report close pending. No push/PR/merge per task; promotion merge owed + human-gated.
 
 TASK pack: matt (`tdd` builder method — one router, never co-mounted).
 
