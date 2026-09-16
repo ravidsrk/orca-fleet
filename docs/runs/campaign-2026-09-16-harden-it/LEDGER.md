@@ -30,7 +30,7 @@ Worker TASK pack: addy (one router; gstack never co-mounted). Triage mode: Gated
 | task_id | finding | class | VERIFIED | BUILD_DONE | PR_OPEN | BOT | REVIEWED | MERGED | REATTACKED | WT_CLEAN | lighting | park | evidence |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | C1 | base_ref run: interpolation (bind-check.yml:27) | ci-injection | BELOW-BAR f | n/a | n/a | n/a | n/a | n/a | n/a | n/a | lit | not-a-finding | AUDIT.md Wave B |
-| C2 | gitleaks --no-git 3 hits | secret-scan | REFUTED f | n/a | n/a | n/a | n/a | n/a | n/a | n/a | lit | refuted | receipts/gitleaks-audit.json |
+| C2 | gitleaks --no-git 3 hits | secret-scan | REFUTED f | n/a | n/a | n/a | n/a | n/a | n/a | n/a | lit | refuted | receipts/gitleaks-audit.txt |
 | C3 | .env.example NC fallback comment | doc-drift | BELOW-BAR f | n/a | n/a | n/a | n/a | n/a | n/a | n/a | lit | not-a-finding | AUDIT.md Wave E |
 | C4 | alert-on-failure step-output interpolation | ci-injection | CLEAN f | n/a | n/a | n/a | n/a | n/a | n/a | n/a | lit | not-a-finding | AUDIT.md Wave B |
 | C5 | unpinned install (install.sh) | supply-chain | BELOW-BAR f | n/a | n/a | n/a | n/a | n/a | n/a | n/a | lit | not-a-finding | AUDIT.md Wave B |
@@ -38,5 +38,5 @@ Worker TASK pack: addy (one router; gstack never co-mounted). Triage mode: Gated
 ## Phase log
 
 - 2026-09-16T12:24:03Z ORIENT: threat model committed (digest 42ddea9b…), preflight
-  readonly exit 0, gitleaks git-mode clean (receipts/gitleaks-audit.json is the --no-git
-  capture incl. the 3 known waived fixtures; configured git scan: no leaks found).
+  readonly exit 0, gitleaks git-mode clean (receipts/gitleaks-audit.txt is the --redact
+  --no-git capture incl. the 3 known waived fixtures; configured git scan: no leaks found).

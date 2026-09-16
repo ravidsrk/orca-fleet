@@ -8,7 +8,7 @@ Triage mode: Gated. Worker pack: addy. Verifier status for every candidate below
 ## Wave A — secrets at rest (B1/B5)
 
 - `gitleaks detect` (repo config, git mode, 994 commits): **no leaks found**.
-- `--no-git` capture (`receipts/gitleaks-audit.json`) shows the 3 known
+- `--no-git` capture (`receipts/gitleaks-audit.txt`, `--redact`) shows the 3 known
   `tests/test_decisions.py` fixtures (`AKIA...EXAMPLE`, `api_key=...`), waived by
   fingerprint in `.gitleaksignore` with a documented plant-a-key CI tripwire
   (validate.yml). → Candidate C2, REFUTED (fixture-only, AWS-documented example
