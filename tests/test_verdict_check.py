@@ -46,8 +46,12 @@ class VerdictAtTip(unittest.TestCase):
     def test_sha_comparison_is_case_insensitive(self):
         self.assertTrue(verdict_at_tip([review(go_body(HEAD.upper()))], HEAD))
 
-    def test_verdict_line_case_insensitive_go_word_exact(self):
-        self.assertTrue(verdict_at_tip([review(go_body(HEAD).replace("VERDICT", "verdict"))], HEAD))
+    def test_verdict_marker_is_exact_uppercase(self):
+        # PR #465 review, P1: the CI job gate matches the literal `VERDICT: GO`,
+        # so the parser must too — a case-insensitive parser would accept verdicts
+        # CI never evaluates.
+        self.assertFalse(verdict_at_tip([review(go_body(HEAD).replace("VERDICT", "verdict"))], HEAD))
+        self.assertFalse(verdict_at_tip([review(go_body(HEAD).replace("GO", "go"))], HEAD))
         self.assertFalse(verdict_at_tip([review("VERDICT: GOAHEAD\nreviewed_sha: " + HEAD)], HEAD))
         self.assertFalse(verdict_at_tip([review("VERDICT: NO-GO\nreviewed_sha: " + HEAD)], HEAD))
 
