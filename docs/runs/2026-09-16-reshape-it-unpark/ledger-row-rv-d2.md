@@ -13,3 +13,4 @@
 - Criterion text v3 (mechanism phrase corrected, IDs + measurable bar unchanged; C0 bytes in git).
 - Behaviour: suite green at base (Ran 1503 OK) and head (Ran 1505 OK); M2 re-killed after re-anchor (carve-out a); revert re-widens 85→92 (carve-out b).
 - verify.py: all legs GREEN except the independent-APPROVED review leg, see rv-d2-pre-verify.txt (exit 2, review-only RED). The final GREEN transcript lands in the record-only commit after Greptile APPROVED at head.
+- E3 (re-bind): merged origin/main @ 496815ba (badge 1509); head re-anchored to merge tip M 2f5804d9 (lit lane: head follows the approvable tip); merge-tip records (WIDTH pin, validation, suite Ran 1509 OK) all exit 0; pre-verify review-only RED, revert-NC replay GREEN at the merge head.

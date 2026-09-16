@@ -43,11 +43,44 @@
       "commit": "4a8d7a9c9e85d8331a0bde215918ad77787b6430",
       "wtree": "774ee65989068c494c8926b92a8955cee2f28929",
       "artifact": "docs/runs/2026-09-16-reshape-it-unpark/rv-d2-tests-full-head.txt"
+    },
+    {
+      "label": "tests-at-merge",
+      "ts": "2026-09-16T22:10:01Z",
+      "cmd": "python3 -m unittest tests.test_reshape_width_verify",
+      "cmd_sha256": "6b3a44205b8732a4950b9745b4a60ff5f16e6b4589949587cfd2a5e03b817c0d",
+      "exit": 0,
+      "duration_s": 0.042,
+      "commit": "2f5804d922b11a45bae04a69475763eb6f8ae649",
+      "wtree": "1b4cd627c895cdb37c7ddb8f6c9b9ed81ac95b6d",
+      "artifact": "docs/runs/2026-09-16-reshape-it-unpark/rv-d2-tests-merge.txt"
+    },
+    {
+      "label": "validation-at-merge",
+      "ts": "2026-09-16T22:10:02Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 0,
+      "duration_s": 1.004,
+      "commit": "2f5804d922b11a45bae04a69475763eb6f8ae649",
+      "wtree": "1b4cd627c895cdb37c7ddb8f6c9b9ed81ac95b6d",
+      "artifact": "docs/runs/2026-09-16-reshape-it-unpark/rv-d2-validation-merge.txt"
+    },
+    {
+      "label": "tests-full-at-merge",
+      "ts": "2026-09-16T22:14:55Z",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "exit": 0,
+      "duration_s": 280.674,
+      "commit": "2f5804d922b11a45bae04a69475763eb6f8ae649",
+      "wtree": "1b4cd627c895cdb37c7ddb8f6c9b9ed81ac95b6d",
+      "artifact": "docs/runs/2026-09-16-reshape-it-unpark/rv-d2-tests-full-merge.txt"
     }
   ],
   "unit": "RV-D2",
   "base_sha": "7ada834e6240887928c99637f30bbc9276f53631",
-  "head_sha": "4a8d7a9c9e85d8331a0bde215918ad77787b6430",
+  "head_sha": "2f5804d922b11a45bae04a69475763eb6f8ae649",
   "base_branch": "main",
   "contract": {
     "source": "docs/runs/2026-09-16-reshape-it-unpark/contract-rv-d2.json@4a8d7a9c9e85d8331a0bde215918ad77787b6430",
@@ -116,6 +149,18 @@
     {
       "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-d2-tests-full-head.txt",
       "sha256": "6721a9dcd9ed6be2cddc63b8cb71f7fa1743756b660784aef0e605b372d2943a"
+    },
+    {
+      "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-d2-tests-merge.txt",
+      "sha256": "279538fe812d165bb22f5a84ab94b40efa9072957816601b6c80f1ba281fa35e"
+    },
+    {
+      "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-d2-validation-merge.txt",
+      "sha256": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6"
+    },
+    {
+      "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-d2-tests-full-merge.txt",
+      "sha256": "2ac730916c7bde44c21dea8a5ed673211a83f8c0c2930640dcbe381f7908f27b"
     }
   ],
   "pr": {
