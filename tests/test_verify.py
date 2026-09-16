@@ -2931,5 +2931,44 @@ class AuthoritativeReviewHistory(RepoCase):
                 self.assertTrue(any('resolve' in e for e in self.check(reviews)))
 
 
+class OracleScopeKindTest(RepoCase):
+    """PF-2 (prove-it self-run 2026-09-16): the oracle-scope kind gate.
+
+    check_oracle_scope authorizes a reviewed hand control for test-only
+    characterization or documentation work. The kind decides WHICH shape rules
+    apply (characterization must change a test; documentation must change prose
+    only) — an unknown kind slipping past this gate would skip both. The gate
+    must refuse it here, and must admit both legal kinds past this gate (deeper
+    gates still apply: the pair/ids/path checks below it).
+    """
+
+    def _contract(self, scope):
+        rel = "contract-pf2.json"
+        Path(rel).write_text(
+            json.dumps({"criterion_ids": ["PF-2"], "oracle_scope": scope}),
+            encoding="utf-8")
+        return rel, _digest(rel)
+
+    def test_bogus_kind_refused_at_kind_gate(self):
+        rel, digest = self._contract({"kind": "bogus"})
+        self.assertEqual(
+            verify.check_oracle_scope({}, rel, digest),
+            ["oracle scope: kind must be characterization or documentation"])
+
+    def test_characterization_passes_kind_gate(self):
+        rel, digest = self._contract({"kind": "characterization",
+                                      "base_sha": "a" * 40, "head_sha": "b" * 40})
+        self.assertEqual(
+            verify.check_oracle_scope({}, rel, digest),
+            ["oracle scope: authorized commit pair differs from the manifest"])
+
+    def test_documentation_passes_kind_gate(self):
+        rel, digest = self._contract({"kind": "documentation",
+                                      "base_sha": "a" * 40, "head_sha": "b" * 40})
+        self.assertEqual(
+            verify.check_oracle_scope({}, rel, digest),
+            ["oracle scope: authorized commit pair differs from the manifest"])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
