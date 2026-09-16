@@ -93,6 +93,15 @@ Only `BACKEND` is exclusive of frontend view files.
 
 Exits: 0 classified · 2 SCOPE_ERROR=no_base|diff_failed|unmatched.
 
+> Why: the failure mode that makes a scope gate worthless is silence — a shallow checkout
+> resolves no base, the diff is empty, and a legitimate-looking zero is recorded. So the
+> script distinguishes nothing-changed from could-not-look
+> (`runtime/scripts/diff_scope.py:ScopeError`), and the changed set is a union including
+> untracked files (`runtime/scripts/diff_scope.py:changed_files`) because a brand-new
+> migration is exactly what a reviewer must see. Partial-match stays information, not
+> failure, unless a lens opts into `--strict` — turning it into a failure by default would
+> break every caller whose repo has a file the table has no rule for.
+
 ## `ed25519.py`
 
 Vendored pure-Python Ed25519 (RFC 8032), dependency-free. Import-only library — no CLI.
