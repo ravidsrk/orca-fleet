@@ -5,7 +5,8 @@
   `alembic/versions/0001_*.py`, `0002_*.py`, `tests/test_api_*.py`
   (≥20 tests via TestClient); OpenAPI at `/docs`.
 - non-goals: No UI templates, no telemetry, no seed, no `0003` (S4 owns it),
-  no compose/CI edits.
+  no compose/CI edits, no query optimization in the list endpoint (S3 owns the
+  N+1 query shape for F1 — write it straightforwardly, do not preempt it).
 - stop: AC1.1–1.3 green at pushed head; manifest + intent packet; worker_done.
 - evidence: `s1-manifest.json` (same dir); RED-first transcripts per TDD.
 - budget: 80 tool calls; escalate on migration round-trip failure.

@@ -19,7 +19,8 @@
 - acceptance check: (1) fixture pytest green; (2) README run/test/teardown
   commands verified by execution; (3) CI workflow YAML valid (`actionlint` if
   present, else `python -c yaml.safe_load`); (4) catalog `validate.py` green;
-  (5) ruff clean both trees.
+  (5) catalog contract tests green + repo contains no `SKILL.md` outside
+  `skills/`; (6) ruff clean both trees.
 - files it may create: in-scope paths + `s4-manifest.json`.
 - hot-files it must NOT touch: `app/*`, `compose.yaml`, `observability/*`,
   catalog paths outside the run dir + the one CI workflow file.

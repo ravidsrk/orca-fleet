@@ -21,8 +21,13 @@
 DAG: S0 → S1 → {S2, S3} → S4. Frontier = {S0}. Merge-chains: `app/main.py`
 regions (# S1/# S2/# S3, append-only, coordinator resolves); `alembic/versions/`
 (S1 then S4, ordered); `compose.yaml` (S0 skeleton then S3, ordered); CI workflow
-(S0 skeleton then S4, ordered). Loop: manual wave (coordinator dispatches,
-reviews, merges per slice).
+(S0 skeleton then S4, ordered); `app/routers/issues.py::list_issues` query shape
+(S1 writes straightforward, S3 owns the F1 N+1 — skeptic note, S1 must not
+preempt). Loop: manual wave (coordinator dispatches, reviews, merges per slice).
+
+Plan skeptic (fresh worker, 2026-09-16): SKEPTIC-GO — no orphans (15/15 AC
+mapped), no gold, order correct, no stubs. Two non-blocking notes, both applied
+(S4 checklist item 5; S1/S3 list-endpoint handoff).
 
 ## Deviations
 
