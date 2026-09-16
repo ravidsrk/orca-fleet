@@ -141,10 +141,22 @@ class TheSecretWaiverCarriesIdentityNotContent(unittest.TestCase):
     # The exact set. Widening is the dangerous direction — one more line here silences a real
     # finding with nothing to show for it — and narrowing turns CI red rather than silent, so
     # pinning both ends is what makes this file reviewable at a glance.
+    #
+    # 2026-09-16 addition (PR #461, owner decision on the waiver the harden-it campaign run
+    # parked in 111af419): the run's transcript quotes the AWS-doc fixture key and the
+    # api_key fixture string in its own scan capture. Byte-inspected fixtures, nothing live,
+    # nothing rotated; gitleaks detect scans every ref in the clone, so these fired on all
+    # PRs once the campaign archive branches were pushed.
     WAIVED = {
         "03e481a106bea9dbe124fd5b5181d5769e28061f:tests/test_decisions.py:generic-api-key:111",
         "03e481a106bea9dbe124fd5b5181d5769e28061f:tests/test_decisions.py:aws-access-token:102",
         "03e481a106bea9dbe124fd5b5181d5769e28061f:tests/test_decisions.py:aws-access-token:115",
+        "57760b66a8f8e282bb6ff5a8afa4a7661dd6701a:docs/runs/campaign-2026-09-16-harden-it/ADDENDUM-gitleaks-waiver.md:generic-api-key:17",
+        "f0c83cb1f1aa099206058f15570706f90482414e:docs/runs/campaign-2026-09-16-harden-it/receipts/gitleaks-audit.json:generic-api-key:50",
+        "f0c83cb1f1aa099206058f15570706f90482414e:docs/runs/campaign-2026-09-16-harden-it/receipts/gitleaks-audit.json:aws-access-token:9",
+        "f0c83cb1f1aa099206058f15570706f90482414e:docs/runs/campaign-2026-09-16-harden-it/receipts/gitleaks-audit.json:aws-access-token:10",
+        "f0c83cb1f1aa099206058f15570706f90482414e:docs/runs/campaign-2026-09-16-harden-it/receipts/gitleaks-audit.json:aws-access-token:29",
+        "f0c83cb1f1aa099206058f15570706f90482414e:docs/runs/campaign-2026-09-16-harden-it/receipts/gitleaks-audit.json:aws-access-token:30",
     }
 
     def test_every_waived_entry_is_a_bare_fingerprint(self):
@@ -159,11 +171,18 @@ class TheSecretWaiverCarriesIdentityNotContent(unittest.TestCase):
                          "the secret-scan waiver changed — every entry here is a finding "
                          "nobody will see again, so an addition needs its own justification")
 
+    # Paths allowed to carry waived fingerprints, each with its justification above.
+    WAIVED_PATHS = {
+        "tests/test_decisions.py",
+        "docs/runs/campaign-2026-09-16-harden-it/ADDENDUM-gitleaks-waiver.md",
+        "docs/runs/campaign-2026-09-16-harden-it/receipts/gitleaks-audit.json",
+    }
+
     def test_nothing_outside_the_fixture_file_is_waived(self):
         for entry in self._lines():
             with self.subTest(entry=entry):
-                self.assertEqual(entry.split(":")[1], "tests/test_decisions.py",
-                                 "only the credential-shaped fixtures are waived")
+                self.assertIn(entry.split(":")[1], self.WAIVED_PATHS,
+                              "only the credential-shaped fixtures are waived")
 
     def test_the_waiver_carries_no_address_and_no_commit_message(self):
         text = self.IGNORE.read_text(encoding="utf-8")
