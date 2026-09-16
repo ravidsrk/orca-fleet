@@ -54,3 +54,11 @@ mapped), no gold, order correct, no stubs. Two non-blocking notes, both applied
   which verify.py's hunk grammar rejects though git applies it; coordinator
   replayed the mutant manually: RED 3 failed/13 passed, GREEN 16 passed on
   restore. S2–S4 workers instructed: space-prefix every context line in NC diffs.
+- D5 (S2 E1/E2/E3 rulings): E1 route collision — S2's runtime router surgery
+  REJECTED; coordinator reordered includes statically (pages before API) on the
+  slice branch (2cc7e0ad), S1 lines byte-identical, full suite re-verified 41
+  green; reviewed_sha = 2cc7e0ad (covers C1 + reorder). E2 detail URL —
+  ACCEPTED: `/issues/{id}` JSON smoke satisfies S2-AC2's letter, HTML detail at
+  `/issues/{id}/view` (SPEC pins no detail URL). E3 pyproject deps (jinja2,
+  python-multipart) — ACCEPTED as necessary extras; S3 also touched pyproject
+  (structlog) → coordinator union-merge + re-run.
