@@ -1,0 +1,4 @@
+AUTHOR SELF-CHECK (NOT the gate review)
+reviewer: run author, same session, 2026-09-16
+method: diff-only read of 0ee5a79 + accuracy check vs export_notes
+F6: GO — false claim removed, replacement accurate (verbatim json.dump observed plaintext)

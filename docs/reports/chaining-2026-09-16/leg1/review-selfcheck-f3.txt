@@ -1,0 +1,4 @@
+AUTHOR SELF-CHECK (NOT the gate review — author cannot review own work)
+reviewer: run author, same session, 2026-09-16
+method: diff-only read of b68a7be + criterion check
+F3: GO — None denies, accept-path unchanged, test binds (NC killed), no scope creep
