@@ -17,6 +17,7 @@ Supporting mutant M2b (hand): verify.py:1170 `if not failures:` ->
 `if failures:`. Killed by the bare-stillborn reason case below.
 """
 import importlib.util
+import re
 import unittest
 from pathlib import Path
 
@@ -62,10 +63,13 @@ class OutcomeReadingSeamNet(unittest.TestCase):
         self.assertTrue(ok)
 
     def test_counted_sums_reported_counts_and_nones_when_absent(self):
-        self.assertIsNone(verify._counted(verify._ERRORS_RE, "no runner summary here"))
-        self.assertEqual(verify._counted(verify._FAILURES_RE, "FAILED (failures=1)"), 1)
-        self.assertEqual(
-            verify._counted(verify._FAILURES_RE, "2 failed, 3 failed"), 5)
+        # Self-contained patterns, not verify's own tables: the RV-D2 deepening
+        # privatizes _ERRORS_RE/_FAILURES_RE with the move, and this net must stay
+        # green on both sides of it. _counted's contract is pattern-agnostic.
+        pat = re.compile(r"\b(\d+)\s+failed\b")
+        self.assertIsNone(verify._counted(pat, "no runner summary here"))
+        self.assertEqual(verify._counted(pat, "1 failed"), 1)
+        self.assertEqual(verify._counted(pat, "2 failed, 3 failed"), 5)
 
 
 if __name__ == "__main__":
