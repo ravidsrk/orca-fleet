@@ -328,3 +328,28 @@ Staged blobs enter the object store as unreachable objects until gc, like `git s
 
 Exits: 0 prints the hash · 1 outside a git repo, or no commits and no usable index
 (callers fail closed on nonzero — never treat it as an empty fingerprint).
+
+## `one-way-doors.json`
+
+The fleet's one-way door registry: the single enumerated list of human-only decisions —
+hard or impossible to reverse, or out of the fleet's authority. Source
+`runtime/one-way-doors.json`; enforced by `runtime/scripts/decisions.py`, pointed at by
+`runtime/gate-classification.md` and `runtime/sandbox-policy.md`; shape pinned by
+`tests/test_one_way_doors.py`.
+
+Top-level keys: `version` (currently 1), `note` (the registry contract), `doors` (the
+list). Each door carries `id`, `title`, `why`, and `keywords` — multi-word destructive
+phrasings, matched case-insensitively as substrings after whitespace folding, so a single
+common word never fires on ordinary prose.
+
+Keys:
+
+| `merge-to-default` | Merge to the default branch (or promote BASE to it) |
+| `deploy` | Deploy to a shared or production environment |
+| `rollback` | Roll back a deployed release |
+| `deletion` | Delete data, branches, worktrees, or infrastructure |
+| `spend` | Commit money the fleet does not hold |
+| `scope-change` | Change the frozen scope of a run |
+| `secret-rotation` | Rotate or revoke a secret |
+| `live-credentials` | Use, provision, or move live credentials |
+| `freeze` | Freeze or unfreeze the run's contract |

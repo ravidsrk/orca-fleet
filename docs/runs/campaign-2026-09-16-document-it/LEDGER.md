@@ -24,8 +24,8 @@ solo self-test; the mechanical oracle is the claim check + rename control + re-d
 | doc-r11 | cli:runtime/scripts/sandbox_doctor.py | reference | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-r11.md @a6cedd3 |
 | doc-r12 | cli:runtime/scripts/spawn_worker.sh | reference | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-r12.md @65fb669 |
 | doc-r13 | cli:runtime/scripts/watchdog.py | reference | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-r13.md @52d9f20 |
-| doc-r14 | cli:runtime/scripts/wtree.sh | reference | critical | t | t | t | n/a | n/a | t | f | f | n/a | lit | | cells/doc-r14.md |
-| doc-r15 | config:runtime/one-way-doors.json | reference | critical | f | f | f | n/a | n/a | f | f | f | n/a | lit | | |
+| doc-r14 | cli:runtime/scripts/wtree.sh | reference | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-r14.md @0e6db58 |
+| doc-r15 | config:runtime/one-way-doors.json | reference | critical | t | t | t | n/a | n/a | t | f | f | n/a | lit | | cells/doc-r15.md |
 | doc-r16 | config:runtime/watchdog.json | reference | critical | f | f | f | n/a | n/a | f | f | f | n/a | lit | | |
 | doc-x01 | cli:runtime/scripts/decisions.py | explanation | critical | f | f | f | n/a | n/a | f | f | f | n/a | lit | | |
 | doc-x02 | cli:runtime/scripts/deny-hook.sh | explanation | critical | f | f | f | n/a | n/a | f | f | f | n/a | lit | | |
