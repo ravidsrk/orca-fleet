@@ -1,0 +1,57 @@
+# Entry-input search transcript — ship-it self-test 2026-09-16
+
+Base: origin/main c46d4b3f3371e41408aed19e54476fa194c20b42
+
+## §1 Frozen spec awaiting build: NONE
+
+$ grep -ril "frozen spec" docs skills playbooks
+docs/research/2026-08-28-competitive-landscape-differentiation.md
+docs/missions/root-cause.md
+docs/missions/review-it.md
+docs/missions/README.md
+docs/missions/map-it.md
+docs/missions/ship-it.md
+docs/concepts.md
+docs/completion/evidence/CF-02-r2-happy-symlink-install.txt
+docs/completion/evidence/CF-05-r3-dispatch-record.txt
+docs/completion/evidence/CF-05-r3-axis-spec.md
+
+All hits are mission-guide doctrine or archived completion evidence — none is a
+handed-in buildable spec. No spec was supplied with the tasking either.
+
+## §2 Map-it handoff (MAPPED report / prepared DAG): NONE
+
+$ grep -ril "prepared DAG|prepared dag" docs
+docs/research/2026-07-15-addy-orchestration-gap-analysis.md
+docs/research/2026-08-16-addy-latest-delta-plan.md
+docs/missions/map-it.md
+
+All hits are doctrine/research mentions. docs/runs/ contains no MAPPED report
+and no prepared DAG (see preflight.txt for the runs index state; archive rows
+are clean-sweep / review-it / oss-contribute / ship-it-2026-08-28 / pin-it /
+prove-it only).
+
+## §3 Raw intent: NONE SUPPLIED
+
+Tasking text names the repo ("Target = orca-fleet itself at its main tip") and
+orders the pipeline run, but carries no intent, draft, or slice description to
+grill. Verified Current State / premises / round-1 record cannot start without
+one, and every grill DECISION plus the freeze itself is human-answered
+(playbooks/decide-and-freeze.md), so there is no unattended self-entry.
+
+## §4 Open-issue review: all disqualified as ship-it input
+
+$ gh issue list --state open
+#444 #443 #442 #441 (mission-chaining follow-ups — other mission's target)
+#440 (flaky test — deflake-it's unit)
+#434 (proof-ladder diagrams doc task — backlog)
+#427 (pin-it re-pin cadence — pin-it's unit)
+#409 (harden-it promotion, needs-human — other mission)
+#408 (gate-batch G1-G4, needs-human — human answers owed)
+#407 (roadmap epic — children merged except human/blocked items)
+#386 (signed manifests + retention, S2 — parked on G1 human answers)
+#235 (marketplace submissions, needs-human)
+
+Closing any of these is backlog-closing = clean-sweep's unit, explicitly
+out of ship-it scope ("Not for closing an existing backlog (clean-sweep)").
+None is a frozen spec or a supplied intent.
