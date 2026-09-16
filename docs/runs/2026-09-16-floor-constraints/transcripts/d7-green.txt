@@ -1,0 +1,5 @@
+### D7 GREEN-after-revert — 2026-09-16T20:31:02Z
+### revert commit: 51edeebd (tree == floor/constraints)
+### command: python3 scripts/bundle.py --check
+bundle: 21 self-contained mission(s) in a temp dir; no reference leaves its directory
+bundle_exit=0

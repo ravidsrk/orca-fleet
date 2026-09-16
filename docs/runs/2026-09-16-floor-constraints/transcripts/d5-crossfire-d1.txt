@@ -1,0 +1,115 @@
+### D5 D1-implication — tests.test_evals on injection ff752a4f — 2026-09-16T20:29:04Z
+...................................F....F...........F.F..........F...F.......................................
+======================================================================
+FAIL: test_routing_suite_passes_at_the_live_floor (tests.test_evals.TestCliGate.test_routing_suite_passes_at_the_live_floor)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/projects/orca-fleet/.muse/worktrees/subagent-v2-01a0a08a-bf23-71e3-bb1d-c7a68bec7d23-01a0abaf-32d4-7fa1-b587-3f056e3ace64/tests/test_evals.py", line 688, in test_routing_suite_passes_at_the_live_floor
+    self.assertEqual(r.returncode, 0, f"{r.stdout}\n{r.stderr}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : Routing eval: 86/94 correct (91%)
+  [positive] id=10 expected=deflake-it predicted=prove-it
+    prompt: Kill the flaky tests in the CI suite.
+    reason: Suite-wide flake-rate contract is deflake-it.
+    top: prove-it 0.084
+  [negative] id=15 expected=owner deflake-it over root-cause predicted=prove-it
+    prompt: The test suite has flaky failures.
+    reason: A whole flaky suite is deflake-it, not the single-bug mission root-cause.
+    top: prove-it 0.101
+  [negative] id=26 expected=owner deflake-it over clean-sweep predicted=prove-it
+    prompt: This test fails intermittently — it passes on retry.
+    reason: An intermittent pass-on-retry failure is a flake-rate contract (deflake-it), not a deterministic clean-sweep bug.
+    top: prove-it 0.105, clean-sweep 0.065, field-test-it 0.062
+  [positive] id=102 expected=deflake-it predicted=none
+    prompt: why is this flaky
+    reason: docs/reviews/2026-09-10-review.md §5 realistic prompt: one bug or a suite-rate contract — either is defensible from the text.
+  [positive] id=105 expected=deflake-it predicted=map-it
+    prompt: our tests are flaky and I want to know why
+    reason: docs/reviews/2026-09-10-review.md §5 realistic prompt: a whole flaky suite is deflake-it.
+    top: map-it 0.125, prove-it 0.124
+  [positive] id=110 expected=modernize-it predicted=modernize-it
+    prompt: upgrade React and fix what breaks
+    reason: docs/reviews/2026-09-10-review.md §5 realistic prompt: framework currency with CI green is modernize-it.
+    top: modernize-it 0.088, field-test-it 0.071
+  [positive] id=130 expected=deflake-it|root-cause predicted=prove-it
+    prompt: this test passes locally but fails in CI
+    reason: docs/reviews/2026-09-10-review.md §5 realistic prompt: environment-dependent intermittency.
+    top: prove-it 0.120, root-cause 0.095, clean-sweep 0.075
+  [positive] id=132 expected=deflake-it predicted=none
+    prompt: kill the retry wrappers and make the suite deterministic
+    reason: docs/reviews/2026-09-10-review.md §5 realistic prompt: retry-wrappers-as-fixes are deflake-it's banned anti-pattern.
+  FAIL: routing score 91% is below --threshold 100%
+
+
+
+======================================================================
+FAIL: test_classify_prompt_returns_a_ranked_list (tests.test_evals.TestDescriptionRouter.test_classify_prompt_returns_a_ranked_list)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/projects/orca-fleet/.muse/worktrees/subagent-v2-01a0a08a-bf23-71e3-bb1d-c7a68bec7d23-01a0abaf-32d4-7fa1-b587-3f056e3ace64/tests/test_evals.py", line 407, in test_classify_prompt_returns_a_ranked_list
+    self.assertEqual(names[0], "deflake-it")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'prove-it' != 'deflake-it'
+- prove-it
++ deflake-it
+
+
+======================================================================
+FAIL: test_route_prompt_is_a_thin_string_wrapper (tests.test_evals.TestDescriptionRouter.test_route_prompt_is_a_thin_string_wrapper)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/projects/orca-fleet/.muse/worktrees/subagent-v2-01a0a08a-bf23-71e3-bb1d-c7a68bec7d23-01a0abaf-32d4-7fa1-b587-3f056e3ace64/tests/test_evals.py", line 410, in test_route_prompt_is_a_thin_string_wrapper
+    self.assertEqual(eval_mod.route_prompt("Kill the flaky tests in the CI suite."), "deflake-it")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'prove-it' != 'deflake-it'
+- prove-it
++ deflake-it
+
+
+======================================================================
+FAIL: test_routing_seams_hold (tests.test_evals.TestDescriptionRouter.test_routing_seams_hold) (prompt='This test fails intermittently — it passes on retry.')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/projects/orca-fleet/.muse/worktrees/subagent-v2-01a0a08a-bf23-71e3-bb1d-c7a68bec7d23-01a0abaf-32d4-7fa1-b587-3f056e3ace64/tests/test_evals.py", line 492, in test_routing_seams_hold
+    self.assertEqual(eval_mod.route_prompt(prompt), expected)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'prove-it' != 'deflake-it'
+- prove-it
++ deflake-it
+
+
+======================================================================
+FAIL: test_run_routing_meets_minimum_score (tests.test_evals.TestEvalInfrastructure.test_run_routing_meets_minimum_score)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/projects/orca-fleet/.muse/worktrees/subagent-v2-01a0a08a-bf23-71e3-bb1d-c7a68bec7d23-01a0abaf-32d4-7fa1-b587-3f056e3ace64/tests/test_evals.py", line 313, in test_run_routing_meets_minimum_score
+    self.assertGreaterEqual(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        result["score"], ROUTING_MIN_SCORE,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        f"routing score {result['score']:.0%} below minimum {ROUTING_MIN_SCORE:.0%}; "
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        f"failures: {[f['id'] for f in result['failures']]}",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+AssertionError: 0.9148936170212766 not greater than or equal to 1.0 : routing score 91% below minimum 100%; failures: [10, 15, 26, 102, 105, 110, 130, 132]
+
+======================================================================
+FAIL: test_validate_subcommand_passes (tests.test_evals.TestEvalInfrastructure.test_validate_subcommand_passes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/projects/orca-fleet/.muse/worktrees/subagent-v2-01a0a08a-bf23-71e3-bb1d-c7a68bec7d23-01a0abaf-32d4-7fa1-b587-3f056e3ace64/tests/test_evals.py", line 309, in test_validate_subcommand_passes
+    self.assertEqual(r.returncode, 0, f"stderr: {r.stderr}\nstdout: {r.stdout}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : stderr: 
+stdout: Validation failed:
+  - evals/routing.json: eval[62] expected_any names ['deflake-it'], which do not score on this prompt at all — the row passes on a mission it never predicted. Narrow it to expected_mission
+  - evals/routing.json: eval[67] expected_any names ['deflake-it'], which do not score on this prompt at all — the row passes on a mission it never predicted. Narrow it to expected_mission
+
+
+----------------------------------------------------------------------
+Ran 109 tests in 3.508s
+
+FAILED (failures=6)
+test_evals_exit=1

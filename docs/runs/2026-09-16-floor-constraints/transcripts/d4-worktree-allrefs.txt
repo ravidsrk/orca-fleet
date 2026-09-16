@@ -1,0 +1,13 @@
+### D4 worktree all-refs scan (NOT the gate signal) — 2026-09-16T20:27:52Z
+### repo: floor/constraints worktree (shares object store + refs with the main checkout: dozens of unmerged campaign branches)
+### command: gitleaks detect --redact --no-banner --source .
+[90m1:57AM[0m [32mINF[0m [1m1107 commits scanned.[0m
+[90m1:57AM[0m [32mINF[0m [1mscanned ~22658643 bytes (22.66 MB) in 2.15s[0m
+[90m1:57AM[0m [33mWRN[0m [1mleaks found: 6[0m
+gitleaks_exit=1
+### NOTE: exit=1 here scans ALL local refs, including unpushed campaign branches.
+### The 6 findings are in docs/runs/campaign-2026-09-16-harden-it/ at commits
+### 57760b66/f0c83cb1, both NOT ancestors of HEAD (verified via merge-base).
+### CI scans origin refs only (campaign branches are unpushed per protocol) and is
+### GREEN on main; the main-history-only clone (/tmp/fcmain) also exits 0.
+### The D4 gate signal is d4-green.txt (main-only, exit 0), not this file.

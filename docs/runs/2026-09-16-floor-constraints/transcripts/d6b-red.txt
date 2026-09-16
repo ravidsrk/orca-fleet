@@ -1,0 +1,9 @@
+### D6b RED — 2026-09-16T20:30:31Z
+### branch: floor/canary-d6b commit: c1b82b8d (throwaway)
+### injection: one hex char flipped in the run-close integrity inventory (manifest.json row)
+### command: python3 runtime/scripts/run_report.py
+bound clean-sweep (self-run) — docs/runs/2026-09-14-clean-sweep-self-run.md
+FAIL prove-it (self-run)
+   - docs/runs/2026-09-16-prove-it-self-run.md: inventory docs/runs/2026-09-16-prove-it-selfrun/manifest.json at 4d451d88aaea6a34a082e2724f60f93c03a2212d: recorded 71ff6b765f24…, actual 71ff6b765f24…
+   - docs/runs/2026-09-16-prove-it-self-run.md: the graded manifest docs/runs/2026-09-16-prove-it-selfrun/manifest.json hashes differently — the inventory must pin the document the verdict rests on, not only its neighbours
+run_report_exit=1

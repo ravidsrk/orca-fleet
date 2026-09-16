@@ -1,0 +1,7 @@
+### D7 RED — 2026-09-16T20:30:52Z
+### branch: floor/canary-d7 commit: 5242ce31 (throwaway)
+### injection: outbound link [canary spec](../../canary-missing-target.md) appended to skills/review-it/SKILL.md
+### command: python3 scripts/bundle.py --check
+FAIL review-it: references/canary-missing-target.md was not vendored
+FAIL review-it: dead relative link (SKILL.md): [canary spec](references/canary-missing-target.md)
+bundle_exit=1
