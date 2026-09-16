@@ -19,7 +19,7 @@ new handles.
 `projection.liveness` (the fleet verdict), `projection.attention.categories`,
 `projection.attention.requiresAction`, and a literal `projection.nextAction.argv` to run. `worker-show`'s
 `observation.status` is **PTY liveness only** — a `live` terminal can still hold an agent that died at a trust
-prompt (`orchestration/recovery-and-cleanup:25-31` at v1.4.199). The fleet taught this inverted for two runs; (Anchors reading v1.4.199 await per-probe re-witness; the 2026-09-13 pin-it park register — docs/runs/2026-09-13-pin-it-266/PARK.md — says which are current at v1.4.200.)
+prompt (`orchestration/recovery-and-cleanup:25-31` at v1.4.203). The fleet taught this inverted for two runs; the projection half is re-witnessed live at v1.4.203 (docs/runs/2026-09-16-pin-it-416/receipts/worker-list-unscoped.json).
 it is the reason pane-reading felt authoritative.
 
 Always scope it: `worker-list --run <run_id>`. Unscoped, it reports every Dispatch this runtime ever recorded
@@ -92,7 +92,7 @@ apply the identical-error kill (reassign or park), do not loop.
 ## The stuck-pending watchdog (a runtime trap)
 
 **Corrected:** `task-create` DOES validate `--deps` since upstream #9925 — a missing or foreign-Run dep throws
-`Dependency task <id> must belong to run <run>` (`task-store.ts:38-43` at v1.4.199). The typo'd-dep strand
+`Dependency task <id> must belong to run <run>` (`task-store.ts:38-43` at v1.4.203). The typo'd-dep strand
 this file used to warn about cannot happen; a fleet that budgeted for it was defending a closed hole.
 
 The other half is CURRENT and is the real trap: `promoteReadyTasks` fires only when a dep COMPLETES, and
@@ -144,7 +144,7 @@ counted-but-untouched; no scope → resume ABORTS.
    class with extra steps); `--from` cannot nominate the taker, so it must be run from the terminal that will
    hold the run; `run_legacy_local` is an empty tombstone, so find the Run whose objective reads `Recovered
    orchestration work from a contract update`; and when authority is unproven, degrade to read-only inspection
-   rather than adopting (`orchestration/legacy-contract-migration:19-23,69-83` at v1.4.199).
+   rather than adopting (`orchestration/legacy-contract-migration:19-23,69-83` at v1.4.203).
 3. REBUILD from provenance; CROSS-VERIFY every "completed" against git (evidence-manifest.md) —
    provenance-says-done + git-disagrees = SUSPECT (treat as failed).
 4. RECONCILE the ledger (git is truth, the ledger is its cache).
