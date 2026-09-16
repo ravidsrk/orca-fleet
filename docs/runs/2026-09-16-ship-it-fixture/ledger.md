@@ -16,7 +16,11 @@
 | S1 | API + store | S0 | matt | MERGED #447 @ 310b2259 (C1 2bee02fa reviewed GO; coord P1 fix 7a1ef399) |
 | S2 | UI + F2 | S1 | matt | MERGED #448 @ 216076eb (reviewed 2cc7e0ad GO) |
 | S3 | seed + F1 + telemetry + staging | S1 | addy | MERGED #449 @ 2aa870c7 (C1 e73d1b99 GO; coord P1/P2 fixes + dep-union merge) |
-| S4 | docs + flaws + CI + pending 0003 | S2, S3 | addy | dispatched (isolated wtree) |
+| S4 | docs + flaws + CI + pending 0003 | S2, S3 | addy | MERGED #450 @ b43641f2 (C1 4da0d047 reviewed GO; coord CI fixes) |
+
+`PHASE: BUILT` — all slices merged, traceability 15/15 verified at b43641f2
+(fixture 51 + catalog 1490 + validate + live drive + F1–F4 spot-checks).
+Release state machine: promotion PR owed (human gate #2) for RELEASED.
 
 DAG: S0 → S1 → {S2, S3} → S4. Frontier = {S0}. Merge-chains: `app/main.py`
 regions (# S1/# S2/# S3, append-only, coordinator resolves); `alembic/versions/`
