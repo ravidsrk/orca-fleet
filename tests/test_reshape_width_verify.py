@@ -44,7 +44,9 @@ class VerifyWidthPin(unittest.TestCase):
         self.assertIsNotNone(engine, "verify.py no longer loads runtime/scripts/_verify_sig.py")
         self.assertIs(verify._failure_signature, engine._failure_signature,
                       "the _failure_signature re-export is not the engine's own object")
-        for detail in ("_counted", "STILLBORN_MARKERS", "ASSERTION_MARKERS",
+        self.assertIs(verify._counted, engine._counted,
+                      "the _counted re-export is not the engine's own object")
+        for detail in ("STILLBORN_MARKERS", "ASSERTION_MARKERS",
                        "STRONG_ASSERTION_RE", "_ERRORS_RE", "_FAILURES_RE"):
             self.assertFalse(hasattr(verify, detail),
                              f"implementation detail {detail} leaked back onto verify")

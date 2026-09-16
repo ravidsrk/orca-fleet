@@ -1101,6 +1101,9 @@ _sig_spec = importlib.util.spec_from_file_location(
 _verify_sig = importlib.util.module_from_spec(_sig_spec)
 _sig_spec.loader.exec_module(_verify_sig)
 _failure_signature = _verify_sig._failure_signature
+# _counted stays reachable for the same reason: the RV-C2 characterization net
+# pins its contract directly, and a pinned seam function is interface, not detail.
+_counted = _verify_sig._counted
 
 
 def _hunk_lines(text, side):
