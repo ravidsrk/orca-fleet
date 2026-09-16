@@ -1,0 +1,11 @@
+{
+ "criterion_ids": [
+  "PW.7.2"
+ ],
+ "frozen_source_sha256": "b01634a5fdb382e7a12660c379a4d0bc3a2b8e29abccf2861834880005137117",
+ "source": "docs/runs/campaign-2026-09-16-attest-it/catalog/frozen-catalog.json",
+ "standard": "NIST-SP-800-218",
+ "statement": "Perform the code review and/or code analysis based on the organization\u2019s secure coding standards, and record and triage all discovered issues and recommended remediations in the development team\u2019s workflow or issue tracking system.",
+ "unit": "attest-pw-7-2",
+ "version": "1.0.0"
+}

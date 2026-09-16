@@ -1,0 +1,11 @@
+{
+ "criterion_ids": [
+  "PS.3.2"
+ ],
+ "frozen_source_sha256": "b01634a5fdb382e7a12660c379a4d0bc3a2b8e29abccf2861834880005137117",
+ "source": "docs/runs/campaign-2026-09-16-attest-it/catalog/frozen-catalog.json",
+ "standard": "NIST-SP-800-218",
+ "statement": "Collect, safeguard, maintain, and share provenance data for all components of each software release (e.g., in a software bill of materials .SBOM).",
+ "unit": "attest-ps-3-2",
+ "version": "1.0.0"
+}
