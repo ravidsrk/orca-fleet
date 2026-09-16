@@ -197,7 +197,7 @@ Per report:
   is likewise one unit of the multi-criterion self-run, and as a mutating
   mission the core needs `waves=` plus one WIP-curve row per wave. The PF-1
   `negctrl.txt` transcript carries over unchanged.
-- `clean-sweep` (#411): no envelope exists — author both halves from the
+- `clean-sweep` (#411, `self-run`): no envelope exists — author both halves from the
   `docs/runs/2026-09-14-clean-sweep-tracker/` source material per that
   issue, following this guide's steps in order.
 
