@@ -1,0 +1,151 @@
+{
+  "unit": "S3",
+  "base_sha": "f14deddffc8ed2487d2a78ad59550384811c3a7b",
+  "head_sha": "e73d1b990303e82c4af04ae4ac93b5bd77d1c680",
+  "base_branch": "ship/fixture-target-app",
+  "branch": "s3-telemetry",
+  "contract": {
+    "source": "docs/runs/2026-09-16-ship-it-fixture/s3-contract.json@310b2259c5b0d8d1381819c17452ce08c40ebd01",
+    "digest": "sha256:887bfb79caa676c816c8252072b3d4f8b18b87f9c1ee5ebbc4136101ee373290",
+    "criterion_ids": [
+      "S3-AC1",
+      "S3-AC2",
+      "S3-AC3",
+      "S3-AC4"
+    ]
+  },
+  "criteria": [
+    {
+      "id": "S3-AC1",
+      "text": "fixture pytest green",
+      "addressed": true
+    },
+    {
+      "id": "S3-AC2",
+      "text": "compose smoke transcript at head (build, /healthz, PromQL, LogQL, teardown)",
+      "addressed": true
+    },
+    {
+      "id": "S3-AC3",
+      "text": "F1 measurable \u2014 seeded list endpoint >500ms documented with command",
+      "addressed": true
+    },
+    {
+      "id": "S3-AC4",
+      "text": "ruff clean",
+      "addressed": true
+    }
+  ],
+  "commands": [
+    {
+      "label": "tests",
+      "ts": "2026-09-16T16:00:33Z",
+      "cmd": "python3 -m pytest demo/target-app/tests",
+      "cmd_sha256": "ced6226ee30e032a37f3945b5b305a73946e24f8dcdb414f2072d3f90ff32bae",
+      "exit": 0,
+      "duration_s": 0.666,
+      "commit": "e73d1b990303e82c4af04ae4ac93b5bd77d1c680",
+      "wtree": "561b8f7743b61b34e12aecda86c2ce2ed27544a0",
+      "artifact": null
+    },
+    {
+      "label": "ruff",
+      "ts": "2026-09-16T16:00:33Z",
+      "cmd": "ruff check demo/target-app",
+      "cmd_sha256": "235e8b300d4ba53e3200839da64a6dd0904c446a5cf3764c88cd0c2d4482974c",
+      "exit": 0,
+      "duration_s": 0.009,
+      "commit": "e73d1b990303e82c4af04ae4ac93b5bd77d1c680",
+      "wtree": "561b8f7743b61b34e12aecda86c2ce2ed27544a0",
+      "artifact": null
+    },
+    {
+      "label": "nc-command (tests)",
+      "ts": "2026-09-16T16:01:09Z",
+      "cmd": "python3 -m pytest demo/target-app/tests/test_telemetry_hooks.py",
+      "cmd_sha256": "8abd1e569a6bca66d19046c184daa419bbccf1ab0b39c956c6f5c1abad4848f7",
+      "exit": 0,
+      "duration_s": 0.308,
+      "commit": "e73d1b990303e82c4af04ae4ac93b5bd77d1c680",
+      "wtree": "561b8f7743b61b34e12aecda86c2ce2ed27544a0",
+      "artifact": null
+    }
+  ],
+  "negative_control": {
+    "did": "hand mutant in demo/target-app/app/routers/hooks.py: receive_alerts stores None instead of the receipt; proof command went RED (assert 404 == 200, exit 1), GREEN after restore (2 passed, exit 0)",
+    "tool": "hand",
+    "result": "the criterion-bound test went RED (mutant KILLED)",
+    "artifact": "docs/runs/2026-09-16-ship-it-fixture/s3-nc.txt",
+    "command": "python3 -m pytest demo/target-app/tests/test_telemetry_hooks.py",
+    "env_note": "replay needs the fixture venv on PATH (uv sync --project demo/target-app first); the `uv` launcher itself is outside verify.py's proof-command grammar, so the grammar-supported spelling is the venv-resolved python3"
+  },
+  "binding_audit": {
+    "coverage": "S3-AC1..S3-AC4 (4/4)",
+    "method": "criterion quoted, covering tests quoted (37-test suite incl. 9 new telemetry tests; 8/8 compose smoke incl. PromQL value + LogQL JSON line + alert receipt; F1 wall 878-902ms + deterministic >=2N+1 SELECT shape test; ruff check), criterion-violating hand mutation (drop alert receipt) went RED with assert 404 == 200"
+  },
+  "intent": {
+    "goal": "Seed (1k issues + 50 comments each), structlog JSON logs, Prometheus /metrics (latency histogram + issue gauge), Alertmanager webhook receiver, and the full 7-service compose stack, with the list endpoint shaped into the documented F1 N+1.",
+    "ruled_out": "A startup auto-migrate handler (newer Starlette removed add_event_handler; compose migrates via `python -m app.seed --count 0` instead); a response-schema change for comment counts (would churn S1's contract \u2014 the N+1 hides behind an additive X-Total-Comments header instead); hand-rolled metrics/JSON logging (AC3.1 names structlog; prometheus_client owns histogram exposition); asserting >500ms in pytest (CI-flaky \u2014 wall clock is measured evidence, the >=2N+1 SELECT count is the stable test).",
+    "why": "S3 is the AC3 vertical plus the F1 flaw all finding-missions need as true signal: telemetry must be queryable (PromQL/LogQL), staging must own its DB, and the N+1 must be a genuine per-row fan-out over an unindexed FK \u2014 measurable in wall time, pinned by a shape test \u2014 before S4 freezes the flaw catalog."
+  },
+  "lighting": "lit",
+  "artifacts": [
+    {
+      "path": "docs/runs/2026-09-16-ship-it-fixture/s3-nc.txt",
+      "sha256": "17e158ad786296d0d0e92571064869a2b3498f3699d445ebd330bd4245014cda"
+    }
+  ],
+  "files": [
+    "demo/target-app/app/telemetry.py",
+    "demo/target-app/app/seed.py",
+    "demo/target-app/app/routers/hooks.py",
+    "demo/target-app/app/main.py",
+    "demo/target-app/app/routers/issues.py",
+    "demo/target-app/pyproject.toml",
+    "demo/target-app/compose.yaml",
+    "demo/target-app/observability/prometheus.yml",
+    "demo/target-app/observability/alertmanager.yml",
+    "demo/target-app/observability/loki-config.yml",
+    "demo/target-app/observability/promtail-config.yml",
+    "demo/target-app/observability/dashboards/issues.json",
+    "demo/target-app/observability/grafana/provisioning/datasources/fixture.yml",
+    "demo/target-app/observability/grafana/provisioning/dashboards/fixture.yml",
+    "demo/target-app/tests/test_telemetry_metrics.py",
+    "demo/target-app/tests/test_telemetry_hooks.py",
+    "demo/target-app/tests/test_telemetry_logs.py",
+    "demo/target-app/tests/test_telemetry_seed.py"
+  ],
+  "head_role": "code commit (seed+F1+telemetry+staging); the manifest + NC transcript ride one commit above so the commands ledger binds to this tree exactly (S1 precedent)",
+  "logs": {
+    "tests": "37 passed, 2 warnings in 0.47s (28 pre-existing + 9 new: 3 metrics, 2 hooks, 1 logs, 3 seed/shape); canonical `uv run pytest` also green at head",
+    "ruff": "All checks passed! (`ruff check demo/target-app`; S3-owned files also ruff-format clean \u2014 the 1 remaining format finding is pre-existing on the base)",
+    "tdd_red": "4 errors during collection (app.telemetry / app.seed / app.routers.hooks did not exist yet)",
+    "nc_red": "test_alerts_roundtrip FAILED (> assert last.status_code == 200 / E assert 404 == 200); 1 failed, 1 passed in 0.17s; exit 1",
+    "nc_green": "2 passed in 0.16s; exit 0",
+    "seed": "DATABASE_URL=sqlite:////tmp/f1.db uv run python -m app.seed --count 1000 -> `seeded 1000 issues` in 0.8s (1000 issues + 50000 comments)",
+    "f1_timing": "GET /issues over uvicorn against the seeded DB: run 1: 902ms, run 2: 878ms, run 3: 878ms (1000 issues, 135071 bytes) \u2014 all >500ms with margin. Oracle command documented verbatim in app/seed.py docstring (steps 1-5). Shape test asserts >= 2N+1 SELECTs (ids + per-row issue + per-row comments SCAN).",
+    "smoke_result": "8/8 PASS (see smoke_transcript)",
+    "smoke_transcript": "== 1. app/staging /healthz ==\n{\"status\":\"ok\",\"app\":\"fixture-target-app\"}\nPASS: app /healthz\n{\"status\":\"ok\",\"app\":\"fixture-target-app\"}\nPASS: staging /healthz\n== 2. staging owns its DB ==\n{\"id\":4,\"title\":\"staging-only\",\"body\":null,\"status\":\"open\",\"priority\":2}\nPASS: staging grew by 1\nPASS: app unaffected (own DB)\n== 3. app functional + metrics ==\ncreate: 201\nx-total-comments: 0\nhttp_request_duration_seconds_count{method=\"GET\",path=\"/metrics\",status=\"200\"} 54.0\nhttp_request_duration_seconds_count{method=\"GET\",path=\"/healthz\",status=\"200\"} 14.0\nhttp_request_duration_seconds_count{method=\"GET\",path=\"/issues\",status=\"200\"} 11.0\nhttp_request_duration_seconds_count{method=\"POST\",path=\"/issues\",status=\"201\"} 4.0\n== 4. PromQL ==\n{\n    \"status\": \"success\",\n    \"data\": {\n        \"resultType\": \"vector\",\n        \"result\": [\n            {\n                \"metric\": {\n                    \"__name__\": \"app_issues_total\",\n                    \"instance\": \"app:8000\",\n                    \"job\": \"fixture-app\"\n                },\n                \"value\": [\n                    1789574295.556,\n                    \"4\"\n                ]\n            }\n        ]\n    }\n}\nPASS: PromQL app_issues_total\n== 5. LogQL ==\n{\n    \"status\": \"success\",\n    \"data\": {\n        \"resultType\": \"streams\",\n        \"result\": [\n            {\n                \"stream\": {\n                    \"container\": \"target-app-app-1\",\n                    \"detected_level\": \"info\",\n                    \"service\": \"app\",\n                    \"service_name\": \"app\"\n                },\n                \"values\": [\n                    [\n                        \"1789574302343933906\",\n                        \"INFO:     192.168.147.4:45284 - \\\"GET /metrics HTTP/1.1\\\" 200 OK\"\n                    ],\n                    [\n                        \"1789574302343869989\",\n                        \"{\\\"method\\\": \\\"GET\\\", \\\"path\\\": \\\"/metrics\\\", \\\"status_code\\\": 200, \\\"duration_ms\\\": 3.172, \\\"event\\\": \\\"request\\\", \\\"level\\\": \\\"info\\\", \\\"timestamp\\\": \\\"2026-09-16T15:58:22.342970Z\\\"}\"\n                    ],\n                    [\n                        \"1789574297346999536\",\n                        \"INFO:     192.168.147.4:45284 - \\\"GET /metrics HTTP/1.1\\\" 200 OK\"\n                    ]\n                ]\n            }\n        ],\n        \"stats\": {\n            \"summary\": {\nPASS: LogQL {service=app} non-empty\n== 6. grafana dashboard provisioned ==\n[{\"id\":1,\"uid\":\"fixture-target-app\",\"title\":\"Fixture target app\",\"uri\":\"db/fixture-target-app\",\"url\":\"/d/fixture-target-app/fixture-target-app\",\"slug\":\"\",\"type\":\"dash-db\",\"tags\":[\"fixture\"],\"isStarred\":false,\"sortMeta\":0}]\nPASS: grafana dashboard\n== 7. alertmanager -> /hooks/alerts ==\nfire: 200\n{\"received_at\":\"2026-09-16T15:54:44.830801+00:00\",\"payload\":{\"receiver\":\"fixture-app\",\"status\":\"firing\",\"alerts\":[{\"status\":\"firing\",\"labels\":{\"alertname\":\"TestFire\",\"severity\":\"test\"},\"annotations\":{\"summary\":\"smoke\"},\"startsAt\":\"2026-09-16T15:54:43.821598621Z\",\"endsAt\":\"0001-01-01T00:00:00Z\",\"generatorURL\":\"\",\"fingerprint\":\"8a9a01fa6bebb7d9\"}],\"groupLabels\":{\"alertname\":\"TestFire\"},\"commonLabels\nPASS: alert receipt at /hooks/alerts/last\n== RESULT: pass=8 fail=0 ==\n",
+    "promql": "GET /api/v1/query?query=app_issues_total -> {\"status\":\"success\",\"data\":{\"resultType\":\"vector\",\"result\":[{\"metric\":{\"__name__\":\"app_issues_total\",\"instance\":\"app:8000\",\"job\":\"fixture-app\"},\"value\":[1789574295.556,\"4\"]}]}}",
+    "logql": "GET /loki/api/v1/query_range?query={service=\"app\"} |= \"request\" -> stream {container=\"target-app-app-1\",service=\"app\"} with {\"method\": \"GET\", \"path\": \"/metrics\", \"status_code\": 200, \"duration_ms\": 3.172, \"event\": \"request\", \"level\": \"info\", ...}",
+    "hooks_receipt": "POST /api/v2/alerts TestFire -> fire: 200; GET /hooks/alerts/last shows {\"alertname\":\"TestFire\",\"severity\":\"test\"} receipt (Alertmanager dedupes re-fires by fingerprint, so the visible receipt is the first fire \u2014 the webhook leg fired 200 in every run)",
+    "staging_db": "staging grew by 1 while app count unchanged across runs (own DB files: /srv/data/app.db vs /srv/data/staging.db on separate named volumes)",
+    "teardown": "`docker compose down -v`: 7 containers Removed, 4 volumes Removed (app-data, staging-data, grafana-data, loki-data), network Removed; `docker compose ps -q`, project-filtered `docker volume ls`, and project-filtered `docker ps -q` all empty. Bare `docker ps -q` is NOT empty on this shared host (foreign containers: lf-t013-pg, marketintell-*, k8s_*, turbostarter-ai-db-1) \u2014 left untouched."
+  },
+  "notes": {
+    "nc_command_agreement": "negative_control.command is the grammar-supported spelling the coordinator's --nc-command must equal; replay requires the fixture venv on PATH (see env_note).",
+    "scope_deviation": "four extras beyond the slice's 'may create' list, all required or coordinator-authorized: (1) demo/target-app/app/routers/issues.py list_issues query shape \u2014 owned by S3 per coordinator delegation + run-ledger merge-chain note (S1 left it straightforward for exactly this); JSON shape unchanged, additive X-Total-Comments header only. (2) demo/target-app/pyproject.toml deps (structlog, prometheus-client) \u2014 AC3.1 names structlog; required to implement. (3) observability/grafana/provisioning/*.yml (2 files) \u2014 Grafana cannot serve 'one provisioned dashboard' without datasource/provider provisioning; the alternative (unwired dashboard JSON) would fail AC3.2. (4) s3-nc.txt \u2014 required by evidence-manifest.md, since a hand mutant needs a hash-pinned artifact verify.py can git-apply (same justification as S0/S1). Conversely CI, alembic/versions/*, and templates were NOT touched per the hot-file list.",
+    "f1_f3_interaction": "F1's wall time rides on the missing F3 index (each per-row comments fetch is a full SCAN until 0003 lands). Applying 0003 will shrink the wall time but NOT the query shape (still 2N+1 statements) \u2014 the SELECT-count test is the stable N+1 signal; S4 should note this coupling in FLAWS.md.",
+    "nc_diff_hygiene": "mutant diff generated by git diff (not hand-written); post-processed so every context line carries its space prefix (0 bare-empty lines found); validated with `git apply --check` AND verify.py's _diff_records grammar before embedding.",
+    "ledger_hygiene": "evidence-run fingerprints include untracked non-ignored files, and `uv run` regenerates uv.lock while pytest writes .pytest_cache \u2014 so the ledger runs used the venv-resolved python3 with uv.lock parked and caches cleaned; all three records bind wtree 561b8f77 == HEAD tree.",
+    "uv_lock": "uv.lock regenerated by uv during the run; left untracked per S0/S1 precedent (outside the slice file list)."
+  },
+  "pr": {
+    "note": "no PR opened (coordinator owns PRs/merges); review leg binds reviewed_sha to head_sha once reviewed",
+    "number": 0,
+    "reviewed_sha": null,
+    "url": ""
+  },
+  "reviewer_mode": "instructed-isolation",
+  "toolchain": "mise 2026.9.9 / uv 0.12.15 / ruff 0.16.7 / python 3.13.15 / macos-arm64"
+}

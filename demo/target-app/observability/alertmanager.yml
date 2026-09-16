@@ -1,0 +1,12 @@
+route:
+  receiver: fixture-app
+  group_by: ["alertname"]
+  group_wait: 1s
+  group_interval: 1s
+  repeat_interval: 1h
+
+receivers:
+  - name: fixture-app
+    webhook_configs:
+      - url: http://app:8000/hooks/alerts
+        send_resolved: true

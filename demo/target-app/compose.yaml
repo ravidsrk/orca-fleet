@@ -1,10 +1,79 @@
-# Slice S0 skeleton: app service only. S3 owns staging/telemetry/observability.
+# Slice S3: full stack — app :8000, staging :8001 (own DB file), Prometheus
+# :9090, Grafana :3000 (one provisioned dashboard), Loki + Promtail,
+# Alertmanager -> app /hooks/alerts. Teardown: docker compose down -v.
 services:
   app:
     image: python:3.13-slim
     working_dir: /srv/app
     volumes:
       - .:/srv/app
-    command: sh -c "pip install --quiet -e . && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000"
+      - app-data:/srv/data
+    environment:
+      DATABASE_URL: sqlite:////srv/data/app.db
+      TARGET_APP_SCRAPE_GAUGE: "1"
+    command: sh -c "pip install --quiet -e . && python -m app.seed --count 0 && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000"
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
+
+  staging:
+    image: python:3.13-slim
+    working_dir: /srv/app
+    volumes:
+      - .:/srv/app
+      - staging-data:/srv/data
+    environment:
+      DATABASE_URL: sqlite:////srv/data/staging.db
+      TARGET_APP_SCRAPE_GAUGE: "1"
+    command: sh -c "pip install --quiet -e . && python -m app.seed --count 0 && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    ports:
+      - "127.0.0.1:8001:8000"
+
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command: --config.file=/etc/prometheus/prometheus.yml
+    ports:
+      - "127.0.0.1:9090:9090"
+
+  grafana:
+    image: grafana/grafana:10.4.3
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "127.0.0.1:3000:3000"
+
+  loki:
+    image: grafana/loki:3.1.0
+    volumes:
+      - ./observability/loki-config.yml:/etc/loki/config.yml:ro
+      - loki-data:/loki
+    command: -config.file=/etc/loki/config.yml
+    ports:
+      - "127.0.0.1:3100:3100"
+
+  promtail:
+    image: grafana/promtail:3.1.0
+    volumes:
+      - ./observability/promtail-config.yml:/etc/promtail/config.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command: -config.file=/etc/promtail/config.yml
+
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    volumes:
+      - ./observability/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    ports:
+      - "127.0.0.1:9093:9093"
+
+volumes:
+  app-data:
+  staging-data:
+  grafana-data:
+  loki-data:

@@ -1,0 +1,42 @@
+NEGATIVE CONTROL — slice S3 (unit S3, mutation)
+tool: hand (compile-preserving hand-written mutant, one production hunk)
+head_sha the control applies at: e73d1b990303e82c4af04ae4ac93b5bd77d1c680
+command (ONE string, shlex-split, run from the repo toplevel):
+  python3 -m pytest demo/target-app/tests/test_telemetry_hooks.py
+env note: the fixture's deps are provisioned by uv. Replay with a synced venv
+  on PATH (uv sync --project demo/target-app, then
+  PATH=demo/target-app/.venv/bin:$PATH). Without deps the command errors
+  instead of proving — a stillborn replay that proves nothing.
+
+MUTANT (unified diff; applies at head_sha with `git apply`):
+
+diff --git a/demo/target-app/app/routers/hooks.py b/demo/target-app/app/routers/hooks.py
+index 1328e39f..1cb573b2 100644
+--- a/demo/target-app/app/routers/hooks.py
++++ b/demo/target-app/app/routers/hooks.py
+@@ -14,10 +14,7 @@ _last_receipt: dict[str, Any] | None = None
+ @router.post("/alerts")
+ def receive_alerts(payload: dict[str, Any]) -> dict[str, bool]:
+     global _last_receipt
+-    _last_receipt = {
+-        "received_at": datetime.now(timezone.utc).isoformat(),
+-        "payload": payload,
+-    }
++    _last_receipt = None
+     return {"received": True}
+ 
+ 
+
+RED transcript (mutant applied; exit 1):
+  demo/target-app/tests/test_telemetry_hooks.py::test_alerts_roundtrip FAILED
+  >       assert last.status_code == 200
+  E       assert 404 == 200
+  1 failed, 1 passed in 0.17s
+
+GREEN transcript (clean tree; exit 0):
+  2 passed in 0.16s
+
+VERDICT: mutant KILLED. The criterion-bound tests fail if and only if the
+production behavior the criterion names is violated: RED under the mutant
+with an AssertionError on the alert-receipt round-trip (not an import
+error), GREEN on the clean tree.
