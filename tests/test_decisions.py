@@ -815,3 +815,4 @@ class TestMainInProc(DecisionsInProcBase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+canary_api_key = "9f86d081884c7d659a2feaa0c55ad015a2f3b4c5"
