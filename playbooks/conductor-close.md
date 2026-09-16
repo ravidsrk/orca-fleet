@@ -7,11 +7,9 @@ exactly ONE chore commit on BASE per close.
 
 WHEN: after the unit PR is MERGED into BASE and its verdict review is posted. Not
 before: every rule below binds evidence to the merged, reviewed tip, which does not
-exist earlier. Field record: `docs/runs/2026-09-14-clean-sweep-tracker.md` (five wave-2 units closed).
+exist earlier. Field record: five wave-2 units closed (report: `docs/runs/2026-09-14-clean-sweep-tracker.md`).
 
-INPUTS: the unit manifest; PR number; merge commit M; verdict review id; the
-dispatch record's contract source + digest; the coordinator-named nc-command;
-the unit class.
+INPUTS: the unit manifest; PR number; merge commit M; verdict review id; dispatch contract source + digest; coordinator-named nc-command; unit class.
 
 CLOSE (in order; any mismatch is a STOP, logged, never patched over):
 1) Resolve the tip: T := git rev-parse M^2 (the merged PR head). Assert T ==
@@ -51,6 +49,8 @@ CLOSE (in order; any mismatch is a STOP, logged, never patched over):
    (MERGED/WT_CLEAN flips, park, evidence) and a loop-log line. Push with
    its egress receipt, then retire the unit worktree
    (dispatch-lifecycle.md guards).
+
+Scope: the unit binds T (records must bind head_sha's tree — evidence-manifest.md); the integrated tree M is covered by the PR's merge-commit CI, never this close.
 
 RULES:
 - option-A (self-reference). A commit cannot name its own SHA, and a

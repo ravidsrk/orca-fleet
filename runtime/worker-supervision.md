@@ -5,7 +5,9 @@ supervision itself breaks. Dispatch mechanics, the worker contract, and inbox
 handling stay in dispatch-lifecycle.md; dead-worker respawn, reflection, and
 coordinator-death RESUME stay in liveness-resume.md. This file covers only the
 gaps between them: budgets, stuck-but-alive workers, transcribing deliveries,
-and re-binding a fenced-but-alive coordinator.
+and re-binding a fenced-but-alive coordinator. Adoption is per mission via
+deferred reads (liveness-resume.md precedent), not catalog-wide: the MUSTs
+below bind coordinators running under a mission that composes this doc.
 
 Evidence level: **ASSERTED.** Generalized from one field run (the 2026-09-14
 clean-sweep tracker, `docs/runs/2026-09-14-clean-sweep-tracker.md`): a
@@ -52,9 +54,13 @@ transcript persists and stays citable):
 The message store is a QUEUE, not an archive: a runtime reset purged it once,
 and a re-binding replays unacked history the coordinator may already have
 acted on. At every Delivery, before `--ack`, persist each `worker_done` and
-`question` body plus its payload (`taskId`, `dispatchId`, report paths) to
-durable storage outside the store. Replays then match against transcripts
-instead of re-triggering work, and a purge costs nothing.
+`question` to the run-scoped transcript artifact: one JSON file per message
+at `<run-archive>/transcripts/<delivery-id>/<msg-id>.json` carrying `{id,
+type, created_at, taskId, dispatchId, subject, body, payload}`, written
+beside the ledger (durable, run-scoped — `/tmp` satisfies "outside the
+store" and fails "durable"). Re-bind matches replays against these files by
+message id before acting, so a replay never re-triggers work and a purge
+costs nothing.
 
 ## Coordinator re-bind (fenced-but-alive)
 

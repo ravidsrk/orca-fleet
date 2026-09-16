@@ -5,7 +5,15 @@ reverting the production change fail a test?"). A suite that is green at the
 tip proves nothing by itself — this playbook hunts the survivors that green
 hides. Injected alongside `acceptance-review` at the review phase, never
 alone. Field record: `docs/runs/2026-09-14-clean-sweep-tracker.md` (three
-review rounds, every round's Requireds were survivors).
+review rounds; every Required came from a forced repro, never from reading
+green runs).
+
+Authority: reviewers executing this playbook run PROFILE=rw (sandbox-policy.md),
+not ro — killing mutants means running tests and writing scratch clones
+outside the repo, which a read-only sandbox cannot do. The grant is bounded
+by this playbook, not the sandbox: commit NOTHING, mutate only scratch
+copies, report findings — the isolated worktree plus the PR gate is the
+same envelope that bounds builders.
 
 ## Killer mutants (the core move)
 
