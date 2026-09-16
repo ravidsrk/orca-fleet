@@ -16,3 +16,9 @@
 - hot-files it must NOT touch: `compose.yaml`, CI workflow, `alembic/versions/*`,
   `app/telemetry.py`, `app/seed.py`, catalog paths.
 - lighting: lit. worker pack: matt (sole router; tdd).
+
+## Criteria (machine-readable denominator; worker manifest MUST use these ids)
+
+- S2-AC1: full fixture pytest green.
+- S2-AC2: `/`, `/issues/new`, one `/issues/{id}` return 200 with key markers.
+- S2-AC3: ruff clean.

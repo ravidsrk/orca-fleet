@@ -18,3 +18,9 @@
 - hot-files it must NOT touch: `compose.yaml`, CI workflow, `app/templates/*`,
   `app/telemetry.py`, catalog paths (skills/playbooks/runtime/scripts/tests).
 - lighting: lit. worker pack: matt (sole router; tdd).
+
+## Criteria (machine-readable denominator; worker manifest MUST use these ids)
+
+- S1-AC1: full fixture pytest green.
+- S1-AC2: alembic upgrade-head/downgrade/upgrade round-trip with data smoke.
+- S1-AC3: ruff clean.

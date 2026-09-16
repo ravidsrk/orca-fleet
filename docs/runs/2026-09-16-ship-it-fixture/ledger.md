@@ -39,3 +39,10 @@ mapped), no gold, order correct, no stubs. Two non-blocking notes, both applied
 - D2 (solo review): single GitHub identity — slice reviews post COMMENTED
   GO/NO-GO (never APPROVE); coordinator merges after CI green (repo DECISIONS
   precedent `review-verdict-form`).
+- D3 (S0 scope executed-control): taskspec shipped without machine-readable
+  criterion ids (coordinator authoring miss), so verify.py's scope leg cannot
+  pass on S0 (denominator-shape mismatch, NOT a worker scope cut). Coordinator
+  verified the mapping manually (S0-AC1→check1, AC2→check2, AC3→checks3+4),
+  re-executed all 4 checks green in clean worktrees at C1/C2, and replayed the
+  NC via verify.py (all other legs pass). S1–S4 specs amended with `## Criteria`
+  blocks before dispatch; their scope legs run unmodified.

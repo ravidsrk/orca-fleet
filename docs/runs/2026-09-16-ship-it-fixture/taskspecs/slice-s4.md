@@ -25,3 +25,12 @@
 - hot-files it must NOT touch: `app/*`, `compose.yaml`, `observability/*`,
   catalog paths outside the run dir + the one CI workflow file.
 - lighting: lit. worker pack: addy (sole router).
+
+## Criteria (machine-readable denominator; worker manifest MUST use these ids)
+
+- S4-AC1: fixture pytest green.
+- S4-AC2: README run/test/teardown commands verified by execution.
+- S4-AC3: CI workflow YAML valid.
+- S4-AC4: catalog validate.py green.
+- S4-AC5: catalog contract tests green + no SKILL.md outside skills/.
+- S4-AC6: ruff clean both trees.

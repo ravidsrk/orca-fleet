@@ -20,3 +20,10 @@
 - hot-files it must NOT touch: CI workflow, `alembic/versions/*`,
   `app/templates/*`, catalog paths.
 - lighting: lit. worker pack: addy (sole router).
+
+## Criteria (machine-readable denominator; worker manifest MUST use these ids)
+
+- S3-AC1: fixture pytest green.
+- S3-AC2: compose smoke transcript at head (build, /healthz, PromQL, LogQL, teardown).
+- S3-AC3: F1 measurable — seeded list endpoint >500ms documented with command.
+- S3-AC4: ruff clean.
