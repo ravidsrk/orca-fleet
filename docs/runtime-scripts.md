@@ -353,3 +353,22 @@ Keys:
 | `secret-rotation` | Rotate or revoke a secret |
 | `live-credentials` | Use, provision, or move live credentials |
 | `freeze` | Freeze or unfreeze the run's contract |
+
+## `watchdog.json`
+
+Liveness-watchdog thresholds and rate limits for `runtime/scripts/watchdog.py`. Every
+detection threshold lives here so coordinators tune without code edits; the script
+refuses unknown keys, so a typo fails loud instead of silently holding a default. Source
+`runtime/watchdog.json`.
+
+Keys:
+
+| `_about` | Provenance: generalized from the 2026-09-14 clean-sweep tracker run |
+| `slow_after_s` | 600 — idle past this is SLOW |
+| `hung_after_s` | 1800 — idle past this is HUNG |
+| `wedge_frozen_s` | 1200 — transcript frozen past this beyond STOP (plus an unanswered nudge) is WEDGED |
+| `max_nudges_per_dispatch` | 1 |
+| `nudge_window_s` | 3600 — minimum spacing between nudges to one worker |
+| `max_nudges_per_hour_per_worker` | 1 |
+| `nudge_text` | The auto-nudge message |
+| `nudge_command` | null — no transport configured; live mode refuses to run without one |
