@@ -1,6 +1,6 @@
 # Run report — clean-sweep self-run, 2026-09-14 (tracker close)
 
-RUN: mission=clean-sweep tier=self-run inventory_at=TBD_PROMOTION_COMMIT manifest=docs/runs/2026-09-14-clean-sweep-tracker/u387p-manifest.json verifier=GREEN waves=2
+RUN: mission=clean-sweep tier=self-run inventory_at=3ea810994b0297e751e348e45264414992abd25c manifest=docs/runs/2026-09-14-clean-sweep-tracker/u387p-manifest.json verifier=GREEN waves=2
 
 Close report for run `run_0607bdc681e6` (source=tracker, BASE
 `review/2026-09-14-holistic-fixes`, T0 2026-09-14T15:34:09Z), the run whose living
