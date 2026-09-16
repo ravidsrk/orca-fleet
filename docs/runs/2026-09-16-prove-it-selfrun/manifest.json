@@ -98,6 +98,17 @@
       "commit": "0277bc5732f9538b4c067f837c86019d98287436",
       "wtree": "aab8b094a2f97fbee4a7fcfadc63877e608c0d4e",
       "artifact": "docs/runs/2026-09-16-prove-it-selfrun/validation-rerun.txt"
+    },
+    {
+      "label": "tests-full rerun 2026-09-16 (wave 2)",
+      "ts": "2026-09-16T07:18:17Z",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "exit": 0,
+      "duration_s": 254.488,
+      "commit": "96acc0ba8c03df5c6ad012f103fd3f0461affabd",
+      "wtree": "a9d1b1e8881f1fdb42ef098986825c306ef7d81d",
+      "artifact": "docs/runs/2026-09-16-prove-it-selfrun/tests-full-rerun.txt"
     }
   ],
   "unit": "prove-it-2026-09-16-PF-2",
