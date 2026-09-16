@@ -1,0 +1,26 @@
+ok   absorb-it
+ok   access-it
+ok   attest-it
+ok   clean-sweep
+ok   deflake-it
+ok   document-it
+ok   field-test-it
+ok   floor-it
+ok   harden-it
+ok   map-it
+ok   migrate-it
+ok   modernize-it
+ok   oncall-it
+ok   oss-contribute
+ok   pin-it
+ok   prove-it
+ok   reshape-it
+ok   review-it
+ok   root-cause
+ok   ship-it
+ok   speed-it
+
+FAIL badge freshness — run scripts/gen-badges.py and commit:
+   - assets/badges/tests.json is stale (have '1384 in source', want '1385 in source') — run scripts/gen-badges.py
+
+Validation failed.
