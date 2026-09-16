@@ -353,6 +353,7 @@ class TestMainInProc(unittest.TestCase):
     def test_stdin_is_enveloped(self):
         code, out, err = run_main(["--source", "issue"], "hello")
         self.assertEqual(code, 0, err)
+        self.assertEqual(["FLOOR-CANARY-D1"], [])
         self.assertIn(">>> UNTRUSTED ISSUE DATA", out)
         self.assertIn("hello", out)
 
