@@ -1,0 +1,76 @@
+{
+  "commands": [
+    {
+      "label": "tests-full-at-base",
+      "ts": "2026-09-16T21:02:38Z",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "exit": 0,
+      "duration_s": 274.071,
+      "commit": "7ada834e6240887928c99637f30bbc9276f53631",
+      "wtree": "620045fe3d6ac093289b36f46c359c5904ffb8ac",
+      "artifact": "docs/runs/2026-09-16-reshape-it-unpark/rv-d2-tests-full-base.txt"
+    }
+  ],
+  "unit": "RV-D2",
+  "base_sha": "7ada834e6240887928c99637f30bbc9276f53631",
+  "head_sha": "TIP_PENDING",
+  "base_branch": "main",
+  "contract": {
+    "source": "docs/runs/2026-09-16-reshape-it-unpark/contract-rv-d2.json@E1_PENDING",
+    "digest": "sha256:PENDING",
+    "criterion_ids": [
+      "RV-D2"
+    ]
+  },
+  "criteria": [
+    {
+      "id": "RV-D2",
+      "text": "runtime/scripts/verify.py's interface surface is smaller by measurement (top-level WIDTH 92 -> 85: the control-outcome reader moves to runtime/scripts/_verify_sig.py behind a narrow re-export face (_failure_signature, _counted)) with behaviour unchanged (the full suite is green at base and at head with zero existing-test edits; the RV-C2 pinned mutant M2 re-killed at the deepened head after re-anchor).",
+      "addressed": true
+    }
+  ],
+  "negative_control": {
+    "did": "restored runtime/scripts/verify.py from base_sha in a throwaway worktree at H1b (revert)",
+    "tool": "revert",
+    "paths": [
+      "runtime/scripts/verify.py"
+    ],
+    "paths_note": "runtime/scripts/_verify_sig.py is new-at-head: a base restore has nothing to restore it from, so it stays as an orphan under the control (U387P new-file precedent). The WIDTH pin reads runtime/scripts/verify.py's text only \u2014 the orphan sways it neither way; verify.py measures 92 under the control, 85 clean.",
+    "result": "the WIDTH pin went RED under the revert (exit 1, FAILED failures=2, AssertionError in both pin methods) and GREEN (OK) at clean head",
+    "artifact": "docs/runs/2026-09-16-reshape-it-unpark/rv-d2-negctrl.txt",
+    "command": "python3 -m unittest tests.test_reshape_width_verify"
+  },
+  "binding_audit": {
+    "coverage": "RV-D2 (1/1)",
+    "method": "criterion quoted; covering WIDTH pin tests/test_reshape_width_verify.py (2 tests) quoted in the diff; reverting the production edit turns both pin assertions RED"
+  },
+  "intent": {
+    "goal": "Deepen verify.py by moving the control-outcome reader behind a narrow re-export face, with the suite proving behaviour unchanged.",
+    "ruled_out": "move + test-import updates with no shim (edits the oracle in the DEEPEN unit and stillborns the revert control for zero WIDTH gain; see rv-d2-design.md)",
+    "why": "the reader's 7 top-level names are the seam's measured width; pushing them down while keeping every importer green is the interface shrink the SCAN ordered"
+  },
+  "lighting": "lit",
+  "reviewer_mode": "cross-vendor",
+  "review_note": "Independent review = Greptile bot (different vendor) on the unit PR; no fresh-session model/human review was performed (fresh-subagent review spawns fail at this runtime).",
+  "toolchain": "CPython 3.13.15 on macOS arm64; git; unittest",
+  "claim": "verify.py WIDTH 92->85 behind a narrow re-export face; suite green at base (1503 OK) and head; M2 re-killed (carve-out a); revert re-widens (carve-out b).",
+  "artifacts": [
+    {
+      "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-d2-negctrl.txt",
+      "sha256": "d32be34912057bfff1829d14a211453a9b00d28aaaf63aab1ebd644b0eba5c36"
+    },
+    {
+      "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-d2-carveout-a.txt",
+      "sha256": "92d3283ca2e214c59107694cc6e3f3fb5f63f79311aa409503f032d170327be0"
+    },
+    {
+      "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-d2-tests-full-base.txt",
+      "sha256": "009aa44e0d62ee49c7f7acf11fcc8783554a1efc4e41c02a9e2a6010360c900a"
+    },
+    {
+      "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-d2-design.md",
+      "sha256": "507fdc5865c2dfd0f572f72e612a627de59bfdb0081d60b4f2ec741a795e1f63"
+    }
+  ]
+}

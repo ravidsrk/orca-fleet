@@ -1,1 +1,33 @@
-{"criteria": [{"id": "RV-D2", "text": "runtime/scripts/verify.py's interface surface is smaller by measurement (top-level WIDTH 92 -> 85: the control-outcome reader moves to runtime/scripts/_verify_sig.py behind a single _failure_signature re-export) with behaviour unchanged (the full suite is green at base and at head with zero existing-test edits; the RV-C2 pinned mutant M2 re-killed at the deepened head after re-anchor)."}], "criterion_ids": ["RV-D2"], "design": "rv-d2-design.md (design-twice fork: move+narrow-re-export vs move+test-import-updates; former chosen)", "dispatch": {"authorized_by": "reshape-unpark-worker delegation (CONFIRM-SURFACE human freeze recorded on origin/campaign/reshape-it-selftest; parent coordinator merges and re-verifies)", "lighting": "lit", "why": "production change to the repo's own verifier; independent review required (Greptile APPROVED at head, U387P/PR-445 precedent) \u2014 no lane waiver claimed"}, "frozen_at": "2026-09-17T03:15:00Z", "interface_before": {"fan_in_note": "external users of moved names: _failure_signature (tests, 7x reads \u2014 re-exported); marker tables + _counted (none outside _failure_signature \u2014 go private with the move)", "target": "runtime/scripts/verify.py", "width": 92}, "mission": "reshape-it", "note": "Denominator frozen before the DEEPEN wave. Revert-lane NC: restore runtime/scripts/verify.py from base_sha; the WIDTH pin (tests/test_reshape_width_verify.py) goes RED; runtime/scripts/_verify_sig.py is new-at-head and stays under the control (documented remainder, U387P paths_note precedent).", "phase": "DEEPEN", "run": "2026-09-16 unpark (SCAN + CONFIRM-SURFACE freeze: origin/campaign/reshape-it-selftest @ e1e2634f)", "target": "runtime/scripts/verify.py", "unit": "RV-D2"}
+{
+  "criteria": [
+    {
+      "id": "RV-D2",
+      "text": "runtime/scripts/verify.py's interface surface is smaller by measurement (top-level WIDTH 92 -> 85: the control-outcome reader moves to runtime/scripts/_verify_sig.py behind a narrow re-export face (_failure_signature, _counted)) with behaviour unchanged (the full suite is green at base and at head with zero existing-test edits; the RV-C2 pinned mutant M2 re-killed at the deepened head after re-anchor)."
+    }
+  ],
+  "criterion_ids": [
+    "RV-D2"
+  ],
+  "design": "rv-d2-design.md (design-twice fork: move+narrow-re-export vs move+test-import-updates; former chosen)",
+  "dispatch": {
+    "authorized_by": "reshape-unpark-worker delegation (CONFIRM-SURFACE human freeze recorded on origin/campaign/reshape-it-selftest; parent coordinator merges and re-verifies)",
+    "lighting": "lit",
+    "why": "production change to the repo's own verifier; independent review required (Greptile APPROVED at head, U387P/PR-445 precedent) \u2014 no lane waiver claimed"
+  },
+  "frozen_at": "2026-09-17T03:15:00Z",
+  "interface_before": {
+    "fan_in_note": "external users of moved names: _failure_signature (tests, 7x reads \u2014 re-exported) and _counted (the RV-C2 net pins its contract directly \u2014 re-exported; a pinned seam function is interface, not detail; both lowercase, zero WIDTH cost). The 5 marker tables (STILLBORN_MARKERS, ASSERTION_MARKERS, STRONG_ASSERTION_RE, _ERRORS_RE, _FAILURES_RE) have no users outside the seam and go private with the move.",
+    "target": "runtime/scripts/verify.py",
+    "width": 92
+  },
+  "mission": "reshape-it",
+  "note": "Denominator frozen before the DEEPEN wave. Revert-lane NC: restore runtime/scripts/verify.py from base_sha; the WIDTH pin (tests/test_reshape_width_verify.py) goes RED; runtime/scripts/_verify_sig.py is new-at-head and stays under the control (documented remainder, U387P paths_note precedent).",
+  "phase": "DEEPEN",
+  "run": "2026-09-16 unpark (SCAN + CONFIRM-SURFACE freeze: origin/campaign/reshape-it-selftest @ e1e2634f)",
+  "target": "runtime/scripts/verify.py",
+  "unit": "RV-D2",
+  "changelog": [
+    "v2: fan_in_note corrected \u2014 _counted is re-exported (RV-C2 net pins it); criteria text byte-identical to the v1 freeze (verified against C0 bytes).",
+    "v3: criterion mechanism phrase corrected ('single re-export' -> 'narrow face (_failure_signature, _counted)') \u2014 H1b kept _counted reachable for the RV-C2 net; the measurable bar (WIDTH 92->85, suite green both sides, zero test edits, M2 re-kill) is byte-identical. IDs unchanged. C0 bytes preserved in git for audit."
+  ]
+}

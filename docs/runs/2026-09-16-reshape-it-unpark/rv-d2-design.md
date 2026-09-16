@@ -12,10 +12,10 @@ under one name (`verify._failure_signature`, 7 uses, no mocks). WIDTH today:
 Move all 7 seam symbols to `runtime/scripts/_verify_sig.py`, loaded from
 `verify.py` via an eager `importlib.spec_from_file_location` block (the
 `validate.py::_eval_spec` shape, proven in RV-D1; `verify.py` already imports
-`importlib.util` + `pathlib.Path`). `verify.py` re-exports exactly one name,
-`_failure_signature` (lowercase: zero WIDTH cost); `execute_negative_control`
-calls it through the submodule. The marker tables + `_counted` go private
-with the move — `git grep` proves zero users outside `_failure_signature`,
+`importlib.util` + `pathlib.Path`). `verify.py` re-exports exactly two names, `_failure_signature` and `_counted`
+(both lowercase: zero WIDTH cost); `execute_negative_control`
+calls it through the submodule. The 5 marker tables go private with the move (`_counted` stays reachable: the
+RV-C2 net pins its contract directly — H1b amendment) — `git grep` proves zero users outside `_failure_signature`,
 so this narrows the true interface; reversible via git; disclosed in the PR,
 not an ADR (no consumer, not one-way). WIDTH 92 → 85. Zero existing-test
 edits.
@@ -36,3 +36,10 @@ assertion-shaped (the WIDTH pin reads file text for the count and imports
 only `verify.py` itself, which exists in both shapes). B buys nothing here —
 the re-export costs no WIDTH — and spends the oracle. Unanimous on the
 numbers, not just the doctrine.
+
+## H1b amendment (before any review)
+
+The RV-C2 net calls `verify._counted` directly, so hiding it errored the net
+on the deepened shape. `_counted` joined the re-exported face (still WIDTH
+85 — lowercase names are free). The 3 uppercase + 2 underscore-uppercase
+tables stay hidden; the measured shrink is unchanged.
