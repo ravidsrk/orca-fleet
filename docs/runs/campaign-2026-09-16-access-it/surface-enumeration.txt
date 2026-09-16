@@ -1,0 +1,51 @@
+$ git rev-parse HEAD; git rev-parse origin/main
+6390743815f8f435181fa410cce374587128b30a
+6390743815f8f435181fa410cce374587128b30a
+
+$ git log -1 --format=%H%x20%s
+6390743815f8f435181fa410cce374587128b30a Merge pull request #438 from ravidsrk/roadmap/issue-419-gatetool
+
+$ git ls-files | wc -l; git ls-files | sed s/.*\.// | sort | uniq -c | sort -rn
+    1114
+ 389 json
+ 367 md
+ 160 txt
+  91 jpg
+  71 py
+  10 sh
+   7 ts
+   5 yml
+   2 toml
+   2 diff
+   1 sha256
+   1 patch
+   1 lock
+   1 LICENSE
+   1 jsonl
+   1 gitleaksignore
+   1 gitignore
+   1 example
+   1 bench/vf-bench/VERSION
+   1 bench/vf-bench/CANARY
+
+$ git ls-files | grep -iE web-surface-pattern || echo NONE FOUND
+NONE FOUND
+
+$ grep -rl server-frameworks in *.py (tracked)
+tests/test_evals.py
+
+$ git ls-files *.ts
+docs/reports/release-20260912/pin/source/src/cli/handlers/orchestration/check-keepalive.ts
+docs/reports/release-20260912/pin/source/src/cli/handlers/orchestration/worker-list-run-scope.ts
+docs/reports/release-20260912/pin/source/src/cli/handlers/terminal-send.ts
+docs/reports/release-20260912/pin/source/src/cli/specs/terminal-send.ts
+docs/reports/release-20260912/pin/source/src/main/runtime/orchestration/db/tasks/task-store.ts
+docs/reports/release-20260912/pin/source/src/main/runtime/rpc/methods/orchestration/runs/dispatch-methods.ts
+docs/reports/release-20260912/pin/source/src/main/runtime/rpc/methods/orchestration/worker/worker-start-readiness-settlement.ts
+
+$ orca status --json (runtime excerpt)
+{
+  "state": "ready",
+  "reachable": true,
+  "appVersion": "1.4.203"
+}
