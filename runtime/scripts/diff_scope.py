@@ -252,7 +252,7 @@ def build_parser():
         description="Classify the changed surface into SCOPE_* review flags, failing loud when it cannot look.",
         epilog="exit 0 classified / 2 SCOPE_ERROR=no_base|diff_failed|unmatched",
     )
-    p.add_argument("--base", default=None, help="base ref (default: origin/HEAD, then origin/main, main, master)")
+    p.add_argument("--base", default=None, help="base ref (default: origin/HEAD, then origin/main, origin/master, main, master)")
     p.add_argument("--repo", default=".", help="repository to classify (default: cwd)")
     p.add_argument("--strict", action="store_true",
                    help="exit nonzero when ANY changed path is unmatched, not only when nothing "
