@@ -49,7 +49,13 @@ measured WIP-curve row per wave; `run_report.py` refuses a missing, partial or d
 leaves, through `workspace_state` checks that read files with no model in between; the
 narration-only cases are labeled and their set frozen (#364). Mission guides and their diagrams
 are held to parity by a test (#385). CI's action pins moved to checkout v7.0.1 and setup-python
-v7.0.0 before the Node 20 actions left the runners (#367).
+v7.0.0 before the Node 20 actions left the runners (#367). The round's later PRs (#397–#404):
+`evidence-run.py` joins a sidecar lock that already exists before taking the inode lock and
+rejoins one that appears mid-append (#393); `run_report.py` reads WIP-curve rows only inside the
+report's `## WIP-curve protocol row` section, never from a fenced example or a deviations table; a
+workspace-state `glob` never reads dependency directories and fails closed over an empty match
+set; and the image wiring script checks every anchor on every run. The whole line was promoted
+to `main` in #387.
 
 ### Changed
 
