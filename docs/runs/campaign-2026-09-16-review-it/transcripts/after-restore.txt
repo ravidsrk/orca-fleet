@@ -1,0 +1,51 @@
+# Read-only re-derivation against a /tmp clone of leg1/target-417.bundle.
+# No target code was executed; git plumbing reads only.
+
+$ git bundle verify docs/reports/chaining-2026-09-16/leg1/target-417.bundle
+docs/reports/chaining-2026-09-16/leg1/target-417.bundle is okay
+The bundle contains this ref:
+c5e807cf4e05004f338d2c1a722c4000d888334e refs/heads/chain417/leg1-cleansweep-base
+The bundle records a complete history.
+$ git bundle list-heads docs/reports/chaining-2026-09-16/leg1/target-417.bundle
+c5e807cf4e05004f338d2c1a722c4000d888334e refs/heads/chain417/leg1-cleansweep-base
+
+$ git clone -q <bundle> /tmp/restore417   # warning: remote HEAD refers to nonexistent ref (cosmetic, per RESTORE.md)
+$ for s in 892eae208b01780a426deecdf9e81380753b30cc b68a7be18c8bf2a8e4e6fac93f440247f477f8cf 690b79d7298552d327646378c31aa83abd0fe783 0ee5a79f3f6f2409fe3358300150e890906d05fd eec6505 873724d 4c5c946 3a40662 c5e807cf4e05004f338d2c1a722c4000d888334e; do git cat-file -e $s && echo "OK $s" || echo "MISSING $s"; done
+OK 892eae208b01780a426deecdf9e81380753b30cc
+OK b68a7be18c8bf2a8e4e6fac93f440247f477f8cf
+OK 690b79d7298552d327646378c31aa83abd0fe783
+OK 0ee5a79f3f6f2409fe3358300150e890906d05fd
+OK eec6505
+OK 873724d
+OK 4c5c946
+OK 3a40662
+OK c5e807cf4e05004f338d2c1a722c4000d888334e
+$ git merge-base --is-ancestor 892eae208b01780a426deecdf9e81380753b30cc c5e807cf4e05004f338d2c1a722c4000d888334e && echo ANCESTRY-OK
+ANCESTRY-OK
+$ git rev-list --count 892eae208b01780a426deecdf9e81380753b30cc..c5e807cf4e05004f338d2c1a722c4000d888334e ; git rev-list --count c5e807cf4e05004f338d2c1a722c4000d888334e
+8
+9
+
+$ git rev-parse b68a7be18c8bf2a8e4e6fac93f440247f477f8cf^{tree} 690b79d7298552d327646378c31aa83abd0fe783^{tree} 0ee5a79f3f6f2409fe3358300150e890906d05fd^{tree} c5e807cf4e05004f338d2c1a722c4000d888334e^{tree}
+3ebf9ca279c858a653c66e7cd276cffd452204c3
+f7a2983fdec03bd12f9fb4bcf409a4487548d68d
+d8fc6166b6083d6c60903a3ef9b44c6e65e083ee
+7f032459ef6452393875d7b69b114b3e15f908b6
+# All 4 match the wtree values in manifest-f3/f5/f6.json + manifest-leg1.json.
+
+$ git diff 892eae208b01780a426deecdf9e81380753b30cc c5e807cf4e05004f338d2c1a722c4000d888334e | sha256sum; sha256sum <repo>/docs/reports/chaining-2026-09-16/leg1/full-diff.txt
+b5d9e400d12cb661200bd24e0927bd223153185f50fdb208dcc0f38b12d8c3f7  -
+b5d9e400d12cb661200bd24e0927bd223153185f50fdb208dcc0f38b12d8c3f7  <repo>/docs/reports/chaining-2026-09-16/leg1/full-diff.txt
+# Equal: full-diff.txt is exactly the seed..tip diff (RESTORE.md:14 confirmed).
+
+$ for f in notes.py test_notes.py README.md; do git show 892eae208b01780a426deecdf9e81380753b30cc:$f | sha256sum; done
+c5f2cbe5b6c90f2e0d2d69758ba676eea80234523135e2d69a8410e6b3b78c64  -
+ccd1a77748f4c027dec9a14d070c4b3c1678f4e3348718248123bd29d038ea57  -
+f2c40b9f5fc3fdf8e68e84f7b3f4e8eba96fc98735dba26485dd6212def319bc  -
+# Equal to seed-notes.py / seed-test_notes.py / seed-README.md respectively: byte-identical.
+
+$ git show 0ee5a79f3f6f2409fe3358300150e890906d05fd:README.md | grep -q 'plaintext (no encryption'; echo "F6-clean-head exit=$?"
+F6-clean-head exit=0
+$ git show 892eae208b01780a426deecdf9e81380753b30cc:README.md | grep -q 'plaintext (no encryption'; echo "F6-base-control exit=$?"
+F6-base-control exit=1
+# F6's narrated NC exits re-verified (TA-FYI1).

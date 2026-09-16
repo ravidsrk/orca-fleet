@@ -1,0 +1,6 @@
+$ for n in 441 442 443 444; do gh issue view $n --json number,title,state --jq '{number, title, state}'; done
+{"number":441,"state":"OPEN","title":"mission-chaining: no inter-mission promotion lane (chains park after leg 1)"}
+{"number":442,"state":"OPEN","title":"evidence-manifest/verify.py assume unit repo == evidence repo (breaks chained runs)"}
+{"number":443,"state":"OPEN","title":"mission-chaining: deferral carry has no artifact shape"}
+{"number":444,"state":"OPEN","title":"mission-chaining: re-derivability for local-only (no-remote) targets is undefined"}
+# Titles match gaps.md G1–G4. AC-4 holds.

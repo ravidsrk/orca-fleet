@@ -1,0 +1,14 @@
+$ git rev-parse origin/main^1 origin/main^2
+6390743815f8f435181fa410cce374587128b30a
+2aa73d100a5fc848c00ee7420a5d8fa6c4bb06b5
+$ git merge-base origin/main^1 origin/main^2
+6390743815f8f435181fa410cce374587128b30a
+$ git diff --shortstat 6390743815f8f435181fa410cce374587128b30a...c46d4b3f3371e41408aed19e54476fa194c20b42
+28 files changed, 828 insertions(+)
+$ git rev-parse HEAD HEAD^{tree}   # worktree on campaign/review-it-selftest @ origin/main
+c46d4b3f3371e41408aed19e54476fa194c20b42
+3d39ff3709a3e95c1ba7b535d6f2dc6858ed3055
+$ gh pr view 445 --json state,mergedAt,mergeCommit,reviews --jq '{state, mergedAt, mergeOid: .mergeCommit.oid, reviews: [.reviews[] | {author: .author.login, state}]}'
+{"mergeOid":"c46d4b3f3371e41408aed19e54476fa194c20b42","mergedAt":"2026-09-16T10:39:18Z","reviews":[{"author":"greptile-apps","state":"COMMENTED"},{"author":"ravidsrk","state":"COMMENTED"},{"author":"greptile-apps","state":"APPROVED"}],"state":"MERGED"}
+$ python3 runtime/scripts/preflight.py --mode readonly
+preflight: OK — mode=readonly (binary + repo checks only; no BASE/PR invariants)
