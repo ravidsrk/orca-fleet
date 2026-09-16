@@ -209,8 +209,15 @@ def merge_base(repo, base):
 
 def collect_diff(repo, mb):
     """Unified-0 diff against the merge base, plus every untracked file rendered
-    as an all-added diff. Returns the concatenated diff text."""
-    diff_options = ("--no-ext-diff", "--no-textconv", "--unified=0")
+    as an all-added diff. Returns the concatenated diff text.
+
+    Rename detection stays OFF: a content-preserving rename (similarity 100%)
+    otherwise renders as `rename from/to` metadata with no content lines, and a
+    content-line guard reads that as silence — renaming .coveragerc sideways
+    would unwire D9 without tripping a thing (PR #468 review, P1). As delete +
+    add, the removed half trips every whole-file and keyed rule it touches.
+    """
+    diff_options = ("--no-ext-diff", "--no-textconv", "--no-renames", "--unified=0")
     tracked = git(repo, "diff", *diff_options, mb, "--")
     if tracked is None:
         raise GuardError("tracked/staged diff acquisition failed")

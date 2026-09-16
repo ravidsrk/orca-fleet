@@ -557,8 +557,8 @@ class TestGuardSurfaceHit(unittest.TestCase):
 
 
 class TestGuardSurfaceEndToEnd(FloorGuardBase):
-    def _surface_repo(self, path, content):
-        repo = Path(self.tmp) / "surface"
+    def _surface_repo(self, path, content, name="surface"):
+        repo = Path(self.tmp) / name
         repo.mkdir()
         git(repo, "init", "-q", "-b", "main")
         git(repo, "config", "user.email", "t@example.invalid")
@@ -636,6 +636,21 @@ class TestGuardSurfaceEndToEnd(FloorGuardBase):
         code, out, err = run_main(repo, "--base", "main")
         self.assertEqual(code, 0, err)
         self.assertIn("waived", out)
+
+    def test_a_content_preserving_rename_still_trips(self):
+        # PR #468 review, P1: with rename detection on, `git mv` renders as
+        # metadata with no content lines, and a content-line guard reads that
+        # as silence — renaming .coveragerc sideways would unwire D9 untripped.
+        for name, (path, content) in enumerate(((".coveragerc", "[report]\nfail_under = 80\n"),
+                                                     ("tests/test_evals.py",
+                                                      "ROUTING_MIN_SCORE = 1.0\n"))):
+            with self.subTest(path=path):
+                repo = self._surface_repo(path, content, name=f"surface-{name}")
+                git(repo, "mv", path, path + ".moved")
+                git(repo, "commit", "-qm", "rename the guarded file")
+                code, _out, err = run_main(repo, "--base", "main")
+                self.assertEqual(code, 1, f"renaming {path} went silent")
+                self.assertIn("guard-surface", err)
 
 
 class TestScanUnits(FloorGuardBase):
