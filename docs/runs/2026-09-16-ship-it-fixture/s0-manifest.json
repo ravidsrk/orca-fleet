@@ -1,0 +1,152 @@
+{
+  "unit": "S0",
+  "base_sha": "b141efadac5a28237bf0917b507ec8fe90c001f3",
+  "head_sha": "b75bc01994367b3fac66fd9c9cbcf23d7a8da585",
+  "head_role": "code commit (scaffold); the manifest + NC transcript ride one commit above so the commands ledger binds to this tree exactly",
+  "base_branch": "ship/fixture-target-app",
+  "branch": "s0-foundation",
+  "contract": {
+    "source": "docs/runs/2026-09-16-ship-it-fixture/taskspecs/slice-s0.md@b141efadac5a28237bf0917b507ec8fe90c001f3",
+    "digest": "sha256:e27956ceaca8ff9256c37e3bbe4145b2e432824eba2c82363729f47bf25f5e0a",
+    "criterion_ids": [
+      "S0-AC1",
+      "S0-AC2",
+      "S0-AC3"
+    ]
+  },
+  "criteria": [
+    {
+      "id": "S0-AC1",
+      "text": "Acceptance check (1): `uv run pytest` >=1 green in `demo/target-app`",
+      "addressed": true
+    },
+    {
+      "id": "S0-AC2",
+      "text": "Acceptance check (2): `alembic heads` resolves",
+      "addressed": true
+    },
+    {
+      "id": "S0-AC3",
+      "text": "Acceptance check (3): `ruff check` clean; acceptance check (4): `docker compose config` valid",
+      "addressed": true
+    }
+  ],
+  "commands": [
+    {
+      "label": "tests",
+      "ts": "2026-09-16T14:51:30Z",
+      "cmd": "uv run pytest",
+      "cmd_sha256": "efbb60d087c678d2718a428ddea96c5458e79f8f334c3141eb3ddacd55ae91d8",
+      "exit": 0,
+      "duration_s": 0.215,
+      "commit": "b75bc01994367b3fac66fd9c9cbcf23d7a8da585",
+      "wtree": "bff830c1f5e7849843b74b9ac35f7fc4beff39e7",
+      "artifact": null
+    },
+    {
+      "label": "alembic",
+      "ts": "2026-09-16T14:51:40Z",
+      "cmd": "uv run alembic heads",
+      "cmd_sha256": "b23a165ab284f29e158f2d02ebff2769f44352b5115d731c74ba4b6939cf3b20",
+      "exit": 0,
+      "duration_s": 0.166,
+      "commit": "b75bc01994367b3fac66fd9c9cbcf23d7a8da585",
+      "wtree": "bff830c1f5e7849843b74b9ac35f7fc4beff39e7",
+      "artifact": null
+    },
+    {
+      "label": "ruff",
+      "ts": "2026-09-16T14:51:40Z",
+      "cmd": "ruff check .",
+      "cmd_sha256": "a0e3ed3d50f590907493cef09ea66c5b2e93004d9486d41e3d1f4e3531ebcc93",
+      "exit": 0,
+      "duration_s": 0.009,
+      "commit": "b75bc01994367b3fac66fd9c9cbcf23d7a8da585",
+      "wtree": "bff830c1f5e7849843b74b9ac35f7fc4beff39e7",
+      "artifact": null
+    },
+    {
+      "label": "compose",
+      "ts": "2026-09-16T14:51:40Z",
+      "cmd": "docker compose config --quiet",
+      "cmd_sha256": "7270dcf9430d57ce9439a6062a6494a739e070c5799ef7392f499d828b8bf9d3",
+      "exit": 0,
+      "duration_s": 0.08,
+      "commit": "b75bc01994367b3fac66fd9c9cbcf23d7a8da585",
+      "wtree": "bff830c1f5e7849843b74b9ac35f7fc4beff39e7",
+      "artifact": null
+    },
+    {
+      "label": "nc-command (tests)",
+      "ts": "2026-09-16T14:54:04Z",
+      "cmd": "python3 -m pytest demo/target-app/tests/test_health.py",
+      "cmd_sha256": "d850e046ae9fe7c88d1f741e9b451aa86cdd77b8e82df7b9750bef7bb1f6a229",
+      "exit": 0,
+      "duration_s": 0.27,
+      "commit": "b75bc01994367b3fac66fd9c9cbcf23d7a8da585",
+      "wtree": "bff830c1f5e7849843b74b9ac35f7fc4beff39e7",
+      "artifact": null
+    }
+  ],
+  "logs": {
+    "tests": "\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n======================== 1 passed, 2 warnings in 0.08s =========================",
+    "alembic": "(no output; exit 0 \u2014 zero heads, env resolves)",
+    "ruff": "All checks passed!",
+    "compose": "(no output; `config --quiet` exit 0 \u2014 compose file valid)",
+    "nc_green": "-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n======================== 1 passed, 2 warnings in 0.11s =========================",
+    "nc_red": "=========================== short test summary info ============================\nFAILED demo/target-app/tests/test_health.py::test_healthz_returns_ok - Assert...\n======================== 1 failed, 2 warnings in 0.09s ========================="
+  },
+  "negative_control": {
+    "did": "hand mutant in demo/target-app/app/main.py: healthz status 'ok'->'broken'; proof command went RED (AssertionError, exit 1), GREEN after restore (exit 0)",
+    "tool": "hand",
+    "result": "the criterion-bound test went RED (mutant KILLED)",
+    "artifact": "docs/runs/2026-09-16-ship-it-fixture/s0-nc.txt",
+    "command": "python3 -m pytest demo/target-app/tests/test_health.py",
+    "env_note": "replay needs the fixture venv on PATH (uv sync --project demo/target-app first); the `uv` launcher itself is outside verify.py's proof-command grammar, so the grammar-supported spelling is the venv-resolved python3"
+  },
+  "binding_audit": {
+    "coverage": "S0-AC1..S0-AC3 (3/3)",
+    "method": "criterion quoted, covering test quoted (demo/target-app/tests/test_health.py::test_healthz_returns_ok), criterion-violating hand mutation went RED with AssertionError"
+  },
+  "intent": {
+    "goal": "Scaffold demo/target-app so slices S1-S4 build on green: FastAPI skeleton with /healthz, Alembic env, compose skeleton, pytest harness, fixture CI skeleton.",
+    "ruled_out": "Committing uv.lock (outside the slice file list \u2014 left untracked), a versions/ dir (S1/S4 own it; `alembic heads` resolves without it), any domain/UI/telemetry code (owned by later slices).",
+    "why": "S0 is the serial frontier: every later slice's first command (pytest, alembic, compose, CI) must work at the merge base, and the evidence ledger must bind to that exact content."
+  },
+  "lighting": "lit",
+  "reviewer_mode": "instructed-isolation",
+  "pr": {
+    "number": 0,
+    "url": "",
+    "reviewed_sha": null,
+    "note": "no PR opened (coordinator owns PRs/merges); review leg binds reviewed_sha to head_sha once reviewed"
+  },
+  "artifacts": [
+    {
+      "path": "docs/runs/2026-09-16-ship-it-fixture/s0-nc.txt",
+      "sha256": "6411efaa18a35eefdcd22825b5ee05d04da80eee6a40227bad0cbab00f5723e5"
+    }
+  ],
+  "toolchain": "mise python 3.13.15 / uv 0.12.15 / ruff (homebrew) / docker 29.8.1 / macos-arm64",
+  "files": [
+    "demo/target-app/pyproject.toml",
+    "demo/target-app/.python-version",
+    "demo/target-app/app/__init__.py",
+    "demo/target-app/app/main.py",
+    "demo/target-app/app/deps.py",
+    "demo/target-app/tests/__init__.py",
+    "demo/target-app/tests/test_health.py",
+    "demo/target-app/alembic.ini",
+    "demo/target-app/alembic/env.py",
+    "demo/target-app/alembic/script.py.mako",
+    "demo/target-app/compose.yaml",
+    "demo/target-app/README.md",
+    ".github/workflows/fixture-target-app.yml"
+  ],
+  "notes": {
+    "scope_deviation": "s0-nc.txt is an extra file beyond the slice's 'may create' list, required by evidence-manifest.md: a creation-only unit cannot use tool=revert, and a hand mutant needs a hash-pinned artifact verify.py can git-apply (the manifest cannot pin itself). It lives in the run dir, which no other slice writes to.",
+    "scope_gap_escalation": "the taskspec slice-s0.md yields ZERO machine-extractable criterion ids (CRIT_ID_RE finds no list-item criteria; 'S0-AC1..3' is prose). check_scope needs a coordinator JSON contract with explicit criterion_ids ['S0-AC1','S0-AC2','S0-AC3'] or it fails 'no criterion ids in the authoritative contract' through no fault of the work.",
+    "nc_command_agreement": "negative_control.command is the grammar-supported spelling the coordinator's --nc-command must equal; replay requires the fixture venv on PATH (see env_note)."
+  },
+  "claim": "S0 scaffold complete: 1 pytest green, alembic heads resolves, ruff clean, compose valid; hand NC KILLED with AssertionError; ledger fresh at head_sha."
+}
