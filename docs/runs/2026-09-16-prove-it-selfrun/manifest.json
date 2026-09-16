@@ -65,11 +65,22 @@
       "commit": "862b487ca308a53ea0fc15bd09f09e4de93dca84",
       "wtree": "c1255e6a0721bcb846d5ba1be1a6e48f0a7b9cc6",
       "artifact": "docs/runs/2026-09-16-prove-it-selfrun/verifier-rerecord.txt"
+    },
+    {
+      "label": "tests rerun 2026-09-16 (wave 2, 4-test net)",
+      "ts": "2026-09-16T06:56:04Z",
+      "cmd": "python3 -m unittest tests.test_verify.OracleScopeKindTest",
+      "cmd_sha256": "2ce1cdd8d71d2aff07dfa3c9ec8a441ed44dba79df8c00debabc8059a6e34063",
+      "exit": 0,
+      "duration_s": 0.102,
+      "commit": "a46671986b2542b2da6d8e349ecf6c216f9ecc25",
+      "wtree": "5746c56318abc76a391f2dd93c857c0ec6128ddd",
+      "artifact": "docs/runs/2026-09-16-prove-it-selfrun/tests-rerun.txt"
     }
   ],
   "unit": "prove-it-2026-09-16-PF-2",
   "base_sha": "eacd4cfa7f178cb4c473bd0fdbc8d5c5743ef959",
-  "head_sha": "d96e15e79177da57c51874913f032eb620be2acc",
+  "head_sha": "a46671986b2542b2da6d8e349ecf6c216f9ecc25",
   "base_branch": "main",
   "contract": {
     "source": "docs/runs/2026-09-16-prove-it-selfrun/contract.json@7942be928fc96b66597616690fc3d01edf5c94a6",
@@ -88,13 +99,13 @@
   "negative_control": {
     "did": "deleted verify.py check_oracle_scope kind-gate lines 988-989 (hand mutant m1)",
     "tool": "hand",
-    "result": "the criterion-bound test went RED (mutant KILLED): exit 1, FAILED failures=1, AssertionError at the PF-2 assertion",
-    "artifact": "docs/runs/2026-09-16-prove-it-selfrun/negctrl.txt",
+    "result": "the criterion-bound test went RED (mutant KILLED): exit 1, FAILED failures=1, errors=1 \u2014 AssertionError at the PF-2 assertion (test_bogus_kind_refused_at_kind_gate) plus a behaviour-demonstrating AttributeError on the non-dict case (test_non_dict_scope_refused_at_kind_gate)",
+    "artifact": "docs/runs/2026-09-16-prove-it-selfrun/negctrl-rerun.txt",
     "command": "python3 -m unittest tests.test_verify.OracleScopeKindTest"
   },
   "binding_audit": {
     "coverage": "PF-2 (1/1)",
-    "method": "criterion quoted, covering test quoted, criterion-violating mutation went RED (4/4 mutants killed across the kind-gate expression)"
+    "method": "criterion quoted, covering tests quoted, criterion-violating mutation went RED (4/4 mutants killed across the kind-gate expression; m1 RED carries the bogus-case AssertionError plus a behavior-demonstrating AttributeError on the non-dict case)"
   },
   "intent": {
     "goal": "Pin verify.py's oracle-scope kind gate with a mutation-audited characterization test (PF-2).",
@@ -158,12 +169,52 @@
     {
       "path": "docs/runs/2026-09-16-prove-it-selfrun/verifier-rerecord.txt",
       "sha256": "37e9cebdd5756b5c4bb511f808664c87b122aeb7f7c3e149ee5701a858c65db5"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/tests-rerun.txt",
+      "sha256": "ce91d67dca5b2b19515fb6990ca225b786d69be74b18eee30e423131c82d0d3e"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/negctrl-rerun.txt",
+      "sha256": "118364738b113205c7fe27d21a6788b1f426f32563ddcf37a6f464de87e47f41"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/audit-m1-rerun.diff",
+      "sha256": "358d4a4045a1d58c0db0cb2f3450e9e1cd6dcaad565acd1419b85c73a1066980"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/audit-rerun-clean.txt",
+      "sha256": "7366ce53c393fa42c16131fc375c6d0a0840af99428b01a3d6d096ee49e146d2"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/audit-rerun-m1-red.txt",
+      "sha256": "4d51489442a0da568f0cffbd8f57184fc59443cff1731711944c72ec407119c4"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/audit-rerun-reverted.txt",
+      "sha256": "b0cb919dd9e7b3a3111fdcca0f4aeadb37d4aa2266bb816d65d7b2090f85c280"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/audit-rerun-m2-red.txt",
+      "sha256": "c2ab4761db35f722f5966542648182c4797ad9de34ec819ee0c41d325e6e05f3"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/audit-rerun-m3-red.txt",
+      "sha256": "588a2256fa03f62de828b5850235b95f5d760ec620062dae693e05191f13895f"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/audit-rerun-m4-red.txt",
+      "sha256": "f8c39f37b2f552d4698aa065150f900189333efe0ac96dfcd2078eb91682d102"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/coverage-rerun.txt",
+      "sha256": "f7e56ad1522a8a99902784aaedc6a407c16f41119a468b61fcf161d01cd687e6"
     }
   ],
   "reviewer_mode": "cross-vendor",
   "review": {
     "artifact": "docs/runs/2026-09-16-prove-it-selfrun/review.txt"
   },
-  "toolchain": "CPython 3.13.15 on macOS arm64; git; unittest; claude CLI 2.1.272 (reviewer)",
-  "claim": "PF-2 characterized by OracleScopeKindTest (3 tests), pinned hand mutant m1 KILLED with supporting mutants m2/m3/m4 KILLED, build-blind review GO."
+  "toolchain": "CPython 3.13.15 on macOS arm64; git; unittest; claude CLI 2.1.272 (reviewer); builder claude-opus-5[1m] (Orca worker task_2f6b230aab94) via Orca (wave 2)",
+  "claim": "PF-2 characterized by OracleScopeKindTest (4 tests), pinned hand mutant m1 KILLED with supporting mutants m2/m3/m4 KILLED (wave-2 re-execution), build-blind review pending."
 }
