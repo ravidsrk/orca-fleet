@@ -1,0 +1,44 @@
+### D6a D1-implication — tests.test_architecture on injection 5e367700 — 2026-09-16T20:29:39Z
+.....................................F....................
+======================================================================
+FAIL: test_validator_passes (tests.test_architecture.TestArchitecture.test_validator_passes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/projects/orca-fleet/.muse/worktrees/subagent-v2-01a0a08a-bf23-71e3-bb1d-c7a68bec7d23-01a0abaf-32d4-7fa1-b587-3f056e3ace64/tests/test_architecture.py", line 303, in test_validator_passes
+    self.assertEqual(r.returncode, 0, f"validate.py failed:\n{r.stdout}\n{r.stderr}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : validate.py failed:
+ok   absorb-it
+ok   access-it
+ok   attest-it
+ok   clean-sweep
+ok   deflake-it
+ok   document-it
+ok   field-test-it
+ok   floor-it
+ok   harden-it
+ok   map-it
+ok   migrate-it
+ok   modernize-it
+ok   oncall-it
+ok   oss-contribute
+ok   pin-it
+ok   prove-it
+ok   reshape-it
+FAIL review-it
+   - proof 'self-run' requires proof_evidence: a docs/runs/*.md run report that exists
+   - dangling path: docs/runs/zz-canary-missing.md does not exist
+ok   root-cause
+ok   ship-it
+ok   speed-it
+
+Validation failed.
+
+
+
+----------------------------------------------------------------------
+Ran 58 tests in 5.930s
+
+FAILED (failures=1)
+bundle: 21 self-contained mission(s) in a temp dir; no reference leaves its directory
+test_arch_exit=1

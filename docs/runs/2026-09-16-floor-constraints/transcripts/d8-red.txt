@@ -1,0 +1,9 @@
+### D8 RED — 2026-09-16T20:31:09Z
+### branch: floor/canary-d8 commit: 8e29368c (throwaway)
+### injection: verify.py no-pr.number review leg neutered (returns [] instead of failing)
+### command: python3 bench/vf-bench/gate.py
+GATE FAIL: verify.py false-done is 1/20 — a verifier change reintroduced a gaming hole; fix the verifier, never the corpus
+gate_exit=2
+### attribution (same injection commit): per-trap re-score flips exactly one trap:
+### FLIPPED-GREEN: unreviewed-mutation-1; valid controls 3/3 still pass (vfbench.py --json:
+### sound gate false_done=1 red_total=20, valid_failed=[]). The gate names the hole, not noise.

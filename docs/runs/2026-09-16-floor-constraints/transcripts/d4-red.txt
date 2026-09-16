@@ -1,0 +1,10 @@
+### D4 RED — 2026-09-16T20:24:19Z
+### repo: /tmp/fcd4 (throwaway clone) branch: floor/canary-d4 commit: 02de8a96
+### injection: credential-shaped canary assembled at runtime into tests/test_decisions.py (the .gitleaksignore-waived file) + committed
+### recipe (same as validate.yml Secret-scan step): printf 'CANARY = "%s%s"\n' 'AKIA' 'ZYXWVUTSRQPONMLK' >> tests/test_decisions.py
+### command: gitleaks detect --redact --no-banner --source .
+[90m1:54AM[0m [32mINF[0m [1mUnknown SCM platform. Use --platform to include links in findings.[0m [36mhost=[0m
+[90m1:54AM[0m [32mINF[0m [1m1098 commits scanned.[0m
+[90m1:54AM[0m [32mINF[0m [1mscanned ~22606221 bytes (22.61 MB) in 2.07s[0m
+[90m1:54AM[0m [33mWRN[0m [1mleaks found: 7[0m
+gitleaks_exit=1

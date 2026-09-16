@@ -1,0 +1,5 @@
+### D5 GREEN-after-revert — 2026-09-16T20:29:11Z
+### revert commit: 73f25075 (tree == floor/constraints)
+### command: python3 scripts/eval.py run --suite routing --threshold 1.0
+Routing eval: 94/94 correct (100%)
+eval_exit=0

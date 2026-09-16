@@ -1,0 +1,103 @@
+{
+  "commands": [
+    {
+      "label": "green-validate",
+      "ts": "2026-09-16T20:38:51Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 0,
+      "duration_s": 1.024,
+      "commit": "10e45f72e7a5f1a0909c0dac0917edd94ac397e5",
+      "wtree": "7a5e59d88765487a94685fe5c5fa122d8e6a40ef",
+      "artifact": "docs/runs/2026-09-16-floor-constraints/transcripts/final-validate.txt"
+    },
+    {
+      "label": "green-ruff",
+      "ts": "2026-09-16T20:38:51Z",
+      "cmd": "ruff check scripts runtime/scripts tests bench demo",
+      "cmd_sha256": "bc7439aa639f0ea487b93fd1887085c7f74e99a549a59bc5307c4015d423f74e",
+      "exit": 0,
+      "duration_s": 0.039,
+      "commit": "10e45f72e7a5f1a0909c0dac0917edd94ac397e5",
+      "wtree": "1d301f58136865a75f06eb8e7311ae184c5a517e",
+      "artifact": "docs/runs/2026-09-16-floor-constraints/transcripts/final-ruff.txt"
+    },
+    {
+      "label": "green-routing",
+      "ts": "2026-09-16T20:38:51Z",
+      "cmd": "python3 scripts/eval.py run --suite routing --threshold 1.0",
+      "cmd_sha256": "2ffd70179df671092b1947c2dde3acb6b86e5f0e2a746ca8d1a19498f3ac5edb",
+      "exit": 0,
+      "duration_s": 0.037,
+      "commit": "10e45f72e7a5f1a0909c0dac0917edd94ac397e5",
+      "wtree": "234abb343e643c2acca66439ba5195a780b4e3cb",
+      "artifact": "docs/runs/2026-09-16-floor-constraints/transcripts/final-routing.txt"
+    },
+    {
+      "label": "green-proof-status",
+      "ts": "2026-09-16T20:38:51Z",
+      "cmd": "python3 runtime/scripts/proof_status.py --check",
+      "cmd_sha256": "7c86d03188a425b13e31dcf3389233293326170c83d4ed9cb167160b388b34e3",
+      "exit": 0,
+      "duration_s": 0.024,
+      "commit": "10e45f72e7a5f1a0909c0dac0917edd94ac397e5",
+      "wtree": "426eef00c960603c04a68600c791f411abe5435f",
+      "artifact": "docs/runs/2026-09-16-floor-constraints/transcripts/final-proof-status.txt"
+    },
+    {
+      "label": "green-run-report",
+      "ts": "2026-09-16T20:38:51Z",
+      "cmd": "python3 runtime/scripts/run_report.py",
+      "cmd_sha256": "d980063e1a66d4b6bc69ca6d99d4f3e654fd9eecc0be33416e77d8fdba48e497",
+      "exit": 0,
+      "duration_s": 0.451,
+      "commit": "10e45f72e7a5f1a0909c0dac0917edd94ac397e5",
+      "wtree": "b9bf32ba289bb0da66b985a8a9f597cd356dbbbd",
+      "artifact": "docs/runs/2026-09-16-floor-constraints/transcripts/final-run-report.txt"
+    },
+    {
+      "label": "green-bundle",
+      "ts": "2026-09-16T20:38:52Z",
+      "cmd": "python3 scripts/bundle.py --check",
+      "cmd_sha256": "e16bc7a63b431ecdb6f44521490cb3f825419c3f07a9bcd042dbcc42b76f8551",
+      "exit": 0,
+      "duration_s": 0.886,
+      "commit": "10e45f72e7a5f1a0909c0dac0917edd94ac397e5",
+      "wtree": "df4885d1bcfc702012f55b97b40169b3763815ca",
+      "artifact": "docs/runs/2026-09-16-floor-constraints/transcripts/final-bundle.txt"
+    },
+    {
+      "label": "green-vfbench",
+      "ts": "2026-09-16T20:39:10Z",
+      "cmd": "python3 bench/vf-bench/gate.py",
+      "cmd_sha256": "58bc1f2f911a74bc89c92c1ec2aa8ef11e767faf27c663091b59bcc942ff2b6f",
+      "exit": 0,
+      "duration_s": 10.971,
+      "commit": "10e45f72e7a5f1a0909c0dac0917edd94ac397e5",
+      "wtree": "a4d14a4af186956071ab162571148c5fd7dc49bd",
+      "artifact": "docs/runs/2026-09-16-floor-constraints/transcripts/final-vfbench.txt"
+    },
+    {
+      "label": "green-gitleaks-mainonly",
+      "ts": "2026-09-16T20:39:13Z",
+      "cmd": "gitleaks detect --redact --no-banner --source .",
+      "cmd_sha256": "32fea361cbd1c4bb34cfdcfae3ee6db8fa1dd178be4e67f0e04029769d013bd8",
+      "exit": 0,
+      "duration_s": 2.096,
+      "commit": "57c32e0d03a94f4b04a6324b4703536fe9984166",
+      "wtree": "551c9c45c2e3875cc69442fb146896cd2f07d4f2",
+      "artifact": "docs/runs/2026-09-16-floor-constraints/transcripts/final-gitleaks.txt"
+    },
+    {
+      "label": "green-suite",
+      "ts": "2026-09-16T20:44:17Z",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "exit": 0,
+      "duration_s": 283.736,
+      "commit": "10e45f72e7a5f1a0909c0dac0917edd94ac397e5",
+      "wtree": "b118da612e9f94ee1170a4ede9cc5ddc6c731713",
+      "artifact": "docs/runs/2026-09-16-floor-constraints/transcripts/final-tests.txt"
+    }
+  ]
+}
