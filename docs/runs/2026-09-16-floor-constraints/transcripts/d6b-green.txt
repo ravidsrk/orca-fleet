@@ -1,0 +1,6 @@
+### D6b GREEN-after-revert — 2026-09-16T20:30:45Z
+### revert commit: 3e0124be (tree == floor/constraints)
+### command: python3 runtime/scripts/run_report.py
+bound clean-sweep (self-run) — docs/runs/2026-09-14-clean-sweep-self-run.md
+bound prove-it (self-run) — docs/runs/2026-09-16-prove-it-self-run.md
+run_report_exit=0

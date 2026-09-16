@@ -1,0 +1,7 @@
+### D3 D1-implication — tests.test_repo_hygiene on injection 47e87e8f — 2026-09-16T20:24:01Z
+....................
+----------------------------------------------------------------------
+Ran 20 tests in 0.343s
+
+OK
+hygiene_exit=0

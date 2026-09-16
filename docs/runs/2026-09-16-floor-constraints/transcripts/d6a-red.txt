@@ -1,0 +1,34 @@
+### D6a RED — 2026-09-16T20:29:21Z
+### branch: floor/canary-d6a commit: 5e367700 (throwaway)
+### injection: review-it proof self-run + proof_evidence docs/runs/zz-canary-missing.md (nonexistent)
+### command: python3 runtime/scripts/proof_status.py --check
+FAIL: review-it (self-run) — unresolvable proof_evidence: docs/runs/zz-canary-missing.md
+proof-status: 1 mission(s) above doctrine-only missing evidence
+absorb-it       doctrine-only  [—      ] —
+access-it       doctrine-only  [—      ] —
+attest-it       doctrine-only  [—      ] —
+clean-sweep     self-run       [ok     ] docs/runs/2026-09-14-clean-sweep-self-run.md
+deflake-it      doctrine-only  [—      ] —
+document-it     doctrine-only  [—      ] —
+field-test-it   doctrine-only  [—      ] —
+floor-it        doctrine-only  [—      ] —
+harden-it       doctrine-only  [—      ] —
+map-it          doctrine-only  [—      ] —
+migrate-it      doctrine-only  [—      ] —
+modernize-it    doctrine-only  [—      ] —
+oncall-it       doctrine-only  [—      ] —
+oss-contribute  doctrine-only  [—      ] —
+pin-it          doctrine-only  [—      ] —
+prove-it        self-run       [ok     ] docs/runs/2026-09-16-prove-it-self-run.md
+reshape-it      doctrine-only  [—      ] —
+review-it       self-run       [MISSING] docs/runs/zz-canary-missing.md
+root-cause      doctrine-only  [—      ] —
+ship-it         doctrine-only  [—      ] —
+speed-it        doctrine-only  [—      ] —
+
+coverage rollup:
+  doctrine-only  18
+  self-run       3
+  external-run   0
+  total          21
+proof_status_exit=1
