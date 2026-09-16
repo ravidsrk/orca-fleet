@@ -314,6 +314,15 @@ as unrecognized rather than silently undercounting.
 
 Exits: 0 ok · 1 usage (no input file) · 2 unreadable input.
 
+> Why: keepalives arrive on stderr every 15s, so a capture that merged the streams breaks
+> naive parsing — and keepalives are skipped STRUCTURALLY
+> (`runtime/scripts/pm.py:print_inbox`), not by line filtering, which could drop a mixed
+> keepalive+messages object. Message text is worker-controlled and therefore untrusted:
+> every printed field goes through `runtime/scripts/pm.py:_visible`, which escapes not
+> only controls but the invisible categories in `runtime/scripts/pm.py:_INVISIBLE` —
+> bidi overrides and zero-width joiners that reorder what the reader sees without
+> printing a glyph. Escaped, not stripped, so the reader sees that something was there.
+
 ## `sandbox_doctor.py`
 
 Reads the transcript of `orca vm recipe doctor` for a recipe and says whether it is
