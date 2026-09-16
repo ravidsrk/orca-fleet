@@ -230,3 +230,24 @@ drive the terminal nor reorder what it shows. Malformed segments are skipped lin
 as unrecognized rather than silently undercounting.
 
 Exits: 0 ok · 1 usage (no input file) · 2 unreadable input.
+
+## `sandbox_doctor.py`
+
+Reads the transcript of `orca vm recipe doctor` for a recipe and says whether it is
+CLEAR for the danger lane. Clear means no fail AND no warn. Source
+`runtime/scripts/sandbox_doctor.py:1-25`; behavior pinned by
+`tests/test_sandbox_doctor.py`.
+
+Usage: `sandbox_doctor.py <transcript> <recipe-id>`
+
+Flags: none — two positional arguments.
+
+Verdict rule: the transcript must name THIS recipe (the whole id, not a substring of a
+longer one) and report no fail and no warn. JSON transcripts read structurally (empty
+finding collections are good news; `ok:false` is a finding); plain-text transcripts first
+strip "none of these" shapes (`"failures": []`, `failures: 0`, `0 warnings`, `no
+failures`) before matching fail/warn/error words. Called by
+`runtime/scripts/spawn_worker.sh`, which runs the doctor itself and passes its own output
+here — a transcript the caller names is not evidence.
+
+Exits: 0 clear · 1 not clear (reason on stderr) · 2 usage.

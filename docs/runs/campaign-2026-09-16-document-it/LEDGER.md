@@ -20,8 +20,8 @@ solo self-test; the mechanical oracle is the claim check + rename control + re-d
 | doc-r07 | cli:runtime/scripts/gate-batch.py | reference | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-r07.md @aade22d |
 | doc-r08 | cli:runtime/scripts/guard_text.py | reference | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-r08.md @19db585 |
 | doc-r09 | cli:runtime/scripts/hitl-loop.template.sh | reference | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-r09.md @b452bb0 |
-| doc-r10 | cli:runtime/scripts/pm.py | reference | critical | t | t | t | n/a | n/a | t | f | f | n/a | lit | | cells/doc-r10.md |
-| doc-r11 | cli:runtime/scripts/sandbox_doctor.py | reference | critical | f | f | f | n/a | n/a | f | f | f | n/a | lit | | |
+| doc-r10 | cli:runtime/scripts/pm.py | reference | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-r10.md @6036c0a |
+| doc-r11 | cli:runtime/scripts/sandbox_doctor.py | reference | critical | t | t | t | n/a | n/a | t | f | f | n/a | lit | | cells/doc-r11.md |
 | doc-r12 | cli:runtime/scripts/spawn_worker.sh | reference | critical | f | f | f | n/a | n/a | f | f | f | n/a | lit | | |
 | doc-r13 | cli:runtime/scripts/watchdog.py | reference | critical | f | f | f | n/a | n/a | f | f | f | n/a | lit | | |
 | doc-r14 | cli:runtime/scripts/wtree.sh | reference | critical | f | f | f | n/a | n/a | f | f | f | n/a | lit | | |
