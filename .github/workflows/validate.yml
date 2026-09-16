@@ -118,7 +118,7 @@ jobs:
       - name: Ruff (syntax / undefined names)
         # Installed from the hashed lock above (#301), not re-resolved here.
         run: ruff check scripts runtime/scripts tests bench demo
-      - name: Coverage floor (D9: line >= 80% on scripts + runtime/scripts)
+      - name: "Coverage floor (D9: line >= 80% on scripts + runtime/scripts)"
         # CONSTRAINTS.md D9, wired by the floor-it WIRE phase: `coverage run`
         # then `coverage report` on the committed .coveragerc (fail_under = 80,
         # ratchet-only). Installed from the hashed lock above (#301), not
