@@ -122,17 +122,6 @@
       "artifact": "docs/runs/2026-09-16-reshape-it-unpark/rv-c1-tests-full-tip2.txt"
     },
     {
-      "label": "verifier-round-2",
-      "ts": "2026-09-16T20:09:23Z",
-      "cmd": "python3 runtime/scripts/verify.py --manifest docs/runs/2026-09-16-reshape-it-unpark/manifest-rv-c1.json --contract-source docs/runs/2026-09-16-reshape-it-unpark/contract-rv-c1.json@b7ddfab6e8d1133352bfe9373da6ea1476a906cb --contract-digest sha256:3f29df75ed7e67b2479890fd17e49d3a95d3985efb89a0907271b180fc12a7ff --unit-class mutation --lighting dark-eligible --execute-nc --nc-command 'python3 -m unittest tests.test_reshape_net_validate'",
-      "cmd_sha256": "e339911fd81f267f272f5fe5a8fc914f3d5d017c246b6895f06451f18e5a1d00",
-      "exit": 2,
-      "duration_s": 0.7,
-      "commit": "b7ddfab6e8d1133352bfe9373da6ea1476a906cb",
-      "wtree": "05a12961ef6e713194a0f555f9b1c6d362b61d4d",
-      "artifact": "docs/runs/2026-09-16-reshape-it-unpark/rv-c1-verifier.txt"
-    },
-    {
       "label": "verifier-round-2b",
       "ts": "2026-09-16T20:10:52Z",
       "cmd": "python3 runtime/scripts/verify.py --manifest docs/runs/2026-09-16-reshape-it-unpark/manifest-rv-c1.json --contract-source docs/runs/2026-09-16-reshape-it-unpark/contract-rv-c1.json@b7ddfab6e8d1133352bfe9373da6ea1476a906cb --contract-digest sha256:3f29df75ed7e67b2479890fd17e49d3a95d3985efb89a0907271b180fc12a7ff --unit-class mutation --lighting dark-eligible --execute-nc --nc-command 'python3 -m unittest tests.test_reshape_net_validate'",
@@ -149,8 +138,8 @@
   "head_sha": "c5e09b9bb220b3ab641960621ce8a12761621542",
   "base_branch": "main",
   "contract": {
-    "source": "docs/runs/2026-09-16-reshape-it-unpark/contract-rv-c1.json@b7ddfab6e8d1133352bfe9373da6ea1476a906cb",
-    "digest": "sha256:3f29df75ed7e67b2479890fd17e49d3a95d3985efb89a0907271b180fc12a7ff",
+    "source": "docs/runs/2026-09-16-reshape-it-unpark/contract-rv-c1.json@f66c9839b008dc551317c7cb25e5352e8540ca4e",
+    "digest": "sha256:a144ff21568661bb5599b8dcba1527a6f3a22159ade2e015dd4001e5aa0d4976",
     "criterion_ids": [
       "RV-C1"
     ]
@@ -244,5 +233,12 @@
   "pr": {
     "number": 462,
     "url": "https://github.com/ravidsrk/orca-fleet/pull/462"
-  }
+  },
+  "removed_records": [
+    {
+      "label": "verifier-round-2",
+      "exit": 2,
+      "reason": "removed E6 (Greptile P2 4030446451): the record's artifact pointer (rv-c1-verifier.txt) was overwritten by the later GREEN re-run, so the record linked to bytes contradicting its exit. The failed run is fully explained \u2014 oracle-scope mismatch from round-1 artifact names tracked-at-head, fixed by the -r2 rename, re-verified GREEN (see verifier-round-2b) \u2014 and a dangling pointer is worse than an explained absence. The exit-2 output itself: 4 invariant failures (oracle-scope artifact mismatch -> hand-mutant decoy x2 -> unexecuted-control), all root-caused to the one naming trap."
+    }
+  ]
 }
