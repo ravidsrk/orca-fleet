@@ -14,5 +14,15 @@
     "why": "characterization-test-only change on reversible fixtures, oracle is types/tests — gate-classification.md's concrete dark-eligible example",
     "authorized_by": "maintainer issue #410 (minimal prove-it re-run); human backstop: promotion PR review before merge"
   },
-  "note": "Denominator frozen before the characterization wave. oracle_scope coordinates are authorized after mutant inspection, per evidence-manifest.md section 1 (Coordinator oracle scope)."
+  "note": "Denominator frozen before the characterization wave. oracle_scope coordinates are authorized after mutant inspection, per evidence-manifest.md section 1 (Coordinator oracle scope).",
+  "oracle_scope": {
+    "kind": "characterization",
+    "base_sha": "eacd4cfa7f178cb4c473bd0fdbc8d5c5743ef959",
+    "head_sha": "d96e15e79177da57c51874913f032eb620be2acc",
+    "criterion_ids": ["PF-2"],
+    "paths": {
+      "runtime/scripts/verify.py": [988, 989]
+    },
+    "artifact_sha256": "33448afa8bfb91f4aea9225c878cf6ecb14cb77c272f011a8c373ee8c944a232"
+  }
 }
