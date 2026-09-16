@@ -92,16 +92,20 @@ jobs:
             sleep 5
           done
           curl -fsS http://127.0.0.1:8000/healthz
+          for i in $(seq 1 36); do
+            curl -fsS http://127.0.0.1:8001/healthz && break
+            sleep 5
+          done
           curl -fsS http://127.0.0.1:8001/healthz
       - name: PromQL smoke (app_issues_total)
         run: |
           for i in $(seq 1 24); do
             curl -fsS -G 'http://127.0.0.1:9090/api/v1/query' \
-              --data-urlencode 'query=app_issues_total' | grep -q '"status":"success"' && break
+              --data-urlencode 'query=app_issues_total' | grep -Fq '"result":[{' && break
             sleep 5
           done
           curl -fsS -G 'http://127.0.0.1:9090/api/v1/query' \
-            --data-urlencode 'query=app_issues_total' | grep -q '"status":"success"'
+            --data-urlencode 'query=app_issues_total' | grep -Fq '"result":[{'
       - name: LogQL smoke ({service="app"} non-empty)
         run: |
           END=$(date -u +%Y-%m-%dT%H:%M:%SZ)
