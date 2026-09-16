@@ -6,6 +6,12 @@ truth is `.claude-plugin/plugin.json`.
 
 ## [Unreleased]
 
+The 2026-09-16 self-test campaign ran all 21 missions against orca-fleet itself
+(scoreboard: `docs/reports/selftest-campaign-2026-09-16/rollup.md`; full transcripts
+archived on `origin/campaign/<mission>-selftest`). The only tier advance is map-it's
+external-run (#451); five runs produced fixes now owed promotion PRs (ruff 0.16.7 bump,
+F1 flake fix, H1 hot-path fix, PF-3 coverage net, documentation page).
+
 The deep-review branches. The 2026-09-10 review (archived at `docs/reviews/2026-09-10-review.md`)
 and the upstream deep audit under `docs/research/` opened issues #255–#276; the 2026-09-11 review
 (`REVIEW.md`) opened #279–#307.
