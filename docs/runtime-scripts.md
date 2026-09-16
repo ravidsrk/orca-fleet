@@ -283,6 +283,15 @@ N rounds) — never the exit code. A checkpoint step ends each unreproduced roun
 
 Exits: 0 done · 2 usage.
 
+> Why: the agent cannot see the screen and the human cannot paste a transcript nobody
+> asked for — so the agent writes the steps, the human runs them, and observations come
+> back as KEY=VALUE lines the agent parses. Capture observations, never actions, because
+> signing in and clicking are not evidence. The verdict is the
+> `runtime/scripts/hitl-loop.template.sh:REPRODUCED` line, never the exit code: a loop
+> that exits 0 after a non-reproducing bug must not read as success. And the loop is
+> bounded (`runtime/scripts/hitl-loop.template.sh:ROUNDS`, default 3) with a human
+> checkpoint per round, so a non-reproducing bug stops instead of asking forever.
+
 ## `pm.py`
 
 Tolerant parser for saved `orca orchestration inbox/check` JSON output. Decodes

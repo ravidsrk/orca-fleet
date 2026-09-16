@@ -1,0 +1,8 @@
+NC doc-x09: rename 'REPRODUCED' -> 'CONFIRMED' in runtime/scripts/hitl-loop.template.sh; expect claimcheck --cell hitl-loop.template.sh RED
+renamed 3 occurrence(s)
+--- claimcheck (expect FAIL) ---
+UNBOUND: hitl-loop.template.sh: ANCHOR `runtime/scripts/hitl-loop.template.sh:REPRODUCED` not found in runtime/scripts/hitl-loop.template.sh
+claimcheck: 1 section(s), 1 unbound claim(s)
+claimcheck exit=1
+--- restore ---
+renamed file restored: yes
