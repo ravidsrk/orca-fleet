@@ -120,6 +120,14 @@ graded worker) and `runtime/scripts/verify.py` (verify at the gate).
 
 Exits: n/a (library).
 
+> Why: the gate runs as a completion hook in arbitrary sandboxes where `pip install` may
+> not be possible, so the whole gate is stdlib-only — this module's only import is
+> `runtime/scripts/ed25519.py:hashlib`. It is the public-domain "slow but correct"
+> reference because it signs tiny dispatch records, never bulk data; the one place it
+> goes beyond the bare reference is `runtime/scripts/ed25519.py:checkvalid`, which
+> rejects malleable and small-order forgeries a bare verifier accepts. A deployment that
+> wants constant-time swaps backends behind the same three functions.
+
 ## `egress.py`
 
 Content-free, hash-chained receipts for everything the fleet sends off-repo. One JSON
