@@ -22,3 +22,15 @@ rule (one TASK pack per worker, never co-mounted) therefore had no worker to app
 
 None appended: no mechanical/taste auto-resolve was taken (the recommended bound in
 confirm-surface-request.md is a proposal awaiting the human, not a resolution).
+
+## CONFIRM-SURFACE freeze (recorded 2026-09-16)
+- Reporter: human maintainer (Ravindra, interactive gate session) — explicit yes.
+- Premises: P1 agree · P2 agree · P3 agree.
+- Bound: scripts/validate.py FIRST, then runtime/scripts/verify.py — one seam at a time; all else to next scan.
+- GATE-1 CONFIRM-SURFACE: RESOLVED. Unpark: BOOTSTRAP BASE via preflight.py, CHARACTERIZE validate.py, then DEEPEN.
+
+## CONFIRM-SURFACE freeze - recorded 2026-09-16
+- Reporter: human maintainer Ravindra, interactive gate session - explicit yes.
+- Premises: P1 agree, P2 agree, P3 agree.
+- Bound: scripts/validate.py FIRST, then runtime/scripts/verify.py; all else to next scan.
+- GATE-1 CONFIRM-SURFACE: RESOLVED. Unpark: BOOTSTRAP BASE, CHARACTERIZE validate.py, then DEEPEN.

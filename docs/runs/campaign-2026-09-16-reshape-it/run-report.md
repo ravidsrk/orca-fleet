@@ -93,3 +93,6 @@ Evidence: branch `campaign/reshape-it-selftest`, forked from `origin/main` tip
 `c46d4b3f3371e41408aed19e54476fa194c20b42`. The five hashes above verify at the
 branch tip — re-hash with `sha256sum` in this directory to confirm. (The report file
 itself is intentionally unhashed so this binding line can name the branch tip stably.)
+
+## Gate resolution - 2026-09-16
+CONFIRM-SURFACE granted by the human maintainer in the gate session: premises agreed; bound validate.py then verify.py. Run unparked; CHARACTERIZE is next.
