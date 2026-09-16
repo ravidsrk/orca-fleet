@@ -1,0 +1,18 @@
+{
+  "id": "2344b2da-362d-4972-93fd-e9bcda1de607",
+  "ok": true,
+  "result": {
+    "run": {
+      "id": "run_1e33949c0db0",
+      "objective": "prove-it PF-2 orchestrated rerun (roadmap #410, PR #437): re-execute the single-criterion characterization wave through Orca workers (builder + blind reviewer) with evidence rebound at pushed trees",
+      "coordinator_handle": "term_64fe1678-4c2d-4cde-a7cb-cf92db1bb993",
+      "consumer_generation": 1,
+      "legacy": 0,
+      "created_at": "2026-09-16T06:52:03Z",
+      "updated_at": "2026-09-16T06:52:03Z"
+    }
+  },
+  "_meta": {
+    "runtimeId": "75429d93-a441-4225-9f94-18e893d3212e"
+  }
+}

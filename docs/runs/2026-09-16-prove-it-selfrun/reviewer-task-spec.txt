@@ -1,0 +1,102 @@
+# prove-it PF-2 rerun — BLIND REVIEWER task spec (wave 2, orchestrated)
+
+You are a supervised Orca worker. Obey the live preamble injected with this task
+for all lifecycle mechanics (`check`, `ask`, `worker_done`). In particular: run
+`orca orchestration check --terminal <your_handle>` at each checkpoint and once
+more immediately before `worker_done`; send `worker_done` exactly once with an
+explicit `--outcome succeeded|failed` (omit `--to`); every send carries `--from
+<your_handle> --dispatch-capability <capability>` from the preamble.
+
+You are BUILD-BLIND: a fresh session that did not write the code. A different
+vendor's agent built it (Anthropic claude); you review it cold.
+
+## Target
+Repo orca-fleet, the unit worktree (cwd — same worktree the builder used, fresh
+terminal). Frozen criterion: `docs/runs/2026-09-16-prove-it-selfrun/contract.json`
+(PF-2 only). Candidate under review: `tests/test_verify.py::OracleScopeKindTest`
+(4 tests) at the builder's test commit HEAD_TEST (see step 1) + the pinned
+mutant diff `docs/runs/2026-09-16-prove-it-selfrun/audit-m1-rerun.diff`.
+
+## Change
+A blind acceptance review of the re-executed PF-2 characterization net,
+recorded as `docs/runs/2026-09-16-prove-it-selfrun/review-rerun.txt`
+(prompt + reply retained), committed and pushed to the PR branch.
+
+## Constraints
+- Blind-fix FIRST (anti-anchoring, acceptance-review.md): BEFORE reading the
+  test or the mutant, read ONLY the frozen PF-2 criterion (+ the production
+  gate lines `runtime/scripts/verify.py:988-989` for context) and write your
+  OWN expectation to the artifact: where the test should live, its rough
+  shape, which inputs must be covered (including the non-dict disjunct), and a
+  confidence. Only then open the candidate and judge the delta. Divergence is
+  signal, not error.
+- Methodology pack: matt ONLY — read
+  `/Users/ravindra/.agents/skills/code-review/SKILL.md` for method
+  (fixed-point discipline, every finding quotes its verbatim motivating line —
+  a finding that cannot quote goes to an appendix as unconfirmed, axes
+  side-by-side with NO cross-rerank). NEVER load any addy/gstack skill.
+- Judge on the mission's THREE axes (spec fidelity / mutant validity /
+  tautology guard — defined in step 3), not the skill's default two; the pack
+  provides method, the mission provides axes.
+- Read-only except the ONE artifact file. NEVER edit tests, production code,
+  the manifest, the contract, or any solo-run file. No commits except the
+  review artifact commit below. No secrets.
+- Git: author `Ravindra Kumar <ravidsrk@gmail.com>`, no trailers, never
+  force-push, never open a PR. `reviewed_sha` (step 1) is recorded in the
+  artifact; if the reviewed bytes differ from the worktree, STOP and `ask`.
+
+## Ownership
+The review artifact + its commit. The coordinator owns manifest/review-field
+updates, the verifier re-record, and the report.
+
+## Steps
+1. Setup: `git fetch origin`. Resolve HEAD_TEST: the builder's test commit —
+   `git log --oneline origin/roadmap/issue-410-prove-promo` and identify
+   `prove-it rerun: pin non-dict scope at the PF-2 kind gate (issue #410)`;
+   record its full SHA as reviewed_sha. Checkout the unit branch state:
+   `git checkout prove-it-pf2-rerun-wt` (create a tracking branch from origin
+   if absent) and fast-forward to origin. Verify freshness: `git diff
+   <reviewed_sha> -- tests/test_verify.py` MUST be empty (the reviewed test
+   bytes are exactly the worktree bytes) — else STOP and `ask`.
+2. Blind expectation (criterion + gate lines ONLY — do not open the test yet):
+   write Part 1 of `review-rerun.txt`: header (reviewer agent id + model,
+   reviewed_sha, timestamp), the PF-2 criterion quoted verbatim, your
+   expectation (location, shape, required inputs incl. non-dict, confidence).
+3. Open the candidate (the OracleScopeKindTest class in
+   `tests/test_verify.py` at `<reviewed_sha>`, plus `audit-m1-rerun.diff`)
+   and judge:
+   - Axis 1 Spec fidelity: does the net assert EXACTLY what PF-2 says —
+     refusal of an illegal kind AT the kind gate (dict-bogus AND non-dict
+     cases — quote the test lines carrying each half) and admission of BOTH
+     legal kinds PAST the kind gate? Flag any gap (compare against your
+     Part-1 expectation; name convergences and divergences).
+   - Axis 2 Mutant validity: is m1 behavior-changing yet harness-preserving
+     (module still imports, suite still collects)? Trace the bogus case under
+     m1 (which gate does it reach, what error returns, FAIL with
+     AssertionError?) and the non-dict case (AttributeError ERROR — is that a
+     behavior-demonstrating RED or a stillborn-shaped one? judge plainly).
+     Trace why the two legal-kind cases still pass.
+   - Axis 3 Tautology guard: could any assertion pass while PF-2 is broken?
+     State plainly whether each assertion binds to the kind gate.
+   Every finding quotes its verbatim motivating line (test line, gate line,
+   or diff hunk); unquotable material goes to an appendix as unconfirmed.
+4. Verdict: GO or NO-GO (one line) + a summary brief UNDER 400 words — the
+   findings carry the detail. Round 1 of max 3 (acceptance-review.md budget).
+5. Commit the artifact ONLY: `prove-it rerun: blind review of the PF-2 net
+   (issue #410)`. Push WITHOUT force: `git fetch origin`, FF-check (`git
+   merge-base --is-ancestor origin/roadmap/issue-410-prove-promo HEAD`), `git
+   push origin prove-it-pf2-rerun-wt:roadmap/issue-410-prove-promo`, verify
+   with `git ls-remote`. FF failure → STOP and `ask`.
+6. Update the Orca worktree comment with your checkpoint status, then
+   `worker_done --outcome succeeded --report-path
+   docs/runs/2026-09-16-prove-it-selfrun/review-rerun.txt --files-modified
+   docs/runs/2026-09-16-prove-it-selfrun/review-rerun.txt` with a
+   three-sentence summary naming reviewed_sha, the verdict, and push
+   verification. NO-GO verdicts still complete the review task (report them
+   with `--outcome succeeded` + the NO-GO in the summary — the verdict is the
+   deliverable); infrastructure blockers use `--outcome failed`.
+
+## Observable acceptance
+`review-rerun.txt` carries Part 1 (pre-read expectation) + the three-axis
+judgment with quoted lines + GO/NO-GO + reviewed_sha; committed by the
+maintainer author and pushed to origin/roadmap/issue-410-prove-promo.

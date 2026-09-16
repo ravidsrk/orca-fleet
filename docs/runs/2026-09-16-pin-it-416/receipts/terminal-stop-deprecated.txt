@@ -1,0 +1,15 @@
+orca terminal stop
+
+Usage: orca terminal stop --worktree <selector> [--json]
+
+Deprecated compatibility command for stopping terminal processes
+
+Options:
+  --help                 Show this help message
+  --json                 Emit machine-readable JSON
+  --pairing-code
+  --environment
+  --worktree <selector>  Worktree selector such as identity:<identity>, id:<repo-id>::<path>, name:<displayName>, branch:<branch>, issue:<number>, path:<path>, or active/current
+
+Notes:
+  Deprecated: use terminal close --worktree <selector> --all to stop the processes and durably remove their terminal surfaces.

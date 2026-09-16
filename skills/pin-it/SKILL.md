@@ -42,7 +42,7 @@ are PROFILE=ro; control-plane probes — run-create, worktree create, worker-sta
 state and run in a scratch Orca worktree with full teardown: settle the run, release workers,
 remove the worktree — teardown commands are claims too (re-witness before relying; if unsupported,
 archive the worktree, never force-remove); never against the default branch or a live fleet's run
-state), `attention-budget`. Worker TASK pack: one of matt | addy | gstack — never co-mount.
+state), `attention-budget`, `orca-pin` (the pin record: read the prior pin + run pointer at start, rewrite both at close). Worker TASK pack: one of matt | addy | gstack — never co-mount.
 
 ## Terminal outcomes
 

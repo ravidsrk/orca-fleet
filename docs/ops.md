@@ -9,7 +9,7 @@ missions already have those.
 
 | Surface | Account / handle | Lives in | Notes |
 |---|---|---|---|
-| GitHub | `ravidsrk` | [ravidsrk/orca-fleet](https://github.com/ravidsrk/orca-fleet) | source of truth, Actions (`validate` gates; `alert-on-failure` files a `ci-failure` issue when `validate` fails on `main`), private vulnerability reporting |
+| GitHub | `ravidsrk` | [ravidsrk/orca-fleet](https://github.com/ravidsrk/orca-fleet) | source of truth, Actions (`validate` gates + `negative-control-demo` pinned-demo gate; `alert-on-failure` files a `ci-failure` issue when either fails on `main`), private vulnerability reporting |
 | Claude plugin marketplace | GitHub self-host + buildwithclaude auto-index | [`.claude-plugin/`](../.claude-plugin/plugin.json) | `/plugin marketplace add ravidsrk/orca-fleet`; official directory + skills.sh still [H-02](completion/HUMAN_ACTIONS.md) |
 | greptile | maintainer CLI | [greptile.com](https://greptile.com/) | pre-push review on the maintainer machine; GitHub check on PRs |
 | agentskills.io listing | not submitted | local `uvx --from skills-ref agentskills validate` | extra frontmatter (`proof`, `autonomy`, `proof_evidence`) is intentional — [CONTRIBUTING](../CONTRIBUTING.md) |
@@ -169,7 +169,7 @@ cut, recreate its tag, or reset published mappings to make a retry pass.
 
 ## Incident (2 a.m.)
 
-1. A red `validate` run on `main` files (or updates) an issue labeled
+1. A red `validate` or `negative-control-demo` run on `main` files (or updates) an issue labeled
    [`ci-failure`](https://github.com/ravidsrk/orca-fleet/issues?q=label%3Aci-failure)
    — that issue is the alert; it arrives through normal issue
    notifications, not the opt-in Actions setting. Open the run it links —
@@ -195,8 +195,9 @@ cut, recreate its tag, or reset published mappings to make a retry pass.
 4. Rollback = `git revert -m 1 <merge-sha>` on a branch, then a PR
    through the normal gates — never a force-push or a history rewrite
    on `main`. There is no hosted service, staging, or deploy target to
-   roll back: `.github/workflows/` contains only `validate.yml` and
-   `alert-on-failure.yml` (no deploy job); "deploy" is merge to `main`.
+   roll back: `.github/workflows/` contains only `validate.yml`,
+   `negative-control.yml`, and `alert-on-failure.yml` (no deploy job);
+   "deploy" is merge to `main`.
    A bad merge is undone the way it landed. Regenerate badges
    (`python3 scripts/gen-badges.py`) if the revert changes counts.
    Rehearsed on a scratch clone: 2026-09-01

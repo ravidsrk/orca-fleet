@@ -7,7 +7,7 @@
 #
 # v3 (2026-09-10 upstream re-pin): the skip keys on `_keepalive` FIRST. A keepalive line carries
 # both `_keepalive` and `_heartbeat`, but `_heartbeat` is only a deprecated alias retained for
-# scripts still filtering it during migration (`check-keepalive.ts:18-26` at Orca v1.4.199) —
+# scripts still filtering it during migration (`check-keepalive.ts:18-26` at Orca v1.4.203) —
 # v2 keyed on the alias alone, so it was correct by accident and would start miscounting every
 # keepalive as an unrecognized envelope the day upstream drops it.
 #
@@ -103,7 +103,7 @@ def print_inbox(raw):
             # Keepalive-only envelope; a mixed object still yields its messages below.
             # `_keepalive` is the CURRENT marker and is checked FIRST; `_heartbeat` rides the
             # same line only as a deprecated alias kept "for scripts still filtering it while
-            # callers migrate" (`check-keepalive.ts:18-26` at Orca v1.4.199). Keying on the
+            # callers migrate" (`check-keepalive.ts:18-26` at Orca v1.4.203). Keying on the
             # alias alone — as v2 did — starts counting every keepalive as an unrecognized
             # envelope the day upstream drops it.
             continue

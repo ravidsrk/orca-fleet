@@ -1,10 +1,10 @@
 {
-  "_about": "Upstream sources the missions execute against, pinned by commit and witness date (issue #271). tests/test_pins.py requires an entry for every pack a SKILL.md compatibility: field names. witness: 'source' means the pin was read from a full-history clone of the upstream at that commit, not from a release note; 'live' means the mechanism claims were re-witnessed against the INSTALLED binary in a pin-it run (the commit then records what that build reports, which may sit on a pre-release line rather than at the named tag — see docs/runs/2026-09-13-pin-it-266/). Ownership: pin-it re-witnesses the `orca` entry against the installed binary; the pack pins (gstack, addyosmani, mattpocock) are re-witnessed by the upstream-adoption audit cadence (docs/research/2026-09-10-upstream-audit/), not by pin-it, whose SKILL scopes to runtime mechanics (#377). Pack pins should be re-witnessed whenever an audit runs or an adopted skill changes upstream (#378).",
+  "_about": "Upstream sources the missions execute against, pinned by commit and witness date (issue #271). tests/test_pins.py requires an entry for every pack a SKILL.md compatibility: field names. witness: 'source' means the pin was read from a full-history clone of the upstream at that commit, not from a release note; 'live' means the mechanism claims were re-witnessed against the INSTALLED binary in a pin-it run (the commit then records what that build reports, which may sit on a pre-release line rather than at the named tag — see docs/runs/2026-09-13-pin-it-266/). Ownership: pin-it re-witnesses the `orca` entry against the installed binary; the pack pins (gstack, addyosmani, mattpocock) are re-witnessed by the upstream-adoption audit cadence (docs/research/2026-09-10-upstream-audit/), not by pin-it, whose SKILL scopes to runtime mechanics (#377). Pack pins should be re-witnessed whenever an audit runs or an adopted skill changes upstream (#378). The human-readable pin record — upstream URL, diff summary, re-pin cadence, owner, next trigger — is runtime/orca-pin.md.",
   "orca": {
     "repo": "stablyai/orca",
-    "commit": "2ecde717b4561cae1701a27615f704434232399a",
-    "version": "v1.4.200",
-    "witnessed": "2026-09-13",
+    "commit": "54eaa14756bf80a6deb0b9cb5349fbe8ac3449ec",
+    "version": "v1.4.203",
+    "witnessed": "2026-09-16",
     "witness": "live",
     "aliases": ["orca", "stablyai/orca"]
   },

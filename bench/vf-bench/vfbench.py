@@ -341,11 +341,13 @@ def run():
     red_total = sum(1 for t in scored if t["sound_expected"] == "RED")
     results = {}
     for name, gate in GATES.items():
-        false_done, rows = 0, []
+        false_done, valid_failed, rows = 0, [], []
         for t in scored:
             passed = gate(t)
             fooled = t["sound_expected"] == "RED" and passed
             false_done += 1 if fooled else 0
+            if t["sound_expected"] == "GREEN" and not passed:
+                valid_failed.append(t["id"])
             rows.append({
                 "id": t["id"], "class": t["class"],
                 "verdict": "GREEN" if passed else "RED",
@@ -354,6 +356,12 @@ def run():
         results[name] = {
             "false_done": false_done, "red_total": red_total,
             "rate": (false_done / red_total) if red_total else 0.0, "rows": rows,
+            # #412: the CI gate fails on a broken valid control too — a sound gate that
+            # stops passing its positive controls proves nothing. (Fixture controls going
+            # RED raise out of fixture_gate before scoring, so this list mostly covers
+            # static GREEN traps; the raise is the other half of the same tripwire.)
+            "valid_failed": valid_failed,
+            "valid_total": sum(1 for t in scored if t["sound_expected"] == "GREEN"),
             "skipped": skipped,
         }
     return results
@@ -370,7 +378,8 @@ def main(argv):
             {"version": VERSION,
              "skipped": skipped,
              "gates": {k: {"false_done": v["false_done"], "red_total": v["red_total"],
-                           "rate": v["rate"]} for k, v in res.items()}},
+                           "rate": v["rate"], "valid_failed": v["valid_failed"],
+                           "valid_total": v["valid_total"]} for k, v in res.items()}},
             indent=2))
         return 0
     print(f"VF-Bench {VERSION} — false-done rate (fraction of gamed traps a gate wrongly accepted)")

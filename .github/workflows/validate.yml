@@ -131,3 +131,21 @@ jobs:
             python3 scripts/eval.py run --suite routing || echo "routing eval: FAILED"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+  vfbench:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 (Node 24; Node 20 left runners 2026-09-23, #367)
+        with:
+          fetch-depth: 0  # a skipped trap is a hole in the score, not a pass (#412)
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0 (Node 24, #367)
+        with:
+          python-version: "3.13"  # pin: CI 3.x was a moving target (G-03)
+      - name: VF-Bench soundness gate (verify.py false-done must be 0)
+        # #412: 0% false-done is a held property, not a historical fact. Fails on
+        # corpus drift off VERSION+CANARY, any skipped trap, verify.py false_done
+        # > 0, or any valid-control failure. RED means fix the verifier, never
+        # the corpus. ~11s locally; stays in the PR gate by design, no nightly
+        # waiver without an issue.
+        run: |
+          set -euo pipefail
+          time python3 bench/vf-bench/gate.py
