@@ -1,6 +1,6 @@
 # Run report — modernize-it self-test campaign, 2026-09-16
 
-RUN: mission=modernize-it tier=doctrine-only inventory_at=PENDING-EVIDENCE-COMMIT manifest=docs/runs/campaign-2026-09-16-modernize-it/manifest-u1.json verifier=GREEN waves=1
+RUN: mission=modernize-it tier=doctrine-only inventory_at=e537126283e39af79b2101f4096d25bf8a7c2ba9 manifest=docs/runs/campaign-2026-09-16-modernize-it/manifest-u1.json verifier=GREEN waves=1
 
 Solo-coordinator self-test of the `modernize-it` mission against orca-fleet
 itself at origin/main tip `c46d4b3` (Merge PR #445). One outdated node found
