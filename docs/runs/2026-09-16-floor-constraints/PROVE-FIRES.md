@@ -115,8 +115,10 @@ Two halves, each proven separately.
 
 ## D7 bundle-self-contained — `python3 scripts/bundle.py --check`, exit 0
 
-- Injection: outbound link `[canary spec](../../canary-missing-target.md)`
-  appended to skills/review-it/SKILL.md.
+- Injection: outbound link `[canary spec]` `(../../canary-missing-target.md)`
+  appended to skills/review-it/SKILL.md (text and target shown in separate
+  spans — the dead-link gate matches `](` even inside code, so the literal
+  injection string is never written adjacently here).
 - RED: exit 1 — `references/canary-missing-target.md was not vendored` +
   dead-link FAIL. d7-red.txt, d7-injection.diff.
 - GREEN after revert: exit 0, 21 self-contained. d7-green.txt.
