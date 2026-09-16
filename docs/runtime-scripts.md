@@ -30,6 +30,16 @@ zero-finding streak for `lens-tally:<lens>` lines and whether the lens may auto-
 
 Exits: 0 ok · 1 validation failure · 2 could-not-run.
 
+> Why: the log was a parser without a writer — hand-typed lines let two coordinators
+> disagree about the same record. `append` refuses reclassification by wording (the net
+> is built from the registry at `runtime/scripts/decisions.py:load_doors`) and demands a
+> human source for one-way lines (`runtime/scripts/decisions.py:HUMAN_SOURCE`). Tallies
+> live in committed state so a crashed run's gate verdict survives, and the `security`,
+> `privacy`, `data-migration` lenses never gate off
+> (`runtime/scripts/decisions.py:NEVER_GATE`): their value is the miss they would catch —
+> a policy naming three and a gate enforcing two is how privacy silently switched itself
+> off (PR #277 review).
+
 ## `deny-hook.sh`
 
 PreToolUse guard for read-write workers (Bash, Edit, Write). Reads the hook event JSON

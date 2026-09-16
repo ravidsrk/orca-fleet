@@ -26,8 +26,8 @@ solo self-test; the mechanical oracle is the claim check + rename control + re-d
 | doc-r13 | cli:runtime/scripts/watchdog.py | reference | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-r13.md @52d9f20 |
 | doc-r14 | cli:runtime/scripts/wtree.sh | reference | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-r14.md @0e6db58 |
 | doc-r15 | config:runtime/one-way-doors.json | reference | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-r15.md @80da007 |
-| doc-r16 | config:runtime/watchdog.json | reference | critical | t | t | t | n/a | n/a | t | f | f | n/a | lit | | cells/doc-r16.md |
-| doc-x01 | cli:runtime/scripts/decisions.py | explanation | critical | f | f | f | n/a | n/a | f | f | f | n/a | lit | | |
+| doc-r16 | config:runtime/watchdog.json | reference | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-r16.md @29a3d24 |
+| doc-x01 | cli:runtime/scripts/decisions.py | explanation | critical | t | t | t | n/a | n/a | t | f | f | n/a | lit | | cells/doc-x01.md |
 | doc-x02 | cli:runtime/scripts/deny-hook.sh | explanation | critical | f | f | f | n/a | n/a | f | f | f | n/a | lit | | |
 | doc-x03 | cli:runtime/scripts/diff_scope.py | explanation | critical | f | f | f | n/a | n/a | f | f | f | n/a | lit | | |
 | doc-x04 | cli:runtime/scripts/ed25519.py | explanation | critical | f | f | f | n/a | n/a | f | f | f | n/a | lit | | |

@@ -9,6 +9,9 @@ Claim kinds (parsed from the doc section, verified against authoritative state):
   KEYS        `| `+"`key`"+` |` rows in a Keys table (config sections) -> member of the JSON
               (top-level keys, or doors[].id for one-way-doors.json).
   PATHS       backticked tokens ending .py/.sh/.json/.md -> file must exist.
+  ANCHORS     backticked `path:Symbol` (alpha suffix) -> Symbol must appear in
+              that file's text. `path:NNN` (digit suffix) is a line ref,
+              existence only.
   EXITS       integers on the `Exits:` line -> must appear in the source text
               (coarse tripwire; the per-cell rename control uses flags/keys).
 
@@ -27,7 +30,7 @@ RUN = ROOT / "docs/runs/campaign-2026-09-16-document-it"
 DOC_DEFAULT = ROOT / "docs/runtime-scripts.md"
 
 FLAG_RE = re.compile(r"`(--[A-Za-z][A-Za-z0-9_-]*)`")
-PATH_RE = re.compile(r"`((?:[\w.][\w./-]*)\.(?:py|sh|json|md)(?::\d+(?:-\d+)?)?)`")
+PATH_RE = re.compile(r"`((?:[\w.][\w./-]*)\.(?:py|sh|json|md))(?::([\w.][\w./-]*))?`")
 SECTION_RE = re.compile(r"^## `([^`]+)`\s*$")
 SUBCMD_LINE = re.compile(r"^Subcommands:\s*(.+)$")
 API_LINE = re.compile(r"^API:\s*(.+)$")
@@ -80,11 +83,19 @@ def check_section(name, lines, surface):
         return [f"{name}: cannot read source {ent['source']}: {e}"]
     body = "\n".join(lines)
 
-    # PATHS: existence
+    # PATHS: existence. ANCHORS: `path:Symbol` (alpha suffix) must name text in the file.
     for m in PATH_RE.finditer(body):
-        tok = m.group(1).split(":")[0]
+        tok, suffix = m.group(1), m.group(2)
         if not (ROOT / tok).exists():
             failures.append(f"{name}: PATH `{tok}` does not exist")
+            continue
+        if suffix and (suffix[0].isalpha() or suffix[0] == "_"):
+            try:
+                content = (ROOT / tok).read_text()
+            except OSError:
+                content = ""
+            if suffix not in content:
+                failures.append(f"{name}: ANCHOR `{tok}:{suffix}` not found in {tok}")
 
     if ent["kind"] == "cli":
         help_exit = ent.get("help_exit", -1)
