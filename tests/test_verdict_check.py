@@ -16,9 +16,9 @@ HEAD = "a" * 40
 OTHER = "b" * 40
 
 
-def review(body, state="APPROVED", login="coord"):
+def review(body, state="APPROVED", login="coord", association="MEMBER"):
     return {"state": state, "body": body, "submitted_at": "2026-09-16T00:00:00Z",
-            "user": {"login": login}}
+            "user": {"login": login}, "author_association": association}
 
 
 def go_body(sha):
@@ -51,23 +51,45 @@ class VerdictAtTip(unittest.TestCase):
         self.assertFalse(verdict_at_tip([review("VERDICT: GOAHEAD\nreviewed_sha: " + HEAD)], HEAD))
         self.assertFalse(verdict_at_tip([review("VERDICT: NO-GO\nreviewed_sha: " + HEAD)], HEAD))
 
-    def test_go_counts_on_approval_only(self):
+    def test_approved_go_always_counts(self):
         self.assertTrue(verdict_at_tip([review(go_body(HEAD), state="APPROVED")], HEAD))
+        self.assertFalse(verdict_at_tip(
+            [review(go_body(HEAD), state="CHANGES_REQUESTED")], HEAD))
+        self.assertFalse(verdict_at_tip(
+            [review(go_body(HEAD), state="PENDING")], HEAD))
+
+    def test_commented_go_counts_from_pr_author(self):
+        # The coordinator binding its own verdict — the normal fleet flow, since
+        # GitHub forbids approving your own PR.
+        mine = review(go_body(HEAD), state="COMMENTED", login="coord",
+                      association="CONTRIBUTOR")
+        self.assertTrue(verdict_at_tip([mine], HEAD, pr_author="coord"))
+
+    def test_commented_go_counts_from_trusted_tiers(self):
+        for association in ("OWNER", "MEMBER", "COLLABORATOR"):
+            with self.subTest(association=association):
+                r = review(go_body(HEAD), state="COMMENTED", login="peer",
+                           association=association)
+                self.assertTrue(verdict_at_tip([r], HEAD, pr_author="coord"))
+
+    def test_commented_go_from_a_stranger_never_counts(self):
         # PR #460 review, P1: COMMENTED is open to any signed-in user, so a
         # drive-by comment must never satisfy this required check.
-        for state in ("COMMENTED", "CHANGES_REQUESTED", "DISMISSED", "PENDING"):
-            with self.subTest(state=state):
-                self.assertFalse(verdict_at_tip(
-                    [review(go_body(HEAD), state=state)], HEAD))
+        for association in ("CONTRIBUTOR", "FIRST_TIME_CONTRIBUTOR", "FIRST_TIMER",
+                            "NONE", None):
+            with self.subTest(association=association):
+                r = review(go_body(HEAD), state="COMMENTED", login="stranger",
+                           association=association)
+                self.assertFalse(verdict_at_tip([r], HEAD, pr_author="coord"))
+
+    def test_missing_body_is_not_a_go(self):
+        self.assertFalse(verdict_at_tip([{"state": "APPROVED"}], HEAD))
+        self.assertFalse(verdict_at_tip([{"state": "APPROVED", "body": None}], HEAD))
 
     def test_newest_go_wins_among_several(self):
         reviews = [review(go_body(OTHER)), review(go_body(HEAD))]
         hits = go_reviews_at_tip(reviews, HEAD)
         self.assertEqual(len(hits), 1)
-
-    def test_missing_body_is_not_a_go(self):
-        self.assertFalse(verdict_at_tip([{"state": "APPROVED"}], HEAD))
-        self.assertFalse(verdict_at_tip([{"state": "APPROVED", "body": None}], HEAD))
 
 
 if __name__ == "__main__":

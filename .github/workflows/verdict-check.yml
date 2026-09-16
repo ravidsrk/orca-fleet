@@ -1,8 +1,9 @@
 # Verdict-derived merge check (#452): a GO verdict must bind the merge tip.
 #
 # GitHub cannot express reviewed_sha == head_sha natively, so this workflow
-# runs scripts/verdict_check.py against the PR: it passes iff a submitted
-# APPROVING review carries "VERDICT: GO" with reviewed_sha == head.
+# runs scripts/verdict_check.py against the PR: it passes iff a trusted review
+# (APPROVED, or COMMENTED by the PR author / OWNER / MEMBER / COLLABORATOR)
+# carries "VERDICT: GO" with reviewed_sha == head.
 # Any push moves the head and fails until a fresh GO is posted. Make the
 # `verdict` job a required status check for main once this lands.
 name: verdict-check

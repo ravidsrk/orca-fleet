@@ -5,19 +5,22 @@ script is the custom required check: it passes iff the pull request carries a
 GO verdict review whose ``reviewed_sha`` equals the PR's current head SHA. Any
 push moves the head and fails the check until a fresh GO is posted.
 
-Verdict convention (posted as the body of an APPROVING review)::
+Verdict convention (posted as the body of an APPROVING review, or a COMMENTED
+review by the PR author or a collaborator)::
 
     VERDICT: GO
     reviewed_sha: <full 40-hex head sha>
 
-Only APPROVED reviews can carry a GO. That is the authorization signal: GitHub
-restricts the Approve action to collaborators with write access, while any
-signed-in user can COMMENT — so accepting COMMENTED reviews would let a
-drive-by comment satisfy a required check. Approval state beyond that (how
-many, from whom, conversations resolved) stays enforced by branch protection
-itself; this check adds SHA binding, not a second approval rule. Dismissed,
-commented, and change-requested reviews never count. Short SHAs are rejected:
-ambiguity in what was reviewed is exactly the failure mode.
+A GO counts from an APPROVED review (GitHub restricts Approve to collaborators
+with write access), or from a COMMENTED review whose author is the PR author
+(the coordinator binding its own verdict — the normal fleet flow, since GitHub
+forbids approving your own PR) or whose author_association is OWNER / MEMBER /
+COLLABORATOR. A drive-by COMMENTED GO from anyone else never counts (PR #460
+review, P1). Approval policy beyond that (how many, from whom, conversations
+resolved) stays enforced by branch protection itself; this check adds SHA
+binding, not a second approval rule. Dismissed and change-requested reviews
+never count. Short SHAs are rejected: ambiguity in what was reviewed is
+exactly the failure mode.
 """
 
 import argparse
@@ -33,22 +36,38 @@ SHA_RE = re.compile(r"^reviewed_sha:\s*([0-9a-fA-F]{40})\s*$", re.MULTILINE)
 GH_API = "gh api"
 
 
-def go_reviews_at_tip(reviews, head_sha):
-    """Return the submitted (non-dismissed) GO reviews bound to ``head_sha``.
+# GitHub-computed review author trust tiers that may carry a COMMENTED GO.
+TRUSTED_ASSOCIATIONS = frozenset({"OWNER", "MEMBER", "COLLABORATOR"})
+
+
+def _author_trusted(review, pr_author):
+    login = (review.get("user") or {}).get("login", "")
+    if pr_author and login == pr_author:
+        return True
+    return review.get("author_association") in TRUSTED_ASSOCIATIONS
+
+
+def go_reviews_at_tip(reviews, head_sha, pr_author=None):
+    """Return the trusted GO reviews bound to ``head_sha``.
 
     ``reviews`` is a list of GitHub review objects (``state``, ``body``,
-    ``submitted_at`` keys). Matching is case-insensitive on the VERDICT line;
-    the SHA comparison is case-insensitive hex but must be a full 40 hex
-    digits — short SHAs never match.
+    ``user.login``, ``author_association``, ``submitted_at`` keys).
+    Matching is case-insensitive on the VERDICT line; the SHA comparison is
+    case-insensitive hex but must be a full 40 hex digits — short SHAs never
+    match.
     """
     head = head_sha.lower()
     hits = []
     for review in reviews:
-        if review.get("state") != "APPROVED":
-            # PR #460 review, P1: only approvals (a collaborator-only action)
-            # can carry a GO. COMMENTED is open to any signed-in user;
-            # CHANGES_REQUESTED with a GO marker is self-contradictory;
-            # DISMISSED never counts.
+        state = review.get("state")
+        if state == "APPROVED":
+            pass  # Approve is collaborator-only; the state is the signal.
+        elif state == "COMMENTED" and _author_trusted(review, pr_author):
+            pass  # own-PR verdict or trusted tier (PR #460 P1 + self-approval).
+        else:
+            # DISMISSED never counts; CHANGES_REQUESTED with a GO marker is
+            # self-contradictory; COMMENTED from an untrusted author is a
+            # drive-by and must not satisfy a required check.
             continue
         body = review.get("body") or ""
         if not VERDICT_RE.search(body):
@@ -59,9 +78,9 @@ def go_reviews_at_tip(reviews, head_sha):
     return hits
 
 
-def verdict_at_tip(reviews, head_sha):
-    """True iff at least one GO verdict review binds the current head SHA."""
-    return bool(go_reviews_at_tip(reviews, head_sha))
+def verdict_at_tip(reviews, head_sha, pr_author=None):
+    """True iff at least one trusted GO verdict review binds the head SHA."""
+    return bool(go_reviews_at_tip(reviews, head_sha, pr_author))
 
 
 def _gh_api(path, repo):
@@ -91,11 +110,12 @@ def check_pr(pr_number, repo):
     if isinstance(pr, list):  # paginated single-object response
         pr = pr[0] if pr else {}
     head_sha = (pr.get("head") or {}).get("sha", "")
+    pr_author = (pr.get("user") or {}).get("login", "")
     reviews = _gh_api(f"pulls/{pr_number}/reviews", repo)
     if not isinstance(reviews, list):
         reviews = []
-    hits = go_reviews_at_tip(reviews, head_sha)
-    return head_sha, reviews, hits
+    hits = go_reviews_at_tip(reviews, head_sha, pr_author)
+    return head_sha, reviews, hits, pr_author
 
 
 def main(argv=None):
@@ -108,23 +128,29 @@ def main(argv=None):
         print("verdict_check: need --repo owner/repo (or $GITHUB_REPOSITORY)", file=sys.stderr)
         return 2
     try:
-        head_sha, reviews, hits = check_pr(args.pr, args.repo)
+        head_sha, reviews, hits, pr_author = check_pr(args.pr, args.repo)
     except RuntimeError as exc:
         print(f"verdict_check: {exc}", file=sys.stderr)
         return 2
-    gos = [r for r in reviews if r.get("state") == "APPROVED"
-           and VERDICT_RE.search(r.get("body") or "")]
-    print(f"head: {head_sha}")
-    print(f"GO verdict reviews: {len(gos)} submitted, {len(hits)} at tip")
+    gos = [r for r in reviews if VERDICT_RE.search(r.get("body") or "")]
+    print(f"head: {head_sha} (PR author: @{pr_author})")
+    print(f"GO verdict reviews: {len(gos)} submitted, {len(hits)} trusted at tip")
     for hit in hits:
         author = (hit.get("user") or {}).get("login", "?")
-        print(f"  GO at tip by @{author} submitted_at={hit.get('submitted_at')}")
+        print(f"  GO at tip by @{author} [{hit.get('state')}] "
+              f"submitted_at={hit.get('submitted_at')}")
     if hits:
         print("verdict_check: PASS — GO verdict binds the merge tip")
         return 0
-    if gos:
+    trusted = [r for r in gos
+               if r.get("state") == "APPROVED"
+               or (r.get("state") == "COMMENTED" and _author_trusted(r, pr_author))]
+    if trusted:
         print("verdict_check: FAIL — GO verdicts exist but none binds the current head "
               "(post a fresh VERDICT: GO with reviewed_sha == head)", file=sys.stderr)
+    elif gos:
+        print("verdict_check: FAIL — GO markers exist only from untrusted authors "
+              "(drive-by COMMENTED reviews never count)", file=sys.stderr)
     else:
         print("verdict_check: FAIL — no GO verdict review on this PR", file=sys.stderr)
     return 1
