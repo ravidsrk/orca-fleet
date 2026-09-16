@@ -138,7 +138,7 @@
   "head_sha": "c5e09b9bb220b3ab641960621ce8a12761621542",
   "base_branch": "main",
   "contract": {
-    "source": "docs/runs/2026-09-16-reshape-it-unpark/contract-rv-c1.json@f66c9839b008dc551317c7cb25e5352e8540ca4e",
+    "source": "docs/runs/2026-09-16-reshape-it-unpark/contract-rv-c1.json@5c9002a0b9016855e14e483ebe8b72828b823de1",
     "digest": "sha256:a144ff21568661bb5599b8dcba1527a6f3a22159ade2e015dd4001e5aa0d4976",
     "criterion_ids": [
       "RV-C1"
