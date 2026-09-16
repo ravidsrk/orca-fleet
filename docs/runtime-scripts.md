@@ -223,6 +223,14 @@ store-only and never render.
 
 Exits: 0 ok (stale/list report exit 0 either way) · 2 usage or store error.
 
+> Why: the 2026-09-14 run parked maintainer questions in a hand-edited file with no
+> schema, no state machine, and no reminder when a gate sat owed for days. The same gate
+> semantics now live in typed records (`runtime/scripts/gate-batch.py:STATUSES`, with
+> `runtime/scripts/gate-batch.py:TERMINAL` as the one-way exits) while the markdown stays
+> as a re-rendered view — prose can never drift from the store. Re-transitioning is an
+> error because the record is history, and `stale` reports without notifying because
+> auto-escalation is out of scope.
+
 ## `guard_text.py`
 
 Trust envelope: the only sanctioned path for untrusted text into a task spec. Reads text

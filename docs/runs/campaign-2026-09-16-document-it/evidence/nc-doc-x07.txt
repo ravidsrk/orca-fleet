@@ -1,0 +1,8 @@
+NC doc-x07: rename 'TERMINAL' -> 'FINALS' in runtime/scripts/gate-batch.py; expect claimcheck --cell gate-batch.py RED
+renamed 2 occurrence(s)
+--- claimcheck (expect FAIL) ---
+UNBOUND: gate-batch.py: ANCHOR `runtime/scripts/gate-batch.py:TERMINAL` not found in runtime/scripts/gate-batch.py
+claimcheck: 1 section(s), 1 unbound claim(s)
+claimcheck exit=1
+--- restore ---
+renamed file restored: yes
