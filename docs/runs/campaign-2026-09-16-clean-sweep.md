@@ -1,6 +1,6 @@
 # Run report — clean-sweep campaign self-test, 2026-09-16
 
-RUN: mission=clean-sweep tier=doctrine-only inventory_at=TBD manifest=- (no unit manifest: 0 units reached BUILD_DONE) verifier=n/a (no unit to verify) waves=0
+RUN: mission=clean-sweep tier=doctrine-only inventory_at=aedc0a126c7fd09a8514ecf7beff77ac3c6f8aea manifest=- (no unit manifest: 0 units reached BUILD_DONE) verifier=n/a (no unit to verify) waves=0
 
 Campaign self-test of the `clean-sweep` mission against orca-fleet itself
 (`source=tracker`, T0 2026-09-16T09:59:44Z, BASE `campaign/clean-sweep-selftest`
@@ -206,5 +206,8 @@ coverage rollup:
 Recorded history supporting no proof-tier advance: `tier=doctrine-only`, no unit
 manifest exists (0 units reached BUILD_DONE), and no `verify.py` transcript is
 claimed. The integrity inventory above covers every artifact this run owns; it is
-filled by `inventory.py write` and re-checked with `check --at <inventory_at>`.
+filled by `inventory.py write` and re-checked with `check --at <inventory_at>`:
+`inventory: 27 verified, 0 mismatched, 0 missing, in
+docs/runs/campaign-2026-09-16-clean-sweep.md at
+aedc0a126c7fd09a8514ecf7beff77ac3c6f8aea` (exit 0).
 `clean-sweep`'s `proof: self-run` citation is untouched by this report.
