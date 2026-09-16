@@ -383,6 +383,15 @@ re-Enter) · 4 supervised outcome_unknown (inspect via the receipt's nextCommand
 respawn) · 5 LAUNCHED_UNUSABLE (worker live but the profile flag unproven — stop it, fix
 the host).
 
+> Why: every exit exists because a coordinator guessed wrong once. Unproven outcomes get
+> their own exits (never respawn beside a live pane — the dual-writer class), refusals
+> branch on typed codes (`runtime/scripts/spawn_worker.sh:SPAWN` diagnostics carry the
+> runtime's own recovery text), and the script never forces ready
+> (`runtime/scripts/spawn_worker.sh:MARK_READY` is an explicit opt-in gated on completed
+> deps) because forcing it strands children on deps that will never complete. Profiles
+> are least-privilege with the dangerous ones behind env gates, and read-only never
+> takes the supervised lane — the host default would silently upgrade it.
+
 ## `watchdog.py`
 
 Liveness watchdog: mechanized first response from the worker-supervision policy.

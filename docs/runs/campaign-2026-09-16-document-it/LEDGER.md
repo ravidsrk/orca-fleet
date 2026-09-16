@@ -37,8 +37,8 @@ solo self-test; the mechanical oracle is the claim check + rename control + re-d
 | doc-x08 | cli:runtime/scripts/guard_text.py | explanation | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-x08.md @85566a4 |
 | doc-x09 | cli:runtime/scripts/hitl-loop.template.sh | explanation | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-x09.md @4be0a02 |
 | doc-x10 | cli:runtime/scripts/pm.py | explanation | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-x10.md @220a552 |
-| doc-x11 | cli:runtime/scripts/sandbox_doctor.py | explanation | critical | t | t | t | n/a | n/a | t | f | f | n/a | lit | | cells/doc-x11.md |
-| doc-x12 | cli:runtime/scripts/spawn_worker.sh | explanation | critical | f | f | f | n/a | n/a | f | f | f | n/a | lit | | |
+| doc-x11 | cli:runtime/scripts/sandbox_doctor.py | explanation | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-x11.md @2b8426d |
+| doc-x12 | cli:runtime/scripts/spawn_worker.sh | explanation | critical | t | t | t | n/a | n/a | t | f | f | n/a | lit | | cells/doc-x12.md |
 | doc-x13 | cli:runtime/scripts/watchdog.py | explanation | critical | f | f | f | n/a | n/a | f | f | f | n/a | lit | | |
 | doc-x14 | cli:runtime/scripts/wtree.sh | explanation | critical | f | f | f | n/a | n/a | f | f | f | n/a | lit | | |
 | doc-x15 | config:runtime/one-way-doors.json | explanation | critical | f | f | f | n/a | n/a | f | f | f | n/a | lit | | |
