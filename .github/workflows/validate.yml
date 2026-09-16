@@ -9,7 +9,36 @@ permissions:
   contents: read
 
 jobs:
+  tests:
+    # The contract suite, sharded across four parallel jobs (speed-it J1
+    # sharding: the ~260 s sequential suite is diffuse process fan-out no
+    # hotspot fix removes, so CI fans out instead). scripts/shard-tests.py owns
+    # the partition — file-level LPT, unittest stays the runner, stdlib only —
+    # and tests/test_shard_tests.py proves the union of the shards equals live
+    # discovery. fail-fast false: a red shard must not hide the other three.
+    # `gates` below NEEDS this job (branch protection requires the `gates`
+    # context, so suite failures block the merge through it).
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 (Node 24; Node 20 left runners 2026-09-23, #367)
+        with:
+          fetch-depth: 0  # same full-history checkout the suite ran under in gates
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0 (Node 24, #367)
+        with:
+          python-version: "3.13"  # pin: CI 3.x was a moving target (G-03)
+      - name: Run suite shard without Gitleaks
+        run: |
+          if command -v gitleaks >/dev/null; then
+            echo "::error::the scanner-absent test environment unexpectedly contains Gitleaks"
+            exit 1
+          fi
+          python3 scripts/shard-tests.py --shard ${{ matrix.shard }} --of 4
   gates:
+    needs: [tests]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 (Node 24; Node 20 left runners 2026-09-23, #367)
@@ -20,13 +49,6 @@ jobs:
           python-version: "3.13"  # pin: CI 3.x was a moving target (G-03)
       - name: Validate missions, playbooks, and evals
         run: python3 scripts/validate.py
-      - name: Run the contract test suite without Gitleaks
-        run: |
-          if command -v gitleaks >/dev/null; then
-            echo "::error::the scanner-absent test environment unexpectedly contains Gitleaks"
-            exit 1
-          fi
-          python3 -m unittest discover -s tests
       - name: Routing eval gate (description-based router)
         # #260: this is the gate, not the summary step below. It scores every
         # prompt in evals/routing.json against the REAL frontmatter descriptions
