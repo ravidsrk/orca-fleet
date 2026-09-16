@@ -13,9 +13,12 @@ revision kept flagging: the run-close scan reported `leaks found: 5`, all in
 
 ## Why waiver, not rotation
 
-The bytes are copies of the AWS-documented `AKIA...EXAMPLE` test key and the
-`api_key=abcdefghijklmnop1234` fixture string — confirmed by reading the blob
-at `f0c83cb` (`git show f0c83cb:<path>`). Nothing live, nothing to rotate.
+The bytes are copies of the two known fake fixtures from
+`tests/test_decisions.py` — the AWS-documented example access key and the
+24-char alphanumeric test string assigned to `api_key` there (quoted
+literals omitted: this file must not reintroduce detectable shapes) —
+confirmed by reading the blob at `f0c83cb` (`git show f0c83cb:<path>`).
+Nothing live, nothing to rotate.
 The repo's sanctioned mechanism for fake credentials in history is a
 fingerprint waiver in `.gitleaksignore` (precedent: the `test_decisions.py`
 fixtures, same file), so the 5 fingerprints were appended there with a

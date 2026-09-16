@@ -16,8 +16,9 @@
 03e481a106bea9dbe124fd5b5181d5769e28061f:tests/test_decisions.py:aws-access-token:115
 #
 # The campaign-2026-09-16-harden-it run's round-1 gitleaks capture echoed the SAME
-# fake fixture bytes (AWS-documented AKIA...EXAMPLE + the abcdefghijklmnop1234 test
-# string) into receipts/gitleaks-audit.json at f0c83cb. The file was replaced by a
+# fake fixture bytes (the AWS-documented example access key + the test
+# api_key string from tests/test_decisions.py) into
+# receipts/gitleaks-audit.json at f0c83cb. The file was replaced by a
 # --redact capture one commit later, but git-mode `detect` reads history, so the
 # dead revision still flags. Same fake bytes, same waiver mechanism; nothing live,
 # nothing to rotate. Full trace: docs/runs/campaign-2026-09-16-harden-it/ADDENDUM-gitleaks-waiver.md.
