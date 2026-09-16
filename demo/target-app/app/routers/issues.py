@@ -1,10 +1,10 @@
-"""Issue CRUD routes (slice S1)."""
+"""Issue CRUD routes (slice S1; list shape owned by S3 for F1)."""
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import Issue, get_db
+from app.models import Comment, Issue, get_db
 from app.schemas import IssueCreate, IssueRead, IssueUpdate
 
 router = APIRouter(prefix="/issues", tags=["issues"])
@@ -20,9 +20,29 @@ def create_issue(payload: IssueCreate, db: Session = Depends(get_db)) -> Issue:
 
 
 @router.get("", response_model=list[IssueRead])
-def list_issues(db: Session = Depends(get_db)) -> list[Issue]:
-    # Straightforward full-table read. S3 owns the query shape for F1.
-    return list(db.scalars(select(Issue).order_by(Issue.id)).all())
+def list_issues(response: Response, db: Session = Depends(get_db)) -> list[Issue]:
+    # F1 (documented flaw, S3-owned): N+1 — one ids query, then per row one
+    # issue fetch plus one comments fetch (unindexed: each is a full SCAN of
+    # comments; the pending 0003 index is a separate flaw, F3). Same JSON
+    # shape as the straightforward read; the per-row fan-out behind the
+    # X-Total-Comments header is the flaw. Do NOT fix outside a mission run
+    # (oracle: app.seed docstring).
+    ids = list(db.scalars(select(Issue.id).order_by(Issue.id)).all())
+    issues: list[Issue] = []
+    total_comments = 0
+    for issue_id in ids:
+        issue = db.get(Issue, issue_id)
+        if issue is None:
+            continue
+        comments = list(
+            db.scalars(
+                select(Comment).where(Comment.issue_id == issue_id)
+            ).all()
+        )
+        total_comments += len(comments)
+        issues.append(issue)
+    response.headers["X-Total-Comments"] = str(total_comments)
+    return issues
 
 
 @router.get("/{issue_id}", response_model=IssueRead)
