@@ -41,22 +41,48 @@ def event(tool_name, **tool_input):
 
 
 class HookBase(unittest.TestCase):
-    def setUp(self):
-        self.tmp = Path(tempfile.mkdtemp(prefix="denyhook-"))
-        self.repo = self.tmp / "repo"
-        self.repo.mkdir()
-        subprocess.run(["git", "-C", str(self.repo), "init", "-q", "-b", "main"], check=True)
-        subprocess.run(["git", "-C", str(self.repo), "config", "user.email", "t@example.invalid"], check=True)
-        subprocess.run(["git", "-C", str(self.repo), "config", "user.name", "t"], check=True)
-        (self.repo / "f.txt").write_text("x", encoding="utf-8")
-        subprocess.run(["git", "-C", str(self.repo), "add", "-A"], check=True)
-        subprocess.run(["git", "-C", str(self.repo), "commit", "-qm", "base"], check=True)
+    # False (default): the class shares ONE fixture repo — safe only when no test
+    # in the class writes under self.tmp/self.repo (the hook itself only reads
+    # refs via symbolic-ref/show-ref). Classes with per-test fixture matrices
+    # (symlinks, staged files) set this True and keep hermetic per-test repos.
+    FRESH_REPO_PER_TEST = False
+
+    @classmethod
+    def _build_repo(cls):
+        tmp = Path(tempfile.mkdtemp(prefix="denyhook-"))
+        repo = tmp / "repo"
+        repo.mkdir()
+        subprocess.run(["git", "-C", str(repo), "init", "-q", "-b", "main"], check=True)
+        (repo / "f.txt").write_text("x", encoding="utf-8")
+        subprocess.run(["git", "-C", str(repo), "add", "-A"], check=True)
+        # Identity via -c flags, not persistent config: identical commit bytes, two
+        # fewer spawns per build (the hook never reads user.name/user.email).
+        subprocess.run(["git", "-C", str(repo), "-c", "user.email=t@example.invalid",
+                        "-c", "user.name=t", "commit", "-qm", "base"], check=True)
         # A remote-tracking ref so the default branch resolves deterministically.
-        subprocess.run(["git", "-C", str(self.repo), "update-ref",
+        subprocess.run(["git", "-C", str(repo), "update-ref",
                         "refs/remotes/origin/main", "HEAD"], check=True)
+        return tmp, repo
+
+    @classmethod
+    def setUpClass(cls):
+        if not cls.FRESH_REPO_PER_TEST:
+            cls._shared_tmp, cls._shared_repo = cls._build_repo()
+
+    @classmethod
+    def tearDownClass(cls):
+        if not cls.FRESH_REPO_PER_TEST:
+            shutil.rmtree(cls._shared_tmp, ignore_errors=True)
+
+    def setUp(self):
+        if self.FRESH_REPO_PER_TEST:
+            self.tmp, self.repo = self._build_repo()
+        else:
+            self.tmp, self.repo = self._shared_tmp, self._shared_repo
 
     def tearDown(self):
-        shutil.rmtree(self.tmp, ignore_errors=True)
+        if self.FRESH_REPO_PER_TEST:
+            shutil.rmtree(self.tmp, ignore_errors=True)
 
     def fire(self, payload, env_extra=None, cwd=None):
         env = dict(os.environ)
@@ -780,6 +806,8 @@ class TestNeverList(HookBase):
 
 
 class TestWorktreeBoundary(HookBase):
+    FRESH_REPO_PER_TEST = True  # per-test symlink/file matrices under self.tmp
+
     def setUp(self):
         super().setUp()
         self.wt = self.tmp / "worktree"
@@ -967,6 +995,8 @@ class TestBashWritesAreBounded(HookBase):
     redirect and a `tee` destination are the two file writes in a shell line that
     can be read off the text; both are judged against the boundary now.
     """
+
+    FRESH_REPO_PER_TEST = True  # per-test symlink/file matrices under self.tmp
 
     def setUp(self):
         super().setUp()
