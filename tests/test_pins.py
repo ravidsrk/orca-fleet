@@ -107,7 +107,7 @@ class CiToolsArePinnedByHash(unittest.TestCase):
 
     # Every package the lock must carry, direct and transitive. A resolver that quietly drops
     # or adds one is a different tool tree than the one that was proven to work.
-    PINNED = {"ruff": "0.16.5", "skills-ref": "0.1.1", "click": "8.5.0",
+    PINNED = {"ruff": "0.16.7", "skills-ref": "0.1.1", "click": "8.5.0",
               "strictyaml": "1.7.3", "python-dateutil": "2.9.0.post0", "six": "1.17.0"}
     def _entries(self):
         """Parse the lock the way PIP does, continuation markers included.
