@@ -29,3 +29,26 @@ zero-finding streak for `lens-tally:<lens>` lines and whether the lens may auto-
 (10+ zeros, never for `security`, `privacy`, `data-migration`).
 
 Exits: 0 ok · 1 validation failure · 2 could-not-run.
+
+## `deny-hook.sh`
+
+PreToolUse guard for read-write workers (Bash, Edit, Write). Reads the hook event JSON
+on stdin, writes one decision object on stdout. Source `runtime/scripts/deny-hook.sh:1-80`;
+behavior pinned by `tests/test_deny_hook.py`.
+
+Usage: hook mode reads stdin (no arguments); `deny-hook.sh --settings <worktree>` prints
+the settings.json registration block with the worktree boundary resolved.
+
+Flags: `--help`, `--settings`.
+
+HIGH tier denies (never asks) for Bash: recursive delete rooted at `/`, `~`, `$HOME`, or
+`/*` (or carrying `--no-preserve-root`); force-push to the default branch (including the
+`+main` refspec and outright deletion forms); `git push --force` without an effective
+`--force-with-lease`; `orca orchestration reset`. An effective `--force-with-lease` exempts
+a force-push but never a deletion. The Never list asks instead: live-prod mutation,
+credential provisioning, destructive teardown, unpinned remote execution, publishing,
+history-discarding local git. When `ORCA_UNIT_WORKTREE` is set, writes outside it deny —
+Edit/Write `file_path`, NotebookEdit `notebook_path`, and absolute-path Bash redirects and
+`tee` destinations — resolved through the full symlink chain.
+
+Exits: always 0 — the decision is the output, not the status.
