@@ -1,4 +1,7 @@
 # Slice S0 skeleton: pytest + ruff jobs. S4 owns smoke/CI wiring.
+# S4: filled in — migrate round-trip (frozen at 0002, 0003 pending) + compose
+# smoke (build + /healthz + PromQL + LogQL + teardown). Pins + permissions
+# below are S0's and stay pinned (never mutable tags).
 name: fixture-target-app
 
 on:
@@ -31,3 +34,95 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 (same pin as validate.yml)
       - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
       - run: uvx ruff check demo/target-app
+
+  migrate:
+    # F3 freeze proof: boot pins 0002 while 0003 sits pending on disk.
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: demo/target-app
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 (same pin as validate.yml)
+      - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+      - name: Pinned upgrade from empty
+        run: |
+          rm -f app.db
+          uv run alembic upgrade 0002
+      - name: Freeze holds — current 0002, heads 0003
+        run: |
+          uv run alembic current | grep -q '^0002'
+          uv run alembic heads | grep -q '^0003'
+      - name: Downgrade/re-upgrade round-trip
+        run: |
+          uv run alembic downgrade -1
+          uv run alembic current | grep -q '^0001'
+          uv run alembic upgrade 0002
+          uv run alembic current | grep -q '^0002'
+      - name: 0003 file is valid (scratch DB only — freeze untouched)
+        run: |
+          sed 's|sqlite:///app.db|sqlite:////tmp/s4-scratch-0003.db|' alembic.ini > /tmp/s4-scratch.ini
+          rm -f /tmp/s4-scratch-0003.db
+          uv run alembic -c /tmp/s4-scratch.ini upgrade head
+          uv run alembic -c /tmp/s4-scratch.ini current | grep -q '^0003'
+          uv run alembic -c /tmp/s4-scratch.ini downgrade -1
+          uv run alembic -c /tmp/s4-scratch.ini current | grep -q '^0002'
+          rm -f /tmp/s4-scratch-0003.db /tmp/s4-scratch.ini app.db
+      - name: Boot pins 0002 via the seed path
+        run: |
+          rm -f /tmp/s4-boot.db
+          DATABASE_URL=sqlite:////tmp/s4-boot.db uv run python -m app.seed --count 0
+          sed 's|sqlite:///app.db|sqlite:////tmp/s4-boot.db|' alembic.ini > /tmp/s4-boot.ini
+          uv run alembic -c /tmp/s4-boot.ini current | grep -q '^0002'
+          rm -f /tmp/s4-boot.db /tmp/s4-boot.ini app.db
+
+  smoke:
+    # SPEC AC3.3: build + /healthz + one PromQL query + one Loki query + teardown.
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: demo/target-app
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 (same pin as validate.yml)
+      - name: Build and start the stack
+        run: docker compose up --build -d
+      - name: App + staging /healthz
+        run: |
+          for i in $(seq 1 36); do
+            curl -fsS http://127.0.0.1:8000/healthz && break
+            sleep 5
+          done
+          curl -fsS http://127.0.0.1:8000/healthz
+          for i in $(seq 1 36); do
+            curl -fsS http://127.0.0.1:8001/healthz && break
+            sleep 5
+          done
+          curl -fsS http://127.0.0.1:8001/healthz
+      - name: PromQL smoke (app_issues_total)
+        run: |
+          for i in $(seq 1 24); do
+            curl -fsS -G 'http://127.0.0.1:9090/api/v1/query' \
+              --data-urlencode 'query=app_issues_total' | grep -Fq '"result":[{' && break
+            sleep 5
+          done
+          curl -fsS -G 'http://127.0.0.1:9090/api/v1/query' \
+            --data-urlencode 'query=app_issues_total' | grep -Fq '"result":[{'
+      - name: LogQL smoke ({service="app"} non-empty)
+        run: |
+          END=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          START=$(date -u -d '15 minutes ago' +%Y-%m-%dT%H:%M:%SZ)
+          for i in $(seq 1 24); do
+            curl -fsS -G 'http://127.0.0.1:3100/loki/api/v1/query_range' \
+              --data-urlencode 'query={service="app"}' \
+              --data-urlencode "start=$START" --data-urlencode "end=$END" \
+              | grep -q '"values":\[\[' && break
+            sleep 5
+          done
+          curl -fsS -G 'http://127.0.0.1:3100/loki/api/v1/query_range' \
+            --data-urlencode 'query={service="app"}' \
+            --data-urlencode "start=$START" --data-urlencode "end=$END" \
+            | grep -q '"values":\[\['
+      - name: Teardown leaves nothing behind
+        if: always()
+        run: |
+          docker compose down -v
+          test -z "$(docker compose ps -q)"
