@@ -139,6 +139,18 @@ trust boundary, and the mission-identity test. Every diagram ships a light varia
 `<picture>` element. ARCHITECTURE.md deliberately carries no image: it counts toward every
 mission's activation load, and the validator said so.
 
+**The 2026-09-14 tracker run's supervision lessons are now policy.** One field
+run produced a hung reviewer, a wedged verdict worker, and two fenced
+coordinator terminals; the recoveries are preserved as `runtime/worker-supervision.md`
+(per-dispatch budgets, the stuck-but-alive ladder, transcribe-at-delivery,
+fenced-coordinator re-bind). Beside it: `playbooks/mutation-hunt.md`, the
+reviewer-side method the run's three review rounds converged on (killer mutants
+in scratch clones, forced schedules, vacuity guards, forced residual demos),
+and `playbooks/conductor-close.md`, the post-merge evidence closure generalized
+from the run's own taskspec. All three compose from clean-sweep's deferred
+reads, keeping them out of activation load; the one ARCHITECTURE bullet the
+new policy required cost clean-sweep ~100 tokens of headroom (33,800→33,900).
+
 ## [0.6.1] - 2026-09-09
 
 plugin.json, marketplace.json, and this heading now agree on 0.6.1 (issue #237).
