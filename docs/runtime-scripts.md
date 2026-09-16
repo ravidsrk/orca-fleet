@@ -153,6 +153,16 @@ off the writer to catch a wholesale rewrite.
 
 Exits: 0 ok · 2 usage · 3 fail-closed (receipt unwritable, or chain broken).
 
+> Why: the integrity inventory hashes what a run produced, but nothing recorded what it
+> sent — this ledger is the second half. Receipts are content-free (hash + count + kind)
+> because the ledger is forensic observability, not an exfiltration control: it records
+> attempted egress so an accident is auditable, while anything with a shell can still
+> send without one. The chain (`runtime/scripts/egress.py:record_id` over fixed
+> `runtime/scripts/egress.py:FIELDS`) proves continuity with a genesis, never with THE
+> genesis — a rewritten history links correctly — so `verify` prints the head
+> (`runtime/scripts/egress.py:head_digest`) for anchoring off the writer, and unanchored
+> output says so rather than reading as a clean bill.
+
 ## `floor_guard.py`
 
 Diff-scoped floor guard: catches the five moves that lower the bar without touching a

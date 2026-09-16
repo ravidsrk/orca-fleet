@@ -30,8 +30,8 @@ solo self-test; the mechanical oracle is the claim check + rename control + re-d
 | doc-x01 | cli:runtime/scripts/decisions.py | explanation | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-x01.md @3bbbabd |
 | doc-x02 | cli:runtime/scripts/deny-hook.sh | explanation | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-x02.md @e03c695 |
 | doc-x03 | cli:runtime/scripts/diff_scope.py | explanation | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-x03.md @5577128 |
-| doc-x04 | cli:runtime/scripts/ed25519.py | explanation | critical | t | t | t | n/a | n/a | t | f | f | n/a | lit | | cells/doc-x04.md |
-| doc-x05 | cli:runtime/scripts/egress.py | explanation | critical | f | f | f | n/a | n/a | f | f | f | n/a | lit | | |
+| doc-x04 | cli:runtime/scripts/ed25519.py | explanation | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-x04.md @6ab1093 |
+| doc-x05 | cli:runtime/scripts/egress.py | explanation | critical | t | t | t | n/a | n/a | t | f | f | n/a | lit | | cells/doc-x05.md |
 | doc-x06 | cli:runtime/scripts/floor_guard.py | explanation | critical | f | f | f | n/a | n/a | f | f | f | n/a | lit | | |
 | doc-x07 | cli:runtime/scripts/gate-batch.py | explanation | critical | f | f | f | n/a | n/a | f | f | f | n/a | lit | | |
 | doc-x08 | cli:runtime/scripts/guard_text.py | explanation | critical | f | f | f | n/a | n/a | f | f | f | n/a | lit | | |
