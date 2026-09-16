@@ -1,0 +1,39 @@
+NEGATIVE CONTROL — slice S4 (unit S4, mutation)
+tool: hand (one-token mutant in the 0003 migration's upgrade())
+head_sha the control applies at: 4da0d04764a51adca0593dfb23549c9fc7f4bb91
+command (ONE string, shlex-split, run from the repo toplevel):
+  python3 -m pytest demo/target-app/tests/test_api_issues.py
+env note: the fixture's deps are provisioned by uv. Replay with a synced venv
+  on PATH (uv sync --project demo/target-app, then
+  PATH=demo/target-app/.venv/bin:$PATH). Without deps the command errors
+  instead of proving — a stillborn replay that proves nothing.
+
+MUTANT (unified diff; applies at head_sha with `git apply`):
+
+diff --git a/demo/target-app/alembic/versions/0003_add_comments_issue_id_index.py b/demo/target-app/alembic/versions/0003_add_comments_issue_id_index.py
+index 63f27a86..3b99ac4f 100644
+--- a/demo/target-app/alembic/versions/0003_add_comments_issue_id_index.py
++++ b/demo/target-app/alembic/versions/0003_add_comments_issue_id_index.py
+@@ -17,7 +17,7 @@ depends_on: str | Sequence[str] | None = None
+ 
+ 
+ def upgrade() -> None:
+-    op.create_index("ix_comments_issue_id", "comments", ["issue_id"])
++    op.create_index("ix_comments_issue_id", "comments", ["issue_id_typo"])
+ 
+ 
+ def downgrade() -> None:
+
+RED transcript (mutant applied; exit 1):
+  19 errors in 1.69s — every test errors inside the client fixture:
+  E  sqlite3.OperationalError: no such column: issue_id_typo
+  (the fixture runs `alembic upgrade head`, which executes the broken 0003)
+
+GREEN transcript (clean tree; exit 0):
+  19 passed, 2 warnings in 0.40s (after restore)
+
+VERDICT: mutant KILLED. 0003 is a live link in the upgrade-head chain the AC1
+suite migrates through: break the migration and the criterion-bound suite goes
+RED with a migration-execution failure at fixture setup (a genuine
+OperationalError from the upgrade, not a collection or import error); restore
+it and the suite is GREEN. AC1 green therefore witnesses 0003's validity too.
