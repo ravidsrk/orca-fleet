@@ -227,11 +227,63 @@ de459793d0070d5bafca2e2af6a1d0b1b687a10bb05aa19a96e6902d274a65a9  docs/reports/c
 
 ## Gates
 
-Catalog gates at the promotion tip (exact commands, exit codes):
+Catalog gates at the promotion tip (exact commands, exit codes — recorded at `d68c0b2`,
+outcomes re-confirmed after the transcript commit; only wall-clock timings vary):
 
-GATES-PENDING (run at the final tip before close: `python3 scripts/validate.py`,
-`python3 -m unittest discover -s tests`, `python3 runtime/scripts/proof_status.py --check`,
-`python3 runtime/scripts/run_report.py`)
+```
+$ python3 scripts/validate.py; echo EXIT=$?
+ok   absorb-it
+ok   access-it
+ok   attest-it
+ok   clean-sweep
+ok   deflake-it
+ok   document-it
+ok   field-test-it
+ok   floor-it
+ok   harden-it
+ok   map-it
+ok   migrate-it
+ok   modernize-it
+ok   oncall-it
+ok   oss-contribute
+ok   pin-it
+ok   prove-it
+ok   reshape-it
+ok   review-it
+ok   root-cause
+ok   ship-it
+ok   speed-it
+
+All 21 missions valid; three-layer separation holds; evals valid.
+EXIT=0
+```
+
+```
+$ python3 -m unittest discover -s tests
+Ran 1381 tests in 264.384s
+OK
+```
+
+```
+$ python3 runtime/scripts/proof_status.py --check
+(clean — no FAIL lines)
+coverage rollup:
+  doctrine-only  20
+  self-run       1
+  external-run   0
+  total          21
+```
+
+```
+$ python3 runtime/scripts/inventory.py check docs/runs/2026-09-14-clean-sweep-self-run.md --at 3ea810994b0297e751e348e45264414992abd25c
+inventory: 17 verified, 0 mismatched, 0 missing, in docs/runs/2026-09-14-clean-sweep-self-run.md at 3ea810994b0297e751e348e45264414992abd25c
+```
+
+```
+$ python3 runtime/scripts/run_report.py; echo EXIT=$?
+bound clean-sweep (self-run) — docs/runs/2026-09-14-clean-sweep-self-run.md
+EXIT=0
+```
 
 ## Parks register (what the run did not close)
 
