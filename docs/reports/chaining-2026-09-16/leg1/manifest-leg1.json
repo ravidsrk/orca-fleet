@@ -1,0 +1,146 @@
+{
+ "artifacts": [
+  {
+   "path": "docs/reports/chaining-2026-09-16/leg1/enumeration.md",
+   "sha256": "cf899c4fab9f4c933e00b270e073fd4d81cd7381ae3d53b78996163122e0cc0d"
+  },
+  {
+   "path": "docs/reports/chaining-2026-09-16/leg1/ledger.md",
+   "sha256": "bb932ee626487bfa910442f7ba9f18b3eced7abff71a15331d7ea105daea6a3d"
+  },
+  {
+   "path": "docs/reports/chaining-2026-09-16/leg1/full-diff.txt",
+   "sha256": "b5d9e400d12cb661200bd24e0927bd223153185f50fdb208dcc0f38b12d8c3f7"
+  },
+  {
+   "path": "docs/reports/chaining-2026-09-16/leg1/leg1-final-tests.txt",
+   "sha256": "3ab69c44c0781c70d7a226d92c2a74efdd9fbb158b6a5cd1669d62cace44568c"
+  }
+ ],
+ "base_branch": "chain417/leg1-cleansweep-base",
+ "base_sha": "892eae208b01780a426deecdf9e81380753b30cc",
+ "binding_audit": {
+  "coverage": "F1..F7 (7/7 contracts: union of unit criterion_ids + parks == enumeration id set)",
+  "method": "mission-level denominator check: F3/F5/F6 unit manifests + F7-via-F3 + F4 refuted + F1/F2 parked-clean == frozen 7"
+ },
+ "chain": {
+  "declaration_ref": "ravidsrk/orca-fleet#417 comment 2026-09-16T05:54:51Z; unblocked 2026-09-16T09:07:37Z (PR #433 @ 36061ce)",
+  "declared": "clean-sweep[DRY] -> harden-it[CLEAN]",
+  "gate_after": "Leg-1 gate UNSATISFIED (chain named DRY; terminal NOT-DRY) -> chain STOPS. Behind it, G-PROMO-1 (promotion owed, one-way human gate) would block leg-2 fork even if DRY. Leg 2 NOT STARTED.",
+  "link": 1
+ },
+ "claim": "Leg-1 finding set exhausted on BASE @ c5e807c (6 passed, wtree-bound); DRY NOT declared (independent review unavailable, G-REVIEW); promotion owed behind it (G-PROMO-1).",
+ "commands": [
+  {
+   "artifact": "docs/reports/chaining-2026-09-16/leg1/leg1-final-tests.txt",
+   "cmd": "uv run --with pytest pytest -q",
+   "cmd_sha256": "ee646f1e2048a7f491b52bc32748f24d89c7bf217f9e77ca68a46d3971dc2253",
+   "commit": "c5e807cf4e05004f338d2c1a722c4000d888334e",
+   "duration_s": 0.592,
+   "exit": 0,
+   "label": "tests-leg1-final-tip-green",
+   "note": "evidence-run.py record at final BASE tip; wtree 7f032459 == c5e807c^{tree}; 6 passed",
+   "ts": "2026-09-16T10:08:33Z",
+   "wtree": "7f032459ef6452393875d7b69b114b3e15f908b6"
+  }
+ ],
+ "contract": {
+  "criterion_ids": [
+   "F1",
+   "F2",
+   "F3",
+   "F4",
+   "F5",
+   "F6",
+   "F7"
+  ],
+  "digest": "cf899c4fab9f4c933e00b270e073fd4d81cd7381ae3d53b78996163122e0cc0d",
+  "source": "ravidsrk/orca-fleet#417 declaration comment 2026-09-16T05:54:51Z, frozen as docs/reports/chaining-2026-09-16/leg1/enumeration.md"
+ },
+ "convergence": {
+  "degraded_parks": 0,
+  "denominator": "F1 F2 parked-clean out-of-scope; F3 F5 F6 closed-with-evidence (+F7 resolved via F3); F4 refuted-with-repro",
+  "reenumeration": "full re-enumeration pasted in ledger @ c5e807c: zero items not CLOSED/refuted/parked-clean; no new findings in 892eae2..c5e807c",
+  "terminal_note": "DRY requires the build-blind review leg (pipeline + evidence-manifest section 2); review.artifact PENDING on all three unit manifests, so verification fails -> NOT done -> NOT-DRY. The finding set itself is fully exhausted with zero degraded parks.",
+  "tip_green": "6 passed @ c5e807c, wtree-bound (commands[0])"
+ },
+ "criteria": [
+  {
+   "addressed": true,
+   "id": "F1",
+   "text": "hardcoded admin token: parked out-of-scope (security mission owns), carried to leg 2 as H1"
+  },
+  {
+   "addressed": true,
+   "id": "F2",
+   "text": "SQL string interpolation: parked out-of-scope (exploit proof is harden-it's unit), carried to leg 2 as H2"
+  },
+  {
+   "addressed": true,
+   "id": "F3",
+   "text": "None-token delete denied (unit manifest-f3.json; landed eec6505)"
+  },
+  {
+   "addressed": true,
+   "id": "F4",
+   "text": "export crash on empty: REFUTED as stated (exit 0, []); stale comment dropped (c5e807c)"
+  },
+  {
+   "addressed": true,
+   "id": "F5",
+   "text": "SHA-256 content hash (unit manifest-f5.json; landed 873724d)"
+  },
+  {
+   "addressed": true,
+   "id": "F6",
+   "text": "AES-256 claim corrected (unit manifest-f6.json; landed 4c5c946)"
+  },
+  {
+   "addressed": true,
+   "id": "F7",
+   "text": "delete-requires-token claim TRUE post-F3, CLI-verified; stale-marker dropped (3a40662)"
+  }
+ ],
+ "head_sha": "c5e807cf4e05004f338d2c1a722c4000d888334e",
+ "intent": {
+  "goal": "Exhaust the frozen 7-finding audit set on a scratch target as chain leg 1.",
+  "ruled_out": "Owning F1/F2 security findings (separate mission); merging BASE->default (one-way human gate, refused as D2).",
+  "why": "clean-sweep[DRY] is the declared chain link 1; its gate needs a verified DRY backed by per-unit evidence."
+ },
+ "lighting": "lit",
+ "negative_control": {
+  "note": "mission-level: per-unit executed controls in manifest-f3/f5/f6.json (3/3 units, above the >=10% floor); F4 refutation carries its RED-analogue (the claimed crash does not reproduce: exit 0, [])"
+ },
+ "parked": [
+  {
+   "gate": "leg-2 enumeration input H1 (triage, never pre-confirmed)",
+   "item": "F1 hardcoded admin token",
+   "reason": "out-of-scope (security mission owns secrets)"
+  },
+  {
+   "gate": "leg-2 enumeration input H2 (triage, never pre-confirmed)",
+   "item": "F2 SQL string interpolation",
+   "reason": "out-of-scope (exploit proof is harden-it's unit)"
+  },
+  {
+   "gate": "leg-2 enumeration input H3 (triage, never pre-confirmed)",
+   "item": "F3 timing-== aspect (noticed-not-touched)",
+   "reason": "out-of-scope (timing hardening is harden-it's unit)"
+  }
+ ],
+ "pr": {
+  "number": 0,
+  "url": ""
+ },
+ "provenance": {
+  "model": "Muse Spark (muse-spark) subagent session 01a0a9a5",
+  "retention": "this report dir + scratch repo ~/projects/chaining-target-417",
+  "reviewer": "PENDING independent (D1)",
+  "spec_version": "skills/clean-sweep/SKILL.md @ orca-fleet 6390743; runtime/mission-chaining.md; runtime/evidence-manifest.md",
+  "standard": "none"
+ },
+ "terminal": "NOT-DRY (EXHAUSTED, review-owed G-REVIEW; zero degraded parks; DRY-ready pending human review)",
+ "toolchain": "python 3.13.15 / uv / pytest 9.1.1",
+ "unit": "LEG1-clean-sweep",
+ "verify_note": "verify.py NOT run: single-repo assumption (manifest evidence lives in orca-fleet, SHAs in scratch target) \u2014 filed as protocol gap; the section-2 procedure was executed manually (NC exits, wtree bindings, ancestry) with transcripts in this report"
+}

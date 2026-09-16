@@ -1,0 +1,19 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_______________________ test_delete_denies_missing_token _______________________
+
+tmp_path = PosixPath('/private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/pytest-of-ravindra/pytest-317/test_delete_denies_missing_tok0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x109575cd0>
+
+    def test_delete_denies_missing_token(tmp_path, monkeypatch):
+        _isolated_db(tmp_path, monkeypatch)
+        nid = notes.add_note("k", "v")
+>       assert notes.delete_note(nid, None) is False
+E       assert True is False
+E        +  where True = <function delete_note at 0x1095cdbc0>(1, None)
+E        +    where <function delete_note at 0x1095cdbc0> = notes.delete_note
+
+test_notes.py:51: AssertionError
+=========================== short test summary info ============================
+FAILED test_notes.py::test_delete_denies_missing_token - assert True is False
+1 failed in 0.01s

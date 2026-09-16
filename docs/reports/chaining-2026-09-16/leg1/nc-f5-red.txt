@@ -1,0 +1,21 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+____________________________ test_hash_uses_sha256 _____________________________
+
+tmp_path = PosixPath('/private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/pytest-of-ravindra/pytest-319/test_hash_uses_sha2560')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x106c75e00>
+
+    def test_hash_uses_sha256(tmp_path, monkeypatch):
+        import hashlib
+    
+        _isolated_db(tmp_path, monkeypatch)
+>       assert notes.hash_body("abc") == hashlib.sha256(b"abc").hexdigest()
+E       AssertionError: assert '900150983cd2...63f7d28e17f72' == 'ba7816bf8f01...0ff61f20015ad'
+E         
+E         - ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad
+E         + 900150983cd24fb0d6963f7d28e17f72
+
+test_notes.py:52: AssertionError
+=========================== short test summary info ============================
+FAILED test_notes.py::test_hash_uses_sha256 - AssertionError: assert '9001509...
+1 failed in 0.01s

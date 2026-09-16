@@ -1,0 +1,4 @@
+AUTHOR SELF-CHECK (NOT the gate review)
+reviewer: run author, same session, 2026-09-16
+method: diff-only read of 690b79d + criterion check
+F5: GO — sha256 swap minimal, test binds (NC killed: md5 9001509... rejected)

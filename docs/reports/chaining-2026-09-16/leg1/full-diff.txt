@@ -1,0 +1,77 @@
+diff --git a/README.md b/README.md
+index 49536d7..545a901 100644
+--- a/README.md
++++ b/README.md
+@@ -14,7 +14,8 @@ python3 notes.py export notes.json
+ ## Claims under test
+ 
+ - Notes are stored in a local SQLite database (see `TINYNOTES_DB`).
+-- Exported JSON is encrypted at rest with AES-256. (SEED-6: doc-claim — false,
+-  export is plaintext JSON; clean-sweep `source=doc-claims` material.)
+-- Deleting a note always requires the admin token. (SEED-7: doc-claim — false
+-  when the caller passes no token; see `delete_note`.)
++- Exported JSON is plaintext (no encryption at rest); protect the output file
++  with filesystem permissions. (Leg-1 fix F6: the AES-256 claim was false —
++  `export_notes` writes `json.dump` output verbatim.)
++- Deleting a note always requires the admin token. (Leg-1 F7: verified true
++  once F3 landed — `delete` with no token prints `denied`; see `delete_note`.)
+diff --git a/notes.py b/notes.py
+index eee2880..58fde56 100644
+--- a/notes.py
++++ b/notes.py
+@@ -57,9 +57,9 @@ def list_notes():
+ 
+ def delete_note(note_id, token):
+     """Delete a note. Requires the admin token."""
+-    # SEED-3 (clean-sweep material): token compared with == (timing leak) and
+-    # the default token is accepted when the caller passes None.
+-    if token == ADMIN_TOKEN or token is None:
++    # Leg-1 fix (F3): a missing token denies. NOTE for the leg-2 audit: the
++    # == comparison remains a timing leak; the leg-1 mission does not own it.
++    if token is not None and token == ADMIN_TOKEN:
+         conn = _connect()
+         conn.execute("DELETE FROM notes WHERE id = ?", (note_id,))
+         conn.commit()
+@@ -72,16 +72,16 @@ def export_notes(path):
+     notes = [
+         {"id": n[0], "title": n[1], "body": get_note(n[0])[2]} for n in list_notes()
+     ]
+-    # SEED-4 (clean-sweep material): export crashes on an empty store
+-    # (get_note returns None) instead of writing an empty list.
++    # Leg-1 F4: no crash on an empty store — verified exit 0 writing `[]`
++    # (the list comprehension is empty, so get_note is never called).
+     with open(path, "w") as f:
+         json.dump(notes, f, indent=2)
+     return path
+ 
+ 
+ def hash_body(body):
+-    # SEED-5 (clean-sweep material): MD5 used for content hashing.
+-    return hashlib.md5(body.encode("utf-8")).hexdigest()
++    # Leg-1 fix (F5): SHA-256 for content hashing (MD5 is broken).
++    return hashlib.sha256(body.encode("utf-8")).hexdigest()
+ 
+ 
+ def main(argv):
+diff --git a/test_notes.py b/test_notes.py
+index b9db7b6..8443bd8 100644
+--- a/test_notes.py
++++ b/test_notes.py
+@@ -43,3 +43,17 @@ def test_export_writes_json_list(tmp_path, monkeypatch):
+     with open(out) as f:
+         data = json.load(f)
+     assert isinstance(data, list) and len(data) == 1
++
++
++def test_delete_denies_missing_token(tmp_path, monkeypatch):
++    _isolated_db(tmp_path, monkeypatch)
++    nid = notes.add_note("k", "v")
++    assert notes.delete_note(nid, None) is False
++    assert notes.get_note(nid) is not None
++
++
++def test_hash_uses_sha256(tmp_path, monkeypatch):
++    import hashlib
++
++    _isolated_db(tmp_path, monkeypatch)
++    assert notes.hash_body("abc") == hashlib.sha256(b"abc").hexdigest()
