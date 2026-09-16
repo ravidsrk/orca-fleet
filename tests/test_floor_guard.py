@@ -972,9 +972,13 @@ class TestMainInProc(FloorGuardBase):
         # of origin/main diffs T1..T2 and sees the violation; a base of the
         # local main diffs T2..T2 and reads clean.
         origin = Path(self.tmp) / "origin.git"
-        git(Path(self.tmp), "init", "-q", "--bare", "origin.git")
+        # Branch names are explicit throughout: the runner's ambient
+        # init.defaultBranch is master-is-default, the author's is main, and an
+        # unborn master made `push origin main` fail only in CI (#468 gates).
+        git(Path(self.tmp), "init", "-q", "--bare", "-b", "main", "origin.git")
         seed = Path(self.tmp) / "seed"
         git(Path(self.tmp), "clone", "-q", str(origin), "seed")
+        git(seed, "checkout", "-q", "-b", "main")
         git(seed, "config", "user.email", "t@example.invalid")
         git(seed, "config", "user.name", "t")
         write(seed, "CONSTRAINTS.md", BASE_CONSTRAINTS)
