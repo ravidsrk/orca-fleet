@@ -153,3 +153,22 @@ def test_update_issue_rejects_bad_priority(client: TestClient) -> None:
 def test_openapi_docs_available(client: TestClient) -> None:
     response = client.get("/docs")
     assert response.status_code == 200
+
+
+def test_update_issue_rejects_null_title(client: TestClient) -> None:
+    created = client.post("/issues", json={"title": "x"}).json()
+    response = client.patch(f"/issues/{created['id']}", json={"title": None})
+    assert response.status_code == 422
+
+
+def test_update_issue_rejects_null_priority(client: TestClient) -> None:
+    created = client.post("/issues", json={"title": "x"}).json()
+    response = client.patch(f"/issues/{created['id']}", json={"priority": None})
+    assert response.status_code == 422
+
+
+def test_update_issue_allows_null_body_clear(client: TestClient) -> None:
+    created = client.post("/issues", json={"title": "x", "body": "b"}).json()
+    response = client.patch(f"/issues/{created['id']}", json={"body": None})
+    assert response.status_code == 200
+    assert response.json()["body"] is None

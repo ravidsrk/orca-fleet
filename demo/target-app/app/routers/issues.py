@@ -40,7 +40,11 @@ def update_issue(
     issue = db.get(Issue, issue_id)
     if issue is None:
         raise HTTPException(status_code=404, detail="issue not found")
-    for field, value in payload.model_dump(exclude_unset=True).items():
+    data = payload.model_dump(exclude_unset=True)
+    for field in ("title", "status", "priority"):
+        if field in data and data[field] is None:
+            raise HTTPException(status_code=422, detail=f"{field} must not be null")
+    for field, value in data.items():
         setattr(issue, field, value)
     db.commit()
     db.refresh(issue)
