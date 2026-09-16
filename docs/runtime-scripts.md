@@ -254,6 +254,16 @@ Output is a rendering for a reader — never round-trip it into a live PR or iss
 
 Exits: 0 envelope written · 2 usage error · 3 fetch failed or timed out (no envelope on stdout).
 
+> Why: anyone who can file an issue or serve a page can put text in front of an
+> unattended worker, and that text is requirements data, never authority. A clean scan is
+> not proof of safety, so clean text is enveloped too; a failed fetch produces NO
+> envelope, because an empty envelope must never read as a successful read of an empty
+> body. Matching runs over a normalized probe while the original bytes are emitted, and
+> forged banners (`runtime/scripts/guard_text.py:FORGED_BANNER`) are defused — content
+> must not close the envelope early and continue as trusted text. The five label
+> families in `runtime/scripts/guard_text.py:INJECTION_PATTERNS` are detection only: a
+> label is evidence for the reader, never a verdict.
+
 ## `hitl-loop.template.sh`
 
 Template for a bounded human-in-the-loop reproduction loop — bugs that only reproduce
