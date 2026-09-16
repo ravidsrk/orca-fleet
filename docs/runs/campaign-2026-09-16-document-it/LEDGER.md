@@ -40,8 +40,8 @@ solo self-test; the mechanical oracle is the claim check + rename control + re-d
 | doc-x11 | cli:runtime/scripts/sandbox_doctor.py | explanation | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-x11.md @2b8426d |
 | doc-x12 | cli:runtime/scripts/spawn_worker.sh | explanation | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-x12.md @6d8f343 |
 | doc-x13 | cli:runtime/scripts/watchdog.py | explanation | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-x13.md @7401e49 |
-| doc-x14 | cli:runtime/scripts/wtree.sh | explanation | critical | t | t | t | n/a | n/a | t | f | f | n/a | lit | | cells/doc-x14.md |
-| doc-x15 | config:runtime/one-way-doors.json | explanation | critical | f | f | f | n/a | n/a | f | f | f | n/a | lit | | |
+| doc-x14 | cli:runtime/scripts/wtree.sh | explanation | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-x14.md @0cd6cfe |
+| doc-x15 | config:runtime/one-way-doors.json | explanation | critical | t | t | t | n/a | n/a | t | f | f | n/a | lit | | cells/doc-x15.md |
 | doc-x16 | config:runtime/watchdog.json | explanation | critical | f | f | f | n/a | n/a | f | f | f | n/a | lit | | |
 
 Flag semantics: BUILD_DONE = section written on BASE from code archaeology;

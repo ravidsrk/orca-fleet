@@ -485,6 +485,16 @@ Keys:
 | `live-credentials` | Use, provision, or move live credentials |
 | `freeze` | Freeze or unfreeze the run's contract |
 
+> Why: one registry owns the enumeration because the list used to live in prose and
+> drifted — freeze entered through gate text, not the old list. Each door states its own
+> irreversibility: a bad default-branch merge is reverted in public, spend leaves the
+> machine, a moved denominator makes every completion claim unfalsifiable, a live
+> credential in a worker's context (`runtime/one-way-doors.json:live-credentials`) is an
+> incident whether or not it is used. The keyword nets exist so an unregistered wording
+> can never be auto-decided — and rewording cannot reclassify, because decisions.py
+> refuses any line tripping a net without the class (`runtime/one-way-doors.json:freeze`
+> carries the same shape: title, why, keywords).
+
 ## `watchdog.json`
 
 Liveness-watchdog thresholds and rate limits for `runtime/scripts/watchdog.py`. Every
