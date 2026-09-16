@@ -1,0 +1,1 @@
+THROWAWAY negative control (bind-check GREEN proof, #415): no mission ran, so no control ran. This file exists so the envelope reads standalone.
