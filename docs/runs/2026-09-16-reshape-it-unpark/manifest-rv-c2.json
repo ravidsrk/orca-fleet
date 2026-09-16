@@ -98,6 +98,39 @@
       "commit": "40aa260faa5b3c81006f384065be791465c40bcc",
       "wtree": "594d8b9b40f248aa794d66c4560d794a48b2e38f",
       "artifact": "docs/runs/2026-09-16-reshape-it-unpark/rv-c2-tests-full-h2.txt"
+    },
+    {
+      "label": "validation-at-tip-r2",
+      "ts": "2026-09-16T20:50:41Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 0,
+      "duration_s": 0.968,
+      "commit": "a66eb973925c4830b0aeb9e20269fb0c6c0e5ee1",
+      "wtree": "20e4199d9dbf3417477f089508d638e1b0ddecae",
+      "artifact": "docs/runs/2026-09-16-reshape-it-unpark/rv-c2-validation-tip2.txt"
+    },
+    {
+      "label": "tests-full-at-tip-r2",
+      "ts": "2026-09-16T20:55:12Z",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "exit": 0,
+      "duration_s": 270.839,
+      "commit": "a66eb973925c4830b0aeb9e20269fb0c6c0e5ee1",
+      "wtree": "20e4199d9dbf3417477f089508d638e1b0ddecae",
+      "artifact": "docs/runs/2026-09-16-reshape-it-unpark/rv-c2-tests-full-tip2.txt"
+    },
+    {
+      "label": "verifier-round-2",
+      "ts": "2026-09-16T20:55:23Z",
+      "cmd": "python3 runtime/scripts/verify.py --manifest docs/runs/2026-09-16-reshape-it-unpark/manifest-rv-c2.json --contract-source docs/runs/2026-09-16-reshape-it-unpark/contract-rv-c2.json@a66eb973925c4830b0aeb9e20269fb0c6c0e5ee1 --contract-digest sha256:7bcf63bca0ff461dff90150243ccabf2a9e8098ba12550859419efcd8e46cbe2 --unit-class mutation --lighting dark-eligible --execute-nc --nc-command 'python3 -m unittest tests.test_reshape_net_verify'",
+      "cmd_sha256": "6718eafc136f4790e8e0c786920806f7fd1cc85b2797821587ccd412c2c4e9d0",
+      "exit": 0,
+      "duration_s": 1.428,
+      "commit": "a66eb973925c4830b0aeb9e20269fb0c6c0e5ee1",
+      "wtree": "b1ce22ac25cc9c436770cd163dc036fb8e2d503c",
+      "artifact": "docs/runs/2026-09-16-reshape-it-unpark/rv-c2-verifier.txt"
     }
   ],
   "unit": "RV-C2",
@@ -105,8 +138,8 @@
   "head_sha": "40aa260faa5b3c81006f384065be791465c40bcc",
   "base_branch": "main",
   "contract": {
-    "source": "docs/runs/2026-09-16-reshape-it-unpark/contract-rv-c2.json@E4_PENDING",
-    "digest": "sha256:PENDING",
+    "source": "docs/runs/2026-09-16-reshape-it-unpark/contract-rv-c2.json@a66eb973925c4830b0aeb9e20269fb0c6c0e5ee1",
+    "digest": "sha256:7bcf63bca0ff461dff90150243ccabf2a9e8098ba12550859419efcd8e46cbe2",
     "criterion_ids": [
       "RV-C2"
     ]
@@ -179,6 +212,14 @@
     {
       "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-c2-tests-full-tip.txt",
       "sha256": "06ae0630c3ed472f50277e319b1bb8ad27d03ee64ecc1b3296b3061493a6be39"
+    },
+    {
+      "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-c2-validation-tip2.txt",
+      "sha256": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6"
+    },
+    {
+      "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-c2-tests-full-tip2.txt",
+      "sha256": "1396797623fc900a76a2d1af671142048c0aa64d9a5b656bfb9dded074f925ea"
     }
   ],
   "pr": {
