@@ -1,0 +1,345 @@
+# Raw coverage hits @ 6390743815f8f435181fa410cce374587128b30a
+# pattern | reference hits | how-to hits | tutorial hits | explanation hits
+
+## skill:absorb-it  /\babsorb\-it\b/
+  REF: ['README.md:188:| 📥 **[absorb-it](docs/missions/absorb-it.md)** | An inbound PR queue drained: each contribution absorbed with', 'README.md:228:<img src="assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it then ship', 'README.md:256:B -->|an inbound PR queue| ABSORB[📥 absorb-it<br/>land with credit or refute]']
+  HOW: ['docs/missions/README.md:12:<img src="../../assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it the', 'docs/missions/README.md:47:| 📥 [absorb-it](absorb-it.md)       | An inbound PR queue drained — landed with authorship and a receipt, refu', 'docs/missions/absorb-it.md:1:# 📥 absorb-it — every inbound contribution landed with credit, refuted with receipts, or parked']
+  TUT: —
+  EXP: ['docs/missions/README.md:12:<img src="../../assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it the', 'docs/missions/README.md:47:| 📥 [absorb-it](absorb-it.md)       | An inbound PR queue drained — landed with authorship and a receipt, refu', 'docs/missions/absorb-it.md:1:# 📥 absorb-it — every inbound contribution landed with credit, refuted with receipts, or parked']
+
+## skill:access-it  /\baccess\-it\b/
+  REF: ['README.md:181:| ♿ **[access-it](docs/missions/access-it.md)** | A frozen page/flow set driven to WCAG 2.2 AA (EAA/ADA/508): ', 'README.md:228:<img src="assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it then ship', 'README.md:252:B -->|accessibility| ACCESS[♿ access-it]']
+  HOW: ['docs/missions/README.md:12:<img src="../../assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it the', 'docs/missions/README.md:40:| ♿ [access-it](access-it.md)       | A frozen page/flow set driven to WCAG 2.2 AA with a revert-to-violation ', 'docs/missions/access-it.md:1:# ♿ access-it — WCAG 2.2 conformance over a frozen surface']
+  TUT: —
+  EXP: ['ARCHITECTURE.md:60:- `access-it`: the oracle is a deterministic rule engine (axe-core) over a frozen surface, and', 'docs/concepts.md:510:The oracle point is what keeps `access-it` (a rule engine with a ceiling that creates a human-AT', 'docs/missions/README.md:12:<img src="../../assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it the']
+
+## skill:attest-it  /\battest\-it\b/
+  REF: ['README.md:180:| 📋 **[attest-it](docs/missions/attest-it.md)** | Conformance to a frozen standard (EU AI Act Art-12/50, SOC 2', 'README.md:228:<img src="assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it then ship', 'README.md:251:B -->|compliance evidence| ATTEST[📋 attest-it]']
+  HOW: ['docs/missions/README.md:12:<img src="../../assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it the', 'docs/missions/README.md:22:<img src="../../assets/diagrams/mission-handoffs-light.jpg" alt="How missions hand off: map-it to ship-it with', 'docs/missions/README.md:39:| 📋 [attest-it](attest-it.md)       | Conformance to a frozen standard, independently re-derived: `CONFORMANT`']
+  TUT: —
+  EXP: ['ARCHITECTURE.md:244:the `attest-it` prerequisite).', 'docs/concepts.md:470:`map-it` its research workers, `root-cause` its hypothesis falsifiers, `attest-it` its evidence', 'docs/compliance-provenance.md:45:A full [attest-it](missions/attest-it.md) run must freeze the applicable obligations and obtain']
+
+## skill:clean-sweep  /\bclean\-sweep\b/
+  REF: ['README.md:170:| 🧹 **[clean-sweep](docs/missions/clean-sweep.md)** | A finite backlog exhausted to zero, PR-per-finding, ever', 'README.md:213:**Today `clean-sweep` and `prove-it` read `self-run` — the first tiers earned under the binding gate — and', 'README.md:228:<img src="assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it then ship']
+  HOW: ['docs/getting-started.md:153:RUN: clean-sweep-chimely-20260715 · COORDINATOR: term_905ccdf2… + term_c5e4d798… ·', 'docs/getting-started.md:154:BASE: clean-sweep/integration · FORK_POINT: ce7891bf… · T0: 2026-07-15T17:40:00Z ·', 'docs/getting-started.md:282:| Promotion to the default branch  | end of ship-it / clean-sweep | Review the traceability table and the `acc']
+  TUT: ['docs/getting-started.md:153:RUN: clean-sweep-chimely-20260715 · COORDINATOR: term_905ccdf2… + term_c5e4d798… ·', 'docs/getting-started.md:154:BASE: clean-sweep/integration · FORK_POINT: ce7891bf… · T0: 2026-07-15T17:40:00Z ·', 'docs/getting-started.md:282:| Promotion to the default branch  | end of ship-it / clean-sweep | Review the traceability table and the `acc']
+  EXP: ['ARCHITECTURE.md:50:(`clean-sweep`) — they share the convergence proof SHAPE (full re-enumeration finds zero open)', 'ARCHITECTURE.md:76:terminal class `clean-sweep` lacks (a refuted doctrine claim is removed with its receipt', 'ARCHITECTURE.md:78:Measured rather than asserted since #288: `pin-it` and `clean-sweep` share ZERO near points of']
+
+## skill:deflake-it  /\bdeflake\-it\b/
+  REF: ['README.md:175:| 🎯 **[deflake-it](docs/missions/deflake-it.md)** | Flake eradication to a statistical streak, local **and** C', 'README.md:228:<img src="assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it then ship', 'README.md:248:B -->|flaky suite| FLAKE[🎯 deflake-it]']
+  HOW: ['docs/getting-started.md:62:| deflake-it | a runnable suite; CI history is read via `gh run list` |', 'docs/getting-started.md:322:Run [`deflake-it`](missions/deflake-it.md) (if the red is intermittent) or fix the deterministic', 'docs/missions/README.md:12:<img src="../../assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it the']
+  TUT: ['docs/getting-started.md:62:| deflake-it | a runnable suite; CI history is read via `gh run list` |', 'docs/getting-started.md:322:Run [`deflake-it`](missions/deflake-it.md) (if the red is intermittent) or fix the deterministic']
+  EXP: ['docs/missions/README.md:12:<img src="../../assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it the', 'docs/missions/README.md:22:<img src="../../assets/diagrams/mission-handoffs-light.jpg" alt="How missions hand off: map-it to ship-it with', 'docs/missions/README.md:35:| 🎯 [deflake-it](deflake-it.md)     | Flakes eradicated to a consecutive-green streak, local and CI |']
+
+## skill:document-it  /\bdocument\-it\b/
+  REF: ['README.md:189:| 📚 **[document-it](docs/missions/document-it.md)** | A public surface covered by quadrant with zero critical ', 'README.md:228:<img src="assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it then ship', 'README.md:257:B -->|an undocumented public surface| DOC[📚 document-it<br/>coverage map, claims anchored]']
+  HOW: ['docs/missions/README.md:12:<img src="../../assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it the', 'docs/missions/README.md:48:| 📚 [document-it](document-it.md)   | A public surface covered by quadrant with zero critical gaps — every cla', 'docs/missions/document-it.md:1:# 📚 document-it — every public-surface cell filled, every claim anchored']
+  TUT: —
+  EXP: ['docs/missions/README.md:12:<img src="../../assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it the', 'docs/missions/README.md:48:| 📚 [document-it](document-it.md)   | A public surface covered by quadrant with zero critical gaps — every cla', 'docs/missions/document-it.md:1:# 📚 document-it — every public-surface cell filled, every claim anchored']
+
+## skill:field-test-it  /\bfield\-test\-it\b/
+  REF: ['README.md:185:| 📱 **[field-test-it](docs/missions/field-test-it.md)** | On-device reproduce → fix → re-verify at the head SH', 'README.md:228:<img src="assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it then ship', 'README.md:253:B -->|breaks on a real device| FIELD[📱 field-test-it<br/>on-device proof]']
+  HOW: ['docs/getting-started.md:67:| field-test-it | an Orca emulator skill (`orca-emulator` / `orca-emulator-android`) or a paired device, plus ', 'docs/missions/README.md:12:<img src="../../assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it the', 'docs/missions/README.md:44:| 📱 [field-test-it](field-test-it.md) | Defects reproduced, fixed, and re-proven on a real device — revert con']
+  TUT: ['docs/getting-started.md:67:| field-test-it | an Orca emulator skill (`orca-emulator` / `orca-emulator-android`) or a paired device, plus ']
+  EXP: ['ARCHITECTURE.md:66:- `field-test-it`: the oracle is the target itself — a ledgered device session, never a desktop', 'docs/concepts.md:511:park class), `field-test-it` (the target itself, in tiers), and `pin-it` (an external control', 'docs/missions/README.md:12:<img src="../../assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it the']
+
+## skill:floor-it  /\bfloor\-it\b/
+  REF: ['README.md:183:| 🧱 **[floor-it](docs/missions/floor-it.md)** | A written, numbered quality bar: one tool per frozen dimension', 'README.md:228:<img src="assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it then ship', 'README.md:249:B -->|no enforced quality bar| FLOOR[🧱 floor-it<br/>written bar, tools that fire]']
+  HOW: ["docs/getting-started.md:65:| floor-it | the repo's own counters per dimension (coverage runner, scanner, harness, linter) and CI write ac", 'docs/missions/README.md:12:<img src="../../assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it the', 'docs/missions/README.md:42:| 🧱 [floor-it](floor-it.md)         | A written, numbered quality bar — every dimension tool-enforced and prov']
+  TUT: ["docs/getting-started.md:65:| floor-it | the repo's own counters per dimension (coverage runner, scanner, harness, linter) and CI write ac"]
+  EXP: ['docs/missions/README.md:12:<img src="../../assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it the', 'docs/missions/README.md:42:| 🧱 [floor-it](floor-it.md)         | A written, numbered quality bar — every dimension tool-enforced and prov', 'docs/missions/floor-it.md:1:# 🧱 floor-it — a written bar that fires']
+
+## skill:harden-it  /\bharden\-it\b/
+  REF: ['README.md:171:| 🛡️ **[harden-it](docs/missions/harden-it.md)** | A threat model closed: audit → exploit → fix → **re-attack ', 'README.md:194:("harden-it, then prove-it, then ship-it") where each link proceeds only on the previous mission\'s', 'README.md:228:<img src="assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it then ship']
+  HOW: ['docs/getting-started.md:58:| harden-it | `gitleaks`, plus an ephemeral per-workspace sandbox for exploit PoCs |', 'docs/getting-started.md:284:| One-way remediations             | harden-it (e.g. secret rotation) | Do the action, then confirm — the miss', 'docs/run-submission-guide.md:25:(gitleaks for harden-it, a measurement path for speed-it, and so on).']
+  TUT: ['docs/getting-started.md:58:| harden-it | `gitleaks`, plus an ephemeral per-workspace sandbox for exploit PoCs |', 'docs/getting-started.md:284:| One-way remediations             | harden-it (e.g. secret rotation) | Do the action, then confirm — the miss']
+  EXP: ['docs/concepts.md:408:"Make this repo production-ready" is not one mission — it is harden-it, then prove-it, then', 'docs/missions/README.md:12:<img src="../../assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it the', 'docs/missions/README.md:22:<img src="../../assets/diagrams/mission-handoffs-light.jpg" alt="How missions hand off: map-it to ship-it with']
+
+## skill:map-it  /\bmap\-it\b/
+  REF: ['README.md:177:| 🗺️ **[map-it](docs/missions/map-it.md)** | A foggy multi-session goal resolved into a frozen execution map `', 'README.md:228:<img src="assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it then ship', 'README.md:238:A -->|too foggy to spec| MAP[🗺️ map-it<br/>chart it into a frozen map]']
+  HOW: ['docs/getting-started.md:281:| Freeze the spec                  | ship-it/map-it, intent entry | Read the acceptance criteria, not the pros', 'docs/missions/README.md:12:<img src="../../assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it the', 'docs/missions/README.md:22:<img src="../../assets/diagrams/mission-handoffs-light.jpg" alt="How missions hand off: map-it to ship-it with']
+  TUT: ['docs/getting-started.md:281:| Freeze the spec                  | ship-it/map-it, intent entry | Read the acceptance criteria, not the pros']
+  EXP: ['docs/concepts.md:437:does not re-run the verifier.** The [2026-09-11 review](../REVIEW.md) fabricated a `map-it`', 'docs/concepts.md:470:`map-it` its research workers, `root-cause` its hypothesis falsifiers, `attest-it` its evidence', 'docs/missions/README.md:12:<img src="../../assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it the']
+
+## skill:migrate-it  /\bmigrate\-it\b/
+  REF: ['README.md:186:| 🗄️ **[migrate-it](docs/missions/migrate-it.md)** | A stateful shape change landed across deploys — expand → ', 'README.md:228:<img src="assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it then ship', 'README.md:254:B -->|a schema or data shape to move| MIG[🗄️ migrate-it<br/>expand → contract, phase by phase]']
+  HOW: ['docs/missions/README.md:12:<img src="../../assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it the', 'docs/missions/README.md:22:<img src="../../assets/diagrams/mission-handoffs-light.jpg" alt="How missions hand off: map-it to ship-it with', 'docs/missions/README.md:45:| 🗄️ [migrate-it](migrate-it.md)     | A stateful shape change landed phase by phase across deploys — parity p']
+  TUT: —
+  EXP: ['docs/missions/README.md:12:<img src="../../assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it the', 'docs/missions/README.md:22:<img src="../../assets/diagrams/mission-handoffs-light.jpg" alt="How missions hand off: map-it to ship-it with', 'docs/missions/README.md:45:| 🗄️ [migrate-it](migrate-it.md)     | A stateful shape change landed phase by phase across deploys — parity p']
+
+## skill:modernize-it  /\bmodernize\-it\b/
+  REF: ['README.md:173:| 📦 **[modernize-it](docs/missions/modernize-it.md)** | Dependency currency via expand/migrate/contract at the', 'README.md:228:<img src="assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it then ship', 'README.md:246:B -->|outdated dependencies| MOD[📦 modernize-it]']
+  HOW: ["docs/getting-started.md:60:| modernize-it | the project's package manager; CI must be green at baseline |", 'docs/missions/README.md:12:<img src="../../assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it the', 'docs/missions/README.md:22:<img src="../../assets/diagrams/mission-handoffs-light.jpg" alt="How missions hand off: map-it to ship-it with']
+  TUT: ["docs/getting-started.md:60:| modernize-it | the project's package manager; CI must be green at baseline |"]
+  EXP: ['docs/missions/README.md:12:<img src="../../assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it the', 'docs/missions/README.md:22:<img src="../../assets/diagrams/mission-handoffs-light.jpg" alt="How missions hand off: map-it to ship-it with', 'docs/missions/README.md:33:| 📦 [modernize-it](modernize-it.md) | Every dependency current or pinned-with-a-reason, CI green the whole way']
+
+## skill:oncall-it  /\boncall\-it\b/
+  REF: ['README.md:187:| 📟 **[oncall-it](docs/missions/oncall-it.md)** | A frozen path set made operable: every on-call question answ', 'README.md:228:<img src="assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it then ship', 'README.md:255:B -->|blind in production| ONCALL[📟 oncall-it<br/>telemetry, alerts, runbooks]']
+  HOW: ['docs/missions/README.md:12:<img src="../../assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it the', 'docs/missions/README.md:22:<img src="../../assets/diagrams/mission-handoffs-light.jpg" alt="How missions hand off: map-it to ship-it with', 'docs/missions/README.md:46:| 📟 [oncall-it](oncall-it.md)       | A frozen path set made operable — alerts test-fired, and an induced fail']
+  TUT: —
+  EXP: ['ARCHITECTURE.md:185:| `oncall-it` | ~33,700 | ~300 |', 'docs/missions/README.md:12:<img src="../../assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it the', 'docs/missions/README.md:22:<img src="../../assets/diagrams/mission-handoffs-light.jpg" alt="How missions hand off: map-it to ship-it with']
+
+## skill:oss-contribute  /\boss\-contribute\b/
+  REF: ['README.md:179:| 🤝 **[oss-contribute](docs/missions/oss-contribute.md)** | Upstream issues on a repo you do NOT control, each', 'README.md:228:<img src="assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it then ship', 'README.md:243:B -->|upstream issues, fork-only access| OSS[🤝 oss-contribute]']
+  HOW: ['docs/guides/anatomy-of-a-run.md:5:[`oss-contribute` proving run](../runs/2026-07-16-oss-contribute-external-run.md) — quoting the', 'docs/guides/anatomy-of-a-run.md:134:This incident is the founding scar of the `oss-contribute` mission: its two-denominator rule —', "docs/guides/anatomy-of-a-run.md:143:`oss-contribute`'s vocabulary, whose convergence proof never claims a merge the fleet cannot"]
+  TUT: —
+  EXP: ['ARCHITECTURE.md:176:naming each phase-scoped doc and when to load it — `ship-it` came down from 39,600, `oss-contribute`', 'ARCHITECTURE.md:186:| `oss-contribute` | ~33,200 | ~800 |', 'docs/concepts.md:507:(`oss-contribute`): the convergence proof is a PR open and reviewed rather than a merged SHA, the']
+
+## skill:pin-it  /\bpin\-it\b/
+  REF: ['README.md:182:| 📌 **[pin-it](docs/missions/pin-it.md)** | Runtime doctrine re-witnessed against the installed binary: every ', 'README.md:228:<img src="assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it then ship', 'README.md:262:D -->|policy lags the Orca binary| PIN[📌 pin-it<br/>re-witness + re-pin doctrine]']
+  HOW: ['docs/getting-started.md:64:| pin-it | the installed Orca CLI itself (`orca skills get` is the re-witness oracle) |', 'docs/missions/README.md:12:<img src="../../assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it the', 'docs/missions/README.md:41:| 📌 [pin-it](pin-it.md)             | Runtime doctrine re-witnessed against the installed binary — every claim']
+  TUT: ['docs/getting-started.md:64:| pin-it | the installed Orca CLI itself (`orca skills get` is the re-witness oracle) |']
+  EXP: ['ARCHITECTURE.md:73:- `pin-it`: the oracle is an external control plane — `orca skills get` and the installed', 'ARCHITECTURE.md:78:Measured rather than asserted since #288: `pin-it` and `clean-sweep` share ZERO near points of', 'ARCHITECTURE.md:80:The 2026-09-11 review argued `pin-it` folds into `clean-sweep` as an `oracle=` source; that']
+
+## skill:prove-it  /\bprove\-it\b/
+  REF: ['README.md:174:| 🧪 **[prove-it](docs/missions/prove-it.md)** | A mutation-audited critical surface: `COVERED` or `COVERED-WIT', 'README.md:194:("harden-it, then prove-it, then ship-it") where each link proceeds only on the previous mission\'s', 'README.md:213:**Today `clean-sweep` and `prove-it` read `self-run` — the first tiers earned under the binding gate — and']
+  HOW: ['docs/getting-started.md:61:| prove-it | a runnable suite plus a coverage tool it already supports |', 'docs/run-submission-guide.md:155:The first application is the `## Runner credit` section in the prove-it', 'docs/run-submission-guide.md:163:> **Update (post-#410/#411 merge):** the prove-it and clean-sweep promotions have']
+  TUT: ['docs/getting-started.md:61:| prove-it | a runnable suite plus a coverage tool it already supports |']
+  EXP: ['docs/concepts.md:408:"Make this repo production-ready" is not one mission — it is harden-it, then prove-it, then', 'docs/concepts.md:450:Today `clean-sweep` and `prove-it` read `self-run` and every other mission reads `doctrine-only`: the first', 'docs/missions/README.md:12:<img src="../../assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it the']
+
+## skill:reshape-it  /\breshape\-it\b/
+  REF: ['README.md:184:| 🧬 **[reshape-it](docs/missions/reshape-it.md)** | Confirmed hot modules deepened behind smaller, testable in', 'README.md:228:<img src="assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it then ship', 'README.md:250:B -->|architecture erosion / god files| RESHAPE[🧬 reshape-it<br/>deepen, behaviour unchanged]']
+  HOW: ["docs/getting-started.md:66:| reshape-it | the repo's mutation tooling (or the hand-mutant fallback) plus a runnable suite |", 'docs/missions/README.md:12:<img src="../../assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it the', 'docs/missions/README.md:43:| 🧬 [reshape-it](reshape-it.md)     | Hot modules deepened behind smaller interfaces, behaviour proven unchang']
+  TUT: ["docs/getting-started.md:66:| reshape-it | the repo's mutation tooling (or the hand-mutant fallback) plus a runnable suite |"]
+  EXP: ['docs/missions/README.md:12:<img src="../../assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it the', 'docs/missions/README.md:43:| 🧬 [reshape-it](reshape-it.md)     | Hot modules deepened behind smaller interfaces, behaviour proven unchang', 'docs/missions/migrate-it.md:59:- Restructuring code behind unchanged behaviour — [`reshape-it`](reshape-it.md); no data at risk.']
+
+## skill:review-it  /\breview\-it\b/
+  REF: ['README.md:176:| 🔍 **[review-it](docs/missions/review-it.md)** | A trusted, read-only, SHA-bound GO/NO-GO verdict — acceptanc', 'README.md:228:<img src="assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it then ship', 'README.md:259:C -->|is this diff ready to merge| REV[🔍 review-it<br/>read-only verdict]']
+  HOW: ['docs/getting-started.md:11:- [Your first mission: a review-it dry run](#your-first-mission-a-review-it-dry-run)', 'docs/getting-started.md:94:ln -s "$(pwd)/skills/review-it" ~/.claude/skills/review-it', 'docs/getting-started.md:106:outcome-named skills should list; with the two symlinks above you get `ship-it` and `review-it`.']
+  TUT: ['docs/getting-started.md:11:- [Your first mission: a review-it dry run](#your-first-mission-a-review-it-dry-run)', 'docs/getting-started.md:94:ln -s "$(pwd)/skills/review-it" ~/.claude/skills/review-it', 'docs/getting-started.md:106:outcome-named skills should list; with the two symlinks above you get `ship-it` and `review-it`.']
+  EXP: ['docs/concepts.md:469:the read-only and planning missions — `review-it` dispatches its axis reviewers in parallel,', 'docs/missions/README.md:12:<img src="../../assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it the', 'docs/missions/README.md:36:| 🔍 [review-it](review-it.md)       | A read-only, SHA-bound GO/NO-GO verdict — no fix authority |']
+
+## skill:root-cause  /\broot\-cause\b/
+  REF: ['README.md:178:| 🔬 **[root-cause](docs/missions/root-cause.md)** | A reproduced symptom and a demonstrated cause: repro-first', 'README.md:228:<img src="assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it then ship', 'README.md:260:C -->|why is this happening| RC[🔬 root-cause<br/>diagnosis only]']
+  HOW: ['docs/missions/README.md:12:<img src="../../assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it the', 'docs/missions/README.md:22:<img src="../../assets/diagrams/mission-handoffs-light.jpg" alt="How missions hand off: map-it to ship-it with', 'docs/missions/README.md:38:| 🔬 [root-cause](root-cause.md)     | A reproduced symptom and a demonstrated cause — diagnosis only |']
+  TUT: —
+  EXP: ['ARCHITECTURE.md:188:The cap is **34,000**. The lightest mission, `root-cause`, is ~18,000, so the whole catalog sits in a ~16,000-', 'docs/concepts.md:470:`map-it` its research workers, `root-cause` its hypothesis falsifiers, `attest-it` its evidence', 'docs/missions/README.md:12:<img src="../../assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it the']
+
+## skill:ship-it  /\bship\-it\b/
+  REF: ['README.md:141:ln -s "$(pwd)/skills/ship-it" ~/.claude/skills/ship-it', 'README.md:169:| 🚢 **[ship-it](docs/missions/ship-it.md)** | Intent or a frozen spec → a released, verified change, stopped a', 'README.md:177:| 🗺️ **[map-it](docs/missions/map-it.md)** | A foggy multi-session goal resolved into a frozen execution map `']
+  HOW: ['docs/getting-started.md:12:- [Your second mission: ship-it end to end](#your-second-mission-ship-it-end-to-end)', 'docs/getting-started.md:63:| ship-it | your deploy tooling and a canary surface, if you want the states past `RELEASED` |', 'docs/getting-started.md:93:ln -s "$(pwd)/skills/ship-it"   ~/.claude/skills/ship-it']
+  TUT: ['docs/getting-started.md:12:- [Your second mission: ship-it end to end](#your-second-mission-ship-it-end-to-end)', 'docs/getting-started.md:63:| ship-it | your deploy tooling and a canary surface, if you want the states past `RELEASED` |', 'docs/getting-started.md:93:ln -s "$(pwd)/skills/ship-it"   ~/.claude/skills/ship-it']
+  EXP: ['ARCHITECTURE.md:172:nothing bounded it. Measured (bytes/4) the heaviest mission was `ship-it` at **~39,600 tokens**; the', 'ARCHITECTURE.md:176:naming each phase-scoped doc and when to load it — `ship-it` came down from 39,600, `oss-contribute`', 'docs/concepts.md:409:ship-it. Chains are deliberately minimal ([`runtime/mission-chaining.md`](../runtime/mission-chaining.md)):']
+
+## skill:speed-it  /\bspeed\-it\b/
+  REF: ['README.md:172:| ⚡ **[speed-it](docs/missions/speed-it.md)** | A perf budget met against a pre-declared measurement contract:', 'README.md:228:<img src="assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it then ship', 'README.md:245:B -->|performance budget| SPEED[⚡ speed-it]']
+  HOW: ['docs/getting-started.md:59:| speed-it | a real measurement path: Lighthouse/DevTools access, or a load/profiler harness |', 'docs/run-submission-guide.md:25:(gitleaks for harden-it, a measurement path for speed-it, and so on).', 'docs/missions/README.md:12:<img src="../../assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it the']
+  TUT: ['docs/getting-started.md:59:| speed-it | a real measurement path: Lighthouse/DevTools access, or a load/profiler harness |']
+  EXP: ['docs/concepts.md:485:<img src="../assets/diagrams/mission-identity-light.jpg" alt="The six-point mission-identity test: unit of wor', 'docs/concepts.md:506:(`speed-it`). Contributing those same fixes to a repo you do *not* control is also its own mission', 'docs/missions/README.md:12:<img src="../../assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it the']
+
+## cli:runtime/scripts/decisions.py  /(?<![A-Za-z0-9_.-])decisions\.py(?![A-Za-z0-9_])/
+  REF: —
+  HOW: —
+  TUT: —
+  EXP: —
+
+## cli:runtime/scripts/deny-hook.sh  /(?<![A-Za-z0-9_.-])deny-hook\.sh(?![A-Za-z0-9_])/
+  REF: ['README.md:528:by anything that refuses to proceed without it, and `deny-hook.sh`, written to refuse a push to the']
+  HOW: —
+  TUT: —
+  EXP: —
+
+## cli:runtime/scripts/diff_scope.py  /(?<![A-Za-z0-9_.-])diff_scope\.py(?![A-Za-z0-9_])/
+  REF: —
+  HOW: —
+  TUT: —
+  EXP: —
+
+## cli:runtime/scripts/dispatch-sign.py  /(?<![A-Za-z0-9_.-])dispatch-sign\.py(?![A-Za-z0-9_])/
+  REF: ['docs/verify-gate.md:192:> `runtime/scripts/dispatch-sign.py`, and no `.orca/dispatch-pubkey` is committed, so the check', 'docs/verify-gate.md:241:1. **Once:** off the worker, `dispatch-sign.py gen-key --out <secret>` — keep `<secret>` private and', 'docs/verify-gate.md:245:2. **Per dispatch (off-worker):** `dispatch-sign.py sign --key <secret> --manifest-id <unit-id>']
+  HOW: ['docs/ops.md:193:`runtime/scripts/dispatch-sign.py gen-key` **off the clone**; discard the']
+  TUT: —
+  EXP: —
+
+## cli:runtime/scripts/ed25519.py  /(?<![A-Za-z0-9_.-])ed25519\.py(?![A-Za-z0-9_])/
+  REF: ['docs/verify-gate.md:263:`runtime/scripts/ed25519.py` (RFC 8032), so']
+  HOW: —
+  TUT: —
+  EXP: —
+
+## cli:runtime/scripts/egress.py  /(?<![A-Za-z0-9_.-])egress\.py(?![A-Za-z0-9_])/
+  REF: —
+  HOW: —
+  TUT: —
+  EXP: —
+
+## cli:runtime/scripts/evidence-run.py  /(?<![A-Za-z0-9_.-])evidence-run\.py(?![A-Za-z0-9_])/
+  REF: ['docs/verify-gate.md:94:`evidence-run.py` *on the worker*, from what the worker hands it — so the manifest and the ledger', 'docs/run-submission-guide.md:73:`python3 runtime/scripts/evidence-run.py --label verifier --manifest', 'docs/run-submission-guide.md:194:verifier run through `evidence-run.py` for real, a committed graded']
+  HOW: ['docs/run-submission-guide.md:73:`python3 runtime/scripts/evidence-run.py --label verifier --manifest', 'docs/run-submission-guide.md:194:verifier run through `evidence-run.py` for real, a committed graded']
+  TUT: —
+  EXP: —
+
+## cli:runtime/scripts/floor_guard.py  /(?<![A-Za-z0-9_.-])floor_guard\.py(?![A-Za-z0-9_])/
+  REF: —
+  HOW: —
+  TUT: —
+  EXP: —
+
+## cli:runtime/scripts/gate-batch.py  /(?<![A-Za-z0-9_.-])gate-batch\.py(?![A-Za-z0-9_])/
+  REF: —
+  HOW: —
+  TUT: —
+  EXP: —
+
+## cli:runtime/scripts/guard_text.py  /(?<![A-Za-z0-9_.-])guard_text\.py(?![A-Za-z0-9_])/
+  REF: —
+  HOW: —
+  TUT: —
+  EXP: —
+
+## cli:runtime/scripts/hitl-loop.template.sh  /(?<![A-Za-z0-9_.-])hitl-loop\.template\.sh(?![A-Za-z0-9_])/
+  REF: —
+  HOW: —
+  TUT: —
+  EXP: —
+
+## cli:runtime/scripts/inventory.py  /(?<![A-Za-z0-9_.-])inventory\.py(?![A-Za-z0-9_])/
+  REF: ['docs/run-submission-guide.md:87:`python3 runtime/scripts/inventory.py write docs/runs/<date>-<mission>-<tier>.md`', 'docs/run-submission-guide.md:88:and `python3 runtime/scripts/inventory.py check', 'docs/run-submission-guide.md:184:(`inventory.py check` reports 1 verified, 0 mismatched, 0 missing on each).']
+  HOW: ['docs/run-submission-guide.md:87:`python3 runtime/scripts/inventory.py write docs/runs/<date>-<mission>-<tier>.md`', 'docs/run-submission-guide.md:88:and `python3 runtime/scripts/inventory.py check', 'docs/run-submission-guide.md:184:(`inventory.py check` reports 1 verified, 0 mismatched, 0 missing on each).']
+  TUT: —
+  EXP: —
+
+## cli:runtime/scripts/pm.py  /(?<![A-Za-z0-9_.-])pm\.py(?![A-Za-z0-9_])/
+  REF: —
+  HOW: —
+  TUT: —
+  EXP: —
+
+## cli:runtime/scripts/preflight.py  /(?<![A-Za-z0-9_.-])preflight\.py(?![A-Za-z0-9_])/
+  REF: ['README.md:525:mechanism. Every fleet works on an integration BASE that `runtime/scripts/preflight.py` verifies is', 'README.md:527:the promotion PR and stops. But `preflight.py` is invoked by a sentence in each mission rather than', 'docs/missions/review-it.md:132:`PROFILE=ro`, report-only fleets preflight with `preflight.py --mode readonly`']
+  HOW: ['docs/getting-started.md:181:not your default branch (`runtime/scripts/preflight.py`), and confirms the suite is green at', 'docs/missions/review-it.md:132:`PROFILE=ro`, report-only fleets preflight with `preflight.py --mode readonly`']
+  TUT: ['docs/getting-started.md:181:not your default branch (`runtime/scripts/preflight.py`), and confirms the suite is green at']
+  EXP: ['docs/missions/review-it.md:132:`PROFILE=ro`, report-only fleets preflight with `preflight.py --mode readonly`']
+
+## cli:runtime/scripts/proof_status.py  /(?<![A-Za-z0-9_.-])proof_status\.py(?![A-Za-z0-9_])/
+  REF: ['docs/ops.md:176:catalog gates (`scripts/validate.py`, `tests/`, `proof_status.py --check`)', 'docs/concepts.md:439:`validate.py`, `proof_status.py --check` and the whole suite, because files a worker writes and', "docs/distribution.md:126:`check_badge_freshness`) could surface the catalog's proof mix as `runtime/scripts/proof_status.py`"]
+  HOW: ['docs/ops.md:176:catalog gates (`scripts/validate.py`, `tests/`, `proof_status.py --check`)']
+  TUT: —
+  EXP: ['docs/concepts.md:439:`validate.py`, `proof_status.py --check` and the whole suite, because files a worker writes and', "docs/distribution.md:126:`check_badge_freshness`) could surface the catalog's proof mix as `runtime/scripts/proof_status.py`"]
+
+## cli:runtime/scripts/run_report.py  /(?<![A-Za-z0-9_.-])run_report\.py(?![A-Za-z0-9_])/
+  REF: ['AGENTS.md:103:doctrine-only requires a run report that BINDS (`runtime/scripts/run_report.py`): a `RUN:`', 'CONTRIBUTING.md:51:re-hashes at the commit the header names (`runtime/scripts/run_report.py`) — and, for a', 'docs/missions/clean-sweep.md:8:> `runtime/scripts/run_report.py`, issue #411)']
+  HOW: ['docs/run-submission-guide.md:114:[run_report.py](../runtime/scripts/run_report.py); it does not re-run the', 'docs/run-submission-guide.md:126:`python3 runtime/scripts/run_report.py docs/runs/<date>-<mission>-<tier>.md', 'CONTRIBUTING.md:51:re-hashes at the commit the header names (`runtime/scripts/run_report.py`) — and, for a']
+  TUT: —
+  EXP: ['docs/concepts.md:436:[`run_report.py`](../runtime/scripts/run_report.py) says so in its own docstring: **it hashes, it', "docs/distribution.md:17:in the worker's environment. `run_report.py` checks bindings and hashes; it does not rerun", 'docs/missions/clean-sweep.md:8:> `runtime/scripts/run_report.py`, issue #411)']
+
+## cli:runtime/scripts/sandbox_doctor.py  /(?<![A-Za-z0-9_.-])sandbox_doctor\.py(?![A-Za-z0-9_])/
+  REF: —
+  HOW: —
+  TUT: —
+  EXP: —
+
+## cli:runtime/scripts/spawn_worker.sh  /(?<![A-Za-z0-9_.-])spawn_worker\.sh(?![A-Za-z0-9_])/
+  REF: —
+  HOW: —
+  TUT: —
+  EXP: —
+
+## cli:runtime/scripts/verify-gate.sh  /(?<![A-Za-z0-9_.-])verify-gate\.sh(?![A-Za-z0-9_])/
+  REF: ['docs/verify-gate.md:14:<img src="../assets/diagrams/verify-gate-light.jpg" alt="The completion gate: the coordinator sets the gate en', 'docs/verify-gate.md:36:[`runtime/scripts/verify-gate.sh`](../runtime/scripts/verify-gate.sh), passing `--event task|stop`:', 'docs/verify-gate.md:44:`verify-gate.sh` is **fail-closed**: if a manifest is named but missing, if no authoritative']
+  HOW: ['docs/getting-started.md:83:registers `verify-gate.sh` on `Stop` / `TaskCompleted` through `${CLAUDE_PLUGIN_ROOT}`, a path', 'docs/getting-started.md:111:`verify-gate.sh` from your clone by absolute path — plus a `_comment` key you can delete. Merge', 'docs/getting-started.md:113:clone still holds the template and `verify-gate.sh`; it never reads your settings, so it prints']
+  TUT: ['docs/getting-started.md:83:registers `verify-gate.sh` on `Stop` / `TaskCompleted` through `${CLAUDE_PLUGIN_ROOT}`, a path', 'docs/getting-started.md:111:`verify-gate.sh` from your clone by absolute path — plus a `_comment` key you can delete. Merge', 'docs/getting-started.md:113:clone still holds the template and `verify-gate.sh`; it never reads your settings, so it prints']
+  EXP: —
+
+## cli:runtime/scripts/verify.py  /(?<![A-Za-z0-9_.-])verify\.py(?![A-Za-z0-9_])/
+  REF: ['README.md:397:`verify.py` checks scope first — the criterion set re-derived from the frozen contract, so a', 'README.md:504:evidence manifest, and `verify.py` re-derives the facts from authoritative state: the frozen', 'AGENTS.md:71:- tests pass at that exact SHA in a clean env *(coordinator-run — not verify.py)*,']
+  HOW: ['docs/getting-started.md:50:scripts a fleet runs (`runtime/scripts/verify.py` and its neighbours). CI is pinned to 3.13;', 'docs/getting-started.md:85:until you wire it yourself: the coordinator still runs `verify.py` where its playbooks say so,', "docs/getting-started.md:262:SHA — not that a worker said so. (The clean-env run is the coordinator's job, not `verify.py`'s;"]
+  TUT: ['docs/getting-started.md:50:scripts a fleet runs (`runtime/scripts/verify.py` and its neighbours). CI is pinned to 3.13;', 'docs/getting-started.md:85:until you wire it yourself: the coordinator still runs `verify.py` where its playbooks say so,', "docs/getting-started.md:262:SHA — not that a worker said so. (The clean-env run is the coordinator's job, not `verify.py`'s;"]
+  EXP: ['ARCHITECTURE.md:251:- [docs/verify-gate.md](docs/verify-gate.md) — packages `verify.py` as a native `Stop`/`TaskCompleted`', 'ARCHITECTURE.md:256:self-scoring gate goes GREEN on a scope-shrink trap while `verify.py` goes RED, plus a dated', 'ARCHITECTURE.md:259:(false-done rate) rather than agent capability; `verify.py` scores 0% false-done on the trap']
+
+## cli:runtime/scripts/watchdog.py  /(?<![A-Za-z0-9_.-])watchdog\.py(?![A-Za-z0-9_])/
+  REF: —
+  HOW: —
+  TUT: —
+  EXP: —
+
+## cli:runtime/scripts/wtree.sh  /(?<![A-Za-z0-9_.-])wtree\.sh(?![A-Za-z0-9_])/
+  REF: —
+  HOW: —
+  TUT: —
+  EXP: —
+
+## cli:scripts/bind_check.py  /(?<![A-Za-z0-9_.-])bind_check\.py(?![A-Za-z0-9_])/
+  REF: ['docs/run-submission-guide.md:95:`python3 scripts/bind_check.py --base origin/main`', 'docs/run-submission-guide.md:121:python3 scripts/bind_check.py --base origin/main']
+  HOW: ['docs/run-submission-guide.md:95:`python3 scripts/bind_check.py --base origin/main`', 'docs/run-submission-guide.md:121:python3 scripts/bind_check.py --base origin/main']
+  TUT: —
+  EXP: —
+
+## cli:scripts/bundle.py  /(?<![A-Za-z0-9_.-])bundle\.py(?![A-Za-z0-9_])/
+  REF: ['README.md:440:`python3 scripts/bundle.py --check` already builds that self-contained tree.', 'README.md:449:scripts/         validate.py, gen-badges.py, eval.py, bundle.py', 'docs/install.md:83:python3 scripts/bundle.py           # writes dist/skills/<name>/ with references/ vendored']
+  HOW: ['docs/install.md:83:python3 scripts/bundle.py           # writes dist/skills/<name>/ with references/ vendored', 'docs/install.md:84:python3 scripts/bundle.py --check   # verify no reference escapes a mission directory']
+  TUT: —
+  EXP: —
+
+## cli:scripts/eval.py  /(?<![A-Za-z0-9_.-])eval\.py(?![A-Za-z0-9_])/
+  REF: ['README.md:449:scripts/         validate.py, gen-badges.py, eval.py, bundle.py', 'README.md:465:python3 scripts/eval.py run --suite all    # mission-routing baseline + per-skill eval count', 'ARCHITECTURE.md:226:scripts/         validate.py, gen-badges.py, eval.py (build gate · badges · eval validator)']
+  HOW: ['CONTRIBUTING.md:65:2. `skills/<name>/evals/evals.json` — `scripts/eval.py validate` checks its schema, and']
+  TUT: —
+  EXP: ['ARCHITECTURE.md:226:scripts/         validate.py, gen-badges.py, eval.py (build gate · badges · eval validator)']
+
+## cli:scripts/gen-badges.py  /(?<![A-Za-z0-9_.-])gen-badges\.py(?![A-Za-z0-9_])/
+  REF: ['README.md:449:scripts/         validate.py, gen-badges.py, eval.py, bundle.py', 'ARCHITECTURE.md:180:<!-- BEGIN GENERATED: activation-load — scripts/gen-badges.py -->', 'ARCHITECTURE.md:191:That table is generated by `scripts/gen-badges.py` and its freshness is a CI gate. It used to be']
+  HOW: ['docs/ops.md:202:(`python3 scripts/gen-badges.py`) if the revert changes counts.']
+  TUT: —
+  EXP: ['ARCHITECTURE.md:180:<!-- BEGIN GENERATED: activation-load — scripts/gen-badges.py -->', 'ARCHITECTURE.md:191:That table is generated by `scripts/gen-badges.py` and its freshness is a CI gate. It used to be', 'ARCHITECTURE.md:226:scripts/         validate.py, gen-badges.py, eval.py (build gate · badges · eval validator)']
+
+## cli:scripts/install.sh  /(?<![A-Za-z0-9_.-])install\.sh(?![A-Za-z0-9_])/
+  REF: ['README.md:31:git clone https://github.com/ravidsrk/orca-fleet.git && cd orca-fleet && sh scripts/install.sh', 'README.md:432:`sh scripts/install.sh` validates the catalog and links every mission, or hand-roll one', 'docs/install.md:18:sh scripts/install.sh']
+  HOW: ['docs/install.md:18:sh scripts/install.sh']
+  TUT: —
+  EXP: ['docs/distribution.md:37:| Symlink the catalog | fork/adapt, or evaluate | `git clone https://github.com/ravidsrk/orca-fleet.git && cd ', 'docs/distribution.md:41:Two classes. *Install* prerequisites must hold or `scripts/install.sh` exits 1;', 'docs/distribution.md:59:expected run-substrate warnings, and `sh scripts/install.sh --check` re-verified']
+
+## cli:scripts/validate.py  /(?<![A-Za-z0-9_.-])validate\.py(?![A-Za-z0-9_])/
+  REF: ['README.md:421:Only `skills/` holds a `SKILL.md`, and [`scripts/validate.py`](scripts/validate.py) fails the', 'README.md:449:scripts/         validate.py, gen-badges.py, eval.py, bundle.py', 'README.md:462:python3 scripts/validate.py                # agentskills.io spec + three-layer separation']
+  HOW: ['docs/getting-started.md:49:3. **Python 3.13** for the catalog gates (`scripts/validate.py`, `tests/`) and for the runtime', 'docs/run-submission-guide.md:181:requires, because `scripts/validate.py` only accepts `proof_evidence:`', 'docs/ops.md:76:Run the repository gates, including `python3 scripts/validate.py` and']
+  TUT: ['docs/getting-started.md:49:3. **Python 3.13** for the catalog gates (`scripts/validate.py`, `tests/`) and for the runtime']
+  EXP: ['ARCHITECTURE.md:139:report that exists on disk; `scripts/validate.py` enforces both. A mission is never presented', 'ARCHITECTURE.md:163:Three caps, all in `scripts/validate.py`, all enforced at CI:', 'ARCHITECTURE.md:226:scripts/         validate.py, gen-badges.py, eval.py (build gate · badges · eval validator)']
+
+## cli:hooks/print-settings-snippet.sh  /(?<![A-Za-z0-9_.-])print-settings-snippet\.sh(?![A-Za-z0-9_])/
+  REF: ['README.md:144:sh hooks/print-settings-snippet.sh   # merge the output into ~/.claude/settings.json', 'README.md:434:`sh hooks/print-settings-snippet.sh`.', 'docs/verify-gate.md:23:| `ln -s … ~/.claude/skills/<mission>` | **unset** | **none until you wire it**: `sh hooks/print-settings-snip']
+  HOW: ['docs/getting-started.md:87:is in [docs/verify-gate.md](verify-gate.md); `sh hooks/print-settings-snippet.sh` prints it.', 'docs/getting-started.md:109:**Wiring the gate on a symlink install.** `sh hooks/print-settings-snippet.sh` prints a JSON', 'docs/getting-started.md:335:completion gate is not wired until the settings snippet is merged. `print-settings-snippet.sh']
+  TUT: ['docs/getting-started.md:87:is in [docs/verify-gate.md](verify-gate.md); `sh hooks/print-settings-snippet.sh` prints it.', 'docs/getting-started.md:109:**Wiring the gate on a symlink install.** `sh hooks/print-settings-snippet.sh` prints a JSON', 'docs/getting-started.md:335:completion gate is not wired until the settings snippet is merged. `print-settings-snippet.sh']
+  EXP: —
+
+## config:hooks/hooks.json  /(?<![A-Za-z0-9_.-])hooks\.json(?![A-Za-z0-9_])/
+  REF: ['README.md:151:> **Step 3 is not optional if you want the gate.** `hooks/hooks.json` wires the verifier through', 'README.md:448:hooks/           hooks.json — the native completion-gate wiring', 'ARCHITECTURE.md:227:hooks/           hooks.json — native completion-gate wiring (Stop / TaskCompleted)']
+  HOW: ['docs/getting-started.md:82:One thing the symlink path does **not** wire: the native completion gate. `hooks/hooks.json`', 'docs/install.md:33:hooks/hooks.json (which resolves through ${CLAUDE_PLUGIN_ROOT}) never fires.']
+  TUT: ['docs/getting-started.md:82:One thing the symlink path does **not** wire: the native completion gate. `hooks/hooks.json`']
+  EXP: ['ARCHITECTURE.md:227:hooks/           hooks.json — native completion-gate wiring (Stop / TaskCompleted)']
+
+## config:hooks/settings-snippet.json  /(?<![A-Za-z0-9_.-])settings-snippet\.json(?![A-Za-z0-9_])/
+  REF: ['docs/verify-gate.md:29:[`hooks/settings-snippet.json`](../hooks/settings-snippet.json) is the same two hooks with an']
+  HOW: —
+  TUT: —
+  EXP: —
+
+## config:runtime/one-way-doors.json  /(?<![A-Za-z0-9_.-])one-way-doors\.json(?![A-Za-z0-9_])/
+  REF: —
+  HOW: —
+  TUT: —
+  EXP: —
+
+## config:runtime/pins.json  /(?<![A-Za-z0-9_.-])pins\.json(?![A-Za-z0-9_])/
+  REF: ['README.md:117:the catalog pin, currently **v1.4.200** (`runtime/pins.json`; the installer warns below it).', 'docs/distribution.md:49:| Orca app + CLI | run | ≥ the `runtime/pins.json` pin, currently v1.4.200 (warn) | 1.4.203 (`orca --version`,', 'docs/distribution.md:53:The Orca floor is read from `runtime/pins.json` at install time, not copied into']
+  HOW: ['docs/run-submission-guide.md:16:[pins.json](../runtime/pins.json) — if your installed Orca differs, say']
+  TUT: —
+  EXP: ['docs/distribution.md:49:| Orca app + CLI | run | ≥ the `runtime/pins.json` pin, currently v1.4.200 (warn) | 1.4.203 (`orca --version`,', 'docs/distribution.md:53:The Orca floor is read from `runtime/pins.json` at install time, not copied into']
+
+## config:runtime/watchdog.json  /(?<![A-Za-z0-9_.-])watchdog\.json(?![A-Za-z0-9_])/
+  REF: —
+  HOW: —
+  TUT: —
+  EXP: —
+
+## config:.env.example  /(?<![A-Za-z0-9_.-])\.env\.example(?![A-Za-z0-9_])/
+  REF: —
+  HOW: —
+  TUT: —
+  EXP: —
+
+## config:ruff.toml  /(?<![A-Za-z0-9_.-])ruff\.toml(?![A-Za-z0-9_])/
+  REF: ['CONTRIBUTING.md:133:# (CI runs ruff 0.16.5 on E9/F63/F7/F82 only — see ruff.toml)']
+  HOW: ['CONTRIBUTING.md:133:# (CI runs ruff 0.16.5 on E9/F63/F7/F82 only — see ruff.toml)']
+  TUT: —
+  EXP: —
+
