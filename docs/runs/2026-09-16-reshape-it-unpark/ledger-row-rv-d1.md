@@ -12,3 +12,4 @@
 - WIDTH: 73 → 64 by the mission probe; zero existing-test edits.
 - Behaviour: suite green at base (Ran 1490 OK) and head (Ran 1492 OK); M1 re-killed after re-anchor (carve-out a); revert re-widens 64→73 (carve-out b).
 - verify.py: all legs GREEN except the independent-APPROVED review leg, see rv-d1-pre-verify.txt (exit 2, review-only RED). The final GREEN transcript (rv-d1-verifier.txt) lands in the record-only commit after Greptile APPROVED at head — a transcript cannot exist before the run it records.
+- E4 (infra note): GitHub Actions never ran on E1/E2/E3 (zero runs branch-wide; Greptile webhooks unaffected) and close/reopen did not retrigger. This one-line ledger append forces a fresh synchronize event; no evidence content changes. If CI stays dark, the coordinator must retrigger from the Actions UI.
