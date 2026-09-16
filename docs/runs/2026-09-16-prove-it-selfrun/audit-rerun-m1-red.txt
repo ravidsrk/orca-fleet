@@ -1,0 +1,40 @@
+F..E
+======================================================================
+ERROR: test_non_dict_scope_refused_at_kind_gate (tests.test_verify.OracleScopeKindTest.test_non_dict_scope_refused_at_kind_gate)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/prove-it-pf2-rerun/tests/test_verify.py", line 2963, in test_non_dict_scope_refused_at_kind_gate
+    verify.check_oracle_scope({}, rel, digest),
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/orca/workspaces/orca-fleet/prove-it-pf2-rerun/runtime/scripts/verify.py", line 988, in check_oracle_scope
+    if any(scope.get(k) != m.get(k) for k in ("base_sha", "head_sha")):
+       ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/orca/workspaces/orca-fleet/prove-it-pf2-rerun/runtime/scripts/verify.py", line 988, in <genexpr>
+    if any(scope.get(k) != m.get(k) for k in ("base_sha", "head_sha")):
+           ^^^^^^^^^
+AttributeError: 'str' object has no attribute 'get'
+
+======================================================================
+FAIL: test_bogus_kind_refused_at_kind_gate (tests.test_verify.OracleScopeKindTest.test_bogus_kind_refused_at_kind_gate)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/prove-it-pf2-rerun/tests/test_verify.py", line 2955, in test_bogus_kind_refused_at_kind_gate
+    self.assertEqual(
+    ~~~~~~~~~~~~~~~~^
+        verify.check_oracle_scope({}, rel, digest),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        ["oracle scope: kind must be characterization or documentation"])
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ["oracle scope: must bind every criterion in this unit's contract"] != ['oracle scope: kind must be characterization or documentation']
+
+First differing element 0:
+"oracle scope: must bind every criterion in this unit's contract"
+'oracle scope: kind must be characterization or documentation'
+
+- ["oracle scope: must bind every criterion in this unit's contract"]
++ ['oracle scope: kind must be characterization or documentation']
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.061s
+
+FAILED (failures=1, errors=1)

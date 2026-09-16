@@ -16,7 +16,8 @@ compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh; a runnable suite +
   coverage tool. A TDD worker playbook (addyosmani or mattpocock) — one router per worker.
 metadata:
-  proof: doctrine-only
+  proof: self-run
+  proof_evidence: docs/runs/2026-09-16-prove-it-self-run.md
   autonomy: L4
   unit: one critical-path behaviour under a mutation-audited test
   state_machine: map the surface → human scope confirm → characterize → mutation-audit → land

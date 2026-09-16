@@ -1,0 +1,328 @@
+PF-2 blind acceptance review (rerun)
+Round: 1 of max 3 (acceptance-review.md budget)
+Reviewer agent id: grok-4.6 / xAI / term_fb921f60-6111-4308-8ea8-43ad400da0bb / task_065e9d165753 / dispatch ctx_1bf8670818e5
+Reviewer model: grok-4.6 (xAI Grok 4.6)
+Builder: Anthropic claude (different vendor; this session did not write the candidate)
+reviewed_sha: a46671986b2542b2da6d8e349ecf6c216f9ecc25
+  (origin commit: prove-it rerun: pin non-dict scope at the PF-2 kind gate (issue #410))
+worktree HEAD at review start: d19efca9f058025bd1e84b8075db110ca30f3a7a
+freshness: git diff a46671986b2542b2da6d8e349ecf6c216f9ecc25 -- tests/test_verify.py  → empty
+Timestamp (UTC, Part 1 written): 2026-09-16T07:02:32Z
+Fixed point: reviewed_sha (HEAD_TEST) as pinned by the dispatch; candidate is tests/test_verify.py::OracleScopeKindTest at that SHA plus the pinned mutant docs/runs/2026-09-16-prove-it-selfrun/audit-m1-rerun.diff
+Axes (mission, not the pack defaults): spec fidelity / mutant validity / tautology guard
+Pack method (matt code-review only): fixed-point discipline; every finding quotes its verbatim motivating line; unquotable material → appendix as unconfirmed; axes side-by-side with NO cross-rerank.
+
+================================================================================
+PART 1 — Blind expectation
+Written from the frozen PF-2 criterion and runtime/scripts/verify.py:988-989 ONLY.
+The candidate test class and audit-m1-rerun.diff have not been opened.
+================================================================================
+
+Frozen PF-2 criterion (verbatim from docs/runs/2026-09-16-prove-it-selfrun/contract.json):
+  "verify.py check_oracle_scope refuses an oracle_scope whose kind is neither characterization nor documentation, and admits both legal kinds past the kind gate."
+
+Production kind gate (context, runtime/scripts/verify.py:988-989, verbatim):
+  if not isinstance(scope, dict) or scope.get("kind") not in ("characterization", "documentation"):
+      return ["oracle scope: kind must be characterization or documentation"]
+
+Location
+  tests/test_verify.py, targeting check_oracle_scope (the function PF-2 names). A dedicated
+  class or tightly named methods around oracle_scope.kind, not a later-gate helper (commit-pair,
+  criterion_ids, paths). The net must call the real entry point, not a reimplementation of the
+  predicate.
+
+Shape
+  Four behaviours, each a real assertion against check_oracle_scope's return:
+    1. Dict-bogus: oracle_scope is a dict whose kind is not characterization and not
+       documentation. The function MUST refuse AT the kind gate — return list equal to
+       (or containing as the sole/first element) the kind-gate message
+       "oracle scope: kind must be characterization or documentation" — and MUST NOT
+       fall through to a later gate's message.
+    2. Non-dict disjunct: oracle_scope is present but not a dict (list / str / int / bool;
+       NOT None). The first disjunct of line 988 (`not isinstance(scope, dict)`) is what
+       PF-2's "refuses" side must also pin. Same kind-gate return as (1). None is a
+       different branch (scope is None → return []) sitting above the kind gate; it is
+       out of PF-2 and must not be used as the non-dict case.
+    3. Legal kind "characterization": admitted PAST the kind gate. The return must not
+       be the kind-gate message. Empty list is acceptable if the fixture is otherwise
+       complete; a later-gate error is also acceptable if it proves the kind check was
+       passed. The assertion has to be about the kind gate, not about the whole function
+       succeeding for unrelated reasons.
+    4. Legal kind "documentation": the other legal kind, same "past the kind gate" claim.
+
+Required inputs
+  - A contract JSON the function actually reads (source + digest), with oracle_scope set
+    to the case under test, plus a manifest `m` so later gates are defined rather than
+    crashed if the kind gate admits.
+  - Dict-bogus kind: at least one concrete illegal string (e.g. "mutation" / "audit" /
+    "" / a random token). Empty dict (kind missing → None) is a dict-bogus cousin, not
+    the non-dict disjunct.
+  - Non-dict: at least one non-dict, non-None value (a list is the obvious one; a str
+    would also do). This is mandatory. A net that only sends dicts does not pin
+    `not isinstance(scope, dict)`.
+  - Both legal kinds as distinct cases. One legal kind plus a comment is not PF-2.
+  - Assertions bind to the kind-gate message / its absence, not "any error" / "any
+    success". "Any error" on the refuse side would stay green if a later gate fired
+    while the kind check was gone. "Full function returned []" on the admit side does
+    not by itself prove the kind gate exists (a deleted kind gate plus a complete
+    fixture still returns []). The refuse-side cases are what kill a deleted/loosened
+    kind gate; the admit-side cases are what kill a tightened one (e.g. only
+    characterization allowed).
+
+Confidence
+  0.80 that the net belongs in tests/test_verify.py against check_oracle_scope with
+  four cases (dict-bogus, non-dict, characterization, documentation) asserting the
+  exact kind-gate message or its absence.
+  0.65 on fixture style (temp contract file vs monkeypatch of read_source) — unseen.
+  0.70 that "admits past the kind gate" will be encoded as "not the kind-gate error"
+  rather than as a full-function green, which is the tautology risk to watch.
+
+End of Part 1. Candidate not yet opened.
+
+================================================================================
+PART 2 — Three-axis judgment
+Candidate opened AFTER Part 1 was written to this file.
+Opened: tests/test_verify.py::OracleScopeKindTest at reviewed_sha
+        (worktree bytes identical: git diff <reviewed_sha> -- tests/test_verify.py empty)
+        plus docs/runs/2026-09-16-prove-it-selfrun/audit-m1-rerun.diff
+Independent m1 replay: apply the hunk in a throwaway git-archive tree; do not
+edit the unit worktree. Timestamp (UTC, Part 2): 2026-09-16T07:07:24Z
+Axes reported side-by-side. No cross-rerank.
+================================================================================
+
+--------------------------------------------------------------------------------
+AXIS 1 — Spec fidelity
+Does the net assert EXACTLY what PF-2 says?
+--------------------------------------------------------------------------------
+
+Frozen PF-2 (verbatim):
+  "verify.py check_oracle_scope refuses an oracle_scope whose kind is neither characterization nor documentation, and admits both legal kinds past the kind gate."
+
+Refuse half, dict-bogus — quoted test lines:
+  tests/test_verify.py:2953-2957
+    def test_bogus_kind_refused_at_kind_gate(self):
+        rel, digest = self._contract({"kind": "bogus"})
+        self.assertEqual(
+            verify.check_oracle_scope({}, rel, digest),
+            ["oracle scope: kind must be characterization or documentation"])
+  Motivating gate:
+    runtime/scripts/verify.py:988-989
+      if not isinstance(scope, dict) or scope.get("kind") not in ("characterization", "documentation"):
+          return ["oracle scope: kind must be characterization or documentation"]
+  Judgment: EXACT. Illegal kind "bogus" is refused AT the kind gate with that
+  message as the whole return, not a later-gate string.
+
+Refuse half, non-dict disjunct — quoted test lines:
+  tests/test_verify.py:2959-2964
+    def test_non_dict_scope_refused_at_kind_gate(self):
+        # A legal kind NAME in an illegal SHAPE: the gate refuses on shape too.
+        rel, digest = self._contract("characterization")
+        self.assertEqual(
+            verify.check_oracle_scope({}, rel, digest),
+            ["oracle scope: kind must be characterization or documentation"])
+  Same gate lines 988-989 (first disjunct: `not isinstance(scope, dict)`).
+  Judgment: EXACT. Input is non-dict and not None (None is a different branch
+  at verify.py:986-987 `if scope is None: return []`, above the kind gate).
+  Using the legal token "characterization" as a str proves the refusal is on
+  shape, not on the kind name.
+
+Admit half, characterization — quoted test lines:
+  tests/test_verify.py:2966-2971
+    def test_characterization_passes_kind_gate(self):
+        rel, digest = self._contract({"kind": "characterization",
+                                      "base_sha": "a" * 40, "head_sha": "b" * 40})
+        self.assertEqual(
+            verify.check_oracle_scope({}, rel, digest),
+            ["oracle scope: authorized commit pair differs from the manifest"])
+  Next gate, verify.py:990-991:
+      if any(scope.get(k) != m.get(k) for k in ("base_sha", "head_sha")):
+          return ["oracle scope: authorized commit pair differs from the manifest"]
+  Judgment: EXACT "past the kind gate". The asserted string is the NEXT gate,
+  which is unreachable if 988-989 had refused.
+
+Admit half, documentation — quoted test lines:
+  tests/test_verify.py:2973-2978
+    def test_documentation_passes_kind_gate(self):
+        rel, digest = self._contract({"kind": "documentation",
+                                      "base_sha": "a" * 40, "head_sha": "b" * 40})
+        self.assertEqual(
+            verify.check_oracle_scope({}, rel, digest),
+            ["oracle scope: authorized commit pair differs from the manifest"])
+  Same next-gate lines 990-991.
+  Judgment: EXACT. Both legal kinds are distinct cases.
+
+Part-1 comparison (divergence is signal, not error)
+  Convergences: location tests/test_verify.py against check_oracle_scope;
+    four behaviours; exact kind-gate message on both refuse cases; legal
+    kinds encoded as "not the kind-gate error" via the subsequent gate
+    (the encoding Part 1 preferred over full-function green).
+  Divergences: non-dict input is a str that is a legal kind NAME
+    (Part 1 guessed a list/int/bool). Stronger than the guess, not a gap.
+    Fixture is a temp contract file via `_contract` (Part 1 confidence 0.65).
+  Gaps vs PF-2: none. No extra later-gate behaviour is asserted as PF-2.
+
+Findings
+  (none — no missing/partial PF-2 half, no scope creep that claims a later
+  gate as the kind gate, no implemented-but-wrong assertion.)
+
+--------------------------------------------------------------------------------
+AXIS 2 — Mutant validity
+Is m1 behavior-changing yet harness-preserving? Trace each case.
+--------------------------------------------------------------------------------
+
+Pinned mutant, verbatim hunk
+  docs/runs/2026-09-16-prove-it-selfrun/audit-m1-rerun.diff:
+    -    if not isinstance(scope, dict) or scope.get("kind") not in ("characterization", "documentation"):
+    -        return ["oracle scope: kind must be characterization or documentation"]
+         if any(scope.get(k) != m.get(k) for k in ("base_sha", "head_sha")):
+  After apply, line 988 in the mutated file IS the commit-pair gate
+  (confirmed by the ERROR traceback below).
+
+Harness-preserving
+  Independent replay in a git-archive tree with the hunk applied:
+    python3 import of runtime/scripts/verify.py → import_ok_after_m1 True
+    unittest.defaultTestLoader.loadTestsFromName(
+      'tests.test_verify.OracleScopeKindTest') → collected 4
+  The module still imports; the suite still collects. This is not a compile /
+  import / collection break. characterize.md: "a compile break is not proof.
+  A mutant that breaks the build, the imports, or collection ... does not
+  count as a kill". m1 is not that.
+
+Behavior-changing
+  The two deleted lines are the only producer of
+  "oracle scope: kind must be characterization or documentation".
+  Removing them changes check_oracle_scope's return (or crash) on illegal
+  kind / non-dict inputs.
+
+Trace — dict-bogus under m1
+  Input: {"kind": "bogus"} via _contract; m = {}.
+  Kind gate gone. Commit-pair gate (now first):
+    scope.get("base_sha") is None; m.get("base_sha") is None; None != None
+    is False (same for head_sha). `any(...)` is False — this gate does NOT
+    fire. Then verify.py:992-994:
+      ids = scope.get("criterion_ids")
+      if not isinstance(ids, list) or not ids or set(ids) != set(doc["criterion_ids"]):
+          return ["oracle scope: must bind every criterion in this unit's contract"]
+  Observed FAIL (independent replay), quoted:
+    AssertionError: Lists differ: ["oracle scope: must bind every criterion in this unit's contract"] != ['oracle scope: kind must be characterization or documentation']
+  Gate reached: criterion_ids (NOT commit-pair). Error returned: that
+  criterion-bind string. Result: FAIL with AssertionError. The assertion
+  was evaluated and was false. This is a behavior-demonstrating RED and
+  a verifier-acceptable kill (STRONG_ASSERTION_RE / AssertionError at the
+  head of a line; verify.py:1118-1119).
+
+Trace — non-dict under m1
+  Input: "characterization" (str). Kind gate gone. Next line calls
+  scope.get. Observed ERROR (independent replay), quoted:
+    File ".../runtime/scripts/verify.py", line 988, in check_oracle_scope
+        if any(scope.get(k) != m.get(k) for k in ("base_sha", "head_sha")):
+    AttributeError: 'str' object has no attribute 'get'
+  Isolated run summary: FAILED (errors=1)
+  Class run summary: FAILED (failures=1, errors=1)
+  Judgment, plainly: this RED is stillborn-SHAPED for that test alone, not
+  stillborn for the module. The assertion never ran (exception escaped
+  inside check_oracle_scope before assertEqual). verify.py:1125-1128:
+    "unittest and pytest both distinguish an ERROR (an exception escaped)
+    from a FAILURE (an assertion was evaluated and was false). Only the
+    second exercises the oracle."
+  And verify.py:1166-1169:
+    if errors and not failures:
+        return False, (... "an error is an exception escaping, not an
+        oracle evaluating to false" ...)
+  A command that ran ONLY test_non_dict_scope_refused_at_kind_gate would
+  be refused as stillborn (`FAILED (errors=1)` and no failures). The
+  crash IS the production consequence of dropping `not isinstance(scope,
+  dict)` — behavior changed, harness still runnable — but it is not an
+  oracle evaluation. The class-level command is NOT stillborn: it reports
+  failures=1 AND errors=1, so `_failure_signature`'s `errors and not
+  failures` clause does not fire; the AssertionError from the bogus case
+  is the kill.
+
+Trace — both legal kinds still pass under m1
+  Quoted asserts (2969-2971 and 2976-2978) expect the commit-pair message.
+  With the kind gate deleted, those dicts still have base_sha/head_sha
+  unequal to m={} and still take verify.py:990-991 (mutated file:988-989).
+  Independent replay: both tests ... ok. They do not kill m1. They are
+  not supposed to: a deleted kind gate vacuously admits legal kinds.
+
+Findings
+  [FYI] test_non_dict_scope_refused_at_kind_gate under m1 is AttributeError
+        ERROR, not AssertionError FAIL. Quoted motivating lines: the
+        traceback `AttributeError: 'str' object has no attribute 'get'`
+        and verify.py:1125-1128 (ERROR vs FAILURE). Stillborn-shaped for
+        that test; the net's kill of m1 is the bogus-kind AssertionError.
+        Not a harness stillbirth (import_ok, collected 4).
+
+--------------------------------------------------------------------------------
+AXIS 3 — Tautology guard
+Could any assertion pass while PF-2 is broken?
+--------------------------------------------------------------------------------
+
+test_bogus_kind_refused_at_kind_gate
+  Binds to the kind gate. Quoted: assertEqual(..., ["oracle scope: kind
+  must be characterization or documentation"]) at 2955-2957. If 988-989
+  are deleted, the return is the criterion-ids string (see Axis 2) and
+  the assertion FAILs. If "bogus" were added to the legal set, fall-through
+  is the same later-gate string and the assertion FAILs. Cannot pass while
+  the refuse-dict half of PF-2 is broken.
+
+test_non_dict_scope_refused_at_kind_gate
+  Binds to the isinstance disjunct of 988. Quoted: same expected message
+  at 2962-2964 with `_contract("characterization")`. If that disjunct is
+  gone, the test does not pass — it ERRORs (Axis 2). It cannot stay green
+  while the non-dict refuse is broken. (It also cannot produce a
+  verifier-clean assertion-kill of an isinstance-only mutant; that is the
+  Axis 2 FYI, not a tautology.)
+
+test_characterization_passes_kind_gate
+  Binds to the admit half, not the refuse half. Quoted expected value
+  2970-2971: ["oracle scope: authorized commit pair differs from the
+  manifest"]. If characterization is refused at 988-989, the return is
+  the kind-gate message and this assertion FAILs. If the kind gate is
+  deleted (m1), this assertion still PASSES — vacuously admitted. That
+  is not a tautology of PF-2 as a whole; it is insensitivity to the
+  refuse-side mutant, which the refuse tests cover. It cannot pass while
+  characterization is rejected at the kind gate.
+
+test_documentation_passes_kind_gate
+  Same binding for the other legal kind. Quoted 2977-2978, same next-gate
+  string. Cannot pass while documentation is rejected at 988-989.
+
+No assertion is "any error" or "any success". Refuse cases pin the kind-gate
+message; admit cases pin the next gate's message (proof of passage).
+Entry point is check_oracle_scope, not a reimplemented predicate
+(`verify.check_oracle_scope({}, rel, digest)` at 2956, 2963, 2970, 2977).
+
+Findings
+  (none that would let an assertion stay green while its PF-2 half is
+  inverted.)
+
+================================================================================
+PART 3 — Verdict
+================================================================================
+
+VERDICT: GO
+
+Summary brief (round 1 of 3)
+  reviewed_sha a46671986b2542b2da6d8e349ecf6c216f9ecc25. OracleScopeKindTest
+  is four tests on check_oracle_scope. Dict-bogus ({"kind": "bogus"}) and
+  non-dict ("characterization" as str) both assert the exact kind-gate
+  message from verify.py:988-989. Characterization and documentation both
+  assert the next gate's commit-pair message, which is admission past the
+  kind gate. That matches PF-2 and matches Part 1 (non-dict-as-legal-name
+  is a stronger encoding than the list I guessed). m1 deletes 988-989,
+  still imports, still collects 4 tests. Bogus under m1 reaches the
+  criterion_ids gate (missing shas compare equal) and FAILs with
+  AssertionError. Non-dict under m1 AttributeError ERROR at the now-first
+  commit-pair `.get` — stillborn-shaped for that test (assertion never
+  ran) but not a stillborn mutant of the module; the class command is
+  FAILED (failures=1, errors=1) and the kill is the bogus AssertionError.
+  Legal-kind tests stay green under m1 because a deleted kind gate admits
+  them; they fail if their kind is refused. No assertion can pass while
+  its PF-2 half is inverted. Round 1 GO.
+
+================================================================================
+APPENDIX — unconfirmed (no verbatim motivating line)
+================================================================================
+
+(none)

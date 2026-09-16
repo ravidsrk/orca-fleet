@@ -1,0 +1,19 @@
+### prove-it rerun 2026-09-16 — coordinator reply to builder question (wave 2)
+### COORDINATOR-TRANSCRIBED from the send receipt (the runtime's check --all
+### returns inbox history only, so the sent reply is retained here, marked).
+### receipt: id msg_f435616ce7d1, thread msg_6ac7d9dca023 (builder question
+### "Step 1 guard tripped", msg_6ac7d9dca023 @ 2026-09-16T06:53:56Z),
+### from run:run_1e33949c0db0 to dispatch:ctx_2ebfe6f130dd, type status,
+### subject "Re: Question", created_at 2026-09-16T06:54:20Z.
+
+================ REPLY BODY (verbatim) ================
+
+Option B: delete the two untracked files, then proceed. Reason: wtree.sh fingerprints with 'git add -A' into a temp index, so untracked non-ignored files ENTER the content fingerprint — leaving them would make the 'tests rerun' record's wtree differ from HEAD_TEST's tree and break the content binding your step 6/10 verifies. Deletion is safe: the repo root has no package.json (verified), and name='prove-it-pf2-rerun' marks them as worktree-setup scaffold debris, not repo content. After deleting, re-run 'git status --porcelain' (must be empty) and continue the spec from step 2; name the debris + this decision in your worker_done summary.
+
+================ DECISION CLASS (ledger-contract.md) ================
+
+Mechanical auto-resolve (coordinator): the wtree.sh source (git add -A into a
+temp index) makes "leave untracked files" incompatible with the step-6/10
+wtree==HEAD_TEST-tree verification — only option B keeps the binding. Logged
+here and in the run report (D7); no DECISIONS.md at repo root (this run's
+ledger lives in the report, wave-1 precedent).

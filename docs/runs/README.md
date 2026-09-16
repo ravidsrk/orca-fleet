@@ -17,10 +17,13 @@ test reruns at the exact head and verification against the frozen contract and r
 remain coordinator-owned. **no** means the recorded report does not satisfy these binding checks
 here — history, kept, supporting no proof-tier advance.
 
-Nothing in the archive currently reads **yes**. That is the honest state, not a broken gate: three
-runs kept their artifacts outside this repository; one kept its artifacts but not its verifier
-transcript; two pinned an inventory to a tree that moved, or recorded none; and the newest is a
-bounded re-witness that says of itself that it is not a completed mission run. The mechanism is exercised by `tests/test_run_report.py`, which builds real
+Two reports in the archive read **yes** — the 2026-09-14 clean-sweep close and the 2026-09-16
+prove-it run, the first tiers earned under the binding gate. Every other row reads **no**, and that
+is the honest state, not a broken gate: three runs kept their artifacts outside this repository;
+one recorded no inventory block; one never recorded its verifier transcript; one pinned an
+inventory to a moved tree; three pin-it runs are bounded re-witnesses, not completed mission runs;
+and one tracker row is the living ledger whose close binds in the next row. The mechanism is
+exercised by `tests/test_run_report.py`, which builds real
 git repositories and includes a fully bound positive case alongside a dozen refused ones.
 
 | Date       | Mission     | Target                        | Ran as       | Binds? | Outcome |
@@ -32,8 +35,11 @@ git repositories and includes a fully bound positive case alongside a dozen refu
 | 2026-08-28 | [ship-it](2026-08-28-ship-it-self-run.md) | this repo (proof-status slice) | self-run | no — 5/5 hashes re-derive at `748b328`, but the verifier transcript was never recorded | PROMOTION_READY (BUILT + promotion PR open) |
 | 2026-09-09 | [clean-sweep](2026-09-09-clean-sweep-tracker.md) | this repo (tracker, 6 issues) | self-run | no — inventory pinned to a moved tree | DRY-WITH-PARKED (5 closed, 1 needs-human) |
 | 2026-09-12 | [pin-it](2026-09-12-runtime-repin/) | this catalog's runtime doctrine against Orca 1.4.200 (#266) | self-run | no — the report states it is not a completed independent mission run | PARTIAL-WITNESS (doctrine repair prepared for review; `pins.json` stays at v1.4.199, all 21 missions stay `doctrine-only`) |
-| 2026-09-13 | [pin-it](2026-09-13-pin-it-266/) | this catalog's runtime doctrine against the installed Orca 1.4.200 binary (#266) | self-run | no — see `proof_status --check`; the catalog claims no tier above `doctrine-only` | PINNED-WITH-PARKED (families needing a second datadir, an isolated v1.4.199 binary, a Windows/Linux host, a paid provider or owner-approved trust are parked with that precondition) |
-| 2026-09-14 | [clean-sweep](2026-09-14-clean-sweep-tracker.md) | this repo (tracker, 6 issues; takeover) | self-run | no — run in progress; binds? decided at close | IN PROGRESS |
+| 2026-09-13 | [pin-it](2026-09-13-pin-it-266/) | this catalog's runtime doctrine against the installed Orca 1.4.200 binary (#266) | self-run | no — see `proof_status --check`; the catalog claimed no tier above `doctrine-only` at the time | PINNED-WITH-PARKED (families needing a second datadir, an isolated v1.4.199 binary, a Windows/Linux host, a paid provider or owner-approved trust are parked with that precondition) |
+| 2026-09-14 | [clean-sweep](2026-09-14-clean-sweep-tracker.md) | this repo (tracker, 6 issues; takeover) | self-run | no — the living ledger, not a binding report; the run's close binds in the next row | DRY-WITH-PARKED (10 units merged, #386/#235 + review legs parked) |
+| 2026-09-14 | [clean-sweep](2026-09-14-clean-sweep-self-run.md) | this repo (tracker close; 10 units, 2 waves) | self-run | yes | DRY-WITH-PARKED (10 units merged, parks disclosed) |
+| 2026-09-16 | [pin-it](2026-09-16-pin-it-416/) | this catalog's runtime doctrine against the installed Orca 1.4.203 binary (#416) | self-run | no — see `proof_status --check`; pin-it itself stays `doctrine-only` | PINNED-WITH-PARKED (sender-bound behavior replays need a live Orca terminal; OS/remote/paid-trust parks carry over; next re-pin #427) |
+| 2026-09-16 | [prove-it](2026-09-16-prove-it-self-run.md) | this catalog (verify.py kind gate, PF-2) | self-run | yes | COVERED (PF-2; 4/4 mutants killed) |
 
 Proof status across the catalog is validator-enforced: a mission cannot claim a tier
 above `doctrine-only` without a `proof_evidence:` path that resolves to a report here whose
@@ -51,8 +57,9 @@ ASSERTED until ≥3 runs at differing WIP settings measure verified-CLOSED-per-h
 
 ## Field-proof plan (#212)
 
-Every mission in the catalog is `doctrine-only`. Each advance is a **mission run** — Orca up, human
-gates answered, a report filed from [TEMPLATE.md](TEMPLATE.md) — never a relabel: the scoped
+Every mission in the catalog except `clean-sweep` and `prove-it` is `doctrine-only`; `clean-sweep`
+earned `self-run` on the 2026-09-14 tracker run closed above and `prove-it` on the 2026-09-16 run
+archived above. Each advance is a **mission run** — Orca up, human
 demonstrations under [`docs/reports/`](../reports/) say so themselves. Every mission has a row here,
 and a test enforces that (#292): a mission with no path to a proof tier is a mission whose claim
 cannot be checked, and adding one must not be cheaper than planning how to prove it. Targets that
@@ -63,7 +70,7 @@ make each run concrete, self-run candidates first:
 | map-it | this catalog (report-only: planning branch, freeze commit, verified DAG) | self-run | `MAPPED` | Orca only |
 | attest-it | this catalog against the agentskills.io spec at a digest — obligations = the spec's required fields, evidence = `scripts/validate.py` checks | self-run | `CONFORMANT` (or `-WITH-GAPS`) | Orca; a frozen catalog digest |
 | harden-it | `runtime/scripts/verify.py`, `dispatch-sign.py`, `verify-gate.sh` — audit → PoC scenario → routed profile → fix → re-attack; the [gitleaks control](../reports/harden-it-externalrun/README.md) is one unit | self-run | `CLEAN` | Orca; the PoC-routing gate (human) |
-| prove-it | `scripts/validate.py` + `runtime/scripts/verify.py` critical surface — multi-criterion audit + builder wave; the [PF-1 control](../reports/prove-it-selfrun/README.md) is one unit | self-run | `COVERED` | Orca; WIP-curve row (mutating self-run) |
+| prove-it | `scripts/validate.py` + `runtime/scripts/verify.py` critical surface — proven 2026-09-16 (single-criterion wave PF-2 + WIP-curve row; the [PF-1 control](../reports/prove-it-selfrun/README.md) stays history) | self-run | `COVERED` | — (see the archive row above) |
 | speed-it | the catalog-gates journey (`validate.py` + `tests/` + `proof_status`), declared budget e.g. ≤30s wall, guard in CI at the declared budget | self-run | `WITHIN-BUDGET` | Orca; a declared budget (human) |
 | root-cause | the next real defect filed here, or an open bug in a small OSS repo | self-run or external-run | `DIAGNOSED` | a live bug + Orca |
 | access-it | needs a web UI — an external repo with an axe-core baseline | external-run | `CONFORMANT` (or `-WITH-MANUAL-PARKED`) | a target + Orca |
@@ -73,7 +80,7 @@ make each run concrete, self-run candidates first:
 | floor-it | this catalog: dimensions = test suite, validate.py, ruff, badge freshness — most are already wired, so the run is prove-fires + GUARD (injected violation must RED each gate; the check_constraints diff-watch is new) | self-run | `FLOORED` | Orca; the freeze gate (human) |
 | reshape-it | this catalog's churn-hot modules (`git log --since=90d`) — likely `runtime/scripts/verify.py` / `scripts/validate.py`; characterization net pinned first | self-run | `RESHAPED` | Orca; the CONFIRM-SURFACE gate (human) |
 | field-test-it | needs a device/emulator app — an external mobile repo | external-run | `FIELD-PROVEN` | a target + a paired device |
-| clean-sweep | this repo's own tracker again — the 2026-07-13 / 07-17 / 09-09 runs all bind `no`; a re-run needs its artifacts inside the run's own directory and an inventory pinned to the tip it names | self-run | `DRY` (or `-WITH-PARKED`) | Orca; retaining the artifacts this time |
+| clean-sweep | EARNED 2026-09-14: tracker run closed DRY-WITH-PARKED with artifacts in the run's own directory, an inventory pinned to the tip it names, and the verifier re-executed at promotion — [close report](2026-09-14-clean-sweep-self-run.md) | self-run | `DRY` (or `-WITH-PARKED`) | Orca |
 | review-it | the next real PR here or upstream — the 2026-07-13 gstack run kept its artifacts in the coordinator run dir, so nothing here can re-hash them | external-run | `NO-GO` / `GO` | Orca; a live PR + retained artifacts |
 | ship-it | the next mutating slice here — the 2026-08-28 run reached `PROMOTION_READY` and its five hashes still re-derive, but it never recorded the verifier transcript | self-run | `BUILT` at minimum | Orca; a second GitHub identity, or the executed-control lane |
 | oss-contribute | the next upstream tracker — the 2026-07-16 chimely run kept its artifacts in the fork worktree | external-run | `CONTRIBUTED` (or `-WITH-PARKED`) | Orca; an upstream target + retained artifacts |

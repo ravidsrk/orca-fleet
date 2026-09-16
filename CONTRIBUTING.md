@@ -66,7 +66,9 @@ A mission PR must include:
    `tests/test_evals.py` requires at least one **fixture-backed** case: `files[]` that
    materialize a small repo plus a `workspace_state[]` naming the end state the agent's workspace
    must reach (`exists`, `unchanged`, `matches`, `not_matches` on one `path` or `glob`), read
-   straight off the files with no model in between. A case with no fixtures must be labeled
+   straight off the files with no model in between; a `glob` never reads dependency directories
+   such as `venv` or `node_modules`, and a regex over an empty match set fails rather than holding
+   vacuously. A case with no fixtures must be labeled
    `"narration_only": true`, is graded on its trace alone, and the set of those is frozen in the
    same test. Nothing in `evals/` is proof evidence; it asks whether the mission's *text* steers an
    agent, and only a run report moves `metadata.proof`.
