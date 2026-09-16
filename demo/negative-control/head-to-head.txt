@@ -3,7 +3,7 @@
 
 == [1] SELF-SCORING gate (grades the self-reported criteria) ==
 selfscore: GREEN — all 1 self-reported criteria addressed
-self-scorer exit: 0 (TAMPERED-FOR-RED-PROOF)
+self-scorer exit: 0
 
 == [2] orca-fleet INDEPENDENT verifier (re-derives the frozen denominator) ==
 FAIL: scope: authoritative criteria not addressed in criteria[] (absent, or addressed != true): ['AC-2']
