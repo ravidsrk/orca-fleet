@@ -1,0 +1,38 @@
+NEGATIVE CONTROL — slice S2 (unit S2, mutation)
+tool: hand (compile-preserving hand-written mutant, one production line)
+head_sha the control applies at: cf85d8413c10336c448b5d57ed5ada33abefa173
+command (ONE string, shlex-split, run from the repo toplevel):
+  python3 -m pytest demo/target-app/tests/test_ui_pages.py
+env note: the fixture's deps are provisioned by uv. Replay with a synced venv
+  on PATH (uv sync --project demo/target-app, then
+  PATH=demo/target-app/.venv/bin:$PATH). Without deps the command errors
+  instead of proving — a stillborn replay that proves nothing.
+
+MUTANT (unified diff; applies at head_sha with `git apply`):
+
+diff --git a/demo/target-app/app/routers/pages.py b/demo/target-app/app/routers/pages.py
+index f0053131..b54a2a32 100644
+--- a/demo/target-app/app/routers/pages.py
++++ b/demo/target-app/app/routers/pages.py
+@@ -24,5 +24,5 @@ router = APIRouter(tags=["pages"])
+ def list_issues_page(request: Request, db: Session = Depends(get_db)) -> HTMLResponse:
+     issues = list(db.scalars(select(Issue).order_by(Issue.id)).all())
+-    return templates.TemplateResponse(request, "list.html", {"issues": issues})
++    return templates.TemplateResponse(request, "list.html", {"issues": []})
+ 
+ 
+
+RED transcript (mutant applied; exit 1):
+  demo/target-app/tests/test_ui_pages.py::test_list_page_shows_created_issues FAILED
+  demo/target-app/tests/test_ui_pages.py::test_create_issue_via_new_form_redirects FAILED
+  >       assert 'visible bug' in response.text
+  E       assert 'visible bug' in '<!doctype html>...<li>No issues yet.</li>...</html>'
+  2 failed, 11 passed in 0.30s
+
+GREEN transcript (clean tree; exit 0):
+  13 passed in 0.28s
+
+VERDICT: mutant KILLED. The criterion-bound tests fail if and only if the
+production behavior the criterion names is violated: RED under the mutant
+with an AssertionError on the list-page markers (the page still returns 200 —
+the markers are gone, not an import error), GREEN on the clean tree.
