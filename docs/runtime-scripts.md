@@ -344,6 +344,17 @@ here — a transcript the caller names is not evidence.
 
 Exits: 0 clear · 1 not clear (reason on stderr) · 2 usage.
 
+> Why: the old rule was a grep over a caller-named file, and it failed both ways —
+> /etc/passwd passed as a clean transcript, while a genuine `"failures": []` was
+> refused on the substring inside the words reporting there were none. So the verdict
+> reads structurally where the output is JSON
+> (`runtime/scripts/sandbox_doctor.py:FINDING_KEYS` — an empty collection reports
+> nothing) and strips "none of these" shapes before matching words in plain text. The
+> transcript must name THIS recipe by whole token
+> (`runtime/scripts/sandbox_doctor.py:names_recipe`), because a substring test passed a
+> transcript for `web-prod-privileged` when asked about `web`. And the caller-named file
+> is gone entirely: spawn_worker.sh runs the doctor itself.
+
 ## `spawn_worker.sh`
 
 Fail-closed Orca worker dispatch for fleet coordinators: supervised lane
