@@ -1,0 +1,20 @@
+orca orchestration coordinator-start
+
+Usage: orca orchestration coordinator-start --spec <text> [--from <handle>] [--poll-interval-ms <n>] [--max-concurrent <n>] [--worktree <selector>] [--json]
+
+Retired: load the current orchestration skill
+
+Options:
+  --help                 Show this help message
+  --json                 Emit machine-readable JSON
+  --pairing-code
+  --environment
+  --spec
+  --from
+  --poll-interval-ms
+  --max-concurrent
+  --worktree <selector>  Worktree selector such as identity:<identity>, id:<repo-id>::<path>, name:<displayName>, branch:<branch>, issue:<number>, path:<path>, or active/current
+
+Notes:
+  This command performs no effects and returns the exact `skills get orchestration --full` recovery action.
+  Use the lightweight Run, Task, and worker-start primitives described by the current skill.

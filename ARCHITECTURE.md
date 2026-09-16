@@ -125,6 +125,8 @@ them. These are preserved as runtime policies, not abstracted away:
   one-way gate schedule cleanly) — `runtime/mission-scheduling.md`
 - least-privilege worker profiles (`ro`/`rw`/`danger`; `danger` only in a disposable sandbox,
   work harvested via git push before teardown) — `runtime/sandbox-policy.md`
+- the Orca pin record (which upstream build the doctrine was witnessed against, re-pin
+  cadence, owner, next trigger) — `runtime/orca-pin.md`
 
 ## Proof over doctrine
 
