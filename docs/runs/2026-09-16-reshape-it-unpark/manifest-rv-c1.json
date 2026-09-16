@@ -142,6 +142,28 @@
       "commit": "6b3acc8f783ce088e0b1dec30495c9dc2daea6d3",
       "wtree": "0b25633199c7c3e5392551bfff26f44b4f1bd807",
       "artifact": "docs/runs/2026-09-16-reshape-it-unpark/rv-c1-verifier.txt"
+    },
+    {
+      "label": "tests-full-at-merge",
+      "ts": "2026-09-16T21:54:20Z",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "exit": 0,
+      "duration_s": 274.991,
+      "commit": "d51b1ffaf68bc380028e027b36dce942b77f42da",
+      "wtree": "385f8dae9fcf2598b32df80eef1207d1cb24d56f",
+      "artifact": "docs/runs/2026-09-16-reshape-it-unpark/rv-c1-tests-full-merge.txt"
+    },
+    {
+      "label": "verifier-at-merge",
+      "ts": "2026-09-16T21:55:18Z",
+      "cmd": "python3 runtime/scripts/verify.py --manifest docs/runs/2026-09-16-reshape-it-unpark/manifest-rv-c1.json --contract-source docs/runs/2026-09-16-reshape-it-unpark/contract-rv-c1.json@5c9002a0b9016855e14e483ebe8b72828b823de1 --contract-digest sha256:a144ff21568661bb5599b8dcba1527a6f3a22159ade2e015dd4001e5aa0d4976 --unit-class mutation --lighting dark-eligible --execute-nc --nc-command 'python3 -m unittest tests.test_reshape_net_validate'",
+      "cmd_sha256": "6822b0faa3eefc3ac9e67b6a3955a4056d641ec19ecf2d4dad522adb4ad5a7fa",
+      "exit": 0,
+      "duration_s": 1.872,
+      "commit": "d51b1ffaf68bc380028e027b36dce942b77f42da",
+      "wtree": "813dc21a5db3b2b938ee752df27294260acaba34",
+      "artifact": "docs/runs/2026-09-16-reshape-it-unpark/rv-c1-verifier-merge.txt"
     }
   ],
   "unit": "RV-C1",
@@ -239,6 +261,14 @@
     {
       "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-c1-verifier.txt",
       "sha256": "24f077a76b32a2d9ac0ee2f09debb023b6973d0ff88a44f4d4fbc8ca4d6c18a9"
+    },
+    {
+      "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-c1-tests-full-merge.txt",
+      "sha256": "748276c44c12f70e1e90aa6cd36ed9a469613c59e21254b00b9f9dd5c8d91687"
+    },
+    {
+      "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-c1-verifier-merge.txt",
+      "sha256": "24f077a76b32a2d9ac0ee2f09debb023b6973d0ff88a44f4d4fbc8ca4d6c18a9"
     }
   ],
   "pr": {
@@ -250,6 +280,16 @@
       "label": "verifier-round-2",
       "exit": 2,
       "reason": "removed E6 (Greptile P2 4030446451): the record's artifact pointer (rv-c1-verifier.txt) was overwritten by the later GREEN re-run, so the record linked to bytes contradicting its exit. The failed run is fully explained \u2014 oracle-scope mismatch from round-1 artifact names tracked-at-head, fixed by the -r2 rename, re-verified GREEN (see verifier-round-2b) \u2014 and a dangling pointer is worse than an explained absence. The exit-2 output itself: 4 invariant failures (oracle-scope artifact mismatch -> hand-mutant decoy x2 -> unexecuted-control), all root-caused to the one naming trap."
+    },
+    {
+      "label": "verifier-at-merge",
+      "exit": 2,
+      "reason": "removed E9: procedural error \u2014 the run executed with CWD in a scratch checkout where the uncommitted merge transcript was absent, so redaction failed fatal and the NC replay was skipped (verify.py:2071 gates execution on not-fatal). Not a unit finding. Re-ran correctly from the worktree holding the artifacts; see the exit-0 verifier-at-merge record."
+    },
+    {
+      "label": "verifier-at-merge",
+      "exit": 2,
+      "reason": "removed E9 (second attempt): the merge transcript was not yet pinned in artifacts[] when the run executed, so redaction failed fatal and the NC replay was skipped. Same procedural class as the first attempt; not a unit finding. Pinned, then re-ran; see the exit-0 verifier-at-merge record."
     }
   ]
 }
