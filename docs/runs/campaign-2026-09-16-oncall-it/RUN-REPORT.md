@@ -1,12 +1,12 @@
 # Run report — oncall-it self-test, 2026-09-16 (PARKED: mission does not apply)
 
 ```
-RUN: mission=oncall-it tier=doctrine-only inventory_at=<evidence-commit> manifest=docs/runs/campaign-2026-09-16-oncall-it/02-LEDGER.md verifier=N/A-parked waves=0
+RUN: mission=oncall-it tier=doctrine-only inventory_at=1a5405150a4dc3b61b9462d3ce7bace041ea70ee manifest=docs/runs/campaign-2026-09-16-oncall-it/02-LEDGER.md verifier=N/A-parked waves=0
 ```
 
-(`inventory_at` is filled with the evidence commit SHA at commit time; no
-per-unit manifest exists because zero units were dispatched. `proof:` stays
-`doctrine-only` — a park is not a run that binds.)
+(`inventory_at` names the evidence commit; no per-unit manifest exists because
+zero units were dispatched. `proof:` stays `doctrine-only` — a park is not a
+run that binds.)
 
 | Field | Value |
 |---|---|
