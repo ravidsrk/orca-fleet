@@ -1,0 +1,58 @@
+RV-D1 negative control — revert (tool=revert, no mutant id by schema)
+unit: RV-D1 DEEPEN scripts/validate.py (count-lint engine -> scripts/_countlint.py)
+base_sha: 3032e268f9f17893e45b147a0a20df8dab61f848
+control demonstrated at: 55ab73a8184add7a0b85fb9fdc21fbb46ff17d16 (H1: prod + WIDTH pin)
+proof command: python3 -m unittest tests.test_reshape_width_validate
+control worktree: detached at H1 (/tmp/rv-d1-nc)
+
+Control: git checkout <base_sha> -- scripts/validate.py (the one production
+path the deepening edits). scripts/_countlint.py is NEW at head, so a base
+restore has nothing to restore it from — it stays in the tree as an orphan
+(the U387P new-file remainder, disclosed not hidden). The WIDTH pin reads
+scripts/validate.py's text only, so the orphan cannot sway it either way.
+
+Under the control scripts/validate.py is back to WIDTH 73 (measured) and the
+narrow import is gone; at clean head it is WIDTH 64 behind _countlint.
+
+RED transcript (exit 1):
+FF
+======================================================================
+FAIL: test_engine_lives_behind_the_narrow_import (tests.test_reshape_width_validate.ValidateWidthPin.test_engine_lives_behind_the_narrow_import)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/rv-d1-nc/tests/test_reshape_width_validate.py", line 44, in test_engine_lives_behind_the_narrow_import
+    self.assertIsNotNone(engine, "validate.py no longer loads scripts/_countlint.py")
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: unexpectedly None : validate.py no longer loads scripts/_countlint.py
+
+======================================================================
+FAIL: test_interface_width_shrunk (tests.test_reshape_width_validate.ValidateWidthPin.test_interface_width_shrunk)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/rv-d1-nc/tests/test_reshape_width_validate.py", line 33, in test_interface_width_shrunk
+    self.assertLess(width, BASELINE_WIDTH,
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+                    f"validate.py WIDTH {width} is not smaller than the pre-deepening {BASELINE_WIDTH}")
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 73 not less than 73 : validate.py WIDTH 73 is not smaller than the pre-deepening 73
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.010s
+
+FAILED (failures=2)
+NC exit: 1
+
+clean-head transcript (exit 0):
+..
+----------------------------------------------------------------------
+Ran 2 tests in 0.010s
+
+OK
+clean exit: 0
+
+VERDICT: the proof went RED under the revert (FAILED failures=2 — both the
+width pin and the narrow-import pin fail with AssertionError) and GREEN (OK)
+at clean head. Reverting the deepening makes the interface-surface
+measurement no longer smaller: 64 -> 73. Carve-out pair half (b) satisfied;
+half (a) — the RV-C1 pinned mutant re-killed at the deepened head — is
+recorded in rv-d1-carveout-a.txt.
