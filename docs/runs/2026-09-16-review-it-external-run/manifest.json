@@ -1,1 +1,16 @@
-{"unit": "fixture-u1"}
+{
+  "unit": "fixture-u1",
+  "commands": [
+    {
+      "label": "verifier",
+      "ts": "2026-09-16T05:46:14Z",
+      "cmd": "python3 runtime/scripts/verify.py --manifest docs/runs/2026-09-16-review-it-external-run/manifest.json --unit-class report-only",
+      "cmd_sha256": "a96a702a164e6a5d205293ac002712aa58f4855910d59fcb62d4ab5783d22810",
+      "exit": 2,
+      "duration_s": 0.079,
+      "commit": "863cbd123ec04cc40649a74a80dfc4ee9019eb61",
+      "wtree": "90e1052cbb1b4ccd613a4a28c87bbf621340c7c7",
+      "artifact": "docs/runs/2026-09-16-review-it-external-run/verifier.txt"
+    }
+  ]
+}

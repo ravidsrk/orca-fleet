@@ -1,0 +1,7 @@
+FAIL: scope: no authoritative contract (--contract-source/--contract-digest from the dispatch record) — a worker manifest cannot certify its own denominator
+FAIL: oracle scope: authoritative contract unreadable or digest mismatch
+FAIL: missing required 'base_sha'
+FAIL: missing required 'head_sha'
+FAIL: report-only unit with no signed dispatch record, and its shape cannot be determined: base_sha and head_sha must both be pinned 40-hex commits before the class claim can be measured against the change. Pin base_sha and head_sha so the claim can be measured against the change, or have the coordinator sign the downgrade (#310)
+verify: 5 invariant(s) failed — unit is NOT done
+NOTE: --base not given — ancestry check skipped (pre-merge/offline)
