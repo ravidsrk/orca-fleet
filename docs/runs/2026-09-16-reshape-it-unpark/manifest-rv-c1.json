@@ -65,15 +65,48 @@
       "commit": "8d79a9baca5ebd892a3a974f42b97f28653cb56b",
       "wtree": "b21c22e85f332e900f6d064677f4dd7f663f2c0d",
       "artifact": "docs/runs/2026-09-16-reshape-it-unpark/rv-c1-verifier.txt"
+    },
+    {
+      "label": "tests-round-2",
+      "ts": "2026-09-16T19:58:44Z",
+      "cmd": "python3 -m unittest tests.test_reshape_net_validate",
+      "cmd_sha256": "b7dded19a18fb32bae0e7ed015cddf77d0bdcadfb134f898fa85fa47445c7e09",
+      "exit": 0,
+      "duration_s": 0.05,
+      "commit": "c5e09b9bb220b3ab641960621ce8a12761621542",
+      "wtree": "b948e23e7dc775b416c0e5b3c84cff1bca38c6af",
+      "artifact": "docs/runs/2026-09-16-reshape-it-unpark/rv-c1-tests-r2.txt"
+    },
+    {
+      "label": "validation-at-H2",
+      "ts": "2026-09-16T19:58:45Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 0,
+      "duration_s": 0.954,
+      "commit": "c5e09b9bb220b3ab641960621ce8a12761621542",
+      "wtree": "b948e23e7dc775b416c0e5b3c84cff1bca38c6af",
+      "artifact": "docs/runs/2026-09-16-reshape-it-unpark/rv-c1-validation-h2.txt"
+    },
+    {
+      "label": "tests-full-at-H2",
+      "ts": "2026-09-16T20:03:35Z",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "exit": 0,
+      "duration_s": 282.178,
+      "commit": "c5e09b9bb220b3ab641960621ce8a12761621542",
+      "wtree": "b948e23e7dc775b416c0e5b3c84cff1bca38c6af",
+      "artifact": "docs/runs/2026-09-16-reshape-it-unpark/rv-c1-tests-full-h2.txt"
     }
   ],
   "unit": "RV-C1",
-  "base_sha": "bb396297db50c3cc0721d76294d97a144f24781e",
-  "head_sha": "e4bc2b915109c07a63994f4dc5d5cb00af407b83",
+  "base_sha": "6e3cc045a5169a1f1a72c4eaec970ed7253f4a54",
+  "head_sha": "c5e09b9bb220b3ab641960621ce8a12761621542",
   "base_branch": "main",
   "contract": {
-    "source": "docs/runs/2026-09-16-reshape-it-unpark/contract-rv-c1.json@64da3d2d828575f45d1146542cabe0dd7375bd4c",
-    "digest": "sha256:d030c5d04fb8a2ace91e2958ccf68b43a5ae72d1d974b12dad14424cf9050970",
+    "source": "docs/runs/2026-09-16-reshape-it-unpark/contract-rv-c1.json@E4_PENDING",
+    "digest": "sha256:PENDING",
     "criterion_ids": [
       "RV-C1"
     ]
@@ -94,7 +127,7 @@
   },
   "binding_audit": {
     "coverage": "RV-C1 (1/1)",
-    "method": "criterion quoted; covering net tests/test_reshape_net_validate.py (7 tests) quoted in the diff; criterion-violating mutants M1 (pinned, hyphen-blind _SEP) and M2 (supporting, backtick-blind _SEP) both went RED with AssertionError failures"
+    "method": "criterion quoted; covering net tests/test_reshape_net_validate.py (7 tests, round 2 adds * and _ emphasis joints) quoted in the diff; criterion-violating mutants M1 (pinned, hyphen-blind _SEP), M2 (supporting, backtick-blind _SEP) and M3 (supporting, star-blind _SEP) all went RED with AssertionError failures"
   },
   "intent": {
     "goal": "Pin the validate.py count-lint seam with a mutation-audited characterization net before the RV-D1 deepening moves the regex engine.",
@@ -105,18 +138,26 @@
   "reviewer_mode": "instructed-isolation",
   "review_note": "review WAIVED per the dark-eligible lane (gate-classification.md; the EXECUTED negative control + tests are the oracle). No fresh-session review was performed: two fresh-subagent blind-review spawns failed at the runtime (no result returned). reviewer_mode carries the weakest legal value as a placeholder, not a review claim. Greptile's PR review will be recorded in the run report as a non-oracle signal.",
   "toolchain": "CPython 3.13.15 on macOS arm64; git; unittest",
-  "claim": "RV-C1 net (7 tests) pins the count-lint seam; M1 KILLED, M2 KILLED, clean GREEN.",
+  "claim": "RV-C1 net (7 tests, round 2) pins the count-lint seam incl. emphasis joints; M1/M2/M3 KILLED, clean GREEN, H2 suite Ran 1497 OK.",
   "artifacts": [
     {
       "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-c1-negctrl.txt",
-      "sha256": "116b9595e098f6079a02d05071c540f4652297458008fda950eb4954379cfd49"
+      "sha256": "f884d6e9b41507fb07bedd5f93b26209b826b6057d80c9ef92dd189811fc312e"
     },
     {
       "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-c1-m2.txt",
-      "sha256": "89a5e32f25d2634dca73e0fa6ac130a5d8a37ede12e96a084d83b0361fff6d02"
+      "sha256": "310590581b5370396d3c4d59a8e634bd2e2ffab0d99ad79445b621f2125983d0"
+    },
+    {
+      "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-c1-m3.txt",
+      "sha256": "739c51a64b74c49ee0bdd3860bc8251a4b966f506390d6e5e78b301e350a1433"
     },
     {
       "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-c1-tests.txt",
+      "sha256": "83166b089fbcb82fac63f22522fa6ae99bb5e46368cd35d756277fd463dd6346"
+    },
+    {
+      "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-c1-tests-r2.txt",
       "sha256": "83166b089fbcb82fac63f22522fa6ae99bb5e46368cd35d756277fd463dd6346"
     },
     {
@@ -124,8 +165,16 @@
       "sha256": "187292217f3eef4e7ae84a33a81a96371e8fbd59194a5e8f42c2e12874aa6350"
     },
     {
+      "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-c1-validation-h2.txt",
+      "sha256": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6"
+    },
+    {
       "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-c1-tests-full-h1.txt",
       "sha256": "0dea9c21ab330c6a89d356cb1efda92e18fac0f101ed0e3a35c68fb0ddb325bf"
+    },
+    {
+      "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-c1-tests-full-h2.txt",
+      "sha256": "905e2b8c6561078dacf73e1b10a1b4291717ff4925a0a1bba1a68b0f204e5439"
     },
     {
       "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-c1-validation-tip.txt",
@@ -134,10 +183,6 @@
     {
       "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-c1-tests-full-tip.txt",
       "sha256": "d3604dad703c3a482de282a07ffc0c2f9c3dc5f76e2965022883bd24e56179c4"
-    },
-    {
-      "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-c1-verifier.txt",
-      "sha256": "74d71a8033f285aaf150294454b8b2386bc8f2aba0f380c2439371148c563a95"
     }
   ],
   "pr": {
