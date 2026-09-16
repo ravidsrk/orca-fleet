@@ -96,7 +96,7 @@
    "text": "Handoff checklist complete: freeze commit+path, DAG path+table, blocked list, manifest naming MAPPED-WITH-BLOCKED"
   }
  ],
- "head_sha": "4f87dca6fe61eafe90bfca01f6aad721e0cd1279",
+ "head_sha": "cf290747893506a117508309166371b77b7255a7",
  "lighting": "lit",
  "negative_control": {
   "artifact": "docs/runs/campaign-2026-09-16-map-it/dag-task-list.json",
