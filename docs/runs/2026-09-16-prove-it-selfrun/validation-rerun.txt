@@ -20,7 +20,4 @@ ok   root-cause
 ok   ship-it
 ok   speed-it
 
-FAIL badge freshness — run scripts/gen-badges.py and commit:
-   - assets/badges/tests.json is stale (have '1384 in source', want '1385 in source') — run scripts/gen-badges.py
-
-Validation failed.
+All 21 missions valid; three-layer separation holds; evals valid.

@@ -87,6 +87,17 @@
       "commit": "f8b1d90608c79abc3d724f2d1f334d8de78c6307",
       "wtree": "c49ba105149d0e6fc6b26b9564f9c63ea2ff94ed",
       "artifact": "docs/runs/2026-09-16-prove-it-selfrun/validation-rerun.txt"
+    },
+    {
+      "label": "validation rerun 2026-09-16 (wave 2)",
+      "ts": "2026-09-16T07:13:44Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 0,
+      "duration_s": 0.668,
+      "commit": "0277bc5732f9538b4c067f837c86019d98287436",
+      "wtree": "aab8b094a2f97fbee4a7fcfadc63877e608c0d4e",
+      "artifact": "docs/runs/2026-09-16-prove-it-selfrun/validation-rerun.txt"
     }
   ],
   "unit": "prove-it-2026-09-16-PF-2",
