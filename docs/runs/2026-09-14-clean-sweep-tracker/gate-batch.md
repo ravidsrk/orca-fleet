@@ -14,6 +14,8 @@ separation (the private key stays out of band by design — who holds it?);
 Sigstore/Rekor anchor); (c) whether to re-open/track the transcript
 prerequisite — or park the whole unit. No unit work until answered.
 
+**Answered 2026-09-16:** Key custody: maintainer holds the offline private key, agents verify against the public half. Retention: Sigstore/Rekor anchor. Transcript prerequisite: TRACKED work before signing lands. #386 unparks on these terms.
+
 ## G2 · Branch protection on review/2026-09-14-holistic-fixes
 
 PR #397 was merged by the maintainer ~7 min before its verdict (out-of-process,
@@ -26,6 +28,8 @@ still in flight. The required check should derive from the verdict: block merge
 until the unit's GO verdict review is posted at the merge tip (reviewed_sha ==
 head_sha), not merely until any APPROVED exists. Closes Greptile thread
 4011973700's ask.
+
+**Answered 2026-09-16:** Applied 2026-09-16: main + review/2026-09-14-holistic-fixes protected (strict gates + Greptile, 1 approval + dismiss-stale, conversation resolution, admins enforced). Verdict-derived reviewed_sha==head_sha remainder tracked as #452.
 
 ## G3 · Merged-unit needs-human parks: post-merge independent APPROVE (2nd login)
 
@@ -41,6 +45,8 @@ so far: #392 U388 c680ee0, #391 U389 51019fb, #395 U364 8323c98 (merged as
 listed for completeness, no ask), #401 U387W 0d55f10 (merged as bff42ff1),
 #404 U393R 1e8ae08 (merged as f1b0a4f).
 Later units append theirs at close. Pre-existing ask, restated at close.
+
+**Waived 2026-09-16:** Single GitHub identity: independent APPROVEs impossible in-session. Maintainer accepts build-blind COMMENTED GO + executed-NC + green CI as sufficient; recorded per the ask.
 
 ## G4 · Q1 overtaken: fixtures + oracle built without the maintainer's pick
 
