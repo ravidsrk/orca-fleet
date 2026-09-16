@@ -1,0 +1,10 @@
+=== BOOTSTRAP-phase environment attestation (readonly; no integration BASE created — zero absorbable units) ===
+ts=2026-09-16T10:00:49Z
+preflight: OK — mode=readonly (binary + repo checks only; no BASE/PR invariants)
+preflight_exit=0
+--- orca status ---
+{"runtime.reachable": true, "appVersion": "1.4.203", "state": "ready"}
+--- repo merge policy (read before any absorption; none required) ---
+{"allow_merge_commit":true,"allow_rebase_merge":true,"allow_squash_merge":true,"default_branch":"main"}
+merge_policy_exit=0
+ts_end=2026-09-16T10:00:50Z

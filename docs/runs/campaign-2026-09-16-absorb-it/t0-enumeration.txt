@@ -1,0 +1,17 @@
+=== T0 ENUMERATION (recorded) ===
+t0_start=2026-09-16T10:00:41Z
+base_sha=6390743815f8f435181fa410cce374587128b30a
+head_sha=6390743815f8f435181fa410cce374587128b30a
+--- route 1: gh pr list (limit 200, single page covers full queue) ---
+[]
+exit=0
+--- route 2: REST API paginated ---
+{"count":0,"prs":[]}
+exit=0
+--- route 3: search API ---
+[]
+exit=0
+--- context: most recently closed PRs ---
+[{"mergedAt":"2026-09-16T09:01:10Z","number":438,"state":"MERGED","title":"Gate-batch as tooling: typed records + CLI, 2026-09-14 migrated"},{"mergedAt":"2026-09-16T08:25:41Z","number":437,"state":"MERGED","title":"Promote prove-it to self-run: bound run report (issue #410)"},{"mergedAt":"2026-09-16T08:13:34Z","number":436,"state":"MERGED","title":"Bind the 2026-09-14 clean-sweep run as its self-run proof (#411)"},{"mergedAt":"2026-09-16T08:51:19Z","number":435,"state":"MERGED","title":"Mechanize supervision: liveness watchdog + auto-nudge (#418)"},{"mergedAt":"2026-09-16T08:01:26Z","number":433,"state":"MERGED","title":"Re-pin the Orca runtime contract to v1.4.203 (pin-it #416)"}]
+exit=0
+t0_end=2026-09-16T10:00:44Z
