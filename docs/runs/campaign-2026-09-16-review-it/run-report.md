@@ -7,7 +7,7 @@ inside the run directory per the campaign brief (deviation from TEMPLATE.md's
 sibling-`.md` placement, recorded in Deviations).
 
 ```
-RUN: mission=review-it tier=doctrine-only inventory_at=<evidence-commit-B> manifest=docs/runs/campaign-2026-09-16-review-it/manifest.json verifier=RED waves=1
+RUN: mission=review-it tier=doctrine-only inventory_at=fa97fcf7c1152b8949892ae8f26a466b588ee8f4 manifest=docs/runs/campaign-2026-09-16-review-it/manifest.json verifier=RED waves=1
 ```
 
 | Field | Value |
