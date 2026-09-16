@@ -1,0 +1,138 @@
+{
+ "artifacts": [
+  {
+   "path": "docs/runs/campaign-2026-09-16-absorb-it/REFLECTION.md",
+   "sha256": "4b832536e7199560c68b7127c6c530e3ee3210144a19b5e0df494486d64a7933"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-absorb-it/ledger.md",
+   "sha256": "ece4fe3fac4d8916250c3bec9396236179733a3d3bc737632e2b804579147352"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-absorb-it/preflight.txt",
+   "sha256": "e4c3b27d2dd0da6d21aceef05325d62bddf1c8a9a952c6d76172094960b0d7e7"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-absorb-it/proof-status.txt",
+   "sha256": "b1e6e3988e6142ce64be2e21c8dc24faee807d94db29b19a566f0dfcf436c110"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-absorb-it/queue-digest.md",
+   "sha256": "c995722c7821d088ebf37a3ed57f141ca6d5b9cfa42a819df53ea27507bda011"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-absorb-it/t0-enumeration.txt",
+   "sha256": "9d8419dd7473063fc433d19ee4d2701dbdbba27b5ed541c8e0d1291d1ee73d20"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-absorb-it/t1-reenumeration.txt",
+   "sha256": "25a4e074c92123adcdbc6bc144d0ccf19e624a04f12c9b8a7ce97d84eb0327c5"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-absorb-it/tests.txt",
+   "sha256": "b12869df0267e59de1d1d3ae9be2d17b91c57e236ad32a8cfa6a02351c0da9cf"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-absorb-it/validation.txt",
+   "sha256": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-absorb-it/verifier-red1.txt",
+   "sha256": "dc1ca7bdd7a8abb267e6b60ddb47a77770e93216fcda772ebdff425841b53994"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-absorb-it/verifier.txt",
+   "sha256": "815dfe31d7669df7715a610728308aad13ad548636227a170582c5902f09360a"
+  }
+ ],
+ "base_sha": "6390743815f8f435181fa410cce374587128b30a",
+ "claim": "absorb-it self-test against orca-fleet itself: T0 enumeration and T1 re-enumeration both found zero open inbound PRs (3 routes, exit 0); queue dry, verdict ABSORBED, no dispatches, no closes, no gates owed.",
+ "commands": [
+  {
+   "artifact": "docs/runs/campaign-2026-09-16-absorb-it/validation.txt",
+   "cmd": "python3 scripts/validate.py",
+   "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+   "commit": "c237f02dfbf072d2738f6d66bfb213b407d3ee21",
+   "duration_s": 0.99,
+   "exit": 0,
+   "label": "validation",
+   "ts": "2026-09-16T10:01:47Z",
+   "wtree": "ee55c77128920619209271434e1e635b159f7598"
+  },
+  {
+   "artifact": "docs/runs/campaign-2026-09-16-absorb-it/tests.txt",
+   "cmd": "python3 -m unittest discover -s tests",
+   "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+   "commit": "c237f02dfbf072d2738f6d66bfb213b407d3ee21",
+   "duration_s": 282.094,
+   "exit": 0,
+   "label": "tests",
+   "ts": "2026-09-16T10:06:37Z",
+   "wtree": "32b7498c4c4d879b74810349f865aac666c1932a"
+  },
+  {
+   "artifact": "docs/runs/campaign-2026-09-16-absorb-it/verifier-red1.txt",
+   "cmd": "python3 runtime/scripts/verify.py --manifest docs/runs/campaign-2026-09-16-absorb-it/manifest.json --contract-source docs/runs/campaign-2026-09-16-absorb-it/queue-digest.json@c237f02dfbf072d2738f6d66bfb213b407d3ee21 --contract-digest a49b2d6d95a1701a525258076fb37db616e8f2c82e761516ccc794ad67289df1 --unit-class report-only",
+   "cmd_sha256": "3666f0ecc639146310e648fdf38f2f1cb96430219e04b6a82ed57cb591a1975b",
+   "commit": "c237f02dfbf072d2738f6d66bfb213b407d3ee21",
+   "duration_s": 0.326,
+   "exit": 2,
+   "label": "verifier",
+   "ts": "2026-09-16T10:07:08Z",
+   "wtree": "479461b2736df03510d31700b44806b26464432f"
+  },
+  {
+   "artifact": "docs/runs/campaign-2026-09-16-absorb-it/verifier.txt",
+   "cmd": "python3 runtime/scripts/verify.py --manifest docs/runs/campaign-2026-09-16-absorb-it/manifest.json --contract-source docs/runs/campaign-2026-09-16-absorb-it/queue-digest.md@5df31bb700b11387541e0072ebe8fddd07819bc6 --contract-digest c995722c7821d088ebf37a3ed57f141ca6d5b9cfa42a819df53ea27507bda011 --unit-class report-only",
+   "cmd_sha256": "8e8a542f18a363d62be67d304086b97bc1fe90266ea6576a362895e77247fbad",
+   "commit": "5df31bb700b11387541e0072ebe8fddd07819bc6",
+   "duration_s": 0.368,
+   "exit": 0,
+   "label": "verifier",
+   "ts": "2026-09-16T10:08:25Z",
+   "wtree": "4129a177a8d87a8520b1f19c4f77ee35bc3dbf5a"
+  },
+  {
+   "artifact": "docs/runs/campaign-2026-09-16-absorb-it/proof-status.txt",
+   "cmd": "python3 runtime/scripts/proof_status.py --check",
+   "cmd_sha256": "7c86d03188a425b13e31dcf3389233293326170c83d4ed9cb167160b388b34e3",
+   "commit": "5df31bb700b11387541e0072ebe8fddd07819bc6",
+   "duration_s": 0.02,
+   "exit": 0,
+   "label": "proof-status",
+   "ts": "2026-09-16T10:08:43Z",
+   "wtree": "dcfdf4478c5cbd90b660d05c2b0a8e4bc1da1965"
+  }
+ ],
+ "contract": {
+  "criterion_ids": [
+   "AQ-1",
+   "AQ-2",
+   "AQ-3"
+  ],
+  "digest": "c995722c7821d088ebf37a3ed57f141ca6d5b9cfa42a819df53ea27507bda011",
+  "source": "docs/runs/campaign-2026-09-16-absorb-it/queue-digest.md"
+ },
+ "criteria": [
+  {
+   "addressed": true,
+   "id": "AQ-1",
+   "text": "Full paginated enumeration of every open inbound PR at T0 is recorded with transcripts (no truncated listing)."
+  },
+  {
+   "addressed": true,
+   "id": "AQ-2",
+   "text": "Re-enumeration confirms zero open inbound PRs outside a terminal class; PRs opened or closed since T0 are reconciled."
+  },
+  {
+   "addressed": true,
+   "id": "AQ-3",
+   "text": "Terminal verdict ABSORBED is recorded with a ledger; no absorb / receipt / land / close phases are owed on an empty queue."
+  }
+ ],
+ "head_sha": "5df31bb700b11387541e0072ebe8fddd07819bc6",
+ "lighting": "lit",
+ "parked": [],
+ "toolchain": "python 3.13.15",
+ "unit": "campaign-2026-09-16-absorb-it/enumerate"
+}

@@ -1,0 +1,5 @@
+FAIL: report-only unit changed code ['docs/runs/campaign-2026-09-16-absorb-it/queue-digest.json'] and carries no signed dispatch record. unit_class arrives from the environment the worker controls, so this single value drops the negative control, the intent packet, lighting legality and reviewer_mode from a unit that changed behaviour. Verify it as a mutation, or have the coordinator sign the downgrade (#310)
+FAIL: redaction: artifact docs/runs/campaign-2026-09-16-absorb-it/validation.txt unreadable: artifact 'docs/runs/campaign-2026-09-16-absorb-it/validation.txt' is neither tracked at head_sha nor pinned by a sha256 in the manifest's artifacts[] integrity inventory — unpinned evidence (#267)
+FAIL: redaction: artifact docs/runs/campaign-2026-09-16-absorb-it/tests.txt unreadable: artifact 'docs/runs/campaign-2026-09-16-absorb-it/tests.txt' is neither tracked at head_sha nor pinned by a sha256 in the manifest's artifacts[] integrity inventory — unpinned evidence (#267)
+verify: 3 invariant(s) failed — unit is NOT done
+NOTE: --base not given — ancestry check skipped (pre-merge/offline)

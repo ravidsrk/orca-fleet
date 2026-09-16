@@ -40,6 +40,7 @@ git repositories and includes a fully bound positive case alongside a dozen refu
 | 2026-09-14 | [clean-sweep](2026-09-14-clean-sweep-self-run.md) | this repo (tracker close; 10 units, 2 waves) | self-run | yes | DRY-WITH-PARKED (10 units merged, parks disclosed) |
 | 2026-09-16 | [pin-it](2026-09-16-pin-it-416/) | this catalog's runtime doctrine against the installed Orca 1.4.203 binary (#416) | self-run | no — see `proof_status --check`; pin-it itself stays `doctrine-only` | PINNED-WITH-PARKED (sender-bound behavior replays need a live Orca terminal; OS/remote/paid-trust parks carry over; next re-pin #427) |
 | 2026-09-16 | [prove-it](2026-09-16-prove-it-self-run.md) | this catalog (verify.py kind gate, PF-2) | self-run | yes | COVERED (PF-2; 4/4 mutants killed) |
+| 2026-09-16 | [absorb-it](campaign-2026-09-16-absorb-it/) | this catalog (inbound PR queue @ `6390743`) | self-run | no — campaign self-test; mission claims no tier (stays `doctrine-only`) | ABSORBED (queue dry at T0 and T1; zero dispatches, zero closes) |
 
 Proof status across the catalog is validator-enforced: a mission cannot claim a tier
 above `doctrine-only` without a `proof_evidence:` path that resolves to a report here whose
