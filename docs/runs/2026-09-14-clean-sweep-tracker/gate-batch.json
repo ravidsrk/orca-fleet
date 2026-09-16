@@ -1,0 +1,70 @@
+{
+  "schema": "gate-batch/1",
+  "run_id": "run_0607bdc681e6",
+  "run_title": "2026-09-14 clean-sweep tracker",
+  "intro": "Open asks for the maintainer (one round, at close). Parked units reference these\nentries as their human/OPS ref.",
+  "gates": [
+    {
+      "id": "G1",
+      "title": "Q2 / #386 (S2): sign the manifest/inventory — key custody + backend",
+      "question": "#386 stays needs-human parked. Triage-confirmed: the retention pointer is a\nplaceholder, the run-close inventory is hash-only, and the prerequisite\ntranscript was never built. An agent CAN implement signing against the existing\nkey scheme and specify a backend on paper. NEEDS: (a) key custody / role\nseparation (the private key stays out of band by design — who holds it?);\n(b) retention backend choice (a concrete tamper-evident store, or a\nSigstore/Rekor anchor); (c) whether to re-open/track the transcript\nprerequisite — or park the whole unit. No unit work until answered.",
+      "asked": "2026-09-14",
+      "status": "owed",
+      "answer": null,
+      "answered": null,
+      "related": [
+        "#386"
+      ],
+      "blocking": [
+        "#386"
+      ]
+    },
+    {
+      "id": "G2",
+      "title": "Branch protection on review/2026-09-14-holistic-fixes",
+      "question": "PR #397 was merged by the maintainer ~7 min before its verdict (out-of-process,\ndisclosed, verify 6/6 after). No protocol binds a direct human merge. ASK:\nenable branch protection requiring a passing review before merge on the review\nbranch (and main, if not already). AMENDED 2026-09-15T12:35Z (DRAIN-387):\n\"a passing review\" alone is insufficient — #397 carried a Greptile APPROVED\nbefore its merge while the pipeline's own blind verdict (the real gate) was\nstill in flight. The required check should derive from the verdict: block merge\nuntil the unit's GO verdict review is posted at the merge tip (reviewed_sha ==\nhead_sha), not merely until any APPROVED exists. Closes Greptile thread\n4011973700's ask.",
+      "asked": "2026-09-14",
+      "status": "owed",
+      "answer": null,
+      "answered": null,
+      "related": [
+        "#397"
+      ],
+      "blocking": []
+    },
+    {
+      "id": "G3",
+      "title": "Merged-unit needs-human parks: post-merge independent APPROVE (2nd login)",
+      "question": "One GitHub identity exists on this host, so merged unit PRs carry blind-verdict\nGOs but no independent APPROVED review, and their verify.py review legs stay\nRED (5/6, disclosed). ASK: with a second login, independently approve each\nmerged head below — or rule the blind-verdict + executed-negative-control\ncompensation sufficient and waive, with the waiver recorded here. Reviewed heads\nso far: #392 U388 c680ee0, #391 U389 51019fb, #395 U364 8323c98 (merged as\n1b64781), #400 U393 7630815, #402 U387G 318542b (merged as a769a64e; appended\n2026-09-15T07:50Z per R387P-r3 STANDARDS S3-2 — T9's close omitted it),\n#403 U387P 19be7a1 (merged as b9b71df6; review leg GREEN via Greptile APPROVED —\nlisted for completeness, no ask), #401 U387W 0d55f10 (merged as bff42ff1),\n#404 U393R 1e8ae08 (merged as f1b0a4f).\nLater units append theirs at close. Pre-existing ask, restated at close.",
+      "asked": "2026-09-14",
+      "status": "owed",
+      "answer": null,
+      "answered": null,
+      "related": [
+        "#392",
+        "#391",
+        "#395",
+        "#400",
+        "#402",
+        "#403",
+        "#401",
+        "#404"
+      ],
+      "blocking": []
+    },
+    {
+      "id": "G4",
+      "title": "Q1 overtaken: fixtures + oracle built without the maintainer's pick",
+      "question": "Q1 asked fixtures-as-specified vs fixtures-plus-oracle vs downgrade for #364\n(S1). Pre-takeover, the run BUILT fixtures-plus-oracle (U364, merged 1b64781;\nthe sticking F-1 remediated by T6, merged 01d954e) and closed #364. Disclosed\nfor retro-confirmation; the work is evidence-bound either way. No blocking ask.",
+      "asked": "2026-09-14",
+      "status": "overtaken",
+      "answer": null,
+      "answered": "2026-09-14",
+      "related": [
+        "#364"
+      ],
+      "blocking": []
+    }
+  ],
+  "resolved_by_events": "- Q3 (#385 diagrams): all 21 mission guides now embed diagrams; the parity\n  suite passes with KNOWN_GAPS empty.\n- #235 (H-02 marketplace submissions): remains needs-human parked (external\n  accounts/listings); the maintainer works it directly."
+}
