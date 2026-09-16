@@ -1,0 +1,85 @@
+{
+  "id": "76ffda1e-df66-4928-9979-f685d98e5eb7",
+  "ok": true,
+  "result": {
+    "runId": "run_1e33949c0db0",
+    "taskId": "task_065e9d165753",
+    "dispatchId": "ctx_1bf8670818e5",
+    "state": "ready",
+    "stage": "input_accepted",
+    "turnStart": "unsupported",
+    "setup": {
+      "requested": "not_applicable",
+      "effective": "not_applicable",
+      "source": "existing_worktree",
+      "hookFound": false,
+      "startupPolicy": "start-immediately",
+      "state": "not_applicable"
+    },
+    "launch": {
+      "requested": {
+        "agent": "grok",
+        "model": null,
+        "effort": null
+      },
+      "effective": {
+        "agent": "grok",
+        "model": null,
+        "effort": null
+      }
+    },
+    "mode": {
+      "mode": "terminal",
+      "preferred": "terminal",
+      "reason": "user_default",
+      "detail": "Started a terminal agent worker, the default for new agent tabs in your settings."
+    },
+    "timeoutMs": 300000,
+    "effects": [
+      {
+        "kind": "worktree",
+        "action": "reused",
+        "id": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/prove-it-pf2-rerun"
+      },
+      {
+        "kind": "setup",
+        "action": "not_applicable",
+        "state": "not_applicable"
+      },
+      {
+        "kind": "terminal",
+        "role": "agent",
+        "action": "created",
+        "id": "term_fb921f60-6111-4308-8ea8-43ad400da0bb",
+        "surface": "visible"
+      },
+      {
+        "kind": "dispatch_input",
+        "role": "agent",
+        "id": "term_fb921f60-6111-4308-8ea8-43ad400da0bb",
+        "state": "accepted"
+      }
+    ],
+    "prompt": {
+      "requestId": "a76ea1ae-07e5-4494-b163-c769f9a36b89",
+      "stages": [
+        "input_accepted"
+      ],
+      "provider": "unsupported",
+      "observation": "unsupported",
+      "processIncarnation": "8fb8cc77-ff16-4503-8b44-ec8e0483e754",
+      "generation": 36,
+      "baselineWorkingSequence": 0,
+      "baselineExplicitWorkingStartedAt": null,
+      "baselinePermissionSequence": 0
+    },
+    "residualResources": [],
+    "mutation": {
+      "requestId": "a76ea1ae-07e5-4494-b163-c769f9a36b89",
+      "replayed": false
+    }
+  },
+  "_meta": {
+    "runtimeId": "75429d93-a441-4225-9f94-18e893d3212e"
+  }
+}

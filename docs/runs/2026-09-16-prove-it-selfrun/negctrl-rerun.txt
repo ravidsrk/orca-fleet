@@ -1,0 +1,133 @@
+### prove-it self-run 2026-09-16 — criterion PF-2 negative control (WAVE 2 RE-EXECUTION)
+### target: runtime/scripts/verify.py check_oracle_scope kind gate (lines 988-989)
+### proof command: python3 -m unittest tests.test_verify.OracleScopeKindTest
+### net: OracleScopeKindTest, 4 tests (wave 1 ran 3; this wave adds
+###      test_non_dict_scope_refused_at_kind_gate, which exercises the
+###      `not isinstance(scope, dict)` disjunct the wave-1 net left unpinned)
+
+Pinned mutant (tool=hand): delete the kind-gate lines. A scope of any kind then
+proceeds to the deeper gates instead of being refused here. Unified diff below,
+captured with `git diff` after applying (raw copy: audit-m1-rerun.diff). The
+mutant was RE-DERIVED this wave, not copied: the re-derived diff is BYTE-
+IDENTICAL to wave 1's audit-m1.diff, index line included.
+
+diff --git a/runtime/scripts/verify.py b/runtime/scripts/verify.py
+index 5935138..edac0d0 100755
+--- a/runtime/scripts/verify.py
++++ b/runtime/scripts/verify.py
+@@ -985,8 +985,6 @@ def check_oracle_scope(m, source, digest):
+     scope = doc.get("oracle_scope") if doc else None
+     if scope is None:
+         return []
+-    if not isinstance(scope, dict) or scope.get("kind") not in ("characterization", "documentation"):
+-        return ["oracle scope: kind must be characterization or documentation"]
+     if any(scope.get(k) != m.get(k) for k in ("base_sha", "head_sha")):
+         return ["oracle scope: authorized commit pair differs from the manifest"]
+     ids = scope.get("criterion_ids")
+CONTROL TRANSCRIPT (pinned mutant m1)
+== [1] PF-2 on the clean tree (expect OK; exit 0) ==
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.057s
+
+OK
+exit 0
+(raw: audit-rerun-clean.txt)
+
+== [2] mutant applied (the diff above) ==
+
+== [3] PF-2 under the mutant (expect FAIL — mutant KILLED; exit 1) ==
+F..E
+======================================================================
+ERROR: test_non_dict_scope_refused_at_kind_gate (tests.test_verify.OracleScopeKindTest.test_non_dict_scope_refused_at_kind_gate)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/prove-it-pf2-rerun/tests/test_verify.py", line 2963, in test_non_dict_scope_refused_at_kind_gate
+    verify.check_oracle_scope({}, rel, digest),
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/orca/workspaces/orca-fleet/prove-it-pf2-rerun/runtime/scripts/verify.py", line 988, in check_oracle_scope
+    if any(scope.get(k) != m.get(k) for k in ("base_sha", "head_sha")):
+       ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/orca/workspaces/orca-fleet/prove-it-pf2-rerun/runtime/scripts/verify.py", line 988, in <genexpr>
+    if any(scope.get(k) != m.get(k) for k in ("base_sha", "head_sha")):
+           ^^^^^^^^^
+AttributeError: 'str' object has no attribute 'get'
+
+======================================================================
+FAIL: test_bogus_kind_refused_at_kind_gate (tests.test_verify.OracleScopeKindTest.test_bogus_kind_refused_at_kind_gate)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/prove-it-pf2-rerun/tests/test_verify.py", line 2955, in test_bogus_kind_refused_at_kind_gate
+    self.assertEqual(
+    ~~~~~~~~~~~~~~~~^
+        verify.check_oracle_scope({}, rel, digest),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        ["oracle scope: kind must be characterization or documentation"])
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ["oracle scope: must bind every criterion in this unit's contract"] != ['oracle scope: kind must be characterization or documentation']
+
+First differing element 0:
+"oracle scope: must bind every criterion in this unit's contract"
+'oracle scope: kind must be characterization or documentation'
+
+- ["oracle scope: must bind every criterion in this unit's contract"]
++ ['oracle scope: kind must be characterization or documentation']
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.061s
+
+FAILED (failures=1, errors=1)
+exit 1
+(raw: audit-rerun-m1-red.txt)
+
+READING THE m1 RED — one kill, one behaviour demonstration:
+- test_bogus_kind_refused_at_kind_gate FAILS with AssertionError at the PF-2
+  assertion. This is THE KILL: without the gate a bogus kind is no longer
+  refused here, it falls through to the ids gate and returns a different
+  documented error.
+- test_non_dict_scope_refused_at_kind_gate ERRORS with AttributeError
+  ('str' object has no attribute 'get') at verify.py:988. Recorded honestly as
+  an error, NOT a failure: with the gate deleted, a non-mapping scope is not
+  merely mis-refused, it crashes the very next gate. The gate is what stands
+  between a malformed scope and an unhandled exception — that is the behaviour
+  the test pins, and an error is the correct observable signature of its loss.
+- The two legal-kind cases still pass: deleting the gate cannot stop a legal
+  kind from reaching the pair gate, so they are silent on m1 by construction.
+- KILLED criteria met: failures=1 (>=1) AND AssertionError present.
+
+== [4] mutant reverted (`git checkout -- runtime/scripts/verify.py`; cmp against the pristine copy: identical) ==
+
+== [5] PF-2 after revert (expect OK; exit 0) ==
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.060s
+
+OK
+exit 0
+(raw: audit-rerun-reverted.txt)
+SUPPORTING MUTANTS (same proof command; harness intact in every run; each reverted and cmp-verified against pristine)
+- m2 (negation flip `not in` -> `in`): FAILED (failures=3), exit 1 — KILLED (raw: audit-rerun-m2-red.txt)
+  Kills the three dict-scope tests. test_non_dict_scope_refused_at_kind_gate
+  STILL PASSES under m2 and is recorded as a deliberate survivor of this
+  mutant: m2 rewrites only the `kind not in (...)` disjunct, leaving
+  `not isinstance(scope, dict)` intact, so a string scope is still refused by
+  the surviving disjunct. m2 is killed by the net as a whole (3 kills); the
+  non-dict case is pinned by m1, where it goes RED as an error.
+- m3 (tuple shrunk to `("documentation",)`): FAILED (failures=1), exit 1 — KILLED (raw: audit-rerun-m3-red.txt)
+  Kills test_characterization_passes_kind_gate — the admitted kind it removes.
+- m4 (tuple shrunk to `("characterization",)`): FAILED (failures=1), exit 1 — KILLED (raw: audit-rerun-m4-red.txt)
+  Kills test_documentation_passes_kind_gate — the admitted kind it removes.
+COVERAGE RE-MAP
+Lines 988 and 989 are both EXECUTED by the net (neither appears in coverage's
+Missing column; 987 and 992-1029 do). Raw: coverage-rerun.txt. The mutation is
+the proof; the coverage number is context.
+VERDICT
+Pinned mutant m1 KILLED: the proof goes RED under the control (exit 1, FAILED
+with failures=1, errors=1 — an AssertionError at the criterion assertion for
+the bogus kind, plus a behaviour-demonstrating AttributeError for the non-dict
+scope) and GREEN on the clean tree (exit 0, OK, 4 tests).
+Supporting mutants m2/m3/m4 KILLED: 4/4 across the kind-gate expression.
+No SURVIVOR at this seam: every mutant of the kind-gate expression is killed by
+at least one test of the net, and each half of PF-2 — refuse an illegal kind,
+admit both legal kinds — is bound by a test asserting an independent literal
+error string at the public seam check_oracle_scope(m, source, digest).

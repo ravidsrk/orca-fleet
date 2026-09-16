@@ -9,7 +9,20 @@ axis round-2 identified:
 ```sh
 python3 bench/vf-bench/vfbench.py         # human table
 python3 bench/vf-bench/vfbench.py --json  # machine summary
+python3 bench/vf-bench/gate.py           # the CI gate (same run, pass/fail)
 ```
+
+## The CI gate (#412)
+
+The `vfbench` job in `validate.yml` runs `gate.py` on every PR, so the 0% false-done
+rate is a held property, not a historical fact. It fails the build when the corpus
+drifts off its `VERSION`+`CANARY` pin or its `traps/*.json` content digest (so a trap
+can be neither weakened nor removed without updating the pin), when any trap is
+skipped (a skip is a hole in the score, hence `fetch-depth: 0`), when `verify.py`'s
+false-done climbs above 0, or when any of the three valid controls stops passing.
+**RED means fix the verifier, never the corpus** — a deliberate corpus change updates
+the pin in `gate.py` (`--print-digest` recomputes it) in the same PR, explicitly and
+reviewably.
 
 ## What it does
 

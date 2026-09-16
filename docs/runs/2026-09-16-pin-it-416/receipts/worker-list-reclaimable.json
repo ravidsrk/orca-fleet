@@ -1,0 +1,26 @@
+{
+ "id": "5603361e-bbda-4994-928d-651fca0ebd20",
+ "ok": true,
+ "result": {
+  "workers": [],
+  "counts": {
+   "retained": 112,
+   "released": 47
+  },
+  "page": {
+   "limit": 100,
+   "total": 0,
+   "hasMore": false,
+   "nextCursor": "\u2026"
+  },
+  "scope": {
+   "run": "run_0607bdc681e6",
+   "source": "flag"
+  }
+ },
+ "redaction": {
+  "workersOmitted": 0,
+  "nextCursorOmitted": true,
+  "reason": "worker rows named unrelated local workspaces, absolute paths, terminal handles, and dispatch IDs; nextCursor decoded to a continuation record containing dispatchId (same convention as docs/runs/2026-09-13-pin-it-266). Enum values and key shape of row 1 kept for the liveness-resume projection claim."
+ }
+}

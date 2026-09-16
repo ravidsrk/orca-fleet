@@ -148,10 +148,12 @@ closed, or its feedback has gone quiet (`awaiting-maintainer-merge`). The `FOLLO
 | `externally-resolved` | Closed upstream by someone else mid-run — counted, not ours | nobody — counted, not ours |
 | `out-of-scope` | Wrong mission; handed off with a pointer | the mission it was handed to |
 
-The run itself ends `CONTRIBUTED` (every actionable issue at a terminal, parks only the clean
-classes: `externally-covered`, `externally-resolved`, gate-approved `refuted` / `duplicate`,
-`out-of-scope`) or `CONTRIBUTED-WITH-PARKED` (≥1 `needs-human` park, a stuck gate — degraded, and
-never reported as the clean terminal).
+*The run itself ends in exactly one of these — run-level outcomes, not issue states:*
+
+| State | Meaning | Who acts on it |
+|---|---|---|
+| `CONTRIBUTED` | Every actionable issue is at a terminal above and the only parks are the clean classes: `externally-covered`, `externally-resolved`, gate-approved `refuted` / `duplicate`, `out-of-scope` | the maintainers merge at their pace |
+| `CONTRIBUTED-WITH-PARKED` | The set is exhausted but ≥1 `needs-human` park remains (a stuck gate) — degraded, never reported as `CONTRIBUTED` | you clear each named park |
 
 ## Human gates
 

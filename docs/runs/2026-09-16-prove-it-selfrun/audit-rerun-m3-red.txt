@@ -1,0 +1,25 @@
+.F..
+======================================================================
+FAIL: test_characterization_passes_kind_gate (tests.test_verify.OracleScopeKindTest.test_characterization_passes_kind_gate)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/prove-it-pf2-rerun/tests/test_verify.py", line 2969, in test_characterization_passes_kind_gate
+    self.assertEqual(
+    ~~~~~~~~~~~~~~~~^
+        verify.check_oracle_scope({}, rel, digest),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        ["oracle scope: authorized commit pair differs from the manifest"])
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['oracle scope: kind must be characterization or documentation'] != ['oracle scope: authorized commit pair differs from the manifest']
+
+First differing element 0:
+'oracle scope: kind must be characterization or documentation'
+'oracle scope: authorized commit pair differs from the manifest'
+
+- ['oracle scope: kind must be characterization or documentation']
++ ['oracle scope: authorized commit pair differs from the manifest']
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.101s
+
+FAILED (failures=1)

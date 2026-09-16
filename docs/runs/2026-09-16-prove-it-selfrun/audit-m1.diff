@@ -1,0 +1,13 @@
+diff --git a/runtime/scripts/verify.py b/runtime/scripts/verify.py
+index 5935138..edac0d0 100755
+--- a/runtime/scripts/verify.py
++++ b/runtime/scripts/verify.py
+@@ -985,8 +985,6 @@ def check_oracle_scope(m, source, digest):
+     scope = doc.get("oracle_scope") if doc else None
+     if scope is None:
+         return []
+-    if not isinstance(scope, dict) or scope.get("kind") not in ("characterization", "documentation"):
+-        return ["oracle scope: kind must be characterization or documentation"]
+     if any(scope.get(k) != m.get(k) for k in ("base_sha", "head_sha")):
+         return ["oracle scope: authorized commit pair differs from the manifest"]
+     ids = scope.get("criterion_ids")

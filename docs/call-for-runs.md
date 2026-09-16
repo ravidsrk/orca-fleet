@@ -57,15 +57,13 @@ it is still listed, the promotion has not landed yet.
 
 ## Promotions already in flight
 
-These three are also at `doctrine-only`, but a promotion is being worked —
+This one is also at `doctrine-only`, but a promotion is being worked —
 check the linked issue before running one, or your run may duplicate a
 report already heading for review.
 
 <!-- call-for-runs:in-flight:start -->
 
-- [ ] `clean-sweep` — self-run promotion in flight ([roadmap #411](https://github.com/ravidsrk/orca-fleet/issues/411)); no envelope exists yet, the report is authored from the 2026-09-14 tracker run.
 - [ ] `harden-it` — self-run promotion in flight ([roadmap #409](https://github.com/ravidsrk/orca-fleet/issues/409)); a fresh envelope at `docs/reports/harden-it-selfrun/`, the existing external-run envelope staying the historical scoped-demo record.
-- [ ] `prove-it` — self-run promotion in flight ([roadmap #410](https://github.com/ravidsrk/orca-fleet/issues/410)).
 
 <!-- call-for-runs:in-flight:end -->
 

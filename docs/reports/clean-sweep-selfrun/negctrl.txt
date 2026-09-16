@@ -1,0 +1,103 @@
+### clean-sweep self-run — negative controls per unit (run_0607bdc681e6, 2026-09-14)
+### Source: the run ledger docs/runs/2026-09-14-clean-sweep-tracker.md + unit manifests.
+### Each entry: the control, the observed fail-without-fix (RED), the observed pass-with-fix
+### (GREEN), and the SHAs that bind them. Re-derive any entry from the cited commit.
+
+[STAB] land 4 PR-review hunks — rides PR #387
+  control: coordinator re-execution of the unit gates at the landed commits.
+  RED-without-fix: n/a (landing, not a bug fix) — gates re-executed exit 1 / 11 failures,
+    matching the worker's claim (ledger STAB row).
+  GREEN: 1285 OK + full local battery green at the pushed tip.
+  SHAs: 1215e09 9651a52 8f7d5ac 917f9fd on BASE review/2026-09-14-holistic-fixes.
+
+[T1/U388] #388 evidence-run lockfile dirties worktree — PR #392 @c680ee0, merged 8c36b4a
+  control: NoLedgerLitter suite + no-lock mutant (C-2: lock removed -> litter returns).
+  RED: coordinator re-ran NC 2 NoLedgerLitter failures; C-2 RED 10/10 vs the no-lock
+    mutant at build; R1 SPEC independently corroborated (own no-lock mutant RED 6/6).
+  GREEN: 26/26 unit + 1295 OK full suite at reviewed tip c680ee0.
+  SHAs: reviewed==head c680ee0; merge 8c36b4a; manifest
+    docs/runs/2026-09-14-clean-sweep-tracker/u388-manifest.json.
+
+[T2/U389] #389 run_report WIP validation accepts incomplete reports — PR #391 @51019fb, merged 1bdb20c
+  control: settings-row-binds vs control-refused differential + doubled-wave / placeholder
+    mutants + per-cell integer mutants (builders/reviewers/wave).
+  RED: build NC re 10F+1E; R2 TEST reproduced the doubled-wave gap (M2 survives via the
+    absent-wave leg) and the digit-led rule gap (M5/M5b survive); r4 close: 5 reverts +
+    12 mutants all RED; R3 TEST: NC 21+1 matches the manifest.
+  GREEN: 65 OK unit + 1309 OK full suite at reviewed tip 51019fb.
+  SHAs: reviewed==head 51019fb; merge 1bdb20c.
+
+[T4/U385] #385 historical-docs polish, agent slice — PR #390 @d6fc2cc, merged 32da76e
+  control: C-1 revert-production-path-only (the spec's both-paths revert was withdrawn:
+    it restores the base test module = green, and verify.py refuses TEST paths per #280);
+    C-2 witnessed by a throwaway hand-mutation (U385 precedent).
+  RED: C-1-only revert RED (coordinator re-ran); V-ledger "NC re C-1-only RED".
+  GREEN: full suite "Ran 1290 tests" OK + nc-command "Ran 31 tests" OK at d6fc2cc;
+    verify.py 6/6 GREEN (review leg via Greptile APPROVED@d6fc2cc).
+  SHAs: reviewed==head d6fc2cc; merge 32da76e.
+
+[T3/U364] #364 fixture-backed evals + workspace-state oracle — PR #395 @8323c98, merged 1b64781
+  control: oracle over 21 fixture cases; per-case violating workspaces; gut-one survey.
+  RED: C-1 RED 21/21 at base; NC r4 exit 1 (23F+160E); r1/r2/r3 NO-GO rounds each
+    reproduced their Requireds against the real oracle.
+  GREEN: 98 OK unit + 1339 OK full suite at reviewed tip 8323c98.
+  SHAs: reviewed==head 8323c98; merge 1b64781 (out-of-process, disclosed).
+
+[T6/U364FF] #364 prove-it/oncall-it venv glob scoping (fix-forward) — PR #397 @2967804, merged 01d954e
+  control: revert the two scoped case files; gut-one survey 12/12; 36-mutant survey.
+  RED: NC exit 1 (14F); 36-mutant survey 0 survivors (TEST axis).
+  GREEN: 100 OK evals + 1344 OK full suite at reviewed tip 2967804; verify.py 6/6 GREEN
+    (review leg via Greptile APPROVED — first full-green unit this run).
+  SHAs: reviewed==head 2967804; merge 01d954e (out-of-process ~7min pre-verdict, disclosed).
+
+[T7/U393] #393 mixed-version rollout lock — PR #400 @7630815, merged 6d9e46a
+  control: NC-1 lock-behavior suite (10 runs), NC-2 exact-3 record-shape check;
+    unforced schedule 0/60 + forced-schedule RED at fork.
+  RED: NC-1 10/10 RED, NC-2 exact-3 (TEST axis, 51 mutation runs); race replayed RED
+    (failures=1) at fork in a scratch worktree.
+  GREEN: 28 OK unit + HEAD 10/10 GREEN at reviewed tip 7630815.
+  SHAs: reviewed==head 7630815; merge 6d9e46a.
+
+[T8/U387P] #387-threads ledger/process remediation — PR #403 @19be7a1, merged b9b71df6
+  control: committed probe sh docs/runs/2026-09-14-clean-sweep-tracker/u387p-probe.sh
+    (C-1 park-cell pins, C-2 head_tree equality, C-3 template greps, C-4 rule-body
+    anchors) + 22 hand mutants (second_witness) + per-commit RED replays. GRADED UNIT:
+    the promotion re-executed this control via verify.py --execute-nc (see
+    verifier-u387p.txt): revert applied at head_sha -> probe exit 1 (RED); clean
+    head_sha -> probe exit 0 (GREEN).
+  RED: 4/4 probes RED at base_sha; 3/4 RED with the three C-1..C-3 paths reverted;
+    TA-R1 relabel mutant RED; executed_ok True (TEST r3).
+  GREEN: 0/4 probes at reviewed tip 19be7a1; verify.py 6/6 GREEN (review leg via
+    Greptile APPROVED 5206957088@19be7a1).
+  SHAs: reviewed==head 19be7a1; merge b9b71df6.
+
+[T9/U387G] #387-threads eval-glob holes — PR #402 @318542b, merged a769a64e
+  control: empty-glob survey over all 21 missions; M1-M4 mutants; R2/R3/R4 mutants.
+  RED: C-2 found oncall-it AND document-it red (fixed); M4 survived once, then killed
+    by test hardening (validated legit, not tautological, by TEST axis).
+  GREEN: 109 OK unit + 1360 OK full suite at reviewed tip 318542b.
+  SHAs: reviewed==head 318542b; merge a769a64e.
+
+[T10/U387W] #387-threads WIP-curve rows scope — PR #401 @0d55f10, merged bff42ff1
+  control: 52-control NC (oracle-backed section/fence/setext/container mutants;
+    markdown-it-py oracle from r4 on); NC-1 section-scope suite, NC-2 row-completeness.
+  RED: each of the 7 rounds reproduced its Requireds (fail-open binds [] / fail-closed
+    refusals) against base + oracle; r7 TEST transcript: NC-1 46, NC-2 1, MR1 2,
+    MN1a/b 1 — all reproduce.
+  GREEN: 83 OK unit + 1378 OK full suite at reviewed tip 0d55f10.
+  SHAs: reviewed==head 0d55f10; merge bff42ff1.
+
+[T11/U393R] #387-thread-4012510839 sidecar-creation race — PR #404 @1e8ae08, merged f1b0a4f
+  control: deterministic SidecarCreationRace test (barriers, no bare sleeps);
+    M1/M2/M3 killer mutants (incl. coordinator M3: nullcontext rejoin).
+  RED: race test RED 20/20 at fork 62da77c; M1/M2/M3 RED 20/20 each; (REFACTOR+M1)
+    RED replayed in scratch; coordinator's no-join-on-rejoin mutant survived 20/20
+    pre-fix (the gap F-3 closed).
+  GREEN: 31 OK unit + 1381 OK full suite at reviewed tip 1e8ae08.
+  SHAs: reviewed==head 1e8ae08; merge f1b0a4f.
+
+[PARKS — no control, by design]
+  #386 (T5): needs-human — key custody + retention backend undecided (Q2, gate-batch G1).
+  #235: needs-human — external marketplace accounts/listings; maintainer works it directly.
+  Review legs of T1/T2/T3/T7/T9/T10/T11: needs-human — post-merge independent APPROVE
+    (2nd login) per gate-batch G3; verify.py re-runnable, gap recoverable, disclosed.

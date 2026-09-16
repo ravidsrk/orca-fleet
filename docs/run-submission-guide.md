@@ -160,6 +160,12 @@ retrofit notes below.
 
 ## Retrofit notes for the Phase-1 reports (acceptance: bundle conformance)
 
+> **Update (post-#410/#411 merge):** the prove-it and clean-sweep promotions have
+> since landed with conforming bindable cores (`docs/runs/2026-09-16-prove-it-self-run.md`
+> and `docs/runs/2026-09-14-clean-sweep-self-run.md`) — read those reports, not the
+> historical envelopes below, as the current worked examples. The deltas below are kept
+> as the verified-at-8784aa9 record; only #409's not-yet-authored envelope still owes them.
+
 The Phase-1 promotion issues (#409, #410, #411) were in flight when this
 guide was written — no promotion PRs open, no commits on their branches —
 so the bundle format is drafted against the on-disk report directories,
