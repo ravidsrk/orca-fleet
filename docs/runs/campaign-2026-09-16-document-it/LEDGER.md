@@ -2,7 +2,7 @@
 
 RUN: solo-no-orca-run · COORDINATOR: workflow-child-a4a0bde3 · BASE: campaign/document-it-selftest · FORK_POINT: 6390743815f8f435181fa410cce374587128b30a · T0: 2026-09-16T10:06:08Z · SOURCE: extractor `python3 docs/runs/campaign-2026-09-16-document-it/extractor/extract.py` digest sha256:058e51cdf0384da8e4f1d958f115a5beac080c453fc796c1849921a00022993a (57 entities) · WIP: builders=1 reviewers=1
 
-PHASE: BUILDING
+PHASE: DONE
 
 Worker pack router: matt (sole router for every cell worker; addy never co-mounted).
 No-gh lane: local-merge chain on BASE, one commit per cell, `no-gh: local-merge`.
@@ -11,38 +11,38 @@ solo self-test; the mechanical oracle is the claim check + rename control + re-d
 
 | task_id | entity | quadrant | GAP | BUILD_DONE | CLAIMS_OK | NC_RED | PR_OPEN | BOT | REVIEWED | MERGED | REACHABLE | WT_CLEAN | lighting | park | evidence |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| doc-r01 | cli:runtime/scripts/decisions.py | reference | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-r01.md @107df88 |
-| doc-r02 | cli:runtime/scripts/deny-hook.sh | reference | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-r02.md @1aa143a |
-| doc-r03 | cli:runtime/scripts/diff_scope.py | reference | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-r03.md @909445a |
-| doc-r04 | cli:runtime/scripts/ed25519.py | reference | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-r04.md @d32fb07 |
-| doc-r05 | cli:runtime/scripts/egress.py | reference | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-r05.md @8ac13c7 |
-| doc-r06 | cli:runtime/scripts/floor_guard.py | reference | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-r06.md @0f840c5 |
-| doc-r07 | cli:runtime/scripts/gate-batch.py | reference | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-r07.md @aade22d |
-| doc-r08 | cli:runtime/scripts/guard_text.py | reference | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-r08.md @19db585 |
-| doc-r09 | cli:runtime/scripts/hitl-loop.template.sh | reference | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-r09.md @b452bb0 |
-| doc-r10 | cli:runtime/scripts/pm.py | reference | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-r10.md @6036c0a |
-| doc-r11 | cli:runtime/scripts/sandbox_doctor.py | reference | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-r11.md @a6cedd3 |
-| doc-r12 | cli:runtime/scripts/spawn_worker.sh | reference | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-r12.md @65fb669 |
-| doc-r13 | cli:runtime/scripts/watchdog.py | reference | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-r13.md @52d9f20 |
-| doc-r14 | cli:runtime/scripts/wtree.sh | reference | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-r14.md @0e6db58 |
-| doc-r15 | config:runtime/one-way-doors.json | reference | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-r15.md @80da007 |
-| doc-r16 | config:runtime/watchdog.json | reference | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-r16.md @29a3d24 |
-| doc-x01 | cli:runtime/scripts/decisions.py | explanation | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-x01.md @3bbbabd |
-| doc-x02 | cli:runtime/scripts/deny-hook.sh | explanation | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-x02.md @e03c695 |
-| doc-x03 | cli:runtime/scripts/diff_scope.py | explanation | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-x03.md @5577128 |
-| doc-x04 | cli:runtime/scripts/ed25519.py | explanation | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-x04.md @6ab1093 |
-| doc-x05 | cli:runtime/scripts/egress.py | explanation | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-x05.md @b219fe5 |
-| doc-x06 | cli:runtime/scripts/floor_guard.py | explanation | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-x06.md @e735c7f |
-| doc-x07 | cli:runtime/scripts/gate-batch.py | explanation | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-x07.md @b03989d |
-| doc-x08 | cli:runtime/scripts/guard_text.py | explanation | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-x08.md @85566a4 |
-| doc-x09 | cli:runtime/scripts/hitl-loop.template.sh | explanation | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-x09.md @4be0a02 |
-| doc-x10 | cli:runtime/scripts/pm.py | explanation | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-x10.md @220a552 |
-| doc-x11 | cli:runtime/scripts/sandbox_doctor.py | explanation | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-x11.md @2b8426d |
-| doc-x12 | cli:runtime/scripts/spawn_worker.sh | explanation | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-x12.md @6d8f343 |
-| doc-x13 | cli:runtime/scripts/watchdog.py | explanation | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-x13.md @7401e49 |
-| doc-x14 | cli:runtime/scripts/wtree.sh | explanation | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-x14.md @0cd6cfe |
-| doc-x15 | config:runtime/one-way-doors.json | explanation | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-x15.md @208552d |
-| doc-x16 | config:runtime/watchdog.json | explanation | critical | t | t | t | n/a | n/a | t | f | f | n/a | lit | | cells/doc-x16.md |
+| doc-r01 | cli:runtime/scripts/decisions.py | reference | critical | t | t | t | n/a | n/a | t | t | t | n/a | lit | | cells/doc-r01.md @107df88 |
+| doc-r02 | cli:runtime/scripts/deny-hook.sh | reference | critical | t | t | t | n/a | n/a | t | t | t | n/a | lit | | cells/doc-r02.md @1aa143a |
+| doc-r03 | cli:runtime/scripts/diff_scope.py | reference | critical | t | t | t | n/a | n/a | t | t | t | n/a | lit | | cells/doc-r03.md @909445a |
+| doc-r04 | cli:runtime/scripts/ed25519.py | reference | critical | t | t | t | n/a | n/a | t | t | t | n/a | lit | | cells/doc-r04.md @d32fb07 |
+| doc-r05 | cli:runtime/scripts/egress.py | reference | critical | t | t | t | n/a | n/a | t | t | t | n/a | lit | | cells/doc-r05.md @8ac13c7 |
+| doc-r06 | cli:runtime/scripts/floor_guard.py | reference | critical | t | t | t | n/a | n/a | t | t | t | n/a | lit | | cells/doc-r06.md @0f840c5 |
+| doc-r07 | cli:runtime/scripts/gate-batch.py | reference | critical | t | t | t | n/a | n/a | t | t | t | n/a | lit | | cells/doc-r07.md @aade22d |
+| doc-r08 | cli:runtime/scripts/guard_text.py | reference | critical | t | t | t | n/a | n/a | t | t | t | n/a | lit | | cells/doc-r08.md @19db585 |
+| doc-r09 | cli:runtime/scripts/hitl-loop.template.sh | reference | critical | t | t | t | n/a | n/a | t | t | t | n/a | lit | | cells/doc-r09.md @b452bb0 |
+| doc-r10 | cli:runtime/scripts/pm.py | reference | critical | t | t | t | n/a | n/a | t | t | t | n/a | lit | | cells/doc-r10.md @6036c0a |
+| doc-r11 | cli:runtime/scripts/sandbox_doctor.py | reference | critical | t | t | t | n/a | n/a | t | t | t | n/a | lit | | cells/doc-r11.md @a6cedd3 |
+| doc-r12 | cli:runtime/scripts/spawn_worker.sh | reference | critical | t | t | t | n/a | n/a | t | t | t | n/a | lit | | cells/doc-r12.md @65fb669 |
+| doc-r13 | cli:runtime/scripts/watchdog.py | reference | critical | t | t | t | n/a | n/a | t | t | t | n/a | lit | | cells/doc-r13.md @52d9f20 |
+| doc-r14 | cli:runtime/scripts/wtree.sh | reference | critical | t | t | t | n/a | n/a | t | t | t | n/a | lit | | cells/doc-r14.md @0e6db58 |
+| doc-r15 | config:runtime/one-way-doors.json | reference | critical | t | t | t | n/a | n/a | t | t | t | n/a | lit | | cells/doc-r15.md @80da007 |
+| doc-r16 | config:runtime/watchdog.json | reference | critical | t | t | t | n/a | n/a | t | t | t | n/a | lit | | cells/doc-r16.md @29a3d24 |
+| doc-x01 | cli:runtime/scripts/decisions.py | explanation | critical | t | t | t | n/a | n/a | t | t | t | n/a | lit | | cells/doc-x01.md @3bbbabd |
+| doc-x02 | cli:runtime/scripts/deny-hook.sh | explanation | critical | t | t | t | n/a | n/a | t | t | t | n/a | lit | | cells/doc-x02.md @e03c695 |
+| doc-x03 | cli:runtime/scripts/diff_scope.py | explanation | critical | t | t | t | n/a | n/a | t | t | t | n/a | lit | | cells/doc-x03.md @5577128 |
+| doc-x04 | cli:runtime/scripts/ed25519.py | explanation | critical | t | t | t | n/a | n/a | t | t | t | n/a | lit | | cells/doc-x04.md @6ab1093 |
+| doc-x05 | cli:runtime/scripts/egress.py | explanation | critical | t | t | t | n/a | n/a | t | t | t | n/a | lit | | cells/doc-x05.md @b219fe5 |
+| doc-x06 | cli:runtime/scripts/floor_guard.py | explanation | critical | t | t | t | n/a | n/a | t | t | t | n/a | lit | | cells/doc-x06.md @e735c7f |
+| doc-x07 | cli:runtime/scripts/gate-batch.py | explanation | critical | t | t | t | n/a | n/a | t | t | t | n/a | lit | | cells/doc-x07.md @b03989d |
+| doc-x08 | cli:runtime/scripts/guard_text.py | explanation | critical | t | t | t | n/a | n/a | t | t | t | n/a | lit | | cells/doc-x08.md @85566a4 |
+| doc-x09 | cli:runtime/scripts/hitl-loop.template.sh | explanation | critical | t | t | t | n/a | n/a | t | t | t | n/a | lit | | cells/doc-x09.md @4be0a02 |
+| doc-x10 | cli:runtime/scripts/pm.py | explanation | critical | t | t | t | n/a | n/a | t | t | t | n/a | lit | | cells/doc-x10.md @220a552 |
+| doc-x11 | cli:runtime/scripts/sandbox_doctor.py | explanation | critical | t | t | t | n/a | n/a | t | t | t | n/a | lit | | cells/doc-x11.md @2b8426d |
+| doc-x12 | cli:runtime/scripts/spawn_worker.sh | explanation | critical | t | t | t | n/a | n/a | t | t | t | n/a | lit | | cells/doc-x12.md @6d8f343 |
+| doc-x13 | cli:runtime/scripts/watchdog.py | explanation | critical | t | t | t | n/a | n/a | t | t | t | n/a | lit | | cells/doc-x13.md @7401e49 |
+| doc-x14 | cli:runtime/scripts/wtree.sh | explanation | critical | t | t | t | n/a | n/a | t | t | t | n/a | lit | | cells/doc-x14.md @0cd6cfe |
+| doc-x15 | config:runtime/one-way-doors.json | explanation | critical | t | t | t | n/a | n/a | t | t | t | n/a | lit | | cells/doc-x15.md @208552d |
+| doc-x16 | config:runtime/watchdog.json | explanation | critical | t | t | t | n/a | n/a | t | t | t | n/a | lit | | cells/doc-x16.md @c064b27 |
 
 Flag semantics: BUILD_DONE = section written on BASE from code archaeology;
 CLAIMS_OK = claim check passes for the cell's anchors; NC_RED = rename control for the

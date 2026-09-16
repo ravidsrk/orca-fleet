@@ -18,12 +18,13 @@ REF_HOMES = ["README.md", "AGENTS.md", "ARCHITECTURE.md", "CONTRIBUTING.md",
              "docs/missions", "docs/verify-gate.md", "docs/ops.md", "docs/concepts.md",
              "docs/install.md", "docs/about.md", "docs/distribution.md",
              "docs/run-submission-guide.md", "docs/compliance-provenance.md",
-             "docs/platform-ride.md"]
+             "docs/platform-ride.md", "docs/runtime-scripts.md"]
 HOWTO_HOMES = ["docs/getting-started.md", "docs/run-submission-guide.md", "docs/ops.md",
                "docs/install.md", "CONTRIBUTING.md", "docs/guides", "docs/missions"]
 TUT_HOMES = ["docs/getting-started.md"]
 EXP_HOMES = ["ARCHITECTURE.md", "docs/concepts.md", "docs/platform-ride.md",
-             "docs/compliance-provenance.md", "docs/distribution.md", "docs/missions"]
+             "docs/compliance-provenance.md", "docs/distribution.md", "docs/missions",
+             "docs/runtime-scripts.md"]
 
 
 def grep_files(pattern, homes, max_hits=3):
@@ -49,8 +50,9 @@ def grep_files(pattern, homes, max_hits=3):
     return hits
 
 
-def main():
+def main(tag=None):
     manifest = json.loads((RUN / "extractor/surface.json").read_text())
+    suffix = f"-{tag}" if tag else ""
     out = [f"# Raw coverage hits @ {manifest['base_sha']}",
            "# pattern | reference hits | how-to hits | tutorial hits | explanation hits", ""]
     table = ["entity | reference | how-to | tutorial | explanation",
@@ -79,10 +81,10 @@ def main():
         out.append(f"  TUT: {t if t else '—'}")
         out.append(f"  EXP: {x if x else '—'}")
         out.append("")
-    (RUN / "evidence" / "map-raw.txt").write_text("\n".join(out) + "\n")
-    (RUN / "evidence" / "map-table.md").write_text("\n".join(table) + "\n")
+    (RUN / "evidence" / f"map-raw{suffix}.txt").write_text("\n".join(out) + "\n")
+    (RUN / "evidence" / f"map-table{suffix}.md").write_text("\n".join(table) + "\n")
     print("\n".join(table))
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1] if len(sys.argv) > 1 else None)
