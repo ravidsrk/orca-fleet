@@ -29,5 +29,11 @@ jobs:
         with:
           python-version: "3.13"  # pin: CI 3.x was a moving target (G-03)
       - name: No quiet bar-lowering (guard-surface + checker hygiene)
-        # Same base convention as bind-check.yml: the PR's own base.
-        run: python3 runtime/scripts/floor_guard.py --base origin/${{ github.base_ref }}
+        # Same base convention as bind-check.yml: the PR's own base. Via env,
+        # quoted: a base branch name is attacker-influenced input (any branch
+        # can be a PR target) and `${{ }}` interpolates before the shell runs,
+        # so an unquoted inline expansion is a script-injection hole (PR #468
+        # review, P1). An env var is expanded by the runner, never re-parsed.
+        env:
+          GUARD_BASE_REF: ${{ github.base_ref }}
+        run: python3 runtime/scripts/floor_guard.py --base "origin/${GUARD_BASE_REF}"
