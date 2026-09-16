@@ -46,8 +46,12 @@ class CountLintSeamNet(unittest.TestCase):
         for s in ("Twenty-one outcome-named fleets", "ELEVEN missions"):
             self.assertRegex(s, validate.COUNT_LINT_RE, s)
 
-    def test_backtick_joint_counts_match(self):
-        for s in ("21 `missions`", "21 `doctrine-only`", "seventeen self-run"):
+    def test_emphasis_joint_counts_match(self):
+        # Every _SEP emphasis alternative must pin: a later extraction dropping
+        # bold/underscore handling has to turn this net red (Greptile P2, PR #462).
+        for s in ("21 `missions`", "21 `doctrine-only`", "seventeen self-run",
+                  "Ten **autonomous fleets** for the runtime",
+                  "eleven _autonomous_ fleets"):
             self.assertRegex(s, validate.COUNT_LINT_RE, s)
 
     def test_missing_listed_file_is_skipped(self):
