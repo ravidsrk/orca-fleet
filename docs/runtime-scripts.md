@@ -166,3 +166,26 @@ notifies; `render --check` verifies the view matches the store. `related`/`block
 store-only and never render.
 
 Exits: 0 ok (stale/list report exit 0 either way) · 2 usage or store error.
+
+## `guard_text.py`
+
+Trust envelope: the only sanctioned path for untrusted text into a task spec. Reads text
+from stdin, or from a fetch command given as argv, and emits it inside a bannered envelope
+with directive-looking lines labeled. Source `runtime/scripts/guard_text.py:1-57`;
+behavior pinned by `tests/test_guard_text.py`.
+
+Usage: `... | guard_text.py --source issue|pr|ci|web [--label TEXT] [--timeout SECS]`
+or `guard_text.py --source <s> --fetch <argv...>` (everything after `--fetch` is the
+fetch command; no shell).
+
+Flags: `--source` (required; one of `issue`, `pr`, `ci`, `web`), `--label` (provenance
+label, sanitized and capped), `--timeout` (fetch timeout seconds, default 60), `--fetch`
+(command argv; omit to read stdin).
+
+Labels (`[INJECTION-PATTERN:...]`): instruction-override, authority-claim,
+suppression-request, command-execution, role-play-marker — matched over an NFKC-folded
+copy with Unicode format characters stripped; the emitted text is always the original
+bytes. Forged banners inside the content are defused with a spliced zero-width space.
+Output is a rendering for a reader — never round-trip it into a live PR or issue.
+
+Exits: 0 envelope written · 2 usage error · 3 fetch failed or timed out (no envelope on stdout).

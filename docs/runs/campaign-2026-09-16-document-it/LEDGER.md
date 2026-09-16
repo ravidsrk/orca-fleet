@@ -17,8 +17,8 @@ solo self-test; the mechanical oracle is the claim check + rename control + re-d
 | doc-r04 | cli:runtime/scripts/ed25519.py | reference | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-r04.md @d32fb07 |
 | doc-r05 | cli:runtime/scripts/egress.py | reference | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-r05.md @8ac13c7 |
 | doc-r06 | cli:runtime/scripts/floor_guard.py | reference | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-r06.md @0f840c5 |
-| doc-r07 | cli:runtime/scripts/gate-batch.py | reference | critical | t | t | t | n/a | n/a | t | f | f | n/a | lit | | cells/doc-r07.md |
-| doc-r08 | cli:runtime/scripts/guard_text.py | reference | critical | f | f | f | n/a | n/a | f | f | f | n/a | lit | | |
+| doc-r07 | cli:runtime/scripts/gate-batch.py | reference | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-r07.md @aade22d |
+| doc-r08 | cli:runtime/scripts/guard_text.py | reference | critical | t | t | t | n/a | n/a | t | f | f | n/a | lit | | cells/doc-r08.md |
 | doc-r09 | cli:runtime/scripts/hitl-loop.template.sh | reference | critical | f | f | f | n/a | n/a | f | f | f | n/a | lit | | |
 | doc-r10 | cli:runtime/scripts/pm.py | reference | critical | f | f | f | n/a | n/a | f | f | f | n/a | lit | | |
 | doc-r11 | cli:runtime/scripts/sandbox_doctor.py | reference | critical | f | f | f | n/a | n/a | f | f | f | n/a | lit | | |
