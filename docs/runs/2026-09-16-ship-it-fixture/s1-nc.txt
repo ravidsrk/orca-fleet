@@ -1,0 +1,41 @@
+NEGATIVE CONTROL — slice S1 (unit S1, mutation)
+tool: hand (compile-preserving hand-written mutant, one production line)
+head_sha the control applies at: 2bee02fac181e9fe554f29c1230e88aad2484194
+command (ONE string, shlex-split, run from the repo toplevel):
+  python3 -m pytest demo/target-app/tests/test_api_issues.py
+env note: the fixture's deps are provisioned by uv. Replay with a synced venv
+  on PATH (uv sync --project demo/target-app, then
+  PATH=demo/target-app/.venv/bin:$PATH). Without deps the command errors
+  instead of proving — a stillborn replay that proves nothing.
+
+MUTANT (unified diff; applies at head_sha with `git apply`):
+
+diff --git a/demo/target-app/app/routers/issues.py b/demo/target-app/app/routers/issues.py
+index 90af74e2..851808a5 100644
+--- a/demo/target-app/app/routers/issues.py
++++ b/demo/target-app/app/routers/issues.py
+@@ -10,7 +10,7 @@ from app.schemas import IssueCreate, IssueRead, IssueUpdate
+ router = APIRouter(prefix="/issues", tags=["issues"])
+
+
+-@router.post("", response_model=IssueRead, status_code=status.HTTP_201_CREATED)
++@router.post("", response_model=IssueRead, status_code=status.HTTP_200_OK)
+ def create_issue(payload: IssueCreate, db: Session = Depends(get_db)) -> Issue:
+     issue = Issue(**payload.model_dump())
+     db.add(issue)
+
+RED transcript (mutant applied; exit 1):
+  demo/target-app/tests/test_api_issues.py::test_create_issue_returns_201_with_shape FAILED
+  demo/target-app/tests/test_api_issues.py::test_create_issue_defaults FAILED
+  demo/target-app/tests/test_api_issues.py::test_create_issue_closed_status FAILED
+  >       assert response.status_code == 201
+  E       assert 200 == 201
+  3 failed, 13 passed in 0.28s
+
+GREEN transcript (clean tree; exit 0):
+  16 passed in 0.27s
+
+VERDICT: mutant KILLED. The criterion-bound tests fail if and only if the
+production behavior the criterion names is violated: RED under the mutant
+with an AssertionError on the 201-create contract (not an import error),
+GREEN on the clean tree.
