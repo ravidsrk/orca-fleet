@@ -91,3 +91,28 @@ bulk data or network secrets. Used by `runtime/scripts/dispatch-sign.py` (sign, 
 graded worker) and `runtime/scripts/verify.py` (verify at the gate).
 
 Exits: n/a (library).
+
+## `egress.py`
+
+Content-free, hash-chained receipts for everything the fleet sends off-repo. One JSON
+object per line in `.orca/egress.jsonl` (mode 0600), appended BEFORE the send. Source
+`runtime/scripts/egress.py:1-73`; behavior pinned by `tests/test_egress.py`.
+
+Status: doctrine names it (`egress.py write ... && <send>`), but no automated sink calls
+it yet — receipts are written only by a coordinator following the policy by hand.
+
+Usage: `egress.py [--ledger PATH] <write|verify|grants> ...`
+
+Subcommands: `write`, `verify`, `grants`.
+
+Flags: `--ledger` (default `$ORCA_EGRESS_LEDGER` or `.orca/egress.jsonl`). `write` takes
+`--sink`, `--host`, `--payload-class`, `--consent`, `--bytes`, `--payload-file`,
+`--payload-sha256`, `--ts`; `verify` takes `--expect-head`; `grants` takes `--json`.
+
+Record fields: `id`, `ts`, `sink`, `host`, `payload_class`, `bytes`, `payload_sha256`,
+`consent`, `prev` — never the payload text (sha256 + byte count + kind only). `prev`
+chains to the previous raw line; `id` names the line and its chain position. `verify`
+recomputes the chain and prints the head digest; pass `--expect-head` with a head anchored
+off the writer to catch a wholesale rewrite.
+
+Exits: 0 ok · 2 usage · 3 fail-closed (receipt unwritable, or chain broken).
