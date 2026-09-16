@@ -147,6 +147,7 @@ closed, or its feedback has gone quiet (`awaiting-maintainer-merge`). The `FOLLO
 | `duplicate` | Triage matched it to another issue in the set; closed at the batch gate | the batch gate |
 | `externally-resolved` | Closed upstream by someone else mid-run — counted, not ours | nobody — counted, not ours |
 | `out-of-scope` | Wrong mission; handed off with a pointer | the mission it was handed to |
+| `CONTRIBUTED-WITH-PARKED` | The run's degraded terminal: the set is exhausted but ≥1 `needs-human` park remains; never reported as `CONTRIBUTED` | you clear each named park |
 
 The run itself ends `CONTRIBUTED` (every actionable issue at a terminal, parks only the clean
 classes: `externally-covered`, `externally-resolved`, gate-approved `refuted` / `duplicate`,
