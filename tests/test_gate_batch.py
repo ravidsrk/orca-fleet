@@ -8,7 +8,8 @@ state machine (owed moves exactly once), the staleness boundary, the
 2026-09-14 migration's byte-identical round-trip, the warn-not-error
 citation check, the close wait-predicate (--blocking, not stale),
 mutations re-rendering the .md view, schema/CLI agreement, inclusive
-citation ranges, and atomic store writes.
+citation ranges, atomic store writes, and init refusing a pre-tooling .md
+without the explicit overwrite flag.
 """
 import datetime
 import importlib.util
@@ -540,6 +541,66 @@ class MutationsRenderTheView(unittest.TestCase):
             with redirect_stdout(io.StringIO()):
                 self.assertEqual(
                     gb.main(["--file", str(path), "render", "--check"]), 0)
+
+
+class InitGuardsLegacyView(unittest.TestCase):
+    LEGACY = ("# Run-close human-gate batch \u2014 legacy (Legacy run)\n"
+              "\nstanding intro\n\n## G1 \u00b7 old ask\n\n"
+              "the old question?\n")
+
+    def test_init_refuses_when_the_sibling_md_already_exists(self):
+        # Pre-tooling runs hold their only gate record in gate-batch.md:
+        # a bare init must refuse before writing anything, leaving the
+        # migration source byte-identical and creating no JSON store.
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "gate-batch.json"
+            md = Path(tmp) / "gate-batch.md"
+            md.write_text(self.LEGACY, encoding="utf-8")
+            before = md.read_bytes()
+            err = io.StringIO()
+            with redirect_stdout(io.StringIO()), redirect_stderr(err):
+                code = gb.main(["--file", str(path), "init",
+                                "--title", "t"])
+            self.assertEqual(code, 2)
+            self.assertEqual(md.read_bytes(), before,
+                             "the refused run must not touch the legacy md")
+            self.assertFalse(path.exists(),
+                             "the refused run must not create a store")
+            message = err.getvalue()
+            self.assertIn("gate-batch.md", message)
+            self.assertIn("--force-init-over-md", message)
+            self.assertIn("back", message)
+
+    def test_init_overwrites_legacy_md_only_with_the_explicit_flag(self):
+        # The escape hatch is opt-in per run: without it the md survives,
+        # with it the empty view replaces the legacy prose and the fresh
+        # pair passes render --check.
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "gate-batch.json"
+            md = Path(tmp) / "gate-batch.md"
+            md.write_text(self.LEGACY, encoding="utf-8")
+            before = md.read_bytes()
+            with redirect_stdout(io.StringIO()), \
+                    redirect_stderr(io.StringIO()):
+                self.assertEqual(
+                    gb.main(["--file", str(path), "init",
+                             "--title", "t", "--force-init-over-md"]), 0)
+            self.assertNotEqual(md.read_bytes(), before)
+            self.assertTrue(path.is_file())
+            self.assertIn("Run-close human-gate batch",
+                          md.read_text(encoding="utf-8"))
+            with redirect_stdout(io.StringIO()):
+                self.assertEqual(
+                    gb.main(["--file", str(path), "render", "--check"]), 0)
+
+    def test_init_help_names_the_destruction(self):
+        out = io.StringIO()
+        with redirect_stdout(out), self.assertRaises(SystemExit) as cm:
+            gb.main(["init", "--help"])
+        self.assertEqual(cm.exception.code, 0)
+        text = out.getvalue()
+        self.assertIn("--force-init-over-md", text)
+        self.assertIn("DESTROY", text.upper())
 
 
 class AtomicSaves(unittest.TestCase):

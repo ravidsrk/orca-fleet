@@ -424,6 +424,11 @@ def build_parser():
                    help="report-only resolved-by-events markdown block")
     p.add_argument("--resolved-file", default=None, metavar="PATH",
                    help="read --resolved from a file (- for stdin)")
+    p.add_argument("--force-init-over-md", action="store_true",
+                   help="overwrite the sibling gate-batch.md even when it "
+                        "already exists (DESTROYS the pre-tooling view: "
+                        "back it up first unless its gates are already "
+                        "transcribed)")
 
     p = subs.add_parser("add", parents=[store],
                         help="park a new question (status owed)",
@@ -555,6 +560,14 @@ def main(argv=None):
             resolved = _read_prose(args.resolved, args.resolved_file,
                                    stdin_text, "--resolved") \
                 if (args.resolved is not None or args.resolved_file) else ""
+            sibling = Path(path).parent / "gate-batch.md"
+            if sibling.exists() and not getattr(args, "force_init_over_md",
+                                                False):
+                raise GateError(
+                    f"{sibling} already exists (a pre-tooling view holding "
+                    "the only gate record): transcribe its gates via "
+                    "add/answer/waive/overtake after backing it up first, "
+                    "or re-run with --force-init-over-md to destroy it")
             data = init_batch(path, run_id=run_id, run_title=args.title,
                                intro=intro.rstrip("\n"),
                                resolved=resolved.rstrip("\n"))
