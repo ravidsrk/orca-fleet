@@ -1,0 +1,103 @@
+{
+  "artifacts": [
+    {
+      "path": "docs/runs/campaign-2026-09-16-harden-it/LEDGER.md",
+      "sha256": "c90882027cba61370a8a4de2501e49ea28566debc00772f682f5e07d5329f492"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-harden-it/THREAT-MODEL.md",
+      "sha256": "42ddea9b29d201cef538d6bc6f6a6c5968a95416ae32ea647f03f4d47ae94dfc"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-harden-it/AUDIT.md",
+      "sha256": "f10dc2cbd011b9d28ded02512d24748da2e138f6433bc646793da1b740913bfe"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-harden-it/CONTRACT.json",
+      "sha256": "faa054a432a546e94a61e64d5ef0dc899d00aeb2c71d7c6ea7fce2e78b0fa3b2"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-harden-it/receipts/deny-hook-probes.txt",
+      "sha256": "40f812c3c9cb1fbb6306adc5c8c39eb22ff0985ab1b7e8995a4e3a9dd26d704e"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-harden-it/receipts/gitleaks-audit.json",
+      "sha256": "793e6caaad3d21171923905079ac7185979fdc44d78e35726c7a225daa602e8d"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-harden-it/receipts/run-create-refused.txt",
+      "sha256": "b86694e766247bcebf7d7335176a9012045b3001db16f19d3670f327852628df"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-harden-it/receipts/tests.txt",
+      "sha256": "01722c2db94c1d6325b4f44454c2f25553ca64c5d32db0fec649de3fc3ab2cd7"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-harden-it/receipts/validation.txt",
+      "sha256": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6"
+    }
+  ],
+  "base_sha": "c46d4b3f3371e41408aed19e54476fa194c20b42",
+  "claim": "Full harden-it audit loop against orca-fleet at its main tip: threat model, tree-wide audit waves, triage of 5 candidates (0 VERIFIED P0/P1), project gates green, re-audit clean. Terminal: CLEAN with recorded solo-run degradations.",
+  "contract": {
+    "criterion_ids": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4",
+      "AC-5"
+    ],
+    "digest": "sha256:faa054a432a546e94a61e64d5ef0dc899d00aeb2c71d7c6ea7fce2e78b0fa3b2",
+    "source": "docs/runs/campaign-2026-09-16-harden-it/CONTRACT.json"
+  },
+  "criteria": [
+    {
+      "addressed": true,
+      "id": "AC-1",
+      "text": "Threat model committed: STRIDE per trust boundary plus Always/Ask-First/Never buckets with one-way gates named."
+    },
+    {
+      "addressed": true,
+      "id": "AC-2",
+      "text": "Tree-wide security audit executed at the fixed point across secrets, CI/supply-chain, injection, trust-boundary, crypto, destructive-path, and LLM/privacy axes, with evidence per axis."
+    },
+    {
+      "addressed": true,
+      "id": "AC-3",
+      "text": "Every audit candidate triaged to a terminal disposition; zero unrefuted P0/P1 remains."
+    },
+    {
+      "addressed": true,
+      "id": "AC-4",
+      "text": "Project gates green at the evidence head: catalog validator and full test suite."
+    },
+    {
+      "addressed": true,
+      "id": "AC-5",
+      "text": "Re-audit mechanical pass confirms the terminal state: zero unrefuted P0/P1."
+    }
+  ],
+  "head_sha": "f0c83cb1f1aa099206058f15570706f90482414e",
+  "lighting": "lit",
+  "negative_control": {
+    "artifact": "docs/runs/campaign-2026-09-16-harden-it/AUDIT.md",
+    "did": "report-only class analogue (evidence-manifest \u00a73): source-binding \u2014 every file:line quoted in AUDIT.md re-read at head_sha; mechanical axes (gitleaks, sink sweeps) re-executed in the re-audit pass with identical verdicts",
+    "result": "source bindings hold at head_sha; re-audit RED-then-restore N/A (no fix claimed)"
+  },
+  "reviewer_mode": "instructed-isolation",
+  "toolchain": "python 3.13.15",
+  "unit": "harden-it-self-audit",
+  "commands": [
+    {
+      "label": "verifier",
+      "ts": "2026-09-16T12:43:11Z",
+      "cmd": "python3 runtime/scripts/verify.py --manifest docs/runs/campaign-2026-09-16-harden-it/manifest.json --contract-source docs/runs/campaign-2026-09-16-harden-it/CONTRACT.json --contract-digest sha256:faa054a432a546e94a61e64d5ef0dc899d00aeb2c71d7c6ea7fce2e78b0fa3b2 --unit-class report-only",
+      "cmd_sha256": "27dde135f72dbd93d31e5559847ab28c9bbdca52655a36d6334f9498a00e1fa5",
+      "exit": 2,
+      "duration_s": 0.37,
+      "commit": "f0c83cb1f1aa099206058f15570706f90482414e",
+      "wtree": "cc90ccf741d8fddbc26273bf4e4463d060cd1df0",
+      "artifact": "docs/runs/campaign-2026-09-16-harden-it/receipts/verifier.txt"
+    }
+  ]
+}
