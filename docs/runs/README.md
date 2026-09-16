@@ -34,6 +34,7 @@ git repositories and includes a fully bound positive case alongside a dozen refu
 | 2026-09-12 | [pin-it](2026-09-12-runtime-repin/) | this catalog's runtime doctrine against Orca 1.4.200 (#266) | self-run | no — the report states it is not a completed independent mission run | PARTIAL-WITNESS (doctrine repair prepared for review; `pins.json` stays at v1.4.199, all 21 missions stay `doctrine-only`) |
 | 2026-09-13 | [pin-it](2026-09-13-pin-it-266/) | this catalog's runtime doctrine against the installed Orca 1.4.200 binary (#266) | self-run | no — see `proof_status --check`; the catalog claims no tier above `doctrine-only` | PINNED-WITH-PARKED (families needing a second datadir, an isolated v1.4.199 binary, a Windows/Linux host, a paid provider or owner-approved trust are parked with that precondition) |
 | 2026-09-14 | [clean-sweep](2026-09-14-clean-sweep-tracker.md) | this repo (tracker, 6 issues; takeover) | self-run | no — run in progress; binds? decided at close | IN PROGRESS |
+| 2026-09-16 | [review-it](2026-09-16-review-it-external-run.md) | THROWAWAY — bind-check RED proof (#415, do not merge) | external-run | no — unbound by construction | THROWAWAY |
 
 Proof status across the catalog is validator-enforced: a mission cannot claim a tier
 above `doctrine-only` without a `proof_evidence:` path that resolves to a report here whose

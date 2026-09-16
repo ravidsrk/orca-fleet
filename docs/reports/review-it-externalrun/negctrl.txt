@@ -1,0 +1,1 @@
+THROWAWAY negative control (bind-check RED proof, #415): no control ran.
