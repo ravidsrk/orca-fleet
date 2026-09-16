@@ -364,11 +364,30 @@ class FreshnessCheck(unittest.TestCase):
         # No threads: a threaded writer usually loses the race before its first write
         # (PR #456 review, P2 — a green threaded run proved nothing). Instead the test
         # reproduces the exact interleaving single-threaded: os.scandir is wrapped so the
-        # first directory listing during teardown also plants a file the listing did not
-        # see. Without the tolerance flag that file fails the final rmdir with ENOTEMPTY;
-        # with it, teardown succeeds. Both directions are asserted, so the test also
-        # re-arms itself if the flag is ever reverted.
+        # first directory listing during teardown is exhausted FIRST and the late file is
+        # planted only after — exhaust-then-plant, so the planted file can never be
+        # observed by the listing on any platform (planting before iteration would race
+        # getdents visibility: Linux typically shows the new entry, macOS typically does
+        # not — PR #456 review round 2). Without the tolerance flag that file fails the
+        # final rmdir with ENOTEMPTY; with it, teardown succeeds. Both directions are
+        # asserted, so the test also re-arms itself if the flag is ever reverted.
         from unittest import mock
+
+        class _FrozenListing:
+            # The exhausted entries behind the iterator protocol rmtree needs:
+            # 3.13's safe-fd lane holds `with os.scandir(fd) as it`, older lanes
+            # just iterate. Entries stay real DirEntry objects.
+            def __init__(self, entries):
+                self._entries = entries
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *exc):
+                return False
+
+            def __iter__(self):
+                return iter(self._entries)
 
         def run_teardown(make_dir):
             planted = []
@@ -376,22 +395,24 @@ class FreshnessCheck(unittest.TestCase):
 
             def planting_scandir(path):
                 iterator = real_scandir(path)
-                if not planted:
-                    try:
-                        if isinstance(path, int):
-                            # 3.13+ safe-fd rmtree lists by dir fd: plant fd-relative.
-                            fd = os.open("late.tmp", os.O_CREAT | os.O_WRONLY,
-                                         dir_fd=path)
-                            os.close(fd)
-                            planted.append(f"fd:{path}")
-                        else:
-                            candidate = Path(os.fspath(path), "late.tmp")
-                            if candidate.parent.is_dir():
-                                candidate.write_bytes(b"x")
-                                planted.append(str(candidate))
-                    except OSError:
-                        pass
-                return iterator
+                if planted:
+                    return iterator
+                entries = list(iterator)
+                try:
+                    if isinstance(path, int):
+                        # 3.13+ safe-fd rmtree lists by dir fd: plant fd-relative.
+                        fd = os.open("late.tmp", os.O_CREAT | os.O_WRONLY,
+                                     dir_fd=path)
+                        os.close(fd)
+                        planted.append(f"fd:{path}")
+                    else:
+                        candidate = Path(os.fspath(path), "late.tmp")
+                        if candidate.parent.is_dir():
+                            candidate.write_bytes(b"x")
+                            planted.append(str(candidate))
+                except OSError:
+                    pass
+                return _FrozenListing(entries)
 
             with mock.patch.object(os, "scandir", planting_scandir):
                 with make_dir() as repo:
