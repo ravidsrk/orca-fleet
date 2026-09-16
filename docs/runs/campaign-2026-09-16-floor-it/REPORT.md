@@ -6,7 +6,7 @@ FREEZE gate — the mission's honest headless terminal. No threshold was frozen,
 no tier claimed. This is recorded history at `tier=doctrine-only`; `bind_check.py` skips it.
 
 ```
-RUN: mission=floor-it tier=doctrine-only inventory_at=469bc1d1beafd7d3f8f726a36299ea630c0ddd00 manifest=docs/runs/campaign-2026-09-16-floor-it/manifest.json verifier=RED waves=0
+RUN: mission=floor-it tier=doctrine-only inventory_at=578a9d5427d116cb7ab47259a31bf6b6deaa0ac6 manifest=docs/runs/campaign-2026-09-16-floor-it/manifest.json verifier=RED waves=0
 ```
 
 | Field | Value |
