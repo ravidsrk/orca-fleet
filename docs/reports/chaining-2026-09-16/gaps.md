@@ -18,7 +18,7 @@ rules cover degraded terminals only. Suggested: name the park
 (e.g. `PARKED-AT-PROMOTION`), define what resumes it (landed promotion SHA or
 recorded BASE-carry grant), and state plainly that chains are human-paced at
 every link boundary.
-Issue: TBD
+Issue: #441
 
 ## G2 — evidence-manifest.md / verify.py assume unit repo == evidence repo
 
@@ -28,7 +28,7 @@ under (the same) cwd — a cross-repo chain manifest satisfies neither invocatio
 This run executed the §2 procedure manually with transcripts (limitation L1).
 Suggested: a `--git-dir` / `--evidence-root` split, or a chaining evidence
 layout the verifier understands.
-Issue: TBD
+Issue: #442
 
 ## G3 — deferral carry has no artifact shape
 
@@ -36,7 +36,7 @@ Issue: TBD
 handed to mission N+1" — as WHAT? File, ledger section, manifest field? This
 run proposed `handoff-log.md` (carry table + gate record, one file per chain).
 Suggested: bless a shape (this one or another) so consumers can rely on it.
-Issue: TBD
+Issue: #443
 
 ## G4 — re-derivability for local-only (no-remote) targets is undefined
 
@@ -46,7 +46,7 @@ remote — the SHAs don't resolve anywhere else. This run embedded `seed-*` +
 `full-diff.txt` so the bytes reconstruct. Suggested: the chaining doc should
 require embedded reconstruction artifacts (or a pushed mirror) for local-only
 targets.
-Issue: TBD
+Issue: #444
 
 ## O1 — clean-sweep refuted-close gate kind (mission-level, NOT chaining)
 

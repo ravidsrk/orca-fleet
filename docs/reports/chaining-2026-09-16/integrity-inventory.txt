@@ -1,9 +1,9 @@
 # Integrity inventory — chaining run 2026-09-16 (#417)
-# producer=subagent-01a0a9a5 ts=2026-09-16T10:45Z
+# producer=subagent-01a0a9a5 ts=2026-09-16T10:50Z
 # sha256  path
 037efd8e372f4ed54d7c1cad4a98e860cfb6376a3efd5e70344a7ce929f6e0ef  CHAIN-REPORT.md
 e89d7fe61922d878828aed1d1e21bdd43d7028f357c786adf81cb304b177a7c7  handoff-log.md
-61d490a4bbcc04f8b4372a753420265ae9171ffbd413c4da232a66b134df52a7  gaps.md
+b01fb50dbdc93cbd96e914b48b68a79bba1ea7419e114d217ad4bd1d4b02c50e  gaps.md
 cf899c4fab9f4c933e00b270e073fd4d81cd7381ae3d53b78996163122e0cc0d  leg1/enumeration.md
 bb932ee626487bfa910442f7ba9f18b3eced7abff71a15331d7ea105daea6a3d  leg1/ledger.md
 b24512cd8d2f45bac9a05d88b88539b06e96baddef8c8ddc0edd8e2b4c5f8439  leg1/manifest-f3.json
