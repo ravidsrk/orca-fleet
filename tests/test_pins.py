@@ -19,6 +19,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 PINS = ROOT / "runtime" / "pins.json"
+ORCA_PIN = ROOT / "runtime" / "orca-pin.md"
 SKILLS = ROOT / "skills"
 
 HEX_COMMIT = re.compile(r"^[0-9a-f]{7,40}$")
@@ -57,6 +58,39 @@ def missions():
     for d in sorted(SKILLS.iterdir()):
         if d.is_dir() and not d.name.startswith((".", "_")) and (d / "SKILL.md").is_file():
             yield d.name, (d / "SKILL.md").read_text(encoding="utf-8")
+
+
+def orca_pin_record(text):
+    """The Current-pin table's (version, commit, witnessed) triple, markdown stripped.
+
+    A missing row yields "" for that field, so a dropped row fails the comparison
+    against pins.json instead of passing on silence.
+    """
+    def cell(field):
+        m = re.search(rf"^\|\s*{re.escape(field)}\s*\|\s*(.*?)\s*\|\s*$", text, re.MULTILINE)
+        return m.group(1).strip() if m else ""
+
+    version_raw = cell("Installed version").replace("*", "")
+    version = version_raw.split(" ")[0].strip("`") if version_raw else ""
+    commit_m = re.search(r"[0-9a-f]{7,40}", cell("Build commit"))
+    commit = commit_m.group(0) if commit_m else ""
+    witnessed_m = re.match(r"(\d{4}-\d{2}-\d{2})", cell("Witnessed"))
+    witnessed = witnessed_m.group(1) if witnessed_m else ""
+    return version, commit, witnessed
+
+
+def pin_record_mismatches(pin_text, orca):
+    """Field-level diff between the prose pin table and pins.json's orca entry."""
+    version, commit, witnessed = orca_pin_record(pin_text)
+    mismatches = []
+    for field, table_value, json_value in (("version", version, orca["version"]),
+                                           ("commit", commit, orca["commit"]),
+                                           ("witnessed", witnessed, orca["witnessed"])):
+        if table_value != json_value:
+            mismatches.append(
+                f"{field}: orca-pin.md says {table_value!r}, pins.json says {json_value!r}"
+            )
+    return mismatches
 
 
 LOCK = ROOT / ".github" / "ci-tools.lock"
@@ -210,6 +244,49 @@ class TestPins(unittest.TestCase):
             unreferenced, [],
             f"pins.json pins packs no mission's compatibility names: {unreferenced}",
         )
+
+    def test_orca_pin_table_matches_pins_json(self):
+        # orca-pin.md promises "the two never disagree" — this is the enforcement:
+        # the Current-pin table's version/commit/witnessed must equal pins.json's
+        # orca entry, so a re-pin that updates one record but not the other fails.
+        orca = load_pins()["orca"]
+        pin_text = ORCA_PIN.read_text(encoding="utf-8")
+        self.assertEqual(
+            pin_record_mismatches(pin_text, orca),
+            [],
+            "runtime/orca-pin.md disagrees with runtime/pins.json — "
+            "a run updates both or neither",
+        )
+
+    def test_tampered_pin_record_is_caught(self):
+        # Negative control: corrupting either side of the promise must surface as
+        # a mismatch, not a green suite. Tampers derive from the live values so a
+        # future re-pin moves them along instead of breaking them.
+        orca = load_pins()["orca"]
+        pin_text = ORCA_PIN.read_text(encoding="utf-8")
+        bad_commit = orca["commit"][:-1] + ("e" if orca["commit"][-1] != "e" else "f")
+        table_tampers = {
+            "table version": pin_text.replace(f"**{orca['version']}**", "**v9.9.9**", 1),
+            "table commit": pin_text.replace(orca["commit"], bad_commit, 1),
+            "table witnessed": pin_text.replace(
+                f"| Witnessed | {orca['witnessed']}", "| Witnessed | 2000-01-01", 1
+            ),
+        }
+        for label, tampered in table_tampers.items():
+            with self.subTest(label):
+                self.assertNotEqual(tampered, pin_text, f"{label} tamper changed nothing")
+                self.assertTrue(
+                    pin_record_mismatches(tampered, orca),
+                    f"a tampered {label} passed as matching pins.json",
+                )
+        for field, bad in (("version", "v9.9.9"),
+                           ("commit", bad_commit),
+                           ("witnessed", "2000-01-01")):
+            with self.subTest(f"pins.json {field}"):
+                self.assertTrue(
+                    pin_record_mismatches(pin_text, dict(orca, **{field: bad})),
+                    f"a tampered pins.json {field} passed as matching the table",
+                )
 
 
 if __name__ == "__main__":
