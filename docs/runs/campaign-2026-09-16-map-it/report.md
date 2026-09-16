@@ -6,7 +6,7 @@ Run kind: self-run against this catalog. Tier claimed: doctrine-only (campaign e
 dir is not a bindable `docs/runs/<date>-<mission>…/` run dir; see Evidence binding).
 
 ```
-RUN: mission=map-it tier=doctrine-only inventory_at=<pending-C4> manifest=docs/runs/campaign-2026-09-16-map-it/manifest.json verifier=GREEN waves=0
+RUN: mission=map-it tier=doctrine-only inventory_at=31d2490f0ee0a3b812f77b9ff820891924dfe354 manifest=docs/runs/campaign-2026-09-16-map-it/manifest.json verifier=GREEN waves=0
 ```
 
 | Field | Value |
