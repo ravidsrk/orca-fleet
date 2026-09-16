@@ -421,6 +421,16 @@ state file across invocations.
 Exits: 0 tick done, nothing needs the coordinator · 1 at least one (WOULD-)recommendation
 · 2 could-not-run.
 
+> Why: the 2026-09-14 run handled every stuck worker by hand, so the two
+> highest-frequency responses — liveness watch and auto-nudge — were mechanized while the
+> expensive ones (stop, re-dispatch) stayed coordinator decisions. WEDGED needs POSITIVE
+> wedge evidence, never absence alone, because nudging a wedged worker is futile; settled
+> workers (`runtime/scripts/watchdog.py:SETTLED`) belong to crash-resume, not to this
+> script. Thresholds live in config (`runtime/scripts/watchdog.py:DEFAULTS` names the
+> keys) so coordinators tune without code edits, and every threshold the config does not
+> know fails loud. Rate limits are anti-flap: a worker oscillating HUNG/OK must not cause
+> a nudge storm.
+
 ## `wtree.sh`
 
 Prints a working-tree CONTENT fingerprint (a git tree hash). Builds a temp index, stages
