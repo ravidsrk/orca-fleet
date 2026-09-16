@@ -67,7 +67,10 @@ remain (`needs-human` on #386, #235, and seven review legs). Never reported as D
   a failing-first test and an executed negative control — see Pipeline evidence
   and `docs/reports/clean-sweep-selfrun/negctrl.txt`. Revert-audit coverage is
   10/10 executed controls, above the ≥10% sample the mission requires; each
-  unit's closing issue comment links its PR and test (ledger rows).
+  issue-backed unit's closing comment links its PR and test (ledger rows T1–T4/T6/T7);
+  thread-backed units closed with in-thread replies citing merge + verdict (T8/T10/T11
+  reply IDs in-ledger) inside the drain-387 reply+resolve pass (20/22,
+  coordinator-verified fresh via GraphQL).
 - Ledger flags `BUILD_DONE`…`WT_CLEAN` read `t` on every merged row (table
   above, transcribed from the frozen ledger).
 - PARKED classes are all allowed: no refuted/duplicate closes occurred (no batch
