@@ -1,0 +1,56 @@
+# Verdict-derived merge check (#452): a GO verdict must bind the merge tip.
+#
+# GitHub cannot express reviewed_sha == head_sha natively, so this workflow
+# runs scripts/verdict_check.py against the PR: it passes iff a trusted review
+# (APPROVED, or COMMENTED by the PR author / OWNER / MEMBER / COLLABORATOR)
+# carries "VERDICT: GO" with reviewed_sha == head.
+#
+# Trigger design (measured, not assumed — PR #454/#455 post-mortem):
+# GitHub branch protection treats a FAILED conclusion on the head SHA as
+# sticky: a newer SUCCESS beside it does NOT clear it (only a re-run does).
+# So this workflow evaluates only reviews that can actually satisfy the check:
+#   - NO push triggers. A push is evaluated by absence: the new head has no
+#     verdict runs, so the required check reads "expected" and blocks until a
+#     fresh GO arrives. Fail-closed with zero poison.
+#   - Review events only, and the job runs only for GO-marker reviews from a
+#     trusted author (PR author or OWNER/MEMBER/COLLABORATOR — mirroring the
+#     script's trust tiers). Greptile re-reviews every push and any stranger
+#     can COMMENT; evaluating those would fail-poison each head, letting an
+#     untrusted reviewer grief the PR (PR #465 review, P1).
+#   - Dismissals of GO-marker reviews evaluate (same gate): dismissing the GO
+#     must actively re-block. Dismissals of anything else skip.
+# Residual poison cases (both need the standard re-run escape hatch after the
+# fresh GO): a GO review with a STALE reviewed_sha, and a GO dismissed then
+# replaced on the same head (PR #465 review, P1 — accepted: a withdrawn
+# verdict SHOULD take conscious re-acknowledgment to clear). Post a new review
+# per verdict; editing a submitted review does not re-trigger evaluation.
+name: verdict-check
+
+on:
+  pull_request_review:
+    types: [submitted, dismissed]
+
+permissions:
+  pull-requests: read
+
+jobs:
+  verdict:
+    # GO-marker reviews from trusted authors only (PR #465 review, P1):
+    # evaluating a stranger's GO marker would fail-poison the head.
+    if: >-
+      contains(github.event.review.body, 'VERDICT: GO') &&
+      (github.event.review.author_association == 'OWNER' ||
+       github.event.review.author_association == 'MEMBER' ||
+       github.event.review.author_association == 'COLLABORATOR' ||
+       github.event.review.user.login == github.event.pull_request.user.login)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 (Node 24; Node 20 left runners 2026-09-23, #367)
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0 (Node 24, #367)
+        with:
+          python-version: "3.13"  # pin: CI 3.x was a moving target (G-03)
+      - name: GO verdict binds the merge tip
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: python3 scripts/verdict_check.py --pr ${{ github.event.pull_request.number }}
