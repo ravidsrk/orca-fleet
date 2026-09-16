@@ -6,6 +6,7 @@ coordinator's frozen contract (scope) and dispatch-supplied unit class, GitHub (
 artifact (negative control). Each check must fail closed.
 """
 import contextlib
+import errno
 import hashlib
 import importlib.util
 import io
@@ -355,43 +356,57 @@ class FreshnessCheck(unittest.TestCase):
                 __import__("os").chdir(cwd)
 
     def test_throwaway_repo_teardown_tolerates_a_late_writer(self):
-        # The #340 teardown race, pinned: a concurrent writer landing files under .git/ while
-        # the context manager tears the tree down raised OSError 39 (Directory not empty) on
-        # Linux CI — b726431 covered RepoCase, CI run 35074600535 hit this class's bare site.
-        # _temp_repo() must swallow that teardown noise; reverting its flag re-arms this test.
-        # The raced OSError is caught per trial and asserted empty, so RED is assertion-shaped.
-        import threading
-        stop = threading.Event()
+        # The #340 teardown race, pinned deterministically: a writer landing files under
+        # .git/ while the context manager tears the tree down raised OSError 39 (Directory
+        # not empty) on Linux CI — b726431 covered RepoCase, CI run 35074600535 hit this
+        # class's bare site. _temp_repo() must swallow that teardown noise.
+        #
+        # No threads: a threaded writer usually loses the race before its first write
+        # (PR #456 review, P2 — a green threaded run proved nothing). Instead the test
+        # reproduces the exact interleaving single-threaded: os.scandir is wrapped so the
+        # first directory listing during teardown also plants a file the listing did not
+        # see. Without the tolerance flag that file fails the final rmdir with ENOTEMPTY;
+        # with it, teardown succeeds. Both directions are asserted, so the test also
+        # re-arms itself if the flag is ever reverted.
+        from unittest import mock
 
-        def late_writer(repo):
-            target = Path(repo, ".git", "objects")
-            i = 0
-            while not stop.is_set():
-                try:
-                    (target / f"late-{os.getpid()}-{i}.tmp").write_bytes(b"x")
-                except OSError:
-                    pass  # the race window closed; teardown won
-                i += 1
+        def run_teardown(make_dir):
+            planted = []
+            real_scandir = os.scandir
 
-        raised = []
-        for _ in range(10):
-            stop.clear()
-            t = None
-            try:
-                with _temp_repo() as repo:
-                    subprocess.run(["git", "init", "-q"], cwd=repo, check=True,
-                                   capture_output=True)
-                    t = threading.Thread(target=late_writer, args=(repo,), daemon=True)
-                    t.start()
-                    # exiting the context while the writer hammers .git/objects races teardown
-                    # against the late writes
-            except OSError as err:  # noqa: BLE001 - the raced outcome is the datum
-                raised.append(f"{type(err).__name__} errno={err.errno}")
-            finally:
-                stop.set()
-                if t is not None:
-                    t.join(timeout=10)
-        self.assertEqual(raised, [], f"teardown raised under a raced late writer: {raised}")
+            def planting_scandir(path):
+                iterator = real_scandir(path)
+                if not planted:
+                    try:
+                        if isinstance(path, int):
+                            # 3.13+ safe-fd rmtree lists by dir fd: plant fd-relative.
+                            fd = os.open("late.tmp", os.O_CREAT | os.O_WRONLY,
+                                         dir_fd=path)
+                            os.close(fd)
+                            planted.append(f"fd:{path}")
+                        else:
+                            candidate = Path(os.fspath(path), "late.tmp")
+                            if candidate.parent.is_dir():
+                                candidate.write_bytes(b"x")
+                                planted.append(str(candidate))
+                    except OSError:
+                        pass
+                return iterator
+
+            with mock.patch.object(os, "scandir", planting_scandir):
+                with make_dir() as repo:
+                    Path(repo, ".git", "objects").mkdir(parents=True)
+            return planted
+
+        # Green: our helper tolerates the late file.
+        planted = run_teardown(_temp_repo)
+        self.assertTrue(planted, "injection never fired — teardown went untested")
+        # Red control: without the tolerance flag the same injection fails the
+        # final rmdir with ENOTEMPTY (39 Linux, 66 macOS) — proving the
+        # injection models the race.
+        with self.assertRaises(OSError) as red:
+            run_teardown(lambda: tempfile.TemporaryDirectory(ignore_cleanup_errors=False))
+        self.assertEqual(red.exception.errno, errno.ENOTEMPTY, red.exception)
 
 
 class ReviewCheck(unittest.TestCase):
