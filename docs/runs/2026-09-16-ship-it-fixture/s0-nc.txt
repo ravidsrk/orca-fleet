@@ -1,0 +1,35 @@
+NEGATIVE CONTROL — slice S0 (unit S0, mutation)
+tool: hand (compile-preserving hand-written mutant, one production line)
+head_sha the control applies at: b75bc01994367b3fac66fd9c9cbcf23d7a8da585
+command (ONE string, shlex-split, run from the repo toplevel):
+  python3 -m pytest demo/target-app/tests/test_health.py
+env note: the fixture's deps are provisioned by uv. Replay with a synced venv
+  on PATH (uv sync --project demo/target-app, then
+  PATH=demo/target-app/.venv/bin:$PATH). Without deps the command errors
+  instead of proving — a stillborn replay that proves nothing.
+
+MUTANT (unified diff; applies at head_sha with `git apply`):
+
+diff --git a/demo/target-app/app/main.py b/demo/target-app/app/main.py
+index 77cc48d7..57003aeb 100644
+--- a/demo/target-app/app/main.py
++++ b/demo/target-app/app/main.py
+@@ -9,4 +9,4 @@ app = FastAPI(title="fixture-target-app")
+ 
+ @app.get("/healthz")
+ def healthz() -> dict[str, str]:
+-    return {"status": "ok", "app": get_app_name()}
++    return {"status": "broken", "app": get_app_name()}
+
+RED transcript (mutant applied; exit 1):
+  demo/target-app/tests/test_health.py::test_healthz_returns_ok FAILED
+  >       assert response.json() == {"status": "ok", "app": "fixture-target-app"}
+  E       AssertionError: assert {'status': 'b...e-target-app'} == {'status': 'o...e-target-app'}
+  1 failed in 0.09s
+
+GREEN transcript (clean tree; exit 0):
+  1 passed in 0.11s (before) and 1 passed in 0.08s (after restore)
+
+VERDICT: mutant KILLED. The criterion-bound test fails if and only if the
+production behavior the criterion names is violated: RED under the mutant
+with an AssertionError (not an import error), GREEN on the clean tree.
