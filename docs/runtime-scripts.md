@@ -251,3 +251,31 @@ failures`) before matching fail/warn/error words. Called by
 here — a transcript the caller names is not evidence.
 
 Exits: 0 clear · 1 not clear (reason on stderr) · 2 usage.
+
+## `spawn_worker.sh`
+
+Fail-closed Orca worker dispatch for fleet coordinators: supervised lane
+(`worker-start`: worktree + agent terminal + readiness + dispatch) and custom-argv lane
+(`terminal create` + `dispatch --inject`). Source `runtime/scripts/spawn_worker.sh:1-80`;
+behavior pinned by `tests/test_spawn_worker.py`.
+
+Usage: `SP=<dir> [PROFILE=rw] spawn_worker.sh [--mark-ready] <task_id> <worktree_selector> <title> [agent] [effort]`
+
+Flags: `--mark-ready` (only applies when every declared dep is already completed; the
+script never forces ready).
+
+Agents: `claude`, `codex`, `cursor`, `gemini`, `grok`, `droid`, `opencode`, `omp`, `pi`
+(default `claude`; effort default `xhigh`); unknown agents refuse. Profiles: `ro`, `rw`
+(default), `danger` — least privilege; `danger` needs the ephemeral sandbox plus
+`ORCA_SANDBOX_RECIPE`, and the script runs the doctor transcript itself into
+`ORCA_SANDBOX_DOCTOR` for `runtime/scripts/sandbox_doctor.py`. Env: `SP` (receipt dir,
+default cwd), `PROFILE`, `ORCA_COORD_ALLOW_AUTONOMOUS_WRITE` (must be 1 for rw),
+`ORCA_COORD_ALLOW_DANGER` (must be 1 for danger), `ORCA_SANDBOX_RECIPE`,
+`ORCA_SANDBOX_DOCTOR`, `WORKER_CMD` (generic override; needs
+`ORCA_COORD_ALLOW_CMD_OVERRIDE=1`), `SETTLE_SECS` (default 20, custom-argv lane).
+
+Exits: 0 dispatched · 1 spawn/dispatch step failed · 2 usage or policy refusal (every
+typed refusal code) · 3 custom-argv turn UNPROVEN (inspect, never respawn, never
+re-Enter) · 4 supervised outcome_unknown (inspect via the receipt's nextCommands, never
+respawn) · 5 LAUNCHED_UNUSABLE (worker live but the profile flag unproven — stop it, fix
+the host).
