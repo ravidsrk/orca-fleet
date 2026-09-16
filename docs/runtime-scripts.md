@@ -167,9 +167,9 @@ Exits: 0 ok · 2 usage · 3 fail-closed (receipt unwritable, or chain broken).
 
 ## `floor_guard.py`
 
-Diff-scoped floor guard: catches the five moves that lower the bar without touching a
+Diff-scoped floor guard: catches the six moves that lower the bar without touching a
 stated requirement (silenced checker, test made easier, unfinished work, removed
-assertion, lowered threshold or new exception). Reads the merge base against `--base`
+assertion, lowered threshold or new exception, frozen guard-surface touch). Reads the merge base against `--base`
 plus the working tree plus untracked files. Source `runtime/scripts/floor_guard.py:1-68`;
 behavior pinned by `tests/test_floor_guard.py`.
 
@@ -181,7 +181,9 @@ Flags: `--base` (default origin/HEAD, then origin/main, main, master), `--constr
 
 Rules (stable ids): `silenced-checker`, `test-made-easier`, `unfinished-work`,
 `assertion-removed` (removed lines only, in test paths that still exist),
-`threshold-lowered` (a number in the constraints file that went down), `new-exception`.
+`threshold-lowered` (a number in the constraints file that went down), `new-exception`,
+`guard-surface` (CONSTRAINTS.md's frozen tool-config: whole files trip on any line,
+keyed files on the key's assignment only).
 Reporting is redaction-first: rule id, file:line, pattern name — never the matched text.
 Waivers come from the DECISIONS log as `floor-waiver:<rule>:<path-or-glob>` records —
 never from an ignore file, never prose. Run it OFF the worker.

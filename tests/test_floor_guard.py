@@ -10,6 +10,7 @@ import contextlib
 import importlib.util
 import io
 import os
+import runpy
 import shutil
 import subprocess
 import sys
@@ -485,6 +486,547 @@ class TestScriptShape(unittest.TestCase):
         text = GUARD.read_text(encoding="utf-8")
         for third_party in ("import requests", "import yaml", "import git\n"):
             self.assertNotIn(third_party, text)
+
+
+def run_main(repo, *args):
+    """floor_guard.main() in-process with captured output: (exit, stdout, stderr)."""
+    out, err = io.StringIO(), io.StringIO()
+    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+        code = floor_guard.main(["--repo", str(repo), *args])
+    return code, out.getvalue(), err.getvalue()
+
+
+class TestGuardSurfaceHit(unittest.TestCase):
+    """The frozen surface (CONSTRAINTS.md "Guard surface"): what trips, what stays silent."""
+
+    def test_every_whole_file_trips_on_any_line(self):
+        for path in floor_guard.GUARD_SURFACE_FILES:
+            with self.subTest(path=path):
+                self.assertEqual(floor_guard.guard_surface_hit(path, "anything at all"), path)
+
+    def test_trap_dir_members_trip_but_near_miss_dirs_do_not(self):
+        self.assertEqual(
+            floor_guard.guard_surface_hit("bench/vf-bench/traps/decoy-path.json", "{...}"),
+            "bench/vf-bench/traps")
+        for path in ("bench/vf-bench/traps-new/x.json", "bench/vf-bench/gate.py",
+                     "bench/vf-bench/README.md"):
+            with self.subTest(path=path):
+                self.assertIsNone(floor_guard.guard_surface_hit(path, "some line"))
+
+    def test_every_keyed_assignment_trips(self):
+        cases = [
+            ("ruff.toml", 'select = ["E9", "F63"]'),
+            ("ruff.toml", '  select= ["E9"]'),
+            (".coveragerc", "fail_under = 80"),
+            ("tests/test_evals.py", "ROUTING_MIN_SCORE = 1.0"),
+            ("bench/vf-bench/gate.py", 'EXPECTED_VERSION = "vf-bench@0.1"'),
+            ("bench/vf-bench/gate.py", 'EXPECTED_CANARY_GUID = "05e6"'),
+            ("bench/vf-bench/gate.py", 'EXPECTED_CORPUS_SHA256 = "a186"'),
+        ]
+        for path, line in cases:
+            with self.subTest(path=path, line=line):
+                self.assertEqual(floor_guard.guard_surface_hit(path, line), path)
+
+    def test_use_sites_and_comments_about_a_key_stay_silent(self):
+        cases = [
+            ("tests/test_evals.py", '    result["score"], ROUTING_MIN_SCORE,'),
+            ("tests/test_evals.py", "    # the ROUTING_MIN_SCORE floor mirrors CONSTRAINTS.md"),
+            ("ruff.toml", "# the select key lists the enforced rule families"),
+            (".coveragerc", "# fail_under mirrors the frozen D9 number"),
+            ("bench/vf-bench/gate.py", "# bump EXPECTED_VERSION with the corpus"),
+        ]
+        for path, line in cases:
+            with self.subTest(line=line):
+                self.assertIsNone(floor_guard.guard_surface_hit(path, line))
+
+    def test_surface_keys_in_other_files_stay_silent(self):
+        cases = [
+            ("docs/notes.md", "ROUTING_MIN_SCORE = 0.5"),
+            ("ruff.toml.bak", 'select = ["E9"]'),
+            ("sub/.gitleaksignore", "aabbcc"),
+            ("evals/routing.jsonl", "{}"),
+            ("tests/test_other.py", "ROUTING_MIN_SCORE = 0.5"),
+        ]
+        for path, line in cases:
+            with self.subTest(path=path):
+                self.assertIsNone(floor_guard.guard_surface_hit(path, line))
+
+    def test_an_empty_path_is_not_a_hit(self):
+        self.assertIsNone(floor_guard.guard_surface_hit("", "select = []"))
+        self.assertIsNone(floor_guard.guard_surface_hit(None, "select = []"))
+
+
+class TestGuardSurfaceEndToEnd(FloorGuardBase):
+    def _surface_repo(self, path, content):
+        repo = Path(self.tmp) / "surface"
+        repo.mkdir()
+        git(repo, "init", "-q", "-b", "main")
+        git(repo, "config", "user.email", "t@example.invalid")
+        git(repo, "config", "user.name", "t")
+        write(repo, path, content)
+        git(repo, "add", "-A")
+        git(repo, "commit", "-qm", "base")
+        git(repo, "checkout", "-q", "-b", "work")
+        return repo
+
+    def _lowered_floor(self):
+        repo = self._surface_repo("tests/test_evals.py", "ROUTING_MIN_SCORE = 1.0\n")
+        write(repo, "tests/test_evals.py", "ROUTING_MIN_SCORE = 0.5\n")
+        git(repo, "add", "-A")
+        git(repo, "commit", "-qm", "lower the floor")
+        return repo
+
+    def test_a_lowered_routing_floor_is_flagged(self):
+        code, _out, err = run_main(self._lowered_floor(), "--base", "main")
+        self.assertEqual(code, 1, err)
+        self.assertIn("guard-surface", err)
+        self.assertRegex(err, r"\[guard-surface\] tests/test_evals\.py:\d+")
+
+    def test_a_use_site_edit_without_touching_the_floor_is_silent(self):
+        repo = self._surface_repo("tests/test_evals.py",
+                                  "ROUTING_MIN_SCORE = 1.0\n\n\ndef check(score):\n    return score\n")
+        write(repo, "tests/test_evals.py",
+              "ROUTING_MIN_SCORE = 1.0\n\n\ndef check(score):\n    return score >= ROUTING_MIN_SCORE\n")
+        git(repo, "add", "-A")
+        git(repo, "commit", "-qm", "cite the floor without moving it")
+        code, _out, err = run_main(repo, "--base", "main")
+        self.assertEqual(code, 0, err)
+
+    def test_each_whole_surface_file_trips(self):
+        for path, line in ((".gitleaksignore", "aabbccddeeff00112233445566778899aabbccdd\n"),
+                           ("evals/routing.json", '{"prompts": []}\n'),
+                           ("bench/vf-bench/VERSION", "vf-bench@0.2\n"),
+                           ("bench/vf-bench/CANARY", "canary GUID 00000000-0000-0000-0000-000000000000\n"),
+                           ("bench/vf-bench/traps/zz-canary.json", '{"trap": true}\n')):
+            with self.subTest(path=path):
+                repo = Path(self.tmp) / ("repo-" + path.replace("/", "-"))
+                repo.mkdir(parents=True)
+                git(repo, "init", "-q", "-b", "main")
+                git(repo, "config", "user.email", "t@example.invalid")
+                git(repo, "config", "user.name", "t")
+                write(repo, "README.md", "base\n")
+                git(repo, "add", "-A")
+                git(repo, "commit", "-qm", "base")
+                git(repo, "checkout", "-q", "-b", "work")
+                write(repo, path, line)
+                git(repo, "add", "-A")
+                git(repo, "commit", "-qm", "touch the surface")
+                code, _out, err = run_main(repo, "--base", "main")
+                self.assertEqual(code, 1, f"{path} did not trip")
+                self.assertIn("guard-surface", err)
+
+    def test_each_keyed_surface_file_trips(self):
+        for path, line in (("ruff.toml", 'select = ["E9"]\n'),
+                           (".coveragerc", "[report]\nfail_under = 70\n"),
+                           ("bench/vf-bench/gate.py", 'EXPECTED_VERSION = "vf-bench@0.2"\n'),
+                           ("bench/vf-bench/gate.py", 'EXPECTED_CANARY_GUID = "0000"\n'),
+                           ("bench/vf-bench/gate.py", 'EXPECTED_CORPUS_SHA256 = "0000"\n')):
+            with self.subTest(path=path, line=line.strip()):
+                write(self.repo, path, line)
+                self.commit("touch the surface")
+                code, _out, err = run_main(self.repo, "--base", "main")
+                self.assertEqual(code, 1, f"{path}: {line.strip()} did not trip")
+                self.assertIn("guard-surface", err)
+
+    def test_a_granting_waiver_exempts_a_surface_touch(self):
+        repo = self._lowered_floor()
+        write(repo, "docs/DECISIONS.md",
+              "2026-09-10T00:00:00Z · floor-waiver:guard-surface:tests/test_evals.py · taste · "
+              "allow · the floor moves with the eval · t-1\n")
+        code, out, err = run_main(repo, "--base", "main")
+        self.assertEqual(code, 0, err)
+        self.assertIn("waived", out)
+
+
+class TestScanUnits(FloorGuardBase):
+    # Marker fixtures are split across string literals: each half is inert to
+    # the guard, and the joined runtime string trips exactly the rule under
+    # test. A contiguous marker here would be a self-finding when the guard
+    # CI job diff-scans the PR that carries these tests.
+    NOQA = "value = 1  # " + "noqa"
+    SKIP = "@pytest.mark.sk" + "ip"
+    STUB = "# T" + "ODO: later"
+
+    def _scan(self, added=(), removed=(), name="CONSTRAINTS.md", repo=None):
+        return floor_guard.scan(list(added), list(removed), name, repo or Path(self.tmp))
+
+    def test_added_markers_flag_their_rules(self):
+        findings = self._scan(added=[("src/a.py", 1, self.NOQA),
+                                     ("tests/t.py", 2, self.SKIP),
+                                     ("src/b.py", 3, self.STUB)])
+        self.assertEqual([f["rule"] for f in findings],
+                         ["silenced-checker", "test-made-easier", "unfinished-work"])
+        self.assertEqual(findings[0]["path"], "src/a.py")
+        self.assertEqual(findings[0]["line"], 1)
+        self.assertEqual(findings[0]["detail"], "noqa")
+
+    def test_guard_surface_flags_on_added_and_removed_lines(self):
+        added = self._scan(added=[(".gitleaksignore", 1, "aabbcc")])
+        self.assertEqual([(f["rule"], f["detail"]) for f in added],
+                         [("guard-surface", ".gitleaksignore")])
+        removed = self._scan(removed=[("evals/routing.json", 9, '  {"p": 1},')])
+        self.assertEqual([(f["rule"], f["detail"]) for f in removed],
+                         [("guard-surface", "evals/routing.json")])
+
+    def test_a_lowered_number_flags_with_the_before_and_after(self):
+        findings = self._scan(added=[("CONSTRAINTS.md", 4, "| D1 | coverage | 60 |")],
+                              removed=[("CONSTRAINTS.md", 4, "| D1 | coverage | 85 |")])
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0]["rule"], "threshold-lowered")
+        self.assertEqual(findings[0]["detail"], "85 -> 60")
+
+    def test_only_the_lowered_number_in_a_pair_flags(self):
+        findings = self._scan(added=[("CONSTRAINTS.md", 4, "| D | a 10 b 15 |")],
+                              removed=[("CONSTRAINTS.md", 4, "| D | a 10 b 20 |")])
+        self.assertEqual([(f["rule"], f["detail"]) for f in findings],
+                         [("threshold-lowered", "20 -> 15")])
+
+    def test_a_raised_an_unmatched_and_a_keyless_row_stay_silent(self):
+        raised = self._scan(added=[("CONSTRAINTS.md", 4, "| D1 | coverage | 95 |")],
+                            removed=[("CONSTRAINTS.md", 4, "| D1 | coverage | 85 |")])
+        self.assertEqual(raised, [])
+        unmatched = self._scan(added=[("CONSTRAINTS.md", 9, "| D9 | other | 1 |")],
+                               removed=[("CONSTRAINTS.md", 4, "| D1 | coverage | 85 |")])
+        self.assertEqual(unmatched, [])
+        keyless = self._scan(added=[("CONSTRAINTS.md", 4, "|||")],
+                             removed=[("CONSTRAINTS.md", 4, "|||")])
+        self.assertEqual(keyless, [])
+
+    def test_a_number_with_no_before_value_stays_silent(self):
+        findings = self._scan(added=[("CONSTRAINTS.md", 4, "| D | a 10 b 5 |")],
+                              removed=[("CONSTRAINTS.md", 4, "| D | a 10 |")])
+        self.assertEqual(findings, [])
+
+    def test_an_exception_row_flags(self):
+        findings = self._scan(added=[("CONSTRAINTS.md", 9, "| W101 | legacy | Q3 |")])
+        self.assertEqual([f["rule"] for f in findings], ["new-exception"])
+
+    def test_a_bullet_under_an_in_diff_exceptions_heading_flags(self):
+        findings = self._scan(added=[("CONSTRAINTS.md", 8, "## Exceptions"),
+                                     ("CONSTRAINTS.md", 9, "- legacy stays unlinted")])
+        self.assertEqual([f["rule"] for f in findings], ["new-exception"])
+
+    def test_a_bullet_under_an_on_disk_exceptions_heading_flags(self):
+        # The hermetic repo's CONSTRAINTS.md carries ## Exceptions on disk (no
+        # heading line in the diff), which is the half the in-diff marker alone missed.
+        findings = self._scan(added=[("CONSTRAINTS.md", 9, "- legacy stays unlinted")],
+                              repo=self.repo)
+        self.assertEqual([f["rule"] for f in findings], ["new-exception"])
+
+    def test_a_bullet_with_no_exceptions_heading_stays_silent(self):
+        bare = Path(self.tmp) / "bare"
+        bare.mkdir()
+        findings = self._scan(added=[("CONSTRAINTS.md", 9, "- a plain bullet")], repo=bare)
+        self.assertEqual(findings, [])
+
+    def test_an_unreadable_constraints_file_reads_as_no_heading(self):
+        blocked = Path(self.tmp) / "blocked"
+        blocked.mkdir()
+        (blocked / "CONSTRAINTS.md").mkdir()
+        findings = self._scan(added=[("CONSTRAINTS.md", 9, "- a plain bullet")], repo=blocked)
+        self.assertEqual(findings, [])
+
+    def test_a_plain_line_is_not_an_exception_bullet(self):
+        findings = self._scan(added=[("CONSTRAINTS.md", 9, "a plain line")], repo=self.repo)
+        self.assertEqual(findings, [])
+
+    def test_a_removed_assertion_in_a_surviving_test_flags(self):
+        findings = self._scan(removed=[("tests/test_thing.py", 5, "    assert other() == 5")],
+                              repo=self.repo)
+        self.assertEqual([f["rule"] for f in findings], ["assertion-removed"])
+
+    def test_a_removed_assertion_in_a_deleted_file_stays_silent(self):
+        findings = self._scan(removed=[("tests/gone.py", 1, "    assert gone()")],
+                              repo=self.repo)
+        self.assertEqual(findings, [])
+
+    def test_a_removed_assertion_outside_test_paths_stays_silent(self):
+        findings = self._scan(removed=[("src/app.py", 2, "    assert True")], repo=self.repo)
+        self.assertEqual(findings, [])
+
+    def test_a_removed_non_assertion_line_stays_silent(self):
+        findings = self._scan(removed=[("tests/test_thing.py", 1, "def test_thing():")],
+                              repo=self.repo)
+        self.assertEqual(findings, [])
+
+    def test_a_head_deleted_test_file_still_counts_as_surviving(self):
+        (self.repo / "tests" / "test_thing.py").unlink()
+        findings = self._scan(removed=[("tests/test_thing.py", 5, "    assert other() == 5")],
+                              repo=self.repo)
+        self.assertEqual([f["rule"] for f in findings], ["assertion-removed"])
+
+    def test_an_uncommitted_test_file_counts_as_surviving(self):
+        write(self.repo, "tests/test_fresh.py", "def test_fresh():\n    assert fresh()\n")
+        findings = self._scan(removed=[("tests/test_fresh.py", 2, "    assert fresh()")],
+                              repo=self.repo)
+        self.assertEqual([f["rule"] for f in findings], ["assertion-removed"])
+
+
+class TestDiffParsingUnits(unittest.TestCase):
+    def test_hunk_accounting_pins_added_removed_and_context_lines(self):
+        diff = ("--- a/src/app.py\n"
+                "+++ b/src/app.py\n"
+                "@@ -1,2 +1,3 @@\n"
+                " ctx\n"
+                "-old\n"
+                "+new\n"
+                "+more\n")
+        added, removed = floor_guard.parse_diff(diff)
+        self.assertEqual(added, [("src/app.py", 2, "new"), ("src/app.py", 3, "more")])
+        self.assertEqual(removed, [("src/app.py", 2, "old")])
+
+    def test_new_and_deleted_files_resolve_through_dev_null(self):
+        added, removed = floor_guard.parse_diff(
+            "--- /dev/null\n+++ b/new.py\n@@ -0,0 +1 @@\n+line\n")
+        self.assertEqual(added, [("new.py", 1, "line")])
+        self.assertEqual(removed, [])
+        added, removed = floor_guard.parse_diff(
+            "--- a/gone.py\n+++ /dev/null\n@@ -1 +0,0 @@\n-gone\n")
+        self.assertEqual(added, [])
+        self.assertEqual(removed, [("gone.py", 1, "gone")])
+
+    def test_strip_prefix_handles_prefixes_dev_null_and_bare_paths(self):
+        self.assertEqual(floor_guard.strip_prefix("a/src/x.py"), "src/x.py")
+        self.assertEqual(floor_guard.strip_prefix("b/src/x.py"), "src/x.py")
+        self.assertEqual(floor_guard.strip_prefix("/dev/null"), "")
+        self.assertEqual(floor_guard.strip_prefix("plain.py"), "plain.py")
+
+    def test_row_key_is_the_first_nonempty_cell(self):
+        self.assertEqual(floor_guard.row_key("| D1 | coverage | 85 |"), "d1")
+        self.assertEqual(floor_guard.row_key("- floor: 3"), "floor")
+        self.assertEqual(floor_guard.row_key("|||"), "")
+
+    def test_numbers_reads_ints_and_decimals(self):
+        self.assertEqual(floor_guard.numbers("v1.2 and 3"), [1.2, 3.0])
+        self.assertEqual(floor_guard.numbers("no digits"), [])
+
+    def test_is_constraints_matches_by_filename(self):
+        self.assertTrue(floor_guard.is_constraints("CONSTRAINTS.md", "CONSTRAINTS.md"))
+        self.assertTrue(floor_guard.is_constraints("docs/CONSTRAINTS.md", "CONSTRAINTS.md"))
+        self.assertFalse(floor_guard.is_constraints("OTHER.md", "CONSTRAINTS.md"))
+        self.assertFalse(floor_guard.is_constraints("", "CONSTRAINTS.md"))
+
+
+class TestWaiverUnits(unittest.TestCase):
+    def _row(self, ident, answer="allow", ts="2026-09-10T00:00:00Z"):
+        return f"{ts} · {ident} · taste · {answer} · why · t-1"
+
+    def _finding(self, rule="silenced-checker", path="src/new.py"):
+        return {"rule": rule, "path": path, "line": 1, "detail": "noqa"}
+
+    def test_a_granting_waiver_waives_through_the_sibling_loader(self):
+        self.assertTrue(floor_guard.is_waived(
+            self._finding(), [self._row("floor-waiver:silenced-checker:src/new.py")]))
+
+    def test_a_preloaded_decisions_module_is_used_as_is(self):
+        loaded = floor_guard._load_decisions()
+        self.assertTrue(floor_guard.is_waived(
+            self._finding(), [self._row("floor-waiver:silenced-checker:src/new.py")],
+            decisions=loaded))
+
+    def test_a_denied_a_superseded_and_a_wrong_rule_do_not_waive(self):
+        ident = "floor-waiver:silenced-checker:src/new.py"
+        self.assertFalse(floor_guard.is_waived(
+            self._finding(), [self._row(ident, answer="deny")]))
+        self.assertFalse(floor_guard.is_waived(
+            self._finding(), [self._row(ident, ts="2026-09-01T00:00:00Z"),
+                              self._row(ident, answer="superseded", ts="2026-09-02T00:00:00Z")]))
+        self.assertFalse(floor_guard.is_waived(
+            self._finding(), [self._row("floor-waiver:threshold-lowered:src/new.py")]))
+
+    def test_prose_and_unscoped_ids_do_not_waive(self):
+        self.assertFalse(floor_guard.is_waived(self._finding(), ["just a note"]))
+        self.assertFalse(floor_guard.is_waived(
+            self._finding(), [self._row("floor-waiver")]))
+
+    def test_a_finding_without_a_path_is_never_waived(self):
+        self.assertFalse(floor_guard.is_waived(
+            {"rule": "silenced-checker"}, [self._row("floor-waiver:silenced-checker:src/new.py")]))
+
+    def test_an_unloadable_sibling_waives_nothing(self):
+        with mock.patch.object(floor_guard, "_load_decisions", side_effect=Exception("boom")):
+            self.assertFalse(floor_guard.is_waived(
+                self._finding(), [self._row("floor-waiver:silenced-checker:src/new.py")]))
+
+    def test_path_scope_is_segment_wise_never_substring(self):
+        hit = floor_guard._path_waived_by
+        self.assertTrue(hit("src/new.py", "src/new.py"))
+        self.assertTrue(hit("src/**", "src/new.py"))
+        self.assertTrue(hit("src/**", "src/a/b.py"))
+        self.assertFalse(hit("src", "src/new.py"))
+        self.assertFalse(hit("src/", "src/new.py"))
+        self.assertFalse(hit("**", "src/new.py"))
+        self.assertFalse(hit("/**", "src/new.py"))
+        self.assertFalse(hit("src/new.pyc", "src/new.py"))
+        self.assertFalse(hit("src/new.py", "src/new.pyx"))
+        self.assertFalse(hit("src/**", "srcinternal/x.py"))
+
+    def test_missing_waiver_file_is_no_waivers(self):
+        self.assertEqual(floor_guard.load_waivers("/nonexistent/DECISIONS.md"), [])
+
+    def test_an_unreadable_waiver_file_is_a_could_not_run(self):
+        with tempfile.TemporaryDirectory(prefix="waivers-") as tmp:
+            with self.assertRaises(floor_guard.GuardError):
+                floor_guard.load_waivers(tmp)
+
+    def test_malformed_waivers_are_named_with_the_shape_to_write(self):
+        notes = floor_guard.malformed_waivers([self._row("floor-waiver")])
+        self.assertEqual(len(notes), 1)
+        self.assertIn("scope is not in the id", notes[0][1])
+        notes = floor_guard.malformed_waivers([self._row("floor-waiver:silenced-checker")])
+        self.assertEqual(len(notes), 1)
+        self.assertIn("floor-waiver:<rule>:<path-or-glob>", notes[0][1])
+        good = floor_guard.malformed_waivers(
+            [self._row("floor-waiver:silenced-checker:src/new.py"), "prose"])
+        self.assertEqual(good, [])
+
+    def test_malformed_waivers_survive_an_unloadable_sibling(self):
+        with mock.patch.object(floor_guard, "_load_decisions", side_effect=Exception("boom")):
+            self.assertEqual(floor_guard.malformed_waivers([self._row("floor-waiver")]), [])
+
+
+class TestMainInProc(FloorGuardBase):
+    def test_clean_reports_the_banner_in_process(self):
+        code, out, err = run_main(self.repo, "--base", "main")
+        self.assertEqual(code, 0, err)
+        self.assertIn("floor-guard: clean", out)
+
+    def test_quiet_suppresses_the_clean_banner(self):
+        code, out, err = run_main(self.repo, "--base", "main", "--quiet")
+        self.assertEqual(code, 0, err)
+        self.assertEqual(out, "")
+
+    def test_an_omitted_base_falls_back_to_the_local_main(self):
+        code, _out, err = run_main(self.repo)
+        self.assertEqual(code, 0, err)
+        write(self.repo, "CONSTRAINTS.md",
+              BASE_CONSTRAINTS.replace("| D1 | coverage | 85 |", "| D1 | coverage | 60 |"))
+        self.commit("lower")
+        code, _out, err = run_main(self.repo)
+        self.assertEqual(code, 1, "the default base did not evaluate main..work")
+        self.assertIn("threshold-lowered", err)
+
+    def test_a_violation_names_the_rule_and_the_waiver_shape(self):
+        write(self.repo, "CONSTRAINTS.md",
+              BASE_CONSTRAINTS.replace("| D1 | coverage | 85 |", "| D1 | coverage | 60 |"))
+        self.commit("lower")
+        code, _out, err = run_main(self.repo, "--base", "main")
+        self.assertEqual(code, 1)
+        self.assertIn("[threshold-lowered]", err)
+        self.assertIn("floor-waiver:<rule>:<path>", err)
+
+    def test_a_granting_waiver_reports_the_count_in_process(self):
+        write(self.repo, "CONSTRAINTS.md",
+              BASE_CONSTRAINTS.replace("| D1 | coverage | 85 |", "| D1 | coverage | 60 |"))
+        self.commit("lower")
+        write(self.repo, "docs/DECISIONS.md",
+              "2026-09-10T00:00:00Z · floor-waiver:threshold-lowered:CONSTRAINTS.md · taste · "
+              "allow · the bar moves deliberately · t-1\n")
+        code, out, err = run_main(self.repo, "--base", "main")
+        self.assertEqual(code, 0, err)
+        self.assertIn("(1 waived)", out)
+
+    def test_an_unresolvable_base_is_exit_2_in_process(self):
+        code, _out, err = run_main(self.repo, "--base", "origin/does-not-exist")
+        self.assertEqual(code, 2)
+        self.assertIn("not resolvable", err)
+
+    def test_a_non_repo_is_exit_2_in_process(self):
+        plain = Path(self.tmp) / "plain"
+        plain.mkdir()
+        code, _out, err = run_main(plain, "--base", "main")
+        self.assertEqual(code, 2)
+        self.assertIn("not inside a git work tree", err)
+
+    def test_no_resolvable_default_base_is_exit_2(self):
+        repo = Path(self.tmp) / "trunk"
+        repo.mkdir()
+        git(repo, "init", "-q", "-b", "trunk")
+        git(repo, "config", "user.email", "t@example.invalid")
+        git(repo, "config", "user.name", "t")
+        write(repo, "file.txt", "content\n")
+        git(repo, "add", "-A")
+        git(repo, "commit", "-qm", "base")
+        code, _out, err = run_main(repo)
+        self.assertEqual(code, 2)
+        self.assertIn("no base ref could be resolved", err)
+
+    def test_origin_head_wins_over_the_local_branch(self):
+        # The distinguishing setup: the remote tip (T1, clean) and the local
+        # tip (T2, violation) have different TREES, and work sits at T2. A base
+        # of origin/main diffs T1..T2 and sees the violation; a base of the
+        # local main diffs T2..T2 and reads clean.
+        origin = Path(self.tmp) / "origin.git"
+        git(Path(self.tmp), "init", "-q", "--bare", "origin.git")
+        seed = Path(self.tmp) / "seed"
+        git(Path(self.tmp), "clone", "-q", str(origin), "seed")
+        git(seed, "config", "user.email", "t@example.invalid")
+        git(seed, "config", "user.name", "t")
+        write(seed, "CONSTRAINTS.md", BASE_CONSTRAINTS)
+        git(seed, "add", "-A")
+        git(seed, "commit", "-qm", "base")
+        git(seed, "push", "-q", "origin", "main")
+        repo = Path(self.tmp) / "clone"
+        git(Path(self.tmp), "clone", "-q", str(origin), "clone")
+        git(repo, "config", "user.email", "t@example.invalid")
+        git(repo, "config", "user.name", "t")
+        head = git(repo, "symbolic-ref", "refs/remotes/origin/HEAD")
+        self.assertEqual(head.stdout.strip(), "refs/remotes/origin/main",
+                         "the clone has no origin/HEAD to prefer — the setup is wrong, not the code")
+        write(repo, "CONSTRAINTS.md",
+              BASE_CONSTRAINTS.replace("| D1 | coverage | 85 |", "| D1 | coverage | 60 |"))
+        git(repo, "add", "-A")
+        git(repo, "commit", "-qm", "violation, unpushed")
+        git(repo, "checkout", "-q", "-b", "work")
+        code, _out, err = run_main(repo)
+        self.assertEqual(code, 1, f"the guard read the local tip, not origin/HEAD: {err}")
+        self.assertIn("threshold-lowered", err)
+
+    def test_branches_without_a_merge_base_are_exit_2(self):
+        git(self.repo, "checkout", "-q", "--orphan", "ghost")
+        git(self.repo, "commit", "-q", "--allow-empty", "-m", "ghost")
+        code, _out, err = run_main(self.repo, "--base", "main")
+        self.assertEqual(code, 2)
+        self.assertIn("no merge base", err)
+
+    def test_git_failing_to_launch_is_exit_2(self):
+        with mock.patch.object(floor_guard.subprocess, "run", side_effect=OSError("no git")):
+            code, _out, err = run_main(self.repo, "--base", "main")
+        self.assertEqual(code, 2)
+        self.assertIn("could not run", err)
+
+    def test_an_old_shape_waiver_is_named_in_process(self):
+        write(self.repo, "CONSTRAINTS.md",
+              BASE_CONSTRAINTS.replace("| D1 | coverage | 85 |", "| D1 | coverage | 60 |"))
+        self.commit("lower")
+        write(self.repo, "docs/DECISIONS.md",
+              "2026-09-10T00:00:00Z · floor-waiver · taste · allow · the old shape · t-1\n")
+        code, _out, err = run_main(self.repo, "--base", "main")
+        self.assertEqual(code, 1)
+        self.assertIn("NOT a usable waiver", err)
+        self.assertIn("floor-waiver:<rule>:<path>", err)
+
+    def test_an_unloadable_sibling_grants_no_waiver_and_names_none(self):
+        write(self.repo, "CONSTRAINTS.md",
+              BASE_CONSTRAINTS.replace("| D1 | coverage | 85 |", "| D1 | coverage | 60 |"))
+        self.commit("lower")
+        write(self.repo, "docs/DECISIONS.md",
+              "2026-09-10T00:00:00Z · floor-waiver · taste · allow · the old shape · t-1\n")
+        with mock.patch.object(floor_guard, "_load_decisions", side_effect=Exception("boom")):
+            code, _out, err = run_main(self.repo, "--base", "main")
+        self.assertEqual(code, 1)
+        self.assertIn("[threshold-lowered]", err)
+        self.assertNotIn("NOT a usable waiver", err)
+
+    def test_the_module_entry_point_runs_clean_and_exits_zero(self):
+        argv = ["floor_guard.py", "--repo", str(self.repo), "--base", "main"]
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            with mock.patch.object(sys, "argv", argv):
+                with self.assertRaises(SystemExit) as ctx:
+                    runpy.run_path(str(GUARD), run_name="__main__")
+        self.assertEqual(ctx.exception.code, 0)
+        self.assertIn("floor-guard: clean", out.getvalue())
 
 
 if __name__ == "__main__":
