@@ -40,8 +40,8 @@ def _refresh_issue_gauge_best_effort() -> None:
         finally:
             db.close()
         ISSUE_COUNT.set(float(total or 0))
-    except Exception:
-        pass
+    except Exception as exc:
+        get_logger().warning("issue_gauge_refresh_failed", error=str(exc))
 
 
 def configure_logging() -> None:
@@ -65,7 +65,21 @@ async def telemetry_middleware(
     request: Request, call_next: Callable[[Request], Awaitable[Response]]
 ) -> Response:
     start = time.perf_counter()
-    response = await call_next(request)
+    try:
+        response = await call_next(request)
+    except Exception:
+        elapsed = time.perf_counter() - start
+        route = request.scope.get("route")
+        path = getattr(route, "path", request.url.path)
+        REQUEST_LATENCY.labels(request.method, path, "500").observe(elapsed)
+        get_logger().info(
+            "request",
+            method=request.method,
+            path=request.url.path,
+            status_code=500,
+            duration_ms=round(elapsed * 1000, 3),
+        )
+        raise
     elapsed = time.perf_counter() - start
     route = request.scope.get("route")
     path = getattr(route, "path", request.url.path)

@@ -78,3 +78,42 @@ def test_latency_histogram_observes_requests(client: TestClient) -> None:
         )
     )
     assert float(line.rsplit(" ", 1)[1]) >= 1
+
+
+def test_middleware_records_error_path() -> None:
+    """Route exceptions still emit a 500 latency sample (Greptile P2 fix)."""
+    import asyncio
+
+    from fastapi import Request
+
+    from app import telemetry as T
+
+    async def boom(_request: Request):  # type: ignore[no-untyped-def]
+        raise RuntimeError("boom")
+
+    scope = {
+        "type": "http",
+        "method": "GET",
+        "path": "/issues/1",
+        "headers": [],
+        "route": None,
+    }
+    before = _hist_count("GET", "/issues/1", "500")
+    with pytest.raises(RuntimeError, match="boom"):
+        asyncio.run(T.telemetry_middleware(Request(scope), boom))
+    assert _hist_count("GET", "/issues/1", "500") == before + 1
+
+
+def _hist_count(method: str, path: str, status: str) -> float:
+    from app import telemetry as T
+
+    for metric in T.REQUEST_LATENCY.collect():
+        for sample in metric.samples:
+            if (
+                sample.name.endswith("_count")
+                and sample.labels.get("method") == method
+                and sample.labels.get("path") == path
+                and sample.labels.get("status") == status
+            ):
+                return float(sample.value)
+    return 0.0

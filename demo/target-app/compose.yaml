@@ -13,7 +13,7 @@ services:
       TARGET_APP_SCRAPE_GAUGE: "1"
     command: sh -c "pip install --quiet -e . && python -m app.seed --count 0 && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000"
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
 
   staging:
     image: python:3.13-slim
@@ -26,7 +26,7 @@ services:
       TARGET_APP_SCRAPE_GAUGE: "1"
     command: sh -c "pip install --quiet -e . && python -m app.seed --count 0 && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000"
     ports:
-      - "8001:8000"
+      - "127.0.0.1:8001:8000"
 
   prometheus:
     image: prom/prometheus:v2.53.0
@@ -34,7 +34,7 @@ services:
       - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     command: --config.file=/etc/prometheus/prometheus.yml
     ports:
-      - "9090:9090"
+      - "127.0.0.1:9090:9090"
 
   grafana:
     image: grafana/grafana:10.4.3
@@ -47,7 +47,7 @@ services:
       - ./observability/dashboards:/var/lib/grafana/dashboards:ro
       - grafana-data:/var/lib/grafana
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
 
   loki:
     image: grafana/loki:3.1.0
@@ -56,7 +56,7 @@ services:
       - loki-data:/loki
     command: -config.file=/etc/loki/config.yml
     ports:
-      - "3100:3100"
+      - "127.0.0.1:3100:3100"
 
   promtail:
     image: grafana/promtail:3.1.0
@@ -70,7 +70,7 @@ services:
     volumes:
       - ./observability/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
     ports:
-      - "9093:9093"
+      - "127.0.0.1:9093:9093"
 
 volumes:
   app-data:
