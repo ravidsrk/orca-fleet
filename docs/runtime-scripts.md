@@ -73,3 +73,21 @@ content signals (capped at 256 KiB per file; deleted files contribute path signa
 Only `BACKEND` is exclusive of frontend view files.
 
 Exits: 0 classified · 2 SCOPE_ERROR=no_base|diff_failed|unmatched.
+
+## `ed25519.py`
+
+Vendored pure-Python Ed25519 (RFC 8032), dependency-free. Import-only library — no CLI.
+Source `runtime/scripts/ed25519.py:1-21`; verified against the RFC 8032 test vectors in
+`tests/test_ed25519.py`.
+
+API: `publickey`, `signature`, `checkvalid`.
+
+`publickey(seed)` derives the 32-byte public key for a 32-byte secret seed;
+`signature(msg, seed, pub)` returns the 64-byte signature; `checkvalid(sig, msg, pub)`
+returns True iff valid. Hardening beyond the bare reference: rejects non-canonical
+`S >= L`, non-canonical point encodings, and small-order/identity public keys (cofactor
+check). Not constant-time: signs and verifies tiny dispatch-provenance records only, never
+bulk data or network secrets. Used by `runtime/scripts/dispatch-sign.py` (sign, off the
+graded worker) and `runtime/scripts/verify.py` (verify at the gate).
+
+Exits: n/a (library).

@@ -13,8 +13,8 @@ solo self-test; the mechanical oracle is the claim check + rename control + re-d
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | doc-r01 | cli:runtime/scripts/decisions.py | reference | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-r01.md @107df88 |
 | doc-r02 | cli:runtime/scripts/deny-hook.sh | reference | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-r02.md @1aa143a |
-| doc-r03 | cli:runtime/scripts/diff_scope.py | reference | critical | t | t | t | n/a | n/a | t | f | f | n/a | lit | | cells/doc-r03.md |
-| doc-r04 | cli:runtime/scripts/ed25519.py | reference | critical | f | f | f | n/a | n/a | f | f | f | n/a | lit | | |
+| doc-r03 | cli:runtime/scripts/diff_scope.py | reference | critical | t | t | t | n/a | n/a | t | t | f | n/a | lit | | cells/doc-r03.md @909445a |
+| doc-r04 | cli:runtime/scripts/ed25519.py | reference | critical | t | t | t | n/a | n/a | t | f | f | n/a | lit | | cells/doc-r04.md |
 | doc-r05 | cli:runtime/scripts/egress.py | reference | critical | f | f | f | n/a | n/a | f | f | f | n/a | lit | | |
 | doc-r06 | cli:runtime/scripts/floor_guard.py | reference | critical | f | f | f | n/a | n/a | f | f | f | n/a | lit | | |
 | doc-r07 | cli:runtime/scripts/gate-batch.py | reference | critical | f | f | f | n/a | n/a | f | f | f | n/a | lit | | |
