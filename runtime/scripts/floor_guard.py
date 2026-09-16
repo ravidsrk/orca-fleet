@@ -453,7 +453,7 @@ def build_parser():
         description="Diff-scoped detection of the five moves that lower the bar.",
         epilog="exit 0 clean / 1 findings / 2 could-not-run (never let a 2 read as a 0)",
     )
-    p.add_argument("--base", default=None, help="base ref (default: origin/HEAD, then origin/main, main, master)")
+    p.add_argument("--base", default=None, help="base ref (default: origin/HEAD, then origin/main, origin/master, main, master)")
     p.add_argument("--constraints", default="CONSTRAINTS.md", help="constraints file whose numbers may not go down")
     p.add_argument("--waivers", default="docs/DECISIONS.md", help="DECISIONS log; a line naming a rule id and a path waives it")
     p.add_argument("--repo", default=".", help="repository to guard (default: cwd)")

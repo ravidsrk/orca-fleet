@@ -130,7 +130,7 @@ fail-closed exits documented in the header comment.
 python3 scripts/validate.py                # must end: "three-layer separation holds; evals valid."
 python3 -m unittest discover -s tests -v   # all contract + validator fixture tests green
 # optional: ruff check scripts runtime/scripts tests bench demo
-# (CI runs ruff 0.16.5 on E9/F63/F7/F82 only — see ruff.toml)
+# (CI runs ruff 0.16.7 on E9/F63/F7/F82 only — see ruff.toml)
 ```
 
 The validator finishes in under a second; the suite takes a few minutes because it builds real
