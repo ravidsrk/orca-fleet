@@ -1,0 +1,30 @@
+### D7 cross-fire map (on D7 injection 5242ce31) — 2026-09-16T20:31:01Z
+### $ python3 scripts/validate.py
+ok   absorb-it
+ok   access-it
+ok   attest-it
+ok   clean-sweep
+ok   deflake-it
+ok   document-it
+ok   field-test-it
+ok   floor-it
+ok   harden-it
+ok   map-it
+ok   migrate-it
+ok   modernize-it
+ok   oncall-it
+ok   oss-contribute
+ok   pin-it
+ok   prove-it
+ok   reshape-it
+FAIL review-it
+   - dangling path: ../../canary-missing-target.md does not exist
+ok   root-cause
+ok   ship-it
+ok   speed-it
+
+Validation failed.
+### exit=1
+### $ python3 scripts/eval.py run --suite routing --threshold 1.0
+Routing eval: 94/94 correct (100%)
+### exit=0

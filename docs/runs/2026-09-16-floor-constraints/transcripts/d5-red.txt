@@ -1,0 +1,37 @@
+### D5 RED — 2026-09-16T20:28:51Z
+### branch: floor/canary-d5 commit: ff752a4f (throwaway)
+### injection: deflake-it description neutered (trigger vocabulary removed; 'Use when' + length kept)
+### command: python3 scripts/eval.py run --suite routing --threshold 1.0
+Routing eval: 86/94 correct (91%)
+  [positive] id=10 expected=deflake-it predicted=prove-it
+    prompt: Kill the flaky tests in the CI suite.
+    reason: Suite-wide flake-rate contract is deflake-it.
+    top: prove-it 0.084
+  [negative] id=15 expected=owner deflake-it over root-cause predicted=prove-it
+    prompt: The test suite has flaky failures.
+    reason: A whole flaky suite is deflake-it, not the single-bug mission root-cause.
+    top: prove-it 0.101
+  [negative] id=26 expected=owner deflake-it over clean-sweep predicted=prove-it
+    prompt: This test fails intermittently — it passes on retry.
+    reason: An intermittent pass-on-retry failure is a flake-rate contract (deflake-it), not a deterministic clean-sweep bug.
+    top: prove-it 0.105, clean-sweep 0.065, field-test-it 0.062
+  [positive] id=102 expected=deflake-it predicted=none
+    prompt: why is this flaky
+    reason: docs/reviews/2026-09-10-review.md §5 realistic prompt: one bug or a suite-rate contract — either is defensible from the text.
+  [positive] id=105 expected=deflake-it predicted=map-it
+    prompt: our tests are flaky and I want to know why
+    reason: docs/reviews/2026-09-10-review.md §5 realistic prompt: a whole flaky suite is deflake-it.
+    top: map-it 0.125, prove-it 0.124
+  [positive] id=110 expected=modernize-it predicted=modernize-it
+    prompt: upgrade React and fix what breaks
+    reason: docs/reviews/2026-09-10-review.md §5 realistic prompt: framework currency with CI green is modernize-it.
+    top: modernize-it 0.088, field-test-it 0.071
+  [positive] id=130 expected=deflake-it|root-cause predicted=prove-it
+    prompt: this test passes locally but fails in CI
+    reason: docs/reviews/2026-09-10-review.md §5 realistic prompt: environment-dependent intermittency.
+    top: prove-it 0.120, root-cause 0.095, clean-sweep 0.075
+  [positive] id=132 expected=deflake-it predicted=none
+    prompt: kill the retry wrappers and make the suite deterministic
+    reason: docs/reviews/2026-09-10-review.md §5 realistic prompt: retry-wrappers-as-fixes are deflake-it's banned anti-pattern.
+  FAIL: routing score 91% is below --threshold 100%
+eval_exit=1

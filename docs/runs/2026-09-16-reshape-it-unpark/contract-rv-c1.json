@@ -1,0 +1,42 @@
+{
+  "criteria": [
+    {
+      "id": "RV-C1",
+      "text": "The count-lint seam net pins the CURRENT behavior of scripts/validate.py's regex engine (hyphenated, compound-spelled, and emphasis-jointed catalog counts match; lone ones-words do not) and check_doc_counts' file behavior (missing listed files are skipped), and the seam mutant M1 (hyphen-blind _SEP) is KILLED by the net."
+    }
+  ],
+  "criterion_ids": [
+    "RV-C1"
+  ],
+  "dispatch": {
+    "authorized_by": "reshape-unpark-worker delegation (CONFIRM-SURFACE human freeze recorded on origin/campaign/reshape-it-selftest; parent coordinator merges and re-verifies)",
+    "lighting": "dark-eligible",
+    "why": "characterization-test-only change, oracle is types/tests \u2014 gate-classification.md's concrete dark-eligible example; prove-it PF-2/PF-3 precedent"
+  },
+  "frozen_at": "2026-09-17T00:30:00Z",
+  "mission": "reshape-it",
+  "note": "Denominator frozen before the CHARACTERIZE wave. oracle_scope coordinates are authorized after mutant inspection, per evidence-manifest.md section 1 (Coordinator oracle scope).",
+  "phase": "CHARACTERIZE",
+  "run": "2026-09-16 unpark (SCAN + CONFIRM-SURFACE freeze: origin/campaign/reshape-it-selftest @ e1e2634f)",
+  "seam": "count-lint regex engine (_ONES..MISSION_CONTEXT_RE, scripts/validate.py:891-919) + check_doc_counts file behavior (:922-945)",
+  "target": "scripts/validate.py",
+  "unit": "RV-C1",
+  "oracle_scope": {
+    "kind": "characterization",
+    "base_sha": "6e3cc045a5169a1f1a72c4eaec970ed7253f4a54",
+    "head_sha": "c5e09b9bb220b3ab641960621ce8a12761621542",
+    "criterion_ids": [
+      "RV-C1"
+    ],
+    "paths": {
+      "scripts/validate.py": [
+        905
+      ]
+    },
+    "artifact_sha256": "f884d6e9b41507fb07bedd5f93b26209b826b6057d80c9ef92dd189811fc312e"
+  },
+  "mutant_inspection": "Round 2 (Greptile P2 addressed): M1 re-inspected at H2 \u2014 same single-line _SEP change at scripts/validate.py:905, re-killed by the extended net (failures=1, hyphen test); M2 re-killed (emphasis test); M3 (star-blind _SEP, same line) inspected: behaviour-changing, harness-preserving, KILLED (failures=1, emphasis test). Clean head GREEN. See rv-c1-negctrl-r2.txt, rv-c1-m2-r2.txt, rv-c1-m3.txt. Criteria text unchanged since v1 freeze (verified against C0 bytes).",
+  "changelog": [
+    "v4: filename pointers corrected to the -r2 names (Greptile P2 4030446455); criteria + oracle_scope coords + artifact sha all unchanged."
+  ]
+}

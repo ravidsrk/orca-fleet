@@ -1,0 +1,58 @@
+RV-C1 negative control — pinned hand mutant M1 (tool=hand, no mutant id by schema)
+unit: RV-C1 CHARACTERIZE scripts/validate.py count-lint seam (round 2: H2 adds * and _ pins)
+base_sha: 6e3cc045a5169a1f1a72c4eaec970ed7253f4a54
+head_sha: c5e09b9bb220b3ab641960621ce8a12761621542
+proof command: python3 -m unittest tests.test_reshape_net_validate
+control worktree: detached at head_sha (/tmp/rv-c1-nc2); mutant applied transiently, reverted after (porcelain empty)
+
+M1 did: hyphen-blind _SEP — removed the '-' alternative from _SEP in
+scripts/validate.py:905, so hyphen-jointed catalog counts ('ten-mission set')
+no longer match COUNT_LINT_RE. The module still compiles and imports; the
+harness still runs all 7 tests (harness-preserving, behaviour-changing).
+
+M1 RED transcript (exit 1):
+...F...
+======================================================================
+FAIL: test_hyphenated_counts_match (tests.test_reshape_net_validate.CountLintSeamNet.test_hyphenated_counts_match)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/rv-c1-nc2/tests/test_reshape_net_validate.py", line 34, in test_hyphenated_counts_match
+    self.assertRegex(s, validate.COUNT_LINT_RE, s)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Regex didn't match: '\\b(?:\\d+|(?:(?:twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety)(?:[-\\s]+(?:one|two|three|four|five|six|seven|eight|nine))?|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen))(?:[\\s*_`]+)(?:[a-z]+(?:[\\s*_`]+))?(?:missions?|fleets?|outcome-named|callable|`?(?:doctrine-only|self-run|external-run)`?)\\b' not found in 'the ten-mission set' : the ten-mission set
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.001s
+
+FAILED (failures=1)
+M1 exit: 1
+
+clean-head transcript (exit 0):
+.......
+----------------------------------------------------------------------
+Ran 7 tests in 0.001s
+
+OK
+clean exit: 0
+
+VERDICT: M1 KILLED — the criterion-bound net went RED (FAILED failures=1,
+AssertionError in test_hyphenated_counts_match) under M1 and GREEN (OK) at
+clean head_sha. Supporting mutants M2 (backtick-blind _SEP) and M3
+(star-blind _SEP, same line) were likewise KILLED; their diffs + RED
+transcripts are pinned separately in rv-c1-m2.txt and rv-c1-m3.txt so this
+artifact quotes exactly one applicable diff.
+
+Pinned M1 unified diff (applies at head_sha; runs to end of file):
+diff --git a/scripts/validate.py b/scripts/validate.py
+index 197a5557..b3c9521e 100755
+--- a/scripts/validate.py
++++ b/scripts/validate.py
+@@ -902,7 +902,7 @@ _SPELLED = rf"(?:(?:{_TENS})(?:[-\s]+(?:{_ONES}))?|{_TEENS})"
+ _NUM = rf"(?:\d+|{_SPELLED})"
+ # Separator between count, optional adjective, and noun: a hyphen (ten-mission) or
+ # whitespace with optional markdown emphasis markers (Ten **autonomous fleets**).
+-_SEP = r"(?:-|[\s*_`]+)"
++_SEP = r"(?:[\s*_`]+)"
+ # The proof tiers are catalog nouns too: "21 `doctrine-only`" is a hardcoded catalog count that
+ # the noun set could not see, and it sat in README.md while this very guard was green (#282).
+ _CATALOG_NOUN = (r"(?:missions?|fleets?|outcome-named|callable|"
