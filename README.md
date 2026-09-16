@@ -193,12 +193,14 @@ verified terminal state — see [`runtime/mission-chaining.md`](runtime/mission-
   </picture>
 </p>
 
+*Diagram note (2026-09-16): the callout baked into the image predates the first promotion — it still reads the old state. Regen tracked in #434.*
+
 Every mission's `metadata:` block carries a validator-enforced `proof:` field: `doctrine-only`,
 `self-run`, or `external-run`. A tier cannot be claimed without artifacts that hash true at a
 named commit: a run report with a `RUN:` header, an evidence manifest inside the run's own
 `docs/runs/` directory, and an integrity inventory that re-hashes at the commit the header names.
-**Today every mission reads `doctrine-only`.** The [run archive](docs/runs/) records every run
-that really happened and says, per run, why it does not bind. Be precise about what the gate
+**Today every mission reads `doctrine-only` except [`prove-it`](skills/prove-it/SKILL.md), which reads `self-run` since [its 2026-09-16 run](docs/runs/2026-09-16-prove-it-self-run.md).** The [run archive](docs/runs/) records every run
+that really happened and says, per run, whether and why it binds. Be precise about what the gate
 buys: it hashes, it does not re-run the verifier, and [the 2026-09-11 review](REVIEW.md) showed
 that a fabricated run can pass it; closing that is
 [#281](https://github.com/ravidsrk/orca-fleet/issues/281) and

@@ -424,6 +424,8 @@ N+1's enumeration as findings to triage. A chain that stops early is a correct o
   </picture>
 </p>
 
+*Diagram note (2026-09-16): the callout baked into the image predates the first promotion — it still reads the old state. Regen tracked in #434.*
+
 Every mission declares how proven it is — `doctrine-only`, `self-run`, or `external-run` — in
 validator-enforced frontmatter, and cannot advance without a linked run report on disk. This is
 the inherited lesson from this catalog's failed predecessor, which shipped twelve missions with
@@ -445,11 +447,10 @@ verifier transcript checked against a committed key
 ([#281](https://github.com/ravidsrk/orca-fleet/issues/281)), on top of making the tier cost an
 actual run ([#286](https://github.com/ravidsrk/orca-fleet/issues/286)).
 
-Today every mission reads `doctrine-only`, and that number went *down* as the mechanism got
+Today every mission reads `doctrine-only` except `prove-it`, which reads `self-run` since its 2026-09-16 run, and that number went *down* as the mechanism got
 stronger, which is the mechanism working: the predecessor shipped twelve missions with two proven
 and paid for it, and a tier whose artifacts are gone is the same claim in better packaging. The
-[run archive](runs/) records every run that really happened and says, per run, why it does not
-bind.
+[run archive](runs/) records every run that really happened and says, per run, whether and why it binds.
 
 ## Autonomy
 
