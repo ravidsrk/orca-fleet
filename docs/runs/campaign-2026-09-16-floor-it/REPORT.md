@@ -27,7 +27,7 @@ or defaulted on timeout). Zero dimension rows reached WIRE; all 12 proposed dime
 human freeze.
 
 `| task_id | unit | BUILD_DONE | PR_OPEN | BOT | REVIEWED | MERGED | WT_CLEAN | lighting | park | evidence |`
-`(no units dispatched — freeze parked before WIRE; see LEDGER.md)`
+`(no units dispatched — freeze parked before WIRE; see LEDGER.txt)`
 
 ## Convergence proof
 
@@ -55,7 +55,7 @@ freeze rather than defaulting policy into being. Clause-by-clause accounting:
 |---|---|---|---|
 | DETECT | 13 repo-own counters via evidence-run.py (validate, unittest×1490, ruff, gitleaks, routing, proof_status, run_report, bundle, vf-bench, coverage-absent, agentskills-absent, orca-status) | all exit as recorded (2 absence probes RED by design) | DETECT.md, transcripts/, manifest.json `commands[]` |
 | BOOTSTRAP | `python3 runtime/scripts/preflight.py --base campaign/floor-it-selftest --fork-point c46d4b3…` | exit 0: OK (BASE≠default, fork-point fresh) | transcripts/preflight.txt |
-| FREEZE | published FREEZE-PROPOSAL.md + FREEZE-QUESTIONNAIRE.md (human-handoff: questionnaire + recipient + VERIFY-COMPLETE); filed OPS-1; PARKED | parked, nothing frozen | FREEZE-PROPOSAL.md, FREEZE-QUESTIONNAIRE.md, LEDGER.md |
+| FREEZE | published FREEZE-PROPOSAL.md + FREEZE-QUESTIONNAIRE.md (human-handoff: questionnaire + recipient + VERIFY-COMPLETE); filed OPS-1; PARKED | parked, nothing frozen | FREEZE-PROPOSAL.md, FREEZE-QUESTIONNAIRE.md, LEDGER.txt |
 | WIRE + PROVE-FIRES | not reached (blocked on freeze) | n/a | — |
 | REVIEW / LAND / ENFORCE / GUARD | not reached (blocked on freeze) | n/a | — |
 | REFLECT | compound-learn proposal (no AGENTS.md mutation) | done | REFLECTION.md |
@@ -106,14 +106,20 @@ ASSERTED; this run contributes no throughput point.
   freeze decides, including whether a dimension is parked.
 - `agentskills validate` (CI gate) has no local install; recorded as CI-ONLY via exit-1 probe
   rather than narrated.
+- The ledger is `LEDGER.txt`, not `LEDGER.md`: `bind_check.py` routes every `docs/runs/**/*.md`
+  containing a `^RUN:` line as a bindable report, and the ledger-contract header (`RUN: … ·
+  COORDINATOR: …`) is a different schema with the same prefix — the first committed shape failed
+  bind-check (exit 1) on exactly that. The header bytes are preserved verbatim; only the extension
+  changed, because the ledger is not a report. (Pre-#415 run dirs contain ledger-`RUN:` `.md`
+  files, but those predate the gate and are dormant unless touched.)
 
 ## Run-close integrity inventory (sha256)
 
 | Artifact | sha256 | producer |
 |---|---|---|
-| `docs/runs/campaign-2026-09-16-floor-it/manifest.json` | `1396e88e39649199f765580634fef7b3e8743fa9a9130a181ec6be4a378feff3` | evidence-run.py 2026-09-16 + finalize script |
+| `docs/runs/campaign-2026-09-16-floor-it/manifest.json` | `f8163fcff05d3ff2453b28d4ed45cbab5f4f1b4368a8934637cb8c1cb6c51fd9` | evidence-run.py 2026-09-16 + finalize script |
 | `docs/runs/campaign-2026-09-16-floor-it/verifier.txt` | `fd243055755835026f75daeb42f37e518dc5f7335efb85e1b6d70fdfc4f1446a` | evidence-run.py verify.py 2026-09-16 |
-| `docs/runs/campaign-2026-09-16-floor-it/LEDGER.md` | `b42696d587f8c43f778eaa8d8e92082c2a5767c75ba773ad560bf93040ab3510` | coordinator 2026-09-16 |
+| `docs/runs/campaign-2026-09-16-floor-it/LEDGER.txt` | `b42696d587f8c43f778eaa8d8e92082c2a5767c75ba773ad560bf93040ab3510` | coordinator 2026-09-16 |
 | `docs/runs/campaign-2026-09-16-floor-it/DETECT.md` | `53ac18844bc67547deeeee11628d29813b13a2f6457a7e17bbdfe192bd1244af` | coordinator 2026-09-16 |
 | `docs/runs/campaign-2026-09-16-floor-it/FREEZE-PROPOSAL.md` | `833d722f33d2621136535422371483c6e966f497894e3335d1653eddb000818b` | coordinator 2026-09-16 |
 | `docs/runs/campaign-2026-09-16-floor-it/FREEZE-QUESTIONNAIRE.md` | `927ab95cb4e8d69a9ada7c2630475c05e31c32061e372c2e7b8b758aa198b1d4` | coordinator 2026-09-16 |
@@ -153,6 +159,9 @@ Project gates at the final head (recorded via evidence-run; transcripts above):
 
 ## Evidence binding
 
-`inventory_at` names the evidence commit (commit A) where the manifest and every artifact above
-re-hash; the header fix is a second commit (commit B) touching only the `RUN:` line — see
-`git diff <A> <B> --stat`. No CONSTRAINTS.md, no tier advance, no push.
+`inventory_at` names the latest evidence commit, where the manifest and every artifact above
+re-hash; each header-binding commit touches only the `RUN:` line (one line, `REPORT.md`). To
+verify: `git log --oneline origin/main..HEAD`, confirm each `bind … RUN header …` commit's diff
+is that single line, then `python3 runtime/scripts/inventory.py check
+docs/runs/campaign-2026-09-16-floor-it/REPORT.md --at <inventory_at>` (want: 23 verified,
+0 mismatched). No CONSTRAINTS.md, no tier advance, no push.
