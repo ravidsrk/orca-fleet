@@ -146,7 +146,7 @@ Wave 1 (history): single-unit solo wave: builder in-session, reviewer headless; 
 
 | Artifact | sha256 | producer |
 |---|---|---|
-| `docs/runs/2026-09-16-prove-it-selfrun/manifest.json` | `71ff6b765f249e6b8decbb2cb613164e8456671d4376b7ad33b64a5130f9df1e` | worker assembly + evidence-run.py 2026-09-16 + promotion re-record + wave-2 rerun |
+| `docs/runs/2026-09-16-prove-it-selfrun/manifest.json` | `81ff6b765f249e6b8decbb2cb613164e8456671d4376b7ad33b64a5130f9df1e` | worker assembly + evidence-run.py 2026-09-16 + promotion re-record + wave-2 rerun |
 | `docs/runs/2026-09-16-prove-it-selfrun/contract.json` | `c69f2ba0fff38089974864bf4f4a05c299720ea4ab42bacddcb60603200d4303` | coordinator (frozen scope + wave-2 re-authorized coords) 2026-09-16 |
 | `docs/runs/2026-09-16-prove-it-selfrun/negctrl.txt` | `33448afa8bfb91f4aea9225c878cf6ecb14cb77c272f011a8c373ee8c944a232` | unittest transcripts + git diff 2026-09-16 |
 | `docs/runs/2026-09-16-prove-it-selfrun/review.txt` | `c7c649fd8eda98d80908cda9b70a371570fb920b5c27ef6acd90591e92743fa4` | claude -p (Claude Code 2.1.272) 2026-09-16 |
