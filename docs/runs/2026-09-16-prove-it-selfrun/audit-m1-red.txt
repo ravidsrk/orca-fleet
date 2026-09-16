@@ -1,0 +1,25 @@
+F..
+======================================================================
+FAIL: test_bogus_kind_refused_at_kind_gate (tests.test_verify.OracleScopeKindTest.test_bogus_kind_refused_at_kind_gate)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/projects/orca-fleet/.muse/worktrees/subagent-v2-01a0a08a-bf23-71e3-bb1d-c7a68bec7d23-01a0a8aa-2730-7790-ac7c-32fa1f0509f2/tests/test_verify.py", line 2954, in test_bogus_kind_refused_at_kind_gate
+    self.assertEqual(
+    ~~~~~~~~~~~~~~~~^
+        verify.check_oracle_scope({}, rel, digest),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        ["oracle scope: kind must be characterization or documentation"])
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ["oracle scope: must bind every criterion in this unit's contract"] != ['oracle scope: kind must be characterization or documentation']
+
+First differing element 0:
+"oracle scope: must bind every criterion in this unit's contract"
+'oracle scope: kind must be characterization or documentation'
+
+- ["oracle scope: must bind every criterion in this unit's contract"]
++ ['oracle scope: kind must be characterization or documentation']
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.055s
+
+FAILED (failures=1)
