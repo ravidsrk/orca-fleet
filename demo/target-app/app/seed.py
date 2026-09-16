@@ -39,7 +39,9 @@ def ensure_migrated(database_url: str) -> None:
     cfg = Config()
     cfg.set_main_option("script_location", str(FIXTURE_DIR / "alembic"))
     cfg.set_main_option("sqlalchemy.url", database_url)
-    alembic_command.upgrade(cfg, "head")
+    # F3 (frozen flaw; see FLAWS.md): boot pins 0002 — 0003 exists on disk
+    # but stays unapplied until a migrate-it mission run applies it.
+    alembic_command.upgrade(cfg, "0002")
 
 
 def seed(count: int = DEFAULT_COUNT, database_url: str | None = None) -> int:
