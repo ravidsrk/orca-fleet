@@ -2,13 +2,15 @@
 # spawn_worker.sh — fail-closed Orca worker dispatch for fleet coordinators. (v5)
 #
 # Base v5 contract (2026-09-10 upstream re-pin), source-witnessed at v1.4.199. The custom-lane
-# recovery correction below uses the Orca 1.4.200 receipt and source witness (release E2):
+# recovery correction below uses the Orca 1.4.200 receipt and source witness (release E2).
+# Re-witnessed at v1.4.203 (pin-it #416, 2026-09-16 — docs/runs/2026-09-16-pin-it-416/): YOLO map,
+# release contract, readiness turn-start, refusal codes, keepalive shape — all hold at the build commit.
 #   - supervised lane = `worker-start` (compose: worktree + agent terminal + readiness + dispatch).
 #     READINESS SEMANTIC: at v1.4.199 `ready` means the preamble WRITE WAS ACCEPTED, not that the
 #     agent started a turn (`local-worker-start.ts:263` marks the dispatch ready straight after the
-#     accepted write). The next release flips this to a positive `turn_started`, returning
-#     `state: outcome_unknown` otherwise — which is why exit 4 exists below, before that upgrade
-#     lands. Readiness per agent is source-witnessed at v1.4.199
+#     accepted write). v1.4.200 flipped this to a positive `turn_started`, returning
+#     `state: outcome_unknown` otherwise — which is why exit 4 exists below. Readiness per agent
+#     is source-witnessed at v1.4.199
 #     (`local-worker-start.ts:243-263`); live probe owed — pin-it.
 #   - typed refusals: branch on `error.code`, NEVER on stderr text, and print `error.data.nextSteps`
 #     verbatim — that array is the runtime's own recovery text
@@ -24,7 +26,7 @@
 #   - custom-argv lane = `terminal create` + `dispatch --inject`. The inject ALREADY SUBMITS the
 #     preamble (`dispatch-methods.ts:155-165` calls `sendTerminalAgentPrompt`) and `--json` returns
 #     `result.prompt{requestId, stages}`, stages drawn from `input_accepted | turn_started`
-#     (`runtime-terminal-contracts.ts:221-225`). v4's blind re-Enter/heartbeat loop is DELETED:
+#     (`src/shared/runtime-terminal-contracts.ts:221-225`). v4's blind re-Enter/heartbeat loop is DELETED:
 #     the guide's rule is "never resend on silence"
 #     (`orchestration/recovery-and-cleanup:92-94`). Without `turn_started`, report UNPROVEN and
 #     retain the injection receipt. Orca 1.4.200 rejects a terminal-send retry of a dispatch
@@ -34,14 +36,14 @@
 #     text from `dispatch --return-preamble` cannot change the method bound to that request ID.
 #     There is no supported cross-method wait-submit replay here; inspect without resending.
 #   - `terminal wait` result is READ: `wait.satisfied:false` is an unsatisfied condition. The CLI
-#     also sets exit 1 for it (`terminal.ts:126-130`), so v4 failed closed BY ACCIDENT; v5 reads
+#     also sets exit 1 for it (`terminal.ts:125-129` at v1.4.203), so v4 failed closed BY ACCIDENT; v5 reads
 #     the field, so a host that sets only one of the two still fails closed.
 #   - PROFILE=ro NEVER takes worker-start: launch args come from the host's `agentDefaultArgs`
 #     profile setting, whose migrated default IS the YOLO map (`tui-agent-launch-defaults.ts:10`
 #     re-exports `YOLO_TUI_AGENT_ARGS` as `DEFAULT_TUI_AGENT_ARGS`), so a default host would
 #     silently upgrade a read-only reviewer to a bypass one. A host set to manual mode has `''`
 #     instead — the rationale is host-dependent, not universal. `agentDefaultArgs` is
-#     source-witnessed at v1.4.199 (`tui-agent-launch-defaults.ts:10`); live probe owed — pin-it.
+#     source-witnessed at v1.4.203 (`tui-agent-launch-defaults.ts:10`); live probe owed — pin-it.
 #   - `launch.effective` from the worker-start receipt is printed when present: never claim a model,
 #     effort, or permission flag from the REQUESTED arguments alone
 #     (`orchestration/coordinator-loop:23-36`).
@@ -73,7 +75,7 @@
 # `tui-agent-permissions.ts:6-33`, so workers never block on a prompt; anything else fails closed
 # and needs WORKER_CMD):
 #   claude/codex/gemini → ro + rw + danger
-#   cursor              → rw + danger (`tui-agent-permissions.ts:21` maps cursor to `--yolo`; Orca
+#   cursor              → rw + danger (`tui-agent-permissions.ts:25` maps cursor to `--yolo`; Orca
 #                         has no read-only mode for it) — also one of the three agents that
 #                         `--model`/`--effort` can target
 #   grok                → rw + danger (Orca has no read-only mode for grok)
@@ -161,10 +163,12 @@ case "$effort" in
 esac
 # Known Orca roster. claude/codex/gemini have Orca-verified flags for all three profiles;
 # cursor and grok have a verified WRITE flag (rw/danger) but no read-only mode in Orca's map;
-# opencode/droid/omp/pi have no Orca autonomous launch flag at all. Any (agent, profile)
-# without a verified flag fails CLOSED and must be supplied via WORKER_CMD (below).
+# opencode/omp/pi have no Orca autonomous launch flag at all (droid's `--auto high`
+# covers rw/danger — coverage table above; droid ro still needs WORKER_CMD). Any
+# (agent, profile) without a verified flag fails CLOSED and must be supplied via
+# WORKER_CMD (below).
 # `kilo` is deliberately ABSENT for the same reason opencode fails closed: Orca STRIPS
-# `--dangerously-skip-permissions` from both (`tui-agent-launch-defaults.ts:5-8` at v1.4.199).
+# `--dangerously-skip-permissions` from both (`tui-agent-launch-defaults.ts:5-8` at v1.4.203).
 case "$agent" in
   claude|codex|cursor|gemini|grok|droid|opencode|omp|pi) : ;;
   *)
@@ -495,7 +499,7 @@ import json, sys
 # one code that stays a failure ("do not retry unchanged").
 # Anchored per code, because they do NOT share one definition — dispatch-lifecycle.md used to
 # cite all six at the contract file, which declares the first three (#302), verified against the
-# pinned v1.4.199 tree:
+# pinned v1.4.203 tree:
 #   task_not_found / task_not_startable / inject_rejected
 #                                 orchestration-dispatch-refusal-contract.ts:8
 #   nested_worker_depth_exceeded  nested-worker-depth.ts:13
@@ -688,7 +692,7 @@ else
   # --- custom-argv lane (overrides + PROFILE=ro): terminal create + dispatch --inject ----------
   # Deliberately UNSUPERVISED — no worker-lifecycle row, so worker-stop/worker-release never touch
   # this process. It IS still enumerated: `worker-list` lists it as `unsupervised` with terminal
-  # state `retained` (`orchestration-worker-specs.ts:124` at v1.4.199). Record the trade in the
+  # state `retained` (`orchestration-worker-specs.ts:124` at v1.4.203). Record the trade in the
   # ledger (dispatch-lifecycle.md).
   step=create-terminal
   tj="$SP/sw-$safe_title.json"

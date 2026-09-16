@@ -1,0 +1,68 @@
+{
+ "id": "445a8141-41df-43ba-ae6c-b24d4488a1f8",
+ "ok": true,
+ "result": {
+  "workers": [],
+  "counts": {
+   "active": 1,
+   "reclaimable": 25,
+   "retained": 301,
+   "release_unknown": 36,
+   "released": 95
+  },
+  "page": {
+   "limit": 100,
+   "total": 458,
+   "hasMore": true,
+   "nextCursor": "\u2026"
+  },
+  "scope": {
+   "source": "all"
+  }
+ },
+ "shape_example_row_1": {
+  "dispatchId": "\u2026",
+  "taskId": "\u2026",
+  "runId": "\u2026",
+  "workerState": "failed",
+  "dispatchStatus": "failed",
+  "agentTerminalHandle": "\u2026",
+  "terminalState": "retained",
+  "resource": "\u2026",
+  "projection": {
+   "id": "\u2026",
+   "dispatchId": "\u2026",
+   "taskId": "\u2026",
+   "runId": "\u2026",
+   "role": "\u2026",
+   "parent": "\u2026",
+   "provider": "\u2026",
+   "host": "\u2026",
+   "workspace": "\u2026",
+   "stage": "\u2026",
+   "outcome": "\u2026",
+   "liveness": {
+    "verdict": "unverifiable",
+    "reason": "missing_status"
+   },
+   "evidence": "\u2026",
+   "resource": "\u2026",
+   "nextAction": {
+    "kind": "none",
+    "argv": []
+   },
+   "attention": {
+    "categories": [
+     "failure",
+     "unverifiable"
+    ],
+    "requiresAction": true
+   }
+  }
+ },
+ "redaction": {
+  "workersOmitted": 100,
+  "nextCursorOmitted": true,
+  "reason": "worker rows named unrelated local workspaces, absolute paths, terminal handles, and dispatch IDs; nextCursor decoded to a continuation record containing dispatchId (same convention as docs/runs/2026-09-13-pin-it-266). Enum values and key shape of row 1 kept for the liveness-resume projection claim."
+ }
+}
