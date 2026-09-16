@@ -63,6 +63,15 @@ Edit/Write `file_path`, NotebookEdit `notebook_path`, and absolute-path Bash red
 
 Exits: always 0 — the decision is the output, not the status.
 
+> Why: doctrine sits above the model and this sits below it — a read-write worker runs
+> with prompts turned down, so the hook is the only thing between an improvised command
+> and the disk. Polarity is fail-closed (unparseable input denies) and the decision
+> nesting is load-bearing (`runtime/scripts/deny-hook.sh:permissionDecision` — a
+> top-level decision is ignored, which is how a deny silently becomes an allow). HIGH
+> denies what has no legitimate form while the Never list asks what does; the worktree
+> boundary (`runtime/scripts/deny-hook.sh:ORCA_UNIT_WORKTREE`) resolves the full symlink
+> chain because a worker that can run a shell can spell any write as a redirect.
+
 ## `diff_scope.py`
 
 Fail-loud scope classification: which review lenses a change earns. Emits shell-safe
