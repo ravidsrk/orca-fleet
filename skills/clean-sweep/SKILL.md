@@ -17,7 +17,8 @@ compatibility: >-
   orca linear). One worker playbook pack per worker (Matt triage/tdd, or Addy debug/build) — never
   two routers in one worker.
 metadata:
-  proof: doctrine-only
+  proof: self-run
+  proof_evidence: docs/runs/2026-09-14-clean-sweep-self-run.md
   autonomy: L4
   unit: one finding on the frozen list (source=audit | tracker | doc-claims)
   state_machine: skeptic-triage → build-change → PR → build-blind review → merge → close with evidence

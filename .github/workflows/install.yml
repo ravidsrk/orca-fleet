@@ -1,0 +1,67 @@
+name: install
+
+# #414: the documented one-command install must not rot. A from-scratch run —
+# fresh checkout, empty HOME, no credentials — on every PR that touches an
+# install path, plus on main whenever those paths land there.
+on:
+  pull_request:
+    paths:
+      - scripts/install.sh
+      - scripts/validate.py
+      - runtime/scripts/verify-gate.sh
+      - hooks/**
+      - skills/*/SKILL.md
+      - runtime/pins.json
+      - README.md
+      - docs/install.md
+      - docs/distribution.md
+      - docs/getting-started.md
+      - .claude-plugin/**
+      - .github/workflows/install.yml
+  push:
+    branches: [main]
+    paths:
+      - scripts/install.sh
+      - scripts/validate.py
+      - runtime/scripts/verify-gate.sh
+      - hooks/**
+      - skills/*/SKILL.md
+      - runtime/pins.json
+      - README.md
+      - docs/install.md
+      - docs/distribution.md
+      - docs/getting-started.md
+      - .claude-plugin/**
+      - .github/workflows/install.yml
+
+permissions:
+  contents: read
+
+jobs:
+  from-scratch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 (Node 24; Node 20 left runners 2026-09-23, #367)
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0 (Node 24, #367)
+        with:
+          python-version: "3.13"  # pin: CI 3.x was a moving target (G-03)
+      - name: From-scratch install into an empty HOME
+        # No orca/gh/claude credentials exist here by construction — the
+        # installer must exit 0 with warnings, never fail on the absent
+        # run-time substrate. HOME points at a fresh dir so no pre-seeded
+        # ~/.claude/skills can mask a broken link step.
+        run: |
+          set -euo pipefail
+          export HOME="$RUNNER_TEMP/fakehome"
+          mkdir -p "$HOME"
+          test ! -e "$HOME/.claude"
+          sh scripts/install.sh
+      - name: Re-verify without changes and count the missions
+        run: |
+          set -euo pipefail
+          export HOME="$RUNNER_TEMP/fakehome"
+          sh scripts/install.sh --check
+          linked=$(find "$HOME/.claude/skills" -mindepth 1 -maxdepth 1 | wc -l)
+          missions=$(python3 -c 'import glob; print(len([d for d in glob.glob("skills/*/SKILL.md")]))')
+          test "$linked" -eq "$missions"
+          echo "installed $linked missions into a clean HOME; installer exits 0 with warnings only"

@@ -1,0 +1,103 @@
+#414 clean-container install transcript — 2026-09-16, run by the implementer (agent)
+
+Base: python:3.13-slim @ sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285
+(arm64 linux; pulled fresh 2026-09-16; no cached creds, no gh auth, HOME=/root).
+Repo state: branch roadmap/issue-414-install @ 3b7bbcf5b5ea4bb0785ed4fceeeb71d4045cd2ab.
+The documented command clones the default branch; the container below adds
+`--branch roadmap/issue-414-install` ONLY because install.sh is not on main
+yet — post-merge the plain clone is the identical tree. Everything after the
+clone is byte-for-byte the documented command.
+
+$ docker run --name fleet-install-probe -d python:3.13-slim sleep 3600
+7a4770e8656d10a0292c5744cbc6fe0990e44f3f1437d8fd8ed3e42a326b8c8c
+
+$ docker exec fleet-install-probe python3 --version
+Python 3.13.15
+
+$ docker exec fleet-install-probe sh -c 'command -v git || echo NO_GIT; ...'
+NO_GIT
+NO_GH
+NO_ORCA
+NO_CLAUDE
+HOME=/root
+
+--- failure 1 (expected, recorded): git is not on the bare image ---
+$ docker exec fleet-install-probe sh -c 'cd /root && git clone https://github.com/ravidsrk/orca-fleet.git'
+sh: 1: git: not found
+EXIT=127
+
+Prerequisite install (git + ca-certificates are the documented hard prereqs
+alongside python3, which the image ships):
+$ docker exec fleet-install-probe sh -c 'apt-get update -qq; DEBIAN_FRONTEND=noninteractive apt-get install -y -qq git ca-certificates; git --version'
+Setting up git (1:2.47.3-0+deb13u1) ...
+git version 2.47.3
+
+--- the documented one-command install ---
+$ docker exec fleet-install-probe sh -c 'cd /root && git clone --branch roadmap/issue-414-install https://github.com/ravidsrk/orca-fleet.git'
+Cloning into 'orca-fleet'...
+EXIT=0
+
+$ docker exec fleet-install-probe sh -c 'cd /root/orca-fleet && sh scripts/install.sh'
+WARN: no orca CLI in PATH (missions dispatch through it; install Orca >= 1.4.200 to run them)
+WARN: gh not found in PATH (fleets open PRs per unit; install gh to run them)
+WARN: claude CLI not found (needed for the symlinked skills to load)
+validating the catalog...
+ok   absorb-it
+ok   access-it
+ok   attest-it
+ok   clean-sweep
+ok   deflake-it
+ok   document-it
+ok   field-test-it
+ok   floor-it
+ok   harden-it
+ok   map-it
+ok   migrate-it
+ok   modernize-it
+ok   oncall-it
+ok   oss-contribute
+ok   pin-it
+ok   prove-it
+ok   reshape-it
+ok   review-it
+ok   root-cause
+ok   ship-it
+ok   speed-it
+
+All 21 missions valid; three-layer separation holds; evals valid.
+linked 21 missions into /root/.claude/skills
+verified 21 missions: symlinks resolve, SKILL.md non-empty, playbooks/ + runtime/ in reach
+
+A symlink install loads no plugin, so wire the completion gate by hand:
+  sh hooks/print-settings-snippet.sh   # merge the output into ~/.claude/settings.json
+Details: docs/install.md
+
+3 warning(s): install complete, but missions will not RUN until these clear.
+INSTALL_EXIT=0
+
+--- independent verification (not the installer's own word) ---
+$ ls /root/.claude/skills/ | wc -l
+21
+$ readlink /root/.claude/skills/ship-it
+/root/orca-fleet/skills/ship-it
+$ cd /root/orca-fleet && sh scripts/install.sh --check
+...warnings as above...
+verified 21 missions: symlinks resolve, SKILL.md non-empty, playbooks/ + runtime/ in reach
+CHECK_EXIT=0
+$ sh hooks/print-settings-snippet.sh --check
+ok: /root/orca-fleet/runtime/scripts/verify-gate.sh exists; snippet would wire it from /root/orca-fleet
+$ git -C /root/orca-fleet rev-parse HEAD
+3b7bbcf5b5ea4bb0785ed4fceeeb71d4045cd2ab
+
+$ docker rm -f fleet-install-probe
+(fresh image pull + fresh container; nothing from the host leaked in —
+no volume mounts, no env passthrough, no gh token.)
+
+Result: GREEN. Undocumented prerequisites found: none — git, python3 and the
+run-time substrate (orca/gh/claude) were all already named in
+docs/getting-started.md; the only surprise was that the slim image lacks git,
+which the installer now fails on loudly (FAIL, exit 1) instead of the bare
+`git: not found` above. Soft-warning split confirmed correct: the catalog
+installs and verifies with zero run-time substrate present.
+The --check "install complete" wording bug seen in this log was fixed after
+the probe (same branch, later commit): --check now says "install verifies".

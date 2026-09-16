@@ -1,0 +1,295 @@
+{
+  "commands": [
+    {
+      "label": "tests",
+      "ts": "2026-09-16T05:56:00Z",
+      "cmd": "python3 -m unittest tests.test_verify.OracleScopeKindTest",
+      "cmd_sha256": "2ce1cdd8d71d2aff07dfa3c9ec8a441ed44dba79df8c00debabc8059a6e34063",
+      "exit": 0,
+      "duration_s": 0.149,
+      "commit": "d96e15e79177da57c51874913f032eb620be2acc",
+      "wtree": "6c4bcbddc6464c4785771c36d2063549b9901892",
+      "artifact": "docs/runs/2026-09-16-prove-it-selfrun/tests.txt"
+    },
+    {
+      "label": "verifier",
+      "ts": "2026-09-16T05:56:55Z",
+      "cmd": "python3 runtime/scripts/verify.py --manifest docs/runs/2026-09-16-prove-it-selfrun/manifest.json --contract-source docs/runs/2026-09-16-prove-it-selfrun/contract.json@7942be928fc96b66597616690fc3d01edf5c94a6 --contract-digest sha256:f17d6eb9b39caa1719b257fbe609a9b595e4d083ec75d5a106920791ec89b734 --unit-class mutation --lighting dark-eligible --execute-nc --nc-command 'python3 -m unittest tests.test_verify.OracleScopeKindTest'",
+      "cmd_sha256": "653df7293110b0ebf9dfbdc0baee08b08c4b074e1ef1288d7dc31c061a2e7a1b",
+      "exit": 0,
+      "duration_s": 1.316,
+      "commit": "7942be928fc96b66597616690fc3d01edf5c94a6",
+      "wtree": "53d3760d52654d7bb2a6ba343dc4ec79a6375acc",
+      "artifact": "docs/runs/2026-09-16-prove-it-selfrun/verifier.txt"
+    },
+    {
+      "label": "validation",
+      "ts": "2026-09-16T05:57:07Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 1,
+      "duration_s": 0.575,
+      "commit": "7942be928fc96b66597616690fc3d01edf5c94a6",
+      "wtree": "1f85c30dbe2affa3b18b8dfc5f00284a8b608c6d",
+      "artifact": "docs/runs/2026-09-16-prove-it-selfrun/validation.txt"
+    },
+    {
+      "label": "validation",
+      "ts": "2026-09-16T05:57:20Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 0,
+      "duration_s": 0.539,
+      "commit": "7942be928fc96b66597616690fc3d01edf5c94a6",
+      "wtree": "938069bcd3718911d54024562688e5998f15e486",
+      "artifact": "docs/runs/2026-09-16-prove-it-selfrun/validation.txt"
+    },
+    {
+      "label": "tests-full",
+      "ts": "2026-09-16T06:02:40Z",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "exit": 0,
+      "duration_s": 316.664,
+      "commit": "7942be928fc96b66597616690fc3d01edf5c94a6",
+      "wtree": "9c1784bee8dad42b111c0194e338cf2c04259ed1",
+      "artifact": "docs/runs/2026-09-16-prove-it-selfrun/tests-full.txt"
+    },
+    {
+      "label": "verifier re-record 2026-09-16 (run close-time invocation, rerun)",
+      "ts": "2026-09-16T06:37:59Z",
+      "cmd": "python3 runtime/scripts/verify.py --manifest docs/runs/2026-09-16-prove-it-selfrun/manifest.json --contract-source docs/runs/2026-09-16-prove-it-selfrun/contract.json@7942be928fc96b66597616690fc3d01edf5c94a6 --contract-digest sha256:f17d6eb9b39caa1719b257fbe609a9b595e4d083ec75d5a106920791ec89b734 --unit-class mutation --lighting dark-eligible --execute-nc --nc-command 'python3 -m unittest tests.test_verify.OracleScopeKindTest'",
+      "cmd_sha256": "653df7293110b0ebf9dfbdc0baee08b08c4b074e1ef1288d7dc31c061a2e7a1b",
+      "exit": 0,
+      "duration_s": 1.274,
+      "commit": "862b487ca308a53ea0fc15bd09f09e4de93dca84",
+      "wtree": "c1255e6a0721bcb846d5ba1be1a6e48f0a7b9cc6",
+      "artifact": "docs/runs/2026-09-16-prove-it-selfrun/verifier-rerecord.txt"
+    },
+    {
+      "label": "tests rerun 2026-09-16 (wave 2, 4-test net)",
+      "ts": "2026-09-16T06:56:04Z",
+      "cmd": "python3 -m unittest tests.test_verify.OracleScopeKindTest",
+      "cmd_sha256": "2ce1cdd8d71d2aff07dfa3c9ec8a441ed44dba79df8c00debabc8059a6e34063",
+      "exit": 0,
+      "duration_s": 0.102,
+      "commit": "a46671986b2542b2da6d8e349ecf6c216f9ecc25",
+      "wtree": "5746c56318abc76a391f2dd93c857c0ec6128ddd",
+      "artifact": "docs/runs/2026-09-16-prove-it-selfrun/tests-rerun.txt"
+    },
+    {
+      "label": "validation rerun 2026-09-16 (wave 2)",
+      "ts": "2026-09-16T07:13:21Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 1,
+      "duration_s": 0.66,
+      "commit": "f8b1d90608c79abc3d724f2d1f334d8de78c6307",
+      "wtree": "c49ba105149d0e6fc6b26b9564f9c63ea2ff94ed",
+      "artifact": "docs/runs/2026-09-16-prove-it-selfrun/validation-rerun.txt"
+    },
+    {
+      "label": "validation rerun 2026-09-16 (wave 2)",
+      "ts": "2026-09-16T07:13:44Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 0,
+      "duration_s": 0.668,
+      "commit": "0277bc5732f9538b4c067f837c86019d98287436",
+      "wtree": "aab8b094a2f97fbee4a7fcfadc63877e608c0d4e",
+      "artifact": "docs/runs/2026-09-16-prove-it-selfrun/validation-rerun.txt"
+    },
+    {
+      "label": "tests-full rerun 2026-09-16 (wave 2)",
+      "ts": "2026-09-16T07:18:17Z",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "exit": 0,
+      "duration_s": 254.488,
+      "commit": "96acc0ba8c03df5c6ad012f103fd3f0461affabd",
+      "wtree": "a9d1b1e8881f1fdb42ef098986825c306ef7d81d",
+      "artifact": "docs/runs/2026-09-16-prove-it-selfrun/tests-full-rerun.txt"
+    },
+    {
+      "label": "verifier rerun 2026-09-16 (wave 2, Orca-built unit)",
+      "ts": "2026-09-16T07:18:39Z",
+      "cmd": "python3 runtime/scripts/verify.py --manifest docs/runs/2026-09-16-prove-it-selfrun/manifest.json --contract-source docs/runs/2026-09-16-prove-it-selfrun/contract.json@24de9f93307b36be11f10476fbc0e22424729abc --contract-digest sha256:0f8836ef4fd16067f176f68abf02e437f9c87c16bbb31c109afa24c857fa8d8c --unit-class mutation --lighting dark-eligible --execute-nc --nc-command 'python3 -m unittest tests.test_verify.OracleScopeKindTest'",
+      "cmd_sha256": "25a83d888653ee2a53b4b89714f5e60a2c8fa4cae1f0d67e2a38d05b9f679a37",
+      "exit": 2,
+      "duration_s": 0.903,
+      "commit": "22c8e50d98b301dd87a94eb8423000760500c444",
+      "wtree": "fb36b9165846421e5255fccaf24a5a15c82f6ab6",
+      "artifact": "docs/runs/2026-09-16-prove-it-selfrun/verifier-rerun.txt"
+    },
+    {
+      "label": "verifier rerun 2026-09-16 (wave 2, Orca-built unit)",
+      "ts": "2026-09-16T07:20:39Z",
+      "cmd": "python3 runtime/scripts/verify.py --manifest docs/runs/2026-09-16-prove-it-selfrun/manifest.json --contract-source docs/runs/2026-09-16-prove-it-selfrun/contract.json@3e7109e14f6071ab493f158a9d8e91d7196621ae --contract-digest sha256:c69f2ba0fff38089974864bf4f4a05c299720ea4ab42bacddcb60603200d4303 --unit-class mutation --lighting dark-eligible --execute-nc --nc-command 'python3 -m unittest tests.test_verify.OracleScopeKindTest'",
+      "cmd_sha256": "84e941af6d2c1999f03e9747a8148452c905fcebc34f84c1c4da503535459c54",
+      "exit": 0,
+      "duration_s": 1.81,
+      "commit": "e781c3c97aec5c73961610a856d30147e1aee142",
+      "wtree": "91d3c6731bd98fac3e16c93576736b32475ee6e0",
+      "artifact": "docs/runs/2026-09-16-prove-it-selfrun/verifier-rerun-green.txt"
+    }
+  ],
+  "unit": "prove-it-2026-09-16-PF-2",
+  "base_sha": "f5df568649d02dd862460275e4c3fd504095253a",
+  "head_sha": "a46671986b2542b2da6d8e349ecf6c216f9ecc25",
+  "base_branch": "main",
+  "contract": {
+    "source": "docs/runs/2026-09-16-prove-it-selfrun/contract.json@3e7109e14f6071ab493f158a9d8e91d7196621ae",
+    "digest": "sha256:c69f2ba0fff38089974864bf4f4a05c299720ea4ab42bacddcb60603200d4303",
+    "criterion_ids": [
+      "PF-2"
+    ]
+  },
+  "criteria": [
+    {
+      "id": "PF-2",
+      "text": "verify.py check_oracle_scope refuses an oracle_scope whose kind is neither characterization nor documentation, and admits both legal kinds past the kind gate.",
+      "addressed": true
+    }
+  ],
+  "negative_control": {
+    "did": "deleted verify.py check_oracle_scope kind-gate lines 988-989 (hand mutant m1)",
+    "tool": "hand",
+    "result": "the criterion-bound test went RED (mutant KILLED): exit 1, FAILED failures=1, errors=1 \u2014 AssertionError at the PF-2 assertion (test_bogus_kind_refused_at_kind_gate) plus a behaviour-demonstrating AttributeError on the non-dict case (test_non_dict_scope_refused_at_kind_gate)",
+    "artifact": "docs/runs/2026-09-16-prove-it-selfrun/negctrl-rerun.txt",
+    "command": "python3 -m unittest tests.test_verify.OracleScopeKindTest"
+  },
+  "binding_audit": {
+    "coverage": "PF-2 (1/1)",
+    "method": "criterion quoted, covering tests quoted, criterion-violating mutation went RED (4/4 mutants killed across the kind-gate expression; m1 RED carries the bogus-case AssertionError plus a behavior-demonstrating AttributeError on the non-dict case)"
+  },
+  "intent": {
+    "goal": "Pin verify.py's oracle-scope kind gate with a mutation-audited characterization test (PF-2).",
+    "ruled_out": "a broader multi-criterion sweep (disproportionate for a minimal promotion run; the WIP-curve and builder-wave depth belong to a full-mission run); asserting gate-5 behavior as the criterion (it is the passage oracle, not the property)",
+    "why": "the kind gate decides which shape rules apply to a waived review, so an unknown kind slipping past it would skip both \u2014 the load-bearing branch of the lane this run rides"
+  },
+  "lighting": "dark-eligible",
+  "artifacts": [
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/negctrl.txt",
+      "sha256": "33448afa8bfb91f4aea9225c878cf6ecb14cb77c272f011a8c373ee8c944a232"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/review.txt",
+      "sha256": "c7c649fd8eda98d80908cda9b70a371570fb920b5c27ef6acd90591e92743fa4"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/tests.txt",
+      "sha256": "11b4d660dc96a9e817dba113485e2e25781c647f08fdb946404362b001fd6083"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/audit-m1.diff",
+      "sha256": "358d4a4045a1d58c0db0cb2f3450e9e1cd6dcaad565acd1419b85c73a1066980"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/audit-clean.txt",
+      "sha256": "9e3618c465353a9e4a6828d5e621fa61c3754bf90d19d768cd975a69fc4289e2"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/audit-m1-red.txt",
+      "sha256": "8988fdd1a0600c22688a0dbc3e2d069b8d4c92e146ddf53cffe32364b9c41c40"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/audit-m2-red.txt",
+      "sha256": "ed5109ec4aabe62d8659e731afb81eeaba1e51b1b76c188362c3fe91552df33f"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/audit-m3-red.txt",
+      "sha256": "f524c54872873509f27b766cd52d03c3106f045421e059cb0676f78d4c2272b1"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/audit-m4-red.txt",
+      "sha256": "28363352a48a4236822902b79ec50a463753ddf789806986e2d198c8585c0a1f"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/audit-reverted.txt",
+      "sha256": "800346069b7c77896a63bf9caf4716560e8342f5599a74f58ff8b74006e44266"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/verifier.txt",
+      "sha256": "37e9cebdd5756b5c4bb511f808664c87b122aeb7f7c3e149ee5701a858c65db5"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/validation.txt",
+      "sha256": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/tests-full.txt",
+      "sha256": "ab76dbeaea3198bbfe75d54e2c7e6614e6045c9ec9e60bf20e67699a52ed2570"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/verifier-rerecord.txt",
+      "sha256": "37e9cebdd5756b5c4bb511f808664c87b122aeb7f7c3e149ee5701a858c65db5"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/tests-rerun.txt",
+      "sha256": "ce91d67dca5b2b19515fb6990ca225b786d69be74b18eee30e423131c82d0d3e"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/negctrl-rerun.txt",
+      "sha256": "118364738b113205c7fe27d21a6788b1f426f32563ddcf37a6f464de87e47f41"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/audit-m1-rerun.diff",
+      "sha256": "358d4a4045a1d58c0db0cb2f3450e9e1cd6dcaad565acd1419b85c73a1066980"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/audit-rerun-clean.txt",
+      "sha256": "7366ce53c393fa42c16131fc375c6d0a0840af99428b01a3d6d096ee49e146d2"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/audit-rerun-m1-red.txt",
+      "sha256": "4d51489442a0da568f0cffbd8f57184fc59443cff1731711944c72ec407119c4"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/audit-rerun-reverted.txt",
+      "sha256": "b0cb919dd9e7b3a3111fdcca0f4aeadb37d4aa2266bb816d65d7b2090f85c280"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/audit-rerun-m2-red.txt",
+      "sha256": "c2ab4761db35f722f5966542648182c4797ad9de34ec819ee0c41d325e6e05f3"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/audit-rerun-m3-red.txt",
+      "sha256": "588a2256fa03f62de828b5850235b95f5d760ec620062dae693e05191f13895f"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/audit-rerun-m4-red.txt",
+      "sha256": "f8c39f37b2f552d4698aa065150f900189333efe0ac96dfcd2078eb91682d102"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/coverage-rerun.txt",
+      "sha256": "f7e56ad1522a8a99902784aaedc6a407c16f41119a468b61fcf161d01cd687e6"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/review-rerun.txt",
+      "sha256": "de33a0b64c734086ce3e152f6ab39b55d9fccc521a4fe81455f2b47ab8229a15"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/validation-rerun.txt",
+      "sha256": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/tests-full-rerun.txt",
+      "sha256": "b21f2180bb02c47ad29ca28a76a534646285cc2b3eaed090409021f49f5408ab"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/verifier-rerun.txt",
+      "sha256": "46e1de9b8d6146c663471332b6d24a6facd8ccf0cdb35e9c8f2f7edd7080d123"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/verifier-rerun-green.txt",
+      "sha256": "d2c2f9c2d48bdafb73cf3f463c464042e14344fe22a63609202c6996232c743c"
+    }
+  ],
+  "reviewer_mode": "cross-vendor",
+  "review": {
+    "artifact": "docs/runs/2026-09-16-prove-it-selfrun/review-rerun.txt"
+  },
+  "toolchain": "CPython 3.13.15 on macOS arm64; git; unittest; claude CLI 2.1.272 (reviewer); builder claude-opus-5[1m] (Orca worker task_2f6b230aab94) via Orca (wave 2); reviewer grok-4.6 via Orca (wave 2, task_065e9d165753)",
+  "claim": "PF-2 characterized by OracleScopeKindTest (4 tests), pinned hand mutant m1 KILLED with supporting mutants m2/m3/m4 KILLED (wave-2 re-execution), build-blind cross-vendor review GO (round 1)."
+}

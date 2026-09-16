@@ -1,0 +1,165 @@
+# prove-it PF-2 rerun — BUILDER task spec (wave 2, orchestrated)
+
+You are a supervised Orca worker. Obey the live preamble injected with this task
+for all lifecycle mechanics (`check`, `ask`, `worker_done`). In particular: run
+`orca orchestration check --terminal <your_handle>` at each checkpoint and once
+more immediately before `worker_done`; send `worker_done` exactly once with an
+explicit `--outcome succeeded|failed` (omit `--to` — the owning Run mailbox is
+the address); every send carries `--from <your_handle> --dispatch-capability
+<capability>` from the preamble; evidence rides typed flags (`--report-path`,
+`--files-modified`), never a hand-rolled payload blob.
+
+## Target
+Repo orca-fleet, your worktree checkout (cwd). Run directory:
+`docs/runs/2026-09-16-prove-it-selfrun/`. Test file: `tests/test_verify.py`.
+Production seam: `runtime/scripts/verify.py::check_oracle_scope` (kind gate,
+currently lines 988-989 — VERIFY before touching anything, see step 1).
+
+## Change
+Re-execute the PF-2 characterization wave for prove-it (roadmap #410):
+re-derive the existing `OracleScopeKindTest` net from the FROZEN criterion (do
+not trust it — verify each test binds), ADD the missing non-dict-scope
+kind-gate test, prove the 4-test net with a full mutation audit, record fresh
+evidence, commit, and push to the PR branch.
+
+## Constraints (do-not-touch + invariants)
+- The frozen criterion PF-2 is FIXED (run dir `contract.json`): "verify.py
+  check_oracle_scope refuses an oracle_scope whose kind is neither
+  characterization nor documentation, and admits both legal kinds past the
+  kind gate." Same frozen set as wave 1 — no scope change.
+- Touch ONLY: `tests/test_verify.py` (one new test method + at most a minimal
+  class-docstring touch) and NEW files under the run dir (names below) plus
+  `manifest.json` field updates (fields below). Every other file is read-only.
+  NEVER edit: `contract.json`, solo-run artifacts (`tests.txt`,
+  `negctrl.txt`, `audit-*.txt`, `audit-m1.diff`, `review.txt`,
+  `verifier*.txt`, `validation.txt`, `tests-full.txt`), any `SKILL.md`,
+  any playbook/runtime doc, production code (except transient in-memory
+  mutant application during the audit, always reverted — verify with
+  `git status` + `cmp` afterwards).
+- NEVER hand-edit `manifest.json`'s `commands[]` — append ONLY via
+  `runtime/scripts/evidence-run.py`. NEVER touch `contract`, `criteria`,
+  `review`, `reviewer_mode`, `lighting`, `intent`, `base_sha` (coordinator-owned).
+- Methodology pack: matt ONLY — read `/Users/ravindra/.agents/skills/tdd/SKILL.md`
+  (seams + tautology guard + red-green) and the fleet playbooks
+  `playbooks/characterize.md`, `playbooks/build-change.md`,
+  `playbooks/design-twice.md` from your checkout. NEVER load any addy/gstack
+  skill (no co-mount — one pack per worker).
+- The seam is pre-agreed (design-twice §5): tests assert observable behavior
+  at `check_oracle_scope(m, source, digest)`, never internals. Expected values
+  are independent literals (the documented error strings), never recomputed.
+- Characterization-of-existing-code honesty: the production gate already
+  exists, so the new test is GREEN on clean code by construction. The honest
+  RED is the mutation audit below — a test that stays GREEN under its
+  criterion-violating mutant is a SURVIVOR and fails this task. Do not fake red.
+- Git: author `Ravindra Kumar <ravidsrk@gmail.com>` on every commit, no
+  trailers, no `git add -A` (stage only the unit's files), never force-push,
+  never open a PR, never rebase anyone else's commits. No secrets in evidence.
+
+## Ownership
+Your unit branch in this worktree; the two commits below; the new run-dir
+artifacts. The coordinator owns the contract coords, the review, the verifier
+re-record, and the run report.
+
+## Steps
+1. Setup + guards: `git fetch origin`. Create your unit branch from the PR
+   head: `git checkout -b prove-it-pf2-rerun-wt
+   origin/roadmap/issue-410-prove-promo` (if that branch already exists from a
+   retry, inspect first — never reset away pushed work). `git status
+   --porcelain` must be empty — otherwise STOP and `ask`. Confirm the kind
+   gate is still exactly lines 988-989 (`grep -n "not isinstance(scope,
+   dict)" runtime/scripts/verify.py`) — if it moved, STOP and `ask`.
+2. Read: run-dir `contract.json` (the denominator), `manifest.json` (current
+   shape only), `negctrl.txt` + `audit-m1.diff` (the wave-1 pinned mutant
+   DEFINITION — you will re-derive it, not reuse its transcripts),
+   `tests/test_verify.py::OracleScopeKindTest`, the three fleet playbooks and
+   the matt `tdd` skill above.
+3. Re-derive: for each of the 3 existing tests, confirm it asserts exactly one
+   PF-2 half at/past the kind gate (error-string identity). Then ADD:
+   `test_non_dict_scope_refused_at_kind_gate` — `self._contract(
+   "characterization")` (a STRING scope, exercising the `not
+   isinstance(scope, dict)` disjunct) asserting exactly `["oracle scope: kind
+   must be characterization or documentation"]`.
+4. GREEN: `python3 -m unittest tests.test_verify.OracleScopeKindTest` → 4/4 OK.
+   Then `ruff check tests/test_verify.py` → clean.
+5. Commit 1 (test only): `prove-it rerun: pin non-dict scope at the PF-2 kind
+   gate (issue #410)`. Record its SHA as HEAD_TEST.
+6. Record GREEN at the clean tree: from the clean tree at HEAD_TEST, run the
+   criterion-bound command through the recorder (this appends the binding
+   `commands[]` record whose wtree must equal HEAD_TEST's tree — verify that
+   equality with `git rev-parse HEAD_TEST^{tree}`):
+   `python3 runtime/scripts/evidence-run.py --label "tests rerun 2026-09-16
+   (wave 2, 4-test net)" --manifest
+   docs/runs/2026-09-16-prove-it-selfrun/manifest.json --artifact
+   docs/runs/2026-09-16-prove-it-selfrun/tests-rerun.txt -- python3 -m unittest
+   tests.test_verify.OracleScopeKindTest` → exit 0.
+7. Mutation audit (fresh transcripts, same mutant family):
+   - Re-derive m1: delete lines 988-989. `git diff` the result and compare to
+     `audit-m1.diff` — it MUST be byte-identical (same hunk, modulo the index
+     line). If the hunk differs, STOP and `ask`. Save the re-derived diff as
+     `audit-m1-rerun.diff`.
+   - Clean run → `audit-rerun-clean.txt` (4 tests OK, exit 0).
+   - Apply m1 → `audit-rerun-m1-red.txt`. EXPECTED: exit 1, `FAILED
+     (failures=1, errors=1)` — bogus-kind case FAILs with AssertionError at
+     the PF-2 assertion (the kill), non-dict case ERRORs with AttributeError
+     (without the gate a string scope crashes at gate 5 instead of being
+     refused — record this honestly as error-not-failure), the two legal-kind
+     cases still pass. REQUIRED for KILLED: failures>=1 AND `AssertionError`
+     present in the output. If failures==0, the net is broken — STOP and `ask`.
+   - Revert (`git checkout -- runtime/scripts/verify.py`, `cmp` against a
+     pristine copy) → `audit-rerun-reverted.txt` (4 tests OK, exit 0).
+   - m2 (`not in`→`in` on line 988): expect FAILED (failures=3) — non-dict
+     case still passes (m2 leaves the isinstance disjunct intact; record that)
+     → `audit-rerun-m2-red.txt`, revert.
+   - m3 (tuple→`("documentation",)`): expect FAILED (failures=1) →
+     `audit-rerun-m3-red.txt`, revert.
+   - m4 (tuple→`("characterization",)`): expect FAILED (failures=1) →
+     `audit-rerun-m4-red.txt`, revert. Final `git status` clean of production
+     edits (only the new run-dir files + manifest + test commit).
+   - Write `negctrl-rerun.txt`: same shape as `negctrl.txt` (pinned-mutant
+     narrative + the re-derived diff + control transcripts + supporting-mutant
+     lines + verdict), with ACTUAL outputs, never wave-1's.
+   - RE-MAP: `uvx coverage run --source=runtime/scripts -m unittest
+     tests.test_verify.OracleScopeKindTest` + `uvx coverage report
+     --show-missing --include="*/verify.py"` — confirm line 989 is executed
+     by the net; save full output as `coverage-rerun.txt`.
+8. Emit the manifest update (edit ONLY these fields of run-dir
+   `manifest.json`): `head_sha`=HEAD_TEST (40-hex); `negative_control` :=
+   {did: same text, tool: "hand", result: the ACTUAL rerun RED line
+   (failures/errors counts + AssertionError present), artifact:
+   ".../negctrl-rerun.txt", command: unchanged}; `binding_audit` :=
+   {coverage: "PF-2 (1/1)", method: "criterion quoted, covering tests quoted,
+   criterion-violating mutation went RED (4/4 mutants killed across the
+   kind-gate expression; m1 RED carries the bogus-case AssertionError plus a
+   behavior-demonstrating AttributeError on the non-dict case)"}; append to
+   `artifacts[]` sha256 pins for the NINE new files (tests-rerun.txt,
+   negctrl-rerun.txt, audit-m1-rerun.diff, audit-rerun-clean.txt,
+   audit-rerun-m1-red.txt, audit-rerun-reverted.txt, audit-rerun-m2-red.txt,
+   audit-rerun-m3-red.txt, audit-rerun-m4-red.txt, coverage-rerun.txt — ten);
+   `toolchain` += "; builder <your agent id + model> via Orca (wave 2)";
+   `claim` := "PF-2 characterized by OracleScopeKindTest (4 tests), pinned
+   hand mutant m1 KILLED with supporting mutants m2/m3/m4 KILLED (wave-2
+   re-execution), build-blind review pending." Validate JSON parses.
+9. Commit 2 (evidence only): `prove-it rerun: re-executed PF-2 audit evidence
+   (issue #410)` — the ten new run-dir files + `manifest.json`, nothing else.
+10. Push: `git fetch origin`; verify fast-forward (`git merge-base
+    --is-ancestor origin/roadmap/issue-410-prove-promo HEAD`); push the unit
+    branch to the PR branch WITHOUT force:
+    `git push origin prove-it-pf2-rerun-wt:roadmap/issue-410-prove-promo`;
+    verify with `git ls-remote origin roadmap/issue-410-prove-promo`. If the
+    FF check fails, STOP and `ask` (never force-push). Also verify the
+    binding record: the `tests rerun` commands[] entry's wtree equals
+    HEAD_TEST's tree, and HEAD_TEST is now on origin.
+11. Update the Orca worktree comment with your checkpoint status, then
+    `worker_done --outcome succeeded --report-path
+    docs/runs/2026-09-16-prove-it-selfrun/manifest.json --files-modified
+    tests/test_verify.py[,…run-dir files…]` with a three-sentence summary
+    naming HEAD_TEST, the RED signature, and the push verification. On ANY
+    STOP above: `worker_done --outcome failed` naming the blocker instead —
+    never fake a green.
+
+## Observable acceptance
+`OracleScopeKindTest` runs 4 tests OK on the clean tree; m1 RED shows
+failures>=1 with AssertionError; m2/m3/m4 RED; production file byte-identical
+after revert; two new commits by the maintainer author on
+origin/roadmap/issue-410-prove-promo; manifest parses with head_sha=HEAD_TEST
+and a `tests rerun` exit-0 record whose wtree is HEAD_TEST's tree.

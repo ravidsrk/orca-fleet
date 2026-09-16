@@ -1,0 +1,78 @@
+### prove-it self-run 2026-09-16 — criterion PF-2 negative control
+### target: runtime/scripts/verify.py check_oracle_scope kind gate (lines 988-989)
+### proof command: python3 -m unittest tests.test_verify.OracleScopeKindTest
+
+Pinned mutant (tool=hand): delete the kind-gate lines. A scope of any kind then
+proceeds to the deeper gates instead of being refused here. Unified diff below,
+captured with `git diff` after applying (raw copy: audit-m1.diff).
+
+diff --git a/runtime/scripts/verify.py b/runtime/scripts/verify.py
+index 5935138..edac0d0 100755
+--- a/runtime/scripts/verify.py
++++ b/runtime/scripts/verify.py
+@@ -985,8 +985,6 @@ def check_oracle_scope(m, source, digest):
+     scope = doc.get("oracle_scope") if doc else None
+     if scope is None:
+         return []
+-    if not isinstance(scope, dict) or scope.get("kind") not in ("characterization", "documentation"):
+-        return ["oracle scope: kind must be characterization or documentation"]
+     if any(scope.get(k) != m.get(k) for k in ("base_sha", "head_sha")):
+         return ["oracle scope: authorized commit pair differs from the manifest"]
+     ids = scope.get("criterion_ids")
+CONTROL TRANSCRIPT (pinned mutant m1)
+== [1] PF-2 on the clean tree (expect OK; exit 0) ==
+...
+----------------------------------------------------------------------
+Ran 3 tests in 0.048s
+
+OK
+(raw: audit-clean.txt)
+
+== [2] mutant applied (the diff above) ==
+
+== [3] PF-2 under the mutant (expect FAIL — mutant KILLED; exit 1) ==
+F..
+======================================================================
+FAIL: test_bogus_kind_refused_at_kind_gate (tests.test_verify.OracleScopeKindTest.test_bogus_kind_refused_at_kind_gate)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/projects/orca-fleet/.muse/worktrees/subagent-v2-01a0a08a-bf23-71e3-bb1d-c7a68bec7d23-01a0a8aa-2730-7790-ac7c-32fa1f0509f2/tests/test_verify.py", line 2954, in test_bogus_kind_refused_at_kind_gate
+    self.assertEqual(
+    ~~~~~~~~~~~~~~~~^
+        verify.check_oracle_scope({}, rel, digest),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        ["oracle scope: kind must be characterization or documentation"])
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ["oracle scope: must bind every criterion in this unit's contract"] != ['oracle scope: kind must be characterization or documentation']
+
+First differing element 0:
+"oracle scope: must bind every criterion in this unit's contract"
+'oracle scope: kind must be characterization or documentation'
+
+- ["oracle scope: must bind every criterion in this unit's contract"]
++ ['oracle scope: kind must be characterization or documentation']
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.055s
+
+FAILED (failures=1)
+(raw: audit-m1-red.txt)
+
+== [4] mutant reverted (`git checkout -- runtime/scripts/verify.py`; cmp against the pristine copy: identical) ==
+
+== [5] PF-2 after revert (expect OK; exit 0) ==
+...
+----------------------------------------------------------------------
+Ran 3 tests in 0.053s
+
+OK
+(raw: audit-reverted.txt)
+SUPPORTING MUTANTS (same proof command; harness intact in every run)
+- m2 (negation flip `not in` -> `in`): FAILED (failures=3), exit 1 — KILLED (raw: audit-m2-red.txt)
+- m3 (tuple shrunk to `("documentation",)`): FAILED (failures=1), exit 1 — KILLED (raw: audit-m3-red.txt)
+- m4 (tuple shrunk to `("characterization",)`): FAILED (failures=1), exit 1 — KILLED (raw: audit-m4-red.txt)
+VERDICT
+Pinned mutant m1 KILLED: the proof goes RED under the control (exit 1, FAILED
+with failures=1, AssertionError at the criterion assertion — the bogus kind
+falls through to the ids gate) and GREEN on the clean tree (exit 0, OK).
+Supporting mutants m2/m3/m4 KILLED: 4/4 across the kind-gate expression.

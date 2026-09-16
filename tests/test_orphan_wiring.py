@@ -701,6 +701,15 @@ class DormantMechanismsSaySo(unittest.TestCase):
         self.assertIn("egress.py write", text,
                       "no policy invokes the egress receipt — it rots uninvoked (#284/#368)")
 
+    def test_supervision_names_the_watchdog_where_the_ladder_is_stated(self):
+        # #418: the stuck-but-alive ladder's first responses are mechanized, so the
+        # policy must name the mechanism and its invocation — else doctrine drifts.
+        text = read("runtime/worker-supervision.md")
+        self.assertIn("watchdog.py", text,
+                      "supervision doctrine names no liveness mechanism")
+        self.assertIn("--heartbeats", text,
+                      "the watchdog is named but not its invocation")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -105,6 +105,12 @@ to `main` in #387.
 
 ### Added
 
+- External-run intake (#415): `docs/run-submission-guide.md` (the envelope +
+  bindable-core bundle format, binding in one paragraph + one verify command,
+  runner-credit convention), `docs/call-for-runs.md` (every doctrine-only
+  mission by name, machine-checked against the catalog so promotions keep it
+  current), and the `bind-check` CI job (`scripts/bind_check.py`) routing every
+  run report a PR adds or modifies to `run_report.py`.
 - Runtime policy layer modernized to the current Orca orchestration model (#251): worker-start
   supervised spawn path with typed refusals, Run-scoped fleets, batched Delivery + ack inbox,
   worker-release/retain lifecycle, --retry-request idempotency, ask --resume same-id, spawn_worker.sh
@@ -156,6 +162,15 @@ and `playbooks/conductor-close.md`, the post-merge evidence closure generalized
 from the run's own taskspec. All three compose from clean-sweep's deferred
 reads, keeping them out of activation load; the one ARCHITECTURE bullet the
 new policy required cost clean-sweep ~100 tokens of headroom (33,800→33,900).
+
+**The supervision ladder's first responses are mechanized (#418).**
+`runtime/scripts/watchdog.py` polls worker heartbeats, classifies
+OK/SLOW/HUNG/WEDGED, auto-nudges HUNG once, and emits stop-redispatch
+RECOMMENDATIONS with JSONL evidence on still-HUNG or WEDGED — the stop and
+re-dispatch stay coordinator decisions. Thresholds and rate limits live in
+`runtime/watchdog.json` (tunable without code edits); `--dry-run`
+classifies with zero side effects. A recorded 2026-09-14 heartbeat trace
+ships as the replay fixture.
 
 ## [0.6.1] - 2026-09-09
 

@@ -2,7 +2,7 @@
 
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel characterize and mutate workers per critical path; you own the one-way doors.
 > **Activation load:** ~25,100 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
-> **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
+> **Proof:** self-run — [2026-09-16 run](../runs/2026-09-16-prove-it-self-run.md) (PF-2 kind gate, COVERED, 4/4 mutants killed).
 
 > Point it at the money, auth, and data paths nothing currently protects. Come back to a
 > human-confirmed critical surface where every path has a merged test that dies under a
