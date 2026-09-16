@@ -1,0 +1,127 @@
+{
+  "$defs": {
+    "gate": {
+      "additionalProperties": false,
+      "description": "One human gate: a question parked for the maintainer. Statuses owed/answered/waived/overtaken keep their 2026-09-14 meaning (#419 changes the store, not the semantics).",
+      "properties": {
+        "answer": {
+          "description": "The human's answer (answered), the waiver reason (waived), or what overtook it (overtaken; may stay null when the question body already records the overtaking events, as with the migrated G4). Null while owed.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "answered": {
+          "description": "Date the answer/waiver/overtake was recorded (UTC, YYYY-MM-DD). Null while owed. Never precedes asked.",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "asked": {
+          "description": "Date the question was parked (UTC, YYYY-MM-DD).",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+          "type": "string"
+        },
+        "blocking": {
+          "description": "Units/issues with no work until this gate resolves (refs as written, e.g. \"#386\"). Empty when the gate blocks nothing.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "id": {
+          "description": "Stable gate id. Parked units cite it as \"gate-batch.json G<n>\" (pre-tooling refs say gate-batch.md; both forms resolve). Never renumbered: a renumber silently orphans citations.",
+          "pattern": "^G[0-9]+$",
+          "type": "string"
+        },
+        "question": {
+          "description": "The full ask, verbatim prose (may span lines). Rendered verbatim under the gate heading.",
+          "minLength": 1,
+          "type": "string"
+        },
+        "related": {
+          "description": "Related issues/PRs (refs as written, e.g. \"#397\"). Store-only: never rendered into the .md view.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "status": {
+          "description": "owed: awaiting the human. answered: human replied (answer holds it). waived: human ruled no answer needed (answer holds the reason). overtaken: events resolved the question before the human replied (record only, no ask).",
+          "enum": [
+            "owed",
+            "answered",
+            "waived",
+            "overtaken"
+          ],
+          "type": "string"
+        },
+        "title": {
+          "description": "Short heading suffix rendered as \"## <id> \u00b7 <title>\".",
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "answer",
+        "answered",
+        "asked",
+        "blocking",
+        "id",
+        "question",
+        "related",
+        "status",
+        "title"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "https://github.com/ravidsrk/orca-fleet/blob/main/runtime/schemas/gate-batch.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Run-close human-gate batch (#419). The JSON file is the store; gate-batch.md is a rendered view (gate-batch.py render regenerates it byte-for-byte when no gate carries answer text).",
+  "properties": {
+    "gates": {
+      "description": "Gate records in stable-id order.",
+      "items": {
+        "$ref": "#/$defs/gate"
+      },
+      "type": "array"
+    },
+    "intro": {
+      "description": "Verbatim prose rendered between the header and the first gate (the batch's standing instructions).",
+      "type": "string"
+    },
+    "resolved_by_events": {
+      "description": "Verbatim markdown block rendered under \"## Resolved by events\" (report-only items that were never asks). Empty string when there are none.",
+      "type": "string"
+    },
+    "run_id": {
+      "description": "Stable run id, e.g. run_0607bdc681e6.",
+      "minLength": 1,
+      "type": "string"
+    },
+    "run_title": {
+      "description": "Human run name rendered in the header, e.g. 2026-09-14 clean-sweep tracker.",
+      "minLength": 1,
+      "type": "string"
+    },
+    "schema": {
+      "const": "gate-batch/1",
+      "description": "Schema tag the CLI checks on load.",
+      "type": "string"
+    }
+  },
+  "required": [
+    "gates",
+    "intro",
+    "resolved_by_events",
+    "run_id",
+    "run_title",
+    "schema"
+  ],
+  "title": "gate-batch",
+  "type": "object"
+}

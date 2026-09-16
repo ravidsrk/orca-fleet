@@ -1,9 +1,8 @@
 # Playbook — conductor-close  (post-merge evidence closure, once per unit)
 
-ACTOR: the COORDINATOR (conductor) itself, never a dispatched worker — the
-unit's workers are released by the time it runs, and every record it writes is
-labelled "coordinator". Methodology: none (mechanical record-keeping). Commits
-exactly ONE chore commit on BASE per close.
+ACTOR: the COORDINATOR (conductor) itself, never a dispatched worker — the unit's
+workers are released by the time it runs, and every record it writes is labelled
+"coordinator". Methodology: none (mechanical record-keeping). Commits exactly ONE chore commit on BASE per close.
 
 WHEN: after the unit PR is MERGED into BASE and its verdict review is posted. Not
 before: every rule below binds evidence to the merged, reviewed tip, which does not
@@ -20,21 +19,19 @@ CLOSE (in order; any mismatch is a STOP, logged, never patched over):
    fast-forward merge has no M^2: the merge is non-conforming, so STOP and
    raise a human gate naming M and its merge method. Fail closed: never
    derive T another way (not M, M^1, the PR's headRefOid or a guessed commit).
-2) Re-run in a clean worktree at the merge tip: git worktree add --detach
-   <scratch>/close-<unit> T; git status --porcelain empty; then the nc-command,
-   the repo's static gate, and the full suite, each wrapped by the run's
-   evidence recorder into a manifest OUTSIDE the worktree (the tree stays
+2) Re-run in a clean worktree at the merge tip: git worktree add --detach <scratch>/close-<unit> T;
+   git status --porcelain empty; then the nc-command, the repo's static gate, and the full suite,
+   each wrapped by the run's evidence recorder into a manifest OUTSIDE the worktree (the tree stays
    clean). All exit 0. Remove the scratch worktree after.
 3) Append coordinator records: the three records go into commands[] labelled
    "coordinator <gate> at head", commit = T, wtree = git rev-parse T^{tree},
    with an artifact_note quoting the runner's summary line. Builder records
    at older trees STAY as true history; they are not edited or deleted.
-4) Re-bind head/head_tree: head_sha := T and head_tree := git rev-parse
-   T^{tree}, both RECOMPUTED from git, never copied from a note. Prepend a
-   "CONDUCTOR CLOSE <iso-ts>" sentence to head_sha_role naming the old and
-   new values and the T-vs-builder-head delta (git diff --stat, normally
-   manifest + negctrl only). A re-bind without the prepend leaves stale
-   prose describing a dead tree — the prepend is the step, not garnish.
+4) Re-bind head/head_tree: head_sha := T and head_tree := git rev-parse T^{tree}, both RECOMPUTED
+   from git, never copied from a note. Prepend a "CONDUCTOR CLOSE <iso-ts>" sentence to head_sha_role
+   naming the old and new values and the T-vs-builder-head delta (git diff --stat, normally manifest +
+   negctrl only). A re-bind without the prepend leaves stale prose describing a dead tree — the prepend
+   is the step, not garnish.
 5) pr fill: pr.number, pr.url, pr.reviewed_sha := T, pr.reviewed_wtree :=
    T^{tree}. Replace every "pending" SHA in commits[] with the real one from
    git log. If the worker wrote contract.source in brief form, correct it to
@@ -73,14 +70,17 @@ RULES:
   step 1 at that merge's tip. A merged unit cannot park on an open review
   finding: the review round posts as a record and a sticking finding goes
   to a fix-forward unit. A RED verify leg still parks the row per step 6.
-- reattach. Review workers check out the reviewed SHA, which leaves the
-  unit worktree on a detached HEAD; they leave it detached, commit nothing,
-  and say so in worker_done. Whoever commits next in a review-touched
-  worktree reattaches BEFORE the first commit: git status --porcelain
-  empty; git checkout <unit-branch>; assert branch and HEAD == the expected
-  tip. A dirty tree, a failed checkout or a tip mismatch is a STOP: never
-  commit on a detached HEAD (the commit sits on no branch and the push
-  leaves it behind).
+- reattach. Review workers check out the reviewed SHA, which leaves the unit worktree on a detached
+  HEAD; they leave it detached, commit nothing, and say so in worker_done. Whoever commits next in a
+  review-touched worktree reattaches BEFORE the first commit: git status --porcelain empty; git checkout
+  <unit-branch>; assert branch and HEAD == the expected tip. A dirty tree, a failed checkout or a tip
+  mismatch is a STOP: never commit on a detached HEAD (the commit sits on no branch and the push leaves
+  it behind).
+- gates. A close that needs a human raises a gate instead of guessing:
+  `gate-batch.py --run <run> add --title T --question Q` (owed; cite its
+  `gate-batch.json` G<n> id in the park ref). Step 7 waits while `stale`
+  shows a gate blocking this unit. `overtaken` means events answered first
+  (record only, no ask); `waived` records the waiver reason as its answer.
 
 ## Completion
 
