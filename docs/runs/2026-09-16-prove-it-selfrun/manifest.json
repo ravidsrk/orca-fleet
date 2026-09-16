@@ -131,6 +131,18 @@
     {
       "path": "docs/runs/2026-09-16-prove-it-selfrun/audit-reverted.txt",
       "sha256": "800346069b7c77896a63bf9caf4716560e8342f5599a74f58ff8b74006e44266"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/verifier.txt",
+      "sha256": "37e9cebdd5756b5c4bb511f808664c87b122aeb7f7c3e149ee5701a858c65db5"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/validation.txt",
+      "sha256": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6"
+    },
+    {
+      "path": "docs/runs/2026-09-16-prove-it-selfrun/tests-full.txt",
+      "sha256": "ab76dbeaea3198bbfe75d54e2c7e6614e6045c9ec9e60bf20e67699a52ed2570"
     }
   ],
   "reviewer_mode": "cross-vendor",
