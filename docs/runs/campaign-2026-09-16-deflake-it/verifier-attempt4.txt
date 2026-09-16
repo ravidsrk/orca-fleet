@@ -1,0 +1,7 @@
+FAIL: scope: authoritative criteria not addressed in criteria[] (absent, or addressed != true): ['AC-3']
+FAIL: commands ledger: no recorded command with exit 0 whose wtree is head_sha's tree 6d812ca32956e9d39d2ca720067e96ae7f915bf8 (exit-0 records carry ['902257118dca44c0404912ca4494f5aa2017350c', 'f8217865fdb615335972e825b9d2faf68be0bd5d', 'fea356198b6cf12510dd770cd9d2e6c79d7b0735']) — the recorded run was made on other content, so it is STALE evidence for this head; fail-closed
+FAIL: reviewer_mode must be one of ['cross-vendor', 'instructed-isolation', 'same-vendor-fresh'], got None
+FAIL: the hand mutant's diff names 'tests/test_verify.py', which is a TEST path. Reverting the test that encodes the criterion makes the proof go RED because the oracle is gone, not because the behaviour came back — the control must revert the BEHAVIOUR (#280)
+FAIL: mutation unit: no pr.number to look up an independent review — unreviewed
+verify: 5 invariant(s) failed — unit is NOT done
+NOTE: --base not given — ancestry check skipped (pre-merge/offline)
