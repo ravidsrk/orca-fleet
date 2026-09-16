@@ -152,6 +152,11 @@ def load_heartbeats(path):
         raise HeartbeatError(f"heartbeats {path} is not JSON: {exc}")
     if not isinstance(data, dict) or not isinstance(data.get("workers"), list):
         raise HeartbeatError(f"heartbeats {path} must be an object with a workers list")
+    for idx, item in enumerate(data["workers"]):
+        if not isinstance(item, dict):
+            raise HeartbeatError(
+                f"heartbeats {path}: workers[{idx}] must be an object, "
+                f"got {type(item).__name__}")
     return data
 
 
@@ -197,6 +202,8 @@ def classify(worker, now, cfg):
             if worker.get("last_movement_at") else dispatched
         stop_at = parse_ts(worker["stop_at"], "stop_at") \
             if worker.get("stop_at") else None
+        last_nudge_raw = worker.get("last_nudge_at")
+        last_nudge = parse_ts(last_nudge_raw, "last_nudge_at") if last_nudge_raw else None
     except ValueError as exc:
         raise HeartbeatError(f"worker {wid}: {exc}")
     idle_s = max(0.0, (now - last_move).total_seconds())
@@ -205,8 +212,6 @@ def classify(worker, now, cfg):
     markers = worker.get("wedge_markers") or []
     if not isinstance(markers, list) or not all(isinstance(m, str) for m in markers):
         raise HeartbeatError(f"worker {wid}: wedge_markers must be a list of strings")
-    last_nudge_raw = worker.get("last_nudge_at")
-    last_nudge = parse_ts(last_nudge_raw, "last_nudge_at") if last_nudge_raw else None
     nudge_answered = worker.get("last_nudge_answered")
     evidence = {
         "idle_s": round(idle_s),
@@ -228,17 +233,34 @@ def classify(worker, now, cfg):
 
 
 def prior_nudge_times(worker, state_entry):
+    heartbeat = worker.get("prior_nudges") or []
+    stored = state_entry.get("nudges") or []
+    if not isinstance(heartbeat, list):
+        raise ValueError("prior_nudges: must be a list")
+    if not isinstance(stored, list):
+        raise ValueError("state nudges: must be a list")
+    # A heartbeat may echo a nudge the watchdog already saved in state: the
+    # same instant from both sources is one nudge, not two.
+    seen = set()
     times = []
-    for raw in (worker.get("prior_nudges") or []):
-        times.append(parse_ts(raw, "prior_nudges"))
-    for raw in (state_entry.get("nudges") or []):
-        times.append(parse_ts(raw, "state nudges"))
+    for raw in heartbeat:
+        dt = parse_ts(raw, "prior_nudges")
+        if dt not in seen:
+            seen.add(dt)
+            times.append(dt)
+    for raw in stored:
+        dt = parse_ts(raw, "state nudges")
+        if dt not in seen:
+            seen.add(dt)
+            times.append(dt)
     return sorted(times)
 
 
 def nudge_allowed(worker_id, dispatch_id, worker, state, now, cfg):
     """(allowed, reason): rate-limit check for a HUNG worker."""
     entry = state.get("workers", {}).get(worker_id, {})
+    if not isinstance(entry, dict):
+        raise HeartbeatError(f"worker {worker_id}: state entry must be an object")
     if entry.get("dispatch_id") and entry.get("dispatch_id") != dispatch_id:
         entry = {}  # a fresh dispatch resets the per-dispatch budget
     try:
@@ -302,8 +324,15 @@ def tick(data, now, cfg, state):
     """Decide every worker in a heartbeat snapshot. Pure: no IO."""
     run_id = data.get("run_id", "?")
     results = []
-    for worker in data["workers"]:
-        classification, action, evidence, note = decide(worker, now, cfg, state)
+    for idx, worker in enumerate(data["workers"]):
+        if not isinstance(worker, dict):
+            raise HeartbeatError(
+                f"workers[{idx}]: must be an object, got {type(worker).__name__}")
+        try:
+            classification, action, evidence, note = decide(worker, now, cfg, state)
+        except (ValueError, AttributeError) as exc:
+            raise HeartbeatError(
+                f"workers[{idx}] ({worker.get('worker_id', '?')}): {exc}") from exc
         results.append({
             "run_id": run_id,
             "worker_id": worker.get("worker_id", "?"),
@@ -363,6 +392,9 @@ def run_tick(args, cfg, data, state, now):
                 print(f"{res['worker_id']} HUNG NUDGE-FAILED :: {detail}", file=sys.stderr)
                 return 2
             record_nudge(state, res["worker_id"], res["dispatch_id"], now)
+            # Durable at send time, before any fallible follow-up: a later log
+            # or transport failure must never make a retry resend this nudge.
+            save_state(args.state, state)
             append_jsonl(args.log, {
                 "ts": now.isoformat(), "run_id": res["run_id"],
                 "worker_id": res["worker_id"], "dispatch_id": res["dispatch_id"],

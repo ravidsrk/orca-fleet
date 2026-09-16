@@ -306,5 +306,91 @@ class LiveMode(unittest.TestCase):
             self.assertFalse(log.exists(), "a failed nudge must not be logged as sent")
 
 
+class PartialTickDurability(unittest.TestCase):
+    def test_partial_tick_failure_never_resends(self):
+        # Worker A nudges fine, worker B's transport fails -> return 2. A's
+        # nudge must already be durable, so a retry with a healthy transport
+        # recommends A (budget spent) and nudges only B.
+        with tempfile.TemporaryDirectory() as raw:
+            tmp = Path(raw)
+            sink = tmp / "sink.txt"
+            flaky = tmp / "flaky.json"
+            flaky.write_text(json.dumps({"nudge_command": [
+                "sh", "-c",
+                "test \"{worker_id}\" = task_a && echo \"{worker_id}\" >> " + str(sink)]}))
+            beats = tmp / "beats.json"
+            beats.write_text(json.dumps({
+                "run_id": "run_partial",
+                "workers": [worker(wid="task_a", idle_min=45),
+                            worker(wid="task_b", idle_min=45)]}))
+            state, log = tmp / "s.json", tmp / "w.jsonl"
+            base = ["--heartbeats", str(beats), "--state", str(state), "--log", str(log)]
+            first = run_cli(*base, "--config", str(flaky),
+                            "--now", "2026-09-14T12:00:00Z")
+            self.assertEqual(first.returncode, 2)
+            self.assertIn("task_a HUNG NUDGED", first.stdout)
+            self.assertIn("NUDGE-FAILED", first.stderr)
+            saved = json.loads(state.read_text(encoding="utf-8"))
+            self.assertEqual(len(saved["workers"]["task_a"]["nudges"]), 1)
+            healthy = tmp / "healthy.json"
+            healthy.write_text(json.dumps({"nudge_command": [
+                "sh", "-c", "echo \"{worker_id}\" >> " + str(sink)]}))
+            second = run_cli(*base, "--config", str(healthy),
+                             "--now", "2026-09-14T12:40:00Z")
+            self.assertEqual(second.returncode, 1)
+            self.assertIn("RECOMMENDED", second.stdout)
+            self.assertIn("task_b HUNG NUDGED", second.stdout)
+            self.assertEqual(sorted(sink.read_text(encoding="utf-8").splitlines()),
+                             ["task_a", "task_b"], "no worker nudged twice")
+
+
+class DoubleSourcedHistory(unittest.TestCase):
+    def test_same_instant_from_both_sources_counts_once(self):
+        # A heartbeat echoing a watchdog-sent nudge must not spend the
+        # budget twice: with budget 2 and one double-sourced nudge, the
+        # second nudge is still permitted.
+        generous = cfg(max_nudges_per_dispatch=2, nudge_window_s=0,
+                       max_nudges_per_hour_per_worker=9)
+        at = (T0 - timedelta(hours=2)).isoformat()
+        rec = worker(idle_min=45, prior_nudges=[at])
+        entry = {"dispatch_id": "d-task_w", "nudges": [at]}
+        self.assertEqual(len(watchdog.prior_nudge_times(rec, entry)), 1)
+        _, action, _, _ = watchdog.decide(
+            rec, T0, generous, {"workers": {"task_w": entry}})
+        self.assertEqual(action, "nudge")
+
+
+class MalformedInputIsControlled(unittest.TestCase):
+    def _controlled(self, workers):
+        with tempfile.TemporaryDirectory() as raw:
+            tmp = Path(raw)
+            beats = tmp / "beats.json"
+            beats.write_text(json.dumps({"run_id": "run_bad", "workers": workers}))
+            return run_cli("--heartbeats", str(beats), "--config", str(CONFIG),
+                           "--state", str(tmp / "s.json"), "--log", str(tmp / "w.jsonl"),
+                           "--now", "2026-09-14T12:00:00Z", "--dry-run")
+
+    def test_non_object_worker_is_exit_2_without_traceback(self):
+        proc = self._controlled(["not-an-object"])
+        self.assertEqual(proc.returncode, 2)
+        self.assertNotIn("Traceback", proc.stderr)
+        self.assertIn("workers[0]", proc.stderr)
+
+    def test_malformed_nudge_timestamp_is_exit_2_without_traceback(self):
+        proc = self._controlled([worker(idle_min=45, last_nudge_at="not-a-time")])
+        self.assertEqual(proc.returncode, 2)
+        self.assertNotIn("Traceback", proc.stderr)
+        self.assertIn("last_nudge_at", proc.stderr)
+
+    def test_tick_rejects_non_object_worker_with_index(self):
+        with self.assertRaises(watchdog.HeartbeatError) as cm:
+            watchdog.tick({"run_id": "r", "workers": [None]}, T0, CFG, {"workers": {}})
+        self.assertIn("workers[0]", str(cm.exception))
+
+    def test_malformed_last_nudge_at_is_a_heartbeat_error(self):
+        with self.assertRaises(watchdog.HeartbeatError):
+            watchdog.classify(worker(last_nudge_at="not-a-time"), T0, CFG)
+
+
 if __name__ == "__main__":
     unittest.main()
