@@ -87,3 +87,29 @@ transcribed to its D/T ticket row in `ledger.md` with status RESOLVED + the huma
 "Owner says done" alone closes nothing. Items still stub-empty stay BLOCKED; the map stays
 MAPPED-WITH-BLOCKED until Q-0's explicit yes exists AND every ticket it freezes over is
 resolved or explicitly listed blocked.
+
+## ANSWERS (recorded 2026-09-16, interactive gate session, reporter Ravindra — explicit)
+- Q-0: yes + P-1 agree + P-2 agree + P-3 agree + P-4 agree. Map FROZEN.
+- Q-1: all-19.
+- Q-2: fixture target (demo/target-app UI + axe-core) — supersedes external pick.
+- Q-3: fixture target (fixture suite; F1-class flakes + seeded flake hunts).
+- Q-4: fixture target (fixture pyproject/uv.lock).
+- Q-5: fixture target at BROWSER tier (T-2: browser suffices, no device).
+- Q-6: fixture target (pending migration 0003 + seed data).
+- Q-7: fixture target (compose staging + /hooks/alerts test-fire; T-3).
+- Q-8: jazzband/pip-tools tracker — COORDINATOR-PICKED UNDER HUMAN DELEGATION ("you decide randomly"); human may swap before dispatch.
+- Q-9: next real PR in this repo.
+- Q-10: live bug #440 here.
+- Q-11: this repo's inbound queue.
+- Q-12: 300s interim ceiling + ratchet after J1 infra.
+- Q-13: floor-it freeze as gate-2 answered (D1-D8 as-written, D9 wired, D10/D11 parked, D12 into D2).
+- Q-14: reshape-it bound as gate-1 answered (validate.py then verify.py).
+- Q-15: verify.py PoC only; dispatch-sign/verify-gate need separate approval.
+- Q-16: executed-control solo lane.
+- Q-17: published skills + script CLIs + config keys.
+- Q-18: current main SHA at attest freeze.
+- Q-19: wave-1 then wave-2 fan.
+- Q-20/T-1: decline paid budget; pin-it paid-trust parks carry.
+- Q-20/T-2: browser tier suffices; no device pairing.
+- Q-20/T-3: fixture compose stack (staging + /hooks/alerts receipt).
+- Q-21: ride #427 cadence.

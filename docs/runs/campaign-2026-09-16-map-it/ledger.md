@@ -95,3 +95,13 @@ PHASE: RUN → DONE (all units terminal: facts resolved, decisions/tasks blocked
 ## OPS queue
 
 - (none — planning run; no CODE_CLOSED / VERIFY_AT_SCALE can arise. Human queue = handoff Q-0..Q-20.)
+
+## Gate resolutions (transcribed 2026-09-16; every ticket RESOLVED, source human:Ravindra)
+- D-0/Q-0 FREEZE: RESOLVED yes (+P-1..P-4 agree). D-1/Q-1: RESOLVED all-19.
+- D-2..D-7/Q-2..Q-7: RESOLVED fixture-target (Q-2 UI, Q-3 suite, Q-4 deps, Q-5 browser, Q-6 0003+seed, Q-7 staging+alerts).
+- D-8/Q-8: RESOLVED jazzband/pip-tools (coordinator-picked under explicit human delegation; swappable).
+- D-9/Q-9: RESOLVED next-real-PR-here. D-10/Q-10: RESOLVED live-#440. D-11/Q-11: RESOLVED inbound-queue-here.
+- D-12/Q-12: RESOLVED 300s-interim+ratchet. D-13/Q-13: RESOLVED (gate-2 floor freeze). D-14/Q-14: RESOLVED (gate-1 reshape bound).
+- D-15/Q-15: RESOLVED verify.py-PoC-only. D-16/Q-16: RESOLVED executed-control. D-17/Q-17: RESOLVED skills+CLIs+keys. D-18/Q-18: RESOLVED main-at-freeze.
+- D-19/Q-19: RESOLVED wave-1-then-wave-2. T-1: RESOLVED decline-carry. T-2: RESOLVED browser-tier. T-3: RESOLVED fixture-stack.
+- D-20/Q-21: RESOLVED ride-427. Terminal: MAPPED (zero BLOCKED tickets remain).
