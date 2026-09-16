@@ -1,0 +1,101 @@
+{
+  "id": "118bc9a7-070f-495b-9349-a0982d0a6499",
+  "ok": true,
+  "result": {
+    "runId": "run_1e33949c0db0",
+    "taskId": "task_2f6b230aab94",
+    "dispatchId": "ctx_2ebfe6f130dd",
+    "state": "ready",
+    "stage": "input_accepted",
+    "turnStart": "observed",
+    "setup": {
+      "requested": "inherit",
+      "effective": "inherit",
+      "source": "explicit_request",
+      "hookFound": true,
+      "startupPolicy": "start-immediately",
+      "state": "running"
+    },
+    "launch": {
+      "requested": {
+        "agent": "claude",
+        "model": null,
+        "effort": null
+      },
+      "effective": {
+        "agent": "claude",
+        "model": null,
+        "effort": null
+      }
+    },
+    "mode": {
+      "mode": "terminal",
+      "preferred": "terminal",
+      "reason": "user_default",
+      "detail": "Started a terminal agent worker, the default for new agent tabs in your settings."
+    },
+    "timeoutMs": 300000,
+    "effects": [
+      {
+        "kind": "worktree",
+        "action": "created_child",
+        "id": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/prove-it-pf2-rerun"
+      },
+      {
+        "kind": "terminal",
+        "role": "agent",
+        "action": "created",
+        "id": "term_8f3832b1-6305-435c-abe1-a7cc711061b4",
+        "tabId": "a0fe810c-342d-41e6-824f-8fa0b24afcda",
+        "leafId": "9742457f-c0e1-4803-a83b-8e6791e1d7cf"
+      },
+      {
+        "kind": "terminal",
+        "role": "setup",
+        "action": "created",
+        "id": "term_70f1e9b8-8499-4ecd-bcfc-496fd43b220c",
+        "tabId": "850a212c-b381-461a-8d95-1d4617558149",
+        "leafId": "0aa10e04-f89a-403f-8391-df5c8e423a15"
+      },
+      {
+        "kind": "setup",
+        "action": "inherit",
+        "requested": "inherit",
+        "effective": "inherit",
+        "source": "explicit_request",
+        "hookFound": true,
+        "startupPolicy": "start-immediately",
+        "state": "running",
+        "terminalId": "term_70f1e9b8-8499-4ecd-bcfc-496fd43b220c"
+      },
+      {
+        "kind": "dispatch_input",
+        "role": "agent",
+        "id": "term_8f3832b1-6305-435c-abe1-a7cc711061b4",
+        "state": "accepted"
+      }
+    ],
+    "prompt": {
+      "requestId": "3cc3ae3a-5342-4a74-bc87-fd74e8e5e5e7",
+      "stages": [
+        "input_accepted",
+        "turn_started"
+      ],
+      "provider": "claude",
+      "observation": "supported",
+      "processIncarnation": "8614bf18-0a12-44ec-92cb-43d1a1ada668",
+      "generation": 33,
+      "baselineWorkingSequence": 0,
+      "baselineExplicitWorkingStartedAt": null,
+      "baselinePermissionSequence": 0
+    },
+    "residualResources": [],
+    "mutation": {
+      "requestId": "3cc3ae3a-5342-4a74-bc87-fd74e8e5e5e7",
+      "replayed": false
+    }
+  },
+  "_meta": {
+    "runtimeId": "75429d93-a441-4225-9f94-18e893d3212e"
+  }
+}

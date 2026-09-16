@@ -18,11 +18,11 @@
   "oracle_scope": {
     "kind": "characterization",
     "base_sha": "eacd4cfa7f178cb4c473bd0fdbc8d5c5743ef959",
-    "head_sha": "d96e15e79177da57c51874913f032eb620be2acc",
+    "head_sha": "a46671986b2542b2da6d8e349ecf6c216f9ecc25",
     "criterion_ids": ["PF-2"],
     "paths": {
       "runtime/scripts/verify.py": [988, 989]
     },
-    "artifact_sha256": "33448afa8bfb91f4aea9225c878cf6ecb14cb77c272f011a8c373ee8c944a232"
+    "artifact_sha256": "118364738b113205c7fe27d21a6788b1f426f32563ddcf37a6f464de87e47f41"
   }
 }
