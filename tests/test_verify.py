@@ -2938,7 +2938,8 @@ class OracleScopeKindTest(RepoCase):
     characterization or documentation work. The kind decides WHICH shape rules
     apply (characterization must change a test; documentation must change prose
     only) — an unknown kind slipping past this gate would skip both. The gate
-    must refuse it here, and must admit both legal kinds past this gate (deeper
+    must refuse it here — including a scope that is not a mapping at all, whose
+    kind cannot be read — and must admit both legal kinds past this gate (deeper
     gates still apply: the pair/ids/path checks below it).
     """
 
@@ -2951,6 +2952,13 @@ class OracleScopeKindTest(RepoCase):
 
     def test_bogus_kind_refused_at_kind_gate(self):
         rel, digest = self._contract({"kind": "bogus"})
+        self.assertEqual(
+            verify.check_oracle_scope({}, rel, digest),
+            ["oracle scope: kind must be characterization or documentation"])
+
+    def test_non_dict_scope_refused_at_kind_gate(self):
+        # A legal kind NAME in an illegal SHAPE: the gate refuses on shape too.
+        rel, digest = self._contract("characterization")
         self.assertEqual(
             verify.check_oracle_scope({}, rel, digest),
             ["oracle scope: kind must be characterization or documentation"])
