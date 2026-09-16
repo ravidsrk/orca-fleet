@@ -513,3 +513,11 @@ Keys:
 | `max_nudges_per_hour_per_worker` | 1 |
 | `nudge_text` | The auto-nudge message |
 | `nudge_command` | null — no transport configured; live mode refuses to run without one |
+
+> Why: starting values are generalized from the 2026-09-14 clean-sweep tracker run
+> (`runtime/watchdog.json:_about` names the two cases: a reviewer 60+ minutes idle with
+> a transcript frozen 20+ minutes, a verdict worker wedged on a dead provider stream) —
+> field-shaped, not derived, and tunable here without code edits. The single-nudge cap
+> (`runtime/watchdog.json:max_nudges_per_dispatch`) exists because a nudge that goes
+> unanswered is itself evidence: still-HUNG after one nudge escalates to a
+> stop-redispatch recommendation rather than a second poke into the void.

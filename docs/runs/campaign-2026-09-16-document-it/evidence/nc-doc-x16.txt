@@ -1,0 +1,9 @@
+NC doc-x16: rename 'max_nudges_per_dispatch' -> 'max_pokes' in runtime/watchdog.json; expect claimcheck --cell watchdog.json RED
+renamed 1 occurrence(s)
+--- claimcheck (expect FAIL) ---
+UNBOUND: watchdog.json: ANCHOR `runtime/watchdog.json:max_nudges_per_dispatch` not found in runtime/watchdog.json
+UNBOUND: watchdog.json: KEY `max_nudges_per_dispatch` not in runtime/watchdog.json
+claimcheck: 1 section(s), 2 unbound claim(s)
+claimcheck exit=1
+--- restore ---
+renamed file restored: yes
