@@ -1,0 +1,8 @@
+container: git 2.39.5 + gitleaks 8.30.1 on PATH.
+load: 4x CPU churn + 2x parallel git init/add/commit/rm -rf churn on /tmp.
+command: python3 /r/lh.py replica 500
+observed output (tail, exact):
+F-C: loaded replica x500 (CPU churn + parallel git churn on /tmp)
+REPLICA: 0/500 teardown failures
+reading: H4 (load-amplified ubiquitous writer) gets no support; a wider
+window with no writer still never fails.

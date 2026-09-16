@@ -1,0 +1,6 @@
+container: git 2.50.1 (source build) + gitleaks 8.30.1 on PATH, full tree.
+command: python3 /r/lh.py suite-strip
+observed output (tail, exact):
+F-B: test_verify strip on git 2.50.1 WITH gitleaks
+SUITE-STRIP: 243 tests, 0 errors, 0 failures, 0 ENOTEMPTY
+reading: H3 (git-version-specific writer) falsified.
