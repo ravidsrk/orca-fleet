@@ -1,0 +1,33 @@
+{# Shared issue form (new + edit). #}
+{# F2 (documented flaw, do NOT fix outside a mission run): the priority #}
+{# <select> below has NO associated <label> — axe-core rule `label` fires. #}
+{% if error %}
+<p class="error">{{ error }}</p>
+{% endif %}
+<form method="post" action="{{ action }}">
+  <div>
+    <label for="title">Title</label>
+    <input type="text" name="title" id="title" value="{{ issue.title if issue else '' }}" required />
+  </div>
+  <div>
+    <label for="body">Body</label>
+    <textarea name="body" id="body">{{ issue.body if issue and issue.body else '' }}</textarea>
+  </div>
+  <div>
+    <label for="status">Status</label>
+    <select name="status" id="status">
+      <option value="open" {% if not issue or issue.status == 'open' %}selected{% endif %}>open</option>
+      <option value="closed" {% if issue and issue.status == 'closed' %}selected{% endif %}>closed</option>
+    </select>
+  </div>
+  <div>
+    <span>Priority</span>
+    <select name="priority" id="priority">
+      {% set current = issue.priority if issue else 2 %}
+      <option value="1" {% if current == 1 %}selected{% endif %}>1 (high)</option>
+      <option value="2" {% if current == 2 %}selected{% endif %}>2 (normal)</option>
+      <option value="3" {% if current == 3 %}selected{% endif %}>3 (low)</option>
+    </select>
+  </div>
+  <button type="submit">{{ submit }}</button>
+</form>
