@@ -6,6 +6,7 @@ coordinator's frozen contract (scope) and dispatch-supplied unit class, GitHub (
 artifact (negative control). Each check must fail closed.
 """
 import contextlib
+import errno
 import hashlib
 import importlib.util
 import io
@@ -46,6 +47,14 @@ def _src(ids):
 def _digest(rel):
     # Mirrors the coordinator's `shasum -a 256` — raw bytes, no newline translation (#180).
     return "sha256:" + hashlib.sha256(Path(rel).read_bytes()).hexdigest()
+
+
+def _temp_repo(suffix=None, prefix=None, dir=None):  # noqa: ANN001, ANN202 - test helper, stdlib passthrough
+    """A throwaway temp dir for fixture git repos. ignore_cleanup_errors: the #340 teardown race —
+    on Linux CI a late writer in the gitleaks-PATH leg can leave .git/ non-empty while rmtree runs
+    (OSError 39; CI run 35074600535 hit a bare site after b726431 covered RepoCase only)."""
+    return tempfile.TemporaryDirectory(suffix=suffix, prefix=prefix, dir=dir,
+                                       ignore_cleanup_errors=True)
 
 
 class RepoCase(unittest.TestCase):
@@ -317,7 +326,9 @@ class FreshnessCheck(unittest.TestCase):
         # does not void the review. Build two commits with the same tree and check.
         import subprocess, tempfile
         from pathlib import Path as P
-        with tempfile.TemporaryDirectory() as tmp:
+        # _temp_repo: bare TemporaryDirectory hit the #340 teardown race here (OSError 39 on
+        # .git, CI run 35074600535). Throwaway repo.
+        with _temp_repo() as tmp:
             env = {"GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t", "GIT_COMMITTER_NAME": "t",
                    "GIT_COMMITTER_EMAIL": "t@t", "PATH": "/usr/bin:/bin"}
             def g(*a, cwd=tmp):
@@ -343,6 +354,80 @@ class FreshnessCheck(unittest.TestCase):
                 self.assertTrue(any("stale review" in e for e in verify.check_freshness(m2)))
             finally:
                 __import__("os").chdir(cwd)
+
+    def test_throwaway_repo_teardown_tolerates_a_late_writer(self):
+        # The #340 teardown race, pinned deterministically: a writer landing files under
+        # .git/ while the context manager tears the tree down raised OSError 39 (Directory
+        # not empty) on Linux CI — b726431 covered RepoCase, CI run 35074600535 hit this
+        # class's bare site. _temp_repo() must swallow that teardown noise.
+        #
+        # No threads: a threaded writer usually loses the race before its first write
+        # (PR #456 review, P2 — a green threaded run proved nothing). Instead the test
+        # reproduces the exact interleaving single-threaded: os.scandir is wrapped so the
+        # first directory listing during teardown is exhausted FIRST and the late file is
+        # planted only after — exhaust-then-plant, so the planted file can never be
+        # observed by the listing on any platform (planting before iteration would race
+        # getdents visibility: Linux typically shows the new entry, macOS typically does
+        # not — PR #456 review round 2). Without the tolerance flag that file fails the
+        # final rmdir with ENOTEMPTY; with it, teardown succeeds. Both directions are
+        # asserted, so the test also re-arms itself if the flag is ever reverted.
+        from unittest import mock
+
+        class _FrozenListing:
+            # The exhausted entries behind the iterator protocol rmtree needs:
+            # 3.13's safe-fd lane holds `with os.scandir(fd) as it`, older lanes
+            # just iterate. Entries stay real DirEntry objects.
+            def __init__(self, entries):
+                self._entries = entries
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *exc):
+                return False
+
+            def __iter__(self):
+                return iter(self._entries)
+
+        def run_teardown(make_dir):
+            planted = []
+            real_scandir = os.scandir
+
+            def planting_scandir(path):
+                iterator = real_scandir(path)
+                if planted:
+                    return iterator
+                entries = list(iterator)
+                try:
+                    if isinstance(path, int):
+                        # 3.13+ safe-fd rmtree lists by dir fd: plant fd-relative.
+                        fd = os.open("late.tmp", os.O_CREAT | os.O_WRONLY,
+                                     dir_fd=path)
+                        os.close(fd)
+                        planted.append(f"fd:{path}")
+                    else:
+                        candidate = Path(os.fspath(path), "late.tmp")
+                        if candidate.parent.is_dir():
+                            candidate.write_bytes(b"x")
+                            planted.append(str(candidate))
+                except OSError:
+                    pass
+                return _FrozenListing(entries)
+
+            with mock.patch.object(os, "scandir", planting_scandir):
+                with make_dir() as repo:
+                    Path(repo, ".git", "objects").mkdir(parents=True)
+            return planted
+
+        # Green: our helper tolerates the late file.
+        planted = run_teardown(_temp_repo)
+        self.assertTrue(planted, "injection never fired — teardown went untested")
+        # Red control: without the tolerance flag the same injection fails the
+        # final rmdir with ENOTEMPTY (39 Linux, 66 macOS) — proving the
+        # injection models the race.
+        with self.assertRaises(OSError) as red:
+            run_teardown(lambda: tempfile.TemporaryDirectory(ignore_cleanup_errors=False))
+        self.assertEqual(red.exception.errno, errno.ENOTEMPTY, red.exception)
 
 
 class ReviewCheck(unittest.TestCase):
@@ -877,7 +962,8 @@ class RawByteDigest(RepoCase):
         # Commit a CRLF contract (autocrlf off so the blob keeps its raw bytes) and verify
         # against the shasum digest — text=True capture would normalize CRLF away and wedge.
         raw = b"frozen\r\n- AC-1: x\r\n"
-        with tempfile.TemporaryDirectory() as repo:
+        # _temp_repo: same #340 teardown race as the FreshnessCheck site (OSError 39 on .git).
+        with _temp_repo() as repo:
             Path(repo, "contract.md").write_bytes(raw)
 
             def git(*args):
@@ -1108,7 +1194,8 @@ class GitAuthorityChecks(unittest.TestCase):
     test_verify_gate.py _gate_repo pattern: refs/remotes/origin/main pinned with update-ref)."""
 
     def setUp(self):
-        self._tmp = tempfile.TemporaryDirectory()
+        # _temp_repo: same #340 teardown race as the FreshnessCheck site (OSError 39 on .git).
+        self._tmp = _temp_repo()
         self.repo = Path(self._tmp.name)
 
         def git(*args):
@@ -1174,7 +1261,8 @@ class InferRepoFromOrigin(unittest.TestCase):
     remote URL spellings; without a parseable origin it must return None (fail-soft)."""
 
     def setUp(self):
-        self._tmp = tempfile.TemporaryDirectory()
+        # _temp_repo: same #340 teardown race as the FreshnessCheck site (OSError 39 on .git).
+        self._tmp = _temp_repo()
         self.repo = Path(self._tmp.name)
         subprocess.run(["git", "init", "-q", "-b", "main"], cwd=self.repo,
                        check=True, capture_output=True)
@@ -2976,6 +3064,60 @@ class OracleScopeKindTest(RepoCase):
         self.assertEqual(
             verify.check_oracle_scope({}, rel, digest),
             ["oracle scope: authorized commit pair differs from the manifest"])
+
+
+class OracleScopeCharacterizationGateTest(RepoCase):
+    """PF-3 (prove-it campaign 2026-09-16): the characterization must-change-a-test gate.
+
+    One gate below PF-2's kind gate, check_oracle_scope enforces the lane's core
+    invariant: a characterization unit MUST change a test (evidence-manifest.md
+    §1 — characterization changes tests/prose only, and the test is what the
+    mutant kills). A pair that changes no test must be refused here — including
+    the vacuous pair that changes nothing at all; a pair that changes a test
+    passes this gate and falls through to the pinned hand-mutant requirement.
+    """
+
+    def _contract(self, scope):
+        rel = "contract-pf3.json"
+        Path(rel).write_text(
+            json.dumps({"criterion_ids": ["PF-3"], "oracle_scope": scope}),
+            encoding="utf-8")
+        return rel, _digest(rel)
+
+    def _scope(self, base, head):
+        return {"kind": "characterization", "base_sha": base, "head_sha": head,
+                "criterion_ids": ["PF-3"], "paths": {"src/app.py": [1]}}
+
+    def _base(self):
+        self.write("src/app.py", "VALUE = 1\nTOTAL = 2\n")
+        self.write("docs/note.md", "# note\n")
+        self.write("tests/test_probe.py", "import unittest\n")
+        return self.commit("base")
+
+    def test_prose_only_change_refused_at_characterization_gate(self):
+        base = self._base()
+        self.write("docs/note.md", "# note\n\nmore prose\n")
+        head = self.commit("prose only")
+        rel, digest = self._contract(self._scope(base, head))
+        self.assertEqual(
+            verify.check_oracle_scope({"base_sha": base, "head_sha": head}, rel, digest),
+            ["oracle scope: characterization must change a test"])
+
+    def test_empty_diff_refused_at_characterization_gate(self):
+        base = self._base()
+        rel, digest = self._contract(self._scope(base, base))
+        self.assertEqual(
+            verify.check_oracle_scope({"base_sha": base, "head_sha": base}, rel, digest),
+            ["oracle scope: characterization must change a test"])
+
+    def test_test_change_passes_characterization_gate(self):
+        base = self._base()
+        self.write("tests/test_probe.py", "import unittest\n\n\nclass T(unittest.TestCase):\n    pass\n")
+        head = self.commit("test change")
+        rel, digest = self._contract(self._scope(base, head))
+        self.assertEqual(
+            verify.check_oracle_scope({"base_sha": base, "head_sha": head}, rel, digest),
+            ["oracle scope: requires a pinned hand-mutant artifact"])
 
 
 if __name__ == "__main__":

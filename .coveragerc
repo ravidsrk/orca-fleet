@@ -1,0 +1,15 @@
+# Coverage measurement for the D9 (coverage) floor constraint (CONSTRAINTS.md).
+# The frozen gate is `coverage run -m unittest discover -s tests` followed by
+# `coverage report`: default line coverage over scripts/ + runtime/scripts/,
+# failing below 80 (fail_under). No excludes: the bar is the raw line number.
+# Both stanzas are load-bearing: [run] source scopes what future collections
+# track, [report] include scopes what the report counts (source alone does not
+# filter data collected without it — verified during the CONSTRAINTS prove-fires).
+[run]
+source = scripts,runtime/scripts
+
+[report]
+include =
+    scripts/*
+    runtime/scripts/*
+fail_under = 80

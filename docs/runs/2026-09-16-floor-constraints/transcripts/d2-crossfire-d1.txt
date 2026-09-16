@@ -1,0 +1,77 @@
+### D2 D1-implication — tests.test_architecture on injection c17de0de — 2026-09-16T20:23:32Z
+......F.............................FF....................
+======================================================================
+FAIL: test_the_real_repository_passes_both (tests.test_architecture.LayerSeparationHoldsForUntrackedFilesToo.test_the_real_repository_passes_both)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/projects/orca-fleet/.muse/worktrees/subagent-v2-01a0a08a-bf23-71e3-bb1d-c7a68bec7d23-01a0abaf-32d4-7fa1-b587-3f056e3ace64/tests/test_architecture.py", line 122, in test_the_real_repository_passes_both
+    self.assertEqual(validate.check_layer_separation(), [])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['playbooks/zz-canary/SKILL.md'] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+'playbooks/zz-canary/SKILL.md'
+
+- ['playbooks/zz-canary/SKILL.md']
++ []
+
+======================================================================
+FAIL: test_three_layer_separation (tests.test_architecture.TestArchitecture.test_three_layer_separation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/projects/orca-fleet/.muse/worktrees/subagent-v2-01a0a08a-bf23-71e3-bb1d-c7a68bec7d23-01a0abaf-32d4-7fa1-b587-3f056e3ace64/tests/test_architecture.py", line 323, in test_three_layer_separation
+    self.assertEqual(leaks, [], f"SKILL.md leaked into {layer.name}/: {leaks}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: [PosixPath('/Users/ravindra/projects/orca-[134 chars]md')] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+PosixPath('/Users/ravindra/projects/orca-fleet/.muse/worktrees/subagent-v2-01a0a08a-bf23-71e3-bb1d-c7a68bec7d23-01a0abaf-32d4-7fa1-b587-3f056e3ace64/playbooks/zz-canary/SKILL.md')
+
+- [PosixPath('/Users/ravindra/projects/orca-fleet/.muse/worktrees/subagent-v2-01a0a08a-bf23-71e3-bb1d-c7a68bec7d23-01a0abaf-32d4-7fa1-b587-3f056e3ace64/playbooks/zz-canary/SKILL.md')]
++ [] : SKILL.md leaked into playbooks/: [PosixPath('/Users/ravindra/projects/orca-fleet/.muse/worktrees/subagent-v2-01a0a08a-bf23-71e3-bb1d-c7a68bec7d23-01a0abaf-32d4-7fa1-b587-3f056e3ace64/playbooks/zz-canary/SKILL.md')]
+
+======================================================================
+FAIL: test_validator_passes (tests.test_architecture.TestArchitecture.test_validator_passes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/projects/orca-fleet/.muse/worktrees/subagent-v2-01a0a08a-bf23-71e3-bb1d-c7a68bec7d23-01a0abaf-32d4-7fa1-b587-3f056e3ace64/tests/test_architecture.py", line 303, in test_validator_passes
+    self.assertEqual(r.returncode, 0, f"validate.py failed:\n{r.stdout}\n{r.stderr}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : validate.py failed:
+ok   absorb-it
+ok   access-it
+ok   attest-it
+ok   clean-sweep
+ok   deflake-it
+ok   document-it
+ok   field-test-it
+ok   floor-it
+ok   harden-it
+ok   map-it
+ok   migrate-it
+ok   modernize-it
+ok   oncall-it
+ok   oss-contribute
+ok   pin-it
+ok   prove-it
+ok   reshape-it
+ok   review-it
+ok   root-cause
+ok   ship-it
+ok   speed-it
+
+FAIL layer separation — SKILL.md found outside skills/:
+   - playbooks/zz-canary/SKILL.md (only skills/<name>/ may hold a SKILL.md)
+
+Validation failed.
+
+
+
+----------------------------------------------------------------------
+Ran 58 tests in 6.104s
+
+FAILED (failures=3)
+bundle: 21 self-contained mission(s) in a temp dir; no reference leaves its directory
+test_arch_exit=1

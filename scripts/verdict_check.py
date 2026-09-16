@@ -20,7 +20,14 @@ review, P1). Approval policy beyond that (how many, from whom, conversations
 resolved) stays enforced by branch protection itself; this check adds SHA
 binding, not a second approval rule. Dismissed and change-requested reviews
 never count. Short SHAs are rejected: ambiguity in what was reviewed is
-exactly the failure mode.
+exactly the failure mode. The marker is case-SENSITIVE (exact `VERDICT: GO`):
+machine-read verdicts must not have case variants, and the CI job gate matches
+the same literal (PR #465 review, P1).
+
+CI trigger contract (see verdict-check.yml): the workflow evaluates GO-marker
+reviews and dismissals only — never pushes, so a transient no-GO state cannot
+fail-poison the head (a FAILED conclusion on the head SHA sticks past a newer
+SUCCESS; only a re-run clears it). Post a new review per verdict.
 """
 
 import argparse
@@ -30,7 +37,7 @@ import re
 import subprocess
 import sys
 
-VERDICT_RE = re.compile(r"^VERDICT:\s*GO\s*$", re.IGNORECASE | re.MULTILINE)
+VERDICT_RE = re.compile(r"^VERDICT:\s*GO\s*$", re.MULTILINE)
 SHA_RE = re.compile(r"^reviewed_sha:\s*([0-9a-fA-F]{40})\s*$", re.MULTILINE)
 
 GH_API = "gh api"
@@ -52,9 +59,9 @@ def go_reviews_at_tip(reviews, head_sha, pr_author=None):
 
     ``reviews`` is a list of GitHub review objects (``state``, ``body``,
     ``user.login``, ``author_association``, ``submitted_at`` keys).
-    Matching is case-insensitive on the VERDICT line; the SHA comparison is
-    case-insensitive hex but must be a full 40 hex digits — short SHAs never
-    match.
+    The VERDICT line matches the exact uppercase literal; the SHA comparison
+    is case-insensitive hex but must be a full 40 hex digits — short SHAs
+    never match.
     """
     head = head_sha.lower()
     hits = []

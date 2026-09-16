@@ -1,0 +1,66 @@
+### D2 cross-fire map (on D2 injection commit c17de0de) — 2026-09-16T20:22:33Z
+### $ python3 scripts/bundle.py --check
+bundle: 21 self-contained mission(s) in a temp dir; no reference leaves its directory
+### exit=0 (D1-implication: test_validate subset)
+### $ python3 scripts/eval.py run --suite routing --threshold 1.0
+Routing eval: 94/94 correct (100%)
+### exit=0 (D1-implication: test_validate subset)
+### $ ruff check scripts runtime/scripts tests bench demo
+All checks passed!
+### exit=0 (D1-implication: test_validate subset)
+### $ python3 runtime/scripts/proof_status.py --check
+absorb-it       doctrine-only  [—      ] —
+access-it       doctrine-only  [—      ] —
+attest-it       doctrine-only  [—      ] —
+clean-sweep     self-run       [ok     ] docs/runs/2026-09-14-clean-sweep-self-run.md
+deflake-it      doctrine-only  [—      ] —
+document-it     doctrine-only  [—      ] —
+field-test-it   doctrine-only  [—      ] —
+floor-it        doctrine-only  [—      ] —
+harden-it       doctrine-only  [—      ] —
+map-it          doctrine-only  [—      ] —
+migrate-it      doctrine-only  [—      ] —
+modernize-it    doctrine-only  [—      ] —
+oncall-it       doctrine-only  [—      ] —
+oss-contribute  doctrine-only  [—      ] —
+pin-it          doctrine-only  [—      ] —
+prove-it        self-run       [ok     ] docs/runs/2026-09-16-prove-it-self-run.md
+reshape-it      doctrine-only  [—      ] —
+review-it       doctrine-only  [—      ] —
+root-cause      doctrine-only  [—      ] —
+ship-it         doctrine-only  [—      ] —
+speed-it        doctrine-only  [—      ] —
+
+coverage rollup:
+  doctrine-only  19
+  self-run       2
+  external-run   0
+  total          21
+### exit=0 (D1-implication: test_validate subset)
+### $ python3 runtime/scripts/run_report.py
+bound clean-sweep (self-run) — docs/runs/2026-09-14-clean-sweep-self-run.md
+bound prove-it (self-run) — docs/runs/2026-09-16-prove-it-self-run.md
+### exit=0 (D1-implication: test_validate subset)
+### $ python3 bench/vf-bench/gate.py
+vf-bench gate PASS: corpus vf-bench@0.1, verify.py false-done 0/20, valid controls 3/3, skipped 0
+### exit=0 (D1-implication: test_validate subset)
+### $ python3 -m unittest tests.test_validate
+..........................................................................................
+----------------------------------------------------------------------
+Ran 90 tests in 1.570s
+
+OK
+wrote assets/badges/missions.json: 21
+wrote assets/badges/tests.json: 1 in source
+wrote assets/badges/missions.json: 21
+wrote assets/badges/tests.json: 1 in source
+wrote assets/badges/missions.json: 21
+wrote assets/badges/tests.json: 0 in source
+wrote assets/badges/missions.json: 21
+wrote assets/badges/tests.json: 1 in source
+wrote assets/badges/missions.json: 21
+wrote assets/badges/tests.json: 2 in source
+wrote assets/badges/missions.json: 21
+wrote assets/badges/tests.json: 0 in source
+### exit=0 (D1-implication: test_validate subset)
+### NOTE 2026-09-16T20:22:59Z: the '(D1-implication: test_validate subset)' suffix above applies ONLY to the tests.test_validate line; all other ### exit= lines are plain gate exits.

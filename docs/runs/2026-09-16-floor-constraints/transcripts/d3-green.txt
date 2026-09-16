@@ -1,0 +1,5 @@
+### D3 GREEN-after-revert — 2026-09-16T20:24:01Z
+### revert commit: 3120570a (tree == floor/constraints)
+### command: ruff check scripts runtime/scripts tests bench demo
+All checks passed!
+ruff_exit=0

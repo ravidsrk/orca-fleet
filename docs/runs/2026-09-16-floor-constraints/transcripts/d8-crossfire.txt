@@ -1,0 +1,29 @@
+### D8 cross-fire map (on D8 injection 8e29368c) — 2026-09-16T20:32:05Z
+### $ ruff check scripts runtime/scripts tests bench demo
+All checks passed!
+### exit=0
+### $ python3 scripts/validate.py
+ok   absorb-it
+ok   access-it
+ok   attest-it
+ok   clean-sweep
+ok   deflake-it
+ok   document-it
+ok   field-test-it
+ok   floor-it
+ok   harden-it
+ok   map-it
+ok   migrate-it
+ok   modernize-it
+ok   oncall-it
+ok   oss-contribute
+ok   pin-it
+ok   prove-it
+ok   reshape-it
+ok   review-it
+ok   root-cause
+ok   ship-it
+ok   speed-it
+
+All 21 missions valid; three-layer separation holds; evals valid.
+### exit=0

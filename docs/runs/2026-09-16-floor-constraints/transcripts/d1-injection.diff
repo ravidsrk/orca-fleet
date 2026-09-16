@@ -1,0 +1,13 @@
+diff --git a/tests/test_pins.py b/tests/test_pins.py
+index c90249fc..1ae9888c 100644
+--- a/tests/test_pins.py
++++ b/tests/test_pins.py
+@@ -173,7 +173,7 @@ class CiToolsArePinnedByHash(unittest.TestCase):
+         loose = [ln.strip() for ln in wf.splitlines()
+                  if not ln.lstrip().startswith("#")
+                  and re.search(r"pip install(?!.*--require-hashes)", ln)]
+-        self.assertEqual(loose, [], "a tool is installed outside the hashed lock")
++        self.assertEqual(loose, ["FLOOR-CANARY-D1"], "a tool is installed outside the hashed lock")
+         self.assertNotIn("uvx ", wf,
+                          "uvx resolves skills-ref's dependency tree at run time, which is the "
+                          "unpinned path the lock replaced")

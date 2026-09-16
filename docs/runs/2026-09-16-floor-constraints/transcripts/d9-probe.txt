@@ -1,0 +1,29 @@
+### D9 discrimination probe (NOT the frozen gate) — 2026-09-16T20:33:24Z
+### same .coverage data as d9-red.txt; proves the tool passes at/above the measured level (not always-RED)
+### command: coverage report --fail-under=75 --include="scripts/*,runtime/scripts/*"
+Name                                Stmts   Miss  Cover
+-------------------------------------------------------
+runtime/scripts/decisions.py          223    183    18%
+runtime/scripts/diff_scope.py         139     60    57%
+runtime/scripts/dispatch-sign.py      108     14    87%
+runtime/scripts/ed25519.py             94      4    96%
+runtime/scripts/egress.py             192     92    52%
+runtime/scripts/evidence-run.py       137     82    40%
+runtime/scripts/floor_guard.py        273    186    32%
+runtime/scripts/gate-batch.py         373     63    83%
+runtime/scripts/inventory.py          188     94    50%
+runtime/scripts/pm.py                  80     18    78%
+runtime/scripts/preflight.py          146     82    44%
+runtime/scripts/proof_status.py       147     15    90%
+runtime/scripts/run_report.py         467     38    92%
+runtime/scripts/sandbox_doctor.py      88     22    75%
+runtime/scripts/verify.py            1240    132    89%
+runtime/scripts/watchdog.py           281    134    52%
+scripts/bind_check.py                 180      7    96%
+scripts/bundle.py                     215     13    94%
+scripts/eval.py                       777    153    80%
+scripts/gen-badges.py                 147     25    83%
+scripts/validate.py                   563    124    78%
+-------------------------------------------------------
+TOTAL                                6058   1541    75%
+probe75_exit=0
