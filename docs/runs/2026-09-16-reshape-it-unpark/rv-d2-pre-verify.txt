@@ -1,0 +1,6 @@
+FAIL: mutation unit: no INDEPENDENT APPROVED review at head_sha on ravidsrk/orca-fleet#467 (the PR author's own approval and superseded reviews do not count; a review at reviewed_sha only counts when reviewed_wtree binds its tree to the head's)
+verify: 1 invariant(s) failed — unit is NOT done
+NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+NOTE: commands ledger FRESH — 3 exit-0 record(s) bound to head_sha's tree 774ee6598906. This is the worker's own runner, so the coordinator's clean-env re-run at head_sha still stands as the stronger authority (evidence-manifest.md §2)
+NOTE: negative control EXECUTED — with the revert control applied at head_sha the bound command exited 1 on an assertion failure (RED, as required)
+NOTE: the same command exits 0 at clean head_sha — the RED above is the control's doing, not a broken suite

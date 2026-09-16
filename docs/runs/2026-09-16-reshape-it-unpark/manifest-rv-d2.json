@@ -10,15 +10,48 @@
       "commit": "7ada834e6240887928c99637f30bbc9276f53631",
       "wtree": "620045fe3d6ac093289b36f46c359c5904ffb8ac",
       "artifact": "docs/runs/2026-09-16-reshape-it-unpark/rv-d2-tests-full-base.txt"
+    },
+    {
+      "label": "tests",
+      "ts": "2026-09-16T21:04:09Z",
+      "cmd": "python3 -m unittest tests.test_reshape_width_verify",
+      "cmd_sha256": "6b3a44205b8732a4950b9745b4a60ff5f16e6b4589949587cfd2a5e03b817c0d",
+      "exit": 0,
+      "duration_s": 0.093,
+      "commit": "4a8d7a9c9e85d8331a0bde215918ad77787b6430",
+      "wtree": "774ee65989068c494c8926b92a8955cee2f28929",
+      "artifact": "docs/runs/2026-09-16-reshape-it-unpark/rv-d2-tests.txt"
+    },
+    {
+      "label": "validation",
+      "ts": "2026-09-16T21:04:11Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 0,
+      "duration_s": 1.502,
+      "commit": "4a8d7a9c9e85d8331a0bde215918ad77787b6430",
+      "wtree": "774ee65989068c494c8926b92a8955cee2f28929",
+      "artifact": "docs/runs/2026-09-16-reshape-it-unpark/rv-d2-validation.txt"
+    },
+    {
+      "label": "tests-full-at-head",
+      "ts": "2026-09-16T21:09:11Z",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "exit": 0,
+      "duration_s": 293.574,
+      "commit": "4a8d7a9c9e85d8331a0bde215918ad77787b6430",
+      "wtree": "774ee65989068c494c8926b92a8955cee2f28929",
+      "artifact": "docs/runs/2026-09-16-reshape-it-unpark/rv-d2-tests-full-head.txt"
     }
   ],
   "unit": "RV-D2",
   "base_sha": "7ada834e6240887928c99637f30bbc9276f53631",
-  "head_sha": "TIP_PENDING",
+  "head_sha": "4a8d7a9c9e85d8331a0bde215918ad77787b6430",
   "base_branch": "main",
   "contract": {
-    "source": "docs/runs/2026-09-16-reshape-it-unpark/contract-rv-d2.json@E1_PENDING",
-    "digest": "sha256:PENDING",
+    "source": "docs/runs/2026-09-16-reshape-it-unpark/contract-rv-d2.json@4a8d7a9c9e85d8331a0bde215918ad77787b6430",
+    "digest": "sha256:85a2888380dbd567a6a9df1fd2a8c8a9e8fea544d946f3fa2e3be06251041d12",
     "criterion_ids": [
       "RV-D2"
     ]
@@ -71,6 +104,22 @@
     {
       "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-d2-design.md",
       "sha256": "507fdc5865c2dfd0f572f72e612a627de59bfdb0081d60b4f2ec741a795e1f63"
+    },
+    {
+      "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-d2-tests.txt",
+      "sha256": "bbf220d889d409913082932298af56e5c6199e198725dc0cb2584e097ddc68d6"
+    },
+    {
+      "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-d2-validation.txt",
+      "sha256": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6"
+    },
+    {
+      "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-d2-tests-full-head.txt",
+      "sha256": "6721a9dcd9ed6be2cddc63b8cb71f7fa1743756b660784aef0e605b372d2943a"
     }
-  ]
+  ],
+  "pr": {
+    "number": 467,
+    "url": "https://github.com/ravidsrk/orca-fleet/pull/467"
+  }
 }
