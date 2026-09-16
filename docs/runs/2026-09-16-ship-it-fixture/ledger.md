@@ -13,9 +13,9 @@
 | id | slice | deps | worker pack | dispatch |
 |---|---|---|---|---|
 | S0 | foundation scaffold | — | addy | MERGED #446 @ 9890c610 (C1 b75bc019 reviewed GO; coord fix d4103a61) |
-| S1 | API + store | S0 | matt | dispatched (isolated wtree) |
-| S2 | UI + F2 | S1 | matt | pending |
-| S3 | seed + F1 + telemetry + staging | S1 | addy | pending |
+| S1 | API + store | S0 | matt | MERGED #447 @ 310b2259 (C1 2bee02fa reviewed GO; coord P1 fix 7a1ef399) |
+| S2 | UI + F2 | S1 | matt | dispatched (isolated wtree) |
+| S3 | seed + F1 + telemetry + staging | S1 | addy | dispatched (isolated wtree) |
 | S4 | docs + flaws + CI + pending 0003 | S2, S3 | addy | pending |
 
 DAG: S0 → S1 → {S2, S3} → S4. Frontier = {S0}. Merge-chains: `app/main.py`
