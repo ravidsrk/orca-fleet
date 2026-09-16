@@ -15,7 +15,8 @@ compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh. Review worker playbooks
   (mattpocock code-review, addyosmani specialists, gstack review army) — one router per worker.
 metadata:
-  proof: doctrine-only
+  proof: self-run
+  proof_evidence: docs/runs/zz-canary-missing.md
   autonomy: L4
   unit: one finding bound to the reviewed SHA
   state_machine: pin the fixed point → acceptance-review + scope-gated risk lenses → aggregate → verdict
