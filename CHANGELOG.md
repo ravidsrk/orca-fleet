@@ -105,6 +105,12 @@ to `main` in #387.
 
 ### Added
 
+- External-run intake (#415): `docs/run-submission-guide.md` (the envelope +
+  bindable-core bundle format, binding in one paragraph + one verify command,
+  runner-credit convention), `docs/call-for-runs.md` (every doctrine-only
+  mission by name, machine-checked against the catalog so promotions keep it
+  current), and the `bind-check` CI job (`scripts/bind_check.py`) routing every
+  run report a PR adds or modifies to `run_report.py`.
 - Runtime policy layer modernized to the current Orca orchestration model (#251): worker-start
   supervised spawn path with typed refusals, Run-scoped fleets, batched Delivery + ack inbox,
   worker-release/retain lifecycle, --retry-request idempotency, ask --resume same-id, spawn_worker.sh
