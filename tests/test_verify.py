@@ -3066,5 +3066,59 @@ class OracleScopeKindTest(RepoCase):
             ["oracle scope: authorized commit pair differs from the manifest"])
 
 
+class OracleScopeCharacterizationGateTest(RepoCase):
+    """PF-3 (prove-it campaign 2026-09-16): the characterization must-change-a-test gate.
+
+    One gate below PF-2's kind gate, check_oracle_scope enforces the lane's core
+    invariant: a characterization unit MUST change a test (evidence-manifest.md
+    §1 — characterization changes tests/prose only, and the test is what the
+    mutant kills). A pair that changes no test must be refused here — including
+    the vacuous pair that changes nothing at all; a pair that changes a test
+    passes this gate and falls through to the pinned hand-mutant requirement.
+    """
+
+    def _contract(self, scope):
+        rel = "contract-pf3.json"
+        Path(rel).write_text(
+            json.dumps({"criterion_ids": ["PF-3"], "oracle_scope": scope}),
+            encoding="utf-8")
+        return rel, _digest(rel)
+
+    def _scope(self, base, head):
+        return {"kind": "characterization", "base_sha": base, "head_sha": head,
+                "criterion_ids": ["PF-3"], "paths": {"src/app.py": [1]}}
+
+    def _base(self):
+        self.write("src/app.py", "VALUE = 1\nTOTAL = 2\n")
+        self.write("docs/note.md", "# note\n")
+        self.write("tests/test_probe.py", "import unittest\n")
+        return self.commit("base")
+
+    def test_prose_only_change_refused_at_characterization_gate(self):
+        base = self._base()
+        self.write("docs/note.md", "# note\n\nmore prose\n")
+        head = self.commit("prose only")
+        rel, digest = self._contract(self._scope(base, head))
+        self.assertEqual(
+            verify.check_oracle_scope({"base_sha": base, "head_sha": head}, rel, digest),
+            ["oracle scope: characterization must change a test"])
+
+    def test_empty_diff_refused_at_characterization_gate(self):
+        base = self._base()
+        rel, digest = self._contract(self._scope(base, base))
+        self.assertEqual(
+            verify.check_oracle_scope({"base_sha": base, "head_sha": base}, rel, digest),
+            ["oracle scope: characterization must change a test"])
+
+    def test_test_change_passes_characterization_gate(self):
+        base = self._base()
+        self.write("tests/test_probe.py", "import unittest\n\n\nclass T(unittest.TestCase):\n    pass\n")
+        head = self.commit("test change")
+        rel, digest = self._contract(self._scope(base, head))
+        self.assertEqual(
+            verify.check_oracle_scope({"base_sha": base, "head_sha": head}, rel, digest),
+            ["oracle scope: requires a pinned hand-mutant artifact"])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
