@@ -81,3 +81,5 @@ trust boundary).
 ## Related
 `ship-it` / `clean-sweep` (act on the verdict), `harden-it` (full security loop beyond a per-diff
 lens), `mission-scheduling` (report-only, so it schedules cleanly as an unattended PR-sweep).
+
+[canary spec](../../canary-missing-target.md)
