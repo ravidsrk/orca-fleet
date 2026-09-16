@@ -208,3 +208,25 @@ line (`REPRODUCED=yes` stops at once; otherwise `REPRODUCED=no` plus `ROUNDS_USE
 N rounds) — never the exit code. A checkpoint step ends each unreproduced round.
 
 Exits: 0 done · 2 usage.
+
+## `pm.py`
+
+Tolerant parser for saved `orca orchestration inbox/check` JSON output. Decodes
+successive JSON objects, skips keepalive-only envelopes structurally, prints each
+message with untrusted fields rendered inert. Source `runtime/scripts/pm.py:1-21`;
+behavior pinned by `tests/test_pm.py`.
+
+Usage: save stdout only, then `python3 pm.py inbox.json` (keepalives arrive on stderr —
+a merged stream breaks naive parsing).
+
+Flags: none — the single argument is the input file. There is no help flag: passing
+--help tries to read a file literally named --help.
+
+Output prints `MESSAGES: <n>`, then per message `ID`, `FROM`, `TYPE`, `SUBJ`, `BODY`,
+`PAYLOAD`. Missing fields print as `?`. Every printed field passes through escaping for
+C0/C1 controls, DEL, and invisible Unicode (Cf, Zl, Zp), so hostile text can neither
+drive the terminal nor reorder what it shows. Malformed segments are skipped line-wise
+(counted on stderr); envelopes carrying a `messages` key outside the expected shape warn
+as unrecognized rather than silently undercounting.
+
+Exits: 0 ok · 1 usage (no input file) · 2 unreadable input.

@@ -1,0 +1,7 @@
+NC doc-r10: move anchored tests/test_pm.py aside; expect claimcheck --cell pm.py RED (flagless CLI: PATH anchor is the control)
+--- claimcheck (expect FAIL) ---
+UNBOUND: pm.py: PATH `tests/test_pm.py` does not exist
+claimcheck: 1 section(s), 1 unbound claim(s)
+claimcheck exit=1
+--- restore ---
+test file restored: yes
