@@ -12,7 +12,7 @@
 
 | id | slice | deps | worker pack | dispatch |
 |---|---|---|---|---|
-| S0 | foundation scaffold | — | addy | pending |
+| S0 | foundation scaffold | — | addy | dispatched 01a0aaa9 (isolated wtree) |
 | S1 | API + store | S0 | matt | pending |
 | S2 | UI + F2 | S1 | matt | pending |
 | S3 | seed + F1 + telemetry + staging | S1 | addy | pending |
