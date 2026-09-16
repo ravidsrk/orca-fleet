@@ -68,3 +68,8 @@ CONSTRAINTS.md` non-empty AND a `docs/DECISIONS.md` line with `class=one-way`, `
 naming this freeze AND every Q1–Q5 stub above answered. Command form:
 `test -f CONSTRAINTS.md && git log --oneline -1 -- CONSTRAINTS.md && grep -c 'floor-freeze' docs/DECISIONS.md`
 (all three non-empty).
+Q1: human — FREEZE all eight as written (D1..D8 at current-standings; no amendments).
+Q2: human — CHARTER the coverage.py WIRE unit (line >=80%% on runtime/scripts + scripts, ratchet-only).
+Q3: human — CONFIRM parks (D10 perf + D11 a11y not-applicable) and D12 agentskills fold into D2.
+Q4: human — CONFIRM guard surface as listed.
+Q5: human — FREEZE: yes. Recorded 2026-09-16, interactive gate session, reporter Ravindra (explicit).

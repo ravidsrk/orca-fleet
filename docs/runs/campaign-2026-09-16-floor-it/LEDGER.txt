@@ -21,3 +21,4 @@ Worker TASK pack: none dispatched (park precedes WIRE; no pack mounted, none co-
 ## DECISIONS log
 
 Path: docs/runs/campaign-2026-09-16-floor-it/DECISIONS.md (run-local; target-repo promotion copies grants to docs/DECISIONS.md).
+2026-09-16 FREEZE granted (interactive, Ravindra): D1-D8 as-written; D9 coverage.py WIRE chartered; D10/D11 parked; D12 folded into D2; guard surface confirmed. Unpark: BOOTSTRAP BASE, commit 12-row CONSTRAINTS.md first, WIRE + PROVE-FIRES, canary PRs, GUARD.
