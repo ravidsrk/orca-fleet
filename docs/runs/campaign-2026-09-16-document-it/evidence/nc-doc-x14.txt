@@ -1,0 +1,8 @@
+NC doc-x14: rename 'TMPIDX' -> 'SCRATCHIDX' in runtime/scripts/wtree.sh; expect claimcheck --cell wtree.sh RED
+renamed 6 occurrence(s)
+--- claimcheck (expect FAIL) ---
+UNBOUND: wtree.sh: ANCHOR `runtime/scripts/wtree.sh:TMPIDX` not found in runtime/scripts/wtree.sh
+claimcheck: 1 section(s), 1 unbound claim(s)
+claimcheck exit=1
+--- restore ---
+renamed file restored: yes

@@ -451,6 +451,15 @@ Staged blobs enter the object store as unreachable objects until gc, like `git s
 Exits: 0 prints the hash · 1 outside a git repo, or no commits and no usable index
 (callers fail closed on nonzero — never treat it as an empty fingerprint).
 
+> Why this and not `HEAD^{tree}`: committing identical content must not invalidate a
+> record made on a dirty tree, a new untracked file must invalidate "tests passed", and
+> content-preserving rebases must not matter — only a content fingerprint has all three
+> properties. The temp index (`runtime/scripts/wtree.sh:GIT_INDEX_FILE`, via
+> `runtime/scripts/wtree.sh:TMPIDX`) exists so the real index is never touched, and it
+> seeds from a copy of the real one to preserve the stat cache — with the mtime restored
+> so a same-second rewrite cannot hide behind a copied "now", falling back to the slower
+> seed rather than trusting a stale cache.
+
 ## `one-way-doors.json`
 
 The fleet's one-way door registry: the single enumerated list of human-only decisions —
