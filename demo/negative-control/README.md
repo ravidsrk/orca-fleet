@@ -22,6 +22,14 @@ Recorded run: [`head-to-head.txt`](head-to-head.txt). The delta is not the gate 
 can ship a gate) — it is the **frozen denominator + independent re-derivation**, which a self-scorer
 cannot have by construction.
 
+## CI-pinned
+
+This demo is CI-pinned: every PR re-runs `run.sh` and diffs fresh output against
+`head-to-head.txt` (`.github/workflows/negative-control.yml`, #413). To change expected output,
+change the demo AND explain why — a drifted transcript means either the demo rotted (fix the demo)
+or the verifier changed behavior (fix the expectations and file a follow-up on the behavior change),
+never a silent re-baseline.
+
 ## Reproduce against a real self-scorer
 
 `selfscore.py` is an honest stand-in, but the trap is gate-agnostic. Point step [1] of `run.sh` at a
