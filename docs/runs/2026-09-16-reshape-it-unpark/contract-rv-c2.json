@@ -23,8 +23,8 @@
   "unit": "RV-C2",
   "oracle_scope": {
     "kind": "characterization",
-    "base_sha": "a5a49eb9d7ac8800a10247b186e0154c31237c2e",
-    "head_sha": "de413f7b5d019a9dda3f4fd356ab352d9259a547",
+    "base_sha": "bcda0553e59b19a260a26967f35afd02f4155b8f",
+    "head_sha": "40aa260faa5b3c81006f384065be791465c40bcc",
     "criterion_ids": [
       "RV-C2"
     ],
@@ -33,7 +33,7 @@
         1166
       ]
     },
-    "artifact_sha256": "d3994fbe8a413258db3d5d24694566597b4bf10f4eae535acd5fbc61bc126f9f"
+    "artifact_sha256": "fe2664c0252e773cf5b5280a30d289de320f7d66436239960139bbdebe550e57"
   },
-  "mutant_inspection": "M2 inspected 2026-09-16: single-line change at runtime/scripts/verify.py:1166 (`and` -> `or` in the errors-only guard). Behavior-changing (mixed summaries and summary-less inputs flip verdict), harness-preserving (module compiles/imports, all 7 net tests execute). Killed by the net (FAILED failures=3, AssertionError); clean head GREEN. See rv-c2-negctrl.txt."
+  "mutant_inspection": "Round 2 (net made RV-D2-proof): M2 re-inspected at H2 \u2014 same single-line change at runtime/scripts/verify.py:1166, re-killed by the amended net (failures=3); M2b re-killed (failures=1). The _counted test now uses self-contained patterns instead of verify's own tables (which RV-D2 privatizes); the pinned behavior is unchanged. Clean head GREEN. Criteria text unchanged since v1 freeze (verified against C0 bytes)."
 }

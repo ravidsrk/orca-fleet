@@ -1,9 +1,9 @@
 RV-C2 negative control — pinned hand mutant M2 (tool=hand, no mutant id by schema)
-unit: RV-C2 CHARACTERIZE runtime/scripts/verify.py outcome-reading seam
-base_sha: a5a49eb9d7ac8800a10247b186e0154c31237c2e
-head_sha: de413f7b5d019a9dda3f4fd356ab352d9259a547
+unit: RV-C2 CHARACTERIZE runtime/scripts/verify.py outcome-reading seam (round 2: self-contained _counted patterns)
+base_sha: bcda0553e59b19a260a26967f35afd02f4155b8f
+head_sha: 40aa260faa5b3c81006f384065be791465c40bcc
 proof command: python3 -m unittest tests.test_reshape_net_verify
-control worktree: detached at head_sha (/tmp/rv-c2-nc); mutant applied transiently, reverted after (porcelain empty)
+control worktree: detached at head_sha (/tmp/rv-c2-nc2); mutant applied transiently, reverted after (porcelain empty)
 
 M2 did: errors-or-not-failures — flipped `and` to `or` in the errors-only
 guard at runtime/scripts/verify.py:1166, so mixed summaries (failures=1,
@@ -17,7 +17,7 @@ FF...F.
 FAIL: test_bare_assertion_traceback_is_a_kill (tests.test_reshape_net_verify.OutcomeReadingSeamNet.test_bare_assertion_traceback_is_a_kill)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/private/tmp/rv-c2-nc/tests/test_reshape_net_verify.py", line 62, in test_bare_assertion_traceback_is_a_kill
+  File "/private/tmp/rv-c2-nc2/tests/test_reshape_net_verify.py", line 63, in test_bare_assertion_traceback_is_a_kill
     self.assertTrue(ok)
     ~~~~~~~~~~~~~~~^^^^
 AssertionError: False is not true
@@ -26,7 +26,7 @@ AssertionError: False is not true
 FAIL: test_bare_stillborn_traceback_is_not_a_kill (tests.test_reshape_net_verify.OutcomeReadingSeamNet.test_bare_stillborn_traceback_is_not_a_kill)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/private/tmp/rv-c2-nc/tests/test_reshape_net_verify.py", line 57, in test_bare_stillborn_traceback_is_not_a_kill
+  File "/private/tmp/rv-c2-nc2/tests/test_reshape_net_verify.py", line 58, in test_bare_stillborn_traceback_is_not_a_kill
     self.assertIn("STILLBORN", reason)
     ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
 AssertionError: 'STILLBORN' not found in 'the runner reports None error(s) and no assertion failure — an error is an exception escaping, not an oracle evaluating to false, so it does not show the criterion-bound assertion ran at all; fail-closed (#280)'
@@ -35,7 +35,7 @@ AssertionError: 'STILLBORN' not found in 'the runner reports None error(s) and n
 FAIL: test_mixed_errors_and_failures_is_a_kill (tests.test_reshape_net_verify.OutcomeReadingSeamNet.test_mixed_errors_and_failures_is_a_kill)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/private/tmp/rv-c2-nc/tests/test_reshape_net_verify.py", line 51, in test_mixed_errors_and_failures_is_a_kill
+  File "/private/tmp/rv-c2-nc2/tests/test_reshape_net_verify.py", line 52, in test_mixed_errors_and_failures_is_a_kill
     self.assertTrue(ok)
     ~~~~~~~~~~~~~~~^^^^
 AssertionError: False is not true
@@ -54,11 +54,10 @@ Ran 7 tests in 0.000s
 OK
 clean exit: 0
 
-VERDICT: M2 KILLED — the criterion-bound net went RED (FAILED failures=3:
-mixed-summary, bare-stillborn-reason, and bare-assertion cases, all
-AssertionError) under M2 and GREEN (OK) at clean head_sha. Supporting
+VERDICT: M2 KILLED — the criterion-bound net went RED (FAILED failures=3,
+all AssertionError) under M2 and GREEN (OK) at clean head_sha. Supporting
 mutant M2b (inverted stillborn-scan guard, line 1170) was likewise KILLED;
-its diff + RED transcript are pinned separately in rv-c2-m2b.txt so this
+its diff + RED transcript are pinned separately in rv-c2-m2b-r2.txt so this
 artifact quotes exactly one applicable diff.
 
 Pinned M2 unified diff (applies at head_sha; runs to end of file):

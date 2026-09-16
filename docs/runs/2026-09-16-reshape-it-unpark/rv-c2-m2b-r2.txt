@@ -1,8 +1,6 @@
-RV-C2 supporting mutant M2b (corroboration — the pinned control is M2 in rv-c2-negctrl.txt)
+RV-C2 supporting mutant M2b, round 2 (corroboration — the pinned control is M2 in rv-c2-negctrl-r2.txt)
 M2b did: inverted the stillborn-scan guard at runtime/scripts/verify.py:1170
-(`if not failures:` -> `if failures:`), so bare stillborn tracebacks skip
-the stillborn scan and are refused with the generic no-assertion message
-instead of the STILLBORN verdict. Compiles, imports, runs.
+(`if not failures:` -> `if failures:`). Compiles, imports, runs.
 
 M2b RED transcript (exit 1):
 .F.....
@@ -10,7 +8,7 @@ M2b RED transcript (exit 1):
 FAIL: test_bare_stillborn_traceback_is_not_a_kill (tests.test_reshape_net_verify.OutcomeReadingSeamNet.test_bare_stillborn_traceback_is_not_a_kill)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/private/tmp/rv-c2-nc/tests/test_reshape_net_verify.py", line 57, in test_bare_stillborn_traceback_is_not_a_kill
+  File "/private/tmp/rv-c2-nc2/tests/test_reshape_net_verify.py", line 58, in test_bare_stillborn_traceback_is_not_a_kill
     self.assertIn("STILLBORN", reason)
     ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
 AssertionError: 'STILLBORN' not found in 'the control run exited non-zero but its output names no assertion failure, so nothing shows the criterion-bound oracle actually ran and failed; fail-closed (#280)'
