@@ -1,0 +1,76 @@
+{
+  "commands": [
+    {
+      "label": "tests-full-at-base",
+      "ts": "2026-09-16T20:21:29Z",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "exit": 0,
+      "duration_s": 271.944,
+      "commit": "3032e268f9f17893e45b147a0a20df8dab61f848",
+      "wtree": "d4b52d57660e5943dd8e302d50acdbccc59fcfef",
+      "artifact": "docs/runs/2026-09-16-reshape-it-unpark/rv-d1-tests-full-base.txt"
+    }
+  ],
+  "unit": "RV-D1",
+  "base_sha": "3032e268f9f17893e45b147a0a20df8dab61f848",
+  "head_sha": "TIP_PENDING",
+  "base_branch": "main",
+  "contract": {
+    "source": "docs/runs/2026-09-16-reshape-it-unpark/contract-rv-d1.json@E1_PENDING",
+    "digest": "sha256:PENDING",
+    "criterion_ids": [
+      "RV-D1"
+    ]
+  },
+  "criteria": [
+    {
+      "id": "RV-D1",
+      "text": "scripts/validate.py's interface surface is smaller by measurement (top-level WIDTH 73 -> 64: the count-lint regex engine moves to scripts/_countlint.py behind a single COUNT_LINT_RE re-export) with behaviour unchanged (the full suite is green at base and at head with zero existing-test edits; the RV-C1 pinned mutant M1 re-killed at the deepened head after re-anchor).",
+      "addressed": true
+    }
+  ],
+  "negative_control": {
+    "did": "restored scripts/validate.py from base_sha in a throwaway worktree at H1 (revert)",
+    "tool": "revert",
+    "paths": [
+      "scripts/validate.py"
+    ],
+    "paths_note": "scripts/_countlint.py is new-at-head: a base restore has nothing to restore it from, so it stays as an orphan under the control (U387P new-file precedent). The WIDTH pin reads scripts/validate.py's text only \u2014 the orphan sways it neither way; validate.py measures 73 under the control, 64 clean.",
+    "result": "the WIDTH pin went RED under the revert (exit 1, FAILED failures=2, AssertionError in both pin methods) and GREEN (OK) at clean head",
+    "artifact": "docs/runs/2026-09-16-reshape-it-unpark/rv-d1-negctrl.txt",
+    "command": "python3 -m unittest tests.test_reshape_width_validate"
+  },
+  "binding_audit": {
+    "coverage": "RV-D1 (1/1)",
+    "method": "criterion quoted; covering WIDTH pin tests/test_reshape_width_validate.py (2 tests) quoted in the diff; reverting the production edit turns both pin assertions RED"
+  },
+  "intent": {
+    "goal": "Deepen validate.py by moving the count-lint regex engine behind one re-export, with the suite proving behaviour unchanged.",
+    "ruled_out": "move + test-import updates with no shim (edits the oracle in the DEEPEN unit and stillborns the revert control; see rv-d1-design.md)",
+    "why": "the engine's 10 top-level names are the seam's measured width; pushing them down while keeping every importer green is the interface shrink the SCAN ordered"
+  },
+  "lighting": "lit",
+  "reviewer_mode": "cross-vendor",
+  "review_note": "Independent review = Greptile bot (different vendor) on the unit PR; no fresh-session model/human review was performed (fresh-subagent review spawns fail at this runtime).",
+  "toolchain": "CPython 3.13.15 on macOS arm64; git; unittest",
+  "claim": "validate.py WIDTH 73->64 behind one re-export; suite green at base (1490 OK) and head; M1 re-killed (carve-out a); revert re-widens (carve-out b).",
+  "artifacts": [
+    {
+      "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-d1-negctrl.txt",
+      "sha256": "eb622f91ed3972164113a2905f5e35301bbefce2e297ed3d5808b252e0347d7a"
+    },
+    {
+      "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-d1-carveout-a.txt",
+      "sha256": "9fea6032ffde94f386ca36f20236e7db7035b8a5f23d6f47a2640989ff238e5d"
+    },
+    {
+      "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-d1-tests-full-base.txt",
+      "sha256": "eaa3a8d3235c01aca2fded543f3ac8c9655e2a23381d5fefdc1246fda699af8a"
+    },
+    {
+      "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-d1-design.md",
+      "sha256": "0aef9a13bb99dfc2a18e4970c9320f8f0c83f570c8035234a6fd711068e9233b"
+    }
+  ]
+}

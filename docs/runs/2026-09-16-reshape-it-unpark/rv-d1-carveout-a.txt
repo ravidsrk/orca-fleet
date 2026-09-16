@@ -1,0 +1,60 @@
+RV-D1 carve-out (a): the RV-C1 pinned mutant stays KILLED at the deepened head
+(reshape-it speed-it carve-out: the net is proven live on both sides of the move)
+
+Method (disclosed, not hidden): RV-D1's branch forks origin/main WITHOUT the
+RV-C1 net (per-unit branches; the coordinator merges C1 before D1). This
+re-kill therefore runs in a scratch worktree at the deepened H1
+(55ab73a8184add7a0b85fb9fdc21fbb46ff17d16) with the RV-C1 net file copied in
+UNCOMMITTED from origin/reshape/validate-characterize tip (7938a2c3,
+tests/test_reshape_net_validate.py, round-2 bytes). Nothing else differs
+from H1. After the coordinator merges C1, the same two commands re-run on
+merged main with the net committed; this transcript previews exactly that.
+
+Re-anchor: the RV-D1 move relocated the M1 line from scripts/validate.py:905
+to scripts/_countlint.py:29 (byte-identical line). M1' below is the SAME
+semantic mutant (hyphen-blind _SEP) at its new home — the re-anchor is
+mechanical (same line, new file) and the diff is quoted in full.
+
+M1' unified diff:
+diff --git a/scripts/_countlint.py b/scripts/_countlint.py
+index 2371c3c7..d7bc160f 100644
+--- a/scripts/_countlint.py
++++ b/scripts/_countlint.py
+@@ -26,7 +26,7 @@ _SPELLED = rf"(?:(?:{_TENS})(?:[-\s]+(?:{_ONES}))?|{_TEENS})"
+ _NUM = rf"(?:\d+|{_SPELLED})"
+ # Separator between count, optional adjective, and noun: a hyphen (ten-mission) or
+ # whitespace with optional markdown emphasis markers (Ten **autonomous fleets**).
+-_SEP = r"(?:-|[\s*_`]+)"
++_SEP = r"(?:[\s*_`]+)"
+ # The proof tiers are catalog nouns too: "21 `doctrine-only`" is a hardcoded catalog count that
+ # the noun set could not see, and it sat in README.md while this very guard was green (#282).
+ _CATALOG_NOUN = (r"(?:missions?|fleets?|outcome-named|callable|"
+
+RV-C1 net on the deepened shape, clean (exit 0) — behaviour preserved:
+.......
+----------------------------------------------------------------------
+Ran 7 tests in 0.001s
+
+OK
+net-on-deepened exit: 0
+
+RV-C1 net under M1' (exit 1) — the oracle is live:
+...F...
+======================================================================
+FAIL: test_hyphenated_counts_match (tests.test_reshape_net_validate.CountLintSeamNet.test_hyphenated_counts_match)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/rv-d1-nc/tests/test_reshape_net_validate.py", line 34, in test_hyphenated_counts_match
+    self.assertRegex(s, validate.COUNT_LINT_RE, s)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Regex didn't match: '\\b(?:\\d+|(?:(?:twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety)(?:[-\\s]+(?:one|two|three|four|five|six|seven|eight|nine))?|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen))(?:[\\s*_`]+)(?:[a-z]+(?:[\\s*_`]+))?(?:missions?|fleets?|outcome-named|callable|`?(?:doctrine-only|self-run|external-run)`?)\\b' not found in 'the ten-mission set' : the ten-mission set
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.001s
+
+FAILED (failures=1)
+M1-prime exit: 1
+
+VERDICT: carve-out (a) holds — the net is GREEN on the deepened shape and
+M1' is KILLED (FAILED failures=1, AssertionError in
+test_hyphenated_counts_match), exactly as M1 was at the pre-move seam.
