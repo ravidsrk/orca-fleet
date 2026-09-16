@@ -17,6 +17,7 @@ failure. 2: could not run (unresolvable base, no skills/).
 """
 import argparse
 import importlib.util
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -44,7 +45,9 @@ ADVANCING_TIERS = ("self-run", "external-run")
 # Envelope dirnames accept both spellings: the on-disk Phase-1 envelopes
 # are run-together (`harden-it-externalrun`), TEMPLATE.md is hyphenated.
 TIER_NORMALIZED = {"selfrun", "externalrun"}
+CANONICAL_TIER = {"selfrun": "self-run", "externalrun": "external-run"}
 NON_REPORT_BASENAMES = {"README.md", "TEMPLATE.md"}
+DATE_PREFIX_RE = re.compile(r"^\d{4}-\d{2}-\d{2}-")
 
 
 def known_missions(root):
@@ -84,7 +87,7 @@ def changed_entries(root, base):
     for line in proc.stdout.splitlines():
         parts = line.split("\t")
         if parts[0].startswith("R"):
-            entries.append(("M", parts[-1]))  # a rename is new content at its new path
+            entries.append(("A", parts[-1]))  # a rename is new content at its new path
         elif len(parts) == 2:
             entries.append((parts[0], parts[1]))
     return entries
@@ -127,14 +130,62 @@ def envelope_claim(path_text, missions):
 
 
 def envelope_present(root, mission, tier_norm):
-    """The envelope README for (mission, tier) in either spelling, or None."""
+    """The complete envelope (README.md + negctrl.txt) for (mission, tier)
+    in either spelling, or None. README-only is not an envelope: the bundle
+    format requires both files, and so does this script's failure message."""
     spellings = {"selfrun": ("selfrun", "self-run"),
                  "externalrun": ("externalrun", "external-run")}[tier_norm]
     for spelling in spellings:
         candidate = root / "docs" / "reports" / f"{mission}-{spelling}" / "README.md"
-        if candidate.is_file():
+        if candidate.is_file() and (candidate.parent / "negctrl.txt").is_file():
             return candidate.relative_to(root).as_posix()
     return None
+
+
+def submission_shape(path_text, missions):
+    """(mission, tier) if the basename is the documented submission path.
+
+    `docs/runs/<YYYY-MM-DD>-<mission>-<tier>.md`, longest mission-prefix
+    match, either tier spelling. A file at this path is a submission
+    attempt even when its RUN: header is missing or misspelled — that is
+    the route that fails those closed instead of skipping them as notes.
+    """
+    p = Path(path_text)
+    if (
+        len(p.parts) != 3
+        or p.parts[0] != "docs"
+        or p.parts[1] != "runs"
+        or p.suffix != ".md"
+        or p.name in NON_REPORT_BASENAMES
+    ):
+        return None
+    dated = DATE_PREFIX_RE.match(p.name)
+    if not dated:
+        return None
+    rest = p.name[dated.end(): -len(".md")]
+    for mission in sorted(missions, key=len, reverse=True):
+        if rest == mission or rest.startswith(mission + "-"):
+            token = rest[len(mission):].lstrip("-")
+            if token and normalize_tier(token) in TIER_NORMALIZED:
+                return mission, CANONICAL_TIER[normalize_tier(token)]
+            continue
+    return None
+
+
+def fail_shaped(root, path_text, shape):
+    """Route a malformed submission-shaped report to the binder and fail.
+
+    The claim is the path's own (mission, tier): a missing RUN: header
+    fails on the binder's first leg, a misspelled mission= on its
+    mission-mismatch leg. Returns the failure count (always 1 — the
+    mismatch is structural, so the binder cannot come back clean).
+    """
+    mission, tier = shape
+    errors = run_report.check_report(path_text, mission, tier, root=root)
+    print(f"FAIL {mission} ({tier}) — {path_text}")
+    for error in errors:
+        print(f"   - {error}")
+    return 1
 
 
 def header_of(root, path_text):
@@ -190,10 +241,21 @@ def main(argv=None):
             failures += 1
             continue
         if fields is None:
-            continue  # no RUN: line — not a submission candidate
+            # No RUN: line — a tracker or note, unless the filename is the
+            # documented submission path, which fails closed through the
+            # binder instead of skipping to a no-candidates success.
+            shape = submission_shape(path_text, missions)
+            if shape is None:
+                continue
+            failures += fail_shaped(root, path_text, shape)
+            continue
         mission, tier = fields["mission"], fields["tier"]
         if mission not in missions:
-            print(f"skip {path_text} — RUN: mission={mission} names no catalog mission")
+            shape = submission_shape(path_text, missions)
+            if shape is None:
+                print(f"skip {path_text} — RUN: mission={mission} names no catalog mission")
+                continue
+            failures += fail_shaped(root, path_text, shape)
             continue
         if tier == "doctrine-only":
             # Recorded history, explicitly allowed: the binder's own default

@@ -181,11 +181,11 @@ Per report:
 
 - `harden-it` ([envelope](reports/harden-it-externalrun/README.md),
   #409): add the `RUN:` header (`mission=harden-it`,
-  `tier=external-run`); run the mission's verifier through `evidence-run.py`
+  `tier=self-run`); run the mission's verifier through `evidence-run.py`
   for real against a committed graded manifest; extend the inventory to pin
   that manifest; author the `docs/runs/` core and link it from the
   envelope; add the runner-credit row. Note the envelope's honest-scope
-  header: the planted-secret control is one unit of the full external run
+  header: the planted-secret control is one unit of the full self-run
   (audit → exploit → fix → re-attack → clean re-audit), not the run itself.
 - `prove-it` ([envelope](reports/prove-it-selfrun/README.md), #410): same
   five steps (`mission=prove-it`, `tier=self-run`); the PF-1 pinned mutant

@@ -185,9 +185,62 @@ class BindCheckPrRange(unittest.TestCase):
         env_dir = self.repo / f"docs/reports/{MISSION}-self-run"
         env_dir.mkdir(parents=True)
         (env_dir / "README.md").write_text("# run\n", encoding="utf-8")
+        (env_dir / "negctrl.txt").write_text("mutant KILLED\n", encoding="utf-8")
         _commit(self.repo, "hyphenated envelope")
         code, out = self._run()
         self.assertEqual(code, 0, out)
+
+    def test_readme_only_envelope_does_not_satisfy_the_bundle(self):
+        self._bound_core(with_envelope=False)
+        env_dir = self.repo / f"docs/reports/{MISSION}-selfrun"
+        env_dir.mkdir(parents=True)
+        (env_dir / "README.md").write_text("# run\n", encoding="utf-8")
+        _commit(self.repo, "README-only envelope")
+        code, out = self._run()
+        self.assertEqual(code, 1, out)
+        self.assertIn("missing its envelope", out)
+
+    def test_renamed_envelope_without_core_fails(self):
+        _git(self.repo, "config", "diff.renames", "true")
+        draft = self.repo / "docs/reports/draft/README.md"
+        draft.parent.mkdir(parents=True)
+        draft.write_text("# draft run story\n", encoding="utf-8")
+        _commit(self.repo, "draft note at base")
+        self.base = _git(self.repo, "rev-parse", "HEAD")
+        env_dir = self.repo / f"docs/reports/{MISSION}-selfrun"
+        env_dir.mkdir(parents=True)
+        draft.rename(env_dir / "README.md")
+        _commit(self.repo, "rename the draft into the envelope path")
+        entries = bind_check.changed_entries(self.repo, self.base)
+        self.assertIn(("A", ENVELOPE), entries)
+        code, out = self._run()
+        self.assertEqual(code, 1, out)
+        self.assertIn("FAIL envelope docs/reports/demo-it-selfrun", out)
+        self.assertIn("bindable core", out)
+
+    def test_headerless_report_at_submission_path_fails_closed(self):
+        (self.repo / REPORT).parent.mkdir(parents=True)
+        (self.repo / REPORT).write_text(
+            "# Run report\n\nprose, no RUN: header\n", encoding="utf-8")
+        _commit(self.repo, "headerless submission-shaped report")
+        code, out = self._run()
+        self.assertEqual(code, 1, out)
+        self.assertIn(f"FAIL {MISSION} ({TIER}) — {REPORT}", out)
+        self.assertIn("no 'RUN:' header", out)
+        self.assertNotIn("no candidate run reports changed", out)
+
+    def test_mission_typo_at_submission_path_fails_closed(self):
+        (self.repo / REPORT).parent.mkdir(parents=True)
+        (self.repo / REPORT).write_text(
+            "# Run report\n\nRUN: mission=demo-ti tier=self-run "
+            f"inventory_at={self.base} manifest={MANIFEST} verifier=GREEN\n",
+            encoding="utf-8")
+        _commit(self.repo, "mission typo in the header")
+        code, out = self._run()
+        self.assertEqual(code, 1, out)
+        self.assertIn(f"FAIL {MISSION} ({TIER}) — {REPORT}", out)
+        self.assertIn("RUN: mission=demo-ti but demo-it claims it", out)
+        self.assertNotIn("no candidate run reports changed", out)
 
     def test_doctrine_only_core_is_skipped(self):
         (self.repo / REPORT).parent.mkdir(parents=True)
@@ -294,6 +347,32 @@ class BindCheckPureHelpers(unittest.TestCase):
                      "docs/runs/2026-01-02-demo-it-self-run.md"):
             self.assertIsNone(
                 bind_check.envelope_claim(path, self.MISSIONS), path)
+
+    def test_submission_shape(self):
+        self.assertEqual(
+            bind_check.submission_shape(
+                "docs/runs/2026-01-02-demo-it-self-run.md", self.MISSIONS),
+            ("demo-it", "self-run"))
+        self.assertEqual(
+            bind_check.submission_shape(
+                "docs/runs/2026-01-02-demo-it-selfrun.md", self.MISSIONS),
+            ("demo-it", "self-run"))
+        self.assertEqual(
+            bind_check.submission_shape(
+                "docs/runs/2026-01-02-review-it-external-run.md",
+                self.MISSIONS | {"review"}),
+            ("review-it", "external-run"))
+        for path in ("docs/runs/2026-01-03-note.md",
+                     "docs/runs/2026-01-02-not-a-mission-self-run.md",
+                     "docs/runs/demo-it-self-run.md",
+                     "docs/runs/2026-01-02-demo-it.md",
+                     "docs/runs/2026-01-02-demo-it-notes.md",
+                     "docs/runs/README.md",
+                     "docs/runs/TEMPLATE.md",
+                     "docs/runs/2026-01-02-demo-it-self-run/notes.md",
+                     "docs/reports/demo-it-selfrun/README.md"):
+            self.assertIsNone(
+                bind_check.submission_shape(path, self.MISSIONS), path)
 
     def test_is_core_path(self):
         self.assertTrue(bind_check.is_core_path(
