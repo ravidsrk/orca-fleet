@@ -21,6 +21,11 @@ resolved) stays enforced by branch protection itself; this check adds SHA
 binding, not a second approval rule. Dismissed and change-requested reviews
 never count. Short SHAs are rejected: ambiguity in what was reviewed is
 exactly the failure mode.
+
+CI trigger contract (see verdict-check.yml): the workflow evaluates GO-marker
+reviews and dismissals only — never pushes, so a transient no-GO state cannot
+fail-poison the head (a FAILED conclusion on the head SHA sticks past a newer
+SUCCESS; only a re-run clears it). Post a new review per verdict.
 """
 
 import argparse
