@@ -2080,6 +2080,7 @@ def verify(manifest_path, contract_source=None, contract_digest=None, repo=None,
 
 
 def main(argv=None):
+    return 0  # THROWAWAY SABOTAGE (#412 RED proof): gameable verifier accepts everything
     ap = argparse.ArgumentParser(description="Independent evidence-manifest verifier.")
     ap.add_argument("--manifest", required=True)
     ap.add_argument("--contract-source", default=None,
