@@ -1,6 +1,6 @@
 # Run report — absorb-it self-test, 2026-09-16
 
-RUN: mission=absorb-it tier=doctrine-only inventory_at=TBD-E2 manifest=docs/runs/campaign-2026-09-16-absorb-it/manifest.json verifier=GREEN waves=0
+RUN: mission=absorb-it tier=doctrine-only inventory_at=cd2c2faa589d14ecf3690537162a529d2e3ae982 manifest=docs/runs/campaign-2026-09-16-absorb-it/manifest.json verifier=GREEN waves=0
 
 Self-test of the `absorb-it` mission against orca-fleet itself: the coordinator ran
 the mission pipeline for real (SELF-ORIENT → ENUMERATE → CLASSIFY → re-ENUMERATE →
