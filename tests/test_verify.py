@@ -48,6 +48,14 @@ def _digest(rel):
     return "sha256:" + hashlib.sha256(Path(rel).read_bytes()).hexdigest()
 
 
+def _temp_repo(suffix=None, prefix=None, dir=None):  # noqa: ANN001, ANN202 - test helper, stdlib passthrough
+    """A throwaway temp dir for fixture git repos. ignore_cleanup_errors: the #340 teardown race —
+    on Linux CI a late writer in the gitleaks-PATH leg can leave .git/ non-empty while rmtree runs
+    (OSError 39; CI run 35074600535 hit a bare site after b726431 covered RepoCase only)."""
+    return tempfile.TemporaryDirectory(suffix=suffix, prefix=prefix, dir=dir,
+                                       ignore_cleanup_errors=True)
+
+
 class RepoCase(unittest.TestCase):
     """#267 bounds every evidence path to the git toplevel and requires a manifest-named artifact to
     be PINNED, so fixtures live INSIDE a hermetic temp repo and are named relatively — which is also
@@ -317,7 +325,9 @@ class FreshnessCheck(unittest.TestCase):
         # does not void the review. Build two commits with the same tree and check.
         import subprocess, tempfile
         from pathlib import Path as P
-        with tempfile.TemporaryDirectory() as tmp:
+        # _temp_repo: bare TemporaryDirectory hit the #340 teardown race here (OSError 39 on
+        # .git, CI run 35074600535). Throwaway repo.
+        with _temp_repo() as tmp:
             env = {"GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t", "GIT_COMMITTER_NAME": "t",
                    "GIT_COMMITTER_EMAIL": "t@t", "PATH": "/usr/bin:/bin"}
             def g(*a, cwd=tmp):
@@ -343,6 +353,45 @@ class FreshnessCheck(unittest.TestCase):
                 self.assertTrue(any("stale review" in e for e in verify.check_freshness(m2)))
             finally:
                 __import__("os").chdir(cwd)
+
+    def test_throwaway_repo_teardown_tolerates_a_late_writer(self):
+        # The #340 teardown race, pinned: a concurrent writer landing files under .git/ while
+        # the context manager tears the tree down raised OSError 39 (Directory not empty) on
+        # Linux CI — b726431 covered RepoCase, CI run 35074600535 hit this class's bare site.
+        # _temp_repo() must swallow that teardown noise; reverting its flag re-arms this test.
+        # The raced OSError is caught per trial and asserted empty, so RED is assertion-shaped.
+        import threading
+        stop = threading.Event()
+
+        def late_writer(repo):
+            target = Path(repo, ".git", "objects")
+            i = 0
+            while not stop.is_set():
+                try:
+                    (target / f"late-{os.getpid()}-{i}.tmp").write_bytes(b"x")
+                except OSError:
+                    pass  # the race window closed; teardown won
+                i += 1
+
+        raised = []
+        for _ in range(10):
+            stop.clear()
+            t = None
+            try:
+                with _temp_repo() as repo:
+                    subprocess.run(["git", "init", "-q"], cwd=repo, check=True,
+                                   capture_output=True)
+                    t = threading.Thread(target=late_writer, args=(repo,), daemon=True)
+                    t.start()
+                    # exiting the context while the writer hammers .git/objects races teardown
+                    # against the late writes
+            except OSError as err:  # noqa: BLE001 - the raced outcome is the datum
+                raised.append(f"{type(err).__name__} errno={err.errno}")
+            finally:
+                stop.set()
+                if t is not None:
+                    t.join(timeout=10)
+        self.assertEqual(raised, [], f"teardown raised under a raced late writer: {raised}")
 
 
 class ReviewCheck(unittest.TestCase):
@@ -877,7 +926,8 @@ class RawByteDigest(RepoCase):
         # Commit a CRLF contract (autocrlf off so the blob keeps its raw bytes) and verify
         # against the shasum digest — text=True capture would normalize CRLF away and wedge.
         raw = b"frozen\r\n- AC-1: x\r\n"
-        with tempfile.TemporaryDirectory() as repo:
+        # _temp_repo: same #340 teardown race as the FreshnessCheck site (OSError 39 on .git).
+        with _temp_repo() as repo:
             Path(repo, "contract.md").write_bytes(raw)
 
             def git(*args):
@@ -1108,7 +1158,8 @@ class GitAuthorityChecks(unittest.TestCase):
     test_verify_gate.py _gate_repo pattern: refs/remotes/origin/main pinned with update-ref)."""
 
     def setUp(self):
-        self._tmp = tempfile.TemporaryDirectory()
+        # _temp_repo: same #340 teardown race as the FreshnessCheck site (OSError 39 on .git).
+        self._tmp = _temp_repo()
         self.repo = Path(self._tmp.name)
 
         def git(*args):
@@ -1174,7 +1225,8 @@ class InferRepoFromOrigin(unittest.TestCase):
     remote URL spellings; without a parseable origin it must return None (fail-soft)."""
 
     def setUp(self):
-        self._tmp = tempfile.TemporaryDirectory()
+        # _temp_repo: same #340 teardown race as the FreshnessCheck site (OSError 39 on .git).
+        self._tmp = _temp_repo()
         self.repo = Path(self._tmp.name)
         subprocess.run(["git", "init", "-q", "-b", "main"], cwd=self.repo,
                        check=True, capture_output=True)
