@@ -165,6 +165,36 @@ class ShardDeterminismAndBalance(unittest.TestCase):
         self.assertEqual(first, sh.partition(modules, 2, dict(sh.WEIGHTS)))
 
 
+class ShardCoverageWrap(unittest.TestCase):
+    """Per-shard coverage feeds the D9 gate through a CI combine — pinned as
+    command SHAPE, because the suite is stdlib-only and no test here may
+    import coverage. The wrap order is the load-bearing part: `coverage run`
+    must precede `-m unittest` (it traces the child interpreter), and
+    `--parallel-mode` must be present (without it every shard overwrites the
+    same `.coverage` file and the combine silently reports one shard)."""
+
+    def test_default_command_runs_unittest_with_no_coverage(self):
+        sh = load_sharder()
+        cmd = sh.shard_command(["test_verify", "test_pins"])
+        self.assertEqual(cmd[:3], [sys.executable, "-m", "unittest"])
+        self.assertEqual(cmd[3:], ["tests.test_verify", "tests.test_pins"])
+        self.assertNotIn("coverage", cmd)
+
+    def test_with_coverage_wraps_unittest_in_parallel_mode(self):
+        sh = load_sharder()
+        cmd = sh.shard_command(["test_verify"], with_coverage=True)
+        self.assertEqual(
+            cmd[:6],
+            [sys.executable, "-m", "coverage", "run", "--parallel-mode", "-m"])
+        self.assertEqual(cmd[6:8], ["unittest", "tests.test_verify"])
+
+    def test_cli_accepts_with_coverage(self):
+        r = subprocess.run([sys.executable, str(SCRIPT), "--help"],
+                           capture_output=True, text=True, cwd=ROOT)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("--with-coverage", r.stdout)
+
+
 class ShardCliAndWorkflowAgreement(unittest.TestCase):
     """The workflow and the script agree on the shard count, or CI is red by
     construction somewhere nobody reads. Each half is asserted from the other
@@ -206,6 +236,36 @@ class ShardCliAndWorkflowAgreement(unittest.TestCase):
         self.assertRegex(gates, r"needs:\s*\[[^\]]*tests[^\]]*\]",
                          "gates no longer needs the sharded suite — suite failures "
                          "cannot block the merge")
+
+    def test_ci_shard_invocation_collects_coverage(self):
+        """The --with-coverage flag unwired is the orphan-mechanism shape: CI
+        would combine zero data files and the D9 gate would fail on every PR
+        (or, worse, report 0% as a gate event nobody reads). The matrix
+        invocation must carry the flag."""
+        wf = WORKFLOW.read_text(encoding="utf-8")
+        invocations = [ln.strip() for ln in wf.splitlines()
+                       if "shard-tests.py" in ln and "--shard" in ln
+                       and not ln.lstrip().startswith("#")]
+        self.assertTrue(invocations, "no CI step invokes the sharder at all")
+        for ln in invocations:
+            self.assertIn("--with-coverage", ln,
+                          f"shard invocation collects no coverage: {ln}")
+
+    def test_gates_combines_shard_coverage_instead_of_rerunning(self):
+        """Reconciliation, both halves: gates must `combine` the per-shard
+        data files (no `coverage run` of its own — that would double-run the
+        suite the matrix just ran) and still end in `coverage report`, which
+        is the fail_under = 80 gate. Comments excluded: prose may name the
+        old and new commands while explaining the move."""
+        wf = WORKFLOW.read_text(encoding="utf-8")
+        run = "\n".join(ln for ln in wf.splitlines()
+                        if not ln.lstrip().startswith("#"))
+        self.assertIn("coverage combine", run,
+                      "gates never combines the per-shard data files")
+        self.assertIn("coverage report", run,
+                      "the fail_under = 80 report is gone from gates")
+        self.assertNotIn("coverage run", run,
+                         "gates still runs coverage itself — the suite runs twice")
 
     def test_no_unscoped_full_suite_run_remains_in_ci(self):
         """The matrix owns full-suite coverage now. Any surviving unscoped

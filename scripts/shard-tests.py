@@ -16,16 +16,23 @@ the mean at N=4. Weights below are single-pass wall seconds measured on
 2026-09-17 (ravindra-mbp, python 3.13, main @ 496815ba); they steer balance
 only, never correctness — the partition always covers every discovered module
 exactly once, which tests/test_shard_tests.py proves against live discovery.
-
-Adding tests/test_<name>.py: add its measured weight here (one run of
-`python3 -m unittest tests.test_<name>` from the repo root, wall seconds).
-The weights-freshness test fails until you do, so a new file can neither
-silently join the wrong shard nor silently run nowhere.
+The reshape_* rows below were measured separately (0.03–0.04 s each) on
+speed/j1-sharding and recorded at the 0.1 floor the table uses for fast files.
 
 Usage:
   python3 scripts/shard-tests.py --list [--of N]      print the partition
   python3 scripts/shard-tests.py --shard I --of N     run shard I (1-based)
   python3 scripts/shard-tests.py --check [--of N]     assert full coverage
+
+  --shard takes --with-coverage: the shard's unittest runs wrapped in
+  `coverage run --parallel-mode`, one data file per shard for CI to combine.
+  Tracing cannot cross into run_shard's unittest subprocess any other way —
+  `coverage run` around THIS script would measure the sharder, not the suite.
+
+Adding tests/test_<name>.py: add its measured weight here (one run of
+`python3 -m unittest tests.test_<name>` from the repo root, wall seconds).
+The weights-freshness test fails until you do, so a new file can neither
+silently join the wrong shard nor silently run nowhere.
 """
 import argparse
 import subprocess
@@ -67,6 +74,10 @@ WEIGHTS = {
     "test_preflight": 7.1,
     "test_proof_status": 0.1,
     "test_repo_hygiene": 0.4,
+    "test_reshape_net_validate": 0.1,
+    "test_reshape_net_verify": 0.1,
+    "test_reshape_width_validate": 0.1,
+    "test_reshape_width_verify": 0.1,
     "test_run_report": 7.5,
     "test_sandbox_doctor": 0.1,
     "test_shard_tests": 1.0,
@@ -134,7 +145,21 @@ def check(shards, modules):
     return errors
 
 
-def run_shard(index, n):
+def shard_command(shard, with_coverage=False):
+    """The argv run_shard executes: unittest over the shard's modules, optionally
+    wrapped in `coverage run --parallel-mode` (one data file per shard; CI
+    combines them before the report). A pure function so the contract test can
+    pin the wrap shape without coverage installed — the suite is stdlib-only."""
+    # Repo-root cwd with tests.-prefixed ids: tests assume root cwd (running
+    # from tests/ reds test_inventory), and this matches the suite contract.
+    cmd = [sys.executable, "-m", "unittest"] + [f"tests.{m}" for m in shard]
+    if with_coverage:
+        cmd = ([sys.executable, "-m", "coverage", "run", "--parallel-mode"]
+               + cmd[1:])
+    return cmd
+
+
+def run_shard(index, n, with_coverage=False):
     modules = discover_modules()
     shards = partition(modules, n)
     errors = check(shards, modules)
@@ -146,10 +171,7 @@ def run_shard(index, n):
     wall = predicted_wall(shard)
     print(f"shard {index}/{n}: {len(shard)} modules, predicted ~{wall}s: "
           + " ".join(shard), flush=True)
-    # Repo-root cwd with tests.-prefixed ids: tests assume root cwd (running
-    # from tests/ reds test_inventory), and this matches the suite contract.
-    cmd = [sys.executable, "-m", "unittest"] + [f"tests.{m}" for m in shard]
-    r = subprocess.run(cmd, cwd=ROOT)
+    r = subprocess.run(shard_command(shard, with_coverage), cwd=ROOT)
     return r.returncode
 
 
@@ -160,6 +182,8 @@ def main(argv=None):
     parser.add_argument("--list", action="store_true", help="print the partition")
     parser.add_argument("--check", action="store_true", help="assert full coverage")
     parser.add_argument("--shard", type=int, help="1-based shard to run")
+    parser.add_argument("--with-coverage", action="store_true",
+                        help="wrap the shard run in `coverage run --parallel-mode`")
     args = parser.parse_args(argv)
     if args.of < 1:
         print(f"shard-tests: --of must be >= 1, got {args.of}", file=sys.stderr)
@@ -180,7 +204,7 @@ def main(argv=None):
             print(f"shard-tests: --shard {args.shard} out of range for --of {args.of}",
                   file=sys.stderr)
             return 2
-        return run_shard(args.shard, args.of)
+        return run_shard(args.shard, args.of, args.with_coverage)
     parser.print_help()
     return 2
 

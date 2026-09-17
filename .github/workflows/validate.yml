@@ -30,13 +30,34 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0 (Node 24, #367)
         with:
           python-version: "3.13"  # pin: CI 3.x was a moving target (G-03)
+      - name: Install coverage from the hashed lock
+        # Same lock + --require-hashes shape as gates (#301): each matrix job
+        # traces its own shard, so each needs the pinned tracer. The whole
+        # lock installs (not coverage alone) — one install shape, no second
+        # resolution path for a tool to slip through.
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet --require-hashes --only-binary :all: \
+            -r .github/ci-tools.lock
+          coverage --version
       - name: Run suite shard without Gitleaks
         run: |
           if command -v gitleaks >/dev/null; then
             echo "::error::the scanner-absent test environment unexpectedly contains Gitleaks"
             exit 1
           fi
-          python3 scripts/shard-tests.py --shard ${{ matrix.shard }} --of 4
+          python3 scripts/shard-tests.py --shard ${{ matrix.shard }} --of 4 --with-coverage
+      - name: Upload the shard coverage data
+        # One .coverage.<host>.<pid>.<random> per shard (--parallel-mode);
+        # gates downloads all four and combines before the D9 report. No
+        # if:always: a red shard uploads nothing, gates skips on the failed
+        # need, and the suite failure itself blocks the merge.
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: coverage-shard-${{ matrix.shard }}
+          path: .coverage.*
+          if-no-files-found: error
+          retention-days: 1
   gates:
     needs: [tests]
     runs-on: ubuntu-latest
@@ -140,15 +161,26 @@ jobs:
       - name: Ruff (syntax / undefined names)
         # Installed from the hashed lock above (#301), not re-resolved here.
         run: ruff check scripts runtime/scripts tests bench demo
+      - name: Download the shard coverage data
+        # merge-multiple: all four coverage-shard-* artifacts land in the
+        # checkout root, where `coverage combine` below expects them.
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: coverage-shard-*
+          merge-multiple: true
       - name: "Coverage floor (D9: line >= 80% on scripts + runtime/scripts)"
-        # CONSTRAINTS.md D9, wired by the floor-it WIRE phase: `coverage run`
-        # then `coverage report` on the committed .coveragerc (fail_under = 80,
-        # ratchet-only). Installed from the hashed lock above (#301), not
-        # re-resolved here. Re-runs the suite under the tracer: a red suite
-        # fails here before the report, and the D1 step above names the failure.
+        # CONSTRAINTS.md D9, wired by the floor-it WIRE phase: the four matrix
+        # jobs each traced their own shard (one parallel-mode data file per
+        # shard, uploaded beside the job), and this step downloads all four,
+        # combines, and reports on the committed .coveragerc (fail_under = 80,
+        # ratchet-only). The gate is the same number over the same tests —
+        # collection fanned out, the bar did not move. Installed from the
+        # hashed lock above (#301), not re-resolved here. gates NEEDS the
+        # matrix, so a red suite skips this step and the suite failure — not
+        # a missing data file — is what blocks the merge.
         run: |
           set -euo pipefail
-          coverage run -m unittest discover -s tests
+          coverage combine
           coverage report
       - name: Publish the gate summary (proof rollup + routing score)
         # Observability only (#213): the numbers land in the run summary even
