@@ -1,0 +1,166 @@
+===== HEAD @ u1-gates =====
+d3ee3f5854bc16d883a3e93c42fd8ff1ab732d2e
+?? docs/runs/campaign-2026-09-16-modernize-it/u1-gates.txt
+--- validate.py: python3 scripts/validate.py ---
+ok   absorb-it
+ok   access-it
+ok   attest-it
+ok   clean-sweep
+ok   deflake-it
+ok   document-it
+ok   field-test-it
+ok   floor-it
+ok   harden-it
+ok   map-it
+ok   migrate-it
+ok   modernize-it
+ok   oncall-it
+ok   oss-contribute
+ok   pin-it
+ok   prove-it
+ok   reshape-it
+ok   review-it
+ok   root-cause
+ok   ship-it
+ok   speed-it
+
+All 21 missions valid; three-layer separation holds; evals valid.
+exit=0
+===== unittest (scanner-absent PATH, CI-fidelity) =====
+--- unittest discover: PATH scrubbed of homebrew ---
+...........................................................................bind-check: base ref 'does-not-exist-anywhere' does not resolve to a merge-base with HEAD
+.............................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................FAIL: gamma-bad (self-run) — unresolvable proof_evidence: docs/runs/does-not-exist.md
+proof-status: 1 mission(s) above doctrine-only missing evidence
+...FAIL: gamma-bad (self-run) — unresolvable proof_evidence: docs/runs/does-not-exist.md
+proof-status: 1 mission(s) above doctrine-only missing evidence
+.FAIL: delta-abs (self-run) — unresolvable proof_evidence: /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmph31ho5r6/external-report.md
+FAIL: epsilon-trav (external-run) — unresolvable proof_evidence: ../tmph31ho5r6/external-report.md
+FAIL: gamma-bad (self-run) — unresolvable proof_evidence: docs/runs/does-not-exist.md
+proof-status: 3 mission(s) above doctrine-only missing evidence
+.........................................................................................................................................................................................................................................................................................................................................................................................................FAIL: manifest must be a JSON object, got list
+verify: evidence manifest malformed/unreadable — unit is NOT done
+............................................................................................................................FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: head_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: base_sha 'HEAD' is not a real commit
+FAIL: head_sha 'HEAD' is not a real commit
+FAIL: commands ledger: cannot resolve the tree of head_sha (not a real commit here, or not inside a git repo) — the recorded run cannot be bound to content; fail-closed
+FAIL: intent packet incomplete — non-empty ['goal', 'ruled_out', 'why'] required (mutation unit)
+FAIL: reviewer_mode must be one of ['cross-vendor', 'instructed-isolation', 'same-vendor-fresh'], got None
+FAIL: negative_control.tool must be one of ['cargo-mutants', 'cosmic-ray', 'go-mutesting', 'hand', 'mutmut', 'pitest', 'revert', 'stryker'], got None
+FAIL: negative_control.result must record the mutant KILLED / the proof going RED
+FAIL: negative_control.artifact (an evidence path) is required
+FAIL: mutation unit: no pr.number to look up an independent review — unreviewed
+verify: 11 invariant(s) failed — unit is NOT done
+.................................................................................................
+----------------------------------------------------------------------
+Ran 1490 tests in 385.748s
+
+OK
+bundle: 21 self-contained mission(s) in a temp dir; no reference leaves its directory
+bound clean-sweep (self-run) — docs/runs/2026-09-14-clean-sweep-self-run.md
+bound prove-it (self-run) — docs/runs/2026-09-16-prove-it-self-run.md
+wrote assets/badges/missions.json: 21
+wrote assets/badges/tests.json: 1 in source
+wrote assets/badges/missions.json: 21
+wrote assets/badges/tests.json: 1 in source
+wrote assets/badges/missions.json: 21
+wrote assets/badges/tests.json: 0 in source
+wrote assets/badges/missions.json: 21
+wrote assets/badges/tests.json: 1 in source
+wrote assets/badges/missions.json: 21
+wrote assets/badges/tests.json: 2 in source
+wrote assets/badges/missions.json: 21
+wrote assets/badges/tests.json: 0 in source
+exit=0
+--- routing-eval: python3 scripts/eval.py run --suite routing --threshold 1.0 ---
+Routing eval: 94/94 correct (100%)
+exit=0
+--- proof_status: python3 runtime/scripts/proof_status.py --check ---
+absorb-it       doctrine-only  [—      ] —
+access-it       doctrine-only  [—      ] —
+attest-it       doctrine-only  [—      ] —
+clean-sweep     self-run       [ok     ] docs/runs/2026-09-14-clean-sweep-self-run.md
+deflake-it      doctrine-only  [—      ] —
+document-it     doctrine-only  [—      ] —
+field-test-it   doctrine-only  [—      ] —
+floor-it        doctrine-only  [—      ] —
+harden-it       doctrine-only  [—      ] —
+map-it          doctrine-only  [—      ] —
+migrate-it      doctrine-only  [—      ] —
+modernize-it    doctrine-only  [—      ] —
+oncall-it       doctrine-only  [—      ] —
+oss-contribute  doctrine-only  [—      ] —
+pin-it          doctrine-only  [—      ] —
+prove-it        self-run       [ok     ] docs/runs/2026-09-16-prove-it-self-run.md
+reshape-it      doctrine-only  [—      ] —
+review-it       doctrine-only  [—      ] —
+root-cause      doctrine-only  [—      ] —
+ship-it         doctrine-only  [—      ] —
+speed-it        doctrine-only  [—      ] —
+
+coverage rollup:
+  doctrine-only  19
+  self-run       2
+  external-run   0
+  total          21
+exit=0
+--- run_report: python3 runtime/scripts/run_report.py ---
+bound clean-sweep (self-run) — docs/runs/2026-09-14-clean-sweep-self-run.md
+bound prove-it (self-run) — docs/runs/2026-09-16-prove-it-self-run.md
+exit=0
+--- bundle-check: python3 scripts/bundle.py --check ---
+bundle: 21 self-contained mission(s) in a temp dir; no reference leaves its directory
+exit=0
+===== pinned CI tools install (throwaway venv, --require-hashes) =====
+--- venv-create: python3 -m venv /tmp/modernize-venv-u1-gates ---
+exit=0
+--- pip-install-lock: /tmp/modernize-venv-u1-gates/bin/pip install --quiet --require-hashes --only-binary :all: -r .github/ci-tools.lock ---
+exit=0
+--- ruff-version: /tmp/modernize-venv-u1-gates/bin/ruff --version ---
+ruff 0.16.7
+exit=0
+--- agentskills-version: /tmp/modernize-venv-u1-gates/bin/agentskills --version ---
+agentskills, version 0.1.1
+exit=0
+===== agentskills validate skills/*/ =====
+Valid skill: skills/absorb-it
+Valid skill: skills/access-it
+Valid skill: skills/attest-it
+Valid skill: skills/clean-sweep
+Valid skill: skills/deflake-it
+Valid skill: skills/document-it
+Valid skill: skills/field-test-it
+Valid skill: skills/floor-it
+Valid skill: skills/harden-it
+Valid skill: skills/map-it
+Valid skill: skills/migrate-it
+Valid skill: skills/modernize-it
+Valid skill: skills/oncall-it
+Valid skill: skills/oss-contribute
+Valid skill: skills/pin-it
+Valid skill: skills/prove-it
+Valid skill: skills/reshape-it
+Valid skill: skills/review-it
+Valid skill: skills/root-cause
+Valid skill: skills/ship-it
+Valid skill: skills/speed-it
+agentskills-validate-all exit=0
+===== gitleaks detect (local binary; CI pins 8.30.1) =====
+--- gitleaks-version: gitleaks version ---
+8.30.1
+exit=0
+--- gitleaks-detect: gitleaks detect --redact --no-banner --source . ---
+[90m6:12PM[0m [32mINF[0m [1mUnknown SCM platform. Use --platform to include links in findings.[0m [36mhost=[0m
+[90m6:12PM[0m [32mINF[0m [1m1002 commits scanned.[0m
+[90m6:12PM[0m [32mINF[0m [1mscanned ~21066544 bytes (21.07 MB) in 1.98s[0m
+[90m6:12PM[0m [32mINF[0m [1mno leaks found[0m
+exit=0
+===== ruff check (venv ruff) =====
+--- ruff-check: /tmp/modernize-venv-u1-gates/bin/ruff check scripts runtime/scripts tests bench demo ---
+All checks passed!
+exit=0
+--- vf-bench: python3 bench/vf-bench/gate.py ---
+vf-bench gate PASS: corpus vf-bench@0.1, verify.py false-done 0/20, valid controls 3/3, skipped 0
+exit=0
+===== RESULT u1-gates =====
+FAIL=0

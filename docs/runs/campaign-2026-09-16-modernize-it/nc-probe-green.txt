@@ -1,0 +1,1 @@
+NC probe GREEN: lock installs hashed-clean; ruff 0.16.7; agentskills runs
