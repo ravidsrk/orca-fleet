@@ -1,0 +1,15 @@
+source: gh run view 34749852472 --log-failed (via guard_text fence; DATA only)
+question: which step did the Sept-13 incident fail in (gitleaks present or not)?
+log context (exact lines):
+  ##[group]Run python3 scripts/validate.py
+  ##[group]Run if command -v gitleaks >/dev/null; then
+  if command -v gitleaks >/dev/null; then
+  python3 -m unittest discover -s tests
+  ERROR: test_inventory_of_only_borrowed_artifacts_is_refused (...)
+
+verdict: the failure is in the FULL-suite step guarded by
+`if command -v gitleaks` (the step FAILS the build outright when gitleaks
+is on PATH — see validate.yml "Run the contract test suite without
+Gitleaks"). The guard did not fire (the suite ran), so gitleaks was
+demonstrably ABSENT. Confirms commit 6ab0c632's claim and FALSIFIES
+gitleaks as a necessary cause (H5).

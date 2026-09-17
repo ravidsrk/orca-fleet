@@ -1,0 +1,8 @@
+container: python:3.13-bookworm + git 2.50.1 built from source
+(git/git @ v2.50.1, prefix=/usr/local), gitleaks 8.30.1 on PATH.
+command: python3 /r/lh.py replica 1000
+observed output (tail, exact):
+GIT250_OK
+git version 2.50.1
+REPLICA: 0/1000 teardown failures
+note: git 2.50.1 is NEWER than the CI runner's git; no version-delta writer.

@@ -1,0 +1,15 @@
+container: same as linux-replica-2000.txt (Python 3.13.15, git 2.39.5,
+gitleaks 8.30.1 on PATH).
+commands:
+  python3 /r/lh.py suite-strip   # x2 (all ignore_cleanup_errors forced OFF)
+  python3 -m unittest discover -s tests -p test_verify.py  # flags intact
+observed output (exact):
+=== strip pass 1 ===
+SUITE-STRIP: 243 tests, 0 errors, 0 failures, 0 ENOTEMPTY
+=== strip pass 2 ===
+SUITE-STRIP: 243 tests, 0 errors, 0 failures, 0 ENOTEMPTY
+=== full suite (flags intact) pass 3 ===
+Ran 243 tests in 95.501s
+
+OK (skipped=1)
+note: 95.5s vs CI's 102.8s — the container faithfully replicates CI timing.

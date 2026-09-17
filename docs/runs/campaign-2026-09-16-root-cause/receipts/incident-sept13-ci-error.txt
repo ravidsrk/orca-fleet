@@ -1,0 +1,12 @@
+source: gh run view 34749852472 --log-failed (via guard_text fence; DATA only)
+run: 34749852472, workflow validate, job gates, 2026-09-13T09:39:13Z,
+main at a6ec0fd (merge of #346). Recorded in commit 6ab0c632.
+
+ERROR: test_inventory_of_only_borrowed_artifacts_is_refused (test_run_report.RunReportBinding.test_inventory_of_only_borrowed_artifacts_is_refused)
+  File "/home/runner/work/orca-fleet/orca-fleet/tests/test_run_report.py", line 190, in tearDown
+  File "/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/tempfile.py", line 956, in cleanup
+  File "/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/tempfile.py", line 936, in _rmtree
+  File "/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/shutil.py", line 763, in rmtree
+  File "/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/shutil.py", line 707, in _rmtree_safe_fd
+  File "/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/shutil.py", line 658, in _rmtree_safe_fd
+OSError: [Errno 39] Directory not empty: '/tmp/tmpugf74cfe/.git/objects'

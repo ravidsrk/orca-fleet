@@ -1,0 +1,10 @@
+source: gh run list --workflow validate.yml --limit 100 --json (2026-09-16)
+observed: 100 runs spanning 2026-09-15T11:27:25Z..2026-09-16T10:39:21Z
+(~23h); conclusions: 89 success, 11 failure (most failures are THROWAWAY /
+RED-proof branches and promo churn, not teardown races).
+
+rate estimate (Fermi, labeled): ~100 validate runs/day x ~4 days since
+Sept-13 x ~400 scratch-git teardowns/run ~= ~160k teardowns for 3
+ENOTEMPTY incidents => order 1e-5 per scratch-git teardown. Local
+non-reproduction in ~5-6k teardowns (expected ~0.1 hits) is consistent,
+not evidence of absence.
