@@ -1,0 +1,9 @@
+PR: #476 (closed unmerged; branch floor/canary-d7 deleted)
+head: 9f32daa9
+run: https://github.com/ravidsrk/orca-fleet/actions/runs/35164058630 (failure)
+failed step: Validate missions, playbooks, and evals (reference cross-fire; the bundle step never runs under fail-fast)
+--- CI excerpt ---
+FAIL review-it
+--- local bundle on the exact head ---
+exit 1
+FAIL review-it: references/canary-missing-target.md was not vendored

@@ -1,0 +1,39 @@
+# Floor guard (floor-it GUARD): the bar cannot be lowered quietly.
+#
+# runtime/scripts/floor_guard.py diffs the PR against its base and fails on the
+# six moves that lower the bar without touching a stated requirement: a silenced
+# checker, a test made easier, unfinished work left as a stub, an assertion
+# deleted from a test that stayed, a threshold walked down in CONSTRAINTS.md (or
+# a new exception row), and a touch to the frozen guard surface (.gitleaksignore,
+# the ruff select, ROUTING_MIN_SCORE, evals/routing.json, the vf-bench corpus +
+# pins, the .coveragerc fail_under). Each fails without a recorded DECISIONS
+# waiver whose id is `floor-waiver:<rule>:<path>` and whose answer is `allow`.
+#
+# PR-only: on a push there is no base to diff, so there is nothing to guard.
+name: floor-guard
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 (Node 24; Node 20 left runners 2026-09-23, #367)
+        with:
+          fetch-depth: 0  # the guard diffs the merge base, not a depth-1 tip
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0 (Node 24, #367)
+        with:
+          python-version: "3.13"  # pin: CI 3.x was a moving target (G-03)
+      - name: No quiet bar-lowering (guard-surface + checker hygiene)
+        # Same base convention as bind-check.yml: the PR's own base. Via env,
+        # quoted: a base branch name is attacker-influenced input (any branch
+        # can be a PR target) and `${{ }}` interpolates before the shell runs,
+        # so an unquoted inline expansion is a script-injection hole (PR #468
+        # review, P1). An env var is expanded by the runner, never re-parsed.
+        env:
+          GUARD_BASE_REF: ${{ github.base_ref }}
+        run: python3 runtime/scripts/floor_guard.py --base "origin/${GUARD_BASE_REF}"

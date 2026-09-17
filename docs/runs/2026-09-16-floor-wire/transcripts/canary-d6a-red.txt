@@ -1,0 +1,9 @@
+PR: #474 (closed unmerged; branch floor/canary-d6a deleted)
+head: cf0570c7
+run: https://github.com/ravidsrk/orca-fleet/actions/runs/35164049363 (failure)
+failed step: Validate missions, playbooks, and evals (binding cross-fire — validate embeds the check; the proof_status step never runs under fail-fast)
+--- CI excerpt ---
+FAIL review-it
+--- local proof_status on the exact head ---
+exit 1
+FAIL: review-it (self-run) — unresolvable proof_evidence: docs/runs/zz-canary-missing.md

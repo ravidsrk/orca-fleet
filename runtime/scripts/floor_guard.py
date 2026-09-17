@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Diff-scoped floor guard: the cheap road to green, caught mechanically.
 
-Five moves lower the bar without touching a stated requirement: a silenced
+Six moves lower the bar without touching a stated requirement: a silenced
 checker, a test made easier, unfinished work left as a stub, an assertion
-deleted from a test that stayed, and a threshold walked down in the constraints
-file (or a new exception row admitted beside it). Each is invisible to a green
+deleted from a test that stayed, a threshold walked down in the constraints
+file (or a new exception row admitted beside it), and a touch to the frozen
+guard surface (the tool-config the bar stands on). Each is invisible to a green
 build and obvious in a diff. This guard reads the diff.
 
 Scope is the merge base against ``--base`` plus the working tree plus untracked
@@ -33,6 +34,9 @@ threshold-lowered    a number in the constraints file that went DOWN, matched by
                      the row/bullet key left of the first ``|`` or ``:``
 new-exception        an added constraints row shaped ``| W123 |`` / ``| E45 |``, or
                      an added line under an ``## Exceptions`` heading
+guard-surface        an added/removed line touching CONSTRAINTS.md's frozen guard
+                     surface (whole files: any line; keyed files: the key's
+                     assignment only — a use-site or comment stays silent)
 ===================  ============================================================
 
 Exemptions come from the DECISIONS log, never from an ignore file. A waiver is a
@@ -123,6 +127,35 @@ EXCEPTIONS_HEADING = re.compile(r"^\s*#{1,6}\s+.*\bexceptions?\b", re.IGNORECASE
 NUMBER = re.compile(r"\d+(?:\.\d+)?")
 HUNK = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
 
+# Frozen guard surface (CONSTRAINTS.md "Guard surface", Q4-confirmed, plus the
+# D9-flagged .coveragerc fail_under): the tool-config the bar stands on. A diff
+# line touching it fails without a `floor-waiver:guard-surface:<path>` grant.
+# Whole files trip on ANY added/removed line — every line of .gitleaksignore is
+# a waiver, every routing prompt and every trap is load-bearing. Keyed files trip
+# only on the key's ASSIGNMENT (`name = ...`): the floor is the value, not a
+# use-site or a comment about it — tests/test_evals.py cites its floor constant
+# on lines that do not move the floor, and those must stay silent. Matching is
+# path-gated throughout, so this very source file (which must name each key to
+# guard it) and any doc that cites one are never their own finding.
+GUARD_SURFACE_FILES = (
+    ".gitleaksignore",
+    "evals/routing.json",
+    "bench/vf-bench/VERSION",
+    "bench/vf-bench/CANARY",
+)
+GUARD_SURFACE_DIRS = ("bench/vf-bench/traps/",)
+GUARD_SURFACE_KEYS = (
+    # (path, assignment regex): the ruff select, the coverage fail_under, the
+    # routing floor, and the vf-bench pins (VERSION + CANARY + traps digest as
+    # enforced in gate.py — a corpus bump moves them in the same PR, explicitly).
+    ("ruff.toml", re.compile(r"^\s*select\s*=")),
+    (".coveragerc", re.compile(r"^\s*fail_under\s*=")),
+    ("tests/test_evals.py", re.compile(r"\bROUTING_MIN_SCORE\s*=")),
+    ("bench/vf-bench/gate.py", re.compile(r"\bEXPECTED_VERSION\s*=")),
+    ("bench/vf-bench/gate.py", re.compile(r"\bEXPECTED_CANARY_GUID\s*=")),
+    ("bench/vf-bench/gate.py", re.compile(r"\bEXPECTED_CORPUS_SHA256\s*=")),
+)
+
 DEFAULT_BASES = ("origin/main", "origin/master", "main", "master")
 
 
@@ -176,8 +209,15 @@ def merge_base(repo, base):
 
 def collect_diff(repo, mb):
     """Unified-0 diff against the merge base, plus every untracked file rendered
-    as an all-added diff. Returns the concatenated diff text."""
-    diff_options = ("--no-ext-diff", "--no-textconv", "--unified=0")
+    as an all-added diff. Returns the concatenated diff text.
+
+    Rename detection stays OFF: a content-preserving rename (similarity 100%)
+    otherwise renders as `rename from/to` metadata with no content lines, and a
+    content-line guard reads that as silence — renaming .coveragerc sideways
+    would unwire D9 without tripping a thing (PR #468 review, P1). As delete +
+    add, the removed half trips every whole-file and keyed rule it touches.
+    """
+    diff_options = ("--no-ext-diff", "--no-textconv", "--no-renames", "--unified=0")
     tracked = git(repo, "diff", *diff_options, mb, "--")
     if tracked is None:
         raise GuardError("tracked/staged diff acquisition failed")
@@ -251,6 +291,25 @@ def numbers(text):
     return [float(n) for n in NUMBER.findall(text)]
 
 
+def guard_surface_hit(path, text):
+    """Name the frozen-surface item a diff line touches, or None.
+
+    Whole files and trap-dir members trip on any line; keyed files only on the
+    key's assignment. The name is what gets reported; the matched text never is.
+    """
+    if not path:
+        return None
+    if path in GUARD_SURFACE_FILES:
+        return path
+    for surface_dir in GUARD_SURFACE_DIRS:
+        if path.startswith(surface_dir):
+            return surface_dir.rstrip("/")
+    for surface_file, assignment in GUARD_SURFACE_KEYS:
+        if path == surface_file and assignment.search(text):
+            return surface_file
+    return None
+
+
 def row_key(text):
     """Identify a constraints row so its before/after pair can be matched.
 
@@ -286,6 +345,9 @@ def scan(added, removed, constraints_name, repo):
     for path, line, text in added:
         if is_constraints(path, constraints_name) and EXCEPTIONS_HEADING.match(text):
             in_exceptions[path] = True
+        surface = guard_surface_hit(path, text)
+        if surface:
+            flag("guard-surface", path, line, surface)
         for name, pat in SUPPRESSIONS:
             if pat.search(text):
                 flag("silenced-checker", path, line, name)
@@ -306,6 +368,9 @@ def scan(added, removed, constraints_name, repo):
                 flag("new-exception", path, line, "exceptions-bullet")
 
     for path, line, text in removed:
+        surface = guard_surface_hit(path, text)
+        if surface:
+            flag("guard-surface", path, line, surface)
         if not TEST_PATH.search(path or ""):
             continue
         if not ASSERTIONS.search(text):
@@ -450,7 +515,7 @@ def malformed_waivers(waivers):
 def build_parser():
     p = argparse.ArgumentParser(
         prog="floor_guard.py",
-        description="Diff-scoped detection of the five moves that lower the bar.",
+        description="Diff-scoped detection of the six moves that lower the bar.",
         epilog="exit 0 clean / 1 findings / 2 could-not-run (never let a 2 read as a 0)",
     )
     p.add_argument("--base", default=None, help="base ref (default: origin/HEAD, then origin/main, origin/master, main, master)")

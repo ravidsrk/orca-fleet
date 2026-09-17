@@ -1,0 +1,13 @@
+PR: #472 (closed unmerged; branch floor/canary-d4 deleted)
+head: 01f33a60
+run: https://github.com/ravidsrk/orca-fleet/actions/runs/35163543630 (failure)
+failed step: Secret scan (gitleaks, pinned) — everything else green
+injection: one fake credential line appended to tests/test_decisions.py (the waived file itself); value was random hex, assembled in docs as halves only — see WIRE.md; branch destroyed after proof
+--- CI excerpt ---
+1152 commits scanned.
+scanned ~23011314 bytes (23.01 MB) in 1.87s
+leaks found: 1
+Process completed with exit code 1.
+--- local attribution (single-branch clone of the canary head) ---
+RuleID: generic-api-key; File: tests/test_decisions.py; Line: 818
+Commit: 01f33a602658297e35b55412a9dd74f0a9b64f65

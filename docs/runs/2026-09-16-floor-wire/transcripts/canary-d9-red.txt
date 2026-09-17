@@ -1,0 +1,7 @@
+PR: #478 (closed unmerged; branch floor/canary-d9 deleted)
+head: 5d687755 (deletion 721f563b + badge isolation)
+run: https://github.com/ravidsrk/orca-fleet/actions/runs/35164063873 (failure)
+failed step: Coverage floor (D9: line >= 80% on scripts + runtime/scripts) — every other step and vfbench green
+--- CI excerpt ---
+Coverage failure: total of 77 is less than fail-under=80
+TOTAL                                6267   1461    77%
