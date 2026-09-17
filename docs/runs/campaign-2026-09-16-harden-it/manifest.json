@@ -1,0 +1,115 @@
+{
+  "artifacts": [
+    {
+      "path": "docs/runs/campaign-2026-09-16-harden-it/LEDGER.md",
+      "sha256": "4292084e9d96cd30ce7aac4a8910639b441c108ff655e0d78534f7bef77a271e"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-harden-it/THREAT-MODEL.md",
+      "sha256": "42ddea9b29d201cef538d6bc6f6a6c5968a95416ae32ea647f03f4d47ae94dfc"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-harden-it/AUDIT.md",
+      "sha256": "f7ac64c501a9f1c320388843799ef652d24c04222796887d17f2574c8e0ff459"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-harden-it/CONTRACT.md",
+      "sha256": "de878c52eb609b3bbb28de2078db268ebd4ddafa24080420562746a9e161d09b"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-harden-it/receipts/deny-hook-probes.txt",
+      "sha256": "40f812c3c9cb1fbb6306adc5c8c39eb22ff0985ab1b7e8995a4e3a9dd26d704e"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-harden-it/receipts/gitleaks-audit.txt",
+      "sha256": "31bc34162c62757215a3ffaab6dd2ed3a3179d021f3104956098db02c4584148"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-harden-it/receipts/run-create-refused.txt",
+      "sha256": "b86694e766247bcebf7d7335176a9012045b3001db16f19d3670f327852628df"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-harden-it/receipts/tests.txt",
+      "sha256": "01722c2db94c1d6325b4f44454c2f25553ca64c5d32db0fec649de3fc3ab2cd7"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-harden-it/receipts/validation.txt",
+      "sha256": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-harden-it/receipts/verifier-round1-red.txt",
+      "sha256": "730f04886e244293e7d3a5cef5d9baae470bb935f5232b11063d945b19896d6b"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-harden-it/receipts/verifier.txt",
+      "sha256": "815dfe31d7669df7715a610728308aad13ad548636227a170582c5902f09360a"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-harden-it/receipts/verifier-final.txt",
+      "sha256": "815dfe31d7669df7715a610728308aad13ad548636227a170582c5902f09360a"
+    }
+  ],
+  "base_sha": "c46d4b3f3371e41408aed19e54476fa194c20b42",
+  "claim": "Full harden-it audit loop against orca-fleet at its main tip: threat model, tree-wide audit waves, triage of 5 candidates (0 VERIFIED P0/P1), project gates green, re-audit clean. Terminal: CLEAN with recorded solo-run degradations.",
+  "contract": {
+    "criterion_ids": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4",
+      "AC-5"
+    ],
+    "digest": "sha256:de878c52eb609b3bbb28de2078db268ebd4ddafa24080420562746a9e161d09b",
+    "source": "docs/runs/campaign-2026-09-16-harden-it/CONTRACT.md"
+  },
+  "criteria": [
+    {
+      "addressed": true,
+      "id": "AC-1",
+      "text": "Threat model committed: STRIDE per trust boundary plus Always/Ask-First/Never buckets with one-way gates named."
+    },
+    {
+      "addressed": true,
+      "id": "AC-2",
+      "text": "Tree-wide security audit executed at the fixed point across secrets, CI/supply-chain, injection, trust-boundary, crypto, destructive-path, and LLM/privacy axes, with evidence per axis."
+    },
+    {
+      "addressed": true,
+      "id": "AC-3",
+      "text": "Every audit candidate triaged to a terminal disposition; zero unrefuted P0/P1 remains."
+    },
+    {
+      "addressed": true,
+      "id": "AC-4",
+      "text": "Project gates green at the evidence head: catalog validator and full test suite."
+    },
+    {
+      "addressed": true,
+      "id": "AC-5",
+      "text": "Re-audit mechanical pass confirms the terminal state: zero unrefuted P0/P1."
+    }
+  ],
+  "head_sha": "199fe89ee4d81ee5c41df587d04f949e236a11fc",
+  "lighting": "lit",
+  "negative_control": {
+    "artifact": "docs/runs/campaign-2026-09-16-harden-it/AUDIT.md",
+    "did": "report-only class analogue (evidence-manifest section 3): source-binding - every file:line quoted in AUDIT.md re-read at head_sha; mechanical axes (gitleaks, sink sweeps) re-executed in the re-audit pass with identical verdicts",
+    "result": "source bindings hold at head_sha; re-audit confirms the terminal state"
+  },
+  "reviewer_mode": "instructed-isolation",
+  "toolchain": "python 3.13.15",
+  "unit": "harden-it-self-audit",
+  "commands": [
+    {
+      "label": "verifier",
+      "ts": "2026-09-16T12:45:06Z",
+      "cmd": "python3 runtime/scripts/verify.py --manifest docs/runs/campaign-2026-09-16-harden-it/manifest.json --contract-source docs/runs/campaign-2026-09-16-harden-it/CONTRACT.md --contract-digest sha256:de878c52eb609b3bbb28de2078db268ebd4ddafa24080420562746a9e161d09b --unit-class report-only",
+      "cmd_sha256": "20198cbf72d87e33e3e6ef5ae96cef6f3e11e10f7a4509ded13514556bd52c02",
+      "exit": 0,
+      "duration_s": 0.4,
+      "commit": "199fe89ee4d81ee5c41df587d04f949e236a11fc",
+      "wtree": "c9d90408bd2f5b24e371ef573229f8f614d186c8",
+      "artifact": "docs/runs/campaign-2026-09-16-harden-it/receipts/verifier.txt"
+    }
+  ]
+}

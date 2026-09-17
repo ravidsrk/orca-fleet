@@ -1,0 +1,4 @@
+FAIL: report-only unit changed code ['docs/runs/campaign-2026-09-16-harden-it/CONTRACT.json', 'docs/runs/campaign-2026-09-16-harden-it/receipts/gitleaks-audit.json'] and carries no signed dispatch record. unit_class arrives from the environment the worker controls, so this single value drops the negative control, the intent packet, lighting legality and reviewer_mode from a unit that changed behaviour. Verify it as a mutation, or have the coordinator sign the downgrade (#310)
+FAIL: redaction: credential shape(s) ['aws-access-key'] found in artifact docs/runs/campaign-2026-09-16-harden-it/receipts/gitleaks-audit.json — evidence is SHA-pinned and permanent; rotate the credential and re-emit the unit
+verify: 2 invariant(s) failed — unit is NOT done
+NOTE: --base not given — ancestry check skipped (pre-merge/offline)
