@@ -1,0 +1,13 @@
+diff --git a/runtime/scripts/verify.py b/runtime/scripts/verify.py
+index 59351385..ab16be99 100755
+--- a/runtime/scripts/verify.py
++++ b/runtime/scripts/verify.py
+@@ -1009,7 +1009,7 @@ def check_oracle_scope(m, source, digest):
+     if any(_is_test_path(p) is not True and Path(p).suffix.lower() not in _PROSE_SUFFIXES
+            for p in prod + tests):
+         return ["oracle scope: this unit changes production code; default mutation binding required"]
+-    if scope["kind"] == "characterization" and not tests:
++    if scope["kind"] == "characterization" and tests:  # MUTANT m2 (PF-3 audit): gate inverted
+         return ["oracle scope: characterization must change a test"]
+     if scope["kind"] == "documentation" and (tests or not prod):
+         return ["oracle scope: documentation must change prose only"]

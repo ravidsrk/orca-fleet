@@ -1,0 +1,65 @@
+FFF
+======================================================================
+FAIL: test_empty_diff_refused_at_characterization_gate (tests.test_verify.OracleScopeCharacterizationGateTest.test_empty_diff_refused_at_characterization_gate)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/projects/orca-fleet/.muse/worktrees/subagent-v2-01a0a08a-bf23-71e3-bb1d-c7a68bec7d23-01a0aa4d-74f3-7f91-8372-0d970e68ffdf/tests/test_verify.py", line 3021, in test_empty_diff_refused_at_characterization_gate
+    self.assertEqual(
+    ~~~~~~~~~~~~~~~~^
+        verify.check_oracle_scope({"base_sha": base, "head_sha": base}, rel, digest),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        ["oracle scope: characterization must change a test"])
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['oracle scope: requires a pinned hand-mutant artifact'] != ['oracle scope: characterization must change a test']
+
+First differing element 0:
+'oracle scope: requires a pinned hand-mutant artifact'
+'oracle scope: characterization must change a test'
+
+- ['oracle scope: requires a pinned hand-mutant artifact']
++ ['oracle scope: characterization must change a test']
+
+======================================================================
+FAIL: test_prose_only_change_refused_at_characterization_gate (tests.test_verify.OracleScopeCharacterizationGateTest.test_prose_only_change_refused_at_characterization_gate)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/projects/orca-fleet/.muse/worktrees/subagent-v2-01a0a08a-bf23-71e3-bb1d-c7a68bec7d23-01a0aa4d-74f3-7f91-8372-0d970e68ffdf/tests/test_verify.py", line 3014, in test_prose_only_change_refused_at_characterization_gate
+    self.assertEqual(
+    ~~~~~~~~~~~~~~~~^
+        verify.check_oracle_scope({"base_sha": base, "head_sha": head}, rel, digest),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        ["oracle scope: characterization must change a test"])
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['oracle scope: requires a pinned hand-mutant artifact'] != ['oracle scope: characterization must change a test']
+
+First differing element 0:
+'oracle scope: requires a pinned hand-mutant artifact'
+'oracle scope: characterization must change a test'
+
+- ['oracle scope: requires a pinned hand-mutant artifact']
++ ['oracle scope: characterization must change a test']
+
+======================================================================
+FAIL: test_test_change_passes_characterization_gate (tests.test_verify.OracleScopeCharacterizationGateTest.test_test_change_passes_characterization_gate)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/projects/orca-fleet/.muse/worktrees/subagent-v2-01a0a08a-bf23-71e3-bb1d-c7a68bec7d23-01a0aa4d-74f3-7f91-8372-0d970e68ffdf/tests/test_verify.py", line 3030, in test_test_change_passes_characterization_gate
+    self.assertEqual(
+    ~~~~~~~~~~~~~~~~^
+        verify.check_oracle_scope({"base_sha": base, "head_sha": head}, rel, digest),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        ["oracle scope: requires a pinned hand-mutant artifact"])
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['oracle scope: characterization must change a test'] != ['oracle scope: requires a pinned hand-mutant artifact']
+
+First differing element 0:
+'oracle scope: characterization must change a test'
+'oracle scope: requires a pinned hand-mutant artifact'
+
+- ['oracle scope: characterization must change a test']
++ ['oracle scope: requires a pinned hand-mutant artifact']
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.263s
+
+FAILED (failures=3)
