@@ -1,0 +1,20 @@
+PASS orchestration worker-start: ['task', 'worktree', 'agent', 'setup', 'json'] (have 26 flags)
+PASS orchestration send: ['outcome', 'to', 'from', 'dispatch-capability', 'report-path', 'files-modified', 'type', 'subject'] (have 21 flags)
+PASS terminal close: ['worktree', 'all'] (have 8 flags)
+PASS worktree rm: ['worktree'] (have 7 flags)
+PASS orchestration ask: ['options', 'resume'] (have 13 flags)
+PASS orchestration gate-create: ['task', 'options'] (have 9 flags)
+PASS orchestration reply: ['id'] (have 9 flags)
+PASS merge_ready type listed
+PASS --to default note
+PASS group-refusal note (worker_done+heartbeat only)
+PASS worker_done --outcome note
+PASS orchestration task-create: ['deps', 'parent'] (have 12 flags)
+PASS orchestration worker-read: ['dispatch'] (have 8 flags)
+PASS orchestration run-use: ['from'] (have 8 flags)
+PASS orchestration check: ['terminal'] (have 15 flags)
+PASS automations create: [] (have 27 flags)
+automations create present: True
+  found: automations create ['help', 'json', 'pairing-code', 'environment', 'name', 'prompt', 'provider', 'precheck', 'precheck-timeout', 'repo', 'workspace', 'project', 'host', 'project-host-setup', 'source-context', 'workspace-mode', 'base-branch', 'trigger', 'schedule', 'time', 'day', 'timezone', 'enabled', 'disabled', 'missed-run-grace-minutes', 'reuse-session', 'fresh-session']
+PASS orchestration reset exists
+PASS orchestration check: ['wait', 'types', 'ack', 'peek', 'all', 'terminal'] (have 15 flags)

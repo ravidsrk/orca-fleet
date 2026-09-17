@@ -1,0 +1,11 @@
+{
+  "id": "6ef8ac9d-ea2f-484b-a388-83932ef2221a",
+  "ok": false,
+  "error": {
+    "code": "no_active_terminal",
+    "message": "no_active_terminal"
+  },
+  "_meta": {
+    "runtimeId": "75429d93-a441-4225-9f94-18e893d3212e"
+  }
+}
