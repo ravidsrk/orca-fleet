@@ -52,11 +52,15 @@ jobs:
         # gates downloads all four and combines before the D9 report. No
         # if:always: a red shard uploads nothing, gates skips on the failed
         # need, and the suite failure itself blocks the merge.
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        # include-hidden-files: dotfiles are EXCLUDED by default, and every
+        # parallel-mode data file is one — without it the upload finds
+        # nothing and fails the shard (PR #480, first CI run).
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0 (Node 24, #367; v4/v5 are Node 20, gone from runners 2026-09-23)
         with:
           name: coverage-shard-${{ matrix.shard }}
           path: .coverage.*
           if-no-files-found: error
+          include-hidden-files: true
           retention-days: 1
   gates:
     needs: [tests]
@@ -164,7 +168,7 @@ jobs:
       - name: Download the shard coverage data
         # merge-multiple: all four coverage-shard-* artifacts land in the
         # checkout root, where `coverage combine` below expects them.
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0 (Node 24, #367; v4-v6 are Node 20, gone from runners 2026-09-23)
         with:
           pattern: coverage-shard-*
           merge-multiple: true
