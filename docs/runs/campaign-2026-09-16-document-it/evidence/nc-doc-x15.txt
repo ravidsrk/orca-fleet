@@ -1,0 +1,9 @@
+NC doc-x15: rename 'live-credentials' -> 'live-tokens' in runtime/one-way-doors.json; expect claimcheck --cell one-way-doors.json RED
+renamed 1 occurrence(s)
+--- claimcheck (expect FAIL) ---
+UNBOUND: one-way-doors.json: ANCHOR `runtime/one-way-doors.json:live-credentials` not found in runtime/one-way-doors.json
+UNBOUND: one-way-doors.json: KEY `live-credentials` not in runtime/one-way-doors.json
+claimcheck: 1 section(s), 2 unbound claim(s)
+claimcheck exit=1
+--- restore ---
+renamed file restored: yes

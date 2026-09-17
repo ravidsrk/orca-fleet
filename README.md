@@ -539,6 +539,8 @@ If a fleet touches your default branch, that is a bug — file it. The full trus
 - [docs/install.md](docs/install.md) — every install path and which ones carry the completion gate.
 - [docs/verify-gate.md](docs/verify-gate.md) — the verifier as a native completion gate, its env
   surface, and its trust boundary.
+- [docs/runtime-scripts.md](docs/runtime-scripts.md) — reference for the runtime scripts and
+  operator config: usage, flags, keys, and exits.
 - [Anatomy of a run](docs/guides/anatomy-of-a-run.md) — one real run, hour by hour, incidents
   included.
 - [docs/platform-ride.md](docs/platform-ride.md) — what to ride from Claude Code, the Agent SDK

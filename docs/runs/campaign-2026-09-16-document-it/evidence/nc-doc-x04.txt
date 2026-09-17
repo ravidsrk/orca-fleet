@@ -1,0 +1,8 @@
+NC doc-x04: rename 'hashlib' -> 'hashmagic' in runtime/scripts/ed25519.py; expect claimcheck --cell ed25519.py RED
+renamed 2 occurrence(s)
+--- claimcheck (expect FAIL) ---
+UNBOUND: ed25519.py: ANCHOR `runtime/scripts/ed25519.py:hashlib` not found in runtime/scripts/ed25519.py
+claimcheck: 1 section(s), 1 unbound claim(s)
+claimcheck exit=1
+--- restore ---
+renamed file restored: yes

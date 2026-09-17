@@ -1,0 +1,8 @@
+NC doc-r01: rename '--lens' -> '--omitted' in runtime/scripts/decisions.py; expect claimcheck --cell decisions.py RED
+renamed 3 occurrence(s)
+--- claimcheck (expect FAIL) ---
+UNBOUND: decisions.py: FLAG `--lens` not in help+source of runtime/scripts/decisions.py
+claimcheck: 1 section(s), 1 unbound claim(s)
+claimcheck exit=1
+--- restore ---
+renamed file restored: yes

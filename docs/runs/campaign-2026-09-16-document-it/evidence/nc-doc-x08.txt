@@ -1,0 +1,8 @@
+NC doc-x08: rename 'FORGED_BANNER' -> 'FAKE_BANNER' in runtime/scripts/guard_text.py; expect claimcheck --cell guard_text.py RED
+renamed 2 occurrence(s)
+--- claimcheck (expect FAIL) ---
+UNBOUND: guard_text.py: ANCHOR `runtime/scripts/guard_text.py:FORGED_BANNER` not found in runtime/scripts/guard_text.py
+claimcheck: 1 section(s), 1 unbound claim(s)
+claimcheck exit=1
+--- restore ---
+renamed file restored: yes

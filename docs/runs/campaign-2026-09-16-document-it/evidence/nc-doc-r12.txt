@@ -1,0 +1,8 @@
+NC doc-r12: rename '--mark-ready' -> '--ready2' in runtime/scripts/spawn_worker.sh; expect claimcheck --cell spawn_worker.sh RED
+renamed 5 occurrence(s)
+--- claimcheck (expect FAIL) ---
+UNBOUND: spawn_worker.sh: FLAG `--mark-ready` not in source of runtime/scripts/spawn_worker.sh
+claimcheck: 1 section(s), 1 unbound claim(s)
+claimcheck exit=1
+--- restore ---
+renamed file restored: yes

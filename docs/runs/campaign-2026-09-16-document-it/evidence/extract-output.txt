@@ -1,0 +1,60 @@
+surface digest sha256:058e51cdf0384da8e4f1d958f115a5beac080c453fc796c1849921a00022993a @ 6390743815f8f435181fa410cce374587128b30a
+A skills: 21  B clis: 29  C config: 7
+
+skill:absorb-it <= skills/absorb-it/SKILL.md
+skill:access-it <= skills/access-it/SKILL.md
+skill:attest-it <= skills/attest-it/SKILL.md
+skill:clean-sweep <= skills/clean-sweep/SKILL.md
+skill:deflake-it <= skills/deflake-it/SKILL.md
+skill:document-it <= skills/document-it/SKILL.md
+skill:field-test-it <= skills/field-test-it/SKILL.md
+skill:floor-it <= skills/floor-it/SKILL.md
+skill:harden-it <= skills/harden-it/SKILL.md
+skill:map-it <= skills/map-it/SKILL.md
+skill:migrate-it <= skills/migrate-it/SKILL.md
+skill:modernize-it <= skills/modernize-it/SKILL.md
+skill:oncall-it <= skills/oncall-it/SKILL.md
+skill:oss-contribute <= skills/oss-contribute/SKILL.md
+skill:pin-it <= skills/pin-it/SKILL.md
+skill:prove-it <= skills/prove-it/SKILL.md
+skill:reshape-it <= skills/reshape-it/SKILL.md
+skill:review-it <= skills/review-it/SKILL.md
+skill:root-cause <= skills/root-cause/SKILL.md
+skill:ship-it <= skills/ship-it/SKILL.md
+skill:speed-it <= skills/speed-it/SKILL.md
+cli:runtime/scripts/decisions.py <= runtime/scripts/decisions.py help_exit=0 flags=--doors,--file,--help
+cli:runtime/scripts/deny-hook.sh <= runtime/scripts/deny-hook.sh help_exit=0 flags=--help,--settings
+cli:runtime/scripts/diff_scope.py <= runtime/scripts/diff_scope.py help_exit=0 flags=--base,--help,--json,--repo,--strict
+cli:runtime/scripts/dispatch-sign.py <= runtime/scripts/dispatch-sign.py help_exit=0 flags=--help
+cli:runtime/scripts/ed25519.py <= runtime/scripts/ed25519.py help_exit=0 flags=
+cli:runtime/scripts/egress.py <= runtime/scripts/egress.py help_exit=0 flags=--help,--ledger
+cli:runtime/scripts/evidence-run.py <= runtime/scripts/evidence-run.py help_exit=0 flags=--artifact,--cwd,--help,--label,--manifest
+cli:runtime/scripts/floor_guard.py <= runtime/scripts/floor_guard.py help_exit=0 flags=--base,--constraints,--help,--quiet,--repo,--waivers
+cli:runtime/scripts/gate-batch.py <= runtime/scripts/gate-batch.py help_exit=0 flags=--file,--help,--run,--status
+cli:runtime/scripts/guard_text.py <= runtime/scripts/guard_text.py help_exit=0 flags=--fetch,--help,--label,--source,--timeout
+cli:runtime/scripts/hitl-loop.template.sh <= runtime/scripts/hitl-loop.template.sh help_exit=0 flags=--dry-run,--help,--rounds
+cli:runtime/scripts/inventory.py <= runtime/scripts/inventory.py help_exit=0 flags=--help
+cli:runtime/scripts/pm.py <= runtime/scripts/pm.py help_exit=2 flags=--help
+cli:runtime/scripts/preflight.py <= runtime/scripts/preflight.py help_exit=0 flags=--base,--default,--fork-point,--help,--mode,--offline,--require-gitleaks
+cli:runtime/scripts/proof_status.py <= runtime/scripts/proof_status.py help_exit=0 flags=--check,--help,--json,--root
+cli:runtime/scripts/run_report.py <= runtime/scripts/run_report.py help_exit=0 flags=--help,--mission,--tier
+cli:runtime/scripts/sandbox_doctor.py <= runtime/scripts/sandbox_doctor.py help_exit=2 flags=
+cli:runtime/scripts/spawn_worker.sh <= runtime/scripts/spawn_worker.sh help_exit=2 flags=--mark-ready
+cli:runtime/scripts/verify-gate.sh <= runtime/scripts/verify-gate.sh help_exit=2 flags=--help
+cli:runtime/scripts/verify.py <= runtime/scripts/verify.py help_exit=0 flags=--base,--contract-digest,--contract-source,--dispatch-pubkey,--dispatch-record,--execute-,--execute-nc,--help,--lighting,--manifest,--nc-command,--no-gh+3
+cli:runtime/scripts/watchdog.py <= runtime/scripts/watchdog.py help_exit=0 flags=--config,--dry-run,--heartbeats,--help,--log,--now,--state
+cli:runtime/scripts/wtree.sh <= runtime/scripts/wtree.sh help_exit=1 flags=
+cli:scripts/bind_check.py <= scripts/bind_check.py help_exit=0 flags=--base,--help,--root
+cli:scripts/bundle.py <= scripts/bundle.py help_exit=0 flags=--check,--help,--out
+cli:scripts/eval.py <= scripts/eval.py help_exit=0 flags=--help
+cli:scripts/gen-badges.py <= scripts/gen-badges.py help_exit=0 flags=--check,--help
+cli:scripts/install.sh <= scripts/install.sh help_exit=0 flags=--check,--skills-dir
+cli:scripts/validate.py <= scripts/validate.py help_exit=0 flags=
+cli:hooks/print-settings-snippet.sh <= hooks/print-settings-snippet.sh help_exit=0 flags=--event
+config:hooks/hooks.json <= hooks/hooks.json keys=TaskCompleted,Stop
+config:hooks/settings-snippet.json <= hooks/settings-snippet.json keys=_comment,hooks
+config:runtime/one-way-doors.json <= runtime/one-way-doors.json keys=version,note,doors
+config:runtime/pins.json <= runtime/pins.json keys=_about,orca,gstack,addyosmani,mattpocock
+config:runtime/watchdog.json <= runtime/watchdog.json keys=_about,slow_after_s,hung_after_s,wedge_frozen_s,max_nudges_per_dispatch,nudge_window_s,max_nudges_per_hour_per_worker,nudge_text,nudge_command
+config:.env.example <= .env.example keys=ORCA_BASE,ORCA_CONTRACT_DIGEST,ORCA_CONTRACT_SOURCE,ORCA_DISPATCH_PUBKEY,ORCA_DISPATCH_RECORD,ORCA_EXECUTE_NC,ORCA_LIGHTING,ORCA_MANIFEST,ORCA_NC_COMMAND,ORCA_NO_GH
+config:ruff.toml <= ruff.toml keys=select,target-version

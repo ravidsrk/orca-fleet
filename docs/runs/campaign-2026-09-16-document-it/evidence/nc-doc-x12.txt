@@ -1,0 +1,8 @@
+NC doc-x12: rename 'MARK_READY' -> 'FLAG_READY' in runtime/scripts/spawn_worker.sh; expect claimcheck --cell spawn_worker.sh RED
+renamed 3 occurrence(s)
+--- claimcheck (expect FAIL) ---
+UNBOUND: spawn_worker.sh: ANCHOR `runtime/scripts/spawn_worker.sh:MARK_READY` not found in runtime/scripts/spawn_worker.sh
+claimcheck: 1 section(s), 1 unbound claim(s)
+claimcheck exit=1
+--- restore ---
+renamed file restored: yes

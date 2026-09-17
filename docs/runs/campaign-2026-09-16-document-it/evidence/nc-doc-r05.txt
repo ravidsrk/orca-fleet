@@ -1,0 +1,8 @@
+NC doc-r05: rename '--payload-class' -> '--kind' in runtime/scripts/egress.py; expect claimcheck --cell egress.py RED
+renamed 2 occurrence(s)
+--- claimcheck (expect FAIL) ---
+UNBOUND: egress.py: FLAG `--payload-class` not in help+source of runtime/scripts/egress.py
+claimcheck: 1 section(s), 1 unbound claim(s)
+claimcheck exit=1
+--- restore ---
+renamed file restored: yes

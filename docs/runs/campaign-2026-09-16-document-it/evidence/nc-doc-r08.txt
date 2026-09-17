@@ -1,0 +1,8 @@
+NC doc-r08: rename '--timeout' -> '--pause' in runtime/scripts/guard_text.py; expect claimcheck --cell guard_text.py RED
+renamed 1 occurrence(s)
+--- claimcheck (expect FAIL) ---
+UNBOUND: guard_text.py: FLAG `--timeout` not in help+source of runtime/scripts/guard_text.py
+claimcheck: 1 section(s), 1 unbound claim(s)
+claimcheck exit=1
+--- restore ---
+renamed file restored: yes
