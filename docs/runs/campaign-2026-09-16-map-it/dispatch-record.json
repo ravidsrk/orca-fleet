@@ -1,0 +1,9 @@
+{
+  "record": {
+    "manifest_id": "map-it-selftest-G-09",
+    "contract_digest": "e009989260ffab7f81e3b44bc391fb972dd4ad749deadbf15f20a16f35ce7eff",
+    "unit_class": "planning",
+    "lighting": "lit"
+  },
+  "sig_b64": "+P4TesdAY1k0O3vTUCqOwPYlFHl2wfba8PjwExvBfbhCndDDtP9mc7oNh/i02EnLTKeqL+OyZ1vS1krMuqGDDA=="
+}
