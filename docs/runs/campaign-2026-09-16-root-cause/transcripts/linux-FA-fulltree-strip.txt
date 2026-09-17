@@ -1,0 +1,25 @@
+F-A minimal-tree pass (superseded by the full-tree pass below; kept for the
+error-categorization record). Archive: tests+runtime+scripts only, no gitleaks.
+command: python3 /r/lh.py suite-strip-all
+observed output (exact):
+SUITE-STRIP-ALL: 1397 tests, 273 errors, 45 failures, 0 ENOTEMPTY
+error categorization (second run, same setup; top categories, exact tails):
+  34  FileNotFoundError: [Errno 2] No such file or directory: '/r/skills/modernize-it/evals/evals.json'
+  25  FileNotFoundError: [Errno 2] No such file or directory: '/r/skills'
+  13  UnicodeDecodeError: 'utf-8' codec can't decode byte 0x.. in position 45: invalid start byte
+  11  FileNotFoundError: ... '/r/skills/deflake-it/evals/evals.json'
+   9  FileNotFoundError: ... '/r/skills/prove-it/evals/evals.json'
+   8  FileNotFoundError: ... '/r/skills/oncall-it/evals/evals.json'
+   6  FileNotFoundError: ... '/r/README.md'
+reading: all categorized errors are missing-tree artifacts of the minimal
+archive (skills/, README.md absent). None are teardown races. 0 ENOTEMPTY.
+
+F-A full-tree pass (decisive). Archive: full `git archive HEAD`, no gitleaks
+(exact Sept-13 step replica: full suite, scanner absent).
+command: python3 /r/lh.py suite-strip-all
+observed output (tail, exact):
+SUITE-STRIP-ALL: 1482 tests, 37 errors, 34 failures, 0 ENOTEMPTY
+reading: remaining errors are container-environmental (no git history/tags in
+the archive, no network, no pinned CI tools). Zero ENOTEMPTY across 1482
+tests with every ignore_cleanup_errors forced OFF => no suite-resident
+predecessor-leaker (H2 falsified).

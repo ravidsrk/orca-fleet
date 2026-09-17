@@ -1,0 +1,66 @@
+{
+  "unit": "attest-rv-3-2",
+  "base_sha": "6390743815f8f435181fa410cce374587128b30a",
+  "head_sha": "6390743815f8f435181fa410cce374587128b30a",
+  "contract": {
+    "source": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/RV.3.2.json",
+    "digest": "82a9099e4258d20a9c40f787b604512166c20193a4a9bece803a3e42ab685b7e",
+    "criterion_ids": [
+      "RV.3.2"
+    ]
+  },
+  "criteria": [
+    {
+      "id": "RV.3.2",
+      "text": "Analyze the root causes over time to identify patterns, such as a particular secure coding practice not being followed consistently.",
+      "addressed": true
+    }
+  ],
+  "negative_control": {
+    "did": "independent re-derivation (report-only analogue): re-executed every quote, absence, no-match, digest, and release-binding check from git objects at TARGET via rederive.py, plus blind second-pass reads of all cited files",
+    "tool": "hand",
+    "result": "rederive.py exit 0; 7 mis-cited lines/numbers caught and corrected during re-derivation across the run",
+    "artifact": "docs/runs/campaign-2026-09-16-attest-it/rederive/rederive.log",
+    "command": "python3 docs/runs/campaign-2026-09-16-attest-it/rederive/rederive.py",
+    "paths": []
+  },
+  "binding_audit": {
+    "coverage": "RV.3.2 (1/1)",
+    "method": "criterion quoted, covering artifact lines quoted, re-derived at TARGET by rederive.py"
+  },
+  "lighting": "lit",
+  "artifacts": [
+    {
+      "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/RV.3.2.md",
+      "sha256": "3406532dc81cdf3cf43ddc88f7a2c0c2bc3eeb0205786cf3566fa6d5d92d9375"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-attest-it/rederive/rederive.log",
+      "sha256": "83044442389b8c2ab2d3166fd8f4a0247b47dc007f44b4738dae116b6d851a4d"
+    }
+  ],
+  "reviewer_mode": "instructed-isolation",
+  "toolchain": "CPython 3.13.15 + git",
+  "provenance": {
+    "spec_version": "NIST-SP-800-218@1.0.0",
+    "model": "Muse Code powered by Meta Muse Spark (2026-09-16 session)",
+    "reviewer": "same-session re-derivation pass (instructed-isolation) + deterministic rederive.py, 2026-09-16",
+    "retention": "git: docs/runs/campaign-2026-09-16-attest-it/ on branch campaign/attest-it-selftest",
+    "standard": "SSDF"
+  },
+  "parked": [],
+  "claim": "VERIFIED: RV.3.2 \u2014 see evidence/RV.3.2.md (informational only; rederive.py is the oracle)",
+  "commands": [
+    {
+      "label": "rederive",
+      "ts": "2026-09-16T10:28:37Z",
+      "cmd": "python3 docs/runs/campaign-2026-09-16-attest-it/rederive/rederive.py",
+      "cmd_sha256": "18537d5635901ec2f2905b12f4a20efdaabd79239ef9fc841940ef6354f52ba2",
+      "exit": 0,
+      "duration_s": 0.243,
+      "commit": "6390743815f8f435181fa410cce374587128b30a",
+      "wtree": "aff5bce30c41cad28d5f8439861e1177df993a0c",
+      "artifact": null
+    }
+  ]
+}

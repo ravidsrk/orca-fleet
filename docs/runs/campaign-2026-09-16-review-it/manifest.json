@@ -1,0 +1,191 @@
+{
+ "artifacts": [
+  {
+   "path": "docs/runs/campaign-2026-09-16-review-it/axis-spec.md",
+   "sha256": "8fe002637545b09fded03a862161f9692fce36bdfe269834df66d7d921bf5365"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-review-it/axis-standards.md",
+   "sha256": "fb5ab9a456fa79688b4cfcaa88296ab0bcf772ab271682d63c85976af56b6827"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-review-it/axis-test-adequacy.md",
+   "sha256": "d150d96883c1100eb6c0245564af4e5a2daf7d6d3c7c48d7e26a4bbfb47ed803"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-review-it/criteria.md",
+   "sha256": "911b464dd825891d25826d6def894940a797d1b470f6a47f60589c6a9c7febb2"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-review-it/lens-risk.md",
+   "sha256": "b1f0796b5605591970105d2e36d7b6eb8e6edd11ee7d8cbaf3ef7036e890b86b"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-review-it/lens-tally.md",
+   "sha256": "00870551cbd738e7227d138a8bd0ecc2e1dd37c910c444fb28897611edd17537"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-review-it/pin.md",
+   "sha256": "ff9c7eb1607ac608ec21d1e8a7c1dfd4a77ba7f758e1b568a068108b8646d95f"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-review-it/transcripts/after-restore.txt",
+   "sha256": "9f44cb98b79cb091e0f824b4cabd8f859469315b5a925dea656a11135fec1006"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-review-it/transcripts/declaration.txt",
+   "sha256": "51d642cabb7f64a95c9fab533b91692bb63e094f57c582469e8a9449dfa84bad"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-review-it/transcripts/diff-scope.json",
+   "sha256": "0f7f337e160caf7569de7dbcb490cd75663e4c31c80f472e9e39c9933917afc9"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-review-it/transcripts/followups.txt",
+   "sha256": "c141839f36812e2d8eabc8308aa7031e67c527d3c26fa9e61cd3f743772f57dd"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-review-it/transcripts/gates.txt",
+   "sha256": "cea8fd01578444b306f22a8abd16bf040e72c9d8a5a7b0e266af035a0ef3c4d5"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-review-it/transcripts/inventory-rehash.txt",
+   "sha256": "455bf4a279cb92489a87d4fc2b6c70867c9572eb013f7455ddf60e23e01ad962"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-review-it/transcripts/pin.txt",
+   "sha256": "cbe0db8a685458c97d769af4766416b7fc74d43c045730a4ba8417c36ac36881"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-review-it/transcripts/recorded-bundle-verify.txt",
+   "sha256": "e3d9efd006cd3a35bb590c638febe438b177ea5df6050bd3d62288e4265f10d2"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-review-it/transcripts/recorded-scope.json",
+   "sha256": "80fd58241c166a26e9dceec40c0a647bf934de22ea0838577185b1f776ea418b"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-review-it/transcripts/recorded-secret-scan.txt",
+   "sha256": "c8f1b024066aa3320f0b4457337418cf9413240c24ef08a45722766daca9e611"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-review-it/transcripts/secret-scan.txt",
+   "sha256": "1ad3c81a17a2e611553d91fb31e7e44fcd02ae98b863e17d956364498f182628"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-review-it/transcripts/verifier.txt",
+   "sha256": "d483132c8498d5a06672325e6cdaf2bbb655b5808bce6d13ddfd862d50b05f53"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-review-it/triage.md",
+   "sha256": "43dd52d7faf31fcf43737f7bb09ac1cd0bf5f7481465f0de9af673f2b32c134b"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-review-it/verdict.md",
+   "sha256": "daad407adda0079a763c0b0228d873404b389726f2f7db120d7bfb4257d8922e"
+  }
+ ],
+ "base_sha": "6390743815f8f435181fa410cce374587128b30a",
+ "claim": "GO: PR #445 report satisfies issue #417 AC-1..AC-5 with re-deriving evidence; 0 Critical, 0 Required, 1 Nit, 6 FYIs.",
+ "commands": [
+  {
+   "label": "scope",
+   "ts": "2026-09-16T13:11:29Z",
+   "cmd": "python3 runtime/scripts/diff_scope.py --json --strict --base 6390743815f8f435181fa410cce374587128b30a",
+   "cmd_sha256": "37bf452659f56037dc1573008917e808c9935decb78128b94253ae3c4be23f0c",
+   "exit": 0,
+   "duration_s": 0.057,
+   "commit": "c46d4b3f3371e41408aed19e54476fa194c20b42",
+   "wtree": "7204bd034f92d0cd66f7004248c116139ed153ee",
+   "artifact": "docs/runs/campaign-2026-09-16-review-it/transcripts/recorded-scope.json"
+  },
+  {
+   "label": "bundle-verify",
+   "ts": "2026-09-16T13:11:29Z",
+   "cmd": "git bundle verify docs/reports/chaining-2026-09-16/leg1/target-417.bundle",
+   "cmd_sha256": "7cdf4cc80827a98a2ca35d68e75e987019a1e67e7c59c180b536cce1aca7e8fe",
+   "exit": 0,
+   "duration_s": 0.005,
+   "commit": "c46d4b3f3371e41408aed19e54476fa194c20b42",
+   "wtree": "13f71409bd025e39ea40e0632615576e8c0ca437",
+   "artifact": "docs/runs/campaign-2026-09-16-review-it/transcripts/recorded-bundle-verify.txt"
+  },
+  {
+   "label": "secret-scan",
+   "ts": "2026-09-16T13:11:30Z",
+   "cmd": "gitleaks detect --no-git --source docs/reports/chaining-2026-09-16/",
+   "cmd_sha256": "fa850628557541085ce49538a8231262d467aedbb7cf62854fd0b01157654f68",
+   "exit": 0,
+   "duration_s": 0.024,
+   "commit": "c46d4b3f3371e41408aed19e54476fa194c20b42",
+   "wtree": "b2b6c4851c3b9114584338a087188fc853dd544d",
+   "artifact": "docs/runs/campaign-2026-09-16-review-it/transcripts/recorded-secret-scan.txt"
+  }
+ ],
+ "contract": {
+  "criterion_ids": [
+   "AC-1",
+   "AC-2",
+   "AC-3",
+   "AC-4",
+   "AC-5"
+  ],
+  "digest": "911b464dd825891d25826d6def894940a797d1b470f6a47f60589c6a9c7febb2",
+  "source": "docs/runs/campaign-2026-09-16-review-it/criteria.md (frozen verbatim from ravidsrk/orca-fleet#417 Acceptance Criteria)"
+ },
+ "criteria": [
+  {
+   "addressed": true,
+   "id": "AC-1",
+   "text": "Chain declaration (sequence + terminal states) posted in-issue BEFORE the run."
+  },
+  {
+   "addressed": true,
+   "id": "AC-2",
+   "text": "`docs/reports/chaining-<date>/` published with per-leg manifests + handoffs."
+  },
+  {
+   "addressed": true,
+   "id": "AC-3",
+   "text": "Terminal-state table complete; any degraded stop published, not hidden."
+  },
+  {
+   "addressed": true,
+   "id": "AC-4",
+   "text": "\u22650 follow-up issues filed for protocol gaps (zero is allowed only if the run genuinely hit none \u2014 say so explicitly)."
+  },
+  {
+   "addressed": true,
+   "id": "AC-5",
+   "text": "A second person can re-derive each leg's outcome from the cited SHAs."
+  }
+ ],
+ "head_sha": "c46d4b3f3371e41408aed19e54476fa194c20b42",
+ "lighting": "lit",
+ "negative_control": {
+  "artifact": "docs/runs/campaign-2026-09-16-review-it/transcripts/after-restore.txt",
+  "did": "report-only class analogue (evidence-manifest \u00a73): re-read every quoted finding line at head_sha; re-derived all 12 numbered claims via read-only bundle/SHA/hash inspection (no target code executed)",
+  "result": "SOURCE-BOUND: every quoted line exists at head_sha; 27/27 hashes, 9/9 SHAs, 4/4 wtrees, seed bytes, and full-diff hash all re-derive"
+ },
+ "parked": [],
+ "provenance": {
+  "model": "Muse Spark (muse-spark) workflow child, solo session",
+  "retention": "this report dir, committed on branch campaign/review-it-selftest",
+  "reviewer": "workflow child (self-verified; no independent verifier \u2014 recorded degradation)",
+  "spec_version": "skills/review-it/SKILL.md @ orca-fleet c46d4b3f + playbooks acceptance-review/risk-review/triage-findings + runtime evidence-manifest/reviewed-sha-freshness/sandbox-policy/dispatch-lifecycle/mission-scheduling/gate-classification",
+  "standard": "none"
+ },
+ "reviewer_mode": "instructed-isolation",
+ "toolchain": "python 3.13.15 / git 2.55.0 / gh 2.100.0 / gitleaks 8.30.1 / orca 1.4.203 (reached via CLI only; no workers dispatched)",
+ "unit": "R1-review-pr445",
+ "verdict": {
+  "bound_sha": "c46d4b3f3371e41408aed19e54476fa194c20b42",
+  "counts": {
+   "critical": 0,
+   "fyi": 6,
+   "nit": 1,
+   "required": 0
+  },
+  "outcome": "GO"
+ }
+}

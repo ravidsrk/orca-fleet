@@ -89,3 +89,16 @@ mkdir -p /tmp/<m>-transcript && git archive origin/campaign/<m>-selftest docs/ru
 
 Archive SHAs above are the branch tips at push time (2026-09-16); the
 branches are append-only history and must not be rewritten.
+
+## Amendments (2026-09-17)
+
+1. The per-mission dirs were landed on `main` under
+   `docs/runs/campaign-2026-09-16-*/` and indexed from the run archive
+   for discoverability; the no-promotion-bid standing above is unchanged,
+   and the archive branches remain the append-only record.
+2. The map-it scoreboard cell is wrong: PR #451 is ship-it's
+   fixture-target-app merge, not a map-it promotion, and map-it's
+   frontmatter never left `doctrine-only`. No tier advanced out of the
+   campaign's own runs; clean-sweep and prove-it stand at `self-run` on
+   their own promotion reports (the 2026-09-14 tracker close and the PF-2
+   run), not on campaign LEDGERs.

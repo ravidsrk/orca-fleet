@@ -1,0 +1,8 @@
+NC doc-r04: rename 'def checkvalid(' -> 'def qcheck(' in runtime/scripts/ed25519.py; expect claimcheck --cell ed25519.py RED
+renamed 1 occurrence(s)
+--- claimcheck (expect FAIL) ---
+UNBOUND: ed25519.py: API `checkvalid` has no `def checkvalid(` in runtime/scripts/ed25519.py
+claimcheck: 1 section(s), 1 unbound claim(s)
+claimcheck exit=1
+--- restore ---
+renamed file restored: yes

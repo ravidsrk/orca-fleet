@@ -1,0 +1,35 @@
+# U1 negative control — manual corroboration (both directions, pre-commit)
+
+Control: `python3 docs/runs/campaign-2026-09-16-modernize-it/nc-probe.py`
+(fresh venv + `pip install --require-hashes --only-binary :all: -r <tree lock>`,
+then assert installed ruff reports 0.16.7). The EXECUTED proof is verify.py's
+`--execute-nc` replay; this file is the worker-side corroboration artifact.
+
+## GREEN at the upgraded tree (lock = ruff 0.16.7)
+
+```
+$ python3 docs/runs/campaign-2026-09-16-modernize-it/nc-probe.py
+NC probe GREEN: lock installs hashed-clean; ruff 0.16.7; agentskills runs
+probe_exit=0
+```
+
+## RED under the revert (lock restored from base_sha = ruff 0.16.5)
+
+```
+$ git checkout -- .github/ci-tools.lock   # ruff==0.16.5 again
+$ python3 docs/runs/campaign-2026-09-16-modernize-it/nc-probe.py
+Traceback (most recent call last):
+  File ".../docs/runs/campaign-2026-09-16-modernize-it/nc-probe.py", line 53, in <module>
+    sys.exit(main())
+  File ".../docs/runs/campaign-2026-09-16-modernize-it/nc-probe.py", line 43, in main
+    assert EXPECTED_RUFF in got, (
+AssertionError: expected installed ruff 0.16.7, got: ruff 0.16.5
+probe_on_old_lock_exit=1
+```
+
+(The `...` elides only the worktree-absolute prefix; all other bytes verbatim.
+Tree restored to the upgraded lock immediately after; `git status` confirmed
+the three unit files modified before commit d3ee3f5.)
+
+Kill verdict: the criterion-bound assertion FAILS under the control (exit 1,
+AssertionError — not silence, not ImportError) and PASSES clean (exit 0).

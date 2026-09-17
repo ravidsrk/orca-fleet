@@ -1,0 +1,40 @@
+# H1 local review record (no-gh lane, coordinator-attested — weaker guarantee)
+
+Unit: H1 deny_hook class-shared read-only fixture + config-fold
+Diff: tests/test_deny_hook.py (+42/-12)
+reviewer_mode: instructed-isolation (SAME session as builder — no independence;
+acceptance-review solo lane: this is an author self-review plus mechanical checks,
+NOT a build-blind review. Recorded, not faked.)
+
+## Blind-fix expectation (author-stated; not blind — recorded for the delta read)
+Expected: fixture builder hoisted to classmethod; read-only classes share one repo;
+mutating classes keep per-test repos via an explicit flag; commit bytes identical
+(-c identity == config identity); hook behavior unchanged (it reads refs only).
+
+## Axis 1 — Standards (repo conventions)
+- Test-only change, stdlib only, no new deps (repo has zero deps — preserved).
+- `ruff check tests/test_deny_hook.py` → All checks passed.
+- `scripts/validate.py` → all 21 missions valid.
+- Comment states the safety invariant + who must opt out. PASS.
+
+## Axis 2 — Spec (H1 intent from DIAGNOSE.md)
+- Mutating classes flagged: TestWorktreeBoundary, TestBashWritesAreBounded =
+  FRESH_REPO_PER_TEST=True; verified against the write-audit (only classes with
+  test-body writes under self.tmp). TestOutputEncoding's fixed-name dirs are
+  created by exactly one test → sharing safe.
+- HookBase itself carries no tests; per-subclass setUpClass builds one repo each.
+- Commit-bytes identity: `git -c user.email=.. -c user.name=.. commit` produces the
+  same author/committer as the removed `git config` pair (same literal values);
+  hook invokes only `git symbolic-ref` / `git show-ref` (read-only, verified in
+  deny-hook.sh:827-830) — no config read exists to break.
+- No assertion, input matrix, or timeout touched. PASS.
+
+## Axis 3 — Test-adequacy (would reverting fail?)
+- Perf form of the control (evidence-manifest carve-out): before→after on the
+  hotspot — BEFORE {46.24, 47.97, 48.08} vs AFTER {42.39, 42.52, 42.79}, 140/140
+  OK on all six runs, ranges non-overlapping. Reverting reproduces ≥46.24 s
+  (demonstrated, not asserted).
+- Oracle strength unchanged: same 140 tests, same hook-input matrices. PASS.
+
+## Verdict: PASS (author-review; independence explicitly absent)
+Round: 1/3. reviewed content = H1 commit (SHA recorded in LEDGER at land).

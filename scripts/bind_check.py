@@ -94,15 +94,35 @@ def changed_entries(root, base):
 
 
 def is_core_path(path_text):
-    """A file that could be a bindable report: any docs/runs/*.md except the
-    archive's own README and TEMPLATE (whose RUN: line is a placeholder)."""
+    """A file that could be a bindable report: a TOP-LEVEL docs/runs/*.md
+    except the archive's own README and TEMPLATE (whose RUN: line is a
+    placeholder).
+
+    Nested run notes (docs/runs/<dir>/*.md) are never candidates: the
+    binder derives the run directory from a canonical top-level filename,
+    so a nested file can never satisfy it — routing nested files only
+    fails closed on ledger-format RUN: lines (the 2026-09-16 campaign
+    archive carries sixteen, plus one formally-headed report at a
+    non-submission path) that were never submission attempts.
+    """
     p = Path(path_text)
     return (
-        len(p.parts) >= 3
+        len(p.parts) == 3
         and p.parts[0] == "docs"
         and p.parts[1] == "runs"
         and p.suffix == ".md"
         and p.name not in NON_REPORT_BASENAMES
+    )
+
+
+def is_nested_note(path_text):
+    """A nested docs/runs .md file: run support, never a submission."""
+    p = Path(path_text)
+    return (
+        len(p.parts) > 3
+        and p.parts[0] == "docs"
+        and p.parts[1] == "runs"
+        and p.suffix == ".md"
     )
 
 
@@ -231,6 +251,14 @@ def main(argv=None):
     # envelope is always seen before its core — collect every core first.
     for _status, path_text in entries:
         if not is_core_path(path_text):
+            if is_nested_note(path_text):
+                try:
+                    nested = (root / path_text).read_text(encoding="utf-8")
+                except (OSError, UnicodeDecodeError):
+                    nested = ""
+                if run_report.RUN_HEADER_RE.search(nested):
+                    print(f"skip {path_text} — nested run notes are never "
+                          f"submissions (docs/run-submission-guide.md)")
             continue
         fields, err = header_of(root, path_text)
         if err is not None:

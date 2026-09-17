@@ -1,0 +1,11 @@
+{
+ "criterion_ids": [
+  "PS.2.1"
+ ],
+ "frozen_source_sha256": "b01634a5fdb382e7a12660c379a4d0bc3a2b8e29abccf2861834880005137117",
+ "source": "docs/runs/campaign-2026-09-16-attest-it/catalog/frozen-catalog.json",
+ "standard": "NIST-SP-800-218",
+ "statement": "Make software integrity verification information available to software acquirers.",
+ "unit": "attest-ps-2-1",
+ "version": "1.0.0"
+}

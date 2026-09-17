@@ -1,0 +1,106 @@
+# U1 review — acceptance-review (solo, self-review; NOT the oracle)
+
+Unit: ci-tools ruff 0.16.5 → 0.16.7. Reviewed SHA: `d3ee3f5`
+(`d3ee3f5854bc16d883a3e93c42fd8ff1ab732d2e`), tree `2a1146fc6ab1bcebc51d454af9c30c067d8207ef`.
+Mode: `instructed-isolation`, same-session solo self-review — the weakest guarantee,
+disclosed, never the completion oracle. The oracle is the EXECUTED negative control
+(dark-eligible waiver, gate-classification.md). No second identity exists in this
+spawned session. Round 1 below is the full static review; round 2 (after the gates
+transcript lands) discharges AC-3 and re-confirms freshness — no new commits between
+rounds, or the review voids per reviewed-sha-freshness.md.
+
+## Blind expectation (written from contract.json BEFORE re-reading the diff)
+
+- `.github/ci-tools.lock`: `ruff==0.16.7` + fresh hashes; the other five package rows
+  byte-identical; header comment (lines 1–26) byte-identical.
+- `tests/test_pins.py`: `PINNED["ruff"]` reads `0.16.7`, nothing else touched.
+- `CONTRIBUTING.md`: the CI ruff mention reads `0.16.7`, nothing else touched.
+- No other files changed; no CHANGELOG / completion / archived-report edits.
+- Confidence: high — the change was mechanically derived from the inventory.
+
+## Diff vs expectation: MATCH
+
+`git diff 2d6374b..HEAD --name-only` → exactly the three files. Lock diff is
+19+/19− confined to the ruff block (version line + 18 hashes); non-ruff rows
+byte-identical to the pre-change lock AND to a fresh `uv pip compile` output
+(`/tmp/regen/regen.out`, same inputs). CONTRIBUTING and test_pins diffs are the
+single expected lines each. `CHANGELOG.md`, `docs/completion/*`, `docs/reports/*`
+untouched (empty diffstat). No new files in the unit commit.
+
+## Axis 1 — Standards: PASS, no findings
+
+- Regen procedure honored: rows are pure `uv pip compile --generate-hashes
+  --python-version 3.13 --no-header` output (command cited, re-run at build time);
+  the hand-written header preserved byte-identical (the generator emits no header,
+  so "regenerate" here = rows-from-generator + header-preserved — recorded, not
+  hidden). No hash hand-edited.
+- The test's own contract honored: "regenerate the lock AND update this test."
+- Commit hygiene: one logical commit, maintainer author, no trailers, bisectable.
+- Fowler 12-smell baseline: no logic changed — nothing to judge. Tooling-enforced
+  style: untouched.
+
+## Axis 2 — Spec (source: contract.json @ f7d5b13, AC-1..AC-6): PASS except AC-3 PENDING
+
+- AC-1 (lock pins 0.16.7, generator-regenerated): PASS — diff above.
+- AC-2 (hash-pinned install + both scripts run): PASS — NC probe GREEN at the
+  working tree pre-commit (`ruff 0.16.7`, agentskills runs; transcript in nc-u1.txt).
+- AC-3 (full gate replication green at head): PENDING — gates recording in flight
+  (`manifest-u1.json` commands[]); round 2 verdicts this. No scope creep either way.
+- AC-4 (no other dep moved): PASS — five other rows byte-identical.
+- AC-5 (advisory re-scan at new pin): PASS — fresh queries 2026-09-16 for ruff
+  0.16.7: OSV `vulns: 0`, GitHub Advisory API `{"count":0,"ids":[]}`. All other
+  pins unchanged since the clean inventory scan, so the locked set is clean.
+- AC-6 (call sites moved, history untouched): PASS — diff above.
+- No implemented-but-wrong, no missing criteria, no creep.
+
+## Axis 3 — Test-adequacy: PASS
+
+Reverting the production change (`git checkout base -- .github/ci-tools.lock`)
+fails TWO independent oracles: `test_the_lock_pins_exactly_the_expected_tree`
+(PINNED expects 0.16.7, lock would read 0.16.5) and the NC probe (observed
+`AssertionError: expected installed ruff 0.16.7, got: ruff 0.16.5`, exit 1).
+The suite is not tautological over this change. (The executed replay of the
+probe under the control is verify.py's `--execute-nc` leg, not this file.)
+
+## Risk lens — security (supply-chain; triggered by dep change): NO FINDINGS
+
+- Release corroboration: tag `0.16.7` (`b5dba86`) + published GitHub release
+  2026-09-10 in `astral-sh/ruff`; neither version yanked; same PyPI project.
+- Hash continuity: regenerated lock's ruff hashes match an independent fresh
+  `pip download` of the same wheel (`7ab81118…` present in lock).
+- Install-hook surface: `ruff-0.16.7-…whl` holds 9 files; no `setup.py`, no `.sh`,
+  no entry-points; the only script entry is the `ruff` launcher itself. Install
+  runs under `pip --require-hashes --only-binary :all:` (no sdist code execution).
+- No `audit fix --force`, no mass-bump, no hand-merged hashes.
+
+## Forced-migration check (risk-review data-migration lens as signal): NEGATIVE
+
+`diff_scope.py --strict` on the unit range: `MIGRATIONS=false`, zero unmatched,
+exit 0. The repo has no database, no schema, no migrations directory, no ORM —
+there is no stateful surface to force a migration. No `migrate-it` handoff.
+Privacy/perf/a11y/api-contract/simplification lenses: no signal (version strings
+in config+test+docs only).
+
+## Round 1 verdict: CONDITIONAL GO (static) — AC-3 owed to round 2 (gates transcript)
+
+Round count: 1 of 3. No Critical/Required; no Nits worth filing.
+
+## Round 2 (final): GO
+
+- AC-3 discharged: `u1-gates.txt` records HEAD `d3ee3f5`, 14/14 step exits 0,
+  zero nonzero, `FAIL=0`, `agentskills-validate-all exit=0`, `Ran 1490 tests …
+  OK`, installed `ruff 0.16.7`, gitleaks detect clean, vf-bench PASS — the full
+  validate.yml replication green at the unit head.
+- Freshness re-confirmed: branch head is still `d3ee3f5` (no commits between
+  rounds); `reviewed_wtree 2a1146fc` still equals `HEAD^{tree}`; the review is
+  not voided.
+- Caveat (recorded, not hidden): round-1/round-2 and the NC corroboration files
+  were written to the working tree while the gates ran (fingerprint pre-dates
+  them; no gate reads `docs/runs/campaign-*`; the DECISIONS tally line post-dates
+  the validate step and `test_decisions` passed regardless). A final gate
+  replication re-runs at the merged BASE tip before the run closes.
+- All six criteria now PASS with no new findings. Round count: 2 of 3.
+
+Final: GO (same-session self-review; advisory only — the dark-eligible oracle
+remains the executed negative control).
+

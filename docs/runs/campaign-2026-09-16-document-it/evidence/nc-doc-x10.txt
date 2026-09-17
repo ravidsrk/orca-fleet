@@ -1,0 +1,8 @@
+NC doc-x10: rename '_INVISIBLE' -> '_HIDDEN' in runtime/scripts/pm.py; expect claimcheck --cell pm.py RED
+renamed 2 occurrence(s)
+--- claimcheck (expect FAIL) ---
+UNBOUND: pm.py: ANCHOR `runtime/scripts/pm.py:_INVISIBLE` not found in runtime/scripts/pm.py
+claimcheck: 1 section(s), 1 unbound claim(s)
+claimcheck exit=1
+--- restore ---
+renamed file restored: yes

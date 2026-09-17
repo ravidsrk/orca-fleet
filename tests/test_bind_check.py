@@ -294,6 +294,52 @@ class BindCheckPrRange(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertIn("no candidate run reports changed", out)
 
+    def test_nested_ledger_format_run_line_is_skipped(self):
+        """Run ledgers use their own RUN: format (free text plus COORDINATOR
+        / BASE / FORK_POINT legs), not the binder's mission=/tier= header.
+        The 2026-09-16 campaign archive carries sixteen such lines; they are
+        notes, not malformed submissions, so they skip instead of failing."""
+        path = self.repo / "docs/runs/campaign-2026-01-02-demo-it/ledger.md"
+        path.parent.mkdir(parents=True)
+        path.write_text(
+            "# ledger\n\nRUN: solo coordinator · COORDINATOR: s1 · BASE: main · "
+            "FORK_POINT: abc · T0: 2026-01-02T00:00:00Z\n", encoding="utf-8")
+        _commit(self.repo, "nested ledger note")
+        code, out = self._run()
+        self.assertEqual(code, 0, out)
+        self.assertIn("nested run notes are never submissions", out)
+        self.assertNotIn("FAIL", out)
+
+    def test_nested_formal_header_is_skipped_not_filename_failed(self):
+        """A formally-headed report at a nested path cannot satisfy the
+        binder (the run directory derives from a canonical top-level
+        filename), so routing it can only fail. It skips with guidance —
+        the promotion gate still demands the canonical path, so nothing
+        submittable goes unjudged."""
+        path = self.repo / "docs/runs/campaign-2026-01-02-demo-it/REPORT.md"
+        path.parent.mkdir(parents=True)
+        path.write_text(
+            f"# report\n\nRUN: mission={MISSION} tier={TIER} "
+            f"inventory_at={self.base} manifest={MANIFEST} verifier=GREEN\n",
+            encoding="utf-8")
+        _commit(self.repo, "nested formal report")
+        code, out = self._run()
+        self.assertEqual(code, 0, out)
+        self.assertIn("nested run notes are never submissions", out)
+        self.assertNotIn("FAIL", out)
+
+    def test_nested_note_without_run_line_is_silent(self):
+        """The skip guidance fires only when a RUN: line is present —
+        otherwise a 500-file archive PR would print 500 skip lines."""
+        path = self.repo / "docs/runs/campaign-2026-01-02-demo-it/notes.md"
+        path.parent.mkdir(parents=True)
+        path.write_text("# notes\n\nprose, no header\n", encoding="utf-8")
+        _commit(self.repo, "nested note")
+        code, out = self._run()
+        self.assertEqual(code, 0, out)
+        self.assertIn("no candidate run reports changed", out)
+        self.assertNotIn("nested run notes", out)
+
     def test_non_envelope_reports_dirs_are_ignored(self):
         other = self.repo / "docs/reports/release-20260912/notes.md"
         other.parent.mkdir(parents=True)
@@ -379,8 +425,18 @@ class BindCheckPureHelpers(unittest.TestCase):
             "docs/runs/2026-01-02-demo-it-self-run.md"))
         for path in ("docs/runs/README.md", "docs/runs/TEMPLATE.md",
                      "docs/reports/demo-it-selfrun/README.md",
-                     "docs/runs/notes.txt"):
+                     "docs/runs/notes.txt",
+                     "docs/runs/campaign-2026-01-02-demo-it/LEDGER.md"):
             self.assertFalse(bind_check.is_core_path(path), path)
+
+    def test_is_nested_note(self):
+        self.assertTrue(bind_check.is_nested_note(
+            "docs/runs/campaign-2026-01-02-demo-it/LEDGER.md"))
+        for path in ("docs/runs/2026-01-02-demo-it-self-run.md",
+                     "docs/runs/README.md",
+                     "docs/reports/demo-it-selfrun/README.md",
+                     "docs/runs/campaign-2026-01-02-demo-it/data.json"):
+            self.assertFalse(bind_check.is_nested_note(path), path)
 
     def test_normalize_tier(self):
         self.assertEqual(bind_check.normalize_tier("self-run"), "selfrun")

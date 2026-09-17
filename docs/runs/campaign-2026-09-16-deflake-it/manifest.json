@@ -1,0 +1,249 @@
+{
+ "artifacts": [
+  {
+   "path": "docs/runs/campaign-2026-09-16-deflake-it/BACKLOG.md",
+   "sha256": "04d5497ebfcfcd39bae59bcc2c4b819d4fb306718e3b96c968141db93f4ada06"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-deflake-it/LEDGER.md",
+   "sha256": "4b03f9e1ddb855431923d70f007ecae7245f7174416b4f7e1603406d8b77254b"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-deflake-it/LOOP-F1.sh",
+   "sha256": "76085e7e6cfc4c46fd940e2191870317a81cf8c4ee5ea0b77e6347474450ea27"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-deflake-it/LOOP-F2.sh",
+   "sha256": "8cf0af7ff5a3f4bb50bfd7674dae61a19cb590353f3b82fdbcfd370b7fc7b42b"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-deflake-it/RATCHET.md",
+   "sha256": "f681fb2e41702e7e273165aecbb1c0bad29bd9c1a13c3d845c817826cac22ced"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-deflake-it/REFLECTION.md",
+   "sha256": "9546850d826dc7df11cb148b88aef14e54db3291e991cfe56d58c3f6c783b547"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-deflake-it/STREAK-full.sh",
+   "sha256": "608b7c7d0241629d5d9c21970dbf135c2e91ffb596460d6576d0ade16c0f004b"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-deflake-it/STREAK-module.sh",
+   "sha256": "6c389c7ee7e6c548d4ac171b9f500b4d755c77ceb7f880114187f9f61be779f2"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-deflake-it/contract.json",
+   "sha256": "c26f40cabe67fb56e8125948d012e6de706702cdae3b6460a6d4ae37199962f1"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-deflake-it/loop-f1-500.log",
+   "sha256": "51fedfe72ca3fb427d595b4988259dbef85671d80a99c234d50623188e286301"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-deflake-it/loop-f2-30.log",
+   "sha256": "4f3f0523b1dfcb1cbf9e2e33434da6570da642bff96417b7f49364e0fd43b5b9"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-deflake-it/loop-r-200.log",
+   "sha256": "698c81c0cfe8eda6a4a9aae4696f64e6f951c0e10d83e2005e67350c8870ed2e"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-deflake-it/loop-r-mechanism.py",
+   "sha256": "2b58d5c11227f79f091f06ed83b183027242389b578ffc89acd55c3a26d19ed2"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-deflake-it/proofstatus.txt",
+   "sha256": "b1e6e3988e6142ce64be2e21c8dc24faee807d94db29b19a566f0dfcf436c110"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-deflake-it/ratchet-green-sample.log",
+   "sha256": "58d7b5cc014dcb921d12bd4915c8a0a3bd2e8354693a7c6ec1c4c055f2407422"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-deflake-it/ratchet-red-sample.log",
+   "sha256": "f7e6c372f1acd0e6aebaff70d3f73918cf69462b9ff05429aa92ba0e41b27f1f"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-deflake-it/streak-full-10-ABORTED-c8abd8c.log",
+   "sha256": "659ea88a6faaa3974f4c0c1dcf6daee38294a5691b9e95e7d5dcc63cc4e1bd76"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-deflake-it/streak-full-10.log",
+   "sha256": "c432aba50a5ff2ad45093b2fbd9aed4ef77b527e9be05817a46eb06679db6173"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-deflake-it/streak-module-30-VOID-c8abd8c.log",
+   "sha256": "a73f666cea6b0d31594fee562ccde9b51f77cd3b4c906d82c73ccd3098a53daf"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-deflake-it/streak-module-30.log",
+   "sha256": "07d87625c145fb7bc16901233a818d1bba1b13628765b40310a8d4c5aa6aa9f8"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-deflake-it/tests.txt",
+   "sha256": "1eb60a2d1d6531cb4c6758296da181273b46b0166b4a37388e48e989687b4d0a"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-deflake-it/validation.txt",
+   "sha256": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-deflake-it/verifier-attempt3.txt",
+   "sha256": "8e5166a6e47450ac6fc19bbb0184a0dd19aac5f52c34c781fc0cc14ccc43ac25"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-deflake-it/verifier-attempt4.txt",
+   "sha256": "14ed4d402dc43238949327571d4ec2873247ee90d2e2c7b0098e9895a2bfaa71"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-deflake-it/verifier-final.txt",
+   "sha256": "1127b2a80beb4f360040daa5272eaabbeb560da0a25438b035076cf010af10b6"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-deflake-it/verifier.txt",
+   "sha256": "e1cb2017455f4c233d757bf36c2000215551ace7445bd449fdc74ebd01414deb"
+  }
+ ],
+ "base_branch": "campaign/deflake-it-selftest",
+ "base_sha": "6390743815f8f435181fa410cce374587128b30a",
+ "binding_audit": {
+  "coverage": "AC-1..AC-4 (4/4)",
+  "method": "AC-1: LOOP-R construct pair 200/200 vs 0/200 + CI occurrence pair (1332614, ec917f50); AC-2: flag-flip hand mutant KILLED 0/20 assertion-RED, restored 20/20; AC-3: module x30 + full-suite x10 consecutive greens at c8abd8c (local; CI owed); AC-4: retry/rerun grep over the diff clean"
+ },
+ "claim": "F1 teardown race fixed at all 4 exposed sites, ratcheted, streaked locally; CI leg owed (no-push task constraint). Not STABLE.",
+ "commands": [
+  {
+   "label": "validation",
+   "ts": "2026-09-16T12:04:43Z",
+   "cmd": "python3 scripts/validate.py",
+   "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+   "exit": 0,
+   "duration_s": 0.828,
+   "commit": "2352cd124cdacef10f9dff24a252a1f7c7344feb",
+   "wtree": "f8217865fdb615335972e825b9d2faf68be0bd5d",
+   "artifact": "docs/runs/campaign-2026-09-16-deflake-it/validation.txt"
+  },
+  {
+   "label": "tests",
+   "ts": "2026-09-16T12:08:59Z",
+   "cmd": "python3 -m unittest discover -s tests",
+   "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+   "exit": 0,
+   "duration_s": 250.11,
+   "commit": "2352cd124cdacef10f9dff24a252a1f7c7344feb",
+   "wtree": "902257118dca44c0404912ca4494f5aa2017350c",
+   "artifact": "docs/runs/campaign-2026-09-16-deflake-it/tests.txt"
+  },
+  {
+   "label": "proof-status",
+   "ts": "2026-09-16T12:09:08Z",
+   "cmd": "python3 runtime/scripts/proof_status.py --check",
+   "cmd_sha256": "7c86d03188a425b13e31dcf3389233293326170c83d4ed9cb167160b388b34e3",
+   "exit": 0,
+   "duration_s": 0.02,
+   "commit": "2352cd124cdacef10f9dff24a252a1f7c7344feb",
+   "wtree": "fea356198b6cf12510dd770cd9d2e6c79d7b0735",
+   "artifact": "docs/runs/campaign-2026-09-16-deflake-it/proofstatus.txt"
+  },
+  {
+   "label": "verifier",
+   "ts": "2026-09-16T12:10:21Z",
+   "cmd": "python3 runtime/scripts/verify.py --manifest docs/runs/campaign-2026-09-16-deflake-it/manifest.json --contract-source docs/runs/campaign-2026-09-16-deflake-it/contract.json@2352cd124cdacef10f9dff24a252a1f7c7344feb --contract-digest sha256:c26f40cabe67fb56e8125948d012e6de706702cdae3b6460a6d4ae37199962f1 --unit-class mutation --execute-nc --nc-command 'python3 -m unittest tests.test_verify.FreshnessCheck.test_throwaway_repo_teardown_tolerates_a_late_writer'",
+   "cmd_sha256": "2c8bfbd5dcd8949df2912dbc2772fb8fc801044ba41f64d6237dda0d530fc9e9",
+   "exit": 2,
+   "duration_s": 0.139,
+   "commit": "2352cd124cdacef10f9dff24a252a1f7c7344feb",
+   "wtree": "196a5825a41c14908d291891b0b1b77d31b23817",
+   "artifact": "docs/runs/campaign-2026-09-16-deflake-it/verifier.txt"
+  },
+  {
+   "label": "verifier-final",
+   "ts": "2026-09-16T12:12:00Z",
+   "cmd": "python3 runtime/scripts/verify.py --manifest docs/runs/campaign-2026-09-16-deflake-it/manifest.json --contract-source docs/runs/campaign-2026-09-16-deflake-it/contract.json@2352cd124cdacef10f9dff24a252a1f7c7344feb --contract-digest sha256:c26f40cabe67fb56e8125948d012e6de706702cdae3b6460a6d4ae37199962f1 --unit-class mutation --execute-nc --nc-command 'python3 -m unittest tests.test_verify.FreshnessCheck.test_throwaway_repo_teardown_tolerates_a_late_writer'",
+   "cmd_sha256": "2c8bfbd5dcd8949df2912dbc2772fb8fc801044ba41f64d6237dda0d530fc9e9",
+   "exit": 2,
+   "duration_s": 0.761,
+   "commit": "2352cd124cdacef10f9dff24a252a1f7c7344feb",
+   "wtree": "cfec46561ed75f0738392ce774bc469f111de4c0",
+   "artifact": "docs/runs/campaign-2026-09-16-deflake-it/verifier-final.txt"
+  }
+ ],
+ "contract": {
+  "criterion_ids": [
+   "AC-1",
+   "AC-2",
+   "AC-3",
+   "AC-4"
+  ],
+  "digest": "sha256:c26f40cabe67fb56e8125948d012e6de706702cdae3b6460a6d4ae37199962f1",
+  "source": "docs/runs/campaign-2026-09-16-deflake-it/contract.json@2352cd124cdacef10f9dff24a252a1f7c7344feb"
+ },
+ "criteria": [
+  {
+   "addressed": true,
+   "id": "AC-1",
+   "text": "F1 root-caused with a loop that raises the failure rate (never a theory)"
+  },
+  {
+   "addressed": true,
+   "id": "AC-2",
+   "text": "Root cause fixed + red-by-revert ratchet executed (revert-only-the-fix RED, restore green mini-streak)"
+  },
+  {
+   "addressed": false,
+   "id": "AC-3",
+   "text": "Full suite holds the declared consecutive-green streak local AND in CI at one SHA"
+  },
+  {
+   "addressed": true,
+   "id": "AC-4",
+   "text": "Zero retry/rerun wrappers added (grep-checked)"
+  }
+ ],
+ "head_sha": "5bd2672f074b6656c6bc7becce43fc50fefd79d1",
+ "intent": {
+  "goal": "Terminalize the OSError-39 teardown flake at every temp-repo site it implies.",
+  "ruled_out": "Retry-wrappers (banned); single-site fix (leaves 3 known-identical sites); quarantine (flake is diagnosed, not surviving); theory-first writer hunt without a local repro loop.",
+  "why": "Two CI occurrences of one signature + one faithful mechanism loop beating 200/200 vs 0/200 + an executable pinning test make teardown tolerance the load-bearing fix; the exact writer process is follow-up."
+ },
+ "lighting": "lit",
+ "metric_contract": {
+  "method": "serial fresh-process runs at one head SHA (5bd2672; prior 30/30 @ c8abd8c voided by the badge-regen commit), fixed unittest order (no seed axis), macOS arm64, gitleaks on PATH; streak-abort guard on HEAD move",
+  "metric": "consecutive-green streak",
+  "target": "module x30 (residual p<=9.5%) + full-suite x10 (residual p<=26%), 95% confidence, LOCAL ONLY \u2014 CI leg owed"
+ },
+ "negative_control": {
+  "artifact": "docs/runs/campaign-2026-09-16-deflake-it/RATCHET.md",
+  "command": "python3 -m unittest tests.test_verify.FreshnessCheck.test_throwaway_repo_teardown_tolerates_a_late_writer",
+  "did": "flipped _temp_repo ignore_cleanup_errors True->False (fix line only, pinning test kept)",
+  "mutant": "hand m-F1 _temp_repo: True->False (diff quoted in RATCHET.md)",
+  "paths": [
+   "tests/test_verify.py"
+  ],
+  "result": "the pinning test went RED 0/20 via AssertionError (10/10 raced trials raising OSError per run); restored flag 20/20 green (mutant KILLED)",
+  "tool": "hand"
+ },
+ "parked": [
+  {
+   "gate": "promotion-PR-owed",
+   "item": "CI-leg streak verification at the fixed SHA",
+   "reason": "task forbids push/PR/merge: no CI trigger possible; the promotion PR must show validate green (both suite legs) before STABLE is claimable"
+  }
+ ],
+ "pr": {
+  "number": 0,
+  "reviewed_sha": "",
+  "url": ""
+ },
+ "provenance": {
+  "model": "Muse Spark (coordinator session a4a0c6e3)",
+  "retention": "none (local worktree evidence commit)",
+  "reviewer": "none-solo (no independent review; recorded, not faked)",
+  "spec_version": "deflake-it SKILL @ 6390743",
+  "standard": "none"
+ },
+ "toolchain": "python 3.13.15 / Darwin 25.6.0 arm64",
+ "unit": "F1",
+ "terminal": "FIXED-LOCAL (CI-verify owed) \u2014 not STABLE: local streaks hold, CI leg unverified (no-push task constraint)"
+}

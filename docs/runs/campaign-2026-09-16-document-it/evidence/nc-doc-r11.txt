@@ -1,0 +1,7 @@
+NC doc-r11: move anchored tests/test_sandbox_doctor.py aside; expect claimcheck --cell sandbox_doctor.py RED (flagless CLI: PATH anchor is the control)
+--- claimcheck (expect FAIL) ---
+UNBOUND: sandbox_doctor.py: PATH `tests/test_sandbox_doctor.py` does not exist
+claimcheck: 1 section(s), 1 unbound claim(s)
+claimcheck exit=1
+--- restore ---
+test file restored: yes

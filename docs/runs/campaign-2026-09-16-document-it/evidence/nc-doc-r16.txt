@@ -1,0 +1,8 @@
+NC doc-r16: rename 'wedge_frozen_s' -> 'wedge_idle_s' in runtime/watchdog.json; expect claimcheck --cell watchdog.json RED
+renamed 1 occurrence(s)
+--- claimcheck (expect FAIL) ---
+UNBOUND: watchdog.json: KEY `wedge_frozen_s` not in runtime/watchdog.json
+claimcheck: 1 section(s), 1 unbound claim(s)
+claimcheck exit=1
+--- restore ---
+renamed file restored: yes

@@ -1,0 +1,66 @@
+{
+  "unit": "attest-ps-2-1",
+  "base_sha": "6390743815f8f435181fa410cce374587128b30a",
+  "head_sha": "6390743815f8f435181fa410cce374587128b30a",
+  "contract": {
+    "source": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/PS.2.1.json",
+    "digest": "f08dbeee238262000a5fff9496f153677c5351eb9986dfc42db11b7ff696e2d3",
+    "criterion_ids": [
+      "PS.2.1"
+    ]
+  },
+  "criteria": [
+    {
+      "id": "PS.2.1",
+      "text": "Make software integrity verification information available to software acquirers.",
+      "addressed": true
+    }
+  ],
+  "negative_control": {
+    "did": "independent re-derivation (report-only analogue): re-executed every quote, absence, no-match, digest, and release-binding check from git objects at TARGET via rederive.py, plus blind second-pass reads of all cited files",
+    "tool": "hand",
+    "result": "rederive.py exit 0; 7 mis-cited lines/numbers caught and corrected during re-derivation across the run",
+    "artifact": "docs/runs/campaign-2026-09-16-attest-it/rederive/rederive.log",
+    "command": "python3 docs/runs/campaign-2026-09-16-attest-it/rederive/rederive.py",
+    "paths": []
+  },
+  "binding_audit": {
+    "coverage": "PS.2.1 (1/1)",
+    "method": "criterion quoted, covering artifact lines quoted, re-derived at TARGET by rederive.py"
+  },
+  "lighting": "lit",
+  "artifacts": [
+    {
+      "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/PS.2.1.md",
+      "sha256": "b9745c24e560c8a3abf9cfa13f610e1678863149e374b75cdfca1c4d9faf5384"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-attest-it/rederive/rederive.log",
+      "sha256": "83044442389b8c2ab2d3166fd8f4a0247b47dc007f44b4738dae116b6d851a4d"
+    }
+  ],
+  "reviewer_mode": "instructed-isolation",
+  "toolchain": "CPython 3.13.15 + git",
+  "provenance": {
+    "spec_version": "NIST-SP-800-218@1.0.0",
+    "model": "Muse Code powered by Meta Muse Spark (2026-09-16 session)",
+    "reviewer": "same-session re-derivation pass (instructed-isolation) + deterministic rederive.py, 2026-09-16",
+    "retention": "git: docs/runs/campaign-2026-09-16-attest-it/ on branch campaign/attest-it-selftest",
+    "standard": "SSDF"
+  },
+  "parked": [],
+  "claim": "VERIFIED: PS.2.1 \u2014 see evidence/PS.2.1.md (informational only; rederive.py is the oracle)",
+  "commands": [
+    {
+      "label": "rederive",
+      "ts": "2026-09-16T10:28:29Z",
+      "cmd": "python3 docs/runs/campaign-2026-09-16-attest-it/rederive/rederive.py",
+      "cmd_sha256": "18537d5635901ec2f2905b12f4a20efdaabd79239ef9fc841940ef6354f52ba2",
+      "exit": 0,
+      "duration_s": 0.257,
+      "commit": "6390743815f8f435181fa410cce374587128b30a",
+      "wtree": "c347cb88735833e312759ad589f9094298208218",
+      "artifact": null
+    }
+  ]
+}

@@ -1,0 +1,572 @@
+STREAK-module start 2026-09-16T10:30:50Z N=30 HEAD=c8abd8c7f8b163656d572a09252fd08b0ef162a2 TREE=6c54e02e02b1706ae229179632e5e3c4cbcc7412 host=Darwin 25.6.0 arm64
+......................................................................................................................FAIL: manifest must be a JSON object, got list
+verify: evidence manifest malformed/unreadable — unit is NOT done
+............................................................................................................................FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: head_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: base_sha 'HEAD' is not a real commit
+FAIL: head_sha 'HEAD' is not a real commit
+FAIL: commands ledger: cannot resolve the tree of head_sha (not a real commit here, or not inside a git repo) — the recorded run cannot be bound to content; fail-closed
+FAIL: intent packet incomplete — non-empty ['goal', 'ruled_out', 'why'] required (mutation unit)
+FAIL: reviewer_mode must be one of ['cross-vendor', 'instructed-isolation', 'same-vendor-fresh'], got None
+FAIL: negative_control.tool must be one of ['cargo-mutants', 'cosmic-ray', 'go-mutesting', 'hand', 'mutmut', 'pitest', 'revert', 'stryker'], got None
+FAIL: negative_control.result must record the mutant KILLED / the proof going RED
+FAIL: negative_control.artifact (an evidence path) is required
+FAIL: mutation unit: no pr.number to look up an independent review — unreviewed
+verify: 11 invariant(s) failed — unit is NOT done
+..
+----------------------------------------------------------------------
+Ran 244 tests in 35.196s
+
+OK
+......................................................................................................................FAIL: manifest must be a JSON object, got list
+verify: evidence manifest malformed/unreadable — unit is NOT done
+............................................................................................................................FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: head_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: base_sha 'HEAD' is not a real commit
+FAIL: head_sha 'HEAD' is not a real commit
+FAIL: commands ledger: cannot resolve the tree of head_sha (not a real commit here, or not inside a git repo) — the recorded run cannot be bound to content; fail-closed
+FAIL: intent packet incomplete — non-empty ['goal', 'ruled_out', 'why'] required (mutation unit)
+FAIL: reviewer_mode must be one of ['cross-vendor', 'instructed-isolation', 'same-vendor-fresh'], got None
+FAIL: negative_control.tool must be one of ['cargo-mutants', 'cosmic-ray', 'go-mutesting', 'hand', 'mutmut', 'pitest', 'revert', 'stryker'], got None
+FAIL: negative_control.result must record the mutant KILLED / the proof going RED
+FAIL: negative_control.artifact (an evidence path) is required
+FAIL: mutation unit: no pr.number to look up an independent review — unreviewed
+verify: 11 invariant(s) failed — unit is NOT done
+..
+----------------------------------------------------------------------
+Ran 244 tests in 34.003s
+
+OK
+......................................................................................................................FAIL: manifest must be a JSON object, got list
+verify: evidence manifest malformed/unreadable — unit is NOT done
+............................................................................................................................FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: head_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: base_sha 'HEAD' is not a real commit
+FAIL: head_sha 'HEAD' is not a real commit
+FAIL: commands ledger: cannot resolve the tree of head_sha (not a real commit here, or not inside a git repo) — the recorded run cannot be bound to content; fail-closed
+FAIL: intent packet incomplete — non-empty ['goal', 'ruled_out', 'why'] required (mutation unit)
+FAIL: reviewer_mode must be one of ['cross-vendor', 'instructed-isolation', 'same-vendor-fresh'], got None
+FAIL: negative_control.tool must be one of ['cargo-mutants', 'cosmic-ray', 'go-mutesting', 'hand', 'mutmut', 'pitest', 'revert', 'stryker'], got None
+FAIL: negative_control.result must record the mutant KILLED / the proof going RED
+FAIL: negative_control.artifact (an evidence path) is required
+FAIL: mutation unit: no pr.number to look up an independent review — unreviewed
+verify: 11 invariant(s) failed — unit is NOT done
+..
+----------------------------------------------------------------------
+Ran 244 tests in 33.497s
+
+OK
+......................................................................................................................FAIL: manifest must be a JSON object, got list
+verify: evidence manifest malformed/unreadable — unit is NOT done
+............................................................................................................................FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: head_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: base_sha 'HEAD' is not a real commit
+FAIL: head_sha 'HEAD' is not a real commit
+FAIL: commands ledger: cannot resolve the tree of head_sha (not a real commit here, or not inside a git repo) — the recorded run cannot be bound to content; fail-closed
+FAIL: intent packet incomplete — non-empty ['goal', 'ruled_out', 'why'] required (mutation unit)
+FAIL: reviewer_mode must be one of ['cross-vendor', 'instructed-isolation', 'same-vendor-fresh'], got None
+FAIL: negative_control.tool must be one of ['cargo-mutants', 'cosmic-ray', 'go-mutesting', 'hand', 'mutmut', 'pitest', 'revert', 'stryker'], got None
+FAIL: negative_control.result must record the mutant KILLED / the proof going RED
+FAIL: negative_control.artifact (an evidence path) is required
+FAIL: mutation unit: no pr.number to look up an independent review — unreviewed
+verify: 11 invariant(s) failed — unit is NOT done
+..
+----------------------------------------------------------------------
+Ran 244 tests in 33.888s
+
+OK
+......................................................................................................................FAIL: manifest must be a JSON object, got list
+verify: evidence manifest malformed/unreadable — unit is NOT done
+............................................................................................................................FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: head_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: base_sha 'HEAD' is not a real commit
+FAIL: head_sha 'HEAD' is not a real commit
+FAIL: commands ledger: cannot resolve the tree of head_sha (not a real commit here, or not inside a git repo) — the recorded run cannot be bound to content; fail-closed
+FAIL: intent packet incomplete — non-empty ['goal', 'ruled_out', 'why'] required (mutation unit)
+FAIL: reviewer_mode must be one of ['cross-vendor', 'instructed-isolation', 'same-vendor-fresh'], got None
+FAIL: negative_control.tool must be one of ['cargo-mutants', 'cosmic-ray', 'go-mutesting', 'hand', 'mutmut', 'pitest', 'revert', 'stryker'], got None
+FAIL: negative_control.result must record the mutant KILLED / the proof going RED
+FAIL: negative_control.artifact (an evidence path) is required
+FAIL: mutation unit: no pr.number to look up an independent review — unreviewed
+verify: 11 invariant(s) failed — unit is NOT done
+..
+----------------------------------------------------------------------
+Ran 244 tests in 34.122s
+
+OK
+......................................................................................................................FAIL: manifest must be a JSON object, got list
+verify: evidence manifest malformed/unreadable — unit is NOT done
+............................................................................................................................FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: head_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: base_sha 'HEAD' is not a real commit
+FAIL: head_sha 'HEAD' is not a real commit
+FAIL: commands ledger: cannot resolve the tree of head_sha (not a real commit here, or not inside a git repo) — the recorded run cannot be bound to content; fail-closed
+FAIL: intent packet incomplete — non-empty ['goal', 'ruled_out', 'why'] required (mutation unit)
+FAIL: reviewer_mode must be one of ['cross-vendor', 'instructed-isolation', 'same-vendor-fresh'], got None
+FAIL: negative_control.tool must be one of ['cargo-mutants', 'cosmic-ray', 'go-mutesting', 'hand', 'mutmut', 'pitest', 'revert', 'stryker'], got None
+FAIL: negative_control.result must record the mutant KILLED / the proof going RED
+FAIL: negative_control.artifact (an evidence path) is required
+FAIL: mutation unit: no pr.number to look up an independent review — unreviewed
+verify: 11 invariant(s) failed — unit is NOT done
+..
+----------------------------------------------------------------------
+Ran 244 tests in 33.602s
+
+OK
+......................................................................................................................FAIL: manifest must be a JSON object, got list
+verify: evidence manifest malformed/unreadable — unit is NOT done
+............................................................................................................................FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: head_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: base_sha 'HEAD' is not a real commit
+FAIL: head_sha 'HEAD' is not a real commit
+FAIL: commands ledger: cannot resolve the tree of head_sha (not a real commit here, or not inside a git repo) — the recorded run cannot be bound to content; fail-closed
+FAIL: intent packet incomplete — non-empty ['goal', 'ruled_out', 'why'] required (mutation unit)
+FAIL: reviewer_mode must be one of ['cross-vendor', 'instructed-isolation', 'same-vendor-fresh'], got None
+FAIL: negative_control.tool must be one of ['cargo-mutants', 'cosmic-ray', 'go-mutesting', 'hand', 'mutmut', 'pitest', 'revert', 'stryker'], got None
+FAIL: negative_control.result must record the mutant KILLED / the proof going RED
+FAIL: negative_control.artifact (an evidence path) is required
+FAIL: mutation unit: no pr.number to look up an independent review — unreviewed
+verify: 11 invariant(s) failed — unit is NOT done
+..
+----------------------------------------------------------------------
+Ran 244 tests in 33.854s
+
+OK
+......................................................................................................................FAIL: manifest must be a JSON object, got list
+verify: evidence manifest malformed/unreadable — unit is NOT done
+............................................................................................................................FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: head_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: base_sha 'HEAD' is not a real commit
+FAIL: head_sha 'HEAD' is not a real commit
+FAIL: commands ledger: cannot resolve the tree of head_sha (not a real commit here, or not inside a git repo) — the recorded run cannot be bound to content; fail-closed
+FAIL: intent packet incomplete — non-empty ['goal', 'ruled_out', 'why'] required (mutation unit)
+FAIL: reviewer_mode must be one of ['cross-vendor', 'instructed-isolation', 'same-vendor-fresh'], got None
+FAIL: negative_control.tool must be one of ['cargo-mutants', 'cosmic-ray', 'go-mutesting', 'hand', 'mutmut', 'pitest', 'revert', 'stryker'], got None
+FAIL: negative_control.result must record the mutant KILLED / the proof going RED
+FAIL: negative_control.artifact (an evidence path) is required
+FAIL: mutation unit: no pr.number to look up an independent review — unreviewed
+verify: 11 invariant(s) failed — unit is NOT done
+..
+----------------------------------------------------------------------
+Ran 244 tests in 32.494s
+
+OK
+......................................................................................................................FAIL: manifest must be a JSON object, got list
+verify: evidence manifest malformed/unreadable — unit is NOT done
+............................................................................................................................FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: head_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: base_sha 'HEAD' is not a real commit
+FAIL: head_sha 'HEAD' is not a real commit
+FAIL: commands ledger: cannot resolve the tree of head_sha (not a real commit here, or not inside a git repo) — the recorded run cannot be bound to content; fail-closed
+FAIL: intent packet incomplete — non-empty ['goal', 'ruled_out', 'why'] required (mutation unit)
+FAIL: reviewer_mode must be one of ['cross-vendor', 'instructed-isolation', 'same-vendor-fresh'], got None
+FAIL: negative_control.tool must be one of ['cargo-mutants', 'cosmic-ray', 'go-mutesting', 'hand', 'mutmut', 'pitest', 'revert', 'stryker'], got None
+FAIL: negative_control.result must record the mutant KILLED / the proof going RED
+FAIL: negative_control.artifact (an evidence path) is required
+FAIL: mutation unit: no pr.number to look up an independent review — unreviewed
+verify: 11 invariant(s) failed — unit is NOT done
+..
+----------------------------------------------------------------------
+Ran 244 tests in 32.688s
+
+OK
+......................................................................................................................FAIL: manifest must be a JSON object, got list
+verify: evidence manifest malformed/unreadable — unit is NOT done
+............................................................................................................................FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: head_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: base_sha 'HEAD' is not a real commit
+FAIL: head_sha 'HEAD' is not a real commit
+FAIL: commands ledger: cannot resolve the tree of head_sha (not a real commit here, or not inside a git repo) — the recorded run cannot be bound to content; fail-closed
+FAIL: intent packet incomplete — non-empty ['goal', 'ruled_out', 'why'] required (mutation unit)
+FAIL: reviewer_mode must be one of ['cross-vendor', 'instructed-isolation', 'same-vendor-fresh'], got None
+FAIL: negative_control.tool must be one of ['cargo-mutants', 'cosmic-ray', 'go-mutesting', 'hand', 'mutmut', 'pitest', 'revert', 'stryker'], got None
+FAIL: negative_control.result must record the mutant KILLED / the proof going RED
+FAIL: negative_control.artifact (an evidence path) is required
+FAIL: mutation unit: no pr.number to look up an independent review — unreviewed
+verify: 11 invariant(s) failed — unit is NOT done
+..
+----------------------------------------------------------------------
+Ran 244 tests in 33.126s
+
+OK
+......................................................................................................................FAIL: manifest must be a JSON object, got list
+verify: evidence manifest malformed/unreadable — unit is NOT done
+............................................................................................................................FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: head_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: base_sha 'HEAD' is not a real commit
+FAIL: head_sha 'HEAD' is not a real commit
+FAIL: commands ledger: cannot resolve the tree of head_sha (not a real commit here, or not inside a git repo) — the recorded run cannot be bound to content; fail-closed
+FAIL: intent packet incomplete — non-empty ['goal', 'ruled_out', 'why'] required (mutation unit)
+FAIL: reviewer_mode must be one of ['cross-vendor', 'instructed-isolation', 'same-vendor-fresh'], got None
+FAIL: negative_control.tool must be one of ['cargo-mutants', 'cosmic-ray', 'go-mutesting', 'hand', 'mutmut', 'pitest', 'revert', 'stryker'], got None
+FAIL: negative_control.result must record the mutant KILLED / the proof going RED
+FAIL: negative_control.artifact (an evidence path) is required
+FAIL: mutation unit: no pr.number to look up an independent review — unreviewed
+verify: 11 invariant(s) failed — unit is NOT done
+..
+----------------------------------------------------------------------
+Ran 244 tests in 32.440s
+
+OK
+......................................................................................................................FAIL: manifest must be a JSON object, got list
+verify: evidence manifest malformed/unreadable — unit is NOT done
+............................................................................................................................FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: head_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: base_sha 'HEAD' is not a real commit
+FAIL: head_sha 'HEAD' is not a real commit
+FAIL: commands ledger: cannot resolve the tree of head_sha (not a real commit here, or not inside a git repo) — the recorded run cannot be bound to content; fail-closed
+FAIL: intent packet incomplete — non-empty ['goal', 'ruled_out', 'why'] required (mutation unit)
+FAIL: reviewer_mode must be one of ['cross-vendor', 'instructed-isolation', 'same-vendor-fresh'], got None
+FAIL: negative_control.tool must be one of ['cargo-mutants', 'cosmic-ray', 'go-mutesting', 'hand', 'mutmut', 'pitest', 'revert', 'stryker'], got None
+FAIL: negative_control.result must record the mutant KILLED / the proof going RED
+FAIL: negative_control.artifact (an evidence path) is required
+FAIL: mutation unit: no pr.number to look up an independent review — unreviewed
+verify: 11 invariant(s) failed — unit is NOT done
+..
+----------------------------------------------------------------------
+Ran 244 tests in 32.182s
+
+OK
+......................................................................................................................FAIL: manifest must be a JSON object, got list
+verify: evidence manifest malformed/unreadable — unit is NOT done
+............................................................................................................................FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: head_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: base_sha 'HEAD' is not a real commit
+FAIL: head_sha 'HEAD' is not a real commit
+FAIL: commands ledger: cannot resolve the tree of head_sha (not a real commit here, or not inside a git repo) — the recorded run cannot be bound to content; fail-closed
+FAIL: intent packet incomplete — non-empty ['goal', 'ruled_out', 'why'] required (mutation unit)
+FAIL: reviewer_mode must be one of ['cross-vendor', 'instructed-isolation', 'same-vendor-fresh'], got None
+FAIL: negative_control.tool must be one of ['cargo-mutants', 'cosmic-ray', 'go-mutesting', 'hand', 'mutmut', 'pitest', 'revert', 'stryker'], got None
+FAIL: negative_control.result must record the mutant KILLED / the proof going RED
+FAIL: negative_control.artifact (an evidence path) is required
+FAIL: mutation unit: no pr.number to look up an independent review — unreviewed
+verify: 11 invariant(s) failed — unit is NOT done
+..
+----------------------------------------------------------------------
+Ran 244 tests in 32.026s
+
+OK
+......................................................................................................................FAIL: manifest must be a JSON object, got list
+verify: evidence manifest malformed/unreadable — unit is NOT done
+............................................................................................................................FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: head_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: base_sha 'HEAD' is not a real commit
+FAIL: head_sha 'HEAD' is not a real commit
+FAIL: commands ledger: cannot resolve the tree of head_sha (not a real commit here, or not inside a git repo) — the recorded run cannot be bound to content; fail-closed
+FAIL: intent packet incomplete — non-empty ['goal', 'ruled_out', 'why'] required (mutation unit)
+FAIL: reviewer_mode must be one of ['cross-vendor', 'instructed-isolation', 'same-vendor-fresh'], got None
+FAIL: negative_control.tool must be one of ['cargo-mutants', 'cosmic-ray', 'go-mutesting', 'hand', 'mutmut', 'pitest', 'revert', 'stryker'], got None
+FAIL: negative_control.result must record the mutant KILLED / the proof going RED
+FAIL: negative_control.artifact (an evidence path) is required
+FAIL: mutation unit: no pr.number to look up an independent review — unreviewed
+verify: 11 invariant(s) failed — unit is NOT done
+..
+----------------------------------------------------------------------
+Ran 244 tests in 32.247s
+
+OK
+......................................................................................................................FAIL: manifest must be a JSON object, got list
+verify: evidence manifest malformed/unreadable — unit is NOT done
+............................................................................................................................FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: head_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: base_sha 'HEAD' is not a real commit
+FAIL: head_sha 'HEAD' is not a real commit
+FAIL: commands ledger: cannot resolve the tree of head_sha (not a real commit here, or not inside a git repo) — the recorded run cannot be bound to content; fail-closed
+FAIL: intent packet incomplete — non-empty ['goal', 'ruled_out', 'why'] required (mutation unit)
+FAIL: reviewer_mode must be one of ['cross-vendor', 'instructed-isolation', 'same-vendor-fresh'], got None
+FAIL: negative_control.tool must be one of ['cargo-mutants', 'cosmic-ray', 'go-mutesting', 'hand', 'mutmut', 'pitest', 'revert', 'stryker'], got None
+FAIL: negative_control.result must record the mutant KILLED / the proof going RED
+FAIL: negative_control.artifact (an evidence path) is required
+FAIL: mutation unit: no pr.number to look up an independent review — unreviewed
+verify: 11 invariant(s) failed — unit is NOT done
+..
+----------------------------------------------------------------------
+Ran 244 tests in 32.501s
+
+OK
+......................................................................................................................FAIL: manifest must be a JSON object, got list
+verify: evidence manifest malformed/unreadable — unit is NOT done
+............................................................................................................................FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: head_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: base_sha 'HEAD' is not a real commit
+FAIL: head_sha 'HEAD' is not a real commit
+FAIL: commands ledger: cannot resolve the tree of head_sha (not a real commit here, or not inside a git repo) — the recorded run cannot be bound to content; fail-closed
+FAIL: intent packet incomplete — non-empty ['goal', 'ruled_out', 'why'] required (mutation unit)
+FAIL: reviewer_mode must be one of ['cross-vendor', 'instructed-isolation', 'same-vendor-fresh'], got None
+FAIL: negative_control.tool must be one of ['cargo-mutants', 'cosmic-ray', 'go-mutesting', 'hand', 'mutmut', 'pitest', 'revert', 'stryker'], got None
+FAIL: negative_control.result must record the mutant KILLED / the proof going RED
+FAIL: negative_control.artifact (an evidence path) is required
+FAIL: mutation unit: no pr.number to look up an independent review — unreviewed
+verify: 11 invariant(s) failed — unit is NOT done
+..
+----------------------------------------------------------------------
+Ran 244 tests in 31.859s
+
+OK
+......................................................................................................................FAIL: manifest must be a JSON object, got list
+verify: evidence manifest malformed/unreadable — unit is NOT done
+............................................................................................................................FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: head_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: base_sha 'HEAD' is not a real commit
+FAIL: head_sha 'HEAD' is not a real commit
+FAIL: commands ledger: cannot resolve the tree of head_sha (not a real commit here, or not inside a git repo) — the recorded run cannot be bound to content; fail-closed
+FAIL: intent packet incomplete — non-empty ['goal', 'ruled_out', 'why'] required (mutation unit)
+FAIL: reviewer_mode must be one of ['cross-vendor', 'instructed-isolation', 'same-vendor-fresh'], got None
+FAIL: negative_control.tool must be one of ['cargo-mutants', 'cosmic-ray', 'go-mutesting', 'hand', 'mutmut', 'pitest', 'revert', 'stryker'], got None
+FAIL: negative_control.result must record the mutant KILLED / the proof going RED
+FAIL: negative_control.artifact (an evidence path) is required
+FAIL: mutation unit: no pr.number to look up an independent review — unreviewed
+verify: 11 invariant(s) failed — unit is NOT done
+..
+----------------------------------------------------------------------
+Ran 244 tests in 31.339s
+
+OK
+......................................................................................................................FAIL: manifest must be a JSON object, got list
+verify: evidence manifest malformed/unreadable — unit is NOT done
+............................................................................................................................FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: head_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: base_sha 'HEAD' is not a real commit
+FAIL: head_sha 'HEAD' is not a real commit
+FAIL: commands ledger: cannot resolve the tree of head_sha (not a real commit here, or not inside a git repo) — the recorded run cannot be bound to content; fail-closed
+FAIL: intent packet incomplete — non-empty ['goal', 'ruled_out', 'why'] required (mutation unit)
+FAIL: reviewer_mode must be one of ['cross-vendor', 'instructed-isolation', 'same-vendor-fresh'], got None
+FAIL: negative_control.tool must be one of ['cargo-mutants', 'cosmic-ray', 'go-mutesting', 'hand', 'mutmut', 'pitest', 'revert', 'stryker'], got None
+FAIL: negative_control.result must record the mutant KILLED / the proof going RED
+FAIL: negative_control.artifact (an evidence path) is required
+FAIL: mutation unit: no pr.number to look up an independent review — unreviewed
+verify: 11 invariant(s) failed — unit is NOT done
+..
+----------------------------------------------------------------------
+Ran 244 tests in 31.936s
+
+OK
+......................................................................................................................FAIL: manifest must be a JSON object, got list
+verify: evidence manifest malformed/unreadable — unit is NOT done
+............................................................................................................................FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: head_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: base_sha 'HEAD' is not a real commit
+FAIL: head_sha 'HEAD' is not a real commit
+FAIL: commands ledger: cannot resolve the tree of head_sha (not a real commit here, or not inside a git repo) — the recorded run cannot be bound to content; fail-closed
+FAIL: intent packet incomplete — non-empty ['goal', 'ruled_out', 'why'] required (mutation unit)
+FAIL: reviewer_mode must be one of ['cross-vendor', 'instructed-isolation', 'same-vendor-fresh'], got None
+FAIL: negative_control.tool must be one of ['cargo-mutants', 'cosmic-ray', 'go-mutesting', 'hand', 'mutmut', 'pitest', 'revert', 'stryker'], got None
+FAIL: negative_control.result must record the mutant KILLED / the proof going RED
+FAIL: negative_control.artifact (an evidence path) is required
+FAIL: mutation unit: no pr.number to look up an independent review — unreviewed
+verify: 11 invariant(s) failed — unit is NOT done
+..
+----------------------------------------------------------------------
+Ran 244 tests in 30.887s
+
+OK
+......................................................................................................................FAIL: manifest must be a JSON object, got list
+verify: evidence manifest malformed/unreadable — unit is NOT done
+............................................................................................................................FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: head_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: base_sha 'HEAD' is not a real commit
+FAIL: head_sha 'HEAD' is not a real commit
+FAIL: commands ledger: cannot resolve the tree of head_sha (not a real commit here, or not inside a git repo) — the recorded run cannot be bound to content; fail-closed
+FAIL: intent packet incomplete — non-empty ['goal', 'ruled_out', 'why'] required (mutation unit)
+FAIL: reviewer_mode must be one of ['cross-vendor', 'instructed-isolation', 'same-vendor-fresh'], got None
+FAIL: negative_control.tool must be one of ['cargo-mutants', 'cosmic-ray', 'go-mutesting', 'hand', 'mutmut', 'pitest', 'revert', 'stryker'], got None
+FAIL: negative_control.result must record the mutant KILLED / the proof going RED
+FAIL: negative_control.artifact (an evidence path) is required
+FAIL: mutation unit: no pr.number to look up an independent review — unreviewed
+verify: 11 invariant(s) failed — unit is NOT done
+..
+----------------------------------------------------------------------
+Ran 244 tests in 30.890s
+
+OK
+......................................................................................................................FAIL: manifest must be a JSON object, got list
+verify: evidence manifest malformed/unreadable — unit is NOT done
+............................................................................................................................FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: head_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: base_sha 'HEAD' is not a real commit
+FAIL: head_sha 'HEAD' is not a real commit
+FAIL: commands ledger: cannot resolve the tree of head_sha (not a real commit here, or not inside a git repo) — the recorded run cannot be bound to content; fail-closed
+FAIL: intent packet incomplete — non-empty ['goal', 'ruled_out', 'why'] required (mutation unit)
+FAIL: reviewer_mode must be one of ['cross-vendor', 'instructed-isolation', 'same-vendor-fresh'], got None
+FAIL: negative_control.tool must be one of ['cargo-mutants', 'cosmic-ray', 'go-mutesting', 'hand', 'mutmut', 'pitest', 'revert', 'stryker'], got None
+FAIL: negative_control.result must record the mutant KILLED / the proof going RED
+FAIL: negative_control.artifact (an evidence path) is required
+FAIL: mutation unit: no pr.number to look up an independent review — unreviewed
+verify: 11 invariant(s) failed — unit is NOT done
+..
+----------------------------------------------------------------------
+Ran 244 tests in 30.888s
+
+OK
+......................................................................................................................FAIL: manifest must be a JSON object, got list
+verify: evidence manifest malformed/unreadable — unit is NOT done
+............................................................................................................................FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: head_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: base_sha 'HEAD' is not a real commit
+FAIL: head_sha 'HEAD' is not a real commit
+FAIL: commands ledger: cannot resolve the tree of head_sha (not a real commit here, or not inside a git repo) — the recorded run cannot be bound to content; fail-closed
+FAIL: intent packet incomplete — non-empty ['goal', 'ruled_out', 'why'] required (mutation unit)
+FAIL: reviewer_mode must be one of ['cross-vendor', 'instructed-isolation', 'same-vendor-fresh'], got None
+FAIL: negative_control.tool must be one of ['cargo-mutants', 'cosmic-ray', 'go-mutesting', 'hand', 'mutmut', 'pitest', 'revert', 'stryker'], got None
+FAIL: negative_control.result must record the mutant KILLED / the proof going RED
+FAIL: negative_control.artifact (an evidence path) is required
+FAIL: mutation unit: no pr.number to look up an independent review — unreviewed
+verify: 11 invariant(s) failed — unit is NOT done
+..
+----------------------------------------------------------------------
+Ran 244 tests in 30.661s
+
+OK
+......................................................................................................................FAIL: manifest must be a JSON object, got list
+verify: evidence manifest malformed/unreadable — unit is NOT done
+............................................................................................................................FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: head_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: base_sha 'HEAD' is not a real commit
+FAIL: head_sha 'HEAD' is not a real commit
+FAIL: commands ledger: cannot resolve the tree of head_sha (not a real commit here, or not inside a git repo) — the recorded run cannot be bound to content; fail-closed
+FAIL: intent packet incomplete — non-empty ['goal', 'ruled_out', 'why'] required (mutation unit)
+FAIL: reviewer_mode must be one of ['cross-vendor', 'instructed-isolation', 'same-vendor-fresh'], got None
+FAIL: negative_control.tool must be one of ['cargo-mutants', 'cosmic-ray', 'go-mutesting', 'hand', 'mutmut', 'pitest', 'revert', 'stryker'], got None
+FAIL: negative_control.result must record the mutant KILLED / the proof going RED
+FAIL: negative_control.artifact (an evidence path) is required
+FAIL: mutation unit: no pr.number to look up an independent review — unreviewed
+verify: 11 invariant(s) failed — unit is NOT done
+..
+----------------------------------------------------------------------
+Ran 244 tests in 31.002s
+
+OK
+......................................................................................................................FAIL: manifest must be a JSON object, got list
+verify: evidence manifest malformed/unreadable — unit is NOT done
+............................................................................................................................FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: head_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: base_sha 'HEAD' is not a real commit
+FAIL: head_sha 'HEAD' is not a real commit
+FAIL: commands ledger: cannot resolve the tree of head_sha (not a real commit here, or not inside a git repo) — the recorded run cannot be bound to content; fail-closed
+FAIL: intent packet incomplete — non-empty ['goal', 'ruled_out', 'why'] required (mutation unit)
+FAIL: reviewer_mode must be one of ['cross-vendor', 'instructed-isolation', 'same-vendor-fresh'], got None
+FAIL: negative_control.tool must be one of ['cargo-mutants', 'cosmic-ray', 'go-mutesting', 'hand', 'mutmut', 'pitest', 'revert', 'stryker'], got None
+FAIL: negative_control.result must record the mutant KILLED / the proof going RED
+FAIL: negative_control.artifact (an evidence path) is required
+FAIL: mutation unit: no pr.number to look up an independent review — unreviewed
+verify: 11 invariant(s) failed — unit is NOT done
+..
+----------------------------------------------------------------------
+Ran 244 tests in 32.410s
+
+OK
+......................................................................................................................FAIL: manifest must be a JSON object, got list
+verify: evidence manifest malformed/unreadable — unit is NOT done
+............................................................................................................................FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: head_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: base_sha 'HEAD' is not a real commit
+FAIL: head_sha 'HEAD' is not a real commit
+FAIL: commands ledger: cannot resolve the tree of head_sha (not a real commit here, or not inside a git repo) — the recorded run cannot be bound to content; fail-closed
+FAIL: intent packet incomplete — non-empty ['goal', 'ruled_out', 'why'] required (mutation unit)
+FAIL: reviewer_mode must be one of ['cross-vendor', 'instructed-isolation', 'same-vendor-fresh'], got None
+FAIL: negative_control.tool must be one of ['cargo-mutants', 'cosmic-ray', 'go-mutesting', 'hand', 'mutmut', 'pitest', 'revert', 'stryker'], got None
+FAIL: negative_control.result must record the mutant KILLED / the proof going RED
+FAIL: negative_control.artifact (an evidence path) is required
+FAIL: mutation unit: no pr.number to look up an independent review — unreviewed
+verify: 11 invariant(s) failed — unit is NOT done
+..
+----------------------------------------------------------------------
+Ran 244 tests in 32.862s
+
+OK
+......................................................................................................................FAIL: manifest must be a JSON object, got list
+verify: evidence manifest malformed/unreadable — unit is NOT done
+............................................................................................................................FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: head_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: base_sha 'HEAD' is not a real commit
+FAIL: head_sha 'HEAD' is not a real commit
+FAIL: commands ledger: cannot resolve the tree of head_sha (not a real commit here, or not inside a git repo) — the recorded run cannot be bound to content; fail-closed
+FAIL: intent packet incomplete — non-empty ['goal', 'ruled_out', 'why'] required (mutation unit)
+FAIL: reviewer_mode must be one of ['cross-vendor', 'instructed-isolation', 'same-vendor-fresh'], got None
+FAIL: negative_control.tool must be one of ['cargo-mutants', 'cosmic-ray', 'go-mutesting', 'hand', 'mutmut', 'pitest', 'revert', 'stryker'], got None
+FAIL: negative_control.result must record the mutant KILLED / the proof going RED
+FAIL: negative_control.artifact (an evidence path) is required
+FAIL: mutation unit: no pr.number to look up an independent review — unreviewed
+verify: 11 invariant(s) failed — unit is NOT done
+..
+----------------------------------------------------------------------
+Ran 244 tests in 32.563s
+
+OK
+......................................................................................................................FAIL: manifest must be a JSON object, got list
+verify: evidence manifest malformed/unreadable — unit is NOT done
+............................................................................................................................FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: head_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: base_sha 'HEAD' is not a real commit
+FAIL: head_sha 'HEAD' is not a real commit
+FAIL: commands ledger: cannot resolve the tree of head_sha (not a real commit here, or not inside a git repo) — the recorded run cannot be bound to content; fail-closed
+FAIL: intent packet incomplete — non-empty ['goal', 'ruled_out', 'why'] required (mutation unit)
+FAIL: reviewer_mode must be one of ['cross-vendor', 'instructed-isolation', 'same-vendor-fresh'], got None
+FAIL: negative_control.tool must be one of ['cargo-mutants', 'cosmic-ray', 'go-mutesting', 'hand', 'mutmut', 'pitest', 'revert', 'stryker'], got None
+FAIL: negative_control.result must record the mutant KILLED / the proof going RED
+FAIL: negative_control.artifact (an evidence path) is required
+FAIL: mutation unit: no pr.number to look up an independent review — unreviewed
+verify: 11 invariant(s) failed — unit is NOT done
+..
+----------------------------------------------------------------------
+Ran 244 tests in 32.917s
+
+OK
+......................................................................................................................FAIL: manifest must be a JSON object, got list
+verify: evidence manifest malformed/unreadable — unit is NOT done
+............................................................................................................................FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: head_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: base_sha 'HEAD' is not a real commit
+FAIL: head_sha 'HEAD' is not a real commit
+FAIL: commands ledger: cannot resolve the tree of head_sha (not a real commit here, or not inside a git repo) — the recorded run cannot be bound to content; fail-closed
+FAIL: intent packet incomplete — non-empty ['goal', 'ruled_out', 'why'] required (mutation unit)
+FAIL: reviewer_mode must be one of ['cross-vendor', 'instructed-isolation', 'same-vendor-fresh'], got None
+FAIL: negative_control.tool must be one of ['cargo-mutants', 'cosmic-ray', 'go-mutesting', 'hand', 'mutmut', 'pitest', 'revert', 'stryker'], got None
+FAIL: negative_control.result must record the mutant KILLED / the proof going RED
+FAIL: negative_control.artifact (an evidence path) is required
+FAIL: mutation unit: no pr.number to look up an independent review — unreviewed
+verify: 11 invariant(s) failed — unit is NOT done
+..
+----------------------------------------------------------------------
+Ran 244 tests in 32.839s
+
+OK
+......................................................................................................................FAIL: manifest must be a JSON object, got list
+verify: evidence manifest malformed/unreadable — unit is NOT done
+............................................................................................................................FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: head_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: base_sha 'HEAD' is not a real commit
+FAIL: head_sha 'HEAD' is not a real commit
+FAIL: commands ledger: cannot resolve the tree of head_sha (not a real commit here, or not inside a git repo) — the recorded run cannot be bound to content; fail-closed
+FAIL: intent packet incomplete — non-empty ['goal', 'ruled_out', 'why'] required (mutation unit)
+FAIL: reviewer_mode must be one of ['cross-vendor', 'instructed-isolation', 'same-vendor-fresh'], got None
+FAIL: negative_control.tool must be one of ['cargo-mutants', 'cosmic-ray', 'go-mutesting', 'hand', 'mutmut', 'pitest', 'revert', 'stryker'], got None
+FAIL: negative_control.result must record the mutant KILLED / the proof going RED
+FAIL: negative_control.artifact (an evidence path) is required
+FAIL: mutation unit: no pr.number to look up an independent review — unreviewed
+verify: 11 invariant(s) failed — unit is NOT done
+..
+----------------------------------------------------------------------
+Ran 244 tests in 32.612s
+
+OK
+......................................................................................................................FAIL: manifest must be a JSON object, got list
+verify: evidence manifest malformed/unreadable — unit is NOT done
+............................................................................................................................FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: head_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+FAIL: base_sha 'HEAD' is not a real commit
+FAIL: head_sha 'HEAD' is not a real commit
+FAIL: commands ledger: cannot resolve the tree of head_sha (not a real commit here, or not inside a git repo) — the recorded run cannot be bound to content; fail-closed
+FAIL: intent packet incomplete — non-empty ['goal', 'ruled_out', 'why'] required (mutation unit)
+FAIL: reviewer_mode must be one of ['cross-vendor', 'instructed-isolation', 'same-vendor-fresh'], got None
+FAIL: negative_control.tool must be one of ['cargo-mutants', 'cosmic-ray', 'go-mutesting', 'hand', 'mutmut', 'pitest', 'revert', 'stryker'], got None
+FAIL: negative_control.result must record the mutant KILLED / the proof going RED
+FAIL: negative_control.artifact (an evidence path) is required
+FAIL: mutation unit: no pr.number to look up an independent review — unreviewed
+verify: 11 invariant(s) failed — unit is NOT done
+..
+----------------------------------------------------------------------
+Ran 244 tests in 32.578s
+
+OK
+STREAK-module end 2026-09-16T10:47:08Z HEAD=c8abd8c7f8b163656d572a09252fd08b0ef162a2 pass=30 fail=0 consecutive_green=30

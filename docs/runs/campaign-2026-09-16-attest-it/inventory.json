@@ -1,0 +1,596 @@
+{
+ "run": "campaign-2026-09-16-attest-it",
+ "target": "6390743815f8f435181fa410cce374587128b30a",
+ "producer": "cli-session-a4a0c8e3",
+ "timestamp": "2026-09-16T10:30:00Z",
+ "artifacts": [
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/LEDGER.md",
+   "sha256": "3e8dec4c5b57fb21cd1e04dda0a044eb4244248717bfc0e7a1b4cb0962fb22a9"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/REPORT.md",
+   "sha256": "e7b464c02bf8840ba96f876fa61d85b7a97358ddec1106c35c8fcfd257947133"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/catalog/NIST_SP800-218_ver1_catalog.json",
+   "sha256": "b01634a5fdb382e7a12660c379a4d0bc3a2b8e29abccf2861834880005137117"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/catalog/frozen-catalog.json",
+   "sha256": "cfe696c4575f53ca8a033bbd3e05f3fb79237a5755f9a0a300e6b3f30a1d7e9d"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/catalog/frozen-catalog.md",
+   "sha256": "9567797a9fb367448eeaf2fb3f054497e0001daf24b35f9d092aa7c8f2fb0d60"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/PO.1.1.md",
+   "sha256": "fac8f45cd887f984fa5a3a253c3240cc1540f7cb6687d25380e30ef49a0b0a86"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/PO.1.2.md",
+   "sha256": "fe8c7e5018cded04ded6b40c4f52b6f124b37eb90e876e51bc67357bd92d4c11"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/PO.1.3.md",
+   "sha256": "8b9b8901a486aaa4b22419d013ae1daf1ab3039d1745a0406f81f9082d0b5e25"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/PO.2.1.md",
+   "sha256": "89506b071e7f19d208cd79ee6435f56a0a78bf9d3ce34fbecf1c1d6c391de9a3"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/PO.2.2.md",
+   "sha256": "1d232db95b37e4c454306fb99f9c8bc13a8bd49d1d850f5700ef7f5c79a3f25f"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/PO.2.3.md",
+   "sha256": "88f667682d8b4f881f887d0ed837aae5c09bc64b2e202f31023f247ab2cd71d4"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/PO.3.1.md",
+   "sha256": "ac3e7c63ae1b8085cd1e8be8cfbcb26679f86554ba5853629a1a281ba4d92f7d"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/PO.3.2.md",
+   "sha256": "0c21e2a62c240619c8867f328c095402187cc07904c77003533867e88a3bf309"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/PO.3.3.md",
+   "sha256": "88a8310e9fb8907e59859413c7cb0526ddb40d887d703aeefa08adb20e8e4ece"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/PO.4.1.md",
+   "sha256": "e49234aea0425dbd3d9a65602a5315a9f8b3238d06422129d6e315e9e8aa274b"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/PO.4.2.md",
+   "sha256": "ff9ec95fb0961c0b6e44b7aad6e8029b0a20ece12d02bf973751405f5fc2b416"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/PO.5.1.md",
+   "sha256": "2259f3dad79f892b41b6b90c5bd9d5e9164abd7be9f79258bbf1f9207c623c93"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/PO.5.2.md",
+   "sha256": "f0b5aa3d5313302a0ce4e6584c5c33e145ebb25555ec89d3ed90aada50f9d337"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/PS.1.1.md",
+   "sha256": "a81d3e9f7d200c701eb6d899d79ae3e753caf30aef420090057293f24f0bd28d"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/PS.2.1.md",
+   "sha256": "b9745c24e560c8a3abf9cfa13f610e1678863149e374b75cdfca1c4d9faf5384"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/PS.3.1.md",
+   "sha256": "0117496bc6ef5f092349dc3d254ff4753393a5cca5e3a11f26b86db3eccafa57"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/PS.3.2.md",
+   "sha256": "e15e21e8bb526d39e7fa3ad4c45b0874f88d809f226b3b3a22cd5525bffec8eb"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/PW.1.1.md",
+   "sha256": "c5ab8854404b6a6efcb1b70d133689dfa66866f9779c9e5c6c313451a3d7aec4"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/PW.1.2.md",
+   "sha256": "e1b1b1a2a310bb5db0ac5145a8282c38a8d1e87ca2c252dfbfb094d0ee9b27ed"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/PW.1.3.md",
+   "sha256": "a8cc176346dcbd6e79b9c8c421cf7dfea6d878c0adf0fef3d2965005ebb707a4"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/PW.2.1.md",
+   "sha256": "9286cb7d77aed328b1cf8b0303d4ed5e8446aa6ac99bf6162ff6a133e1487c57"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/PW.4.1.md",
+   "sha256": "29ebe4fac64087dd775961ac2b6b9b7fcbb1c178fe4d642a44f7b167ba05f42f"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/PW.4.2.md",
+   "sha256": "4631955dde9ed804ca22036bd8a41c4baaf8d67b40ca3f7334fb17bb6432eaa6"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/PW.4.4.md",
+   "sha256": "118306513af0cf1991ee4b0630d63a1eaa620ac79726886f4f61b84d642c547d"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/PW.5.1.md",
+   "sha256": "d3d6a480dfcc4fe5fc9c49b6488192fcda9a8c6014e44d954d08eec4398cb7d3"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/PW.6.1.md",
+   "sha256": "f9dd6718b0a7f70bde0af9045e1451a15f5166a50b069354fdd194fd53edfcbe"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/PW.6.2.md",
+   "sha256": "fab06130d1b018c769b1b4f002640936aa461ba18085a2f6e402ed3f7243c8f3"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/PW.7.1.md",
+   "sha256": "11074067d26a9aca92d931a2f744167667f00e9ef4a4dfaf54c257c3a991c9f1"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/PW.7.2.md",
+   "sha256": "d659f751017aebde1212f4fce2ce7668cdd265de8075230d8e0f5b94b06f3b74"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/PW.8.1.md",
+   "sha256": "a6d6177106ba7a8a98b5b4bd1c5b4b4beafb607dbdf633c8a712a2d396f66248"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/PW.8.2.md",
+   "sha256": "2066bf99ca0e74f6d49e80137bb5341177f2cfd04d6a8dded7899f03a575cd3d"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/PW.9.1.md",
+   "sha256": "c4ef65839c7009a00bfa9e33dbef8f34f91749c9a21bf131680eae13ac558a17"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/PW.9.2.md",
+   "sha256": "11134642e2cd7bcbb31950d7985cc0ebe78dc8045e1c47aa8a038f43c6b33e62"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/RV.1.1.md",
+   "sha256": "56e062784218f22b46be9e23a35e33d642cd4978c9cbfca65e0e865745014a44"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/RV.1.2.md",
+   "sha256": "19e045cb18b4893b5aac88ded0fa0a090c4e12b97c4a4ecb5aec735d187cb7cc"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/RV.1.3.md",
+   "sha256": "251c0d3ab62ae351b02c4c2dca5ce6e885c2e21e8e649b5c028366a0c1aed9a9"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/RV.2.1.md",
+   "sha256": "b984f72a6725f2130f998bfed5d27f01d932222cbb37b0ef925bdc50d8e052c0"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/RV.2.2.md",
+   "sha256": "dce3880f17c504b79a1528c9a301f8fbd116768abf220778c4b5f8574c23a808"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/RV.3.1.md",
+   "sha256": "e87f6682203edf0dcc891b82caf2e42b720ea15764f1430ea5877a9263b5fa2a"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/RV.3.2.md",
+   "sha256": "3406532dc81cdf3cf43ddc88f7a2c0c2bc3eeb0205786cf3566fa6d5d92d9375"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/RV.3.3.md",
+   "sha256": "07cf57b31c2e93794406faaea57c4e0ed513c88dd52c1879e0e55d7c2536e8a3"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/RV.3.4.md",
+   "sha256": "e931b98d579033c1217d3590e812256cb3d7f04c5f0bf6f26a13d3bd075b82e2"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/gaps/PO.2.1.md",
+   "sha256": "ccacef160464261cfdebae0e399b4e4c7040227dd59c896ac3d3c1c495762215"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/gaps/PO.2.2.md",
+   "sha256": "5707eefc8e7b6235eff2156154f25a43a7c8b99b14ede34d283551a7dd57d841"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/gaps/PO.2.3.md",
+   "sha256": "e8a8be879355de17ae2f3f72e48ae96710acfb7a04e993e26297d361a61e929b"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/gaps/PO.5.1.md",
+   "sha256": "3018e93eae447774fba7054026a1c5cf237540542318e2d9d08a4800d1286842"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/gaps/PO.5.2.md",
+   "sha256": "e1aecc5813bc0ff751fc69d77fbfa11d955702b26a339b9eebb30f19549a1219"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/gaps/PS.3.2.md",
+   "sha256": "787f3a495d9177f6cb3afca190dfc95f362f9aa65783dc6d05257772cc50e366"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/gaps/PW.4.4.md",
+   "sha256": "1d040e66543c6bedae2936462a446a7bcf04d1a3c79153dff1ee02e2f7291e0f"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/gaps/PW.6.2.md",
+   "sha256": "aef01c01b665eb7e7f8cc469d4f76e0400103df5d03e82ecc7a23f8e4b252410"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/PO.1.1.json",
+   "sha256": "6a8da69f6c9f301becbb19ff4ac76ff49b97b9ec853b124709138d72ce232a0e"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/PO.1.2.json",
+   "sha256": "56d166ebcb5e7a3d5394c519a3cc39099cf9b8345f1b4062eddd37bf4b8b6534"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/PO.1.3.json",
+   "sha256": "4b0ba4edad8c040eba165d0691e18440d802c9ab0b98e6f666214512aaa5726e"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/PO.2.1.json",
+   "sha256": "0a25bc232a71c7b7d361713ca6a2075f5d2b27d547a62eae6e9d6eee893c10c5"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/PO.2.2.json",
+   "sha256": "bc7dd65a3441fcb81d92be94311c01b551de07519748b718092388d1d0eae564"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/PO.2.3.json",
+   "sha256": "476efec47ece50680f8221e9cb2b84c2aced275b50128fa79a1dab23d075d1c2"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/PO.3.1.json",
+   "sha256": "dc616291f3e87b40a853b584d1864193a2691c2024d50afe323e0dfff7546371"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/PO.3.2.json",
+   "sha256": "1360328d7c88ac5b53d953d7b02a9bff78a7e91f9638fcab4284755962e7fb3d"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/PO.3.3.json",
+   "sha256": "93cf78e45b9b30301e1c5369f09dcd5e16ff3d77ef1cbf0ea9549b3db8ba6e03"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/PO.4.1.json",
+   "sha256": "a377b998ef6b64c7d251a186c4ae08642d4b4abf68db509d15a9690cbc5c1638"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/PO.4.2.json",
+   "sha256": "26696a1048548a28d247d2f981e450d52845c60e8cd43380a30a9b07c563dc61"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/PO.5.1.json",
+   "sha256": "49eb448106d9ef8fbf3bc4f9906455bc6965cd4f6a7acb93e573785ddf66ad3d"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/PO.5.2.json",
+   "sha256": "e13abd8b8ad0b4a34fe2c8d1a9adb3af29242a3ed008e38d6c00257050763190"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/PS.1.1.json",
+   "sha256": "dc0bd9afe379c48db71eeea2a63f69c35cc04d3b7c300b3824aeae894bbade9b"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/PS.2.1.json",
+   "sha256": "dab24ddcbb89500232fe00db219e6e19e67cb26ff4f265dd10168d94e5248345"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/PS.3.1.json",
+   "sha256": "c6a358c7e24cc2da95e096517907acea2c779069f5adea86f271386ebd912a2a"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/PS.3.2.json",
+   "sha256": "074ce9e89bb628b29dacb802d6325fb33f1c5eff0da15075214c583c9af90c61"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/PW.1.1.json",
+   "sha256": "6016896dccd74772e8a752ee68d553b4389a04203d25cb9046fcd64e42a3f7bb"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/PW.1.2.json",
+   "sha256": "6f6f6fcf8b815d0ad8fd4e19f998656500e9d36e4c6a42a922649340a0681280"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/PW.1.3.json",
+   "sha256": "404e1bb2c988ab4804ccf7a705a66ac5677a22e0289897c31937c8db63bc23fe"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/PW.2.1.json",
+   "sha256": "494c079946b2aa6e0cfe0ef9ef0af5eecc0f882c08b55de77941d2737b1ca8eb"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/PW.4.1.json",
+   "sha256": "d0e21549bd13326cb9fe361706de630b08100dd2fcb9658dfae5490e064afb58"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/PW.4.2.json",
+   "sha256": "287541562c795489e10323a6285d5b226babcd13723815f470e1f10ecde2a1eb"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/PW.4.4.json",
+   "sha256": "40e635df9102f1c17d63aba468de986758426f53e4dce27cff31182802186a52"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/PW.5.1.json",
+   "sha256": "598f557b24c7fdbb9166314d1a2d46324986c9915b12ae11120632f7015ca612"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/PW.6.1.json",
+   "sha256": "eece6537201d745809d4ef3ce767afc71ef8ace1fd10340f92d545ff6e989521"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/PW.6.2.json",
+   "sha256": "4576abbacf7cb441fe9f86d814b85b4cd87810c046407fdc7642b58b7d7cf2bb"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/PW.7.1.json",
+   "sha256": "1975e0e100156359aacccef5fb5ae8789db8b05576b0e99d0726f02e6e9cd119"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/PW.7.2.json",
+   "sha256": "e82076b32a0a54df8fe4335afdcfa62ff986f1dd392f0476382c92f0444003ed"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/PW.8.1.json",
+   "sha256": "cbb911c4ae8e0038677ae4826c494cd7d0f6f0acb1c031118da2dfa2d9e1cbc2"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/PW.8.2.json",
+   "sha256": "ec27e5ffe35f0ec9f60491ae6f9a0f1c2774e618b9ad3d7b6e8600da047cdd08"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/PW.9.1.json",
+   "sha256": "fc0ae2ac3f01831eff45629f483becea3310bc6eaf2aa45b4d171ae01a24caf7"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/PW.9.2.json",
+   "sha256": "ac60f5897c6afb1c517db07f5c455fd87b13c35fd37f7fe42f9036564e699b53"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/RV.1.1.json",
+   "sha256": "5b6fada3ee6be585a2d713dee298fb038b9d8587182490436fb73143ba561148"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/RV.1.2.json",
+   "sha256": "9b5c5df526cc4d8c09a90b819a2aa407d6987ee6430860da2eb9edae4f6a46fe"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/RV.1.3.json",
+   "sha256": "046e55fd35ab56a0117f14cb9fd3a5eb2e0795596f901ee7b92a8fce08d77ac3"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/RV.2.1.json",
+   "sha256": "4fca3a80faad93b37224512a0cef4d72f97083f64c80c83b41334b3772225cda"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/RV.2.2.json",
+   "sha256": "7fe56b2d189217461d9e564a888faa8d19e8c90475ff1eed5f2a9c0e9fe1c46e"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/RV.3.1.json",
+   "sha256": "8b4a7506350992c7c26d9be73ba90b57421f74ddaae808fc2ec40b80063f479f"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/RV.3.2.json",
+   "sha256": "130864154610d0ff45f01b35481f4859a48a2ae67d6d3b2eacef8e801a2cb47c"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/RV.3.3.json",
+   "sha256": "e172f832b7965005b8d19f9b625fe7d9daded7e82394611aa556a49cd39bf1e1"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/manifests/RV.3.4.json",
+   "sha256": "894f32bc0574276ccf3151da68986450a5ebc440ed556e6c22cc57a1ed49d3e5"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/receipts/suite-2026-09-16.log",
+   "sha256": "8318a62c1a7b36384ac0016c994aa5a4d3033869ac4edfa50b3c31faa67ed47e"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/receipts/verify-matrix.log",
+   "sha256": "cf2c51632a2ab47a987963c9846ac60b954a8ed7804d8d972f9bc4a81c80519c"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/receipts/worktree-clean.log",
+   "sha256": "74d673ab81ed0b52e4a613be13a2f023458aa00f63421434d2465577afb5cad9"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/rederive/blind-pass.md",
+   "sha256": "48ed03aa09e5e7deab7041ac01a1433ea2e3f961f63cba5828a92368501d2370"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/rederive/generate_manifests.py",
+   "sha256": "a666f6ca33699f446625823715a549d979df1d944bff30ef301b7fb10f1a2e90"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/rederive/rederive.log",
+   "sha256": "83044442389b8c2ab2d3166fd8f4a0247b47dc007f44b4738dae116b6d851a4d"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/rederive/rederive.py",
+   "sha256": "a13b432f9e649ae0367c3219c48c2aad9e89f7e0f818217c4f57693a878cce35"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/research-brief-ssdf-source.md",
+   "sha256": "511bab1a34615df12a5fd7d6e312e850806d33f7147d34a00e304ea9a57684ce"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/PO.1.1.json",
+   "sha256": "69f9f673cd944a73b2caa059fd9be75a00cc3836cf13531dd9a6f8721efcc055"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/PO.1.2.json",
+   "sha256": "6267dabaa1b886a4764a0d551861fb8e92eb8a606e440569b883853eb12d4054"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/PO.1.3.json",
+   "sha256": "f5d070e603425cca91501975020fc5af4529d6e628b0617bb23562a63ab43335"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/PO.2.1.json",
+   "sha256": "fc47f42b204d704a02a6344be4e5494f31a2cd05f0f9d834bde8650c68a379d2"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/PO.2.2.json",
+   "sha256": "db3524218eb744a961794636f8b34a8b4f83a75eb0e032ca053a04f654cbbbe9"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/PO.2.3.json",
+   "sha256": "fde344e25955398fad0309dbc64204111eedc4e1db16043caa5695fb7620c93d"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/PO.3.1.json",
+   "sha256": "c767d2ece74bb200c00c538cedb83544371ef1924d7dd018fcc33a61758d1589"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/PO.3.2.json",
+   "sha256": "25260ba96cfba11fcbf5e6497981d2e7a4291fc02ac0d394cf7d2f16f6f6e047"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/PO.3.3.json",
+   "sha256": "412545f6f6483b50124a5213c0b2edb808a4fb7aaca7fdb803848e21ad012bb4"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/PO.4.1.json",
+   "sha256": "d921b0b0fd382c3b04fc3c5c8cfc75c48e1bdd3ea1b3a66c43405a00dcb37897"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/PO.4.2.json",
+   "sha256": "77f325528550289c39202cd4f49714321ca4af73c884e9906898a49346992956"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/PO.5.1.json",
+   "sha256": "74e2163bf06dae1bd5a2da0f39ae776d32ad0ddc49cf8dcd72f72350f49c4730"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/PO.5.2.json",
+   "sha256": "fe5447b2b37c787a4c3396d4388b22f1f70cc79f199fb9b179692d17d42423c0"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/PS.1.1.json",
+   "sha256": "13eea9c5a9d2f9bcf27b70527d2d173c959724be360af14c9df3663dccbb79f4"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/PS.2.1.json",
+   "sha256": "f08dbeee238262000a5fff9496f153677c5351eb9986dfc42db11b7ff696e2d3"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/PS.3.1.json",
+   "sha256": "064653e4f5ab66f40fa6897295c61da3f77b7c8b2ddaf1d21244b0e1453b1eaf"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/PS.3.2.json",
+   "sha256": "fbf384e33a303ce6e29d063b190543af26b3566e4d6d5fa36680622358ed8c85"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/PW.1.1.json",
+   "sha256": "282f7af71229e6831f239cfd6ee4f0a93da04839c95896e5402b93dad063d677"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/PW.1.2.json",
+   "sha256": "bfafa8b6cf8061691d0baf08ffb8267262aceb2afb2d28bfae4582ccc50ef50b"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/PW.1.3.json",
+   "sha256": "fbb71acdaa4fd65af37da86b7dd5c1be107b06d6d1c452e177c9737b1b68acdf"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/PW.2.1.json",
+   "sha256": "efd8e7f468726d5d340e1388eaafaef4aa69165d474d601400e5862752ca0cd9"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/PW.4.1.json",
+   "sha256": "ff2ce38a481211105da9c9ec39d89cfb9e3e1a64d733941ef4b5bfe858e3ccfe"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/PW.4.2.json",
+   "sha256": "7e43df6d1a599ede2af6254f2d18372445b2e5d45a5cb1ad963b8f64c489ee46"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/PW.4.4.json",
+   "sha256": "ea9ca8eb55a12ea0970670f7d842e115b68c0d18c8b8289a690780e523d56eff"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/PW.5.1.json",
+   "sha256": "356f11918a2e255fcc1da4c2b7e89eb27f9c8a9e087c70e9a621dcc7f99526ea"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/PW.6.1.json",
+   "sha256": "bfce6ca0cba6db2afebc51baf154cec0261b31f91a936bd1b8bd0b99d175b9d6"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/PW.6.2.json",
+   "sha256": "a4c6cd2001b4acc0f1a8c5b717195c6af674fe107e4a86fa7ab8d0ef495cdf66"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/PW.7.1.json",
+   "sha256": "b0a7c61495dab3b49b960b0c25d58fba0dfe132d64fe4cd27057809cf7505ca6"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/PW.7.2.json",
+   "sha256": "e3295057d3dd7534c28344bcb1cd461b4e3a990da49f5afc031dd227f6b60ff9"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/PW.8.1.json",
+   "sha256": "8ef77a4806efb8820289c6bc5d8df6d27e6a45d81f92a985340746d633227160"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/PW.8.2.json",
+   "sha256": "f4a7ae560a87b62cf076a28688ebb53195d950e22171d3576c8fb86e6e677b76"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/PW.9.1.json",
+   "sha256": "04ec72392ca80dd1bcdaddde36f680c05d62acfef0e8004871a13c75b85f17de"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/PW.9.2.json",
+   "sha256": "1c3f45823d1a5fc810981cf3da27707522e955e5ac5c34f71fdd85d08226fc06"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/RV.1.1.json",
+   "sha256": "f6cd7b80c87eede732e05facac03e7ca4e715c4cb32dcaa754aa671719800344"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/RV.1.2.json",
+   "sha256": "915c1eece02e38d2c44a297e2d0648c678a46eaaca759f37f80c9bbec0e19090"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/RV.1.3.json",
+   "sha256": "70ba6f74bb9595d6c92743c3cb9ee83eb4c66e01e414bb9a38cc6afcce271ed0"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/RV.2.1.json",
+   "sha256": "7cb6d4a5ef35f26d71653ed5950b8a0d3de436126e79ce8515aedc53492039f0"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/RV.2.2.json",
+   "sha256": "7c328cbdbb2291aab59df6bd8db720faa2ec527d7e0ab4365093ffbe669622d1"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/RV.3.1.json",
+   "sha256": "f30fc86608cc0400f398d9f82e390f45f31ccc1d195b33887d06a924ddad1adf"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/RV.3.2.json",
+   "sha256": "82a9099e4258d20a9c40f787b604512166c20193a4a9bece803a3e42ab685b7e"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/RV.3.3.json",
+   "sha256": "bcf17e473e99426a2defa5ee43bcba27246ac65dc084cc1a4ad60de954d7ada9"
+  },
+  {
+   "path": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/RV.3.4.json",
+   "sha256": "837a11382a1ca8e030e41ed93400b6e49febda901514051d03fd3480b8291f7b"
+  }
+ ]
+}

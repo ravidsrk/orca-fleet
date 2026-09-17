@@ -1,0 +1,8 @@
+NC doc-x03: rename 'ScopeError' -> 'ScopeFault' in runtime/scripts/diff_scope.py; expect claimcheck --cell diff_scope.py RED
+renamed 6 occurrence(s)
+--- claimcheck (expect FAIL) ---
+UNBOUND: diff_scope.py: ANCHOR `runtime/scripts/diff_scope.py:ScopeError` not found in runtime/scripts/diff_scope.py
+claimcheck: 1 section(s), 1 unbound claim(s)
+claimcheck exit=1
+--- restore ---
+renamed file restored: yes

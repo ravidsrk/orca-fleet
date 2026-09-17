@@ -1,0 +1,4 @@
+{"id": "proof-ladder", "status": "failed", "error": "HTTP 401: b'{\"error\":{\"message\":\"User not found.\",\"code\":401}}'"}
+{"id": "proof-ladder-light", "status": "failed", "error": "HTTP 401: b'{\"error\":{\"message\":\"User not found.\",\"code\":401}}'"}
+
+0 ok, 2 failed; raw PNGs in /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/orca-fleet-image-raw

@@ -1,0 +1,7 @@
+NC doc-r14: move anchored tests/test_evidence_run.py aside; expect claimcheck --cell wtree.sh RED (flagless CLI: PATH anchor is the control)
+--- claimcheck (expect FAIL) ---
+UNBOUND: wtree.sh: PATH `tests/test_evidence_run.py` does not exist
+claimcheck: 1 section(s), 1 unbound claim(s)
+claimcheck exit=1
+--- restore ---
+test file restored: yes

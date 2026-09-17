@@ -1,0 +1,8 @@
+NC doc-r02: rename '--settings' -> '--opts' in runtime/scripts/deny-hook.sh; expect claimcheck --cell deny-hook.sh RED
+renamed 8 occurrence(s)
+--- claimcheck (expect FAIL) ---
+UNBOUND: deny-hook.sh: FLAG `--settings` not in help+source of runtime/scripts/deny-hook.sh
+claimcheck: 1 section(s), 1 unbound claim(s)
+claimcheck exit=1
+--- restore ---
+renamed file restored: yes

@@ -1,0 +1,288 @@
+### prove-it campaign 2026-09-16 — PF-3 build-blind review (acceptance-review, matt code-review method)
+### reviewer: fresh-context headless agent (model line in each reply); reviewed content: frozen PF-3 criterion + OracleScopeCharacterizationGateTest at reviewed_sha + pinned mutant diff m1
+### reviewed_sha: 18ee8633720835c88e4f5401d3be59f254069fa4 (test commit; candidate extracted via `git show HEAD:` after the commit; worktree bytes verified identical post-review)
+### completed: 2026-09-16; verdict: GO round 1 (1 non-blocking follow-up G1 + 1 advisory T1, both dispositioned below)
+
+How the blindness was constructed (auditable): the reviewer ran as a separate process
+(`claude -p`, Claude Code 2.1.273) with cwd an empty non-repo dir, prompts via argv, no repo
+access, no outcome information in either prompt (no transcripts, no verdicts, no pass/fail).
+Two phases per acceptance-review blind-fix-first: phase A wrote the expectation from the
+criterion + production context alone; phase B judged the candidate against it. Both prompts
+and both replies are retained verbatim below; the replies' appendix ('code isn't pasted')
+and wrong guesses (pytest, runtime/tests/) evidence no file access. Exact commands:
+
+  cd /tmp/pf3-review/empty && claude -p --max-turns 3 --output-format text "$(cat /tmp/pf3-review/prompt-a.txt)"
+  cd /tmp/pf3-review/empty && claude -p --max-turns 3 --output-format text "$(cat /tmp/pf3-review/prompt-b.txt)"
+
+Both exit 0. reviewer_mode claimed on this: cross-vendor (Anthropic reviewer, Meta builder),
+fresh blind context. Methodology pack: matt ONLY (three mission axes + quote-every-finding);
+no addy pack loaded anywhere in this run.
+
+Disposition of the non-blocking notes (coordinator, post-review; criterion text unchanged):
+- G1 (no kind-swap control test): ACCEPTED as follow-up for the sibling wave pinning the
+  documentation gate (verify.py:1014-1015) — a documentation-kind control belongs to that
+  criterion, and PF-3's frozen text does not require it. Not reworked here: expanding the
+  denominator post-freeze would void the freeze.
+- T1 (advisory: pinned set proves the refusal half; admit half wants its own receipt):
+  ANSWERED by existing evidence the reviewer could not see (no outcome info in the prompt
+  by design): supporting mutant m2 (gate inverted) kills ALL THREE tests (audit-m2-red.txt:
+  FFF, FAILED failures=3, exit 1) — the admit case demonstrably goes RED when the gate
+  over-refuses. No rework needed.
+- Appendix assumptions (test-path classifications, commit returns SHA, untracked contract
+  invisible to commit-to-commit diff): all three CORROBORATED by the coordinator during
+  construction (diff_scope TESTS patterns, RepoCase helper source) and by the net's GREEN run.
+
+================ PROMPT-A (verbatim, 2333 chars) ================
+
+You are a BUILD-BLIND acceptance reviewer, phase A (blind expectation). Judge ONLY what is pasted below. You have no project access: reason over this prompt alone; do not read, list, search, or execute anything.
+
+First line of your reply must be: `model: <your model id> | vendor: <your vendor>`.
+
+FROZEN CONTRACT (the entire denominator — one criterion PF-3):
+> verify.py check_oracle_scope refuses a characterization oracle_scope over a commit pair that changes no test, and admits a pair that changes a test past that gate (falling through to the pinned hand-mutant requirement).
+
+PRODUCTION CONTEXT (runtime/scripts/verify.py, check_oracle_scope), gates in order:
+1. contract bytes must match the digest;
+2. contract must be JSON declaring criterion_ids, carrying oracle_scope;
+3. a None scope passes (returns []);
+4. the kind gate: illegal kinds refused (covered by an earlier test, not your concern);
+5. the commit-pair gate: scope base_sha/head_sha must equal the manifest's;
+6. criterion_ids must be a non-empty list equal to the contract's criterion_ids;
+7. paths must be a non-empty dict of path -> line list; each path must resolve inside the repo, must NOT be a test/oracle path, lines must be positive ints, and the path must exist at head_sha;
+8. the pair's changed files are split into (prod, tests): test files (paths under tests/ etc.) land in `tests`, everything else in `prod`;
+9. every changed path must be a test path or a prose file (.md/.txt/...), else refused;
+10. THE CHARACTERIZATION GATE: `if scope["kind"] == "characterization" and not tests: return ["oracle scope: characterization must change a test"]`;
+11. then the documentation gate;
+12. then the hand-mutant requirement: with no/invalid negative_control artifact, `return ["oracle scope: requires a pinned hand-mutant artifact"]` — so a scope that passes gate 10 with no artifact attached is OBSERVED through gate 12's message.
+
+TASK: write your OWN expectation BEFORE seeing any candidate test: where the characterization test should live, its rough shape (harness, fixtures, assertions), which inputs MUST be covered to pin both halves of PF-3 (refuse a no-test pair AT gate 10 — not at a deeper gate; admit a test-changing pair PAST gate 10), and your confidence. Under 30 lines. This phase ends at the expectation — do not ask for the candidate.
+
+================ REPLY-A (verbatim, 2819 chars) ================
+
+model: claude-opus-5 | vendor: Anthropic
+
+**Expectation for the PF-3 test (blind, before seeing any candidate)**
+
+**Where it lives:** in the existing verify.py test module (e.g. `runtime/tests/test_verify.py`), right next to the earlier kind-gate test. It should use that file's harness: pytest, plus whatever temp git-repo fixture already builds a base→head commit pair and a manifest.
+
+**Fixtures:**
+- A throwaway git repo with a base commit and a head commit.
+- A contract whose bytes match the digest, with JSON `criterion_ids` (e.g. `["PF-3"]`).
+- A manifest whose base_sha/head_sha are those two commits.
+- A scope with `kind: "characterization"`, the same SHAs, the same `criterion_ids`, and `paths` pointing at a real non-test prod file that exists at head, with positive line numbers.
+- No negative_control artifact, on purpose.
+
+**Case A (refuse):** head changes only a prose file (e.g. `NOTES.md`) and no test.
+- Assert the result `== ["oracle scope: characterization must change a test"]`. Use exact equality, not a substring or "non-empty" check.
+- Changing only a prose file is what makes this work. It gets past gate 9 while leaving `tests` empty, so the refusal can only come from gate 10.
+- A pair that changes a prod file would be caught earlier at gate 9, so the test would prove nothing about gate 10.
+
+**Case B (admit past gate 10):** same setup, but head changes a file under `tests/` (optionally plus the same prose file).
+- Assert the result `== ["oracle scope: requires a pinned hand-mutant artifact"]`.
+- Also assert the gate-10 message is not in the result.
+- If the documentation gate (11) needs something to pass, set up the fixture so it does. Otherwise B stops at gate 11 and never shows it got past gate 10.
+
+**What must be covered:**
+1. **Controlled pairs:** A and B must share every fixture except the test-file change, so gate 10 is the only thing that differs. Parametrizing one test or writing two sibling tests both work.
+2. **Anti-vacuity:** A must reach gate 10, so no earlier-gate message may appear. B must fall through to gate 12's exact message. Asserting "refused" or "not the gate-10 message" alone won't do.
+3. **Ideally:** a check that swapping `kind` to a legal non-characterization kind on A's pair gets past gate 10. This shows the refusal depends on `kind` and not just on an empty `tests`. It's a nice extra, since PF-3 doesn't strictly require it.
+4. **Weak signs I'll look for:** a mocked prod/tests split instead of a real git diff, a scope whose `paths` points at a test file (refused at gate 7), mismatched SHAs (refused at gate 5), or a B case attaching a valid artifact, which hides where it stopped.
+
+**Confidence:** about 80% that this is the right shape. The main unknowns are the exact fixture names in the existing harness and what gate 11 needs to pass.
+
+================ PROMPT-B (verbatim, 9553 chars) ================
+
+You are a BUILD-BLIND acceptance reviewer, phase B (judgment). Judge ONLY the artifacts pasted below. You have no project access: reason over this prompt alone; do not read, list, search, or execute anything.
+
+First line of your reply must be: `model: <your model id> | vendor: <your vendor>`.
+
+FROZEN CONTRACT (the entire denominator — one criterion PF-3):
+> verify.py check_oracle_scope refuses a characterization oracle_scope over a commit pair that changes no test, and admits a pair that changes a test past that gate (falling through to the pinned hand-mutant requirement).
+
+YOUR PHASE-A BLIND EXPECTATION (written before seeing the candidate; judge the delta — divergence is signal, not error):
+
+model: claude-opus-5 | vendor: Anthropic
+
+**Expectation for the PF-3 test (blind, before seeing any candidate)**
+
+**Where it lives:** in the existing verify.py test module (e.g. `runtime/tests/test_verify.py`), right next to the earlier kind-gate test. It should use that file's harness: pytest, plus whatever temp git-repo fixture already builds a base→head commit pair and a manifest.
+
+**Fixtures:**
+- A throwaway git repo with a base commit and a head commit.
+- A contract whose bytes match the digest, with JSON `criterion_ids` (e.g. `["PF-3"]`).
+- A manifest whose base_sha/head_sha are those two commits.
+- A scope with `kind: "characterization"`, the same SHAs, the same `criterion_ids`, and `paths` pointing at a real non-test prod file that exists at head, with positive line numbers.
+- No negative_control artifact, on purpose.
+
+**Case A (refuse):** head changes only a prose file (e.g. `NOTES.md`) and no test.
+- Assert the result `== ["oracle scope: characterization must change a test"]`. Use exact equality, not a substring or "non-empty" check.
+- Changing only a prose file is what makes this work. It gets past gate 9 while leaving `tests` empty, so the refusal can only come from gate 10.
+- A pair that changes a prod file would be caught earlier at gate 9, so the test would prove nothing about gate 10.
+
+**Case B (admit past gate 10):** same setup, but head changes a file under `tests/` (optionally plus the same prose file).
+- Assert the result `== ["oracle scope: requires a pinned hand-mutant artifact"]`.
+- Also assert the gate-10 message is not in the result.
+- If the documentation gate (11) needs something to pass, set up the fixture so it does. Otherwise B stops at gate 11 and never shows it got past gate 10.
+
+**What must be covered:**
+1. **Controlled pairs:** A and B must share every fixture except the test-file change, so gate 10 is the only thing that differs. Parametrizing one test or writing two sibling tests both work.
+2. **Anti-vacuity:** A must reach gate 10, so no earlier-gate message may appear. B must fall through to gate 12's exact message. Asserting "refused" or "not the gate-10 message" alone won't do.
+3. **Ideally:** a check that swapping `kind` to a legal non-characterization kind on A's pair gets past gate 10. This shows the refusal depends on `kind` and not just on an empty `tests`. It's a nice extra, since PF-3 doesn't strictly require it.
+4. **Weak signs I'll look for:** a mocked prod/tests split instead of a real git diff, a scope whose `paths` points at a test file (refused at gate 7), mismatched SHAs (refused at gate 5), or a B case attaching a valid artifact, which hides where it stopped.
+
+**Confidence:** about 80% that this is the right shape. The main unknowns are the exact fixture names in the existing harness and what gate 11 needs to pass.
+
+PRODUCTION CONTEXT (runtime/scripts/verify.py, check_oracle_scope), gates in order:
+1. contract bytes must match the digest;
+2. contract must be JSON declaring criterion_ids, carrying oracle_scope;
+3. a None scope passes (returns []);
+4. the kind gate (covered by an earlier test);
+5. the commit-pair gate: scope base_sha/head_sha must equal the manifest's;
+6. criterion_ids must be a non-empty list equal to the contract's;
+7. paths must be a non-empty dict; each path must resolve inside the repo, must NOT be a test/oracle path, lines positive ints, path must exist at head_sha;
+8. the pair's changed files split into (prod, tests): test files land in `tests`, the rest in `prod`;
+9. every changed path must be a test path or prose (.md/.txt/...), else refused;
+10. THE CHARACTERIZATION GATE: `if scope["kind"] == "characterization" and not tests: return ["oracle scope: characterization must change a test"]`;
+11. then the documentation gate: `if scope["kind"] == "documentation" and (tests or not prod): return ["oracle scope: documentation must change prose only"]` — skipped for kind characterization;
+12. then the hand-mutant requirement: with no/invalid negative_control artifact, `return ["oracle scope: requires a pinned hand-mutant artifact"]`.
+
+THE TEST UNDER REVIEW (new class in tests/test_verify.py; RepoCase gives each test a hermetic temp git repo as cwd with helpers write/commit/_digest; unittest, not pytest; verify is the production module imported in-process):
+
+```python
+class OracleScopeCharacterizationGateTest(RepoCase):
+    """PF-3 (prove-it campaign 2026-09-16): the characterization must-change-a-test gate.
+
+    One gate below PF-2's kind gate, check_oracle_scope enforces the lane's core
+    invariant: a characterization unit MUST change a test (evidence-manifest.md
+    §1 — characterization changes tests/prose only, and the test is what the
+    mutant kills). A pair that changes no test must be refused here — including
+    the vacuous pair that changes nothing at all; a pair that changes a test
+    passes this gate and falls through to the pinned hand-mutant requirement.
+    """
+
+    def _contract(self, scope):
+        rel = "contract-pf3.json"
+        Path(rel).write_text(
+            json.dumps({"criterion_ids": ["PF-3"], "oracle_scope": scope}),
+            encoding="utf-8")
+        return rel, _digest(rel)
+
+    def _scope(self, base, head):
+        return {"kind": "characterization", "base_sha": base, "head_sha": head,
+                "criterion_ids": ["PF-3"], "paths": {"src/app.py": [1]}}
+
+    def _base(self):
+        self.write("src/app.py", "VALUE = 1\nTOTAL = 2\n")
+        self.write("docs/note.md", "# note\n")
+        self.write("tests/test_probe.py", "import unittest\n")
+        return self.commit("base")
+
+    def test_prose_only_change_refused_at_characterization_gate(self):
+        base = self._base()
+        self.write("docs/note.md", "# note\n\nmore prose\n")
+        head = self.commit("prose only")
+        rel, digest = self._contract(self._scope(base, head))
+        self.assertEqual(
+            verify.check_oracle_scope({"base_sha": base, "head_sha": head}, rel, digest),
+            ["oracle scope: characterization must change a test"])
+
+    def test_empty_diff_refused_at_characterization_gate(self):
+        base = self._base()
+        rel, digest = self._contract(self._scope(base, base))
+        self.assertEqual(
+            verify.check_oracle_scope({"base_sha": base, "head_sha": base}, rel, digest),
+            ["oracle scope: characterization must change a test"])
+
+    def test_test_change_passes_characterization_gate(self):
+        base = self._base()
+        self.write("tests/test_probe.py", "import unittest\n\n\nclass T(unittest.TestCase):\n    pass\n")
+        head = self.commit("test change")
+        rel, digest = self._contract(self._scope(base, head))
+        self.assertEqual(
+            verify.check_oracle_scope({"base_sha": base, "head_sha": head}, rel, digest),
+            ["oracle scope: requires a pinned hand-mutant artifact"])
+```
+
+THE PINNED MUTANT (tool=hand; the gate-10 condition replaced with `if False:`):
+
+```diff
+diff --git a/runtime/scripts/verify.py b/runtime/scripts/verify.py
+index 59351385..675aa753 100755
+--- a/runtime/scripts/verify.py
++++ b/runtime/scripts/verify.py
+@@ -1009,7 +1009,7 @@ def check_oracle_scope(m, source, digest):
+     if any(_is_test_path(p) is not True and Path(p).suffix.lower() not in _PROSE_SUFFIXES
+            for p in prod + tests):
+         return ["oracle scope: this unit changes production code; default mutation binding required"]
+-    if scope["kind"] == "characterization" and not tests:
++    if False:  # MUTANT m1 (PF-3 audit): characterization gate deleted
+         return ["oracle scope: characterization must change a test"]
+     if scope["kind"] == "documentation" and (tests or not prod):
+         return ["oracle scope: documentation must change prose only"]
+```
+
+JUDGE on three axes:
+1. Spec fidelity: does the test assert EXACTLY what PF-3 says — refusal of a no-test pair AT gate 10 (not at some deeper gate), and admission of a test-changing pair PAST gate 10 (observed through gate 12's message)? Quote the test lines carrying each half. Is the empty-diff case a meaningful second refusal input or vacuous? Flag any gap (including against your phase-A expectation).
+2. Mutant validity: is the mutant behavior-changing while harness-preserving (module still imports, suite still collects and runs)? For EACH of the three tests, trace precisely which gate fires under the mutant, what comes back, and whether it FAILs or passes.
+3. Tautology guard: could any assertion pass while the behavior is broken? Does each assertion bind to gate 10 (exact error-string identity at the public seam check_oracle_scope(m, source, digest))?
+
+RULES: every finding MUST quote its verbatim motivating line; a finding that cannot quote goes to an appendix as unconfirmed.
+
+RETURN: first the `model: ...` line, then GO or NO-GO, then the per-axis judgment. Under 80 lines.
+
+================ REPLY-B (verbatim, 5006 chars) ================
+
+model: claude-opus-5 | vendor: Anthropic
+
+**GO**
+
+## Axis 1 — Spec fidelity
+
+**Refusal half, at gate 10.** Tested twice, both with exact list equality:
+- Prose-only pair: `self.write("docs/note.md", "# note\n\nmore prose\n")` → `["oracle scope: characterization must change a test"]`
+- Empty pair: `rel, digest = self._contract(self._scope(base, base))` → the same list.
+
+Both inputs reach gate 10:
+- **Gate 5:** the manifest `{"base_sha": base, "head_sha": head}` matches the scope's SHAs.
+- **Gate 6:** `"criterion_ids": ["PF-3"]` matches the contract.
+- **Gate 7:** `"paths": {"src/app.py": [1]}` is a non-test file that exists at head, with a positive line number.
+- **Gate 9:** the prose pair changes only `.md`. The empty pair has nothing in `prod + tests`, so `any(...)` is False.
+
+That leaves gate 10 as the only possible source of the message.
+
+**Admission half, past gate 10.** `self.write("tests/test_probe.py", ...)` → `["oracle scope: requires a pinned hand-mutant artifact"]`. Gate 11 is skipped because the kind is characterization, and no artifact is attached, so the result is gate 12's exact message. This matches my phase-A expectation.
+
+**Is the empty pair meaningful?** Yes. It is a separate input class, and it catches a mutant the prose case misses. For example, `if scope["kind"] == "characterization" and not tests and prod:` would still refuse the prose pair (prod = [note.md]). It would let the empty pair fall through to gate 12. The docstring gives the reason: "including the vacuous pair that changes nothing at all".
+
+**Controlled pairs.** All three tests share `_base()`, `_scope()` and `_contract()`. Only the head change differs, as I expected.
+
+**Differences from phase A (minor, not blocking):**
+- **G1:** No kind-swap control. Nothing shows that `kind` is what decides the refusal. PF-3 doesn't require it, and I marked it "nice extra".
+- **G2:** The admit case has no separate `assertNotIn(gate-10 msg)`. Exact equality `assertEqual(..., ["oracle scope: requires a pinned hand-mutant artifact"])` already rules it out, so this is not a gap.
+- **G3:** `_scope` returns `"kind": "characterization"` with no `"negative_control"`. That is the intended absence, not an oversight.
+
+## Axis 2 — Mutant validity
+
+`if False:  # MUTANT m1 (PF-3 audit): characterization gate deleted` is valid syntax at the same indentation, and the `return` body stays in place. The module still imports, the suite still collects, and the other gates don't change. The mutant changes behaviour without breaking the harness.
+
+Trace under the mutant:
+- **`test_prose_only_change_refused_at_characterization_gate`:** passes gates 1–9, skips 10 (`False`), skips 11 (kind ≠ documentation), and stops at gate 12. The result is `["oracle scope: requires a pinned hand-mutant artifact"]`, not the expected gate-10 list → **FAIL** (killed).
+- **`test_empty_diff_refused_at_characterization_gate`:** prod = tests = []. Gate 9 `any` over an empty list is False, so it passes. Gate 10 is skipped, gate 11 is skipped, and gate 12 returns the hand-mutant message → **FAIL** (killed).
+- **`test_test_change_passes_characterization_gate`:** tests is non-empty, so gate 10 wouldn't have fired even on the real code. Gate 12 returns the hand-mutant message, which is what it expects → **passes**. This is correct: the admit half isn't the target of m1.
+
+Two of three fail, and the one that passes is supposed to.
+
+## Axis 3 — Tautology guard
+
+- All three assertions compare the whole list with `assertEqual`, at the public call `verify.check_oracle_scope({...}, rel, digest)`. A wrong gate, an extra message or an empty `[]` would all fail.
+- The four candidate messages (gates 9, 10, 11 and 12) are all different strings, so no earlier or later gate can produce a false match.
+- **Refusal assertions:** these can't pass if gate 10 is broken. m1 shows it.
+- **Admit assertion:** this fails under an over-refusing mutant such as `if scope["kind"] == "characterization":` (dropping `and not tests`), because that would return the gate-10 message. So it isn't tautological either. However, that mutant isn't pinned, so the admit half has no receipt yet.
+
+**Finding T1 (advisory):** The pinned mutant set only proves the refusal half. Quote: `-    if scope["kind"] == "characterization" and not tests:` / `+    if False:`. Adding a second hand-mutant, m2, that deletes `and not tests` would produce a receipt for the admission half. It is not required for GO.
+
+## Appendix — unconfirmed (can't be quoted from the artifacts)
+
+- I'm assuming `_is_test_path("tests/test_probe.py")` is True and `_is_test_path("src/app.py")` is not. These are the classifications gates 7 and 8 need, but the code isn't pasted.
+- I'm assuming `RepoCase.commit` returns the SHA and that gate 7 accepts line `1` in a two-line file. The fixtures use both this way, but the code isn't shown.
+- `contract-pf3.json` is written after the commits and stays untracked. That's harmless if the diff is computed commit-to-commit, as gate 8 describes.

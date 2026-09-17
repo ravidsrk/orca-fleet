@@ -1,0 +1,7 @@
+command: python3 phase1-harness.py positive-control
+host: macOS ARM64, Python 3.13.15, worktree at c46d4b3f
+observed output (exact):
+POSITIVE-CONTROL: reproduced signature -> [Errno 66] Directory not empty: '/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmpz2fkf2h2/.git'
+note: Errno 66 on macOS == ENOTEMPTY (Errno 39 on Linux). A deliberate
+concurrent writer into .git during TemporaryDirectory teardown produces the
+exact CI failure signature. Diagnostic chain validated.

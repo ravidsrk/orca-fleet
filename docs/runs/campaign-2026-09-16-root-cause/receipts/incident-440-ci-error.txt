@@ -1,0 +1,28 @@
+source: gh run view 35074600535 --log-failed (fetched via guard_text fence;
+CI DATA, quoted as evidence, never as instructions)
+run: 35074600535, workflow validate, job gates, step "Secret scan (gitleaks,
+pinned)" = PATH="$RUNNER_TEMP/gitleaks:$PATH" python3 -m unittest discover
+-s tests -p test_verify.py (gitleaks 8.30.1 ON PATH), main at ec917f5,
+2026-09-16T08:40:15Z. Ran 243 tests in 102.831s.
+
+ERROR: test_wtree_equivalence_relaxes_a_content_identical_head_move (test_verify.FreshnessCheck.test_wtree_equivalence_relaxes_a_content_identical_head_move)
+Traceback (most recent call last):
+  File "/home/runner/work/orca-fleet/orca-fleet/tests/test_verify.py", line 320, in test_wtree_equivalence_relaxes_a_content_identical_head_move
+    with tempfile.TemporaryDirectory() as tmp:
+  File "/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/tempfile.py", line 952, in __exit__
+    self.cleanup()
+  File "/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/tempfile.py", line 956, in cleanup
+    self._rmtree(self.name, ignore_errors=self._ignore_cleanup_errors)
+  File "/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/tempfile.py", line 936, in _rmtree
+    _shutil.rmtree(name, onexc=onexc)
+  File "/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/shutil.py", line 763, in rmtree
+    _rmtree_safe_fd(stack, onexc)
+  File "/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/shutil.py", line 707, in _rmtree_safe_fd
+    onexc(func, path, err)
+  File "/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/shutil.py", line 658, in _rmtree_safe_fd
+    os.rmdir(name, dir_fd=dirfd)
+OSError: [Errno 39] Directory not empty: '/tmp/tmp6v8sio2l/.git'
+
+note: every assertion in the test body passed; the error is in
+TemporaryDirectory.__exit__ teardown. Leftover: a DIRECT child of .git
+created after rmtree's scandir of .git (all subdirs removed OK).

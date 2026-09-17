@@ -1,0 +1,21 @@
+command: python3 phase1-harness.py gc-gate
+host: macOS ARM64, Python 3.13.15, git 2.55.0
+observed output (exact):
+count-objects -v:
+count: 4
+size: 16
+in-pack: 0
+packs: 0
+size-pack: 0
+prune-packable: 0
+garbage: 0
+size-garbage: 0
+
+gc.log exists: False
+gc.pid exists: False
+git processes now: [] (only unrelated host processes; no git descended from the replica)
+effective gitconfig lines mentioning gc/maintenance:
+<none>
+reading: the replicated scratch repo holds 4 loose objects after the exact
+git sequence of the failing test. git gc --auto requires >6700 (gc.auto).
+Gate unmeetable => background-gc-from-own-commits falsified.

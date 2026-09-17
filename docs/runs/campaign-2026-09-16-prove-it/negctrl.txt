@@ -1,0 +1,117 @@
+### prove-it campaign 2026-09-16 — criterion PF-3 negative control
+### target: runtime/scripts/verify.py check_oracle_scope characterization gate (line 1012)
+### proof command: python3 -m unittest tests.test_verify.OracleScopeCharacterizationGateTest
+### net: OracleScopeCharacterizationGateTest, 3 tests (prose-only refusal,
+###      empty-diff refusal, test-change pass-through to the hand-mutant requirement)
+
+Pinned mutant (tool=hand): delete the characterization gate's condition
+(`if ... and not tests:` -> `if False:`). A characterization scope over a pair
+that changes no test then falls through to the hand-mutant requirement instead
+of being refused here. Unified diff below, captured with `git diff` after
+applying (raw copy: audit-m1.diff).
+
+diff --git a/runtime/scripts/verify.py b/runtime/scripts/verify.py
+index 59351385..675aa753 100755
+--- a/runtime/scripts/verify.py
++++ b/runtime/scripts/verify.py
+@@ -1009,7 +1009,7 @@ def check_oracle_scope(m, source, digest):
+     if any(_is_test_path(p) is not True and Path(p).suffix.lower() not in _PROSE_SUFFIXES
+            for p in prod + tests):
+         return ["oracle scope: this unit changes production code; default mutation binding required"]
+-    if scope["kind"] == "characterization" and not tests:
++    if False:  # MUTANT m1 (PF-3 audit): characterization gate deleted
+         return ["oracle scope: characterization must change a test"]
+     if scope["kind"] == "documentation" and (tests or not prod):
+         return ["oracle scope: documentation must change prose only"]
+CONTROL TRANSCRIPT (pinned mutant m1)
+== [1] PF-3 on the clean tree (expect OK; exit 0) ==
+...
+----------------------------------------------------------------------
+Ran 3 tests in 0.297s
+
+OK
+exit 0
+(raw: audit-clean.txt)
+
+== [2] mutant applied (the diff above) ==
+
+== [3] PF-3 under the mutant (expect FAIL — mutant KILLED; exit 1) ==
+FF.
+======================================================================
+FAIL: test_empty_diff_refused_at_characterization_gate (tests.test_verify.OracleScopeCharacterizationGateTest.test_empty_diff_refused_at_characterization_gate)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/projects/orca-fleet/.muse/worktrees/subagent-v2-01a0a08a-bf23-71e3-bb1d-c7a68bec7d23-01a0aa4d-74f3-7f91-8372-0d970e68ffdf/tests/test_verify.py", line 3021, in test_empty_diff_refused_at_characterization_gate
+    self.assertEqual(
+    ~~~~~~~~~~~~~~~~^
+        verify.check_oracle_scope({"base_sha": base, "head_sha": base}, rel, digest),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        ["oracle scope: characterization must change a test"])
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['oracle scope: requires a pinned hand-mutant artifact'] != ['oracle scope: characterization must change a test']
+
+First differing element 0:
+'oracle scope: requires a pinned hand-mutant artifact'
+'oracle scope: characterization must change a test'
+
+- ['oracle scope: requires a pinned hand-mutant artifact']
++ ['oracle scope: characterization must change a test']
+
+======================================================================
+FAIL: test_prose_only_change_refused_at_characterization_gate (tests.test_verify.OracleScopeCharacterizationGateTest.test_prose_only_change_refused_at_characterization_gate)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/projects/orca-fleet/.muse/worktrees/subagent-v2-01a0a08a-bf23-71e3-bb1d-c7a68bec7d23-01a0aa4d-74f3-7f91-8372-0d970e68ffdf/tests/test_verify.py", line 3014, in test_prose_only_change_refused_at_characterization_gate
+    self.assertEqual(
+    ~~~~~~~~~~~~~~~~^
+        verify.check_oracle_scope({"base_sha": base, "head_sha": head}, rel, digest),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        ["oracle scope: characterization must change a test"])
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['oracle scope: requires a pinned hand-mutant artifact'] != ['oracle scope: characterization must change a test']
+
+First differing element 0:
+'oracle scope: requires a pinned hand-mutant artifact'
+'oracle scope: characterization must change a test'
+
+- ['oracle scope: requires a pinned hand-mutant artifact']
++ ['oracle scope: characterization must change a test']
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.297s
+
+FAILED (failures=2)
+exit 1
+(raw: audit-m1-red.txt)
+
+== [4] mutant reverted (expect OK; exit 0) ==
+...
+----------------------------------------------------------------------
+Ran 3 tests in 0.295s
+
+OK
+exit 0
+(raw: audit-reverted.txt)
+
+SUPPORTING MUTANTS (same proof command; raw diffs and transcripts retained)
+- m2 (gate inverted `not tests` -> `tests`): FAILED (failures=3), exit 1 — KILLED
+  (raw: audit-m2.diff, audit-m2-red.txt). All three tests go RED: the two
+  refusal cases now fall through, and the pass-through case is wrongly refused.
+- m3 (gate misrouted `"characterization"` -> `"documentation"`): FAILED
+  (failures=2), exit 1 — KILLED (raw: audit-m3.diff, audit-m3-red.txt). Both
+  refusal cases fall through; the pass-through case still passes.
+COVERAGE RE-MAP
+Lines 1012 and 1013 are both EXECUTED by the net (neither appears in coverage's
+Missing column for the targeted run; 1011 and 1015 do). Raw: remap-coverage.txt
+and remap-tests.txt. The mutation is the proof; the coverage number is context.
+VERDICT
+Pinned mutant m1 KILLED: the proof goes RED under the control (exit 1, FAILED
+with failures=2 — an AssertionError at the criterion assertEqual in each
+refusal test) and GREEN on the clean tree (exit 0, OK, 3 tests) and after
+revert (exit 0, OK, 3 tests). Harness intact throughout: module imports,
+collection clean, the passing test still passes under m1.
+Supporting mutants m2/m3 KILLED: 3/3 across the gate expression (deletion,
+inversion, misroute). No SURVIVOR at this seam: each half of PF-3 — refuse a
+pair that changes no test, admit a pair that changes a test — is bound by a
+test asserting an independent literal error string at the public seam
+check_oracle_scope(m, source, digest).

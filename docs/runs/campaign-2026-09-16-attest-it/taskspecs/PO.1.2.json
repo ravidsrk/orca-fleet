@@ -1,0 +1,11 @@
+{
+ "criterion_ids": [
+  "PO.1.2"
+ ],
+ "frozen_source_sha256": "b01634a5fdb382e7a12660c379a4d0bc3a2b8e29abccf2861834880005137117",
+ "source": "docs/runs/campaign-2026-09-16-attest-it/catalog/frozen-catalog.json",
+ "standard": "NIST-SP-800-218",
+ "statement": "Identify and document all security requirements for organization-developed software to meet, and maintain the requirements over time.",
+ "unit": "attest-po-1-2",
+ "version": "1.0.0"
+}

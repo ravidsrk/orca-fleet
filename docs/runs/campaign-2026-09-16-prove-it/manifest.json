@@ -1,0 +1,166 @@
+{
+  "commands": [
+    {
+      "label": "tests",
+      "ts": "2026-09-16T13:27:06Z",
+      "cmd": "python3 -m unittest tests.test_verify.OracleScopeCharacterizationGateTest",
+      "cmd_sha256": "dd30015823d49b8b7b7b6cfa4567b90f93a3f408edc153bef3740253c58ef98b",
+      "exit": 0,
+      "duration_s": 0.318,
+      "commit": "18ee8633720835c88e4f5401d3be59f254069fa4",
+      "wtree": "dd57b4dd3b4beb45809e1c1f785f584097c60f94",
+      "artifact": "docs/runs/campaign-2026-09-16-prove-it/tests.txt"
+    },
+    {
+      "label": "verifier",
+      "ts": "2026-09-16T13:28:02Z",
+      "cmd": "python3 runtime/scripts/verify.py --manifest docs/runs/campaign-2026-09-16-prove-it/manifest.json --contract-source docs/runs/campaign-2026-09-16-prove-it/contract.json@fc84a46d95ba8b9f68b60a17999749592ee620c9 --contract-digest sha256:8d66ecd290c727de4b89beeb54d1584fe7fe3a5f30a6b3df10e1f8a15b90c807 --unit-class mutation --lighting dark-eligible --execute-nc --nc-command 'python3 -m unittest tests.test_verify.OracleScopeCharacterizationGateTest'",
+      "cmd_sha256": "bfa7e08359ed4739bfddd9b0295e5ece313d6f78b504d935cf6c92c8271eb6c5",
+      "exit": 0,
+      "duration_s": 1.839,
+      "commit": "fc84a46d95ba8b9f68b60a17999749592ee620c9",
+      "wtree": "0f7c16ad15d594f49317a23f0c0d762c89b67410",
+      "artifact": "docs/runs/campaign-2026-09-16-prove-it/verifier.txt"
+    },
+    {
+      "label": "tests-full",
+      "ts": "2026-09-16T13:32:59Z",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "exit": 1,
+      "duration_s": 283.404,
+      "commit": "fc84a46d95ba8b9f68b60a17999749592ee620c9",
+      "wtree": "2c6f08a18b0eb65e634e1dad0df02561262cc3c9",
+      "artifact": "docs/runs/campaign-2026-09-16-prove-it/tests-full.txt"
+    },
+    {
+      "label": "tests-full rerun",
+      "ts": "2026-09-16T13:38:34Z",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "exit": 0,
+      "duration_s": 269.508,
+      "commit": "d3bd2feab4527d84168fce59d32808bcd46819b5",
+      "wtree": "6eb9f12d6986f0e50ed1921d23aa051b49e01f8c",
+      "artifact": "docs/runs/campaign-2026-09-16-prove-it/tests-full-green.txt"
+    },
+    {
+      "label": "validation",
+      "ts": "2026-09-16T13:38:41Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 0,
+      "duration_s": 0.923,
+      "commit": "d3bd2feab4527d84168fce59d32808bcd46819b5",
+      "wtree": "b79fc5477b7699345e08a4e559ec0f93eccdfea6",
+      "artifact": "docs/runs/campaign-2026-09-16-prove-it/validation.txt"
+    }
+  ],
+  "unit": "prove-it-2026-09-16-PF-3-campaign",
+  "base_sha": "c46d4b3f3371e41408aed19e54476fa194c20b42",
+  "head_sha": "18ee8633720835c88e4f5401d3be59f254069fa4",
+  "base_branch": "campaign/prove-it-selftest",
+  "contract": {
+    "source": "docs/runs/campaign-2026-09-16-prove-it/contract.json@fc84a46d95ba8b9f68b60a17999749592ee620c9",
+    "digest": "sha256:8d66ecd290c727de4b89beeb54d1584fe7fe3a5f30a6b3df10e1f8a15b90c807",
+    "criterion_ids": [
+      "PF-3"
+    ]
+  },
+  "criteria": [
+    {
+      "id": "PF-3",
+      "text": "verify.py check_oracle_scope refuses a characterization oracle_scope over a commit pair that changes no test, and admits a pair that changes a test past that gate (falling through to the pinned hand-mutant requirement).",
+      "addressed": true
+    }
+  ],
+  "negative_control": {
+    "did": "replaced verify.py check_oracle_scope characterization-gate condition with `if False:` (hand mutant m1, line 1012)",
+    "tool": "hand",
+    "result": "the criterion-bound test went RED (mutant KILLED): exit 1, FAILED failures=2 \u2014 AssertionError at the PF-3 assertEqual in each refusal test (test_prose_only_change_refused_at_characterization_gate, test_empty_diff_refused_at_characterization_gate); the pass-through test still passes; harness intact",
+    "artifact": "docs/runs/campaign-2026-09-16-prove-it/negctrl.txt",
+    "command": "python3 -m unittest tests.test_verify.OracleScopeCharacterizationGateTest"
+  },
+  "binding_audit": {
+    "coverage": "PF-3 (1/1)",
+    "method": "criterion quoted, covering tests quoted, criterion-violating mutation went RED (3/3 mutants killed across the gate expression: m1 deletion failures=2, m2 inversion failures=3, m3 misroute failures=2; all AssertionError at assertEqual, harness intact)"
+  },
+  "intent": {
+    "goal": "Pin verify.py's oracle-scope characterization gate with a mutation-audited characterization test (PF-3).",
+    "ruled_out": "a broader multi-gate sweep of the oracle-scope tail (997/1003/1005/1015/1024 stay named sibling waves; one gate per frozen denominator); asserting gate-12 behavior as the criterion (it is the passage oracle, not the property)",
+    "why": "the characterization gate enforces the lane's core invariant \u2014 a characterization unit MUST change a test \u2014 so a broken gate admits production-only changes to the waived-review lane this run itself rides"
+  },
+  "lighting": "dark-eligible",
+  "reviewer_mode": "cross-vendor",
+  "review": {
+    "artifact": "docs/runs/campaign-2026-09-16-prove-it/review.txt"
+  },
+  "toolchain": "CPython 3.13.15 on macOS arm64; git; unittest; claude CLI 2.1.273 (blind reviewer, claude-opus-5)",
+  "claim": "PF-3 characterized by OracleScopeCharacterizationGateTest (3 tests), pinned hand mutant m1 KILLED with supporting mutants m2/m3 KILLED, build-blind cross-vendor review GO (round 1).",
+  "artifacts": [
+    {
+      "path": "docs/runs/campaign-2026-09-16-prove-it/negctrl.txt",
+      "sha256": "04a10bc5e606bce43556a0a60b14359298a23bd75dd7113e6207a2dfea30496e"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-prove-it/review.txt",
+      "sha256": "0542fb4feb6c86f5b7cc18f8581ad492684bda238be26742346335b7f1c112d4"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-prove-it/tests.txt",
+      "sha256": "cf9d1b470ff096c937e755f96c792ca3a6ddd57f699e7c25397e8a9a1026391e"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-prove-it/audit-m1.diff",
+      "sha256": "9684200b8e61f6a5cb16dfff40a0c145d8c990422e479eafbc6dcbcfc163dc74"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-prove-it/audit-m2.diff",
+      "sha256": "edd2237aba5c0121d1ed5e35532163839a6a64ec9d23773c84c3f63cd4f4faae"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-prove-it/audit-m3.diff",
+      "sha256": "455f9ca009391470a793f7a3579cd83571e47491105a251d0f508a1768002ba6"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-prove-it/audit-clean.txt",
+      "sha256": "e02e72962f0d6085e965760bc81b4a479137ab62f762fb95139733475a59bf76"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-prove-it/audit-m1-red.txt",
+      "sha256": "ce73b33363dd298aa5f2b425e9f72e215964a78a931c1518fdfca379a40651a0"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-prove-it/audit-m2-red.txt",
+      "sha256": "2e93deba323b7eee01cffe6dd98570083c67e89c46d806f45145e5ccf7c8ff80"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-prove-it/audit-m3-red.txt",
+      "sha256": "acdb781872f2ee2a0f69d6cb72c291bac74bb584be9fb024e95e76a7a01dcd6a"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-prove-it/audit-reverted.txt",
+      "sha256": "77209dd734c81cb898fd705f85179e1c906b92b03027dac3132e08cef9423360"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-prove-it/verifier.txt",
+      "sha256": "c1e4e82d8b98117eade5963a5cc3d962953ab5b0eba7f4f566f51f5331e63edb"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-prove-it/tests-full.txt",
+      "sha256": "8d297fcf5662cac6022c4fcb2753ddee368cd701641e8bca2b7b242da2fd86ad"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-prove-it/tests-full-green.txt",
+      "sha256": "08e50776d1c25917f35144b4289105b12443f5f612a1fc164d86e669a458068e"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-prove-it/validation.txt",
+      "sha256": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-prove-it/clean-env.txt",
+      "sha256": "f8129822e9221b5e613e851e17d3e574b336cf1c80139cb5bd108974055581bd"
+    }
+  ]
+}

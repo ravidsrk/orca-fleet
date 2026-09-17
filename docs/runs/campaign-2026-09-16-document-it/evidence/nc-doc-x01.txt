@@ -1,0 +1,8 @@
+NC doc-x01: rename 'NEVER_GATE' -> 'ALWAYS_GATE' in runtime/scripts/decisions.py; expect claimcheck --cell decisions.py RED
+renamed 3 occurrence(s)
+--- claimcheck (expect FAIL) ---
+UNBOUND: decisions.py: ANCHOR `runtime/scripts/decisions.py:NEVER_GATE` not found in runtime/scripts/decisions.py
+claimcheck: 1 section(s), 1 unbound claim(s)
+claimcheck exit=1
+--- restore ---
+renamed file restored: yes

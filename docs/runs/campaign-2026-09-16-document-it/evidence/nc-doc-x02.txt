@@ -1,0 +1,8 @@
+NC doc-x02: rename 'permissionDecision' -> 'verdictChoice' in runtime/scripts/deny-hook.sh; expect claimcheck --cell deny-hook.sh RED
+renamed 7 occurrence(s)
+--- claimcheck (expect FAIL) ---
+UNBOUND: deny-hook.sh: ANCHOR `runtime/scripts/deny-hook.sh:permissionDecision` not found in runtime/scripts/deny-hook.sh
+claimcheck: 1 section(s), 1 unbound claim(s)
+claimcheck exit=1
+--- restore ---
+renamed file restored: yes

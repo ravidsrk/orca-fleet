@@ -1,0 +1,8 @@
+NC doc-x11: rename 'names_recipe' -> 'titles_recipe' in runtime/scripts/sandbox_doctor.py; expect claimcheck --cell sandbox_doctor.py RED
+renamed 2 occurrence(s)
+--- claimcheck (expect FAIL) ---
+UNBOUND: sandbox_doctor.py: ANCHOR `runtime/scripts/sandbox_doctor.py:names_recipe` not found in runtime/scripts/sandbox_doctor.py
+claimcheck: 1 section(s), 1 unbound claim(s)
+claimcheck exit=1
+--- restore ---
+renamed file restored: yes

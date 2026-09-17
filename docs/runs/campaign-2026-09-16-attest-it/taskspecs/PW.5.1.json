@@ -1,0 +1,11 @@
+{
+ "criterion_ids": [
+  "PW.5.1"
+ ],
+ "frozen_source_sha256": "b01634a5fdb382e7a12660c379a4d0bc3a2b8e29abccf2861834880005137117",
+ "source": "docs/runs/campaign-2026-09-16-attest-it/catalog/frozen-catalog.json",
+ "standard": "NIST-SP-800-218",
+ "statement": "Follow all secure coding practices that are appropriate to the development languages and environment to meet the organization\u2019s requirements.",
+ "unit": "attest-pw-5-1",
+ "version": "1.0.0"
+}

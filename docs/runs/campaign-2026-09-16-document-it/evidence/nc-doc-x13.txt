@@ -1,0 +1,8 @@
+NC doc-x13: rename 'SETTLED' -> 'FINISHED' in runtime/scripts/watchdog.py; expect claimcheck --cell watchdog.py RED
+renamed 7 occurrence(s)
+--- claimcheck (expect FAIL) ---
+UNBOUND: watchdog.py: ANCHOR `runtime/scripts/watchdog.py:SETTLED` not found in runtime/scripts/watchdog.py
+claimcheck: 1 section(s), 1 unbound claim(s)
+claimcheck exit=1
+--- restore ---
+renamed file restored: yes

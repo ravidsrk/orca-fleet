@@ -1,0 +1,30 @@
+F
+======================================================================
+FAIL: test_throwaway_repo_teardown_tolerates_a_late_writer (tests.test_verify.FreshnessCheck.test_throwaway_repo_teardown_tolerates_a_late_writer)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/projects/orca-fleet/.muse/worktrees/subagent-v2-01a0a08a-bf23-71e3-bb1d-c7a68bec7d23-01a0a9a6-80f9-70c3-bbd6-66eef30395bb/tests/test_verify.py", line 394, in test_throwaway_repo_teardown_tolerates_a_late_writer
+    self.assertEqual(raised, [], f"teardown raised under a raced late writer: {raised}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['OSError errno=66', 'OSError errno=66', '[153 chars]=66'] != []
+
+First list contains 10 additional elements.
+First extra element 0:
+'OSError errno=66'
+
++ []
+- ['OSError errno=66',
+-  'OSError errno=66',
+-  'OSError errno=66',
+-  'OSError errno=66',
+-  'OSError errno=66',
+-  'OSError errno=66',
+-  'OSError errno=66',
+-  'OSError errno=66',
+-  'OSError errno=66',
+-  'OSError errno=66'] : teardown raised under a raced late writer: ['OSError errno=66', 'OSError errno=66', 'OSError errno=66', 'OSError errno=66', 'OSError errno=66', 'OSError errno=66', 'OSError errno=66', 'OSError errno=66', 'OSError errno=66', 'OSError errno=66']
+
+----------------------------------------------------------------------
+Ran 1 test in 0.120s
+
+FAILED (failures=1)

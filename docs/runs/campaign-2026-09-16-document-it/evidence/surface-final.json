@@ -1,0 +1,596 @@
+{
+  "base_sha": "c064b27c9cce4a46aecf5c1a55fcb11bf77dd524",
+  "command": "python3 docs/runs/campaign-2026-09-16-document-it/extractor/extract.py docs/runs/campaign-2026-09-16-document-it/extractor",
+  "entities": [
+    {
+      "frontmatter_name": "absorb-it",
+      "id": "skill:absorb-it",
+      "kind": "skill",
+      "name": "absorb-it",
+      "source": "skills/absorb-it/SKILL.md"
+    },
+    {
+      "frontmatter_name": "access-it",
+      "id": "skill:access-it",
+      "kind": "skill",
+      "name": "access-it",
+      "source": "skills/access-it/SKILL.md"
+    },
+    {
+      "frontmatter_name": "attest-it",
+      "id": "skill:attest-it",
+      "kind": "skill",
+      "name": "attest-it",
+      "source": "skills/attest-it/SKILL.md"
+    },
+    {
+      "frontmatter_name": "clean-sweep",
+      "id": "skill:clean-sweep",
+      "kind": "skill",
+      "name": "clean-sweep",
+      "source": "skills/clean-sweep/SKILL.md"
+    },
+    {
+      "frontmatter_name": "deflake-it",
+      "id": "skill:deflake-it",
+      "kind": "skill",
+      "name": "deflake-it",
+      "source": "skills/deflake-it/SKILL.md"
+    },
+    {
+      "frontmatter_name": "document-it",
+      "id": "skill:document-it",
+      "kind": "skill",
+      "name": "document-it",
+      "source": "skills/document-it/SKILL.md"
+    },
+    {
+      "frontmatter_name": "field-test-it",
+      "id": "skill:field-test-it",
+      "kind": "skill",
+      "name": "field-test-it",
+      "source": "skills/field-test-it/SKILL.md"
+    },
+    {
+      "frontmatter_name": "floor-it",
+      "id": "skill:floor-it",
+      "kind": "skill",
+      "name": "floor-it",
+      "source": "skills/floor-it/SKILL.md"
+    },
+    {
+      "frontmatter_name": "harden-it",
+      "id": "skill:harden-it",
+      "kind": "skill",
+      "name": "harden-it",
+      "source": "skills/harden-it/SKILL.md"
+    },
+    {
+      "frontmatter_name": "map-it",
+      "id": "skill:map-it",
+      "kind": "skill",
+      "name": "map-it",
+      "source": "skills/map-it/SKILL.md"
+    },
+    {
+      "frontmatter_name": "migrate-it",
+      "id": "skill:migrate-it",
+      "kind": "skill",
+      "name": "migrate-it",
+      "source": "skills/migrate-it/SKILL.md"
+    },
+    {
+      "frontmatter_name": "modernize-it",
+      "id": "skill:modernize-it",
+      "kind": "skill",
+      "name": "modernize-it",
+      "source": "skills/modernize-it/SKILL.md"
+    },
+    {
+      "frontmatter_name": "oncall-it",
+      "id": "skill:oncall-it",
+      "kind": "skill",
+      "name": "oncall-it",
+      "source": "skills/oncall-it/SKILL.md"
+    },
+    {
+      "frontmatter_name": "oss-contribute",
+      "id": "skill:oss-contribute",
+      "kind": "skill",
+      "name": "oss-contribute",
+      "source": "skills/oss-contribute/SKILL.md"
+    },
+    {
+      "frontmatter_name": "pin-it",
+      "id": "skill:pin-it",
+      "kind": "skill",
+      "name": "pin-it",
+      "source": "skills/pin-it/SKILL.md"
+    },
+    {
+      "frontmatter_name": "prove-it",
+      "id": "skill:prove-it",
+      "kind": "skill",
+      "name": "prove-it",
+      "source": "skills/prove-it/SKILL.md"
+    },
+    {
+      "frontmatter_name": "reshape-it",
+      "id": "skill:reshape-it",
+      "kind": "skill",
+      "name": "reshape-it",
+      "source": "skills/reshape-it/SKILL.md"
+    },
+    {
+      "frontmatter_name": "review-it",
+      "id": "skill:review-it",
+      "kind": "skill",
+      "name": "review-it",
+      "source": "skills/review-it/SKILL.md"
+    },
+    {
+      "frontmatter_name": "root-cause",
+      "id": "skill:root-cause",
+      "kind": "skill",
+      "name": "root-cause",
+      "source": "skills/root-cause/SKILL.md"
+    },
+    {
+      "frontmatter_name": "ship-it",
+      "id": "skill:ship-it",
+      "kind": "skill",
+      "name": "ship-it",
+      "source": "skills/ship-it/SKILL.md"
+    },
+    {
+      "frontmatter_name": "speed-it",
+      "id": "skill:speed-it",
+      "kind": "skill",
+      "name": "speed-it",
+      "source": "skills/speed-it/SKILL.md"
+    },
+    {
+      "flags": [
+        "--doors",
+        "--file",
+        "--help"
+      ],
+      "help_exit": 0,
+      "id": "cli:runtime/scripts/decisions.py",
+      "kind": "cli",
+      "name": "runtime/scripts/decisions.py",
+      "source": "runtime/scripts/decisions.py"
+    },
+    {
+      "flags": [
+        "--help",
+        "--settings"
+      ],
+      "help_exit": 0,
+      "id": "cli:runtime/scripts/deny-hook.sh",
+      "kind": "cli",
+      "name": "runtime/scripts/deny-hook.sh",
+      "source": "runtime/scripts/deny-hook.sh"
+    },
+    {
+      "flags": [
+        "--base",
+        "--help",
+        "--json",
+        "--repo",
+        "--strict"
+      ],
+      "help_exit": 0,
+      "id": "cli:runtime/scripts/diff_scope.py",
+      "kind": "cli",
+      "name": "runtime/scripts/diff_scope.py",
+      "source": "runtime/scripts/diff_scope.py"
+    },
+    {
+      "flags": [
+        "--help"
+      ],
+      "help_exit": 0,
+      "id": "cli:runtime/scripts/dispatch-sign.py",
+      "kind": "cli",
+      "name": "runtime/scripts/dispatch-sign.py",
+      "source": "runtime/scripts/dispatch-sign.py"
+    },
+    {
+      "flags": [],
+      "help_exit": 0,
+      "id": "cli:runtime/scripts/ed25519.py",
+      "kind": "cli",
+      "name": "runtime/scripts/ed25519.py",
+      "source": "runtime/scripts/ed25519.py"
+    },
+    {
+      "flags": [
+        "--help",
+        "--ledger"
+      ],
+      "help_exit": 0,
+      "id": "cli:runtime/scripts/egress.py",
+      "kind": "cli",
+      "name": "runtime/scripts/egress.py",
+      "source": "runtime/scripts/egress.py"
+    },
+    {
+      "flags": [
+        "--artifact",
+        "--cwd",
+        "--help",
+        "--label",
+        "--manifest"
+      ],
+      "help_exit": 0,
+      "id": "cli:runtime/scripts/evidence-run.py",
+      "kind": "cli",
+      "name": "runtime/scripts/evidence-run.py",
+      "source": "runtime/scripts/evidence-run.py"
+    },
+    {
+      "flags": [
+        "--base",
+        "--constraints",
+        "--help",
+        "--quiet",
+        "--repo",
+        "--waivers"
+      ],
+      "help_exit": 0,
+      "id": "cli:runtime/scripts/floor_guard.py",
+      "kind": "cli",
+      "name": "runtime/scripts/floor_guard.py",
+      "source": "runtime/scripts/floor_guard.py"
+    },
+    {
+      "flags": [
+        "--file",
+        "--help",
+        "--run",
+        "--status"
+      ],
+      "help_exit": 0,
+      "id": "cli:runtime/scripts/gate-batch.py",
+      "kind": "cli",
+      "name": "runtime/scripts/gate-batch.py",
+      "source": "runtime/scripts/gate-batch.py"
+    },
+    {
+      "flags": [
+        "--fetch",
+        "--help",
+        "--label",
+        "--source",
+        "--timeout"
+      ],
+      "help_exit": 0,
+      "id": "cli:runtime/scripts/guard_text.py",
+      "kind": "cli",
+      "name": "runtime/scripts/guard_text.py",
+      "source": "runtime/scripts/guard_text.py"
+    },
+    {
+      "flags": [
+        "--dry-run",
+        "--help",
+        "--rounds"
+      ],
+      "help_exit": 0,
+      "id": "cli:runtime/scripts/hitl-loop.template.sh",
+      "kind": "cli",
+      "name": "runtime/scripts/hitl-loop.template.sh",
+      "source": "runtime/scripts/hitl-loop.template.sh"
+    },
+    {
+      "flags": [
+        "--help"
+      ],
+      "help_exit": 0,
+      "id": "cli:runtime/scripts/inventory.py",
+      "kind": "cli",
+      "name": "runtime/scripts/inventory.py",
+      "source": "runtime/scripts/inventory.py"
+    },
+    {
+      "flags": [
+        "--help"
+      ],
+      "help_exit": 2,
+      "id": "cli:runtime/scripts/pm.py",
+      "kind": "cli",
+      "name": "runtime/scripts/pm.py",
+      "source": "runtime/scripts/pm.py"
+    },
+    {
+      "flags": [
+        "--base",
+        "--default",
+        "--fork-point",
+        "--help",
+        "--mode",
+        "--offline",
+        "--require-gitleaks"
+      ],
+      "help_exit": 0,
+      "id": "cli:runtime/scripts/preflight.py",
+      "kind": "cli",
+      "name": "runtime/scripts/preflight.py",
+      "source": "runtime/scripts/preflight.py"
+    },
+    {
+      "flags": [
+        "--check",
+        "--help",
+        "--json",
+        "--root"
+      ],
+      "help_exit": 0,
+      "id": "cli:runtime/scripts/proof_status.py",
+      "kind": "cli",
+      "name": "runtime/scripts/proof_status.py",
+      "source": "runtime/scripts/proof_status.py"
+    },
+    {
+      "flags": [
+        "--help",
+        "--mission",
+        "--tier"
+      ],
+      "help_exit": 0,
+      "id": "cli:runtime/scripts/run_report.py",
+      "kind": "cli",
+      "name": "runtime/scripts/run_report.py",
+      "source": "runtime/scripts/run_report.py"
+    },
+    {
+      "flags": [],
+      "help_exit": 2,
+      "id": "cli:runtime/scripts/sandbox_doctor.py",
+      "kind": "cli",
+      "name": "runtime/scripts/sandbox_doctor.py",
+      "source": "runtime/scripts/sandbox_doctor.py"
+    },
+    {
+      "flags": [
+        "--mark-ready"
+      ],
+      "help_exit": 2,
+      "id": "cli:runtime/scripts/spawn_worker.sh",
+      "kind": "cli",
+      "name": "runtime/scripts/spawn_worker.sh",
+      "source": "runtime/scripts/spawn_worker.sh"
+    },
+    {
+      "flags": [
+        "--help"
+      ],
+      "help_exit": 2,
+      "id": "cli:runtime/scripts/verify-gate.sh",
+      "kind": "cli",
+      "name": "runtime/scripts/verify-gate.sh",
+      "source": "runtime/scripts/verify-gate.sh"
+    },
+    {
+      "flags": [
+        "--base",
+        "--contract-digest",
+        "--contract-source",
+        "--dispatch-pubkey",
+        "--dispatch-record",
+        "--execute-",
+        "--execute-nc",
+        "--help",
+        "--lighting",
+        "--manifest",
+        "--nc-command",
+        "--no-gh",
+        "--repo",
+        "--symbol",
+        "--unit-class"
+      ],
+      "help_exit": 0,
+      "id": "cli:runtime/scripts/verify.py",
+      "kind": "cli",
+      "name": "runtime/scripts/verify.py",
+      "source": "runtime/scripts/verify.py"
+    },
+    {
+      "flags": [
+        "--config",
+        "--dry-run",
+        "--heartbeats",
+        "--help",
+        "--log",
+        "--now",
+        "--state"
+      ],
+      "help_exit": 0,
+      "id": "cli:runtime/scripts/watchdog.py",
+      "kind": "cli",
+      "name": "runtime/scripts/watchdog.py",
+      "source": "runtime/scripts/watchdog.py"
+    },
+    {
+      "flags": [],
+      "help_exit": 1,
+      "id": "cli:runtime/scripts/wtree.sh",
+      "kind": "cli",
+      "name": "runtime/scripts/wtree.sh",
+      "source": "runtime/scripts/wtree.sh"
+    },
+    {
+      "flags": [
+        "--base",
+        "--help",
+        "--root"
+      ],
+      "help_exit": 0,
+      "id": "cli:scripts/bind_check.py",
+      "kind": "cli",
+      "name": "scripts/bind_check.py",
+      "source": "scripts/bind_check.py"
+    },
+    {
+      "flags": [
+        "--check",
+        "--help",
+        "--out"
+      ],
+      "help_exit": 0,
+      "id": "cli:scripts/bundle.py",
+      "kind": "cli",
+      "name": "scripts/bundle.py",
+      "source": "scripts/bundle.py"
+    },
+    {
+      "flags": [
+        "--help"
+      ],
+      "help_exit": 0,
+      "id": "cli:scripts/eval.py",
+      "kind": "cli",
+      "name": "scripts/eval.py",
+      "source": "scripts/eval.py"
+    },
+    {
+      "flags": [
+        "--check",
+        "--help"
+      ],
+      "help_exit": 0,
+      "id": "cli:scripts/gen-badges.py",
+      "kind": "cli",
+      "name": "scripts/gen-badges.py",
+      "source": "scripts/gen-badges.py"
+    },
+    {
+      "flags": [
+        "--check",
+        "--skills-dir"
+      ],
+      "help_exit": 0,
+      "id": "cli:scripts/install.sh",
+      "kind": "cli",
+      "name": "scripts/install.sh",
+      "source": "scripts/install.sh"
+    },
+    {
+      "flags": [],
+      "help_exit": 0,
+      "id": "cli:scripts/validate.py",
+      "kind": "cli",
+      "name": "scripts/validate.py",
+      "source": "scripts/validate.py"
+    },
+    {
+      "flags": [
+        "--event"
+      ],
+      "help_exit": 0,
+      "id": "cli:hooks/print-settings-snippet.sh",
+      "kind": "cli",
+      "name": "hooks/print-settings-snippet.sh",
+      "source": "hooks/print-settings-snippet.sh"
+    },
+    {
+      "id": "config:hooks/hooks.json",
+      "keys": [
+        "TaskCompleted",
+        "Stop"
+      ],
+      "kind": "config",
+      "name": "hooks/hooks.json",
+      "source": "hooks/hooks.json"
+    },
+    {
+      "id": "config:hooks/settings-snippet.json",
+      "keys": [
+        "_comment",
+        "hooks"
+      ],
+      "kind": "config",
+      "name": "hooks/settings-snippet.json",
+      "source": "hooks/settings-snippet.json"
+    },
+    {
+      "id": "config:runtime/one-way-doors.json",
+      "keys": [
+        "version",
+        "note",
+        "doors"
+      ],
+      "kind": "config",
+      "name": "runtime/one-way-doors.json",
+      "source": "runtime/one-way-doors.json"
+    },
+    {
+      "id": "config:runtime/pins.json",
+      "keys": [
+        "_about",
+        "orca",
+        "gstack",
+        "addyosmani",
+        "mattpocock"
+      ],
+      "kind": "config",
+      "name": "runtime/pins.json",
+      "source": "runtime/pins.json"
+    },
+    {
+      "id": "config:runtime/watchdog.json",
+      "keys": [
+        "_about",
+        "slow_after_s",
+        "hung_after_s",
+        "wedge_frozen_s",
+        "max_nudges_per_dispatch",
+        "nudge_window_s",
+        "max_nudges_per_hour_per_worker",
+        "nudge_text",
+        "nudge_command"
+      ],
+      "kind": "config",
+      "name": "runtime/watchdog.json",
+      "source": "runtime/watchdog.json"
+    },
+    {
+      "id": "config:.env.example",
+      "keys": [
+        "ORCA_BASE",
+        "ORCA_CONTRACT_DIGEST",
+        "ORCA_CONTRACT_SOURCE",
+        "ORCA_DISPATCH_PUBKEY",
+        "ORCA_DISPATCH_RECORD",
+        "ORCA_EXECUTE_NC",
+        "ORCA_LIGHTING",
+        "ORCA_MANIFEST",
+        "ORCA_NC_COMMAND",
+        "ORCA_NO_GH",
+        "ORCA_PROVENANCE",
+        "ORCA_REPO",
+        "ORCA_SYMBOL",
+        "ORCA_UNIT_CLASS"
+      ],
+      "kind": "config",
+      "name": ".env.example",
+      "source": ".env.example"
+    },
+    {
+      "id": "config:ruff.toml",
+      "keys": [
+        "select",
+        "target-version"
+      ],
+      "kind": "config",
+      "name": "ruff.toml",
+      "source": "ruff.toml"
+    }
+  ],
+  "sub_surfaces": {
+    "A_skills": 21,
+    "B_clis": 29,
+    "C_config": 7
+  }
+}

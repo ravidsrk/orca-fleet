@@ -1,0 +1,8 @@
+NC doc-x05: rename 'head_digest' -> 'tip_digest' in runtime/scripts/egress.py; expect claimcheck --cell egress.py RED
+renamed 2 occurrence(s)
+--- claimcheck (expect FAIL) ---
+UNBOUND: egress.py: ANCHOR `runtime/scripts/egress.py:head_digest` not found in runtime/scripts/egress.py
+claimcheck: 1 section(s), 1 unbound claim(s)
+claimcheck exit=1
+--- restore ---
+renamed file restored: yes

@@ -1,0 +1,8 @@
+container: python:3.13-bookworm (Python 3.13.15, EXACT CI version),
+git 2.39.5 (apt), gitleaks 8.30.1 linux_x64 (EXACT CI version, on PATH),
+/tmp on overlayfs. Repo: git archive of c46d4b3f (tests+runtime+scripts)
++ phase1-harness.py (container-patched REPO root only).
+command: python3 /r/lh.py replica 2000
+observed output (tail, exact):
+GITLEAKS_OK
+REPLICA: 0/2000 teardown failures

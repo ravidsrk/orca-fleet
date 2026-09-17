@@ -1,0 +1,10 @@
+# Preflight record — ship-it self-test 2026-09-16
+
+Base: origin/main c46d4b3f3371e41408aed19e54476fa194c20b42
+Branch: campaign/ship-it-selftest (local only; not pushed)
+
+- orca status --json: app running=true, runtime state=ready, connection=connected, appVersion=1.4.203
+- gh auth status: logged in as ravidsrk (GITHUB_TOKEN + keyring)
+- python3 scripts/validate.py: All 21 missions valid; three-layer separation holds; evals valid.
+- Open issues at tip (gh issue list --state open): #444 #443 #442 #441 #440 #434 #427 #409 #408 #407 #386 #235
+- Open PRs: none observed (not enumerated; irrelevant at entry park — no landing attempted)

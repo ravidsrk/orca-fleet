@@ -1,0 +1,66 @@
+{
+  "unit": "attest-pw-7-2",
+  "base_sha": "6390743815f8f435181fa410cce374587128b30a",
+  "head_sha": "6390743815f8f435181fa410cce374587128b30a",
+  "contract": {
+    "source": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/PW.7.2.json",
+    "digest": "e3295057d3dd7534c28344bcb1cd461b4e3a990da49f5afc031dd227f6b60ff9",
+    "criterion_ids": [
+      "PW.7.2"
+    ]
+  },
+  "criteria": [
+    {
+      "id": "PW.7.2",
+      "text": "Perform the code review and/or code analysis based on the organization\u2019s secure coding standards, and record and triage all discovered issues and recommended remediations in the development team\u2019s workflow or issue tracking system.",
+      "addressed": true
+    }
+  ],
+  "negative_control": {
+    "did": "independent re-derivation (report-only analogue): re-executed every quote, absence, no-match, digest, and release-binding check from git objects at TARGET via rederive.py, plus blind second-pass reads of all cited files",
+    "tool": "hand",
+    "result": "rederive.py exit 0; 7 mis-cited lines/numbers caught and corrected during re-derivation across the run",
+    "artifact": "docs/runs/campaign-2026-09-16-attest-it/rederive/rederive.log",
+    "command": "python3 docs/runs/campaign-2026-09-16-attest-it/rederive/rederive.py",
+    "paths": []
+  },
+  "binding_audit": {
+    "coverage": "PW.7.2 (1/1)",
+    "method": "criterion quoted, covering artifact lines quoted, re-derived at TARGET by rederive.py"
+  },
+  "lighting": "lit",
+  "artifacts": [
+    {
+      "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/PW.7.2.md",
+      "sha256": "d659f751017aebde1212f4fce2ce7668cdd265de8075230d8e0f5b94b06f3b74"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-attest-it/rederive/rederive.log",
+      "sha256": "83044442389b8c2ab2d3166fd8f4a0247b47dc007f44b4738dae116b6d851a4d"
+    }
+  ],
+  "reviewer_mode": "instructed-isolation",
+  "toolchain": "CPython 3.13.15 + git",
+  "provenance": {
+    "spec_version": "NIST-SP-800-218@1.0.0",
+    "model": "Muse Code powered by Meta Muse Spark (2026-09-16 session)",
+    "reviewer": "same-session re-derivation pass (instructed-isolation) + deterministic rederive.py, 2026-09-16",
+    "retention": "git: docs/runs/campaign-2026-09-16-attest-it/ on branch campaign/attest-it-selftest",
+    "standard": "SSDF"
+  },
+  "parked": [],
+  "claim": "VERIFIED: PW.7.2 \u2014 see evidence/PW.7.2.md (informational only; rederive.py is the oracle)",
+  "commands": [
+    {
+      "label": "rederive",
+      "ts": "2026-09-16T10:28:34Z",
+      "cmd": "python3 docs/runs/campaign-2026-09-16-attest-it/rederive/rederive.py",
+      "cmd_sha256": "18537d5635901ec2f2905b12f4a20efdaabd79239ef9fc841940ef6354f52ba2",
+      "exit": 0,
+      "duration_s": 0.237,
+      "commit": "6390743815f8f435181fa410cce374587128b30a",
+      "wtree": "7dab0c87da47ceca43a037c450ddfc257aaea7e7",
+      "artifact": null
+    }
+  ]
+}

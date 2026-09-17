@@ -1,0 +1,1 @@
+/Users/ravindra/.local/share/mise/installs/python/3.13/bin/python3: No module named coverage
