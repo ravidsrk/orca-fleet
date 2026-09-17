@@ -1,0 +1,4 @@
+LOOP-R start trials-per-arm=200
+BARE: fail=200/200 rate=1.000 e.g. ['trial 0: OSError errno=66: Directory not empty', 'trial 1: OSError errno=66: Directory not empty', 'trial 2: OSError errno=66: Directory not empty']
+FLAGGED: fail=0/200 rate=0.000 e.g. []
+LOOP-R end

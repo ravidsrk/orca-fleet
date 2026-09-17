@@ -1,0 +1,11 @@
+FAIL: scope: authoritative criteria not addressed in criteria[] (absent, or addressed != true): ['AC-3']
+FAIL: commands ledger: no recorded command with exit 0 whose wtree is head_sha's tree 6d812ca32956e9d39d2ca720067e96ae7f915bf8 (exit-0 records carry ['902257118dca44c0404912ca4494f5aa2017350c', 'f8217865fdb615335972e825b9d2faf68be0bd5d', 'fea356198b6cf12510dd770cd9d2e6c79d7b0735']) — the recorded run was made on other content, so it is STALE evidence for this head; fail-closed
+FAIL: redaction: artifact docs/runs/campaign-2026-09-16-deflake-it/RATCHET.md unreadable: artifact 'docs/runs/campaign-2026-09-16-deflake-it/RATCHET.md' is neither tracked at head_sha nor pinned by a sha256 in the manifest's artifacts[] integrity inventory — unpinned evidence (#267)
+FAIL: redaction: artifact docs/runs/campaign-2026-09-16-deflake-it/validation.txt unreadable: artifact 'docs/runs/campaign-2026-09-16-deflake-it/validation.txt' is neither tracked at head_sha nor pinned by a sha256 in the manifest's artifacts[] integrity inventory — unpinned evidence (#267)
+FAIL: redaction: artifact docs/runs/campaign-2026-09-16-deflake-it/tests.txt unreadable: artifact 'docs/runs/campaign-2026-09-16-deflake-it/tests.txt' is neither tracked at head_sha nor pinned by a sha256 in the manifest's artifacts[] integrity inventory — unpinned evidence (#267)
+FAIL: redaction: artifact docs/runs/campaign-2026-09-16-deflake-it/proofstatus.txt unreadable: artifact 'docs/runs/campaign-2026-09-16-deflake-it/proofstatus.txt' is neither tracked at head_sha nor pinned by a sha256 in the manifest's artifacts[] integrity inventory — unpinned evidence (#267)
+FAIL: reviewer_mode must be one of ['cross-vendor', 'instructed-isolation', 'same-vendor-fresh'], got None
+FAIL: negative_control.artifact unreadable (docs/runs/campaign-2026-09-16-deflake-it/RATCHET.md): artifact 'docs/runs/campaign-2026-09-16-deflake-it/RATCHET.md' is neither tracked at head_sha nor pinned by a sha256 in the manifest's artifacts[] integrity inventory — unpinned evidence (#267)
+FAIL: mutation unit: no pr.number to look up an independent review — unreviewed
+verify: 9 invariant(s) failed — unit is NOT done
+NOTE: --base not given — ancestry check skipped (pre-merge/offline)
