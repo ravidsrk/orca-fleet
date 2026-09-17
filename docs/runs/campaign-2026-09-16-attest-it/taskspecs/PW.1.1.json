@@ -1,0 +1,11 @@
+{
+ "criterion_ids": [
+  "PW.1.1"
+ ],
+ "frozen_source_sha256": "b01634a5fdb382e7a12660c379a4d0bc3a2b8e29abccf2861834880005137117",
+ "source": "docs/runs/campaign-2026-09-16-attest-it/catalog/frozen-catalog.json",
+ "standard": "NIST-SP-800-218",
+ "statement": "Use forms of risk modeling \u2013 such as threat modeling, attack modeling, or attack surface mapping \u2013 to help assess the security risk for the software.",
+ "unit": "attest-pw-1-1",
+ "version": "1.0.0"
+}

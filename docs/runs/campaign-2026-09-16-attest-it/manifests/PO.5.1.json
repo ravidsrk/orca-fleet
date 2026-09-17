@@ -1,0 +1,76 @@
+{
+  "unit": "attest-po-5-1",
+  "base_sha": "6390743815f8f435181fa410cce374587128b30a",
+  "head_sha": "6390743815f8f435181fa410cce374587128b30a",
+  "contract": {
+    "source": "docs/runs/campaign-2026-09-16-attest-it/taskspecs/PO.5.1.json",
+    "digest": "74e2163bf06dae1bd5a2da0f39ae776d32ad0ddc49cf8dcd72f72350f49c4730",
+    "criterion_ids": [
+      "PO.5.1"
+    ]
+  },
+  "criteria": [
+    {
+      "id": "PO.5.1",
+      "text": "Separate and protect each environment involved in software development.",
+      "addressed": false
+    }
+  ],
+  "negative_control": {
+    "did": "independent re-derivation (report-only analogue): re-executed every quote, absence, no-match, digest, and release-binding check from git objects at TARGET via rederive.py, plus blind second-pass reads of all cited files",
+    "tool": "hand",
+    "result": "rederive.py exit 0; 7 mis-cited lines/numbers caught and corrected during re-derivation across the run",
+    "artifact": "docs/runs/campaign-2026-09-16-attest-it/rederive/rederive.log",
+    "command": "python3 docs/runs/campaign-2026-09-16-attest-it/rederive/rederive.py",
+    "paths": []
+  },
+  "binding_audit": {
+    "coverage": "PO.5.1 (0/1 \u2014 GAP, missing evidence stated)",
+    "method": "criterion quoted, covering artifact lines quoted, re-derived at TARGET by rederive.py"
+  },
+  "lighting": "lit",
+  "artifacts": [
+    {
+      "path": "docs/runs/campaign-2026-09-16-attest-it/evidence/PO.5.1.md",
+      "sha256": "2259f3dad79f892b41b6b90c5bd9d5e9164abd7be9f79258bbf1f9207c623c93"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-attest-it/gaps/PO.5.1.md",
+      "sha256": "3018e93eae447774fba7054026a1c5cf237540542318e2d9d08a4800d1286842"
+    },
+    {
+      "path": "docs/runs/campaign-2026-09-16-attest-it/rederive/rederive.log",
+      "sha256": "83044442389b8c2ab2d3166fd8f4a0247b47dc007f44b4738dae116b6d851a4d"
+    }
+  ],
+  "reviewer_mode": "instructed-isolation",
+  "toolchain": "CPython 3.13.15 + git",
+  "provenance": {
+    "spec_version": "NIST-SP-800-218@1.0.0",
+    "model": "Muse Code powered by Meta Muse Spark (2026-09-16 session)",
+    "reviewer": "same-session re-derivation pass (instructed-isolation) + deterministic rederive.py, 2026-09-16",
+    "retention": "git: docs/runs/campaign-2026-09-16-attest-it/ on branch campaign/attest-it-selftest",
+    "standard": "SSDF"
+  },
+  "parked": [
+    {
+      "item": "PO.5.1 missing evidence",
+      "reason": "needs-human",
+      "gate": "gap-attest-po-5-1"
+    }
+  ],
+  "claim": "GAP: PO.5.1 \u2014 see evidence/PO.5.1.md (informational only; rederive.py is the oracle)",
+  "commands": [
+    {
+      "label": "rederive",
+      "ts": "2026-09-16T10:28:28Z",
+      "cmd": "python3 docs/runs/campaign-2026-09-16-attest-it/rederive/rederive.py",
+      "cmd_sha256": "18537d5635901ec2f2905b12f4a20efdaabd79239ef9fc841940ef6354f52ba2",
+      "exit": 0,
+      "duration_s": 0.237,
+      "commit": "6390743815f8f435181fa410cce374587128b30a",
+      "wtree": "267f3fa44bc5b40d5d210ad90f1e6517488c48d7",
+      "artifact": null
+    }
+  ]
+}
