@@ -1,0 +1,21 @@
+$ python3 runtime/scripts/diff_scope.py --json --strict --base 6390743815f8f435181fa410cce374587128b30a; echo EXIT=$?
+{
+  "flags": {
+    "FRONTEND": false,
+    "BACKEND": true,
+    "PROMPTS": false,
+    "TESTS": false,
+    "DOCS": true,
+    "CONFIG": false,
+    "MIGRATIONS": false,
+    "API": false,
+    "AUTH": true,
+    "SECURITY": false,
+    "A11Y": false,
+    "PERF": true
+  },
+  "error": null,
+  "base": "6390743815f8f435181fa410cce374587128b30a",
+  "unmatched": []
+}
+EXIT=0

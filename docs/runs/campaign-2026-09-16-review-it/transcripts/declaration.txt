@@ -1,0 +1,3 @@
+$ gh api repos/ravidsrk/orca-fleet/issues/417/comments --jq '.[0:3] | map({at: .created_at, head: .body[0:60]})'
+[{"at":"2026-09-16T05:54:51Z","head":"## Chain declaration (posted BEFORE any run — protocol requi"},{"at":"2026-09-16T09:07:37Z","head":"Unblocked: PR #433 (Orca re-pin to v1.4.203) merged to main "},{"at":"2026-09-16T10:25:20Z","head":"## Chain run complete — STOPPED chain, published (2026-09-16"}]
+# Run T0 per leg1/ledger.md:3 is 2026-09-16T09:56Z — after declaration + unblock. AC-1 holds.

@@ -1,0 +1,25 @@
+=== validate.py ===
+ok   root-cause
+ok   ship-it
+ok   speed-it
+
+All 21 missions valid; three-layer separation holds; evals valid.
+EXIT=0
+=== unittest ===
+wrote assets/badges/tests.json: 1 in source
+wrote assets/badges/missions.json: 21
+wrote assets/badges/tests.json: 2 in source
+wrote assets/badges/missions.json: 21
+wrote assets/badges/tests.json: 0 in source
+=== proof_status ===
+coverage rollup:
+  doctrine-only  19
+  self-run       2
+  external-run   0
+  total          21
+EXIT=0
+=== unittest (definitive re-run, full output) ===
+Ran 1490 tests in 277.807s
+OK
+EXIT=0
+(worktree clean after both runs: badge rewrites byte-identical; only docs/runs/campaign-2026-09-16-review-it/ untracked)

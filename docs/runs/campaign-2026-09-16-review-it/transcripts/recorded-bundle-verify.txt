@@ -1,0 +1,5 @@
+docs/reports/chaining-2026-09-16/leg1/target-417.bundle is okay
+The bundle contains this ref:
+c5e807cf4e05004f338d2c1a722c4000d888334e refs/heads/chain417/leg1-cleansweep-base
+The bundle records a complete history.
+The bundle uses this hash algorithm: sha1

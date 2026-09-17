@@ -1,0 +1,30 @@
+$ cd docs/reports/chaining-2026-09-16 && sha256sum -c integrity-inventory.txt
+sha256sum: WARNING: 3 lines are improperly formatted
+CHAIN-REPORT.md: OK
+handoff-log.md: OK
+gaps.md: OK
+leg1/enumeration.md: OK
+leg1/ledger.md: OK
+leg1/manifest-f3.json: OK
+leg1/manifest-f5.json: OK
+leg1/manifest-f6.json: OK
+leg1/manifest-leg1.json: OK
+leg1/leg1-f3-tests.txt: OK
+leg1/leg1-f5-tests.txt: OK
+leg1/leg1-f6-tests.txt: OK
+leg1/leg1-tip-tests.txt: OK
+leg1/leg1-final-tests.txt: OK
+leg1/nc-f3-red.txt: OK
+leg1/nc-f3-green.txt: OK
+leg1/nc-f5-red.txt: OK
+leg1/nc-f5-green.txt: OK
+leg1/review-selfcheck-f3.txt: OK
+leg1/review-selfcheck-f5.txt: OK
+leg1/review-selfcheck-f6.txt: OK
+leg1/full-diff.txt: OK
+leg1/target-417.bundle: OK
+leg1/RESTORE.md: OK
+leg1/seed-notes.py: OK
+leg1/seed-test_notes.py: OK
+leg1/seed-README.md: OK
+# 27/27 OK, exit 0. (The 3 "improperly formatted" lines are the `#` comment header — see S-FYI1.)
