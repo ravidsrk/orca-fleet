@@ -1,0 +1,229 @@
+{
+  "commands": [
+    {
+      "label": "tests",
+      "ts": "2026-09-16T20:29:58Z",
+      "cmd": "python3 -m unittest tests.test_reshape_net_verify",
+      "cmd_sha256": "071effaa24b6240a51de31e951ad8834ab8a360826b1b0190123691f2bc3359c",
+      "exit": 0,
+      "duration_s": 0.033,
+      "commit": "de413f7b5d019a9dda3f4fd356ab352d9259a547",
+      "wtree": "fd4be7b78b8f9959c38e67a2f90bc294c816d6fa",
+      "artifact": "docs/runs/2026-09-16-reshape-it-unpark/rv-c2-tests.txt"
+    },
+    {
+      "label": "validation-at-H1",
+      "ts": "2026-09-16T20:29:59Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 1,
+      "duration_s": 0.927,
+      "commit": "de413f7b5d019a9dda3f4fd356ab352d9259a547",
+      "wtree": "fd4be7b78b8f9959c38e67a2f90bc294c816d6fa",
+      "artifact": "docs/runs/2026-09-16-reshape-it-unpark/rv-c2-validation-h1.txt"
+    },
+    {
+      "label": "tests-full-at-H1",
+      "ts": "2026-09-16T20:34:33Z",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "exit": 1,
+      "duration_s": 270.348,
+      "commit": "de413f7b5d019a9dda3f4fd356ab352d9259a547",
+      "wtree": "fd4be7b78b8f9959c38e67a2f90bc294c816d6fa",
+      "artifact": "docs/runs/2026-09-16-reshape-it-unpark/rv-c2-tests-full-h1.txt"
+    },
+    {
+      "label": "validation-at-tip",
+      "ts": "2026-09-16T20:35:11Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 0,
+      "duration_s": 0.978,
+      "commit": "c68e4ee5447871f64550a5c88e42b2ed767b080a",
+      "wtree": "d31c9e04148b99f7d3fdfcb59894c002c5d21f37",
+      "artifact": "docs/runs/2026-09-16-reshape-it-unpark/rv-c2-validation-tip.txt"
+    },
+    {
+      "label": "tests-full-at-tip",
+      "ts": "2026-09-16T20:39:49Z",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "exit": 0,
+      "duration_s": 277.887,
+      "commit": "c68e4ee5447871f64550a5c88e42b2ed767b080a",
+      "wtree": "d31c9e04148b99f7d3fdfcb59894c002c5d21f37",
+      "artifact": "docs/runs/2026-09-16-reshape-it-unpark/rv-c2-tests-full-tip.txt"
+    },
+    {
+      "label": "verifier",
+      "ts": "2026-09-16T20:39:57Z",
+      "cmd": "python3 runtime/scripts/verify.py --manifest docs/runs/2026-09-16-reshape-it-unpark/manifest-rv-c2.json --contract-source docs/runs/2026-09-16-reshape-it-unpark/contract-rv-c2.json@8284c4c93a6f57fe94a3ed9980c04eb6b95a03dd --contract-digest sha256:e6fa6e404a2eda84347ea6e8d1c6ba38831fc3886f2dbaae48874da940665d6c --unit-class mutation --lighting dark-eligible --execute-nc --nc-command 'python3 -m unittest tests.test_reshape_net_verify'",
+      "cmd_sha256": "5a4d1d2f04c23cbf15cd11668f2c0e8d4cea97d7051628e507ae23c11d273e16",
+      "exit": 0,
+      "duration_s": 1.266,
+      "commit": "c68e4ee5447871f64550a5c88e42b2ed767b080a",
+      "wtree": "f2f254d3bfe0693b6addcfb250c395e6d0df50ef",
+      "artifact": "docs/runs/2026-09-16-reshape-it-unpark/rv-c2-verifier.txt"
+    },
+    {
+      "label": "tests-round-2",
+      "ts": "2026-09-16T20:45:36Z",
+      "cmd": "python3 -m unittest tests.test_reshape_net_verify",
+      "cmd_sha256": "071effaa24b6240a51de31e951ad8834ab8a360826b1b0190123691f2bc3359c",
+      "exit": 0,
+      "duration_s": 0.034,
+      "commit": "40aa260faa5b3c81006f384065be791465c40bcc",
+      "wtree": "594d8b9b40f248aa794d66c4560d794a48b2e38f",
+      "artifact": "docs/runs/2026-09-16-reshape-it-unpark/rv-c2-tests-r2.txt"
+    },
+    {
+      "label": "validation-at-H2",
+      "ts": "2026-09-16T20:45:37Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 0,
+      "duration_s": 0.952,
+      "commit": "40aa260faa5b3c81006f384065be791465c40bcc",
+      "wtree": "594d8b9b40f248aa794d66c4560d794a48b2e38f",
+      "artifact": "docs/runs/2026-09-16-reshape-it-unpark/rv-c2-validation-h2.txt"
+    },
+    {
+      "label": "tests-full-at-H2",
+      "ts": "2026-09-16T20:50:12Z",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "exit": 0,
+      "duration_s": 266.384,
+      "commit": "40aa260faa5b3c81006f384065be791465c40bcc",
+      "wtree": "594d8b9b40f248aa794d66c4560d794a48b2e38f",
+      "artifact": "docs/runs/2026-09-16-reshape-it-unpark/rv-c2-tests-full-h2.txt"
+    },
+    {
+      "label": "validation-at-tip-r2",
+      "ts": "2026-09-16T20:50:41Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 0,
+      "duration_s": 0.968,
+      "commit": "a66eb973925c4830b0aeb9e20269fb0c6c0e5ee1",
+      "wtree": "20e4199d9dbf3417477f089508d638e1b0ddecae",
+      "artifact": "docs/runs/2026-09-16-reshape-it-unpark/rv-c2-validation-tip2.txt"
+    },
+    {
+      "label": "tests-full-at-tip-r2",
+      "ts": "2026-09-16T20:55:12Z",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "exit": 0,
+      "duration_s": 270.839,
+      "commit": "a66eb973925c4830b0aeb9e20269fb0c6c0e5ee1",
+      "wtree": "20e4199d9dbf3417477f089508d638e1b0ddecae",
+      "artifact": "docs/runs/2026-09-16-reshape-it-unpark/rv-c2-tests-full-tip2.txt"
+    },
+    {
+      "label": "verifier-round-2",
+      "ts": "2026-09-16T20:55:23Z",
+      "cmd": "python3 runtime/scripts/verify.py --manifest docs/runs/2026-09-16-reshape-it-unpark/manifest-rv-c2.json --contract-source docs/runs/2026-09-16-reshape-it-unpark/contract-rv-c2.json@a66eb973925c4830b0aeb9e20269fb0c6c0e5ee1 --contract-digest sha256:7bcf63bca0ff461dff90150243ccabf2a9e8098ba12550859419efcd8e46cbe2 --unit-class mutation --lighting dark-eligible --execute-nc --nc-command 'python3 -m unittest tests.test_reshape_net_verify'",
+      "cmd_sha256": "6718eafc136f4790e8e0c786920806f7fd1cc85b2797821587ccd412c2c4e9d0",
+      "exit": 0,
+      "duration_s": 1.428,
+      "commit": "a66eb973925c4830b0aeb9e20269fb0c6c0e5ee1",
+      "wtree": "b1ce22ac25cc9c436770cd163dc036fb8e2d503c",
+      "artifact": "docs/runs/2026-09-16-reshape-it-unpark/rv-c2-verifier.txt"
+    }
+  ],
+  "unit": "RV-C2",
+  "base_sha": "bcda0553e59b19a260a26967f35afd02f4155b8f",
+  "head_sha": "40aa260faa5b3c81006f384065be791465c40bcc",
+  "base_branch": "main",
+  "contract": {
+    "source": "docs/runs/2026-09-16-reshape-it-unpark/contract-rv-c2.json@a66eb973925c4830b0aeb9e20269fb0c6c0e5ee1",
+    "digest": "sha256:7bcf63bca0ff461dff90150243ccabf2a9e8098ba12550859419efcd8e46cbe2",
+    "criterion_ids": [
+      "RV-C2"
+    ]
+  },
+  "criteria": [
+    {
+      "id": "RV-C2",
+      "text": "The outcome-reading seam net pins the CURRENT verdicts of runtime/scripts/verify.py's _failure_signature (silent output refused; errors-only refused; failures/mixed admitted; bare stillborn traceback refused with a STILLBORN reason; bare AssertionError admitted) and _counted (None with no counts, sums reported counts), and the seam mutant M2 (errors-or-not-failures) is KILLED by the net.",
+      "addressed": true
+    }
+  ],
+  "negative_control": {
+    "did": "errors-or-not-failures: flipped `and` to `or` in the errors-only guard at runtime/scripts/verify.py:1166 (hand mutant M2)",
+    "tool": "hand",
+    "result": "the criterion-bound net went RED (mutant M2 KILLED): exit 1, FAILED failures=3, AssertionError in the mixed-summary, bare-stillborn-reason, and bare-assertion cases; clean head GREEN (OK)",
+    "artifact": "docs/runs/2026-09-16-reshape-it-unpark/rv-c2-negctrl-r2.txt",
+    "command": "python3 -m unittest tests.test_reshape_net_verify"
+  },
+  "binding_audit": {
+    "coverage": "RV-C2 (1/1)",
+    "method": "criterion quoted; covering net tests/test_reshape_net_verify.py (7 tests, round 2 makes the _counted test self-contained so the net survives the RV-D2 move) quoted in the diff; criterion-violating mutants M2 (pinned) and M2b (supporting) both went RED with AssertionError failures"
+  },
+  "intent": {
+    "goal": "Pin the verify.py outcome-reading seam with a mutation-audited characterization net before the RV-D2 deepening moves it.",
+    "ruled_out": "relying on the existing _failure_signature tests alone (never mutation-audited; and the RV-D2 carve-out needs a pinned, re-runnable seam net + recorded kill)",
+    "why": "the deepening moves the exact lines the net pins; without a recorded kill at the seam, 'behaviour unchanged' after the move is narration, not evidence"
+  },
+  "lighting": "dark-eligible",
+  "reviewer_mode": "instructed-isolation",
+  "review_note": "review WAIVED per the dark-eligible lane (gate-classification.md; the EXECUTED negative control + tests are the oracle). No fresh-session review was performed (fresh-subagent review spawns fail at this runtime). reviewer_mode carries the weakest legal value as a placeholder, not a review claim. Greptile's PR review will be recorded in the run report as a non-oracle signal.",
+  "toolchain": "CPython 3.13.15 on macOS arm64; git; unittest",
+  "claim": "RV-C2 net (7 tests, round 2) pins the outcome-reading seam on both shapes; M2/M2b KILLED, clean GREEN.",
+  "artifacts": [
+    {
+      "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-c2-negctrl-r2.txt",
+      "sha256": "fe2664c0252e773cf5b5280a30d289de320f7d66436239960139bbdebe550e57"
+    },
+    {
+      "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-c2-m2b-r2.txt",
+      "sha256": "546e38814a86cec89a04093cf2ae7f042a0f0d69e1035eb6f0d9260778cb0f5b"
+    },
+    {
+      "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-c2-tests.txt",
+      "sha256": "fe836cbecd3b6b4f70bec51b58d30c3e45ad72ae7fb3cb63421a0f7337e651ae"
+    },
+    {
+      "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-c2-tests-r2.txt",
+      "sha256": "fe836cbecd3b6b4f70bec51b58d30c3e45ad72ae7fb3cb63421a0f7337e651ae"
+    },
+    {
+      "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-c2-validation-h1.txt",
+      "sha256": "e1699e053625c3a4d7c8143932dd57afc9f1639461e66cc973d83d810c0a9e06"
+    },
+    {
+      "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-c2-validation-h2.txt",
+      "sha256": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6"
+    },
+    {
+      "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-c2-tests-full-h1.txt",
+      "sha256": "953ba4debb1ef14f78f373eada79c306a998c24f38ec09d84e68f3a0d5f15a7e"
+    },
+    {
+      "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-c2-tests-full-h2.txt",
+      "sha256": "833658a0c9256e982a64f8f9c73230e8249d8db8e4e6598a1b423dd2197a536f"
+    },
+    {
+      "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-c2-validation-tip.txt",
+      "sha256": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6"
+    },
+    {
+      "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-c2-tests-full-tip.txt",
+      "sha256": "06ae0630c3ed472f50277e319b1bb8ad27d03ee64ecc1b3296b3061493a6be39"
+    },
+    {
+      "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-c2-validation-tip2.txt",
+      "sha256": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6"
+    },
+    {
+      "path": "docs/runs/2026-09-16-reshape-it-unpark/rv-c2-tests-full-tip2.txt",
+      "sha256": "1396797623fc900a76a2d1af671142048c0aa64d9a5b656bfb9dded074f925ea"
+    }
+  ],
+  "pr": {
+    "number": 464,
+    "url": "https://github.com/ravidsrk/orca-fleet/pull/464"
+  }
+}

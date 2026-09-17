@@ -1,0 +1,7 @@
+PR: #471 (closed unmerged; branch floor/canary-d3 deleted)
+head: e53f55eb
+run: https://github.com/ravidsrk/orca-fleet/actions/runs/35164043828 (failure)
+failed step: Ruff (syntax / undefined names) — suite green, ruff red
+---
+F821 Undefined name `undefined_name_xyz_canary`
+Found 1 error.

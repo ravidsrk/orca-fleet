@@ -1,0 +1,13 @@
+### D3 RED — 2026-09-16T20:23:46Z
+### branch: floor/canary-d3 commit: 47e87e8f (throwaway)
+### injection: scripts/floor_canary_d3.py (F821 undefined name)
+### command: ruff check scripts runtime/scripts tests bench demo
+F821 Undefined name `floor_canary_undefined_name`
+ --> scripts/floor_canary_d3.py:5:12
+  |
+4 | def canary():
+5 |     return floor_canary_undefined_name + 1
+  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Found 1 error.
+ruff_exit=1

@@ -1,0 +1,5 @@
+### D8 GREEN-after-revert — 2026-09-16T20:32:54Z
+### revert commit: b33227f6 (tree == floor/constraints)
+### command: python3 bench/vf-bench/gate.py
+vf-bench gate PASS: corpus vf-bench@0.1, verify.py false-done 0/20, valid controls 3/3, skipped 0
+gate_exit=0

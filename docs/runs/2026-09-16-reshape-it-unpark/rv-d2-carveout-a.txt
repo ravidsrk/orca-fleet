@@ -1,0 +1,79 @@
+RV-D2 carve-out (a): the RV-C2 pinned mutant stays KILLED at the deepened head
+(reshape-it speed-it carve-out: the net is proven live on both sides of the move)
+
+Method (disclosed, not hidden): RV-D2's branch forks origin/main WITHOUT the
+RV-C2 net (per-unit branches; the coordinator merges C2 before D2). This
+re-kill therefore runs in a scratch worktree at the deepened H1b
+(ce0b9a32210c36603ccb758c6ab15c6b3adea3c1) with the RV-C2 net file copied in
+UNCOMMITTED from origin/reshape/verify-characterize tip (e1a2c380,
+tests/test_reshape_net_verify.py, round-2 bytes). Nothing else differs
+from H1b. After the coordinator merges C2, the same two commands re-run on
+merged main with the net committed; this transcript previews exactly that.
+
+Re-anchor: the RV-D2 move relocated the M2 line from
+runtime/scripts/verify.py:1166 to runtime/scripts/_verify_sig.py:79
+(byte-identical line). M2' below is the SAME semantic mutant
+(errors-or-not-failures) at its new home — the re-anchor is mechanical
+(same line, new file) and the diff is quoted in full.
+
+M2' unified diff:
+diff --git a/runtime/scripts/_verify_sig.py b/runtime/scripts/_verify_sig.py
+index 820a7961..dd5da00f 100644
+--- a/runtime/scripts/_verify_sig.py
++++ b/runtime/scripts/_verify_sig.py
+@@ -76,7 +76,7 @@ def _failure_signature(out, err):
+                        "(#280)")
+     errors = _counted(_ERRORS_RE, text)
+     failures = _counted(_FAILURES_RE, text)
+-    if errors and not failures:
++    if errors or not failures:
+         return False, (f"the runner reports {errors} error(s) and no assertion failure — an error is "
+                        "an exception escaping, not an oracle evaluating to false, so it does not "
+                        "show the criterion-bound assertion ran at all; fail-closed (#280)")
+
+RV-C2 net on the deepened shape, clean (exit 0) — behaviour preserved:
+.......
+----------------------------------------------------------------------
+Ran 7 tests in 0.000s
+
+OK
+net-on-deepened exit: 0
+
+RV-C2 net under M2' (exit 1) — the oracle is live:
+FF...F.
+======================================================================
+FAIL: test_bare_assertion_traceback_is_a_kill (tests.test_reshape_net_verify.OutcomeReadingSeamNet.test_bare_assertion_traceback_is_a_kill)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/rv-d2-nc2/tests/test_reshape_net_verify.py", line 63, in test_bare_assertion_traceback_is_a_kill
+    self.assertTrue(ok)
+    ~~~~~~~~~~~~~~~^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_bare_stillborn_traceback_is_not_a_kill (tests.test_reshape_net_verify.OutcomeReadingSeamNet.test_bare_stillborn_traceback_is_not_a_kill)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/rv-d2-nc2/tests/test_reshape_net_verify.py", line 58, in test_bare_stillborn_traceback_is_not_a_kill
+    self.assertIn("STILLBORN", reason)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'STILLBORN' not found in 'the runner reports None error(s) and no assertion failure — an error is an exception escaping, not an oracle evaluating to false, so it does not show the criterion-bound assertion ran at all; fail-closed (#280)'
+
+======================================================================
+FAIL: test_mixed_errors_and_failures_is_a_kill (tests.test_reshape_net_verify.OutcomeReadingSeamNet.test_mixed_errors_and_failures_is_a_kill)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/rv-d2-nc2/tests/test_reshape_net_verify.py", line 52, in test_mixed_errors_and_failures_is_a_kill
+    self.assertTrue(ok)
+    ~~~~~~~~~~~~~~~^^^^
+AssertionError: False is not true
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.001s
+
+FAILED (failures=3)
+M2-prime exit: 1
+
+VERDICT: carve-out (a) holds — the net is GREEN on the deepened shape and
+M2' is KILLED (FAILED failures=3, AssertionError), exactly as M2 was at the
+pre-move seam.

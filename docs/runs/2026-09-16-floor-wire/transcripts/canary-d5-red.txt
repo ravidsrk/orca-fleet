@@ -1,0 +1,12 @@
+PR: #473 (closed unmerged; branch floor/canary-d5 deleted)
+head: ee40941b
+run: https://github.com/ravidsrk/orca-fleet/actions/runs/35164046129 (failure)
+failed step: Run the contract test suite without Gitleaks (3 test_evals failures — layered cross-fire; the eval step never runs under fail-fast)
+--- CI excerpt ---
+FAIL: test_routing_seams_hold (test_evals.TestDescriptionRouter.test_routing_seams_hold) (prompt='This test fails intermittently — it passes on retry.')
+FAIL: test_routing_suite_passes_at_the_live_floor (test_evals.TestCliGate.test_routing_suite_passes_at_the_live_floor)
+FAIL: test_run_routing_meets_minimum_score (test_evals.TestEvalInfrastructure.test_run_routing_meets_minimum_score)
+FAILED (failures=3)
+--- local eval on the exact head (the shadowed step's own command) ---
+exit 1
+  FAIL: routing score 97% is below --threshold 100%

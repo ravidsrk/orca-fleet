@@ -1,0 +1,7 @@
+PR: #470 (closed unmerged; branch floor/canary-d2 deleted)
+head: 515e237c
+run: https://github.com/ravidsrk/orca-fleet/actions/runs/35164039567 (failure)
+failed step: Validate missions, playbooks, and evals
+---
+FAIL layer separation — SKILL.md found outside skills/:
+FAIL layer separation — frontmatter under playbooks/ or runtime/:

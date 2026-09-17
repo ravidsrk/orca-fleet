@@ -1,0 +1,32 @@
+### D3 cross-fire map (on D3 injection 47e87e8f) — 2026-09-16T20:23:51Z
+### $ python3 scripts/validate.py
+ok   absorb-it
+ok   access-it
+ok   attest-it
+ok   clean-sweep
+ok   deflake-it
+ok   document-it
+ok   field-test-it
+ok   floor-it
+ok   harden-it
+ok   map-it
+ok   migrate-it
+ok   modernize-it
+ok   oncall-it
+ok   oss-contribute
+ok   pin-it
+ok   prove-it
+ok   reshape-it
+ok   review-it
+ok   root-cause
+ok   ship-it
+ok   speed-it
+
+All 21 missions valid; three-layer separation holds; evals valid.
+### exit=0
+### $ python3 scripts/bundle.py --check
+bundle: 21 self-contained mission(s) in a temp dir; no reference leaves its directory
+### exit=0
+### $ python3 scripts/eval.py run --suite routing --threshold 1.0
+Routing eval: 94/94 correct (100%)
+### exit=0

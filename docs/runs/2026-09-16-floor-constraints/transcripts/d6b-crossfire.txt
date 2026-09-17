@@ -1,0 +1,58 @@
+### D6b cross-fire map (on D6b injection c1b82b8d) — 2026-09-16T20:30:44Z
+### (append-only tamper tried first on this branch: run_report stayed GREEN — the gate re-hashes git objects at inventory_at, not the worktree. Correct history-binding, recorded as a footnote.)
+### $ python3 scripts/validate.py
+ok   absorb-it
+ok   access-it
+ok   attest-it
+ok   clean-sweep
+ok   deflake-it
+ok   document-it
+ok   field-test-it
+ok   floor-it
+ok   harden-it
+ok   map-it
+ok   migrate-it
+ok   modernize-it
+ok   oncall-it
+ok   oss-contribute
+ok   pin-it
+FAIL prove-it
+   - docs/runs/2026-09-16-prove-it-self-run.md: inventory docs/runs/2026-09-16-prove-it-selfrun/manifest.json at 4d451d88aaea6a34a082e2724f60f93c03a2212d: recorded 71ff6b765f24…, actual 71ff6b765f24…
+   - docs/runs/2026-09-16-prove-it-self-run.md: the graded manifest docs/runs/2026-09-16-prove-it-selfrun/manifest.json hashes differently — the inventory must pin the document the verdict rests on, not only its neighbours
+ok   reshape-it
+ok   review-it
+ok   root-cause
+ok   ship-it
+ok   speed-it
+
+Validation failed.
+### exit=1
+### $ python3 runtime/scripts/proof_status.py --check
+absorb-it       doctrine-only  [—      ] —
+access-it       doctrine-only  [—      ] —
+attest-it       doctrine-only  [—      ] —
+clean-sweep     self-run       [ok     ] docs/runs/2026-09-14-clean-sweep-self-run.md
+deflake-it      doctrine-only  [—      ] —
+document-it     doctrine-only  [—      ] —
+field-test-it   doctrine-only  [—      ] —
+floor-it        doctrine-only  [—      ] —
+harden-it       doctrine-only  [—      ] —
+map-it          doctrine-only  [—      ] —
+migrate-it      doctrine-only  [—      ] —
+modernize-it    doctrine-only  [—      ] —
+oncall-it       doctrine-only  [—      ] —
+oss-contribute  doctrine-only  [—      ] —
+pin-it          doctrine-only  [—      ] —
+prove-it        self-run       [ok     ] docs/runs/2026-09-16-prove-it-self-run.md
+reshape-it      doctrine-only  [—      ] —
+review-it       doctrine-only  [—      ] —
+root-cause      doctrine-only  [—      ] —
+ship-it         doctrine-only  [—      ] —
+speed-it        doctrine-only  [—      ] —
+
+coverage rollup:
+  doctrine-only  19
+  self-run       2
+  external-run   0
+  total          21
+### exit=0

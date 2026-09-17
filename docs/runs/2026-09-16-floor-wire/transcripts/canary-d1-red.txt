@@ -1,0 +1,8 @@
+PR: #469 (closed unmerged; branch floor/canary-d1 deleted)
+head: 0767f960
+run: https://github.com/ravidsrk/orca-fleet/actions/runs/35164036054 (failure)
+failed step: Run the contract test suite without Gitleaks
+---
+FAIL: test_stdin_is_enveloped (test_guard_text.TestMainInProc.test_stdin_is_enveloped)
+FAILED (failures=1)
+Ran 1684 tests in 181.122s

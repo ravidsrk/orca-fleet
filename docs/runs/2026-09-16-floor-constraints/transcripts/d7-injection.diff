@@ -1,0 +1,10 @@
+diff --git a/skills/review-it/SKILL.md b/skills/review-it/SKILL.md
+index 767e3ebd..469ca104 100644
+--- a/skills/review-it/SKILL.md
++++ b/skills/review-it/SKILL.md
+@@ -81,3 +81,5 @@ trust boundary).
+ ## Related
+ `ship-it` / `clean-sweep` (act on the verdict), `harden-it` (full security loop beyond a per-diff
+ lens), `mission-scheduling` (report-only, so it schedules cleanly as an unattended PR-sweep).
++
++See also the [canary spec](../../canary-missing-target.md) for details.

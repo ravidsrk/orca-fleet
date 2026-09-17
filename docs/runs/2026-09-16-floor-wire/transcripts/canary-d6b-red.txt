@@ -1,0 +1,9 @@
+PR: #475 (closed unmerged; branch floor/canary-d6b deleted)
+head: 039a6a4a
+run: https://github.com/ravidsrk/orca-fleet/actions/runs/35164053372 (failure)
+failed step: Validate missions, playbooks, and evals (binding cross-fire; the run_report step never runs under fail-fast)
+--- CI excerpt ---
+FAIL prove-it
+--- local run_report on the exact head ---
+exit 1
+FAIL prove-it (self-run)
