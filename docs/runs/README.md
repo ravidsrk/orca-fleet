@@ -38,10 +38,34 @@ git repositories and includes a fully bound positive case alongside a dozen refu
 | 2026-09-13 | [pin-it](2026-09-13-pin-it-266/) | this catalog's runtime doctrine against the installed Orca 1.4.200 binary (#266) | self-run | no — see `proof_status --check`; the catalog claimed no tier above `doctrine-only` at the time | PINNED-WITH-PARKED (families needing a second datadir, an isolated v1.4.199 binary, a Windows/Linux host, a paid provider or owner-approved trust are parked with that precondition) |
 | 2026-09-14 | [clean-sweep](2026-09-14-clean-sweep-tracker.md) | this repo (tracker, 6 issues; takeover) | self-run | no — the living ledger, not a binding report; the run's close binds in the next row | DRY-WITH-PARKED (10 units merged, #386/#235 + review legs parked) |
 | 2026-09-14 | [clean-sweep](2026-09-14-clean-sweep-self-run.md) | this repo (tracker close; 10 units, 2 waves) | self-run | yes | DRY-WITH-PARKED (10 units merged, parks disclosed) |
-| 2026-09-16 | [absorb-it](campaign-2026-09-16-absorb-it/) | this catalog (inbound PR queue @ `6390743`) | self-run | no — campaign self-test; mission claims no tier (stays `doctrine-only`) | ABSORBED (queue dry at T0 and T1; zero dispatches, zero closes) |
-| 2026-09-16 | [clean-sweep](campaign-2026-09-16-clean-sweep.md) | this repo (tracker, 9 issues; campaign self-test) | self-run | no — no unit manifest: 0 units reached BUILD_DONE, no verify.py transcript claimed | DRY-WITH-PARKED (0 closed, 5 handed off, 4 needs-human; U434 parked on regen-key 401) |
 | 2026-09-16 | [pin-it](2026-09-16-pin-it-416/) | this catalog's runtime doctrine against the installed Orca 1.4.203 binary (#416) | self-run | no — see `proof_status --check`; pin-it itself stays `doctrine-only` | PINNED-WITH-PARKED (sender-bound behavior replays need a live Orca terminal; OS/remote/paid-trust parks carry over; next re-pin #427) |
 | 2026-09-16 | [prove-it](2026-09-16-prove-it-self-run.md) | this catalog (verify.py kind gate, PF-2) | self-run | yes | COVERED (PF-2; 4/4 mutants killed) |
+
+### Self-test campaign 2026-09-16
+
+All 21 missions ran against orca-fleet itself on 2026-09-16; the [rollup](../reports/selftest-campaign-2026-09-16/rollup.md) is the curated index with the scoreboard and follow-up queue. Per-mission run dirs below (reports, transcripts, ledgers, manifests) — recorded history at each mission's current tier, not promotion bids:
+
+- [absorb-it](campaign-2026-09-16-absorb-it/) — ABSORBED (queue dry at T0 and T1)
+- [access-it](campaign-2026-09-16-access-it/) — PARKED, no UI target
+- [attest-it](campaign-2026-09-16-attest-it/) — CONFORMANT-WITH-GAPS (34 VERIFIED, 8 GAP, NIST SP 800-218)
+- [clean-sweep](campaign-2026-09-16-clean-sweep.md) — DRY-WITH-PARKED (0 closed, 9 parked; U434 needs-human secret)
+- [deflake-it](campaign-2026-09-16-deflake-it/) — FIXED-LOCAL (F1 fixed; CI leg owed)
+- [document-it](campaign-2026-09-16-document-it/) — DOCUMENTED (32/32 cells terminal)
+- [field-test-it](campaign-2026-09-16-field-test-it/) — PARKED, no app/device target
+- [floor-it](campaign-2026-09-16-floor-it/) — PARKED at FREEZE (human one-way gate)
+- [harden-it](campaign-2026-09-16-harden-it/) — CLEAN (zero VERIFIED P0/P1)
+- [map-it](campaign-2026-09-16-map-it/) — MAPPED-WITH-BLOCKED, no tier advance (the rollup's "#451 promotion" misnumbers PR #451, which is ship-it's fixture-target-app)
+- [migrate-it](campaign-2026-09-16-migrate-it/) — PARKED, zero tables
+- [modernize-it](campaign-2026-09-16-modernize-it/) — U1 BUILT and locally merged (ruff 0.16.5 to 0.16.7)
+- [oncall-it](campaign-2026-09-16-oncall-it/) — PARKED, no production path
+- [oss-contribute](campaign-2026-09-16-oss-contribute/) — PARKED, no qualifying upstream
+- [pin-it](campaign-2026-09-16-pin-it/) — PINNED-WITH-PARKED (substrate-blocked probes)
+- [prove-it](campaign-2026-09-16-prove-it/) — COVERED (PF-3 net)
+- [reshape-it](campaign-2026-09-16-reshape-it/) — parked pre-BOOTSTRAP (confirm-surface gate open)
+- [review-it](campaign-2026-09-16-review-it/) — GO on PR #445
+- [root-cause](campaign-2026-09-16-root-cause/) — INCONCLUSIVE (H2 falsified; honest park)
+- [ship-it](campaign-2026-09-16-ship-it/) — PARKED at entry (no input)
+- [speed-it](campaign-2026-09-16-speed-it/) — OPTIMIZED-WITH-PARKED (H1 fixed; J1/J3 parked)
 
 Proof status across the catalog is validator-enforced: a mission cannot claim a tier
 above `doctrine-only` without a `proof_evidence:` path that resolves to a report here whose
