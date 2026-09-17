@@ -1,0 +1,13 @@
+PR: #477 (closed unmerged; branch floor/canary-d8 deleted)
+head: 8788b14c
+run: https://github.com/ravidsrk/orca-fleet/actions/runs/35164059899 (failure)
+failed: vfbench job (own gate) + gates suite step (6 canary-caused test failures)
+--- vfbench job excerpt ---
+GATE FAIL: verify.py false-done is 1/20 — a verifier change reintroduced a gaming hole; fix the verifier, never the corpus
+--- suite cross-fires (all canary-caused) ---
+FAIL: test_each_trap_is_refused_for_the_reason_it_exists_to_test
+FAIL: test_installed_entry_points_work_without_source_checkout
+FAIL: test_manifest_unit_class_is_ignored
+FAIL: test_mutation_without_pr_number_fails_closed
+FAIL: test_readme_result_table_matches_computed
+FAIL: test_sound_gate_scores_zero_false_done

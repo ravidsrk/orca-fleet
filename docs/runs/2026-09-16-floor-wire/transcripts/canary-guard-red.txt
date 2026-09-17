@@ -1,0 +1,12 @@
+PR: #479 (closed unmerged; branch floor/canary-guard deleted)
+head: 2838ec6e
+injection: ROUTING_MIN_SCORE 1.0 -> 0.5 in tests/test_evals.py
+guard run: https://github.com/ravidsrk/orca-fleet/actions/runs/35164067907 (failure)
+validate run: https://github.com/ravidsrk/orca-fleet/actions/runs/35164067912 (failure, suite margin-test cross-fire)
+--- guard job excerpt ---
+floor-guard: 2 floor violation(s):
+  [guard-surface] tests/test_evals.py:111 (tests/test_evals.py)
+  [guard-surface] tests/test_evals.py:111 (tests/test_evals.py)
+Process completed with exit code 1.
+--- validate cross-fire ---
+FAIL: test_run_routing_meets_minimum_score (margin leg) — exactly 1 failure
