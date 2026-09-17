@@ -1,0 +1,2 @@
+preflight: WARN: BASE tip == default tip (c46d4b3f3371) — expected for a freshly created integration branch; confirm BASE is not another alias of the default.
+preflight: OK — repo=ravidsrk/orca-fleet, base=campaign/floor-it-selftest, default=refs/remotes/origin/main, fork_point=c46d4b3f3371

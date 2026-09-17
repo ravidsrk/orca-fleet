@@ -1,0 +1,4 @@
+FAIL: scope: no criterion ids in the authoritative contract
+FAIL: report-only unit declares base_sha == head_sha (c46d4b3f3371e41408aed19e54476fa194c20b42) and carries no signed dispatch record. An empty range asserts that this unit changed nothing and gives the gate no diff to check that against — a claim, not evidence, from the same worker that chose the class. Name the range the report covers, or have the coordinator sign the downgrade (#310)
+verify: 2 invariant(s) failed — unit is NOT done
+NOTE: origin/campaign/floor-it-selftest not found — ancestry check skipped
