@@ -1,0 +1,140 @@
+{
+  "artifacts": [
+    {
+      "path": "docs/reports/u-442/full-suite.txt",
+      "sha256": "e697b853fce34dc487272ad6f18a2424a0a5723954d6046e1e730ffa6e4fa03e"
+    },
+    {
+      "path": "docs/reports/u-442/nc-green.txt",
+      "sha256": "17559ec65ab4fe58f7e93c99bdb4bc19719b58eb847b8d4c99548d92a36d17a6"
+    },
+    {
+      "path": "docs/reports/u-442/nc-red.txt",
+      "sha256": "a8b360796edade9a1c3364ca1f70326df74db0475a699db4f93ce59682de7d06"
+    },
+    {
+      "path": "docs/reports/u-442/selfcheck.txt",
+      "sha256": "e3d7733c38404836b4659904231a1bfacfebc553b6460c6d940360bc37e7567c"
+    },
+    {
+      "path": "docs/reports/u-442/tests.txt",
+      "sha256": "b19c46e87e38b1724ebda6d65d300933fcbeeb28f54b80a9f8b5b89fddcd3c7c"
+    },
+    {
+      "path": "docs/reports/u-442/unit-scope.txt",
+      "sha256": "2dd8e0c14a05266aeac56755d7aa7adbe936adc36f7e467ae1bc6e9836698282"
+    },
+    {
+      "path": "docs/reports/u-442/validate.txt",
+      "sha256": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6"
+    }
+  ],
+  "base_branch": "review/2026-09-20-tracker-sweep",
+  "base_sha": "a58bf71a283928a8278e560163452ee70c7ad609",
+  "binding_audit": {
+    "coverage": "AC-1, AC-2, AC-4 (3/4; AC-3 partially met, see criteria and the full-suite record)",
+    "method": "the bound command is the unit's own module; reverting only runtime/scripts/verify.py turns 8 of its 9 new cases from pass to assertion-failure. The teardown reads _ROOTS through getattr and _run_main catches argparse's SystemExit precisely so the control reports failures rather than errors \u2014 a stillborn mutant would prove the module changed, not that the behaviour did."
+  },
+  "claim": "--git-dir / --evidence-root split landed on u-442 as 4ad601a1 (test) + 1ef8bd79 (fix); a cross-repo manifest verifies end to end and the unflagged path is unchanged.",
+  "commands": [
+    {
+      "artifact": "docs/reports/u-442/tests.txt",
+      "cmd": "python3 -m unittest tests.test_verify",
+      "cmd_sha256": "d31f7c622183398036dbe0c650f785381e2a7df6eb18b7418257acae5479e09d",
+      "commit": "1ef8bd797477314f25ece410fe8a6e70c2560bad",
+      "duration_s": 37.737,
+      "exit": 0,
+      "label": "tests",
+      "note": "evidence-run.py record; artifact repointed from the out-of-repo staging dir (bytes identical, sha256 pinned in artifacts[]) so the fingerprint stayed head_sha's tree \u2014 the criterion-bound proof command (AC-1, AC-2); the same command the negative control replays",
+      "ts": "2026-09-20T07:26:38Z",
+      "wtree": "9d5293f13e46fac49cd20d27f7634d238459d67e"
+    },
+    {
+      "artifact": "docs/reports/u-442/unit-scope.txt",
+      "cmd": "python3 -m unittest tests.test_verify tests.test_reshape_width_verify tests.test_validate",
+      "cmd_sha256": "20e9ee22076f79d3c8554637a3e7c7ea258003b802d43b7953a9805b1440f24e",
+      "commit": "1ef8bd797477314f25ece410fe8a6e70c2560bad",
+      "duration_s": 34.955,
+      "exit": 0,
+      "label": "unit-scope-tests",
+      "note": "evidence-run.py record; artifact repointed from the out-of-repo staging dir (bytes identical, sha256 pinned in artifacts[]) so the fingerprint stayed head_sha's tree \u2014 every module this unit touches (AC-2, AC-3)",
+      "ts": "2026-09-20T07:27:13Z",
+      "wtree": "9d5293f13e46fac49cd20d27f7634d238459d67e"
+    },
+    {
+      "artifact": "docs/reports/u-442/validate.txt",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "commit": "1ef8bd797477314f25ece410fe8a6e70c2560bad",
+      "duration_s": 0.872,
+      "exit": 0,
+      "label": "validate",
+      "note": "evidence-run.py record; artifact repointed from the out-of-repo staging dir (bytes identical, sha256 pinned in artifacts[]) so the fingerprint stayed head_sha's tree \u2014 AC-3: scripts/validate.py exit 0",
+      "ts": "2026-09-20T07:27:14Z",
+      "wtree": "9d5293f13e46fac49cd20d27f7634d238459d67e"
+    },
+    {
+      "artifact": "docs/reports/u-442/full-suite.txt",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "commit": "1ef8bd797477314f25ece410fe8a6e70c2560bad",
+      "duration_s": 251.333,
+      "exit": 1,
+      "label": "full-suite",
+      "note": "evidence-run.py record; artifact repointed from the out-of-repo staging dir (bytes identical, sha256 pinned in artifacts[]) so the fingerprint stayed head_sha's tree \u2014 AC-3, NOT met: exit 1. 5 failures, ALL of them reproduced at base_sha and none in this unit's scope \u2014 test_docs_navigation (4: the run-archive index does not link docs/runs/2026-09-20-clean-sweep-tracker.md, added by base commits 296f100b/a58bf71a; plus the release-cut and rehearsal-isolation walkthroughs) and test_wire_docs (1: README.md is not the wiring script's fixed point). Head adds 8 tests and 0 failures.",
+      "ts": "2026-09-20T07:31:25Z",
+      "wtree": "9d5293f13e46fac49cd20d27f7634d238459d67e"
+    }
+  ],
+  "contract": {
+    "criterion_ids": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4"
+    ],
+    "digest": "sha256:7498d20d8e7f580f986d2abca320b925956808c6da08057a38240e7cff10471f",
+    "source": "docs/runs/2026-09-20-clean-sweep-tracker/build-u442.md@a58bf71a283928a8278e560163452ee70c7ad609"
+  },
+  "criteria": [
+    {
+      "addressed": true,
+      "id": "AC-1",
+      "text": "A new test fixture (two scratch git repos built in a tmp dir by the test itself: repo A holds the manifest+evidence, repo B holds the SHAs) FAILS at the unit's base SHA and PASSES at head."
+    },
+    {
+      "addressed": true,
+      "id": "AC-2",
+      "text": "A regression test (or the existing suite) proves no-flag invocation is unchanged; the #267 escape-refusal test still passes against the evidence root."
+    },
+    {
+      "addressed": false,
+      "id": "AC-3",
+      "text": "Full test suite green at head; python3 scripts/validate.py exit 0."
+    },
+    {
+      "addressed": true,
+      "id": "AC-4",
+      "text": "NEGATIVE CONTROL executed: verify.py change reverted (test kept) -> fixture test RED - recorded via evidence-run.py."
+    }
+  ],
+  "head_sha": "1ef8bd797477314f25ece410fe8a6e70c2560bad",
+  "intent": {
+    "goal": "Let one verify.py invocation reach two authorities: evidence paths bounded under one root, SHA/git operations run against another, so a chained-run manifest can be verified at all.",
+    "ruled_out": "Threading the roots through ~25 call sites as parameters (large diff, no behavioural gain); making --evidence-root default to the --git-dir toplevel (would silently move the #267 bound when only the SHA leg was redirected); relaxing the bound to an unversioned directory (that IS the #267 hole, not a fix for it); teaching the manifest to name its own roots (a manifest cannot choose what judges it).",
+    "why": "AC-1/AC-2 demand a cross-repo manifest verify while single-root behaviour stays byte-identical and #267's refusals survive re-rooting; _ROOTS defaults of None make the unflagged path the same code it was."
+  },
+  "lighting": "lit",
+  "negative_control": {
+    "artifact": "docs/reports/u-442/nc-red.txt",
+    "command": "python3 -m unittest tests.test_verify",
+    "did": "checked out head_sha in a throwaway worktree, restored runtime/scripts/verify.py from base_sha (git checkout a58bf71a -- runtime/scripts/verify.py) and left the new test in place; then ran the bound command again in a second, untouched worktree at head_sha",
+    "paths": [
+      "runtime/scripts/verify.py"
+    ],
+    "result": "RED under the control: exit 1, 8 ASSERTION FAILURES in CrossRepoRoots (mutant KILLED). GREEN at clean head_sha: exit 0, 255 tests. The one case that survives the control is test_without_the_split_the_same_manifest_cannot_verify, which asserts the PRE-split behaviour and is meant to hold on both sides.",
+    "tool": "revert"
+  },
+  "reviewer_mode": "cross-vendor",
+  "unit": "U-442"
+}
