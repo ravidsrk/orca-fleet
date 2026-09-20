@@ -1,6 +1,6 @@
 .....................................................................................................................................................................FAIL: manifest must be a JSON object, got list
 verify: evidence manifest malformed/unreadable — unit is NOT done
-......................................................................................................................................FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+........................................................................................................................................FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
 FAIL: head_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
 FAIL: base_sha 'HEAD' is not a real commit
 FAIL: head_sha 'HEAD' is not a real commit
@@ -12,9 +12,9 @@ FAIL: negative_control.result must record the mutant KILLED / the proof going RE
 FAIL: negative_control.artifact (an evidence path) is required
 FAIL: mutation unit: no pr.number to look up an independent review — unreviewed
 verify: 11 invariant(s) failed — unit is NOT done
-............................................................................................................................................................................................
+........................................................................................................................................................................................................
 ----------------------------------------------------------------------
-Ran 487 tests in 52.981s
+Ran 501 tests in 59.806s
 
 OK
 bound clean-sweep (self-run) — docs/runs/2026-09-14-clean-sweep-self-run.md

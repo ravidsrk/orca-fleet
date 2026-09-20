@@ -4,7 +4,7 @@ EEusage: python3 -m unittest [-h] {gen-key,sign} ...
 python3 -m unittest: error: argument cmd: invalid choice: 'sign-transcript' (choose from 'gen-key', 'sign')
 E.....................................................................................................................................................FAIL: manifest must be a JSON object, got list
 verify: evidence manifest malformed/unreadable — unit is NOT done
-...........................................................................................................................EEFE.EE....FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
+...........................................................................................................................EEEFE.EEE....FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
 FAIL: head_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
 FAIL: base_sha 'HEAD' is not a real commit
 FAIL: head_sha 'HEAD' is not a real commit
@@ -16,12 +16,12 @@ FAIL: negative_control.result must record the mutant KILLED / the proof going RE
 FAIL: negative_control.artifact (an evidence path) is required
 FAIL: mutation unit: no pr.number to look up an independent review — unreviewed
 verify: 11 invariant(s) failed — unit is NOT done
-..................................................E.E.E..EEEEEE.........F.................F.................................................................................................
+................................................F..E.EEE.E...EEEEEEEEE.........EF.E......F..........F..................................................................................................F
 ======================================================================
 ERROR: test_canonical_transcript_is_field_bounded_and_order_free (tests.test_dispatch_sign.TranscriptSigning.test_canonical_transcript_is_field_bounded_and_order_free)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/tests/test_dispatch_sign.py", line 205, in test_canonical_transcript_is_field_bounded_and_order_free
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_dispatch_sign.py", line 205, in test_canonical_transcript_is_field_bounded_and_order_free
     canon = dispatch_sign.canonical_transcript(self._RECORD)
             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AttributeError: module 'dispatch_sign' has no attribute 'canonical_transcript'
@@ -50,10 +50,10 @@ argparse.ArgumentError: argument cmd: invalid choice: 'sign-transcript' (choose 
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/tests/test_dispatch_sign.py", line 224, in test_sign_transcript_cli_wraps_the_verdict_in_a_verifying_envelope
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_dispatch_sign.py", line 224, in test_sign_transcript_cli_wraps_the_verdict_in_a_verifying_envelope
     rc = dispatch_sign.main(["sign-transcript", "--key", str(key),
                              "--transcript", str(transcript)])
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/runtime/scripts/dispatch-sign.py", line 198, in main
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/runtime/scripts/dispatch-sign.py", line 198, in main
     args = ap.parse_args(argv)
   File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 1926, in parse_args
     args, argv = self.parse_known_args(args, namespace)
@@ -96,10 +96,10 @@ argparse.ArgumentError: argument cmd: invalid choice: 'sign-transcript' (choose 
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/tests/test_dispatch_sign.py", line 247, in test_sign_transcript_refuses_an_incomplete_verdict
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_dispatch_sign.py", line 247, in test_sign_transcript_refuses_an_incomplete_verdict
     rc = dispatch_sign.main(["sign-transcript", "--key", str(key),
                              "--transcript", str(transcript)])
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/runtime/scripts/dispatch-sign.py", line 198, in main
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/runtime/scripts/dispatch-sign.py", line 198, in main
     args = ap.parse_args(argv)
   File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 1926, in parse_args
     args, argv = self.parse_known_args(args, namespace)
@@ -142,10 +142,10 @@ argparse.ArgumentError: argument cmd: invalid choice: 'sign-transcript' (choose 
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/tests/test_dispatch_sign.py", line 259, in test_sign_transcript_writes_to_out_when_asked
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_dispatch_sign.py", line 259, in test_sign_transcript_writes_to_out_when_asked
     rc = dispatch_sign.main(["sign-transcript", "--key", str(key),
                              "--transcript", str(transcript), "--out", str(target)])
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/runtime/scripts/dispatch-sign.py", line 198, in main
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/runtime/scripts/dispatch-sign.py", line 198, in main
     args = ap.parse_args(argv)
   File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 1926, in parse_args
     args, argv = self.parse_known_args(args, namespace)
@@ -165,17 +165,39 @@ Traceback (most recent call last):
 SystemExit: 2
 
 ======================================================================
+ERROR: test_a_requested_transcript_that_cannot_be_written_is_a_nonzero_exit (tests.test_verify.SignedTranscript.test_a_requested_transcript_that_cannot_be_written_is_a_nonzero_exit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_verify.py", line 2354, in test_a_requested_transcript_that_cannot_be_written_is_a_nonzero_exit
+    rc, out, err = self._main("--transcript-out", "docs/reports/u/blocked/transcript.json")
+                   ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_verify.py", line 2281, in _main
+    rc = verify.main(["--manifest", self.manifest, "--unit-class", "report-only", *extra])
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/runtime/scripts/verify.py", line 2143, in main
+    args = ap.parse_args(argv)
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 1930, in parse_args
+    self.error(msg)
+    ~~~~~~~~~~^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2686, in error
+    self.exit(2, _('%(prog)s: error: %(message)s\n') % args)
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2673, in exit
+    _sys.exit(status)
+    ~~~~~~~~~^^^^^^^^
+SystemExit: 2
+
+======================================================================
 ERROR: test_an_unreadable_key_is_a_usage_error_before_any_verdict (tests.test_verify.SignedTranscript.test_an_unreadable_key_is_a_usage_error_before_any_verdict)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/tests/test_verify.py", line 2339, in test_an_unreadable_key_is_a_usage_error_before_any_verdict
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_verify.py", line 2340, in test_an_unreadable_key_is_a_usage_error_before_any_verdict
     rc, _, err = self._main("--transcript-out", "docs/reports/u/transcript.json",
                  ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
                             "--transcript-key", ".orca/missing")
                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/tests/test_verify.py", line 2280, in _main
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_verify.py", line 2281, in _main
     rc = verify.main(["--manifest", self.manifest, "--unit-class", "report-only", *extra])
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/runtime/scripts/verify.py", line 2143, in main
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/runtime/scripts/verify.py", line 2143, in main
     args = ap.parse_args(argv)
   File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 1930, in parse_args
     self.error(msg)
@@ -192,7 +214,7 @@ SystemExit: 2
 ERROR: test_canonicalization_matches_signer (tests.test_verify.SignedTranscript.test_canonicalization_matches_signer)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/tests/test_verify.py", line 2353, in test_canonicalization_matches_signer
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_verify.py", line 2381, in test_canonicalization_matches_signer
     self.assertEqual(verify._canonical_transcript(rec), dispatch_sign.canonical_transcript(rec))
                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AttributeError: module 'verify' has no attribute '_canonical_transcript'
@@ -201,12 +223,12 @@ AttributeError: module 'verify' has no attribute '_canonical_transcript'
 ERROR: test_key_without_out_is_a_usage_error_not_a_verdict (tests.test_verify.SignedTranscript.test_key_without_out_is_a_usage_error_not_a_verdict)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/tests/test_verify.py", line 2333, in test_key_without_out_is_a_usage_error_not_a_verdict
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_verify.py", line 2334, in test_key_without_out_is_a_usage_error_not_a_verdict
     rc, _, err = self._main("--transcript-key", self.key)
                  ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/tests/test_verify.py", line 2280, in _main
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_verify.py", line 2281, in _main
     rc = verify.main(["--manifest", self.manifest, "--unit-class", "report-only", *extra])
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/runtime/scripts/verify.py", line 2143, in main
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/runtime/scripts/verify.py", line 2143, in main
     args = ap.parse_args(argv)
   File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 1930, in parse_args
     self.error(msg)
@@ -223,12 +245,38 @@ SystemExit: 2
 ERROR: test_out_without_key_writes_the_unsigned_verdict_object (tests.test_verify.SignedTranscript.test_out_without_key_writes_the_unsigned_verdict_object)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/tests/test_verify.py", line 2326, in test_out_without_key_writes_the_unsigned_verdict_object
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_verify.py", line 2327, in test_out_without_key_writes_the_unsigned_verdict_object
     rc, _, _ = self._main("--transcript-out", "docs/reports/u/transcript.json")
                ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/tests/test_verify.py", line 2280, in _main
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_verify.py", line 2281, in _main
     rc = verify.main(["--manifest", self.manifest, "--unit-class", "report-only", *extra])
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/runtime/scripts/verify.py", line 2143, in main
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/runtime/scripts/verify.py", line 2143, in main
+    args = ap.parse_args(argv)
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 1930, in parse_args
+    self.error(msg)
+    ~~~~~~~~~~^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2686, in error
+    self.exit(2, _('%(prog)s: error: %(message)s\n') % args)
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2673, in exit
+    _sys.exit(status)
+    ~~~~~~~~~^^^^^^^^
+SystemExit: 2
+
+======================================================================
+ERROR: test_the_in_process_signer_refuses_to_sign_an_absence_like_the_offline_one (tests.test_verify.SignedTranscript.test_the_in_process_signer_refuses_to_sign_an_absence_like_the_offline_one)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_verify.py", line 2366, in test_the_in_process_signer_refuses_to_sign_an_absence_like_the_offline_one
+    rc, _, err = self._main("--manifest", "docs/reports/u/missing.json",
+                 ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                            "--transcript-out", "docs/reports/u/transcript.json",
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                            "--transcript-key", self.key)
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_verify.py", line 2281, in _main
+    rc = verify.main(["--manifest", self.manifest, "--unit-class", "report-only", *extra])
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/runtime/scripts/verify.py", line 2143, in main
     args = ap.parse_args(argv)
   File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 1930, in parse_args
     self.error(msg)
@@ -245,14 +293,14 @@ SystemExit: 2
 ERROR: test_the_pair_emits_an_envelope_that_verifies_and_binds_the_verdict (tests.test_verify.SignedTranscript.test_the_pair_emits_an_envelope_that_verifies_and_binds_the_verdict)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/tests/test_verify.py", line 2295, in test_the_pair_emits_an_envelope_that_verifies_and_binds_the_verdict
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_verify.py", line 2296, in test_the_pair_emits_an_envelope_that_verifies_and_binds_the_verdict
     rc, out, err = self._main("--transcript-out", "docs/reports/u/transcript.json",
                    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
                               "--transcript-key", self.key)
                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/tests/test_verify.py", line 2280, in _main
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_verify.py", line 2281, in _main
     rc = verify.main(["--manifest", self.manifest, "--unit-class", "report-only", *extra])
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/runtime/scripts/verify.py", line 2143, in main
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/runtime/scripts/verify.py", line 2143, in main
     args = ap.parse_args(argv)
   File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 1930, in parse_args
     self.error(msg)
@@ -269,10 +317,10 @@ SystemExit: 2
 ERROR: test_a_key_whose_pin_is_malformed_fails_closed (tests.test_run_report.SignedTranscriptRequired.test_a_key_whose_pin_is_malformed_fails_closed)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/tests/test_run_report.py", line 1355, in test_a_key_whose_pin_is_malformed_fails_closed
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_run_report.py", line 1372, in test_a_key_whose_pin_is_malformed_fails_closed
     self._commit(pubkey=True, transcript=self._envelope(self._verdict()))
                                          ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/tests/test_run_report.py", line 1272, in _envelope
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_run_report.py", line 1276, in _envelope
     sig = ed.signature(dispatch_sign.canonical_transcript(record), seed, ed.publickey(seed))
                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AttributeError: module 'dispatch_sign' has no attribute 'canonical_transcript'
@@ -281,10 +329,33 @@ AttributeError: module 'dispatch_sign' has no attribute 'canonical_transcript'
 ERROR: test_a_named_transcript_is_checked_even_without_a_committed_key (tests.test_run_report.SignedTranscriptRequired.test_a_named_transcript_is_checked_even_without_a_committed_key)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/tests/test_run_report.py", line 1350, in test_a_named_transcript_is_checked_even_without_a_committed_key
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_run_report.py", line 1367, in test_a_named_transcript_is_checked_even_without_a_committed_key
     self._commit(pubkey=False, transcript=self._envelope(self._verdict()))
                                           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/tests/test_run_report.py", line 1272, in _envelope
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_run_report.py", line 1276, in _envelope
+    sig = ed.signature(dispatch_sign.canonical_transcript(record), seed, ed.publickey(seed))
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'dispatch_sign' has no attribute 'canonical_transcript'
+
+======================================================================
+ERROR: test_a_pre_key_report_still_binds_when_the_base_is_named_explicitly (tests.test_run_report.SignedTranscriptRequired.test_a_pre_key_report_still_binds_when_the_base_is_named_explicitly)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_run_report.py", line 1496, in test_a_pre_key_report_still_binds_when_the_base_is_named_explicitly
+    self.assertEqual(run_report.check_report(self.path, "demo-it", "self-run", root=self.repo,
+                     ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                             base="main"), [])
+                                             ^^^^^^^^^^^^
+TypeError: check_report() got an unexpected keyword argument 'base'
+
+======================================================================
+ERROR: test_a_pre_key_transcript_fails_closed_even_once_the_key_lands_later (tests.test_run_report.SignedTranscriptRequired.test_a_pre_key_transcript_fails_closed_even_once_the_key_lands_later)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_run_report.py", line 1429, in test_a_pre_key_transcript_fails_closed_even_once_the_key_lands_later
+    self._land(pubkey=False, transcript=self._envelope(self._verdict()))
+                                        ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_run_report.py", line 1276, in _envelope
     sig = ed.signature(dispatch_sign.canonical_transcript(record), seed, ed.publickey(seed))
                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AttributeError: module 'dispatch_sign' has no attribute 'canonical_transcript'
@@ -293,10 +364,10 @@ AttributeError: module 'dispatch_sign' has no attribute 'canonical_transcript'
 ERROR: test_a_recorded_red_binds_when_the_transcript_agrees (tests.test_run_report.SignedTranscriptRequired.test_a_recorded_red_binds_when_the_transcript_agrees)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/tests/test_run_report.py", line 1336, in test_a_recorded_red_binds_when_the_transcript_agrees
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_run_report.py", line 1353, in test_a_recorded_red_binds_when_the_transcript_agrees
     self._commit(pubkey=True, transcript=self._envelope(self._verdict(exit=2, fatal=["x"])))
                                          ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/tests/test_run_report.py", line 1272, in _envelope
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_run_report.py", line 1276, in _envelope
     sig = ed.signature(dispatch_sign.canonical_transcript(record), seed, ed.publickey(seed))
                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AttributeError: module 'dispatch_sign' has no attribute 'canonical_transcript'
@@ -305,10 +376,10 @@ AttributeError: module 'dispatch_sign' has no attribute 'canonical_transcript'
 ERROR: test_a_signed_transcript_against_the_committed_key_binds (tests.test_run_report.SignedTranscriptRequired.test_a_signed_transcript_against_the_committed_key_binds)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/tests/test_run_report.py", line 1300, in test_a_signed_transcript_against_the_committed_key_binds
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_run_report.py", line 1317, in test_a_signed_transcript_against_the_committed_key_binds
     self._commit(pubkey=True, transcript=self._envelope(self._verdict()))
                                          ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/tests/test_run_report.py", line 1272, in _envelope
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_run_report.py", line 1276, in _envelope
     sig = ed.signature(dispatch_sign.canonical_transcript(record), seed, ed.publickey(seed))
                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AttributeError: module 'dispatch_sign' has no attribute 'canonical_transcript'
@@ -317,9 +388,9 @@ AttributeError: module 'dispatch_sign' has no attribute 'canonical_transcript'
 ERROR: test_a_tampered_transcript_is_refused (tests.test_run_report.SignedTranscriptRequired.test_a_tampered_transcript_is_refused)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/tests/test_run_report.py", line 1304, in test_a_tampered_transcript_is_refused
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_run_report.py", line 1321, in test_a_tampered_transcript_is_refused
     env = self._envelope(self._verdict(exit=2))
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/tests/test_run_report.py", line 1272, in _envelope
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_run_report.py", line 1276, in _envelope
     sig = ed.signature(dispatch_sign.canonical_transcript(record), seed, ed.publickey(seed))
                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AttributeError: module 'dispatch_sign' has no attribute 'canonical_transcript'
@@ -328,10 +399,10 @@ AttributeError: module 'dispatch_sign' has no attribute 'canonical_transcript'
 ERROR: test_a_transcript_outside_the_run_directory_is_refused (tests.test_run_report.SignedTranscriptRequired.test_a_transcript_outside_the_run_directory_is_refused)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/tests/test_run_report.py", line 1343, in test_a_transcript_outside_the_run_directory_is_refused
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_run_report.py", line 1360, in test_a_transcript_outside_the_run_directory_is_refused
     self._commit(pubkey=True, transcript=self._envelope(self._verdict()))
                                          ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/tests/test_run_report.py", line 1272, in _envelope
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_run_report.py", line 1276, in _envelope
     sig = ed.signature(dispatch_sign.canonical_transcript(record), seed, ed.publickey(seed))
                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AttributeError: module 'dispatch_sign' has no attribute 'canonical_transcript'
@@ -340,10 +411,22 @@ AttributeError: module 'dispatch_sign' has no attribute 'canonical_transcript'
 ERROR: test_a_transcript_over_other_manifest_bytes_is_refused (tests.test_run_report.SignedTranscriptRequired.test_a_transcript_over_other_manifest_bytes_is_refused)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/tests/test_run_report.py", line 1323, in test_a_transcript_over_other_manifest_bytes_is_refused
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_run_report.py", line 1340, in test_a_transcript_over_other_manifest_bytes_is_refused
     self._commit(pubkey=True, transcript=self._envelope(self._verdict(manifest_sha256="00" * 32)))
                                          ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/tests/test_run_report.py", line 1272, in _envelope
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_run_report.py", line 1276, in _envelope
+    sig = ed.signature(dispatch_sign.canonical_transcript(record), seed, ed.publickey(seed))
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'dispatch_sign' has no attribute 'canonical_transcript'
+
+======================================================================
+ERROR: test_a_transcript_signed_after_the_pin_does_not_retro_sign_the_pinned_verdict (tests.test_run_report.SignedTranscriptRequired.test_a_transcript_signed_after_the_pin_does_not_retro_sign_the_pinned_verdict)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_run_report.py", line 1441, in test_a_transcript_signed_after_the_pin_does_not_retro_sign_the_pinned_verdict
+    self._land(transcript=self._envelope(self._verdict()))
+                          ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_run_report.py", line 1276, in _envelope
     sig = ed.signature(dispatch_sign.canonical_transcript(record), seed, ed.publickey(seed))
                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AttributeError: module 'dispatch_sign' has no attribute 'canonical_transcript'
@@ -352,10 +435,22 @@ AttributeError: module 'dispatch_sign' has no attribute 'canonical_transcript'
 ERROR: test_a_transcript_signed_by_another_key_is_refused (tests.test_run_report.SignedTranscriptRequired.test_a_transcript_signed_by_another_key_is_refused)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/tests/test_run_report.py", line 1316, in test_a_transcript_signed_by_another_key_is_refused
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_run_report.py", line 1333, in test_a_transcript_signed_by_another_key_is_refused
     self._commit(pubkey=True, transcript=self._envelope(self._verdict(), seed=bytes(range(100, 132))))
                                          ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/tests/test_run_report.py", line 1272, in _envelope
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_run_report.py", line 1276, in _envelope
+    sig = ed.signature(dispatch_sign.canonical_transcript(record), seed, ed.publickey(seed))
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'dispatch_sign' has no attribute 'canonical_transcript'
+
+======================================================================
+ERROR: test_a_transcript_signing_no_argument_tuple_is_refused (tests.test_run_report.SignedTranscriptRequired.test_a_transcript_signing_no_argument_tuple_is_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_run_report.py", line 1392, in test_a_transcript_signing_no_argument_tuple_is_refused
+    self._commit(pubkey=True, transcript=self._envelope(self._verdict(args={})))
+                                         ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_run_report.py", line 1276, in _envelope
     sig = ed.signature(dispatch_sign.canonical_transcript(record), seed, ed.publickey(seed))
                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AttributeError: module 'dispatch_sign' has no attribute 'canonical_transcript'
@@ -364,10 +459,50 @@ AttributeError: module 'dispatch_sign' has no attribute 'canonical_transcript'
 ERROR: test_a_transcript_whose_exit_disagrees_with_the_header_is_refused (tests.test_run_report.SignedTranscriptRequired.test_a_transcript_whose_exit_disagrees_with_the_header_is_refused)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/tests/test_run_report.py", line 1331, in test_a_transcript_whose_exit_disagrees_with_the_header_is_refused
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_run_report.py", line 1348, in test_a_transcript_whose_exit_disagrees_with_the_header_is_refused
     self._commit(pubkey=True, transcript=self._envelope(self._verdict(exit=2)))
                                          ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/tests/test_run_report.py", line 1272, in _envelope
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_run_report.py", line 1276, in _envelope
+    sig = ed.signature(dispatch_sign.canonical_transcript(record), seed, ed.publickey(seed))
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'dispatch_sign' has no attribute 'canonical_transcript'
+
+======================================================================
+ERROR: test_a_transcript_whose_signed_args_disagree_with_the_shown_invocation_is_refused (tests.test_run_report.SignedTranscriptRequired.test_a_transcript_whose_signed_args_disagree_with_the_shown_invocation_is_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_run_report.py", line 1386, in test_a_transcript_whose_signed_args_disagree_with_the_shown_invocation_is_refused
+    self._commit(pubkey=True, transcript=self._envelope(
+                                         ~~~~~~~~~~~~~~^
+        self._verdict(args={"unit_class": "report-only", "lighting": "lit"})))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_run_report.py", line 1276, in _envelope
+    sig = ed.signature(dispatch_sign.canonical_transcript(record), seed, ed.publickey(seed))
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'dispatch_sign' has no attribute 'canonical_transcript'
+
+======================================================================
+ERROR: test_an_off_ancestry_report_binds_with_a_transcript_signed_by_the_base_key (tests.test_run_report.SignedTranscriptRequired.test_an_off_ancestry_report_binds_with_a_transcript_signed_by_the_base_key)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_run_report.py", line 1485, in test_an_off_ancestry_report_binds_with_a_transcript_signed_by_the_base_key
+    self._land(pubkey=False, transcript=self._envelope(self._verdict()))
+                                        ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_run_report.py", line 1276, in _envelope
+    sig = ed.signature(dispatch_sign.canonical_transcript(record), seed, ed.publickey(seed))
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'dispatch_sign' has no attribute 'canonical_transcript'
+
+======================================================================
+ERROR: test_hostile_args_on_a_mutation_mission_are_refused_even_when_the_body_agrees (tests.test_run_report.SignedTranscriptRequired.test_hostile_args_on_a_mutation_mission_are_refused_even_when_the_body_agrees)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_run_report.py", line 1403, in test_hostile_args_on_a_mutation_mission_are_refused_even_when_the_body_agrees
+    self._commit(pubkey=True, transcript=self._envelope(
+                                         ~~~~~~~~~~~~~~^
+        self._verdict(args={"unit_class": "report-only", "lighting": "lit"})))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_run_report.py", line 1276, in _envelope
     sig = ed.signature(dispatch_sign.canonical_transcript(record), seed, ed.publickey(seed))
                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AttributeError: module 'dispatch_sign' has no attribute 'canonical_transcript'
@@ -376,32 +511,63 @@ AttributeError: module 'dispatch_sign' has no attribute 'canonical_transcript'
 FAIL: test_help_documents_the_pair (tests.test_verify.SignedTranscript.test_help_documents_the_pair)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/tests/test_verify.py", line 2361, in test_help_documents_the_pair
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_verify.py", line 2389, in test_help_documents_the_pair
     self.assertIn(flag, buf.getvalue())
     ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: '--transcript-out' not found in "usage: python3 -m unittest [-h] --manifest MANIFEST\n                           [--contract-source CONTRACT_SOURCE]\n                           [--contract-digest CONTRACT_DIGEST] [--repo REPO]\n                           [--nc-command NC_COMMAND] [--execute-nc]\n                           [--base BASE] [--symbol SYMBOL]\n                           [--unit-class UNIT_CLASS] [--no-gh]\n                           [--lighting {dark-eligible,lit}]\n                           [--dispatch-record DISPATCH_RECORD]\n                           [--dispatch-pubkey DISPATCH_PUBKEY]\n                           [--git-dir GIT_DIR] [--evidence-root EVIDENCE_ROOT]\n\nIndependent evidence-manifest verifier.\n\noptions:\n  -h, --help            show this help message and exit\n  --manifest MANIFEST\n  --contract-source CONTRACT_SOURCE\n                        AUTHORITATIVE frozen contract (path@ref), from the\n                        dispatch record — not the manifest\n  --contract-digest CONTRACT_DIGEST\n                        AUTHORITATIVE sha256 of the frozen contract\n  --repo REPO           owner/name for the review lookup (default: infer from\n                        origin)\n  --nc-command NC_COMMAND\n                        AUTHORITATIVE criterion-bound command for --execute-\n                        nc, supplied out of band by the coordinator. REQUIRED\n                        by --execute-nc (#279): the manifest and the commands\n                        ledger are both worker-written, so neither can\n                        authorise the other. The manifest must agree with this\n                        or the run is RED. A unit never chooses what proves\n                        it.\n  --execute-nc          EXECUTE the negative control (#255): apply it in a\n                        throwaway worktree at head_sha, require the bound\n                        command to exit non-zero there and 0 at clean\n                        head_sha. Requires --nc-command (#279). REQUIRED by\n                        the review-waiver lanes (--lighting dark-eligible /\n                        --no-gh), which have no other oracle (#256)\n  --base BASE           integration base branch (for ancestry)\n  --symbol SYMBOL       a unit symbol to grep on the base\n  --unit-class UNIT_CLASS\n                        unit class from the dispatch record (mutation|report-\n                        only|planning); missing/unknown => mutation (fail-\n                        safe, with a NOTE) — validated in code, not by\n                        argparse, so an unknown value cannot wedge the gate\n                        (#178)\n  --no-gh               offline/no-gh lane (merge-serialization.md): review is\n                        a local reviewer artifact at head_sha, coordinator-\n                        attested — set by the coordinator, not the worker\n  --lighting {dark-eligible,lit}\n                        unit lighting from the dispatch record (lit|dark-\n                        eligible); dark-eligible waives the independent-review\n                        requirement — set by the coordinator, not the worker\n  --dispatch-record DISPATCH_RECORD\n                        coordinator-signed dispatch record (path or path@ref)\n                        binding contract-digest/unit-class/lighting — makes\n                        the native hook path sound (#135)\n  --dispatch-pubkey DISPATCH_PUBKEY\n                        repo-pinned coordinator public key (path or path@ref)\n                        that verifies --dispatch-record; a committed pubkey is\n                        one the worker cannot swap\n  --git-dir GIT_DIR     run the git/SHA legs (commit existence, ancestry,\n                        trees, path@ref reads, negative-control worktrees)\n                        against the clone at this directory instead of the\n                        process cwd — for a CHAINED-RUN manifest whose\n                        evidence and commits live in different repos (#442).\n                        Must be inside a git work tree or the run is refused;\n                        absent, every git leg runs where it always did.\n                        Coordinator-supplied: the manifest never names the\n                        root it is judged against\n  --evidence-root EVIDENCE_ROOT\n                        resolve and BOUND manifest-relative evidence paths\n                        under this directory instead of the cwd's git toplevel\n                        (#442). The #267 bound is unchanged, only re-rooted:\n                        an absolute path, or one escaping this root, stays\n                        REFUSED, and the root must itself be inside a git work\n                        tree — evidence no auditor can re-derive from a clone\n                        is not evidence. NOT implied by --git-dir. Once the\n                        two roots name different repositories, the SHA repo is\n                        never consulted for evidence bytes — a same-path blob\n                        there is not this manifest's evidence — so cross-repo\n                        evidence passes only on its artifacts[] sha256 pin,\n                        read from the evidence root\n"
 
 ======================================================================
+FAIL: test_a_dangling_pre_key_pin_is_refused_the_same_way (tests.test_run_report.SignedTranscriptRequired.test_a_dangling_pre_key_pin_is_refused_the_same_way)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_run_report.py", line 1478, in test_a_dangling_pre_key_pin_is_refused_the_same_way
+    self.assertTrue(any("transcript" in e and self.PUBKEY in e for e in errors), errors)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : []
+
+======================================================================
 FAIL: test_an_unsigned_transcript_is_refused_when_the_key_is_committed (tests.test_run_report.SignedTranscriptRequired.test_an_unsigned_transcript_is_refused_when_the_key_is_committed)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/tests/test_run_report.py", line 1313, in test_an_unsigned_transcript_is_refused_when_the_key_is_committed
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_run_report.py", line 1330, in test_an_unsigned_transcript_is_refused_when_the_key_is_committed
     self.assertTrue(any("unsigned" in e.lower() or "sig_b64" in e for e in errors), errors)
     ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : []
+
+======================================================================
+FAIL: test_post_key_work_pinned_to_a_pre_key_fork_is_refused (tests.test_run_report.SignedTranscriptRequired.test_post_key_work_pinned_to_a_pre_key_fork_is_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_run_report.py", line 1470, in test_post_key_work_pinned_to_a_pre_key_fork_is_refused
+    self.assertTrue(any("transcript" in e and self.PUBKEY in e for e in errors), errors)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: False is not true : []
 
 ======================================================================
 FAIL: test_with_a_committed_key_a_ledger_entry_alone_no_longer_suffices (tests.test_run_report.SignedTranscriptRequired.test_with_a_committed_key_a_ledger_entry_alone_no_longer_suffices)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/b630e0d0-141c-42f7-a8c3-796caf561bf2/scratchpad/nc/tests/test_run_report.py", line 1297, in test_with_a_committed_key_a_ledger_entry_alone_no_longer_suffices
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_run_report.py", line 1314, in test_with_a_committed_key_a_ledger_entry_alone_no_longer_suffices
     self.assertTrue(any("transcript" in e and self.PUBKEY in e for e in errors), errors)
     ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: False is not true : []
 
+======================================================================
+FAIL: test_interface_width_shrunk (tests.test_reshape_width_verify.VerifyWidthPin.test_interface_width_shrunk)
 ----------------------------------------------------------------------
-Ran 487 tests in 47.995s
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-1/cacd1f4b-617b-4809-a11d-ccb40ab8290d/scratchpad/nc/tests/test_reshape_width_verify.py", line 48, in test_interface_width_shrunk
+    self.assertEqual(width, PINNED_WIDTH,
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+                     f"verify.py WIDTH {width} drifted from the pin {PINNED_WIDTH} — a new top-level "
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                     "name needs a reason in this module's docstring, not a silent bump")
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 90 != 91 : verify.py WIDTH 90 drifted from the pin 91 — a new top-level name needs a reason in this module's docstring, not a silent bump
 
-FAILED (failures=3, errors=18)
+----------------------------------------------------------------------
+Ran 501 tests in 50.518s
+
+FAILED (failures=6, errors=27)
 bound clean-sweep (self-run) — docs/runs/2026-09-14-clean-sweep-self-run.md
 bound prove-it (self-run) — docs/runs/2026-09-16-prove-it-self-run.md

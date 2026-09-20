@@ -3,9 +3,9 @@
   "unit": "U-SIG-1",
   "unit_class": "mutation",
   "base_sha": "56d0f7c7959f2920689ec0db9dfeab5a2d93ac66",
-  "head_sha": "9f10586ef1da4565df2a05fd882def6e592b6d8d",
-  "head_tree": "072c20caa80ea14e940bce658f51a5f4b0b943d1",
-  "head_sha_role": "base_sha..head_sha is the six-commit range the negative control reverts (dispatch-sign c2c3be72, verify 6be872a7, run_report d1c0a42d, verify-gate doc + dormancy pin + badge cb6bb299, the _Transcript fold 3e094f35, the width-pin bump 9f10586e). The commit that adds this manifest and its two artifacts necessarily follows head_sha and cannot name its own SHA; it carries no production or test content.",
+  "head_sha": "a9a4df321dc96d3562db0ab05abdb39659237af5",
+  "head_tree": "7005bd0dacba2d644818d13815aab3c4eaacd368",
+  "head_sha_role": "base_sha..head_sha is the nine-commit range the negative control reverts: round 1 (dispatch-sign c2c3be72, verify 6be872a7, run_report d1c0a42d, verify-gate doc cb6bb299, the _Transcript fold 3e094f35, the width-pin bump 9f10586e) and round 2 (run_report ancestry-aware switch + args binding c7b1a4de, verify unwritten-artifact/absence refusals 7a9db5a1, badges a9a4df32). head_sha is the badges commit: the LAST content commit, so the criterion run's wtree fingerprints exactly head_sha^{tree}. The commit that re-records this manifest and its two artifacts necessarily follows head_sha and carries no production or test content.",
   "base_branch": "review/2026-09-20-sign-386",
   "contract": {
     "source": "docs/runs/2026-09-20-sign-386/build-u-sig-1.md@743951ca0fd4acf11385db904c152a54e8eebb54",
@@ -41,72 +41,84 @@
       "id": "AC-4",
       "text": "NEGATIVE CONTROL executed: signing code reverted (tests kept) -> new tests RED, recorded via evidence-run.py.",
       "addressed": true,
-      "witness": "commands[] label=negative-control (evidence-run.py, exit 1) and docs/runs/2026-09-20-sign-386/u-sig-1-negctrl.txt: FAILED (failures=3, errors=18) — 21 of the 22 new tests RED with the three production scripts restored from base_sha; see negative_control"
+      "witness": "commands[] label=negative-control (evidence-run.py, exit 1) and docs/runs/2026-09-20-sign-386/u-sig-1-negctrl.txt: FAILED (failures=6, errors=27) — 33 of the 34 new tests (rounds 1+2) RED with the three production scripts restored from base_sha; see negative_control"
     },
     {
       "id": "AC-5",
       "text": "Full suite green; python3 scripts/validate.py exit 0.",
       "addressed": true,
-      "witness": "commands[] label=tests (criterion-bound suites, exit 0, 487 tests); full discover run at cb6bb299: 1796 tests, 1 failure (the RV-D2 width pin, 96 != 90) -> fixed by 3e094f35 + 9f10586e (coordinator decision 'a'); full discover re-run at head_sha reported in worker_done; scripts/validate.py exit 0 ('All 21 missions valid')"
+      "witness": "commands[] label=tests (criterion-bound suites, exit 0, 501 tests, wtree == head_sha^{tree}); full discover run at a9a4df32 with the working tree carrying this manifest: Ran 1808 tests / OK; python3 scripts/validate.py exit 0 (\"All 21 missions valid; three-layer separation holds; evals valid.\"); gitleaks: no leaks found"
     }
   ],
   "commands": [
     {
       "label": "tests",
-      "ts": "2026-09-20T17:14:09Z",
-      "cmd": "python3 -m unittest tests.test_dispatch_sign tests.test_verify tests.test_run_report tests.test_orphan_wiring",
-      "cmd_sha256": "6e9f6988388a9b63eb248f63d8a66a786e39165a4b827be857846c7d8e8f4543",
+      "ts": "2026-09-20T18:32:24Z",
+      "cmd": "python3 -m unittest tests.test_dispatch_sign tests.test_verify tests.test_run_report tests.test_orphan_wiring tests.test_reshape_width_verify",
+      "cmd_sha256": "488472fa0b2365d26d6c38b51bde066f9f02dd03f7e09521089f318ee80202e2",
       "exit": 0,
-      "duration_s": 53.022,
-      "commit": "3e094f35688c06ab11b5fecc1a1d90cdb66cdc85",
-      "wtree": "c50693c71e365d20bc356ea9cc7bbbf041c444c1",
+      "duration_s": 59.87,
+      "commit": "a9a4df321dc96d3562db0ab05abdb39659237af5",
+      "wtree": "7005bd0dacba2d644818d13815aab3c4eaacd368",
       "artifact": "docs/runs/2026-09-20-sign-386/u-sig-1-tests.txt"
     },
     {
       "label": "negative-control",
-      "ts": "2026-09-20T17:14:57Z",
-      "cmd": "python3 -m unittest tests.test_dispatch_sign tests.test_verify tests.test_run_report tests.test_orphan_wiring",
-      "cmd_sha256": "6e9f6988388a9b63eb248f63d8a66a786e39165a4b827be857846c7d8e8f4543",
+      "ts": "2026-09-20T18:34:41Z",
+      "cmd": "python3 -m unittest tests.test_dispatch_sign tests.test_verify tests.test_run_report tests.test_orphan_wiring tests.test_reshape_width_verify",
+      "cmd_sha256": "488472fa0b2365d26d6c38b51bde066f9f02dd03f7e09521089f318ee80202e2",
       "exit": 1,
-      "duration_s": 48.074,
-      "commit": "3e094f35688c06ab11b5fecc1a1d90cdb66cdc85",
-      "wtree": "1079ad63e4a340594ce56a2ee64b6f6007ed9937",
+      "duration_s": 50.602,
+      "commit": "a9a4df321dc96d3562db0ab05abdb39659237af5",
+      "wtree": "23905847316fee480c972a90494b87b4edc88963",
       "artifact": "docs/runs/2026-09-20-sign-386/u-sig-1-negctrl.txt"
     }
   ],
-  "commands_binding_note": "Both records were written by evidence-run.py with this manifest and its artifacts uncommitted, so `wtree` fingerprints the dirty working tree (tests) or the reverted control tree (negative-control), never head_sha^{tree}; the manifest itself is content that changes between the run and its commit. verify.py's commands check reads the tests record as STALE by construction here; the coordinator's clean-env re-run at head_sha is the authority (evidence-manifest.md §2). Both records name commit 3e094f35 — HEAD when they ran; 9f10586e (the width-pin bump, a test-only commit not in the criterion command) landed after.",
+  "commands_binding_note": "Round 2 (G-3): the round-1 receipts were recorded at 3e094f35's tree while head_sha named 9f10586e, so verify.py's commands-ledger check read them as STALE (spec F-3). Re-recorded: the `tests` record was written by evidence-run.py on the CLEAN checkout of head_sha a9a4df32 before any artifact changed, so its wtree equals head_sha^{tree} exactly; the negative-control record fingerprints the reverted scratch worktree (exit 1, by design never head's tree). The manifest commit follows head_sha.",
   "negative_control": {
     "tool": "revert",
-    "did": "git worktree add --detach <scratch>/nc HEAD (3e094f35); git checkout 56d0f7c7 -- runtime/scripts/dispatch-sign.py runtime/scripts/verify.py runtime/scripts/run_report.py (tests, docs and the dormancy pin left at head); the exact criterion command run via evidence-run.py --cwd <nc>; git worktree remove --force.",
+    "did": "git worktree add --detach <scratch>/nc HEAD (a9a4df32); git checkout 56d0f7c7 -- runtime/scripts/dispatch-sign.py runtime/scripts/verify.py runtime/scripts/run_report.py (tests, docs and the dormancy pin left at head); the exact criterion command run via evidence-run.py --cwd <nc> with absolute --manifest/--artifact so the record lands in this manifest; git worktree remove --force.",
     "paths": [
       "runtime/scripts/dispatch-sign.py",
       "runtime/scripts/verify.py",
       "runtime/scripts/run_report.py"
     ],
-    "command": "python3 -m unittest tests.test_dispatch_sign tests.test_verify tests.test_run_report tests.test_orphan_wiring",
-    "result": "RED — exit 1, FAILED (failures=3, errors=18): 21 criterion tests went RED (mutant KILLED) with the production change reverted; exit 0, 487 tests OK with it.",
+    "command": "python3 -m unittest tests.test_dispatch_sign tests.test_verify tests.test_run_report tests.test_orphan_wiring tests.test_reshape_width_verify",
+    "result": "RED — exit 1, FAILED (failures=6, errors=27): 33 criterion tests went RED (mutant KILLED) with the three production scripts restored from base_sha — the 21 round-1 tests plus 11 of the 12 round-2 tests; exit 0, 501 tests OK with them.",
     "exit": 1,
     "artifact": "docs/runs/2026-09-20-sign-386/u-sig-1-negctrl.txt",
     "failures": [
+      "test_a_dangling_pre_key_pin_is_refused_the_same_way",
       "test_a_key_whose_pin_is_malformed_fails_closed",
       "test_a_named_transcript_is_checked_even_without_a_committed_key",
+      "test_a_pre_key_report_still_binds_when_the_base_is_named_explicitly",
+      "test_a_pre_key_transcript_fails_closed_even_once_the_key_lands_later",
       "test_a_recorded_red_binds_when_the_transcript_agrees",
+      "test_a_requested_transcript_that_cannot_be_written_is_a_nonzero_exit",
       "test_a_signed_transcript_against_the_committed_key_binds",
       "test_a_tampered_transcript_is_refused",
       "test_a_transcript_outside_the_run_directory_is_refused",
       "test_a_transcript_over_other_manifest_bytes_is_refused",
+      "test_a_transcript_signed_after_the_pin_does_not_retro_sign_the_pinned_verdict",
       "test_a_transcript_signed_by_another_key_is_refused",
+      "test_a_transcript_signing_no_argument_tuple_is_refused",
       "test_a_transcript_whose_exit_disagrees_with_the_header_is_refused",
+      "test_a_transcript_whose_signed_args_disagree_with_the_shown_invocation_is_refused",
+      "test_an_off_ancestry_report_binds_with_a_transcript_signed_by_the_base_key",
       "test_an_unreadable_key_is_a_usage_error_before_any_verdict",
       "test_an_unsigned_transcript_is_refused_when_the_key_is_committed",
       "test_canonical_transcript_is_field_bounded_and_order_free",
       "test_canonicalization_matches_signer",
       "test_help_documents_the_pair",
+      "test_hostile_args_on_a_mutation_mission_are_refused_even_when_the_body_agrees",
+      "test_interface_width_shrunk",
       "test_key_without_out_is_a_usage_error_not_a_verdict",
       "test_out_without_key_writes_the_unsigned_verdict_object",
+      "test_post_key_work_pinned_to_a_pre_key_fork_is_refused",
       "test_sign_transcript_cli_wraps_the_verdict_in_a_verifying_envelope",
       "test_sign_transcript_refuses_an_incomplete_verdict",
       "test_sign_transcript_writes_to_out_when_asked",
+      "test_the_in_process_signer_refuses_to_sign_an_absence_like_the_offline_one",
       "test_the_pair_emits_an_envelope_that_verifies_and_binds_the_verdict",
       "test_with_a_committed_key_a_ledger_entry_alone_no_longer_suffices"
     ],
@@ -114,9 +126,10 @@
       "tests/test_dispatch_sign.py::TranscriptSigning::test_the_dispatch_envelope_is_untouched",
       "tests/test_verify.py::SignedTranscript::test_no_flags_writes_nothing_and_says_nothing_new",
       "tests/test_run_report.py::SignedTranscriptRequired::test_without_a_committed_key_the_ledger_still_suffices",
-      "tests/test_orphan_wiring.py::DormantMechanismsSaySo::test_signed_dispatch_records_that_it_is_dormant"
+      "tests/test_orphan_wiring.py::DormantMechanismsSaySo::test_signed_dispatch_records_that_it_is_dormant",
+      "tests/test_run_report.py::SignedTranscriptRequired::test_a_report_pinned_before_the_key_landed_keeps_the_unsigned_path"
     ],
-    "not_witnessed_note": "The first three are AC-3's regression pins on behaviour already correct at base_sha (the unsigned/no-flag paths are byte-identical, which is the point). The dormancy pin reads docs/verify-gate.md, which the control does not revert (it is not a signing path); reverting the doc alone turns it RED (three assertIn's), witnessed by hand before the doc commit."
+    "not_witnessed_note": "The first three are AC-3's regression pins on behaviour already correct at base_sha (the unsigned/no-flag paths are byte-identical, which is the point). The dormancy pin reads docs/verify-gate.md, which the control does not revert (it is not a signing path); reverting the doc alone turns it RED (three assertIn's), witnessed by hand before the doc commit. Round 2: test_a_report_pinned_before_the_key_landed_keeps_the_unsigned_path passes at base too (the at-rev read also grandfathers an on-ancestry pre-key pin); it is the C3 regression guard — it goes RED when the key is read at HEAD (mutant run quoted in the r2 report), not under the base revert."
   },
   "binding_audit": {
     "coverage": "AC-1..AC-5 (5/5)",
@@ -124,18 +137,18 @@
   },
   "intent": {
     "goal": "Let verify.py emit its verdict as a coordinator-signed transcript and let run_report.py require one against the committed public key, so a tier advance costs a verdict the worker could not have typed (#281, the #386 prerequisite) — with the unsigned path byte-identical until the maintainer commits .orca/dispatch-pubkey.",
-    "ruled_out": "Committing a pubkey from this session (coordinator answer Q1=c: the seed never originates in an agent session); a second key scheme or any new crypto (ed25519.py + the dispatch envelope are reused, verify.py mirrors canonical form with a parity test as _canonical_dispatch does); reading the pubkey from the working tree in run_report.py (would turn both existing self-run reports RED and demote two missions — out of scope; the key is read at each report's own inventory_at instead, coordinator answer Q2); any Rekor/network path (U-SIG-2); reshaping existing verify.py checks; removing an existing verify.py name to hold the RV-D2 width pin at 90 (the pin moved to 91 with its reason, coordinator answer 'a').",
-    "why": "verify-gate.sh already discovers .orca/dispatch-pubkey and passes --dispatch-pubkey, so committing the key is one switch for two enforcements; the doc and the dormancy pin now say so, so the maintainer flips it consciously. Reading the key AT the report's pin is what keeps history consistent: pre-key reports keep today's path, post-key reports require a verified transcript, and a new run cannot dodge by pinning an old commit because its own artifacts must exist there."
+    "ruled_out": "Committing a pubkey from this session (coordinator answer Q1=c: the seed never originates in an agent session); a second key scheme or any new crypto (ed25519.py + the dispatch envelope are reused, verify.py mirrors canonical form with a parity test as _canonical_dispatch does); reading the pubkey from the working tree in run_report.py (would turn both existing self-run reports RED and demote two missions); round 2 replaced the at-rev read (coordinator answer Q2, superseded in DECISIONS) with the ancestry-aware rule of build-u-sig-1-r2.md G-1 — the pin's key only when the pin is an ancestor of the grading base, the grading base's key otherwise — which keeps both self-run reports bound (their pins are on origin/main's ancestry); any Rekor/network path (U-SIG-2); reshaping existing verify.py checks; removing an existing verify.py name to hold the RV-D2 width pin at 90 (the pin moved to 91 with its reason, coordinator answer 'a').",
+    "why": "verify-gate.sh already discovers .orca/dispatch-pubkey and passes --dispatch-pubkey, so committing the key is one switch for two enforcements; the doc and the dormancy pin now say so, so the maintainer flips it consciously. Reading the key at the pin keeps history consistent for pins ON the grading base's ancestry (pre-key reports keep today's path); round 1's review refuted the claim that artifacts-at-rev blocked dodging — a fork from a pre-key commit carries fresh artifacts and no key — so an OFF-ancestry pin is now judged against the key at the grading base (G-1)."
   },
   "lighting": "lit",
   "artifacts": [
     {
       "path": "docs/runs/2026-09-20-sign-386/u-sig-1-negctrl.txt",
-      "sha256": "dc70104fd8e0a6f2077f5979f4a9ab354feb1ba4da7744965904986202e4fd6d"
+      "sha256": "9c7f2a83d69e9b3f68931de9819b6f17add265f532605cb4a6d773a402614219"
     },
     {
       "path": "docs/runs/2026-09-20-sign-386/u-sig-1-tests.txt",
-      "sha256": "45f44661a47c55cc01f7e9bf1a7e2af3b204c0b784ebbc6a65964699aed06d4f"
+      "sha256": "ec2db7d63b25c13c3d145a5a8650cb0f04fa7edd7dc427dc7bf389ef81aa4fe1"
     },
     {
       "path": "docs/runs/2026-09-20-sign-386/build-u-sig-1.md",
@@ -162,11 +175,12 @@
       "tests/test_reshape_width_verify.py"
     ],
     "docs_and_generated": [
-      "docs/verify-gate.md",
       "assets/badges/tests.json",
+      "docs/DECISIONS.md",
       "docs/runs/2026-09-20-sign-386/u-sig-1-manifest.json",
       "docs/runs/2026-09-20-sign-386/u-sig-1-negctrl.txt",
-      "docs/runs/2026-09-20-sign-386/u-sig-1-tests.txt"
+      "docs/runs/2026-09-20-sign-386/u-sig-1-tests.txt",
+      "docs/verify-gate.md"
     ]
   },
   "commits": [
@@ -197,6 +211,18 @@
     {
       "sha": "pending",
       "subject": "docs(runs): U-SIG-1 evidence manifest + artifacts"
+    },
+    {
+      "sha": "c7b1a4de",
+      "subject": "fix(run-report): read the enforcement switch ancestry-aware and bind the signed args (#281/#386, PR #489 round 1)"
+    },
+    {
+      "sha": "7a9db5a1",
+      "subject": "fix(verify): a requested transcript that is not written is exit 1; the in-process signer refuses an absence (#281/#386, PR #489 round 1)"
+    },
+    {
+      "sha": "a9a4df32",
+      "subject": "chore(badges): 1763 -> 1775 tests in source"
     }
   ],
   "parked": [
@@ -211,5 +237,16 @@
       "gate": "U-SIG-2"
     }
   ],
-  "claim": "verify.py emits a signed verdict transcript (--transcript-out/--transcript-key), dispatch-sign.py signs one offline (sign-transcript), and run_report.py requires a verified transcript once .orca/dispatch-pubkey is committed at a report's own pin — 22 new tests, 21 RED under the revert control, unsigned paths byte-identical, no key committed (coordinator decision), dormancy doc + pin updated to the true state."
+  "claim": "Round 2 of U-SIG-1: the enforcement switch is read ancestry-aware (a pre-key fork can no longer dodge it), the signed args tuple is read, absence never binds, a requested-and-missing transcript is exit 1, and the manifest binds at its own head — 12 new tests (34 total across both rounds), 33 RED under the revert control, both existing self-run reports still bind, no key committed (coordinator decision).",
+  "round_2": {
+    "spec": "docs/runs/2026-09-20-sign-386/build-u-sig-1-r2.md",
+    "answers": {
+      "G-1": "ancestry-aware key read: run_report.grading_base/is_ancestor/key_rev; tests test_post_key_work_pinned_to_a_pre_key_fork_is_refused (P4), test_a_dangling_pre_key_pin_is_refused_the_same_way (P5), test_a_report_pinned_before_the_key_landed_keeps_the_unsigned_path (P2), test_a_pre_key_transcript_fails_closed_even_once_the_key_lands_later (P3), test_a_transcript_signed_after_the_pin_does_not_retro_sign_the_pinned_verdict (P8), test_an_off_ancestry_report_binds_with_a_transcript_signed_by_the_base_key, test_a_pre_key_report_still_binds_when_the_base_is_named_explicitly; prose: run_report.py module doc, SignedTranscriptRequired docstring, docs/verify-gate.md; DECISIONS supersession line 2026-09-20T18:28:20Z (original Q2 line kept)",
+      "G-2": "signed args read: must match a verify.py invocation the body shows (SIGNED_ARGS shape, invocation_args) and unit_class must be mutation for a mission in evidence-manifest.md's mutation set; tests test_a_transcript_whose_signed_args_disagree_with_the_shown_invocation_is_refused, test_a_transcript_signing_no_argument_tuple_is_refused, test_hostile_args_on_a_mutation_mission_are_refused_even_when_the_body_agrees (P1)",
+      "G-3": "this manifest: head_sha re-pointed to the last content commit and the criterion runs re-recorded there (commands[]), stale round-1 receipts dropped",
+      "G-4": "absence never binds: run_report refuses a manifest unreadable at the pin and a transcript with manifest_sha256=None (no None==None); verify.py --transcript-key refuses to sign a verdict object with a None FIELDS value, as dispatch-sign.py does; test test_the_in_process_signer_refuses_to_sign_an_absence_like_the_offline_one",
+      "G-5": "verify.py --transcript-out with no artifact written exits 1 on a green verdict (a RED keeps 2); test test_a_requested_transcript_that_cannot_be_written_is_a_nonzero_exit"
+    },
+    "mutants_rerun": "C3 (key read at HEAD): KILLED by 3 tests; C14 (transcript read at HEAD): KILLED by 2; ancestry rule forced true: KILLED by 3; args tuple absent: KILLED by 1 — quoted in docs/reports/u-sig-1/build-r2.md"
+  }
 }
