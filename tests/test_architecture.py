@@ -677,8 +677,13 @@ class TestArchitecture(unittest.TestCase):
         must(alt1, r"(?i)BASE tip is an ancestor of the DEFAULT",
              "resume fact 1 must assert the leg's own BASE tip IS an ancestor of DEFAULT — "
              "not its negation, and not some other commit (#441, SPEC-1)")
-        must(alt1, r"git merge-base --is-ancestor",
-             "resume fact 1 must name the ancestry command that decides it")
+        # R3-TA-1: naming the command is not binding its PREDICATE. Swapping only the two
+        # operands leaves every token in place, yet inverts what the example decides: for an
+        # unpromoted BASE tip ahead of a fresh DEFAULT the correct form returns 1 while the
+        # reversed form returns 0, so a coordinator following it accepts an unpromoted leg.
+        must(alt1, r"git merge-base --is-ancestor <base-tip> <default-ref>",
+             "resume fact 1 must name the ancestry command AND its operand order — "
+             "`<base-tip> <default-ref>`; the reversed form answers the opposite question")
         must(alt1, r"(?i)ancestry subject is leg N.s own completed BASE tip",
              "the ancestry subject must be pinned: the seed commit passing is not a promotion")
         # BOT-4 / SPEC-R2-1 / S-R2-1: `origin/<default>` is a local cache. A human can promote
@@ -744,8 +749,13 @@ class TestArchitecture(unittest.TestCase):
              "the carry table's `from` field must classify the source, not just name a leg")
         must(carry, r"(?i)pinned to file:line",
              "the carry table's `content` must be pinned to a location at the cited SHA")
-        must(carry, r"(?i)`OWED` until leg N\+1 triages it",
-             "the carry table's `input status` must start OWED — an untriaged carry is not done")
+        # R3-TA-2: the bare phrase survives "optionally `OWED` until ..." — same vocabulary,
+        # no obligation. Anchoring the clause at its opening paren binds OWED as the REQUIRED
+        # starting status, so any optionality qualifier inserted before it fails the contract.
+        must(carry, r"(?i)\(`OWED` until leg N\+1 triages it; "
+                    r"then its finding id and triage verdict\)",
+             "the carry table's `input status` must start OWED unconditionally — an untriaged "
+             "carry is not done, and a qualifier making that status optional reverses the rule")
         must(carry, r"(?i)which gate, its state, the human who owns it, and what resumes it",
              "the gate record must declare gate identity and state as well as owner and resume")
         must(carry, r"(?i)a MISSING handoff log is an unfinished chain, never an empty one",

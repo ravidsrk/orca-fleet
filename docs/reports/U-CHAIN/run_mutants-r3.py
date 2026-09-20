@@ -231,4 +231,22 @@ M["neutral-soft-wrap-freshness"] = (
         "whose freshness cannot be established leaves the promotion UNPROVEN and the chain parked,\n",
         "whose freshness cannot be\n     established leaves the promotion UNPROVEN and the chain parked,\n"))
 
+# R3-TA-1 / R3-TA-2 regression mutants — the two round-3 survivors. Both keep every token
+# of their clause and reverse only its force, so they guard the strengthened binds against a
+# later weakening of those assertions back to bare-vocabulary matches.
+
+M["r3-own-3-ancestry-operands-reversed"] = (
+    "RED",
+    "R3-TA-1 survivor: swap ONLY the ancestry command's operands, inverting what it decides",
+    lambda t: sub(t,
+        "`git merge-base --is-ancestor <base-tip> <default-ref>`",
+        "`git merge-base --is-ancestor <default-ref> <base-tip>`"))
+
+M["r3-own-2-owed-optional"] = (
+    "RED",
+    "R3-TA-2 survivor: optionalize the OWED starting status, keeping the vocabulary",
+    lambda t: sub(t,
+        "(`OWED` until leg N+1 triages it;",
+        "(optionally `OWED` until leg N+1 triages it;"))
+
 main(M)

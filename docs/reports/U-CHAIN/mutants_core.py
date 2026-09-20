@@ -19,6 +19,8 @@ import hashlib
 import re
 import subprocess
 import sys
+import tempfile
+import textwrap
 from pathlib import Path
 
 POLICY = Path("runtime/mission-chaining.md")
@@ -65,21 +67,90 @@ def sub(text, old, new):
     return text.replace(old, new, 1)
 
 
+_RAN_RE = re.compile(r"^Ran (\d+) tests?\b", re.M)
+_OK_RE = re.compile(r"^OK(?:\s+\((?P<ann>[^)]*)\))?\s*$", re.M)
+
+
 def classify(proc):
     """GREEN / RED / STILLBORN.
 
     RED means the covering test ran and an assertion failed — the only outcome that
     proves the contract test binds the mutated obligation. A nonzero exit with no
     assertion failure (ImportError, loader error, no tests collected) is STILLBORN.
+
+    S-R3-1 — a bare `^OK` match is NOT proof of a green control. unittest prints
+    `OK (skipped=1)` when every probe was skipped, and that matched the old rule, so a
+    control could be certified GREEN having executed nothing. GREEN now requires a run
+    that executed at least one test AND reported OK with ZERO skips; a skipped or empty
+    run is STILLBORN and fails the harness closed. `selftest()` proves this against real
+    unittest output.
     """
     out = proc.stdout + proc.stderr
-    if re.search(r"^Ran 0 tests", out, re.M):
+    ran = _RAN_RE.search(out)
+    if not ran or int(ran.group(1)) == 0:
         return "STILLBORN"
     if proc.returncode == 0:
-        return "GREEN" if re.search(r"^OK", out, re.M) else "STILLBORN"
+        m = _OK_RE.search(out)
+        if not m:
+            return "STILLBORN"
+        if "skip" in (m.group("ann") or "").lower():
+            return "STILLBORN"
+        return "GREEN"
     if "AssertionError" in out and re.search(r"FAILED \(failures=\d+", out):
         return "RED"
     return "STILLBORN"
+
+
+class _FakeProc:
+    """A captured-run stand-in for the classifier cases below."""
+
+    def __init__(self, returncode, stdout="", stderr=""):
+        self.returncode, self.stdout, self.stderr = returncode, stdout, stderr
+
+
+def _probe_skipped_run():
+    """Run a REAL skip-producing module so the guard is proved against true output."""
+    with tempfile.TemporaryDirectory() as d:
+        Path(d, "skip_probe.py").write_text(textwrap.dedent("""
+            import unittest
+
+            class T(unittest.TestCase):
+                @unittest.skip("probe: never executes")
+                def test_skipped(self):
+                    raise AssertionError("must not run")
+        """))
+        return subprocess.run([sys.executable, "-B", "-m", "unittest", "skip_probe", "-v"],
+                              capture_output=True, text=True, cwd=d)
+
+
+def selftest():
+    """S-R3-1 probe: the classifier must refuse to call a skipped/empty run GREEN.
+
+    Runs a genuine skipped module through unittest — it exits 0 and prints a line the
+    OLD `^OK` rule matched — and asserts the guard calls it STILLBORN, then checks the
+    synthetic table. Any failure raises, so the harness exits nonzero before a mutant runs.
+    """
+    p = _probe_skipped_run()
+    out = p.stdout + p.stderr
+    assert p.returncode == 0, f"skip probe should exit 0, got {p.returncode}"
+    assert re.search(r"^OK", out, re.M), f"skip probe should print an OK line:\n{out}"
+    assert "skipped=1" in out, f"skip probe should report a skip:\n{out}"
+    got = classify(p)
+    assert got == "STILLBORN", f"real skipped run classified {got}, expected STILLBORN"
+
+    cases = [
+        (_FakeProc(0, "Ran 1 test in 0.01s\n\nOK\n"), "GREEN"),
+        (_FakeProc(0, "Ran 1 test in 0.01s\n\nOK (skipped=1)\n"), "STILLBORN"),
+        (_FakeProc(0, "Ran 3 tests in 0.01s\n\nOK (skipped=3)\n"), "STILLBORN"),
+        (_FakeProc(0, "Ran 0 tests in 0.00s\n\nOK\n"), "STILLBORN"),
+        (_FakeProc(0, "OK\n"), "STILLBORN"),
+        (_FakeProc(1, "Ran 1 test in 0.01s\nAssertionError: x\nFAILED (failures=1)\n"), "RED"),
+        (_FakeProc(1, "Ran 1 test in 0.01s\nImportError: x\nFAILED (errors=1)\n"), "STILLBORN"),
+    ]
+    for proc, expected in cases:
+        got = classify(proc)
+        assert got == expected, f"{proc.stdout!r} -> {got}, expected {expected}"
+    return len(cases) + 1
 
 
 def _run_test():
@@ -104,7 +175,11 @@ def main(mutants):
     orig = POLICY.read_text()
     failures = []
 
-    print("== POSITIVE CONTROL ==")
+    print("== HARNESS SELF-TEST (S-R3-1 skip-guard) ==")
+    n = selftest()
+    print(f"a real skipped run classifies STILLBORN; {n} classifier cases pass")
+
+    print("\n== POSITIVE CONTROL ==")
     if not _control("fixed-head", orig):
         failures.append("fixed-head control is not GREEN")
 
