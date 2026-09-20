@@ -27,4 +27,44 @@ doctrine text is correct and complete; Greptile APPROVED d75b23b1; suite 1707 OK
 - (c) MERGE ANYWAY with accept-with-reason (Greptile APPROVED + SPEC GO + the stickers are
   evidence-layer) — recorded as a human override of the round budget.
 
-**Default if unanswered:** (a). A fleet never fakes a human answer.
+**Default if unanswered:** (a).
+
+**RESOLVED 2026-09-20: (b)** — maintainer grant in-session (same answer as G1). Targeted
+repair of the stickers + targeted re-review of just those fixes. Budget override recorded,
+human-named (DECISIONS gate-batch-G2). A fleet never fakes a human answer.
+
+**RESOLVED 2026-09-20: (b)** — maintainer grant in-session ("Let's do it" answering the G1
+brief). Targeted repair of the three stickers + targeted re-review of just those fixes.
+Budget override recorded, human-named (DECISIONS gate-batch-G1).
+
+## G2 — U-442 review-round budget exhausted (PARK)
+
+**Unit:** U-442 (#442), PR #485 vs review/2026-09-20-tracker-sweep, head c1d1e59c.
+**State:** THREE failed review rounds. Production code is unanimously closed across the r3
+axes: H-1 and H-3–H-7 all PASS, both round-1 Greptile P1s resolved, Greptile clean on the
+head, floor-guard clean (6 waived, waivers adjudicated justified), 1733 tests green,
+_validate.py_ green, all CI green.
+
+**Sticking findings (both manifest-hygiene, zero production-code):**
+1. The refreshed manifest's proof command omits `-v` while its green receipt includes it —
+   no single command passes both admission gates (the #279 agreement class) — R3-SPEC.
+2. Five refreshed artifact references select OLD committed transcripts instead of the r3
+   bytes — R3-STD-1.
+3. Two test-coverage mutants survive (equal-root compatibility; artifact-revision) and the
+   H-7 exception probe can silently stop exercising its branch after a neutral refactor
+   (missing probe-fired assertion) — R3-TESTS ×3.
+
+**Options:**
+- (a) ACCEPT PARK: #442 stays OPEN; branch u-442 retained at c1d1e59c; the run closes
+  DRY-WITH-PARKED naming this gate.
+- (b) AUTHORIZE exceptional conductor-led repair of the manifest stickers (command/receipt
+  agreement + five artifact re-points) + a TARGETED re-review of just those fixes — a
+  recorded budget override, human-named.
+- (c) MERGE ANYWAY with accept-with-reason (production code unanimously closed; stickers are
+  manifest text) — recorded as a human override of the round budget.
+
+**Default if unanswered:** (a).
+
+**RESOLVED 2026-09-20: (b)** — maintainer grant in-session (same answer as G1). Targeted
+repair of the stickers + targeted re-review of just those fixes. Budget override recorded,
+human-named (DECISIONS gate-batch-G2).

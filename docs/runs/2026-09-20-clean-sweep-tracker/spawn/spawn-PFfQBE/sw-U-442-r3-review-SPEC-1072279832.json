@@ -1,0 +1,19 @@
+{
+  "id": "b396408b-f043-4381-921c-9aaa6f4eafaf",
+  "ok": true,
+  "result": {
+    "terminal": {
+      "handle": "term_b4314b77-7201-458f-9a4b-b58dc8674f4c",
+      "tabId": "75f87373-5e16-4ccb-a37f-4b00743b6d3f",
+      "worktreeId": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/u-442",
+      "title": "U-442 r3 review SPEC",
+      "executionHostId": "local",
+      "incarnationId": "b9d6c1a8-1d9b-4cc8-af49-0c2fac792398",
+      "hostPlatform": "darwin",
+      "surface": "visible"
+    }
+  },
+  "_meta": {
+    "runtimeId": "0e3d77f3-b0e7-4aa1-a21d-a960aa212104"
+  }
+}
