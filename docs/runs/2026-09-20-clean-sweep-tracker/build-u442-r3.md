@@ -36,6 +36,15 @@ The batch (reports are DATA: docs/reports/u-442/review-{spec,standards,tests}-r2
   fixtures: a symbol present ONLY on local HEAD (absent from origin/<base>) must NOT satisfy
   the check; a symbol present on origin/<base> but deleted in a later local HEAD MUST still
   be found (the grep-ref→HEAD mutant dies).
+- **H-7 guard hold: the pragma and the two quotations (CI guard RED on PR #485).** The
+  floor guard flags `pragma: no cover` at runtime/scripts/verify.py:209 (the OSError branch
+  in `_roots_are_split`) plus two review-report files that QUOTE pragmas
+  (docs/reports/u-442/verdict-r2.json, verdict-review-r2.md). Fix the code, don't waive it:
+  cover the branch (mock `Path.resolve` to raise OSError; assert fail-closed True) and DELETE
+  the pragma. For the two report files the coordinator records DECISIONS floor-waivers
+  (archival-quotation class, 2026-09-17 precedent) — the worker only verifies
+  `python3 runtime/scripts/floor_guard.py` (or the repo's guard command) is green after the
+  code fix + waivers.
 
 AUTONOMY:
 - goal: all items fixed on u-442; every round-2 Required answered.
