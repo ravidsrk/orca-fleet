@@ -73,7 +73,7 @@ one unit or park; no id without a unit; no unit without an id.
 | — | #409 | harden-it self-run promotion | out-of-scope | — | — | — | — | — | — | — | out-of-scope: harden-it mission run + human PoC gate | issue re-scope comment |
 | — | #427 | Orca re-pin cadence | out-of-scope | — | — | — | — | — | — | — | out-of-scope: pin-it, trigger not fired (patch bump rides; 2026-12-16) | issue trigger rules |
 | — | #434 | proof-ladder diagram regen | needs-human | — | — | — | — | — | — | — | needs-human: provider render key secret absent (gh secret list empty) | gate comment + probe |
-| U-CHAIN | #441 #443 #444 | mission-chaining: promotion lane terminal, deferral-carry shape, local-only re-derivability | real-feature-small (doctrine) | f | f | f | f | f | f | lit | — | head 315ad409 on ravidsrk/u-chain; AC-3 blocked by run-own regressions (STAB-2) |
+| U-CHAIN | #441 #443 #444 | mission-chaining: promotion lane terminal, deferral-carry shape, local-only re-derivability | real-feature-small (doctrine) | t | f | f | f | f | f | lit | — | head 5328cc86 on ravidsrk/u-chain; suite red = STAB-2's 5, no new red |
 | STAB-2 | — | repair 5 suite regressions from STABILIZE (index row + README rewire) | conductor landing, worker-executed | f | n/a | n/a | n/a | f | f | lit | — | spec build-stab2.md |
 | U-442 | #442 | verify.py cross-repo evidence root (--git-dir/--evidence-root split) | real-feature-small (tooling) | f | f | f | f | f | f | lit | — | — |
 
@@ -133,6 +133,20 @@ BOOTSTRAP: preflight --base review/2026-09-20-tracker-sweep --fork-point e8ddbd9
   escalation's option (b): repair BEFORE U-CHAIN lands; U-CHAIN worker_done under (a) with
   AC-3 parked 'no new red' is accepted for harvest, but CLOSE requires the suite green at
   the merge tip — STAB-2 lands first.
+
+- 07:3x U-CHAIN worker_done msg_a4f3e8d7d8bf (succeeded, transcribed+acked delivery_5bf5965953b9).
+  HARVEST (coordinator, independent): 3 commits on ravidsrk/u-chain (5ecf74e5 RED test →
+  315ad409 GREEN doc → 5328cc86 evidence), author=maintainer, no trailers, tree clean; scope =
+  mission-chaining.md + test_architecture.py + badges/tests.json + docs/reports/U-CHAIN/*
+  (owned files only); manifest contract.digest == frozen spec digest 87260521… @a58bf71a,
+  5/5 criteria, NC executed (revert + 4 per-clause hand mutants, all KILLED), intent non-empty,
+  lighting=lit, suite cmd exit 1 = the 5 known STABILIZE regressions (STAB-2 repairs). Doc
+  spot-check: PARKED-AT-PROMOTION resume rule, handoff-log shape, local-only bytes clause all
+  present and substantive. BUILD_DONE=t. INTEGRATOR dispatched: task_017a294f6f1a (dep build),
+  HANDLE term_452b7a7a-997d-49c8-8381-aa1c4e24a029, dispatch ctx_bb8c5282bde1 (UNPROVEN → pane
+  live). SUBSTRATE: claude account at 79% weekly limit (pane warning) — review wave prefers
+  codex (cross-vendor, limit ended 09-19); egress standing grants recorded for the integrator
+  (base-writes + tracker-writes consent ids sent).
 
 BRANCHES: local worktree checkouts carry the `ravidsrk/` prefix mapping to the unit tips
 (ravidsrk/u-chain, ravidsrk/u-442). Not drift — do not "fix".
