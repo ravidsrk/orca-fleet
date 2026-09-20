@@ -1,0 +1,8 @@
+{
+ "id": "msg_720ead2853e5",
+ "type": "worker_done",
+ "created_at": "2026-09-20T07:40:17Z",
+ "subject": "STAB-2 green: 1706 tests OK at 2629fda1",
+ "body": "Indexed the 2026-09-20 living ledger in docs/runs/README.md (archive row + reconciled the prose that counted the living ledgers), and repaired the stale proof-ladder alt string at its SOURCE in assets/diagrams/generator/wire_docs.py rather than committing the script's output, which carried the fix into docs/concepts.md and left README.md byte-identical to its committed truthful text; my commit is 4d13c672, merged with your BASE tip 39db1cf3 to head 2629fda1. I found that the frozen spec's two-file scope could not reach green and one instruction was actively harmful: the integrity test reads the LEDGER not the index (you landed that line), and 'commit whatever the script writes' would have re-introduced the false claim 'today every mission reads doctrine-only' that 3833c88e had hand-repaired - hence the ask, and the two release tests had no independent cause, they just inherited the other two. Full suite at head: 'Ran 1706 tests in 290.829s / OK', UNITTEST_EXIT=0, validate.py exit 0, wire_docs --dry-run prints no 'would wire' lines; worktree clean, nothing pushed, no PR - left to you is the fast-forward land, and #434 stays open since this is the generator-string repair, not the pixel regen.",
+ "payload": "{\"taskId\":\"task_86f696b9efc8\",\"dispatchId\":\"ctx_62655b197318\",\"outcome\":\"succeeded\",\"filesModified\":[\"docs/runs/README.md\",\"assets/diagrams/generator/wire_docs.py\",\"docs/concepts.md\"],\"reportPath\":\"/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-stab-2/e40ed9ca-ebcb-4cd8-b3d3-9fd8bfed8423/scratchpad/stab-2-report.md\"}"
+}

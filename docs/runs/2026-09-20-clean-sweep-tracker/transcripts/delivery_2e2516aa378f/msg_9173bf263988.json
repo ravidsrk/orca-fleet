@@ -1,0 +1,8 @@
+{
+ "id": "msg_9173bf263988",
+ "type": "heartbeat",
+ "created_at": "2026-09-20T07:39:53Z",
+ "subject": "alive: independent mutation runs complete; survivors being reported",
+ "body": "",
+ "payload": "{\"taskId\":\"task_1eba2dcf50f5\",\"dispatchId\":\"ctx_147ba196881c\",\"phase\":\"reviewing\"}"
+}

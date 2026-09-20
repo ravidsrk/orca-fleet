@@ -1,0 +1,48 @@
+{
+  "id": "568216aa-4a8a-4bd2-9877-d3e6423b0465",
+  "ok": true,
+  "result": {
+    "runId": "run_bec47e54b673",
+    "legacyReadOnly": false,
+    "tasks": [
+      {
+        "id": "task_61b5e8accc70",
+        "run_id": "run_bec47e54b673",
+        "parent_id": null,
+        "created_by_terminal_handle": "term_0bae108a-5af7-4d7a-b584-67d05a2787d1",
+        "created_by_pane_key": "e3022df8-50d1-424d-bdcc-0f6a98158a52:cbf2a71f-4118-4bb2-b6b4-ae1f0a1b1469",
+        "created_by_process_incarnation": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/projects/orca-fleet@@63ef0087:9179d1c8-2fee-42a6-a0fb-933475ff9851",
+        "created_by_run_generation": 1,
+        "task_title": "U-CHAIN: mission-chaining doctrine gaps #441 #443 #444",
+        "display_name": "U-CHAIN: mission-chaining doctrine gaps #441 #443 #444",
+        "spec": "Read your full frozen build spec FIRST: docs/runs/2026-09-20-clean-sweep-tracker/build-u-chain.md (in this worktree). It carries the findings, AUTONOMY block (goal/scope/non-goals/stop/evidence/escalation/budget), acceptance criteria, worker contract, and git instructions. Follow it exactly. Failing contract test FIRST, then smallest doc amendment. worker_done requires --outcome succeeded|failed and OMITS --to; every send carries --from <your handle> --dispatch-capability <capability>; evidence rides typed --report-path + --files-modified. One pack only: matt.",
+        "status": "blocked",
+        "deps": "[]",
+        "result": null,
+        "created_at": "2026-09-20 06:40:48",
+        "completed_at": null
+      },
+      {
+        "id": "task_a25c91eeff96",
+        "run_id": "run_bec47e54b673",
+        "parent_id": null,
+        "created_by_terminal_handle": "term_0bae108a-5af7-4d7a-b584-67d05a2787d1",
+        "created_by_pane_key": "e3022df8-50d1-424d-bdcc-0f6a98158a52:cbf2a71f-4118-4bb2-b6b4-ae1f0a1b1469",
+        "created_by_process_incarnation": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/projects/orca-fleet@@63ef0087:9179d1c8-2fee-42a6-a0fb-933475ff9851",
+        "created_by_run_generation": 1,
+        "task_title": "U-442: verify.py cross-repo git-dir/evidence-root split #442",
+        "display_name": "U-442: verify.py cross-repo git-dir/evidence-root split #442",
+        "spec": "Read your full frozen build spec FIRST: docs/runs/2026-09-20-clean-sweep-tracker/build-u442.md (in this worktree). It carries the finding, AUTONOMY block (goal/scope/non-goals/stop/evidence/escalation/budget), acceptance criteria, worker contract, and git instructions. Follow it exactly. Failing two-repo fixture test FIRST, then smallest verify.py change. worker_done requires --outcome succeeded|failed and OMITS --to; every send carries --from <your handle> --dispatch-capability <capability>; evidence rides typed --report-path + --files-modified. One pack only: matt.",
+        "status": "ready",
+        "deps": "[]",
+        "result": null,
+        "created_at": "2026-09-20 06:40:48",
+        "completed_at": null
+      }
+    ],
+    "count": 2
+  },
+  "_meta": {
+    "runtimeId": "0e3d77f3-b0e7-4aa1-a21d-a960aa212104"
+  }
+}

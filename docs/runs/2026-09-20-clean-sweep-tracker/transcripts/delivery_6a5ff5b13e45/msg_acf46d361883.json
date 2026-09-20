@@ -1,0 +1,10 @@
+{
+ "id": "msg_acf46d361883",
+ "type": "heartbeat",
+ "created_at": "2026-09-20T06:52:39Z",
+ "subject": "alive",
+ "body": "",
+ "payload": "{\"taskId\":\"task_a25c91eeff96\",\"dispatchId\":\"ctx_4ddee86000e1\",\"phase\":\"investigating\"}",
+ "taskId": "task_a25c91eeff96",
+ "dispatchId": "ctx_4ddee86000e1"
+}
