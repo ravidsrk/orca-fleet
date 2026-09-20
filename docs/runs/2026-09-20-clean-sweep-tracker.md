@@ -227,5 +227,15 @@ BOOTSTRAP: preflight --base review/2026-09-20-tracker-sweep --fork-point e8ddbd9
   TESTS term_239b915c/task_83d2f645badb; verdict task_9af4e0003988 queued on the axes.
   Review units in flight: 2 (U-CHAIN r2 is a build round, not a review) — within cap.
 
+- 10:4x U-CHAIN r2 FIX DONE (worker_done msg_8f46a23da8da): merge 1066c028 (BASE ed51fe11,
+  conflict-free) + 88a64c90 (fix, mission-chaining.md +44/test_architecture.py +69) +
+  0dbc669e (evidence). HARVEST: scope = the two spec'd files + receipts; F-1 text verified
+  (BASE→DEFAULT, local-ref ancestry check, lanes cannot PROMOTE); manifest head_sha 88a64c90,
+  5/5 criteria addressed, commands all evidence-run receipts (suite exit 0 wtree a32a6472 ==
+  88a64c90^{tree} — verified), NC re-recorded through the runner + 13 mutants killed
+  (mutants-r2.txt); suite green at the merged head. R2 INTEGRATE dispatched:
+  task_c01a07c4fb08, claude term_a2768396 (push + Greptile reconcile on the new head).
+  Round-2 review wave follows the bot reconcile.
+
 BRANCHES: local worktree checkouts carry the `ravidsrk/` prefix mapping to the unit tips
 (ravidsrk/u-chain, ravidsrk/u-442). Not drift — do not "fix".
