@@ -1,0 +1,16 @@
+{
+  "id": "d7203caf-82c2-4cbc-b298-e20da4d6da50",
+  "ok": true,
+  "result": {
+    "wait": {
+      "handle": "term_0d9de635-2410-4183-86da-002d6069cf28",
+      "condition": "tui-idle",
+      "satisfied": true,
+      "status": "running",
+      "exitCode": null
+    }
+  },
+  "_meta": {
+    "runtimeId": "0e3d77f3-b0e7-4aa1-a21d-a960aa212104"
+  }
+}
