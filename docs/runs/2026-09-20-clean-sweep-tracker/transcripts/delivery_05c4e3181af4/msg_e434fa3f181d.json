@@ -1,0 +1,8 @@
+{
+ "id": "msg_e434fa3f181d",
+ "type": "worker_done",
+ "created_at": "2026-09-20T12:48:44Z",
+ "subject": "U-CHAIN targeted repair GO: all named stickers closed",
+ "body": "Completed the targeted U-CHAIN repair re-review at b976df56 and wrote docs/reports/U-CHAIN/review-repair.txt. All five named stickers are closed: the real skipped-control probe fails the harness, both mutants die, the 33-case battery exits zero, all manifest commit fields resolve on branch, and doctrine is unchanged. No repair work remains; coordinator aggregation and landing are outside this report-only task.",
+ "payload": "{\"taskId\":\"task_6d74187e0783\",\"dispatchId\":\"ctx_ac0ef96b3c5d\",\"outcome\":\"succeeded\",\"filesModified\":[\"docs/reports/U-CHAIN/review-repair.txt\"],\"reportPath\":\"/Users/ravindra/orca/workspaces/orca-fleet/u-chain/docs/reports/U-CHAIN/review-repair.txt\"}"
+}
