@@ -124,3 +124,31 @@ evidence-root gap is unit U-442 and nothing here touches `verify.py` or any othe
 Mutation battery: [mutants-r2.txt](mutants-r2.txt), harness [run_mutants-r2.py](run_mutants-r2.py)
 (13 cases — base revert, four single-bullet deletions, the six round-1 survivors, two SPEC-2
 requirement-reversing mutants; each starts from the unmutated head policy and restores it).
+
+
+## Round 3 (FINAL) — answering round 2's NO-GO
+
+Round 2 returned NO-GO on all three axes with six Required findings. `round-3-answers.md`
+answers each one with the change and the receipt; `manifest.json`'s `round_3_findings` carries
+the same mapping in machine-readable form.
+
+- **G-1 / BOT-4** — the resume ancestry check named `origin/<default>` with no freshness
+  obligation, so a human promotion made from another checkout read as "not landed". The policy
+  now refreshes a REMOTE default immediately before the check and records the resolved SHA, and
+  a ref whose freshness cannot be established leaves the promotion UNPROVEN and parked.
+- **G-2 / BOT-5** — `run_mutants-r2.py` read an untracked `base-policy.md`; the baseline is now
+  derived from a pinned Git object and hash-checked (`mutants_core.py`).
+- **G-3 / R2-HARNESS** — the harness called any nonzero exit a kill. A kill now requires an
+  assertion failure from the covering test; stillborn runs and red controls fail the harness.
+- **G-4/G-5/G-6** — round 2's twelve executed survivors all die, each on the assertion written
+  for it, with the park bullet's two resume alternatives bound inside their own segments.
+
+Round-3 receipts: `round-3-answers.md`, `mutants-r3.txt`, `mutants-r2-replay.txt`,
+`clean-checkout-replay-r3.txt`, `harness-trust-probes-r3.txt`, `contract-test-r3.txt`,
+`validate-r3.txt`, `negctrl-r3.txt`, `poscontrol-r3.txt`, `suite-r3.txt`.
+
+Reproduce the battery from a bare clone (it rewrites the policy between cases, so use a
+disposable checkout):
+
+    git clone --branch ravidsrk/u-chain <repo> /tmp/u-chain && cd /tmp/u-chain
+    python3 docs/reports/U-CHAIN/run_mutants-r3.py     # HARNESS_EXIT=0
