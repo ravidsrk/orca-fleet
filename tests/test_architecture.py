@@ -585,6 +585,76 @@ class TestArchitecture(unittest.TestCase):
         self.assertRegex(chain, r"(?i)handoff, not a degradation")
         self.assertIn("awaiting-maintainer-merge", chain)
 
+    def test_chain_link_boundary_is_specified(self):
+        # #441/#443/#444: the policy said each link is a FULL run with its own BASE and that
+        # BASE carry-over is explicit-human, but never drew the consequence — a chain therefore
+        # PARKS for a human promotion between legs. That park had no name, no resume procedure,
+        # and the stop rules covered degraded TERMINALS only. It also mandated a deferral carry
+        # with no artifact to carry it in, and asserted a second person can re-derive each leg
+        # "from the cited SHAs" — which resolves nowhere when the target has no remote.
+        #
+        # Each property is asserted INSIDE one bullet, not merely somewhere in the file: the
+        # gap was never a missing word, it was a missing rule, and scattered vocabulary would
+        # satisfy a file-wide assertIn while leaving a reader with nothing to follow.
+        chain = (RUNTIME / "mission-chaining.md").read_text(encoding="utf-8")
+
+        def bullets(text):
+            """Top-level `- ` bullets with their indented continuation lines."""
+            out, cur = [], None
+            for line in text.splitlines():
+                if line.startswith("- "):
+                    if cur is not None:
+                        out.append("\n".join(cur))
+                    cur = [line]
+                elif cur is not None and (line.startswith("  ") or not line.strip()):
+                    cur.append(line)
+                elif cur is not None:
+                    out.append("\n".join(cur))
+                    cur = None
+            if cur is not None:
+                out.append("\n".join(cur))
+            return out
+
+        blocks = bullets(chain)
+        self.assertTrue(blocks, "no bullets parsed from mission-chaining.md")
+
+        def one_bullet_with(label, *patterns):
+            hits = [b for b in blocks
+                    if all(re.search(p, b, re.I) for p in patterns)]
+            self.assertTrue(
+                hits,
+                f"mission-chaining.md: no single bullet states {label} "
+                f"(needs all of: {', '.join(patterns)})",
+            )
+            return hits[0]
+
+        # (a) #441 — the promotion-owed park is NAMED and its two resume facts are stated,
+        #     together, in the bullet that defines it.
+        one_bullet_with(
+            "the promotion-owed park with its resume procedure",
+            r"PARKED-AT-PROMOTION",
+            r"landed promotion SHA",
+            r"BASE-carry grant",
+        )
+        # ...and the human pacing is stated as a rule of its own, not left to be inferred.
+        one_bullet_with("that chains are human-paced at every link boundary",
+                        r"human-paced", r"link boundary")
+
+        # (b) #443 — the deferral carry names ONE artifact and specifies its shape.
+        carry = one_bullet_with(
+            "a named artifact shape for the deferral carry",
+            r"handoff log", r"carry table", r"gate record",
+        )
+        self.assertRegex(carry, r"(?i)per chain",
+                         "the handoff log must be scoped: one file per chain")
+
+        # (c) #444 — local-only (no-remote) targets cannot re-derive from SHAs alone, so the
+        #     chain must publish the bytes: a pushed mirror or embedded reconstruction.
+        one_bullet_with(
+            "the local-only re-derivability rule",
+            r"no remote", r"pushed mirror", r"reconstruction artifacts",
+        )
+
     def test_scheduling_rule_includes_report_only_conformance(self):
         # #129: mission-scheduling listed a closed set that omitted attest-it, contradicting
         # attest-it's own report-only nature. The fix is a rule (value lands before any one-way
