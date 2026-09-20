@@ -2,7 +2,7 @@
 
 RUN: run_bec47e54b673 · COORDINATOR: term_0bae108a-5af7-4d7a-b584-67d05a2787d1 (kimi-code driving shell; coordinator terminal COORD-2026-09-20, background surface) · BASE: review/2026-09-20-tracker-sweep · FORK_POINT: e8ddbd988486694a2985822e557a382b344e2872 (origin/main at T0) · T0: 2026-09-20T06:17:18Z · SOURCE: tracker (10 open at T0: #235 #386 #407 #409 #427 #434 #441 #442 #443 #444; enumeration digest: gh-issue-list-open-count=10) · WIP: builders=2 reviewers=1
 
-PHASE: ORIENT → ENUMERATE → TRIAGE → FREEZE → BOOTSTRAP → BUILDING (wave 1: U-CHAIN built, integrating; U-442 building; STAB-2 fixing)
+PHASE: ORIENT → ENUMERATE → TRIAGE → FREEZE → BOOTSTRAP → BUILDING → PROVING → REFLECTING → DONE (terminal: DRY-WITH-PARKED; promotion PR #486 open, owed to the maintainer with gates G1/G2)
 
 Run-close integrity inventory: retained inline in the Final report section at close (this
 ledger is the living run record until then).
@@ -76,9 +76,9 @@ one unit or park; no id without a unit; no unit without an id.
 | — | #409 | harden-it self-run promotion | out-of-scope | — | — | — | — | — | — | — | out-of-scope: harden-it mission run + human PoC gate | issue re-scope comment |
 | — | #427 | Orca re-pin cadence | out-of-scope | — | — | — | — | — | — | — | out-of-scope: pin-it, trigger not fired (patch bump rides; 2026-12-16) | issue trigger rules |
 | — | #434 | proof-ladder diagram regen | needs-human | — | — | — | — | — | — | — | needs-human: provider render key secret absent (gh secret list empty) | gate comment + probe |
-| U-CHAIN | #441 #443 #444 | mission-chaining: promotion lane terminal, deferral-carry shape, local-only re-derivability | real-feature-small (doctrine) | t | t | t | f | f | f | lit | — | PR #484 @5328cc86; Greptile 3 VALID held; suite red = STAB-2's 5, no new red |
+| U-CHAIN | #441 #443 #444 | mission-chaining: promotion lane terminal, deferral-carry shape, local-only re-derivability | real-feature-small (doctrine) | t | t | t | f | f | f | lit | needs-human: review-round budget exhausted (3 failed rounds) — gate-batch.md G1; SPEC axis r3 GO, Greptile APPROVED d75b23b1; stickers are evidence-layer (harness skip-guard, manifest rebind, 2 test binds) | r1-r3 reports + 3 posted verdicts on the branch; Greptile APPROVED d75b23b1 recorded |
 | STAB-2 | — | repair 5 suite regressions from STABILIZE (index row + alt-string source repair) | conductor landing, worker-executed | t | n/a | n/a | n/a | t | t | lit | — | worker 4d13c672 (3 scoped files) → merged 2f04c402 (no-ff); coordinator-verified: 39/39 named tests OK + full suite exit 0 + tree clean at tip; egress receipt 4060372a; pushed; worktree+branch retired, no stray terminals |
-| U-442 | #442 | verify.py cross-repo evidence root (--git-dir/--evidence-root split) | real-feature-small (tooling) | t | f | f | f | f | f | lit | — | head df4f524f on u-442; suite red at build time = STAB-2's 5 (BASE since greened) |
+| U-442 | #442 | verify.py cross-repo evidence root (--git-dir/--evidence-root split) | real-feature-small (tooling) | t | t | t | f | f | f | lit | needs-human: review-round budget exhausted (3 failed rounds) — gate-batch.md G2; production code unanimously closed, Greptile clean, guard clean, 1733 green; stickers are manifest/test hygiene | r1-r3 reports + 3 posted verdicts on the branch |
 
 ## Loop log
 
@@ -275,5 +275,177 @@ BOOTSTRAP: preflight --base review/2026-09-20-tracker-sweep --fork-point e8ddbd9
   task_c3b292b75f56, claude term_40826a62 (suite+validate re-verify, --force-with-lease
   push, Greptile reconcile). U-CHAIN's FINAL r3 fix still in flight.
 
+- 14:0x U-CHAIN r3 (FINAL) FIX DONE (worker_done msg_ce5d59d31724): 5bd2eb07 fix + 14575aba
+  evidence + re-merges; 28/28 mutants RED, harness replays clean. HARVEST: G-1 freshness
+  clause verified in place (fetch-before-check, UNPROVEN-not-landed, preflight contract
+  cited, offline stays local). TRAILER BREACH #2: 3 unpushed commits dirty (5bd2eb07,
+  14575aba, 0213c734) — conductor strip over b431c418..HEAD → head d75b23b1, TREE IDENTICAL,
+  0 trailers remain, backup ref deleted (ledgered; second occurrence — claude workers are
+  appending trailers despite the spec's 'no trailers' line; compound-learn candidate).
+  R3 INTEGRATE dispatched: task_aeb2e5dc5e06, claude term_b545ef34 (suite+validate+harness
+  replay, --force-with-lease push, Greptile). U-442's r2 integrator still in flight.
+
+- 14:3x U-442 r2 INTEGRATED (worker_done msg_b4ac151b4f79): gitleaks clean, suite 1726 OK
+  315s, validate 21/21, egress 5b4dfa3d, --force-with-lease push; Greptile on e4cbf222:
+  CLEAN ('38 files reviewed, 0 comments') — both r1 P1s RESOLVED (fixed in 3fca0bb9).
+  R2 REVIEW WAVE dispatched (codex): SPEC term_fd9e3a65/task_fca8f7f33479 · STANDARDS
+  term_65b8cf90/task_728ba3caffe9 · TESTS term_630b9905/task_c71a9c244015; r2 verdict
+  task_98567ecbb515 queued. U-CHAIN r3 integrator still in flight (suite+harness+push).
+
+- 15:2x U-CHAIN r3 (FINAL) INTEGRATED (worker_done msg_fa72d2b45fc0): gitleaks clean, suite
+  1707 OK 289s, validate, harness 31 mutants 28/28-for-assertion + controls green; egress
+  e925b0fc; push resolved FAST-FORWARD b431c418..d75b23b1 (stripped commits never reached
+  origin; lease pinned, no bare force). GREPTILE APPROVED d75b23b1 (review 5260194743,
+  auto-approve marker) — the independent-review leg candidate (09-14 T8 precedent). BOT-4
+  FIXED at 1635b27f, BOT-5 FIXED; 1 new VALID P2 held: BOT-6 'interrupted runs skip
+  restoration' (mutants_core.py:116 — harness robustness; standards axis leads its
+  adjudication). R3 FINAL REVIEW WAVE dispatched (codex): SPEC term_70a30067/
+  task_8d5bc3ab4de1 · STANDARDS term_bcae1cd8/task_21ed299df460 · TESTS term_91d5f0ed/
+  task_83fd4a2c8186; r3 verdict task_c2c948e1987f queued. U-442's r2 axes in flight.
+
+- 16:1x U-CHAIN round 3 (FINAL) = NO-GO: SPEC GO (BOT-6 Optional w/ reason — disposable
+  checkouts), STANDARDS 2R, TESTS 3R. THREE failed rounds = the acceptance-review budget
+  cap → the unit does NOT loop and does NOT merge: PARKED with gate-batch.md G1 naming the
+  three sticking findings (harness skip-as-success; manifest names conductor-stripped
+  5bd2eb07 — my trailer rewrite, rebind owed to 1635b27f, tree-identical; two narrow
+  contract-test survivors: reversed ancestry operands, optional OWED). Options (a) accept
+  park / (b) authorize exceptional targeted repair + re-review / (c) merge anyway with
+  human accept-with-reason. Default (a). Surfaced to the maintainer in-session (interactive
+  prose brief). R3 verdict worker posting the official NO-GO on PR #484.
+
+- 16:5x U-CHAIN round-3 verdict POSTED: review 5260271654 'verdict: NO-GO — round 3'
+  (coordinator-verified first line exact), evidence 1e2f099b pushed. 5 Required entries
+  (S-R3-1 skip-guard, S-R3-2 manifest rebind, R3-TA-1/2/3 incl. reversed-operands +
+  optional-OWED survivors); BOT-6 accepted-with-reason recorded. PARK IS TERMINAL pending
+  gate G1: no merge, no fourth automatic round. Bot threads 4056606142 (BOT-6) stays
+  unanswered-with-accept-recorded; the unit's worktrees/terminals RETAINED (a G1 (b) answer
+  re-engages them; a G1 (a)/(c) answer closes out or merges per the human's recorded grant).
+  U-442 r3 fix in flight.
+
+- 17:2x U-442 r3 (FINAL) FIX DONE (worker_done msg_39f6b85de388): 5 TRAILER-FREE commits
+  (the warning landed — harvest-verified 0 trailers): 361b6308 merge + cd07307e fix (20s
+  timeout restored at the call site; _roots_are_split OSError branch COVERED, :209 pragma
+  deleted) + 378a1a2e/5269310a evidence (manifest re-bound, receipts wtree eff64964) +
+  1ce683eb/e8ea772b reports. Guard adjudication: CI guard RED was 6 hits — verify.py clean
+  after the fix; all 6 are archival quotations in 3 report files → 3 DECISIONS floor-waivers
+  (verdict-r2.json, verdict-review-r2.md, integrate-r2.json; 2026-09-17 precedent; the
+  worker's e8ea772b rewording didn't fully unquote — waivers cover the rest). Branch lacks
+  the waivers (merged BASE pre-waiver) → R3 INTEGRATE merges them in first:
+  task_a3dcf19e1d91, claude term_ec229de2 (guard must print clean, suite+validate,
+  push, Greptile + PR guard check-run watch).
+
+- 17:5x U-442 r3 (FINAL) INTEGRATED (worker_done msg_806387b9f5db): BASE db1b72bc merged
+  (waivers in), floor-guard 'clean (6 waived)', suite 1733 OK 256s, validate, gitleaks
+  clean, egress 10:28:29Z, ff push ed0ee848..c1d1e59c; Greptile clean on the new head
+  (48 files, 0 comments); PR's 4 existing comments are r1 threads GitHub re-pointed
+  (original_commit_id 5a57c8d2) — not new findings. R3 FINAL REVIEW WAVE dispatched
+  (codex): SPEC term_b4314b77/task_9a5a5fb70280 · STANDARDS term_1f495462/
+  task_a0920360cf2a · TESTS term_715282eb/task_fd34e15af706; r3 verdict task_57ea07ec0722
+  queued. U-CHAIN parked-terminal pending G1.
+
+- 18:2x U-442 round 3 (FINAL) = NO-GO, verdict POSTED: review 5260415981
+  'verdict: NO-GO — round 3' (coordinator-verified first line exact), evidence cb5a95c4
+  pushed. 5 Required stickers (S3-R1 manifest -v mismatch; R3-STD-1 five stale artifact
+  refs; R3-T1/T2/T3 coverage mutants + probe vacuity). PARK TERMINAL per the budget —
+  gate-batch.md G2. Both build units are now terminal-parked; the run moves to close-out:
+  re-enumeration → final report → final-tip verification → promotion PR.
+
+- 19:0x CLOSE-OUT: loop-2 enumeration pasted (10 open identical to T0, 0 created/closed).
+  Park notices posted on #441/#442/#443/#444 (issue comments, egress bdfa2040). Final
+  report + WIP rows + integrity inventory + REFLECTION committed (37d47394). FINAL TIP
+  VERIFIED: validate.py 21/21, full suite exit 0, badge regen byte-identical, tree clean.
+  PROMOTION PR #486 opened BASE→main (egress 6277be2a; baseRefName=main asserted by gh
+  view) — LEFT FOR THE HUMAN, never merged by the fleet. TERMINAL: DRY-WITH-PARKED.
+
+- 19:3x PR THREAD CLOSE-OUT (post-terminal, maintainer ask): PR #486 Greptile P1 (close
+  inventory not machine-verifiable — VALID: heading lacked the (sha256) marker, entries
+  were 16-char prefixes) + P2 (archive row said IN PROGRESS — VALID) → fixed in cd785d8f
+  (inventory rewritten in inventory.py's fenced full-64 shape, 10 verified/0 mismatched/
+  0 missing via inventory.py check; docs/runs/README.md row to DRY-WITH-PARKED); 39/39
+  doc tests + validate green; Greptile auto-resolved both. PR #484's 4 remaining threads
+  replied with fix citations and RESOLVED: exemplar-citation P2 (F-5 @88a64c90),
+  keyword-semantics P2 (F-3+G-4..6, 28/28 replayable), BOT-4 stale-ref P1 (G-1
+  @1635b27f), BOT-6 P2 (ACCEPTED-WITH-REASON — disposable checkouts make interrupted
+  runs non-evidence; recorded in verdict 5260271654). Egress 75751e66. FINAL THREAD
+  STATE VERIFIED: #484 6/6, #485 2/2, #486 2/2 resolved — zero unresolved review
+  threads across the run's PRs.
+
 BRANCHES: local worktree checkouts carry the `ravidsrk/` prefix mapping to the unit tips
 (ravidsrk/u-chain, ravidsrk/u-442). Not drift — do not "fix".
+
+## Final report — DRY-WITH-PARKED
+
+**Terminal: DRY-WITH-PARKED** (degraded — 2 needs-human parks with named gates remain).
+The set is exhausted: full loop-2 re-enumeration finds every one of the 10 T0 items either
+closed with evidence or parked in a named class, and zero created/closed/reopened since T0.
+
+### Loop-2 enumeration (pasted, 2026-09-20T18:3xZ)
+
+```
+open: 10 — #444 #443 #442 #441 #434 #427 #409 #407 #386 #235 (identical to T0)
+created since T0 (2026-09-20T06:17:18Z): [] · closed since T0: [] · reopened: []
+```
+
+### Per-item disposition (completion-audit shape: verdict · mode · citation)
+
+| id | disposition | class | citation |
+|---|---|---|---|
+| #441 #443 #444 | PARKED at the review-round budget (3 failed rounds); doctrine complete, SPEC-axis GO, Greptile APPROVED d75b23b1 | needs-human, gate G1 | PR #484; gate-batch.md G1; issue comments 5749408944/5749409038/5749409126 |
+| #442 | PARKED at the review-round budget (3 failed rounds); production code unanimously closed, all CI green | needs-human, gate G2 | PR #485; gate-batch.md G2; issue comment 5749409212 |
+| #235 | park re-confirmed (external accounts; index check 09-13 stands) | needs-human | issue text |
+| #386 | park re-confirmed (transcript-signing prerequisite unlanded; G1-of-09-16 answers recorded) | needs-human | gate-batch 09-14 G1 |
+| #407 | park re-confirmed (roadmap epic; closes at 1.0) | needs-human | children merged except #409 |
+| #434 | park re-confirmed (render-key secret absent; alt-text truth repaired repo-wide by STAB-2 at the generator) | needs-human | gh secret list empty; 4d13c672 |
+| #409 | handoff (harden-it mission run + human PoC gate) | out-of-scope | issue re-scope |
+| #427 | handoff (pin-it cadence; trigger not fired — patch bump rides) | out-of-scope | issue trigger rules |
+| — | STABILIZE + STAB-2 landed on BASE (doc claims verified; 5 suite regressions repaired; generator alt-string fixed at source) | closed with evidence | 3833c88, 2f04c402; 39/39 + full suite green at tip |
+
+Landed on BASE this run: 3833c88 (doc amendments), the run record, 2f04c402 (STAB-2),
+plus all ledger/DECISIONS/transcript commits. PRs #484/#485 stay OPEN with branches
+retained — a G1/G2 (b) answer re-engages them.
+
+First-merge spot-check (merge-serialization): STAB-2 was the run's only merge — verified
+at landing (merge commit no-ff, author maintainer, no trailers, branch deleted, worktree
+retired, suite green at tip); no second unit merged, so the pattern never replicated.
+
+## WIP-curve protocol row (mutating run)
+
+| Wave | WIP setting | Builder throughput | Verification latency | Rework rate | Freshness violations |
+|---|---|---|---|---|---|
+| wave=1 | builders=2 reviewers=0 | throughput=0 (0 units verified-CLOSED; 2 built + 1 repair in ~2.5h) | latency_median=8 min latency_max=25 min (worker_done → harvest-verified) | rework=0 of 2 units at this wave | freshness=0 |
+| wave=2 | builders=2 reviewers=1 | throughput=0 | latency_median=12 min latency_max=40 min (axis done → verdict posted) | rework=2 of 2 units (both r1 NO-GO) | freshness=0 (no merges attempted) |
+| wave=3 | builders=2 reviewers=2 | throughput=0 | latency_median=10 min latency_max=35 min | rework=2 of 2 units (r2 NO-GO; r3 final) | freshness=0 (no merges attempted) |
+
+CAP BREACH, recorded per the protocol's negative-data rule: at ~15:2x–16:5x two review
+UNITS were in flight simultaneously (U-CHAIN r3 fan + U-442 r2 fan) against the
+reviewers=1 cap the ledger header's builders=2 implies. The header cap was never raised;
+the dispatches should have been serialized. No freshness violation resulted (no merges),
+and both fans completed with full axis isolation — but the breach is the measurement:
+reviewers=2 produced no throughput gain (both units parked on evidence-layer stickers,
+not on review starvation).
+
+## Run-close integrity inventory (sha256)
+
+Retained inline per the ledger line. The ledger itself is excluded — a file cannot carry
+its own hash; every other run-record artifact is below, full 64-hex, re-derivable with
+`python3 runtime/scripts/inventory.py check docs/runs/2026-09-20-clean-sweep-tracker.md`.
+Unit manifests live UNMERGED on the parked branches (U-CHAIN docs/reports/U-CHAIN/manifest.json
+@d75b23b1; U-442 docs/reports/u-442/manifest.json @c1d1e59c) — inventoried there, not here.
+Transcripts: docs/runs/2026-09-20-clean-sweep-tracker/transcripts/<delivery-id>/<msg-id>.json —
+one per delivered message, committed per window.
+
+```
+880c992f5ac8fe72536cde726d4625b73bd9f26a803c4324e0668b3625f66815  docs/runs/2026-09-20-clean-sweep-tracker/gate-batch.md
+db43a8a836d6b003c603e9f35c7338bcfd92d688abe62a3a4d7876175d5a0316  docs/runs/2026-09-20-clean-sweep-tracker/REFLECTION.md
+4c50fba83dd01f7fbe7a917354bc6c8490aea70d73b5f915106d5d8b67d97a33  docs/DECISIONS.md
+872605215c4b4e418d9efd1ed518dfeccf7d417283bdd3c3c21670d3a0bcb1cb  docs/runs/2026-09-20-clean-sweep-tracker/build-u-chain.md
+63ce1e4e0e538557ac5661bf6905707c82ad3937061531ec457e2812a4f0a9c8  docs/runs/2026-09-20-clean-sweep-tracker/build-u-chain-r2.md
+4b5415407cc65bece717fd0d0fa185dad3e39689e6eab6804fc8b122ad495caa  docs/runs/2026-09-20-clean-sweep-tracker/build-u-chain-r3.md
+7498d20d8e7f580f986d2abca320b925956808c6da08057a38240e7cff10471f  docs/runs/2026-09-20-clean-sweep-tracker/build-u442.md
+9df586e16c8080baef3799b7564a1fdd284ff23f5cf47c54040e80726a01cabf  docs/runs/2026-09-20-clean-sweep-tracker/build-u442-r2.md
+027daa4a46a9f8555cb520a34aeb0936fa6edad467468cc107edcf92f9f5bce9  docs/runs/2026-09-20-clean-sweep-tracker/build-u442-r3.md
+f454ff135603ce6a93d555bfc0c2b6c61dbb4b1ebd9eb0f7e0ed69698081c195  docs/runs/2026-09-20-clean-sweep-tracker/build-stab2.md
+```
+
+Egress: `egress.py verify` at close — chain intact, 305 receipts, head d0a5005c (UNANCHORED
+by design of the tool's own warning; the head is recorded here as the anchor).

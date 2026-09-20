@@ -1,0 +1,19 @@
+{
+  "id": "2b63f69f-4898-4bb9-bd37-2297141a8d8b",
+  "ok": true,
+  "result": {
+    "terminal": {
+      "handle": "term_630b9905-7afe-4047-81bd-55f26707ef5b",
+      "tabId": "b29ecb52-bf37-4645-bcbc-34a0ef37a90b",
+      "worktreeId": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/u-442",
+      "title": "U-442 r2 review TESTS",
+      "executionHostId": "local",
+      "incarnationId": "04007759-0e65-44da-a608-3577115e7ab5",
+      "hostPlatform": "darwin",
+      "surface": "visible"
+    }
+  },
+  "_meta": {
+    "runtimeId": "0e3d77f3-b0e7-4aa1-a21d-a960aa212104"
+  }
+}
