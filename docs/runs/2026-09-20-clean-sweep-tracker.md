@@ -1,0 +1,90 @@
+# clean-sweep run — source=tracker — 2026-09-20
+
+RUN: run_20260920_tracker · COORDINATOR: kimi-code (this session, driving shell Bash tool on maintainer Mac) · BASE: review/2026-09-20-tracker-sweep · FORK_POINT: e8ddbd98 (origin/main at T0) · T0: 2026-09-20T06:17:18Z · SOURCE: tracker (10 open at T0: #235 #386 #407 #409 #427 #434 #441 #442 #443 #444; enumeration digest: gh-issue-list-open-count=10) · WIP: builders=2 reviewers=1
+
+PHASE: ORIENT → ENUMERATE done → TRIAGE done (incl. prior-run re-verification) → FREEZE → BOOTSTRAP
+
+Substrate notes: orca 1.4.204 on PATH vs pins.json live PIN v1.4.203 — patch bump, rides per #427
+trigger rules (drift NOTE, not refusal; re-witness is pin-it's loop). claude + codex CLIs on PATH
+(codex usage limit ended 2026-09-19 — lane probe owed at dispatch). No open PRs at T0.
+
+## Prior-run re-verification (liveness-resume inflation post-mortem) — DONE, all VERIFIED
+
+Subagent post-mortem over docs/runs/2026-09-14-clean-sweep-tracker.md + campaign-2026-09-16-clean-sweep
++ gate-batch.md: every claimed close (#364/#385/#388/#389/#393) is CLOSED with evidence comments;
+every claimed merge (PRs #387/#390/#391/#392/#395/#397/#400-#404) is MERGED with merge commit
+ancestor of origin/main; #387 review threads 42/42 resolved; #408 G1-G4 settled on disk
+(gate-batch.md, record PR #453 merged 10e45f72); prove-it self-run (PR #437) and clean-sweep
+self-run (PR #436, report docs/runs/2026-09-14-clean-sweep-self-run.md) both BIND via
+run_report.py exit 0. Soft spots recorded, not actionable here: G2's "1 approval" overstates
+main's live protection (no required PR reviews — status checks only); campaign loop-2 since-T0
+query carries no timestamp (#417 closed mid-run by the chaining run — consistent with
+externally-resolved either way). No prior green-but-unverified claim enters this run's
+denominator: the prior denominator's issues are all closed and verified.
+
+## T0 enumeration (query 1, coordinator, 2026-09-20T06:17:18Z)
+
+```
+open: 10
+#235 sev:S2,needs-human   [H-02] Submit remaining marketplace aggregators
+#386 enhancement,sev:S2   sign evidence manifest + run-close inventory; retention backend
+#407 enhancement           Roadmap: orca-fleet from 0.6.1 to 1.0 (epic)
+#409 documentation,enhancement,needs-human  harden-it self-run promotion (re-scoped)
+#427 enhancement,p2        Re-pin Orca runtime contract (next cadence 2026-12-16)
+#434 documentation         Regenerate proof-ladder diagrams post-first-promotion
+#441                       mission-chaining: no inter-mission promotion lane
+#442                       evidence-manifest/verify.py assume unit repo == evidence repo
+#443                       mission-chaining: deferral carry has no artifact shape
+#444                       mission-chaining: re-derivability for local-only targets undefined
+open PRs: none
+```
+
+Query 2 (issues created/reopened/closed since T0): re-run each loop; at T0 the set is empty
+by construction. Loop log below carries each re-run.
+
+## Triage (skeptic, reproduce-or-refute)
+
+| id | reproduction | verdict |
+|---|---|---|
+| #441 | `grep PARKED-AT-PROMOTION / promotion lane runtime/mission-chaining.md` → absent; doc names no terminal for a promotion-owed park (read in full, 40 lines) | REAL (doctrine gap) |
+| #442 | `verify.py --help` → no --git-dir/--evidence-root; evidence paths bounded to one toplevel (line 37, #267 rule), SHAs resolved under same cwd | REAL (tooling gap) |
+| #443 | mission-chaining.md:29-32 hands parked items to N+1 "as enumeration INPUT" with no artifact shape named | REAL (doctrine gap) |
+| #444 | mission-chaining.md has no local-only/no-remote re-derivability rule | REAL (doctrine gap) |
+| #235 | issue body + 2026-09-13 comment: every remaining box needs a maintainer account with submit rights; nothing agent-side closes it | PARK needs-human (external accounts) — re-confirmed |
+| #386 | unparked 2026-09-16 by gate session (G1: maintainer offline key, Rekor anchor) BUT prerequisite "coordinator-signed verifier transcripts" unlanded (no signing in verify.py; dispatch-sign.py covers the dispatch tuple only) and tracked nowhere but this issue | PARK needs-human (prerequisite work unlanded; #386 is its own tracker) |
+| #407 | roadmap epic; children #408-#419 all MERGED except #409 (re-scoped, parked below); 1.0 not reached (19/21 missions still doctrine-only) | PARK needs-human (maintainer roadmap tracker; closes at 1.0) |
+| #409 | requires a full harden-it mission run (multi-day adversarial loop + human PoC-routing gate) — harden-it's own convergence proof, not clean-sweep's | PARK out-of-scope (hand to harden-it; needs-human label stands) |
+| #427 | trigger check: date 2026-12-16 not reached; installed 1.4.204 vs pin 1.4.203 = patch bump (rides per the issue's own trigger rules); no SPAWN=NOTE "run pin-it" sighting this session | PARK out-of-scope (pin-it cadence; trigger not fired) |
+| #434 | `gh secret list` → empty; provider render key not present, regen run stays parked per the 2026-09-16 gate comment | PARK needs-human (repo secret owed; ping on add) |
+
+FREEZE: 10 frozen ids → build units: #441+#443+#444 → U-CHAIN (file-coherent: all amend
+runtime/mission-chaining.md); #442 → U-442 (verify.py + tests). Parks: #235, #386, #407
+(needs-human); #409, #427 (out-of-scope); #434 (needs-human). Every frozen id maps to exactly
+one unit or park; no id without a unit; no unit without an id.
+
+## Units
+
+| task_id | id | title | CLASS | BUILD_DONE | PR_OPEN | BOT | REVIEWED | MERGED | WT_CLEAN | lighting | park | evidence |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| STAB | — | land 3 dirty doc files (rollup/README/CHANGELOG amendments) | conductor landing | t | n/a | n/a | n/a | t | n/a | lit | — | 3833c88 on BASE; claims pre-verified (PRs #483/#455/#456/#457, ls-remote campaign/*, run_report binds) |
+| — | #235 | H-02 marketplace submissions | needs-human | — | — | — | — | — | — | — | needs-human: external accounts/listings, maintainer-only | prior run + issue text + 09-13 comment |
+| — | #386 | sign manifest+inventory, retention | needs-human | — | — | — | — | — | — | — | needs-human: transcript-signing prerequisite unlanded; G1 answers recorded (gate-batch.md) | issue + gate-batch G1 |
+| — | #407 | roadmap epic 0.6.1→1.0 | needs-human | — | — | — | — | — | — | — | needs-human: maintainer roadmap tracker | children merged except #409 |
+| — | #409 | harden-it self-run promotion | out-of-scope | — | — | — | — | — | — | — | out-of-scope: harden-it mission run + human PoC gate | issue re-scope comment |
+| — | #427 | Orca re-pin cadence | out-of-scope | — | — | — | — | — | — | — | out-of-scope: pin-it, trigger not fired (patch bump rides; 2026-12-16) | issue trigger rules |
+| — | #434 | proof-ladder diagram regen | needs-human | — | — | — | — | — | — | — | needs-human: provider render key secret absent (gh secret list empty) | gate comment + probe |
+| U-CHAIN | #441 #443 #444 | mission-chaining: promotion lane terminal, deferral-carry shape, local-only re-derivability | real-feature-small (doctrine) | f | f | f | f | f | f | lit | — | — |
+| U-442 | #442 | verify.py cross-repo evidence root (--git-dir/--evidence-root split) | real-feature-small (tooling) | f | f | f | f | f | f | lit | — | — |
+
+## Loop log
+
+(append per unit: dispatch → build → PR → review → merge → close → re-enumerate)
+
+- 06:17 T0 recorded; enumeration query 1 (10 open, 0 PRs).
+- 06:2x STABILIZE: dirty-tree claims verified (PR #483 merged; campaign branches deleted;
+  PRs #455/#456/#457 merged; run_report binds exit 0 for both self-run promotions) → committed
+  3833c88 on BASE review/2026-09-20-tracker-sweep (fork e8ddbd98 = origin/main at T0).
+- Prior-run post-mortem: all claims VERIFIED (subagent report in coordinator context; summary
+  in "Prior-run re-verification" above). Nothing re-enters the denominator.
+
+BOOTSTRAP: (preflight pending)
