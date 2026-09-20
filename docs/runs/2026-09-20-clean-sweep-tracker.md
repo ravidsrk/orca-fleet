@@ -214,10 +214,7 @@ BOOTSTRAP: preflight --base review/2026-09-20-tracker-sweep --fork-point e8ddbd9
   operative assertions + whitespace normalize + 6 reviewer mutants RED-recorded; F-4 NC
   re-recorded via evidence-run.py; F-5 exemplar cited as adopted proposal; F-6 green-BASE
   merge + full-suite receipt. R2 FIX dispatched: task_bf8332aed4e9, claude
-  term_956f95b3-81a7-4bee-b309-f4878527d0fd (dispatch dispatch-U-CHAIN-r2-fix-3721816605.json
-sw-U-CHAIN-r2-fix-3721816605.json
-tl-U-CHAIN-r2-fix-3721816605.json
-tw-U-CHAIN-r2-fix-3721816605.json), fresh terminal in u-chain
+  term_956f95b3-81a7-4bee-b309-f4878527d0fd (dispatch ctx_847e6680c4b9), fresh terminal in u-chain
   worktree per dispatch-lifecycle.
 
 BRANCHES: local worktree checkouts carry the `ravidsrk/` prefix mapping to the unit tips
