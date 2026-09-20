@@ -2,7 +2,7 @@
 
 RUN: run_bec47e54b673 · COORDINATOR: term_0bae108a-5af7-4d7a-b584-67d05a2787d1 (kimi-code driving shell; coordinator terminal COORD-2026-09-20, background surface) · BASE: review/2026-09-20-tracker-sweep · FORK_POINT: e8ddbd988486694a2985822e557a382b344e2872 (origin/main at T0) · T0: 2026-09-20T06:17:18Z · SOURCE: tracker (10 open at T0: #235 #386 #407 #409 #427 #434 #441 #442 #443 #444; enumeration digest: gh-issue-list-open-count=10) · WIP: builders=2 reviewers=1
 
-PHASE: ORIENT → ENUMERATE → TRIAGE → FREEZE → BOOTSTRAP → BUILDING (wave 1: U-CHAIN built, integrating; U-442 building; STAB-2 fixing)
+PHASE: ORIENT → ENUMERATE → TRIAGE → FREEZE → BOOTSTRAP → BUILDING → PROVING → REFLECTING (waves=3)
 
 Run-close integrity inventory: retained inline in the Final report section at close (this
 ledger is the living run record until then).
@@ -352,3 +352,69 @@ BOOTSTRAP: preflight --base review/2026-09-20-tracker-sweep --fork-point e8ddbd9
 
 BRANCHES: local worktree checkouts carry the `ravidsrk/` prefix mapping to the unit tips
 (ravidsrk/u-chain, ravidsrk/u-442). Not drift — do not "fix".
+
+## Final report — DRY-WITH-PARKED
+
+**Terminal: DRY-WITH-PARKED** (degraded — 2 needs-human parks with named gates remain).
+The set is exhausted: full loop-2 re-enumeration finds every one of the 10 T0 items either
+closed with evidence or parked in a named class, and zero created/closed/reopened since T0.
+
+### Loop-2 enumeration (pasted, 2026-09-20T18:3xZ)
+
+```
+open: 10 — #444 #443 #442 #441 #434 #427 #409 #407 #386 #235 (identical to T0)
+created since T0 (2026-09-20T06:17:18Z): [] · closed since T0: [] · reopened: []
+```
+
+### Per-item disposition (completion-audit shape: verdict · mode · citation)
+
+| id | disposition | class | citation |
+|---|---|---|---|
+| #441 #443 #444 | PARKED at the review-round budget (3 failed rounds); doctrine complete, SPEC-axis GO, Greptile APPROVED d75b23b1 | needs-human, gate G1 | PR #484; gate-batch.md G1; issue comments 5749408944/5749409038/5749409126 |
+| #442 | PARKED at the review-round budget (3 failed rounds); production code unanimously closed, all CI green | needs-human, gate G2 | PR #485; gate-batch.md G2; issue comment 5749409212 |
+| #235 | park re-confirmed (external accounts; index check 09-13 stands) | needs-human | issue text |
+| #386 | park re-confirmed (transcript-signing prerequisite unlanded; G1-of-09-16 answers recorded) | needs-human | gate-batch 09-14 G1 |
+| #407 | park re-confirmed (roadmap epic; closes at 1.0) | needs-human | children merged except #409 |
+| #434 | park re-confirmed (render-key secret absent; alt-text truth repaired repo-wide by STAB-2 at the generator) | needs-human | gh secret list empty; 4d13c672 |
+| #409 | handoff (harden-it mission run + human PoC gate) | out-of-scope | issue re-scope |
+| #427 | handoff (pin-it cadence; trigger not fired — patch bump rides) | out-of-scope | issue trigger rules |
+| — | STABILIZE + STAB-2 landed on BASE (doc claims verified; 5 suite regressions repaired; generator alt-string fixed at source) | closed with evidence | 3833c88, 2f04c402; 39/39 + full suite green at tip |
+
+Landed on BASE this run: 3833c88 (doc amendments), the run record, 2f04c402 (STAB-2),
+plus all ledger/DECISIONS/transcript commits. PRs #484/#485 stay OPEN with branches
+retained — a G1/G2 (b) answer re-engages them.
+
+First-merge spot-check (merge-serialization): STAB-2 was the run's only merge — verified
+at landing (merge commit no-ff, author maintainer, no trailers, branch deleted, worktree
+retired, suite green at tip); no second unit merged, so the pattern never replicated.
+
+## WIP-curve protocol row (mutating run)
+
+| Wave | WIP setting | Builder throughput | Verification latency | Rework rate | Freshness violations |
+|---|---|---|---|---|---|
+| wave=1 | builders=2 reviewers=0 | throughput=0 (0 units verified-CLOSED; 2 built + 1 repair in ~2.5h) | latency_median=8 min latency_max=25 min (worker_done → harvest-verified) | rework=0 of 2 units at this wave | freshness=0 |
+| wave=2 | builders=2 reviewers=1 | throughput=0 | latency_median=12 min latency_max=40 min (axis done → verdict posted) | rework=2 of 2 units (both r1 NO-GO) | freshness=0 (no merges attempted) |
+| wave=3 | builders=2 reviewers=2 | throughput=0 | latency_median=10 min latency_max=35 min | rework=2 of 2 units (r2 NO-GO; r3 final) | freshness=0 (no merges attempted) |
+
+CAP BREACH, recorded per the protocol's negative-data rule: at ~15:2x–16:5x two review
+UNITS were in flight simultaneously (U-CHAIN r3 fan + U-442 r2 fan) against the
+reviewers=1 cap the ledger header's builders=2 implies. The header cap was never raised;
+the dispatches should have been serialized. No freshness violation resulted (no merges),
+and both fans completed with full axis isolation — but the breach is the measurement:
+reviewers=2 produced no throughput gain (both units parked on evidence-layer stickers,
+not on review starvation).
+
+## Run-close integrity inventory (retained inline per the ledger line)
+
+sha256 (first 16) · artifact · producer · ts
+- 4c1a266b53bd8fe3 · docs/runs/2026-09-20-clean-sweep-tracker.md (this ledger, pre-inventory) · coordinator · 2026-09-20T18:3xZ
+- 880c992f5ac8fe72 · gate-batch.md (G1+G2) · coordinator · 2026-09-20T18:3xZ
+- 4c50fba83dd01f7f · docs/DECISIONS.md · coordinator+workers · 2026-09-20T18:3xZ
+- 872605215c4b4e41 / 63ce1e4e0e538557 / 4b5415407cc65bec · build-u-chain{,-r2,-r3}.md · coordinator · frozen at dispatch
+- 7498d20d8e7f580f / 9df586e16c8080ba / 027daa4a46a9f855 · build-u442{,-r2,-r3}.md · coordinator · frozen at dispatch
+- f454ff135603ce6a · build-stab2.md · coordinator · frozen at dispatch
+- unit manifests live UNMERGED on the parked branches (U-CHAIN docs/reports/U-CHAIN/manifest.json @d75b23b1; U-442 docs/reports/u-442/manifest.json @c1d1e59c) — inventoried there, not re-hashed here (parked, unmerged).
+- transcripts: docs/runs/2026-09-20-clean-sweep-tracker/transcripts/<delivery-id>/<msg-id>.json — one per delivered message, committed per window.
+
+Egress: `egress.py verify` at close — chain intact, 305 receipts, head d0a5005c (UNANCHORED
+by design of the tool's own warning; the head is recorded here as the anchor).
