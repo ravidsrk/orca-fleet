@@ -1,0 +1,41 @@
+# CRITERION-BOUND NEGATIVE CONTROLS — U-CHAIN (tool: hand, per-criterion)
+# worktree: throwaway at head_sha 315ad409097b378b3d342d5144322d0f92d0d119
+# command: python3 -m unittest tests.test_architecture.TestArchitecture.test_chain_link_boundary_is_specified
+
+===== MUTANT: drop the bullet containing "human-paced at every link boundary" =====
+dropped 5 lines for marker 'human-paced at every link boundary'
+ runtime/mission-chaining.md | 5 -----
+ 1 file changed, 5 deletions(-)
+AssertionError: [] is not true : mission-chaining.md: no single bullet states that chains are human-paced at every link boundary (needs all of: human-paced, link boundary)
+FAILED (failures=1)
+exit=1  (non-zero = mutant KILLED)
+
+===== MUTANT: drop the bullet containing "The wait has a name" =====
+dropped 10 lines for marker 'The wait has a name'
+ runtime/mission-chaining.md | 10 ----------
+ 1 file changed, 10 deletions(-)
+AssertionError: [] is not true : mission-chaining.md: no single bullet states the promotion-owed park with its resume procedure (needs all of: PARKED-AT-PROMOTION, landed promotion SHA, BASE-carry grant)
+FAILED (failures=1)
+exit=1  (non-zero = mutant KILLED)
+
+===== MUTANT: drop the bullet containing "The carry has ONE shape" =====
+dropped 12 lines for marker 'The carry has ONE shape'
+ runtime/mission-chaining.md | 12 ------------
+ 1 file changed, 12 deletions(-)
+AssertionError: [] is not true : mission-chaining.md: no single bullet states a named artifact shape for the deferral carry (needs all of: handoff log, carry table, gate record)
+FAILED (failures=1)
+exit=1  (non-zero = mutant KILLED)
+
+===== MUTANT: drop the bullet containing "Local-only targets must ship their bytes" =====
+dropped 10 lines for marker 'Local-only targets must ship their bytes'
+ runtime/mission-chaining.md | 10 ----------
+ 1 file changed, 10 deletions(-)
+AssertionError: [] is not true : mission-chaining.md: no single bullet states the local-only re-derivability rule (needs all of: no remote, pushed mirror, reconstruction artifacts)
+FAILED (failures=1)
+exit=1  (non-zero = mutant KILLED)
+
+===== CLEAN head_sha (must be ZERO) =====
+Ran 1 test in 0.000s
+
+OK
+exit=0  (zero = clean head passes)

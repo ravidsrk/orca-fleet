@@ -1,0 +1,134 @@
+{
+  "unit": "U-CHAIN",
+  "role": "integrator",
+  "task_id": "task_017a294f6f1a",
+  "generated_at": "2026-09-20T07:33:02.875611+00:00",
+  "pr": {
+    "number": 484,
+    "url": "https://github.com/ravidsrk/orca-fleet/pull/484",
+    "state": "OPEN",
+    "base_ref": "review/2026-09-20-tracker-sweep",
+    "head_ref": "ravidsrk/u-chain",
+    "head_sha": "5328cc866d3b213c444687b9c7d9cb2d1d45d853",
+    "base_assert": "PASS \u2014 baseRefName == review/2026-09-20-tracker-sweep (not main); verified via gh pr view --json baseRefName",
+    "merge_base": "a58bf71a283928a8278e560163452ee70c7ad609",
+    "base_advanced": {
+      "note": "BASE advanced 4 commits (docs/runs bookkeeping) after this branch forked; branch is behind, not deleting.",
+      "base_tip": "635df8e5d618c37b8ad235e9883d76406205ce1d",
+      "file_overlap_with_branch": [],
+      "rebased": false,
+      "why_not": "no overlap across the 11 changed files, so the merge is clean; a rebase would void the reviewed SHA for no benefit (reviewed-sha-freshness.md)"
+    }
+  },
+  "secret_scan": {
+    "tool": "gitleaks 8.30.1",
+    "scope": "git --log-opts=review/2026-09-20-tracker-sweep..HEAD (branch diff only)",
+    "commits_scanned": 3,
+    "findings": 0,
+    "exit_code": 0
+  },
+  "egress_receipts": {
+    "ledger": ".orca/egress.jsonl",
+    "chain": "intact, 2 receipts",
+    "head_digest": "7ab3f20500432e57da4147b61880aa8ac9cb35a9ce55fa3d8cde8245a75c6624",
+    "anchor_note": "head digest recorded here, off the writer, per egress.py verify --expect-head",
+    "receipts": [
+      {
+        "id": "c4d6dd2e8df5091e9661065bbaa7d7367f257c9719e015bbcfe8e74bf768c09e",
+        "sink": "branch-push",
+        "payload_class": "git-branch-push",
+        "bytes": 0,
+        "consent": "grant:branch-push-on-base",
+        "preceded": "git push -u origin ravidsrk/u-chain"
+      },
+      {
+        "id": "68e13d4b638335e5a8a6ad25d70fa39a6face5077457ca9cfd6aeabf480c319e",
+        "sink": "pr-open",
+        "payload_class": "pr-body",
+        "bytes": 2777,
+        "consent": "grant:pr-open-on-base",
+        "preceded": "gh pr create"
+      }
+    ],
+    "DEVIATION": {
+      "what": "Both receipts name invented consent ids; the push receipt also uses sink 'branch-push' rather than 'git-push'.",
+      "why": "Coordinator status msg_a8e7658c81cd (sent 07:24Z) naming the real standing grants \u2014 run-2026-09-14-clean-sweep:base-writes (git-push) and run-2026-09-14-clean-sweep:tracker-writes (pr-open) \u2014 was undelivered until the first inbox check, which fell after both sends. consent is free text, so neither write refused.",
+      "not_remediated_because": "the ledger is append-only and hash-chained; editing the two lines is exactly what its tamper-evidence exists to catch, and appending corrective receipts would record sends that never happened. egress.py grants now visibly lists two unrecognized consents, which is the intended human-visible signal.",
+      "receipts_otherwise_accurate": "sink kind, host, payload_class, byte count and body hash all correct",
+      "coordinator_decision_owed": "whether the run wants an annotated re-anchor of the ledger"
+    }
+  },
+  "review_bot": {
+    "bot": "greptile-apps[bot]",
+    "detection": "derived from prior PR comment authorship (8 comments across last 6 PRs), not hardcoded",
+    "state": "RAN",
+    "wait": {
+      "poll_interval_s": 30,
+      "floor_s": 180,
+      "cap_s": 600,
+      "first_activity_s": 158,
+      "settled_s": 222
+    },
+    "review": {
+      "id": 5259917893,
+      "state": "COMMENTED",
+      "submitted_at": "2026-09-20T07:28:36Z"
+    },
+    "counts": {
+      "reviews": 1,
+      "review_comments": 3,
+      "issue_comments": 0
+    },
+    "action_taken": "ingested and tagged only \u2014 NOTHING FIXED; VALID set HELD for the review batch per dispatch-lifecycle.md step 2"
+  },
+  "findings": [
+    {
+      "id": "BOT-1",
+      "comment_id": 4056407120,
+      "severity": "P1",
+      "path": "runtime/mission-chaining.md",
+      "line": 40,
+      "title": "Promotion check uses wrong base",
+      "tag": "VALID",
+      "reason": "Verified against the diff. Line 39-40 resumes the park on 'leg N's head is an ancestor of the integration BASE (git merge-base --is-ancestor <head> origin/<base>)'. Leg N's own unit PRs merge into that same BASE during the leg, so the ancestry test is already satisfied before the chain reaches the park \u2014 it cannot witness the owed promotion. The repo's own exemplar confirms the real gate is BASE-to-default: docs/reports/chaining-2026-09-16/handoff-log.md G-PROMO-1 records 'leg-1 BASE chain417/leg1-cleansweep-base @ c5e807c -> scratch main promotion owed', citing the gate-classification registry entry 'merge to default'. Secondary point also holds: origin/<base> cannot resolve for the no-remote lane that line 37 names as this park's expected origin, and that is the very lane #444 addresses in this same PR. Internal contradiction between the new resume fact and both the exemplar and the sibling clause.",
+      "scope": "inside the frozen spec (runtime/mission-chaining.md)"
+    },
+    {
+      "id": "BOT-2",
+      "comment_id": 4056407124,
+      "severity": "P2",
+      "path": "runtime/mission-chaining.md",
+      "line": 59,
+      "title": "Exemplar contradicts new contract",
+      "tag": "VALID",
+      "reason": "Sub-claim (b) confirmed verbatim: docs/reports/chaining-2026-09-16/handoff-log.md:37-41 is headed '## Format note (filed as protocol gap)' and reads 'mission-chaining.md mandates deferral carry but specifies no handoff artifact shape ... This log is the run's proposed shape'. Line 58-59 of this PR cites that file as the 'Worked exemplar' of a shape the PR now mandates, so the exemplar self-describes as a proposal against an open gap the PR closes. Sub-claim (a) is OVERSTATED but directionally right: a pointer does exist (CHAIN-REPORT.md:20 carries 'H1 H2 H3 -> handoff-log.md'), but as a per-leg table cell, not the ledger-header field the new rule at line 48-50 requires.",
+      "scope": "REMEDIATION FALLS OUTSIDE the frozen spec \u2014 docs/reports/chaining-2026-09-16/* is not among this unit's 11 changed files, and the spec's non-goals limit scope to mission-chaining.md + one contract test. Batch must choose: soften the citation (in scope) or amend the exemplar (new unit)."
+    },
+    {
+      "id": "BOT-3",
+      "comment_id": 4056407126,
+      "severity": "P2",
+      "path": "tests/test_architecture.py",
+      "line": 638,
+      "title": "Keywords miss contract semantics",
+      "tag": "VALID",
+      "reason": "Verified by reading the helper. one_bullet_with() (lines 621-629) re.searches each pattern for co-occurrence within one bullet \u2014 presence only, no operative clause asserted. Each mutation the bot names survives: flipping 'UNPROMOTED' to 'promoted' at line 42 keeps 'BASE-carry grant' present; deleting 'with the granted SHA written down' keeps all three (a)-patterns; reversing line 57-58's 'a MISSING handoff log is an unfinished chain, never an empty one' leaves the (b) bullet matching 'handoff log'/'carry table'/'gate record'/'per chain'. All stay GREEN. NOTE: this does not contradict the manifest's '4/4 mutants killed' \u2014 negctrl-per-criterion.txt shows all four mutants are whole-bullet DELETIONS, the weakest mutation class, which proves the bullets exist but not that their semantics are asserted. Most consequential of the three: it weakens this unit's own convergence evidence.",
+      "scope": "inside the frozen spec (tests/test_architecture.py)"
+    }
+  ],
+  "tally": {
+    "VALID": 3,
+    "FALSE_POSITIVE": 0,
+    "held_for_batch": [
+      "BOT-1",
+      "BOT-2",
+      "BOT-3"
+    ]
+  },
+  "carried_flag_from_manifest": "Full suite is NOT green at head and was NOT green at base \u2014 the same 5 tests fail at both (docs/reports/U-CHAIN/suite.txt). No new red; AC-3 unsatisfied as literally written. Tracked separately as STAB-2, dispatched on BASE.",
+  "constraints_honored": [
+    "never merged",
+    "never pushed to main",
+    "no fixes applied to bot findings"
+  ]
+}

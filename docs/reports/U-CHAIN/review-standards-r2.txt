@@ -1,0 +1,270 @@
+U-CHAIN ROUND 2 — STANDARDS REVIEW
+Task: task_2c6e0642e3c0 / ctx_125e8213b58e
+Authorized output: this file only, uncommitted.
+
+BLIND-FIX EXPECTATIONS — written before opening the round-2 diff
+Time: 2026-09-20T08:31:46Z (file creation time, correcting the draft's approximate
+clock label; expectation content predates the first candidate diff unchanged).
+Review start approximately 08:30Z; 25-minute stop.
+Inputs: ARCHITECTURE.md, AGENTS.md, CONTRIBUTING.md, review-it/acceptance-review
+methodology, Matt code-review standards/Fowler baseline, frozen build-u-chain-r2.md,
+round-1 reports, and the dispatched held-bot descriptions in integrate-r2.json.
+No round-2 diff or complete candidate implementation has been opened; the bot
+descriptions already quote some candidate lines and are treated only as claims.
+
+F-1: I expect runtime/mission-chaining.md to distinguish the conductor's unit→BASE
+integration from the human BASE→DEFAULT promotion, including the no-gh lane. A
+resume must prove the integrated BASE tip reaches the actual default branch, with
+a resolvable local default ref for offline targets, or name a recorded human grant
+for a particular unpromoted BASE tip. Both alternatives must retain human control.
+F-2: I expect the local-only rule to require actual cited commits and their ancestry
+to be recoverable from a self-contained bundle, reachable pushed mirror, or an
+explicitly equivalent commit-preserving artifact. Seeds and diff may supplement
+file reconstruction but must not count as commit-identity proof.
+F-3: I expect the existing architecture contract to normalize bullet whitespace
+before matching required meaning, bind the publication/resume/schema obligations,
+and reject the six round-1 semantic weakenings plus the no-procedure/publication
+reversals. It should retain local test conventions without a general prose parser.
+F-4: I expect the unit manifest to include actual evidence-run.py receipts for
+doc-reverted RED and clean candidate GREEN, with appropriate SHA/tree fingerprints
+and archived output; a transcript alone is not the requested receipt.
+F-5: I expect only the citation to distinguish historical proposal from adoption
+as current doctrine; the original historical handoff artifact must remain intact.
+F-6: I expect ancestry through the repaired integration BASE, followed by a real
+full-suite zero exit at the combined implementation SHA and a corresponding runner
+receipt marking AC-3 addressed. An evidence-only child commit must be disclosed.
+BOT-4: I expect any remote ancestry check to establish the remote-tracking ref is
+fresh (or to reference a mandatory refresh protocol), fail closed if refresh cannot
+be obtained, and still support an offline local-ref lane. I will distinguish an
+unsafe resume from a safe but indefinitely stale park and avoid inheriting severity.
+BOT-5: I expect a committed evidence harness to reproduce its fixture from the
+pinned Git objects or documented self-contained setup, work in a disposable clone,
+restore modifications, and report real failing tests rather than fixture failures.
+
+Standards expectations: preserve the three layers, plain Markdown runtime prose,
+≤160 lines and byte budget, bare/resolvable composable references, terse imperative
+doctrine tone, honest evidence claims, and neighboring line-wrap normalization.
+Use all 12 Fowler heuristics as judgments subject to repository overrides; do not
+inflate validator-enforced checks into independent stylistic findings.
+Confidence: high for the obligations, medium for exact wording and harness setup.
+
+PIN NOTE BEFORE DIFF
+Requested reviewed SHA: 0dbc669e5df80934a36a24d120a680b038f9791d.
+Observed worktree HEAD: 302d43e9e028f93d0698bccaa93f308f1fdbdb63, whose subject is
+"docs(#441,#443,#444): U-CHAIN round-2 integrate receipt". The requested SHA is its
+parent. I will inspect this delta and report the binding explicitly rather than
+silently reviewing a moving HEAD.
+Observed fixed ref: origin/review/2026-09-20-tracker-sweep =
+e5b7ffb4e518b33e933e7e671d659116771ec8d6.
+Three-dot merge base with requested SHA: ed51fe11de5f7329ecf02ffb933bf50648ae5654.
+Pre-existing untracked output: docs/reports/U-CHAIN/review-spec-r2.txt; untouched.
+
+FINAL REVIEW RESULTS — STANDARDS ONLY
+Completed: 2026-09-20T08:39Z, within the 25-minute timebox.
+Verdict: NO-GO.
+Counts: Critical 0; Required 3; Nit 0; Optional 0; FYI 0.
+reviewed_sha = head_sha = 0dbc669e5df80934a36a24d120a680b038f9791d.
+Fixed-point SHA: e5b7ffb4e518b33e933e7e671d659116771ec8d6.
+Three-dot merge base: ed51fe11de5f7329ecf02ffb933bf50648ae5654.
+Whole-unit diff: git diff e5b7ffb4e518b33e933e7e671d659116771ec8d6...0dbc669e5df80934a36a24d120a680b038f9791d
+Round-2 remediation diff: git diff 1066c0283d395de8029b2696dde39f7a836a2bae..0dbc669e5df80934a36a24d120a680b038f9791d
+Requested commits: 1066c028 (BASE merge), 88a64c90 (fix), 0dbc669e (evidence).
+Current worktree child 302d43e9 adds ONLY docs/reports/U-CHAIN/integrate-r2.json;
+it does not change the reviewed policy, tests, or harness. This report binds the
+requested SHA, not an approval of every later commit or of the live branch tip.
+
+Executive brief
+Round 2 closes standards S1's promotion/integration confusion, S2's file-bytes vs
+commit-identity confusion, and S3's optional whitespace-normalization concern.
+The policy stays within the runtime layer and the instruction budget, uses valid
+bare protocol references, and states doctrine without promoting evidence status.
+F-4's runner receipts independently reproduce; F-5 adopts the proposal explicitly
+without rewriting history; F-6's recorded green suite is correctly SHA/tree-bound.
+The held BOT-4 and BOT-5 are both valid Required findings: the remote resume check
+can use a stale ref, and the committed mutation harness cannot start without an
+undocumented fixture. A further Required defect remains even after supplying that
+fixture: the harness returns success when both controls fail and import errors are
+counted as kills. The ordinary 13-case battery does reproduce after fixture setup,
+so these findings do not allege fabricated historical results. F-3's formatting
+fix passes 22 reflow checks, but the three residual BOT-3 obligation edits still
+survive; full test-adequacy closure must not be inferred from the 13/13 headline.
+
+FINDINGS
+
+S-R2-1 — Required — BOT-4 VALID: refresh the remote default before resume proof.
+Location: runtime/mission-chaining.md:43-47 (especially 44-45).
+Verbatim motivating lines:
+     branch (`git merge-base --is-ancestor <base-tip> <default-ref>`, where `<default-ref>` is
+     `origin/<default>` for a remote target and a valid LOCAL ref — the local default branch —
+Standard: AGENTS.md's definition of done requires an independent verifier to
+re-derive facts from authoritative state. The repository's existing preflight
+contract makes the needed discipline explicit at runtime/scripts/preflight.py:21-24:
+An online default derived from gh resolves through refs/remotes/origin/<branch>,
+never a possibly stale local namesake. Fetch origin before running preflight;
+a missing remote-tracking ref fails closed. Explicit --default refs retain their
+local/offline meaning.
+Why this violates the operational contract: origin/<default> is a local cached
+ref, and no refresh is required at this new resume decision. The prior leg's
+preflight can predate a long human park; the next leg's preflight follows the
+permission to resume and cannot supply the missing resume proof retroactively.
+Independent isolated Git fixture: coordinator fetched the completed leg BASE;
+human then fast-forwarded and pushed main to that BASE tip. The documented
+ancestry check returned 1 against stale origin/main even though remote main
+equalled the leg tip; after git fetch origin, the SAME check returned 0.
+This demonstrates a false-negative park after a real promotion, not an observed
+unauthorized resume. It remains Required because the newly specified resume
+procedure fails in the normal remote-promotion sequence.
+Correction: require a successful refresh of the named remote default immediately
+before resolving/checking it, or an explicitly equivalent authoritative ref proof;
+record inability to refresh as unavailable evidence. Preserve the offline local-ref
+alternative and do not weaken the human gate.
+Evidence: /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-standards-r2-iywj0s3p/freshness-repro.py
+and freshness-result.json in the same directory.
+Confidence: high; source rule and actual Git behavior both checked.
+
+S-R2-2 — Required — BOT-5 VALID: publish the mutation harness's required fixture.
+Location: docs/reports/U-CHAIN/run_mutants-r2.py:6.
+Verbatim motivating line:
+BASE = Path("base-policy.md").read_text()
+Standard: AGENTS.md requires the independent verifier to re-derive the negative
+control rather than grade a trace. The manifest names this script as the harness
+for its 13/13 evidence, but the read is unconditional and precedes every control.
+Independent clean-clone invocation from the repository root:
+  python3 docs/reports/U-CHAIN/run_mutants-r2.py
+exits 1 with FileNotFoundError: [Errno 2] No such file or directory: 'base-policy.md'.
+The file is not tracked, created by the harness, or supplied by documented setup.
+After deriving it from a58bf71a283928a8278e560163452ee70c7ad609's policy in the scratch
+clone, the unmodified harness runs: clean/restored controls GREEN, 13 mutants RED
+with actual assertion failures. Thus the missing fixture blocks the advertised
+replay; it does not falsify the recorded results.
+Correction: derive the base policy from a pinned available Git object, include it
+as an integrity-bound fixture, or document a complete pinned setup command beside
+the harness. State that this mutating reproduction runs in a disposable checkout.
+Successful replay log:
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-standards-evidence-vb4cgegn/manual-fixture-harness.txt
+The clean failure's exact traceback was observed in tool output; the invocation
+and missing file above suffice to reproduce it independently in a clean checkout.
+Confidence: high; failure and complete replay both independently reproduced.
+
+S-R2-3 — Required — the evidence harness reports success on a broken test runner.
+Location: docs/reports/U-CHAIN/run_mutants-r2.py:101,107-115.
+Verbatim motivating lines (101 and 115):
+    verdict = "KILLED (RED)" if p.returncode != 0 else "SURVIVOR (GREEN)"
+sys.exit(1 if surv else 0)
+Additional exact control lines (109 and 114):
+print(f"fixed-head: exit={p.returncode}; {'GREEN' if p.returncode==0 else 'RED'} — unmutated head")
+print(f"head-restored: exit={p.returncode}")
+Standard: AGENTS.md requires that the negative control really fails when the
+change is reverted/mutated, rather than accepting narration. Frozen F-4 states
+"test kept → RED; clean head → GREEN". Import failures are neither criterion
+failures nor a successful positive control.
+Independent reproduction: after supplying BOT-5's base fixture in a scratch clone,
+temporarily move tests/test_architecture.py away, run the UNMODIFIED committed
+harness, then restore the test file. Every unittest invocation fails to import the
+test module. Both printed controls have exit=1, but all 13 cases are labeled KILLED
+and the harness itself exits 0. A caller accepting its summary/exit records a
+successful battery in an environment where no covering test ran.
+Correction: make either failed control fail the harness, and distinguish actual
+covering assertion failures from loading/execution errors before declaring a kill.
+This is separate from BOT-5: fixing fixture availability leaves this false-success
+path intact. The genuine 13/13 replay has passing controls and is not impugned.
+Failed-control transcript:
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-standards-evidence-vb4cgegn/invalid-control-harness.txt
+Confidence: high; observed successful harness exit and failed controls together.
+
+ROUND-1 / FIX-BATCH CLOSURE (standards scope; no cross-axis reranking)
+
+F-1 / S1: CLOSED as originally stated. Lines 29-32 now explicitly identify
+BASE→DEFAULT as the human promotion and unit→BASE as the conductor's ordinary
+merge; lines 43-49 name correct ancestry endpoints and the local/offline ref.
+The new freshness continuation is S-R2-1, so the clause is not fully clean.
+Verbatim closure line:
+  the conductor's ordinary agent merge, the no-gh local-merge lane included, and is NOT that gate.
+
+F-2 / S2: CLOSED. Lines 73-80 require COMMIT-PRESERVING artifacts and ancestry,
+while seed+diff is supplemental. The linked historical RESTORE.md already says
+bundles preserve cited SHAs and seed+diff preserves file bytes only.
+Verbatim closure line:
+  demonstrably reproduces every cited commit and its ancestry. Seed sources plus the leg's full
+
+F-3 / S3: the STANDARDS wrapping concern is CLOSED. Exact tests/test_architecture.py:621:
+        blocks = [" ".join(b.split()) for b in bullets(chain)]
+The previously troublesome phrases and 19 other phrase reflows all keep the real
+covering test GREEN (22 independent reflows plus clean baseline; scratch only).
+All six round-1 survivors and both SPEC-2 reversals now fail after reconstructing
+the missing fixture; the four deletions and base revert also fail. The broader
+BOT-3 closure claim is not established: removing the granted-SHA condition,
+UNPROMOTED→promoted, and reversing the missing-log rule each remain GREEN.
+These are supplied as test-adequacy evidence, not downgraded or reranked standards
+findings. Do not mark every round-1 test obligation closed on this report's behalf.
+Exact source lines those residual probes weaken (policy:49 and :65):
+     that leg N+1 may fork leg N's UNPROMOTED BASE tip, with the granted SHA written down.
+  MISSING handoff log is an unfinished chain, never an empty one. Worked exemplar:
+Scratch outcomes: /tmp/u-chain-wrap-review.MyXyxy/outcomes.json.
+Independent original-mutant results: /tmp/u-chain-wrap-review.MyXyxy/original-mutants.json.
+
+F-4 / SPEC-4: CLOSED for receipt convention and independently re-executed behavior.
+commands[] now contains tests-negative-control (exit 1) and tests-positive-control
+(exit 0), both with command digests, timestamps, actual trees, and archived outputs.
+Re-execution via evidence-run.py at implementation 88a64c90 exactly reproduces
+negative tree ad36992ac9322618ffc691d07178a912f58ee224 and clean positive tree
+a32a64720e5afe65f0626ca1a17aa555d962425b. This closes the old missing-runner-record
+finding; it does not excuse S-R2-3's independent mutation-harness false success.
+Independent receipt:
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-f4-receipt-u0vf9b60/manifest.json
+
+F-5: CLOSED. Exact policy:67:
+  predates this clause; it is ADOPTED here, so the shape above is doctrine and not a proposal.
+The historical handoff-log.md and leg1/RESTORE.md have no round-2 changes.
+
+F-6 / SPEC-3: CLOSED. The independent full suite at the requested candidate SHA
+passed: 1707 tests in 394.454s, OK, exit 0. ed51fe11 is an ancestor through
+merge 1066c028; the suite record names implementation 88a64c90 and its actual tree.
+Committed transcript says "Ran 1707 tests in 278.835s" and "OK"; AC-3 is addressed.
+The evidence-only following commit is disclosed rather than silently substituted
+for the implementation SHA in the receipts. Final independent result recorded below.
+
+HUNK COVERAGE / FOWLER BASELINE
+- runtime/mission-chaining.md: 89 lines / 7,272 bytes, under both caps, plain Markdown; bare runtime
+  references resolve; concrete docs artifact paths are not composable protocol refs.
+  No layer/mission identity change, frontmatter, or empirical proof-tier inflation.
+  The new promotion, reconstruction, and adoption clauses stay terse doctrine.
+- tests/test_architecture.py: stdlib unittest, local bullet/matcher helpers, specific
+  issue comments, assertRegex and nonempty selectors fit neighboring conventions.
+  Whitespace normalization implements the established liveness-resume convention.
+  The small must() helper adds a uniform failure explanation to real obligations;
+  no speculative abstraction is needed or added.
+- docs/reports/U-CHAIN: receipts, historical reports, reproduction harness and
+  manifest stay in the evidence layer. Nine artifact hashes, five command hashes,
+  contract digest, declared head tree, and ancestry were independently checked.
+  Harness correctness defects are the findings above; they are not style judgments.
+- assets/badges/tests.json is the round-1 test-count change, not a fresh round-2
+  implementation edit. No other mission/policy/runtime script changed in the fix.
+Fowler heuristics considered: Mysterious Name, Duplicated Code, Feature Envy, Data
+Clumps, Primitive Obsession, Repeated Switches, Shotgun Surgery, Divergent Change,
+Speculative Generality, Message Chains, Middle Man, Refused Bequest. No additional
+actionable smell survives repository conventions. Strings describe the textual
+contract and bounded mutant cases; they do not justify a domain-type framework.
+
+VERIFICATION / BOUNDARIES
+Scratch candidate checkout:
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-standards-r2-iywj0s3p/repo
+- python3 -B scripts/validate.py: exit 0, all 21 missions valid; layers/evals pass.
+- git diff --check 1066c028..0dbc669e: exit 0 for the round-2 hunks.
+  Whole-unit three-dot diff also sees pre-existing whitespace in round-1
+  review-tests.txt:308 (an embedded patch's blank context line); no new finding.
+- python3 -B -m unittest discover -s tests at exact reviewed SHA: exit 0,
+  Ran 1707 tests in 394.454s, OK; log is ../suite.txt. Scratch git status is clean
+  after the run, and HEAD remains 0dbc669e5df80934a36a24d120a680b038f9791d.
+- BOT-4 isolated Git fixture: stale-ref ancestry exit 1; fetched-ref ancestry exit 0.
+- Executed controls and harness experiments were confined to external scratch
+  checkouts; no production/test mutation was made in the reviewed worktree.
+- No commit, staging, push, merge, issue comment, PR review, or human outreach.
+  This uncommitted report is the only shared-repository file edited by this worker.
+- The external helper checks are bounded standards support, not additional mission
+  coordinators or cross-axis verdict aggregation. Their observed results and
+  source quotes were checked before incorporation.
+
+Remaining: repair the two held defects and harness false-success, reconcile F-3's
+residual test-adequacy obligations, then re-review a pinned fix SHA. A NO-GO is a
+completed review outcome, not a failed review run.

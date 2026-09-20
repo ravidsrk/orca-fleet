@@ -1,0 +1,29 @@
+test_chain_link_boundary_is_specified (tests.test_architecture.TestArchitecture.test_chain_link_boundary_is_specified) ... FAIL
+
+======================================================================
+FAIL: test_chain_link_boundary_is_specified (tests.test_architecture.TestArchitecture.test_chain_link_boundary_is_specified)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/u-chain/tests/test_architecture.py", line 646, in test_chain_link_boundary_is_specified
+    park = one_bullet_with(
+        "the promotion-owed park with its resume procedure",
+    ...<2 lines>...
+        r"BASE-carry grant",
+    )
+  File "/Users/ravindra/orca/workspaces/orca-fleet/u-chain/tests/test_architecture.py", line 627, in one_bullet_with
+    self.assertTrue(
+    ~~~~~~~~~~~~~~~^
+        hits,
+        ^^^^^
+        f"mission-chaining.md: no single bullet states {label} "
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        f"(needs all of: {', '.join(patterns)})",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+AssertionError: [] is not true : mission-chaining.md: no single bullet states the promotion-owed park with its resume procedure (needs all of: PARKED-AT-PROMOTION, landed promotion SHA, BASE-carry grant)
+
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+FAILED (failures=1)

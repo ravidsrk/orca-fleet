@@ -1,0 +1,609 @@
+{
+  "unit": "U-CHAIN",
+  "base_sha": "ed51fe11de5f7329ecf02ffb933bf50648ae5654",
+  "head_sha": "1635b27f43d22309bfc1e91be517c2815ac3cb6e",
+  "base_branch": "review/2026-09-20-tracker-sweep",
+  "contract": {
+    "source": "docs/runs/2026-09-20-clean-sweep-tracker/build-u-chain-r3.md@adf41be8c0c013d4b125be532635018c61d99ec5",
+    "digest": "4b5415407cc65bece717fd0d0fa185dad3e39689e6eab6804fc8b122ad495caa",
+    "criterion_ids": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4",
+      "AC-5"
+    ],
+    "round_1_contract": {
+      "source": "docs/runs/2026-09-20-clean-sweep-tracker/build-u-chain.md@a58bf71a283928a8278e560163452ee70c7ad609",
+      "digest": "872605215c4b4e418d9efd1ed518dfeccf7d417283bdd3c3c21670d3a0bcb1cb",
+      "criterion_ids": [
+        "AC-1",
+        "AC-2",
+        "AC-3",
+        "AC-4",
+        "AC-5"
+      ]
+    },
+    "fix_items": [
+      "G-1",
+      "G-2",
+      "G-3",
+      "G-4",
+      "G-5",
+      "G-6"
+    ],
+    "round_2_contract": {
+      "source": "docs/runs/2026-09-20-clean-sweep-tracker/build-u-chain-r2.md@ed51fe11de5f7329ecf02ffb933bf50648ae5654",
+      "digest": "63ce1e4e0e538557ac5661bf6905707c82ad3937061531ec457e2812a4f0a9c8",
+      "criterion_ids": [
+        "AC-1",
+        "AC-2",
+        "AC-3",
+        "AC-4",
+        "AC-5"
+      ]
+    },
+    "round": "3 of 3 (final; a round-3 NO-GO parks the unit)"
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "text": "A contract test asserts all three properties and FAILS at the unit's base SHA, PASSES at head.",
+      "addressed": true,
+      "evidence": "negctrl-r3.txt (RED with the unit-BASE policy blob restored, AssertionError, exit 1) + contract-test-r3.txt / poscontrol-r3.txt (GREEN at clean head, exit 0); mutants-r3.txt \u2014 31 cases, 28 KILLED-for-the-right-reason and 3 neutral reflows GREEN, both controls GREEN. The 28 include round 2's thirteen, round 2's twelve executed SURVIVORS (R2-TA-441/443/444), and three mutants for the new BOT-4 freshness rule. Each survivor dies on the assertion written for it \u2014 see round-3-answers.md's survivor table."
+    },
+    {
+      "id": "AC-2",
+      "text": "python3 scripts/validate.py exit 0 at head (line caps + reference resolution).",
+      "addressed": true,
+      "evidence": "validate-r3.txt (exit 0), recorded through evidence-run.py"
+    },
+    {
+      "id": "AC-3",
+      "text": "Full test suite green at head.",
+      "addressed": true,
+      "evidence": "suite-r3.txt \u2014 1707 tests, OK, exit 0, 442.2s, recorded through evidence-run.py",
+      "note": "Round 1 was NOT MET: 5 tests were RED at head AND at base. F-6 merged the green BASE (origin/review/2026-09-20-tracker-sweep @ ed51fe11, green since STAB-2 merge 2f04c402) into the branch \u2014 union merge, no conflict \u2014 and all five are green at the new head. Round-1 transcript prered-base.txt is retained as the superseded record."
+    },
+    {
+      "id": "AC-4",
+      "text": "NEGATIVE CONTROL executed: doc amendment reverted (test kept) -> contract test RED.",
+      "addressed": true,
+      "evidence": "commands[] label tests-negative-control \u2014 exit 1, AssertionError, wtree e4101ce17ab8e32d9a12945cceb603e4744012f8 (the reverted content), paired with label tests-positive-control \u2014 exit 0 at the restored head. Both through runtime/scripts/evidence-run.py. The 28-mutant battery in mutants-r3.txt is the PER-OBLIGATION negative control: every clause added by this unit has at least one mutant that turns the covering test RED when that clause alone is reversed or removed."
+    },
+    {
+      "id": "AC-5",
+      "text": "runtime/mission-chaining.md <= 160 lines.",
+      "addressed": true,
+      "evidence": "94 lines at head (cap 160); validate.py's runtime cap gate is green in validate-r3.txt"
+    }
+  ],
+  "commands": [
+    {
+      "label": "contract-test",
+      "ts": "2026-09-20T08:08:31Z",
+      "cmd": "python3 -m unittest tests.test_architecture.TestArchitecture.test_chain_link_boundary_is_specified -v",
+      "cmd_sha256": "b5de31d30f70132b34c7266781ca040f382361af24528ab3953830911e25d31a",
+      "exit": 0,
+      "duration_s": 0.037,
+      "commit": "88a64c902ea1cd2ab0e3040781f918bb8daaefc6",
+      "wtree": "a32a64720e5afe65f0626ca1a17aa555d962425b",
+      "artifact": "docs/reports/U-CHAIN/contract-test.txt"
+    },
+    {
+      "label": "validate",
+      "ts": "2026-09-20T08:08:32Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 0,
+      "duration_s": 0.882,
+      "commit": "88a64c902ea1cd2ab0e3040781f918bb8daaefc6",
+      "wtree": "a32a64720e5afe65f0626ca1a17aa555d962425b",
+      "artifact": "docs/reports/U-CHAIN/validate.txt"
+    },
+    {
+      "label": "tests-negative-control",
+      "ts": "2026-09-20T08:08:40Z",
+      "cmd": "python3 -m unittest tests.test_architecture.TestArchitecture.test_chain_link_boundary_is_specified -v",
+      "cmd_sha256": "b5de31d30f70132b34c7266781ca040f382361af24528ab3953830911e25d31a",
+      "exit": 1,
+      "duration_s": 0.03,
+      "commit": "88a64c902ea1cd2ab0e3040781f918bb8daaefc6",
+      "wtree": "ad36992ac9322618ffc691d07178a912f58ee224",
+      "artifact": "docs/reports/U-CHAIN/negctrl.txt"
+    },
+    {
+      "label": "tests-positive-control",
+      "ts": "2026-09-20T08:08:40Z",
+      "cmd": "python3 -m unittest tests.test_architecture.TestArchitecture.test_chain_link_boundary_is_specified -v",
+      "cmd_sha256": "b5de31d30f70132b34c7266781ca040f382361af24528ab3953830911e25d31a",
+      "exit": 0,
+      "duration_s": 0.029,
+      "commit": "88a64c902ea1cd2ab0e3040781f918bb8daaefc6",
+      "wtree": "a32a64720e5afe65f0626ca1a17aa555d962425b",
+      "artifact": "docs/reports/U-CHAIN/poscontrol.txt"
+    },
+    {
+      "label": "suite",
+      "ts": "2026-09-20T08:13:30Z",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "exit": 0,
+      "duration_s": 278.927,
+      "commit": "88a64c902ea1cd2ab0e3040781f918bb8daaefc6",
+      "wtree": "a32a64720e5afe65f0626ca1a17aa555d962425b",
+      "artifact": "docs/reports/U-CHAIN/suite.txt"
+    },
+    {
+      "label": "contract-test",
+      "ts": "2026-09-20T08:58:39Z",
+      "cmd": "python3 -B -m unittest tests.test_architecture.TestArchitecture.test_chain_link_boundary_is_specified -v",
+      "cmd_sha256": "5e62538d591df7793a14ba77b9071c45b10524f832360173deb514c28c0e6543",
+      "exit": 0,
+      "duration_s": 0.046,
+      "commit": "1635b27f43d22309bfc1e91be517c2815ac3cb6e",
+      "wtree": "7cc613067d828c6aa8b7490668d5227cae608b4e",
+      "artifact": "docs/reports/U-CHAIN/contract-test-r3.txt"
+    },
+    {
+      "label": "validate",
+      "ts": "2026-09-20T08:58:40Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 0,
+      "duration_s": 1.143,
+      "commit": "1635b27f43d22309bfc1e91be517c2815ac3cb6e",
+      "wtree": "4e6f575e739ad5a7b163bf542ae2ec2a051797b4",
+      "artifact": "docs/reports/U-CHAIN/validate-r3.txt"
+    },
+    {
+      "label": "mutants-r3",
+      "ts": "2026-09-20T08:58:41Z",
+      "cmd": "python3 docs/reports/U-CHAIN/run_mutants-r3.py",
+      "cmd_sha256": "4f9617528104aab41e9e75df63b66d97179d3e029b67213f5b613eae58cbbeca",
+      "exit": 0,
+      "duration_s": 1.451,
+      "commit": "1635b27f43d22309bfc1e91be517c2815ac3cb6e",
+      "wtree": "140619fa52000bb1e867905857bd1f9c50efc57d",
+      "artifact": "docs/reports/U-CHAIN/mutants-r3.txt"
+    },
+    {
+      "label": "mutants-r2-replay",
+      "ts": "2026-09-20T08:58:42Z",
+      "cmd": "python3 docs/reports/U-CHAIN/run_mutants-r2.py",
+      "cmd_sha256": "6a28f740fdaf8f67f0ac52b66e047576659c94c7a491b4a63552e0f4f921c819",
+      "exit": 0,
+      "duration_s": 0.653,
+      "commit": "1635b27f43d22309bfc1e91be517c2815ac3cb6e",
+      "wtree": "4a97544c0e6f9f32daaa6f6b2b417a28535460cf",
+      "artifact": "docs/reports/U-CHAIN/mutants-r2-replay.txt"
+    },
+    {
+      "label": "tests-negative-control",
+      "ts": "2026-09-20T08:58:49Z",
+      "cmd": "python3 -B -m unittest tests.test_architecture.TestArchitecture.test_chain_link_boundary_is_specified -v",
+      "cmd_sha256": "5e62538d591df7793a14ba77b9071c45b10524f832360173deb514c28c0e6543",
+      "exit": 1,
+      "duration_s": 0.039,
+      "commit": "1635b27f43d22309bfc1e91be517c2815ac3cb6e",
+      "wtree": "e4101ce17ab8e32d9a12945cceb603e4744012f8",
+      "artifact": "docs/reports/U-CHAIN/negctrl-r3.txt"
+    },
+    {
+      "label": "tests-positive-control",
+      "ts": "2026-09-20T08:58:49Z",
+      "cmd": "python3 -B -m unittest tests.test_architecture.TestArchitecture.test_chain_link_boundary_is_specified -v",
+      "cmd_sha256": "5e62538d591df7793a14ba77b9071c45b10524f832360173deb514c28c0e6543",
+      "exit": 0,
+      "duration_s": 0.044,
+      "commit": "1635b27f43d22309bfc1e91be517c2815ac3cb6e",
+      "wtree": "b9f7be601816a356b99b0e9434232671c49b6327",
+      "artifact": "docs/reports/U-CHAIN/poscontrol-r3.txt"
+    },
+    {
+      "label": "suite",
+      "ts": "2026-09-20T08:58:54Z",
+      "cmd": "python3 -B -m unittest discover -s tests -t . -v",
+      "cmd_sha256": "710d6bcfac0770c5ef0097e885248403172c7ea197b0ebbb00860463ea492a89",
+      "exit": 1,
+      "duration_s": 0.035,
+      "commit": "1635b27f43d22309bfc1e91be517c2815ac3cb6e",
+      "wtree": "cdb56379a7ba27d0ea5d2f54b68bdd808a566393",
+      "artifact": "docs/reports/U-CHAIN/suite-r3.txt"
+    },
+    {
+      "label": "suite",
+      "ts": "2026-09-20T09:06:49Z",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "exit": 0,
+      "duration_s": 442.349,
+      "commit": "1635b27f43d22309bfc1e91be517c2815ac3cb6e",
+      "wtree": "699f2485f42ae7fcee32bb73327bc3c5f798f476",
+      "artifact": "docs/reports/U-CHAIN/suite-r3.txt"
+    },
+    {
+      "label": "mutants-r4-repair",
+      "ts": "2026-09-20T12:36:40Z",
+      "cmd": "python3 docs/reports/U-CHAIN/run_mutants-r3.py",
+      "cmd_sha256": "4f9617528104aab41e9e75df63b66d97179d3e029b67213f5b613eae58cbbeca",
+      "exit": 0,
+      "duration_s": 1.327,
+      "commit": "9622a2421f70d3e3dea28bdedae6bfcb0c3f8285",
+      "wtree": "92edadfe418f1f2f8d342132fa84632dc55b3855",
+      "artifact": "docs/reports/U-CHAIN/mutants-r4.txt"
+    },
+    {
+      "label": "validate-r4-repair",
+      "ts": "2026-09-20T12:36:41Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 0,
+      "duration_s": 1.022,
+      "commit": "9622a2421f70d3e3dea28bdedae6bfcb0c3f8285",
+      "wtree": "92edadfe418f1f2f8d342132fa84632dc55b3855",
+      "artifact": "docs/reports/U-CHAIN/validate-r4.txt"
+    },
+    {
+      "label": "suite-r4-repair",
+      "ts": "2026-09-20T12:41:32Z",
+      "cmd": "python3 -m unittest discover -s tests -v",
+      "cmd_sha256": "a66b8f178d020ef6bfbcc8acf88c601828ddceb38cdd22c61aef2bdb2aa0d57c",
+      "exit": 0,
+      "duration_s": 283.965,
+      "commit": "9622a2421f70d3e3dea28bdedae6bfcb0c3f8285",
+      "wtree": "92edadfe418f1f2f8d342132fa84632dc55b3855",
+      "artifact": "docs/reports/U-CHAIN/suite-r4.txt"
+    }
+  ],
+  "negative_control": {
+    "did": "restored runtime/mission-chaining.md from ed51fe11 (the unit's pre-fix policy blob, byte-identical to a58bf71a's) in the worktree at head_sha, keeping the head test; then restored the head policy and re-ran the same command. Separately, 31 mutation cases were run by the committed harness: 28 expected RED (round 2's thirteen, round 2's twelve executed survivors, and three for the new freshness rule) and 3 neutral reflows expected GREEN. The harness itself was then attacked with round 2's two trust probes.",
+    "tool": "revert + hand mutants",
+    "result": "doc-revert RED (exit 1, AssertionError naming the missing park bullet); clean head GREEN (exit 0). 28/28 mutants KILLED with an ASSERTION failure, 0 survivors, 0 stillborn; 3/3 neutral reflows GREEN; both controls GREEN; HARNESS_EXIT=0. Under the trust probes the same committed harness exits 1 \u2014 31 STILLBORN under probe A, both controls RED under probe B.",
+    "artifact": "docs/reports/U-CHAIN/negctrl-r3.txt, docs/reports/U-CHAIN/poscontrol-r3.txt, docs/reports/U-CHAIN/mutants-r3.txt, docs/reports/U-CHAIN/mutants-r2-replay.txt, docs/reports/U-CHAIN/clean-checkout-replay-r3.txt, docs/reports/U-CHAIN/harness-trust-probes-r3.txt",
+    "harness": "docs/reports/U-CHAIN/run_mutants-r3.py on docs/reports/U-CHAIN/mutants_core.py (each mutant starts from the unmutated head policy and the policy is restored after every case; the baseline is derived from ed51fe11's blob and hash-checked against 1bacd1fe7be765311b08abba787f45844b39658a8908096fbc853a09a4a26e72, so the battery replays from a bare clone with no fixture \u2014 BOT-5). A kill requires an ASSERTION failure from the covering test; a nonzero exit without one is STILLBORN and fails the harness, as does either control going red \u2014 R2-HARNESS.",
+    "command": "python3 -m unittest tests.test_architecture.TestArchitecture.test_chain_link_boundary_is_specified -v",
+    "runner": "runtime/scripts/evidence-run.py (both controls, both batteries)",
+    "paths": [
+      "runtime/mission-chaining.md"
+    ]
+  },
+  "binding_audit": {
+    "coverage": "AC-1..AC-5 5/5 addressed; every round-1 Required finding (SPEC-1..SPEC-4, S1, S2, S3, TA-441, TA-443, TA-444) and the three held Greptile VALID findings answered by F-1..F-6.",
+    "method": "13-mutant battery re-running the reviewers' own six survivors and the two SPEC-2 mutants against the strengthened test, plus the base revert and four single-bullet deletions. Every mutant RED, unmutated and restored head GREEN. Transcript: mutants-r2.txt; harness: run_mutants-r2.py.",
+    "not_claimed": "F-5 is prose the reviewers asked for and carries no machine assertion; no PR, review or merge leg is claimed (the integrator owns those)."
+  },
+  "intent": {
+    "goal": "Close #441/#443/#444 by naming, in runtime/mission-chaining.md, the terminal a chain parks at when a human promotion is owed and what resumes it; the one artifact the mandated deferral carry rides in; and what re-derivability means for a leg whose target has no remote. Round 3 answers review round 2's NO-GO on all three axes: close BOT-4's freshness hole in the resume ancestry check, make the mutation harness replay from a clean checkout (BOT-5) and refuse to call a stillborn run or a failed control a success (R2-HARNESS), and kill the twelve narrow survivors the reviewers executed (R2-TA-441/443/444) by binding each obligation where it lives rather than file-wide.",
+    "ruled_out": "Touching verify.py or evidence-manifest.md (#442's cross-repo evidence-root gap is the separate U-442 unit); adding PARKED-AT-PROMOTION to ledger-contract.md's terminal table or to any mission guide (would change another policy, which the spec's stop rule forbids); a new runtime policy file for chain parking (the three gaps are clauses of an existing contract, not a new one); a standalone tests/test_mission_chaining.py (test_architecture.py already owns this file's docs-contract seam, and test_chain_terminals_are_decidable_by_rule sits beside the new test). Round 2 additionally ruled out: rewriting docs/reports/chaining-2026-09-16/handoff-log.md or leg1/RESTORE.md (the spec forbids editing the historical artifact \u2014 F-5 fixes the CITING text instead); editing gate-classification.md or merge-serialization.md to match the new wording (the shared doctrine was already right; this policy was the one that diverged); a semantic Markdown parser for the contract test (the reviewers asked for specific assertions, not a general oracle).",
+    "why": "The gaps are consequences the policy never drew, not missing vocabulary \u2014 so the fix has to read as a rule a coordinator can follow at 3am, and the test has to bind each property to ONE bullet. Asserting the tokens file-wide would have stayed green against a doc that sprinkled them across unrelated prose. PARKED-AT-PROMOTION is deliberately typed as a CHAIN state, not a mission terminal, because the existing degradation-marker rule classifies TERMINALS and a promotion park is the normal outcome of a CLEAN leg \u2014 typing it as a terminal would have made every healthy chain look degraded. The round-1 test failed the way documentation contracts usually fail: it pinned the words that NAME a rule and not the words that give it FORCE, so 'neither is a precondition', 'two optional examples' and 'a list of commit SHAs is sufficient' all stayed green. Each assertion now quotes the obligation clause itself, and bullets are whitespace-normalised first so a reflow cannot read as a doctrine change (S3)."
+  },
+  "lighting": "lit",
+  "artifacts": [
+    {
+      "path": "docs/reports/U-CHAIN/README.md",
+      "sha256": "9d50344a9517b87bd1a93bb42ce6ee08ef40959ed9c9f73db0365eb23052d700"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/clean-checkout-replay-r3.txt",
+      "sha256": "f0f5f05377be312ab674b5dee6fb56731b08e39b87b72b7b2c802a1549d6a310"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/contract-test-r3.txt",
+      "sha256": "874db1fe6c94fcb383b44c1b0c6c4cc6c5d5a32ed5d4cf23534a0ad52d115c3a"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/contract-test.txt",
+      "sha256": "874db1fe6c94fcb383b44c1b0c6c4cc6c5d5a32ed5d4cf23534a0ad52d115c3a"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/harness-trust-probes-r3.txt",
+      "sha256": "24c8fee9468a861c909dfaaa21c1402bf08ed2fc6c4902df62afe10f07d7c511"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/integrate-r2.json",
+      "sha256": "e5c1182068083f0d9b619dc057f58582b679a69d4d1a2cd4a627c0bf9df54dc7"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/integrate.json",
+      "sha256": "c96cc15e942d45a19e4074cf5bb64b0f86a5f753e4d8b9eefaefb6f9efa2e5da"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/mutants-r2-replay.txt",
+      "sha256": "1168f2558c22090e6da33640e84ddfd28fbdf468d8b6ddb66df773b9ff059d5f"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/mutants-r2.txt",
+      "sha256": "13b4116a43ec498f39bbfffeab204b379f95cbc4899a7c804c9b69e1c96757dd"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/mutants-r3.txt",
+      "sha256": "e914bd17cae2cc2b17f213cce18eda7ea2e7420421de205f5021dafcfeacbdf7"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/mutants-r4.txt",
+      "sha256": "e3908dc8c00bc803fd31de696071058d6ded6bdb1d2143ec07c030daace79aab"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/mutants_core.py",
+      "sha256": "cfc4c95baca7e5757d9c669b3145d16595398776c052b0b02fe0b69c614a0920"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/negctrl-per-criterion.txt",
+      "sha256": "a3fdfc161dda350a19ed84d2c7d76919617c971025ceef3f1819e86f492fa92f"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/negctrl-r3.txt",
+      "sha256": "a687f9d513fb1ea1172c440741912e0f7a8e2706837fa1a5123d5d4f1ca33e7b"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/negctrl.txt",
+      "sha256": "bfc8703df7b7ff90f41f87e5482a6b56dbd26f7c549142d0f45b8aa328a21363"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/poscontrol-r3.txt",
+      "sha256": "874db1fe6c94fcb383b44c1b0c6c4cc6c5d5a32ed5d4cf23534a0ad52d115c3a"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/poscontrol.txt",
+      "sha256": "874db1fe6c94fcb383b44c1b0c6c4cc6c5d5a32ed5d4cf23534a0ad52d115c3a"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/prered-base.txt",
+      "sha256": "439e7c5ab71ee09dc8be9cff89b31d4594a822e6aef648f82d0478bfd70778d7"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/review-spec-r2.txt",
+      "sha256": "0a5bcdd1a3c26ca8451e392ea39d7099c433e539e9fdf336d44eefa50f0861ec"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/review-spec.txt",
+      "sha256": "34abd51ab19b937485f570f4f40e48c9e3d53a2fb181f76fdbd0208c649525d1"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/review-standards-r2.txt",
+      "sha256": "11095573ec6be1c70ec6820d5363328b6d0534e59a0f483a18d4da15629cb6f5"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/review-standards.txt",
+      "sha256": "ca03056e1e89a7da663729fe6f6dacae049e0f368c6d1d10caaf076f495cc383"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/review-tests-r2.txt",
+      "sha256": "67ae76558c234a8cbdea67a97935434642fdd299815a6af17eda13cb8f88e144"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/review-tests.txt",
+      "sha256": "f548be334c851bb51dfbe83c7c3b20bc0bb946515399e7ebaaf9428434abfbbe"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/round-3-answers.md",
+      "sha256": "f05d654a168fc10ec7bf77652eae3537ce57c46242ebdf3415ebd77fb93931f8"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/run_mutants-r2.py",
+      "sha256": "039fcde887077b6bd1b8481e682b5a97d01d31d11336496d5d1e333a3175b32c"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/run_mutants-r3.py",
+      "sha256": "63bb2d635028c82e9d5527c41db716e3c438b34c7214520555efb3126c54ac82"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/suite-r3.txt",
+      "sha256": "9d9a30886cddb662ba1087886702889b4d18ff0fb52a73828e55cfe53e7bfc4f"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/suite-r4.txt",
+      "sha256": "d1f1e9ea99ed3ccabd924aaa1410e911ccc6d00079dfc187106af20f8bac94f0"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/suite.txt",
+      "sha256": "7274a2ad36ee797e791e0fc1b2867158d17c36bde84e56148f8a4f6696f5a775"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/validate-r3.txt",
+      "sha256": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/validate-r4.txt",
+      "sha256": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/validate.txt",
+      "sha256": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/verdict-r2.json",
+      "sha256": "fe43442a07789c5ebb0d90b85481a096e20ad5e8a21f4d6941ebc35c31e2e202"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/verdict-r2.md",
+      "sha256": "57b09ae788892ebe5854eb57ec8d16158b9b21d613f2495f6559cb1680d069bd"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/verdict-suite-r2.txt",
+      "sha256": "024bb0c91a9aa3f22d6080e021d38714b01849c87126bc7c25206a16b79887e6"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/verdict-suite.txt",
+      "sha256": "152792d99b09ca569cfe3586b2687538e699a2546c86c41a10c6376e14bb1b96"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/verdict-validate-r2.txt",
+      "sha256": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/verdict-validate.txt",
+      "sha256": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/verdict.json",
+      "sha256": "9cd6be2cca78ba3fb4b7e16250148e01a233c224feeedf0e7f3e7586cd66ea5a"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/verdict.md",
+      "sha256": "ee1924676eefaac62f86938d07be164e8185ccb77b06f95e74fa4a7d78ba3d70"
+    }
+  ],
+  "toolchain": "python 3.13.15 (mise), git 2.51, macOS 25.6.0 (darwin)",
+  "parked": [
+    {
+      "item": "PR, build-blind review and merge legs (pr / review / reviewer_mode fields are absent, not claimed)",
+      "reason": "needs-human \u2014 the spec assigns PR opening to the integrator/conductor, not this worker",
+      "gate": "integrator"
+    }
+  ],
+  "claim": "Round 2 fix batch on ravidsrk/u-chain: promotion semantics corrected to BASE->DEFAULT with a local-ref-safe ancestry check (F-1), reconstruction required to be commit-preserving with seed+diff demoted to supplemental (F-2), the contract test rebound to obligations so all six round-1 SURVIVORS and both SPEC-2 mutants now die 13/13 (F-3), the negative control re-recorded through evidence-run.py (F-4), the exemplar's adoption made explicit without touching the historical artifact (F-5), and the green BASE merged so the FULL suite is 1707 tests OK / exit 0 at head (F-6). validate.py exit 0. AC-1..AC-5 all met. No PR action taken.",
+  "round": 3,
+  "head_tree": "7cc613067d828c6aa8b7490668d5227cae608b4e",
+  "round_2_findings": [
+    {
+      "id": "F-1",
+      "sources": [
+        "SPEC-1",
+        "STANDARDS S1",
+        "Greptile P1"
+      ],
+      "fix": "runtime/mission-chaining.md:29-50 \u2014 PROMOTION is BASE->DEFAULT (gate-classification.md's closing rule; merge-serialization.md's 'Merge to the DEFAULT branch ... is a one-way human gate'). unit->BASE is named the conductor's ordinary agent merge, no-gh local-merge lane included, and explicitly NOT the gate. Resume fact 1 is now leg N's integration BASE tip being an ancestor of the DEFAULT branch, with <default-ref> spelled out as origin/<default> for a remote target and a valid LOCAL ref for a no-remote target ('never a nonexistent origin/...'). Restricted lanes 'cannot PROMOTE ... such a lane may still integrate its units into BASE'.",
+      "bound_by": "test mutants park-no-resume-precondition, park-no-procedure-defined, pacing-first-boundary-only (all KILLED); assertions on 'PROMOTION is BASE.DEFAULT', 'merging a unit INTO the BASE ... is NOT that gate', 'cannot PROMOTE', 'ancestor of the DEFAULT branch'"
+    },
+    {
+      "id": "F-2",
+      "sources": [
+        "STANDARDS S2"
+      ],
+      "fix": "runtime/mission-chaining.md:68-81 \u2014 the REQUIRED artifact is a reachable pushed mirror or COMMIT-PRESERVING reconstruction artifacts (a self-contained `git bundle` of the leg's refs, or an equivalent that demonstrably reproduces every cited commit and its ancestry). Seed sources + full diff are named SUPPLEMENTAL and never sufficient on their own, citing the exemplar's own docs/reports/chaining-2026-09-16/leg1/RESTORE.md, which already draws that line.",
+      "bound_by": "mutants local-seed-diff-optional, local-artifacts-optional, local-publishes-neither (all KILLED); assertions on 'git bundle', 'reproduces every cited commit', 'SUPPLEMENTAL and never sufficient on their own', 'complete only once the chain publishes', 'INCOMPLETE without one'"
+    },
+    {
+      "id": "F-3",
+      "sources": [
+        "SPEC-2",
+        "TEST-ADEQUACY TA-441/TA-443/TA-444",
+        "Greptile test P2",
+        "STANDARDS S3"
+      ],
+      "fix": "tests/test_architecture.py test_chain_link_boundary_is_specified \u2014 bullets are whitespace-normalised (' '.join(b.split())) before phrase matching, per the neighbouring convention at tests/test_architecture.py:923-926 (S3), and a must() helper binds each rule's OBLIGATION words, not only its subject vocabulary.",
+      "bound_by": "mutants-r2.txt \u2014 the six round-1 SURVIVORS (pacing-first-boundary-only, park-no-resume-precondition, carry-sections-optional, carry-schema-deleted, local-artifacts-optional, local-seed-diff-optional) plus the two SPEC-2 mutants (park-no-procedure-defined, local-publishes-neither) are all RED; base-policy and the four single-bullet deletions stay RED; unmutated head and restored head are GREEN. 13/13 KILLED, 0 survivors."
+    },
+    {
+      "id": "F-4",
+      "sources": [
+        "SPEC-4"
+      ],
+      "fix": "negative control re-recorded THROUGH runtime/scripts/evidence-run.py: commands[] now carries tests-negative-control (exit 1, fingerprint of the reverted content) and tests-positive-control (exit 0, fingerprint == head tree).",
+      "bound_by": "commands[] + negctrl.txt / poscontrol.txt"
+    },
+    {
+      "id": "F-5",
+      "sources": [
+        "Greptile P2"
+      ],
+      "fix": "runtime/mission-chaining.md:65-67 \u2014 the CITING text now says the exemplar was 'written as that run's PROPOSED shape, which predates this clause; it is ADOPTED here, so the shape above is doctrine and not a proposal'. The historical artifact docs/reports/chaining-2026-09-16/handoff-log.md is UNCHANGED.",
+      "bound_by": "reviewer re-read; no assertion added (the spec forbids rewriting the historical artifact and the adoption sentence is prose, not an obligation)"
+    },
+    {
+      "id": "F-6",
+      "sources": [
+        "SPEC-3"
+      ],
+      "fix": "merged origin/review/2026-09-20-tracker-sweep @ ed51fe11 into ravidsrk/u-chain (merge 1066c028, union, no conflict); full suite re-run at the new head through evidence-run.py.",
+      "bound_by": "commands[] label suite \u2014 1707 tests, OK, exit 0, wtree == head_sha^{tree}; AC-3 flipped to addressed"
+    }
+  ],
+  "provenance": {
+    "evidence_runner": "All five commands[] records were produced by runtime/scripts/evidence-run.py at head_sha 88a64c902ea1cd2ab0e3040781f918bb8daaefc6 with --manifest and --artifact pointing OUTSIDE the repository, so the wrapper's own writes could not move the working-tree fingerprint off the head tree. Four of the five records therefore carry wtree == git rev-parse 88a64c90^{tree} == a32a64720e5afe65f0626ca1a17aa555d962425b; the fifth (tests-negative-control) carries the fingerprint of the deliberately reverted content, as it must.",
+    "artifact_paths": "Each record's `artifact` field was rewritten from its scratch path to the repository path the identical bytes were then committed at; the sha256 values under `artifacts` are of those committed bytes.",
+    "evidence_commit": "head_sha names the IMPLEMENTATION commit. This manifest and its transcripts land in a following evidence-only commit, as in round 1."
+  },
+  "base_tip_at_round_3": "9ae38a7961a48c154a8be314b2cc6ae6584a1d75",
+  "base_tip_note": "base_sha stays ed51fe11 \u2014 the commit the unit's policy work forked from and the blob the negative control reverts to. BASE (review/2026-09-20-tracker-sweep) advanced twice during round 3, to adf41be8 before the fix and to 9ae38a7961a48c154a8be314b2cc6ae6584a1d75 after the evidence commit; both were merged into the branch (docs/runs additions only, no conflict). The contract test, validate.py and the 31-case battery were re-run green after the second merge. head_sha was unchanged by either merge and its tree is still bound by the exit-0 contract-test record; the commit is now named as on-branch 1635b27f per head_sha_rebind_note (the pre-strip 5bd2eb07 carried the identical tree).",
+  "round_3_findings": [
+    {
+      "id": "G-1",
+      "sources": [
+        "BOT-4",
+        "SPEC-R2-1",
+        "S-R2-1"
+      ],
+      "fix": "runtime/mission-chaining.md resume alternative 1: for a REMOTE target `origin/<default>` is REFRESHED immediately before the check (`git fetch origin <default>`) with the resolved default SHA written down, on preflight.py's contract that an online default resolves through `refs/remotes/origin/<branch>` and never a possibly stale local namesake; a `<default-ref>` whose freshness cannot be established leaves the promotion UNPROVEN and the chain parked, never landed. The offline branch keeps a valid LOCAL ref for an explicitly OFFLINE target. The ancestry subject is pinned to leg N's own completed BASE tip.",
+      "bound_by": "assertions on 'REFRESHED immediately before the check', 'git fetch origin', 'freshness cannot be established \u2026 UNPROVEN', 'never landed', the offline LOCAL-ref clause and the pinned ancestry subject, all inside alternative 1; mutants own-freshness-refresh-removed, own-freshness-unproven-reversed, own-ancestry-subject-unpinned, own-offline-nonexistent-ref (all RED)"
+    },
+    {
+      "id": "G-2",
+      "sources": [
+        "BOT-5",
+        "S-R2-2"
+      ],
+      "fix": "mutants_core.baseline() derives the pre-fix policy from ed51fe11:runtime/mission-chaining.md and hash-checks it; run_mutants-r2.py no longer reads the untracked base-policy.md.",
+      "bound_by": "clean-checkout-replay-r3.txt \u2014 a `git clone --no-local` with no base-policy.md runs both batteries to completion, HARNESS_EXIT=0"
+    },
+    {
+      "id": "G-3",
+      "sources": [
+        "R2-HARNESS",
+        "S-R2-3"
+      ],
+      "fix": "mutants_core.classify() calls a run RED only on an assertion failure from the covering test; `Ran 0 tests`, loader/import errors and any other nonzero exit without an assertion failure are STILLBORN and fail the harness. Either positive control not GREEN fails the harness; a neutral case going red fails it too.",
+      "bound_by": "harness-trust-probes-r3.txt \u2014 probe A (ImportError only on mutated bytes): 31 STILLBORN, HARNESS_EXIT=1; probe B (test red only at the original hash): both controls RED, HARNESS_EXIT=1; probes reverted: HARNESS_EXIT=0"
+    },
+    {
+      "id": "G-4",
+      "sources": [
+        "R2-TA-441"
+      ],
+      "fix": "the contract test extracts each numbered resume alternative from the park bullet and binds its full obligation set inside that segment \u2014 alternative 1: ancestry direction and subject, the merge-base command, G-1's freshness sentences, the offline ref; alternative 2: named human's explicit decision, UNPROMOTED fork, granted SHA written down. The park-level 'REQUIRES exactly one of two facts' / 'nothing else is sufficient' framing is retained, not replaced.",
+      "bound_by": "mutants own-promoted-ancestry-inverted, own-promoted-wrong-commit, own-grant-no-sha, own-grant-no-unpromoted-fork, own-grant-promoted-only, own-offline-nonexistent-ref \u2014 all six round-2 survivors now RED, each on its own assertion"
+    },
+    {
+      "id": "G-5",
+      "sources": [
+        "R2-TA-443"
+      ],
+      "fix": "the carry table's full field set is bound \u2014 carry id, `from` with its source class, `content` pinned to file:line, `input status` with the OWED rule \u2014 plus the gate record's 'which gate, its state, the human who owns it, and what resumes it' and the missing-vs-empty rule.",
+      "bound_by": "mutants own-carry-source-content-removed, own-gate-identity-state-removed, own-missing-handoff-empty \u2014 all three round-2 survivors now RED"
+    },
+    {
+      "id": "G-6",
+      "sources": [
+        "R2-TA-444"
+      ],
+      "fix": "bound: 'reproduces every cited commit and its ancestry', the mirror's 'the remote and the pushed refs written down', and 'Every published artifact is hashed into the run-close integrity inventory', alongside the retained git-bundle and SUPPLEMENTAL assertions.",
+      "bound_by": "mutants own-reconstruct-ancestry-removed, own-mirror-ref-fields-removed, own-artifact-hash-removed \u2014 all three round-2 survivors now RED"
+    }
+  ],
+  "head_sha_rebind_note": "S-R3-2 \u2014 head_sha and the commands[].commit fields named 5bd2eb07, a commit that no longer EXISTS on ravidsrk/u-chain: the conductor's trailer-strip rewrite replaced it with 1635b27f (mapping documented in review-spec-r3.txt). They are rebound to 1635b27f, which is on-branch and whose tree is 7cc61306 \u2014 BYTE-IDENTICAL to the stripped commit's, so every recorded exit code and fingerprint still describes the exact bytes that were measured. Receipts' recorded `wtree` values and head_tree are DELIBERATELY UNCHANGED: they are working-tree fingerprints honestly made on the pre-strip trees, which the rewrite did not alter. Rebound during the gate-batch G1-b targeted repair.",
+  "repair_g1b": {
+    "authorized_by": "gate-batch G1 option (b) \u2014 human-granted exceptional targeted repair of the round-3 NO-GO (verdict 5260271654 on PR #484). NOT a fourth review round.",
+    "spec": "docs/runs/2026-09-20-clean-sweep-tracker/repair-u-chain.md",
+    "stickers": [
+      {
+        "id": "S-R3-1 / R3-TA-3",
+        "what": "harness graded a skipped run GREEN",
+        "fix": "mutants_core.classify() requires >=1 test executed AND OK with ZERO skips; skipped/empty runs are STILLBORN and fail the harness closed. selftest() proves it against a real skip-producing module (exit 0, prints the line the old bare-OK rule matched) plus 7 classifier cases, and runs before any mutant.",
+        "bound_by": "mutants-r4.txt header \u2014 'a real skipped run classifies STILLBORN; 8 classifier cases pass'; selftest() raises, so the harness exits nonzero."
+      },
+      {
+        "id": "S-R3-2",
+        "what": "manifest named conductor-stripped 5bd2eb07",
+        "fix": "head_sha + 8 commands[].commit rebound to on-branch 1635b27f (tree-identical); wtree values and head_tree deliberately untouched.",
+        "bound_by": "head_sha_rebind_note; every commit field resolves on ravidsrk/u-chain."
+      },
+      {
+        "id": "R3-TA-1",
+        "what": "ancestry assertion bound only the command NAME",
+        "fix": "binds the full command including operand order, base-tip before default-ref.",
+        "bound_by": "mutant r3-own-3-ancestry-operands-reversed \u2014 RED."
+      },
+      {
+        "id": "R3-TA-2",
+        "what": "OWED assertion matched a bare phrase surviving 'optionally'",
+        "fix": "anchors the clause at its opening paren, binding OWED as the required start status.",
+        "bound_by": "mutant r3-own-2-owed-optional \u2014 RED."
+      }
+    ],
+    "repair_head_sha": "9622a2421f70d3e3dea28bdedae6bfcb0c3f8285",
+    "evidence": "commands[] labels mutants-r4-repair / validate-r4-repair / suite-r4-repair, all exit 0 through runtime/scripts/evidence-run.py with wtree == HEAD^{tree}. Battery grew 31 -> 33: the two round-3 survivors are now permanent regression mutants. 33 run, 30 RED / 3 GREEN, 0 survivors, 0 stillborn, both controls GREEN.",
+    "not_claimed": "No PR, review or merge leg. head_sha still names the round-3 implementation (1635b27f); this repair's implementation commits are separate and named here."
+  }
+}
