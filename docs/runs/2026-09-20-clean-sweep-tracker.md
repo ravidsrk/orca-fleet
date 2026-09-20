@@ -275,5 +275,15 @@ BOOTSTRAP: preflight --base review/2026-09-20-tracker-sweep --fork-point e8ddbd9
   task_c3b292b75f56, claude term_40826a62 (suite+validate re-verify, --force-with-lease
   push, Greptile reconcile). U-CHAIN's FINAL r3 fix still in flight.
 
+- 14:0x U-CHAIN r3 (FINAL) FIX DONE (worker_done msg_ce5d59d31724): 5bd2eb07 fix + 14575aba
+  evidence + re-merges; 28/28 mutants RED, harness replays clean. HARVEST: G-1 freshness
+  clause verified in place (fetch-before-check, UNPROVEN-not-landed, preflight contract
+  cited, offline stays local). TRAILER BREACH #2: 3 unpushed commits dirty (5bd2eb07,
+  14575aba, 0213c734) — conductor strip over b431c418..HEAD → head d75b23b1, TREE IDENTICAL,
+  0 trailers remain, backup ref deleted (ledgered; second occurrence — claude workers are
+  appending trailers despite the spec's 'no trailers' line; compound-learn candidate).
+  R3 INTEGRATE dispatched: task_aeb2e5dc5e06, claude term_b545ef34 (suite+validate+harness
+  replay, --force-with-lease push, Greptile). U-442's r2 integrator still in flight.
+
 BRANCHES: local worktree checkouts carry the `ravidsrk/` prefix mapping to the unit tips
 (ravidsrk/u-chain, ravidsrk/u-442). Not drift — do not "fix".
