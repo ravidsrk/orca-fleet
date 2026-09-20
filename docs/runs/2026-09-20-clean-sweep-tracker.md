@@ -108,6 +108,14 @@ one unit or park; no id without a unit; no unit without an id.
   exit 3 UNPROVEN (request ca86ab2f) — pane read shows LIVE worker mid-turn in verify.py:
   HANDLE term_cdd92b44-5d5a-4f8d-9868-9e21d818fb7a. WIP=2 builders (attention-budget met).
   Spec digests: build-u-chain.md sha256:87260521…, build-u442.md sha256:7498d20d… @a58bf71a.
+  Timeboxes sent to both dispatches (report-by 45min, partial-report STOP).
+- 06:57 DELIVERY delivery_6a5ff5b13e45 (4 msgs, transcribed): setup-status for the STOPPED
+  ctx_02702604cecd (historical) · heartbeats both builders (alive) · LIVE question
+  msg_2df108a4d6d0 (U-CHAIN branch ambiguity — leftover u-chain branch held by stopped spawn's
+  worktree). REPLIED (A): build on ravidsrk/u-chain in the dispatched worktree (DECISIONS
+  2026-09-20T06:57:11Z, mechanical). Leftover worktree U-CHAIN-builder-2649789649 retired:
+  terminals closed (1 stopped), untracked package.json/pnpm-lock VERIFIED npm-init boilerplate
+  then removed, worktree rm OK, branch u-chain carried no commits (rm cleaned it). Acked.
 
 BOOTSTRAP: preflight --base review/2026-09-20-tracker-sweep --fork-point e8ddbd988486 --require-gitleaks → OK (repo=ravidsrk/orca-fleet). BASE ≠ default; fork-point == merge-base(BASE, origin/main).
 

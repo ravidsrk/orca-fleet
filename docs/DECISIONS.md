@@ -54,3 +54,4 @@
 2026-09-17T05:58Z · floor-waiver:unfinished-work:docs/runs/campaign-2026-09-16-clean-sweep/triage/issue-407.fenced.txt · taste · allow · pastes a status cell from issue #407's body; archival quotation, not repo work ·
 2026-09-17T05:58Z · floor-waiver:unfinished-work:docs/runs/campaign-2026-09-16-clean-sweep/triage/issue-386.fenced.txt · taste · allow · quotes review prose about deferred work; archival quotation, not repo work ·
 2026-09-17T05:58Z · floor-waiver:unfinished-work:docs/runs/campaign-2026-09-16-clean-sweep/triage/verdicts.md · taste · allow · quotes review prose about deferred work; archival quotation, not repo work ·
+2026-09-20T06:57:11Z · ask-msg_2df108a4d6d0 · mechanical · (A) builder commits on ravidsrk/u-chain in its dispatched worktree · branch naming: ravidsrk/ prefix is Orca's worktree mapping (2026-09-14 precedent); leftover worktree is stopped-spawn residual, coordinator retires it · task_61b5e8accc70

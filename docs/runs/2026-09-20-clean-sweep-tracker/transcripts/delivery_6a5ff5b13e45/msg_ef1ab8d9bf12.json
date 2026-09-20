@@ -1,0 +1,10 @@
+{
+ "id": "msg_ef1ab8d9bf12",
+ "type": "status",
+ "created_at": "2026-09-20T06:44:39Z",
+ "subject": "Setup succeeded for worker ctx_02702604cecd",
+ "body": "",
+ "payload": "{\"dispatchId\":\"ctx_02702604cecd\",\"setupState\":\"succeeded\",\"terminalHandle\":\"term_f07309d5-98ca-4249-9ba4-d1fcd9d33564\"}",
+ "taskId": null,
+ "dispatchId": "ctx_02702604cecd"
+}
