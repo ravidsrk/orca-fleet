@@ -654,11 +654,60 @@ class TestArchitecture(unittest.TestCase):
              "the park's resume rule must be a precondition, not a convenience log")
         must(park, r"(?i)nothing else is sufficient",
              "the two resume facts must be exclusive — no third route out of the park")
-        # ...and each alternative's own condition, so neither can be hollowed out.
-        must(park, r"(?i)ancestor of the DEFAULT branch",
-             "resume fact 1 must verify the leg's BASE tip landed on DEFAULT (#441, SPEC-1)")
-        must(park, r"(?i)named human.s explicit decision",
+        # ...and each alternative's own condition, so neither can be hollowed out. Round 2
+        # showed six survivors that keep an alternative's vocabulary while its relationship or
+        # condition disappears — invert "is an ancestor", swap the repository seed commit in for
+        # the completed BASE tip, drop the granted SHA, drop the unpromoted-fork clause, flip
+        # UNPROMOTED to PROMOTED, point an offline target at `origin/<default>`. A park-wide
+        # assertion cannot see which alternative lost its condition, so bind each obligation
+        # INSIDE its own numbered segment (R2-TA-441).
+        def alternative(n, until):
+            m = re.search(rf"(?s)\b{n}\.\s(.*?)(?={until})", park)
+            self.assertTrue(
+                m,
+                f"mission-chaining.md: resume alternative {n} is missing from the "
+                f"PARKED-AT-PROMOTION bullet",
+            )
+            return m.group(1)
+
+        alt1 = alternative(1, r"\b2\.\s")
+        alt2 = alternative(2, r"An agent-executed promotion is neither")
+
+        # alternative 1 — the landed promotion SHA.
+        must(alt1, r"(?i)BASE tip is an ancestor of the DEFAULT",
+             "resume fact 1 must assert the leg's own BASE tip IS an ancestor of DEFAULT — "
+             "not its negation, and not some other commit (#441, SPEC-1)")
+        must(alt1, r"git merge-base --is-ancestor",
+             "resume fact 1 must name the ancestry command that decides it")
+        must(alt1, r"(?i)ancestry subject is leg N.s own completed BASE tip",
+             "the ancestry subject must be pinned: the seed commit passing is not a promotion")
+        # BOT-4 / SPEC-R2-1 / S-R2-1: `origin/<default>` is a local cache. A human can promote
+        # from another checkout while the chain is parked, so the cached ref answers "not landed"
+        # about a landed promotion. Both halves of the freshness rule are bound: refresh first,
+        # and an unestablishable ref parks rather than lands.
+        must(alt1, r"(?i)REFRESHED immediately before the check",
+             "a REMOTE target's default ref must be refreshed at the resume check, not inherited "
+             "from leg N's preflight (BOT-4)")
+        must(alt1, r"(?i)git fetch origin",
+             "the refresh must name the fetch that performs it, per preflight.py's contract")
+        must(alt1, r"(?i)freshness cannot be established.{0,80}?UNPROVEN",
+             "a ref whose freshness cannot be established must make the promotion UNPROVEN")
+        must(alt1, r"(?i)never landed",
+             "an unproven promotion must stay parked — it is never treated as landed (BOT-4)")
+        must(alt1, r"(?i)valid LOCAL ref.{0,140}?for an explicitly OFFLINE target with no remote",
+             "the offline branch must keep a valid LOCAL ref — a no-remote target may not be "
+             "pointed at `origin/<default>`")
+        must(alt1, r"(?i)never a nonexistent .origin",
+             "the offline branch must still forbid a nonexistent `origin/…` ref")
+
+        # alternative 2 — the recorded BASE-carry grant.
+        must(alt2, r"(?i)named human.s explicit decision",
              "resume fact 2 must be a named human's recorded grant, not an agent's")
+        must(alt2, r"(?i)fork leg N.s UNPROMOTED BASE tip",
+             "resume fact 2 exists for the UNPROMOTED tip — a grant over an already-promoted "
+             "tip is alternative 1, and a grant over no tip at all is an unconditional resume")
+        must(alt2, r"(?i)with the granted SHA written down",
+             "resume fact 2 must record WHICH SHA was granted, or it grants nothing checkable")
         # SPEC-1/S1: promotion is BASE->DEFAULT (gate-classification.md), NOT unit->BASE, and a
         # restricted lane is unable to PROMOTE while still able to integrate.
         must(park, r"(?i)cannot PROMOTE",
@@ -684,11 +733,24 @@ class TestArchitecture(unittest.TestCase):
              "both carry sections must be REQUIRED — optional sections are no shape at all")
         # The schema itself, not only the section names: a named section with unspecified
         # contents leaves the consumer exactly where #443 found it.
-        for field in (r"carry id", r"input status"):
+        # R2-TA-443: the whole-schema deletion dies on "two sections, both required" before it
+        # can show that the INDIVIDUAL fields are protected. Three survivors proved they were
+        # not: drop `from`/`content`, drop the gate's identity and state, and declare a missing
+        # log an empty-but-finished carry. Bind the full field set of both sections.
+        for field in (r"carry id", r"`from`", r"`content`", r"input status"):
             must(carry, rf"(?i){field}",
-                 f"the carry table must declare its `{field}` field")
-        must(carry, r"(?i)the human who owns it, and what resumes it",
-             "the gate record must declare its owner and resume fields")
+                 f"the carry table must declare its {field} field")
+        must(carry, r"(?i)source class: parked / backlog / noticed-not-touched",
+             "the carry table's `from` field must classify the source, not just name a leg")
+        must(carry, r"(?i)pinned to file:line",
+             "the carry table's `content` must be pinned to a location at the cited SHA")
+        must(carry, r"(?i)`OWED` until leg N\+1 triages it",
+             "the carry table's `input status` must start OWED — an untriaged carry is not done")
+        must(carry, r"(?i)which gate, its state, the human who owns it, and what resumes it",
+             "the gate record must declare gate identity and state as well as owner and resume")
+        must(carry, r"(?i)a MISSING handoff log is an unfinished chain, never an empty one",
+             "a missing log must read as an unfinished chain — reading it as an empty carry "
+             "makes the whole artifact optional again")
 
         # (c) #444 — local-only (no-remote) targets cannot re-derive from SHAs alone, so the
         #     chain must publish the bytes: a pushed mirror or embedded reconstruction.
@@ -705,8 +767,19 @@ class TestArchitecture(unittest.TestCase):
         must(local, r"(?i)git bundle",
              "the required reconstruction artifact must be commit-preserving (a git bundle "
              "or equivalent), not a SHA list")
-        must(local, r"(?i)reproduces every cited commit",
-             "the artifact must demonstrably reproduce the cited commits, not just file bytes")
+        # R2-TA-444: three survivors kept the artifact's name and lost its content — drop "and
+        # its ancestry" (a commit list without history is not a reconstruction), drop the
+        # mirror's written remote/refs (an unreachable mirror publishes nothing), and drop the
+        # integrity hash (unhashed bytes can move under the citation).
+        must(local, r"(?i)reproduces every cited commit and its ancestry",
+             "the artifact must reproduce the cited commits AND their ancestry — history is "
+             "what a bundle preserves and a byte-dump does not")
+        must(local, r"(?i)the remote and the pushed refs written down",
+             "the pushed mirror must record its retrieval coordinates: remote and pushed refs")
+        must(local, r"(?i)Every published artifact is hashed into the run-close integrity "
+                    r"inventory",
+             "published bytes must be hashed into the integrity inventory, or a later audit "
+             "cannot tell they have not moved")
         must(local, r"(?i)SUPPLEMENTAL and never sufficient on their own",
              "seed sources plus the full diff must be supplemental, never sufficient alone")
 

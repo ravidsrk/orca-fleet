@@ -42,9 +42,14 @@ small. Sequential only. No DAG, no expression language, no preset catalog.
   exactly one of two facts, each recorded in the ledger; nothing else is sufficient:
   1. a **landed promotion SHA** — leg N's integration BASE tip is an ancestor of the DEFAULT
      branch (`git merge-base --is-ancestor <base-tip> <default-ref>`, where `<default-ref>` is
-     `origin/<default>` for a remote target and a valid LOCAL ref — the local default branch —
-     for a target with no remote, never a nonexistent `origin/…`); leg N+1 forks from that
-     promoted DEFAULT; or
+     `origin/<default>` for a REMOTE target — REFRESHED immediately before the check
+     (`git fetch origin <default>`), with the resolved default SHA written down, on
+     preflight.py's own contract that an online default resolves through
+     `refs/remotes/origin/<branch>` and never a possibly stale local namesake; a `<default-ref>`
+     whose freshness cannot be established leaves the promotion UNPROVEN and the chain parked,
+     never landed — and a valid LOCAL ref, the local default branch, for an explicitly OFFLINE
+     target with no remote, never a nonexistent `origin/…`); the ancestry subject is leg N's own
+     completed BASE tip and no other commit; leg N+1 forks from that promoted DEFAULT; or
   2. a recorded **BASE-carry grant** — the named human's explicit decision (the carry-over above)
      that leg N+1 may fork leg N's UNPROMOTED BASE tip, with the granted SHA written down.
   An agent-executed promotion is neither. A coordinator may not resume its own promotion park.
