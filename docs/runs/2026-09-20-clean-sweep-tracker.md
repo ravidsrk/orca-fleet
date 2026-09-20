@@ -410,6 +410,15 @@ BOOTSTRAP: preflight --base review/2026-09-20-tracker-sweep --fork-point e8ddbd9
   09-16 G3 class) disclosed in-manifest and here. Terminal state of the denominator:
   4 issues CLOSED with evidence, 6 parked (all clean-class or gate-named needs-human).
 
+- 21:3x CLOSE COMPLETE: WT_CLEAN verified (both unit worktrees/branches/terminals gone at
+  merge — gh --delete-branch + Orca teardown; orca worktree list shows only the
+  coordinator checkout; 0 stray terminals); scratch worktrees removed. FINAL TIP
+  re-verified after the close commits: full suite exit 0, validate 21/21, tree clean.
+  Run state: CLOSED with evidence — #441 #442 #443 #444 (verify 6/6 + 5/6-disclosed);
+  parked clean-class — #409 #427 (out-of-scope handoffs); parked needs-human with named
+  gates — #235 #386 #407 #434 (all re-confirmed this run). PR #486 absorbs the advanced
+  BASE; its merge and the U-442 review-leg waiver are the maintainer's remaining calls.
+
 BRANCHES: local worktree checkouts carry the `ravidsrk/` prefix mapping to the unit tips
 (ravidsrk/u-chain, ravidsrk/u-442). Not drift — do not "fix".
 
