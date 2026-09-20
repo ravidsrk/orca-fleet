@@ -1,0 +1,145 @@
+{
+  "unit": "U-CHAIN",
+  "base_sha": "a58bf71a283928a8278e560163452ee70c7ad609",
+  "head_sha": "315ad409097b378b3d342d5144322d0f92d0d119",
+  "base_branch": "review/2026-09-20-tracker-sweep",
+  "contract": {
+    "source": "docs/runs/2026-09-20-clean-sweep-tracker/build-u-chain.md@a58bf71a283928a8278e560163452ee70c7ad609",
+    "digest": "872605215c4b4e418d9efd1ed518dfeccf7d417283bdd3c3c21670d3a0bcb1cb",
+    "criterion_ids": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4",
+      "AC-5"
+    ]
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "text": "A contract test asserts all three properties and FAILS at the unit's base SHA, PASSES at head.",
+      "addressed": true,
+      "evidence": "docs/reports/U-CHAIN/negctrl.txt (RED at base doc content, AssertionError), docs/reports/U-CHAIN/contract-test.txt (GREEN at head)"
+    },
+    {
+      "id": "AC-2",
+      "text": "python3 scripts/validate.py exit 0 at head (line caps + reference resolution).",
+      "addressed": true,
+      "evidence": "docs/reports/U-CHAIN/validate.txt (exit 0)"
+    },
+    {
+      "id": "AC-3",
+      "text": "Full test suite green at head.",
+      "addressed": false,
+      "evidence": "docs/reports/U-CHAIN/suite.txt (1707 tests, 5 failures) vs docs/reports/U-CHAIN/prered-base.txt (same 5 at base_sha)",
+      "note": "NOT MET, and not meetable by this unit: the identical 5 tests are RED at base_sha, introduced by the run's own STAB commits (296f100b added docs/runs/2026-09-20-clean-sweep-tracker.md without a run-archive index row; 3833c88e left README wiring off the wiring script's fixed point). Both live outside this unit's scope (docs/runs index, README) and its stop rule. What IS proven: no NEW red \u2014 the failing set at head is byte-identical to the failing set at base."
+    },
+    {
+      "id": "AC-4",
+      "text": "NEGATIVE CONTROL executed: doc amendment reverted (test kept) -> contract test RED.",
+      "addressed": true,
+      "evidence": "docs/reports/U-CHAIN/negctrl.txt (whole-amendment revert) + docs/reports/U-CHAIN/negctrl-per-criterion.txt (4 hand mutants, one per clause, all KILLED)"
+    },
+    {
+      "id": "AC-5",
+      "text": "runtime/mission-chaining.md <= 160 lines.",
+      "addressed": true,
+      "evidence": "77 lines at head; validate.py's runtime cap gate is green in validate.txt"
+    }
+  ],
+  "commands": [
+    {
+      "label": "contract-test",
+      "ts": "2026-09-20T07:02:13Z",
+      "cmd": "python3 -m unittest tests.test_architecture.TestArchitecture.test_chain_link_boundary_is_specified -v",
+      "cmd_sha256": "b5de31d30f70132b34c7266781ca040f382361af24528ab3953830911e25d31a",
+      "exit": 0,
+      "duration_s": 0.037,
+      "commit": "315ad409097b378b3d342d5144322d0f92d0d119",
+      "wtree": "7cbc79d7f8fbaab8470557d4bc2becb8276952b8",
+      "artifact": "docs/reports/U-CHAIN/contract-test.txt"
+    },
+    {
+      "label": "validate",
+      "ts": "2026-09-20T07:02:37Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 0,
+      "duration_s": 1.087,
+      "commit": "315ad409097b378b3d342d5144322d0f92d0d119",
+      "wtree": "7cbc79d7f8fbaab8470557d4bc2becb8276952b8",
+      "artifact": "docs/reports/U-CHAIN/validate.txt"
+    },
+    {
+      "label": "suite",
+      "ts": "2026-09-20T07:07:22Z",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "exit": 1,
+      "duration_s": 279.32,
+      "commit": "315ad409097b378b3d342d5144322d0f92d0d119",
+      "wtree": "7cbc79d7f8fbaab8470557d4bc2becb8276952b8",
+      "artifact": "docs/reports/U-CHAIN/suite.txt"
+    }
+  ],
+  "negative_control": {
+    "did": "restored runtime/mission-chaining.md from base_sha in a throwaway worktree at head_sha; then, separately, dropped each of the four added bullets by hand (one per clause)",
+    "tool": "revert",
+    "result": "the criterion-bound test went RED with an AssertionError under every control (mutants KILLED); ZERO on the same command at clean head_sha",
+    "artifact": "docs/reports/U-CHAIN/negctrl.txt",
+    "command": "python3 -m unittest tests.test_architecture.TestArchitecture.test_chain_link_boundary_is_specified",
+    "paths": [
+      "runtime/mission-chaining.md"
+    ]
+  },
+  "binding_audit": {
+    "coverage": "AC-1, AC-4, AC-5 (the doctrine criteria) 3/3; AC-2 tool-gated; AC-3 NOT MET (see criteria)",
+    "method": "each of the three findings' clauses was dropped by hand at head_sha and the contract test went RED naming that clause (negctrl-per-criterion.txt): #441 human-pacing bullet, #441 PARKED-AT-PROMOTION bullet, #443 handoff-log bullet, #444 local-only bullet \u2014 4/4 KILLED, clean head GREEN. The test asserts each property inside ONE bullet, so scattered vocabulary cannot satisfy it."
+  },
+  "intent": {
+    "goal": "Close #441/#443/#444 by naming, in runtime/mission-chaining.md, the terminal a chain parks at when a human promotion is owed and what resumes it; the one artifact the mandated deferral carry rides in; and what re-derivability means for a leg whose target has no remote.",
+    "ruled_out": "Touching verify.py or evidence-manifest.md (#442's cross-repo evidence-root gap is the separate U-442 unit); adding PARKED-AT-PROMOTION to ledger-contract.md's terminal table or to any mission guide (would change another policy, which the spec's stop rule forbids); a new runtime policy file for chain parking (the three gaps are clauses of an existing contract, not a new one); a standalone tests/test_mission_chaining.py (test_architecture.py already owns this file's docs-contract seam, and test_chain_terminals_are_decidable_by_rule sits beside the new test).",
+    "why": "The gaps are consequences the policy never drew, not missing vocabulary \u2014 so the fix has to read as a rule a coordinator can follow at 3am, and the test has to bind each property to ONE bullet. Asserting the tokens file-wide would have stayed green against a doc that sprinkled them across unrelated prose. PARKED-AT-PROMOTION is deliberately typed as a CHAIN state, not a mission terminal, because the existing degradation-marker rule classifies TERMINALS and a promotion park is the normal outcome of a CLEAN leg \u2014 typing it as a terminal would have made every healthy chain look degraded."
+  },
+  "lighting": "lit",
+  "artifacts": [
+    {
+      "path": "docs/reports/U-CHAIN/contract-test.txt",
+      "sha256": "4d19c11677666addbdb0ec24776cabf3e44c017f496a0ee8f3f50e7a95dd030e"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/validate.txt",
+      "sha256": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/suite.txt",
+      "sha256": "d11f9820284c1abfc48a2c882474f5adeef3a31aac9eb82421a6eb7eb09d6f8f"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/negctrl.txt",
+      "sha256": "4a808765a2d1418925704c3a6f6bec948426fe58f7a30731ef18972552fd4298"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/negctrl-per-criterion.txt",
+      "sha256": "a3fdfc161dda350a19ed84d2c7d76919617c971025ceef3f1819e86f492fa92f"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/prered-base.txt",
+      "sha256": "439e7c5ab71ee09dc8be9cff89b31d4594a822e6aef648f82d0478bfd70778d7"
+    }
+  ],
+  "toolchain": "python 3.13.7 (mise), git 2.51, macOS 25.6.0 (darwin)",
+  "parked": [
+    {
+      "item": "5 pre-existing RED tests (4 in test_docs_navigation, 1 in test_wire_docs) that block AC-3",
+      "reason": "out-of-scope \u2014 introduced by the run's own STAB commits; fixing them means editing docs/runs/README and README.md, which this unit's stop rule forbids",
+      "gate": "coordinator: re-scope as a separate unit or accept 'no new red' for AC-3"
+    },
+    {
+      "item": "PR, build-blind review and merge legs (pr / review / reviewer_mode fields are absent, not claimed)",
+      "reason": "needs-human \u2014 the spec assigns PR opening to the integrator, not this worker",
+      "gate": "integrator"
+    }
+  ],
+  "claim": "Three doctrine clauses added to runtime/mission-chaining.md (77/160 lines) behind a contract test that is RED at base and GREEN at head, with a per-clause executed negative control (4/4 mutants killed). validate.py exit 0. The full suite is NOT green and was NOT green at base: the same 5 tests fail at both, so this unit adds no new red but does not satisfy AC-3 as literally written."
+}

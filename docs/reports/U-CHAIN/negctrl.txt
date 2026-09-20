@@ -1,0 +1,53 @@
+# NEGATIVE CONTROL — U-CHAIN
+# tool: revert
+# worktree: throwaway at head_sha 315ad409097b378b3d342d5144322d0f92d0d119
+# paths restored from base_sha a58bf71a283928a8278e560163452ee70c7ad609: runtime/mission-chaining.md
+# command: python3 -m unittest tests.test_architecture.TestArchitecture.test_chain_link_boundary_is_specified
+
+$ git checkout a58bf71a283928a8278e560163452ee70c7ad609 -- runtime/mission-chaining.md
+$ git diff --stat HEAD
+ runtime/mission-chaining.md | 37 -------------------------------------
+ 1 file changed, 37 deletions(-)
+
+== RUN UNDER THE CONTROL (must be NON-ZERO) ==
+F
+======================================================================
+FAIL: test_chain_link_boundary_is_specified (tests.test_architecture.TestArchitecture.test_chain_link_boundary_is_specified)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u-chain/d31fd0f2-2e81-477d-b0c1-05e22d2ac1dc/scratchpad/nc-head/tests/test_architecture.py", line 633, in test_chain_link_boundary_is_specified
+    one_bullet_with(
+    ~~~~~~~~~~~~~~~^
+        "the promotion-owed park with its resume procedure",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        r"BASE-carry grant",
+        ^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u-chain/d31fd0f2-2e81-477d-b0c1-05e22d2ac1dc/scratchpad/nc-head/tests/test_architecture.py", line 624, in one_bullet_with
+    self.assertTrue(
+    ~~~~~~~~~~~~~~~^
+        hits,
+        ^^^^^
+        f"mission-chaining.md: no single bullet states {label} "
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        f"(needs all of: {', '.join(patterns)})",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+AssertionError: [] is not true : mission-chaining.md: no single bullet states the promotion-owed park with its resume procedure (needs all of: PARKED-AT-PROMOTION, landed promotion SHA, BASE-carry grant)
+
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+FAILED (failures=1)
+exit=1
+
+== CLEAN head_sha, SAME command (must be ZERO) ==
+.
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+OK
+exit=0
