@@ -74,7 +74,7 @@
     },
     {
       "path": "docs/reports/u-442/round3-mutants.json",
-      "sha256": "660c94c9e880d460b0d2b6e74757f1ebb9bf2fed9396588ba1e707290be020c8"
+      "sha256": "db121843dc53e3a97b4b63c29817646afafdf6f3525170a3745fe0ef507c15c4"
     },
     {
       "path": "docs/reports/u-442/round3.md",
@@ -138,7 +138,7 @@
     ],
     "note": "Every receipt in commands[] was taken in its OWN fresh worktree checked out at head_sha, with the manifest written OUTSIDE that worktree, so each record's wtree is exactly `git rev-parse 47b3f1f2^{tree}` = 02ed5304adfc0120c69eafc299f687d81defb64e — the content the command was actually given, not that content plus the wrapper's own writes. R3-STD-1: the refreshed receipts now carry ROUND-SPECIFIC paths (tests-r3, unit-scope-r3, validate-r3, full-suite-r3, nc-green-r3, nc-red-r3) that are absent at head_sha, so _read_artifact's tracked-at-head_sha shortcut cannot select an older committed transcript at the same name and the artifacts[] pin over these bytes is what governs. The round-1/round-2 logs at the original paths are retained and still inventoried as history; nothing in commands[] or negative_control points at them."
   },
-  "claim": "U-442 round-3 targeted repair (gate-batch G2-b): the round-3 stickers S3-R1, R3-STD-1 and R3-T1/T2/T3 closed with NO production change. Proof-command agreement restored (one string in both negative_control.command and its fresh exit-0 receipt); the five refreshed transcript references re-pointed at round-specific paths that no older commit can answer for; three new regressions kill the two surviving coverage mutants (equal-root compatibility, artifact revision) and make the H-7 fail-closed probe assert it FIRED. Suite 1736 green and validate exit 0 at head_sha; the 15 previously published mutants are unaffected by test-only additions.",
+  "claim": "U-442 round-3 targeted repair (gate-batch G2-b): the round-3 stickers S3-R1, R3-STD-1 and R3-T1/T2/T3 closed with NO production change. Proof-command agreement restored (one string in both negative_control.command and its fresh exit-0 receipt); the five refreshed transcript references re-pointed at round-specific paths that no older commit can answer for; three new regressions kill the two surviving coverage mutants (equal-root compatibility, artifact revision) and make the H-7 fail-closed probe assert it FIRED. Suite 1736 green and validate exit 0 at head_sha; the 15 previously published mutants are unaffected by these test-only additions, and the three new controls (X1 equal-root, X3 artifact-revision, X4 the neutral-refactor vacuity pair) are KILLED by assertion at head_sha with zero errors — round3-mutants.json.",
   "commands": [
     {
       "artifact": "docs/reports/u-442/validate-r3.txt",
