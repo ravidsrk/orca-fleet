@@ -65,6 +65,10 @@
       "sha256": "660c94c9e880d460b0d2b6e74757f1ebb9bf2fed9396588ba1e707290be020c8"
     },
     {
+      "path": "docs/reports/u-442/selfcheck-r3.txt",
+      "sha256": "3f26e4072b1cdc4e3c31860ebc4e6478cd2da199588897e5e45720f56aad1490"
+    },
+    {
       "path": "docs/reports/u-442/selfcheck.txt",
       "sha256": "e3d7733c38404836b4659904231a1bfacfebc553b6460c6d940360bc37e7567c"
     },
@@ -196,6 +200,9 @@
     "artifact": "docs/reports/u-442/nc-red.txt",
     "command": "python3 -m unittest tests.test_verify.CrossRepoRoots",
     "did": "checked out head_sha cd07307e in a throwaway worktree and ran the unit's class GREEN (27 tests, exit 0, nc-green.txt); then restored runtime/scripts/verify.py from base_sha a58bf71a (git checkout a58bf71a -- runtime/scripts/verify.py), left the round-3 tests in place, and re-ran: exit 1, 24 assertion failures and 1 error (nc-red.txt). The single error is honest and expected of a BASE revert rather than a behavioural mutant: at base there is no _ROOTS at all, so the round-3 fail-closed-classifier test cannot even reach an assertion. The behavioural controls that keep the flags present are the 15 mutants below, all assertion kills.",
+    "paths": [
+      "runtime/scripts/verify.py"
+    ],
     "result": "KILLED \u2014 the proof went RED",
     "tool": "revert"
   },
