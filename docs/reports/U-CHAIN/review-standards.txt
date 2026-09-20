@@ -1,0 +1,84 @@
+U-CHAIN — STANDARDS REVIEW
+Task: task_067ec69be832 / ctx_7f47b80e2503
+Requested report suffix: docs/reports/U-CHAIN/review-standards.txt
+Initial report staging was outside the worktree to honor the no-repository-changes instruction; later report-only authorization is recorded below.
+
+BLIND-FIX EXPECTATION — recorded before opening any delta
+Inputs read: frozen build-u-chain.md, ARCHITECTURE.md, user-supplied AGENTS.md, code-review methodology.
+Expected location: runtime/mission-chaining.md, with a single contract test in tests/ (prefer the existing architecture-contract seam if consistent with its neighbors).
+Expected shape: a small additive policy amendment, preserving existing numbered sections and the missions/playbooks/runtime boundary. The policy should name a promotion-owed chain park terminal and its legitimate resume evidence, define an explicit per-chain deferral-carry artifact with stable fields and a gate record, and require reconstructable bytes or a reachable mirror for a local-only target. Any Markdown artifact names should be clearly distinguished from composable runtime/playbook references; composable references remain bare and resolvable. Runtime prose should prescribe doctrine without claiming it is field-proven, stay plain Markdown without frontmatter, and remain within the 160-line cap.
+Expected test shape: a focused, readable documentation contract following neighboring tests, covering each of the three clauses, passing at head and failing with the original document restored. No runtime scripts, extra policies, mission identities, generic framework, or unrelated abstractions should change. Generated badge/validator artifacts are acceptable only if validation establishes the need.
+Confidence: high on locations, scope, and layer boundaries; medium on precise artifact field names and terminal spelling because the spec deliberately leaves wording to the implementer. No implementation or diff has been read at this point.
+
+Motivating lines (verbatim from frozen spec):
+#441: "  legs. A promotion-owed park has no named terminal, no lane, no resume procedure. Suggested:"
+#443: "  + gate record, one file per chain). Suggested: bless a shape (this one or another) so"
+#444: "  so the bytes reconstruct. Suggested: require embedded reconstruction artifacts (or a pushed"
+
+FINAL REVIEW — STANDARDS ONLY
+Verdict: NO-GO
+Counts: Critical 0; Required 2; Nit 0; Optional 1; FYI 0.
+Reviewed SHA / head_sha: 5328cc866d3b213c444687b9c7d9cb2d1d45d853
+Fixed-point ref: origin/review/2026-09-20-tracker-sweep
+Fixed-point SHA: 79d323ee25d1b202c76028920d99ca7edf91f775
+Three-dot merge base: a58bf71a283928a8278e560163452ee70c7ad609
+Diff: git diff 79d323ee25d1b202c76028920d99ca7edf91f775...5328cc866d3b213c444687b9c7d9cb2d1d45d853
+Commits: 5ecf74e5 (test), 315ad409 (policy), 5328cc86 (evidence).
+
+Summary brief
+The locations and additive shape match the blind expectation. Two policy clauses conflict with existing repository doctrine: promotion is confused with integration into BASE, and file reconstruction is confused with recovering cited Git commits. These are documented-governance/evidence violations, not Fowler-style judgments. The new test follows neighboring conventions; preserving prose line breaks is an optional maintenance concern. Runtime line count, plain-Markdown format, references, and badge freshness pass validation, and all 59 architecture tests pass in an external scratch clone at reviewed_sha. The full suite was not rerun by this standards reviewer; its existing evidence explicitly records five failures, not an all-green result. No acceptance or release completion is inferred from those transcripts.
+
+Findings
+
+S1 — Required — Preserve the shared meaning of promotion and its resume proof
+Location: runtime/mission-chaining.md:29-43.
+Verbatim motivating changed lines (29-30):
+- **Chains are human-paced at every link boundary.** Leg N's promotion — merging its work into the
+  integration BASE — is a one-way human gate (gate-classification.md), and leg N+1 forks from the
+Additional motivating changed lines (37 and 40):
+  cannot merge (headless, `--no-gh`, scratch or local-only target): carry PRODUCED, promotion
+     (`git merge-base --is-ancestor <head> origin/<base>`); leg N+1 forks from that BASE; or
+Standard: ARCHITECTURE.md:153-155 requires uniform governance under gate-classification; runtime/gate-classification.md:105-106 makes BASE→default promotion the human gate. runtime/merge-serialization.md:73-90 explicitly permits the conductor's no-gh local merge INTO BASE and parks for the later BASE→default promotion.
+Why it matters: a normal agent integration merge is renamed a human-only promotion, a supported no-gh merge lane is described as unable to merge, and the proposed ancestry check proves only integration into BASE. It cannot establish the human promotion needed to fork the next leg from the promoted default. A human-paced boundary itself is required by the spec and is not the objection.
+Correction: retain the boundary park and explicit BASE-carry alternative, but use BASE→default promotion consistently and bind the resume evidence/new BASE to that promotion. Describe the restricted lanes as unable to promote, not unable to integrate.
+Confidence: high; independently challenged and confirmed against the shared policies.
+
+S2 — Required — Require commit-preserving reconstruction for cited-SHA evidence
+Location: runtime/mission-chaining.md:66-67.
+Verbatim motivating changed lines:
+  beside the chain report — enough bytes to rebuild the cited commits offline, i.e. a `git bundle`
+  of the leg's refs, or the seed sources plus the leg's full diff. Every embedded artifact is
+Standard: ARCHITECTURE.md:88-99 binds evidence to actual SHAs and authoritative state; runtime/evidence-manifest.md:63,125 requires real commit identities and commit-existence/ancestry checks. The worked example's docs/reports/chaining-2026-09-16/leg1/RESTORE.md:3-6 explicitly distinguishes its bundle (preserves every cited SHA) from seeds plus diff (file bytes only).
+Why it matters: seed sources and a full diff do not by themselves preserve the commit objects, metadata, or parent graph. They cannot reproduce cited commits or let a second reviewer verify their ancestry; hashing those artifacts does not supply the missing history. The preceding requirement for enough bytes is contradicted by the expressly sufficient example.
+Correction: require a self-contained bundle, reachable mirror, or equivalent reconstruction that demonstrably reproduces every cited commit and necessary history; describe seed-plus-diff as supplemental file reconstruction unless it includes that additional commit reconstruction evidence.
+Confidence: high; the existing worked example already documents the distinction.
+
+S3 — Optional — Normalize prose wrapping in the bullet matcher
+Location: tests/test_architecture.py:607 (also 612,615), with phrase assertion at 636.
+Verbatim motivating changed lines:
+                        out.append("\n".join(cur))
+            r"landed promotion SHA",
+Convention: tests/test_architecture.py:923-926 explicitly says prose wrapping is not contractual and normalizes a policy bullet with " ".join(...split()).
+Why it matters: the new matcher retains newlines but uses literal-space phrase patterns, so an unchanged rule rewrapped between "landed" and "promotion SHA" fails the test. Normalize the completed bullet or allow whitespace in phrase patterns. This is a local test-maintenance judgment, not a documented repository-wide mandate or a merge blocker.
+Confidence: high for the wrapping behavior; optional severity because neighboring direct assertions also exist.
+
+Hunk coverage and baseline
+- runtime/mission-chaining.md, the single added hunk: S1 covers promotion/park; handoff-log shape has no standards finding; S2 covers reconstruction. The new text remains runtime mechanism, not a mission/playbook; its CHAIN state does not redefine a mission identity. Existing headers and numbered contract structure are retained. Terse doctrine tone remains consistent; no new field-proven claim is made.
+- tests/test_architecture.py, the single added hunk: stdlib-only unittest, issue-linked comments, local helper functions, and policy-text assertions match surrounding tests. S3 is optional. No executed mutation control was performed during review.
+- assets/badges/tests.json: the 1706→1707 source-definition count corresponds to one added test; badge freshness passes.
+- docs/reports/U-CHAIN additions (README, manifest, six transcripts): evidence artifacts remain in the human-docs layer. The six manifest artifact hashes match committed bytes. AC-3 is explicitly marked unmet; existing logs are not treated as independent proof of full-suite completion.
+Fowler 12-smell pass, per source hunk: Mysterious Name, Duplicated Code, Feature Envy, Data Clumps, Primitive Obsession, Repeated Switches, Shotgun Surgery, Divergent Change, Speculative Generality, Message Chains, Middle Man, and Refused Bequest. No actionable smell survives the repository-convention override. The small bullet helper serves four real checks; its three accumulator flush sites do not justify another abstraction. Git-SHA and terminal strings are appropriate protocol vocabulary here.
+
+Verification and limits
+External scratch clone: /Users/ravindra/orca/review-artifacts/task_067ec69be832/checkout-head
+- git diff --check <fixed-point>...<reviewed_sha>: exit 0.
+- python3 -B scripts/validate.py: exit 0; all 21 missions valid, three-layer separation holds, evals valid. Policy is 77 lines, below 160; reference and format checks pass. Log: /Users/ravindra/orca/review-artifacts/task_067ec69be832/standards-validate.txt
+- python3 -B -m unittest tests.test_architecture -q: exit 0; 59 tests, 6.595 seconds. Log: /Users/ravindra/orca/review-artifacts/task_067ec69be832/standards-architecture-tests.txt
+- Validation was initially run concurrently with architecture tests in the same scratch clone and saw the test's temporary frontmatter probe. After the tests completed and cleaned it up, sequential validation passed; this was a reviewer-run isolation artifact, not a candidate finding.
+- Every motivating changed line was independently re-read from git show at reviewed_sha; all eight quotes match. Receipt: /Users/ravindra/orca/review-artifacts/task_067ec69be832/source-binding.json
+- No full-suite rerun, negative-control execution, merge, deployment, or new empirical policy validation is claimed.
+
+Read-only boundary and authorization
+The blind expectation above was written outside the repository before opening the delta. The coordinator subsequently explicitly authorized ONLY the requested report file inside the worktree and directed that the blind note be included there. Only docs/reports/U-CHAIN/review-standards.txt was created by this reviewer in the original repository; it is left uncommitted. Existing untracked integrate.json and review-spec.txt were not read or changed. All test execution and temporary writes occurred in the external scratch clone. No implementation, tests, policy, index, branch, or commit was modified.
+
+Review complete within the 25-minute timebox; no partial-report stop needed. This is the standards-axis verdict only and does not rerank the spec or test-adequacy axes.

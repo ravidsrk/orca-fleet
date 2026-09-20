@@ -1,0 +1,117 @@
+U-CHAIN — SPEC ACCEPTANCE REVIEW
+Status: COMPLETE — CHANGES REQUIRED
+Spec: docs/runs/2026-09-20-clean-sweep-tracker/build-u-chain.md
+Axis: SPEC only; read-only review, with this requested report as the sole review artifact.
+
+BLIND-FIX EXPECTATION (recorded before opening the diff)
+Timestamp: 2026-09-20T07:36:28.042717+00:00
+Source read: frozen spec and its embedded finding descriptions (#441, #443, #444); no implementation or diff read yet.
+Expected location: runtime/mission-chaining.md, plus one tests/ contract-test file. Only validator-required generated metadata would be an acceptable additional implementation edit.
+Expected shape:
+1. The existing chain policy should gain a named promotion-owed park terminal, a human-gate lane, explicit resume evidence (landed promotion SHA or recorded BASE-carry grant), and a statement that each boundary is human-paced. Existing chain ordering and degraded-stop behavior must remain intact.
+2. The existing carry-over clause should name a concrete per-chain artifact (handoff-log.md is acceptable but not required) and define enough fields to carry parked items, backlog, noticed-but-not-touched work, and the gate decision into the next mission.
+3. The re-derivability clause should require reconstruction artifacts or a pushed mirror for local-only targets; cited SHAs alone cannot satisfy it. The artifact contract should make original bytes recoverable, not merely summarize the change.
+4. One contract test should cover all three properties. It should fail with the base doc and pass at head; the executed doc-revert negative control must be recorded through evidence-run.py. The validator and full tests must pass, and the runtime policy must remain at most 160 lines.
+5. No scripts, other runtime policies, mission files, or unrelated semantics should change.
+Confidence: high on required properties and permitted scope; medium on exact terminology/artifact fields because the frozen spec deliberately leaves wording to the implementer.
+
+Motivating frozen-spec lines:
+"DESIRED BEHAVIOUR: the policy (a) names a terminal state for a chain parked at a link boundary"
+"owed a human promotion and states what resumes it; (b) names and specifies a concrete artifact"
+"shape for deferral carry; (c) requires embedded reconstruction artifacts (or a pushed mirror)"
+"for local-only targets. Wording is the worker's; the three properties are the contract."
+
+REVIEW BINDING
+Reviewed head: 5328cc866d3b213c444687b9c7d9cb2d1d45d853
+Fixed ref at review start: origin/review/2026-09-20-tracker-sweep = 79d323ee25d1b202c76028920d99ca7edf91f775
+Three-dot merge base / unit base: a58bf71a283928a8278e560163452ee70c7ad609
+Diff: git diff origin/review/2026-09-20-tracker-sweep...HEAD
+Spec SHA-256: 872605215c4b4e418d9efd1ed518dfeccf7d417283bdd3c3c21670d3a0bcb1cb
+Scope: SPEC only. This review neither changes code nor commits anything. The requested review report is the sole repository artifact created by this reviewer; integrate.json was already untracked on arrival. Other reviewers added review-standards.txt and review-tests.txt during this review; neither was edited or used for these findings.
+Blind expectation above was written before opening the diff. The existing integrator/bot report was read afterward; the findings below are checked directly against the frozen spec, source, and independent scratch reproductions, not accepted from that report.
+
+VERDICT: CHANGES REQUIRED
+Four Required findings; zero Critical/Nit/Optional/FYI findings. The doc covers all three subjects, but the promotion rule is wrong, AC-1's assertions are incomplete, AC-3 is not green, and AC-4 lacks the specified archived runner record.
+
+FINDINGS
+
+SPEC-1 — Required — Promotion-owed park resumes on the wrong integration boundary.
+Location: runtime/mission-chaining.md:29-43 (especially 39-40).
+Verbatim motivating spec lines (13-15):
+  name the park (e.g. PARKED-AT-PROMOTION), define what resumes it (landed promotion SHA or a
+  recorded BASE-carry grant), and state plainly that chains are human-paced at every link
+  boundary.
+Verbatim implementation:
+  1. a **landed promotion SHA** — leg N's head is an ancestor of the integration BASE
+     (`git merge-base --is-ancestor <head> origin/<base>`); leg N+1 forks from that BASE; or
+The leg's work is already merged into its integration BASE before its inter-mission promotion. Existing merge-serialization.md:89-90/101 and gate-classification.md's final line identify the owed promotion as BASE→default. This new definition instead names unit→BASE integration as the promotion and can certify the owed promotion without it happening. Its hardcoded origin/<base> also cannot resolve for a no-remote target, despite the adjacent clause explicitly including that lane.
+Independent scratch repro: default main remained at seed 3d2d83327c6e7e1b2f70c54f8e0dbb56c84d49dc, while leg head and origin/leg-1-base were 5ce33df72a4cf22fe300ff7fc20f8b3cd083f795. The documented ancestry command returned 0; ancestry into main returned 1. Removing the synthetic remote-tracking ref produced exit 128, "fatal: Not a valid object name origin/leg-1-base".
+Required correction: identify the actual human-authorized promotion destination and verify the completed leg's integration tip there, using a valid local ref for offline targets; retain the separately recorded human BASE-carry alternative. This can be fixed within mission-chaining.md and its test.
+Repro artifact: /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-spec-promotion-72zppyik/repro.json
+
+SPEC-2 — Required — Contract test does not assert the operative requirements (AC-1 partial).
+Location: tests/test_architecture.py:621-655.
+Verbatim motivating spec lines (52-53):
+- [ ] A contract test (new file or an existing docs-contract test file, worker's choice of
+      seam) asserts all three properties and FAILS at the unit's base SHA, PASSES at head.
+Verbatim implementation:
+            r"no remote", r"pushed mirror", r"reconstruction artifacts",
+The helper only checks token co-occurrence in a bullet. In a clean scratch copy at reviewed HEAD, replacing "Such a leg is complete only once" plus "the chain publishes one of two things" with "Such a leg is complete even if" plus "the chain publishes neither of these optional things" keeps the test GREEN (exit 0), despite reversing the required-artifacts property. Separately, replacing both resume alternatives with "The terms **landed promotion SHA** and **BASE-carry grant** are reserved; no procedure for resuming the park is defined" also stays GREEN. The unchanged head is GREEN too. Whole-bullet deletion controls demonstrate presence but do not catch these criterion-violating changes.
+Required correction: bind assertions to the required publication and explicit resume conditions, and record negative controls that violate those conditions. The existing test seam is sufficient; no other policy/script needs changing.
+Command: python3 -B -m unittest tests.test_architecture.TestArchitecture.test_chain_link_boundary_is_specified
+Repro artifacts (head plus independent mutants, outputs and exact diffs): /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-spec-mutants-6woky912/
+
+SPEC-3 — Required — Full-suite acceptance criterion remains unmet (AC-3).
+Location: docs/reports/U-CHAIN/manifest.json:30-35 and :73-82; suite.txt.
+Verbatim motivating spec line (55):
+- [ ] Full test suite green at head (`python3 -m pytest tests/ -x -q` or the repo's runner).
+Verbatim implementation evidence:
+      "addressed": false,
+      "exit": 1,
+The committed manifest correctly admits 1707 tests with five failures at implementation SHA 315ad409097b378b3d342d5144322d0f92d0d119. Its base transcript records the same five failures, so this is an unmet acceptance condition, not a newly introduced regression. "No new red" does not satisfy the frozen criterion. Fixing these unrelated docs within U-CHAIN would breach the scope; the coordinator should land the separate baseline repair and re-run the combined candidate, or obtain an explicit contract change before claiming acceptance.
+Independent reviewed-HEAD rerun: python3 -m unittest discover -s tests at 5328cc866d3b213c444687b9c7d9cb2d1d45d853 ran 1707 tests in 295.566 seconds and exited 1 with the same five failures. A separate base checkout ran the affected two test modules (39 tests) and reproduced exactly those five failures. Full output: /tmp/u-chain-evidence-audit.SswwJU/full-suite.txt; runner receipt: /tmp/u-chain-evidence-audit.SswwJU/review-manifest.json.
+
+SPEC-4 — Required — Archived negative control is not recorded through the required runner (AC-4 partial).
+Location: docs/reports/U-CHAIN/manifest.json:38-41, :50-94; negctrl.txt:1-53.
+Verbatim motivating spec lines (56-57):
+- [ ] NEGATIVE CONTROL executed: with the doc amendment reverted (test kept), the contract
+      test is RED — recorded via evidence-run.py.
+Verbatim implementation evidence:
+# command: python3 -m unittest tests.test_architecture.TestArchitecture.test_chain_link_boundary_is_specified
+The negative-control transcript documents a raw unittest run. The complete commands[] ledger contains only contract-test (exit 0), validate (exit 0), and suite (exit 1); it has no runner record for the reverted-document contract test. The suite failure is not that control. The independent clean-scratch replay does turn RED with AssertionError and clean head turns GREEN, so the behavioral control is valid, but the submitted evidence does not meet the explicitly required recording method.
+Required correction: archive the evidence-run.py receipt for the reverted-doc invocation and the clean-head control, with their actual fingerprints/exits and pinned artifacts. The review's scratch replay is available to the coordinator but has not been added to the submitted manifest.
+
+ACCEPTANCE MATRIX
+AC-1 — PARTIAL. Exactly one new contract test, GREEN at reviewed head and RED with the unit-base document; operative requirement mutations survive (SPEC-2), and the promotion procedure itself is wrong (SPEC-1).
+AC-2 — PASS. Independent python3 scripts/validate.py at reviewed HEAD exits 0.
+AC-3 — NOT MET. Independent full suite at reviewed HEAD: 1707 tests, five failures, exit 1; independently reproduced same five at unit base (SPEC-3).
+AC-4 — PARTIAL. Doc-only revert is independently RED with AssertionError and unchanged head is GREEN; submitted manifest omits the required runner record (SPEC-4).
+AC-5 — PASS. runtime/mission-chaining.md is 77 lines, below 160.
+
+SCOPE AND REQUIREMENT COVERAGE
+#441: named park, human pacing, lane examples, ledger placement, and BASE-carry grant are present; landed-promotion semantics are incorrect as above. Keeping PARKED-AT-PROMOTION as a chain state preserves the existing mission-terminal classifier and is consistent with the requested chain park.
+#443: one per-chain handoff file, explicit carry fields, gate fields, ledger pointer and empty-carry rule give a concrete artifact shape. The unchanged historical exemplar's original proposal wording is not itself an unmet frozen-spec requirement.
+#444: required pushed mirror or embedded reconstruction artifacts plus integrity hashes are present in the policy; assertion weakness is covered by SPEC-2.
+No unrelated implementation files changed: one runtime policy, one existing test file with one new test, the necessary test-count badge (1706→1707), and unit evidence artifacts. Existing sections and prior chain contract are retained. No runtime script, other runtime policy, or mission file changed.
+The evidence artifacts name an earlier implementation SHA and disclose their later evidence-only commit; that is not separately counted as a freshness defect here. Review and new verification are bound to 5328cc866d3b213c444687b9c7d9cb2d1d45d853.
+
+
+INDEPENDENT VALIDATION RECEIPTS
+All repo execution/mutation was confined to scratch clones/copies. The review uses no worker trace as its acceptance oracle.
+- Reviewed HEAD tree: f6dd754d53cd329e4406ccd7bfa1f79f18693a99.
+- Positive contract test and validator: /tmp/u-chain-evidence-audit.SswwJU/control-manifest.json; both exit 0 and both runner fingerprints equal reviewed HEAD tree.
+- Doc-only revert control: same ledger, label tests-negative-control, exit 1 with AssertionError; fingerprint c2f1f87be4a07352601c8d8e8154d860de63fa4d. Clean doc was restored afterward.
+- Actual base plus new test: /tmp/u-chain-evidence-audit.SswwJU/base-manifest.json, label tests-at-base-with-new-test, exit 1 with AssertionError.
+- Full suite: /tmp/u-chain-evidence-audit.SswwJU/review-manifest.json, exit 1; commit and working-tree fingerprint match reviewed HEAD before execution.
+- Base regression check: /tmp/u-chain-evidence-audit.SswwJU/base-manifest.json; 39 tests across tests.test_docs_navigation and tests.test_wire_docs, same five failures.
+- All six submitted artifact SHA-256 values and the frozen spec digest were independently rehashed and match. The submitted manifest has nonempty intent.goal/ruled_out/why and lighting=lit.
+- Every motivating quote and implementation quote above was re-read from git show at reviewed HEAD and checked verbatim. No changed branch content is assumed from worker narration.
+
+FULL-SUITE FAILURE SET (identical at head and in affected base modules)
+test_docs_navigation.ReleaseCutWalkthrough.test_next_release_preparation_cut_tag_and_provenance
+test_docs_navigation.ReleaseRehearsalIsolation.test_inherited_git_selection_cannot_mutate_another_repository
+test_docs_navigation.TestDocsNavigation.test_run_archive_index_lists_every_report
+test_docs_navigation.TestDocsNavigation.test_run_archive_integrity_standard_matches_practice
+test_wire_docs.WiringScriptAnchors.test_the_committed_docs_are_the_scripts_fixed_point
+
+Remaining work: correct promotion semantics and strengthen their contract assertions, retain evidence-run.py negative-control records in the submission, and have the coordinator reconcile the pre-existing suite failures without unauthorized scope expansion. No fix, commit, PR action, or branch mutation was performed by this review.
