@@ -206,7 +206,7 @@ def _roots_are_split():
         return True
     try:
         return Path(sha_top).resolve() != Path(ev_top).resolve()
-    except OSError:  # pragma: no cover — resolve() rarely raises on POSIX
+    except OSError:
         return True
 
 
@@ -1751,7 +1751,11 @@ def check_symbol_on_base(symbol, base):
     """8. Best-effort: a unit symbol is greppable on origin/<base> (change is real on base)."""
     if not symbol or not base:
         return []
-    code, out = _git(["grep", "-l", "-e", symbol, f"origin/{base}"])
+    # timeout=20 is the LEGACY allowance, restored explicitly (#442 S2-R3). This leg used to
+    # call _run, whose default is 20s; routing it through _git for the SHA root (#442) silently
+    # halved the budget to _git's 10s default, and a grep that took 11s turned a symbol that IS
+    # on base into a fatal "not found". The root selection was the change; the clock was not.
+    code, out = _git(["grep", "-l", "-e", symbol, f"origin/{base}"], timeout=20)
     if code != 0 or not out.strip():
         return [f"symbol '{symbol}' not found on origin/{base} (change may not be on base)"]
     return []

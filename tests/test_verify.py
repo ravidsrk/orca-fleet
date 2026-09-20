@@ -9,6 +9,7 @@ import contextlib
 import errno
 import hashlib
 import importlib.util
+import inspect
 import io
 import itertools
 import json
@@ -3453,28 +3454,61 @@ class CrossRepoRoots(RepoCase):
         """T3: #267's containment is CANONICAL, not a spelling rule. The committed escape case
         spells a leading `..`, which the lexical check catches first — so the canonical check
         could be deleted outright and the suite stayed green. A symlink escapes without ever
-        writing `..`."""
+        writing `..`.
+
+        The escaping path is PINNED, and so is the ordinary one (#442 R2-T2): unpinned, the
+        refusal could be the missing pin rather than the bound, and a verifier that let a
+        declared artifacts[] entry authorize the escape would still look refused. Containment
+        is not a pin check — a pin says WHICH bytes, never WHERE they may live.
+        """
         (self.repo / "escape-link").symlink_to(self.repo_b, target_is_directory=True)
-        (self.repo_b / "nc.txt").write_text("mutant m7 was KILLED\n", encoding="utf-8")
-        m = self._manifest(negative_control={"tool": "mutmut", "result": "KILLED", "mutant": "m7",
-                                             "artifact": "escape-link/nc.txt"})
+        escaped = self.repo_b / "nc.txt"
+        escaped.write_text("mutant m7 was KILLED — proof went RED\n", encoding="utf-8")
+        m = self._manifest(
+            artifacts=[self.pin(self.nc_artifact),
+                       {"path": "escape-link/nc.txt",
+                        "sha256": hashlib.sha256(escaped.read_bytes()).hexdigest()}],
+            negative_control={"tool": "mutmut", "result": "KILLED", "mutant": "m7",
+                              "artifact": "escape-link/nc.txt"})
         rc, out = self._run_main(m, "--git-dir", str(self.repo_b),
                                  "--evidence-root", str(self.repo))
         self.assertEqual(rc, 2, out)
         self.assertIn("escapes the evidence root", out)
+        self.assertNotIn("unpinned evidence", out)
 
     def test_a_nested_evidence_root_bounds_against_itself_not_the_clone(self):
         """T3's boundary case: with the root nested inside the clone, escaping UPWARD into the
         enclosing repo is still an escape. A symlink to the parent stays inside a git work tree,
-        so only the canonical bound refuses it."""
+        so only the canonical bound refuses it.
+
+        Everything the nested root owes is inside it (#442 R2-T2): its own contract, its own
+        ordinary command artifact, and a pin for BOTH the ordinary path and the escaping one.
+        Without them the verifier refused this manifest for a missing contract and a missing
+        artifact, and the escape it was written for was never the thing being proven.
+        """
         sub = self.repo / "evidence"
-        sub.mkdir(parents=True, exist_ok=True)
+        (sub / "docs" / "reports" / "u").mkdir(parents=True, exist_ok=True)
+        (sub / "contract.md").write_text("frozen\n- AC-1: x\n", encoding="utf-8")
+        ordinary = sub / self.nc_artifact
+        ordinary.write_text("mutant m7 was KILLED — proof went RED\n", encoding="utf-8")
+        digest = "sha256:" + hashlib.sha256((sub / "contract.md").read_bytes()).hexdigest()
+        self.contract, self.contract_digest = "contract.md", digest
         (sub / "up-link").symlink_to(self.repo, target_is_directory=True)
-        m = self._manifest(negative_control={"tool": "mutmut", "result": "KILLED", "mutant": "m7",
-                                             "artifact": f"up-link/{self.nc_artifact}"})
+        escaping = f"up-link/{self.nc_artifact}"
+        m = self._manifest(
+            contract={"source": "contract.md", "digest": digest, "criterion_ids": ["AC-1"]},
+            artifacts=[{"path": self.nc_artifact,
+                        "sha256": hashlib.sha256(ordinary.read_bytes()).hexdigest()},
+                       {"path": escaping,
+                        "sha256": hashlib.sha256(
+                            (self.repo / self.nc_artifact).read_bytes()).hexdigest()}],
+            negative_control={"tool": "mutmut", "result": "KILLED", "mutant": "m7",
+                              "artifact": escaping})
         rc, out = self._run_main(m, "--git-dir", str(self.repo_b), "--evidence-root", str(sub))
         self.assertEqual(rc, 2, out)
         self.assertIn("escapes the evidence root", out)
+        self.assertNotIn("unpinned evidence", out)
+        self.assertNotIn("contract unreadable", out)
 
     def test_a_valid_no_flag_run_from_a_nested_directory_still_binds_to_the_toplevel(self):
         """T4: legacy compatibility is a claim about RESOLUTION, and every no-flag fixture ran at
@@ -3493,6 +3527,123 @@ class CrossRepoRoots(RepoCase):
         rc, out = self._run_main(path)  # no --git-dir, no --evidence-root: the legacy invocation
         self.assertEqual(rc, 0, out)
         self.assertIn("verify: OK", out)
+
+    # ---- round 3 (#442 R2-T1/T3, S2-R3, guard): the ROOT CLASSIFIER and the clock ----
+
+    def test_only_git_flag_collision_still_requires_pin(self):
+        """R2-T1: ONE flag is already a split. --git-dir alone moves the SHAs to B and leaves the
+        bound on A's toplevel — two roots, so the shortcut is not A's to take. A classifier that
+        only calls a split when BOTH flags are named (`and` -> `or`) reads this as one repo and
+        hands the verdict to B's same-path blob."""
+        self._collide("mutant m7 was KILLED — proof went RED\n")
+        rc, out = self._run_main(self._manifest(artifacts=[]), "--git-dir", str(self.repo_b))
+        self.assertEqual(rc, 2, out)
+        self.assertIn("unpinned evidence", out)
+
+    def test_only_evidence_flag_collision_still_requires_pin(self):
+        """R2-T1, the mirror: --evidence-root alone, standing IN the SHA repo. The bound moves to
+        A while the SHAs stay where the verifier runs — still two roots, still no shortcut."""
+        self._collide("mutant m7 was KILLED — proof went RED\n")
+        path = self._manifest(artifacts=[])
+        os.chdir(self.repo_b)
+        self.addCleanup(os.chdir, self.repo)
+        rc, out = self._run_main(path, "--evidence-root", str(self.repo))
+        self.assertEqual(rc, 2, out)
+        self.assertIn("unpinned evidence", out)
+
+    def test_same_repo_nested_evidence_cannot_borrow_root_blob(self):
+        """R2-T1: repository identity is not ROOT identity. With the SHAs and a nested evidence
+        root in ONE clone, a classifier that resolves the evidence root back to its enclosing
+        repository loses the named subdirectory and calls it single-repo — and the enclosing
+        repo's tracked blob at the same relative path answers for evidence the named root never
+        pinned."""
+        self.write("app.py", "def f():\n    return 1\n")
+        self.base_sha = self.commit("base")
+        self.write("app.py", "def f():\n    return 2\n")
+        self.head_sha = self.commit("head")
+        self.head_tree = self.git("rev-parse", "HEAD^{tree}")
+        sub = self.repo / "evidence"
+        (sub / "docs" / "reports" / "u").mkdir(parents=True, exist_ok=True)
+        (sub / "contract.md").write_text("frozen\n- AC-1: x\n", encoding="utf-8")
+        (sub / self.nc_artifact).write_text(
+            "mutant m7 was KILLED — the NAMED root's own copy\n", encoding="utf-8")
+        digest = "sha256:" + hashlib.sha256((sub / "contract.md").read_bytes()).hexdigest()
+        self.contract, self.contract_digest = "contract.md", digest
+        rc, out = self._run_main(self._manifest(
+            contract={"source": "contract.md", "digest": digest, "criterion_ids": ["AC-1"]},
+            artifacts=[]), "--evidence-root", str(sub))
+        self.assertEqual(rc, 2, out)
+        self.assertIn("unpinned evidence", out)
+
+    def test_symbol_only_on_head_cannot_substitute_for_base(self):
+        """R2-T3: the check's claim is `on origin/<base>`, and every fixture so far pointed
+        origin/main AT head, so the ref in the grep was free. A symbol that exists only on a
+        LATER local HEAD is not on base, and must not read as if it were."""
+        self.git_b("update-ref", "refs/remotes/origin/main", self.head_sha)
+        (self.repo_b / "later.py").write_text("ONLY_ON_LOCAL_HEAD = 1\n", encoding="utf-8")
+        self.git_b("add", "-A")
+        self.git_b("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "later")
+        rc, out = self._run_main(self._manifest(),
+                                 "--git-dir", str(self.repo_b),
+                                 "--evidence-root", str(self.repo),
+                                 "--base", "main", "--symbol", "ONLY_ON_LOCAL_HEAD")
+        self.assertEqual(rc, 2, out)
+        self.assertIn("not found on origin/main", out)
+
+    def test_symbol_only_on_base_is_found_even_when_head_deleted_it(self):
+        """R2-T3's other direction, and the one a HEAD grep gets backwards: the change IS on base,
+        a later local commit removed it, and the manifest's claim about base still holds."""
+        self.git_b("update-ref", "refs/remotes/origin/main", self.head_sha)
+        (self.repo_b / "app.py").write_text("PLACEHOLDER = 0\n", encoding="utf-8")
+        self.git_b("add", "-A")
+        self.git_b("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "drop def f")
+        rc, out = self._run_main(self._manifest(),
+                                 "--git-dir", str(self.repo_b),
+                                 "--evidence-root", str(self.repo),
+                                 "--base", "main", "--symbol", "def f")
+        self.assertEqual(rc, 0, out)
+        self.assertNotIn("not found on origin/main", out)
+
+    def test_the_symbol_grep_keeps_the_legacy_twenty_second_budget(self):
+        """S2-R3: routing this leg through _git bought the SHA root and silently halved its clock,
+        because _git defaults to 10s where the _run call it replaced defaulted to 20s. A grep that
+        took 11s then turned a symbol that IS on base into a fatal miss — with neither root flag
+        named, which is the invocation the unit promised to leave byte-identical.
+
+        The clock itself is not assertable in a suite that must stay fast (the boundary is an
+        11-second git), so what is pinned is the VALUE that reaches subprocess: the legacy
+        default of _run, not the newer default of _git.
+        """
+        self.git("update-ref", "refs/remotes/origin/main", self.commit("base"))
+        seen = []
+        original_run = verify._run
+
+        def recording_run(args, timeout=20, cwd=None):
+            seen.append((args, timeout))
+            return original_run(args, timeout=timeout, cwd=cwd)
+
+        verify._run = recording_run
+        self.addCleanup(setattr, verify, "_run", original_run)
+        verify.check_symbol_on_base("def f", "main")
+        greps = [t for args, t in seen if "grep" in args]
+        legacy = inspect.signature(original_run).parameters["timeout"].default
+        rerouted = inspect.signature(verify._git).parameters["timeout"].default
+        self.assertEqual(greps, [legacy], seen)
+        self.assertNotEqual(legacy, rerouted, "the two defaults coincide — the pin proves nothing")
+
+    def test_an_unresolvable_root_fails_closed_to_split(self):
+        """The classifier's own docstring: identity must be PROVEN. When the filesystem refuses to
+        canonicalize a root there is no proof either way, and the safe answer is the one that
+        keeps the shortcut shut. Covered rather than waived — a branch nobody executes is a
+        branch nobody knows the sign of."""
+        verify._ROOTS.update(git=str(self.repo_b), evidence=str(self.repo))
+        self.addCleanup(self._reset_roots)
+
+        def refuse(self_, *args, **kwargs):
+            raise OSError(errno.ELOOP, "Too many levels of symbolic links")
+
+        with mock.patch.object(Path, "resolve", refuse):
+            self.assertTrue(verify._roots_are_split())
 
     def test_help_documents_both_roots(self):
         buf = io.StringIO()
