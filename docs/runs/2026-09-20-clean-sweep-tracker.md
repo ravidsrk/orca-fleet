@@ -76,7 +76,7 @@ one unit or park; no id without a unit; no unit without an id.
 | — | #409 | harden-it self-run promotion | out-of-scope | — | — | — | — | — | — | — | out-of-scope: harden-it mission run + human PoC gate | issue re-scope comment |
 | — | #427 | Orca re-pin cadence | out-of-scope | — | — | — | — | — | — | — | out-of-scope: pin-it, trigger not fired (patch bump rides; 2026-12-16) | issue trigger rules |
 | — | #434 | proof-ladder diagram regen | needs-human | — | — | — | — | — | — | — | needs-human: provider render key secret absent (gh secret list empty) | gate comment + probe |
-| U-CHAIN | #441 #443 #444 | mission-chaining: promotion lane terminal, deferral-carry shape, local-only re-derivability | real-feature-small (doctrine) | t | t | t | f | f | f | lit | needs-human: review-round budget exhausted (3 failed rounds) — gate-batch.md G1; SPEC axis r3 GO, Greptile APPROVED d75b23b1; stickers are evidence-layer (harness skip-guard, manifest rebind, 2 test binds) | r1-r3 reports + verdicts on the branch; park pending r3 verdict post |
+| U-CHAIN | #441 #443 #444 | mission-chaining: promotion lane terminal, deferral-carry shape, local-only re-derivability | real-feature-small (doctrine) | t | t | t | f | f | f | lit | needs-human: review-round budget exhausted (3 failed rounds) — gate-batch.md G1; SPEC axis r3 GO, Greptile APPROVED d75b23b1; stickers are evidence-layer (harness skip-guard, manifest rebind, 2 test binds) | r1-r3 reports + 3 posted verdicts on the branch; Greptile APPROVED d75b23b1 recorded |
 | STAB-2 | — | repair 5 suite regressions from STABILIZE (index row + alt-string source repair) | conductor landing, worker-executed | t | n/a | n/a | n/a | t | t | lit | — | worker 4d13c672 (3 scoped files) → merged 2f04c402 (no-ff); coordinator-verified: 39/39 named tests OK + full suite exit 0 + tree clean at tip; egress receipt 4060372a; pushed; worktree+branch retired, no stray terminals |
 | U-442 | #442 | verify.py cross-repo evidence root (--git-dir/--evidence-root split) | real-feature-small (tooling) | t | f | f | f | f | f | lit | — | head df4f524f on u-442; suite red at build time = STAB-2's 5 (BASE since greened) |
 
@@ -312,6 +312,15 @@ BOOTSTRAP: preflight --base review/2026-09-20-tracker-sweep --fork-point e8ddbd9
   park / (b) authorize exceptional targeted repair + re-review / (c) merge anyway with
   human accept-with-reason. Default (a). Surfaced to the maintainer in-session (interactive
   prose brief). R3 verdict worker posting the official NO-GO on PR #484.
+
+- 16:5x U-CHAIN round-3 verdict POSTED: review 5260271654 'verdict: NO-GO — round 3'
+  (coordinator-verified first line exact), evidence 1e2f099b pushed. 5 Required entries
+  (S-R3-1 skip-guard, S-R3-2 manifest rebind, R3-TA-1/2/3 incl. reversed-operands +
+  optional-OWED survivors); BOT-6 accepted-with-reason recorded. PARK IS TERMINAL pending
+  gate G1: no merge, no fourth automatic round. Bot threads 4056606142 (BOT-6) stays
+  unanswered-with-accept-recorded; the unit's worktrees/terminals RETAINED (a G1 (b) answer
+  re-engages them; a G1 (a)/(c) answer closes out or merges per the human's recorded grant).
+  U-442 r3 fix in flight.
 
 BRANCHES: local worktree checkouts carry the `ravidsrk/` prefix mapping to the unit tips
 (ravidsrk/u-chain, ravidsrk/u-442). Not drift — do not "fix".
