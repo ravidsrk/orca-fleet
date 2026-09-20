@@ -76,7 +76,7 @@ one unit or park; no id without a unit; no unit without an id.
 | — | #409 | harden-it self-run promotion | out-of-scope | — | — | — | — | — | — | — | out-of-scope: harden-it mission run + human PoC gate | issue re-scope comment |
 | — | #427 | Orca re-pin cadence | out-of-scope | — | — | — | — | — | — | — | out-of-scope: pin-it, trigger not fired (patch bump rides; 2026-12-16) | issue trigger rules |
 | — | #434 | proof-ladder diagram regen | needs-human | — | — | — | — | — | — | — | needs-human: provider render key secret absent (gh secret list empty) | gate comment + probe |
-| U-CHAIN | #441 #443 #444 | mission-chaining: promotion lane terminal, deferral-carry shape, local-only re-derivability | real-feature-small (doctrine) | t | t | t | f | f | f | lit | — | PR #484 @5328cc86; Greptile 3 VALID held; suite red = STAB-2's 5, no new red |
+| U-CHAIN | #441 #443 #444 | mission-chaining: promotion lane terminal, deferral-carry shape, local-only re-derivability | real-feature-small (doctrine) | t | t | t | f | f | f | lit | needs-human: review-round budget exhausted (3 failed rounds) — gate-batch.md G1; SPEC axis r3 GO, Greptile APPROVED d75b23b1; stickers are evidence-layer (harness skip-guard, manifest rebind, 2 test binds) | r1-r3 reports + verdicts on the branch; park pending r3 verdict post |
 | STAB-2 | — | repair 5 suite regressions from STABILIZE (index row + alt-string source repair) | conductor landing, worker-executed | t | n/a | n/a | n/a | t | t | lit | — | worker 4d13c672 (3 scoped files) → merged 2f04c402 (no-ff); coordinator-verified: 39/39 named tests OK + full suite exit 0 + tree clean at tip; egress receipt 4060372a; pushed; worktree+branch retired, no stray terminals |
 | U-442 | #442 | verify.py cross-repo evidence root (--git-dir/--evidence-root split) | real-feature-small (tooling) | t | f | f | f | f | f | lit | — | head df4f524f on u-442; suite red at build time = STAB-2's 5 (BASE since greened) |
 
@@ -302,6 +302,16 @@ BOOTSTRAP: preflight --base review/2026-09-20-tracker-sweep --fork-point e8ddbd9
   adjudication). R3 FINAL REVIEW WAVE dispatched (codex): SPEC term_70a30067/
   task_8d5bc3ab4de1 · STANDARDS term_bcae1cd8/task_21ed299df460 · TESTS term_91d5f0ed/
   task_83fd4a2c8186; r3 verdict task_c2c948e1987f queued. U-442's r2 axes in flight.
+
+- 16:1x U-CHAIN round 3 (FINAL) = NO-GO: SPEC GO (BOT-6 Optional w/ reason — disposable
+  checkouts), STANDARDS 2R, TESTS 3R. THREE failed rounds = the acceptance-review budget
+  cap → the unit does NOT loop and does NOT merge: PARKED with gate-batch.md G1 naming the
+  three sticking findings (harness skip-as-success; manifest names conductor-stripped
+  5bd2eb07 — my trailer rewrite, rebind owed to 1635b27f, tree-identical; two narrow
+  contract-test survivors: reversed ancestry operands, optional OWED). Options (a) accept
+  park / (b) authorize exceptional targeted repair + re-review / (c) merge anyway with
+  human accept-with-reason. Default (a). Surfaced to the maintainer in-session (interactive
+  prose brief). R3 verdict worker posting the official NO-GO on PR #484.
 
 BRANCHES: local worktree checkouts carry the `ravidsrk/` prefix mapping to the unit tips
 (ravidsrk/u-chain, ravidsrk/u-442). Not drift — do not "fix".
