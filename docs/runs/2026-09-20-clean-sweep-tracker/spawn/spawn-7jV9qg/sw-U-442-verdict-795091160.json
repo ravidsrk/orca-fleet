@@ -1,0 +1,19 @@
+{
+  "id": "dc77e3aa-d19e-416d-8ec6-0d49f68db386",
+  "ok": true,
+  "result": {
+    "terminal": {
+      "handle": "term_96461a92-3506-4dd4-afb5-db834c24637c",
+      "tabId": "be2b3705-43ed-47e2-9b29-9484e93f3be7",
+      "worktreeId": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/u-442",
+      "title": "U-442 verdict",
+      "executionHostId": "local",
+      "incarnationId": "2cb42a35-1e73-41d7-8fdd-e0d91700398e",
+      "hostPlatform": "darwin",
+      "surface": "visible"
+    }
+  },
+  "_meta": {
+    "runtimeId": "0e3d77f3-b0e7-4aa1-a21d-a960aa212104"
+  }
+}

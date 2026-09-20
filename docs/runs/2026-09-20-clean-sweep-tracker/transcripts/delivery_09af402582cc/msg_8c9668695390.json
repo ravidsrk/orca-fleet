@@ -1,0 +1,8 @@
+{
+ "id": "msg_8c9668695390",
+ "type": "worker_done",
+ "created_at": "2026-09-20T08:17:59Z",
+ "subject": "U-442 SPEC: NO-GO, two Required findings",
+ "body": "Reviewed U-442 against the frozen spec and wrote the report bound to a5f84978548a00a97cfcc11614aa6bdfd71683e6 without changing or committing code. Both held Greptile P1s are confirmed as Required findings, while 1714 tests, validation, no-flag byte parity, evidence-root escape checks, generated-file scope checks, and the executed revert control met their expected results. The builder must correct artifact authority and symbol lookup and obtain fresh review; the authorized report remains uncommitted.",
+ "payload": "{\"taskId\":\"task_18e1477e843e\",\"dispatchId\":\"ctx_7a14fe6e706b\",\"outcome\":\"succeeded\",\"filesModified\":[\"docs/reports/u-442/review-spec.txt\"],\"reportPath\":\"/Users/ravindra/orca/workspaces/orca-fleet/u-442/docs/reports/u-442/review-spec.txt\"}"
+}
