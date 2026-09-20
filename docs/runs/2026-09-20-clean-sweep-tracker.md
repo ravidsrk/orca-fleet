@@ -448,6 +448,11 @@ BOOTSTRAP: preflight --base review/2026-09-20-tracker-sweep --fork-point e8ddbd9
   floor-guard: clean (10 waived). Inventory re-derived after the waiver edits (14/14).
   Coordinator-executed tooling change, disclosed here per the run's conductor practice.
 
+- 22:2x CI GREEN on PR #486: bind pass (router fix c6f6e227), guard pass (waivers + the
+  second recursive unquote — the ledger line describing the first rewording itself
+  carried the literal; also reworded), gates/tests/vfbench/pinned-demo/from-scratch all
+  pass. Every check on the promotion PR is green.
+
 BRANCHES: local worktree checkouts carry the `ravidsrk/` prefix mapping to the unit tips
 (ravidsrk/u-chain, ravidsrk/u-442). Not drift — do not "fix".
 
