@@ -77,7 +77,7 @@ one unit or park; no id without a unit; no unit without an id.
 | — | #427 | Orca re-pin cadence | out-of-scope | — | — | — | — | — | — | — | out-of-scope: pin-it, trigger not fired (patch bump rides; 2026-12-16) | issue trigger rules |
 | — | #434 | proof-ladder diagram regen | needs-human | — | — | — | — | — | — | — | needs-human: provider render key secret absent (gh secret list empty) | gate comment + probe |
 | U-CHAIN | #441 #443 #444 | mission-chaining: promotion lane terminal, deferral-carry shape, local-only re-derivability | real-feature-small (doctrine) | t | t | t | f | f | f | lit | — | PR #484 @5328cc86; Greptile 3 VALID held; suite red = STAB-2's 5, no new red |
-| STAB-2 | — | repair 5 suite regressions from STABILIZE (index row + README rewire) | conductor landing, worker-executed | f | n/a | n/a | n/a | f | f | lit | — | spec build-stab2.md |
+| STAB-2 | — | repair 5 suite regressions from STABILIZE (index row + alt-string source repair) | conductor landing, worker-executed | t | n/a | n/a | n/a | t | t | lit | — | worker 4d13c672 (3 scoped files) → merged 2f04c402 (no-ff); coordinator-verified: 39/39 named tests OK + full suite exit 0 + tree clean at tip; egress receipt 4060372a; pushed; worktree+branch retired, no stray terminals |
 | U-442 | #442 | verify.py cross-repo evidence root (--git-dir/--evidence-root split) | real-feature-small (tooling) | f | f | f | f | f | f | lit | — | — |
 
 ## Loop log
@@ -174,6 +174,16 @@ BOOTSTRAP: preflight --base review/2026-09-20-tracker-sweep --fork-point e8ddbd9
   79% weekly): SPEC term_1927d806/ctx_b3dc36fcf886 · STANDARDS term_83e191bd/ctx_7f47b80e2503 ·
   TEST-ADEQUACY term_1203e16a/ctx_147ba196881c. Verdict task_b44329122b48 queued on the 3 axes.
   Reviewer cap: 1 review unit in flight (axis fan-out exempt) — attention-budget met.
+
+- 08:5x STAB-2 LANDED. worker_done msg_720ead2853e5 (succeeded): worker's 4d13c672 touched
+  EXACTLY the 3 scoped files (wire_docs.py source string, docs/concepts.md, docs/runs/README.md
+  index row; README.md byte-identical — the script's fixed point now matches the truthful
+  committed text). BASE had moved to a8db9ba9 past the worker's 39db1cf3 merge — conductor
+  landed union merge 2f04c402 (no-ff, conflict-free: worker files ∩ coordinator files = ∅).
+  Coordinator verification at tip: 39/39 named tests OK (15.6s), full suite exit 0, badge
+  regen byte-identical, tree clean. Egress receipt 4060372a → pushed a8db9ba9..2f04c402.
+  Worktree stab-2 retired (terminals closed, rm OK, branch merged+gone, 0 stray terminals).
+  BASE is GREEN for the first time this run.
 
 BRANCHES: local worktree checkouts carry the `ravidsrk/` prefix mapping to the unit tips
 (ravidsrk/u-chain, ravidsrk/u-442). Not drift — do not "fix".
