@@ -615,7 +615,10 @@ class TestArchitecture(unittest.TestCase):
                 out.append("\n".join(cur))
             return out
 
-        blocks = bullets(chain)
+        # Collapse each bullet's wrapping before matching: where the prose happens to break a
+        # line is not part of the contract, and asserting on it makes a reflow look like a
+        # doctrine change (same convention as the liveness-resume bullet check below).
+        blocks = [" ".join(b.split()) for b in bullets(chain)]
         self.assertTrue(blocks, "no bullets parsed from mission-chaining.md")
 
         def one_bullet_with(label, *patterns):
@@ -628,32 +631,84 @@ class TestArchitecture(unittest.TestCase):
             )
             return hits[0]
 
+        def must(bullet, pattern, why):
+            """Bind an OBLIGATION, not just its vocabulary.
+
+            Round-1 review killed every whole-bullet deletion but let six requirement-REVERSING
+            mutants through: the same tokens survive "neither is a precondition", "two optional
+            examples", "a list of commit SHAs is sufficient". So each rule below asserts the
+            words that carry its force, not merely the words that name its subject.
+            """
+            self.assertRegex(bullet, pattern, f"mission-chaining.md: {why}")
+
         # (a) #441 — the promotion-owed park is NAMED and its two resume facts are stated,
         #     together, in the bullet that defines it.
-        one_bullet_with(
+        park = one_bullet_with(
             "the promotion-owed park with its resume procedure",
             r"PARKED-AT-PROMOTION",
             r"landed promotion SHA",
             r"BASE-carry grant",
         )
+        # Naming the two facts is not stating a procedure: resuming must REQUIRE one of them.
+        must(park, r"(?i)resuming the park REQUIRES exactly one of two facts",
+             "the park's resume rule must be a precondition, not a convenience log")
+        must(park, r"(?i)nothing else is sufficient",
+             "the two resume facts must be exclusive — no third route out of the park")
+        # ...and each alternative's own condition, so neither can be hollowed out.
+        must(park, r"(?i)ancestor of the DEFAULT branch",
+             "resume fact 1 must verify the leg's BASE tip landed on DEFAULT (#441, SPEC-1)")
+        must(park, r"(?i)named human.s explicit decision",
+             "resume fact 2 must be a named human's recorded grant, not an agent's")
+        # SPEC-1/S1: promotion is BASE->DEFAULT (gate-classification.md), NOT unit->BASE, and a
+        # restricted lane is unable to PROMOTE while still able to integrate.
+        must(park, r"(?i)cannot PROMOTE",
+             "the restricted lanes must be described as unable to promote, not unable to merge")
         # ...and the human pacing is stated as a rule of its own, not left to be inferred.
-        one_bullet_with("that chains are human-paced at every link boundary",
-                        r"human-paced", r"link boundary")
+        pacing = one_bullet_with("that chains are human-paced at every link boundary",
+                                 r"human-paced at every link boundary", r"link boundary")
+        must(pacing, r"(?i)PROMOTION is BASE.DEFAULT",
+             "the gated promotion is BASE->DEFAULT (gate-classification.md), not unit->BASE")
+        must(pacing, r"(?i)merging a unit INTO the BASE .{0,120}?is NOT that gate",
+             "the conductor's unit->BASE merge must not be misnamed the human promotion gate")
+        must(pacing, r"(?i)the chain STOPS and waits for a human",
+             "every boundary must actually STOP — naming the pacing is not requiring it")
 
         # (b) #443 — the deferral carry names ONE artifact and specifies its shape.
         carry = one_bullet_with(
             "a named artifact shape for the deferral carry",
             r"handoff log", r"carry table", r"gate record",
         )
-        self.assertRegex(carry, r"(?i)per chain",
-                         "the handoff log must be scoped: one file per chain")
+        must(carry, r"(?i)per chain",
+             "the handoff log must be scoped: one file per chain")
+        must(carry, r"(?i)two sections, both required",
+             "both carry sections must be REQUIRED — optional sections are no shape at all")
+        # The schema itself, not only the section names: a named section with unspecified
+        # contents leaves the consumer exactly where #443 found it.
+        for field in (r"carry id", r"input status"):
+            must(carry, rf"(?i){field}",
+                 f"the carry table must declare its `{field}` field")
+        must(carry, r"(?i)the human who owns it, and what resumes it",
+             "the gate record must declare its owner and resume fields")
 
         # (c) #444 — local-only (no-remote) targets cannot re-derive from SHAs alone, so the
         #     chain must publish the bytes: a pushed mirror or embedded reconstruction.
-        one_bullet_with(
+        local = one_bullet_with(
             "the local-only re-derivability rule",
             r"no remote", r"pushed mirror", r"reconstruction artifacts",
         )
+        must(local, r"(?i)complete only once the chain publishes",
+             "publishing the bytes must be REQUIRED for completion, not an optional convenience")
+        must(local, r"(?i)INCOMPLETE without one",
+             "a leg that publishes neither artifact must be named incomplete")
+        # S2: seed sources + a full diff recover file bytes, never the commit objects — so the
+        # required artifact has to be commit-preserving and seed+diff is supplemental only.
+        must(local, r"(?i)git bundle",
+             "the required reconstruction artifact must be commit-preserving (a git bundle "
+             "or equivalent), not a SHA list")
+        must(local, r"(?i)reproduces every cited commit",
+             "the artifact must demonstrably reproduce the cited commits, not just file bytes")
+        must(local, r"(?i)SUPPLEMENTAL and never sufficient on their own",
+             "seed sources plus the full diff must be supplemental, never sufficient alone")
 
     def test_scheduling_rule_includes_report_only_conformance(self):
         # #129: mission-scheduling listed a closed set that omitted attest-it, contradicting
