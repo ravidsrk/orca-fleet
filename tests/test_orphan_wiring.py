@@ -682,11 +682,25 @@ class DormantMechanismsSaySo(unittest.TestCase):
 
     def test_signed_dispatch_records_that_it_is_dormant(self):
         # The scheme is sound where the key is off-worker; no mission signs and no key is
-        # committed, so nothing exercises it today.
+        # committed, so nothing exercises it today. #281/#386 added the signed verifier
+        # transcript on the same key — implemented, and dormant for the same reason: the doc
+        # must say so, and must name the pubkey commit as the ONE switch that turns BOTH on, so
+        # the maintainer who lands it knows every native-hook run then needs a signed record.
         text = read("docs/verify-gate.md")
         self.assertIn("dispatch-sign.py", text)
         self.assertIn("no mission or playbook signs a dispatch", text,
                       "signed dispatch reads as live; no .orca/dispatch-pubkey is committed")
+        self.assertFalse((ROOT / ".orca" / "dispatch-pubkey").exists(),
+                         "a pubkey is committed: the dormancy statements above are now false — "
+                         "rewrite them to the live state rather than deleting this pin")
+        self.assertIn("signed verifier transcript", text,
+                      "the transcript path is implemented (verify.py --transcript-out/--transcript-"
+                      "key, run_report.py) but the doc does not say so")
+        self.assertIn("exercised by no real run yet", text,
+                      "the transcript reads as live; no run report names a transcript")
+        self.assertIn("enforcement switch for both", text,
+                      "the doc must say committing .orca/dispatch-pubkey switches on BOTH the "
+                      "dispatch-record check and the transcript requirement")
 
     def test_egress_records_that_no_automated_sink_calls_it(self):
         # #368: doctrine now names the receipt (merge-serialization.md), but honesty about the

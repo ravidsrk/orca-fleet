@@ -1,0 +1,139 @@
+{
+  "unit": "U-SIG-1",
+  "role": "integrator",
+  "task_id": "task_b3ea7f0525df",
+  "dispatch_id": "ctx_ea922c43a1cd",
+  "generated_at": "2026-09-20T17:39:17.547226+00:00",
+  "pr": {
+    "number": 489,
+    "url": "https://github.com/ravidsrk/orca-fleet/pull/489",
+    "state": "OPEN",
+    "base_ref": "review/2026-09-20-sign-386",
+    "head_ref": "ravidsrk/sig-1",
+    "head_sha": "d496069f38c3959d6718eaa98540ea656b66ec90",
+    "base_assert": "PASS — baseRefName == review/2026-09-20-sign-386 (not main); gh pr view 489 --json baseRefName",
+    "merge_base": "56d0f7c7959f2920689ec0db9dfeab5a2d93ac66",
+    "base_advanced": {
+      "note": "BASE advanced after this branch forked: local tip 68f0364a (5 commits), origin tip 2a451cb3 (6 commits) — all docs/runs bookkeeping (ledger, DECISIONS, U-SIG-2 spec, BUILD_DONE row).",
+      "base_tip_origin": "2a451cb31864b812a7632336bb53ba2dbbe96d49",
+      "file_overlap_with_branch": [],
+      "rebased": false,
+      "why_not": "no overlap across the 13 changed files, so the merge is clean; a rebase would void the reviewed SHA and the SHA-bound u-sig-1-manifest.json for no benefit"
+    }
+  },
+  "suite": {
+    "command": "python3 -m unittest discover -s tests",
+    "at_sha": "d496069f38c3959d6718eaa98540ea656b66ec90",
+    "result": "Ran 1796 tests in 262.932s / OK",
+    "exit_code": 0,
+    "tree_clean_after": true
+  },
+  "validate": {
+    "command": "python3 scripts/validate.py",
+    "result": "All 21 missions valid; three-layer separation holds; evals valid.",
+    "exit_code": 0
+  },
+  "secret_scan": {
+    "tool": "gitleaks 8.30.1",
+    "scope": "git --log-opts=56d0f7c7..HEAD (the 7 branch commits only)",
+    "commits_scanned": 7,
+    "findings": 0,
+    "exit_code": 0
+  },
+  "egress_receipts": {
+    "ledger": ".orca/egress.jsonl (gitignored)",
+    "chain": "intact, 2 receipts (egress.py verify)",
+    "head_digest": "705323a366fec1edbdb9e2fefb328db9440db7a912c316700502aeaa50f53818",
+    "receipts": [
+      {
+        "id": "8d806bff75c95ea4bd7e122cd6470c807111c9d2b6f73c1f0c2420978bf318da",
+        "ts": "2026-09-20T17:31:24Z",
+        "sink": "git-push",
+        "host": "github.com",
+        "payload_class": "branch-commits",
+        "bytes": 0,
+        "consent": "run-2026-09-14-clean-sweep:base-writes",
+        "preceded": "git push -u origin ravidsrk/sig-1"
+      },
+      {
+        "id": "b8a0b555dc560ba855fa2d077aa457623ec089e5683a1227ea100bf056c479ec",
+        "ts": "2026-09-20T17:32:09Z",
+        "sink": "pr-open",
+        "host": "github.com",
+        "payload_class": "pr-body",
+        "bytes": 2516,
+        "consent": "run-2026-09-14-clean-sweep:tracker-writes",
+        "preceded": "gh pr create --base review/2026-09-20-sign-386"
+      }
+    ],
+    "note": "a third receipt (git-push, integrate.json) is written immediately before the push that carries this file; its id therefore cannot appear inside it"
+  },
+  "bot_state": "RAN",
+  "review_bot": {
+    "bot": "greptile-apps[bot]",
+    "detection": "review authorship on PR #487 (prior PR in this repo)",
+    "wait": {
+      "poll_interval_s": 30,
+      "floor_s": 150,
+      "cap_s": 600,
+      "first_activity_s": 221,
+      "settled_s": 253
+    },
+    "review": {
+      "id": 5261244985,
+      "state": "COMMENTED",
+      "submitted_at": "2026-09-20T17:36:05Z"
+    },
+    "counts": {
+      "reviews": 1,
+      "review_comments": 2,
+      "issue_comments": 0
+    },
+    "action_taken": "ingested and tagged only — NOTHING FIXED; VALID set HELD for the review batch"
+  },
+  "findings": [
+    {
+      "id": "BOT-1",
+      "comment_id": 4057588199,
+      "bot_severity": "P1 security",
+      "assessed_severity": "P2",
+      "path": "runtime/scripts/run_report.py",
+      "line": 507,
+      "title": "Signed policy is ignored (transcript args signed but never read)",
+      "tag": "VALID",
+      "reason": "Mechanism confirmed against the diff. verify.py _Transcript.build() signs args = {contract_source, contract_digest, repo, base, symbol, execute_nc, unit_class, no_gh, lighting, dispatch_record, dispatch_pubkey, nc_command, git_dir, evidence_root} (verify.py:1858-1860; TRANSCRIPT_FIELDS in dispatch-sign.py:76). run_report.signed_transcript() (run_report.py:446-511) binds only record.manifest, record.manifest_sha256 and record.exit — args is never inspected, so the gate accepts a GREEN produced under whatever verifier policy the worker chose. DOWNGRADED from P1: the bot's concrete exploit (--unit-class report-only on a mutation manifest) is already RED'd unsupervised by verify.py check_class_downgrade (#310, verify.py:2024/2129) whenever base_sha..head_sha touched code, and the exit binding would then refuse the transcript; the --no-gh lane likewise requires a corroborated contract AND an executed negative control (verify.py:665-680). Residual is real but narrower: execute_nc/lighting/contract_source remain worker-chosen and unbound, and in the offline sign-transcript flow the coordinator signs the record it is handed (dispatch-sign.py:227-232), so the only check on args is the human reading them. Not a regression: the pre-PR ledger leg parsed only --manifest from the command line (run_report.py:308-330) and was equally blind to unit_class.",
+      "scope": "Remediation needs a per-mission 'required verifier policy' to compare args against — no such policy source exists in the repo today, and the frozen spec's non-goals exclude new policy text (build-u-sig-1.md: 'no mission SKILL.md or policy text except the dormancy line'). Design decision for the batch: (a) bind a minimal subset in signed_transcript() (e.g. refuse report-only/planning when the graded mission is in _mutation_missions()) — inside spec files; or (b) defer to a follow-on unit that defines the policy source."
+    },
+    {
+      "id": "BOT-2",
+      "comment_id": 4057588200,
+      "bot_severity": "P1 security",
+      "assessed_severity": "P1",
+      "path": "runtime/scripts/run_report.py",
+      "line": 457,
+      "title": "Historical pin bypasses signing (switch evaluated at a worker-chosen rev)",
+      "tag": "VALID",
+      "reason": "Confirmed, and the guarantee the bot cites IS stated in this PR: run_report.py module docs ('a new run cannot dodge it by pinning an old commit because its own artifacts must exist there'), the SignedTranscriptRequired test docstring (tests/test_run_report.py:1398) and docs/verify-gate.md ('every run report pinned after that commit requires a verified transcript; reports pinned before it keep the unsigned path'). signed_transcript() reads PUBKEY_PIN via blob_at(rev, ...) where rev = fields['inventory_at'] (run_report.py:788), a worker-written header field; the only check on rev is inventory.rev_exists() (run_report.py:789) — no ancestry check against the base tip or the key-introducing commit exists anywhere in run_report.py (rg is-ancestor/merge-base: none). The stated counter ('its own artifacts must exist there') does not hold: a worker commits fresh artifacts on a branch forked from any pre-key commit and pins inventory_at to that commit — the artifacts exist there, the key does not, the unsigned ledger path is taken. Even a dangling/unreachable commit satisfies rev_exists. The bot's weaker variant (reuse an old run's matching manifest) also passes but only re-certifies old work, so the fork variant is the one that matters. Rated P1 as the bot did: it is the one enforcement switch this unit exists to install, and it is evadable by the party it constrains.",
+      "scope": "Fix is inside the spec's scope files (run_report.py + tests/test_run_report.py + the paired doc paragraph in docs/verify-gate.md) but changes the semantics this PR states in three places, which is exactly the spec's stop condition ('if signing the transcript would change any existing check's semantics'). Batch must choose the grandfather rule — e.g. unsigned path allowed only when inventory_at is an ancestor of the commit that introduced .orca/dispatch-pubkey (git merge-base --is-ancestor), or read the key at the grading base rather than at the pin — and update the three statements together."
+    }
+  ],
+  "tally": {
+    "VALID": 2,
+    "FALSE_POSITIVE": 0,
+    "held_for_batch": [
+      "BOT-1",
+      "BOT-2"
+    ]
+  },
+  "held": [
+    "BOT-1",
+    "BOT-2"
+  ],
+  "constraints_honored": [
+    "never merged",
+    "never pushed to main",
+    "no fixes applied to bot findings",
+    "no rebase (reviewed SHA preserved)",
+    "only integrate.json committed by the integrator"
+  ]
+}

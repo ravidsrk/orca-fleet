@@ -1,0 +1,127 @@
+{
+  "unit": "U-SIG-1",
+  "role": "verdict-aggregator",
+  "task_id": "task_f1922acef83c",
+  "dispatch_id": "ctx_daa0eb433d1c",
+  "generated_at": "2026-09-20T18:17:07+00:00",
+  "verdict": "NO-GO",
+  "round": 1,
+  "pr": {
+    "number": 489,
+    "base_ref": "review/2026-09-20-sign-386",
+    "head_ref": "ravidsrk/sig-1"
+  },
+  "reviewed_sha": "120c61a07ad8222ca71035c7109a842c8375f481",
+  "reviewed_wtree": "66744ffba45ca5a8622852c753f900fefdd81569",
+  "reviewer_mode": "same-vendor-fresh",
+  "reviewer_mode_note": "all three axis lanes ran on Claude; the codex lane was unavailable this unit. Weaker independence guarantee than cross-vendor, named rather than hidden.",
+  "rule": "acceptance-review: axes side by side, no cross-axis rerank; GO only when zero Critical/Required across axes and the held bot set",
+  "inputs": [
+    "docs/reports/u-sig-1/review-spec.txt",
+    "docs/reports/u-sig-1/review-standards.txt",
+    "docs/reports/u-sig-1/review-tests.txt",
+    "docs/reports/u-sig-1/integrate.json (BOT-1, BOT-2 held)"
+  ],
+  "pr_review": {
+    "id": 5261333893,
+    "state": "COMMENTED",
+    "submitted_at": "2026-09-20T18:16:39Z",
+    "first_line": "verdict: NO-GO — round 1"
+  },
+  "egress_receipt": {
+    "id": "b804e853de0620565f402317a608bc238d9e7685d2bf310acaca1d32d0c7f9dc",
+    "sink": "pr-review",
+    "host": "github.com",
+    "payload_class": "review-verdict",
+    "consent": "run-2026-09-14-clean-sweep:tracker-writes",
+    "preceded": "gh pr review 489 --comment"
+  },
+  "held_bot_set": [
+    {
+      "id": "BOT-2",
+      "assessed": "P1",
+      "disposition": "UPHELD",
+      "corroborated_by": [
+        "SPEC F-1",
+        "STANDARDS R-1",
+        "TESTS F-3"
+      ],
+      "executed_by": [
+        "SPEC probe",
+        "TESTS P4/P5"
+      ],
+      "summary": "enforcement switch read at worker-chosen inventory_at; fork-from-pre-key evasion accepted; three prose claims false; coordinator Q2 premise refuted, needs re-decision"
+    },
+    {
+      "id": "BOT-1",
+      "assessed": "P2",
+      "disposition": "UPHELD",
+      "corroborated_by": [
+        "SPEC F-2 (Required)",
+        "STANDARDS O-1 (Optional)",
+        "TESTS F-2 (Required)"
+      ],
+      "summary": "signed args never read by signed_transcript(); option (a) bind args.unit_class vs _mutation_missions is inside scope files"
+    }
+  ],
+  "axes": {
+    "spec": {
+      "critical": 0,
+      "required": [
+        "F-1 (=BOT-2)",
+        "F-2 (=BOT-1)",
+        "F-3 manifest head_sha 9f10586e does not bind its commands ledger (records at 3e094f35)"
+      ],
+      "fyi": [
+        "FYI-1 failing-first not shown by graph",
+        "FYI-2",
+        "FYI-3",
+        "FYI-4"
+      ],
+      "delivered": "DB1, DB2 full; DB4 as amended by Q1=(c); DB3 as answered by Q2; AC-2/3/4/5"
+    },
+    "standards": {
+      "critical": 0,
+      "required": [
+        "R-1 (=BOT-2 + three false doc claims)",
+        "R-2 two signers disagree on sign-no-absence; None==None binds",
+        "R-3 --transcript-out write failure exits 0"
+      ],
+      "nits": [
+        "N-1",
+        "N-2",
+        "N-3",
+        "N-4",
+        "N-5",
+        "N-6"
+      ],
+      "optional": [
+        "O-1 (=BOT-1)"
+      ],
+      "pass": "argv discipline, stdlib-only, key-file scheme, width-pin reason"
+    },
+    "tests": {
+      "critical": 0,
+      "required": [
+        "F-1 at-rev read of key and transcript unpinned (C3/C14 survive 186 tests; P2/P3/P8 missing)",
+        "F-2 (=BOT-1, no killer exists)",
+        "F-3 (=BOT-2 executed, P4/P5)"
+      ],
+      "nits": [
+        "Nit-1 record.unit unbound"
+      ],
+      "mutation_score": "14 killed / 2 survivors / 1 equivalent of 17",
+      "negative_control": "real and complete (21 RED)"
+    }
+  },
+  "stickers": [
+    "BOT-2",
+    "BOT-1",
+    "SPEC F-3",
+    "STANDARDS R-2",
+    "STANDARDS R-3",
+    "TESTS F-1"
+  ],
+  "findings_summary": "NO-GO round 1. Held BOT-2 (P1) upheld and executed on all three axes: the pubkey switch is read at a worker-chosen inventory_at, a fork from a pre-key commit with fresh artifacts takes the unsigned path, and the counter-claim stated in run_report.py, the test docstring and docs/verify-gate.md is false; coordinator answer Q2 rests on that premise and must be re-decided (ancestor-of-key-commit grandfather rule recommended), moving the three statements together. Held BOT-1 (P2) upheld: signed args never read. Beyond the held set: spec F-3 (manifest head_sha does not bind the commands ledger it names), standards R-2 (verify.py signs a None manifest_sha256 that run_report then binds None==None) and R-3 (requested transcript write failure exits 0), tests F-1 (at-rev read of key/transcript has no test that can go red — mutants C3/C14 survive). Delivered and verified: DB1/DB2, DB4 as amended by Q1=(c), byte-identity of the no-flag path, cross-module canonical parity, tamper/other-key/other-manifest/unsigned-with-key refusals, a real 21-RED negative control, suite/validate/gitleaks green. No finding is a worker deviation from the frozen spec or the recorded coordinator answers.",
+  "next": "batch re-decides Q2 (BOT-2 rule) and BOT-1 option (a)/(b); builder lands R-2, R-3, TESTS F-1 (P2/P3/P8 + P4/P5 as RED-first), re-runs evidence-run at head and re-emits the manifest (SPEC F-3); round 2 review at the new head."
+}

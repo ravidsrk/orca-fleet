@@ -24,6 +24,15 @@ repo-pinned PUBLIC key, so an in-session substitution is detected.
         # not — the usual case, since the fix has not been written yet — the gate binds the same
         # inputs to what base_sha..head_sha actually changes instead (#280).
 
+    dispatch-sign.py sign-transcript --key ~/.orca-fleet/dispatch-key \\
+        --transcript <verdict.json> [--out <transcript.json>]
+        # wraps verify.py's VERDICT OBJECT (what `verify.py --transcript-out` writes) in the same
+        # {record, sig_b64} envelope, over the same canonical form, with the same key (#281/#386).
+        # For the custody model where the seed is OFFLINE: verify.py runs without it, the
+        # maintainer signs the verdict afterwards. run_report.py then requires the envelope to
+        # verify against the committed .orca/dispatch-pubkey — the same pin that switches the
+        # dispatch-record check on. `verify.py --transcript-key` signs in-process instead.
+
 Stdlib-only; the signature scheme is runtime/scripts/ed25519.py (vendored, RFC 8032).
 """
 from __future__ import annotations
@@ -60,21 +69,35 @@ _RECORD_FIELDS = ("manifest_id", "contract_digest", "unit_class", "lighting",
                   "nc_paths", "nc_command", "nc_artifact_sha256")
 
 
-def canonical_subset(record: dict) -> dict:
+# The verifier-transcript fields (#281/#386): verify.py's verdict object, signed so run_report.py
+# can require a verdict the worker could not have typed. `manifest_sha256` binds the verdict to the
+# manifest BYTES it judged, `args` is the full argument tuple the run used, `fatal`/`notes` are the
+# printed verdict, `exit` is the code. All are required — a transcript missing one signs an absence.
+TRANSCRIPT_FIELDS = ("unit", "manifest", "manifest_sha256", "args", "fatal", "notes", "exit",
+                     "toolchain", "timestamp")
+
+
+def canonical_subset(record: dict, fields=_RECORD_FIELDS) -> dict:
     """The signed fields only, with nc_paths reduced to a sorted list of strings.
 
     A coordinator signs a SET of paths, not a listing order, so ["b","a"] and ["a","b"] must
     produce the same bytes — otherwise a re-ordered manifest reads as a forgery."""
-    subset = {k: record[k] for k in _RECORD_FIELDS if record.get(k) is not None}
+    subset = {k: record[k] for k in fields if record.get(k) is not None}
     if isinstance(subset.get("nc_paths"), list):
         subset["nc_paths"] = sorted(str(x) for x in subset["nc_paths"])
     return subset
 
 
-def canonical_record(record: dict) -> bytes:
+def canonical_record(record: dict, fields=_RECORD_FIELDS) -> bytes:
     """Deterministic bytes for signing/verifying: only the signed fields, sorted, no whitespace."""
-    return json.dumps(canonical_subset(record), sort_keys=True,
+    return json.dumps(canonical_subset(record, fields), sort_keys=True,
                       separators=(",", ":")).encode("utf-8")
+
+
+def canonical_transcript(record: dict) -> bytes:
+    """The transcript's canonical bytes — verify.py._canonical_transcript must match byte-for-byte
+    (a cross-tool test guards this, as for the dispatch tuple)."""
+    return canonical_record(record, TRANSCRIPT_FIELDS)
 
 
 def _in_unignored_worktree(path: Path) -> bool:
@@ -153,19 +176,64 @@ def gen_key(out: Path, in_repo_ok: bool = False) -> int:
     return 0
 
 
-def sign(key: Path, record: dict) -> int:
-    ed = _load_ed25519()
-    seed = bytes.fromhex(key.read_text(encoding="utf-8").strip())
+def _seed(key: Path):
+    """(seed bytes, None) from a gen-key seed file, or (None, reason)."""
+    try:
+        seed = bytes.fromhex(key.read_text(encoding="utf-8").strip())
+    except (OSError, ValueError) as exc:
+        return None, f"cannot read a hex seed from {key}: {exc}"
     if len(seed) != 32:
-        print("dispatch-sign: key must be a 32-byte hex seed", file=sys.stderr)
+        return None, "key must be a 32-byte hex seed"
+    return seed, None
+
+
+def envelope(seed: bytes, record: dict, fields=_RECORD_FIELDS) -> dict:
+    """{record, sig_b64}: the signed subset of `record` and an Ed25519 signature over its canonical
+    bytes. One envelope shape for the dispatch tuple and the verifier transcript."""
+    ed = _load_ed25519()
+    sig = ed.signature(canonical_record(record, fields), seed, ed.publickey(seed))
+    return {"record": {k: record[k] for k in fields if record.get(k) is not None},
+            "sig_b64": base64.b64encode(sig).decode("ascii")}
+
+
+def sign(key: Path, record: dict) -> int:
+    seed, err = _seed(key)
+    if err:
+        print(f"dispatch-sign: {err}", file=sys.stderr)
         return 1
-    pub = ed.publickey(seed)
-    sig = ed.signature(canonical_record(record), seed, pub)
-    envelope = {
-        "record": {k: record[k] for k in _RECORD_FIELDS if record.get(k) is not None},
-        "sig_b64": base64.b64encode(sig).decode("ascii"),
-    }
-    print(json.dumps(envelope, indent=2))
+    print(json.dumps(envelope(seed, record), indent=2))
+    return 0
+
+
+def sign_transcript(key: Path, transcript: Path, out: Path | None = None) -> int:
+    """Wrap a verdict object in the envelope. Every transcript field must be PRESENT (None is a
+    legal value for none of them: an absent verdict list or exit code is nothing to sign)."""
+    seed, err = _seed(key)
+    if err:
+        print(f"dispatch-sign: {err}", file=sys.stderr)
+        return 1
+    try:
+        record = json.loads(transcript.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        print(f"dispatch-sign: cannot read a verdict object from {transcript}: {exc}", file=sys.stderr)
+        return 1
+    if not isinstance(record, dict):
+        print(f"dispatch-sign: {transcript} is not a JSON object", file=sys.stderr)
+        return 1
+    if "sig_b64" in record and "record" in record:
+        print(f"dispatch-sign: {transcript} is already an envelope — sign the verdict object, "
+              "not a signed one", file=sys.stderr)
+        return 1
+    missing = [k for k in TRANSCRIPT_FIELDS if record.get(k) is None]
+    if missing:
+        print(f"dispatch-sign: verdict object is missing {missing} — refusing to sign an absence "
+              f"(want every one of {list(TRANSCRIPT_FIELDS)})", file=sys.stderr)
+        return 1
+    text = json.dumps(envelope(seed, record, TRANSCRIPT_FIELDS), indent=2)
+    if out is None:
+        print(text)
+    else:
+        out.write_text(text + "\n", encoding="utf-8")
     return 0
 
 
@@ -195,9 +263,19 @@ def main(argv=None) -> int:
                    help="sha256 of the control's artifact CONTENT, so the evidence itself is "
                         "pinned and not just its path (optional)")
 
+    t = sub.add_parser("sign-transcript", help="sign a verify.py verdict object (#281/#386)")
+    t.add_argument("--key", required=True, help="private seed file from gen-key")
+    t.add_argument("--transcript", required=True,
+                   help="the verdict object verify.py wrote with --transcript-out (unsigned)")
+    t.add_argument("--out", default=None,
+                   help="write the envelope here instead of stdout (e.g. the run's own directory)")
+
     args = ap.parse_args(argv)
     if args.cmd == "gen-key":
         return gen_key(Path(args.out), in_repo_ok=args.in_repo_ok)
+    if args.cmd == "sign-transcript":
+        return sign_transcript(Path(args.key), Path(args.transcript),
+                               Path(args.out) if args.out else None)
     record = {
         "manifest_id": args.manifest_id,
         "contract_digest": args.contract_digest,

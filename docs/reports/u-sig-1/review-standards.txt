@@ -1,0 +1,292 @@
+REVIEW — U-SIG-1 — STANDARDS AXIS
+=================================
+Reviewer: standards worker (task_7651156faf5b / ctx_378a3684a6ca)
+Branch: ravidsrk/sig-1  vs  origin/review/2026-09-20-sign-386
+Spec (frozen): docs/runs/2026-09-20-sign-386/build-u-sig-1.md
+Held findings read: docs/reports/u-sig-1/integrate.json BOT-1, BOT-2
+Started: 2026-09-20T23:12 IST  (timebox 30 min, partial-report STOP)
+Status: COMPLETE — section 1 written BLIND; sections 2-4 after reading the diff
+Finished: 2026-09-20T23:17 IST (5 min of the 30 min box used)
+
+--------------------------------------------------------------------------
+1. BLIND EXPECTATIONS (written from spec + integrate.json ONLY, diff unopened)
+--------------------------------------------------------------------------
+
+1.1 Per spec DESIRED BEHAVIOUR item 1 — verify.py verdict object + signed envelope
+  Motivating line: "verify.py builds a machine-readable VERDICT OBJECT (manifest path,
+  the full argument tuple, fatal/notes lists, exit code, toolchain, UTC timestamp)"
+  EXPECT (standards):
+   a. The record is built by ONE function that is the single source of truth for the
+      field set; dispatch-sign.py must import or share that field list, never
+      re-type it (Fowler: Duplicated Code / Shotgun Surgery if a field is added).
+   b. Signing key seed is read from a path given on argv (`--transcript-seed` or
+      similar, modelled on --dispatch-pubkey), opened with 0600 expectation, NEVER
+      embedded, NEVER passed via a shell string. Any subprocess call uses a list
+      argv — no f-string into shell=True.
+   c. Envelope write is atomic-ish (write temp, rename) or at minimum fails closed:
+      if signing fails, verify.py exits non-zero rather than emitting an unsigned
+      artifact and exit 0.
+   d. The no-flag path is byte-identical: the build of the verdict object must not
+      add stdout lines or change exit codes when no flag is passed.
+   e. Timestamp is UTC ISO-8601 with explicit "Z"/"+00:00" — no naive datetime.now().
+
+1.2 Per spec item 2 — dispatch-sign.py transcript entry point
+  Motivating line: "dispatch-sign.py gains a transcript signing entry point reusing
+  canonical_record()/the envelope and the existing key files — no second scheme."
+  EXPECT:
+   a. A new subcommand (e.g. `sign-transcript`) sharing canonical_record(); no second
+      canonicaliser, no second envelope shape.
+   b. Existing gen-key layout is reused (0600 seed, <out>.pub); no new key files.
+   c. Seed read: open with mode check; refuse (fail closed) if the seed file is
+      group/world readable? — at minimum match whatever the existing gen-key /
+      sign path already does; no LOOSER handling than the neighbor.
+   d. Stdlib only: no `cryptography`, `nacl`, `pynacl` imports.
+
+1.3 Per spec item 3 — run_report.py verifier-ran leg
+  Motivating line: "with a committed pubkey present it REQUIRES the signed
+  transcript (the ledger entry alone no longer suffices), with the unsigned path
+  preserved when no pubkey exists."
+  EXPECT:
+   a. FAIL-CLOSED ordering: presence-of-pubkey decides the lane BEFORE the ledger is
+      consulted; a malformed/undecodable envelope is a FAIL, not a fall-through to
+      the unsigned lane (that would be Fowler "Speculative Generality" turned into
+      a bypass).
+   b. Pubkey is read from the repo at a rev that the WORKER does not control — this
+      is exactly BOT-2. My blind expectation: the key should be read at the grading
+      base (or HEAD of the review branch), not at a header-declared pin. If the
+      implementation reads it at `inventory_at`, that is a standards defect
+      (fail-open) independent of the bot's finding.
+   c. Signed fields bound to report claims: manifest path, manifest sha, exit code,
+      AND the argument tuple that matters for the verdict's meaning (unit_class,
+      execute_nc, lighting). This is BOT-1. Blind expectation: at minimum the
+      signed_transcript() checker should refuse a transcript whose args say
+      report-only/planning for a mutation-mission manifest. If args are signed but
+      never read, that is Fowler "Dead Code"/"Speculative Generality" — signing a
+      field nobody checks.
+   d. base64 decode and JSON parse of the envelope wrapped in try/except that
+      RETURNS a failure reason string, not a bare exception that crashes grading
+      (neighbours in run_report.py return (ok, reason) tuples).
+
+1.4 Per spec item 4 — committed pubkey + dormancy pin
+  Motivating line: "The coordinator public key is committed at .orca/dispatch-pubkey
+  (the scheme's own enforcement switch); tests/test_orphan_wiring.py:683-689 and its
+  source doc are updated to the NEW true state (dormant → active for transcripts),
+  never deleted"
+  EXPECT:
+   a. .orca/dispatch-pubkey contains ONLY the public half (32 bytes b64/hex, one
+      line); no seed anywhere in the tree; gitleaks 0 (integrate.json says 0 — ok).
+   b. The dormancy test still asserts what is NOT signed (dispatch tuple stays
+      unsigned/dormant); the test is narrowed, not deleted.
+   c. docs/verify-gate.md paragraph and the test docstring say the same thing
+      (integrate.json BOT-2 says they are stated in three places — I expect them
+      to agree with each other AND with code; if code reads the key at the pin,
+      the "cannot dodge it by pinning an old commit" claim is FALSE and must go).
+
+1.5 RV-D2 width fold + pin bump (from the branch commit titles)
+  Motivating line (task): "the RV-D2 width fold + pin bump has the demanded
+  docstring reason"
+  EXPECT:
+   a. tests/test_reshape_width.py (or wherever WIDTH is pinned) bumps the number
+      by exactly the delta of NEW public names, and the docstring names WHICH name
+      and WHY it is public (the `_Transcript` namespace) — a bare number bump with
+      no reason is the ratchet defect the pin exists to catch.
+   b. The fold into `_Transcript` is a pure move: no behaviour change, no renamed
+      public names beyond the one namespace; helpers that were module-private stay
+      private (Fowler: no "Large Class" — a namespace class with static methods is
+      acceptable only if it has no state).
+
+1.6 Key-file handling scheme (task axis)
+  Motivating line (task): "key-file handling matches the 0600/out-of-repo scheme"
+  EXPECT:
+   a. Any NEW seed-file write uses os.open(..., 0o600) or os.chmod after write —
+      same as gen-key; any seed READ does not create the file if missing (fail
+      closed with a clear error).
+   b. Seed default path is OUTSIDE the repo (e.g. under ~/.orca or an env var),
+      never a default like `.orca/dispatch-seed` that a `git add -A` would sweep.
+   c. .gitignore does not need to change if (b) holds; if a seed path IS inside the
+      repo, .gitignore must cover it AND that is still a Required finding.
+
+1.7 Held P1s — my own expectation per item
+  BOT-1 (args signed, never read): EXPECT the delta either binds unit_class/
+      execute_nc/lighting or documents in signed_transcript() docstring that the
+      args are for human audit only. Silent unbound = Required (standards: fail
+      closed).
+  BOT-2 (pin evaluated at worker-chosen rev): EXPECT the key lookup to use the
+      grading base. If it uses inventory_at, Required, and the three prose claims
+      become false statements that must be corrected or the code fixed.
+
+--------------------------------------------------------------------------
+
+--------------------------------------------------------------------------
+2. WHAT I CHECKED (after opening the diff)
+--------------------------------------------------------------------------
+Diff: origin/review/2026-09-20-sign-386...HEAD, 8 commits c2c3be72..120c61a0, 14 files.
+Standards sources used (verbatim):
+  runtime/sandbox-policy.md:135-138 "## Scripts: argv, never interpolation / `runtime/scripts/`
+    never builds code strings by interpolation: no `python -c "…$var…"`, no `eval`, no shell
+    built from task/branch/mission names."
+  CONTRIBUTING.md:107-108 "`runtime/scripts/` is shared tooling: shell/Python, stdlib only, no
+    secrets (env vars only), fail-closed exits documented in the header comment."
+  docs/verify-gate.md:250-251 "`dispatch-sign.py gen-key --out <secret>` — keep `<secret>`
+    private and land `<secret>.pub` as **`.orca/dispatch-pubkey`**"
+Mechanical checks run:
+  - rg over the runtime/scripts/ delta for shell=True | os.system | eval( | exec( : NONE.
+  - new imports in the delta: `import base64`, `from datetime import datetime, timezone` —
+    stdlib only, no new deps. PASS.
+  - every subprocess in the delta is a list argv (`_run(["git","--version"])`,
+    `["git","show",f"{rev}:{path_text}"]` — the f-string is one argv element, same idiom as
+    the pre-existing blob_at). PASS.
+  - transcript timestamp: `datetime.now(timezone.utc).isoformat(timespec="seconds")` → aware
+    UTC. PASS (1.1e).
+  - no-flag path: main()'s tail restructure prints the same lines and returns the same code
+    when --transcript-out is None; test_no_flags_writes_nothing_and_says_nothing_new pins it.
+    PASS (1.1d).
+  - key files: no seed anywhere in the tree; gitleaks 0 (integrate.json); the only in-repo
+    key path is the PUBLIC pin `.orca/dispatch-pubkey`, which is NOT committed on this branch
+    (coordinator decision Q1=c per u-sig-1-manifest.json:127). Seed reads are read-only, never
+    create. gen-key's 0600/out-of-repo path is untouched. PASS (1.6a/b/c).
+  - RV-D2 width: WIDTH_RE `^(def |class |async def |[A-Z_]+ =)`; `_Transcript` is +1, pin
+    90→91, and the docstring names the name AND the reason (tests/test_reshape_width_verify.py
+    :14-17). PASS (1.5a) — with the caveat in N-1 below.
+
+--------------------------------------------------------------------------
+3. FINDINGS (Critical / Required / Nit / Optional / FYI)
+--------------------------------------------------------------------------
+
+[R-1] Required — fail-closed: the pubkey switch is evaluated at a worker-chosen rev, and the
+      delta asserts the opposite in prose (= held BOT-2, confirmed independently)
+  Where: runtime/scripts/run_report.py:447-460 (signed_transcript), :43-52 (module doc),
+         docs/verify-gate.md:199-201, tests/test_run_report.py SignedTranscriptRequired docstring
+  Motivating line (run_report.py:50-52): "and a new run cannot dodge it by pinning an old
+      commit because its own artifacts must exist there."
+  Motivating line (signed_transcript): "pin = blob_at(rev, PUBKEY_PIN, root)" where
+      rev = fields["inventory_at"] (run_report.py:788), a header field the worker writes.
+  Against my blind 1.3b / 1.7-BOT-2: the key is read at the pin, not at the grading base.
+      The stated counter is false: a branch forked from any pre-key commit carries fresh
+      artifacts AND no key, so the unsigned ledger lane is taken. rev_exists() is the only
+      guard and a dangling commit satisfies it. CONTRIBUTING.md:108 "fail-closed exits" is
+      the standard; a switch the constrained party can evade is fail-open.
+  Standards-axis point beyond the bot: the same false claim is stated in THREE places; the
+      repo's own doctrine treats a false doc claim as a defect (clean-sweep source=doc-claims).
+      Whichever grandfather rule the batch picks (ancestry of the key-introducing commit via
+      `git merge-base --is-ancestor`, or key-at-grading-base), all three statements must move
+      together. Note: reading at the pin was a coordinator answer (Q2, manifest.json:127) to
+      avoid demoting the two existing self-run reports — an ancestry rule preserves that.
+
+[R-2] Required — the two signers disagree on the "sign no absence" rule; the verifier makes
+      absent == absent a pass
+  Where: runtime/scripts/verify.py _Transcript.build (:1876-1878) and _Transcript.write;
+         runtime/scripts/dispatch-sign.py sign_transcript (:227-231);
+         runtime/scripts/run_report.py:499-502
+  Motivating line (dispatch-sign.py:75): "All are required — a transcript missing one signs
+      an absence."
+  Motivating line (verify.py build): "except (OSError, ValueError, AttributeError):
+      manifest_sha, unit = None, None"
+  Motivating line (run_report.py:501-502): "actual = hashlib.sha256(graded).hexdigest() if
+      graded is not None else None / if record.get("manifest_sha256") != actual:"
+  dispatch-sign.py's offline signer REFUSES a verdict with a None field; verify.py's
+      in-process signer (--transcript-key) SIGNS one (manifest_sha256=None, unit=None when the
+      manifest was unreadable). run_report.py then compares None to None and calls it bound
+      when the graded manifest is missing at rev. Today verifier_ran() catches the missing
+      manifest first, so this is defense-in-depth — but it is a Fowler Divergent Change
+      already in flight: one rule, two implementations, one of them fail-open. Fix: make
+      _Transcript.write refuse (or main() exit 1) when any FIELDS value is None with a seed
+      present, and in run_report.py treat `actual is None` as a problem in its own right.
+
+[R-3] Required — --transcript-out write failure is reported on stderr and exit 0 is returned
+  Where: runtime/scripts/verify.py _Transcript.write (:1920-1923) and main (:2284-2285)
+  Motivating line: "Failure to write is reported, never fatal to the verdict: the exit code
+      is the verdict, the transcript is its signed copy."
+  Motivating line (the same class's seed()): "Read up front so a bad key is a USAGE error
+      (exit 1) before any verdict, not a transcript silently left unsigned."
+  The class applies the fail-closed rule to the key read and the opposite rule to the
+      artifact write, in adjacent methods. A caller that runs `verify.py --transcript-out X
+      && <use X>` gets exit 0 and no X. Header contract (verify.py:45) reserves 1 for
+      "usage/dependency" — an unwritable requested output is that. Suggested: return 1 when
+      the write fails and code == 0 (keep 2 when the verdict itself was RED). run_report.py
+      does fail closed downstream (missing transcript → error), which is why this is Required
+      not Critical.
+
+[N-1] Nit — a module-level alias adds width the RV-D2 probe cannot see
+  Where: runtime/scripts/verify.py:1926 "_canonical_transcript = _Transcript.canonical  # the
+      parity test's name, beside _canonical_dispatch"
+  WIDTH_RE `[A-Z_]+ =` does not match a lowercase alias, so the pin counts `_Transcript` (+1)
+      and misses this second top-level name. The docstring's "the feature costs one name" is
+      true of the probe, not of the module. Either have tests call `_Transcript.canonical`
+      directly (drop the alias) or count it honestly (pin 92 would breach `< BASELINE_WIDTH`,
+      which is exactly why the alias exists — that is the ratchet being routed around).
+
+[N-2] Nit — FIELDS duplicated across two modules with no equality pin
+  Where: verify.py _Transcript.FIELDS / dispatch-sign.py TRANSCRIPT_FIELDS;
+         tests/test_verify.py test_canonicalization_matches_signer
+  Motivating line (verify.py:1855): "FIELDS mirrors dispatch-sign.py.TRANSCRIPT_FIELDS."
+  The parity test compares canonical BYTES of one sample record; a field added to one tuple
+      only, absent from the sample, still passes. Matches the pre-existing _canonical_dispatch
+      precedent (so not Required), but one line — assertEqual(verify._Transcript.FIELDS,
+      dispatch_sign.TRANSCRIPT_FIELDS) — closes the drift. (Fowler: Duplicated Code.)
+
+[N-3] Nit — run_report.py reaches into dispatch-sign's private loader
+  Where: runtime/scripts/run_report.py:489 "dispatch_sign._load_ed25519().checkvalid(..."
+  A cross-module call to an underscore name (Fowler: Inappropriate Intimacy). The natural
+      seam is a public `verify_envelope(pub, envelope, fields) -> (ok, reason)` in
+      dispatch-sign.py next to envelope(); verify.py's write() would share it too.
+
+[N-4] Nit — the signed `args` tuple records the flag, not the effective value
+  Where: verify.py _Transcript.build "args": {k: getattr(args, k) for k in cls.ARGS}; main()
+      passes `args.repo or infer_repo()` and the _root_arg-resolved git_dir/evidence_root.
+  Motivating line (build docstring): "with what (the full argument tuple — unset flags
+      included, so an omitted authority is visibly omitted)"
+  repo=None is signed when infer_repo() supplied the value the run used. Omitted-flag
+      visibility is a fair goal; record both (flag and effective) or document that args is
+      the invocation, not the resolution.
+
+[N-5] Nit — stale "not yet" in a docstring the delta made partly true
+  Where: runtime/scripts/run_report.py:402-403 (verifier_ran docstring)
+  Motivating line: "It is not yet a leg the worker cannot type — that needs a coordinator-
+      signed verifier transcript checked against a committed key (#281)."
+  After this delta the ledger leg is still typeable (true) but the transcript leg exists in
+      the function directly below; "not yet" should point at signed_transcript() rather than
+      read as an open gap.
+
+[N-6] Nit — dispatch-sign.py header does not document its exit codes
+  Where: runtime/scripts/dispatch-sign.py module docstring (:1-38)
+  Motivating line (CONTRIBUTING.md:108): "fail-closed exits documented in the header comment."
+  Pre-existing omission, but the delta adds a third subcommand with four distinct exit-1
+      refusals and does not add the line. One `# exit 0 ok · 1 bad key/verdict` line fixes it.
+
+[O-1] Optional — BOT-1 (args signed, never read) on this axis
+  Where: runtime/scripts/run_report.py:494-508 binds manifest, manifest_sha256, exit only.
+  Motivating line (dispatch-sign.py:74): "`args` is the full argument tuple the run used"
+  Against my blind 1.3c: signing a field no verifier reads is Fowler Speculative Generality.
+      I agree with integrate.json's P2 downgrade and its scope note (no policy source exists;
+      spec non-goals exclude policy text). Standards-minimum without a policy source: the
+      signed_transcript() docstring should state that `args` is bound for the human auditor
+      only, so the next reader does not assume it is checked. Leaving the design choice (a)/(b)
+      to the batch.
+
+[FYI-1] Spec item 4's first half ("The coordinator public key is committed at
+      .orca/dispatch-pubkey") is NOT done on this branch; the dormancy pin was rewritten to
+      assert the key is still absent (tests/test_orphan_wiring.py: assertFalse(... exists())).
+      u-sig-1-manifest.json:204-205 parks it as needs-human (gate G1 custody, coordinator
+      Q1=c). Out of my axis (spec reviewer's call); noting because the AC "an unsigned
+      transcript is REJECTED when the pubkey is present" is therefore proven only in a temp
+      repo, never on this tree.
+[FYI-2] Test fixture in tests/test_verify.py writes the seed to `.orca/seed` INSIDE the temp
+      repo. Test-only, a tempdir, not a standards breach — but the example path in the
+      shipped docs is `~/.orca-fleet/dispatch-key`; a fixture under the tempdir root (not
+      `.orca/`) would model the scheme it is testing.
+
+--------------------------------------------------------------------------
+4. VERDICT (standards axis)
+--------------------------------------------------------------------------
+Argv-never-interpolation: PASS. Stdlib-only / no new deps: PASS. Key-file scheme (0600
+seed, out-of-repo, public half only in-tree): PASS. RV-D2 width pin reason: PRESENT (N-1
+caveat). Neighbour style (importlib module loads, (ok, reason) returns, run_dir prefix
+idiom, list argv): MATCHES.
+Fail-closed: 3 Required — R-1 (the enforcement switch is evadable and three prose claims say
+otherwise; = BOT-2), R-2 (two signers, one absence rule; None==None binds), R-3 (requested
+artifact silently unwritten at exit 0). None is Critical: run_report.py's downstream checks
+still refuse in every scenario I could construct except the R-1 fork, which is the held P1.
+Recommendation: NOT MERGEABLE as-is on this axis until R-1 is resolved with the three
+statements moved together; R-2/R-3 are small and inside the spec's scope files.
+Mutations performed: none. Files committed: none. Report file: this one (uncommitted).
