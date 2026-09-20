@@ -208,6 +208,14 @@ def fail_shaped(root, path_text, shape):
     return 1
 
 
+# A fleet liveness-resume ledger header: `RUN: <id> · COORDINATOR: <handle> · BASE: …`.
+# Top-level living ledgers carry this shape (2026-09-14/2026-09-20 trackers); they are
+# workflow records, never submission bundles — the run's BINDING report is filed later
+# (#411 precedent), so routing them to the binder can only fail closed on a format that
+# was never a submission attempt.
+LEDGER_HEADER_RE = re.compile(r"^RUN:\s*\S+\s+·\s+COORDINATOR:", re.M)
+
+
 def header_of(root, path_text):
     try:
         text = (root / path_text).read_text(encoding="utf-8")
@@ -215,7 +223,10 @@ def header_of(root, path_text):
         return None, f"{path_text} is unreadable"
     fields, err = run_report.parse_run_header(text)
     if err is not None:
-        if run_report.RUN_HEADER_RE.search(text):
+        first = run_report.RUN_HEADER_RE.search(text)
+        if first and LEDGER_HEADER_RE.match(first.group(0)):
+            return None, None  # fleet liveness-resume ledger, not a submission
+        if first:
             return None, f"{path_text}: {err}"
         return None, None  # no RUN: line at all — a tracker or note, not a candidate
     return fields, None
