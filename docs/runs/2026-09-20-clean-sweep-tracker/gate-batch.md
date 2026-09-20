@@ -27,7 +27,15 @@ doctrine text is correct and complete; Greptile APPROVED d75b23b1; suite 1707 OK
 - (c) MERGE ANYWAY with accept-with-reason (Greptile APPROVED + SPEC GO + the stickers are
   evidence-layer) — recorded as a human override of the round budget.
 
-**Default if unanswered:** (a). A fleet never fakes a human answer.
+**Default if unanswered:** (a).
+
+**RESOLVED 2026-09-20: (b)** — maintainer grant in-session (same answer as G1). Targeted
+repair of the stickers + targeted re-review of just those fixes. Budget override recorded,
+human-named (DECISIONS gate-batch-G2). A fleet never fakes a human answer.
+
+**RESOLVED 2026-09-20: (b)** — maintainer grant in-session ("Let's do it" answering the G1
+brief). Targeted repair of the three stickers + targeted re-review of just those fixes.
+Budget override recorded, human-named (DECISIONS gate-batch-G1).
 
 ## G2 — U-442 review-round budget exhausted (PARK)
 
@@ -56,3 +64,7 @@ _validate.py_ green, all CI green.
   manifest text) — recorded as a human override of the round budget.
 
 **Default if unanswered:** (a).
+
+**RESOLVED 2026-09-20: (b)** — maintainer grant in-session (same answer as G1). Targeted
+repair of the stickers + targeted re-review of just those fixes. Budget override recorded,
+human-named (DECISIONS gate-batch-G2).
