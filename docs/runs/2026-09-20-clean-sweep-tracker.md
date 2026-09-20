@@ -1,6 +1,6 @@
 # clean-sweep run — source=tracker — 2026-09-20
 
-RUN: run_20260920_tracker · COORDINATOR: kimi-code (this session, driving shell Bash tool on maintainer Mac) · BASE: review/2026-09-20-tracker-sweep · FORK_POINT: e8ddbd98 (origin/main at T0) · T0: 2026-09-20T06:17:18Z · SOURCE: tracker (10 open at T0: #235 #386 #407 #409 #427 #434 #441 #442 #443 #444; enumeration digest: gh-issue-list-open-count=10) · WIP: builders=2 reviewers=1
+RUN: run_bec47e54b673 · COORDINATOR: term_0bae108a-5af7-4d7a-b584-67d05a2787d1 (kimi-code driving shell; coordinator terminal COORD-2026-09-20, background surface) · BASE: review/2026-09-20-tracker-sweep · FORK_POINT: e8ddbd988486694a2985822e557a382b344e2872 (origin/main at T0) · T0: 2026-09-20T06:17:18Z · SOURCE: tracker (10 open at T0: #235 #386 #407 #409 #427 #434 #441 #442 #443 #444; enumeration digest: gh-issue-list-open-count=10) · WIP: builders=2 reviewers=1
 
 PHASE: ORIENT → ENUMERATE done → TRIAGE done (incl. prior-run re-verification) → FREEZE → BOOTSTRAP
 
