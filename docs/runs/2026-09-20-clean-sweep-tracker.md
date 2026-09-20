@@ -237,5 +237,16 @@ BOOTSTRAP: preflight --base review/2026-09-20-tracker-sweep --fork-point e8ddbd9
   task_c01a07c4fb08, claude term_a2768396 (push + Greptile reconcile on the new head).
   Round-2 review wave follows the bot reconcile.
 
+- 11:2x U-CHAIN r2 INTEGRATED (worker_done msg_08bdb8df7836): gitleaks clean, egress 61ba882d,
+  ff push 5619d5be..0dbc669e; Greptile on the new head: 2 NEW VALID held — BOT-4 (P1,
+  mission-chaining.md:46: the BASE→DEFAULT resume check names origin/<default> with no
+  freshness obligation — a stale ref parks a promoted chain; sits in the clause F-1 rewrote)
+  and BOT-5 (P2, docs/reports/U-CHAIN/run_mutants-r2.py). Both join the r2 review batch.
+  R2 REVIEW WAVE dispatched (codex): SPEC term_99f75411/task_99fd6b826460 · STANDARDS
+  term_b695c937/task_2c6e0642e3c0 · TESTS term_0d9de635/task_e842d3e68c58; r2 verdict
+  task_a4a0d7ba48a3 queued. U-442 r2 fix batch frozen meanwhile (build-u442-r2.md,
+  digest 9df586e1…: F-1 evidence authority, F-2 raw-read git-context, F-3 evidence-root
+  honored, F-4 symlink containment, F-5 nested-cwd).
+
 BRANCHES: local worktree checkouts carry the `ravidsrk/` prefix mapping to the unit tips
 (ravidsrk/u-chain, ravidsrk/u-442). Not drift — do not "fix".
