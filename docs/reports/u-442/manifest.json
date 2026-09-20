@@ -65,6 +65,10 @@
       "sha256": "660c94c9e880d460b0d2b6e74757f1ebb9bf2fed9396588ba1e707290be020c8"
     },
     {
+      "path": "docs/reports/u-442/round3.md",
+      "sha256": "29057fca7fa91c64068cd0bb90e7972d1305a1a7c93d10bda04985e48dac1b95"
+    },
+    {
       "path": "docs/reports/u-442/selfcheck-r3.txt",
       "sha256": "3f26e4072b1cdc4e3c31860ebc4e6478cd2da199588897e5e45720f56aad1490"
     },
