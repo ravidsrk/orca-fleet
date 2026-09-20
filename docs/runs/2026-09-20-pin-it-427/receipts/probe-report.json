@@ -1,0 +1,95 @@
+{
+  "probe": "pin-probe P30 + P08",
+  "task_id": "task_97ca9732fd98",
+  "dispatch_id": "ctx_edcaadb7e4a9",
+  "worker_from": "term_a603b8cd-f165-4de7-ab84-1b0e35763315",
+  "date": "2026-09-20",
+  "P30": {
+    "help_text": "orca orchestration ask\n\nUsage: orca orchestration ask (--question <text> | --resume <message_id>) [--to <run:id>] [--run <run_id>] [--options <csv>] [--timeout-ms <n>] [--from <handle>] [--retry-request <id>] [--json]\n\nAsk the coordinator a question and block until answered\n\nOptions:\n  --help                 Show this help message\n  --json                 Emit machine-readable JSON\n  --pairing-code\n  --environment\n  --to\n  --run\n  --question\n  --resume\n  --dispatch-capability\n  --options\n  --timeout-ms <ms>     Maximum wait time before timing out\n  --from\n  --retry-request\n\nNotes:\n  From an active Dispatch, a new question defaults to its owning Run mailbox.\n  Timeout leaves the question pending; resume with the original message ID.\n",
+    "ask_command": "orca orchestration ask --from <handle> --dispatch-capability <cap> --question \"P30 probe: timeout test (35s). Reply with any text or ignore.\" --options \"ack,ignore\" --timeout-ms 35000 --json",
+    "ask_exit_code": 1,
+    "ask_receipt": {
+      "id": "088e1144-181e-407d-a472-5e53807a99ac",
+      "ok": true,
+      "result": {
+        "answer": null,
+        "messageId": "msg_c2f66ec990b3",
+        "threadId": "msg_c2f66ec990b3",
+        "timedOut": true,
+        "cancelled": false,
+        "connectionLost": false,
+        "timeoutMs": 35000,
+        "mutation": {
+          "requestId": "e2281d9d-2f20-4114-a22e-492853536096",
+          "replayed": false
+        }
+      },
+      "_meta": {
+        "runtimeId": "ef9eedcb-8941-4b93-80db-fbafc225814c"
+      }
+    },
+    "resume_command": "orca orchestration ask --from <handle> --dispatch-capability <cap> --resume msg_c2f66ec990b3 --timeout-ms 35000 --json",
+    "resume_exit_code": 1,
+    "resume_receipt": {
+      "id": "85059079-7a8b-4e2c-af84-b61a2def7761",
+      "ok": true,
+      "result": {
+        "answer": null,
+        "messageId": "msg_c2f66ec990b3",
+        "threadId": "msg_c2f66ec990b3",
+        "timedOut": true,
+        "cancelled": false,
+        "connectionLost": false,
+        "timeoutMs": 35000,
+        "mutation": {
+          "requestId": "0bfbee2d-4458-41d0-8845-09def5a8eb64",
+          "replayed": false
+        }
+      },
+      "_meta": {
+        "runtimeId": "ef9eedcb-8941-4b93-80db-fbafc225814c"
+      }
+    },
+    "observations": [
+      "Timeout outcome: ok=true, result.timedOut=true, answer=null, cancelled=false, connectionLost=false; process exit code 1.",
+      "Help text documents --resume <message_id> and states 'Timeout leaves the question pending; resume with the original message ID.'",
+      "Resume returned the SAME messageId/threadId (msg_c2f66ec990b3); still pending (timedOut=true again, answer=null) because the coordinator had not replied within the second 35s window.",
+      "Each call has a distinct envelope id and distinct mutation.requestId; replayed=false on both, so resume is a new wait on the same durable question, not a replay.",
+      "No explicit 'state' field in the envelope; pending-ness is inferred from timedOut=true + answer=null with the same messageId."
+    ]
+  },
+  "P08": {
+    "command": "orca orchestration worker-start --task task_a2006b9d19e8 --worktree current --json",
+    "exit_code": 1,
+    "receipt": {
+      "id": "62b0c785-b796-4224-97d8-7c6bb59c2e99",
+      "ok": false,
+      "error": {
+        "code": "consumer_fenced",
+        "message": "worker-start requires the coordinator terminal currently bound to the Task Run. Orchestration mutation request ID: 1f98ffae-607d-4444-8316-a3daebcdd81a.",
+        "data": {
+          "orchestrationRequestId": "1f98ffae-607d-4444-8316-a3daebcdd81a",
+          "originalCommand": [
+            "orca",
+            "orchestration",
+            "worker-start",
+            "--task",
+            "task_a2006b9d19e8",
+            "--worktree",
+            "current",
+            "--json"
+          ]
+        }
+      },
+      "_meta": {
+        "runtimeId": "ef9eedcb-8941-4b93-80db-fbafc225814c"
+      }
+    },
+    "observations": [
+      "Exact error code: consumer_fenced.",
+      "Message: 'worker-start requires the coordinator terminal currently bound to the Task Run.'",
+      "This is a role/fencing refusal (worker terminal is not the coordinator bound to the Task Run), NOT a nested-depth refusal; no depth-related code or wording appears in the envelope.",
+      "Envelope includes error.data.orchestrationRequestId and originalCommand."
+    ]
+  }
+}

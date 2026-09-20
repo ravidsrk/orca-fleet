@@ -1,0 +1,24 @@
+{
+  "id": "e2194413-56fb-4988-a900-c17990f2f679",
+  "ok": true,
+  "result": {
+    "gate": {
+      "id": "gate_dde2bfa45f32",
+      "run_id": "run_41e3aa41e711",
+      "task_id": "task_00d50bf632a6",
+      "question": "P33 probe: continue?",
+      "options": "[]",
+      "status": "pending",
+      "resolution": null,
+      "created_at": "2026-09-20 15:10:24",
+      "resolved_at": null
+    },
+    "mutation": {
+      "requestId": "5d71c531-4d46-4533-b19a-bd9693e454c4",
+      "replayed": false
+    }
+  },
+  "_meta": {
+    "runtimeId": "ef9eedcb-8941-4b93-80db-fbafc225814c"
+  }
+}

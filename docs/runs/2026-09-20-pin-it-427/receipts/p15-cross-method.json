@@ -1,0 +1,28 @@
+{
+  "id": "54d40d12-f083-40bc-90c7-0648983a3d09",
+  "ok": false,
+  "error": {
+    "code": "request_mismatch",
+    "message": "Mutation request 814974c3-0319-4d32-bbd9-e1df17e4e0c2 was already used with different input. Orchestration mutation request ID: 814974c3-0319-4d32-bbd9-e1df17e4e0c2.",
+    "data": {
+      "orchestrationRequestId": "814974c3-0319-4d32-bbd9-e1df17e4e0c2",
+      "originalCommand": [
+        "orca",
+        "orchestration",
+        "task-create",
+        "--from",
+        "term_0bae108a-5af7-4d7a-b584-67d05a2787d1",
+        "--run",
+        "run_41e3aa41e711",
+        "--task-title",
+        "P15 cross",
+        "--spec",
+        "x",
+        "--json"
+      ]
+    }
+  },
+  "_meta": {
+    "runtimeId": "ef9eedcb-8941-4b93-80db-fbafc225814c"
+  }
+}

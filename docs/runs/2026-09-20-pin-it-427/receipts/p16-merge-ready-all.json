@@ -1,0 +1,30 @@
+{
+  "id": "4b1ebc69-9623-47cd-a942-7b3f5c50c3f1",
+  "ok": false,
+  "error": {
+    "code": "terminal_not_found",
+    "message": "No recipients resolved for group address: @all Orchestration mutation request ID: 2de853f8-f3f3-4162-96cd-a9be68c5e6e1.",
+    "data": {
+      "orchestrationRequestId": "2de853f8-f3f3-4162-96cd-a9be68c5e6e1",
+      "originalCommand": [
+        "orca",
+        "orchestration",
+        "send",
+        "--from",
+        "term_0bae108a-5af7-4d7a-b584-67d05a2787d1",
+        "--to",
+        "@all",
+        "--type",
+        "merge_ready",
+        "--subject",
+        "P16 probe",
+        "--payload",
+        "{\"unit\":\"p16\",\"pr\":null}",
+        "--json"
+      ]
+    }
+  },
+  "_meta": {
+    "runtimeId": "ef9eedcb-8941-4b93-80db-fbafc225814c"
+  }
+}
