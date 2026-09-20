@@ -29,10 +29,6 @@ doctrine text is correct and complete; Greptile APPROVED d75b23b1; suite 1707 OK
 
 **Default if unanswered:** (a).
 
-**RESOLVED 2026-09-20: (b)** — maintainer grant in-session (same answer as G1). Targeted
-repair of the stickers + targeted re-review of just those fixes. Budget override recorded,
-human-named (DECISIONS gate-batch-G2). A fleet never fakes a human answer.
-
 **RESOLVED 2026-09-20: (b)** — maintainer grant in-session ("Let's do it" answering the G1
 brief). Targeted repair of the three stickers + targeted re-review of just those fixes.
 Budget override recorded, human-named (DECISIONS gate-batch-G1).
@@ -65,6 +61,7 @@ _validate.py_ green, all CI green.
 
 **Default if unanswered:** (a).
 
-**RESOLVED 2026-09-20: (b)** — maintainer grant in-session (same answer as G1). Targeted
-repair of the stickers + targeted re-review of just those fixes. Budget override recorded,
-human-named (DECISIONS gate-batch-G2).
+**RESOLVED 2026-09-20: (b)** — maintainer grant in-session (same answer as G1, "Let's do
+it" answering the gate brief). Targeted repair of the manifest/test stickers + targeted
+re-review of just those fixes. Budget override recorded, human-named (DECISIONS
+gate-batch-G2).

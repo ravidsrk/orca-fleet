@@ -419,14 +419,31 @@ BOOTSTRAP: preflight --base review/2026-09-20-tracker-sweep --fork-point e8ddbd9
   gates — #235 #386 #407 #434 (all re-confirmed this run). PR #486 absorbs the advanced
   BASE; its merge and the U-442 review-leg waiver are the maintainer's remaining calls.
 
+- 21:5x PR #486 REVIEW FINDINGS x3 (Greptile), all VALID, all fixed: (1) inventory staled by
+  the G1/G2-resolution edits → regenerated with the complete artifact set (14 entries,
+  incl. the repair specs + coordinator contracts that postdated the first block):
+  inventory.py check 14 verified/0 mismatched/0 missing; (2) the Final report still
+  classified the closed units as parked/open → rewritten to the post-close truth
+  (terminal paragraph marked UPDATED post-close, disposition rows CLOSED with citations,
+  landed-on-BASE list carries both merges, wave=4 row added: throughput=1.3, rework=0,
+  freshness=0; docs/runs/README.md row updated to match); (3) gate-batch carried the G2
+  resolution TWICE (one mis-placed under G1 citing gate-batch-G2 — my uncounted
+  str.replace hit both 'Default' lines; slip named) → one RESOLVED per section, each
+  citing its own DECISIONS id. 39/39 doc tests + validate green after the fixes.
+
 BRANCHES: local worktree checkouts carry the `ravidsrk/` prefix mapping to the unit tips
 (ravidsrk/u-chain, ravidsrk/u-442). Not drift — do not "fix".
 
 ## Final report — DRY-WITH-PARKED
 
-**Terminal: DRY-WITH-PARKED** (degraded — 2 needs-human parks with named gates remain).
-The set is exhausted: full loop-2 re-enumeration finds every one of the 10 T0 items either
-closed with evidence or parked in a named class, and zero created/closed/reopened since T0.
+**Terminal: DRY-WITH-PARKED** — UPDATED 2026-09-20T21:4xZ post-close: the two budget parks
+below were RESOLVED the same day (gates G1/G2, option b, human grant): both units merged and
+their 4 issues CLOSED with evidence. The remaining degraded parks are the 4 standing
+needs-human items (#235 #386 #407 #434, each with a named trigger); #409/#427 are
+out-of-scope handoffs. The set is exhausted: every T0 item is either closed with evidence or
+parked in a named class, and zero created/closed/reopened since T0 beyond the run's own 4.
+(The loop-2 paste below is the pre-close snapshot, true at 18:3xZ; the closes landed after,
+through the gate resolutions — the loop-3 query is in the close log.)
 
 ### Loop-2 enumeration (pasted, 2026-09-20T18:3xZ)
 
@@ -439,8 +456,8 @@ created since T0 (2026-09-20T06:17:18Z): [] · closed since T0: [] · reopened: 
 
 | id | disposition | class | citation |
 |---|---|---|---|
-| #441 #443 #444 | PARKED at the review-round budget (3 failed rounds); doctrine complete, SPEC-axis GO, Greptile APPROVED d75b23b1 | needs-human, gate G1 | PR #484; gate-batch.md G1; issue comments 5749408944/5749409038/5749409126 |
-| #442 | PARKED at the review-round budget (3 failed rounds); production code unanimously closed, all CI green | needs-human, gate G2 | PR #485; gate-batch.md G2; issue comment 5749409212 |
+| #441 #443 #444 | CLOSED with evidence — G1 resolved (b): targeted repair + blind re-review GO + Greptile APPROVED; merged ec724054; verify.py 6/6 OK | closed | PR #484 MERGED; closing comments on each issue |
+| #442 | CLOSED with evidence — G2 resolved (b): targeted repair + blind re-review GO; union merge (badge regen); merged c467d554; verify.py 5/6 (review leg RED, no independent APPROVED — single-identity, disclosed) | closed (1 leg disclosed) | PR #485 MERGED; closing comment |
 | #235 | park re-confirmed (external accounts; index check 09-13 stands) | needs-human | issue text |
 | #386 | park re-confirmed (transcript-signing prerequisite unlanded; G1-of-09-16 answers recorded) | needs-human | gate-batch 09-14 G1 |
 | #407 | park re-confirmed (roadmap epic; closes at 1.0) | needs-human | children merged except #409 |
@@ -449,13 +466,16 @@ created since T0 (2026-09-20T06:17:18Z): [] · closed since T0: [] · reopened: 
 | #427 | handoff (pin-it cadence; trigger not fired — patch bump rides) | out-of-scope | issue trigger rules |
 | — | STABILIZE + STAB-2 landed on BASE (doc claims verified; 5 suite regressions repaired; generator alt-string fixed at source) | closed with evidence | 3833c88, 2f04c402; 39/39 + full suite green at tip |
 
-Landed on BASE this run: 3833c88 (doc amendments), the run record, 2f04c402 (STAB-2),
-plus all ledger/DECISIONS/transcript commits. PRs #484/#485 stay OPEN with branches
-retained — a G1/G2 (b) answer re-engages them.
+Landed on BASE this run: 3833c88 (doc amendments), 2f04c402 (STAB-2), ec724054 (U-CHAIN,
+PR #484), c467d554 (U-442, PR #485), the closed unit manifests + coordinator-finalized
+contracts, and all ledger/DECISIONS/transcript commits. Both unit PRs are MERGED with
+branches and worktrees retired (WT_CLEAN verified); the promotion to main rides PR #486.
 
-First-merge spot-check (merge-serialization): STAB-2 was the run's only merge — verified
+First-merge spot-check (merge-serialization): STAB-2 was the run's first merge — verified
 at landing (merge commit no-ff, author maintainer, no trailers, branch deleted, worktree
-retired, suite green at tip); no second unit merged, so the pattern never replicated.
+retired, suite green at tip). The two later merges (#484/#485) were verified against the
+same pattern at merge time: merge commits preserved, maintainer-authored, no trailers,
+branches deleted, worktrees+terminals retired, ancestry + tip suite green.
 
 ## WIP-curve protocol row (mutating run)
 
@@ -464,6 +484,7 @@ retired, suite green at tip); no second unit merged, so the pattern never replic
 | wave=1 | builders=2 reviewers=0 | throughput=0 (0 units verified-CLOSED; 2 built + 1 repair in ~2.5h) | latency_median=8 min latency_max=25 min (worker_done → harvest-verified) | rework=0 of 2 units at this wave | freshness=0 |
 | wave=2 | builders=2 reviewers=1 | throughput=0 | latency_median=12 min latency_max=40 min (axis done → verdict posted) | rework=2 of 2 units (both r1 NO-GO) | freshness=0 (no merges attempted) |
 | wave=3 | builders=2 reviewers=2 | throughput=0 | latency_median=10 min latency_max=35 min | rework=2 of 2 units (r2 NO-GO; r3 final) | freshness=0 (no merges attempted) |
+| wave=4 | builders=2 reviewers=2 | throughput=1.3 (2 units verified-CLOSED in ~1.5h of targeted-repair wave) | latency_median=15 min latency_max=40 min (repair done → targeted GO → merged) | rework=0 of 2 units (targeted rounds GO on first pass) | freshness=0 (both merges at fresh headRefOid, one content-identical union) |
 
 CAP BREACH, recorded per the protocol's negative-data rule: at ~15:2x–16:5x two review
 UNITS were in flight simultaneously (U-CHAIN r3 fan + U-442 r2 fan) against the
@@ -484,9 +505,9 @@ Transcripts: docs/runs/2026-09-20-clean-sweep-tracker/transcripts/<delivery-id>/
 one per delivered message, committed per window.
 
 ```
-880c992f5ac8fe72536cde726d4625b73bd9f26a803c4324e0668b3625f66815  docs/runs/2026-09-20-clean-sweep-tracker/gate-batch.md
+2ba4e6026a17796e66a26103193ea8aebf17c0ed0e7c8bf045800cbadaf2f849  docs/runs/2026-09-20-clean-sweep-tracker/gate-batch.md
 db43a8a836d6b003c603e9f35c7338bcfd92d688abe62a3a4d7876175d5a0316  docs/runs/2026-09-20-clean-sweep-tracker/REFLECTION.md
-4c50fba83dd01f7fbe7a917354bc6c8490aea70d73b5f915106d5d8b67d97a33  docs/DECISIONS.md
+ecc21d454ac17a756c30376ac88ab3a8bb61f21d35555ab8845c5d7ef53e5d14  docs/DECISIONS.md
 872605215c4b4e418d9efd1ed518dfeccf7d417283bdd3c3c21670d3a0bcb1cb  docs/runs/2026-09-20-clean-sweep-tracker/build-u-chain.md
 63ce1e4e0e538557ac5661bf6905707c82ad3937061531ec457e2812a4f0a9c8  docs/runs/2026-09-20-clean-sweep-tracker/build-u-chain-r2.md
 4b5415407cc65bece717fd0d0fa185dad3e39689e6eab6804fc8b122ad495caa  docs/runs/2026-09-20-clean-sweep-tracker/build-u-chain-r3.md
@@ -494,6 +515,10 @@ db43a8a836d6b003c603e9f35c7338bcfd92d688abe62a3a4d7876175d5a0316  docs/runs/2026
 9df586e16c8080baef3799b7564a1fdd284ff23f5cf47c54040e80726a01cabf  docs/runs/2026-09-20-clean-sweep-tracker/build-u442-r2.md
 027daa4a46a9f8555cb520a34aeb0936fa6edad467468cc107edcf92f9f5bce9  docs/runs/2026-09-20-clean-sweep-tracker/build-u442-r3.md
 f454ff135603ce6a93d555bfc0c2b6c61dbb4b1ebd9eb0f7e0ed69698081c195  docs/runs/2026-09-20-clean-sweep-tracker/build-stab2.md
+b3fcff7c34ee11727328e96e4269ee99986e6ba1c842951db7dee70da6d035c7  docs/runs/2026-09-20-clean-sweep-tracker/repair-u-chain.md
+aa6acc52bd8dbf8d8510204279c3780f9c95c056c85742ff686d1c87f82555a1  docs/runs/2026-09-20-clean-sweep-tracker/repair-u442.md
+06d857684c7ee4e5928846e15273d0ec4ded17a014d981300d7fa8f6655cfd70  docs/runs/2026-09-20-clean-sweep-tracker/contract-u-chain.json
+d6cf3b24d463f72d41f07e2203fb662000683cdb19139b694ebdc1237a99a644  docs/runs/2026-09-20-clean-sweep-tracker/contract-u442.json
 ```
 
 Egress: `egress.py verify` at close — chain intact, 305 receipts, head d0a5005c (UNANCHORED
