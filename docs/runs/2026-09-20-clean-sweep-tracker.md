@@ -322,5 +322,17 @@ BOOTSTRAP: preflight --base review/2026-09-20-tracker-sweep --fork-point e8ddbd9
   re-engages them; a G1 (a)/(c) answer closes out or merges per the human's recorded grant).
   U-442 r3 fix in flight.
 
+- 17:2x U-442 r3 (FINAL) FIX DONE (worker_done msg_39f6b85de388): 5 TRAILER-FREE commits
+  (the warning landed — harvest-verified 0 trailers): 361b6308 merge + cd07307e fix (20s
+  timeout restored at the call site; _roots_are_split OSError branch COVERED, :209 pragma
+  deleted) + 378a1a2e/5269310a evidence (manifest re-bound, receipts wtree eff64964) +
+  1ce683eb/e8ea772b reports. Guard adjudication: CI guard RED was 6 hits — verify.py clean
+  after the fix; all 6 are archival quotations in 3 report files → 3 DECISIONS floor-waivers
+  (verdict-r2.json, verdict-review-r2.md, integrate-r2.json; 2026-09-17 precedent; the
+  worker's e8ea772b rewording didn't fully unquote — waivers cover the rest). Branch lacks
+  the waivers (merged BASE pre-waiver) → R3 INTEGRATE merges them in first:
+  task_a3dcf19e1d91, claude term_ec229de2 (guard must print clean, suite+validate,
+  push, Greptile + PR guard check-run watch).
+
 BRANCHES: local worktree checkouts carry the `ravidsrk/` prefix mapping to the unit tips
 (ravidsrk/u-chain, ravidsrk/u-442). Not drift — do not "fix".
