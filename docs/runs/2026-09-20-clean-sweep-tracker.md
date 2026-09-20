@@ -2,7 +2,7 @@
 
 RUN: run_bec47e54b673 · COORDINATOR: term_0bae108a-5af7-4d7a-b584-67d05a2787d1 (kimi-code driving shell; coordinator terminal COORD-2026-09-20, background surface) · BASE: review/2026-09-20-tracker-sweep · FORK_POINT: e8ddbd988486694a2985822e557a382b344e2872 (origin/main at T0) · T0: 2026-09-20T06:17:18Z · SOURCE: tracker (10 open at T0: #235 #386 #407 #409 #427 #434 #441 #442 #443 #444; enumeration digest: gh-issue-list-open-count=10) · WIP: builders=2 reviewers=1
 
-PHASE: ORIENT → ENUMERATE done → TRIAGE done (incl. prior-run re-verification) → FREEZE → BOOTSTRAP
+PHASE: ORIENT → ENUMERATE → TRIAGE → FREEZE → BOOTSTRAP → BUILDING (wave 1: U-CHAIN + U-442 dispatched)
 
 Substrate notes: orca 1.4.204 on PATH vs pins.json live PIN v1.4.203 — patch bump, rides per #427
 trigger rules (drift NOTE, not refusal; re-witness is pin-it's loop). claude + codex CLIs on PATH
@@ -86,5 +86,30 @@ one unit or park; no id without a unit; no unit without an id.
   3833c88 on BASE review/2026-09-20-tracker-sweep (fork e8ddbd98 = origin/main at T0).
 - Prior-run post-mortem: all claims VERIFIED (subagent report in coordinator context; summary
   in "Prior-run re-verification" above). Nothing re-enters the denominator.
+- 06:36 Run materialized: run_bec47e54b673, coordinator term_0bae108a (terminal COORD-2026-09-20).
+  Tasks: U-CHAIN=task_61b5e8accc70, U-442=task_a25c91eeff96 (DAG verified: both ready, no deps,
+  no cycles, disjoint hot files — mission-chaining.md vs verify.py+tests).
+- 06:4x LANE PROBE (spawn 1, supervised worker-start, claude, PROFILE=rw): exit 5
+  LAUNCHED_UNUSABLE — launch.effective={agent,effort:null,model:null}, no args field on 1.4.204,
+  so no PROFILE flag provable (09-14 precedent on 1.4.201). Host permission mode: MANUAL
+  (agentDefaultArgs=''). Per contract: worker-stop ctx_02702604cecd (closed_agent_terminal,
+  ptyKilled) — never respawn beside it. NOTE: worker-stop settled task_61b5e8accc70 to
+  `blocked` with NO gate row (gate-list empty) — recovery: task-update --status ready
+  (recovery/override write, ledgered here). Lane decision: ALL workers via WORKER_CMD
+  custom-argv (explicit flags, coordinator-owned semantics) — 09-14 precedent.
+- 06:5x U-CHAIN BUILD dispatched: worktree u-chain (3cf2cdae::…/orca/workspaces/orca-fleet/u-chain,
+  branch ravidsrk/u-chain from BASE tip — ravidsrk/ prefix is Orca's mapping, not drift, 09-14
+  precedent) → spawn 2 custom-argv WORKER_CMD="claude --dangerously-skip-permissions"
+  ORCA_COORD_ALLOW_CMD_OVERRIDE=1: exit 3 UNPROVEN (input_accepted, no turn_started,
+  request 6ff99ef5) — pane read shows a LIVE worker mid-turn (bypass permissions on, spec read,
+  false negative, 09-14 precedent): HANDLE term_98fd0f79-9118-4cd2-b057-f955b9e85500. No resend,
+  no respawn.
+- 06:5x U-442 BUILD dispatched: worktree u-442 (branch ravidsrk/u-442) → same custom-argv lane:
+  exit 3 UNPROVEN (request ca86ab2f) — pane read shows LIVE worker mid-turn in verify.py:
+  HANDLE term_cdd92b44-5d5a-4f8d-9868-9e21d818fb7a. WIP=2 builders (attention-budget met).
+  Spec digests: build-u-chain.md sha256:87260521…, build-u442.md sha256:7498d20d… @a58bf71a.
 
-BOOTSTRAP: (preflight pending)
+BOOTSTRAP: preflight --base review/2026-09-20-tracker-sweep --fork-point e8ddbd988486 --require-gitleaks → OK (repo=ravidsrk/orca-fleet). BASE ≠ default; fork-point == merge-base(BASE, origin/main).
+
+BRANCHES: local worktree checkouts carry the `ravidsrk/` prefix mapping to the unit tips
+(ravidsrk/u-chain, ravidsrk/u-442). Not drift — do not "fix".

@@ -1,0 +1,22 @@
+{
+  "id": "ea4a6c55-fd92-4fc6-b094-d5905231ab11",
+  "ok": true,
+  "result": {
+    "terminal": {
+      "handle": "term_cdd92b44-5d5a-4f8d-9868-9e21d818fb7a",
+      "tabId": "59e8f874-7068-432d-8246-444a84255108",
+      "paneKey": "59e8f874-7068-432d-8246-444a84255108:ccabdc6f-ef34-497b-b2d1-5462dce8e98a",
+      "ptyId": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/u-442@@77a8a3d3",
+      "worktreeId": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/u-442",
+      "title": "U-442 builder",
+      "executionHostId": "local",
+      "incarnationId": "d5b945fb-c32a-4c59-9a7b-893e73c72f3c",
+      "hostPlatform": "darwin",
+      "surface": "background",
+      "warning": "Terminal term_cdd92b44-5d5a-4f8d-9868-9e21d818fb7a is running, but Orca could not make it discoverable. Run `orca terminal focus --terminal term_cdd92b44-5d5a-4f8d-9868-9e21d818fb7a` to reveal and focus it."
+    }
+  },
+  "_meta": {
+    "runtimeId": "0e3d77f3-b0e7-4aa1-a21d-a960aa212104"
+  }
+}
