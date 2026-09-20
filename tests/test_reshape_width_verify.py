@@ -9,7 +9,9 @@ control, where the importable surface is the pre-deepening one).
 
 WIDTH is the mission's own probe (skills/reshape-it/SKILL.md § SCAN):
 count of lines matching ^(def |class |async def |[A-Z_]+ =).
-Pre-deepening baseline: 92. Post-deepening pin: 85, raised to 88 by #442.
+Pre-deepening baseline: 92. Post-deepening pin: 85, raised to 88 by #442, then to 90 by
+#442 round 2 (_evidence_toplevel + _roots_are_split: the evidence bound and the
+single-repo/split test, each named once instead of inlined at every call site).
 
 The pin is a ratchet against the deepening RE-WIDENING, not a freeze: the
 invariant it defends is `width < BASELINE_WIDTH`, and that baseline never
@@ -27,7 +29,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 WIDTH_RE = re.compile(r"(?:def |class |async def |[A-Z_]+ =)")
 BASELINE_WIDTH = 92
-PINNED_WIDTH = 88
+PINNED_WIDTH = 90
 
 
 def interface_width(path):

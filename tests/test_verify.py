@@ -3286,6 +3286,214 @@ class CrossRepoRoots(RepoCase):
                     self.assertEqual(rc, 1, out)
                     self.assertIn("not inside a git work tree", out)
 
+    # ---- round 2 (#442 R1/R2, T1–T5): the AUTHORITY boundary, not just the happy path ----
+
+    def _commit_b_extra(self, files):
+        """Add a commit to repo B and re-pin the manifest's head to it. app.py always moves so the
+        head commit keeps changing a source file, as the fixture's first head commit does."""
+        for rel, text in files.items():
+            dest = self.repo_b / rel
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            dest.write_text(text, encoding="utf-8")
+        (self.repo_b / "app.py").write_text(
+            "def f():\n    return 2\n# %s\n" % "-".join(sorted(files)), encoding="utf-8")
+        self.head_sha = self.commit_b("head+" + ",".join(sorted(files)))
+        self.head_tree = self.git_b("rev-parse", "HEAD^{tree}")
+        return self.head_sha
+
+    def _collide(self, text="mutant m7 SURVIVED and was NOT killed\n"):
+        """Commit a DIFFERENT file at the evidence artifact's own relative path in the SHA repo.
+
+        This is the collision R1/T1 turn on: nothing stops two repositories holding the same
+        relative name. The planted bytes say the mutant survived, so a verifier that reads them
+        instead of the pinned evidence flips the verdict RED — the kill is a verdict, not a mock.
+        """
+        return self._commit_b_extra({self.nc_artifact: text})
+
+    def _read_under_split(self, m):
+        """read_artifact with the roots set as main() would set them, to name the bytes that won."""
+        verify._ROOTS.update(git=str(self.repo_b), evidence=str(self.repo))
+        try:
+            return verify.read_artifact(m, self.nc_artifact)
+        finally:
+            self._reset_roots()
+
+    def test_a_colliding_sha_repo_blob_cannot_substitute_for_pinned_evidence(self):
+        """R1/T1: same path in both repos — the PINNED copy in the evidence root must win.
+
+        Unfixed, the tracked-at-head_sha shortcut asks the SHA repo for `head:path` and returns
+        ITS bytes before the evidence root or artifacts[] is ever consulted: commit-pinned, to the
+        wrong repository.
+        """
+        self._collide()
+        rc, out = self._run_main(self._manifest(),
+                                 "--git-dir", str(self.repo_b),
+                                 "--evidence-root", str(self.repo))
+        self.assertEqual(rc, 0, out)
+        self.assertIn("verify: OK", out)
+        raw, err = self._read_under_split({"head_sha": self.head_sha,
+                                           "artifacts": [self.pin(self.nc_artifact)]})
+        self.assertIsNone(err)
+        self.assertEqual(raw, (self.repo / self.nc_artifact).read_bytes())
+        self.assertNotIn(b"SURVIVED", raw)
+
+    def test_a_colliding_sha_repo_blob_cannot_stand_in_for_a_missing_pin(self):
+        """R1/T1: drop artifacts[] and the SHA repo's same-path blob must NOT rescue the read."""
+        self._collide("mutant m7 was KILLED — proof went RED\n")
+        rc, out = self._run_main(self._manifest(artifacts=[]),
+                                 "--git-dir", str(self.repo_b),
+                                 "--evidence-root", str(self.repo))
+        self.assertEqual(rc, 2, out)
+        self.assertIn("unpinned evidence", out)
+
+    def test_a_colliding_sha_repo_blob_cannot_satisfy_a_mismatched_pin(self):
+        """R1/T1: the pin is declared over the EVIDENCE bytes, so rewriting them must go RED even
+        when the SHA repo still holds a well-formed blob at the same path."""
+        self._collide("mutant m7 was KILLED — proof went RED\n")
+        m = self._manifest()  # pins the evidence bytes as they stand...
+        (self.repo / self.nc_artifact).write_text(
+            "mutant m7 was KILLED — rewritten after inventory\n", encoding="utf-8")
+        rc, out = self._run_main(m, "--git-dir", str(self.repo_b),
+                                 "--evidence-root", str(self.repo))
+        self.assertEqual(rc, 2, out)
+        self.assertIn("the evidence changed after it was inventoried", out)
+
+    def test_two_clones_of_one_project_are_still_two_repositories(self):
+        """R1: the split is not about differing paths — two clones of ONE project share every
+        path. Identity of the ROOT is what licenses the tracked-blob shortcut, so a stale pin must
+        still go RED even though the clone tracks a perfectly good blob at that very path."""
+        self.write("app.py", "def f():\n    return 1\n")
+        self.artifact("mutant m7 was KILLED — proof went RED\n")
+        self.src(["AC-1"])
+        self.base_sha = self.commit("base")
+        self.write("app.py", "def f():\n    return 2\n")
+        self.head_sha = self.commit("head")
+        self.head_tree = self.git("rev-parse", "HEAD^{tree}")
+        with _temp_repo(prefix="orca-u442-clone-") as clone_parent:
+            clone = str(Path(clone_parent) / "c")
+            subprocess.run(["git", "clone", "-q", str(self.repo), clone],
+                           check=True, capture_output=True)
+            m = self._manifest()  # pin taken over the committed bytes...
+            (self.repo / self.nc_artifact).write_text(
+                "mutant m7 was KILLED — rewritten after inventory\n", encoding="utf-8")
+            rc, out = self._run_main(m, "--git-dir", clone,
+                                     "--evidence-root", str(self.repo))
+        self.assertEqual(rc, 2, out)
+        self.assertIn("the evidence changed after it was inventoried", out)
+
+    def test_the_symbol_leg_runs_in_the_sha_repo_not_the_process_cwd(self):
+        """R2/T5: --symbol grepped origin/<base> in the process cwd while the adjacent ancestry
+        check used --git-dir. A symbol that IS on the target's base must not read as missing."""
+        self.git_b("update-ref", "refs/remotes/origin/main", self.head_sha)
+        rc, out = self._run_main(self._manifest(),
+                                 "--git-dir", str(self.repo_b),
+                                 "--evidence-root", str(self.repo),
+                                 "--base", "main", "--symbol", "def f")
+        self.assertEqual(rc, 0, out)
+        self.assertNotIn("not found on origin/main", out)
+
+    def test_a_symbol_only_in_the_evidence_repo_is_not_accepted_as_on_base(self):
+        """R2's other half: the same bug is a false ACCEPTANCE too. A symbol that exists only in
+        the evidence repo must not satisfy a claim about the SHA repo's base."""
+        self.git_b("update-ref", "refs/remotes/origin/main", self.head_sha)
+        self.write("only_here.py", "ONLY_IN_EVIDENCE_REPO = 1\n")
+        self.commit("evidence-only symbol")
+        self.git("update-ref", "refs/remotes/origin/main", "HEAD")
+        rc, out = self._run_main(self._manifest(),
+                                 "--git-dir", str(self.repo_b),
+                                 "--evidence-root", str(self.repo),
+                                 "--base", "main", "--symbol", "ONLY_IN_EVIDENCE_REPO")
+        self.assertEqual(rc, 2, out)
+        self.assertIn("not found on origin/main", out)
+
+    def test_a_path_at_ref_contract_read_uses_the_sha_repo(self):
+        """T5: the raw-byte `path@ref` read is a SHA-repo leg. The fixture only ever read a bare
+        working-tree contract, so a helper that dropped its root selection survived."""
+        body = "frozen\n- AC-1: x\n"
+        ref = self._commit_b_extra({"git-contract.md": body})
+        source = f"git-contract.md@{ref}"
+        digest = "sha256:" + hashlib.sha256(body.encode("utf-8")).hexdigest()
+        self.contract, self.contract_digest = source, digest
+        rc, out = self._run_main(self._manifest(
+            contract={"source": source, "digest": digest, "criterion_ids": ["AC-1"]}),
+            "--git-dir", str(self.repo_b), "--evidence-root", str(self.repo))
+        self.assertEqual(rc, 0, out)
+        self.assertIn("verify: OK", out)
+
+    def test_the_named_evidence_root_is_honored_from_a_distinct_cwd(self):
+        """T2: every existing case ran AT repo A, where the requested root and the cwd fallback
+        are the same directory — so a verifier that parsed --evidence-root and then ignored it
+        passed. Stand somewhere else and only an honored flag can find the evidence."""
+        path = self._manifest()
+        os.chdir(self.repo_b)
+        self.addCleanup(os.chdir, self.repo)
+        rc, out = self._run_main(path, "--git-dir", str(self.repo_b),
+                                 "--evidence-root", str(self.repo))
+        self.assertEqual(rc, 0, out)
+        self.assertIn("verify: OK", out)
+
+    def test_the_evidence_root_may_be_a_named_subdirectory_of_the_clone(self):
+        """T2, tighter: the root is a directory, not 'the repo'. Paths bind to the NAMED root."""
+        sub = self.repo / "evidence"
+        (sub / "docs" / "reports" / "u").mkdir(parents=True, exist_ok=True)
+        (sub / "contract.md").write_text("frozen\n- AC-1: x\n", encoding="utf-8")
+        nc = sub / "docs" / "reports" / "u" / "nc.txt"
+        nc.write_text("mutant m7 was KILLED — proof went RED\n", encoding="utf-8")
+        digest = "sha256:" + hashlib.sha256((sub / "contract.md").read_bytes()).hexdigest()
+        self.contract, self.contract_digest = "contract.md", digest
+        rc, out = self._run_main(self._manifest(
+            contract={"source": "contract.md", "digest": digest, "criterion_ids": ["AC-1"]},
+            artifacts=[{"path": self.nc_artifact,
+                        "sha256": hashlib.sha256(nc.read_bytes()).hexdigest()}]),
+            "--git-dir", str(self.repo_b), "--evidence-root", str(sub))
+        self.assertEqual(rc, 0, out)
+        self.assertIn("verify: OK", out)
+
+    def test_an_evidence_path_escaping_through_a_symlink_is_refused(self):
+        """T3: #267's containment is CANONICAL, not a spelling rule. The committed escape case
+        spells a leading `..`, which the lexical check catches first — so the canonical check
+        could be deleted outright and the suite stayed green. A symlink escapes without ever
+        writing `..`."""
+        (self.repo / "escape-link").symlink_to(self.repo_b, target_is_directory=True)
+        (self.repo_b / "nc.txt").write_text("mutant m7 was KILLED\n", encoding="utf-8")
+        m = self._manifest(negative_control={"tool": "mutmut", "result": "KILLED", "mutant": "m7",
+                                             "artifact": "escape-link/nc.txt"})
+        rc, out = self._run_main(m, "--git-dir", str(self.repo_b),
+                                 "--evidence-root", str(self.repo))
+        self.assertEqual(rc, 2, out)
+        self.assertIn("escapes the evidence root", out)
+
+    def test_a_nested_evidence_root_bounds_against_itself_not_the_clone(self):
+        """T3's boundary case: with the root nested inside the clone, escaping UPWARD into the
+        enclosing repo is still an escape. A symlink to the parent stays inside a git work tree,
+        so only the canonical bound refuses it."""
+        sub = self.repo / "evidence"
+        sub.mkdir(parents=True, exist_ok=True)
+        (sub / "up-link").symlink_to(self.repo, target_is_directory=True)
+        m = self._manifest(negative_control={"tool": "mutmut", "result": "KILLED", "mutant": "m7",
+                                             "artifact": f"up-link/{self.nc_artifact}"})
+        rc, out = self._run_main(m, "--git-dir", str(self.repo_b), "--evidence-root", str(sub))
+        self.assertEqual(rc, 2, out)
+        self.assertIn("escapes the evidence root", out)
+
+    def test_a_valid_no_flag_run_from_a_nested_directory_still_binds_to_the_toplevel(self):
+        """T4: legacy compatibility is a claim about RESOLUTION, and every no-flag fixture ran at
+        the toplevel, where cwd and toplevel coincide. Run a valid single-repo manifest from a
+        nested directory: resolution must still land on the git toplevel."""
+        self.write("app.py", "def f():\n    return 1\n")
+        self.base_sha = self.commit("base")
+        self.write("app.py", "def f():\n    return 2\n")
+        self.head_sha = self.commit("head")
+        self.head_tree = self.git("rev-parse", "HEAD^{tree}")
+        path = self._manifest()
+        nested = self.repo / "deep" / "nested"
+        nested.mkdir(parents=True, exist_ok=True)
+        os.chdir(nested)
+        self.addCleanup(os.chdir, self.repo)
+        rc, out = self._run_main(path)  # no --git-dir, no --evidence-root: the legacy invocation
+        self.assertEqual(rc, 0, out)
+        self.assertIn("verify: OK", out)
+
     def test_help_documents_both_roots(self):
         buf = io.StringIO()
         with contextlib.redirect_stdout(buf), self.assertRaises(SystemExit):
