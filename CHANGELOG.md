@@ -7,10 +7,13 @@ truth is `.claude-plugin/plugin.json`.
 ## [Unreleased]
 
 The 2026-09-16 self-test campaign ran all 21 missions against orca-fleet itself
-(scoreboard: `docs/reports/selftest-campaign-2026-09-16/rollup.md`; full transcripts
-archived on `origin/campaign/<mission>-selftest`). The only tier advance is map-it's
-external-run (#451); five runs produced fixes now owed promotion PRs (ruff 0.16.7 bump,
-F1 flake fix, H1 hot-path fix, PF-3 coverage net, documentation page).
+(scoreboard: `docs/reports/selftest-campaign-2026-09-16/rollup.md`; per-mission transcripts
+under `docs/runs/campaign-2026-09-16-<mission>/`). No tier advanced on the campaign's own
+runs: the rollup's Amendments record that its map-it cell was wrong (#451 is ship-it's
+fixture merge, not a promotion) and that `clean-sweep` and `prove-it` hold `self-run` on
+their own promotion reports. Five runs produced fixes (ruff 0.16.7 bump, F1 flake fix,
+H1 hot-path fix, PF-3 coverage net, documentation page); the ruff bump, F1 fix, and docs
+page among them have since merged to `main`.
 
 The deep-review branches. The 2026-09-10 review (archived at `docs/reviews/2026-09-10-review.md`)
 and the upstream deep audit under `docs/research/` opened issues #255–#276; the 2026-09-11 review
