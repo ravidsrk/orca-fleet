@@ -194,13 +194,18 @@ the worker can set that env, it can choose its own denominator and class.
 > of the **signed verifier transcript**
 > (#281/#386): `verify.py --transcript-out --transcript-key` (or `dispatch-sign.py
 > sign-transcript`, for a seed kept offline) emits the verdict as a signed envelope, and
-> `run_report.py` verifies one against the pubkey committed *at a report's own `inventory_at`*
-> — implemented end to end, exercised by no real run yet. **Committing `.orca/dispatch-pubkey` is
-> THE enforcement switch for both**: `verify-gate.sh` then requires a signed dispatch record on
-> every native-hook run, and every run report pinned after that commit requires a verified
-> transcript (reports pinned before it keep the unsigned path). The maintainer flips it
-> consciously, with the seed generated off any agent session (gate G1, 2026-09-16). Read this
-> section as the contract a signed dispatch satisfies, not as a boundary currently standing.
+> `run_report.py` verifies one against the committed pubkey and binds its manifest bytes, exit
+> code and signed argument tuple to the report's claims — implemented end to end, and
+> exercised by no real run yet. **Committing `.orca/dispatch-pubkey` is THE enforcement switch for both**:
+> `verify-gate.sh` then requires a signed dispatch record on every native-hook run, and
+> `run_report.py` requires a verified transcript wherever the key is read. WHERE is ancestry-aware
+> (PR #489 round 1): a report whose `inventory_at` is an ancestor of the grading base (the default
+> branch's tip at verification time) reads the key *at its pin* — a pin from before the key landed
+> keeps the unsigned path, and that is the only door into it; a pin OFF that ancestry (a fork from a
+> pre-key commit, a dangling commit) is judged against the key *at the grading base*, so fresh
+> artifacts on an old fork buy nothing. The maintainer flips it consciously, with the seed generated
+> off any agent session (gate G1, 2026-09-16). Read this section as the contract a signed dispatch
+> satisfies, not as a boundary currently standing.
 
 The native hook can't trust `ORCA_CONTRACT_DIGEST` / `ORCA_UNIT_CLASS` / `ORCA_LIGHTING` on its own —
 the worker sets them. Bind them to a **coordinator-signed dispatch record**. The whole scheme rests on

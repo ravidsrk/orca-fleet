@@ -42,7 +42,7 @@ def _git(repo, *args):
 def _report(mission, tier, rev, manifest, verifier, inventory, body=None, header_extra=""):
     rows = "\n".join(f"{digest}  {path}" for digest, path in inventory)
     shown = body if body is not None else (
-        f"    python3 runtime/scripts/verify.py --manifest {manifest} --unit-class mutation\n"
+        f"    python3 runtime/scripts/verify.py --manifest {manifest} --unit-class mutation --lighting lit\n"
         f"    exit {0 if verifier == 'GREEN' else 2}\n"
     )
     return (
@@ -1246,9 +1246,13 @@ class SignedTranscriptRequired(RunReportBinding):
     than a worker-written ledger entry — it needs verify.py's verdict as a signed transcript that
     verifies against that key and binds to this report's claims.
 
-    The key is read at the report's own `inventory_at` commit, the same way the manifest is: a
-    report pinned before the key landed keeps the unsigned path unchanged, and a new run cannot
-    dodge the requirement by pinning an old commit because its own artifacts must exist there.
+    WHERE the key is read is the whole switch, and it is ancestry-aware (round-1 review of PR
+    #489, BOT-2): a pin on the grading base's ancestry (the default branch's current tip) reads
+    the key at the pin, so a report pinned before the key landed keeps the unsigned path; a pin
+    OFF that ancestry — a fork from any pre-key commit, a dangling commit — is judged against the
+    key at the grading base, because fresh artifacts on such a fork prove nothing about the key.
+    The fixtures below therefore must NOT re-pin every report to HEAD: the tests that matter are
+    the ones where blob_at(rev) != blob_at(HEAD).
     """
 
     SEED = bytes(range(1, 33))
@@ -1271,6 +1275,19 @@ class SignedTranscriptRequired(RunReportBinding):
         seed = seed or self.SEED
         sig = ed.signature(dispatch_sign.canonical_transcript(record), seed, ed.publickey(seed))
         return {"record": record, "sig_b64": base64.b64encode(sig).decode("ascii")}
+
+    def _land(self, pubkey=True, transcript=None, msg="pubkey / transcript"):
+        """Commit the pubkey and/or a transcript on the CURRENT branch. The report is NOT re-pinned:
+        the pin stays where the caller left it, so the key can land after it (or beside it)."""
+        if pubkey:
+            pin = self.repo / self.PUBKEY
+            pin.parent.mkdir(exist_ok=True)
+            pin.write_text(self._ed().publickey(self.SEED).hex() + "\n", encoding="utf-8")
+        if transcript is not None:
+            (self.repo / self.TRANSCRIPT).write_text(json.dumps(transcript) + "\n", encoding="utf-8")
+        _git(self.repo, "add", "-A")
+        _git(self.repo, "commit", "-qm", msg)
+        return _git(self.repo, "rev-parse", "HEAD")
 
     def _commit(self, pubkey=True, transcript=None):
         """Land the pubkey and/or a transcript, re-pin the report to the new commit."""
@@ -1360,6 +1377,125 @@ class SignedTranscriptRequired(RunReportBinding):
         self._write(header_extra=f" transcript={self.TRANSCRIPT}")
         errors = self._check()
         self.assertTrue(any("malformed" in e for e in errors), errors)
+
+    # --- the signed argument tuple is READ, not only signed (BOT-1 / round-1 F-2) ---------------
+
+    def test_a_transcript_whose_signed_args_disagree_with_the_shown_invocation_is_refused(self):
+        # The body shows `--unit-class mutation --lighting lit`; the coordinator signed a verdict
+        # reached under report-only. Same manifest, same exit — a verdict on the wrong question.
+        self._commit(pubkey=True, transcript=self._envelope(
+            self._verdict(args={"unit_class": "report-only", "lighting": "lit"})))
+        errors = self._check()
+        self.assertTrue(any("argument" in e and "report-only" in e for e in errors), errors)
+
+    def test_a_transcript_signing_no_argument_tuple_is_refused(self):
+        self._commit(pubkey=True, transcript=self._envelope(self._verdict(args={})))
+        errors = self._check()
+        self.assertTrue(any("argument" in e for e in errors), errors)
+
+    def test_hostile_args_on_a_mutation_mission_are_refused_even_when_the_body_agrees(self):
+        # P1 from the round-1 TESTS axis: report-only / dark on a mutation-class mission, with the
+        # body's invocation retyped to match. The class list is the in-repo oracle (#310).
+        policy = self.repo / "runtime" / "evidence-manifest.md"
+        policy.parent.mkdir(parents=True)
+        policy.write_text("- **Mutation units** (demo-it, ship-it) — need a negative control.\n",
+                          encoding="utf-8")
+        self._commit(pubkey=True, transcript=self._envelope(
+            self._verdict(args={"unit_class": "report-only", "lighting": "lit"})))
+        body = (f"    python3 runtime/scripts/verify.py --manifest {self.manifest} "
+                "--unit-class report-only --lighting lit\n    exit 0\n")
+        self._write(header_extra=f" transcript={self.TRANSCRIPT}", body=body)
+        errors = self._check()
+        self.assertTrue(any("mutation-class" in e and "report-only" in e for e in errors), errors)
+
+    # --- WHERE the key is read: the pin on the base's ancestry, the base off it -----------------
+
+    def _on_main(self):
+        """The fixture's branch, named so grading_base() resolves it whatever init.defaultBranch is."""
+        _git(self.repo, "branch", "-M", "main")
+
+    def test_a_report_pinned_before_the_key_landed_keeps_the_unsigned_path(self):
+        # P2: the key lands AFTER the pin, on the same line; blob_at(rev) != blob_at(HEAD).
+        self._on_main()
+        self._write()  # pinned at self.rev, no key there
+        later = self._land(pubkey=True)
+        self.assertNotEqual(later, self.rev)
+        self.assertEqual(self._check(), [], "a pre-key report on the base's ancestry is grandfathered")
+
+    def test_a_pre_key_transcript_fails_closed_even_once_the_key_lands_later(self):
+        # P3: a transcript named at a pin with no key is unverifiable THERE; a key committed
+        # afterwards does not reach back and validate it.
+        self._on_main()
+        self._land(pubkey=False, transcript=self._envelope(self._verdict()))
+        self.rev = _git(self.repo, "rev-parse", "HEAD")
+        self._write(header_extra=f" transcript={self.TRANSCRIPT}")
+        self._land(pubkey=True)
+        errors = self._check()
+        self.assertTrue(any("transcript" in e and self.PUBKEY in e for e in errors), errors)
+
+    def test_a_transcript_signed_after_the_pin_does_not_retro_sign_the_pinned_verdict(self):
+        # P8: at the pin the transcript is the bare verdict; a later commit replaces it with a
+        # valid envelope. The report is graded at the pin, so it is still the unsigned one.
+        self._on_main()
+        self._commit(pubkey=True, transcript=self._verdict())
+        self._land(transcript=self._envelope(self._verdict()))
+        errors = self._check()
+        self.assertTrue(any("unsigned" in e.lower() or "sig_b64" in e for e in errors), errors)
+
+    def _fork_from_pre_key(self, dangling=False):
+        """The BOT-2 shape: the key lands on main; a branch forked from the PRE-key commit gets
+        fresh artifacts; the report pins that fork tip (which exists, and carries no key)."""
+        self._on_main()
+        pre_key = self.rev
+        key_commit = self._land(pubkey=True, msg="the key lands on main")
+        _git(self.repo, "checkout", "-q", "-b", "sneaky", pre_key)
+        (self.run_dir / "negctrl.txt").write_text("mutant KILLED (fresh work)\n", encoding="utf-8")
+        fork = self._land(pubkey=False, msg="fresh artifacts on a pre-key fork")
+        _git(self.repo, "checkout", "-q", "main")
+        if dangling:
+            _git(self.repo, "branch", "-D", "sneaky")
+        self.rev = fork
+        self.nc_sha = self._blob_sha(self.rev, self.nc)
+        self.assertNotEqual(
+            subprocess.run(["git", "merge-base", "--is-ancestor", fork, "main"], cwd=str(self.repo)).returncode,
+            0, "the fork must sit OFF main's ancestry for this test to mean anything")
+        return key_commit
+
+    def test_post_key_work_pinned_to_a_pre_key_fork_is_refused(self):
+        # P4, the evasion round 1 executed: artifacts exist at the pin, the key does not, and
+        # the pin is not an ancestor of the grading base -> the key at the BASE is what counts.
+        self._fork_from_pre_key()
+        self._write()
+        errors = self._check()
+        self.assertTrue(any("transcript" in e and self.PUBKEY in e for e in errors), errors)
+        self.assertTrue(any("ancestor" in e for e in errors), errors)
+
+    def test_a_dangling_pre_key_pin_is_refused_the_same_way(self):
+        # P5: the fork on no branch at all still resolves (rev_exists), and is still off-ancestry.
+        self._fork_from_pre_key(dangling=True)
+        self._write()
+        errors = self._check()
+        self.assertTrue(any("transcript" in e and self.PUBKEY in e for e in errors), errors)
+
+    def test_an_off_ancestry_report_binds_with_a_transcript_signed_by_the_base_key(self):
+        # The lawful off-ancestry shape: a feature-branch run whose verdict the coordinator
+        # signed with the key that IS committed on the base.
+        self._fork_from_pre_key()
+        _git(self.repo, "checkout", "-q", "sneaky")
+        self._land(pubkey=False, transcript=self._envelope(self._verdict()))
+        self.rev = _git(self.repo, "rev-parse", "HEAD")
+        _git(self.repo, "checkout", "-q", "main")
+        self._write(header_extra=f" transcript={self.TRANSCRIPT}")
+        self.assertEqual(self._check(), [])
+
+    def test_a_pre_key_report_still_binds_when_the_base_is_named_explicitly(self):
+        # check_report(base=...) is the coordinator's override; the default resolves the tip.
+        self._on_main()
+        self._write()
+        self._land(pubkey=True)
+        self.assertEqual(run_report.check_report(self.path, "demo-it", "self-run", root=self.repo,
+                                                 base="main"), [])
+        self.assertEqual(run_report.grading_base(self.repo), _git(self.repo, "rev-parse", "main"))
 
 
 class LiveCatalog(unittest.TestCase):
