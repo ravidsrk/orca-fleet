@@ -357,6 +357,19 @@ BOOTSTRAP: preflight --base review/2026-09-20-tracker-sweep --fork-point e8ddbd9
   PROMOTION PR #486 opened BASE→main (egress 6277be2a; baseRefName=main asserted by gh
   view) — LEFT FOR THE HUMAN, never merged by the fleet. TERMINAL: DRY-WITH-PARKED.
 
+- 19:3x PR THREAD CLOSE-OUT (post-terminal, maintainer ask): PR #486 Greptile P1 (close
+  inventory not machine-verifiable — VALID: heading lacked the (sha256) marker, entries
+  were 16-char prefixes) + P2 (archive row said IN PROGRESS — VALID) → fixed in cd785d8f
+  (inventory rewritten in inventory.py's fenced full-64 shape, 10 verified/0 mismatched/
+  0 missing via inventory.py check; docs/runs/README.md row to DRY-WITH-PARKED); 39/39
+  doc tests + validate green; Greptile auto-resolved both. PR #484's 4 remaining threads
+  replied with fix citations and RESOLVED: exemplar-citation P2 (F-5 @88a64c90),
+  keyword-semantics P2 (F-3+G-4..6, 28/28 replayable), BOT-4 stale-ref P1 (G-1
+  @1635b27f), BOT-6 P2 (ACCEPTED-WITH-REASON — disposable checkouts make interrupted
+  runs non-evidence; recorded in verdict 5260271654). Egress 75751e66. FINAL THREAD
+  STATE VERIFIED: #484 6/6, #485 2/2, #486 2/2 resolved — zero unresolved review
+  threads across the run's PRs.
+
 BRANCHES: local worktree checkouts carry the `ravidsrk/` prefix mapping to the unit tips
 (ravidsrk/u-chain, ravidsrk/u-442). Not drift — do not "fix".
 
