@@ -42,7 +42,9 @@ _validate.py_ green, all CI green.
    no single command passes both admission gates (the #279 agreement class) — R3-SPEC.
 2. Five refreshed artifact references select OLD committed transcripts instead of the r3
    bytes — R3-STD-1.
-(+ anything the r3 TESTS axis adds — recorded at verdict.)
+3. Two test-coverage mutants survive (equal-root compatibility; artifact-revision) and the
+   H-7 exception probe can silently stop exercising its branch after a neutral refactor
+   (missing probe-fired assertion) — R3-TESTS ×3.
 
 **Options:**
 - (a) ACCEPT PARK: #442 stays OPEN; branch u-442 retained at c1d1e59c; the run closes
