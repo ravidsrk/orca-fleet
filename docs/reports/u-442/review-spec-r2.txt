@@ -1,0 +1,390 @@
+U-442 ROUND 2 — SPEC review
+Status: FINAL — NO-GO — 0 Critical, 3 Required.
+Spec sources: docs/runs/2026-09-20-clean-sweep-tracker/build-u442-r2.md (F-1..F-5), then frozen build-u442.md for unchanged acceptance criteria.
+Permission boundary: review only; this report is the sole authorized worktree write; any executable probes or mutations use scratch clones. No commits.
+
+BLIND-FIX EXPECTATIONS — written before opening the r2 diff
+2026-09-20T09:18:41.146588+00:00
+F-1 (high confidence): _read_artifact should retain tracked-at-head evidence only if the selected SHA worktree root canonically equals the evidence root. Different checkouts of one project count as different evidence authorities; repository history equality must not grant authority. Under split roots, ignore target-repo same-path bytes entirely and require a declared sha256 pin over bytes inside the evidence root. Pin absence and mismatch refuse. A pinned A-copy should determine acceptance even if B's same-path content disagrees.
+F-2 (high confidence): all raw Git calls (especially --symbol git grep and binary path@ref reads) should share the selected Git context with ancestry and head/tree operations. A symbol in B only must be checked in B; a symbol in A only must not affect B. Binary contract bytes should come from B-head regardless of cwd/evidence A. Centralized command construction or explicit consistent routing is expected, without changing Git exit-code meaning.
+F-3 (high confidence): accepted explicit evidence roots must drive the actual resolver independently of cwd. A submitted fixture should invoke from outside A (ideally outside any Git tree) and include evidence in an A subdirectory; ignoring the parsed root must make that fixture fail.
+F-4 (high confidence): canonical containment must remain enforced after symlink resolution. A pinned artifact reached through an in-root symlink pointing outside the root must refuse, as must a symlink escaping a nested evidence root into its parent even if still inside repo A. Existing lexical traversal refusals remain intact.
+F-5 (high confidence): a no-flag valid invocation from nested cwd should derive the Git toplevel for evidence and preserve the prior default behavior; a fixture must fail if the default root becomes cwd.
+Frozen original criteria (high confidence): two independent scratch repos exercise the split end to end; no-flag compatibility and #267 escape bounds stay green; complete tests and validator pass at reviewed head; recorded executed base-revert negative control stays bound to code; --help describes options/failure cases. Scope limited to verify.py, its tests, permitted documentation/evidence, and generated changes only where validator required regeneration.
+
+PINNED REVIEW / EXECUTIVE SUMMARY
+Axis: SPEC only. Round: 2. Verdict: NO-GO — 0 Critical, 3 Required.
+Requested head: e4cbf222bc7cd1001b8bd11960d3ed92c2f6cd5f (tree 51b87ecc8d16639a52281f6b8be8575a731f9190).
+Observed/re-pinned head_sha = reviewed_sha = 50788bf24a1beaa45540859ccde33b2f8b30c901 (tree 1975f9c4f59aef1b904c7697bf60a39e36fc419d).
+The latter was already HEAD at first pin; its only addition is docs/reports/u-442/integrate-r2.json. I read that addition and re-pinned; all production, tests, specs, and builder-evidence bytes match the requested e4cbf222. Findings below apply to BOTH heads.
+Comparison ref snapshot: origin/review/2026-09-20-tracker-sweep = c3f71ccd28891cb58f07c4d4a3bebcff7b571a7f; three-dot merge-base = 5df4c0d8767d007e5f7c947a9fe955b0f83a7a34. R2-only comparison: abb00452..50788bf2.
+
+Both round-1 production P1s are closed: split evidence reads use the pinned evidence-root bytes and symbol checks use the SHA repository. F-1, F-3 and F-5 meet their acceptance shapes, and F-2 fixes both wrong-repository reads. Its helper switch also shortens the no-flag symbol-check timeout from 20 seconds to 10, reproducing a new false refusal that violates frozen compatibility. F-4 remains incomplete because its submitted symlink paths are unpinned and the nested fixture is independently invalid, so it does not deliver the explicitly requested pinned escape case. The separately required updated SHA-bound manifest and evidence-run receipts were not delivered: the only builder manifest still binds the round-1 implementation. No new production escape was observed; corrected scratch-only pinned probes are refused by the current verifier. No source fix, commit, GitHub action, or scope expansion was made.
+
+REQUIRED FINDINGS
+
+S2-R1 — Required — F-4 does not submit the specified PINNED symlink-escape fixture.
+Confidence: high. Spec location: build-u442-r2.md:30-33, verbatim:
+    - **F-4 containment survives symlink spelling (TESTS T3).** Add a canonical/symlink escape
+      fixture (pinned path through a symlink inside the evidence root pointing OUTSIDE it →
+      REFUSED) and a nested-root boundary case, so #267's canonical containment is demonstrated
+      beyond the lexical leading-`..` check.
+Motivating changed code, tests/test_verify.py:3459-3460, verbatim:
+        m = self._manifest(negative_control={"tool": "mutmut", "result": "KILLED", "mutant": "m7",
+                                             "artifact": "escape-link/nc.txt"})
+Second affected location, tests/test_verify.py:3473-3474, verbatim:
+        m = self._manifest(negative_control={"tool": "mutmut", "result": "KILLED", "mutant": "m7",
+                                             "artifact": f"up-link/{self.nc_artifact}"})
+Unchanged fixture default that makes this a mismatch, tests/test_verify.py:3190, verbatim:
+             "artifacts": [self.pin(self.nc_artifact)],
+
+Both tests override negative_control.artifact without overriding artifacts[]. The only pin remains docs/reports/u/nc.txt, whereas the escape is escape-link/nc.txt or up-link/docs/reports/u/nc.txt. Neither escaping path is pinned. The nested test also supplies --evidence-root <A>/evidence without placing contract.md or the default inventory artifact inside that root. Its manifest is rejected for independent missing-contract and missing-artifact reasons.
+
+Independent reproduction in scratch clone at reviewed_sha:
+- As submitted, outer and nested fixtures exit 2 at head.
+- Remove only `if full != root and root not in full.parents:` by changing it to `if False and full != root and root not in full.parents:` (the named M3 mutant). The outer and nested verifier invocations STILL exit 2. The outer now fails for unpinned evidence; the nested still has missing contract/default-artifact failures plus unpinned evidence.
+- The two submitted unittest methods do fail under M3, because their `assertIn("escapes the evidence root", out)` no longer matches. Thus M3's recorded KILLED status is real; it is not evidence that the required pinned-path acceptance shape was exercised.
+- Supply the actual escape path's sha256 inventory entry, align the command artifact, and supply a valid in-root contract for the nested case, only in scratch probes. Both return 2 at head and 0 under M3. This isolates the specified refusal and shows current production containment works.
+
+Required correction: submit pinned outer and nested escape fixtures with otherwise valid manifests, so deleting containment changes the verification verdict from refusal to acceptance; retain the diagnostic checks. This is an incomplete F-4 acceptance deliverable, not a claim that the production verifier currently accepts escaped paths. Scratch-only reviewer probes do not substitute for the requested committed regressions.
+
+S2-R2 — Required — The r2 SHA-bound manifest and evidence-run receipts are missing.
+Confidence: high. Spec location: build-u442-r2.md:48-50, verbatim:
+    - evidence: updated SHA-bound manifest — new head_sha, evidence-run.py receipts for the new
+      regression tests + full module + suite, the reviewers' mutants re-run RED, intent refreshed;
+      lighting=lit.
+Motivating artifact line, docs/reports/u-442/manifest.json:121, verbatim:
+      "head_sha": "1ef8bd797477314f25ece410fe8a6e70c2560bad",
+The new claim, docs/reports/u-442/round2.md:5, verbatim:
+    Answers every Required from round 1 (SPEC R1/R2, TESTS T1–T5) and both held Greptile P1s.
+The new evidence reference, docs/reports/u-442/round2.md:60, verbatim:
+    suite.txt sha256=de6ce375d051f6b38fd18bef8ad39952003cc5df92a713591676c83081c5f4a6
+
+The only builder manifest remains the round-1 manifest: all four commands[] receipts name 1ef8bd79 and tree 9d5293f13e46fac49cd20d27f7634d238459d67e, its full-suite receipt has exit 1, AC-3 remains addressed:false, and intent is unchanged. There are no new evidence-run records for the r2 regressions, verifier module, or suite. round2-mutants.json records mutation summaries, replacements and failed-test names but no SHA/tree-bound command receipts or artifact inventory; round2.md supplies prose and a suite.txt hash, without that file in the report directory. integrate-r2.json reports later green gates but likewise is not the missing updated unit manifest with runner receipts.
+
+Independent binding check: check_commands regards the old manifest as FRESH only for its original round-1 head. Replacing only its head with e4cbf222 or 50788bf2 makes it fail STALE; the code/tests at the current head differ from 1ef8bd79. Therefore this is not cosmetic evidence-commit lag. Conversely, round2.md's historical 5113e156 commit exists locally and has the SAME tree as rewritten 0454ddbc (35c449f71cc69b0aae5ad362dbe32d50391ec471); that author/trailer rewrite is not itself a finding.
+
+Required correction: provide a current implementation-SHA-bound manifest with refreshed F-1..F-5 intent/criteria, lit lighting, real evidence-run receipts for new regression tests, full module and suite, and pinned durable control/run artifacts. Preserve honest historical reports as history. Independent review runs below prove behavior at the review head but do not manufacture the builder's missing evidence package.
+
+S2-R3 — Required — F-2 shortens legacy symbol-check timeout from 20s to 10s.
+Confidence: high. New production compatibility regression, independently reproduced.
+Frozen-spec motivation, build-u442.md:16-18, verbatim:
+    - goal: verify.py can verify a manifest whose EVIDENCE PATHS live under one root while the
+      SHA/git checks run against a DIFFERENT git directory — with today's single-repo behavior
+      byte-identical when the new options are absent.
+Also build-u442.md:41, verbatim:
+    #267). With the options absent, behavior is exactly today's. `--help` documents the new
+Motivating changed line, runtime/scripts/verify.py:1754, verbatim:
+    code, out = _git(["grep", "-l", "-e", symbol, f"origin/{base}"])
+The new helper default, verify.py:135, verbatim:
+    def _git(args, timeout=10):
+The previous helper's unchanged default, verify.py:104, verbatim:
+    def _run(args, timeout=20, cwd=None):
+
+Before round 2, the symbol lookup called _run without an override and allowed 20 seconds. Routing through _git fixes repository selection but silently lowers that existing budget to 10 seconds. A valid search taking more than 10 but less than 20 seconds now becomes the fatal "symbol not found" result. This occurs with both new root options absent; it is not limited to split mode. Despite the check's best-effort docstring, its diagnostic has no NOTE prefix and collect() appends it to fatal at :2029/:2059, so the change alters the verifier verdict.
+
+Independent reproduction: initialize a real scratch Git repository containing PRESENT_SYMBOL and refs/remotes/origin/main; prepend a scratch-only Git wrapper that delays only grep by 11 seconds, then execs the real Git executable. Run the exact original-base and current check_symbol_on_base('PRESENT_SYMBOL', 'main') functions, with _ROOTS git/evidence both None. The original returns [] after 11.829 seconds; the new function returns ["symbol 'PRESENT_SYMBOL' not found on origin/main (change may not be on base)"] after 10.004 seconds. No subprocess result was mocked and the source worktree was untouched. The delay models slow storage/search execution; it makes the pre-existing admitted interval deterministic.
+
+Required correction: retain the former 20-second symbol-query allowance while using the selected Git context, and cover the compatibility boundary. F-2's requested context change does not authorize lowering the legacy timeout. This finding does not reopen either resolved wrong-repository P1.
+
+F-1..F-5 CLOSURE AUDIT
+
+F-1 — CLOSED in production and submitted coverage; round-1 SPEC R1 / Greptile P1 4056474414 resolved.
+Spec, verbatim (build-u442-r2.md:16-18):
+      evidence root are the same repository (no split); under a split, an artifact passes ONLY on
+      its declared artifacts[] sha256 against bytes read from the EVIDENCE root — a same-path blob
+      in the SHA repo is never consulted. Regression tests: same-path/different-content in the SHA
+Implementation: verify.py:191-210 compares canonical worktree/evidence roots, treats unresolved identity as split, and preserves the no-flag shortcut. :303-306 guards the tracked-at-head shortcut with `not split`; :311-325 reads resolved evidence bytes and checks their inventory hash. Different clones remain split even with identical history. A named nested evidence directory cannot accidentally license a repository-root blob shortcut.
+Coverage: tests at :3321-3382 cover colliding different content, absent pin, mismatched pin and two clones. The 20-test CrossRepoRoots class passes. Independently deleting `not split` (M7) produces four assertion failures, including collision and pin failures. The SHA copy cannot replace A's pinned bytes or its required pin. No broader remote bot-status claim was inferred from silence; the code behavior resolves the reported P1.
+
+F-2 — Requested repository routing CLOSED; round-1 SPEC R2 / Greptile P1 4056474416 resolved. New no-flag timeout regression remains S2-R3.
+Spec, verbatim (build-u442-r2.md:23-25):
+      (`path@ref`) drops the root selection — both must run through the SAME selected git context
+      as the ancestry legs. Regression tests: symbol present-in-B/absent-in-A and inverse;
+      contract read as `git-contract.md@<B-head>` with cwd+evidence in A.
+Implementation: check_symbol_on_base at verify.py:1754 now calls `_git(["grep", "-l", "-e", symbol, f"origin/{base}"])`; _git and _git_bytes share `git -C` selection at :135-144. read_source at :253 uses _git_bytes, already rooted in r1; r2 supplies the previously missing path@ref regression. I inspected every raw Git call: remaining cwd discovery is specifically the evidence authority, argument validation uses its candidate root, and NC worktree calls use the selected SHA root or its derived disposable worktree. None is a remaining cwd-based SHA lookup.
+Coverage: both asymmetric symbols and git-contract.md@B-head tests pass. Independent M8 cwd grep gives two assertion failures; independent M5 dropping byte-reader root gives one. Same-context requirement is met.
+
+F-3 — CLOSED.
+Spec, verbatim (build-u442-r2.md:26-29):
+    - **F-3 --evidence-root is honored, not just parsed (TESTS T2).** Cover the split invocation
+      from a DISTINCT cwd (evidence in A's tree, cwd elsewhere): mutant that ignores the parsed
+      root (falls back to cwd toplevel) must go RED. Ideally also evidence in a named
+      subdirectory of A.
+The submitted distinct-cwd case changes cwd to B while selecting evidence A; the separate subdirectory case places a real contract and artifact in A/evidence. Both pass. Independent M2 ignoring the parsed evidence root fails the distinct-cwd test and nested-root test (two failures); the requested distinct-cwd acceptance itself changes from GREEN to RED.
+
+F-4 — PARTIAL / NOT CLOSED; S2-R1 above. Canonical production containment is correct, and the new tests check its diagnostic, but the specifically required pinned-path fixtures are missing.
+
+F-5 — CLOSED.
+Spec, verbatim (build-u442-r2.md:34-36):
+    - **F-5 no-flag compatibility from a nested cwd (TESTS T4).** Cover a valid no-flag
+      invocation run from a NESTED directory of the repo (resolution must still land on the git
+      toplevel, not cwd).
+Submitted test :3479-3495 builds a valid single-repo manifest, changes cwd to deep/nested and invokes with neither root flag; passes at head. Independent M4 replacing default toplevel with cwd fails exactly that test. Additional same-fixture old/new comparisons at nested cwd are byte-identical for valid, missing pin, wrong pin, lexical escape and absolute escape invocations (exit/output pair compared exactly).
+
+FROZEN ORIGINAL build-u442.md ACCEPTANCE AUDIT
+
+AC-1 — PASS independently: two scratch repositories are created by CrossRepoRoots; A carries contract/artifacts and B carries base/head commits. All 20 methods pass at reviewed_sha. The original end-to-end method passes at head and fails after restoring only verify.py from original base a58bf71a while retaining current tests.
+AC-2 — PARTIAL: no-flag nested invocation and the five ordinary byte-parity cases above match the original verifier; lexical, absolute and canonical escapes remain refused against their evidence root. The newly reproduced symbol timeout behavior does NOT preserve the original default invocation (S2-R3). F-4's incomplete regression shape is separately Required.
+AC-3 — PASS independently at exact reviewed_sha 50788bf24a1beaa45540859ccde33b2f8b30c901 in a clean clone (Python 3.13.15): python3 -m unittest discover -s tests exited 0, Ran 1726 tests in 295.387s, OK. A sequential python3 scripts/validate.py exited 0: All 21 missions valid; three-layer separation holds; evals valid. The clone remained clean. This meets the original behavioral gate; it does not remove S2-R2's missing required evidence deliverable.
+AC-4 — PASS independently executed using evidence-run.py in a disposable clone: the original split end-to-end fixture is GREEN (exit 0), then RED (exit 1, one assertion failure) after replacing only verify.py with a58bf71a bytes. The expected reason is original argparse refusal of both new flags. This coarse base-revert control is distinct from the behavioral M2/M4/M5/M7/M8 controls, which keep the flags present. Exact receipts below bind both control legs to the reviewed commit and their respective worktree fingerprints.
+Help requirement — PASS: --help documents both selected roots, default behavior, invalid non-worktree roots, absolute/escaping path refusal, and split-root pin authority at verify.py:2121-2137. Submitted invalid-root tests and escape tests pass.
+
+SCOPE AUDIT
+R2-only diff abb00452..50788bf2 changes verify.py, test_verify.py, test_reshape_width_verify.py, one evidence-manifest.md line, two generated files and report evidence. Width rose from 88 to 90, below unchanged baseline 92, so the conditional width-test allowance is triggered. No unrelated runtime script, dependency, schema, existing flag rename, or mission/policy change appears.
+The two generated changes (assets/badges/tests.json and docs/missions/floor-it.md) are mandatory freshness updates: independent validation at pre-regen a71655b6 exits 1 naming exactly those stale outputs (test count 1714→1726; floor-it load ~29,300). They are permitted by build-u442-r2.md:45-46, not scope creep. All broader 16-file original generated changes were already accounted for in r1 and remain mechanical.
+The integration-report-only extra commit was inspected and included in the re-pin. Its separate CI guard observation belongs to the STANDARDS axis; this SPEC verdict does not rerank that axis or certify overall merge readiness.
+
+INDEPENDENT EXECUTION / REPRODUCTION
+Scratch root: /tmp/u442-spec-r2-6peb1llg
+Clones: repo (baseline/probes/base-revert), mutations (isolated behavioral controls).
+A separate helper audited evidence/scope and ran full suite then validator in a clean clone at /tmp/u442-spec-scope.zRInCK. It did not act as another reviewer axis or modify the source worktree.
+Commands completed:
+- python3 -m unittest tests.test_verify.CrossRepoRoots -v: exit 0; Ran 20 tests in 3.892s; OK.
+- python3 -m unittest tests.test_verify -v: exit 0; Ran 267 tests in 44.069s; OK.
+- python3 /tmp/u442-spec-r2-6peb1llg/probes.py: exit 0 at both head and M3 (observational probe logs record verifier outcomes separately).
+- python3 /tmp/u442-spec-r2-6peb1llg/parity.py: exit 0; all five old/new comparisons byte-identical.
+- M2/M4/M5/M7/M8: each runs python3 -m unittest tests.test_verify.CrossRepoRoots in a fresh process against one isolated production mutation. All exit 1 with assertion failures; no errors. M3 runs only the two submitted symlink methods and exits 1 with two diagnostic assertion failures.
+Mutations were restored after each experiment; both scratch clones returned clean. No mutation was made to the source worktree.
+
+
+BASE-REVERT EVIDENCE-RUN RECEIPTS
+{
+  "commands": [
+    {
+      "label": "review-fixture-green",
+      "ts": "2026-09-20T09:21:36Z",
+      "cmd": "python3 -m unittest tests.test_verify.CrossRepoRoots.test_split_roots_verify_a_cross_repo_manifest_end_to_end",
+      "cmd_sha256": "46c2ff447bd08ca1019c1b98f1a00336fbc684f9b94db2835713f0af66a39094",
+      "exit": 0,
+      "duration_s": 0.294,
+      "commit": "50788bf24a1beaa45540859ccde33b2f8b30c901",
+      "wtree": "1975f9c4f59aef1b904c7697bf60a39e36fc419d",
+      "artifact": "/tmp/u442-spec-r2-6peb1llg/review-fixture-green.txt"
+    },
+    {
+      "label": "review-fixture-base-revert",
+      "ts": "2026-09-20T09:21:36Z",
+      "cmd": "python3 -m unittest tests.test_verify.CrossRepoRoots.test_split_roots_verify_a_cross_repo_manifest_end_to_end",
+      "cmd_sha256": "46c2ff447bd08ca1019c1b98f1a00336fbc684f9b94db2835713f0af66a39094",
+      "exit": 1,
+      "duration_s": 0.157,
+      "commit": "50788bf24a1beaa45540859ccde33b2f8b30c901",
+      "wtree": "616228cd70afe193f0a96367795572dfab33d0a3",
+      "artifact": "/tmp/u442-spec-r2-6peb1llg/review-fixture-base-revert.txt"
+    }
+  ]
+}
+
+BEHAVIORAL MUTANT RECEIPTS
+[
+  {
+    "mutant": "M2",
+    "exit": 1,
+    "before": "top = _ROOTS[\"evidence\"]",
+    "after": "top = None",
+    "summary": [
+      "----------------------------------------------------------------------",
+      "Ran 20 tests in 4.900s",
+      "",
+      "FAILED (failures=2)"
+    ]
+  },
+  {
+    "mutant": "M4",
+    "exit": 1,
+    "before": "top = out.strip() if code == 0 else None",
+    "after": "top = str(Path.cwd()) if code == 0 else None",
+    "summary": [
+      "----------------------------------------------------------------------",
+      "Ran 20 tests in 4.679s",
+      "",
+      "FAILED (failures=1)"
+    ]
+  },
+  {
+    "mutant": "M5",
+    "exit": 1,
+    "before": "return _run_bytes([\"git\", *([\"-C\", _ROOTS[\"git\"]] if _ROOTS[\"git\"] else []), *args],",
+    "after": "return _run_bytes([\"git\", *args],",
+    "summary": [
+      "----------------------------------------------------------------------",
+      "Ran 20 tests in 4.559s",
+      "",
+      "FAILED (failures=1)"
+    ]
+  },
+  {
+    "mutant": "M7",
+    "exit": 1,
+    "before": "if (not split and head and HEX40_RE.match(str(head))",
+    "after": "if (head and HEX40_RE.match(str(head))",
+    "summary": [
+      "----------------------------------------------------------------------",
+      "Ran 20 tests in 4.711s",
+      "",
+      "FAILED (failures=4)"
+    ]
+  },
+  {
+    "mutant": "M8",
+    "exit": 1,
+    "before": "code, out = _git([\"grep\", \"-l\", \"-e\", symbol, f\"origin/{base}\"])",
+    "after": "code, out, _ = _run([\"git\", \"grep\", \"-l\", \"-e\", symbol, f\"origin/{base}\"])",
+    "summary": [
+      "----------------------------------------------------------------------",
+      "Ran 20 tests in 4.533s",
+      "",
+      "FAILED (failures=2)"
+    ]
+  }
+]
+
+PINNED ESCAPE REPRODUCTION SOURCE (SCRATCH ONLY)
+from pathlib import Path
+import hashlib,json,sys,os,unittest
+sys.path.insert(0,str(Path(__file__).resolve().parent/'repo'/'tests'))
+from test_verify import CrossRepoRoots,verify
+
+def run_case(kind):
+    case=CrossRepoRoots('test_split_roots_verify_a_cross_repo_manifest_end_to_end')
+    case.setUp()
+    try:
+        nested='nested' in kind
+        pinned='pinned' in kind
+        evidence=case.repo
+        if nested:
+            evidence=case.repo/'evidence'
+            evidence.mkdir()
+            (evidence/'up-link').symlink_to(case.repo,target_is_directory=True)
+            artifact=f'up-link/{case.nc_artifact}'
+            raw=(case.repo/case.nc_artifact).read_bytes()
+            if pinned:
+                (evidence/'contract.md').write_bytes((case.repo/'contract.md').read_bytes())
+        else:
+            (case.repo/'escape-link').symlink_to(case.repo_b,target_is_directory=True)
+            raw=b'mutant m7 was KILLED\n'
+            (case.repo_b/'nc.txt').write_bytes(raw)
+            artifact='escape-link/nc.txt'
+        manifest=case._manifest(negative_control={'tool':'mutmut','result':'KILLED','mutant':'m7','artifact':artifact})
+        obj=json.loads(Path(manifest).read_text())
+        if pinned:
+            obj['artifacts']=[{'path':artifact,'sha256':hashlib.sha256(raw).hexdigest()}]
+            obj['commands'][0]['artifact']=artifact
+            Path(manifest).write_text(json.dumps(obj))
+        rc,out=case._run_main(manifest,'--git-dir',str(case.repo_b),'--evidence-root',str(evidence))
+        print(json.dumps({'case':kind,'artifact':artifact,'inventory':obj['artifacts'],'exit':rc,'output':out}))
+    finally:
+        case.tearDown()
+        case.doCleanups()
+
+for kind in ('submitted_outer','submitted_nested','pinned_outer','pinned_nested'):
+    run_case(kind)
+
+Full-suite/validator receipt, final SHA check and artifact hash inventory follow below.
+
+SLOW-SYMBOL REPRODUCTION SOURCE (SCRATCH ONLY)
+from pathlib import Path
+import subprocess,sys,types,os,json,shutil,time
+root=Path(__file__).resolve().parent;repo=root/'repo'
+sys.path.insert(0,str(repo/'tests'))
+import test_verify as tv
+current=tv.verify
+old=types.ModuleType('review_legacy_verify');old.__file__=str(repo/'runtime/scripts/verify.py')
+source=subprocess.check_output(['git','show','a58bf71a283928a8278e560163452ee70c7ad609:runtime/scripts/verify.py'],cwd=repo)
+exec(compile(source,old.__file__,'exec'),old.__dict__)
+binpath=root/'slow-git-bin';binpath.mkdir(exist_ok=True)
+realgit=shutil.which('git')
+wrapper=binpath/'git'
+wrapper.write_text('#!'+sys.executable+'\nimport os,sys,time\nif "grep" in sys.argv[1:]: time.sleep(11)\nos.execv('+repr(realgit)+', ['+repr(realgit)+',*sys.argv[1:]])\n')
+wrapper.chmod(0o755)
+case=tv.RepoCase();case.setUp()
+try:
+ case.write('app.py','PRESENT_SYMBOL = 1\n');case.commit('symbol')
+ case.git('update-ref','refs/remotes/origin/main','HEAD')
+ oldpath=os.environ['PATH'];os.environ['PATH']=str(binpath)+os.pathsep+oldpath
+ current._ROOTS.update(git=None,evidence=None)
+ for label,mod in [('original-base-no-flags',old),('r2-head-no-flags',current)]:
+  start=time.monotonic();result=mod.check_symbol_on_base('PRESENT_SYMBOL','main')
+  print(json.dumps({'case':label,'elapsed_seconds':round(time.monotonic()-start,3),'result':result}),flush=True)
+finally:
+ os.environ['PATH']=oldpath
+ case.tearDown();case.doCleanups()
+
+SLOW-SYMBOL REPRODUCTION RESULTS
+{"case": "original-base-no-flags", "elapsed_seconds": 11.829, "result": []}
+{"case": "r2-head-no-flags", "elapsed_seconds": 10.004, "result": ["symbol 'PRESENT_SYMBOL' not found on origin/main (change may not be on base)"]}
+
+FINAL GATES AND REPORT-ONLY EVIDENCE RECORD
+{
+  "unit": "U-442/spec-r2",
+  "unit_class": "report-only",
+  "base_sha": "5df4c0d8767d007e5f7c947a9fe955b0f83a7a34",
+  "requested_head_sha": "e4cbf222bc7cd1001b8bd11960d3ed92c2f6cd5f",
+  "head_sha": "50788bf24a1beaa45540859ccde33b2f8b30c901",
+  "reviewed_sha": "50788bf24a1beaa45540859ccde33b2f8b30c901",
+  "verdict": "NO-GO",
+  "critical": 0,
+  "required": 3,
+  "finding_ids": [
+    "S2-R1",
+    "S2-R2",
+    "S2-R3"
+  ],
+  "commands": [
+    {
+      "cmd": "python3 -m unittest tests.test_verify.CrossRepoRoots -v",
+      "exit": 0,
+      "tests": 20,
+      "artifact": "/tmp/u442-spec-r2-6peb1llg/crossrepo.txt"
+    },
+    {
+      "cmd": "python3 -m unittest tests.test_verify -v",
+      "exit": 0,
+      "tests": 267,
+      "artifact": "/tmp/u442-spec-r2-6peb1llg/verify-module.txt"
+    },
+    {
+      "cmd": "python3 -m unittest discover -s tests",
+      "exit": 0,
+      "tests": 1726,
+      "duration_s": 295.387,
+      "artifact": "/tmp/u442-spec-scope.zRInCK/suite.log"
+    },
+    {
+      "cmd": "python3 scripts/validate.py",
+      "exit": 0,
+      "artifact": "/tmp/u442-spec-scope.zRInCK/validate.log"
+    }
+  ],
+  "scope": "SPEC only; read-only source; scratch-only explicit review controls; no fix or commit authority"
+}
+
+RAW-LOG / PROBE SHA256 INVENTORY
+82a0f1d23f29e2f4b5c9d23c8cc640a7b2a8d2375f8d4f475668213f1faaacf2  /tmp/u442-spec-r2-6peb1llg/crossrepo.txt
+d0137d3db233c9d7a2dafa727025fdbe15e0b98fb0a545f0ca7a571bbdef4809  /tmp/u442-spec-r2-6peb1llg/verify-module.txt
+7b366f405fd6b3684a68f5251f6a4cadf8cccb0cabfb7a35dcb46bf324f8627d  /tmp/u442-spec-r2-6peb1llg/symlink-head.jsonl
+a4709e337b4b64656b9eca9bd8147d24bdb330885c54fb22398ffabd47e98917  /tmp/u442-spec-r2-6peb1llg/symlink-mutant.jsonl
+9ef0527c2979096c65bc0bf70491b34ea611dcd312e843a16cbece083bb776ab  /tmp/u442-spec-r2-6peb1llg/M3-submitted-tests.txt
+4aa0663506ea3d9723018fe83c563686e1f70012d57946bdc76e46d61dd7a462  /tmp/u442-spec-r2-6peb1llg/M2-crossrepo.txt
+9d92116a18356dd824c0a7a606cf51d32b64d4791629ff292ab6e75cdf965b68  /tmp/u442-spec-r2-6peb1llg/M4-crossrepo.txt
+2cbe150418262f6e725a0fb5585843b2fb99b08acc1bf69e59e54e4614240649  /tmp/u442-spec-r2-6peb1llg/M5-crossrepo.txt
+63d7a35670b94d9bb511fa6235d327370b6ed02a3c71d864cad25dbb2f652642  /tmp/u442-spec-r2-6peb1llg/M7-crossrepo.txt
+694b494c20285b5df288799d65e8869b3eacc201df86b3fff825a1576b6468bf  /tmp/u442-spec-r2-6peb1llg/M8-crossrepo.txt
+e6d00b0b4b683fc45ee8288768ae16bbe17710d5c5a49ef6c0f52ec54cdc6968  /tmp/u442-spec-r2-6peb1llg/parity.jsonl
+63ae0ff45c8a4e6e2a9a6a4c2cbada9988205ed5706974b0b4c32f2ba04b16bd  /tmp/u442-spec-r2-6peb1llg/timeout-parity.jsonl
+f286ec0f88529228502ede9c70a9009637b421f0cdf2ed882112089f23674bc0  /tmp/u442-spec-r2-6peb1llg/review-nc-ledger.json
+cc4c6538a1fb5be974546a5f7ef00dbf2e453240380409722dfc6fee8266ad29  /tmp/u442-spec-r2-6peb1llg/review-fixture-green.txt
+caef3772d48c88c91bbfe2fee18a8a712c2152390a7f62ae044716fada00de36  /tmp/u442-spec-r2-6peb1llg/review-fixture-base-revert.txt
+826348eb1848f35ca768c1e819c0f5c4a39bbb69401313408f7431344641fcfd  /tmp/u442-spec-r2-6peb1llg/probes.py
+5f5b799484612ce69fba6f9e747471cb8551b9f64c5c6cc36ac6ac3a5808a740  /tmp/u442-spec-r2-6peb1llg/timeout_parity.py
+4ef056661c6594b5d5912c4649f4dfc20018f2d54cf9af20cf27a27e59559785  /tmp/u442-spec-scope.zRInCK/suite.log
+90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6  /tmp/u442-spec-scope.zRInCK/validate.log
+6957748e19a9b4c622ce6d08941151cc4c805a883ae5ca80279bd92d2e938f59  /tmp/u442-spec-scope.zRInCK/manifest-binding.log
+ee7a4023434924dffc697dd04a83225c0ea22ecc17a96078c8be17a71ad8f456  /tmp/u442-spec-scope.zRInCK/pre-regen-validate.log
+
+FINAL BOUNDARY / FRESHNESS CHECK
+HEAD remains 50788bf24a1beaa45540859ccde33b2f8b30c901. No tracked worktree or index changes, and no commits made by this reviewer. The only source-worktree file this reviewer authored is docs/reports/u-442/review-spec-r2.txt, left uncommitted; other axis reports were not read or modified. All mutations were restricted to independent scratch clones and restored.
+The comparison ref advanced to 7d522074688e5a0a6556518fbbfd3cf4ef5e241e during review; its three-dot diff to reviewed_sha is byte-identical to the initial ref comparison (diff sha256 1bc51c29af88cac5d7fe62d9976b2d45a809bbdd644daa65735ca254ee12d028).
+Completed UTC: 2026-09-20T09:26:08.349893+00:00. No timebox stop or partial review was needed.
+Next: builder closes S2-R1/S2-R2/S2-R3, then fresh SPEC review at resulting SHA; coordinator retains the other axes and overall merge decision.

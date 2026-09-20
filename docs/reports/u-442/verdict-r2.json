@@ -1,0 +1,445 @@
+{
+  "unit": "U-442/verdict/round-2",
+  "unit_class": "report-only",
+  "task_id": "task_98567ecbb515",
+  "dispatch_id": "ctx_f2a24c0e369c",
+  "round": 2,
+  "verdict": "NO-GO",
+  "base_sha": "5df4c0d8767d007e5f7c947a9fe955b0f83a7a34",
+  "head_sha": "50788bf24a1beaa45540859ccde33b2f8b30c901",
+  "reviewed_sha": "50788bf24a1beaa45540859ccde33b2f8b30c901",
+  "reviewed_wtree": "1975f9c4f59aef1b904c7697bf60a39e36fc419d",
+  "pr": 485,
+  "base_ref": "review/2026-09-20-tracker-sweep",
+  "head_ref": "u-442",
+  "findings_summary": "verdict: NO-GO — round 2\n\nreviewed_sha: 50788bf24a1beaa45540859ccde33b2f8b30c901\nreviewed_wtree: 1975f9c4f59aef1b904c7697bf60a39e36fc419d\n\nSix Required findings remain across the independent axes. Original severities are preserved, including overlapping findings.\n\n| Axis | Verdict and counts | Sticking findings with motivating lines |\n| --- | --- | --- |\n| Spec | NO-GO; 0 Critical, 3 Required | **S2-R1:** The required pinned symlink-escape fixtures are absent; the nested fixture also lacks valid supporting evidence (`tests/test_verify.py:3460`: `\"artifact\": \"escape-link/nc.txt\"})`). **S2-R2:** The updated SHA-bound manifest and evidence-run receipts are missing (`docs/reports/u-442/manifest.json:121`: `\"head_sha\": \"1ef8bd797477314f25ece410fe8a6e70c2560bad\",`). **S2-R3:** Symbol lookup reduces the legacy timeout from 20s to 10s, causing a reproduced false refusal (`runtime/scripts/verify.py:135`: `def _git(args, timeout=10):`). |\n| Standards | GO; 0 Critical, 0 Required; 0 Nit/Optional/FYI | No findings. Its closure assessment remains confined to this axis. |\n| Test adequacy | NO-GO; 0 Critical, 3 Required; 0 Nit/Optional/FYI | **R2-T1:** One-flag and same-repository nested-root collisions are uncovered; N1/N2 survive (`verify.py:202`: `if _ROOTS[\"git\"] is None and _ROOTS[\"evidence\"] is None:`). **R2-T2:** Pinned escapes are untested; N5 survives (`test_verify.py:3460`: `\"artifact\": \"escape-link/nc.txt\"})`). **R2-T3:** Symbol fixtures conflate target base and HEAD; N4 survives (`test_verify.py:3387`: `self.git_b(\"update-ref\", \"refs/remotes/origin/main\", self.head_sha)`). |\n\nSeparate integration hold: **guard / silenced-checker** remains RED at the current head (`verify.py:209`: `except OSError:  # pragma: no cover — resolve() rarely raises on POSIX`). This CI hold retains its original classification outside the axes.\n\nBoth round-1 Greptile P1s (4056474414, 4056474416) are resolved. Greptile also completed successfully at the current head: 39 files reviewed, zero comments. The reports record 1,726 passing tests and validation, but four fresh behavioral mutants survive all 267 verifier tests.\n\nSpec explicitly reviewed the current head. Standards/tests retain `e4cbf222bc7cd1001b8bd11960d3ed92c2f6cd5f`; their only subsequent delta is `integrate-r2.json`, inspected for this aggregation. The trees differ. The forthcoming report commit also advances the tree; this NO-GO binds the pre-report head.\n\nResolve every named Required finding and the CI hold, then re-review. Detailed evidence: `docs/reports/u-442/review-{spec,standards,tests}-r2.txt` and `integrate-r2.json`.\n",
+  "summary_word_count": 310,
+  "axes": {
+    "spec": {
+      "report": "docs/reports/u-442/review-spec-r2.txt",
+      "report_sha256": "4795b282bc5bb42149c3cd4f2250572551ea571ce146915695a411f796a47959",
+      "reviewed_sha": "50788bf24a1beaa45540859ccde33b2f8b30c901",
+      "reviewed_wtree": "1975f9c4f59aef1b904c7697bf60a39e36fc419d",
+      "verdict": "NO-GO",
+      "counts": {
+        "Critical": 0,
+        "Required": 3
+      },
+      "findings": [
+        {
+          "id": "S2-R1",
+          "severity": "Required",
+          "title": "F-4 does not submit the specified PINNED symlink-escape fixture.",
+          "required_correction": "Submit genuinely pinned outer and nested symlink-escape fixtures with otherwise valid manifests; containment removal must change refusal to acceptance, retaining diagnostic assertions.",
+          "quoted_lines": [
+            {
+              "finding": "S2-R1",
+              "path": "tests/test_verify.py",
+              "line": 3460,
+              "quote": "\"artifact\": \"escape-link/nc.txt\"})",
+              "matches_at_reviewed_sha": true
+            }
+          ]
+        },
+        {
+          "id": "S2-R2",
+          "severity": "Required",
+          "title": "The r2 SHA-bound manifest and evidence-run receipts are missing.",
+          "required_correction": "Refresh the implementation-SHA-bound manifest, F-1..F-5 criteria/intent, lit lighting, evidence-run regression/module/suite receipts, and pinned durable control artifacts.",
+          "quoted_lines": [
+            {
+              "finding": "S2-R2",
+              "path": "docs/reports/u-442/manifest.json",
+              "line": 121,
+              "quote": "\"head_sha\": \"1ef8bd797477314f25ece410fe8a6e70c2560bad\",",
+              "matches_at_reviewed_sha": true
+            }
+          ]
+        },
+        {
+          "id": "S2-R3",
+          "severity": "Required",
+          "title": "F-2 shortens legacy symbol-check timeout from 20s to 10s.",
+          "required_correction": "Retain the former 20-second symbol-query allowance through the selected Git context and cover the compatibility boundary.",
+          "quoted_lines": [
+            {
+              "finding": "S2-R3",
+              "path": "runtime/scripts/verify.py",
+              "line": 135,
+              "quote": "def _git(args, timeout=10):",
+              "matches_at_reviewed_sha": true
+            },
+            {
+              "finding": "S2-R3",
+              "path": "runtime/scripts/verify.py",
+              "line": 104,
+              "quote": "def _run(args, timeout=20, cwd=None):",
+              "matches_at_reviewed_sha": true
+            },
+            {
+              "finding": "S2-R3",
+              "path": "runtime/scripts/verify.py",
+              "line": 1754,
+              "quote": "code, out = _git([\"grep\", \"-l\", \"-e\", symbol, f\"origin/{base}\"])",
+              "matches_at_reviewed_sha": true
+            }
+          ]
+        }
+      ]
+    },
+    "standards": {
+      "report": "docs/reports/u-442/review-standards-r2.txt",
+      "report_sha256": "2164e7d7dd8427a98c8e543b00a83d7337d1157ad8a13f8375f09596dacf6fa6",
+      "reviewed_sha": "e4cbf222bc7cd1001b8bd11960d3ed92c2f6cd5f",
+      "reviewed_wtree": "51b87ecc8d16639a52281f6b8be8575a731f9190",
+      "verdict": "GO",
+      "counts": {
+        "Critical": 0,
+        "Required": 0,
+        "Nit": 0,
+        "Optional": 0,
+        "FYI": 0
+      },
+      "findings": []
+    },
+    "test_adequacy": {
+      "report": "docs/reports/u-442/review-tests-r2.txt",
+      "report_sha256": "0ff17ac21b2a191c5825fac78724de750f52f8faf0585127d81a7f6777a91c2c",
+      "reviewed_sha": "e4cbf222bc7cd1001b8bd11960d3ed92c2f6cd5f",
+      "reviewed_wtree": "51b87ecc8d16639a52281f6b8be8575a731f9190",
+      "verdict": "NO-GO",
+      "counts": {
+        "Critical": 0,
+        "Required": 3,
+        "Nit": 0,
+        "Optional": 0,
+        "FYI": 0
+      },
+      "findings": [
+        {
+          "id": "R2-T1",
+          "severity": "Required",
+          "title": "Root-equivalence edge cases have no collision protection in the submitted tests (F-1).",
+          "required_correction": "Add otherwise-valid authority/collision cases for each one-flag form and same-repository nested evidence; assert the missing/mismatched pin refusal.",
+          "quoted_lines": [
+            {
+              "finding": "R2-T1",
+              "path": "runtime/scripts/verify.py",
+              "line": 202,
+              "quote": "if _ROOTS[\"git\"] is None and _ROOTS[\"evidence\"] is None:",
+              "matches_at_reviewed_sha": true
+            },
+            {
+              "finding": "R2-T1",
+              "path": "runtime/scripts/verify.py",
+              "line": 208,
+              "quote": "return Path(sha_top).resolve() != Path(ev_top).resolve()",
+              "matches_at_reviewed_sha": true
+            }
+          ],
+          "surviving_mutants": [
+            "N1",
+            "N2"
+          ]
+        },
+        {
+          "id": "R2-T2",
+          "severity": "Required",
+          "title": "F-4's specified PINNED symlink escape is absent, allowing pin-authorized escape to survive.",
+          "required_correction": "Pin each escaping symlink path and supply complete valid nested-root evidence; require canonical escape refusal and kill a mutant allowing pins to authorize escapes.",
+          "quoted_lines": [
+            {
+              "finding": "R2-T2",
+              "path": "tests/test_verify.py",
+              "line": 3460,
+              "quote": "\"artifact\": \"escape-link/nc.txt\"})",
+              "matches_at_reviewed_sha": true
+            }
+          ],
+          "surviving_mutants": [
+            "N5"
+          ]
+        },
+        {
+          "id": "R2-T3",
+          "severity": "Required",
+          "title": "The new symbol-context tests do not distinguish the selected base from HEAD (F-2 test adequacy).",
+          "required_correction": "Add divergent HEAD/base symbol fixtures in the selected repository while retaining opposite-A/B fixtures.",
+          "quoted_lines": [
+            {
+              "finding": "R2-T3",
+              "path": "tests/test_verify.py",
+              "line": 3387,
+              "quote": "self.git_b(\"update-ref\", \"refs/remotes/origin/main\", self.head_sha)",
+              "matches_at_reviewed_sha": true
+            }
+          ],
+          "surviving_mutants": [
+            "N4"
+          ]
+        }
+      ]
+    }
+  },
+  "aggregation_rule": "Side by side per axis; original severities retained, no cross-rerank or deduplication. GO requires zero Critical and Required findings on every axis.",
+  "integration": {
+    "report": "docs/reports/u-442/integrate-r2.json",
+    "report_sha256": "1f9a8d4d86bbc068691eb00dc0fc3a7ec5605ca80b48ac074e7b603dd0f4ea4b",
+    "report_head_sha": "e4cbf222bc7cd1001b8bd11960d3ed92c2f6cd5f",
+    "r1_holds_disposition": {
+      "summary": "RESOLVED — both round-1 P1 holds are closed by the new head.",
+      "holds": [
+        {
+          "comment_id": 4056474414,
+          "severity": "P1",
+          "title": "Artifact pinning can be bypassed (cross-repo evidence read from the SHA repo)",
+          "path": "runtime/scripts/verify.py",
+          "round1_disposition": "VALID — held, not fixed in round 1",
+          "resolved_by_new_head": true,
+          "fix_commit": "3fca0bb940b3c68a602ffd0ce41ac46711d83c62",
+          "code_evidence": "_read_artifact's tracked-at-head_sha shortcut is now gated on `not _roots_are_split()`. Under split roots the SHA repository is never consulted for evidence bytes; an artifact passes only on its declared artifacts[] sha256 read from the evidence root. _roots_are_split() fails CLOSED (treats roots as split) when either toplevel is unresolvable. _evidence_toplevel() gives the evidence root a single definition.",
+          "regression_tests": [
+            "tests/test_verify.py::test_a_colliding_sha_repo_blob_cannot_substitute_for_pinned_evidence",
+            "tests/test_verify.py::test_a_colliding_sha_repo_blob_cannot_stand_in_for_a_missing_pin",
+            "tests/test_verify.py::test_a_colliding_sha_repo_blob_cannot_satisfy_a_mismatched_pin",
+            "tests/test_verify.py::test_an_unpinned_cross_repo_artifact_is_refused",
+            "tests/test_verify.py::test_split_roots_verify_a_cross_repo_manifest_end_to_end",
+            "tests/test_verify.py::test_without_the_split_the_same_manifest_cannot_verify"
+          ],
+          "negative_control": "round2-mutants.json records mutant M1_evidence_from_sha_root (top = _evidence_toplevel() -> _toplevel()) as KILLED, 12 failures.",
+          "bot_reconcile": "thread isResolved=true, isOutdated=false; Greptile's re-review of e4cbf222 did not re-raise it.",
+          "verified_by_this_integrator": "Code shape, regression-test presence and a green suite at e4cbf222 — NOT an independent re-derivation that the fix is semantically complete. That grading is the reviewer's."
+        },
+        {
+          "comment_id": 4056474416,
+          "severity": "P1",
+          "title": "Symbol check uses wrong repository (git grep in the process cwd)",
+          "path": "runtime/scripts/verify.py",
+          "round1_disposition": "VALID — held, not fixed in round 1",
+          "resolved_by_new_head": true,
+          "fix_commit": "3fca0bb940b3c68a602ffd0ce41ac46711d83c62",
+          "code_evidence": "check_symbol_on_base now calls the root-aware helper `_git([\"grep\", ...])` instead of `_run([\"git\", \"grep\", ...])`, so the --symbol leg runs in the same selected context as the adjacent ancestry and commit checks (verify.py:1754).",
+          "regression_tests": [
+            "tests/test_verify.py::test_the_symbol_leg_runs_in_the_sha_repo_not_the_process_cwd",
+            "tests/test_verify.py::test_a_symbol_only_in_the_evidence_repo_is_not_accepted_as_on_base"
+          ],
+          "negative_control": "Covered by the round-2 mutant sweep recorded in round2-mutants.json (nine mutants, zero survivors).",
+          "bot_reconcile": "thread isResolved=true, isOutdated=false; Greptile's re-review of e4cbf222 did not re-raise it.",
+          "verified_by_this_integrator": "Code shape, regression-test presence and a green suite at e4cbf222 — NOT an independent re-derivation that the fix is semantically complete."
+        }
+      ]
+    },
+    "bot_state_at_reviewed_sha": {
+      "id": 106054881260,
+      "name": "Greptile Review",
+      "head_sha": "50788bf24a1beaa45540859ccde33b2f8b30c901",
+      "html_url": "https://github.com/ravidsrk/orca-fleet/runs/106054881260",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-20T09:16:26Z",
+      "completed_at": "2026-09-20T09:18:00Z",
+      "output": {
+        "title": "Greptile Review",
+        "summary": "Greptile has reviewed the Pull Request.\n\n39 files reviewed, 0 comments added.",
+        "text": null,
+        "annotations_count": 0,
+        "annotations_url": "https://api.github.com/repos/ravidsrk/orca-fleet/check-runs/106054881260/annotations"
+      }
+    },
+    "held_new": [],
+    "ci_hold": {
+      "id": "guard / silenced-checker",
+      "classification": "blocking CI hold; no acceptance-axis severity assigned",
+      "quoted_lines": [
+        {
+          "finding": "guard",
+          "path": "runtime/scripts/verify.py",
+          "line": 209,
+          "quote": "except OSError:  # pragma: no cover — resolve() rarely raises on POSIX",
+          "matches_at_reviewed_sha": true
+        }
+      ],
+      "integration_finding": {
+        "check": "guard",
+        "job": "No quiet bar-lowering (guard-surface + checker hygiene)",
+        "url": "https://github.com/ravidsrk/orca-fleet/actions/runs/35501646875/job/106054340833",
+        "output": "floor-guard: 1 floor violation(s):\n  [silenced-checker] runtime/scripts/verify.py:209 (pragma-no-cover)",
+        "introduced_by": "3fca0bb940b3c68a602ffd0ce41ac46711d83c62",
+        "offending_line": "runtime/scripts/verify.py:209 — `except OSError:  # pragma: no cover — resolve() rarely raises on POSIX` inside _roots_are_split()",
+        "reproduced_locally": "yes — `python3 runtime/scripts/floor_guard.py --base origin/review/2026-09-20-tracker-sweep` reports the same single violation",
+        "remedy_per_checker": "Fix the code, or record a DECISIONS waiver with id `floor-waiver:silenced-checker:runtime/scripts/verify.py` and answer `allow`.",
+        "held": true,
+        "note": "NEW and blocking: the round-1 fix for P1-1 paid for its fail-closed OSError branch with a coverage pragma, which is exactly what floor_guard treats as quiet bar-lowering. Not touched — integrator contract is HOLD."
+      },
+      "current_check": {
+        "id": 106054879300,
+        "name": "guard",
+        "head_sha": "50788bf24a1beaa45540859ccde33b2f8b30c901",
+        "html_url": "https://github.com/ravidsrk/orca-fleet/actions/runs/35501849882/job/106054879300",
+        "status": "completed",
+        "conclusion": "failure"
+      },
+      "remedy": "Resolve the coverage pragma violation through code/coverage or the separately authorized DECISIONS waiver procedure; rerun CI."
+    }
+  },
+  "input_freshness": {
+    "standards_and_tests_remain_bound_to": "e4cbf222bc7cd1001b8bd11960d3ed92c2f6cd5f",
+    "delta_to_current_head": [
+      "docs/reports/u-442/integrate-r2.json"
+    ],
+    "delta_inspected": true,
+    "production_tests_and_policy_blobs_unchanged": true,
+    "whole_trees_equal": false,
+    "note": "Spec explicitly re-pinned and inspected the integration-report addition. This aggregator read that addition and re-read all quoted finding lines at current PR head. Earlier standards/test verdicts retain their original SHA bindings; this report does not treat their different whole trees as freshness-equivalent."
+  },
+  "negative_control": {
+    "class_analogue": "SOURCE-BINDING",
+    "result": "PASS",
+    "head_sha": "50788bf24a1beaa45540859ccde33b2f8b30c901",
+    "method": "git show <reviewed_sha>:<path>; compare each aggregate finding quote to its exact recorded line",
+    "checks": [
+      {
+        "finding": "S2-R1",
+        "path": "tests/test_verify.py",
+        "line": 3460,
+        "quote": "\"artifact\": \"escape-link/nc.txt\"})",
+        "matches_at_reviewed_sha": true
+      },
+      {
+        "finding": "S2-R2",
+        "path": "docs/reports/u-442/manifest.json",
+        "line": 121,
+        "quote": "\"head_sha\": \"1ef8bd797477314f25ece410fe8a6e70c2560bad\",",
+        "matches_at_reviewed_sha": true
+      },
+      {
+        "finding": "S2-R3",
+        "path": "runtime/scripts/verify.py",
+        "line": 135,
+        "quote": "def _git(args, timeout=10):",
+        "matches_at_reviewed_sha": true
+      },
+      {
+        "finding": "S2-R3",
+        "path": "runtime/scripts/verify.py",
+        "line": 104,
+        "quote": "def _run(args, timeout=20, cwd=None):",
+        "matches_at_reviewed_sha": true
+      },
+      {
+        "finding": "S2-R3",
+        "path": "runtime/scripts/verify.py",
+        "line": 1754,
+        "quote": "code, out = _git([\"grep\", \"-l\", \"-e\", symbol, f\"origin/{base}\"])",
+        "matches_at_reviewed_sha": true
+      },
+      {
+        "finding": "R2-T1",
+        "path": "runtime/scripts/verify.py",
+        "line": 202,
+        "quote": "if _ROOTS[\"git\"] is None and _ROOTS[\"evidence\"] is None:",
+        "matches_at_reviewed_sha": true
+      },
+      {
+        "finding": "R2-T1",
+        "path": "runtime/scripts/verify.py",
+        "line": 208,
+        "quote": "return Path(sha_top).resolve() != Path(ev_top).resolve()",
+        "matches_at_reviewed_sha": true
+      },
+      {
+        "finding": "R2-T2",
+        "path": "tests/test_verify.py",
+        "line": 3460,
+        "quote": "\"artifact\": \"escape-link/nc.txt\"})",
+        "matches_at_reviewed_sha": true
+      },
+      {
+        "finding": "R2-T3",
+        "path": "tests/test_verify.py",
+        "line": 3387,
+        "quote": "self.git_b(\"update-ref\", \"refs/remotes/origin/main\", self.head_sha)",
+        "matches_at_reviewed_sha": true
+      },
+      {
+        "finding": "guard",
+        "path": "runtime/scripts/verify.py",
+        "line": 209,
+        "quote": "except OSError:  # pragma: no cover — resolve() rarely raises on POSIX",
+        "matches_at_reviewed_sha": true
+      }
+    ]
+  },
+  "review": {
+    "id": 5260266951,
+    "state": "COMMENTED",
+    "commit_id": "50788bf24a1beaa45540859ccde33b2f8b30c901",
+    "url": "https://github.com/ravidsrk/orca-fleet/pull/485#pullrequestreview-5260266951",
+    "submitted_at": "2026-09-20T09:34:37Z",
+    "body_sha256": "e9c18c560acf8929292462e982b487a04487fd8c84245fd8d4f0341fdf550649",
+    "body_artifact": "docs/reports/u-442/verdict-review-r2.md"
+  },
+  "review_egress_receipt": "8247777a4eec229a02e55f9a41d8f2edfe45357d9f15ed93e19f4076ff841226",
+  "evidence_commit_note": "A report-only commit on u-442 follows publication. It preserves production and test blobs but changes the full tree. reviewed_sha and reviewed_wtree remain the exact pre-report PR-head binding; no merge approval or freshness equivalence is claimed for the later report commit.",
+  "validation": {
+    "scratch": "/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-verdict-r2-checks-y0ab8yf0",
+    "head_sha": "50788bf24a1beaa45540859ccde33b2f8b30c901",
+    "checks": [
+      {
+        "name": "suite",
+        "command": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "exit_code": 0,
+        "duration_s": 268.347,
+        "log": "/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-verdict-r2-checks-y0ab8yf0/suite.log",
+        "output_sha256": "80acf215c47b0600a945b664e4c836be40a5da85e4af24021f6c38aa7aa0be23",
+        "output": "..............................................................................bind-check: base ref 'does-not-exist-anywhere' does not resolve to a merge-base with HEAD\n...........................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................FAIL: gamma-bad (self-run) — unresolvable proof_evidence: docs/runs/does-not-exist.md\nproof-status: 1 mission(s) above doctrine-only missing evidence\n...FAIL: gamma-bad (self-run) — unresolvable proof_evidence: docs/runs/does-not-exist.md\nproof-status: 1 mission(s) above doctrine-only missing evidence\n.FAIL: delta-abs (self-run) — unresolvable proof_evidence: /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmpcwogok8b/external-report.md\nFAIL: epsilon-trav (external-run) — unresolvable proof_evidence: ../tmpcwogok8b/external-report.md\nFAIL: gamma-bad (self-run) — unresolvable proof_evidence: docs/runs/does-not-exist.md\nproof-status: 3 mission(s) above doctrine-only missing evidence\n.................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................FAIL: manifest must be a JSON object, got list\nverify: evidence manifest malformed/unreadable — unit is NOT done\n...............................................................................................................................FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)\nFAIL: head_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)\nFAIL: base_sha 'HEAD' is not a real commit\nFAIL: head_sha 'HEAD' is not a real commit\nFAIL: commands ledger: cannot resolve the tree of head_sha (not a real commit here, or not inside a git repo) — the recorded run cannot be bound to content; fail-closed\nFAIL: intent packet incomplete — non-empty ['goal', 'ruled_out', 'why'] required (mutation unit)\nFAIL: reviewer_mode must be one of ['cross-vendor', 'instructed-isolation', 'same-vendor-fresh'], got None\nFAIL: negative_control.tool must be one of ['cargo-mutants', 'cosmic-ray', 'go-mutesting', 'hand', 'mutmut', 'pitest', 'revert', 'stryker'], got None\nFAIL: negative_control.result must record the mutant KILLED / the proof going RED\nFAIL: negative_control.artifact (an evidence path) is required\nFAIL: mutation unit: no pr.number to look up an independent review — unreviewed\nverify: 11 invariant(s) failed — unit is NOT done\n.................................................................................................\n----------------------------------------------------------------------\nRan 1726 tests in 268.123s\n\nOK\nbundle: 21 self-contained mission(s) in a temp dir; no reference leaves its directory\nbound clean-sweep (self-run) — docs/runs/2026-09-14-clean-sweep-self-run.md\nbound prove-it (self-run) — docs/runs/2026-09-16-prove-it-self-run.md\nwrote assets/badges/missions.json: 21\nwrote assets/badges/tests.json: 1 in source\nwrote assets/badges/missions.json: 21\nwrote assets/badges/tests.json: 1 in source\nwrote assets/badges/missions.json: 21\nwrote assets/badges/tests.json: 0 in source\nwrote assets/badges/missions.json: 21\nwrote assets/badges/tests.json: 1 in source\nwrote assets/badges/missions.json: 21\nwrote assets/badges/tests.json: 2 in source\nwrote assets/badges/missions.json: 21\nwrote assets/badges/tests.json: 0 in source\n"
+      },
+      {
+        "name": "validator",
+        "command": [
+          "python3",
+          "scripts/validate.py"
+        ],
+        "exit_code": 0,
+        "duration_s": 0.987,
+        "log": "/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-verdict-r2-checks-y0ab8yf0/validator.log",
+        "output_sha256": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6",
+        "output": "ok   absorb-it\nok   access-it\nok   attest-it\nok   clean-sweep\nok   deflake-it\nok   document-it\nok   field-test-it\nok   floor-it\nok   harden-it\nok   map-it\nok   migrate-it\nok   modernize-it\nok   oncall-it\nok   oss-contribute\nok   pin-it\nok   prove-it\nok   reshape-it\nok   review-it\nok   root-cause\nok   ship-it\nok   speed-it\n\nAll 21 missions valid; three-layer separation holds; evals valid.\n"
+      }
+    ],
+    "clean_clone": true,
+    "worktree_status": "",
+    "status": "passed",
+    "test_count": 1726
+  },
+  "claim": "Completed aggregation and published a SHA-bound round-2 NO-GO; implementation fixes and subsequent review remain for the coordinator.",
+  "artifacts": [
+    {
+      "path": "docs/reports/u-442/review-spec-r2.txt",
+      "sha256": "4795b282bc5bb42149c3cd4f2250572551ea571ce146915695a411f796a47959"
+    },
+    {
+      "path": "docs/reports/u-442/review-standards-r2.txt",
+      "sha256": "2164e7d7dd8427a98c8e543b00a83d7337d1157ad8a13f8375f09596dacf6fa6"
+    },
+    {
+      "path": "docs/reports/u-442/review-tests-r2.txt",
+      "sha256": "0ff17ac21b2a191c5825fac78724de750f52f8faf0585127d81a7f6777a91c2c"
+    },
+    {
+      "path": "docs/reports/u-442/integrate-r2.json",
+      "sha256": "1f9a8d4d86bbc068691eb00dc0fc3a7ec5605ca80b48ac074e7b603dd0f4ea4b"
+    },
+    {
+      "path": "docs/reports/u-442/verdict-review-r2.md",
+      "sha256": "e9c18c560acf8929292462e982b487a04487fd8c84245fd8d4f0341fdf550649"
+    }
+  ]
+}
