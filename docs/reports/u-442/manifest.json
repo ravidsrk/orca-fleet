@@ -5,6 +5,10 @@
       "sha256": "51e21eac1b04ae171d4bdecd1192dca9ba7fb37c3257282a3c9a559adfbc78fd"
     },
     {
+      "path": "docs/reports/u-442/full-suite-r3.txt",
+      "sha256": "7019896c561b536509c14fa5f163a206302df82446eebf243bc961ba988dc6a1"
+    },
+    {
       "path": "docs/reports/u-442/full-suite.txt",
       "sha256": "dd4f8a09b829e9bbd6d0943259650d60cf2a6776c85b0825490ebc4e198abb6c"
     },
@@ -17,8 +21,16 @@
       "sha256": "93a43012a1c14a1ac0f35c9157b71504cfae83739d06c157ce8a6d8311bfd3ea"
     },
     {
+      "path": "docs/reports/u-442/nc-green-r3.txt",
+      "sha256": "3c3e75fe592ddc5ba64b1522c213d0187850b59dabc3dd93e02ff831d6088694"
+    },
+    {
       "path": "docs/reports/u-442/nc-green.txt",
       "sha256": "b835083289c67526cd5cf54bc6778a6aa62dc13f19fe8215b7d9f1da3601c41a"
+    },
+    {
+      "path": "docs/reports/u-442/nc-red-r3.txt",
+      "sha256": "51265e9aec87bb3746ffb6937bc786f64bdd316b5b3f5d8e451c0c9b22bd397a"
     },
     {
       "path": "docs/reports/u-442/nc-red.txt",
@@ -77,12 +89,24 @@
       "sha256": "e3d7733c38404836b4659904231a1bfacfebc553b6460c6d940360bc37e7567c"
     },
     {
+      "path": "docs/reports/u-442/tests-r3.txt",
+      "sha256": "3f0c5084d4820980cc9b6863db50a2faf8afc88ca5fec49f9894ff53f43a9f0e"
+    },
+    {
       "path": "docs/reports/u-442/tests.txt",
       "sha256": "2b347cb2d3a1fb909c01e2e5a1f85ae6a5a2acd44937c648d64cf025c2748841"
     },
     {
+      "path": "docs/reports/u-442/unit-scope-r3.txt",
+      "sha256": "dbe3032a4136aad1cf4752fa942eb44bb2d361deaaec49d7f5ac3e2df67be905"
+    },
+    {
       "path": "docs/reports/u-442/unit-scope.txt",
       "sha256": "6c816dc7db8446633481c013f9fc4865df6c693b9aa8b8fbfd0a87f344aa605c"
+    },
+    {
+      "path": "docs/reports/u-442/validate-r3.txt",
+      "sha256": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6"
     },
     {
       "path": "docs/reports/u-442/validate.txt",
@@ -112,53 +136,53 @@
       "docs/reports/u-442/round2-replay-r3.json",
       "docs/reports/u-442/round3-mutants.json"
     ],
-    "note": "Every receipt in commands[] was taken in its OWN fresh worktree checked out at head_sha, with the manifest written outside that worktree, so each record's wtree is exactly `git rev-parse cd07307e^{tree}` = eff649648eca87b0c9fb04fdb84f9d10601c4c19 \u2014 the content the command was actually given, not that content plus the wrapper's own writes. The artifacts[] inventory is pinned over the bytes as committed in the manifest's own commit."
+    "note": "Every receipt in commands[] was taken in its OWN fresh worktree checked out at head_sha, with the manifest written OUTSIDE that worktree, so each record's wtree is exactly `git rev-parse 47b3f1f2^{tree}` = 02ed5304adfc0120c69eafc299f687d81defb64e — the content the command was actually given, not that content plus the wrapper's own writes. R3-STD-1: the refreshed receipts now carry ROUND-SPECIFIC paths (tests-r3, unit-scope-r3, validate-r3, full-suite-r3, nc-green-r3, nc-red-r3) that are absent at head_sha, so _read_artifact's tracked-at-head_sha shortcut cannot select an older committed transcript at the same name and the artifacts[] pin over these bytes is what governs. The round-1/round-2 logs at the original paths are retained and still inventoried as history; nothing in commands[] or negative_control points at them."
   },
-  "claim": "U-442 round 3: the cross-repo root split, with round 2's three SPEC and three TESTS Required findings answered. Suite 1733 green and validate exit 0 at head_sha; 15 mutants (round 2's nine re-run at the moved test surface, plus six round-3 mutants covering the root classifier, the pinned symlink escape, the base-vs-HEAD symbol ref, the restored grep clock and the fail-closed branch) all KILLED by assertion, zero survivors.",
+  "claim": "U-442 round-3 targeted repair (gate-batch G2-b): the round-3 stickers S3-R1, R3-STD-1 and R3-T1/T2/T3 closed with NO production change. Proof-command agreement restored (one string in both negative_control.command and its fresh exit-0 receipt); the five refreshed transcript references re-pointed at round-specific paths that no older commit can answer for; three new regressions kill the two surviving coverage mutants (equal-root compatibility, artifact revision) and make the H-7 fail-closed probe assert it FIRED. Suite 1736 green and validate exit 0 at head_sha; the 15 previously published mutants are unaffected by test-only additions.",
   "commands": [
     {
-      "artifact": "docs/reports/u-442/tests.txt",
-      "cmd": "python3 -m unittest discover -s tests -p test_verify.py",
-      "cmd_sha256": "2a2d5b8333614f95d3135b1ceb7c0abe3680ba1d58294ac8429d8e3ee85ad852",
-      "commit": "cd07307e93a6c0bd7a30299aa89411a18417ac72",
-      "duration_s": 39.686,
-      "exit": 0,
-      "label": "tests",
-      "ts": "2026-09-20T10:04:14Z",
-      "wtree": "eff649648eca87b0c9fb04fdb84f9d10601c4c19"
-    },
-    {
-      "artifact": "docs/reports/u-442/unit-scope.txt",
-      "cmd": "python3 -m unittest tests.test_verify.CrossRepoRoots -v",
-      "cmd_sha256": "e011089073755ff05b1f771a174c66e37ba111a1c396032974c4e1b3499979e0",
-      "commit": "cd07307e93a6c0bd7a30299aa89411a18417ac72",
-      "duration_s": 5.361,
-      "exit": 0,
-      "label": "unit-scope-tests",
-      "ts": "2026-09-20T10:03:40Z",
-      "wtree": "eff649648eca87b0c9fb04fdb84f9d10601c4c19"
-    },
-    {
-      "artifact": "docs/reports/u-442/validate.txt",
+      "artifact": "docs/reports/u-442/validate-r3.txt",
       "cmd": "python3 scripts/validate.py",
       "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
-      "commit": "cd07307e93a6c0bd7a30299aa89411a18417ac72",
-      "duration_s": 1.038,
+      "commit": "47b3f1f2f417c43447dccd9c85e7d7d721ec005b",
+      "duration_s": 1.083,
       "exit": 0,
       "label": "validate",
-      "ts": "2026-09-20T10:03:36Z",
-      "wtree": "eff649648eca87b0c9fb04fdb84f9d10601c4c19"
+      "ts": "2026-09-20T12:32:37Z",
+      "wtree": "02ed5304adfc0120c69eafc299f687d81defb64e"
     },
     {
-      "artifact": "docs/reports/u-442/full-suite.txt",
+      "artifact": "docs/reports/u-442/unit-scope-r3.txt",
+      "cmd": "python3 -m unittest tests.test_verify.CrossRepoRoots",
+      "cmd_sha256": "9387b7bda28e10f40c66e3d0f731134969d29fa897cc80bc049bdc5624c6794e",
+      "commit": "47b3f1f2f417c43447dccd9c85e7d7d721ec005b",
+      "duration_s": 7.198,
+      "exit": 0,
+      "label": "unit-scope-tests",
+      "ts": "2026-09-20T12:32:45Z",
+      "wtree": "02ed5304adfc0120c69eafc299f687d81defb64e"
+    },
+    {
+      "artifact": "docs/reports/u-442/tests-r3.txt",
+      "cmd": "python3 -m unittest discover -s tests -p test_verify.py",
+      "cmd_sha256": "2a2d5b8333614f95d3135b1ceb7c0abe3680ba1d58294ac8429d8e3ee85ad852",
+      "commit": "47b3f1f2f417c43447dccd9c85e7d7d721ec005b",
+      "duration_s": 47.085,
+      "exit": 0,
+      "label": "tests",
+      "ts": "2026-09-20T12:33:32Z",
+      "wtree": "02ed5304adfc0120c69eafc299f687d81defb64e"
+    },
+    {
+      "artifact": "docs/reports/u-442/full-suite-r3.txt",
       "cmd": "python3 -m unittest discover -s tests",
       "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
-      "commit": "cd07307e93a6c0bd7a30299aa89411a18417ac72",
-      "duration_s": 262.913,
+      "commit": "47b3f1f2f417c43447dccd9c85e7d7d721ec005b",
+      "duration_s": 303.586,
       "exit": 0,
       "label": "full-suite",
-      "ts": "2026-09-20T10:07:58Z",
-      "wtree": "eff649648eca87b0c9fb04fdb84f9d10601c4c19"
+      "ts": "2026-09-20T12:37:33Z",
+      "wtree": "02ed5304adfc0120c69eafc299f687d81defb64e"
     }
   ],
   "contract": {
@@ -193,21 +217,21 @@
       "text": "NEGATIVE CONTROL executed: verify.py change reverted (test kept) -> fixture test RED - recorded via evidence-run.py."
     }
   ],
-  "head_sha": "cd07307e93a6c0bd7a30299aa89411a18417ac72",
+  "head_sha": "47b3f1f2f417c43447dccd9c85e7d7d721ec005b",
   "intent": {
-    "goal": "Let one verify.py invocation reach two authorities \u2014 evidence paths bounded under one root, SHA/git legs run against another \u2014 and close round 2's Required findings without widening that change: the legacy no-flag path keeps its 20s symbol-grep budget (S2-R3), the root classifier and the canonical bound are pinned by tests that a mutant cannot walk past (R2-T1/T2/T3), and the fail-closed branch is covered rather than waived (H-7).",
-    "ruled_out": "A named _LEGACY_GREP_TIMEOUT constant for the restored budget: verify.py's interface WIDTH is a ratchet with two slots left before the pre-deepening baseline, and a timeout is not an interface. The value is passed at the call site and pinned by a test that reads it off the subprocess call and compares it to _run's own default, so it cannot drift back to _git's 10s unnoticed. Also ruled out: waiving the pragma at verify.py:209 \u2014 a branch nobody executes is a branch nobody knows the sign of, and the floor guard is right to say so.",
+    "goal": "Let one verify.py invocation reach two authorities — evidence paths bounded under one root, SHA/git legs run against another — and close round 2's Required findings without widening that change: the legacy no-flag path keeps its 20s symbol-grep budget (S2-R3), the root classifier and the canonical bound are pinned by tests that a mutant cannot walk past (R2-T1/T2/T3), and the fail-closed branch is covered rather than waived (H-7).",
+    "ruled_out": "A named _LEGACY_GREP_TIMEOUT constant for the restored budget: verify.py's interface WIDTH is a ratchet with two slots left before the pre-deepening baseline, and a timeout is not an interface. The value is passed at the call site and pinned by a test that reads it off the subprocess call and compares it to _run's own default, so it cannot drift back to _git's 10s unnoticed. Also ruled out: waiving the pragma at verify.py:209 — a branch nobody executes is a branch nobody knows the sign of, and the floor guard is right to say so. Also ruled out in this repair: changing verify.py to make the two surviving mutants die. X1 (equal roots forced split) and X3 (artifact bytes read at local HEAD) are ADEQUACY gaps — untouched production already behaves correctly in both, as the new tests assert against it — so a production edit here would be a fourth round, not the authorized repair.",
     "why": "Round 2 was NO-GO on evidence discipline, one real compatibility regression and four coverage gaps; a round-3 NO-GO parks the unit. The compatibility regression is the one that mattered: it fired with both new flags ABSENT, which is the invocation the unit promised to leave byte-identical."
   },
   "lighting": "lit",
   "negative_control": {
-    "artifact": "docs/reports/u-442/nc-red.txt",
+    "artifact": "docs/reports/u-442/nc-red-r3.txt",
     "command": "python3 -m unittest tests.test_verify.CrossRepoRoots",
-    "did": "checked out head_sha cd07307e in a throwaway worktree and ran the unit's class GREEN (27 tests, exit 0, nc-green.txt); then restored runtime/scripts/verify.py from base_sha a58bf71a (git checkout a58bf71a -- runtime/scripts/verify.py), left the round-3 tests in place, and re-ran: exit 1, 24 assertion failures and 1 error (nc-red.txt). The single error is honest and expected of a BASE revert rather than a behavioural mutant: at base there is no _ROOTS at all, so the round-3 fail-closed-classifier test cannot even reach an assertion. The behavioural controls that keep the flags present are the 15 mutants below, all assertion kills.",
+    "did": "S3-R1: the proof command is now ONE string. `python3 -m unittest tests.test_verify.CrossRepoRoots` is what negative_control.command nominates AND what the fresh exit-0 `unit-scope-tests` receipt records, so check_commands and check_replay_request admit the same invocation; the round-3 package nominated one spelling and receipted another (with -v), and no coordinator command could satisfy both gates. Checked out head_sha 47b3f1f2 in a throwaway worktree and ran that exact command GREEN (30 tests, exit 0, nc-green-r3.txt); then restored runtime/scripts/verify.py from base_sha a58bf71a (git checkout a58bf71a -- runtime/scripts/verify.py), left the round-3 tests in place, and re-ran it: exit 1, 26 assertion failures and 1 error (nc-red-r3.txt). The single error is honest and expected of a BASE revert rather than a behavioural mutant: at base there is no _ROOTS at all, so the fail-closed-classifier test cannot even reach an assertion. The behavioural controls that keep the flags present are the mutants below, all assertion kills.",
     "paths": [
       "runtime/scripts/verify.py"
     ],
-    "result": "KILLED \u2014 the proof went RED",
+    "result": "KILLED — the proof went RED",
     "tool": "revert"
   },
   "reviewer_mode": "cross-vendor",
