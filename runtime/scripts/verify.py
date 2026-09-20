@@ -1847,76 +1847,83 @@ def _canonical_dispatch(record):
     return json.dumps(subset, sort_keys=True, separators=(",", ":")).encode("utf-8")
 
 
-# The verifier TRANSCRIPT (#281/#386): this script's verdict as a signable object, so a tier can
-# require a verdict the worker could not have typed. Mirrors dispatch-sign.py.TRANSCRIPT_FIELDS.
-_TRANSCRIPT_FIELDS = ("unit", "manifest", "manifest_sha256", "args", "fatal", "notes", "exit",
-                      "toolchain", "timestamp")
-_TRANSCRIPT_ARGS = ("contract_source", "contract_digest", "repo", "base", "symbol", "execute_nc",
-                    "unit_class", "no_gh", "lighting", "dispatch_record", "dispatch_pubkey",
-                    "nc_command", "git_dir", "evidence_root")
+class _Transcript:
+    """The verifier TRANSCRIPT (#281/#386): this script's verdict as a signable object, so a tier
+    can require a verdict the worker could not have typed. One namespace — the RV-D2 width pin
+    (tests/test_reshape_width_verify.py) counts top-level names, and four helpers over one record
+    are one thing. FIELDS mirrors dispatch-sign.py.TRANSCRIPT_FIELDS."""
+
+    FIELDS = ("unit", "manifest", "manifest_sha256", "args", "fatal", "notes", "exit",
+              "toolchain", "timestamp")
+    ARGS = ("contract_source", "contract_digest", "repo", "base", "symbol", "execute_nc",
+            "unit_class", "no_gh", "lighting", "dispatch_record", "dispatch_pubkey",
+            "nc_command", "git_dir", "evidence_root")
+
+    @classmethod
+    def canonical(cls, record):
+        """Must match dispatch-sign.py.canonical_transcript byte-for-byte (a cross-tool test guards this)."""
+        subset = {k: record[k] for k in cls.FIELDS if record.get(k) is not None}
+        return json.dumps(subset, sort_keys=True, separators=(",", ":")).encode("utf-8")
+
+    @classmethod
+    def build(cls, args, exit_code, fatal, notes):
+        """The verdict object: what was judged (manifest path AND bytes, the unit it names), with
+        what (the full argument tuple — unset flags included, so an omitted authority is visibly
+        omitted), what was found (the printed lists, verbatim), the exit code, the toolchain, when."""
+        try:
+            raw = Path(args.manifest).read_bytes()
+            manifest_sha = hashlib.sha256(raw).hexdigest()
+            unit = json.loads(raw.decode("utf-8")).get("unit")
+        except (OSError, ValueError, AttributeError):
+            manifest_sha, unit = None, None
+        _, git_version, _ = _run(["git", "--version"])
+        return {
+            "unit": unit,
+            "manifest": args.manifest,
+            "manifest_sha256": manifest_sha,
+            "args": {k: getattr(args, k) for k in cls.ARGS},
+            "fatal": list(fatal),
+            "notes": list(notes),
+            "exit": exit_code,
+            "toolchain": {
+                "python": sys.version.split()[0],
+                "git": git_version.strip() or None,
+                "verify_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+            },
+            "timestamp": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        }
+
+    @staticmethod
+    def seed(key_ref):
+        """(seed bytes, None) from a gen-key seed file, or (None, reason). Read up front so a bad
+        key is a USAGE error (exit 1) before any verdict, not a transcript silently left unsigned."""
+        try:
+            seed = bytes.fromhex(Path(key_ref).read_text(encoding="utf-8").strip())
+        except (OSError, ValueError) as exc:
+            return None, f"--transcript-key: cannot read a hex seed from {key_ref}: {exc}"
+        if len(seed) != 32:
+            return None, f"--transcript-key: {key_ref} is not a 32-byte hex seed"
+        return seed, None
+
+    @classmethod
+    def write(cls, out_ref, record, seed):
+        """Write the verdict object, or — with a seed — the {record, sig_b64} envelope
+        dispatch-sign.py emits, over the same canonical bytes. Failure to write is reported, never
+        fatal to the verdict: the exit code is the verdict, the transcript is its signed copy."""
+        payload = record
+        if seed is not None:
+            ed = _load_ed25519()
+            sig = ed.signature(cls.canonical(record), seed, ed.publickey(seed))
+            payload = {"record": record, "sig_b64": base64.b64encode(sig).decode("ascii")}
+        try:
+            out = Path(out_ref)
+            out.parent.mkdir(parents=True, exist_ok=True)
+            out.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        except OSError as exc:
+            print(f"verify: could not write transcript {out_ref}: {exc}", file=sys.stderr)
 
 
-def _canonical_transcript(record):
-    """Must match dispatch-sign.py.canonical_transcript byte-for-byte (a cross-tool test guards this)."""
-    subset = {k: record[k] for k in _TRANSCRIPT_FIELDS if record.get(k) is not None}
-    return json.dumps(subset, sort_keys=True, separators=(",", ":")).encode("utf-8")
-
-
-def _transcript(args, exit_code, fatal, notes):
-    """The verdict object: what was judged (manifest path AND bytes, the unit it names), with what
-    (the full argument tuple — unset flags included, so an omitted authority is visibly omitted),
-    what was found (the printed lists, verbatim), the exit code, the toolchain, and when."""
-    try:
-        raw = Path(args.manifest).read_bytes()
-        manifest_sha = hashlib.sha256(raw).hexdigest()
-        unit = json.loads(raw.decode("utf-8")).get("unit")
-    except (OSError, ValueError, AttributeError):
-        manifest_sha, unit = None, None
-    _, git_version, _ = _run(["git", "--version"])
-    return {
-        "unit": unit,
-        "manifest": args.manifest,
-        "manifest_sha256": manifest_sha,
-        "args": {k: getattr(args, k) for k in _TRANSCRIPT_ARGS},
-        "fatal": list(fatal),
-        "notes": list(notes),
-        "exit": exit_code,
-        "toolchain": {
-            "python": sys.version.split()[0],
-            "git": git_version.strip() or None,
-            "verify_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
-        },
-        "timestamp": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-    }
-
-
-def _transcript_seed(key_ref):
-    """(seed bytes, None) from a gen-key seed file, or (None, reason). Read up front so a bad key
-    is a USAGE error (exit 1) before any verdict, not a transcript silently left unsigned."""
-    try:
-        seed = bytes.fromhex(Path(key_ref).read_text(encoding="utf-8").strip())
-    except (OSError, ValueError) as exc:
-        return None, f"--transcript-key: cannot read a hex seed from {key_ref}: {exc}"
-    if len(seed) != 32:
-        return None, f"--transcript-key: {key_ref} is not a 32-byte hex seed"
-    return seed, None
-
-
-def _write_transcript(out_ref, record, seed):
-    """Write the verdict object, or — with a seed — the {record, sig_b64} envelope dispatch-sign.py
-    emits, over the same canonical bytes. Failure to write is reported, never fatal to the verdict:
-    the exit code is the verdict, the transcript is its signed copy."""
-    payload = record
-    if seed is not None:
-        ed = _load_ed25519()
-        sig = ed.signature(_canonical_transcript(record), seed, ed.publickey(seed))
-        payload = {"record": record, "sig_b64": base64.b64encode(sig).decode("ascii")}
-    try:
-        out = Path(out_ref)
-        out.parent.mkdir(parents=True, exist_ok=True)
-        out.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    except OSError as exc:
-        print(f"verify: could not write transcript {out_ref}: {exc}", file=sys.stderr)
+_canonical_transcript = _Transcript.canonical  # the parity test's name, beside _canonical_dispatch
 
 
 def _manifest_nc_values(m):
@@ -2238,7 +2245,7 @@ def main(argv=None):
         if args.transcript_out is None:
             print("usage: --transcript-key requires --transcript-out (nothing to sign)", file=sys.stderr)
             return 1
-        seed, err = _transcript_seed(args.transcript_key)
+        seed, err = _Transcript.seed(args.transcript_key)
         if err:
             print(f"usage: {err}", file=sys.stderr)
             return 1
@@ -2273,7 +2280,7 @@ def main(argv=None):
             print("verify: OK — all required checks passed")
             code = 0
     if args.transcript_out is not None:
-        _write_transcript(args.transcript_out, _transcript(args, code, fatal, notes), seed)
+        _Transcript.write(args.transcript_out, _Transcript.build(args, code, fatal, notes), seed)
     return code
 
 
