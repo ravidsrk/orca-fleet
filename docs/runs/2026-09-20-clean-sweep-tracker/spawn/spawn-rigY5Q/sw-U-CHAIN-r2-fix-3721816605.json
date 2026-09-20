@@ -1,0 +1,19 @@
+{
+  "id": "55bdab24-8e57-403f-8d81-481fccda8f11",
+  "ok": true,
+  "result": {
+    "terminal": {
+      "handle": "term_956f95b3-81a7-4bee-b309-f4878527d0fd",
+      "tabId": "a441b390-ee6e-46c9-9a5c-e9f0222e95c9",
+      "worktreeId": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/u-chain",
+      "title": "U-CHAIN r2 fix",
+      "executionHostId": "local",
+      "incarnationId": "c257f6b4-039e-44a2-b485-3837d0df1781",
+      "hostPlatform": "darwin",
+      "surface": "visible"
+    }
+  },
+  "_meta": {
+    "runtimeId": "0e3d77f3-b0e7-4aa1-a21d-a960aa212104"
+  }
+}

@@ -217,5 +217,15 @@ BOOTSTRAP: preflight --base review/2026-09-20-tracker-sweep --fork-point e8ddbd9
   term_956f95b3-81a7-4bee-b309-f4878527d0fd (dispatch ctx_847e6680c4b9), fresh terminal in u-chain
   worktree per dispatch-lifecycle.
 
+- 10:1x U-442 INTEGRATED (worker_done msg_365f21ba5b1b): merged BASE 0f8cb8a2 conflict-free →
+  head 5a57c8d2 GREEN (1714 tests OK 277s, validate 21/21, gitleaks clean); PR #485
+  base=review/2026-09-20-tracker-sweep (asserted + coordinator-verified, head a5f84978 after
+  the integrate.json push); Greptile at 163s: 2 P1s on verify.py, both adjudicated VALID and
+  HELD (P1-1: _read_artifact's tracked-at-head_sha branch reads through the SHA root — the
+  split's own blind spot; P1-2 in integrate.json). PR_OPEN=t BOT=t. REVIEW WAVE dispatched
+  (codex): SPEC term_f528a13f/task_18e1477e843e · STANDARDS term_681d04c2/task_fa64821477cd ·
+  TESTS term_239b915c/task_83d2f645badb; verdict task_9af4e0003988 queued on the axes.
+  Review units in flight: 2 (U-CHAIN r2 is a build round, not a review) — within cap.
+
 BRANCHES: local worktree checkouts carry the `ravidsrk/` prefix mapping to the unit tips
 (ravidsrk/u-chain, ravidsrk/u-442). Not drift — do not "fix".
