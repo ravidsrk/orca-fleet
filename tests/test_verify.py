@@ -3631,19 +3631,90 @@ class CrossRepoRoots(RepoCase):
         self.assertEqual(greps, [legacy], seen)
         self.assertNotEqual(legacy, rerouted, "the two defaults coincide — the pin proves nothing")
 
+    def test_explicitly_equal_roots_keep_the_tracked_artifact_shortcut(self):
+        """R3-T1: the classifier's POSITIVE case, which nothing pinned.
+
+        Every other case here distinguishes roots that differ — two repos, a nested subroot, one
+        flag, no flags. None of them fails when the comparison is deleted outright: a classifier
+        that answers `True` unconditionally still calls every one of those a split, so the whole
+        suite stays green while a valid same-root manifest is refused. The identity the shortcut
+        rests on is that BOTH flags may name the SAME root, and then the evidence is exactly the
+        blob git tracks at head_sha — no artifacts[] pin required, as before the split existed.
+        """
+        self.write("app.py", "def f():\n    return 1\n")
+        self.base_sha = self.commit("base")
+        self.write("app.py", "def f():\n    return 2\n")
+        self.head_sha = self.commit("head")
+        self.head_tree = self.git("rev-parse", "HEAD^{tree}")
+        rc, out = self._run_main(self._manifest(artifacts=[]),
+                                 "--git-dir", str(self.repo),
+                                 "--evidence-root", str(self.repo))
+        self.assertEqual(rc, 0, out)
+        self.assertIn("verify: OK", out)
+
+    def test_an_aliased_spelling_of_one_root_is_not_a_split(self):
+        """R3-T1, the canonicalization half: `.resolve()` is in that comparison because a root can
+        be SPELLED two ways. A symlink to the repo is the same repository, so the shortcut is
+        still available — a classifier that compares the raw strings, or skips the comparison,
+        turns one root wearing two names into a refusal for unpinned evidence."""
+        self.write("app.py", "def f():\n    return 1\n")
+        self.base_sha = self.commit("base")
+        self.write("app.py", "def f():\n    return 2\n")
+        self.head_sha = self.commit("head")
+        self.head_tree = self.git("rev-parse", "HEAD^{tree}")
+        alias = Path(self._td_b.name) / "alias-to-a"
+        alias.symlink_to(self.repo, target_is_directory=True)
+        rc, out = self._run_main(self._manifest(artifacts=[]),
+                                 "--git-dir", str(alias),
+                                 "--evidence-root", str(self.repo))
+        self.assertEqual(rc, 0, out)
+        self.assertIn("verify: OK", out)
+
+    def test_a_tracked_artifact_is_read_at_head_sha_not_at_local_HEAD(self):
+        """R3-T2: `head_sha` in the shortcut is the MANIFEST's revision, not wherever the checkout
+        happens to be standing. The existence probe asks `cat-file -e <head_sha>:<path>`, and the
+        read that follows has to ask the same commit — a `show HEAD:<path>` reads whatever the
+        working checkout advanced to, and no test here noticed.
+
+        The shape that makes it a verdict: the manifest's revision records a SURVIVED control, a
+        LATER local commit rewrites that same artifact to say KILLED. The manifest's own bytes
+        refuse; the later ones approve. Evidence is immutable or it is not evidence — an auditor
+        who can move HEAD can grant themselves the kill the run never produced.
+        """
+        self.write("app.py", "def f():\n    return 1\n")
+        self.artifact("mutant m7 SURVIVED and was NOT killed\n")
+        self.base_sha = self.commit("base")
+        self.write("app.py", "def f():\n    return 2\n")
+        self.head_sha = self.commit("manifest head")
+        self.head_tree = self.git("rev-parse", "HEAD^{tree}")
+        self.artifact("mutant m7 was KILLED — proof went RED at a LATER local commit\n")
+        later_sha = self.commit("later local head")
+        self.assertNotEqual(self.head_sha, later_sha)
+        rc, out = self._run_main(self._manifest(artifacts=[]))
+        self.assertEqual(rc, 2, out)
+        self.assertIn("reports the pinned mutant SURVIVED / was not killed", out)
+
     def test_an_unresolvable_root_fails_closed_to_split(self):
         """The classifier's own docstring: identity must be PROVEN. When the filesystem refuses to
         canonicalize a root there is no proof either way, and the safe answer is the one that
         keeps the shortcut shut. Covered rather than waived — a branch nobody executes is a
-        branch nobody knows the sign of."""
+        branch nobody knows the sign of.
+
+        R3-T3: the fixture names two DIFFERENT roots, so True is also the ordinary comparison's
+        answer — the verdict alone cannot tell a fired probe from a bypassed one. A behaviour-
+        neutral refactor that binds the canonicalizer at definition time (`def _roots_are_split(
+        resolve=Path.resolve)`) leaves this patch intercepting nothing, and the OSError arm can
+        then be inverted to `return False` with this test still green. So the probe asserts it
+        FIRED, with the literal count: the first canonicalization raises, so there is no second
+        call. A refactor that walks past the hook now fails loudly until the probe is retargeted.
+        """
         verify._ROOTS.update(git=str(self.repo_b), evidence=str(self.repo))
         self.addCleanup(self._reset_roots)
-
-        def refuse(self_, *args, **kwargs):
-            raise OSError(errno.ELOOP, "Too many levels of symbolic links")
-
-        with mock.patch.object(Path, "resolve", refuse):
+        refuse = OSError(errno.ELOOP, "Too many levels of symbolic links")
+        with mock.patch.object(Path, "resolve", side_effect=refuse) as fired:
             self.assertTrue(verify._roots_are_split())
+        self.assertEqual(fired.call_count, 1,
+                         "canonicalization exception probe must fire exactly once")
 
     def test_help_documents_both_roots(self):
         buf = io.StringIO()
