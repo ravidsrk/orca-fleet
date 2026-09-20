@@ -1,0 +1,194 @@
+U-CHAIN TARGETED REPAIR REVIEW
+Task task_6d74187e0783 / dispatch ctx_ac0ef96b3c5d
+Scope: named repair commits and S-R3-1/2, R3-TA-1/2/3 only; not a fourth full round.
+Authorized workspace output: this report only, uncommitted.
+
+BLIND-FIX EXPECTATIONS — BEFORE OPENING REPAIR DIFF
+Recorded: 2026-09-20T12:46:02.930902+00:00
+Inputs read: task, ARCHITECTURE.md, named round-3 standards/test sticker reports,
+review methodology and Orca worker instructions. No repair diff or repair source
+has been opened. Initial branch ravidsrk/u-chain, HEAD b976df563cf1e0f541e099a0d6c4a04acc69d60b.
+
+S-R3-1 / R3-TA-3: reject zero-execution results even with process exit zero and
+Ran 1 test. In particular OK (skipped=1) must classify as STILLBORN, make a
+positive or neutral control unacceptable, and force the harness nonzero with no
+success banner. Expect a small classifier guard plus a real unittest skip probe
+that modifies only disposable scratch files. Original honest controls must pass.
+Verbatim motivating line: return "GREEN" if re.search(r"^OK", out, re.M) else "STILLBORN"
+
+S-R3-2: manifest head_sha and every executable command commit field should name
+real commits reachable on this branch in a fresh clone. Expect explicit historical
+old-to-new identity/tree mappings for stripped commits, not silent historical
+relabeling. Check git cat-file -e and ancestry for every active SHA; distinguish
+quoted retired identifiers from active bindings.
+Verbatim motivating line:  "head_sha": "5bd2eb0758cccf59964ea75985a8e0e0c5682c92",
+
+R3-TA-1: bind the complete ancestry example including BASE as subject and DEFAULT
+as target. The exact operand-swap mutant must fail by the covering assertion,
+not by an import/collection failure, while the current policy stays green.
+Verbatim motivating line:         must(alt1, r"git merge-base --is-ancestor",
+
+R3-TA-2: bind OWED as the mandatory initial status in the actual carry field;
+the exact insertion of "optionally " before `OWED` must fail by the covering
+assertion. Keep prose reflow controls valid. No doctrine rewrite is needed.
+Verbatim motivating line:         must(carry, r"(?i)`OWED` until leg N\+1 triages it",
+
+Scope expectation: repairs change evidence tooling, receipts and the two narrow
+test bindings only; runtime doctrine remains byte-identical. Replay the full
+committed r3 battery and its own skip probe only in a disposable clean clone.
+No implementation edits, commits, staging, publishing, or fourth-round search.
+
+REVIEW EXECUTION: COMPLETE; targeted repairs GO.
+
+
+SHA-BOUND TARGETED VERDICT
+Verdict: GO for the named repairs only.
+Counts: Critical 0 / Required 0 / Nit 0 / Optional 0 / FYI 0.
+All named stickers CLOSED: S-R3-1, S-R3-2, R3-TA-1, R3-TA-2, R3-TA-3.
+This is not a fourth full review or an independent merge/deploy authorization.
+reviewed_sha = head_sha = b976df563cf1e0f541e099a0d6c4a04acc69d60b
+reviewed_tree = f0f25c3ba2130ad02d57458b34f1b8f09bf82696
+Branch = ravidsrk/u-chain; HEAD stayed fixed throughout review.
+Repair diff = git diff 51d7b619..b976df56
+Repair commits = 9b196bf2 (skip guard and two binds), 9622a242 (manifest rebind),
+b976df56 (evidence). Merge 51d7b619 imports the authorization/spec and run records;
+it changes no doctrine relative to its first parent.
+
+STICKER CLOSURE — STANDARDS / EVIDENCE
+S-R3-1 / R3-TA-3 — CLOSED (formerly Required on both axes).
+Verbatim motivating code from the sticker:
+        return "GREEN" if re.search(r"^OK", out, re.M) else "STILLBORN"
+Verbatim frozen repair requirement:
+  least one test executed; skipped/empty runs are STILLBORN and the harness exits nonzero.
+Current repair at mutants_core.py:90-97 requires a positive Ran count and rejects
+skip annotations. Exact guard:
+        if "skip" in (m.group("ann") or "").lower():
+            return "STILLBORN"
+In the clean scratch clone, directly called the harness's own _probe_skipped_run():
+  Ran 1 test in 0.000s
+  OK (skipped=1)
+Its subprocess exits 0, but classify(proc) is STILLBORN; selftest() passes all eight
+cases (one real skipped module and seven classifier cases).
+Then repeated the original sticker's full-harness attack, changing only the scratch
+covering method to skip when the whitespace-normalized policy hash equals the
+clean policy hash. This skips clean/restored controls and neutral reflows while
+all 30 behavior-changing mutants still execute their covering assertions.
+Executed the otherwise unchanged python3 docs/reports/U-CHAIN/run_mutants-r3.py:
+  fixed-head: exit=0; STILLBORN — unmutated head
+  head-restored: exit=0; STILLBORN — unmutated head
+  HARNESS FAILED: fixed-head control is not GREEN; head-restored control is not GREEN; 3 stillborn runs: ['neutral-soft-wrap-park', 'neutral-soft-wrap-publish', 'neutral-soft-wrap-freshness']
+Harness exit 1, no HARNESS OK banner. The skip-as-success hole is closed end to end.
+Scratch tests and policy were restored in finally; clean git status verified.
+
+S-R3-2 — CLOSED (formerly Required).
+Verbatim motivating manifest line:
+ "head_sha": "5bd2eb0758cccf59964ea75985a8e0e0c5682c92",
+Verbatim frozen repair line:
+  any commit fields naming stripped SHAs) to the commits that EXIST on ravidsrk/u-chain,
+The replacement head_sha is 1635b27f43d22309bfc1e91be517c2815ac3cb6e. In a fresh
+--no-local clone, enumerated all head_sha and commit fields, running git cat-file
+-e <sha>, git cat-file -t <sha>, and git merge-base --is-ancestor <sha> HEAD for
+EACH occurrence. All 17 requested fields resolve to commits and pass ancestry:
+  $.head_sha and $.commands[5..12].commit:
+    1635b27f43d22309bfc1e91be517c2815ac3cb6e (9 occurrences)
+  $.commands[0..4].commit:
+    88a64c902ea1cd2ab0e3040781f918bb8daaefc6 (5 occurrences)
+  $.commands[13..15].commit:
+    9622a2421f70d3e3dea28bdedae6bfcb0c3f8285 (3 occurrences)
+Additionally $.repair_g1b.repair_head_sha names 9622a242 and passes both checks.
+A separate read-only supporting audit reproduced those checks in its own fresh
+clone and invoked runtime/scripts/verify.py check_real_commits(m,
+is_mutation=True): [] (no errors). All 41 inventory artifact hashes match.
+
+Historical integrity: the eight rebound command records change only commit;
+wtree, timestamp, command, exit and artifact fields are unchanged. The added
+head_sha_rebind_note explicitly explains the stripped-to-reachable mapping.
+1635b27f^{tree} is 7cc613067d828c6aa8b7490668d5227cae608b4e, matching unchanged
+head_tree and the historical review's recorded tree. The stripped object itself
+is not newly re-derived here; its identity mapping is historical evidence, not
+an active binding. New repair receipts separately name 9622a242 and its actual
+tree 92edadfe418f1f2f8d342132fa84632dc55b3855. The manifest explicitly says its
+main head_sha remains the historical round-3 implementation, and distinguishes
+the repair head. No silent relabeling of historical executions is claimed.
+
+STICKER CLOSURE — TEST ADEQUACY
+R3-TA-1 — CLOSED (formerly Required).
+Verbatim motivating old assertion:
+        must(alt1, r"git merge-base --is-ancestor",
+Verbatim motivating policy:
+     branch (`git merge-base --is-ancestor <base-tip> <default-ref>`, where `<default-ref>` is
+Current assertion at tests/test_architecture.py:684:
+        must(alt1, r"git merge-base --is-ancestor <base-tip> <default-ref>",
+Independently replaced only <base-tip> <default-ref> with <default-ref> <base-tip>
+in the exact policy command, then ran the covering unittest. Exit 1 / RED from
+AssertionError: Regex didn't match: 'git merge-base --is-ancestor <base-tip> <default-ref>'
+The failure is the intended covering assertion, not collection/import failure.
+The same exact mutant now lives in r3's permanent battery and dies there too.
+
+R3-TA-2 — CLOSED (formerly Required).
+Verbatim motivating old assertion:
+        must(carry, r"(?i)`OWED` until leg N\+1 triages it",
+Verbatim motivating policy:
+     (`OWED` until leg N+1 triages it; then its finding id and triage verdict).
+Current assertion at tests/test_architecture.py:755-756:
+        must(carry, r"(?i)\(`OWED` until leg N\+1 triages it; "
+                    r"then its finding id and triage verdict\)",
+Independently inserted only "optionally " immediately before `OWED` in that
+parenthesis, then ran the covering unittest. Exit 1 / RED from assertRegex on
+the newly anchored OWED clause. The failure is not a loading error. The same
+exact mutant now lives in the permanent battery and dies there too.
+R3-TA-3 is the same skip defect as S-R3-1 and is closed by the real execution above.
+
+PRISTINE REPLAY AND SCOPE
+Fresh clone: git clone --quiet --no-local --no-checkout . <scratch>/repo
+Pinned checkout: git checkout --quiet --detach b976df563cf1e0f541e099a0d6c4a04acc69d60b
+Pristine command: python3 docs/reports/U-CHAIN/run_mutants-r3.py -> exit 0.
+  33 mutants run; 30 expected RED, 3 expected GREEN
+  SURVIVORS (expected RED, stayed green): none
+  FALSE REDS (expected GREEN, went red): none
+  STILLBORN (nonzero without an assertion failure): none
+  fixed-head and head-restored: exit=0; GREEN
+  Both named r3-own mutants: exit=1; KILLED (RED)
+  HARNESS OK: every mutant died for the right reason; both controls GREEN.
+All three neutral reflows stay GREEN. Independent restored covering test passes.
+Individual mutant command:
+  python3 -B -m unittest tests.test_architecture.TestArchitecture.test_chain_link_boundary_is_specified -v
+The pristine replay's SHA256 matches committed mutants-r4.txt exactly.
+
+Scope checks:
+  git diff --quiet 51d7b619^1 b976df56 -- runtime playbooks skills -> exit 0
+  git diff --exit-code 51d7b619..b976df56 -- runtime skills playbooks -> exit 0
+There is NO doctrine change, including the merge. The repair changes only the
+manifest, harness/core, three evidence transcripts and the two assertion sites
+(with their explanatory comments) in tests/test_architecture.py. No new mission,
+production mechanism or unrelated test binding appears in the repair diff.
+The existing BOT-6 interruption issue is outside this named repair set; its prior
+Optional/Nit disposition is unchanged, not represented as newly repaired here.
+The full suite was not rerun in this targeted review. New suite-r4/validate-r4
+receipts are present, hash-verified and bound to the repair commit; this report
+claims independent execution only for the commands listed above. No expansion
+into a fourth acceptance or risk-review round occurred.
+
+REPLAY ARTIFACTS
+Primary scratch root:
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-repair-review-1k061j8m
+This report embeds the commands/results required for the verdict; scratch logs
+are supplemental. Results and per-field bindings are in results.json and
+manifest-binding-check.json. Supporting independent SHA audit:
+/tmp/u-chain-sha-audit-g3t06esf/sha-audit.json
+SHA256 of primary scratch transcripts:
+  ancestry-operands-reversed.txt: 471278ae26ba293e18fff3285b5a43750974fdac9b6495c138d09e81b916e69c
+  head-restored.txt: 874db1fe6c94fcb383b44c1b0c6c4cc6c5d5a32ed5d4cf23534a0ad52d115c3a
+  owed-optional.txt: 310837f38c425ad64bcdaddaed4249e8fd6a537bee3c7920647e131d3fa2f6d2
+  own-skip-probe.txt: 2eaf6371231d2d4520d147bdf1a6802ff3bc8317a4d2a39ea6e3cfb7be4a653f
+  r3-pristine.txt: e3908dc8c00bc803fd31de696071058d6ded6bdb1d2143ec07c030daace79aab
+  skip-direct.txt: 62c35cd1b718e29a9c52390b91b3b8211fbe6f4dd8f76aeeedeaf0fdd6251877
+  skip-full-harness.txt: f6e5ec1617ba21926032804b0c98f7a683804bc9c0c0247ce734a1b983ce4522
+
+BOUNDARIES AND REMAINING WORK
+Only docs/reports/U-CHAIN/review-repair.txt was written in the shared worktree.
+No code changes, staging, commits, PR actions, or external comments were made.
+No named repair remains open. Coordinator aggregation/any subsequent landing
+remain outside this worker's authority. Review is complete within the 20-minute
+timebox; this is not a partial report.
+Completed: 2026-09-20T12:48:25.495495+00:00
