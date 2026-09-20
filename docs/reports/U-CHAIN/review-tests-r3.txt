@@ -1,0 +1,461 @@
+U-CHAIN ROUND 3 — TEST-ADEQUACY REVIEW
+Task task_83fd4a2c8186 / dispatch ctx_9630335cbaac
+Requested reviewed SHA: d75b23b1 (full binding follows).
+
+BLIND-FIX EXPECTATIONS — RECORDED BEFORE OPENING R3 DIFF OR IMPLEMENTATION
+Recorded 2026-09-20T09:26:44.023292+00:00 (filesystem creation time). Inputs: task, ARCHITECTURE.md, review-it,
+acceptance-review/mutation-hunt, round-2 verdict and review reports, frozen r3 spec.
+No r3 diff, production test assertions, mutation runners, or integration report read yet.
+
+G-1: Remote resume evidence must first obtain a current default ref, record the
+resolved SHA, and stay parked if freshness cannot be proved. Offline resume must
+use a valid local ref. Expect a stale-ref forced schedule to reject before fetch
+and accept after fetch, and removing either freshness obligation to kill a mutant.
+G-2: The runner must recover its original policy from a committed pinned source
+or tracked fixture; a clean exact-SHA checkout must need no unpublished file.
+G-3: A mutant counts only after a real covering test assertion fails. Import,
+collection, syntax, absent-test, baseline failure, and restore-control failure
+must invalidate the run and produce nonzero exit. Both positive controls green.
+G-4: Each resume alternative must independently bind its full subject and
+condition: promoted integration BASE tip ancestry in DEFAULT with G-1 ref rules;
+or named human's explicit unpromoted BASE carry decision and recorded granted
+SHA. The exactly-two-facts restriction must remain obligatory. All six named
+round-2 resume reversals must fail on assertions, alongside round-1 reversals.
+G-5: Tests must enforce carry id, from, content, input status and OWED behavior;
+which gate, state, owning human, what resumes it; and missing-log means unfinished.
+All three named narrow schema/missing-log regressions must fail on assertions.
+G-6: Commit preservation must include ancestry; mirror retrieval must name remote
+and pushed refs; seed plus diff alone cannot suffice; published artifacts need
+integrity hashes. All three narrow reconstruction regressions must fail.
+
+BOT-6 preliminary expectation from title only: an interruption must not be
+reported as a successful completed battery. If restoration runs only for normal
+exceptions, I expect KeyboardInterrupt to leave a mutant in the checkout. I will
+judge its severity on actual invocation boundary, documented scratch isolation,
+and whether interrupted or subsequent runs can create false passing evidence.
+
+Own new probes planned: weaken OWED to optional, remove the exactly-two framing,
+and bypass published integrity hashes while retaining surrounding vocabulary.
+All mutations will be in scratch clones. Only this report is authorized here.
+Review status: COMPLETE at 2026-09-20 09:34 UTC, within the 25-minute timebox.
+
+
+REVIEW BINDING AND EXECUTIVE VERDICT
+Reviewed SHA / head_sha: d75b23b110c00579843886487ad80e9c0b607420
+Reviewed full tree: a0c38bcb391014e695513de13519583cb380ce84
+Observed workspace HEAD: ca616c772aa77354bf27b8c3e5c1f0b510da54a3
+The only d75b23b1..ca616c77 change is integrate-r3.json; implementation and tests
+were reviewed and executed from detached scratch d75b23b1, never from a floating HEAD.
+Reference for the r3 unit delta: round-2 reviewed 302d43e9. BASE advancement also
+brought unrelated report changes, excluded from this axis.
+
+VERDICT: NO-GO on TEST-ADEQUACY. Critical 0 / Required 3 / Nit 1 /
+Optional 0 / FYI 0. This is a completed review, not a failed review execution.
+
+The entire claimed 28/28 negative battery re-derives: 28 assertion failures,
+3 expected-neutral GREEN cases, both actual positive controls GREEN, harness exit 0.
+All six round-1 survivors and all twelve narrower round-2 survivors are among
+those 28. BOT-4's stale-ref schedule also replays and the fresh-ref rule corrects it.
+Nevertheless, two NEW doctrine mutations survive the covering test AND the full
+59-test architecture module, and skipped positive controls can make the harness
+claim success without running the positive assertions. The current policy itself
+has the correct operand order and OWED requirement; these are demonstrable
+coverage gaps, not claims that the candidate already contains those bad policies.
+BOT-6 is VALID but acceptable-with-reason / Nit: it dirties a disposable checkout
+after abnormal termination without producing successful evidence.
+
+CLOSURE BY FROZEN ITEM
+G-1 — CLOSED for the submitted freshness defect. REFRESHED immediately before the
+check and UNPROVEN when freshness cannot be established are both asserted; their
+mutants RED. BOT-4 schedule: authoritative=0, stale cache=1, fetch=0, fresh check=0.
+A failed fetch (128) leaves cached ancestry=0 but the required decision PARKED.
+The explicitly OFFLINE fixture uses local main with no remote and succeeds.
+G-2 — CLOSED. Clean exact-SHA clone needs no base-policy.md. baseline() obtains
+ed51fe11de5f7329ecf02ffb933bf50648ae5654:runtime/mission-chaining.md via git show
+and checks SHA256 1bacd1fe7be765311b08abba787f45844b39658a8908096fbc853a09a4a26e72.
+G-3 — PARTIAL. Ordinary ImportError runs and failing controls now fail the harness;
+my independent adversarial replays exit 1. Skipped controls remain falsely GREEN
+(R3-TA-3). The normal 28 RED executions are real assertion failures, not stillborn.
+G-4 — All six historical resume-condition survivors CLOSED, but NOT fully adequate:
+the actual ancestry command's operand order is unbound (R3-TA-1).
+G-5 — All three historical schema/missing-log survivors CLOSED, but NOT fully
+adequate: the added OWED assertion accepts making that status optional (R3-TA-2).
+G-6 — CLOSED on the specified obligations and all three historical survivors.
+Ancestry, mirror remote/refs, artifact hashes and seed+diff insufficiency are bound.
+
+REQUIRED FINDINGS — ALL MOTIVATING LINES QUOTED VERBATIM
+
+R3-TA-1 — Required — The ancestry command can reverse its actual predicate.
+Location: tests/test_architecture.py:680-681 at reviewed SHA.
+Verbatim motivating test lines:
+        must(alt1, r"git merge-base --is-ancestor",
+             "resume fact 1 must name the ancestry command that decides it")
+Verbatim policy line, runtime/mission-chaining.md:44:
+     branch (`git merge-base --is-ancestor <base-tip> <default-ref>`, where `<default-ref>` is
+Verbatim frozen requirement, build-u-chain-r3.md:
+  obligation set (alternative 1: BASE tip + ancestor-of-DEFAULT + the ref rule incl. G-1's
+
+Own mutant R3-OWN-3 swaps ONLY the two command operands:
+  git merge-base --is-ancestor <base-tip> <default-ref>
+  -> git merge-base --is-ancestor <default-ref> <base-tip>
+The named covering test exits 0 / Ran 1 test / OK. The entire architecture module
+also exits 0 / Ran 59 tests in 6.162s / OK. The assertion binds only command name;
+the separately correct prose does not protect the executable example.
+This has a concrete failure mode: with unpromoted BASE commit
+8171e72c1b600085bf7d83f43f222b5b87815116 ahead of fresh default
+cd3c5c814fda3bd5a536dc3bf4727fa5b91232c1, the correct command returns 1 but the
+reversed command returns 0. A coordinator following that mutated example would
+accept an unpromoted leg. I independently replayed both commands in the Git fixture.
+Required correction: bind the complete command including subject/target order;
+prove this exact narrow reversal RED with an assertion. No production fix is made
+by this report-only review. Confidence: high, executed survivor and Git witness.
+
+R3-TA-2 — Required — OWED may become optional without failing the contract.
+Location: tests/test_architecture.py:747-748 at reviewed SHA.
+Verbatim motivating test lines:
+        must(carry, r"(?i)`OWED` until leg N\+1 triages it",
+             "the carry table's `input status` must start OWED — an untriaged carry is not done")
+Verbatim policy line, runtime/mission-chaining.md:66:
+     (`OWED` until leg N+1 triages it; then its finding id and triage verdict).
+Verbatim frozen requirement, build-u-chain-r3.md:
+  (carry id · from · content · input status incl. the OWED rule) and the gate record's
+
+Own mutant R3-OWN-2 adds one word at the start of that parenthesis:
+     (optionally `OWED` until leg N+1 triages it; then its finding id and triage verdict).
+The named covering test exits 0 / Ran 1 test / OK. The entire architecture module
+also exits 0 / Ran 59 tests in 6.233s / OK. This keeps the status vocabulary but
+removes its obligation, the same requirement-reversal class the frozen batch
+explicitly targets. An untriaged carry no longer has to start OWED. The assertion's
+own explanation claims more than its unanchored substring enforces.
+Required correction: bind the mandatory/default status rule rather than its bare
+phrase and prove this optional-status reversal RED. This requests a bounded
+regression case, not a general natural-language semantic parser. Confidence: high.
+
+R3-TA-3 — Required — Skipped positive controls are incorrectly graded GREEN.
+Location: docs/reports/U-CHAIN/mutants_core.py:78-79, _control at :89-99.
+Verbatim motivating implementation lines:
+    if proc.returncode == 0:
+        return "GREEN" if re.search(r"^OK", out, re.M) else "STILLBORN"
+Verbatim frozen G-3 lines, build-u-chain-r3.md:
+  error / no-tests-ran = STILLBORN, harness exits nonzero); both positive controls
+  (fixed-head, head-restored) MUST be green or the harness exits nonzero.
+
+In a separate scratch clone, prepend self.skipTest(...) to the covering method
+only when SHA256(whitespace-normalized policy) equals the original policy's hash.
+The 28 behavior-changing mutants still execute their original assertions; both
+controls and the three neutral reflows skip the covering assertions. Nothing in
+the harness is modified. I independently reran the supporting analyst's script.
+Direct unmutated control output (verbatim):
+  test_chain_link_boundary_is_specified (tests.test_architecture.TestArchitecture.test_chain_link_boundary_is_specified) ... skipped 'reviewer unavailable positive-control test'
+  Ran 1 test in 0.000s
+  OK (skipped=1)
+  EXIT=0
+End-to-end unchanged harness output (verbatim):
+  fixed-head: exit=0; GREEN — unmutated head
+  31 mutants run; 28 expected RED, 3 expected GREEN
+  head-restored: exit=0; GREEN — unmutated head
+  HARNESS OK: every mutant died for the right reason; both controls GREEN.
+  EXIT=0
+Thus the positive controls can be unavailable and the harness still certifies
+that they passed. A skip is not a successful positive execution. Checking only
+Ran 0 tests is insufficient because unittest counts skipped methods in Ran 1.
+This is a synthetic fault-injection probe of the harness, not evidence that the
+committed normal controls currently skip; those normally execute and passed.
+Required correction: require execution of the selected covering test with no
+skips/errors for GREEN and explicitly reject skipped controls/neutral cases.
+Confidence: high, real unittest skip and complete runner execution, no fake output.
+
+BOT-6 DISPOSITION — Nit, VALID, ACCEPTABLE WITH REASON
+Location: docs/reports/U-CHAIN/mutants_core.py:114-116.
+Verbatim motivating implementation:
+        POLICY.write_text(fn(orig))
+        p = _run_test()
+        POLICY.write_text(orig)
+Verbatim invocation boundary, run_mutants-r3.py:13-14:
+Run from the repository root, in a DISPOSABLE checkout — it rewrites
+runtime/mission-chaining.md between cases and restores it after each.
+
+Injected KeyboardInterrupt on the second _run_test() call (after the first control,
+once drop-pacing has been written) gives subprocess exit -2, dirty policy and no
+HARNESS OK. Replaying the unmodified r3 runner in that dirty scratch exits 1 with
+a RED fixed-head control and later selector AssertionError. Injected OSError at
+the same boundary exits 1, dirty policy, no HARNESS OK. I independently reran both.
+The lack of finally is real and cleanup should be improved, but it is contained by
+the documented disposable-checkout boundary and makes neither an interrupted run
+nor the observed retry successful. It does not invalidate the clean completed
+28/28 replay. No evidence was found that this interruption defect alone bypasses
+the positive controls. This disposition does not waive R3-TA-3's separate skip gap.
+The integrator's prose about neutral leftovers becoming SURVIVORS is imprecise:
+sub() can instead abort on a missing selector. Both paths remain nonzero; the
+safe disposition depends on that property, not the label printed before exit.
+Suggested follow-up: wrap mutation/test in try/finally, preferably plus a clean
+entry check. Not a merge blocker on this test axis. Confidence: high.
+
+EXECUTION RECORD
+Scratch replay root:
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-tests-r3-enzg4gxv
+- git clone --quiet --no-hardlinks --no-checkout . <scratch>/repo
+- git checkout --quiet --detach d75b23b110c00579843886487ad80e9c0b607420
+- python3 docs/reports/U-CHAIN/run_mutants-r3.py
+  exit 0, 31 cases = 28 assertion RED + 3 neutral GREEN; both controls GREEN.
+  The runner itself and tests were unmodified throughout this replay.
+- python3 -B -m unittest tests.test_architecture.TestArchitecture.test_chain_link_boundary_is_specified -v
+  executed independently for each of my three own policy mutants; original restored
+  in finally. Own #1 exclusivity weakening RED on assertRegex; #2/#3 survive.
+- python3 -B -m unittest tests.test_architecture -q
+  executed with each survivor separately; both 59-test passes recorded above.
+- python3 -B scripts/validate.py: exit 0, all 21 missions valid, layers/evals valid.
+Full suite: python3 -B -m unittest discover -s tests, exit 0;
+Ran 1707 tests in 274.750s; OK. Executed in the restored, clean d75b23b1 clone.
+
+The new probes were refined after inspection to avoid duplicating the existing
+artifact-hash deletion. Exact-two framing, optional OWED and reversed ancestry
+operands are the three new doctrine mutants actually executed. Skipped controls
+and interruptions are separate harness fault-injection experiments, not extra
+negative doctrine cases inflated into the 28/28 claim.
+
+BOT-4 disposable Git root:
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-bot4-lvfv4hgl
+A supporting analyst created the ordered origin/coordinator/human/OFFLINE fixture;
+I read its transcript and reran 12 commands against it, including resetting only
+the scratch cached ref, refreshing it, forcing fetch failure, and both operand
+orders. No sleeps: the promotion/push/fetch order is explicitly serialized.
+reviewer-replay.json records my commands/exits. This executes the documented Git
+protocol; mission-chaining is doctrine, so no hidden runtime implementation is
+claimed to implement the full resume decision.
+
+Harness robustness scratch root:
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-harness-r3-j5xa0vy9
+I ran classifier-probes.py and reviewer-harness-replay.py. The latter independently
+confirmed ordinary ImportErrors -> exit 1 / no success, failed controls -> exit 1 /
+no success, interrupt -> -2 / dirty, retry -> 1, OSError -> 1 / dirty. All scratch
+tests/policy were restored. The diagnostic-text spoofing experiment in the former
+script is excluded from scored findings: it deliberately forges assertion-like
+text inside ImportError, whereas the skipped-control finding needs no forged text.
+
+NAMED REPLAY RESULTS AND ASSERTION EXCERPTS
+The lines below are copied from my replay-r3.txt. Long assertion lines are trimmed
+before the echoed mutant policy; the displayed prefix is verbatim output. These
+show the relevant assertion/pattern, not an incidental import or collection error.
+== POSITIVE CONTROL ==
+fixed-head: exit=0; GREEN — unmutated head
+
+== MUTANTS ==
+base-policy: exit=1; KILLED (RED) [expected RED] — revert every doc addition, keep head test
+    AssertionError: [] is not true : mission-chaining.md: no single bullet states the promotion-owed park with its resume procedure (needs all of: PARKED-AT-PROMOTION, landed promotion SHA, BASE-carry grant)
+drop-pacing: exit=1; KILLED (RED) [expected RED] — delete only the human-pacing bullet
+    AssertionError: [] is not true : mission-chaining.md: no single bullet states that chains are human-paced at every link boundary (needs all of: human-paced at every link boundary, link boundary)
+drop-park: exit=1; KILLED (RED) [expected RED] — delete only the named park / resume bullet
+    AssertionError: [] is not true : mission-chaining.md: no single bullet states the promotion-owed park with its resume procedure (needs all of: PARKED-AT-PROMOTION, landed promotion SHA, BASE-carry grant)
+drop-carry: exit=1; KILLED (RED) [expected RED] — delete only the handoff-shape bullet
+    AssertionError: [] is not true : mission-chaining.md: no single bullet states a named artifact shape for the deferral carry (needs all of: handoff log, carry table, gate record)
+drop-local: exit=1; KILLED (RED) [expected RED] — delete only the local reconstruction bullet
+    AssertionError: [] is not true : mission-chaining.md: no single bullet states the local-only re-derivability rule (needs all of: no remote, pushed mirror, reconstruction artifacts)
+pacing-first-boundary-only: exit=1; KILLED (RED) [expected RED] — weaken every-link human pacing to the first boundary only
+    AssertionError: [] is not true : mission-chaining.md: no single bullet states that chains are human-paced at every link boundary (needs all of: human-paced at every link boundary, link boundary)
+park-no-resume-precondition: exit=1; KILLED (RED) [expected RED] — retain named terminal and fact vocabulary, remove the mandatory resume procedure
+    AssertionError: Regex didn't match: '(?i)resuming the park REQUIRES exactly one of two facts' [remainder omitted]
+park-no-procedure-defined: exit=1; KILLED (RED) [expected RED] — SPEC-2 mutant: reserve both resume terms, define no resume procedure
+    AssertionError: Regex didn't match: '(?i)resuming the park REQUIRES exactly one of two facts' [remainder omitted]
+carry-sections-optional: exit=1; KILLED (RED) [expected RED] — make the two carry sections optional without changing their vocabulary or fields
+    AssertionError: Regex didn't match: '(?i)two sections, both required' [remainder omitted]
+carry-schema-deleted: exit=1; KILLED (RED) [expected RED] — retain per-chain artifact and section names but remove every field declaration
+    AssertionError: Regex didn't match: '(?i)two sections, both required' [remainder omitted]
+local-artifacts-optional: exit=1; KILLED (RED) [expected RED] — replace the local reconstruction requirement with explicitly optional artifacts
+    AssertionError: Regex didn't match: '(?i)complete only once the chain publishes' [remainder omitted]
+local-seed-diff-optional: exit=1; KILLED (RED) [expected RED] — weaken the reconstruction payload while retaining the artifact label and mandatory publish
+    AssertionError: Regex didn't match: '(?i)git bundle' [remainder omitted]
+local-publishes-neither: exit=1; KILLED (RED) [expected RED] — SPEC-2 mutant: reverse the publication requirement in place
+    AssertionError: Regex didn't match: '(?i)complete only once the chain publishes' [remainder omitted]
+own-promoted-ancestry-inverted: exit=1; KILLED (RED) [expected RED] — R2-TA-441 survivor: invert the ancestry relationship, keep every noun
+    AssertionError: Regex didn't match: '(?i)BASE tip is an ancestor of the DEFAULT' [remainder omitted]
+own-promoted-wrong-commit: exit=1; KILLED (RED) [expected RED] — R2-TA-441 survivor: substitute the seed commit for the completed BASE tip
+    AssertionError: Regex didn't match: '(?i)BASE tip is an ancestor of the DEFAULT' [remainder omitted]
+own-grant-no-sha: exit=1; KILLED (RED) [expected RED] — R2-TA-441 survivor: drop the granted SHA from the carry grant
+    AssertionError: Regex didn't match: '(?i)with the granted SHA written down' [remainder omitted]
+own-grant-no-unpromoted-fork: exit=1; KILLED (RED) [expected RED] — R2-TA-441 survivor: replace the whole fork/SHA condition with an unconditional resume
+    AssertionError: Regex didn't match: '(?i)fork leg N.s UNPROMOTED BASE tip' [remainder omitted]
+own-grant-promoted-only: exit=1; KILLED (RED) [expected RED] — R2-TA-441 survivor: flip UNPROMOTED to PROMOTED, collapsing the two alternatives into one
+    AssertionError: Regex didn't match: '(?i)fork leg N.s UNPROMOTED BASE tip' [remainder omitted]
+own-offline-nonexistent-ref: exit=1; KILLED (RED) [expected RED] — R2-TA-441 survivor: point an offline target at `origin/<default>`
+    AssertionError: Regex didn't match: '(?i)valid LOCAL ref.{0,140}?for an explicitly OFFLINE target with no remote' [remainder omitted]
+own-carry-source-content-removed: exit=1; KILLED (RED) [expected RED] — R2-TA-443 survivor: drop `from`/`content`, keep carry id and input status
+    AssertionError: Regex didn't match: '(?i)`from`' [remainder omitted]
+own-gate-identity-state-removed: exit=1; KILLED (RED) [expected RED] — R2-TA-443 survivor: drop gate identity and state, keep owner and resume
+    AssertionError: Regex didn't match: '(?i)which gate, its state, the human who owns it, and what resumes it' [remainder omitted]
+own-missing-handoff-empty: exit=1; KILLED (RED) [expected RED] — R2-TA-443 survivor: declare a missing handoff log an empty, finished carry
+    AssertionError: Regex didn't match: '(?i)a MISSING handoff log is an unfinished chain, never an empty one' [remainder omitted]
+own-reconstruct-ancestry-removed: exit=1; KILLED (RED) [expected RED] — R2-TA-444 survivor: drop 'and its ancestry' from the equivalent artifact
+    AssertionError: Regex didn't match: '(?i)reproduces every cited commit and its ancestry' [remainder omitted]
+own-mirror-ref-fields-removed: exit=1; KILLED (RED) [expected RED] — R2-TA-444 survivor: drop the mirror's written remote and pushed refs
+    AssertionError: Regex didn't match: '(?i)the remote and the pushed refs written down' [remainder omitted]
+own-artifact-hash-removed: exit=1; KILLED (RED) [expected RED] — R2-TA-444 survivor: remove the published-byte integrity obligation
+    AssertionError: Regex didn't match: '(?i)Every published artifact is hashed into the run-close integrity inventory' [remainder omitted]
+own-freshness-refresh-removed: exit=1; KILLED (RED) [expected RED] — BOT-4: drop the refresh obligation, leaving the cached ref to answer the resume check
+    AssertionError: Regex didn't match: '(?i)REFRESHED immediately before the check' [remainder omitted]
+own-freshness-unproven-reversed: exit=1; KILLED (RED) [expected RED] — BOT-4: treat a ref of unestablishable freshness as landed rather than parked
+    AssertionError: Regex didn't match: '(?i)freshness cannot be established.{0,80}?UNPROVEN' [remainder omitted]
+own-ancestry-subject-unpinned: exit=1; KILLED (RED) [expected RED] — BOT-4/#441: unpin the ancestry subject so any commit can satisfy the check
+    AssertionError: Regex didn't match: '(?i)ancestry subject is leg N.s own completed BASE tip' [remainder omitted]
+neutral-soft-wrap-park: exit=0; GREEN [expected GREEN] — neutral: reflow the landed-promotion-SHA phrase across a line break
+neutral-soft-wrap-publish: exit=0; GREEN [expected GREEN] — neutral: reflow the publication requirement across a line break
+neutral-soft-wrap-freshness: exit=0; GREEN [expected GREEN] — neutral: reflow the new freshness clause across a line break
+
+31 mutants run; 28 expected RED, 3 expected GREEN
+SURVIVORS (expected RED, stayed green): none
+FALSE REDS (expected GREEN, went red): none
+STILLBORN (nonzero without an assertion failure): none
+head-restored: exit=0; GREEN — unmutated head
+
+HARNESS OK: every mutant died for the right reason; both controls GREEN.
+
+EXACT NEW DOCTRINE MUTANT PATCHES AND OUTPUT
+
+R3-OWN-1-two-facts-not-exclusive: exit=1
+--- original
++++ R3-OWN-1-two-facts-not-exclusive
+@@ -39,7 +39,7 @@
+   as the mission named it. It is the expected outcome of any leg that finishes in a lane that
+   cannot PROMOTE (headless, `--no-gh`, scratch or local-only target) — such a lane may still
+   integrate its units into BASE: carry PRODUCED, promotion OWED. Resuming the park REQUIRES
+-  exactly one of two facts, each recorded in the ledger; nothing else is sufficient:
++  one of the following facts, each recorded in the ledger; other evidence may suffice:
+   1. a **landed promotion SHA** — leg N's integration BASE tip is an ancestor of the DEFAULT
+      branch (`git merge-base --is-ancestor <base-tip> <default-ref>`, where `<default-ref>` is
+      `origin/<default>` for a REMOTE target — REFRESHED immediately before the check
+AssertionError: Regex didn't match: '(?i)resuming the park REQUIRES exactly one of two facts'
+Ran 1 test in 0.001s
+FAILED (failures=1)
+
+R3-OWN-2-owed-optional: exit=0
+--- original
++++ R3-OWN-2-owed-optional
+@@ -63,7 +63,7 @@
+   1. a **carry table**, one row per carried item — `carry id` (stable, chain-scoped: `H1`, `H2`, …)
+      · `from` (leg number + source class: parked / backlog / noticed-not-touched) · `content` (the
+      item, pinned to file:line at that leg's cited SHA) · `input status` for the consuming leg
+-     (`OWED` until leg N+1 triages it; then its finding id and triage verdict).
++     (optionally `OWED` until leg N+1 triages it; then its finding id and triage verdict).
+   2. a **gate record**, one entry per inter-mission gate — which gate, its state, the human who
+      owns it, and what resumes it (for a promotion park, the two facts above).
+   Nothing deferred is written as an explicit empty carry plus the re-read that established it: a
+test_chain_link_boundary_is_specified (tests.test_architecture.TestArchitecture.test_chain_link_boundary_is_specified) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+OK
+bundle: 21 self-contained mission(s) in a temp dir; no reference leaves its directory
+----------------------------------------------------------------------
+Ran 59 tests in 6.233s
+
+OK
+
+R3-OWN-3-ancestry-operands-reversed: exit=0
+--- original
++++ R3-OWN-3-ancestry-operands-reversed
+@@ -41,7 +41,7 @@
+   integrate its units into BASE: carry PRODUCED, promotion OWED. Resuming the park REQUIRES
+   exactly one of two facts, each recorded in the ledger; nothing else is sufficient:
+   1. a **landed promotion SHA** — leg N's integration BASE tip is an ancestor of the DEFAULT
+-     branch (`git merge-base --is-ancestor <base-tip> <default-ref>`, where `<default-ref>` is
++     branch (`git merge-base --is-ancestor <default-ref> <base-tip>`, where `<default-ref>` is
+      `origin/<default>` for a REMOTE target — REFRESHED immediately before the check
+      (`git fetch origin <default>`), with the resolved default SHA written down, on
+      preflight.py's own contract that an online default resolves through
+test_chain_link_boundary_is_specified (tests.test_architecture.TestArchitecture.test_chain_link_boundary_is_specified) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+OK
+bundle: 21 self-contained mission(s) in a temp dir; no reference leaves its directory
+----------------------------------------------------------------------
+Ran 59 tests in 6.162s
+
+OK
+
+own-head-restored: exit=0
+test_chain_link_boundary_is_specified (tests.test_architecture.TestArchitecture.test_chain_link_boundary_is_specified) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+OK
+
+EXACT SKIPPED-CONTROL INJECTION (scratch test only)
+Immediately after:    def test_chain_link_boundary_is_specified(self):
+        if __import__("hashlib").sha256(" ".join((RUNTIME / "mission-chaining.md").read_text().split()).encode()).hexdigest() == '6264bcaf01d5d70743140e2dd0efa06c23379981e3e14093c7038fbc2ad70659':
+            self.skipTest("reviewer unavailable positive-control test")
+With that injection, the committed runner is executed unchanged from the clone root.
+
+INDEPENDENT HARNESS FAULT-INJECTION RECEIPTS
+[
+  {
+    "name": "reviewer-real-import-errors",
+    "exit": 1,
+    "expected": 1,
+    "success_banner": false,
+    "policy_dirty": false
+  },
+  {
+    "name": "reviewer-red-controls",
+    "exit": 1,
+    "expected": 1,
+    "success_banner": false,
+    "policy_dirty": false
+  },
+  {
+    "name": "reviewer-interrupt",
+    "exit": -2,
+    "expected": -2,
+    "success_banner": false,
+    "policy_dirty": true
+  },
+  {
+    "name": "reviewer-replay-after-interrupt",
+    "exit": 1,
+    "expected": 1,
+    "success_banner": false,
+    "policy_dirty": true
+  },
+  {
+    "name": "reviewer-oserror",
+    "exit": 1,
+    "expected": 1,
+    "success_banner": false,
+    "policy_dirty": true
+  }
+]
+
+CONTENT BINDINGS (SHA256)
+runtime/mission-chaining.md e5d01b8b838d015fb85061d5f827b965c29d1cd5abb273f85a2609d04891c774
+tests/test_architecture.py f52f561a221c827bc6668ebc04a4e16fbd688d77eb42276ee48b5af5bfd2de10
+docs/reports/U-CHAIN/run_mutants-r3.py dfbf1328dd8ced8d740e0a156f50cc1aafaa5423a3eb8ba62a2515976def0b62
+docs/reports/U-CHAIN/mutants_core.py 2ddd098e2c4bc6a98ac3cde5b1827212d8743d261bc9f72110240d1064da9e5c
+docs/runs/2026-09-20-clean-sweep-tracker/build-u-chain-r3.md 4b5415407cc65bece717fd0d0fa185dad3e39689e6eab6804fc8b122ad495caa
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-tests-r3-enzg4gxv/replay-r3.txt e914bd17cae2cc2b17f213cce18eda7ea2e7420421de205f5021dafcfeacbdf7
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-tests-r3-enzg4gxv/own-mutants.json 1bbd55f2a799e4872a10c4361a8338236018016db1bac08db3ea5a4090c0a38b
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-tests-r3-enzg4gxv/validator.txt 90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-harness-r3-j5xa0vy9/skipped-control-harness.txt 504384c2bf604970052eb8e00fd3796f681989c1f4a25239813b31844d95db58
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-harness-r3-j5xa0vy9/skipped-control-direct.txt 2008155f325e8158f1352b78ab3e8e9b2fe2ab644565f7cc711b167cc3fb96a4
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-harness-r3-j5xa0vy9/reviewer-real-import-errors.txt 83eecdba9e9a2b0f847ae0dcbed9fccf5178d2219533c1bc466a57d292fdaf3c
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-harness-r3-j5xa0vy9/reviewer-red-controls.txt 4ec0f708c6dd1020e790af87a2093282e30a6f5dc20b4316684acaacfa37672e
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-harness-r3-j5xa0vy9/reviewer-interrupt.txt 95a774f59e70ea5519758a47a03e7830f1b4e517cc87d357f67605ce1d9f4053
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-harness-r3-j5xa0vy9/reviewer-replay-after-interrupt.txt 1c908f21b7c89ca96ca44ac36ad0a8f9ba3f77ad57d4f9a27f5d372f22cf26bd
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-harness-r3-j5xa0vy9/reviewer-oserror.txt 51dff1edc4ef07edc796366ae9b9e2245ceb55efae939dc9c60dbf5c4ad069c8
+
+FINAL VERIFICATION AND BOUNDARIES
+Full-suite command exited 0 at the exact reviewed SHA; final unittest summary:
+  Ran 1707 tests in 274.750s
+  OK
+suite.txt SHA256: 9e38a5ea0e8531cae49f64bc1c78679d47c483acb535fe910b66d40b7b4d79e2
+Both repository scratch clones have empty git status after restoration. The
+original workspace has no tracked diff and no staged diff; only this worker
+report was created by me. Peer review reports were not opened or modified.
+No commit, push, merge, GitHub comment, PR action, or production fix occurred.
+The coordinator receives this report through the authorized Orca worker_done.
+Remaining work: resolve R3-TA-1/2/3 through the coordinator's final-round parking
+protocol; this reviewer has no fixing authority. BOT-6 may be accepted with the
+reason above and retained as cleanup debt. This is only the test axis verdict,
+not a reranking of the independent spec or standards axes.
