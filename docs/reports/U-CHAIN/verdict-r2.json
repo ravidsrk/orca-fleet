@@ -1,0 +1,265 @@
+{
+  "verdict": "NO-GO",
+  "reviewed_sha": "302d43e9e028f93d0698bccaa93f308f1fdbdb63",
+  "reviewed_wtree": "f66caa068a07d574be260054e51118413468cfbf",
+  "findings_summary": {
+    "round": 2,
+    "pr_number": 484,
+    "base_ref": "review/2026-09-20-tracker-sweep",
+    "head_ref": "ravidsrk/u-chain",
+    "rule": "GO only when zero Critical/Required findings remain across all axes and no blocking held bot finding remains; no cross-axis rerank.",
+    "counts": {
+      "critical": 0,
+      "required_axes": 10,
+      "by_axis": {
+        "spec": 1,
+        "standards": 3,
+        "test_adequacy": 6
+      },
+      "valid_held_bots": 2
+    },
+    "summary": "NO-GO: ten Required axis entries and two VALID held bots remain open; overlapping findings retain their separate axis labels and original severities.",
+    "axes": {
+      "spec": [
+        {
+          "id": "SPEC-R2-1",
+          "severity": "Required",
+          "blocking": true,
+          "location": "runtime/mission-chaining.md:44-45",
+          "motivating_quote": "`origin/<default>` for a remote target and a valid LOCAL ref — the local default branch —",
+          "sticking_condition": "Refresh the authoritative remote default before the resume ancestry check; stale cached refs can strand a valid promotion.",
+          "source_report": "docs/reports/U-CHAIN/review-spec-r2.txt",
+          "held_alias": "BOT-4"
+        }
+      ],
+      "standards": [
+        {
+          "id": "S-R2-1",
+          "severity": "Required",
+          "blocking": true,
+          "location": "runtime/mission-chaining.md:44-45",
+          "motivating_quote": "`origin/<default>` for a remote target and a valid LOCAL ref — the local default branch —",
+          "sticking_condition": "Require fresh authoritative remote-default evidence at resume while preserving the offline local-ref lane.",
+          "source_report": "docs/reports/U-CHAIN/review-standards-r2.txt",
+          "held_alias": "BOT-4"
+        },
+        {
+          "id": "S-R2-2",
+          "severity": "Required",
+          "blocking": true,
+          "location": "docs/reports/U-CHAIN/run_mutants-r2.py:6",
+          "motivating_quote": "BASE = Path(\"base-policy.md\").read_text()",
+          "sticking_condition": "Publish or derive the pinned baseline fixture so the mutation harness executes from a clean disposable checkout.",
+          "source_report": "docs/reports/U-CHAIN/review-standards-r2.txt",
+          "held_alias": "BOT-5"
+        },
+        {
+          "id": "S-R2-3",
+          "severity": "Required",
+          "blocking": true,
+          "location": "docs/reports/U-CHAIN/run_mutants-r2.py:101,109,114-115",
+          "motivating_quote": "verdict = \"KILLED (RED)\" if p.returncode != 0 else \"SURVIVOR (GREEN)\"\nsys.exit(1 if surv else 0)",
+          "sticking_condition": "Fail the harness on failed controls and distinguish covering assertion failures from test loading/execution errors.",
+          "source_report": "docs/reports/U-CHAIN/review-standards-r2.txt"
+        }
+      ],
+      "test_adequacy": [
+        {
+          "id": "R2-TA-441",
+          "severity": "Required",
+          "blocking": true,
+          "location": "tests/test_architecture.py:658-665",
+          "motivating_quote": "must(park, r\"(?i)ancestor of the DEFAULT branch\",\nmust(park, r\"(?i)named human.s explicit decision\",",
+          "sticking_condition": "Six survivors reverse or replace ancestry, omit the grant SHA/fork condition, change UNPROMOTED to PROMOTED, or break the offline local-ref requirement.",
+          "source_report": "docs/reports/U-CHAIN/review-tests-r2.txt"
+        },
+        {
+          "id": "R2-TA-443",
+          "severity": "Required",
+          "blocking": true,
+          "location": "tests/test_architecture.py:687-691",
+          "motivating_quote": "for field in (r\"carry id\", r\"input status\"):\nmust(carry, r\"(?i)the human who owns it, and what resumes it\",",
+          "sticking_condition": "Three survivors remove carry source/content/pinning, gate identity/state, or reverse missing-log semantics.",
+          "source_report": "docs/reports/U-CHAIN/review-tests-r2.txt"
+        },
+        {
+          "id": "R2-TA-444",
+          "severity": "Required",
+          "blocking": true,
+          "location": "tests/test_architecture.py:705-711",
+          "motivating_quote": "must(local, r\"(?i)reproduces every cited commit\",",
+          "sticking_condition": "Three survivors remove ancestry preservation, mirror/ref coordinates, or published-artifact integrity binding.",
+          "source_report": "docs/reports/U-CHAIN/review-tests-r2.txt"
+        },
+        {
+          "id": "BOT-4",
+          "severity": "Required",
+          "blocking": true,
+          "location": "runtime/mission-chaining.md:44-46",
+          "motivating_quote": "`origin/<default>` for a remote target and a valid LOCAL ref — the local default branch —",
+          "sticking_condition": "The demonstrated remote-promotion schedule strands resume until the cached default is refreshed.",
+          "source_report": "docs/reports/U-CHAIN/review-tests-r2.txt"
+        },
+        {
+          "id": "BOT-5",
+          "severity": "Required",
+          "blocking": true,
+          "location": "docs/reports/U-CHAIN/run_mutants-r2.py:6",
+          "motivating_quote": "BASE = Path(\"base-policy.md\").read_text()",
+          "sticking_condition": "The committed harness fails before any mutant executes because base-policy.md is unpublished; manual fixture recovery reproduces 13/13.",
+          "source_report": "docs/reports/U-CHAIN/review-tests-r2.txt"
+        },
+        {
+          "id": "R2-HARNESS",
+          "severity": "Required",
+          "blocking": true,
+          "location": "docs/reports/U-CHAIN/run_mutants-r2.py:101,109,115",
+          "motivating_quote": "verdict = \"KILLED (RED)\" if p.returncode != 0 else \"SURVIVOR (GREEN)\"\nsys.exit(1 if surv else 0)",
+          "sticking_condition": "Mutant import errors or failed clean/restored controls can still produce a successful harness exit.",
+          "source_report": "docs/reports/U-CHAIN/review-tests-r2.txt"
+        }
+      ],
+      "held_bots": [
+        {
+          "id": "BOT-4",
+          "severity": "P1",
+          "blocking": true,
+          "tag": "VALID",
+          "location": "runtime/mission-chaining.md:46",
+          "motivating_quote": "`origin/<default>` for a remote target and a valid LOCAL ref — the local default branch —",
+          "sticking_condition": "Stale ref blocks resume",
+          "source_report": "docs/reports/U-CHAIN/integrate-r2.json",
+          "comment_id": 4056505643
+        },
+        {
+          "id": "BOT-5",
+          "severity": "P2",
+          "blocking": true,
+          "tag": "VALID",
+          "location": "docs/reports/U-CHAIN/run_mutants-r2.py:6",
+          "motivating_quote": "BASE = Path(\"base-policy.md\").read_text()",
+          "sticking_condition": "Harness fixture is missing",
+          "source_report": "docs/reports/U-CHAIN/integrate-r2.json",
+          "comment_id": 4056505646
+        }
+      ]
+    },
+    "inputs": [
+      {
+        "path": "docs/reports/U-CHAIN/review-spec-r2.txt",
+        "sha256": "0a5bcdd1a3c26ca8451e392ea39d7099c433e539e9fdf336d44eefa50f0861ec",
+        "reviewed_sha": "0dbc669e5df80934a36a24d120a680b038f9791d"
+      },
+      {
+        "path": "docs/reports/U-CHAIN/review-standards-r2.txt",
+        "sha256": "11095573ec6be1c70ec6820d5363328b6d0534e59a0f483a18d4da15629cb6f5",
+        "reviewed_sha": "0dbc669e5df80934a36a24d120a680b038f9791d"
+      },
+      {
+        "path": "docs/reports/U-CHAIN/review-tests-r2.txt",
+        "sha256": "67ae76558c234a8cbdea67a97935434642fdd299815a6af17eda13cb8f88e144",
+        "reviewed_sha": "0dbc669e5df80934a36a24d120a680b038f9791d"
+      },
+      {
+        "path": "docs/reports/U-CHAIN/integrate-r2.json",
+        "sha256": "e5c1182068083f0d9b619dc057f58582b679a69d4d1a2cd4a627c0bf9df54dc7",
+        "reviewed_sha": "0dbc669e5df80934a36a24d120a680b038f9791d"
+      }
+    ],
+    "closure_status": {
+      "F_1": "Original doctrine correction closed; BOT-4 and resume-test gaps remain.",
+      "F_2": "Original doctrine correction closed; reconstruction-test gaps remain.",
+      "F_3": "Partial; twelve narrower mutants survive.",
+      "F_4": "Closed on independently checked evidence-run receipts.",
+      "F_5": "Closed; explicit adoption preserves the historical artifact.",
+      "F_6": "Closed on ancestry, receipts, and independently green 1707-test suites.",
+      "BOT_3": "Residuals corroborated under R2-TA-441/R2-TA-443; not silently closed."
+    },
+    "source_binding": {
+      "axis_reviewed_sha": "0dbc669e5df80934a36a24d120a680b038f9791d",
+      "successor_diff": [
+        "docs/reports/U-CHAIN/integrate-r2.json"
+      ],
+      "note": "All reviewed policy/test/harness blobs are unchanged; aggregation inspected the integration report at the current PR head."
+    },
+    "freshness_note": "The verdict binds the current PR head before the report-only evidence commit. That commit is code-identical but changes the full Git tree; no identical-full-tree freshness exemption is claimed.",
+    "publication": {
+      "status": "published",
+      "body_path": "docs/reports/U-CHAIN/verdict-r2.md",
+      "body_sha256": "57b09ae788892ebe5854eb57ec8d16158b9b21d613f2495f6559cb1680d069bd",
+      "body_word_count": 289,
+      "egress_receipt": {
+        "id": "1bed6988880e1d48183225e9d7ec5a759b34470643016c777d9f387b8c333967",
+        "ts": "2026-09-20T08:46:12Z",
+        "sink": "pr-review",
+        "host": "github.com",
+        "payload_class": "review-verdict",
+        "bytes": 2293,
+        "payload_sha256": "57b09ae788892ebe5854eb57ec8d16158b9b21d613f2495f6559cb1680d069bd",
+        "consent": "run-2026-09-14-clean-sweep:tracker-writes",
+        "prev": "21d165f4bc6e637f153de1410d718cb17acdc2df6aaca9128e254ef32064eaf4"
+      },
+      "egress_head_digest": "8e2de2ff28025a883482f3fa3eb09d38e0d4c7ad253fcdc879726b0d4a4230a5",
+      "state": "COMMENTED",
+      "review_id": 5260110523,
+      "url": "https://github.com/ravidsrk/orca-fleet/pull/484#pullrequestreview-5260110523",
+      "commit_id": "302d43e9e028f93d0698bccaa93f308f1fdbdb63",
+      "submitted_at": "2026-09-20T08:46:13Z",
+      "verified_body_matches": true
+    },
+    "aggregator_checks": {
+      "commands": [
+        {
+          "label": "suite",
+          "command": "python3 -B -m unittest discover -s tests",
+          "exit": 0,
+          "reviewed_sha": "302d43e9e028f93d0698bccaa93f308f1fdbdb63",
+          "reviewed_wtree": "f66caa068a07d574be260054e51118413468cfbf",
+          "artifact": "docs/reports/U-CHAIN/verdict-suite-r2.txt",
+          "sha256": "024bb0c91a9aa3f22d6080e021d38714b01849c87126bc7c25206a16b79887e6"
+        },
+        {
+          "label": "validate",
+          "command": "python3 -B scripts/validate.py",
+          "exit": 0,
+          "reviewed_sha": "302d43e9e028f93d0698bccaa93f308f1fdbdb63",
+          "reviewed_wtree": "f66caa068a07d574be260054e51118413468cfbf",
+          "artifact": "docs/reports/U-CHAIN/verdict-validate-r2.txt",
+          "sha256": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6"
+        }
+      ],
+      "tests_run": 1707,
+      "failures": [],
+      "suite_duration_s": 304.384,
+      "scope": "Required pre-commit checks in the dispatched worktree at reviewed_sha with untracked review reports present; not coordinator clean-environment verification.",
+      "initial_validation_attempt": {
+        "exit": 1,
+        "reason": "Validator overlapped the full suite temporary playbooks/_frontmatter_probe.md fixture; sequential rerun after suite completion passed."
+      },
+      "independent_aggregation_check": "PASS: no missing IDs, changed severities, count/quote/hash discrepancies, or SHA/tree mismatches; body is 289 words.",
+      "tracked_files_unchanged": true,
+      "diff_check": "Only warnings: review-tests-r2.txt:537 and :837 contain the one-space context marker in verbatim unified mutant diffs; original review evidence bytes are preserved.",
+      "secret_scan": {
+        "command": "gitleaks dir docs/reports/U-CHAIN --no-banner --redact",
+        "exit": 0,
+        "findings": 0
+      }
+    },
+    "evidence_push": {
+      "mode": "Normal fast-forward push to origin/ravidsrk/u-chain; no force.",
+      "egress_receipt": {
+        "id": "124d17cc19085e5bab87524861234b65fb06f85b7848283799d17e956a2b6993",
+        "ts": "2026-09-20T08:49:19Z",
+        "sink": "git-push",
+        "host": "github.com",
+        "payload_class": "branch-update",
+        "bytes": 0,
+        "payload_sha256": null,
+        "consent": "run-2026-09-14-clean-sweep:base-writes",
+        "prev": "8e2de2ff28025a883482f3fa3eb09d38e0d4c7ad253fcdc879726b0d4a4230a5"
+      },
+      "egress_head_digest": "ef429363388c08a6cef5c182458356bc98fbdfc88ac909cb445640f5dfa880db",
+      "note": "Receipt records the authorized push attempt before this report-only evidence commit is created; actual remote commit is verified after push."
+    }
+  }
+}
