@@ -22,7 +22,7 @@ prove-it run, the first tiers earned under the binding gate. Every other row rea
 is the honest state, not a broken gate: three runs kept their artifacts outside this repository;
 one recorded no inventory block; one never recorded its verifier transcript; one pinned an
 inventory to a moved tree; three pin-it runs are bounded re-witnesses, not completed mission runs;
-and two tracker rows are living ledgers — the 2026-09-14 one whose close binds in the next row, and the 2026-09-20 one whose run is still open. The mechanism is
+and two tracker rows are living ledgers — the 2026-09-14 one whose close binds in the next row, and the 2026-09-20 sign-386 one whose run is still open. The mechanism is
 exercised by `tests/test_run_report.py`, which builds real
 git repositories and includes a fully bound positive case alongside a dozen refused ones.
 
@@ -41,6 +41,7 @@ git repositories and includes a fully bound positive case alongside a dozen refu
 | 2026-09-16 | [pin-it](2026-09-16-pin-it-416/) | this catalog's runtime doctrine against the installed Orca 1.4.203 binary (#416) | self-run | no — see `proof_status --check`; pin-it itself stays `doctrine-only` | PINNED-WITH-PARKED (sender-bound behavior replays need a live Orca terminal; OS/remote/paid-trust parks carry over; next re-pin #427) |
 | 2026-09-16 | [prove-it](2026-09-16-prove-it-self-run.md) | this catalog (verify.py kind gate, PF-2) | self-run | yes | COVERED (PF-2; 4/4 mutants killed) |
 | 2026-09-20 | [clean-sweep](2026-09-20-clean-sweep-tracker.md) | this repo (tracker, 10 issues) | self-run | no — the living ledger, not a binding report; binds, or does not, if a later promotion files one | DRY-WITH-PARKED (4 issues closed with evidence after G1/G2 targeted repairs — verify 6/6 + 5/6-disclosed; 6 standing parks; promotion PR #486) |
+| 2026-09-20 | [sign-386](2026-09-20-sign-386.md) | this repo (#386: signed manifests + retention) | self-run | no — the living ledger of a run in flight, not a binding report | IN PROGRESS (U-SIG-1 building) |
 
 ### Self-test campaign 2026-09-16
 
