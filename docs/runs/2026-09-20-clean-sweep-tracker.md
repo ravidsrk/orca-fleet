@@ -2,7 +2,7 @@
 
 RUN: run_bec47e54b673 · COORDINATOR: term_0bae108a-5af7-4d7a-b584-67d05a2787d1 (kimi-code driving shell; coordinator terminal COORD-2026-09-20, background surface) · BASE: review/2026-09-20-tracker-sweep · FORK_POINT: e8ddbd988486694a2985822e557a382b344e2872 (origin/main at T0) · T0: 2026-09-20T06:17:18Z · SOURCE: tracker (10 open at T0: #235 #386 #407 #409 #427 #434 #441 #442 #443 #444; enumeration digest: gh-issue-list-open-count=10) · WIP: builders=2 reviewers=1
 
-PHASE: ORIENT → ENUMERATE → TRIAGE → FREEZE → BOOTSTRAP → BUILDING → PROVING → REFLECTING → DONE (terminal: DRY-WITH-PARKED; promotion PR #486 open, owed to the maintainer with gates G1/G2)
+PHASE: … → REFLECTING → DONE → GATES RESOLVED (b) → TARGETED REPAIRS in flight (then: targeted re-review → merges → closes; PR #486 absorbs the advanced BASE)
 
 Run-close integrity inventory: retained inline in the Final report section at close (this
 ledger is the living run record until then).
@@ -369,6 +369,14 @@ BOOTSTRAP: preflight --base review/2026-09-20-tracker-sweep --fork-point e8ddbd9
   runs non-evidence; recorded in verdict 5260271654). Egress 75751e66. FINAL THREAD
   STATE VERIFIED: #484 6/6, #485 2/2, #486 2/2 resolved — zero unresolved review
   threads across the run's PRs.
+
+- 19:5x G1+G2 RESOLVED (b) — maintainer grant in-session (DECISIONS gate-batch-G1/G2,
+  one-way, human-named). Targeted repair specs frozen (repair-u-chain.md b3fcff7c,
+  repair-u442.md aa6acc52). REPAIR WORKERS dispatched: U-CHAIN task_d74ecf85c11d claude
+  term_e0cbe15b (skip-guard, manifest rebind, 2 test binds); U-442 task_5d3efd6689f4
+  claude term_25c63842 (proof-command agreement, 5 stale refs, 2 coverage mutants +
+  probe-fired). Then: targeted blind re-review (codex, one per unit, scoped to the
+  repair commits only) → conductor merges → closes.
 
 BRANCHES: local worktree checkouts carry the `ravidsrk/` prefix mapping to the unit tips
 (ravidsrk/u-chain, ravidsrk/u-442). Not drift — do not "fix".
