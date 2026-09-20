@@ -69,7 +69,7 @@ Operational specifics: a worktree id is the composite `<repoId>::<worktreePath>`
 (unambiguous) or that full id, never the bare repo id. On Linux, a bare `orca` outside an Orca-managed terminal is usually the GNOME screen reader — use
 `orca-ide` there. After an accepted `worker_done`, run **`worker-release --dispatch <id>`** (Orca preserves inspectable output, then closes only the exact
 agent terminal that dispatch owned) — or `worker-retain` at the user's explicit request. Its exit contract: `retained`, `release_pending`, and
-`already_released` all exit 0 (it is idempotent); **only `release_unknown` exits 1** and needs the receipt's own recovery action
+`already_released` all exit 0 (it is idempotent); an unknown dispatch exits 1 (`dispatch_not_found` at v1.4.204) and needs the receipt's own recovery action
 (`orchestration-worker-specs.ts:101`). The pane that outlived its `worker_done` under a new handle (the old dual-writer class) is now fenced by the runtime at
 settlement; release is still the fleet's hygiene step — never on a timeout, TUI-idle, or a heartbeat gap (those are liveness questions, liveness-resume.md,
 not completion).

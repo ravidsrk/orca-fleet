@@ -3,8 +3,8 @@
   "orca": {
     "repo": "stablyai/orca",
     "commit": "54eaa14756bf80a6deb0b9cb5349fbe8ac3449ec",
-    "version": "v1.4.203",
-    "witnessed": "2026-09-16",
+    "version": "v1.4.204",
+    "witnessed": "2026-09-20",
     "witness": "live",
     "aliases": ["orca", "stablyai/orca"]
   },

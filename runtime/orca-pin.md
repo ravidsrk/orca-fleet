@@ -14,30 +14,26 @@ holds its shape. The two never disagree — a run updates both or neither.
 | Field | Value |
 |---|---|
 | Upstream | `stablyai/orca` (`https://github.com/stablyai/orca`) |
-| Installed version | **v1.4.203** (`orca --version`) |
-| Build commit | `54eaa14756bf80a6deb0b9cb5349fbe8ac3449ec` (`orca-local-build.json`, 2026-09-15) |
-| Witnessed | 2026-09-16 (`live`: installed binary + version-matched guides + build-commit source) |
-| Upstream HEAD then | `feb04ec254585ba69587699d41f80a72dda2cb27` (main, 2026-09-16T05:23:22Z) |
-| Run record | docs/runs/2026-09-16-pin-it-416/ (guides, receipts, park register) |
-| Prior pin | v1.4.200 `2ecde717` (2026-09-13, docs/runs/2026-09-13-pin-it-266/) |
-| Verdict | **PINNED-WITH-PARKED** — sender-bound behavior replays need a live Orca terminal |
+| Installed version | **v1.4.204** (`orca --version`) |
+| Build commit | `357c9780f8bffa10a21d004449d8d6d9846a9310` (`orca-local-build.json`, arm64) |
+| Witnessed | 2026-09-20 (`live`: installed binary + version-matched guides + scratch-Run probes) |
+| Upstream HEAD then | `bd5177801bde74a3cc8073c50e7d6fbad14c305e` (main, 2026-09-20) |
+| Run record | docs/runs/2026-09-20-pin-it-427.md + docs/runs/2026-09-20-pin-it-427/ (receipts, park register) |
+| Prior pin | v1.4.203 `54eaa147` (2026-09-16, docs/runs/2026-09-16-pin-it-416/) |
+| Verdict | **PINNED-WITH-PARKED** — doctor verdict shapes need a per-workspace-env recipe (none on this host); the legacy-takeover live replay needs a legacy Run |
 
-## What moved since v1.4.200 (diff summary)
+## What moved since v1.4.203 (diff summary)
 
-- Guides: 11 of 12 archived references byte-identical; only
-  `orchestration/messaging-and-gates` gained text — group-address scoping (`@all` et al reach
-  the live Dispatches of the sender's own Run; a sender bound to no Run is refused; `--run`
-  never grants membership). No doctrine contradicts it; the `@all` replay probe stays owed.
-- Source anchors at the build commit: every cited anchor re-read — YOLO agent map, release
-  exit contract, readiness turn-start, refusal codes, Delivery batch 50, ask 600s/1800s
-  timeouts, schema line v40, precheck skip, keepalive shape. Content all holds; six line pins
-  drifted by ≤4 lines and were corrected in place.
-- Live at 1.4.203 (plain shell, read-only): scoped/unscoped `worker-list` envelopes,
-  `projection.liveness/attention/nextAction` shapes, `--terminal-state reclaimable`,
-  `--from` refusal, retired `orchestration run` alias, deprecated `terminal stop`.
-- Drift fixed in the re-pin: the pin itself, six line pins, the YOLO env-map sentence, a
-  stale droid comment in `spawn_worker.sh`, and the pin-coupled `test_spawn_worker.py`
-  assertions. No script behavior changed — every behavior the scripts rely on still holds.
+- Guides: **15 of 15 served files byte-identical** (both kernels, all 7 orchestration
+  references, all 3 orca-cli references, orca-per-workspace-env). No guide drift at all.
+- Live at 1.4.204 (scratch Run + workers, full teardown): every claim the 1.4.203 session
+  parked for want of a live terminal replayed and held — bogus-dep refusal, gate-create
+  auto-block, gate-resolve absent from the preamble, ask timeout → PENDING → same-id
+  `--resume`, `--retry-request` dedup/cross-method `request_mismatch`,
+  `nested_worker_depth_exceeded` from a worker's own Run, the group-address contrast.
+- One doctrine patch: the worker-release unknown-dispatch code is **`dispatch_not_found`**
+  at 1.4.204 (refutation receipt docs/runs/2026-09-20-pin-it-427/receipts/p09-release-bogus.json).
+- Drift fixed in the re-pin: the pin itself and that one line. Nothing else moved.
 
 ## Re-pin cadence + owner
 
@@ -48,7 +44,8 @@ A re-pin fires on whichever comes first:
 3. A `SPAWN=NOTE … run pin-it` sighting in the field, or any dispatch-doc drift report.
 
 Owner: the **pin-it** mission (its coordinator runs the loop; the maintainer files the issue).
-Next trigger: **2026-12-16**, filed as issue #427 — it inherits the current park register.
+Next trigger: **2026-12-20** (quarterly from the 2026-09-20 re-pin), to be filed as the
+successor of #427 — it inherits this run's park register (docs/runs/2026-09-20-pin-it-427.md).
 
 ## How to re-pin (so a stranger can reproduce the diff)
 
