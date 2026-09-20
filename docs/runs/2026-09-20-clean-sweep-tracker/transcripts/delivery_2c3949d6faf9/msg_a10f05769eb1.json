@@ -1,0 +1,8 @@
+{
+ "id": "msg_a10f05769eb1",
+ "type": "heartbeat",
+ "created_at": "2026-09-20T07:26:25Z",
+ "subject": "alive",
+ "body": "",
+ "payload": "{\"taskId\":\"task_017a294f6f1a\",\"dispatchId\":\"ctx_bb8c5282bde1\",\"phase\":\"waiting: greptile bot poll on PR #484 (cap 10min)\"}"
+}
