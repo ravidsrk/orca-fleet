@@ -205,5 +205,20 @@ BOOTSTRAP: preflight --base review/2026-09-20-tracker-sweep --fork-point e8ddbd9
   BUILD_DONE=t. INTEGRATOR dispatched: task_4b39f5058111, claude term_5941f8b4 (receipt
   spawn-nUf2ZG) — merges green BASE first, then suite+validate, push, PR, Greptile reconcile.
 
+- 09:4x U-CHAIN round 1 CLOSED OUT: verdict worker (codex) aggregated 9 Required axis findings
+  + 3 held VALID bot findings, posted receipted COMMENTED 'verdict: NO-GO — round 1' on PR
+  #484 (coordinator-verified via gh pr view: review present, first line exact), pushed
+  evidence-only commit 5619d5be (code tree unchanged — conductor tree-check at merge). Round
+  2 fix batch frozen (build-u-chain-r2.md, digest 63ce1e4e…): F-1 promotion=BASE→default +
+  local-ref resume; F-2 bundle/mirror reproduces commits, seed+diff supplemental; F-3
+  operative assertions + whitespace normalize + 6 reviewer mutants RED-recorded; F-4 NC
+  re-recorded via evidence-run.py; F-5 exemplar cited as adopted proposal; F-6 green-BASE
+  merge + full-suite receipt. R2 FIX dispatched: task_bf8332aed4e9, claude
+  term_956f95b3-81a7-4bee-b309-f4878527d0fd (dispatch dispatch-U-CHAIN-r2-fix-3721816605.json
+sw-U-CHAIN-r2-fix-3721816605.json
+tl-U-CHAIN-r2-fix-3721816605.json
+tw-U-CHAIN-r2-fix-3721816605.json), fresh terminal in u-chain
+  worktree per dispatch-lifecycle.
+
 BRANCHES: local worktree checkouts carry the `ravidsrk/` prefix mapping to the unit tips
 (ravidsrk/u-chain, ravidsrk/u-442). Not drift — do not "fix".
