@@ -411,17 +411,28 @@ and both fans completed with full axis isolation — but the breach is the measu
 reviewers=2 produced no throughput gain (both units parked on evidence-layer stickers,
 not on review starvation).
 
-## Run-close integrity inventory (retained inline per the ledger line)
+## Run-close integrity inventory (sha256)
 
-sha256 (first 16) · artifact · producer · ts
-- 4c1a266b53bd8fe3 · docs/runs/2026-09-20-clean-sweep-tracker.md (this ledger, pre-inventory) · coordinator · 2026-09-20T18:3xZ
-- 880c992f5ac8fe72 · gate-batch.md (G1+G2) · coordinator · 2026-09-20T18:3xZ
-- 4c50fba83dd01f7f · docs/DECISIONS.md · coordinator+workers · 2026-09-20T18:3xZ
-- 872605215c4b4e41 / 63ce1e4e0e538557 / 4b5415407cc65bec · build-u-chain{,-r2,-r3}.md · coordinator · frozen at dispatch
-- 7498d20d8e7f580f / 9df586e16c8080ba / 027daa4a46a9f855 · build-u442{,-r2,-r3}.md · coordinator · frozen at dispatch
-- f454ff135603ce6a · build-stab2.md · coordinator · frozen at dispatch
-- unit manifests live UNMERGED on the parked branches (U-CHAIN docs/reports/U-CHAIN/manifest.json @d75b23b1; U-442 docs/reports/u-442/manifest.json @c1d1e59c) — inventoried there, not re-hashed here (parked, unmerged).
-- transcripts: docs/runs/2026-09-20-clean-sweep-tracker/transcripts/<delivery-id>/<msg-id>.json — one per delivered message, committed per window.
+Retained inline per the ledger line. The ledger itself is excluded — a file cannot carry
+its own hash; every other run-record artifact is below, full 64-hex, re-derivable with
+`python3 runtime/scripts/inventory.py check docs/runs/2026-09-20-clean-sweep-tracker.md`.
+Unit manifests live UNMERGED on the parked branches (U-CHAIN docs/reports/U-CHAIN/manifest.json
+@d75b23b1; U-442 docs/reports/u-442/manifest.json @c1d1e59c) — inventoried there, not here.
+Transcripts: docs/runs/2026-09-20-clean-sweep-tracker/transcripts/<delivery-id>/<msg-id>.json —
+one per delivered message, committed per window.
+
+```
+880c992f5ac8fe72536cde726d4625b73bd9f26a803c4324e0668b3625f66815  docs/runs/2026-09-20-clean-sweep-tracker/gate-batch.md
+db43a8a836d6b003c603e9f35c7338bcfd92d688abe62a3a4d7876175d5a0316  docs/runs/2026-09-20-clean-sweep-tracker/REFLECTION.md
+4c50fba83dd01f7fbe7a917354bc6c8490aea70d73b5f915106d5d8b67d97a33  docs/DECISIONS.md
+872605215c4b4e418d9efd1ed518dfeccf7d417283bdd3c3c21670d3a0bcb1cb  docs/runs/2026-09-20-clean-sweep-tracker/build-u-chain.md
+63ce1e4e0e538557ac5661bf6905707c82ad3937061531ec457e2812a4f0a9c8  docs/runs/2026-09-20-clean-sweep-tracker/build-u-chain-r2.md
+4b5415407cc65bece717fd0d0fa185dad3e39689e6eab6804fc8b122ad495caa  docs/runs/2026-09-20-clean-sweep-tracker/build-u-chain-r3.md
+7498d20d8e7f580f986d2abca320b925956808c6da08057a38240e7cff10471f  docs/runs/2026-09-20-clean-sweep-tracker/build-u442.md
+9df586e16c8080baef3799b7564a1fdd284ff23f5cf47c54040e80726a01cabf  docs/runs/2026-09-20-clean-sweep-tracker/build-u442-r2.md
+027daa4a46a9f8555cb520a34aeb0936fa6edad467468cc107edcf92f9f5bce9  docs/runs/2026-09-20-clean-sweep-tracker/build-u442-r3.md
+f454ff135603ce6a93d555bfc0c2b6c61dbb4b1ebd9eb0f7e0ed69698081c195  docs/runs/2026-09-20-clean-sweep-tracker/build-stab2.md
+```
 
 Egress: `egress.py verify` at close — chain intact, 305 receipts, head d0a5005c (UNANCHORED
 by design of the tool's own warning; the head is recorded here as the anchor).

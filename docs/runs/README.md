@@ -40,7 +40,7 @@ git repositories and includes a fully bound positive case alongside a dozen refu
 | 2026-09-14 | [clean-sweep](2026-09-14-clean-sweep-self-run.md) | this repo (tracker close; 10 units, 2 waves) | self-run | yes | DRY-WITH-PARKED (10 units merged, parks disclosed) |
 | 2026-09-16 | [pin-it](2026-09-16-pin-it-416/) | this catalog's runtime doctrine against the installed Orca 1.4.203 binary (#416) | self-run | no — see `proof_status --check`; pin-it itself stays `doctrine-only` | PINNED-WITH-PARKED (sender-bound behavior replays need a live Orca terminal; OS/remote/paid-trust parks carry over; next re-pin #427) |
 | 2026-09-16 | [prove-it](2026-09-16-prove-it-self-run.md) | this catalog (verify.py kind gate, PF-2) | self-run | yes | COVERED (PF-2; 4/4 mutants killed) |
-| 2026-09-20 | [clean-sweep](2026-09-20-clean-sweep-tracker.md) | this repo (tracker, 10 issues) | self-run | no — the living ledger of a run still open, not a binding report; it binds, or does not, at close | IN PROGRESS (BUILDING, wave 1 dispatched) |
+| 2026-09-20 | [clean-sweep](2026-09-20-clean-sweep-tracker.md) | this repo (tracker, 10 issues) | self-run | no — the living ledger, not a binding report; binds, or does not, if a later promotion files one | DRY-WITH-PARKED (2 units built then parked at the review-round budget — gates G1/G2; 8 items parked needs-human / out-of-scope; promotion PR #486) |
 
 ### Self-test campaign 2026-09-16
 
