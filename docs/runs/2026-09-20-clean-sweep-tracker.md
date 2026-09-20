@@ -2,7 +2,10 @@
 
 RUN: run_bec47e54b673 · COORDINATOR: term_0bae108a-5af7-4d7a-b584-67d05a2787d1 (kimi-code driving shell; coordinator terminal COORD-2026-09-20, background surface) · BASE: review/2026-09-20-tracker-sweep · FORK_POINT: e8ddbd988486694a2985822e557a382b344e2872 (origin/main at T0) · T0: 2026-09-20T06:17:18Z · SOURCE: tracker (10 open at T0: #235 #386 #407 #409 #427 #434 #441 #442 #443 #444; enumeration digest: gh-issue-list-open-count=10) · WIP: builders=2 reviewers=1
 
-PHASE: ORIENT → ENUMERATE → TRIAGE → FREEZE → BOOTSTRAP → BUILDING (wave 1: U-CHAIN + U-442 dispatched)
+PHASE: ORIENT → ENUMERATE → TRIAGE → FREEZE → BOOTSTRAP → BUILDING (wave 1: U-CHAIN built, integrating; U-442 building; STAB-2 fixing)
+
+Run-close integrity inventory: retained inline in the Final report section at close (this
+ledger is the living run record until then).
 
 Substrate notes: orca 1.4.204 on PATH vs pins.json live PIN v1.4.203 — patch bump, rides per #427
 trigger rules (drift NOTE, not refusal; re-witness is pin-it's loop). claude + codex CLIs on PATH
@@ -73,7 +76,8 @@ one unit or park; no id without a unit; no unit without an id.
 | — | #409 | harden-it self-run promotion | out-of-scope | — | — | — | — | — | — | — | out-of-scope: harden-it mission run + human PoC gate | issue re-scope comment |
 | — | #427 | Orca re-pin cadence | out-of-scope | — | — | — | — | — | — | — | out-of-scope: pin-it, trigger not fired (patch bump rides; 2026-12-16) | issue trigger rules |
 | — | #434 | proof-ladder diagram regen | needs-human | — | — | — | — | — | — | — | needs-human: provider render key secret absent (gh secret list empty) | gate comment + probe |
-| U-CHAIN | #441 #443 #444 | mission-chaining: promotion lane terminal, deferral-carry shape, local-only re-derivability | real-feature-small (doctrine) | f | f | f | f | f | f | lit | — | — |
+| U-CHAIN | #441 #443 #444 | mission-chaining: promotion lane terminal, deferral-carry shape, local-only re-derivability | real-feature-small (doctrine) | t | f | f | f | f | f | lit | — | head 5328cc86 on ravidsrk/u-chain; suite red = STAB-2's 5, no new red |
+| STAB-2 | — | repair 5 suite regressions from STABILIZE (index row + README rewire) | conductor landing, worker-executed | f | n/a | n/a | n/a | f | f | lit | — | spec build-stab2.md |
 | U-442 | #442 | verify.py cross-repo evidence root (--git-dir/--evidence-root split) | real-feature-small (tooling) | f | f | f | f | f | f | lit | — | — |
 
 ## Loop log
@@ -118,6 +122,46 @@ one unit or park; no id without a unit; no unit without an id.
   then removed, worktree rm OK, branch u-chain carried no commits (rm cleaned it). Acked.
 
 BOOTSTRAP: preflight --base review/2026-09-20-tracker-sweep --fork-point e8ddbd988486 --require-gitleaks → OK (repo=ravidsrk/orca-fleet). BASE ≠ default; fork-point == merge-base(BASE, origin/main).
+
+- 07:1x DELIVERY delivery_62cf294b1cdc (5 msgs, transcribed+acked): U-CHAIN ESCALATION
+  msg_a75b2c0447b5 — build complete/green on owned criteria but AC-3 (full suite green)
+  unmeetable: 5 tests RED at head 315ad409 AND at BASE a58bf71a, byte-identical sets, caused
+  by STABILIZE 296f100b (run ledger missing docs/runs/README.md index row → 4 failures) +
+  3833c88e (README.md off wire_docs.py fixed point → 1 failure). Builder correctly STOPPED
+  (out of its scope). COORDINATOR REPRODUCED: 39 tests OK at e8ddbd98 (origin/main), 5 RED
+  at a58bf71a (/tmp/verify-stab detached worktree, whole output captured). Run-own regression
+  → STAB-2 frozen (build-stab2.md), task_86f696b9efc8, worktree stab-2 (ravidsrk/stab-2),
+  dispatched custom-argv claude: HANDLE term_1464f749-d82e-49c9-8f41-df7a976cb7b3,
+  dispatch ctx_62655b197318 (UNPROVEN exit 3 → pane read: live mid-turn, bypass on). Chose
+  escalation's option (b): repair BEFORE U-CHAIN lands; U-CHAIN worker_done under (a) with
+  AC-3 parked 'no new red' is accepted for harvest, but CLOSE requires the suite green at
+  the merge tip — STAB-2 lands first.
+
+- 07:3x U-CHAIN worker_done msg_a4f3e8d7d8bf (succeeded, transcribed+acked delivery_5bf5965953b9).
+  HARVEST (coordinator, independent): 3 commits on ravidsrk/u-chain (5ecf74e5 RED test →
+  315ad409 GREEN doc → 5328cc86 evidence), author=maintainer, no trailers, tree clean; scope =
+  mission-chaining.md + test_architecture.py + badges/tests.json + docs/reports/U-CHAIN/*
+  (owned files only); manifest contract.digest == frozen spec digest 87260521… @a58bf71a,
+  5/5 criteria, NC executed (revert + 4 per-clause hand mutants, all KILLED), intent non-empty,
+  lighting=lit, suite cmd exit 1 = the 5 known STABILIZE regressions (STAB-2 repairs). Doc
+  spot-check: PARKED-AT-PROMOTION resume rule, handoff-log shape, local-only bytes clause all
+  present and substantive. BUILD_DONE=t. INTEGRATOR dispatched: task_017a294f6f1a (dep build),
+  HANDLE term_452b7a7a-997d-49c8-8381-aa1c4e24a029, dispatch ctx_bb8c5282bde1 (UNPROVEN → pane
+  live). SUBSTRATE: claude account at 79% weekly limit (pane warning) — review wave prefers
+  codex (cross-vendor, limit ended 09-19); egress standing grants recorded for the integrator
+  (base-writes + tracker-writes consent ids sent).
+
+- 07:5x DELIVERY delivery_4509bd75d780 (3 msgs): STAB-2 QUESTION msg_b7e2def2ebb1 — the two
+  named files cannot green the suite: (2) test_run_archive_integrity reads the LEDGER for
+  /integrity inventory[^.]*retained/ (the line above, added by coordinator — my freeze-time
+  omission); (3) wire_docs.py hardcodes the stale 'today every mission reads doctrine-only'
+  alt (line 27) so running it REVERTS 3833c88e's repair, and docs/concepts.md:423 carries the
+  same stale alt. REPLIED: coordinator repairs its own ledger on BASE (this edit); STAB-2
+  scope widened to wire_docs.py + docs/concepts.md — fix NEW_ALT['proof-ladder'] at source,
+  commit everything the script writes (DECISIONS x2, 07:5xZ). #434 pixel regen untouched.
+  Review-wave DAG materialized: SPEC=task_b6c94c187b09 STANDARDS=task_067ec69be832
+  TEST-ADEQUACY=task_1eba2dcf50f5 (deps: integrator task_017a294f6f1a; verdict task owed
+  after axes report).
 
 BRANCHES: local worktree checkouts carry the `ravidsrk/` prefix mapping to the unit tips
 (ravidsrk/u-chain, ravidsrk/u-442). Not drift — do not "fix".
