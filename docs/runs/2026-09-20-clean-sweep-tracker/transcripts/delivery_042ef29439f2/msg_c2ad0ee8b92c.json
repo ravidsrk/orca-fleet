@@ -1,0 +1,8 @@
+{
+ "id": "msg_c2ad0ee8b92c",
+ "type": "heartbeat",
+ "created_at": "2026-09-20T08:32:09Z",
+ "subject": "Review pinned; blind expectation recorded",
+ "body": "Blind expectation for all six fixes is in the authorized report before opening the r2 diff. Observed HEAD is 302d43e9, an integration-receipt successor; mutation executions will use requested 0dbc669e, with the successor checked for scope.",
+ "payload": "{\"taskId\":\"task_e842d3e68c58\",\"dispatchId\":\"ctx_f63d3ad1c14a\",\"phase\":\"investigating\"}"
+}
