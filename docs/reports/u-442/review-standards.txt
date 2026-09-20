@@ -1,0 +1,149 @@
+U-442 STANDARDS REVIEW
+
+BLIND EXPECTATION — written before reading the implementation or diff
+Recorded: 2026-09-20T08:11:03.009531+00:00
+Source read: docs/runs/2026-09-20-clean-sweep-tracker/build-u442.md, including its quoted #442 finding.
+Expected location: runtime/scripts/verify.py, verifier tests under tests/, and a short cross-repo usage note in runtime/evidence-manifest.md.
+Expected shape: introduce explicit, separately validated git and evidence roots; use the git root consistently for commit, ancestry, and revision lookups, and the evidence root consistently for evidence-path resolution and confinement. Keep subprocess calls as argv lists and preserve absent-option behavior. Invalid roots and escaping paths should refuse rather than fall back. Tests should create independent evidence/SHA repositories, cover default compatibility and escape refusal, and include the executed negative control required by the spec. No new dependencies or unrelated script changes should be needed.
+Confidence: high about the split and confinement requirements; medium about the smallest implementation because I have deliberately not inspected verify.py yet.
+
+
+REVIEW BINDING
+reviewed_sha: a5f84978548a00a97cfcc11614aa6bdfd71683e6
+fixed_point: origin/review/2026-09-20-tracker-sweep
+fixed_point_sha: 6d847e486696253731d98ef4322952fceeb216dc
+merge_base_sha: 0f8cb8a24a7a1db742194d86f12703e79da0f55a
+comparison: git diff 0f8cb8a24a7a1db742194d86f12703e79da0f55a...a5f84978548a00a97cfcc11614aa6bdfd71683e6
+axis: STANDARDS only; no cross-axis ranking
+verdict: NO-GO
+counts: Critical=0 Required=2 Nit=0 Optional=0 FYI=0
+
+EXECUTIVE SUMMARY
+The root split matches the blind expectation structurally, but two existing evidence consumers do not preserve the correct authority after the split. Same-named target-repository artifacts bypass the evidence-root file and inventory, and the symbol-on-base check still searches the process cwd. Both returned verify: OK in independent scratch fixtures. These are Required violations of the documented fail-closed and authoritative-evidence standards. Argv handling, dependency scope, runtime line/byte budgets, and the Fowler baseline present no further actionable findings.
+
+FINDINGS
+
+STD-1 — Required — A same-named target blob bypasses evidence-root pinning
+Location: runtime/scripts/verify.py:275-278 (changed line 276).
+Verbatim motivating lines:
+    if head and HEX40_RE.match(str(head)) and _git(["cat-file", "-e", f"{head}:{path}"])[0] == 0:
+        code, out, gerr = _git_bytes(["show", f"{head}:{path}"])
+        if code == 0:
+            return out, None
+
+Documented standards:
+- CONTRIBUTING.md:107-108: "`runtime/scripts/` is shared tooling: shell/Python, stdlib only, no secrets (env vars only)," / "fail-closed exits documented in the header comment."
+- runtime/evidence-manifest.md:128: "Unreadable named evidence fails closed."
+- runtime/evidence-manifest.md:79-82 requires repo-relative, pinned evidence; line 119 moves that bound to --evidence-root for cross-repo runs.
+- The new CLI promise at verify.py:2101-2102 says: "--git-dir. Cross-repo evidence is never tracked at head_sha, so it " / "passes only on its artifacts[] sha256 pin".
+
+The resolver bounds a pathname under repo A, but this branch tests and reads the same relative name in repo B and returns before reading the resolved file or consulting artifacts[]. Repository-relative path equality does not establish artifact identity across repositories. An unrelated blob in B can therefore replace missing or differently inventoried evidence in A, and every read_artifact consumer (including redaction and negative-control corroboration) sees the substitute bytes.
+
+Reproduced with the branch's CrossRepoRoots fixture: copy its corroborating nc.txt to the same relative path in repo B, commit it and refresh head_sha/head_tree; emit the manifest with artifacts=[]; delete nc.txt from repo A; invoke with --git-dir B --evidence-root A. Result: evidence-root file absent, no inventory pin, exit 0 and "verify: OK — all required checks passed". GitHub review lookup is the fixture's existing stub; root resolution, git reads, artifact checking and final verifier result are real.
+
+Required correction: permit the tracked-at-head shortcut only when that blob identifies the actual evidence-root artifact; for a separate evidence repository, read the bounded evidence file and require its matching inventory hash. Cover same-relative-name collisions and missing/mismatched evidence, preserving ordinary single-repo behavior.
+Confidence: high; reproduced end to end without changing production code.
+
+STD-2 — Required — Symbol-on-base can approve the evidence repository's symbol
+Location: runtime/scripts/verify.py:1720, missed by the root-routing change at 135-143.
+Verbatim motivating line:
+    code, out, _ = _run(["git", "grep", "-l", "-e", symbol, f"origin/{base}"])
+
+Documented standards:
+- ARCHITECTURE.md:96: "An **independent verifier** then checks facts against authoritative state: does the commit exist"
+  followed at 97 by "on the intended base, does mutating the fix break the proof, does an APPROVED GitHub review sit at".
+- runtime/evidence-manifest.md:133: "| The change is real on base *(mutation units)* | after merge, a file/symbol from the unit is greppable on `origin/<base_branch>` |".
+
+This direct _run call bypasses _git, so --git-dir changes commit/ancestry checks to repo B while --symbol still searches repo A (the cwd). A matching symbol in A silently satisfies a claim about B; a legitimate symbol present only in B is falsely refused. Although the helper is documented as best-effort, supplying both --symbol and --base runs a required failure-producing check, which must inspect the named target repository.
+
+Reproduced with CrossRepoRoots: commit ROOT_A_SENTINEL only in A; create origin/main refs in A and B at their respective heads; run with --git-dir B --evidence-root A --base main --symbol ROOT_A_SENTINEL. Direct target _git grep returns (1, ''), but check_symbol_on_base returns [], and the full verifier exits 0 with "verify: OK — all required checks passed".
+
+Required correction: route the symbol grep through the git-root-aware adapter and cover opposite symbol contents in the two repos.
+Confidence: high; reproduced end to end. The motivating line is unchanged, but its repository-selection bug becomes reachable through the new root options.
+
+STANDARDS AND FOWLER COVERAGE
+Sources: frozen build-u442.md first; then ARCHITECTURE.md, AGENTS.md, CONTRIBUTING.md, playbooks/acceptance-review.md, runtime/evidence-manifest.md, runtime/sandbox-policy.md, neighboring verify.py and fixture code. The scripts argv rule is documented in runtime/sandbox-policy.md:135-139, not literally in the current AGENTS.md; the stdlib/fail-closed rule is in CONTRIBUTING.md:107-108.
+
+Applied all 12 smells per changed code hunk: Mysterious Name, Duplicated Code, Feature Envy, Data Clumps, Primitive Obsession, Repeated Switches, Shotgun Surgery, Divergent Change, Speculative Generality, Message Chains, Middle Man, Refused Bequest. A separate read-only Fowler subreview independently found no actionable smell. Hunk groups covered: root state/adapters; resolver and read substitutions; argument validation and CLI wiring; CrossRepoRoots setup/helpers/cases; width-pin changes. Small text/byte wrapper duplication matches neighboring _run/_run_bytes; fixture duplication is justified by two-repository setup; incident comments follow the repository's explicit preservation guidance. Generated activation-load updates are coupled to the shared policy edit, not a separate architectural smell. No subjective smell is promoted to a hard rule.
+
+No new imports or dependencies; new git operations pass argv arrays without a shell. Invalid root handling fails with usage exit 1; existing escape/absolute-path guards remain. Runtime evidence-manifest.md is 160 lines at both base and head, growing from 22,072 to 22,317 bytes, below the 38,400-byte cap. The width-pin increase is explicitly justified in its test docstring and retains the original <92 boundary. Tool-enforced concerns are recorded as checks, not duplicate review findings.
+
+VALIDATION
+All executable checks ran in a separate detached scratch clone of reviewed_sha, outside the requested worktree:
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-standards-acubj1hi/repo
+- python3 scripts/validate.py: exit 0, all 21 missions valid.
+- python3 -m unittest discover -s tests -p test_verify.py -q: exit 0; 255 tests in 39.954s, OK.
+- git diff --check over the pinned comparison: exit 0.
+- python3 -m unittest discover -s tests -q: exit 0; 1,714 tests in 300.602s, OK.
+- Two focused reproductions: process exit 0; both unexpectedly approved, as documented above.
+- Scratch reproduction source: ../reproduce.py; captured output: ../reproduction.txt; full-suite output: ../full-suite.txt (relative to the scratch clone).
+No production mutations or revert control were performed. Fixture repositories and generated test files stayed outside the reviewed worktree. Existing builder evidence was not treated as proof of current correctness.
+
+REPRODUCTION OUTPUT (selected, verbatim)
+COLLISION: evidence-root artifact exists: False
+COLLISION: artifacts[] is empty
+COLLISION: verifier exit: 0
+verify: OK — all required checks passed
+SYMBOL: actual SHA-repo search: (1, '')
+SYMBOL: verifier findings: []
+SYMBOL: verifier exit: 0
+verify: OK — all required checks passed
+
+BOUNDARY
+Only docs/reports/u-442/review-standards.txt is authored in the requested worktree; it remains uncommitted. Parallel reviewers' report files are not ours and were not read, changed or staged. No commits, fixes, PR actions or human-channel messages were made. This is the standards-axis verdict, not the overall multi-axis review.
+
+DURABLE REPRODUCTION SCRIPT
+Save this outside the reviewed repository as reproduce.py next to a scratch clone named repo
+checked out at reviewed_sha, then run python3 reproduce.py. Only disposable fixture repos mutate.
+
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent / "repo" / "tests"))
+from test_verify import CrossRepoRoots, verify
+
+def collision():
+    case=CrossRepoRoots()
+    case.setUp()
+    try:
+        a=case.repo/case.nc_artifact
+        b=case.repo_b/case.nc_artifact
+        b.parent.mkdir(parents=True, exist_ok=True)
+        b.write_bytes(a.read_bytes())
+        case.head_sha=case.commit_b("same-name artifact in SHA repository")
+        case.head_tree=case.git_b("rev-parse", "HEAD^{tree}")
+        manifest=case._manifest(artifacts=[])
+        a.unlink()
+        code,out=case._run_main(manifest,"--git-dir",str(case.repo_b),"--evidence-root",str(case.repo))
+        print("COLLISION: evidence-root artifact exists:",a.exists())
+        print("COLLISION: artifacts[] is empty")
+        print("COLLISION: verifier exit:",code)
+        print(out)
+    finally:
+        case.doCleanups()
+
+def wrong_symbol_repo():
+    case=CrossRepoRoots()
+    case.setUp()
+    try:
+        case.write("only-in-evidence.txt", "ROOT_A_SENTINEL\n")
+        a=case.commit("evidence repository sentinel")
+        case.git("update-ref","refs/remotes/origin/main",a)
+        case.git_b("update-ref","refs/remotes/origin/main",case.head_sha)
+        verify._ROOTS.update(git=str(case.repo_b),evidence=str(case.repo))
+        print("SYMBOL: actual SHA-repo search:",verify._git(["grep","-l","-e","ROOT_A_SENTINEL","origin/main"]))
+        print("SYMBOL: verifier findings:",verify.check_symbol_on_base("ROOT_A_SENTINEL","main"))
+        code,out=case._run_main(case._manifest(),"--git-dir",str(case.repo_b),"--evidence-root",str(case.repo),"--base","main","--symbol","ROOT_A_SENTINEL")
+        print("SYMBOL: verifier exit:",code)
+        print(out)
+    finally:
+        case.doCleanups()
+
+collision()
+wrong_symbol_repo()
+
+FINAL CHECK
+Completed: 2026-09-20T08:17:35.347508+00:00
+Reviewed HEAD unchanged: a5f84978548a00a97cfcc11614aa6bdfd71683e6
+Python: 3.13.15
+The moving fixed-point ref now resolves to acbc1aba242b5c1ab3e8511c7137b22111a2f03f; this report remains bound to the initially captured fixed_point_sha and merge_base_sha above.
+Review complete within the 30-minute budget; no tests or review work remain pending. Both Required findings remain unresolved because this dispatch authorizes review only.
