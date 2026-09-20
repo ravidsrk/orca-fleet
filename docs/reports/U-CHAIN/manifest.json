@@ -471,8 +471,8 @@
   "artifact_paths": "Each record's `artifact` field was rewritten from its scratch path to the repository path the identical bytes were then committed at; the sha256 values under `artifacts` are of those committed bytes.",
   "evidence_commit": "head_sha names the IMPLEMENTATION commit. This manifest and its transcripts land in a following evidence-only commit, as in round 1."
  },
- "base_tip_at_round_3": "adf41be8c0c013d4b125be532635018c61d99ec5",
- "base_tip_note": "base_sha stays ed51fe11 — the commit the unit's policy work forked from and the blob the negative control reverts to. BASE (review/2026-09-20-tracker-sweep) advanced to adf41be8c0c013d4b125be532635018c61d99ec5 during round 3 and was merged into the branch (docs/runs additions only, no conflict) before any round-3 edit.",
+ "base_tip_at_round_3": "9ae38a7961a48c154a8be314b2cc6ae6584a1d75",
+ "base_tip_note": "base_sha stays ed51fe11 — the commit the unit's policy work forked from and the blob the negative control reverts to. BASE (review/2026-09-20-tracker-sweep) advanced twice during round 3, to adf41be8 before the fix and to 9ae38a7961a48c154a8be314b2cc6ae6584a1d75 after the evidence commit; both were merged into the branch (docs/runs additions only, no conflict). The contract test, validate.py and the 31-case battery were re-run green after the second merge. head_sha 5bd2eb07 is unchanged by either merge and its tree is still bound by the exit-0 contract-test record.",
  "round_3_findings": [
   {
    "id": "G-1",
