@@ -3120,5 +3120,180 @@ class OracleScopeCharacterizationGateTest(RepoCase):
             ["oracle scope: requires a pinned hand-mutant artifact"])
 
 
+class CrossRepoRoots(RepoCase):
+    """#442: a chained-run manifest lives in ONE repo and pins SHAs in ANOTHER.
+
+    verify.py ran every git leg in the process cwd and bounded every evidence path against that
+    same toplevel, so a cross-repo manifest satisfied neither invocation: run it in the fleet repo
+    (where the chaining report lives) and the leg SHAs are "not a real commit"; run it in the target
+    repo and every evidence path is "unreadable". There was no third place to stand. `--git-dir`
+    and `--evidence-root` name the two roots separately; absent, resolution is exactly as before.
+
+    Repo A (this case's repo, and the cwd) holds the manifest, the contract and the artifacts.
+    Repo B is a second scratch repo holding the commits the manifest pins.
+    """
+
+    def setUp(self):
+        super().setUp()
+        # Repo B — the TARGET repo: the only place base_sha/head_sha exist.
+        self._td_b = _temp_repo(prefix="orca-u442-b-")
+        self.addCleanup(self._td_b.cleanup)
+        self.repo_b = Path(self._td_b.name).resolve()
+        self.git_b("init", "-q", "-b", "main")
+        (self.repo_b / "app.py").write_text("def f():\n    return 1\n", encoding="utf-8")
+        (self.repo_b / "check.py").write_text(
+            "import app\nassert app.f() == 2, 'AC-1 violated'\n", encoding="utf-8")
+        self.base_sha = self.commit_b("base")
+        (self.repo_b / "app.py").write_text("def f():\n    return 2\n", encoding="utf-8")
+        self.head_sha = self.commit_b("head")
+        self.head_tree = self.git_b("rev-parse", "HEAD^{tree}")
+
+        # Repo A — the EVIDENCE repo: contract and artifacts, named relatively as a manifest
+        # names them, pinned by artifacts[] because they are not tracked at repo B's head_sha.
+        self.contract = self.src(["AC-1"])
+        self.contract_digest = RepoCase.digest(self, self.contract)
+        self.nc_artifact = self.artifact("mutant m7 was KILLED — proof went RED\n")
+        self.proof_cmd = f"{shlex.quote(sys.executable)} check.py"
+
+        self._orig_r, self._orig_a = verify.fetch_reviews, verify.fetch_pr_author
+        verify.fetch_reviews = lambda repo_, n: (
+            [{"state": "APPROVED", "commit_id": self.head_sha, "user": {"login": "carol"}}], None)
+        verify.fetch_pr_author = lambda repo_, n: "alice"
+        self.addCleanup(self._restore_gh)
+        self.addCleanup(self._reset_roots)
+
+    def _reset_roots(self):
+        # main() writes the roots as PROCESS state, so a later case must not inherit them.
+        # getattr, because this has to survive the control run too: with the split reverted
+        # there is no _ROOTS, and a teardown that raises there would turn every assertion in
+        # this class into an error — a stillborn mutant instead of a kill.
+        getattr(verify, "_ROOTS", {}).update(git=None, evidence=None)
+
+    def _restore_gh(self):
+        verify.fetch_reviews, verify.fetch_pr_author = self._orig_r, self._orig_a
+
+    def git_b(self, *args):
+        return subprocess.run(["git", *args], cwd=self.repo_b, check=True,
+                              capture_output=True, text=True).stdout.strip()
+
+    def commit_b(self, message):
+        self.git_b("add", "-A")
+        self.git_b("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", message)
+        return self.git_b("rev-parse", "HEAD")
+
+    def _manifest(self, **over):
+        m = {"unit": "chain-leg-1",
+             "base_sha": self.base_sha, "head_sha": self.head_sha,
+             "contract": {"source": self.contract, "digest": self.contract_digest,
+                          "criterion_ids": ["AC-1"]},
+             "criteria": _crit("AC-1"),
+             "artifacts": [self.pin(self.nc_artifact)],
+             "pr": {"number": 7, "reviewed_sha": self.head_sha},
+             "negative_control": {"tool": "mutmut", "result": "KILLED", "mutant": "m7",
+                                  "artifact": self.nc_artifact},
+             "commands": [{"label": "tests", "cmd": self.proof_cmd,
+                           "cmd_sha256": hashlib.sha256(
+                               self.proof_cmd.encode("utf-8")).hexdigest(),
+                           "exit": 0, "wtree": self.head_tree,
+                           "artifact": self.nc_artifact}],
+             "intent": {"goal": "land the chained leg", "ruled_out": "a single-repo manifest",
+                        "why": "the criterion demands it"},
+             "reviewer_mode": "cross-vendor", "lighting": "lit"}
+        m.update(over)
+        path = self.repo / "manifest.json"
+        path.write_text(json.dumps(m), encoding="utf-8")
+        return str(path)
+
+    def _run_main(self, path, *extra):
+        """(exit code, combined output). argparse answers an option it does not know by exiting,
+        which is a verdict on the invocation — "this verifier cannot be asked that" — so it is
+        reported as the code it is and asserted on. Letting it raise past the assertion is how a
+        missing flag reads as a test ERROR rather than the failure it is, and the negative control
+        for this unit is precisely a verifier that does not know these two options yet."""
+        buf, errbuf = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(errbuf):
+            try:
+                rc = verify.main(["--manifest", path,
+                                  "--contract-source", self.contract,
+                                  "--contract-digest", self.contract_digest,
+                                  "--repo", "o/r", "--unit-class", "mutation", "--lighting", "lit",
+                                  *extra])
+            except SystemExit as exit_:
+                rc = exit_.code
+        return rc, buf.getvalue() + errbuf.getvalue()
+
+    def test_split_roots_verify_a_cross_repo_manifest_end_to_end(self):
+        """The unit's whole point: evidence in repo A, SHAs in repo B, GREEN in one invocation."""
+        rc, out = self._run_main(self._manifest(),
+                                 "--git-dir", str(self.repo_b),
+                                 "--evidence-root", str(self.repo))
+        self.assertEqual(rc, 0, out)
+        self.assertIn("verify: OK", out)
+
+    def test_without_the_split_the_same_manifest_cannot_verify(self):
+        """The negative control for the feature itself: one root cannot reach both authorities.
+
+        Standing in the evidence repo, the pinned commits do not exist — which is exactly the
+        state #442 reported, and exactly what the two flags (and only they) resolve.
+        """
+        rc, out = self._run_main(self._manifest())
+        self.assertEqual(rc, 2, out)
+        self.assertTrue(any(f"'{sha}' is not a real commit" in out
+                            for sha in (self.base_sha, self.head_sha)), out)
+
+    def test_git_dir_alone_leaves_evidence_resolution_where_it_was(self):
+        """--evidence-root is not implied by --git-dir: absent, evidence still resolves against
+        the CWD's toplevel. Pointing only the git leg away must not silently move the bound."""
+        rc, out = self._run_main(self._manifest(), "--git-dir", str(self.repo_b))
+        self.assertEqual(rc, 0, out)
+
+    def test_an_escaping_evidence_path_is_still_refused_against_the_named_root(self):
+        """#267 is preserved, not relaxed: the root moved, the bound did not."""
+        m = self._manifest(negative_control={"tool": "mutmut", "result": "KILLED", "mutant": "m7",
+                                             "artifact": "../outside/nc.txt"})
+        rc, out = self._run_main(m, "--git-dir", str(self.repo_b),
+                                 "--evidence-root", str(self.repo))
+        self.assertEqual(rc, 2, out)
+        self.assertIn("escapes the evidence root", out)
+
+    def test_an_absolute_evidence_path_is_still_refused_against_the_named_root(self):
+        outside = Path(self._td_b.name) / "nc.txt"
+        outside.write_text("mutant m7 was KILLED\n", encoding="utf-8")
+        m = self._manifest(negative_control={"tool": "mutmut", "result": "KILLED", "mutant": "m7",
+                                             "artifact": str(outside)})
+        rc, out = self._run_main(m, "--git-dir", str(self.repo_b),
+                                 "--evidence-root", str(self.repo))
+        self.assertEqual(rc, 2, out)
+        self.assertIn("absolute evidence path refused", out)
+
+    def test_an_unpinned_cross_repo_artifact_is_refused(self):
+        """Cross-repo evidence can never be "tracked at head_sha" — the other repo does not hold
+        it — so artifacts[] is the ONLY thing standing between the auditor and a rewritable file.
+        Dropping the pin must fail, or the split would have bought a way around #267."""
+        rc, out = self._run_main(self._manifest(artifacts=[]),
+                                 "--git-dir", str(self.repo_b),
+                                 "--evidence-root", str(self.repo))
+        self.assertEqual(rc, 2, out)
+        self.assertIn("unpinned evidence", out)
+
+    def test_a_root_outside_a_git_repo_is_refused(self):
+        """Evidence an auditor cannot re-derive from a clone is what #267 refuses; --evidence-root
+        names WHICH clone, never an unversioned directory."""
+        with _temp_repo(prefix="orca-u442-bare-") as loose:
+            for flag in ("--git-dir", "--evidence-root"):
+                with self.subTest(flag=flag):
+                    rc, out = self._run_main(self._manifest(), flag, loose)
+                    self.assertEqual(rc, 1, out)
+                    self.assertIn("not inside a git work tree", out)
+
+    def test_help_documents_both_roots(self):
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf), self.assertRaises(SystemExit):
+            verify.main(["--help"])
+        text = buf.getvalue()
+        for flag in ("--git-dir", "--evidence-root"):
+            self.assertIn(flag, text)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
