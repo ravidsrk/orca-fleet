@@ -177,6 +177,39 @@ def _toplevel():
     return top if code == 0 else None
 
 
+def _evidence_toplevel():
+    """The toplevel that BOUNDS evidence paths: --evidence-root when named, else the repo the
+    verifier was RUN IN — derived WITHOUT the --git-dir prefix, so pointing the SHA legs at
+    another clone never silently moves this bound (#442)."""
+    top = _ROOTS["evidence"]
+    if top is None:
+        code, out, _ = _run(["git", "rev-parse", "--show-toplevel"])
+        top = out.strip() if code == 0 else None
+    return top
+
+
+def _roots_are_split():
+    """True when the SHAs and the evidence live in DIFFERENT repositories (#442).
+
+    The tracked-at-head_sha shortcut in _read_artifact is a SINGLE-REPO identity: `the file I
+    resolved IS the blob git tracks at that commit`. Across two roots that identity does not
+    hold — the SHA repo may carry an unrelated file at the same relative path, and its bytes are
+    commit-pinned to the WRONG repository. So the split is what decides whether the shortcut is
+    even available; under a split, evidence passes only on its artifacts[] pin, read from the
+    evidence root. Two clones of one project are two repositories here: same paths, different
+    roots, so the pin still governs. Identity must be PROVEN — if either toplevel cannot be
+    resolved we fail closed and treat the roots as split."""
+    if _ROOTS["git"] is None and _ROOTS["evidence"] is None:
+        return False
+    sha_top, ev_top = _toplevel(), _evidence_toplevel()
+    if sha_top is None or ev_top is None:
+        return True
+    try:
+        return Path(sha_top).resolve() != Path(ev_top).resolve()
+    except OSError:  # pragma: no cover — resolve() rarely raises on POSIX
+        return True
+
+
 def _resolve(path):
     """Resolve a manifest-relative path against the evidence root. Returns (Path|None, err).
 
@@ -192,12 +225,7 @@ def _resolve(path):
     bound = "the evidence root" if _ROOTS["evidence"] is not None else "the repo toplevel"
     if p.parts and p.parts[0] == "..":
         return None, f"evidence path escapes {bound} (#267): {path}"
-    top = _ROOTS["evidence"]
-    if top is None:
-        # The toplevel of the repo the verifier was RUN IN, derived WITHOUT the --git-dir prefix:
-        # pointing the SHA legs at another clone must never silently move this bound (#442).
-        code, out, _ = _run(["git", "rev-parse", "--show-toplevel"])
-        top = out.strip() if code == 0 else None
+    top = _evidence_toplevel()
     if top is None:
         return None, "not inside a git repo — no toplevel to bound the evidence path against (#267)"
     root = Path(top).resolve()
@@ -272,7 +300,9 @@ def _read_artifact(m, path):
     if err:
         return None, err
     head = m.get("head_sha")
-    if head and HEX40_RE.match(str(head)) and _git(["cat-file", "-e", f"{head}:{path}"])[0] == 0:
+    split = _roots_are_split()
+    if (not split and head and HEX40_RE.match(str(head))
+            and _git(["cat-file", "-e", f"{head}:{path}"])[0] == 0):
         code, out, gerr = _git_bytes(["show", f"{head}:{path}"])
         if code == 0:
             return out, None
@@ -283,8 +313,12 @@ def _read_artifact(m, path):
         return None, str(oserr)
     want = artifact_inventory(m).get(path)
     if not want:
-        return None, (f"artifact '{path}' is neither tracked at head_sha nor pinned by a sha256 in "
-                      "the manifest's artifacts[] integrity inventory — unpinned evidence (#267)")
+        why = ("is not pinned by a sha256 in the manifest's artifacts[] integrity inventory — "
+               "under split roots the SHA repository is never consulted for evidence bytes (#442)"
+               if split else
+               "is neither tracked at head_sha nor pinned by a sha256 in the manifest's "
+               "artifacts[] integrity inventory")
+        return None, f"artifact '{path}' {why} — unpinned evidence (#267)"
     got = hashlib.sha256(raw).hexdigest()
     if got != want:
         return None, (f"artifact '{path}' hashes {got} but artifacts[] pins {want} — the evidence "
@@ -1717,7 +1751,7 @@ def check_symbol_on_base(symbol, base):
     """8. Best-effort: a unit symbol is greppable on origin/<base> (change is real on base)."""
     if not symbol or not base:
         return []
-    code, out, _ = _run(["git", "grep", "-l", "-e", symbol, f"origin/{base}"])
+    code, out = _git(["grep", "-l", "-e", symbol, f"origin/{base}"])
     if code != 0 or not out.strip():
         return [f"symbol '{symbol}' not found on origin/{base} (change may not be on base)"]
     return []
@@ -2098,8 +2132,10 @@ def main(argv=None):
                          "only re-rooted: an absolute path, or one escaping this root, stays "
                          "REFUSED, and the root must itself be inside a git work tree — evidence "
                          "no auditor can re-derive from a clone is not evidence. NOT implied by "
-                         "--git-dir. Cross-repo evidence is never tracked at head_sha, so it "
-                         "passes only on its artifacts[] sha256 pin")
+                         "--git-dir. Once the two roots name different repositories, the SHA "
+                         "repo is never consulted for evidence bytes — a same-path blob there is "
+                         "not this manifest's evidence — so cross-repo evidence passes only on "
+                         "its artifacts[] sha256 pin, read from the evidence root")
     args = ap.parse_args(argv)
 
     if shutil.which("git") is None:

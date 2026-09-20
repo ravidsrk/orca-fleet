@@ -116,7 +116,7 @@ Rules:
 
 A DIFFERENT process/session — never a teammate (whose messages are in-band and self-certifying) — re-derives the manifest
 against authoritative state that lives OUTSIDE it: the coordinator's frozen contract (scope), GitHub (review), git, and
-the EXECUTED negative control — deterministically, before any LLM judgment (impl: `verify.py`; the runnable command line, with its lane flags, is in build-change.md "The invocation" — a CHAINED-RUN manifest, whose evidence and whose commits sit in different clones, names the two roots apart with `--git-dir` (where the SHAs are) and `--evidence-root` (what bounds the paths, still #267's bound and still refusing an escape)). Manifest = claim; these are facts:
+the EXECUTED negative control — deterministically, before any LLM judgment (impl: `verify.py`; the runnable command line, with its lane flags, is in build-change.md "The invocation" — a CHAINED-RUN manifest, whose evidence and commits sit in different clones, names both: `--git-dir` (the SHAs) and `--evidence-root` (#267's bound, escapes still refused; split, evidence passes only on its `artifacts[]` pin, never the SHA clone's bytes)). Manifest = claim; these are facts:
 
 | Check | How (authoritative source) |
 |-------|----------------------------|
