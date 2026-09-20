@@ -21,6 +21,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import unittest.mock
 from pathlib import Path
 from unittest import mock
 
@@ -2340,6 +2341,33 @@ class SignedTranscript(RepoCase):
                                 "--transcript-key", ".orca/missing")
         self.assertEqual(rc, 1)
         self.assertIn("--transcript-key", err)
+        self.assertFalse((self.repo / "docs/reports/u/transcript.json").exists())
+
+    def test_a_requested_transcript_that_cannot_be_written_is_a_nonzero_exit(self):
+        # Round-1 R-3: `verify.py --transcript-out X && use X` must never see exit 0 and no X. A
+        # requested-and-missing artifact fails closed like every other evidence path here; a RED
+        # verdict keeps its own code (2) — the write failure never upgrades a RED to a usage error.
+        blocker = self.repo / "docs" / "reports" / "u" / "blocked"
+        blocker.write_text("a file where the directory must go\n", encoding="utf-8")
+        green = (([], []), None)  # the verdict itself passes; only the requested artifact fails
+        with unittest.mock.patch.object(verify, "verify", return_value=green):
+            rc, out, err = self._main("--transcript-out", "docs/reports/u/blocked/transcript.json")
+        self.assertIn("verify: OK", out)
+        self.assertEqual(rc, 1, err)
+        self.assertIn("transcript", err)
+        self.assertFalse((blocker / "transcript.json").exists())
+        with unittest.mock.patch.object(verify, "verify", return_value=((["x"], []), None)):
+            rc, _, _ = self._main("--transcript-out", "docs/reports/u/blocked/transcript.json")
+        self.assertEqual(rc, 2, "a RED verdict keeps its own exit code")
+
+    def test_the_in_process_signer_refuses_to_sign_an_absence_like_the_offline_one(self):
+        # Round-1 R-2: dispatch-sign.py refuses a verdict with a None field; verify.py's in-process
+        # signer must apply the same rule, not sign manifest_sha256=None and let None==None bind.
+        rc, _, err = self._main("--manifest", "docs/reports/u/missing.json",
+                                "--transcript-out", "docs/reports/u/transcript.json",
+                                "--transcript-key", self.key)
+        self.assertNotEqual(rc, 0)
+        self.assertIn("absence", err)
         self.assertFalse((self.repo / "docs/reports/u/transcript.json").exists())
 
     def test_canonicalization_matches_signer(self):

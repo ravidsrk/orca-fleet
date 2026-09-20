@@ -45,7 +45,9 @@ Usage:
     # exit 0 = all REQUIRED checks pass · 1 = usage/dependency · 2 = a REQUIRED invariant FAILED
     # --transcript-out writes the verdict as a machine-readable object; with --transcript-key it
     # is the coordinator-SIGNED envelope run_report.py requires against .orca/dispatch-pubkey
-    # (#281/#386). Without the pair, behaviour is unchanged: stdout + exit code.
+    # (#281/#386). Without the pair, behaviour is unchanged: stdout + exit code. A requested
+    # transcript that is not written (unwritable path; a seed asked to sign an absence) is
+    # exit 1 on a green verdict — a RED keeps its 2.
 """
 from __future__ import annotations
 
@@ -1908,10 +1910,20 @@ class _Transcript:
     @classmethod
     def write(cls, out_ref, record, seed):
         """Write the verdict object, or — with a seed — the {record, sig_b64} envelope
-        dispatch-sign.py emits, over the same canonical bytes. Failure to write is reported, never
-        fatal to the verdict: the exit code is the verdict, the transcript is its signed copy."""
+        dispatch-sign.py emits, over the same canonical bytes. True when the requested artifact
+        exists afterwards. Two refusals, both fail-closed like every other evidence path: with a
+        seed, a record with any FIELDS value None is never signed (dispatch-sign.py's own rule —
+        "a transcript missing one signs an absence" — one rule, two signers); and a requested
+        transcript that cannot be written is reported AND returned False, so main() can refuse
+        to exit 0 without the artifact the caller asked for."""
         payload = record
         if seed is not None:
+            missing = [k for k in cls.FIELDS if record.get(k) is None]
+            if missing:
+                print(f"verify: transcript not signed — the verdict object is missing {missing}, "
+                      "and signing an absence binds nothing (dispatch-sign.py refuses the same)",
+                      file=sys.stderr)
+                return False
             ed = _load_ed25519()
             sig = ed.signature(cls.canonical(record), seed, ed.publickey(seed))
             payload = {"record": record, "sig_b64": base64.b64encode(sig).decode("ascii")}
@@ -1921,6 +1933,8 @@ class _Transcript:
             out.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         except OSError as exc:
             print(f"verify: could not write transcript {out_ref}: {exc}", file=sys.stderr)
+            return False
+        return True
 
 
 _canonical_transcript = _Transcript.canonical  # the parity test's name, beside _canonical_dispatch
@@ -2280,7 +2294,14 @@ def main(argv=None):
             print("verify: OK — all required checks passed")
             code = 0
     if args.transcript_out is not None:
-        _Transcript.write(args.transcript_out, _Transcript.build(args, code, fatal, notes), seed)
+        written = _Transcript.write(args.transcript_out, _Transcript.build(args, code, fatal, notes), seed)
+        if not written and code == 0:
+            # A requested-and-missing artifact is fail-closed (#281/#386, round-1 R-3): the verdict
+            # stands on stdout, but `--transcript-out X && use X` must never see exit 0 and no X.
+            # A RED verdict keeps its own code — 2 already says the unit is not done.
+            print("verify: the requested transcript was not written — exit 1 (usage), the verdict "
+                  "above stands", file=sys.stderr)
+            code = 1
     return code
 
 
