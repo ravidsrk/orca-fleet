@@ -1,0 +1,16 @@
+{
+  "kind": "coordinator-finalized",
+  "note": "Finalizes the criterion ids of the frozen spec docs/runs/2026-09-20-clean-sweep-tracker/build-u442.md @a58bf71a (sha256:7498d20d8e7f580f986d2abca320b925956808c6da08057a38240e7cff10471f), whose checkboxes carried no machine-readable ids \u2014 the r2 SPEC reviewer's named finalization item. Texts are VERBATIM the frozen spec's four checkboxes, in order.",
+  "criterion_ids": [
+    "AC-1",
+    "AC-2",
+    "AC-3",
+    "AC-4"
+  ],
+  "criteria": {
+    "AC-1": "A new test fixture (two scratch git repos built in a tmp dir by the test itself: repo A holds the manifest+evidence, repo B holds the SHAs) FAILS at the unit's base SHA and PASSES at head.",
+    "AC-2": "A regression test (or the existing suite) proves no-flag invocation is unchanged; the #267 escape-refusal test still passes against the evidence root.",
+    "AC-3": "Full test suite green at head; `python3 scripts/validate.py` exit 0.",
+    "AC-4": "NEGATIVE CONTROL executed: verify.py change reverted (test kept) \u2192 fixture test RED \u2014 recorded via evidence-run.py."
+  }
+}

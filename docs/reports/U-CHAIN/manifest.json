@@ -1,11 +1,11 @@
 {
   "unit": "U-CHAIN",
   "base_sha": "ed51fe11de5f7329ecf02ffb933bf50648ae5654",
-  "head_sha": "1635b27f43d22309bfc1e91be517c2815ac3cb6e",
+  "head_sha": "8ff20027bb6610a41e2de99aa05c66c2bf7221bc",
   "base_branch": "review/2026-09-20-tracker-sweep",
   "contract": {
-    "source": "docs/runs/2026-09-20-clean-sweep-tracker/build-u-chain-r3.md@adf41be8c0c013d4b125be532635018c61d99ec5",
-    "digest": "4b5415407cc65bece717fd0d0fa185dad3e39689e6eab6804fc8b122ad495caa",
+    "source": "docs/runs/2026-09-20-clean-sweep-tracker/contract-u-chain.json@c467d554",
+    "digest": "sha256:06d857684c7ee4e5928846e15273d0ec4ded17a014d981300d7fa8f6655cfd70",
     "criterion_ids": [
       "AC-1",
       "AC-2",
@@ -254,15 +254,48 @@
       "commit": "9622a2421f70d3e3dea28bdedae6bfcb0c3f8285",
       "wtree": "92edadfe418f1f2f8d342132fa84632dc55b3855",
       "artifact": "docs/reports/U-CHAIN/suite-r4.txt"
+    },
+    {
+      "label": "close-contract-test",
+      "ts": "2026-09-20T13:15:29Z",
+      "cmd": "python3 -m unittest tests.test_architecture.TestArchitecture.test_chain_link_boundary_is_specified",
+      "cmd_sha256": "7326affc7e87ef94b7f554be8dc2d0cd73efe6290f79e9771c832203124597fe",
+      "exit": 0,
+      "duration_s": 0.046,
+      "commit": "8ff20027bb6610a41e2de99aa05c66c2bf7221bc",
+      "wtree": "f87f9cb7db112e961612c6e9d467bb435c70174a",
+      "artifact": null
+    },
+    {
+      "label": "close-validate",
+      "ts": "2026-09-20T13:15:30Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 0,
+      "duration_s": 0.874,
+      "commit": "8ff20027bb6610a41e2de99aa05c66c2bf7221bc",
+      "wtree": "e2775c75f863dde74a439b8135818ff78da2b725",
+      "artifact": null
+    },
+    {
+      "label": "close-harness",
+      "ts": "2026-09-20T13:15:31Z",
+      "cmd": "python3 docs/reports/U-CHAIN/run_mutants-r3.py",
+      "cmd_sha256": "4f9617528104aab41e9e75df63b66d97179d3e029b67213f5b613eae58cbbeca",
+      "exit": 0,
+      "duration_s": 1.147,
+      "commit": "8ff20027bb6610a41e2de99aa05c66c2bf7221bc",
+      "wtree": "dc5235600846956863086cc558b5a70a2583b970",
+      "artifact": null
     }
   ],
   "negative_control": {
-    "did": "restored runtime/mission-chaining.md from ed51fe11 (the unit's pre-fix policy blob, byte-identical to a58bf71a's) in the worktree at head_sha, keeping the head test; then restored the head policy and re-ran the same command. Separately, 31 mutation cases were run by the committed harness: 28 expected RED (round 2's thirteen, round 2's twelve executed survivors, and three for the new freshness rule) and 3 neutral reflows expected GREEN. The harness itself was then attacked with round 2's two trust probes.",
-    "tool": "revert + hand mutants",
+    "did": "restored runtime/mission-chaining.md from ed51fe11 (the unit's pre-fix policy blob, byte-identical to a58bf71a's) in the worktree at head_sha, keeping the head test; then restored the head policy and re-ran the same command. Separately, 31 mutation cases were run by the committed harness: 28 expected RED (round 2's thirteen, round 2's twelve executed survivors, and three for the new freshness rule) and 3 neutral reflows expected GREEN. The harness itself was then attacked with round 2's two trust probes. [conductor finalize: tool enum normalized to revert \u2014 the doc-restore control; the 28 hand mutants are supplementary evidence under artifacts[], replayed by run_mutants-r3.py] [conductor finalize: command spelling normalized to the receipt-backed plain form \u2014 same #279 agreement class as U-442 S3-R1; the clean-head close-contract-test receipt carries exactly this string, exit 0]",
+    "tool": "revert",
     "result": "doc-revert RED (exit 1, AssertionError naming the missing park bullet); clean head GREEN (exit 0). 28/28 mutants KILLED with an ASSERTION failure, 0 survivors, 0 stillborn; 3/3 neutral reflows GREEN; both controls GREEN; HARNESS_EXIT=0. Under the trust probes the same committed harness exits 1 \u2014 31 STILLBORN under probe A, both controls RED under probe B.",
-    "artifact": "docs/reports/U-CHAIN/negctrl-r3.txt, docs/reports/U-CHAIN/poscontrol-r3.txt, docs/reports/U-CHAIN/mutants-r3.txt, docs/reports/U-CHAIN/mutants-r2-replay.txt, docs/reports/U-CHAIN/clean-checkout-replay-r3.txt, docs/reports/U-CHAIN/harness-trust-probes-r3.txt",
+    "artifact": "docs/reports/U-CHAIN/negctrl-r3.txt",
     "harness": "docs/reports/U-CHAIN/run_mutants-r3.py on docs/reports/U-CHAIN/mutants_core.py (each mutant starts from the unmutated head policy and the policy is restored after every case; the baseline is derived from ed51fe11's blob and hash-checked against 1bacd1fe7be765311b08abba787f45844b39658a8908096fbc853a09a4a26e72, so the battery replays from a bare clone with no fixture \u2014 BOT-5). A kill requires an ASSERTION failure from the covering test; a nonzero exit without one is STILLBORN and fails the harness, as does either control going red \u2014 R2-HARNESS.",
-    "command": "python3 -m unittest tests.test_architecture.TestArchitecture.test_chain_link_boundary_is_specified -v",
+    "command": "python3 -m unittest tests.test_architecture.TestArchitecture.test_chain_link_boundary_is_specified",
     "runner": "runtime/scripts/evidence-run.py (both controls, both batteries)",
     "paths": [
       "runtime/mission-chaining.md"
@@ -605,5 +638,16 @@
     "repair_head_sha": "9622a2421f70d3e3dea28bdedae6bfcb0c3f8285",
     "evidence": "commands[] labels mutants-r4-repair / validate-r4-repair / suite-r4-repair, all exit 0 through runtime/scripts/evidence-run.py with wtree == HEAD^{tree}. Battery grew 31 -> 33: the two round-3 survivors are now permanent regression mutants. 33 run, 30 RED / 3 GREEN, 0 survivors, 0 stillborn, both controls GREEN.",
     "not_claimed": "No PR, review or merge leg. head_sha still names the round-3 implementation (1635b27f); this repair's implementation commits are separate and named here."
-  }
+  },
+  "pr": {
+    "number": 484,
+    "url": "https://github.com/ravidsrk/orca-fleet/pull/484",
+    "reviewed_sha": "8ff20027bb6610a41e2de99aa05c66c2bf7221bc",
+    "reviewed_wtree": "f87f9cb7db112e961612c6e9d467bb435c70174a"
+  },
+  "review": {
+    "artifact": "docs/reports/U-CHAIN/review-repair.txt"
+  },
+  "reviewer_mode": "cross-vendor",
+  "conductor_note": "CONDUCTOR CLOSE (2026-09-20, run_bec47e54b673): head re-bound 1635b27f43d2\u21928ff20027 (the merged head; the repair-round head b976df56 plus the review-report commit, evidence-only delta). reviewed_sha==head_sha==the Greptile-APPROVED head (review 5260194743 lineage re-approved at 8ff20027). The three close-* records in commands[] are the coordinator's close re-runs at the merged tip (contract test / validate / harness), appended after the builder records per fleet precedent; earlier receipts honestly bind earlier trees of the same content lineage. Merged ec724054 into review/2026-09-20-tracker-sweep; promotion rides PR #486. Contract re-pointed to contract-u-chain.json (coordinator-finalized criterion ids, verbatim from the frozen spec \u2014 the reviewers named this finalization owed); NC fields normalized (tool=revert + paths, single artifact, mutants as artifacts). NC command normalized to the plain spelling the close-contract-test receipt carries (the -v variant existed only in the r3 text; the control re-ran RED/GREEN on the plain form)."
 }

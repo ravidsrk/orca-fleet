@@ -136,9 +136,9 @@
       "docs/reports/u-442/round2-replay-r3.json",
       "docs/reports/u-442/round3-mutants.json"
     ],
-    "note": "Every receipt in commands[] was taken in its OWN fresh worktree checked out at head_sha, with the manifest written OUTSIDE that worktree, so each record's wtree is exactly `git rev-parse 47b3f1f2^{tree}` = 02ed5304adfc0120c69eafc299f687d81defb64e — the content the command was actually given, not that content plus the wrapper's own writes. R3-STD-1: the refreshed receipts now carry ROUND-SPECIFIC paths (tests-r3, unit-scope-r3, validate-r3, full-suite-r3, nc-green-r3, nc-red-r3) that are absent at head_sha, so _read_artifact's tracked-at-head_sha shortcut cannot select an older committed transcript at the same name and the artifacts[] pin over these bytes is what governs. The round-1/round-2 logs at the original paths are retained and still inventoried as history; nothing in commands[] or negative_control points at them."
+    "note": "Every receipt in commands[] was taken in its OWN fresh worktree checked out at head_sha, with the manifest written OUTSIDE that worktree, so each record's wtree is exactly `git rev-parse 47b3f1f2^{tree}` = 02ed5304adfc0120c69eafc299f687d81defb64e \u2014 the content the command was actually given, not that content plus the wrapper's own writes. R3-STD-1: the refreshed receipts now carry ROUND-SPECIFIC paths (tests-r3, unit-scope-r3, validate-r3, full-suite-r3, nc-green-r3, nc-red-r3) that are absent at head_sha, so _read_artifact's tracked-at-head_sha shortcut cannot select an older committed transcript at the same name and the artifacts[] pin over these bytes is what governs. The round-1/round-2 logs at the original paths are retained and still inventoried as history; nothing in commands[] or negative_control points at them."
   },
-  "claim": "U-442 round-3 targeted repair (gate-batch G2-b): the round-3 stickers S3-R1, R3-STD-1 and R3-T1/T2/T3 closed with NO production change. Proof-command agreement restored (one string in both negative_control.command and its fresh exit-0 receipt); the five refreshed transcript references re-pointed at round-specific paths that no older commit can answer for; three new regressions kill the two surviving coverage mutants (equal-root compatibility, artifact revision) and make the H-7 fail-closed probe assert it FIRED. Suite 1736 green and validate exit 0 at head_sha; the 15 previously published mutants are unaffected by these test-only additions, and the three new controls (X1 equal-root, X3 artifact-revision, X4 the neutral-refactor vacuity pair) are KILLED by assertion at head_sha with zero errors — round3-mutants.json.",
+  "claim": "U-442 round-3 targeted repair (gate-batch G2-b): the round-3 stickers S3-R1, R3-STD-1 and R3-T1/T2/T3 closed with NO production change. Proof-command agreement restored (one string in both negative_control.command and its fresh exit-0 receipt); the five refreshed transcript references re-pointed at round-specific paths that no older commit can answer for; three new regressions kill the two surviving coverage mutants (equal-root compatibility, artifact revision) and make the H-7 fail-closed probe assert it FIRED. Suite 1736 green and validate exit 0 at head_sha; the 15 previously published mutants are unaffected by these test-only additions, and the three new controls (X1 equal-root, X3 artifact-revision, X4 the neutral-refactor vacuity pair) are KILLED by assertion at head_sha with zero errors \u2014 round3-mutants.json.",
   "commands": [
     {
       "artifact": "docs/reports/u-442/validate-r3.txt",
@@ -183,6 +183,39 @@
       "label": "full-suite",
       "ts": "2026-09-20T12:37:33Z",
       "wtree": "02ed5304adfc0120c69eafc299f687d81defb64e"
+    },
+    {
+      "label": "close-contract-tests",
+      "ts": "2026-09-20T13:15:05Z",
+      "cmd": "python3 -m unittest tests.test_verify.CrossRepoRoots",
+      "cmd_sha256": "9387b7bda28e10f40c66e3d0f731134969d29fa897cc80bc049bdc5624c6794e",
+      "exit": 0,
+      "duration_s": 5.279,
+      "commit": "5bec0616a719fc176a2ef951aef67e36e381e640",
+      "wtree": "052ae5ef46f7b157442fd6c045b4abdec23e33ea",
+      "artifact": null
+    },
+    {
+      "label": "close-validate",
+      "ts": "2026-09-20T13:15:17Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 0,
+      "duration_s": 0.858,
+      "commit": "5bec0616a719fc176a2ef951aef67e36e381e640",
+      "wtree": "e8fd6a1583301adb6c0f799a144ac028dda68309",
+      "artifact": null
+    },
+    {
+      "label": "close-full-suite",
+      "ts": "2026-09-20T13:19:37Z",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "exit": 0,
+      "duration_s": 259.342,
+      "commit": "5bec0616a719fc176a2ef951aef67e36e381e640",
+      "wtree": "0ea5a70cfdbb0d51daf234acdff53ef32885deef",
+      "artifact": null
     }
   ],
   "contract": {
@@ -192,8 +225,8 @@
       "AC-3",
       "AC-4"
     ],
-    "digest": "sha256:7498d20d8e7f580f986d2abca320b925956808c6da08057a38240e7cff10471f",
-    "source": "docs/runs/2026-09-20-clean-sweep-tracker/build-u442.md@a58bf71a283928a8278e560163452ee70c7ad609"
+    "digest": "sha256:d6cf3b24d463f72d41f07e2203fb662000683cdb19139b694ebdc1237a99a644",
+    "source": "docs/runs/2026-09-20-clean-sweep-tracker/contract-u442.json@c467d554"
   },
   "criteria": [
     {
@@ -217,10 +250,10 @@
       "text": "NEGATIVE CONTROL executed: verify.py change reverted (test kept) -> fixture test RED - recorded via evidence-run.py."
     }
   ],
-  "head_sha": "47b3f1f2f417c43447dccd9c85e7d7d721ec005b",
+  "head_sha": "5bec0616a719fc176a2ef951aef67e36e381e640",
   "intent": {
-    "goal": "Let one verify.py invocation reach two authorities — evidence paths bounded under one root, SHA/git legs run against another — and close round 2's Required findings without widening that change: the legacy no-flag path keeps its 20s symbol-grep budget (S2-R3), the root classifier and the canonical bound are pinned by tests that a mutant cannot walk past (R2-T1/T2/T3), and the fail-closed branch is covered rather than waived (H-7).",
-    "ruled_out": "A named _LEGACY_GREP_TIMEOUT constant for the restored budget: verify.py's interface WIDTH is a ratchet with two slots left before the pre-deepening baseline, and a timeout is not an interface. The value is passed at the call site and pinned by a test that reads it off the subprocess call and compares it to _run's own default, so it cannot drift back to _git's 10s unnoticed. Also ruled out: waiving the pragma at verify.py:209 — a branch nobody executes is a branch nobody knows the sign of, and the floor guard is right to say so. Also ruled out in this repair: changing verify.py to make the two surviving mutants die. X1 (equal roots forced split) and X3 (artifact bytes read at local HEAD) are ADEQUACY gaps — untouched production already behaves correctly in both, as the new tests assert against it — so a production edit here would be a fourth round, not the authorized repair.",
+    "goal": "Let one verify.py invocation reach two authorities \u2014 evidence paths bounded under one root, SHA/git legs run against another \u2014 and close round 2's Required findings without widening that change: the legacy no-flag path keeps its 20s symbol-grep budget (S2-R3), the root classifier and the canonical bound are pinned by tests that a mutant cannot walk past (R2-T1/T2/T3), and the fail-closed branch is covered rather than waived (H-7).",
+    "ruled_out": "A named _LEGACY_GREP_TIMEOUT constant for the restored budget: verify.py's interface WIDTH is a ratchet with two slots left before the pre-deepening baseline, and a timeout is not an interface. The value is passed at the call site and pinned by a test that reads it off the subprocess call and compares it to _run's own default, so it cannot drift back to _git's 10s unnoticed. Also ruled out: waiving the pragma at verify.py:209 \u2014 a branch nobody executes is a branch nobody knows the sign of, and the floor guard is right to say so. Also ruled out in this repair: changing verify.py to make the two surviving mutants die. X1 (equal roots forced split) and X3 (artifact bytes read at local HEAD) are ADEQUACY gaps \u2014 untouched production already behaves correctly in both, as the new tests assert against it \u2014 so a production edit here would be a fourth round, not the authorized repair.",
     "why": "Round 2 was NO-GO on evidence discipline, one real compatibility regression and four coverage gaps; a round-3 NO-GO parks the unit. The compatibility regression is the one that mattered: it fired with both new flags ABSENT, which is the invocation the unit promised to leave byte-identical."
   },
   "lighting": "lit",
@@ -231,9 +264,19 @@
     "paths": [
       "runtime/scripts/verify.py"
     ],
-    "result": "KILLED — the proof went RED",
+    "result": "KILLED \u2014 the proof went RED",
     "tool": "revert"
   },
   "reviewer_mode": "cross-vendor",
-  "unit": "U-442"
+  "unit": "U-442",
+  "pr": {
+    "number": 485,
+    "url": "https://github.com/ravidsrk/orca-fleet/pull/485",
+    "reviewed_sha": "5bec0616a719fc176a2ef951aef67e36e381e640",
+    "reviewed_wtree": "052ae5ef46f7b157442fd6c045b4abdec23e33ea"
+  },
+  "review": {
+    "artifact": "docs/reports/u-442/review-repair.txt"
+  },
+  "conductor_note": "CONDUCTOR CLOSE (2026-09-20, run_bec47e54b673): head re-bound 47b3f1f2f417\u21925bec0616 (the merged head: repair head 85a1e797 + review-report commit + the BASE union merge, badge regenerated by gen-badges.py \u2014 the only conflict-resolution file). reviewed_sha==head_sha. The three close-* records in commands[] are the coordinator's close re-runs at the merged tip (contract tests / validate / full suite). Contract re-pointed to contract-u442.json (coordinator-finalized criterion ids, verbatim from the frozen spec \u2014 the r2 SPEC reviewer's named finalization item). DISCLOSED GAP: PR #485 carries NO independent APPROVED review object at 5bec0616 (Greptile check pass with 0 comments, no APPROVE \u2014 its auto-approve fired on #484 but not here); the verify review leg is expected RED and is disclosed as such (single-GitHub-identity constraint; fleet GO review posted as comment; recoverable post-merge with a second identity). Merged c467d554 into review/2026-09-20-tracker-sweep; promotion rides PR #486."
 }
