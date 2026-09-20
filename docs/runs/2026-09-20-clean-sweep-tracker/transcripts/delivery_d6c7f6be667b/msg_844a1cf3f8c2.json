@@ -1,0 +1,8 @@
+{
+ "id": "msg_844a1cf3f8c2",
+ "type": "worker_done",
+ "created_at": "2026-09-20T08:32:03Z",
+ "subject": "U-442 round 1 NO-GO posted; evidence pushed",
+ "body": "Posted COMMENTED review 5260074858 on PR #485 with round-1 NO-GO bound to reviewed SHA a5f84978548a00a97cfcc11614aa6bdfd71683e6 and tree 8a39ac3e3576dc1eafdb3e7ddfb60734b1408184, then pushed maintainer-authored reports-only evidence commit 0056bf16f29918a6fcf07494eda76cc800c30953 to u-442 with no trailers and egress receipts before both writes. Findings remain separate without reranking: Spec 2 Required, Standards 2 Required, Test adequacy 5 Required, and held VALID P1s 4056474414/4056474416; all 1714 tests and the validator passed in a clean clone, and the evidence commit is code-identical although its full tree changes. All sticking findings need builder fixes and re-review, while aggregation is complete with a clean worktree; the egress chain verified intact at head e85f8066ce4a20bb1944e8f73e9110664942bd1d1d247e0543f0f171373a1a4d.",
+ "payload": "{\"taskId\":\"task_9af4e0003988\",\"dispatchId\":\"ctx_44904f482ecf\",\"outcome\":\"succeeded\",\"filesModified\":[\"docs/reports/u-442/review-spec.txt\",\"docs/reports/u-442/review-standards.txt\",\"docs/reports/u-442/review-tests.txt\",\"docs/reports/u-442/verdict-review.md\",\"docs/reports/u-442/verdict.json\"],\"reportPath\":\"docs/reports/u-442/verdict.json\"}"
+}

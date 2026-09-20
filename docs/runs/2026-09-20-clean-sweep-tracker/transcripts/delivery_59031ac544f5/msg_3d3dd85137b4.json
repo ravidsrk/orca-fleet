@@ -1,0 +1,8 @@
+{
+ "id": "msg_3d3dd85137b4",
+ "type": "heartbeat",
+ "created_at": "2026-09-20T08:33:51Z",
+ "subject": "Mutation review: new survivors confirmed",
+ "body": "All six round-one surviving mutants now fail by AssertionError, but narrower reversals of ancestry, BASE-carry grant conditions, and carry schema still pass the real covering test. BOT-5 clean-checkout failure is reproduced; supplied original base fixture independently reproduces the claimed 13/13. Full suite is running in an isolated scratch clone.",
+ "payload": "{\"taskId\":\"task_e842d3e68c58\",\"dispatchId\":\"ctx_f63d3ad1c14a\",\"phase\":\"reviewing\"}"
+}

@@ -205,5 +205,55 @@ BOOTSTRAP: preflight --base review/2026-09-20-tracker-sweep --fork-point e8ddbd9
   BUILD_DONE=t. INTEGRATOR dispatched: task_4b39f5058111, claude term_5941f8b4 (receipt
   spawn-nUf2ZG) — merges green BASE first, then suite+validate, push, PR, Greptile reconcile.
 
+- 09:4x U-CHAIN round 1 CLOSED OUT: verdict worker (codex) aggregated 9 Required axis findings
+  + 3 held VALID bot findings, posted receipted COMMENTED 'verdict: NO-GO — round 1' on PR
+  #484 (coordinator-verified via gh pr view: review present, first line exact), pushed
+  evidence-only commit 5619d5be (code tree unchanged — conductor tree-check at merge). Round
+  2 fix batch frozen (build-u-chain-r2.md, digest 63ce1e4e…): F-1 promotion=BASE→default +
+  local-ref resume; F-2 bundle/mirror reproduces commits, seed+diff supplemental; F-3
+  operative assertions + whitespace normalize + 6 reviewer mutants RED-recorded; F-4 NC
+  re-recorded via evidence-run.py; F-5 exemplar cited as adopted proposal; F-6 green-BASE
+  merge + full-suite receipt. R2 FIX dispatched: task_bf8332aed4e9, claude
+  term_956f95b3-81a7-4bee-b309-f4878527d0fd (dispatch ctx_847e6680c4b9), fresh terminal in u-chain
+  worktree per dispatch-lifecycle.
+
+- 10:1x U-442 INTEGRATED (worker_done msg_365f21ba5b1b): merged BASE 0f8cb8a2 conflict-free →
+  head 5a57c8d2 GREEN (1714 tests OK 277s, validate 21/21, gitleaks clean); PR #485
+  base=review/2026-09-20-tracker-sweep (asserted + coordinator-verified, head a5f84978 after
+  the integrate.json push); Greptile at 163s: 2 P1s on verify.py, both adjudicated VALID and
+  HELD (P1-1: _read_artifact's tracked-at-head_sha branch reads through the SHA root — the
+  split's own blind spot; P1-2 in integrate.json). PR_OPEN=t BOT=t. REVIEW WAVE dispatched
+  (codex): SPEC term_f528a13f/task_18e1477e843e · STANDARDS term_681d04c2/task_fa64821477cd ·
+  TESTS term_239b915c/task_83d2f645badb; verdict task_9af4e0003988 queued on the axes.
+  Review units in flight: 2 (U-CHAIN r2 is a build round, not a review) — within cap.
+
+- 10:4x U-CHAIN r2 FIX DONE (worker_done msg_8f46a23da8da): merge 1066c028 (BASE ed51fe11,
+  conflict-free) + 88a64c90 (fix, mission-chaining.md +44/test_architecture.py +69) +
+  0dbc669e (evidence). HARVEST: scope = the two spec'd files + receipts; F-1 text verified
+  (BASE→DEFAULT, local-ref ancestry check, lanes cannot PROMOTE); manifest head_sha 88a64c90,
+  5/5 criteria addressed, commands all evidence-run receipts (suite exit 0 wtree a32a6472 ==
+  88a64c90^{tree} — verified), NC re-recorded through the runner + 13 mutants killed
+  (mutants-r2.txt); suite green at the merged head. R2 INTEGRATE dispatched:
+  task_c01a07c4fb08, claude term_a2768396 (push + Greptile reconcile on the new head).
+  Round-2 review wave follows the bot reconcile.
+
+- 11:2x U-CHAIN r2 INTEGRATED (worker_done msg_08bdb8df7836): gitleaks clean, egress 61ba882d,
+  ff push 5619d5be..0dbc669e; Greptile on the new head: 2 NEW VALID held — BOT-4 (P1,
+  mission-chaining.md:46: the BASE→DEFAULT resume check names origin/<default> with no
+  freshness obligation — a stale ref parks a promoted chain; sits in the clause F-1 rewrote)
+  and BOT-5 (P2, docs/reports/U-CHAIN/run_mutants-r2.py). Both join the r2 review batch.
+  R2 REVIEW WAVE dispatched (codex): SPEC term_99f75411/task_99fd6b826460 · STANDARDS
+  term_b695c937/task_2c6e0642e3c0 · TESTS term_0d9de635/task_e842d3e68c58; r2 verdict
+  task_a4a0d7ba48a3 queued. U-442 r2 fix batch frozen meanwhile (build-u442-r2.md,
+  digest 9df586e1…: F-1 evidence authority, F-2 raw-read git-context, F-3 evidence-root
+  honored, F-4 symlink containment, F-5 nested-cwd).
+
+- 11:5x U-442 round 1 CLOSED OUT: verdict posted (review 5260074858 'verdict: NO-GO — round 1'
+  @a5f84978 tree 8a39ac3e, coordinator-verified via gh api — first line exact), evidence
+  commit 0056bf16 pushed (code-identical). 9 Required across axes + 2 held VALID P1s. R2 FIX
+  dispatched: task_14fe56e3cd29, claude term_bb52652d (spawn-4TvuBd), batch F-1..F-5 from
+  build-u442-r2.md (digest 9df586e1…). Round 2 of ≤3 for U-442; U-CHAIN's r2 re-review in
+  flight. Review units: U-CHAIN r2 (1) — cap met.
+
 BRANCHES: local worktree checkouts carry the `ravidsrk/` prefix mapping to the unit tips
 (ravidsrk/u-chain, ravidsrk/u-442). Not drift — do not "fix".
