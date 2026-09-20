@@ -1,0 +1,269 @@
+U-442 TARGETED REPAIR RE-REVIEW — FINAL — GO
+
+EXECUTIVE SUMMARY
+All five named stickers are CLOSED at 85a1e797eaba7b0c21cc913ad91839c06a827303.
+One literal proof command passes both admission gates; the five repaired artifact
+references select bytes matching their HEAD blobs and SHA-256 pins. Both surviving
+mutants now die on semantic assertions, and the neutral canonicalizer refactor fails
+the literal probe-FIRED count. No production code changed. A clean detached clone
+passes 1,736 tests, validation, badge freshness, and the floor guard. Outstanding
+findings: Critical=0, Required=0, Nit=0, Optional=0, FYI=0. This GO applies only to
+the authorized targeted repair scope; the coordinator retains final unit admission
+and integration. No targeted review work remains; only this uncommitted report was
+authored in the source worktree, with no commits or PR actions.
+
+Scope: recorded human budget override G1-b/G2-b; the named repair commits and
+S3-R1, R3-STD-1, R3-T1, R3-T2, R3-T3 only. This is not a fourth full review.
+Started UTC: 2026-09-20 12:46:03. Deadline: 13:06:03; partial-report STOP if needed.
+Permission: no source edits, staging, or commits; this one uncommitted report only.
+
+BLIND-FIX EXPECTATIONS — recorded before opening ANY repair diff
+Recorded UTC: 2026-09-20 12:46:32 (clock receipt immediately before this section was written).
+Inputs read: supplied task, ARCHITECTURE.md, review-it, acceptance-review, and
+the motivating findings in review-{spec,standards,tests}-r3.txt.
+
+S3-R1 (high confidence): repair the manifest/runner receipts, not admission code.
+negative_control.command must literally equal an exit-0 carried command whose
+commit/tree/digest bindings are valid. Passing that same string to check_commands
+and check_replay_request must return no errors from either gate.
+Motivating lines, verbatim from the prior finding:
+      "cmd": "python3 -m unittest tests.test_verify.CrossRepoRoots -v",
+    "command": "python3 -m unittest tests.test_verify.CrossRepoRoots",
+
+R3-STD-1 (high confidence): use distinct current-round paths for tests, full-suite,
+unit-scope, nc-green, nc-red; update references and SHA-256 inventory. Confirm the
+actual default-root artifact reader selects those bytes, not older same-path blobs
+at the manifest's code SHA. Rehash both current HEAD blobs and selected bytes.
+Motivating line, verbatim:
+bytes are fixed: the path is TRACKED at `head_sha` (the immutable form; the blob at that commit is what gets read),
+
+R3-T1 (high confidence): submit a real same-root explicit-flags positive test with
+committed artifact and no inventory pin. Correct code admits; replacing the canonical
+root comparison with return True must fail an unconditional success assertion.
+Motivating line, verbatim:
+        return Path(sha_top).resolve() != Path(ev_top).resolve()
+
+R3-T2 (high confidence): commit distinct artifact bytes at manifest head_sha and a
+later local HEAD. Submitted tests must establish historical byte identity and/or the
+historical negative-control refusal; substituting HEAD in git show must fail them.
+Motivating line, verbatim:
+        code, out, gerr = _git_bytes(["show", f"{head}:{path}"])
+
+R3-T3 (high confidence): assert a literal expected hook count of one in the existing
+OSError regression. The neutral early-bound Path.resolve refactor must make that
+test fail loudly instead of letting its ordinary split-root True satisfy the probe.
+Motivating instruction, verbatim:
+A test whose probes can be bypassed by a behavior-neutral refactor must fail LOUDLY: assert each probe FIRED with a literal expected count.
+
+Scope expectation (high confidence): no production-code changes in the repair
+delta; only test regressions, generated badges, and evidence updates. Run the full
+suite and validator in a clean clone at the reviewed SHA. Executed scratch controls
+are specifically authorized by this dispatch despite the general static-review lane.
+
+PINNED SCOPE
+head_sha = reviewed_sha = 85a1e797eaba7b0c21cc913ad91839c06a827303
+reviewed_tree = b64985d92fb28eecf67d543f0801a4c628fc1af2
+Repair fixed point = cb5a95c4e735fc3c3a1363cc0c9061a223a84988 (b9f9168d^1).
+git merge-base <fixed-point> <reviewed_sha> returns that same fixed point.
+Merge b9f9168d3955b11d0613bd8fd116444b1a7514e8 adds coordinator governance/run
+records, including the frozen repair spec and grants at docs/DECISIONS.md:64-65.
+Implementation delta after that merge: 4b2524b1 tests; 47b3f1f2 generated badge;
+7ef61c64 evidence refresh; 85a1e797 three repair controls plus inventory refresh.
+Spec source: docs/runs/2026-09-20-clean-sweep-tracker/repair-u442.md and this dispatch.
+No broader branch findings, full fourth-round audit, fixes, or outward PR action.
+
+TARGETED CLOSURES
+
+S3-R1 — prior severity Required — CLOSED.
+Motivating changed lines, verbatim (old manifest):
+      "cmd": "python3 -m unittest tests.test_verify.CrossRepoRoots -v",
+    "command": "python3 -m unittest tests.test_verify.CrossRepoRoots",
+Repair manifest.json:156 and :229 now both carry, literally:
+python3 -m unittest tests.test_verify.CrossRepoRoots
+There is exactly one matching exit-0 receipt (unit-scope-tests). With that SAME
+string, check_commands(m, True, proof) returns only its FRESH note (4 records,
+tree 02ed5304adfc); check_replay_request(m, True, True, proof) returns []. Thus
+neither gate has a fatal error, and no normalization/semantics exception is needed.
+All four command digests recompute; all four exit-0 commit/tree records bind to
+47b3f1f2f417c43447dccd9c85e7d7d721ec005b / 02ed5304adfc0120c69eafc299f687d81defb64e.
+That commit includes the repair tests and badge; it is an ancestor of reviewed_sha.
+There is no runtime, test, script, or asset delta from that receipt SHA to reviewed_sha.
+The manifest's base -> receipt SHA ancestry also passes. Later evidence-only commits
+are explicitly accounted for; this report's reviewed SHA remains the actual current HEAD.
+
+Independent exact-command replay at the receipt SHA: 30 tests, exit 0, 6.333s.
+Replacing only scratch verify.py with its manifest base_sha a58bf71a version and
+running that same string: 30 tests, exit 1, 26 failures + 1 error, 4.303s, matching
+the repaired transcript's stated shape. This broad BASE rollback removes root flags
+and _ROOTS; its known missing-_ROOTS error is not presented as a semantic mutant kill.
+The two targeted behavior-changing controls below fail assertions with zero errors.
+Scratch source was restored, and the clone returned clean to reviewed_sha.
+
+R3-STD-1 — prior severity Required — CLOSED.
+Motivating lines, verbatim (old manifest):
+      "artifact": "docs/reports/u-442/full-suite.txt",
+    "artifact": "docs/reports/u-442/nc-red.txt",
+Motivating evidence-manifest.md rule, verbatim:
+  bytes are fixed: the path is TRACKED at `head_sha` (the immutable form; the blob at that commit is what gets read),
+Actual load_manifest/read_artifact calls at reviewed_sha, with both root overrides
+unset, return the exact current committed bytes for all FIVE re-pointed transcripts.
+Each new path is ABSENT at manifest.head_sha, so the old committed-blob shortcut cannot
+select an earlier transcript. Each selected digest equals its artifacts[] pin AND
+the git-show reviewed_sha:path digest. The five rehashed values are:
+
+tests-r3.txt       3f0c5084d4820980cc9b6863db50a2faf8afc88ca5fec49f9894ff53f43a9f0e
+full-suite-r3.txt  7019896c561b536509c14fa5f163a206302df82446eebf243bc961ba988dc6a1
+unit-scope-r3.txt  dbe3032a4136aad1cf4752fa942eb44bb2d361deaaec49d7f5ac3e2df67be905
+nc-green-r3.txt    3c3e75fe592ddc5ba64b1522c213d0187850b59dabc3dd93e02ff831d6088694
+nc-red-r3.txt      51265e9aec87bb3746ffb6937bc786f64bdd316b5b3f5d8e451c0c9b22bd397a
+
+Selected summaries are respectively 277 OK; 1736 OK; 30 OK; 30 OK; 30 tests with
+26 failures + 1 error. validate-r3.txt also resolves to its intended pinned bytes.
+All 32 inventory entries independently match Git blobs at reviewed_sha, including
+round3-mutants.json after 85a1e797. Historical logs remain intact; current command
+and negative-control references name the new paths. No artifact reader was altered.
+
+R3-T1 — prior severity Required — CLOSED.
+Motivating verify.py:208 line, verbatim:
+        return Path(sha_top).resolve() != Path(ev_top).resolve()
+New tests/test_verify.py:3634 uses real commits and both explicit flags naming the
+same root, artifacts=[], and an unconditional exit-0 assertion; :3655 adds a symlink
+alias case. Independent scratch replacement of ONLY the motivating line with
+        return True
+is killed by the full submitted verifier module: 277 tests, exit 1, three assertion
+failures, zero errors (48.279s). Both equal-root admission tests fail with:
+  AssertionError: 2 != 0
+  negative_control.artifact unreadable ... under split roots the SHA repository is never consulted for evidence bytes
+The third failure is the now-counted exception probe (0 != 1). The two positive
+semantic killers independently establish closure; it does not rely on that hook.
+
+R3-T2 — prior severity Required — CLOSED.
+Motivating verify.py:306 line, verbatim:
+        code, out, gerr = _git_bytes(["show", f"{head}:{path}"])
+New test_verify.py:3673 commits SURVIVED at the manifest revision and KILLED at a
+later local HEAD. It unconditionally expects exit 2 and the historical-survivor
+diagnostic. Independent scratch replacement of ONLY that show argument with
+f"HEAD:{path}" is killed by the full submitted verifier module: 277 tests, exit 1,
+one assertion failure, zero errors (49.179s), in
+test_a_tracked_artifact_is_read_at_head_sha_not_at_local_HEAD:
+  AssertionError: 0 != 2
+  verify: OK — all required checks passed
+That is precisely the false admission of later bytes for the historical revision.
+
+R3-T3 — prior severity Required — CLOSED.
+Motivating prior test lines, verbatim:
+        with mock.patch.object(Path, "resolve", refuse):
+            self.assertTrue(verify._roots_are_split())
+Motivating mutation-hunt instruction, verbatim:
+A test whose probes can be bypassed by a behavior-neutral refactor must fail LOUDLY: assert each probe FIRED with a literal expected count.
+Repair test_verify.py:3716 now unconditionally asserts:
+        self.assertEqual(fired.call_count, 1,
+                         "canonicalization exception probe must fire exactly once")
+Independent neutral-refactor experiment changes only these two production lines
+in scratch (no OSError-arm inversion is needed):
+  def _roots_are_split():
+    -> def _roots_are_split(resolve=Path.resolve):
+  return Path(sha_top).resolve() != Path(ev_top).resolve()
+    -> return resolve(Path(sha_top)) != resolve(Path(ev_top))
+Full submitted verifier module: 277 tests, exit 1, one assertion failure, zero errors
+(48.416s), solely test_an_unresolvable_root_fails_closed_to_split:
+  AssertionError: 0 != 1 : canonicalization exception probe must fire exactly once
+Untouched baseline: 277 tests, exit 0, 49.280s. No reviewer-added tests were installed.
+Each mutation started from pristine reviewed_sha in a separate clone; all clones
+were restored and have empty git status. These are fresh experiments, not reliance
+on the builder's matrix or reruns of unrelated historical controls.
+
+PRODUCTION BOUNDARY
+git diff cb5a95c4e735fc3c3a1363cc0c9061a223a84988..85a1e797eaba7b0c21cc913ad91839c06a827303 -- runtime/scripts/verify.py
+returns EMPTY, exit 0. cb5a95c4 is the recorded repair merge-base above. The same
+comparison over runtime/scripts/, scripts/, and hooks/ is also empty. verify.py has
+the identical Git blob d2c5ca70ad0a2d433cac515df640575995202569 at cb5a95c4,
+b9f9168d, and reviewed_sha. After the governance merge, only the authorized test,
+badge, and eight evidence paths change. Repair implementation diff --check passes.
+
+INDEPENDENT FULL-SUITE CHECK
+All checks below ran in a fresh detached clone at reviewed_sha, with empty git status
+before and after. Python 3.13.15, git 2.55.0. No source-worktree tests were run.
+python3 -B -m unittest discover -s tests
+  exit 0; Ran 1736 tests in 278.969s; OK (wall time 279.209s).
+python3 -B scripts/validate.py
+  exit 0; All 21 missions valid; three-layer separation holds; evals valid.
+python3 -B scripts/gen-badges.py --check
+  exit 0, no output.
+python3 -B runtime/scripts/floor_guard.py --base cb5a95c4e735fc3c3a1363cc0c9061a223a84988
+  exit 0; floor-guard: clean.
+No required experiment remains running; the 20-minute partial-report STOP was not needed.
+
+REPRODUCTION / RAW EVIDENCE
+Evidence scratch root:
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-repair-evidence-89s47tvc
+audit.py imports the actual verifier in a detached reviewed_sha clone, calls both
+admission gates with the literal proof string, rehashes Git blobs, and calls the real
+artifact reader with default roots. proof-replay.py checks out the receipt SHA,
+runs the exact command, restores only verify.py from base_sha, reruns, then restores
+the clean reviewed SHA. These scripts and receipts remain outside the source checkout.
+SHA-256:
+feba5976f8ac3d28360d7346dc3fcf4ef689b3ea56fbe31b73024a3abeaad9df audit.py
+498d0930faee993bcb12caea7f5aa7e725648eba18f36e73dade01f941c69ca7 evidence-audit.json
+3db382f566fbb4e6125676c3f230f816a4932bbd84d3efba65db2c3bc3864926 proof-replay.py
+95dc63dfbfd132de4673cbfb0dc81749b20eaadba66882922a4bcbc3ebaa4ad8 proof-replay.json
+fb1588a84b2716aca06957ee2928553960a6cb21c7506cd0f2d38128fece2541 proof-clean.log
+f4091626eb1a325bc1fcbe8c6891aa73f2cf422d3d8dac95473cbbe05660d228 proof-base-revert.log
+
+Mutant scratch root: /tmp/u442-repair-mutants-qaraxizz
+Reproduce each quoted replacement in its own fresh clone detached at reviewed_sha,
+then run python3 -B -m unittest discover -s tests -p test_verify.py.
+The clean baseline uses that identical command without any replacement. Exact patches,
+per-experiment receipts, all logs, and results.json are retained in this scratch root.
+SHA-256:
+400d122d0dacdfabaa97862e705c2e9c1faae7ec716121153cd55c701a0ba2ac baseline.log
+feb8dd20024b2b4d79a72f107373075817fa09e480bc8c9bf34cfa65b88fd09e X1.log
+822d26b2f8a5a071e050d5cab4e1ea00b3f4d5f20f8c0732b3784fdf08d71768 X3.log
+8398156e73d2993d9d6bd9fcacfa7da12f38cb4243165799614266de9a01420b neutral.log
+af720c54fd35b2cdac0840a771f7b5e807ea1bcb8cad2ee24d2a0687c809daf7 results.json
+
+Full-suite/scope scratch root:
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-repair-suite-78hom4rv
+SHA-256:
+d48736368d962b11924b80841f4effdd448539a1d3347ea4688959d8f56846fa suite.log
+90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6 validator.log
+771c9f8640541a5f365779b2cf26fcb8cce12e9326c2689b6d05eeb71cf304d8 floor-guard.log
+06223c1e3265549a38a6deb949dee87af9a44473c50e193b2690a1de037a4cec results.json
+Badge/status/diff-check logs are empty; their SHA-256 is
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.
+
+REPORT-ONLY EVIDENCE MANIFEST
+{
+  "unit": "U-442/targeted-repair-review",
+  "unit_class": "report-only",
+  "base_sha": "cb5a95c4e735fc3c3a1363cc0c9061a223a84988",
+  "head_sha": "85a1e797eaba7b0c21cc913ad91839c06a827303",
+  "reviewed_sha": "85a1e797eaba7b0c21cc913ad91839c06a827303",
+  "reviewed_tree": "b64985d92fb28eecf67d543f0801a4c628fc1af2",
+  "verdict": "GO",
+  "scope": "G1-b/G2-b authorized targeted re-review; not a fourth full round",
+  "counts": {"Critical": 0, "Required": 0, "Nit": 0, "Optional": 0, "FYI": 0},
+  "closed_stickers": ["S3-R1", "R3-STD-1", "R3-T1", "R3-T2", "R3-T3"],
+  "proof_command_exact_match": true,
+  "both_admission_gates_pass": true,
+  "repointed_artifacts_verified": 5,
+  "head_inventory_hashes_verified": 32,
+  "x1_killed": true,
+  "x3_killed": true,
+  "neutral_refactor_probe_fails_loudly": true,
+  "repair_production_diff_empty": true,
+  "suite_exit": 0,
+  "suite_count": 1736,
+  "validator_exit": 0,
+  "badge_check_exit": 0,
+  "floor_guard_exit": 0,
+  "report_path": "docs/reports/u-442/review-repair.txt",
+  "source_changes": "only this uncommitted report; no staging or commits",
+  "partial_report": false
+}
+
+FINAL FRESHNESS / BOUNDARY CHECK
+Completed UTC: 2026-09-20T12:53:13.173379+00:00
+Source HEAD still equals reviewed_sha; tracked and staged diffs are empty.
+Only docs/reports/u-442/review-repair.txt is untracked. All scratch changes were
+restored; no implementation, governance record, or other report was edited.

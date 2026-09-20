@@ -1,0 +1,144 @@
+{
+  "unit": "U-CHAIN",
+  "role": "integrator",
+  "round": 2,
+  "task_id": "task_c01a07c4fb08",
+  "dispatch_id": "ctx_8c2287f177bb",
+  "generated_at": "2026-09-20T08:24:59.648012+00:00",
+  "head_sha": "0dbc669e5df80934a36a24d120a680b038f9791d",
+  "pr": {
+    "number": 484,
+    "url": "https://github.com/ravidsrk/orca-fleet/pull/484",
+    "state": "OPEN",
+    "base_ref": "review/2026-09-20-tracker-sweep",
+    "head_ref": "ravidsrk/u-chain",
+    "head_ref_oid": "0dbc669e5df80934a36a24d120a680b038f9791d",
+    "head_matches_local": true,
+    "base_assert": "PASS - baseRefName == review/2026-09-20-tracker-sweep (not main)"
+  },
+  "push": {
+    "mode": "fast-forward, NO force",
+    "range": "5619d5be..0dbc669e",
+    "force_used": false,
+    "pushed_at": "2026-09-20T08:19:44Z",
+    "note": "branch only advanced; no rebase, so reviewed-SHA freshness is not implicated by the push itself"
+  },
+  "secret_scan": {
+    "tool": "gitleaks 8.30.1",
+    "scope": "git --log-opts=5619d5be..HEAD (new commits only)",
+    "commits_scanned": 15,
+    "findings": 0,
+    "exit_code": 0
+  },
+  "egress_receipt": {
+    "id": "61ba882d47042f697e9c48af7dbef4dfc215bfdb1c9681ae8822601a703173d9",
+    "ts": "2026-09-20T08:19:30Z",
+    "sink": "git-push",
+    "host": "github.com",
+    "payload_class": "branch-update",
+    "consent": "run-2026-09-14-clean-sweep:base-writes",
+    "written_before_push": true,
+    "push_ts": "2026-09-20T08:19:44Z",
+    "ledger": ".orca/egress.jsonl",
+    "chain": "intact, 5 receipts",
+    "head_digest": "a37848d394e8d4f868f9f139f2f2220a2c7cc7300d8f38d96130786aa1f4a754",
+    "anchor_note": "head digest recorded here, off the writer, per egress.py verify --expect-head",
+    "r1_deviation_status": "NOT remediated, by design. The two invented consent ids from round 1 (grant:branch-push-on-base, grant:pr-open-on-base) remain visible in `egress.py grants` as unrecognized consents - the intended human-visible signal. This round's receipt uses the real standing grant. Coordinator decision on an annotated re-anchor is still OWED."
+  },
+  "bot_state": "RAN",
+  "review_bot": {
+    "bot": "greptile-apps[bot]",
+    "wait": {
+      "poll_interval_s": 30,
+      "floor_s": 180,
+      "cap_s": 600,
+      "first_activity_s": 158,
+      "settled_s": 190,
+      "stable_across_polls": true
+    },
+    "review": {
+      "id": 5260066424,
+      "state": "COMMENTED",
+      "submitted_at": "2026-09-20T08:22:22Z",
+      "commit_id": "0dbc669e5df80934a36a24d120a680b038f9791d",
+      "bound_to_new_head": true
+    },
+    "baseline_before_push": {
+      "review_comments": 3,
+      "reviews": 1,
+      "issue_comments": 0
+    },
+    "new_after_push": {
+      "review_comments": 2,
+      "reviews": 1,
+      "issue_comments": 0
+    },
+    "action_taken": "ingested and tagged only - NOTHING FIXED; VALID set HELD for the review batch"
+  },
+  "held_new": [
+    {
+      "id": "BOT-4",
+      "comment_id": 4056505643,
+      "severity": "P1",
+      "path": "runtime/mission-chaining.md",
+      "line": 46,
+      "title": "Stale ref blocks resume",
+      "tag": "VALID",
+      "reason": "Verified against the new head. Resume fact 1 (lines 43-47) specifies `git merge-base --is-ancestor <base-tip> <default-ref>` with `<default-ref>` = `origin/<default>` for a remote target, and states NO freshness obligation: grep -niE 'fetch|refresh|up-to-date|stale' over runtime/mission-chaining.md returns NO MATCHES. The bot's cited precedent holds verbatim - runtime/scripts/preflight.py:21-22 reads 'An online default derived from gh resolves through refs/remotes/origin/<branch>, never a possibly stale local namesake. Fetch origin before running preflight;' - so the repo's sibling policy already carries exactly the discipline this new clause omits. Failure mode is concrete and one-directional: a coordinator whose origin/<default> predates the human's landed promotion gets --is-ancestor false and keeps the chain PARKED-AT-PROMOTION although promotion HAS landed. It fails safe (never a wrong resume) but it strands a legitimately resumable chain behind a human gate, and the doc's own rule says 'A coordinator may not resume its own promotion park' - so nothing downstream recovers it.",
+      "scope": "inside the frozen spec (runtime/mission-chaining.md)",
+      "note_for_batch": "REGRESSION-ADJACENT: this defect lives in the clause F-1 rewrote to close round-1 BOT-1. The r2 fix corrected the ancestry ENDPOINTS (BASE->DEFAULT) but inherited the unfetched-ref assumption from the text it replaced. Treat as a continuation of BOT-1's clause, not an unrelated new finding."
+    },
+    {
+      "id": "BOT-5",
+      "comment_id": 4056505646,
+      "severity": "P2",
+      "path": "docs/reports/U-CHAIN/run_mutants-r2.py",
+      "line": 6,
+      "title": "Harness fixture is missing",
+      "tag": "VALID",
+      "reason": "Verified by reading the harness and the index. Line 6 `BASE = Path('base-policy.md').read_text()` executes unconditionally at MODULE IMPORT, before any mutant selection; line 32 consumes it for the 'base-policy' mutant. Nothing in the file ever writes base-policy.md (grep for write_text finds only POLICY.write_text at lines 96/98, which target runtime/mission-chaining.md). The fixture is neither git-tracked (`git ls-files | grep base-policy` empty) nor present on disk, while the harness itself IS tracked. So a clean checkout raises FileNotFoundError at import and reproduces ZERO of the 13 mutants - not merely the base-policy one.",
+      "scope": "inside this unit's own evidence (docs/reports/U-CHAIN/), not the frozen spec",
+      "note_for_batch": "Severity is understated relative to THIS repo's doctrine. AGENTS.md makes an independent verifier re-deriving the facts the definition of done, and the 13/13 mutant battery is this unit's convergence evidence for #441/#443/#444. A harness that cannot run from a clean checkout makes that battery unreproducible by the verifier it exists to satisfy. The recorded mutants-r2.txt output is not thereby falsified - it is simply no longer independently re-derivable. Cheap fix (derive BASE from `git show <sha>:runtime/mission-chaining.md`) is available but was NOT applied - held per dispatch."
+    }
+  ],
+  "r1_holds_disposition": {
+    "summary": "Greptile's r2 pass re-raised NONE of the three round-1 findings on the new head. Two are resolved by 88a64c90; one is substantially but NOT fully closed.",
+    "bot_did_not_re_raise": true,
+    "github_thread_state": "All three r1 comments still carry position=1 (NOT auto-outdated), so they remain OPEN threads on PR #484 and are still owed an in-thread reply before any merge.",
+    "findings": [
+      {
+        "id": "BOT-1",
+        "severity": "P1",
+        "fix_item": "F-1",
+        "disposition": "RESOLVED at new head",
+        "evidence": "Both sub-claims addressed. Resume fact 1 is now 'leg N's integration BASE tip is an ancestor of the DEFAULT branch' via `--is-ancestor <base-tip> <default-ref>`, replacing the unit-head-vs-BASE test that the leg's own merges already satisfied; and the no-remote lane now names 'a valid LOCAL ref - the local default branch - never a nonexistent origin/...'. The pacing bullet additionally states PROMOTION is BASE->DEFAULT and that merging a unit INTO the BASE 'is NOT that gate'. Mutants park-no-resume-precondition and park-no-procedure-defined now bind it.",
+        "caveat": "The rewritten clause carries a NEW P1 (BOT-4, stale ref). BOT-1 as stated is closed; its clause is not clean."
+      },
+      {
+        "id": "BOT-2",
+        "severity": "P2",
+        "fix_item": "F-5",
+        "disposition": "RESOLVED at new head",
+        "evidence": "The r1 report framed this as a binary choice - soften the citation (in scope) or amend the exemplar (new unit). F-5 took the in-scope option: the citation now reads 'written as that run's PROPOSED shape, which predates this clause; it is ADOPTED here, so the shape above is doctrine and not a proposal.' The historical artifact docs/reports/chaining-2026-09-16/handoff-log.md is untouched, so no out-of-scope file was edited.",
+        "caveat": "r1 sub-claim (a) - that the handoff pointer sits in a per-leg table cell rather than the ledger-header field the new rule requires - was judged OVERSTATED in r1 and is NOT addressed by F-5. It was not the basis of the hold."
+      },
+      {
+        "id": "BOT-3",
+        "severity": "P2",
+        "fix_item": "F-3",
+        "disposition": "SUBSTANTIALLY RESOLVED - not fully",
+        "evidence": "The structural complaint is closed: bullets are whitespace-normalised, a must() helper binds 16 operative phrases, and the battery grew from 4 whole-bullet deletions to 13 mutants including 6 requirement-REVERSING ones (park-no-resume-precondition, park-no-procedure-defined, carry-sections-optional, carry-schema-deleted, local-artifacts-optional, local-seed-diff-optional, local-publishes-neither). All 13 KILLED, 0 survivors, positive control GREEN.",
+        "residual": "The three SPECIFIC mutations the r1 bot named are still not individually bound. Grepping the 16 must() patterns for the operative tokens returns zero hits for 'UNPROMOTED', 'granted SHA', 'MISSING' and 'unfinished chain'. So on the current head: (a) flipping 'UNPROMOTED BASE tip' to 'promoted' in resume fact 2, (b) deleting 'with the granted SHA written down', and (c) reversing 'a MISSING handoff log is an unfinished chain, never an empty one' each appear to survive - none is covered by an assert. NOT re-run as live mutants (holding, per dispatch); this is a pattern-level finding and is stated as such.",
+        "recommendation_for_batch": "Do not close BOT-3 on the 13/13 headline alone. Either bind the three residual phrases or record explicitly why they are out of contract."
+      }
+    ],
+    "carried_flag_from_r1": "Full suite green/red status at head is the review batch's to re-confirm; the r1 note that 5 tests fail identically at base and head was tracked separately as STAB-2 on BASE and is NOT re-adjudicated here."
+  },
+  "constraints_honored": [
+    "never merged",
+    "never pushed to main",
+    "no force-push",
+    "no fixes applied to any bot finding (r1 or r2)",
+    "egress receipt written before the push"
+  ]
+}

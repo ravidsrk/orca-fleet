@@ -1,0 +1,282 @@
+{
+  "artifacts": [
+    {
+      "path": "docs/reports/u-442/README.md",
+      "sha256": "51e21eac1b04ae171d4bdecd1192dca9ba7fb37c3257282a3c9a559adfbc78fd"
+    },
+    {
+      "path": "docs/reports/u-442/full-suite-r3.txt",
+      "sha256": "7019896c561b536509c14fa5f163a206302df82446eebf243bc961ba988dc6a1"
+    },
+    {
+      "path": "docs/reports/u-442/full-suite.txt",
+      "sha256": "dd4f8a09b829e9bbd6d0943259650d60cf2a6776c85b0825490ebc4e198abb6c"
+    },
+    {
+      "path": "docs/reports/u-442/integrate-r2.json",
+      "sha256": "1f9a8d4d86bbc068691eb00dc0fc3a7ec5605ca80b48ac074e7b603dd0f4ea4b"
+    },
+    {
+      "path": "docs/reports/u-442/integrate.json",
+      "sha256": "93a43012a1c14a1ac0f35c9157b71504cfae83739d06c157ce8a6d8311bfd3ea"
+    },
+    {
+      "path": "docs/reports/u-442/nc-green-r3.txt",
+      "sha256": "3c3e75fe592ddc5ba64b1522c213d0187850b59dabc3dd93e02ff831d6088694"
+    },
+    {
+      "path": "docs/reports/u-442/nc-green.txt",
+      "sha256": "b835083289c67526cd5cf54bc6778a6aa62dc13f19fe8215b7d9f1da3601c41a"
+    },
+    {
+      "path": "docs/reports/u-442/nc-red-r3.txt",
+      "sha256": "51265e9aec87bb3746ffb6937bc786f64bdd316b5b3f5d8e451c0c9b22bd397a"
+    },
+    {
+      "path": "docs/reports/u-442/nc-red.txt",
+      "sha256": "2827794d9c3f04655526b89b71391d1db9a8dad654f9ec34401299d6b6991948"
+    },
+    {
+      "path": "docs/reports/u-442/review-spec-r2.txt",
+      "sha256": "4795b282bc5bb42149c3cd4f2250572551ea571ce146915695a411f796a47959"
+    },
+    {
+      "path": "docs/reports/u-442/review-spec.txt",
+      "sha256": "79db69f0393a2d10dc82919fbd158b867cadbf7e1f971526f33b64ef297adc0c"
+    },
+    {
+      "path": "docs/reports/u-442/review-standards-r2.txt",
+      "sha256": "2164e7d7dd8427a98c8e543b00a83d7337d1157ad8a13f8375f09596dacf6fa6"
+    },
+    {
+      "path": "docs/reports/u-442/review-standards.txt",
+      "sha256": "9f1611f3dc510849d326d94dd8605e8d99a2110f34c7470118b608e454e20144"
+    },
+    {
+      "path": "docs/reports/u-442/review-tests-r2.txt",
+      "sha256": "0ff17ac21b2a191c5825fac78724de750f52f8faf0585127d81a7f6777a91c2c"
+    },
+    {
+      "path": "docs/reports/u-442/review-tests.txt",
+      "sha256": "0f62ab6ea605f59aa4f53ff221931c852803f38559248af22cebed19c4672a63"
+    },
+    {
+      "path": "docs/reports/u-442/round2-mutants.json",
+      "sha256": "b19bd14db58e17477a4be2e5403051bec7384170b2801a1278595deda8541d3e"
+    },
+    {
+      "path": "docs/reports/u-442/round2-replay-r3.json",
+      "sha256": "95df158aee02ad0aeaef1647c48651a4ab5fe979c6b793a68c52c2d1a56a2f41"
+    },
+    {
+      "path": "docs/reports/u-442/round2.md",
+      "sha256": "e21899aacc96a50b885b708693627228c3b69d39727eac1fdc61e9c139707ebd"
+    },
+    {
+      "path": "docs/reports/u-442/round3-mutants.json",
+      "sha256": "db121843dc53e3a97b4b63c29817646afafdf6f3525170a3745fe0ef507c15c4"
+    },
+    {
+      "path": "docs/reports/u-442/round3.md",
+      "sha256": "298658cbfd17fa40eb8c7ef2496abd51c68a9b0eb9c924d071c2b1fec9e0d1db"
+    },
+    {
+      "path": "docs/reports/u-442/selfcheck-r3.txt",
+      "sha256": "3f26e4072b1cdc4e3c31860ebc4e6478cd2da199588897e5e45720f56aad1490"
+    },
+    {
+      "path": "docs/reports/u-442/selfcheck.txt",
+      "sha256": "e3d7733c38404836b4659904231a1bfacfebc553b6460c6d940360bc37e7567c"
+    },
+    {
+      "path": "docs/reports/u-442/tests-r3.txt",
+      "sha256": "3f0c5084d4820980cc9b6863db50a2faf8afc88ca5fec49f9894ff53f43a9f0e"
+    },
+    {
+      "path": "docs/reports/u-442/tests.txt",
+      "sha256": "2b347cb2d3a1fb909c01e2e5a1f85ae6a5a2acd44937c648d64cf025c2748841"
+    },
+    {
+      "path": "docs/reports/u-442/unit-scope-r3.txt",
+      "sha256": "dbe3032a4136aad1cf4752fa942eb44bb2d361deaaec49d7f5ac3e2df67be905"
+    },
+    {
+      "path": "docs/reports/u-442/unit-scope.txt",
+      "sha256": "6c816dc7db8446633481c013f9fc4865df6c693b9aa8b8fbfd0a87f344aa605c"
+    },
+    {
+      "path": "docs/reports/u-442/validate-r3.txt",
+      "sha256": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6"
+    },
+    {
+      "path": "docs/reports/u-442/validate.txt",
+      "sha256": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6"
+    },
+    {
+      "path": "docs/reports/u-442/verdict-r2.json",
+      "sha256": "686fcfd8a54f3a05a3a07235dd40311f0d37a393aa11d1283940aa1b2eecb7ff"
+    },
+    {
+      "path": "docs/reports/u-442/verdict-review-r2.md",
+      "sha256": "e9c18c560acf8929292462e982b487a04487fd8c84245fd8d4f0341fdf550649"
+    },
+    {
+      "path": "docs/reports/u-442/verdict-review.md",
+      "sha256": "8334ce2c19151a6ed5c3bc0ea353ed93cab76ebdb9cba8b875c94aeb32202baa"
+    },
+    {
+      "path": "docs/reports/u-442/verdict.json",
+      "sha256": "dfaba6cc2d03ae1fb14debc706a5d745c070a340986c89d14ea36fa0bc48ce21"
+    }
+  ],
+  "base_branch": "review/2026-09-20-tracker-sweep",
+  "base_sha": "a58bf71a283928a8278e560163452ee70c7ad609",
+  "binding_audit": {
+    "mutants": [
+      "docs/reports/u-442/round2-replay-r3.json",
+      "docs/reports/u-442/round3-mutants.json"
+    ],
+    "note": "Every receipt in commands[] was taken in its OWN fresh worktree checked out at head_sha, with the manifest written OUTSIDE that worktree, so each record's wtree is exactly `git rev-parse 47b3f1f2^{tree}` = 02ed5304adfc0120c69eafc299f687d81defb64e \u2014 the content the command was actually given, not that content plus the wrapper's own writes. R3-STD-1: the refreshed receipts now carry ROUND-SPECIFIC paths (tests-r3, unit-scope-r3, validate-r3, full-suite-r3, nc-green-r3, nc-red-r3) that are absent at head_sha, so _read_artifact's tracked-at-head_sha shortcut cannot select an older committed transcript at the same name and the artifacts[] pin over these bytes is what governs. The round-1/round-2 logs at the original paths are retained and still inventoried as history; nothing in commands[] or negative_control points at them."
+  },
+  "claim": "U-442 round-3 targeted repair (gate-batch G2-b): the round-3 stickers S3-R1, R3-STD-1 and R3-T1/T2/T3 closed with NO production change. Proof-command agreement restored (one string in both negative_control.command and its fresh exit-0 receipt); the five refreshed transcript references re-pointed at round-specific paths that no older commit can answer for; three new regressions kill the two surviving coverage mutants (equal-root compatibility, artifact revision) and make the H-7 fail-closed probe assert it FIRED. Suite 1736 green and validate exit 0 at head_sha; the 15 previously published mutants are unaffected by these test-only additions, and the three new controls (X1 equal-root, X3 artifact-revision, X4 the neutral-refactor vacuity pair) are KILLED by assertion at head_sha with zero errors \u2014 round3-mutants.json.",
+  "commands": [
+    {
+      "artifact": "docs/reports/u-442/validate-r3.txt",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "commit": "47b3f1f2f417c43447dccd9c85e7d7d721ec005b",
+      "duration_s": 1.083,
+      "exit": 0,
+      "label": "validate",
+      "ts": "2026-09-20T12:32:37Z",
+      "wtree": "02ed5304adfc0120c69eafc299f687d81defb64e"
+    },
+    {
+      "artifact": "docs/reports/u-442/unit-scope-r3.txt",
+      "cmd": "python3 -m unittest tests.test_verify.CrossRepoRoots",
+      "cmd_sha256": "9387b7bda28e10f40c66e3d0f731134969d29fa897cc80bc049bdc5624c6794e",
+      "commit": "47b3f1f2f417c43447dccd9c85e7d7d721ec005b",
+      "duration_s": 7.198,
+      "exit": 0,
+      "label": "unit-scope-tests",
+      "ts": "2026-09-20T12:32:45Z",
+      "wtree": "02ed5304adfc0120c69eafc299f687d81defb64e"
+    },
+    {
+      "artifact": "docs/reports/u-442/tests-r3.txt",
+      "cmd": "python3 -m unittest discover -s tests -p test_verify.py",
+      "cmd_sha256": "2a2d5b8333614f95d3135b1ceb7c0abe3680ba1d58294ac8429d8e3ee85ad852",
+      "commit": "47b3f1f2f417c43447dccd9c85e7d7d721ec005b",
+      "duration_s": 47.085,
+      "exit": 0,
+      "label": "tests",
+      "ts": "2026-09-20T12:33:32Z",
+      "wtree": "02ed5304adfc0120c69eafc299f687d81defb64e"
+    },
+    {
+      "artifact": "docs/reports/u-442/full-suite-r3.txt",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "commit": "47b3f1f2f417c43447dccd9c85e7d7d721ec005b",
+      "duration_s": 303.586,
+      "exit": 0,
+      "label": "full-suite",
+      "ts": "2026-09-20T12:37:33Z",
+      "wtree": "02ed5304adfc0120c69eafc299f687d81defb64e"
+    },
+    {
+      "label": "close-contract-tests",
+      "ts": "2026-09-20T13:15:05Z",
+      "cmd": "python3 -m unittest tests.test_verify.CrossRepoRoots",
+      "cmd_sha256": "9387b7bda28e10f40c66e3d0f731134969d29fa897cc80bc049bdc5624c6794e",
+      "exit": 0,
+      "duration_s": 5.279,
+      "commit": "5bec0616a719fc176a2ef951aef67e36e381e640",
+      "wtree": "052ae5ef46f7b157442fd6c045b4abdec23e33ea",
+      "artifact": null
+    },
+    {
+      "label": "close-validate",
+      "ts": "2026-09-20T13:15:17Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 0,
+      "duration_s": 0.858,
+      "commit": "5bec0616a719fc176a2ef951aef67e36e381e640",
+      "wtree": "e8fd6a1583301adb6c0f799a144ac028dda68309",
+      "artifact": null
+    },
+    {
+      "label": "close-full-suite",
+      "ts": "2026-09-20T13:19:37Z",
+      "cmd": "python3 -m unittest discover -s tests",
+      "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
+      "exit": 0,
+      "duration_s": 259.342,
+      "commit": "5bec0616a719fc176a2ef951aef67e36e381e640",
+      "wtree": "0ea5a70cfdbb0d51daf234acdff53ef32885deef",
+      "artifact": null
+    }
+  ],
+  "contract": {
+    "criterion_ids": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4"
+    ],
+    "digest": "sha256:d6cf3b24d463f72d41f07e2203fb662000683cdb19139b694ebdc1237a99a644",
+    "source": "docs/runs/2026-09-20-clean-sweep-tracker/contract-u442.json@c467d554"
+  },
+  "criteria": [
+    {
+      "addressed": true,
+      "id": "AC-1",
+      "text": "A new test fixture (two scratch git repos built in a tmp dir by the test itself: repo A holds the manifest+evidence, repo B holds the SHAs) FAILS at the unit's base SHA and PASSES at head."
+    },
+    {
+      "addressed": true,
+      "id": "AC-2",
+      "text": "A regression test (or the existing suite) proves no-flag invocation is unchanged; the #267 escape-refusal test still passes against the evidence root."
+    },
+    {
+      "addressed": true,
+      "id": "AC-3",
+      "text": "Full test suite green at head; python3 scripts/validate.py exit 0."
+    },
+    {
+      "addressed": true,
+      "id": "AC-4",
+      "text": "NEGATIVE CONTROL executed: verify.py change reverted (test kept) -> fixture test RED - recorded via evidence-run.py."
+    }
+  ],
+  "head_sha": "5bec0616a719fc176a2ef951aef67e36e381e640",
+  "intent": {
+    "goal": "Let one verify.py invocation reach two authorities \u2014 evidence paths bounded under one root, SHA/git legs run against another \u2014 and close round 2's Required findings without widening that change: the legacy no-flag path keeps its 20s symbol-grep budget (S2-R3), the root classifier and the canonical bound are pinned by tests that a mutant cannot walk past (R2-T1/T2/T3), and the fail-closed branch is covered rather than waived (H-7).",
+    "ruled_out": "A named _LEGACY_GREP_TIMEOUT constant for the restored budget: verify.py's interface WIDTH is a ratchet with two slots left before the pre-deepening baseline, and a timeout is not an interface. The value is passed at the call site and pinned by a test that reads it off the subprocess call and compares it to _run's own default, so it cannot drift back to _git's 10s unnoticed. Also ruled out: waiving the pragma at verify.py:209 \u2014 a branch nobody executes is a branch nobody knows the sign of, and the floor guard is right to say so. Also ruled out in this repair: changing verify.py to make the two surviving mutants die. X1 (equal roots forced split) and X3 (artifact bytes read at local HEAD) are ADEQUACY gaps \u2014 untouched production already behaves correctly in both, as the new tests assert against it \u2014 so a production edit here would be a fourth round, not the authorized repair.",
+    "why": "Round 2 was NO-GO on evidence discipline, one real compatibility regression and four coverage gaps; a round-3 NO-GO parks the unit. The compatibility regression is the one that mattered: it fired with both new flags ABSENT, which is the invocation the unit promised to leave byte-identical."
+  },
+  "lighting": "lit",
+  "negative_control": {
+    "artifact": "docs/reports/u-442/nc-red-r3.txt",
+    "command": "python3 -m unittest tests.test_verify.CrossRepoRoots",
+    "did": "S3-R1: the proof command is now ONE string. `python3 -m unittest tests.test_verify.CrossRepoRoots` is what negative_control.command nominates AND what the fresh exit-0 `unit-scope-tests` receipt records, so check_commands and check_replay_request admit the same invocation; the round-3 package nominated one spelling and receipted another (with -v), and no coordinator command could satisfy both gates. Checked out head_sha 47b3f1f2 in a throwaway worktree and ran that exact command GREEN (30 tests, exit 0, nc-green-r3.txt); then restored runtime/scripts/verify.py from base_sha a58bf71a (git checkout a58bf71a -- runtime/scripts/verify.py), left the round-3 tests in place, and re-ran it: exit 1, 26 assertion failures and 1 error (nc-red-r3.txt). The single error is honest and expected of a BASE revert rather than a behavioural mutant: at base there is no _ROOTS at all, so the fail-closed-classifier test cannot even reach an assertion. The behavioural controls that keep the flags present are the mutants below, all assertion kills.",
+    "paths": [
+      "runtime/scripts/verify.py"
+    ],
+    "result": "KILLED \u2014 the proof went RED",
+    "tool": "revert"
+  },
+  "reviewer_mode": "cross-vendor",
+  "unit": "U-442",
+  "pr": {
+    "number": 485,
+    "url": "https://github.com/ravidsrk/orca-fleet/pull/485",
+    "reviewed_sha": "5bec0616a719fc176a2ef951aef67e36e381e640",
+    "reviewed_wtree": "052ae5ef46f7b157442fd6c045b4abdec23e33ea"
+  },
+  "review": {
+    "artifact": "docs/reports/u-442/review-repair.txt"
+  },
+  "conductor_note": "CONDUCTOR CLOSE (2026-09-20, run_bec47e54b673): head re-bound 47b3f1f2f417\u21925bec0616 (the merged head: repair head 85a1e797 + review-report commit + the BASE union merge, badge regenerated by gen-badges.py \u2014 the only conflict-resolution file). reviewed_sha==head_sha. The three close-* records in commands[] are the coordinator's close re-runs at the merged tip (contract tests / validate / full suite). Contract re-pointed to contract-u442.json (coordinator-finalized criterion ids, verbatim from the frozen spec \u2014 the r2 SPEC reviewer's named finalization item). DISCLOSED GAP: PR #485 carries NO independent APPROVED review object at 5bec0616 (Greptile check pass with 0 comments, no APPROVE \u2014 its auto-approve fired on #484 but not here); the verify review leg is expected RED and is disclosed as such (single-GitHub-identity constraint; fleet GO review posted as comment; recoverable post-merge with a second identity). Merged c467d554 into review/2026-09-20-tracker-sweep; promotion rides PR #486."
+}

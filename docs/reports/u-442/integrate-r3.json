@@ -1,0 +1,178 @@
+{
+  "unit": "U-442",
+  "role": "integrator",
+  "round": 3,
+  "round_note": "FINAL integration round as dispatched.",
+  "pr": {
+    "number": 485,
+    "url": "https://github.com/ravidsrk/orca-fleet/pull/485",
+    "base_ref": "review/2026-09-20-tracker-sweep",
+    "head_ref": "u-442",
+    "state": "OPEN",
+    "merged": false,
+    "mergeable": true,
+    "mergeable_state": "clean"
+  },
+  "head_sha": "c1d1e59c50558e81da15faf4a0f885b96f6e20d2",
+  "head_sha_note": "The merged head every gate below was run against, and the SHA Greptile re-reviewed (check-run started 2026-09-20T10:28:47Z, after the 10:28:4xZ push). Committing this report adds one commit on top, so the PR head advances past it; the guard, suite, validator, gitleaks, CI and bot verdicts recorded here bind to c1d1e59c, not to that later SHA.",
+  "merge": {
+    "command": "git merge db1b72bc37770666bbea4f664f0ecc9d95caffcf --no-edit",
+    "base_tip_pinned": "db1b72bc37770666bbea4f664f0ecc9d95caffcf",
+    "pin_note": "origin/review/2026-09-20-tracker-sweep was resolved to a SHA immediately after fetch and that SHA was used for the merge, because the .git dir is shared with other worktrees whose fetches can move remote-tracking refs mid-session.",
+    "merge_base_before": "81c8772a871f92b08c74ace28bf25f84d9e599c4",
+    "strategy": "ort",
+    "conflicts": 0,
+    "result": "CLEAN",
+    "merge_commit": "c1d1e59c50558e81da15faf4a0f885b96f6e20d2",
+    "commits_absorbed": [
+      "db1b72bc docs(runs): third floor waiver (integrate-r2.json quotation)",
+      "09743189 docs(runs): U-CHAIN r3 NO-GO posted, park terminal pending G1",
+      "4f4c15e8 docs(runs): floor waivers for archival pragma quotations (H-7 coordinator half)"
+    ],
+    "files_changed": 5,
+    "waivers_brought_in": "docs/DECISIONS.md +3 lines — the THREE DECISIONS floor-waivers the guard needs."
+  },
+  "guard": {
+    "command": "python3 runtime/scripts/floor_guard.py --base origin/review/2026-09-20-tracker-sweep",
+    "stdout": "floor-guard: clean (6 waived)",
+    "exit_code": 0,
+    "result": "CLEAN",
+    "waived_count": 6,
+    "required_string_present": true,
+    "note": "The single [silenced-checker] violation that blocked round 2 (runtime/scripts/verify.py pragma-no-cover) is cleared by the DECISIONS waivers the merge brought in. No code was touched to achieve this.",
+    "ci_check_run": {
+      "name": "guard",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-20T10:28:44Z",
+      "completed_at": "2026-09-20T10:28:52Z",
+      "url": "https://github.com/ravidsrk/orca-fleet/actions/runs/35505177968/job/106063657978",
+      "went_green_after_push": true,
+      "note": "Explicitly answering the dispatched question: yes — the guard check-run on PR #485 is GREEN on the new head, reversing the round-2 RED."
+    }
+  },
+  "suite": {
+    "command": "python3 -m unittest discover -s tests",
+    "ran_line": "Ran 1733 tests in 255.943s",
+    "status_line": "OK",
+    "exit_code": 0,
+    "result": "GREEN",
+    "run_at_sha": "c1d1e59c50558e81da15faf4a0f885b96f6e20d2",
+    "note": "FAIL:/verify: strings in the captured output are asserted stdout from the verifier's own negative-control tests (those tests require verify.py to refuse); the run terminates in OK."
+  },
+  "validate": {
+    "command": "python3 scripts/validate.py",
+    "exit_code": 0,
+    "result": "GREEN",
+    "tail": "All 21 missions valid; three-layer separation holds; evals valid."
+  },
+  "working_tree": "clean at HEAD before and after the gates; the suite's badge regeneration wrote to temp dirs only (git status empty post-run).",
+  "gitleaks": {
+    "scope": "origin/u-442..HEAD",
+    "resolved_scope": "ed0ee848dc91e6f9b3ab502b7934e6b1854fafb0..c1d1e59c50558e81da15faf4a0f885b96f6e20d2",
+    "command": "gitleaks git --log-opts=\"origin/u-442..HEAD\" --redact --no-banner",
+    "version": "8.30.1",
+    "commits_scanned": 28,
+    "bytes_scanned": 1129103,
+    "result": "PASS",
+    "findings": 0,
+    "evidence": "no leaks found"
+  },
+  "egress_receipt": {
+    "written_before_push": true,
+    "id": "99091fe3b306c6a4869bec14319b9c12e95a6b154aaf25ca4e5b70e9a322ad1b",
+    "ts": "2026-09-20T10:28:29Z",
+    "sink": "git-push",
+    "host": "github.com",
+    "payload_class": "branch-update",
+    "consent": "run-2026-09-14-clean-sweep:base-writes",
+    "prev": "cd221c6b200a2cd7ea7cbbf5fbe1814a090a435f2fd873c8f780b0fb2af4bbef",
+    "chain": "egress: chain intact, 12 receipt(s) in .orca/egress.jsonl",
+    "ordering_evidence": "Receipt ts 10:28:29Z precedes the push, whose CI check-runs start at 10:28:44Z."
+  },
+  "push": {
+    "command": "git push origin u-442",
+    "result": "ed0ee848..c1d1e59c  u-442 -> u-442",
+    "was_forced": false,
+    "force_with_lease_used": false,
+    "ff_note": "Fast-forward as expected: `git merge-base --is-ancestor origin/u-442 HEAD` exited 0 before the push, and git reported the range without a `+`. No lease flag was needed and bare --force was never used."
+  },
+  "bot_state": {
+    "bot": "greptile-apps[bot]",
+    "state": "RAN-AND-CLEAN",
+    "did_not_run": false,
+    "silence": false,
+    "reviewed_sha": "c1d1e59c50558e81da15faf4a0f885b96f6e20d2",
+    "check_run": {
+      "name": "Greptile Review",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-20T10:28:47Z",
+      "completed_at": "2026-09-20T10:30:38Z",
+      "summary": "Greptile has reviewed the Pull Request.\n\n48 files reviewed, 0 comments added."
+    },
+    "new_review_submitted": null,
+    "new_review_comments": 0,
+    "evidence": "Positive run evidence, not inferred from silence: the check-run on c1d1e59c started 1m51s after the push and completed with conclusion=success and an output summary stating 48 files reviewed and 0 comments added. Polling ran ~5m30s (11 polls at ~30-35s, above the 2-3min floor, under the 10min cap) across pulls/485/comments, issues/485/comments and pulls/485/reviews; every query for created_at/submitted_at after the push returned empty.",
+    "baseline_note": "The PR's four review comments all carry original_commit_id 5a57c8d2 and created_at 08:05-08:06Z, over two hours before this push. GitHub re-pointed their `commit_id` field to the new head c1d1e59c when the head advanced — that is ref-tracking, not a new comment. Distinguishing original_commit_id from commit_id is what keeps this round's held_new at 0 rather than falsely counting four."
+  },
+  "held_new": [],
+  "held_new_count": 0,
+  "held_new_note": "Greptile added no comments on the new head, so there is no new VALID / FALSE-POSITIVE set to triage this round.",
+  "prior_holds_disposition": {
+    "summary": "Unchanged from round 2 — both round-1 P1 threads remain answered in-thread and were not re-raised on the new head.",
+    "threads": [
+      {
+        "comment_id": 4056474414,
+        "severity": "P1",
+        "title": "Artifact pinning can be bypassed (cross-repo evidence read from the SHA repo)",
+        "path": "runtime/scripts/verify.py",
+        "reply_present": true,
+        "reply_id": 4056476809,
+        "disposition": "VALID — held, not fixed in this PR",
+        "re_raised_on_new_head": false
+      },
+      {
+        "comment_id": 4056474416,
+        "severity": "P1",
+        "title": "Symbol check uses wrong repository (git grep in the process cwd)",
+        "path": "runtime/scripts/verify.py",
+        "reply_present": true,
+        "reply_id": 4056477169,
+        "disposition": "VALID — held, not fixed in this PR",
+        "re_raised_on_new_head": false
+      }
+    ]
+  },
+  "ci": {
+    "state_at_report_time": "ALL GREEN",
+    "head": "c1d1e59c50558e81da15faf4a0f885b96f6e20d2",
+    "check_runs": {
+      "gates": "completed/success",
+      "Greptile Review": "completed/success",
+      "tests (1)": "completed/success",
+      "tests (2)": "completed/success",
+      "tests (3)": "completed/success",
+      "tests (4)": "completed/success",
+      "pinned-demo": "completed/success",
+      "vfbench": "completed/success",
+      "bind": "completed/success",
+      "guard": "completed/success"
+    },
+    "failing": [],
+    "note": "10/10 check-runs green; PR mergeable_state=clean. The round-2 blocker (guard RED) is closed."
+  },
+  "fixes_applied": 0,
+  "fixes_applied_note": "Integrator contract for round 3 is HOLD: nothing in runtime/, skills/, playbooks/ or tests/ was touched. The only commit this integrator authored is this report; the only other commit it created is the no-conflict merge of the pinned base tip.",
+  "gates": {
+    "dispatched_stop_conditions": [
+      "merge conflict -> STOP",
+      "remaining floor violation -> STOP and report, fix nothing",
+      "suite or validate.py RED -> STOP"
+    ],
+    "result": "None triggered. Merge clean, floor guard clean, suite and validator green — the push proceeded as dispatched."
+  },
+  "verified_by_this_integrator": "Gate outcomes re-derived from authoritative state at c1d1e59c: local command exit codes and stdout, GitHub check-run conclusions on that exact SHA, and the PR comment API. This is not an independent re-derivation that the held P1 fixes are semantically complete — that grading is the reviewer's.",
+  "timebox": "Within the dispatched 30min; no partial-report STOP was needed.",
+  "next": "U-442 is green end-to-end at c1d1e59c with an all-green PR #485 and zero new bot findings. Nothing is outstanding from this integrator; the merge decision is the coordinator's."
+}

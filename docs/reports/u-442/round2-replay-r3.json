@@ -1,0 +1,150 @@
+[
+ {
+  "mutant": "M1_evidence_from_sha_root",
+  "verdict": "KILLED",
+  "exit": 1,
+  "summary": "Ran 274 tests in 37.686s; FAILED (failures=13)",
+  "assertion_failures_only": true,
+  "before": "top = _evidence_toplevel()",
+  "after": "top = _toplevel()",
+  "failed_tests": [
+   "test_a_colliding_sha_repo_blob_cannot_satisfy_a_mismatched_pin",
+   "test_a_colliding_sha_repo_blob_cannot_substitute_for_pinned_evidence",
+   "test_a_nested_evidence_root_bounds_against_itself_not_the_clone",
+   "test_a_path_at_ref_contract_read_uses_the_sha_repo",
+   "test_an_evidence_path_escaping_through_a_symlink_is_refused",
+   "test_an_unpinned_cross_repo_artifact_is_refused",
+   "test_git_dir_alone_leaves_evidence_resolution_where_it_was",
+   "test_split_roots_verify_a_cross_repo_manifest_end_to_end",
+   "test_symbol_only_on_base_is_found_even_when_head_deleted_it",
+   "test_the_evidence_root_may_be_a_named_subdirectory_of_the_clone",
+   "test_the_named_evidence_root_is_honored_from_a_distinct_cwd",
+   "test_the_symbol_leg_runs_in_the_sha_repo_not_the_process_cwd",
+   "test_two_clones_of_one_project_are_still_two_repositories"
+  ]
+ },
+ {
+  "mutant": "M2_ignore_evidence_root",
+  "verdict": "KILLED",
+  "exit": 1,
+  "summary": "Ran 274 tests in 38.064s; FAILED (failures=4)",
+  "assertion_failures_only": true,
+  "before": "top = _ROOTS[\"evidence\"]",
+  "after": "top = None",
+  "failed_tests": [
+   "test_a_nested_evidence_root_bounds_against_itself_not_the_clone",
+   "test_only_evidence_flag_collision_still_requires_pin",
+   "test_same_repo_nested_evidence_cannot_borrow_root_blob",
+   "test_the_named_evidence_root_is_honored_from_a_distinct_cwd"
+  ]
+ },
+ {
+  "mutant": "M3_remove_canonical_containment",
+  "verdict": "KILLED",
+  "exit": 1,
+  "summary": "Ran 274 tests in 37.934s; FAILED (failures=2)",
+  "assertion_failures_only": true,
+  "before": "if full != root and root not in full.parents:",
+  "after": "if False and full != root and root not in full.parents:",
+  "failed_tests": [
+   "test_a_nested_evidence_root_bounds_against_itself_not_the_clone",
+   "test_an_evidence_path_escaping_through_a_symlink_is_refused"
+  ]
+ },
+ {
+  "mutant": "M4_no_flag_cwd_root",
+  "verdict": "KILLED",
+  "exit": 1,
+  "summary": "Ran 274 tests in 37.576s; FAILED (failures=1)",
+  "assertion_failures_only": true,
+  "before": "top = out.strip() if code == 0 else None",
+  "after": "top = str(Path.cwd()) if code == 0 else None",
+  "failed_tests": [
+   "test_a_valid_no_flag_run_from_a_nested_directory_still_binds_to_the_toplevel"
+  ]
+ },
+ {
+  "mutant": "M5_git_bytes_ignore_sha_root",
+  "verdict": "KILLED",
+  "exit": 1,
+  "summary": "Ran 274 tests in 37.171s; FAILED (failures=1)",
+  "assertion_failures_only": true,
+  "before": "return _run_bytes([\"git\", *([\"-C\", _ROOTS[\"git\"]] if _ROOTS[\"git\"] else []), *args],",
+  "after": "return _run_bytes([\"git\", *args],",
+  "failed_tests": [
+   "test_a_path_at_ref_contract_read_uses_the_sha_repo"
+  ]
+ },
+ {
+  "mutant": "M6_git_ignore_sha_root",
+  "verdict": "KILLED",
+  "exit": 1,
+  "summary": "Ran 274 tests in 37.277s; FAILED (failures=9)",
+  "assertion_failures_only": true,
+  "before": "code, out, _ = _run([\"git\", *([\"-C\", _ROOTS[\"git\"]] if _ROOTS[\"git\"] else []), *args],",
+  "after": "code, out, _ = _run([\"git\", *args],",
+  "failed_tests": [
+   "test_a_colliding_sha_repo_blob_cannot_substitute_for_pinned_evidence",
+   "test_a_path_at_ref_contract_read_uses_the_sha_repo",
+   "test_a_symbol_only_in_the_evidence_repo_is_not_accepted_as_on_base",
+   "test_git_dir_alone_leaves_evidence_resolution_where_it_was",
+   "test_split_roots_verify_a_cross_repo_manifest_end_to_end",
+   "test_symbol_only_on_base_is_found_even_when_head_deleted_it",
+   "test_the_evidence_root_may_be_a_named_subdirectory_of_the_clone",
+   "test_the_symbol_leg_runs_in_the_sha_repo_not_the_process_cwd",
+   "test_two_clones_of_one_project_are_still_two_repositories"
+  ]
+ },
+ {
+  "mutant": "M7_drop_the_split_gate_on_the_tracked_blob_shortcut",
+  "verdict": "KILLED",
+  "exit": 1,
+  "summary": "Ran 274 tests in 38.762s; FAILED (failures=7)",
+  "assertion_failures_only": true,
+  "before": "if (not split and head and HEX40_RE.match(str(head))",
+  "after": "if (head and HEX40_RE.match(str(head))",
+  "failed_tests": [
+   "test_a_colliding_sha_repo_blob_cannot_satisfy_a_mismatched_pin",
+   "test_a_colliding_sha_repo_blob_cannot_stand_in_for_a_missing_pin",
+   "test_a_colliding_sha_repo_blob_cannot_substitute_for_pinned_evidence",
+   "test_only_evidence_flag_collision_still_requires_pin",
+   "test_only_git_flag_collision_still_requires_pin",
+   "test_same_repo_nested_evidence_cannot_borrow_root_blob",
+   "test_two_clones_of_one_project_are_still_two_repositories"
+  ]
+ },
+ {
+  "mutant": "M8_symbol_grep_in_process_cwd",
+  "verdict": "KILLED",
+  "exit": 1,
+  "summary": "Ran 274 tests in 37.050s; FAILED (failures=3)",
+  "assertion_failures_only": true,
+  "before": "code, out = _git([\"grep\", \"-l\", \"-e\", symbol, f\"origin/{base}\"], timeout=20)",
+  "after": "code, out, _ = _run([\"git\", \"grep\", \"-l\", \"-e\", symbol, f\"origin/{base}\"], timeout=20)",
+  "failed_tests": [
+   "test_a_symbol_only_in_the_evidence_repo_is_not_accepted_as_on_base",
+   "test_symbol_only_on_base_is_found_even_when_head_deleted_it",
+   "test_the_symbol_leg_runs_in_the_sha_repo_not_the_process_cwd"
+  ],
+  "note": "anchor re-expressed at the round-3 head: the H-3 fix added `timeout=20` to the line this mutant replaces, so the round-2 `before` string no longer occurs. The mutation is unchanged \u2014 the symbol grep runs in the process cwd."
+ },
+ {
+  "mutant": "M9_split_always_false",
+  "verdict": "KILLED",
+  "exit": 1,
+  "summary": "Ran 274 tests in 37.107s; FAILED (failures=8)",
+  "assertion_failures_only": true,
+  "before": "if _ROOTS[\"git\"] is None and _ROOTS[\"evidence\"] is None:\n        return False",
+  "after": "if True:\n        return False",
+  "failed_tests": [
+   "test_a_colliding_sha_repo_blob_cannot_satisfy_a_mismatched_pin",
+   "test_a_colliding_sha_repo_blob_cannot_stand_in_for_a_missing_pin",
+   "test_a_colliding_sha_repo_blob_cannot_substitute_for_pinned_evidence",
+   "test_an_unresolvable_root_fails_closed_to_split",
+   "test_only_evidence_flag_collision_still_requires_pin",
+   "test_only_git_flag_collision_still_requires_pin",
+   "test_same_repo_nested_evidence_cannot_borrow_root_blob",
+   "test_two_clones_of_one_project_are_still_two_repositories"
+  ]
+ }
+]

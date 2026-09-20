@@ -1,0 +1,147 @@
+{
+  "unit": "U-442",
+  "role": "integrator",
+  "round": 2,
+  "run": "run_bec47e54b673",
+  "pr": {
+    "number": 485,
+    "url": "https://github.com/ravidsrk/orca-fleet/pull/485",
+    "base_ref": "review/2026-09-20-tracker-sweep",
+    "head_ref": "u-442",
+    "state": "OPEN",
+    "merged": false
+  },
+  "head_sha": "e4cbf222bc7cd1001b8bd11960d3ed92c2f6cd5f",
+  "head_sha_note": "The SHA every gate below was run against, and the SHA Greptile re-reviewed (check-run started 2026-09-20T09:12:06Z, i.e. after the 09:11:52Z push). Committing this report adds one commit on top, so the PR head advances past it; the suite, validator, gitleaks, CI and bot verdicts recorded here bind to e4cbf222, not to that later SHA.",
+  "push": {
+    "command": "git push --force-with-lease origin u-442",
+    "result": "0056bf16..e4cbf222  u-442 -> u-442",
+    "was_forced": false,
+    "lease_note": "--force-with-lease was used as dispatched, but it was not needed: after `git fetch origin u-442`, origin/u-442 (0056bf16) was still a strict ancestor of the local head (`git merge-base --is-ancestor` exit 0) and git reported the range as `0056bf16..e4cbf222`, not `+`. The conductor's content-identical trailer-strip rewrote only commits that had never been pushed, so the remote never held the pre-rewrite versions and nothing was overwritten. Bare --force was never used."
+  },
+  "gitleaks": {
+    "scope": "0056bf16..HEAD",
+    "command": "gitleaks detect --source . --log-opts '0056bf16..HEAD' --redact",
+    "version": "8.30.1",
+    "commits_scanned": 15,
+    "bytes_scanned": 621866,
+    "result": "PASS",
+    "findings": 0,
+    "evidence": "no leaks found; JSON report body is []"
+  },
+  "suite": {
+    "command": "python3 -m unittest discover -s tests",
+    "ran_line": "Ran 1726 tests in 315.625s",
+    "status_line": "OK",
+    "result": "GREEN",
+    "note": "The FAIL:/verify: lines in the captured output are asserted stdout from the verifier's own negative-control tests (the tests require verify.py to refuse), not test failures; the run terminates in OK."
+  },
+  "validate": {
+    "command": "python3 scripts/validate.py",
+    "result": "GREEN",
+    "tail": "All 21 missions valid; three-layer separation holds; evals valid."
+  },
+  "working_tree": "clean at HEAD before and after the gates (badge regeneration in the suite writes to temp dirs only)",
+  "egress_receipt": {
+    "written_before_push": true,
+    "id": "5b4dfa3d7401a65d667ecc375f244cfb775d262c2ae764806a5a3f0434bfd9f2",
+    "ts": "2026-09-20T09:11:52Z",
+    "sink": "git-push",
+    "host": "github.com",
+    "payload_class": "branch-update",
+    "consent": "run-2026-09-14-clean-sweep:base-writes",
+    "prev": "e85f8066ce4a20bb1944e8f73e9110664942bd1d1d247e0543f0f171373a1a4d",
+    "chain": "egress verify: chain intact, 8 receipt(s) in .orca/egress.jsonl"
+  },
+  "bot_state": {
+    "bot": "greptile-apps[bot]",
+    "state": "RAN-AND-CLEAN",
+    "did_not_run": false,
+    "silence": false,
+    "reviewed_sha": "e4cbf222bc7cd1001b8bd11960d3ed92c2f6cd5f",
+    "check_run": {
+      "name": "Greptile Review",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-20T09:12:06Z",
+      "completed_at": "2026-09-20T09:13:46Z",
+      "summary": "Greptile has reviewed the Pull Request. 38 files reviewed, 0 comments added."
+    },
+    "new_review_submitted": null,
+    "new_review_comments": 0,
+    "evidence": "Positive run evidence, not inferred from silence: the check-run on e4cbf222 completed 1m40s AFTER the push with conclusion=success and an output summary stating 38 files reviewed and 0 comments added. Poll ran 125s across the floor; the PR's review-comment set was unchanged from the pre-push baseline of 4."
+  },
+  "held_new": [],
+  "held_new_count": 0,
+  "held_new_note": "Greptile added no comments on the new head, so there is no new VALID / FALSE-POSITIVE set to triage this round.",
+  "r1_holds_disposition": {
+    "summary": "RESOLVED — both round-1 P1 holds are closed by the new head.",
+    "holds": [
+      {
+        "comment_id": 4056474414,
+        "severity": "P1",
+        "title": "Artifact pinning can be bypassed (cross-repo evidence read from the SHA repo)",
+        "path": "runtime/scripts/verify.py",
+        "round1_disposition": "VALID — held, not fixed in round 1",
+        "resolved_by_new_head": true,
+        "fix_commit": "3fca0bb940b3c68a602ffd0ce41ac46711d83c62",
+        "code_evidence": "_read_artifact's tracked-at-head_sha shortcut is now gated on `not _roots_are_split()`. Under split roots the SHA repository is never consulted for evidence bytes; an artifact passes only on its declared artifacts[] sha256 read from the evidence root. _roots_are_split() fails CLOSED (treats roots as split) when either toplevel is unresolvable. _evidence_toplevel() gives the evidence root a single definition.",
+        "regression_tests": [
+          "tests/test_verify.py::test_a_colliding_sha_repo_blob_cannot_substitute_for_pinned_evidence",
+          "tests/test_verify.py::test_a_colliding_sha_repo_blob_cannot_stand_in_for_a_missing_pin",
+          "tests/test_verify.py::test_a_colliding_sha_repo_blob_cannot_satisfy_a_mismatched_pin",
+          "tests/test_verify.py::test_an_unpinned_cross_repo_artifact_is_refused",
+          "tests/test_verify.py::test_split_roots_verify_a_cross_repo_manifest_end_to_end",
+          "tests/test_verify.py::test_without_the_split_the_same_manifest_cannot_verify"
+        ],
+        "negative_control": "round2-mutants.json records mutant M1_evidence_from_sha_root (top = _evidence_toplevel() -> _toplevel()) as KILLED, 12 failures.",
+        "bot_reconcile": "thread isResolved=true, isOutdated=false; Greptile's re-review of e4cbf222 did not re-raise it.",
+        "verified_by_this_integrator": "Code shape, regression-test presence and a green suite at e4cbf222 — NOT an independent re-derivation that the fix is semantically complete. That grading is the reviewer's."
+      },
+      {
+        "comment_id": 4056474416,
+        "severity": "P1",
+        "title": "Symbol check uses wrong repository (git grep in the process cwd)",
+        "path": "runtime/scripts/verify.py",
+        "round1_disposition": "VALID — held, not fixed in round 1",
+        "resolved_by_new_head": true,
+        "fix_commit": "3fca0bb940b3c68a602ffd0ce41ac46711d83c62",
+        "code_evidence": "check_symbol_on_base now calls the root-aware helper `_git([\"grep\", ...])` instead of `_run([\"git\", \"grep\", ...])`, so the --symbol leg runs in the same selected context as the adjacent ancestry and commit checks (verify.py:1754).",
+        "regression_tests": [
+          "tests/test_verify.py::test_the_symbol_leg_runs_in_the_sha_repo_not_the_process_cwd",
+          "tests/test_verify.py::test_a_symbol_only_in_the_evidence_repo_is_not_accepted_as_on_base"
+        ],
+        "negative_control": "Covered by the round-2 mutant sweep recorded in round2-mutants.json (nine mutants, zero survivors).",
+        "bot_reconcile": "thread isResolved=true, isOutdated=false; Greptile's re-review of e4cbf222 did not re-raise it.",
+        "verified_by_this_integrator": "Code shape, regression-test presence and a green suite at e4cbf222 — NOT an independent re-derivation that the fix is semantically complete."
+      }
+    ]
+  },
+  "ci": {
+    "state_at_report_time": "MIXED — one RED",
+    "passing": ["Greptile Review", "bind", "pinned-demo", "tests (3)", "vfbench"],
+    "pending_at_report_time": ["tests (1)", "tests (2)", "tests (4)"],
+    "failing": [
+      {
+        "check": "guard",
+        "job": "No quiet bar-lowering (guard-surface + checker hygiene)",
+        "url": "https://github.com/ravidsrk/orca-fleet/actions/runs/35501646875/job/106054340833",
+        "output": "floor-guard: 1 floor violation(s):\n  [silenced-checker] runtime/scripts/verify.py:209 (pragma-no-cover)",
+        "introduced_by": "3fca0bb940b3c68a602ffd0ce41ac46711d83c62",
+        "offending_line": "runtime/scripts/verify.py:209 — `except OSError:  # pragma: no cover — resolve() rarely raises on POSIX` inside _roots_are_split()",
+        "reproduced_locally": "yes — `python3 runtime/scripts/floor_guard.py --base origin/review/2026-09-20-tracker-sweep` reports the same single violation",
+        "remedy_per_checker": "Fix the code, or record a DECISIONS waiver with id `floor-waiver:silenced-checker:runtime/scripts/verify.py` and answer `allow`.",
+        "held": true,
+        "note": "NEW and blocking: the round-1 fix for P1-1 paid for its fail-closed OSError branch with a coverage pragma, which is exactly what floor_guard treats as quiet bar-lowering. Not touched — integrator contract is HOLD."
+      }
+    ]
+  },
+  "fixes_applied": 0,
+  "fixes_applied_note": "Integrator contract for round 2 is HOLD: nothing in runtime/ or tests/ was touched. The only commit this integrator authored is this report.",
+  "gates": {
+    "dispatched_stop_condition": "full suite + validate.py RED -> STOP",
+    "result": "Both GREEN at e4cbf222, so the push proceeded as dispatched.",
+    "caveat": "The `guard` CI check is RED on the pushed head. It is outside the dispatched STOP condition (which named the suite and the validator only) and it went red after the push, so it did not gate this integration — but it blocks the merge and is recorded above for the next round."
+  },
+  "next": "One builder round on the single `guard` floor violation (drop the pragma by covering the OSError branch, or record the named DECISIONS waiver), then re-run CI. Both round-1 P1 holds are closed and Greptile is clean on e4cbf222, so guard is the only outstanding blocker this integrator found."
+}

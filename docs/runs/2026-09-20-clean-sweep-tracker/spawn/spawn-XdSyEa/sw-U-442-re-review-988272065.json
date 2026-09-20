@@ -1,0 +1,19 @@
+{
+  "id": "2485317a-cbe4-4cf8-b893-fc93e4a4b289",
+  "ok": true,
+  "result": {
+    "terminal": {
+      "handle": "term_35beb831-cea2-4f36-8324-b7ab87d6340b",
+      "tabId": "1ab804f0-4ff4-4807-91ec-941ed84d96cd",
+      "worktreeId": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/u-442",
+      "title": "U-442 re-review",
+      "executionHostId": "local",
+      "incarnationId": "4647386a-52dd-43ad-aff3-9d98a9d8f970",
+      "hostPlatform": "darwin",
+      "surface": "visible"
+    }
+  },
+  "_meta": {
+    "runtimeId": "0e3d77f3-b0e7-4aa1-a21d-a960aa212104"
+  }
+}

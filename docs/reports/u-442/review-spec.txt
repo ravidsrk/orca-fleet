@@ -1,0 +1,197 @@
+U-442 SPEC ACCEPTANCE REVIEW
+
+BLIND-FIX EXPECTATION — recorded before opening the diff or implementation
+Source: docs/runs/2026-09-20-clean-sweep-tracker/build-u442.md, including its inline #442 finding. Repository architecture and review mission were read only for mandatory review constraints.
+Expected location: runtime/scripts/verify.py, focused tests under tests/, and a short runtime/evidence-manifest.md invocation note.
+Expected shape: optional CLI roots separate Git/SHA lookup context from the evidence containment/resolution root. All Git operations use the selected Git context; all evidence path resolution and #267 escape checks use the evidence root. With neither option provided, retain the original defaults, outputs, and refusal semantics. Help describes new options and invalid-root failures. No unrelated runtime script or schema changes.
+Expected proof: a self-contained two-scratch-repo fixture passes at head and fails with the base verifier; legacy invocation regressions and explicit evidence-root traversal/symlink refusals pass; suite and validator pass at the reviewed SHA; evidence-run records the executed verifier-only revert control, with SHA-bound manifest, nonempty intent, and lighting=lit.
+Expected scope accounting: any generated guide/ARCHITECTURE changes must be strictly mechanical fallout of the short evidence-manifest note and the existing validator freshness requirement.
+Confidence: high on required behavior and scope; medium on the exact helper/CLI structure until inspecting the code. No diff, integrate.json, test, or verifier implementation inspected before this expectation was written.
+
+
+PINNED REVIEW AND EXECUTIVE SUMMARY
+Axis: SPEC only. Source: frozen build-u442.md (first source in precedence order).
+Reviewed head_sha = reviewed_sha = a5f84978548a00a97cfcc11614aa6bdfd71683e6
+Reviewed head tree = 8a39ac3e3576dc1eafdb3e7ddfb60734b1408184
+Comparison ref snapshot at review start: origin/review/2026-09-20-tracker-sweep = 6d847e486696253731d98ef4322952fceeb216dc
+Three-dot diff merge-base = 0f8cb8a24a7a1db742194d86f12703e79da0f55a
+Original unit base = a58bf71a283928a8278e560163452ee70c7ad609
+Verdict: NO-GO — 0 Critical, 2 Required. Both held Greptile P1s are VALID under the frozen spec.
+
+The change implements the basic two-root invocation, preserves tested no-flag output and path-escape refusals, and includes a real two-repository fixture with an executed revert control. It remains incomplete: artifact reads can silently switch to the SHA repository when a path collides, and symbol-on-base checks still use the process cwd. These are independently reproduced wrong-repository decisions, not merely missing tests. Generated mission/architecture/badge changes are required mechanical freshness updates. No production fix, commit, or external review comment was made by this reviewer; the sole authorized report is left uncommitted.
+
+FINDINGS
+
+R1 — Required — Evidence-root artifacts can be replaced by a same-path SHA-repository blob.
+Location: runtime/scripts/verify.py:275-278; changed motivating code line at :276:
+    code, out, gerr = _git_bytes(["show", f"{head}:{path}"])
+The preceding condition, verbatim:
+    if head and HEX40_RE.match(str(head)) and _git(["cat-file", "-e", f"{head}:{path}"])[0] == 0:
+Frozen-spec motivation, verbatim (build-u442.md:38-40):
+    DESIRED BEHAVIOUR: with the new option(s) supplied, git/SHA operations run against the named
+    git directory while manifest-relative evidence paths resolve under the separately named
+    evidence root; each evidence path is still bounded against ITS root (escape = REFUSED, same as
+Additional frozen-spec guard, verbatim (:22-24):
+    - non-goals: no change to the #267 evidence-bounds rule's security posture (an evidence root
+      must still bound paths — escaping it stays REFUSED); no other runtime scripts; no new
+      dependencies; no CLI renames of existing flags.
+
+The resolver checks a path against evidence repo A, but the tracked-blob shortcut then asks repo B whether B's head contains that same relative name. A successful lookup returns B's bytes before reading A or checking A's declared artifacts[] digest. This violates the promised authority split and the help's claim at :2100-2102 that cross-repo evidence passes only on its artifacts[] sha256 pin. The returned bytes ARE commit-pinned, but to the wrong repository; this is not a claim that arbitrary unpinned bytes are read.
+
+Independent reproduction at reviewed SHA: reuse CrossRepoRoots, commit a different valid-looking NC log at docs/reports/u/nc.txt in B, refresh the manifest's B head/tree, and pin A's original log. Change A's bytes after writing that manifest. main(... --git-dir B --evidence-root A) returns 0 / verify: OK, and _read_artifact returns B's log. Declared A digest 463d5de14c6aab99d7509895bc88941d4c2f2d5f90759dd3c54cc14afd5de6c0 differs from current A digest e49cb195339b3267a22cdc1a19c1ca4b9c541413471ee4436d76134ce7c09c65. Removing artifacts[] entirely also returns 0. No escaped path was needed.
+
+Required correction: use the declared evidence authority for cross-repo artifact bytes and enforce that file's pin; retain the legacy tracked-at-head shortcut only when its repository/path identity actually matches the evidence root. Cover different contents at a colliding path, missing/mismatched pins, and two clones of the same project. Greptile 4056474414: VALID; confidence high.
+
+R2 — Required — --symbol checks origin/<base> in the process cwd, bypassing --git-dir.
+Location and verbatim motivating code, runtime/scripts/verify.py:1720:
+    code, out, _ = _run(["git", "grep", "-l", "-e", symbol, f"origin/{base}"])
+Frozen-spec motivation, verbatim (build-u442.md:16-18):
+    - goal: verify.py can verify a manifest whose EVIDENCE PATHS live under one root while the
+      SHA/git checks run against a DIFFERENT git directory — with today's single-repo behavior
+      byte-identical when the new options are absent.
+Also verbatim (:38-39):
+    DESIRED BEHAVIOUR: with the new option(s) supplied, git/SHA operations run against the named
+    git directory while manifest-relative evidence paths resolve under the separately named
+
+The adjacent ancestry check uses root-aware _git against B, but this check runs git grep in A. Although its docstring says best-effort, once --symbol and --base are supplied its failure string has no NOTE prefix and verify() collects it as fatal (:2025); it changes the verdict. The narrower list of examples in --git-dir help does not override the frozen spec's requirement that SHA/git checks use the named repository.
+
+Independent reproduction: set B's refs/remotes/origin/main to the manifest's head. With symbol 'def f' present in B and absent from A, the full invocation exits 2 with "symbol 'def f' not found on origin/main". Then commit 'ONLY_IN_EVIDENCE_REPO' in A and set A's origin/main; asking for that symbol, which is absent in B, exits 0 / verify: OK. Thus this is both a false refusal and a false acceptance.
+
+Required correction: run symbol lookup through the same selected Git context as ancestry, and cover both asymmetric symbol cases. Greptile 4056474416: VALID; confidence high. The held report's suggestion that documentation might make this out of scope is rejected by the quoted spec.
+
+ACCEPTANCE CRITERION AUDIT
+
+AC-1 — PASS for the specified fixture.
+Verbatim criterion (build-u442.md:45-47):
+    - [ ] A new test fixture (two scratch git repos built in a tmp dir by the test itself: repo A
+          holds the manifest+evidence, repo B holds the SHAs) FAILS at the unit's base SHA and
+          PASSES at head.
+CrossRepoRoots at tests/test_verify.py:3123 creates evidence repo A using RepoCase and target repo B using a second TemporaryDirectory. Its end-to-end test is :3225. Independent execution of its 8 test methods passed at reviewed head; restoring only verify.py from the original unit base produced 8 assertion failures (including two subtest failures for the invalid-root test). The legacy no-flags cross-repo refusal case remains green under the control, as intended. The original unit base and current comparison-base verify.py bytes are identical. The fixture does not cover the two wrong-authority cases in R1/R2, so a green fixture does not make the implementation spec-complete.
+
+AC-2 — PASS for no-flag behavior and path-containment refusals; broader evidence authority fails R1.
+Verbatim criterion (build-u442.md:48-49):
+    - [ ] A regression test (or the existing suite) proves no-flag invocation is unchanged; the
+          #267 escape-refusal test still passes against the evidence root.
+Independent old/new comparison on the SAME single-repo fixture gave byte-identical exit code, stdout and stderr for valid verification, missing artifact pin, wrong artifact pin, relative escape, absolute escape, and invalid symbolic head. Exit codes were respectively 0, 2, 2, 2, 2, 2. Existing default-root symlink escape diagnostics also match byte for byte; explicit --evidence-root symlink escape is refused. The new suite's named-root traversal and absolute-path tests pass. The help intentionally advertises the new flags and invalid-root failure modes; its cross-repo pinning assertion is false as described in R1.
+
+AC-3 — PASS independently at reviewed_sha in a clean scratch clone.
+Verbatim criterion (build-u442.md:50):
+    - [ ] Full test suite green at head; `python3 scripts/validate.py` exit 0.
+Independent clean-clone command python3 -m unittest discover -s tests exited 0: Ran 1714 tests in 314.857s; OK. A subsequent python3 scripts/validate.py exited 0: All 21 missions valid; three-layer separation holds; evals valid. Scratch clone HEAD remained a5f84978548a00a97cfcc11614aa6bdfd71683e6 and git status --short was empty after the suite. A first validator launch overlapped tests that temporarily create a frontmatter probe, so that raced run was discarded and validation was repeated sequentially after suite completion; no source defect was inferred from the harness interference.
+
+AC-4 — PASS independently re-executed and recorded via evidence-run.py during this review.
+Verbatim criterion (build-u442.md:51-52):
+    - [ ] NEGATIVE CONTROL executed: verify.py change reverted (test kept) → fixture test RED —
+          recorded via evidence-run.py.
+In a separate scratch clone at reviewed_sha, evidence-run recorded the unchanged fixture GREEN, then the exact same command RED after replacing only runtime/scripts/verify.py with its original-unit-base bytes. tests/test_verify.py was kept unchanged; git diff --name-only reported only runtime/scripts/verify.py. No mutation was applied to the source worktree. The command was python3 -m unittest tests.test_verify.CrossRepoRoots; runner receipts are embedded below, including head and mutated-tree fingerprints. The production file was restored in the scratch clone after the control. Existing committed nc-red.txt/nc-green.txt additionally show the full 255-test module RED/GREEN at implementation SHA 1ef8bd79.
+
+SCOPE AND EVIDENCE ACCOUNTING
+
+The literal frozen scope is build-u442.md:19-21, quoted verbatim:
+    - scope: `runtime/scripts/verify.py` + its tests under `tests/` + at most a short note in
+      `runtime/evidence-manifest.md` documenting the cross-repo invocation (stay within the
+      160-line runtime cap).
+The runtime note changes one existing line (:119); evidence-manifest.md remains exactly 160 lines. tests/test_reshape_width_verify.py changes the documented interface-width pin from 85 to 88 to account for the three added top-level names, without changing the original baseline of 92. No other runtime script, dependency, pre-existing CLI name, binder, or schema was changed.
+
+All 16 generated-artifact changes trace to existing validation requirements: 14 mission-guide activation-load numbers, the three generated ARCHITECTURE table rows, and the source-test-count badge (1706 -> 1714). scripts/validate.py:974-985 calls gen.check(), and :1068-1073 fails validation on stale output. validate.py:700-728 and scripts/gen-badges.py:57-70,120-143 derive mission loads from mandatory document bytes; gen-badges.py:179-210 enforces the architecture table, and :82-99,235-248 counts/enforces the badge. Neither generator nor validator changed. A separate read-only scope audit found gen.check() == []; an in-memory substitution of only the 16 base artifact contents produced exactly 16 freshness failures. No unrelated prose or mission doctrine edits occur in those files.
+
+The report artifacts are required evidence, not feature expansion. Every one of the submitted manifest's seven artifact hashes matches its file; the contract digest matches the named blob; all four original command hashes and wtree values match implementation SHA 1ef8bd797477314f25ece410fe8a6e70c2560bad / tree 9d5293f13e46fac49cd20d27f7634d238459d67e. intent.goal, ruled_out, why are nonempty and lighting is lit. The implementation and test_verify.py bytes at that SHA are identical to reviewed head.
+
+Historical-evidence limits: the builder manifest is an honest historical record, with AC-3 false and its original full suite red; integrate.json records a later green merge SHA 5a57c8d2. Neither is silently treated as a run at a5f84978. The submitted commands[] has no separate evidence-run receipt for its old control, only the pinned control transcript and negative_control narration; the independently executed receipts below supply current review evidence. As already acknowledged in the builder report, the frozen spec has unlabeled checkboxes, so strict check_scope cannot derive the manifest's worker-assigned AC-1..AC-4 IDs from it; coordinator contract/evidence finalization is still needed before treating the unit manifest as a machine-verifiable closure. This review supplies a spec verdict, not a merged/deployed completion claim.
+
+
+INDEPENDENT EXECUTION RECEIPTS
+Scratch root (outside source repo): /tmp/u442-spec-review-mu56msep
+Full-suite clone: repo/; reproduction/control clone: probes/.
+Review-only manifest fragment:
+{
+  "unit": "U-442",
+  "unit_class": "report-only",
+  "head_sha": "a5f84978548a00a97cfcc11614aa6bdfd71683e6",
+  "reviewed_sha": "a5f84978548a00a97cfcc11614aa6bdfd71683e6",
+  "verdict": "NO-GO",
+  "critical": 0,
+  "required": 2,
+  "finding_ids": [
+    "R1",
+    "R2"
+  ]
+}
+
+Exact evidence-run command prefix for each control leg:
+python3 runtime/scripts/evidence-run.py --label <record label below> --manifest /tmp/u442-spec-review-mu56msep/review-nc-ledger.json --artifact <record artifact below> -- python3 -m unittest tests.test_verify.CrossRepoRoots
+{
+  "commands": [
+    {
+      "label": "review-cross-repo-green",
+      "ts": "2026-09-20T08:13:05Z",
+      "cmd": "python3 -m unittest tests.test_verify.CrossRepoRoots",
+      "cmd_sha256": "9387b7bda28e10f40c66e3d0f731134969d29fa897cc80bc049bdc5624c6794e",
+      "exit": 0,
+      "duration_s": 1.459,
+      "commit": "a5f84978548a00a97cfcc11614aa6bdfd71683e6",
+      "wtree": "8a39ac3e3576dc1eafdb3e7ddfb60734b1408184",
+      "artifact": "/tmp/u442-spec-review-mu56msep/review-nc-green.txt"
+    },
+    {
+      "label": "review-cross-repo-reverted",
+      "ts": "2026-09-20T08:13:32Z",
+      "cmd": "python3 -m unittest tests.test_verify.CrossRepoRoots",
+      "cmd_sha256": "9387b7bda28e10f40c66e3d0f731134969d29fa897cc80bc049bdc5624c6794e",
+      "exit": 1,
+      "duration_s": 0.891,
+      "commit": "a5f84978548a00a97cfcc11614aa6bdfd71683e6",
+      "wtree": "a0c4e48dc043866a181a462c78074fc4390b7fe5",
+      "artifact": "/tmp/u442-spec-review-mu56msep/review-nc-red.txt"
+    }
+  ]
+}
+
+review-nc-green.txt sha256=3a390e72ec8177e0e52043fc2d96134a25c379c2b5bcf5d6b72652b24ac0367a
+........
+----------------------------------------------------------------------
+Ran 8 tests in 1.367s
+
+OK
+
+review-nc-red.txt sha256=bb37be9d020cfd5468b6118c4d02386ef8f61a8a09e248410e8c0892eaf4a8c5
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.820s
+
+FAILED (failures=8)
+
+probe-output.txt sha256=c00ab380cba5b0518442cc5320da8939cbf87cbad420bc445592b8b581da23ee
+COLLISION_AND_MISMATCHED_EVIDENCE_PIN {"exit": 0, "output": "NOTE: --base not given \u2014 ancestry check skipped (pre-merge/offline)\nNOTE: commands ledger FRESH \u2014 1 exit-0 record(s) bound to head_sha's tree 27b5c5412c1c. This is the worker's own runner, so the coordinator's clean-env re-run at head_sha still stands as the stronger authority (evidence-manifest.md \u00a72)\nverify: OK \u2014 all required checks passed\n", "declared_pin": "463d5de14c6aab99d7509895bc88941d4c2f2d5f90759dd3c54cc14afd5de6c0", "current_evidence_digest": "e49cb195339b3267a22cdc1a19c1ca4b9c541413471ee4436d76134ce7c09c65", "returned_bytes": "mutant m7 was KILLED \u2014 proof went RED\nTARGET REPO CONTENT\n", "read_error": null}
+COLLISION_AND_NO_ARTIFACT_PIN {"exit": 0, "output": "NOTE: --base not given \u2014 ancestry check skipped (pre-merge/offline)\nNOTE: commands ledger FRESH \u2014 1 exit-0 record(s) bound to head_sha's tree 27b5c5412c1c. This is the worker's own runner, so the coordinator's clean-env re-run at head_sha still stands as the stronger authority (evidence-manifest.md \u00a72)\nverify: OK \u2014 all required checks passed\n"}
+SYMBOL_PRESENT_ONLY_IN_SHA_REPO {"exit": 2, "output": "NOTE: commands ledger FRESH \u2014 1 exit-0 record(s) bound to head_sha's tree 2335efece884. This is the worker's own runner, so the coordinator's clean-env re-run at head_sha still stands as the stronger authority (evidence-manifest.md \u00a72)\nFAIL: symbol 'def f' not found on origin/main (change may not be on base)\nverify: 1 invariant(s) failed \u2014 unit is NOT done\n"}
+SYMBOL_ABSENT_IN_SHA_REPO_PRESENT_IN_EVIDENCE_REPO {"exit": 0, "output": "NOTE: commands ledger FRESH \u2014 1 exit-0 record(s) bound to head_sha's tree 2335efece884. This is the worker's own runner, so the coordinator's clean-env re-run at head_sha still stands as the stronger authority (evidence-manifest.md \u00a72)\nverify: OK \u2014 all required checks passed\n"}
+
+parity-output.txt sha256=f31c1392586ad359465dc43abbbcd99cd8fcb2313887518f8f5abe41a72c8aa8
+valid_single_repo BYTE_IDENTICAL exit 0
+missing_pin BYTE_IDENTICAL exit 2
+wrong_pin BYTE_IDENTICAL exit 2
+relative_escape BYTE_IDENTICAL exit 2
+absolute_escape BYTE_IDENTICAL exit 2
+invalid_head BYTE_IDENTICAL exit 2
+verify_legacy symlink default-root refusal: (None, 'evidence path escapes the repo toplevel (#267): escape-link/docs/reports/u/nc.txt')
+verify symlink default-root refusal: (None, 'evidence path escapes the repo toplevel (#267): escape-link/docs/reports/u/nc.txt')
+explicit evidence-root symlink refusal: (None, 'evidence path escapes the evidence root (#267): escape-link/app.py')
+
+FULL SUITE AND VALIDATOR RECEIPTS
+command: python3 -m unittest discover -s tests
+exit: 0
+head_sha: a5f84978548a00a97cfcc11614aa6bdfd71683e6
+artifact: /tmp/u442-spec-review-mu56msep/suite.txt
+sha256: 0571d8f275be4b447f3b06e63a09c9d2496d9586c0fb165105e17811f5f84be2
+command: python3 scripts/validate.py
+exit: 0
+head_sha: a5f84978548a00a97cfcc11614aa6bdfd71683e6
+artifact: /tmp/u442-spec-review-mu56msep/validate-final.txt
+sha256: 90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6
+suite summary: Ran 1714 tests in 314.857s; OK
+validator summary: All 21 missions valid; three-layer separation holds; evals valid.
+
+FINAL BOUNDARY CHECK
+No tracked source-worktree changes and no commits were made. Other reviewers' untracked report files were left untouched. This report is the only file authored here. The source HEAD was rechecked before settlement and remains the reviewed SHA; the two Required findings therefore bind to that SHA.
+The comparison ref advanced during review to acbc1aba242b5c1ab3e8511c7137b22111a2f03f; git diff from the initial and final ref to the pinned head was verified byte-identical. No review re-pin is needed.

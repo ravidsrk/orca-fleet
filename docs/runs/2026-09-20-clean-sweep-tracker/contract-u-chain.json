@@ -1,0 +1,18 @@
+{
+  "kind": "coordinator-finalized",
+  "note": "Finalizes the criterion ids of the frozen spec docs/runs/2026-09-20-clean-sweep-tracker/build-u-chain.md @a58bf71a (sha256:872605215c4b4e418d9efd1ed518dfeccf7d417283bdd3c3c21670d3a0bcb1cb), whose checkboxes carried no machine-readable ids \u2014 the r2/r3 reviewers' named finalization item. Texts are VERBATIM the frozen spec's five checkboxes, in order.",
+  "criterion_ids": [
+    "AC-1",
+    "AC-2",
+    "AC-3",
+    "AC-4",
+    "AC-5"
+  ],
+  "criteria": {
+    "AC-1": "A contract test (new file or an existing docs-contract test file, worker's choice of seam) asserts all three properties and FAILS at the unit's base SHA, PASSES at head.",
+    "AC-2": "`python3 scripts/validate.py` exit 0 at head (line caps + reference resolution).",
+    "AC-3": "Full test suite green at head (`python3 -m pytest tests/ -x -q` or the repo's runner).",
+    "AC-4": "NEGATIVE CONTROL executed: with the doc amendment reverted (test kept), the contract test is RED \u2014 recorded via evidence-run.py.",
+    "AC-5": "`runtime/mission-chaining.md` \u2264 160 lines."
+  }
+}

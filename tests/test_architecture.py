@@ -585,6 +585,214 @@ class TestArchitecture(unittest.TestCase):
         self.assertRegex(chain, r"(?i)handoff, not a degradation")
         self.assertIn("awaiting-maintainer-merge", chain)
 
+    def test_chain_link_boundary_is_specified(self):
+        # #441/#443/#444: the policy said each link is a FULL run with its own BASE and that
+        # BASE carry-over is explicit-human, but never drew the consequence — a chain therefore
+        # PARKS for a human promotion between legs. That park had no name, no resume procedure,
+        # and the stop rules covered degraded TERMINALS only. It also mandated a deferral carry
+        # with no artifact to carry it in, and asserted a second person can re-derive each leg
+        # "from the cited SHAs" — which resolves nowhere when the target has no remote.
+        #
+        # Each property is asserted INSIDE one bullet, not merely somewhere in the file: the
+        # gap was never a missing word, it was a missing rule, and scattered vocabulary would
+        # satisfy a file-wide assertIn while leaving a reader with nothing to follow.
+        chain = (RUNTIME / "mission-chaining.md").read_text(encoding="utf-8")
+
+        def bullets(text):
+            """Top-level `- ` bullets with their indented continuation lines."""
+            out, cur = [], None
+            for line in text.splitlines():
+                if line.startswith("- "):
+                    if cur is not None:
+                        out.append("\n".join(cur))
+                    cur = [line]
+                elif cur is not None and (line.startswith("  ") or not line.strip()):
+                    cur.append(line)
+                elif cur is not None:
+                    out.append("\n".join(cur))
+                    cur = None
+            if cur is not None:
+                out.append("\n".join(cur))
+            return out
+
+        # Collapse each bullet's wrapping before matching: where the prose happens to break a
+        # line is not part of the contract, and asserting on it makes a reflow look like a
+        # doctrine change (same convention as the liveness-resume bullet check below).
+        blocks = [" ".join(b.split()) for b in bullets(chain)]
+        self.assertTrue(blocks, "no bullets parsed from mission-chaining.md")
+
+        def one_bullet_with(label, *patterns):
+            hits = [b for b in blocks
+                    if all(re.search(p, b, re.I) for p in patterns)]
+            self.assertTrue(
+                hits,
+                f"mission-chaining.md: no single bullet states {label} "
+                f"(needs all of: {', '.join(patterns)})",
+            )
+            return hits[0]
+
+        def must(bullet, pattern, why):
+            """Bind an OBLIGATION, not just its vocabulary.
+
+            Round-1 review killed every whole-bullet deletion but let six requirement-REVERSING
+            mutants through: the same tokens survive "neither is a precondition", "two optional
+            examples", "a list of commit SHAs is sufficient". So each rule below asserts the
+            words that carry its force, not merely the words that name its subject.
+            """
+            self.assertRegex(bullet, pattern, f"mission-chaining.md: {why}")
+
+        # (a) #441 — the promotion-owed park is NAMED and its two resume facts are stated,
+        #     together, in the bullet that defines it.
+        park = one_bullet_with(
+            "the promotion-owed park with its resume procedure",
+            r"PARKED-AT-PROMOTION",
+            r"landed promotion SHA",
+            r"BASE-carry grant",
+        )
+        # Naming the two facts is not stating a procedure: resuming must REQUIRE one of them.
+        must(park, r"(?i)resuming the park REQUIRES exactly one of two facts",
+             "the park's resume rule must be a precondition, not a convenience log")
+        must(park, r"(?i)nothing else is sufficient",
+             "the two resume facts must be exclusive — no third route out of the park")
+        # ...and each alternative's own condition, so neither can be hollowed out. Round 2
+        # showed six survivors that keep an alternative's vocabulary while its relationship or
+        # condition disappears — invert "is an ancestor", swap the repository seed commit in for
+        # the completed BASE tip, drop the granted SHA, drop the unpromoted-fork clause, flip
+        # UNPROMOTED to PROMOTED, point an offline target at `origin/<default>`. A park-wide
+        # assertion cannot see which alternative lost its condition, so bind each obligation
+        # INSIDE its own numbered segment (R2-TA-441).
+        def alternative(n, until):
+            m = re.search(rf"(?s)\b{n}\.\s(.*?)(?={until})", park)
+            self.assertTrue(
+                m,
+                f"mission-chaining.md: resume alternative {n} is missing from the "
+                f"PARKED-AT-PROMOTION bullet",
+            )
+            return m.group(1)
+
+        alt1 = alternative(1, r"\b2\.\s")
+        alt2 = alternative(2, r"An agent-executed promotion is neither")
+
+        # alternative 1 — the landed promotion SHA.
+        must(alt1, r"(?i)BASE tip is an ancestor of the DEFAULT",
+             "resume fact 1 must assert the leg's own BASE tip IS an ancestor of DEFAULT — "
+             "not its negation, and not some other commit (#441, SPEC-1)")
+        # R3-TA-1: naming the command is not binding its PREDICATE. Swapping only the two
+        # operands leaves every token in place, yet inverts what the example decides: for an
+        # unpromoted BASE tip ahead of a fresh DEFAULT the correct form returns 1 while the
+        # reversed form returns 0, so a coordinator following it accepts an unpromoted leg.
+        must(alt1, r"git merge-base --is-ancestor <base-tip> <default-ref>",
+             "resume fact 1 must name the ancestry command AND its operand order — "
+             "`<base-tip> <default-ref>`; the reversed form answers the opposite question")
+        must(alt1, r"(?i)ancestry subject is leg N.s own completed BASE tip",
+             "the ancestry subject must be pinned: the seed commit passing is not a promotion")
+        # BOT-4 / SPEC-R2-1 / S-R2-1: `origin/<default>` is a local cache. A human can promote
+        # from another checkout while the chain is parked, so the cached ref answers "not landed"
+        # about a landed promotion. Both halves of the freshness rule are bound: refresh first,
+        # and an unestablishable ref parks rather than lands.
+        must(alt1, r"(?i)REFRESHED immediately before the check",
+             "a REMOTE target's default ref must be refreshed at the resume check, not inherited "
+             "from leg N's preflight (BOT-4)")
+        must(alt1, r"(?i)git fetch origin",
+             "the refresh must name the fetch that performs it, per preflight.py's contract")
+        must(alt1, r"(?i)freshness cannot be established.{0,80}?UNPROVEN",
+             "a ref whose freshness cannot be established must make the promotion UNPROVEN")
+        must(alt1, r"(?i)never landed",
+             "an unproven promotion must stay parked — it is never treated as landed (BOT-4)")
+        must(alt1, r"(?i)valid LOCAL ref.{0,140}?for an explicitly OFFLINE target with no remote",
+             "the offline branch must keep a valid LOCAL ref — a no-remote target may not be "
+             "pointed at `origin/<default>`")
+        must(alt1, r"(?i)never a nonexistent .origin",
+             "the offline branch must still forbid a nonexistent `origin/…` ref")
+
+        # alternative 2 — the recorded BASE-carry grant.
+        must(alt2, r"(?i)named human.s explicit decision",
+             "resume fact 2 must be a named human's recorded grant, not an agent's")
+        must(alt2, r"(?i)fork leg N.s UNPROMOTED BASE tip",
+             "resume fact 2 exists for the UNPROMOTED tip — a grant over an already-promoted "
+             "tip is alternative 1, and a grant over no tip at all is an unconditional resume")
+        must(alt2, r"(?i)with the granted SHA written down",
+             "resume fact 2 must record WHICH SHA was granted, or it grants nothing checkable")
+        # SPEC-1/S1: promotion is BASE->DEFAULT (gate-classification.md), NOT unit->BASE, and a
+        # restricted lane is unable to PROMOTE while still able to integrate.
+        must(park, r"(?i)cannot PROMOTE",
+             "the restricted lanes must be described as unable to promote, not unable to merge")
+        # ...and the human pacing is stated as a rule of its own, not left to be inferred.
+        pacing = one_bullet_with("that chains are human-paced at every link boundary",
+                                 r"human-paced at every link boundary", r"link boundary")
+        must(pacing, r"(?i)PROMOTION is BASE.DEFAULT",
+             "the gated promotion is BASE->DEFAULT (gate-classification.md), not unit->BASE")
+        must(pacing, r"(?i)merging a unit INTO the BASE .{0,120}?is NOT that gate",
+             "the conductor's unit->BASE merge must not be misnamed the human promotion gate")
+        must(pacing, r"(?i)the chain STOPS and waits for a human",
+             "every boundary must actually STOP — naming the pacing is not requiring it")
+
+        # (b) #443 — the deferral carry names ONE artifact and specifies its shape.
+        carry = one_bullet_with(
+            "a named artifact shape for the deferral carry",
+            r"handoff log", r"carry table", r"gate record",
+        )
+        must(carry, r"(?i)per chain",
+             "the handoff log must be scoped: one file per chain")
+        must(carry, r"(?i)two sections, both required",
+             "both carry sections must be REQUIRED — optional sections are no shape at all")
+        # The schema itself, not only the section names: a named section with unspecified
+        # contents leaves the consumer exactly where #443 found it.
+        # R2-TA-443: the whole-schema deletion dies on "two sections, both required" before it
+        # can show that the INDIVIDUAL fields are protected. Three survivors proved they were
+        # not: drop `from`/`content`, drop the gate's identity and state, and declare a missing
+        # log an empty-but-finished carry. Bind the full field set of both sections.
+        for field in (r"carry id", r"`from`", r"`content`", r"input status"):
+            must(carry, rf"(?i){field}",
+                 f"the carry table must declare its {field} field")
+        must(carry, r"(?i)source class: parked / backlog / noticed-not-touched",
+             "the carry table's `from` field must classify the source, not just name a leg")
+        must(carry, r"(?i)pinned to file:line",
+             "the carry table's `content` must be pinned to a location at the cited SHA")
+        # R3-TA-2: the bare phrase survives "optionally `OWED` until ..." — same vocabulary,
+        # no obligation. Anchoring the clause at its opening paren binds OWED as the REQUIRED
+        # starting status, so any optionality qualifier inserted before it fails the contract.
+        must(carry, r"(?i)\(`OWED` until leg N\+1 triages it; "
+                    r"then its finding id and triage verdict\)",
+             "the carry table's `input status` must start OWED unconditionally — an untriaged "
+             "carry is not done, and a qualifier making that status optional reverses the rule")
+        must(carry, r"(?i)which gate, its state, the human who owns it, and what resumes it",
+             "the gate record must declare gate identity and state as well as owner and resume")
+        must(carry, r"(?i)a MISSING handoff log is an unfinished chain, never an empty one",
+             "a missing log must read as an unfinished chain — reading it as an empty carry "
+             "makes the whole artifact optional again")
+
+        # (c) #444 — local-only (no-remote) targets cannot re-derive from SHAs alone, so the
+        #     chain must publish the bytes: a pushed mirror or embedded reconstruction.
+        local = one_bullet_with(
+            "the local-only re-derivability rule",
+            r"no remote", r"pushed mirror", r"reconstruction artifacts",
+        )
+        must(local, r"(?i)complete only once the chain publishes",
+             "publishing the bytes must be REQUIRED for completion, not an optional convenience")
+        must(local, r"(?i)INCOMPLETE without one",
+             "a leg that publishes neither artifact must be named incomplete")
+        # S2: seed sources + a full diff recover file bytes, never the commit objects — so the
+        # required artifact has to be commit-preserving and seed+diff is supplemental only.
+        must(local, r"(?i)git bundle",
+             "the required reconstruction artifact must be commit-preserving (a git bundle "
+             "or equivalent), not a SHA list")
+        # R2-TA-444: three survivors kept the artifact's name and lost its content — drop "and
+        # its ancestry" (a commit list without history is not a reconstruction), drop the
+        # mirror's written remote/refs (an unreachable mirror publishes nothing), and drop the
+        # integrity hash (unhashed bytes can move under the citation).
+        must(local, r"(?i)reproduces every cited commit and its ancestry",
+             "the artifact must reproduce the cited commits AND their ancestry — history is "
+             "what a bundle preserves and a byte-dump does not")
+        must(local, r"(?i)the remote and the pushed refs written down",
+             "the pushed mirror must record its retrieval coordinates: remote and pushed refs")
+        must(local, r"(?i)Every published artifact is hashed into the run-close integrity "
+                    r"inventory",
+             "published bytes must be hashed into the integrity inventory, or a later audit "
+             "cannot tell they have not moved")
+        must(local, r"(?i)SUPPLEMENTAL and never sufficient on their own",
+             "seed sources plus the full diff must be supplemental, never sufficient alone")
+
     def test_scheduling_rule_includes_report_only_conformance(self):
         # #129: mission-scheduling listed a closed set that omitted attest-it, contradicting
         # attest-it's own report-only nature. The fix is a rule (value lands before any one-way

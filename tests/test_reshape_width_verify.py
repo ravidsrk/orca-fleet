@@ -9,7 +9,17 @@ control, where the importable surface is the pre-deepening one).
 
 WIDTH is the mission's own probe (skills/reshape-it/SKILL.md § SCAN):
 count of lines matching ^(def |class |async def |[A-Z_]+ =).
-Pre-deepening baseline: 92. Post-deepening pin: 85.
+Pre-deepening baseline: 92. Post-deepening pin: 85, raised to 88 by #442, then to 90 by
+#442 round 2 (_evidence_toplevel + _roots_are_split: the evidence bound and the
+single-repo/split test, each named once instead of inlined at every call site).
+
+The pin is a ratchet against the deepening RE-WIDENING, not a freeze: the
+invariant it defends is `width < BASELINE_WIDTH`, and that baseline never
+moves. #442 (the --git-dir / --evidence-root split) spends three of the
+seven remaining names — `_ROOTS`, `_git_bytes`, `_root_arg` — and the
+budget is named here so the next raise has to argue for itself too. What
+would violate RV-D2 is the signature engine coming back, which the second
+test below checks by identity and is untouched by the count.
 """
 import importlib.util
 import re
@@ -19,7 +29,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 WIDTH_RE = re.compile(r"(?:def |class |async def |[A-Z_]+ =)")
 BASELINE_WIDTH = 92
-PINNED_WIDTH = 85
+PINNED_WIDTH = 90
 
 
 def interface_width(path):
@@ -33,7 +43,8 @@ class VerifyWidthPin(unittest.TestCase):
         self.assertLess(width, BASELINE_WIDTH,
                         f"verify.py WIDTH {width} is not smaller than the pre-deepening {BASELINE_WIDTH}")
         self.assertEqual(width, PINNED_WIDTH,
-                         f"verify.py WIDTH {width} drifted from the RV-D2 pin {PINNED_WIDTH}")
+                         f"verify.py WIDTH {width} drifted from the pin {PINNED_WIDTH} — a new top-level "
+                         "name needs a reason in this module's docstring, not a silent bump")
 
     def test_engine_lives_behind_the_narrow_import(self):
         spec = importlib.util.spec_from_file_location(

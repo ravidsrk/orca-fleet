@@ -1,0 +1,16 @@
+{
+  "id": "db4e9fe9-8a95-45b1-b826-2df330faf357",
+  "ok": true,
+  "result": {
+    "wait": {
+      "handle": "term_bb52652d-a569-4231-b95d-b2a6fba6b4ce",
+      "condition": "tui-idle",
+      "satisfied": true,
+      "status": "running",
+      "exitCode": null
+    }
+  },
+  "_meta": {
+    "runtimeId": "0e3d77f3-b0e7-4aa1-a21d-a960aa212104"
+  }
+}

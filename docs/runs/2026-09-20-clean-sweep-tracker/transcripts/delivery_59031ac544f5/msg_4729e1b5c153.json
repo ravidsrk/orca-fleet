@@ -1,0 +1,8 @@
+{
+ "id": "msg_4729e1b5c153",
+ "type": "worker_done",
+ "created_at": "2026-09-20T08:35:30Z",
+ "subject": "U-CHAIN r2 SPEC: NO-GO, BOT-4 Required",
+ "body": "Reviewed the assigned SPEC axis at 0dbc669e, preserved blind-fix expectations before opening the diff, and wrote the sole authorized uncommitted report. F-1, F-2, and F-5 close their original doctrine findings, but BOT-4 is Required because the stale remote-tracking ref falsely blocks resume after a landed promotion; an independent scratch replay confirms the failure while all 59 architecture tests and the validator pass. The remaining SPEC work is to require fresh remote-default evidence and re-review the resulting SHA, with F-3, F-4, F-6, and BOT-5 reserved for the parallel test and evidence axis.",
+ "payload": "{\"taskId\":\"task_99fd6b826460\",\"dispatchId\":\"ctx_c01bb33069bb\",\"outcome\":\"succeeded\",\"filesModified\":[\"docs/reports/U-CHAIN/review-spec-r2.txt\"],\"reportPath\":\"docs/reports/U-CHAIN/review-spec-r2.txt\"}"
+}

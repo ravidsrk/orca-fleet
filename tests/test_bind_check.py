@@ -294,6 +294,39 @@ class BindCheckPrRange(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertIn("no candidate run reports changed", out)
 
+    def test_top_level_liveness_ledger_is_skipped(self):
+        """A TOP-LEVEL living ledger (liveness-resume RUN: line — free text
+        plus COORDINATOR/BASE/FORK_POINT legs, e.g. the 2026-09-14 and
+        2026-09-20 clean-sweep trackers) is a fleet workflow record, not a
+        submission bundle: the run's binding report is filed separately
+        (#411 precedent). Routing it to the binder can only fail closed on
+        a format that was never a submission attempt, so it skips."""
+        path = self.repo / "docs/runs/2026-01-03-clean-sweep-tracker.md"
+        path.parent.mkdir(parents=True)
+        path.write_text(
+            "# clean-sweep run — source=tracker\n\n"
+            "RUN: run_abc123 · COORDINATOR: term_xyz · BASE: review/x · "
+            "FORK_POINT: abc · T0: 2026-01-03T00:00:00Z\n", encoding="utf-8")
+        _commit(self.repo, "top-level living ledger")
+        code, out = self._run()
+        self.assertEqual(code, 0, out)
+        self.assertNotIn("FAIL", out)
+
+    def test_shaped_submission_quoting_a_ledger_line_still_fails(self):
+        """A malformed submission at the canonical path does NOT escape via
+        the ledger skip: the skip only fires when the FIRST RUN: line is
+        the liveness shape. A shaped file whose formal header is broken is
+        a submission attempt and fails closed."""
+        path = self.repo / f"docs/runs/2026-01-03-{MISSION}-{TIER}.md"
+        path.parent.mkdir(parents=True)
+        path.write_text(
+            f"# report\n\nRUN: mission={MISSION}\n\n"
+            "quoted: RUN: run_abc · COORDINATOR: term_x · BASE: b\n", encoding="utf-8")
+        _commit(self.repo, "malformed submission quoting a ledger line")
+        code, out = self._run()
+        self.assertEqual(code, 1)
+        self.assertIn("RUN: header is missing", out)
+
     def test_nested_ledger_format_run_line_is_skipped(self):
         """Run ledgers use their own RUN: format (free text plus COORDINATOR
         / BASE / FORK_POINT legs), not the binder's mission=/tier= header.

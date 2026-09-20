@@ -1,0 +1,204 @@
+{
+  "unit": "U-CHAIN",
+  "role": "integrator",
+  "round": 3,
+  "final": true,
+  "task_id": "task_aeb2e5dc5e06",
+  "dispatch_id": "ctx_99efe0dd0274",
+  "generated_at": "2026-09-20T09:22:09.113646+00:00",
+  "head_sha": "d75b23b110c00579843886487ad80e9c0b607420",
+  "pr": {
+    "number": 484,
+    "url": "https://github.com/ravidsrk/orca-fleet/pull/484",
+    "state": "OPEN",
+    "base_ref": "review/2026-09-20-tracker-sweep",
+    "head_ref": "ravidsrk/u-chain",
+    "head_ref_oid": "d75b23b110c00579843886487ad80e9c0b607420",
+    "head_matches_local": true,
+    "base_assert": "PASS - baseRefName == review/2026-09-20-tracker-sweep (not main)"
+  },
+  "secret_scan": {
+    "tool": "gitleaks 8.30.1",
+    "scope": "git --log-opts=b431c418..HEAD (new commits only)",
+    "commits_scanned": 19,
+    "findings": 0,
+    "exit_code": 0,
+    "verdict": "CLEAN"
+  },
+  "suite": {
+    "command": "python3 -m unittest discover -s tests",
+    "result": "OK",
+    "ran": 1707,
+    "elapsed_s": 289.117,
+    "tail": "Ran 1707 tests in 289.117s\n\nOK",
+    "note": "The FAIL: lines above the dot-line are a verify.py negative-path test printing its own rejection messages to stdout; the unittest result line is OK with zero failures and zero errors.",
+    "validate": {
+      "command": "python3 scripts/validate.py",
+      "result": "All 21 missions valid; three-layer separation holds; evals valid.",
+      "exit_code": 0
+    },
+    "verdict": "GREEN"
+  },
+  "harness": {
+    "command": "python3 docs/reports/U-CHAIN/run_mutants-r3.py",
+    "cwd": "repository root",
+    "exit_code": 0,
+    "mutants_run": 31,
+    "expected_red": 28,
+    "expected_green": 3,
+    "killed_for_assertion": 28,
+    "survivors": "none",
+    "false_reds": "none",
+    "stillborn": "none",
+    "positive_control_fixed_head": "GREEN",
+    "positive_control_head_restored": "GREEN",
+    "banner": "HARNESS OK: every mutant died for the right reason; both controls GREEN.",
+    "assertion_soundness": "mutants_core.classify() grades a kill ONLY on an AssertionError plus a 'FAILED (failures=N)' line; a nonzero exit without an assertion failure is STILLBORN and fails the harness. All 28 REDs are KILLED-for-assertion, not merely nonzero.",
+    "worktree_clean_after": true,
+    "verdict": "GREEN"
+  },
+  "egress_receipt": {
+    "id": "e925b0fc2bc20c673f8b4da5b0b67cd13581a41ed45f456b2e5769a11d0bdf8a",
+    "ts": "2026-09-20T09:15:54Z",
+    "sink": "git-push",
+    "host": "github.com",
+    "payload_class": "branch-update",
+    "consent": "run-2026-09-14-clean-sweep:base-writes",
+    "written_before_push": true,
+    "push_ts": "2026-09-20T09:16:16Z",
+    "ledger": ".orca/egress.jsonl",
+    "chain": "intact, 9 receipts",
+    "head_digest": "f13def02a64645295ebc850a7d381931e33549ed5df89fcc68d5bbfde5e3f6f4",
+    "anchor_note": "head digest recorded here, off the writer, per egress.py verify --expect-head; ledger self-reports UNANCHORED",
+    "r1_deviation_status": "STILL NOT remediated, by design (unchanged from r2). The two invented round-1 consent ids remain visible in `egress.py grants` as the intended human-visible signal. Coordinator decision on an annotated re-anchor is STILL OWED."
+  },
+  "push": {
+    "command": "git push --force-with-lease=ravidsrk/u-chain:b431c4182efc555c5057e010b73933ca321ef05e origin ravidsrk/u-chain",
+    "lease": "explicitly pinned to the observed remote tip b431c418, re-read via git ls-remote immediately before the push; bare --force NEVER used",
+    "range": "b431c418..d75b23b1",
+    "resolved_as": "FAST-FORWARD",
+    "force_actually_required": false,
+    "force_note": "The dispatch anticipated a force-with-lease because the conductor stripped trailers from 3 commits. Git reported `b431c418..d75b23b1` with a range dot-dot and NO leading '+', i.e. the update was a fast-forward: the rewritten commits had never reached origin, so no remote history was discarded. The lease was pinned regardless and held.",
+    "pushed_at": "2026-09-20T09:16:16Z",
+    "remote_tip_after": "d75b23b110c00579843886487ad80e9c0b607420",
+    "exit_code": 0
+  },
+  "bot_state": "RAN",
+  "review_bot": {
+    "bot": "greptile-apps[bot]",
+    "wait": {
+      "poll_interval_s": 30,
+      "floor_s": 180,
+      "cap_s": 600,
+      "first_activity_s": 127,
+      "settled_s": 191,
+      "stable_across_polls": true,
+      "check_run": "Greptile Review — pass (2m20s)"
+    },
+    "reviews_on_new_head": [
+      {
+        "id": 5260193666,
+        "state": "COMMENTED",
+        "submitted_at": "2026-09-20T09:18:40Z",
+        "commit_id": "d75b23b1",
+        "body": "(empty)"
+      },
+      {
+        "id": 5260194743,
+        "state": "APPROVED",
+        "submitted_at": "2026-09-20T09:18:50Z",
+        "commit_id": "d75b23b1",
+        "body": "greptile-auto-approve marker, headSha=d75b23b1"
+      }
+    ],
+    "approved_on_new_head": true,
+    "baseline_before_push": {
+      "review_comments": 5,
+      "reviews": 4,
+      "issue_comments": 0
+    },
+    "after_push": {
+      "review_comments": 6,
+      "reviews": 6,
+      "issue_comments": 0
+    },
+    "new_after_push": {
+      "review_comments": 1,
+      "reviews": 2,
+      "issue_comments": 0
+    },
+    "action_taken": "ingested and tagged only - NOTHING FIXED; the VALID finding is HELD"
+  },
+  "held_new": [
+    {
+      "id": "BOT-6",
+      "comment_id": 4056606142,
+      "severity": "P2",
+      "path": "docs/reports/U-CHAIN/mutants_core.py",
+      "line": 116,
+      "commit_id": "d75b23b110c00579843886487ad80e9c0b607420",
+      "bound_to_new_head": true,
+      "title": "Interrupted runs skip restoration",
+      "tag": "VALID",
+      "reason": "The code-level claim is exact. mutants_core.main() runs the per-mutant cycle as three bare statements - POLICY.write_text(fn(orig)); p = _run_test(); POLICY.write_text(orig) - with no try/finally. If _run_test() raises (OSError launching the subprocess) or the operator interrupts mid-run, the third statement is skipped and runtime/mission-chaining.md is left holding the mutant. main() re-reads `orig = POLICY.read_text()` at entry, so a rerun in that same checkout would indeed adopt the mutant as its baseline. The suggested finally-block is the correct and cheap fix.",
+      "severity_assessment": "Correctly rated P2 / non-blocking, and arguably even weaker than stated, because the stated consequence is NOT silent. The `fixed-head` positive control runs FIRST, against `orig`, before any mutant: on a corrupted baseline it goes non-GREEN and main() appends 'fixed-head control is not GREEN' and exits 1. For a leftover neutral (expected-GREEN) reflow the control would pass, but the later sub() patterns would then miss and those mutants would report as SURVIVORS - also exit 1. Either way the harness FAILS CLOSED rather than quietly measuring against the wrong policy. This is the fail-closed property r3 was dispatched to add, doing its job.",
+      "residual_risk": "Operator-facing, not evidence-facing: a dirty checkout after an interrupt. The module docstring already directs the harness to be run 'in a DISPOSABLE checkout', and `git status` was clean after both of this round's runs.",
+      "scope": "inside this unit's own evidence harness (docs/reports/U-CHAIN/), NOT the frozen spec (runtime/mission-chaining.md)",
+      "note_for_batch": "Same scope class as BOT-5 and a direct descendant of it: BOT-5 attacked the harness's baseline SOURCE (an untracked fixture), BOT-6 attacks the harness's baseline INTEGRITY across an aborted run. The r3 fix hardened the source (baseline() derives from a pinned SHA and hash-checks it); it did not wrap the mutate/run cycle. HELD per dispatch - fix NOTHING."
+    }
+  ],
+  "r2_holds_disposition": {
+    "summary": "Both round-2 holds are FIXED at the new head and NEITHER was re-raised by Greptile on d75b23b1; Greptile APPROVED the new head. The three round-1 holds remain resolved, and BOT-3's residual gap - the one thing r2 explicitly refused to close on the 13/13 headline - is now closed too.",
+    "bot_re_raised_any": false,
+    "findings": [
+      {
+        "id": "BOT-4",
+        "severity": "P1",
+        "comment_id": 4056505643,
+        "path": "runtime/mission-chaining.md",
+        "disposition": "FIXED at new head",
+        "fix_commit": "1635b27f43d22309bfc1e91be517c2815ac3cb6e",
+        "evidence": "runtime/mission-chaining.md:45 now reads '`origin/<default>` for a REMOTE target - REFRESHED immediately before the check (`git fetch origin <default>`), with the resolved default SHA written down', citing preflight.py's own contract; and :49 adds 'a `<default-ref>` whose freshness cannot be established leaves the promotion UNPROVEN and the chain parked, never landed'. The unfetched-ref assumption BOT-4 named is gone, and the failure now resolves to PARKED rather than a false negative.",
+        "ratchet": "Bound by three NEW mutants, all KILLED-for-assertion in this round's replay: own-freshness-refresh-removed (drops the refresh obligation), own-freshness-unproven-reversed (treats unestablishable freshness as landed), own-ancestry-subject-unpinned (unpins the ancestry subject). A neutral control own/neutral-soft-wrap-freshness reflows the same clause and stays GREEN, so the three asserts bind meaning and not whitespace.",
+        "bot_re_raised": false
+      },
+      {
+        "id": "BOT-5",
+        "severity": "P2",
+        "comment_id": 4056505646,
+        "path": "docs/reports/U-CHAIN/run_mutants-r2.py",
+        "disposition": "FIXED at new head",
+        "fix_commit": "1635b27f43d22309bfc1e91be517c2815ac3cb6e",
+        "evidence": "The unconditional module-import read of the untracked `base-policy.md` is gone. mutants_core.baseline() now derives the pre-fix bytes with `git show <UNIT_BASE_SHA>:runtime/mission-chaining.md`, exits FATAL if that fails, and sha256-checks the result against a pinned BASE_SHA256 - so the baseline is both self-deriving and tamper-evident. run_mutants-r2.py was rewritten onto the same core. Remaining 'base-policy' strings in the tree are a mutant LABEL and docstrings, not a file read.",
+        "independent_confirmation": "Re-derived first-hand this round, which is the point of the finding: run_mutants-r3.py executed to exit 0 in this checkout with no base-policy.md present and none git-tracked. Clean-checkout replay is additionally recorded at docs/reports/U-CHAIN/clean-checkout-replay-r3.txt.",
+        "bot_re_raised": false
+      },
+      {
+        "id": "BOT-3",
+        "severity": "P2",
+        "carried_from": "round 1",
+        "prior_disposition": "SUBSTANTIALLY RESOLVED - not fully (r2 named three unbound phrases)",
+        "disposition": "NOW FULLY CLOSED",
+        "evidence": "All three residual phrases r2 left unbound are now asserted in tests/test_architecture.py - must(alt2, '(?i)fork leg N.s UNPROMOTED BASE tip') at :706, must(alt2, '(?i)with the granted SHA written down') at :709, and must(carry, '(?i)a MISSING handoff log is an unfinished chain, never an empty one') at :751 - and each is driven live by a mutant that was KILLED this round: own-grant-promoted-only, own-grant-no-sha, own-missing-handoff-empty respectively. The battery grew 13 -> 31 (28 RED + 3 neutral).",
+        "note": "r2 recorded this as a pattern-level finding not re-run as live mutants. It has now been re-run as live mutants and they die."
+      }
+    ],
+    "carried_flag": "The r1 note that 5 tests failed identically at base and head was tracked separately as STAB-2 on BASE and is NOT re-adjudicated here. This round's suite is a clean 1707-test OK at HEAD, so nothing is failing at head now."
+  },
+  "OWED_unanswered_pr_threads": {
+    "severity": "BLOCKS MERGE",
+    "state": "ALL SIX Greptile review threads on PR #484 have ZERO in-thread replies",
+    "evidence": "gh api repos/ravidsrk/orca-fleet/pulls/484/comments --jq '.[] | in_reply_to_id' returns null for every one of 4056407120, 4056407124, 4056407126 (r1 / BOT-1..BOT-3), 4056505643, 4056505646 (r2 / BOT-4, BOT-5) and 4056606142 (r3 / BOT-6).",
+    "why_not_discharged_here": "This dispatch is HOLD-only and its preamble forbids the GitHub-comment channel, so the integrator did not post replies. Dispositions for all six are fully written up in this report and in integrate-r2.json, ready to paste.",
+    "action_required_by_coordinator": "Per the standing repo rule, every thread is owed an in-thread answer - fixed with the commit named, already covered with the evidence named, or declined with the reason - BEFORE merge. Greptile's APPROVED on d75b23b1 is a green check, not an answered thread, and does not discharge this."
+  },
+  "constraints_honored": [
+    "never merged",
+    "never pushed to main",
+    "no bare force-push - lease explicitly pinned to the observed remote tip, and the update resolved as a fast-forward",
+    "no fixes applied to any bot finding (r1, r2 or r3)",
+    "egress receipt written before the push (09:15:54Z < 09:16:16Z)",
+    "suite, validator and mutation harness all run at the pushed HEAD, in that order, before the push"
+  ],
+  "verdict": "ALL GATES GREEN. Suite 1707/OK, validator clean, 28/28 mutants KILLED-for-assertion with both controls GREEN, gitleaks clean, egress receipt precedes the push, branch at d75b23b1 on origin, Greptile RAN and APPROVED the new head. One NEW P2 (BOT-6) is HELD unfixed. Both r2 holds are fixed and unre-raised; BOT-3's residual is closed. The only thing standing between this PR and a merge is the six unanswered review threads."
+}

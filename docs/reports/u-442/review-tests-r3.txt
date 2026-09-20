@@ -1,0 +1,401 @@
+U-442 ROUND 3 — TEST-ADEQUACY REVIEW
+Status: COMPLETE — TEST-ADEQUACY NO-GO
+Counts: 0 Critical; 3 Required (R3-T1, R3-T2, R3-T3); 0 Nit; 0 Optional; 0 FYI.
+Requested reviewed_sha: c1d1e59c
+Axis: TEST-ADEQUACY only; scratch-only mutations; no commits or source fixes.
+
+EXECUTIVE BRIEF
+All named round-one/two survivors are now killed for their intended reasons, and every published round3-mutants.json / round2-replay-r3.json failure set independently re-derives. The original collision probes and real 11-second timeout reproduction confirm the fixes; the reviewed SHA passes 274 verifier tests, all 1,733 repository tests, validation, and the floor guard. Test adequacy remains NO-GO: two new behavioral mutants survive all 274 verifier tests, covering explicit equal-root compatibility and artifact bytes bound to manifest head_sha rather than later local HEAD. A third Required finding shows the new exception hook can silently vacate after a behavior-neutral refactor, then conceal a fail-open branch. Current production passes the independent probes; no current-production false acceptance is claimed. This is the final review round; the coordinator should park the unit with these sticking findings under acceptance-review's round budget, not start another autonomous fix/review cycle. Only this report was authored in the source worktree, left uncommitted; all scratch mutations were restored and their clones removed after preserving scripts and logs.
+
+BLIND EXPECTATIONS — written before opening any r3 implementation/test diff
+Sources: frozen build-u442-r3.md, round-one TESTS report, round-two TESTS report and verdict.
+Recorded UTC: 2026-09-20T10:45:43.736380+00:00
+
+H-1: Both escape fixtures should include the escaping pathname in artifacts[] with its actual digest, preserving the ordinary command artifact. I expect otherwise-valid manifests and assertions naming canonical escape refusal; complete containment removal should flip admission, not merely a diagnostic.
+Motivating line: "  pins still name the default fixture path. Pin each manifest's artifacts[] to the artifact it"
+Confidence: high.
+
+H-2: The refreshed manifest must bind the new code tree and carry real successful runner receipts for regression, verifier module, and full suite. New report commits may follow the tested code SHA only with explicit tree/receipt explanation; stale round-one failure records cannot serve as current closure.
+Motivating line: "  at the NEW head: evidence-run.py receipts for the r2 regression set, the full test_verify"
+Confidence: high about evidence integrity; detailed inventory review belongs to the SPEC axis.
+
+H-3: The symbol leg should explicitly preserve timeout=20. A regression should invoke the real helper selection, prove the probe ran, and fail if timeout reverts to 10; an independent delayed Git wrapper should differentiate those budgets without relying on a flaky deadline edge.
+Motivating line: "  change, reproduced by the reviewer. Pass the legacy timeout explicitly (20s) on that leg so"
+Confidence: high.
+
+H-4: Add valid same-path collisions for each single flag, and preserve the round-two same-repository nested-root collision requirement. Each unpinned case must fail for absent evidence-root pin. Both and-to-or (N1) and repository-identity collapse (N2) must die under submitted tests.
+Motivating line: "  and from B with only --evidence-root A — a colliding tracked blob with NO artifacts[] pin"
+Confidence: high.
+
+H-5: Supply both ordinary and escaping pins, contract, and command artifact at the selected nested root; pinning must never authorize canonical escape. N5 and M3 should now die on substantive acceptance differences with otherwise-valid inputs.
+Motivating line: "  BOTH the ordinary artifact pin AND a pin for the escaping path supplied, otherwise valid"
+Confidence: high.
+
+H-6: Real divergent base/HEAD fixtures must prove both directions: HEAD-only symbol rejected; base-only symbol accepted after HEAD removes it. Mutating grep ref to HEAD (N4) must fail those assertions for symbol mismatch, retaining correct target-repository routing.
+Motivating line: "  fixtures: a symbol present ONLY on local HEAD (absent from origin/<base>) must NOT satisfy"
+Confidence: high.
+
+H-7: Remove the pragma and force Path.resolve OSError in the root classifier, asserting split=True and the expected call count so fallback cannot silently vacate. Mutation to fail-open False must die. Guard waivers are coordinator-owned historical quotations.
+Motivating line: "  cover the branch (mock `Path.resolve` to raise OSError; assert fail-closed True) and DELETE"
+Confidence: high.
+
+Independent challenge plan: replay all named prior mutants and original semantic probes; rederive round3-mutants.json from actual replacements and failure names; write 2–3 new mutants against root equivalence/artifact authority with submitted-suite verdicts separated from reviewer-added probes. All experiments use independent scratch clones at c1d1e59c; report survivor behavior precisely with verbatim motivating source lines and RED/GREEN evidence.
+
+
+CONFIRMED NEW FINDINGS (source correctness and submitted-suite adequacy are distinguished)
+
+R3-T1 — Required — Explicitly equal roots have no positive tracked-artifact regression.
+Verbatim motivating line, runtime/scripts/verify.py:208:
+        return Path(sha_top).resolve() != Path(ev_top).resolve()
+New mutant X1 replaces this line with `return True`, leaving the no-flag early return alone. All 274 submitted verifier tests still pass (57.497s). This changes real behavior: a valid manifest whose SHAs and tracked, unpinned artifact are in the SAME root succeeds with both flags naming that root at untouched c1d1e59c, but the mutant wrongly classifies it as split and refuses the evidence. The submitted tests distinguish different roots, nested roots, one flag, and no flags, but never establish the positive same-root equivalence case.
+Independent probe test_explicit_equal_roots_preserve_committed_artifact_identity passes untouched source and fails under X1. Verbatim RED excerpt:
+  FAIL: test_explicit_equal_roots_preserve_committed_artifact_identity (__main__.NewProbes.test_explicit_equal_roots_preserve_committed_artifact_identity)
+  AssertionError: 2 != 0 : NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+  FAIL: negative_control.artifact unreadable (docs/reports/u/nc.txt): artifact 'docs/reports/u/nc.txt' is not pinned by a sha256 in the manifest's artifacts[] integrity inventory — under split roots the SHA repository is never consulted for evidence bytes (#442) — unpinned evidence (#267)
+  Ran 1 test in 0.286s
+  FAILED (failures=1)
+Required closure: submit a real equal-root, explicit-flags positive fixture with a tracked artifact and no inventory pin, asserting admission; canonical aliases can extend it. The current comparison is correct; this is a surviving behavior-changing mutant of the changed root classifier, not an observed current false refusal.
+
+R3-T2 — Required — Artifact bytes can silently move from manifest head_sha to local HEAD without failing the submitted suite.
+Verbatim motivating line, runtime/scripts/verify.py:306:
+        code, out, gerr = _git_bytes(["show", f"{head}:{path}"])
+Verbatim contract line, runtime/scripts/verify.py:291:
+         (`git cat-file -e <head_sha>:<path>`; the blob at that commit is what gets read), or the
+New mutant X3 changes only that show argument to f"HEAD:{path}"; the cat-file existence check still uses the manifest head_sha. All 274 submitted verifier tests pass (57.144s). An independent probe commits different artifact bytes at the manifest revision and a later local HEAD. Clean code returns the historical bytes; X3 returns the later bytes:
+  FAIL: test_committed_artifact_reads_manifest_sha_despite_later_head (__main__.NewProbes.test_committed_artifact_reads_manifest_sha_despite_later_head)
+  AssertionError: b'mutant m7 was KILLED at a later unrelated local revision\n' != b'mutant m7 SURVIVED at the manifest revision\n'
+  Ran 1 test in 0.226s
+  FAILED (failures=1)
+The full main() counterexample records SURVIVED at manifest head_sha and KILLED at a later HEAD. Untouched code refuses the historical negative control; under X3 the independent assertion fails because the verifier falsely admits it. Verbatim excerpts:
+  [untouched] verifier_exit=2
+  FAIL: negative_control.artifact reports the pinned mutant SURVIVED / was not killed
+  [X3] verifier_exit=0
+  verify: OK — all required checks passed
+  AssertionError: historical survivor must not borrow later local HEAD kill: NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+Required closure: advance local HEAD after recording the manifest SHA and assert that historical artifact bytes and their negative-control verdict still govern. This differs from N4: N4 concerns symbol grep's origin/base reference; X3 concerns immutable evidence bytes. Current production uses the correct manifest SHA. The new finding is test adequacy, not an assertion that r3 introduced the HEAD substitution.
+
+R3-T3 — Required — The fail-closed exception test can silently lose its injected failure after a behavior-neutral refactor.
+Verbatim motivating lines, tests/test_verify.py:3645–3646:
+        with mock.patch.object(Path, "resolve", refuse):
+            self.assertTrue(verify._roots_are_split())
+Verbatim applicable mutation-hunt.md instruction:
+  "A test whose probes can be bypassed by a behavior-neutral refactor must fail LOUDLY: assert each probe FIRED with a literal expected count."
+The fixture uses two distinct roots, so True is also the ordinary successful comparison result. It never asserts that refuse() actually ran. A scratch-only neutral refactor binds the canonicalizer at function definition:
+  def _roots_are_split(resolve=Path.resolve):
+      ...
+      return resolve(Path(sha_top)) != resolve(Path(ev_top))
+Ordinary filesystem semantics are unchanged, but the test's later patch of Path.resolve no longer intercepts the saved callable. The submitted exception test remains GREEN. Inverting the now-unexercised OSError arm to return False also leaves that test GREEN. The full-module checks and a counted independent probe are recorded below.
+Required closure: record exactly one refusal-hook invocation and assert that literal count (the first canonicalization throws, so no second call occurs). A refactor that bypasses the hook must fail loudly until the probe is retargeted.
+Boundary: untouched c1d1e59c DOES exercise the exception and DOES kill N7. This is a separate vacuity finding under the mandated playbook, not a current fail-open defect, not a claim that today's exception branch is uncovered, and not a refutation of the round3 N7 receipt.
+
+
+PINNED EXECUTION CONTEXT
+reviewed_sha / head_sha: c1d1e59c50558e81da15faf4a0f885b96f6e20d2
+comparison_ref: origin/review/2026-09-20-tracker-sweep
+comparison_ref_sha: abb2606225317b1e2a50b7c935aeb7e33e9d08a6
+merge_base_sha: db1b72bc37770666bbea4f664f0ecc9d95caffcf
+Observed source-worktree HEAD is f0fe3fc0b0c0a237998090c19a9a4bb1f35f5bc5; its sole delta from the requested head is docs/reports/u-442/integrate-r3.json. All executed controls and findings bind c1d1e59c, never an assumed moving HEAD.
+Main scratch root: /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r3-tests-mmgkzk2b
+Original-probe replay scratch: /tmp/u442-r3-prior.YIucW6
+Fresh-mutant scratch: /tmp/u442-new-mutants.YRMnZC
+
+PUBLISHED 15-MUTANT CLAIM — INDEPENDENTLY RE-DERIVED
+Command for every row: python3 -B -m unittest discover -s tests -p test_verify.py
+Each mutation starts from pristine c1d1e59c verify.py in one of three independent clones; each exact before anchor occurs once. Each subprocess runs all 274 submitted tests with no reviewer-added test installed. All 15 exit 1 with assertion failures only, and each failing-test NAME SET exactly matches its published round2-replay-r3.json / round3-mutants.json claim. The narrow 15/15 claim is true. Fresh survivors X1/X3 and the neutral-refactor vacuity control are separate experiments, so they do not retroactively falsify those receipts.
+
+M1_evidence_from_sha_root: 50.014s; exit 1; 13 assertion failure(s); exact claim match.
+  killed by: test_a_colliding_sha_repo_blob_cannot_satisfy_a_mismatched_pin, test_a_colliding_sha_repo_blob_cannot_substitute_for_pinned_evidence, test_a_nested_evidence_root_bounds_against_itself_not_the_clone, test_a_path_at_ref_contract_read_uses_the_sha_repo, test_an_evidence_path_escaping_through_a_symlink_is_refused, test_an_unpinned_cross_repo_artifact_is_refused, test_git_dir_alone_leaves_evidence_resolution_where_it_was, test_split_roots_verify_a_cross_repo_manifest_end_to_end, test_symbol_only_on_base_is_found_even_when_head_deleted_it, test_the_evidence_root_may_be_a_named_subdirectory_of_the_clone, test_the_named_evidence_root_is_honored_from_a_distinct_cwd, test_the_symbol_leg_runs_in_the_sha_repo_not_the_process_cwd, test_two_clones_of_one_project_are_still_two_repositories
+
+M2_ignore_evidence_root: 50.417s; exit 1; 4 assertion failure(s); exact claim match.
+  killed by: test_a_nested_evidence_root_bounds_against_itself_not_the_clone, test_only_evidence_flag_collision_still_requires_pin, test_same_repo_nested_evidence_cannot_borrow_root_blob, test_the_named_evidence_root_is_honored_from_a_distinct_cwd
+
+M3_remove_canonical_containment: 49.816s; exit 1; 2 assertion failure(s); exact claim match.
+  killed by: test_a_nested_evidence_root_bounds_against_itself_not_the_clone, test_an_evidence_path_escaping_through_a_symlink_is_refused
+
+M4_no_flag_cwd_root: 56.571s; exit 1; 1 assertion failure(s); exact claim match.
+  killed by: test_a_valid_no_flag_run_from_a_nested_directory_still_binds_to_the_toplevel
+
+M5_git_bytes_ignore_sha_root: 56.28s; exit 1; 1 assertion failure(s); exact claim match.
+  killed by: test_a_path_at_ref_contract_read_uses_the_sha_repo
+
+M6_git_ignore_sha_root: 55.889s; exit 1; 9 assertion failure(s); exact claim match.
+  killed by: test_a_colliding_sha_repo_blob_cannot_substitute_for_pinned_evidence, test_a_path_at_ref_contract_read_uses_the_sha_repo, test_a_symbol_only_in_the_evidence_repo_is_not_accepted_as_on_base, test_git_dir_alone_leaves_evidence_resolution_where_it_was, test_split_roots_verify_a_cross_repo_manifest_end_to_end, test_symbol_only_on_base_is_found_even_when_head_deleted_it, test_the_evidence_root_may_be_a_named_subdirectory_of_the_clone, test_the_symbol_leg_runs_in_the_sha_repo_not_the_process_cwd, test_two_clones_of_one_project_are_still_two_repositories
+
+M7_drop_the_split_gate_on_the_tracked_blob_shortcut: 47.822s; exit 1; 7 assertion failure(s); exact claim match.
+  killed by: test_a_colliding_sha_repo_blob_cannot_satisfy_a_mismatched_pin, test_a_colliding_sha_repo_blob_cannot_stand_in_for_a_missing_pin, test_a_colliding_sha_repo_blob_cannot_substitute_for_pinned_evidence, test_only_evidence_flag_collision_still_requires_pin, test_only_git_flag_collision_still_requires_pin, test_same_repo_nested_evidence_cannot_borrow_root_blob, test_two_clones_of_one_project_are_still_two_repositories
+
+M8_symbol_grep_in_process_cwd: 47.112s; exit 1; 3 assertion failure(s); exact claim match.
+  killed by: test_a_symbol_only_in_the_evidence_repo_is_not_accepted_as_on_base, test_symbol_only_on_base_is_found_even_when_head_deleted_it, test_the_symbol_leg_runs_in_the_sha_repo_not_the_process_cwd
+
+M9_split_always_false: 46.737s; exit 1; 8 assertion failure(s); exact claim match.
+  killed by: test_a_colliding_sha_repo_blob_cannot_satisfy_a_mismatched_pin, test_a_colliding_sha_repo_blob_cannot_stand_in_for_a_missing_pin, test_a_colliding_sha_repo_blob_cannot_substitute_for_pinned_evidence, test_an_unresolvable_root_fails_closed_to_split, test_only_evidence_flag_collision_still_requires_pin, test_only_git_flag_collision_still_requires_pin, test_same_repo_nested_evidence_cannot_borrow_root_blob, test_two_clones_of_one_project_are_still_two_repositories
+
+N1_one_flag_is_not_a_split: 48.868s; exit 1; 3 assertion failure(s); exact claim match.
+  killed by: test_only_evidence_flag_collision_still_requires_pin, test_only_git_flag_collision_still_requires_pin, test_same_repo_nested_evidence_cannot_borrow_root_blob
+
+N2_repo_identity_loses_the_named_root: 49.206s; exit 1; 1 assertion failure(s); exact claim match.
+  killed by: test_same_repo_nested_evidence_cannot_borrow_root_blob
+
+N4_symbol_grep_reads_head_not_base: 48.392s; exit 1; 2 assertion failure(s); exact claim match.
+  killed by: test_symbol_only_on_base_is_found_even_when_head_deleted_it, test_symbol_only_on_head_cannot_substitute_for_base
+
+N5_inventory_pin_overrides_containment: 50.67s; exit 1; 2 assertion failure(s); exact claim match.
+  killed by: test_a_nested_evidence_root_bounds_against_itself_not_the_clone, test_an_evidence_path_escaping_through_a_symlink_is_refused
+
+N6_symbol_grep_loses_the_legacy_clock: 50.372s; exit 1; 1 assertion failure(s); exact claim match.
+  killed by: test_the_symbol_grep_keeps_the_legacy_twenty_second_budget
+
+N7_unresolvable_root_fails_open: 50.169s; exit 1; 1 assertion failure(s); exact claim match.
+  killed by: test_an_unresolvable_root_fails_closed_to_split
+
+RIGHT-REASON AUDIT (verbatim excerpts are noncontiguous; raw logs retained)
+M1 loses evidence-root authority: intended success tests report contract/artifact paths in the wrong SHA repo.
+M2 ignores the explicit evidence root: distinct-CWD success fails because contract.md is unreadable in B; original independent probe also RED.
+M3 and N5 now cause ACTUAL FALSE ADMISSION for BOTH pinned escape fixtures, rather than merely changing an error message:
+  FAIL: test_a_nested_evidence_root_bounds_against_itself_not_the_clone (test_verify.CrossRepoRoots.test_a_nested_evidence_root_bounds_against_itself_not_the_clone)
+  AssertionError: 0 != 2 : NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+  verify: OK — all required checks passed
+  FAIL: test_an_evidence_path_escaping_through_a_symlink_is_refused (test_verify.CrossRepoRoots.test_an_evidence_path_escaping_through_a_symlink_is_refused)
+  AssertionError: 0 != 2 : NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+  verify: OK — all required checks passed
+M4 re-roots no-flag nested calls: successful legacy fixture fails on the wrongly nested contract path.
+M5 loses raw Git context: the contract path@ref in B becomes unreadable in A.
+M6 loses text Git context: success fixtures lose their real base/head commits and command-tree binding.
+M7/M9 restore the wrong tracked-blob shortcut: conflicting evidence bytes, absent pins, stale pins, one-flag roots, and nested-root collisions fail their intended authority assertions.
+M8 executes symbol grep in process CWD: the proper B symbol is falsely absent, while an A-only symbol is falsely accepted.
+N1 wrongly classifies one-flag invocations: both unpinned collision fixtures falsely return verify: OK; same-repo nested evidence also falsely admits.
+N2 collapses named subdirectory identity into repository identity: the named-root unpinned collision falsely returns verify: OK.
+N4 confuses origin/main and HEAD in both directions:
+  FAIL: test_symbol_only_on_base_is_found_even_when_head_deleted_it (test_verify.CrossRepoRoots.test_symbol_only_on_base_is_found_even_when_head_deleted_it)
+  AssertionError: 2 != 0 : NOTE: commands ledger FRESH — 1 exit-0 record(s) bound to head_sha's tree 2335efece884. This is the worker's own runner, so the coordinator's clean-env re-run at head_sha still stands as the stronger authority (evidence-manifest.md §2)
+  FAIL: symbol 'def f' not found on origin/main (change may not be on base)
+  FAIL: test_symbol_only_on_head_cannot_substitute_for_base (test_verify.CrossRepoRoots.test_symbol_only_on_head_cannot_substitute_for_base)
+  AssertionError: 0 != 2 : NOTE: commands ledger FRESH — 1 exit-0 record(s) bound to head_sha's tree 2335efece884. This is the worker's own runner, so the coordinator's clean-env re-run at head_sha still stands as the stronger authority (evidence-manifest.md §2)
+  verify: OK — all required checks passed
+N6 restores the wrong default timeout:
+  AssertionError: Lists differ: [10] != [20]
+N7 inverts the exception arm under the CURRENT test hook:
+  AssertionError: False is not true
+None of the published behavioral mutants was killed by syntax/import/setup failure, unsupported flags, or an unrelated global build check.
+
+LITERAL ROUND-ONE M1 VARIANT — ADDITIONAL CHECK
+Round two re-expressed M1 at _resolve's helper-call site; I also replayed the literal original round-one replacement inside _evidence_toplevel: `top = _ROOTS["evidence"]` -> `top = _toplevel()`. It is KILLED by all 274 submitted tests (exit 1; 17 assertion failures, no errors; 37.633s), including wrong-root success assertions and collision authority checks. This extra variant is separate from the 15 published rows and removes ambiguity about the original M1 anchor. Its scratch clone was restored and removed.
+
+ORIGINAL REVIEWER PROBES REPLAYED, NOT REPLACED BY THE BUILDER'S NEW TESTS
+All six original round-one probes pass untouched c1d1e59c (includes both original T1 cases). All five round-two own_probes pass, and the independent pinned-escape probe passes.
+Original T1 conflicting-artifact and missing-pin probes: M7 produces two semantic assertion failures, each falsely returning verify: OK.
+Original M2/M3/M4/M5 probes: each matching mutation produces one assertion failure for the expected wrong-root / actual escaped-byte admission / nested contract / B-only immutable contract failure.
+One-flag collision probes: N1 produces two assertion failures (false admission of unpinned evidence).
+Same-repo nested collision probe: N2 produces one assertion failure (false admission).
+HEAD/base symbol probes: N4 produces two assertion failures (false admission plus false refusal).
+Pinned escape probe: N5 produces one assertion failure (false admission).
+These are independently replayed original fixtures in /tmp/u442-r3-prior.YIucW6, separate from the full submitted-module matrix.
+
+REAL 20-SECOND TIMING CONTRACT
+A scratch executable named git sleeps 11 seconds only on grep and then execs the actual Git binary. It does not fake a Git result. A real committed PRESENT_SYMBOL exists on origin/main; neither new root flag is named.
+Untouched original base verifier: 11.499s, result [].
+Untouched c1d1e59c verifier: 11.024s, result [].
+Repeated original-base comparison: 11.028s, result [].
+Explicit timeout=10 mutant: 10.005s, result ["symbol 'PRESENT_SYMBOL' not found on origin/main (change may not be on base)"], independent assertion RED.
+The submitted timeout test passes at c1d1e59c and fails both the N6 default-budget mutation and the independent explicit timeout=10 mutation. Its recording probe asserts exactly one relevant timeout via greps == [legacy], so deletion/renaming of that interception cannot silently remove its assertion.
+
+THREE NEW MUTANTS (submitted module, then independent probe)
+X1_equal_roots_force_split: 274 tests GREEN / exit 0; independent full-main equal-root probe GREEN at original, RED at mutant (Required R3-T1).
+X2_split_skips_digest_comparison: `if got != want:` -> `if not split and got != want:` inside _read_artifact; 274 tests RED / exit 1 / 57.393s. Two right-reason killers: test_a_colliding_sha_repo_blob_cannot_satisfy_a_mismatched_pin and test_two_clones_of_one_project_are_still_two_repositories. Independent stale-pin probe also GREEN original / RED mutant. No finding.
+X3_artifact_bytes_from_local_HEAD: 274 tests GREEN / exit 0; independent byte-identity probe and full-main historical-survivor probe GREEN original / RED mutant (Required R3-T2).
+All three new probes pass untouched c1d1e59c (3 tests, 0.684s). Reviewer-only probes do not turn X1/X3 into submitted-suite kills.
+
+VACUITY CONTROL — R3-T3
+Neutral early-bound canonicalizer: full submitted module GREEN, 274 tests / exit 0 / 51.169s.
+Neutral refactor plus inverted OSError arm: full submitted module STILL GREEN, 274 tests / exit 0 / 44.627s.
+The targeted original exception test also passes under both experiments.
+Independent counted probe passes original (1 test, 0.088s), then loudly fails the neutral refactor:
+  FAIL: test_exception_probe_fired_once (__main__.Probe.test_exception_probe_fired_once)
+  AssertionError: 0 != 1 : canonicalization exception probe must fire exactly once
+  Ran 1 test in 0.092s
+  FAILED (failures=1)
+This precisely isolates hook silence. No concurrency schedule is present in the changed code; forced barriers are not applicable. Real Git/file fixtures elsewhere assert unconditional verdicts and do not rely on conditional hook bodies.
+
+H-1 THROUGH H-7 — CLOSURE ASSESSMENT WITHIN THIS AXIS
+H-1 / H-5: CLOSED. Both escaped paths and ordinary command artifacts are correctly pinned; nested root contains its contract and command evidence. M3/N5 now expose false approval, so unrelated missing-file/pin failures no longer mask the intended oracle.
+H-2: REFRESH VERIFIED within test-evidence scope. All four commands[] receipts exit 0, their command digests recompute, and their wtree values equal their named commit's tree. All 26 artifact hashes match c1d1e59c bytes. Manifest head_sha is cd07307e93a6c0bd7a30299aa89411a18417ac72 (the tested implementation commit); verify.py and test_verify.py have no delta from there to c1d1e59c. This confirms refreshed receipts, not a blanket manifest admission: selfcheck-r3.txt explicitly records refusal for missing authoritative criterion IDs and a local review record; SPEC/coordinator retain those admission judgments. This review's own checks bind c1d1e59c.
+H-3: CLOSED. Explicit legacy 20-second budget restored, submitted constant interception kills N6, and the real 11-second wrapper demonstrates both restoration and the old false refusal.
+H-4: CLOSED for every named round-two survivor. N1's both one-flag cases and N2's same-repository nested collision are now submitted-suite kills. Fresh X1 reveals the opposite, same-root-positive dimension remains unpinned (R3-T1).
+H-6: CLOSED. Both HEAD/base asymmetries now kill N4 for the correct symbol verdicts; original wrong-repository and raw-Git controls remain killed. Fresh X3 is the separate artifact-byte revision dimension (R3-T2).
+H-7: Code branch and prior guard hold CLOSED at this SHA: current OSError path is exercised, N7 dies, and independent floor-guard run says `floor-guard: clean (6 waived)`. Probe robustness is still Required R3-T3 under mutation-hunt's explicit vacuity rule. No waiver or governance record was altered by this reviewer.
+
+BASELINE / GUARD EVIDENCE
+python3 -B -m unittest discover -s tests -p test_verify.py: exit 0; Ran 274 tests in 49.569s; OK (command elapsed 49.651s).
+python3 scripts/validate.py: exit 0 (1.436s); All 21 missions valid; three-layer separation holds; evals valid.
+python3 -B -m unittest discover -s tests: exit 0; Ran 1733 tests in 301.965s; OK (command elapsed 302.213s).
+python3 runtime/scripts/floor_guard.py --base e8cffe3befe6d6b23d04657846ad889975a71330: exit 0; floor-guard: clean (6 waived).
+git diff --check origin/review/2026-09-20-tracker-sweep...c1d1e59c: exit 0.
+The baseline clone was clean before/after the suite. No production/test file in the source worktree was edited, and no commits were made.
+
+DURABLE REPRODUCTION FOR NEW FINDINGS
+Recreate an independent clone checked out detached at c1d1e59c50558e81da15faf4a0f885b96f6e20d2. Run the following probe as `python3 own_probes.py /absolute/path/to/clone`; it runs only the three new cases and passes clean production. Apply each exact one-occurrence mutation quoted above to runtime/scripts/verify.py, remove its bytecode cache, and re-run both the submitted module and the matching independent probe. Restore pristine source between mutations. The full-main historical-evidence probe follows it and runs as `python3 head_acceptance.py /absolute/path/to/clone`.
+
+BEGIN own_probes.py
+import hashlib
+import json
+import sys
+import unittest
+from pathlib import Path
+
+sys.path.insert(0, str(Path(sys.argv.pop(1)).resolve()))
+from tests.test_verify import CrossRepoRoots, verify
+
+class NewProbes(CrossRepoRoots):
+    def test_explicit_equal_roots_preserve_committed_artifact_identity(self):
+        self.write('app.py', 'def f():\n    return 1\n')
+        self.base_sha = self.commit('base')
+        self.write('app.py', 'def f():\n    return 2\n')
+        self.head_sha = self.commit('head')
+        self.head_tree = self.git('rev-parse', 'HEAD^{tree}')
+        rc, out = self._run_main(self._manifest(artifacts=[]),
+                                '--git-dir', str(self.repo),
+                                '--evidence-root', str(self.repo))
+        self.assertEqual(rc, 0, out)
+        self.assertIn('verify: OK', out)
+
+    def test_split_evidence_stale_pin_rejected(self):
+        verify._ROOTS.update(git=str(self.repo_b), evidence=str(self.repo))
+        manifest = {'head_sha': self.head_sha, 'artifacts': [self.pin(self.nc_artifact)]}
+        (self.repo / self.nc_artifact).write_bytes(b'mutant m7 KILLED, bytes modified after inventory\n')
+        raw, err = verify.read_artifact(manifest, self.nc_artifact)
+        self.assertIsNone(raw, (raw, err))
+        self.assertIn('changed after it was inventoried', err)
+
+    def test_committed_artifact_reads_manifest_sha_despite_later_head(self):
+        self._reset_roots()
+        old_bytes = b'mutant m7 SURVIVED at the manifest revision\n'
+        newer_bytes = b'mutant m7 was KILLED at a later unrelated local revision\n'
+        (self.repo / self.nc_artifact).write_bytes(old_bytes)
+        manifest_sha = self.commit('manifest revision')
+        (self.repo / self.nc_artifact).write_bytes(newer_bytes)
+        local_head = self.commit('later local revision')
+        self.assertNotEqual(manifest_sha, local_head)
+        raw, err = verify.read_artifact({'head_sha': manifest_sha, 'artifacts': []}, self.nc_artifact)
+        self.assertIsNone(err)
+        self.assertEqual(raw, old_bytes)
+        self.assertNotEqual(raw, newer_bytes)
+
+if __name__ == '__main__':
+    names = sys.argv[1:] or [
+        'test_explicit_equal_roots_preserve_committed_artifact_identity',
+        'test_split_evidence_stale_pin_rejected',
+        'test_committed_artifact_reads_manifest_sha_despite_later_head',
+    ]
+    result = unittest.TextTestRunner(verbosity=2).run(unittest.TestSuite(NewProbes(n) for n in names))
+    sys.exit(not result.wasSuccessful())
+END own_probes.py
+
+BEGIN head_acceptance.py
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(sys.argv[1]).resolve()))
+from tests.test_verify import CrossRepoRoots
+c = CrossRepoRoots()
+c.setUp()
+try:
+    c.write('app.py', 'def f():\n    return 1\n')
+    c.artifact('mutant m7 SURVIVED and was NOT killed\n')
+    c.base_sha = c.commit('base')
+    c.write('app.py', 'def f():\n    return 2\n')
+    c.head_sha = c.commit('manifest head')
+    c.head_tree = c.git('rev-parse', 'HEAD^{tree}')
+    c.artifact('mutant m7 was KILLED — proof went RED at a LATER local commit\n')
+    later_sha = c.commit('later local head')
+    assert c.head_sha != later_sha
+    rc, out = c._run_main(c._manifest(artifacts=[]))
+    print('manifest_head=' + c.head_sha)
+    print('local_HEAD=' + later_sha)
+    print('verifier_exit=' + str(rc))
+    print(out)
+    assert rc == 2, 'historical survivor must not borrow later local HEAD kill: ' + out
+    assert 'reports the pinned mutant SURVIVED / was not killed' in out, out
+finally:
+    c.tearDown()
+    c.doCleanups()
+END head_acceptance.py
+
+The vacuity experiment's exact neutral transformations are in R3-T3. To prove probe firing, create the same fixture, set both roots, and use:
+  with mock.patch.object(Path, 'resolve', side_effect=OSError('forced root canonicalization failure')) as fired:
+      self.assertTrue(verify._roots_are_split())
+      self.assertEqual(fired.call_count, 1, 'canonicalization exception probe must fire exactly once')
+This counter-probe is GREEN on original source and RED on the neutral refactor; the submitted test is GREEN on both the refactor and the subsequent exception-arm inversion.
+
+REPRODUCTION ARTIFACTS
+Main replay: /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r3-tests-mmgkzk2b/replay.py; exact mutations and failure comparison: /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r3-tests-mmgkzk2b/rederived.json.
+New-mutant runner: /tmp/u442-new-mutants.YRMnZC/run_new.py; exact transformations: /tmp/u442-new-mutants.YRMnZC/evidence/new-results.json.
+Original-probe replay: /tmp/u442-r3-prior.YIucW6/replay.py, replay_remaining.py, and timeout_parity.py / timeout_mutant.py under that same directory.
+Full scratch inventory (including raw logs and scripts): /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r3-tests-mmgkzk2b/artifact-hashes.json. The clone directories have been removed; receipts/scripts/logs remain outside the source worktree. Recreate clones at the named paths to replay scripts as written.
+
+SELECTED ARTIFACT SHA256 INVENTORY
+cbd390f6c2e39287b74bef51c7d7389dae537241ba3cbc8194a6a86dcc522ce2  /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r3-tests-mmgkzk2b/baseline-module.log
+68ce421f8da48cf041d19af5d850cc3c028168902f4b8c62bb5616f32264ad4d  /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r3-tests-mmgkzk2b/baseline-suite.log
+005fe607263b480c132c5698dbcfef65862b7f709b1ff81641d3da00ec050356  /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r3-tests-mmgkzk2b/counted-neutral.log
+850014fd3070c55c603a22c4a9d43d66f8c32a0e184131ed005a562db09246a9  /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r3-tests-mmgkzk2b/counted-original.log
+9d1d11dd98c79fed98e75f3e756d8e7a27e4d191cfab665bbc1da34faf96c228  /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r3-tests-mmgkzk2b/floor-guard.log
+b0ac73364157c6098c9200bb0e70b44fd0fbabf69708d9a372a2d36bae653a8c  /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r3-tests-mmgkzk2b/inventory-audit.json
+8d02065c22a7f9f9b89586984ceb35ee19b4113685d18a17b9d206bd336a0e3a  /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r3-tests-mmgkzk2b/neutral-canonicalizer-full.log
+972594ec71878bc7ce9ceb11fcada7723001a46abed738a5e9ff324ce1002936  /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r3-tests-mmgkzk2b/neutral-plus-failopen-full.log
+d06ec09f057d54fc35dcd4ef28d8b53928c30fe4665215968d7fdc605fbf2eb2  /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r3-tests-mmgkzk2b/probe_vacuity.py
+174ba73c1279b48933bb3dcec1523030de391e011410e9c573527f8e47db9c4a  /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r3-tests-mmgkzk2b/rederived.json
+297f6656b0f0b578636f10ecb6664bdd0c06958f4094a3d6c19d4920a0ceaffd  /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r3-tests-mmgkzk2b/replay.py
+dfe89c60b5a1ef07749a922d62716091345a52bd233b9111756e6e373aaf0498  /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r3-tests-mmgkzk2b/vacuity-full-results.json
+b02f25bc884d9a9da3e0fa5be144c6b1473819591aae6276b97455f750de2546  /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r3-tests-mmgkzk2b/vacuity-full.py
+156bd7135b7a803c70588c86b8fbb05d2ee11050aa140847a9c6fe52da3d635c  /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r3-tests-mmgkzk2b/vacuity.py
+90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6  /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r3-tests-mmgkzk2b/validate.log
+65dc35b4b4d19b274bf93fce6000ece5cab7005aa8fd9b9ceafb5b60f2d1416d  /tmp/u442-new-mutants.YRMnZC/evidence/X1_equal_roots_force_split-probe.log
+d04b5bc3c9f1abba6005feabe696568d019260ddcf50b9e83e7bfbce9359f0a2  /tmp/u442-new-mutants.YRMnZC/evidence/X1_equal_roots_force_split-suite.log
+a49ff43f60b3ae369fd234205f7af7a339b76542a7ee1592d3e6975bd5e87fc6  /tmp/u442-new-mutants.YRMnZC/evidence/X3-e2e-baseline.log
+a4bc1893259c0a31347c7b05d0c9443e1a7506d88bf33800368b459fbd94a22e  /tmp/u442-new-mutants.YRMnZC/evidence/X3-e2e-mutant.log
+c7dc5826838e2fcf3b0731bd1dc785f3a82b0e50b5152191f7faa3b4d9496c9e  /tmp/u442-new-mutants.YRMnZC/evidence/X3_artifact_bytes_from_local_HEAD-probe.log
+73331859b594b2a980e22246d40228a563699893e41e52b1a5a0a27bf59c3921  /tmp/u442-new-mutants.YRMnZC/evidence/X3_artifact_bytes_from_local_HEAD-suite.log
+f9c9ee7108953336ce398f85fb7ec8e0dcdfcd1ef8a217399de55f97b9cacac4  /tmp/u442-new-mutants.YRMnZC/evidence/new-results.json
+c3734aedaf82fe6e9946a361ea8216ee31ca9e1ed06d7427b3ec9cef71b0f603  /tmp/u442-new-mutants.YRMnZC/head_acceptance.py
+1d3501041880a4904314503ac67f93ff8aab0180684cdb4ed5888cb7f3f3268e  /tmp/u442-new-mutants.YRMnZC/own_probes.py
+87654d8136133d314e2f9c8213c555b54e2720b8f2e00525f9ff43966d820157  /tmp/u442-r3-prior.YIucW6/probe-results.json
+57ce23794c10d374aca9010d00c3e0a9d9e3bb6d9baef33a6b6540545512eae2  /tmp/u442-r3-prior.YIucW6/remaining-results.json
+7d28381dd47dfc2df85e6d73a83d79369e313e4c52a8b2b4837935e5df02345b  /tmp/u442-r3-prior.YIucW6/timeout-green.log
+736392cc67b5040ae9a2eeb86cf84ea99302c968accb666bec1c4feea35e9776  /tmp/u442-r3-prior.YIucW6/timeout-results.json
+
+f7faeca46f3feb0984e60d1a7c4e32fc02143fdde751150cfab078fbada9c700  /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r3-tests-mmgkzk2b/literal-round1-M1.log
+
+4cfa9a5bbc36e28944669a44f92c4829cd639f88ad7cadcfbb306f68ed80e7c6  /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r3-tests-mmgkzk2b/literal-round1-M1.json
+
+REVIEW EVIDENCE MANIFEST (report-only shape)
+{
+  "unit": "U-442",
+  "axis": "TEST-ADEQUACY",
+  "round": 3,
+  "head_sha": "c1d1e59c50558e81da15faf4a0f885b96f6e20d2",
+  "reviewed_sha": "c1d1e59c50558e81da15faf4a0f885b96f6e20d2",
+  "fixed_point": "e8cffe3befe6d6b23d04657846ad889975a71330",
+  "verdict": "NO-GO",
+  "counts": {
+    "Critical": 0,
+    "Required": 3,
+    "Nit": 0,
+    "Optional": 0,
+    "FYI": 0
+  },
+  "published_mutants_rederived": 15,
+  "new_mutants": {
+    "killed": 1,
+    "survived": 2
+  },
+  "neutral_refactor_vacuity": "CONFIRMED",
+  "suite_exit": 0,
+  "suite_count": 1733,
+  "validator_exit": 0,
+  "floor_guard_exit": 0,
+  "report_path": "docs/reports/u-442/review-tests-r3.txt",
+  "production_mutations": "scratch clones only; restored then removed",
+  "source_changes": "this one uncommitted report only",
+  "completed_utc": "2026-09-20T10:57:01.278044+00:00"
+}
+
+FINAL FRESHNESS / BOUNDARY CHECK
+Source HEAD remains f0fe3fc0b0c0a237998090c19a9a4bb1f35f5bc5, with only integrate-r3.json beyond requested c1d1e59c. Tracked worktree and index diffs are empty; this reviewer authored only this uncommitted report. No partial/timebox stop was needed, and no required experiment remains running.

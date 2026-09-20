@@ -102,3 +102,8 @@ branches are append-only history and must not be rewritten.
    campaign's own runs; clean-sweep and prove-it stand at `self-run` on
    their own promotion reports (the 2026-09-14 tracker close and the PF-2
    run), not on campaign LEDGERs.
+3. 2026-09-17: the `origin/campaign/*-selftest` archive branches were deleted
+   after their histories were joined to `main` (PR #483), so the re-derivation
+   recipe above no longer resolves. All 21 branch-tip commits remain ancestors
+   of `main`; extract a mission's transcript from `main` instead:
+   `git archive main docs/runs/campaign-2026-09-16-<m> | tar -t`.

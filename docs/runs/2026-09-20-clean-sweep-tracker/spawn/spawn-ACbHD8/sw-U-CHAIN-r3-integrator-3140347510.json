@@ -1,0 +1,19 @@
+{
+  "id": "c825185d-579e-412e-b9e0-4c0fca01eb04",
+  "ok": true,
+  "result": {
+    "terminal": {
+      "handle": "term_b545ef34-35c8-4694-9ac9-e3202ba17c81",
+      "tabId": "e0418ec2-a2c7-4804-bde7-c432518e23cb",
+      "worktreeId": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/u-chain",
+      "title": "U-CHAIN r3 integrator",
+      "executionHostId": "local",
+      "incarnationId": "022ffcbd-2f73-461b-8bb4-8659452fd18a",
+      "hostPlatform": "darwin",
+      "surface": "visible"
+    }
+  },
+  "_meta": {
+    "runtimeId": "0e3d77f3-b0e7-4aa1-a21d-a960aa212104"
+  }
+}

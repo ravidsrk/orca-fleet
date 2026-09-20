@@ -1,0 +1,19 @@
+{
+  "id": "8b63bc3f-7cbe-4b04-8da6-d9fe6cf4acad",
+  "ok": true,
+  "result": {
+    "terminal": {
+      "handle": "term_e0cbe15b-0603-4233-8b6a-263f2eb09d9d",
+      "tabId": "da2b76f2-ce5c-40d3-8ee1-153c7b5680f8",
+      "worktreeId": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/u-chain",
+      "title": "U-CHAIN repair",
+      "executionHostId": "local",
+      "incarnationId": "b738b972-5d8d-4b76-9645-4d8f030a2429",
+      "hostPlatform": "darwin",
+      "surface": "visible"
+    }
+  },
+  "_meta": {
+    "runtimeId": "0e3d77f3-b0e7-4aa1-a21d-a960aa212104"
+  }
+}

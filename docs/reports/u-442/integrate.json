@@ -1,0 +1,109 @@
+{
+  "unit": "U-442",
+  "role": "integrator",
+  "run": "run_bec47e54b673",
+  "pr": {
+    "number": 485,
+    "url": "https://github.com/ravidsrk/orca-fleet/pull/485",
+    "base_ref": "review/2026-09-20-tracker-sweep",
+    "head_ref": "u-442",
+    "state": "OPEN",
+    "merged": false,
+    "base_assert": "PASS — gh pr view 485 --json baseRefName == review/2026-09-20-tracker-sweep"
+  },
+  "head_sha": "5a57c8d26da3e8cca0b3ca6ef89d763f2e448150",
+  "head_sha_note": "The merged head every gate below was run against, and the SHA Greptile reviewed. Committing this report adds one commit on top, so the PR head advances past it on push; the suite, validator, gitleaks and bot verdicts recorded here bind to 5a57c8d2, not to that later SHA.",
+  "merge": {
+    "base_tip_merged": "0f8cb8a24a7a1db742194d86f12703e79da0f55a",
+    "merge_base_before": "a58bf71a283928a8278e560163452ee70c7ad609",
+    "conflicts": 0,
+    "result": "clean — the branch and base touched disjoint file sets",
+    "commit": "5a57c8d26da3e8cca0b3ca6ef89d763f2e448150",
+    "author": "Ravindra Kumar <ravidsrk@gmail.com>",
+    "trailers": "none"
+  },
+  "suite": {
+    "command": "python3 -m unittest discover -s tests",
+    "status": "GREEN",
+    "summary": "Ran 1714 tests in 277.248s",
+    "result_line": "OK",
+    "exit": 0,
+    "note": "The FAIL: lines in the captured output are fixture output from the suite exercising verify.py's own failure paths, not suite failures; the run ends OK."
+  },
+  "validate": {
+    "command": "python3 scripts/validate.py",
+    "status": "GREEN",
+    "summary": "All 21 missions valid; three-layer separation holds; evals valid.",
+    "exit": 0
+  },
+  "gitleaks": {
+    "scope": "0f8cb8a24a7a1db742194d86f12703e79da0f55a..HEAD",
+    "commits_scanned": 3,
+    "findings": 0,
+    "result": "no leaks found"
+  },
+  "egress_receipts": [
+    {"sink": "git-push", "host": "github.com", "payload_class": "branch-commits", "consent": "run-2026-09-14-clean-sweep:base-writes", "receipt": "4a861020b3a7701f0d2eb2f3e06484110cd31a53b45d210285b79a1b01538022"},
+    {"sink": "pr-open", "host": "github.com", "payload_class": "pr-body", "consent": "run-2026-09-14-clean-sweep:tracker-writes", "receipt": "c1c94d3697f040082f0f51dd1047d375e91698e309e2b2fae61e3d9ac730359b"},
+    {"sink": "pr-open", "host": "github.com", "payload_class": "review-reply", "consent": "run-2026-09-14-clean-sweep:tracker-writes", "receipt": "7443fcf6161d7590efe13f73aabf323765ddd3d1ed365e0ee6b3ab52883dd8d5"},
+    {"sink": "pr-open", "host": "github.com", "payload_class": "review-reply", "consent": "run-2026-09-14-clean-sweep:tracker-writes", "receipt": "d927bac4ce369086f74d7d701df2debd89730ef1a48f02b4adbc4906abb33d9f"}
+  ],
+  "ci": {
+    "at_sha": "5a57c8d26da3e8cca0b3ca6ef89d763f2e448150",
+    "bind": "success",
+    "gates": "success",
+    "guard": "success",
+    "pinned-demo": "success",
+    "tests (1..4)": "success",
+    "vfbench": "success",
+    "verdict": "skipped",
+    "Greptile Review": "success"
+  },
+  "bot_state": {
+    "bot": "greptile-apps[bot]",
+    "state": "REVIEWED",
+    "waited_s": 163,
+    "poll_interval_s": 30,
+    "cap_s": 600,
+    "did_not_run_checkpoint": false,
+    "review_id": 5260035890,
+    "review_state": "COMMENTED",
+    "submitted_at": "2026-09-20T08:05:02Z",
+    "reviewed_sha": "5a57c8d26da3e8cca0b3ca6ef89d763f2e448150",
+    "comments_ingested": 2,
+    "valid": 2,
+    "false_positive": 0
+  },
+  "held": [
+    {
+      "id": 4056474414,
+      "verdict": "VALID",
+      "severity": "P1",
+      "label": "security",
+      "title": "Artifact pinning can be bypassed",
+      "path": "runtime/scripts/verify.py",
+      "line": 276,
+      "reason": "Confirmed in code. _read_artifact resolves the path under the evidence root via _resolve, then takes the tracked-at-head_sha branch through _git/_git_bytes, which carry -C _ROOTS['git'] — the SHA root. With the two roots split and the path present in both trees, the returned bytes are the SHA repo's blob and the evidence-root file's artifacts[] sha256 pin is never evaluated for that path.",
+      "corrections_to_the_report": [
+        "The bytes are not unpinned — they are pinned to an immutable commit, in the wrong repo. The defect is that the manifest's own declared pin for that path goes unchecked, so a manifest naming one digest can pass while the verifier reads different bytes.",
+        "Reachability is broader than a name collision: in a self-chain, where --git-dir names a second clone of the same repo, every evidence path collides by construction."
+      ],
+      "contradicts": "runtime/scripts/verify.py:2100-2102 — the --evidence-root help asserts 'Cross-repo evidence is never tracked at head_sha, so it passes only on its artifacts[] sha256 pin'. That stated invariant does not hold.",
+      "status": "HELD — not fixed; answered in thread https://github.com/ravidsrk/orca-fleet/pull/485#discussion_r4056476809"
+    },
+    {
+      "id": 4056474416,
+      "verdict": "VALID",
+      "severity": "P1",
+      "title": "Symbol check uses wrong repository",
+      "path": "runtime/scripts/verify.py",
+      "line": 1720,
+      "reason": "Confirmed in code. check_symbol_on_base calls _run(['git','grep','-l','-e',symbol,f'origin/{base}']) directly, bypassing the root-aware _git helper, so the grep runs in the process cwd regardless of --git-dir. The adjacent check_base_ancestry at :1711 resolves the same origin/<base> ref through _git. An audit of the remaining git call sites shows the others are deliberate: :199 is documented as intentionally cwd-bound so --git-dir cannot move the #267 evidence bound, :1390 and :1408 pass -C top from the root-aware _toplevel(), and :2043 is the root validator. :1720 is the only unexplained one.",
+      "narrowing": "The --git-dir help at :2087-2094 enumerates the legs it re-roots and the symbol grep is not among them, so this is arguably out-of-scope-by-documentation rather than a broken promise; it is still wrong for a chained run, since check 8 asks whether the change is real on base and base lives in the SHA repo. Impact is bounded by the check being best-effort, but it still emits a failure line.",
+      "status": "HELD — not fixed; answered in thread https://github.com/ravidsrk/orca-fleet/pull/485#discussion_r4056477169"
+    }
+  ],
+  "fixes_applied": 0,
+  "fixes_applied_note": "Integrator contract: the VALID set is held for a builder round. Nothing in runtime/ or tests/ was touched; the only commits this integrator authored are the base merge and this report.",
+  "next": "A builder round on the two held P1s, then re-review. Both land in runtime/scripts/verify.py, the unit's own file, and the first one weakens the #267 pinning guarantee the unit was explicitly told not to weaken (build-u442.md stop condition), so it should be graded against that spec before the PR merges."
+}

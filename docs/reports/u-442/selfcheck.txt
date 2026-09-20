@@ -1,0 +1,11 @@
+$ python3 runtime/scripts/verify.py --manifest docs/reports/u-442/manifest.json \
+    --contract-source "docs/runs/2026-09-20-clean-sweep-tracker/build-u442.md@a58bf71a283928a8278e560163452ee70c7ad609" \
+    --contract-digest sha256:7498d20d8e7f580f986d2abca320b925956808c6da08057a38240e7cff10471f \
+    --unit-class mutation --lighting lit
+
+FAIL: scope: no criterion ids in the authoritative contract
+FAIL: mutation unit: no pr.number to look up an independent review — unreviewed
+verify: 2 invariant(s) failed — unit is NOT done
+NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+NOTE: commands ledger FRESH — 3 exit-0 record(s) bound to head_sha's tree 9d5293f13e46. This is the worker's own runner, so the coordinator's clean-env re-run at head_sha still stands as the stronger authority (evidence-manifest.md §2)
+exit=2

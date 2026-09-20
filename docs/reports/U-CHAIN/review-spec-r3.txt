@@ -1,0 +1,292 @@
+U-CHAIN ROUND 3 FINAL — SPEC REVIEW
+Status: COMPLETE — GO on the assigned SPEC axis; one Optional residual (BOT-6).
+Requested reviewed SHA: d75b23b1; worktree HEAD observed: ca616c77.
+Axis: SPEC — G-1 freshness and preservation of #441/#443/#444 and both prior review corrections.
+Only this report may be written in the worktree; no commits or production-file edits.
+
+BLIND-FIX EXPECTATIONS
+Recorded UTC: 2026-09-20T09:26:02.703370+00:00
+Inputs read before expectations: dispatched task, ARCHITECTURE.md, review-it mission,
+code-review skill, frozen build-u-chain.md/build-u-chain-r2.md/build-u-chain-r3.md,
+round-1/2 spec reports, round-2 verdict, and round-3-answers.md (builder narration,
+not accepted as proof). No implementation file or diff opened before this record.
+
+G-1: An online resume must use evidence for the remote default ref refreshed immediately
+before its ancestry decision, not a stale local namesake. A failed/unverifiable refresh
+must leave promotion unproven and parked. The explicitly offline path must use a real
+local ref without relying on origin. Compare the normative contract to preflight.py;
+verify the sample fetch really populates the ref used by ancestry and SHA recording.
+Motivating frozen-r3 lines (verbatim):
+  "  default-resolution contract): for a REMOTE target the check first refreshes the default ref"
+  "  (fetch), and a ref whose freshness cannot be established makes the promotion UNPROVEN,"
+  "  never landed; the LOCAL (offline) branch stays explicitly local. Update the contract test"
+  "  to bind both sentences."
+
+G-2: Both committed mutation entrypoints must replay from an exact clean checkout with
+all intended cases; their baseline must be tracked or resolved from a pinned Git object.
+Motivating frozen-r3 lines (verbatim):
+  "  DERIVES the baseline itself (`git show <unit-base-sha>:runtime/mission-chaining.md`, the sha"
+  "  pinned in the file) or the fixture is tracked; a clean exact-checkout invocation must run"
+  "  all mutants."
+
+G-3: A valid kill requires a running covering test and assertion failure. Collection,
+import, or zero-test errors must never count as kills. Either failed positive control
+must make the harness unsuccessful. Determine whether interruption can leave an altered
+checkout, whether that invalidates emitted success evidence, and whether scope/usage
+makes BOT-6 a blocking defect or an explicitly justified residual.
+Motivating frozen-r3 lines (verbatim):
+  "  run is a KILL only when the output carries an ASSERTION failure (ImportError / collection"
+  "  error / no-tests-ran = STILLBORN, harness exits nonzero); both positive controls"
+  "  (fixed-head, head-restored) MUST be green or the harness exits nonzero."
+Motivating task text (verbatim):
+  "ONE new VALID P2 is held: BOT-6 'Interrupted runs skip restoration'"
+
+G-4: Preserve the human BASE-to-default boundary independently of normal unit-to-BASE
+integration. Both numbered resume alternatives must retain their own full conditions,
+including correct ancestry direction and subject, refreshed/offline ref choice, or a
+named human's explicit grant for the unpromoted BASE SHA. The test must bind those
+conditions individually, plus the exclusive sufficiency framing; all named survivors RED.
+Motivating frozen-r3 lines (verbatim):
+  "  obligation set (alternative 1: BASE tip + ancestor-of-DEFAULT + the ref rule incl. G-1's"
+  "  freshness; alternative 2: named human + explicit decision + unpromoted BASE tip + granted"
+  "  SHA written down), plus the "exactly one of two facts / nothing else is sufficient""
+
+G-5: The required per-chain handoff must include all carry and gate fields, preserve the
+OWED-input prohibition, and treat missing logs as unfinished. The historical proposal
+must remain unedited and its adoption explicit in the current policy. Named survivors RED.
+Motivating frozen-r3 lines (verbatim):
+  "  (carry id · from · content · input status incl. the OWED rule) and the gate record's"
+  "  (which gate · state · owning human · what resumes it) plus "a MISSING handoff log is an"
+  "  unfinished chain, never an empty one". Kill the three named survivors."
+
+G-6: Required local-only reconstruction must preserve every cited commit and ancestry,
+record a mirror's remote and refs, and hash every published artifact. Seed/diff is only
+supplemental. A second person must have enough published material to perform the proof.
+Motivating frozen-r3 lines (verbatim):
+  "- **G-6 reconstruction obligations bound (R2-TA-444).** Bind "reproduces every cited commit"
+  "  AND ITS ANCESTRY", the mirror's "remote and pushed refs written down", seed+diff as"
+  "  "SUPPLEMENTAL and never sufficient", and the integrity-inventory hash obligation. Kill the"
+
+Prior-round evidence corrections: retain runner-produced doc-revert RED/restored GREEN
+receipts and a GREEN full suite after BASE integration; do not infer success from prose.
+Scope: no unrelated policy/script/mission changes disguised as doctrine remediation.
+Motivating frozen-r3 lines (verbatim):
+  "- evidence: refreshed manifest — new head_sha, evidence-run.py receipts (contract test,"
+  "  validate, full suite exit 0, NC re-run), the reviewers' named survivors re-run RED with"
+  "  assertion failures, harness replay transcript; lighting=lit."
+
+END OF BLIND EXPECTATIONS. Results will be appended after inspection.
+
+FINAL REVIEW BINDING
+reviewed_sha / head_sha: d75b23b110c00579843886487ad80e9c0b607420
+reviewed_tree: a0c38bcb391014e695513de13519583cb380ce84
+Observed worktree HEAD: ca616c772aa77354bf27b8c3e5c1f0b510da54a3
+The sole successor adds docs/reports/U-CHAIN/integrate-r3.json (204 lines). I read that
+receipt as data; the policy, tests, harnesses and frozen spec are identical to d75b23b1.
+This verdict binds to the requested d75b23b1, not an unreviewed future head.
+Comparison ref: origin/review/2026-09-20-tracker-sweep
+Pinned comparison SHA: 7d522074688e5a0a6556518fbbfd3cf4ef5e241e
+Three-dot merge base: ed51fe11de5f7329ecf02ffb933bf50648ae5654
+Primary diff: git diff 7d522074688e5a0a6556518fbbfd3cf4ef5e241e...d75b23b1
+Remediation delta also inspected: git diff 0dbc669e..d75b23b1
+Frozen r3 spec SHA-256: 4b5415407cc65bece717fd0d0fa185dad3e39689e6eab6804fc8b122ad495caa
+Policy SHA-256: e5d01b8b838d015fb85061d5f827b965c29d1cd5abb273f85a2609d04891c774
+Contract-test file SHA-256: f52f561a221c827bc6668ebc04a4e16fbd688d77eb42276ee48b5af5bfd2de10
+
+VERDICT
+GO for SPEC: Critical 0, Required 0, Nit 0, Optional 1, FYI 0.
+G-1 through G-6 satisfy the frozen remediation obligations inspected on this axis.
+The prior promotion, handoff, and reconstruction doctrine corrections remain intact.
+BOT-4 and BOT-5 are closed. BOT-6 is VALID but acceptable-with-reason: an interrupted
+harness can leave a disposable checkout dirty, but the interrupted invocation does not
+emit success and the demonstrated retries fail closed. It is not a SPEC merge blocker.
+The six groups below map the ten round-2 axis entries without reranking other axes;
+this report is not the coordinator's aggregate verdict or permission to merge.
+
+CLOSURE MATRIX
+
+G-1 / SPEC-R2-1 / S-R2-1 / BOT-4 — CLOSED.
+Locations: runtime/mission-chaining.md:43-54; tests/test_architecture.py:679-701.
+Verbatim motivating frozen-spec lines 13-16:
+  default-resolution contract): for a REMOTE target the check first refreshes the default ref
+  (fetch), and a ref whose freshness cannot be established makes the promotion UNPROVEN,
+  never landed; the LOCAL (offline) branch stays explicitly local. Update the contract test
+  to bind both sentences.
+Verbatim implemented lines 45-50:
+     `origin/<default>` for a REMOTE target — REFRESHED immediately before the check
+     (`git fetch origin <default>`), with the resolved default SHA written down, on
+     preflight.py's own contract that an online default resolves through
+     `refs/remotes/origin/<branch>` and never a possibly stale local namesake; a `<default-ref>`
+     whose freshness cannot be established leaves the promotion UNPROVEN and the chain parked,
+     never landed — and a valid LOCAL ref, the local default branch, for an explicitly OFFLINE
+This agrees with preflight.py:21-24 (fetch before checking; remote-tracking default,
+explicit local/offline semantics) and its actual _default_branch_via_gh at :84-89,
+which returns refs/remotes/origin/<branch>. The policy requires a NEW observation at
+resume, so a fetch from leg N's preflight cannot discharge the obligation. It does not
+pretend preflight itself fetches. Lines 51-52 preserve the no-remote local-ref branch
+and pin the ancestry subject to the completed leg's own BASE tip. Both freshness
+sentences have distinct assertions and distinct RED mutants in the independent replay.
+
+Independent Git witness, all repositories disposable:
+  initial main = 10ebbb35cc06700548ed7b4ff9b1953fc39841c7
+  leg N BASE tip = c604ada17db05372d075ba5f545f6beba64e8089
+A separate human checkout promotes the leg and pushes main. The coordinator's stale
+origin/main gives ancestry exit 1. The exact documented `git fetch origin main` exits
+0 and updates refs/remotes/origin/main to the leg tip; ancestry now exits 0 while the
+coordinator's local refs/heads/main remains at the old commit. A subsequent unavailable
+remote yields fetch exit 128 even though the cached ancestry still returns 0: the new
+UNPROVEN clause requires a park in that case. This last outcome is a reading of the
+normative rule, not a claim that a new executable resume gate was added. In the
+no-remote fixture, local refs/heads/main passes ancestry while origin/main does not
+exist. Receipt: scratch/freshness/probe.json, absolute scratch root below.
+
+G-2 / S-R2-2 / BOT-5 — CLOSED.
+Locations: mutants_core.py:28-44; run_mutants-r2.py; run_mutants-r3.py.
+Verbatim motivating frozen-spec lines 20-22:
+  DERIVES the baseline itself (`git show <unit-base-sha>:runtime/mission-chaining.md`, the sha
+  pinned in the file) or the fixture is tracked; a clean exact-checkout invocation must run
+  all mutants.
+The shared core resolves ed51fe11:runtime/mission-chaining.md and checks SHA-256
+1bacd1fe7be765311b08abba787f45844b39658a8908096fbc853a09a4a26e72. A missing object
+or hash mismatch exits nonzero. Both entrypoints replayed at exact d75b23b1 in my clean
+`git clone --no-local`; no base-policy.md was present. Round 2: 13/13 assertion kills.
+Round 3: 28/28 assertion kills, 3 neutral GREEN cases, both controls GREEN, exit 0.
+
+G-3 / S-R2-3 / R2-HARNESS — CLOSED as the frozen success contract.
+Locations: mutants_core.py:68-82, :107-109, :124-147.
+Verbatim motivating frozen-spec lines 25-27:
+  run is a KILL only when the output carries an ASSERTION failure (ImportError / collection
+  error / no-tests-ran = STILLBORN, harness exits nonzero); both positive controls
+  (fixed-head, head-restored) MUST be green or the harness exits nonzero.
+classify() requires AssertionError and unittest's failure summary for RED; it rejects
+zero-test output and nonzero error exits without an assertion failure as STILLBORN.
+main() accumulates failed controls, stillborn runs, surviving mutants, and false REDs
+before permitting exit 0. The committed harness-trust-probes-r3.txt records the two
+prior exploit probes failing; its published hash verifies. My ordinary clean replay
+confirms both complete batteries run with no stillborn cases or failed controls.
+I did not repeat those two test-module patch probes; the independently inspected
+interruption probes below exercise a separate residual. BOT-6 does not reopen the
+original false-success paths.
+
+G-4 / R2-TA-441 — CLOSED on the frozen requirements.
+Locations: tests/test_architecture.py:653-723; runtime/mission-chaining.md:29-55.
+Verbatim motivating frozen-spec lines 29-32:
+  alternative loses its condition: bind, within EACH numbered alternative, its full
+  obligation set (alternative 1: BASE tip + ancestor-of-DEFAULT + the ref rule incl. G-1's
+  freshness; alternative 2: named human + explicit decision + unpromoted BASE tip + granted
+  SHA written down), plus the "exactly one of two facts / nothing else is sufficient"
+The test extracts each numbered alternative from the park bullet. Alternative 1 binds
+the proper subject/direction, ancestry command, freshness, and valid offline ref;
+alternative 2 binds the named human, explicit grant, UNPROMOTED fork and written SHA.
+The two exclusive sufficient facts and mandatory human pacing remain asserted.
+All six named survivors independently went RED: own-promoted-ancestry-inverted,
+own-promoted-wrong-commit, own-grant-no-sha, own-grant-no-unpromoted-fork,
+own-grant-promoted-only, own-offline-nonexistent-ref. Their AssertionError messages
+identify the expected obligation, not a loader or import failure.
+
+G-5 / R2-TA-443 — CLOSED on the frozen requirements.
+Locations: runtime/mission-chaining.md:59-72; tests/test_architecture.py:725-753.
+Verbatim motivating frozen-spec lines 35-37:
+  (carry id · from · content · input status incl. the OWED rule) and the gate record's
+  (which gate · state · owning human · what resumes it) plus "a MISSING handoff log is an
+  unfinished chain, never an empty one". Kill the three named survivors.
+The policy specifies the per-chain artifact, all carry/gate fields, OWED until triage,
+and missing-versus-empty semantics; each of those demanded binds appears in the test.
+My replay kills own-carry-source-content-removed, own-gate-identity-state-removed,
+and own-missing-handoff-empty with assertion failures.
+
+G-6 / R2-TA-444 — CLOSED on the frozen requirements.
+Locations: runtime/mission-chaining.md:73-86; tests/test_architecture.py:755-784.
+Verbatim motivating frozen-spec lines 38-40:
+- **G-6 reconstruction obligations bound (R2-TA-444).** Bind "reproduces every cited commit
+  AND ITS ANCESTRY", the mirror's "remote and pushed refs written down", seed+diff as
+  "SUPPLEMENTAL and never sufficient", and the integrity-inventory hash obligation. Kill the
+All four obligations remain normative and are asserted inside the local-only bullet.
+My replay kills own-reconstruct-ancestry-removed, own-mirror-ref-fields-removed,
+and own-artifact-hash-removed with assertion failures. The original publication and
+seed/diff-sufficiency reversal cases also remain RED.
+
+PRESERVATION OF PRIOR-ROUND DOCTRINE
+#441/F-1: lines 29-41 still distinguish agent unit-to-BASE integration from human
+BASE-to-default promotion and type PARKED-AT-PROMOTION as a chain state. No-gh can
+integrate units and still owes promotion. This matches gate-classification.md:105-106
+and merge-serialization.md:89-101. The resumed leg forks the proper promoted default
+or the specifically granted unpromoted BASE; the human gate is not bypassed.
+#443/F-5: lines 70-72 explicitly adopt the old handoff proposal as present doctrine:
+  predates this clause; it is ADOPTED here, so the shape above is doctrine and not a proposal.
+#444/F-2: lines 80-86 still require commit-preserving history; seed/diff is supplemental.
+The historical handoff-log.md and leg1/RESTORE.md have no changes in the remediation
+delta. Other runtime policies, runtime scripts and mission files are untouched.
+The changed policy is 94 lines, within the 160-line cap.
+
+OPEN NON-BLOCKING FINDING
+
+BOT-6 — Optional — Restore the policy when a mutant run raises/interruption occurs.
+VALID; acceptable-with-reason for this merge on SPEC. Bot priority remains P2;
+Optional is this review's severity, not a rewrite of the bot's original classification.
+Location: docs/reports/U-CHAIN/mutants_core.py:114-116.
+Verbatim motivating implementation lines:
+        POLICY.write_text(fn(orig))
+        p = _run_test()
+        POLICY.write_text(orig)
+Verbatim G-3 success obligation, frozen spec:26-27:
+  error / no-tests-ran = STILLBORN, harness exits nonzero); both positive controls
+  (fixed-head, head-restored) MUST be green or the harness exits nonzero.
+Verbatim supported-use boundary, run_mutants-r3.py:13-14:
+Run from the repository root, in a DISPOSABLE checkout — it rewrites
+runtime/mission-chaining.md between cases and restores it after each.
+
+Why valid: no try/finally encloses the overwrite and subprocess. KeyboardInterrupt or
+OSError from _run_test leaves the active mutant in the checkout, and the next main()
+reads those bytes as orig. The branch's own entrypoint and README explicitly require
+a disposable checkout, so the intended damage boundary is a throwaway clone.
+
+Why Optional rather than Required: the interrupted invocation cannot reach HARNESS OK
+or exit 0. An independent read-only analyst injected KeyboardInterrupt and OSError
+at _run_test after the first RED mutant write in a clone pinned to d75b23b1. Both left
+the policy dirty; both subsequent normal replays exited 1 with fixed-head RED and no
+HARNESS OK. A neutral freshness-reflow interruption left the first retry control GREEN,
+but a mutation selector then raised AssertionError and the retry still exited 1 without
+HARNESS OK. I inspected the probe source and its receipt; its clone was restored clean.
+These observations do not establish exception-safe cleanup; they establish that the
+specific residual does not fabricate successful evidence or negate G-3's repaired gate.
+A try/finally would be a useful small follow-up for catchable exceptions; it is not
+required to satisfy the frozen G-1..G-6 obligations in the documented clone-only use.
+Do not reuse an interrupted dirty clone as evidence without restoring/recreating it.
+The integrator's phrase that neutral leftovers "would report as SURVIVORS" is not the
+observed mechanism: the selector raises instead. Both mechanisms are nonzero, but this
+report relies on the observed selector exception, not that narration.
+Witness source and receipt:
+  /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-bot6-spec-6kwlaynw/probe.py
+  /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-bot6-spec-6kwlaynw/receipt.json
+
+VERIFICATION AND LIMITS
+Scratch root:
+  /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-spec-r3-hdb30eqt
+Exact-SHA clean clone: scratch/checkout (git clone --no-local, detached d75b23b1).
+- python3 -B -m unittest tests.test_architecture -q: exit 0, 59 tests, 6.962s.
+- python3 -B scripts/validate.py: exit 0, all 21 missions valid.
+- python3 -B docs/reports/U-CHAIN/run_mutants-r2.py: exit 0, 13 expected RED.
+- python3 -B docs/reports/U-CHAIN/run_mutants-r3.py: exit 0, 28 expected RED,
+  3 expected GREEN; controls GREEN, no survivors/false REDs/stillborn cases.
+- Scratch git status was clean after the sequential runs. checks.json records argv,
+  exits and artifact paths; architecture.txt, validator.txt, mutants-r2.txt and
+  mutants-r3.txt contain the complete output. freshness/probe.json holds the Git witness.
+- All 38 published artifact hashes in manifest.json independently rehash correctly.
+  The r3 doc-revert RED and positive-control GREEN runner records are present; AC-3
+  is addressed, with a suite exit-0 receipt. No full-suite rerun on this SPEC axis.
+- Provenance nuance: the manifest receipts name pre-rewrite implementation 5bd2eb07,
+  whose tree 7cc61306 is IDENTICAL to on-branch 1635b27f. Its recorded BASE 9ae38a79
+  likewise has tree ffc8db4f identical to on-branch 6494155a. Neither old SHA is an
+  ancestor of d75b23b1 after the metadata-only rewrite; I do not claim otherwise.
+  The integrator's supplemental report claims a 1707-test pass at d75b23b1. Exact-head
+  full-suite acceptance and any manifest reconciliation remain the coordinator/evidence
+  review's responsibility; this SPEC verdict is independently pinned to d75b23b1.
+- Only docs/reports/U-CHAIN/review-spec-r3.txt was written in the shared worktree,
+  left uncommitted. No code, policy, index, branch, historical artifact, PR or remote
+  was changed by this reviewer. All mutation replays and fixtures ran in scratch.
+
+Remaining on this axis: no Required fix; BOT-6 cleanup may be scheduled separately.
+Other review axes, aggregate verdict, unanswered PR threads, and merge remain with
+the coordinator. The author/integrator's approval claims are not a substitute for them.
+Completed UTC: 2026-09-20T09:29:58.685820+00:00

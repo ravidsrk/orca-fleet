@@ -1,0 +1,19 @@
+{
+  "id": "b9ca722f-aaf4-4af0-b5d4-7b704453a6e7",
+  "ok": true,
+  "result": {
+    "terminal": {
+      "handle": "term_72f05e14-ed54-4e7a-915d-af46b3744ca7",
+      "tabId": "52985013-5000-469f-9a08-05e132ab93d2",
+      "worktreeId": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/u-442",
+      "title": "U-442 r3 fix",
+      "executionHostId": "local",
+      "incarnationId": "31539c2e-8718-411a-9635-459e8b8d9cbe",
+      "hostPlatform": "darwin",
+      "surface": "visible"
+    }
+  },
+  "_meta": {
+    "runtimeId": "0e3d77f3-b0e7-4aa1-a21d-a960aa212104"
+  }
+}

@@ -1,0 +1,1248 @@
+U-CHAIN ROUND 2 — TEST-ADEQUACY REVIEW
+Task: task_e842d3e68c58 / dispatch ctx_f63d3ad1c14a
+BLIND-FIX EXPECTATION — BEFORE OPENING ROUND-2 DIFF
+Timestamp: 2026-09-20T08:32:09.382056+00:00
+Inputs: ARCHITECTURE.md, frozen build-u-chain-r2.md, round-1 spec/standards/tests reports,
+review-it / acceptance-review / mutation-hunt protocols. No r2 implementation, diff,
+mutant runner, or test assertions read before this note was written.
+
+Expected fixes (my independent prediction):
+F-1: mission-chaining.md must distinguish ordinary unit→BASE integration from human
+BASE→DEFAULT promotion. Park resumes only on actual promoted integration-tip ancestry
+in the proper default ref (local ref for offline targets), or recorded human grant to
+carry a named unpromoted BASE SHA. Restricted lanes cannot promote, but can integrate.
+The test should reject wrong-boundary, missing-ancestry, and missing-grant rewrites.
+F-2: reconstruction must preserve every cited commit and ancestry, through a complete
+bundle or reachable mirror/equivalent; seed sources plus diff alone must not satisfy it.
+A mutant making a mere SHA list or seed-plus-diff sufficient must fail the contract test.
+F-3: test_architecture.py should assert obligations, not token co-occurrence: every-boundary
+pacing, mandatory exclusive resume facts with their actual conditions, required carry/gate
+sections and schema, mandatory publication of commit-preserving reconstruction sources.
+All six r1 surviving mutants plus the two spec-review reversals must now fail with an
+assertion. Neutral soft wrapping should pass after bullet whitespace normalization.
+Fresh narrow reversals must also fail; wholesale deletion alone is inadequate coverage.
+F-4: negative-control and clean-control commands should have evidence-run.py receipts,
+actual exits/fingerprints, and manifest entries; doc-only revert must independently fail.
+F-5: policy citation must explicitly adopt the historical proposed exemplar; the historical
+artifact should remain unchanged. A reversal to mere example/proposal must be detectable
+where a new assertion is claimed, without asserting that text changes prove field use.
+F-6: green BASE ancestry merged, complete suite independently exits zero at pinned head;
+manifest claims must match receipts. Exact SHA and source/test hashes matter.
+
+BOT-5 preliminary expectation (before reading held finding/runner): the committed
+mutation harness should use an isolated scratch checkout, execute the actual covering test
+for each distinct effective mutant, preserve/restore the checkout, reject unapplied edits,
+and return nonzero for any unexpected survivor or invalid baseline. A printed 13/13 claim
+must re-derive from executions, never from counting attempted replacements or narration.
+BOT-4 preliminary expectation: remote ancestry evidence must describe authoritative current
+default state; a stale origin/<default> ref is not sufficient evidence of the current remote.
+
+Confidence: high on required semantics, medium on exact prose/regex and receipt arrangement.
+Authorized writes: only this uncommitted report in original worktree; mutation in scratch clones.
+Binding pending: requested head 0dbc669e5df80934a36a24d120a680b038f9791d; observed HEAD
+302d43e9e028f93d0698bccaa93f308f1fdbdb63, whose title says integration receipt.
+
+FINAL TEST-ADEQUACY REVIEW
+Verdict: NO-GO. Six Required findings: R2-TA-441, R2-TA-443, R2-TA-444,
+BOT-4, BOT-5, R2-HARNESS. Critical 0; Nit 0; Optional 0; FYI 0.
+This is a successfully completed review returning NO-GO, not a failed review execution.
+
+BINDING
+reviewed_sha = head_sha = 0dbc669e5df80934a36a24d120a680b038f9791d.
+Observed checkout HEAD 302d43e9e028f93d0698bccaa93f308f1fdbdb63 adds only
+integrate-r2.json (144 lines) beyond requested reviewed_sha. Reviewed source/test/runner
+blobs are unchanged by that successor; the verdict stays bound to requested SHA.
+Fixed-point ref: origin/review/2026-09-20-tracker-sweep.
+Observed fixed-point SHA: 5df4c0d8767d007e5f7c947a9fe955b0f83a7a34.
+Actual three-dot merge base: ed51fe11de5f7329ecf02ffb933bf50648ae5654.
+Old unit base for doc-revert control: a58bf71a283928a8278e560163452ee70c7ad609.
+Relevant implementation delta inspected: 1066c028..88a64c90, then evidence at 0dbc669e.
+
+EXECUTIVE BRIEF
+All six round-one requirement-reversing mutants now fail with real AssertionErrors;
+the two SPEC-2 mutants also fail. The recorded 13/13 is reproducible after recovering
+the missing base-policy fixture. However, twelve narrower independently written
+mutants survive the unchanged covering test: resume evidence can have the wrong
+ancestry or no granted SHA, carry data can lose required fields, and reconstruction
+can lose ancestry/ref/integrity requirements. F-3 is therefore only partially closed.
+BOT-5 is valid: the committed harness cannot run from a clean checkout. Its classifier
+also falsely accepts mutant import errors and failing controls, demonstrated separately.
+BOT-4 is valid: a forced human promotion leaves the cached origin/main stale and the
+resume check returns 1 until fetch; the missing freshness rule strands a valid resume.
+The policy corrections, runner receipts, and broad regression tests are real progress;
+they do not establish closure of every Required or absence of new defects.
+
+ROUND-ONE CLOSURE MATRIX (this axis; no cross-axis reranking)
+F-1: original unit→BASE / BASE→DEFAULT confusion and no-remote naming are corrected
+in policy. Their test binding is incomplete (R2-TA-441); BOT-4 is an additional defect
+in the rewritten clause, not a claim that the original endpoint wording remains.
+F-2: commit-preserving reconstruction and supplemental-only seed+diff are corrected
+in policy. The old SHA-list mutant dies; narrower proof losses survive (R2-TA-444).
+F-3: PARTIAL / NOT CLOSED. Six former survivors + two SPEC-2 reversals now die;
+soft reflow passes. Required condition/schema assertions still have the holes below.
+F-4: CLOSED on evidence checked: actual runner records, hashes, clean/reverted tree
+fingerprints, plus independently rerun doc-only control (details below).
+F-5: CLOSED by direct re-read: explicit adoption appears at policy lines 66-67;
+historical exemplar unchanged. Manifest explicitly says no machine assertion for F-5;
+this review does not invent a new assertion requirement for that editorial correction.
+F-6: CLOSED. Original evidence and ancestry verified; independent complete suite at
+requested reviewed SHA passes all 1707 tests (exact result below).
+
+R2-TA-441 — Required — resume assertions still permit reversed or missing conditions
+Locations: tests/test_architecture.py:658-665; runtime/mission-chaining.md:43-49.
+Verbatim motivating test lines:
+        must(park, r"(?i)ancestor of the DEFAULT branch",
+        must(park, r"(?i)named human.s explicit decision",
+Verbatim motivating requirement (frozen r2 spec):
+  assertions must fail on (a) removal of the publication requirement, (b) removal of either
+  resume alternative's condition, (c) the "no procedure defined" mutant the reviewers quoted;
+Verbatim policy obligation:
+  1. a **landed promotion SHA** — leg N's integration BASE tip is an ancestor of the DEFAULT
+     that leg N+1 may fork leg N's UNPROMOTED BASE tip, with the granted SHA written down.
+Six executed survivors (each exit 0, Ran 1 test, OK): invert 'is an ancestor' to
+'is not an ancestor'; substitute the repository seed commit for the completed BASE
+tip; remove the granted SHA; replace the entire fork/SHA condition with unconditional
+resume; change UNPROMOTED to PROMOTED; replace the valid offline-local reference
+with origin/<default> for offline targets. Exact independent patches/output follow.
+These are narrow regressions of the actual fixed requirements; the matched nouns
+remain while their relationship or condition disappears. The first two mutants
+retain the correct parenthetical Git command: they demonstrate contradictory or
+incorrect normative prose passing, not an executed ancestry-command inversion. They also turn the held
+BOT-3 residual about granted SHA / UNPROMOTED into executed evidence.
+Required follow-up: bind the actual subject/relationship, offline ref, and recorded
+unpromoted BASE-tip grant (including its SHA); kill these concrete mutants. This
+asks for targeted assertions, not a general natural-language semantic parser.
+
+R2-TA-443 — Required — required carry schema and missing-log semantics remain unbound
+Locations: tests/test_architecture.py:687-691; runtime/mission-chaining.md:58-65.
+Verbatim motivating test lines:
+        for field in (r"carry id", r"input status"):
+        must(carry, r"(?i)the human who owns it, and what resumes it",
+Verbatim policy obligations:
+     · `from` (leg number + source class: parked / backlog / noticed-not-touched) · `content` (the
+  2. a **gate record**, one entry per inter-mission gate — which gate, its state, the human who
+  MISSING handoff log is an unfinished chain, never an empty one. Worked exemplar:
+Three executed survivors (each exit 0 / OK): remove the from/content/pinned-source
+fields while retaining carry id/input status; remove gate identity/state while
+retaining owner/resume; declare that a missing log is empty and counts as finished.
+F-3's whole-schema deletion mutant now dies on 'two sections, both required', before
+it can demonstrate that essential individual fields are protected. The smaller
+mutants show that r1 TA-443 is only partially addressed, and corroborate BOT-3's
+missing-handoff residual. Pin the omitted fields and missing-vs-empty obligation.
+
+R2-TA-444 — Required — reconstruction evidence can lose history and retrieval/integrity data
+Locations: tests/test_architecture.py:705-711; runtime/mission-chaining.md:73-80.
+Verbatim motivating test lines:
+        must(local, r"(?i)reproduces every cited commit",
+        must(local, r"(?i)SUPPLEMENTAL and never sufficient on their own",
+Verbatim policy obligations:
+  reachable **pushed mirror** of the target (the remote and the pushed refs written down), or
+  demonstrably reproduces every cited commit and its ancestry. Seed sources plus the leg's full
+  artifact is hashed into the run-close integrity inventory (evidence-manifest.md), so a later
+Three executed survivors (each exit 0 / OK): remove 'and its ancestry'; remove the
+written mirror remote/pushed refs; replace the artifact hash obligation with
+'Published artifacts need not be hashed into the run-close integrity inventory.'
+The first weakens the equivalent-artifact alternative by removing its explicit
+history requirement; a self-contained bundle still preserves history. The second
+removes explicit locator/ref fields (not proof that retrieval is always impossible),
+and the third removes the required integrity binding of published artifact bytes.
+The SHA-list reversal now dies, but these narrower losses leave the test green.
+Required follow-up: pin the history, retrieval coordinates, and published-byte
+integrity conditions alongside commit reproduction; demonstrate these mutants RED.
+
+BOT-4 — Required — VALID, resume ancestry uses a potentially stale origin default
+Location: runtime/mission-chaining.md:44-46.
+Verbatim motivating lines:
+     branch (`git merge-base --is-ancestor <base-tip> <default-ref>`, where `<default-ref>` is
+     `origin/<default>` for a remote target and a valid LOCAL ref — the local default branch —
+No fetch/freshness condition appears in this policy. Each leg's preflight does not
+synchronize this check after an external human promotes while the chain is parked.
+Independent deterministic Git schedule, all local scratch repos and no sleeps:
+(1) coordinator clones seed default; (2) coordinator creates/pushes leg integration
+BASE; (3) separate human checkout fast-forwards main to that BASE and pushes;
+(4) coordinator runs the documented ancestry check against cached origin/main;
+(5) fetch exact main into refs/remotes/origin/main and rerun the identical check.
+Actual output:
+  base_tip/current_remote_default = f163c3f2aabe71bfcc1742f506e7174046f2b24f
+  coordinator_stale_origin_main = e96ce76c71acb236a64477edae94451f2dbbf418
+  git merge-base --is-ancestor <base_tip> origin/main before fetch: exit 1
+  same command after fetch: exit 0
+This corroborates the reported false-negative / stranded-resume case. It does not
+claim all stale-ref scenarios are exclusively fail-safe; the demo covers a normal
+fast-forward promotion, not remote history replacement. Refresh authoritative remote
+default state at resume, require refresh success, and test the forced schedule.
+Scratch demo replay script and complete git commands are archived in the appendix.
+
+BOT-5 — Required — VALID, committed mutant runner requires an unpublished fixture
+Location: docs/reports/U-CHAIN/run_mutants-r2.py:6.
+Verbatim motivating line:
+BASE = Path("base-policy.md").read_text()
+Clean exact-checkout invocation `python3 docs/reports/U-CHAIN/run_mutants-r2.py`:
+  FileNotFoundError: [Errno 2] No such file or directory: 'base-policy.md'
+  HARNESS_EXIT=1
+Zero mutants execute. The fixture is neither tracked nor created by the runner.
+Recovering it manually from `git show a58bf71a:runtime/mission-chaining.md` allows
+the exact unchanged runner to reproduce the claimed result. Thus the transcript
+is corroborated, but the delivered reproduction is incomplete. Make its baseline
+self-contained or explicitly derived from a pinned Git object; verify clean-clone use.
+Fixture SHA256: 1bacd1fe7be765311b08abba787f45844b39658a8908096fbc853a09a4a26e72.
+These bytes also equal ed51fe11:runtime/mission-chaining.md.
+
+R2-HARNESS — Required — mutation errors and failed controls are accepted as success
+Location: docs/reports/U-CHAIN/run_mutants-r2.py:101,109,115.
+Verbatim motivating lines:
+    verdict = "KILLED (RED)" if p.returncode != 0 else "SURVIVOR (GREEN)"
+print(f"fixed-head: exit={p.returncode}; {'GREEN' if p.returncode==0 else 'RED'} — unmutated head")
+sys.exit(1 if surv else 0)
+In isolated scratch copies, the unchanged runner accepts two invalid proofs:
+A. Conditional test-module ImportError only for mutated policy bytes: both controls
+are GREEN, but zero mutant contract assertions execute. Harness nevertheless emits:
+  fixed-head: exit=0; GREEN — unmutated head
+  13 mutants run; 13 KILLED, 0 SURVIVORS: none
+  head-restored: exit=0
+  HARNESS_EXIT=0
+Direct execution of one such mutant proves the actual failure class:
+  test_architecture (unittest.loader._FailedTest.test_architecture) ... ERROR
+  ImportError: reviewer deliberate error only on mutated policies
+  Ran 1 test in 0.000s
+  FAILED (errors=1)
+  TEST_EXIT=1
+B. Deliberately fail the contract test only at original policy hash, leaving real
+mutant assertion failures unchanged. Harness emits:
+  fixed-head: exit=1; RED — unmutated head
+  13 mutants run; 13 KILLED, 0 SURVIVORS: none
+  head-restored: exit=1
+  HARNESS_EXIT=0
+Direct control output: AssertionError: reviewer deliberate RED positive control;
+FAILED (failures=1), TEST_EXIT=1.
+Consequently successful process exit is not a sound 'all mutants killed' oracle.
+Require successful controls and actual covering-test assertion failures (never
+loader/runtime errors). This finding concerns
+runner soundness, not a claim that the actual historical 13/13 run used import errors.
+
+EXECUTION METHOD / VACUITY
+Every own mutation starts from the same pinned original policy, not the previous mutant.
+The harness asserts each replacement matches exactly once and changes the bytes.
+Only runtime/mission-chaining.md is mutated for the contract probes; the real unchanged
+test runs using:
+  python3 -B tests/test_architecture.py TestArchitecture.test_chain_link_boundary_is_specified -v
+Every mutation written was executed. Six r1 cases fail with AssertionError, twelve
+new semantic cases survive, two neutral soft wraps pass, and moving the park bullet
+to a CommonMark asterisk fails closed with a missing-selector AssertionError.
+Baseline and restored controls pass. No force schedule relies on timing/sleep.
+No empty-selector false-green was found; the defect is incomplete semantic binding.
+All policy/test scratch files are restored; no repair was made to the candidate.
+
+F4 / F6 RECEIPT AUDIT (independent scratch worker, same reviewed SHA)
+All nine submitted artifact hashes and all five command hashes match their bytes.
+Manifest implementation head = 88a64c902ea1cd2ab0e3040781f918bb8daaefc6, explicitly
+preceding the evidence-only commit. Its four clean receipt trees equal
+88a64c90^{tree} = a32a64720e5afe65f0626ca1a17aa555d962425b.
+Independent private-index reconstruction of only the reverted doc produces
+ad36992ac9322618ffc691d07178a912f58ee224, matching the submitted NC fingerprint.
+Green BASE ed51fe11, STAB-2 2f04c402239399111307e7ae9cbbf840c781bab3, and merge
+1066c028 are ancestors of requested reviewed SHA (all ancestry checks exit 0).
+Independent validator at requested reviewed SHA exits 0.
+Independent evidence-run.py NC at reviewed SHA: doc reverted only, test retained,
+exit 1 with AssertionError for missing park bullet; wtree
+c336eb95b99003e89eb7f8fe5fce9772c3426505. Restored doc control exit 0, Ran 1 test,
+OK; wtree a980ddc152022e7d9034e3eb088fa60957ae6d12 == reviewed_sha^{tree}.
+The distinct NC tree vs the older receipt is expected: reviewed SHA includes the
+subsequent evidence files, while the submitted receipt predates them.
+Independent full-suite command: python3 -m unittest discover -s tests
+At requested reviewed SHA, actual output:
+  Ran 1707 tests in 405.686s
+  OK
+Exit 0. Python 3.14.7. Sequential validator before suite exits 0:
+  All 21 missions valid; three-layer separation holds; evals valid.
+Git status --porcelain is empty afterward and HEAD remains requested reviewed SHA.
+Both suite and NC scratch checkouts removed after validation; logs/receipts retained.
+Thus F-6 is closed; green full-suite context does not negate the executed survivors.
+
+BOUNDARIES / REMAINING
+This worker wrote only docs/reports/U-CHAIN/review-tests-r2.txt in the shared worktree,
+left uncommitted. Existing concurrent review-spec-r2.txt and review-standards-r2.txt
+were neither read nor changed. No commit, staging, push, merge, fix, PR comment,
+or outward review was performed. Mutations/tests ran only in independent scratch
+clones. The coordinator owns the fix batch, re-review, and SHA freshness after edits.
+
+SOURCE HASHES (SHA256 and Git blob at reviewed SHA)
+{
+  "runtime/mission-chaining.md": {
+    "sha256": "aaabf9708a4538866d379c84d0b56876016ba4174aeb6f50cdf2da6cf4a3b675",
+    "blob": "0f1206a8986069a19ee4e1aa3e747d6780aa9a35"
+  },
+  "tests/test_architecture.py": {
+    "sha256": "81bcb1081fe85e9debbd5e867ba4d70aec4a4386135307b59576a0652c849035",
+    "blob": "0149abf89dcecfaf1ee1323f3a6a08cef54ac56e"
+  },
+  "docs/reports/U-CHAIN/run_mutants-r2.py": {
+    "sha256": "3f7f008926b1a48b4f0c1b4ab397e70ced1767574d469999a05cf6994b157e62",
+    "blob": "a7684c27852b8f1ef073406e6a4ae3c55f3b887c"
+  }
+}
+
+EXACT COMMITTED 13-MUTANT HARNESS REPLAY AFTER FIXTURE RECOVERY
+== POSITIVE CONTROL ==
+fixed-head: exit=0; GREEN — unmutated head
+
+== MUTANTS ==
+base-policy: exit=1; KILLED (RED) — revert every doc addition, keep head test
+    AssertionError: [] is not true : mission-chaining.md: no single bullet states the promotion-owed park with its resume procedure (needs all of: PARKED-AT-PROMOTION, landed promotion SHA, BASE-carry grant)
+drop-pacing: exit=1; KILLED (RED) — delete only the human-pacing bullet
+    AssertionError: [] is not true : mission-chaining.md: no single bullet states that chains are human-paced at every link boundary (needs all of: human-paced at every link boundary, link boundary)
+drop-park: exit=1; KILLED (RED) — delete only the named park / resume bullet
+    AssertionError: [] is not true : mission-chaining.md: no single bullet states the promotion-owed park with its resume procedure (needs all of: PARKED-AT-PROMOTION, landed promotion SHA, BASE-carry grant)
+drop-carry: exit=1; KILLED (RED) — delete only the handoff-shape bullet
+    AssertionError: [] is not true : mission-chaining.md: no single bullet states a named artifact shape for the deferral carry (needs all of: handoff log, carry table, gate record)
+drop-local: exit=1; KILLED (RED) — delete only the local reconstruction bullet
+    AssertionError: [] is not true : mission-chaining.md: no single bullet states the local-only re-derivability rule (needs all of: no remote, pushed mirror, reconstruction artifacts)
+pacing-first-boundary-only: exit=1; KILLED (RED) — weaken every-link human pacing to the first boundary only
+    AssertionError: [] is not true : mission-chaining.md: no single bullet states that chains are human-paced at every link boundary (needs all of: human-paced at every link boundary, link boundary)
+park-no-resume-precondition: exit=1; KILLED (RED) — retain named terminal and fact vocabulary, remove the mandatory resume procedure
+    AssertionError: Regex didn't match: '(?i)resuming the park REQUIRES exactly one of two facts' not found in '- **The wait has a name: `PARKED-AT-PROMOTION`.** It is a CHAIN state. A **landed promotion SHA** or **BASE-carry grant** may be logged for convenience; neither is a precondition for resuming the parked chain.' : mission-chaining.md: the park's resume rule must be a precondition, not a convenience log
+park-no-procedure-defined: exit=1; KILLED (RED) — SPEC-2 mutant: reserve both resume terms, define no resume procedure
+    AssertionError: Regex didn't match: '(?i)resuming the park REQUIRES exactly one of two facts' not found in '- **The wait has a name: `PARKED-AT-PROMOTION`.** It is a CHAIN state, recorded in the ledger header beside the link it stopped at. The terms **landed promotion SHA** and **BASE-carry grant** are reserved; no procedure for resuming the park is defined.' : mission-chaining.md: the park's resume rule must be a precondition, not a convenience log
+carry-sections-optional: exit=1; KILLED (RED) — make the two carry sections optional without changing their vocabulary or fields
+    AssertionError: Regex didn't match: '(?i)two sections, both required' not found in "- **The carry has ONE shape: the handoff log.** One Markdown file per chain, `handoff-log`, written beside the chain report and named in the ledger header so a consumer finds it without reading the run. Two optional examples (consumers may omit both): 1. a **carry table**, one row per carried item — `carry id` (stable, chain-scoped: `H1`, `H2`, …) · `from` (leg number + source class: parked / backlog / noticed-not-touched) · `content` (the item, pinned to file:line at that leg's cited SHA) · `input status` for the consuming leg (`OWED` until leg N+1 triages it; then its finding id and triage verdict). 2. a **gate record**, one entry per inter-mission gate — which gate, its state, the human who owns it, and what resumes it (for a promotion park, the two facts above). Nothing deferred is written as an explicit empty carry plus the re-read that established it: a MISSING handoff log is an unfinished chain, never an empty one. Worked exemplar: docs/reports/chaining-2026-09-16/handoff-log.md — written as that run's PROPOSED shape, which predates this clause; it is ADOPTED here, so the shape above is doctrine and not a proposal." : mission-chaining.md: both carry sections must be REQUIRED — optional sections are no shape at all
+carry-schema-deleted: exit=1; KILLED (RED) — retain per-chain artifact and section names but remove every field declaration
+    AssertionError: Regex didn't match: '(?i)two sections, both required' not found in '- **The carry has ONE shape: the handoff log.** One Markdown file per chain, `handoff-log`. Its two sections are a **carry table** and a **gate record**; their contents are unspecified.' : mission-chaining.md: both carry sections must be REQUIRED — optional sections are no shape at all
+local-artifacts-optional: exit=1; KILLED (RED) — replace the local reconstruction requirement with explicitly optional artifacts
+    AssertionError: Regex didn't match: '(?i)complete only once the chain publishes' not found in '- **Local-only targets may cite SHAs alone.** When a target has no remote, a **pushed mirror** or embedded **reconstruction artifacts** are optional conveniences; a leg is complete without either and need not publish reconstruction bytes.' : mission-chaining.md: publishing the bytes must be REQUIRED for completion, not an optional convenience
+local-seed-diff-optional: exit=1; KILLED (RED) — weaken the reconstruction payload while retaining the artifact label and mandatory publish
+    AssertionError: Regex didn't match: '(?i)git bundle' not found in '- **Local-only targets must ship their bytes.** "A second person can re-derive each leg\'s outcome from the cited SHAs" holds only where those SHAs resolve FOR THAT PERSON. When a leg\'s target has no remote — a scratch repo, a local fixture, an air-gapped checkout — SHA citation re-derives nothing and the chain report is unverifiable on its own terms. Such a leg is complete only once the chain publishes one of two things, named in the report, and is INCOMPLETE without one: a reachable **pushed mirror** of the target (the remote and the pushed refs written down), or embedded **reconstruction artifacts** committed beside the chain report — a list of commit SHAs is sufficient; source bytes are optional. Every published artifact is hashed into the run-close integrity inventory (evidence-manifest.md), so a later audit can tell the bytes have not moved.' : mission-chaining.md: the required reconstruction artifact must be commit-preserving (a git bundle or equivalent), not a SHA list
+local-publishes-neither: exit=1; KILLED (RED) — SPEC-2 mutant: reverse the publication requirement in place
+    AssertionError: Regex didn't match: '(?i)complete only once the chain publishes' not found in '- **Local-only targets must ship their bytes.** "A second person can re-derive each leg\'s outcome from the cited SHAs" holds only where those SHAs resolve FOR THAT PERSON. When a leg\'s target has no remote — a scratch repo, a local fixture, an air-gapped checkout — SHA citation re-derives nothing and the chain report is unverifiable on its own terms. Such a leg is complete even if the chain publishes neither of these optional things: a reachable **pushed mirror** of the target (the remote and the pushed refs written down), or embedded **reconstruction artifacts** committed beside the chain report that are COMMIT-PRESERVING — a self-contained `git bundle` of the leg\'s refs, or an equivalent that demonstrably reproduces every cited commit and its ancestry. Seed sources plus the leg\'s full diff recover file bytes only, never the commit objects, so they are SUPPLEMENTAL and never sufficient on their own — the exemplar\'s own docs/reports/chaining-2026-09-16/leg1/RESTORE.md draws exactly that line. Every published artifact is hashed into the run-close integrity inventory (evidence-manifest.md), so a later audit can tell the bytes have not moved.' : mission-chaining.md: publishing the bytes must be REQUIRED for completion, not an optional convenience
+
+13 mutants run; 13 KILLED, 0 SURVIVORS: none
+head-restored: exit=0
+
+HARNESS_EXIT=0
+
+INDEPENDENT PATCHES AND ACTUAL COVERING-TEST OUTPUT
+
+CASE head-before — exit 0; expected GREEN
+
+test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+OK
+
+CASE r1-pacing-first-boundary-only — exit 1; expected RED
+--- fixed/runtime/mission-chaining.md
++++ r1-pacing-first-boundary-only/runtime/mission-chaining.md
+@@ -26,14 +26,8 @@
+ - **One mission active per repo at a time.** Each link is a FULL run: its own preflight, its own
+   integration BASE, its own convergence proof. Carrying a BASE from one mission into the next is
+   an explicit human decision, never a default.
+-- **Chains are human-paced at every link boundary.** Leg N's PROMOTION is BASE→DEFAULT — landing
+-  its integration BASE on the repo's default branch — and that is the one-way human gate
+-  (gate-classification.md's closing rule; merge-serialization.md). Merging a unit INTO the BASE is
+-  the conductor's ordinary agent merge, the no-gh local-merge lane included, and is NOT that gate.
+-  Leg N+1 forks from the promoted DEFAULT, so between any two links — every boundary, not just the
+-  first — the chain STOPS and waits for a human. That is the NORMAL case, not a degraded one: the
+-  stop rules above classify mission TERMINALS, and a leg that ended on a clean terminal still
+-  cannot hand leg N+1 a BASE it is not allowed to create.
++- **Chains are human-paced at the first link boundary only.** Subsequent boundaries
++  may proceed automatically once the preceding mission reaches a clean terminal.
+ - **The wait has a name: `PARKED-AT-PROMOTION`.** It is a CHAIN state, recorded in the ledger
+   header beside the link it stopped at — never a mission terminal, so leg N's own terminal stands
+   as the mission named it. It is the expected outcome of any leg that finishes in a lane that
+
+test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified) ... FAIL
+
+======================================================================
+FAIL: test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-tests-r2-independent-0xqdyey7/repo/tests/test_architecture.py", line 667, in test_chain_link_boundary_is_specified
+    pacing = one_bullet_with("that chains are human-paced at every link boundary",
+                             r"human-paced at every link boundary", r"link boundary")
+  File "/private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-tests-r2-independent-0xqdyey7/repo/tests/test_architecture.py", line 627, in one_bullet_with
+    self.assertTrue(
+    ~~~~~~~~~~~~~~~^
+        hits,
+        ^^^^^
+        f"mission-chaining.md: no single bullet states {label} "
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        f"(needs all of: {', '.join(patterns)})",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+AssertionError: [] is not true : mission-chaining.md: no single bullet states that chains are human-paced at every link boundary (needs all of: human-paced at every link boundary, link boundary)
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+FAILED (failures=1)
+
+CASE r1-park-no-resume-precondition — exit 1; expected RED
+--- fixed/runtime/mission-chaining.md
++++ r1-park-no-resume-precondition/runtime/mission-chaining.md
+@@ -34,20 +34,9 @@
+   first — the chain STOPS and waits for a human. That is the NORMAL case, not a degraded one: the
+   stop rules above classify mission TERMINALS, and a leg that ended on a clean terminal still
+   cannot hand leg N+1 a BASE it is not allowed to create.
+-- **The wait has a name: `PARKED-AT-PROMOTION`.** It is a CHAIN state, recorded in the ledger
+-  header beside the link it stopped at — never a mission terminal, so leg N's own terminal stands
+-  as the mission named it. It is the expected outcome of any leg that finishes in a lane that
+-  cannot PROMOTE (headless, `--no-gh`, scratch or local-only target) — such a lane may still
+-  integrate its units into BASE: carry PRODUCED, promotion OWED. Resuming the park REQUIRES
+-  exactly one of two facts, each recorded in the ledger; nothing else is sufficient:
+-  1. a **landed promotion SHA** — leg N's integration BASE tip is an ancestor of the DEFAULT
+-     branch (`git merge-base --is-ancestor <base-tip> <default-ref>`, where `<default-ref>` is
+-     `origin/<default>` for a remote target and a valid LOCAL ref — the local default branch —
+-     for a target with no remote, never a nonexistent `origin/…`); leg N+1 forks from that
+-     promoted DEFAULT; or
+-  2. a recorded **BASE-carry grant** — the named human's explicit decision (the carry-over above)
+-     that leg N+1 may fork leg N's UNPROMOTED BASE tip, with the granted SHA written down.
+-  An agent-executed promotion is neither. A coordinator may not resume its own promotion park.
++- **The wait has a name: `PARKED-AT-PROMOTION`.** It is a CHAIN state.
++  A **landed promotion SHA** or **BASE-carry grant** may be logged for convenience; neither
++  is a precondition for resuming the parked chain.
+ - **Deferral carry:** mission N's parked items, backlog file, and noticed-but-not-touched list
+   are handed to mission N+1 as enumeration INPUT — findings to triage, never pre-confirmed work.
+   This is the generalization of the existing hard-wired handoffs (map-it's frozen DAG feeding
+
+test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified) ... FAIL
+
+======================================================================
+FAIL: test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-tests-r2-independent-0xqdyey7/repo/tests/test_architecture.py", line 653, in test_chain_link_boundary_is_specified
+    must(park, r"(?i)resuming the park REQUIRES exactly one of two facts",
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+         "the park's resume rule must be a precondition, not a convenience log")
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-tests-r2-independent-0xqdyey7/repo/tests/test_architecture.py", line 642, in must
+    self.assertRegex(bullet, pattern, f"mission-chaining.md: {why}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Regex didn't match: '(?i)resuming the park REQUIRES exactly one of two facts' not found in '- **The wait has a name: `PARKED-AT-PROMOTION`.** It is a CHAIN state. A **landed promotion SHA** or **BASE-carry grant** may be logged for convenience; neither is a precondition for resuming the parked chain.' : mission-chaining.md: the park's resume rule must be a precondition, not a convenience log
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+FAILED (failures=1)
+
+CASE r1-carry-sections-optional — exit 1; expected RED
+--- fixed/runtime/mission-chaining.md
++++ r1-carry-sections-optional/runtime/mission-chaining.md
+@@ -54,7 +54,7 @@
+   ship-it; prove-it's surfaced bugs feeding clean-sweep).
+ - **The carry has ONE shape: the handoff log.** One Markdown file per chain, `handoff-log`, written
+   beside the chain report and named in the ledger header so a consumer finds it without reading the
+-  run. Two sections, both required:
++  run. Two optional examples (consumers may omit both):
+   1. a **carry table**, one row per carried item — `carry id` (stable, chain-scoped: `H1`, `H2`, …)
+      · `from` (leg number + source class: parked / backlog / noticed-not-touched) · `content` (the
+      item, pinned to file:line at that leg's cited SHA) · `input status` for the consuming leg
+
+test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified) ... FAIL
+
+======================================================================
+FAIL: test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-tests-r2-independent-0xqdyey7/repo/tests/test_architecture.py", line 683, in test_chain_link_boundary_is_specified
+    must(carry, r"(?i)two sections, both required",
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+         "both carry sections must be REQUIRED — optional sections are no shape at all")
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-tests-r2-independent-0xqdyey7/repo/tests/test_architecture.py", line 642, in must
+    self.assertRegex(bullet, pattern, f"mission-chaining.md: {why}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Regex didn't match: '(?i)two sections, both required' not found in "- **The carry has ONE shape: the handoff log.** One Markdown file per chain, `handoff-log`, written beside the chain report and named in the ledger header so a consumer finds it without reading the run. Two optional examples (consumers may omit both): 1. a **carry table**, one row per carried item — `carry id` (stable, chain-scoped: `H1`, `H2`, …) · `from` (leg number + source class: parked / backlog / noticed-not-touched) · `content` (the item, pinned to file:line at that leg's cited SHA) · `input status` for the consuming leg (`OWED` until leg N+1 triages it; then its finding id and triage verdict). 2. a **gate record**, one entry per inter-mission gate — which gate, its state, the human who owns it, and what resumes it (for a promotion park, the two facts above). Nothing deferred is written as an explicit empty carry plus the re-read that established it: a MISSING handoff log is an unfinished chain, never an empty one. Worked exemplar: docs/reports/chaining-2026-09-16/handoff-log.md — written as that run's PROPOSED shape, which predates this clause; it is ADOPTED here, so the shape above is doctrine and not a proposal." : mission-chaining.md: both carry sections must be REQUIRED — optional sections are no shape at all
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+FAILED (failures=1)
+
+CASE r1-carry-schema-deleted — exit 1; expected RED
+--- fixed/runtime/mission-chaining.md
++++ r1-carry-schema-deleted/runtime/mission-chaining.md
+@@ -52,19 +52,8 @@
+   are handed to mission N+1 as enumeration INPUT — findings to triage, never pre-confirmed work.
+   This is the generalization of the existing hard-wired handoffs (map-it's frozen DAG feeding
+   ship-it; prove-it's surfaced bugs feeding clean-sweep).
+-- **The carry has ONE shape: the handoff log.** One Markdown file per chain, `handoff-log`, written
+-  beside the chain report and named in the ledger header so a consumer finds it without reading the
+-  run. Two sections, both required:
+-  1. a **carry table**, one row per carried item — `carry id` (stable, chain-scoped: `H1`, `H2`, …)
+-     · `from` (leg number + source class: parked / backlog / noticed-not-touched) · `content` (the
+-     item, pinned to file:line at that leg's cited SHA) · `input status` for the consuming leg
+-     (`OWED` until leg N+1 triages it; then its finding id and triage verdict).
+-  2. a **gate record**, one entry per inter-mission gate — which gate, its state, the human who
+-     owns it, and what resumes it (for a promotion park, the two facts above).
+-  Nothing deferred is written as an explicit empty carry plus the re-read that established it: a
+-  MISSING handoff log is an unfinished chain, never an empty one. Worked exemplar:
+-  docs/reports/chaining-2026-09-16/handoff-log.md — written as that run's PROPOSED shape, which
+-  predates this clause; it is ADOPTED here, so the shape above is doctrine and not a proposal.
++- **The carry has ONE shape: the handoff log.** One Markdown file per chain, `handoff-log`.
++  Its two sections are a **carry table** and a **gate record**; their contents are unspecified.
+ - **Local-only targets must ship their bytes.** "A second person can re-derive each leg's outcome
+   from the cited SHAs" holds only where those SHAs resolve FOR THAT PERSON. When a leg's target has
+   no remote — a scratch repo, a local fixture, an air-gapped checkout — SHA citation re-derives
+
+test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified) ... FAIL
+
+======================================================================
+FAIL: test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-tests-r2-independent-0xqdyey7/repo/tests/test_architecture.py", line 683, in test_chain_link_boundary_is_specified
+    must(carry, r"(?i)two sections, both required",
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+         "both carry sections must be REQUIRED — optional sections are no shape at all")
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-tests-r2-independent-0xqdyey7/repo/tests/test_architecture.py", line 642, in must
+    self.assertRegex(bullet, pattern, f"mission-chaining.md: {why}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Regex didn't match: '(?i)two sections, both required' not found in '- **The carry has ONE shape: the handoff log.** One Markdown file per chain, `handoff-log`. Its two sections are a **carry table** and a **gate record**; their contents are unspecified.' : mission-chaining.md: both carry sections must be REQUIRED — optional sections are no shape at all
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+FAILED (failures=1)
+
+CASE r1-local-artifacts-optional — exit 1; expected RED
+--- fixed/runtime/mission-chaining.md
++++ r1-local-artifacts-optional/runtime/mission-chaining.md
+@@ -65,20 +65,9 @@
+   MISSING handoff log is an unfinished chain, never an empty one. Worked exemplar:
+   docs/reports/chaining-2026-09-16/handoff-log.md — written as that run's PROPOSED shape, which
+   predates this clause; it is ADOPTED here, so the shape above is doctrine and not a proposal.
+-- **Local-only targets must ship their bytes.** "A second person can re-derive each leg's outcome
+-  from the cited SHAs" holds only where those SHAs resolve FOR THAT PERSON. When a leg's target has
+-  no remote — a scratch repo, a local fixture, an air-gapped checkout — SHA citation re-derives
+-  nothing and the chain report is unverifiable on its own terms. Such a leg is complete only once
+-  the chain publishes one of two things, named in the report, and is INCOMPLETE without one: a
+-  reachable **pushed mirror** of the target (the remote and the pushed refs written down), or
+-  embedded **reconstruction artifacts** committed beside the chain report that are
+-  COMMIT-PRESERVING — a self-contained `git bundle` of the leg's refs, or an equivalent that
+-  demonstrably reproduces every cited commit and its ancestry. Seed sources plus the leg's full
+-  diff recover file bytes only, never the commit objects, so they are SUPPLEMENTAL and never
+-  sufficient on their own — the exemplar's own
+-  docs/reports/chaining-2026-09-16/leg1/RESTORE.md draws exactly that line. Every published
+-  artifact is hashed into the run-close integrity inventory (evidence-manifest.md), so a later
+-  audit can tell the bytes have not moved.
++- **Local-only targets may cite SHAs alone.** When a target has no remote, a
++  **pushed mirror** or **embedded reconstruction artifacts** are optional conveniences;
++  a leg is complete without either and need not publish reconstruction bytes.
+ - **Cross-repo chains do not exist.** One coordinator per repo; a program spanning repos is
+   separate coordinator sessions a human sequences.
+ 
+
+test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified) ... FAIL
+
+======================================================================
+FAIL: test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-tests-r2-independent-0xqdyey7/repo/tests/test_architecture.py", line 699, in test_chain_link_boundary_is_specified
+    must(local, r"(?i)complete only once the chain publishes",
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+         "publishing the bytes must be REQUIRED for completion, not an optional convenience")
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-tests-r2-independent-0xqdyey7/repo/tests/test_architecture.py", line 642, in must
+    self.assertRegex(bullet, pattern, f"mission-chaining.md: {why}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Regex didn't match: '(?i)complete only once the chain publishes' not found in '- **Local-only targets may cite SHAs alone.** When a target has no remote, a **pushed mirror** or **embedded reconstruction artifacts** are optional conveniences; a leg is complete without either and need not publish reconstruction bytes.' : mission-chaining.md: publishing the bytes must be REQUIRED for completion, not an optional convenience
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+FAILED (failures=1)
+
+CASE r1-local-seed-diff-optional — exit 1; expected RED
+--- fixed/runtime/mission-chaining.md
++++ r1-local-seed-diff-optional/runtime/mission-chaining.md
+@@ -71,12 +71,8 @@
+   nothing and the chain report is unverifiable on its own terms. Such a leg is complete only once
+   the chain publishes one of two things, named in the report, and is INCOMPLETE without one: a
+   reachable **pushed mirror** of the target (the remote and the pushed refs written down), or
+-  embedded **reconstruction artifacts** committed beside the chain report that are
+-  COMMIT-PRESERVING — a self-contained `git bundle` of the leg's refs, or an equivalent that
+-  demonstrably reproduces every cited commit and its ancestry. Seed sources plus the leg's full
+-  diff recover file bytes only, never the commit objects, so they are SUPPLEMENTAL and never
+-  sufficient on their own — the exemplar's own
+-  docs/reports/chaining-2026-09-16/leg1/RESTORE.md draws exactly that line. Every published
++  embedded **reconstruction artifacts** committed beside the chain report — a list of
++  commit SHAs is sufficient; source bytes are optional. Every published
+   artifact is hashed into the run-close integrity inventory (evidence-manifest.md), so a later
+   audit can tell the bytes have not moved.
+ - **Cross-repo chains do not exist.** One coordinator per repo; a program spanning repos is
+
+test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified) ... FAIL
+
+======================================================================
+FAIL: test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-tests-r2-independent-0xqdyey7/repo/tests/test_architecture.py", line 705, in test_chain_link_boundary_is_specified
+    must(local, r"(?i)git bundle",
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+         "the required reconstruction artifact must be commit-preserving (a git bundle "
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+         "or equivalent), not a SHA list")
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-tests-r2-independent-0xqdyey7/repo/tests/test_architecture.py", line 642, in must
+    self.assertRegex(bullet, pattern, f"mission-chaining.md: {why}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Regex didn't match: '(?i)git bundle' not found in '- **Local-only targets must ship their bytes.** "A second person can re-derive each leg\'s outcome from the cited SHAs" holds only where those SHAs resolve FOR THAT PERSON. When a leg\'s target has no remote — a scratch repo, a local fixture, an air-gapped checkout — SHA citation re-derives nothing and the chain report is unverifiable on its own terms. Such a leg is complete only once the chain publishes one of two things, named in the report, and is INCOMPLETE without one: a reachable **pushed mirror** of the target (the remote and the pushed refs written down), or embedded **reconstruction artifacts** committed beside the chain report — a list of commit SHAs is sufficient; source bytes are optional. Every published artifact is hashed into the run-close integrity inventory (evidence-manifest.md), so a later audit can tell the bytes have not moved.' : mission-chaining.md: the required reconstruction artifact must be commit-preserving (a git bundle or equivalent), not a SHA list
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+FAILED (failures=1)
+
+CASE own-promoted-ancestry-inverted — exit 0; expected RED
+--- fixed/runtime/mission-chaining.md
++++ own-promoted-ancestry-inverted/runtime/mission-chaining.md
+@@ -40,7 +40,7 @@
+   cannot PROMOTE (headless, `--no-gh`, scratch or local-only target) — such a lane may still
+   integrate its units into BASE: carry PRODUCED, promotion OWED. Resuming the park REQUIRES
+   exactly one of two facts, each recorded in the ledger; nothing else is sufficient:
+-  1. a **landed promotion SHA** — leg N's integration BASE tip is an ancestor of the DEFAULT
++  1. a **landed promotion SHA** — leg N's integration BASE tip is not an ancestor of the DEFAULT
+      branch (`git merge-base --is-ancestor <base-tip> <default-ref>`, where `<default-ref>` is
+      `origin/<default>` for a remote target and a valid LOCAL ref — the local default branch —
+      for a target with no remote, never a nonexistent `origin/…`); leg N+1 forks from that
+
+test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+OK
+
+CASE own-promoted-wrong-commit — exit 0; expected RED
+--- fixed/runtime/mission-chaining.md
++++ own-promoted-wrong-commit/runtime/mission-chaining.md
+@@ -40,7 +40,7 @@
+   cannot PROMOTE (headless, `--no-gh`, scratch or local-only target) — such a lane may still
+   integrate its units into BASE: carry PRODUCED, promotion OWED. Resuming the park REQUIRES
+   exactly one of two facts, each recorded in the ledger; nothing else is sufficient:
+-  1. a **landed promotion SHA** — leg N's integration BASE tip is an ancestor of the DEFAULT
++  1. a **landed promotion SHA** — the repository's initial seed commit is an ancestor of the DEFAULT
+      branch (`git merge-base --is-ancestor <base-tip> <default-ref>`, where `<default-ref>` is
+      `origin/<default>` for a remote target and a valid LOCAL ref — the local default branch —
+      for a target with no remote, never a nonexistent `origin/…`); leg N+1 forks from that
+
+test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+OK
+
+CASE own-grant-no-sha — exit 0; expected RED
+--- fixed/runtime/mission-chaining.md
++++ own-grant-no-sha/runtime/mission-chaining.md
+@@ -46,7 +46,7 @@
+      for a target with no remote, never a nonexistent `origin/…`); leg N+1 forks from that
+      promoted DEFAULT; or
+   2. a recorded **BASE-carry grant** — the named human's explicit decision (the carry-over above)
+-     that leg N+1 may fork leg N's UNPROMOTED BASE tip, with the granted SHA written down.
++     that leg N+1 may fork leg N's UNPROMOTED BASE tip.
+   An agent-executed promotion is neither. A coordinator may not resume its own promotion park.
+ - **Deferral carry:** mission N's parked items, backlog file, and noticed-but-not-touched list
+   are handed to mission N+1 as enumeration INPUT — findings to triage, never pre-confirmed work.
+
+test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+OK
+
+CASE own-grant-no-unpromoted-fork — exit 0; expected RED
+--- fixed/runtime/mission-chaining.md
++++ own-grant-no-unpromoted-fork/runtime/mission-chaining.md
+@@ -46,7 +46,7 @@
+      for a target with no remote, never a nonexistent `origin/…`); leg N+1 forks from that
+      promoted DEFAULT; or
+   2. a recorded **BASE-carry grant** — the named human's explicit decision (the carry-over above)
+-     that leg N+1 may fork leg N's UNPROMOTED BASE tip, with the granted SHA written down.
++     that leg N+1 may resume without checking a BASE tip or writing down any SHA.
+   An agent-executed promotion is neither. A coordinator may not resume its own promotion park.
+ - **Deferral carry:** mission N's parked items, backlog file, and noticed-but-not-touched list
+   are handed to mission N+1 as enumeration INPUT — findings to triage, never pre-confirmed work.
+
+test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+OK
+
+CASE own-grant-promoted-only — exit 0; expected RED
+--- fixed/runtime/mission-chaining.md
++++ own-grant-promoted-only/runtime/mission-chaining.md
+@@ -46,7 +46,7 @@
+      for a target with no remote, never a nonexistent `origin/…`); leg N+1 forks from that
+      promoted DEFAULT; or
+   2. a recorded **BASE-carry grant** — the named human's explicit decision (the carry-over above)
+-     that leg N+1 may fork leg N's UNPROMOTED BASE tip, with the granted SHA written down.
++     that leg N+1 may fork leg N's PROMOTED BASE tip, with the granted SHA written down.
+   An agent-executed promotion is neither. A coordinator may not resume its own promotion park.
+ - **Deferral carry:** mission N's parked items, backlog file, and noticed-but-not-touched list
+   are handed to mission N+1 as enumeration INPUT — findings to triage, never pre-confirmed work.
+
+test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+OK
+
+CASE own-offline-nonexistent-ref — exit 0; expected RED
+--- fixed/runtime/mission-chaining.md
++++ own-offline-nonexistent-ref/runtime/mission-chaining.md
+@@ -42,8 +42,7 @@
+   exactly one of two facts, each recorded in the ledger; nothing else is sufficient:
+   1. a **landed promotion SHA** — leg N's integration BASE tip is an ancestor of the DEFAULT
+      branch (`git merge-base --is-ancestor <base-tip> <default-ref>`, where `<default-ref>` is
+-     `origin/<default>` for a remote target and a valid LOCAL ref — the local default branch —
+-     for a target with no remote, never a nonexistent `origin/…`); leg N+1 forks from that
++     `origin/<default>` for both remote targets and targets with no remote); leg N+1 forks from that
+      promoted DEFAULT; or
+   2. a recorded **BASE-carry grant** — the named human's explicit decision (the carry-over above)
+      that leg N+1 may fork leg N's UNPROMOTED BASE tip, with the granted SHA written down.
+
+test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+OK
+
+CASE own-carry-source-content-removed — exit 0; expected RED
+--- fixed/runtime/mission-chaining.md
++++ own-carry-source-content-removed/runtime/mission-chaining.md
+@@ -56,8 +56,7 @@
+   beside the chain report and named in the ledger header so a consumer finds it without reading the
+   run. Two sections, both required:
+   1. a **carry table**, one row per carried item — `carry id` (stable, chain-scoped: `H1`, `H2`, …)
+-     · `from` (leg number + source class: parked / backlog / noticed-not-touched) · `content` (the
+-     item, pinned to file:line at that leg's cited SHA) · `input status` for the consuming leg
++     · `input status` for the consuming leg
+      (`OWED` until leg N+1 triages it; then its finding id and triage verdict).
+   2. a **gate record**, one entry per inter-mission gate — which gate, its state, the human who
+      owns it, and what resumes it (for a promotion park, the two facts above).
+
+test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+OK
+
+CASE own-gate-identity-state-removed — exit 0; expected RED
+--- fixed/runtime/mission-chaining.md
++++ own-gate-identity-state-removed/runtime/mission-chaining.md
+@@ -59,7 +59,7 @@
+      · `from` (leg number + source class: parked / backlog / noticed-not-touched) · `content` (the
+      item, pinned to file:line at that leg's cited SHA) · `input status` for the consuming leg
+      (`OWED` until leg N+1 triages it; then its finding id and triage verdict).
+-  2. a **gate record**, one entry per inter-mission gate — which gate, its state, the human who
++  2. a **gate record**, one entry per inter-mission gate — the human who
+      owns it, and what resumes it (for a promotion park, the two facts above).
+   Nothing deferred is written as an explicit empty carry plus the re-read that established it: a
+   MISSING handoff log is an unfinished chain, never an empty one. Worked exemplar:
+
+test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+OK
+
+CASE own-missing-handoff-empty — exit 0; expected RED
+--- fixed/runtime/mission-chaining.md
++++ own-missing-handoff-empty/runtime/mission-chaining.md
+@@ -62,7 +62,7 @@
+   2. a **gate record**, one entry per inter-mission gate — which gate, its state, the human who
+      owns it, and what resumes it (for a promotion park, the two facts above).
+   Nothing deferred is written as an explicit empty carry plus the re-read that established it: a
+-  MISSING handoff log is an unfinished chain, never an empty one. Worked exemplar:
++  MISSING handoff log is an empty carry and counts as a finished chain. Worked exemplar:
+   docs/reports/chaining-2026-09-16/handoff-log.md — written as that run's PROPOSED shape, which
+   predates this clause; it is ADOPTED here, so the shape above is doctrine and not a proposal.
+ - **Local-only targets must ship their bytes.** "A second person can re-derive each leg's outcome
+
+test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+OK
+
+CASE own-reconstruct-ancestry-removed — exit 0; expected RED
+--- fixed/runtime/mission-chaining.md
++++ own-reconstruct-ancestry-removed/runtime/mission-chaining.md
+@@ -73,7 +73,7 @@
+   reachable **pushed mirror** of the target (the remote and the pushed refs written down), or
+   embedded **reconstruction artifacts** committed beside the chain report that are
+   COMMIT-PRESERVING — a self-contained `git bundle` of the leg's refs, or an equivalent that
+-  demonstrably reproduces every cited commit and its ancestry. Seed sources plus the leg's full
++  demonstrably reproduces every cited commit. Seed sources plus the leg's full
+   diff recover file bytes only, never the commit objects, so they are SUPPLEMENTAL and never
+   sufficient on their own — the exemplar's own
+   docs/reports/chaining-2026-09-16/leg1/RESTORE.md draws exactly that line. Every published
+
+test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+OK
+
+CASE own-mirror-ref-fields-removed — exit 0; expected RED
+--- fixed/runtime/mission-chaining.md
++++ own-mirror-ref-fields-removed/runtime/mission-chaining.md
+@@ -70,7 +70,7 @@
+   no remote — a scratch repo, a local fixture, an air-gapped checkout — SHA citation re-derives
+   nothing and the chain report is unverifiable on its own terms. Such a leg is complete only once
+   the chain publishes one of two things, named in the report, and is INCOMPLETE without one: a
+-  reachable **pushed mirror** of the target (the remote and the pushed refs written down), or
++  reachable **pushed mirror** of the target, or
+   embedded **reconstruction artifacts** committed beside the chain report that are
+   COMMIT-PRESERVING — a self-contained `git bundle` of the leg's refs, or an equivalent that
+   demonstrably reproduces every cited commit and its ancestry. Seed sources plus the leg's full
+
+test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+OK
+
+CASE own-artifact-hash-removed — exit 0; expected RED
+--- fixed/runtime/mission-chaining.md
++++ own-artifact-hash-removed/runtime/mission-chaining.md
+@@ -76,9 +76,7 @@
+   demonstrably reproduces every cited commit and its ancestry. Seed sources plus the leg's full
+   diff recover file bytes only, never the commit objects, so they are SUPPLEMENTAL and never
+   sufficient on their own — the exemplar's own
+-  docs/reports/chaining-2026-09-16/leg1/RESTORE.md draws exactly that line. Every published
+-  artifact is hashed into the run-close integrity inventory (evidence-manifest.md), so a later
+-  audit can tell the bytes have not moved.
++  docs/reports/chaining-2026-09-16/leg1/RESTORE.md draws exactly that line. Published artifacts need not be hashed into the run-close integrity inventory.
+ - **Cross-repo chains do not exist.** One coordinator per repo; a program spanning repos is
+   separate coordinator sessions a human sequences.
+ 
+
+test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+OK
+
+CASE neutral-soft-wrap-park — exit 0; expected GREEN
+--- fixed/runtime/mission-chaining.md
++++ neutral-soft-wrap-park/runtime/mission-chaining.md
+@@ -40,7 +40,8 @@
+   cannot PROMOTE (headless, `--no-gh`, scratch or local-only target) — such a lane may still
+   integrate its units into BASE: carry PRODUCED, promotion OWED. Resuming the park REQUIRES
+   exactly one of two facts, each recorded in the ledger; nothing else is sufficient:
+-  1. a **landed promotion SHA** — leg N's integration BASE tip is an ancestor of the DEFAULT
++  1. a **landed
++     promotion SHA** — leg N's integration BASE tip is an ancestor of the DEFAULT
+      branch (`git merge-base --is-ancestor <base-tip> <default-ref>`, where `<default-ref>` is
+      `origin/<default>` for a remote target and a valid LOCAL ref — the local default branch —
+      for a target with no remote, never a nonexistent `origin/…`); leg N+1 forks from that
+
+test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+OK
+
+CASE neutral-soft-wrap-publish — exit 0; expected GREEN
+--- fixed/runtime/mission-chaining.md
++++ neutral-soft-wrap-publish/runtime/mission-chaining.md
+@@ -68,8 +68,9 @@
+ - **Local-only targets must ship their bytes.** "A second person can re-derive each leg's outcome
+   from the cited SHAs" holds only where those SHAs resolve FOR THAT PERSON. When a leg's target has
+   no remote — a scratch repo, a local fixture, an air-gapped checkout — SHA citation re-derives
+-  nothing and the chain report is unverifiable on its own terms. Such a leg is complete only once
+-  the chain publishes one of two things, named in the report, and is INCOMPLETE without one: a
++  nothing and the chain report is unverifiable on its own terms. Such a leg is complete only
++  once the chain
++  publishes one of two things, named in the report, and is INCOMPLETE without one: a
+   reachable **pushed mirror** of the target (the remote and the pushed refs written down), or
+   embedded **reconstruction artifacts** committed beside the chain report that are
+   COMMIT-PRESERVING — a self-contained `git bundle` of the leg's refs, or an equivalent that
+
+test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+OK
+
+CASE neutral-park-asterisk-fails-closed — exit 1; expected RED
+--- fixed/runtime/mission-chaining.md
++++ neutral-park-asterisk-fails-closed/runtime/mission-chaining.md
+@@ -34,7 +34,7 @@
+   first — the chain STOPS and waits for a human. That is the NORMAL case, not a degraded one: the
+   stop rules above classify mission TERMINALS, and a leg that ended on a clean terminal still
+   cannot hand leg N+1 a BASE it is not allowed to create.
+-- **The wait has a name: `PARKED-AT-PROMOTION`.** It is a CHAIN state, recorded in the ledger
++* **The wait has a name: `PARKED-AT-PROMOTION`.** It is a CHAIN state, recorded in the ledger
+   header beside the link it stopped at — never a mission terminal, so leg N's own terminal stands
+   as the mission named it. It is the expected outcome of any leg that finishes in a lane that
+   cannot PROMOTE (headless, `--no-gh`, scratch or local-only target) — such a lane may still
+
+test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified) ... FAIL
+
+======================================================================
+FAIL: test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-tests-r2-independent-0xqdyey7/repo/tests/test_architecture.py", line 646, in test_chain_link_boundary_is_specified
+    park = one_bullet_with(
+        "the promotion-owed park with its resume procedure",
+    ...<2 lines>...
+        r"BASE-carry grant",
+    )
+  File "/private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-tests-r2-independent-0xqdyey7/repo/tests/test_architecture.py", line 627, in one_bullet_with
+    self.assertTrue(
+    ~~~~~~~~~~~~~~~^
+        hits,
+        ^^^^^
+        f"mission-chaining.md: no single bullet states {label} "
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        f"(needs all of: {', '.join(patterns)})",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+AssertionError: [] is not true : mission-chaining.md: no single bullet states the promotion-owed park with its resume procedure (needs all of: PARKED-AT-PROMOTION, landed promotion SHA, BASE-carry grant)
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+FAILED (failures=1)
+
+CASE head-restored — exit 0; expected GREEN
+
+test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+OK
+
+BOT-4 EXACT REPLAY SCRIPT
+from pathlib import Path
+import subprocess,json
+R=Path(__file__).parent/'freshness-demo'
+R.mkdir()
+origin=R/'origin.git'; coord=R/'coordinator'; human=R/'human'
+log=[]
+def cmd(args,cwd=None,expect=0):
+    p=subprocess.run(args,cwd=cwd,text=True,capture_output=True)
+    log.append({'cmd':args,'cwd':str(cwd),'exit':p.returncode,'stdout':p.stdout.strip(),'stderr':p.stderr.strip()})
+    if expect is not None: assert p.returncode==expect,log[-1]
+    return p.stdout.strip(),p.returncode
+cmd(['git','init','-q','--bare','--initial-branch=main',str(origin)])
+cmd(['git','clone','-q',str(origin),str(human)])
+cmd(['git','-c','user.name=Review','-c','user.email=review@example.invalid','commit','-q','--allow-empty','-m','seed'],human)
+cmd(['git','push','-q','origin','HEAD:main'],human)
+cmd(['git','clone','-q',str(origin),str(coord)])
+cmd(['git','switch','-q','-c','leg-base'],coord)
+cmd(['git','-c','user.name=Review','-c','user.email=review@example.invalid','commit','-q','--allow-empty','-m','leg integration tip'],coord)
+tip,_=cmd(['git','rev-parse','HEAD'],coord)
+cmd(['git','push','-q','origin','HEAD:leg-base'],coord)
+cmd(['git','fetch','-q','origin'],human)
+cmd(['git','merge','-q','--ff-only','origin/leg-base'],human)
+cmd(['git','push','-q','origin','HEAD:main'],human)
+current,_=cmd(['git','--git-dir',str(origin),'rev-parse','refs/heads/main'])
+stale,_=cmd(['git','rev-parse','origin/main'],coord)
+_,before=cmd(['git','merge-base','--is-ancestor',tip,'origin/main'],coord,expect=1)
+cmd(['git','fetch','-q','origin','+refs/heads/main:refs/remotes/origin/main'],coord)
+_,after=cmd(['git','merge-base','--is-ancestor',tip,'origin/main'],coord,expect=0)
+summary={'base_tip':tip,'current_remote_default':current,'coordinator_stale_origin_main':stale,'ancestry_before_fetch_exit':before,'ancestry_after_fetch_exit':after,'schedule':'coordinator caches default; human fast-forward pushes integrated tip; coordinator checks cached default; coordinator refreshes exact remote branch; ancestry rechecked'}
+(R/'repro.json').write_text(json.dumps({'summary':summary,'commands':log},indent=2))
+print(json.dumps(summary,indent=2))
+
+BOT-4 AUTHORITATIVE GIT COMMAND RECEIPTS
+{
+  "summary": {
+    "base_tip": "f163c3f2aabe71bfcc1742f506e7174046f2b24f",
+    "current_remote_default": "f163c3f2aabe71bfcc1742f506e7174046f2b24f",
+    "coordinator_stale_origin_main": "e96ce76c71acb236a64477edae94451f2dbbf418",
+    "ancestry_before_fetch_exit": 1,
+    "ancestry_after_fetch_exit": 0,
+    "schedule": "coordinator caches default; human fast-forward pushes integrated tip; coordinator checks cached default; coordinator refreshes exact remote branch; ancestry rechecked"
+  },
+  "commands": [
+    {
+      "cmd": [
+        "git",
+        "init",
+        "-q",
+        "--bare",
+        "--initial-branch=main",
+        "/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-tests-r2-independent-0xqdyey7/freshness-demo/origin.git"
+      ],
+      "cwd": "None",
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "cmd": [
+        "git",
+        "clone",
+        "-q",
+        "/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-tests-r2-independent-0xqdyey7/freshness-demo/origin.git",
+        "/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-tests-r2-independent-0xqdyey7/freshness-demo/human"
+      ],
+      "cwd": "None",
+      "exit": 0,
+      "stdout": "",
+      "stderr": "warning: You appear to have cloned an empty repository."
+    },
+    {
+      "cmd": [
+        "git",
+        "-c",
+        "user.name=Review",
+        "-c",
+        "user.email=review@example.invalid",
+        "commit",
+        "-q",
+        "--allow-empty",
+        "-m",
+        "seed"
+      ],
+      "cwd": "/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-tests-r2-independent-0xqdyey7/freshness-demo/human",
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "cmd": [
+        "git",
+        "push",
+        "-q",
+        "origin",
+        "HEAD:main"
+      ],
+      "cwd": "/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-tests-r2-independent-0xqdyey7/freshness-demo/human",
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "cmd": [
+        "git",
+        "clone",
+        "-q",
+        "/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-tests-r2-independent-0xqdyey7/freshness-demo/origin.git",
+        "/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-tests-r2-independent-0xqdyey7/freshness-demo/coordinator"
+      ],
+      "cwd": "None",
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "cmd": [
+        "git",
+        "switch",
+        "-q",
+        "-c",
+        "leg-base"
+      ],
+      "cwd": "/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-tests-r2-independent-0xqdyey7/freshness-demo/coordinator",
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "cmd": [
+        "git",
+        "-c",
+        "user.name=Review",
+        "-c",
+        "user.email=review@example.invalid",
+        "commit",
+        "-q",
+        "--allow-empty",
+        "-m",
+        "leg integration tip"
+      ],
+      "cwd": "/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-tests-r2-independent-0xqdyey7/freshness-demo/coordinator",
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "cmd": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-tests-r2-independent-0xqdyey7/freshness-demo/coordinator",
+      "exit": 0,
+      "stdout": "f163c3f2aabe71bfcc1742f506e7174046f2b24f",
+      "stderr": ""
+    },
+    {
+      "cmd": [
+        "git",
+        "push",
+        "-q",
+        "origin",
+        "HEAD:leg-base"
+      ],
+      "cwd": "/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-tests-r2-independent-0xqdyey7/freshness-demo/coordinator",
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "cmd": [
+        "git",
+        "fetch",
+        "-q",
+        "origin"
+      ],
+      "cwd": "/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-tests-r2-independent-0xqdyey7/freshness-demo/human",
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "cmd": [
+        "git",
+        "merge",
+        "-q",
+        "--ff-only",
+        "origin/leg-base"
+      ],
+      "cwd": "/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-tests-r2-independent-0xqdyey7/freshness-demo/human",
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "cmd": [
+        "git",
+        "push",
+        "-q",
+        "origin",
+        "HEAD:main"
+      ],
+      "cwd": "/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-tests-r2-independent-0xqdyey7/freshness-demo/human",
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "cmd": [
+        "git",
+        "--git-dir",
+        "/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-tests-r2-independent-0xqdyey7/freshness-demo/origin.git",
+        "rev-parse",
+        "refs/heads/main"
+      ],
+      "cwd": "None",
+      "exit": 0,
+      "stdout": "f163c3f2aabe71bfcc1742f506e7174046f2b24f",
+      "stderr": ""
+    },
+    {
+      "cmd": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "cwd": "/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-tests-r2-independent-0xqdyey7/freshness-demo/coordinator",
+      "exit": 0,
+      "stdout": "e96ce76c71acb236a64477edae94451f2dbbf418",
+      "stderr": ""
+    },
+    {
+      "cmd": [
+        "git",
+        "merge-base",
+        "--is-ancestor",
+        "f163c3f2aabe71bfcc1742f506e7174046f2b24f",
+        "origin/main"
+      ],
+      "cwd": "/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-tests-r2-independent-0xqdyey7/freshness-demo/coordinator",
+      "exit": 1,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "cmd": [
+        "git",
+        "fetch",
+        "-q",
+        "origin",
+        "+refs/heads/main:refs/remotes/origin/main"
+      ],
+      "cwd": "/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-tests-r2-independent-0xqdyey7/freshness-demo/coordinator",
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "cmd": [
+        "git",
+        "merge-base",
+        "--is-ancestor",
+        "f163c3f2aabe71bfcc1742f506e7174046f2b24f",
+        "origin/main"
+      ],
+      "cwd": "/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-tests-r2-independent-0xqdyey7/freshness-demo/coordinator",
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ]
+}
+SCRATCH EVIDENCE PATHS (all material test outputs/patches are embedded above)
+Main probes: /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-tests-r2-independent-0xqdyey7
+Committed runner challenge: /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-r2-harness-yzt8gh5d
+Suite/receipts: /tmp/u-chain-receipts.JUJW7d
+
+EXACT HARNESS-TRUST PROBES (independently applied; harness itself unchanged)
+Prerequisite in scratch root: base-policy.md from
+  git show a58bf71a283928a8278e560163452ee70c7ad609:runtime/mission-chaining.md
+A. Prefix original tests/test_architecture.py with:
+import hashlib as _review_hashlib
+from pathlib import Path as _ReviewPath
+if _review_hashlib.sha256(_ReviewPath("runtime/mission-chaining.md").read_bytes()).hexdigest() != 'aaabf9708a4538866d379c84d0b56876016ba4174aeb6f50cdf2da6cf4a3b675':
+    raise ImportError("reviewer deliberate error only on mutated policies")
+Then execute unchanged runner. Zero AssertionError lines occur in its output;
+every mutant is nevertheless labeled KILLED and runner exits 0.
+B. Restore original test module; replace original method declaration with:
+    def test_chain_link_boundary_is_specified(self):
+        import hashlib
+        if hashlib.sha256((ROOT / "runtime/mission-chaining.md").read_bytes()).hexdigest() == 'aaabf9708a4538866d379c84d0b56876016ba4174aeb6f50cdf2da6cf4a3b675':
+            self.fail("reviewer deliberate RED positive control")
+Preserve the original method body immediately afterward. Execute unchanged runner;
+both controls are RED while runner exits 0. Restore all files after each probe.
+
+CLEANUP: main mutation clone and harness-audit clone were verified clean and removed;
+freshness-demo Git repositories were removed. Their scripts, logs and JSON remain
+outside the shared worktree, and all material proof is embedded in this report.
+
+FINALIZATION
+Completed 2026-09-20T08:40:34.709598+00:00 within the 25-minute timebox.
+All 20 selected motivating source lines were checked verbatim against reviewed SHA.
+Independent report check reconciled all six findings and twelve survivor cases;
+qualifications about unchanged ancestry command and equivalent-artifact history are explicit.
+No pending test result, incomplete experiment, or unexecuted written mutant remains.
+Final verdict: NO-GO, 0 Critical / 6 Required / 0 Nit / 0 Optional / 0 FYI.

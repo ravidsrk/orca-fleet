@@ -1,0 +1,8 @@
+{
+ "id": "msg_b742c9ef705c",
+ "type": "question",
+ "created_at": "2026-09-20T07:37:46Z",
+ "subject": "Question",
+ "body": "The review task says change NOTHING in the repo but names docs/reports/U-CHAIN/review-standards.txt inside it. I recorded my blind expectation outside the repo at /Users/ravindra/orca/review-artifacts/task_067ec69be832/docs/reports/U-CHAIN/review-standards.txt and will continue read-only review. Should I retain that external report path for worker_done, or is writing only the requested report inside the repo explicitly allowed?",
+ "payload": "{\"taskId\":\"task_067ec69be832\",\"dispatchId\":\"ctx_7f47b80e2503\",\"question\":\"The review task says change NOTHING in the repo but names docs/reports/U-CHAIN/review-standards.txt inside it. I recorded my blind expectation outside the repo at /Users/ravindra/orca/review-artifacts/task_067ec69be832/docs/reports/U-CHAIN/review-standards.txt and will continue read-only review. Should I retain that external report path for worker_done, or is writing only the requested report inside the repo explicitly allowed?\",\"options\":[\"retain external report path\",\"allow requested report-only write\"]}"
+}

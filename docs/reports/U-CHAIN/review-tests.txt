@@ -1,0 +1,449 @@
+U-CHAIN TEST-ADEQUACY REVIEW — BLIND EXPECTATION
+Prepared before reading the implementation, test, diff, or architecture.
+Source read: docs/runs/2026-09-20-clean-sweep-tracker/build-u-chain.md only.
+
+Expected location: the three doctrine additions belong in runtime/mission-chaining.md; their single contract test belongs under tests/ (task identifies tests/test_architecture.py). No other policy or runtime script should need changes.
+
+Expected shape:
+1. #441: a named promotion-owed terminal, a clear human-paced boundary between every leg, and an explicit resume procedure accepting either a landed promotion SHA or a recorded human BASE-carry grant. A test should reject the removal of the terminal, the human gate, or either accepted resume condition.
+2. #443: a named deferral-carry artifact with a dependable schema covering parked items, backlog, noticed-but-not-touched items, and the gate record across the chain. A test should reject removal of the artifact name or required shape; a mention of handoff alone is insufficient.
+3. #444: a normative local-only reconstruction requirement, satisfied by embedded source/reconstruction bytes or a pushed mirror, enabling an independent person to re-derive the outcome. A test should reject removal or weakening of that requirement, even if SHA citations remain.
+
+Test expectation: fixed head passes; restoring only the base policy makes the contract test fail. Dropping each added clause individually and weakening each obligation should produce a failing test. Rewording a heading or lead-in without changing behavior must not turn the test into an empty loop: subsequent deletion/weakening of a property must still fail (or the test must fail closed on unfamiliar structure).
+Confidence: high on the three required properties and scope; medium on the precise artifact field names and parser strategy, which are intentionally left to the implementer.
+
+Review results and mutation evidence follow after inspection.
+
+FINAL TEST-ADEQUACY VERDICT: NO-GO — 3 Required findings, 6 semantic survivors.
+Review task: task_1eba2dcf50f5; dispatch: ctx_147ba196881c.
+reviewed_sha = head_sha = 5328cc866d3b213c444687b9c7d9cb2d1d45d853
+Branch: ravidsrk/u-chain.
+Fixed-point ref when pinned: origin/review/2026-09-20-tracker-sweep
+Fixed-point SHA when pinned: 79d323ee25d1b202c76028920d99ca7edf91f775
+Three-dot diff merge-base: a58bf71a283928a8278e560163452ee70c7ad609
+Spec: docs/runs/2026-09-20-clean-sweep-tracker/build-u-chain.md
+Axis: TEST-ADEQUACY only; no standards/spec/security verdict is asserted.
+
+Executive brief:
+The fixed contract test passes and rejects the base policy plus removal of each
+of the four added doctrine bullets. However, six independently written changes
+that weaken required behavior still pass: human gating can disappear, the carry
+schema can become optional or unspecified, and local-only reconstruction can
+become optional or contain only SHAs. These are three Required findings, grouped
+by originating issue. The test pins vocabulary within a bullet but does not pin
+the corresponding obligations. The independent vacuity probe found no empty-
+selector green: all six neutral edits that emptied a selector failed, and a
+seventh neutral formatting edit passed with all four selectors still matching.
+No implementation or test file was changed in the reviewed worktree; the only
+write is this explicitly authorized review report, left uncommitted. Fixes and
+a new SHA-bound mutation review remain with the builder/coordinator.
+
+Comparison with the blind expectation:
+The additions live in the expected runtime policy and existing architecture test.
+The doc contains the three expected kinds of rule. The divergence is evidentiary:
+the test detects wholesale removals but does not enforce the mandatory meaning or
+schema details anticipated in the spec-first note. No arbitrary whole-language
+semantic parser is requested; the demonstrated regressions below should have
+specific assertion coverage.
+
+COMMON EXECUTION / REPRODUCTION
+All main mutants start separately from the exact reviewed head in:
+  /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-review-tests-zax39q40/repo
+No mutant is stacked on a preceding mutant. tests/test_architecture.py remains
+unchanged in all main cases. Only runtime/mission-chaining.md is changed, then
+this covering command is run from the scratch repository:
+  python3 tests/test_architecture.py TestArchitecture.test_chain_link_boundary_is_specified -v
+The real contract test executes; an independent shadow matcher is NOT the oracle.
+Exact patches and actual outputs are embedded below; they can be replayed against
+a fresh scratch checkout of reviewed_sha. External harness and complete logs:
+  /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-review-tests-zax39q40/run_mutants.py
+  /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-review-tests-zax39q40/mutations/
+Each scratch clone was restored to its original policy; the covering test returned
+GREEN afterward and git status --porcelain was empty. Every written mutant was
+executed; six semantic mutants SURVIVED, so this is explicitly NOT an all-killed
+claim. No fix was attempted under this review-only grant.
+
+FINDING TA-441 — Required — #441: the two resume facts and every-boundary rule
+are keyword matches, so mandatory human gating can be weakened without a failure.
+Location: tests/test_architecture.py:633-641.
+Verbatim motivating test lines:
+    one_bullet_with("that chains are human-paced at every link boundary",
+                    r"human-paced", r"link boundary")
+Also, the resume procedure is matched by only these three verbatim patterns:
+            r"PARKED-AT-PROMOTION",
+            r"landed promotion SHA",
+            r"BASE-carry grant",
+Verbatim motivating spec line:
+  "  name the park (e.g. PARKED-AT-PROMOTION), define what resumes it (landed promotion SHA or a"
+  "  recorded BASE-carry grant), and state plainly that chains are human-paced at every link"
+  "  boundary."
+Reproductions: pacing-first-boundary-only changes "every" to first-only semantics;
+park-no-resume-precondition preserves the state and fact names but expressly makes
+neither fact a prerequisite. Both are SURVIVORS (exit 0; Ran 1 test; OK).
+Impact: #441 can regress to automatic later boundaries or a named wait with no
+required resume fact while CI's claimed contract assertion remains green.
+Requested follow-up: assert the every-boundary obligation and the actual exclusive
+resume preconditions, and demonstrate both supplied mutants fail at the new head.
+
+FINDING TA-443 — Required — #443: the carry schema may be optional or unspecified.
+Location: tests/test_architecture.py:644-649.
+Verbatim motivating test lines:
+            r"handoff log", r"carry table", r"gate record",
+        self.assertRegex(carry, r"(?i)per chain",
+                         "the handoff log must be scoped: one file per chain")
+Verbatim motivating spec lines:
+  "DESIRED BEHAVIOUR: the policy (a) names a terminal state for a chain parked at a link boundary"
+  "owed a human promotion and states what resumes it; (b) names and specifies a concrete artifact"
+  "shape for deferral carry; (c) requires embedded reconstruction artifacts (or a pushed mirror)"
+Reproductions: carry-sections-optional changes only "Two sections, both required:"
+to "Two optional examples (consumers may omit both):"; carry-schema-deleted retains
+the per-chain log and section names but removes every field declaration. Both are
+SURVIVORS (exit 0; Ran 1 test; OK).
+Impact: consumers again lack a dependable carry format even though the contract
+test claims to enforce a concrete artifact shape.
+Requested follow-up: pin the required sections and essential carry/gate fields,
+not only their names, and demonstrate both supplied mutants fail at the new head.
+
+FINDING TA-444 — Required — #444: neither publishing bytes nor their sufficiency
+for reconstruction is enforced.
+Location: tests/test_architecture.py:653-655.
+Verbatim motivating test line:
+            r"no remote", r"pushed mirror", r"reconstruction artifacts",
+Verbatim motivating spec lines:
+  "shape for deferral carry; (c) requires embedded reconstruction artifacts (or a pushed mirror)"
+  "for local-only targets. Wording is the worker's; the three properties are the contract."
+Reproductions: local-artifacts-optional explicitly accepts SHA-only completion with
+neither artifact; local-seed-diff-optional keeps publication mandatory but changes
+required source bytes to a sufficient list of SHAs. Both are SURVIVORS (exit 0;
+Ran 1 test; OK).
+Impact: the original non-reconstructible local-only report can return while the
+covering test remains green, because all three searched phrases still co-occur.
+Requested follow-up: pin mandatory publication of one allowed reconstruction source
+and sufficient bytes, then demonstrate both supplied mutants fail at the new head.
+
+MUTATION MATRIX — MAIN REVIEWER
+fixed-head: exit 0; GREEN — positive control
+base-policy: exit 1; KILLED — revert all doc additions, retain head test
+drop-pacing: exit 1; KILLED — delete only added human-pacing bullet
+drop-park: exit 1; KILLED — delete only added named park/resume bullet
+drop-carry: exit 1; KILLED — delete only added handoff shape bullet
+drop-local: exit 1; KILLED — delete only added local reconstruction bullet
+pacing-first-boundary-only: exit 0; SURVIVOR — weaken every-link human pacing to the first boundary only
+park-no-resume-precondition: exit 0; SURVIVOR — retain named terminal and fact vocabulary, remove mandatory resume procedure
+carry-sections-optional: exit 0; SURVIVOR — make the two sections optional without changing their vocabulary or fields
+carry-schema-deleted: exit 0; SURVIVOR — retain per-chain artifact and section names but remove every field declaration
+local-artifacts-optional: exit 0; SURVIVOR — replace local reconstruction requirement with explicitly optional artifacts
+local-seed-diff-optional: exit 0; SURVIVOR — weaken the reconstruction payload requirement while retaining artifact label and mandatory publish
+
+QUOTED RED OUTPUT — BASE REVERT AND EACH ADDED BULLET DELETION
+These excerpts are actual failure messages, not predictions. The complete stack
+traces remain in the external per-case .log files.
+
+base-policy (exit 1):
+  test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified) ... FAIL
+  AssertionError: [] is not true : mission-chaining.md: no single bullet states the promotion-owed park with its resume procedure (needs all of: PARKED-AT-PROMOTION, landed promotion SHA, BASE-carry grant)
+  Ran 1 test in 0.001s
+  FAILED (failures=1)
+
+drop-pacing (exit 1):
+  test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified) ... FAIL
+  AssertionError: [] is not true : mission-chaining.md: no single bullet states that chains are human-paced at every link boundary (needs all of: human-paced, link boundary)
+  Ran 1 test in 0.001s
+  FAILED (failures=1)
+
+drop-park (exit 1):
+  test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified) ... FAIL
+  AssertionError: [] is not true : mission-chaining.md: no single bullet states the promotion-owed park with its resume procedure (needs all of: PARKED-AT-PROMOTION, landed promotion SHA, BASE-carry grant)
+  Ran 1 test in 0.001s
+  FAILED (failures=1)
+
+drop-carry (exit 1):
+  test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified) ... FAIL
+  AssertionError: [] is not true : mission-chaining.md: no single bullet states a named artifact shape for the deferral carry (needs all of: handoff log, carry table, gate record)
+  Ran 1 test in 0.001s
+  FAILED (failures=1)
+
+drop-local (exit 1):
+  test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified) ... FAIL
+  AssertionError: [] is not true : mission-chaining.md: no single bullet states the local-only re-derivability rule (needs all of: no remote, pushed mirror, reconstruction artifacts)
+  Ran 1 test in 0.001s
+  FAILED (failures=1)
+
+EXACT SURVIVOR PATCHES AND QUOTED GREEN OUTPUT
+
+pacing-first-boundary-only — Required (see the corresponding finding above)
+--- fixed/runtime/mission-chaining.md
++++ pacing-first-boundary-only/runtime/mission-chaining.md
+@@ -26,11 +26,8 @@
+ - **One mission active per repo at a time.** Each link is a FULL run: its own preflight, its own
+   integration BASE, its own convergence proof. Carrying a BASE from one mission into the next is
+   an explicit human decision, never a default.
+-- **Chains are human-paced at every link boundary.** Leg N's promotion — merging its work into the
+-  integration BASE — is a one-way human gate (gate-classification.md), and leg N+1 forks from the
+-  promoted BASE. So between any two links the chain STOPS and waits for a human. That is the
+-  NORMAL case, not a degraded one: the stop rules above classify mission TERMINALS, and a leg that
+-  ended on a clean terminal still cannot hand leg N+1 a BASE it is not allowed to create.
++- **Chains are human-paced at the first link boundary only.** Subsequent boundaries
++  may proceed automatically once the preceding mission reaches a clean terminal.
+ - **The wait has a name: `PARKED-AT-PROMOTION`.** It is a CHAIN state, recorded in the ledger
+   header beside the link it stopped at — never a mission terminal, so leg N's own terminal stands
+   as the mission named it. It is the expected outcome of any leg that finishes in a lane that
+
+Actual output (exit 0):
+test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+OK
+
+park-no-resume-precondition — Required (see the corresponding finding above)
+--- fixed/runtime/mission-chaining.md
++++ park-no-resume-precondition/runtime/mission-chaining.md
+@@ -31,16 +31,9 @@
+   promoted BASE. So between any two links the chain STOPS and waits for a human. That is the
+   NORMAL case, not a degraded one: the stop rules above classify mission TERMINALS, and a leg that
+   ended on a clean terminal still cannot hand leg N+1 a BASE it is not allowed to create.
+-- **The wait has a name: `PARKED-AT-PROMOTION`.** It is a CHAIN state, recorded in the ledger
+-  header beside the link it stopped at — never a mission terminal, so leg N's own terminal stands
+-  as the mission named it. It is the expected outcome of any leg that finishes in a lane that
+-  cannot merge (headless, `--no-gh`, scratch or local-only target): carry PRODUCED, promotion
+-  OWED. It resumes on exactly one of two facts, each recorded in the ledger, and on nothing else:
+-  1. a **landed promotion SHA** — leg N's head is an ancestor of the integration BASE
+-     (`git merge-base --is-ancestor <head> origin/<base>`); leg N+1 forks from that BASE; or
+-  2. a recorded **BASE-carry grant** — the named human's explicit decision (the carry-over above)
+-     that leg N+1 may fork leg N's UNPROMOTED BASE tip, with the granted SHA written down.
+-  An agent-executed promotion is neither. A coordinator may not resume its own promotion park.
++- **The wait has a name: `PARKED-AT-PROMOTION`.** It is a CHAIN state.
++  A **landed promotion SHA** or **BASE-carry grant** may be logged for convenience; neither
++  is a precondition for resuming the parked chain.
+ - **Deferral carry:** mission N's parked items, backlog file, and noticed-but-not-touched list
+   are handed to mission N+1 as enumeration INPUT — findings to triage, never pre-confirmed work.
+   This is the generalization of the existing hard-wired handoffs (map-it's frozen DAG feeding
+
+Actual output (exit 0):
+test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+OK
+
+carry-sections-optional — Required (see the corresponding finding above)
+--- fixed/runtime/mission-chaining.md
++++ carry-sections-optional/runtime/mission-chaining.md
+@@ -47,7 +47,7 @@
+   ship-it; prove-it's surfaced bugs feeding clean-sweep).
+ - **The carry has ONE shape: the handoff log.** One Markdown file per chain, `handoff-log`, written
+   beside the chain report and named in the ledger header so a consumer finds it without reading the
+-  run. Two sections, both required:
++  run. Two optional examples (consumers may omit both):
+   1. a **carry table**, one row per carried item — `carry id` (stable, chain-scoped: `H1`, `H2`, …)
+      · `from` (leg number + source class: parked / backlog / noticed-not-touched) · `content` (the
+      item, pinned to file:line at that leg's cited SHA) · `input status` for the consuming leg
+
+Actual output (exit 0):
+test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+OK
+
+carry-schema-deleted — Required (see the corresponding finding above)
+--- fixed/runtime/mission-chaining.md
++++ carry-schema-deleted/runtime/mission-chaining.md
+@@ -45,18 +45,8 @@
+   are handed to mission N+1 as enumeration INPUT — findings to triage, never pre-confirmed work.
+   This is the generalization of the existing hard-wired handoffs (map-it's frozen DAG feeding
+   ship-it; prove-it's surfaced bugs feeding clean-sweep).
+-- **The carry has ONE shape: the handoff log.** One Markdown file per chain, `handoff-log`, written
+-  beside the chain report and named in the ledger header so a consumer finds it without reading the
+-  run. Two sections, both required:
+-  1. a **carry table**, one row per carried item — `carry id` (stable, chain-scoped: `H1`, `H2`, …)
+-     · `from` (leg number + source class: parked / backlog / noticed-not-touched) · `content` (the
+-     item, pinned to file:line at that leg's cited SHA) · `input status` for the consuming leg
+-     (`OWED` until leg N+1 triages it; then its finding id and triage verdict).
+-  2. a **gate record**, one entry per inter-mission gate — which gate, its state, the human who
+-     owns it, and what resumes it (for a promotion park, the two facts above).
+-  Nothing deferred is written as an explicit empty carry plus the re-read that established it: a
+-  MISSING handoff log is an unfinished chain, never an empty one. Worked exemplar:
+-  docs/reports/chaining-2026-09-16/handoff-log.md.
++- **The carry has ONE shape: the handoff log.** One Markdown file per chain, `handoff-log`.
++  Its two sections are a **carry table** and a **gate record**; their contents are unspecified.
+ - **Local-only targets must ship their bytes.** "A second person can re-derive each leg's outcome
+   from the cited SHAs" holds only where those SHAs resolve FOR THAT PERSON. When a leg's target has
+   no remote — a scratch repo, a local fixture, an air-gapped checkout — SHA citation re-derives
+
+Actual output (exit 0):
+test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+OK
+
+local-artifacts-optional — Required (see the corresponding finding above)
+--- fixed/runtime/mission-chaining.md
++++ local-artifacts-optional/runtime/mission-chaining.md
+@@ -57,16 +57,9 @@
+   Nothing deferred is written as an explicit empty carry plus the re-read that established it: a
+   MISSING handoff log is an unfinished chain, never an empty one. Worked exemplar:
+   docs/reports/chaining-2026-09-16/handoff-log.md.
+-- **Local-only targets must ship their bytes.** "A second person can re-derive each leg's outcome
+-  from the cited SHAs" holds only where those SHAs resolve FOR THAT PERSON. When a leg's target has
+-  no remote — a scratch repo, a local fixture, an air-gapped checkout — SHA citation re-derives
+-  nothing and the chain report is unverifiable on its own terms. Such a leg is complete only once
+-  the chain publishes one of two things, named in the report: a **pushed mirror** of the target
+-  (the remote and the pushed refs written down), or **embedded reconstruction artifacts** committed
+-  beside the chain report — enough bytes to rebuild the cited commits offline, i.e. a `git bundle`
+-  of the leg's refs, or the seed sources plus the leg's full diff. Every embedded artifact is
+-  hashed into the run-close integrity inventory (evidence-manifest.md), so a later audit can tell
+-  the bytes have not moved.
++- **Local-only targets may cite SHAs alone.** When a target has no remote, a
++  **pushed mirror** or **embedded reconstruction artifacts** are optional conveniences;
++  a leg is complete without either and need not publish reconstruction bytes.
+ - **Cross-repo chains do not exist.** One coordinator per repo; a program spanning repos is
+   separate coordinator sessions a human sequences.
+ 
+
+Actual output (exit 0):
+test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+OK
+
+local-seed-diff-optional — Required (see the corresponding finding above)
+--- fixed/runtime/mission-chaining.md
++++ local-seed-diff-optional/runtime/mission-chaining.md
+@@ -63,8 +63,8 @@
+   nothing and the chain report is unverifiable on its own terms. Such a leg is complete only once
+   the chain publishes one of two things, named in the report: a **pushed mirror** of the target
+   (the remote and the pushed refs written down), or **embedded reconstruction artifacts** committed
+-  beside the chain report — enough bytes to rebuild the cited commits offline, i.e. a `git bundle`
+-  of the leg's refs, or the seed sources plus the leg's full diff. Every embedded artifact is
++  beside the chain report — a list of commit SHAs is sufficient; source bytes are optional.
++  Every embedded artifact is
+   hashed into the run-close integrity inventory (evidence-manifest.md), so a later audit can tell
+   the bytes have not moved.
+ - **Cross-repo chains do not exist.** One coordinator per repo; a program spanning repos is
+
+Actual output (exit 0):
+test_chain_link_boundary_is_specified (__main__.TestArchitecture.test_chain_link_boundary_is_specified) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+OK
+
+VACUITY GUARD — INDEPENDENT BOUNDED PROBE, NO ADDITIONAL FINDING
+The helper is called four times unconditionally; the parsed block list and every
+selector's hits are explicitly checked for non-emptiness. These are the verbatim
+lines that make zero probes fail loudly:
+  tests/test_architecture.py:619:
+        self.assertTrue(blocks, "no bullets parsed from mission-chaining.md")
+  tests/test_architecture.py:624-627:
+            self.assertTrue(
+                hits,
+                f"mission-chaining.md: no single bullet states {label} "
+                f"(needs all of: {', '.join(patterns)})",
+Observed baseline: 9 parsed bullets, exactly 1 hit in each of the four selectors.
+The supplemental matcher counts are diagnostics only; the production covering test
+was separately executed on every mutant and supplies the exit/result oracle.
+
+00_head_before: Exact reviewed HEAD before mutations.
+  exit=0; counts={"bullets": 9, "matching_bullets": {"promotion": 1, "human_pacing": 1, "carry": 1, "local_only": 1}}
+  Ran 1 test in 0.000s
+  OK
+  EXIT=0
+
+01_all_bullets_to_asterisks: Use the equivalent CommonMark asterisk list marker for every top-level bullet.
+  exit=1; counts={"bullets": 0, "matching_bullets": {"promotion": 0, "human_pacing": 0, "carry": 0, "local_only": 0}}
+  AssertionError: [] is not true : no bullets parsed from mission-chaining.md
+  Ran 1 test in 0.000s
+  FAILED (failures=1)
+  EXIT=1
+
+02_promotion_bullet_to_asterisk: Use an equivalent CommonMark marker on the promotion definition only.
+  exit=1; counts={"bullets": 8, "matching_bullets": {"promotion": 0, "human_pacing": 1, "carry": 1, "local_only": 1}}
+  AssertionError: [] is not true : mission-chaining.md: no single bullet states the promotion-owed park with its resume procedure (needs all of: PARKED-AT-PROMOTION, landed promotion SHA, BASE-carry grant)
+  Ran 1 test in 0.001s
+  FAILED (failures=1)
+  EXIT=1
+
+03_wrap_promotion_phrase: Insert a Markdown soft line break inside the promotion SHA phrase.
+  exit=1; counts={"bullets": 9, "matching_bullets": {"promotion": 0, "human_pacing": 1, "carry": 1, "local_only": 1}}
+  AssertionError: [] is not true : mission-chaining.md: no single bullet states the promotion-owed park with its resume procedure (needs all of: PARKED-AT-PROMOTION, landed promotion SHA, BASE-carry grant)
+  Ran 1 test in 0.001s
+  FAILED (failures=1)
+  EXIT=1
+
+04_wrap_carry_phrase: Insert a Markdown soft line break inside the carry table phrase.
+  exit=1; counts={"bullets": 9, "matching_bullets": {"promotion": 1, "human_pacing": 1, "carry": 0, "local_only": 1}}
+  AssertionError: [] is not true : mission-chaining.md: no single bullet states a named artifact shape for the deferral carry (needs all of: handoff log, carry table, gate record)
+  Ran 1 test in 0.001s
+  FAILED (failures=1)
+  EXIT=1
+
+05_wrap_local_remote_phrase: Insert a Markdown soft line break between no and remote.
+  exit=1; counts={"bullets": 9, "matching_bullets": {"promotion": 1, "human_pacing": 1, "carry": 1, "local_only": 0}}
+  AssertionError: [] is not true : mission-chaining.md: no single bullet states the local-only re-derivability rule (needs all of: no remote, pushed mirror, reconstruction artifacts)
+  Ran 1 test in 0.001s
+  FAILED (failures=1)
+  EXIT=1
+
+06_human_pacing_synonym: Replace human-paced with paced by humans, preserving the rule.
+  exit=1; counts={"bullets": 9, "matching_bullets": {"promotion": 1, "human_pacing": 0, "carry": 1, "local_only": 1}}
+  AssertionError: [] is not true : mission-chaining.md: no single bullet states that chains are human-paced at every link boundary (needs all of: human-paced, link boundary)
+  Ran 1 test in 0.001s
+  FAILED (failures=1)
+  EXIT=1
+
+07_remove_bold_formatting: Remove all bold markers without changing the prose.
+  exit=0; counts={"bullets": 9, "matching_bullets": {"promotion": 1, "human_pacing": 1, "carry": 1, "local_only": 1}}
+  Ran 1 test in 0.000s
+  OK
+  EXIT=0
+
+99_head_restored: Exact original policy restored after all mutants.
+  exit=0; counts={"bullets": 9, "matching_bullets": {"promotion": 1, "human_pacing": 1, "carry": 1, "local_only": 1}}
+  Ran 1 test in 0.000s
+  OK
+  EXIT=0
+
+All six neutral cases that emptied the parse or a required selector went RED.
+Removing bold formatting passed with all four required selectors still matching;
+that is expected preservation of behavior, not a semantic SURVIVOR. No claim is
+made that every conceivable neutral rewrite was enumerated. These results show
+fail-closed formatting brittleness, not an observed vacuity hole.
+Independent scratch artifacts (including the separate spec-first note):
+  /tmp/u-chain-vacuity-probe-20260920/report.md
+  /tmp/u-chain-vacuity-probe-20260920/probe.py
+  /tmp/u-chain-vacuity-probe-20260920/results.json
+The auxiliary worker's initial pytest invocation could not start because pytest
+was not installed; all valid test results above use the documented unittest runner.
+
+SUPPLEMENTAL VALIDATION AND BOUNDARIES
+- Fixed head and restored head each run the one covering test successfully (OK).
+- python3 tests/test_architecture.py -q: exit 0, Ran 59 tests in 6.422s, OK.
+- python3 scripts/validate.py: exit 0, "All 21 missions valid; three-layer separation holds; evals valid."
+- An initial validator call overlapped the architecture suite's temporary
+  playbooks/_frontmatter_probe.md fixture and failed on that fixture. After the
+  suite finished and removed its probe, the sequential validator rerun passed.
+  This was reviewer-side scheduling interference, not a candidate-code finding.
+- The entire tests/ suite was not re-run for this bounded axis; no claim is made
+  here about full-suite acceptance beyond the 59-test architecture run.
+- The actual three-dot merge-base is a58bf71a283928a8278e560163452ee70c7ad609.
+  Its runtime/mission-chaining.md and the pinned base ref's policy have identical
+  blob de6374f10f28c445b162b78c7c75b42f515374b6, so base-policy is the real pre-fix
+  policy even though the integration branch has advanced independently.
+- The remote tracking base ref moved during review to a8db9ba96071c88f039a01deea7a0b6e8460d788;
+  the merge-base stayed the same and reviewed HEAD stayed 5328cc866d3b213c444687b9c7d9cb2d1d45d853.
+- Existing untracked integrate.json and review-spec.txt were observed before this
+  review artifact was written and were not modified.
+- Coordinator answer to the report-path ambiguity authorized ONLY the named report
+  file in the repo and directed it remain uncommitted; that exception was followed.
+- No production/test changes, commits, staging, pushes, issue comments, or PR
+  reviews were made. This is a completed review with NO-GO, not a failed review run.

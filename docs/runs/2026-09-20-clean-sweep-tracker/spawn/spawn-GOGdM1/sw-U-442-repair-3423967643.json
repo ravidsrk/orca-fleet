@@ -1,0 +1,19 @@
+{
+  "id": "5dc13a37-35a2-48b3-b502-258efdc703ab",
+  "ok": true,
+  "result": {
+    "terminal": {
+      "handle": "term_25c63842-5ed2-485f-b267-5d5a0d35a8c2",
+      "tabId": "60beb523-fbc2-4a6b-80d5-a5d6f610c0b5",
+      "worktreeId": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/u-442",
+      "title": "U-442 repair",
+      "executionHostId": "local",
+      "incarnationId": "bef7ba96-5338-4591-9426-76fdaf3b9d66",
+      "hostPlatform": "darwin",
+      "surface": "visible"
+    }
+  },
+  "_meta": {
+    "runtimeId": "0e3d77f3-b0e7-4aa1-a21d-a960aa212104"
+  }
+}

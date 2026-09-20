@@ -1,0 +1,320 @@
+U-442 ROUND 3 FINAL — SPEC review
+Status: FINAL — NO-GO — 0 Critical, 1 Required, 0 Nit, 0 Optional, 0 FYI.
+Axis: SPEC only. Permission: report-only; no commits.
+Source: docs/runs/2026-09-20-clean-sweep-tracker/build-u442-r3.md, H-1..H-7;
+round-2 motivating findings from review-spec-r2.txt, review-tests-r2.txt, verdict-review-r2.md.
+
+EXECUTIVE SUMMARY
+H-1 and H-3..H-7 are closed at c1d1e59c. The restored timeout, corrected pinned-escape
+fixtures, one-flag authority cases, divergent HEAD/base symbol cases and covered fail-closed
+branch meet their acceptance shapes. All six targeted r3 mutants die on the intended assertions.
+H-2 supplies genuine refreshed on-branch receipts, including an exit-0 full suite, and all 26
+artifact hashes match. Its newly rewritten manifest nevertheless cannot pass the existing
+proof-command admission gates: negative_control.command omits -v while the corresponding
+green receipt includes it, and none of the other receipts matches. This is S3-R1, Required;
+no coordinator command can reconcile the package unchanged. Independent clean-clone checks
+at requested head pass 1733 tests, validation and the floor guard (6 waived). No scope creep
+or additional production defect was found. The final-round outcome is NO-GO; the coordinator
+owns parking/gating. Only this uncommitted report was authored in the source checkout.
+
+BLIND-FIX EXPECTATIONS — recorded 2026-09-20 between 10:44:03 and 10:45:14 UTC,
+BEFORE opening any r3 diff (bounds from the two surrounding clock tool receipts)
+H-1 (high confidence): tests/test_verify.py must inventory the actual escaped path referenced
+by negative_control.artifact in each outer/nested symlink fixture, with its real content hash.
+The ordinary command artifact must remain pinned too; a diagnostic-only missing-pin refusal
+is insufficient. This is fixture correction, not an authority relaxation in verify.py.
+H-2 (high confidence): manifest.json must bind an actual post-r2 implementation commit on
+u-442, with refreshed intent, addressed acceptance criteria, lighting=lit, and durable hashed
+evidence-run receipts for the cross-root regressions, test_verify module, and exit-0 full suite.
+Receipt head/tree identifiers must resolve and match that implementation; output artifacts must
+rehash. A later evidence-only commit need not impossibly self-hash, but code/test drift from
+the receipt SHA cannot be excused as evidence-only lag. Inventory must include round-2 artifacts.
+H-3 (high confidence): the selected-root symbol grep should explicitly receive timeout=20,
+preserving the previous no-flag allowance without losing _git routing or changing other Git
+timeouts. A boundary regression may pin the actual timeout argument rather than sleep 11s.
+H-4 (high confidence): submitted collision tests must independently exercise only --git-dir B
+from A and only --evidence-root A from B. With a colliding tracked blob and artifacts=[], each
+must refuse for absent evidence authority. These must detect changing the no-flags AND to OR.
+H-5 (high confidence): both escaping and ordinary pins must be supplied in otherwise valid
+outer and nested manifests. The nested selected root needs its own readable contract and
+ordinary artifact. Correct code refuses containment; an inventory-pin containment bypass
+must alter the verdict. This completes the H-1 acceptance shape, not just its text assertion.
+H-6 (high confidence): two asymmetric origin/main-versus-local-HEAD fixtures should separate
+symbol existence on the target base from existence at HEAD, preserving valid ancestry and
+manifest bindings. HEAD-only refuses; base-only succeeds after a later HEAD deletes it.
+H-7 (high confidence): remove the suppression from _roots_are_split, add an OSError-on-resolve
+regression that asserts True, and verify a green floor guard with documented coordinator
+archival-quotation waivers. A waiver of the live production branch is not closure.
+Scope (high confidence): only the timeout restoration and suppression removal should alter
+production; new tests, evidence, required generated badge updates, and base merges are allowed.
+No new flags, unrelated behavior, or PR actions. Existing round-2 root authority must survive.
+
+PIN OBSERVATION
+Requested reviewed_sha: c1d1e59c50558e81da15faf4a0f885b96f6e20d2.
+Initial worktree HEAD: f0fe3fc0b0c0a237998090c19a9a4bb1f35f5bc5.
+The latter commit is titled 'docs(reports): U-442 round-3 integration receipt'; its actual
+delta will be inspected before deciding whether to re-pin. No r3 diff was read before the
+expectations above were written.
+
+PINNED REVIEW
+head_sha = reviewed_sha = c1d1e59c50558e81da15faf4a0f885b96f6e20d2 (the requested head).
+reviewed_wtree = 052312989c849968a2f4a241ff8a7362b9eafe41.
+Fixed-point ref snapshot: origin/review/2026-09-20-tracker-sweep =
+20d046369337a0c44bfe993fb98cfa6fbbfeefae; merge-base with reviewed_sha =
+db1b72bc37770666bbea4f664f0ecc9d95caffcf. The three-dot diff is non-empty.
+Round-3 focused delta: round-2 reviewed 50788bf24a1beaa45540859ccde33b2f8b30c901
+through requested c1d1e59c, separating inherited BASE/run records from implementation changes.
+The entire c1d1e59c..f0fe3fc0 delta was inspected: it adds only integrate-r3.json (178 lines).
+The requested SHA remains this report's fixed point; all experiments check out c1d1e59c,
+and no claims in the subsequent integrator narrative substitute for independent evidence.
+
+H-1 — CLOSED; S2-R1 fixture-pin portion answered.
+Verbatim motivating spec, build-u442-r3.md:12-13:
+  pins still name the default fixture path. Pin each manifest's artifacts[] to the artifact it
+  actually names, so the refusal cases prove the pin path too.
+The outer fixture inventories both self.nc_artifact and escape-link/nc.txt, hashing the actual
+target bytes; negative_control.artifact names that same escape-link/nc.txt. The nested fixture
+inventories both its ordinary artifact and up-link/<self.nc_artifact>, again hashing the actual
+bytes. The ordinary receipt artifact remains present. See test_verify.py:3453-3514; H-5 below
+checks that these are valid pinned-escape refusals rather than incidental missing-pin failures.
+
+H-2 — PARTIAL / NOT CLOSED; receipt freshness is repaired, but S3-R1 below blocks the
+refreshed manifest as a usable closure artifact.
+Verbatim motivating spec, build-u442-r3.md:16-18:
+  at the NEW head: evidence-run.py receipts for the r2 regression set, the full test_verify
+  module, and the full suite (exit 0), new head_sha, criteria all addressed, refreshed intent,
+  artifact inventory including round2 files. This is the closure artifact the verifier reads.
+The manifest now names cd07307e93a6c0bd7a30299aa89411a18417ac72, a real implementation
+commit on the reviewed branch, with tree eff649648eca87b0c9fb04fdb84f9d10601c4c19.
+Both base_sha -> manifest head and manifest head -> reviewed_sha ancestry checks exit 0.
+All four commands[] records carry that exact commit/tree and exit 0; each literal command's
+SHA-256 rehashes to its recorded cmd_sha256. Their artifacts contain the corresponding success:
+  tests: python3 -m unittest discover -s tests -p test_verify.py; 274 tests, OK.
+  unit-scope-tests: python3 -m unittest tests.test_verify.CrossRepoRoots -v; 27 tests, OK.
+  validate: python3 scripts/validate.py; All 21 missions valid.
+  full-suite: python3 -m unittest discover -s tests; 1733 tests, OK.
+All 26 artifacts[] entries rehash against committed blobs at reviewed_sha with zero mismatches;
+the inventory includes the round-2 reports/reviews/verdicts/integration/mutants and r3 replay.
+AC-1..AC-4 all have addressed:true; lighting is lit; intent names the timeout restoration,
+authority/confinement regressions and covered fail-closed branch. cd07307e..c1d1e59c changes
+only documentation/evidence/governance: no production or test drift from the receipt SHA.
+This is legitimate evidence-commit lag, unlike round 2's receipts for the old implementation.
+However, the new negative_control.command matches none of those fresh receipts; naming any
+recorded command instead disagrees with negative_control.command. See S3-R1.
+An internal read-only helper independently checked the same Git objects, ancestry, command
+hashes and 26 inventory hashes; I also re-derived those bindings locally.
+
+H-3 — CLOSED; S2-R3 answered.
+Verbatim motivating spec, build-u442-r3.md:21-24:
+  change, reproduced by the reviewer. Pass the legacy timeout explicitly (20s) on that leg so
+  the no-flag path is byte-identical in timing contract as well as output. Add the reviewer's
+  repro as a regression assertion where feasible (or document why timing isn't assertable and
+  pin the constant by test instead).
+Verbatim implementation, verify.py:1758:
+    code, out = _git(["grep", "-l", "-e", symbol, f"origin/{base}"], timeout=20)
+_git still supplies the selected Git root and forwards timeout to _run/subprocess. _run's
+legacy default remains 20, while other _git calls retain their existing 10-second default.
+test_the_symbol_grep_keeps_the_legacy_twenty_second_budget runs without either root flag,
+records the actual argument reaching _run, and compares it with the legacy default; its
+docstring explains using an argument assertion instead of a slow 11-second fixture. This
+matches the spec's expressly permitted alternative. No conflict with selected-root timing.
+
+H-4 — CLOSED; R2-T1 answered, including the same-repository nested-root gap it named.
+Verbatim motivating spec, build-u442-r3.md:27-29:
+  reviewer's two collision probes as regression tests: invoked from A with only --git-dir B,
+  and from B with only --evidence-root A — a colliding tracked blob with NO artifacts[] pin
+  must be REFUSED in both (the `and`→`or` mutant in `_roots_are_split` dies).
+The two named one-flag tests create colliding tracked evidence in B, set artifacts=[] and
+invoke in exactly the two requested cwd/flag combinations; each requires exit 2 and the
+unpinned-evidence cause. The third test places the SHA history and nested evidence root in
+one repository, preserving a tracked enclosing-root collision but no inventory pin. It also
+requires refusal. These are real Git/file fixtures, with no root-classification stub.
+
+H-5 — CLOSED; S2-R1 and R2-T2 fully answered.
+Verbatim motivating spec, build-u442-r3.md:31-34:
+  BOTH the ordinary artifact pin AND a pin for the escaping path supplied, otherwise valid
+  evidence → REFUSED; and prove an inventory pin can NEVER override confinement (the N5
+  mutant dies). The nested-root fixture gets its selected-root contract and ordinary command
+  artifact restored.
+Beyond H-1's correct pins, the nested test writes contract.md and the command's ordinary
+artifact beneath the selected nested root, updates the authoritative contract digest, and
+uses that root in the invocation. Both fixtures require exit 2 and the canonical escape
+diagnostic, and reject an unpinned-evidence diagnostic; the nested case also excludes an
+unreadable-contract diagnostic. The production containment branch is unchanged by r3.
+
+H-6 — CLOSED; R2-T3 answered.
+Verbatim motivating spec, build-u442-r3.md:36-38:
+  fixtures: a symbol present ONLY on local HEAD (absent from origin/<base>) must NOT satisfy
+  the check; a symbol present on origin/<base> but deleted in a later local HEAD MUST still
+  be found (the grep-ref→HEAD mutant dies).
+The HEAD-only fixture pins origin/main at the manifest's head, then commits ONLY_ON_LOCAL_HEAD
+in a later B commit and requires refusal. Its inverse leaves def f on origin/main but removes
+it from later local HEAD and requires success. Thus ancestry/manifest validity stays constant
+while symbol presence at the two refs diverges. The previous opposite-A/B repository cases
+remain intact, so this addition pins the reference without replacing repository coverage.
+
+H-7 — CLOSED; production guard hold and archival waivers answered.
+Verbatim motivating spec, build-u442-r3.md:43-47:
+  cover the branch (mock `Path.resolve` to raise OSError; assert fail-closed True) and DELETE
+  the pragma. For the two report files the coordinator records DECISIONS floor-waivers
+  (archival-quotation class, 2026-09-17 precedent) — the worker only verifies
+  `python3 runtime/scripts/floor_guard.py` (or the repo's guard command) is green after the
+  code fix + waivers.
+verify.py:209 is now simply `except OSError:` followed by `return True`. The new test
+test_an_unresolvable_root_fails_closed_to_split supplies both roots, patches Path.resolve to
+raise OSError(ELOOP), and directly asserts True from _roots_are_split. No production waiver
+was added. docs/DECISIONS.md:61-63 contains coordinator archival-quotation waivers for the
+two named r2 verdict files and the separately discovered integrate-r2.json quotation.
+The builder's round3.md honestly predates those waivers; its then-red guard statement is
+historical, not a current guard verdict. The authoritative final guard run is recorded below.
+
+SCOPE
+Verbatim motivating spec, build-u442-r3.md:54:
+  - non-goals: no behavior change beyond H-3's restoration; no new flags; no PR action.
+The r3 implementation commit cd07307e changes only verify.py, test_verify.py and the test
+badge. Production changes are exactly the explicit timeout and coverage-suppression removal.
+The two corrected fixtures, seven new regressions and inspect import meet the named fixes.
+The badge's 1726 -> 1733 count follows the seven added tests. All other r3 unit-authored
+changes are report/evidence files; intervening BASE merges account for the run records,
+frozen batch specs and coordinator waivers. No additional runtime, dependency, schema, flag
+or policy behavior was introduced. The broader generated docs and width test belong to
+earlier reviewed rounds, not new r3 scope.
+
+BOUNDARY OF THIS VERDICT
+This is the H-1..H-7 SPEC closure verdict, not a fleet-completion/merge authorization.
+selfcheck-r3.txt reports exit 2 for missing authoritative criterion IDs and the missing
+local review record; it also explicitly reports four FRESH command receipts. I do not
+reinterpret that self-check as a passing final verifier or manufacture the coordinator's
+review/contract attestation. Those already-recorded workflow gates are outside the frozen
+r3 corrections and are not re-opened as findings here. The new proof-command mismatch in
+S3-R1 is distinct: the r3 manifest introduces it, and it independently blocks admission
+even if the coordinator supplies a valid contract and review record.
+Greptile's status is supplied task context, not a status I independently queried.
+
+REQUIRED FINDING
+
+S3-R1 — Required — Refreshed H-2 manifest cannot satisfy both proof-command admission gates.
+Confidence: high; independently reproduced in scratch and confirmed by the read-only helper.
+Verbatim motivating spec, build-u442-r3.md:18:
+  artifact inventory including round2 files. This is the closure artifact the verifier reads.
+Verbatim changed artifact line, docs/reports/u-442/manifest.json:132:
+      "cmd": "python3 -m unittest tests.test_verify.CrossRepoRoots -v",
+Verbatim conflicting changed artifact line, docs/reports/u-442/manifest.json:205:
+    "command": "python3 -m unittest tests.test_verify.CrossRepoRoots",
+
+The refreshed green class receipt includes -v; negative_control.command omits it. None of
+the other three fresh receipts names the latter command either. With the latter supplied as
+--nc-command, check_commands refuses because no fresh exit-0 receipt records that exact
+normalized command. Supplying the recorded command WITH -v passes check_commands but fails
+check_replay_request/_nc_command, because the manifest names a different command. The same
+failure applies to each other recorded command. No coordinator command can satisfy BOTH
+existing checks without changing this manifest/evidence package.
+
+This is a new artifact regression, not an inherited contract/review gate: the prior manifest
+at 50788bf2 nominated `python3 -m unittest tests.test_verify` and carried a matching exit-0
+tests receipt. The old receipt was stale for the new implementation (S2-R2); r3 repairs that
+freshness and inadvertently removes command agreement. The unqualified FRESH message in
+selfcheck-r3.txt did not test this obligation because that invocation omits --nc-command.
+Whether -v changes unittest's semantics is irrelevant to this deliberately exact argv gate.
+Both admission checks run before any control worktree or command executes, at verify.py:2047
+and :2053; the first gate cannot be rescued by an eventual successful test execution.
+
+Independent reproduction at c1d1e59c (no source edit or control execution needed):
+  m = json.loads(Path('docs/reports/u-442/manifest.json').read_text())
+  verify.check_commands(m, True, m['negative_control']['command'])
+Result, verbatim excerpt:
+  commands ledger: fresh exit-0 record(s) exist, but none is the coordinator-named proof command 'python3 -m unittest tests.test_verify.CrossRepoRoots'
+Then `verify.check_replay_request(m, True, True,
+  'python3 -m unittest tests.test_verify.CrossRepoRoots -v')` returns, verbatim:
+  --execute-nc: negative_control.command 'python3 -m unittest tests.test_verify.CrossRepoRoots' is not the command the coordinator supplied out of band ('python3 -m unittest tests.test_verify.CrossRepoRoots -v') — a unit does not get to choose what proves it; fail-closed
+All five candidate commands (manifest nomination + four receipts) were evaluated; zero passed
+both gates. Durable scratch result: manifest-replay-admission.json, inventory below.
+
+Required correction: record the exact coordinator-authorized proof command through
+evidence-run.py at the pinned implementation head, keep negative_control.command and its
+fresh receipt in agreement, and inventory that actual output. Recheck with --nc-command.
+No verifier weakening is required or authorized. This final-round report applies NO-GO;
+the coordinator owns the round-limit parking/gate decision, not another silent repair loop.
+
+INDEPENDENT EXECUTED ACCEPTANCE CHECKS
+All execution used scratch clones at requested reviewed_sha; the source checkout was not
+mutated. Scratch root:
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-spec-r3-4of6yzej
+The `repo/` clone runs the suite/gates; the separate `controls/` clone runs the named controls.
+Unmodified CrossRepoRoots baseline: 27 tests in 6.659s, OK, exit 0.
+Each control applies exactly its before/after replacement from committed round3-mutants.json,
+then runs the listed failed_tests as tests.test_verify.CrossRepoRoots.<name>. Each replacement
+was required to occur exactly once; the original file was restored before the next case and
+at the end. No test was changed and all six results contain assertion failures, not errors:
+
+N1 one-flag AND -> OR: 3 tests, 3 failures; both one-flag cases and same-repo nested case
+  return verifier exit 0 instead of required 2. H-4 is causally covered.
+N2 collapse evidence subroot to repository root: 1 test, 1 failure; exit 0 instead of 2.
+N4 symbol grep uses HEAD: 2 tests, 2 failures; base-only falsely refuses (2 != 0), and
+  HEAD-only falsely accepts (0 != 2). H-6 is causally covered in both directions.
+N5 inventory pin overrides containment: 2 tests, 2 failures; BOTH nested and outer pinned
+  escape fixtures now return 0 instead of 2. This independently establishes H-1/H-5's
+  otherwise-valid acceptance shape; no missing-pin or missing-contract error masks the escape.
+N6 omit restored timeout: 1 test, 1 failure; actual [10] differs from legacy [20].
+N7 OSError handler fails open: 1 test, 1 failure; False is not true.
+The controls clone ends clean. These are independent targeted replays of all six r3 controls,
+not a claim that I re-ran the builder's nine r2 mutants or the other review axes.
+
+Scratch evidence SHA-256 inventory (filenames relative to the scratch root above):
+b1e223497ce7fef2c52bb36854af81aebe0aa2700201abc4058a275c700c1833  baseline.log
+6896e4c0208d65b2b00a12c172e310058b6a75117b37e299f3d9d81c3bfb6e74  N1_one_flag_is_not_a_split.log
+5186eed0624c20c91e060f192034ec76a045776fa7c31b09dfa3644408ddd445  N2_repo_identity_loses_the_named_root.log
+cfb487210ccda480d8f9109f069fd75caa5d1b7875bec8deebafddaf0ca26ee9  N4_symbol_grep_reads_head_not_base.log
+987458dbcefe4a3f9a1674bf0b483fec7b5d45c546586497466c3a2fa4d47ae5  N5_inventory_pin_overrides_containment.log
+9227794627750b1a9d5a325a1d0bee4734212c5a58bdf30b7b805d831f0ef513  N6_symbol_grep_loses_the_legacy_clock.log
+2d481ca63cc9be2c4cb9bca257cf0525a8cd5eec694cd2f3f63b3f0ef38e955b  N7_unresolvable_root_fails_open.log
+81a7e1bff8a30d031aa3fab20584103e6004c68666fc922ab9cab3a1d3d6e11a  controls.json
+fd275a4b73527fbc43f60ce3257e2bee29c3e8bd55ec44965ad74f769ba7cf79  manifest-replay-admission.json
+
+CLEAN-CLONE GATES AT REVIEWED_SHA
+python3 -m unittest discover -s tests:
+  exit 0; Ran 1733 tests in 317.483s; OK.
+python3 scripts/validate.py:
+  exit 0; All 21 missions valid; three-layer separation holds; evals valid.
+python3 runtime/scripts/floor_guard.py --base db1b72bc37770666bbea4f664f0ecc9d95caffcf:
+  exit 0; floor-guard: clean (6 waived).
+git diff --check db1b72bc...c1d1e59c: exit 0.
+The suite/gates clone ended clean; the control clone also ended clean.
+Additional scratch inventory:
+36c247f3965c894aaffaaa53b35445efcf27e2f71c53341d77107f1c6a9ffb71  full-suite.log
+90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6  validate.log
+9d1d11dd98c79fed98e75f3e756d8e7a27e4d191cfab665bbc1da34faf96c228  floor-guard.log
+ca8f022019587d3551ae7000d7458ada0476fe7603632c9dea7433f6d1c85cc6  checks.json
+
+REPORT-ONLY MANIFEST FRAGMENT
+{
+  "unit": "U-442",
+  "unit_class": "report-only",
+  "axis": "SPEC",
+  "round": 3,
+  "base_sha": "db1b72bc37770666bbea4f664f0ecc9d95caffcf",
+  "head_sha": "c1d1e59c50558e81da15faf4a0f885b96f6e20d2",
+  "reviewed_sha": "c1d1e59c50558e81da15faf4a0f885b96f6e20d2",
+  "reviewed_wtree": "052312989c849968a2f4a241ff8a7362b9eafe41",
+  "verdict": "NO-GO",
+  "critical": 0,
+  "required": 1,
+  "nit": 0,
+  "optional": 0,
+  "fyi": 0,
+  "finding_ids": ["S3-R1"],
+  "closed": ["H-1", "H-3", "H-4", "H-5", "H-6", "H-7"],
+  "partial": ["H-2"],
+  "negative_control": {
+    "kind": "source-binding",
+    "result": "Every motivating finding quote re-read from Git blobs at reviewed_sha; all exist."
+  }
+}
+
+FINAL BOUNDARY CHECK
+Completed 2026-09-20 approximately 10:51 UTC, within the 30-minute timebox; no partial STOP.
+The source HEAD remains f0fe3fc0, with only its previously inspected integration-report
+addition beyond the requested c1d1e59c. No tracked source edit, staging, commit, PR action,
+or repair was performed. This review wrote only review-spec-r3.txt; the other axes' untracked
+reports were not read or modified. All test/control processes have completed. Scratch logs,
+receipts and clean clones remain at the named external path for reproduction.
