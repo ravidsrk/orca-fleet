@@ -378,6 +378,19 @@ BOOTSTRAP: preflight --base review/2026-09-20-tracker-sweep --fork-point e8ddbd9
   probe-fired). Then: targeted blind re-review (codex, one per unit, scoped to the
   repair commits only) → conductor merges → closes.
 
+- 20:3x REPAIRS DONE + harvested: U-442 (worker_done msg_3d692f41ec2b): 5 trailer-free
+  commits, scope tests+evidence only (verify.py UNTOUCHED), one agreed proof command
+  ('python3 -m unittest tests.test_verify.CrossRepoRoots' carried by both nc.command and
+  an exit-0 receipt), 5 stale refs re-pointed to r3 bytes, 3 killing tests + probe-FIRED
+  assertion. U-CHAIN (worker_done msg_d009b30ddf79): 4 trailer-free commits (merge,
+  9b196bf2 R-1+R-3, 9622a242 R-2, b976df56 evidence); skip-guard = GREEN only on ≥1
+  executed AND zero skips + a selftest running a real skip-producing module; manifest
+  re-bound to 1635b27f (on-branch). Both branches pushed (egress 0126c6cb:
+  1e2f099b..b976df56, cb5a95c4..85a1e797). TARGETED re-review dispatched (codex, scoped
+  to repair commits only — the G1-b/G2-b grant): U-CHAIN term_e74203f5/task_6d74187e0783,
+  U-442 term_35beb831/task_92b0bcbf0011. Process note: delivery_fb3706416306 was acked
+  one window late (missed ack, replay matched transcripts, no double-action).
+
 BRANCHES: local worktree checkouts carry the `ravidsrk/` prefix mapping to the unit tips
 (ravidsrk/u-chain, ravidsrk/u-442). Not drift — do not "fix".
 
