@@ -73,7 +73,8 @@ one unit or park; no id without a unit; no unit without an id.
 | — | #409 | harden-it self-run promotion | out-of-scope | — | — | — | — | — | — | — | out-of-scope: harden-it mission run + human PoC gate | issue re-scope comment |
 | — | #427 | Orca re-pin cadence | out-of-scope | — | — | — | — | — | — | — | out-of-scope: pin-it, trigger not fired (patch bump rides; 2026-12-16) | issue trigger rules |
 | — | #434 | proof-ladder diagram regen | needs-human | — | — | — | — | — | — | — | needs-human: provider render key secret absent (gh secret list empty) | gate comment + probe |
-| U-CHAIN | #441 #443 #444 | mission-chaining: promotion lane terminal, deferral-carry shape, local-only re-derivability | real-feature-small (doctrine) | f | f | f | f | f | f | lit | — | — |
+| U-CHAIN | #441 #443 #444 | mission-chaining: promotion lane terminal, deferral-carry shape, local-only re-derivability | real-feature-small (doctrine) | f | f | f | f | f | f | lit | — | head 315ad409 on ravidsrk/u-chain; AC-3 blocked by run-own regressions (STAB-2) |
+| STAB-2 | — | repair 5 suite regressions from STABILIZE (index row + README rewire) | conductor landing, worker-executed | f | n/a | n/a | n/a | f | f | lit | — | spec build-stab2.md |
 | U-442 | #442 | verify.py cross-repo evidence root (--git-dir/--evidence-root split) | real-feature-small (tooling) | f | f | f | f | f | f | lit | — | — |
 
 ## Loop log
@@ -118,6 +119,20 @@ one unit or park; no id without a unit; no unit without an id.
   then removed, worktree rm OK, branch u-chain carried no commits (rm cleaned it). Acked.
 
 BOOTSTRAP: preflight --base review/2026-09-20-tracker-sweep --fork-point e8ddbd988486 --require-gitleaks → OK (repo=ravidsrk/orca-fleet). BASE ≠ default; fork-point == merge-base(BASE, origin/main).
+
+- 07:1x DELIVERY delivery_62cf294b1cdc (5 msgs, transcribed+acked): U-CHAIN ESCALATION
+  msg_a75b2c0447b5 — build complete/green on owned criteria but AC-3 (full suite green)
+  unmeetable: 5 tests RED at head 315ad409 AND at BASE a58bf71a, byte-identical sets, caused
+  by STABILIZE 296f100b (run ledger missing docs/runs/README.md index row → 4 failures) +
+  3833c88e (README.md off wire_docs.py fixed point → 1 failure). Builder correctly STOPPED
+  (out of its scope). COORDINATOR REPRODUCED: 39 tests OK at e8ddbd98 (origin/main), 5 RED
+  at a58bf71a (/tmp/verify-stab detached worktree, whole output captured). Run-own regression
+  → STAB-2 frozen (build-stab2.md), task_86f696b9efc8, worktree stab-2 (ravidsrk/stab-2),
+  dispatched custom-argv claude: HANDLE term_1464f749-d82e-49c9-8f41-df7a976cb7b3,
+  dispatch ctx_62655b197318 (UNPROVEN exit 3 → pane read: live mid-turn, bypass on). Chose
+  escalation's option (b): repair BEFORE U-CHAIN lands; U-CHAIN worker_done under (a) with
+  AC-3 parked 'no new red' is accepted for harvest, but CLOSE requires the suite green at
+  the merge tip — STAB-2 lands first.
 
 BRANCHES: local worktree checkouts carry the `ravidsrk/` prefix mapping to the unit tips
 (ravidsrk/u-chain, ravidsrk/u-442). Not drift — do not "fix".
