@@ -1,0 +1,101 @@
+{
+  "id": "a96dd409-24b1-44d7-bf66-76b59c5d23db",
+  "ok": true,
+  "result": {
+    "runId": "run_bec47e54b673",
+    "taskId": "task_61b5e8accc70",
+    "dispatchId": "ctx_02702604cecd",
+    "state": "ready",
+    "stage": "input_accepted",
+    "turnStart": "observed",
+    "setup": {
+      "requested": "run",
+      "effective": "run",
+      "source": "orchestration_default",
+      "hookFound": true,
+      "startupPolicy": "start-immediately",
+      "state": "running"
+    },
+    "launch": {
+      "requested": {
+        "agent": "claude",
+        "model": null,
+        "effort": null
+      },
+      "effective": {
+        "agent": "claude",
+        "model": null,
+        "effort": null
+      }
+    },
+    "mode": {
+      "mode": "terminal",
+      "preferred": "terminal",
+      "reason": "user_default",
+      "detail": "Started a terminal agent worker, the default for new agent tabs in your settings."
+    },
+    "timeoutMs": 60000,
+    "effects": [
+      {
+        "kind": "worktree",
+        "action": "created_child",
+        "id": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/U-CHAIN-builder-2649789649"
+      },
+      {
+        "kind": "terminal",
+        "role": "agent",
+        "action": "created",
+        "id": "term_51e8c532-70f5-4d58-9ec7-20fd5248292e",
+        "tabId": "3325c519-3bed-443f-841b-97d0d8d922db",
+        "leafId": "14524c09-6ba8-4602-be1e-1ec1bd11c5e0"
+      },
+      {
+        "kind": "terminal",
+        "role": "setup",
+        "action": "created",
+        "id": "term_f07309d5-98ca-4249-9ba4-d1fcd9d33564",
+        "tabId": "88aaae3e-0b89-4778-83ab-d9e88a92c5ed",
+        "leafId": "6a4907c3-0c01-48fe-991b-fbe3b49e72a7"
+      },
+      {
+        "kind": "setup",
+        "action": "run",
+        "requested": "run",
+        "effective": "run",
+        "source": "orchestration_default",
+        "hookFound": true,
+        "startupPolicy": "start-immediately",
+        "state": "running",
+        "terminalId": "term_f07309d5-98ca-4249-9ba4-d1fcd9d33564"
+      },
+      {
+        "kind": "dispatch_input",
+        "role": "agent",
+        "id": "term_51e8c532-70f5-4d58-9ec7-20fd5248292e",
+        "state": "accepted"
+      }
+    ],
+    "prompt": {
+      "requestId": "60fd0c90-99ee-4f91-9807-60aec13c68c6",
+      "stages": [
+        "input_accepted",
+        "turn_started"
+      ],
+      "provider": "claude",
+      "observation": "supported",
+      "processIncarnation": "7798793f-1133-42dd-8a55-35cf7319f8d8",
+      "generation": 2,
+      "baselineWorkingSequence": 0,
+      "baselineExplicitWorkingStartedAt": null,
+      "baselinePermissionSequence": 0
+    },
+    "residualResources": [],
+    "mutation": {
+      "requestId": "60fd0c90-99ee-4f91-9807-60aec13c68c6",
+      "replayed": false
+    }
+  },
+  "_meta": {
+    "runtimeId": "0e3d77f3-b0e7-4aa1-a21d-a960aa212104"
+  }
+}

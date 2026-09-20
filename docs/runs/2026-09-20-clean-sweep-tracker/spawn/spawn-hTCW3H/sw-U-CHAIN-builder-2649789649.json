@@ -1,0 +1,22 @@
+{
+  "id": "3186b683-d399-4e2a-bb45-09291bfaa3bb",
+  "ok": true,
+  "result": {
+    "terminal": {
+      "handle": "term_98fd0f79-9118-4cd2-b057-f955b9e85500",
+      "tabId": "10462cd6-bf1a-4ace-ac25-6334db6bca7b",
+      "paneKey": "10462cd6-bf1a-4ace-ac25-6334db6bca7b:497dd6fd-d2e3-4cdd-9db3-10dc599e58f7",
+      "ptyId": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/u-chain@@cd37251a",
+      "worktreeId": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/u-chain",
+      "title": "U-CHAIN builder",
+      "executionHostId": "local",
+      "incarnationId": "0ce16964-1c3e-4738-9c63-ef5de6b34a0e",
+      "hostPlatform": "darwin",
+      "surface": "background",
+      "warning": "Terminal term_98fd0f79-9118-4cd2-b057-f955b9e85500 is running, but Orca could not make it discoverable. Run `orca terminal focus --terminal term_98fd0f79-9118-4cd2-b057-f955b9e85500` to reveal and focus it."
+    }
+  },
+  "_meta": {
+    "runtimeId": "0e3d77f3-b0e7-4aa1-a21d-a960aa212104"
+  }
+}

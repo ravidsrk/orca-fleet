@@ -1,0 +1,19 @@
+{
+  "id": "143138c7-85e8-4aff-870c-5aade5d37734",
+  "ok": true,
+  "result": {
+    "terminal": {
+      "handle": "term_1464f749-d82e-49c9-8f41-df7a976cb7b3",
+      "tabId": "f7b3e823-4d41-495d-a7ab-c9802e3a4556",
+      "worktreeId": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/stab-2",
+      "title": "STAB-2 fixer",
+      "executionHostId": "local",
+      "incarnationId": "532bf7a6-9932-4c9c-ad03-897cc01fb4b4",
+      "hostPlatform": "darwin",
+      "surface": "visible"
+    }
+  },
+  "_meta": {
+    "runtimeId": "0e3d77f3-b0e7-4aa1-a21d-a960aa212104"
+  }
+}

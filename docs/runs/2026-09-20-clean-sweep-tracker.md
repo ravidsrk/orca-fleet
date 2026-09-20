@@ -2,7 +2,10 @@
 
 RUN: run_bec47e54b673 · COORDINATOR: term_0bae108a-5af7-4d7a-b584-67d05a2787d1 (kimi-code driving shell; coordinator terminal COORD-2026-09-20, background surface) · BASE: review/2026-09-20-tracker-sweep · FORK_POINT: e8ddbd988486694a2985822e557a382b344e2872 (origin/main at T0) · T0: 2026-09-20T06:17:18Z · SOURCE: tracker (10 open at T0: #235 #386 #407 #409 #427 #434 #441 #442 #443 #444; enumeration digest: gh-issue-list-open-count=10) · WIP: builders=2 reviewers=1
 
-PHASE: ORIENT → ENUMERATE done → TRIAGE done (incl. prior-run re-verification) → FREEZE → BOOTSTRAP
+PHASE: ORIENT → ENUMERATE → TRIAGE → FREEZE → BOOTSTRAP → BUILDING (wave 1: U-CHAIN built, integrating; U-442 building; STAB-2 fixing)
+
+Run-close integrity inventory: retained inline in the Final report section at close (this
+ledger is the living run record until then).
 
 Substrate notes: orca 1.4.204 on PATH vs pins.json live PIN v1.4.203 — patch bump, rides per #427
 trigger rules (drift NOTE, not refusal; re-witness is pin-it's loop). claude + codex CLIs on PATH
@@ -73,8 +76,9 @@ one unit or park; no id without a unit; no unit without an id.
 | — | #409 | harden-it self-run promotion | out-of-scope | — | — | — | — | — | — | — | out-of-scope: harden-it mission run + human PoC gate | issue re-scope comment |
 | — | #427 | Orca re-pin cadence | out-of-scope | — | — | — | — | — | — | — | out-of-scope: pin-it, trigger not fired (patch bump rides; 2026-12-16) | issue trigger rules |
 | — | #434 | proof-ladder diagram regen | needs-human | — | — | — | — | — | — | — | needs-human: provider render key secret absent (gh secret list empty) | gate comment + probe |
-| U-CHAIN | #441 #443 #444 | mission-chaining: promotion lane terminal, deferral-carry shape, local-only re-derivability | real-feature-small (doctrine) | f | f | f | f | f | f | lit | — | — |
-| U-442 | #442 | verify.py cross-repo evidence root (--git-dir/--evidence-root split) | real-feature-small (tooling) | f | f | f | f | f | f | lit | — | — |
+| U-CHAIN | #441 #443 #444 | mission-chaining: promotion lane terminal, deferral-carry shape, local-only re-derivability | real-feature-small (doctrine) | t | t | t | f | f | f | lit | — | PR #484 @5328cc86; Greptile 3 VALID held; suite red = STAB-2's 5, no new red |
+| STAB-2 | — | repair 5 suite regressions from STABILIZE (index row + alt-string source repair) | conductor landing, worker-executed | t | n/a | n/a | n/a | t | t | lit | — | worker 4d13c672 (3 scoped files) → merged 2f04c402 (no-ff); coordinator-verified: 39/39 named tests OK + full suite exit 0 + tree clean at tip; egress receipt 4060372a; pushed; worktree+branch retired, no stray terminals |
+| U-442 | #442 | verify.py cross-repo evidence root (--git-dir/--evidence-root split) | real-feature-small (tooling) | t | f | f | f | f | f | lit | — | head df4f524f on u-442; suite red at build time = STAB-2's 5 (BASE since greened) |
 
 ## Loop log
 
@@ -86,5 +90,120 @@ one unit or park; no id without a unit; no unit without an id.
   3833c88 on BASE review/2026-09-20-tracker-sweep (fork e8ddbd98 = origin/main at T0).
 - Prior-run post-mortem: all claims VERIFIED (subagent report in coordinator context; summary
   in "Prior-run re-verification" above). Nothing re-enters the denominator.
+- 06:36 Run materialized: run_bec47e54b673, coordinator term_0bae108a (terminal COORD-2026-09-20).
+  Tasks: U-CHAIN=task_61b5e8accc70, U-442=task_a25c91eeff96 (DAG verified: both ready, no deps,
+  no cycles, disjoint hot files — mission-chaining.md vs verify.py+tests).
+- 06:4x LANE PROBE (spawn 1, supervised worker-start, claude, PROFILE=rw): exit 5
+  LAUNCHED_UNUSABLE — launch.effective={agent,effort:null,model:null}, no args field on 1.4.204,
+  so no PROFILE flag provable (09-14 precedent on 1.4.201). Host permission mode: MANUAL
+  (agentDefaultArgs=''). Per contract: worker-stop ctx_02702604cecd (closed_agent_terminal,
+  ptyKilled) — never respawn beside it. NOTE: worker-stop settled task_61b5e8accc70 to
+  `blocked` with NO gate row (gate-list empty) — recovery: task-update --status ready
+  (recovery/override write, ledgered here). Lane decision: ALL workers via WORKER_CMD
+  custom-argv (explicit flags, coordinator-owned semantics) — 09-14 precedent.
+- 06:5x U-CHAIN BUILD dispatched: worktree u-chain (3cf2cdae::…/orca/workspaces/orca-fleet/u-chain,
+  branch ravidsrk/u-chain from BASE tip — ravidsrk/ prefix is Orca's mapping, not drift, 09-14
+  precedent) → spawn 2 custom-argv WORKER_CMD="claude --dangerously-skip-permissions"
+  ORCA_COORD_ALLOW_CMD_OVERRIDE=1: exit 3 UNPROVEN (input_accepted, no turn_started,
+  request 6ff99ef5) — pane read shows a LIVE worker mid-turn (bypass permissions on, spec read,
+  false negative, 09-14 precedent): HANDLE term_98fd0f79-9118-4cd2-b057-f955b9e85500. No resend,
+  no respawn.
+- 06:5x U-442 BUILD dispatched: worktree u-442 (branch ravidsrk/u-442) → same custom-argv lane:
+  exit 3 UNPROVEN (request ca86ab2f) — pane read shows LIVE worker mid-turn in verify.py:
+  HANDLE term_cdd92b44-5d5a-4f8d-9868-9e21d818fb7a. WIP=2 builders (attention-budget met).
+  Spec digests: build-u-chain.md sha256:87260521…, build-u442.md sha256:7498d20d… @a58bf71a.
+  Timeboxes sent to both dispatches (report-by 45min, partial-report STOP).
+- 06:57 DELIVERY delivery_6a5ff5b13e45 (4 msgs, transcribed): setup-status for the STOPPED
+  ctx_02702604cecd (historical) · heartbeats both builders (alive) · LIVE question
+  msg_2df108a4d6d0 (U-CHAIN branch ambiguity — leftover u-chain branch held by stopped spawn's
+  worktree). REPLIED (A): build on ravidsrk/u-chain in the dispatched worktree (DECISIONS
+  2026-09-20T06:57:11Z, mechanical). Leftover worktree U-CHAIN-builder-2649789649 retired:
+  terminals closed (1 stopped), untracked package.json/pnpm-lock VERIFIED npm-init boilerplate
+  then removed, worktree rm OK, branch u-chain carried no commits (rm cleaned it). Acked.
 
-BOOTSTRAP: (preflight pending)
+BOOTSTRAP: preflight --base review/2026-09-20-tracker-sweep --fork-point e8ddbd988486 --require-gitleaks → OK (repo=ravidsrk/orca-fleet). BASE ≠ default; fork-point == merge-base(BASE, origin/main).
+
+- 07:1x DELIVERY delivery_62cf294b1cdc (5 msgs, transcribed+acked): U-CHAIN ESCALATION
+  msg_a75b2c0447b5 — build complete/green on owned criteria but AC-3 (full suite green)
+  unmeetable: 5 tests RED at head 315ad409 AND at BASE a58bf71a, byte-identical sets, caused
+  by STABILIZE 296f100b (run ledger missing docs/runs/README.md index row → 4 failures) +
+  3833c88e (README.md off wire_docs.py fixed point → 1 failure). Builder correctly STOPPED
+  (out of its scope). COORDINATOR REPRODUCED: 39 tests OK at e8ddbd98 (origin/main), 5 RED
+  at a58bf71a (/tmp/verify-stab detached worktree, whole output captured). Run-own regression
+  → STAB-2 frozen (build-stab2.md), task_86f696b9efc8, worktree stab-2 (ravidsrk/stab-2),
+  dispatched custom-argv claude: HANDLE term_1464f749-d82e-49c9-8f41-df7a976cb7b3,
+  dispatch ctx_62655b197318 (UNPROVEN exit 3 → pane read: live mid-turn, bypass on). Chose
+  escalation's option (b): repair BEFORE U-CHAIN lands; U-CHAIN worker_done under (a) with
+  AC-3 parked 'no new red' is accepted for harvest, but CLOSE requires the suite green at
+  the merge tip — STAB-2 lands first.
+
+- 07:3x U-CHAIN worker_done msg_a4f3e8d7d8bf (succeeded, transcribed+acked delivery_5bf5965953b9).
+  HARVEST (coordinator, independent): 3 commits on ravidsrk/u-chain (5ecf74e5 RED test →
+  315ad409 GREEN doc → 5328cc86 evidence), author=maintainer, no trailers, tree clean; scope =
+  mission-chaining.md + test_architecture.py + badges/tests.json + docs/reports/U-CHAIN/*
+  (owned files only); manifest contract.digest == frozen spec digest 87260521… @a58bf71a,
+  5/5 criteria, NC executed (revert + 4 per-clause hand mutants, all KILLED), intent non-empty,
+  lighting=lit, suite cmd exit 1 = the 5 known STABILIZE regressions (STAB-2 repairs). Doc
+  spot-check: PARKED-AT-PROMOTION resume rule, handoff-log shape, local-only bytes clause all
+  present and substantive. BUILD_DONE=t. INTEGRATOR dispatched: task_017a294f6f1a (dep build),
+  HANDLE term_452b7a7a-997d-49c8-8381-aa1c4e24a029, dispatch ctx_bb8c5282bde1 (UNPROVEN → pane
+  live). SUBSTRATE: claude account at 79% weekly limit (pane warning) — review wave prefers
+  codex (cross-vendor, limit ended 09-19); egress standing grants recorded for the integrator
+  (base-writes + tracker-writes consent ids sent).
+
+- 07:5x DELIVERY delivery_4509bd75d780 (3 msgs): STAB-2 QUESTION msg_b7e2def2ebb1 — the two
+  named files cannot green the suite: (2) test_run_archive_integrity reads the LEDGER for
+  /integrity inventory[^.]*retained/ (the line above, added by coordinator — my freeze-time
+  omission); (3) wire_docs.py hardcodes the stale 'today every mission reads doctrine-only'
+  alt (line 27) so running it REVERTS 3833c88e's repair, and docs/concepts.md:423 carries the
+  same stale alt. REPLIED: coordinator repairs its own ledger on BASE (this edit); STAB-2
+  scope widened to wire_docs.py + docs/concepts.md — fix NEW_ALT['proof-ladder'] at source,
+  commit everything the script writes (DECISIONS x2, 07:5xZ). #434 pixel regen untouched.
+  Review-wave DAG materialized: SPEC=task_b6c94c187b09 STANDARDS=task_067ec69be832
+  TEST-ADEQUACY=task_1eba2dcf50f5 (deps: integrator task_017a294f6f1a; verdict task owed
+  after axes report).
+
+- 08:1x U-CHAIN INTEGRATED (worker_done msg_3b9623f271bf): gitleaks 0 findings on the 3-commit
+  diff; egress receipts before each write; PR #484 base=review/2026-09-20-tracker-sweep
+  head=ravidsrk/u-chain@5328cc86 (baseRefName asserted by integrator AND coordinator gh view);
+  Greptile ran t=158s: 1 P1 + 2 P2, ALL tagged VALID and HELD unfixed for the review batch
+  (P1: PARKED-AT-PROMOTION ancestry check vs leg N's own BASE is pre-satisfied + unresolvable
+  in the no-remote lane; P2s: worked-exemplar handoff-log self-describes as proposal; contract
+  test keyword co-occurrence weakness). PR_OPEN=t BOT=t (reconciled: 3 VALID held).
+  REVIEW WAVE dispatched (codex cross-vendor, gpt-6-astra, pane-verified live; claude spared —
+  79% weekly): SPEC term_1927d806/ctx_b3dc36fcf886 · STANDARDS term_83e191bd/ctx_7f47b80e2503 ·
+  TEST-ADEQUACY term_1203e16a/ctx_147ba196881c. Verdict task_b44329122b48 queued on the 3 axes.
+  Reviewer cap: 1 review unit in flight (axis fan-out exempt) — attention-budget met.
+
+- 08:5x STAB-2 LANDED. worker_done msg_720ead2853e5 (succeeded): worker's 4d13c672 touched
+  EXACTLY the 3 scoped files (wire_docs.py source string, docs/concepts.md, docs/runs/README.md
+  index row; README.md byte-identical — the script's fixed point now matches the truthful
+  committed text). BASE had moved to a8db9ba9 past the worker's 39db1cf3 merge — conductor
+  landed union merge 2f04c402 (no-ff, conflict-free: worker files ∩ coordinator files = ∅).
+  Coordinator verification at tip: 39/39 named tests OK (15.6s), full suite exit 0, badge
+  regen byte-identical, tree clean. Egress receipt 4060372a → pushed a8db9ba9..2f04c402.
+  Worktree stab-2 retired (terminals closed, rm OK, branch merged+gone, 0 stray terminals).
+  BASE is GREEN for the first time this run.
+
+- 09:1x DELIVERY delivery_6bff48bde63d (4 worker_dones, transcribed+acked):
+  U-CHAIN REVIEW ROUND 1 = NO-GO on all three axes (codex cross-vendor, blind-expectation
+  first, reviewed 5328cc86): STANDARDS 2 Required (promotion governance, commit
+  reconstruction) + 1 Optional; TEST-ADEQUACY 3 Required (SIX surviving semantic mutants —
+  contract assertions too weak; 4 clause deletions all killed, vacuity guard failed closed);
+  SPEC 4 Required (promotion resume check targets wrong branch — echoes Greptile P1; contract
+  test permits requirement-breaking mutations; AC-3 red = the 5 inherited failures, STALE —
+  STAB-2 has since greened BASE; AC-4 runner receipt owed). Reports: docs/reports/U-CHAIN/
+  review-{standards,tests,spec}.txt (uncommitted; verdict worker commits). Round 1 of ≤3.
+  VERDICT dispatched: task_b44329122b48, codex term_4c863306/ctx_(receipt spawn-oV6Y7f).
+  U-442 BUILD worker_done msg_5847d21d142f (succeeded): 3 commits on u-442 (4ad601a1 RED
+  two-repo fixture → 1ef8bd79 fix → df4f524f evidence). HARVEST (coordinator): scope =
+  verify.py +90, tests +190, evidence-manifest.md 2-line note, GENERATED regen (ARCHITECTURE
+  + badges + 14 docs/missions — activation-load recompute, clean-sweep 33.9k→34.0k, validate
+  owed at merge), docs/reports/u-442; author maintainer, no trailers; tree clean; branch 13
+  behind BASE. --git-dir (SHA/git legs via git -C) split from --evidence-root (bounds
+  manifest-relative paths); no-flag behavior byte-identical; #267 re-rooted not relaxed.
+  BUILD_DONE=t. INTEGRATOR dispatched: task_4b39f5058111, claude term_5941f8b4 (receipt
+  spawn-nUf2ZG) — merges green BASE first, then suite+validate, push, PR, Greptile reconcile.
+
+BRANCHES: local worktree checkouts carry the `ravidsrk/` prefix mapping to the unit tips
+(ravidsrk/u-chain, ravidsrk/u-442). Not drift — do not "fix".
