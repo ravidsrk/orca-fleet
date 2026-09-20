@@ -78,7 +78,7 @@ one unit or park; no id without a unit; no unit without an id.
 | — | #434 | proof-ladder diagram regen | needs-human | — | — | — | — | — | — | — | needs-human: provider render key secret absent (gh secret list empty) | gate comment + probe |
 | U-CHAIN | #441 #443 #444 | mission-chaining: promotion lane terminal, deferral-carry shape, local-only re-derivability | real-feature-small (doctrine) | t | t | t | f | f | f | lit | needs-human: review-round budget exhausted (3 failed rounds) — gate-batch.md G1; SPEC axis r3 GO, Greptile APPROVED d75b23b1; stickers are evidence-layer (harness skip-guard, manifest rebind, 2 test binds) | r1-r3 reports + 3 posted verdicts on the branch; Greptile APPROVED d75b23b1 recorded |
 | STAB-2 | — | repair 5 suite regressions from STABILIZE (index row + alt-string source repair) | conductor landing, worker-executed | t | n/a | n/a | n/a | t | t | lit | — | worker 4d13c672 (3 scoped files) → merged 2f04c402 (no-ff); coordinator-verified: 39/39 named tests OK + full suite exit 0 + tree clean at tip; egress receipt 4060372a; pushed; worktree+branch retired, no stray terminals |
-| U-442 | #442 | verify.py cross-repo evidence root (--git-dir/--evidence-root split) | real-feature-small (tooling) | t | f | f | f | f | f | lit | — | head df4f524f on u-442; suite red at build time = STAB-2's 5 (BASE since greened) |
+| U-442 | #442 | verify.py cross-repo evidence root (--git-dir/--evidence-root split) | real-feature-small (tooling) | t | t | t | f | f | f | lit | needs-human: review-round budget exhausted (3 failed rounds) — gate-batch.md G2; production code unanimously closed, Greptile clean, guard clean, 1733 green; stickers are manifest/test hygiene | r1-r3 reports + 3 posted verdicts on the branch |
 
 ## Loop log
 
@@ -342,6 +342,13 @@ BOOTSTRAP: preflight --base review/2026-09-20-tracker-sweep --fork-point e8ddbd9
   (codex): SPEC term_b4314b77/task_9a5a5fb70280 · STANDARDS term_1f495462/
   task_a0920360cf2a · TESTS term_715282eb/task_fd34e15af706; r3 verdict task_57ea07ec0722
   queued. U-CHAIN parked-terminal pending G1.
+
+- 18:2x U-442 round 3 (FINAL) = NO-GO, verdict POSTED: review 5260415981
+  'verdict: NO-GO — round 3' (coordinator-verified first line exact), evidence cb5a95c4
+  pushed. 5 Required stickers (S3-R1 manifest -v mismatch; R3-STD-1 five stale artifact
+  refs; R3-T1/T2/T3 coverage mutants + probe vacuity). PARK TERMINAL per the budget —
+  gate-batch.md G2. Both build units are now terminal-parked; the run moves to close-out:
+  re-enumeration → final report → final-tip verification → promotion PR.
 
 BRANCHES: local worktree checkouts carry the `ravidsrk/` prefix mapping to the unit tips
 (ravidsrk/u-chain, ravidsrk/u-442). Not drift — do not "fix".
