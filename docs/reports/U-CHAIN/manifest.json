@@ -221,6 +221,39 @@
       "commit": "1635b27f43d22309bfc1e91be517c2815ac3cb6e",
       "wtree": "699f2485f42ae7fcee32bb73327bc3c5f798f476",
       "artifact": "docs/reports/U-CHAIN/suite-r3.txt"
+    },
+    {
+      "label": "mutants-r4-repair",
+      "ts": "2026-09-20T12:36:40Z",
+      "cmd": "python3 docs/reports/U-CHAIN/run_mutants-r3.py",
+      "cmd_sha256": "4f9617528104aab41e9e75df63b66d97179d3e029b67213f5b613eae58cbbeca",
+      "exit": 0,
+      "duration_s": 1.327,
+      "commit": "9622a2421f70d3e3dea28bdedae6bfcb0c3f8285",
+      "wtree": "92edadfe418f1f2f8d342132fa84632dc55b3855",
+      "artifact": "docs/reports/U-CHAIN/mutants-r4.txt"
+    },
+    {
+      "label": "validate-r4-repair",
+      "ts": "2026-09-20T12:36:41Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 0,
+      "duration_s": 1.022,
+      "commit": "9622a2421f70d3e3dea28bdedae6bfcb0c3f8285",
+      "wtree": "92edadfe418f1f2f8d342132fa84632dc55b3855",
+      "artifact": "docs/reports/U-CHAIN/validate-r4.txt"
+    },
+    {
+      "label": "suite-r4-repair",
+      "ts": "2026-09-20T12:41:32Z",
+      "cmd": "python3 -m unittest discover -s tests -v",
+      "cmd_sha256": "a66b8f178d020ef6bfbcc8acf88c601828ddceb38cdd22c61aef2bdb2aa0d57c",
+      "exit": 0,
+      "duration_s": 283.965,
+      "commit": "9622a2421f70d3e3dea28bdedae6bfcb0c3f8285",
+      "wtree": "92edadfe418f1f2f8d342132fa84632dc55b3855",
+      "artifact": "docs/reports/U-CHAIN/suite-r4.txt"
     }
   ],
   "negative_control": {
@@ -288,8 +321,12 @@
       "sha256": "e914bd17cae2cc2b17f213cce18eda7ea2e7420421de205f5021dafcfeacbdf7"
     },
     {
+      "path": "docs/reports/U-CHAIN/mutants-r4.txt",
+      "sha256": "e3908dc8c00bc803fd31de696071058d6ded6bdb1d2143ec07c030daace79aab"
+    },
+    {
       "path": "docs/reports/U-CHAIN/mutants_core.py",
-      "sha256": "2ddd098e2c4bc6a98ac3cde5b1827212d8743d261bc9f72110240d1064da9e5c"
+      "sha256": "cfc4c95baca7e5757d9c669b3145d16595398776c052b0b02fe0b69c614a0920"
     },
     {
       "path": "docs/reports/U-CHAIN/negctrl-per-criterion.txt",
@@ -349,11 +386,15 @@
     },
     {
       "path": "docs/reports/U-CHAIN/run_mutants-r3.py",
-      "sha256": "dfbf1328dd8ced8d740e0a156f50cc1aafaa5423a3eb8ba62a2515976def0b62"
+      "sha256": "63bb2d635028c82e9d5527c41db716e3c438b34c7214520555efb3126c54ac82"
     },
     {
       "path": "docs/reports/U-CHAIN/suite-r3.txt",
       "sha256": "9d9a30886cddb662ba1087886702889b4d18ff0fb52a73828e55cfe53e7bfc4f"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/suite-r4.txt",
+      "sha256": "d1f1e9ea99ed3ccabd924aaa1410e911ccc6d00079dfc187106af20f8bac94f0"
     },
     {
       "path": "docs/reports/U-CHAIN/suite.txt",
@@ -361,6 +402,10 @@
     },
     {
       "path": "docs/reports/U-CHAIN/validate-r3.txt",
+      "sha256": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/validate-r4.txt",
       "sha256": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6"
     },
     {
@@ -527,5 +572,38 @@
       "bound_by": "mutants own-reconstruct-ancestry-removed, own-mirror-ref-fields-removed, own-artifact-hash-removed \u2014 all three round-2 survivors now RED"
     }
   ],
-  "head_sha_rebind_note": "S-R3-2 \u2014 head_sha and the commands[].commit fields named 5bd2eb07, a commit that no longer EXISTS on ravidsrk/u-chain: the conductor's trailer-strip rewrite replaced it with 1635b27f (mapping documented in review-spec-r3.txt). They are rebound to 1635b27f, which is on-branch and whose tree is 7cc61306 \u2014 BYTE-IDENTICAL to the stripped commit's, so every recorded exit code and fingerprint still describes the exact bytes that were measured. Receipts' recorded `wtree` values and head_tree are DELIBERATELY UNCHANGED: they are working-tree fingerprints honestly made on the pre-strip trees, which the rewrite did not alter. Rebound during the gate-batch G1-b targeted repair."
+  "head_sha_rebind_note": "S-R3-2 \u2014 head_sha and the commands[].commit fields named 5bd2eb07, a commit that no longer EXISTS on ravidsrk/u-chain: the conductor's trailer-strip rewrite replaced it with 1635b27f (mapping documented in review-spec-r3.txt). They are rebound to 1635b27f, which is on-branch and whose tree is 7cc61306 \u2014 BYTE-IDENTICAL to the stripped commit's, so every recorded exit code and fingerprint still describes the exact bytes that were measured. Receipts' recorded `wtree` values and head_tree are DELIBERATELY UNCHANGED: they are working-tree fingerprints honestly made on the pre-strip trees, which the rewrite did not alter. Rebound during the gate-batch G1-b targeted repair.",
+  "repair_g1b": {
+    "authorized_by": "gate-batch G1 option (b) \u2014 human-granted exceptional targeted repair of the round-3 NO-GO (verdict 5260271654 on PR #484). NOT a fourth review round.",
+    "spec": "docs/runs/2026-09-20-clean-sweep-tracker/repair-u-chain.md",
+    "stickers": [
+      {
+        "id": "S-R3-1 / R3-TA-3",
+        "what": "harness graded a skipped run GREEN",
+        "fix": "mutants_core.classify() requires >=1 test executed AND OK with ZERO skips; skipped/empty runs are STILLBORN and fail the harness closed. selftest() proves it against a real skip-producing module (exit 0, prints the line the old bare-OK rule matched) plus 7 classifier cases, and runs before any mutant.",
+        "bound_by": "mutants-r4.txt header \u2014 'a real skipped run classifies STILLBORN; 8 classifier cases pass'; selftest() raises, so the harness exits nonzero."
+      },
+      {
+        "id": "S-R3-2",
+        "what": "manifest named conductor-stripped 5bd2eb07",
+        "fix": "head_sha + 8 commands[].commit rebound to on-branch 1635b27f (tree-identical); wtree values and head_tree deliberately untouched.",
+        "bound_by": "head_sha_rebind_note; every commit field resolves on ravidsrk/u-chain."
+      },
+      {
+        "id": "R3-TA-1",
+        "what": "ancestry assertion bound only the command NAME",
+        "fix": "binds the full command including operand order, base-tip before default-ref.",
+        "bound_by": "mutant r3-own-3-ancestry-operands-reversed \u2014 RED."
+      },
+      {
+        "id": "R3-TA-2",
+        "what": "OWED assertion matched a bare phrase surviving 'optionally'",
+        "fix": "anchors the clause at its opening paren, binding OWED as the required start status.",
+        "bound_by": "mutant r3-own-2-owed-optional \u2014 RED."
+      }
+    ],
+    "repair_head_sha": "9622a2421f70d3e3dea28bdedae6bfcb0c3f8285",
+    "evidence": "commands[] labels mutants-r4-repair / validate-r4-repair / suite-r4-repair, all exit 0 through runtime/scripts/evidence-run.py with wtree == HEAD^{tree}. Battery grew 31 -> 33: the two round-3 survivors are now permanent regression mutants. 33 run, 30 RED / 3 GREEN, 0 survivors, 0 stillborn, both controls GREEN.",
+    "not_claimed": "No PR, review or merge leg. head_sha still names the round-3 implementation (1635b27f); this repair's implementation commits are separate and named here."
+  }
 }
