@@ -292,5 +292,16 @@ BOOTSTRAP: preflight --base review/2026-09-20-tracker-sweep --fork-point e8ddbd9
   term_65b8cf90/task_728ba3caffe9 · TESTS term_630b9905/task_c71a9c244015; r2 verdict
   task_98567ecbb515 queued. U-CHAIN r3 integrator still in flight (suite+harness+push).
 
+- 15:2x U-CHAIN r3 (FINAL) INTEGRATED (worker_done msg_fa72d2b45fc0): gitleaks clean, suite
+  1707 OK 289s, validate, harness 31 mutants 28/28-for-assertion + controls green; egress
+  e925b0fc; push resolved FAST-FORWARD b431c418..d75b23b1 (stripped commits never reached
+  origin; lease pinned, no bare force). GREPTILE APPROVED d75b23b1 (review 5260194743,
+  auto-approve marker) — the independent-review leg candidate (09-14 T8 precedent). BOT-4
+  FIXED at 1635b27f, BOT-5 FIXED; 1 new VALID P2 held: BOT-6 'interrupted runs skip
+  restoration' (mutants_core.py:116 — harness robustness; standards axis leads its
+  adjudication). R3 FINAL REVIEW WAVE dispatched (codex): SPEC term_70a30067/
+  task_8d5bc3ab4de1 · STANDARDS term_bcae1cd8/task_21ed299df460 · TESTS term_91d5f0ed/
+  task_83fd4a2c8186; r3 verdict task_c2c948e1987f queued. U-442's r2 axes in flight.
+
 BRANCHES: local worktree checkouts carry the `ravidsrk/` prefix mapping to the unit tips
 (ravidsrk/u-chain, ravidsrk/u-442). Not drift — do not "fix".
