@@ -1,0 +1,6 @@
+test_chain_link_boundary_is_specified (tests.test_architecture.TestArchitecture.test_chain_link_boundary_is_specified) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+OK

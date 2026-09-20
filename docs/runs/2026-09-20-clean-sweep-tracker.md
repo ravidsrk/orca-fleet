@@ -2,7 +2,7 @@
 
 RUN: run_bec47e54b673 · COORDINATOR: term_0bae108a-5af7-4d7a-b584-67d05a2787d1 (kimi-code driving shell; coordinator terminal COORD-2026-09-20, background surface) · BASE: review/2026-09-20-tracker-sweep · FORK_POINT: e8ddbd988486694a2985822e557a382b344e2872 (origin/main at T0) · T0: 2026-09-20T06:17:18Z · SOURCE: tracker (10 open at T0: #235 #386 #407 #409 #427 #434 #441 #442 #443 #444; enumeration digest: gh-issue-list-open-count=10) · WIP: builders=2 reviewers=1
 
-PHASE: ORIENT → ENUMERATE → TRIAGE → FREEZE → BOOTSTRAP → BUILDING → PROVING → REFLECTING → DONE (terminal: DRY-WITH-PARKED; promotion PR #486 open, owed to the maintainer with gates G1/G2)
+PHASE: … → REFLECTING → DONE → GATES RESOLVED (b) → TARGETED REPAIRS in flight (then: targeted re-review → merges → closes; PR #486 absorbs the advanced BASE)
 
 Run-close integrity inventory: retained inline in the Final report section at close (this
 ledger is the living run record until then).
@@ -369,6 +369,27 @@ BOOTSTRAP: preflight --base review/2026-09-20-tracker-sweep --fork-point e8ddbd9
   runs non-evidence; recorded in verdict 5260271654). Egress 75751e66. FINAL THREAD
   STATE VERIFIED: #484 6/6, #485 2/2, #486 2/2 resolved — zero unresolved review
   threads across the run's PRs.
+
+- 19:5x G1+G2 RESOLVED (b) — maintainer grant in-session (DECISIONS gate-batch-G1/G2,
+  one-way, human-named). Targeted repair specs frozen (repair-u-chain.md b3fcff7c,
+  repair-u442.md aa6acc52). REPAIR WORKERS dispatched: U-CHAIN task_d74ecf85c11d claude
+  term_e0cbe15b (skip-guard, manifest rebind, 2 test binds); U-442 task_5d3efd6689f4
+  claude term_25c63842 (proof-command agreement, 5 stale refs, 2 coverage mutants +
+  probe-fired). Then: targeted blind re-review (codex, one per unit, scoped to the
+  repair commits only) → conductor merges → closes.
+
+- 20:3x REPAIRS DONE + harvested: U-442 (worker_done msg_3d692f41ec2b): 5 trailer-free
+  commits, scope tests+evidence only (verify.py UNTOUCHED), one agreed proof command
+  ('python3 -m unittest tests.test_verify.CrossRepoRoots' carried by both nc.command and
+  an exit-0 receipt), 5 stale refs re-pointed to r3 bytes, 3 killing tests + probe-FIRED
+  assertion. U-CHAIN (worker_done msg_d009b30ddf79): 4 trailer-free commits (merge,
+  9b196bf2 R-1+R-3, 9622a242 R-2, b976df56 evidence); skip-guard = GREEN only on ≥1
+  executed AND zero skips + a selftest running a real skip-producing module; manifest
+  re-bound to 1635b27f (on-branch). Both branches pushed (egress 0126c6cb:
+  1e2f099b..b976df56, cb5a95c4..85a1e797). TARGETED re-review dispatched (codex, scoped
+  to repair commits only — the G1-b/G2-b grant): U-CHAIN term_e74203f5/task_6d74187e0783,
+  U-442 term_35beb831/task_92b0bcbf0011. Process note: delivery_fb3706416306 was acked
+  one window late (missed ack, replay matched transcripts, no double-action).
 
 BRANCHES: local worktree checkouts carry the `ravidsrk/` prefix mapping to the unit tips
 (ravidsrk/u-chain, ravidsrk/u-442). Not drift — do not "fix".

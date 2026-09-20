@@ -1,0 +1,8 @@
+{
+ "id": "msg_5718bc4baeb0",
+ "type": "heartbeat",
+ "created_at": "2026-09-20T12:35:00Z",
+ "subject": "alive",
+ "body": "",
+ "payload": "{\"taskId\":\"task_d74ecf85c11d\",\"dispatchId\":\"ctx_2711c9be90f2\",\"phase\":\"implementing: R-1+R-3 green (1707 OK, 33 mutants exit 0); committing, then R-2 manifest\"}"
+}

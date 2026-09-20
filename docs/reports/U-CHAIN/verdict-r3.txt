@@ -1,0 +1,15 @@
+verdict: NO-GO — round 3
+
+Zero Critical; five Required axis entries remain. Each axis retains its severity; the shared skipped-control defect is counted in both reporting axes, without cross-reranking.
+
+| Spec — 0 Required | Standards — 2 Required | Test adequacy — 3 Required |
+| --- | --- | --- |
+| GO on SPEC; G-1 through G-6 accepted within that axis. | **S-R3-1 — Required:** `return "GREEN" if re.search(r"^OK", out, re.M) else "STILLBORN"` accepts skipped positive controls; unchanged harness falsely succeeds. | **R3-TA-1 — Required:** `must(alt1, r"git merge-base --is-ancestor",` omits operand order; reversing the ancestry command survives both covering and architecture tests. |
+| — | **S-R3-2 — Required:** `"head_sha": "5bd2eb0758cccf59964ea75985a8e0e0c5682c92",` names an unavailable rewritten commit; fresh-clone manifest verification rejects it. | **R3-TA-2 — Required:** ``must(carry, r"(?i)`OWED` until leg N\+1 triages it",`` still passes when OWED becomes optional. |
+| — | — | **R3-TA-3 — Required:** `return "GREEN" if re.search(r"^OK", out, re.M) else "STILLBORN"` falsely grades skipped controls/neutral cases GREEN. |
+
+BOT-6 remains VALID P2, unfixed: Spec Optional; Standards Optional (S-R3-3); Test adequacy Nit. Motivating cycle: `POLICY.write_text(fn(orig))`, `p = _run_test()`, `POLICY.write_text(orig)`. Standards accepts it because: "this is evidence replay tooling explicitly confined to a DISPOSABLE checkout. The fault does not yield a successful interrupted run, does not produce accepted evidence on the examined dirty reruns, and cannot corrupt the reviewed worktree when its stated boundary is honored."
+
+Greptile currently APPROVED `ca616c77`; that does not discharge these Required findings. Final failed round: park U-CHAIN with a gate naming S-R3-1, S-R3-2, R3-TA-1, R3-TA-2, R3-TA-3; do not merge or begin another automatic review loop. The integrator also records unanswered bot threads as merge obligations.
+
+Reviewed SHA: `ca616c772aa77354bf27b8c3e5c1f0b510da54a3`; reviewed tree: `017a9fef65cca0b972036a49a37a9154cb5a2c73`. Inputs: `docs/reports/U-CHAIN/review-{spec,standards,tests}-r3.txt` and `integrate-r3.json`. The axes reviewed `d75b23b1`; its sole successor adds the inspected integration receipt. The forthcoming report-only commit changes the full tree; this verdict remains bound to the SHA above.

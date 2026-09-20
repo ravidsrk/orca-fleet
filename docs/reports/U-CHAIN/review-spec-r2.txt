@@ -1,0 +1,248 @@
+U-CHAIN ROUND 2 — SPEC REVIEW
+Status: COMPLETE — NO-GO on the assigned SPEC axis.
+Axis: F-1/F-2/F-5 doctrine against the frozen r2 spec; BOT-4 adjudication.
+
+BLIND-FIX EXPECTATIONS — RECORDED BEFORE OPENING THE R2 DIFF
+Recorded: 2026-09-20T08:31:07.869264+00:00 (file creation time, before diff).
+Sources read: ARCHITECTURE.md, build-u-chain-r2.md, round-1 review-spec.txt,
+and the dispatched task. No r2 implementation or diff has been opened.
+Requested review target: 0dbc669e; working HEAD observed as 302d43e9.
+
+F-1: Unit-to-BASE integration must remain normal conductor work, including the
+no-gh lane. PARKED-AT-PROMOTION must specifically mean the human-authorized
+BASE-to-default boundary. Resume must prove the completed leg's integration
+tip is an ancestor of the destination default ref, or name a recorded human
+BASE-carry grant and its destination. Offline cases must use a real local ref.
+Any remote-tracking-ref evidence must establish that the ref represents the
+current authoritative destination rather than a stale local observation.
+Motivating frozen-spec lines (verbatim):
+  "  BASE→DEFAULT; the resume evidence is leg N's integration tip being an ancestor of the"
+  "  DEFAULT branch — and for a no-remote target, the check names a valid LOCAL ref (e.g. the"
+  "  local default branch), never `origin/<base>` — OR the recorded BASE-carry grant. Restricted"
+  "  lanes (headless / no-gh / scratch) are described as unable to PROMOTE, not unable to"
+  "  integrate."
+
+F-2: Local-only completion must require a self-contained bundle of relevant
+refs, a reachable mirror, or equivalent evidence that restores every cited
+commit and ancestry. Seed bytes and a full diff may supplement that artifact,
+but cannot independently satisfy the requirement. The exemplar RESTORE.md
+must support the stated distinction without historical-artifact changes.
+Motivating frozen-spec lines (verbatim):
+  "  artifact is a self-contained `git bundle` of the leg's refs, a reachable pushed mirror, or"
+  "  an equivalent that demonstrably reproduces every cited commit; seed+diff may be named only"
+  "  as SUPPLEMENTAL file reconstruction. The worked exemplar's own RESTORE.md already documents"
+  "  this distinction — cite it consistently."
+
+F-3: Tests should bind obligatory publication, both resume alternatives, and
+their operative conditions after whitespace normalization. The six original
+requirement-reversing mutants must independently turn RED. This is supporting
+context for SPEC; the tests reviewer owns the exhaustive test adequacy verdict.
+Motivating frozen-spec line (verbatim):
+  "  assertions must fail on (a) removal of the publication requirement, (b) removal of either"
+
+F-4: The submitted evidence must include actual evidence-run.py receipts for
+the doc-revert negative control and clean-head positive control, with real
+fingerprints/exits bound to the appropriate trees; narration is insufficient.
+Motivating frozen-spec line (verbatim):
+  "  test kept → RED; clean head → GREEN) THROUGH `runtime/scripts/evidence-run.py` so the"
+
+F-5: The current policy must explicitly adopt the historical #417 proposal as
+the normative handoff example. Preserve the historical report's proposal text.
+Motivating frozen-spec lines (verbatim):
+  "  this clause. Do NOT rewrite the historical artifact; fix the CITING text in"
+  "  mission-chaining.md so the adoption is explicit (e.g. \"adopted from the #417 run's proposal,"
+  "  blessed here\")."
+
+F-6: The branch must include the green BASE merge, and full-suite evidence at
+the combined candidate must be GREEN with a runner receipt and AC-3 addressed.
+Motivating frozen-spec lines (verbatim):
+  "  FULL suite must exit 0 at the new head, recorded via evidence-run.py; manifest AC-3 flips to"
+  "  addressed with the receipt."
+
+BOT-4: A cached origin/<default> can lag or diverge from its remote. I expect
+the resume procedure to refresh/verify that ref and treat refresh failure as
+unproven promotion; the offline branch must remain explicitly local. I will
+adjudicate the bot's precise claim only after preserving these expectations.
+Motivating task text (verbatim):
+  "BOT-4 freshness of origin/<default> in the resume check"
+
+BOT-5: The mutation harness must prove it applied each intended mutation to
+the reviewed candidate and that the contract failed for the expected reason;
+incidental process failure is not mutation evidence. The assigned SPEC axis
+does not own BOT-5; its dedicated reviewer must adjudicate it.
+
+The expectations above were preserved before opening the r2 diff. The report's
+initial approximate timestamp was corrected to its filesystem creation time;
+the expectation content is unchanged. The review results follow.
+
+FINAL REVIEW BINDING
+reviewed_sha / head_sha: 0dbc669e5df80934a36a24d120a680b038f9791d
+reviewed_tree: a980ddc152022e7d9034e3eb088fa60957ae6d12
+Observed worktree HEAD: 302d43e9e028f93d0698bccaa93f308f1fdbdb63
+That later commit adds ONLY docs/reports/U-CHAIN/integrate-r2.json. The reviewed
+policy, tests, spec, and doctrine are unchanged between the two commits; the
+bot report was read as data, and its claim was independently reproduced.
+Comparison ref: origin/review/2026-09-20-tracker-sweep
+Pinned comparison SHA: 5df4c0d8767d007e5f7c947a9fe955b0f83a7a34
+Three-dot merge base: ed51fe11de5f7329ecf02ffb933bf50648ae5654
+The comparison ref advanced during review; all final comparisons use the
+explicit SHAs above. The r2-only delta is 1066c028..0dbc669e.
+Frozen spec: docs/runs/2026-09-20-clean-sweep-tracker/build-u-chain-r2.md
+Spec SHA-256: 63ce1e4e0e538557ac5661bf6905707c82ad3937061531ec457e2812a4f0a9c8
+Policy blob: 0f1206a8986069a19ee4e1aa3e747d6780aa9a35
+Policy SHA-256: aaabf9708a4538866d379c84d0b56876016ba4174aeb6f50cdf2da6cf4a3b675
+
+SUMMARY BRIEF
+F-1, F-2, and F-5 close their original doctrine findings. The r2 wording now
+distinguishes unit integration from BASE-to-default promotion, requires
+commit-preserving reconstruction, and explicitly adopts the historical
+handoff proposal without rewriting it. However, BOT-4 is VALID and Required:
+the remote resume check lacks a refresh obligation and can keep a chain
+parked after the human's promotion has landed. A disposable remote/coordinator/
+human fixture reproduces that failure, and fetching repairs it. The assigned
+axis is therefore NO-GO with Critical 0, Required 1, Nit 0, Optional 0, FYI 0.
+The clean pinned checkout passes all 59 architecture tests and the validator.
+This report does not certify F-3/F-4/F-6 or BOT-5, which belong to the parallel
+test/evidence review; it is not an aggregate verdict on all nine r1 Required.
+
+ROUND-1 CLOSURE — ASSIGNED DOCTRINE ITEMS
+
+F-1 / SPEC-1 / STANDARDS S1 / BOT-1 — CLOSED AS ORIGINALLY STATED.
+Locations: runtime/mission-chaining.md:29-50.
+Verbatim motivating frozen-spec lines 11-12:
+  promotion with integration into BASE. Repo doctrine: unit→BASE is the conductor's normal
+  merge (merge-serialization no-gh lane included); the human one-way gate is BASE→default
+Verbatim fixed implementation lines 29-32:
+  - **Chains are human-paced at every link boundary.** Leg N's PROMOTION is BASE→DEFAULT — landing
+    its integration BASE on the repo's default branch — and that is the one-way human gate
+    (gate-classification.md's closing rule; merge-serialization.md). Merging a unit INTO the BASE is
+    the conductor's ordinary agent merge, the no-gh local-merge lane included, and is NOT that gate.
+Lines 43-47 check the leg's integration BASE tip against DEFAULT, use a valid
+local default ref when there is no remote, and fork the next leg from the
+promoted DEFAULT. Lines 48-49 retain the named human's explicit BASE-carry
+grant with its granted SHA. Lines 40-41 say restricted lanes cannot PROMOTE
+but can integrate. These match gate-classification.md:105-106 and
+merge-serialization.md:84-101. The new BOT-4 defect below is in this repaired
+clause; it does not make the old unit-to-BASE error still present.
+
+F-2 / STANDARDS S2 — CLOSED.
+Locations: runtime/mission-chaining.md:68-81.
+Verbatim motivating frozen-spec lines 21-23:
+  artifact is a self-contained `git bundle` of the leg's refs, a reachable pushed mirror, or
+  an equivalent that demonstrably reproduces every cited commit; seed+diff may be named only
+  as SUPPLEMENTAL file reconstruction. The worked exemplar's own RESTORE.md already documents
+Verbatim fixed implementation lines 75-78:
+  COMMIT-PRESERVING — a self-contained `git bundle` of the leg's refs, or an equivalent that
+  demonstrably reproduces every cited commit and its ancestry. Seed sources plus the leg's full
+  diff recover file bytes only, never the commit objects, so they are SUPPLEMENTAL and never
+  sufficient on their own — the exemplar's own
+The preceding lines require publication and identify the reachable mirror
+alternative. The cited leg1/RESTORE.md:5-6 says verbatim:
+  It preserves every cited SHA; `seed-*` + `full-diff.txt` preserve file bytes
+  only. Verify the bundle's sha256 against `integrity-inventory.txt` first.
+The historical restore instructions are unchanged. Independently verifying
+and cloning the cited bundle in scratch confirms complete history, seed and
+tip commit objects, seed-to-tip ancestry, and nine commits. This checks the
+specific example; it does not claim every possible future artifact is sound.
+
+F-5 / BOT-2 — CLOSED.
+Locations: runtime/mission-chaining.md:65-67.
+Verbatim motivating frozen-spec lines 38-40:
+  this clause. Do NOT rewrite the historical artifact; fix the CITING text in
+  mission-chaining.md so the adoption is explicit (e.g. "adopted from the #417 run's proposal,
+  blessed here").
+Verbatim fixed implementation lines 66-67:
+  docs/reports/chaining-2026-09-16/handoff-log.md — written as that run's PROPOSED shape, which
+  predates this clause; it is ADOPTED here, so the shape above is doctrine and not a proposal.
+This explicitly identifies the former proposal and gives the current policy
+normative force. Both the handoff log and RESTORE.md retain their original
+blobs; no historical artifact changed in 1066c028..0dbc669e.
+
+OPEN FINDING
+
+SPEC-R2-1 / BOT-4 — Required — Refresh the remote default before the resume check.
+Location: runtime/mission-chaining.md:43-47, especially lines 44-45.
+Verbatim motivating implementation lines:
+     branch (`git merge-base --is-ancestor <base-tip> <default-ref>`, where `<default-ref>` is
+     `origin/<default>` for a remote target and a valid LOCAL ref — the local default branch —
+Verbatim motivating frozen-spec lines 14-15:
+  BASE→DEFAULT; the resume evidence is leg N's integration tip being an ancestor of the
+  DEFAULT branch — and for a no-remote target, the check names a valid LOCAL ref (e.g. the
+Verbatim existing freshness precedent, runtime/scripts/preflight.py:21-23:
+  An online default derived from gh resolves through refs/remotes/origin/<branch>,
+  never a possibly stale local namesake. Fetch origin before running preflight;
+  a missing remote-tracking ref fails closed. Explicit --default refs retain their
+
+Why Required: origin/<default> is a local cached ref, not a live observation
+of the destination. A fully compliant coordinator can fetch at leg N's
+preflight, finish and park, then run the written resume check after a human
+promotes from another checkout. The cached ref still predates that promotion,
+so the check returns false despite the required fact being true. This defeats
+the requested resume procedure in the normal human-promoted lane. No refresh
+is prescribed at this boundary in mission-chaining, merge-serialization, or
+liveness-resume. Leg N+1's own preflight comes after this permission decision;
+an earlier preflight fetch does not establish freshness after the human acts.
+
+Independent witness (all repositories are disposable local scratch fixtures):
+  origin.git authoritative main initially: 32f7bb056ecbe925fbe85c043349dc3861af2fd1
+  leg N integration tip:                   9ffa36d2c0e1d04e40fda459e5e19acfce8b82e4
+  human's main promotion merge:            2d1609c448d63c70a243f50bd1d08d1cd8a71f74
+Setup: create a bare origin with main, clone the coordinator and fetch before
+the leg, create/push its integration branch, then clone a separate human
+checkout, merge integration into main, and push main. Without a coordinator
+fetch, its origin/main remains 32f7bb0 even though origin.git/main is 2d1609c.
+  git --git-dir /tmp/u-chain-bot4-z9pohfgr/origin.git merge-base --is-ancestor \
+    9ffa36d2c0e1d04e40fda459e5e19acfce8b82e4 main
+  => exit 0 (authoritative remote contains the completed leg).
+  In /tmp/u-chain-bot4-z9pohfgr/coordinator:
+  git merge-base --is-ancestor 9ffa36d2c0e1d04e40fda459e5e19acfce8b82e4 origin/main
+  => exit 1 (the documented check rejects the same landed promotion).
+  git fetch origin main
+  => exit 0; origin/main advances to 2d1609c.
+  Repeating the same ancestry command => exit 0.
+The reviewer's own replay reset only the scratch tracking ref to its observed
+old value and independently confirmed remote=0, cached-check=1, fetch=0,
+fresh-check=0; it did not rely solely on the supporting analyst's narration.
+Receipts: /tmp/u-chain-bot4-z9pohfgr/probe.log and
+/tmp/u-chain-bot4-z9pohfgr/spec-reviewer-replay.json.
+
+Required correction: require a successful refresh/authoritative resolution of
+the remote default immediately before this ancestry proof, record the exact
+default SHA used, and remain parked if freshness cannot be established. Keep
+the valid LOCAL ref path for a target with no remote. This fits the frozen
+runtime/mission-chaining.md scope; no shared-policy rewrite is required.
+Confidence: high (direct source, concrete two-checkout reproduction).
+Bot adjudication: VALID, mapped from bot P1 to Required. The demonstrated
+failure is a false negative. The integrator's stronger claim that "nothing
+downstream recovers it" is unnecessary and overstated: manually fetching
+recovers it, as the witness shows. That recovery is missing from the contract.
+
+VERIFICATION, SCOPE, AND LIMITS
+- Clean detached scratch checkout at reviewed_sha:
+  /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-spec-r2-pxz0y64c/checkout
+- python3 -B -m unittest tests.test_architecture -q: exit 0, 59 tests, 6.123s.
+- python3 -B scripts/validate.py: exit 0; 21 missions valid, reference/line
+  budgets and three-layer separation valid. Policy is 89 lines, below 160.
+  These checks ran sequentially; scratch git status was clean afterward.
+- Scratch checks.json records argv, exits, elapsed times, reviewed SHA, and
+  artifact paths; architecture.txt and validator.txt retain complete output.
+- Exemplar bundle verification/restore: all six commands exit 0;
+  exemplar-restore.json in that scratch root records commands and outputs.
+  The clone's missing-HEAD warning is documented by the unchanged RESTORE.md;
+  both cited commits and their ancestry resolve without the original target.
+- git diff --check 1066c028..0dbc669e: exit 0. The wider comparison to the
+  pinned BASE reports one pre-existing r1 review-transcript whitespace line
+  (review-tests.txt:308); it is outside the r2 fix delta and not a SPEC finding.
+- The r2 code/doc delta changes only mission-chaining.md, test_architecture.py,
+  and unit evidence files. The historical report and other policies do not
+  change. The green-BASE commit ed51fe11 is an ancestor of reviewed_sha.
+- Full suite and mutation battery were NOT independently rerun on this axis.
+  F-3/F-4/F-6 and BOT-5 remain the assigned test/evidence review's decisions;
+  this report neither closes them on the manifest's claims nor reranks them.
+- Only docs/reports/U-CHAIN/review-spec-r2.txt was written by this reviewer in
+  the shared worktree, left uncommitted. Tests, bundle restore, and all Git
+  fixture mutations ran in scratch. No implementation/index/branch changes,
+  remote writes, PR comments, or commits were made in the project.
+
+Remaining work on this axis: repair BOT-4's freshness obligation and re-review
+the resulting SHA. Review completed within the 25-minute budget.

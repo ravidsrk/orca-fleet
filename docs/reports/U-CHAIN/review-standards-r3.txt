@@ -1,0 +1,319 @@
+U-CHAIN ROUND 3 FINAL — STANDARDS REVIEW
+Task: task_21ed299df460 / ctx_67ca0445f880
+Authorized output: this file only, uncommitted.
+
+BLIND-FIX EXPECTATIONS — recorded BEFORE opening any round-3 diff
+Recorded: 2026-09-20T09:26:17.310620+00:00
+Inputs read: ARCHITECTURE.md, AGENTS.md, CONTRIBUTING.md, review-it and
+acceptance-review methodology, Matt code-review Fowler baseline, frozen
+build-u-chain-r3.md, round-2 verdict and reviews. No r3 candidate diff, harness,
+contract implementation, round-3 answers, or integration report opened yet.
+Requested review head: d75b23b1; initial live HEAD: ca616c77 (integration receipt).
+
+G-1 / BOT-4 / S-R2-1: The remote resume alternative must successfully refresh
+its authoritative default before resolving ancestry; an unavailable refresh makes
+promotion unproven. Its local/offline alternative must remain explicitly local.
+Expect a short imperative clause in runtime/mission-chaining.md, corresponding
+contract assertions, no new mission or production mechanism. Confidence high.
+G-2 / BOT-5 / S-R2-2: Both replay entry points must obtain their pre-change
+baseline from a pinned available Git object or a committed integrity-bound fixture,
+without an unpublished base-policy.md. A disposable exact checkout with repository
+history must replay the full advertised battery. Confidence high.
+G-3 / S-R2-3 / R2-HARNESS: A valid kill must come from the covering assertion,
+not merely a failed process. Both controls must pass; loading errors, no tests,
+skips or malformed results must not certify a successful battery. Expect shared
+small classification/control helpers if r2/r3 runners both need this. Confidence high.
+G-4 / R2-TA-441: Assertions must bind each numbered resume alternative separately:
+BASE-tip ancestry and fresh/default ref semantics in one, named human explicit
+permission for an unpromoted BASE SHA written down in the other, with the
+exactly-two-facts rule outside. Named six survivors must die. Confidence high.
+G-5 / R2-TA-443: Carry and gate schemas must require every promised field and
+OWED inputs, and a missing handoff must remain unfinished, not empty. Named
+three survivors must die while harmless prose reflow stays green. Confidence high.
+G-6 / R2-TA-444: The commit-preserving reconstruction branch must retain ancestry,
+mirror locator/pushed refs, supplemental-only seed+diff, and inventory hashes.
+Named three survivors must die; no test should accept a keyword in an unrelated
+alternative as its obligation. Confidence high.
+BOT-6: I expect exception-safe restoration for a script that edits the current
+checkout; try/finally should encompass the first mutation and all test execution.
+A failed interrupt restore is a real robustness defect. My merge threshold is
+whether it can certify false evidence or violate the authorized workspace boundary
+under the documented usage. If interruption exits nonzero, evidence is discarded,
+and all execution is explicitly disposable-clean-checkout only, the residual may
+be acceptable as Optional with a concrete recovery rule; otherwise Required.
+Confidence medium until source and an isolated interrupt probe establish scope.
+
+Standards baseline: runtime <=160 lines and byte cap, plain Markdown, bare protocol
+references, runtime mechanisms remain runtime, terse imperative doctrine without
+proof-tier inflation. Fowler smells are judgment calls, not hard violations;
+repo conventions override them. Review r3 hunks, record tool-enforced checks rather
+than duplicate lint findings. No implementation edits, staging, commits, or PR actions.
+
+REVIEW RESULT — STANDARDS AXIS
+reviewed_sha = head_sha = d75b23b110c00579843886487ad80e9c0b607420
+reviewed_tree = a0c38bcb391014e695513de13519583cb380ce84
+Initial live HEAD ca616c772aa77354bf27b8c3e5c1f0b510da54a3 differs only by
+addition of docs/reports/U-CHAIN/integrate-r3.json; its bot claims were read as data.
+Fixed-point ref resolved at review: origin/review/2026-09-20-tracker-sweep =
+26ab6f6c50602b32227e3ee680ee2d524ac76357.
+Three-dot merge base = ed51fe11de5f7329ecf02ffb933bf50648ae5654.
+Whole-unit diff: git diff 26ab6f6c...d75b23b1
+R3 implementation diff: git diff 1bc2ab8a..d75b23b1
+Relevant r3 commits: 1635b27f (implementation), 05dd4845 (evidence),
+4fb224ce (BASE merge), d75b23b1 (manifest BASE-note update).
+
+Verdict: NO-GO (standards axis).
+Counts: Critical 0; Required 2; Nit 0; Optional 1; FYI 0.
+
+Executive brief (standards only; no cross-axis rerank)
+The runtime and test hunks conform to the repository's layer, reference, instruction
+budget, and doctrine conventions. G-1/BOT-4 and G-2/BOT-5 are closed. The named
+G-4/G-5/G-6 survivors now die, and no actionable Fowler smell remains. Both committed
+batteries replay independently: r2 13 RED; r3 28 RED and three neutral GREEN, with
+passing controls and clean policy restoration on normal completion.
+G-3's original failed-control and ImportError attacks are fixed, but its no-execution
+acceptance hole is only partly closed: skipped positive controls still certify a
+successful battery. A second Required defect affects the evidence packet after
+trailer normalization: manifest.head_sha names an unreachable old implementation
+commit and fails the repository verifier's real-commit check in a fresh clone.
+BOT-6 is VALID but Optional / acceptable-with-reason for this scope: interrupts and
+launch errors dirty only the required disposable checkout, exit unsuccessfully,
+and produce no accepted battery; tested dirty reruns also fail. The cheap finally
+repair remains recommended. This does not excuse the independent G-3 false success.
+
+FINDINGS
+
+S-R3-1 — Required — G-3 still accepts skipped positive controls as successful proof.
+Location: docs/reports/U-CHAIN/mutants_core.py:79 and :99.
+Verbatim motivating code lines:
+        return "GREEN" if re.search(r"^OK", out, re.M) else "STILLBORN"
+    return verdict == "GREEN"
+Motivating frozen G-3 lines (build-u-chain-r3.md:26-27), verbatim:
+  error / no-tests-ran = STILLBORN, harness exits nonzero); both positive controls
+  (fixed-head, head-restored) MUST be green or the harness exits nonzero.
+Motivating repository rule (AGENTS.md), verbatim:
+Never grade a unit "done" on a worker's narration or trace. Every unit emits a **SHA-bound
+
+A unittest skip returns zero and ends with OK (skipped=1), which matches ^OK.
+It increments unittest's reported test count without executing the covering body,
+so the Ran 0 tests guard does not catch it. The unchanged harness then calls both
+controls GREEN and exits 0. This is the same acceptance boundary G-3 hardens, not
+a proposed generic adversarial framework or a challenge to the valid normal run.
+
+Independent scratch reproduction at the reviewed SHA: prefix ONLY the covering
+method's original body with the following (the harness remains byte-identical):
+    import hashlib
+    if hashlib.sha256((RUNTIME / "mission-chaining.md").read_bytes()).hexdigest() == 'e5d01b8b838d015fb85061d5f827b965c29d1cd5abb273f85a2609d04891c774':
+        self.skipTest("reviewer: clean control covering test skipped")
+This skips precisely the clean/restored policy controls; every mutant still runs
+the original test body. Direct control result:
+    Ran 1 test in 0.000s
+    OK (skipped=1)
+Unmodified runner, python3 -B docs/reports/U-CHAIN/run_mutants-r3.py:
+    fixed-head: exit=0; GREEN — unmutated head
+    31 mutants run; 28 expected RED, 3 expected GREEN
+    head-restored: exit=0; GREEN — unmutated head
+    HARNESS OK: every mutant died for the right reason; both controls GREEN.
+Harness exit = 0. Neither positive-control test body executed.
+The original two G-3 trust probes correctly return 1: mutant-only ImportError
+produces 31 STILLBORN; original-policy-only AssertionError rejects both controls.
+Correction: require a successful, non-skipped execution of the single covering
+test for each control (and neutral case); treat explicit skips/no execution as
+STILLBORN. Keep the original error/failure probes and add this control-skip probe.
+Confidence high; executable false-success reproduced, not merely inferred.
+
+S-R3-2 — Required — the refreshed manifest still names the stripped commit.
+Location: docs/reports/U-CHAIN/manifest.json:4.
+Verbatim motivating line:
+ "head_sha": "5bd2eb0758cccf59964ea75985a8e0e0c5682c92",
+Motivating standard (runtime/evidence-manifest.md:63), verbatim:
+- `base_sha` and `head_sha` are REQUIRED on every class. Mutation units: pinned 40-hex real commits ("It works" with no SHA is not a manifest); other classes: a symbolic ref is NOTE-only.
+The repository's independent commit-existence requirement is also explicit in
+AGENTS.md's evidence protocol and evidence-manifest.md:125.
+
+The conductor removed attribution trailers after the builder wrote its receipts.
+That history rewrite replaced implementation 5bd2eb07 with 1635b27f, but the
+primary manifest still names the former. A fresh git clone --no-local of the
+reviewed repository, detached at d75b23b1, cannot resolve it:
+    git cat-file -e 5bd2eb0758cccf59964ea75985a8e0e0c5682c92 -> exit 1
+    git rev-parse 5bd2eb0758cccf59964ea75985a8e0e0c5682c92^{tree} -> exit 128
+The actual repository checker check_real_commits(manifest, is_mutation=True)
+returns:
+    head_sha '5bd2eb0758cccf59964ea75985a8e0e0c5682c92' is not a real commit
+This is independent of BOT-5: the harness's ed51fe11 baseline resolves and replays.
+
+The replacement commit IS available, and its content tree equals the manifest's
+recorded head_tree: 7cc613067d828c6aa8b7490668d5227cae608b4e. This corroborates the
+receipt content; it does not make the absent commit checkable or permit checking
+out manifest.head_sha. The post-review integration receipt names d75b23b1, but
+is not a replacement for the malformed primary evidence manifest. The old object
+may survive locally as dangling history; clean replay must not depend on that.
+Correction: reconcile the manifest with the reachable implementation/reviewed
+history, retaining the original receipts honestly and explicitly recording the
+old-to-new identity/tree mapping; provide clean-checkout verifier evidence at the
+resolved target. Do not silently relabel historical command commit fields.
+Confidence high; actual clean-clone verifier rejection, content equality checked.
+
+BOT-6 / S-R3-3 — Optional — VALID interrupted restoration defect; non-blocking here.
+Location: docs/reports/U-CHAIN/mutants_core.py:114-116.
+Verbatim motivating lines:
+        POLICY.write_text(fn(orig))
+        p = _run_test()
+        POLICY.write_text(orig)
+Related exact entry line (:104):
+    orig = POLICY.read_text()
+Documented execution boundary (run_mutants-r3.py:13-14), verbatim:
+Run from the repository root, in a DISPOSABLE checkout — it rewrites
+runtime/mission-chaining.md between cases and restores it after each.
+The r2 entry point and evidence README prescribe the same disposable usage.
+
+The bot's code claim is correct: KeyboardInterrupt or OSError from _run_test()
+skips the following restore. A rerun reads the leftover mutation as orig. I
+injected each exception after the first mutant had been written, while preserving
+the committed module and its real control/test calls; all mutations were scratch-only.
+Reproduction mechanism (run from scratch repo root; PROBE_CALL=2 for the first
+mutant, 30 for the first neutral; PROBE_ERROR=KeyboardInterrupt or OSError):
+    import os, runpy, sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path.cwd() / 'docs/reports/U-CHAIN'))
+    import mutants_core as core
+    real, count = core._run_test, 0
+    def interrupted():
+        global count
+        count += 1
+        if count == int(os.environ['PROBE_CALL']):
+            if os.environ['PROBE_ERROR'] == 'OSError':
+                raise OSError('reviewer simulated subprocess launch failure')
+            raise KeyboardInterrupt('reviewer deterministic mid-mutant interrupt')
+        return real()
+    core._run_test = interrupted
+    runpy.run_path('docs/reports/U-CHAIN/run_mutants-r3.py', run_name='__main__')
+The parent probe snapshots/restores the scratch policy around each scenario.
+
+Observed deterministic probes:
+  first RED mutant + KeyboardInterrupt: exit -2; policy left at base blob;
+    no HARNESS OK; dirty rerun exit 1 with fixed-head RED.
+  first RED mutant + OSError: exit 1; policy left at base blob;
+    no HARNESS OK; dirty rerun exit 1 with fixed-head RED.
+  first neutral reflow + KeyboardInterrupt: exit -2; policy left reflowed;
+    no HARNESS OK; dirty rerun exit 1 (fixed-head GREEN, then exact selector fails).
+The integration report's neutral-path explanation is imprecise: a missing sub()
+selector raises AssertionError before survivor classification, rather than being
+reported as a SURVIVOR. The fail-closed result is unchanged.
+
+Acceptance reason: this is evidence replay tooling explicitly confined to a
+DISPOSABLE checkout. The fault does not yield a successful interrupted run, does
+not produce accepted evidence on the examined dirty reruns, and cannot corrupt the
+reviewed worktree when its stated boundary is honored. Normal exact-checkout
+batteries independently pass and leave policy bytes clean. No runtime chain behavior
+is affected. P2 is the bot's priority; Optional is this standards review's merge
+severity, not a claim that the defect was fixed.
+Recommended improvement: put mutation and execution inside try/finally restoring
+the saved policy, and retain a failed/aborted outcome. Recovery for an interrupted
+replay: discard its checkout and artifacts; rerun from a fresh exact checkout.
+Even try/finally cannot promise restoration on SIGKILL or machine loss, so this
+operational isolation remains necessary. This acceptance does not grant permission
+to run the harness in a valuable working checkout.
+Confidence high; deterministic exception injection and actual dirty reruns checked.
+
+ITEM-BY-ITEM CLOSURE (standards scope; other axes retain their own severity)
+G-1 / S-R2-1 / BOT-4: CLOSED. Policy:45-51 requires immediate remote refresh,
+records the resolved SHA, leaves unestablishable freshness UNPROVEN/parked, and
+retains a valid LOCAL ref for the explicitly OFFLINE case. New assertions bind
+both obligations; refresh-removed and unproven-reversed mutants die.
+Exact closure line (policy:45):
+     `origin/<default>` for a REMOTE target — REFRESHED immediately before the check
+Exact failure rule (policy:49):
+     whose freshness cannot be established leaves the promotion UNPROVEN and the chain parked,
+
+G-2 / S-R2-2 / BOT-5: CLOSED. Both entry points call baseline(), which derives
+the pinned ed51fe11 policy object and checks SHA256. Neither needs base-policy.md.
+Exact implementation line (mutants_core.py:37):
+    p = subprocess.run(["git", "show", f"{UNIT_BASE_SHA}:{POLICY.as_posix()}"],
+Both advertised batteries complete from a clean full-history clone. A shallow
+checkout lacking the pinned object exits FATAL by design; it is not an unpublished
+fixture dependency. The separate stale manifest head is S-R3-2 above.
+
+G-3 / S-R2-3 / R2-HARNESS: PARTIAL, Required remains as S-R3-1. The original
+nonzero-error and failed-control bugs are fixed and independently challenged;
+skipping both positive-control bodies still yields HARNESS OK / exit 0.
+
+G-4 / R2-TA-441: Named six residual regressions CLOSED on replay; full obligation
+assertions are now scoped to the numbered alternatives, with the two-facts rule
+retained outside them. Exact implementation line (tests/test_architecture.py:673):
+        alt1 = alternative(1, r"\b2\.\s")
+All six own-promoted/own-grant/own-offline mutants produce covering assertions.
+
+G-5 / R2-TA-443: Named three residual regressions CLOSED on replay. Carry fields,
+source class, location, OWED state, gate identity/state/owner/resume, and the
+missing-log rule are bound. Exact new line (tests/test_architecture.py:751):
+        must(carry, r"(?i)a MISSING handoff log is an unfinished chain, never an empty one",
+All three own-carry/own-gate/own-missing mutants produce covering assertions.
+
+G-6 / R2-TA-444: Named three residual regressions CLOSED on replay. Cited ancestry,
+mirror remote/refs and integrity inventory join the retained supplemental-only
+seed+diff rule. Exact new line (tests/test_architecture.py:774):
+        must(local, r"(?i)reproduces every cited commit and its ancestry",
+All three own-reconstruct/own-mirror/own-artifact mutants produce covering assertions.
+These closures concern the named round-2 defects; they do not claim a prose regex
+suite is a complete semantic parser or aggregate the separate TESTS axis.
+
+HUNK COVERAGE / FOWLER BASELINE
+- runtime/mission-chaining.md: 94 lines, 7,776 bytes; below 160 / 38,400 caps;
+  plain Markdown without frontmatter; no mission, identity, or proof-tier change.
+  Runtime placement and terse imperative doctrine are appropriate. Bare protocol
+  references resolve. Paths to the historical handoff-log.md/RESTORE.md name
+  actual evidence artifacts, not composable protocols, and are allowed.
+- tests/test_architecture.py: neighboring stdlib unittest conventions retained;
+  normalized whitespace, local extraction helper with two real callers, explicit
+  failure messages, no framework or speculative generalization introduced.
+- Both runner entry points now share real baseline, classification and execution
+  machinery. The historical r2 mutant set is deliberately preserved for replay;
+  that does not justify a separate style finding about its repetition in r3.
+- Evidence/scripts remain in docs/reports; no shared runtime API or dependency added.
+- All 12 Fowler heuristics considered: Mysterious Name, Duplicated Code, Feature
+  Envy, Data Clumps, Primitive Obsession, Repeated Switches, Shotgun Surgery,
+  Divergent Change, Speculative Generality, Message Chains, Middle Man, Refused
+  Bequest. No additional actionable smell survives the repo-convention override.
+- r3 production/harness git diff --check passes. Caps/references are recorded as
+  gate results, not emitted as duplicate lint findings.
+
+VERIFICATION AND EVIDENCE
+Root scratch directory:
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-standards-r3-qgct1mch
+repo/ is the untouched full-suite clone; probes/ is the separate mutation clone.
+Both were detached at the exact reviewed SHA. Logs live outside the repositories.
+- validate.txt: python3 -B scripts/validate.py -> exit 0, all 21 missions valid.
+  An earlier parallel invocation against the suite clone saw the suite's temporary
+  _frontmatter_probe.md negative fixture and exited 1. That contaminated check is
+  not candidate evidence; the independent clean-clone rerun above passed.
+- harness-r2.txt: exit 0, 13 RED; both controls GREEN; policy restored.
+- harness-r3.txt: exit 0, 28 RED / 3 GREEN; no survivor/false-red/stillborn;
+  both controls GREEN; policy restored. This includes all twelve named survivors.
+- interrupt-driver.py / interrupt-summary.json / *-interrupt.txt / *-rerun.txt:
+  deterministic BOT-6 exception probes and dirty-checkout reruns described above.
+- manifest-replay.json: actual check_real_commits rejection and replacement-tree match.
+- All 38 artifact inventory hashes in manifest.json independently match file bytes.
+  ed51fe11 is an ancestor of d75b23b1. This does not repair the missing manifest head.
+- Full-suite result: exit 0; Ran 1707 tests in 275.056s; OK.
+  Clean scratch status; HEAD remains d75b23b110c00579843886487ad80e9c0b607420.
+
+Independent bounded support: a fresh helper inspected production-hunk standards
+and Fowler heuristics; a separate helper executed control-classifier probes. Neither
+wrote shared files or acted as a mission coordinator. Their quoted source and
+material results were checked before inclusion. Control-probe directory:
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u-chain-r3-control-probe-pb7rb3ef
+Results: results.json, clean-skip.txt, direct-clean-skip.txt, clean-red.txt,
+mutants-importerror.txt, skip-injection.txt. Every probe restored its scratch files.
+
+Boundary: no implementation/test mutation in the shared reviewed worktree; no
+staging, commit, push, merge, PR action or human outreach. This authorized report
+is the only shared file this worker wrote; sibling axis reports are others' work.
+Remaining: resolve Required S-R3-1 and S-R3-2 or apply the coordinator's round-3
+parking protocol; BOT-6 may be accepted with the documented disposable-replay
+reason above. A completed NO-GO review is a successful dispatched review task.
+
+Completed 2026-09-20T09:32:13.197643+00:00 within the 25-minute timebox.
+All 18 motivating/closure lines checked verbatim at reviewed_sha.
+Final STANDARDS count: 0 Critical, 2 Required, 0 Nit, 1 Optional, 0 FYI.
+Worst standards issues: control-skip false success and unresolved manifest head.

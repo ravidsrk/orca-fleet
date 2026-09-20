@@ -1,0 +1,245 @@
+{
+  "verdict": "NO-GO",
+  "reviewed_sha": "5328cc866d3b213c444687b9c7d9cb2d1d45d853",
+  "reviewed_wtree": "f6dd754d53cd329e4406ccd7bfa1f79f18693a99",
+  "findings_summary": {
+    "round": 1,
+    "pr_number": 484,
+    "base_ref": "review/2026-09-20-tracker-sweep",
+    "head_ref": "ravidsrk/u-chain",
+    "rule": "GO only with zero Critical/Required findings across all axes and no unresolved blocking VALID held bot findings; no cross-axis rerank.",
+    "counts": {
+      "critical": 0,
+      "required_axes": 9,
+      "optional_axes": 1,
+      "valid_held_bots": 3
+    },
+    "summary": "NO-GO: all nine Required axis findings and all three VALID held bot findings remain open. S3 is Optional; bot P1/P2 priorities are retained without cross-axis reranking.",
+    "axes": {
+      "spec": [
+        {
+          "id": "SPEC-1",
+          "severity": "Required",
+          "blocking": true,
+          "location": "runtime/mission-chaining.md:40",
+          "motivating_quote": "(`git merge-base --is-ancestor <head> origin/<base>`)",
+          "sticking_condition": "Resume checks unit-to-BASE integration rather than owed BASE-to-default promotion; origin/<base> also fails for a no-remote target.",
+          "source_report": "docs/reports/U-CHAIN/review-spec.txt",
+          "display": "Wrong promotion boundary; `integration BASE` cannot prove BASE→default promotion."
+        },
+        {
+          "id": "SPEC-2",
+          "severity": "Required",
+          "blocking": true,
+          "location": "tests/test_architecture.py:655",
+          "motivating_quote": "r\"no remote\", r\"pushed mirror\", r\"reconstruction artifacts\",",
+          "sticking_condition": "AC-1 remains partial: token co-occurrence accepts removal of mandatory reconstruction publication and explicit park-resume preconditions.",
+          "source_report": "docs/reports/U-CHAIN/review-spec.txt",
+          "display": "AC-1 misses obligations; `r\"reconstruction artifacts\"` survives optional-publication mutants."
+        },
+        {
+          "id": "SPEC-3",
+          "severity": "Required",
+          "blocking": true,
+          "location": "docs/reports/U-CHAIN/manifest.json:30",
+          "motivating_quote": "\"addressed\": false,",
+          "sticking_condition": "AC-3 requires a green full suite; five failures reproduce at reviewed head and base. Separate baseline repair or an explicit contract change is still owed.",
+          "source_report": "docs/reports/U-CHAIN/review-spec.txt",
+          "display": "AC-3 remains unmet: `\"addressed\": false`; five baseline failures persist."
+        },
+        {
+          "id": "SPEC-4",
+          "severity": "Required",
+          "blocking": true,
+          "location": "docs/reports/U-CHAIN/negctrl.txt:1",
+          "motivating_quote": "# command: python3 -m unittest tests.test_architecture.TestArchitecture.test_chain_link_boundary_is_specified",
+          "sticking_condition": "AC-4 requires a reverted-document negative-control receipt from evidence-run.py; the submitted commands ledger lacks it despite a valid independent RED replay.",
+          "source_report": "docs/reports/U-CHAIN/review-spec.txt",
+          "display": "AC-4 lacks archived `evidence-run.py` receipt; submitted command is `python3 -m unittest`."
+        }
+      ],
+      "standards": [
+        {
+          "id": "S1",
+          "severity": "Required",
+          "blocking": true,
+          "location": "runtime/mission-chaining.md:30",
+          "motivating_quote": "integration BASE — is a one-way human gate",
+          "sticking_condition": "Promotion definition, resume destination, and cannot-merge wording conflict with shared BASE-to-default doctrine and the supported no-gh integration lane.",
+          "source_report": "docs/reports/U-CHAIN/review-standards.txt",
+          "display": "Promotion contradicts doctrine: `integration BASE — is a one-way human gate`."
+        },
+        {
+          "id": "S2",
+          "severity": "Required",
+          "blocking": true,
+          "location": "runtime/mission-chaining.md:67",
+          "motivating_quote": "of the leg's refs, or the seed sources plus the leg's full diff.",
+          "sticking_condition": "Seed sources plus a diff do not preserve cited Git commit identities or ancestry; require demonstrably commit-preserving reconstruction.",
+          "source_report": "docs/reports/U-CHAIN/review-standards.txt",
+          "display": "`seed sources plus the leg's full diff` cannot preserve cited commits/ancestry."
+        },
+        {
+          "id": "S3",
+          "severity": "Optional",
+          "blocking": false,
+          "location": "tests/test_architecture.py:607",
+          "motivating_quote": "out.append(\"\\n\".join(cur))",
+          "sticking_condition": "Normalize prose wrapping so semantically unchanged soft line breaks do not fail literal-space patterns; this is not a blocker.",
+          "source_report": "docs/reports/U-CHAIN/review-standards.txt",
+          "display": "Optional wrapping brittleness: `out.append(\"\\n\".join(cur))`."
+        }
+      ],
+      "test_adequacy": [
+        {
+          "id": "TA-441",
+          "severity": "Required",
+          "blocking": true,
+          "location": "tests/test_architecture.py:641",
+          "motivating_quote": "r\"human-paced\", r\"link boundary\")",
+          "sticking_condition": "Two surviving mutants remove every-boundary pacing or required resume facts while preserving matched vocabulary.",
+          "source_report": "docs/reports/U-CHAIN/review-tests.txt",
+          "display": "Human-gate mutants survive `r\"human-paced\", r\"link boundary\"`."
+        },
+        {
+          "id": "TA-443",
+          "severity": "Required",
+          "blocking": true,
+          "location": "tests/test_architecture.py:646",
+          "motivating_quote": "r\"handoff log\", r\"carry table\", r\"gate record\",",
+          "sticking_condition": "Two surviving mutants make carry sections optional or delete the required carry/gate fields.",
+          "source_report": "docs/reports/U-CHAIN/review-tests.txt",
+          "display": "Optional/deleted schema survives `r\"carry table\", r\"gate record\"`."
+        },
+        {
+          "id": "TA-444",
+          "severity": "Required",
+          "blocking": true,
+          "location": "tests/test_architecture.py:655",
+          "motivating_quote": "r\"no remote\", r\"pushed mirror\", r\"reconstruction artifacts\",",
+          "sticking_condition": "Two surviving mutants permit no reconstruction publication or SHA-only artifacts with no source bytes.",
+          "source_report": "docs/reports/U-CHAIN/review-tests.txt",
+          "display": "No-bytes/SHA-only mutants survive `r\"reconstruction artifacts\"`."
+        }
+      ],
+      "held_bots": [
+        {
+          "id": "BOT-1",
+          "severity": "P1",
+          "blocking": true,
+          "location": "runtime/mission-chaining.md:40",
+          "motivating_quote": "(`git merge-base --is-ancestor <head> origin/<base>`)",
+          "sticking_condition": "VALID, held: wrong promotion base; integration ancestry is already satisfied before the owed promotion and the remote ref cannot resolve offline.",
+          "source_report": "docs/reports/U-CHAIN/integrate.json",
+          "display": "Wrong base: `origin/<base>` proves integration, not promotion.",
+          "tag": "VALID"
+        },
+        {
+          "id": "BOT-2",
+          "severity": "P2",
+          "blocking": true,
+          "location": "runtime/mission-chaining.md:58",
+          "motivating_quote": "Worked exemplar:",
+          "sticking_condition": "VALID, held: the cited historical exemplar still calls its shape a proposal for an open gap and lacks the newly mandated ledger-header placement. Preserve this held finding even though SPEC does not independently call historical wording a frozen-spec failure.",
+          "source_report": "docs/reports/U-CHAIN/integrate.json",
+          "display": "`Worked exemplar:` still describes a proposed, unspecified format.",
+          "tag": "VALID"
+        },
+        {
+          "id": "BOT-3",
+          "severity": "P2",
+          "blocking": true,
+          "location": "tests/test_architecture.py:623",
+          "motivating_quote": "if all(re.search(p, b, re.I) for p in patterns)]",
+          "sticking_condition": "VALID, held: keyword checks accept promotion/carry semantic regressions; whole-bullet deletion controls do not prove the operative obligations.",
+          "source_report": "docs/reports/U-CHAIN/integrate.json",
+          "display": "Semantic regressions survive `re.search(p, b, re.I)`.",
+          "tag": "VALID"
+        }
+      ]
+    },
+    "inputs": [
+      {
+        "path": "docs/reports/U-CHAIN/review-spec.txt",
+        "sha256": "34abd51ab19b937485f570f4f40e48c9e3d53a2fb181f76fdbd0208c649525d1",
+        "reviewed_sha": "5328cc866d3b213c444687b9c7d9cb2d1d45d853"
+      },
+      {
+        "path": "docs/reports/U-CHAIN/review-standards.txt",
+        "sha256": "ca03056e1e89a7da663729fe6f6dacae049e0f368c6d1d10caaf076f495cc383",
+        "reviewed_sha": "5328cc866d3b213c444687b9c7d9cb2d1d45d853"
+      },
+      {
+        "path": "docs/reports/U-CHAIN/review-tests.txt",
+        "sha256": "f548be334c851bb51dfbe83c7c3b20bc0bb946515399e7ebaaf9428434abfbbe",
+        "reviewed_sha": "5328cc866d3b213c444687b9c7d9cb2d1d45d853"
+      },
+      {
+        "path": "docs/reports/U-CHAIN/integrate.json",
+        "sha256": "c96cc15e942d45a19e4074cf5bb64b0f86a5f753e4d8b9eefaefb6f9efa2e5da",
+        "reviewed_sha": "5328cc866d3b213c444687b9c7d9cb2d1d45d853"
+      }
+    ],
+    "freshness_note": "reviewed_sha and reviewed_wtree bind the current PR code head BEFORE this report-only evidence commit. Evidence files change the full Git tree; no identical-full-tree exemption is claimed. No code, test, or runtime-policy change is authorized by this aggregation.",
+    "publication": {
+      "state": "COMMENTED",
+      "review_id": 5260023187,
+      "url": "https://github.com/ravidsrk/orca-fleet/pull/484#pullrequestreview-5260023187",
+      "commit_id": "5328cc866d3b213c444687b9c7d9cb2d1d45d853",
+      "submitted_at": "2026-09-20T07:57:34Z",
+      "body_path": "docs/reports/U-CHAIN/verdict.md",
+      "body_sha256": "ee1924676eefaac62f86938d07be164e8185ccb77b06f95e74fa4a7d78ba3d70",
+      "egress_receipt": {
+        "id": "addc0bb9f950302b62762fa06bf810b4ea3fc2110050ad490547a35b54f7dbdf",
+        "ts": "2026-09-20T07:57:33Z",
+        "sink": "pr-review",
+        "host": "github.com",
+        "payload_class": "review-verdict",
+        "bytes": 2234,
+        "payload_sha256": "ee1924676eefaac62f86938d07be164e8185ccb77b06f95e74fa4a7d78ba3d70",
+        "consent": "run-2026-09-14-clean-sweep:tracker-writes",
+        "prev": "7ab3f20500432e57da4147b61880aa8ac9cb35a9ce55fa3d8cde8245a75c6624"
+      },
+      "egress_head_digest": "fd01e4dfd020b44a05974d014b1550588df46d29abdab981eb539ff2ae9496aa",
+      "verified_body_matches": true
+    },
+    "aggregator_checks": {
+      "commands": [
+        {
+          "label": "validate",
+          "command": "python3 scripts/validate.py",
+          "exit": 0,
+          "duration_s": 0.893,
+          "reviewed_sha": "5328cc866d3b213c444687b9c7d9cb2d1d45d853",
+          "log": "/tmp/u-chain-verdict-checks/validate.txt",
+          "artifact": "docs/reports/U-CHAIN/verdict-validate.txt",
+          "sha256": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6",
+          "reviewed_wtree": "f6dd754d53cd329e4406ccd7bfa1f79f18693a99"
+        },
+        {
+          "label": "suite",
+          "command": "python3 -m unittest discover -s tests",
+          "exit": 1,
+          "duration_s": 268.207,
+          "reviewed_sha": "5328cc866d3b213c444687b9c7d9cb2d1d45d853",
+          "log": "/tmp/u-chain-verdict-checks/suite.txt",
+          "artifact": "docs/reports/U-CHAIN/verdict-suite.txt",
+          "sha256": "152792d99b09ca569cfe3586b2687538e699a2546c86c41a10c6376e14bb1b96",
+          "reviewed_wtree": "f6dd754d53cd329e4406ccd7bfa1f79f18693a99"
+        }
+      ],
+      "tests_run": 1707,
+      "failures": [
+        "test_docs_navigation.ReleaseCutWalkthrough.test_next_release_preparation_cut_tag_and_provenance",
+        "test_docs_navigation.ReleaseRehearsalIsolation.test_inherited_git_selection_cannot_mutate_another_repository",
+        "test_docs_navigation.TestDocsNavigation.test_run_archive_index_lists_every_report",
+        "test_docs_navigation.TestDocsNavigation.test_run_archive_integrity_standard_matches_practice",
+        "test_wire_docs.WiringScriptAnchors.test_the_committed_docs_are_the_scripts_fixed_point"
+      ],
+      "failure_set_matches_submitted_suite": true,
+      "scope": "Required pre-commit checks in the dispatched worktree at reviewed_sha; untracked review reports were present. This is not the coordinator clean-environment verification.",
+      "independent_aggregation_check": "No omissions, inaccurate counts, changed priorities, or SHA/tree/source-hash mismatches found.",
+      "diff_check": "Only warning: review-tests.txt:308 contains the one-space context marker of its verbatim unified mutant diff. Preserved the original evidence bytes; no implementation diff exists."
+    }
+  }
+}
