@@ -1,0 +1,8 @@
+{
+ "id": "msg_fba13b99f4d8",
+ "type": "worker_done",
+ "created_at": "2026-09-20T07:42:37Z",
+ "subject": "U-CHAIN test adequacy: NO-GO, 3 Required findings",
+ "body": "Completed the blind-first test-adequacy review at SHA 5328cc866d3b213c444687b9c7d9cb2d1d45d853 and recorded independent scratch-clone mutations in the requested report. The verdict is NO-GO with three Required findings covering six surviving semantic mutants, while all four clause deletions failed and the vacuity guard failed closed. The builder must strengthen the contract assertions and rerun these mutants at a new SHA; only the authorized report was written and left uncommitted.",
+ "payload": "{\"taskId\":\"task_1eba2dcf50f5\",\"dispatchId\":\"ctx_147ba196881c\",\"outcome\":\"succeeded\",\"filesModified\":[\"docs/reports/U-CHAIN/review-tests.txt\"],\"reportPath\":\"docs/reports/U-CHAIN/review-tests.txt\"}"
+}

@@ -78,7 +78,7 @@ one unit or park; no id without a unit; no unit without an id.
 | — | #434 | proof-ladder diagram regen | needs-human | — | — | — | — | — | — | — | needs-human: provider render key secret absent (gh secret list empty) | gate comment + probe |
 | U-CHAIN | #441 #443 #444 | mission-chaining: promotion lane terminal, deferral-carry shape, local-only re-derivability | real-feature-small (doctrine) | t | t | t | f | f | f | lit | — | PR #484 @5328cc86; Greptile 3 VALID held; suite red = STAB-2's 5, no new red |
 | STAB-2 | — | repair 5 suite regressions from STABILIZE (index row + alt-string source repair) | conductor landing, worker-executed | t | n/a | n/a | n/a | t | t | lit | — | worker 4d13c672 (3 scoped files) → merged 2f04c402 (no-ff); coordinator-verified: 39/39 named tests OK + full suite exit 0 + tree clean at tip; egress receipt 4060372a; pushed; worktree+branch retired, no stray terminals |
-| U-442 | #442 | verify.py cross-repo evidence root (--git-dir/--evidence-root split) | real-feature-small (tooling) | f | f | f | f | f | f | lit | — | — |
+| U-442 | #442 | verify.py cross-repo evidence root (--git-dir/--evidence-root split) | real-feature-small (tooling) | t | f | f | f | f | f | lit | — | head df4f524f on u-442; suite red at build time = STAB-2's 5 (BASE since greened) |
 
 ## Loop log
 
@@ -184,6 +184,26 @@ BOOTSTRAP: preflight --base review/2026-09-20-tracker-sweep --fork-point e8ddbd9
   regen byte-identical, tree clean. Egress receipt 4060372a → pushed a8db9ba9..2f04c402.
   Worktree stab-2 retired (terminals closed, rm OK, branch merged+gone, 0 stray terminals).
   BASE is GREEN for the first time this run.
+
+- 09:1x DELIVERY delivery_6bff48bde63d (4 worker_dones, transcribed+acked):
+  U-CHAIN REVIEW ROUND 1 = NO-GO on all three axes (codex cross-vendor, blind-expectation
+  first, reviewed 5328cc86): STANDARDS 2 Required (promotion governance, commit
+  reconstruction) + 1 Optional; TEST-ADEQUACY 3 Required (SIX surviving semantic mutants —
+  contract assertions too weak; 4 clause deletions all killed, vacuity guard failed closed);
+  SPEC 4 Required (promotion resume check targets wrong branch — echoes Greptile P1; contract
+  test permits requirement-breaking mutations; AC-3 red = the 5 inherited failures, STALE —
+  STAB-2 has since greened BASE; AC-4 runner receipt owed). Reports: docs/reports/U-CHAIN/
+  review-{standards,tests,spec}.txt (uncommitted; verdict worker commits). Round 1 of ≤3.
+  VERDICT dispatched: task_b44329122b48, codex term_4c863306/ctx_(receipt spawn-oV6Y7f).
+  U-442 BUILD worker_done msg_5847d21d142f (succeeded): 3 commits on u-442 (4ad601a1 RED
+  two-repo fixture → 1ef8bd79 fix → df4f524f evidence). HARVEST (coordinator): scope =
+  verify.py +90, tests +190, evidence-manifest.md 2-line note, GENERATED regen (ARCHITECTURE
+  + badges + 14 docs/missions — activation-load recompute, clean-sweep 33.9k→34.0k, validate
+  owed at merge), docs/reports/u-442; author maintainer, no trailers; tree clean; branch 13
+  behind BASE. --git-dir (SHA/git legs via git -C) split from --evidence-root (bounds
+  manifest-relative paths); no-flag behavior byte-identical; #267 re-rooted not relaxed.
+  BUILD_DONE=t. INTEGRATOR dispatched: task_4b39f5058111, claude term_5941f8b4 (receipt
+  spawn-nUf2ZG) — merges green BASE first, then suite+validate, push, PR, Greptile reconcile.
 
 BRANCHES: local worktree checkouts carry the `ravidsrk/` prefix mapping to the unit tips
 (ravidsrk/u-chain, ravidsrk/u-442). Not drift — do not "fix".

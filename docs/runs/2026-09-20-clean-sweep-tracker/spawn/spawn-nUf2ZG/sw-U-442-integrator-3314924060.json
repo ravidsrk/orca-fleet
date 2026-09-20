@@ -1,0 +1,19 @@
+{
+  "id": "d18dcfe3-962d-4d1f-89b9-2c2dfda0f407",
+  "ok": true,
+  "result": {
+    "terminal": {
+      "handle": "term_5941f8b4-5b9f-4301-b093-61f60affde86",
+      "tabId": "3afe7d16-2995-4e46-ab1c-febcd71533c5",
+      "worktreeId": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/u-442",
+      "title": "U-442 integrator",
+      "executionHostId": "local",
+      "incarnationId": "8be2ea6d-6454-481b-b51e-9d3155d63fa5",
+      "hostPlatform": "darwin",
+      "surface": "visible"
+    }
+  },
+  "_meta": {
+    "runtimeId": "0e3d77f3-b0e7-4aa1-a21d-a960aa212104"
+  }
+}
