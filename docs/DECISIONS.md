@@ -60,3 +60,4 @@
 2026-09-20T07:40:17Z · ask-msg_b742c9ef705c+msg_38ab588a4cae · mechanical · report file inside the repo is the authorized exception to change-nothing; workers never commit, verdict worker commits all · same answer both axes; blind-expectation note lives inside the report · task_067ec69be832 task_1eba2dcf50f5
 2026-09-20T09:42:01Z · floor-waiver:silenced-checker:docs/reports/u-442/verdict-r2.json · taste · allow · quotes review prose containing pragma tokens; archival quotation, not repo work (2026-09-17 precedent) ·
 2026-09-20T09:42:01Z · floor-waiver:silenced-checker:docs/reports/u-442/verdict-review-r2.md · taste · allow · quotes review prose containing pragma tokens; archival quotation, not repo work (2026-09-17 precedent) ·
+2026-09-20T10:18:24Z · floor-waiver:silenced-checker:docs/reports/u-442/integrate-r2.json · taste · allow · integration report quotes the pragma line it adjudicates; archival quotation, not repo work (2026-09-17 precedent) ·
