@@ -1,0 +1,347 @@
+REVIEW — U-SIG-1 — AXIS: SPEC
+=============================
+Reviewer role: spec-fidelity reviewer (read-only). Report file: docs/reports/u-sig-1/review-spec.txt
+Branch: ravidsrk/sig-1   Diff base: origin/review/2026-09-20-sign-386
+Spec: docs/runs/2026-09-20-sign-386/build-u-sig-1.md (frozen)
+Held inputs: docs/reports/u-sig-1/integrate.json BOT-1, BOT-2
+Started: 2026-09-20 23:11 IST. Timebox 30 min.
+
+PART A — BLIND EXPECTATIONS (written BEFORE opening the diff; spec + integrate.json only)
+--------------------------------------------------------------------------------------
+
+A1. DESIRED BEHAVIOUR 1 (verify.py verdict object + signed envelope)
+  Motivating line: "verify.py builds a machine-readable VERDICT OBJECT (manifest path, the full
+  argument tuple, fatal/notes lists, exit code, toolchain, UTC timestamp) and, when given the new
+  flag pair (modeled on --dispatch-record/--dispatch-pubkey), emits it as a SIGNED ENVELOPE"
+  I expect:
+   - a record dict with AT LEAST: manifest (path), args (every CLI arg, not a subset), fatal[],
+     notes[], exit (int), toolchain, ts (UTC ISO). Missing any of these = Required finding.
+   - a NEW FLAG PAIR on verify.py: one names the seed/key to sign with, one names where the
+     envelope goes (the pair modeled on --dispatch-record/--dispatch-pubkey). A single flag, or
+     an env-var-only path, is a deviation worth a Nit/Required depending on shape.
+   - envelope shape {record, sig_b64}; canonical form == dispatch-sign's canonical_record().
+   - a PARITY TEST proving verify.py's canonicalization == dispatch-sign.py's for the same
+     record, mirroring the _canonical_dispatch parity test.
+   - the signing must NOT alter the verdict: same fatal/notes/exit whether or not the flags are
+     passed (the "stop" clause: "if signing the transcript would change any existing check's
+     semantics").
+
+A2. DESIRED BEHAVIOUR 2 (dispatch-sign.py transcript entry point)
+  Motivating line: "dispatch-sign.py gains a transcript signing entry point reusing
+  canonical_record()/the envelope and the existing key files — no second scheme."
+  I expect: a new subcommand (e.g. sign-transcript) that reads a record, canonicalizes it with the
+  SAME canonical_record(), signs with the SAME seed file layout (0600 seed, <out>.pub), writes
+  {record, sig_b64}. A verify-transcript counterpart is reasonable but not mandated. No new
+  crypto primitive; no change to ed25519.py.
+
+A3. DESIRED BEHAVIOUR 3 (run_report.py verifier-ran leg)
+  Motivating line: "with a committed pubkey present it REQUIRES the signed transcript (the ledger
+  entry alone no longer suffices), with the unsigned path preserved when no pubkey exists."
+  I expect:
+   - a transcript field/section in the run report (or a path convention) the leg can locate.
+   - verification against a COMMITTED pubkey — "committed" = read from git at some rev, not from
+     the working tree (a working-tree read is worker-writable and would be a Critical).
+   - BINDING of envelope fields to the report's claims: at minimum manifest path AND manifest
+     digest AND exit==0. The spec says "bind its fields" (plural, unqualified) — I expect the
+     args tuple to be at least partially bound too, or an explicit, documented statement of
+     which fields are bound and why the rest are not. (This is BOT-1's territory.)
+   - key present → ledger-only = FAIL. Key absent → today's ledger leg unchanged.
+   - the leg must be a coordinator-side check; the worker cannot mint a transcript without the
+     seed.
+
+A4. DESIRED BEHAVIOUR 4 (.orca/dispatch-pubkey committed + dormancy pin updated)
+  Motivating line: "The coordinator public key is committed at .orca/dispatch-pubkey (the
+  scheme's own enforcement switch); tests/test_orphan_wiring.py:683-689 and its source doc are
+  updated to the NEW true state (dormant → active for transcripts), never deleted — the test must
+  still pin what is NOT signed."
+  I expect:
+   - .orca/dispatch-pubkey present on the branch, 32-byte Ed25519 pubkey (hex or b64), matching
+     the coordinator's existing scheme (the seed's .pub output format from gen-key).
+   - test_orphan_wiring.py's dormancy test REWRITTEN, not deleted, now asserting: transcript
+     signing is active (pubkey committed) AND the still-unsigned surfaces (inventory/manifest —
+     U-SIG-2) remain pinned as unsigned.
+   - the paired doc (whatever test_orphan_wiring.py:683-689 reads) updated in the same commit.
+   - The TASK block says "the dormant-by-design shape match the coordinator's answers" — so the
+     coordinator apparently answered something about dormancy during the build. I will look for
+     those answers in the run's DECISIONS/ledger AFTER writing this section, and grade the
+     dormancy shape against them, not against my guess. My blind guess: "dormant-by-design" means
+     the transcript CODE ships but is only ENFORCED once the pubkey is committed — i.e. one
+     switch, no second toggle. If the pubkey is committed on this branch, enforcement is ON at
+     merge; if it is NOT committed, DESIRED BEHAVIOUR 4 is unmet unless the coordinator waived it.
+
+A5. ACCEPTANCE — failing-first
+  Motivating line: "Failing tests FIRST for 1-4 (each named above), then the implementation to
+  green."
+  I expect the commit graph to show test commits BEFORE their implementation commits, or a single
+  commit per behaviour whose evidence-run shows RED at the pre-impl SHA. A single squashed
+  "feat+test" commit with no RED evidence = Required finding (evidence protocol, not style).
+
+A6. ACCEPTANCE — tamper-refusal / unsigned-refused-with-pubkey
+  Motivating line: "A signed transcript VERIFIES against the committed pubkey; a tampered
+  transcript (any byte of record) FAILS verification; an unsigned transcript is REJECTED when the
+  pubkey is present."
+  I expect three DISTINCT tests: (i) round-trip verifies; (ii) mutate one byte of the canonical
+  record (not just a field swap) → verification fails; (iii) run report with no transcript, key
+  present → verifier_ran leg FAILS. A "wrong key" test is a bonus.
+
+A7. ACCEPTANCE — no-key byte-identical
+  Motivating line: "No-flag/no-key invocation is byte-identical in behavior to today's."
+  I expect: verify.py without the new flags produces identical stdout/exit to base (I will run
+  it against a fixture on both base and head in a scratch clone); run_report.py with no pubkey
+  at the pinned rev takes the ledger path unchanged. A test that pins "no flags → no envelope file
+  written, no extra stdout line" is what I want to see.
+
+A8. ACCEPTANCE — negative control executed
+  Motivating line: "NEGATIVE CONTROL executed: signing code reverted (tests kept) → new tests
+  RED, recorded via evidence-run.py."
+  I expect: an evidence-run artifact in docs/runs/2026-09-20-sign-386/ (or the manifest's
+  artifacts dir) showing the new tests RED with the signing code reverted and the tests kept,
+  bound to a SHA. A narrated "I reverted and it failed" without the artifact = Required.
+
+A9. ACCEPTANCE — suite + validate
+  Motivating line: "Full suite green; python3 scripts/validate.py exit 0."
+  integrate.json already records both at d496069f (1796 OK; validate exit 0). I will re-run
+  validate.py myself and spot-run the new test modules; the full suite is the integrator's leg.
+
+A10. BOT-1 (args signed but never read) — MY BLIND EXPECTATION
+  Motivating line (spec): "verify the envelope against a committed public key and bind its
+  fields to the report's claims"
+  Motivating line (BOT-1): "run_report.signed_transcript() ... binds only record.manifest,
+  record.manifest_sha256 and record.exit — args is never inspected"
+  Blind view: the spec's "bind its fields" is unqualified; binding three fields and ignoring the
+  args tuple is a partial implementation of DB3 only if the report actually CLAIMS something
+  about args (unit_class, lighting, execute_nc). The report's claims that run_report grades are:
+  verifier ran, negative control ran, lighting is legal. If the transcript carries
+  execute_nc/lighting and the report claims them, then NOT binding them is a spec gap (Required).
+  If run_report derives those from the manifest independently, then args-binding is a
+  hardening the spec permits but does not mandate — integrator's P2 downgrade would then be
+  right and (b) defer is acceptable. I will check which of the report's graded claims the
+  transcript's args could have corroborated and were not.
+
+A11. BOT-2 (pubkey read at a worker-chosen rev) — MY BLIND EXPECTATION
+  Motivating line (spec): "The coordinator public key is committed at .orca/dispatch-pubkey
+  (the scheme's own enforcement switch)"
+  Motivating line (BOT-2): "signed_transcript() reads PUBKEY_PIN via blob_at(rev, ...) where rev
+  = fields['inventory_at'] ... no ancestry check against the base tip or the key-introducing
+  commit exists anywhere in run_report.py"
+  Blind view: reading the switch at a worker-written rev makes the switch worker-controlled.
+  That is the opposite of "the scheme's own enforcement switch". The spec's "REQUIRES the signed
+  transcript" is therefore not delivered against an adversarial worker. Unless the coordinator
+  explicitly ANSWERED that the at-inventory_at read is the intended shape (the TASK block hints
+  at such an answer), I rate this Required-to-Critical on the spec axis. If the coordinator did
+  answer for it, the report must then state plainly that the switch is grandfathered by pin,
+  and the three prose statements the integrator names must not overclaim. The fix the integrator
+  sketches (ancestor-of-key-commit grandfather, or read at the grading base) is inside scope
+  files. My expected verdict: the P1 stands unless a coordinator answer covers it, and even then
+  the module-doc claim "a new run cannot dodge it by pinning an old commit" is false as written.
+
+A12. Non-goals I will check for violations
+  - "NO new key scheme or crypto" → no new files beyond dispatch-sign/verify/run_report/tests/doc.
+  - "any change to ed25519.py or _verify_sig.py" → OUT OF SCOPE; diff must not touch them.
+  - "no mission SKILL.md or policy text except the dormancy line" → no skills/ or runtime/*.md
+    changes except the dormancy doc line (and its byte-neutral constraint per validate.py).
+  - "reshaping verify.py's existing checks" → existing check functions unchanged in behaviour.
+  - assets/badges regen "if the count moves" → if test count moved, badge must be regenerated.
+
+
+PART B — COORDINATOR ANSWERS LOCATED (read after Part A, before the diff)
+------------------------------------------------------------------------
+docs/DECISIONS.md on the base branch (commit 95f0d03e), verbatim:
+  Q1 (key custody): "(c) code+tests+doc land with the transcript path implemented-not-switched-on;
+     maintainer gen-keys + commits the pubkey themselves"
+  Q2 (at-rev read): "run_report reads the pubkey AT the report's inventory_at commit (pre-key
+     reports byte-identical unsigned, post-key reports REQUIRE the transcript, dodge-by-pinning-old
+     blocked by artifacts-at-rev); the pubkey commit is THE switch for transcript AND
+     dispatch-record enforcement, named in the dormancy doc"
+These two answers amend spec DB4 (no pubkey committed by the agent) and fix DB3's shape (read at
+inventory_at). My blind expectation A4 ("if the pubkey is NOT committed, DB4 is unmet unless the
+coordinator waived it") is therefore resolved: waived by Q1=(c). A11's premise ("unless the
+coordinator explicitly ANSWERED that the at-inventory_at read is the intended shape") is met by
+Q2 — but Q2 carries a factual claim ("dodge-by-pinning-old blocked by artifacts-at-rev") that I
+tested below and that does NOT hold.
+
+PART C — REVIEW OF THE DELTA (56d0f7c7..120c61a0, 14 files, +1458/-41)
+----------------------------------------------------------------------
+What I ran (read-only; scratch worktrees under the session scratchpad, removed after):
+  - python3 scripts/validate.py → "All 21 missions valid; three-layer separation holds; evals
+    valid." exit 0.
+  - python3 -m unittest tests.test_dispatch_sign tests.test_verify tests.test_run_report
+    tests.test_orphan_wiring tests.test_reshape_width_verify → "Ran 489 tests … OK".
+  - Byte-identity probe (AC-3): verify.py --manifest <the unit's own manifest> --unit-class
+    mutation --lighting lit, no transcript flags, at BASE 56d0f7c7 (scratch worktree, artifacts
+    copied in) and at HEAD: stdout IDENTICAL, stderr IDENTICAL (diff empty), same 4 FAIL lines.
+  - BOT-2 probe (scratch repo built by the branch's own SignedTranscriptRequired fixture): key
+    committed at C_key on the default line (switch confirmed ON there: errors mention
+    "transcript"); then `git checkout -b sneaky <pre-key C0>`, commit a fresh artifact, pin
+    inventory_at to that fork commit, name no transcript → check_report() returns [] — ACCEPTED.
+    Script: <scratchpad>/bot2_probe.py (not committed).
+
+DB1 — verify.py verdict object + signed envelope: DELIVERED.
+  "verify.py builds a machine-readable VERDICT OBJECT (manifest path, the full argument tuple,
+  fatal/notes lists, exit code, toolchain, UTC timestamp)"
+  _Transcript.build (verify.py:1869-1895) carries unit, manifest, manifest_sha256, args (14 of the
+  16 flags — see FYI-3), fatal, notes, exit, toolchain{python,git,verify_sha256}, timestamp
+  (UTC, +00:00). Flag pair --transcript-out/--transcript-key (verify.py:2227-2237), key-without-out
+  and unreadable-key are usage errors (exit 1) BEFORE any verdict (verify.py:2243-2251). Envelope
+  {record, sig_b64} over _Transcript.canonical; parity with dispatch-sign.canonical_transcript
+  pinned by test_canonicalization_matches_signer (mirrors the _canonical_dispatch test). The
+  transcript write is after the verdict and never changes it (verify.py:2269-2284): the stop
+  clause "if signing the transcript would change any existing check's semantics" is honoured —
+  confirmed by the byte-identity probe above.
+
+DB2 — dispatch-sign.py transcript entry point: DELIVERED.
+  "dispatch-sign.py gains a transcript signing entry point reusing canonical_record()/the envelope
+  and the existing key files — no second scheme."
+  sign-transcript subcommand (dispatch-sign.py:266-278) → sign_transcript() → envelope(seed,
+  record, TRANSCRIPT_FIELDS) → canonical_record(record, fields). Same _seed loader, same 32-byte
+  hex seed file from gen-key. Refuses an already-signed envelope and a verdict missing any field.
+  test_the_dispatch_envelope_is_untouched pins the dispatch path's bytes unchanged.
+
+DB3 — run_report.py verifier-ran leg: DELIVERED AS ANSWERED (Q2), WITH TWO HELD DEFECTS (F-1, F-2).
+  "with a committed pubkey present it REQUIRES the signed transcript (the ledger entry alone no
+  longer suffices), with the unsigned path preserved when no pubkey exists."
+  signed_transcript() (run_report.py:447-511): key read via blob_at(rev, PUBKEY_PIN) — a COMMITTED
+  read, not the working tree (my A3 Critical trap avoided); key+no transcript → FAIL; unsigned
+  object → FAIL; bad sig / other key → FAIL; transcript outside run_dir → FAIL; binds manifest
+  path, manifest bytes at rev, exit↔verifier=. No key + no transcript → [] (today's path). Wired
+  into check_report after verifier_ran (run_report.py:815-816).
+
+DB4 — pubkey commit + dormancy pin: DELIVERED PER Q1=(c) (spec text superseded by the coordinator).
+  "The coordinator public key is committed at .orca/dispatch-pubkey (the scheme's own enforcement
+  switch); tests/test_orphan_wiring.py:683-689 and its source doc are updated to the NEW true
+  state (dormant → active for transcripts), never deleted"
+  No .orca/dispatch-pubkey on HEAD (git cat-file -e HEAD:.orca/dispatch-pubkey → does not exist) —
+  correct under Q1=(c). test_signed_dispatch_records_that_it_is_dormant is REWRITTEN not deleted
+  (tests/test_orphan_wiring.py:683-703): still pins "no mission or playbook signs a dispatch",
+  adds assertFalse(pubkey exists) with a message telling the maintainer to rewrite rather than
+  delete, and pins the three new doc phrases. docs/verify-gate.md:190-203 updated in the SAME
+  commit (cb6bb299) — the spec's stop clause ("if the pubkey commit would break the dormancy test
+  without its paired doc update") is satisfied. "gate G1, 2026-09-16" matches the G1 answer date
+  in docs/runs/2026-09-14-clean-sweep-tracker/gate-batch.md. The dormant-by-design shape matches
+  Q1 and the "one switch for both" phrasing matches Q2.
+
+ACCEPTANCE CRITERIA
+  AC-1 failing-first: see FYI-1 (not evidenced by the graph; discrimination evidenced by the NC).
+  AC-2 verifies / tampered fails / unsigned refused with key: DELIVERED — tests
+       test_a_signed_transcript_against_the_committed_key_binds, test_a_tampered_transcript_is_refused,
+       test_a_transcript_signed_by_another_key_is_refused, test_an_unsigned_transcript_is_refused_when_
+       the_key_is_committed (test_run_report.py:1295-1320); plus cli-level tamper checks in
+       test_dispatch_sign.py and test_verify.py. "any byte of record": see FYI-2.
+  AC-3 no-flag/no-key byte-identical: DELIVERED — my probe (stdout+stderr identical at base vs
+       head) + test_no_flags_writes_nothing_and_says_nothing_new + test_without_a_committed_key_
+       the_ledger_still_suffices.
+  AC-4 NEGATIVE CONTROL executed: DELIVERED — u-sig-1-negctrl.txt "Ran 487 tests … FAILED
+       (failures=3, errors=18)" with the three scripts checked out from 56d0f7c7 and tests kept;
+       manifest negative_control.tool=revert, 21 named failures, 4 not-witnessed tests named with a
+       reason; ledger record label=negative-control exit=1 with cmd_sha256 + wtree. But see F-3.
+  AC-5 suite + validate: DELIVERED — integrate.json "Ran 1796 tests in 262.932s / OK" at d496069f;
+       my validate.py run exit 0; my 489-test slice OK.
+
+NON-GOALS / OUT OF SCOPE: HONOURED. Diff touches no ed25519.py, no _verify_sig.py, no skills/,
+no runtime/*.md (the dormancy line lives in docs/verify-gate.md, the doc the pin reads); no new
+crypto; no network path. Badge regen 1739→1763 (+24 = 5 dispatch-sign + 7 verify + 12 run_report).
+
+PART D — FINDINGS (each with its verbatim motivating line)
+---------------------------------------------------------
+
+F-1  Required  BOT-2 UPHELD (P1) — the enforcement switch is read at a rev the graded party chooses.
+  Motivating line (run_report.py:52-53, this PR): "a new run cannot dodge it by pinning an old
+  commit because its own artifacts must exist there."
+  Motivating line (DECISIONS Q2): "dodge-by-pinning-old blocked by artifacts-at-rev"
+  Code: run_report.py:454 `pin = blob_at(rev, PUBKEY_PIN, root)` with rev = fields["inventory_at"]
+  (run_report.py:788); the only check on rev is inventory.rev_exists (:789). `rg -n "is-ancestor|
+  merge-base" runtime/scripts/run_report.py` → nothing.
+  Reproduced (Part C probe): fork from the pre-key commit, commit fresh artifacts there, pin the
+  report to the fork → check_report() == []. The artifacts DO exist at that rev — that is exactly
+  why the counter-claim fails: "artifacts-at-rev" constrains WHERE the artifacts are, not WHETHER
+  the key is there. So the code implements the coordinator's Q2 answer faithfully, but Q2's
+  safety premise is false, and this PR repeats the false premise in three places: run_report.py
+  module doc (:52-53), tests/test_run_report.py SignedTranscriptRequired docstring (:1250-1251),
+  docs/verify-gate.md:200-201 ("every run report pinned after that commit requires a verified
+  transcript (reports pinned before it keep the unsigned path)" — "after" is not what the code
+  tests; "at a commit that contains the key" is).
+  Adjudication: VALID, P1 stands. Not a worker deviation — a coordinator decision on a false
+  premise; the batch must re-decide Q2. Both fixes the integrator sketches are inside the spec's
+  scope files: (i) grandfather rule — unsigned path only if `git merge-base --is-ancestor <rev>
+  <key-introducing commit>` (needs that commit named somewhere read-only, e.g. the first commit
+  touching PUBKEY_PIN on the grading base), or (ii) read the key at the GRADING BASE (HEAD of the
+  repo run_report runs in), not at the pin — which the intent packet rejected because "would turn
+  both existing self-run reports RED and demote two missions"; that is a real cost, so (i) is the
+  recommendation. Whichever is chosen, the three prose statements change together (spec stop
+  clause: "if signing the transcript would change any existing check's semantics" — this IS that
+  case and needs the coordinator's word, not a builder's). Until re-decided: NO-GO on this unit's
+  stated purpose; the dormant state means nothing is bypassed TODAY, which is why this is
+  Required rather than Critical.
+
+F-2  Required  BOT-1 UPHELD as P2 — the signed args tuple is never read by the gate.
+  Motivating line (spec DB3): "verify the envelope against a committed public key and bind its
+  fields to the report's claims"
+  Motivating line (dispatch-sign.py:74-75, this PR): "`args` is the full argument tuple the run
+  used … All are required — a transcript missing one signs an absence."
+  Code: signed_transcript() binds record.manifest, record.manifest_sha256, record.exit
+  (run_report.py:496-508). record.args is never inspected. The report's claims run_report grades
+  are mission/tier/inventory_at/manifest/verifier; `mission` maps to a unit class through
+  _mutation_missions (run_report.py:514, already used at :693), so ONE args field has an
+  in-repo oracle today: a transcript whose args.unit_class is report-only/planning for a mission in
+  the mutation set is a verdict on the wrong class. lighting and execute_nc have NO report-side
+  claim to bind to, so leaving them unbound is not a spec gap — it is the "human reading them"
+  residual the integrator names. Agree with the P2 downgrade (check_class_downgrade, verify.py:2024,
+  already REDs the concrete exploit whenever base..head touched code). Adjudication: VALID, P2;
+  resolve in the batch by option (a) — bind args.unit_class against _mutation_missions in
+  signed_transcript() (≈6 lines + 1 test, inside scope files, no new policy source) — or state in
+  the module doc that args are signed for audit, not gated. Not blocking on its own.
+
+F-3  Required  The manifest's head_sha does not bind the criterion runs it names.
+  Motivating line (spec): "evidence: SHA-bound manifest per evidence-manifest.md; criterion-bound
+  runs via evidence-run.py"
+  Data: u-sig-1-manifest.json head_sha=9f10586e; both commands[] records carry
+  commit=3e094f35 wtree=c50693c7. verify.py on the branch's own manifest (Part C probe, HEAD):
+  "FAIL: commands ledger: no recorded command with exit 0 whose wtree is head_sha's tree
+  072c20ca… (exit-0 records carry ['c50693c7…"]". The width-pin commit 9f10586e changed the tree
+  after the runs. The fix is mechanical: re-run the two evidence-run.py commands at 9f10586e (or
+  at the final head after the batch) and re-emit the manifest; ~2 min. Flagged here because the
+  TESTS axis may report it too — one owner is enough.
+
+FYI-1  Failing-first ordering is not evidenced by the commit graph.
+  Motivating line: "Failing tests FIRST for 1-4 (each named above), then the implementation to
+  green."
+  Each feat commit (c2c3be72, 6be872a7, d1c0a42d, cb6bb299) lands tests and implementation
+  together; no RED-first commit or pre-impl evidence-run exists. The executed NC (AC-4) proves
+  the same thing the ordering is for — that the 21 tests discriminate — so I do not grade this as
+  a gap, only note that "first" is asserted, not shown.
+
+FYI-2  "any byte of record" is tested at field granularity, which is the right granularity.
+  Motivating line: "a tampered transcript (any byte of record) FAILS verification"
+  The canonical form covers every signed field (test_canonical_transcript_is_field_bounded_and_
+  order_free); a byte outside the signed fields (an extra key, file whitespace) is by design not
+  part of "record" and run_report reads only signed fields. Tamper tests flip exit, fatal,
+  manifest_sha256, and a field-in-args is covered by the parity form. Adequate.
+
+FYI-3  Two flags are deliberately absent from the signed args tuple.
+  Motivating line: "the full argument tuple"
+  _Transcript.ARGS (verify.py:1858-1860) records 14 of 16 flags; --transcript-out and
+  --transcript-key are omitted. Correct: the seed path must not enter a public signed record,
+  and the out path is the envelope's own location. Nit only: `repo` records the raw flag
+  (getattr(args, "repo")) rather than the effective `args.repo or infer_repo()` passed to the
+  checks (verify.py:2263), so an inferred repo signs as null. Optional to record the effective
+  value.
+
+FYI-4  Dormant-by-design shape: matches the coordinator's answers.
+  Motivating line (Q1): "code+tests+doc land with the transcript path implemented-not-switched-on"
+  No pubkey committed; the pin now asserts that absence and names the one switch for both
+  mechanisms; the doc says "implemented, not switched on" and "exercised by no real run yet".
+  This is the answered shape, not the spec's literal DB4 first sentence — the batch should read
+  DB4 as amended by Q1.
+
+PART E — VERDICT ON THE SPEC AXIS
+--------------------------------
+DB1, DB2 delivered in full; DB4 delivered as amended by Q1; DB3 delivered as answered by Q2, but
+Q2's premise is refuted (F-1) and the args tuple the spec signs is unbound (F-2). AC-2/3/4/5
+delivered; AC-1 ordering unshown but its purpose served (FYI-1). Evidence manifest does not bind
+at its own head_sha (F-3).
+Recommendation: NOT MERGEABLE as-is — F-1 needs a coordinator re-decision of Q2 (grandfather
+rule (i) recommended) with the three prose statements changed together; F-2 option (a) and F-3
+are small builder fixes on the same branch. No finding here is a worker deviation from the frozen
+spec or the recorded answers; the defects are in the answers' premise and in evidence binding.
+
+Finished: 2026-09-20 23:20 IST (≈9 min of the 30-min box). Report uncommitted, as authorized.

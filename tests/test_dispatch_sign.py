@@ -5,9 +5,11 @@ The private dispatch seed must never be committable by accident: the repo's .git
 `.secrets/`, and gen-key must refuse to write a seed at a path that resolves inside a git work tree
 unless that path is git-ignored (or the caller explicitly overrides with --in-repo-ok).
 """
+import base64
 import contextlib
 import importlib.util
 import io
+import json
 import os
 import stat
 import subprocess
@@ -180,6 +182,102 @@ class RepoGitignoreCoversSecrets(unittest.TestCase):
             rc = subprocess.run(["git", "check-ignore", path],
                                 cwd=ROOT, capture_output=True).returncode
             self.assertEqual(rc, 1, f"{path}: the dispatch pubkey must remain committable")
+
+
+class TranscriptSigning(unittest.TestCase):
+    """#281 / #386: the verifier's VERDICT is signed with the same scheme as the dispatch tuple.
+
+    verify.py's verdict used to be stdout text plus an exit code — a worker can type any of it.
+    `sign-transcript` wraps a verdict object in the {record, sig_b64} envelope `sign` already
+    produces, over the same canonical form, with the same key files. No second scheme."""
+
+    _RECORD = {"unit": "u1", "manifest": "docs/runs/r/manifest.json", "manifest_sha256": "ab" * 32,
+               "args": {"unit_class": "mutation", "lighting": "lit"},
+               "fatal": [], "notes": ["NOTE: x"], "exit": 0,
+               "toolchain": {"python": "3.12.0"}, "timestamp": "2026-09-20T00:00:00+00:00"}
+
+    def _ed(self):
+        return dispatch_sign._load_ed25519()
+
+    def test_canonical_transcript_is_field_bounded_and_order_free(self):
+        # Only the transcript fields are signed, sorted, no whitespace — a worker-added key is not
+        # part of the bytes, and the order a producer happened to emit is not a difference.
+        canon = dispatch_sign.canonical_transcript(self._RECORD)
+        self.assertEqual(canon, dispatch_sign.canonical_transcript(
+            dict(reversed(list(self._RECORD.items())), extra="ignored")))
+        self.assertNotIn(b"extra", canon)
+        self.assertEqual(json.loads(canon.decode("utf-8")),
+                         {k: self._RECORD[k] for k in dispatch_sign.TRANSCRIPT_FIELDS})
+        self.assertEqual(set(dispatch_sign.TRANSCRIPT_FIELDS),
+                         {"unit", "manifest", "manifest_sha256", "args", "fatal", "notes",
+                          "exit", "toolchain", "timestamp"})
+
+    def test_sign_transcript_cli_wraps_the_verdict_in_a_verifying_envelope(self):
+        with tempfile.TemporaryDirectory() as d:
+            key = Path(d) / "dispatch-key"
+            rc, err = _gen_key(key)
+            self.assertEqual(rc, 0, err)
+            transcript = Path(d) / "verdict.json"
+            transcript.write_text(json.dumps(self._RECORD), encoding="utf-8")
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out):
+                rc = dispatch_sign.main(["sign-transcript", "--key", str(key),
+                                         "--transcript", str(transcript)])
+            self.assertEqual(rc, 0)
+            env = json.loads(out.getvalue())
+            self.assertEqual(set(env), {"record", "sig_b64"})
+            self.assertEqual(env["record"], self._RECORD)
+            ed = self._ed()
+            pub = bytes.fromhex(Path(str(key) + ".pub").read_text().strip())
+            sig = base64.b64decode(env["sig_b64"])
+            self.assertTrue(ed.checkvalid(sig, dispatch_sign.canonical_transcript(env["record"]), pub))
+            # any byte of the record flipped -> the signature no longer verifies
+            tampered = dict(env["record"], exit=2)
+            self.assertFalse(ed.checkvalid(sig, dispatch_sign.canonical_transcript(tampered), pub))
+
+    def test_sign_transcript_refuses_an_incomplete_verdict(self):
+        # A verdict missing a signed field would sign an absence — refuse, rather than bind nothing.
+        with tempfile.TemporaryDirectory() as d:
+            key = Path(d) / "dispatch-key"
+            _gen_key(key)
+            transcript = Path(d) / "verdict.json"
+            transcript.write_text(json.dumps({"unit": "u1", "exit": 0}), encoding="utf-8")
+            err = io.StringIO()
+            with contextlib.redirect_stderr(err):
+                rc = dispatch_sign.main(["sign-transcript", "--key", str(key),
+                                         "--transcript", str(transcript)])
+            self.assertNotEqual(rc, 0)
+            self.assertIn("manifest", err.getvalue())
+
+    def test_sign_transcript_writes_to_out_when_asked(self):
+        with tempfile.TemporaryDirectory() as d:
+            key = Path(d) / "dispatch-key"
+            _gen_key(key)
+            transcript = Path(d) / "verdict.json"
+            transcript.write_text(json.dumps(self._RECORD), encoding="utf-8")
+            target = Path(d) / "signed.json"
+            rc = dispatch_sign.main(["sign-transcript", "--key", str(key),
+                                     "--transcript", str(transcript), "--out", str(target)])
+            self.assertEqual(rc, 0)
+            self.assertEqual(json.loads(target.read_text())["record"], self._RECORD)
+
+    def test_the_dispatch_envelope_is_untouched(self):
+        # Reusing the envelope must not change what `sign` emits for a dispatch record.
+        with tempfile.TemporaryDirectory() as d:
+            key = Path(d) / "dispatch-key"
+            key.write_text(bytes(range(1, 33)).hex() + "\n")
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out):
+                rc = dispatch_sign.main(["sign", "--key", str(key), "--manifest-id", "u",
+                                         "--contract-digest", "sha256:a", "--unit-class", "mutation"])
+            self.assertEqual(rc, 0)
+            env = json.loads(out.getvalue())
+            self.assertEqual(env["record"], {"manifest_id": "u", "contract_digest": "sha256:a",
+                                             "unit_class": "mutation"})
+            ed = self._ed()
+            self.assertTrue(ed.checkvalid(base64.b64decode(env["sig_b64"]),
+                                          dispatch_sign.canonical_record(env["record"]),
+                                          ed.publickey(bytes(range(1, 33)))))
 
 
 if __name__ == "__main__":

@@ -11,7 +11,10 @@ WIDTH is the mission's own probe (skills/reshape-it/SKILL.md § SCAN):
 count of lines matching ^(def |class |async def |[A-Z_]+ =).
 Pre-deepening baseline: 92. Post-deepening pin: 85, raised to 88 by #442, then to 90 by
 #442 round 2 (_evidence_toplevel + _roots_are_split: the evidence bound and the
-single-repo/split test, each named once instead of inlined at every call site).
+single-repo/split test, each named once instead of inlined at every call site), then
+to 91 by #281/#386 (`_Transcript`: the signed verifier transcript — canonical form in
+parity with dispatch-sign.py, verdict build, seed load and envelope write, held in ONE
+class precisely so the feature costs one name and stays under the <92 invariant).
 
 The pin is a ratchet against the deepening RE-WIDENING, not a freeze: the
 invariant it defends is `width < BASELINE_WIDTH`, and that baseline never
@@ -29,7 +32,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 WIDTH_RE = re.compile(r"(?:def |class |async def |[A-Z_]+ =)")
 BASELINE_WIDTH = 92
-PINNED_WIDTH = 90
+PINNED_WIDTH = 91
 
 
 def interface_width(path):

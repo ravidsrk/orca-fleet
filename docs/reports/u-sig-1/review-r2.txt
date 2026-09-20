@@ -1,0 +1,184 @@
+verdict: GO
+REVIEW — U-SIG-1 — ROUND 2 (targeted re-review, acceptance-review fix-round rule)
+=================================================================================
+Reviewer: task_923ba8248ce1 / ctx_12b143df15d1 (read-only; this file is the only write)
+Branch: ravidsrk/sig-1   Fix batch: 235dd2df..1b3c8141   Spec: docs/runs/2026-09-20-sign-386/build-u-sig-1-r2.md
+Inputs read BEFORE the diff: review-{spec,standards,tests}.txt, build-u-sig-1-r2.md. Started 2026-09-21, timebox 25 min.
+
+PART A — BLIND EXPECTATIONS PER STICKER (written before `git diff 235dd2df..1b3c8141` was opened)
+-----------------------------------------------------------------------------------------------
+G-1 (fork-dodge / R-1 / F-1 / C3 / BOT-2)
+  Motivating line (r2 spec): "the unsigned (grandfather) lane applies ONLY when inventory_at is an
+  ancestor of the PR's grading base AND the pubkey is absent there; a submission whose inventory_at
+  sits off the default branch's ancestry is evaluated against the pubkey at the grading base"
+  I expect:
+   E1. `git merge-base --is-ancestor <inventory_at> <grading base>` (or equivalent) in run_report.py.
+   E2. The grading base must NOT be plain HEAD of the checkout run_report runs in. If it were, a
+       worker's own branch tip (inventory_at == HEAD) is trivially an ancestor of HEAD and the key is
+       absent there → the fork-dodge reopens through the front door. It must be the default branch
+       tip (origin/main / main, or an explicit --base), resolved by run_report, not by a report field.
+   E3. Off-ancestry pin + key at base → transcript REQUIRED (no transcript = FAIL; unsigned = FAIL).
+   E4. In-ancestry pin + key absent at pin → unsigned ledger lane, byte-identical to today (the two
+       existing self-run reports must stay GREEN — that was the intent packet's cost).
+   E5. In-ancestry pin + key present at pin → transcript REQUIRED.
+   E6. TESTS axis P2/P3/P8 exist verbatim in intent: P2 pre-key report, key committed at HEAD only →
+       unsigned lane keeps; P3 pre-key transcript, key at HEAD only → fails closed (nothing can verify);
+       P8 pin holds an UNSIGNED verdict, HEAD holds a signed one → refused. Each must have rev != HEAD,
+       i.e. the fixture's _commit() re-pin-to-HEAD idiom is broken for these three. Mutant C3
+       (blob_at("HEAD") for the key) and C14 (blob_at("HEAD") for the transcript) must now die.
+   E7. Three prose sites rewritten to the TRUE rule: run_report.py module doc, docs/verify-gate.md
+       (~:199-201), SignedTranscriptRequired docstring. No residual "cannot dodge it by pinning an old
+       commit because its own artifacts must exist there".
+   E8. docs/DECISIONS.md: original Q2 line INTACT, plus a supersession line naming it superseded.
+   E9. Scratch probe I will run: key at C_key on main; fork from pre-key C0; commit fresh artifacts;
+       pin = fork tip; no transcript → expect errors (REFUSAL). Same with dangling pin (P5). Legit
+       old in-ancestry report → expect []. And the E2 trap: run check_report with HEAD == the fork tip.
+G-2 (args unread / F-2 / BOT-1)
+  Motivating line (r2 spec): "the report's verifier command line must equal the signed args; a
+  disagreement refuses"
+  I expect:
+   E10. signed_transcript() reads record.args and compares it to a report-side claim of the verifier
+        invocation (whatever the report records as the verify.py command). The report-side claim being
+        worker-written is fine: the transcript side is coordinator-signed, so a lie on either side is a
+        disagreement → FAIL.
+   E11. Hostile args (unit_class=report-only, lighting=dark, execute_nc=False on a mutation-tier
+        report) → FAIL. args == {} → FAIL. args missing / not a dict → FAIL. Comparison is over the
+        FULL signed tuple, not one cherry-picked key (else a hostile lighting still rides).
+   E12. The comparison must not be satisfiable by an empty-vs-empty match (report records no command
+        line AND transcript args {} → must refuse, not "equal").
+   E13. Killer tests: hostile-args refuses; empty tuple refuses; matching args binds (positive).
+G-3 (stale manifest / F-3)
+  Motivating line (round-1 spec F-3): "no recorded command with exit 0 whose wtree is head_sha's tree"
+  I expect:
+   E14. u-sig-1-manifest.json head_sha == a9a4df32 (per commit 1b3c8141's title) and every exit-0
+        commands[] receipt carries wtree == `git rev-parse a9a4df32^{tree}`. verify.py on the unit's own
+        manifest at HEAD must no longer emit the commands-ledger FAIL. Receipts re-recorded via
+        evidence-run.py (cmd_sha256 present), not hand-edited. The evidence commit 1b3c8141 itself sits
+        above head_sha by construction (can't receipt a commit that contains the receipts) — fleet
+        precedent, acceptable; a FAIL only if head_sha's tree != receipts' wtree.
+G-4 (None==None / R-2)
+  Motivating line (r2 spec): "a missing sig with enforcement on refuses; a missing pubkey with a sig
+  present refuses; both missing follows the grandfather lane ONLY under G-1's rule"
+  I expect:
+   E15. run_report: envelope with sig_b64 absent/empty and key present → FAIL. Envelope with sig, key
+        absent at the governing rev → FAIL ("nothing can verify it"). Neither present + in-ancestry →
+        unsigned lane; neither present + off-ancestry → governed by key at base (if base has no key:
+        unsigned; if base has key: FAIL).
+   E16. The R-2 specific: verify.py's in-process signer must REFUSE to sign a record with any None
+        FIELDS value (manifest_sha256/unit None when the manifest was unreadable) — parity with
+        dispatch-sign's "a transcript missing one signs an absence". And run_report must treat graded
+        manifest bytes == None as its own failure, never compare None == None.
+G-5 (unwritten --transcript-out / R-3)
+  Motivating line (r2 spec): "--transcript-out given but no artifact written must exit NONZERO"
+  I expect:
+   E17. write failure with verdict 0 → exit 1 (usage/dependency band per header); verdict 2 stays 2.
+        A test that makes the out path unwritable (a directory, or a missing parent) and asserts the
+        nonzero code. Header exit-code contract updated if the band changed.
+Cross-cutting
+   E18. validate.py exit 0; the three test modules + test_orphan_wiring + width pin green; badge
+        count moves if tests moved (commit a9a4df32 says 1763→1775: +12); no ed25519.py/_verify_sig.py
+        change; no skills/ or runtime/*.md change; no new deps; no weakened refusal.
+
+PART B — WHAT I RAN (after opening the diff; scratch = `git clone --shared` of this worktree at 1b3c8141 under the
+session scratchpad, probe modules tests/test_zz_r2probe*.py there, never here; this worktree touched only by this file)
+-----------------------------------------------------------------------------------------------------------------
+  - git diff 235dd2df..1b3c8141: 11 files, +748/-131. No ed25519.py / _verify_sig.py / skills/ / runtime/*.md / new
+    imports beyond stdlib (shlex, argparse already present). Badge 1763→1775 (+12, see FYI-2), assets/badges/tests.json "1775 in source".
+  - python3 -m unittest tests.test_run_report.SignedTranscriptRequired → 55 OK; tests.test_verify.SignedTranscript → OK;
+    my 117-test probe run (fixture subclass) → OK; python3 scripts/validate.py → "All 21 missions valid; three-layer
+    separation holds; evals valid." exit 0.
+  - Mutants re-run in the scratch clone: C3 `pin = blob_at("HEAD", PUBKEY_PIN, root)` → "FAILED (failures=3)"
+    (test_a_report_pinned_before_the_key_landed_keeps_the_unsigned_path, test_a_pre_key_transcript_fails_closed_even_
+    once_the_key_lands_later, test_a_pre_key_report_still_binds_when_the_base_is_named_explicitly); C14 `raw =
+    blob_at("HEAD", transcript, root)` → "FAILED (failures=2)" (…does_not_retro_sign_the_pinned_verdict,
+    …off_ancestry_report_binds…). Both round-1 survivors now KILLED.
+
+PART C — STICKER-BY-STICKER (each quotes its verbatim line)
+----------------------------------------------------------
+G-1  DELIVERED. Line (run_report.py:key_rev): "The pin when it sits on the grading base's ancestry — that is the
+     grandfather lane's one door; the grading base when it does not."  Code: grading_base() resolves ("origin/HEAD",
+     "origin/main", "origin/master", "main", "master", "HEAD") or --base; is_ancestor() = `git merge-base --is-ancestor
+     rev base` (E1 met); the base is resolved by run_report, never from a header field (E2 met for this repo and CI —
+     validate.yml runs run_report.py under fetch-depth 0, so origin/main resolves; but see N-1).
+     Probe Q1 (fork-dodge: key on main, branch from pre-key, fresh artifacts, pin = fork tip, no transcript) →
+       ".orca/dispatch-pubkey is committed at 5e88aacf… (the grading base 5e88aacf111a — the pin 2e8d06bf0e94 is not
+        an ancestor of it, so the key is read where the pin cannot choose), so a ledger entry alone no longer proves
+        the verifier ran …"   REFUSED (E3 ✓).
+     Probe Q2 (same, pin dangling / branch -D) → identical refusal (E3 ✓).
+     Probe Q3 (pre-key pin on main's ancestry, key lands AFTER the pin) → []  (E4 ✓, grandfather lane kept).
+     E5 covered by test_with_a_committed_key_a_ledger_entry_alone_no_longer_suffices (unchanged, green).
+     E6 ✓: P2 = test_a_report_pinned_before_the_key_landed_keeps_the_unsigned_path, P3 = test_a_pre_key_transcript_
+     fails_closed_even_once_the_key_lands_later, P8 = test_a_transcript_signed_after_the_pin_does_not_retro_sign_the_
+     pinned_verdict; all three use the new _land() ("The report is NOT re-pinned") and P2 asserts
+     `self.assertNotEqual(later, self.rev)` — blob_at(rev) != blob_at(HEAD) is exercised, and C3/C14 die (Part B).
+     E7 ✓: all three prose sites rewritten; `rg -n "artifacts must exist there" runtime/ docs/ tests/` → only the
+     module doc's own refutation ("so \"its own artifacts must exist there\" was never a defence") and the DECISIONS
+     supersession line. E8 ✓: docs/DECISIONS.md original Q2 line intact; new line "2026-09-20T18:28:20Z · ask-msg_
+     6d4bba0a00dc-Q2 · taste · superseded · …".
+G-2  DELIVERED. Line (run_report.py signed_transcript): "The args are signed so they can be READ (BOT-1)".
+     Probe Q5a (signed unit_class=report-only, body shows mutation) → "its signed argument tuple (unit_class=
+       'report-only' lighting='lit') matches no verify.py invocation the body shows — the verdict was reached under a
+       policy the report does not claim"   REFUSED (E11 ✓).
+     Probe Q5b args={} and Q5c args key absent → "it signs no argument tuple, so under which policy the verdict was
+       reached is unknown"   REFUSED (E11/E12 ✓). Body with NO invocation line → any([]) is False → refused (E12 ✓).
+     Probe Q5e (signed lighting=dark, body lit) → refused. Mutation-class oracle: test_hostile_args_on_a_mutation_
+     mission_are_refused_even_when_the_body_agrees → "mutation-class" refusal even when the body is retyped (P1 ✓).
+     Killer tests present (E13 ✓): …signed_args_disagree…, …signing_no_argument_tuple…, …hostile_args_on_a_mutation_
+     mission…; positive path is the pre-existing test_a_signed_transcript_against_the_committed_key_binds (its fixture
+     body now shows "--unit-class mutation --lighting lit"). Residuals: N-2, N-3.
+G-3  DELIVERED. Line (verify.py on the unit's own manifest at HEAD): "NOTE: commands ledger FRESH — 1 exit-0 record(s)
+     bound to head_sha's tree 7005bd0dacba". Manifest head_sha=a9a4df32, `git rev-parse a9a4df32^{tree}`=7005bd0dacba;
+     the exit-0 receipt (label tests) carries commit a9a4df32 wtree 7005bd0dacba with cmd_sha256; the exit-1 receipt
+     (negative-control) carries its own reverted wtree 23905847, as it should. Remaining FAIL lines are the round-1
+     three (no --contract-source, oracle scope, no pr.number) — coordinator-side, outside this batch. E14 ✓.
+G-4  DELIVERED. Line (run_report.py): "None on either side is an absence, and an absence binds nothing (round-1 R-2)."
+     Probe Q6a sig_b64="" + key → "signature INVALID … (forged, tampered, or another key)"; Q6b sig_b64 missing + key →
+     "is an UNSIGNED verdict (no record/sig_b64 envelope) … rejected"; Q6c (isolated) sig present, key absent at the
+     governing rev → "is named but no .orca/dispatch-pubkey is committed at 9e5ba1ed… — nothing can verify it";
+     Q6d manifest_sha256=None → "it signs no manifest_sha256 — a verdict over unknown bytes". Both-missing: Q3
+     (in-ancestry) → [] and Q7 (off-ancestry, base carries no key) → [] — the latter is "evaluated against the pubkey
+     at the grading base" with none there, i.e. the dormant state, consistent with G-1's rule. verify.py side:
+     _Transcript.write "a record with any FIELDS value None is never signed" → test_the_in_process_signer_refuses_to_
+     sign_an_absence_like_the_offline_one asserts rc != 0, "absence" on stderr, no file. E15/E16 ✓.
+G-5  DELIVERED. Line (verify.py header): "A requested transcript that is not written (unwritable path; a seed asked to
+     sign an absence) is exit 1 on a green verdict — a RED keeps its 2." main(): `if not written and code == 0: … code
+     = 1`. test_a_requested_transcript_that_cannot_be_written_is_a_nonzero_exit asserts rc==1 with "verify: OK" still
+     on stdout, no artifact, and rc==2 preserved for a RED. E17 ✓ (header contract updated in the same hunk).
+Cross-cutting (E18) ✓: validate exit 0; negctrl re-recorded "Ran 501 tests / FAILED (failures=6, errors=27)" = 33 RED
+     as the commit title claims; no weakened refusal found (every round-1 refusal string still fires in my probes).
+
+PART D — FINDINGS
+-----------------
+N-1  Nit — "HEAD" as the last-resort grading base is the fork-dodge's back door in a repo where nothing else resolves.
+     Line (run_report.py GRADING_BASES comment): "HEAD is the last resort — the checkout run_report is running in —
+     never a header field."  Probe Q4: fork-dodge shape, default branch renamed to `trunk`, checkout on the fork, no
+     remote → grading_base()==sneaky's tip → the pin is its own ancestor → key read at the pin → [] (ACCEPTED). Not
+     reachable in this repo (origin/HEAD, origin/main and main all exist) nor in CI (fetch-depth 0), and the
+     constrained party cannot rename the coordinator's branches, hence Nit not Required. Fail-closed shape: drop
+     "HEAD" from GRADING_BASES so the existing "no grading base resolves … fails closed" branch fires, and call
+     _on_main() from the fixture's setUp so the 12 older tests do not depend on init.defaultBranch.
+N-2  Nit — the args binding is a SUBSET match on the keys the transcript happens to sign, not equality.
+     Line (run_report.py): "keys = [k for k in SIGNED_ARGS if k in signed]".  Probe Q5d: signed args={"repo": None}
+     (one benign key) → [] (binds). Only the seed-holder can mint such a record (verify.py signs all 14 keys), so this
+     is a coordinator self-foot-gun, not a worker dodge; r2 G-2 said "must equal". One line — refuse when
+     set(signed) != set(SIGNED_ARGS) — plus a test closes it.
+N-3  Nit — "matches no verify.py invocation the body shows" accepts ANY of several shown lines.
+     Line (run_report.py): "if not any(all(inv[k] == signed[k] for k in keys) for inv in shown)".  Probe Q5f: signed
+     lighting=dark; body lists two invocations (lit AND dark) → []. The body is worker prose; verifier_ran() binds the
+     manifest's commands ledger (cmd_sha256/wtree), not the body's lines. Stronger and no wider: compare the signed
+     tuple to the ledger record verifier_ran already trusts (the exit-0 verifier `cmd`), or require every shown
+     invocation to agree. Nit because the mutation-class oracle catches the unit_class case regardless, and the
+     hostile line is at least visible on the page.
+FYI-1 A merged fork-dodge would become in-ancestry after merge and grandfather itself on the next catalog run — but
+     it can only merge by passing this gate first, which now refuses it (Q1). No action.
+FYI-2 Badge delta +12 = 10 new tests in tests/test_run_report.py (3 BOT-1, P2/P3/P8, P4/P5 + the lawful off-
+     ancestry shape, the explicit --base case) + 2 in tests/test_verify.py. Matches a9a4df32. Not a finding.
+
+PART E — VERDICT
+----------------
+All five stickers (G-1…G-5) delivered and independently re-derived: the fork-dodge refuses (Q1/Q2), the legitimate
+pre-key in-ancestry report keeps the unsigned lane (Q3), P2/P3/P8 exist with rev != HEAD and kill C3/C14, hostile and
+empty args refuse (Q5a/b/c/e), absence never binds (Q6a-d), the manifest's ledger reads FRESH at a9a4df32, and an
+unwritten --transcript-out is exit 1. Three Nits, no Required, no Critical. GO for the integrator; N-1/N-2/N-3 can ride
+a follow-up or the next round at the batch's discretion.
+Finished ≈23 min of the 25-min box. Report uncommitted, as authorized. Scratch clone + /tmp/rr.bak left outside the repo.

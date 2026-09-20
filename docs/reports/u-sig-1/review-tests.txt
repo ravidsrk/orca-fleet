@@ -1,0 +1,286 @@
+REVIEW — U-SIG-1 — axis: TEST-ADEQUACY (mutation-hunt.md)
+reviewer: task_3d3d35e852e6 / ctx_71ab2bf143f4
+branch: ravidsrk/sig-1  vs  origin/review/2026-09-20-sign-386
+report: docs/reports/u-sig-1/review-tests.txt  (uncommitted, review-only)
+
+================================================================
+PART A — BLIND EXPECTATIONS (written BEFORE opening the diff)
+================================================================
+Source read: docs/runs/2026-09-20-sign-386/build-u-sig-1.md + the two held
+Greptile P1s in docs/reports/u-sig-1/integrate.json. Nothing else.
+
+A.1  Spec item 1 (verify.py emits a signed verdict envelope)
+  Expect: a VERDICT OBJECT with {manifest, args tuple, fatal[], notes[], exit,
+  toolchain, ts}; when --transcript-out/--transcript-seed (or similar pair) is
+  given, it is canonicalized with THE SAME function/form dispatch-sign uses and
+  signed with the coordinator seed into {record, sig_b64}. A parity test must
+  pin that verify.py's canonical bytes == dispatch-sign.py's canonical bytes for
+  the same record — and it must be a real byte comparison, not "both import the
+  same symbol" (a shared import makes the test tautological; if one side is
+  edited to a private copy, the test must go RED).
+  Killer mutants I will write:
+    M1 flip one byte of record after signing            -> verification RED
+    M2 verify with a different pubkey                    -> RED
+    M3 sign with a different seed, same pubkey           -> RED
+    M4 change verify.py's canonical form (e.g. sort_keys
+       off / separators changed)                         -> parity test RED
+    M5 transcript record.manifest points at a different
+       manifest than the report claims                   -> run_report RED
+
+A.2  Spec item 2 (dispatch-sign.py transcript entry point)
+  Expect: a subcommand that takes an unsigned record and emits the envelope
+  using canonical_record() — no second canonical form. Test should prove the
+  envelope it emits verifies under verify-side code AND that a record with an
+  extra/missing field is rejected (field-set pinned).
+
+A.3  Spec item 3 (run_report.py verifier-ran leg)
+  Expect three behaviours, each with its own test:
+    (a) pubkey committed + valid transcript bound to (manifest, manifest sha,
+        exit==0, and ideally args) -> PASS
+    (b) pubkey committed + NO transcript (ledger entry only) -> REFUSE
+    (c) no pubkey -> old ledger path, byte-identical
+  Binding: manifest_sha256 in record must equal the sha of the manifest the
+  report names at the graded rev; exit must be 0; a transcript for a DIFFERENT
+  manifest must be refused (M5).
+
+A.4  Spec item 4 (.orca/dispatch-pubkey committed; dormancy pin updated)
+  Expect: tests/test_orphan_wiring.py's dormancy assertion flips to "active for
+  transcripts, still NOT signing X" and still pins the non-signed surface.
+
+A.5  Held P1 BOT-1 (args signed but never read) — my expectation
+  I expect signed_transcript() to at least read record.args and refuse
+  unit_class in {report-only, planning} when the graded mission is a mutation
+  mission, OR bind execute_nc/lighting. If it binds none, then any test that
+  passes a transcript with hostile args must still PASS — that is a SURVIVING
+  MUTANT by construction (mutating args to anything leaves the gate green).
+  I will demonstrate it with a mutant M6: transcript args.unit_class flipped to
+  "report-only" + lighting flipped to "dark" -> expect run_report still GREEN.
+  If GREEN: Required (test-adequacy: there is no covering test because there is
+  no covering check). This corroborates the held finding on my axis.
+
+A.6  Held P1 BOT-2 (pubkey read at worker-chosen inventory_at)
+  My expectation of the CORRECT behaviour: the switch must be evaluated at a
+  rev the worker cannot choose — the grading base tip, or the pin must be
+  proven an ancestor-of-key-commit for the unsigned path. The task text asks
+  me to prove two specific facts:
+    M7 pubkey planted at a LATER commit must NOT satisfy a pre-key report
+       (i.e. a report whose inventory_at predates the key, with no transcript,
+       should take the unsigned path — and adding the key later must not
+       retro-validate it as "signed"). Expect: unsigned path -> PASS-unsigned,
+       never "signed transcript verified".
+    M8 post-key report WITHOUT a transcript must REFUSE. And the BOT-2 evasion:
+       post-key work pinned to a PRE-key commit (fork from pre-key, commit
+       artifacts there, inventory_at=that commit) must ALSO refuse. I expect
+       the current code lets M8-evasion through (per integrate.json); I will
+       execute it and quote output. If it passes, Required, and there is no
+       test that could go RED because the check does not exist.
+
+A.7  Negative-control expectation
+  Spec requires "revert the signing code -> new tests RED". I expect the
+  evidence to show a real revert of the implementation (not of the tests) and
+  a RED run recorded by evidence-run.py. I'll check that the recorded NC's
+  reverted files include verify.py AND dispatch-sign.py AND run_report.py —
+  reverting only one leaves the other legs' tests green (partial NC).
+
+================================================================
+PART B — DELTA REVIEW AGAINST EXPECTATIONS (written after opening the diff)
+================================================================
+
+Reviewed at: d496069f (head_sha in integrate.json) + 120c61a0 (integrate.json only).
+Scratch clone: <scratchpad>/m (git clone of the worktree, checked out at d496069f).
+Mutant runner: one-line in-place edit -> run covering classes -> git checkout -- .
+Covering classes: tests.test_run_report.SignedTranscriptRequired,
+  tests.test_verify.SignedTranscript, tests.test_dispatch_sign.TranscriptSigning
+  (57 tests, baseline: "Ran 57 tests in 11.599s / OK").
+
+B.0  Method summary
+  17 CODE mutants (C1-C17) against the three covering classes, then survivors
+  re-run against the full test_run_report + test_orphan_wiring modules (186
+  tests). 9 BEHAVIOURAL probes (P1-P9) as extra tests in the scratch clone
+  against the UNMUTATED code, asserting the spec-correct behaviour, to
+  demonstrate absent checks (a check that does not exist has no test that can
+  go red — those are survivors by construction).
+
+B.1  Code-mutant scoreboard (KILLED = a covering test went RED)
+  C1  run_report: signature check forced true            KILLED
+      "FAIL: test_a_tampered_transcript_is_refused ... AssertionError: False is not true : []"
+      "FAIL: test_a_transcript_signed_by_another_key_is_refused"
+  C2  run_report: manifest_sha256 binding removed        KILLED
+      "FAIL: test_a_transcript_over_other_manifest_bytes_is_refused"
+  C3  run_report: pin = blob_at("HEAD", PUBKEY_PIN) instead of blob_at(rev, ...)
+                                                          SURVIVED — see F-1
+      "Ran 57 tests in 11.539s / OK"; full modules: "Ran 186 tests in 15.326s / OK"
+  C4  verify.py _Transcript.canonical: sort_keys=False    KILLED
+      "FAIL: test_canonicalization_matches_signer ... b'{"unit":"u","manifest":...' != b'{"args":...'"
+      "FAIL: test_the_pair_emits_an_envelope_that_verifies_and_binds_the_verdict"
+  C5  dispatch-sign canonical_record: separators (", ", ": ") for transcripts  KILLED
+      "FAIL: test_canonicalization_matches_signer"
+  C6  run_report: exit binding removed                   KILLED
+      "FAIL: test_a_transcript_whose_exit_disagrees_with_the_header_is_refused"
+  C7  run_report: run_dir containment removed            KILLED
+      "FAIL: test_a_transcript_outside_the_run_directory_is_refused"
+  C8  run_report: named transcript w/o key -> silently [] KILLED
+      "FAIL: test_a_named_transcript_is_checked_even_without_a_committed_key"
+  C9  verify.py write(): signs json.dumps(record) not canonical  KILLED
+      "FAIL: test_the_pair_emits_an_envelope_that_verifies_and_binds_the_verdict ... False is not true"
+  C10 verify.py build(): manifest_sha256 = sha(path) not sha(bytes)  KILLED
+      "AssertionError: '058ef32d…' != '2b791f14…'"
+  C11 verify.py build(): exit always 0                   KILLED  "AssertionError: 0 != 2" (x2)
+  C12 dispatch-sign sign_transcript: dispatch field set  KILLED  "AssertionError: {} != {'unit': 'u1', ...}"
+  C13 run_report: manifest PATH binding removed          KILLED
+      "FAIL: test_a_transcript_over_other_manifest_bytes_is_refused"
+  C14 run_report: raw = blob_at("HEAD", transcript) instead of at rev
+                                                          SURVIVED — see F-1
+      "Ran 57 tests in 12.416s / OK"
+  C15 run_report: len(pub) != 32 guard removed           SURVIVED — EQUIVALENT, see FYI-1
+      probe P9 under C15: a 16-byte hex key still yields
+      "signature INVALID for the .orca/dispatch-pubkey committed at …" (fail-closed either way)
+  C16 check_report never calls signed_transcript          KILLED  "FAILED (failures=9)"
+  C17 verify.py write(): unsigned path emits {record, sig_b64:""}  KILLED
+      "AssertionError: 'sig_b64' unexpectedly found in {...}"
+  Score: 14 killed / 2 real survivors (C3, C14) / 1 equivalent (C15).
+
+  The task's named mutants, mapped: flip a record byte post-sign -> C1 (and the
+  in-test tamper assertions); swap the pubkey / sign with a different seed ->
+  C1's second RED (test_a_transcript_signed_by_another_key_is_refused); point
+  the transcript at a different manifest -> C2 + C13; break canonical-form
+  parity between dispatch-sign and verify.py -> C4 + C5 (both directions RED,
+  and the parity test is a real byte comparison across two modules, not a
+  shared import — expectation A.1 met).
+
+B.2  Behavioural probes against the UNMUTATED code
+  P1  BOT-1: transcript args = {unit_class: report-only, lighting: dark,
+      execute_nc: False, contract_source: None} on a self-run mutation report
+      -> "P1 hostile-args errors: []"   ACCEPTED. See F-2.
+  P2  pre-key report, key committed LATER (HEAD != rev), no transcript
+      -> "P2 pre-key report, key at HEAD only: []"   correct (unsigned path kept)
+  P3  pre-key transcript, key committed LATER
+      -> "… is named but no .orca/dispatch-pubkey is committed at daa3f1e1… —
+          nothing can verify it, so the claim fails closed (#281)"   correct
+      P2+P3 run under C3: "FAILED (failures=2)" — they are exactly the two
+      tests the suite lacks.
+  P4  BOT-2 evasion: key on the main line; fork from the pre-key commit, commit
+      FRESH artifacts there, inventory_at = fork tip, no transcript
+      -> "P4 BOT-2 evasion (post-key work, pre-key pin, no transcript): []"
+      ACCEPTED. See F-3.
+  P5  same, but the pin is a DANGLING commit (detached, on no branch)
+      -> "P5 dangling pre-key pin, key on the branch: []"   ACCEPTED. See F-3.
+  P6  16-byte hex pubkey -> "malformed (not a 32-byte hex key) — fail-closed"  correct
+  P7  record.unit = "somebody-elses-unit" -> "P7 unit mismatch: []"  See Nit-1.
+  P8  pin holds an UNSIGNED verdict, a later commit replaces it with a valid
+      envelope, report graded at the pin
+      -> "… is an UNSIGNED verdict (no record/sig_b64 envelope) … — rejected"  correct
+      P8 under C14: "FAILED (failures=1)" — it is the missing test for C14.
+  P9  (C15 classification only, above.)
+
+================================================================
+PART C — FINDINGS
+================================================================
+
+F-1  [Required] test-adequacy — the at-rev read of BOTH the pubkey and the
+     transcript is unpinned: mutants C3 and C14 survive 186 tests.
+     Motivating line (tests/test_run_report.py, SignedTranscriptRequired
+     docstring): "The key is read at the report's own `inventory_at` commit,
+     the same way the manifest is: a report pinned before the key landed keeps
+     the unsigned path unchanged". And run_report.py signed_transcript():
+     "The key is read AT `rev`, like everything else here: presence of
+     `.orca/dispatch-pubkey` in the working tree says nothing about what a
+     report pinned last month could have carried."
+     Every fixture in the class commits and then re-pins to HEAD (_commit():
+     "self.rev = _git(self.repo, "rev-parse", "HEAD")"), so rev == HEAD in all
+     12 tests and blob_at(rev, …) is indistinguishable from blob_at("HEAD", …).
+     The property the docstring states — and that the manifest's intent packet
+     names as the coordinator's Q2 decision ("the key is read at each report's
+     own inventory_at instead, coordinator answer Q2") — has no test that can
+     go red. Evidence: C3 -> "Ran 186 tests in 15.326s / OK"; C14 -> "Ran 57
+     tests … OK".
+     Fix (tests only, inside spec scope): add P2 and P3 (key lands at a commit
+     AFTER the pin: pre-key report must still bind unsigned; pre-key transcript
+     must fail closed even though HEAD has the key) and P8 (transcript at pin
+     unsigned, at HEAD signed -> refused). All three are in the scratch probe
+     file and kill C3/C14 as quoted above. This is also the regression guard
+     any BOT-2 fix will need, whichever grandfather rule the batch picks.
+
+F-2  [Required] test-adequacy — corroborates held BOT-1 on this axis: the
+     signed `args` tuple is unbound, so no killer mutant exists for it.
+     Motivating line (verify.py _Transcript.build docstring): "with what (the
+     full argument tuple — unset flags included, so an omitted authority is
+     visibly omitted)". Visible to a human reader only: run_report.py
+     signed_transcript() reads record["manifest"], ["manifest_sha256"],
+     ["exit"] and nothing else. Probe P1 (args = report-only/dark/execute_nc
+     False/contract_source None on a mutation-tier self-run report) ->
+     "P1 hostile-args errors: []". There is no code to mutate and therefore no
+     test to write until the batch decides BOT-1's option (a) or (b); if (a)
+     is chosen, P1 is the RED-first test, and integrate.json's mitigation
+     ("already RED'd unsupervised by verify.py check_class_downgrade") must
+     itself be pinned by a run_report-level test, since run_report never
+     re-runs verify.py ("it does not re-run `verify.py` and re-derive the
+     verdict", run_report.py module doc).
+
+F-3  [Required] test-adequacy — corroborates held BOT-2, executed: the
+     enforcement switch is evadable, and the sentence that claims otherwise is
+     false as tested.
+     Motivating line (run_report.py module doc, repeated in the test docstring
+     and docs/verify-gate.md): "a new run cannot dodge it by pinning an old
+     commit because its own artifacts must exist there."
+     Probe P4: fresh artifacts committed on a branch forked from the pre-key
+     commit, inventory_at = that tip (git merge-base --is-ancestor <key-commit>
+     <pin> confirmed NOT an ancestor) -> "[]" — the unsigned path is taken and
+     the report binds. Probe P5: the same with the pin on NO branch (detached,
+     dangling) -> "[]". The only guard on the pin is inventory.rev_exists();
+     nothing relates the pin to the key-introducing commit or the graded base.
+     On my axis: there is no test that names this property and no covering
+     check, so the claim in three documents is asserted by nobody. Whichever
+     rule the batch chooses (ancestry of the key commit; or reading the key at
+     the grading base), P4 and P5 are the RED-first tests, and the three
+     statements must be rewritten together (spec stop-condition, as
+     integrate.json notes).
+
+Nit-1 [Nit] record.unit is signed but never bound. Motivating line
+     (dispatch-sign.py TRANSCRIPT_FIELDS comment): "`manifest_sha256` binds the
+     verdict to the manifest BYTES it judged". True — and sufficient — but
+     `unit` then rides along unbound: P7 with unit="somebody-elses-unit" ->
+     "[]". Harmless today (path + sha already pin the manifest); a one-line
+     `record.get("unit") != manifest_json.get("unit")` check plus a test would
+     make the field mean something. Optional.
+
+FYI-1 C15 (drop the 32-byte length guard) is an equivalent mutant: ed25519
+     checkvalid rejects a short key anyway ("signature INVALID …" under C15,
+     probe P9). The guard buys a better message, not safety. No action.
+
+FYI-2 Spec desired-behaviour #4 says "The coordinator public key is committed
+     at .orca/dispatch-pubkey"; the delta commits none and the dormancy pin now
+     asserts its ABSENCE (test_orphan_wiring.py: "self.assertFalse((ROOT /
+     ".orca" / "dispatch-pubkey").exists()"). The manifest records this as the
+     coordinator's decision (intent.ruled_out: "Committing a pubkey from this
+     session (coordinator answer Q1=c: the seed never originates in an agent
+     session)") with a follow-up item ("Commit the coordinator public key at
+     .orca/dispatch-pubkey (desired-behaviour #4's switch-on half)"). On this
+     axis the consequence is only that the REQUIRE path is exercised solely by
+     fixtures; the fixtures do exercise it (C16 -> "FAILED (failures=9)"). Not a
+     finding; noted so the batch does not read acceptance-criterion line 2 as
+     met against a real committed key.
+
+FYI-3 Negative control is real and complete: u-sig-1-negctrl.txt shows all
+     three scripts reverted (dispatch-sign: "invalid choice: 'sign-transcript'
+     (choose from 'gen-key', 'sign')"; verify.py main and run_report envelope
+     helper tracebacks) -> "Ran 487 tests in 47.995s / FAILED (failures=3,
+     errors=18)" = 21 RED, matching the manifest claim "21 RED under the revert
+     control". Expectation A.7 met.
+
+================================================================
+PART D — VERDICT ON THIS AXIS
+================================================================
+The signature path itself is well covered: 14/16 non-equivalent code mutants
+killed, parity pinned cross-module in both directions, tamper / other-key /
+other-manifest / exit-disagreement / unsigned-with-key / outside-run-dir all
+RED on mutation. What is NOT covered is the one property that makes the switch
+a switch: WHERE the key is read (F-1, tests missing for an implemented
+behaviour) and WHETHER the pin can be chosen to precede it (F-3, no check, no
+test — the BOT-2 hold). F-2 is BOT-1 restated as a test-adequacy fact: unbound
+args have no killer. Recommend: F-1's three tests land with the batch's BOT-2
+fix (they are its regression guard); F-2/F-3 ride the held findings.
+
+Scratch artifacts (not committed, outside the repo): <scratchpad>/p/c*.py
+(mutants), <scratchpad>/out-*.txt (raw runs), <scratchpad>/m/tests/test_zz_probe.py
+(probes P1-P9). Repo worktree touched only by this file. Timebox: ~22 min.
