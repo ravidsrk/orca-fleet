@@ -1,17 +1,36 @@
 {
   "unit": "U-CHAIN",
-  "base_sha": "a58bf71a283928a8278e560163452ee70c7ad609",
-  "head_sha": "315ad409097b378b3d342d5144322d0f92d0d119",
+  "base_sha": "ed51fe11de5f7329ecf02ffb933bf50648ae5654",
+  "head_sha": "88a64c902ea1cd2ab0e3040781f918bb8daaefc6",
   "base_branch": "review/2026-09-20-tracker-sweep",
   "contract": {
-    "source": "docs/runs/2026-09-20-clean-sweep-tracker/build-u-chain.md@a58bf71a283928a8278e560163452ee70c7ad609",
-    "digest": "872605215c4b4e418d9efd1ed518dfeccf7d417283bdd3c3c21670d3a0bcb1cb",
+    "source": "docs/runs/2026-09-20-clean-sweep-tracker/build-u-chain-r2.md@ed51fe11de5f7329ecf02ffb933bf50648ae5654",
+    "digest": "63ce1e4e0e538557ac5661bf6905707c82ad3937061531ec457e2812a4f0a9c8",
     "criterion_ids": [
       "AC-1",
       "AC-2",
       "AC-3",
       "AC-4",
       "AC-5"
+    ],
+    "round_1_contract": {
+      "source": "docs/runs/2026-09-20-clean-sweep-tracker/build-u-chain.md@a58bf71a283928a8278e560163452ee70c7ad609",
+      "digest": "872605215c4b4e418d9efd1ed518dfeccf7d417283bdd3c3c21670d3a0bcb1cb",
+      "criterion_ids": [
+        "AC-1",
+        "AC-2",
+        "AC-3",
+        "AC-4",
+        "AC-5"
+      ]
+    },
+    "fix_items": [
+      "F-1",
+      "F-2",
+      "F-3",
+      "F-4",
+      "F-5",
+      "F-6"
     ]
   },
   "criteria": [
@@ -19,105 +38,142 @@
       "id": "AC-1",
       "text": "A contract test asserts all three properties and FAILS at the unit's base SHA, PASSES at head.",
       "addressed": true,
-      "evidence": "docs/reports/U-CHAIN/negctrl.txt (RED at base doc content, AssertionError), docs/reports/U-CHAIN/contract-test.txt (GREEN at head)"
+      "evidence": "negctrl.txt (RED with the base doc restored, AssertionError, exit 1) + contract-test.txt / poscontrol.txt (GREEN at clean head, exit 0); mutants-r2.txt — 13/13 mutants KILLED, including all six round-1 SURVIVORS and both SPEC-2 mutants"
     },
     {
       "id": "AC-2",
       "text": "python3 scripts/validate.py exit 0 at head (line caps + reference resolution).",
       "addressed": true,
-      "evidence": "docs/reports/U-CHAIN/validate.txt (exit 0)"
+      "evidence": "validate.txt (exit 0), recorded through evidence-run.py"
     },
     {
       "id": "AC-3",
       "text": "Full test suite green at head.",
-      "addressed": false,
-      "evidence": "docs/reports/U-CHAIN/suite.txt (1707 tests, 5 failures) vs docs/reports/U-CHAIN/prered-base.txt (same 5 at base_sha)",
-      "note": "NOT MET, and not meetable by this unit: the identical 5 tests are RED at base_sha, introduced by the run's own STAB commits (296f100b added docs/runs/2026-09-20-clean-sweep-tracker.md without a run-archive index row; 3833c88e left README wiring off the wiring script's fixed point). Both live outside this unit's scope (docs/runs index, README) and its stop rule. What IS proven: no NEW red \u2014 the failing set at head is byte-identical to the failing set at base."
+      "addressed": true,
+      "evidence": "suite.txt — 1707 tests, OK, exit 0, 278.8s, recorded through evidence-run.py with wtree == head_sha^{tree}",
+      "note": "Round 1 was NOT MET: 5 tests were RED at head AND at base. F-6 merged the green BASE (origin/review/2026-09-20-tracker-sweep @ ed51fe11, green since STAB-2 merge 2f04c402) into the branch — union merge, no conflict — and all five are green at the new head. Round-1 transcript prered-base.txt is retained as the superseded record."
     },
     {
       "id": "AC-4",
       "text": "NEGATIVE CONTROL executed: doc amendment reverted (test kept) -> contract test RED.",
       "addressed": true,
-      "evidence": "docs/reports/U-CHAIN/negctrl.txt (whole-amendment revert) + docs/reports/U-CHAIN/negctrl-per-criterion.txt (4 hand mutants, one per clause, all KILLED)"
+      "evidence": "commands[] label tests-negative-control — exit 1, AssertionError, wtree ad36992ac9322618ffc691d07178a912f58ee224 (the reverted content), paired with label tests-positive-control — exit 0 at the restored clean head, wtree == head_sha^{tree}. Both recorded THROUGH runtime/scripts/evidence-run.py (round 1's raw unittest run is superseded)."
     },
     {
       "id": "AC-5",
       "text": "runtime/mission-chaining.md <= 160 lines.",
       "addressed": true,
-      "evidence": "77 lines at head; validate.py's runtime cap gate is green in validate.txt"
+      "evidence": "89 lines at head; validate.py's runtime cap gate is green in validate.txt"
     }
   ],
   "commands": [
     {
       "label": "contract-test",
-      "ts": "2026-09-20T07:02:13Z",
+      "ts": "2026-09-20T08:08:31Z",
       "cmd": "python3 -m unittest tests.test_architecture.TestArchitecture.test_chain_link_boundary_is_specified -v",
       "cmd_sha256": "b5de31d30f70132b34c7266781ca040f382361af24528ab3953830911e25d31a",
       "exit": 0,
       "duration_s": 0.037,
-      "commit": "315ad409097b378b3d342d5144322d0f92d0d119",
-      "wtree": "7cbc79d7f8fbaab8470557d4bc2becb8276952b8",
+      "commit": "88a64c902ea1cd2ab0e3040781f918bb8daaefc6",
+      "wtree": "a32a64720e5afe65f0626ca1a17aa555d962425b",
       "artifact": "docs/reports/U-CHAIN/contract-test.txt"
     },
     {
       "label": "validate",
-      "ts": "2026-09-20T07:02:37Z",
+      "ts": "2026-09-20T08:08:32Z",
       "cmd": "python3 scripts/validate.py",
       "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
       "exit": 0,
-      "duration_s": 1.087,
-      "commit": "315ad409097b378b3d342d5144322d0f92d0d119",
-      "wtree": "7cbc79d7f8fbaab8470557d4bc2becb8276952b8",
+      "duration_s": 0.882,
+      "commit": "88a64c902ea1cd2ab0e3040781f918bb8daaefc6",
+      "wtree": "a32a64720e5afe65f0626ca1a17aa555d962425b",
       "artifact": "docs/reports/U-CHAIN/validate.txt"
     },
     {
+      "label": "tests-negative-control",
+      "ts": "2026-09-20T08:08:40Z",
+      "cmd": "python3 -m unittest tests.test_architecture.TestArchitecture.test_chain_link_boundary_is_specified -v",
+      "cmd_sha256": "b5de31d30f70132b34c7266781ca040f382361af24528ab3953830911e25d31a",
+      "exit": 1,
+      "duration_s": 0.03,
+      "commit": "88a64c902ea1cd2ab0e3040781f918bb8daaefc6",
+      "wtree": "ad36992ac9322618ffc691d07178a912f58ee224",
+      "artifact": "docs/reports/U-CHAIN/negctrl.txt"
+    },
+    {
+      "label": "tests-positive-control",
+      "ts": "2026-09-20T08:08:40Z",
+      "cmd": "python3 -m unittest tests.test_architecture.TestArchitecture.test_chain_link_boundary_is_specified -v",
+      "cmd_sha256": "b5de31d30f70132b34c7266781ca040f382361af24528ab3953830911e25d31a",
+      "exit": 0,
+      "duration_s": 0.029,
+      "commit": "88a64c902ea1cd2ab0e3040781f918bb8daaefc6",
+      "wtree": "a32a64720e5afe65f0626ca1a17aa555d962425b",
+      "artifact": "docs/reports/U-CHAIN/poscontrol.txt"
+    },
+    {
       "label": "suite",
-      "ts": "2026-09-20T07:07:22Z",
+      "ts": "2026-09-20T08:13:30Z",
       "cmd": "python3 -m unittest discover -s tests",
       "cmd_sha256": "3b904b6440a1431e3bc43d30c6941d115d622ee1423e9241fa937e71de5b0564",
-      "exit": 1,
-      "duration_s": 279.32,
-      "commit": "315ad409097b378b3d342d5144322d0f92d0d119",
-      "wtree": "7cbc79d7f8fbaab8470557d4bc2becb8276952b8",
+      "exit": 0,
+      "duration_s": 278.927,
+      "commit": "88a64c902ea1cd2ab0e3040781f918bb8daaefc6",
+      "wtree": "a32a64720e5afe65f0626ca1a17aa555d962425b",
       "artifact": "docs/reports/U-CHAIN/suite.txt"
     }
   ],
   "negative_control": {
-    "did": "restored runtime/mission-chaining.md from base_sha in a throwaway worktree at head_sha; then, separately, dropped each of the four added bullets by hand (one per clause)",
-    "tool": "revert",
-    "result": "the criterion-bound test went RED with an AssertionError under every control (mutants KILLED); ZERO on the same command at clean head_sha",
-    "artifact": "docs/reports/U-CHAIN/negctrl.txt",
-    "command": "python3 -m unittest tests.test_architecture.TestArchitecture.test_chain_link_boundary_is_specified",
+    "did": "restored runtime/mission-chaining.md from a58bf71a (the unit's pre-fix policy blob) in the worktree at head_sha, keeping the head test; then restored the head policy and re-ran the same command. Separately, 13 mutants (base revert, four single-bullet deletions, the six round-1 SURVIVORS, and the two SPEC-2 requirement-reversing mutants) were run in an off-repo copy of the head tree.",
+    "tool": "revert + hand mutants",
+    "result": "doc-revert RED (exit 1, AssertionError naming the missing park bullet); clean head GREEN (exit 0). 13/13 mutants KILLED, 0 survivors.",
+    "artifact": "docs/reports/U-CHAIN/negctrl.txt, docs/reports/U-CHAIN/poscontrol.txt, docs/reports/U-CHAIN/mutants-r2.txt",
+    "harness": "docs/reports/U-CHAIN/run_mutants-r2.py (each mutant starts from the unmutated head policy; the policy is restored after every case)",
+    "command": "python3 -m unittest tests.test_architecture.TestArchitecture.test_chain_link_boundary_is_specified -v",
+    "runner": "runtime/scripts/evidence-run.py (both controls)",
     "paths": [
       "runtime/mission-chaining.md"
     ]
   },
   "binding_audit": {
-    "coverage": "AC-1, AC-4, AC-5 (the doctrine criteria) 3/3; AC-2 tool-gated; AC-3 NOT MET (see criteria)",
-    "method": "each of the three findings' clauses was dropped by hand at head_sha and the contract test went RED naming that clause (negctrl-per-criterion.txt): #441 human-pacing bullet, #441 PARKED-AT-PROMOTION bullet, #443 handoff-log bullet, #444 local-only bullet \u2014 4/4 KILLED, clean head GREEN. The test asserts each property inside ONE bullet, so scattered vocabulary cannot satisfy it."
+    "coverage": "AC-1..AC-5 5/5 addressed; every round-1 Required finding (SPEC-1..SPEC-4, S1, S2, S3, TA-441, TA-443, TA-444) and the three held Greptile VALID findings answered by F-1..F-6.",
+    "method": "13-mutant battery re-running the reviewers' own six survivors and the two SPEC-2 mutants against the strengthened test, plus the base revert and four single-bullet deletions. Every mutant RED, unmutated and restored head GREEN. Transcript: mutants-r2.txt; harness: run_mutants-r2.py.",
+    "not_claimed": "F-5 is prose the reviewers asked for and carries no machine assertion; no PR, review or merge leg is claimed (the integrator owns those)."
   },
   "intent": {
-    "goal": "Close #441/#443/#444 by naming, in runtime/mission-chaining.md, the terminal a chain parks at when a human promotion is owed and what resumes it; the one artifact the mandated deferral carry rides in; and what re-derivability means for a leg whose target has no remote.",
-    "ruled_out": "Touching verify.py or evidence-manifest.md (#442's cross-repo evidence-root gap is the separate U-442 unit); adding PARKED-AT-PROMOTION to ledger-contract.md's terminal table or to any mission guide (would change another policy, which the spec's stop rule forbids); a new runtime policy file for chain parking (the three gaps are clauses of an existing contract, not a new one); a standalone tests/test_mission_chaining.py (test_architecture.py already owns this file's docs-contract seam, and test_chain_terminals_are_decidable_by_rule sits beside the new test).",
-    "why": "The gaps are consequences the policy never drew, not missing vocabulary \u2014 so the fix has to read as a rule a coordinator can follow at 3am, and the test has to bind each property to ONE bullet. Asserting the tokens file-wide would have stayed green against a doc that sprinkled them across unrelated prose. PARKED-AT-PROMOTION is deliberately typed as a CHAIN state, not a mission terminal, because the existing degradation-marker rule classifies TERMINALS and a promotion park is the normal outcome of a CLEAN leg \u2014 typing it as a terminal would have made every healthy chain look degraded."
+    "goal": "Close #441/#443/#444 by naming, in runtime/mission-chaining.md, the terminal a chain parks at when a human promotion is owed and what resumes it; the one artifact the mandated deferral carry rides in; and what re-derivability means for a leg whose target has no remote. Round 2 answers review round 1's NO-GO on all three axes: correct the promotion boundary to BASE->DEFAULT, require commit-preserving reconstruction, bind the contract test to obligations rather than vocabulary, re-record the negative control through evidence-run.py, make the exemplar's adoption explicit, and re-verify on the now-green BASE.",
+    "ruled_out": "Touching verify.py or evidence-manifest.md (#442's cross-repo evidence-root gap is the separate U-442 unit); adding PARKED-AT-PROMOTION to ledger-contract.md's terminal table or to any mission guide (would change another policy, which the spec's stop rule forbids); a new runtime policy file for chain parking (the three gaps are clauses of an existing contract, not a new one); a standalone tests/test_mission_chaining.py (test_architecture.py already owns this file's docs-contract seam, and test_chain_terminals_are_decidable_by_rule sits beside the new test). Round 2 additionally ruled out: rewriting docs/reports/chaining-2026-09-16/handoff-log.md or leg1/RESTORE.md (the spec forbids editing the historical artifact — F-5 fixes the CITING text instead); editing gate-classification.md or merge-serialization.md to match the new wording (the shared doctrine was already right; this policy was the one that diverged); a semantic Markdown parser for the contract test (the reviewers asked for specific assertions, not a general oracle).",
+    "why": "The gaps are consequences the policy never drew, not missing vocabulary — so the fix has to read as a rule a coordinator can follow at 3am, and the test has to bind each property to ONE bullet. Asserting the tokens file-wide would have stayed green against a doc that sprinkled them across unrelated prose. PARKED-AT-PROMOTION is deliberately typed as a CHAIN state, not a mission terminal, because the existing degradation-marker rule classifies TERMINALS and a promotion park is the normal outcome of a CLEAN leg — typing it as a terminal would have made every healthy chain look degraded. The round-1 test failed the way documentation contracts usually fail: it pinned the words that NAME a rule and not the words that give it FORCE, so 'neither is a precondition', 'two optional examples' and 'a list of commit SHAs is sufficient' all stayed green. Each assertion now quotes the obligation clause itself, and bullets are whitespace-normalised first so a reflow cannot read as a doctrine change (S3)."
   },
   "lighting": "lit",
   "artifacts": [
     {
       "path": "docs/reports/U-CHAIN/contract-test.txt",
-      "sha256": "4d19c11677666addbdb0ec24776cabf3e44c017f496a0ee8f3f50e7a95dd030e"
+      "sha256": "874db1fe6c94fcb383b44c1b0c6c4cc6c5d5a32ed5d4cf23534a0ad52d115c3a"
     },
     {
       "path": "docs/reports/U-CHAIN/validate.txt",
       "sha256": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6"
     },
     {
-      "path": "docs/reports/U-CHAIN/suite.txt",
-      "sha256": "d11f9820284c1abfc48a2c882474f5adeef3a31aac9eb82421a6eb7eb09d6f8f"
+      "path": "docs/reports/U-CHAIN/negctrl.txt",
+      "sha256": "bfc8703df7b7ff90f41f87e5482a6b56dbd26f7c549142d0f45b8aa328a21363"
     },
     {
-      "path": "docs/reports/U-CHAIN/negctrl.txt",
-      "sha256": "4a808765a2d1418925704c3a6f6bec948426fe58f7a30731ef18972552fd4298"
+      "path": "docs/reports/U-CHAIN/poscontrol.txt",
+      "sha256": "874db1fe6c94fcb383b44c1b0c6c4cc6c5d5a32ed5d4cf23534a0ad52d115c3a"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/suite.txt",
+      "sha256": "7274a2ad36ee797e791e0fc1b2867158d17c36bde84e56148f8a4f6696f5a775"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/mutants-r2.txt",
+      "sha256": "13b4116a43ec498f39bbfffeab204b379f95cbc4899a7c804c9b69e1c96757dd"
+    },
+    {
+      "path": "docs/reports/U-CHAIN/run_mutants-r2.py",
+      "sha256": "3f7f008926b1a48b4f0c1b4ab397e70ced1767574d469999a05cf6994b157e62"
     },
     {
       "path": "docs/reports/U-CHAIN/negctrl-per-criterion.txt",
@@ -128,18 +184,75 @@
       "sha256": "439e7c5ab71ee09dc8be9cff89b31d4594a822e6aef648f82d0478bfd70778d7"
     }
   ],
-  "toolchain": "python 3.13.7 (mise), git 2.51, macOS 25.6.0 (darwin)",
+  "toolchain": "python 3.13.15 (mise), git 2.51, macOS 25.6.0 (darwin)",
   "parked": [
     {
-      "item": "5 pre-existing RED tests (4 in test_docs_navigation, 1 in test_wire_docs) that block AC-3",
-      "reason": "out-of-scope \u2014 introduced by the run's own STAB commits; fixing them means editing docs/runs/README and README.md, which this unit's stop rule forbids",
-      "gate": "coordinator: re-scope as a separate unit or accept 'no new red' for AC-3"
-    },
-    {
       "item": "PR, build-blind review and merge legs (pr / review / reviewer_mode fields are absent, not claimed)",
-      "reason": "needs-human \u2014 the spec assigns PR opening to the integrator, not this worker",
+      "reason": "needs-human — the spec assigns PR opening to the integrator/conductor, not this worker",
       "gate": "integrator"
     }
   ],
-  "claim": "Three doctrine clauses added to runtime/mission-chaining.md (77/160 lines) behind a contract test that is RED at base and GREEN at head, with a per-clause executed negative control (4/4 mutants killed). validate.py exit 0. The full suite is NOT green and was NOT green at base: the same 5 tests fail at both, so this unit adds no new red but does not satisfy AC-3 as literally written."
+  "claim": "Round 2 fix batch on ravidsrk/u-chain: promotion semantics corrected to BASE->DEFAULT with a local-ref-safe ancestry check (F-1), reconstruction required to be commit-preserving with seed+diff demoted to supplemental (F-2), the contract test rebound to obligations so all six round-1 SURVIVORS and both SPEC-2 mutants now die 13/13 (F-3), the negative control re-recorded through evidence-run.py (F-4), the exemplar's adoption made explicit without touching the historical artifact (F-5), and the green BASE merged so the FULL suite is 1707 tests OK / exit 0 at head (F-6). validate.py exit 0. AC-1..AC-5 all met. No PR action taken.",
+  "round": 2,
+  "head_tree": "a32a64720e5afe65f0626ca1a17aa555d962425b",
+  "round_2_findings": [
+    {
+      "id": "F-1",
+      "sources": [
+        "SPEC-1",
+        "STANDARDS S1",
+        "Greptile P1"
+      ],
+      "fix": "runtime/mission-chaining.md:29-50 — PROMOTION is BASE->DEFAULT (gate-classification.md's closing rule; merge-serialization.md's 'Merge to the DEFAULT branch ... is a one-way human gate'). unit->BASE is named the conductor's ordinary agent merge, no-gh local-merge lane included, and explicitly NOT the gate. Resume fact 1 is now leg N's integration BASE tip being an ancestor of the DEFAULT branch, with <default-ref> spelled out as origin/<default> for a remote target and a valid LOCAL ref for a no-remote target ('never a nonexistent origin/...'). Restricted lanes 'cannot PROMOTE ... such a lane may still integrate its units into BASE'.",
+      "bound_by": "test mutants park-no-resume-precondition, park-no-procedure-defined, pacing-first-boundary-only (all KILLED); assertions on 'PROMOTION is BASE.DEFAULT', 'merging a unit INTO the BASE ... is NOT that gate', 'cannot PROMOTE', 'ancestor of the DEFAULT branch'"
+    },
+    {
+      "id": "F-2",
+      "sources": [
+        "STANDARDS S2"
+      ],
+      "fix": "runtime/mission-chaining.md:68-81 — the REQUIRED artifact is a reachable pushed mirror or COMMIT-PRESERVING reconstruction artifacts (a self-contained `git bundle` of the leg's refs, or an equivalent that demonstrably reproduces every cited commit and its ancestry). Seed sources + full diff are named SUPPLEMENTAL and never sufficient on their own, citing the exemplar's own docs/reports/chaining-2026-09-16/leg1/RESTORE.md, which already draws that line.",
+      "bound_by": "mutants local-seed-diff-optional, local-artifacts-optional, local-publishes-neither (all KILLED); assertions on 'git bundle', 'reproduces every cited commit', 'SUPPLEMENTAL and never sufficient on their own', 'complete only once the chain publishes', 'INCOMPLETE without one'"
+    },
+    {
+      "id": "F-3",
+      "sources": [
+        "SPEC-2",
+        "TEST-ADEQUACY TA-441/TA-443/TA-444",
+        "Greptile test P2",
+        "STANDARDS S3"
+      ],
+      "fix": "tests/test_architecture.py test_chain_link_boundary_is_specified — bullets are whitespace-normalised (' '.join(b.split())) before phrase matching, per the neighbouring convention at tests/test_architecture.py:923-926 (S3), and a must() helper binds each rule's OBLIGATION words, not only its subject vocabulary.",
+      "bound_by": "mutants-r2.txt — the six round-1 SURVIVORS (pacing-first-boundary-only, park-no-resume-precondition, carry-sections-optional, carry-schema-deleted, local-artifacts-optional, local-seed-diff-optional) plus the two SPEC-2 mutants (park-no-procedure-defined, local-publishes-neither) are all RED; base-policy and the four single-bullet deletions stay RED; unmutated head and restored head are GREEN. 13/13 KILLED, 0 survivors."
+    },
+    {
+      "id": "F-4",
+      "sources": [
+        "SPEC-4"
+      ],
+      "fix": "negative control re-recorded THROUGH runtime/scripts/evidence-run.py: commands[] now carries tests-negative-control (exit 1, fingerprint of the reverted content) and tests-positive-control (exit 0, fingerprint == head tree).",
+      "bound_by": "commands[] + negctrl.txt / poscontrol.txt"
+    },
+    {
+      "id": "F-5",
+      "sources": [
+        "Greptile P2"
+      ],
+      "fix": "runtime/mission-chaining.md:65-67 — the CITING text now says the exemplar was 'written as that run's PROPOSED shape, which predates this clause; it is ADOPTED here, so the shape above is doctrine and not a proposal'. The historical artifact docs/reports/chaining-2026-09-16/handoff-log.md is UNCHANGED.",
+      "bound_by": "reviewer re-read; no assertion added (the spec forbids rewriting the historical artifact and the adoption sentence is prose, not an obligation)"
+    },
+    {
+      "id": "F-6",
+      "sources": [
+        "SPEC-3"
+      ],
+      "fix": "merged origin/review/2026-09-20-tracker-sweep @ ed51fe11 into ravidsrk/u-chain (merge 1066c028, union, no conflict); full suite re-run at the new head through evidence-run.py.",
+      "bound_by": "commands[] label suite — 1707 tests, OK, exit 0, wtree == head_sha^{tree}; AC-3 flipped to addressed"
+    }
+  ],
+  "provenance": {
+    "evidence_runner": "All five commands[] records were produced by runtime/scripts/evidence-run.py at head_sha 88a64c902ea1cd2ab0e3040781f918bb8daaefc6 with --manifest and --artifact pointing OUTSIDE the repository, so the wrapper's own writes could not move the working-tree fingerprint off the head tree. Four of the five records therefore carry wtree == git rev-parse 88a64c90^{tree} == a32a64720e5afe65f0626ca1a17aa555d962425b; the fifth (tests-negative-control) carries the fingerprint of the deliberately reverted content, as it must.",
+    "artifact_paths": "Each record's `artifact` field was rewritten from its scratch path to the repository path the identical bytes were then committed at; the sha256 values under `artifacts` are of those committed bytes.",
+    "evidence_commit": "head_sha names the IMPLEMENTATION commit. This manifest and its transcripts land in a following evidence-only commit, as in round 1."
+  }
 }

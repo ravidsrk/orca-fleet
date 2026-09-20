@@ -1,12 +1,24 @@
 # U-CHAIN — evidence (issues #441, #443, #444)
 
 Unit of the 2026-09-20 clean-sweep tracker run (`docs/runs/2026-09-20-clean-sweep-tracker.md`),
-frozen spec `docs/runs/2026-09-20-clean-sweep-tracker/build-u-chain.md`.
+frozen specs `docs/runs/2026-09-20-clean-sweep-tracker/build-u-chain.md` (round 1) and
+`build-u-chain-r2.md` (round 2 fix batch).
+
+**Round 2 is the live record.** Round 1 was reviewed NO-GO on all three axes
+([spec](review-spec.txt), [standards](review-standards.txt), [tests](review-tests.txt)); the six
+fix items F-1 … F-6 and their receipts are in [manifest.json](manifest.json). The round-1 figures
+below are kept for comparison.
+
+| | round 1 | round 2 |
+|---|---|---|
+| base_sha | `a58bf71a283928a8278e560163452ee70c7ad609` | `ed51fe11de5f7329ecf02ffb933bf50648ae5654` (BASE `review/2026-09-20-tracker-sweep`, merged in as `1066c028`) |
+| head_sha | `315ad409097b378b3d342d5144322d0f92d0d119` | `88a64c902ea1cd2ab0e3040781f918bb8daaefc6` |
+| policy | 77 lines | 89 lines (cap 160) |
+| full suite | 1707 tests, 5 RED (also RED at base) | **1707 tests, OK, exit 0** |
+| mutants | 4 killed, **6 survivors** | **13 killed, 0 survivors** ([mutants-r2.txt](mutants-r2.txt)) |
 
 | | |
 |---|---|
-| base_sha | `a58bf71a283928a8278e560163452ee70c7ad609` (BASE `review/2026-09-20-tracker-sweep`) |
-| head_sha | `315ad409097b378b3d342d5144322d0f92d0d119` |
 | branch | `ravidsrk/u-chain` (coordinator-directed: `u-chain` was held by a residual worktree) |
 | class | mutation unit, doctrine (prose + one contract test) |
 | manifest | [manifest.json](manifest.json) |
@@ -97,3 +109,18 @@ These evidence files land in the commit *after* `head_sha`, so they bind by hash
 `pr`, `review` and `reviewer_mode` are absent from the manifest, deliberately: the spec assigns PR
 opening to the integrator, so no review happened and none is asserted. `#442`'s cross-repo
 evidence-root gap is unit U-442 and nothing here touches `verify.py` or any other runtime policy.
+
+## Round 2 — the fix batch
+
+| item | source findings | fix |
+|---|---|---|
+| F-1 | SPEC-1, S1, Greptile P1 | promotion is **BASE→DEFAULT** (gate-classification.md, merge-serialization.md), not unit→BASE; the resume check is the leg's integration BASE tip being an ancestor of the DEFAULT branch, naming a valid LOCAL ref for a no-remote target; restricted lanes cannot PROMOTE but can still integrate |
+| F-2 | S2 | the required reconstruction artifact must be **commit-preserving** (a self-contained `git bundle` or equivalent that reproduces every cited commit); seed sources + full diff are SUPPLEMENTAL only — the line `leg1/RESTORE.md` already drew |
+| F-3 | SPEC-2, TA-441/443/444, Greptile test P2, S3 | the contract test now binds each rule's **obligation** words, not its subject vocabulary, and normalises bullet whitespace first; all six round-1 survivors and both SPEC-2 mutants now die |
+| F-4 | SPEC-4 | negative control re-recorded **through `evidence-run.py`** — `tests-negative-control` (exit 1, reverted-content fingerprint) paired with `tests-positive-control` (exit 0, head-tree fingerprint) |
+| F-5 | Greptile P2 | the historical exemplar is untouched; the **citing** text now says its proposed shape is adopted here |
+| F-6 | SPEC-3 | green BASE merged (no conflict); the FULL suite is green at the new head, recorded through `evidence-run.py` |
+
+Mutation battery: [mutants-r2.txt](mutants-r2.txt), harness [run_mutants-r2.py](run_mutants-r2.py)
+(13 cases — base revert, four single-bullet deletions, the six round-1 survivors, two SPEC-2
+requirement-reversing mutants; each starts from the unmutated head policy and restores it).
