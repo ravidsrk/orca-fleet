@@ -121,9 +121,27 @@ def _run_bytes(args, timeout=20):
         return 1, b"", str(err)
 
 
+# The TWO ROOTS a verification stands on (#442). A chained-run manifest lives in ONE repo and
+# pins SHAs in ANOTHER: the chaining report sits in the fleet repo, the leg commits in the target
+# repo. Every git leg used to run in the process cwd and every evidence path was bounded against
+# THAT one toplevel, so a cross-repo manifest satisfied neither invocation and could be verified
+# from nowhere. `git` is what --git-dir names (where the SHAs are); `evidence` is what
+# --evidence-root names (what bounds the paths). Both are COORDINATOR state, written once from
+# argv in main() — a manifest never names the root it is judged against — and while both are None
+# every resolution below is the single-repo one, unchanged.
+_ROOTS = {"git": None, "evidence": None}
+
+
 def _git(args, timeout=10):
-    code, out, _ = _run(["git", *args], timeout=timeout)
+    code, out, _ = _run(["git", *(["-C", _ROOTS["git"]] if _ROOTS["git"] else []), *args],
+                        timeout=timeout)
     return code, out.strip()
+
+
+def _git_bytes(args, timeout=20):
+    """A git read whose stdout must stay RAW bytes (#180), against the SHA root (#442)."""
+    return _run_bytes(["git", *(["-C", _ROOTS["git"]] if _ROOTS["git"] else []), *args],
+                      timeout=timeout)
 
 
 def infer_repo():
@@ -154,24 +172,32 @@ def load_manifest(path):
 
 
 def _toplevel():
+    """The toplevel of the repo the SHAs live in — the --git-dir clone when one is named."""
     code, top = _git(["rev-parse", "--show-toplevel"])
     return top if code == 0 else None
 
 
 def _resolve(path):
-    """Resolve a repo-relative path against the git toplevel. Returns (Path|None, err).
+    """Resolve a manifest-relative path against the evidence root. Returns (Path|None, err).
 
-    #267: an ABSOLUTE path, or one that escapes the toplevel, is REFUSED. Evidence outside the
+    #267: an ABSOLUTE path, or one that escapes the root, is REFUSED. Evidence outside the
     clone is evidence no auditor can re-derive — docs/reviews/2026-09-10-review.md A10 walked a negative-control artifact
     out to a temp dir, untracked and unhashed, and the gate read it happily. There is no permissive
     fallback: outside a git repo there is no toplevel to bound against, so the read fails closed
-    rather than silently widening."""
+    rather than silently widening. --evidence-root moves WHICH root bounds the path (#442); it
+    never relaxes the bound, and main() refuses a root that is not itself inside a clone."""
     p = Path(path)
     if p.is_absolute():
         return None, f"absolute evidence path refused — must be repo-relative (#267): {path}"
+    bound = "the evidence root" if _ROOTS["evidence"] is not None else "the repo toplevel"
     if p.parts and p.parts[0] == "..":
-        return None, f"evidence path escapes the repo toplevel (#267): {path}"
-    top = _toplevel()
+        return None, f"evidence path escapes {bound} (#267): {path}"
+    top = _ROOTS["evidence"]
+    if top is None:
+        # The toplevel of the repo the verifier was RUN IN, derived WITHOUT the --git-dir prefix:
+        # pointing the SHA legs at another clone must never silently move this bound (#442).
+        code, out, _ = _run(["git", "rev-parse", "--show-toplevel"])
+        top = out.strip() if code == 0 else None
     if top is None:
         return None, "not inside a git repo — no toplevel to bound the evidence path against (#267)"
     root = Path(top).resolve()
@@ -180,7 +206,7 @@ def _resolve(path):
     except OSError as err:  # pragma: no cover — resolve() rarely raises on POSIX
         return None, str(err)
     if full != root and root not in full.parents:
-        return None, f"evidence path escapes the repo toplevel (#267): {path}"
+        return None, f"evidence path escapes {bound} (#267): {path}"
     return full, None
 
 
@@ -196,7 +222,7 @@ def read_source(source):
             return None, "refusing option-like ref/path (leading '-') — see git-option-injection guard"
         if Path(path).is_absolute():
             return None, f"absolute path refused in a path@ref source (#267): {path}"
-        code, out, err = _run_bytes(["git", "show", f"{ref}:{path}"])
+        code, out, err = _git_bytes(["show", f"{ref}:{path}"])
         return (out, None) if code == 0 else (None, (err.strip() or "git ref not found"))
     resolved, err = _resolve(path)
     if err:
@@ -247,7 +273,7 @@ def _read_artifact(m, path):
         return None, err
     head = m.get("head_sha")
     if head and HEX40_RE.match(str(head)) and _git(["cat-file", "-e", f"{head}:{path}"])[0] == 0:
-        code, out, gerr = _run_bytes(["git", "show", f"{head}:{path}"])
+        code, out, gerr = _git_bytes(["show", f"{head}:{path}"])
         if code == 0:
             return out, None
         return None, (gerr.strip() or "cannot read the tracked artifact at head_sha")
@@ -2001,6 +2027,26 @@ def verify(manifest_path, contract_source=None, contract_digest=None, repo=None,
     return (fatal, notes), None
 
 
+def _root_arg(flag, value):
+    """Validate a root named on the command line. Returns (resolved|None, err|None).
+
+    A root outside a clone is refused for the same reason #267 refuses an out-of-repo artifact:
+    an auditor re-derives evidence from a checkout, so `/tmp` is not a root, it is a hiding
+    place. Refusing at parse time also keeps the failure a USAGE error (exit 1) rather than a
+    verdict on the unit (exit 2) — a misconfigured verifier has not judged anything."""
+    if value is None:
+        return None, None
+    path = Path(value)
+    if not path.is_dir():
+        return None, f"{flag}: not a directory: {value}"
+    resolved = str(path.resolve())
+    code, out, _ = _run(["git", "-C", resolved, "rev-parse", "--is-inside-work-tree"])
+    if code != 0 or out.strip() != "true":
+        return None, (f"{flag}: '{value}' is not inside a git work tree — evidence no auditor can "
+                      "re-derive from a clone is refused (#267)")
+    return resolved, None
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Independent evidence-manifest verifier.")
     ap.add_argument("--manifest", required=True)
@@ -2038,11 +2084,37 @@ def main(argv=None):
     ap.add_argument("--dispatch-pubkey", default=None,
                     help="repo-pinned coordinator public key (path or path@ref) that verifies "
                          "--dispatch-record; a committed pubkey is one the worker cannot swap")
+    ap.add_argument("--git-dir", default=None,
+                    help="run the git/SHA legs (commit existence, ancestry, trees, path@ref "
+                         "reads, negative-control worktrees) against the clone at this directory "
+                         "instead of the process cwd — for a CHAINED-RUN manifest whose evidence "
+                         "and commits live in different repos (#442). Must be inside a git work "
+                         "tree or the run is refused; absent, every git leg runs where it always "
+                         "did. Coordinator-supplied: the manifest never names the root it is "
+                         "judged against")
+    ap.add_argument("--evidence-root", default=None,
+                    help="resolve and BOUND manifest-relative evidence paths under this directory "
+                         "instead of the cwd's git toplevel (#442). The #267 bound is unchanged, "
+                         "only re-rooted: an absolute path, or one escaping this root, stays "
+                         "REFUSED, and the root must itself be inside a git work tree — evidence "
+                         "no auditor can re-derive from a clone is not evidence. NOT implied by "
+                         "--git-dir. Cross-repo evidence is never tracked at head_sha, so it "
+                         "passes only on its artifacts[] sha256 pin")
     args = ap.parse_args(argv)
 
     if shutil.which("git") is None:
         print("dependency: git not on PATH", file=sys.stderr)
         return 1
+    roots, root_errs = {}, []
+    for flag, value in (("--git-dir", args.git_dir), ("--evidence-root", args.evidence_root)):
+        resolved, err = _root_arg(flag, value)
+        root_errs.extend([err] if err else [])
+        roots[flag] = resolved
+    if root_errs:
+        for err in root_errs:
+            print(f"usage: {err}", file=sys.stderr)
+        return 1
+    _ROOTS.update(git=roots["--git-dir"], evidence=roots["--evidence-root"])
     out, load_err = verify(args.manifest, args.contract_source, args.contract_digest,
                            args.repo or infer_repo(), args.base, args.symbol, args.execute_nc,
                            args.unit_class, args.no_gh, args.lighting,
