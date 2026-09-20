@@ -76,7 +76,7 @@ one unit or park; no id without a unit; no unit without an id.
 | — | #409 | harden-it self-run promotion | out-of-scope | — | — | — | — | — | — | — | out-of-scope: harden-it mission run + human PoC gate | issue re-scope comment |
 | — | #427 | Orca re-pin cadence | out-of-scope | — | — | — | — | — | — | — | out-of-scope: pin-it, trigger not fired (patch bump rides; 2026-12-16) | issue trigger rules |
 | — | #434 | proof-ladder diagram regen | needs-human | — | — | — | — | — | — | — | needs-human: provider render key secret absent (gh secret list empty) | gate comment + probe |
-| U-CHAIN | #441 #443 #444 | mission-chaining: promotion lane terminal, deferral-carry shape, local-only re-derivability | real-feature-small (doctrine) | t | f | f | f | f | f | lit | — | head 5328cc86 on ravidsrk/u-chain; suite red = STAB-2's 5, no new red |
+| U-CHAIN | #441 #443 #444 | mission-chaining: promotion lane terminal, deferral-carry shape, local-only re-derivability | real-feature-small (doctrine) | t | t | t | f | f | f | lit | — | PR #484 @5328cc86; Greptile 3 VALID held; suite red = STAB-2's 5, no new red |
 | STAB-2 | — | repair 5 suite regressions from STABILIZE (index row + README rewire) | conductor landing, worker-executed | f | n/a | n/a | n/a | f | f | lit | — | spec build-stab2.md |
 | U-442 | #442 | verify.py cross-repo evidence root (--git-dir/--evidence-root split) | real-feature-small (tooling) | f | f | f | f | f | f | lit | — | — |
 
@@ -162,6 +162,18 @@ BOOTSTRAP: preflight --base review/2026-09-20-tracker-sweep --fork-point e8ddbd9
   Review-wave DAG materialized: SPEC=task_b6c94c187b09 STANDARDS=task_067ec69be832
   TEST-ADEQUACY=task_1eba2dcf50f5 (deps: integrator task_017a294f6f1a; verdict task owed
   after axes report).
+
+- 08:1x U-CHAIN INTEGRATED (worker_done msg_3b9623f271bf): gitleaks 0 findings on the 3-commit
+  diff; egress receipts before each write; PR #484 base=review/2026-09-20-tracker-sweep
+  head=ravidsrk/u-chain@5328cc86 (baseRefName asserted by integrator AND coordinator gh view);
+  Greptile ran t=158s: 1 P1 + 2 P2, ALL tagged VALID and HELD unfixed for the review batch
+  (P1: PARKED-AT-PROMOTION ancestry check vs leg N's own BASE is pre-satisfied + unresolvable
+  in the no-remote lane; P2s: worked-exemplar handoff-log self-describes as proposal; contract
+  test keyword co-occurrence weakness). PR_OPEN=t BOT=t (reconciled: 3 VALID held).
+  REVIEW WAVE dispatched (codex cross-vendor, gpt-6-astra, pane-verified live; claude spared —
+  79% weekly): SPEC term_1927d806/ctx_b3dc36fcf886 · STANDARDS term_83e191bd/ctx_7f47b80e2503 ·
+  TEST-ADEQUACY term_1203e16a/ctx_147ba196881c. Verdict task_b44329122b48 queued on the 3 axes.
+  Reviewer cap: 1 review unit in flight (axis fan-out exempt) — attention-budget met.
 
 BRANCHES: local worktree checkouts carry the `ravidsrk/` prefix mapping to the unit tips
 (ravidsrk/u-chain, ravidsrk/u-442). Not drift — do not "fix".

@@ -1,0 +1,67 @@
+{
+  "id": "c21d70ce-b46f-45b9-8cb8-e98e68e4ea41",
+  "ok": true,
+  "result": {
+    "runId": "run_bec47e54b673",
+    "legacyReadOnly": false,
+    "tasks": [
+      {
+        "id": "task_61b5e8accc70",
+        "run_id": "run_bec47e54b673",
+        "parent_id": null,
+        "created_by_terminal_handle": "term_0bae108a-5af7-4d7a-b584-67d05a2787d1",
+        "created_by_pane_key": "e3022df8-50d1-424d-bdcc-0f6a98158a52:cbf2a71f-4118-4bb2-b6b4-ae1f0a1b1469",
+        "created_by_process_incarnation": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/projects/orca-fleet@@63ef0087:9179d1c8-2fee-42a6-a0fb-933475ff9851",
+        "created_by_run_generation": 1,
+        "task_title": "U-CHAIN: mission-chaining doctrine gaps #441 #443 #444",
+        "display_name": "U-CHAIN: mission-chaining doctrine gaps #441 #443 #444",
+        "spec": "Read your full frozen build spec FIRST: docs/runs/2026-09-20-clean-sweep-tracker/build-u-chain.md (in this worktree). It carries the findings, AUTONOMY block (goal/scope/non-goals/stop/evidence/escalation/budget), acceptance criteria, worker contract, and git instructions. Follow it exactly. Failing contract test FIRST, then smallest doc amendment. worker_done requires --outcome succeeded|failed and OMITS --to; every send carries --from <your handle> --dispatch-capability <capability>; evidence rides typed --report-path + --files-modified. One pack only: matt.",
+        "status": "completed",
+        "deps": "[]",
+        "result": "{\"provenance\":\"worker_report\",\"outcome\":\"succeeded\",\"messageId\":\"msg_a4f3e8d7d8bf\",\"reportedBy\":\"term_98fd0f79-9118-4cd2-b057-f955b9e85500\",\"subject\":\"U-CHAIN built: 3 doctrine clauses + contract test, 4/4 mutants killed; AC-3 parked (pre-existing red)\",\"body\":\"Amended runtime/mission-chaining.md (40->77 lines, cap 160) with one clause per finding — #441 names PARKED-AT-PROMOTION as a CHAIN state resumed only by a landed promotion SHA or a written BASE-carry grant plus the human-paced rule, #443 blesses the handoff log (one file per chain, carry table + gate record) using the #417 run's own shape, #444 requires a pushed mirror or embedded reconstruction artifacts for no-remote targets — behind one contract test in tests/test_architecture.py that asserts each property INSIDE one bullet so scattered vocabulary cannot satisfy it; 3 bisectable commits on ravidsrk/u-chain (test RED 5ecf74e5 -> doc GREEN 315ad409 -> evidence 5328cc86), worktree clean, no PR opened. Found and proved: validate.py exit 0, doc at 77/160 lines, negative control executed twice — whole amendment reverted from base_sha goes RED with an AssertionError and GREEN on clean head, plus one hand mutant per clause, 4/4 KILLED each naming its own clause; all three evidence-run.py records carry wtree 7cbc79d7 = head^{tree}; no other runtime policy and no script touched, so #442 stays untouched for U-442. Left: AC-3 (full suite green) is NOT MET and is recorded as addressed=false plus a park entry, not papered over — the same 5 tests are RED at BASE a58bf71a and at head (byte-identical failing sets, so no new red), caused by this run's STABILIZE commits 296f100b (run ledger with no run-archive index row) and 3833c88e (README off the wiring script's fixed point), both of which need files outside my scope and stop rule; see the escalation msg_a75b2c0447b5 and docs/reports/U-CHAIN/README.md, and the PR/review/merge legs remain the integrator's.\",\"completedBy\":\"term_98fd0f79-9118-4cd2-b057-f955b9e85500\",\"filesModified\":[\"runtime/mission-chaining.md\",\"tests/test_architecture.py\",\"assets/badges/tests.json\",\"docs/reports/U-CHAIN/README.md\",\"docs/reports/U-CHAIN/manifest.json\",\"docs/reports/U-CHAIN/contract-test.txt\",\"docs/reports/U-CHAIN/validate.txt\",\"docs/reports/U-CHAIN/suite.txt\",\"docs/reports/U-CHAIN/negctrl.txt\",\"docs/reports/U-CHAIN/negctrl-per-criterion.txt\",\"docs/reports/U-CHAIN/prered-base.txt\"],\"reportPath\":\"docs/reports/U-CHAIN/manifest.json\",\"completedAt\":\"2026-09-20T07:12:10.705Z\"}",
+        "created_at": "2026-09-20 06:40:48",
+        "completed_at": "2026-09-20T07:12:10.705Z"
+      },
+      {
+        "id": "task_a25c91eeff96",
+        "run_id": "run_bec47e54b673",
+        "parent_id": null,
+        "created_by_terminal_handle": "term_0bae108a-5af7-4d7a-b584-67d05a2787d1",
+        "created_by_pane_key": "e3022df8-50d1-424d-bdcc-0f6a98158a52:cbf2a71f-4118-4bb2-b6b4-ae1f0a1b1469",
+        "created_by_process_incarnation": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/projects/orca-fleet@@63ef0087:9179d1c8-2fee-42a6-a0fb-933475ff9851",
+        "created_by_run_generation": 1,
+        "task_title": "U-442: verify.py cross-repo git-dir/evidence-root split #442",
+        "display_name": "U-442: verify.py cross-repo git-dir/evidence-root split #442",
+        "spec": "Read your full frozen build spec FIRST: docs/runs/2026-09-20-clean-sweep-tracker/build-u442.md (in this worktree). It carries the finding, AUTONOMY block (goal/scope/non-goals/stop/evidence/escalation/budget), acceptance criteria, worker contract, and git instructions. Follow it exactly. Failing two-repo fixture test FIRST, then smallest verify.py change. worker_done requires --outcome succeeded|failed and OMITS --to; every send carries --from <your handle> --dispatch-capability <capability>; evidence rides typed --report-path + --files-modified. One pack only: matt.",
+        "status": "dispatched",
+        "deps": "[]",
+        "result": null,
+        "created_at": "2026-09-20 06:40:48",
+        "completed_at": null,
+        "assignee_handle": "term_cdd92b44-5d5a-4f8d-9868-9e21d818fb7a",
+        "dispatch_id": "ctx_4ddee86000e1"
+      },
+      {
+        "id": "task_86f696b9efc8",
+        "run_id": "run_bec47e54b673",
+        "parent_id": null,
+        "created_by_terminal_handle": "term_0bae108a-5af7-4d7a-b584-67d05a2787d1",
+        "created_by_pane_key": "e3022df8-50d1-424d-bdcc-0f6a98158a52:cbf2a71f-4118-4bb2-b6b4-ae1f0a1b1469",
+        "created_by_process_incarnation": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/projects/orca-fleet@@63ef0087:9179d1c8-2fee-42a6-a0fb-933475ff9851",
+        "created_by_run_generation": 1,
+        "task_title": "STAB-2: repair 5 suite regressions from STABILIZE commits",
+        "display_name": "STAB-2: repair 5 suite regressions from STABILIZE commits",
+        "spec": "Read your full frozen build spec FIRST: docs/runs/2026-09-20-clean-sweep-tracker/build-stab2.md (in this worktree). Two files only: docs/runs/README.md index row + README.md rewire via the wiring script. Full suite must exit 0 at head. worker_done requires --outcome succeeded|failed and OMITS --to; every send carries --from <your handle> --dispatch-capability <capability>; report rides typed --report-path. Timebox 25min with partial-report STOP.",
+        "status": "ready",
+        "deps": "[]",
+        "result": null,
+        "created_at": "2026-09-20 07:17:19",
+        "completed_at": null
+      }
+    ],
+    "count": 3
+  },
+  "_meta": {
+    "runtimeId": "0e3d77f3-b0e7-4aa1-a21d-a960aa212104"
+  }
+}
