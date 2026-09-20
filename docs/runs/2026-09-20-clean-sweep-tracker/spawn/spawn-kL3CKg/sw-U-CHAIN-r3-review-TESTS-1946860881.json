@@ -1,0 +1,19 @@
+{
+  "id": "df9ca35b-7122-4245-984b-d4927276f748",
+  "ok": true,
+  "result": {
+    "terminal": {
+      "handle": "term_91d5f0ed-858e-4f94-a2a1-dcc94c7a8787",
+      "tabId": "3f5c4aee-7df7-4876-b764-0de3866dfec9",
+      "worktreeId": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/u-chain",
+      "title": "U-CHAIN r3 review TESTS",
+      "executionHostId": "local",
+      "incarnationId": "cf0e035d-e51a-4668-82a0-0aa5f40a984c",
+      "hostPlatform": "darwin",
+      "surface": "visible"
+    }
+  },
+  "_meta": {
+    "runtimeId": "0e3d77f3-b0e7-4aa1-a21d-a960aa212104"
+  }
+}

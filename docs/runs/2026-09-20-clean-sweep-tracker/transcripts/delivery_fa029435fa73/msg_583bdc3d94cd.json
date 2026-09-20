@@ -1,0 +1,8 @@
+{
+ "id": "msg_583bdc3d94cd",
+ "type": "worker_done",
+ "created_at": "2026-09-20T09:29:07Z",
+ "subject": "U-442 R2 TESTS NO-GO: 3 Required",
+ "body": "Completed the SHA-bound test-adequacy review at e4cbf222, including blind expectations, original controls, independent mutations, and the 12-regression vacuity audit. All 1726 repository tests and validation pass, both original P1 mechanisms are fixed, and all nine claimed kills re-derive, but four fresh mutants survive the 267 verifier tests and produce three Required findings covering root classification, pinned symlink containment, and target-base symbol selection. The authorized uncommitted report contains exact mutations and semantic RED evidence; those coverage gaps remain for remediation, while all scratch clones are removed and no review work remains.",
+ "payload": "{\"taskId\":\"task_c71a9c244015\",\"dispatchId\":\"ctx_085e03fb7266\",\"outcome\":\"succeeded\",\"filesModified\":[\"docs/reports/u-442/review-tests-r2.txt\"],\"reportPath\":\"/Users/ravindra/orca/workspaces/orca-fleet/u-442/docs/reports/u-442/review-tests-r2.txt\"}"
+}

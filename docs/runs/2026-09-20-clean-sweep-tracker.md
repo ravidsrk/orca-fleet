@@ -76,7 +76,7 @@ one unit or park; no id without a unit; no unit without an id.
 | — | #409 | harden-it self-run promotion | out-of-scope | — | — | — | — | — | — | — | out-of-scope: harden-it mission run + human PoC gate | issue re-scope comment |
 | — | #427 | Orca re-pin cadence | out-of-scope | — | — | — | — | — | — | — | out-of-scope: pin-it, trigger not fired (patch bump rides; 2026-12-16) | issue trigger rules |
 | — | #434 | proof-ladder diagram regen | needs-human | — | — | — | — | — | — | — | needs-human: provider render key secret absent (gh secret list empty) | gate comment + probe |
-| U-CHAIN | #441 #443 #444 | mission-chaining: promotion lane terminal, deferral-carry shape, local-only re-derivability | real-feature-small (doctrine) | t | t | t | f | f | f | lit | — | PR #484 @5328cc86; Greptile 3 VALID held; suite red = STAB-2's 5, no new red |
+| U-CHAIN | #441 #443 #444 | mission-chaining: promotion lane terminal, deferral-carry shape, local-only re-derivability | real-feature-small (doctrine) | t | t | t | f | f | f | lit | needs-human: review-round budget exhausted (3 failed rounds) — gate-batch.md G1; SPEC axis r3 GO, Greptile APPROVED d75b23b1; stickers are evidence-layer (harness skip-guard, manifest rebind, 2 test binds) | r1-r3 reports + verdicts on the branch; park pending r3 verdict post |
 | STAB-2 | — | repair 5 suite regressions from STABILIZE (index row + alt-string source repair) | conductor landing, worker-executed | t | n/a | n/a | n/a | t | t | lit | — | worker 4d13c672 (3 scoped files) → merged 2f04c402 (no-ff); coordinator-verified: 39/39 named tests OK + full suite exit 0 + tree clean at tip; egress receipt 4060372a; pushed; worktree+branch retired, no stray terminals |
 | U-442 | #442 | verify.py cross-repo evidence root (--git-dir/--evidence-root split) | real-feature-small (tooling) | t | f | f | f | f | f | lit | — | head df4f524f on u-442; suite red at build time = STAB-2's 5 (BASE since greened) |
 
@@ -247,6 +247,71 @@ BOOTSTRAP: preflight --base review/2026-09-20-tracker-sweep --fork-point e8ddbd9
   task_a4a0d7ba48a3 queued. U-442 r2 fix batch frozen meanwhile (build-u442-r2.md,
   digest 9df586e1…: F-1 evidence authority, F-2 raw-read git-context, F-3 evidence-root
   honored, F-4 symlink containment, F-5 nested-cwd).
+
+- 11:5x U-442 round 1 CLOSED OUT: verdict posted (review 5260074858 'verdict: NO-GO — round 1'
+  @a5f84978 tree 8a39ac3e, coordinator-verified via gh api — first line exact), evidence
+  commit 0056bf16 pushed (code-identical). 9 Required across axes + 2 held VALID P1s. R2 FIX
+  dispatched: task_14fe56e3cd29, claude term_bb52652d (spawn-4TvuBd), batch F-1..F-5 from
+  build-u442-r2.md (digest 9df586e1…). Round 2 of ≤3 for U-442; U-CHAIN's r2 re-review in
+  flight. Review units: U-CHAIN r2 (1) — cap met.
+
+- 12:2x U-CHAIN round 2 CLOSED OUT: verdict review 5260110523 'verdict: NO-GO — round 2'
+  @302d43e9 (coordinator-verified first line exact), evidence b431c418 pushed. 10 Required
+  + BOT-4/BOT-5. Round-3 (FINAL) batch frozen (build-u-chain-r3.md, digest 4b541540…):
+  G-1 fetch-before-resume freshness; G-2 harness derives its baseline; G-3 stillborn ≠ kill;
+  G-4 resume alternatives fully bound; G-5 carry schema + missing-log; G-6 reconstruction
+  obligations. R3 FIX dispatched: task_ed293bd7d1d8, claude term_afb945ab (spawn-kGaXWN).
+  A round-3 NO-GO parks U-CHAIN with a gate naming the sticking finding (round budget).
+  U-442's r2 fix (F-1..F-5) still in flight.
+
+- 13:3x U-442 r2 FIX DONE (worker_done msg_6038af40c2c8): merge abb00452 (BASE 5df4c0d8) +
+  76922d5a fix (_roots_are_split() gates the tracked-at-head shortcut; --symbol via the
+  selected git context) + 88c9645c tests (12 regressions) + 5113e156 badges + bc0fc21d
+  evidence; 9/9 mutants killed (4 r1 survivors + M1/M6 + 3 new). HYGIENE BREACH caught at
+  harvest: all 4 r2 commits carried a Co-Authored-By agent trailer (r1 commits clean).
+  CONDUCTOR NORMALIZATION (dispatch-lifecycle trailer strip, never squash): filter-branch
+  msg-filter over the 4 unpushed commits → e4cbf222, TREE IDENTICAL, diff empty, backup ref
+  deleted; ledgered here per coordinator-verification discipline. R2 INTEGRATE dispatched:
+  task_c3b292b75f56, claude term_40826a62 (suite+validate re-verify, --force-with-lease
+  push, Greptile reconcile). U-CHAIN's FINAL r3 fix still in flight.
+
+- 14:0x U-CHAIN r3 (FINAL) FIX DONE (worker_done msg_ce5d59d31724): 5bd2eb07 fix + 14575aba
+  evidence + re-merges; 28/28 mutants RED, harness replays clean. HARVEST: G-1 freshness
+  clause verified in place (fetch-before-check, UNPROVEN-not-landed, preflight contract
+  cited, offline stays local). TRAILER BREACH #2: 3 unpushed commits dirty (5bd2eb07,
+  14575aba, 0213c734) — conductor strip over b431c418..HEAD → head d75b23b1, TREE IDENTICAL,
+  0 trailers remain, backup ref deleted (ledgered; second occurrence — claude workers are
+  appending trailers despite the spec's 'no trailers' line; compound-learn candidate).
+  R3 INTEGRATE dispatched: task_aeb2e5dc5e06, claude term_b545ef34 (suite+validate+harness
+  replay, --force-with-lease push, Greptile). U-442's r2 integrator still in flight.
+
+- 14:3x U-442 r2 INTEGRATED (worker_done msg_b4ac151b4f79): gitleaks clean, suite 1726 OK
+  315s, validate 21/21, egress 5b4dfa3d, --force-with-lease push; Greptile on e4cbf222:
+  CLEAN ('38 files reviewed, 0 comments') — both r1 P1s RESOLVED (fixed in 3fca0bb9).
+  R2 REVIEW WAVE dispatched (codex): SPEC term_fd9e3a65/task_fca8f7f33479 · STANDARDS
+  term_65b8cf90/task_728ba3caffe9 · TESTS term_630b9905/task_c71a9c244015; r2 verdict
+  task_98567ecbb515 queued. U-CHAIN r3 integrator still in flight (suite+harness+push).
+
+- 15:2x U-CHAIN r3 (FINAL) INTEGRATED (worker_done msg_fa72d2b45fc0): gitleaks clean, suite
+  1707 OK 289s, validate, harness 31 mutants 28/28-for-assertion + controls green; egress
+  e925b0fc; push resolved FAST-FORWARD b431c418..d75b23b1 (stripped commits never reached
+  origin; lease pinned, no bare force). GREPTILE APPROVED d75b23b1 (review 5260194743,
+  auto-approve marker) — the independent-review leg candidate (09-14 T8 precedent). BOT-4
+  FIXED at 1635b27f, BOT-5 FIXED; 1 new VALID P2 held: BOT-6 'interrupted runs skip
+  restoration' (mutants_core.py:116 — harness robustness; standards axis leads its
+  adjudication). R3 FINAL REVIEW WAVE dispatched (codex): SPEC term_70a30067/
+  task_8d5bc3ab4de1 · STANDARDS term_bcae1cd8/task_21ed299df460 · TESTS term_91d5f0ed/
+  task_83fd4a2c8186; r3 verdict task_c2c948e1987f queued. U-442's r2 axes in flight.
+
+- 16:1x U-CHAIN round 3 (FINAL) = NO-GO: SPEC GO (BOT-6 Optional w/ reason — disposable
+  checkouts), STANDARDS 2R, TESTS 3R. THREE failed rounds = the acceptance-review budget
+  cap → the unit does NOT loop and does NOT merge: PARKED with gate-batch.md G1 naming the
+  three sticking findings (harness skip-as-success; manifest names conductor-stripped
+  5bd2eb07 — my trailer rewrite, rebind owed to 1635b27f, tree-identical; two narrow
+  contract-test survivors: reversed ancestry operands, optional OWED). Options (a) accept
+  park / (b) authorize exceptional targeted repair + re-review / (c) merge anyway with
+  human accept-with-reason. Default (a). Surfaced to the maintainer in-session (interactive
+  prose brief). R3 verdict worker posting the official NO-GO on PR #484.
 
 BRANCHES: local worktree checkouts carry the `ravidsrk/` prefix mapping to the unit tips
 (ravidsrk/u-chain, ravidsrk/u-442). Not drift — do not "fix".
