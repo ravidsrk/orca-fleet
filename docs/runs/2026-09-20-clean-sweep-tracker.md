@@ -255,5 +255,25 @@ BOOTSTRAP: preflight --base review/2026-09-20-tracker-sweep --fork-point e8ddbd9
   build-u442-r2.md (digest 9df586e1…). Round 2 of ≤3 for U-442; U-CHAIN's r2 re-review in
   flight. Review units: U-CHAIN r2 (1) — cap met.
 
+- 12:2x U-CHAIN round 2 CLOSED OUT: verdict review 5260110523 'verdict: NO-GO — round 2'
+  @302d43e9 (coordinator-verified first line exact), evidence b431c418 pushed. 10 Required
+  + BOT-4/BOT-5. Round-3 (FINAL) batch frozen (build-u-chain-r3.md, digest 4b541540…):
+  G-1 fetch-before-resume freshness; G-2 harness derives its baseline; G-3 stillborn ≠ kill;
+  G-4 resume alternatives fully bound; G-5 carry schema + missing-log; G-6 reconstruction
+  obligations. R3 FIX dispatched: task_ed293bd7d1d8, claude term_afb945ab (spawn-kGaXWN).
+  A round-3 NO-GO parks U-CHAIN with a gate naming the sticking finding (round budget).
+  U-442's r2 fix (F-1..F-5) still in flight.
+
+- 13:3x U-442 r2 FIX DONE (worker_done msg_6038af40c2c8): merge abb00452 (BASE 5df4c0d8) +
+  76922d5a fix (_roots_are_split() gates the tracked-at-head shortcut; --symbol via the
+  selected git context) + 88c9645c tests (12 regressions) + 5113e156 badges + bc0fc21d
+  evidence; 9/9 mutants killed (4 r1 survivors + M1/M6 + 3 new). HYGIENE BREACH caught at
+  harvest: all 4 r2 commits carried a Co-Authored-By agent trailer (r1 commits clean).
+  CONDUCTOR NORMALIZATION (dispatch-lifecycle trailer strip, never squash): filter-branch
+  msg-filter over the 4 unpushed commits → e4cbf222, TREE IDENTICAL, diff empty, backup ref
+  deleted; ledgered here per coordinator-verification discipline. R2 INTEGRATE dispatched:
+  task_c3b292b75f56, claude term_40826a62 (suite+validate re-verify, --force-with-lease
+  push, Greptile reconcile). U-CHAIN's FINAL r3 fix still in flight.
+
 BRANCHES: local worktree checkouts carry the `ravidsrk/` prefix mapping to the unit tips
 (ravidsrk/u-chain, ravidsrk/u-442). Not drift — do not "fix".
