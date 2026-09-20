@@ -1,0 +1,19 @@
+{
+  "id": "f33aeec4-748c-4b96-9b41-95905afbe3eb",
+  "ok": true,
+  "result": {
+    "terminal": {
+      "handle": "term_44e32f14-a20e-4299-a1a6-e19c69f9d329",
+      "tabId": "46e4ecbb-c2fb-4dc3-b640-cab00ff42368",
+      "worktreeId": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/pin-review",
+      "title": "pin-it 427 reviewer claude",
+      "executionHostId": "local",
+      "incarnationId": "e173a65d-6bcc-403b-b3df-cd234f275b55",
+      "hostPlatform": "darwin",
+      "surface": "visible"
+    }
+  },
+  "_meta": {
+    "runtimeId": "ef9eedcb-8941-4b93-80db-fbafc225814c"
+  }
+}
