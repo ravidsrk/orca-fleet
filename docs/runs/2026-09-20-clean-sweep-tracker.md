@@ -444,7 +444,7 @@ BOOTSTRAP: preflight --base review/2026-09-20-tracker-sweep --fork-point e8ddbd9
   waivers with honest classes (the skip-decorator literal is the probe fixture proving
   the S-R3-1 skip-guard; 2× noqa E402 sys.path bootstrap in evidence harnesses; 1×
   archival pragma quotation in the frozen r3 spec). My first waiver line then tripped the
-  guard ITSELF (literal 'unittest.skip' in DECISIONS.md — recursive class; reworded).
+  guard ITSELF (the skip-decorator literal quoted in DECISIONS.md — recursive class; reworded).
   floor-guard: clean (10 waived). Inventory re-derived after the waiver edits (14/14).
   Coordinator-executed tooling change, disclosed here per the run's conductor practice.
 
