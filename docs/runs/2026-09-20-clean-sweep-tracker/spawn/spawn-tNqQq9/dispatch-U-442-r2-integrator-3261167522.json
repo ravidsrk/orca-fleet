@@ -1,0 +1,54 @@
+{
+  "id": "b382914c-abb9-4a34-9d7e-b71b55e736d5",
+  "ok": true,
+  "result": {
+    "dispatch": {
+      "id": "ctx_1f01be7994bb",
+      "run_id": "run_bec47e54b673",
+      "task_id": "task_c3b292b75f56",
+      "contract_version": 1,
+      "launch_token_hash": null,
+      "assignee_handle": "term_40826a62-d444-4d25-9ec7-ba7f0162f84c",
+      "assignee_pane_key": "cb067d28-9743-43b3-a317-37407adef2f3:a304e147-025b-4ab8-8258-a29ad51d5a2a",
+      "capability_hash": null,
+      "process_incarnation": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/u-442@@bf82a9d9:e2551304-4059-4de3-a282-2479bce2f95f",
+      "capability_revoked_at": null,
+      "status": "dispatched",
+      "failure_count": 0,
+      "last_failure": null,
+      "dispatched_at": "2026-09-20 09:06:00",
+      "completed_at": null,
+      "created_at": "2026-09-20 09:06:00",
+      "last_heartbeat_at": null,
+      "termination_reason": null,
+      "depth": 1,
+      "retry_of_dispatch_id": null,
+      "creator_dispatch_id": null,
+      "host_scope": null,
+      "consumer_generation": 0,
+      "creator_handle": "term_0bae108a-5af7-4d7a-b584-67d05a2787d1",
+      "creator_pane_key": "e3022df8-50d1-424d-bdcc-0f6a98158a52:cbf2a71f-4118-4bb2-b6b4-ae1f0a1b1469"
+    },
+    "injected": true,
+    "prompt": {
+      "requestId": "e5785678-d545-4a92-83a9-02180517163e",
+      "stages": [
+        "input_accepted"
+      ],
+      "provider": "claude",
+      "observation": "supported",
+      "processIncarnation": "e2551304-4059-4de3-a282-2479bce2f95f",
+      "generation": 34,
+      "baselineWorkingSequence": 0,
+      "baselineExplicitWorkingStartedAt": null,
+      "baselinePermissionSequence": 0
+    },
+    "mutation": {
+      "requestId": "e5785678-d545-4a92-83a9-02180517163e",
+      "replayed": false
+    }
+  },
+  "_meta": {
+    "runtimeId": "0e3d77f3-b0e7-4aa1-a21d-a960aa212104"
+  }
+}
