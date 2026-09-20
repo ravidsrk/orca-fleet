@@ -2,7 +2,10 @@
 
 RUN: run_bec47e54b673 · COORDINATOR: term_0bae108a-5af7-4d7a-b584-67d05a2787d1 (kimi-code driving shell; coordinator terminal COORD-2026-09-20, background surface) · BASE: review/2026-09-20-tracker-sweep · FORK_POINT: e8ddbd988486694a2985822e557a382b344e2872 (origin/main at T0) · T0: 2026-09-20T06:17:18Z · SOURCE: tracker (10 open at T0: #235 #386 #407 #409 #427 #434 #441 #442 #443 #444; enumeration digest: gh-issue-list-open-count=10) · WIP: builders=2 reviewers=1
 
-PHASE: ORIENT → ENUMERATE → TRIAGE → FREEZE → BOOTSTRAP → BUILDING (wave 1: U-CHAIN + U-442 dispatched)
+PHASE: ORIENT → ENUMERATE → TRIAGE → FREEZE → BOOTSTRAP → BUILDING (wave 1: U-CHAIN built, integrating; U-442 building; STAB-2 fixing)
+
+Run-close integrity inventory: retained inline in the Final report section at close (this
+ledger is the living run record until then).
 
 Substrate notes: orca 1.4.204 on PATH vs pins.json live PIN v1.4.203 — patch bump, rides per #427
 trigger rules (drift NOTE, not refusal; re-witness is pin-it's loop). claude + codex CLIs on PATH
@@ -147,6 +150,18 @@ BOOTSTRAP: preflight --base review/2026-09-20-tracker-sweep --fork-point e8ddbd9
   live). SUBSTRATE: claude account at 79% weekly limit (pane warning) — review wave prefers
   codex (cross-vendor, limit ended 09-19); egress standing grants recorded for the integrator
   (base-writes + tracker-writes consent ids sent).
+
+- 07:5x DELIVERY delivery_4509bd75d780 (3 msgs): STAB-2 QUESTION msg_b7e2def2ebb1 — the two
+  named files cannot green the suite: (2) test_run_archive_integrity reads the LEDGER for
+  /integrity inventory[^.]*retained/ (the line above, added by coordinator — my freeze-time
+  omission); (3) wire_docs.py hardcodes the stale 'today every mission reads doctrine-only'
+  alt (line 27) so running it REVERTS 3833c88e's repair, and docs/concepts.md:423 carries the
+  same stale alt. REPLIED: coordinator repairs its own ledger on BASE (this edit); STAB-2
+  scope widened to wire_docs.py + docs/concepts.md — fix NEW_ALT['proof-ladder'] at source,
+  commit everything the script writes (DECISIONS x2, 07:5xZ). #434 pixel regen untouched.
+  Review-wave DAG materialized: SPEC=task_b6c94c187b09 STANDARDS=task_067ec69be832
+  TEST-ADEQUACY=task_1eba2dcf50f5 (deps: integrator task_017a294f6f1a; verdict task owed
+  after axes report).
 
 BRANCHES: local worktree checkouts carry the `ravidsrk/` prefix mapping to the unit tips
 (ravidsrk/u-chain, ravidsrk/u-442). Not drift — do not "fix".
