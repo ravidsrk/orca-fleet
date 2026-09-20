@@ -1,24 +1,90 @@
-......................FFFFFFFF.................................................................................................FAIL: manifest must be a JSON object, got list
-verify: evidence manifest malformed/unreadable — unit is NOT done
-...............................................................................................................................FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
-FAIL: head_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
-FAIL: base_sha 'HEAD' is not a real commit
-FAIL: head_sha 'HEAD' is not a real commit
-FAIL: commands ledger: cannot resolve the tree of head_sha (not a real commit here, or not inside a git repo) — the recorded run cannot be bound to content; fail-closed
-FAIL: intent packet incomplete — non-empty ['goal', 'ruled_out', 'why'] required (mutation unit)
-FAIL: reviewer_mode must be one of ['cross-vendor', 'instructed-isolation', 'same-vendor-fresh'], got None
-FAIL: negative_control.tool must be one of ['cargo-mutants', 'cosmic-ray', 'go-mutesting', 'hand', 'mutmut', 'pitest', 'revert', 'stryker'], got None
-FAIL: negative_control.result must record the mutant KILLED / the proof going RED
-FAIL: negative_control.artifact (an evidence path) is required
-FAIL: mutation unit: no pr.number to look up an independent review — unreviewed
-verify: 11 invariant(s) failed — unit is NOT done
-..
+FFFFFFFF.FFFFEFFFFFFFFFF.FF.
+======================================================================
+ERROR: test_an_unresolvable_root_fails_closed_to_split (tests.test_verify.CrossRepoRoots.test_an_unresolvable_root_fails_closed_to_split)
+The classifier's own docstring: identity must be PROVEN. When the filesystem refuses to
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u-442/99657be8-e579-4991-9ee3-9d21e8ea153e/scratchpad/receipts/wt-nc/tests/test_verify.py", line 3639, in test_an_unresolvable_root_fails_closed_to_split
+    verify._ROOTS.update(git=str(self.repo_b), evidence=str(self.repo))
+    ^^^^^^^^^^^^^
+AttributeError: module 'verify' has no attribute '_ROOTS'
+
+======================================================================
+FAIL: test_a_colliding_sha_repo_blob_cannot_satisfy_a_mismatched_pin (tests.test_verify.CrossRepoRoots.test_a_colliding_sha_repo_blob_cannot_satisfy_a_mismatched_pin)
+R1/T1: the pin is declared over the EVIDENCE bytes, so rewriting them must go RED even
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u-442/99657be8-e579-4991-9ee3-9d21e8ea153e/scratchpad/receipts/wt-nc/tests/test_verify.py", line 3360, in test_a_colliding_sha_repo_blob_cannot_satisfy_a_mismatched_pin
+    self.assertIn("the evidence changed after it was inventoried", out)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'the evidence changed after it was inventoried' not found in 'usage: python3 -m unittest [-h] --manifest MANIFEST\n                           [--contract-source CONTRACT_SOURCE]\n                           [--contract-digest CONTRACT_DIGEST] [--repo REPO]\n                           [--nc-command NC_COMMAND] [--execute-nc]\n                           [--base BASE] [--symbol SYMBOL]\n                           [--unit-class UNIT_CLASS] [--no-gh]\n                           [--lighting {dark-eligible,lit}]\n                           [--dispatch-record DISPATCH_RECORD]\n                           [--dispatch-pubkey DISPATCH_PUBKEY]\npython3 -m unittest: error: unrecognized arguments: --git-dir /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/orca-u442-b-jpcuccb0 --evidence-root /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmpqnyrbgio\n'
+
+======================================================================
+FAIL: test_a_colliding_sha_repo_blob_cannot_stand_in_for_a_missing_pin (tests.test_verify.CrossRepoRoots.test_a_colliding_sha_repo_blob_cannot_stand_in_for_a_missing_pin)
+R1/T1: drop artifacts[] and the SHA repo's same-path blob must NOT rescue the read.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u-442/99657be8-e579-4991-9ee3-9d21e8ea153e/scratchpad/receipts/wt-nc/tests/test_verify.py", line 3348, in test_a_colliding_sha_repo_blob_cannot_stand_in_for_a_missing_pin
+    self.assertIn("unpinned evidence", out)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'unpinned evidence' not found in 'usage: python3 -m unittest [-h] --manifest MANIFEST\n                           [--contract-source CONTRACT_SOURCE]\n                           [--contract-digest CONTRACT_DIGEST] [--repo REPO]\n                           [--nc-command NC_COMMAND] [--execute-nc]\n                           [--base BASE] [--symbol SYMBOL]\n                           [--unit-class UNIT_CLASS] [--no-gh]\n                           [--lighting {dark-eligible,lit}]\n                           [--dispatch-record DISPATCH_RECORD]\n                           [--dispatch-pubkey DISPATCH_PUBKEY]\npython3 -m unittest: error: unrecognized arguments: --git-dir /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/orca-u442-b-dcf92lwa --evidence-root /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmpdcds9kao\n'
+
+======================================================================
+FAIL: test_a_colliding_sha_repo_blob_cannot_substitute_for_pinned_evidence (tests.test_verify.CrossRepoRoots.test_a_colliding_sha_repo_blob_cannot_substitute_for_pinned_evidence)
+R1/T1: same path in both repos — the PINNED copy in the evidence root must win.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u-442/99657be8-e579-4991-9ee3-9d21e8ea153e/scratchpad/receipts/wt-nc/tests/test_verify.py", line 3333, in test_a_colliding_sha_repo_blob_cannot_substitute_for_pinned_evidence
+    self.assertEqual(rc, 0, out)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: 2 != 0 : usage: python3 -m unittest [-h] --manifest MANIFEST
+                           [--contract-source CONTRACT_SOURCE]
+                           [--contract-digest CONTRACT_DIGEST] [--repo REPO]
+                           [--nc-command NC_COMMAND] [--execute-nc]
+                           [--base BASE] [--symbol SYMBOL]
+                           [--unit-class UNIT_CLASS] [--no-gh]
+                           [--lighting {dark-eligible,lit}]
+                           [--dispatch-record DISPATCH_RECORD]
+                           [--dispatch-pubkey DISPATCH_PUBKEY]
+python3 -m unittest: error: unrecognized arguments: --git-dir /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/orca-u442-b-bswp3oaf --evidence-root /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmp3ud6c5su
+
+
+======================================================================
+FAIL: test_a_nested_evidence_root_bounds_against_itself_not_the_clone (tests.test_verify.CrossRepoRoots.test_a_nested_evidence_root_bounds_against_itself_not_the_clone)
+T3's boundary case: with the root nested inside the clone, escaping UPWARD into the
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u-442/99657be8-e579-4991-9ee3-9d21e8ea153e/scratchpad/receipts/wt-nc/tests/test_verify.py", line 3509, in test_a_nested_evidence_root_bounds_against_itself_not_the_clone
+    self.assertIn("escapes the evidence root", out)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'escapes the evidence root' not found in 'usage: python3 -m unittest [-h] --manifest MANIFEST\n                           [--contract-source CONTRACT_SOURCE]\n                           [--contract-digest CONTRACT_DIGEST] [--repo REPO]\n                           [--nc-command NC_COMMAND] [--execute-nc]\n                           [--base BASE] [--symbol SYMBOL]\n                           [--unit-class UNIT_CLASS] [--no-gh]\n                           [--lighting {dark-eligible,lit}]\n                           [--dispatch-record DISPATCH_RECORD]\n                           [--dispatch-pubkey DISPATCH_PUBKEY]\npython3 -m unittest: error: unrecognized arguments: --git-dir /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/orca-u442-b-yq2q7buu --evidence-root /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmpxb_012v0/evidence\n'
+
+======================================================================
+FAIL: test_a_path_at_ref_contract_read_uses_the_sha_repo (tests.test_verify.CrossRepoRoots.test_a_path_at_ref_contract_read_uses_the_sha_repo)
+T5: the raw-byte `path@ref` read is a SHA-repo leg. The fixture only ever read a bare
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u-442/99657be8-e579-4991-9ee3-9d21e8ea153e/scratchpad/receipts/wt-nc/tests/test_verify.py", line 3421, in test_a_path_at_ref_contract_read_uses_the_sha_repo
+    self.assertEqual(rc, 0, out)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: 2 != 0 : usage: python3 -m unittest [-h] --manifest MANIFEST
+                           [--contract-source CONTRACT_SOURCE]
+                           [--contract-digest CONTRACT_DIGEST] [--repo REPO]
+                           [--nc-command NC_COMMAND] [--execute-nc]
+                           [--base BASE] [--symbol SYMBOL]
+                           [--unit-class UNIT_CLASS] [--no-gh]
+                           [--lighting {dark-eligible,lit}]
+                           [--dispatch-record DISPATCH_RECORD]
+                           [--dispatch-pubkey DISPATCH_PUBKEY]
+python3 -m unittest: error: unrecognized arguments: --git-dir /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/orca-u442-b-ihmtfnfd --evidence-root /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmp1oqm8cod
+
+
 ======================================================================
 FAIL: test_a_root_outside_a_git_repo_is_refused (tests.test_verify.CrossRepoRoots.test_a_root_outside_a_git_repo_is_refused) (flag='--git-dir')
 Evidence an auditor cannot re-derive from a clone is what #267 refuses; --evidence-root
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u-442/a695b6bf-cfda-49c8-81e3-a6f8b06fc756/scratchpad/nc-control/tests/test_verify.py", line 3286, in test_a_root_outside_a_git_repo_is_refused
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u-442/99657be8-e579-4991-9ee3-9d21e8ea153e/scratchpad/receipts/wt-nc/tests/test_verify.py", line 3287, in test_a_root_outside_a_git_repo_is_refused
     self.assertEqual(rc, 1, out)
     ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
 AssertionError: 2 != 1 : usage: python3 -m unittest [-h] --manifest MANIFEST
@@ -30,7 +96,7 @@ AssertionError: 2 != 1 : usage: python3 -m unittest [-h] --manifest MANIFEST
                            [--lighting {dark-eligible,lit}]
                            [--dispatch-record DISPATCH_RECORD]
                            [--dispatch-pubkey DISPATCH_PUBKEY]
-python3 -m unittest: error: unrecognized arguments: --git-dir /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/orca-u442-bare-ub1hdghg
+python3 -m unittest: error: unrecognized arguments: --git-dir /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/orca-u442-bare-hy0su9he
 
 
 ======================================================================
@@ -38,7 +104,7 @@ FAIL: test_a_root_outside_a_git_repo_is_refused (tests.test_verify.CrossRepoRoot
 Evidence an auditor cannot re-derive from a clone is what #267 refuses; --evidence-root
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u-442/a695b6bf-cfda-49c8-81e3-a6f8b06fc756/scratchpad/nc-control/tests/test_verify.py", line 3286, in test_a_root_outside_a_git_repo_is_refused
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u-442/99657be8-e579-4991-9ee3-9d21e8ea153e/scratchpad/receipts/wt-nc/tests/test_verify.py", line 3287, in test_a_root_outside_a_git_repo_is_refused
     self.assertEqual(rc, 1, out)
     ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
 AssertionError: 2 != 1 : usage: python3 -m unittest [-h] --manifest MANIFEST
@@ -50,44 +116,64 @@ AssertionError: 2 != 1 : usage: python3 -m unittest [-h] --manifest MANIFEST
                            [--lighting {dark-eligible,lit}]
                            [--dispatch-record DISPATCH_RECORD]
                            [--dispatch-pubkey DISPATCH_PUBKEY]
-python3 -m unittest: error: unrecognized arguments: --evidence-root /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/orca-u442-bare-ub1hdghg
+python3 -m unittest: error: unrecognized arguments: --evidence-root /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/orca-u442-bare-hy0su9he
 
+
+======================================================================
+FAIL: test_a_symbol_only_in_the_evidence_repo_is_not_accepted_as_on_base (tests.test_verify.CrossRepoRoots.test_a_symbol_only_in_the_evidence_repo_is_not_accepted_as_on_base)
+R2's other half: the same bug is a false ACCEPTANCE too. A symbol that exists only in
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u-442/99657be8-e579-4991-9ee3-9d21e8ea153e/scratchpad/receipts/wt-nc/tests/test_verify.py", line 3408, in test_a_symbol_only_in_the_evidence_repo_is_not_accepted_as_on_base
+    self.assertIn("not found on origin/main", out)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'not found on origin/main' not found in 'usage: python3 -m unittest [-h] --manifest MANIFEST\n                           [--contract-source CONTRACT_SOURCE]\n                           [--contract-digest CONTRACT_DIGEST] [--repo REPO]\n                           [--nc-command NC_COMMAND] [--execute-nc]\n                           [--base BASE] [--symbol SYMBOL]\n                           [--unit-class UNIT_CLASS] [--no-gh]\n                           [--lighting {dark-eligible,lit}]\n                           [--dispatch-record DISPATCH_RECORD]\n                           [--dispatch-pubkey DISPATCH_PUBKEY]\npython3 -m unittest: error: unrecognized arguments: --git-dir /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/orca-u442-b-704usibu --evidence-root /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmpmaiteesy\n'
 
 ======================================================================
 FAIL: test_an_absolute_evidence_path_is_still_refused_against_the_named_root (tests.test_verify.CrossRepoRoots.test_an_absolute_evidence_path_is_still_refused_against_the_named_root)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u-442/a695b6bf-cfda-49c8-81e3-a6f8b06fc756/scratchpad/nc-control/tests/test_verify.py", line 3267, in test_an_absolute_evidence_path_is_still_refused_against_the_named_root
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u-442/99657be8-e579-4991-9ee3-9d21e8ea153e/scratchpad/receipts/wt-nc/tests/test_verify.py", line 3268, in test_an_absolute_evidence_path_is_still_refused_against_the_named_root
     self.assertIn("absolute evidence path refused", out)
     ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: 'absolute evidence path refused' not found in 'usage: python3 -m unittest [-h] --manifest MANIFEST\n                           [--contract-source CONTRACT_SOURCE]\n                           [--contract-digest CONTRACT_DIGEST] [--repo REPO]\n                           [--nc-command NC_COMMAND] [--execute-nc]\n                           [--base BASE] [--symbol SYMBOL]\n                           [--unit-class UNIT_CLASS] [--no-gh]\n                           [--lighting {dark-eligible,lit}]\n                           [--dispatch-record DISPATCH_RECORD]\n                           [--dispatch-pubkey DISPATCH_PUBKEY]\npython3 -m unittest: error: unrecognized arguments: --git-dir /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/orca-u442-b-bvfh7p1y --evidence-root /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmpamrl0ekb\n'
+AssertionError: 'absolute evidence path refused' not found in 'usage: python3 -m unittest [-h] --manifest MANIFEST\n                           [--contract-source CONTRACT_SOURCE]\n                           [--contract-digest CONTRACT_DIGEST] [--repo REPO]\n                           [--nc-command NC_COMMAND] [--execute-nc]\n                           [--base BASE] [--symbol SYMBOL]\n                           [--unit-class UNIT_CLASS] [--no-gh]\n                           [--lighting {dark-eligible,lit}]\n                           [--dispatch-record DISPATCH_RECORD]\n                           [--dispatch-pubkey DISPATCH_PUBKEY]\npython3 -m unittest: error: unrecognized arguments: --git-dir /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/orca-u442-b-dkakwabg --evidence-root /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmpnjqq_2_y\n'
 
 ======================================================================
 FAIL: test_an_escaping_evidence_path_is_still_refused_against_the_named_root (tests.test_verify.CrossRepoRoots.test_an_escaping_evidence_path_is_still_refused_against_the_named_root)
 #267 is preserved, not relaxed: the root moved, the bound did not.
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u-442/a695b6bf-cfda-49c8-81e3-a6f8b06fc756/scratchpad/nc-control/tests/test_verify.py", line 3257, in test_an_escaping_evidence_path_is_still_refused_against_the_named_root
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u-442/99657be8-e579-4991-9ee3-9d21e8ea153e/scratchpad/receipts/wt-nc/tests/test_verify.py", line 3258, in test_an_escaping_evidence_path_is_still_refused_against_the_named_root
     self.assertIn("escapes the evidence root", out)
     ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: 'escapes the evidence root' not found in 'usage: python3 -m unittest [-h] --manifest MANIFEST\n                           [--contract-source CONTRACT_SOURCE]\n                           [--contract-digest CONTRACT_DIGEST] [--repo REPO]\n                           [--nc-command NC_COMMAND] [--execute-nc]\n                           [--base BASE] [--symbol SYMBOL]\n                           [--unit-class UNIT_CLASS] [--no-gh]\n                           [--lighting {dark-eligible,lit}]\n                           [--dispatch-record DISPATCH_RECORD]\n                           [--dispatch-pubkey DISPATCH_PUBKEY]\npython3 -m unittest: error: unrecognized arguments: --git-dir /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/orca-u442-b-4jvzat0g --evidence-root /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmpmb9_tjcp\n'
+AssertionError: 'escapes the evidence root' not found in 'usage: python3 -m unittest [-h] --manifest MANIFEST\n                           [--contract-source CONTRACT_SOURCE]\n                           [--contract-digest CONTRACT_DIGEST] [--repo REPO]\n                           [--nc-command NC_COMMAND] [--execute-nc]\n                           [--base BASE] [--symbol SYMBOL]\n                           [--unit-class UNIT_CLASS] [--no-gh]\n                           [--lighting {dark-eligible,lit}]\n                           [--dispatch-record DISPATCH_RECORD]\n                           [--dispatch-pubkey DISPATCH_PUBKEY]\npython3 -m unittest: error: unrecognized arguments: --git-dir /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/orca-u442-b-9whnq4v4 --evidence-root /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmptls4505a\n'
+
+======================================================================
+FAIL: test_an_evidence_path_escaping_through_a_symlink_is_refused (tests.test_verify.CrossRepoRoots.test_an_evidence_path_escaping_through_a_symlink_is_refused)
+T3: #267's containment is CANONICAL, not a spelling rule. The committed escape case
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u-442/99657be8-e579-4991-9ee3-9d21e8ea153e/scratchpad/receipts/wt-nc/tests/test_verify.py", line 3476, in test_an_evidence_path_escaping_through_a_symlink_is_refused
+    self.assertIn("escapes the evidence root", out)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'escapes the evidence root' not found in 'usage: python3 -m unittest [-h] --manifest MANIFEST\n                           [--contract-source CONTRACT_SOURCE]\n                           [--contract-digest CONTRACT_DIGEST] [--repo REPO]\n                           [--nc-command NC_COMMAND] [--execute-nc]\n                           [--base BASE] [--symbol SYMBOL]\n                           [--unit-class UNIT_CLASS] [--no-gh]\n                           [--lighting {dark-eligible,lit}]\n                           [--dispatch-record DISPATCH_RECORD]\n                           [--dispatch-pubkey DISPATCH_PUBKEY]\npython3 -m unittest: error: unrecognized arguments: --git-dir /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/orca-u442-b-d1b_orbh --evidence-root /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmppxftutrv\n'
 
 ======================================================================
 FAIL: test_an_unpinned_cross_repo_artifact_is_refused (tests.test_verify.CrossRepoRoots.test_an_unpinned_cross_repo_artifact_is_refused)
 Cross-repo evidence can never be "tracked at head_sha" — the other repo does not hold
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u-442/a695b6bf-cfda-49c8-81e3-a6f8b06fc756/scratchpad/nc-control/tests/test_verify.py", line 3277, in test_an_unpinned_cross_repo_artifact_is_refused
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u-442/99657be8-e579-4991-9ee3-9d21e8ea153e/scratchpad/receipts/wt-nc/tests/test_verify.py", line 3278, in test_an_unpinned_cross_repo_artifact_is_refused
     self.assertIn("unpinned evidence", out)
     ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: 'unpinned evidence' not found in 'usage: python3 -m unittest [-h] --manifest MANIFEST\n                           [--contract-source CONTRACT_SOURCE]\n                           [--contract-digest CONTRACT_DIGEST] [--repo REPO]\n                           [--nc-command NC_COMMAND] [--execute-nc]\n                           [--base BASE] [--symbol SYMBOL]\n                           [--unit-class UNIT_CLASS] [--no-gh]\n                           [--lighting {dark-eligible,lit}]\n                           [--dispatch-record DISPATCH_RECORD]\n                           [--dispatch-pubkey DISPATCH_PUBKEY]\npython3 -m unittest: error: unrecognized arguments: --git-dir /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/orca-u442-b-yre468mt --evidence-root /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmpe04h9dea\n'
+AssertionError: 'unpinned evidence' not found in 'usage: python3 -m unittest [-h] --manifest MANIFEST\n                           [--contract-source CONTRACT_SOURCE]\n                           [--contract-digest CONTRACT_DIGEST] [--repo REPO]\n                           [--nc-command NC_COMMAND] [--execute-nc]\n                           [--base BASE] [--symbol SYMBOL]\n                           [--unit-class UNIT_CLASS] [--no-gh]\n                           [--lighting {dark-eligible,lit}]\n                           [--dispatch-record DISPATCH_RECORD]\n                           [--dispatch-pubkey DISPATCH_PUBKEY]\npython3 -m unittest: error: unrecognized arguments: --git-dir /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/orca-u442-b-28a6rchu --evidence-root /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmpe6m4_t7h\n'
 
 ======================================================================
 FAIL: test_git_dir_alone_leaves_evidence_resolution_where_it_was (tests.test_verify.CrossRepoRoots.test_git_dir_alone_leaves_evidence_resolution_where_it_was)
 --evidence-root is not implied by --git-dir: absent, evidence still resolves against
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u-442/a695b6bf-cfda-49c8-81e3-a6f8b06fc756/scratchpad/nc-control/tests/test_verify.py", line 3248, in test_git_dir_alone_leaves_evidence_resolution_where_it_was
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u-442/99657be8-e579-4991-9ee3-9d21e8ea153e/scratchpad/receipts/wt-nc/tests/test_verify.py", line 3249, in test_git_dir_alone_leaves_evidence_resolution_where_it_was
     self.assertEqual(rc, 0, out)
     ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
 AssertionError: 2 != 0 : usage: python3 -m unittest [-h] --manifest MANIFEST
@@ -99,24 +185,54 @@ AssertionError: 2 != 0 : usage: python3 -m unittest [-h] --manifest MANIFEST
                            [--lighting {dark-eligible,lit}]
                            [--dispatch-record DISPATCH_RECORD]
                            [--dispatch-pubkey DISPATCH_PUBKEY]
-python3 -m unittest: error: unrecognized arguments: --git-dir /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/orca-u442-b-lvqv0bv3
+python3 -m unittest: error: unrecognized arguments: --git-dir /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/orca-u442-b-074cvxg9
 
 
 ======================================================================
 FAIL: test_help_documents_both_roots (tests.test_verify.CrossRepoRoots.test_help_documents_both_roots)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u-442/a695b6bf-cfda-49c8-81e3-a6f8b06fc756/scratchpad/nc-control/tests/test_verify.py", line 3295, in test_help_documents_both_roots
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u-442/99657be8-e579-4991-9ee3-9d21e8ea153e/scratchpad/receipts/wt-nc/tests/test_verify.py", line 3654, in test_help_documents_both_roots
     self.assertIn(flag, text)
     ~~~~~~~~~~~~~^^^^^^^^^^^^
 AssertionError: '--git-dir' not found in 'usage: python3 -m unittest [-h] --manifest MANIFEST\n                           [--contract-source CONTRACT_SOURCE]\n                           [--contract-digest CONTRACT_DIGEST] [--repo REPO]\n                           [--nc-command NC_COMMAND] [--execute-nc]\n                           [--base BASE] [--symbol SYMBOL]\n                           [--unit-class UNIT_CLASS] [--no-gh]\n                           [--lighting {dark-eligible,lit}]\n                           [--dispatch-record DISPATCH_RECORD]\n                           [--dispatch-pubkey DISPATCH_PUBKEY]\n\nIndependent evidence-manifest verifier.\n\noptions:\n  -h, --help            show this help message and exit\n  --manifest MANIFEST\n  --contract-source CONTRACT_SOURCE\n                        AUTHORITATIVE frozen contract (path@ref), from the\n                        dispatch record — not the manifest\n  --contract-digest CONTRACT_DIGEST\n                        AUTHORITATIVE sha256 of the frozen contract\n  --repo REPO           owner/name for the review lookup (default: infer from\n                        origin)\n  --nc-command NC_COMMAND\n                        AUTHORITATIVE criterion-bound command for --execute-\n                        nc, supplied out of band by the coordinator. REQUIRED\n                        by --execute-nc (#279): the manifest and the commands\n                        ledger are both worker-written, so neither can\n                        authorise the other. The manifest must agree with this\n                        or the run is RED. A unit never chooses what proves\n                        it.\n  --execute-nc          EXECUTE the negative control (#255): apply it in a\n                        throwaway worktree at head_sha, require the bound\n                        command to exit non-zero there and 0 at clean\n                        head_sha. Requires --nc-command (#279). REQUIRED by\n                        the review-waiver lanes (--lighting dark-eligible /\n                        --no-gh), which have no other oracle (#256)\n  --base BASE           integration base branch (for ancestry)\n  --symbol SYMBOL       a unit symbol to grep on the base\n  --unit-class UNIT_CLASS\n                        unit class from the dispatch record (mutation|report-\n                        only|planning); missing/unknown => mutation (fail-\n                        safe, with a NOTE) — validated in code, not by\n                        argparse, so an unknown value cannot wedge the gate\n                        (#178)\n  --no-gh               offline/no-gh lane (merge-serialization.md): review is\n                        a local reviewer artifact at head_sha, coordinator-\n                        attested — set by the coordinator, not the worker\n  --lighting {dark-eligible,lit}\n                        unit lighting from the dispatch record (lit|dark-\n                        eligible); dark-eligible waives the independent-review\n                        requirement — set by the coordinator, not the worker\n  --dispatch-record DISPATCH_RECORD\n                        coordinator-signed dispatch record (path or path@ref)\n                        binding contract-digest/unit-class/lighting — makes\n                        the native hook path sound (#135)\n  --dispatch-pubkey DISPATCH_PUBKEY\n                        repo-pinned coordinator public key (path or path@ref)\n                        that verifies --dispatch-record; a committed pubkey is\n                        one the worker cannot swap\n'
+
+======================================================================
+FAIL: test_only_evidence_flag_collision_still_requires_pin (tests.test_verify.CrossRepoRoots.test_only_evidence_flag_collision_still_requires_pin)
+R2-T1, the mirror: --evidence-root alone, standing IN the SHA repo. The bound moves to
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u-442/99657be8-e579-4991-9ee3-9d21e8ea153e/scratchpad/receipts/wt-nc/tests/test_verify.py", line 3552, in test_only_evidence_flag_collision_still_requires_pin
+    self.assertIn("unpinned evidence", out)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'unpinned evidence' not found in 'usage: python3 -m unittest [-h] --manifest MANIFEST\n                           [--contract-source CONTRACT_SOURCE]\n                           [--contract-digest CONTRACT_DIGEST] [--repo REPO]\n                           [--nc-command NC_COMMAND] [--execute-nc]\n                           [--base BASE] [--symbol SYMBOL]\n                           [--unit-class UNIT_CLASS] [--no-gh]\n                           [--lighting {dark-eligible,lit}]\n                           [--dispatch-record DISPATCH_RECORD]\n                           [--dispatch-pubkey DISPATCH_PUBKEY]\npython3 -m unittest: error: unrecognized arguments: --evidence-root /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmpun2f7rn0\n'
+
+======================================================================
+FAIL: test_only_git_flag_collision_still_requires_pin (tests.test_verify.CrossRepoRoots.test_only_git_flag_collision_still_requires_pin)
+R2-T1: ONE flag is already a split. --git-dir alone moves the SHAs to B and leaves the
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u-442/99657be8-e579-4991-9ee3-9d21e8ea153e/scratchpad/receipts/wt-nc/tests/test_verify.py", line 3541, in test_only_git_flag_collision_still_requires_pin
+    self.assertIn("unpinned evidence", out)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'unpinned evidence' not found in 'usage: python3 -m unittest [-h] --manifest MANIFEST\n                           [--contract-source CONTRACT_SOURCE]\n                           [--contract-digest CONTRACT_DIGEST] [--repo REPO]\n                           [--nc-command NC_COMMAND] [--execute-nc]\n                           [--base BASE] [--symbol SYMBOL]\n                           [--unit-class UNIT_CLASS] [--no-gh]\n                           [--lighting {dark-eligible,lit}]\n                           [--dispatch-record DISPATCH_RECORD]\n                           [--dispatch-pubkey DISPATCH_PUBKEY]\npython3 -m unittest: error: unrecognized arguments: --git-dir /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/orca-u442-b-hqbk0cn7\n'
+
+======================================================================
+FAIL: test_same_repo_nested_evidence_cannot_borrow_root_blob (tests.test_verify.CrossRepoRoots.test_same_repo_nested_evidence_cannot_borrow_root_blob)
+R2-T1: repository identity is not ROOT identity. With the SHAs and a nested evidence
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u-442/99657be8-e579-4991-9ee3-9d21e8ea153e/scratchpad/receipts/wt-nc/tests/test_verify.py", line 3576, in test_same_repo_nested_evidence_cannot_borrow_root_blob
+    self.assertIn("unpinned evidence", out)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'unpinned evidence' not found in 'usage: python3 -m unittest [-h] --manifest MANIFEST\n                           [--contract-source CONTRACT_SOURCE]\n                           [--contract-digest CONTRACT_DIGEST] [--repo REPO]\n                           [--nc-command NC_COMMAND] [--execute-nc]\n                           [--base BASE] [--symbol SYMBOL]\n                           [--unit-class UNIT_CLASS] [--no-gh]\n                           [--lighting {dark-eligible,lit}]\n                           [--dispatch-record DISPATCH_RECORD]\n                           [--dispatch-pubkey DISPATCH_PUBKEY]\npython3 -m unittest: error: unrecognized arguments: --evidence-root /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmpdlftvduc/evidence\n'
 
 ======================================================================
 FAIL: test_split_roots_verify_a_cross_repo_manifest_end_to_end (tests.test_verify.CrossRepoRoots.test_split_roots_verify_a_cross_repo_manifest_end_to_end)
 The unit's whole point: evidence in repo A, SHAs in repo B, GREEN in one invocation.
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u-442/a695b6bf-cfda-49c8-81e3-a6f8b06fc756/scratchpad/nc-control/tests/test_verify.py", line 3230, in test_split_roots_verify_a_cross_repo_manifest_end_to_end
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u-442/99657be8-e579-4991-9ee3-9d21e8ea153e/scratchpad/receipts/wt-nc/tests/test_verify.py", line 3231, in test_split_roots_verify_a_cross_repo_manifest_end_to_end
     self.assertEqual(rc, 0, out)
     ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
 AssertionError: 2 != 0 : usage: python3 -m unittest [-h] --manifest MANIFEST
@@ -128,11 +244,110 @@ AssertionError: 2 != 0 : usage: python3 -m unittest [-h] --manifest MANIFEST
                            [--lighting {dark-eligible,lit}]
                            [--dispatch-record DISPATCH_RECORD]
                            [--dispatch-pubkey DISPATCH_PUBKEY]
-python3 -m unittest: error: unrecognized arguments: --git-dir /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/orca-u442-b-yg5l_d94 --evidence-root /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmp5yscij53
+python3 -m unittest: error: unrecognized arguments: --git-dir /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/orca-u442-b-8w9mnfv7 --evidence-root /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmp8zfnodah
 
+
+======================================================================
+FAIL: test_symbol_only_on_base_is_found_even_when_head_deleted_it (tests.test_verify.CrossRepoRoots.test_symbol_only_on_base_is_found_even_when_head_deleted_it)
+R2-T3's other direction, and the one a HEAD grep gets backwards: the change IS on base,
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u-442/99657be8-e579-4991-9ee3-9d21e8ea153e/scratchpad/receipts/wt-nc/tests/test_verify.py", line 3604, in test_symbol_only_on_base_is_found_even_when_head_deleted_it
+    self.assertEqual(rc, 0, out)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: 2 != 0 : usage: python3 -m unittest [-h] --manifest MANIFEST
+                           [--contract-source CONTRACT_SOURCE]
+                           [--contract-digest CONTRACT_DIGEST] [--repo REPO]
+                           [--nc-command NC_COMMAND] [--execute-nc]
+                           [--base BASE] [--symbol SYMBOL]
+                           [--unit-class UNIT_CLASS] [--no-gh]
+                           [--lighting {dark-eligible,lit}]
+                           [--dispatch-record DISPATCH_RECORD]
+                           [--dispatch-pubkey DISPATCH_PUBKEY]
+python3 -m unittest: error: unrecognized arguments: --git-dir /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/orca-u442-b-0wlp1j_5 --evidence-root /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmpirlbksje
+
+
+======================================================================
+FAIL: test_symbol_only_on_head_cannot_substitute_for_base (tests.test_verify.CrossRepoRoots.test_symbol_only_on_head_cannot_substitute_for_base)
+R2-T3: the check's claim is `on origin/<base>`, and every fixture so far pointed
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u-442/99657be8-e579-4991-9ee3-9d21e8ea153e/scratchpad/receipts/wt-nc/tests/test_verify.py", line 3591, in test_symbol_only_on_head_cannot_substitute_for_base
+    self.assertIn("not found on origin/main", out)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'not found on origin/main' not found in 'usage: python3 -m unittest [-h] --manifest MANIFEST\n                           [--contract-source CONTRACT_SOURCE]\n                           [--contract-digest CONTRACT_DIGEST] [--repo REPO]\n                           [--nc-command NC_COMMAND] [--execute-nc]\n                           [--base BASE] [--symbol SYMBOL]\n                           [--unit-class UNIT_CLASS] [--no-gh]\n                           [--lighting {dark-eligible,lit}]\n                           [--dispatch-record DISPATCH_RECORD]\n                           [--dispatch-pubkey DISPATCH_PUBKEY]\npython3 -m unittest: error: unrecognized arguments: --git-dir /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/orca-u442-b-s3nwkiuw --evidence-root /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmp24nh1c7i\n'
+
+======================================================================
+FAIL: test_the_evidence_root_may_be_a_named_subdirectory_of_the_clone (tests.test_verify.CrossRepoRoots.test_the_evidence_root_may_be_a_named_subdirectory_of_the_clone)
+T2, tighter: the root is a directory, not 'the repo'. Paths bind to the NAMED root.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u-442/99657be8-e579-4991-9ee3-9d21e8ea153e/scratchpad/receipts/wt-nc/tests/test_verify.py", line 3450, in test_the_evidence_root_may_be_a_named_subdirectory_of_the_clone
+    self.assertEqual(rc, 0, out)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: 2 != 0 : usage: python3 -m unittest [-h] --manifest MANIFEST
+                           [--contract-source CONTRACT_SOURCE]
+                           [--contract-digest CONTRACT_DIGEST] [--repo REPO]
+                           [--nc-command NC_COMMAND] [--execute-nc]
+                           [--base BASE] [--symbol SYMBOL]
+                           [--unit-class UNIT_CLASS] [--no-gh]
+                           [--lighting {dark-eligible,lit}]
+                           [--dispatch-record DISPATCH_RECORD]
+                           [--dispatch-pubkey DISPATCH_PUBKEY]
+python3 -m unittest: error: unrecognized arguments: --git-dir /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/orca-u442-b-zs91r10c --evidence-root /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmpm9nsmw_t/evidence
+
+
+======================================================================
+FAIL: test_the_named_evidence_root_is_honored_from_a_distinct_cwd (tests.test_verify.CrossRepoRoots.test_the_named_evidence_root_is_honored_from_a_distinct_cwd)
+T2: every existing case ran AT repo A, where the requested root and the cwd fallback
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u-442/99657be8-e579-4991-9ee3-9d21e8ea153e/scratchpad/receipts/wt-nc/tests/test_verify.py", line 3433, in test_the_named_evidence_root_is_honored_from_a_distinct_cwd
+    self.assertEqual(rc, 0, out)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: 2 != 0 : usage: python3 -m unittest [-h] --manifest MANIFEST
+                           [--contract-source CONTRACT_SOURCE]
+                           [--contract-digest CONTRACT_DIGEST] [--repo REPO]
+                           [--nc-command NC_COMMAND] [--execute-nc]
+                           [--base BASE] [--symbol SYMBOL]
+                           [--unit-class UNIT_CLASS] [--no-gh]
+                           [--lighting {dark-eligible,lit}]
+                           [--dispatch-record DISPATCH_RECORD]
+                           [--dispatch-pubkey DISPATCH_PUBKEY]
+python3 -m unittest: error: unrecognized arguments: --git-dir /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/orca-u442-b-ey6nsj9c --evidence-root /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmpug46u5s8
+
+
+======================================================================
+FAIL: test_the_symbol_leg_runs_in_the_sha_repo_not_the_process_cwd (tests.test_verify.CrossRepoRoots.test_the_symbol_leg_runs_in_the_sha_repo_not_the_process_cwd)
+R2/T5: --symbol grepped origin/<base> in the process cwd while the adjacent ancestry
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u-442/99657be8-e579-4991-9ee3-9d21e8ea153e/scratchpad/receipts/wt-nc/tests/test_verify.py", line 3393, in test_the_symbol_leg_runs_in_the_sha_repo_not_the_process_cwd
+    self.assertEqual(rc, 0, out)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: 2 != 0 : usage: python3 -m unittest [-h] --manifest MANIFEST
+                           [--contract-source CONTRACT_SOURCE]
+                           [--contract-digest CONTRACT_DIGEST] [--repo REPO]
+                           [--nc-command NC_COMMAND] [--execute-nc]
+                           [--base BASE] [--symbol SYMBOL]
+                           [--unit-class UNIT_CLASS] [--no-gh]
+                           [--lighting {dark-eligible,lit}]
+                           [--dispatch-record DISPATCH_RECORD]
+                           [--dispatch-pubkey DISPATCH_PUBKEY]
+python3 -m unittest: error: unrecognized arguments: --git-dir /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/orca-u442-b-ln3x5ect --evidence-root /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmpw7r9fy2v
+
+
+======================================================================
+FAIL: test_two_clones_of_one_project_are_still_two_repositories (tests.test_verify.CrossRepoRoots.test_two_clones_of_one_project_are_still_two_repositories)
+R1: the split is not about differing paths — two clones of ONE project share every
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-u-442/99657be8-e579-4991-9ee3-9d21e8ea153e/scratchpad/receipts/wt-nc/tests/test_verify.py", line 3383, in test_two_clones_of_one_project_are_still_two_repositories
+    self.assertIn("the evidence changed after it was inventoried", out)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'the evidence changed after it was inventoried' not found in 'usage: python3 -m unittest [-h] --manifest MANIFEST\n                           [--contract-source CONTRACT_SOURCE]\n                           [--contract-digest CONTRACT_DIGEST] [--repo REPO]\n                           [--nc-command NC_COMMAND] [--execute-nc]\n                           [--base BASE] [--symbol SYMBOL]\n                           [--unit-class UNIT_CLASS] [--no-gh]\n                           [--lighting {dark-eligible,lit}]\n                           [--dispatch-record DISPATCH_RECORD]\n                           [--dispatch-pubkey DISPATCH_PUBKEY]\npython3 -m unittest: error: unrecognized arguments: --git-dir /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/orca-u442-clone-sb685kb3/c --evidence-root /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmpt832wmex\n'
 
 ----------------------------------------------------------------------
-Ran 255 tests in 36.640s
+Ran 27 tests in 2.791s
 
-FAILED (failures=8)
-CONTROL exit=1
+FAILED (failures=24, errors=1)

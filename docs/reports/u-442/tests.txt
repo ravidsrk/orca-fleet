@@ -1,4 +1,4 @@
-..............................................................................................................................FAIL: manifest must be a JSON object, got list
+.................................................................................................................................................FAIL: manifest must be a JSON object, got list
 verify: evidence manifest malformed/unreadable — unit is NOT done
 ...............................................................................................................................FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
 FAIL: head_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)
@@ -14,6 +14,6 @@ FAIL: mutation unit: no pr.number to look up an independent review — unreviewe
 verify: 11 invariant(s) failed — unit is NOT done
 ..
 ----------------------------------------------------------------------
-Ran 255 tests in 37.693s
+Ran 274 tests in 39.599s
 
 OK

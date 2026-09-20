@@ -1,0 +1,78 @@
+[
+ {
+  "mutant": "N1_one_flag_is_not_a_split",
+  "verdict": "KILLED",
+  "exit": 1,
+  "summary": "Ran 274 tests in 37.560s; FAILED (failures=3)",
+  "assertion_failures_only": true,
+  "before": "if _ROOTS[\"git\"] is None and _ROOTS[\"evidence\"] is None:",
+  "after": "if _ROOTS[\"git\"] is None or _ROOTS[\"evidence\"] is None:",
+  "failed_tests": [
+   "test_only_evidence_flag_collision_still_requires_pin",
+   "test_only_git_flag_collision_still_requires_pin",
+   "test_same_repo_nested_evidence_cannot_borrow_root_blob"
+  ]
+ },
+ {
+  "mutant": "N2_repo_identity_loses_the_named_root",
+  "verdict": "KILLED",
+  "exit": 1,
+  "summary": "Ran 274 tests in 39.050s; FAILED (failures=1)",
+  "assertion_failures_only": true,
+  "before": "        return Path(sha_top).resolve() != Path(ev_top).resolve()",
+  "after": "        code, ev_repo, _ = _run([\"git\", \"-C\", ev_top, \"rev-parse\", \"--show-toplevel\"])\n        return Path(sha_top).resolve() != Path(ev_repo.strip()).resolve()",
+  "failed_tests": [
+   "test_same_repo_nested_evidence_cannot_borrow_root_blob"
+  ]
+ },
+ {
+  "mutant": "N4_symbol_grep_reads_head_not_base",
+  "verdict": "KILLED",
+  "exit": 1,
+  "summary": "Ran 274 tests in 38.252s; FAILED (failures=2)",
+  "assertion_failures_only": true,
+  "before": "code, out = _git([\"grep\", \"-l\", \"-e\", symbol, f\"origin/{base}\"], timeout=20)",
+  "after": "code, out = _git([\"grep\", \"-l\", \"-e\", symbol, \"HEAD\"], timeout=20)",
+  "failed_tests": [
+   "test_symbol_only_on_base_is_found_even_when_head_deleted_it",
+   "test_symbol_only_on_head_cannot_substitute_for_base"
+  ]
+ },
+ {
+  "mutant": "N5_inventory_pin_overrides_containment",
+  "verdict": "KILLED",
+  "exit": 1,
+  "summary": "Ran 274 tests in 37.645s; FAILED (failures=2)",
+  "assertion_failures_only": true,
+  "before": "    resolved, err = _resolve(path)\n    if err:\n        return None, err\n    head = m.get(\"head_sha\")",
+  "after": "    resolved, err = _resolve(path)\n    if err and \"escapes\" in err and path in artifact_inventory(m):\n        resolved, err = (Path(_evidence_toplevel()) / path).resolve(), None\n    if err:\n        return None, err\n    head = m.get(\"head_sha\")",
+  "failed_tests": [
+   "test_a_nested_evidence_root_bounds_against_itself_not_the_clone",
+   "test_an_evidence_path_escaping_through_a_symlink_is_refused"
+  ]
+ },
+ {
+  "mutant": "N6_symbol_grep_loses_the_legacy_clock",
+  "verdict": "KILLED",
+  "exit": 1,
+  "summary": "Ran 274 tests in 37.846s; FAILED (failures=1)",
+  "assertion_failures_only": true,
+  "before": "code, out = _git([\"grep\", \"-l\", \"-e\", symbol, f\"origin/{base}\"], timeout=20)",
+  "after": "code, out = _git([\"grep\", \"-l\", \"-e\", symbol, f\"origin/{base}\"])",
+  "failed_tests": [
+   "test_the_symbol_grep_keeps_the_legacy_twenty_second_budget"
+  ]
+ },
+ {
+  "mutant": "N7_unresolvable_root_fails_open",
+  "verdict": "KILLED",
+  "exit": 1,
+  "summary": "Ran 274 tests in 37.444s; FAILED (failures=1)",
+  "assertion_failures_only": true,
+  "before": "    except OSError:\n        return True",
+  "after": "    except OSError:\n        return False",
+  "failed_tests": [
+   "test_an_unresolvable_root_fails_closed_to_split"
+  ]
+ }
+]
