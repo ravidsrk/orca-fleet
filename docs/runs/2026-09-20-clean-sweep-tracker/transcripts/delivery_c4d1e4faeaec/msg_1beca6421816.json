@@ -1,0 +1,8 @@
+{
+ "id": "msg_1beca6421816",
+ "type": "worker_done",
+ "created_at": "2026-09-20T08:39:32Z",
+ "subject": "U-CHAIN r2 standards: NO-GO, 3 Required",
+ "body": "Reviewed U-CHAIN round 2 at 0dbc669e, recorded blind expectations before the diff, and left only the authorized standards report uncommitted. Original standards fixes and line-wrap normalization are closed, but the verdict is NO-GO with three Required findings: stale remote resume refs, the missing mutant fixture, and a harness that returns success when controls fail. The validator and all 1,707 tests pass in a clean scratch checkout; the coordinator still needs these fixes and resolution of the documented BOT-3 residuals before a new SHA-bound review.",
+ "payload": "{\"taskId\":\"task_2c6e0642e3c0\",\"dispatchId\":\"ctx_125e8213b58e\",\"outcome\":\"succeeded\",\"filesModified\":[\"docs/reports/U-CHAIN/review-standards-r2.txt\"],\"reportPath\":\"/Users/ravindra/orca/workspaces/orca-fleet/u-chain/docs/reports/U-CHAIN/review-standards-r2.txt\"}"
+}
