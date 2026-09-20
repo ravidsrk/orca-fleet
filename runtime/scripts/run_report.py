@@ -49,6 +49,12 @@ must be the ``{record, sig_b64}`` envelope ``verify.py --transcript-out --transc
 graded manifest's exact bytes, with an exit code that agrees with ``verifier=`` and a
 signed argument tuple that agrees with the invocation the body shows.
 
+The same key closes the inventory's own gap (#386): the run-close integrity inventory
+is worker-written text too, so once the key is committed its ENTRY SET must carry the
+coordinator's signature (``inventory.py sign``, the same ``{record, sig_b64}`` envelope on
+one HTML-comment line inside the block), verified here over exactly the entries the
+report lists. Unsigned with the key present, or signed with no key to check it, refuses.
+
 WHERE the key is read is the switch itself, so it is ancestry-aware (PR #489 round-1
 review, BOT-2). The **grading base** is the default branch's current tip at verification
 time (``origin/HEAD``, then ``origin/main``…, ``--base`` to name it). A pin that is an
@@ -527,6 +533,55 @@ def key_rev(rev, root, base=None):
                  "key is read where the pin cannot choose")
 
 
+def enforcement_key(rev, root, base=None):
+    """(pubkey bytes or None, commit it was read at, why) — THE switch, resolved once for every
+    signed leg (transcript, inventory) so none of them can disagree about whether enforcement is
+    on. `at` is None only when no grading base resolves; `why` is then the refusal itself."""
+    at, why = key_rev(rev, root, base)
+    if at is None:
+        return None, None, f"{why} — the unsigned lane needs an ancestry proof, so the claim fails closed"
+    pin = blob_at(at, PUBKEY_PIN, root)
+    if at != rev and pin is None:  # no key on the base: the pin's own key, exactly as before
+        pin, at, why = blob_at(rev, PUBKEY_PIN, root), rev, "the pin; the grading base carries no key"
+    return pin, at, why
+
+
+def signed_inventory(lines, entries, rev, root, base=None):
+    """Errors that stop this report proving its run-close inventory was SIGNED by the coordinator
+    (#386, U-SIG-2). [] means either no key is committed where the switch is read and no envelope
+    is present, or the envelope verifies against that key over exactly the entry set the report
+    lists. The inventory is read from the report as check_report reads it (the document itself, not
+    a blob at the pin — the report is written after the pin it names); the key is read at
+    enforcement_key(), the same place the transcript rule reads it. Absence never binds: an
+    envelope with no key to verify it, and no envelope with a key present, both refuse."""
+    pin, at, why = enforcement_key(rev, root, base)
+    if at is None:
+        return [why]
+    try:
+        _idx, envelope = inventory.find_signature(lines)
+    except inventory.InventoryError as err:
+        return [f"integrity inventory {inventory.SIGNATURE_TAG}: {err}"]
+    if pin is None and envelope is None:
+        return []
+    if pin is None:
+        return [f"integrity inventory carries an {inventory.SIGNATURE_TAG} but no {PUBKEY_PIN} is "
+                f"committed at {at} — nothing can verify it, so the claim fails closed (#386)"]
+    if envelope is None:
+        return [f"{PUBKEY_PIN} is committed at {at} ({why}), so an UNSIGNED integrity inventory no "
+                "longer binds — sign its entry set with `inventory.py sign --key <coordinator seed>` "
+                "(#386)"]
+    try:
+        pub = bytes.fromhex(pin.decode("utf-8").strip())
+    except (UnicodeDecodeError, ValueError) as err:
+        return [f"{PUBKEY_PIN} at {at} is malformed ({err}) — fail-closed"]
+    if len(pub) != 32:
+        return [f"{PUBKEY_PIN} at {at} is malformed (not a 32-byte hex key) — fail-closed"]
+    problem = inventory.verify_signature(envelope, entries, pub)
+    if problem:
+        return [f"integrity inventory signature does not bind: {problem} (key: {PUBKEY_PIN} at {at})"]
+    return []
+
+
 def signed_transcript(fields, rev, run_dir, root, base=None, text=""):
     """Errors that stop this report proving its verdict was SIGNED by the coordinator (#281/#386).
     [] means either no key is committed where the switch is read and none is claimed, or the named
@@ -538,12 +593,9 @@ def signed_transcript(fields, rev, run_dir, root, base=None, text=""):
     pre-key commit is judged by the key the base carries, not by the key it chose to fork before).
     Absence never binds: a missing signature with the key present, a missing key with a signature
     present, and a manifest digest that is None on either side all refuse."""
-    at, why = key_rev(rev, root, base)
+    pin, at, why = enforcement_key(rev, root, base)
     if at is None:
-        return [f"{why} — the unsigned lane needs an ancestry proof, so the claim fails closed"]
-    pin = blob_at(at, PUBKEY_PIN, root)
-    if at != rev and pin is None:  # no key on the base: the pin's own key, exactly as before
-        pin, at, why = blob_at(rev, PUBKEY_PIN, root), rev, "the pin; the grading base carries no key"
+        return [why]
     transcript = fields.get("transcript")
     if pin is None and transcript is None:
         return []
@@ -936,10 +988,13 @@ def check_report(report_path, mission, tier, root=None, base=None):
     errors.extend(_wip_curve_errors(text, mission, root, report_path, rev=rev))
 
     try:
-        _report, _lines, entries = inventory.load(report)
+        _report, lines, entries = inventory.load(report)
     except inventory.InventoryError as exc:
         errors.append(f"{report_path}: integrity inventory: {exc}")
         return errors
+    # #386: with the key committed where the switch is read, the entry set itself must be SIGNED.
+    for problem in signed_inventory(lines, entries, rev, root, base):
+        errors.append(f"{report_path}: {problem}")
     matched, mismatched, missing = inventory.check_entries(entries, report, root, at=rev)
     if mismatched:
         for path_text, recorded, actual in mismatched:
