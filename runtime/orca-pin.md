@@ -18,7 +18,7 @@ holds its shape. The two never disagree — a run updates both or neither.
 | Build commit | `357c9780f8bffa10a21d004449d8d6d9846a9310` (`orca-local-build.json`, arm64) |
 | Witnessed | 2026-09-20 (`live`: installed binary + version-matched guides + scratch-Run probes) |
 | Upstream HEAD then | `bd5177801bde74a3cc8073c50e7d6fbad14c305e` (main, 2026-09-20) |
-| Run record | docs/runs/2026-09-20-pin-it-427.md + docs/runs/2026-09-20-pin-it-427/ (receipts, park register) |
+| Run record | docs/runs/2026-09-20-pin-it-427.md (ledger + park register) + docs/runs/2026-09-20-pin-it-427/ (receipts) |
 | Prior pin | v1.4.203 `54eaa147` (2026-09-16, docs/runs/2026-09-16-pin-it-416/) |
 | Verdict | **PINNED-WITH-PARKED** — doctor verdict shapes need a per-workspace-env recipe (none on this host); the legacy-takeover live replay needs a legacy Run |
 
@@ -26,8 +26,9 @@ holds its shape. The two never disagree — a run updates both or neither.
 
 - Guides: **15 of 15 served files byte-identical** (both kernels, all 7 orchestration
   references, all 3 orca-cli references, orca-per-workspace-env). No guide drift at all.
-- Live at 1.4.204 (scratch Run + workers, full teardown): every claim the 1.4.203 session
-  parked for want of a live terminal replayed and held — bogus-dep refusal, gate-create
+- Live at 1.4.204 (scratch Run + workers; worktrees retired, tasks settled, probe runs
+  settled-but-retained — runs are not deletable): every claim the 1.4.203 session parked
+  for want of a live terminal replayed and held — bogus-dep refusal, gate-create
   auto-block, gate-resolve absent from the preamble, ask timeout → PENDING → same-id
   `--resume`, `--retry-request` dedup/cross-method `request_mismatch`,
   `nested_worker_depth_exceeded` from a worker's own Run, the group-address contrast.

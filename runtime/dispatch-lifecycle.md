@@ -150,10 +150,11 @@ ledger it as a leak, never force it.
 
 ## Live probes owed (pin-it)
 
-The live PIN is v1.4.203 (`docs/runs/2026-09-16-pin-it-416`). Bound `worker-list --run`, unscoped `source=all`, and every CLI-shape claim were re-witnessed there (read-only; sender-bound replays need a live Orca terminal). Remaining roster/remote/OS/isolated-runtime probes are PARKED in that run's park register — they are unfinished, not proof the mechanisms are absent.
-
-1. `worker-start` per roster agent — record `state`, `stage`, `launch.effective`, `turnStart`, and the host's `agentDefaultArgs` permission mode.
-2. `dispatch --inject --json` receipt `prompt.stages` — inspected, never replayed under that id.
-3. Mixed-batch `check` (does a `--types` wake deliver other types?) and `send --to @all --type merge_ready` in a scratch Run — 1.4.203's guide documents group scoping; the replay is still owed.
-4. `task-create --deps '["bogus"]'` → archive the refutation.
-5. `gate-create` → `gate-resolve` → `dispatch-show --task --preamble`: is the resolution there?
+The live PIN is v1.4.204 (`docs/runs/2026-09-20-pin-it-427.md`). Every probe the 1.4.203 session parked
+for want of a live Orca terminal was retired there (scratch Run + workers, receipts on disk): roster
+`worker-start` on a MANUAL host (`launch.effective` carries no args → LAUNCHED_UNUSABLE), inject
+`prompt.stages=input_accepted` (never replayed), a `--types` wake delivers the whole batch,
+`merge_ready --to @all` (resolution error only — `worker_done` gets the type-level refusal),
+`task-create --deps '["bogus"]'` refutation, and `gate-create`→`gate-resolve`→`dispatch-show
+--preamble` (resolution NOT injected). Still PARKED per that run's register: doctor verdict shapes,
+the legacy-takeover live replay, and the roster/remote/OS/isolated-runtime probes.

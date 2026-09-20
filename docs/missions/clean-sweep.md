@@ -1,7 +1,7 @@
 # 🧹 clean-sweep — a finite backlog exhausted to zero, with evidence
 
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — coordinator plus parallel isolated fix workers, one finding each; you own the one-way doors.
-> **Activation load:** ~33,500 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
+> **Activation load:** ~33,400 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** self-run — the 2026-09-14 tracker run closed DRY-WITH-PARKED with artifacts in
 > the run's own directory and the verifier re-executed at promotion
 > ([close report](../runs/2026-09-14-clean-sweep-self-run.md), bound by
