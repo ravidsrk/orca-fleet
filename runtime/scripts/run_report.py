@@ -40,11 +40,22 @@ that resolves to a real object here. Prose is free -- a fabricated report cleare
 the earlier gate in fifteen minutes by writing a command line -- so the body's
 invocation is no longer the only evidence a run happened.
 
+What closes the "could not have been typed" gap (#281/#386): a **signed verifier
+transcript**. Once the coordinator's public key is committed at ``.orca/dispatch-pubkey``
+*as of the report's own* ``inventory_at`` commit, the ledger entry alone no longer
+suffices: the ``RUN:`` header must name ``transcript=<path>`` inside the run's own
+directory, and that file — read at the same commit — must be the ``{record, sig_b64}``
+envelope ``verify.py --transcript-out --transcript-key`` (or ``dispatch-sign.py
+sign-transcript``) emits, verifying against that key, over the graded manifest's
+exact bytes, with an exit code that agrees with ``verifier=``. Reading the key at the
+pin is what keeps this historically consistent: a report pinned before the key landed
+keeps the unsigned path unchanged, and a new run cannot dodge it by pinning an old
+commit because its own artifacts must exist there.
+
 What this does NOT do, said plainly: it does not re-run `verify.py` and re-derive
-the verdict, and the ledger above is still written ON the worker, so the floor it
-raises is "ran a command and recorded it against real content", not "could not
-have been typed". Closing that needs a coordinator-signed verifier transcript
-checked against a committed key (#281). That run's authorities are not reproducible after the fact — the
+the verdict. Without a committed key the ledger above is still written ON the
+worker, so the floor it raises is "ran a command and recorded it against real
+content", not "could not have been typed". That run's authorities are not reproducible after the fact — the
 coordinator's out-of-band contract, a GitHub review lookup, the live worktree — so
 a "re-derivation" here would be a different, weaker check wearing the same name.
 What is checked is that the recorded outcome is attributable to a real invocation
@@ -61,6 +72,7 @@ Exit codes
     2  could not run (no skills/, unreadable input)
 """
 import argparse
+import base64
 import hashlib
 import importlib.util
 import json
@@ -78,6 +90,16 @@ RUNS_DIR = ROOT / "docs" / "runs"
 _spec = importlib.util.spec_from_file_location("inventory", HERE / "inventory.py")
 inventory = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(inventory)
+# The transcript's canonical form and the Ed25519 verifier come from the signer itself — one
+# scheme, one envelope, the same key files as the dispatch record (#281/#386).
+_ds_spec = importlib.util.spec_from_file_location("dispatch_sign", HERE / "dispatch-sign.py")
+dispatch_sign = importlib.util.module_from_spec(_ds_spec)
+_ds_spec.loader.exec_module(dispatch_sign)
+
+# Committing the coordinator's public key here is THE enforcement switch — for the signed
+# dispatch record (verify-gate.sh discovers it) and, read at a report's own pin, for the signed
+# verifier transcript below.
+PUBKEY_PIN = ".orca/dispatch-pubkey"
 
 RUN_HEADER_RE = re.compile(r"^RUN:\s*(.+?)\s*$", re.M)
 
@@ -422,6 +444,73 @@ def verifier_ran(manifest_path, rev, root):
             + "; ".join(problems)]
 
 
+def signed_transcript(fields, rev, run_dir, root):
+    """Errors that stop this report proving its verdict was SIGNED by the coordinator (#281/#386).
+    [] means either no key is committed at `rev` and none is claimed, or the named transcript
+    verifies against the committed key and binds to this report's claims.
+
+    The key is read AT `rev`, like everything else here: presence of `.orca/dispatch-pubkey` in the
+    working tree says nothing about what a report pinned last month could have carried."""
+    pin = blob_at(rev, PUBKEY_PIN, root)
+    transcript = fields.get("transcript")
+    if pin is None and transcript is None:
+        return []
+    if pin is None:
+        return [f"RUN: transcript={transcript} is named but no {PUBKEY_PIN} is committed at {rev} "
+                "— nothing can verify it, so the claim fails closed (#281)"]
+    if transcript is None:
+        return [f"{PUBKEY_PIN} is committed at {rev}, so a ledger entry alone no longer proves the "
+                "verifier ran — the RUN: header must name transcript=<path>, the coordinator-signed "
+                "verdict envelope (verify.py --transcript-out/--transcript-key, or dispatch-sign.py "
+                "sign-transcript) (#281)"]
+    if run_dir is not None and not transcript.startswith(run_dir + "/"):
+        return [f"RUN: transcript={transcript} is outside this run's own directory {run_dir}/ — a "
+                "run is graded on its own verdict, not another run's"]
+    raw = blob_at(rev, transcript, root)
+    if raw is None:
+        return [f"RUN: transcript={transcript} cannot be read at {rev}"]
+    try:
+        envelope = json.loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, ValueError) as err:
+        return [f"RUN: transcript={transcript} at {rev} is not readable JSON ({err})"]
+    if not (isinstance(envelope, dict) and isinstance(envelope.get("record"), dict)
+            and isinstance(envelope.get("sig_b64"), str)):
+        return [f"RUN: transcript={transcript} is an UNSIGNED verdict (no record/sig_b64 envelope) "
+                f"and {PUBKEY_PIN} is committed at {rev} — rejected; sign it with the coordinator's "
+                "seed (#281)"]
+    try:
+        pub = bytes.fromhex(pin.decode("utf-8").strip())
+        sig = base64.b64decode(envelope["sig_b64"], validate=True)
+    except (UnicodeDecodeError, ValueError) as err:
+        return [f"{PUBKEY_PIN} at {rev} or the transcript's sig_b64 is malformed ({err}) — fail-closed"]
+    if len(pub) != 32:
+        return [f"{PUBKEY_PIN} at {rev} is malformed (not a 32-byte hex key) — fail-closed"]
+    record = envelope["record"]
+    if not dispatch_sign._load_ed25519().checkvalid(
+            sig, dispatch_sign.canonical_transcript(record), pub):
+        return [f"RUN: transcript={transcript} signature INVALID for the {PUBKEY_PIN} committed at "
+                f"{rev} — not the coordinator's verdict (forged, tampered, or another key) (#281)"]
+    # Bind the signed verdict to THIS report's claims: the manifest it names and its exact bytes at
+    # the pin, and the outcome the header records.
+    problems = []
+    manifest = fields["manifest"]
+    if record.get("manifest") != manifest:
+        problems.append(f"it judges manifest {record.get('manifest')!r}, not {manifest}")
+    graded = blob_at(rev, manifest, root)
+    actual = hashlib.sha256(graded).hexdigest() if graded is not None else None
+    if record.get("manifest_sha256") != actual:
+        problems.append(f"its manifest_sha256 {str(record.get('manifest_sha256'))[:12]}… is not the "
+                        f"graded manifest's bytes at {rev} ({str(actual)[:12]}…)")
+    want = 0 if fields["verifier"] == "GREEN" else 2
+    if record.get("exit") != want:
+        problems.append(f"its exit {record.get('exit')!r} disagrees with RUN: verifier="
+                        f"{fields['verifier']} (expected exit {want})")
+    if problems:
+        return [f"RUN: transcript={transcript} verifies but does not bind this report: "
+                + "; ".join(problems)]
+    return []
+
+
 def _mutation_missions(root, rev=None):
     """The mutation-class mission set from evidence-manifest.md §3 — the one place the class list
     lives, so this check and the done-floor never enumerate different sets. Read at the report's
@@ -721,6 +810,9 @@ def check_report(report_path, mission, tier, root=None):
 
     # #286: the tier must cost a command execution, not a sentence describing one.
     for problem in verifier_ran(manifest, rev, root):
+        errors.append(f"{report_path}: {problem}")
+    # #281: with the coordinator's key committed at the pin, that execution must be SIGNED.
+    for problem in signed_transcript(fields, rev, run_dir, root):
         errors.append(f"{report_path}: {problem}")
 
     errors.extend(_wip_curve_errors(text, mission, root, report_path, rev=rev))

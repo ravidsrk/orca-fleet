@@ -9,6 +9,7 @@ the checker: each one has to be refused.
 The fixtures build real git repos, because the mechanism is "re-hash the recorded
 paths at the recorded commit" — a fake that never touches git would test nothing.
 """
+import base64
 import hashlib
 import importlib.util
 import json
@@ -38,7 +39,7 @@ def _git(repo, *args):
     ).stdout.strip()
 
 
-def _report(mission, tier, rev, manifest, verifier, inventory, body=None):
+def _report(mission, tier, rev, manifest, verifier, inventory, body=None, header_extra=""):
     rows = "\n".join(f"{digest}  {path}" for digest, path in inventory)
     shown = body if body is not None else (
         f"    python3 runtime/scripts/verify.py --manifest {manifest} --unit-class mutation\n"
@@ -47,7 +48,7 @@ def _report(mission, tier, rev, manifest, verifier, inventory, body=None):
     return (
         f"# Run report — {mission} {tier}\n\n"
         f"RUN: mission={mission} tier={tier} inventory_at={rev} "
-        f"manifest={manifest} verifier={verifier}\n\n"
+        f"manifest={manifest} verifier={verifier}{header_extra}\n\n"
         f"## Verifier outcome (recorded exactly)\n\n{shown}\n"
         f"{INVENTORY_HEADING}\n\n```\n{rows}\n```\n"
     )
@@ -1232,6 +1233,133 @@ class RunReportBinding(unittest.TestCase):
             "docs/runs/never-written.md", "demo-it", "self-run", root=self.repo
         )
         self.assertTrue(any("does not exist" in e for e in errs), errs)
+
+
+_dsspec = importlib.util.spec_from_file_location(
+    "dispatch_sign", ROOT / "runtime" / "scripts" / "dispatch-sign.py")
+dispatch_sign = importlib.util.module_from_spec(_dsspec)
+_dsspec.loader.exec_module(dispatch_sign)
+
+
+class SignedTranscriptRequired(RunReportBinding):
+    """#281 / #386: with the coordinator's public key COMMITTED, the verifier-ran leg needs more
+    than a worker-written ledger entry — it needs verify.py's verdict as a signed transcript that
+    verifies against that key and binds to this report's claims.
+
+    The key is read at the report's own `inventory_at` commit, the same way the manifest is: a
+    report pinned before the key landed keeps the unsigned path unchanged, and a new run cannot
+    dodge the requirement by pinning an old commit because its own artifacts must exist there.
+    """
+
+    SEED = bytes(range(1, 33))
+    PUBKEY = ".orca/dispatch-pubkey"
+    TRANSCRIPT = "docs/runs/2026-01-01-demo-it-selfrun/verifier-transcript.json"
+
+    def _ed(self):
+        return dispatch_sign._load_ed25519()
+
+    def _verdict(self, **over):
+        rec = {"unit": "u1", "manifest": self.manifest, "manifest_sha256": self.manifest_sha,
+               "args": {"unit_class": "mutation", "lighting": "lit"}, "fatal": [], "notes": [],
+               "exit": 0, "toolchain": {"python": "3.13"},
+               "timestamp": "2026-01-01T00:00:00+00:00"}
+        rec.update(over)
+        return rec
+
+    def _envelope(self, record, seed=None):
+        ed = self._ed()
+        seed = seed or self.SEED
+        sig = ed.signature(dispatch_sign.canonical_transcript(record), seed, ed.publickey(seed))
+        return {"record": record, "sig_b64": base64.b64encode(sig).decode("ascii")}
+
+    def _commit(self, pubkey=True, transcript=None):
+        """Land the pubkey and/or a transcript, re-pin the report to the new commit."""
+        if pubkey:
+            pin = self.repo / self.PUBKEY
+            pin.parent.mkdir(exist_ok=True)
+            pin.write_text(self._ed().publickey(self.SEED).hex() + "\n", encoding="utf-8")
+        if transcript is not None:
+            (self.repo / self.TRANSCRIPT).write_text(json.dumps(transcript) + "\n", encoding="utf-8")
+        _git(self.repo, "add", "-A")
+        _git(self.repo, "commit", "-qm", "pubkey / transcript")
+        self.rev = _git(self.repo, "rev-parse", "HEAD")
+        extra = f" transcript={self.TRANSCRIPT}" if transcript is not None else ""
+        self._write(header_extra=extra)
+
+    def test_without_a_committed_key_the_ledger_still_suffices(self):
+        # Today's path, byte-identical: no key at the pin, no transcript named -> bound.
+        self._write()
+        self.assertEqual(self._check(), [])
+
+    def test_with_a_committed_key_a_ledger_entry_alone_no_longer_suffices(self):
+        self._commit(pubkey=True)
+        errors = self._check()
+        self.assertTrue(any("transcript" in e and self.PUBKEY in e for e in errors), errors)
+
+    def test_a_signed_transcript_against_the_committed_key_binds(self):
+        self._commit(pubkey=True, transcript=self._envelope(self._verdict()))
+        self.assertEqual(self._check(), [])
+
+    def test_a_tampered_transcript_is_refused(self):
+        env = self._envelope(self._verdict(exit=2))
+        env["record"]["exit"] = 0  # the RED verdict, retyped GREEN after signing
+        self._commit(pubkey=True, transcript=env)
+        errors = self._check()
+        self.assertTrue(any("signature" in e.lower() for e in errors), errors)
+
+    def test_an_unsigned_transcript_is_refused_when_the_key_is_committed(self):
+        self._commit(pubkey=True, transcript=self._verdict())  # the bare verdict, no envelope
+        errors = self._check()
+        self.assertTrue(any("unsigned" in e.lower() or "sig_b64" in e for e in errors), errors)
+
+    def test_a_transcript_signed_by_another_key_is_refused(self):
+        self._commit(pubkey=True, transcript=self._envelope(self._verdict(), seed=bytes(range(100, 132))))
+        errors = self._check()
+        self.assertTrue(any("signature" in e.lower() for e in errors), errors)
+
+    def test_a_transcript_over_other_manifest_bytes_is_refused(self):
+        # A valid signature over a different manifest (an earlier draft, another unit's) is a
+        # verdict on something else; the transcript's manifest_sha256 must be the graded blob.
+        self._commit(pubkey=True, transcript=self._envelope(self._verdict(manifest_sha256="00" * 32)))
+        errors = self._check()
+        self.assertTrue(any("manifest_sha256" in e for e in errors), errors)
+        self._commit(pubkey=False, transcript=self._envelope(self._verdict(manifest="docs/runs/other.json")))
+        errors = self._check()
+        self.assertTrue(any("manifest" in e and "transcript" in e for e in errors), errors)
+
+    def test_a_transcript_whose_exit_disagrees_with_the_header_is_refused(self):
+        self._commit(pubkey=True, transcript=self._envelope(self._verdict(exit=2)))
+        errors = self._check()  # header says GREEN, the signed verdict says RED
+        self.assertTrue(any("exit" in e and "GREEN" in e for e in errors), errors)
+
+    def test_a_recorded_red_binds_when_the_transcript_agrees(self):
+        self._commit(pubkey=True, transcript=self._envelope(self._verdict(exit=2, fatal=["x"])))
+        self._write(verifier="RED", header_extra=f" transcript={self.TRANSCRIPT}")
+        self.assertEqual(self._check(), [])
+
+    def test_a_transcript_outside_the_run_directory_is_refused(self):
+        self.TRANSCRIPT = "docs/runs/elsewhere/verifier-transcript.json"
+        (self.repo / "docs/runs/elsewhere").mkdir(parents=True)
+        self._commit(pubkey=True, transcript=self._envelope(self._verdict()))
+        errors = self._check()
+        self.assertTrue(any("own directory" in e for e in errors), errors)
+
+    def test_a_named_transcript_is_checked_even_without_a_committed_key(self):
+        # Naming a transcript is a claim; a forged one is refused whether or not the key is pinned
+        # (without a key nothing can verify it, so it fails closed rather than passing quietly).
+        self._commit(pubkey=False, transcript=self._envelope(self._verdict()))
+        errors = self._check()
+        self.assertTrue(any("transcript" in e and self.PUBKEY in e for e in errors), errors)
+
+    def test_a_key_whose_pin_is_malformed_fails_closed(self):
+        self._commit(pubkey=True, transcript=self._envelope(self._verdict()))
+        (self.repo / self.PUBKEY).write_text("not-hex\n", encoding="utf-8")
+        _git(self.repo, "add", "-A")
+        _git(self.repo, "commit", "-qm", "bad pin")
+        self.rev = _git(self.repo, "rev-parse", "HEAD")
+        self._write(header_extra=f" transcript={self.TRANSCRIPT}")
+        errors = self._check()
+        self.assertTrue(any("malformed" in e for e in errors), errors)
 
 
 class LiveCatalog(unittest.TestCase):
