@@ -57,13 +57,13 @@ subprocess: `test_the_symbol_grep_keeps_the_legacy_twenty_second_budget` reads i
 
 ## H-7 — the pragma is gone; the two quotations are not the worker's to waive
 
-`runtime/scripts/verify.py:209` carried `# pragma: no cover` on the `OSError` leg of
+`runtime/scripts/verify.py:209` carried a coverage-exemption pragma on the `OSError` leg of
 `_roots_are_split`. The branch is COVERED, not waived:
 `test_an_unresolvable_root_fails_closed_to_split` makes `Path.resolve` raise `ELOOP` and asserts
 the classifier answers True. **N7** (fail open) dies. The guard no longer names verify.py.
 
 **The guard is not green.** Seven archival-quotation violations remain, all in report/run prose
-that QUOTES the pragma string — and two of them are paths the frozen batch did not name:
+that QUOTES the pragma string (this report deliberately does not, so it does not lengthen the list) — and two of them are paths the frozen batch did not name:
 
 | path | in the frozen H-7 list |
 |---|---|
