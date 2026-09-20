@@ -1,0 +1,57 @@
+test_a_colliding_sha_repo_blob_cannot_satisfy_a_mismatched_pin (tests.test_verify.CrossRepoRoots.test_a_colliding_sha_repo_blob_cannot_satisfy_a_mismatched_pin)
+R1/T1: the pin is declared over the EVIDENCE bytes, so rewriting them must go RED even ... ok
+test_a_colliding_sha_repo_blob_cannot_stand_in_for_a_missing_pin (tests.test_verify.CrossRepoRoots.test_a_colliding_sha_repo_blob_cannot_stand_in_for_a_missing_pin)
+R1/T1: drop artifacts[] and the SHA repo's same-path blob must NOT rescue the read. ... ok
+test_a_colliding_sha_repo_blob_cannot_substitute_for_pinned_evidence (tests.test_verify.CrossRepoRoots.test_a_colliding_sha_repo_blob_cannot_substitute_for_pinned_evidence)
+R1/T1: same path in both repos — the PINNED copy in the evidence root must win. ... ok
+test_a_nested_evidence_root_bounds_against_itself_not_the_clone (tests.test_verify.CrossRepoRoots.test_a_nested_evidence_root_bounds_against_itself_not_the_clone)
+T3's boundary case: with the root nested inside the clone, escaping UPWARD into the ... ok
+test_a_path_at_ref_contract_read_uses_the_sha_repo (tests.test_verify.CrossRepoRoots.test_a_path_at_ref_contract_read_uses_the_sha_repo)
+T5: the raw-byte `path@ref` read is a SHA-repo leg. The fixture only ever read a bare ... ok
+test_a_root_outside_a_git_repo_is_refused (tests.test_verify.CrossRepoRoots.test_a_root_outside_a_git_repo_is_refused)
+Evidence an auditor cannot re-derive from a clone is what #267 refuses; --evidence-root ... ok
+test_a_symbol_only_in_the_evidence_repo_is_not_accepted_as_on_base (tests.test_verify.CrossRepoRoots.test_a_symbol_only_in_the_evidence_repo_is_not_accepted_as_on_base)
+R2's other half: the same bug is a false ACCEPTANCE too. A symbol that exists only in ... ok
+test_a_valid_no_flag_run_from_a_nested_directory_still_binds_to_the_toplevel (tests.test_verify.CrossRepoRoots.test_a_valid_no_flag_run_from_a_nested_directory_still_binds_to_the_toplevel)
+T4: legacy compatibility is a claim about RESOLUTION, and every no-flag fixture ran at ... ok
+test_an_absolute_evidence_path_is_still_refused_against_the_named_root (tests.test_verify.CrossRepoRoots.test_an_absolute_evidence_path_is_still_refused_against_the_named_root) ... ok
+test_an_escaping_evidence_path_is_still_refused_against_the_named_root (tests.test_verify.CrossRepoRoots.test_an_escaping_evidence_path_is_still_refused_against_the_named_root)
+#267 is preserved, not relaxed: the root moved, the bound did not. ... ok
+test_an_evidence_path_escaping_through_a_symlink_is_refused (tests.test_verify.CrossRepoRoots.test_an_evidence_path_escaping_through_a_symlink_is_refused)
+T3: #267's containment is CANONICAL, not a spelling rule. The committed escape case ... ok
+test_an_unpinned_cross_repo_artifact_is_refused (tests.test_verify.CrossRepoRoots.test_an_unpinned_cross_repo_artifact_is_refused)
+Cross-repo evidence can never be "tracked at head_sha" — the other repo does not hold ... ok
+test_an_unresolvable_root_fails_closed_to_split (tests.test_verify.CrossRepoRoots.test_an_unresolvable_root_fails_closed_to_split)
+The classifier's own docstring: identity must be PROVEN. When the filesystem refuses to ... ok
+test_git_dir_alone_leaves_evidence_resolution_where_it_was (tests.test_verify.CrossRepoRoots.test_git_dir_alone_leaves_evidence_resolution_where_it_was)
+--evidence-root is not implied by --git-dir: absent, evidence still resolves against ... ok
+test_help_documents_both_roots (tests.test_verify.CrossRepoRoots.test_help_documents_both_roots) ... ok
+test_only_evidence_flag_collision_still_requires_pin (tests.test_verify.CrossRepoRoots.test_only_evidence_flag_collision_still_requires_pin)
+R2-T1, the mirror: --evidence-root alone, standing IN the SHA repo. The bound moves to ... ok
+test_only_git_flag_collision_still_requires_pin (tests.test_verify.CrossRepoRoots.test_only_git_flag_collision_still_requires_pin)
+R2-T1: ONE flag is already a split. --git-dir alone moves the SHAs to B and leaves the ... ok
+test_same_repo_nested_evidence_cannot_borrow_root_blob (tests.test_verify.CrossRepoRoots.test_same_repo_nested_evidence_cannot_borrow_root_blob)
+R2-T1: repository identity is not ROOT identity. With the SHAs and a nested evidence ... ok
+test_split_roots_verify_a_cross_repo_manifest_end_to_end (tests.test_verify.CrossRepoRoots.test_split_roots_verify_a_cross_repo_manifest_end_to_end)
+The unit's whole point: evidence in repo A, SHAs in repo B, GREEN in one invocation. ... ok
+test_symbol_only_on_base_is_found_even_when_head_deleted_it (tests.test_verify.CrossRepoRoots.test_symbol_only_on_base_is_found_even_when_head_deleted_it)
+R2-T3's other direction, and the one a HEAD grep gets backwards: the change IS on base, ... ok
+test_symbol_only_on_head_cannot_substitute_for_base (tests.test_verify.CrossRepoRoots.test_symbol_only_on_head_cannot_substitute_for_base)
+R2-T3: the check's claim is `on origin/<base>`, and every fixture so far pointed ... ok
+test_the_evidence_root_may_be_a_named_subdirectory_of_the_clone (tests.test_verify.CrossRepoRoots.test_the_evidence_root_may_be_a_named_subdirectory_of_the_clone)
+T2, tighter: the root is a directory, not 'the repo'. Paths bind to the NAMED root. ... ok
+test_the_named_evidence_root_is_honored_from_a_distinct_cwd (tests.test_verify.CrossRepoRoots.test_the_named_evidence_root_is_honored_from_a_distinct_cwd)
+T2: every existing case ran AT repo A, where the requested root and the cwd fallback ... ok
+test_the_symbol_grep_keeps_the_legacy_twenty_second_budget (tests.test_verify.CrossRepoRoots.test_the_symbol_grep_keeps_the_legacy_twenty_second_budget)
+S2-R3: routing this leg through _git bought the SHA root and silently halved its clock, ... ok
+test_the_symbol_leg_runs_in_the_sha_repo_not_the_process_cwd (tests.test_verify.CrossRepoRoots.test_the_symbol_leg_runs_in_the_sha_repo_not_the_process_cwd)
+R2/T5: --symbol grepped origin/<base> in the process cwd while the adjacent ancestry ... ok
+test_two_clones_of_one_project_are_still_two_repositories (tests.test_verify.CrossRepoRoots.test_two_clones_of_one_project_are_still_two_repositories)
+R1: the split is not about differing paths — two clones of ONE project share every ... ok
+test_without_the_split_the_same_manifest_cannot_verify (tests.test_verify.CrossRepoRoots.test_without_the_split_the_same_manifest_cannot_verify)
+The negative control for the feature itself: one root cannot reach both authorities. ... ok
+
+----------------------------------------------------------------------
+Ran 27 tests in 5.273s
+
+OK

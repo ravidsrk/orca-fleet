@@ -1,0 +1,424 @@
+U-442 ROUND 2 — TEST-ADEQUACY REVIEW
+Status: COMPLETE — TEST-ADEQUACY NO-GO
+Counts: 0 Critical; 3 Required; 0 Nit; 0 Optional; 0 FYI.
+
+EXECUTIVE BRIEF
+The round-two head passes all 1,726 repository tests and validation, and all nine submitted mutant kills re-derive with identical failing-test sets. The two original Greptile P1 mechanisms are fixed, and the original reviewer probes now pass. Test adequacy remains NO-GO: four fresh behavioral mutants survive all 267 verifier tests, grouped into three Required findings covering root classification, pinned symlink containment, and target-base symbol selection. Independent semantic probes pass at unmodified head and kill every survivor for the intended reason. F-3 and F-5 close; F-4 omits its expressly requested pinned fixture, while new F-1/F-2 tests leave the demonstrated edge cases unpinned. This report is the only file I authored in the source worktree; no commits or production fixes were made.
+
+BLIND EXPECTATIONS — recorded before opening the round-two implementation or test diff
+Recorded UTC: 2026-09-20T09:19:53.889408+00:00
+Sources read: frozen build-u442-r2.md and round-one review reports only.
+
+F-1: An artifact's authority is the canonical evidence root, never a matching pathname in the SHA repository. I expect verify.py to gate the tracked-blob shortcut on repository/root equivalence, require an inventory digest for split roots, and read the actual evidence bytes before content checks. Tests must cover same-path conflicting bytes, absent/mismatched pins, separate clones sharing commit history, and a nested evidence root where equal repository identity alone cannot establish path identity. A mutant that claims every pair of roots is equivalent must fail semantically, not merely on setup.
+Motivating line: "  repo is never consulted. Regression tests: same-path/different-content in the SHA"
+Confidence: high on authority and pinning; medium on the exact repository-equivalence implementation.
+
+F-2: All target-repository Git operations, including raw bytes and symbol grep, must use the same selected context. I expect asymmetric A/B symbol fixtures in both directions, plus a path@ref contract available only in B; production mutants selecting A or removing the symbol check must be caught by specific admission/refusal assertions.
+Motivating line: "  (`path@ref`) drops the root selection — both must run through the SAME selected git context"
+Confidence: high.
+
+F-3: Explicit evidence-root selection must change behavior when process cwd is neither the evidence root nor its implicit default. I expect a successful split-root invocation from B or a third location and ideally an evidence subdirectory. Ignoring the flag must break the intended successful evidence read.
+Motivating line: "- **F-3 --evidence-root is honored, not just parsed (TESTS T2).** Cover the split invocation"
+Confidence: high.
+
+F-4: Canonical containment must refuse a pinned artifact whose apparent in-root pathname resolves outside via a symlink. I expect the test to reach canonical containment with otherwise valid evidence, and a nested-root case to distinguish the selected root from its repository's toplevel. Removing only the final canonical check must make those refusal assertions fail.
+Motivating line: "  fixture (pinned path through a symlink inside the evidence root pointing OUTSIDE it →"
+Confidence: high.
+
+F-5: With neither flag, a valid manifest verified from a nested cwd must resolve evidence at the repository toplevel. Replacing that fallback with cwd must fail a successful invocation, while toplevel behavior remains unchanged.
+Motivating line: "- **F-5 no-flag compatibility from a nested cwd (TESTS T4).** Cover a valid no-flag"
+Confidence: high.
+
+Cross-cutting: Each new regression must unconditionally assert the relevant outcome and, for refusal, identify the intended cause; stubs must not silently vacate probes. A behavior-neutral Git adapter refactor should preserve test meaning. Re-derive claimed nine mutant kills from exact mutations in isolated scratch copies, then independently challenge the new root-equivalence helper and symbol routing. Prior M2..M5 must now fail the submitted tests for the claimed reason, and original T1 collision probes must pass at the fixed head and fail under shortcut restoration.
+
+Pinned requested reviewed_sha: e4cbf222bc7cd1001b8bd11960d3ed92c2f6cd5f
+Observed worktree HEAD at entry: 50788bf24a1beaa45540859ccde33b2f8b30c901
+Only this uncommitted report is authorized here. All executable experiments use external scratch clones of the requested SHA; no commits or implementation changes are authorized.
+
+
+CONFIRMED FINDINGS — all experiments complete
+All findings below are TEST-ADEQUACY Required, not claims that the fixed production code currently accepts these invalid cases. Each reviewer probe passes on the untouched requested SHA. Submitted-suite survivors remain survivors even after reviewer-only probes kill them.
+
+R2-T1 — Required — Root-equivalence edge cases have no collision protection in the submitted tests (F-1).
+Verbatim motivating lines, runtime/scripts/verify.py:202 and :208:
+    if _ROOTS["git"] is None and _ROOTS["evidence"] is None:
+        return Path(sha_top).resolve() != Path(ev_top).resolve()
+Related test line, tests/test_verify.py:3448:
+            "--git-dir", str(self.repo_b), "--evidence-root", str(sub))
+
+N1 changes the first line's `and` to `or`. It wrongly regards split roots as identical whenever only one flag is supplied. All 267 submitted verifier tests pass (45.272s). The original git-dir-only success case does not collide paths. Independent probes supply a colliding tracked blob and omit artifacts[]: one invokes --git-dir B from A; the other invokes --evidence-root A from B. Both correctly refuse at head and both falsely approve under N1:
+    FAIL: test_only_git_flag_collision_still_requires_pin
+    FAIL: test_only_evidence_flag_collision_still_requires_pin
+    AssertionError: 0 != 2
+    verify: OK — all required checks passed
+    Ran 2 tests in 0.565s
+    FAILED (failures=2)
+
+N2 instead replaces the second motivating line with:
+        code, ev_repo, _ = _run(["git", "-C", ev_top, "rev-parse", "--show-toplevel"])
+        return Path(sha_top).resolve() != Path(ev_repo.strip()).resolve()
+It compares repository identity while losing the named evidence subdirectory. All 267 submitted verifier tests pass (44.682s); their nested-root fixture always uses a different SHA repository. My probe uses SHAs in A, evidence in A/evidence, a tracked A/docs/reports/u/nc.txt, and an unpinned A/evidence/docs/reports/u/nc.txt. Head refuses; N2 borrows the root blob and approves:
+    FAIL: test_same_repo_nested_evidence_cannot_borrow_root_blob
+    AssertionError: 0 != 2
+    verify: OK — all required checks passed
+    Ran 1 test in 0.356s
+    FAILED (failures=1)
+
+Required closure: add authority/collision assertions for both one-flag forms and for same-repository nested evidence. The negative cases must otherwise be valid and name missing/mismatched pin as the refusal. These two survivors are grouped because they leave the new root-equivalence decision unpinned; the ordinary two-root collision fix itself works.
+
+R2-T2 — Required — F-4's specified PINNED symlink escape is absent, allowing pin-authorized escape to survive.
+Verbatim motivating specification line, docs/runs/2026-09-20-clean-sweep-tracker/build-u442-r2.md:31:
+  fixture (pinned path through a symlink inside the evidence root pointing OUTSIDE it →
+Verbatim motivating code lines, tests/test_verify.py:3459–3460:
+        m = self._manifest(negative_control={"tool": "mutmut", "result": "KILLED", "mutant": "m7",
+                                             "artifact": "escape-link/nc.txt"})
+The analogous nested-root test at :3473–3474 also overrides only negative_control. Both inherit the inventory pin for ordinary docs/reports/u/nc.txt and omit a pin for the escaping path. The nested fixture also omits its selected-root contract and ordinary command artifact. Their explicit escape-message assertions catch complete removal of containment (M3), but neither proves the requested pinned-path case.
+
+N5 inserts immediately after `resolved, err = _resolve(path)` in _read_artifact:
+    if err and "escapes" in err and path in artifact_inventory(m):
+        resolved, err = (Path(_evidence_toplevel()) / path).resolve(), None
+This preserves refusal for every submitted escape while letting a declared inventory pin override confinement. All 267 submitted verifier tests pass (45.334s). The independently written pinned-symlink probe supplies both ordinary and escaping artifact pins and otherwise valid evidence. It passes at clean head, then fails under N5:
+    FAIL: test_pinned_symlink_escape_is_refused
+    AssertionError: 0 != 2
+    verify: OK — all required checks passed
+    Ran 1 test in 0.237s
+    FAILED (failures=1)
+
+Required closure: make the escaping symlink paths genuinely pinned, including a complete otherwise-valid nested-root fixture. Require canonical escape refusal and kill a mutant that trusts the pin to authorize the escape. This is a remaining part of F-4, not a production bypass observed at unmodified head.
+
+R2-T3 — Required — The new symbol-context tests do not distinguish the selected base from HEAD (F-2 test adequacy).
+Verbatim motivating production line, runtime/scripts/verify.py:1754:
+    code, out = _git(["grep", "-l", "-e", symbol, f"origin/{base}"])
+Verbatim motivating fixture line, tests/test_verify.py:3387 (also :3398):
+        self.git_b("update-ref", "refs/remotes/origin/main", self.head_sha)
+
+N4 replaces only the grep ref with "HEAD". All 267 submitted verifier tests pass (43.687s), because target HEAD and origin/main always expose the same symbols in these fixtures and the older GitAuthorityChecks tests. This proves the repository dimension while leaving the requested base reference unpinned. My two probes keep the manifest head on origin/main but create a later local HEAD that either adds a unique symbol or removes the symbol still present on origin/main. Both pass at unmodified head. N4 falsely accepts the first and falsely rejects the second:
+    FAIL: test_symbol_only_on_head_cannot_substitute_for_base
+    AssertionError: 0 != 2
+    verify: OK — all required checks passed
+    FAIL: test_symbol_only_on_base_is_found_even_when_head_deleted_it
+    AssertionError: 2 != 0
+    FAIL: symbol 'def f' not found on origin/main (change may not be on base)
+    Ran 2 tests in 0.606s
+    FAILED (failures=2)
+
+Required closure: add divergent HEAD/base symbol fixtures in the selected repository; retain the opposite-A/B fixtures. This is a surviving mutation of the changed Git call, not a claim that the current call chooses HEAD. Independently deleting the symbol check (N3) is correctly killed by the existing missing-symbol assertions (2 failures).
+
+
+
+VACUITY AUDIT — ALL 12 NEW REGRESSIONS
+No new regression has a conditional assertion or a command-string interception hook. They use real temporary Git repositories, real files, and unconditional exit/content checks. The GitHub-review stubs supply orthogonal review approval; they do not choose roots, intercept Git, or replace evidence reads. No timing/concurrency path is in scope, so forced schedules are not applicable.
+
+The neutral adapter experiment replaces git -C with subprocess cwd=_ROOTS["git"] for both text and byte adapters. All 20 CrossRepoRoots tests, including the 12 new ones, stay GREEN (4.536s). Dropping text-adapter cwd AFTER that refactor causes 8 assertion failures; dropping byte-adapter cwd makes the path@ref test fail. Thus there is no silent hook-vacuity exposed by this refactor. Semantic coverage gaps remain as demonstrated by R2-T1..T3.
+
+Per-regression check (names abbreviated after `test_`):
+- a_colliding_sha_repo_blob_cannot_substitute_for_pinned_evidence: exit=0 plus direct bytes equality and absent SURVIVED token; genuine A/B content discrimination.
+- a_colliding_sha_repo_blob_cannot_stand_in_for_a_missing_pin: exit=2 plus unpinned-evidence cause; genuine admission counterfactual.
+- a_colliding_sha_repo_blob_cannot_satisfy_a_mismatched_pin: exit=2 plus inventory-change cause.
+- two_clones_of_one_project_are_still_two_repositories: real git clone, stale A pin, explicit inventory-change cause.
+- the_symbol_leg_runs_in_the_sha_repo_not_the_process_cwd: valid B symbol must admit; wrong-CWD control kills. Base=head limitation is R2-T3.
+- a_symbol_only_in_the_evidence_repo_is_not_accepted_as_on_base: A-only symbol must refuse with missing-on-base cause; wrong-CWD control kills. Base=head limitation is R2-T3.
+- a_path_at_ref_contract_read_uses_the_sha_repo: B-only tracked contract admits; raw-Git context loss kills for unreadable contract.
+- the_named_evidence_root_is_honored_from_a_distinct_cwd: cwd=B, evidence=A; ignoring explicit root loses A contract/evidence and kills the success assertion.
+- the_evidence_root_may_be_a_named_subdirectory_of_the_clone: unconditional success assertion, but root and subroot bytes are identical. Alone this test cannot distinguish them (M2 does not kill it); the distinct-cwd case still proves F-3. Same-repo nested collision is R2-T1.
+- an_evidence_path_escaping_through_a_symlink_is_refused: exact escape message prevents generic-refusal vacuity under M3; absent escaping-path pin leaves R2-T2.
+- a_nested_evidence_root_bounds_against_itself_not_the_clone: exact escape message detects M3, but absent pin plus unrelated missing selected-root files leave R2-T2.
+- a_valid_no_flag_run_from_a_nested_directory_still_binds_to_the_toplevel: real valid no-flag invocation; cwd fallback M4 kills the success assertion for missing nested contract.
+
+Neutral-refactor RED excerpts (verbatim noncontiguous output):
+broken-text-cwd-adapter.log
+FAIL: test_a_colliding_sha_repo_blob_cannot_substitute_for_pinned_evidence (test_verify.CrossRepoRoots.test_a_colliding_sha_repo_blob_cannot_substitute_for_pinned_evidence)
+AssertionError: 2 != 0 : NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+FAIL: base_sha '0b9556a0c77923a2ed29de09e74587781e62f6d5' is not a real commit
+FAIL: head_sha '962d58e5b50c57115217fc4fa82c139d33ae0a41' is not a real commit
+FAIL: test_a_path_at_ref_contract_read_uses_the_sha_repo (test_verify.CrossRepoRoots.test_a_path_at_ref_contract_read_uses_the_sha_repo)
+AssertionError: 2 != 0 : NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+FAIL: base_sha '59daec89beecd248451d243d78d44d2ccd1af35f' is not a real commit
+FAIL: head_sha '25a44ef551d0da36fc4315ef994352ca1955223a' is not a real commit
+FAIL: test_a_symbol_only_in_the_evidence_repo_is_not_accepted_as_on_base (test_verify.CrossRepoRoots.test_a_symbol_only_in_the_evidence_repo_is_not_accepted_as_on_base)
+AssertionError: 'not found on origin/main' not found in "FAIL: base_sha '59daec89beecd248451d243d78d44d2ccd1af35f' is not a real commit\nFAIL: head_sha 'e589c0a0891d0c8f4a20c3d6f86eac521f978166' is not a real commit\nFAIL: head_sha is not an ancestor of origin/main (not merged / wrong base)\nFAIL: commands ledger: cannot resolve the tree of head_sha (not a real commit here, or not inside a git repo) — the recorded run cannot be bound to content; fail-closed\nverify: 4 invariant(s) failed — unit is NOT done\n"
+FAIL: test_git_dir_alone_leaves_evidence_resolution_where_it_was (test_verify.CrossRepoRoots.test_git_dir_alone_leaves_evidence_resolution_where_it_was)
+AssertionError: 2 != 0 : NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+FAIL: base_sha '18140a580b0c35a94930577a271b24e762940eb0' is not a real commit
+FAIL: head_sha 'ddf2a543dffd47f8ce0a0d506dd525667a0d56f0' is not a real commit
+FAIL: test_split_roots_verify_a_cross_repo_manifest_end_to_end (test_verify.CrossRepoRoots.test_split_roots_verify_a_cross_repo_manifest_end_to_end)
+AssertionError: 2 != 0 : NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+FAIL: base_sha '18140a580b0c35a94930577a271b24e762940eb0' is not a real commit
+FAIL: head_sha 'ddf2a543dffd47f8ce0a0d506dd525667a0d56f0' is not a real commit
+FAIL: test_the_evidence_root_may_be_a_named_subdirectory_of_the_clone (test_verify.CrossRepoRoots.test_the_evidence_root_may_be_a_named_subdirectory_of_the_clone)
+AssertionError: 2 != 0 : NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+FAIL: base_sha '18140a580b0c35a94930577a271b24e762940eb0' is not a real commit
+FAIL: head_sha 'ddf2a543dffd47f8ce0a0d506dd525667a0d56f0' is not a real commit
+FAIL: test_the_symbol_leg_runs_in_the_sha_repo_not_the_process_cwd (test_verify.CrossRepoRoots.test_the_symbol_leg_runs_in_the_sha_repo_not_the_process_cwd)
+AssertionError: 2 != 0 : NOTE: origin/main not found — ancestry check skipped
+FAIL: base_sha '580cabfcdd989457bf0b0287dc673499f3d38dcb' is not a real commit
+FAIL: head_sha 'cd13b6b8e2a582bd41dcab1bb00970929c4f2c78' is not a real commit
+FAIL: test_two_clones_of_one_project_are_still_two_repositories (test_verify.CrossRepoRoots.test_two_clones_of_one_project_are_still_two_repositories)
+AssertionError: 0 != 2 : NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+Ran 20 tests in 4.687s
+FAILED (failures=8)
+broken-raw-cwd-adapter.log
+FAIL: test_a_path_at_ref_contract_read_uses_the_sha_repo (test_verify.CrossRepoRoots.test_a_path_at_ref_contract_read_uses_the_sha_repo)
+AssertionError: 2 != 0 : NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+FAIL: scope: authoritative contract unreadable (git-contract.md@f547ae654e0058dfcce094d186ae23c2fa26fb67): fatal: path 'git-contract.md' does not exist in 'f547ae654e0058dfcce094d186ae23c2fa26fb67'
+Ran 1 test in 0.256s
+FAILED (failures=1)
+
+
+FIX-CLOSURE ASSESSMENT
+F-1: the original two-repository collision, no-pin, mismatched-pin, and same-project-clone defects are fixed and covered. New root-classification mutations expose untested one-flag and same-repo nested cases (R2-T1).
+F-2: both Greptile P1 repository-selection symptoms are fixed: _read_artifact gates the tracked shortcut with not split, and check_symbol_on_base uses _git. Opposite-A/B symbol assertions and path@ref raw reads detect the original wrong-repository behavior. Base-reference selection remains unpinned by the new tests (R2-T3).
+F-3: CLOSED for explicit-root honoring from a distinct cwd; M2 fails its intended success assertion. The optional subdirectory-positive fixture is weak in isolation but does not negate the distinct-cwd proof.
+F-4: PARTIAL. M3 is killed on the missing canonical-refusal diagnostic; its verifier exit remains 2 because the escaping path is unpinned, and the nested case also has unrelated missing files. The frozen requirement expressly asks for a PINNED escaping path. N5 proves that missing dimension survives all submitted tests (R2-T2).
+F-5: CLOSED. M4 fails the valid nested-cwd no-flag success assertion for the incorrect nested contract location.
+No new production defect was demonstrated at the requested head. All original reviewer probes and all fresh semantic probes are GREEN there. The NO-GO is specifically the test-adequacy axis under the mutation-hunt rule that behavioral survivors are Required.
+
+The Greptile service's CLEAN status is supplied dispatch context; I did not re-query GitHub or post anything. Its two original P1 mechanisms were independently checked against code and executed with real Git/file fixtures, and the original T1 probes were also replayed under M7 to show the acceptance failures return when the shortcut gate is removed.
+
+BASELINE EVIDENCE
+Requested reviewed/head SHA: e4cbf222bc7cd1001b8bd11960d3ed92c2f6cd5f
+Source worktree observed HEAD: 50788bf24a1beaa45540859ccde33b2f8b30c901
+Difference from requested SHA: only docs/reports/u-442/integrate-r2.json, 147 inserted lines. Executable code/tests are identical; experiments are nevertheless checked out at requested SHA.
+Initial fixed-point ref SHA: c3f71ccd28891cb58f07c4d4a3bebcff7b571a7f
+Later observed fixed-point ref SHA: 7d522074688e5a0a6556518fbbfd3cf4ef5e241e
+Both merge bases with the requested SHA: 5df4c0d8767d007e5f7c947a9fe955b0f83a7a34
+Round-two focused delta: a5f84978548a00a97cfcc11614aa6bdfd71683e6..e4cbf222bc7cd1001b8bd11960d3ed92c2f6cd5f (verify.py and test_verify.py inspected after blind expectations).
+Full candidate diff against pinned fixed point is non-empty; git diff --check a5f84978..e4cbf222 exits 0.
+
+Scratch root: /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r2-test-review-bsp1xq9e
+Independent vacuity helper scratch: /tmp/u442-vacuity.pSA03D
+- python3 -m unittest discover -s tests -p test_verify.py: exit 0; Ran 267 tests in 44.885s; OK.
+- python3 scripts/validate.py: exit 0; All 21 missions valid; three-layer separation holds; evals valid.
+- python3 -m unittest discover -s tests: exit 0; Ran 1726 tests in 306.488s; OK. Executed in separate clean suite/ clone; git status --short empty afterward.
+- Replayed exact round-one reviewer_probes.py: 6/6 GREEN at head (1.543s), including both T1 collisions.
+- Independently written own_probes.py: 5/5 GREEN at head (1.274s).
+- Independent pinned_escape_probe.py: 1/1 GREEN at head (0.206s).
+
+
+
+NINE-MUTANT CLAIM — INDEPENDENTLY RE-DERIVED, 9/9 KILLED
+Each exact before/after replacement from docs/reports/u-442/round2-mutants.json occurs once at requested head. Each mutant ran in its own Python process with the full submitted test_verify.py module; the pristine verify.py was used as the source for each transformation, and bytecode caches were removed. No scratch probe was added to this submitted-suite command.
+Command for EVERY row: python3 -m unittest discover -s tests -p test_verify.py
+All nine exit 1. Every failing-test NAME SET matches round2-mutants.json exactly; all are assertion failures, with no setup/import/syntax errors. The narrow 9/9 claim is true. It does not include the four independent survivors described above.
+
+M1_evidence_from_sha_root: Ran 267 tests in 45.754s; FAILED (failures=12); same failing-test set as submitted=yes
+  killed by: test_a_colliding_sha_repo_blob_cannot_satisfy_a_mismatched_pin, test_a_colliding_sha_repo_blob_cannot_substitute_for_pinned_evidence, test_a_nested_evidence_root_bounds_against_itself_not_the_clone, test_a_path_at_ref_contract_read_uses_the_sha_repo, test_an_evidence_path_escaping_through_a_symlink_is_refused, test_an_unpinned_cross_repo_artifact_is_refused, test_git_dir_alone_leaves_evidence_resolution_where_it_was, test_split_roots_verify_a_cross_repo_manifest_end_to_end, test_the_evidence_root_may_be_a_named_subdirectory_of_the_clone, test_the_named_evidence_root_is_honored_from_a_distinct_cwd, test_the_symbol_leg_runs_in_the_sha_repo_not_the_process_cwd, test_two_clones_of_one_project_are_still_two_repositories
+M2_ignore_evidence_root: Ran 267 tests in 45.513s; FAILED (failures=2); same failing-test set as submitted=yes
+  killed by: test_a_nested_evidence_root_bounds_against_itself_not_the_clone, test_the_named_evidence_root_is_honored_from_a_distinct_cwd
+M3_remove_canonical_containment: Ran 267 tests in 44.845s; FAILED (failures=2); same failing-test set as submitted=yes
+  killed by: test_a_nested_evidence_root_bounds_against_itself_not_the_clone, test_an_evidence_path_escaping_through_a_symlink_is_refused
+M4_no_flag_cwd_root: Ran 267 tests in 42.459s; FAILED (failures=1); same failing-test set as submitted=yes
+  killed by: test_a_valid_no_flag_run_from_a_nested_directory_still_binds_to_the_toplevel
+M5_git_bytes_ignore_sha_root: Ran 267 tests in 39.405s; FAILED (failures=1); same failing-test set as submitted=yes
+  killed by: test_a_path_at_ref_contract_read_uses_the_sha_repo
+M6_git_ignore_sha_root: Ran 267 tests in 39.076s; FAILED (failures=8); same failing-test set as submitted=yes
+  killed by: test_a_colliding_sha_repo_blob_cannot_substitute_for_pinned_evidence, test_a_path_at_ref_contract_read_uses_the_sha_repo, test_a_symbol_only_in_the_evidence_repo_is_not_accepted_as_on_base, test_git_dir_alone_leaves_evidence_resolution_where_it_was, test_split_roots_verify_a_cross_repo_manifest_end_to_end, test_the_evidence_root_may_be_a_named_subdirectory_of_the_clone, test_the_symbol_leg_runs_in_the_sha_repo_not_the_process_cwd, test_two_clones_of_one_project_are_still_two_repositories
+M7_drop_the_split_gate_on_the_tracked_blob_shortcut: Ran 267 tests in 37.992s; FAILED (failures=4); same failing-test set as submitted=yes
+  killed by: test_a_colliding_sha_repo_blob_cannot_satisfy_a_mismatched_pin, test_a_colliding_sha_repo_blob_cannot_stand_in_for_a_missing_pin, test_a_colliding_sha_repo_blob_cannot_substitute_for_pinned_evidence, test_two_clones_of_one_project_are_still_two_repositories
+M8_symbol_grep_in_process_cwd: Ran 267 tests in 37.395s; FAILED (failures=2); same failing-test set as submitted=yes
+  killed by: test_a_symbol_only_in_the_evidence_repo_is_not_accepted_as_on_base, test_the_symbol_leg_runs_in_the_sha_repo_not_the_process_cwd
+M9_split_always_false: Ran 267 tests in 39.351s; FAILED (failures=4); same failing-test set as submitted=yes
+  killed by: test_a_colliding_sha_repo_blob_cannot_satisfy_a_mismatched_pin, test_a_colliding_sha_repo_blob_cannot_stand_in_for_a_missing_pin, test_a_colliding_sha_repo_blob_cannot_substitute_for_pinned_evidence, test_two_clones_of_one_project_are_still_two_repositories
+
+M2–M5 causal checks (submitted-suite RED, then the ORIGINAL round-one reviewer probe):
+- M2 ignores the parsed root. The distinct-cwd submitted test fails its success assertion because contract.md and the NC artifact are read under B instead of A. The original distinct-cwd probe also exits 1 under M2.
+- M3 removes only canonical containment. Both submitted symlink assertions fail because the required escape diagnostic is absent; generic verifier refusal alone would not catch this. The original PINNED symlink probe additionally exposes the actual false acceptance under M3. The missing pinned case in submitted tests is R2-T2, supported by independent N5.
+- M4 chooses cwd instead of the no-flag toplevel. The nested no-flag success assertion fails because deep/nested/contract.md is unreadable. The original round-one nested-cwd probe also fails under M4.
+- M5 drops the byte adapter's selected Git context. The B-only path@ref contract is unreadable in A and the success assertion fails. The original round-one path@ref probe also fails under M5.
+
+Original round-one probe RED excerpts (verbatim noncontiguous lines):
+M2_ignore_evidence_root-original-probe.log
+FAIL: test_review_explicit_root_from_sha_cwd (__main__.ReviewerProbes.test_review_explicit_root_from_sha_cwd)
+AssertionError: 2 != 0 : NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+FAIL: scope: authoritative contract unreadable (contract.md): [Errno 2] No such file or directory: '/private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/orca-u442-b-yrtnkbzs/contract.md'
+Ran 1 test in 0.189s
+FAILED (failures=1)
+
+M3_remove_canonical_containment-original-probe.log
+FAIL: test_review_symlink_escape_refused (__main__.ReviewerProbes.test_review_symlink_escape_refused)
+AssertionError: 0 != 2 : NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+verify: OK — all required checks passed
+Ran 1 test in 0.204s
+FAILED (failures=1)
+
+M4_no_flag_cwd_root-original-probe.log
+FAIL: test_review_no_flags_nested_cwd (__main__.ReviewerProbes.test_review_no_flags_nested_cwd)
+AssertionError: 2 != 0 : NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+FAIL: scope: authoritative contract unreadable (contract.md): [Errno 2] No such file or directory: '/private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmpwrlkxbkb/nested/contract.md'
+Ran 1 test in 0.229s
+FAILED (failures=1)
+
+M5_git_bytes_ignore_sha_root-original-probe.log
+FAIL: test_review_path_at_ref_reads_sha_repo (__main__.ReviewerProbes.test_review_path_at_ref_reads_sha_repo)
+AssertionError: 2 != 0 : NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+FAIL: scope: authoritative contract unreadable (git-contract.md@8e89dde45b5251a8cbb7ce234820abd64ee63ce4): fatal: path 'git-contract.md' does not exist in '8e89dde45b5251a8cbb7ce234820abd64ee63ce4'
+Ran 1 test in 0.229s
+FAILED (failures=1)
+
+T1-original-collision-probes-M7.log
+FAIL: test_review_sha_repo_collision_cannot_override_evidence (__main__.ReviewerProbes.test_review_sha_repo_collision_cannot_override_evidence)
+AssertionError: 0 != 2 : NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+verify: OK — all required checks passed
+FAIL: test_review_sha_repo_collision_cannot_replace_required_pin (__main__.ReviewerProbes.test_review_sha_repo_collision_cannot_replace_required_pin)
+AssertionError: 0 != 2 : NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+verify: OK — all required checks passed
+Ran 2 tests in 0.537s
+FAILED (failures=2)
+
+
+Independent symbol-check deletion N3: Ran 267 tests in 44.231s; FAILED (failures=2), exit 1. The two killers are test_a_symbol_only_in_the_evidence_repo_is_not_accepted_as_on_base and test_symbol_on_base_missing_fails.
+
+DURABLE REPRODUCTION — fresh probes (not added to the submitted test suite)
+Create a scratch directory with a `probes/` clone checked out at reviewed_sha. Save the following as own_probes.py beside that clone. Run `python3 own_probes.py` for the five-test clean baseline, then apply one exact N1/N2/N4 transformation from the findings to the scratch clone and run its matching test name(s). The exact mutations are also in fresh_mutants.py / fresh-results.json under the scratch evidence root. The head must pass every probe before its mutant RED is counted.
+
+from pathlib import Path
+import sys,unittest,os,json
+sys.path.insert(0,str(Path(__file__).parent/'probes'/'tests'))
+from test_verify import CrossRepoRoots, verify
+
+class OwnProbes(CrossRepoRoots):
+    def test_only_git_flag_collision_still_requires_pin(self):
+        self._collide("mutant m7 was KILLED — proof went RED\n")
+        rc,out=self._run_main(self._manifest(artifacts=[]),'--git-dir',str(self.repo_b))
+        self.assertEqual(rc,2,out)
+        self.assertIn('unpinned evidence',out)
+
+    def test_only_evidence_flag_collision_still_requires_pin(self):
+        self._collide("mutant m7 was KILLED — proof went RED\n")
+        path=self._manifest(artifacts=[])
+        os.chdir(self.repo_b)
+        rc,out=self._run_main(path,'--evidence-root',str(self.repo))
+        self.assertEqual(rc,2,out)
+        self.assertIn('unpinned evidence',out)
+
+    def test_same_repo_nested_evidence_cannot_borrow_root_blob(self):
+        sub=self.repo/'evidence'
+        (sub/Path(self.nc_artifact).parent).mkdir(parents=True)
+        (sub/self.nc_artifact).write_bytes((self.repo/self.nc_artifact).read_bytes())
+        (sub/'contract.md').write_bytes((self.repo/'contract.md').read_bytes())
+        self.write('app.py','def f():\n    return 1\n')
+        self.base_sha=self.commit('base A')
+        self.write('app.py','def f():\n    return 2\n')
+        self.head_sha=self.commit('head A')
+        self.head_tree=self.git('rev-parse','HEAD^{tree}')
+        rc,out=self._run_main(self._manifest(artifacts=[]),'--git-dir',str(self.repo),'--evidence-root',str(sub))
+        self.assertEqual(rc,2,out)
+        self.assertIn('unpinned evidence',out)
+
+    def test_symbol_only_on_head_cannot_substitute_for_base(self):
+        self.git_b('update-ref','refs/remotes/origin/main',self.head_sha)
+        (self.repo_b/'head_only.py').write_text('ONLY_ON_HEAD = 1\n')
+        self.commit_b('symbol only beyond base')
+        # Manifest remains bound to previous head, so ancestry still passes on origin/main.
+        rc,out=self._run_main(self._manifest(),'--git-dir',str(self.repo_b),'--evidence-root',str(self.repo),'--base','main','--symbol','ONLY_ON_HEAD')
+        self.assertEqual(rc,2,out)
+        self.assertIn('not found on origin/main',out)
+
+    def test_symbol_only_on_base_is_found_even_when_head_deleted_it(self):
+        self.git_b('update-ref','refs/remotes/origin/main',self.head_sha)
+        (self.repo_b/'app.py').write_text('# f was removed after the target base\n')
+        self.commit_b('delete symbol after base')
+        rc,out=self._run_main(self._manifest(),'--git-dir',str(self.repo_b),'--evidence-root',str(self.repo),'--base','main','--symbol','def f')
+        self.assertEqual(rc,0,out)
+        self.assertIn('verify: OK',out)
+
+if __name__=='__main__':
+    names=sys.argv[1:] or [n for n in OwnProbes.__dict__ if n.startswith('test_')]
+    suite=unittest.TestSuite(OwnProbes(n) for n in names)
+    result=unittest.TextTestRunner(verbosity=2).run(suite)
+    raise SystemExit(not result.wasSuccessful())
+
+
+Pinned-symlink probe (same scratch layout; apply the exact N5 insertion from R2-T2):
+import sys
+import unittest
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent / 'probes' / 'tests'))
+from test_verify import CrossRepoRoots
+
+class PinnedEscape(CrossRepoRoots):
+    def test_pinned_symlink_escape_is_refused(self):
+        (self.repo / 'escape-link').symlink_to(self.repo_b, target_is_directory=True)
+        (self.repo_b / 'nc.txt').write_text('mutant m7 was KILLED\n', encoding='utf-8')
+        escaped = 'escape-link/nc.txt'
+        path = self._manifest(
+            artifacts=[self.pin(self.nc_artifact), self.pin(escaped)],
+            negative_control={'tool': 'mutmut', 'result': 'KILLED', 'mutant': 'm7',
+                              'artifact': escaped})
+        rc, out = self._run_main(path, '--git-dir', str(self.repo_b),
+                                '--evidence-root', str(self.repo))
+        self.assertEqual(rc, 2, out)
+        self.assertIn('escapes the evidence root', out)
+
+unittest.main(argv=['pinned_escape_probe', 'PinnedEscape.test_pinned_symlink_escape_is_refused'], verbosity=2)
+
+
+EVIDENCE HASH INVENTORY (sha256; logs contain actual captured output)
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r2-test-review-bsp1xq9e/baseline-module.log sha256=5a483f080f02f6ca91901a6d64cda32561f4c7883039b3741612767f4788f872
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r2-test-review-bsp1xq9e/baseline-validator.log sha256=90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r2-test-review-bsp1xq9e/full-suite.log sha256=abaf0bcf33afd0bbe1a04d26f762a4e167fe7adaa38b51167a887203a3018d95
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r2-test-review-bsp1xq9e/round1-probes-at-head.log sha256=dde5500201e2fe26b8e3fc74c58eaf78d32c5b686485d3ce4b67f5e3e3a6c488
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r2-test-review-bsp1xq9e/own-probes-at-head.log sha256=44121107a7a3d4620bec65eed953d7a3b2dc5e840109a5c9720b764f53b4bdd0
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r2-test-review-bsp1xq9e/rerun-results.json sha256=325daa82ee2e1930f5f11ce62dc079abbdc0ca4c50d7dc73af06ce41ae254f65
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r2-test-review-bsp1xq9e/fresh-results.json sha256=3cf20229e954690506542a9afbb6fae021dcd6695de33f98fb1459df8f329ba2
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r2-test-review-bsp1xq9e/own_probes.py sha256=540c5771212e4e1fd1a858154875df25ca214dc7b59ee3f612642b49ac645d4b
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r2-test-review-bsp1xq9e/round1-reviewer-probes.py sha256=4d27b6f3e5502548e951596df5456f418cf6e8ea6ef47cea231eef297e613575
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r2-test-review-bsp1xq9e/rerun_mutants.py sha256=f5797f64a8a897f85640f2909256607b65446785f680a3b9756c80bc6e0303e2
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r2-test-review-bsp1xq9e/fresh_mutants.py sha256=8edfb836a7aef4d5f8e8545179dfb2be61a2cce5937a680d88a2de4fa4dcf894
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r2-test-review-bsp1xq9e/own_controls.py sha256=b79bdce3a48a563097e9a51a160727c7de1aa5f35d34943f95090a10a9caed0f
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r2-test-review-bsp1xq9e/M1_evidence_from_sha_root.log sha256=f518ec70577297d8cdf83b812e7400b851ccd97d189226ca706c3c81a20bb2fb
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r2-test-review-bsp1xq9e/M2_ignore_evidence_root.log sha256=8c0c4216be0544e9753c9d24a18cf8ce42b360a5b9d86903c830b457c2318731
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r2-test-review-bsp1xq9e/M3_remove_canonical_containment.log sha256=f4e7982603fafdbd807bcf32d6c4d54bec8937fdff39fb6d24413d980029acb1
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r2-test-review-bsp1xq9e/M4_no_flag_cwd_root.log sha256=8f3c5c028831909f6b3648ee2a63889143d161b8caa36d5a154ac088bf9201da
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r2-test-review-bsp1xq9e/M5_git_bytes_ignore_sha_root.log sha256=61eea36f59c0dfff5f87479489a01723092741e89e15e5222f050fae7e4bd29c
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r2-test-review-bsp1xq9e/M6_git_ignore_sha_root.log sha256=9b2931ceba671af15196fba3906afcef5ced441dd4b7f41a0c01fbc00c15e270
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r2-test-review-bsp1xq9e/M7_drop_the_split_gate_on_the_tracked_blob_shortcut.log sha256=f7ed7518cc8634ec14bf71bf8378907205788d54e1977fb0b2a0969249f5c214
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r2-test-review-bsp1xq9e/M8_symbol_grep_in_process_cwd.log sha256=df2bfc847bb113d27fb0503b870e601bcae7f028745c1b4778632e67bb831584
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r2-test-review-bsp1xq9e/M9_split_always_false.log sha256=a357a99abed3cd3f903e5b087eb0abe97b94c50be2968df3be5955dfa499b89b
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r2-test-review-bsp1xq9e/N1_split_requires_both_flags.log sha256=a313c926e3ecdf1ffb6191254d1d3d613afcc3e5f0c69b58df79d717b39c4006
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r2-test-review-bsp1xq9e/N2_nested_evidence_uses_repo_identity.log sha256=e1a2308d1c16847095e85e7b2bdb7708fb4873dd76377254a6c2d781b53362a8
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r2-test-review-bsp1xq9e/N3_skip_symbol_check.log sha256=316630d447cc00003b5369a95c78af6e6abc3c58f94bd83bb9ab02b4bb623dc2
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r2-test-review-bsp1xq9e/N4_symbol_wrong_ref.log sha256=19b15271c00591a18f992773d0f3561764bc935b0a70b110531953542f937757
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r2-test-review-bsp1xq9e/N1_split_requires_both_flags-own-killer.log sha256=5592afdc2df43188eba5d7c2f9219135a089752947f365eb0527ae4f1e07b591
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r2-test-review-bsp1xq9e/N2_nested_evidence_uses_repo_identity-own-killer.log sha256=647bdab6014e1373d9b2a06be283bc308149b8c40eaa7ee2333dcad242efd046
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r2-test-review-bsp1xq9e/N4_symbol_wrong_ref-own-killer.log sha256=fae08b28511224197787308b4631bc76859a06436019db1f7f7763982e558470
+/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-r2-test-review-bsp1xq9e/T1-original-collision-probes-M7.log sha256=e1b312fcc9b1cdb3738e45c61da60c5d955b8c7bee93f38c6b4e52e1900956c4
+/tmp/u442-vacuity.pSA03D/neutral-cwd-adapter.log sha256=5d180b37961496a97b54351a0a0ec7b79c0454ead5694d129f356e4541b520f5
+/tmp/u442-vacuity.pSA03D/neutral-cwd-adapter.patch sha256=0a98d6ee1d6ae4d39f938b842d9b7de24ebbc8c0d1571d8a4f316c7fc10aef99
+/tmp/u442-vacuity.pSA03D/broken-text-cwd-adapter.log sha256=46a518fe82b3d89331e47073abd83cb407723d326fa74fbfb10d6f8ee9a17161
+/tmp/u442-vacuity.pSA03D/broken-raw-cwd-adapter.log sha256=6eab03f36caf7390fbf6d0d52cf10bb2f0e88b9493d7fdec7c75736409c49248
+/tmp/u442-vacuity.pSA03D/pin-bypasses-containment.patch sha256=ece9f9d5bc722190a69daf4e4d6833cb04267f9b927ba6e1469260be981c0100
+/tmp/u442-vacuity.pSA03D/pin-bypasses-containment.log sha256=88e9089ab3309f8d3071bc19f588aa1f03df6b3b4a71d8e877266073532a1942
+/tmp/u442-vacuity.pSA03D/pin-bypasses-containment-killer.log sha256=9e45fa73d44aece812f559d8be18637f3edd3caec330043925711e07627854bb
+/tmp/u442-vacuity.pSA03D/pinned-escape-clean.log sha256=63084a4ac842b0cc6aebd9bfd7f7cff1cded7811eaa64616fa23638847101a16
+/tmp/u442-vacuity.pSA03D/pinned_escape_probe.py sha256=f7eedf06162fd94aa8b79ed7d9d527ca2ad1ae6ede04b4d97b4184e560a69006
+
+REPORT-ONLY MANIFEST FRAGMENT
+{
+  "unit": "U-442",
+  "unit_class": "report-only",
+  "head_sha": "e4cbf222bc7cd1001b8bd11960d3ed92c2f6cd5f",
+  "reviewed_sha": "e4cbf222bc7cd1001b8bd11960d3ed92c2f6cd5f",
+  "axis": "test-adequacy",
+  "round": 2,
+  "verdict": "NO-GO",
+  "critical": 0,
+  "required": 3,
+  "finding_ids": [
+    "R2-T1",
+    "R2-T2",
+    "R2-T3"
+  ],
+  "claimed_mutants_killed": 9,
+  "claimed_mutants_total": 9,
+  "fresh_survivors": [
+    "N1",
+    "N2",
+    "N4",
+    "N5"
+  ]
+}
+
+FINAL BOUNDARY CHECK
+Completed UTC: 2026-09-20T09:28:52.601912+00:00
+Review complete within the 30-minute limit. Source HEAD remains 50788bf24a1beaa45540859ccde33b2f8b30c901; only the previously noted integration report differs from requested reviewed_sha. No tracked edits or staged changes; the only file authored by this reviewer is this uncommitted report, and parallel reviewers' files were left untouched. All five external scratch clones were verified clean at reviewed_sha and removed after experiments; retained external transcripts, patches, probe sources, receipts, and the embedded reproduction above preserve the evidence. No tests, controls, or sub-agent work remain running.

@@ -1,0 +1,172 @@
+{
+  "verdict": "NO-GO",
+  "reviewed_sha": "a5f84978548a00a97cfcc11614aa6bdfd71683e6",
+  "reviewed_wtree": "8a39ac3e3576dc1eafdb3e7ddfb60734b1408184",
+  "findings_summary": "verdict: NO-GO — round 1\n\nReviewed SHA: `a5f84978548a00a97cfcc11614aa6bdfd71683e6`; reviewed tree: `8a39ac3e3576dc1eafdb3e7ddfb60734b1408184`.\n\nAll three axes are NO-GO. Counts and severity remain separate; overlapping findings are not deduplicated or reranked.\n\n| Axis | Counts | Sticking findings |\n| --- | --- | --- |\n| Spec | 0 Critical, 2 Required | **R1:** Same-path SHA-repository blobs replace evidence-root artifacts and bypass their inventory pins (`runtime/scripts/verify.py:276`: `code, out, gerr = _git_bytes([\"show\", f\"{head}:{path}\"])`). **R2:** Symbol lookup bypasses the selected Git root (`:1720`: `code, out, _ = _run([\"git\", \"grep\", \"-l\", \"-e\", symbol, f\"origin/{base}\"])`). |\n| Standards | 0 Critical, 2 Required | **STD-1:** Wrong-repository artifact substitution violates authoritative, fail-closed evidence (`verify.py:276`: `code, out, gerr = _git_bytes([\"show\", f\"{head}:{path}\"])`). **STD-2:** Symbol-on-base can approve the evidence repository's symbol (`:1720`: `code, out, _ = _run([\"git\", \"grep\", \"-l\", \"-e\", symbol, f\"origin/{base}\"])`). |\n| Test adequacy | 0 Critical, 5 Required | **T1:** Same-path collisions and absent pins are uncovered (`verify.py:276`: `code, out, gerr = _git_bytes([\"show\", f\"{head}:{path}\"])`). **T2:** Ignoring the evidence-root flag survives (`test_verify.py:3132`: `Repo A (this case's repo, and the cwd) holds the manifest, the contract and the artifacts.`). **T3:** Removing canonical containment survives (`verify.py:208`: `if full != root and root not in full.parents:`). **T4:** Nested-cwd legacy compatibility is uncovered (`:200`: `top = out.strip() if code == 0 else None`). **T5:** Raw Git reads can ignore the SHA root (`:143`: `return _run_bytes([\"git\", *([\"-C\", _ROOTS[\"git\"]] if _ROOTS[\"git\"] else []), *args],`). |\n| Held Greptile findings | 2 VALID P1, unfixed | **4056474414:** Artifact pinning can be bypassed; motivating line quoted under R1. **4056474416:** Symbol check uses wrong repository; motivating line quoted under R2. |\n\nThe three reports record 1,714 passing tests, but four behavioral mutants survive the 255 verifier tests. Both production defects were reproduced at the reviewed SHA. Fix every sticking finding, then re-review.\n\nDetails: `docs/reports/u-442/review-{spec,standards,tests}.txt` and `integrate.json`. A code-identical, reports-only evidence commit follows; the reviewed SHA/tree remain the pre-evidence binding, and the full tree changes when reports are committed.\n",
+  "round": 1,
+  "summary_word_count": 321,
+  "pr": 485,
+  "base_ref": "review/2026-09-20-tracker-sweep",
+  "axes": {
+    "spec": {
+      "report": "docs/reports/u-442/review-spec.txt",
+      "reviewed_sha": "a5f84978548a00a97cfcc11614aa6bdfd71683e6",
+      "verdict": "NO-GO",
+      "counts": {
+        "Critical": 0,
+        "Required": 2
+      },
+      "findings": [
+        {
+          "id": "R1",
+          "severity": "Required",
+          "title": "Evidence-root artifacts can be replaced by a same-path SHA-repository blob."
+        },
+        {
+          "id": "R2",
+          "severity": "Required",
+          "title": "--symbol checks origin/<base> in the process cwd, bypassing --git-dir."
+        }
+      ],
+      "report_sha256": "79db69f0393a2d10dc82919fbd158b867cadbf7e1f971526f33b64ef297adc0c"
+    },
+    "standards": {
+      "report": "docs/reports/u-442/review-standards.txt",
+      "reviewed_sha": "a5f84978548a00a97cfcc11614aa6bdfd71683e6",
+      "verdict": "NO-GO",
+      "counts": {
+        "Critical": 0,
+        "Required": 2
+      },
+      "findings": [
+        {
+          "id": "STD-1",
+          "severity": "Required",
+          "title": "A same-named target blob bypasses evidence-root pinning"
+        },
+        {
+          "id": "STD-2",
+          "severity": "Required",
+          "title": "Symbol-on-base can approve the evidence repository's symbol"
+        }
+      ],
+      "report_sha256": "9f1611f3dc510849d326d94dd8605e8d99a2110f34c7470118b608e454e20144"
+    },
+    "test_adequacy": {
+      "report": "docs/reports/u-442/review-tests.txt",
+      "reviewed_sha": "a5f84978548a00a97cfcc11614aa6bdfd71683e6",
+      "verdict": "NO-GO",
+      "counts": {
+        "Critical": 0,
+        "Required": 5
+      },
+      "findings": [
+        {
+          "id": "T1",
+          "severity": "Required",
+          "title": "The fixture excludes same-path artifacts in the SHA repository, so it misses the actual wrong-root evidence read."
+        },
+        {
+          "id": "T2",
+          "severity": "Required",
+          "title": "Ignoring --evidence-root survives the covering suite."
+        },
+        {
+          "id": "T3",
+          "severity": "Required",
+          "title": "Canonical evidence-root containment can be removed without failing the covering suite."
+        },
+        {
+          "id": "T4",
+          "severity": "Required",
+          "title": "No-flag path compatibility is not pinned outside the repository toplevel."
+        },
+        {
+          "id": "T5",
+          "severity": "Required",
+          "title": "Raw Git reads can ignore --git-dir without failing the covering suite."
+        }
+      ],
+      "report_sha256": "0f62ab6ea605f59aa4f53ff221931c852803f38559248af22cebed19c4672a63"
+    }
+  },
+  "held_bot_findings": [
+    {
+      "id": 4056474414,
+      "verdict": "VALID",
+      "severity": "P1",
+      "label": "security",
+      "title": "Artifact pinning can be bypassed",
+      "path": "runtime/scripts/verify.py",
+      "line": 276,
+      "reason": "Confirmed in code. _read_artifact resolves the path under the evidence root via _resolve, then takes the tracked-at-head_sha branch through _git/_git_bytes, which carry -C _ROOTS['git'] — the SHA root. With the two roots split and the path present in both trees, the returned bytes are the SHA repo's blob and the evidence-root file's artifacts[] sha256 pin is never evaluated for that path.",
+      "corrections_to_the_report": [
+        "The bytes are not unpinned — they are pinned to an immutable commit, in the wrong repo. The defect is that the manifest's own declared pin for that path goes unchecked, so a manifest naming one digest can pass while the verifier reads different bytes.",
+        "Reachability is broader than a name collision: in a self-chain, where --git-dir names a second clone of the same repo, every evidence path collides by construction."
+      ],
+      "contradicts": "runtime/scripts/verify.py:2100-2102 — the --evidence-root help asserts 'Cross-repo evidence is never tracked at head_sha, so it passes only on its artifacts[] sha256 pin'. That stated invariant does not hold.",
+      "status": "HELD — not fixed; answered in thread https://github.com/ravidsrk/orca-fleet/pull/485#discussion_r4056476809"
+    },
+    {
+      "id": 4056474416,
+      "verdict": "VALID",
+      "severity": "P1",
+      "title": "Symbol check uses wrong repository",
+      "path": "runtime/scripts/verify.py",
+      "line": 1720,
+      "reason": "Confirmed in code. check_symbol_on_base calls _run(['git','grep','-l','-e',symbol,f'origin/{base}']) directly, bypassing the root-aware _git helper, so the grep runs in the process cwd regardless of --git-dir. The adjacent check_base_ancestry at :1711 resolves the same origin/<base> ref through _git. An audit of the remaining git call sites shows the others are deliberate: :199 is documented as intentionally cwd-bound so --git-dir cannot move the #267 evidence bound, :1390 and :1408 pass -C top from the root-aware _toplevel(), and :2043 is the root validator. :1720 is the only unexplained one.",
+      "narrowing": "The --git-dir help at :2087-2094 enumerates the legs it re-roots and the symbol grep is not among them, so this is arguably out-of-scope-by-documentation rather than a broken promise; it is still wrong for a chained run, since check 8 asks whether the change is real on base and base lives in the SHA repo. Impact is bounded by the check being best-effort, but it still emits a failure line.",
+      "status": "HELD — not fixed; answered in thread https://github.com/ravidsrk/orca-fleet/pull/485#discussion_r4056477169"
+    }
+  ],
+  "review": {
+    "id": 5260074858,
+    "state": "COMMENTED",
+    "commit_id": "a5f84978548a00a97cfcc11614aa6bdfd71683e6",
+    "url": "https://github.com/ravidsrk/orca-fleet/pull/485#pullrequestreview-5260074858",
+    "submitted_at": "2026-09-20T08:26:43Z",
+    "body_sha256": "8334ce2c19151a6ed5c3bc0ea353ed93cab76ebdb9cba8b875c94aeb32202baa"
+  },
+  "review_egress_receipt": "9bde7aa2e6256dd9abc8e59f4e0893d4252c3402a6922727da6db07abe66b496",
+  "evidence_commit_note": "Reports-only evidence commit on u-442; production and test code are identical to reviewed_sha, but adding reports changes the full tree. reviewed_sha and reviewed_wtree identify the pre-evidence PR head, not the later evidence commit.",
+  "validation": {
+    "scratch": "/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-verdict-checks-l6zyzx0z",
+    "head_sha": "a5f84978548a00a97cfcc11614aa6bdfd71683e6",
+    "checks": [
+      {
+        "name": "suite",
+        "command": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ],
+        "exit_code": 0,
+        "duration_s": 287.294,
+        "log": "/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-verdict-checks-l6zyzx0z/suite.log",
+        "output_sha256": "29f360530ad54d2a9e095ce7732e356b2d077d424ec2fcec58027bfbe5dc5874",
+        "output": "..............................................................................bind-check: base ref 'does-not-exist-anywhere' does not resolve to a merge-base with HEAD\n...........................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................FAIL: gamma-bad (self-run) — unresolvable proof_evidence: docs/runs/does-not-exist.md\nproof-status: 1 mission(s) above doctrine-only missing evidence\n...FAIL: gamma-bad (self-run) — unresolvable proof_evidence: docs/runs/does-not-exist.md\nproof-status: 1 mission(s) above doctrine-only missing evidence\n.FAIL: delta-abs (self-run) — unresolvable proof_evidence: /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmpqge4h5wp/external-report.md\nFAIL: epsilon-trav (external-run) — unresolvable proof_evidence: ../tmpqge4h5wp/external-report.md\nFAIL: gamma-bad (self-run) — unresolvable proof_evidence: docs/runs/does-not-exist.md\nproof-status: 3 mission(s) above doctrine-only missing evidence\n.....................................................................................................................................................................................................................................................................................................................................................................................................................................................................................FAIL: manifest must be a JSON object, got list\nverify: evidence manifest malformed/unreadable — unit is NOT done\n...............................................................................................................................FAIL: base_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)\nFAIL: head_sha 'HEAD' is not a pinned 40-hex commit SHA (a symbolic ref is not immutable)\nFAIL: base_sha 'HEAD' is not a real commit\nFAIL: head_sha 'HEAD' is not a real commit\nFAIL: commands ledger: cannot resolve the tree of head_sha (not a real commit here, or not inside a git repo) — the recorded run cannot be bound to content; fail-closed\nFAIL: intent packet incomplete — non-empty ['goal', 'ruled_out', 'why'] required (mutation unit)\nFAIL: reviewer_mode must be one of ['cross-vendor', 'instructed-isolation', 'same-vendor-fresh'], got None\nFAIL: negative_control.tool must be one of ['cargo-mutants', 'cosmic-ray', 'go-mutesting', 'hand', 'mutmut', 'pitest', 'revert', 'stryker'], got None\nFAIL: negative_control.result must record the mutant KILLED / the proof going RED\nFAIL: negative_control.artifact (an evidence path) is required\nFAIL: mutation unit: no pr.number to look up an independent review — unreviewed\nverify: 11 invariant(s) failed — unit is NOT done\n.................................................................................................\n----------------------------------------------------------------------\nRan 1714 tests in 287.055s\n\nOK\nbundle: 21 self-contained mission(s) in a temp dir; no reference leaves its directory\nbound clean-sweep (self-run) — docs/runs/2026-09-14-clean-sweep-self-run.md\nbound prove-it (self-run) — docs/runs/2026-09-16-prove-it-self-run.md\nwrote assets/badges/missions.json: 21\nwrote assets/badges/tests.json: 1 in source\nwrote assets/badges/missions.json: 21\nwrote assets/badges/tests.json: 1 in source\nwrote assets/badges/missions.json: 21\nwrote assets/badges/tests.json: 0 in source\nwrote assets/badges/missions.json: 21\nwrote assets/badges/tests.json: 1 in source\nwrote assets/badges/missions.json: 21\nwrote assets/badges/tests.json: 2 in source\nwrote assets/badges/missions.json: 21\nwrote assets/badges/tests.json: 0 in source\n"
+      },
+      {
+        "name": "validator",
+        "command": [
+          "python3",
+          "scripts/validate.py"
+        ],
+        "exit_code": 0,
+        "duration_s": 0.925,
+        "log": "/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-verdict-checks-l6zyzx0z/validator.log",
+        "output_sha256": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6",
+        "output": "ok   absorb-it\nok   access-it\nok   attest-it\nok   clean-sweep\nok   deflake-it\nok   document-it\nok   field-test-it\nok   floor-it\nok   harden-it\nok   map-it\nok   migrate-it\nok   modernize-it\nok   oncall-it\nok   oss-contribute\nok   pin-it\nok   prove-it\nok   reshape-it\nok   review-it\nok   root-cause\nok   ship-it\nok   speed-it\n\nAll 21 missions valid; three-layer separation holds; evals valid.\n"
+      }
+    ],
+    "final_head": "a5f84978548a00a97cfcc11614aa6bdfd71683e6",
+    "status": "passed",
+    "test_count": 1714,
+    "clean_clone": true,
+    "staged_diff_check_exit_code": 0,
+    "code_diff_outside_reports": "git diff --cached --name-only -- . :(exclude)docs/reports/u-442/ => empty"
+  }
+}

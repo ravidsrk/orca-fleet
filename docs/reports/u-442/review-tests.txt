@@ -1,0 +1,420 @@
+U-442 TEST-ADEQUACY ACCEPTANCE REVIEW
+Status: COMPLETE — TEST-ADEQUACY NO-GO
+Counts: 0 Critical; 5 Required (T1–T5); 0 Nit; 0 Optional; 0 FYI.
+
+EXECUTIVE BRIEF
+The reviewed head passes all 1,714 repository tests and validation, but test adequacy is NO-GO. Four independent behavioral mutants survive all 255 covering verifier tests: ignoring the explicit evidence root, dropping canonical containment, rerooting legacy no-flag calls to cwd, and ignoring the SHA root for raw Git reads. Reviewer-only semantic probes pass at unmodified head and kill each survivor. Two additional reviewer probes expose an existing wrong-source acceptance at untouched head when repo B contains a colliding artifact path, including acceptance of missing evidence inventory pins. The broad wrong-evidence-root mutant, Git-routing mutant, and production-revert control are killed. The fixture also retains meaningful assertions through a behavior-neutral Git-call refactor. Only this report is changed by this reviewer, no commits were made, and no implementation fix is included.
+
+
+BLIND EXPECTATION — recorded before opening any implementation or test diff
+Source: frozen docs/runs/2026-09-20-clean-sweep-tracker/build-u442.md and embedded #442 finding only.
+Motivating lines (verbatim):
+  "- #442: the chaining report lives in the fleet repo; the leg SHAs live in the target repo."
+  "  SHA/git checks run against a DIFFERENT git directory — with today's single-repo behavior"
+  "  byte-identical when the new options are absent."
+  "  must still bound paths — escaping it stays REFUSED); no other runtime scripts; no new"
+
+Expected fix location and shape:
+- runtime/scripts/verify.py: explicit and separate Git working directory and evidence root; thread the Git directory into all Git/SHA queries and the evidence root into all evidence resolution and containment checks.
+- Existing path-resolution defaults must be retained when neither new option is supplied, including invocation from a nested working directory and interpretation of manifest arguments.
+- Evidence resolution must never silently fall back to the SHA repository. Both lexical traversal and symlink traversal out of the evidence root must remain refused.
+- tests/: a self-contained two-repository fixture with evidence/manifest only in repo A and unique unit SHAs only in repo B; prove success with both flags, and failure under deliberate root conflation.
+- Tests must assert the semantic result of verification, including evidence content/identity; an incidental missing file, CLI error, implementation helper name, or early unrelated rejection must not substitute for exercising the intended split.
+- A behavior-neutral refactor must leave this fixture meaningful and passing; independent behavior-changing mutants must make covering tests red.
+
+Confidence: high in the separation and containment invariants; medium in the exact integration points and legacy path rules until source review. No implementation/test delta has been opened at this point.
+
+Review evidence and final verdict to follow.
+Blind expectation recorded UTC: 2026-09-20T08:11:36.677919+00:00
+
+PINNED REVIEW CONTEXT
+Axis: test adequacy only; no cross-axis reranking.
+reviewed_sha / head_sha: a5f84978548a00a97cfcc11614aa6bdfd71683e6
+fixed_point: origin/review/2026-09-20-tracker-sweep
+base_sha: 6d847e486696253731d98ef4322952fceeb216dc
+Spec: docs/runs/2026-09-20-clean-sweep-tracker/build-u442.md
+Authority: dispatched task expressly permits mutation-hunt in external scratch clones; all production/test changes and experiments were confined there. The repository contains only this reviewer's authorized uncommitted report addition; other reviewers' files are not mine.
+Scratch evidence: /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-tests-review-pzpu905e
+
+CONFIRMED FINDINGS
+
+T1 — Required — The fixture excludes same-path artifacts in the SHA repository, so it misses the actual wrong-root evidence read.
+Motivating line, tests/test_verify.py:3270 (verbatim):
+        """Cross-repo evidence can never be "tracked at head_sha" — the other repo does not hold
+Related line, runtime/scripts/verify.py:276 (verbatim):
+        code, out, gerr = _git_bytes(["show", f"{head}:{path}"])
+The assertion's premise is not guaranteed: independent repos can contain the same relative path. I extended the existing real-repo fixture in scratch only, committed docs/reports/u/nc.txt containing "mutant m7 was KILLED" in repo B, and supplied a manifest whose pinned repo-A copy instead says "mutant m7 SURVIVED and was NOT killed". Untouched head returned 0 / verify: OK. A second probe removed artifacts[] entirely; untouched head again returned 0. The happy-path and unpinned tests both miss this because repo B contains only app.py and check.py. Add same-path, different-content and absent-pin cases so the evidence-root authority is checked even when git cat-file finds that path at head_sha. This independently reproduces the narrow mechanism behind the dispatched Greptile P1 #1 claim; the broad wrong-root mutant is killed, but this collision is not.
+Quoted RED from reviewer-probes-head.log:
+FAIL: test_review_sha_repo_collision_cannot_override_evidence (__main__.ReviewerProbes.test_review_sha_repo_collision_cannot_override_evidence)
+AssertionError: 0 != 2 : NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+verify: OK — all required checks passed
+FAIL: test_review_sha_repo_collision_cannot_replace_required_pin (__main__.ReviewerProbes.test_review_sha_repo_collision_cannot_replace_required_pin)
+AssertionError: 0 != 2 : NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+verify: OK — all required checks passed
+Ran 6 tests in 1.335s
+FAILED (failures=2)
+Four other reviewer probes passed at untouched head in this same run; these two expose an existing defect, not a deliberately mutated production file.
+
+T2 — Required — Ignoring --evidence-root survives the covering suite.
+Motivating line, tests/test_verify.py:3132 (verbatim):
+    Repo A (this case's repo, and the cwd) holds the manifest, the contract and the artifacts.
+Mutant M2 replaces runtime/scripts/verify.py:195 `top = _ROOTS["evidence"]` with `top = None`, so the new flag is parsed/validated but its path is ignored and resolution falls back to the CWD's Git toplevel. All 255 tests in test_verify.py still pass. The fixture always equates the requested root with its implicit fallback, so successful assertions cannot establish that the flag is honored. My independent probe invokes the same real manifest from repo B with --git-dir B --evidence-root A: untouched head passes, M2 returns 2 because it tries to open B/contract.md. Cover a distinct CWD (and ideally a named evidence subdirectory) with both flags.
+
+T3 — Required — Canonical evidence-root containment can be removed without failing the covering suite.
+Motivating line, tests/test_verify.py:3253 (verbatim):
+                                             "artifact": "../outside/nc.txt"})
+Related line, runtime/scripts/verify.py:208 (verbatim):
+    if full != root and root not in full.parents:
+Mutant M3 disables only this final canonical containment check, leaving the absolute-path and leading-.. checks intact. All 255 tests still pass because the escape fixture is rejected by the earlier lexical leading-.. check. A pinned path through repo-A/link -> repo B is accepted by M3 despite escaping the evidence root. My independent symlink probe passes at untouched head and goes RED under M3 with `AssertionError: 0 != 2` and `verify: OK — all required checks passed`. Add a canonical/symlink escape fixture (and a nested-root boundary case) so preserving #267 is demonstrated beyond the lexical spelling used here.
+
+T4 — Required — No-flag path compatibility is not pinned outside the repository toplevel.
+Motivating line, tests/test_verify.py:3130 (verbatim):
+    and `--evidence-root` name the two roots separately; absent, resolution is exactly as before.
+Related line, runtime/scripts/verify.py:200 (verbatim):
+        top = out.strip() if code == 0 else None
+Mutant M4 replaces the legacy fallback with `top = str(Path.cwd()) if code == 0 else None`. All 255 tests still pass: the current fixtures run at a repo toplevel, where these roots are identical. My independent no-flag probe uses a valid single-repository manifest, changes cwd to a nested directory, and passes on untouched head; M4 reads nested/contract.md instead and fails with exit 2. Cover a successful no-flag invocation from a nested directory; the new no-flags negative case only proves foreign SHAs are refused, not compatibility of a valid legacy invocation.
+
+T5 — Required — Raw Git reads can ignore --git-dir without failing the covering suite.
+Motivating line, runtime/scripts/verify.py:143 (verbatim):
+    return _run_bytes(["git", *(["-C", _ROOTS["git"]] if _ROOTS["git"] else []), *args],
+Related fixture line, tests/test_verify.py:3153 (verbatim):
+        self.contract = self.src(["AC-1"])
+Mutant M5 changes the raw-byte helper to `_run_bytes(["git", *args], timeout=timeout)`, losing its SHA-repository selection. All 255 tests still pass: the split-root fixture reads a bare working-tree contract and the artifact is absent from target HEAD, so no split-root raw Git read is needed. My independent probe commits a contract only in repo B and passes it as git-contract.md@<B-head> while cwd and evidence stay in A; untouched head passes and M5 fails with exit 2. Cover path@ref contract reads using the real second repository (and other claimed target-repo Git legs as applicable).
+
+VACUITY GUARD — PASS for the existing two-repo admission assertions, separate from the coverage gaps above.
+Motivating lines, tests/test_verify.py:3226 and :3230 (verbatim):
+        """The unit's whole point: evidence in repo A, SHAs in repo B, GREEN in one invocation."""
+        self.assertEqual(rc, 0, out)
+A separate fresh helper used its own scratch clone and replaced `_git`'s literal git -C argument with `_run(["git", *args], timeout=timeout, cwd=_ROOTS["git"])`, a behavior-neutral refactor. All 8 CrossRepoRoots tests stayed GREEN. Changing the refactored call to cwd=None then went RED (2 failures), including the split-root success assertion. The fixture uses real Git and file I/O plus unconditional semantic verdict assertions; there is no conditional command-matching test probe whose silence could vacate it. Requiring an implementation-specific invocation counter here would add coupling without closing T1–T5. The two-repo admission checks remain useful after refactoring; that does not establish coverage of --execute-nc, which this fixture never supplies.
+Independent scratch: /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-vacuity-v4t5l7d8
+Command in that clone: python3 tests/test_verify.py CrossRepoRoots
+Quoted RED excerpts from refactor-routing-mutant.txt (noncontiguous lines; method context retained):
+FAIL: test_split_roots_verify_a_cross_repo_manifest_end_to_end (__main__.CrossRepoRoots.test_split_roots_verify_a_cross_repo_manifest_end_to_end)
+AssertionError: 2 != 0 : NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+FAIL: base_sha '628d6fc353d8c8d9c7885a11450618280902da7f' is not a real commit
+FAIL: head_sha '23eaa3e29323957bd941d05ccde85e8a60c7badb' is not a real commit
+FAIL: commands ledger: cannot resolve the tree of head_sha (not a real commit here, or not inside a git repo) — the recorded run cannot be bound to content; fail-closed
+Ran 8 tests in 1.351s
+FAILED (failures=2)
+The helper restored the clone to reviewed_sha and verified its status clean; neutral-refactor.patch and routing-mutant.patch retain the exact experiments, with the original RED transcript. Its baseline/refactor GREEN transcripts are labeled transcriptions of tool output.
+
+REVIEWER REPRODUCIBILITY
+The root review's scratch directory contains:
+- head-verify.py: untouched reviewed production file;
+- run_mutants.py: exact isolated mutations M1–M6 and all 255-test commands;
+- mutant-results.json: return codes, durations, exact replacement pairs;
+- reviewer_probes.py: the six independently written semantic probes (four GREEN at head, two collision cases RED at head);
+- prove_survivors.py: each M2–M5 applied to its own matching independent probe, plus M0 restoring the base production file while keeping head tests;
+- *.log: direct combined stdout/stderr captures, including the REDs quoted below.
+The four probes that kill survivors are reviewer-created scratch evidence; they are not present in the submitted suite. Their REDs do not retroactively convert a submitted-suite SURVIVOR into a kill.
+
+EXECUTED MUTATION MATRIX
+Baseline: python3 -m unittest discover -s tests -p test_verify.py -v; exit 0; Ran 255 tests in 39.180s; OK.
+Baseline validator: python3 scripts/validate.py; exit 0; All 21 missions valid; three-layer separation holds; evals valid.
+M1–M6 each run: python3 -m unittest discover -s tests -p test_verify.py, from the same scratch clone; fresh Python process/bytecode cache; restore production file after each mutant.
+M1_evidence_from_sha_root: KILLED; exit=1; Ran 255 tests in 38.274s; ; FAILED (failures=3)
+  before: top = _ROOTS["evidence"]
+  after:  top = _toplevel()
+M2_ignore_evidence_root: SURVIVOR; exit=0; Ran 255 tests in 38.009s; ; OK
+  before: top = _ROOTS["evidence"]
+  after:  top = None
+M3_remove_canonical_containment: SURVIVOR; exit=0; Ran 255 tests in 37.747s; ; OK
+  before: if full != root and root not in full.parents:
+  after:  if False and full != root and root not in full.parents:
+M4_no_flag_cwd_root: SURVIVOR; exit=0; Ran 255 tests in 37.791s; ; OK
+  before: top = out.strip() if code == 0 else None
+  after:  top = str(Path.cwd()) if code == 0 else None
+M5_git_bytes_ignore_sha_root: SURVIVOR; exit=0; Ran 255 tests in 39.184s; ; OK
+  before: return _run_bytes(["git", *(["-C", _ROOTS["git"]] if _ROOTS["git"] else []), *args],
+  after:  return _run_bytes(["git", *args],
+M6_git_ignore_sha_root: KILLED; exit=1; Ran 255 tests in 40.317s; ; FAILED (failures=2)
+  before: code, out, _ = _run(["git", *(["-C", _ROOTS["git"]] if _ROOTS["git"] else []), *args],
+  after:  code, out, _ = _run(["git", *args],
+M0: restore verify.py from base_sha, keep head tests; python3 tests/test_verify.py CrossRepoRoots; exit 1; Ran 8 tests in 0.894s; FAILED (failures=8). This coarse control fails on unsupported options; the behavioral M1/M6 kills are separate and remain meaningful with the flags present.
+
+VERBATIM RED EXCERPT — M0_base_verify_new_tests.log
+FAIL: test_split_roots_verify_a_cross_repo_manifest_end_to_end (__main__.CrossRepoRoots.test_split_roots_verify_a_cross_repo_manifest_end_to_end)
+The unit's whole point: evidence in repo A, SHAs in repo B, GREEN in one invocation.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-tests-review-pzpu905e/probes-clone/tests/test_verify.py", line 3230, in test_split_roots_verify_a_cross_repo_manifest_end_to_end
+    self.assertEqual(rc, 0, out)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: 2 != 0 : usage: test_verify.py [-h] --manifest MANIFEST
+                      [--contract-source CONTRACT_SOURCE]
+                      [--contract-digest CONTRACT_DIGEST] [--repo REPO]
+                      [--nc-command NC_COMMAND] [--execute-nc] [--base BASE]
+                      [--symbol SYMBOL] [--unit-class UNIT_CLASS] [--no-gh]
+                      [--lighting {dark-eligible,lit}]
+                      [--dispatch-record DISPATCH_RECORD]
+                      [--dispatch-pubkey DISPATCH_PUBKEY]
+test_verify.py: error: unrecognized arguments: --git-dir /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/orca-u442-b-2at23dw2 --evidence-root /private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmpk1ntkg50
+
+VERBATIM RED EXCERPT — M1_evidence_from_sha_root.log
+FAIL: test_split_roots_verify_a_cross_repo_manifest_end_to_end (test_verify.CrossRepoRoots.test_split_roots_verify_a_cross_repo_manifest_end_to_end)
+The unit's whole point: evidence in repo A, SHAs in repo B, GREEN in one invocation.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-tests-review-pzpu905e/clone/tests/test_verify.py", line 3230, in test_split_roots_verify_a_cross_repo_manifest_end_to_end
+    self.assertEqual(rc, 0, out)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: 2 != 0 : NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+NOTE: commands ledger FRESH — 1 exit-0 record(s) bound to head_sha's tree 2335efece884. This is the worker's own runner, so the coordinator's clean-env re-run at head_sha still stands as the stronger authority (evidence-manifest.md §2)
+FAIL: scope: authoritative contract unreadable (contract.md): [Errno 2] No such file or directory: '/private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/orca-u442-b-qsysp4vv/contract.md'
+FAIL: oracle scope: authoritative contract unreadable or digest mismatch
+FAIL: redaction: artifact docs/reports/u/nc.txt unreadable: [Errno 2] No such file or directory: '/private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/orca-u442-b-qsysp4vv/docs/reports/u/nc.txt'
+FAIL: negative_control.artifact unreadable (docs/reports/u/nc.txt): [Errno 2] No such file or directory: '/private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/orca-u442-b-qsysp4vv/docs/reports/u/nc.txt'
+verify: 4 invariant(s) failed — unit is NOT done
+
+VERBATIM RED EXCERPT — M6_git_ignore_sha_root.log
+FAIL: test_split_roots_verify_a_cross_repo_manifest_end_to_end (test_verify.CrossRepoRoots.test_split_roots_verify_a_cross_repo_manifest_end_to_end)
+The unit's whole point: evidence in repo A, SHAs in repo B, GREEN in one invocation.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-tests-review-pzpu905e/clone/tests/test_verify.py", line 3230, in test_split_roots_verify_a_cross_repo_manifest_end_to_end
+    self.assertEqual(rc, 0, out)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: 2 != 0 : NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+FAIL: base_sha '8d12fca524fc6f94c23f714cfe22c993b82d92cf' is not a real commit
+FAIL: head_sha 'd5cb9ef789e295fba54ebe174c43042ae94a5e99' is not a real commit
+FAIL: commands ledger: cannot resolve the tree of head_sha (not a real commit here, or not inside a git repo) — the recorded run cannot be bound to content; fail-closed
+verify: 3 invariant(s) failed — unit is NOT done
+
+VERBATIM INDEPENDENT-PROBE RED — M2_ignore_evidence_root-independent-probe.log
+test_review_explicit_root_from_sha_cwd (__main__.ReviewerProbes.test_review_explicit_root_from_sha_cwd) ... FAIL
+
+======================================================================
+FAIL: test_review_explicit_root_from_sha_cwd (__main__.ReviewerProbes.test_review_explicit_root_from_sha_cwd)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-tests-review-pzpu905e/reviewer_probes.py", line 11, in test_review_explicit_root_from_sha_cwd
+    self.assertEqual(rc,0,out)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^
+AssertionError: 2 != 0 : NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+NOTE: commands ledger FRESH — 1 exit-0 record(s) bound to head_sha's tree 2335efece884. This is the worker's own runner, so the coordinator's clean-env re-run at head_sha still stands as the stronger authority (evidence-manifest.md §2)
+FAIL: scope: authoritative contract unreadable (contract.md): [Errno 2] No such file or directory: '/private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/orca-u442-b-b8vscaim/contract.md'
+FAIL: oracle scope: authoritative contract unreadable or digest mismatch
+FAIL: redaction: artifact docs/reports/u/nc.txt unreadable: [Errno 2] No such file or directory: '/private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/orca-u442-b-b8vscaim/docs/reports/u/nc.txt'
+FAIL: negative_control.artifact unreadable (docs/reports/u/nc.txt): [Errno 2] No such file or directory: '/private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/orca-u442-b-b8vscaim/docs/reports/u/nc.txt'
+verify: 4 invariant(s) failed — unit is NOT done
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.180s
+
+FAILED (failures=1)
+
+VERBATIM INDEPENDENT-PROBE RED — M3_remove_canonical_containment-independent-probe.log
+test_review_symlink_escape_refused (__main__.ReviewerProbes.test_review_symlink_escape_refused) ... FAIL
+
+======================================================================
+FAIL: test_review_symlink_escape_refused (__main__.ReviewerProbes.test_review_symlink_escape_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-tests-review-pzpu905e/reviewer_probes.py", line 24, in test_review_symlink_escape_refused
+    self.assertEqual(rc,2,out)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^
+AssertionError: 0 != 2 : NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+NOTE: commands ledger FRESH — 1 exit-0 record(s) bound to head_sha's tree 2335efece884. This is the worker's own runner, so the coordinator's clean-env re-run at head_sha still stands as the stronger authority (evidence-manifest.md §2)
+verify: OK — all required checks passed
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.199s
+
+FAILED (failures=1)
+
+VERBATIM INDEPENDENT-PROBE RED — M4_no_flag_cwd_root-independent-probe.log
+test_review_no_flags_nested_cwd (__main__.ReviewerProbes.test_review_no_flags_nested_cwd) ... FAIL
+
+======================================================================
+FAIL: test_review_no_flags_nested_cwd (__main__.ReviewerProbes.test_review_no_flags_nested_cwd)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-tests-review-pzpu905e/reviewer_probes.py", line 36, in test_review_no_flags_nested_cwd
+    self.assertEqual(rc,0,out)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^
+AssertionError: 2 != 0 : NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+NOTE: commands ledger FRESH — 1 exit-0 record(s) bound to head_sha's tree 1aa819b5a877. This is the worker's own runner, so the coordinator's clean-env re-run at head_sha still stands as the stronger authority (evidence-manifest.md §2)
+FAIL: scope: authoritative contract unreadable (contract.md): [Errno 2] No such file or directory: '/private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmpjvokww2u/nested/contract.md'
+FAIL: oracle scope: authoritative contract unreadable or digest mismatch
+verify: 2 invariant(s) failed — unit is NOT done
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.233s
+
+FAILED (failures=1)
+
+VERBATIM INDEPENDENT-PROBE RED — M5_git_bytes_ignore_sha_root-independent-probe.log
+test_review_path_at_ref_reads_sha_repo (__main__.ReviewerProbes.test_review_path_at_ref_reads_sha_repo) ... FAIL
+
+======================================================================
+FAIL: test_review_path_at_ref_reads_sha_repo (__main__.ReviewerProbes.test_review_path_at_ref_reads_sha_repo)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-tests-review-pzpu905e/reviewer_probes.py", line 47, in test_review_path_at_ref_reads_sha_repo
+    self.assertEqual(rc,0,out)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^
+AssertionError: 2 != 0 : NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+NOTE: commands ledger FRESH — 1 exit-0 record(s) bound to head_sha's tree 6e5e3e7b2908. This is the worker's own runner, so the coordinator's clean-env re-run at head_sha still stands as the stronger authority (evidence-manifest.md §2)
+FAIL: scope: authoritative contract unreadable (git-contract.md@f7405d5401ad87309ec61bdd142e714cc6e97d1e): fatal: path 'git-contract.md' does not exist in 'f7405d5401ad87309ec61bdd142e714cc6e97d1e'
+FAIL: oracle scope: authoritative contract unreadable or digest mismatch
+verify: 2 invariant(s) failed — unit is NOT done
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.227s
+
+FAILED (failures=1)
+
+Independent probe command: U442_PROBE_REPO=<scratch>/probes-clone python3 <scratch>/reviewer_probes.py ReviewerProbes.<test_review_name>
+The no-argument reviewer_probes.py run executes only the six reviewer-added methods; inheritance does not inflate their count with existing CrossRepoRoots cases. Full source is retained in scratch.
+
+DURABLE REPRODUCTION APPENDIX — reviewer_probes.py (scratch-only; not submitted as tests)
+Recreate <scratch>/clone at reviewed_sha, save the following script at <scratch>/reviewer_probes.py, then run it. U442_PROBE_REPO can point to a separate clone; use an absolute path.
+
+from pathlib import Path
+import json, os, sys, unittest
+sys.path.insert(0,str(Path(os.environ.get('U442_PROBE_REPO',str(Path(__file__).resolve().parent/'clone')))/'tests'))
+from test_verify import CrossRepoRoots, verify
+
+class ReviewerProbes(CrossRepoRoots):
+    def test_review_explicit_root_from_sha_cwd(self):
+        manifest = self._manifest()
+        os.chdir(self.repo_b)
+        rc,out = self._run_main(manifest, '--git-dir',str(self.repo_b),'--evidence-root',str(self.repo))
+        self.assertEqual(rc,0,out)
+        self.assertIn('verify: OK',out)
+
+    def test_review_symlink_escape_refused(self):
+        outside = self.repo_b/'escape-nc.txt'
+        outside.write_text('mutant m7 was KILLED\n')
+        (self.repo/'link').symlink_to(self.repo_b,target_is_directory=True)
+        manifest=self._manifest()
+        m=json.loads(Path(manifest).read_text())
+        m['negative_control']['artifact']='link/escape-nc.txt'
+        m['artifacts'].append(self.pin('link/escape-nc.txt'))
+        Path(manifest).write_text(json.dumps(m))
+        rc,out=self._run_main(manifest,'--git-dir',str(self.repo_b),'--evidence-root',str(self.repo))
+        self.assertEqual(rc,2,out)
+        self.assertIn('escapes the evidence root',out)
+
+    def test_review_no_flags_nested_cwd(self):
+        self.head_sha = self.commit('single repo fixture')
+        self.base_sha = self.head_sha
+        self.head_tree = self.git('rev-parse','HEAD^{tree}')
+        manifest=self._manifest()
+        nested=self.repo/'nested'
+        nested.mkdir()
+        os.chdir(nested)
+        rc,out = self._run_main(manifest)
+        self.assertEqual(rc,0,out)
+        self.assertIn('verify: OK',out)
+
+    def test_review_path_at_ref_reads_sha_repo(self):
+        contract=self.repo_b/'git-contract.md'
+        contract.write_text('frozen\n- AC-1: x\n')
+        self.head_sha=self.commit_b('tracked git contract')
+        self.head_tree=self.git_b('rev-parse','HEAD^{tree}')
+        self.contract=f'git-contract.md@{self.head_sha}'
+        manifest=self._manifest()
+        rc,out=self._run_main(manifest,'--git-dir',str(self.repo_b),'--evidence-root',str(self.repo))
+        self.assertEqual(rc,0,out)
+        self.assertIn('verify: OK',out)
+
+    def test_review_sha_repo_collision_cannot_override_evidence(self):
+        target=self.repo_b/self.nc_artifact
+        target.parent.mkdir(parents=True)
+        target.write_text('mutant m7 was KILLED\n')
+        self.head_sha=self.commit_b('colliding target artifact')
+        self.head_tree=self.git_b('rev-parse','HEAD^{tree}')
+        (self.repo/self.nc_artifact).write_text('mutant m7 SURVIVED and was NOT killed\n')
+        rc,out=self._run_main(self._manifest(),'--git-dir',str(self.repo_b),'--evidence-root',str(self.repo))
+        self.assertEqual(rc,2,out)
+        self.assertIn('SURVIVED',out)
+
+    def test_review_sha_repo_collision_cannot_replace_required_pin(self):
+        target=self.repo_b/self.nc_artifact
+        target.parent.mkdir(parents=True)
+        target.write_text('mutant m7 was KILLED\n')
+        self.head_sha=self.commit_b('colliding target artifact')
+        self.head_tree=self.git_b('rev-parse','HEAD^{tree}')
+        rc,out=self._run_main(self._manifest(artifacts=[]),'--git-dir',str(self.repo_b),'--evidence-root',str(self.repo))
+        self.assertEqual(rc,2,out)
+        self.assertIn('unpinned evidence',out)
+
+if __name__=='__main__':
+    if len(sys.argv)>1:
+        unittest.main(verbosity=2)
+    else:
+        suite=unittest.TestSuite(ReviewerProbes(name) for name in dir(ReviewerProbes) if name.startswith('test_review_'))
+        result=unittest.TextTestRunner(verbosity=2).run(suite)
+        raise SystemExit(not result.wasSuccessful())
+
+FINAL VERIFICATION AND REPORT-ONLY EVIDENCE RECORD
+Untouched reviewed-head full-suite command, in clean external clone: python3 -m unittest discover -s tests
+Exit 0. Verbatim runner summary:
+Ran 1714 tests in 291.770s
+
+OK
+Both reviewer-owned scratch clones have their original verify.py bytes restored; the full-suite clone git status is clean. The helper also restored its separate clone.
+The original review worktree has no tracked diff; the only file written by this reviewer is docs/reports/u-442/review-tests.txt, left uncommitted. Other reviewers' report files were neither read nor modified.
+Embedded report-only evidence record (the only authorized durable file is this report):
+{
+  "unit": "U-442/test-adequacy",
+  "unit_class": "report-only",
+  "base_sha": "6d847e486696253731d98ef4322952fceeb216dc",
+  "head_sha": "a5f84978548a00a97cfcc11614aa6bdfd71683e6",
+  "reviewed_sha": "a5f84978548a00a97cfcc11614aa6bdfd71683e6",
+  "verdict": "NO-GO",
+  "finding_ids": [
+    "T1",
+    "T2",
+    "T3",
+    "T4",
+    "T5"
+  ],
+  "commands": [
+    {
+      "cmd": "python3 -m unittest discover -s tests -p test_verify.py -v",
+      "exit": 0,
+      "tests": 255,
+      "artifact": "baseline-verify.log"
+    },
+    {
+      "cmd": "python3 scripts/validate.py",
+      "exit": 0,
+      "artifact": "baseline-validate.log"
+    },
+    {
+      "cmd": "python3 -m unittest discover -s tests",
+      "exit": 0,
+      "tests": 1714,
+      "artifact": "reviewer-full-suite-head.log"
+    }
+  ],
+  "mutation_results": {
+    "M1_evidence_from_sha_root": "KILLED",
+    "M2_ignore_evidence_root": "SURVIVOR",
+    "M3_remove_canonical_containment": "SURVIVOR",
+    "M4_no_flag_cwd_root": "SURVIVOR",
+    "M5_git_bytes_ignore_sha_root": "SURVIVOR",
+    "M6_git_ignore_sha_root": "KILLED"
+  },
+  "scope": "test-adequacy; scratch-only mutations explicitly authorized; no fix authority"
+}
+Raw-log SHA-256 inventory (files under the scratch evidence directory stated above):
+14cb66a8d3cbf0255083bf0589f8836c46cea29aa6236e976fb0fb41c4a134f5  baseline-verify.log
+90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6  baseline-validate.log
+0c10e5ea593fd27d78b4288cfe52c8b8fed242d0346f4fefb74072193c20fea9  reviewer-full-suite-head.log
+38524ab20162e42817d578fc5192ccc1006bbb58b54a0dfcc045274291c42f4f  reviewer-probes-head.log
+26738a67bce8a11accf4a22285f6793b7b04449e8df741d2d593835b57b1c27d  M0_base_verify_new_tests.log
+123c0399a96a04059b19e491b01e9c01766d60435cf8b220b7084ca2d0e09789  M1_evidence_from_sha_root.log
+0f82cd5063fb8d13dea39fbf135461e4a90fd311c19934cfa84399695d60b0c7  M2_ignore_evidence_root.log
+1b5309cf94dc89c615cdfc7898a5f43feffb23b6f3e0b4bc1cfdc22402a5f9e7  M3_remove_canonical_containment.log
+bd3d627b53b8032cb33326821a48a58e3984f2c4840888c3393a5030e91446d2  M4_no_flag_cwd_root.log
+6c796c1a7633fab6aa955e95e93bcf85212aa01e7c486d13226302533fd8259b  M5_git_bytes_ignore_sha_root.log
+05673812aa5ec412b87b4528848f4ada42b59f601bb3838d18fb4ff4f197edaf  M6_git_ignore_sha_root.log
+Completed UTC: 2026-09-20T08:20:58.915165+00:00
+Open work: implementation owner to fix T1 and add submitted regression coverage for T1–T5, followed by a new review at the resulting SHA. No partial-report/timebox stop was needed.

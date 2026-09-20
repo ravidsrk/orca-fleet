@@ -1,0 +1,323 @@
+U-442 ROUND 3 FINAL — STANDARDS REVIEW
+
+BLIND-FIX EXPECTATIONS (written before opening any round-3 diff)
+Recorded UTC: 2026-09-20T10:45:10.030396+00:00
+Inputs: AGENTS.md, ARCHITECTURE.md, CONTRIBUTING.md, sandbox-policy argv rule,
+acceptance-review, Matt code-review Fowler baseline, round-2 verdict/standards report,
+and frozen build-u442-r3.md. No candidate diff or round-3 implementation was opened.
+
+H-1 — Pin the escaping path actually named by each negative control, preserving all
+otherwise-valid supporting artifacts. Both outward and nested symlink fixtures should
+prove canonical containment, not fail incidentally on a missing pin. Expected location:
+CrossRepoRoots test fixtures only; no weakening of production reader. Confidence: high.
+
+H-2 — Refresh manifest at a real round-3 code SHA with runner-generated successful
+receipts for the regression subset, verifier module, and full suite. Require truthful
+criteria/intent, hashes over retained artifacts including round-2 evidence, explicit
+lighting, and exact ancestry/content accounting for later report-only commits. An older
+SHA is not automatically current evidence; validate the named tree. Confidence: high.
+
+H-3 — Preserve the root-aware Git argv helper and pass timeout=20 explicitly for symbol
+lookup. Leave the helper default unchanged for other callers; a behavioral or helper-call
+regression must distinguish 20 from 10 without a flaky wall-clock test. Confidence: high.
+
+H-4 — Add valid one-flag collision tests in both directions and a nested evidence-root
+collision within the same repository to cover all R2-T1 survivors. Use distinct effective
+roots and a tracked same-path blob without inventory pins; both flags must not be needed
+for split authority. Production root comparison should stay canonical. Confidence: high.
+
+H-5 — Supply matching ordinary and escaping-path pins with otherwise-valid command and
+contract evidence; both direct escape and nested-to-parent escape must still refuse for
+containment. An integrity pin is never confinement authority. Confidence: high.
+
+H-6 — Make local HEAD and origin/base differ in both symbol cases. Checking HEAD must
+fail the tests, while checking the selected repository's origin/base succeeds/refuses
+correctly. Keep symbol data in argv and existing selected-root behavior. Confidence: high.
+
+H-7 — Delete the executable coverage suppression and exercise Path.resolve OSError so
+split detection stays fail-closed. Inspect each of the THREE claimed archival waivers:
+exact path/rule match, concrete prior-review quotation as data, no executable suppression,
+no broad code waiver, and recorded DECISIONS rationale/precedent. Re-run guard at pinned
+head; do not treat an exit-zero waiver count as proof of correct classification.
+Confidence: high for code behavior; archival classification pending source inspection.
+
+Cross-cutting standards: stdlib only, argv not shell interpolation, documented fail-closed
+exit behavior, no secrets, no trailers, no new outcome/phase/mechanism layer confusion.
+Fowler baseline (heuristic, repo rules win): Mysterious Name, Duplicated Code, Feature
+Envy, Data Clumps, Primitive Obsession, Repeated Switches, Shotgun Surgery, Divergent
+Change, Speculative Generality, Message Chains, Middle Man, Refused Bequest. Tool-enforced
+rules are verified rather than repeated as findings. Every finding requires a verbatim
+motivating line. Only this report is authorized in the supplied worktree; no commits.
+
+VERDICT: NO-GO (STANDARDS axis only)
+Counts: Critical=0 Required=1 Nit=0 Optional=0 FYI=0.
+
+EXECUTIVE SUMMARY
+Round 3 closes H-1 and H-3 through H-7 on the standards axis, with no new production-code
+or Fowler findings. All three floor waivers are exact-path historical quotations, and the
+pinned guard is clean with six waived matches. H-2 remains incomplete: the refreshed
+manifest reuses five old transcript paths, so its normal same-root reader returns round-1
+bytes instead of the newly inventoried round-3 evidence; the selected full-suite log records
+five failures. This was reproduced through the actual reader and independently confirmed.
+The 1,733-test suite and validator pass at c1d1e59c; the defect is evidence selection, not a
+claim that the current code fails the suite. Required R3-STD-1 calls for round-specific
+artifact references that actually resolve to the refreshed output. Only this uncommitted
+report was changed in the source worktree. The coordinator owns final-round aggregation
+and any park decision; this report does not declare the unit verified or mergeable.
+
+PINNED REVIEW
+Axis: STANDARDS only. Round 3 (FINAL). No cross-axis re-ranking.
+head_sha = reviewed_sha: c1d1e59c50558e81da15faf4a0f885b96f6e20d2
+reviewed_tree: 052312989c849968a2f4a241ff8a7362b9eafe41
+Comparison: origin/review/2026-09-20-tracker-sweep...c1d1e59c
+Initial comparison-ref snapshot: 20d046369337a0c44bfe993fb98cfa6fbbfeefae
+Pinned merge-base: db1b72bc37770666bbea4f664f0ecc9d95caffcf
+Round-3 delta: 50788bf24a1beaa45540859ccde33b2f8b30c901..c1d1e59c
+Observed worktree HEAD: f0fe3fc0b0c0a237998090c19a9a4bb1f35f5bc5, which adds ONLY
+ docs/reports/u-442/integrate-r3.json. That later receipt does not change reviewed
+production, tests, manifest, or waivers; this verdict does not approve the later SHA.
+The remote comparison ref moved during the review; the recorded merge-base is fixed.
+
+FINDING — R3-STD-1 — Required — H-2's refreshed transcript references select old bytes
+Confidence: high; independently reproduced twice through the actual pinned reader.
+
+Verbatim motivating manifest lines, docs/reports/u-442/manifest.json:
+:153      "artifact": "docs/reports/u-442/full-suite.txt",
+:158      "exit": 0,
+:196  "head_sha": "cd07307e93a6c0bd7a30299aa89411a18417ac72",
+:204    "artifact": "docs/reports/u-442/nc-red.txt",
+
+Documented standard, runtime/evidence-manifest.md:81, verbatim:
+  bytes are fixed: the path is TRACKED at `head_sha` (the immutable form; the blob at that commit is what gets read),
+AGENTS.md requires SHA-bound evidence re-derived from authoritative state, not narration.
+The frozen H-2 requirement, build-u442-r3.md:16-18, verbatim:
+  at the NEW head: evidence-run.py receipts for the r2 regression set, the full test_verify
+  module, and the full suite (exit 0), new head_sha, criteria all addressed, refreshed intent,
+  artifact inventory including round2 files. This is the closure artifact the verifier reads.
+
+The new receipt metadata is fresh and the 26 inventory hashes match current c1d bytes.
+However, the five reused transcript paths already exist at cd07307e with round-1 bytes.
+In the documented no-root-flag self-check, verify.py:304-308 returns head:path BEFORE
+consulting the inventory at :314. The new pins therefore do not select the new transcripts.
+This is an evidence-authoring error, not a request to alter the established reader rule.
+
+Actual read_artifact results at c1d, with the committed manifest and default roots:
+  tests.txt      selected: 255 tests OK;           intended/current: 274 tests OK
+  full-suite.txt selected: 1714 tests, 5 failures;  intended/current: 1733 tests OK
+  unit-scope.txt selected: 347 tests OK;           intended/current: 27 tests OK
+  nc-green.txt   selected: 255 tests OK;           intended/current: 27 tests OK
+  nc-red.txt     selected: 255 tests, 8 failures;   intended/current: 27 tests, 24 failures + 1 error
+Each call returns err=None; each selected digest DIFFERS from its inventory pin and equals
+its cd07307e blob. For full-suite.txt, selected SHA-256 is
+ e697b853fce34dc487272ad6f18a2424a0a5723954d6046e1e730ffa6e4fa03e
+while the declared pin is
+ dd4f8a09b829e9bbd6d0943259650d60cf2a6776c85b0825490ebc4e198abb6c.
+The selected log says verbatim: "Ran 1714 tests in 251.260s" and "FAILED (failures=5)".
+
+check_commands still reports four FRESH records because it checks their metadata; that
+message does not reconcile the output bytes. A passing independent suite establishes code
+behavior, but cannot make these references identify the new command/control transcripts.
+Required correction: give the refreshed receipts round-specific paths absent at the code
+head, update commands[].artifact / negative_control.artifact and inventory pins, and verify
+the actual artifact reader returns those exact bytes. Preserve historical logs and legacy
+same-root authority. No production fix or silent waiver is needed for this correction.
+
+Reproduction (read-only, in a clean c1d clone): import runtime/scripts/verify.py, load
+ docs/reports/u-442/manifest.json with load_manifest(), call read_artifact(manifest, path)
+for each of the five paths above, hash the returned bytes, and compare to artifact_inventory.
+The retained artifact-reader-probe.py executes this procedure and records full hashes and
+both selected/current summaries in artifact-reader-probe.json.
+
+H-1..H-7 CLOSURE ASSESSMENT (STANDARDS only)
+H-1 / S2-R1: CLOSED. tests/test_verify.py:3468-3470 now names and hashes the escaping
+path; :3471-3473 makes the control name the same path. The nested case supplies its own
+contract, ordinary transcript, and both pins at :3489-3506. No containment rule changed.
+H-2 / S2-R2: PARTIAL, R3-STD-1. The new SHA/tree, four exit-0 receipt records, criteria,
+intent, lit lighting, and matching current-file inventory exist. Their five reused receipt
+paths nevertheless resolve to old proof bytes through the actual verifier.
+H-3 / S2-R3: CLOSED. verify.py:1758, verbatim:
+    code, out = _git(["grep", "-l", "-e", symbol, f"origin/{base}"], timeout=20)
+The selected-root argv helper remains in use, and the helper's default remains 10 seconds
+for other callers. Independent removal of the explicit timeout makes the regression fail
+with "AssertionError: Lists differ: [10] != [20]"; baseline passes.
+H-4 / R2-T1: CLOSED on this axis. The two one-flag cases at test_verify.py:3533 and :3543
+and same-repository nested-root collision at :3554 use real repositories and unconditional
+refusal assertions. Each requires the missing-pin diagnostic; no production authority was
+relaxed and no conditional assertion was added.
+H-5 / R2-T2: CLOSED on this axis. Both escaping-path pins and ordinary pins are supplied;
+the nested fixture now includes otherwise-valid selected-root evidence. Canonical escape
+refusal is asserted at :3476 and :3509, with explicit rejection of incidental missing-pin
+errors. No inventory pin becomes permission to escape.
+H-6 / R2-T3: CLOSED on this axis. The two cases at :3578 and :3593 keep origin/main at
+the manifest head and create a later local HEAD adding/removing the symbol. Their opposite
+exit assertions distinguish the correct base from local HEAD, preserving argv calls.
+H-7 / guard hold: CLOSED. The runtime line at verify.py:209 is now simply:
+    except OSError:
+and :210 still returns True. Path.resolve failure is exercised at test_verify.py:3645-3646:
+        with mock.patch.object(Path, "resolve", refuse):
+            self.assertTrue(verify._roots_are_split())
+Independent replacement of that True with False fails by assertion, not setup/import error.
+The three waivers below apply only to historical prose, and the pinned guard returns clean.
+
+WAIVER ADJUDICATION — all three ACCEPTED as archival quotations
+The three exact grants are docs/DECISIONS.md:61-63. The first two say verbatim:
+"quotes review prose containing pragma tokens; archival quotation, not repo work (2026-09-17 precedent)"
+The third says verbatim:
+"integration report quotes the pragma line it adjudicates; archival quotation, not repo work (2026-09-17 precedent)"
+They grant only rule silenced-checker for these paths:
+  docs/reports/u-442/verdict-r2.json       — historical source quoted at lines 15,258,268,368
+  docs/reports/u-442/verdict-review-r2.md  — historical source quoted at line 14
+  docs/reports/u-442/integrate-r2.json     — historical source quoted at line 131
+These are six matches in three files, explaining "6 waived". Each preserves the actual
+round-2 verify.py:209 line from 50788bf2 as JSON or Markdown data; none executes a checker
+suppression. The old pragma was removed from runtime code independently of these waivers.
+
+Precedent is substantive: DECISIONS.md:47-48 waives a pasted failure transcript and a quoted
+diff (the latter remains in RATCHET.md:11-16); :53 retires a broad waiver because, verbatim,
+"a dir glob would also waive future markers". The current grants use exact paths.
+floor_guard.py:480-483 matches rule and path; :438-441 requires exact identity without an
+explicit glob. Independent scope probes refuse runtime/scripts/verify.py, tests/test_verify.py,
+another report, a suffix lookalike, and a different rule on a waived report. A read-only helper
+independently re-derived all six matches and the same classification. No waiver is being
+accepted merely because the coordinator or guard reported it clean.
+
+STANDARDS AND FOWLER AUDIT
+Sources: AGENTS.md / ARCHITECTURE.md; CONTRIBUTING.md:107-108 (stdlib, secrets, fail-closed),
+:144-146 (logical commits and trailers); sandbox-policy.md:135-139 (argv); frozen r3 GIT
+instruction (no trailers of any kind); acceptance-review and Matt code-review baseline.
+The argv rule is in the runtime policy, not literally in AGENTS.md.
+
+The two production hunks preserve argv-only execution, raw Git context, existing error
+returns, and fail-closed root identity. No new production import/dependency, secret, flag,
+helper, or interface-width relaxation. The only new import is stdlib inspect in tests.
+All 31 commits in 50788bf2..c1d1e59c have empty parsed trailer blocks. The badge update
+1726 -> 1733 follows the seven added test definitions. No three-layer contract moved.
+
+Applied all twelve Fowler heuristics per changed code/test hunk: no actionable smell.
+Existing real-repository helpers stay cohesive; local setup differences serve distinct
+boundary cases. The small timeout seam restores and records process state with cleanup.
+The explanatory incident comments follow CONTRIBUTING.md's instruction to retain the
+operational lesson. R3-STD-1 is a hard evidence-standard breach, not a style preference.
+Tool-enforced budget/style checks are recorded as verification rather than duplicate findings.
+
+EXISTING CLOSURE BOUNDARY (not an additional r3 finding)
+The independent self-check reproduces exit 2 for the pre-existing authoritative-contract
+criterion parsing gap and the missing independent local review record. These are recorded
+honestly in selfcheck-r3.txt and are coordinator-owned; this standards report does not
+synthesize an approval or call the unit verified. R3-STD-1 is independent of those failures:
+its direct artifact reads succeed while selecting the wrong round's bytes.
+
+INDEPENDENT EXECUTION EVIDENCE
+All runs used detached scratch clones at the exact reviewed SHA. The full suite ran in
+repo/; targeted controls ran in controls/ and restored original source bytes afterward.
+- Full suite: exit 0; Ran 1733 tests in 328.668s; OK.
+- Sequential final validator: exit 0; "All 21 missions valid; three-layer separation holds; evals valid."
+- Floor guard at pinned merge-base: exit 0; "floor-guard: clean (6 waived)".
+- Both diff --check comparisons: exit 0.
+- Two changed-production-path controls: baseline exit 0, timeout rollback exit 1, fail-open
+  root rollback exit 1; assertion failures only, no setup/import errors.
+- Artifact-reader probe: exit 0; all five selected/current discrepancies captured, with
+  head-blob equality and digest comparisons. This is independent of builder narration.
+- Self-check: exit 2, reproducing exactly the two already-recorded coordinator-boundary
+  failures; FRESH metadata does not detect the stale selected transcripts.
+- 26/26 current inventory hashes match; four command-line hashes match; all four receipt
+  commit/tree pairs equal cd07307e/eff64964. There are no runtime, test, script, workflow,
+  constraint, or asset changes from that implementation commit to c1d1e59c.
+- Thirty-one commit messages parsed for trailers: zero trailer blocks.
+Both scratch clones are clean after the checks. No builder mutant matrix was accepted as
+an independent execution result; the TESTS axis owns the remaining mutant-adequacy review.
+
+REPORT-ONLY EVIDENCE RECORD
+{
+  "unit": "U-442/standards/round-3",
+  "unit_class": "report-only",
+  "base_sha": "db1b72bc37770666bbea4f664f0ecc9d95caffcf",
+  "head_sha": "c1d1e59c50558e81da15faf4a0f885b96f6e20d2",
+  "reviewed_sha": "c1d1e59c50558e81da15faf4a0f885b96f6e20d2",
+  "axis": "STANDARDS",
+  "round": 3,
+  "verdict": "NO-GO",
+  "counts": {
+    "Critical": 0,
+    "Required": 1,
+    "Nit": 0,
+    "Optional": 0,
+    "FYI": 0
+  },
+  "finding_ids": [
+    "R3-STD-1"
+  ],
+  "closed_items": [
+    "H-1",
+    "H-3",
+    "H-4",
+    "H-5",
+    "H-6",
+    "H-7"
+  ],
+  "partial_items": [
+    "H-2"
+  ],
+  "commands": [
+    {
+      "cmd": "python3 -m unittest discover -s tests -q",
+      "exit": 0,
+      "summary": "Ran 1733 tests in 328.668s",
+      "artifact": "full-suite.log"
+    },
+    {
+      "cmd": "python3 scripts/validate.py",
+      "exit": 0,
+      "artifact": "validate-final.log"
+    },
+    {
+      "cmd": "python3 runtime/scripts/floor_guard.py --base db1b72bc37770666bbea4f664f0ecc9d95caffcf",
+      "exit": 0,
+      "artifact": "floor-guard.log"
+    },
+    {
+      "cmd": "python3 controls.py",
+      "exit": 0,
+      "artifact": "controls.json",
+      "detail": "baseline exit 0; both isolated behavioral controls exit 1 by assertion"
+    },
+    {
+      "cmd": "python3 artifact-reader-probe.py",
+      "exit": 0,
+      "artifact": "artifact-reader-probe.json",
+      "detail": "five receipt reads select old committed bytes despite matching current-file pins"
+    },
+    {
+      "cmd": "git diff --check 50788bf2..c1d1e59c",
+      "exit": 0
+    },
+    {
+      "cmd": "git diff --check db1b72bc...c1d1e59c",
+      "exit": 0
+    }
+  ],
+  "scratch_root": "/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-standards-r3-g67rkltq",
+  "artifact_sha256": {
+    "full-suite.log": "5650aeb28fe12dca7b0c7fba9a4cbd033ce87abdd51c4d02af1cbedcf81ab307",
+    "validate-final.log": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6",
+    "evidence-audit.json": "ad84d54afde5ad789ca0e67614e8a989bc38389f003e020612ec3c1e0efe579d",
+    "controls.py": "a7b110d552fc53af1c25f2a2c3c65cca694a6159f1c7583cac7b5135a7fd8215",
+    "controls.json": "acf8c16f3e70363856132d71e6069e248c520a73a80ab219e02118addd15991a",
+    "controls-baseline.log": "5797bfea854b86b3b507ab909f929e53c329ffbfbed7fb3e531603722d282771",
+    "control-timeout.log": "5d8a3827b5c2fc32da21346592590233c4f9f84dc1c959b1df5417dacb7f5148",
+    "control-fail-open.log": "ae5646c58f689f8450cf70660f025468bddc9510279ab111f36c33918aee7e30",
+    "artifact-reader-probe.py": "74257dded6f6a4f5fcc3d5203fa63f7128f739e14604fd13e64ff8a22170c7a3",
+    "artifact-reader-probe.json": "aff98da08274ea17242f944e7824435503d0012f166912492b4d51d4361416ef",
+    "selfcheck-independent.log": "a88c844fd9228cd0e6fa146d2be21b7b81d3507b25e201f6585661e54936b999",
+    "floor-guard.log": "9d1d11dd98c79fed98e75f3e756d8e7a27e4d191cfab665bbc1da34faf96c228",
+    "validate.log": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6"
+  },
+  "boundary": "Only authorized report written in source worktree; no source mutations, staging, commits, or external review actions."
+}
+
+FINAL BOUNDARY CHECK
+Completed UTC: 2026-09-20T10:51:52.472941+00:00
+Review completed within the 30-minute timebox; no partial-report STOP was needed.
+Requested SHA and its reviewed tree remain unchanged. Parallel spec/tests reports are
+present and were neither read for this verdict nor edited. No code or test changes,
+commits, or staged changes were made. No review work or test processes remain pending.

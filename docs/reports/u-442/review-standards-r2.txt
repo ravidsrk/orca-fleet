@@ -1,0 +1,225 @@
+U-442 ROUND 2 — STANDARDS REVIEW
+
+BLIND-FIX EXPECTATIONS (recorded before opening any round-2 diff or implementation)
+Recorded: 2026-09-20T09:19:17.271325+00:00
+Inputs: ARCHITECTURE.md, AGENTS.md, build-u442-r2.md, round-1 review findings,
+acceptance-review playbook, Matt code-review Fowler baseline.
+
+F-1 — Evidence authority: expect a small guard in the shared artifact reader that allows
+tracked-at-head evidence only when SHA and evidence paths identify the same canonical root.
+Distinct clones remain split even if they share history; identical relative pathnames never
+establish shared evidence authority. Split reads must use contained evidence-root bytes and
+require a matching artifacts[] SHA-256 pin; missing or mismatched pins and unreadable files
+must refuse. Expect collision regressions in both success/refusal directions and a same-project
+clone fixture. Do not weaken canonical containment or introduce dependencies. Confidence: high.
+
+F-2 — Selected Git context: expect every raw Git invocation, especially symbol-on-base and
+path@ref binary reads, to go through the existing selected-root argv helpers. Preserve raw
+bytes and exit-code handling; never interpolate a shell command. Symbol present only in A
+must refuse, present only in B must pass, and a B-only tracked contract must read from B while
+cwd/evidence remain A. Confidence: high.
+
+F-3 — Explicit evidence root: expect tests to separate cwd, selected SHA repository, and the
+evidence directory, using actual file/Git I/O and unconditional semantic assertions. Evidence
+in a named subdirectory must resolve and remain bounded there. Ignoring the parsed root must
+break a passing case. Production code may already be correct; avoid unnecessary abstraction.
+Confidence: high about behavior, medium about whether production edits are necessary.
+
+F-4 — Canonical containment: expect a symlink inside evidence pointing to an external file,
+with a valid pin to rule out incidental refusal, to fail due to canonical containment. A nested
+evidence root must reject an escape still inside its parent repository. Preserve lexical path
+refusals and fail closed on resolution errors. Confidence: high.
+
+F-5 — Nested-cwd compatibility: expect a passing no-flag invocation from a nested cwd, with
+valid SHAs and ordinary repository-relative evidence, to keep selecting the Git toplevel.
+The test must distinguish toplevel from cwd so the named M4 mutation cannot pass. Confidence: high.
+
+Standards baseline: use documented repository conventions over Fowler heuristics; inspect
+changed hunks for unclear names, duplication, feature envy, data clumps, primitive obsession,
+repeated switches, shotgun surgery, divergent change, speculative generality, message chains,
+middle men, and refused bequests. Expect stdlib-only changes, explicit fail-closed behavior,
+argv calls, existing helper style, and evidence-manifest.md <=160 lines. Only this report may
+be written in the supplied worktree; any execution artifacts or mutations use scratch clones.
+
+VERDICT: GO (STANDARDS axis only)
+Counts: Critical=0 Required=0 Nit=0 Optional=0 FYI=0.
+
+EXECUTIVE SUMMARY
+Round 2 closes both round-1 standards Required findings and the two original Greptile P1
+code defects. F-1 through F-5 preserve the required authority, containment, and compatibility
+standards; there are no new actionable standards or Fowler findings. The real 20-case split-root
+fixture, two prior false-acceptance reproductions, two independently pinned escape probes,
+full 1,726-test suite, and sequential validator pass at the requested SHA. The sole report is
+uncommitted; no code, tests, commits, or external review state were changed. This is a standards
+verdict, not a substitute for the separate spec/test-adequacy verdicts or coordinator closure.
+
+REVIEW BINDING
+axis: STANDARDS only; no cross-axis ranking
+head_sha = reviewed_sha: e4cbf222bc7cd1001b8bd11960d3ed92c2f6cd5f
+reviewed_tree: 51b87ecc8d16639a52281f6b8be8575a731f9190
+fixed_point: origin/review/2026-09-20-tracker-sweep
+fixed_point snapshot: 7d522074688e5a0a6556518fbbfd3cf4ef5e241e
+merge_base: 5df4c0d8767d007e5f7c947a9fe955b0f83a7a34
+feature comparison: git diff 5df4c0d8...e4cbf222
+round-2 fix comparison: git diff abb00452713d1b5dff1976c0f1a5854ca9290ba7..e4cbf222
+Observed worktree HEAD: 50788bf24a1beaa45540859ccde33b2f8b30c901. It adds only
+ docs/reports/u-442/integrate-r2.json after the requested SHA; all reviewed production,
+test, and policy blobs are unchanged. This report stays bound to the requested SHA.
+
+ROUND-1 CLOSURE AUDIT (these are resolved items, not new findings)
+
+F-1 / STD-1 / Greptile P1-1 (4056474414): CLOSED on the standards axis.
+Verbatim motivating current lines, runtime/scripts/verify.py:303-305:
+    split = _roots_are_split()
+    if (not split and head and HEX40_RE.match(str(head))
+            and _git(["cat-file", "-e", f"{head}:{path}"])[0] == 0):
+The canonical-root comparison at :208 licenses tracked bytes only under matching bounds;
+unresolved identity returns split=True. Split reads reach resolved.read_bytes() at :311 and
+require the exact path's inventory digest at :314-325. Two clones remain split even with
+shared history. The submitted collision/pin/clone cases at test_verify.py:3321-3382 all pass.
+The exact round-1 false-acceptance shape (valid colliding blob in B, no pin and no file in A)
+now exits 2 and names unreadable evidence. The bytes from B cannot rescue A's absent file.
+
+F-2 / STD-2 / Greptile P1-2 (4056474416), including T5: CLOSED on the standards axis.
+Verbatim motivating current line, runtime/scripts/verify.py:1754:
+    code, out = _git(["grep", "-l", "-e", symbol, f"origin/{base}"])
+Verbatim raw contract read, :253:
+        code, out, err = _git_bytes(["show", f"{ref}:{path}"])
+Both helpers pass git/-C/root as argv. The byte helper already selected the SHA root in
+round 1; round 2 adds the missing contract regression rather than changing correct code.
+Both asymmetric symbol tests and the B-only path@ref contract test (:3384-3421) pass.
+Repeating round 1's A-only sentinel case now exits 2 because that symbol is absent from B.
+Remaining raw Git calls are deliberate: evidence-root discovery uses cwd, root validation
+uses its explicit candidate, and NC worktrees derive from selected _toplevel() before
+running against their explicit worktree. No SHA leg accidentally falls back to evidence cwd.
+
+F-3 / T2: CLOSED on the standards axis.
+Verbatim selected evidence bound, runtime/scripts/verify.py:184:
+    top = _ROOTS["evidence"]
+Verbatim resolver call, :228:
+    top = _evidence_toplevel()
+The extraction shares this policy between containment and split detection. Tests at
+:3423 and :3435 cover distinct cwd and a named evidence subdirectory; both pass without
+changing the original evidence authority or adding an abstraction beyond two small helpers.
+
+F-4 / T3: CLOSED on the standards axis.
+Verbatim motivating containment line, runtime/scripts/verify.py:236:
+    if full != root and root not in full.parents:
+Canonical resolution precedes this check. The submitted outward-symlink and nested-root
+cases (:3452 and :3466) pass and explicitly assert the containment diagnostic. I additionally
+used matching SHA-256 inventory pins in independent outward and nested-root symlink probes;
+both return no bytes with "evidence path escapes the evidence root (#267)". This verifies
+that canonical containment itself refuses even when pin integrity is otherwise satisfied.
+
+F-5 / T4: CLOSED on the standards axis.
+Verbatim fallback, runtime/scripts/verify.py:186-187:
+        code, out, _ = _run(["git", "rev-parse", "--show-toplevel"])
+        top = out.strip() if code == 0 else None
+The no-flag path continues to use cwd's Git toplevel. The valid nested-cwd invocation at
+:3479 passes, keeping the legacy resolution contract distinct from explicit evidence bounds.
+
+STANDARDS / STYLE AUDIT
+Sources: AGENTS.md and ARCHITECTURE.md; CONTRIBUTING.md:107-108 (stdlib-only and fail-closed);
+runtime/sandbox-policy.md:135-139 (argv, never interpolation); acceptance-review and the Matt
+code-review Fowler baseline; neighboring verify.py and RepoCase/CrossRepoRoots patterns.
+The argv rule is inherited via runtime policy, not literally written in current AGENTS.md.
+
+No new import, dependency, shell interpolation, secret, policy layer, or relaxation of a
+refusal was introduced. Git failures stay errors; unresolved root identity cannot authorize
+a tracked-blob shortcut. Helpers return the existing byte/error and code/output shapes.
+Applied all twelve Fowler smells to each changed code hunk: no actionable smell. Small,
+cohesive helper extraction avoids duplicating evidence-root policy; the incident comments
+follow CONTRIBUTING.md's explicit preservation rule. The width pin moves 88 -> 90 with an
+explanation naming the two helpers; the original <92 invariant is unchanged. A separate
+read-only standards helper independently reached the same conclusion.
+
+Runtime evidence-manifest.md remains exactly 160 lines / 22,330 bytes (round-2 base:
+160 lines / 22,317 bytes), within both caps. Round-2 generated changes are limited to the
+source-test-count badge (1714 -> 1726) and floor-it activation load; no generator or validator
+logic changed. These tool-enforced checks are evidence, not duplicate review findings.
+
+EXECUTION EVIDENCE (scratch only)
+Scratch root: /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-standards-r2-az9lr18_
+Detached clone: repo/ at reviewed_sha. Production code was not mutated.
+- python3 tests/test_verify.py CrossRepoRoots -v: exit 0; 20 tests in 3.917s, OK.
+- python3 ../probe.py: exit 0; both round-1 false acceptances now refuse, and both
+  independently pinned canonical escape probes refuse. Source and stdout retained in scratch.
+- git diff --check abb00452..e4cbf222 and 5df4c0d8...e4cbf222: exit 0.
+- python3 -m unittest discover -s tests -q: exit 0; Ran 1726 tests in 304.247s, OK.
+- python3 scripts/validate.py (sequential final run): exit 0;
+  "All 21 missions valid; three-layer separation holds; evals valid."
+- After the suite and validator, git status --short in the scratch clone is empty.
+An initial parallel validator attempt exited 1 because the full suite's architecture test
+planted playbooks/_frontmatter_probe.md in that same scratch clone. The test's source at
+ tests/test_architecture.py:132-139 creates and deletes that fixture. This is reviewer-induced
+command overlap; it is not attributed to the candidate. Its original output is retained.
+No builder narration, old SHA receipt, or Greptile CLEAN assertion is substituted for these
+checks. Greptile's two original code defects are confirmed fixed; live bot status was not queried.
+The separate TESTS axis owns executed mutant adequacy; this standards review did not rerun
+builder mutations or claim their published matrix as independent evidence.
+
+SELECTED INDEPENDENT PROBE OUTPUT (verbatim)
+collision_missing exit 2
+verify: 2 invariant(s) failed — unit is NOT done
+symbol_only_a exit 2
+FAIL: symbol 'ROOT_A_SENTINEL' not found on origin/main (change may not be on base)
+verify: 1 invariant(s) failed — unit is NOT done
+pinned_symlink_escape raw None error evidence path escapes the evidence root (#267): link/outside.txt
+pinned_nested_escape raw None error evidence path escapes the evidence root (#267): link/outside.txt
+
+REPORT-ONLY EVIDENCE RECORD
+{
+  "unit": "U-442/standards/round-2",
+  "unit_class": "report-only",
+  "base_sha": "5df4c0d8767d007e5f7c947a9fe955b0f83a7a34",
+  "head_sha": "e4cbf222bc7cd1001b8bd11960d3ed92c2f6cd5f",
+  "reviewed_sha": "e4cbf222bc7cd1001b8bd11960d3ed92c2f6cd5f",
+  "verdict": "GO",
+  "finding_ids": [],
+  "resolved_standards": [
+    "STD-1",
+    "STD-2"
+  ],
+  "resolved_greptile_code_findings": [
+    "4056474414",
+    "4056474416"
+  ],
+  "commands": [
+    {
+      "cmd": "python3 tests/test_verify.py CrossRepoRoots -v",
+      "exit": 0,
+      "tests": 20,
+      "artifact": "crossrepo.txt"
+    },
+    {
+      "cmd": "python3 ../probe.py",
+      "exit": 0,
+      "artifact": "probes.txt"
+    },
+    {
+      "cmd": "python3 -m unittest discover -s tests -q",
+      "exit": 0,
+      "tests": 1726,
+      "artifact": "full-suite.txt"
+    },
+    {
+      "cmd": "python3 scripts/validate.py",
+      "exit": 0,
+      "artifact": "validate-final.txt"
+    }
+  ],
+  "scratch_root": "/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/u442-standards-r2-az9lr18_",
+  "artifact_sha256": {
+    "crossrepo.txt": "8de94ec35f4312c8f05fb2d2d9063907fb87ff45ba76e884159e5d4ad8342c36",
+    "probe.py": "0517deed9b406bf57461544aaf63fbd0034b983a040f8039b14ca6bd3debdd06",
+    "probes.txt": "0f9c348d02cd4efd252322170cb5e099a26d841ea0a06b0d6134aa84db64c8f0",
+    "full-suite.txt": "c2bab7255b3f85d2934caf9bf4d50a48e9c740bb0c4da9f9b5f721a1fee54d7e",
+    "validate.txt": "3e4b48c494825c5a05c6e0052d8dc5651696186cebcb72d452af2ac39d60fc9b",
+    "validate-final.txt": "90e1cc04c2301795dbb6306b86320f4cb65d9994187cc9ed7a251176258760a6"
+  },
+  "boundary": "Only authorized report written in source worktree; no production mutations or commits."
+}
+
+FINAL CHECK
+Completed UTC: 2026-09-20T09:25:45.423576+00:00
+Requested SHA and all reviewed blobs remain unchanged. Review completed within the 30-minute timebox; no partial-report STOP was needed. No standards work remains pending.
