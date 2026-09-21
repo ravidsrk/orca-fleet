@@ -60,6 +60,24 @@ expected run-substrate warnings, and `sh scripts/install.sh --check` re-verified
 without changes. `.github/workflows/install.yml` repeats that shape — empty HOME,
 no credentials — on every PR touching an install path.
 
+## Index check (2026-09-21; previous 2026-09-13, 2026-09-01)
+
+**Re-run 2026-09-21: still nothing moved.** Every row re-measured against its live surface;
+all four 2026-09-13 rows hold unchanged:
+
+- buildwithclaude's record STILL carries `updatedAt` **2026-09-01** — no re-index in twenty
+  days; the blurb still reads "10 outcome-named autonomous fleets" (the catalog is 21; the
+  About is 17). The repo-setting About text remains the upstream of that row and only the
+  maintainer can change it.
+- skills.sh still indexes the predecessor `ravidsrk/autonomous-fleet` (2 installs) for the
+  `ravidsrk` query; `ravidsrk/orca-fleet` still resolves to stablyai/orca's skills, not this
+  catalog.
+- claudemarketplace.net still returns the literal `No results for "orca-fleet"` (the slug
+  appears only as the echoed query in title/input — the result payload is empty; the
+  2026-09-13 trap note stands: match on the payload, never the page).
+- anthropics/claude-plugins-official's `marketplace.json` still returns HTTP 404 — the row
+  stays **unverified**, now at 2026-09-21 as well, never re-confirmed.
+
 ## Index check (2026-09-13; previous 2026-09-01)
 
 Agent-reachable surfaces. "Listed" means a search returned this repo, not that
