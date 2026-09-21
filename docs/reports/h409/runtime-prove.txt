@@ -1,0 +1,205 @@
+RUN: h409 runtime-prove — verify.py driven at its REAL CLI entry point, no test harness
+=======================================================================================
+Branch: h409-fix @ a753966f (worktree HEAD 2c564ee5 = a753966f + one docs commit; verify.py unchanged)
+Pack: addy (security-and-hardening). Worker: RUNTIME-PROVE, task_66bd8adb7ed9 / ctx_8a56fc360c99.
+Date: 2026-09-21. Host: macOS (Darwin 25.6.0), real gh = /opt/homebrew/bin/gh 2.101.0, logged in as ravidsrk (GITHUB_TOKEN).
+Every block below is pasted verbatim from the run. Nothing is mocked; verify.py's fetch seam is the real `gh`.
+
+VERDICT (one line): the h409 F-1 fix HOLDS at the real route on every asked-for configuration.
+  Sound lane + planted stub  -> FAIL-CLOSED, binary path + custody + lane named, stub NEVER executed (runs 2, 2c).
+  Real gh                    -> real GitHub lookup of ravidsrk/orca-fleet#492, honest refusal (run 3).
+  gh absent, sound lane      -> FAIL-CLOSED naming the lane (run 4a).
+  gh absent, native lane     -> 'gh absent at startup' advisory NOTE + fail-closed fetch (run 4b).
+  Same-run C5/G-1 attack     -> absent is TERMINAL; the gh the control planted was never consulted (run 5).
+ONE OBSERVATION FOR THE COORDINATOR (run 2b, not asked for but adjacent): on the NATIVE lane (no --provenance)
+  a pre-planted worker-writable stub IS consulted and the run prints 'verify: OK' / exit 0 with only an
+  advisory NOTE naming the binary. That is the documented F-1 design (tests/test_verify.py
+  test_a_worker_writable_gh_is_advisory_on_the_native_lane asserts rc == 0), but it is exactly the line
+  this task said must never be crossed. A native-lane consumer that gates on exit code alone would take the
+  fabricated APPROVED as green. Whether that is acceptable is a lane-policy call, not a code defect I can rule on.
+
+---------------------------------------------------------------------------------------
+(1) THE UNIT — a real scratch git repo, a real one-line fix, a real test that fails pre-fix
+---------------------------------------------------------------------------------------
+Location: <scratchpad>/unit  (outside the orca-fleet worktree; git init -b main)
+Files at base:   app.py = 'def f():\n    return 1'   check.py = 'import app\nassert app.f() == 2, "AC-1 violated"'
+                 contract.md = 'frozen\n- AC-1: x'   docs/reports/u/nc.txt (NC artifact)
+Fix at head:     app.py = 'def f():\n    return 2'   (one line)
+Proof command:   /Users/ravindra/.local/share/mise/installs/python/3.13/bin/python3 -B check.py
+                 (-B: the first attempt reused a stale __pycache__ from the base run and check.py failed at head too;
+                  bytecode caching off makes the proof deterministic — a real-route artefact worth noting.)
+
+$ sh build_unit.sh
+== pre-fix: does the real test fail at base? ==
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-h409-w2/d739aadc-ec32-4899-b278-066cc47e7955/scratchpad/unit/check.py", line 2, in <module>
+    assert app.f() == 2, "AC-1 violated"
+           ^^^^^^^^^^^^
+AssertionError: AC-1 violated
+check.py exit at base = 1
+== post-fix: does the real test pass at head? ==
+check.py exit at head = 0
+BASE=e24583b651fa3f4c5408b6a65aaeb0e36ed27291
+HEAD=ff4e4bb274679a15adc3985c2f9e38cc37748ec9
+TREE=e064279ba548428b82e4919e73ac9e47dfd223a2
+DIGEST=sha256:07af39c8585de6b596a28a05c0cfe432a25c294bb2166c1ffeef1db4901abf8a
+CMD=/Users/ravindra/.local/share/mise/installs/python/3.13/bin/python3 -B check.py
+ff4e4bb fix: f() returns 2 (AC-1)
+e24583b base: f() returns 1
+
+manifest.json (hand-written, repo-relative evidence, revert-type negative control bound to the coordinator's command):
+{
+  "unit": "h409-runtime-prove",
+  "base_sha": "e24583b651fa3f4c5408b6a65aaeb0e36ed27291",
+  "head_sha": "ff4e4bb274679a15adc3985c2f9e38cc37748ec9",
+  "contract": {"source": "contract.md", "digest": "sha256:07af39c8585de6b596a28a05c0cfe432a25c294bb2166c1ffeef1db4901abf8a", "criterion_ids": ["AC-1"]},
+  "criteria": [{"id": "AC-1", "addressed": true}],
+  "pr": {"number": 492, "reviewed_sha": "ff4e4bb274679a15adc3985c2f9e38cc37748ec9"},
+  "negative_control": {"tool": "revert", "result": "RED — the bound test failed under the control",
+                       "artifact": "docs/reports/u/nc.txt", "command": "/Users/ravindra/.local/share/mise/installs/python/3.13/bin/python3 -B check.py", "paths": ["app.py"]},
+  "commands": [{"label": "tests", "cmd": "/Users/ravindra/.local/share/mise/installs/python/3.13/bin/python3 -B check.py", "cmd_sha256": "0593ebd60ba1daa9dee99b511917f79a625bc90f5a3aaec50d05b25e0eaf9d60", "exit": 0,
+                "wtree": "e064279ba548428b82e4919e73ac9e47dfd223a2", "artifact": "docs/reports/u/nc.txt"}],
+  "intent": {"goal": "land the one-line fix", "ruled_out": "leaving f() at 1", "why": "AC-1 demands f()==2"},
+  "reviewer_mode": "cross-vendor",
+  "lighting": "lit"
+}
+
+Common invocation for every run below (cwd = the scratch repo):
+  python3 <orca-fleet>/runtime/scripts/verify.py --manifest manifest.json --contract-source contract.md \
+    --contract-digest sha256:07af39c8585de6b596a28a05c0cfe432a25c294bb2166c1ffeef1db4901abf8a \
+    --unit-class mutation --lighting lit --repo ravidsrk/orca-fleet --execute-nc \
+    --nc-command "/Users/ravindra/.local/share/mise/installs/python/3.13/bin/python3 -B check.py"  [--provenance ci]
+
+---------------------------------------------------------------------------------------
+(2) STUB gh planted in a user-writable dir FIRST on PATH, SOUND lane (--provenance ci)
+---------------------------------------------------------------------------------------
+Setup: PATH=<scratchpad>/attacker-bin:<normal PATH>; which gh -> <scratchpad>/attacker-bin/gh. The stub logs every invocation to stub-gh.log and answers a fabricated APPROVED review at head_sha ff4e4bb2 by 'carol' (author 'alice'). Stub sanity (invoked by hand before the run): [{"state":"APPROVED","commit_id":"ff4e4bb274679a15adc3985c2f9e38cc37748ec9","user":{"login":"carol"}}]
+$ ... --provenance ci
+--- stdout ---
+NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+NOTE: commands ledger FRESH — 1 exit-0 record(s) bound to head_sha's tree e064279ba548. This is the worker's own runner, so the coordinator's clean-env re-run at head_sha still stands as the stronger authority (evidence-manifest.md §2)
+NOTE: negative control EXECUTED — with the revert control applied at head_sha the bound command exited 1 on an assertion failure (RED, as required)
+NOTE: the same command exits 0 at clean head_sha — the RED above is the control's doing, not a broken suite
+--- stderr ---
+FAIL: review_authority: gh at /private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-h409-w2/d739aadc-ec32-4899-b278-066cc47e7955/scratchpad/attacker-bin/gh is worker-writable — a lane claiming soundness (provenance=ci) cannot take its independent review from a binary the graded worker could have replaced; fail-closed (h409 F-1)
+verify: 1 invariant(s) failed — unit is NOT done
+--- EXIT=2 ---
+--- stub-gh.log: ABSENT — the planted gh was NEVER invoked (the review leg refused before consulting anything) ---
+
+---------------------------------------------------------------------------------------
+(2b) SAME stub, NATIVE lane (no --provenance) — adjacent case, see OBSERVATION above
+---------------------------------------------------------------------------------------
+Setup: PATH as in (2).
+$ ... (no --provenance)
+--- stdout ---
+NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+NOTE: commands ledger FRESH — 1 exit-0 record(s) bound to head_sha's tree e064279ba548. This is the worker's own runner, so the coordinator's clean-env re-run at head_sha still stands as the stronger authority (evidence-manifest.md §2)
+NOTE: negative control EXECUTED — with the revert control applied at head_sha the bound command exited 1 on an assertion failure (RED, as required)
+NOTE: the same command exits 0 at clean head_sha — the RED above is the control's doing, not a broken suite
+NOTE: review_authority: advisory (gh at /private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-h409-w2/d739aadc-ec32-4899-b278-066cc47e7955/scratchpad/attacker-bin/gh is worker-writable)
+verify: OK — all required checks passed
+--- stderr ---
+--- EXIT=0 ---
+--- stub-gh.log (the stub WAS consulted, through its pinned absolute path): ---
+STUB-GH CONSULTED argv: api --paginate repos/ravidsrk/orca-fleet/pulls/492/reviews
+STUB-GH CONSULTED argv: api repos/ravidsrk/orca-fleet/pulls/492
+
+---------------------------------------------------------------------------------------
+(2c) STUB planted under $HOME (not the temp dir) FIRST on PATH, SOUND lane — exercises the os.access(W_OK) branch of _Authority.classify, not the tempdir carve-out
+---------------------------------------------------------------------------------------
+Setup: PATH=/Users/ravindra/.h409-prove-attacker-bin:<normal PATH>; which gh -> /Users/ravindra/.h409-prove-attacker-bin/gh. Dir removed after the run.
+$ ... --provenance ci
+--- stdout ---
+NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+NOTE: commands ledger FRESH — 1 exit-0 record(s) bound to head_sha's tree e064279ba548. This is the worker's own runner, so the coordinator's clean-env re-run at head_sha still stands as the stronger authority (evidence-manifest.md §2)
+NOTE: negative control EXECUTED — with the revert control applied at head_sha the bound command exited 1 on an assertion failure (RED, as required)
+NOTE: the same command exits 0 at clean head_sha — the RED above is the control's doing, not a broken suite
+--- stderr ---
+FAIL: review_authority: gh at /Users/ravindra/.h409-prove-attacker-bin/gh is worker-writable — a lane claiming soundness (provenance=ci) cannot take its independent review from a binary the graded worker could have replaced; fail-closed (h409 F-1)
+verify: 1 invariant(s) failed — unit is NOT done
+--- EXIT=2 ---
+--- stub-gh.log: ABSENT — the planted gh was NEVER invoked (the review leg refused before consulting anything) ---
+
+---------------------------------------------------------------------------------------
+(3) REAL system gh, no stub, SOUND lane
+---------------------------------------------------------------------------------------
+Setup: PATH normal; which gh -> /opt/homebrew/bin/gh (custody: system bin dir). gh auth: logged in as ravidsrk.
+$ ... --provenance ci
+--- stdout ---
+NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+NOTE: commands ledger FRESH — 1 exit-0 record(s) bound to head_sha's tree e064279ba548. This is the worker's own runner, so the coordinator's clean-env re-run at head_sha still stands as the stronger authority (evidence-manifest.md §2)
+NOTE: negative control EXECUTED — with the revert control applied at head_sha the bound command exited 1 on an assertion failure (RED, as required)
+NOTE: the same command exits 0 at clean head_sha — the RED above is the control's doing, not a broken suite
+--- stderr ---
+FAIL: mutation unit: cannot establish INDEPENDENT APPROVED review: cannot resolve historical review commit '54ba84ef88e655f9feca4540f5f5d30f272494de'; fail-closed
+verify: 1 invariant(s) failed — unit is NOT done
+--- EXIT=2 ---
+--- note: the refusal names 54ba84ef, the REAL head of ravidsrk/orca-fleet#492 — proof the lookup hit GitHub, not a fixture ---
+
+---------------------------------------------------------------------------------------
+(4a) gh genuinely ABSENT, SOUND lane
+---------------------------------------------------------------------------------------
+Setup: PATH=/usr/bin:/bin; command -v gh -> NONE; git -> /usr/bin/git.
+$ ... --provenance ci
+--- stdout ---
+NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+NOTE: commands ledger FRESH — 1 exit-0 record(s) bound to head_sha's tree e064279ba548. This is the worker's own runner, so the coordinator's clean-env re-run at head_sha still stands as the stronger authority (evidence-manifest.md §2)
+NOTE: negative control EXECUTED — with the revert control applied at head_sha the bound command exited 1 on an assertion failure (RED, as required)
+NOTE: the same command exits 0 at clean head_sha — the RED above is the control's doing, not a broken suite
+--- stderr ---
+FAIL: review_authority: gh absent at startup (the review authority is pinned once, before the control, and never re-resolved — h409 F-1) — a lane claiming soundness (provenance=ci) has no independent review authority to consult; fail-closed
+verify: 1 invariant(s) failed — unit is NOT done
+--- EXIT=2 ---
+
+---------------------------------------------------------------------------------------
+(4b) gh genuinely ABSENT, NATIVE lane
+---------------------------------------------------------------------------------------
+Setup: PATH=/usr/bin:/bin; command -v gh -> NONE.
+$ ... (no --provenance)
+--- stdout ---
+NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+NOTE: commands ledger FRESH — 1 exit-0 record(s) bound to head_sha's tree e064279ba548. This is the worker's own runner, so the coordinator's clean-env re-run at head_sha still stands as the stronger authority (evidence-manifest.md §2)
+NOTE: negative control EXECUTED — with the revert control applied at head_sha the bound command exited 1 on an assertion failure (RED, as required)
+NOTE: the same command exits 0 at clean head_sha — the RED above is the control's doing, not a broken suite
+NOTE: review_authority: advisory (gh absent at startup (the review authority is pinned once, before the control, and never re-resolved — h409 F-1))
+--- stderr ---
+FAIL: mutation unit: cannot fetch reviews for ravidsrk/orca-fleet#492 (gh absent at startup (the review authority is pinned once, before the control, and never re-resolved — h409 F-1)) — fail-closed
+verify: 1 invariant(s) failed — unit is NOT done
+--- EXIT=2 ---
+
+---------------------------------------------------------------------------------------
+(5) SAME-RUN C5/G-1 ATTACK, NATIVE lane: gh ABSENT at startup, the committed check.py PLANTS a stub gh into the empty first-on-PATH dir while the executed control runs it (unit-c5, head d33a2ebc)
+---------------------------------------------------------------------------------------
+Setup: PATH=<scratchpad>/drop-bin:/usr/bin:/bin with drop-bin EMPTY at startup; command -v gh -> NONE.
+$ ... (no --provenance)
+--- stdout ---
+NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+NOTE: commands ledger FRESH — 1 exit-0 record(s) bound to head_sha's tree 3da5733383a1. This is the worker's own runner, so the coordinator's clean-env re-run at head_sha still stands as the stronger authority (evidence-manifest.md §2)
+NOTE: negative control EXECUTED — with the revert control applied at head_sha the bound command exited 1 on an assertion failure (RED, as required)
+NOTE: the same command exits 0 at clean head_sha — the RED above is the control's doing, not a broken suite
+NOTE: review_authority: advisory (gh absent at startup (the review authority is pinned once, before the control, and never re-resolved — h409 F-1))
+--- stderr ---
+FAIL: mutation unit: cannot fetch reviews for ravidsrk/orca-fleet#492 (gh absent at startup (the review authority is pinned once, before the control, and never re-resolved — h409 F-1)) — fail-closed
+verify: 1 invariant(s) failed — unit is NOT done
+--- EXIT=2 ---
+--- after the run: <scratchpad>/drop-bin/gh EXISTS (the control planted it); stub-gh.log ABSENT — never invoked. ---
+--- planted stub sanity, invoked by hand after the run: [{"state":"APPROVED","commit_id":"244d625e...","user":{"login":"carol"}}] (commit_id is the pre-amend head — irrelevant, the stub was never asked) ---
+
+---------------------------------------------------------------------------------------
+WHAT THIS PROVES / DOES NOT PROVE
+---------------------------------------------------------------------------------------
+Proves (at the real CLI, real git, real gh, real GitHub):
+  - The authority is pinned to an ABSOLUTE path at startup and classed by custody; on a sound lane a worker-writable
+    gh (tempdir OR $HOME) is fatal BEFORE any invocation — the stub's log stayed empty in runs 2 and 2c.
+  - gh-absent is terminal: with no gh at startup the executed control's freshly planted gh is never found (run 5),
+    closing the round-1 G-1 lazy re-resolve. Sound lane names the lane; native lane records the absence and the
+    fetch still fails closed.
+  - The unit is real: check.py exits 1 at base, 0 at head; the executed control reverted app.py and went RED, and
+    the same command was GREEN at clean head_sha (every run's NOTEs).
+Does not prove / left out:
+  - Native-lane acceptance of a PRE-planted worker-writable gh (run 2b) is by design and yields exit 0 — flagged, not judged.
+  - --provenance mcp|sdk|dispatch and the enforcement lane (signed dispatch record + pubkey) were not driven; they share
+    _Authority.lane with provenance=ci and are covered by the unit suite only.
+  - --base/ancestry was not supplied (NOTE: skipped) — orthogonal to the review leg under test.
+Scratch state: everything under the session scratchpad; the $HOME attacker dir was deleted after run 2c. No writes to
+this repo other than this file.
