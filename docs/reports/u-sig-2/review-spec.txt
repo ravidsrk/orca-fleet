@@ -37,7 +37,7 @@ inventory.py and run_report.py: no hits).
  E3.2 compliance-provenance.md placeholder row replaced with same.
  E3.3 BOT-2: spec froze 3 fields + "spec only"; overclaim risk in "proves the receipt covers these
       bytes" if only presence+digest equality is checkable. Expect wording to say presence-only
-      today; binding "specified not implemented".
+      today; the binding check specified for a later unit.
  A1 failing-first: test commit precedes impl OR RED receipt in run dir.
  A2 tests: signed OK / tampered FAIL / unsigned+pubkey REFUSED / unsigned-no-pubkey OK exist.
  A3 pre-existing test_inventory.py tests unchanged (diff of old tests = 0).

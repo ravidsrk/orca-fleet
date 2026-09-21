@@ -46,8 +46,8 @@ receipt, never a gate dependency; no gate script makes a network call. The check
 and binding the digest. Said plainly in both places: PROVEN, once that check runs, is that the receipt covers
 exactly these inventory bytes; NOT proven is that the log entry exists, is reachable or is trustworthy (a live
 `entry_uuid` lookup the maintainer runs out of band); and `verify.py` TODAY checks only that `retention` is a
-non-empty string when a standard is named — the field-binding check is specified, not implemented (verify.py is
-out of this unit's scope; parked with a gate).
+non-empty string when a standard is named — the field-binding check is specified here and lands in a later unit
+(verify.py is out of this unit's scope; parked with a gate).
 
 Byte budget: evidence-manifest.md is ridden by all 21 missions and clean-sweep sat at 33,997/34,000 activation
 tokens. The new clauses were paid for by compressing narrative asides in the same file (the intro, the #279
@@ -74,7 +74,7 @@ no rule was removed. 22,330 → 22,326 bytes, 160 → 158 lines; load 33,997 aft
 
 ## Parked
 
-- verify.py's offline receipt field-binding check — specified in both docs, stated as not implemented; maintainer
-  gate (G1 follow-up).
+- verify.py's offline receipt field-binding check — specified in both docs; implementation owed to a later unit;
+  maintainer gate (G1 follow-up).
 - `SignedInventoryRequired` re-runs `RunReportBinding`'s ~31 tests through the fixture inheritance, as the
   pre-existing `SignedTranscriptRequired` already did; a test-layout nit for review, not changed here.
