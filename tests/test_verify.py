@@ -2283,7 +2283,7 @@ class DispatchProvenance(RepoCase):
         self.assertTrue(res and all(e.startswith("NOTE:") for e in res), res)
 
 
-class SignedTranscript(RepoCase):
+class TranscriptFixture(RepoCase):
     """#281 / #386: the verdict leaves verify.py as a SIGNED transcript, not only as stdout text.
 
     Given `--transcript-out` + `--transcript-key`, main() builds a machine-readable verdict object
@@ -2307,6 +2307,11 @@ class SignedTranscript(RepoCase):
 
     def _envelope(self, path="docs/reports/u/transcript.json"):
         return json.loads((self.repo / path).read_text(encoding="utf-8"))
+
+
+
+class SignedTranscript(TranscriptFixture):
+    """#281/#386: the --transcript-out / --transcript-key pair (fixture above; tests here)."""
 
     def test_no_flags_writes_nothing_and_says_nothing_new(self):
         # The unsigned default path is byte-identical to today's: the terminal lines are the
@@ -3937,7 +3942,7 @@ class DotSlashEvidenceSpelling(RepoCase):
         self.assertIsNone(raw, "a path@ref absent at the toplevel was read via git's cwd")
 
 
-class TranscriptKeyCustody(SignedTranscript):
+class TranscriptKeyCustody(TranscriptFixture):
     """h409 F-4 (C3), verify.py's leg: --transcript-key reads the seed through dispatch-sign.py's
     shared _seed. A 0644 seed, or one inside an unignored work tree, is a USAGE refusal (exit 1)
     before any verdict — never a transcript quietly signed by a leaked seed — and a passing seed's

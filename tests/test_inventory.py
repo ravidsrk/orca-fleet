@@ -335,7 +335,7 @@ class TestCheckAtRevision(unittest.TestCase):
         self.assertIn("is not a commit", r.stdout + r.stderr)
 
 
-class SignedInventory(InventoryBase):
+class InventorySigningFixture(InventoryBase):
     """#386 / U-SIG-2: the run-close inventory's ENTRY SET is signed with the coordinator's
     Ed25519 key (the dispatch-sign.py scheme, the same seed/pubkey files). The envelope is a
     detached HTML-comment line inside the inventory block — every existing block shape still
@@ -380,6 +380,11 @@ class SignedInventory(InventoryBase):
                 if l.startswith("<!-- inventory-signature")]
 
     # --- the shape that must pass ------------------------------------------------------------
+
+
+class SignedInventory(InventorySigningFixture):
+    """#386: signed inventory entry sets (fixture above; tests here)."""
+
     def test_sign_writes_one_envelope_that_check_verifies_with_the_pubkey(self):
         report = self._signed_fenced()
         self.assertEqual(len(self._envelopes(report)), 1, report.read_text())
@@ -656,7 +661,7 @@ if __name__ == "__main__":
     unittest.main(verbosity=2)
 
 
-class SeedCustodyAtSign(SignedInventory):
+class SeedCustodyAtSign(InventorySigningFixture):
     """h409 F-4 (C3), the inventory signer's leg: `sign --key` reads the seed through
     dispatch-sign.py's shared _seed, so a 0644 or unignored-in-repo seed is refused here too, and
     a passing seed's custody class is named on stderr."""
