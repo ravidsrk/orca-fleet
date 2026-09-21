@@ -42,6 +42,7 @@ import base64
 import importlib.util
 import json
 import os
+import stat
 import subprocess
 import sys
 from pathlib import Path
@@ -177,13 +178,34 @@ def gen_key(out: Path, in_repo_ok: bool = False) -> int:
 
 
 def _seed(key: Path):
-    """(seed bytes, None) from a gen-key seed file, or (None, reason)."""
+    """(seed bytes, None) from a gen-key seed file, or (None, reason).
+
+    h409 F-4: custody is re-asserted at USE, not only at creation. gen-key writes 0600 and refuses
+    an unignored in-repo path, but a seed that was chmod'ed, copied, or committed since arrives
+    here looking like any other — and a signature by a leaked seed is exactly what the scheme
+    exists to exclude. So every signer (sign, sign-transcript, verify.py --transcript-key,
+    inventory.py sign/write --key) refuses a seed any group/other bit can read, or one inside a
+    git work tree that does not ignore it, and NAMES the custody class of a passing seed on stderr
+    so the audit trail says what signed. The check is custody class, never existence: a 0600 seed
+    outside any repo, or under an ignored path, keeps working."""
+    try:
+        mode = stat.S_IMODE(key.stat().st_mode)
+    except OSError as exc:
+        return None, f"cannot read a hex seed from {key}: {exc}"
+    if mode & 0o077:
+        return None, (f"seed custody: {key} is mode {mode:04o} — readable beyond its owner, so any "
+                      "signature it makes is unattributable; refusing (chmod 0600, or gen-key anew)")
+    if _in_unignored_worktree(key):
+        return None, (f"seed custody: {key} is inside a git work tree that does not ignore it — "
+                      "one `git add -A` (or a past one) makes it public; refusing (move it out of "
+                      "the repo or git-ignore it)")
     try:
         seed = bytes.fromhex(key.read_text(encoding="utf-8").strip())
     except (OSError, ValueError) as exc:
         return None, f"cannot read a hex seed from {key}: {exc}"
     if len(seed) != 32:
         return None, "key must be a 32-byte hex seed"
+    print(f"seed custody: {key} mode {mode:04o}, outside any unignored work tree", file=sys.stderr)
     return seed, None
 
 

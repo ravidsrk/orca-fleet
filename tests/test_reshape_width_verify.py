@@ -14,7 +14,11 @@ Pre-deepening baseline: 92. Post-deepening pin: 85, raised to 88 by #442, then t
 single-repo/split test, each named once instead of inlined at every call site), then
 to 91 by #281/#386 (`_Transcript`: the signed verifier transcript — canonical form in
 parity with dispatch-sign.py, verdict build, seed load and envelope write, held in ONE
-class precisely so the feature costs one name and stays under the <92 invariant).
+class precisely so the feature costs one name and stays under the <92 invariant). h409
+F-1/F-2 (`_Authority`: the review authority pinned once at startup and classed by custody,
+plus the lane that decides whether a worker-influenceable authority is advisory or fatal)
+is again ONE class, and it is paid for: the single-use `_WAIVER_NEEDS_EXECUTED_NC` moved
+into check_review, the only function that ever read it, so the pin holds at 91.
 
 The pin is a ratchet against the deepening RE-WIDENING, not a freeze: the
 invariant it defends is `width < BASELINE_WIDTH`, and that baseline never

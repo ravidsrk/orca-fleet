@@ -1,0 +1,72 @@
+{
+  "unit": "h409-fix",
+  "issue": 409,
+  "spec": "docs/runs/2026-09-21-harden-409/build-fix.md",
+  "pr": {
+    "number": 492,
+    "url": "https://github.com/ravidsrk/orca-fleet/pull/492",
+    "base": "review/2026-09-21-harden-409",
+    "head": "h409-fix",
+    "base_asserted": true
+  },
+  "head_sha": "d6577928968cfa73c548c453fa6ba859203cb703",
+  "base_sha": "0d552ec9d6a250260ea89db292dacab0d886dfed",
+  "base_moved": false,
+  "suite": {
+    "cmd": "python3 -m unittest discover -s tests",
+    "ran": 1967,
+    "duration_s": 417.001,
+    "result": "OK"
+  },
+  "validate": {
+    "cmd": "python3 scripts/validate.py",
+    "exit": 0,
+    "summary": "All 21 missions valid; three-layer separation holds; evals valid."
+  },
+  "gitleaks": {
+    "version": "8.30.1",
+    "scope": "origin/review/2026-09-21-harden-409..HEAD",
+    "commits_scanned": 6,
+    "result": "no leaks found"
+  },
+  "egress_receipts": {
+    "git-push": "26632446677a34a5d441f3f630429dc2c77a133cdc731ce0f6ae34dae58cee4e",
+    "pr-open": "10ef6c50faff6bb0b93477d3ac9bc13d9748db176aa06fd8726bd1b859e6caae",
+    "thread-replies": [
+      "ca441e6c2cd3a5601ca4c5ada690a1cfebfb78f1caaf70d7437eef3721eade2d",
+      "18f1cf9fb687c767949ece8cf126ca5e12d88929cfe52f4ac0b3ce8c5f903263"
+    ]
+  },
+  "bot_state": {
+    "bot": "greptile-apps[bot]",
+    "ran": true,
+    "review_state": "COMMENTED",
+    "submitted_at": "2026-09-21T07:28:34Z",
+    "wait_s": 193,
+    "threads": [
+      {
+        "id": 4060043691,
+        "path": "runtime/scripts/verify.py",
+        "line": 2321,
+        "title": "Unknown provenance disables enforcement",
+        "severity_filed": "P1/security",
+        "tag": "FALSE-POSITIVE",
+        "reason": "An unknown --provenance can only decline soundness, never claim it; unsetting ORCA_PROVENANCE gives the worker the identical advisory lane, and verify-gate.sh's pre-existing case already treats every non-listed value as advisory. The downgrade is recorded as an advisory NOTE in the verdict. Residual = operator-typo ergonomics (choices=), a follow-up nit outside the frozen spec.",
+        "reply_id": 4060054081
+      },
+      {
+        "id": 4060043696,
+        "path": "runtime/scripts/verify.py",
+        "line": 701,
+        "title": "Writable binaries classified trusted",
+        "severity_filed": "P1/security",
+        "tag": "FALSE-POSITIVE",
+        "reason": "Premise false on the build host (/usr/local/bin is drwxr-xr-x root). The SYSTEM_BINS carve-out is the frozen spec's explicit F-1(b) design ('not a standard system bin dir'); resolving Homebrew's user-owned gh symlink would fail every sound lane closed on every Homebrew host. A worker able to write system bin dirs owns the toolchain running verify.py — outside the h409 threat model.",
+        "reply_id": 4060054256
+      }
+    ]
+  },
+  "held": true,
+  "fixed_on_pr": [],
+  "timestamp": "2026-09-21T07:40:00Z"
+}

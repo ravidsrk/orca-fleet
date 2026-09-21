@@ -76,6 +76,10 @@ class RepoCase(unittest.TestCase):
         self._cwd = os.getcwd()
         os.chdir(self.repo)
         self.addCleanup(self._leave)
+        # h409 F-1: the review authority is process state pinned once per run. Every test is a
+        # fresh run — a pin (or an inferred repo) left by the previous test is not its evidence.
+        verify._Authority.reset()
+        self.addCleanup(verify._Authority.reset)
 
     def _leave(self):
         os.chdir(self._cwd)
@@ -109,6 +113,16 @@ class RepoCase(unittest.TestCase):
     def pin(self, rel):
         """An `artifacts[]` inventory entry pinning an UNTRACKED working-tree artifact (#267)."""
         return {"path": rel, "sha256": hashlib.sha256((self.repo / rel).read_bytes()).hexdigest()}
+
+    def seed_file(self, seed):
+        """A coordinator seed the way gen-key leaves one: 0600, OUTSIDE any git work tree — the
+        custody class every signer now re-asserts at use (h409 F-4). Returns its path (str)."""
+        td = tempfile.TemporaryDirectory(prefix="orca-seed-")
+        self.addCleanup(td.cleanup)
+        path = Path(td.name) / "dispatch-key"
+        path.write_text(seed.hex() + "\n", encoding="utf-8")
+        path.chmod(0o600)
+        return str(path)
 
 
 class ScopeCheck(RepoCase):
@@ -706,6 +720,8 @@ class ReviewLookupBinding(unittest.TestCase):
         self._orig_r = verify.fetch_reviews
         self._orig_a = verify.fetch_pr_author
         verify.fetch_pr_author = lambda repo, n: "pr-author"  # a resolved author, distinct from reviewers
+        verify._Authority.reset()  # a pin another test left is not this test's authority (h409 F-1)
+        self.addCleanup(verify._Authority.reset)
 
     def tearDown(self):
         verify.fetch_reviews = self._orig_r
@@ -813,6 +829,11 @@ class ReviewPagination(unittest.TestCase):
         self._env = {"PATH": f"{fakebin}{os.pathsep}{os.environ['PATH']}",
                      "FAKE_GH_PAGE1": str(self._page1),
                      "FAKE_GH_PAGE2": str(self._page2)}
+        # h409 F-1: the authority is pinned once per run; a library caller pins on first use, so
+        # each test's fresh fakebin needs the pin cleared (and its temp-dir gh is, correctly,
+        # classed worker-writable — advisory NOTEs, not fatals, on this unlabelled lane).
+        verify._Authority.reset()
+        self.addCleanup(verify._Authority.reset)
 
     def tearDown(self):
         self._tmp.cleanup()
@@ -834,7 +855,7 @@ class ReviewPagination(unittest.TestCase):
         res = self._verdict_with_pages(self._filler(30),
                                        [{"state": "APPROVED", "commit_id": "H",
                                          "user": {"login": "carol"}}])
-        self.assertEqual(res, [])
+        self.assertEqual([e for e in res if not e.startswith("NOTE:")], [])
 
     def test_page2_changes_requested_supersedes_page1_approval(self):
         page1 = self._filler(29) + [{"state": "APPROVED", "commit_id": "H",
@@ -848,7 +869,7 @@ class ReviewPagination(unittest.TestCase):
         res = self._verdict_with_pages(self._filler(30),
                                        [{"state": "APPROVED", "commit_id": "H",
                                          "user": {"login": "carol"}}])
-        self.assertEqual(res, [])
+        self.assertEqual([e for e in res if not e.startswith("NOTE:")], [])
 
     def test_gh_error_fails_closed(self):
         self._page1.write_text("not json\n", encoding="utf-8")
@@ -1304,14 +1325,10 @@ class InferRepoFromOrigin(unittest.TestCase):
         self.assertIsNone(verify.infer_repo())
 
 
-class EndToEndMutationGreen(RepoCase):
-    """#183: a complete mutation manifest must drive verify() to GREEN (exit 0) END-TO-END — every
-    mutation lane (scope, SHAs, review, negative control, intent, lighting, reviewer_mode) passing
-    simultaneously through the aggregation's NOTE/fatal partition. Only the GitHub fetch seam
-    (fetch_reviews / fetch_pr_author) is mocked; every other check re-derives from real authorities
-    (a temp git repo for the SHAs, the frozen contract, the NC artifact). Component tests cover
-    each lane; this is the only net for their composition — a partition or NOTE-wording regression
-    (a pass path that stops starting with "NOTE:") flips these tests red."""
+class MutationFixture(RepoCase):
+    """A complete, REAL mutation unit in a hermetic repo (the #183 fixture): a module the fix
+    changes, a criterion-bound proof command, the frozen contract, the NC artifact — with only
+    the GitHub fetch seam mocked. Test classes compose it; it carries no tests itself."""
 
     def setUp(self):
         super().setUp()
@@ -1402,6 +1419,28 @@ class EndToEndMutationGreen(RepoCase):
         return {"tool": "revert", "result": "RED — the bound test failed under the control",
                 "artifact": self.nc_artifact, "command": self.proof_cmd, "paths": ["app.py"]}
 
+    def _run_main(self, path, *extra):
+        buf, errbuf = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(errbuf):
+            rc = verify.main(["--manifest", path,
+                              "--contract-source", self.contract,
+                              "--contract-digest", self.digest,
+                              "--unit-class", "mutation", *extra])
+        return rc, buf.getvalue(), errbuf.getvalue()
+
+
+class EndToEndMutationGreen(MutationFixture):
+    """#183: a complete mutation manifest must drive verify() to GREEN (exit 0) END-TO-END — every
+    mutation lane (scope, SHAs, review, negative control, intent, lighting, reviewer_mode) passing
+    simultaneously through the aggregation's NOTE/fatal partition. Only the GitHub fetch seam
+    (fetch_reviews / fetch_pr_author) is mocked; every other check re-derives from real authorities
+    (a temp git repo for the SHAs, the frozen contract, the NC artifact). Component tests cover
+    each lane; this is the only net for their composition — a partition or NOTE-wording regression
+    (a pass path that stops starting with "NOTE:") flips these tests red."""
+
+    def _run_main(self, path, *extra):
+        return super()._run_main(path, "--repo", "o/r", *extra)
+
     def test_full_pass_mutation_manifest_is_green_end_to_end(self):
         path = self._manifest()
         out, err = verify.verify(path, self.contract, self.digest, repo="o/r",
@@ -1424,15 +1463,6 @@ class EndToEndMutationGreen(RepoCase):
         self.assertEqual(rc, 0)
         self.assertIn("verify: OK", buf.getvalue())
         self._assert_mutation_lanes_ran()
-
-    def _run_main(self, path, *extra):
-        buf, errbuf = io.StringIO(), io.StringIO()
-        with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(errbuf):
-            rc = verify.main(["--manifest", path,
-                              "--contract-source", self.contract,
-                              "--contract-digest", self.digest,
-                              "--repo", "o/r", "--unit-class", "mutation", *extra])
-        return rc, buf.getvalue(), errbuf.getvalue()
 
     def test_dark_eligible_with_an_executed_revert_is_green(self):
         # #255 + #256, the whole point: the review-waived lane goes GREEN only when the negative
@@ -2244,7 +2274,7 @@ class DispatchProvenance(RepoCase):
         # Through both entry points, not the helpers: a signature the gate rejects is worth
         # nothing, and every field added to the tuple is a chance for the two to disagree.
         import subprocess
-        seed = self.write(".orca/seed", bytes(range(1, 33)).hex() + "\n")
+        seed = self.seed_file(bytes(range(1, 33)))
         out = subprocess.run(
             [sys.executable, str(ROOT / "runtime" / "scripts" / "dispatch-sign.py"), "sign",
              "--key", seed, "--manifest-id", "u", "--contract-digest", "sha256:a",
@@ -2259,7 +2289,7 @@ class DispatchProvenance(RepoCase):
         self.assertTrue(res and all(e.startswith("NOTE:") for e in res), res)
 
 
-class SignedTranscript(RepoCase):
+class TranscriptFixture(RepoCase):
     """#281 / #386: the verdict leaves verify.py as a SIGNED transcript, not only as stdout text.
 
     Given `--transcript-out` + `--transcript-key`, main() builds a machine-readable verdict object
@@ -2273,7 +2303,7 @@ class SignedTranscript(RepoCase):
     def setUp(self):
         super().setUp()
         self.manifest = self.write("docs/reports/u/manifest.json", json.dumps({"unit": "u"}))
-        self.key = self.write(".orca/seed", self.SEED.hex() + "\n")
+        self.key = self.seed_file(self.SEED)
 
     def _main(self, *extra):
         buf, errbuf = io.StringIO(), io.StringIO()
@@ -2283,6 +2313,11 @@ class SignedTranscript(RepoCase):
 
     def _envelope(self, path="docs/reports/u/transcript.json"):
         return json.loads((self.repo / path).read_text(encoding="utf-8"))
+
+
+
+class SignedTranscript(TranscriptFixture):
+    """#281/#386: the --transcript-out / --transcript-key pair (fixture above; tests here)."""
 
     def test_no_flags_writes_nothing_and_says_nothing_new(self):
         # The unsigned default path is byte-identical to today's: the terminal lines are the
@@ -3855,6 +3890,266 @@ class CrossRepoRoots(RepoCase):
         text = buf.getvalue()
         for flag in ("--git-dir", "--evidence-root"):
             self.assertIn(flag, text)
+
+class DotSlashEvidenceSpelling(RepoCase):
+    """h409 F-3 (C2): `./`-spelled evidence bound where git's cwd diverged from the toplevel.
+    _resolve bounded `./reports/u/nc.txt` against the toplevel, but the git lookup handed the
+    manifest STRING to `cat-file -e head:./reports/u/nc.txt`, which git resolves against ITS cwd
+    — so with the verifier (or --git-dir) below the toplevel the verdict bound a path that does
+    not exist at the bounded root. Both sides must see one spelling: leading `./` segments are
+    stripped before the containment check AND the git lookup."""
+
+    def setUp(self):
+        super().setUp()
+        self.write("app.py", "x = 1\n")
+        self.artifact("mutant m7 was KILLED — proof went RED\n")  # docs/reports/u/nc.txt
+        self.head = self.commit("head")
+        self.m = {"head_sha": self.head}
+
+    def test_dotslash_from_a_below_toplevel_cwd_reds_like_the_toplevel_does(self):
+        # Control: from the toplevel the path is absent at the root and the read fails.
+        _, err = verify._read_artifact(self.m, "./reports/u/nc.txt")
+        self.assertIsNotNone(err)
+        # The C2 reproduction: same manifest string, cwd = <root>/docs.
+        os.chdir(self.repo / "docs")
+        raw, err = verify._read_artifact(self.m, "./reports/u/nc.txt")
+        self.assertIsNone(raw, "a path absent at the bounded root was read via git's cwd")
+        self.assertIsNotNone(err)
+
+    def test_dotslash_from_a_below_toplevel_git_dir_reds_too(self):
+        verify._ROOTS.update(git=str(self.repo / "docs"), evidence=None)
+        try:
+            raw, err = verify._read_artifact(self.m, "./reports/u/nc.txt")
+        finally:
+            verify._ROOTS.update(git=None, evidence=None)
+        self.assertIsNone(raw, "a path absent at the bounded root was read via --git-dir's cwd")
+        self.assertIsNotNone(err)
+
+    def test_dotslash_spelling_of_a_real_tracked_path_still_reads(self):
+        raw, err = verify._read_artifact(self.m, "./docs/reports/u/nc.txt")
+        self.assertIsNone(err)
+        self.assertIn(b"KILLED", raw)
+        os.chdir(self.repo / "docs")
+        raw, err = verify._read_artifact(self.m, "./docs/reports/u/nc.txt")
+        self.assertIsNone(err)
+        self.assertIn(b"KILLED", raw)
+
+    def test_dotslash_path_at_ref_source_resolves_against_the_toplevel(self):
+        os.chdir(self.repo / "docs")
+        raw, err = verify.read_source(f"./docs/reports/u/nc.txt@{self.head}")
+        self.assertIsNone(err)
+        self.assertIn(b"KILLED", raw)
+        raw, err = verify.read_source(f"./reports/u/nc.txt@{self.head}")
+        self.assertIsNone(raw, "a path@ref absent at the toplevel was read via git's cwd")
+
+
+class TranscriptKeyCustody(TranscriptFixture):
+    """h409 F-4 (C3), verify.py's leg: --transcript-key reads the seed through dispatch-sign.py's
+    shared _seed. A 0644 seed, or one inside an unignored work tree, is a USAGE refusal (exit 1)
+    before any verdict — never a transcript quietly signed by a leaked seed — and a passing seed's
+    custody class is named on stderr."""
+
+    def test_a_world_readable_seed_is_refused_before_any_verdict(self):
+        os.chmod(self.key, 0o644)
+        rc, out, err = self._main("--transcript-out", "docs/reports/u/transcript.json",
+                                  "--transcript-key", self.key)
+        self.assertEqual(rc, 1, err)
+        self.assertIn("custody", err)
+        self.assertIn("0644", err)
+        self.assertFalse((self.repo / "docs/reports/u/transcript.json").exists())
+
+    def test_a_seed_in_the_unignored_work_tree_is_refused(self):
+        key = self.write(".orca/seed", self.SEED.hex() + "\n")
+        os.chmod(self.repo / key, 0o600)
+        rc, out, err = self._main("--transcript-out", "docs/reports/u/transcript.json",
+                                  "--transcript-key", key)
+        self.assertEqual(rc, 1, err)
+        self.assertIn("custody", err)
+        self.assertIn("work tree", err)
+
+    def test_a_0600_out_of_repo_seed_signs_and_names_its_custody_class(self):
+        rc, out, err = self._main("--transcript-out", "docs/reports/u/transcript.json",
+                                  "--transcript-key", self.key)
+        self.assertEqual(rc, 2, err)  # the minimal manifest's verdict is RED; the seed was accepted
+        self.assertIn("custody", err)
+        self.assertIn("0600", err)
+        self.assertEqual(set(self._envelope()), {"record", "sig_b64"})
+
+
+class ReviewAuthorityPinnedBeforeTheControl(MutationFixture):
+    """h409 F-1 (C5): the same-run false GREEN. `gh` was a bare PATH lookup made AFTER the executed
+    negative control ran the unit's own test code with the verifier's privileges — so a committed
+    check.py could drop a stub `gh` into an empty user-writable dir first on PATH and the LATER
+    review leg read a fabricated APPROVED from it (verified: exit 0, no stub present at start).
+    The authority is now resolved to an absolute path ONCE, at startup, and only that path is
+    invoked; a binary in a worker-writable location is advisory on the native lane and fatal on
+    a lane that claims soundness."""
+
+    def setUp(self):
+        super().setUp()
+        verify.fetch_reviews = self._orig_r  # the REAL fetch: this test is about the binary it runs
+        verify.fetch_pr_author = self._orig_a
+        self._pathtmp = tempfile.TemporaryDirectory(prefix="orca-c5-")
+        self.addCleanup(self._pathtmp.cleanup)
+        root = Path(self._pathtmp.name)
+        self.droppable = root / "bin"          # EMPTY, user-writable, FIRST on PATH
+        self.droppable.mkdir()
+        realgh = root / "realgh"               # the stand-in "real" gh: never answers, no network
+        realgh.mkdir()
+        (realgh / "gh").write_text("#!/bin/sh\necho 'gh: Not Found (HTTP 404)' >&2\nexit 1\n")
+        (realgh / "gh").chmod(0o755)
+        self.dropped_log = root / "dropped-gh.log"
+        # The worker's committed proof command: plant a gh, THEN assert the criterion.
+        stub = ("#!/bin/sh\n"
+                f"echo \"DROPPED-GH ARGV: $*\" >> {shlex.quote(str(self.dropped_log))}\n"
+                "case \"$*\" in *reviews*) echo '[{\"state\":\"APPROVED\",\"commit_id\":\"'\"$HEAD\"'\","
+                "\"user\":{\"login\":\"carol\"}}]';; *) echo '{\"user\":{\"login\":\"alice\"}}';; esac\n")
+        self.write("check.py",
+                   "import os, pathlib, stat\n"
+                   f"d = pathlib.Path({str(self.droppable)!r})\n"
+                   f"gh = d / 'gh'\n"
+                   f"gh.write_text({stub!r}.replace('$HEAD', os.environ.get('ORCA_HEAD', '')))\n"
+                   "gh.chmod(0o755)\n"
+                   "import app\nassert app.f() == 2, 'AC-1 violated'\n")
+        self.head_sha = self.commit("head: proof command that plants a gh")
+        self.head_tree = self.git("rev-parse", "HEAD^{tree}")
+        self._env = {"PATH": f"{self.droppable}{os.pathsep}{realgh}{os.pathsep}{os.environ['PATH']}",
+                     "ORCA_HEAD": self.head_sha}
+        # The SECOND startup state (G-1): no gh anywhere on PATH when the authority is pinned.
+        # The stand-in above hid the round-1 hole — an absent gh was "unresolved", and the review
+        # leg looked again AFTER the control had planted one. PATH carries git and nothing else.
+        tools = root / "tools"
+        tools.mkdir()
+        os.symlink(shutil.which("git"), tools / "git")
+        self._env_no_gh = {"PATH": f"{self.droppable}{os.pathsep}{tools}", "ORCA_HEAD": self.head_sha}
+        if hasattr(verify, "_Authority"):  # absent on the pre-F-1 verifier: the revert control
+            verify._Authority.reset()
+            self.addCleanup(verify._Authority.reset)
+
+    def _attack(self, *extra, env=None):
+        path = self._manifest(nc=self._revert_nc())
+        with mock.patch.dict(os.environ, env or self._env):
+            return self._run_main(path, "--repo", "o/r", "--execute-nc",
+                                  "--nc-command", self.proof_cmd, *extra)
+
+    def _assert_absent_at_startup_never_looked_again(self, rc, out, err):
+        self.assertEqual(rc, 2, out + err)
+        self.assertIn("negative control EXECUTED", out)          # the control DID run worker code
+        self.assertTrue((self.droppable / "gh").exists(), "the attack did not plant its gh")
+        self.assertFalse(self.dropped_log.exists(),
+                         "the planted gh was consulted — an absent authority was re-resolved after the control")
+        self.assertIn("gh absent at startup", err)
+
+    def test_a_gh_dropped_by_the_executed_control_never_answers_the_review_leg(self):
+        rc, out, err = self._attack()
+        self.assertEqual(rc, 2, out + err)
+        self.assertIn("negative control EXECUTED", out)          # the control DID run worker code
+        self.assertTrue((self.droppable / "gh").exists(), "the attack did not plant its gh")
+        self.assertFalse(self.dropped_log.exists(),
+                         "the planted gh was consulted — the authority was resolved after the control")
+        self.assertIn("cannot fetch reviews", err)               # the pre-pinned stand-in answered
+
+    def test_a_worker_writable_gh_is_fatal_on_a_sound_lane(self):
+        (self.droppable / "gh").write_text("#!/bin/sh\necho '[]'\n")
+        (self.droppable / "gh").chmod(0o755)
+        rc, out, err = self._attack("--provenance", "ci")
+        self.assertEqual(rc, 2, out + err)
+        self.assertIn("review_authority", err)
+        self.assertIn("worker-writable", err)
+        self.assertIn("provenance=ci", err)
+
+    def test_a_worker_writable_gh_is_advisory_on_the_native_lane(self):
+        # A gh already sitting in the writable dir before the run answers (through its pinned
+        # absolute path) — but the verdict RECORDS that the authority was worker-writable.
+        (self.droppable / "gh").write_text(
+            "#!/bin/sh\ncase \"$*\" in *reviews*) echo '[{\"state\":\"APPROVED\",\"commit_id\":\"'\"$ORCA_HEAD\"'\","
+            "\"user\":{\"login\":\"carol\"}}]';; *) echo '{\"user\":{\"login\":\"alice\"}}';; esac\n")
+        (self.droppable / "gh").chmod(0o755)
+        rc, out, err = self._attack()
+        self.assertEqual(rc, 0, out + err)
+        self.assertIn("NOTE: review_authority: advisory (gh at", out)
+        self.assertIn("worker-writable", out)
+
+    def test_with_no_gh_at_startup_the_native_lane_refuses_and_records_the_absence(self):
+        self.assertIsNone(shutil.which("gh", path=self._env_no_gh["PATH"]), "fixture: PATH must carry no gh")
+        rc, out, err = self._attack(env=self._env_no_gh)
+        self._assert_absent_at_startup_never_looked_again(rc, out, err)
+        self.assertIn("NOTE: review_authority: advisory (gh absent at startup", out)
+        self.assertIn("cannot fetch reviews", err)
+
+    def test_with_no_gh_at_startup_a_sound_lane_fails_closed_naming_the_lane(self):
+        rc, out, err = self._attack("--provenance", "ci", env=self._env_no_gh)
+        self._assert_absent_at_startup_never_looked_again(rc, out, err)
+        self.assertIn("review_authority", err)
+        self.assertIn("provenance=ci", err)
+        self.assertNotIn("NOTE: review_authority", out)
+
+    def test_an_absent_pin_is_terminal_for_a_library_caller_too(self):
+        # The class, not the symptom: once pinned absent, a gh that appears later is never found.
+        with mock.patch.dict(os.environ, self._env_no_gh):
+            verify._Authority.resolve(explicit_repo="o/r")
+        self.assertEqual((verify._Authority.gh, verify._Authority.custody), (None, "absent"))
+        (self.droppable / "gh").write_text("#!/bin/sh\necho '[]'\n")
+        (self.droppable / "gh").chmod(0o755)
+        with mock.patch.dict(os.environ, self._env):
+            reviews, err = verify.fetch_reviews("o/r", 7)
+        self.assertIsNone(reviews)
+        self.assertIn("gh absent at startup", err)
+        self.assertEqual((verify._Authority.gh, verify._Authority.custody), (None, "absent"))
+
+    def test_a_system_gh_is_classed_system(self):
+        self.assertEqual(verify._Authority.classify("/usr/bin/gh"), "system")
+        self.assertEqual(verify._Authority.classify(str(self.droppable / "gh")), "worker-writable")
+        self.assertEqual(verify._Authority.classify(str(self.repo / "gh")), "worker-writable")
+
+
+class ReviewRepoIsCoordinatorPinned(MutationFixture):
+    """h409 F-2 (C1): with --repo omitted the review repository was inferred from the clone's
+    origin URL — a remote the worker (and every sibling worktree sharing .git) can rewrite. On a
+    lane claiming soundness that inference is REFUSED; on the native lane it is recorded as
+    advisory with its source."""
+
+    def setUp(self):
+        super().setUp()
+        self.git("remote", "add", "origin", "https://github.com/evil/mirror.git")
+        # This class is about the REPO: a stand-in gh (never answers; the fetch is mocked by the
+        # fixture) sits on PATH and is classed system, so the F-1 custody leg stays out of the
+        # picture whether or not the host carries a gh — absent-at-startup is a fatal of its own.
+        standin = tempfile.TemporaryDirectory(prefix="orca-c1-")
+        self.addCleanup(standin.cleanup)
+        (Path(standin.name) / "gh").write_text("#!/bin/sh\nexit 1\n")
+        (Path(standin.name) / "gh").chmod(0o755)
+        env = mock.patch.dict(os.environ, {"PATH": f"{standin.name}{os.pathsep}{os.environ['PATH']}"})
+        env.start()
+        self.addCleanup(env.stop)
+        patcher = mock.patch.object(verify._Authority, "classify", return_value="system")
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_no_repo_on_a_sound_lane_refuses_to_infer(self):
+        rc, out, err = self._run_main(self._manifest(), "--provenance", "mcp")
+        self.assertEqual(rc, 2, out + err)
+        self.assertIn("review_repo", err)
+        self.assertIn("evil/mirror", err)
+        self.assertIn("explicit --repo", err)
+
+    def test_no_repo_on_the_native_lane_is_advisory_and_recorded(self):
+        rc, out, err = self._run_main(self._manifest())
+        self.assertEqual(rc, 0, out + err)
+        self.assertIn("NOTE: review_repo: advisory ('evil/mirror' inferred from origin", out)
+
+    def test_an_explicit_repo_on_a_sound_lane_passes_without_the_note(self):
+        rc, out, err = self._run_main(self._manifest(), "--provenance", "mcp", "--repo", "real/project")
+        self.assertEqual(rc, 0, out + err)
+        self.assertNotIn("review_repo", out + err)
+
+    def test_the_transcript_signs_the_provenance(self):
+        key = self.seed_file(bytes(range(1, 33)))
+        rc, out, err = self._run_main(self._manifest(), "--repo", "real/project", "--provenance", "ci",
+                                      "--transcript-out", "docs/reports/u/t.json", "--transcript-key", key)
+        self.assertEqual(rc, 0, out + err)
+        rec = json.loads((self.repo / "docs/reports/u/t.json").read_text())["record"]
+        self.assertEqual(rec["args"]["provenance"], "ci")
 
 
 if __name__ == "__main__":

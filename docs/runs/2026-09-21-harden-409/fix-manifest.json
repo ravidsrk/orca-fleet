@@ -1,0 +1,114 @@
+{
+  "commands": [
+    {
+      "label": "negative-control",
+      "ts": "2026-09-21T06:52:59Z",
+      "cmd": "python3 -m unittest tests.test_verify.DotSlashEvidenceSpelling tests.test_verify.TranscriptKeyCustody tests.test_verify.ReviewAuthorityPinnedBeforeTheControl tests.test_verify.ReviewRepoIsCoordinatorPinned tests.test_dispatch_sign.SeedCustodyAtUse tests.test_inventory.SeedCustodyAtSign tests.test_run_report.TranscriptBindsTheVerifierToolchain",
+      "cmd_sha256": "535c48db7a884d3f0953fa6ed5e11e3503b4fa551013f904a0387a70a8ae3054",
+      "exit": 1,
+      "duration_s": 10.533,
+      "commit": "81a25d4e711c0925a6f35d40b5d82db076ee1057",
+      "wtree": "4fea48bcbd71403d1b69accfcf7bae7742556759",
+      "artifact": "docs/runs/2026-09-21-harden-409/fix-negctrl.txt"
+    },
+    {
+      "label": "tests",
+      "ts": "2026-09-21T07:05:55Z",
+      "cmd": "python3 -m unittest tests.test_verify tests.test_run_report tests.test_dispatch_sign tests.test_inventory tests.test_reshape_width_verify",
+      "cmd_sha256": "2281f0985deedfb50d526ed45f38ef8d35cea4929dd13a61c72c0ee5c9e601be",
+      "exit": 0,
+      "duration_s": 130.499,
+      "commit": "81a25d4e711c0925a6f35d40b5d82db076ee1057",
+      "wtree": "2b1649d27b3d5da65a9a19542ad3ca853b55114b",
+      "artifact": "docs/runs/2026-09-21-harden-409/fix-tests.txt",
+      "note": "recorded on a clean tree (the evidence files held outside the repo during the run) so wtree == head_sha^{tree}; the ledger and artifact were then placed in this directory unchanged"
+    }
+  ],
+  "schema": 1,
+  "unit": "h409-fix",
+  "unit_class": "mutation",
+  "base_sha": "0d552ec9d6a250260ea89db292dacab0d886dfed",
+  "head_sha": "81a25d4e711c0925a6f35d40b5d82db076ee1057",
+  "head_tree": "2b1649d27b3d5da65a9a19542ad3ca853b55114b",
+  "head_sha_role": "base_sha..head_sha is the h409 fix batch on h409-fix, cut from the BASE tip 0d552ec9 (review/2026-09-21-harden-409): F-3 (4f1e1e1c), F-4 (f4da24db), F-5 (e5221944), F-1/F-2 (8265f0cf), test-fixture split (81a25d4e). head_sha is the LAST content commit; the commit recording this manifest, its receipts and the fix report follows it and carries no production or test content.",
+  "base_branch": "review/2026-09-21-harden-409",
+  "contract": {
+    "source": "docs/runs/2026-09-21-harden-409/build-fix.md@0d552ec9",
+    "digest": "sha256:af9c014fe399e1cbe59daf96a21b87b70b8eb4dfbeddb872b234d88142a97004",
+    "criterion_ids": [
+      "F-1",
+      "F-2",
+      "F-3",
+      "F-4",
+      "F-5"
+    ]
+  },
+  "criteria": [
+    {
+      "id": "F-1",
+      "text": "stub gh in a writable PATH dir → the review leg refuses on a sound lane / marks advisory otherwise; a system-bin gh works; resolution happens before any NC execution.",
+      "addressed": true,
+      "witness": "verify.py: _Authority.resolve() is called in main() before verify() (so before every check and the executed control); shutil.which runs ONCE, the PATH entry is pinned absolute and fetch_reviews/fetch_pr_author invoke only _Authority.gh. classify(): system-bin PATH dir → system; a binary resolving under a work tree, the temp dir, or a user-writable dir → worker-writable. check_review → _Authority.review_leg(): worker-writable + lane claiming soundness → fatal 'review_authority: gh at <path> is worker-writable … fail-closed (h409 F-1)'; native lane → 'NOTE: review_authority: advisory (gh at <path> is worker-writable)'. Tests: ReviewAuthorityPinnedBeforeTheControl::test_a_gh_dropped_by_the_executed_control_never_answers_the_review_leg (the C5 reproduction end to end: check.py plants a gh in an EMPTY writable dir first on PATH during --execute-nc; the planted gh's log never appears; the pre-pinned stand-in answers and the run is exit 2 'cannot fetch reviews' — on the pre-F-1 verifier this test is RED with exit 0, the false GREEN), ::test_a_worker_writable_gh_is_fatal_on_a_sound_lane (--provenance ci → exit 2 naming provenance=ci), ::test_a_worker_writable_gh_is_advisory_on_the_native_lane (exit 0 + the NOTE), ::test_a_system_gh_is_classed_system."
+    },
+    {
+      "id": "F-2",
+      "text": "no --repo on a sound lane → refuse; inferred repo → advisory + recorded.",
+      "addressed": true,
+      "witness": "verify.py: _Authority.resolve(explicit_repo) records repo_source explicit|inferred; review_leg(): inferred + sound lane → fatal 'review_repo: … inferred from the clone's origin … requires an explicit --repo; fail-closed (h409 F-2)'; native lane → 'NOTE: review_repo: advisory (<repo> inferred from origin, not pinned by the coordinator)'. --provenance is a verify.py flag now, forwarded from ORCA_PROVENANCE by verify-gate.sh, signed in the transcript's args (run_report SIGNED_ARGS mirrors it). Tests: ReviewRepoIsCoordinatorPinned::test_no_repo_on_a_sound_lane_refuses_to_infer, ::test_no_repo_on_the_native_lane_is_advisory_and_recorded, ::test_an_explicit_repo_on_a_sound_lane_passes_without_the_note, ::test_the_transcript_signs_the_provenance. docs/verify-gate.md ORCA_REPO/ORCA_PROVENANCE wording updated."
+    },
+    {
+      "id": "F-3",
+      "text": "./docs/x from a below-toplevel cwd → identical resolution both sides; the C2 repro REDs where it must.",
+      "addressed": true,
+      "witness": "verify.py: _read_artifact and read_source hand git Path(path).as_posix() — the spelling _resolve already bounded (pathlib drops ./) — never the manifest string. Tests: DotSlashEvidenceSpelling::test_dotslash_from_a_below_toplevel_cwd_reds_like_the_toplevel_does (the C2 layout (ii)), ::test_dotslash_from_a_below_toplevel_git_dir_reds_too (layout (i)), ::test_dotslash_spelling_of_a_real_tracked_path_still_reads, ::test_dotslash_path_at_ref_source_resolves_against_the_toplevel. All four RED on the pre-fix code (fix-negctrl.txt)."
+    },
+    {
+      "id": "F-4",
+      "text": "0644 / git-tracked / unignored seed → refuse with the custody class named; 0600 out-of-repo seed signs; stderr names the custody class.",
+      "addressed": true,
+      "witness": "dispatch-sign.py _seed(): stat → any group/other bit → refuse 'seed custody: <path> is mode 0644 — readable beyond its owner …'; _in_unignored_worktree → refuse 'seed custody: <path> is inside a git work tree that does not ignore it …'; a passing seed prints 'seed custody: <path> mode 0600, outside any unignored work tree' to stderr. Shared by all four signers: sign and sign-transcript call it; inventory.py _read_seed already did; verify.py _Transcript.seed now loads dispatch-sign.py and calls it. Tests: SeedCustodyAtUse (dispatch-sign, both subcommands × 0644 / committed-unignored / 0600-out-of-repo / ignored-in-repo), TranscriptKeyCustody (verify.py: 0644 → exit 1 before any verdict and no transcript written; in-repo unignored → exit 1; 0600 out-of-repo signs + names class), SeedCustodyAtSign (inventory.py sign: 0644 → could-not-run, nothing signed; 0600 signs + names class). 4/4 signers RED on the pre-fix code. Fixtures across test_verify/test_run_report/test_inventory/test_dispatch_sign that wrote seeds 0644 in-repo were the same blind spot and now create seeds the way gen-key leaves them."
+    },
+    {
+      "id": "F-5",
+      "text": "sibling substitution → run_report binding fails; an unmodified toolchain binds.",
+      "addressed": true,
+      "witness": "verify.py _Transcript.TOOLCHAIN = (verify.py, _verify_sig.py, diff_scope.py, ed25519.py, dispatch-sign.py) hashed per file into toolchain.files (verify_sha256 kept = files['verify.py']). run_report.py TOOLCHAIN_FILES mirrors the set; signed_transcript() refuses to bind when toolchain.files is absent, partial, names a file unreadable at the pin, or a hash differs from sha256(runtime/scripts/<name> at rev) — documented as binding the verifier's identity, nothing more. Tests: TranscriptBindsTheVerifierToolchain::test_an_unmodified_toolchain_binds, ::test_a_substituted_sibling_does_not_bind (_verify_sig.py hash of an always-True _failure_signature), ::test_a_transcript_naming_no_toolchain_set_does_not_bind, ::test_a_partial_toolchain_set_does_not_bind. The unit's own transcript (fix-transcript.json) carries toolchain.files for the five files at head."
+    }
+  ],
+  "negative_control": {
+    "tool": "revert",
+    "did": "git checkout 0d552ec9 (the BASE tip) -- runtime/scripts/verify.py runtime/scripts/dispatch-sign.py runtime/scripts/run_report.py in this worktree, tests kept at head; the seven killer classes run via evidence-run.py --label negative-control; then git checkout HEAD -- the three files (worktree clean, verified with git status).",
+    "result": "FAILED (failures=15, errors=43) = 58 RED of 58: F-3's four, F-4's ten across three signers, F-1's C5 reproduction (exit 0 where 2 is required — the false GREEN itself) and its lane tests, F-2's four (ERROR: no _Authority pre-fix), F-5's four (ERROR: no TOOLCHAIN_FILES pre-fix). The C5 test alone was also run against the pre-F-1 verify.py in isolation: AssertionError 0 != 2.",
+    "artifact": "docs/runs/2026-09-21-harden-409/fix-negctrl.txt",
+    "paths": [
+      "runtime/scripts/verify.py",
+      "runtime/scripts/dispatch-sign.py",
+      "runtime/scripts/run_report.py"
+    ],
+    "command": "python3 -m unittest tests.test_verify.DotSlashEvidenceSpelling tests.test_verify.TranscriptKeyCustody tests.test_verify.ReviewAuthorityPinnedBeforeTheControl tests.test_verify.ReviewRepoIsCoordinatorPinned tests.test_dispatch_sign.SeedCustodyAtUse tests.test_inventory.SeedCustodyAtSign tests.test_run_report.TranscriptBindsTheVerifierToolchain",
+    "expected": "RED",
+    "observed": "RED — FAILED (failures=15, errors=43)"
+  },
+  "intent": {
+    "goal": "Fix the five h409 classes so every confirmed reproduction now REFUSES: the review authority pinned before any worker code runs (F-1), the review repository coordinator-pinned on sound lanes (F-2), one spelling for ./-evidence on both sides (F-3), seed custody re-asserted at every signing (F-4), the transcript naming and run_report binding the verifier file set (F-5).",
+    "non_goals": "no new dependency, no network in any script, the unsigned no-key path unchanged, no change to WHAT verify.py checks (only the trust of the channels it checks through), no PR action.",
+    "stop_conditions_hit": "none — no existing refusal weakened; the GitHub review contract untouched (the authority resolution was the bug).",
+    "ruled_out": "Scrubbing env / running the NC under a fixed PATH instead of pinning the authority (the spec names resolution-before-execution as the class fix; env scrubbing would also change the NC's contract); classifying gh custody by realpath alone (Homebrew's /opt/homebrew/bin/gh resolves into a user-owned Cellar, so the spec's standard-system-bin carve-out is applied to the PATH entry's dir); treating `dispatch` provenance as non-sound (verify-gate.sh's own sound case lists ci|mcp|sdk|dispatch, so it is sound here too — the stricter direction); raising the verify.py width pin (held at 91 by folding the single-use _WAIVER_NEEDS_EXECUTED_NC into check_review); failing verify.py itself when the custody NOTE fires on the native lane (the spec says advisory there).",
+    "why": "C5 is the P0 clause verbatim: worker-authored test code making verify.py exit 0 over a forged review, in one run, on the strongest lane the gate offers. C1–C4 are the same shape at smaller scale — each a trust edge where the verifier consulted something the graded worker could have written."
+  },
+  "lighting": "lit",
+  "reviewer_mode": "instructed-isolation",
+  "pr": {
+    "note": "no PR opened — the integrator/conductor owns that per the spec; review pending"
+  },
+  "artifacts": [
+    {
+      "path": "docs/runs/2026-09-21-harden-409/fix-negctrl.txt",
+      "sha256": "a401de22f1678e5a1e97c073ece6817c1ef5536f0bd12b220736250001822506"
+    },
+    {
+      "path": "docs/runs/2026-09-21-harden-409/fix-tests.txt",
+      "sha256": "142799611aa8cc4351e1c1a82c1e85c246a72ada66b4ada8745391b18164eb24"
+    }
+  ]
+}

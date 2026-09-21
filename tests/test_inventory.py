@@ -335,7 +335,7 @@ class TestCheckAtRevision(unittest.TestCase):
         self.assertIn("is not a commit", r.stdout + r.stderr)
 
 
-class SignedInventory(InventoryBase):
+class InventorySigningFixture(InventoryBase):
     """#386 / U-SIG-2: the run-close inventory's ENTRY SET is signed with the coordinator's
     Ed25519 key (the dispatch-sign.py scheme, the same seed/pubkey files). The envelope is a
     detached HTML-comment line inside the inventory block — every existing block shape still
@@ -360,6 +360,7 @@ class SignedInventory(InventoryBase):
     def _keypair(self, name, seed):
         seed_path = self.tmp / name
         seed_path.write_text(seed.hex() + "\n", encoding="utf-8")
+        seed_path.chmod(0o600)  # F-4: a signer refuses a seed any other reader can see
         (self.tmp / f"{name}.pub").write_text(self.ed.publickey(seed).hex() + "\n", encoding="utf-8")
         return seed_path
 
@@ -379,6 +380,11 @@ class SignedInventory(InventoryBase):
                 if l.startswith("<!-- inventory-signature")]
 
     # --- the shape that must pass ------------------------------------------------------------
+
+
+class SignedInventory(InventorySigningFixture):
+    """#386: signed inventory entry sets (fixture above; tests here)."""
+
     def test_sign_writes_one_envelope_that_check_verifies_with_the_pubkey(self):
         report = self._signed_fenced()
         self.assertEqual(len(self._envelopes(report)), 1, report.read_text())
@@ -649,6 +655,29 @@ class SignedInventory(InventoryBase):
         self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
         self.assertIn("not a {record, sig_b64}", r.stderr)
         self.assertNotIn("unsigned", r.stderr.lower())
+
+class SeedCustodyAtSign(InventorySigningFixture):
+    """h409 F-4 (C3), the inventory signer's leg: `sign --key` reads the seed through
+    dispatch-sign.py's shared _seed, so a 0644 or unignored-in-repo seed is refused here too, and
+    a passing seed's custody class is named on stderr."""
+
+    def test_a_world_readable_seed_is_refused(self):
+        self.artifact("a.txt", "alpha\n")
+        report = self.fenced_report([("a.txt", sha("alpha\n"))])
+        self.key.chmod(0o644)
+        r = run_inv("sign", str(report), "--key", str(self.key))
+        self.assertEqual(r.returncode, 2, r.stdout + r.stderr)  # could-not-run
+        self.assertIn("custody", r.stderr)
+        self.assertIn("0644", r.stderr)
+        self.assertEqual(self._envelopes(report), [], "a refused seed must sign nothing")
+
+    def test_a_0600_seed_signs_and_names_its_custody_class(self):
+        self.artifact("a.txt", "alpha\n")
+        report = self.fenced_report([("a.txt", sha("alpha\n"))])
+        r = run_inv("sign", str(report), "--key", str(self.key))
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("custody", r.stderr)
+        self.assertIn("0600", r.stderr)
 
 
 if __name__ == "__main__":

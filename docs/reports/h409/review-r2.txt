@@ -1,0 +1,163 @@
+verdict: GO
+REVIEW r2 — h409-fix, TARGETED re-review (acceptance-review fix-round rule; build-blind; pack: addy)
+==================================================================================================
+Reviewed:  h409-fix @ a753966f9ea491a71da741899c337a312d1f8a06 (delta 78df68a6..a753966f, one code commit)
+Base:      origin/review/2026-09-21-harden-409 @ 0d552ec9 (merge-base unchanged)
+Round 1:   review 5267341997 — 1 Critical (G-1 gh-absent lazy re-resolve), 2 Required (G-2 tests
+           below the __main__ guard; G-3 toolchain set unbound). Sources: docs/reports/h409/review-
+           {spec,standards,tests}.txt, read in full BEFORE the r2 diff.
+Method:    blind expectations E1a-E1g / E2a-E2c / E3a-E3c written first (scratchpad/expectations-r2.md),
+           then ONLY the delta reviewed against them. All execution in two scratch clones of this
+           worktree at a753966f (scratchpad/clone, scratchpad/clone2); mutants applied and reverted
+           there only. This worktree: untouched except this file (uncommitted).
+Timebox:   25 min; no partial STOP needed.
+
+--------------------------------------------------------------------------------------------------
+G-1  CRITICAL (round 1) — gh ABSENT at startup re-resolved after the executed control   → CLOSED
+--------------------------------------------------------------------------------------------------
+Delta (verbatim):
+  runtime/scripts/verify.py:691-692
+    >         else:
+    >             cls.custody = "absent"  # pinned: this run has no authority and will not look again
+  runtime/scripts/verify.py:704-705 (new _Authority.ensure)
+    >         if cls.custody is None:
+    >             cls.resolve(explicit_repo=explicit_repo)
+  runtime/scripts/verify.py:618
+    >     _Authority.ensure()  # a library caller that never ran main(): pin on first use, ONCE (F-1)
+  runtime/scripts/verify.py:2255
+    >     _Authority.ensure(repo)  # a library caller that never ran main(): pin BEFORE the control (F-1)
+  runtime/scripts/verify.py:737-741 (review_leg)
+    >         if cls.custody == "absent":
+    >             if cls.lane:
+    >                 return [f"review_authority: {cls.ABSENT} — a lane claiming soundness ({cls.lane}) has "
+    >                         "no independent review authority to consult; fail-closed"]
+    >             lines.append(f"NOTE: review_authority: advisory ({cls.ABSENT})")
+
+Expectation E1a/E1b/E1f (distinct "resolved" state; no re-resolution once pinned; reset() unreachable
+after main()) — MET by grep of the code path:
+  shutil.which("gh")     : ONE site, verify.py:687, inside resolve().
+  _Authority.resolve(...) : main() 2427 (before verify()); ensure() 705 (guarded by custody is None).
+  _Authority.ensure(...)  : fetch_reviews 618; verify() 2255 — which precedes check_negative_control
+                            (2295) and check_review (2300).
+  cls.reset()             : resolve() 682 only (tests call reset() in fixtures).
+  resolve() ALWAYS leaves custody non-None ("system" | "worker-writable" | "absent"), so after main()
+  or verify() every later ensure() is a no-op; lane / repo_source survive; the control cannot be
+  followed by a lookup. Host probe: resolve("ci",False,"o/r") → /opt/homebrew/bin/gh system
+  provenance=ci explicit; review_leg [] ; ensure() afterwards changes nothing.
+
+Expectation E1c/E1d (absent at startup: NEVER 'verify: OK' over the stub; native refuses, sound lane
+fatal naming the lane; stub never executed) — MET, reproduced in scratchpad/clone with my own
+subclass of the unit's fixture (tests/test_r2_probe.py, scratch only; PATH = <empty writable dir>:
+<tools dir holding git only>, the committed check.py plants the stub during the executed control):
+  native lane        rc=2  stdout: "NOTE: review_authority: advisory (gh absent at startup (…h409 F-1))"
+                           stderr: "FAIL: mutation unit: cannot fetch reviews for o/r#7 (gh absent at
+                           startup …) — fail-closed"; dropped-gh.log ABSENT (stub never consulted);
+                           no "verify: OK" anywhere.
+  --provenance ci    rc=2  stderr: "FAIL: review_authority: gh absent at startup (…) — a lane claiming
+                           soundness (provenance=ci) has no independent review authority to consult;
+                           fail-closed"; no NOTE; dropped-gh.log ABSENT; no "verify: OK".
+  --provenance mcp|sdk|dispatch: rc=2, same fatal naming provenance=<lane>, stub never consulted.
+  library caller (resolve absent on a ci lane, THEN a gh appears on PATH, ensure()+review_leg()+
+  fetch_reviews()): lane still provenance=ci, gh still None, leg fatal, fetch → ABSENT; log absent.
+Expectation E1e (a normal system-bin gh still passes) — MET: stand-in gh answering APPROVED with
+  classify patched → "system": native lane rc=0 "verify: OK — all required checks passed" with NO
+  review_authority line; --provenance ci rc=0, same; custody "system" after the run. The unpatched
+  host gh (/opt/homebrew/bin/gh) classifies "system" and review_leg returns [].
+Expectation E1g (killer tests exist and bite) — MET:
+  tests/test_verify.py:4073 test_with_no_gh_at_startup_the_native_lane_refuses_and_records_the_absence
+  tests/test_verify.py:4080 test_with_no_gh_at_startup_a_sound_lane_fails_closed_naming_the_lane
+  tests/test_verify.py:4087 test_an_absent_pin_is_terminal_for_a_library_caller_too
+  Mutant G1-M1 (clone2; ensure() re-resolves when custody in (None,"absent") — the round-1 behaviour):
+    FAILED (failures=3): both lane tests "AssertionError: 0 != 2" (the C5 false GREEN is back, rc 0)
+    and the library test "[] is not None". RED as required.
+  Mutant G1-M2 (review_leg's absent branch never fatal on a sound lane): FAILED (failures=1) —
+    "'review_authority' not found in 'FAIL: mutation unit: cannot fetch reviews …'". RED; the fatal
+    is enforced, not decorative, and even this mutant still refuses (fetch_reviews' ABSENT).
+  check_review now returns `authority + [fatal]` on a fetch error (verify.py:816-817) so the advisory
+  NOTE stays on the record beside the refusal — the native-lane test asserts both; passes.
+
+--------------------------------------------------------------------------------------------------
+G-2  REQUIRED (round 1) — the four h409 classes sat below the __main__ guard          → CLOSED
+--------------------------------------------------------------------------------------------------
+Delta (verbatim): tests/test_verify.py:4155-4156 is now the LAST statement of the file
+    > if __name__ == "__main__":
+    >     unittest.main(verbosity=2)
+  guard line vs last `class` line, all four touched files (E2a/E2c): test_verify.py 4155 > 4106;
+  test_run_report.py 1817 > 1755; test_dispatch_sign.py 356 > 283; test_inventory.py 683 > 659.
+Executed (E2b), scratchpad/clone at a753966f:
+  python3 tests/test_verify.py DotSlashEvidenceSpelling TranscriptKeyCustody
+      ReviewAuthorityPinnedBeforeTheControl ReviewRepoIsCoordinatorPinned → "Ran 18 tests … OK"
+      (4 + 3 + 7 + 4, every test listed by name in the verbose output).
+  python3 tests/test_verify.py            → "Ran 304 tests in 50.784s / OK"   (direct execution)
+  python3 -m unittest tests.test_verify   → "Ran 304 tests in 48.047s / OK"   (import/discover)
+  python3 tests/test_verify.py @ 54ba84ef → "Ran 286 tests"  — the round-1 direct run was 18 short
+      (15 dead-under-direct-execution killers + the 3 new G-1 tests). Direct == discover at HEAD.
+  assets/badges/tests.json 1835 → 1839 = +3 (test_verify) +1 (test_run_report). Consistent.
+
+--------------------------------------------------------------------------------------------------
+G-3  REQUIRED (round 1) — toolchain set mirrored by comment, unbound either way        → CLOSED
+--------------------------------------------------------------------------------------------------
+Delta (verbatim): tests/test_run_report.py:1783-1806
+    > def test_the_file_set_is_one_set_on_both_sides_and_is_what_the_verifier_loads(self):
+    >     expected = ("verify.py", "_verify_sig.py", "diff_scope.py", "ed25519.py", "dispatch-sign.py")
+    >     self.assertEqual(tuple(run_report.TOOLCHAIN_FILES), expected)
+    >     … self.assertEqual(tuple(verify._Transcript.TOOLCHAIN), expected)
+    >     by_path = re.compile(r'(?:Path\(__file__\)\.resolve\(\)\.parent|_HERE) / "([^"]+\.py)"')
+    >     … self.assertEqual(loaded, set(expected))
+  Option (a) of round-1 S-3 (one assertion binding both literals) plus a third leg: the literal is
+  bound to what the scripts actually load by path, transitively. E3a MET. E3c (run_report refusing
+  extra keys) not taken — see FYI-2; not required once (a) holds.
+Mutants (clone2, `python3 -m unittest tests.test_run_report.TranscriptBindsTheVerifierToolchain`):
+  G3-M1 run_report.TOOLCHAIN_FILES drops "dispatch-sign.py" (round-1 survivor R7)
+      → FAILED (failures=1): "Tuples differ: (…'ed25519.py') != (…'ed25519.py', 'dispatch-sign.py')"
+  G3-M2 verify._Transcript.TOOLCHAIN drops "dispatch-sign.py" (round-1 survivor R6)
+      → FAILED (failures=1): same assertion, on the verify side.
+  G3-M3 BOTH sides drop "ed25519.py" (mirror stays in sync, set incomplete)
+      → FAILED (failures=1, errors=1): the literal pin catches what a parity-only test would miss.
+  E3b MET in both directions. The regex covers every sibling-load spelling in use today
+  (verify.py:919/1292/1963/2043 `Path(__file__).resolve().parent / "…"`; dispatch-sign.py:54
+  `_HERE / "…"`); the transitive walk finds exactly the five.
+
+--------------------------------------------------------------------------------------------------
+WHOLE-UNIT STATE AT a753966f (clean scratch clone)
+--------------------------------------------------------------------------------------------------
+  python3 -m unittest discover -s tests → "Ran 1971 tests in 375.133s / OK"  (1967 at round 1 + 4)
+  python3 scripts/validate.py           → "All 21 missions valid; three-layer separation holds; evals
+                                           valid." exit 0
+  git status in this worktree: clean apart from docs/reports/h409/review-r2.txt.
+
+--------------------------------------------------------------------------------------------------
+FINDINGS ON THE DELTA (none blocking)
+--------------------------------------------------------------------------------------------------
+[NIT] N-1  verify()'s library pin carries no lane, so a library caller on the ENFORCEMENT lane is
+  graded advisory.
+  runtime/scripts/verify.py:2255
+    >     _Authority.ensure(repo)  # a library caller that never ran main(): pin BEFORE the control (F-1)
+  ensure() → resolve(explicit_repo=…) with provenance=None, enforcement=False, although verify()
+  receives dispatch_record/dispatch_pubkey. main() passes the enforcement bit (2427-2428), so every
+  CLI/verify-gate.sh run is unaffected; no production library caller exists (rg `verify.verify(` in
+  runtime/scripts: none — only tests). Not a regression: the round-1 lazy path had no lane either.
+  One-line follow-up: `ensure(repo, enforcement=bool(dispatch_record and dispatch_pubkey))`.
+
+[FYI] FYI-1  The parity test's transitive scan is bound to two load spellings by regex. A future
+  sibling loaded as, say, `HERE / "x.py"` is not demanded of the literals — but both literals stay
+  pinned to `expected`, so the set can only drift by editing the test on purpose. Acceptable.
+
+[FYI] FYI-2  run_report.py:703 still iterates `for name in TOOLCHAIN_FILES` and ignores extra keys in
+  toolchain.files (round-1 option (b) not taken). With the producer literal now pinned by test, an
+  unchecked extra key can only come from a hand-edited transcript, which the signature rejects.
+
+[FYI] FYI-3  tests/test_verify.py:4118-4124 — ReviewRepoIsCoordinatorPinned now puts a stand-in gh
+  (`exit 1`) on PATH because "absent" is a fatal of its own on a sound lane. Honest fixture change,
+  not a weakening: the fetch is mocked as before and classify is patched to "system" as before.
+
+[FYI] FYI-4  RepoCase.setUp (tests/test_verify.py:79-82) now reset()s _Authority per test. Correct —
+  the authority is process state and a pin from a previous test was never that test's evidence;
+  it is also why the 304-test direct run and the discover run agree.
+
+Round-1 Nits/FYIs outside G-1..G-3 (S-4 `..@ref`, S-5 predicate wording, S-6 style, F-4 mode
+wording, Greptile thread replies) were out of this targeted round's scope and are unchanged.
+
+SCRATCH ARTIFACTS (session scratchpad only; nothing placed in the worktree)
+  expectations-r2.md, clone/tests/test_r2_probe.py (G-1 probes p1-p5), g2-direct.txt,
+  g2-discover.txt, full-suite.txt, validate.txt.

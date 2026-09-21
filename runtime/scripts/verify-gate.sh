@@ -19,7 +19,10 @@
 #   ORCA_MANIFEST         path to the unit's evidence manifest JSON (required)
 #   ORCA_CONTRACT_SOURCE  authoritative frozen contract `path@ref` (required for scope soundness)
 #   ORCA_CONTRACT_DIGEST  authoritative sha256 of that contract (required for scope soundness)
-#   ORCA_REPO             owner/name for the independent review lookup (optional; inferred from origin)
+#   ORCA_REPO             owner/name for the independent review lookup. REQUIRED on the sound
+#                         surfaces (ORCA_PROVENANCE set) — verify.py fails the review leg closed
+#                         without it there; on the native lane it is inferred from origin and
+#                         recorded as ADVISORY (origin is worker-writable; h409 F-2)
 #   ORCA_BASE             integration base branch, for the ancestry check (optional)
 #   ORCA_SYMBOL           a unit symbol to grep on the base (optional)
 #   ORCA_UNIT_CLASS       mutation | report-only | planning, from dispatch (optional; missing => mutation)
@@ -105,6 +108,9 @@ set -- --manifest "$MANIFEST"
 [ -n "$PUBKEY" ] && set -- "$@" --dispatch-pubkey "$PUBKEY"
 [ -n "${ORCA_EXECUTE_NC:-}" ] && set -- "$@" --execute-nc
 [ -n "${ORCA_NC_COMMAND:-}" ] && set -- "$@" --nc-command "$ORCA_NC_COMMAND"
+# h409 F-1/F-2: verify.py learns the lane too, so a sound lane's review authority (an explicit
+# repo, a gh outside any worker-writable location) is REQUIRED there, not merely noted here.
+[ -n "${ORCA_PROVENANCE:-}" ] && set -- "$@" --provenance "$ORCA_PROVENANCE"
 
 # #279: say it here rather than let the operator read it out of verify.py's invariant list. The
 # refusal itself is verify.py's — this is a signpost, never the check.

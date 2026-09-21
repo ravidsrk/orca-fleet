@@ -462,8 +462,13 @@ def verifier_ran(manifest_path, rev, root):
 # compared. Two are switches; the rest take a value and are None when unset.
 SIGNED_ARGS = ("contract_source", "contract_digest", "repo", "base", "symbol", "execute_nc",
                "unit_class", "no_gh", "lighting", "dispatch_record", "dispatch_pubkey",
-               "nc_command", "git_dir", "evidence_root")
+               "nc_command", "git_dir", "evidence_root", "provenance")
 _SWITCH_ARGS = ("execute_nc", "no_gh")
+# h409 F-5: the verifier TOOLCHAIN a signed transcript names — verify.py and every sibling it
+# loads by path (verify.py _Transcript.TOOLCHAIN mirrors this). The transcript hashes each file;
+# the binding below checks every hash against the file at the graded pin, so a transcript proves
+# WHICH verifier ran (a substituted sibling fails to bind) — the verifier's identity, nothing more.
+TOOLCHAIN_FILES = ("verify.py", "_verify_sig.py", "diff_scope.py", "ed25519.py", "dispatch-sign.py")
 
 
 def invocation_args(text, manifest):
@@ -686,6 +691,28 @@ def signed_transcript(fields, rev, run_dir, root, base=None, text=""):
             problems.append(f"it was judged as unit_class={signed.get('unit_class')!r}, but "
                             f"{fields['mission']} is a mutation-class mission (evidence-manifest.md "
                             "§3) — a verdict on a lesser class proves nothing about this one")
+    # The toolchain is signed so the VERIFIER can be identified (h409 F-5): every file verify.py
+    # loads, hashed, must be the file at the graded pin. A set that is absent, partial, or names
+    # other bytes is a verdict by an unknown verifier — a substituted sibling is exactly that.
+    files = (record.get("toolchain") or {}).get("files") if isinstance(record.get("toolchain"), dict) else None
+    if not isinstance(files, dict):
+        problems.append("its toolchain names no file set (toolchain.files) — which verifier "
+                        "reached the verdict is unknown; a verify_sha256 alone covers one of the "
+                        f"{len(TOOLCHAIN_FILES)} files the verifier loads (h409 F-5)")
+    else:
+        for name in TOOLCHAIN_FILES:
+            signed_sha = files.get(name)
+            at_pin = blob_at(rev, f"runtime/scripts/{name}", root)
+            if not isinstance(signed_sha, str):
+                problems.append(f"its toolchain.files does not name runtime/scripts/{name}, a "
+                                "module the verifier loads — a partial set binds no verifier identity")
+            elif at_pin is None:
+                problems.append(f"runtime/scripts/{name} cannot be read at {rev}, so the signed "
+                                f"toolchain hash {signed_sha[:12]}… binds to no file at the pin")
+            elif signed_sha != hashlib.sha256(at_pin).hexdigest():
+                problems.append(f"its toolchain.files pins runtime/scripts/{name} at {signed_sha[:12]}…, "
+                                f"not the file at {rev} ({hashlib.sha256(at_pin).hexdigest()[:12]}…) — "
+                                "a different verifier (or a substituted sibling) reached this verdict")
     if problems:
         return [f"RUN: transcript={transcript} verifies but does not bind this report: "
                 + "; ".join(problems)]
