@@ -1,0 +1,261 @@
+U-SIG-2 — SPEC-AXIS REVIEW (build-blind: expectations written before the diff was opened)
+=========================================================================================
+Reviewer: task_3637a08a57d2 / ctx_b35b87975634 (review-only; nothing committed but this file)
+Reviewed: ravidsrk/sig-2 @ 0e5f441d (head 98fb8aae + base merge e833bcb2 + integrate.json)
+Diff basis: origin/review/2026-09-20-sign-386 (3674b2d9) ... HEAD — 12 files, +1590/-65
+Spec: docs/runs/2026-09-20-sign-386/build-u-sig-2.md @ 648fcf77 (sha256 356e2860… — matches manifest artifacts[])
+Held findings read first: docs/reports/u-sig-2/integrate.json (BOT-1, BOT-2, both VALID/held)
+Elapsed: ~20 min of the 30-min box. Full report (not partial).
+
+VERDICT: MERGEABLE on the spec axis, with ONE Required (BOT-1, in-unit, small) to land before or
+with the batch merge, and two docs/design items correctly parked. No Critical. All three DESIRED
+BEHAVIOURS are implemented as frozen; all five ACCEPTANCE CRITERIA are met with re-derived
+evidence (see §3). No networked gate step exists (grep for urllib/socket/http/requests in
+inventory.py and run_report.py: no hits).
+
+-----------------------------------------------------------------------------------------
+0. BLIND EXPECTATIONS (verbatim from my pre-diff notes; scratchpad/expectations.md)
+-----------------------------------------------------------------------------------------
+ E1.1 canonical digest = sha256 over sorted (path, sha256) pairs exactly as parse_entries yields;
+      entries reordered in text -> same digest.
+ E1.2 envelope = ONE line inside the inventory block, same envelope shape as U-SIG-1 transcript
+      (ed25519.py, key from dispatch-sign.py, pubkey .orca/dispatch-pubkey); parse_entries skips
+      it; find_blocks unchanged.
+ E1.3 tamper any entry (path or sha) -> verify fails naming digest mismatch.
+ E1.4 no pubkey: unsigned -> OK (today); signed -> OK. pubkey: unsigned -> REFUSED "UNSIGNED";
+      bad sig -> REFUSED.
+ E1.5 signature discovery scoped to find_blocks ranges (BOT-1): if whole-doc scan -> fail-closed
+      => Nit/Required by robustness, not Critical.
+ E1.6 multiple inventory blocks: digest over union (sorted) — one signature per doc.
+ E2.1 close-binding: pubkey present + inventory unsigned/invalid -> BINDS fails with named
+      reason; no pubkey -> unchanged.
+ E2.2 pubkey lookup identical to U-SIG-1's transcript rule (same path/env), not a second mechanism.
+ E3.1 evidence-manifest.md retention: names Rekor-style receipt {log_index, entry_uuid, signature
+      over inventory sha256} committed beside inventory; upload OPTIONAL, coordinator-side,
+      egress.py receipt; never a gate dep; verifier offline presence+binding; proven vs
+      not-proven sentence. <=160 lines.
+ E3.2 compliance-provenance.md placeholder row replaced with same.
+ E3.3 BOT-2: spec froze 3 fields + "spec only"; overclaim risk in "proves the receipt covers these
+      bytes" if only presence+digest equality is checkable. Expect wording to say presence-only
+      today; the binding check specified for a later unit.
+ A1 failing-first: test commit precedes impl OR RED receipt in run dir.
+ A2 tests: signed OK / tampered FAIL / unsigned+pubkey REFUSED / unsigned-no-pubkey OK exist.
+ A3 pre-existing test_inventory.py tests unchanged (diff of old tests = 0).
+ A4 NC via evidence-run.py: receipt in docs/runs/2026-09-20-sign-386/ showing RED with signing
+    reverted.
+ A5 suite OK + validate exit 0 (re-run validate + touched tests myself).
+
+Where the delta diverged from an expectation it is called out below (E1.4 signed-no-key; E1.5).
+
+-----------------------------------------------------------------------------------------
+1. DESIRED BEHAVIOUR 1 — inventory.py signature over the canonical entry set
+-----------------------------------------------------------------------------------------
+Motivating line (spec): "inventory.py gains a signature over the canonical entry set (sorted
+(path, sha256) as parse_entries yields it), written as a detached envelope block that
+find_blocks/parse_entries TOLERATE (every existing block shape still parses; tampering any
+entry fails verification; an unsigned block verifies as today when no pubkey is present, and
+is REFUSED when a pubkey is configured)."
+
+MET. Evidence, re-derived:
+- Canonical set (E1.1, E1.6): inventory.py `canonical_entries` — "pairs = sorted({(path_text,
+  recorded) for _idx, path_text, recorded, _shape in entries})" then compact JSON; `load()`
+  extends entries across EVERY block (find_blocks, #315). Probe P4: entries swapped in the text
+  after signing -> "signature verified over 2 entries" exit 0. Test
+  `test_sign_covers_every_block_and_is_order_free` pins two-block == one-block digest.
+- Envelope shape (E1.2): one HTML-comment line, dispatch-sign.py's `envelope(seed, record,
+  SIGNED_FIELDS)` — the same `{record, sig_b64}` the transcript uses; `_dispatch_sign()` loads it
+  lazily so plain write/check never import the signer. `SIGNATURE_LINE` cannot match SHA_LINE
+  or TABLE_ROW, so parse_entries reads past it: `test_every_existing_shape_still_parses_with_
+  the_envelope_present` asserts the first stdout line is byte-identical before/after signing on
+  BOTH shapes.
+- Tamper (E1.3): `verify_signature` compares `record.inventory_sha256` to the re-derived digest
+  first ("an entry was added, dropped or changed after signing"), then `checkvalid` over
+  `canonical_record(record, SIGNED_FIELDS)`. Tests: tampered entry (artifact+hash changed
+  together so only the signature can tell), dropped entry, tampered sig_b64, other key. All
+  four went RED in the negative control (manifest negative_control.failures).
+- Unsigned (E1.4): `cmd_check` — "if envelope is None: print(f"UNSIGNED inventory: no
+  {SIGNATURE_TAG} line, and a pubkey is configured — refused" … return EXIT_MISMATCH"; without
+  --pubkey the envelope is never read (probe P7: signed doc, no --pubkey -> "2 verified" exit 0).
+  Test `test_an_unsigned_inventory_is_refused_with_a_pubkey_and_accepted_without`.
+- `sign` refuses a stale/absent path before attesting (test `test_sign_refuses_when_a_listed_
+  path_hashes_differently`); `write` without --key keeps a now-STALE envelope and says so
+  (never drops evidence silently) — a sensible extension inside scope. Probe P6: table shape,
+  content changed, `write --key` -> re-signed, check --pubkey exit 0, exactly one envelope.
+
+Divergence from E1.5 — see FINDING F1 (BOT-1).
+
+-----------------------------------------------------------------------------------------
+2. DESIRED BEHAVIOUR 2 — run_report.py close-binding requires the signed inventory
+-----------------------------------------------------------------------------------------
+Motivating line (spec): "run_report.py's close-binding requires the signed inventory when the
+pubkey is present (mirroring U-SIG-1's transcript rule), unsigned path preserved otherwise."
+
+MET. Evidence:
+- E2.2 (one switch, not two): U-SIG-1's key resolution was lifted into `enforcement_key(rev,
+  root, base) -> (pin, at, why)` and BOTH `signed_transcript` and the new `signed_inventory`
+  call it — "THE switch, resolved once for every signed leg (transcript, inventory) so none of
+  them can disagree about whether enforcement is on." The ancestry shapes (pin on base's
+  ancestry / fork off it / explicit --base) are exercised for the inventory leg through the
+  shared `SignedKeyFixture` (`test_a_pre_key_report_on_the_ancestry_keeps_the_unsigned_
+  inventory`, `test_post_key_work_pinned_to_a_pre_key_fork_needs_a_signed_inventory`).
+- E2.1: key + no envelope -> "{PUBKEY_PIN} is committed at {at} ({why}), so an UNSIGNED
+  integrity inventory no longer binds — sign its entry set with `inventory.py sign --key
+  <coordinator seed>` (#386)"; key + envelope -> `inventory.verify_signature` over exactly the
+  entries `check_entries` is about to hash; no key + no envelope -> [] (today's path,
+  `test_without_a_committed_key_an_unsigned_inventory_still_binds`).
+- The envelope is read from the report TEXT (`check_report` now keeps `lines` from
+  inventory.load) not from a blob at the pin — correct, since the report is written after the
+  pin it names.
+
+Divergence from E1.4 (FYI, not a defect): SIGNED + NO KEY is refused by run_report —
+"integrity inventory carries an {SIGNATURE_TAG} but no {PUBKEY_PIN} is committed at {at} —
+nothing can verify it, so the claim fails closed (#386)". The spec's DB1 clause "an unsigned
+block verifies as today when no pubkey is present" is about the UNSIGNED block (preserved);
+for a signed one the branch applies the transcript rule's "absence never binds", which DB2
+explicitly asks to mirror. inventory.py's own CLI stays permissive here (no --pubkey => the
+envelope is never read), so the two tools differ on signed-no-key — by design, and the
+docstrings say so. Recorded as FYI-2 below.
+
+-----------------------------------------------------------------------------------------
+3. DESIRED BEHAVIOUR 3 — provenance.retention names the anchor mechanism
+-----------------------------------------------------------------------------------------
+Motivating line (spec): "the VERIFIER checks the receipt's fields are present and bind to the
+inventory digest, offline. Wording must say plainly what is proven (the receipt binds these
+bytes) and what is not (the log's own availability/trust)."
+
+MET as frozen. runtime/evidence-manifest.md (158 lines, ≤160 ✔) §1 rule: "`retention` names the
+run's Rekor-style transparency-log RECEIPT (`log_index`, `entry_uuid`, `signature` over the
+signed inventory's digest) committed beside the inventory — an OPTIONAL coordinator upload with
+an egress.py receipt, never a gate; the check owed is OFFLINE — its fields binding that digest
+(verify.py today: presence only) — and proves the receipt covers these bytes, not that the log
+is reachable or trusted." JSON placeholder: "retention": "<log-receipt path>". Run-close
+paragraph now says the coordinator "SIGNS its entry set (`inventory.py sign`, required by
+run_report.py once `.orca/dispatch-pubkey` is committed)".
+docs/compliance-provenance.md row "Retention anchor" carries the same three fields, the
+OPTIONAL/egress.py/never-a-gate sentence, "Proven, once that check runs: the receipt covers
+exactly these inventory bytes. Not proven: that the log entry exists, is reachable, or is
+trustworthy", and "A receipt provides no storage, retention enforcement or access controls".
+No gate step is networked: the only scripts touched are stdlib-only (import lists: argparse,
+base64, hashlib, importlib.util, json, re, subprocess, sys, pathlib). Manifest
+provenance.retention honestly says "none — no transparency-log receipt was produced for this
+unit … this unit specifies the receipt, it does not mint one".
+
+-----------------------------------------------------------------------------------------
+4. ACCEPTANCE CRITERIA
+-----------------------------------------------------------------------------------------
+AC "Failing tests FIRST for 1-3, then implementation to green." — MET (with a note). Tests and
+  implementation share a commit per layer (d42e38f7: inventory.py + test_inventory.py; a8d26feb:
+  run_report.py + test_run_report.py), so commit order alone does not witness RED-first. The
+  machine witness is the executed negative control: the SAME 258-test command with only the two
+  production scripts restored to base_sha -> "FAILED (failures=16, errors=8)" (24 RED, listed by
+  name in the manifest; test_help_names_sign fails on "'sign' not found in 'usage: inventory.py
+  [-h] {write,check} …'"). That is the spec's "signing reverted (tests kept) → RED". DB3 has no
+  executable oracle; the builder report says so rather than inventing one. FYI-1.
+AC "Signed inventory verifies; tampered entry fails; unsigned refused-with-pubkey,
+  accepted-without." — MET; §1 tests + probes P4/P6/P7; run_report side
+  SignedInventoryRequired (8 tests).
+AC "All pre-existing test_inventory.py shapes still pass unchanged." — MET: the diff to
+  tests/test_inventory.py is a pure APPEND at line 335 (no pre-existing line touched); the
+  fenced, table, hash-first-table, --at and multi-block cases are all in the 258 OK.
+AC "NEGATIVE CONTROL executed: signing reverted (tests kept) → RED, via evidence-run.py." —
+  MET: manifest commands[1] label "negative-control", exit 1, same cmd_sha256 as the green
+  record, wtree 4df0ca59 (≠ head tree), artifact u-sig-2-negctrl.txt whose sha256 66d8c87d…
+  matches artifacts[] (re-hashed by me). negative_control.paths = the two production scripts
+  only (no test/oracle path — binds to the change). Note the record was hand-normalised
+  ("the artifact path was then normalised to repo-relative in the record; cmd_sha256, exit
+  and wtree untouched") — declared, and the untouched fields are the ones that bind. FYI-3.
+AC "Full suite green; python3 scripts/validate.py exit 0." — MET, re-derived here at 0e5f441d:
+  `python3 -m unittest tests.test_inventory tests.test_run_report` -> OK (258);
+  `python3 scripts/validate.py` -> "All 21 missions valid; three-layer separation holds; evals
+  valid." Full-suite 1897 OK at e833bcb2 is the integrator's clean-env receipt (integrate.json
+  suite.result); green tests receipt wtree 6e4826c8 == `git rev-parse 98fb8aae^{tree}` (checked).
+
+-----------------------------------------------------------------------------------------
+5. FINDINGS
+-----------------------------------------------------------------------------------------
+F1 — Required — BOT-1 adjudicated VALID; discovery AND placement of the envelope are not
+  block-scoped. (runtime/scripts/inventory.py `find_signature`, `_place_signature`)
+  Motivating line (code): "for idx, line in enumerate(lines): m = SIGNATURE_LINE.match(line)"
+  — every line of the document, not the [(start,end)] ranges find_blocks returns; and
+  `_place_signature`: "idx, _env = find_signature(lines); if idx is not None: lines[idx] = line".
+  Motivating line (spec, DB1): "written as a detached envelope block that
+  find_blocks/parse_entries TOLERATE" — the envelope belongs INSIDE the block the parsers read;
+  the code's own docstring claims "so it sits where find_blocks already looks".
+  Reproduced in scratch (probe P1/P2/P2b/P3) with an indented prose example of the format
+  placed ABOVE the inventory heading — the exact line docs/reports/u-sig-2/build.md:15 commits:
+   P1 unsigned block + prose example, `check --pubkey`: exit 1, but the diagnostic is
+      "signature record binds inventory digest 0000…, but the entries present digest to
+      776617d2… — an entry was added, dropped or changed after signing" — the truthful
+      message is UNSIGNED. Wrong diagnosis, right verdict.
+   P2 `sign` on that doc: exit 0 and the PROSE line 5 is overwritten with the real envelope;
+      the block itself stays unsigned.
+   P2b/P3 `check --pubkey` then PASSES with the envelope outside every block (an envelope
+      moved from the block into the preamble still verifies).
+  Integrity assessment (agree with the integrator's downgrade P1->P2): no acceptance path
+  opens — the digest is re-derived from the union of all blocks' entries, so a moved or pasted
+  envelope can only verify if the coordinator's key signed exactly this set. It is a
+  false-refusal / mis-placement robustness defect, but a run report that quotes the format is
+  one paste away and the run-close gate (run_report.signed_inventory reads the whole report
+  text) inherits it. Fix is in-unit and small: iterate only find_blocks ranges in
+  find_signature; in _place_signature replace only an envelope inside a block, else append to
+  the first block; add the prose-example test (unsigned -> "UNSIGNED"; signed -> verifies).
+  Severity Required because DB1's contract is an envelope the BLOCK carries, and because the
+  committed build.md already contains the trigger line — but it does not block the batch if the
+  batch owner prefers to land it as the first follow-up commit; either way the thread on PR #490
+  comment 4057859153 needs an in-thread answer naming the commit.
+
+F2 — Optional (parked correctly) — BOT-2 adjudicated VALID-as-a-design-gap, OUT of this unit's
+  frozen spec. (runtime/evidence-manifest.md:110 rule; docs/compliance-provenance.md row)
+  Motivating line (doc): "the check owed is OFFLINE — its fields binding that digest (verify.py
+  today: presence only) — and proves the receipt covers these bytes".
+  Motivating line (spec, DB3): "RECEIPT (log index, entry UUID, signature over the inventory
+  digest) … the VERIFIER checks the receipt's fields are present and bind to the inventory
+  digest, offline." — the three fields and "spec only" are the frozen ask; the branch
+  implements exactly that and states twice that the binding check is "specified here and not
+  yet implemented". The bot is right that without a named log key / canonical payload the
+  offline check can only be presence + digest equality, which anyone can type; the doc's
+  conditional ("once that check runs") keeps it from being a false claim TODAY, but the
+  follow-up must define the receipt schema and trust root before verify.py implements it.
+  Agree with the integrator's scope call and byte-budget note (evidence-manifest.md is at the
+  clean-sweep activation-load ceiling): the schema belongs in docs/compliance-provenance.md or
+  a new docs page, with the runtime line pointing at it. Batch decision; thread 4057859156
+  owes an in-thread reply.
+
+F3 — Nit — `verify_signature` accepts a coordinator-signed record that omits `entries`.
+  Motivating line (code): dispatch-sign.py `canonical_subset`: "subset = {k: record[k] for k in
+  fields if record.get(k) is not None}" — SIGNED_FIELDS members are optional in the signed
+  bytes, and `find_signature` only checks `record` is a dict. Probe P5: an envelope whose
+  record is {"inventory_sha256": …} alone, signed with the SAME seed, verifies ("signature
+  verified over 2 entries"). Only the key holder can mint it, and the digest still binds the
+  set, so this is schema laxity, not a bypass. One-liner if wanted: require both SIGNED_FIELDS
+  present (and `entries` == the set size) before `checkvalid`.
+
+F4 — Nit — duplicate refusal line when no grading base resolves.
+  Motivating line (code, run_report.py signed_inventory): "if at is None: return [why]" — and
+  `signed_transcript` returns the identical `why` from the same `enforcement_key` call, so a
+  report with no resolvable base now lists "the unsigned lane needs an ancestry proof, so the
+  claim fails closed" twice. Cosmetic; verdict unchanged.
+
+FYI-1 — RED-first is witnessed by the executed NC, not by commit order (tests and impl share
+  d42e38f7 / a8d26feb). The spec asks for "Failing tests FIRST … then implementation", which
+  the NC receipt proves for every test that can go red; the two unsigned-path regression pins
+  pass on both sides by design, as the builder report says.
+FYI-2 — Signed inventory + no committed key is REFUSED by run_report (mirrors G-4/U-SIG-1)
+  while inventory.py `check` without --pubkey ignores the envelope. Intentional, documented in
+  both docstrings; the spec's "no change to the unsigned default path" holds for UNSIGNED docs.
+  Note .orca/dispatch-pubkey is NOT committed in this repo (`git ls-files .orca` is empty), so
+  enforcement is off for every existing run report until the maintainer commits the key.
+FYI-3 — evidence-manifest.md paid for the new clauses by compressing unrelated prose (intro,
+  the #279 history in the NC row, the "Six of the ten manifest-gaming attacks in the 2026-09-10
+  review" and "a predecessor's flagship run was quarantined" asides). Byte-neutral (22,330 ->
+  22,326) as the activation-load ratchet demands; no rule removed, but two pieces of
+  institutional memory are gone from the runtime doc. Acceptable under the budget; noting it
+  so nobody later reads their absence as a policy change.
+
+-----------------------------------------------------------------------------------------
+6. CONSTRAINTS HONOURED BY THIS REVIEW
+-----------------------------------------------------------------------------------------
+- Nothing committed; the worktree is clean except this one authorised file.
+- All mutations (signing, moving envelopes, forging a record) were on throwaway files under the
+  session scratchpad, never on repo files; keys were test seeds bytes(range(1,33)).
+- No AskUserQuestion; no coordinator question was needed (no ambiguity blocked the review).

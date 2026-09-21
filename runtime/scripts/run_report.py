@@ -40,11 +40,34 @@ that resolves to a real object here. Prose is free -- a fabricated report cleare
 the earlier gate in fifteen minutes by writing a command line -- so the body's
 invocation is no longer the only evidence a run happened.
 
+What closes the "could not have been typed" gap (#281/#386): a **signed verifier
+transcript**. Once the coordinator's public key is committed at ``.orca/dispatch-pubkey``,
+the ledger entry alone no longer suffices: the ``RUN:`` header must name
+``transcript=<path>`` inside the run's own directory, and that file — read at the pin —
+must be the ``{record, sig_b64}`` envelope ``verify.py --transcript-out --transcript-key``
+(or ``dispatch-sign.py sign-transcript``) emits, verifying against that key, over the
+graded manifest's exact bytes, with an exit code that agrees with ``verifier=`` and a
+signed argument tuple that agrees with the invocation the body shows.
+
+The same key closes the inventory's own gap (#386): the run-close integrity inventory
+is worker-written text too, so once the key is committed its ENTRY SET must carry the
+coordinator's signature (``inventory.py sign``, the same ``{record, sig_b64}`` envelope on
+one HTML-comment line inside the block), verified here over exactly the entries the
+report lists. Unsigned with the key present, or signed with no key to check it, refuses.
+
+WHERE the key is read is the switch itself, so it is ancestry-aware (PR #489 round-1
+review, BOT-2). The **grading base** is the default branch's current tip at verification
+time (``origin/HEAD``, then ``origin/main``…, ``--base`` to name it). A pin that is an
+ancestor of the grading base reads the key AT the pin: a report pinned before the key
+landed keeps the unsigned path unchanged — the grandfather lane, and the ONLY way into
+it. A pin OFF that ancestry — a branch forked from any pre-key commit, a dangling commit
+— is judged against the key at the grading base: fresh artifacts on such a fork prove
+nothing about the key, so "its own artifacts must exist there" was never a defence.
+
 What this does NOT do, said plainly: it does not re-run `verify.py` and re-derive
-the verdict, and the ledger above is still written ON the worker, so the floor it
-raises is "ran a command and recorded it against real content", not "could not
-have been typed". Closing that needs a coordinator-signed verifier transcript
-checked against a committed key (#281). That run's authorities are not reproducible after the fact — the
+the verdict. Without a committed key the ledger above is still written ON the
+worker, so the floor it raises is "ran a command and recorded it against real
+content", not "could not have been typed". That run's authorities are not reproducible after the fact — the
 coordinator's out-of-band contract, a GitHub review lookup, the live worktree — so
 a "re-derivation" here would be a different, weaker check wearing the same name.
 What is checked is that the recorded outcome is attributable to a real invocation
@@ -61,6 +84,7 @@ Exit codes
     2  could not run (no skills/, unreadable input)
 """
 import argparse
+import base64
 import hashlib
 import importlib.util
 import json
@@ -78,6 +102,16 @@ RUNS_DIR = ROOT / "docs" / "runs"
 _spec = importlib.util.spec_from_file_location("inventory", HERE / "inventory.py")
 inventory = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(inventory)
+# The transcript's canonical form and the Ed25519 verifier come from the signer itself — one
+# scheme, one envelope, the same key files as the dispatch record (#281/#386).
+_ds_spec = importlib.util.spec_from_file_location("dispatch_sign", HERE / "dispatch-sign.py")
+dispatch_sign = importlib.util.module_from_spec(_ds_spec)
+_ds_spec.loader.exec_module(dispatch_sign)
+
+# Committing the coordinator's public key here is THE enforcement switch — for the signed
+# dispatch record (verify-gate.sh discovers it) and, read at a report's own pin, for the signed
+# verifier transcript below.
+PUBKEY_PIN = ".orca/dispatch-pubkey"
 
 RUN_HEADER_RE = re.compile(r"^RUN:\s*(.+?)\s*$", re.M)
 
@@ -377,8 +411,9 @@ def verifier_ran(manifest_path, rev, root):
 
     Said plainly, because it bounds what this buys: the ledger is still written on the worker, so
     this raises the floor from "wrote a sentence" to "ran a command and recorded it against real
-    content". It is not yet a leg the worker cannot type — that needs a coordinator-signed verifier
-    transcript checked against a committed key (#281).
+    content". The leg the worker cannot type is signed_transcript() below — a coordinator-signed
+    verifier transcript checked against a committed key (#281) — and it is dormant until that key
+    is committed.
     """
     raw = blob_at(rev, manifest_path, root)
     if raw is None:
@@ -420,6 +455,241 @@ def verifier_ran(manifest_path, rev, root):
         return []  # one sound record is enough
     return [f"the graded manifest {manifest_path} records a verify.py run that binds to nothing: "
             + "; ".join(problems)]
+
+
+# verify.py's argument tuple as the transcript signs it (verify.py _Transcript.ARGS): the flag each
+# key came from, so the invocation the report body SHOWS can be parsed into the same shape and
+# compared. Two are switches; the rest take a value and are None when unset.
+SIGNED_ARGS = ("contract_source", "contract_digest", "repo", "base", "symbol", "execute_nc",
+               "unit_class", "no_gh", "lighting", "dispatch_record", "dispatch_pubkey",
+               "nc_command", "git_dir", "evidence_root")
+_SWITCH_ARGS = ("execute_nc", "no_gh")
+
+
+def invocation_args(text, manifest):
+    """The parsed argument tuple of every `verify.py … --manifest <manifest>` line the body shows,
+    in SIGNED_ARGS shape. A line that does not parse as argv is not an invocation."""
+    out = []
+    for line in text.splitlines():
+        if not _invocation_re(manifest).search(line):
+            continue
+        try:
+            argv = shlex.split(line, comments=True)
+        except ValueError:
+            continue
+        start = next((i + 1 for i, tok in enumerate(argv) if tok.endswith("verify.py")), None)
+        if start is None:
+            continue
+        parser = _SilentParser(add_help=False)
+        for key in SIGNED_ARGS:
+            flag = "--" + key.replace("_", "-")
+            if key in _SWITCH_ARGS:
+                parser.add_argument(flag, dest=key, action="store_true")
+            else:
+                parser.add_argument(flag, dest=key, default=None)
+        try:
+            known, _unknown = parser.parse_known_args(argv[start:])
+        except (ValueError, SystemExit):
+            continue
+        out.append(vars(known))
+    return out
+
+
+# The grading base: the default branch's current tip, resolved the way floor_guard/diff_scope do.
+# HEAD is the last resort — the checkout run_report is running in — never a header field.
+GRADING_BASES = ("origin/HEAD", "origin/main", "origin/master", "main", "master", "HEAD")
+
+
+def grading_base(root, base=None):
+    """The commit the unsigned lane is proven against: `base` if named, else the first of
+    GRADING_BASES that resolves. None only in a repository with no commit at all."""
+    for candidate in ((base,) if base else GRADING_BASES):
+        proc = subprocess.run(
+            ["git", "rev-parse", "--verify", "-q", f"{candidate}^{{commit}}"],
+            cwd=str(root), stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True,
+        )
+        if proc.returncode == 0 and proc.stdout.strip():
+            return proc.stdout.strip()
+    return None
+
+
+def is_ancestor(rev, base, root):
+    """`rev` reachable from `base` (a commit is its own ancestor)."""
+    return subprocess.run(
+        ["git", "merge-base", "--is-ancestor", rev, base],
+        cwd=str(root), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+    ).returncode == 0
+
+
+def key_rev(rev, root, base=None):
+    """(commit the enforcement switch is read at, why). The pin when it sits on the grading base's
+    ancestry — that is the grandfather lane's one door; the grading base when it does not."""
+    tip = grading_base(root, base)
+    if tip is None:
+        return None, "no grading base resolves (tried " + ", ".join(GRADING_BASES) + ")"
+    if is_ancestor(rev, tip, root):
+        return rev, f"the pin, an ancestor of the grading base {tip[:12]}"
+    return tip, (f"the grading base {tip[:12]} — the pin {rev[:12]} is not an ancestor of it, so the "
+                 "key is read where the pin cannot choose")
+
+
+def enforcement_key(rev, root, base=None):
+    """(32 pubkey bytes or None, commit it was read at, why) — THE switch, resolved AND parsed
+    once for every signed leg (transcript, inventory) so none of them can disagree about whether
+    enforcement is on or re-state the malformed-pin refusal. `at` is None when the switch cannot
+    be read at all — no grading base resolves, or the committed pin is not a 32-byte hex key;
+    `why` is then the refusal itself, fail-closed."""
+    at, why = key_rev(rev, root, base)
+    if at is None:
+        return None, None, f"{why} — the unsigned lane needs an ancestry proof, so the claim fails closed"
+    pin = blob_at(at, PUBKEY_PIN, root)
+    if at != rev and pin is None:  # no key on the base: the pin's own key, exactly as before
+        pin, at, why = blob_at(rev, PUBKEY_PIN, root), rev, "the pin; the grading base carries no key"
+    if pin is None:
+        return None, at, why
+    try:
+        pub = bytes.fromhex(pin.decode("utf-8").strip())
+    except (UnicodeDecodeError, ValueError) as err:
+        return None, None, f"{PUBKEY_PIN} at {at} is malformed ({err}) — fail-closed"
+    if len(pub) != 32:
+        return None, None, f"{PUBKEY_PIN} at {at} is malformed (not a 32-byte hex key) — fail-closed"
+    return pub, at, why
+
+
+def signed_inventory(lines, entries, rev, root, base=None):
+    """Errors that stop this report proving its run-close inventory was SIGNED by the coordinator
+    (#386, U-SIG-2). [] means either no key is committed where the switch is read and no envelope
+    is present, or the envelope verifies against that key over exactly the entry set the report
+    lists. The inventory is read from the report as check_report reads it (the document itself, not
+    a blob at the pin — the report is written after the pin it names); the key is read at
+    enforcement_key(), the same place the transcript rule reads it. Absence never binds: an
+    envelope with no key to verify it, and no envelope with a key present, both refuse."""
+    pub, at, why = enforcement_key(rev, root, base)
+    if at is None:
+        return [why]
+    try:
+        _idx, envelope = inventory.find_signature(lines)
+    except inventory.InventoryError as err:
+        return [f"integrity inventory {inventory.SIGNATURE_TAG}: {err}"]
+    if pub is None and envelope is None:
+        return []
+    if pub is None:
+        return [f"integrity inventory carries an {inventory.SIGNATURE_TAG} but no {PUBKEY_PIN} is "
+                f"committed at {at} — nothing can verify it, so the claim fails closed (#386)"]
+    if envelope is None:
+        return [f"{PUBKEY_PIN} is committed at {at} ({why}), so an UNSIGNED integrity inventory no "
+                "longer binds — sign its entry set with `inventory.py sign --key <coordinator seed>` "
+                "(#386)"]
+    try:
+        signed = inventory.verify_signature(envelope, entries, pub)
+    except inventory.SignatureRefused as problem:
+        return [f"integrity inventory signature does not bind: {problem} (key: {PUBKEY_PIN} at {at})"]
+    if signed != inventory.inventory_digest(entries):  # bound means the key said so over THIS set
+        return [f"integrity inventory signature does not bind: the verifier returned {signed!r}, not "
+                f"this inventory's digest (key: {PUBKEY_PIN} at {at})"]
+    return []
+
+
+def signed_transcript(fields, rev, run_dir, root, base=None, text=""):
+    """Errors that stop this report proving its verdict was SIGNED by the coordinator (#281/#386).
+    [] means either no key is committed where the switch is read and none is claimed, or the named
+    transcript verifies against that key and binds to this report's claims.
+
+    The transcript and the manifest are read AT `rev`, like everything else here. The KEY is read
+    at key_rev(): the pin when the pin is on the grading base's ancestry (a report pinned before
+    the key landed keeps the unsigned path), the grading base itself when it is not (a fork from a
+    pre-key commit is judged by the key the base carries, not by the key it chose to fork before).
+    Absence never binds: a missing signature with the key present, a missing key with a signature
+    present, and a manifest digest that is None on either side all refuse."""
+    pub, at, why = enforcement_key(rev, root, base)
+    if at is None:
+        return [why]
+    transcript = fields.get("transcript")
+    if pub is None and transcript is None:
+        return []
+    if pub is None:
+        return [f"RUN: transcript={transcript} is named but no {PUBKEY_PIN} is committed at {at} "
+                "— nothing can verify it, so the claim fails closed (#281)"]
+    if transcript is None:
+        return [f"{PUBKEY_PIN} is committed at {at} ({why}), so a ledger entry alone no longer proves "
+                "the verifier ran — the RUN: header must name transcript=<path>, the coordinator-"
+                "signed verdict envelope (verify.py --transcript-out/--transcript-key, or "
+                "dispatch-sign.py sign-transcript) (#281)"]
+    if run_dir is not None and not transcript.startswith(run_dir + "/"):
+        return [f"RUN: transcript={transcript} is outside this run's own directory {run_dir}/ — a "
+                "run is graded on its own verdict, not another run's"]
+    raw = blob_at(rev, transcript, root)
+    if raw is None:
+        return [f"RUN: transcript={transcript} cannot be read at {rev}"]
+    try:
+        envelope = json.loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, ValueError) as err:
+        return [f"RUN: transcript={transcript} at {rev} is not readable JSON ({err})"]
+    if not (isinstance(envelope, dict) and isinstance(envelope.get("record"), dict)
+            and isinstance(envelope.get("sig_b64"), str)):
+        return [f"RUN: transcript={transcript} is an UNSIGNED verdict (no record/sig_b64 envelope) "
+                f"and {PUBKEY_PIN} is committed at {at} — rejected; sign it with the coordinator's "
+                "seed (#281)"]
+    try:
+        sig = base64.b64decode(envelope["sig_b64"], validate=True)
+    except ValueError as err:
+        return [f"RUN: transcript={transcript} sig_b64 is malformed ({err}) — fail-closed"]
+    record = envelope["record"]
+    if not dispatch_sign._load_ed25519().checkvalid(
+            sig, dispatch_sign.canonical_transcript(record), pub):
+        return [f"RUN: transcript={transcript} signature INVALID for the {PUBKEY_PIN} committed at "
+                f"{at} — not the coordinator's verdict (forged, tampered, or another key) (#281)"]
+    # Bind the signed verdict to THIS report's claims: the manifest it names and its exact bytes at
+    # the pin, the outcome the header records, and the argument tuple the body's invocation shows.
+    # None on either side is an absence, and an absence binds nothing (round-1 R-2).
+    problems = []
+    manifest = fields["manifest"]
+    if record.get("manifest") != manifest:
+        problems.append(f"it judges manifest {record.get('manifest')!r}, not {manifest}")
+    graded = blob_at(rev, manifest, root)
+    if graded is None:
+        problems.append(f"the graded manifest {manifest} cannot be read at {rev}, so there are no "
+                        "bytes to bind")
+    elif record.get("manifest_sha256") is None:
+        problems.append("it signs no manifest_sha256 — a verdict over unknown bytes")
+    elif record.get("manifest_sha256") != hashlib.sha256(graded).hexdigest():
+        problems.append(f"its manifest_sha256 {str(record.get('manifest_sha256'))[:12]}… is not the "
+                        f"graded manifest's bytes at {rev} "
+                        f"({hashlib.sha256(graded).hexdigest()[:12]}…)")
+    want = 0 if fields["verifier"] == "GREEN" else 2
+    if record.get("exit") != want:
+        problems.append(f"its exit {record.get('exit')!r} disagrees with RUN: verifier="
+                        f"{fields['verifier']} (expected exit {want})")
+    # The args are signed so they can be READ (BOT-1): the verdict is a verdict under a policy,
+    # and the policy must be the one the report shows and the one the mission's class demands.
+    signed = record.get("args")
+    if not (isinstance(signed, dict) and signed):
+        problems.append("it signs no argument tuple, so under which policy the verdict was "
+                        "reached is unknown")
+    else:
+        missing = sorted(set(SIGNED_ARGS) - set(signed))
+        unexpected = sorted(set(signed) - set(SIGNED_ARGS))
+        if missing or unexpected:
+            problems.append(f"its signed argument tuple is partial — missing keys {missing}"
+                            + (f", unexpected keys {unexpected}" if unexpected else "")
+                            + " — the full verifier policy tuple must be signed, not a subset "
+                            "(a transcript may omit no control it was reached under)")
+        else:
+            shown = invocation_args(text, manifest)
+            if not any(all(inv[k] == signed[k] for k in SIGNED_ARGS) for inv in shown):
+                summary = " ".join(f"{k}={signed[k]!r}" for k in SIGNED_ARGS if signed[k] not in (None, False))
+                problems.append(f"its signed argument tuple ({summary or 'every flag unset'}) matches no "
+                                f"verify.py invocation the body shows — the verdict was reached under "
+                                "a policy the report does not claim")
+        mutation = _mutation_missions(root, rev)
+        if mutation and fields["mission"] in mutation and signed.get("unit_class") != "mutation":
+            problems.append(f"it was judged as unit_class={signed.get('unit_class')!r}, but "
+                            f"{fields['mission']} is a mutation-class mission (evidence-manifest.md "
+                            "§3) — a verdict on a lesser class proves nothing about this one")
+    if problems:
+        return [f"RUN: transcript={transcript} verifies but does not bind this report: "
+                + "; ".join(problems)]
+    return []
 
 
 def _mutation_missions(root, rev=None):
@@ -654,8 +924,9 @@ def _wip_curve_errors(text, mission, root, report_path, rev=None):
     return errors
 
 
-def check_report(report_path, mission, tier, root=None):
-    """Errors that stop `mission` claiming `tier` on this report. [] means bound."""
+def check_report(report_path, mission, tier, root=None, base=None):
+    """Errors that stop `mission` claiming `tier` on this report. [] means bound. `base` names the
+    grading base (default: the default branch's tip, see grading_base)."""
     root = root or ROOT
     report = Path(report_path)
     if not report.is_absolute():
@@ -722,14 +993,20 @@ def check_report(report_path, mission, tier, root=None):
     # #286: the tier must cost a command execution, not a sentence describing one.
     for problem in verifier_ran(manifest, rev, root):
         errors.append(f"{report_path}: {problem}")
+    # #281: with the coordinator's key committed where the switch is read, it must be SIGNED.
+    for problem in signed_transcript(fields, rev, run_dir, root, base, text):
+        errors.append(f"{report_path}: {problem}")
 
     errors.extend(_wip_curve_errors(text, mission, root, report_path, rev=rev))
 
     try:
-        _report, _lines, entries = inventory.load(report)
+        _report, lines, entries = inventory.load(report)
     except inventory.InventoryError as exc:
         errors.append(f"{report_path}: integrity inventory: {exc}")
         return errors
+    # #386: with the key committed where the switch is read, the entry set itself must be SIGNED.
+    for problem in signed_inventory(lines, entries, rev, root, base):
+        errors.append(f"{report_path}: {problem}")
     matched, mismatched, missing = inventory.check_entries(entries, report, root, at=rev)
     if mismatched:
         for path_text, recorded, actual in mismatched:
@@ -826,6 +1103,9 @@ def main(argv=None):
     parser.add_argument("report", nargs="?", help="one report to check (default: every claim)")
     parser.add_argument("--mission", help="mission the report is claimed by (with `report`)")
     parser.add_argument("--tier", help="tier claimed (with `report`)")
+    parser.add_argument("--base", default=None, metavar="REV",
+                        help="the grading base the unsigned lane is proven against (default: "
+                             "origin/HEAD, then origin/main, origin/master, main, master, HEAD)")
     args = parser.parse_args(argv)
 
     if args.report:
@@ -854,7 +1134,7 @@ def main(argv=None):
             print(f"FAIL {mission} ({tier}) — no proof_evidence")
             failed = True
             continue
-        errors = check_report(evidence, mission, tier)
+        errors = check_report(evidence, mission, tier, base=args.base)
         if errors:
             failed = True
             print(f"FAIL {mission} ({tier})")

@@ -5,6 +5,7 @@ The verifier trusts NOTHING in the worker's manifest it can check against an aut
 coordinator's frozen contract (scope) and dispatch-supplied unit class, GitHub (review), and the
 artifact (negative control). Each check must fail closed.
 """
+import base64
 import contextlib
 import errno
 import hashlib
@@ -20,6 +21,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import unittest.mock
 from pathlib import Path
 from unittest import mock
 
@@ -2255,6 +2257,136 @@ class DispatchProvenance(RepoCase):
                                                "command": "pytest -k AC_1"}}
         res = verify.check_dispatch_provenance(m, "sha256:a", "mutation", None, rec, pk)
         self.assertTrue(res and all(e.startswith("NOTE:") for e in res), res)
+
+
+class SignedTranscript(RepoCase):
+    """#281 / #386: the verdict leaves verify.py as a SIGNED transcript, not only as stdout text.
+
+    Given `--transcript-out` + `--transcript-key`, main() builds a machine-readable verdict object
+    (unit, manifest path + sha256, the full argument tuple, fatal/notes, exit, toolchain, UTC
+    timestamp) and writes it as the same {record, sig_b64} envelope dispatch-sign.py emits, over
+    the same canonical form. run_report.py can then REQUIRE that envelope against a committed
+    public key instead of trusting a worker-written ledger entry."""
+
+    SEED = bytes(range(1, 33))
+
+    def setUp(self):
+        super().setUp()
+        self.manifest = self.write("docs/reports/u/manifest.json", json.dumps({"unit": "u"}))
+        self.key = self.write(".orca/seed", self.SEED.hex() + "\n")
+
+    def _main(self, *extra):
+        buf, errbuf = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(errbuf):
+            rc = verify.main(["--manifest", self.manifest, "--unit-class", "report-only", *extra])
+        return rc, buf.getvalue(), errbuf.getvalue()
+
+    def _envelope(self, path="docs/reports/u/transcript.json"):
+        return json.loads((self.repo / path).read_text(encoding="utf-8"))
+
+    def test_no_flags_writes_nothing_and_says_nothing_new(self):
+        # The unsigned default path is byte-identical to today's: the terminal lines are the
+        # verdict, nothing about transcripts is printed, and no file appears.
+        rc, out, err = self._main()
+        self.assertIn(rc, (0, 2))
+        self.assertNotIn("transcript", (out + err).lower())
+        self.assertFalse(list((self.repo / "docs" / "reports" / "u").glob("transcript*")))
+
+    def test_the_pair_emits_an_envelope_that_verifies_and_binds_the_verdict(self):
+        rc, out, err = self._main("--transcript-out", "docs/reports/u/transcript.json",
+                                  "--transcript-key", self.key)
+        env = self._envelope()
+        self.assertEqual(set(env), {"record", "sig_b64"})
+        rec = env["record"]
+        self.assertEqual(rec["exit"], rc)
+        self.assertEqual(rec["unit"], "u")
+        self.assertEqual(rec["manifest"], self.manifest)
+        self.assertEqual(rec["manifest_sha256"],
+                         hashlib.sha256((self.repo / self.manifest).read_bytes()).hexdigest())
+        self.assertEqual(rec["args"]["unit_class"], "report-only")
+        self.assertIn("lighting", rec["args"])  # the FULL tuple, unset flags included
+        # the lists are the printed verdict, not a summary of it
+        self.assertEqual(rec["fatal"], [l[len("FAIL: "):] for l in err.splitlines() if l.startswith("FAIL: ")])
+        self.assertEqual(rec["notes"], [l for l in out.splitlines() if l.startswith("NOTE:")])
+        self.assertTrue(rec["timestamp"].endswith("+00:00"), rec["timestamp"])
+        self.assertIn("python", rec["toolchain"])
+        self.assertEqual(rec["toolchain"]["verify_sha256"],
+                         hashlib.sha256((ROOT / "runtime" / "scripts" / "verify.py").read_bytes()).hexdigest())
+        pub = ed.publickey(self.SEED)
+        sig = base64.b64decode(env["sig_b64"])
+        self.assertTrue(ed.checkvalid(sig, verify._canonical_transcript(rec), pub))
+        # any byte of the record changed -> the signature no longer verifies
+        for tampered in (dict(rec, exit=0 if rc else 2), dict(rec, fatal=[]),
+                         dict(rec, manifest_sha256="00" * 32)):
+            self.assertFalse(ed.checkvalid(sig, verify._canonical_transcript(tampered), pub))
+
+    def test_out_without_key_writes_the_unsigned_verdict_object(self):
+        # The maintainer's seed is OFFLINE (gate G1): a verifier run without it still leaves a
+        # verdict object that `dispatch-sign.py sign-transcript` can wrap later. It is NOT an
+        # envelope, so run_report.py cannot mistake it for a signed one.
+        rc, _, _ = self._main("--transcript-out", "docs/reports/u/transcript.json")
+        rec = self._envelope()
+        self.assertNotIn("sig_b64", rec)
+        self.assertEqual(rec["exit"], rc)
+        self.assertEqual(rec["unit"], "u")
+
+    def test_key_without_out_is_a_usage_error_not_a_verdict(self):
+        rc, _, err = self._main("--transcript-key", self.key)
+        self.assertEqual(rc, 1)
+        self.assertIn("--transcript-out", err)
+        self.assertFalse(list((self.repo / "docs" / "reports" / "u").glob("transcript*")))
+
+    def test_an_unreadable_key_is_a_usage_error_before_any_verdict(self):
+        rc, _, err = self._main("--transcript-out", "docs/reports/u/transcript.json",
+                                "--transcript-key", ".orca/missing")
+        self.assertEqual(rc, 1)
+        self.assertIn("--transcript-key", err)
+        self.assertFalse((self.repo / "docs/reports/u/transcript.json").exists())
+
+    def test_a_requested_transcript_that_cannot_be_written_is_a_nonzero_exit(self):
+        # Round-1 R-3: `verify.py --transcript-out X && use X` must never see exit 0 and no X. A
+        # requested-and-missing artifact fails closed like every other evidence path here; a RED
+        # verdict keeps its own code (2) — the write failure never upgrades a RED to a usage error.
+        blocker = self.repo / "docs" / "reports" / "u" / "blocked"
+        blocker.write_text("a file where the directory must go\n", encoding="utf-8")
+        green = (([], []), None)  # the verdict itself passes; only the requested artifact fails
+        with unittest.mock.patch.object(verify, "verify", return_value=green):
+            rc, out, err = self._main("--transcript-out", "docs/reports/u/blocked/transcript.json")
+        self.assertIn("verify: OK", out)
+        self.assertEqual(rc, 1, err)
+        self.assertIn("transcript", err)
+        self.assertFalse((blocker / "transcript.json").exists())
+        with unittest.mock.patch.object(verify, "verify", return_value=((["x"], []), None)):
+            rc, _, _ = self._main("--transcript-out", "docs/reports/u/blocked/transcript.json")
+        self.assertEqual(rc, 2, "a RED verdict keeps its own exit code")
+
+    def test_the_in_process_signer_refuses_to_sign_an_absence_like_the_offline_one(self):
+        # Round-1 R-2: dispatch-sign.py refuses a verdict with a None field; verify.py's in-process
+        # signer must apply the same rule, not sign manifest_sha256=None and let None==None bind.
+        rc, _, err = self._main("--manifest", "docs/reports/u/missing.json",
+                                "--transcript-out", "docs/reports/u/transcript.json",
+                                "--transcript-key", self.key)
+        self.assertNotEqual(rc, 0)
+        self.assertIn("absence", err)
+        self.assertFalse((self.repo / "docs/reports/u/transcript.json").exists())
+
+    def test_canonicalization_matches_signer(self):
+        # cross-tool drift guard, as for the dispatch tuple: verify.py signs, dispatch-sign.py
+        # signs offline, run_report.py verifies — one canonical form or every real signature fails.
+        rec = {"unit": "u", "manifest": "m.json", "manifest_sha256": "ab" * 32,
+               "args": {"unit_class": "mutation", "lighting": None, "execute_nc": False},
+               "fatal": ["x"], "notes": [], "exit": 2,
+               "toolchain": {"python": "3", "verify_sha256": "cd" * 32},
+               "timestamp": "2026-09-20T00:00:00+00:00", "extra": "not signed"}
+        self.assertEqual(verify._canonical_transcript(rec), dispatch_sign.canonical_transcript(rec))
+        self.assertNotIn(b"not signed", verify._canonical_transcript(rec))
+
+    def test_help_documents_the_pair(self):
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf), self.assertRaises(SystemExit):
+            verify.main(["--help"])
+        for flag in ("--transcript-out", "--transcript-key"):
+            self.assertIn(flag, buf.getvalue())
 
 
 class PinnedEvidenceBytes(RepoCase):

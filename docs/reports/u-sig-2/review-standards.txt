@@ -1,0 +1,201 @@
+REVIEW — U-SIG-2 — axis: STANDARDS
+==================================
+Unit:      U-SIG-2 (sign the run-close inventory; retention names a Rekor-style receipt) #386
+Branch:    ravidsrk/sig-2 @ 0e5f441d (head); PR #490 head e833bcb2 (code identical — 0e5f441d adds only integrate.json)
+Base:      origin/review/2026-09-20-sign-386 @ 3674b2d9 (merge-base == base tip; branch merged base, not rebased)
+Spec:      docs/runs/2026-09-20-sign-386/build-u-sig-2.md (frozen)
+Held:      docs/reports/u-sig-2/integrate.json — BOT-1, BOT-2 (both VALID, held for batch)
+Reviewer:  standards worker, task_a8b65e094ccd / ctx_8e73aa5c959f; 2026-09-21 01:06–01:11 local, inside the 30-min box
+Method:    BLIND-FIX FIRST — expectations written from spec + integrate.json only (scratchpad/blind-expectations.txt,
+           01:06:57) before `git diff origin/review/2026-09-20-sign-386...HEAD` was opened. Then per-hunk:
+           AGENTS.md conventions (argv-never-interpolation, stdlib-only, fail-closed, no new deps), Fowler 12 smells,
+           neighbor style of inventory.py / run_report.py / dispatch-sign.py. Reproductions ran in a scratch clone only;
+           nothing in this worktree was modified except this file (uncommitted). Read-only verdict.
+
+VERDICT: MERGEABLE AFTER 1 REQUIRED (R-1 = BOT-1 + its `write` blast radius) — no Critical. The shared-helper
+question the axis asked is answered YES (see S-0).
+
+--------------------------------------------------------------------------------------------------
+S-0  PASS — enforcement_key() is genuinely shared, not a second copy
+--------------------------------------------------------------------------------------------------
+Motivating lines (run_report.py, the diff):
+  +def enforcement_key(rev, root, base=None):
+  +    """(pubkey bytes or None, commit it was read at, why) — THE switch, resolved once for every
+  +    signed leg (transcript, inventory) so none of them can disagree about whether enforcement is
+  and in signed_transcript:
+  -    at, why = key_rev(rev, root, base)
+  -    ...
+  -    pin = blob_at(at, PUBKEY_PIN, root)
+  -    if at != rev and pin is None:  # no key on the base: the pin's own key, exactly as before
+  -        pin, at, why = blob_at(rev, PUBKEY_PIN, root), rev, "the pin; the grading base carries no key"
+  +    pin, at, why = enforcement_key(rev, root, base)
+Blind expectation E1d/E2a: one key-resolution function imported by both legs, not a paste. Actual: the U-SIG-1
+inline block was EXTRACTED out of signed_transcript into enforcement_key() and both signed_transcript (l.596) and
+signed_inventory (l.557) call it; `rg "blob_at\(.*PUBKEY_PIN"` finds exactly the two lines inside enforcement_key
+(543, 545) and nowhere else in runtime/scripts. verify.py keeps its own key lookup, but that is U-SIG-1's
+pre-existing surface and out of this unit's scope by spec ("no changes to verify.py or dispatch-sign.py"). PASS.
+
+--------------------------------------------------------------------------------------------------
+R-1  REQUIRED — signature discovery/placement is document-wide, not block-scoped (= BOT-1), and the
+     unit's `write` inherits it on the UNSIGNED path
+--------------------------------------------------------------------------------------------------
+Motivating lines (inventory.py):
+  +def find_signature(lines):
+  +    """(lineno, envelope) for the document's signature line, or (None, None). Two lines is a
+  +    for idx, line in enumerate(lines):
+  +        m = SIGNATURE_LINE.match(line)
+  +def _place_signature(lines, line):
+  +    """Replace the existing envelope line, or append one at the end of the FIRST block's body (the
+  +    last non-blank line before the next heading), so it sits where find_blocks already looks."""
+  +    idx, _env = find_signature(lines)
+  +    if idx is not None:
+  +        lines[idx] = line
+and in cmd_write, BEFORE the `if key:` branch:
+  +    key = getattr(args, "key", None)
+  +    _idx, envelope = find_signature(lines)
+Blind expectation E1e: discovery limited to find_blocks() ranges; a whole-document scan is Feature Envy on the
+document plus Divergent knowledge of "where the inventory lives" (find_blocks already owns it). Actual: BOT-1
+confirmed as the integrator described; REPRODUCED in scratch (doc = prose example line 5 + fenced block 8-11):
+  * unsigned + prose example, `check --pubkey`  → "SIGNATURE signature record binds inventory digest x…" exit 1
+    (right verdict, wrong diagnostic — should be UNSIGNED)
+  * `sign --key`                                 → overwrote the PROSE line (line 5, outside the block); the block
+    itself got no envelope. `check --pubkey` then VERIFIES it, exit 0 — the signature lives in prose and passes,
+    contradicting the docstring's "sits where find_blocks already looks" and the spec's "a detached envelope
+    block that find_blocks/parse_entries TOLERATE".
+  * NEW (beyond integrate.json's list of affected callers): real envelope in block + prose example, plain
+    `inventory.py write` with NO --key → "could not run: 2 inventory-signature lines" exit 2. Pre-unit `write`
+    never read envelopes; the spec's non-goal is "no change to the unsigned default path (no pubkey → today's
+    behavior)" and the module docstring promises the envelope "is never read" without a key, which is true of
+    `check` but not of `write`. Fail-closed, but a behaviour change on the path the spec froze.
+Fowler: Feature Envy (find_signature/_place_signature operate on the whole document instead of the block the
+inventory abstraction owns), Shotgun Surgery latent (block-boundary knowledge now in two places), and the
+docstring is a Comment-as-deodorant for the mismatch. Standards: fail-closed holds on every path — no Critical.
+Fix (in-scope, small): have find_signature take the [(start,end)] ranges from find_blocks() and scan only those;
+_place_signature then replaces only an in-block envelope; add the prose-example test the integrator named
+(unsigned → "UNSIGNED"; signed → verifies; `write` without --key → exit 0 and today's output). Batch decision.
+
+--------------------------------------------------------------------------------------------------
+R-2  REQUIRED (small) — the pin→32-byte-key parse and its fail-closed message are duplicated verbatim in
+     signed_inventory and signed_transcript; enforcement_key()'s docstring claims it already returns key bytes
+--------------------------------------------------------------------------------------------------
+Motivating lines (run_report.py):
+  +    try:
+  +        pub = bytes.fromhex(pin.decode("utf-8").strip())
+  +    except (UnicodeDecodeError, ValueError) as err:
+  +        return [f"{PUBKEY_PIN} at {at} is malformed ({err}) — fail-closed"]
+  +    if len(pub) != 32:
+  +        return [f"{PUBKEY_PIN} at {at} is malformed (not a 32-byte hex key) — fail-closed"]
+against the pre-existing signed_transcript (unchanged, l.626-631):
+       pub = bytes.fromhex(pin.decode("utf-8").strip())
+       ...
+       if len(pub) != 32:
+           return [f"{PUBKEY_PIN} at {at} is malformed (not a 32-byte hex key) — fail-closed"]
+and the new helper's own contract:
+  +    """(pubkey bytes or None, commit it was read at, why) — THE switch, resolved once for every
+Blind expectation E1d: the shared helper is the ONE place the key is resolved. Actual: enforcement_key() returns
+the raw pin BLOB (hex text), not "pubkey bytes"; each caller re-parses it and re-states the malformed-pin refusal.
+Fowler: Duplicated Code on a fail-closed check (two copies can drift — signed_transcript's variant already folds
+the sig_b64 decode into the same except clause, signed_inventory's does not, so the two messages for the same
+bad pin already differ in wording). AGENTS.md fail-closed posture is honoured in both copies today. Fix: let
+enforcement_key() return decoded 32-byte key or (None, at, "<malformed reason>") and drop both parses — the
+docstring then becomes true. Neighbour precedent: dispatch-sign._seed() does exactly this for the seed side.
+inventory.read_pubkey() (a 3rd parse, path-based, for the CLI) is acceptable — the natural home for a shared
+`_pubkey(path)` is dispatch-sign.py next to _seed(), which the spec fences off; FYI for the follow-up.
+
+--------------------------------------------------------------------------------------------------
+N-1  NIT — cmd_write re-derives the just-written hash by regex instead of remembering it
+--------------------------------------------------------------------------------------------------
+Motivating lines (inventory.py, cmd_write):
+  +        fresh = [(i, p, re.search(r"[0-9a-fA-F]{64}", lines[i]).group(0).lower(), sh)
+  +                 for i, p, _h, sh in entries]
+Blind expectation: none specific. Actual: the loop above it already computes `actual` per idx and rewrites the
+line with `re.sub(r"[0-9a-fA-F]{64}", actual, lines[idx], count=1)`; `fresh` then parses the line back with a
+second literal copy of the same regex. Fowler: Duplicated Code + Primitive Obsession (the 64-hex literal appears
+twice inline while the module has a SHA256 constant). Fix: collect `(idx, path, actual_or_recorded, shape)` in
+the loop and sign that; or hoist one `HEX64 = re.compile(...)` constant. Cosmetic; behaviour is correct because
+an entry line carries exactly one 64-hex token (the comment on the re.sub says so).
+
+--------------------------------------------------------------------------------------------------
+N-2  NIT — `_lines` is underscore-named but now used (cmd_check); the run_report hunk fixed the same thing
+--------------------------------------------------------------------------------------------------
+Motivating lines:
+  inventory.py cmd_check (unchanged line):     report, _lines, entries = load(args.report)
+  inventory.py cmd_check (new):            +        _idx, envelope = find_signature(_lines)
+  run_report.py check_report (new):        -    _report, _lines, entries = inventory.load(report)
+                                            +    _report, lines, entries = inventory.load(report)
+Actual: the unit knew the convention (it renamed the same tuple element in run_report.py when it started using
+it) and missed the twin in inventory.py. Rename `_lines` → `lines` in cmd_check.
+
+--------------------------------------------------------------------------------------------------
+N-3  NIT — signature_record() recomputes the pair-set that canonical_entries() already builds
+--------------------------------------------------------------------------------------------------
+Motivating lines (inventory.py):
+  +    pairs = sorted({(path_text, recorded) for _idx, path_text, recorded, _shape in entries})
+  +def signature_record(entries):
+  +    return {"entries": len({(p, h) for _i, p, h, _s in entries}), "inventory_sha256": inventory_digest(entries)}
+Actual: the set comprehension is written twice with different local names; `entries` (the count) and the digest
+are two views of one set. Fowler: Duplicated Code. Fix: one `_pair_set(entries)` used by both, or have
+canonical_entries return (pairs, bytes). Cosmetic.
+
+--------------------------------------------------------------------------------------------------
+N-4  NIT — docs byte budget was paid by trimming rationale out of rows the unit did not own (= scope drift)
+--------------------------------------------------------------------------------------------------
+Motivating lines (runtime/evidence-manifest.md):
+  -… without it the unit is RED with a message naming the lane. Six of the ten manifest-gaming attacks in the 2026-09-10 review landed here, on artifacts nobody ran |
+  +… without it the unit is RED with a message naming the lane |
+  -… is a COORDINATOR judgment — a predecessor's flagship run was quarantined on exactly this; instructed isolation is named as the weaker guarantee it is |
+  +… is a COORDINATOR judgment; instructed isolation is named as the weaker guarantee it is |
+Spec scope: "runtime/evidence-manifest.md (retention field spec, ≤160 lines)". Actual: 158 lines (PASS on the
+limit), but the intro paragraph, the NC row, the review-waiver row, the review-independent row, the
+`review.artifact` row and the `lighting` row were all rewritten to buy bytes for the retention sentence — the
+file sits at the clean-sweep activation-load ceiling (integrate.json: 33,997/34,000 tokens), so byte-neutral
+writing was forced, and the trimmed clauses are historical citations git preserves. Reporting it because it is
+scope beyond the spec's one field and the batch should decide knowingly, not because the edits are wrong.
+Fowler n/a. Standards: the ≤160 rule and validate.py both hold.
+
+--------------------------------------------------------------------------------------------------
+F-1  FYI — BOT-2 (retention "binding" under-specified): agree VALID, agree out of frozen scope; one word
+     overclaims on this axis
+--------------------------------------------------------------------------------------------------
+Motivating line (runtime/evidence-manifest.md):
+  +… the check owed is OFFLINE — its fields binding that digest (verify.py today: presence only) — and proves the receipt covers these bytes, not that the log is reachable or trusted.
+Blind expectation E3b: the sentence would say "proves … covers these bytes" where a presence+digest-equality
+check can only prove the receipt NAMES the digest. Actual: exactly that. The spec froze three fields and "spec
+only", so the schema/trust-root belongs to the G1 follow-up the integrator named. On this axis the ask is one
+verb: "proves" → "would prove, once the signature check is specified" (or "names"); the compliance-provenance.md
+row already hedges correctly with "Proven, once that check runs:". Nit-level; folded under BOT-2's batch item.
+
+--------------------------------------------------------------------------------------------------
+F-2  FYI — conventions that PASS (checked, not assumed)
+--------------------------------------------------------------------------------------------------
+- argv never interpolated: no new subprocess calls; all pre-existing ones are list-args (`["git", ...]`), no shell=True.
+- stdlib-only: new imports are base64, importlib.util, json (inventory.py) and contextlib, io (tests). No
+  pyproject/requirements/.mise.toml change in the diff. No network code (`rg -n "urllib|socket|http" inventory.py
+  run_report.py` → none).
+- fail-closed: every ambiguous branch refuses — missing key file (exit 2), non-hex/short key (exit 2), two
+  envelopes (exit 2), non-JSON / non-{record,sig_b64} envelope (exit 2), digest mismatch / bad sig_b64 / wrong
+  key (exit 1), envelope with no committed key (run_report refuses), key with no envelope (refuses).
+- neighbour style: lazy `_dispatch_sign()` loader mirrors verify.py/dispatch-sign.py's importlib idiom (timed:
+  3 loads = 1 ms, so the lack of caching is not worth a nit); reaching into `ds._load_ed25519()` mirrors
+  run_report.signed_transcript exactly; message shape "{PUBKEY_PIN} at {at} ({why}) … (#386)" matches the
+  transcript rule; `…` ellipsis and `entr{'y'/'ies'}` pluralisation match existing inventory.py output.
+- tests: run_inv() uses list-args subprocess; keypairs from the real gen-key scheme; existing 29 test_inventory
+  cases unchanged; `python3 -m unittest tests.test_inventory` → Ran 46 tests OK (this worktree, 01:10).
+- code at 0e5f441d == code at PR head e833bcb2 (0e5f441d is integrate.json only).
+
+--------------------------------------------------------------------------------------------------
+BLIND-VS-ACTUAL SCORECARD
+--------------------------------------------------------------------------------------------------
+E1a digest idiom     : expected hashlib over a fixed join → actual json.dumps compact of sorted pairs. Acceptable;
+                       it reuses dispatch-sign's canonical_record convention (sort_keys, compact separators). PASS.
+E1b one tolerated line: PASS (HTML comment; SHA_LINE/TABLE_ROW cannot match it; test proves every shape parses).
+E1c import not reimplement: PASS (envelope/canonical_record/_seed/_load_ed25519 all from dispatch-sign.py).
+E1d shared switch    : PASS for the switch (S-0); the key PARSE is not shared (R-2).
+E1e block-scoped     : FAIL → R-1 (= BOT-1, plus `write`).
+E2a/E2b run_report   : PASS (one predicate, one call site, mirrored messages).
+E3a/E3b docs         : PASS on the ≤160 line rule; the overclaiming verb matched my expectation → F-1; N-4 was
+                       not anticipated (I did not foresee the byte ceiling forcing edits to other rows).
+BOT-1                : agree VALID/P2; on this axis Required; my reproduction adds the `write` path.
+BOT-2                : agree VALID, docs-only, out of frozen scope; one-verb wording nit on this axis.
+
+Timebox: within 30 min; full report (no partial-STOP). Nothing committed; this file is uncommitted.

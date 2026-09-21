@@ -1,0 +1,186 @@
+{
+  "commands": [
+    {
+      "label": "tests",
+      "ts": "2026-09-21T01:53:44Z",
+      "cmd": "python3 -m unittest tests.test_inventory tests.test_run_report",
+      "cmd_sha256": "ed451a99988c0dda1b0624ad09e6c8b4a3b2c4bbf5f86986475203e137ecc2dd",
+      "exit": 0,
+      "duration_s": 61.195,
+      "commit": "0558cda92b61d807c152fc986f6162093f02ba74",
+      "wtree": "8c29372e11d1fc2248b37b9f7144f0ceda307e69",
+      "artifact": "docs/runs/2026-09-20-sign-386/u-sig-2-r2-tests.txt"
+    },
+    {
+      "label": "negative-control",
+      "ts": "2026-09-21T01:54:14Z",
+      "cmd": "python3 -m unittest tests.test_inventory.SignedInventory tests.test_run_report.SignedInventoryRequired",
+      "cmd_sha256": "8fc0e8af668a80c9e5dc65c51eb24566fed4fba9c4f8405108ceedcd1233c50b",
+      "exit": 1,
+      "duration_s": 24.213,
+      "commit": "0558cda92b61d807c152fc986f6162093f02ba74",
+      "wtree": "cbb4a87899378f9563e0eb4aac1994442a644bb1",
+      "artifact": "docs/runs/2026-09-20-sign-386/u-sig-2-r2-negctrl.txt"
+    }
+  ],
+  "schema": 1,
+  "unit": "U-SIG-2",
+  "unit_class": "mutation",
+  "round": 2,
+  "base_sha": "749b5bad0fd5e9d60726304ec8f70b75985c2cd1",
+  "head_sha": "0558cda92b61d807c152fc986f6162093f02ba74",
+  "head_tree": "8c29372e11d1fc2248b37b9f7144f0ceda307e69",
+  "head_sha_role": "base_sha..head_sha is the round-2 fix range on ravidsrk/sig-2 after merging the base tip (c91642ad, the r2 spec): inventory G-1..G-4 (46c52a08), run_report G-5 + the gate mirror (d697e361), the badge bump (0558cda9). head_sha is the LAST content commit, so the `tests` receipt's wtree fingerprints exactly head_sha^{tree}; the commit recording this manifest, its receipts and the builder report follows it and carries no production or test content. Round 1's manifest (u-sig-2-manifest.json @ 98fb8aae) stands as the feature's own evidence; this one binds the fix batch.",
+  "base_branch": "review/2026-09-20-sign-386",
+  "contract": {
+    "source": "docs/runs/2026-09-20-sign-386/build-u-sig-2-r2.md@749b5bad",
+    "digest": "sha256:548841f52c2d4c49da77b5c206ad45dde02683983e6097f325560eba9909d031",
+    "criterion_ids": [
+      "G-1",
+      "G-2",
+      "G-3",
+      "G-4",
+      "G-5"
+    ]
+  },
+  "criteria": [
+    {
+      "id": "G-1",
+      "text": "malformed sig_b64 is ALWAYS a refusal (distinct path, never conflatable with validity); keyless-forgery killer test; malformed-but-valid-base64 case.",
+      "addressed": true,
+      "witness": "inventory.py: decode_signature raises SignatureRefused on a base64 or length error; verify_signature raises on every refusal and RETURNS the signed digest, which cmd_check and run_report.signed_inventory compare to inventory_digest(entries) — validity is an affirmative value from the key, never the absence of a complaint. Tests: SignedInventory::test_a_keyless_forgery_with_a_malformed_sig_b64_is_refused (record derived from the document by a forger with no seed, sig_b64='not*base64!' → exit 1 'malformed', no 'signature verified'; function-level: SignatureRefused raised, and the honest case returns inventory_digest), ::test_a_well_formed_base64_that_is_not_a_signature_is_refused_as_malformed (b64('short') → exit 1 'malformed'); gate mirror SignedInventoryRequired::test_a_malformed_sig_b64_never_binds ('signature does not bind' + 'malformed'). M14 and M14b (decode failure returned as None, in decode_signature and in verify_signature) both KILLED — u-sig-2-r2-mutants.txt."
+    },
+    {
+      "id": "G-2",
+      "text": "find/place scoped to the find_blocks ranges exactly; a match outside is REFUSED, not honoured; sign never touches prose; unsigned write restored to the frozen behaviour.",
+      "addressed": true,
+      "witness": "inventory.py: find_signature computes find_blocks and accepts only start<idx<end; any other match raises InventoryError '… sits outside every inventory block — not an envelope; refused' (exit 2) before anything is rewritten, so sign/_place_signature cannot touch prose; cmd_write no longer calls find_signature on the no-key path — _stale_envelope() is advisory-only and swallows InventoryError, so `write` with no --key exits 0 and writes exactly the pre-#386 bytes. Tests: ::test_a_signature_line_in_prose_is_never_an_envelope (check no-pubkey 0; check --pubkey exit 2 'outside', not 'unsigned'; sign exit 2 and the document byte-identical), ::test_unsigned_write_ignores_the_envelope_and_writes_as_before (stdout == the pre-feature line, stderr empty, prose line intact), ::test_sign_places_the_envelope_inside_an_inventory_block (kills M13), ::test_a_valid_envelope_outside_every_block_is_refused_not_honoured (a real signature moved to line 1 → exit 2 'outside'); gate: SignedInventoryRequired::test_a_signature_line_in_the_report_prose_is_refused. M13 KILLED (17 RED), M16 (stray line ignored) KILLED. NOTE: the axis reports asked for 'ignored'; the frozen spec says REFUSED as a would-be forgery — the spec was followed."
+    },
+    {
+      "id": "G-3",
+      "text": "two envelope lines → REFUSE, never first-wins; killer test.",
+      "addressed": true,
+      "witness": "the refusal already existed (find_signature: '2 inventory-signature lines — a document carries one signature'); ::test_two_envelope_lines_are_refused pins it (exit 2). M12 KILLED on that one test."
+    },
+    {
+      "id": "G-4",
+      "text": "non-{record,sig_b64} SIGNATURE_LINE → REFUSE (malformed envelope), never unsigned; killer test.",
+      "addressed": true,
+      "witness": "the refusal already existed ('… is not a {record, sig_b64} envelope'); ::test_a_signature_line_that_is_not_an_envelope_is_refused_not_unsigned pins it (exit 2, and 'unsigned' absent from stderr). M15 KILLED on that one test."
+    },
+    {
+      "id": "G-5",
+      "text": "pubkey parse moves into enforcement_key(); the switch has exactly one implementation.",
+      "addressed": true,
+      "witness": "run_report.py: enforcement_key() returns (32 key bytes | None, at, why) and owns the hex/length parse; a malformed pin returns at=None with the refusal in why, which both legs already return verbatim. signed_inventory and signed_transcript lost their copies (rg 'bytes.fromhex' runtime/scripts/run_report.py → one hit, inside enforcement_key). Tests: SignedInventoryRequired::test_a_malformed_pin_refuses_the_inventory_leg_too (both legs report 'malformed'; enforcement_key → (None, None, '…malformed…')); the pre-existing test_a_key_whose_pin_is_malformed_fails_closed still green. M17 (helper hands back the raw blob) KILLED (4 RED)."
+    }
+  ],
+  "negative_control": {
+    "tool": "revert",
+    "did": "git checkout 5c87eb05 (the round-1 head) -- runtime/scripts/inventory.py runtime/scripts/run_report.py in this worktree, tests kept at head; the covering classes run via evidence-run.py --label negative-control; then git checkout HEAD -- both files (worktree clean, verified with git status).",
+    "result": "FAILED (failures=6, errors=1) = 7 RED: the G-1 pair + the keyless-forgery test (ERROR: SignatureRefused does not exist pre-fix), the three G-2 tests, the G-5 test, the prose-line gate test. The G-3/G-4 pins and the M14 gate mirror stay green on the pre-fix code by design — those refusals already held; their proof is the mutant kill.",
+    "artifact": "docs/runs/2026-09-20-sign-386/u-sig-2-r2-negctrl.txt",
+    "paths": [
+      "runtime/scripts/inventory.py",
+      "runtime/scripts/run_report.py"
+    ],
+    "command": "python3 -m unittest tests.test_inventory.SignedInventory tests.test_run_report.SignedInventoryRequired",
+    "expected": "RED",
+    "observed": "RED — FAILED (failures=6, errors=1)"
+  },
+  "mutants": {
+    "artifact": "docs/runs/2026-09-20-sign-386/u-sig-2-r2-mutants.txt",
+    "killed": [
+      "M12",
+      "M13",
+      "M14",
+      "M14b",
+      "M15",
+      "M16",
+      "M17"
+    ],
+    "survived": []
+  },
+  "binding_audit": {
+    "coverage": "G-1..G-5 (5/5)",
+    "method": "each item quoted, covering test named, the revert control turns 7 covering tests RED, and every round-1 survivor (M12-M15) re-run against the fixed code dies on a named test"
+  },
+  "intent": {
+    "goal": "Answer every Required from round 1 of U-SIG-2 (PR #490 review): the keyless-forgery class (G-1) first, then block-scoped envelope discovery/placement with the frozen unsigned write restored (G-2), the two structural refusals pinned by killer tests (G-3, G-4), and one implementation of the enforcement switch (G-5).",
+    "non_goals": "no envelope-format change (U-SIG-1's), no new dependency, no network, no other file, no PR action, no weakening of any existing refusal",
+    "stop_conditions_hit": "none",
+    "ruled_out": "Changing the envelope format or the canonical bytes (U-SIG-1's; the fix is in validation only); ignoring a stray SIGNATURE_LINE in prose — the axes asked for 'ignored', the frozen spec says refused-as-forgery, and ignore would let a second copy of the line sit in a document unremarked; keeping verify_signature's None-means-valid channel with an extra guard (the conflation IS the defect, so the verdict became an affirmative digest and every refusal an exception); dropping the STALE advisory from unsigned write (kept, advisory-only, never a refusal, so the frozen exit code and bytes are restored without losing the round-1 pin); a shared pubkey parser in dispatch-sign.py next to _seed (fenced off by the spec — parse lives in enforcement_key, inventory.read_pubkey stays for the CLI).",
+    "why": "Round 1 demonstrated a keyless forgery one token away from green (M14): the record is derivable from the document, so the whole scheme rests on checkvalid plus the decode branch in front of it, and that branch shared its return channel with 'valid'. BOT-1 let sign rewrite prose and the gate read an envelope the parser never inspects. Both are the class of bug this repository exists to refuse: a claim graded on the wrong evidence."
+  },
+  "lighting": "lit",
+  "artifacts": [
+    {
+      "path": "docs/runs/2026-09-20-sign-386/u-sig-2-r2-negctrl.txt",
+      "sha256": "fc76b7db748837e6b43ee57d119a7e44a6e97c1ca8d9ad7ec715f64cb3798d10"
+    },
+    {
+      "path": "docs/runs/2026-09-20-sign-386/u-sig-2-r2-tests.txt",
+      "sha256": "f11032c05b8044161303a38527c45bc58fa4ac7c742e10d089b4a54676bd155c"
+    },
+    {
+      "path": "docs/runs/2026-09-20-sign-386/u-sig-2-r2-mutants.txt",
+      "sha256": "d8ffaeb2502eb9b78544a58f877389a3a2d32f4220449e8b0aedb5bbd83b1051"
+    },
+    {
+      "path": "docs/runs/2026-09-20-sign-386/build-u-sig-2-r2.md",
+      "sha256": "548841f52c2d4c49da77b5c206ad45dde02683983e6097f325560eba9909d031"
+    }
+  ],
+  "reviewer_mode": "instructed-isolation",
+  "review": {
+    "artifact": null,
+    "note": "Round 2 of PR #490; the integrator re-requests review. reviewed_sha is pending that review."
+  },
+  "toolchain": "python 3.13.15 / git / stdlib only (unittest is the runner CI uses); ruff check clean on the four touched files",
+  "files": {
+    "production": [
+      "runtime/scripts/inventory.py",
+      "runtime/scripts/run_report.py"
+    ],
+    "tests": [
+      "tests/test_inventory.py",
+      "tests/test_run_report.py"
+    ],
+    "docs_and_generated": [
+      "assets/badges/tests.json",
+      "docs/runs/2026-09-20-sign-386/u-sig-2-r2-manifest.json",
+      "docs/runs/2026-09-20-sign-386/u-sig-2-r2-tests.txt",
+      "docs/runs/2026-09-20-sign-386/u-sig-2-r2-negctrl.txt",
+      "docs/runs/2026-09-20-sign-386/u-sig-2-r2-mutants.txt",
+      "docs/reports/u-sig-2/build-r2.md"
+    ]
+  },
+  "commits": [
+    {
+      "sha": "c91642ad",
+      "subject": "Merge remote-tracking branch 'origin/review/2026-09-20-sign-386' into ravidsrk/sig-2 (the r2 spec)"
+    },
+    {
+      "sha": "46c52a08",
+      "subject": "fix(inventory): read the envelope fail-closed and only inside the blocks; a malformed sig_b64 always refuses (#386 round 2, G-1..G-4)"
+    },
+    {
+      "sha": "d697e361",
+      "subject": "refactor(run_report): parse the pubkey pin once in enforcement_key (#386 round 2, G-5)"
+    },
+    {
+      "sha": "0558cda9",
+      "subject": "chore(badges): 1798 -> 1809 tests in source"
+    }
+  ],
+  "provenance": {
+    "spec_version": "build-u-sig-2-r2.md@749b5bad",
+    "model": "Claude Opus 5 (claude-opus-5[1m])",
+    "reviewer": "pending — round-2 review of PR #490",
+    "retention": "none",
+    "standard": "none"
+  },
+  "parked": [],
+  "claim": "Every round-1 Required is answered on ravidsrk/sig-2: a malformed sig_b64 is a refusal that cannot be read as a verdict (validity is the signed digest, returned only past the key); the envelope is found, placed and verified only inside find_blocks ranges, a stray line is refused and prose is never rewritten; unsigned write is the pre-#386 write again; two lines and a non-envelope line refuse with killer tests; the pin is parsed once in enforcement_key(). M12-M15 re-run and killed; full suite and validate green at the head.",
+  "full_suite": "python3 -m unittest discover -s tests at the head tree (worker-run): Ran 1908 tests in 345.136s / OK; validate.py exit 0"
+}

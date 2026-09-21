@@ -1,0 +1,552 @@
+FFFFFFFFEFFFFFF....................................................................................usage: inventory.py [-h] {write,check} ...
+inventory.py: error: argument command: invalid choice: 'sign' (choose from 'write', 'check')
+Eusage: inventory.py [-h] {write,check} ...
+inventory.py: error: argument command: invalid choice: 'sign' (choose from 'write', 'check')
+Eusage: inventory.py [-h] {write,check} ...
+inventory.py: error: argument command: invalid choice: 'sign' (choose from 'write', 'check')
+E.......usage: inventory.py [-h] {write,check} ...
+inventory.py: error: argument command: invalid choice: 'sign' (choose from 'write', 'check')
+E.........F..........F............................................usage: inventory.py [-h] {write,check} ...
+inventory.py: error: argument command: invalid choice: 'sign' (choose from 'write', 'check')
+E...usage: inventory.py [-h] {write,check} ...
+inventory.py: error: argument command: invalid choice: 'sign' (choose from 'write', 'check')
+E.................usage: inventory.py [-h] {write,check} ...
+inventory.py: error: argument command: invalid choice: 'sign' (choose from 'write', 'check')
+E............................................................
+======================================================================
+ERROR: test_sign_covers_every_block_and_is_order_free (tests.test_inventory.SignedInventory.test_sign_covers_every_block_and_is_order_free)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/tests/test_inventory.py", line 419, in test_sign_covers_every_block_and_is_order_free
+    d1 = inv.inventory_digest(inv.load(first)[2])
+         ^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'inventory' has no attribute 'inventory_digest'
+
+======================================================================
+ERROR: test_a_signed_inventory_against_the_committed_key_binds (tests.test_run_report.SignedInventoryRequired.test_a_signed_inventory_against_the_committed_key_binds)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 1965, in _parse_known_args2
+    namespace, args = self._parse_known_args(args, namespace, intermixed)
+                      ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2197, in _parse_known_args
+    positionals_end_index = consume_positionals(start_index)
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2172, in consume_positionals
+    take_action(action, args)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2026, in take_action
+    argument_values = self._get_values(action, argument_strings)
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2556, in _get_values
+    self._check_value(action, value[0])
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2606, in _check_value
+    raise ArgumentError(action, msg % args)
+argparse.ArgumentError: argument command: invalid choice: 'sign' (choose from 'write', 'check')
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/tests/test_run_report.py", line 1544, in test_a_signed_inventory_against_the_committed_key_binds
+    self._sign_report()
+    ~~~~~~~~~~~~~~~~~^^
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/tests/test_run_report.py", line 1279, in _sign_report
+    rc = run_report.inventory.main(["sign", str(self.path), "--key", str(key)])
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/runtime/scripts/inventory.py", line 303, in main
+    args = build_parser().parse_args(argv)
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 1926, in parse_args
+    args, argv = self.parse_known_args(args, namespace)
+                 ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 1936, in parse_known_args
+    return self._parse_known_args2(args, namespace, intermixed=False)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 1967, in _parse_known_args2
+    self.error(str(err))
+    ~~~~~~~~~~^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2686, in error
+    self.exit(2, _('%(prog)s: error: %(message)s\n') % args)
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2673, in exit
+    _sys.exit(status)
+    ~~~~~~~~~^^^^^^^^
+SystemExit: 2
+
+======================================================================
+ERROR: test_a_signed_inventory_is_checked_even_without_a_committed_key (tests.test_run_report.SignedInventoryRequired.test_a_signed_inventory_is_checked_even_without_a_committed_key)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 1965, in _parse_known_args2
+    namespace, args = self._parse_known_args(args, namespace, intermixed)
+                      ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2197, in _parse_known_args
+    positionals_end_index = consume_positionals(start_index)
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2172, in consume_positionals
+    take_action(action, args)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2026, in take_action
+    argument_values = self._get_values(action, argument_strings)
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2556, in _get_values
+    self._check_value(action, value[0])
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2606, in _check_value
+    raise ArgumentError(action, msg % args)
+argparse.ArgumentError: argument command: invalid choice: 'sign' (choose from 'write', 'check')
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/tests/test_run_report.py", line 1569, in test_a_signed_inventory_is_checked_even_without_a_committed_key
+    self._sign_report()
+    ~~~~~~~~~~~~~~~~~^^
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/tests/test_run_report.py", line 1279, in _sign_report
+    rc = run_report.inventory.main(["sign", str(self.path), "--key", str(key)])
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/runtime/scripts/inventory.py", line 303, in main
+    args = build_parser().parse_args(argv)
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 1926, in parse_args
+    args, argv = self.parse_known_args(args, namespace)
+                 ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 1936, in parse_known_args
+    return self._parse_known_args2(args, namespace, intermixed=False)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 1967, in _parse_known_args2
+    self.error(str(err))
+    ~~~~~~~~~~^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2686, in error
+    self.exit(2, _('%(prog)s: error: %(message)s\n') % args)
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2673, in exit
+    _sys.exit(status)
+    ~~~~~~~~~^^^^^^^^
+SystemExit: 2
+
+======================================================================
+ERROR: test_a_tampered_inventory_entry_is_refused (tests.test_run_report.SignedInventoryRequired.test_a_tampered_inventory_entry_is_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 1965, in _parse_known_args2
+    namespace, args = self._parse_known_args(args, namespace, intermixed)
+                      ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2197, in _parse_known_args
+    positionals_end_index = consume_positionals(start_index)
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2172, in consume_positionals
+    take_action(action, args)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2026, in take_action
+    argument_values = self._get_values(action, argument_strings)
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2556, in _get_values
+    self._check_value(action, value[0])
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2606, in _check_value
+    raise ArgumentError(action, msg % args)
+argparse.ArgumentError: argument command: invalid choice: 'sign' (choose from 'write', 'check')
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/tests/test_run_report.py", line 1549, in test_a_tampered_inventory_entry_is_refused
+    self._sign_report()
+    ~~~~~~~~~~~~~~~~~^^
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/tests/test_run_report.py", line 1279, in _sign_report
+    rc = run_report.inventory.main(["sign", str(self.path), "--key", str(key)])
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/runtime/scripts/inventory.py", line 303, in main
+    args = build_parser().parse_args(argv)
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 1926, in parse_args
+    args, argv = self.parse_known_args(args, namespace)
+                 ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 1936, in parse_known_args
+    return self._parse_known_args2(args, namespace, intermixed=False)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 1967, in _parse_known_args2
+    self.error(str(err))
+    ~~~~~~~~~~^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2686, in error
+    self.exit(2, _('%(prog)s: error: %(message)s\n') % args)
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2673, in exit
+    _sys.exit(status)
+    ~~~~~~~~~^^^^^^^^
+SystemExit: 2
+
+======================================================================
+ERROR: test_an_inventory_signed_by_another_key_is_refused (tests.test_run_report.SignedInventoryRequired.test_an_inventory_signed_by_another_key_is_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 1965, in _parse_known_args2
+    namespace, args = self._parse_known_args(args, namespace, intermixed)
+                      ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2197, in _parse_known_args
+    positionals_end_index = consume_positionals(start_index)
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2172, in consume_positionals
+    take_action(action, args)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2026, in take_action
+    argument_values = self._get_values(action, argument_strings)
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2556, in _get_values
+    self._check_value(action, value[0])
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2606, in _check_value
+    raise ArgumentError(action, msg % args)
+argparse.ArgumentError: argument command: invalid choice: 'sign' (choose from 'write', 'check')
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/tests/test_run_report.py", line 1561, in test_an_inventory_signed_by_another_key_is_refused
+    self._sign_report(seed=bytes(range(100, 132)))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/tests/test_run_report.py", line 1279, in _sign_report
+    rc = run_report.inventory.main(["sign", str(self.path), "--key", str(key)])
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/runtime/scripts/inventory.py", line 303, in main
+    args = build_parser().parse_args(argv)
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 1926, in parse_args
+    args, argv = self.parse_known_args(args, namespace)
+                 ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 1936, in parse_known_args
+    return self._parse_known_args2(args, namespace, intermixed=False)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 1967, in _parse_known_args2
+    self.error(str(err))
+    ~~~~~~~~~~^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2686, in error
+    self.exit(2, _('%(prog)s: error: %(message)s\n') % args)
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2673, in exit
+    _sys.exit(status)
+    ~~~~~~~~~^^^^^^^^
+SystemExit: 2
+
+======================================================================
+ERROR: test_a_recorded_red_binds_when_the_transcript_agrees (tests.test_run_report.SignedTranscriptRequired.test_a_recorded_red_binds_when_the_transcript_agrees)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 1965, in _parse_known_args2
+    namespace, args = self._parse_known_args(args, namespace, intermixed)
+                      ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2197, in _parse_known_args
+    positionals_end_index = consume_positionals(start_index)
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2172, in consume_positionals
+    take_action(action, args)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2026, in take_action
+    argument_values = self._get_values(action, argument_strings)
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2556, in _get_values
+    self._check_value(action, value[0])
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2606, in _check_value
+    raise ArgumentError(action, msg % args)
+argparse.ArgumentError: argument command: invalid choice: 'sign' (choose from 'write', 'check')
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/tests/test_run_report.py", line 1398, in test_a_recorded_red_binds_when_the_transcript_agrees
+    self._sign_report()
+    ~~~~~~~~~~~~~~~~~^^
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/tests/test_run_report.py", line 1279, in _sign_report
+    rc = run_report.inventory.main(["sign", str(self.path), "--key", str(key)])
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/runtime/scripts/inventory.py", line 303, in main
+    args = build_parser().parse_args(argv)
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 1926, in parse_args
+    args, argv = self.parse_known_args(args, namespace)
+                 ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 1936, in parse_known_args
+    return self._parse_known_args2(args, namespace, intermixed=False)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 1967, in _parse_known_args2
+    self.error(str(err))
+    ~~~~~~~~~~^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2686, in error
+    self.exit(2, _('%(prog)s: error: %(message)s\n') % args)
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2673, in exit
+    _sys.exit(status)
+    ~~~~~~~~~^^^^^^^^
+SystemExit: 2
+
+======================================================================
+ERROR: test_a_signed_transcript_against_the_committed_key_binds (tests.test_run_report.SignedTranscriptRequired.test_a_signed_transcript_against_the_committed_key_binds)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 1965, in _parse_known_args2
+    namespace, args = self._parse_known_args(args, namespace, intermixed)
+                      ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2197, in _parse_known_args
+    positionals_end_index = consume_positionals(start_index)
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2172, in consume_positionals
+    take_action(action, args)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2026, in take_action
+    argument_values = self._get_values(action, argument_strings)
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2556, in _get_values
+    self._check_value(action, value[0])
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2606, in _check_value
+    raise ArgumentError(action, msg % args)
+argparse.ArgumentError: argument command: invalid choice: 'sign' (choose from 'write', 'check')
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/tests/test_run_report.py", line 1360, in test_a_signed_transcript_against_the_committed_key_binds
+    self._sign_report()  # the key is one switch for both legs (#386); this test is the transcript's
+    ~~~~~~~~~~~~~~~~~^^
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/tests/test_run_report.py", line 1279, in _sign_report
+    rc = run_report.inventory.main(["sign", str(self.path), "--key", str(key)])
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/runtime/scripts/inventory.py", line 303, in main
+    args = build_parser().parse_args(argv)
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 1926, in parse_args
+    args, argv = self.parse_known_args(args, namespace)
+                 ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 1936, in parse_known_args
+    return self._parse_known_args2(args, namespace, intermixed=False)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 1967, in _parse_known_args2
+    self.error(str(err))
+    ~~~~~~~~~~^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2686, in error
+    self.exit(2, _('%(prog)s: error: %(message)s\n') % args)
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2673, in exit
+    _sys.exit(status)
+    ~~~~~~~~~^^^^^^^^
+SystemExit: 2
+
+======================================================================
+ERROR: test_an_off_ancestry_report_binds_with_a_transcript_signed_by_the_base_key (tests.test_run_report.SignedTranscriptRequired.test_an_off_ancestry_report_binds_with_a_transcript_signed_by_the_base_key)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 1965, in _parse_known_args2
+    namespace, args = self._parse_known_args(args, namespace, intermixed)
+                      ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2197, in _parse_known_args
+    positionals_end_index = consume_positionals(start_index)
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2172, in consume_positionals
+    take_action(action, args)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2026, in take_action
+    argument_values = self._get_values(action, argument_strings)
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2556, in _get_values
+    self._check_value(action, value[0])
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2606, in _check_value
+    raise ArgumentError(action, msg % args)
+argparse.ArgumentError: argument command: invalid choice: 'sign' (choose from 'write', 'check')
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/tests/test_run_report.py", line 1509, in test_an_off_ancestry_report_binds_with_a_transcript_signed_by_the_base_key
+    self._sign_report()  # on the fork's tree: sign re-derives from disk
+    ~~~~~~~~~~~~~~~~~^^
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/tests/test_run_report.py", line 1279, in _sign_report
+    rc = run_report.inventory.main(["sign", str(self.path), "--key", str(key)])
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/runtime/scripts/inventory.py", line 303, in main
+    args = build_parser().parse_args(argv)
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 1926, in parse_args
+    args, argv = self.parse_known_args(args, namespace)
+                 ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 1936, in parse_known_args
+    return self._parse_known_args2(args, namespace, intermixed=False)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 1967, in _parse_known_args2
+    self.error(str(err))
+    ~~~~~~~~~~^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2686, in error
+    self.exit(2, _('%(prog)s: error: %(message)s\n') % args)
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2673, in exit
+    _sys.exit(status)
+    ~~~~~~~~~^^^^^^^^
+SystemExit: 2
+
+======================================================================
+FAIL: test_a_dropped_entry_fails_verification (tests.test_inventory.SignedInventory.test_a_dropped_entry_fails_verification)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/tests/test_inventory.py", line 448, in test_a_dropped_entry_fails_verification
+    report = self._signed_fenced()
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/tests/test_inventory.py", line 374, in _signed_fenced
+    self.assertEqual(r.returncode, 0, r.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 0 : usage: inventory.py [-h] {write,check} ...
+inventory.py: error: argument command: invalid choice: 'sign' (choose from 'write', 'check')
+
+
+======================================================================
+FAIL: test_a_malformed_pubkey_cannot_run (tests.test_inventory.SignedInventory.test_a_malformed_pubkey_cannot_run)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/tests/test_inventory.py", line 481, in test_a_malformed_pubkey_cannot_run
+    report = self._signed_fenced()
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/tests/test_inventory.py", line 374, in _signed_fenced
+    self.assertEqual(r.returncode, 0, r.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 0 : usage: inventory.py [-h] {write,check} ...
+inventory.py: error: argument command: invalid choice: 'sign' (choose from 'write', 'check')
+
+
+======================================================================
+FAIL: test_a_signature_by_another_key_is_refused (tests.test_inventory.SignedInventory.test_a_signature_by_another_key_is_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/tests/test_inventory.py", line 467, in test_a_signature_by_another_key_is_refused
+    report = self._signed_fenced()
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/tests/test_inventory.py", line 374, in _signed_fenced
+    self.assertEqual(r.returncode, 0, r.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 0 : usage: inventory.py [-h] {write,check} ...
+inventory.py: error: argument command: invalid choice: 'sign' (choose from 'write', 'check')
+
+
+======================================================================
+FAIL: test_a_tampered_entry_fails_verification (tests.test_inventory.SignedInventory.test_a_tampered_entry_fails_verification)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/tests/test_inventory.py", line 436, in test_a_tampered_entry_fails_verification
+    report = self._signed_fenced()
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/tests/test_inventory.py", line 374, in _signed_fenced
+    self.assertEqual(r.returncode, 0, r.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 0 : usage: inventory.py [-h] {write,check} ...
+inventory.py: error: argument command: invalid choice: 'sign' (choose from 'write', 'check')
+
+
+======================================================================
+FAIL: test_a_tampered_signature_fails_verification (tests.test_inventory.SignedInventory.test_a_tampered_signature_fails_verification)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/tests/test_inventory.py", line 455, in test_a_tampered_signature_fails_verification
+    report = self._signed_fenced()
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/tests/test_inventory.py", line 374, in _signed_fenced
+    self.assertEqual(r.returncode, 0, r.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 0 : usage: inventory.py [-h] {write,check} ...
+inventory.py: error: argument command: invalid choice: 'sign' (choose from 'write', 'check')
+
+
+======================================================================
+FAIL: test_an_unsigned_inventory_is_refused_with_a_pubkey_and_accepted_without (tests.test_inventory.SignedInventory.test_an_unsigned_inventory_is_refused_with_a_pubkey_and_accepted_without)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/tests/test_inventory.py", line 477, in test_an_unsigned_inventory_is_refused_with_a_pubkey_and_accepted_without
+    self.assertEqual(r.returncode, EXIT_MISMATCH, r.stdout + r.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 1 : usage: inventory.py [-h] {write,check} ...
+inventory.py: error: unrecognized arguments: --pubkey /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/inventory-rgp7kouk/key.pub
+
+
+======================================================================
+FAIL: test_every_existing_shape_still_parses_with_the_envelope_present (tests.test_inventory.SignedInventory.test_every_existing_shape_still_parses_with_the_envelope_present)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/tests/test_inventory.py", line 398, in test_every_existing_shape_still_parses_with_the_envelope_present
+    self.assertEqual(run_inv("sign", str(report), "--key", str(self.key)).returncode, 0)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 0
+
+======================================================================
+FAIL: test_help_names_sign (tests.test_inventory.SignedInventory.test_help_names_sign)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/tests/test_inventory.py", line 522, in test_help_names_sign
+    self.assertIn("sign", r.stdout)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+AssertionError: 'sign' not found in 'usage: inventory.py [-h] {write,check} ...\n\nRegenerate or re-check the sha256 integrity inventory embedded in a report.\n\npositional arguments:\n  {write,check}\n    write        re-hash every listed path and rewrite the block in place\n    check        re-hash every listed path that exists\n\noptions:\n  -h, --help     show this help message and exit\n\nexit 0 verified / 1 mismatch / 2 could-not-run (no block, or nothing\nverifiable)\n'
+
+======================================================================
+FAIL: test_sign_refuses_a_report_with_no_inventory (tests.test_inventory.SignedInventory.test_sign_refuses_a_report_with_no_inventory)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/tests/test_inventory.py", line 492, in test_sign_refuses_a_report_with_no_inventory
+    self.assertIn("integrity inventory", r.stderr)  # the parser's could-not-run, not argparse's
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'integrity inventory' not found in "usage: inventory.py [-h] {write,check} ...\ninventory.py: error: argument command: invalid choice: 'sign' (choose from 'write', 'check')\n"
+
+======================================================================
+FAIL: test_sign_refuses_when_a_listed_path_hashes_differently (tests.test_inventory.SignedInventory.test_sign_refuses_when_a_listed_path_hashes_differently)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/tests/test_inventory.py", line 499, in test_sign_refuses_when_a_listed_path_hashes_differently
+    self.assertEqual(r.returncode, EXIT_MISMATCH, r.stdout + r.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 1 : usage: inventory.py [-h] {write,check} ...
+inventory.py: error: argument command: invalid choice: 'sign' (choose from 'write', 'check')
+
+
+======================================================================
+FAIL: test_sign_writes_one_envelope_that_check_verifies_with_the_pubkey (tests.test_inventory.SignedInventory.test_sign_writes_one_envelope_that_check_verifies_with_the_pubkey)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/tests/test_inventory.py", line 383, in test_sign_writes_one_envelope_that_check_verifies_with_the_pubkey
+    report = self._signed_fenced()
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/tests/test_inventory.py", line 374, in _signed_fenced
+    self.assertEqual(r.returncode, 0, r.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 0 : usage: inventory.py [-h] {write,check} ...
+inventory.py: error: argument command: invalid choice: 'sign' (choose from 'write', 'check')
+
+
+======================================================================
+FAIL: test_signing_twice_replaces_the_envelope (tests.test_inventory.SignedInventory.test_signing_twice_replaces_the_envelope)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/tests/test_inventory.py", line 428, in test_signing_twice_replaces_the_envelope
+    report = self._signed_fenced()
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/tests/test_inventory.py", line 374, in _signed_fenced
+    self.assertEqual(r.returncode, 0, r.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 0 : usage: inventory.py [-h] {write,check} ...
+inventory.py: error: argument command: invalid choice: 'sign' (choose from 'write', 'check')
+
+
+======================================================================
+FAIL: test_write_with_a_key_re_signs_the_refreshed_block (tests.test_inventory.SignedInventory.test_write_with_a_key_re_signs_the_refreshed_block)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/tests/test_inventory.py", line 504, in test_write_with_a_key_re_signs_the_refreshed_block
+    report = self._signed_fenced()
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/tests/test_inventory.py", line 374, in _signed_fenced
+    self.assertEqual(r.returncode, 0, r.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 0 : usage: inventory.py [-h] {write,check} ...
+inventory.py: error: argument command: invalid choice: 'sign' (choose from 'write', 'check')
+
+
+======================================================================
+FAIL: test_write_without_a_key_leaves_a_now_stale_envelope_and_says_so (tests.test_inventory.SignedInventory.test_write_without_a_key_leaves_a_now_stale_envelope_and_says_so)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/tests/test_inventory.py", line 511, in test_write_without_a_key_leaves_a_now_stale_envelope_and_says_so
+    report = self._signed_fenced()
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/tests/test_inventory.py", line 374, in _signed_fenced
+    self.assertEqual(r.returncode, 0, r.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 0 : usage: inventory.py [-h] {write,check} ...
+inventory.py: error: argument command: invalid choice: 'sign' (choose from 'write', 'check')
+
+
+======================================================================
+FAIL: test_post_key_work_pinned_to_a_pre_key_fork_needs_a_signed_inventory (tests.test_run_report.SignedInventoryRequired.test_post_key_work_pinned_to_a_pre_key_fork_needs_a_signed_inventory)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/tests/test_run_report.py", line 1593, in test_post_key_work_pinned_to_a_pre_key_fork_needs_a_signed_inventory
+    self.assertTrue(any("inventory" in e and self.PUBKEY in e for e in errors), errors)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : []
+
+======================================================================
+FAIL: test_with_a_committed_key_an_unsigned_inventory_no_longer_binds (tests.test_run_report.SignedInventoryRequired.test_with_a_committed_key_an_unsigned_inventory_no_longer_binds)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-sig-2/c3c7b888-5da1-4416-bf3b-0384e07a6f5d/scratchpad/nc/tests/test_run_report.py", line 1539, in test_with_a_committed_key_an_unsigned_inventory_no_longer_binds
+    self.assertTrue(any("inventory" in e and "unsigned" in e.lower() and self.PUBKEY in e
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                        for e in errors), errors)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : []
+
+----------------------------------------------------------------------
+Ran 258 tests in 33.621s
+
+FAILED (failures=16, errors=8)
+bound clean-sweep (self-run) — docs/runs/2026-09-14-clean-sweep-self-run.md
+bound prove-it (self-run) — docs/runs/2026-09-16-prove-it-self-run.md

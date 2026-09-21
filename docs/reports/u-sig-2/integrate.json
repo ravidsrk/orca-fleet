@@ -1,0 +1,143 @@
+{
+  "unit": "U-SIG-2",
+  "role": "integrator",
+  "task_id": "task_d1df04fbe20d",
+  "dispatch_id": "ctx_ca4bd534c786",
+  "generated_at": "2026-09-20T19:34:23.167009+00:00",
+  "pr": {
+    "number": 490,
+    "url": "https://github.com/ravidsrk/orca-fleet/pull/490",
+    "state": "OPEN",
+    "base_ref": "review/2026-09-20-sign-386",
+    "head_ref": "ravidsrk/sig-2",
+    "head_sha": "e833bcb2ec8d83c489fb81ae2687f0d3ed182b30",
+    "base_assert": "PASS \u2014 baseRefName == review/2026-09-20-sign-386 (not main); gh pr view 490 --json baseRefName",
+    "merge_base": "648fcf772a8ff6f7722d4615debe03b3d6439308",
+    "base_advanced": {
+      "note": "BASE advanced after this branch forked: origin tip 3674b2d9 (2 commits: fb44671d 'U-SIG-1 merged, U-SIG-2 dispatched' + its merge), all in docs/runs/2026-09-20-sign-386.md (ledger bookkeeping).",
+      "base_tip_origin": "3674b2d971b41d88f05d555679f63e4e5023a75b",
+      "file_overlap_with_branch": [],
+      "merged": true,
+      "merge_commit": "e833bcb2ec8d83c489fb81ae2687f0d3ed182b30",
+      "rebased": false,
+      "why_not": "no overlap across the 11 branch files vs the 1 base file, so `git merge origin/review/2026-09-20-sign-386` was clean (ort); a rebase would void the SHA-bound u-sig-2-manifest.json (head 98fb8aae) for no benefit"
+    }
+  },
+  "suite": {
+    "command": "python3 -m unittest discover -s tests",
+    "at_sha": "e833bcb2ec8d83c489fb81ae2687f0d3ed182b30",
+    "result": "Ran 1897 tests in 305.166s / OK",
+    "exit_code": 0,
+    "tree_clean_after": true
+  },
+  "validate": {
+    "command": "python3 scripts/validate.py",
+    "result": "All 21 missions valid; three-layer separation holds; evals valid.",
+    "exit_code": 0
+  },
+  "secret_scan": {
+    "tool": "gitleaks 8.30.1",
+    "scope": "git --log-opts=origin/review/2026-09-20-sign-386..HEAD (the branch commits only)",
+    "commits_scanned": 5,
+    "findings": 0,
+    "exit_code": 0
+  },
+  "egress_receipts": {
+    "ledger": ".orca/egress.jsonl (gitignored; this worktree's own chain)",
+    "chain": "intact, 2 receipts (egress.py verify)",
+    "head_digest": "a2fd20681c20c950d3fb80e007da6a1ea2065517fb69e0cd3adff71b10a5fcee",
+    "receipts": [
+      {
+        "id": "f43841c4d94d7e67ee988d44642405c692813c727ff46c7003f7da6cce62cbbc",
+        "ts": "2026-09-20T19:26:15Z",
+        "sink": "git-push",
+        "host": "github.com",
+        "payload_class": "branch-commits",
+        "bytes": 0,
+        "consent": "run-2026-09-14-clean-sweep:base-writes",
+        "preceded": "git push -u origin ravidsrk/sig-2"
+      },
+      {
+        "id": "8d6242a5ea2238cd6f8973600d910293a4ffc9baa4e82102c5f9e88b9a711604",
+        "ts": "2026-09-20T19:26:54Z",
+        "sink": "pr-open",
+        "host": "github.com",
+        "payload_class": "pr-body",
+        "bytes": 3567,
+        "payload_sha256": "bd4c740e252eaddeec1cbae370e5851f1b7be67cbc0aab8c74f8777b6fc8ecf6",
+        "consent": "run-2026-09-14-clean-sweep:tracker-writes",
+        "preceded": "gh pr create --base review/2026-09-20-sign-386"
+      }
+    ],
+    "note": "a third receipt (git-push, integrate.json) is written immediately before the push that carries this file; its id therefore cannot appear inside it"
+  },
+  "bot_state": "RAN",
+  "review_bot": {
+    "bot": "greptile-apps[bot]",
+    "detection": "review authorship on PR #489 (prior PR in this repo)",
+    "wait": {
+      "poll_interval_s": 30,
+      "floor_s": 150,
+      "cap_s": 600,
+      "first_activity_s": 221,
+      "settled_s": 251
+    },
+    "review": {
+      "id": 5261508190,
+      "state": "COMMENTED",
+      "commit_id": "e833bcb2ec8d83c489fb81ae2687f0d3ed182b30",
+      "submitted_at": "2026-09-20T19:30:40Z"
+    },
+    "counts": {
+      "reviews": 1,
+      "review_comments": 2,
+      "issue_comments": 0
+    },
+    "action_taken": "ingested and tagged only \u2014 NOTHING FIXED; VALID set HELD for the review batch. No in-thread replies posted (same as U-SIG-1 #489): the batch owns the threads and owes each one an in-thread answer before merge."
+  },
+  "findings": [
+    {
+      "id": "BOT-1",
+      "comment_id": 4057859153,
+      "bot_severity": "P1",
+      "assessed_severity": "P2",
+      "path": "runtime/scripts/inventory.py",
+      "line": 250,
+      "title": "Signature search escapes the inventory block (find_signature scans the whole document)",
+      "tag": "VALID",
+      "reason": "Mechanism REPRODUCED against HEAD without changing anything: find_signature() (inventory.py:243-260) matches SIGNATURE_LINE on every line of the document, not the [(start,end)] ranges find_blocks() returns; SIGNATURE_LINE allows leading whitespace, so a fenced/indented documentation example outside the block matches. A doc with an unsigned inventory plus the documented example in prose returned the prose line (idx 5, outside block (8,13)); the same doc with a real envelope in the block raised '2 inventory-signature lines \u2014 a document carries one signature'. _place_signature() (inventory.py:290-301) has the same reach: it REPLACES an existing envelope line wherever it is, so `sign` on that doc would overwrite the prose example instead of signing the block \u2014 the docstring says the envelope 'sits where find_blocks already looks', which is true of placement on a clean doc and false of discovery. run_report.signed_inventory() calls the same find_signature over the whole report text (run_report.py:561), so the run-close gate inherits it. The documented example already exists verbatim in a committed report (docs/reports/u-sig-2/build.md:15) \u2014 that file has no inventory heading so it is never checked, but a run report that quotes the format is one paste away. DOWNGRADED from P1: every outcome is FAIL-CLOSED \u2014 unsigned+example verifies against the example and is refused on digest mismatch (wrong message, right verdict); signed+example is refused as two \u2014 no acceptance path opens and no forged or moved signature verifies, because verify_signature() re-derives the digest from the union of all blocks' entries. It is a false-refusal / wrong-diagnostic robustness defect, not an integrity bypass.",
+      "scope": "Fix is inside the unit's spec files (inventory.py + tests/test_inventory.py): scope find_signature/_place_signature to the block ranges from find_blocks() (the spec's DESIRED BEHAVIOUR 1 says 'a detached envelope block that find_blocks/parse_entries TOLERATE' \u2014 inside the block), add a test with the example in prose (unsigned \u2192 'UNSIGNED'; signed \u2192 verifies). Small; no semantic change to the signed/unsigned rules. Batch decision."
+    },
+    {
+      "id": "BOT-2",
+      "comment_id": 4057859156,
+      "bot_severity": "P2",
+      "assessed_severity": "P2 (design gap; docs-only)",
+      "path": "runtime/evidence-manifest.md",
+      "line": 110,
+      "title": "Retention receipt's offline 'binding' check is under-specified (no algorithm, canonical payload, or trust root)",
+      "tag": "VALID",
+      "reason": "Confirmed as a gap in what the words promise, not as a deviation from the frozen spec. evidence-manifest.md:110 and the compliance-provenance.md row name three receipt fields (log_index, entry_uuid, signature over inventory_sha256) and say the verifier's offline check is 'its fields binding that digest' and that this 'proves the receipt covers these bytes'. Without a named signing algorithm, canonical signed payload, encoding, and a committed log public key / trust root, an implementer of that check can do only string presence + digest equality \u2014 which anyone can type, so it proves the receipt NAMES the digest, not that it covers the bytes; the doc's 'not proven: reachable or trusted' disclaimer does not close that gap because it is the signature that would carry the binding. Both docs already state verify.py TODAY checks presence only (verify.py:1824: non-empty strings when a standard is named) and that the binding check is 'specified here and not yet implemented'. The frozen spec (build-u-sig-2.md, DESIRED BEHAVIOUR 3) enumerated exactly those three fields, said 'spec only', and forbade any network step \u2014 the branch implements the spec as frozen; the bot's ask (full receipt schema + trust material) exceeds it.",
+      "scope": "Out of this unit's frozen spec. Belongs with the already-parked verify.py field-binding check (G1 follow-up): define the receipt schema (Rekor SET: the log's Ed25519/ECDSA key, canonical payload, base64 fields) and where the log's public key is committed. Byte budget matters: runtime/evidence-manifest.md is at the clean-sweep activation-load ceiling (33,997/34,000 tokens; 22,326 bytes after this unit), so a schema cannot live there \u2014 docs/compliance-provenance.md or a new docs/ page, with the runtime line pointing at it. Batch decision."
+    }
+  ],
+  "tally": {
+    "VALID": 2,
+    "FALSE_POSITIVE": 0,
+    "held_for_batch": [
+      "BOT-1",
+      "BOT-2"
+    ]
+  },
+  "held": [
+    "BOT-1",
+    "BOT-2"
+  ],
+  "constraints_honored": [
+    "never merged",
+    "never pushed to main",
+    "no fixes applied to bot findings",
+    "no rebase (SHA-bound manifest head 98fb8aae preserved; base merged, not replayed)",
+    "only integrate.json committed by the integrator"
+  ]
+}

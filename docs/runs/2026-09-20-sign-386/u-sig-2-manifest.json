@@ -1,0 +1,207 @@
+{
+  "schema": 1,
+  "unit": "U-SIG-2",
+  "unit_class": "mutation",
+  "base_sha": "648fcf772a8ff6f7722d4615debe03b3d6439308",
+  "head_sha": "98fb8aaefbd0309ad8d394d2e33dd06a89c2d03f",
+  "head_tree": "6e4826c86d24ff20dad48a3293c9a8913eb25963",
+  "head_sha_role": "base_sha..head_sha is the four-commit range the negative control reverts: inventory sign/--pubkey (d42e38f7), run_report signed_inventory + enforcement_key (a8d26feb), the two docs (1f4974b4), the badge bump (98fb8aae). head_sha is the badge commit — the LAST content commit — so the `tests` receipt's wtree fingerprints exactly head_sha^{tree}. The commit that records this manifest, its two artifacts and the builder report necessarily follows head_sha and carries no production or test content.",
+  "base_branch": "review/2026-09-20-sign-386",
+  "contract": {
+    "source": "docs/runs/2026-09-20-sign-386/build-u-sig-2.md@648fcf772a8ff6f7722d4615debe03b3d6439308",
+    "digest": "sha256:356e286033f0ac3ac8fecf58d47fffb8de136ce6b72f657034daa5b49f067479",
+    "criterion_ids": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4",
+      "AC-5"
+    ]
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "text": "Failing tests FIRST for 1-3, then implementation to green.",
+      "addressed": true,
+      "witness": "tests/test_inventory.py::SignedInventory (15 tests; 14 RED + 1 tightened-to-RED on base before inventory.py changed — the first cut of test_sign_refuses_a_report_with_no_inventory passed on argparse's exit 2 and was tightened to assert the parser's message) and tests/test_run_report.py::SignedInventoryRequired (8 tests; 6 RED on base, 2 regression pins for the unsigned-no-key path that pass on base by design) — both written and run RED before the implementation commit that follows each. Desired behaviour 3 is a doc change with no executable oracle; its claim is bound by the compliance-provenance row + the evidence-manifest field spec quoted in the builder report."
+    },
+    {
+      "id": "AC-2",
+      "text": "Signed inventory verifies; tampered entry fails; unsigned refused-with-pubkey, accepted-without.",
+      "addressed": true,
+      "witness": "test_inventory.py::SignedInventory::test_sign_writes_one_envelope_that_check_verifies_with_the_pubkey / ::test_a_tampered_entry_fails_verification (artifact AND recorded hash changed together, so only the signature can tell) / ::test_a_dropped_entry_fails_verification / ::test_a_tampered_signature_fails_verification / ::test_a_signature_by_another_key_is_refused / ::test_an_unsigned_inventory_is_refused_with_a_pubkey_and_accepted_without; run_report side: SignedInventoryRequired::test_a_signed_inventory_against_the_committed_key_binds / ::test_a_tampered_inventory_entry_is_refused / ::test_an_inventory_signed_by_another_key_is_refused / ::test_with_a_committed_key_an_unsigned_inventory_no_longer_binds / ::test_without_a_committed_key_an_unsigned_inventory_still_binds / ::test_a_signed_inventory_is_checked_even_without_a_committed_key (G-4's absence rule mirrored) / ::test_post_key_work_pinned_to_a_pre_key_fork_needs_a_signed_inventory (U-SIG-1's ancestry rule shared via enforcement_key)"
+    },
+    {
+      "id": "AC-3",
+      "text": "All pre-existing test_inventory.py shapes still pass unchanged.",
+      "addressed": true,
+      "witness": "the 31 pre-existing test_inventory.py tests are untouched in source (git diff 648fcf77..98fb8aae -- tests/test_inventory.py is additive: one new class) and green in the `tests` receipt; test_every_existing_shape_still_parses_with_the_envelope_present pins that a signed fenced block and a signed table block both still report the same entry count as before signing, with no --pubkey"
+    },
+    {
+      "id": "AC-4",
+      "text": "NEGATIVE CONTROL executed: signing reverted (tests kept) -> RED, via evidence-run.py.",
+      "addressed": true,
+      "witness": "commands[] label=negative-control (evidence-run.py, exit 1) and docs/runs/2026-09-20-sign-386/u-sig-2-negctrl.txt: FAILED (failures=16, errors=8) — 24 tests RED with runtime/scripts/inventory.py and runtime/scripts/run_report.py restored from base_sha; see negative_control"
+    },
+    {
+      "id": "AC-5",
+      "text": "Full suite green; python3 scripts/validate.py exit 0.",
+      "addressed": true,
+      "witness": "commands[] label=tests (the two criterion suites, exit 0, 258 tests, wtree == head_sha^{tree}); full `python3 -m unittest discover -s tests` at 98fb8aae with the working tree carrying this manifest: Ran 1897 tests in 303.800s / OK; ruff check (CI's lint) All checks passed; python3 scripts/validate.py exit 0 (\"All 21 missions valid; three-layer separation holds; evals valid.\") with clean-sweep's activation load at 33997/34000"
+    }
+  ],
+  "commands": [
+    {
+      "label": "tests",
+      "ts": "2026-09-20T19:12:20Z",
+      "cmd": "python3 -m unittest tests.test_inventory tests.test_run_report",
+      "cmd_sha256": "ed451a99988c0dda1b0624ad09e6c8b4a3b2c4bbf5f86986475203e137ecc2dd",
+      "exit": 0,
+      "duration_s": 44.07,
+      "commit": "98fb8aaefbd0309ad8d394d2e33dd06a89c2d03f",
+      "wtree": "6e4826c86d24ff20dad48a3293c9a8913eb25963",
+      "artifact": "docs/runs/2026-09-20-sign-386/u-sig-2-tests.txt"
+    },
+    {
+      "label": "negative-control",
+      "ts": "2026-09-20T19:13:08Z",
+      "cmd": "python3 -m unittest tests.test_inventory tests.test_run_report",
+      "cmd_sha256": "ed451a99988c0dda1b0624ad09e6c8b4a3b2c4bbf5f86986475203e137ecc2dd",
+      "exit": 1,
+      "duration_s": 33.667,
+      "commit": "98fb8aaefbd0309ad8d394d2e33dd06a89c2d03f",
+      "wtree": "4df0ca590c559fbd6f5345849db77f77043f2193",
+      "artifact": "docs/runs/2026-09-20-sign-386/u-sig-2-negctrl.txt"
+    }
+  ],
+  "negative_control": {
+    "tool": "revert",
+    "did": "git worktree add --detach <scratch>/nc HEAD (98fb8aae); git checkout 648fcf77 -- runtime/scripts/inventory.py runtime/scripts/run_report.py (tests, docs and badges left at head); the exact criterion command run via evidence-run.py --cwd <nc> with absolute --manifest/--artifact so the record lands in this manifest (the artifact path was then normalised to repo-relative in the record; cmd_sha256, exit and wtree untouched); git worktree remove --force.",
+    "paths": [
+      "runtime/scripts/inventory.py",
+      "runtime/scripts/run_report.py"
+    ],
+    "command": "python3 -m unittest tests.test_inventory tests.test_run_report",
+    "result": "RED — exit 1, FAILED (failures=16, errors=8): 24 criterion tests went RED (mutant KILLED) with the two production scripts restored from base_sha — 21 of the 23 new tests plus the 3 pre-existing transcript bind tests that now also sign the inventory (one key switches both legs); exit 0, 258 tests OK with the scripts at head.",
+    "exit": 1,
+    "artifact": "docs/runs/2026-09-20-sign-386/u-sig-2-negctrl.txt",
+    "failures": [
+      "tests.test_inventory.SignedInventory.test_a_dropped_entry_fails_verification",
+      "tests.test_inventory.SignedInventory.test_a_malformed_pubkey_cannot_run",
+      "tests.test_inventory.SignedInventory.test_a_signature_by_another_key_is_refused",
+      "tests.test_inventory.SignedInventory.test_a_tampered_entry_fails_verification",
+      "tests.test_inventory.SignedInventory.test_a_tampered_signature_fails_verification",
+      "tests.test_inventory.SignedInventory.test_an_unsigned_inventory_is_refused_with_a_pubkey_and_accepted_without",
+      "tests.test_inventory.SignedInventory.test_every_existing_shape_still_parses_with_the_envelope_present",
+      "tests.test_inventory.SignedInventory.test_help_names_sign",
+      "tests.test_inventory.SignedInventory.test_sign_covers_every_block_and_is_order_free",
+      "tests.test_inventory.SignedInventory.test_sign_refuses_a_report_with_no_inventory",
+      "tests.test_inventory.SignedInventory.test_sign_refuses_when_a_listed_path_hashes_differently",
+      "tests.test_inventory.SignedInventory.test_sign_writes_one_envelope_that_check_verifies_with_the_pubkey",
+      "tests.test_inventory.SignedInventory.test_signing_twice_replaces_the_envelope",
+      "tests.test_inventory.SignedInventory.test_write_with_a_key_re_signs_the_refreshed_block",
+      "tests.test_inventory.SignedInventory.test_write_without_a_key_leaves_a_now_stale_envelope_and_says_so",
+      "tests.test_run_report.SignedInventoryRequired.test_a_signed_inventory_against_the_committed_key_binds",
+      "tests.test_run_report.SignedInventoryRequired.test_a_signed_inventory_is_checked_even_without_a_committed_key",
+      "tests.test_run_report.SignedInventoryRequired.test_a_tampered_inventory_entry_is_refused",
+      "tests.test_run_report.SignedInventoryRequired.test_an_inventory_signed_by_another_key_is_refused",
+      "tests.test_run_report.SignedInventoryRequired.test_post_key_work_pinned_to_a_pre_key_fork_needs_a_signed_inventory",
+      "tests.test_run_report.SignedInventoryRequired.test_with_a_committed_key_an_unsigned_inventory_no_longer_binds",
+      "tests.test_run_report.SignedTranscriptRequired.test_a_recorded_red_binds_when_the_transcript_agrees",
+      "tests.test_run_report.SignedTranscriptRequired.test_a_signed_transcript_against_the_committed_key_binds",
+      "tests.test_run_report.SignedTranscriptRequired.test_an_off_ancestry_report_binds_with_a_transcript_signed_by_the_base_key"
+    ],
+    "not_witnessed_by_the_control": [
+      "tests/test_run_report.py::SignedInventoryRequired::test_without_a_committed_key_an_unsigned_inventory_still_binds",
+      "tests/test_run_report.py::SignedInventoryRequired::test_a_pre_key_report_on_the_ancestry_keeps_the_unsigned_inventory"
+    ],
+    "not_witnessed_note": "Both are the spec's 'accepted-without' / unsigned-default-path regression pins: they pass on base because the base has no inventory leg at all, and they pass at head because the leg stays dormant without a key. They go RED under the opposite mutation — signed_inventory() refusing whenever the envelope is absent regardless of the key — witnessed by hand during development (the first cut of signed_inventory did exactly that and turned both RED); not re-run as a receipt."
+  },
+  "binding_audit": {
+    "coverage": "AC-1..AC-5 (5/5)",
+    "method": "criterion quoted, covering test quoted, the revert control turns 24 covering tests RED; the two unsigned-path pins bind by regression (pass on base and head, RED under the inverse mutation)"
+  },
+  "intent": {
+    "goal": "Close #386 proper: the run-close inventory's entry set is signed with the coordinator's existing Ed25519 key and run_report.py requires that signature wherever U-SIG-1's transcript rule reads the key, and provenance.retention names a concrete, offline-checkable Rekor-style receipt instead of an unspecified store — with the unsigned default path unchanged until .orca/dispatch-pubkey is committed.",
+    "ruled_out": "A second key scheme or any new crypto (dispatch-sign.py's canonical_record/envelope/_seed and ed25519.py are reused; inventory.py loads the signer lazily so a bundle's write/check paths never touch it); signing the raw block text instead of the entry SET (order and block membership are presentation, #315 says the claim is the union); embedding the entry list in the envelope (the record carries the entry count + the digest of the canonical set, so the envelope is one line and the same digest is what a Rekor receipt anchors); auto-discovering .orca/dispatch-pubkey from the working tree in inventory.py's CLI (it would fail the pre-key self-run reports the moment the key lands; run_report.py owns the ancestry-aware read, inventory.py takes --pubkey explicitly like verify.py's --dispatch-pubkey); dropping a stale envelope in `write` without --key (evidence is never dropped silently — it stays and check --pubkey refuses it); any change to verify.py, dispatch-sign.py or ed25519.py (out of scope — so the receipt's field-binding check is SPECIFIED in both docs and stated as not yet implemented, never claimed); any sigstore/rekor/cosign dependency or network call; raising the activation-load cap (the evidence-manifest.md clauses were paid for by compressing narrative asides in the same file, byte-neutral at 22326 vs 22330).",
+    "why": "The transcript closed 'a verdict the worker could not have typed'; the inventory was the remaining worker-typed input to run_report.py's binding, and the coordinator key + committed pubkey already exist as one switch. Resolving that switch once (enforcement_key) and reading it from both legs is what keeps the two rules from ever disagreeing. The receipt spec names log_index / entry_uuid / signature-over-digest because those are the fields a Rekor entry actually carries and an offline reader can bind to the signed digest; anything more (log availability, inclusion proof) needs the network and is named as not proven."
+  },
+  "lighting": "lit",
+  "artifacts": [
+    {
+      "path": "docs/runs/2026-09-20-sign-386/u-sig-2-negctrl.txt",
+      "sha256": "66d8c87d800f472e6c5ad72994abce9806de20abc457821259a434a04514d0b0"
+    },
+    {
+      "path": "docs/runs/2026-09-20-sign-386/u-sig-2-tests.txt",
+      "sha256": "2514d31d862293490328bcbd408c2ef05014dd0b5b9ab42d963e2377c90eb24e"
+    },
+    {
+      "path": "docs/runs/2026-09-20-sign-386/build-u-sig-2.md",
+      "sha256": "356e286033f0ac3ac8fecf58d47fffb8de136ce6b72f657034daa5b49f067479"
+    }
+  ],
+  "reviewer_mode": "instructed-isolation",
+  "review": {
+    "artifact": null,
+    "note": "No PR opened — the integrator opens it (spec GIT). pr.reviewed_sha is pending that review; the verifier will read this manifest as unreviewed until then, which is the true state."
+  },
+  "toolchain": "python 3.13.15 / git 2.55.0 / stdlib only (unittest is the runner CI uses)",
+  "files": {
+    "production": [
+      "runtime/scripts/inventory.py",
+      "runtime/scripts/run_report.py"
+    ],
+    "tests": [
+      "tests/test_inventory.py",
+      "tests/test_run_report.py"
+    ],
+    "docs_and_generated": [
+      "runtime/evidence-manifest.md",
+      "docs/compliance-provenance.md",
+      "assets/badges/tests.json",
+      "docs/runs/2026-09-20-sign-386/u-sig-2-manifest.json",
+      "docs/runs/2026-09-20-sign-386/u-sig-2-negctrl.txt",
+      "docs/runs/2026-09-20-sign-386/u-sig-2-tests.txt",
+      "docs/reports/u-sig-2/build.md"
+    ]
+  },
+  "commits": [
+    {
+      "sha": "d42e38f7",
+      "subject": "feat(inventory): sign / check --pubkey — the run-close entry set in the coordinator's envelope (#386)"
+    },
+    {
+      "sha": "a8d26feb",
+      "subject": "feat(run-report): require the signed inventory where the transcript rule reads the key (#386)"
+    },
+    {
+      "sha": "1f4974b4",
+      "subject": "docs(evidence): provenance.retention names the Rekor-style receipt; the inventory is signed at run close (#386)"
+    },
+    {
+      "sha": "98fb8aae",
+      "subject": "chore(badges): 1775 -> 1798 tests in source"
+    }
+  ],
+  "provenance": {
+    "spec_version": "build-u-sig-2.md@648fcf77 / evidence-manifest.md@98fb8aae",
+    "model": "Claude Opus 5 (claude-opus-5[1m])",
+    "reviewer": "pending — integrator-opened PR",
+    "retention": "none — no transparency-log receipt was produced for this unit (the upload is optional and coordinator-side; this unit specifies the receipt, it does not mint one)",
+    "standard": "none"
+  },
+  "parked": [
+    {
+      "item": "verify.py's offline receipt field-binding check (retention names a receipt whose log_index/entry_uuid/signature bind the inventory digest)",
+      "reason": "needs-human — verify.py is out of this unit's scope; the check is specified in evidence-manifest.md and compliance-provenance.md and both say verify.py checks presence only today",
+      "gate": "G1 follow-up (maintainer)"
+    },
+    {
+      "item": "SignedInventoryRequired inherits RunReportBinding's own tests through SignedKeyFixture, so those ~31 run a third time (SignedTranscriptRequired already ran them twice)",
+      "reason": "needs-human — the pre-existing SignedTranscriptRequired(RunReportBinding) shape does the same; de-duplicating is a test-layout decision, not this unit's",
+      "gate": "review nit"
+    }
+  ],
+  "claim": "inventory.py signs the entry set with the coordinator key and check --pubkey verifies it; run_report.py requires the signed inventory wherever the transcript rule finds the key, via one shared enforcement_key(); provenance.retention and the compliance-provenance row name a Rekor-style receipt (log_index, entry_uuid, signature over the inventory digest), optional, offline, never a gate, with what is and is not proven stated. 23 new tests, 24 RED under the revert control, full suite green, validate.py exit 0."
+}
