@@ -38,10 +38,38 @@ def _digest(repo, rel):
     return "sha256:" + hashlib.sha256((repo / rel).read_bytes()).hexdigest()
 
 
+_SYSTEM_BIN = []
+
+
+def _system_bin():
+    """A read-only dir holding hard-linked (or copied) host authorities, prepended to PATH.
+
+    h409 R1/R2: verify.py classes an authority by a writability PROBE, so a sound lane driven
+    with the host PATH fails closed wherever git/gh/gitleaks live in a user-writable directory
+    (any Homebrew host). That is the frozen bar working, not a bug — the suite must be
+    host-independent, so gate runs resolve authorities from a 0555 fixture dir instead."""
+    if not _SYSTEM_BIN:
+        d = tempfile.mkdtemp(prefix="vgate-sysbin-")
+        for tool in ("git", "gh", "gitleaks"):
+            src = shutil.which(tool)
+            if not src:
+                continue
+            dst = os.path.join(d, tool)
+            try:
+                os.link(src, dst)
+            except OSError:
+                shutil.copy2(src, dst)
+            os.chmod(dst, 0o555)
+        os.chmod(d, 0o555)
+        _SYSTEM_BIN.append(d)
+        atexit.register(shutil.rmtree, d, True)
+    return _SYSTEM_BIN[0]
+
+
 def run_gate(manifest=None, contract_source=None, contract_digest=None, unit_class=None,
              provenance=None, event=None, dispatch_record=None, dispatch_pubkey=None,
              gate=None, cwd=None, execute_nc=None, lighting=None):
-    env = {"PATH": os.environ.get("PATH", "")}
+    env = {"PATH": _system_bin() + os.pathsep + os.environ.get("PATH", "")}
     if execute_nc is not None:
         env["ORCA_EXECUTE_NC"] = execute_nc
     if lighting is not None:

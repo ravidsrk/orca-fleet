@@ -86,10 +86,19 @@ class NegativeControlIntegrityInventory(unittest.TestCase):
         self.assertEqual(fresh.returncode, 0, fresh.stderr)
         committed = (ROOT / "demo" / "negative-control" / "head-to-head.txt").read_text(
             encoding="utf-8")
+        # h409 R1/R2: authority custody is a host probe, so a fresh run on a host whose
+        # git/gh/gitleaks sit in a user-writable dir emits advisory custody NOTEs the committed
+        # transcript (recorded on a root-owned-authority host) lacks — host-dependent, stripped
+        # from both sides like the timestamp header.
+        host_dependent = re.compile(
+            r"^NOTE: (?:authority: advisory \((?:git|gh|gitleaks) at "
+            r"|redaction: gitleaks at )")
         strip = [line for line in committed.splitlines()
-                 if not line.startswith("### negative-control head-to-head")]
+                 if not line.startswith("### negative-control head-to-head")
+                 and not host_dependent.match(line)]
         fresh_lines = [line for line in fresh.stdout.splitlines()
-                       if not line.startswith("### negative-control head-to-head")]
+                       if not line.startswith("### negative-control head-to-head")
+                       and not host_dependent.match(line)]
         self.assertEqual(fresh_lines, strip,
                          "the committed transcript no longer matches what the verifier emits — "
                          "re-run, commit, and re-stamp the README inventory")
