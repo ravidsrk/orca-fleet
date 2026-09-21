@@ -615,10 +615,9 @@ def parse_review_pages(out):
 
 
 def fetch_reviews(repo, pr_number):
-    if _Authority.gh is None and _Authority.custody is None:
-        _Authority.resolve()  # a library caller that never ran main(): pin on first use (F-1)
+    _Authority.ensure()  # a library caller that never ran main(): pin on first use, ONCE (F-1)
     if _Authority.gh is None:
-        return None, "gh not on PATH"
+        return None, _Authority.ABSENT
     # --paginate: without it GitHub returns the first 30 reviews only, and review_ok would
     # compute "latest per reviewer" over a stale window (#167). One HTTP round-trip per page,
     # so allow a longer timeout than the single-call default.
@@ -656,14 +655,20 @@ class _Authority:
     record + pubkey) it FAILS CLOSED; on the native advisory lane the verdict records it.
     The review REPOSITORY is the same story (C1): inferred from `origin` — a remote the worker
     (and every sibling worktree) can rewrite — it is advisory; a sound lane requires --repo.
-    Unresolved (library callers that never ran main()), fetch_reviews resolves on first use."""
+    Resolution happens EXACTLY ONCE: main() pins at startup; a library caller that never ran
+    main() pins on first use (verify() before its control, fetch_reviews for direct callers).
+    "gh absent when pinned" is a TERMINAL state (custody "absent"), never a reason to look again
+    — the round-1 verifier treated it as unresolved and re-resolved AFTER the executed control,
+    finding the stub the control had just planted (G-1: the C5 false GREEN on both lanes)."""
 
     SOUND_PROVENANCE = ("ci", "mcp", "sdk", "dispatch")
+    ABSENT = ("gh absent at startup (the review authority is pinned once, before the control, "
+              "and never re-resolved — h409 F-1)")
     SYSTEM_BINS = ("/usr/bin", "/bin", "/usr/sbin", "/sbin", "/usr/local/bin", "/usr/local/sbin",
                    "/opt/homebrew/bin", "/opt/homebrew/sbin", "/opt/local/bin", "/snap/bin",
                    "/usr/lib/git-core", "/usr/libexec")
     gh = None            # absolute path of the resolved review authority, or None (absent)
-    custody = None       # "system" | "worker-writable" | None (unresolved / absent)
+    custody = None       # "system" | "worker-writable" | "absent" (pinned, no gh) | None (UNRESOLVED)
     lane = None          # what claims soundness ("provenance=ci", "enforcement") or None
     repo_source = None   # "explicit" | "inferred" | None
 
@@ -683,12 +688,21 @@ class _Authority:
         if found:
             cls.gh = os.path.abspath(found)  # the PATH entry, absolute — never a bare name again
             cls.custody = cls.classify(cls.gh)
+        else:
+            cls.custody = "absent"  # pinned: this run has no authority and will not look again
         if explicit_repo:
             cls.repo_source = "explicit"
             return explicit_repo
         inferred = infer_repo()
         cls.repo_source = "inferred" if inferred else None
         return inferred
+
+    @classmethod
+    def ensure(cls, explicit_repo=None):
+        """Pin on first use for a library caller that never ran main(). A pinned run — absent
+        included — is never re-resolved, so nothing the executed control planted is ever found."""
+        if cls.custody is None:
+            cls.resolve(explicit_repo=explicit_repo)
 
     @classmethod
     def classify(cls, path):
@@ -720,6 +734,11 @@ class _Authority:
         """The lines the GitHub review leg owes before it consults anything: a fatal on a sound
         lane whose authority is worker-influenceable, NOTEs on the advisory lane, [] when clean."""
         lines = []
+        if cls.custody == "absent":
+            if cls.lane:
+                return [f"review_authority: {cls.ABSENT} — a lane claiming soundness ({cls.lane}) has "
+                        "no independent review authority to consult; fail-closed"]
+            lines.append(f"NOTE: review_authority: advisory ({cls.ABSENT})")
         if cls.custody == "worker-writable":
             where = f"gh at {cls.gh} is worker-writable"
             if cls.lane:
@@ -794,8 +813,8 @@ def check_review(m, repo, is_mutation, no_gh=False, corroborated=False, dispatch
     if any(not line.startswith("NOTE:") for line in authority):
         return authority
     reviews, err = fetch_reviews(repo, number)
-    if err:
-        return [f"mutation unit: cannot fetch reviews for {repo}#{number} ({err}) — fail-closed"]
+    if err:  # the advisory NOTEs stay on the record beside the refusal they explain
+        return authority + [f"mutation unit: cannot fetch reviews for {repo}#{number} ({err}) — fail-closed"]
     author = fetch_pr_author(repo, number)
     if author is None:
         return [f"mutation unit: cannot resolve PR author for {repo}#{number} — cannot exclude the "
@@ -2233,6 +2252,7 @@ def verify(manifest_path, contract_source=None, contract_digest=None, repo=None,
     m, err = load_manifest(manifest_path)
     if err:
         return None, err
+    _Authority.ensure(repo)  # a library caller that never ran main(): pin BEFORE the control (F-1)
     is_mut = _is_mutation(unit_class)
     corroborated = bool(contract_source and contract_digest)
     fatal, notes = [], []

@@ -280,11 +280,6 @@ class TranscriptSigning(unittest.TestCase):
                                           dispatch_sign.canonical_record(env["record"]),
                                           ed.publickey(bytes(range(1, 33)))))
 
-
-if __name__ == "__main__":
-    unittest.main()
-
-
 class SeedCustodyAtUse(unittest.TestCase):
     """h409 F-4 (C3): custody was guarded at CREATION (gen-key refuses an unignored in-repo path
     and writes 0600) and never at USE — every signer read the seed bare, so a 0644 seed, or one
@@ -356,3 +351,7 @@ class SeedCustodyAtUse(unittest.TestCase):
             rc, out, err = self._sign(key)
             self.assertEqual(rc, 0, err)
             self.assertIn("custody", err)
+
+
+if __name__ == "__main__":
+    unittest.main()

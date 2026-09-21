@@ -656,11 +656,6 @@ class SignedInventory(InventorySigningFixture):
         self.assertIn("not a {record, sig_b64}", r.stderr)
         self.assertNotIn("unsigned", r.stderr.lower())
 
-
-if __name__ == "__main__":
-    unittest.main(verbosity=2)
-
-
 class SeedCustodyAtSign(InventorySigningFixture):
     """h409 F-4 (C3), the inventory signer's leg: `sign --key` reads the seed through
     dispatch-sign.py's shared _seed, so a 0644 or unignored-in-repo seed is refused here too, and
@@ -683,3 +678,7 @@ class SeedCustodyAtSign(InventorySigningFixture):
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         self.assertIn("custody", r.stderr)
         self.assertIn("0600", r.stderr)
+
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)

@@ -1752,11 +1752,6 @@ class LiveCatalog(unittest.TestCase):
         self.assertIn("it hashes, it does not re-run the verifier", section,
                       "the section must state the limit, not only the capability")
 
-
-if __name__ == "__main__":
-    unittest.main()
-
-
 class TranscriptBindsTheVerifierToolchain(SignedKeyFixture):
     """h409 F-5 (C4): `toolchain.verify_sha256` had zero consumers and covered verify.py alone — a
     substituted _verify_sig.py / diff_scope.py / ed25519.py yielded a byte-identical signed
@@ -1785,6 +1780,30 @@ class TranscriptBindsTheVerifierToolchain(SignedKeyFixture):
         errors = self._check()
         self.assertTrue(any("toolchain" in e and "transcript" in e for e in errors), errors)
 
+    def test_the_file_set_is_one_set_on_both_sides_and_is_what_the_verifier_loads(self):
+        # h409 G-3: the producer (verify.py _Transcript.TOOLCHAIN) and the consumer
+        # (run_report.TOOLCHAIN_FILES) are two literals mirrored by comment only. A sibling dropped
+        # from the producer is hashed nowhere and every transcript is refused (noisy); dropped from
+        # the consumer it is hashed and never checked — a substituted copy BINDS (silent). Both
+        # are pinned here to one literal, and the literal to what the scripts actually load by
+        # path (transitively), so a drop from EITHER side — or a new by-path sibling left out of
+        # either — is RED, and the fixture above can no longer inherit a shrunken set.
+        expected = ("verify.py", "_verify_sig.py", "diff_scope.py", "ed25519.py", "dispatch-sign.py")
+        self.assertEqual(tuple(run_report.TOOLCHAIN_FILES), expected)
+        vspec = importlib.util.spec_from_file_location("verify_for_parity", ROOT / "runtime" / "scripts" / "verify.py")
+        verify = importlib.util.module_from_spec(vspec)
+        vspec.loader.exec_module(verify)
+        self.assertEqual(tuple(verify._Transcript.TOOLCHAIN), expected)
+        by_path = re.compile(r'(?:Path\(__file__\)\.resolve\(\)\.parent|_HERE) / "([^"]+\.py)"')
+        loaded, queue = {"verify.py"}, ["verify.py"]
+        while queue:
+            name = queue.pop()
+            for sibling in by_path.findall((ROOT / "runtime" / "scripts" / name).read_text(encoding="utf-8")):
+                if sibling not in loaded:
+                    loaded.add(sibling)
+                    queue.append(sibling)
+        self.assertEqual(loaded, set(expected))
+
     def test_a_partial_toolchain_set_does_not_bind(self):
         files = self._toolchain_files()
         del files["ed25519.py"]
@@ -1793,3 +1812,7 @@ class TranscriptBindsTheVerifierToolchain(SignedKeyFixture):
         self._sign_report()
         errors = self._check()
         self.assertTrue(any("ed25519.py" in e and "transcript" in e for e in errors), errors)
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -76,6 +76,10 @@ class RepoCase(unittest.TestCase):
         self._cwd = os.getcwd()
         os.chdir(self.repo)
         self.addCleanup(self._leave)
+        # h409 F-1: the review authority is process state pinned once per run. Every test is a
+        # fresh run — a pin (or an inferred repo) left by the previous test is not its evidence.
+        verify._Authority.reset()
+        self.addCleanup(verify._Authority.reset)
 
     def _leave(self):
         os.chdir(self._cwd)
@@ -716,6 +720,8 @@ class ReviewLookupBinding(unittest.TestCase):
         self._orig_r = verify.fetch_reviews
         self._orig_a = verify.fetch_pr_author
         verify.fetch_pr_author = lambda repo, n: "pr-author"  # a resolved author, distinct from reviewers
+        verify._Authority.reset()  # a pin another test left is not this test's authority (h409 F-1)
+        self.addCleanup(verify._Authority.reset)
 
     def tearDown(self):
         verify.fetch_reviews = self._orig_r
@@ -3885,11 +3891,6 @@ class CrossRepoRoots(RepoCase):
         for flag in ("--git-dir", "--evidence-root"):
             self.assertIn(flag, text)
 
-
-if __name__ == "__main__":
-    unittest.main(verbosity=2)
-
-
 class DotSlashEvidenceSpelling(RepoCase):
     """h409 F-3 (C2): `./`-spelled evidence bound where git's cwd diverged from the toplevel.
     _resolve bounded `./reports/u/nc.txt` against the toplevel, but the git lookup handed the
@@ -4014,15 +4015,30 @@ class ReviewAuthorityPinnedBeforeTheControl(MutationFixture):
         self.head_tree = self.git("rev-parse", "HEAD^{tree}")
         self._env = {"PATH": f"{self.droppable}{os.pathsep}{realgh}{os.pathsep}{os.environ['PATH']}",
                      "ORCA_HEAD": self.head_sha}
+        # The SECOND startup state (G-1): no gh anywhere on PATH when the authority is pinned.
+        # The stand-in above hid the round-1 hole — an absent gh was "unresolved", and the review
+        # leg looked again AFTER the control had planted one. PATH carries git and nothing else.
+        tools = root / "tools"
+        tools.mkdir()
+        os.symlink(shutil.which("git"), tools / "git")
+        self._env_no_gh = {"PATH": f"{self.droppable}{os.pathsep}{tools}", "ORCA_HEAD": self.head_sha}
         if hasattr(verify, "_Authority"):  # absent on the pre-F-1 verifier: the revert control
             verify._Authority.reset()
             self.addCleanup(verify._Authority.reset)
 
-    def _attack(self, *extra):
+    def _attack(self, *extra, env=None):
         path = self._manifest(nc=self._revert_nc())
-        with mock.patch.dict(os.environ, self._env):
+        with mock.patch.dict(os.environ, env or self._env):
             return self._run_main(path, "--repo", "o/r", "--execute-nc",
                                   "--nc-command", self.proof_cmd, *extra)
+
+    def _assert_absent_at_startup_never_looked_again(self, rc, out, err):
+        self.assertEqual(rc, 2, out + err)
+        self.assertIn("negative control EXECUTED", out)          # the control DID run worker code
+        self.assertTrue((self.droppable / "gh").exists(), "the attack did not plant its gh")
+        self.assertFalse(self.dropped_log.exists(),
+                         "the planted gh was consulted — an absent authority was re-resolved after the control")
+        self.assertIn("gh absent at startup", err)
 
     def test_a_gh_dropped_by_the_executed_control_never_answers_the_review_leg(self):
         rc, out, err = self._attack()
@@ -4054,6 +4070,33 @@ class ReviewAuthorityPinnedBeforeTheControl(MutationFixture):
         self.assertIn("NOTE: review_authority: advisory (gh at", out)
         self.assertIn("worker-writable", out)
 
+    def test_with_no_gh_at_startup_the_native_lane_refuses_and_records_the_absence(self):
+        self.assertIsNone(shutil.which("gh", path=self._env_no_gh["PATH"]), "fixture: PATH must carry no gh")
+        rc, out, err = self._attack(env=self._env_no_gh)
+        self._assert_absent_at_startup_never_looked_again(rc, out, err)
+        self.assertIn("NOTE: review_authority: advisory (gh absent at startup", out)
+        self.assertIn("cannot fetch reviews", err)
+
+    def test_with_no_gh_at_startup_a_sound_lane_fails_closed_naming_the_lane(self):
+        rc, out, err = self._attack("--provenance", "ci", env=self._env_no_gh)
+        self._assert_absent_at_startup_never_looked_again(rc, out, err)
+        self.assertIn("review_authority", err)
+        self.assertIn("provenance=ci", err)
+        self.assertNotIn("NOTE: review_authority", out)
+
+    def test_an_absent_pin_is_terminal_for_a_library_caller_too(self):
+        # The class, not the symptom: once pinned absent, a gh that appears later is never found.
+        with mock.patch.dict(os.environ, self._env_no_gh):
+            verify._Authority.resolve(explicit_repo="o/r")
+        self.assertEqual((verify._Authority.gh, verify._Authority.custody), (None, "absent"))
+        (self.droppable / "gh").write_text("#!/bin/sh\necho '[]'\n")
+        (self.droppable / "gh").chmod(0o755)
+        with mock.patch.dict(os.environ, self._env):
+            reviews, err = verify.fetch_reviews("o/r", 7)
+        self.assertIsNone(reviews)
+        self.assertIn("gh absent at startup", err)
+        self.assertEqual((verify._Authority.gh, verify._Authority.custody), (None, "absent"))
+
     def test_a_system_gh_is_classed_system(self):
         self.assertEqual(verify._Authority.classify("/usr/bin/gh"), "system")
         self.assertEqual(verify._Authority.classify(str(self.droppable / "gh")), "worker-writable")
@@ -4069,10 +4112,16 @@ class ReviewRepoIsCoordinatorPinned(MutationFixture):
     def setUp(self):
         super().setUp()
         self.git("remote", "add", "origin", "https://github.com/evil/mirror.git")
-        verify._Authority.reset()
-        self.addCleanup(verify._Authority.reset)
-        # This class is about the REPO; whatever gh this host carries is classed system so the
-        # F-1 custody leg stays out of the picture (the fetch itself is mocked by the fixture).
+        # This class is about the REPO: a stand-in gh (never answers; the fetch is mocked by the
+        # fixture) sits on PATH and is classed system, so the F-1 custody leg stays out of the
+        # picture whether or not the host carries a gh — absent-at-startup is a fatal of its own.
+        standin = tempfile.TemporaryDirectory(prefix="orca-c1-")
+        self.addCleanup(standin.cleanup)
+        (Path(standin.name) / "gh").write_text("#!/bin/sh\nexit 1\n")
+        (Path(standin.name) / "gh").chmod(0o755)
+        env = mock.patch.dict(os.environ, {"PATH": f"{standin.name}{os.pathsep}{os.environ['PATH']}"})
+        env.start()
+        self.addCleanup(env.stop)
         patcher = mock.patch.object(verify._Authority, "classify", return_value="system")
         patcher.start()
         self.addCleanup(patcher.stop)
@@ -4101,3 +4150,7 @@ class ReviewRepoIsCoordinatorPinned(MutationFixture):
         self.assertEqual(rc, 0, out + err)
         rec = json.loads((self.repo / "docs/reports/u/t.json").read_text())["record"]
         self.assertEqual(rec["args"]["provenance"], "ci")
+
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)
