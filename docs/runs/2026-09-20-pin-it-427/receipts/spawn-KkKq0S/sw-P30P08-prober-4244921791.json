@@ -1,0 +1,19 @@
+{
+  "id": "711e2e81-9943-40c9-92b1-ab17ba2b1ff9",
+  "ok": true,
+  "result": {
+    "terminal": {
+      "handle": "term_a603b8cd-f165-4de7-ab84-1b0e35763315",
+      "tabId": "143d4df4-621f-4ed1-9587-473d5586a7ec",
+      "worktreeId": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/pin-probe",
+      "title": "P30P08 prober",
+      "executionHostId": "local",
+      "incarnationId": "bda41df1-b3dd-468c-a490-3cb24a745ecd",
+      "hostPlatform": "darwin",
+      "surface": "visible"
+    }
+  },
+  "_meta": {
+    "runtimeId": "ef9eedcb-8941-4b93-80db-fbafc225814c"
+  }
+}

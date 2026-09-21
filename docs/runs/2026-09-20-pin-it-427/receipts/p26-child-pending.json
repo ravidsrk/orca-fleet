@@ -1,0 +1,48 @@
+{
+  "id": "2a81eea7-7cbb-48d2-8b95-cb6a3b698233",
+  "ok": true,
+  "result": {
+    "runId": "run_41e3aa41e711",
+    "legacyReadOnly": false,
+    "tasks": [
+      {
+        "id": "task_4e0466ae4af1",
+        "run_id": "run_41e3aa41e711",
+        "parent_id": null,
+        "created_by_terminal_handle": "term_0bae108a-5af7-4d7a-b584-67d05a2787d1",
+        "created_by_pane_key": "e3022df8-50d1-424d-bdcc-0f6a98158a52:cbf2a71f-4118-4bb2-b6b4-ae1f0a1b1469",
+        "created_by_process_incarnation": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/projects/orca-fleet@@63ef0087:9179d1c8-2fee-42a6-a0fb-933475ff9851",
+        "created_by_run_generation": 1,
+        "task_title": "P26 parent",
+        "display_name": "P26 parent",
+        "spec": "x",
+        "status": "failed",
+        "deps": "[]",
+        "result": null,
+        "created_at": "2026-09-20 15:09:58",
+        "completed_at": "2026-09-20T15:09:58.350Z"
+      },
+      {
+        "id": "task_00d50bf632a6",
+        "run_id": "run_41e3aa41e711",
+        "parent_id": null,
+        "created_by_terminal_handle": "term_0bae108a-5af7-4d7a-b584-67d05a2787d1",
+        "created_by_pane_key": "e3022df8-50d1-424d-bdcc-0f6a98158a52:cbf2a71f-4118-4bb2-b6b4-ae1f0a1b1469",
+        "created_by_process_incarnation": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/projects/orca-fleet@@63ef0087:9179d1c8-2fee-42a6-a0fb-933475ff9851",
+        "created_by_run_generation": 1,
+        "task_title": "P26 child",
+        "display_name": "P26 child",
+        "spec": "x",
+        "status": "pending",
+        "deps": "[\"task_4e0466ae4af1\"]",
+        "result": null,
+        "created_at": "2026-09-20 15:09:58",
+        "completed_at": null
+      }
+    ],
+    "count": 2
+  },
+  "_meta": {
+    "runtimeId": "ef9eedcb-8941-4b93-80db-fbafc225814c"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "id": "d7f9f0cd-2360-462c-aa72-b35caf499136",
+  "ok": false,
+  "error": {
+    "code": "dispatch_not_found",
+    "message": "Dispatch ctx_000000000000 was not found. Orchestration mutation request ID: f41f2857-0175-42a0-9716-9170fddfdcd5.",
+    "data": {
+      "orchestrationRequestId": "f41f2857-0175-42a0-9716-9170fddfdcd5",
+      "originalCommand": [
+        "orca",
+        "orchestration",
+        "worker-release",
+        "--dispatch",
+        "ctx_000000000000",
+        "--json"
+      ]
+    }
+  },
+  "_meta": {
+    "runtimeId": "ef9eedcb-8941-4b93-80db-fbafc225814c"
+  }
+}

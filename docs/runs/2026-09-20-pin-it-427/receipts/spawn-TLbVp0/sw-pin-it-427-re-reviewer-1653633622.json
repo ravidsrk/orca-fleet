@@ -1,0 +1,19 @@
+{
+  "id": "3c192cdb-1105-45b7-a0cc-b002ee96477f",
+  "ok": true,
+  "result": {
+    "terminal": {
+      "handle": "term_ff9bd049-fadb-46ce-8793-0383633d4ad0",
+      "tabId": "9aa576f0-dd32-4735-8d07-b58f94d8bbc5",
+      "worktreeId": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/pin-review",
+      "title": "pin-it 427 re-reviewer",
+      "executionHostId": "local",
+      "incarnationId": "b5fe20c7-156d-46c6-9fc5-6b1b45ddedfe",
+      "hostPlatform": "darwin",
+      "surface": "visible"
+    }
+  },
+  "_meta": {
+    "runtimeId": "ef9eedcb-8941-4b93-80db-fbafc225814c"
+  }
+}

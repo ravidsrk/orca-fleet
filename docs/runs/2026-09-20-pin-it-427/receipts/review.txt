@@ -1,0 +1,124 @@
+verdict: NO-GO
+
+REVIEW: pin-it #427 doctrine patch — commit e135ccda vs origin/main (b7cedd82)
+Reviewer: build-blind, worktree pin-review, task_9233d349f968 / ctx_edd258260e65
+Rule applied: every edited line must trace to a receipt; a doctrine line with no receipt is a finding.
+Receipts read: docs/runs/2026-09-20-pin-it-427/receipts/* (present at 709ba5e8 in the main
+checkout, NOT in e135ccda itself), docs/runs/2026-09-20-pin-it-427.md (e135ccda and 709ba5e8),
+/tmp/pinit427-guides/, /Applications/Orca.app/Contents/Resources/orca-local-build.json, live
+`orca --version`, GitHub API for stablyai/orca. The pin-probe worktree is already gone
+(probe-report.json there no longer exists; the harvested copy under receipts/ was used).
+
+== BLOCKING ==
+
+B1. pins.json `commit` NOT bumped — pins.json disagrees with orca-pin.md and with the build file.
+    runtime/pins.json still says commit 54eaa14756bf80a6deb0b9cb5349fbe8ac3449ec (the v1.4.203 build)
+    while version moved to v1.4.204. orca-pin.md says build commit 357c9780f8bffa10a21d004449d8d6d9846a9310;
+    orca-local-build.json says commit 357c9780f8bffa10a21d004449d8d6d9846a9310, buildId
+    1.4.204-357c9780…-arm64. orca-pin.md's own text: "The two never disagree — a run updates both or
+    neither." The contract test catches it:
+      python3 -m unittest tests.test_pins  →  FAILED (failures=2)
+      test_pin_record_agrees…: "commit: orca-pin.md says '357c9780…', pins.json says '54eaa147…'"
+      test_tampered_pin_record_is_caught [table commit]: "table commit tamper changed nothing"
+    The run ledger (709ba5e8 loop log) says "validate + gen-badges green" — tests/ were not run, and
+    orca-pin.md step 5 requires "land with scripts/validate.py + tests/ green". Fix: pins.json
+    "commit": "357c9780f8bffa10a21d004449d8d6d9846a9310".
+
+B2. dispatch-lifecycle.md still carries the OLD pin and an owed-probe list this run retired.
+    runtime/dispatch-lifecycle.md:150-158 "## Live probes owed (pin-it)": "The live PIN is v1.4.203
+    (docs/runs/2026-09-16-pin-it-416)" and items 1-5 (worker-start roster / inject stages /
+    mixed-batch check + @all merge_ready / bogus dep / gate-create→resolve→preamble) — every one of
+    which the 427 ledger marks CURRENT with a receipt (P01/P02/P38, P04, P24+P16, P20, P32+P33).
+    The patch edited line 72 of this file and left 153-158 contradicting it; orca-pin.md's
+    "Drift fixed in the re-pin: the pin itself and that one line. Nothing else moved." is therefore
+    false on its own evidence — the pin statement at dispatch-lifecycle.md:153 is the pin itself.
+    Same class, lower weight: gate-classification.md:26 "live probe owed (gate-create → gate-resolve →
+    dispatch-show --task --preamble) — pin-it" is now answered by p32-preamble.json / p33-gate-create.json.
+
+== NON-BLOCKING (doctrine lines without a receipt, or receipt weaker than the line) ==
+
+N1. orca-pin.md:29 "(scratch Run + workers, full teardown)" — the ledger at 709ba5e8 says
+    "Teardown (partial) … Owed: pin-probe worktree rm, v3 superseded task settle, pin-review
+    worktree rm after the verdict, scratch-Run final state check." Live now: run_41e3aa41e711 still
+    holds task_00d50bf632a6 ready, task_a2006b9d19e8 ready, task_f18e22885e0f ready. Say "teardown
+    at close" or land after it.
+N2. orca-pin.md:20 Run-record row promises "docs/runs/2026-09-20-pin-it-427/ (receipts, park
+    register)". There is no PARK.md in that directory (the 416 run had one); the parks (P40, P27,
+    the carried-over 09-13 set) live inline in the ledger table. Also, at e135ccda the directory
+    does not exist at all (the receipts landed in 709ba5e8) — the commit under review cites a path
+    it did not ship. Either point the row at the ledger or add PARK.md.
+N3. orca-pin.md:30-33 "gate-create auto-block … replayed and held": p33-gate-create.json shows only
+    the gate (status pending, task_id task_00d50bf632a6). No receipt shows that task in `blocked`
+    between gate-create and gate-resolve (grep for "blocked" across receipts hits only preamble prose;
+    live now the task is `ready`, post-resolve). The auto-block effect is asserted from the CLI's
+    help text ("Create a decision gate blocking a task"), not observed. Weak receipt, not a refutation.
+N4. orca-pin.md:29-30 "every claim the 1.4.203 session parked for want of a live terminal replayed and
+    held" — 416 PARK.md's "Danger lane" (doctor verdict shapes) stays parked; it was parked for want
+    of a recipe, not a terminal, so the sentence is defensible but reads as total. The Verdict row
+    already names it; fine to leave.
+N5. orca-pin.md:18 "Upstream HEAD then bd517780… (main, 2026-09-20)" — no receipt file; verified
+    independently via GitHub API: bd5177801bde is on main, committed 2026-09-20T15:24:53Z (HEAD moved
+    to d86d5cbb at 15:33:12Z). Holds; suggest recording the timestamp as the 416 row did.
+N6. dispatch-lifecycle.md:73 keeps the source anchor `orchestration-worker-specs.ts:101` under the
+    new code name. The ledger says "the ≥10% source-anchor sample re-read lands at close" — it has
+    not; the anchor was read at 54eaa147 (v1.4.203) and the very line it anchors changed. Re-read at
+    357c9780 or annotate the anchor "at v1.4.203". (pm.py, sandbox-policy.md, spawn_worker.sh and
+    five runtime docs keep explicit "at v1.4.203" anchor annotations — those are correct as
+    historical witness marks and need no change.)
+
+== CHECKS REQUESTED, WITH RESULT ==
+
+(1) dispatch-lifecycle.md worker-release clause vs receipts — HOLDS.
+    p09-release-bogus.json: ok:false, error.code "dispatch_not_found" for --dispatch ctx_000000000000.
+    p09-release-settled.json: ok:true, state "retained", reason "no_owned_resource" (exit 0 class).
+    Exit code is not captured in the receipt; replayed live at 1.4.204 this session:
+    `orca orchestration worker-release --dispatch ctx_000000000000 --json` → dispatch_not_found, exit=1.
+    The old literal `release_unknown` was not observed. Clause text matches the evidence.
+(2) pins.json vs orca --version + orca-local-build.json — FAILS on commit (B1).
+    orca --version → 1.4.204 (matches version v1.4.204, witnessed 2026-09-20).
+    build file commit 357c9780… ≠ pins.json commit 54eaa147…; test_pins fails.
+(3) orca-pin.md new claims trace to receipts — MOSTLY.
+    Installed version, build commit, arm64: build file ✓. Guides 15/15 byte-identical: verified by cmp of
+    /tmp/pinit427-guides/* against docs/runs/2026-09-16-pin-it-416/guides/* (15 same, 0 diff) and a
+    live `orca skills get orchestration` re-serve matching the capture ✓ (note: the captures are in
+    /tmp, not archived in the run dir; the claim rests on the 416 archive + a tmp capture).
+    bogus-dep p20 ✓ (runtime_error "Dependency task bogus must belong to run run_41e3aa41e711");
+    gate-resolve absent from preamble p32-preamble.json ✓ (no "resolv" text); ask timeout → PENDING →
+    same-id --resume probe-report.json P30 ✓ (timedOut:true, answer:null, exit 1, resume targets
+    msg_c2f66ec990b3); --retry-request p15 ✓ (within-method replayed:true; cross-method
+    request_mismatch); nested_worker_depth_exceeded probe-p08-v4.json ✓ (observed_exit_code 1);
+    group-address contrast p16 ✓ (worker_done → invalid_argument "cannot target a group address";
+    merge_ready → terminal_not_found). gate-create auto-block: weak (N3). "full teardown": false at
+    this SHA (N1). "Nothing else moved": false (B2). Next trigger 2026-12-20 = +3 months ✓.
+(4) clean-sweep SKILL.md deferral — EXACT and phase-true.
+    Diff removes exactly `reviewed-sha-freshness`, from the rides list (line 39) and adds exactly
+    "reviewed-sha-freshness.md at conductor LAND." to DEFERRED READS (line 49). Nothing else in the
+    file moved. Phase is right: reviewed-sha-freshness.md governs reviewed_sha == head at MERGE time
+    and is checked by merge-serialization.md's step; SKILL.md:82 pipeline names "conductor LAND
+    (merge-serialization)". The move is the validator's own prescribed remedy (validate.py:504-506
+    "Move a phase's doc behind a 'read <doc> when entering <phase>' cue"). Load 34,034 → ~33,500;
+    ARCHITECTURE.md / docs/missions/{clean-sweep,review-it}.md rows are the generated block —
+    `python3 scripts/gen-badges.py --check` exit 0 (fresh). Caveat, not a finding: the validator's
+    load number is a proxy; the P09 text made the file longer, and the cost was paid by clean-sweep,
+    a mission the pin did not touch — worth one line in the ledger, which it has.
+(5) test_spawn_worker.py bumps match pins.json — YES.
+    Three assertions v1.4.203 → v1.4.204 (lines 715, 724, 731-732); pins.json version v1.4.204;
+    no other v1.4.203 pin-coupled literal remains outside docs/ except anchor annotations (N6).
+
+== VALIDATION RUN ==
+python3 scripts/validate.py                → exit 0 ("All 21 missions valid; three-layer separation holds; evals valid.")
+python3 scripts/gen-badges.py --check      → exit 0
+python3 -m unittest tests.test_pins        → FAILED (failures=2)  [B1]
+python3 -m unittest discover -s tests      → see SUITE line below
+git status (pin-review worktree)           → clean before this report; this file is the only addition, uncommitted.
+
+SUITE: python3 -m unittest discover -s tests → Ran 1739 tests in 264s, FAILED (failures=6), exit 1.
+  - test_pins ×2 (B1, still open at branch head 709ba5e8).
+  - test_docs_navigation.test_run_archive_index_lists_every_report + …integrity_standard_matches_practice:
+    at e135ccda the ledger is neither linked from docs/runs/README.md nor carries an integrity-inventory
+    line. Both are repaired on the review branch by 8893265d (index row + integrity line) — already
+    handled, listed so the SHA-under-review's own state is recorded honestly.
+  - ReleaseCutWalkthrough / ReleaseRehearsalIsolation ×2: these re-run test_docs_navigation in a
+    subprocess (".............FF.....") and fail only because of the two archive failures above; derivative.
+  Net: after 8893265d the only red is B1 — one line in pins.json turns it GO, once B2's stale
+  "Live probes owed" block in dispatch-lifecycle.md is also brought to the receipts.

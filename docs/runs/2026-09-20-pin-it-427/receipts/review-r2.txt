@@ -1,0 +1,147 @@
+verdict: GO
+
+RE-REVIEW (round 2, fix-round rule — delta only): pin-it #427 doctrine patch
+Fix commit under review: 39ea30ff (branch review/2026-09-20-pin-it-427; parent 709ba5e8; round-1 SHA e135ccda)
+Reviewer: build-blind, worktree pin-review (HEAD e135ccda; 39ea30ff inspected in a detached scratch
+worktree under the session scratchpad), task_29df92b5448b / ctx_748a2247fb6e. Nothing committed.
+Receipts read: docs/runs/2026-09-20-pin-it-427/receipts/* at 39ea30ff, docs/runs/2026-09-20-pin-it-427.md
+at 39ea30ff, docs/runs/2026-09-20-clean-sweep-tracker.md + …/spawn/spawn-{IOZjX5,hTCW3H,n7VGIW}/ (committed
+at 39ea30ff), /Applications/Orca.app/Contents/Resources/orca-local-build.json, live `orca --version`,
+live `task-list --run run_41e3aa41e711`, live `orca worktree list`, GitHub API for stablyai/orca at
+357c9780 and 54eaa147.
+
+Both round-1 Required gaps are CLOSED. Everything below the line is non-blocking; three items are
+named as pre-LAND touch-ups because they are one-line edits that make a pinned doc literally true.
+
+== REQUIRED (round 1 B1, B2) ==
+
+(1) B1 pins.json build commit — CLOSED.
+    runtime/pins.json orca.commit = 357c9780f8bffa10a21d004449d8d6d9846a9310, version v1.4.204,
+    witnessed 2026-09-20, witness live. Matches orca-local-build.json (commit 357c9780…, buildId
+    1.4.204-357c9780…-arm64) and `orca --version` → 1.4.204. orca-pin.md Build-commit row agrees.
+    python3 -m unittest tests.test_pins → Ran 8 tests, OK (was FAILED failures=2 at e135ccda).
+
+(2) B2 dispatch-lifecycle.md 'Live probes owed (pin-it)' — CLOSED for the file named.
+    Block now states the PIN is v1.4.204 (docs/runs/2026-09-20-pin-it-427.md) and names six
+    retirements. Each traces to a receipt committed at 39ea30ff:
+      - roster `worker-start` on a MANUAL host, launch.effective carries no args → LAUNCHED_UNUSABLE:
+        clean-sweep spawn/spawn-IOZjX5/ws-U-CHAIN-builder-2649789649.json (launch.effective =
+        {agent:"claude", model:null, effort:null}, state ready, stage input_accepted, turnStart observed)
+        + clean-sweep-tracker.md:96-99 (exit 5 LAUNCHED_UNUSABLE; host permission mode MANUAL,
+        agentDefaultArgs=''). The MANUAL/agentDefaultArgs half is tracker prose, not a JSON field —
+        the spawn_worker.sh exit-5 contract (spawn_worker.sh:22-25, :683) is what derives it. Holds.
+      - inject `prompt.stages=input_accepted`: spawn-hTCW3H/dispatch-U-CHAIN-builder-….json and
+        spawn-n7VGIW/dispatch-U-442-builder-….json both carry result.prompt.stages ["input_accepted"],
+        injected:true. Holds.
+      - `--types` wake delivers the whole batch: cited as delivery_fb3706416306 (tracker:391 and
+        ledger:98). The tracker line records the ack; the batch-composition observation is coordinator
+        narration in the ledger (heartbeats rode worker_done batches). Weakest of the six — a
+        transcript line, not a JSON receipt — but it is a committed run record, not a claim from memory.
+      - `merge_ready --to @all` resolution error only / `worker_done` type-level refusal:
+        p16-merge-ready-all.json (terminal_not_found "No recipients resolved for group address: @all")
+        vs p16-send-worker-done-all.json (invalid_argument "worker_done messages belong to one exact
+        Dispatch and cannot target a group address"). Holds exactly as worded.
+      - `task-create --deps '["bogus"]'` refutation: p20-bogus-dep.json (runtime_error "Dependency task
+        bogus must belong to run run_41e3aa41e711"). Holds.
+      - gate-create → gate-resolve → dispatch-show --preamble, resolution NOT injected:
+        p33-gate-create.json (gate_dde2bfa45f32 pending on task_00d50bf632a6) → p32-gate-resolve.json
+        (resolved, resolution "P32 probe resolution text") → p32-preamble.json (task_00d50bf632a6
+        preamble; zero occurrences of "resolution"/"resolv"). Holds. Note the block claims only the
+        preamble half here — correct; the auto-block half is N3 below.
+    Residual park list in the block ("doctor verdict shapes, the legacy-takeover live replay, and the
+    roster/remote/OS/isolated-runtime probes") matches the ledger's park register rows 1:1
+    (P40 · P27 · carried 09-13 set). The retired items are no longer listed as owed. Consistent.
+
+    B2 residual, lower weight (round 1 named it; the fix did not touch it): runtime/gate-classification.md:26
+    still reads "live probe owed (`gate-create` → `gate-resolve` → `dispatch-show --task --preamble`) —
+    pin-it". p32-preamble.json answers that probe; the line's operative instruction ("treat the old
+    promise as false") is now receipt-CONFIRMED rather than merely source-witnessed, so the doctrine is
+    right and only the "owed" annotation is stale. Non-blocking; pre-LAND touch-up (a): replace the
+    owed parenthetical with "live-confirmed at v1.4.204 (p32-preamble.json)" — shorter than what it
+    replaces, so the activation-load ratchet is safe.
+
+== THE OTHER LISTED CHECKS ==
+
+(3) Ledger park register — PRESENT and matches orca-pin.md's citation.
+    docs/runs/2026-09-20-pin-it-427.md "## Park register (pin-it #427)": PINNED-WITH-PARKED, three
+    rows (P40 doctor shapes → per-workspace-env recipe, none on host; P27 legacy-takeover → legacy Run;
+    roster/remote/OS/isolated-runtime → unchanged preconditions). orca-pin.md Run-record row now says
+    "docs/runs/2026-09-20-pin-it-427.md (ledger + park register) + docs/runs/2026-09-20-pin-it-427/
+    (receipts)" — both paths exist at 39ea30ff (receipts dir landed in 709ba5e8, an ancestor). N2 CLOSED.
+    orca-pin.md Verdict row names the same two named parks as the register. Consistent.
+
+(4) orca-pin.md teardown wording — NOT literally true yet, on one clause.
+    New text: "scratch Run + workers; worktrees retired, tasks settled, probe runs settled-but-retained
+    — runs are not deletable".
+      - "runs are not deletable": TRUE — `orca orchestration` exposes run-create/current/list/show/use
+        only; no delete/archive/close verb.
+      - "worktrees retired": TRUE for the probe workers (pin-probe worktree gone; live worktree list
+        holds only projects/orca-fleet and this reviewer's pin-review). pin-review is necessarily live
+        until this verdict lands; the ledger already owes its rm "after the verdict". Acceptable.
+      - "tasks settled": FALSE for two probe tasks, live now in run_41e3aa41e711:
+          task_00d50bf632a6 (P26 child)         status ready
+          task_a2006b9d19e8 (P08 nested target) status ready
+        (task_f18e22885e0f, ready at round 1, is now failed — that one WAS settled.) Both are
+        never-dispatched probe targets. task-update accepts pending|ready|dispatched|completed|failed|
+        blocked — there is no cancelled state, so settling them is a hand write (completed/failed with a
+        --result naming them probe targets) or the sentence is reworded. Pre-LAND touch-up (b): either
+        settle both and re-check task-list, or write "probe tasks settled (two never-dispatched targets
+        left `ready`)". Same class and weight as round-1 N1: non-blocking, one line.
+
+(5) Budget + validator — HOLDS.
+    wc -l runtime/dispatch-lifecycle.md → 160 (cap 160).
+    python3 scripts/validate.py → exit 0 "All 21 missions valid; three-layer separation holds; evals valid."
+    python3 scripts/gen-badges.py --check → exit 0 (the activation-load table regenerated in 39ea30ff:
+    oncall-it ~33,700 / clean-sweep ~33,400 / oss-contribute ~33,200 — fresh).
+    python3 -m unittest tests.test_pins tests.test_docs_navigation → Ran 42 tests, OK.
+    Full suite not re-run this round (delta is docs + pins.json + one runtime block; round 1's six reds
+    were test_pins ×2 [now green] and the four archive-index derivatives fixed at 8893265d [now green]).
+
+(6) The six non-blocking gaps, adjudicated:
+    N1 teardown wording      — PARTLY CLOSED: reworded to a precise claim; one clause still false
+                               (two `ready` tasks — see (4)). Disclosed nowhere; touch-up (b) above.
+    N2 Run-record row / park — CLOSED: park register exists; row points at ledger for the register
+                               and at the directory for receipts; both paths ship at 39ea30ff.
+    N3 gate-create auto-block — NOT CLOSED, NOT DISCLOSED: orca-pin.md:29-31 still lists "gate-create
+                               auto-block" among claims that "replayed and held"; ledger P33 row still
+                               says "gate-create → task blocked". No receipt shows task_00d50bf632a6 in
+                               `blocked` (grep across receipts/: zero `"status": "blocked"`; p33 shows
+                               only the gate row; the task is `ready` post-resolve). Weak receipt, not a
+                               refutation. Pre-LAND touch-up (c): drop "auto-block" from the orca-pin.md
+                               list (the preamble half is what p32/p33 prove) and soften the P33 row, OR
+                               replay once: gate-create on a ready task → task-show → gate-resolve, and
+                               file the task-show as p33-task-blocked.json. Either is a minute.
+    N4 "every claim parked for want of a live terminal" — CLOSED-AS-ACCEPTABLE (unchanged; round 1
+                               already judged it defensible; Verdict row names the recipe-park).
+    N5 upstream HEAD timestamp — NOT CLOSED (no timestamp added), honestly minor: the claim is true
+                               (round 1 verified bd517780 on main via GitHub API). Suggestion only.
+    N6 source anchor `orchestration-worker-specs.ts:101` — CLOSED by this review's re-read, with a
+                               correction to the ledger's diagnosis: the anchored line is BYTE-IDENTICAL
+                               at 54eaa147 and 357c9780 ("Idempotent: repeating the call reports
+                               already_released. Only release_unknown exits 1; retained, release_pending,
+                               and already_released exit 0."). The anchor did not move and needs no
+                               "at v1.4.203" annotation. But `release_unknown` is NOT a renamed code — it
+                               is still a live terminal-state in the same file (:120, worker-list
+                               --terminal-state …|release_unknown|…). The pre-patch doctrine line
+                               conflated that release-outcome STATE with the error for a nonexistent
+                               dispatch id; the patched line ("an unknown dispatch exits 1,
+                               dispatch_not_found at v1.4.204") is TRUE and receipted
+                               (p09-release-bogus.json), and the anchor now supports the exit-0 half
+                               (retained/already_released) while the receipt supports the exit-1 half.
+                               The ledger's P09 verdict "STALE (name drift)" is the wrong label — it
+                               was a category error, not a rename. Suggest one ledger line; the
+                               doctrine text itself needs no change.
+
+== WHAT WAS NOT RE-CHECKED (out of the delta) ==
+The clean-sweep SKILL.md deferral, test_spawn_worker bumps, guide byte-identity, and the P30/P15/P08
+receipts were verified in round 1; this round only spot-checked p15 (replayed:true / request_mismatch),
+probe-report.json (timedOut:true, msg_c2f66ec990b3, --resume), probe-p08-v4.json
+(nested_worker_depth_exceeded, observed_exit_code 1) and p09 (dispatch_not_found / retained) to confirm
+the receipts cited by the rewritten block and orca-pin.md are the ones on disk. All hold.
+
+== BOTTOM LINE ==
+GO on the two Required gaps. Before LAND, three one-line touch-ups keep orca-pin.md and
+gate-classification.md literally true at the landed SHA: (a) gate-classification.md:26 owed → confirmed;
+(b) settle or re-word the two `ready` probe tasks; (c) drop/receipt the "gate-create auto-block" claim.
+None of the three changes a mechanism claim; all three are doctrine bookkeeping. Land without them and
+the next pin-it inherits three lines it must re-adjudicate.

@@ -1,0 +1,15 @@
+{
+  "id": "local",
+  "ok": false,
+  "error": {
+    "code": "invalid_argument",
+    "message": "Unknown command: orchestration worker_done",
+    "data": {
+      "suggestions": [],
+      "nextSteps": []
+    }
+  },
+  "_meta": {
+    "runtimeId": null
+  }
+}

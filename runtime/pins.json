@@ -1,12 +1,15 @@
 {
-  "_about": "Upstream sources the missions execute against, pinned by commit and witness date (issue #271). tests/test_pins.py requires an entry for every pack a SKILL.md compatibility: field names. witness: 'source' means the pin was read from a full-history clone of the upstream at that commit, not from a release note; 'live' means the mechanism claims were re-witnessed against the INSTALLED binary in a pin-it run (the commit then records what that build reports, which may sit on a pre-release line rather than at the named tag — see docs/runs/2026-09-13-pin-it-266/). Ownership: pin-it re-witnesses the `orca` entry against the installed binary; the pack pins (gstack, addyosmani, mattpocock) are re-witnessed by the upstream-adoption audit cadence (docs/research/2026-09-10-upstream-audit/), not by pin-it, whose SKILL scopes to runtime mechanics (#377). Pack pins should be re-witnessed whenever an audit runs or an adopted skill changes upstream (#378). The human-readable pin record — upstream URL, diff summary, re-pin cadence, owner, next trigger — is runtime/orca-pin.md.",
+  "_about": "Upstream sources the missions execute against, pinned by commit and witness date (issue #271). tests/test_pins.py requires an entry for every pack a SKILL.md compatibility: field names. witness: 'source' means the pin was read from a full-history clone of the upstream at that commit, not from a release note; 'live' means the mechanism claims were re-witnessed against the INSTALLED binary in a pin-it run (the commit then records what that build reports, which may sit on a pre-release line rather than at the named tag \u2014 see docs/runs/2026-09-13-pin-it-266/). Ownership: pin-it re-witnesses the `orca` entry against the installed binary; the pack pins (gstack, addyosmani, mattpocock) are re-witnessed by the upstream-adoption audit cadence (docs/research/2026-09-10-upstream-audit/), not by pin-it, whose SKILL scopes to runtime mechanics (#377). Pack pins should be re-witnessed whenever an audit runs or an adopted skill changes upstream (#378). The human-readable pin record \u2014 upstream URL, diff summary, re-pin cadence, owner, next trigger \u2014 is runtime/orca-pin.md.",
   "orca": {
     "repo": "stablyai/orca",
-    "commit": "54eaa14756bf80a6deb0b9cb5349fbe8ac3449ec",
-    "version": "v1.4.203",
-    "witnessed": "2026-09-16",
+    "commit": "357c9780f8bffa10a21d004449d8d6d9846a9310",
+    "version": "v1.4.204",
+    "witnessed": "2026-09-20",
     "witness": "live",
-    "aliases": ["orca", "stablyai/orca"]
+    "aliases": [
+      "orca",
+      "stablyai/orca"
+    ]
   },
   "gstack": {
     "repo": "garrytan/gstack",
@@ -14,7 +17,10 @@
     "version": "v1.84.1.0",
     "witnessed": "2026-09-10",
     "witness": "source",
-    "aliases": ["gstack", "garrytan/gstack"]
+    "aliases": [
+      "gstack",
+      "garrytan/gstack"
+    ]
   },
   "addyosmani": {
     "repo": "addyosmani/agent-skills",
@@ -22,7 +28,11 @@
     "version": "0.6.9",
     "witnessed": "2026-09-14",
     "witness": "source",
-    "aliases": ["addyosmani", "addy", "addyosmani/agent-skills"]
+    "aliases": [
+      "addyosmani",
+      "addy",
+      "addyosmani/agent-skills"
+    ]
   },
   "mattpocock": {
     "repo": "mattpocock/skills",
@@ -30,6 +40,10 @@
     "version": "v1.2.3+9",
     "witnessed": "2026-09-10",
     "witness": "source",
-    "aliases": ["mattpocock", "matt", "mattpocock/skills"]
+    "aliases": [
+      "mattpocock",
+      "matt",
+      "mattpocock/skills"
+    ]
   }
 }
