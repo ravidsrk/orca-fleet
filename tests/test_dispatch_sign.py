@@ -266,8 +266,9 @@ class TranscriptSigning(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             key = Path(d) / "dispatch-key"
             key.write_text(bytes(range(1, 33)).hex() + "\n")
-            out = io.StringIO()
-            with contextlib.redirect_stdout(out):
+            os.chmod(key, 0o600)  # F-4: a signer refuses a seed any other reader can see
+            out, err = io.StringIO(), io.StringIO()
+            with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
                 rc = dispatch_sign.main(["sign", "--key", str(key), "--manifest-id", "u",
                                          "--contract-digest", "sha256:a", "--unit-class", "mutation"])
             self.assertEqual(rc, 0)
@@ -282,3 +283,76 @@ class TranscriptSigning(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class SeedCustodyAtUse(unittest.TestCase):
+    """h409 F-4 (C3): custody was guarded at CREATION (gen-key refuses an unignored in-repo path
+    and writes 0600) and never at USE — every signer read the seed bare, so a 0644 seed, or one
+    committed to a repo, signed silently. At signing time the shared _seed re-asserts gen-key's
+    discipline: mode with any group/other bit → refuse; inside an unignored git work tree →
+    refuse; and a passing seed's custody class is named on stderr so the trail says what signed.
+    The check is custody class, not existence — a 0600 seed outside any repo keeps working."""
+
+    def _sign(self, key):
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            rc = dispatch_sign.main(["sign", "--key", str(key), "--manifest-id", "u",
+                                     "--contract-digest", "sha256:a", "--unit-class", "mutation"])
+        return rc, out.getvalue(), err.getvalue()
+
+    def _sign_transcript(self, key, d):
+        transcript = Path(d) / "verdict.json"
+        transcript.write_text(json.dumps(TranscriptSigning._RECORD), encoding="utf-8")
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            rc = dispatch_sign.main(["sign-transcript", "--key", str(key),
+                                     "--transcript", str(transcript)])
+        return rc, out.getvalue(), err.getvalue()
+
+    def test_a_world_readable_seed_is_refused_by_both_signers(self):
+        with tempfile.TemporaryDirectory() as d:
+            key = Path(d) / "dispatch-key"
+            _gen_key(key)
+            os.chmod(key, 0o644)
+            for rc, out, err in (self._sign(key), self._sign_transcript(key, d)):
+                self.assertEqual(rc, 1, err)
+                self.assertEqual(out, "", "a refused seed must sign nothing")
+                self.assertIn("custody", err)
+                self.assertIn("0644", err)
+
+    def test_a_seed_committed_in_an_unignored_work_tree_is_refused(self):
+        with tempfile.TemporaryDirectory() as d:
+            repo = Path(d) / "repo"
+            repo.mkdir()
+            _git_init(repo)
+            key = repo / "committed-seed"
+            _gen_key(key, extra=["--in-repo-ok"])  # creation was overridden; use must not be
+            subprocess.run(["git", "add", "committed-seed"], cwd=repo, check=True, capture_output=True)
+            for rc, out, err in (self._sign(key), self._sign_transcript(key, d)):
+                self.assertEqual(rc, 1, err)
+                self.assertEqual(out, "")
+                self.assertIn("custody", err)
+                self.assertIn("work tree", err)
+
+    def test_a_0600_out_of_repo_seed_signs_and_names_its_custody_class(self):
+        with tempfile.TemporaryDirectory() as d:
+            key = Path(d) / "dispatch-key"
+            _gen_key(key)
+            rc, out, err = self._sign(key)
+            self.assertEqual(rc, 0, err)
+            self.assertIn("sig_b64", out)
+            self.assertIn("custody", err)
+            self.assertIn("0600", err)
+
+    def test_an_ignored_in_repo_0600_seed_signs(self):
+        with tempfile.TemporaryDirectory() as d:
+            repo = Path(d) / "repo"
+            repo.mkdir()
+            _git_init(repo)
+            (repo / ".gitignore").write_text(".secrets/\n", encoding="utf-8")
+            key = repo / ".secrets" / "dispatch-key"
+            rc, err = _gen_key(key)
+            self.assertEqual(rc, 0, err)
+            rc, out, err = self._sign(key)
+            self.assertEqual(rc, 0, err)
+            self.assertIn("custody", err)

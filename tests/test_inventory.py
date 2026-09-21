@@ -360,6 +360,7 @@ class SignedInventory(InventoryBase):
     def _keypair(self, name, seed):
         seed_path = self.tmp / name
         seed_path.write_text(seed.hex() + "\n", encoding="utf-8")
+        seed_path.chmod(0o600)  # F-4: a signer refuses a seed any other reader can see
         (self.tmp / f"{name}.pub").write_text(self.ed.publickey(seed).hex() + "\n", encoding="utf-8")
         return seed_path
 
@@ -653,3 +654,27 @@ class SignedInventory(InventoryBase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+class SeedCustodyAtSign(SignedInventory):
+    """h409 F-4 (C3), the inventory signer's leg: `sign --key` reads the seed through
+    dispatch-sign.py's shared _seed, so a 0644 or unignored-in-repo seed is refused here too, and
+    a passing seed's custody class is named on stderr."""
+
+    def test_a_world_readable_seed_is_refused(self):
+        self.artifact("a.txt", "alpha\n")
+        report = self.fenced_report([("a.txt", sha("alpha\n"))])
+        self.key.chmod(0o644)
+        r = run_inv("sign", str(report), "--key", str(self.key))
+        self.assertEqual(r.returncode, 2, r.stdout + r.stderr)  # could-not-run
+        self.assertIn("custody", r.stderr)
+        self.assertIn("0644", r.stderr)
+        self.assertEqual(self._envelopes(report), [], "a refused seed must sign nothing")
+
+    def test_a_0600_seed_signs_and_names_its_custody_class(self):
+        self.artifact("a.txt", "alpha\n")
+        report = self.fenced_report([("a.txt", sha("alpha\n"))])
+        r = run_inv("sign", str(report), "--key", str(self.key))
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("custody", r.stderr)
+        self.assertIn("0600", r.stderr)

@@ -1278,11 +1278,14 @@ class SignedKeyFixture(RunReportBinding):
         """Sign the report's inventory in place with `seed` (the coordinator's by default) —
         inventory.py sign, which re-derives the entries from the working tree first."""
         seed = seed or self.SEED
-        key = self.repo / "seed"
-        key.write_text(seed.hex() + "\n", encoding="utf-8")
-        with contextlib.redirect_stdout(io.StringIO()):
-            rc = run_report.inventory.main(["sign", str(self.path), "--key", str(key)])
-        key.unlink()
+        # The seed lives the way gen-key leaves it — 0600, outside the graded repo — because the
+        # signer re-asserts that custody at use (h409 F-4); an in-repo 0644 seed is refused.
+        with tempfile.TemporaryDirectory(prefix="orca-seed-") as keydir:
+            key = Path(keydir) / "seed"
+            key.write_text(seed.hex() + "\n", encoding="utf-8")
+            key.chmod(0o600)
+            with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                rc = run_report.inventory.main(["sign", str(self.path), "--key", str(key)])
         self.assertEqual(rc, 0, "inventory.py sign refused — the tree does not match the entries")
 
     def _land(self, pubkey=True, transcript=None, msg="pubkey / transcript"):

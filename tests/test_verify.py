@@ -110,6 +110,16 @@ class RepoCase(unittest.TestCase):
         """An `artifacts[]` inventory entry pinning an UNTRACKED working-tree artifact (#267)."""
         return {"path": rel, "sha256": hashlib.sha256((self.repo / rel).read_bytes()).hexdigest()}
 
+    def seed_file(self, seed):
+        """A coordinator seed the way gen-key leaves one: 0600, OUTSIDE any git work tree — the
+        custody class every signer now re-asserts at use (h409 F-4). Returns its path (str)."""
+        td = tempfile.TemporaryDirectory(prefix="orca-seed-")
+        self.addCleanup(td.cleanup)
+        path = Path(td.name) / "dispatch-key"
+        path.write_text(seed.hex() + "\n", encoding="utf-8")
+        path.chmod(0o600)
+        return str(path)
+
 
 class ScopeCheck(RepoCase):
     """The denominator is the coordinator's authoritative contract, not the manifest."""
@@ -2244,7 +2254,7 @@ class DispatchProvenance(RepoCase):
         # Through both entry points, not the helpers: a signature the gate rejects is worth
         # nothing, and every field added to the tuple is a chance for the two to disagree.
         import subprocess
-        seed = self.write(".orca/seed", bytes(range(1, 33)).hex() + "\n")
+        seed = self.seed_file(bytes(range(1, 33)))
         out = subprocess.run(
             [sys.executable, str(ROOT / "runtime" / "scripts" / "dispatch-sign.py"), "sign",
              "--key", seed, "--manifest-id", "u", "--contract-digest", "sha256:a",
@@ -2273,7 +2283,7 @@ class SignedTranscript(RepoCase):
     def setUp(self):
         super().setUp()
         self.manifest = self.write("docs/reports/u/manifest.json", json.dumps({"unit": "u"}))
-        self.key = self.write(".orca/seed", self.SEED.hex() + "\n")
+        self.key = self.seed_file(self.SEED)
 
     def _main(self, *extra):
         buf, errbuf = io.StringIO(), io.StringIO()
@@ -3911,3 +3921,36 @@ class DotSlashEvidenceSpelling(RepoCase):
         self.assertIn(b"KILLED", raw)
         raw, err = verify.read_source(f"./reports/u/nc.txt@{self.head}")
         self.assertIsNone(raw, "a path@ref absent at the toplevel was read via git's cwd")
+
+
+class TranscriptKeyCustody(SignedTranscript):
+    """h409 F-4 (C3), verify.py's leg: --transcript-key reads the seed through dispatch-sign.py's
+    shared _seed. A 0644 seed, or one inside an unignored work tree, is a USAGE refusal (exit 1)
+    before any verdict — never a transcript quietly signed by a leaked seed — and a passing seed's
+    custody class is named on stderr."""
+
+    def test_a_world_readable_seed_is_refused_before_any_verdict(self):
+        os.chmod(self.key, 0o644)
+        rc, out, err = self._main("--transcript-out", "docs/reports/u/transcript.json",
+                                  "--transcript-key", self.key)
+        self.assertEqual(rc, 1, err)
+        self.assertIn("custody", err)
+        self.assertIn("0644", err)
+        self.assertFalse((self.repo / "docs/reports/u/transcript.json").exists())
+
+    def test_a_seed_in_the_unignored_work_tree_is_refused(self):
+        key = self.write(".orca/seed", self.SEED.hex() + "\n")
+        os.chmod(self.repo / key, 0o600)
+        rc, out, err = self._main("--transcript-out", "docs/reports/u/transcript.json",
+                                  "--transcript-key", key)
+        self.assertEqual(rc, 1, err)
+        self.assertIn("custody", err)
+        self.assertIn("work tree", err)
+
+    def test_a_0600_out_of_repo_seed_signs_and_names_its_custody_class(self):
+        rc, out, err = self._main("--transcript-out", "docs/reports/u/transcript.json",
+                                  "--transcript-key", self.key)
+        self.assertEqual(rc, 2, err)  # the minimal manifest's verdict is RED; the seed was accepted
+        self.assertIn("custody", err)
+        self.assertIn("0600", err)
+        self.assertEqual(set(self._envelope()), {"record", "sig_b64"})

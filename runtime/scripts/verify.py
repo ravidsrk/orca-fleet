@@ -1903,14 +1903,15 @@ class _Transcript:
     @staticmethod
     def seed(key_ref):
         """(seed bytes, None) from a gen-key seed file, or (None, reason). Read up front so a bad
-        key is a USAGE error (exit 1) before any verdict, not a transcript silently left unsigned."""
-        try:
-            seed = bytes.fromhex(Path(key_ref).read_text(encoding="utf-8").strip())
-        except (OSError, ValueError) as exc:
-            return None, f"--transcript-key: cannot read a hex seed from {key_ref}: {exc}"
-        if len(seed) != 32:
-            return None, f"--transcript-key: {key_ref} is not a 32-byte hex seed"
-        return seed, None
+        key is a USAGE error (exit 1) before any verdict, not a transcript silently left unsigned.
+        h409 F-4: the read is dispatch-sign.py's own _seed, so the custody rule (0600, not in an
+        unignored work tree, class named on stderr) is ONE rule shared by all four signers."""
+        spec = importlib.util.spec_from_file_location(
+            "dispatch_sign", Path(__file__).resolve().parent / "dispatch-sign.py")
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        seed, err = mod._seed(Path(key_ref))
+        return (None, f"--transcript-key: {err}") if err else (seed, None)
 
     @classmethod
     def write(cls, out_ref, record, seed):
