@@ -1,0 +1,174 @@
+REVIEW — SPEC AXIS — unit h409-fix (build-blind, acceptance-review; pack: addy)
+==================================================================================
+Reviewed:  h409-fix @ 54ba84ef88e655f9feca4540f5f5d30f272494de
+Base:      origin/review/2026-09-21-harden-409 @ 0d552ec9d6a250260ea89db292dacab0d886dfed (merge-base identical)
+Spec:      docs/runs/2026-09-21-harden-409/build-fix.md (F-1..F-5 + acceptance criteria)
+Held threads: docs/reports/h409/integrate.json (#4060043691, #4060043696)
+Method:    blind expectations written from spec + threads BEFORE opening the diff (scratchpad
+           expectations.md, E1a..E5d), then the delta reviewed against them; every finding quotes
+           its verbatim motivating line; repros only in scratch copies of runtime/scripts.
+Verdict:   NOT READY — one Critical (F-1 class re-entry), the rest Nit/FYI. Tests run at HEAD:
+           the seven new h409 classes (58 tests) OK; integrate.json claims full suite 1967 OK.
+
+----------------------------------------------------------------------------------
+FINDINGS (severity: Critical / Required / Nit / Optional / FYI)
+----------------------------------------------------------------------------------
+
+[CRITICAL] F-1 — the review authority is re-resolved LAZILY after the negative control when gh
+           was absent at startup: the C5 class survives on that state, on a SOUND lane, silently.
+  runtime/scripts/verify.py:618-619
+    > if _Authority.gh is None and _Authority.custody is None:
+    >     _Authority.resolve()  # a library caller that never ran main(): pin on first use (F-1)
+  runtime/scripts/verify.py:677 (inside resolve()):
+    > cls.reset()
+  Motivating spec line (build-fix.md F-1a): "resolve the review authority to an ABSOLUTE path
+  ONCE, at startup, BEFORE any negative-control execution, and invoke only that resolved path —
+  a mid-run PATH write can never redirect the review leg".
+  Why: main() DOES pin at startup (verify.py:2407), but when `shutil.which("gh")` finds nothing
+  the pinned state is (gh=None, custody=None) — indistinguishable from "never resolved". verify()
+  runs check_negative_control (line 2275, executes worker code) BEFORE check_review (line 2280);
+  fetch_reviews then sees the sentinel and calls resolve() AGAIN, mid-run, which (a) picks up a
+  gh the control just planted first on PATH, (b) runs it, and (c) reset() wipes `lane` and
+  `repo_source`, so the sound-lane fail-closed can never fire. review_leg() was already evaluated
+  (custody None → []) before the fetch, and check_review returns that pre-fetch `authority` — [].
+  Reproduced (scratch copy, scratchpad/repro/c5_absent_gh.py, step 5): PATH = <writable dir>:
+  /usr/bin:/bin with no gh; _Authority.resolve(provenance="ci", explicit_repo="o/r") →
+  gh=None custody=None lane=provenance=ci repo_source=explicit; stub gh planted; ONE
+  check_review(...) call →
+    REAL FLOW(5) check_review -> [] | fatal? False
+    state after(5): gh=/var/folders/.../worker-drop-.../gh custody=worker-writable lane=None repo_source=None
+  i.e. a stub-fabricated APPROVED is accepted with NO fatal and NO advisory NOTE on provenance=ci.
+  This is exactly "a stub gh in a writable PATH dir ... a same-run GREEN" the spec forbids, on the
+  realistic state where the coordinator host (CI container, sandbox) has no gh installed.
+  The killer test (tests/test_verify.py:3996-3999) always installs a stand-in "real" gh before the
+  run, so this state is untested.
+  Fix shape: make "resolved" a distinct state (e.g. `resolved = False` flag, or a sentinel object
+  for "absent"), never re-resolve once main() pinned; fetch_reviews on absent → "gh not on PATH"
+  fail-closed as before. On a sound lane, absent-at-startup should arguably be fatal in
+  review_leg() itself (E1d). Add the absent-at-startup variant to
+  ReviewAuthorityPinnedBeforeTheControl (drop `realgh` from PATH; assert rc 2 and that
+  dropped_log never appears).
+
+[NIT] F-3 — one git-by-path lookup still hands git the raw spelling.
+  runtime/scripts/verify.py:1177
+    > if _git(["cat-file", "-e", f"{m['head_sha']}:{path}"])[0] != 0:
+  Motivating spec line (F-3): "normalize the spelling IDENTICALLY on both sides (strip leading
+  `./` segments before BOTH the containment check and the git lookup)".
+  `_resolve(path)` two lines above bounds the normalized spelling; the existence probe is
+  cwd-relative for `./x`. Direction is fail-closed only: the later
+  `set(_diff_target_paths(diff)) != set(paths)` (line 1196) rejects a `./`-spelled key anyway.
+  Use `Path(path).as_posix()` as read_source/_read_artifact now do, for one rule not two.
+
+[NIT] F-5 — the two toolchain file lists are mirrored by comment, not by test.
+  runtime/scripts/run_report.py:468
+    > # loads by path (verify.py _Transcript.TOOLCHAIN mirrors this). The transcript hashes each file;
+  No test asserts `run_report.TOOLCHAIN_FILES == verify._Transcript.TOOLCHAIN`. If verify.py gains
+  a sibling that run_report's list lacks, that sibling is hashed but never checked (a substituted
+  copy binds). One equality assertion in TranscriptBindsTheVerifierToolchain closes it. The set
+  itself is complete today: verify.py loads diff_scope.py (899), _verify_sig.py (1272),
+  ed25519.py (1944), dispatch-sign.py (2023); dispatch-sign.py loads ed25519.py (54).
+
+[NIT] F-4 — the passing-seed stderr line names one class for two.
+  runtime/scripts/dispatch-sign.py:208
+    > print(f"seed custody: {key} mode {mode:04o}, outside any unignored work tree", file=sys.stderr)
+  Motivating spec line (F-4): "print the custody class of a passing seed to stderr so the audit
+  trail names what signed". An ignored-in-repo seed and an out-of-repo seed print the same
+  string; the audit trail cannot tell which signed. Also `mode & 0o077` (line 195) admits 0400/
+  0700 where the spec says "mode not 0600 → refuse" — semantically sound (owner-only), but
+  narrower-than-spec wording should be stated in the docstring.
+
+[FYI] F-1(b) — on the advisory lane a worker-writable gh still yields exit 0 (+NOTE).
+  tests/test_verify.py:4053-4054
+    > self.assertEqual(rc, 0, out + err)
+    > self.assertIn("NOTE: review_authority: advisory (gh at", out)
+  This matches F-1(b)'s "on the advisory lane the verdict records ..." and the acceptance line
+  "marks advisory otherwise", but sits in tension with the same item's "can never again produce
+  a same-run GREEN". The spec's own resolution is the lane; the coordinator must actually set
+  ORCA_PROVENANCE / run enforcement mode for the fix to bite. Documented in verify-gate.md — OK,
+  but downstream consumers (run_report, conductor) should treat "NOTE: review_authority: advisory"
+  as reviewed=UNVERIFIED, not as a GREEN with a footnote. Out of this diff's scope; worth a
+  follow-up in verify-gate.md's trust-boundary section.
+
+[FYI] F-1(b) — SYSTEM_BINS carve-out is by PATH-entry dir, never by realpath.
+  runtime/scripts/verify.py:700
+    > if str(entry.parent) in cls.SYSTEM_BINS:
+  A symlink at /usr/local/bin/gh → ~/anything/gh is "system". Spec-authorized ("not a standard
+  system bin dir"); see thread T2 below. The docstring already admits the convention.
+
+----------------------------------------------------------------------------------
+PER-ITEM VERDICT vs BLIND EXPECTATIONS
+----------------------------------------------------------------------------------
+F-1  PARTIAL. E1a met for the present-at-startup state (main pins at 2407; only _Authority.gh is
+     ever exec'd; killer test proves a planted gh is not consulted when a stand-in exists). E1d
+     (absent at startup on a sound lane) NOT met and reopens the class — Critical above. E1b/E1c
+     met (classify + review_leg; fatal on provenance=ci|mcp|sdk|dispatch or enforcement). `dispatch`
+     added beyond the spec's ci|mcp|sdk — consistent with verify-gate.sh's pre-existing case; fine.
+F-2  MET. `if not repo` fails closed before review_leg; inferred + sound lane → fatal naming the
+     lane; native → "NOTE: review_repo: advisory (... inferred from origin ...)". Tests cover both
+     plus the transcript signing `provenance`. verify-gate.sh forwards ORCA_PROVENANCE.
+F-3  MET (with the Nit). pathlib normalizes `./` in _resolve; read_source and _read_artifact hand
+     git `Path(path).as_posix()`; DotSlashEvidenceSpelling tests from a below-toplevel cwd AND a
+     below-toplevel --git-dir, plus path@ref and a real tracked `./` path. E3b (`./../x`) still
+     refused by the unchanged containment check.
+F-4  MET. One `_seed` in dispatch-sign.py; consumers: sign/sign-transcript (direct), verify.py
+     _Transcript.seed (loads dispatch-sign.py by path), inventory.py _read_seed (via
+     _dispatch_sign()). inventory.py itself needed no change — correct. Refusal precedes the
+     read and any signing. Tracked-file case: `git check-ignore` treats tracked files as not
+     ignored (exit 1) → refused; test_dispatch_sign.py:330 covers the committed seed. 0600
+     out-of-repo and ignored-in-repo seeds sign.
+F-5  MET (with the Nit). toolchain.files hashes the five-file set from the verifier's own dir,
+     inside the signed record; run_report refuses no-set / partial-set / mismatch / unreadable-
+     at-pin. The unit's own docs/runs/2026-09-21-harden-409/fix-transcript.json carries
+     toolchain.files and all five hashes equal the files at HEAD (checked). Old single-hash
+     transcripts no longer bind — intended.
+
+ACCEPTANCE CRITERIA
+  F-1 stub gh in writable PATH dir → refuse on sound lane ........ PARTIAL (fails when gh absent at pin)
+      system-bin gh works ........................................ yes
+      resolution before any NC execution ......................... yes for main(); lazy fallback breaks it
+  F-2 no --repo on sound lane → refuse; inferred → advisory+recorded ... yes
+  F-3 ./docs/x from below-toplevel cwd identical both sides; C2 REDs ... yes (one residual probe, fail-closed)
+  F-4 0644 / tracked / unignored → refuse naming class; 0600 signs; stderr names class ... yes (class string coarse)
+  F-5 sibling substitution → binding fails; unmodified binds ...... yes
+  Full suite green / validate.py 0 / own transcript binds ......... integrate.json: 1967 OK, validate 0;
+      own transcript re-hashed at HEAD by this review: binds. New classes re-run here: 58 OK.
+
+----------------------------------------------------------------------------------
+HELD GREPTILE THREADS — ADJUDICATION AGAINST THE CODE
+----------------------------------------------------------------------------------
+T1 #4060043691 "Unknown provenance disables enforcement" (verify.py:2321) — HOLD as FALSE-POSITIVE
+   for the security claim, but the reply's evidence is wrong on one point.
+   Code: `--provenance` has no `choices=` (verify.py:2317); `resolve()` sets lane only for
+   SOUND_PROVENANCE, else None → advisory. An unknown value cannot CLAIM soundness, so the
+   worker gains nothing over unsetting it — the FP tag stands. However the reply says "The
+   downgrade is recorded as an advisory NOTE in the verdict": verify.py emits NO note for an
+   unrecognised --provenance (grep: none); the only NOTE is verify-gate.sh:127's stderr line,
+   which is not in the verdict and not present when verify.py is invoked directly. Residual is
+   an operator typo (ORCA_PROVENANCE=CI) silently dropping F-1/F-2 enforcement; the transcript
+   does sign `args.provenance`, so it is auditable after the fact. Recommend (Nit, follow-up):
+   `choices=("ci","mcp","sdk","dispatch")` so a typo is a usage error (exit 1), and a corrected
+   thread reply that does not claim a verdict NOTE.
+
+T2 #4060043696 "Writable binaries classified trusted" (verify.py:701) — HOLD (spec-authorized),
+   but the reply's stated premise is off-target and should be corrected in-thread.
+   Code: the SYSTEM_BINS test is on the PATH-entry dir (verify.py:700) and includes
+   /opt/homebrew/bin. On THIS build host: `/opt/homebrew/bin` is `drwxrwxr-x ravindra` and
+   `which gh` → /opt/homebrew/bin/gh — i.e. the host's actual gh lives in a user-writable dir
+   that classify() calls "system". The reply's evidence ("Premise false on the build host
+   (/usr/local/bin is drwxr-xr-x root)") cites the directory gh is NOT in. Greptile's premise is
+   TRUE on this host. The conclusion still holds by spec authority — build-fix.md F-1(b) carves
+   out "a standard system bin dir" and the classify docstring names Homebrew's prefix as that
+   convention — and a same-uid worker that can write /opt/homebrew/bin can equally write the
+   coordinator's checkout, which F-5's toolchain binding exists to catch. Adjudication: HOLD;
+   correct the reply's evidence; add one sentence to docs/verify-gate.md naming the Homebrew
+   carve-out as an accepted residual on same-uid hosts.
+
+----------------------------------------------------------------------------------
+NON-GOALS / STOP CONDITIONS (spec) — checked
+  no new deps: yes (stat/importlib already stdlib-imported). no network in scripts: yes. unsigned
+  no-key path unchanged: yes (_Transcript.seed only runs with --transcript-key). No weakened
+  refusal: none found — every change adds a refusal or a NOTE; the Critical is a MISSED refusal,
+  not a weakened one. GitHub contract untouched: yes (fetch_reviews args/parse unchanged).
+
+Time: within the 30-minute box; no partial-report STOP needed. Report file uncommitted, as
+authorized. Nothing else written to the worktree.
