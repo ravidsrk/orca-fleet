@@ -1,0 +1,568 @@
+FFFFFFFFEFEEEEEFFFFFFEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+======================================================================
+ERROR: test_a_system_gh_is_classed_system (tests.test_verify.ReviewAuthorityPinnedBeforeTheControl.test_a_system_gh_is_classed_system)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_verify.py", line 4058, in test_a_system_gh_is_classed_system
+    self.assertEqual(verify._Authority.classify("/usr/bin/gh"), "system")
+                     ^^^^^^^^^^^^^^^^^
+AttributeError: module 'verify' has no attribute '_Authority'
+
+======================================================================
+ERROR: test_a_worker_writable_gh_is_fatal_on_a_sound_lane (tests.test_verify.ReviewAuthorityPinnedBeforeTheControl.test_a_worker_writable_gh_is_fatal_on_a_sound_lane)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_verify.py", line 4039, in test_a_worker_writable_gh_is_fatal_on_a_sound_lane
+    rc, out, err = self._attack("--provenance", "ci")
+                   ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_verify.py", line 4024, in _attack
+    return self._run_main(path, "--repo", "o/r", "--execute-nc",
+           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                          "--nc-command", self.proof_cmd, *extra)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_verify.py", line 1419, in _run_main
+    rc = verify.main(["--manifest", path,
+                      "--contract-source", self.contract,
+                      "--contract-digest", self.digest,
+                      "--unit-class", "mutation", *extra])
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/runtime/scripts/verify.py", line 2252, in main
+    args = ap.parse_args(argv)
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 1930, in parse_args
+    self.error(msg)
+    ~~~~~~~~~~^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2686, in error
+    self.exit(2, _('%(prog)s: error: %(message)s\n') % args)
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ravindra/.local/share/mise/installs/python/3.13.15/lib/python3.13/argparse.py", line 2673, in exit
+    _sys.exit(status)
+    ~~~~~~~~~^^^^^^^^
+SystemExit: 2
+
+======================================================================
+ERROR: test_an_explicit_repo_on_a_sound_lane_passes_without_the_note (tests.test_verify.ReviewRepoIsCoordinatorPinned.test_an_explicit_repo_on_a_sound_lane_passes_without_the_note)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_verify.py", line 4072, in setUp
+    verify._Authority.reset()
+    ^^^^^^^^^^^^^^^^^
+AttributeError: module 'verify' has no attribute '_Authority'
+
+======================================================================
+ERROR: test_no_repo_on_a_sound_lane_refuses_to_infer (tests.test_verify.ReviewRepoIsCoordinatorPinned.test_no_repo_on_a_sound_lane_refuses_to_infer)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_verify.py", line 4072, in setUp
+    verify._Authority.reset()
+    ^^^^^^^^^^^^^^^^^
+AttributeError: module 'verify' has no attribute '_Authority'
+
+======================================================================
+ERROR: test_no_repo_on_the_native_lane_is_advisory_and_recorded (tests.test_verify.ReviewRepoIsCoordinatorPinned.test_no_repo_on_the_native_lane_is_advisory_and_recorded)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_verify.py", line 4072, in setUp
+    verify._Authority.reset()
+    ^^^^^^^^^^^^^^^^^
+AttributeError: module 'verify' has no attribute '_Authority'
+
+======================================================================
+ERROR: test_the_transcript_signs_the_provenance (tests.test_verify.ReviewRepoIsCoordinatorPinned.test_the_transcript_signs_the_provenance)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_verify.py", line 4072, in setUp
+    verify._Authority.reset()
+    ^^^^^^^^^^^^^^^^^
+AttributeError: module 'verify' has no attribute '_Authority'
+
+======================================================================
+ERROR: test_a_bound_report_passes (tests.test_run_report.TranscriptBindsTheVerifierToolchain.test_a_bound_report_passes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_run_report.py", line 1262, in setUp
+    for name in run_report.TOOLCHAIN_FILES:
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'run_report' has no attribute 'TOOLCHAIN_FILES'
+
+======================================================================
+ERROR: test_a_decoy_interpreter_does_not_buy_a_tier (tests.test_run_report.TranscriptBindsTheVerifierToolchain.test_a_decoy_interpreter_does_not_buy_a_tier)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_run_report.py", line 1262, in setUp
+    for name in run_report.TOOLCHAIN_FILES:
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'run_report' has no attribute 'TOOLCHAIN_FILES'
+
+======================================================================
+ERROR: test_a_hash_that_does_not_re_derive_is_refused (tests.test_run_report.TranscriptBindsTheVerifierToolchain.test_a_hash_that_does_not_re_derive_is_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_run_report.py", line 1262, in setUp
+    for name in run_report.TOOLCHAIN_FILES:
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'run_report' has no attribute 'TOOLCHAIN_FILES'
+
+======================================================================
+ERROR: test_a_manifest_with_no_verifier_run_is_refused (tests.test_run_report.TranscriptBindsTheVerifierToolchain.test_a_manifest_with_no_verifier_run_is_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_run_report.py", line 1262, in setUp
+    for name in run_report.TOOLCHAIN_FILES:
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'run_report' has no attribute 'TOOLCHAIN_FILES'
+
+======================================================================
+ERROR: test_a_partial_toolchain_set_does_not_bind (tests.test_run_report.TranscriptBindsTheVerifierToolchain.test_a_partial_toolchain_set_does_not_bind)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_run_report.py", line 1262, in setUp
+    for name in run_report.TOOLCHAIN_FILES:
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'run_report' has no attribute 'TOOLCHAIN_FILES'
+
+======================================================================
+ERROR: test_a_recorded_command_is_read_as_argv_not_matched (tests.test_run_report.TranscriptBindsTheVerifierToolchain.test_a_recorded_command_is_read_as_argv_not_matched)
+PR #308 review. A regex over a ledger record accepts `echo verify.py --manifest <m>`:
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_run_report.py", line 1262, in setUp
+    for name in run_report.TOOLCHAIN_FILES:
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'run_report' has no attribute 'TOOLCHAIN_FILES'
+
+======================================================================
+ERROR: test_a_recorded_red_verifier_run_still_counts_as_a_run (tests.test_run_report.TranscriptBindsTheVerifierToolchain.test_a_recorded_red_verifier_run_still_counts_as_a_run)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_run_report.py", line 1262, in setUp
+    for name in run_report.TOOLCHAIN_FILES:
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'run_report' has no attribute 'TOOLCHAIN_FILES'
+
+======================================================================
+ERROR: test_a_recorded_red_verifier_still_binds (tests.test_run_report.TranscriptBindsTheVerifierToolchain.test_a_recorded_red_verifier_still_binds)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_run_report.py", line 1262, in setUp
+    for name in run_report.TOOLCHAIN_FILES:
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'run_report' has no attribute 'TOOLCHAIN_FILES'
+
+======================================================================
+ERROR: test_a_substituted_sibling_does_not_bind (tests.test_run_report.TranscriptBindsTheVerifierToolchain.test_a_substituted_sibling_does_not_bind)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_run_report.py", line 1262, in setUp
+    for name in run_report.TOOLCHAIN_FILES:
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'run_report' has no attribute 'TOOLCHAIN_FILES'
+
+======================================================================
+ERROR: test_a_transcript_naming_no_toolchain_set_does_not_bind (tests.test_run_report.TranscriptBindsTheVerifierToolchain.test_a_transcript_naming_no_toolchain_set_does_not_bind)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_run_report.py", line 1262, in setUp
+    for name in run_report.TOOLCHAIN_FILES:
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'run_report' has no attribute 'TOOLCHAIN_FILES'
+
+======================================================================
+ERROR: test_a_verifier_record_bound_to_no_tree_is_refused (tests.test_run_report.TranscriptBindsTheVerifierToolchain.test_a_verifier_record_bound_to_no_tree_is_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_run_report.py", line 1262, in setUp
+    for name in run_report.TOOLCHAIN_FILES:
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'run_report' has no attribute 'TOOLCHAIN_FILES'
+
+======================================================================
+ERROR: test_a_verifier_record_for_another_manifest_does_not_count (tests.test_run_report.TranscriptBindsTheVerifierToolchain.test_a_verifier_record_for_another_manifest_does_not_count)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_run_report.py", line 1262, in setUp
+    for name in run_report.TOOLCHAIN_FILES:
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'run_report' has no attribute 'TOOLCHAIN_FILES'
+
+======================================================================
+ERROR: test_a_verifier_record_naming_a_tree_that_does_not_exist_is_refused (tests.test_run_report.TranscriptBindsTheVerifierToolchain.test_a_verifier_record_naming_a_tree_that_does_not_exist_is_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_run_report.py", line 1262, in setUp
+    for name in run_report.TOOLCHAIN_FILES:
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'run_report' has no attribute 'TOOLCHAIN_FILES'
+
+======================================================================
+ERROR: test_a_verifier_record_whose_digest_does_not_match_is_refused (tests.test_run_report.TranscriptBindsTheVerifierToolchain.test_a_verifier_record_whose_digest_does_not_match_is_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_run_report.py", line 1262, in setUp
+    for name in run_report.TOOLCHAIN_FILES:
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'run_report' has no attribute 'TOOLCHAIN_FILES'
+
+======================================================================
+ERROR: test_an_actual_inline_execution_does_not_buy_a_tier (tests.test_run_report.TranscriptBindsTheVerifierToolchain.test_an_actual_inline_execution_does_not_buy_a_tier)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_run_report.py", line 1262, in setUp
+    for name in run_report.TOOLCHAIN_FILES:
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'run_report' has no attribute 'TOOLCHAIN_FILES'
+
+======================================================================
+ERROR: test_an_echoed_invocation_does_not_buy_a_tier (tests.test_run_report.TranscriptBindsTheVerifierToolchain.test_an_echoed_invocation_does_not_buy_a_tier)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_run_report.py", line 1262, in setUp
+    for name in run_report.TOOLCHAIN_FILES:
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'run_report' has no attribute 'TOOLCHAIN_FILES'
+
+======================================================================
+ERROR: test_an_interpreter_inside_the_graded_tree_is_the_runs_own (tests.test_run_report.TranscriptBindsTheVerifierToolchain.test_an_interpreter_inside_the_graded_tree_is_the_runs_own)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_run_report.py", line 1262, in setUp
+    for name in run_report.TOOLCHAIN_FILES:
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'run_report' has no attribute 'TOOLCHAIN_FILES'
+
+======================================================================
+ERROR: test_an_invocation_against_a_different_manifest_is_refused (tests.test_run_report.TranscriptBindsTheVerifierToolchain.test_an_invocation_against_a_different_manifest_is_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_run_report.py", line 1262, in setUp
+    for name in run_report.TOOLCHAIN_FILES:
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'run_report' has no attribute 'TOOLCHAIN_FILES'
+
+======================================================================
+ERROR: test_an_invocation_naming_a_placeholder_path_is_refused (tests.test_run_report.TranscriptBindsTheVerifierToolchain.test_an_invocation_naming_a_placeholder_path_is_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_run_report.py", line 1262, in setUp
+    for name in run_report.TOOLCHAIN_FILES:
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'run_report' has no attribute 'TOOLCHAIN_FILES'
+
+======================================================================
+ERROR: test_an_unmodified_toolchain_binds (tests.test_run_report.TranscriptBindsTheVerifierToolchain.test_an_unmodified_toolchain_binds)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_run_report.py", line 1262, in setUp
+    for name in run_report.TOOLCHAIN_FILES:
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'run_report' has no attribute 'TOOLCHAIN_FILES'
+
+======================================================================
+ERROR: test_borrowed_manifest_from_another_run_is_refused (tests.test_run_report.TranscriptBindsTheVerifierToolchain.test_borrowed_manifest_from_another_run_is_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_run_report.py", line 1262, in setUp
+    for name in run_report.TOOLCHAIN_FILES:
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'run_report' has no attribute 'TOOLCHAIN_FILES'
+
+======================================================================
+ERROR: test_inventory_naming_only_absent_paths_verifies_nothing (tests.test_run_report.TranscriptBindsTheVerifierToolchain.test_inventory_naming_only_absent_paths_verifies_nothing)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_run_report.py", line 1262, in setUp
+    for name in run_report.TOOLCHAIN_FILES:
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'run_report' has no attribute 'TOOLCHAIN_FILES'
+
+======================================================================
+ERROR: test_inventory_of_only_borrowed_artifacts_is_refused (tests.test_run_report.TranscriptBindsTheVerifierToolchain.test_inventory_of_only_borrowed_artifacts_is_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_run_report.py", line 1262, in setUp
+    for name in run_report.TOOLCHAIN_FILES:
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'run_report' has no attribute 'TOOLCHAIN_FILES'
+
+======================================================================
+ERROR: test_missing_field_is_refused (tests.test_run_report.TranscriptBindsTheVerifierToolchain.test_missing_field_is_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_run_report.py", line 1262, in setUp
+    for name in run_report.TOOLCHAIN_FILES:
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'run_report' has no attribute 'TOOLCHAIN_FILES'
+
+======================================================================
+ERROR: test_missing_report_is_refused (tests.test_run_report.TranscriptBindsTheVerifierToolchain.test_missing_report_is_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_run_report.py", line 1262, in setUp
+    for name in run_report.TOOLCHAIN_FILES:
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'run_report' has no attribute 'TOOLCHAIN_FILES'
+
+======================================================================
+ERROR: test_no_inventory_block_is_refused (tests.test_run_report.TranscriptBindsTheVerifierToolchain.test_no_inventory_block_is_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_run_report.py", line 1262, in setUp
+    for name in run_report.TOOLCHAIN_FILES:
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'run_report' has no attribute 'TOOLCHAIN_FILES'
+
+======================================================================
+ERROR: test_no_run_header_is_refused (tests.test_run_report.TranscriptBindsTheVerifierToolchain.test_no_run_header_is_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_run_report.py", line 1262, in setUp
+    for name in run_report.TOOLCHAIN_FILES:
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'run_report' has no attribute 'TOOLCHAIN_FILES'
+
+======================================================================
+ERROR: test_report_pointed_at_another_mission_is_refused (tests.test_run_report.TranscriptBindsTheVerifierToolchain.test_report_pointed_at_another_mission_is_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_run_report.py", line 1262, in setUp
+    for name in run_report.TOOLCHAIN_FILES:
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'run_report' has no attribute 'TOOLCHAIN_FILES'
+
+======================================================================
+ERROR: test_symlink_spellings_of_the_same_file_are_refused_too (tests.test_run_report.TranscriptBindsTheVerifierToolchain.test_symlink_spellings_of_the_same_file_are_refused_too)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_run_report.py", line 1262, in setUp
+    for name in run_report.TOOLCHAIN_FILES:
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'run_report' has no attribute 'TOOLCHAIN_FILES'
+
+======================================================================
+ERROR: test_the_graded_manifest_must_be_pinned_by_the_inventory (tests.test_run_report.TranscriptBindsTheVerifierToolchain.test_the_graded_manifest_must_be_pinned_by_the_inventory)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_run_report.py", line 1262, in setUp
+    for name in run_report.TOOLCHAIN_FILES:
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'run_report' has no attribute 'TOOLCHAIN_FILES'
+
+======================================================================
+ERROR: test_the_interpreter_is_read_as_argv_too (tests.test_run_report.TranscriptBindsTheVerifierToolchain.test_the_interpreter_is_read_as_argv_too)
+PR #327 review, P1.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_run_report.py", line 1262, in setUp
+    for name in run_report.TOOLCHAIN_FILES:
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'run_report' has no attribute 'TOOLCHAIN_FILES'
+
+======================================================================
+ERROR: test_this_runs_own_artifact_going_absent_is_refused (tests.test_run_report.TranscriptBindsTheVerifierToolchain.test_this_runs_own_artifact_going_absent_is_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_run_report.py", line 1262, in setUp
+    for name in run_report.TOOLCHAIN_FILES:
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'run_report' has no attribute 'TOOLCHAIN_FILES'
+
+======================================================================
+ERROR: test_tier_disagreeing_with_frontmatter_is_refused (tests.test_run_report.TranscriptBindsTheVerifierToolchain.test_tier_disagreeing_with_frontmatter_is_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_run_report.py", line 1262, in setUp
+    for name in run_report.TOOLCHAIN_FILES:
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'run_report' has no attribute 'TOOLCHAIN_FILES'
+
+======================================================================
+ERROR: test_two_run_headers_are_refused (tests.test_run_report.TranscriptBindsTheVerifierToolchain.test_two_run_headers_are_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_run_report.py", line 1262, in setUp
+    for name in run_report.TOOLCHAIN_FILES:
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'run_report' has no attribute 'TOOLCHAIN_FILES'
+
+======================================================================
+ERROR: test_unknown_verifier_outcome_is_refused (tests.test_run_report.TranscriptBindsTheVerifierToolchain.test_unknown_verifier_outcome_is_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_run_report.py", line 1262, in setUp
+    for name in run_report.TOOLCHAIN_FILES:
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'run_report' has no attribute 'TOOLCHAIN_FILES'
+
+======================================================================
+ERROR: test_unresolvable_commit_is_refused (tests.test_run_report.TranscriptBindsTheVerifierToolchain.test_unresolvable_commit_is_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_run_report.py", line 1262, in setUp
+    for name in run_report.TOOLCHAIN_FILES:
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'run_report' has no attribute 'TOOLCHAIN_FILES'
+
+======================================================================
+ERROR: test_verifier_outcome_described_in_prose_is_refused (tests.test_run_report.TranscriptBindsTheVerifierToolchain.test_verifier_outcome_described_in_prose_is_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_run_report.py", line 1262, in setUp
+    for name in run_report.TOOLCHAIN_FILES:
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'run_report' has no attribute 'TOOLCHAIN_FILES'
+
+======================================================================
+FAIL: test_dotslash_from_a_below_toplevel_cwd_reds_like_the_toplevel_does (tests.test_verify.DotSlashEvidenceSpelling.test_dotslash_from_a_below_toplevel_cwd_reds_like_the_toplevel_does)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_verify.py", line 3915, in test_dotslash_from_a_below_toplevel_cwd_reds_like_the_toplevel_does
+    self.assertIsNone(raw, "a path absent at the bounded root was read via git's cwd")
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: b'mutant m7 was KILLED \xe2\x80\x94 proof went RED\n' is not None : a path absent at the bounded root was read via git's cwd
+
+======================================================================
+FAIL: test_dotslash_from_a_below_toplevel_git_dir_reds_too (tests.test_verify.DotSlashEvidenceSpelling.test_dotslash_from_a_below_toplevel_git_dir_reds_too)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_verify.py", line 3924, in test_dotslash_from_a_below_toplevel_git_dir_reds_too
+    self.assertIsNone(raw, "a path absent at the bounded root was read via --git-dir's cwd")
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: b'mutant m7 was KILLED \xe2\x80\x94 proof went RED\n' is not None : a path absent at the bounded root was read via --git-dir's cwd
+
+======================================================================
+FAIL: test_dotslash_path_at_ref_source_resolves_against_the_toplevel (tests.test_verify.DotSlashEvidenceSpelling.test_dotslash_path_at_ref_source_resolves_against_the_toplevel)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_verify.py", line 3939, in test_dotslash_path_at_ref_source_resolves_against_the_toplevel
+    self.assertIsNone(err)
+    ~~~~~~~~~~~~~~~~~^^^^^
+AssertionError: "fatal: path 'docs/docs/reports/u/nc.txt' does not exist in 'f30ac4ba19935d144a216c58b139c8a3ef0aa214'" is not None
+
+======================================================================
+FAIL: test_dotslash_spelling_of_a_real_tracked_path_still_reads (tests.test_verify.DotSlashEvidenceSpelling.test_dotslash_spelling_of_a_real_tracked_path_still_reads)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_verify.py", line 3933, in test_dotslash_spelling_of_a_real_tracked_path_still_reads
+    self.assertIsNone(err)
+    ~~~~~~~~~~~~~~~~~^^^^^
+AssertionError: "artifact './docs/reports/u/nc.txt' is neither tracked at head_sha nor pinned by a sha256 in the manifest's artifacts[] integrity inventory — unpinned evidence (#267)" is not None
+
+======================================================================
+FAIL: test_a_0600_out_of_repo_seed_signs_and_names_its_custody_class (tests.test_verify.TranscriptKeyCustody.test_a_0600_out_of_repo_seed_signs_and_names_its_custody_class)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_verify.py", line 3973, in test_a_0600_out_of_repo_seed_signs_and_names_its_custody_class
+    self.assertIn("custody", err)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+AssertionError: 'custody' not found in "FAIL: scope: no authoritative contract (--contract-source/--contract-digest from the dispatch record) — a worker manifest cannot certify its own denominator\nFAIL: oracle scope: authoritative contract unreadable or digest mismatch\nFAIL: missing required 'base_sha'\nFAIL: missing required 'head_sha'\nFAIL: report-only unit with no signed dispatch record, and its shape cannot be determined: base_sha and head_sha must both be pinned 40-hex commits before the class claim can be measured against the change. Pin base_sha and head_sha so the claim can be measured against the change, or have the coordinator sign the downgrade (#310)\nverify: 5 invariant(s) failed — unit is NOT done\n"
+
+======================================================================
+FAIL: test_a_seed_in_the_unignored_work_tree_is_refused (tests.test_verify.TranscriptKeyCustody.test_a_seed_in_the_unignored_work_tree_is_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_verify.py", line 3965, in test_a_seed_in_the_unignored_work_tree_is_refused
+    self.assertEqual(rc, 1, err)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: 2 != 1 : FAIL: scope: no authoritative contract (--contract-source/--contract-digest from the dispatch record) — a worker manifest cannot certify its own denominator
+FAIL: oracle scope: authoritative contract unreadable or digest mismatch
+FAIL: missing required 'base_sha'
+FAIL: missing required 'head_sha'
+FAIL: report-only unit with no signed dispatch record, and its shape cannot be determined: base_sha and head_sha must both be pinned 40-hex commits before the class claim can be measured against the change. Pin base_sha and head_sha so the claim can be measured against the change, or have the coordinator sign the downgrade (#310)
+verify: 5 invariant(s) failed — unit is NOT done
+
+
+======================================================================
+FAIL: test_a_world_readable_seed_is_refused_before_any_verdict (tests.test_verify.TranscriptKeyCustody.test_a_world_readable_seed_is_refused_before_any_verdict)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_verify.py", line 3955, in test_a_world_readable_seed_is_refused_before_any_verdict
+    self.assertEqual(rc, 1, err)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: 2 != 1 : FAIL: scope: no authoritative contract (--contract-source/--contract-digest from the dispatch record) — a worker manifest cannot certify its own denominator
+FAIL: oracle scope: authoritative contract unreadable or digest mismatch
+FAIL: missing required 'base_sha'
+FAIL: missing required 'head_sha'
+FAIL: report-only unit with no signed dispatch record, and its shape cannot be determined: base_sha and head_sha must both be pinned 40-hex commits before the class claim can be measured against the change. Pin base_sha and head_sha so the claim can be measured against the change, or have the coordinator sign the downgrade (#310)
+verify: 5 invariant(s) failed — unit is NOT done
+
+
+======================================================================
+FAIL: test_a_gh_dropped_by_the_executed_control_never_answers_the_review_leg (tests.test_verify.ReviewAuthorityPinnedBeforeTheControl.test_a_gh_dropped_by_the_executed_control_never_answers_the_review_leg)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_verify.py", line 4029, in test_a_gh_dropped_by_the_executed_control_never_answers_the_review_leg
+    self.assertEqual(rc, 2, out + err)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 2 : NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+NOTE: commands ledger FRESH — 1 exit-0 record(s) bound to head_sha's tree d92989d425ee. This is the worker's own runner, so the coordinator's clean-env re-run at head_sha still stands as the stronger authority (evidence-manifest.md §2)
+NOTE: negative control EXECUTED — with the revert control applied at head_sha the bound command exited 1 on an assertion failure (RED, as required)
+NOTE: the same command exits 0 at clean head_sha — the RED above is the control's doing, not a broken suite
+verify: OK — all required checks passed
+
+
+======================================================================
+FAIL: test_a_worker_writable_gh_is_advisory_on_the_native_lane (tests.test_verify.ReviewAuthorityPinnedBeforeTheControl.test_a_worker_writable_gh_is_advisory_on_the_native_lane)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_verify.py", line 4054, in test_a_worker_writable_gh_is_advisory_on_the_native_lane
+    self.assertIn("NOTE: review_authority: advisory (gh at", out)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'NOTE: review_authority: advisory (gh at' not found in "NOTE: --base not given — ancestry check skipped (pre-merge/offline)\nNOTE: commands ledger FRESH — 1 exit-0 record(s) bound to head_sha's tree 7a20037644db. This is the worker's own runner, so the coordinator's clean-env re-run at head_sha still stands as the stronger authority (evidence-manifest.md §2)\nNOTE: negative control EXECUTED — with the revert control applied at head_sha the bound command exited 1 on an assertion failure (RED, as required)\nNOTE: the same command exits 0 at clean head_sha — the RED above is the control's doing, not a broken suite\nverify: OK — all required checks passed\n"
+
+======================================================================
+FAIL: test_a_0600_out_of_repo_seed_signs_and_names_its_custody_class (tests.test_dispatch_sign.SeedCustodyAtUse.test_a_0600_out_of_repo_seed_signs_and_names_its_custody_class)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_dispatch_sign.py", line 344, in test_a_0600_out_of_repo_seed_signs_and_names_its_custody_class
+    self.assertIn("custody", err)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+AssertionError: 'custody' not found in ''
+
+======================================================================
+FAIL: test_a_seed_committed_in_an_unignored_work_tree_is_refused (tests.test_dispatch_sign.SeedCustodyAtUse.test_a_seed_committed_in_an_unignored_work_tree_is_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_dispatch_sign.py", line 332, in test_a_seed_committed_in_an_unignored_work_tree_is_refused
+    self.assertEqual(rc, 1, err)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: 0 != 1 : 
+
+======================================================================
+FAIL: test_a_world_readable_seed_is_refused_by_both_signers (tests.test_dispatch_sign.SeedCustodyAtUse.test_a_world_readable_seed_is_refused_by_both_signers)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_dispatch_sign.py", line 318, in test_a_world_readable_seed_is_refused_by_both_signers
+    self.assertEqual(rc, 1, err)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: 0 != 1 : 
+
+======================================================================
+FAIL: test_an_ignored_in_repo_0600_seed_signs (tests.test_dispatch_sign.SeedCustodyAtUse.test_an_ignored_in_repo_0600_seed_signs)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_dispatch_sign.py", line 358, in test_an_ignored_in_repo_0600_seed_signs
+    self.assertIn("custody", err)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+AssertionError: 'custody' not found in ''
+
+======================================================================
+FAIL: test_a_0600_seed_signs_and_names_its_custody_class (tests.test_inventory.SeedCustodyAtSign.test_a_0600_seed_signs_and_names_its_custody_class)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_inventory.py", line 684, in test_a_0600_seed_signs_and_names_its_custody_class
+    self.assertIn("custody", r.stderr)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'custody' not found in ''
+
+======================================================================
+FAIL: test_a_world_readable_seed_is_refused (tests.test_inventory.SeedCustodyAtSign.test_a_world_readable_seed_is_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/h409-w2/tests/test_inventory.py", line 674, in test_a_world_readable_seed_is_refused
+    self.assertEqual(r.returncode, 2, r.stdout + r.stderr)  # could-not-run
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 2 : inventory: signed 1 entry (digest f02d4f4448c2…) in /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/inventory-wbbzr3iq/report.md
+
+
+----------------------------------------------------------------------
+Ran 58 tests in 10.323s
+
+FAILED (failures=15, errors=43)

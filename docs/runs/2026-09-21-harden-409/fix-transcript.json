@@ -1,0 +1,43 @@
+{
+  "args": {
+    "base": "review/2026-09-21-harden-409",
+    "contract_digest": "sha256:af9c014fe399e1cbe59daf96a21b87b70b8eb4dfbeddb872b234d88142a97004",
+    "contract_source": "docs/runs/2026-09-21-harden-409/build-fix.md@0d552ec9",
+    "dispatch_pubkey": null,
+    "dispatch_record": null,
+    "evidence_root": null,
+    "execute_nc": true,
+    "git_dir": null,
+    "lighting": "lit",
+    "nc_command": "python3 -m unittest tests.test_verify.DotSlashEvidenceSpelling tests.test_verify.TranscriptKeyCustody tests.test_verify.ReviewAuthorityPinnedBeforeTheControl tests.test_verify.ReviewRepoIsCoordinatorPinned tests.test_dispatch_sign.SeedCustodyAtUse tests.test_inventory.SeedCustodyAtSign tests.test_run_report.TranscriptBindsTheVerifierToolchain",
+    "no_gh": false,
+    "provenance": null,
+    "repo": "ravidsrk/orca-fleet",
+    "symbol": null,
+    "unit_class": "mutation"
+  },
+  "exit": 2,
+  "fatal": [
+    "scope: no criterion ids in the authoritative contract",
+    "head_sha is not an ancestor of origin/review/2026-09-21-harden-409 (not merged / wrong base)",
+    "commands ledger: fresh exit-0 record(s) exist, but none is the coordinator-named proof command 'python3 -m unittest tests.test_verify.DotSlashEvidenceSpelling tests.test_verify.TranscriptKeyCustody tests.test_verify.ReviewAuthorityPinnedBeforeTheControl tests.test_verify.ReviewRepoIsCoordinatorPinned tests.test_dispatch_sign.SeedCustodyAtUse tests.test_inventory.SeedCustodyAtSign tests.test_run_report.TranscriptBindsTheVerifierToolchain' (fresh records ran: ['python3 -m unittest tests.test_verify tests.test_run_report tests.test_dispatch_sign tests.test_inventory tests.test_reshape_width_verify']) \u2014 the ledger proves SOMETHING ran green on this content, not the proof the coordinator named; fail-closed (#352)",
+    "mutation unit: no pr.number to look up an independent review \u2014 unreviewed"
+  ],
+  "manifest": "docs/runs/2026-09-21-harden-409/fix-manifest.json",
+  "manifest_sha256": "12246661283cecc1dfed924e0446187d800d997706b38645187bfb4b87e2668b",
+  "notes": [],
+  "timestamp": "2026-09-21T07:06:18+00:00",
+  "toolchain": {
+    "files": {
+      "_verify_sig.py": "acc3d5cfb0f6fedf170661cf3a68a72e49d56805b1a74aaef5edc72c171cbef0",
+      "diff_scope.py": "1d6276ce0550189f4b383d95e2546fdb4344d880a9fecd1a9fb0ceb35438ec87",
+      "dispatch-sign.py": "e729395573312f68196c41c4767cbc0427e1e9f1acd763d30b8b6ef083902177",
+      "ed25519.py": "471fd3da4f4db6e952407f7945bb20b2b702d70ddff906eae1601e56efcac125",
+      "verify.py": "4dd5300314b90175fc76182e809aaa44e011a4f4c3683dd785f5c1c351a2b540"
+    },
+    "git": "git version 2.55.0",
+    "python": "3.13.15",
+    "verify_sha256": "4dd5300314b90175fc76182e809aaa44e011a4f4c3683dd785f5c1c351a2b540"
+  },
+  "unit": "h409-fix"
+}
