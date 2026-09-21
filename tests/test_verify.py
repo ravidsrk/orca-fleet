@@ -3859,3 +3859,55 @@ class CrossRepoRoots(RepoCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+class DotSlashEvidenceSpelling(RepoCase):
+    """h409 F-3 (C2): `./`-spelled evidence bound where git's cwd diverged from the toplevel.
+    _resolve bounded `./reports/u/nc.txt` against the toplevel, but the git lookup handed the
+    manifest STRING to `cat-file -e head:./reports/u/nc.txt`, which git resolves against ITS cwd
+    — so with the verifier (or --git-dir) below the toplevel the verdict bound a path that does
+    not exist at the bounded root. Both sides must see one spelling: leading `./` segments are
+    stripped before the containment check AND the git lookup."""
+
+    def setUp(self):
+        super().setUp()
+        self.write("app.py", "x = 1\n")
+        self.artifact("mutant m7 was KILLED — proof went RED\n")  # docs/reports/u/nc.txt
+        self.head = self.commit("head")
+        self.m = {"head_sha": self.head}
+
+    def test_dotslash_from_a_below_toplevel_cwd_reds_like_the_toplevel_does(self):
+        # Control: from the toplevel the path is absent at the root and the read fails.
+        _, err = verify._read_artifact(self.m, "./reports/u/nc.txt")
+        self.assertIsNotNone(err)
+        # The C2 reproduction: same manifest string, cwd = <root>/docs.
+        os.chdir(self.repo / "docs")
+        raw, err = verify._read_artifact(self.m, "./reports/u/nc.txt")
+        self.assertIsNone(raw, "a path absent at the bounded root was read via git's cwd")
+        self.assertIsNotNone(err)
+
+    def test_dotslash_from_a_below_toplevel_git_dir_reds_too(self):
+        verify._ROOTS.update(git=str(self.repo / "docs"), evidence=None)
+        try:
+            raw, err = verify._read_artifact(self.m, "./reports/u/nc.txt")
+        finally:
+            verify._ROOTS.update(git=None, evidence=None)
+        self.assertIsNone(raw, "a path absent at the bounded root was read via --git-dir's cwd")
+        self.assertIsNotNone(err)
+
+    def test_dotslash_spelling_of_a_real_tracked_path_still_reads(self):
+        raw, err = verify._read_artifact(self.m, "./docs/reports/u/nc.txt")
+        self.assertIsNone(err)
+        self.assertIn(b"KILLED", raw)
+        os.chdir(self.repo / "docs")
+        raw, err = verify._read_artifact(self.m, "./docs/reports/u/nc.txt")
+        self.assertIsNone(err)
+        self.assertIn(b"KILLED", raw)
+
+    def test_dotslash_path_at_ref_source_resolves_against_the_toplevel(self):
+        os.chdir(self.repo / "docs")
+        raw, err = verify.read_source(f"./docs/reports/u/nc.txt@{self.head}")
+        self.assertIsNone(err)
+        self.assertIn(b"KILLED", raw)
+        raw, err = verify.read_source(f"./reports/u/nc.txt@{self.head}")
+        self.assertIsNone(raw, "a path@ref absent at the toplevel was read via git's cwd")

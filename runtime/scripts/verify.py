@@ -226,6 +226,10 @@ def _resolve(path):
     fallback: outside a git repo there is no toplevel to bound against, so the read fails closed
     rather than silently widening. --evidence-root moves WHICH root bounds the path (#442); it
     never relaxes the bound, and main() refuses a root that is not itself inside a clone."""
+    # h409 F-3: pathlib drops `./` segments, so the containment check below already judges the
+    # NORMALIZED spelling; the git lookups in read_source/_read_artifact must hand git the SAME
+    # spelling (`<sha>:./x` is cwd-relative to git, `<sha>:x` is toplevel-relative) — they do, via
+    # Path(path).as_posix() — or a verifier run below the toplevel binds a path absent at the root.
     p = Path(path)
     if p.is_absolute():
         return None, f"absolute evidence path refused — must be repo-relative (#267): {path}"
@@ -257,7 +261,7 @@ def read_source(source):
             return None, "refusing option-like ref/path (leading '-') — see git-option-injection guard"
         if Path(path).is_absolute():
             return None, f"absolute path refused in a path@ref source (#267): {path}"
-        code, out, err = _git_bytes(["show", f"{ref}:{path}"])
+        code, out, err = _git_bytes(["show", f"{ref}:{Path(path).as_posix()}"])  # F-3
         return (out, None) if code == 0 else (None, (err.strip() or "git ref not found"))
     resolved, err = _resolve(path)
     if err:
@@ -308,9 +312,10 @@ def _read_artifact(m, path):
         return None, err
     head = m.get("head_sha")
     split = _roots_are_split()
+    spelled = Path(path).as_posix()  # the spelling _resolve bounded, never the manifest's (F-3)
     if (not split and head and HEX40_RE.match(str(head))
-            and _git(["cat-file", "-e", f"{head}:{path}"])[0] == 0):
-        code, out, gerr = _git_bytes(["show", f"{head}:{path}"])
+            and _git(["cat-file", "-e", f"{head}:{spelled}"])[0] == 0):
+        code, out, gerr = _git_bytes(["show", f"{head}:{spelled}"])
         if code == 0:
             return out, None
         return None, (gerr.strip() or "cannot read the tracked artifact at head_sha")
