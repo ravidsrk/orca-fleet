@@ -4299,7 +4299,6 @@ class EveryHopAndEveryOwnerIsProbed(MutationFixture):
                           "cannot be isolated on this host")
         if os.geteuid() == 0:
             self.skipTest("running as root: every hop is owned by the effective user by definition")
-        self.consulted = self.drop / "consulted.log"
         # git's custody is R2's concern; class it system so the only authority under test is gh.
         if hasattr(verify._Authority, "pin_git"):  # absent on the pre-round-3 verifier (R-3 revert)
             orig_pin = verify._Authority.pin_git
@@ -4317,6 +4316,7 @@ class EveryHopAndEveryOwnerIsProbed(MutationFixture):
         tools = tempfile.TemporaryDirectory(prefix="orca-h409-r4-tools-")  # the run's git, after drop
         self.addCleanup(tools.cleanup)
         os.symlink(shutil.which("git"), Path(tools.name) / "git")
+        self.consulted = Path(tools.name) / "consulted.log"  # writable even when drop/ is 0555
         self._env = {"PATH": f"{self.drop}{os.pathsep}{tools.name}"}
 
     @staticmethod
