@@ -76,3 +76,14 @@
 2026-09-21T02:37:25Z · merge-pr-491-487 · one-way · human:Ravindra instructed in-session 'address the review comments and merge this PR and pull all the changes' · recorded grant for merging the promotion PRs #491 (sign-386) and #487 (pin-it re-pin) to main after the Greptile fix ·
 2026-09-21T03:00:27Z · floor-waiver:assertion-removed:tests/test_spawn_worker.py · taste · allow · assertion CHANGED not removed — the pin-coupled expected-version string moved v1.4.203→v1.4.204 with the re-pin (#427 run, docs/runs/2026-09-20-pin-it-427.md); same assertion, new pin ·
 2026-09-21T17:30:16Z · h409-native-lane-policy · one-way (delegated) · ACCEPTED as designed — on the NATIVE lane a pre-planted worker-writable gh yields 'verify: OK' with an advisory NOTE naming the binary and its custody. That is the #112 contract (the native in-session lane is advisory by definition, stated in-band by verify-gate.sh), and the audit trail is honest (the NOTE names the authority). The soundness boundary holds exactly where it must: sound lanes (ci|mcp|sdk|dispatch, enforcement) refuse fail-closed with the stub never invoked (runtime-prove, seven runs). A consumer gating on native-lane exit code alone is using the lane beyond its contract — the docs already say so; no code change, the ruling is recorded so no later audit re-argues it ·
+
+## h409-r1-reloop — 2026-09-21 — coordinator (session-gate delegation)
+
+The independent re-attack of the F-1..F-5 batch (docs/reports/h409/reattack.md) refused all five
+original fixes but demonstrated ONE new P0 (R1: `_Authority.classify()` trusts `SYSTEM_BINS`
+directory NAMES — including worker-writable `/opt/homebrew/bin`/`sbin` — before its writability
+probe, yielding a sound-lane FALSE GREEN) plus residuals R2 (git/gitleaks unpinned) and R3
+(un-scrubbed gh env). Classified MECHANICAL under the frozen threat model's acceptance bar (a
+sound lane never takes an authority from something the worker could replace or redirect); the run
+re-loops through FIX → REVIEW → RUNTIME-PROVE → LAND → RE-ATTACK before RE-AUDIT. Fix batch frozen
+in docs/runs/2026-09-21-harden-409/build-fix-r3.md.
