@@ -675,6 +675,11 @@ class _Authority:
     # nothing a worker could steer it with. GH_HOST / GH_CONFIG_DIR / GH_* are NOT here — the
     # host rides the coordinator's --repo (split_repo); the token passes only when present.
     GH_ENV_KEEP = ("PATH", "HOME", "TMPDIR", "TMP", "TEMP", "GH_TOKEN", "GITHUB_TOKEN")
+    # h409 N-2: named in the fetch-failure fatal so a proxied or XDG-configured host reads the
+    # cause as the scrub, not as a network fault.
+    SCRUB_NOTE = (" (gh ran under a scrubbed environment: XDG_CONFIG_HOME, HTTPS_PROXY/NO_PROXY and "
+                  "SSL_CERT_FILE are dropped with every other steering variable — only "
+                  + ", ".join(GH_ENV_KEEP) + " pass; h409 R3)")
     gh = None            # absolute path of the resolved review authority, or None (absent)
     custody = None       # "system" | "worker-writable" | "absent" (pinned, no gh) | None (UNRESOLVED)
     git = None           # absolute path of the pinned git (h409 R2), or None (absent)
@@ -943,7 +948,8 @@ def check_review(m, repo, is_mutation, no_gh=False, corroborated=False, dispatch
         return authority
     reviews, err = fetch_reviews(repo, number)
     if err:  # the advisory NOTEs stay on the record beside the refusal they explain
-        return authority + [f"mutation unit: cannot fetch reviews for {repo}#{number} ({err}) — fail-closed"]
+        return authority + [f"mutation unit: cannot fetch reviews for {repo}#{number} ({err}) — fail-closed"
+                            + ("" if _Authority.custody == "absent" else _Authority.SCRUB_NOTE)]
     author = fetch_pr_author(repo, number)
     if author is None:
         return [f"mutation unit: cannot resolve PR author for {repo}#{number} — cannot exclude the "

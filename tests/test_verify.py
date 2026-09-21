@@ -4601,6 +4601,19 @@ class ThePinnedGhRunsUnderAScrubbedEnvironment(RepoCase):
         self.assertNotIn("SSL_CERT_FILE", env)
         self.assertNotIn("HTTPS_PROXY", env)
 
+    def test_a_fetch_failure_names_the_scrub(self):
+        # h409 N-2: a proxied or XDG-configured host loses gh egress/auth under the scrub and sees
+        # "cannot fetch reviews" — the fatal says why, so the cause reads as the scrub, not the net.
+        (Path(self._pathtmp.name) / "bin" / "gh").write_text("#!/bin/sh\necho 'no route' >&2\nexit 1\n")
+        with mock.patch.dict(os.environ, self._env):
+            verify._Authority.resolve(explicit_repo="o/r")
+            lines = verify.check_review({"pr": {"number": 7}, "head_sha": "0" * 40}, "o/r", True)
+        fatal = [l for l in lines if not l.startswith("NOTE:")]
+        self.assertEqual(len(fatal), 1, lines)
+        self.assertIn("cannot fetch reviews for o/r#7", fatal[0])
+        for name in ("XDG_CONFIG_HOME", "HTTPS_PROXY", "SSL_CERT_FILE"):
+            self.assertIn(name, fatal[0])
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
