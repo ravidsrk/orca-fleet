@@ -43,6 +43,7 @@ git repositories and includes a fully bound positive case alongside a dozen refu
 | 2026-09-20 | [clean-sweep](2026-09-20-clean-sweep-tracker.md) | this repo (tracker, 10 issues) | self-run | no — the living ledger, not a binding report; binds, or does not, if a later promotion files one | DRY-WITH-PARKED (4 issues closed with evidence after G1/G2 targeted repairs — verify 6/6 + 5/6-disclosed; 6 standing parks; promotion PR #486) |
 | 2026-09-20 | [pin-it](2026-09-20-pin-it-427.md) | this catalog's runtime doctrine against the installed Orca 1.4.204 binary (#427) | self-run | no — the living ledger, not a binding report; binds, or does not, if a later promotion files one | PINNED-WITH-PARKED (49 claims: 46 CURRENT, 1 PATCHED, 2 PARKED + carried register; #427 closed, successor #488; promotion PR #487) |
 | 2026-09-20 | [sign-386](2026-09-20-sign-386.md) | this repo (#386: signed manifests + retention) | self-run | no — the living ledger, not a binding report; binds, or does not, if a later promotion files one | CLOSED with evidence (U-SIG-1 648fcf77 + U-SIG-2 552f4af3, two full review rounds each; #386 closed; promotion PR #491) |
+| 2026-09-21 | [harden-it](2026-09-21-harden-409.md) | this catalog's own verify.py / dispatch-sign.py / verify-gate.sh (#409) | self-run | no — the living ledger of a run in flight, not a binding report | IN PROGRESS (audit waves) |
 
 ### Self-test campaign 2026-09-16
 
