@@ -522,6 +522,134 @@ class SignedInventory(InventoryBase):
         self.assertIn("sign", r.stdout)
         self.assertIn("--pubkey", run_inv("check", "--help").stdout)
 
+    # --- round-1 G-1..G-4: the envelope is read fail-closed, inside the block only -------------
+    def _inv(self):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("inventory", INVENTORY)
+        inv = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(inv)
+        return inv
+
+    def _envelope_line(self, record, sig_b64):
+        import json
+        return f"<!-- inventory-signature {json.dumps({'record': record, 'sig_b64': sig_b64})} -->"
+
+    def _forge(self, sig_b64):
+        """A KEYLESS forgery: the record is derived from the document (anyone can), only sig_b64
+        is invented. Placed inside the block, exactly where a real envelope would sit."""
+        self.artifact("a.txt", "alpha\n")
+        report = self.fenced_report([("a.txt", sha("alpha\n"))])
+        inv = self._inv()
+        record = inv.signature_record(inv.load(report)[2])
+        text = report.read_text(encoding="utf-8")
+        report.write_text(text.replace("```\n\n## Gates", "```\n" + self._envelope_line(record, sig_b64)
+                                       + "\n\n## Gates"), encoding="utf-8")
+        return report, inv
+
+    def test_a_keyless_forgery_with_a_malformed_sig_b64_is_refused(self):
+        # M14: the decode branch is the ONLY thing between "digest matches" and checkvalid. A
+        # forger holds no seed; a malformed sig_b64 must be a refusal in its own right — never a
+        # value a caller could read as "verified".
+        report, inv = self._forge("not*base64!")
+        self.assertEqual(run_inv("check", str(report)).returncode, 0, "hashes alone still verify")
+        r = run_inv("check", str(report), "--pubkey", self._pub())
+        self.assertEqual(r.returncode, EXIT_MISMATCH, r.stdout + r.stderr)
+        self.assertIn("malformed", r.stderr)
+        self.assertNotIn("signature verified", r.stdout + r.stderr)
+        # At the function level the refusal is an exception, and validity is the digest itself.
+        _report, lines, entries = inv.load(report)
+        _idx, envelope = inv.find_signature(lines)
+        pub = inv.read_pubkey(self._pub())
+        with self.assertRaises(inv.SignatureRefused):
+            inv.verify_signature(envelope, entries, pub)
+        signed = self._signed_fenced()
+        _r, lines, entries = inv.load(signed)
+        self.assertEqual(inv.verify_signature(inv.find_signature(lines)[1], entries, pub),
+                         inv.inventory_digest(entries))
+
+    def test_a_well_formed_base64_that_is_not_a_signature_is_refused_as_malformed(self):
+        import base64
+        report, _inv = self._forge(base64.b64encode(b"short").decode("ascii"))
+        r = run_inv("check", str(report), "--pubkey", self._pub())
+        self.assertEqual(r.returncode, EXIT_MISMATCH, r.stdout + r.stderr)
+        self.assertIn("malformed", r.stderr)
+
+    def test_a_signature_line_in_prose_is_never_an_envelope(self):
+        # BOT-1 / M13: the parser reads only find_blocks ranges, so only those can carry the
+        # claim. A documented example pasted above the heading is not signed, not honoured, and
+        # never rewritten — `sign` refuses rather than touching prose.
+        self.artifact("a.txt", "alpha\n")
+        report = self.fenced_report([("a.txt", sha("alpha\n"))])
+        example = self._envelope_line({"entries": 1, "inventory_sha256": "0" * 64}, "A" * 86 + "==")
+        text = report.read_text(encoding="utf-8").replace("some prose\n", f"some prose\n{example}\n")
+        report.write_text(text, encoding="utf-8")
+        self.assertEqual(run_inv("check", str(report)).returncode, 0, "no pubkey: today's path")
+        r = run_inv("check", str(report), "--pubkey", self._pub())
+        self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
+        self.assertIn("outside", r.stderr)
+        self.assertNotIn("unsigned", r.stderr.lower())
+        r = run_inv("sign", str(report), "--key", str(self.key))
+        self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
+        self.assertEqual(report.read_text(encoding="utf-8"), text, "sign touched the document")
+
+    def test_unsigned_write_ignores_the_envelope_and_writes_as_before(self):
+        # STD-R1's second half: `write` with no --key is the pre-#386 write — it never reads the
+        # envelope for enforcement, so a stray prose line cannot make it exit 2.
+        self.artifact("a.txt", "alpha\n")
+        report = self.fenced_report([("a.txt", sha("stale\n"))])
+        example = self._envelope_line({"entries": 1, "inventory_sha256": "0" * 64}, "A" * 86 + "==")
+        report.write_text(report.read_text(encoding="utf-8").replace("some prose\n", f"some prose\n{example}\n"),
+                          encoding="utf-8")
+        r = run_inv("write", str(report))
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertEqual(r.stdout, f"inventory: updated 1 hash(es) in {report}\n")
+        self.assertEqual(r.stderr, "")
+        text = report.read_text(encoding="utf-8")
+        self.assertIn(sha("alpha\n"), text)
+        self.assertIn(example, text)
+
+    def test_sign_places_the_envelope_inside_an_inventory_block(self):
+        report = self._signed_fenced()
+        inv = self._inv()
+        lines = report.read_text(encoding="utf-8").splitlines()
+        idx, _env = inv.find_signature(lines)
+        blocks = inv.find_blocks(lines)
+        self.assertTrue(any(start < idx < end for start, end in blocks), (idx, blocks))
+        self.assertEqual(run_inv("check", str(report), "--pubkey", self._pub()).returncode, 0)
+
+    def test_a_valid_envelope_outside_every_block_is_refused_not_honoured(self):
+        report = self._signed_fenced()
+        lines = report.read_text(encoding="utf-8").splitlines()
+        env = self._envelopes(report)[0]
+        lines.remove(env)
+        report.write_text("\n".join([env] + lines) + "\n", encoding="utf-8")
+        r = run_inv("check", str(report), "--pubkey", self._pub())
+        self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
+        self.assertIn("outside", r.stderr)
+
+    def test_two_envelope_lines_are_refused(self):
+        # M12: ambiguity is tampering — never first-wins.
+        report = self._signed_fenced()
+        env = self._envelopes(report)[0]
+        report.write_text(report.read_text(encoding="utf-8").replace(env, env + "\n" + env),
+                          encoding="utf-8")
+        self.assertEqual(len(self._envelopes(report)), 2)
+        r = run_inv("check", str(report), "--pubkey", self._pub())
+        self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
+        self.assertIn("carries one signature", r.stderr)
+
+    def test_a_signature_line_that_is_not_an_envelope_is_refused_not_unsigned(self):
+        # M15: a malformed envelope is a refusal, never silently "unsigned".
+        self.artifact("a.txt", "alpha\n")
+        report = self.fenced_report([("a.txt", sha("alpha\n"))])
+        text = report.read_text(encoding="utf-8")
+        report.write_text(text.replace("```\n\n## Gates", '```\n<!-- inventory-signature {"foo": 1} -->'
+                                       "\n\n## Gates"), encoding="utf-8")
+        r = run_inv("check", str(report), "--pubkey", self._pub())
+        self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
+        self.assertIn("not a {record, sig_b64}", r.stderr)
+        self.assertNotIn("unsigned", r.stderr.lower())
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

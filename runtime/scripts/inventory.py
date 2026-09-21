@@ -53,11 +53,18 @@ parser ignores and a renderer hides::
     <!-- inventory-signature {"record": {"entries": 2, "inventory_sha256": "…"}, "sig_b64": "…"} -->
 
 ``check --pubkey <path>`` then requires it: a missing envelope is refused, a
-tampered entry (or signature) fails, another key fails. Without ``--pubkey``
-``check`` reads the block exactly as before and never looks at the envelope —
-what switches enforcement on for a run report is the committed
-``.orca/dispatch-pubkey``, which run_report.py reads where the transcript rule
-reads it. Stdlib only, offline: nothing here reaches a network.
+tampered entry (or signature) fails, another key fails. The envelope is only
+ever looked for INSIDE the inventory blocks find_blocks() returns: a matching
+line anywhere else in the document (prose, an example) is never an envelope and
+is refused when the envelope is read, never honoured and never rewritten; two
+envelope lines, a non-JSON line or a non-{record, sig_b64} line refuse too, and
+a signature that does not decode is a refusal in its own right — validity is an
+affirmative verdict from the key, never the absence of a complaint (round-1
+G-1). Without ``--pubkey`` ``check`` reads the block exactly as before, and
+``write`` without ``--key`` writes exactly as before: neither reads the envelope
+for enforcement — what switches enforcement on for a run report is the
+committed ``.orca/dispatch-pubkey``, which run_report.py reads where the
+transcript rule reads it. Stdlib only, offline: nothing here reaches a network.
 """
 import argparse
 import base64
@@ -89,6 +96,12 @@ _HERE = Path(__file__).resolve().parent
 
 class InventoryError(Exception):
     """Could-not-run: no block, unreadable report, nothing verifiable."""
+
+
+class SignatureRefused(Exception):
+    """The envelope does not verify: the wrong entry set, an undecodable signature, or another
+    key. Raised, never returned, so no code path can hand a caller a refusal that looks like a
+    verdict."""
 
 
 def sha256_file(path):
@@ -241,13 +254,22 @@ def signature_record(entries):
 
 
 def find_signature(lines):
-    """(lineno, envelope) for the document's signature line, or (None, None). Two lines is a
-    document signing itself twice — refused, since a reader could not know which one binds."""
-    found = []
+    """(lineno, envelope) for the signature line inside the document's inventory blocks, or
+    (None, None). The scan is scoped to exactly the find_blocks ranges: a matching line outside
+    every block is not an envelope and is REFUSED as a would-be forgery, not honoured (BOT-1 —
+    the parser only reads those ranges, so only those ranges can carry the claim). Two lines is
+    a document signing itself twice — refused, since a reader could not know which one binds."""
+    blocks = find_blocks(lines)
+    found, stray = [], []
     for idx, line in enumerate(lines):
         m = SIGNATURE_LINE.match(line)
-        if m:
+        if m and any(start < idx < end for start, end in blocks):
             found.append((idx, m.group(1)))
+        elif m:
+            stray.append(idx + 1)
+    if stray:
+        raise InventoryError(f"{SIGNATURE_TAG} line at line {', '.join(map(str, stray))} sits outside "
+                             "every inventory block — not an envelope; refused")
     if not found:
         return None, None
     if len(found) > 1:
@@ -274,24 +296,40 @@ def read_pubkey(path):
     return pub
 
 
+def decode_signature(sig_b64):
+    """The 64 signature bytes, or SignatureRefused. A decode or length error is a refusal of its
+    own — it can only RED, never fall through to the key: a forger who derives the record from
+    the document (anyone can) and types anything into sig_b64 must be refused here (round-1 G-1)."""
+    try:
+        sig = base64.b64decode(sig_b64, validate=True)
+    except (TypeError, ValueError) as err:
+        raise SignatureRefused(f"sig_b64 is malformed ({err})") from err
+    if len(sig) != 64:
+        raise SignatureRefused(f"sig_b64 is malformed (decodes to {len(sig)} bytes, not a 64-byte "
+                               "Ed25519 signature)")
+    return sig
+
+
 def verify_signature(envelope, entries, pub):
-    """None when `envelope` is the coordinator's signature over exactly this entry set, else why
-    not. Checked in the order that names the cheaper lie first: the record's digest against the
-    entries actually present, then the signature over that record."""
+    """The inventory digest the coordinator signed — an AFFIRMATIVE value the caller compares to
+    inventory_digest(entries) — when `envelope` is the coordinator's signature over exactly this
+    entry set; SignatureRefused otherwise. Never None, never a string reason: every refusal
+    leaves by the exception, so a malformed envelope cannot be mistaken for a verified one.
+    Checked in the order that names the cheaper lie first: the record's digest against the
+    entries actually present, the signature's decoding, then the signature over that record."""
     ds = _dispatch_sign()
     record = envelope["record"]
     want = signature_record(entries)
     if record.get("inventory_sha256") != want["inventory_sha256"]:
-        return (f"signature record binds inventory digest {str(record.get('inventory_sha256'))[:12]}…, "
-                f"but the entries present digest to {want['inventory_sha256'][:12]}… — an entry was "
-                "added, dropped or changed after signing")
-    try:
-        sig = base64.b64decode(envelope["sig_b64"], validate=True)
-    except ValueError as err:
-        return f"sig_b64 is malformed ({err})"
+        raise SignatureRefused(
+            f"signature record binds inventory digest {str(record.get('inventory_sha256'))[:12]}…, "
+            f"but the entries present digest to {want['inventory_sha256'][:12]}… — an entry was "
+            "added, dropped or changed after signing")
+    sig = decode_signature(envelope["sig_b64"])
     if not ds._load_ed25519().checkvalid(sig, ds.canonical_record(record, SIGNED_FIELDS), pub):
-        return "signature INVALID for this pubkey — not the coordinator's inventory (tampered, forged, or another key)"
-    return None
+        raise SignatureRefused("signature INVALID for this pubkey — not the coordinator's inventory "
+                               "(tampered, forged, or another key)")
+    return want["inventory_sha256"]
 
 
 def signature_line(seed, entries):
@@ -301,8 +339,10 @@ def signature_line(seed, entries):
 
 
 def _place_signature(lines, line):
-    """Replace the existing envelope line, or append one at the end of the FIRST block's body (the
-    last non-blank line before the next heading), so it sits where find_blocks already looks."""
+    """Replace the existing in-block envelope line, or append one at the end of the FIRST block's
+    body (the last non-blank line before the next heading) — inside the range find_blocks reads,
+    which is the only place find_signature looks. Prose is never touched: a matching line outside
+    the blocks makes find_signature refuse before anything is rewritten (BOT-1)."""
     idx, _env = find_signature(lines)
     if idx is not None:
         lines[idx] = line
@@ -380,13 +420,17 @@ def cmd_check(args):
             print(f"UNSIGNED inventory: no {SIGNATURE_TAG} line, and a pubkey is configured — "
                   "refused; sign it with `inventory.py sign --key <seed>`", file=sys.stderr)
             return EXIT_MISMATCH
-        why = verify_signature(envelope, entries, pub)
-        if why:
+        try:
+            signed = verify_signature(envelope, entries, pub)
+        except SignatureRefused as why:
             print(f"SIGNATURE {why}", file=sys.stderr)
             return EXIT_MISMATCH
+        if signed != inventory_digest(entries):  # verified means the key said so over THIS set
+            print(f"SIGNATURE verifier returned {signed!r}, not this inventory's digest — refused",
+                  file=sys.stderr)
+            return EXIT_MISMATCH
         print(f"inventory: signature verified over {len(entries)} entr"
-              f"{'y' if len(entries) == 1 else 'ies'} (digest {inventory_digest(entries)[:12]}…) "
-              f"against {pubkey}")
+              f"{'y' if len(entries) == 1 else 'ies'} (digest {signed[:12]}…) against {pubkey}")
     return EXIT_MISMATCH if mismatched else EXIT_OK
 
 
@@ -414,13 +458,12 @@ def cmd_write(args):
         print(f"inventory: would update {updated} hash(es) in {args.report}")
         return EXIT_OK
     key = getattr(args, "key", None)
-    _idx, envelope = find_signature(lines)
     if key:
         # Sign the entries as just rewritten — each entry line now carries the on-disk hash.
         fresh = [(i, p, re.search(r"[0-9a-fA-F]{64}", lines[i]).group(0).lower(), sh)
                  for i, p, _h, sh in entries]
         lines = _place_signature(lines, signature_line(_read_seed(key), fresh))
-    elif envelope is not None and updated:
+    elif updated and _stale_envelope(lines):
         # Never drop evidence silently: the old envelope stays, and `check --pubkey` will refuse
         # it — which is the honest state of an inventory whose set changed after signing.
         print(f"inventory: the {SIGNATURE_TAG} is now STALE ({updated} entr"
@@ -433,6 +476,17 @@ def cmd_write(args):
     print(f"inventory: updated {updated} hash(es) in {args.report}"
           + (" and re-signed" if key else ""))
     return EXIT_OK
+
+
+def _stale_envelope(lines):
+    """Whether an unsigned `write` just outdated an in-block envelope — advisory only. The path
+    with no --key is the pre-#386 write, byte for byte in what it writes and how it exits: it
+    never refuses over the envelope, so any refusal find_signature would raise (a stray line, two
+    lines, a malformed one) is left for `check --pubkey` / `sign` to name."""
+    try:
+        return find_signature(lines)[1] is not None
+    except InventoryError:
+        return False
 
 
 def _read_seed(key):
