@@ -1,0 +1,28 @@
+{
+  "id": "d62f423b-643b-4a29-a9d5-094d0a662adb",
+  "ok": true,
+  "result": {
+    "message": {
+      "id": "msg_89c3985253df",
+      "run_id": "run_41e3aa41e711",
+      "delivery_contract": "current_delivery",
+      "from_handle": "term_0bae108a-5af7-4d7a-b584-67d05a2787d1",
+      "to_handle": "run:run_41e3aa41e711",
+      "subject": "P15 base",
+      "body": "base",
+      "type": "status",
+      "priority": "normal",
+      "thread_id": null,
+      "payload": null,
+      "created_at": "2026-09-20T15:11:44Z",
+      "delivered_at": null
+    },
+    "mutation": {
+      "requestId": "814974c3-0319-4d32-bbd9-e1df17e4e0c2",
+      "replayed": true
+    }
+  },
+  "_meta": {
+    "runtimeId": "ef9eedcb-8941-4b93-80db-fbafc225814c"
+  }
+}

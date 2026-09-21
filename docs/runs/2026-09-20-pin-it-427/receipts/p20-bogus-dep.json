@@ -1,0 +1,30 @@
+{
+  "id": "4f458bf7-42be-4e86-856c-8c74ab5cf378",
+  "ok": false,
+  "error": {
+    "code": "runtime_error",
+    "message": "Dependency task bogus must belong to run run_41e3aa41e711 Orchestration mutation request ID: 93d766e0-e011-44dd-aa61-805d1dc4fd5a.",
+    "data": {
+      "orchestrationRequestId": "93d766e0-e011-44dd-aa61-805d1dc4fd5a",
+      "originalCommand": [
+        "orca",
+        "orchestration",
+        "task-create",
+        "--from",
+        "term_0bae108a-5af7-4d7a-b584-67d05a2787d1",
+        "--run",
+        "run_41e3aa41e711",
+        "--task-title",
+        "P20 probe",
+        "--spec",
+        "x",
+        "--deps",
+        "[\"bogus\"]",
+        "--json"
+      ]
+    }
+  },
+  "_meta": {
+    "runtimeId": "ef9eedcb-8941-4b93-80db-fbafc225814c"
+  }
+}

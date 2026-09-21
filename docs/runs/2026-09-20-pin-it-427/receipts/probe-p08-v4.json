@@ -1,0 +1,99 @@
+{
+  "probe": "P08 v4",
+  "worker_task_id": "task_16eaacae5e3a",
+  "worker_dispatch_id": "ctx_19c62ec14cf9",
+  "worker_terminal_handle": "term_ec015f71-8363-4183-a6f1-6a2703fd11c6",
+  "expectation": "worker-start from a worker terminal (depth 1) returns error.code nested_worker_depth_exceeded",
+  "observed_error_code": "nested_worker_depth_exceeded",
+  "observed_exit_code": 1,
+  "effects_applied": false,
+  "worker_launched": false,
+  "expectation_met": true,
+  "run_id": "run_f533fcd23ec0",
+  "task_id": "task_46e4f5e6c42b",
+  "receipts": {
+    "step1_run_create": {
+      "id": "95377342-f3bf-4243-8ec0-d6fa4ce8d20a",
+      "ok": true,
+      "result": {
+        "run": {
+          "id": "run_f533fcd23ec0",
+          "objective": "P08 v4",
+          "coordinator_handle": "term_ec015f71-8363-4183-a6f1-6a2703fd11c6",
+          "consumer_generation": 1,
+          "legacy": 0,
+          "created_at": "2026-09-20T15:26:40Z",
+          "updated_at": "2026-09-20T15:26:40Z"
+        },
+        "mutation": {
+          "requestId": "bef044f2-9f29-4f8c-a2b6-8ae7355d3786",
+          "replayed": false
+        }
+      },
+      "_meta": {
+        "runtimeId": "ef9eedcb-8941-4b93-80db-fbafc225814c"
+      }
+    },
+    "step2_task_create": {
+      "id": "413447e9-aaec-4a20-9bee-0e2cb5b964f7",
+      "ok": true,
+      "result": {
+        "task": {
+          "id": "task_46e4f5e6c42b",
+          "run_id": "run_f533fcd23ec0",
+          "parent_id": null,
+          "created_by_terminal_handle": "term_ec015f71-8363-4183-a6f1-6a2703fd11c6",
+          "created_by_pane_key": "0da670bc-d9b9-4d78-90a6-96c7247b2a67:4b28a3f4-2797-4f44-bae3-dc255df152d3",
+          "created_by_process_incarnation": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/pin-probe@@2f31dc15:34854141-4e42-4c2c-b070-89cedaf827b7",
+          "created_by_run_generation": 1,
+          "task_title": "t",
+          "display_name": "t",
+          "spec": "x",
+          "status": "ready",
+          "deps": "[]",
+          "result": null,
+          "created_at": "2026-09-20 15:26:43",
+          "completed_at": null
+        },
+        "mutation": {
+          "requestId": "27d0b660-aa25-4923-a5f4-f1fa31756623",
+          "replayed": false
+        }
+      },
+      "_meta": {
+        "runtimeId": "ef9eedcb-8941-4b93-80db-fbafc225814c"
+      }
+    },
+    "step3_worker_start": {
+      "id": "beb16255-5730-4889-ab98-eeb7d3462aca",
+      "ok": false,
+      "error": {
+        "code": "nested_worker_depth_exceeded",
+        "message": "Sub-worker dispatch is not permitted at depth 2 (max 1). Complete this task yourself. Orchestration mutation request ID: e09dbfa4-31ff-4fde-8df2-51d406303923.",
+        "data": {
+          "effectsApplied": false,
+          "nextSteps": [
+            "Do the work in this terminal instead of dispatching a sub-worker.",
+            "To allow deeper nesting, open Settings \u2192 Orchestration in the Orca desktop app and raise \"Nested worker depth\"."
+          ],
+          "orchestrationRequestId": "e09dbfa4-31ff-4fde-8df2-51d406303923",
+          "originalCommand": [
+            "orca",
+            "orchestration",
+            "worker-start",
+            "--task",
+            "task_46e4f5e6c42b",
+            "--worktree",
+            "current",
+            "--agent",
+            "claude",
+            "--json"
+          ]
+        }
+      },
+      "_meta": {
+        "runtimeId": "ef9eedcb-8941-4b93-80db-fbafc225814c"
+      }
+    }
+  }
+}

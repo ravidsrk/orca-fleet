@@ -1,0 +1,108 @@
+{
+  "probe": "P08 nested-depth probe",
+  "issuing_terminal": "term_41da264a-8aec-4aca-a840-cbcb89fc6e93",
+  "task_id": "task_23fb0ff8798d",
+  "dispatch_id": "ctx_14093908e1cb",
+  "captured_at": "2026-09-20T15:21Z",
+  "steps": [
+    {
+      "step": 1,
+      "command": "orca orchestration run-create --objective 'P08 nested-depth probe' --json",
+      "exit_code": 0,
+      "receipt": {
+        "id": "ca4634a4-c96a-4eaa-96f6-e843c037a705",
+        "ok": true,
+        "result": {
+          "run": {
+            "id": "run_e5b31d7c8df1",
+            "objective": "P08 nested-depth probe",
+            "coordinator_handle": "term_41da264a-8aec-4aca-a840-cbcb89fc6e93",
+            "consumer_generation": 1,
+            "legacy": 0,
+            "created_at": "2026-09-20T15:21:13Z",
+            "updated_at": "2026-09-20T15:21:13Z"
+          },
+          "mutation": {
+            "requestId": "98831aa0-1583-4101-ac23-e64465a93f17",
+            "replayed": false
+          }
+        },
+        "_meta": {
+          "runtimeId": "ef9eedcb-8941-4b93-80db-fbafc225814c"
+        }
+      }
+    },
+    {
+      "step": 2,
+      "command": "orca orchestration task-create --run run_e5b31d7c8df1 --task-title 'nested target' --spec x --json",
+      "exit_code": 0,
+      "receipt": {
+        "id": "c3bee405-49ad-48b4-b668-ea3552113f3d",
+        "ok": true,
+        "result": {
+          "task": {
+            "id": "task_87dda5e5aa66",
+            "run_id": "run_e5b31d7c8df1",
+            "parent_id": null,
+            "created_by_terminal_handle": "term_41da264a-8aec-4aca-a840-cbcb89fc6e93",
+            "created_by_pane_key": "170f017f-7765-4aff-a4a1-2fca845cb7bd:f8463361-4aef-464d-8c0b-42c9584025f5",
+            "created_by_process_incarnation": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/pin-probe@@cad61aca:ff9c8921-4435-49e1-901e-8cda56d061bd",
+            "created_by_run_generation": 1,
+            "task_title": "nested target",
+            "display_name": "nested target",
+            "spec": "x",
+            "status": "ready",
+            "deps": "[]",
+            "result": null,
+            "created_at": "2026-09-20 15:21:16",
+            "completed_at": null
+          },
+          "mutation": {
+            "requestId": "0b85de49-3eb0-4cdf-a567-76f5ee85d0a2",
+            "replayed": false
+          }
+        },
+        "_meta": {
+          "runtimeId": "ef9eedcb-8941-4b93-80db-fbafc225814c"
+        }
+      }
+    },
+    {
+      "step": 3,
+      "command": "orca orchestration worker-start --task task_87dda5e5aa66 --worktree current --json",
+      "exit_code": 1,
+      "receipt": {
+        "id": "7ef89c74-79c2-4e78-8c86-f0a5e10c7f52",
+        "ok": false,
+        "error": {
+          "code": "agent_unconfigured",
+          "message": "A configured --agent is required when worker-start creates a terminal. Orchestration mutation request ID: 54bb8f74-87e1-42f9-85db-c083c40db85a.",
+          "data": {
+            "orchestrationRequestId": "54bb8f74-87e1-42f9-85db-c083c40db85a",
+            "originalCommand": [
+              "orca",
+              "orchestration",
+              "worker-start",
+              "--task",
+              "task_87dda5e5aa66",
+              "--worktree",
+              "current",
+              "--json"
+            ]
+          }
+        },
+        "_meta": {
+          "runtimeId": "ef9eedcb-8941-4b93-80db-fbafc225814c"
+        }
+      }
+    }
+  ],
+  "findings": {
+    "expected_error_code": "nested_worker_depth_exceeded",
+    "observed_error_code": "agent_unconfigured",
+    "codes_match": false,
+    "message_names_depth_limit": false,
+    "message_names": "a missing --agent configuration (\"A configured --agent is required when worker-start creates a terminal\"); no depth, nesting, or limit wording appears anywhere in the error",
+    "note": "The --agent precondition is evaluated before any nesting-depth check, so this exact invocation (no --agent) cannot reach the depth gate. Depth-1 behaviour remains unobserved; a re-probe with a configured --agent would be required to exercise it, and was not run because the task said to run the commands exactly as given."
+  }
+}

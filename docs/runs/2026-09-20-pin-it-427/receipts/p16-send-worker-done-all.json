@@ -1,0 +1,11 @@
+{
+  "id": "local",
+  "ok": false,
+  "error": {
+    "code": "invalid_argument",
+    "message": "worker_done messages belong to one exact Dispatch and cannot target a group address."
+  },
+  "_meta": {
+    "runtimeId": null
+  }
+}
