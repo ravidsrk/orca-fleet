@@ -108,11 +108,15 @@ _NC_ZERO_KILL_RE = re.compile(
     r"|\b0(?:\.0+)?\s*%\s+killed\b|\b0\s+mutants?\s+killed\b|\b0\s+killed\b)")
 
 
-def _run(args, timeout=20, cwd=None):
-    """Run a command; return (code, stdout, stderr). Never raises."""
+def _run(args, timeout=20, cwd=None, env=None):
+    """Run a command; return (code, stdout, stderr). Never raises. argv[0] is None when the
+    pinned authority it names was absent at startup (h409 R2): that is an error here, never a
+    reason to look the name up on PATH again."""
+    if args[0] is None:
+        return 1, "", _Authority.ABSENT_GIT
     try:
         p = subprocess.run(args, capture_output=True, text=True, timeout=timeout, check=False,
-                           cwd=cwd)
+                           cwd=cwd, env=env)
         return p.returncode, p.stdout, p.stderr
     except (subprocess.TimeoutExpired, OSError) as err:
         return 1, "", str(err)
@@ -121,6 +125,8 @@ def _run(args, timeout=20, cwd=None):
 def _run_bytes(args, timeout=20):
     """Run a command; return (code, stdout_bytes, stderr). stdout is RAW bytes — no newline
     translation (#180) — stderr stays text for error messages. Never raises."""
+    if args[0] is None:
+        return 1, b"", _Authority.ABSENT_GIT
     try:
         p = subprocess.run(args, capture_output=True, timeout=timeout, check=False)
         return p.returncode, p.stdout, p.stderr.decode("utf-8", "replace")
@@ -140,15 +146,15 @@ _ROOTS = {"git": None, "evidence": None}
 
 
 def _git(args, timeout=10):
-    code, out, _ = _run(["git", *(["-C", _ROOTS["git"]] if _ROOTS["git"] else []), *args],
-                        timeout=timeout)
+    code, out, _ = _run([_Authority.git_bin(), *(["-C", _ROOTS["git"]] if _ROOTS["git"] else []),
+                         *args], timeout=timeout)
     return code, out.strip()
 
 
 def _git_bytes(args, timeout=20):
     """A git read whose stdout must stay RAW bytes (#180), against the SHA root (#442)."""
-    return _run_bytes(["git", *(["-C", _ROOTS["git"]] if _ROOTS["git"] else []), *args],
-                      timeout=timeout)
+    return _run_bytes([_Authority.git_bin(), *(["-C", _ROOTS["git"]] if _ROOTS["git"] else []),
+                       *args], timeout=timeout)
 
 
 def infer_repo():
@@ -190,7 +196,7 @@ def _evidence_toplevel():
     another clone never silently moves this bound (#442)."""
     top = _ROOTS["evidence"]
     if top is None:
-        code, out, _ = _run(["git", "rev-parse", "--show-toplevel"])
+        code, out, _ = _run([_Authority.git_bin(), "rev-parse", "--show-toplevel"])
         top = out.strip() if code == 0 else None
     return top
 
@@ -621,8 +627,7 @@ def fetch_reviews(repo, pr_number):
     # --paginate: without it GitHub returns the first 30 reviews only, and review_ok would
     # compute "latest per reviewer" over a stale window (#167). One HTTP round-trip per page,
     # so allow a longer timeout than the single-call default.
-    code, out, err = _run([_Authority.gh, "api", "--paginate",
-                           f"repos/{repo}/pulls/{pr_number}/reviews"], timeout=60)
+    code, out, err = _Authority.api(repo, f"pulls/{pr_number}/reviews", "--paginate", timeout=60)
     if code != 0:
         return None, (err.strip() or "gh api failed")
     return parse_review_pages(out)
@@ -631,7 +636,7 @@ def fetch_reviews(repo, pr_number):
 def fetch_pr_author(repo, pr_number):
     if _Authority.gh is None:
         return None
-    code, out, _ = _run([_Authority.gh, "api", f"repos/{repo}/pulls/{pr_number}"])
+    code, out, _ = _Authority.api(repo, f"pulls/{pr_number}")
     if code != 0:
         return None
     try:
@@ -664,32 +669,69 @@ class _Authority:
     SOUND_PROVENANCE = ("ci", "mcp", "sdk", "dispatch")
     ABSENT = ("gh absent at startup (the review authority is pinned once, before the control, "
               "and never re-resolved — h409 F-1)")
-    SYSTEM_BINS = ("/usr/bin", "/bin", "/usr/sbin", "/sbin", "/usr/local/bin", "/usr/local/sbin",
-                   "/opt/homebrew/bin", "/opt/homebrew/sbin", "/opt/local/bin", "/snap/bin",
-                   "/usr/lib/git-core", "/usr/libexec")
+    ABSENT_GIT = "git absent at startup (pinned once, before the control, never re-resolved — h409 R2)"
+    # The environment the pinned gh runs under (h409 R3): what it needs to authenticate and
+    # nothing a worker could steer it with. GH_HOST / GH_CONFIG_DIR / GH_* are NOT here — the
+    # host rides the coordinator's --repo (split_repo); the token passes only when present.
+    GH_ENV_KEEP = ("PATH", "HOME", "TMPDIR", "TMP", "TEMP", "GH_TOKEN", "GITHUB_TOKEN")
     gh = None            # absolute path of the resolved review authority, or None (absent)
     custody = None       # "system" | "worker-writable" | "absent" (pinned, no gh) | None (UNRESOLVED)
+    git = None           # absolute path of the pinned git (h409 R2), or None (absent)
+    git_custody = None   # its custody class, as gh's; None = not pinned yet
+    gitleaks = None      # absolute path of the pinned gitleaks, or None (absent — the built-in floor)
+    gitleaks_custody = None
     lane = None          # what claims soundness ("provenance=ci", "enforcement") or None
     repo_source = None   # "explicit" | "inferred" | None
 
     @classmethod
     def reset(cls):
         cls.gh = cls.custody = cls.lane = cls.repo_source = None
+        cls.git = cls.git_custody = cls.gitleaks = cls.gitleaks_custody = None
+
+    @classmethod
+    def pin_git(cls):
+        """git is every SHA/tree/ancestry fact this verifier states, and legs of it run AFTER the
+        executed control (the review-veto tree, check_symbol_on_base, the worktree teardown) — so
+        it is pinned to an absolute path FIRST, before anything else resolves, and classed like gh
+        (h409 R2). classify() itself reads the toplevel through git, hence the path lands before
+        the class."""
+        found = shutil.which("git")
+        cls.git = os.path.abspath(found) if found else None
+        cls.git_custody = cls.classify(cls.git) if found else "absent"
+
+    @classmethod
+    def pin_gitleaks(cls):
+        """gitleaks is pinned and classed the same way (h409 R2). It can only ADD a redaction hit
+        on top of the built-in floor — a replaced one yields at worst a fatal, never a false
+        GREEN — so a worker-writable one is still consulted, and its custody is recorded."""
+        found = shutil.which("gitleaks")
+        cls.gitleaks = os.path.abspath(found) if found else None
+        cls.gitleaks_custody = cls.classify(cls.gitleaks) if found else "absent"
+
+    @classmethod
+    def git_bin(cls):
+        """The pinned git for every git leg. A library caller that never ran main() pins on
+        first use — before its control, as verify() ensures — and never again."""
+        if cls.git is None and cls.git_custody is None:
+            cls.pin_git()
+        return cls.git
 
     @classmethod
     def resolve(cls, provenance=None, enforcement=False, explicit_repo=None):
-        """Pin the authority for this run; returns the review repo (explicit, else inferred)."""
+        """Pin the authorities for this run; returns the review repo (explicit, else inferred)."""
         cls.reset()
         if provenance in cls.SOUND_PROVENANCE:
             cls.lane = f"provenance={provenance}"
         elif enforcement:
             cls.lane = "enforcement (signed dispatch record + pubkey)"
+        cls.pin_git()
         found = shutil.which("gh")
         if found:
             cls.gh = os.path.abspath(found)  # the PATH entry, absolute — never a bare name again
             cls.custody = cls.classify(cls.gh)
         else:
             cls.custody = "absent"  # pinned: this run has no authority and will not look again
+        cls.pin_gitleaks()
         if explicit_repo:
             cls.repo_source = "explicit"
             return explicit_repo
@@ -706,15 +748,15 @@ class _Authority:
 
     @classmethod
     def classify(cls, path):
-        """"system" for a binary whose PATH dir is a standard system bin dir (Homebrew's included:
-        the carve-out is by convention, a user-owned /opt/homebrew is not a worker's drop zone);
-        else "worker-writable" when the binary it resolves to lies under a work tree, the temp
-        dir, or any dir this user can write — "system" otherwise."""
-        entry = Path(path)
-        if str(entry.parent) in cls.SYSTEM_BINS:
-            return "system"
+        """"worker-writable" when the binary the path RESOLVES to (symlinks followed) lies under
+        a work tree, the temp dir, or any dir this user can write — "system" otherwise. Custody
+        is a PROBE, never a name: round 2 short-circuited to "system" on a list of system bin
+        dir names, and two of those names (/opt/homebrew/bin, /opt/homebrew/sbin) are
+        user-writable on every Homebrew host — a worker-planted gh there was classed system and
+        a sound lane exited 0 over a review the worker wrote (h409 R1). A genuinely root-owned
+        /usr/bin still classes system: this user cannot write it."""
         try:
-            p = entry.resolve()
+            p = Path(path).resolve()
         except OSError:
             return "worker-writable"
         for root in (tempfile.gettempdir(), os.getcwd(), _toplevel(), _evidence_toplevel()):
@@ -728,6 +770,49 @@ class _Authority:
         if os.access(p.parent, os.W_OK) or os.access(p, os.W_OK):
             return "worker-writable"
         return "system"
+
+    @classmethod
+    def split_repo(cls, repo):
+        """`host/owner/name` → (host, "owner/name"); `owner/name` → (None, repo). The host is the
+        coordinator's when it rides the pinned --repo; nothing in the environment names one."""
+        parts = (repo or "").split("/")
+        if len(parts) == 3 and all(parts):
+            return parts[0], f"{parts[1]}/{parts[2]}"
+        return None, repo
+
+    @classmethod
+    def gh_env(cls):
+        """The scrubbed environment the pinned gh runs under (h409 R3)."""
+        return {k: os.environ[k] for k in cls.GH_ENV_KEEP if k in os.environ}
+
+    @classmethod
+    def api(cls, repo, endpoint, *flags, timeout=20):
+        """The one seam every GitHub read goes through: the PINNED gh (F-1), invoked with a
+        SCRUBBED environment (h409 R3) — the ambient env is worker-influenceable on the native
+        lane, and `GH_HOST`/`GH_CONFIG_DIR` in it would point even a genuine gh at a forged host.
+        The host is the coordinator's: a `--repo host/owner/name` opts in via `--hostname`."""
+        host, slug = cls.split_repo(repo)
+        args = [cls.gh, "api", *flags, *(["--hostname", host] if host else []),
+                f"repos/{slug}/{endpoint}"]
+        return _run(args, timeout=timeout, env=cls.gh_env())
+
+    @classmethod
+    def authority_leg(cls):
+        """The lines the OTHER pinned authorities owe (h409 R2), for every unit class: a fatal on
+        a sound lane whose git is worker-influenceable, a NOTE on the advisory lane; a
+        worker-writable gitleaks is a NOTE on every lane (it cannot lower the floor)."""
+        lines = []
+        if cls.git_custody == "worker-writable":
+            where = f"git at {cls.git} is worker-writable"
+            if cls.lane:
+                return [f"authority: {where} — a lane claiming soundness ({cls.lane}) cannot take "
+                        "its commit, tree and ancestry facts from a binary the graded worker could "
+                        "have replaced; fail-closed (h409 R2)"]
+            lines.append(f"NOTE: authority: advisory ({where})")
+        if cls.gitleaks_custody == "worker-writable":
+            lines.append(f"NOTE: redaction: gitleaks at {cls.gitleaks} is worker-writable — it can "
+                         "only add hits above the built-in floor, so it is consulted and recorded (h409 R2)")
+        return lines
 
     @classmethod
     def review_leg(cls, repo):
@@ -836,6 +921,8 @@ NC_TIMEOUT_S = 600
 def _run_at(cwd, args, timeout=20, stdin_bytes=None):
     """Run a command in `cwd` with an optional stdin payload. argv only — never shell=True, so a
     manifest string can never become a shell command. Returns (code, stdout, stderr)."""
+    if args[0] is None:
+        return 124, "", _Authority.ABSENT_GIT
     try:
         p = subprocess.run(args, cwd=cwd, capture_output=True, timeout=timeout, check=False,
                            input=stdin_bytes)
@@ -1442,10 +1529,10 @@ def _apply_control(wt, m, nc, tool, nc_command=None):
             bind_err = _bind_paths_to_change(paths, m, "negative_control.paths", nc_command)
             if bind_err:
                 return bind_err
-            code, _, gerr = _run_at(wt, ["git", "--literal-pathspecs", "checkout", str(base), "--", *paths])
+            code, _, gerr = _run_at(wt, [_Authority.git_bin(), "--literal-pathspecs", "checkout", str(base), "--", *paths])
             if code != 0:
                 return f"could not restore {paths} from base_sha in the control worktree: {gerr.strip()}"
-            code, actual, gerr = _run_at(wt, ["git", "diff", "--name-only", "--no-renames",
+            code, actual, gerr = _run_at(wt, [_Authority.git_bin(), "diff", "--name-only", "--no-renames",
                                             "-z", "HEAD"])
             if code != 0:
                 return f"cannot inspect restored paths: {gerr.strip()}"
@@ -1458,10 +1545,10 @@ def _apply_control(wt, m, nc, tool, nc_command=None):
         if not (base and head and HEX40_RE.match(str(base)) and HEX40_RE.match(str(head))):
             return ("negative_control.paths is required for tool 'revert' (the range fallback needs "
                     "pinned base_sha and head_sha)")
-        if _run_at(wt, ["git", "merge-base", "--is-ancestor", str(base), str(head)])[0] != 0:
+        if _run_at(wt, [_Authority.git_bin(), "merge-base", "--is-ancestor", str(base), str(head)])[0] != 0:
             return ("negative_control.paths is required: base_sha..head_sha is not linear "
                     "(base is not an ancestor of head), so a range revert is not well-defined")
-        code, merges, _ = _run_at(wt, ["git", "rev-list", "--merges", f"{base}..{head}"])
+        code, merges, _ = _run_at(wt, [_Authority.git_bin(), "rev-list", "--merges", f"{base}..{head}"])
         if code != 0 or merges.strip():
             return ("negative_control.paths is required: base_sha..head_sha contains merge commits, "
                     "so a range revert is not well-defined")
@@ -1478,7 +1565,7 @@ def _apply_control(wt, m, nc, tool, nc_command=None):
                     "fix. The bound command would then go RED because its oracle is gone, not "
                     "because the behaviour came back. Name the production paths the control should "
                     "restore (#280)")
-        code, _, gerr = _run_at(wt, ["git", "revert", "--no-commit", f"{base}..{head}"], timeout=60)
+        code, _, gerr = _run_at(wt, [_Authority.git_bin(), "revert", "--no-commit", f"{base}..{head}"], timeout=60)
         if code != 0:
             return f"git revert of base_sha..head_sha failed in the control worktree: {gerr.strip()}"
         return None
@@ -1500,14 +1587,14 @@ def _apply_control(wt, m, nc, tool, nc_command=None):
     bind_err = _bind_hunks_to_change(diff, m)
     if bind_err:
         return bind_err
-    code, _, gerr = _run_at(wt, ["git", "apply", "--index", "--whitespace=nowarn", "-"],
+    code, _, gerr = _run_at(wt, [_Authority.git_bin(), "apply", "--index", "--whitespace=nowarn", "-"],
                             stdin_bytes=diff.encode("utf-8"))
     if code != 0:
         return ("the hand mutant quoted in negative_control.artifact does not apply at head_sha "
                 f"({gerr.strip()}) — the quoted diff is not the diff that was run")
     # Git may relocate contextual hunks. Worker headers therefore cannot establish where the
     # edit landed. Include the index so added/deleted/renamed/mode-only effects cannot disappear.
-    code, actual, gerr = _run_at(wt, ["git", "diff", "--cached", "--no-ext-diff",
+    code, actual, gerr = _run_at(wt, [_Authority.git_bin(), "diff", "--cached", "--no-ext-diff",
                                     "--no-textconv", "--no-renames", "-U0", "HEAD"])
     if code != 0:
         return f"cannot inspect applied mutant coordinates: {gerr.strip()}"
@@ -1553,7 +1640,7 @@ def execute_negative_control(m, nc_command=None):
     for phase in ("control", "clean"):
         holder = tempfile.mkdtemp(prefix="orca-nc-")
         wt = str(Path(holder) / "wt")
-        code, _, gerr = _run(["git", "-C", top, "worktree", "add", "--detach", wt, str(head)],
+        code, _, gerr = _run([_Authority.git_bin(), "-C", top, "worktree", "add", "--detach", wt, str(head)],
                              timeout=120)
         try:
             if code != 0:
@@ -1563,7 +1650,7 @@ def execute_negative_control(m, nc_command=None):
                 apply_err = _apply_control(wt, m, nc, tool, nc_command)
                 if apply_err:
                     return False, [f"--execute-nc: {apply_err}"]
-                if not _run_at(wt, ["git", "status", "--porcelain"])[1].strip():
+                if not _run_at(wt, [_Authority.git_bin(), "status", "--porcelain"])[1].strip():
                     return False, ["--execute-nc: the negative control changed NOTHING at head_sha "
                                    "— a no-op mutant cannot make any proof go RED (#255)"]
             rc, out, errout = _run_at(wt, argv, timeout=NC_TIMEOUT_S)
@@ -1571,7 +1658,7 @@ def execute_negative_control(m, nc_command=None):
             if phase == "control":
                 sig_ok, sig_err = _verify_sig._failure_signature(out, errout)
         finally:
-            _run(["git", "-C", top, "worktree", "remove", "--force", wt], timeout=60)
+            _run([_Authority.git_bin(), "-C", top, "worktree", "remove", "--force", wt], timeout=60)
             shutil.rmtree(holder, ignore_errors=True)
         if phase == "control":
             if rc == 124:
@@ -1794,14 +1881,16 @@ def check_commands(m, is_mutation, nc_command=None):
 def _gitleaks_scan(path):
     """Scan one file with gitleaks when it is installed. Returns True (hit) / False (clean) / None
     (gitleaks unusable — the caller falls back to the built-in patterns)."""
-    if shutil.which("gitleaks") is None:
+    if _Authority.gitleaks_custody is None:  # a library caller: pin on first use, once (h409 R2)
+        _Authority.pin_gitleaks()
+    if _Authority.gitleaks is None:
         return None
     # cwd is the evidence copy's directory, never the unit checkout: gitleaks
     # otherwise inherits the process cwd (the worker/test repo) and can write
     # under .git/objects while tests tear that tree down (#340).
     # Uses _run (not _run_at): _run_at is the negative-control executor, and
     # admission tests assert it is not called before a control is authorized.
-    code, _, _ = _run(["gitleaks", "detect", "--no-git", "--no-banner", "--redact",
+    code, _, _ = _run([_Authority.gitleaks, "detect", "--no-git", "--no-banner", "--redact",
                        "--source", str(path)], timeout=120, cwd=str(Path(path).parent))
     if code == 0:
         return False
@@ -2008,7 +2097,7 @@ class _Transcript:
             unit = json.loads(raw.decode("utf-8")).get("unit")
         except (OSError, ValueError, AttributeError):
             manifest_sha, unit = None, None
-        _, git_version, _ = _run(["git", "--version"])
+        _, git_version, _ = _run([_Authority.git_bin(), "--version"])
         here = Path(__file__).resolve().parent
         files = {}
         for name in cls.TOOLCHAIN:
@@ -2273,6 +2362,7 @@ def verify(manifest_path, contract_source=None, contract_digest=None, repo=None,
     # Admission is read-only. Never construct worktrees, apply patches or run the NC command
     # until the scope, commit identities, signed inputs and evidence snapshot are accepted.
     collect((
+        lambda: _Authority.authority_leg(),
         lambda: check_scope(m, contract_source, contract_digest),
         lambda: check_oracle_scope(m, contract_source, contract_digest),
         lambda: check_shas_present(m),
@@ -2316,7 +2406,7 @@ def _root_arg(flag, value):
     if not path.is_dir():
         return None, f"{flag}: not a directory: {value}"
     resolved = str(path.resolve())
-    code, out, _ = _run(["git", "-C", resolved, "rev-parse", "--is-inside-work-tree"])
+    code, out, _ = _run([_Authority.git_bin(), "-C", resolved, "rev-parse", "--is-inside-work-tree"])
     if code != 0 or out.strip() != "true":
         return None, (f"{flag}: '{value}' is not inside a git work tree — evidence no auditor can "
                       "re-derive from a clone is refused (#267)")
@@ -2400,7 +2490,7 @@ def main(argv=None):
                          "worker: a worker holding the seed would just self-sign")
     args = ap.parse_args(argv)
 
-    if shutil.which("git") is None:
+    if shutil.which("git") is None:  # the pin proper is _Authority.resolve() below (h409 R2)
         print("dependency: git not on PATH", file=sys.stderr)
         return 1
     seed = None

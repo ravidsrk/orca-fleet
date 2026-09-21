@@ -813,22 +813,23 @@ class ReviewPagination(unittest.TestCase):
         fakebin = tmp / "bin"
         fakebin.mkdir()
         gh = fakebin / "gh"
+        # The page paths are baked in: the pinned gh runs under a SCRUBBED environment (h409
+        # R3), so a FAKE_GH_* variable would never reach it.
+        p1, p2 = shlex.quote(str(self._page1)), shlex.quote(str(self._page2))
         gh.write_text(
             '#!/bin/sh\n'
             'case "$*" in\n'
             '  *reviews*)\n'
             '    case " $* " in\n'
-            '      *" --paginate "*) cat "$FAKE_GH_PAGE1" "$FAKE_GH_PAGE2";;\n'
-            '      *) cat "$FAKE_GH_PAGE1";;\n'
+            f'      *" --paginate "*) cat {p1} {p2};;\n'
+            f'      *) cat {p1};;\n'
             '    esac;;\n'
             '  *) echo "{\\"user\\":{\\"login\\":\\"pr-author\\"}}";;\n'
             'esac\n',
             encoding="utf-8",
         )
         gh.chmod(0o755)
-        self._env = {"PATH": f"{fakebin}{os.pathsep}{os.environ['PATH']}",
-                     "FAKE_GH_PAGE1": str(self._page1),
-                     "FAKE_GH_PAGE2": str(self._page2)}
+        self._env = {"PATH": f"{fakebin}{os.pathsep}{os.environ['PATH']}"}
         # h409 F-1: the authority is pinned once per run; a library caller pins on first use, so
         # each test's fresh fakebin needs the pin cleared (and its temp-dir gh is, correctly,
         # classed worker-writable — advisory NOTEs, not fatals, on this unlabelled lane).
@@ -2471,10 +2472,12 @@ class PinnedEvidenceBytes(RepoCase):
             return 0, "", ""
 
         art = self.artifact("clean evidence")
-        with mock.patch.object(shutil, "which", return_value="/bin/gitleaks"), \
-             mock.patch.object(verify, "_run", side_effect=fake_run):
+        verify._Authority.git_bin()  # pin git first: the fake _run below answers nothing real
+        # gitleaks is pinned and classed at startup like gh (h409 R2); a system one is consulted.
+        verify._Authority.gitleaks, verify._Authority.gitleaks_custody = "/bin/gitleaks", "system"
+        with mock.patch.object(verify, "_run", side_effect=fake_run):
             self.assertEqual(verify.check_redaction({"artifacts": [self.pin(art)]}, None), [])
-        leaks = [(cwd, args) for cwd, args in observed if args and args[0] == "gitleaks"]
+        leaks = [(cwd, args) for cwd, args in observed if args and args[0] == "/bin/gitleaks"]
         self.assertTrue(leaks, f"gitleaks was not invoked: {observed!r}")
         cwd, args = leaks[0]
         source = args[args.index("--source") + 1]
@@ -3877,6 +3880,7 @@ class CrossRepoRoots(RepoCase):
         """
         verify._ROOTS.update(git=str(self.repo_b), evidence=str(self.repo))
         self.addCleanup(self._reset_roots)
+        verify._Authority.git_bin()  # the pin's own custody probe resolves once; not this probe (h409 R2)
         refuse = OSError(errno.ELOOP, "Too many levels of symbolic links")
         with mock.patch.object(Path, "resolve", side_effect=refuse) as fired:
             self.assertTrue(verify._roots_are_split())
@@ -4025,6 +4029,18 @@ class ReviewAuthorityPinnedBeforeTheControl(MutationFixture):
         if hasattr(verify, "_Authority"):  # absent on the pre-F-1 verifier: the revert control
             verify._Authority.reset()
             self.addCleanup(verify._Authority.reset)
+        if hasattr(verify._Authority, "pin_git"):
+            # This class is about gh. git is pinned and classed too (h409 R2) and the temp-dir
+            # stand-in is worker-writable — a fatal of its own on a sound lane that would stop
+            # the control before it runs. Class it system here; R2 has its own class below.
+            orig_pin = verify._Authority.pin_git
+
+            def pin_system_git():
+                orig_pin()
+                verify._Authority.git_custody = "system"
+            patcher = mock.patch.object(verify._Authority, "pin_git", pin_system_git)
+            patcher.start()
+            self.addCleanup(patcher.stop)
 
     def _attack(self, *extra, env=None):
         path = self._manifest(nc=self._revert_nc())
@@ -4061,9 +4077,9 @@ class ReviewAuthorityPinnedBeforeTheControl(MutationFixture):
     def test_a_worker_writable_gh_is_advisory_on_the_native_lane(self):
         # A gh already sitting in the writable dir before the run answers (through its pinned
         # absolute path) — but the verdict RECORDS that the authority was worker-writable.
-        (self.droppable / "gh").write_text(
-            "#!/bin/sh\ncase \"$*\" in *reviews*) echo '[{\"state\":\"APPROVED\",\"commit_id\":\"'\"$ORCA_HEAD\"'\","
-            "\"user\":{\"login\":\"carol\"}}]';; *) echo '{\"user\":{\"login\":\"alice\"}}';; esac\n")
+        (self.droppable / "gh").write_text(  # the sha is baked in: gh's env is scrubbed (h409 R3)
+            "#!/bin/sh\ncase \"$*\" in *reviews*) echo '[{\"state\":\"APPROVED\",\"commit_id\":\""
+            + self.head_sha + "\",\"user\":{\"login\":\"carol\"}}]';; *) echo '{\"user\":{\"login\":\"alice\"}}';; esac\n")
         (self.droppable / "gh").chmod(0o755)
         rc, out, err = self._attack()
         self.assertEqual(rc, 0, out + err)
@@ -4150,6 +4166,237 @@ class ReviewRepoIsCoordinatorPinned(MutationFixture):
         self.assertEqual(rc, 0, out + err)
         rec = json.loads((self.repo / "docs/reports/u/t.json").read_text())["record"]
         self.assertEqual(rec["args"]["provenance"], "ci")
+
+
+class AuthorityCustodyIsAProbeNotAName(MutationFixture):
+    """h409 R1 (P0, re-attack): classify() returned "system" for any binary whose PATH dir NAME
+    was on a list of system bin dirs, BEFORE its writability probe or symlink resolution — and
+    /opt/homebrew/bin and /opt/homebrew/sbin, both on that list, are user-writable on every
+    Homebrew host. A worker-planted gh there was classed system and a SOUND lane exited 0 over
+    a review the worker authored (reattack.md §R1, end-to-end). Custody is now a probe, never a
+    name: the listed dir below is a user-writable temp dir whose name is put on the (now unused)
+    list, so the pre-fix verifier trusts it and the fixed one does not."""
+
+    def setUp(self):
+        super().setUp()
+        verify.fetch_reviews = self._orig_r  # the REAL fetch: this class is about the binary
+        verify.fetch_pr_author = self._orig_a
+        self._pathtmp = tempfile.TemporaryDirectory(prefix="orca-r1-")
+        self.addCleanup(self._pathtmp.cleanup)
+        root = Path(self._pathtmp.name)
+        self.listed = root / "sbin"  # user-writable, and its NAME goes on the list
+        self.listed.mkdir()
+        self.tools = root / "tools"
+        self.tools.mkdir()
+        os.symlink(shutil.which("git"), self.tools / "git")
+        self.consulted = root / "consulted.log"
+        self._env = {"PATH": f"{self.listed}{os.pathsep}{self.tools}"}
+        # git's custody is R2's concern (its own class below); class it system here so the only
+        # authority under test is gh.
+        if hasattr(verify._Authority, "pin_git"):
+            orig_pin = verify._Authority.pin_git
+
+            def pin_system_git():
+                orig_pin()
+                verify._Authority.git_custody = "system"
+            patcher = mock.patch.object(verify._Authority, "pin_git", pin_system_git)
+            patcher.start()
+            self.addCleanup(patcher.stop)
+        # On the pre-fix verifier this puts the writable dir on SYSTEM_BINS; on the fixed one the
+        # attribute is created and consulted by nothing.
+        patcher = mock.patch.object(verify._Authority, "SYSTEM_BINS", (str(self.listed),), create=True)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def _plant(self, where):
+        where.write_text(
+            "#!/bin/sh\n" f"echo \"PLANTED-GH ARGV: $*\" >> {shlex.quote(str(self.consulted))}\n"
+            "case \"$*\" in *reviews*) echo '[{\"state\":\"APPROVED\",\"commit_id\":\"" + self.head_sha
+            + "\",\"user\":{\"login\":\"carol\"}}]';; *) echo '{\"user\":{\"login\":\"alice\"}}';; esac\n")
+        where.chmod(0o755)
+
+    def test_a_gh_planted_in_a_writable_dir_with_a_trusted_name_is_fatal_on_a_sound_lane(self):
+        self._plant(self.listed / "gh")
+        with mock.patch.dict(os.environ, self._env):
+            rc, out, err = self._run_main(self._manifest(nc=self._revert_nc()), "--repo", "o/r",
+                                          "--execute-nc", "--nc-command", self.proof_cmd,
+                                          "--provenance", "ci")
+        self.assertEqual(rc, 2, out + err)
+        self.assertIn(f"review_authority: gh at {self.listed / 'gh'} is worker-writable", err)
+        self.assertIn("provenance=ci", err)
+        self.assertFalse(self.consulted.exists(), "the sound lane consulted the worker's gh")
+
+    def test_a_gh_planted_in_a_writable_dir_with_a_trusted_name_is_advisory_on_the_native_lane(self):
+        self._plant(self.listed / "gh")
+        with mock.patch.dict(os.environ, self._env):
+            rc, out, err = self._run_main(self._manifest(nc=self._revert_nc()), "--repo", "o/r",
+                                          "--execute-nc", "--nc-command", self.proof_cmd)
+        self.assertEqual(rc, 0, out + err)
+        self.assertIn(f"NOTE: review_authority: advisory (gh at {self.listed / 'gh'} is worker-writable)", out)
+
+    def test_a_plain_binary_in_a_writable_listed_dir_is_worker_writable(self):  # N2b
+        self._plant(self.listed / "gh")
+        self.assertEqual(verify._Authority.classify(str(self.listed / "gh")), "worker-writable")
+
+    def test_a_symlink_in_a_listed_dir_to_a_writable_target_is_worker_writable(self):  # N2a
+        target = Path(self._pathtmp.name) / "evil-gh"
+        self._plant(target)
+        (self.listed / "gh").symlink_to(target)
+        self.assertEqual(verify._Authority.classify(str(self.listed / "gh")), "worker-writable")
+
+    @unittest.skipIf(os.access("/usr/bin", os.W_OK), "this user can write /usr/bin (root?)")
+    def test_a_binary_in_a_dir_this_user_cannot_write_is_still_system(self):
+        # The happy path: a root-owned /usr/bin classes system by the same probe, list or no list.
+        with mock.patch.object(verify._Authority, "SYSTEM_BINS", (), create=True):
+            self.assertEqual(verify._Authority.classify("/usr/bin/gh"), "system")
+            self.assertEqual(verify._Authority.classify("/usr/bin/git"), "system")
+
+
+class EveryPostControlAuthorityIsPinned(MutationFixture):
+    """h409 R2 (re-attack residual, same class as F-1): only gh got the startup pin. git was a
+    bare `git` argv head everywhere, and legs of it run AFTER the executed control (the
+    review-veto tree, check_symbol_on_base, the NC worktree teardown), so the same primitive C5
+    used for gh — the control drops a binary into an empty dir first on PATH — reached them.
+    git (and gitleaks) are now pinned to absolute paths beside gh, before the control, and
+    classed by custody: a worker-writable git is fatal on a sound lane, advisory on the native."""
+
+    def setUp(self):
+        super().setUp()
+        verify.fetch_reviews = self._orig_r
+        verify.fetch_pr_author = self._orig_a
+        self._pathtmp = tempfile.TemporaryDirectory(prefix="orca-r2-")
+        self.addCleanup(self._pathtmp.cleanup)
+        root = Path(self._pathtmp.name)
+        self.droppable = root / "bin"   # EMPTY, user-writable, FIRST on PATH
+        self.droppable.mkdir()
+        self.tools = root / "tools"     # the git the run starts with
+        self.tools.mkdir()
+        os.symlink(shutil.which("git"), self.tools / "git")
+        self.planted_log = root / "planted-git.log"
+        stub = f"#!/bin/sh\necho \"PLANTED-GIT ARGV: $*\" >> {shlex.quote(str(self.planted_log))}\nexit 1\n"
+        # The worker's committed proof command: plant a git, THEN assert the criterion.
+        self.write("check.py",
+                   "import pathlib\n"
+                   f"g = pathlib.Path({str(self.droppable / 'git')!r})\n"
+                   f"g.write_text({stub!r})\ng.chmod(0o755)\n"
+                   "import app\nassert app.f() == 2, 'AC-1 violated'\n")
+        self.head_sha = self.commit("head: proof command that plants a git")
+        self.head_tree = self.git("rev-parse", "HEAD^{tree}")
+        realgh = root / "realgh"        # a gh that approves head (the sha baked in: R3 scrubs env)
+        realgh.mkdir()
+        (realgh / "gh").write_text(
+            "#!/bin/sh\ncase \"$*\" in *reviews*) echo '[{\"state\":\"APPROVED\",\"commit_id\":\"" + self.head_sha
+            + "\",\"user\":{\"login\":\"carol\"}}]';; *) echo '{\"user\":{\"login\":\"alice\"}}';; esac\n")
+        (realgh / "gh").chmod(0o755)
+        self._env = {"PATH": f"{self.droppable}{os.pathsep}{realgh}{os.pathsep}{self.tools}"}
+
+    def _attack(self, *extra):
+        with mock.patch.dict(os.environ, self._env):
+            return self._run_main(self._manifest(nc=self._revert_nc()), "--repo", "o/r",
+                                  "--execute-nc", "--nc-command", self.proof_cmd, *extra)
+
+    def test_a_git_planted_by_the_executed_control_is_never_consulted_after_it(self):
+        rc, out, err = self._attack()
+        self.assertIn("negative control EXECUTED", out)          # the control DID run worker code
+        self.assertTrue((self.droppable / "git").exists(), "the attack did not plant its git")
+        self.assertFalse(self.planted_log.exists(),
+                         "a post-control git leg resolved `git` on PATH and ran the planted one")
+        self.assertEqual(rc, 0, out + err)                       # every leg ran the pinned git
+
+    def test_a_worker_writable_git_is_fatal_on_a_sound_lane(self):
+        rc, out, err = self._attack("--provenance", "ci")
+        self.assertEqual(rc, 2, out + err)
+        self.assertIn(f"authority: git at {self.tools / 'git'} is worker-writable", err)
+        self.assertIn("provenance=ci", err)
+        self.assertIn("h409 R2", err)
+
+    def test_a_worker_writable_git_is_advisory_on_the_native_lane(self):
+        rc, out, err = self._attack()
+        self.assertEqual(rc, 0, out + err)
+        self.assertIn(f"NOTE: authority: advisory (git at {self.tools / 'git'} is worker-writable)", out)
+
+    def test_git_is_pinned_absolute_at_startup_and_every_leg_runs_it(self):
+        with mock.patch.dict(os.environ, self._env):
+            verify._Authority.resolve(explicit_repo="o/r")
+            self.assertEqual(verify._Authority.git, str(self.tools / "git"))
+            self.assertTrue(os.path.isabs(verify._Authority.git))
+            ran = []
+            with mock.patch.object(verify.subprocess, "run", side_effect=lambda a, **k: ran.append(a[0]) or
+                                   subprocess.CompletedProcess(a, 1, "", "")):
+                verify._toplevel()
+                verify._evidence_toplevel()
+                verify._root_arg("--git-dir", str(self.repo))
+        self.assertEqual(set(ran), {str(self.tools / "git")}, ran)
+
+    def test_gitleaks_is_pinned_absolute_and_its_custody_recorded(self):
+        # gitleaks can only ADD hits above the built-in floor, so a worker-writable one is still
+        # consulted — at its PINNED absolute path, never a PATH re-resolve — and named in a NOTE.
+        (self.droppable / "gitleaks").write_text("#!/bin/sh\nexit 0\n")
+        (self.droppable / "gitleaks").chmod(0o755)
+        with mock.patch.dict(os.environ, self._env):
+            verify._Authority.resolve(explicit_repo="o/r")
+        self.assertEqual(verify._Authority.gitleaks, str(self.droppable / "gitleaks"))
+        self.assertEqual(verify._Authority.gitleaks_custody, "worker-writable")
+        self.assertTrue(any(line.startswith(f"NOTE: redaction: gitleaks at {self.droppable / 'gitleaks'} "
+                                            "is worker-writable") for line in verify._Authority.authority_leg()))
+        with mock.patch.object(verify, "_run", return_value=(0, "", "")) as run:
+            self.assertIs(verify._gitleaks_scan(self.repo / "contract.md"), False)
+        self.assertEqual(run.call_args[0][0][0], str(self.droppable / "gitleaks"))
+
+
+class ThePinnedGhRunsUnderAScrubbedEnvironment(RepoCase):
+    """h409 R3 (re-attack residual): the pinned gh ran with the ambient environment, so
+    GH_HOST=attacker.example — worker-settable on the native lane — pointed even a genuine gh at
+    a forged host, and every ambient secret rode along. gh now runs under an explicit allowlist;
+    the host is the coordinator's, riding the pinned --repo as host/owner/name."""
+
+    def setUp(self):
+        super().setUp()
+        self._pathtmp = tempfile.TemporaryDirectory(prefix="orca-r3-")
+        self.addCleanup(self._pathtmp.cleanup)
+        root = Path(self._pathtmp.name)
+        self.seen = root / "gh-saw.log"
+        fakebin = root / "bin"
+        fakebin.mkdir()
+        (fakebin / "gh").write_text(  # logs the env NAMES it sees and its argv, answers nothing
+            "#!/bin/sh\n"
+            f"/usr/bin/env | /usr/bin/cut -d= -f1 | /usr/bin/sort >> {shlex.quote(str(self.seen))}\n"
+            f"echo \"ARGV: $*\" >> {shlex.quote(str(self.seen))}\n"
+            "echo '[]'\n")
+        (fakebin / "gh").chmod(0o755)
+        self._env = {"PATH": f"{fakebin}{os.pathsep}{os.environ['PATH']}",
+                     "GH_HOST": "attacker.example", "GH_CONFIG_DIR": str(root / "evil"),
+                     "GH_REPO": "evil/mirror", "GH_TOKEN": "present", "GITHUB_TOKEN": "present"}
+
+    def _fetch(self, repo):
+        with mock.patch.dict(os.environ, self._env):
+            verify._Authority.resolve(explicit_repo=repo)
+            verify.fetch_reviews(repo, 7)
+        return self.seen.read_text().splitlines()
+
+    def test_worker_settable_gh_variables_never_reach_the_pinned_gh(self):
+        seen = self._fetch("o/r")
+        for name in ("GH_HOST", "GH_CONFIG_DIR", "GH_REPO"):
+            self.assertNotIn(name, seen, seen)
+        for name in ("PATH", "HOME", "GH_TOKEN", "GITHUB_TOKEN"):  # what it needs to authenticate
+            self.assertIn(name, seen, seen)
+
+    def test_the_coordinators_host_rides_the_pinned_repo(self):
+        seen = self._fetch("ghe.example/o/r")
+        self.assertNotIn("GH_HOST", seen)
+        self.assertIn("ARGV: api --paginate --hostname ghe.example repos/o/r/pulls/7/reviews", seen)
+
+    def test_a_plain_repo_names_no_host(self):
+        seen = self._fetch("o/r")
+        self.assertIn("ARGV: api --paginate repos/o/r/pulls/7/reviews", seen)
+
+    def test_the_allowlist_is_the_whole_environment(self):
+        with mock.patch.dict(os.environ, {**self._env, "SSL_CERT_FILE": "/evil/ca.pem",
+                                          "HTTPS_PROXY": "http://attacker.example:8080"}):
+            env = verify._Authority.gh_env()
+        self.assertTrue(set(env) <= set(verify._Authority.GH_ENV_KEEP), env)
+        self.assertNotIn("SSL_CERT_FILE", env)
+        self.assertNotIn("HTTPS_PROXY", env)
 
 
 if __name__ == "__main__":
