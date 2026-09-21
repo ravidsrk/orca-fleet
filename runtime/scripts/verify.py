@@ -615,20 +615,24 @@ def parse_review_pages(out):
 
 
 def fetch_reviews(repo, pr_number):
-    if shutil.which("gh") is None:
+    if _Authority.gh is None and _Authority.custody is None:
+        _Authority.resolve()  # a library caller that never ran main(): pin on first use (F-1)
+    if _Authority.gh is None:
         return None, "gh not on PATH"
     # --paginate: without it GitHub returns the first 30 reviews only, and review_ok would
     # compute "latest per reviewer" over a stale window (#167). One HTTP round-trip per page,
     # so allow a longer timeout than the single-call default.
-    code, out, err = _run(["gh", "api", "--paginate", f"repos/{repo}/pulls/{pr_number}/reviews"],
-                          timeout=60)
+    code, out, err = _run([_Authority.gh, "api", "--paginate",
+                           f"repos/{repo}/pulls/{pr_number}/reviews"], timeout=60)
     if code != 0:
         return None, (err.strip() or "gh api failed")
     return parse_review_pages(out)
 
 
 def fetch_pr_author(repo, pr_number):
-    code, out, _ = _run(["gh", "api", f"repos/{repo}/pulls/{pr_number}"])
+    if _Authority.gh is None:
+        return None
+    code, out, _ = _run([_Authority.gh, "api", f"repos/{repo}/pulls/{pr_number}"])
     if code != 0:
         return None
     try:
@@ -637,11 +641,100 @@ def fetch_pr_author(repo, pr_number):
         return None
 
 
-_WAIVER_NEEDS_EXECUTED_NC = (
-    "{lane}: the independent review is WAIVED in this lane, so the negative control is the ONLY "
-    "oracle left — and a control that was merely READ is a text file the worker wrote. It must be "
-    "EXECUTED (--execute-nc / ORCA_EXECUTE_NC) and go RED. Fail-closed (#256; docs/reviews/2026-09-10-review.md A1/A2/A4/"
-    "A6/A9 all landed on exactly this)")
+class _Authority:
+    """The REVIEW AUTHORITY and the lane it answers on — coordinator state, resolved ONCE in main()
+    at startup, before anything worker-written can execute (h409 F-1/F-2, C5/C1).
+
+    The executed negative control runs the unit's own test code in this process's environment,
+    and a bare `gh` lookup AFTER that read whatever a worker-planted stub put first on PATH — a
+    same-run false GREEN (C5). So `gh` is resolved to an ABSOLUTE path here and only that path is
+    ever invoked: a mid-run PATH write can no longer redirect the review leg. The resolved binary
+    is then classed by CUSTODY: under a work tree, under the system temp dir, or in a
+    user-writable dir that is not a standard system bin dir, it is one the graded worker could
+    have replaced, and the review leg is ADVISORY-ONLY — on a lane that claims soundness (the
+    ci|mcp|sdk|dispatch provenance classes, or an enforcement-mode run with a signed dispatch
+    record + pubkey) it FAILS CLOSED; on the native advisory lane the verdict records it.
+    The review REPOSITORY is the same story (C1): inferred from `origin` — a remote the worker
+    (and every sibling worktree) can rewrite — it is advisory; a sound lane requires --repo.
+    Unresolved (library callers that never ran main()), fetch_reviews resolves on first use."""
+
+    SOUND_PROVENANCE = ("ci", "mcp", "sdk", "dispatch")
+    SYSTEM_BINS = ("/usr/bin", "/bin", "/usr/sbin", "/sbin", "/usr/local/bin", "/usr/local/sbin",
+                   "/opt/homebrew/bin", "/opt/homebrew/sbin", "/opt/local/bin", "/snap/bin",
+                   "/usr/lib/git-core", "/usr/libexec")
+    gh = None            # absolute path of the resolved review authority, or None (absent)
+    custody = None       # "system" | "worker-writable" | None (unresolved / absent)
+    lane = None          # what claims soundness ("provenance=ci", "enforcement") or None
+    repo_source = None   # "explicit" | "inferred" | None
+
+    @classmethod
+    def reset(cls):
+        cls.gh = cls.custody = cls.lane = cls.repo_source = None
+
+    @classmethod
+    def resolve(cls, provenance=None, enforcement=False, explicit_repo=None):
+        """Pin the authority for this run; returns the review repo (explicit, else inferred)."""
+        cls.reset()
+        if provenance in cls.SOUND_PROVENANCE:
+            cls.lane = f"provenance={provenance}"
+        elif enforcement:
+            cls.lane = "enforcement (signed dispatch record + pubkey)"
+        found = shutil.which("gh")
+        if found:
+            cls.gh = os.path.abspath(found)  # the PATH entry, absolute — never a bare name again
+            cls.custody = cls.classify(cls.gh)
+        if explicit_repo:
+            cls.repo_source = "explicit"
+            return explicit_repo
+        inferred = infer_repo()
+        cls.repo_source = "inferred" if inferred else None
+        return inferred
+
+    @classmethod
+    def classify(cls, path):
+        """"system" for a binary whose PATH dir is a standard system bin dir (Homebrew's included:
+        the carve-out is by convention, a user-owned /opt/homebrew is not a worker's drop zone);
+        else "worker-writable" when the binary it resolves to lies under a work tree, the temp
+        dir, or any dir this user can write — "system" otherwise."""
+        entry = Path(path)
+        if str(entry.parent) in cls.SYSTEM_BINS:
+            return "system"
+        try:
+            p = entry.resolve()
+        except OSError:
+            return "worker-writable"
+        for root in (tempfile.gettempdir(), os.getcwd(), _toplevel(), _evidence_toplevel()):
+            if root:
+                try:
+                    r = Path(root).resolve()
+                except OSError:
+                    continue
+                if p == r or r in p.parents:
+                    return "worker-writable"
+        if os.access(p.parent, os.W_OK) or os.access(p, os.W_OK):
+            return "worker-writable"
+        return "system"
+
+    @classmethod
+    def review_leg(cls, repo):
+        """The lines the GitHub review leg owes before it consults anything: a fatal on a sound
+        lane whose authority is worker-influenceable, NOTEs on the advisory lane, [] when clean."""
+        lines = []
+        if cls.custody == "worker-writable":
+            where = f"gh at {cls.gh} is worker-writable"
+            if cls.lane:
+                return [f"review_authority: {where} — a lane claiming soundness ({cls.lane}) cannot "
+                        "take its independent review from a binary the graded worker could have "
+                        "replaced; fail-closed (h409 F-1)"]
+            lines.append(f"NOTE: review_authority: advisory ({where})")
+        if cls.repo_source == "inferred":
+            if cls.lane:
+                return [f"review_repo: {repo!r} was inferred from the clone's origin, which the "
+                        f"worker controls — a lane claiming soundness ({cls.lane}) requires an "
+                        "explicit --repo; fail-closed (h409 F-2)"]
+            lines.append(f"NOTE: review_repo: advisory ({repo!r} inferred from origin, not pinned "
+                         "by the coordinator)")
+        return lines
 
 
 def check_review(m, repo, is_mutation, no_gh=False, corroborated=False, dispatch_lighting=None,
@@ -656,6 +749,11 @@ def check_review(m, repo, is_mutation, no_gh=False, corroborated=False, dispatch
     EXECUTED control (`nc_executed`, from check_negative_control under --execute-nc) on top of the
     out-of-band coordinator contract. Static corroboration is necessary and NOT sufficient: the
     artifact is worker-written either way."""
+    waiver_needs_executed_nc = (
+        "{lane}: the independent review is WAIVED in this lane, so the negative control is the ONLY "
+        "oracle left — and a control that was merely READ is a text file the worker wrote. It must be "
+        "EXECUTED (--execute-nc / ORCA_EXECUTE_NC) and go RED. Fail-closed (#256; docs/reviews/2026-09-10-review.md A1/A2/A4/"
+        "A6/A9 all landed on exactly this)")
     if not is_mutation:
         return []
     if dispatch_lighting == "dark-eligible":
@@ -665,7 +763,7 @@ def check_review(m, repo, is_mutation, no_gh=False, corroborated=False, dispatch
                     "--contract-digest) the worker-produced artifact is forgeable; fail-closed "
                     "(gate-classification.md)"]
         if not nc_executed:
-            return [_WAIVER_NEEDS_EXECUTED_NC.format(lane="dark-eligible mutation")]
+            return [waiver_needs_executed_nc.format(lane="dark-eligible mutation")]
         return ["NOTE: independent review waived — dark-eligible unit (gate-classification.md); the "
                 "EXECUTED negative control + tests are the oracle, not a human review"]
     head = m.get("head_sha")
@@ -683,7 +781,7 @@ def check_review(m, repo, is_mutation, no_gh=False, corroborated=False, dispatch
                     "coordinator contract (--contract-source + --contract-digest) — fail-closed "
                     "(sign the dispatch record; merge-serialization.md)"]
         if not nc_executed:
-            return [_WAIVER_NEEDS_EXECUTED_NC.format(lane="no-gh mutation unit")]
+            return [waiver_needs_executed_nc.format(lane="no-gh mutation unit")]
         return ["NOTE: no-gh review is coordinator-attested via the frozen out-of-band contract (local "
                 "reviewer artifact at head_sha) plus an EXECUTED negative control, not GitHub-verified "
                 "— the weaker guarantee (merge-serialization.md)"]
@@ -692,6 +790,9 @@ def check_review(m, repo, is_mutation, no_gh=False, corroborated=False, dispatch
         return ["mutation unit: no pr.number to look up an independent review — unreviewed"]
     if not repo:
         return ["mutation unit: --repo not resolvable — cannot verify the review independently"]
+    authority = _Authority.review_leg(repo)
+    if any(not line.startswith("NOTE:") for line in authority):
+        return authority
     reviews, err = fetch_reviews(repo, number)
     if err:
         return [f"mutation unit: cannot fetch reviews for {repo}#{number} ({err}) — fail-closed"]
@@ -707,7 +808,7 @@ def check_review(m, repo, is_mutation, no_gh=False, corroborated=False, dispatch
         return [f"mutation unit: no INDEPENDENT APPROVED review at head_sha on {repo}#{number} "
                 f"(the PR author's own approval and superseded reviews do not count; a review at "
                 f"reviewed_sha only counts when reviewed_wtree binds its tree to the head's)"]
-    return []
+    return authority  # [] or the advisory NOTEs (h409 F-1/F-2)
 
 
 NC_TIMEOUT_S = 600
@@ -1869,7 +1970,7 @@ class _Transcript:
     TOOLCHAIN = ("verify.py", "_verify_sig.py", "diff_scope.py", "ed25519.py", "dispatch-sign.py")
     ARGS = ("contract_source", "contract_digest", "repo", "base", "symbol", "execute_nc",
             "unit_class", "no_gh", "lighting", "dispatch_record", "dispatch_pubkey",
-            "nc_command", "git_dir", "evidence_root")
+            "nc_command", "git_dir", "evidence_root", "provenance")
 
     @classmethod
     def canonical(cls, record):
@@ -2208,7 +2309,16 @@ def main(argv=None):
     ap.add_argument("--contract-source", default=None,
                     help="AUTHORITATIVE frozen contract (path@ref), from the dispatch record — not the manifest")
     ap.add_argument("--contract-digest", default=None, help="AUTHORITATIVE sha256 of the frozen contract")
-    ap.add_argument("--repo", default=None, help="owner/name for the review lookup (default: infer from origin)")
+    ap.add_argument("--repo", default=None,
+                    help="owner/name for the review lookup. REQUIRED on a lane claiming soundness "
+                         "(--provenance ci|mcp|sdk|dispatch, or a signed dispatch record + pubkey); "
+                         "elsewhere inferred from origin and recorded as ADVISORY — origin is a "
+                         "remote the worker can rewrite (h409 F-2)")
+    ap.add_argument("--provenance", default=None,
+                    help="ci|mcp|sdk|dispatch asserts the env came from OFF the worker (verify-gate.sh "
+                         "forwards ORCA_PROVENANCE). On such a lane the review authority must be "
+                         "sound: an explicit --repo, and a gh binary outside any worker-writable "
+                         "location — else the review leg fails closed (h409 F-1/F-2)")
     ap.add_argument("--nc-command", default=None,
                     help="AUTHORITATIVE criterion-bound command for --execute-nc, supplied out of "
                          "band by the coordinator. REQUIRED by --execute-nc (#279): the manifest "
@@ -2292,8 +2402,12 @@ def main(argv=None):
             print(f"usage: {err}", file=sys.stderr)
         return 1
     _ROOTS.update(git=roots["--git-dir"], evidence=roots["--evidence-root"])
+    # h409 F-1: the review authority is pinned HERE, before any check runs and long before the
+    # executed negative control runs worker code — never looked up lazily after it.
+    repo = _Authority.resolve(args.provenance,
+                              bool(args.dispatch_record and args.dispatch_pubkey), args.repo)
     out, load_err = verify(args.manifest, args.contract_source, args.contract_digest,
-                           args.repo or infer_repo(), args.base, args.symbol, args.execute_nc,
+                           repo, args.base, args.symbol, args.execute_nc,
                            args.unit_class, args.no_gh, args.lighting,
                            args.dispatch_record, args.dispatch_pubkey, args.nc_command)
     if load_err:

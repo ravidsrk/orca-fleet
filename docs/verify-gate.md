@@ -83,7 +83,14 @@ worker-set; anything else in the environment is ignored):
   are the same worker's, so a determined unit can name some other docs-only range. That is the
   [trust boundary](#trust-boundary) result, not a gap this check can close. What it buys is
   that the cheap downgrade fails and the expensive one is labelled.
-- `ORCA_REPO` — `owner/name` for the independent GitHub review lookup (optional; inferred from origin).
+- `ORCA_REPO` — `owner/name` for the independent GitHub review lookup. **Required on the sound
+  surfaces** (`ORCA_PROVENANCE` set, or an enforcement-mode run): without it verify.py fails the
+  review leg closed rather than infer the repository from `origin` — a remote the worker, and every
+  sibling worktree sharing `.git`, can rewrite. On the native lane the inference stands and the
+  verdict records it as advisory (h409 F-2). The review **authority** is held to the same bar
+  (h409 F-1): `gh` is resolved to an absolute path once, at startup, before the executed negative
+  control runs any worker code; a `gh` under a work tree, the temp dir, or a user-writable dir that
+  is not a standard system bin dir is fatal on a sound lane and an advisory `NOTE` elsewhere.
 - `ORCA_BASE` / `ORCA_SYMBOL` — ancestry-check base branch / a unit symbol to grep on it (optional).
 - `ORCA_NC_COMMAND` — the **authoritative** criterion-bound command the negative control must turn
   RED, supplied out of band exactly as the frozen contract is. It is forwarded as `--nc-command`,
@@ -121,7 +128,8 @@ worker-set; anything else in the environment is ignored):
   reason: six of the ten manifest-gaming attacks in the 2026-09-10 review landed in these two lanes,
   every one of them on a negative-control artifact nobody executed.
 - `ORCA_PROVENANCE` — `ci|mcp|sdk|dispatch` asserts the env came from OFF the worker; suppresses the
-  advisory `NOTE`.
+  advisory `NOTE` and is forwarded as `--provenance`, under which the review authority (an explicit
+  `ORCA_REPO`, a `gh` outside any worker-writable location) is required, not merely noted.
 - `ORCA_DISPATCH_RECORD` — the coordinator-signed dispatch envelope (path, or `path@ref`) binding the
   contract digest, unit class, and lighting (#135).
 - `ORCA_DISPATCH_PUBKEY` — the Ed25519 verifying key, overriding key discovery; trustworthy only when

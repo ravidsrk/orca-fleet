@@ -823,6 +823,11 @@ class ReviewPagination(unittest.TestCase):
         self._env = {"PATH": f"{fakebin}{os.pathsep}{os.environ['PATH']}",
                      "FAKE_GH_PAGE1": str(self._page1),
                      "FAKE_GH_PAGE2": str(self._page2)}
+        # h409 F-1: the authority is pinned once per run; a library caller pins on first use, so
+        # each test's fresh fakebin needs the pin cleared (and its temp-dir gh is, correctly,
+        # classed worker-writable — advisory NOTEs, not fatals, on this unlabelled lane).
+        verify._Authority.reset()
+        self.addCleanup(verify._Authority.reset)
 
     def tearDown(self):
         self._tmp.cleanup()
@@ -844,7 +849,7 @@ class ReviewPagination(unittest.TestCase):
         res = self._verdict_with_pages(self._filler(30),
                                        [{"state": "APPROVED", "commit_id": "H",
                                          "user": {"login": "carol"}}])
-        self.assertEqual(res, [])
+        self.assertEqual([e for e in res if not e.startswith("NOTE:")], [])
 
     def test_page2_changes_requested_supersedes_page1_approval(self):
         page1 = self._filler(29) + [{"state": "APPROVED", "commit_id": "H",
@@ -858,7 +863,7 @@ class ReviewPagination(unittest.TestCase):
         res = self._verdict_with_pages(self._filler(30),
                                        [{"state": "APPROVED", "commit_id": "H",
                                          "user": {"login": "carol"}}])
-        self.assertEqual(res, [])
+        self.assertEqual([e for e in res if not e.startswith("NOTE:")], [])
 
     def test_gh_error_fails_closed(self):
         self._page1.write_text("not json\n", encoding="utf-8")
@@ -1314,14 +1319,10 @@ class InferRepoFromOrigin(unittest.TestCase):
         self.assertIsNone(verify.infer_repo())
 
 
-class EndToEndMutationGreen(RepoCase):
-    """#183: a complete mutation manifest must drive verify() to GREEN (exit 0) END-TO-END — every
-    mutation lane (scope, SHAs, review, negative control, intent, lighting, reviewer_mode) passing
-    simultaneously through the aggregation's NOTE/fatal partition. Only the GitHub fetch seam
-    (fetch_reviews / fetch_pr_author) is mocked; every other check re-derives from real authorities
-    (a temp git repo for the SHAs, the frozen contract, the NC artifact). Component tests cover
-    each lane; this is the only net for their composition — a partition or NOTE-wording regression
-    (a pass path that stops starting with "NOTE:") flips these tests red."""
+class MutationFixture(RepoCase):
+    """A complete, REAL mutation unit in a hermetic repo (the #183 fixture): a module the fix
+    changes, a criterion-bound proof command, the frozen contract, the NC artifact — with only
+    the GitHub fetch seam mocked. Test classes compose it; it carries no tests itself."""
 
     def setUp(self):
         super().setUp()
@@ -1412,6 +1413,28 @@ class EndToEndMutationGreen(RepoCase):
         return {"tool": "revert", "result": "RED — the bound test failed under the control",
                 "artifact": self.nc_artifact, "command": self.proof_cmd, "paths": ["app.py"]}
 
+    def _run_main(self, path, *extra):
+        buf, errbuf = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(errbuf):
+            rc = verify.main(["--manifest", path,
+                              "--contract-source", self.contract,
+                              "--contract-digest", self.digest,
+                              "--unit-class", "mutation", *extra])
+        return rc, buf.getvalue(), errbuf.getvalue()
+
+
+class EndToEndMutationGreen(MutationFixture):
+    """#183: a complete mutation manifest must drive verify() to GREEN (exit 0) END-TO-END — every
+    mutation lane (scope, SHAs, review, negative control, intent, lighting, reviewer_mode) passing
+    simultaneously through the aggregation's NOTE/fatal partition. Only the GitHub fetch seam
+    (fetch_reviews / fetch_pr_author) is mocked; every other check re-derives from real authorities
+    (a temp git repo for the SHAs, the frozen contract, the NC artifact). Component tests cover
+    each lane; this is the only net for their composition — a partition or NOTE-wording regression
+    (a pass path that stops starting with "NOTE:") flips these tests red."""
+
+    def _run_main(self, path, *extra):
+        return super()._run_main(path, "--repo", "o/r", *extra)
+
     def test_full_pass_mutation_manifest_is_green_end_to_end(self):
         path = self._manifest()
         out, err = verify.verify(path, self.contract, self.digest, repo="o/r",
@@ -1434,15 +1457,6 @@ class EndToEndMutationGreen(RepoCase):
         self.assertEqual(rc, 0)
         self.assertIn("verify: OK", buf.getvalue())
         self._assert_mutation_lanes_ran()
-
-    def _run_main(self, path, *extra):
-        buf, errbuf = io.StringIO(), io.StringIO()
-        with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(errbuf):
-            rc = verify.main(["--manifest", path,
-                              "--contract-source", self.contract,
-                              "--contract-digest", self.digest,
-                              "--repo", "o/r", "--unit-class", "mutation", *extra])
-        return rc, buf.getvalue(), errbuf.getvalue()
 
     def test_dark_eligible_with_an_executed_revert_is_green(self):
         # #255 + #256, the whole point: the review-waived lane goes GREEN only when the negative
@@ -3954,3 +3968,131 @@ class TranscriptKeyCustody(SignedTranscript):
         self.assertIn("custody", err)
         self.assertIn("0600", err)
         self.assertEqual(set(self._envelope()), {"record", "sig_b64"})
+
+
+class ReviewAuthorityPinnedBeforeTheControl(MutationFixture):
+    """h409 F-1 (C5): the same-run false GREEN. `gh` was a bare PATH lookup made AFTER the executed
+    negative control ran the unit's own test code with the verifier's privileges — so a committed
+    check.py could drop a stub `gh` into an empty user-writable dir first on PATH and the LATER
+    review leg read a fabricated APPROVED from it (verified: exit 0, no stub present at start).
+    The authority is now resolved to an absolute path ONCE, at startup, and only that path is
+    invoked; a binary in a worker-writable location is advisory on the native lane and fatal on
+    a lane that claims soundness."""
+
+    def setUp(self):
+        super().setUp()
+        verify.fetch_reviews = self._orig_r  # the REAL fetch: this test is about the binary it runs
+        verify.fetch_pr_author = self._orig_a
+        self._pathtmp = tempfile.TemporaryDirectory(prefix="orca-c5-")
+        self.addCleanup(self._pathtmp.cleanup)
+        root = Path(self._pathtmp.name)
+        self.droppable = root / "bin"          # EMPTY, user-writable, FIRST on PATH
+        self.droppable.mkdir()
+        realgh = root / "realgh"               # the stand-in "real" gh: never answers, no network
+        realgh.mkdir()
+        (realgh / "gh").write_text("#!/bin/sh\necho 'gh: Not Found (HTTP 404)' >&2\nexit 1\n")
+        (realgh / "gh").chmod(0o755)
+        self.dropped_log = root / "dropped-gh.log"
+        # The worker's committed proof command: plant a gh, THEN assert the criterion.
+        stub = ("#!/bin/sh\n"
+                f"echo \"DROPPED-GH ARGV: $*\" >> {shlex.quote(str(self.dropped_log))}\n"
+                "case \"$*\" in *reviews*) echo '[{\"state\":\"APPROVED\",\"commit_id\":\"'\"$HEAD\"'\","
+                "\"user\":{\"login\":\"carol\"}}]';; *) echo '{\"user\":{\"login\":\"alice\"}}';; esac\n")
+        self.write("check.py",
+                   "import os, pathlib, stat\n"
+                   f"d = pathlib.Path({str(self.droppable)!r})\n"
+                   f"gh = d / 'gh'\n"
+                   f"gh.write_text({stub!r}.replace('$HEAD', os.environ.get('ORCA_HEAD', '')))\n"
+                   "gh.chmod(0o755)\n"
+                   "import app\nassert app.f() == 2, 'AC-1 violated'\n")
+        self.head_sha = self.commit("head: proof command that plants a gh")
+        self.head_tree = self.git("rev-parse", "HEAD^{tree}")
+        self._env = {"PATH": f"{self.droppable}{os.pathsep}{realgh}{os.pathsep}{os.environ['PATH']}",
+                     "ORCA_HEAD": self.head_sha}
+        if hasattr(verify, "_Authority"):  # absent on the pre-F-1 verifier: the revert control
+            verify._Authority.reset()
+            self.addCleanup(verify._Authority.reset)
+
+    def _attack(self, *extra):
+        path = self._manifest(nc=self._revert_nc())
+        with mock.patch.dict(os.environ, self._env):
+            return self._run_main(path, "--repo", "o/r", "--execute-nc",
+                                  "--nc-command", self.proof_cmd, *extra)
+
+    def test_a_gh_dropped_by_the_executed_control_never_answers_the_review_leg(self):
+        rc, out, err = self._attack()
+        self.assertEqual(rc, 2, out + err)
+        self.assertIn("negative control EXECUTED", out)          # the control DID run worker code
+        self.assertTrue((self.droppable / "gh").exists(), "the attack did not plant its gh")
+        self.assertFalse(self.dropped_log.exists(),
+                         "the planted gh was consulted — the authority was resolved after the control")
+        self.assertIn("cannot fetch reviews", err)               # the pre-pinned stand-in answered
+
+    def test_a_worker_writable_gh_is_fatal_on_a_sound_lane(self):
+        (self.droppable / "gh").write_text("#!/bin/sh\necho '[]'\n")
+        (self.droppable / "gh").chmod(0o755)
+        rc, out, err = self._attack("--provenance", "ci")
+        self.assertEqual(rc, 2, out + err)
+        self.assertIn("review_authority", err)
+        self.assertIn("worker-writable", err)
+        self.assertIn("provenance=ci", err)
+
+    def test_a_worker_writable_gh_is_advisory_on_the_native_lane(self):
+        # A gh already sitting in the writable dir before the run answers (through its pinned
+        # absolute path) — but the verdict RECORDS that the authority was worker-writable.
+        (self.droppable / "gh").write_text(
+            "#!/bin/sh\ncase \"$*\" in *reviews*) echo '[{\"state\":\"APPROVED\",\"commit_id\":\"'\"$ORCA_HEAD\"'\","
+            "\"user\":{\"login\":\"carol\"}}]';; *) echo '{\"user\":{\"login\":\"alice\"}}';; esac\n")
+        (self.droppable / "gh").chmod(0o755)
+        rc, out, err = self._attack()
+        self.assertEqual(rc, 0, out + err)
+        self.assertIn("NOTE: review_authority: advisory (gh at", out)
+        self.assertIn("worker-writable", out)
+
+    def test_a_system_gh_is_classed_system(self):
+        self.assertEqual(verify._Authority.classify("/usr/bin/gh"), "system")
+        self.assertEqual(verify._Authority.classify(str(self.droppable / "gh")), "worker-writable")
+        self.assertEqual(verify._Authority.classify(str(self.repo / "gh")), "worker-writable")
+
+
+class ReviewRepoIsCoordinatorPinned(MutationFixture):
+    """h409 F-2 (C1): with --repo omitted the review repository was inferred from the clone's
+    origin URL — a remote the worker (and every sibling worktree sharing .git) can rewrite. On a
+    lane claiming soundness that inference is REFUSED; on the native lane it is recorded as
+    advisory with its source."""
+
+    def setUp(self):
+        super().setUp()
+        self.git("remote", "add", "origin", "https://github.com/evil/mirror.git")
+        verify._Authority.reset()
+        self.addCleanup(verify._Authority.reset)
+        # This class is about the REPO; whatever gh this host carries is classed system so the
+        # F-1 custody leg stays out of the picture (the fetch itself is mocked by the fixture).
+        patcher = mock.patch.object(verify._Authority, "classify", return_value="system")
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_no_repo_on_a_sound_lane_refuses_to_infer(self):
+        rc, out, err = self._run_main(self._manifest(), "--provenance", "mcp")
+        self.assertEqual(rc, 2, out + err)
+        self.assertIn("review_repo", err)
+        self.assertIn("evil/mirror", err)
+        self.assertIn("explicit --repo", err)
+
+    def test_no_repo_on_the_native_lane_is_advisory_and_recorded(self):
+        rc, out, err = self._run_main(self._manifest())
+        self.assertEqual(rc, 0, out + err)
+        self.assertIn("NOTE: review_repo: advisory ('evil/mirror' inferred from origin", out)
+
+    def test_an_explicit_repo_on_a_sound_lane_passes_without_the_note(self):
+        rc, out, err = self._run_main(self._manifest(), "--provenance", "mcp", "--repo", "real/project")
+        self.assertEqual(rc, 0, out + err)
+        self.assertNotIn("review_repo", out + err)
+
+    def test_the_transcript_signs_the_provenance(self):
+        key = self.seed_file(bytes(range(1, 33)))
+        rc, out, err = self._run_main(self._manifest(), "--repo", "real/project", "--provenance", "ci",
+                                      "--transcript-out", "docs/reports/u/t.json", "--transcript-key", key)
+        self.assertEqual(rc, 0, out + err)
+        rec = json.loads((self.repo / "docs/reports/u/t.json").read_text())["record"]
+        self.assertEqual(rec["args"]["provenance"], "ci")
